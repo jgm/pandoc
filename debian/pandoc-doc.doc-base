@@ -1,0 +1,11 @@
+Document: pandoc-doc
+Title: Pandoc documentation
+Author: John MacFarlane
+Abstract: This is the documentation of Pandoc, which includes the API
+ documentation of the Pandoc library and documentation for the Pandoc
+ tools. 
+Section: Apps/Programming
+
+Format: html
+Index: /usr/share/doc/pandoc-doc/index.html
+Files: /usr/share/doc/pandoc-doc/*.html /usr/share/doc/pandoc-doc/pandoc/*.html

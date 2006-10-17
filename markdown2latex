@@ -1,0 +1,7 @@
+#!/bin/sh -e
+# converts markdown to latex
+[ -n "$(which pandoc)" ] || {
+    echo >&2 "You need 'pandoc' to use this program!"
+    exit 1
+}
+iconv -t utf-8 $* | pandoc -w latex -s 

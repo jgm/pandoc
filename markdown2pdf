@@ -1,0 +1,44 @@
+#!/bin/sh -e
+# converts markdown to latex, then uses latex to make a PDF
+
+[ -n "$(which pandoc)" ] || {
+    echo >&2 "You need 'pandoc' to use this program!"
+    exit 1
+}
+[ -n "$(which pdflatex)" ] || {
+    echo >&2 "You need 'pdflatex' to use this program!"
+    exit 1
+}
+
+TEMP=${TMPDIR-/tmp}/markdown2pdf.$$
+trap "status=$?; rm -rf $TEMP; exit $status" 0 INT
+
+if [ -z "$1" ]; then
+    BASE='stdin' # input is STDIN, since no argument given
+else
+    filename=${1##*/}
+    BASE=${filename%\.*}
+fi
+
+mkdir -p $TEMP && iconv -t utf-8 $* | pandoc -w latex -s > $TEMP/$BASE.tex  
+(
+    cd $TEMP
+    if ! pdflatex -interaction=batchmode $BASE.tex >/dev/null 2>&1; then
+	echo >&2 "LaTeX errors:"
+	cat >&2 $BASE.log
+	exit 1
+    fi
+) || exit $?
+
+is_target_exists=
+if [ -f $BASE.pdf ]; then
+    is_target_exists=1
+fi
+
+cp --suffix=~ --backup $TEMP/$BASE.pdf .
+
+echo -n >&2 "Created $BASE.pdf"
+[ -z "$is_target_exists" ] || {
+    echo -n >&2 " (previous file has been backed up as '$BASE.pdf~')"
+}
+echo >&2 .

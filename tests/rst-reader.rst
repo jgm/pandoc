@@ -1,0 +1,341 @@
+Pandoc Test Suite
+#################
+Subtitle
+^^^^^^^^
+
+:Author: John MacFarlane
+:Author: Anonymous
+:Date: July 17, 2006
+:Revision: 3
+
+Level one header
+================
+
+This is a set of tests for pandoc.  Most of them are adapted from
+John Gruber's markdown test suite.
+
+Level two header
+----------------
+
+Level three
++++++++++++
+
+Level four with *emphasis*
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Level five
+''''''''''
+
+Paragraphs
+==========
+
+Here's a regular paragraph.
+
+In Markdown 1.0.0 and earlier. Version
+8. This line turns into a list item.
+Because a hard-wrapped line in the
+middle of a paragraph looked like a
+list item.
+
+Here's one with a bullet.
+* criminey.
+
+Horizontal rule:
+
+-----
+
+Another:
+
+****
+
+Block Quotes
+============
+
+Here's a block quote:
+
+  This is a block quote.
+  It is pretty short.
+
+Here's another, differently indented:
+
+    This is a block quote.
+    It's indented with a tab.
+
+    Code in a block quote:: 
+
+        sub status {
+            print "working";
+        }
+
+    List in a block quote:
+
+    1. item one
+    2. item two
+
+    Nested block quotes:
+
+        nested
+
+            nested
+
+Code Blocks
+===========
+
+Code:
+
+::
+
+    ---- (should be four hyphens)
+
+    sub status {
+        print "working";
+    }
+
+::
+
+	this code block is indented by one tab
+
+And::
+
+		this block is indented by two tabs
+
+        These should not be escaped:  \$ \\ \> \[ \{
+
+Lists
+=====
+
+Unordered
+---------
+
+Asterisks tight:
+
+*	asterisk 1
+*	asterisk 2
+*	asterisk 3
+
+Asterisks loose:
+
+*	asterisk 1
+
+*	asterisk 2
+
+*	asterisk 3
+
+Pluses tight:
+
++	Plus 1
++	Plus 2
++	Plus 3
+
+Pluses loose:
+
++	Plus 1
+
++	Plus 2
+
++	Plus 3
+
+Minuses tight:
+
+-	Minus 1
+-	Minus 2
+-	Minus 3
+
+Minuses loose:
+
+-	Minus 1
+
+-	Minus 2
+
+-	Minus 3
+
+Ordered
+-------
+
+Tight:
+
+1.	First
+2.	Second
+3.	Third
+
+and:
+
+1. One
+2. Two
+3. Three
+
+Loose using tabs:
+
+1.	First
+
+2.	Second
+
+3.	Third
+
+and using spaces:
+
+1. One
+
+2. Two
+
+3. Three
+
+Multiple paragraphs:
+
+1.	Item 1, graf one.
+
+	Item 1. graf two. The quick brown fox jumped over the lazy dog's
+	back.
+	
+2.	Item 2.
+
+3.	Item 3.
+
+Nested:
+
+*	Tab
+
+	*	Tab
+
+		*	Tab
+
+Here's another:
+
+1. First
+
+2. Second:
+
+	* Fee
+	* Fie
+	* Foe
+
+3. Third 
+
+HTML Blocks
+===========
+
+Simple block on one line:
+
+.. raw:: html
+
+    <div>foo</div>
+
+Now, nested:
+
+.. raw:: html
+
+    <div>
+	    <div>
+		    <div>
+			    foo
+		    </div>
+	    </div>
+    </div>
+
+LaTeX Block
+===========
+
+.. raw:: latex
+
+   \begin{tabular}{|l|l|}\hline
+   Animal & Number \\ \hline
+   Dog    & 2      \\
+   Cat    & 1      \\ \hline
+   \end{tabular}
+
+Inline Markup
+=============
+
+This is *emphasized*. This is **strong**.
+
+This is code: ``>``, ``$``, ``\``, ``\$``, ``<html>``.
+
+Special Characters
+==================
+
+Here is some unicode:
+
+- I hat: Î
+- o umlaut: ö
+- section: § 
+- set membership: ∈
+- copyright: ©
+
+AT&T has an ampersand in their name.
+
+This & that.
+
+4 < 5.
+
+6 > 5.
+
+Backslash: \\
+
+Backtick: \`
+
+Asterisk: \*
+
+Underscore: \_
+
+Left brace: \{
+
+Right brace: \}
+
+Left bracket: \[
+
+Right bracket: \]
+
+Left paren: \(
+
+Right paren: \)
+
+Greater-than: \>
+
+Hash: \#
+
+Period: \.
+
+Bang: \!
+
+Plus: \+
+
+Minus: \-
+
+Links
+=====
+
+Explicit:  a `URL </url/>`_.
+
+Two anonymous links:  `the first`__ and `the second`__
+
+__ /url1/
+__ /url2/
+
+Reference links:  `link1`_ and `link2`_ and link1_ again.
+
+.. _link1: /url1/
+.. _`link2`: /url2/
+
+Here's a `link with an ampersand in the URL`_.
+
+Here's a link with an amersand in the link text: `AT&T </url/>`_.
+
+.. _link with an ampersand in the URL: http://example.com/?foo=1&bar=2
+
+Autolinks: http://example.com/?foo=1&bar=2 and nobody@nowhere.net.
+
+But not here::
+
+    http://example.com/
+
+Images
+======
+
+From "Voyage dans la Lune" by Georges Melies (1902):
+
+.. image:: lalune.jpg
+
+Here is a movie |movie| icon.
+
+.. |movie| image:: movie.jpg
+

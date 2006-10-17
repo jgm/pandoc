@@ -1,0 +1,175 @@
+Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str "Subtitle"] ["John MacFarlane","Anonymous"] "July 17, 2006")
+[ BlockQuote
+  [ Para [Strong [Str "Revision"],Str ":",Space,Str "3"] ]
+
+, Header 1 [Str "Level",Space,Str "one",Space,Str "header"]
+, Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc.",Space,Str "Most",Space,Str "of",Space,Str "them",Space,Str "are",Space,Str "adapted",Space,Str "from",Space,Str "John",Space,Str "Gruber's",Space,Str "markdown",Space,Str "test",Space,Str "suite."]
+, Header 2 [Str "Level",Space,Str "two",Space,Str "header"]
+, Header 3 [Str "Level",Space,Str "three"]
+, Header 4 [Str "Level",Space,Str "four",Space,Str "with",Space,Emph [Str "emphasis"]]
+, Header 5 [Str "Level",Space,Str "five"]
+, Header 1 [Str "Paragraphs"]
+, Para [Str "Here's",Space,Str "a",Space,Str "regular",Space,Str "paragraph."]
+, Para [Str "In",Space,Str "Markdown",Space,Str "1.0.0",Space,Str "and",Space,Str "earlier.",Space,Str "Version",Space,Str "8.",Space,Str "This",Space,Str "line",Space,Str "turns",Space,Str "into",Space,Str "a",Space,Str "list",Space,Str "item.",Space,Str "Because",Space,Str "a",Space,Str "hard",Str "-",Str "wrapped",Space,Str "line",Space,Str "in",Space,Str "the",Space,Str "middle",Space,Str "of",Space,Str "a",Space,Str "paragraph",Space,Str "looked",Space,Str "like",Space,Str "a",Space,Str "list",Space,Str "item."]
+, Para [Str "Here's",Space,Str "one",Space,Str "with",Space,Str "a",Space,Str "bullet.",Space,Str "*",Space,Str "criminey."]
+, Para [Str "Horizontal",Space,Str "rule",Str ":"]
+, HorizontalRule
+, Para [Str "Another",Str ":"]
+, HorizontalRule
+, Header 1 [Str "Block",Space,Str "Quotes"]
+, Para [Str "Here's",Space,Str "a",Space,Str "block",Space,Str "quote",Str ":"]
+, BlockQuote
+  [ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "block",Space,Str "quote.",Space,Str "It",Space,Str "is",Space,Str "pretty",Space,Str "short."] ]
+
+, Para [Str "Here's",Space,Str "another,",Space,Str "differently",Space,Str "indented",Str ":"]
+, BlockQuote
+  [ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "block",Space,Str "quote.",Space,Str "It's",Space,Str "indented",Space,Str "with",Space,Str "a",Space,Str "tab."]
+  , Para [Str "Code",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote",Str ":"]
+  , CodeBlock "sub status {\n    print \"working\";\n}\n"
+  , Para [Str "List",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote",Str ":"]
+  , OrderedList
+    [ [ Plain [Str "item",Space,Str "one"] ]
+    , [ Plain [Str "item",Space,Str "two"] ] ]
+  , Para [Str "Nested",Space,Str "block",Space,Str "quotes",Str ":"]
+  , BlockQuote
+    [ Para [Str "nested"]
+    , BlockQuote
+      [ Para [Str "nested"] ]
+     ] ]
+, Header 1 [Str "Code",Space,Str "Blocks"]
+, Para [Str "Code",Str ":"]
+, CodeBlock "---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}\n"
+, CodeBlock "this code block is indented by one tab\n"
+, Para [Str "And",Str ":"]
+, CodeBlock "    this block is indented by two tabs\n\n    These should not be escaped:  \\$ \\\\ \\> \\[ \\{\n"
+, Header 1 [Str "Lists"]
+, Header 2 [Str "Unordered"]
+, Para [Str "Asterisks",Space,Str "tight",Str ":"]
+, BulletList
+  [ [ Plain [Str "asterisk",Space,Str "1"] ]
+  , [ Plain [Str "asterisk",Space,Str "2"] ]
+  , [ Plain [Str "asterisk",Space,Str "3"] ] ]
+, Para [Str "Asterisks",Space,Str "loose",Str ":"]
+, BulletList
+  [ [ Para [Str "asterisk",Space,Str "1"] ]
+  , [ Para [Str "asterisk",Space,Str "2"] ]
+  , [ Para [Str "asterisk",Space,Str "3"] ] ]
+, Para [Str "Pluses",Space,Str "tight",Str ":"]
+, BulletList
+  [ [ Plain [Str "Plus",Space,Str "1"] ]
+  , [ Plain [Str "Plus",Space,Str "2"] ]
+  , [ Plain [Str "Plus",Space,Str "3"] ] ]
+, Para [Str "Pluses",Space,Str "loose",Str ":"]
+, BulletList
+  [ [ Para [Str "Plus",Space,Str "1"] ]
+  , [ Para [Str "Plus",Space,Str "2"] ]
+  , [ Para [Str "Plus",Space,Str "3"] ] ]
+, Para [Str "Minuses",Space,Str "tight",Str ":"]
+, BulletList
+  [ [ Plain [Str "Minus",Space,Str "1"] ]
+  , [ Plain [Str "Minus",Space,Str "2"] ]
+  , [ Plain [Str "Minus",Space,Str "3"] ] ]
+, Para [Str "Minuses",Space,Str "loose",Str ":"]
+, BulletList
+  [ [ Para [Str "Minus",Space,Str "1"] ]
+  , [ Para [Str "Minus",Space,Str "2"] ]
+  , [ Para [Str "Minus",Space,Str "3"] ] ]
+, Header 2 [Str "Ordered"]
+, Para [Str "Tight",Str ":"]
+, OrderedList
+  [ [ Plain [Str "First"] ]
+  , [ Plain [Str "Second"] ]
+  , [ Plain [Str "Third"] ] ]
+, Para [Str "and",Str ":"]
+, OrderedList
+  [ [ Plain [Str "One"] ]
+  , [ Plain [Str "Two"] ]
+  , [ Plain [Str "Three"] ] ]
+, Para [Str "Loose",Space,Str "using",Space,Str "tabs",Str ":"]
+, OrderedList
+  [ [ Para [Str "First"] ]
+  , [ Para [Str "Second"] ]
+  , [ Para [Str "Third"] ] ]
+, Para [Str "and",Space,Str "using",Space,Str "spaces",Str ":"]
+, OrderedList
+  [ [ Para [Str "One"] ]
+  , [ Para [Str "Two"] ]
+  , [ Para [Str "Three"] ] ]
+, Para [Str "Multiple",Space,Str "paragraphs",Str ":"]
+, OrderedList
+  [ [ Para [Str "Item",Space,Str "1,",Space,Str "graf",Space,Str "one."]
+    , Para [Str "Item",Space,Str "1.",Space,Str "graf",Space,Str "two.",Space,Str "The",Space,Str "quick",Space,Str "brown",Space,Str "fox",Space,Str "jumped",Space,Str "over",Space,Str "the",Space,Str "lazy",Space,Str "dog's",Space,Str "back."] ], [ Para [Str "Item",Space,Str "2."] ]
+  , [ Para [Str "Item",Space,Str "3."] ] ]
+, Para [Str "Nested",Str ":"]
+, BulletList
+  [ [ Para [Str "Tab"]
+    , BulletList
+      [ [ Para [Str "Tab"]
+        , BulletList
+          [ [ Plain [Str "Tab"] ]
+         ] ] ] ] ]
+, Para [Str "Here's",Space,Str "another",Str ":"]
+, OrderedList
+  [ [ Para [Str "First"] ]
+  , [ Para [Str "Second",Str ":"]
+    , BlockQuote
+      [ BulletList
+        [ [ Plain [Str "Fee"] ]
+        , [ Plain [Str "Fie"] ]
+        , [ Plain [Str "Foe"] ] ] ] ], [ Para [Str "Third"] ] ]
+, Header 1 [Str "HTML",Space,Str "Blocks"]
+, Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line",Str ":"]
+, RawHtml "<div>foo</div>\n"
+, Para [Str "Now,",Space,Str "nested",Str ":"]
+, RawHtml "<div>\n    <div>\n        <div>\n            foo\n        </div>\n    </div>\n</div>\n"
+, Header 1 [Str "LaTeX",Space,Str "Block"]
+, Para [TeX "\\begin{tabular}{|l|l|}\\hline\nAnimal & Number \\\\ \\hline\nDog    & 2      \\\\\nCat    & 1      \\\\ \\hline\n\\end{tabular}\n"]
+, Header 1 [Str "Inline",Space,Str "Markup"]
+, Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ".",Space,Str "This",Space,Str "is",Space,Strong [Str "strong"],Str "."]
+, Para [Str "This",Space,Str "is",Space,Str "code",Str ":",Space,Code ">",Str ",",Space,Code "$",Str ",",Space,Code "\\",Str ",",Space,Code "\\$",Str ",",Space,Code "<html>",Str "."]
+, Header 1 [Str "Special",Space,Str "Characters"]
+, Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "unicode",Str ":"]
+, BulletList
+  [ [ Plain [Str "I",Space,Str "hat",Str ":",Space,Str "\206"] ]
+  , [ Plain [Str "o",Space,Str "umlaut",Str ":",Space,Str "\246"] ]
+  , [ Plain [Str "section",Str ":",Space,Str "\167"] ]
+  , [ Plain [Str "set",Space,Str "membership",Str ":",Space,Str "\8712"] ]
+  , [ Plain [Str "copyright",Str ":",Space,Str "\169"] ] ]
+, Para [Str "AT&T",Space,Str "has",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "their",Space,Str "name."]
+, Para [Str "This",Space,Str "&",Space,Str "that."]
+, Para [Str "4",Space,Str "<",Space,Str "5."]
+, Para [Str "6",Space,Str ">",Space,Str "5."]
+, Para [Str "Backslash",Str ":",Space,Str "\\"]
+, Para [Str "Backtick",Str ":",Space,Str "`"]
+, Para [Str "Asterisk",Str ":",Space,Str "*"]
+, Para [Str "Underscore",Str ":",Space,Str "_"]
+, Para [Str "Left",Space,Str "brace",Str ":",Space,Str "{"]
+, Para [Str "Right",Space,Str "brace",Str ":",Space,Str "}"]
+, Para [Str "Left",Space,Str "bracket",Str ":",Space,Str "["]
+, Para [Str "Right",Space,Str "bracket",Str ":",Space,Str "]"]
+, Para [Str "Left",Space,Str "paren",Str ":",Space,Str "("]
+, Para [Str "Right",Space,Str "paren",Str ":",Space,Str ")"]
+, Para [Str "Greater",Str "-",Str "than",Str ":",Space,Str ">"]
+, Para [Str "Hash",Str ":",Space,Str "#"]
+, Para [Str "Period",Str ":",Space,Str "."]
+, Para [Str "Bang",Str ":",Space,Str "!"]
+, Para [Str "Plus",Str ":",Space,Str "+"]
+, Para [Str "Minus",Str ":",Space,Str "-"]
+, Header 1 [Str "Links"]
+, Para [Str "Explicit",Str ":",Space,Str "a",Space,Link [Str "URL"] (Src "/url/" ""),Str "."]
+, Para [Str "Two",Space,Str "anonymous",Space,Str "links",Str ":",Space,Link [Str "the",Space,Str "first"] (Src "/url1/" ""),Space,Str "and",Space,Link [Str "the",Space,Str "second"] (Src "/url2/" "")]
+, Para [Str "Reference",Space,Str "links",Str ":",Space,Link [Str "link1"] (Ref []),Space,Str "and",Space,Link [Str "link2"] (Ref []),Space,Str "and",Space,Link [Str "link1"] (Ref []),Space,Str "again."]
+, Key [Str "link1"] (Src "/url1/" "")
+, Key [Str "link2"] (Src "/url2/" "")
+, Para [Str "Here's",Space,Str "a",Space,Link [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] (Ref []),Str "."]
+, Para [Str "Here's",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "amersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text",Str ":",Space,Link [Str "AT&T"] (Src "/url/" ""),Str "."]
+, Key [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] (Src "http://example.com/?foo=1&bar=2" "")
+, Para [Str "Autolinks",Str ":",Space,Link [Str "http://example.com/?foo=1&bar=2"] (Src "http://example.com/?foo=1&bar=2" ""),Space,Str "and",Space,Link [Str "nobody@nowhere.net"] (Src "mailto:nobody@nowhere.net" ""),Str "."]
+, Para [Str "But",Space,Str "not",Space,Str "here",Str ":"]
+, CodeBlock "http://example.com/\n"
+, Header 1 [Str "Images"]
+, Para [Str "From",Space,Str "\"Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune\"",Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(1902)",Str ":"]
+, Plain [Image [Str "image"] (Src "lalune.jpg" "")]
+, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "movie"] (Ref [Str "movie"]),Space,Str "icon."]
+, Key [Str "movie"] (Src "movie.jpg" "")
+, Blank ]

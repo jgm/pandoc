@@ -1,0 +1,581 @@
+\documentclass{article}
+\usepackage{hyperref}
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+\usepackage{graphicx}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+% This is needed for code blocks in footnotes:
+\usepackage{fancyvrb}
+\VerbatimFootnotes
+\setcounter{secnumdepth}{0}
+\title{Pandoc Test Suite}
+\author{John MacFarlane\\Anonymous}
+\date{July 17, 2006}
+\begin{document}
+\maketitle
+This is a set of tests for pandoc. Most of them are adapted from John Gruber's markdown test suite.
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\section{Headers}
+
+\subsection{Level 2 with an \href{/url}{embedded link}}
+
+\subsubsection{Level 3 with \emph{emphasis}}
+
+Level 4
+
+Level 5
+
+\section{Level 1}
+
+\subsection{Level 2 with \emph{emphasis}}
+
+\subsubsection{Level 3}
+
+with no blank line
+
+\subsection{Level 2}
+
+with no blank line
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\section{Paragraphs}
+
+Here's a regular paragraph.
+
+In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.
+
+Here's one with a bullet. * criminey.
+
+There should be a hard line break\\
+here.
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\section{Block Quotes}
+
+E-mail style:
+
+\begin{quote}
+This is a block quote. It is pretty short.
+
+\end{quote}
+\begin{quote}
+Code in a block quote:
+
+\begin{verbatim}
+sub status {
+    print "working";
+}
+\end{verbatim}
+A list:
+
+\begin{enumerate}
+\item item one
+\item item two
+\end{enumerate}
+Nested block quotes:
+
+\begin{quote}
+nested
+
+\end{quote}
+\begin{quote}
+nested
+
+\end{quote}
+\end{quote}
+This should not be a block quote: 2 \textgreater{} 1.
+
+Box-style:
+
+\begin{quote}
+Example:
+
+\begin{verbatim}
+sub status {
+    print "working";
+}
+\end{verbatim}
+\end{quote}
+\begin{quote}
+\begin{enumerate}
+\item do laundry
+\item take out the trash
+\end{enumerate}
+\end{quote}
+Here's a nested one:
+
+\begin{quote}
+Joe said:
+
+\begin{quote}
+Don't quote me.
+
+\end{quote}
+\end{quote}
+And a following paragraph.
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\section{Code Blocks}
+
+Code:
+
+\begin{verbatim}
+---- (should be four hyphens)
+
+sub status {
+    print "working";
+}
+
+this code block is indented by one tab
+\end{verbatim}
+And:
+
+\begin{verbatim}
+    this code block is indented by two tabs
+
+These should not be escaped:  \$ \\ \> \[ \{
+\end{verbatim}
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\section{Lists}
+
+\subsection{Unordered}
+
+Asterisks tight:
+
+\begin{itemize}
+\item asterisk 1
+\item asterisk 2
+\item asterisk 3
+\end{itemize}
+Asterisks loose:
+
+\begin{itemize}
+\item asterisk 1
+
+\item asterisk 2
+
+\item asterisk 3
+
+\end{itemize}
+Pluses tight:
+
+\begin{itemize}
+\item Plus 1
+\item Plus 2
+\item Plus 3
+\end{itemize}
+Pluses loose:
+
+\begin{itemize}
+\item Plus 1
+
+\item Plus 2
+
+\item Plus 3
+
+\end{itemize}
+Minuses tight:
+
+\begin{itemize}
+\item Minus 1
+\item Minus 2
+\item Minus 3
+\end{itemize}
+Minuses loose:
+
+\begin{itemize}
+\item Minus 1
+
+\item Minus 2
+
+\item Minus 3
+
+\end{itemize}
+\subsection{Ordered}
+
+Tight:
+
+\begin{enumerate}
+\item First
+\item Second
+\item Third
+\end{enumerate}
+and:
+
+\begin{enumerate}
+\item One
+\item Two
+\item Three
+\end{enumerate}
+Loose using tabs:
+
+\begin{enumerate}
+\item First
+
+\item Second
+
+\item Third
+
+\end{enumerate}
+and using spaces:
+
+\begin{enumerate}
+\item One
+
+\item Two
+
+\item Three
+
+\end{enumerate}
+Multiple paragraphs:
+
+\begin{enumerate}
+\item Item 1, graf one.
+
+Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
+
+\item Item 2.
+
+\item Item 3.
+
+\end{enumerate}
+\subsection{Nested}
+
+\begin{itemize}
+\item Tab
+\begin{itemize}
+\item Tab
+\begin{itemize}
+\item Tab
+\end{itemize}
+\end{itemize}
+\end{itemize}
+Here's another:
+
+\begin{enumerate}
+\item First
+\item Second:
+\begin{itemize}
+\item Fee
+\item Fie
+\item Foe
+\end{itemize}
+\item Third
+\end{enumerate}
+Same thing but with paragraphs:
+
+\begin{enumerate}
+\item First
+
+\item Second:
+
+\begin{itemize}
+\item Fee
+\item Fie
+\item Foe
+\end{itemize}
+\item Third
+
+\end{enumerate}
+\subsection{Tabs and spaces}
+
+\begin{itemize}
+\item this is a list item indented with tabs
+
+\item this is a list item indented with spaces
+
+\begin{itemize}
+\item this is an example list item indented with tabs
+
+\item this is an example list item indented with spaces
+
+\end{itemize}
+\end{itemize}
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\section{HTML Blocks}
+
+Simple block on one line:
+
+foo
+And nested without indentation:
+
+foo
+bar
+Interpreted markdown in a table:
+
+This is \emph{emphasized}
+And this is \textbf{strong}
+Here's a simple block:
+
+foo
+This should be a code block, though:
+
+\begin{verbatim}
+<div>
+    foo
+</div>
+\end{verbatim}
+As should this:
+
+\begin{verbatim}
+<div>foo</div>
+\end{verbatim}
+Now, nested:
+
+foo
+This should just be an HTML comment:
+
+Multiline:
+
+Code block:
+
+\begin{verbatim}
+<!-- Comment -->
+\end{verbatim}
+Just plain comment, with trailing spaces on the line:
+
+Code:
+
+\begin{verbatim}
+<hr />
+\end{verbatim}
+Hr's:
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\section{Inline Markup}
+
+This is \emph{emphasized}, and so \emph{is this}.
+
+This is \textbf{strong}, and so \textbf{is this}.
+
+An \emph{\href{/url}{emphasized link}}.
+
+\textbf{\emph{This is strong and em.}}
+
+So is \textbf{\emph{this}} word.
+
+\textbf{\emph{This is strong and em.}}
+
+So is \textbf{\emph{this}} word.
+
+This is code: \verb!>!, \verb!$!, \verb!\!, \verb!\$!, \verb!<html>!.
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\section{Smart quotes, ellipses, dashes}
+
+``Hello,'' said the spider. ``{}`Shelob' is my name.''
+
+`A', `B', and `C' are letters.
+
+`Oak,' `elm,' and `beech' are names of trees. So is `pine.'
+
+`He said, ``I want to go.''' Were you alive in the 70's?
+
+Here is some quoted `\verb!code!' and a ``\href{http://example.com/?foo=1&bar=2}{quoted link}''.
+
+Some dashes: one---two --- three---four---five.
+
+Dashes between numbers: 5--7, 255--66, 1987--1999.
+
+Ellipses\ldots{}and\ldots{}and \ldots{} .
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\section{LaTeX}
+
+\begin{itemize}
+\item \cite[22-23]{smith.1899}
+\item \doublespacing
+\item $2+2=4$
+\item $x \in y$
+\item $\alpha \wedge \omega$
+\item $223$
+\item $p$-Tree
+\item $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$
+\item Here's one that has a line break in it: $\alpha + \omega \times x^2$.
+\end{itemize}
+These shouldn't be math:
+
+\begin{itemize}
+\item To get the famous equation, write \verb!$e = mc^2$!.
+\item \$22,000 is a \emph{lot} of money. So is \$34,000. (It worked if ``lot'' is emphasized.)
+\item Escaped \verb!$!: \$73 \emph{this should be emphasized} 23\$.
+\end{itemize}
+Here's a LaTeX table:
+
+\begin{tabular}{|l|l|}\hline
+Animal & Number \\ \hline
+Dog    & 2      \\
+Cat    & 1      \\ \hline
+\end{tabular}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\section{Special Characters}
+
+Here is some unicode:
+
+\begin{itemize}
+\item I hat: Î
+\item o umlaut: ö
+\item section: §
+\item set membership: ∈
+\item copyright: ©
+\end{itemize}
+AT\&T has an ampersand in their name.
+
+AT\&T is another way to write it.
+
+This \& that.
+
+4 \textless{} 5.
+
+6 \textgreater{} 5.
+
+Backslash: \textbackslash{}
+
+Backtick: `
+
+Asterisk: *
+
+Underscore: \_
+
+Left brace: \{
+
+Right brace: \}
+
+Left bracket: [
+
+Right bracket: ]
+
+Left paren: (
+
+Right paren: )
+
+Greater-than: \textgreater{}
+
+Hash: \#
+
+Period: .
+
+Bang: !
+
+Plus: +
+
+Minus: -
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\section{Links}
+
+\subsection{Explicit}
+
+Just a \href{/url/}{URL}.
+
+\href{/url/}{URL and title}.
+
+\href{/url/}{URL and title}.
+
+\href{/url/}{URL and title}.
+
+\href{/url/}{URL and title}
+
+\href{/url/}{URL and title}
+
+\href{mailto:nobody@nowhere.net}{Email link}
+
+\href{}{Empty}.
+
+\subsection{Reference}
+
+Foo \href{/url/}{bar}.
+
+Foo \href{/url/}{bar}.
+
+Foo \href{/url/}{bar}.
+
+With \href{/url/}{embedded [brackets]}.
+
+\href{/url/}{b} by itself should be a link.
+
+Indented \href{/url}{once}.
+
+Indented \href{/url}{twice}.
+
+Indented \href{/url}{thrice}.
+
+This should [not] be a link.
+
+\begin{verbatim}
+[not]: /url
+\end{verbatim}
+Foo \href{/url/}{bar}.
+
+Foo \href{/url/}{biz}.
+
+\subsection{With ampersands}
+
+Here's a \href{http://example.com/?foo=1&bar=2}{link with an ampersand in the URL}.
+
+Here's a link with an amersand in the link text: \href{http://att.com/}{AT\&T}.
+
+Here's an \href{/script?foo=1&bar=2}{inline link}.
+
+Here's an \href{/script?foo=1&bar=2}{inline link in pointy braces}.
+
+\subsection{Autolinks}
+
+With an ampersand: \href{http://example.com/?foo=1&bar=2}{http://example.com/?foo=1\&bar=2}
+
+\begin{itemize}
+\item In a list?
+\item \href{http://example.com/}{http://example.com/}
+\item It should.
+\end{itemize}
+An e-mail address: \href{mailto:nobody@nowhere.net}{nobody@nowhere.net}
+
+\begin{quote}
+Blockquoted: \href{http://example.com/}{http://example.com/}
+
+\end{quote}
+Auto-links should not occur here: \verb!<http://example.com/>!
+
+\begin{verbatim}
+or here: <http://example.com/>
+\end{verbatim}
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\section{Images}
+
+From ``Voyage dans la Lune'' by Georges Melies (1902):
+
+\includegraphics{lalune.jpg}
+
+Here is a movie \includegraphics{movie.jpg} icon.
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\section{Footnotes}
+
+Here is a footnote reference\footnote{Here is the footnote. It can go anywhere in the document, not just at the end.}, and another\footnote{Here's the other note. This one contains multiple blocks.
+
+Caret characters are used to indicate that the blocks all belong to a single footnote (as with block quotes).
+
+\begin{verbatim}
+  { <code> }
+\end{verbatim}
+If you want, you can use a caret at the beginning of every line, as with blockquotes, but all that you need is a caret at the beginning of the first line of the block and any preceding blank lines.}. This should \emph{not} be a footnote reference, because it contains a space\^{}(my note).
+
+
+\end{document}
+

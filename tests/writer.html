@@ -1,0 +1,456 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="pandoc" />
+<style type="text/css">
+div.pandocNote { border-left: 1px solid grey; padding-left: 1em; }
+span.pandocNoteRef { vertical-align: super; font-size: 80%; }
+span.pandocNoteMarker { }
+</style>
+<meta name="author" content="John MacFarlane, Anonymous" />
+<meta name="date" content="July 17, 2006" />
+<title>Pandoc Test Suite</title>
+</head>
+<body>
+<h1 class="title">Pandoc Test Suite</h1>
+<p>This is a set of tests for pandoc. Most of them are adapted from John Gruber's markdown test suite.</p>
+<hr />
+<h1>Headers</h1>
+<h2>Level 2 with an <a href="/url">embedded link</a></h2>
+<h3>Level 3 with <em>emphasis</em></h3>
+<h4>Level 4</h4>
+<h5>Level 5</h5>
+<h1>Level 1</h1>
+<h2>Level 2 with <em>emphasis</em></h2>
+<h3>Level 3</h3>
+<p>with no blank line</p>
+<h2>Level 2</h2>
+<p>with no blank line</p>
+<hr />
+<h1>Paragraphs</h1>
+<p>Here's a regular paragraph.</p>
+<p>In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.</p>
+<p>Here's one with a bullet. * criminey.</p>
+<p>There should be a hard line break<br />
+here.</p>
+<hr />
+<h1>Block Quotes</h1>
+<p>E-mail style:</p>
+<blockquote>
+<p>This is a block quote. It is pretty short.</p>
+</blockquote>
+<blockquote>
+<p>Code in a block quote:</p>
+<pre><code>sub status {
+    print "working";
+}
+</code></pre>
+<p>A list:</p>
+<ol>
+<li>item one</li>
+<li>item two</li>
+</ol>
+<p>Nested block quotes:</p>
+<blockquote>
+<p>nested</p>
+</blockquote>
+<blockquote>
+<p>nested</p>
+</blockquote>
+</blockquote>
+<p>This should not be a block quote: 2 &gt; 1.</p>
+<p>Box-style:</p>
+<blockquote>
+<p>Example:</p>
+<pre><code>sub status {
+    print "working";
+}
+</code></pre>
+</blockquote>
+<blockquote>
+<ol>
+<li>do laundry</li>
+<li>take out the trash</li>
+</ol>
+</blockquote>
+<p>Here's a nested one:</p>
+<blockquote>
+<p>Joe said:</p>
+<blockquote>
+<p>Don't quote me.</p>
+</blockquote>
+</blockquote>
+<p>And a following paragraph.</p>
+<hr />
+<h1>Code Blocks</h1>
+<p>Code:</p>
+<pre><code>---- (should be four hyphens)
+
+sub status {
+    print "working";
+}
+
+this code block is indented by one tab
+</code></pre>
+<p>And:</p>
+<pre><code>    this code block is indented by two tabs
+
+These should not be escaped:  \$ \\ \> \[ \{
+</code></pre>
+<hr />
+<h1>Lists</h1>
+<h2>Unordered</h2>
+<p>Asterisks tight:</p>
+<ul>
+<li>asterisk 1</li>
+<li>asterisk 2</li>
+<li>asterisk 3</li>
+</ul>
+<p>Asterisks loose:</p>
+<ul>
+<li><p>asterisk 1</p>
+</li>
+<li><p>asterisk 2</p>
+</li>
+<li><p>asterisk 3</p>
+</li>
+</ul>
+<p>Pluses tight:</p>
+<ul>
+<li>Plus 1</li>
+<li>Plus 2</li>
+<li>Plus 3</li>
+</ul>
+<p>Pluses loose:</p>
+<ul>
+<li><p>Plus 1</p>
+</li>
+<li><p>Plus 2</p>
+</li>
+<li><p>Plus 3</p>
+</li>
+</ul>
+<p>Minuses tight:</p>
+<ul>
+<li>Minus 1</li>
+<li>Minus 2</li>
+<li>Minus 3</li>
+</ul>
+<p>Minuses loose:</p>
+<ul>
+<li><p>Minus 1</p>
+</li>
+<li><p>Minus 2</p>
+</li>
+<li><p>Minus 3</p>
+</li>
+</ul>
+<h2>Ordered</h2>
+<p>Tight:</p>
+<ol>
+<li>First</li>
+<li>Second</li>
+<li>Third</li>
+</ol>
+<p>and:</p>
+<ol>
+<li>One</li>
+<li>Two</li>
+<li>Three</li>
+</ol>
+<p>Loose using tabs:</p>
+<ol>
+<li><p>First</p>
+</li>
+<li><p>Second</p>
+</li>
+<li><p>Third</p>
+</li>
+</ol>
+<p>and using spaces:</p>
+<ol>
+<li><p>One</p>
+</li>
+<li><p>Two</p>
+</li>
+<li><p>Three</p>
+</li>
+</ol>
+<p>Multiple paragraphs:</p>
+<ol>
+<li><p>Item 1, graf one.</p>
+<p>Item 1. graf two. The quick brown fox jumped over the lazy dog's back.</p>
+</li>
+<li><p>Item 2.</p>
+</li>
+<li><p>Item 3.</p>
+</li>
+</ol>
+<h2>Nested</h2>
+<ul>
+<li>Tab<ul>
+<li>Tab<ul>
+<li>Tab</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Here's another:</p>
+<ol>
+<li>First</li>
+<li>Second:<ul>
+<li>Fee</li>
+<li>Fie</li>
+<li>Foe</li>
+</ul>
+</li>
+<li>Third</li>
+</ol>
+<p>Same thing but with paragraphs:</p>
+<ol>
+<li><p>First</p>
+</li>
+<li><p>Second:</p>
+<ul>
+<li>Fee</li>
+<li>Fie</li>
+<li>Foe</li>
+</ul>
+</li>
+<li><p>Third</p>
+</li>
+</ol>
+<h2>Tabs and spaces</h2>
+<ul>
+<li><p>this is a list item indented with tabs</p>
+</li>
+<li><p>this is a list item indented with spaces</p>
+<ul>
+<li><p>this is an example list item indented with tabs</p>
+</li>
+<li><p>this is an example list item indented with spaces</p>
+</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h1>HTML Blocks</h1>
+<p>Simple block on one line:</p>
+<div>foo</div>
+<p>And nested without indentation:</p>
+<div>
+<div>
+<div>foo</div>
+</div>
+<div>bar</div>
+</div>
+<p>Interpreted markdown in a table:</p>
+<table>
+<tr>
+<td>This is <em>emphasized</em></td>
+<td>And this is <strong>strong</strong></td>
+</tr>
+</table>
+
+<script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
+<p>Here's a simple block:</p>
+<div>
+    foo</div>
+<p>This should be a code block, though:</p>
+<pre><code>&lt;div>
+    foo
+&lt;/div>
+</code></pre>
+<p>As should this:</p>
+<pre><code>&lt;div>foo&lt;/div>
+</code></pre>
+<p>Now, nested:</p>
+<div>
+    <div>
+        <div>
+            foo</div>
+    </div>
+</div>
+<p>This should just be an HTML comment:</p>
+<!-- Comment -->
+<p>Multiline:</p>
+<!--
+Blah
+Blah
+-->
+
+<!--
+    This is another comment.
+-->
+<p>Code block:</p>
+<pre><code>&lt;!-- Comment -->
+</code></pre>
+<p>Just plain comment, with trailing spaces on the line:</p>
+<!-- foo -->   
+<p>Code:</p>
+<pre><code>&lt;hr />
+</code></pre>
+<p>Hr's:</p>
+<hr>
+
+<hr />
+
+<hr />
+
+<hr>   
+
+<hr />  
+
+<hr /> 
+
+<hr class="foo" id="bar" />
+
+<hr class="foo" id="bar" />
+
+<hr class="foo" id="bar">
+<hr />
+<h1>Inline Markup</h1>
+<p>This is <em>emphasized</em>, and so <em>is this</em>.</p>
+<p>This is <strong>strong</strong>, and so <strong>is this</strong>.</p>
+<p>An <em><a href="/url">emphasized link</a></em>.</p>
+<p><strong><em>This is strong and em.</em></strong></p>
+<p>So is <strong><em>this</em></strong> word.</p>
+<p><strong><em>This is strong and em.</em></strong></p>
+<p>So is <strong><em>this</em></strong> word.</p>
+<p>This is code: <code>></code>, <code>$</code>, <code>\</code>, <code>\$</code>, <code>&lt;html></code>.</p>
+<hr />
+<h1>Smart quotes, ellipses, dashes</h1>
+<p>"Hello," said the spider. "'Shelob' is my name."</p>
+<p>'A', 'B', and 'C' are letters.</p>
+<p>'Oak,' 'elm,' and 'beech' are names of trees. So is 'pine.'</p>
+<p>'He said, "I want to go."' Were you alive in the 70's?</p>
+<p>Here is some quoted '<code>code</code>' and a "<a href="http://example.com/?foo=1&amp;bar=2">quoted link</a>".</p>
+<p>Some dashes: one---two --- three--four -- five.</p>
+<p>Dashes between numbers: 5-7, 255-66, 1987-1999.</p>
+<p>Ellipses...and. . .and . . . .</p>
+<hr />
+<h1>LaTeX</h1>
+<ul>
+<li>\cite[22-23]{smith.1899}</li>
+<li>\doublespacing</li>
+<li>$2+2=4$</li>
+<li>$x \in y$</li>
+<li>$\alpha \wedge \omega$</li>
+<li>$223$</li>
+<li>$p$-Tree</li>
+<li>$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$</li>
+<li>Here's one that has a line break in it: $\alpha + \omega \times x^2$.</li>
+</ul>
+<p>These shouldn't be math:</p>
+<ul>
+<li>To get the famous equation, write <code>$e = mc^2$</code>.</li>
+<li>$22,000 is a <em>lot</em> of money. So is $34,000. (It worked if "lot" is emphasized.)</li>
+<li>Escaped <code>$</code>: $73 <em>this should be emphasized</em> 23$.</li>
+</ul>
+<p>Here's a LaTeX table:</p>
+<p>\begin{tabular}{|l|l|}\hline
+Animal &amp; Number \\ \hline
+Dog    &amp; 2      \\
+Cat    &amp; 1      \\ \hline
+\end{tabular}</p>
+<hr />
+<h1>Special Characters</h1>
+<p>Here is some unicode:</p>
+<ul>
+<li>I hat: Î</li>
+<li>o umlaut: ö</li>
+<li>section: §</li>
+<li>set membership: ∈</li>
+<li>copyright: ©</li>
+</ul>
+<p>AT&amp;T has an ampersand in their name.</p>
+<p>AT&amp;T is another way to write it.</p>
+<p>This &amp; that.</p>
+<p>4 &lt; 5.</p>
+<p>6 &gt; 5.</p>
+<p>Backslash: \</p>
+<p>Backtick: `</p>
+<p>Asterisk: *</p>
+<p>Underscore: _</p>
+<p>Left brace: {</p>
+<p>Right brace: }</p>
+<p>Left bracket: [</p>
+<p>Right bracket: ]</p>
+<p>Left paren: (</p>
+<p>Right paren: )</p>
+<p>Greater-than: &gt;</p>
+<p>Hash: #</p>
+<p>Period: .</p>
+<p>Bang: !</p>
+<p>Plus: +</p>
+<p>Minus: -</p>
+<hr />
+<h1>Links</h1>
+<h2>Explicit</h2>
+<p>Just a <a href="/url/">URL</a>.</p>
+<p><a href="/url/" title="title">URL and title</a>.</p>
+<p><a href="/url/" title="title preceded by two spaces">URL and title</a>.</p>
+<p><a href="/url/" title="title preceded by a tab">URL and title</a>.</p>
+<p><a href="/url/" title="title with &quot;quotes&quot; in it">URL and title</a></p>
+<p><a href="/url/" title="title with single quotes">URL and title</a></p>
+<p><script type="text/javascript">h='nowhere.net';n='nobody';e=n+'@'+h;document.write('<a href="mailto:'+e+'">'+'Email link'+'<\/a>');</script><noscript>Email link (nobody [at] nowhere.net)</noscript></p>
+<p><a href="">Empty</a>.</p>
+<h2>Reference</h2>
+<p>Foo <a href="/url/">bar</a>.</p>
+<p>Foo <a href="/url/">bar</a>.</p>
+<p>Foo <a href="/url/">bar</a>.</p>
+<p>With <a href="/url/">embedded [brackets]</a>.</p>
+<p><a href="/url/">b</a> by itself should be a link.</p>
+<p>Indented <a href="/url">once</a>.</p>
+<p>Indented <a href="/url">twice</a>.</p>
+<p>Indented <a href="/url">thrice</a>.</p>
+<p>This should [not] be a link.</p>
+<pre><code>[not]: /url
+</code></pre>
+<p>Foo <a href="/url/" title="Title with &quot;quotes&quot; inside">bar</a>.</p>
+<p>Foo <a href="/url/" title="Title with &quot;quote&quot; inside">biz</a>.</p>
+<h2>With ampersands</h2>
+<p>Here's a <a href="http://example.com/?foo=1&amp;bar=2">link with an ampersand in the URL</a>.</p>
+<p>Here's a link with an amersand in the link text: <a href="http://att.com/" title="AT&T">AT&amp;T</a>.</p>
+<p>Here's an <a href="/script?foo=1&amp;bar=2">inline link</a>.</p>
+<p>Here's an <a href="/script?foo=1&amp;bar=2">inline link in pointy braces</a>.</p>
+<h2>Autolinks</h2>
+<p>With an ampersand: <a href="http://example.com/?foo=1&amp;bar=2">http://example.com/?foo=1&amp;bar=2</a></p>
+<ul>
+<li>In a list?</li>
+<li><a href="http://example.com/">http://example.com/</a></li>
+<li>It should.</li>
+</ul>
+<p>An e-mail address: <script type="text/javascript">h='nowhere.net';n='nobody';e=n+'@'+h;document.write('<a href="mailto:'+e+'">'+e+'<\/a>');</script><noscript>nobody [at] nowhere.net</noscript></p>
+<blockquote>
+<p>Blockquoted: <a href="http://example.com/">http://example.com/</a></p>
+</blockquote>
+<p>Auto-links should not occur here: <code>&lt;http://example.com/></code></p>
+<pre><code>or here: &lt;http://example.com/>
+</code></pre>
+<hr />
+<h1>Images</h1>
+<p>From "Voyage dans la Lune" by Georges Melies (1902):</p>
+<p><img src="lalune.jpg" title="Voyage dans la Lune" alt="lalune"></p>
+<p>Here is a movie <img src="movie.jpg" alt="movie"> icon.</p>
+<hr />
+<h1>Footnotes</h1>
+<p>Here is a footnote reference<span class="pandocNoteRef"><a name="ref_1" href="#note_1">(1)</a></span>, and another<span class="pandocNoteRef"><a name="ref_longnote" href="#note_longnote">(longnote)</a></span>. This should <em>not</em> be a footnote reference, because it contains a space^(my note).</p>
+<div class="pandocNote">
+<p class="first"><span class="pandocNoteMarker"><a name="note_1" href="#ref_1">(1)</a></span> Here is the footnote. It can go anywhere in the document, not just at the end.</p>
+
+</div>
+<div class="pandocNote">
+<p class="first"><span class="pandocNoteMarker"><a name="note_longnote" href="#ref_longnote">(longnote)</a></span> Here's the other note. This one contains multiple blocks.</p>
+<p>Caret characters are used to indicate that the blocks all belong to a single footnote (as with block quotes).</p>
+<pre><code>  { &lt;code> }
+</code></pre>
+<p>If you want, you can use a caret at the beginning of every line, as with blockquotes, but all that you need is a caret at the beginning of the first line of the block and any preceding blank lines.</p>
+
+</div>
+</body>
+</html>
+

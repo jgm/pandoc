@@ -1,0 +1,86 @@
+/* Following are the presentation styles -- edit away! */
+
+body {background: #FFF url(bodybg.gif) -16px 0 no-repeat; color: #000; font-size: 2em;}
+:link, :visited {text-decoration: none; color: #00C;}
+#controls :active {color: #88A !important;}
+#controls :focus {outline: 1px dotted #227;}
+h1, h2, h3, h4 {font-size: 100%; margin: 0; padding: 0; font-weight: inherit;}
+ul, pre {margin: 0; line-height: 1em;}
+html, body {margin: 0; padding: 0;}
+
+blockquote, q {font-style: italic;}
+blockquote {padding: 0 2em 0.5em; margin: 0 1.5em 0.5em; text-align: center; font-size: 1em;}
+blockquote p {margin: 0;}
+blockquote i {font-style: normal;}
+blockquote b {display: block; margin-top: 0.5em; font-weight: normal; font-size: smaller; font-style: normal;}
+blockquote b i {font-style: italic;}
+
+kbd {font-weight: bold; font-size: 1em;}
+sup {font-size: smaller; line-height: 1px;}
+
+.slide code {padding: 2px 0.25em; font-weight: bold; color: #533;}
+.slide code.bad, code del {color: red;}
+.slide code.old {color: silver;}
+.slide pre {padding: 0; margin: 0.25em 0 0.5em 0.5em; color: #533; font-size: 90%;}
+.slide pre code {display: block;}
+.slide ul {margin-left: 5%; margin-right: 7%; list-style: disc;}
+.slide li {margin-top: 0.75em; margin-right: 0;}
+.slide ul ul {line-height: 1;}
+.slide ul ul li {margin: .2em; font-size: 85%; list-style: square;}
+.slide img.leader {display: block; margin: 0 auto;}
+
+div#header, div#footer {background: #005; color: #AAB;
+  font-family: Verdana, Helvetica, sans-serif;}
+div#header {background: #005 url(bodybg.gif) -16px 0 no-repeat;
+  line-height: 1px;}
+div#footer {font-size: 0.5em; font-weight: bold; padding: 1em 0;}
+#footer h1, #footer h2 {display: block; padding: 0 1em;}
+#footer h2 {font-style: italic;}
+
+div.long {font-size: 0.75em;}
+.slide h1 {position: absolute; top: 0.7em; left: 87px; z-index: 1;
+  margin: 0; padding: 0.3em 0 0 50px; white-space: nowrap;
+  font: bold 150%/1em Helvetica, sans-serif; text-transform: capitalize;
+  color: #DDE; background: #005;}
+.slide h3 {font-size: 130%;}
+h1 abbr {font-variant: small-caps;}
+
+div#controls {position: absolute; left: 50%; bottom: 0;
+  width: 50%;
+  text-align: right; font: bold 0.9em Verdana, Helvetica, sans-serif;}
+html>body div#controls {position: fixed; padding: 0 0 1em 0;
+  top: auto;}
+div#controls form {position: absolute; bottom: 0; right: 0; width: 100%;
+  margin: 0; padding: 0;}
+#controls #navLinks a {padding: 0; margin: 0 0.5em; 
+  background: #005; border: none; color: #779; 
+  cursor: pointer;}
+#controls #navList {height: 1em;}
+#controls #navList #jumplist {position: absolute; bottom: 0; right: 0; background: #DDD; color: #227;}
+
+#currentSlide {text-align: center; font-size: 0.5em; color: #449;}
+
+#slide0 {padding-top: 3.5em; font-size: 90%;}
+#slide0 h1 {position: static; margin: 1em 0 0; padding: 0;
+   font: bold 2em Helvetica, sans-serif; white-space: normal;
+   color: #000; background: transparent;}
+#slide0 h2 {font: bold italic 1em Helvetica, sans-serif; margin: 0.25em;}
+#slide0 h3 {margin-top: 1.5em; font-size: 1.5em;}
+#slide0 h4 {margin-top: 0; font-size: 1em;}
+
+ul.urls {list-style: none; display: inline; margin: 0;}
+.urls li {display: inline; margin: 0;}
+.note {display: none;}
+.external {border-bottom: 1px dotted gray;}
+html>body .external {border-bottom: none;}
+.external:after {content: " \274F"; font-size: smaller; color: #77B;}
+
+.incremental, .incremental *, .incremental *:after {color: #DDE; visibility: visible;}
+img.incremental {visibility: hidden;}
+.slide .current {color: #B02;}
+
+
+/* diagnostics
+
+li:after {content: " [" attr(class) "]"; color: #F88;}
+ */

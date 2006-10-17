@@ -1,0 +1,378 @@
+{\rtf1\ansi\deff0{\fonttbl{\f0 Times New Roman;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \sa180 \li0 \fi0 \qc \b \fs36 Pandoc Test Suite\par}
+{\pard \sa180 \li0 \fi0 \qc John MacFarlane\Anonymous\par}
+{\pard \sa180 \li0 \fi0 \qc July 17, 2006\par}
+{\pard \sa180 \li0 \fi0 \par}
+{\pard \sa180 \li0 \fi0 This is a set of tests for pandoc. Most of them are adapted from John Gruber's markdown test suite.\par}
+{\pard \sa180 \li0 \fi0 \qc \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \sa180 \li0 \fi0 \b \fs36 Headers\par}
+{\pard \sa180 \li0 \fi0 \b \fs32 Level 2 with an {\field{\*\fldinst{HYPERLINK "/url"}}{\fldrslt{\ul
+embedded link
+}}}
+\par}
+{\pard \sa180 \li0 \fi0 \b \fs28 Level 3 with {\i emphasis} \par}
+{\pard \sa180 \li0 \fi0 \b \fs24 Level 4\par}
+{\pard \sa180 \li0 \fi0 \b \fs20 Level 5\par}
+{\pard \sa180 \li0 \fi0 \b \fs36 Level 1\par}
+{\pard \sa180 \li0 \fi0 \b \fs32 Level 2 with {\i emphasis} \par}
+{\pard \sa180 \li0 \fi0 \b \fs28 Level 3\par}
+{\pard \sa180 \li0 \fi0 with no blank line\par}
+{\pard \sa180 \li0 \fi0 \b \fs32 Level 2\par}
+{\pard \sa180 \li0 \fi0 with no blank line\par}
+{\pard \sa180 \li0 \fi0 \qc \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \sa180 \li0 \fi0 \b \fs36 Paragraphs\par}
+{\pard \sa180 \li0 \fi0 Here's a regular paragraph.\par}
+{\pard \sa180 \li0 \fi0 In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.\par}
+{\pard \sa180 \li0 \fi0 Here's one with a bullet. * criminey.\par}
+{\pard \sa180 \li0 \fi0 There should be a hard line break\line here.\par}
+{\pard \sa180 \li0 \fi0 \qc \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \sa180 \li0 \fi0 \b \fs36 Block Quotes\par}
+{\pard \sa180 \li0 \fi0 E-mail style:\par}
+{\pard \sa180 \li720 \fi0 This is a block quote. It is pretty short.\par}
+{\pard \sa180 \li720 \fi0 Code in a block quote:\par}
+{\pard \sa180 \li720 \fi0 \f1 sub status \{\line
+    print "working";\line
+\}\par}
+{\pard \sa180 \li720 \fi0 A list:\par}
+{\pard \sa0 \li1080 \fi-360 1.\tx360\tab item one\par}
+{\pard \sa0 \li1080 \fi-360 2.\tx360\tab item two\sa180\par}
+{\pard \sa180 \li720 \fi0 Nested block quotes:\par}
+{\pard \sa180 \li1440 \fi0 nested\par}
+{\pard \sa180 \li1440 \fi0 nested\par}
+{\pard \sa180 \li0 \fi0 This should not be a block quote: 2 > 1.\par}
+{\pard \sa180 \li0 \fi0 Box-style:\par}
+{\pard \sa180 \li720 \fi0 Example:\par}
+{\pard \sa180 \li720 \fi0 \f1 sub status \{\line
+    print "working";\line
+\}\par}
+{\pard \sa0 \li1080 \fi-360 1.\tx360\tab do laundry\par}
+{\pard \sa0 \li1080 \fi-360 2.\tx360\tab take out the trash\sa180\par}
+{\pard \sa180 \li0 \fi0 Here's a nested one:\par}
+{\pard \sa180 \li720 \fi0 Joe said:\par}
+{\pard \sa180 \li1440 \fi0 Don't quote me.\par}
+{\pard \sa180 \li0 \fi0 And a following paragraph.\par}
+{\pard \sa180 \li0 \fi0 \qc \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \sa180 \li0 \fi0 \b \fs36 Code Blocks\par}
+{\pard \sa180 \li0 \fi0 Code:\par}
+{\pard \sa180 \li0 \fi0 \f1 ---- (should be four hyphens)\line
+\line
+sub status \{\line
+    print "working";\line
+\}\line
+\line
+this code block is indented by one tab\par}
+{\pard \sa180 \li0 \fi0 And:\par}
+{\pard \sa180 \li0 \fi0 \f1     this code block is indented by two tabs\line
+\line
+These should not be escaped:  \\$ \\\\ \\> \\[ \\\{\par}
+{\pard \sa180 \li0 \fi0 \qc \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \sa180 \li0 \fi0 \b \fs36 Lists\par}
+{\pard \sa180 \li0 \fi0 \b \fs32 Unordered\par}
+{\pard \sa180 \li0 \fi0 Asterisks tight:\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab asterisk 1\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab asterisk 2\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab asterisk 3\sa180\par}
+{\pard \sa180 \li0 \fi0 Asterisks loose:\par}
+{\pard \sa180 \li360 \fi-360 \bullet \tx360\tab asterisk 1\par}
+{\pard \sa180 \li360 \fi-360 \bullet \tx360\tab asterisk 2\par}
+{\pard \sa180 \li360 \fi-360 \bullet \tx360\tab asterisk 3\sa180\par}
+{\pard \sa180 \li0 \fi0 Pluses tight:\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab Plus 1\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab Plus 2\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab Plus 3\sa180\par}
+{\pard \sa180 \li0 \fi0 Pluses loose:\par}
+{\pard \sa180 \li360 \fi-360 \bullet \tx360\tab Plus 1\par}
+{\pard \sa180 \li360 \fi-360 \bullet \tx360\tab Plus 2\par}
+{\pard \sa180 \li360 \fi-360 \bullet \tx360\tab Plus 3\sa180\par}
+{\pard \sa180 \li0 \fi0 Minuses tight:\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab Minus 1\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab Minus 2\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab Minus 3\sa180\par}
+{\pard \sa180 \li0 \fi0 Minuses loose:\par}
+{\pard \sa180 \li360 \fi-360 \bullet \tx360\tab Minus 1\par}
+{\pard \sa180 \li360 \fi-360 \bullet \tx360\tab Minus 2\par}
+{\pard \sa180 \li360 \fi-360 \bullet \tx360\tab Minus 3\sa180\par}
+{\pard \sa180 \li0 \fi0 \b \fs32 Ordered\par}
+{\pard \sa180 \li0 \fi0 Tight:\par}
+{\pard \sa0 \li360 \fi-360 1.\tx360\tab First\par}
+{\pard \sa0 \li360 \fi-360 2.\tx360\tab Second\par}
+{\pard \sa0 \li360 \fi-360 3.\tx360\tab Third\sa180\par}
+{\pard \sa180 \li0 \fi0 and:\par}
+{\pard \sa0 \li360 \fi-360 1.\tx360\tab One\par}
+{\pard \sa0 \li360 \fi-360 2.\tx360\tab Two\par}
+{\pard \sa0 \li360 \fi-360 3.\tx360\tab Three\sa180\par}
+{\pard \sa180 \li0 \fi0 Loose using tabs:\par}
+{\pard \sa180 \li360 \fi-360 1.\tx360\tab First\par}
+{\pard \sa180 \li360 \fi-360 2.\tx360\tab Second\par}
+{\pard \sa180 \li360 \fi-360 3.\tx360\tab Third\sa180\par}
+{\pard \sa180 \li0 \fi0 and using spaces:\par}
+{\pard \sa180 \li360 \fi-360 1.\tx360\tab One\par}
+{\pard \sa180 \li360 \fi-360 2.\tx360\tab Two\par}
+{\pard \sa180 \li360 \fi-360 3.\tx360\tab Three\sa180\par}
+{\pard \sa180 \li0 \fi0 Multiple paragraphs:\par}
+{\pard \sa180 \li360 \fi-360 1.\tx360\tab Item 1, graf one.\par}
+{\pard \sa180 \li360 \fi0 Item 1. graf two. The quick brown fox jumped over the lazy dog's back.\par}
+{\pard \sa180 \li360 \fi-360 2.\tx360\tab Item 2.\par}
+{\pard \sa180 \li360 \fi-360 3.\tx360\tab Item 3.\sa180\par}
+{\pard \sa180 \li0 \fi0 \b \fs32 Nested\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab Tab\par}
+{\pard \sa0 \li720 \fi-360 \endash \tx360\tab Tab\par}
+{\pard \sa0 \li1080 \fi-360 \bullet \tx360\tab Tab\sa180\sa180\sa180\par}
+{\pard \sa180 \li0 \fi0 Here's another:\par}
+{\pard \sa0 \li360 \fi-360 1.\tx360\tab First\par}
+{\pard \sa0 \li360 \fi-360 2.\tx360\tab Second:\par}
+{\pard \sa0 \li720 \fi-360 \endash \tx360\tab Fee\par}
+{\pard \sa0 \li720 \fi-360 \endash \tx360\tab Fie\par}
+{\pard \sa0 \li720 \fi-360 \endash \tx360\tab Foe\sa180\par}
+{\pard \sa0 \li360 \fi-360 3.\tx360\tab Third\sa180\par}
+{\pard \sa180 \li0 \fi0 Same thing but with paragraphs:\par}
+{\pard \sa180 \li360 \fi-360 1.\tx360\tab First\par}
+{\pard \sa180 \li360 \fi-360 2.\tx360\tab Second:\par}
+{\pard \sa0 \li720 \fi-360 \endash \tx360\tab Fee\par}
+{\pard \sa0 \li720 \fi-360 \endash \tx360\tab Fie\par}
+{\pard \sa0 \li720 \fi-360 \endash \tx360\tab Foe\sa180\par}
+{\pard \sa180 \li360 \fi-360 3.\tx360\tab Third\sa180\par}
+{\pard \sa180 \li0 \fi0 \b \fs32 Tabs and spaces\par}
+{\pard \sa180 \li360 \fi-360 \bullet \tx360\tab this is a list item indented with tabs\par}
+{\pard \sa180 \li360 \fi-360 \bullet \tx360\tab this is a list item indented with spaces\par}
+{\pard \sa180 \li720 \fi-360 \endash \tx360\tab this is an example list item indented with tabs\par}
+{\pard \sa180 \li720 \fi-360 \endash \tx360\tab this is an example list item indented with spaces\sa180\sa180\par}
+{\pard \sa180 \li0 \fi0 \qc \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \sa180 \li0 \fi0 \b \fs36 HTML Blocks\par}
+{\pard \sa180 \li0 \fi0 Simple block on one line:\par}
+{\pard \sa0 \li0 \fi0 foo\par}
+{\pard \sa180 \li0 \fi0 And nested without indentation:\par}
+{\pard \sa0 \li0 \fi0 foo\par}
+{\pard \sa0 \li0 \fi0 bar\par}
+{\pard \sa180 \li0 \fi0 Interpreted markdown in a table:\par}
+{\pard \sa0 \li0 \fi0 This is {\i emphasized} \par}
+{\pard \sa0 \li0 \fi0 And this is {\b strong} \par}
+{\pard \sa180 \li0 \fi0 Here's a simple block:\par}
+{\pard \sa0 \li0 \fi0 foo\par}
+{\pard \sa180 \li0 \fi0 This should be a code block, though:\par}
+{\pard \sa180 \li0 \fi0 \f1 <div>\line
+    foo\line
+</div>\par}
+{\pard \sa180 \li0 \fi0 As should this:\par}
+{\pard \sa180 \li0 \fi0 \f1 <div>foo</div>\par}
+{\pard \sa180 \li0 \fi0 Now, nested:\par}
+{\pard \sa0 \li0 \fi0 foo\par}
+{\pard \sa180 \li0 \fi0 This should just be an HTML comment:\par}
+{\pard \sa180 \li0 \fi0 Multiline:\par}
+{\pard \sa180 \li0 \fi0 Code block:\par}
+{\pard \sa180 \li0 \fi0 \f1 <!-- Comment -->\par}
+{\pard \sa180 \li0 \fi0 Just plain comment, with trailing spaces on the line:\par}
+{\pard \sa180 \li0 \fi0 Code:\par}
+{\pard \sa180 \li0 \fi0 \f1 <hr />\par}
+{\pard \sa180 \li0 \fi0 Hr's:\par}
+{\pard \sa180 \li0 \fi0 \qc \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \sa180 \li0 \fi0 \b \fs36 Inline Markup\par}
+{\pard \sa180 \li0 \fi0 This is {\i emphasized} , and so {\i is this} .\par}
+{\pard \sa180 \li0 \fi0 This is {\b strong} , and so {\b is this} .\par}
+{\pard \sa180 \li0 \fi0 An {\i {\field{\*\fldinst{HYPERLINK "/url"}}{\fldrslt{\ul
+emphasized link
+}}}
+} .\par}
+{\pard \sa180 \li0 \fi0 {\b {\i This is strong and em.} } \par}
+{\pard \sa180 \li0 \fi0 So is {\b {\i this} }  word.\par}
+{\pard \sa180 \li0 \fi0 {\b {\i This is strong and em.} } \par}
+{\pard \sa180 \li0 \fi0 So is {\b {\i this} }  word.\par}
+{\pard \sa180 \li0 \fi0 This is code: {\f1 >} , {\f1 $} , {\f1 \\} , {\f1 \\$} , {\f1 <html>} .\par}
+{\pard \sa180 \li0 \fi0 \qc \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \sa180 \li0 \fi0 \b \fs36 Smart quotes, ellipses, dashes\par}
+{\pard \sa180 \li0 \fi0 "Hello," said the spider. "'Shelob' is my name."\par}
+{\pard \sa180 \li0 \fi0 'A', 'B', and 'C' are letters.\par}
+{\pard \sa180 \li0 \fi0 'Oak,' 'elm,' and 'beech' are names of trees. So is 'pine.'\par}
+{\pard \sa180 \li0 \fi0 'He said, "I want to go."' Were you alive in the 70's?\par}
+{\pard \sa180 \li0 \fi0 Here is some quoted '{\f1 code} ' and a "{\field{\*\fldinst{HYPERLINK "http://example.com/?foo=1&bar=2"}}{\fldrslt{\ul
+quoted link
+}}}
+".\par}
+{\pard \sa180 \li0 \fi0 Some dashes: one---two --- three--four -- five.\par}
+{\pard \sa180 \li0 \fi0 Dashes between numbers: 5-7, 255-66, 1987-1999.\par}
+{\pard \sa180 \li0 \fi0 Ellipses...and. . .and . . . .\par}
+{\pard \sa180 \li0 \fi0 \qc \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \sa180 \li0 \fi0 \b \fs36 LaTeX\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab {\cf1 \\cite[22-23]\{smith.1899\}\cf0 } \par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab {\cf1 \\doublespacing\cf0 } \par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab {\cf1 $2+2=4$\cf0 } \par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab {\cf1 $x \\in y$\cf0 } \par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab {\cf1 $\\alpha \\wedge \\omega$\cf0 } \par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab {\cf1 $223$\cf0 } \par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab {\cf1 $p$\cf0 } -Tree\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab {\cf1 $\\frac\{d\}\{dx\}f(x)=\\lim_\{h\\to 0\}\\frac\{f(x+h)-f(x)\}\{h\}$\cf0 } \par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab Here's one that has a line break in it: {\cf1 $\\alpha + \\omega \\times x^2$\cf0 } .\sa180\par}
+{\pard \sa180 \li0 \fi0 These shouldn't be math:\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab To get the famous equation, write {\f1 $e = mc^2$} .\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab $22,000 is a {\i lot}  of money. So is $34,000. (It worked if "lot" is emphasized.)\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab Escaped {\f1 $} : $73 {\i this should be emphasized}  23$.\sa180\par}
+{\pard \sa180 \li0 \fi0 Here's a LaTeX table:\par}
+{\pard \sa180 \li0 \fi0 {\cf1 \\begin\{tabular\}\{|l|l|\}\\hline
+Animal & Number \\\\ \\hline
+Dog    & 2      \\\\
+Cat    & 1      \\\\ \\hline
+\\end\{tabular\}\cf0 } \par}
+{\pard \sa180 \li0 \fi0 \qc \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \sa180 \li0 \fi0 \b \fs36 Special Characters\par}
+{\pard \sa180 \li0 \fi0 Here is some unicode:\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab I hat: \u206?\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab o umlaut: \u246?\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab section: \u167?\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab set membership: \u8712?\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab copyright: \u169?\sa180\par}
+{\pard \sa180 \li0 \fi0 AT&T has an ampersand in their name.\par}
+{\pard \sa180 \li0 \fi0 AT&T is another way to write it.\par}
+{\pard \sa180 \li0 \fi0 This & that.\par}
+{\pard \sa180 \li0 \fi0 4 < 5.\par}
+{\pard \sa180 \li0 \fi0 6 > 5.\par}
+{\pard \sa180 \li0 \fi0 Backslash: \\\par}
+{\pard \sa180 \li0 \fi0 Backtick: `\par}
+{\pard \sa180 \li0 \fi0 Asterisk: *\par}
+{\pard \sa180 \li0 \fi0 Underscore: _\par}
+{\pard \sa180 \li0 \fi0 Left brace: \{\par}
+{\pard \sa180 \li0 \fi0 Right brace: \}\par}
+{\pard \sa180 \li0 \fi0 Left bracket: [\par}
+{\pard \sa180 \li0 \fi0 Right bracket: ]\par}
+{\pard \sa180 \li0 \fi0 Left paren: (\par}
+{\pard \sa180 \li0 \fi0 Right paren: )\par}
+{\pard \sa180 \li0 \fi0 Greater-than: >\par}
+{\pard \sa180 \li0 \fi0 Hash: #\par}
+{\pard \sa180 \li0 \fi0 Period: .\par}
+{\pard \sa180 \li0 \fi0 Bang: !\par}
+{\pard \sa180 \li0 \fi0 Plus: +\par}
+{\pard \sa180 \li0 \fi0 Minus: -\par}
+{\pard \sa180 \li0 \fi0 \qc \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \sa180 \li0 \fi0 \b \fs36 Links\par}
+{\pard \sa180 \li0 \fi0 \b \fs32 Explicit\par}
+{\pard \sa180 \li0 \fi0 Just a {\field{\*\fldinst{HYPERLINK "/url/"}}{\fldrslt{\ul
+URL
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "/url/"}}{\fldrslt{\ul
+URL and title
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "/url/"}}{\fldrslt{\ul
+URL and title
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "/url/"}}{\fldrslt{\ul
+URL and title
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "/url/"}}{\fldrslt{\ul
+URL and title
+}}}
+\par}
+{\pard \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "/url/"}}{\fldrslt{\ul
+URL and title
+}}}
+\par}
+{\pard \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "mailto:nobody@nowhere.net"}}{\fldrslt{\ul
+Email link
+}}}
+\par}
+{\pard \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK ""}}{\fldrslt{\ul
+Empty
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 \b \fs32 Reference\par}
+{\pard \sa180 \li0 \fi0 Foo {\field{\*\fldinst{HYPERLINK "/url/"}}{\fldrslt{\ul
+bar
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 Foo {\field{\*\fldinst{HYPERLINK "/url/"}}{\fldrslt{\ul
+bar
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 Foo {\field{\*\fldinst{HYPERLINK "/url/"}}{\fldrslt{\ul
+bar
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 With {\field{\*\fldinst{HYPERLINK "/url/"}}{\fldrslt{\ul
+embedded [brackets]
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "/url/"}}{\fldrslt{\ul
+b
+}}}
+ by itself should be a link.\par}
+{\pard \sa180 \li0 \fi0 Indented {\field{\*\fldinst{HYPERLINK "/url"}}{\fldrslt{\ul
+once
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 Indented {\field{\*\fldinst{HYPERLINK "/url"}}{\fldrslt{\ul
+twice
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 Indented {\field{\*\fldinst{HYPERLINK "/url"}}{\fldrslt{\ul
+thrice
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 This should [not] be a link.\par}
+{\pard \sa180 \li0 \fi0 \f1 [not]: /url\par}
+{\pard \sa180 \li0 \fi0 Foo {\field{\*\fldinst{HYPERLINK "/url/"}}{\fldrslt{\ul
+bar
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 Foo {\field{\*\fldinst{HYPERLINK "/url/"}}{\fldrslt{\ul
+biz
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 \b \fs32 With ampersands\par}
+{\pard \sa180 \li0 \fi0 Here's a {\field{\*\fldinst{HYPERLINK "http://example.com/?foo=1&bar=2"}}{\fldrslt{\ul
+link with an ampersand in the URL
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 Here's a link with an amersand in the link text: {\field{\*\fldinst{HYPERLINK "http://att.com/"}}{\fldrslt{\ul
+AT&T
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 Here's an {\field{\*\fldinst{HYPERLINK "/script?foo=1&bar=2"}}{\fldrslt{\ul
+inline link
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 Here's an {\field{\*\fldinst{HYPERLINK "/script?foo=1&bar=2"}}{\fldrslt{\ul
+inline link in pointy braces
+}}}
+.\par}
+{\pard \sa180 \li0 \fi0 \b \fs32 Autolinks\par}
+{\pard \sa180 \li0 \fi0 With an ampersand: {\field{\*\fldinst{HYPERLINK "http://example.com/?foo=1&bar=2"}}{\fldrslt{\ul
+http://example.com/?foo=1&bar=2
+}}}
+\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab In a list?\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://example.com/"}}{\fldrslt{\ul
+http://example.com/
+}}}
+\par}
+{\pard \sa0 \li360 \fi-360 \bullet \tx360\tab It should.\sa180\par}
+{\pard \sa180 \li0 \fi0 An e-mail address: {\field{\*\fldinst{HYPERLINK "mailto:nobody@nowhere.net"}}{\fldrslt{\ul
+nobody@nowhere.net
+}}}
+\par}
+{\pard \sa180 \li720 \fi0 Blockquoted: {\field{\*\fldinst{HYPERLINK "http://example.com/"}}{\fldrslt{\ul
+http://example.com/
+}}}
+\par}
+{\pard \sa180 \li0 \fi0 Auto-links should not occur here: {\f1 <http://example.com/>} \par}
+{\pard \sa180 \li0 \fi0 \f1 or here: <http://example.com/>\par}
+{\pard \sa180 \li0 \fi0 \qc \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \sa180 \li0 \fi0 \b \fs36 Images\par}
+{\pard \sa180 \li0 \fi0 From "Voyage dans la Lune" by Georges Melies (1902):\par}
+{\pard \sa180 \li0 \fi0 {\cf1 [image: lalune.jpg]\cf0}\par}
+{\pard \sa180 \li0 \fi0 Here is a movie {\cf1 [image: movie.jpg]\cf0} icon.\par}
+{\pard \sa180 \li0 \fi0 \qc \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \sa180 \li0 \fi0 \b \fs36 Footnotes\par}
+{\pard \sa180 \li0 \fi0 Here is a footnote reference{\super\chftn}{\*\footnote\chftn\~\plain\pard {\pard \sa180 \li0 \fi0 Here is the footnote. It can go anywhere in the document, not just at the end.\par}
+}, and another{\super\chftn}{\*\footnote\chftn\~\plain\pard {\pard \sa180 \li0 \fi0 Here's the other note. This one contains multiple blocks.\par}
+{\pard \sa180 \li0 \fi0 Caret characters are used to indicate that the blocks all belong to a single footnote (as with block quotes).\par}
+{\pard \sa180 \li0 \fi0 \f1   \{ <code> \}\par}
+{\pard \sa180 \li0 \fi0 If you want, you can use a caret at the beginning of every line, as with blockquotes, but all that you need is a caret at the beginning of the first line of the block and any preceding blank lines.\par}
+}. This should {\i not}  be a footnote reference, because it contains a space^(my note).\par}
+
+}
+

@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# GHC does not recognize any environment variable, unlike with GCC which honors
+# CFLAGS.  This hook is a workaround for this flaw and introduces an HCFLAGS
+# variable.
+
+CABAL=Pandoc.cabal
+BUILDINFO=${CABAL%%.cabal}.buildinfo
+
+[ -f $BUILDINFO.in ] || {
+	echo >&2 "==> No $BUILDINFO.in exists; skipping $BUILDINFO creation."
+	exit 0
+}
+
+if [ "${HCFLAGS-UNDEFINED}" = "UNDEFINED" ]; then
+	echo >&2 "==> No HCFLAGS defined; skipping $BUILDINFO creation."
+	exit 0
+fi
+
+sed -e "s#@HCFLAGS@#$HCFLAGS#g" $BUILDINFO.in >$BUILDINFO

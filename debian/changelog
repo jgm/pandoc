@@ -1,0 +1,19 @@
+pandoc (0.21) unstable; urgency=low
+
+  * Revamp and split Debian package.  Closes: #391666.
+  * Revamped build system.
+  * Various fixes in wrapper scripts.
+
+ -- Recai Oktaş <roktas@debian.org>  Sun,  3 Sep 2006 13:25:18 +0300
+
+pandoc (0.2) unstable; urgency=low
+
+  * Fixed unicode/utf-8 translation
+
+ -- John MacFarlane <clemens@kclee.de>  Mon,  14 Aug 2006 00:00:00 -0400
+
+pandoc (0.1) unstable; urgency=low
+
+  * Initial creation of debian package 
+
+ -- John MacFarlane <clemens@kclee.de>  Mon,  14 Aug 2006 00:00:00 -0400

@@ -1,0 +1,42 @@
+Source: pandoc
+Section: text
+Priority: optional
+Maintainer: Recai Oktaş <roktas@debian.org>
+Build-Depends: debhelper (>= 4.0.0), haskell-devscripts (>=0.5.11), ghc6 (>=6.4), perl
+Build-Depends-Indep: haddock
+Standards-Version: 3.7.2.0
+
+Package: pandoc
+Section: text
+Architecture: any
+Depends: ${shlibs:Depends}
+Suggests: tetex-bin, tidy, wget | w3m
+Description: General markup converter
+ Pandoc is an implementation of Markdown (and much more) in Haskell. It
+ can convert Markdown formatted text to HTML, LaTeX, rich text format,
+ reStructuredText, or an S5 HTML slide show. It can also convert HTML,
+ LaTeX, and reStructuredText to Markdown.
+
+Package: libghc6-pandoc-dev
+Section: libdevel
+Architecture: any
+Depends: ${haskell:Depends}
+Suggests: pandoc-doc
+Description: General markup converter
+ Pandoc is an implementation of Markdown (and much more) in Haskell. It
+ can convert Markdown formatted text to HTML, LaTeX, rich text format,
+ reStructuredText, or an S5 HTML slide show. It can also convert HTML,
+ LaTeX, and reStructuredText to Markdown.
+ .
+ This package contains the libraries compiled for GHC 6.
+
+Package: pandoc-doc
+Section: doc
+Architecture: all
+Description: General markup converter
+ Pandoc is an implementation of Markdown (and much more) in Haskell. It
+ can convert Markdown formatted text to HTML, LaTeX, rich text format,
+ reStructuredText, or an S5 HTML slide show. It can also convert HTML,
+ LaTeX, and reStructuredText to Markdown.
+ .
+ This package contains the library documentation for Pandoc.

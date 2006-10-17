@@ -1,0 +1,15 @@
+Pandoc (Meta [Str "My",Space,Str "S5",Space,Str "Document"] ["Sam Smith","Jen Jones"] "July 15, 2006")
+[ Header 1 [Str "First",Space,Str "slide"]
+, BulletList
+  [ [ Plain [Str "first",Space,Str "bullet"] ]
+  , [ Plain [Str "second",Space,Str "bullet"] ] ]
+, Header 1 [Str "Smarty"]
+, BlockQuote
+  [ BulletList
+    [ [ Plain [Str "\"Hello",Space,Str "there\""] ]
+    , [ Plain [Str "Here's",Space,Str "a",Space,Str "--",Space,Str "dash"] ]
+    , [ Plain [Str "And",Space,Str "'ellipses'..."] ] ] ]
+, Header 1 [Str "Math"]
+, BulletList
+  [ [ Plain [TeX "$\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}$"] ]
+ ] ]
