@@ -131,10 +131,10 @@ tags: $(src_all)
 
 deb: debian prep
 	if [ -x /usr/bin/debuild ]; then \
-		debuild -i_darcs -I_darcs -uc -us; \
+		debuild -uc -us -i.svn -I.svn -i_darcs -I_darcs --lintian-opts -i; \
 	else \
 		echo "*** Please install devscripts package. ***"; \
-		dpkg-buildpackage -i_darcs -I_darcs -uc -us; \
+		dpkg-buildpackage -uc -us -i.svn -I.svn -i_darcs -I_darcs; \
 	fi
 
 .PHONY: distclean clean
