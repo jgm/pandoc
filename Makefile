@@ -85,7 +85,7 @@ $(EXECUTABLES): build
 # i.e. any PREFIX given at the configuration time is lost, unless it is
 # also supplied (via environment) at these stages.
 .PHONY: install-exec uninstall-exec
-bin_all:=$(EXECUTABLES) html2markdown markdown2latex latex2markdown markdown2pdf
+bin_all:=$(EXECUTABLES) html2markdown markdown2html latex2markdown markdown2latex markdown2pdf
 install-exec: $(bin_all)
 	$(INSTALL) -d $(BINPATH); \
 	for p in $(bin_all); do $(INSTALL_PROGRAM) $$p $(BINPATH)/; done
