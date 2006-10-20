@@ -56,7 +56,7 @@ $(SRCDIR)/templates:
 .PHONY: prep
 prep: 
 	# Darcs cannot preserve file permissions.
-	-for p in configure debian/rules; do chmod +x $$p; done
+	-for f in configure debian/rules; do chmod +x $$f; done
 
 .PHONY: configure
 cleanup_files+=$(BUILDDIR) $(BUILDCONF) $(CABAL:%.cabal=%).buildinfo
@@ -88,19 +88,22 @@ $(EXECUTABLES): build
 bin_all:=$(EXECUTABLES) html2markdown markdown2html latex2markdown markdown2latex markdown2pdf
 install-exec: $(bin_all)
 	$(INSTALL) -d $(BINPATH); \
-	for p in $(bin_all); do $(INSTALL_PROGRAM) $$p $(BINPATH)/; done
+	for f in $(bin_all); do $(INSTALL_PROGRAM) $$f $(BINPATH)/; done
 uninstall-exec:
-	-for p in $(bin_all); do rm -f $(BINPATH)/$$p; done
+	-for f in $(bin_all); do rm -f $(BINPATH)/$$f; done
 
 .PHONY: install-doc uninstall-doc
 doc_all:=README.html README BUGS TODO
+man_all:=$(patsubst $(MANDIR)/%,%,$(wildcard $(MANDIR)/man?/*.1))
 cleanup_files+=README.html
 install-doc: $(doc_all)
-	$(INSTALL) -d $(DOCPATH) && $(INSTALL_DATA) $(doc_all) $(DOCPATH)/; \
-	$(INSTALL) -d $(MANPATH) && cp -a $(MANDIR)/* $(MANPATH)/
+	$(INSTALL) -d $(DOCPATH) && $(INSTALL_DATA) $(doc_all) $(DOCPATH)/
+	$(INSTALL) -d $(MANPATH); \
+	for f in $(man_all); do $(INSTALL_DATA) -D $(MANDIR)/$$f $(MANPATH)/$$f; done
 uninstall-doc:
-	-for d in $(doc_all); do rm -f $(DOCPATH)/$$d; done
-	-cd $(MANDIR) && find . -type f -exec rm -f "$(MANPATH)/{}" \;
+	-for f in $(doc_all); do rm -f $(DOCPATH)/$$f; done
+	-for f in $(man_all); do rm -f $(MANPATH)/$$f; done
+	-rmdir --ignore-fail-on-non-empty $(DOCPATH)
 
 # Handle program installation manually (due to the deficiencies in Cabal).
 .PHONY: install uninstall
@@ -130,11 +133,20 @@ tags: $(src_all)
 	LC_ALL=C sort tags >tags.sorted; mv tags.sorted tags
 
 deb: debian prep
+	[ -x /usr/bin/fakeroot ] || { \
+		echo "*** Please install fakeroot package. ***"; \
+		exit 1; \
+	}
+	[ -x /usr/bin/dpkg-buildpackage ] || { \
+		echo "*** Please install dpkg-dev package. ***"; \
+		exit 1; \
+	}
 	if [ -x /usr/bin/debuild ]; then \
 		debuild -uc -us -i.svn -I.svn -i_darcs -I_darcs --lintian-opts -i; \
 	else \
 		echo "*** Please install devscripts package. ***"; \
-		dpkg-buildpackage -uc -us -i.svn -I.svn -i_darcs -I_darcs; \
+		echo "*** Using dpkg-buildpackage for package building. ***"; \
+		dpkg-buildpackage -rfakeroot -uc -us -i.svn -I.svn -i_darcs -I_darcs; \
 	fi
 
 .PHONY: distclean clean
