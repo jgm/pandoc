@@ -2,11 +2,19 @@
 % John MacFarlane
 % August 10, 2006 
 
-`pandoc` converts files from one markup format to another.  It can
-read [markdown] and (with some limitations) [reStructuredText], [HTML], and
-[LaTeX], and it can write [markdown], [reStructuredText], [HTML],
-[LaTeX], [RTF], and [S5] HTML slide shows.  It is written in
-[Haskell], using the excellent [Parsec] parser combinator library.
+`pandoc` is a [Haskell] library for converting files from one markup
+format to another, and a command-line tool that uses this library. It can
+read [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX],
+and it can write [markdown], [reStructuredText], [HTML], [LaTeX], [RTF],
+and [S5] HTML slide shows. `pandoc`'s version of markdown contains some
+enhancements, like footnotes and embedded LaTeX.
+
+In contrast to existing tools for converting markdown to HTML, which
+use regex substitutions, `pandoc` has a modular design: it consists of a
+set of readers, which parse text in a given format and produce a native
+representation of the document, and a set of writers, which convert
+this native representation into a target format. Thus, adding an input
+or output format requires only adding a reader or writer.
 
 [markdown]: http://daringfireball.net/projects/markdown/
 [reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html
@@ -15,7 +23,6 @@ read [markdown] and (with some limitations) [reStructuredText], [HTML], and
 [LaTeX]:  http://www.latex-project.org/
 [RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
 [Haskell]:  http://www.haskell.org/
-[Parsec]:  http://www.cs.uu.nl/~daan/download/parsec/parsec.html
 
 (c) 2006 John MacFarlane (jgm At berkeley.edu). Released under the
 [GPL], version 2 or greater.  This software carries no warranty of
@@ -27,7 +34,7 @@ any kind.  (See LICENSE for full copyright and warranty notices.)
 
 ## Installing GHC
 
-To compile `pandoc`, you'll need [GHC] version 6.4 or greater.  
+To compile `pandoc`, you'll need [GHC] version 6.4 or greater. 
 
 If you don't have GHC already, you can get it from the 
 [GHC Download] page.
@@ -35,64 +42,57 @@ If you don't have GHC already, you can get it from the
 [GHC]: http://www.haskell.org/ghc/
 [GHC Download]: http://www.haskell.org/ghc/download.html
 
-Note:  As of this writing, there's no MacOS X installer package for
-GHC 6.4.2 (the latest version).  There is an installer for
-GHC 6.4.1 [here](http://www.haskell.org/ghc/download_ghc_641.html#macosx).
-It will work just fine on PPC-based Macs.  GHC has not yet been ported
-to Intel Macs:  see <http://hackage.haskell.org/trac/ghc/wiki/X86OSXGhc>.
-
-You'll also need standard build tools: GNU Make, sed, bash, and perl.
+You'll also need standard build tools: GNU `make`, `sed`, `bash`, and `perl`.
 These are standard on unix systems (including MacOS X).  If you're
 using Windows, you can install [Cygwin].
 
 [Cygwin]: http://www.cygwin.com/
 
-Note:  I have tested `pandoc` on MacOS X and Linux systems.  I have not
-tried it on Windows, and I have no idea whether it will work on Windows.
-  
 ## Installing `pandoc`
 
 1.  Change to the directory containing the `pandoc` distribution.
 
 2.  Compile:
 
-            make
+        make
 
-3.  Optional, but recommended:
+3.  See if it worked (optional, but recommended): 
 
-            make test
+        make test
 
-4.  If you want to install the `pandoc` program and the relevant wrappers 
-    and documents (including this file) into `/usr/local` directory, type:
-            
-            make install
-    
-    If you only want the `pandoc` program and the shell scripts `latex2markdown`,
-    `markdown2latex`, `markdown2pdf`, `markdown2html`, `html2markdown` installed
-    into your `~/bin` directory, type (note the **`-exec`** suffix):
+4.  Install:
 
-            PREFIX=~ make install-exec
+        make install
 
-5.  If you want to install the Pandoc library modules for use in 
-    other Haskell programs, type (as root):
+    Note:  This installs `pandoc`, together with its wrappers and
+    documentation, into the `/usr/local` directory, which requires root
+    privileges.  If you don't have root privileges or would prefer to
+    install `pandoc` and the associated shell scripts into your `~/bin`
+    directory, type this instead:
 
-            make install-lib
-   
-6.  To install the library documentation (into `/usr/local/pandoc-doc`), 
-    type:
+        PREFIX=~ make install-exec
 
-            make install-lib-doc
+5.  Install Haskell libraries (optional):
+
+        make install-lib
+
+6.  Install library documentation into `/usr/local/pandoc-doc` (optional):
+
+        make install-lib-doc
+
+## Removing `pandoc`
+
+Each of the installation steps described above can be reversed:
+
+    make uninstall
+
+    PREFIX=~ make uninstall-exec
+
+    make uninstall-lib
+
+    make uninstall-lib-doc
  
 # Using `pandoc`
-
-You can run `pandoc` like this:
-
-    ./pandoc
-
-If you copy the `pandoc` executable to a directory in your path
-(perhaps using `make install`), you can invoke it without the "./":
-
-    pandoc
 
 If you run `pandoc` without arguments, it will accept input from
 STDIN.  If you run it with file names as arguments, it will take input
@@ -104,29 +104,34 @@ list, type
 The most important options specify the format of the source file and
 the output.  The default reader is markdown; the default writer is
 HTML.  So if you don't specify a reader or writer, `pandoc` will
-convert markdown to HTML.  To convert markdown to LaTeX, you could
-write:
+convert markdown to HTML.  For example,
 
-    pandoc -w latex input.txt
+    pandoc hello.txt
+
+will convert `hello.txt` from markdown to HTML.  For other conversions,
+you must specify a reader and/or a writer using the `-r` and `-w`
+flags.  To convert markdown to LaTeX, you would write:
+
+    pandoc -w latex hello.txt
 
 To convert html to markdown:
 
-    pandoc -r html -w markdown input.txt
+    pandoc -r html -w markdown hello.txt
 
-Supported writers include markdown, LaTeX, HTML, RTF,
-reStructuredText, and S5 (which produces an HTML file that acts like
-powerpoint).  Supported readers include markdown, HTML, LaTeX, and
-reStructuredText.  Note that the rst (reStructuredText) reader only
-parses a subset of rst syntax.  For example, it doesn't handle tables,
-definition lists, option lists, or footnotes.  It handles only the
-constructs expressible in unextended markdown.  But for simple
-documents it should be adequate.  The LaTeX and HTML readers are also
-limited in what they can do.  
+Supported writers include `markdown`, `latex`, `html`, `rtf` (rich text
+format), `rst` (reStructuredText), and `s5` (which produces an HTML
+file that acts like powerpoint).  Supported readers include `markdown`,
+`html`, `latex`, and `rst`.  Note that the `rst` reader only parses
+a subset of reStructuredText syntax.  For example, it doesn't handle
+tables, definition lists, option lists, or footnotes.  It handles only the
+constructs expressible in unextended markdown.  But for simple documents
+it should be adequate.  The `latex` and `html` readers are also limited
+in what they can do.
 
 `pandoc` writes its output to STDOUT.  If you want to write to a file,
 use redirection:
 
-	pandoc input.txt > output.html
+	pandoc hello.txt > hello.html
 
 Note that you can specify multiple input files on the command line.
 `pandoc` will concatenate them all (with blank lines between them)
@@ -134,14 +139,18 @@ before parsing:
 
 	pandoc -s chapter1.txt chapter2.txt chapter3.txt references.txt > book.html
 
+(The `-s` option here tells `pandoc` to produce a standalone HTML file,
+with a proper header, rather than a fragment.  For more details on this
+and many other command-line options, see below.)
+
 ## Character encoding
 
-Unfortunately, due to limitations in GHC, `pandoc` does not
-automatically detect the system's local character encoding.  Hence,
-all input and output is assumed to be in the UTF-8 encoding.  If you
-use accented or foreign characters, you should convert the input file
-to UTF-8 before processing it with `pandoc`.  This can be done by
-piping the input through [`iconv`]: for example,
+Unfortunately, due to limitations in GHC, `pandoc` does not automatically
+detect the system's local character encoding.  Hence, all input and
+output is assumed to be in the UTF-8 encoding.  If you use accented or
+foreign characters, you should convert the input file to UTF-8 before
+processing it with `pandoc`.  This can be done by piping the input through
+[`iconv`]: for example,
 
 	iconv -t utf-8 source.txt | pandoc > output.html
 
@@ -158,18 +167,18 @@ from the local encoding to UTF-8 before running them through `pandoc`.
 For convenience, five shell scripts have been included that make it
 easy to run `pandoc` without remembering all the command-line options.
 All of the scripts presuppose that `pandoc` is in the path, and
-`html2markdown` also presupposes that `curl` and `tidy` are in the
-path.
+some have additional requirements.  (For example, `html2markdown`
+uses `tidy`, and `markdown2pdf` uses `pdflatex`.)
 
 1.  `markdown2html` converts markdown to HTML, running `iconv` first to
 	convert the file to UTF-8.  (This can be used as a replacement for
 	`Markdown.pl`.)
 
 2.	`html2markdown` can take either a filename or a URL as argument.  If
-	it is given a URL, it uses `curl` to fetch the contents of the
-	specified URL, then filters this through `tidy` to straighten up the
-	HTML and convert to UTF-8, and finally passes this HTML to `pandoc` to
-	produce markdown text:
+	it is given a URL, it uses `curl`, `wget`, or an available text-based
+    browser to fetch the contents of the specified URL, then filters this
+	through `tidy` to straighten up the HTML and convert to UTF-8,
+	and finally passes this HTML to `pandoc` to produce markdown text:
 
 	    html2markdown http://www.fsf.org
 
@@ -185,24 +194,23 @@ path.
 
 	    markdown2latex mytextfile.txt
 
-5.	`markdown2pdf` converts markdown to PDF, using LaTeX, but removing
-	all the intermediate files created by LaTeX.  Example:
+5.	`markdown2pdf` converts markdown to PDF using `pdflatex`.  Example:
 
 	    markdown2pdf mytextfile.txt
 
-	creates a file `mytextfile.pdf` in the working directory.
+	creates a file `mytextfile.pdf`.
 
 # Command-line options
 
-Various command-line options can be used to customize the output.  
+Various command-line options can be used to customize the output.
 For a complete list, type 
 
-    pandoc --help  
+    pandoc --help
 
 `-p` or `--preserve-tabs` causes tabs in the source text to be
 preserved, rather than converted to spaces (the default).
 
-`--tabstop` allows the user to set the tab stop (which defaults to 4).  
+`--tabstop` allows the user to set the tab stop (which defaults to 4).
 
 `-R` or `--parse-raw` causes the HTML and LaTeX readers to parse HTML
 codes and LaTeX environments that it can't translate as raw HTML or
@@ -258,7 +266,7 @@ not work in all browsers, but it works in Firefox.  Peter Jipsen's
 
 `-i` or `--incremental` causes all lists in S5 output to be displayed
 incrementally by default (one item at a time).  The normal default
-is for lists to be displayed all at once.  
+is for lists to be displayed all at once.
 
 `-N` or `--number-sections` causes sections to be numbered in LaTeX
 output.  By default, sections are not numbered.
@@ -267,7 +275,7 @@ output.  By default, sections are not numbered.
 
 In parsing markdown, `pandoc` departs from and extends [standard markdown]
 in a few respects.  (To run `pandoc` on the official
-markdown test suite, type `make markdown_tests`.)
+markdown test suite, type `make test-markdown`.)
 
 [standard markdown]:  http://daringfireball.net/projects/markdown/syntax
 
@@ -328,7 +336,7 @@ appear as `[link]` if there's no reference for `link`.  If you want
     except in embedded contexts like block quotes or lists.	
 
 	^(longnote) Here's the other note.  This one contains multiple
-	blocks.  
+	blocks.
 	^
 	^ Caret characters are used to indicate that the blocks all belong
     to a single footnote (as with block quotes).
@@ -363,7 +371,7 @@ into
         </tr>
     </table>
 
-whereas Markdown 1.0 will preserve it as is.  
+whereas Markdown 1.0 will preserve it as is.
 
 There is one exception to this rule:  text between `<script>` and
 `</script>` tags is not interpreted as markdown.
@@ -468,7 +476,7 @@ Producing an [S5] slide show with `pandoc` is easy.  A title page is
 constructed automatically from the document's title block (see above).
 Each section (with a level-one header) produces a single slide.  (Note
 that if the section is too big, the slide will not fit on the page; S5
-is not smart enough to produce multiple pages.)  
+is not smart enough to produce multiple pages.)
 
 Here's the markdown source for a simple slide show, `eating.txt`:
 
