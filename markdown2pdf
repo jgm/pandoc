@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh
 # converts markdown to latex, then uses latex to make a PDF
 
 [ -n "$(which pandoc)" ] || {
@@ -10,17 +10,55 @@
     exit 1
 }
 
-TEMP=${TMPDIR-/tmp}/markdown2pdf.$$
-trap "status=$?; rm -rf $TEMP; exit $status" 0 INT
+outfile=
+for option; do
+    if [ -n "$prev" ]; then
+	eval "$prev=\$option"
+	prev=
+	shift
+	continue
+    fi
+    optarg=$(expr "x$option" : 'x[^=]*=\(.*\)')
+    case $option in
+    -h | --h | --help )
+	help=yes
+	shift ;;
+    -o | --o | --output )
+	prev=outfile
+	shift ;;
+    -o=* | --o=* | --output=* )
+	outfile=$optarg
+	shift ;;
+    -* ) echo >&2 "$0: unknown option: $option; aborting"
+	exit 1 ;;
+    * ) break ;;
+    esac
+done
 
-if [ -z "$1" ]; then
-    BASE='stdin' # input is STDIN, since no argument given
-else
-    filename=${1##*/}
-    BASE=${filename%\.*}
+if [ "$help" = "yes" ]; then
+    echo "Usage: $0 [-o|--output output-file] [input-file]"
+    exit 0
 fi
 
-mkdir -p $TEMP && iconv -t utf-8 $* | pandoc -w latex -s > $TEMP/$BASE.tex  
+infile=$1
+if [ -z "$outfile" ]; then
+    if [ -n "$infile" ]; then
+	outfile=${infile%.*}.pdf
+    else
+	outfile='stdin.pdf' # input is STDIN, since no argument given
+    fi
+fi
+
+BASE=${outfile##*/}
+BASE=${BASE%.*}
+
+set -e
+
+TEMP=${TMPDIR-/tmp}/markdown2pdf.$$
+trap "status=$?; rm -rf $TEMP; exit $status" 0 INT
+mkdir -p $TEMP
+
+iconv -t utf-8 $infile | pandoc -w latex -s > $TEMP/$BASE.tex  
 (
     cd $TEMP
     if ! pdflatex -interaction=batchmode $BASE.tex >/dev/null 2>&1; then
@@ -35,10 +73,10 @@ if [ -f $BASE.pdf ]; then
     is_target_exists=1
 fi
 
-cp --suffix=~ --backup $TEMP/$BASE.pdf .
+mv --suffix=~ --backup $TEMP/$BASE.pdf $outfile
 
-echo -n >&2 "Created $BASE.pdf"
+echo -n >&2 "Created $outfile"
 [ -z "$is_target_exists" ] || {
-    echo -n >&2 " (previous file has been backed up as '$BASE.pdf~')"
+    echo -n >&2 " (previous file has been backed up as '$outfile~')"
 }
 echo >&2 .
