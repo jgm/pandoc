@@ -21,7 +21,7 @@ for option; do
     optarg=$(expr "x$option" : 'x[^=]*=\(.*\)')
     case $option in
     -h | --h | --help )
-	help=yes
+	help=1
 	shift ;;
     -o | --o | --output )
 	prev=outfile
@@ -35,10 +35,10 @@ for option; do
     esac
 done
 
-if [ "$help" = "yes" ]; then
-    echo "Usage: $0 [-o|--output output-file] [input-file]"
+[ -z "$help" ] || {
+    echo >&2 "Usage: $0 [-o|--output output-file] [input-file]"
     exit 0
-fi
+}
 
 infile=$1
 if [ -z "$outfile" ]; then
@@ -69,7 +69,7 @@ iconv -t utf-8 $infile | pandoc -w latex -s > $TEMP/$BASE.tex
 ) || exit $?
 
 is_target_exists=
-if [ -f $BASE.pdf ]; then
+if [ -f $outfile ]; then
     is_target_exists=1
 fi
 
