@@ -5,9 +5,11 @@ markdown2pdf \- converts markdown-formatted text to PDF, using pdflatex
 .B markdown2pdf [input-file]
 .SH DESCRIPTION
 .B markdown2pdf 
-converts input-file (or text from STDIN, which in this case, the
-resulting PDF file is named as 'stdin.pdf') from markdown-formatted
-plain text to PDF, using LaTeX.  Cleans up intermediate LaTeX files.
+converts input-file (or text from STDIN) from markdown-formatted
+plain text to PDF, using pdflatex.  The name of the output file is derived
+from the input file; thus, for example, if the input file is 'hello.txt',
+the output file will be 'hello.pdf'.  If the input is read from STDIN, the
+output file will be named 'stdin.pdf'.
 .SH AUTHOR
 John MacFarlane <jgm at berkeley.edu>
 .SH "SEE ALSO"
