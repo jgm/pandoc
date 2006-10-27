@@ -12,10 +12,11 @@ Architecture: any
 Depends: ${shlibs:Depends}
 Suggests: tetex-bin, tidy, wget | w3m
 Description: General markup converter
- Pandoc is an implementation of Markdown (and much more) in Haskell. It
- can convert Markdown formatted text to HTML, LaTeX, rich text format,
- reStructuredText, or an S5 HTML slide show. It can also convert HTML,
- LaTeX, and reStructuredText to Markdown.
+ Pandoc is a Haskell library for converting from one markup format to
+ another, and a command-line tool that uses this library. It can read
+ markdown and (subsets of) reStructuredText, HTML, and LaTeX, and it
+ can write markdown, reStructuredText, HTML, LaTeX, RTF, and S5 HTML
+ slide shows.
 
 Package: libghc6-pandoc-dev
 Section: libdevel
@@ -23,20 +24,22 @@ Architecture: any
 Depends: ${haskell:Depends}
 Suggests: pandoc-doc
 Description: General markup converter
- Pandoc is an implementation of Markdown (and much more) in Haskell. It
- can convert Markdown formatted text to HTML, LaTeX, rich text format,
- reStructuredText, or an S5 HTML slide show. It can also convert HTML,
- LaTeX, and reStructuredText to Markdown.
- .
+ Pandoc is a Haskell library for converting from one markup format to
+ another, and a command-line tool that uses this library. It can read
+ markdown and (subsets of) reStructuredText, HTML, and LaTeX, and it
+ can write markdown, reStructuredText, HTML, LaTeX, RTF, and S5 HTML
+ slide shows.
+ . 
  This package contains the libraries compiled for GHC 6.
 
 Package: pandoc-doc
 Section: doc
 Architecture: all
 Description: General markup converter
- Pandoc is an implementation of Markdown (and much more) in Haskell. It
- can convert Markdown formatted text to HTML, LaTeX, rich text format,
- reStructuredText, or an S5 HTML slide show. It can also convert HTML,
- LaTeX, and reStructuredText to Markdown.
+ Pandoc is a Haskell library for converting from one markup format to
+ another, and a command-line tool that uses this library. It can read
+ markdown and (subsets of) reStructuredText, HTML, and LaTeX, and it
+ can write markdown, reStructuredText, HTML, LaTeX, RTF, and S5 HTML
+ slide shows.
  .
  This package contains the library documentation for Pandoc.
