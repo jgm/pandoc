@@ -10,10 +10,10 @@ pandoc (0.2) unstable; urgency=low
 
   * Fixed unicode/utf-8 translation
 
- -- John MacFarlane <clemens@kclee.de>  Mon,  14 Aug 2006 00:00:00 -0400
+ -- John MacFarlane <jgm@berkeley.edu>  Mon,  14 Aug 2006 00:00:00 -0400
 
 pandoc (0.1) unstable; urgency=low
 
   * Initial creation of debian package 
 
- -- John MacFarlane <clemens@kclee.de>  Mon,  14 Aug 2006 00:00:00 -0400
+ -- John MacFarlane <jgm@berkeley.edu>  Mon,  14 Aug 2006 00:00:00 -0400
