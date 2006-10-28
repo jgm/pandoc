@@ -27,6 +27,8 @@ or output format requires only adding a reader or writer.
 (c) 2006 John MacFarlane (jgm At berkeley.edu). Released under the
 [GPL], version 2 or greater.  This software carries no warranty of
 any kind.  (See LICENSE for full copyright and warranty notices.)
+Recai Oktaş (roktas At debian.org) deserves credit for the build
+system, the debian package, and the robust wrapper scripts.
 
 [GPL]: http://www.gnu.org/copyleft/gpl.html
 
