@@ -1,6 +1,10 @@
 #!/usr/bin/env perl
-# fills templates in templates directory with haskell-escaped strings
-# slurped from input files
+# Fills templates with haskell-escaped strings slurped from input files.
+# Takes two arguments, the first specifying the pathname of the target
+# relative to the root directory, the second specifying the root directory
+# (defaulting to ..).  The template is assumed to have the same base name
+# as the target and to reside in the templates subdirectory of the root
+# directory.
 
 use strict;
 use warnings;

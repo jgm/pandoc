@@ -31,7 +31,7 @@ else
         links) OPT="-source" ;;
         w3c)   OPT="-n -get" ;;
         "")    echo -n >&2 "Needs a program to fetch the URL "
-               echo -n >&2 "(e.g. wget, w3m, lynx, w3m or curl)."
+               echo -n >&2 "(e.g. wget, w3m, lynx, w3c, or curl)."
                exit 1 ;;
     esac
     # Fetch and feed to pandoc.
