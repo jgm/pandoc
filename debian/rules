@@ -9,23 +9,32 @@
 # Licensed under the GNU General Public License, version 2.
 # See the file 'http://www.gnu.org/copyleft/gpl.txt'.
 
-THIS := pandoc
+THIS    := $(shell sed -ne 's/^Source: \(.*\)/\1/p' debian/control)
+PREFIX  := /usr
+DESTDIR := debian/$(THIS)
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+ifeq (1,$(DH_VERBOSE))
+HCFLAGS+=-v
+endif
+
 # Handle noopt in DEB_BUILD_OPTIONS.  Emulate CFLAGS (as HCFLAGS).
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-MAKE_ENVVARS := HCFLAGS=-O0
+HCFLAGS+=-O0
 else
-MAKE_ENVVARS := HCFLAGS=-O2
+# No optimisation seems optimum.
+HCFLAGS+=-O0
 endif
-MAKE_ENVVARS += PREFIX=/usr
+
+# Export all variables which will be used in various stages of build process.
+export PREFIX DESTDIR HCFLAGS
 
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
-	$(MAKE_ENVVARS) $(MAKE) configure
+	$(MAKE) configure
 
 	touch configure-stamp
 
@@ -58,7 +67,7 @@ install: build
 	# http://www.n-heptane.com/nhlab/repos/cabalDebianTemplate/INSTRUCTIONS.txt
 	find debian/libghc6-$(THIS)-dev -type d -name 'bin' -true | \
 		while read bin; do mv $$bin/* .; rm -rf $$bin; done
-	DESTDIR=debian/$(THIS) $(MAKE_ENVVARS) $(MAKE) install
+	$(MAKE) install
 
 build-indep: build-indep-stamp
 build-indep-stamp:

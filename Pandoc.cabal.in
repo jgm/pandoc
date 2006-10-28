@@ -1,5 +1,5 @@
 Name:            Pandoc
-Version:         0.21
+Version:         0.2
 License:         GPL
 License-File:    LICENSE
 Author:          John MacFarlane <jgm@berkeley.edu>
@@ -8,8 +8,8 @@ Category:        Text
 Synopsis:        Utilities for translating between various markup formats	
 Description:     Haskell utilities for translating between markdown, HTML,
                  reStructuredText, LaTeX, and RTF
-Build-Depends:	 base, haskell98, parsec
-Hs-Source-Dir:   src
+Build-Depends:	 @BUILD_DEPENDS@
+@HS_SOURCE_DIRS@: src
 Exposed-Modules: Text.ParserCombinators.Pandoc,
                  Text.Pandoc.ASCIIMathML,
 	         Text.Pandoc.Definition,
@@ -27,7 +27,9 @@ Exposed-Modules: Text.ParserCombinators.Pandoc,
                  Text.Pandoc.Readers.Markdown,
                  Text.Pandoc.Readers.RST,
                  Text.Pandoc.Readers.LaTeX
+Ghc-Options:     @HCFLAGS@
 
 Executable:      pandoc
-Hs-Source-Dir:   src
+@HS_SOURCE_DIRS@: src
 Main-Is:         Main.hs
+Ghc-Options:     @HCFLAGS@

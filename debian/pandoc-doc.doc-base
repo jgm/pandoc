@@ -7,5 +7,5 @@ Abstract: This is the documentation of Pandoc, which includes the API
 Section: Apps/Programming
 
 Format: html
-Index: /usr/share/doc/pandoc-doc/index.html
-Files: /usr/share/doc/pandoc-doc/*.html /usr/share/doc/pandoc-doc/pandoc/*.html
+Index: /usr/share/doc/pandoc-doc/html/index.html
+Files: /usr/share/doc/pandoc-doc/html/*.html

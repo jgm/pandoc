@@ -1,28 +1,30 @@
 # Makefile for Pandoc.
 
+CABAL     := Pandoc.cabal
+
 #-------------------------------------------------------------------------------
 # Cabal constants
 #-------------------------------------------------------------------------------
-CABAL       := $(wildcard *.cabal)
-NAME        := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL))
-THIS        := $(shell echo $(NAME) | tr A-Z a-z)
-VERSION     := $(shell sed -ne 's/^[Vv]ersion:[[:space:]]*//p' $(CABAL))
-EXECUTABLES := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL))
+NAME      := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL).in)
+THIS      := $(shell echo $(NAME) | tr A-Z a-z)
+VERSION   := $(shell sed -ne 's/^[Vv]ersion:[[:space:]]*//p' $(CABAL).in)
+BINS      := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
 
 #-------------------------------------------------------------------------------
 # Variables to setup through environment
 #-------------------------------------------------------------------------------
-PREFIX      ?= /usr/local
-DESTDIR     ?=
+PREFIX    ?= /usr/local
+DESTDIR   ?=
 
 #-------------------------------------------------------------------------------
 # Constant names and commands in source tree
 #-------------------------------------------------------------------------------
-SRCDIR      := src
-MANDIR      := man
-BUILDDIR    := dist
-BUILDCONF   := .setup-config
-BUILDCMD    := runhaskell Setup.hs
+SRCDIR    := src
+MANDIR    := man
+BUILDDIR  := dist
+BUILDCONF := .setup-config
+BUILDCMD  := runhaskell Setup.hs
+CONFIGURE := configure
 
 #-------------------------------------------------------------------------------
 # Installation paths
@@ -40,6 +42,7 @@ PKGPATH     := $(DATAPATH)/$(THIS)
 INSTALL         := install -c
 INSTALL_PROGRAM := $(INSTALL) -m 755 
 INSTALL_DATA    := $(INSTALL) -m 644
+GHC             := ghc
 
 #-------------------------------------------------------------------------------
 # Recipes
@@ -53,39 +56,39 @@ templates: $(SRCDIR)/templates
 $(SRCDIR)/templates:
 	$(MAKE) -C $(SRCDIR)/templates
 
-.PHONY: prep
-prep: 
-	# Darcs cannot preserve file permissions.
-	-for f in configure debian/rules; do chmod +x $$f; done
+cleanup_files+=$(CABAL)
+$(CABAL): cabalize $(CABAL).in
+	./cabalize <$(CABAL).in >$(CABAL)
 
 .PHONY: configure
-cleanup_files+=$(BUILDDIR) $(BUILDCONF) $(CABAL:%.cabal=%).buildinfo
+cleanup_files+=$(BUILDDIR) $(BUILDCONF)
 configure: $(BUILDCONF)
-$(BUILDCONF): prep
+$(BUILDCONF): $(CABAL)
 	$(BUILDCMD) configure --prefix=$(PREFIX)
 
 .PHONY: build
 build: templates configure
 	$(BUILDCMD) build
 
-.PHONY: build-lib-doc
+.PHONY: build-lib-doc haddock
 build-lib-doc: html
+haddock: build-lib-doc
 cleanup_files+=html
-html: $(BUILDCONF)
+html/: configure
+	-rm -rf html
 	$(BUILDCMD) haddock && mv $(BUILDDIR)/doc/html .
 
-cleanup_files+=$(EXECUTABLES)
-$(EXECUTABLES): build
+cleanup_files+=$(BINS)
+$(BINS): build
 	# Ugly kludge to seperate program and library installations.
 	# Leave the library installation to Cabal ('install-lib' target).
-	find $(BUILDDIR) -type f -name "$(EXECUTABLES)" -perm +a=x -exec mv {} . \;
-
+	find $(BUILDDIR) -type f -name "$(BINS)" -perm +a=x -exec mv {} . \;
 
 # XXX: Note that we don't handle PREFIX correctly at the install-* stages,
 # i.e. any PREFIX given at the configuration time is lost, unless it is
 # also supplied (via environment) at these stages.
 .PHONY: install-exec uninstall-exec
-bin_all:=$(EXECUTABLES) html2markdown markdown2html latex2markdown markdown2latex markdown2pdf
+bin_all:=$(BINS) html2markdown markdown2html latex2markdown markdown2latex markdown2pdf
 install-exec: $(bin_all)
 	$(INSTALL) -d $(BINPATH); \
 	for f in $(bin_all); do $(INSTALL_PROGRAM) $$f $(BINPATH)/; done
@@ -98,8 +101,10 @@ man_all:=$(patsubst $(MANDIR)/%,%,$(wildcard $(MANDIR)/man?/*.1))
 cleanup_files+=README.html
 install-doc: $(doc_all)
 	$(INSTALL) -d $(DOCPATH) && $(INSTALL_DATA) $(doc_all) $(DOCPATH)/
-	$(INSTALL) -d $(MANPATH); \
-	for f in $(man_all); do $(INSTALL_DATA) -D $(MANDIR)/$$f $(MANPATH)/$$f; done
+	for f in $(man_all); do \
+		$(INSTALL) -d $(MANPATH)/$$(dirname $$f); \
+		$(INSTALL_DATA) $(MANDIR)/$$f $(MANPATH)/$$f; \
+	done
 uninstall-doc:
 	-for f in $(doc_all); do rm -f $(DOCPATH)/$$f; done
 	-for f in $(man_all); do rm -f $(MANPATH)/$$f; done
@@ -118,9 +123,9 @@ install-lib-doc: build-lib-doc
 	$(INSTALL) -d $(LIBDOCPATH) && cp -a html $(LIBDOCPATH)/
 
 .PHONY: test test-markdown
-test: $(EXECUTABLES)
+test: $(BINS)
 	@cd tests && perl runtests.pl -s $(PWD)/$(THIS)
-test-markdown: $(EXECUTABLES)
+test-markdown: $(BINS)
 	@cd tests/MarkdownTest_1.0.3 && perl MarkdownTest.pl -s $(PWD)/$(THIS) -tidy
 %.html: %
 	./$(THIS) -s $^ >$@ || rm -f $@
@@ -132,7 +137,7 @@ tags: $(src_all)
 	cd $(SRCDIR) && hasktags -c $(src_all:$(SRCDIR)/%=%); \
 	LC_ALL=C sort tags >tags.sorted; mv tags.sorted tags
 
-deb: debian prep
+deb: debian
 	[ -x /usr/bin/fakeroot ] || { \
 		echo "*** Please install fakeroot package. ***"; \
 		exit 1; \
@@ -150,7 +155,7 @@ deb: debian prep
 	fi
 
 .PHONY: distclean clean
-distclean: clean prep
+distclean: clean
 	if [ -d debian ]; then fakeroot debian/rules clean; fi
 clean:
 	-if [ -f $(BUILDCONF) ]; then $(BUILDCMD) clean; fi

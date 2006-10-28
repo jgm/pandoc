@@ -1,3 +1,9 @@
+pandoc (0.22) unstable; urgency=low
+
+  * Migrate to GHC 6.6.  Modify the whole build system accordingly.
+
+ -- Recai Oktaş <roktas@debian.org>  Tue, 24 Oct 2006 07:48:30 +0300
+
 pandoc (0.21) unstable; urgency=low
 
   * Revamp and split Debian package.  Closes: #391666.
