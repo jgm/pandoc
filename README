@@ -1,6 +1,6 @@
 % pandoc
 % John MacFarlane
-% August 10, 2006 
+% October 30, 2006
 
 `pandoc` is a [Haskell] library for converting from one markup format
 to another, and a command-line tool that uses this library. It can read
