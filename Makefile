@@ -108,7 +108,7 @@ install-doc: $(doc_all)
 uninstall-doc:
 	-for f in $(doc_all); do rm -f $(DOCPATH)/$$f; done
 	-for f in $(man_all); do rm -f $(MANPATH)/$$f; done
-	-rmdir --ignore-fail-on-non-empty $(DOCPATH)
+	-rmdir $(DOCPATH)
 
 # Handle program installation manually (due to the deficiencies in Cabal).
 .PHONY: install uninstall
