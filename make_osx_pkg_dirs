@@ -1,10 +1,16 @@
 #!/bin/sh -e
 # make directories for a Mac OSX package
 
+# WARNING:  This isn't finished.  Don't use it yet!
+# Need to fix permissions & ownerships.  See 
+# http://s.sudre.free.fr/Stuff/PackageMaker_Howto.html
+# Also, think about where to put these files.  I'm not sure /usr/local/bin
+# is in the path by default in OSX.
+
 PANDOC="pandoc"
 EXECUTABLES="pandoc markdown2html html2markdown markdown2latex latex2markdown markdown2pdf"
 DOCS="README README.html BUGS TODO"
-MAN_PAGES=$(echo "$EXECUTABLES" | sed -e 's#\([^ ]*\)/\/man\/man1\/#\1#g')
+MAN_PAGES=$(echo "$EXECUTABLES" | sed -e 's#\([^ ]*\)#man/man1/\1\.1#g')
 
 make  # make sure the executables have been built
 make README.html
