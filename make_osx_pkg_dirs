@@ -1,0 +1,37 @@
+#!/bin/sh -e
+# make directories for a Mac OSX package
+
+PANDOC="pandoc"
+EXECUTABLES="pandoc markdown2html html2markdown markdown2latex latex2markdown markdown2pdf"
+DOCS="README README.html BUGS TODO"
+MAN_PAGES=$(echo "$EXECUTABLES" | sed -e 's#\([^ ]*\)/\/man\/man1\/#\1#g')
+
+make  # make sure the executables have been built
+make README.html
+make test
+
+rm -rf osx-pkg  # remove old package directories
+mkdir osx-pkg
+mkdir osx-pkg/Resources
+mkdir osx-pkg/Package_Root
+mkdir osx-pkg/Package_Root/usr
+mkdir osx-pkg/Package_Root/usr/local
+mkdir osx-pkg/Package_Root/usr/local/bin
+mkdir osx-pkg/Package_Root/usr/local/share
+mkdir osx-pkg/Package_Root/usr/local/share/doc
+mkdir osx-pkg/Package_Root/usr/local/share/doc/pandoc
+mkdir osx-pkg/Package_Root/usr/local/man
+mkdir osx-pkg/Package_Root/usr/local/man/man1
+$PANDOC -s -w rtf README > osx-pkg/Resources/ReadMe.rtf
+$PANDOC -s -w rtf LICENSE > osx-pkg/Resources/License.rtf
+chmod +x $EXECUTABLES
+cp $EXECUTABLES osx-pkg/Package_Root/usr/local/bin/
+cp $DOCS osx-pkg/Package_Root/usr/local/share/doc/pandoc/
+cp $MAN_PAGES osx-pkg/Package_Root/usr/local/man/man1/
+
+echo
+echo "You may now run PackageMaker.app.  For Root, specify"
+echo "osx-pkg/Package_Root.  The ReadMe.rtf and License.rtf files"
+echo "can be found in osx-pkg/Resources."
+echo
+
