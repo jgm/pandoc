@@ -29,8 +29,10 @@ CONFIGURE := configure
 #-------------------------------------------------------------------------------
 # Installation paths
 #-------------------------------------------------------------------------------
-BINPATH     := $(DESTDIR)$(PREFIX)/bin
-DATAPATH    := $(DESTDIR)$(PREFIX)/share
+DESTPATH    := $(DESTDIR)$(PREFIX)
+BINPATH     := $(DESTPATH)/bin
+DATAPATH    := $(DESTPATH)/share
+LIBPATH     := $(DESTPATH)/$(NAME)-$(VERSION)
 DOCPATH     := $(DATAPATH)/doc/$(THIS)
 LIBDOCPATH  := $(DATAPATH)/doc/$(THIS)-doc
 MANPATH     := $(DATAPATH)/man
@@ -43,6 +45,7 @@ INSTALL         := install -c
 INSTALL_PROGRAM := $(INSTALL) -m 755 
 INSTALL_DATA    := $(INSTALL) -m 644
 GHC             := ghc
+GHC_PKG         := ghc-pkg
 
 #-------------------------------------------------------------------------------
 # Recipes
@@ -80,26 +83,21 @@ html/: configure
 
 cleanup_files+=$(BINS)
 $(BINS): build
-	# Ugly kludge to seperate program and library installations.
-	# Leave the library installation to Cabal ('install-lib' target).
-	find $(BUILDDIR) -type f -name "$(BINS)" -perm +a=x -exec mv {} . \;
+	find $(BUILDDIR) -type f -name "$(BINS)" -perm +a=x -exec cp {} . \;
+
+.PHONY: build-all
+build-all: build $(BINS) build-lib-doc
 
 # XXX: Note that we don't handle PREFIX correctly at the install-* stages,
 # i.e. any PREFIX given at the configuration time is lost, unless it is
 # also supplied (via environment) at these stages.
-.PHONY: install-exec uninstall-exec
-bin_all:=$(BINS) html2markdown markdown2html latex2markdown markdown2latex markdown2pdf
-install-exec: $(bin_all)
-	$(INSTALL) -d $(BINPATH); \
-	for f in $(bin_all); do $(INSTALL_PROGRAM) $$f $(BINPATH)/; done
-uninstall-exec:
-	-for f in $(bin_all); do rm -f $(BINPATH)/$$f; done
 
+# User documents installation.
 .PHONY: install-doc uninstall-doc
 doc_all:=README.html README BUGS TODO
 man_all:=$(patsubst $(MANDIR)/%,%,$(wildcard $(MANDIR)/man?/*.1))
 cleanup_files+=README.html
-install-doc: $(doc_all)
+install-doc: $(BINS) $(doc_all)
 	$(INSTALL) -d $(DOCPATH) && $(INSTALL_DATA) $(doc_all) $(DOCPATH)/
 	for f in $(man_all); do \
 		$(INSTALL) -d $(MANPATH)/$$(dirname $$f); \
@@ -110,17 +108,50 @@ uninstall-doc:
 	-for f in $(man_all); do rm -f $(MANPATH)/$$f; done
 	-rmdir $(DOCPATH)
 
-# Handle program installation manually (due to the deficiencies in Cabal).
-.PHONY: install uninstall
-install: install-exec install-doc
-# FIXME: incomplete support for uninstallation.
-uninstall: uninstall-exec uninstall-doc
-
-.PHONY: install-lib install-lib-doc
-install-lib:
-	@$(BUILDCMD) install || true # required since we move executable
+# Library documents installation.
+.PHONY: install-lib-doc uninstall-lib-doc
 install-lib-doc: build-lib-doc
 	$(INSTALL) -d $(LIBDOCPATH) && cp -a html $(LIBDOCPATH)/
+uninstall-lib-doc:
+	-rm -rf $(LIBDOCPATH)/html
+	-rmdir $(LIBDOCPATH)
+
+# Program only installation.
+.PHONY: install-exec uninstall-exec
+bin_all:=$(BINS) html2markdown markdown2html latex2markdown markdown2latex markdown2pdf
+install-exec: $(bin_all)
+	$(INSTALL) -d $(BINPATH); \
+	for f in $(bin_all); do $(INSTALL_PROGRAM) $$f $(BINPATH)/; done
+uninstall-exec:
+	-for f in $(bin_all); do rm -f $(BINPATH)/$$f; done
+
+# Program + user documents installation.
+.PHONY: install-program uninstall-program
+install-program: install-exec install-doc
+uninstall-program: uninstall-exec uninstall-doc
+
+# Install everything.
+.PHONY: install-all uninstall-all
+install-all: install-doc install-lib-doc
+	destdir=$(DESTDIR); destdir=$${destdir:-/}; \
+	$(BUILDCMD) copy --destdir=$$destdir; \
+	$(BUILDCMD) register
+uninstall-all: uninstall-doc uninstall-lib-doc
+	-pkg_id="$(NAME)-$(VERSION)"; \
+	libdir=$$($(GHC_PKG) field $$pkg_id library-dirs 2>/dev/null | \
+		  sed 's/^library-dirs: *//'); \
+	if [ -d "$$libdir" ]; then \
+		$(BUILDCMD) unregister; \
+		rm -rf $$libdir; \
+		rmdir $$(dirname $$libdir); \
+	else \
+		echo "*** Couldn't locate library files for pkgid: $$pkg_id. ***"; \
+	fi
+
+# Default installation recipe for a common deployment scenario.
+.PHONY: install uninstall
+install: install-program
+uninstall: uninstall-program
 
 .PHONY: test test-markdown
 test: $(BINS)

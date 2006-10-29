@@ -74,13 +74,10 @@ using Windows, you can install [Cygwin].
 
         PREFIX=~ make install-exec
 
-5.  Install Haskell libraries (optional):
+5.  Install everthing including Haskell libraries and library documentation 
+    (optional):
 
-        make install-lib
-
-6.  Install library documentation into `/usr/local/pandoc-doc` (optional):
-
-        make install-lib-doc
+        make install-all
 
 ## Removing `pandoc`
 
@@ -90,10 +87,8 @@ Each of the installation steps described above can be reversed:
 
     PREFIX=~ make uninstall-exec
 
-    make uninstall-lib
+    make uninstall-all
 
-    make uninstall-lib-doc
- 
 # Using `pandoc`
 
 If you run `pandoc` without arguments, it will accept input from

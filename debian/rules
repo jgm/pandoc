@@ -67,7 +67,7 @@ install: build
 	# http://www.n-heptane.com/nhlab/repos/cabalDebianTemplate/INSTRUCTIONS.txt
 	find debian/libghc6-$(THIS)-dev -type d -name 'bin' -true | \
 		while read bin; do mv $$bin/* .; rm -rf $$bin; done
-	$(MAKE) install
+	$(MAKE) install-program
 
 build-indep: build-indep-stamp
 build-indep-stamp:
