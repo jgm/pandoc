@@ -74,7 +74,7 @@ using Windows, you can install [Cygwin].
 
         PREFIX=~ make install-exec
 
-5.  Install everthing including Haskell libraries and library documentation 
+5.  Install everthing, including Haskell libraries and library documentation 
     (optional):
 
         make install-all
