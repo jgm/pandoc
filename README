@@ -1,16 +1,16 @@
-% pandoc
+% Pandoc
 % John MacFarlane
 % October 30, 2006
 
-`pandoc` is a [Haskell] library for converting from one markup format
+Pandoc is a [Haskell] library for converting from one markup format
 to another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX],
 and it can write [markdown], [reStructuredText], [HTML], [LaTeX], [RTF],
-and [S5] HTML slide shows. `pandoc`'s version of markdown contains some
+and [S5] HTML slide shows. Pandoc's version of markdown contains some
 enhancements, like footnotes and embedded LaTeX.
 
 In contrast to existing tools for converting markdown to HTML, which
-use regex substitutions, `pandoc` has a modular design: it consists of a
+use regex substitutions, Pandoc has a modular design: it consists of a
 set of readers, which parse text in a given format and produce a native
 representation of the document, and a set of writers, which convert
 this native representation into a target format. Thus, adding an input
@@ -32,64 +32,7 @@ system, the debian package, and the robust wrapper scripts.
 
 [GPL]: http://www.gnu.org/copyleft/gpl.html
 
-# Installation
-
-## Installing GHC
-
-To compile `pandoc`, you'll need [GHC] version 6.4 or greater. 
-
-If you don't have GHC already, you can get it from the 
-[GHC Download] page.
-
-[GHC]: http://www.haskell.org/ghc/
-[GHC Download]: http://www.haskell.org/ghc/download.html
-
-You'll also need standard build tools: GNU `make`, `sed`, `bash`, and `perl`.
-These are standard on unix systems (including MacOS X).  If you're
-using Windows, you can install [Cygwin].
-
-[Cygwin]: http://www.cygwin.com/
-
-## Installing `pandoc`
-
-1.  Change to the directory containing the `pandoc` distribution.
-
-2.  Compile:
-
-        make
-
-3.  See if it worked (optional, but recommended): 
-
-        make test
-
-4.  Install:
-
-        make install
-
-    Note:  This installs `pandoc`, together with its wrappers and
-    documentation, into the `/usr/local` directory, which requires root
-    privileges.  If you don't have root privileges or would prefer to
-    install `pandoc` and the associated shell scripts into your `~/bin`
-    directory, type this instead:
-
-        PREFIX=~ make install-exec
-
-5.  Install everthing, including Haskell libraries and library documentation 
-    (optional):
-
-        make install-all
-
-## Removing `pandoc`
-
-Each of the installation steps described above can be reversed:
-
-    make uninstall
-
-    PREFIX=~ make uninstall-exec
-
-    make uninstall-all
-
-# Using `pandoc`
+# Using Pandoc
 
 If you run `pandoc` without arguments, it will accept input from
 STDIN.  If you run it with file names as arguments, it will take input
@@ -140,7 +83,7 @@ before parsing:
 with a proper header, rather than a fragment.  For more details on this
 and many other command-line options, see below.)
 
-## Character encoding
+# Character encodings
 
 Unfortunately, due to limitations in GHC, `pandoc` does not automatically
 detect the system's local character encoding.  Hence, all input and
@@ -159,7 +102,7 @@ convert it to HTML, putting the output in `output.html`.
 The shell scripts (described below) automatically convert the source
 from the local encoding to UTF-8 before running them through `pandoc`.
 
-## The shell scripts 
+# The shell scripts 
 
 For convenience, five shell scripts have been included that make it
 easy to run `pandoc` without remembering all the command-line options.
@@ -268,17 +211,17 @@ is for lists to be displayed all at once.
 `-N` or `--number-sections` causes sections to be numbered in LaTeX
 output.  By default, sections are not numbered.
 
-# `pandoc`'s markdown vs. standard markdown
+# Pandoc's markdown vs. standard markdown
 
-In parsing markdown, `pandoc` departs from and extends [standard markdown]
-in a few respects.  (To run `pandoc` on the official
+In parsing markdown, Pandoc departs from and extends [standard markdown]
+in a few respects.  (To run Pandoc on the official
 markdown test suite, type `make test-markdown`.)
 
 [standard markdown]:  http://daringfireball.net/projects/markdown/syntax
 
 ## Lists
 
-`pandoc` behaves differently from standard markdown on some "edge
+Pandoc behaves differently from standard markdown on some "edge
 cases" involving lists.  Consider this source: 
 
     1.  First
@@ -289,10 +232,10 @@ cases" involving lists.  Consider this source:
 
     3.  Third
 
-`pandoc` transforms this into a "compact list" (with no `<p>` tags
+Pandoc transforms this into a "compact list" (with no `<p>` tags
 around "First", "Second", or "Third"), while markdown puts `<p>`
 tags around "Second" and "Third" (but not "First"), because of
-the blank space around "Third".  `pandoc` follows a simple rule:
+the blank space around "Third".  Pandoc follows a simple rule:
 if the text is followed by a blank line, it is treated as a
 paragraph.  Since "Second" is followed by a list, and not a blank
 line, it isn't treated as a paragraph.  The fact that the list
@@ -305,13 +248,13 @@ in
 
     [foo]: "bar "embedded" baz"
 
-`pandoc` requires all quotes within titles to be escaped:
+Pandoc requires all quotes within titles to be escaped:
 
     [foo]: "bar \"embedded\" baz"
 
 ## Reference links
 
-`pandoc` allows implicit reference links in either of two styles:
+Pandoc allows implicit reference links in either of two styles:
 
     1. Here's my [link]
     2. Here's my [link][]
@@ -325,7 +268,7 @@ appear as `[link]` if there's no reference for `link`.  If you want
 
 ## Footnotes
 
-`pandoc`'s markdown allows footnotes, using the following syntax:
+Pandoc's markdown allows footnotes, using the following syntax:
 
 	here is a footnote reference,^(1) and another.^(longnote)
 
@@ -347,10 +290,10 @@ Footnote references may not contain spaces, tabs, or newlines.
 
 ## Embedded HTML
 
-`pandoc` treats embedded HTML in markdown a bit differently than
+Pandoc treats embedded HTML in markdown a bit differently than
 Markdown 1.0.  While Markdown 1.0 leaves HTML blocks exactly as they
-are, `pandoc` treats text between HTML tags as markdown.  Thus, for
-example, `pandoc` will turn
+are, Pandoc treats text between HTML tags as markdown.  Thus, for
+example, Pandoc will turn
 
     <table>
         <tr>
@@ -413,7 +356,7 @@ HTML title.
 
 ## Box-style blockquotes
 
-`pandoc` supports emacs-style boxquote block quotes, in addition to
+Pandoc supports emacs-style boxquote block quotes, in addition to
 standard markdown (email-style) boxquotes:
 
 	,----
@@ -467,9 +410,9 @@ it and specify it on the command line as follows:
 
     pandoc --header=MyHeaderFile
 
-# Producing S5 with `pandoc`
+# Producing S5 with Pandoc
 
-Producing an [S5] slide show with `pandoc` is easy.  A title page is
+Producing an [S5] slide show with Pandoc is easy.  A title page is
 constructed automatically from the document's title block (see above).
 Each section (with a level-one header) produces a single slide.  (Note
 that if the section is too big, the slide will not fit on the page; S5
