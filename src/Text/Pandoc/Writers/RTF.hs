@@ -56,7 +56,7 @@ rtfParSpaced :: Int     -- ^ space after (in twips)
              -> String  -- ^ string with content
              -> String 
 rtfParSpaced spaceAfter indent firstLineIndent content = 
-    "{\\pard \\sa" ++ (show spaceAfter) ++ " \\li" ++ (show indent) ++ 
+    "{\\pard \\f0 \\sa" ++ (show spaceAfter) ++ " \\li" ++ (show indent) ++ 
                        " \\fi" ++ (show firstLineIndent) ++ " " ++ content ++ "\\par}\n"
 
 -- | Default paragraph. 

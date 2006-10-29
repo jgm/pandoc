@@ -23,5 +23,5 @@ defaultS5Header :: String
 defaultS5Header = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<!-- configuration parameters -->\n<meta name=\"defaultView\" content=\"slideshow\" />\n<meta name=\"controlVis\" content=\"hidden\" />\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<meta name=\"generator\" content=\"pandoc\" />\n" ++ s5CSS ++ s5Javascript
 
 defaultRTFHeader :: String
-defaultRTFHeader = "{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Times New Roman;}{\\f1 Courier;}}\n{\\colortbl;\\red255\\green0\\blue0;\\red0\\green0\\blue255;}\n\\widowctrl\\hyphauto\n\n"
+defaultRTFHeader = "{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 \\fswiss Helvetica;}{\\f1 Courier;}}\n{\\colortbl;\\red255\\green0\\blue0;\\red0\\green0\\blue255;}\n\\widowctrl\\hyphauto\n\n"
 
