@@ -78,10 +78,10 @@ escapeSingleQuotes =
 escapeEllipses = gsub "\\.\\.\\.|\\. \\. \\." "\\ldots{}" 
 
 escapeDashes = gsub "([0-9])-([0-9])" "\\1--\\2" .
-               gsub " -- " "---" .
-               gsub "([^[:punct:][:space:]])--([^[:punct:][:space:]])" "\\1---\\2" 
+               gsub " *--- *" "---" .
+               gsub "([^-])--([^-])" "\\1---\\2" 
 
-escapeSmart = escapeSingleQuotes . escapeDoubleQuotes . escapeDashes . escapeEllipses 
+escapeSmart = escapeDashes . escapeSingleQuotes . escapeDoubleQuotes . escapeEllipses 
 
 -- | Escape string for LaTeX (including smart quotes, dashes, ellipses)
 stringToLaTeX :: String -> String
