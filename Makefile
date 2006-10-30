@@ -179,8 +179,8 @@ osx-pkg: $(doc_more)
 	mv LICENSE.rtf $(osx_dest)/Resources/License.rtf
 	@echo
 	@echo "You may now run PackageMaker.app.  For Root, specify"
-	@echo "osx-pkg/Package_Root.  The ReadMe.rtf and License.rtf files"
-	@echo "can be found in osx-pkg/Resources."
+	@echo "$(osx_dest)/Package_Root.  The ReadMe.rtf and License.rtf files"
+	@echo "can be found in $(osx_dest)/Resources."
 	@echo
 
 .PHONY: test test-markdown
