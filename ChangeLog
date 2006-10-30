@@ -1,5 +1,10 @@
 2006-10-30  Recai Oktaş <roktas@debian.org>
 
+	Ensure that we have always up-to-date version of ChangeLog before creating
+	a Debian package.  Make 'ChangeLog' target PHONY to force an update.
+
+2006-10-30  Recai Oktaş <roktas@debian.org>
+
 	Make debian/rules executable to avoid errors in 'distclean' target.
 
 2006-10-30  Recai Oktaş <roktas@debian.org>
@@ -274,7 +279,7 @@
 
 	initial import
 
-05:49:25  |
+2006-10-03  
 
 	Initial directory structure.
 

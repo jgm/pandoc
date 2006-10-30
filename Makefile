@@ -202,12 +202,12 @@ tags: $(src_all)
 ChangeLog: gnuify-changelog.pl
 	@echo "Updating ChangeLog file before packaging..."
 	svn update ..
-	svn log .. | sed 's/| (no author) |/| |/' | ./gnuify-changelog.pl >$@
+	svn log .. | sed 's/| (no author) |/|  |/' | ./gnuify-changelog.pl >$@
 	@if [ -n "$$(svn status $@))" ]; then \
 		echo "*** ChangeLog modified, please commit changes! ***"; \
 	fi
 
-deb: debian ChangeLog
+deb: debian
 	[ -x /usr/bin/fakeroot ] || { \
 		echo "*** Please install fakeroot package. ***"; \
 		exit 1; \
@@ -223,6 +223,9 @@ deb: debian ChangeLog
 		echo "*** Using dpkg-buildpackage for package building. ***"; \
 		dpkg-buildpackage -rfakeroot -uc -us -i.svn -I.svn -i_darcs -I_darcs; \
 	fi
+
+.PHONY:
+package: ChangeLog deb
 
 .PHONY: distclean clean
 distclean: clean
