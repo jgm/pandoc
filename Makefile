@@ -219,7 +219,10 @@ deb: debian
 
 .PHONY: distclean clean
 distclean: clean
-	if [ -d debian ]; then fakeroot debian/rules clean; fi
+	if [ -d debian ]; then \
+		chmod +x debian/rules; fakeroot debian/rules clean; \
+	fi
+
 clean:
 	-if [ -f $(BUILDCONF) ]; then $(BUILDCMD) clean; fi
 	-rm -rf $(cleanup_files)
