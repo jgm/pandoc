@@ -55,20 +55,20 @@ GHC_PKG         := ghc-pkg
 .PHONY: all
 all: $(BINS)
 
+# Document process rules.
+%.html: % $(THIS)
+	./$(THIS) -s $< >$@ || rm -f $@
+%.tex: % $(THIS)
+	./$(THIS) -s -w latex $< >$@ || rm -f $@
+%.rtf: % $(THIS)
+	./$(THIS) -s -w rtf $< >$@ || rm -f $@
+%.pdf: % $(THIS)
+	sh ./markdown2pdf $< || rm -f $@
+
 .PHONY: templates
 templates: $(SRCDIR)/templates
 $(SRCDIR)/templates:
 	$(MAKE) -C $(SRCDIR)/templates
-
-# Document process rules.
-%.html: %
-	./$(THIS) -s $^ >$@ || rm -f $@
-%.tex: %
-	$(THIS) -s -w latex $^ >$@ || rm -f $@
-%.rtf: %
-	$(THIS) -s -w rtf $^ >$@ || rm -f $@
-%.pdf: %
-	sh ./markdown2pdf $^ || rm -f $@
 
 cleanup_files+=$(CABAL)
 $(CABAL): cabalize $(CABAL).in
@@ -168,7 +168,8 @@ uninstall: uninstall-program
 osx_dest:=osx-pkg
 doc_more:=README.rtf LICENSE.rtf
 cleanup_files+=$(osx_dest) $(doc_more)
-osx-pkg: $(doc_more)
+osx-pkg: $(osx_dest)
+$(osx_dest): $(doc_more)
 	-rm -rf $(osx_dest)
 	$(INSTALL) -d $(osx_dest)
 	DESTDIR=$(osx_dest) $(MAKE) install-program
@@ -219,4 +220,3 @@ distclean: clean
 clean:
 	-if [ -f $(BUILDCONF) ]; then $(BUILDCMD) clean; fi
 	-rm -rf $(cleanup_files)
-
