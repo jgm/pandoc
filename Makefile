@@ -197,10 +197,17 @@ tags: $(src_all)
 	cd $(SRCDIR) && hasktags -c $(src_all:$(SRCDIR)/%=%); \
 	LC_ALL=C sort tags >tags.sorted; mv tags.sorted tags
 
-ChangeLog: ../.svn/entries gnuify-changelog.pl
-	svn log .. | sed 's/(no author)//' | ./gnuify-changelog.pl >$@
+.PHONY: ChangeLog
+# should always attempt to update ChangeLog, hence .PHONY
+ChangeLog: gnuify-changelog.pl
+	@echo "Updating ChangeLog file before packaging..."
+	svn update ..
+	svn log .. | sed 's/| (no author) |/| |/' | ./gnuify-changelog.pl >$@
+	@if [ -n "$$(svn status $@))" ]; then \
+		echo "*** ChangeLog modified, please commit changes! ***"; \
+	fi
 
-deb: debian
+deb: debian ChangeLog
 	[ -x /usr/bin/fakeroot ] || { \
 		echo "*** Please install fakeroot package. ***"; \
 		exit 1; \

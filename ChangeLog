@@ -1,5 +1,17 @@
 2006-10-30  Recai Oktaş <roktas@debian.org>
 
+	Make debian/rules executable to avoid errors in 'distclean' target.
+
+2006-10-30  Recai Oktaş <roktas@debian.org>
+
+	Modifications to create a nice ChangeLog.
+	+ Add new file 'gnuify-changelog.pl' grabbed and adapted from subversion
+	  distribution.
+	+ Add 'ChangeLog' target to create/update ChangeLog.
+	+ Update current ChangeLog.
+
+2006-10-30  Recai Oktaş <roktas@debian.org>
+
 	Really fix cabal version detection.
 
 2006-10-30  Recai Oktaş <roktas@debian.org>
@@ -262,7 +274,7 @@
 
 	initial import
 
-2006-10-03  
+05:49:25  |
 
 	Initial directory structure.
 
