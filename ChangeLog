@@ -1,1 +1,271 @@
-Please see changelog.Debian (debian/changelog in source tree).
+2006-10-30  Recai Oktaş <roktas@debian.org>
+
+	Really fix cabal version detection.
+
+2006-10-30  Recai Oktaş <roktas@debian.org>
+
+	Add pandoc executable to process rules as a dependency.  Make osx_dest,
+	osx-pkg distinction more clear.
+
+2006-10-30  Recai Oktaş <roktas@debian.org>
+
+	Parameterise "osx-pkg".
+
+2006-10-30  Recai Oktaş <roktas@debian.org>
+
+	Add a 'osx-pkg' target for the creation of a Mac OSX® package (using
+	PackageMaker.App).  This target recursively uses 'install-program'
+	target to populate OSX package directory tree.
+
+2006-10-30  Recai Oktaş <roktas@debian.org>
+
+	* cabalize: fix cabal version detection by using a bloody hack.
+	* Makefile:
+	  + Make 'uninstall-all' depends on 'uninstall-exec'.
+	  + Make the default target 'all' depends on $(BINS).  Now, invoking
+	    a plain 'make' builds and creates pandoc in the top directory.
+
+2006-10-29  John MacFarlane <jgm@berkeley.edu>
+
+	Bug fixes to make_osx_pkg_dirs.
+
+2006-10-29  John MacFarlane <jgm@berkeley.edu>
+
+	Added a script to make prepare directories for creation of a
+	Mac OSX package (using PackageMaker.app).
+
+2006-10-29  John MacFarlane <jgm@berkeley.edu>
+
+	* Extracted installation instructions from README into a separate file,
+	INSTALL.  Reason:  Only those who install from source will need the
+	information in INSTALL, so it does not need to be included in user
+	documentation.  Indeed, it might confuse people who install Pandoc by some
+	other method.
+	* Minor changes in README (using "Pandoc" as a generic name for the
+	system, "'pandoc'" as a name for the executable).
+
+2006-10-29  John MacFarlane <jgm@berkeley.edu>
+
+	Changed date on README.
+
+2006-10-29  John MacFarlane <jgm@berkeley.edu>
+
+	Added a comma in README.
+
+2006-10-29  Recai Oktaş <roktas@debian.org>
+
+	Remove 'install-lib', it causes too much trouble which needs to be dealed
+	in ugly ways.
+	+ Now, we have 'install-program' and 'install-all' targets.  The former
+	  installs only program and user documents, while the latter installs
+	  everything: program, user documents, library files and library documents.
+	+ Behaviour of 'install' target hasn't changed, it calls 'install-program'.
+	+ Update README accordingly.
+	+ Implement missing uninstall-* targets (including 'uninstall-all' and
+	  'uninstall-program' for the new targets).
+	+ Call 'install-program' in debian/rules explicitly to prevent confusions.
+
+2006-10-29  John MacFarlane <jgm@berkeley.edu>
+
+	Changes to RTF writer:
+	+ use Helvetica instead of Times New Roman as default font
+	+ specify \f0 in every \pard; otherwise font sizes are not registered properly
+	+ modify test of RTF writer accordingly
+
+2006-10-29  Recai Oktaş <roktas@debian.org>
+
+	Portability fix.  Remove rmdir(1)'s '--ignore-fail-on-non-empty' option, as
+	it is unsupported in BSD version.  Note that the relevant line has already
+	started with a '-' which means that make(1) will ignore any error.
+
+2006-10-28  John MacFarlane <jgm@berkeley.edu>
+
+	+ Changed debian/copyright to reflect new website location.
+
+2006-10-28  Recai Oktaş <roktas@debian.org>
+
+	Remove ghc66-branch to reduce clutter.
+
+2006-10-28  Recai Oktaş <roktas@debian.org>
+
+	Merge trunk with ghc66-branch.
+
+2006-10-28  Recai Oktaş <roktas@debian.org>
+
+	Tag current trunk as pandoc-0.21.
+
+2006-10-28  Recai Oktaş <roktas@debian.org>
+
+	Portability fixes:
+	+ '+' meta character apparently doesn't work with BSD's sed (without using
+	  an extra option).  Just removing this character should be sufficient, as
+	  we have now used an unquoted variable at the problematic sed line (see
+	  the previous commit) and there is no extra space to remove.
+	+ '-D' option of BSD's install(1) doesn't work as expected.  Modify code to
+	  not use this option at all.
+
+2006-10-28  Recai Oktaş <roktas@debian.org>
+
+	Unquote a variable in cabalize to have the problematic leading and trailing
+	spaces removed in shell expansion.
+
+2006-10-28  John MacFarlane <jgm@berkeley.edu>
+
+	Acknowledge roktas's contributions in README.
+
+2006-10-28  John MacFarlane <jgm@berkeley.edu>
+
+	+ fixed html2markdown usage message, in which w3m occured twice
+	+ added usage documentation to beginning of fillTemplates.pl
+
+2006-10-27  Recai Oktaş <roktas@debian.org>
+
+	Merge ghc66-branch with the latest changes in trunk.
+
+2006-10-27  Recai Oktaş <roktas@debian.org>
+
+	Use @HS_SOURCE_DIRS@ in substitution.
+
+2006-10-27  Recai Oktaş <roktas@debian.org>
+
+	Handle 'Hs-Source-Dir[s]*' option in cabalize to get rid of warnings.
+
+2006-10-27  Recai Oktaş <roktas@debian.org>
+
+	Minor corrections.
+
+2006-10-27  Recai Oktaş <roktas@debian.org>
+
+	Add "-o | --output" option to markdown2pdf, update man file.
+
+2006-10-27  John MacFarlane <jgm@berkeley.edu>
+
+	Wording changes in man files.
+
+2006-10-27  Recai Oktaş <roktas@debian.org>
+
+	Merge ghc66-branch with trunk.  Just a future note for this operation:
+	+ Do an 'svn log' at the top of the repository.
+	+ Observe that we had created this branch at revision 6.
+	+ Now, chdir to ghc66-branch wc and merge all changes from revision 6
+	  to HEAD:
+	    svn merge -r6:HEAD https://pandoc.googlecode.com/svn/trunk
+	+ Make sure that we have no conflicts and commit all changes (as I'm
+	  doing right now).
+
+2006-10-27  Recai Oktaş <roktas@debian.org>
+
+	Cleanup cabalize script.
+
+2006-10-27  John MacFarlane <jgm@berkeley.edu>
+
+	Minor wording change in README.
+
+2006-10-27  John MacFarlane <jgm@berkeley.edu>
+
+	Modified package descriptions in debian/control.
+
+2006-10-27  John MacFarlane <jgm@berkeley.edu>
+
+	Give full download URL in debian/copyright.
+
+2006-10-27  John MacFarlane <jgm@berkeley.edu>
+
+	Fixed jgm's email address in debian changelog.
+
+2006-10-27  John MacFarlane <jgm@berkeley.edu>
+
+	Minor corrections and improvements to README.
+
+2006-10-27  Recai Oktaş <roktas@debian.org>
+
+	Replace awk with sed in cabalize.
+
+2006-10-25  Recai Oktaş <roktas@debian.org>
+
+	* Revert lib/executable build separation change.  Unfortunately previously
+	  explained method creates '*.{o,hi}' files in src tree which I've just
+	  noticed.  As this "twice build' issue is a regression from GHC 6.4, I
+	  strongly believe that it's a bug or a wrong implementation.  Let's leave
+	  this issue for the moment.
+
+2006-10-25  Recai Oktaş <roktas@debian.org>
+
+	Preliminary work for GHC 6.6.
+	* Improve build time configuration.
+	  + New file 'Pandoc.cabal.in' to create Pandoc.cabal by preprocessing it
+	    at build time.  Remove Pandoc.cabal.
+	  + New file 'cabalize' to preprocess Pandoc.cabal.in.  This script detects
+	    GHC version and setup things accordingly.  Following is the excerpt
+	    from GHC 6.6 anouncement:
+	    - The Text.Html and Text.Html.BlockTable modules have now been removed,
+	      with the new html and xhtml packages providing replacements.
+	    - The Text.Regex and Text.Regex.Posix modules have been removed.
+	      Instead, use the new regex-compat package for a drop-in Text.Regex
+	      replacement, or the new library in the new regex-posix package.
+	    Now, for GHC 6.6, we have to list 'regex-compat' and 'html' modules in
+	    Build-Depends; and for GHC 6.4, we have to omit them since they already
+	    exist in base.
+	  + Remove 'configure' and 'Pandoc.buildinfo.in' as they are replaced by
+	    'cabalize' and 'Pandoc.cabal.in'.
+	  + Simplify 'Setup.hs'.
+	* Compile pandoc executable separately for the reasons depicted below;
+	  modify Makefile, debian/rules and Pandoc.cabal accordingly (the latter
+	  does no more have an Executable section):
+	  + New cabal (unfortunately) compiles all the library files _twice_; once
+	    when building library, and twice when building pandoc itself.  Second
+	    compilation is unnecessary since we have the library already compiled
+	    and just statically linking Main.o should have been sufficient.  This
+	    is a regression from GHC 6.4 (it doesn't behave this way).  As a
+	    solution for this problem, we now compile Main.hs separately and
+	    _statically_ link Main.o with dist/build/*.a.
+	  + Separating the program binary build from library build simplifies both
+	    the Makefile and debian/rules.
+	  Note that, for the upcoming Cabal versions it is planned to use different
+	  cabal files for libraries and executables.  So (perhaps in GHC 6.8) we'll
+	  probably have to change this code again.
+	* Simplify some parts of Makefile and debian/rules by exploiting the lib vs
+	  executable build separation.
+	* Add libghc6-html-dev to package Depends.  This is a new package in Debian
+	  package archive and it includes the 'html' module which is no more
+	  available in ghc6 package.  Due to this change, 'deb' target in Makefile
+	  won't work in older Debian systems having only ghc 6.4.  But as ghc <=6.4
+	  support will be dropped in Etch, this will hardly become an issue.
+	* Increment pandoc version for later changes.  Note that, we have to
+	  increment Debian package version whenever we made a change, but maybe we
+	  should keep the major version number in Pandoc.cabal and just increment a
+	  minor version in debian/changelog (e.g. 0.2 in Pandoc.cabal, 0.2x in
+	  debian/changelog).
+
+2006-10-25  Recai Oktaş <roktas@debian.org>
+
+	Create branch for GHC 6.6 transition.
+
+2006-10-20  Recai Oktaş <roktas@debian.org>
+
+	* Fix man files installation so that we really ignore .svn directories.
+	* Remove $datadir/doc/pandoc on uninstall-doc.  Only this directory is
+	  removed since it's a cruft directory due to its name. I couldn't find
+	  a reliable method to remove other directories created on installation.
+	* Use fakeroot when invoking dpkg-buildpackage.  Improve warnings in
+	  'deb' target.
+
+2006-10-20  John MacFarlane <jgm@berkeley.edu>
+
+	Added markdown2html to bin_all.
+
+2006-10-18  Recai Oktaş <roktas@debian.org>
+
+	As we are using subversion, ignore '.svn' directories when building debs.
+
+2006-10-17  John MacFarlane <jgm@berkeley.edu>
+
+	initial import
+
+2006-10-03  
+
+	Initial directory structure.
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

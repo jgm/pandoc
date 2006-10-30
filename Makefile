@@ -197,6 +197,9 @@ tags: $(src_all)
 	cd $(SRCDIR) && hasktags -c $(src_all:$(SRCDIR)/%=%); \
 	LC_ALL=C sort tags >tags.sorted; mv tags.sorted tags
 
+ChangeLog: ../.svn/entries gnuify-changelog.pl
+	svn log .. | sed 's/(no author)//' | ./gnuify-changelog.pl >$@
+
 deb: debian
 	[ -x /usr/bin/fakeroot ] || { \
 		echo "*** Please install fakeroot package. ***"; \
