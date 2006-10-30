@@ -52,7 +52,7 @@ GHC_PKG         := ghc-pkg
 #-------------------------------------------------------------------------------
 
 .PHONY: all
-all: build
+all: $(BINS)
 
 .PHONY: templates
 templates: $(SRCDIR)/templates
@@ -136,7 +136,7 @@ install-all: install-doc install-lib-doc
 	destdir=$(DESTDIR); destdir=$${destdir:-/}; \
 	$(BUILDCMD) copy --destdir=$$destdir; \
 	$(BUILDCMD) register
-uninstall-all: uninstall-doc uninstall-lib-doc
+uninstall-all: uninstall-exec uninstall-doc uninstall-lib-doc
 	-pkg_id="$(NAME)-$(VERSION)"; \
 	libdir=$$($(GHC_PKG) field $$pkg_id library-dirs 2>/dev/null | \
 		  sed 's/^library-dirs: *//'); \
