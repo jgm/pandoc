@@ -172,7 +172,7 @@ osx-pkg: $(osx_dest)
 $(osx_dest): $(doc_more)
 	-rm -rf $(osx_dest)
 	$(INSTALL) -d $(osx_dest)
-	DESTDIR=$(osx_dest) $(MAKE) install-program
+	DESTDIR=$(osx_dest)/Package_root $(MAKE) install-program
 	find $(osx_dest) -type f -regex ".*bin/.*" | xargs chmod +x
 	find $(osx_dest) -type f -regex ".*bin/$(THIS)" | xargs $(STRIP)
 	$(INSTALL) -d $(osx_dest)/Resources
@@ -180,7 +180,7 @@ $(osx_dest): $(doc_more)
 	mv LICENSE.rtf $(osx_dest)/Resources/License.rtf
 	@echo
 	@echo "You may now run PackageMaker.app.  For Root, specify"
-	@echo "$(osx_dest)/Package_Root.  The ReadMe.rtf and License.rtf files"
+	@echo "$(osx_dest)/Package_root.  The ReadMe.rtf and License.rtf files"
 	@echo "can be found in $(osx_dest)/Resources."
 	@echo
 
