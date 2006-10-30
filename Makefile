@@ -44,6 +44,7 @@ PKGPATH     := $(DATAPATH)/$(THIS)
 INSTALL         := install -c
 INSTALL_PROGRAM := $(INSTALL) -m 755 
 INSTALL_DATA    := $(INSTALL) -m 644
+STRIP           := strip
 GHC             := ghc
 GHC_PKG         := ghc-pkg
 
@@ -58,6 +59,16 @@ all: $(BINS)
 templates: $(SRCDIR)/templates
 $(SRCDIR)/templates:
 	$(MAKE) -C $(SRCDIR)/templates
+
+# Document process rules.
+%.html: %
+	./$(THIS) -s $^ >$@ || rm -f $@
+%.tex: %
+	$(THIS) -s -w latex $^ >$@ || rm -f $@
+%.rtf: %
+	$(THIS) -s -w rtf $^ >$@ || rm -f $@
+%.pdf: %
+	sh ./markdown2pdf $^ || rm -f $@
 
 cleanup_files+=$(CABAL)
 $(CABAL): cabalize $(CABAL).in
@@ -153,13 +164,30 @@ uninstall-all: uninstall-exec uninstall-doc uninstall-lib-doc
 install: install-program
 uninstall: uninstall-program
 
+.PHONY: osx-pkg
+osx_dest:=osx-pkg
+doc_more:=README.rtf LICENSE.rtf
+cleanup_files+=$(osx_dest) $(doc_more)
+osx-pkg: $(doc_more)
+	-rm -rf $(osx_dest)
+	$(INSTALL) -d $(osx_dest)
+	DESTDIR=$(osx_dest) $(MAKE) install-program
+	find $(osx_dest) -type f -regex ".*bin/.*" | xargs chmod +x
+	find $(osx_dest) -type f -regex ".*bin/$(THIS)" | xargs $(STRIP)
+	$(INSTALL) -d $(osx_dest)/Resources
+	mv README.rtf $(osx_dest)/Resources/ReadMe.rtf
+	mv LICENSE.rtf $(osx_dest)/Resources/License.rtf
+	@echo
+	@echo "You may now run PackageMaker.app.  For Root, specify"
+	@echo "osx-pkg/Package_Root.  The ReadMe.rtf and License.rtf files"
+	@echo "can be found in osx-pkg/Resources."
+	@echo
+
 .PHONY: test test-markdown
 test: $(BINS)
 	@cd tests && perl runtests.pl -s $(PWD)/$(THIS)
 test-markdown: $(BINS)
 	@cd tests/MarkdownTest_1.0.3 && perl MarkdownTest.pl -s $(PWD)/$(THIS) -tidy
-%.html: %
-	./$(THIS) -s $^ >$@ || rm -f $@
 
 # Stolen and slightly improved from a GPLed Makefile.  Credits to John Meacham.
 src_all:=$(shell find $(SRCDIR) -type f -name '*hs' | egrep -v '^\./(_darcs|lib|test)/')
