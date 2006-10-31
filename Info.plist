@@ -5,7 +5,7 @@
 	<key>CFBundleGetInfoString</key>
 	<string>@VERSION@, (c) 2006 John MacFarlane (released under GPL)</string>
 	<key>CFBundleIdentifier</key>
-	<string></string>
+	<string>pandoc</string>
 	<key>CFBundleShortVersionString</key>
 	<string>@VERSION@</string>
 	<key>IFPkgFlagAllowBackRev</key>

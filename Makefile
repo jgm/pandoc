@@ -166,7 +166,7 @@ uninstall: uninstall-program
 
 .PHONY: osx-pkg
 osx_dest:=osx-pkg
-doc_more:=README.rtf LICENSE.rtf
+doc_more:=README.rtf LICENSE.rtf OSX-Welcome.rtf
 cleanup_files+=$(osx_dest) $(doc_more)
 osx-pkg: $(osx_dest)
 $(osx_dest): $(doc_more)
@@ -180,6 +180,7 @@ $(osx_dest): $(doc_more)
 	$(INSTALL) -d $(osx_dest)/Resources
 	mv README.rtf $(osx_dest)/Resources/ReadMe.rtf
 	mv LICENSE.rtf $(osx_dest)/Resources/License.rtf
+	sed -e 's#@PREFIX@#$(PREFIX)#g' OSX-Welcome.rtf > $(osx_dest)/Resources/Welcome.rtf
 	sed -e 's/@VERSION@/$(VERSION)/g' Info.plist > $(osx_dest)/Info.plist
 	cp Description.plist $(osx_dest)/
 	PackageMaker -build -p Pandoc_$(VERSION).pkg -f $(osx_dest)/Package_root -r $(osx_dest)/Resources -i $(osx_dest)/Info.plist -d $(osx_dest)/Description.plist
