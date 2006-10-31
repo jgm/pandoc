@@ -175,14 +175,14 @@ $(osx_dest): $(doc_more)
 	DESTDIR=$(osx_dest)/Package_root $(MAKE) install-program
 	find $(osx_dest) -type f -regex ".*bin/.*" | xargs chmod +x
 	find $(osx_dest) -type f -regex ".*bin/$(THIS)" | xargs $(STRIP)
+	find $(osx_dest) -type f | xargs chgrp wheel 
+	find $(osx_dest) -type f | xargs chown root
 	$(INSTALL) -d $(osx_dest)/Resources
 	mv README.rtf $(osx_dest)/Resources/ReadMe.rtf
 	mv LICENSE.rtf $(osx_dest)/Resources/License.rtf
-	@echo
-	@echo "You may now run PackageMaker.app.  For Root, specify"
-	@echo "$(osx_dest)/Package_root.  The ReadMe.rtf and License.rtf files"
-	@echo "can be found in $(osx_dest)/Resources."
-	@echo
+	sed -e 's/@VERSION@/$(VERSION)/g' Info.plist > $(osx_dest)/Info.plist
+	cp Description.plist $(osx_dest)/
+	PackageMaker -build -p Pandoc_$(VERSION).pkg -f $(osx_dest)/Package_root -r $(osx_dest)/Resources -i $(osx_dest)/Info.plist -d $(osx_dest)/Description.plist
 
 .PHONY: test test-markdown
 test: $(BINS)
