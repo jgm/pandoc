@@ -42,7 +42,7 @@ PKGPATH     := $(DATAPATH)/$(THIS)
 # Generic Makefile variables
 #-------------------------------------------------------------------------------
 INSTALL         := install -c
-INSTALL_PROGRAM := $(INSTALL) -m 755 
+INSTALL_PROGRAM := $(INSTALL) -m 755
 INSTALL_DATA    := $(INSTALL) -m 644
 STRIP           := strip
 GHC             := ghc
@@ -175,15 +175,18 @@ $(osx_dest): $(doc_more)
 	DESTDIR=$(osx_dest)/Package_root $(MAKE) install-program
 	find $(osx_dest) -type f -regex ".*bin/.*" | xargs chmod +x
 	find $(osx_dest) -type f -regex ".*bin/$(THIS)" | xargs $(STRIP)
-	find $(osx_dest) -type f | xargs chgrp wheel 
-	find $(osx_dest) -type f | xargs chown root
+	find $(osx_dest) -type f | xargs chown root:wheel
 	$(INSTALL) -d $(osx_dest)/Resources
 	mv README.rtf $(osx_dest)/Resources/ReadMe.rtf
 	mv LICENSE.rtf $(osx_dest)/Resources/License.rtf
 	sed -e 's#@PREFIX@#$(PREFIX)#g' OSX-Welcome.rtf > $(osx_dest)/Resources/Welcome.rtf
 	sed -e 's/@VERSION@/$(VERSION)/g' Info.plist > $(osx_dest)/Info.plist
 	cp Description.plist $(osx_dest)/
-	PackageMaker -build -p Pandoc_$(VERSION).pkg -f $(osx_dest)/Package_root -r $(osx_dest)/Resources -i $(osx_dest)/Info.plist -d $(osx_dest)/Description.plist
+	PackageMaker -build -p Pandoc_$(VERSION).pkg \
+		            -f $(osx_dest)/Package_root \
+			    -r $(osx_dest)/Resources \
+			    -i $(osx_dest)/Info.plist \
+			    -d $(osx_dest)/Description.plist
 
 .PHONY: test test-markdown
 test: $(BINS)
@@ -197,16 +200,6 @@ cleanup_files+=$(patsubst %,$(SRCDIR)/%,tags tags.sorted)
 tags: $(src_all)
 	cd $(SRCDIR) && hasktags -c $(src_all:$(SRCDIR)/%=%); \
 	LC_ALL=C sort tags >tags.sorted; mv tags.sorted tags
-
-.PHONY: ChangeLog
-# should always attempt to update ChangeLog, hence .PHONY
-ChangeLog: gnuify-changelog.pl
-	@echo "Updating ChangeLog file before packaging..."
-	svn update ..
-	svn log .. | sed 's/| (no author) |/|  |/' | ./gnuify-changelog.pl >$@
-	@if [ -n "$$(svn status $@))" ]; then \
-		echo "*** ChangeLog modified, please commit changes! ***"; \
-	fi
 
 deb: debian
 	[ -x /usr/bin/fakeroot ] || { \
@@ -224,9 +217,6 @@ deb: debian
 		echo "*** Using dpkg-buildpackage for package building. ***"; \
 		dpkg-buildpackage -rfakeroot -uc -us -i.svn -I.svn -i_darcs -I_darcs; \
 	fi
-
-.PHONY:
-package: ChangeLog deb
 
 .PHONY: distclean clean
 distclean: clean
