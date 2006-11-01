@@ -1,2 +1,29 @@
 # TODO
 
+- create a changelog in root, with a symlink to it in debian
+  (only the top entry needs the sig.)
+>     pandoc (0.3) unstable; urgency=low
+>
+>     [ John MacFarlane ]
+>     * Revised RTF writer:
+>       + made default font Helvetica
+>       + added \f0 to each \pard, so that font resizing works correctly
+> 
+>     [ Recai Oktaş ]
+>     * Created proper debian package
+>     * Revamped build system:
+>       + [describe changes in targets]
+>     * Modified wrapper scripts to make them more robust.
+>       + added --output option to markdown2pdf
+>
+>      -- Recai Oktaş <roktas@debian.org>  Tue, 24 Oct 2006 07:48:30 +0300
+
+- make a proper man page for pandoc, with documentation of all options
+- uninstall script in Mac package; add information about it to Welcome?
+- create a compressed disk image containing Mac pkg
+- website target
+- put web templates and osx stuff in separate directories
+- look into warnings on pdflatex concerning ucs packages
+- change all versions to 0.3
+- iconv on both input and output in wrappers
+

@@ -1,20 +1,168 @@
-.TH PANDOC 1 "AUGUST 2006" Linux "User Manuals"
+.TH PANDOC 1 "November 1, 2006" Linux "User Manuals"
 .SH NAME
 pandoc \- general markup converter
 .SH SYNOPSIS
-.B pandoc [options] [input-files]
+.B pandoc [
+.I options
+] [
+.I input-files
+]
+
 .SH DESCRIPTION
-.B pandoc
+.I Pandoc
 converts files from one markup format to another. It can read markdown
-and (with some limitations) reStructuredText, HTML, and LaTeX, and it
-can write markdown, reStructuredText, HTML, LaTeX, RTF, and S5 HTML
-slide shows. 
+and (subsets of) reStructuredText, HTML, and LaTeX, and it can write
+markdown, reStructuredText, HTML, LaTeX, RTF, and S5 HTML slide shows.
+.PP
+If no 
+.I input-files
+are specified, input is read from STDIN.  Otherwise, the
+.I input-files
+are concatenated (with a blank line between each) and used
+as input.  Output goes to STDOUT.  Use redirection to produce
+a file:
+.IP
+.B pandoc input.txt > output.html
+.PP
+The default behavior of 
+.I Pandoc
+is to convert the
+input from markdown-formatted plain text to HTML.  Different
+input and output formats can be specified using command-line
+options.
+.PP
+.I Pandoc
+uses the UTF-8 character encoding for both input and output.
+If your local character encoding is not UTF-8, you should pipe
+input and output through
+.B iconv
+:
+.IP
+.B iconv -t utf-8 input.txt | pandoc | iconv -f utf-8
+
 .SH OPTIONS
-For full usage information, including command-line options,
-type
-.B pandoc -h
+.TP
+.B \-v, \-\-version
+Print version.
+.TP
+.B \-h, \-\-help
+Show usage message.
+.TP
+.B \-f FORMAT, \-r FORMAT, --from=FORMAT, --read=FORMAT
+Specify input format.
+.I FORMAT
+can be
+.I native
+(native Haskell),
+.I markdown
+(markdown or plain text),
+.I rst
+(reStructuredText),
+.I html
+(HTML),
+or 
+.I latex
+(LaTeX).
+.TP
+.B \-t FORMAT, \-w FORMAT, --to=FORMAT, --write=FORMAT
+Specify output format.
+.I FORMAT
+can be
+.I native
+(native Haskell),
+.I markdown
+(markdown or plain text), 
+.I rst
+(reStructuredText),
+.I html
+(HTML),
+.I latex
+(LaTeX),
+.I s5
+(S5 HTML and javascript slide show),
+or
+.I rtf
+(rich text format).
+.TP
+.B \-s, \-\-standalone
+Produce output with an appropriate header and footer (e.g. a
+standalone HTML, LaTeX, or RTF file, not a fragment).
+.TP
+.B \-p, \-\-preserve-tabs
+Preserve tabs instead of converting them to spaces.
+.TP
+.B \-\-tab-stop=TABSTOP
+Specify tab stop (default is 4).
+.TP
+.B \-R, \-\-parse-raw
+Parse untranslatable HTML codes and LaTeX environments as raw HTML or
+LaTeX, instead of ignoring them.
+.TP
+.B \-S, \-\-smartypants
+Use smart quotes, dashes, and ellipses in HTML output.
+.TP
+.B \-m, \-\-asciimathml
+Use ASCIIMathML to display embedded LaTeX math in HTML output.
+.TP
+.B \-i, \-\-incremental
+Make list items in S5 display incrementally (one by one).
+.TP
+.B \-N, \-\-number-sections
+Number section headings in LaTeX output.  (Default is not to number them.)
+.TP
+.B \-c CSS, \-\-css=CSS
+Link to a CSS style sheet.
+.I CSS
+is the pathname of the style sheet.
+.TP
+.B \-H FILENAME, \-\-include-in-header=FILENAME
+Include contents of
+.I FILENAME
+at the end of the header.  Implies
+.B \-s.
+.TP
+.B \-B FILENAME, \-\-include-before-body=FILENAME
+Include contents of
+.I FILENAME
+at the beginning of the document body.
+.TP
+.B \-A FILENAME, \-\-include-after-body=FILENAME
+Include contents of
+.I FILENAME
+at the end of the document body.
+.TP
+.B \-\-custom-header=FILENAME
+Use contents of 
+.I FILENAME
+as the document header (overriding the default header, which can be
+printed by using the
+.B \-D
+option).  Implies
+.B \-s.
+.TP
+.B \-D FORMAT, \-\-print-default-header=FORMAT
+Print the default header for 
+.I FORMAT
+(
+.I html, s5, latex, markdown, rst, rtf
+).
+.TP
+.B \-T STRING, \-\-title-prefix=STRING
+Specify 
+.I STRING
+as a prefix to the HTML window title.
+
 .SH AUTHOR
-John MacFarlane <jgm at berkeley.edu>
+John MacFarlane
+
 .SH "SEE ALSO"
-markdown2html (1), html2markdown (1), markdown2latex (1), latex2markdown (1), markdown2pdf (1)
+markdown2html (1), html2markdown (1), markdown2latex (1), latex2markdown (1), markdown2pdf (1), iconv (1)
+
+The
+.B README
+file distributed with Pandoc contains full documentation.
+
+The Pandoc source code and all documentation may be downloaded from
+.B http://sophos.berkeley.edu/macfarlane/pandoc/
+.
 

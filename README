@@ -87,38 +87,39 @@ and many other command-line options, see below.)
 
 Unfortunately, due to limitations in GHC, `pandoc` does not automatically
 detect the system's local character encoding.  Hence, all input and
-output is assumed to be in the UTF-8 encoding.  If you use accented or
-foreign characters, you should convert the input file to UTF-8 before
-processing it with `pandoc`.  This can be done by piping the input through
-[`iconv`]: for example,
+output is assumed to be in the UTF-8 encoding.  If your local character
+encoding is not UTF-8 and you use accented or foreign characters,
+you should pipe the input and output through [`iconv`]. For example,
 
-	iconv -t utf-8 source.txt | pandoc > output.html
+	iconv -t utf-8 source.txt | pandoc | iconv -f utf-8 > output.html
 
 will convert `source.txt` from the local encoding to UTF-8, then
-convert it to HTML, putting the output in `output.html`.
+convert it to HTML, then convert back to the local encoding,
+putting the output in `output.html`.
 
 [`iconv`]: http://www.gnu.org/software/libiconv/
 
-The shell scripts (described below) automatically convert the source
-from the local encoding to UTF-8 before running them through `pandoc`.
+The shell scripts (described below) automatically convert the input 
+from the local encoding to UTF-8 before running them through `pandoc`,
+then convert the output back to the local encoding.
 
 # The shell scripts 
 
 For convenience, five shell scripts have been included that make it
 easy to run `pandoc` without remembering all the command-line options.
-All of the scripts presuppose that `pandoc` is in the path, and
-some have additional requirements.  (For example, `html2markdown`
-uses `tidy`, and `markdown2pdf` uses `pdflatex`.)
+All of the scripts use `iconv` to convert to and from the local
+character encoding.  All of the scripts presuppose that `pandoc`
+is in the path, and some have additional requirements.  (For example,
+`html2markdown` uses `tidy`, and `markdown2pdf` uses `pdflatex`.)
 
-1.  `markdown2html` converts markdown to HTML, running `iconv` first to
-	convert the file to UTF-8.  (This can be used as a replacement for
-	`Markdown.pl`.)
+1.  `markdown2html` converts markdown to HTML. (This can be used
+    as a replacement for `Markdown.pl`.)
 
 2.	`html2markdown` can take either a filename or a URL as argument.  If
 	it is given a URL, it uses `curl`, `wget`, or an available text-based
     browser to fetch the contents of the specified URL, then filters this
-	through `tidy` to straighten up the HTML and convert to UTF-8,
-	and finally passes this HTML to `pandoc` to produce markdown text:
+	through `tidy` to straighten up the HTML, and finally passes
+	this HTML to `pandoc` to produce markdown text:
 
 	    html2markdown http://www.fsf.org
 
@@ -126,7 +127,7 @@ uses `tidy`, and `markdown2pdf` uses `pdflatex`.)
 
 	    html2markdown subdir/mylocalfile.html
 
-3. 	`latex2markdown` converts a LaTeX file to markdown. 
+3. 	`latex2markdown` converts a LaTeX file to markdown:
 
 	    latex2markdown mytexfile.tex
 
@@ -134,7 +135,7 @@ uses `tidy`, and `markdown2pdf` uses `pdflatex`.)
 
 	    markdown2latex mytextfile.txt
 
-5.	`markdown2pdf` converts markdown to PDF using `pdflatex`.  Example:
+5.	`markdown2pdf` converts markdown to PDF using `pdflatex`:
 
 	    markdown2pdf mytextfile.txt
 
