@@ -12,7 +12,7 @@
 }
 
 if [ -z "$1" ] || [ -f $1 ]; then 
-    tidy -utf8 $1 2>/dev/null | pandoc -r html -w markdown -s 
+    tidy -utf8 $1 2>/dev/null | pandoc -r html -w markdown -s | iconv -f utf-8
 else
     # Treat given argument as an URL.  Locate a
     # sensible text based browser (note the order).
@@ -35,5 +35,5 @@ else
                exit 1 ;;
     esac
     # Fetch and feed to pandoc.
-    $DUMPER $OPT $1 2>/dev/null | tidy -utf8 2>/dev/null | pandoc -r html -w markdown -s
+    $DUMPER $OPT $1 2>/dev/null | tidy -utf8 2>/dev/null | pandoc -r html -w markdown -s | iconv -f utf-8
 fi

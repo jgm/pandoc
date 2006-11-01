@@ -58,7 +58,7 @@ TEMP=${TMPDIR-/tmp}/markdown2pdf.$$
 trap "status=$?; rm -rf $TEMP; exit $status" 0 INT
 mkdir -p $TEMP
 
-iconv -t utf-8 $infile | pandoc -w latex -s > $TEMP/$BASE.tex  
+iconv -t utf-8 $infile | pandoc -w latex -s | iconv -f utf-8 > $TEMP/$BASE.tex  
 (
     cd $TEMP
     if ! pdflatex -interaction=batchmode $BASE.tex >/dev/null 2>&1; then
