@@ -1,15 +1,19 @@
-.TH PANDOC 1 "AUGUST 2006" Linux "User Manuals"
+.TH PANDOC 1 "November 1, 2006" Linux "User Manuals"
 .SH NAME
 markdown2html \- converts markdown-formatted text to HTML 
 .SH SYNOPSIS
-.B markdown2html [input-files]
-.SH DESCRIPTION
 .B markdown2html 
-converts input-files (or text from STDIN) from markdown-formatted
-plain text to HTML. 
+[
+.I input-files
+]
+.SH DESCRIPTION
+.I markdown2html 
+converts 
+.I input-files 
+(or text from STDIN) from markdown-formatted plain text to HTML. 
+If multiple files are specified, they will be combined to make a single
+HTML document.
 .SH AUTHOR
-John MacFarlane <jgm at berkeley.edu>
+John MacFarlane
 .SH "SEE ALSO"
-pandoc (1), html2markdown (1), markdown2latex (1), latex2markdown (1),
-markdown2pdf (1)
-
+.BR pandoc (1), html2markdown (1), markdown2latex (1), latex2markdown (1), markdown2pdf (1)

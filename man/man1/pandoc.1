@@ -2,7 +2,8 @@
 .SH NAME
 pandoc \- general markup converter
 .SH SYNOPSIS
-.B pandoc [
+.B pandoc 
+[
 .I options
 ] [
 .I input-files
@@ -19,8 +20,8 @@ If no
 are specified, input is read from STDIN.  Otherwise, the
 .I input-files
 are concatenated (with a blank line between each) and used
-as input.  Output goes to STDOUT.  Use redirection to produce
-a file:
+as input.  Output goes to STDOUT.  If you want output to a file,
+use shell redirection:
 .IP
 .B pandoc input.txt > output.html
 .PP
@@ -29,14 +30,20 @@ The default behavior of
 is to convert the
 input from markdown-formatted plain text to HTML.  Different
 input and output formats can be specified using command-line
-options.
+options.  For example,
+.IP
+.B pandoc -f latex -t markdown chap1.tex > chap1.txt
+.PP
+converts
+.I chap1.tex
+from LaTeX to markdown-formatted plain text.
+See below for a detailed list of command-line options.
 .PP
 .I Pandoc
 uses the UTF-8 character encoding for both input and output.
 If your local character encoding is not UTF-8, you should pipe
 input and output through
-.B iconv
-:
+.BR iconv :
 .IP
 .B iconv -t utf-8 input.txt | pandoc | iconv -f utf-8
 
@@ -119,7 +126,7 @@ is the pathname of the style sheet.
 Include contents of
 .I FILENAME
 at the end of the header.  Implies
-.B \-s.
+.BR \-s .
 .TP
 .B \-B FILENAME, \-\-include-before-body=FILENAME
 Include contents of
@@ -138,7 +145,7 @@ as the document header (overriding the default header, which can be
 printed by using the
 .B \-D
 option).  Implies
-.B \-s.
+.BR \-s .
 .TP
 .B \-D FORMAT, \-\-print-default-header=FORMAT
 Print the default header for 
@@ -156,13 +163,11 @@ as a prefix to the HTML window title.
 John MacFarlane
 
 .SH "SEE ALSO"
-markdown2html (1), html2markdown (1), markdown2latex (1), latex2markdown (1), markdown2pdf (1), iconv (1)
+.BR markdown2html (1), html2markdown (1), markdown2latex (1), latex2markdown (1), markdown2pdf (1), iconv (1)
 
 The
-.B README
+.I README
 file distributed with Pandoc contains full documentation.
 
 The Pandoc source code and all documentation may be downloaded from
-.B http://sophos.berkeley.edu/macfarlane/pandoc/
-.
-
+<http://sophos.berkeley.edu/macfarlane/pandoc/>.

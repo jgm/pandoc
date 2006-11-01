@@ -1,17 +1,30 @@
-.TH PANDOC 1 "NOVEMBER 2006" Linux "User Manuals"
+.TH PANDOC 1 "November 1, 2006" Linux "User Manuals"
 .SH NAME
 markdown2pdf \- converts markdown-formatted text to PDF, using pdflatex 
 .SH SYNOPSIS
-.B markdown2pdf [-o|--output output-file] [input-file]
-.SH DESCRIPTION
 .B markdown2pdf 
-converts input-file (or text from STDIN) from markdown-formatted
-plain text to PDF, using pdflatex.  The name of the output file is derived
-from the input file, if it is not specified; thus, for example, if the input
-file is 'hello.txt', the output file will be 'hello.pdf'.  If the input is
-read from STDIN, the output file will be named 'stdin.pdf'.
+[
+.B -o|--output 
+.I output-file
+] [
+.I input-file
+]
+.SH DESCRIPTION
+.I markdown2pdf 
+converts 
+.I input-file 
+(or text from STDIN) from markdown-formatted
+plain text to PDF, using 
+.I pdflatex. 
+If no output filename is specified, the name of the output file is derived
+from the input file; thus, for example, if the input file is 
+.IR hello.txt ,
+the output file will be 
+.IR hello.pdf .
+If the input is read from STDIN and no output filename is specified, 
+the output file will be named 
+.IR stdin.pdf .
 .SH AUTHOR
-John MacFarlane <jgm at berkeley.edu>
+John MacFarlane
 .SH "SEE ALSO"
-pandoc (1), markdown2html (1), html2markdown (1), markdown2latex (1),
-latex2markdown (1)
+.BR pandoc (1), markdown2html (1), html2markdown (1), markdown2latex (1), latex2markdown (1), pdflatex (1)
