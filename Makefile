@@ -164,6 +164,7 @@ uninstall-all: uninstall-exec uninstall-doc uninstall-lib-doc
 install: install-program
 uninstall: uninstall-program
 
+.PHONY: osx-pkg osx-pkg-prep
 osx_dest:=osx-pkg-tmp
 osx_src:=osx
 doc_more:=README.rtf LICENSE.rtf $(osx_src)/Welcome.rtf
@@ -183,38 +184,37 @@ $(osx_dest): $(doc_more) $(BINS)
 	sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome.rtf > $(osx_dest)/Resources/Welcome.rtf
 	sed -e 's/@VERSION@/$(VERSION)/g' $(osx_src)/Info.plist > $(osx_dest)/Info.plist
 	cp $(osx_src)/Description.plist $(osx_dest)/
-
 osx-pkg: osx-pkg-prep
 	if [ "`id -u`" != 0 ]; then \
 		echo "Root permissions needed to create OSX package!"; \
-		exit 0; \
+		exit 1; \
 	fi
 	find $(osx_dest) -type f | xargs chown root:wheel
 	PackageMaker -build -p $(osx_pkg_name) \
-		         -f $(osx_dest)/Package_root \
-			     -r $(osx_dest)/Resources \
-			     -i $(osx_dest)/Info.plist \
-			     -d $(osx_dest)/Description.plist
-	rm -rf $(osx_dest)
+	                    -f $(osx_dest)/Package_root \
+	                    -r $(osx_dest)/Resources \
+	                    -i $(osx_dest)/Info.plist \
+	                    -d $(osx_dest)/Description.plist
+	-rm -rf $(osx_dest)
 
+.PHONY: osx-dmg osx-dmg-prep
 osx_dmg_name:=Pandoc.dmg
 osx_dmg_volume:="Pandoc $(VERSION)"
 cleanup_files+=$(osx_dmg_name)
 osx-dmg-prep: $(osx_pkg_name)
 	-rm -f $(osx_dmg_name)
 	hdiutil create $(osx_dmg_name) -size 05m -fs HFS+ -volname $(osx_dmg_volume)
-	dev_handle=`hdid $(osx_dmg_name) | grep Apple_HFS | perl -e '\$$_=<>; /^\\/dev\\/(disk.)/; print \$$1'`;\
-	ditto $(osx_pkg_name) /Volumes/$(osx_dmg_volume)/$(osx_pkg_name);\
+	dev_handle=`hdid $(osx_dmg_name) | grep Apple_HFS | \
+		    perl -e '\$$_=<>; /^\\/dev\\/(disk.)/; print \$$1'`; \
+	ditto $(osx_pkg_name) /Volumes/$(osx_dmg_volume)/$(osx_pkg_name); \
 	hdiutil detach $$dev_handle
 	hdiutil convert $(osx_dmg_name) -format UDZO -o Pandoc.udzo.dmg
-	rm -f $(osx_dmg_name)
+	-rm -f $(osx_dmg_name)
 	mv Pandoc.udzo.dmg $(osx_dmg_name)
-
-.PHONY: osx-dmg
 osx-dmg: osx-dmg-prep
 	if [ "`id -u`" != 0 ]; then \
 		echo "Root permissions needed to create OSX disk image!"; \
-		exit 0; \
+		exit 1; \
 	fi
 	chown root:wheel $(osx_dmg_name)
 
