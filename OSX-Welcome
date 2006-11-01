@@ -1,9 +1,0 @@
-Pandoc will be installed into your `@PREFIX@` directory.  In order
-to use `pandoc` and the associated wrapper scripts, you must have
-`/usr/local/bin` in your `PATH.`   To add `/usr/local/bin` to your
-default path, add these lines to the end of `.profile` in your home
-directory and open a new terminal window:
-
-    export PATH=/usr/local/bin:$PATH
-    export MANPATH=/usr/local/man:$MANPATH
-
