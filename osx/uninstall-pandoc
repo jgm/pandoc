@@ -1,0 +1,47 @@
+#!/bin/sh -e
+# This script (when run with root permissions) uninstalls
+# everything installed by the Pandoc Mac OS X installer.
+
+[ -f /usr/local/bin/pandoc ] || {
+	echo "Pandoc does not appear to be installed."; \
+	exit 0;
+}
+
+if [ "`id -u`" != 0 ]; then \
+	echo "This script must be run with sudo."; \
+	exit 0; \
+fi
+
+
+MAN_PAGES="pandoc.1 markdown2html.1 markdown2latex.1 html2markdown.1 latex2markdown.1 markdown2pdf.1"
+EXECUTABLES=`echo $MAN_PAGES | sed -e 's#\.1##g'`
+DOCUMENTS="`ls /usr/local/share/doc/pandoc`"
+TOREMOVE=""
+for F in $EXECUTABLES; do
+	TOREMOVE="$TOREMOVE /usr/local/bin/$F";
+done
+for F in $MAN_PAGES; do
+	TOREMOVE="$TOREMOVE /usr/local/share/man/man1/$F"; 
+done
+for F in $DOCUMENTS; do
+	TOREMOVE="$TOREMOVE /usr/local/share/doc/pandoc/$F";
+done
+TOREMOVE="$TOREMOVE /usr/local/share/doc/pandoc"
+
+echo "This script will remove all of the files installed"
+echo "by the Pandoc Mac OS X installer: $TOREMOVE"
+echo "Are you sure you want to continue with this?"
+
+OPTIONS="Continue Quit"
+select opt in $OPTIONS; do
+	if [ "$opt" = "Quit" ]; then
+		exit 0
+	elif [ "$opt" = "Continue" ]; then
+		echo "Removing..."
+		rm -rv $TOREMOVE
+		echo "Successfully removed Pandoc."
+		exit 0
+	else
+		echo "Bad option."
+	fi
+done
