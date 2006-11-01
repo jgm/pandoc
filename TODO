@@ -21,7 +21,6 @@
 >
 >      -- Recai Oktaş <roktas@debian.org>  Tue, 24 Oct 2006 07:48:30 +0300
 
-- uninstall script in Mac package; add information about it to Welcome?
 - look into warnings on pdflatex concerning ucs packages
 - change all versions to 0.3
 

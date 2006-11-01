@@ -7,3 +7,7 @@ directory and open a new terminal window:
     export PATH=/usr/local/bin:$PATH
     export MANPATH=/usr/local/man:$MANPATH
 
+To uninstall Pandoc at any time, use the following command:
+
+    sudo /usr/local/bin/uninstall-pandoc
+

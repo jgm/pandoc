@@ -12,9 +12,9 @@ if [ "`id -u`" != 0 ]; then \
 	exit 0; \
 fi
 
-
 MAN_PAGES="pandoc.1 markdown2html.1 markdown2latex.1 html2markdown.1 latex2markdown.1 markdown2pdf.1"
 EXECUTABLES=`echo $MAN_PAGES | sed -e 's#\.1##g'`
+EXECUTABLES="$EXECUTABLES uninstall-pandoc"
 DOCUMENTS="`ls /usr/local/share/doc/pandoc`"
 TOREMOVE=""
 for F in $EXECUTABLES; do

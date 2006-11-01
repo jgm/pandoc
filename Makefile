@@ -174,6 +174,7 @@ $(osx_dest): $(doc_more) $(BINS)
 	-rm -rf $(osx_dest)
 	$(INSTALL) -d $(osx_dest)
 	DESTDIR=$(osx_dest)/Package_root $(MAKE) install-program
+	cp $(osx_src)/uninstall-pandoc $(osx_dest)/Package_root/usr/local/bin/
 	find $(osx_dest) -type f -regex ".*bin/.*" | xargs chmod +x
 	find $(osx_dest) -type f -regex ".*bin/$(THIS)" | xargs $(STRIP)
 	$(INSTALL) -d $(osx_dest)/Resources
