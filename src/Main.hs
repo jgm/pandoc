@@ -26,7 +26,7 @@ import Char ( toLower )
 import Control.Monad ( (>>=) )
 
 version :: String
-version = "0.2"
+version = "0.3"
 
 -- | Association list of formats and readers.
 readers :: [(String, ParserState -> String -> Pandoc)]
