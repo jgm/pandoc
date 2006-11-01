@@ -166,10 +166,12 @@ uninstall: uninstall-program
 
 .PHONY: osx-pkg
 osx_dest:=osx-pkg
-doc_more:=README.rtf LICENSE.rtf OSX-Welcome.rtf
-cleanup_files+=$(osx_dest) $(doc_more)
+osx_src:=osx
+doc_more:=README.rtf LICENSE.rtf $(osx_src)/Welcome.rtf
+osx_pkg_name:=Pandoc_$(VERSION).pkg
+cleanup_files+=$(osx_dest) $(doc_more) $(osx_pkg_name)
 osx-pkg: $(osx_dest)
-$(osx_dest): $(doc_more)
+$(osx_dest): $(doc_more) $(BINS)
 	-rm -rf $(osx_dest)
 	$(INSTALL) -d $(osx_dest)
 	DESTDIR=$(osx_dest)/Package_root $(MAKE) install-program
@@ -179,14 +181,30 @@ $(osx_dest): $(doc_more)
 	$(INSTALL) -d $(osx_dest)/Resources
 	mv README.rtf $(osx_dest)/Resources/ReadMe.rtf
 	mv LICENSE.rtf $(osx_dest)/Resources/License.rtf
-	sed -e 's#@PREFIX@#$(PREFIX)#g' OSX-Welcome.rtf > $(osx_dest)/Resources/Welcome.rtf
-	sed -e 's/@VERSION@/$(VERSION)/g' Info.plist > $(osx_dest)/Info.plist
-	cp Description.plist $(osx_dest)/
-	PackageMaker -build -p Pandoc_$(VERSION).pkg \
-		            -f $(osx_dest)/Package_root \
-			    -r $(osx_dest)/Resources \
-			    -i $(osx_dest)/Info.plist \
-			    -d $(osx_dest)/Description.plist
+	sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome.rtf > $(osx_dest)/Resources/Welcome.rtf
+	sed -e 's/@VERSION@/$(VERSION)/g' $(osx_src)/Info.plist > $(osx_dest)/Info.plist
+	cp $(osx_src)/Description.plist $(osx_dest)/
+	PackageMaker -build -p $(osx_pkg_name) \
+		         -f $(osx_dest)/Package_root \
+			     -r $(osx_dest)/Resources \
+			     -i $(osx_dest)/Info.plist \
+			     -d $(osx_dest)/Description.plist
+
+.PHONY: osx-dmg
+osx_dmg_name:=Pandoc.dmg
+osx_dmg_volume:="Pandoc $(VERSION)"
+cleanup_files+=$(osx_dmg_name)
+osx-dmg: osx-pkg
+	-rm -f $(osx_dmg_name)
+	hdiutil create $(osx_dmg_name) -size 05m -fs HFS+ -volname $(osx_dmg_volume)
+	dev_handle=`hdid $(osx_dmg_name) | grep Apple_HFS | perl -e '\$$_=<>; /^\\/dev\\/(disk.)/; print \$$1'`;\
+	ditto $(osx_pkg_name) /Volumes/$(osx_dmg_volume)/$(osx_pkg_name);\
+	hdiutil detach $$dev_handle
+	hdiutil convert $(osx_dmg_name) -format UDZO -o Pandoc.udzo.dmg
+	rm -f $(osx_dmg_name)
+	mv Pandoc.udzo.dmg $(osx_dmg_name)
+	chown root $(osx_dmg_name)
+	chgrp wheel $(osx_dmg_name)
 
 .PHONY: test test-markdown
 test: $(BINS)
