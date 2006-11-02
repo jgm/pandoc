@@ -4,8 +4,8 @@ to use `pandoc` and the associated wrapper scripts, you must have
 default path, add these lines to the end of `.profile` in your home
 directory and open a new terminal window:
 
-    export PATH=/usr/local/bin:$PATH
-    export MANPATH=/usr/local/man:$MANPATH
+    export PATH=$PATH:/usr/local/bin
+    export MANPATH=$MANPATH:/usr/local/share/man
 
 To uninstall Pandoc at any time, use the following command:
 

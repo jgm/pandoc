@@ -30,7 +30,7 @@ BUILD_DEPENDS=$(echo $BUILD_DEPENDS | sed -e 's# #, #g')
 
 # Handle 'Hs-Source-Dir' option name which was deprecated in Cabal > 1.1.3.
 HS_SOURCE_DIRS='Hs-Source-Dirs'
-cabal_version=$(ghc-pkg -l | sed -ne 's/.*\<[Cc]abal-\([^,]*\).*/\1/p')
+cabal_version=$(ghc-pkg -l | sed -ne 's/.*[Cc]abal-\([^,]*\).*/\1/p')
 if printf "$cabal_version\n1.1.3" | sort | tail -n 1 | grep -q '1\.1\.3'; then
 	HS_SOURCE_DIRS='Hs-Source-Dir'
 fi

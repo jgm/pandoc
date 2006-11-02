@@ -3,7 +3,8 @@
 # everything installed by the Pandoc Mac OS X installer.
 
 if [ "`id -u`" != 0 ]; then \
-	echo "This script must be run with sudo."; \
+	echo "This script must be run with root privileges:"; \
+    echo "sudo /usr/local/bin/uninstall-pandoc"; \
 	exit 1; \
 fi
 
