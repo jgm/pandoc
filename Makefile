@@ -6,15 +6,15 @@ CABAL     := Pandoc.cabal
 # Cabal constants
 #-------------------------------------------------------------------------------
 NAME      := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL).in)
-THIS      := $(shell echo $(NAME) | tr A-Z a-z)
 VERSION   := $(shell sed -ne 's/^[Vv]ersion:[[:space:]]*//p' $(CABAL).in)
 EXECS     := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
+MAIN      := $(word 1, $(EXECS)) # first entry in stanza is the main executable
 
 #-------------------------------------------------------------------------------
-# Build targets
+# Install targets
 #-------------------------------------------------------------------------------
-BINS      := $(EXECS)
-DOCS      := README.html
+PROGS     := $(EXECS) html2markdown markdown2html latex2markdown markdown2latex markdown2pdf
+DOCS      := README.html README BUGS TODO
 
 #-------------------------------------------------------------------------------
 # Variables to setup through environment
@@ -35,6 +35,7 @@ CONFIGURE := configure
 #-------------------------------------------------------------------------------
 # Installation paths
 #-------------------------------------------------------------------------------
+THIS        := $(shell echo $(NAME) | tr A-Z a-z) # package name
 DESTPATH    := $(DESTDIR)$(PREFIX)
 BINPATH     := $(DESTPATH)/bin
 DATAPATH    := $(DESTPATH)/share
@@ -63,13 +64,13 @@ GHC_PKG         := ghc-pkg
 all: build-program
 
 # Document process rules.
-%.html: % $(THIS)
-	./$(THIS) -s $< >$@ || rm -f $@
-%.tex: % $(THIS)
-	./$(THIS) -s -w latex $< >$@ || rm -f $@
-%.rtf: % $(THIS)
-	./$(THIS) -s -w rtf $< >$@ || rm -f $@
-%.pdf: % $(THIS)
+%.html: % $(MAIN)
+	./$(MAIN) -s $< >$@ || rm -f $@
+%.tex: % $(MAIN)
+	./$(MAIN) -s -w latex $< >$@ || rm -f $@
+%.rtf: % $(MAIN)
+	./$(MAIN) -s -w rtf $< >$@ || rm -f $@
+%.pdf: % $(MAIN)
 	sh ./markdown2pdf $< || rm -f $@
 
 .PHONY: templates
@@ -88,20 +89,21 @@ $(BUILDCONF): $(CABAL)
 	$(BUILDCMD) configure --prefix=$(PREFIX)
 
 .PHONY: build
-build: templates configure
+build: $(BUILDDIR)
+$(BUILDDIR)/: templates configure
 	$(BUILDCMD) build
 
 .PHONY: build-exec
-build-exec: $(BINS)
-cleanup_files+=$(BINS)
-$(BINS): build
-	find $(BUILDDIR) -type f -name "$(BINS)" -perm +a=x -exec cp {} . \;
+build-exec: $(EXECS)
+cleanup_files+=$(EXECS)
+$(EXECS): $(BUILDDIR)
+	for f in $@; do \
+		find $(BUILDDIR) -type f -name "$$f" -perm +a=x -exec cp {} . \; ; \
+	done
 
 .PHONY: build-doc
-DOCS:=README.html
-cleanup_files+=$(DOCS)
+cleanup_files+=README.html
 build-doc: $(DOCS)
-$(DOCS): build-exec
 
 .PHONY: build-program
 build-program: build-exec build-doc
@@ -124,15 +126,14 @@ build-all: all build-lib-doc
 # User documents installation.
 .PHONY: install-doc uninstall-doc
 man_all:=$(patsubst $(MANDIR)/%,%,$(wildcard $(MANDIR)/man?/*.1))
-doc_all:=$(DOCS) README BUGS TODO
 install-doc: build-doc
-	$(INSTALL) -d $(DOCPATH) && $(INSTALL_DATA) $(doc_all) $(DOCPATH)/
+	$(INSTALL) -d $(DOCPATH) && $(INSTALL_DATA) $(DOCS) $(DOCPATH)/
 	for f in $(man_all); do \
 		$(INSTALL) -d $(MANPATH)/$$(dirname $$f); \
 		$(INSTALL_DATA) $(MANDIR)/$$f $(MANPATH)/$$f; \
 	done
 uninstall-doc:
-	-for f in $(doc_all); do rm -f $(DOCPATH)/$$f; done
+	-for f in $(DOCS); do rm -f $(DOCPATH)/$$f; done
 	-for f in $(man_all); do rm -f $(MANPATH)/$$f; done
 	-rmdir $(DOCPATH)
 
@@ -146,12 +147,11 @@ uninstall-lib-doc:
 
 # Program only installation.
 .PHONY: install-exec uninstall-exec
-bin_all:=$(BINS) html2markdown markdown2html latex2markdown markdown2latex markdown2pdf
 install-exec: build-exec
 	$(INSTALL) -d $(BINPATH); \
-	for f in $(bin_all); do $(INSTALL_PROGRAM) $$f $(BINPATH)/; done
+	for f in $(PROGS); do $(INSTALL_PROGRAM) $$f $(BINPATH)/; done
 uninstall-exec:
-	-for f in $(bin_all); do rm -f $(BINPATH)/$$f; done
+	-for f in $(PROGS); do rm -f $(BINPATH)/$$f; done
 
 # Program + user documents installation.
 .PHONY: install-program uninstall-program
@@ -187,13 +187,13 @@ doc_more:=README.rtf LICENSE.rtf $(osx_src)/Welcome.rtf
 osx_pkg_name:=Pandoc_$(VERSION).pkg
 cleanup_files+=$(osx_dest) $(doc_more) $(osx_pkg_name)
 osx-pkg-prep: $(osx_dest)
-$(osx_dest)/: build-exec $(doc_more)
+$(osx_dest)/: $(doc_more)
 	-rm -rf $(osx_dest)
 	$(INSTALL) -d $(osx_dest)
 	DESTDIR=$(osx_dest)/Package_root $(MAKE) install-program
 	cp $(osx_src)/uninstall-pandoc $(osx_dest)/Package_root/usr/local/bin/
 	find $(osx_dest) -type f -regex ".*bin/.*" | xargs chmod +x
-	find $(osx_dest) -type f -regex ".*bin/$(THIS)" | xargs $(STRIP)
+	find $(osx_dest) -type f -regex ".*bin/$(MAIN)" | xargs $(STRIP)
 	$(INSTALL) -d $(osx_dest)/Resources
 	cp README.rtf $(osx_dest)/Resources/ReadMe.rtf
 	cp LICENSE.rtf $(osx_dest)/Resources/License.rtf
@@ -231,10 +231,10 @@ $(osx_dmg_name): $(osx_pkg_name)
 	mv Pandoc.udzo.dmg $(osx_dmg_name)
 
 .PHONY: test test-markdown
-test: build-exec
-	@cd tests && perl runtests.pl -s $(PWD)/$(THIS)
-test-markdown: build-exec
-	@cd tests/MarkdownTest_1.0.3 && perl MarkdownTest.pl -s $(PWD)/$(THIS) -tidy
+test: $(MAIN)
+	@cd tests && perl runtests.pl -s $(PWD)/$(MAIN)
+test-markdown: $(MAIN)
+	@cd tests/MarkdownTest_1.0.3 && perl MarkdownTest.pl -s $(PWD)/$(MAIN) -tidy
 
 # Stolen and slightly improved from a GPLed Makefile.  Credits to John Meacham.
 src_all:=$(shell find $(SRCDIR) -type f -name '*hs' | egrep -v '^\./(_darcs|lib|test)/')
