@@ -8,7 +8,13 @@ CABAL     := Pandoc.cabal
 NAME      := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL).in)
 THIS      := $(shell echo $(NAME) | tr A-Z a-z)
 VERSION   := $(shell sed -ne 's/^[Vv]ersion:[[:space:]]*//p' $(CABAL).in)
-BINS      := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
+EXECS     := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
+
+#-------------------------------------------------------------------------------
+# Build targets
+#-------------------------------------------------------------------------------
+BINS      := $(EXECS)
+DOCS      := README.html
 
 #-------------------------------------------------------------------------------
 # Variables to setup through environment
@@ -52,8 +58,9 @@ GHC_PKG         := ghc-pkg
 # Recipes
 #-------------------------------------------------------------------------------
 
+# Default target.
 .PHONY: all
-all: $(BINS)
+all: build-program
 
 # Document process rules.
 %.html: % $(THIS)
@@ -84,6 +91,21 @@ $(BUILDCONF): $(CABAL)
 build: templates configure
 	$(BUILDCMD) build
 
+.PHONY: build-exec
+build-exec: $(BINS)
+cleanup_files+=$(BINS)
+$(BINS): build
+	find $(BUILDDIR) -type f -name "$(BINS)" -perm +a=x -exec cp {} . \;
+
+.PHONY: build-doc
+DOCS:=README.html
+cleanup_files+=$(DOCS)
+build-doc: $(DOCS)
+$(DOCS): build-exec
+
+.PHONY: build-program
+build-program: build-exec build-doc
+
 .PHONY: build-lib-doc haddock
 build-lib-doc: html
 haddock: build-lib-doc
@@ -92,12 +114,8 @@ html/: configure
 	-rm -rf html
 	$(BUILDCMD) haddock && mv $(BUILDDIR)/doc/html .
 
-cleanup_files+=$(BINS)
-$(BINS): build
-	find $(BUILDDIR) -type f -name "$(BINS)" -perm +a=x -exec cp {} . \;
-
 .PHONY: build-all
-build-all: build $(BINS) build-lib-doc
+build-all: all build-lib-doc
 
 # XXX: Note that we don't handle PREFIX correctly at the install-* stages,
 # i.e. any PREFIX given at the configuration time is lost, unless it is
@@ -105,10 +123,9 @@ build-all: build $(BINS) build-lib-doc
 
 # User documents installation.
 .PHONY: install-doc uninstall-doc
-doc_all:=README.html README BUGS TODO
 man_all:=$(patsubst $(MANDIR)/%,%,$(wildcard $(MANDIR)/man?/*.1))
-cleanup_files+=README.html
-install-doc: $(BINS) $(doc_all)
+doc_all:=$(DOCS) README BUGS TODO
+install-doc: build-doc
 	$(INSTALL) -d $(DOCPATH) && $(INSTALL_DATA) $(doc_all) $(DOCPATH)/
 	for f in $(man_all); do \
 		$(INSTALL) -d $(MANPATH)/$$(dirname $$f); \
@@ -130,7 +147,7 @@ uninstall-lib-doc:
 # Program only installation.
 .PHONY: install-exec uninstall-exec
 bin_all:=$(BINS) html2markdown markdown2html latex2markdown markdown2latex markdown2pdf
-install-exec: $(bin_all)
+install-exec: build-exec
 	$(INSTALL) -d $(BINPATH); \
 	for f in $(bin_all); do $(INSTALL_PROGRAM) $$f $(BINPATH)/; done
 uninstall-exec:
@@ -170,7 +187,7 @@ doc_more:=README.rtf LICENSE.rtf $(osx_src)/Welcome.rtf
 osx_pkg_name:=Pandoc_$(VERSION).pkg
 cleanup_files+=$(osx_dest) $(doc_more) $(osx_pkg_name)
 osx-pkg-prep: $(osx_dest)
-$(osx_dest)/: $(doc_more) $(BINS)
+$(osx_dest)/: build-exec $(doc_more)
 	-rm -rf $(osx_dest)
 	$(INSTALL) -d $(osx_dest)
 	DESTDIR=$(osx_dest)/Package_root $(MAKE) install-program
@@ -214,9 +231,9 @@ $(osx_dmg_name): $(osx_pkg_name)
 	mv Pandoc.udzo.dmg $(osx_dmg_name)
 
 .PHONY: test test-markdown
-test: $(BINS)
+test: build-exec
 	@cd tests && perl runtests.pl -s $(PWD)/$(THIS)
-test-markdown: $(BINS)
+test-markdown: build-exec
 	@cd tests/MarkdownTest_1.0.3 && perl MarkdownTest.pl -s $(PWD)/$(THIS) -tidy
 
 # Stolen and slightly improved from a GPLed Makefile.  Credits to John Meacham.
