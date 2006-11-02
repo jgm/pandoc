@@ -201,7 +201,8 @@ osx-pkg: osx-pkg-prep
 osx_dmg_name:=Pandoc.dmg
 osx_dmg_volume:="Pandoc $(VERSION)"
 cleanup_files+=$(osx_dmg_name)
-osx-dmg: $(osx_pkg_name)
+osx-dmg: $(osx_dmg_name)
+$(osx_dmg_name): $(osx_pkg_name)
 	-rm -f $(osx_dmg_name)
 	hdiutil create $(osx_dmg_name) -size 05m -fs HFS+ -volname $(osx_dmg_volume)
 	dev_handle=`hdid $(osx_dmg_name) | grep Apple_HFS | \
