@@ -1,1 +1,60 @@
-../changelog
+pandoc (0.3) unstable; urgency=low
+
+  * New release with new build system and proper debian package
+
+  [ Recai Oktaş ]
+
+  * Revamped build process to conform to debian standards and created
+    a proper debian package.  Closes: #391666.
+
+  * Modified build process to support GHC 6.6.
+    + The package can still be compiled using GHC 6.4.2, though because
+      of dependencies the "make deb" target works only with GHC 6.6+.
+    + The script 'cabalize' is used to create an appropriate
+      'Pandoc.cabal' from 'Pandoc.cabal.in', depending on the GHC and
+      Cabal versions.
+
+  * Refactored template processing (fillTemplates.pl).
+	
+  * Modified wrapper scripts to make them more robust.
+
+  * Added '--output' option to markdown2pdf.
+
+  [ John MacFarlane ]
+
+  * Revised RTF writer:
+    + Default font is now Helvetica.
+    + An \f0 is added to each \pard, so that font resizing works correctly.
+
+  * Fixed handling of dashes in LaTeX writer:
+    + Recognize a double hyphen as an Em-dash, even when it occurs next
+      to punctuation (e.g. a quotation mark).
+    + Collapse space around Em-dashes.
+    + Process quotes before dashes.  This way (foo -- 'bar') will turn into
+      (foo---`bar') instead of (foo---'bar').
+
+  * Revised pandoc wrapper scripts to pipe output (as well as input)
+    through iconv.
+
+  * Added osx-pkg and osx-dmg targets to Makefile:
+    + osx-pkg creates a Mac OS X package (directory); osx-dmg creates a 
+      compressed disk image containing the package.
+    + New osx directory contains files needed for construction
+      of the package.
+
+  * Rewrote documentation and man pages.  Split README into INSTALL
+    and README.
+
+ -- Recai Oktaş <roktas@debian.org>  Tue, 24 Oct 2006 07:48:30 +0300
+
+pandoc (0.2) unstable; urgency=low
+
+  * Fixed unicode/utf-8 translation
+
+ -- John MacFarlane <jgm@berkeley.edu>  Mon,  14 Aug 2006 00:00:00 -0400
+
+pandoc (0.1) unstable; urgency=low
+
+  * Initial creation of debian package 
+
+ -- John MacFarlane <jgm@berkeley.edu>  Mon,  14 Aug 2006 00:00:00 -0400
