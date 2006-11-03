@@ -164,7 +164,13 @@ uninstall-program: uninstall-exec uninstall-doc
 .PHONY: install-all uninstall-all
 install-all: install-doc install-lib-doc
 	destdir=$(DESTDIR); destdir=$${destdir:-/}; \
-	$(BUILDCMD) copy --destdir=$$destdir; \
+	# Older Cabal versions have no '--destdir' option.
+	if $(BUILDCMD) copy --help | grep -q '\-\-destdir'; then \
+		opt='--destdir=$$destdir'; \
+	else \
+		opt="--copy-prefix=$${destdir}$(PREFIX)"; \
+	fi; \
+	$(BUILDCMD) copy $$opt; \
 	$(BUILDCMD) register
 uninstall-all: uninstall-exec uninstall-doc uninstall-lib-doc
 	-pkg_id="$(NAME)-$(VERSION)"; \

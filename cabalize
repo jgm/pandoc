@@ -1,4 +1,5 @@
 #!/bin/sh
+# Preprocesses cabal file.
 
 BASE_DEPENDS="base haskell98 parsec"
 
