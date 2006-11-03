@@ -8,7 +8,9 @@ CABAL     := Pandoc.cabal
 NAME      := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL).in)
 VERSION   := $(shell sed -ne 's/^[Vv]ersion:[[:space:]]*//p' $(CABAL).in)
 EXECS     := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
-MAIN      := $(word 1, $(EXECS)) # first entry in stanza is the main executable
+
+# First entry in Cabal's executable stanza is the main executable.
+MAIN      := $(word 1, $(EXECS))
 
 #-------------------------------------------------------------------------------
 # Install targets
@@ -35,7 +37,7 @@ CONFIGURE := configure
 #-------------------------------------------------------------------------------
 # Installation paths
 #-------------------------------------------------------------------------------
-THIS        := $(shell echo $(NAME) | tr A-Z a-z) # package name
+THIS        := $(shell echo $(NAME) | tr A-Z a-z)
 DESTPATH    := $(DESTDIR)$(PREFIX)
 BINPATH     := $(DESTPATH)/bin
 DATAPATH    := $(DESTPATH)/share
