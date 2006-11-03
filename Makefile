@@ -19,12 +19,6 @@ PROGS     := $(EXECS) html2markdown markdown2html latex2markdown markdown2latex 
 DOCS      := README.html README BUGS TODO
 
 #-------------------------------------------------------------------------------
-# Variables to setup through environment
-#-------------------------------------------------------------------------------
-PREFIX    ?= /usr/local
-DESTDIR   ?=
-
-#-------------------------------------------------------------------------------
 # Constant names and commands in source tree
 #-------------------------------------------------------------------------------
 SRCDIR    := src
@@ -32,7 +26,21 @@ MANDIR    := man
 BUILDDIR  := dist
 BUILDCONF := .setup-config
 BUILDCMD  := runhaskell Setup.hs
+BUILDVARS := vars
 CONFIGURE := configure
+
+#-------------------------------------------------------------------------------
+# Variables to setup through environment
+#-------------------------------------------------------------------------------
+
+# Specify default values.
+prefix    := /usr/local
+destdir   := 
+# Attempt to set variables from a previous make session.
+-include $(BUILDVARS)
+# Fallback to defaults but allow to get the values from environment.
+PREFIX    ?= $(prefix)
+DESTDIR   ?= $(destdir)
 
 #-------------------------------------------------------------------------------
 # Installation paths
@@ -85,10 +93,13 @@ $(CABAL): cabalize $(CABAL).in
 	./cabalize <$(CABAL).in >$(CABAL)
 
 .PHONY: configure
-cleanup_files+=$(BUILDDIR) $(BUILDCONF)
+cleanup_files+=$(BUILDDIR) $(BUILDCONF) $(BUILDVARS)
 configure: $(BUILDCONF)
 $(BUILDCONF): $(CABAL)
 	$(BUILDCMD) configure --prefix=$(PREFIX)
+	# Make configuration time settings persistent (definitely a hack).
+	@echo "PREFIX?=$(PREFIX)" >$(BUILDVARS)
+	@echo "DESTDIR?=$(DESTDIR)" >>$(BUILDVARS)
 
 .PHONY: build
 build: $(BUILDDIR)
@@ -120,10 +131,6 @@ html/: configure
 
 .PHONY: build-all
 build-all: all build-lib-doc
-
-# XXX: Note that we don't handle PREFIX correctly at the install-* stages,
-# i.e. any PREFIX given at the configuration time is lost, unless it is
-# also supplied (via environment) at these stages.
 
 # User documents installation.
 .PHONY: install-doc uninstall-doc
