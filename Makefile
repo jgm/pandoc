@@ -80,7 +80,7 @@ all: build-program
 	./$(MAIN) -s -w latex $< >$@ || rm -f $@
 %.rtf: % $(MAIN)
 	./$(MAIN) -s -w rtf $< >$@ || rm -f $@
-%.pdf: % $(MAIN)
+%.pdf: % $(MAIN) markdown2pdf
 	sh ./markdown2pdf $< || rm -f $@
 
 .PHONY: templates
@@ -115,8 +115,8 @@ $(EXECS): $(BUILDDIR)
 	done
 
 .PHONY: build-doc
-cleanup_files+=README.html
-build-doc: $(DOCS)
+cleanup_files+=README.html INSTALL.html
+build-doc: $(DOCS) INSTALL.html
 
 .PHONY: build-program
 build-program: build-exec build-doc
@@ -130,7 +130,7 @@ html/: configure
 	$(BUILDCMD) haddock && mv $(BUILDDIR)/doc/html .
 
 .PHONY: build-all
-build-all: all build-lib-doc
+build-all: build-program build-lib-doc
 
 # User documents installation.
 .PHONY: install-doc uninstall-doc
@@ -201,7 +201,7 @@ osx_src:=osx
 doc_more:=README.rtf LICENSE.rtf $(osx_src)/Welcome.rtf
 osx_pkg_name:=Pandoc_$(VERSION).pkg
 cleanup_files+=$(osx_dest) $(doc_more) $(osx_pkg_name)
-osx-pkg-prep: $(osx_dest)
+osx-pkg-prep: build-program $(osx_dest)
 $(osx_dest)/: $(doc_more)
 	-rm -rf $(osx_dest)
 	$(INSTALL) -d $(osx_dest)
