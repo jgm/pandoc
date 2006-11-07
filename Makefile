@@ -115,8 +115,8 @@ $(EXECS): $(BUILDDIR)
 	done
 
 .PHONY: build-doc
-cleanup_files+=README.html INSTALL.html
-build-doc: $(DOCS) INSTALL.html
+cleanup_files+=README.html 
+build-doc: $(DOCS)
 
 .PHONY: build-program
 build-program: build-exec build-doc
