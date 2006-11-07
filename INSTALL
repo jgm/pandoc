@@ -2,17 +2,16 @@
 
 # Installing GHC
 
-To compile Pandoc, you'll need [GHC] version 6.4 or greater. 
-
-If you don't have GHC already, you can get it from the 
-[GHC Download] page.
+To compile Pandoc, you'll need [GHC] version 6.4 or greater.  If
+you don't have GHC already, you can get it from the [GHC Download]
+page.
 
 [GHC]: http://www.haskell.org/ghc/
 [GHC Download]: http://www.haskell.org/ghc/download.html
 
-You'll also need standard build tools: GNU `make`, `sed`, `bash`, and `perl`.
-These are standard on unix systems (including MacOS X).  If you're
-using Windows, you can install [Cygwin].
+You'll also need standard build tools: GNU `make`, `sed`, `bash`,
+and `perl`.  These are standard on unix systems (including MacOS
+X).  If you're using Windows, you can install [Cygwin].
 
 [Cygwin]: http://www.cygwin.com/
 
@@ -30,29 +29,29 @@ using Windows, you can install [Cygwin].
 
 4.  Install:
 
-        make install
+        sudo make install
 
     Note:  This installs `pandoc`, together with its wrappers and
-    documentation, into the `/usr/local` directory, which requires root
-    privileges.  If you don't have root privileges or would prefer to
-    install `pandoc` and the associated shell scripts into your `~/bin`
-    directory, type this instead:
+    documentation, into the `/usr/local` directory.  If you don't
+    have root privileges or would prefer to install `pandoc` and
+    the associated wrappers into your `~/bin` directory, type
+    this instead:
 
         PREFIX=~ make install-exec
 
-5.  Install everthing, including Haskell libraries and library documentation 
-    (optional):
+5.  Build and install the Haskell libraries and library
+    documentation (optional):
 
-        make install-all
+        make build-all
+        sudo make install-all
 
 # Removing Pandoc
 
 Each of the installation steps described above can be reversed:
 
-    make uninstall
+    sudo make uninstall
 
     PREFIX=~ make uninstall-exec
 
-    make uninstall-all
-
+    sudo make uninstall-all
 
