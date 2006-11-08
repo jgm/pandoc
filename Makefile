@@ -308,18 +308,20 @@ $(web_dest)/: $(MAIN) html $(tarball_name)
 		exit 1; \
 	}
 	-rm -rf $(web_dest)
-	mkdir $(web_dest)
-	cp -r html $(web_dest)/doc
-	cp $(osx_dmg_name) $(web_dest)/
-	cp ../$(deb_main) $(web_dest)/
-	cp $(tarball_name) $(web_dest)/
-	cp $(web_src)/*.css $(web_dest)/
-	$(make_page) README > $(web_dest)/README.html
-	$(make_page) INSTALL > $(web_dest)/INSTALL.html
-	$(make_page) changelog > $(web_dest)/history.html
-	sed -e 's/@TARBALL_NAME@/$(tarball_name)/g' $(web_src)/index.txt | \
-		sed -e 's/@DEB_NAME@/$(deb_main)/g' | \
-		$(make_page) > $(web_dest)/index.html
+	( \
+		mkdir $(web_dest); \
+		cp -r html $(web_dest)/doc; \
+		cp $(osx_dmg_name) $(web_dest)/; \
+		cp ../$(deb_main) $(web_dest)/; \
+		cp $(tarball_name) $(web_dest)/; \
+		cp $(web_src)/*.css $(web_dest)/; \
+		$(make_page) README > $(web_dest)/README.html; \
+		$(make_page) INSTALL > $(web_dest)/INSTALL.html; \
+		$(make_page) changelog > $(web_dest)/history.html; \
+		sed -e 's/@TARBALL_NAME@/$(tarball_name)/g' $(web_src)/index.txt | \
+			sed -e 's/@DEB_NAME@/$(deb_main)/g' | \
+			$(make_page) > $(web_dest)/index.html; \
+	) || { rm -rf $(web_dest); exit 1; }
 
 .PHONY: distclean clean
 distclean: clean
