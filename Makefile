@@ -259,7 +259,7 @@ tags: $(src_all)
 	LC_ALL=C sort tags >tags.sorted; mv tags.sorted tags
 
 .PHONY: tarball
-fullname:=$(NAME)-$(VERSION)
+fullname:=$(THIS)-$(VERSION)
 tarball_name:=$(fullname).tar.gz
 cleanup_files+=$(tarball_name)
 tarball: $(tarball_name)
@@ -268,38 +268,17 @@ $(tarball_name):
 	tar cvzf $(tarball_name) $(fullname)
 	-rm -rf $(fullname)
 
-.PHONY: website
-web_src:=web
-web_dest:=web/pandoc
-make_page := $(MAIN) -s -B $(web_src)/header.html -A $(web_src)/footer.html \
-	-H $(web_src)/css 
-cleanup_files+=$(web_dest)
-website: $(web_dest)
-
-$(web_dest)/: $(MAIN) html/ $(tarball_name)
-	[ -f $(osx_dmg_name) ] || { \
-		echo "*** Missing $(osx_dmg_name). ***"; \
-		exit 1; \
-	}
-	-rm -rf $(web_dest)
-	mkdir $(web_dest)
-	cp -r html $(web_dest)/doc
-	cp $(osx_dmg_name) $(web_dest)/
-	cp $(tarball_name) $(web_dest)/
-	cp $(web_src)/*.css $(web_dest)/
-	$(make_page) README > $(web_dest)/README.html
-	$(make_page) INSTALL > $(web_dest)/INSTALL.html
-	$(make_page) changelog > $(web_dest)/history.html
-	sed -e 's/@TARBALL_NAME@/$(tarball_name)/g' $(web_src)/index.txt | \
-		sed -e 's/@DEB_NAME@/$(deb_name)/g' | \
-		$(make_page) > $(web_dest)/index.html
-
+.PHONY: deb
+deb_name:=$(shell grep ^Package debian/control | cut -d' ' -f2 | head -n 1)
+deb_version:=$(shell head -n 1 debian/changelog | cut -f2 -d' ' | tr -d '()')
+deb_arch:=i386
+deb_main:=$(deb_name)_$(deb_version)_$(deb_arch).deb
 deb: debian
-	[ -x /usr/bin/fakeroot ] || { \
+	@[ -x /usr/bin/fakeroot ] || { \
 		echo "*** Please install fakeroot package. ***"; \
 		exit 1; \
 	}
-	[ -x /usr/bin/dpkg-buildpackage ] || { \
+	@[ -x /usr/bin/dpkg-buildpackage ] || { \
 		echo "*** Please install dpkg-dev package. ***"; \
 		exit 1; \
 	}
@@ -310,6 +289,37 @@ deb: debian
 		echo "*** Using dpkg-buildpackage for package building. ***"; \
 		dpkg-buildpackage -rfakeroot -uc -us -i.svn -I.svn -i_darcs -I_darcs; \
 	fi
+
+.PHONY: website
+web_src:=web
+web_dest:=web/pandoc
+make_page:=./$(MAIN) -s -B $(web_src)/header.html \
+                        -A $(web_src)/footer.html \
+	                -H $(web_src)/css 
+cleanup_files+=$(web_dest)
+website: $(web_dest)
+$(web_dest)/: $(MAIN) html $(tarball_name)
+	@[ -f $(osx_dmg_name) ] || { \
+		echo "*** Missing $(osx_dmg_name). ***"; \
+		exit 1; \
+	}
+	@[ -f ../$(deb_main) ] || { \
+		echo "*** Missing ../$(deb_main). ***"; \
+		exit 1; \
+	}
+	-rm -rf $(web_dest)
+	mkdir $(web_dest)
+	cp -r html $(web_dest)/doc
+	cp $(osx_dmg_name) $(web_dest)/
+	cp ../$(deb_main) $(web_dest)/
+	cp $(tarball_name) $(web_dest)/
+	cp $(web_src)/*.css $(web_dest)/
+	$(make_page) README > $(web_dest)/README.html
+	$(make_page) INSTALL > $(web_dest)/INSTALL.html
+	$(make_page) changelog > $(web_dest)/history.html
+	sed -e 's/@TARBALL_NAME@/$(tarball_name)/g' $(web_src)/index.txt | \
+		sed -e 's/@DEB_NAME@/$(deb_main)/g' | \
+		$(make_page) > $(web_dest)/index.html
 
 .PHONY: distclean clean
 distclean: clean
