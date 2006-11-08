@@ -258,6 +258,42 @@ tags: $(src_all)
 	cd $(SRCDIR) && hasktags -c $(src_all:$(SRCDIR)/%=%); \
 	LC_ALL=C sort tags >tags.sorted; mv tags.sorted tags
 
+.PHONY: tarball
+fullname:=$(NAME)-$(VERSION)
+tarball_name:=$(fullname).tar.gz
+cleanup_files+=$(tarball_name)
+tarball: $(tarball_name)
+$(tarball_name):
+	svn export . $(fullname)
+	tar cvzf $(tarball_name) $(fullname)
+	-rm -rf $(fullname)
+
+.PHONY: website
+web_src:=web
+web_dest:=web/pandoc
+make_page := $(MAIN) -s -B $(web_src)/header.html -A $(web_src)/footer.html \
+	-H $(web_src)/css 
+cleanup_files+=$(web_dest)
+website: $(web_dest)
+
+$(web_dest)/: $(MAIN) html/ $(tarball_name)
+	[ -f $(osx_dmg_name) ] || { \
+		echo "*** Missing $(osx_dmg_name). ***"; \
+		exit 1; \
+	}
+	-rm -rf $(web_dest)
+	mkdir $(web_dest)
+	cp -r html $(web_dest)/doc
+	cp $(osx_dmg_name) $(web_dest)/
+	cp $(tarball_name) $(web_dest)/
+	cp $(web_src)/*.css $(web_dest)/
+	$(make_page) README > $(web_dest)/README.html
+	$(make_page) INSTALL > $(web_dest)/install.html
+	$(make_page) changelog > $(web_dest)/history.html
+	sed -e 's/@TARBALL_NAME@/$(tarball_name)/g' $(web_src)/index.txt | \
+		sed -e 's/@DEB_NAME@/$(deb_name)/g' | \
+		$(make_page) > $(web_dest)/index.html
+
 deb: debian
 	[ -x /usr/bin/fakeroot ] || { \
 		echo "*** Please install fakeroot package. ***"; \

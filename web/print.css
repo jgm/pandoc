@@ -1,0 +1,50 @@
+body {
+    margin: 0.5in;
+    padding: 0;
+    font-size: 10pt;
+    line-height: 14pt;
+}
+h1 {
+    color: black;
+}
+
+h2 {
+    color: black;
+}
+
+h3 {
+    color: black;
+}
+
+h4 {
+    color: black;
+}
+
+h5 {
+    color: black;
+}
+#sidebar {
+    display: none;
+}
+#header { 
+    margin-top:0;
+    margin-left:0;
+    margin-right:0;
+    margin-bottom:0.3in;
+    padding:0;
+}
+#footer {
+    display: none;
+}
+#main {
+    margin:0;
+    padding:0;
+    border-left: none;
+    width: 100%;
+}
+#main.document {
+    margin-left: 0;
+}
+#main.withleftmenu {
+    margin-left: 0; 
+}

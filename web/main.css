@@ -1,0 +1,165 @@
+body {
+    margin:0;
+    padding:0;
+    background-color: white;
+    color: black;
+    font-family: Georgia, Verdana, sans-serif;
+    font-size: medium;
+    line-height: 1.3em;
+    color: #333; 
+}
+h1, h2, h3, h4, h5 { font-family: verdana;
+                     font-weight: bold;
+                     color: #7a5ada; }
+h1 {
+        font-size: 130%;
+}
+
+h2 {
+        font-size: 110%;
+}
+
+h3 {
+        font-size: 95%;
+}
+
+h4 {
+        font-size: 90%;
+        font-style: italic;
+}
+
+h5 {
+        font-size: 90%;
+        font-style: italic;
+}
+
+h1.title {
+        font-size: 160%;
+        font-weight: bold;
+        padding-top: 0.2em;
+        padding-bottom: 0.2em;
+        text-align: left;
+}
+
+p {
+    padding:0;
+}
+table {
+        border: none;
+}
+
+tr {
+        border: none;
+}
+
+td {
+        border: none;
+}
+
+dt {
+        font-weight: bold;
+        padding-top: 7pt;
+}
+#header {
+    margin: 1em 0.8em 0.5em 2.2em;
+}
+#header h2 a, h3 a { text-decoration: none;
+                   color: #333; 
+}
+#header h1 a { text-decoration: none;
+               color: #7a5ada; }                        
+#header h1 {
+    font-size: 180%;
+    font-weight: bold;
+    margin: 0;
+    padding-bottom: 0.3em;
+}
+#header h2 {
+    font-size: 120%;
+    font-weight: normal;
+    margin: 0;
+    color: #333;
+    padding-bottom: 0.1em;
+}
+#header h3 {
+    font-size: 95%;
+    font-weight: normal;
+    margin: 0;
+    color: #333;
+    padding-bottom: 0.3em;
+}
+#footer {
+    clear: left;
+    padding: 0.8em;
+    text-align: center;
+    font-size: 80%;
+}
+#footer p {
+    padding:0;
+    margin:0;
+}
+#footer hr.footer {
+    display: none;
+    padding: 1em;
+}
+#sidebar {
+    float:left; 
+    clear: left;   
+    margin-left: 0;
+    margin-bottom: 1.4em;
+    margin-right: 0.1em;
+}
+
+#sidebar h2, #sidebar h3, #sidebar p {
+    padding:0 0.7em;
+}
+#sidebar ul {
+    color:#336666;
+    padding-left:2em;
+    margin-bottom:0;
+    width: 6em;
+}
+#sidebar li {
+    font-family: verdana;
+    font-size: 100%;
+    font-style: normal;
+    list-style-type: none;
+    border-bottom: 1px solid white;
+    border-left: 1px solid white;
+}
+#sidebar li:hover {
+    border-bottom: 1px solid #7a5ada;
+    border-left: 1px solid #7a5ada;
+}
+#sidebar li a {
+    display: block;
+    padding: 0.2em;
+    line-height: 1.6em;
+    font-weight: bold;
+    text-decoration: none;
+    color: #7a5ada;
+}
+#main {
+    padding-right: 5em;
+    padding-left: 0.8em;
+    max-width: 42em; 
+    border-left: 1px solid gray;
+}
+#main.withleftmenu {
+    margin-left: 8em;
+}
+
+div.clear { clear: both; 
+			padding-top: 0.2em; }
+
+.floatleft {
+    float: left;
+    padding-right: 2em;
+}
+.floatright {
+    float: right;
+    padding-left: 2em;
+}
+
+#header h1 { padding-bottom: 0.8em; }
+
