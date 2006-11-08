@@ -317,7 +317,9 @@ $(web_dest)/: $(MAIN) html $(tarball_name)
 		cp $(web_src)/*.css $(web_dest)/; \
 		sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome | \
 			$(make_page) > $(web_dest)/osx-notes.html; \
-		sed -e 's/^/    /g' changelog | \
+		sed -e '/^ --.*/d' changelog | \
+			sed -e 's#^#    #g' | \
+			sed -e 's/    \(pandoc (.*\)/## \1/g' | \
 			$(make_page) > $(web_dest)/history.html; \
 		$(make_page) README > $(web_dest)/README.html; \
 		$(make_page) INSTALL > $(web_dest)/INSTALL.html; \
