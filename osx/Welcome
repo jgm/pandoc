@@ -1,13 +1,18 @@
+% OS X Installation Notes
+
 Pandoc will be installed into your `@PREFIX@` directory.  In order
 to use `pandoc` and the associated wrapper scripts, you must have
-`/usr/local/bin` in your `PATH.`   To add `/usr/local/bin` to your
+`@PREFIX@/bin` in your `PATH.`   To add `@PREFIX@/bin` to your
 default path, add these lines to the end of `.profile` in your home
-directory and open a new terminal window:
+directory:
 
-    export PATH=$PATH:/usr/local/bin
-    export MANPATH=$MANPATH:/usr/local/share/man
+    export PATH=$PATH:@PREFIX@/bin
+    export MANPATH=$MANPATH:@PREFIX@/share/man
+
+You will have to open a new terminal window for these changes
+to take effect.
 
 To uninstall Pandoc at any time, use the following command:
 
-    sudo /usr/local/bin/uninstall-pandoc
+    sudo @PREFIX@/bin/uninstall-pandoc
 

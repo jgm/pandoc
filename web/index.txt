@@ -22,18 +22,20 @@ To install, unpack the archive and follow the instructions in the
 
 **MacOS X binary package:** [`@OSX_DMG_NAME@`](@OSX_DMG_NAME@).
 To install, just double-click the package icon in the disk
-image.  See the [installation notes](Welcome) for important
-information about setting your `PATH`.
+image.  See the [installation notes](osx-notes.html) for important
+information about setting your `PATH`.  Note:  This package was
+compiled on a G4 Mac; it will work on an Intel Mac via emulation.
 
 **Debian binary package:**  [`@DEB_NAME@`](@DEB_NAME@).
-To install (on x86 Debian-based linux systems only), run `dpkg -i
-@DEB_NAME@` as root. 
+To install (on x86 Debian-based linux systems only):
+
+        sudo dpkg -i @DEB_NAME@
 
 **Repository:**  Pandoc has a publicly accesible subversion repository
 at Google Code (<http://code.google.com/p/pandoc>).  To check out the
 latest, bleeding-edge source code:
 
-    svn checkout http://pandoc.googlecode.com/svn/trunk/ pandoc
+        svn checkout http://pandoc.googlecode.com/svn/trunk/ pandoc
 
 **Bugs:**  You may view existing bug reports and submit new ones at 
 <http://code.google.com/p/pandoc/issues/list>.
