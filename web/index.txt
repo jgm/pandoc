@@ -16,11 +16,16 @@ or output format requires only adding a reader or writer.
 
 For more information, see the [README](README.html) file.
 
-**Source distribution:** [@TARBALL_NAME@](@TARBALL_NAME@). 
+**Source distribution:** [`@TARBALL_NAME@`](@TARBALL_NAME@). 
 To install, unpack the archive and follow the instructions in the
 [INSTALL](INSTALL.html) file. You'll need the [GHC] Haskell compiler.
 
-**Debian binary package:**  [@DEB_NAME@](@DEB_NAME@).
+**MacOS X binary package:** [`@OSX_DMG_NAME@`](@OSX_DMG_NAME@).
+To install, just double-click the package icon in the disk
+image.  See the [installation notes](Welcome) for important
+information about setting your `PATH`.
+
+**Debian binary package:**  [`@DEB_NAME@`](@DEB_NAME@).
 To install (on x86 Debian-based linux systems only), run `dpkg -i
 @DEB_NAME@` as root. 
 

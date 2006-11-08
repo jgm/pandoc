@@ -315,11 +315,14 @@ $(web_dest)/: $(MAIN) html $(tarball_name)
 		cp ../$(deb_main) $(web_dest)/; \
 		cp $(tarball_name) $(web_dest)/; \
 		cp $(web_src)/*.css $(web_dest)/; \
+		sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome > $(web_dest)/Welcome; \
+		sed -e 's/^/    /g' changelog | \
+			$(make_page) > $(web_dest)/history.html; \
 		$(make_page) README > $(web_dest)/README.html; \
 		$(make_page) INSTALL > $(web_dest)/INSTALL.html; \
-		$(make_page) changelog > $(web_dest)/history.html; \
 		sed -e 's/@TARBALL_NAME@/$(tarball_name)/g' $(web_src)/index.txt | \
 			sed -e 's/@DEB_NAME@/$(deb_main)/g' | \
+			sed -e 's/@OSX_DMG_NAME@/$(osx_dmg_name)/g' | \
 			$(make_page) > $(web_dest)/index.html; \
 	) || { rm -rf $(web_dest); exit 1; }
 
