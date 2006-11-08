@@ -83,7 +83,8 @@ data ParserState = ParserState
       stateTitle                 :: [Inline],       -- ^ Title of document
       stateAuthors               :: [String],       -- ^ Authors of document
       stateDate                  :: String,         -- ^ Date of document
-      stateHeaderTable           :: [HeaderType]  } -- ^ List of header types used, in what order (for reStructuredText only)
+      stateHeaderTable           :: [HeaderType]    -- ^ List of header types used, in what order (for reStructuredText only)
+    }
     deriving Show
 
 defaultParserState :: ParserState
@@ -274,7 +275,8 @@ data WriterOptions = WriterOptions
     , writerS5                   :: Bool   -- ^ @True@ if we're writing S5 instead of normal HTML
     , writerIncremental          :: Bool   -- ^ If @True@, display S5 lists incrementally
     , writerNumberSections       :: Bool   -- ^ If @True@, number sections in LaTeX
-    , writerTabStop              :: Int }  -- ^ Tabstop for conversion between spaces and tabs
+    , writerTabStop              :: Int    -- ^ Tabstop for conversion between spaces and tabs
+    }
                      deriving Show
 
 --
