@@ -1,14 +1,14 @@
 % Pandoc
 
-`pandoc` is a [Haskell] library for converting from one markup format
+Pandoc is a [Haskell] library for converting from one markup format
 to another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX],
 and it can write [markdown], [reStructuredText], [HTML], [LaTeX], [RTF],
-and [S5] HTML slide shows. `pandoc`'s version of markdown contains some
+and [S5] HTML slide shows. Pandoc's version of markdown contains some
 enhancements, like footnotes and embedded LaTeX.
 
 In contrast to existing tools for converting markdown to HTML, which
-use regex substitutions, `pandoc` has a modular design: it consists of a
+use regex substitutions, Pandoc has a modular design: it consists of a
 set of readers, which parse text in a given format and produce a native
 representation of the document, and a set of writers, which convert
 this native representation into a target format. Thus, adding an input
