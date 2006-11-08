@@ -288,7 +288,7 @@ $(web_dest)/: $(MAIN) html/ $(tarball_name)
 	cp $(tarball_name) $(web_dest)/
 	cp $(web_src)/*.css $(web_dest)/
 	$(make_page) README > $(web_dest)/README.html
-	$(make_page) INSTALL > $(web_dest)/install.html
+	$(make_page) INSTALL > $(web_dest)/INSTALL.html
 	$(make_page) changelog > $(web_dest)/history.html
 	sed -e 's/@TARBALL_NAME@/$(tarball_name)/g' $(web_src)/index.txt | \
 		sed -e 's/@DEB_NAME@/$(deb_name)/g' | \

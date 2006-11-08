@@ -18,7 +18,7 @@ For more information, see the [README](README.html) file.
 
 **Source distribution:** [@TARBALL_NAME@](@TARBALL_NAME@). 
 To install, unpack the archive and follow the instructions in the
-[README](README.html) file. You'll need the [GHC] Haskell compiler.
+[INSTALL](INSTALL.html) file. You'll need the [GHC] Haskell compiler.
 
 **Debian binary package:**  [@DEB_NAME@](@DEB_NAME@).
 To install (on x86 Debian-based linux systems only), run `dpkg -i
