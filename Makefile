@@ -102,16 +102,15 @@ $(BUILDCONF): $(CABAL)
 	@echo "DESTDIR?=$(DESTDIR)" >>$(BUILDVARS)
 
 .PHONY: build
-build: $(BUILDDIR)
-$(BUILDDIR)/: templates configure
+build: templates configure
 	$(BUILDCMD) build
 
 .PHONY: build-exec
 build-exec: $(EXECS)
 cleanup_files+=$(EXECS)
-$(EXECS): $(BUILDDIR)
+$(EXECS): build
 	for f in $@; do \
-		find $(BUILDDIR) -type f -name "$$f" -perm +a=x -exec cp {} . \; ; \
+		find $(BUILDDIR) -type f -name "$$f" -perm +a=x -exec cp -p {} . \; ; \
 	done
 
 .PHONY: build-doc
