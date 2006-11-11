@@ -1,26 +1,9 @@
 # Makefile for Pandoc.
 
-CABAL     := Pandoc.cabal
-
-#-------------------------------------------------------------------------------
-# Cabal constants
-#-------------------------------------------------------------------------------
-NAME      := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL).in)
-VERSION   := $(shell sed -ne 's/^[Vv]ersion:[[:space:]]*//p' $(CABAL).in)
-EXECS     := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
-
-# First entry in Cabal's executable stanza is the main executable.
-MAIN      := $(word 1, $(EXECS))
-
-#-------------------------------------------------------------------------------
-# Install targets
-#-------------------------------------------------------------------------------
-PROGS     := $(EXECS) html2markdown markdown2html latex2markdown markdown2latex markdown2pdf
-DOCS      := README.html README BUGS TODO
-
 #-------------------------------------------------------------------------------
 # Constant names and commands in source tree
 #-------------------------------------------------------------------------------
+CABAL     := Pandoc.cabal
 SRCDIR    := src
 MANDIR    := man
 BUILDDIR  := dist
@@ -28,6 +11,22 @@ BUILDCONF := .setup-config
 BUILDCMD  := runhaskell Setup.hs
 BUILDVARS := vars
 CONFIGURE := configure
+
+#-------------------------------------------------------------------------------
+# Cabal constants
+#-------------------------------------------------------------------------------
+NAME      := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL).in)
+VERSION   := $(shell sed -ne 's/^[Vv]ersion:[[:space:]]*//p' $(CABAL).in)
+EXECNAMES := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
+
+#-------------------------------------------------------------------------------
+# Install targets
+#-------------------------------------------------------------------------------
+EXECS     :=$(join $(patsubst %,$(BUILDDIR)/build/%/,$(EXECNAMES)),$(EXECNAMES))
+# First entry in Cabal's executable stanza is the main executable.
+MAIN      := $(firstword $(EXECS))
+PROGS     := $(EXECS) html2markdown markdown2html latex2markdown markdown2latex markdown2pdf
+DOCS      := README.html README BUGS TODO
 
 #-------------------------------------------------------------------------------
 # Variables to setup through environment
@@ -109,9 +108,6 @@ build: templates configure
 build-exec: $(EXECS)
 cleanup_files+=$(EXECS)
 $(EXECS): build
-	for f in $@; do \
-		find $(BUILDDIR) -type f -name "$$f" -perm +a=x -exec cp -p {} . \; ; \
-	done
 
 .PHONY: build-doc
 cleanup_files+=README.html 
@@ -207,7 +203,7 @@ $(osx_dest)/: $(doc_more)
 	DESTDIR=$(osx_dest)/Package_root $(MAKE) install-program
 	cp $(osx_src)/uninstall-pandoc $(osx_dest)/Package_root/usr/local/bin/
 	find $(osx_dest) -type f -regex ".*bin/.*" | xargs chmod +x
-	find $(osx_dest) -type f -regex ".*bin/$(MAIN)" | xargs $(STRIP)
+	find $(osx_dest) -type f -regex ".*bin/$(notdir $(MAIN))" | xargs $(STRIP)
 	$(INSTALL) -d $(osx_dest)/Resources
 	cp README.rtf $(osx_dest)/Resources/ReadMe.rtf
 	cp LICENSE.rtf $(osx_dest)/Resources/License.rtf
