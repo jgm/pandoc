@@ -141,6 +141,19 @@ is in the path, and some have additional requirements.  (For example,
 
 	creates a file `mytextfile.pdf`.
 
+If you want to use pandoc's command-line options in these scripts,
+put the options in the environment variable `PANDOC_OPTS`.  For
+example, to convert `tusks.txt` to `tusks.html` using smart quotes,
+ellipses, and dashes, with "Elephants" as the page title prefix:
+
+    PANDOC_OPTS="-S -T Elephants" markdown2html tusks.txt > tusks.html
+
+To make these options persistent, use `export`:
+
+    export PANDOC_OPTS="-S -T Elephants"
+    markdown2html tusks.txt > tusks.html 
+    markdown2html trunk.txt > trunk.html
+
 # Command-line options
 
 Various command-line options can be used to customize the output.

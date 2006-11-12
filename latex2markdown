@@ -4,4 +4,4 @@
     echo >&2 "You need 'pandoc' to use this program!"
     exit 1
 }
-iconv -t utf-8 $* | pandoc -r latex -w markdown -s | iconv -f utf-8
+iconv -t utf-8 $* | pandoc $PANDOC_OPTS -r latex -w markdown -s | iconv -f utf-8

@@ -2,28 +2,20 @@
 .SH NAME
 markdown2pdf \- converts markdown-formatted text to PDF, using pdflatex 
 .SH SYNOPSIS
-.B markdown2pdf 
-[
-.B -o|--output 
-.I output-file
-] [
-.I input-file
-]
+\fBmarkdown2pdf\fR [ \fB-o|--output\fR \fIoutput-file\fR ] 
+[ \fIinput-file\fR ]
 .SH DESCRIPTION
-.I markdown2pdf 
-converts 
-.I input-file 
-(or text from STDIN) from markdown-formatted
-plain text to PDF, using 
-.I pdflatex. 
-If no output filename is specified, the name of the output file is derived
-from the input file; thus, for example, if the input file is 
-.IR hello.txt ,
-the output file will be 
-.IR hello.pdf .
-If the input is read from STDIN and no output filename is specified, 
-the output file will be named 
-.IR stdin.pdf .
+\fBmarkdown2pdf\fR converts \fIinput-file\fR (or text from STDIN) from
+markdown-formatted plain text to PDF, using \fBpdflatex\fR.  If no output
+filename is specified, the name of the output file is derived from the
+input file; thus, for example, if the input file is \fIhello.txt\fR,
+the output file will be \fIhello.pdf\fR.  If the input is read from STDIN
+and no output filename is specified, the output file will be named 
+\fIstdin.pdf\fR.
+.SH ENVIRONMENT
+Any command-line options contained in the PANDOC_OPTS environment variable
+will be passed to \fBpandoc\fR by this wrapper script.  See \fBpandoc\fR(1)
+for a list of options that may be used.
 .SH "SEE ALSO"
 \fBpandoc\fR(1),
 \fBmarkdown2html\fR(1),

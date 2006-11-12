@@ -2,17 +2,16 @@
 .SH NAME
 markdown2html \- converts markdown-formatted text to HTML 
 .SH SYNOPSIS
-.B markdown2html 
-[
-.I input-files
-]
+\fBmarkdown2html\fR [ \fIinput-files\fR ]
 .SH DESCRIPTION
-.I markdown2html 
-converts 
-.I input-files 
+\fBmarkdown2html\fR converts \fIinput-files\fR 
 (or text from STDIN) from markdown-formatted plain text to HTML. 
 If multiple files are specified, they will be combined to make a single
 HTML document.
+.SH ENVIRONMENT
+Any command-line options contained in the PANDOC_OPTS environment variable
+will be passed to \fBpandoc\fR by this wrapper script.  See \fBpandoc\fR(1)
+for a list of options that may be used.
 .SH "SEE ALSO"
 \fBpandoc\fR(1),
 \fBhtml2markdown\fR(1),

@@ -2,17 +2,15 @@
 .SH NAME
 markdown2latex \- converts markdown-formatted text to LaTeX 
 .SH SYNOPSIS
-.B markdown2latex 
-[
-.I input-files
-]
+\fBmarkdown2latex\fR [ \fIinput-files\fR ]
 .SH DESCRIPTION
-.I markdown2latex 
-converts 
-.I input-files 
-(or text from STDIN) from markdown-formatted
-plain text to LaTeX.  If multiple files are specified, they will
-be combined to make a single LaTeX document.
+\fBmarkdown2latex\fR converts \fIinput-files\fR (or text from STDIN)
+from markdown-formatted plain text to LaTeX.  If multiple files are
+specified, they will be combined to make a single LaTeX document.
+.SH ENVIRONMENT
+Any command-line options contained in the PANDOC_OPTS environment variable
+will be passed to \fBpandoc\fR by this wrapper script.  See \fBpandoc\fR(1)
+for a list of options that may be used.
 .SH "SEE ALSO"
 \fBpandoc\fR(1),
 \fBmarkdown2html\fR(1),
