@@ -2,11 +2,24 @@
 # converts html to markdown
 # uses an available program to fetch URL and tidy to normalize it first
 
+pathfind () { # portable which(1), code taken from Debian Developer's Reference
+    OLDIFS="$IFS"
+    IFS=:
+    for _p in $PATH; do
+        if [ -x "$_p/$*" ]; then
+            IFS="$OLDIFS"
+            return 0
+        fi
+    done
+    IFS="$OLDIFS"
+    return 1
+}
+
 for p in pandoc tidy; do
-	which $p >/dev/null 2>&1 || {
-		echo >&2 "You need '$p' to use this program!"
-		exit 1
-	}
+    pathfind $p || {
+        echo >&2 "You need '$p' to use this program!"
+        exit 1
+    }
 done
 
 if [ -z "$1" ] || [ -f $1 ]; then
@@ -17,7 +30,7 @@ else
     # Treat given argument as an URL.  Locate a
     # sensible text based browser (note the order).
     for p in wget lynx w3m curl links w3c; do
-        if which $p >/dev/null 2>&1; then
+        if pathfind $p; then
             DUMPER=$p
             break
         fi

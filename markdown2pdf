@@ -1,34 +1,47 @@
 #!/bin/sh
 # converts markdown to latex, then uses latex to make a PDF
 
+pathfind () { # portable which(1), code taken from Debian Developer's Reference
+    OLDIFS="$IFS"
+    IFS=:
+    for _p in $PATH; do
+        if [ -x "$_p/$*" ]; then
+            IFS="$OLDIFS"
+            return 0
+        fi
+    done
+    IFS="$OLDIFS"
+    return 1
+}
+
 for p in pandoc pdflatex; do
-	which $p >/dev/null 2>&1 || {
-		echo >&2 "You need '$p' to use this program!"
-		exit 1
-	}
+    pathfind $p || {
+        echo >&2 "You need '$p' to use this program!"
+        exit 1
+    }
 done
 
 outfile=
 for option; do
     if [ -n "$prev" ]; then
-	eval "$prev=\$option"
-	prev=
-	shift
-	continue
+        eval "$prev=\$option"
+        prev=
+        shift
+        continue
     fi
     optarg=$(expr "x$option" : 'x[^=]*=\(.*\)')
     case $option in
     -h | --h | --help )
-	help=1
-	shift ;;
+        help=1
+        shift ;;
     -o | --o | --output )
-	prev=outfile
-	shift ;;
+        prev=outfile
+        shift ;;
     -o=* | --o=* | --output=* )
-	outfile=$optarg
-	shift ;;
+        outfile=$optarg
+        shift ;;
     -* ) echo >&2 "$0: unknown option: $option; aborting"
-	exit 1 ;;
+        exit 1 ;;
     * ) break ;;
     esac
 done
@@ -41,9 +54,9 @@ done
 infile=$1
 if [ -z "$outfile" ]; then
     if [ -n "$infile" ]; then
-	outfile=${infile%.*}.pdf
+        outfile=${infile%.*}.pdf
     else
-	outfile='stdin.pdf' # input is STDIN, since no argument given
+        outfile='stdin.pdf' # input is STDIN, since no argument given
     fi
 fi
 
@@ -61,9 +74,9 @@ pandoc $PANDOC_OPTS -w latex -s | \
 iconv -f utf-8 > $TEMP/$BASE.tex && (
     cd $TEMP
     if ! pdflatex -interaction=batchmode $BASE.tex >/dev/null 2>&1; then
-	echo >&2 "LaTeX errors:"
-	cat >&2 $BASE.log
-	exit 1
+        echo >&2 "LaTeX errors:"
+        cat >&2 $BASE.log
+        exit 1
     fi
 ) || exit $?
 
