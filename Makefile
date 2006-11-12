@@ -194,7 +194,7 @@ uninstall: uninstall-program
 osx_dest:=osx-pkg-tmp
 osx_src:=osx
 doc_more:=README.rtf LICENSE.rtf $(osx_src)/Welcome.rtf
-osx_pkg_name:=Pandoc_$(VERSION).pkg
+osx_pkg_name:=$(NAME)_$(VERSION).pkg
 cleanup_files+=$(osx_dest) $(doc_more) $(osx_pkg_name)
 osx-pkg-prep: build-program $(osx_dest)
 $(osx_dest)/: $(doc_more)
@@ -225,20 +225,20 @@ osx-pkg: osx-pkg-prep
 	-rm -rf $(osx_dest)
 
 .PHONY: osx-dmg
-osx_dmg_name:=Pandoc.dmg
-osx_dmg_volume:="Pandoc $(VERSION)"
-cleanup_files+=$(osx_dmg_name)
-osx-dmg: $(osx_dmg_name)
-$(osx_dmg_name): $(osx_pkg_name)
+osx_dmg_name:=$(NAME).dmg
+osx_udzo_name:=$(NAME).udzo.dmg
+osx_dmg_volume:="$(NAME) $(VERSION)"
+osx-dmg: ../$(osx_dmg_name)
+../$(osx_dmg_name): $(osx_pkg_name)
 	-rm -f $(osx_dmg_name)
 	hdiutil create $(osx_dmg_name) -size 05m -fs HFS+ -volname $(osx_dmg_volume)
 	dev_handle=`hdid $(osx_dmg_name) | grep Apple_HFS | \
 		    perl -e '\$$_=<>; /^\\/dev\\/(disk.)/; print \$$1'`; \
 	ditto $(osx_pkg_name) /Volumes/$(osx_dmg_volume)/$(osx_pkg_name); \
 	hdiutil detach $$dev_handle
-	hdiutil convert $(osx_dmg_name) -format UDZO -o Pandoc.udzo.dmg
+	hdiutil convert $(osx_dmg_name) -format UDZO -o $(osx_udzo_name)
 	-rm -f $(osx_dmg_name)
-	mv Pandoc.udzo.dmg $(osx_dmg_name)
+	mv $(osx_udzo_name) ../$(osx_dmg_name)
 
 .PHONY: test test-markdown
 test: $(MAIN)
@@ -294,8 +294,8 @@ make_page:=./$(MAIN) -s -B $(web_src)/header.html \
 cleanup_files+=$(web_dest)
 website: $(web_dest)
 $(web_dest)/: $(MAIN) html $(tarball_name)
-	@[ -f $(osx_dmg_name) ] || { \
-		echo "*** Missing $(osx_dmg_name). ***"; \
+	@[ -f ../$(osx_dmg_name) ] || { \
+		echo "*** Missing ../$(osx_dmg_name). ***"; \
 		exit 1; \
 	}
 	@[ -f ../$(deb_main) ] || { \
@@ -306,7 +306,7 @@ $(web_dest)/: $(MAIN) html $(tarball_name)
 	( \
 		mkdir $(web_dest); \
 		cp -r html $(web_dest)/doc; \
-		cp $(osx_dmg_name) $(web_dest)/; \
+		cp ../$(osx_dmg_name) $(web_dest)/; \
 		cp ../$(deb_main) $(web_dest)/; \
 		cp $(tarball_name) $(web_dest)/; \
 		cp $(web_src)/*.css $(web_dest)/; \
