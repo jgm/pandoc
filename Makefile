@@ -155,7 +155,7 @@ install-exec: build-exec
 	$(INSTALL) -d $(BINPATH); \
 	for f in $(PROGS); do $(INSTALL_PROGRAM) $$f $(BINPATH)/; done
 uninstall-exec:
-	-for f in $(PROGS); do rm -f $(BINPATH)/$$f; done
+	-for f in $(notdir $(PROGS)); do rm -f $(BINPATH)/$$f; done
 
 # Program + user documents installation.
 .PHONY: install-program uninstall-program
