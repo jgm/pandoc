@@ -1,7 +1,11 @@
 #!/bin/sh -e
-# converts markdown to HTML 
-[ -n "$(which pandoc)" ] || {
-    echo >&2 "You need 'pandoc' to use this program!"
-    exit 1
-}
+# converts markdown to HTML
+
+for p in pandoc; do
+	which $p >/dev/null 2>&1 || {
+		echo >&2 "You need '$p' to use this program!"
+		exit 1
+	}
+done
+
 iconv -t utf-8 $* | pandoc $PANDOC_OPTS | iconv -f utf-8

@@ -2,22 +2,22 @@
 # converts html to markdown
 # uses an available program to fetch URL and tidy to normalize it first
 
-[ -n "$(which pandoc)" ] || {
-    echo >&2 "You need 'pandoc' to use this program!"
-    exit 1
-}
-[ -n "$(which tidy)" ] || {
-    echo >&2 "You need 'tidy' to use this program!"
-    exit 1
-}
+for p in pandoc tidy; do
+	which $p >/dev/null 2>&1 || {
+		echo >&2 "You need '$p' to use this program!"
+		exit 1
+	}
+done
 
-if [ -z "$1" ] || [ -f $1 ]; then 
-    tidy -utf8 $1 2>/dev/null | pandoc $PANDOC_OPTS -r html -w markdown -s | iconv -f utf-8
+if [ -z "$1" ] || [ -f $1 ]; then
+    tidy -utf8 $1 2>/dev/null | \
+    pandoc $PANDOC_OPTS -r html -w markdown -s | \
+    iconv -f utf-8
 else
     # Treat given argument as an URL.  Locate a
     # sensible text based browser (note the order).
     for p in wget lynx w3m curl links w3c; do
-        if which $p >/dev/null; then
+        if which $p >/dev/null 2>&1; then
             DUMPER=$p
             break
         fi
@@ -30,10 +30,13 @@ else
         curl)  OPT="" ;;
         links) OPT="-source" ;;
         w3c)   OPT="-n -get" ;;
-        "")    echo -n >&2 "Needs a program to fetch the URL "
-               echo -n >&2 "(e.g. wget, w3m, lynx, w3c, or curl)."
+        "")    printf "Needs a program to fetch the URL " >&2
+               printf "(e.g. wget, w3m, lynx, w3c, or curl)." >&2
                exit 1 ;;
     esac
     # Fetch and feed to pandoc.
-    $DUMPER $OPT $1 2>/dev/null | tidy -utf8 2>/dev/null | pandoc $PANDOC_OPTS -r html -w markdown -s | iconv -f utf-8
+    $DUMPER $OPT $1 2>/dev/null | \
+    tidy -utf8 2>/dev/null | \
+    pandoc $PANDOC_OPTS -r html -w markdown -s | \
+    iconv -f utf-8
 fi

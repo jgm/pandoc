@@ -1,14 +1,12 @@
 #!/bin/sh
 # converts markdown to latex, then uses latex to make a PDF
 
-[ -n "$(which pandoc)" ] || {
-    echo >&2 "You need 'pandoc' to use this program!"
-    exit 1
-}
-[ -n "$(which pdflatex)" ] || {
-    echo >&2 "You need 'pdflatex' to use this program!"
-    exit 1
-}
+for p in pandoc pdflatex; do
+	which $p >/dev/null 2>&1 || {
+		echo >&2 "You need '$p' to use this program!"
+		exit 1
+	}
+done
 
 outfile=
 for option; do
@@ -58,8 +56,9 @@ TEMP=${TMPDIR-/tmp}/markdown2pdf.$$
 trap "status=$?; rm -rf $TEMP; exit $status" 0 INT
 mkdir -p $TEMP
 
-iconv -t utf-8 $infile | pandoc $PANDOC_OPTS -w latex -s | iconv -f utf-8 > $TEMP/$BASE.tex  
-(
+iconv -t utf-8 $infile | \
+pandoc $PANDOC_OPTS -w latex -s | \
+iconv -f utf-8 > $TEMP/$BASE.tex && (
     cd $TEMP
     if ! pdflatex -interaction=batchmode $BASE.tex >/dev/null 2>&1; then
 	echo >&2 "LaTeX errors:"
@@ -71,12 +70,13 @@ iconv -t utf-8 $infile | pandoc $PANDOC_OPTS -w latex -s | iconv -f utf-8 > $TEM
 is_target_exists=
 if [ -f $outfile ]; then
     is_target_exists=1
+    mv -f $outfile $outfile~
 fi
 
-mv --suffix=~ --backup $TEMP/$BASE.pdf $outfile
+mv -f $TEMP/$BASE.pdf $outfile
 
-echo -n >&2 "Created $outfile"
+printf "Created $outfile" >&2
 [ -z "$is_target_exists" ] || {
-    echo -n >&2 " (previous file has been backed up as '$outfile~')"
+    printf " (previous file has been backed up as '$outfile~')" >&2
 }
 echo >&2 .
