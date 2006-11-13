@@ -21,4 +21,12 @@ for p in pandoc; do
     }
 done
 
-iconv -t utf-8 $* | pandoc $PANDOC_OPTS -r latex -w markdown -s | iconv -f utf-8
+ALL="$*"
+ARGS=${ALL%%-- *}
+REST=${ALL#$ARGS}
+
+REST=${REST#--}
+PANDOC_OPTS=${REST:-$PANDOC_OPTS}
+
+iconv -t utf-8 $ARGS | pandoc $PANDOC_OPTS -r latex -w markdown -s | \
+    iconv -f utf-8
