@@ -23,14 +23,21 @@ for p in pandoc tidy; do
 done
 
 ALL="$*"
-ARGS=${ALL%%-- *}
-REST=${ALL#$ARGS}
+ARGS=${ALL%% -- *} # only the part before ' -- ' delimiters is relevant
+set -- $ARGS
 
-REST=${REST#--}
+REST=${ALL#$ARGS}; REST=${REST#--}
 PANDOC_OPTS=${REST:-$PANDOC_OPTS}
 
-if [ -z "$1" ] || [ -f $1 ]; then
-    tidy -utf8 $1 2>/dev/null | \
+infile=$1
+shift
+
+if [ -n "$@" ]; then
+    echo >&2 "Warning: extra arguments '$@' will be ignored!"
+fi
+
+if [ -z "$infile" ] || [ -f $infile ]; then
+    tidy -utf8 $infile 2>/dev/null | \
     pandoc $PANDOC_OPTS -r html -w markdown -s | \
     iconv -f utf-8
 else
@@ -55,7 +62,7 @@ else
                exit 1 ;;
     esac
     # Fetch and feed to pandoc.
-    $DUMPER $OPT $1 2>/dev/null | \
+    $DUMPER $OPT $infile 2>/dev/null | \
     tidy -utf8 2>/dev/null | \
     pandoc $PANDOC_OPTS -r html -w markdown -s | \
     iconv -f utf-8

@@ -21,6 +21,13 @@ for p in pandoc pdflatex; do
     }
 done
 
+ALL="$*"
+ARGS=${ALL%% -- *} # only the part before ' -- ' delimiters is relevant
+set -- $ARGS
+
+REST=${ALL#$ARGS}; REST=${REST#--}
+PANDOC_OPTS=${REST:-$PANDOC_OPTS}
+
 outfile=
 for option; do
     if [ -n "$prev" ]; then
@@ -52,6 +59,12 @@ done
 }
 
 infile=$1
+shift
+
+if [ -n "$@" ]; then
+    echo >&2 "Warning: extra arguments '$@' will be ignored!"
+fi
+
 if [ -z "$outfile" ]; then
     if [ -n "$infile" ]; then
         outfile=${infile%.*}.pdf

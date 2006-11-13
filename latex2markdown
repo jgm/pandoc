@@ -22,11 +22,11 @@ for p in pandoc; do
 done
 
 ALL="$*"
-ARGS=${ALL%%-- *}
-REST=${ALL#$ARGS}
+ARGS=${ALL%% -- *} # only the part before ' -- ' delimiters is relevant
+set -- $ARGS
 
-REST=${REST#--}
+REST=${ALL#$ARGS}; REST=${REST#--}
 PANDOC_OPTS=${REST:-$PANDOC_OPTS}
 
-iconv -t utf-8 $ARGS | pandoc $PANDOC_OPTS -r latex -w markdown -s | \
+iconv -t utf-8 $* | pandoc $PANDOC_OPTS -r latex -w markdown -s | \
     iconv -f utf-8
