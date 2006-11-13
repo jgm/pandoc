@@ -103,6 +103,21 @@ The shell scripts (described below) automatically convert the input
 from the local encoding to UTF-8 before running them through `pandoc`,
 then convert the output back to the local encoding.
 
+## LaTeX and UTF-8 
+
+LaTeX sources produced by Pandoc use `ucs.sty`, which is included in many
+LaTeX distributions.  This allows LaTeX to process UTF-8 characters.
+If your installation of LaTeX does not include `ucs.sty`, you will get an
+error when you try to compile a LaTeX file produced by Pandoc, or when
+you use the `markdown2pdf` script (described below).  If this happens,
+install the [unicode] package from [CTAN].  (Get the `unicode.zip`
+file from CTAN, unpack it, and copy the whole `unicode` directory into
+`~/texmf/tex/latex/`.  You may also need to run `mktexlsr` or `texhash`
+before the files can be found by TeX.)
+
+[CTAN]: http://www.ctan.org
+[unicode]: http://www.ctan.org/tex-archive/macros/latex/contrib/unicode/
+
 # The shell scripts 
 
 For convenience, five shell scripts have been included that make it
@@ -139,7 +154,8 @@ is in the path, and some have additional requirements.  (For example,
 
 	    markdown2pdf mytextfile.txt
 
-	creates a file `mytextfile.pdf`.
+	creates a file `mytextfile.pdf`.  (If you get errors, be sure
+    your LaTeX installation includes `ucs.sty` -- see above.)
 
 If you want to use pandoc's command-line options in these scripts,
 put the options in the environment variable `PANDOC_OPTS`.  For
@@ -153,6 +169,14 @@ To make these options persistent, use `export`:
     export PANDOC_OPTS="-S -T Elephants"
     markdown2html tusks.txt > tusks.html 
     markdown2html trunk.txt > trunk.html
+
+You may also specify options on the command line, separating them
+from the arguments with `-- `:
+
+    markdown2html tusks.txt -- -S -T Elephants
+
+Options specified in this way will override any options set in
+PANDOC_OPTS.
 
 # Command-line options
 
