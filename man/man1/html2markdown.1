@@ -8,9 +8,20 @@ html2markdown \- converts HTML to markdown-formatted text
 (or text from STDIN) from HTML to  markdown-formatted plain text.
 It uses an available program (e.g. wget, w3m, lynx or curl) to fetch
 the contents of the URL. 
+.PP
+\fBhtml2markdown\fR is a wrapper for \fBpandoc\fR.
+.SH OPTIONS
+.TP
+.B \-\-
+Any options appearing after ` \-\- ' on the command line will be passed
+directly to \fBpandoc\fR.  See \fBpandoc\fR(1) for a list of options
+that may be used.  Options specified in this way will override
+PANDOC_OPTS (see below).  Example:
+.IP
+html2markdown input.txt -- -R
 .SH ENVIRONMENT
 Any command-line options contained in the PANDOC_OPTS environment variable
-will be passed to \fBpandoc\fR by this wrapper script.  See \fBpandoc\fR(1)
+will be passed directly to \fBpandoc\fR.  See \fBpandoc\fR(1)
 for a list of options that may be used.
 .SH "SEE ALSO"
 \fBpandoc\fR(1),

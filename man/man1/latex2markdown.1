@@ -6,9 +6,20 @@ latex2markdown \- converts LaTeX to markdown-formatted text
 .SH DESCRIPTION
 \fBlatex2markdown\fR converts \fIinput-file\fR
 (or text from STDIN) from LaTeX to markdown-formatted plain text.
+.PP
+\fBlatex2markdown\fR is a wrapper for \fBpandoc\fR.
+.SH OPTIONS
+.TP
+.B \-\-
+Any options appearing after ` \-\- ' on the command line will be passed
+directly to \fBpandoc\fR.  See \fBpandoc\fR(1) for a list of options
+that may be used.  Options specified in this way will override
+PANDOC_OPTS (see below).  Example:
+.IP
+latex2markdown input.txt -- -R
 .SH ENVIRONMENT
 Any command-line options contained in the PANDOC_OPTS environment variable
-will be passed to \fBpandoc\fR by this wrapper script.  See \fBpandoc\fR(1)
+will be passed directly to \fBpandoc\fR.  See \fBpandoc\fR(1)
 for a list of options that may be used.
 .SH "SEE ALSO"
 \fBpandoc\fR(1),

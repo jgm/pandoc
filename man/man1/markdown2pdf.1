@@ -12,9 +12,26 @@ input file; thus, for example, if the input file is \fIhello.txt\fR,
 the output file will be \fIhello.pdf\fR.  If the input is read from STDIN
 and no output filename is specified, the output file will be named 
 \fIstdin.pdf\fR.
+.PP
+\fBmarkdown2pdf\fR is a wrapper for \fBpandoc\fR.
+.SH OPTIONS
+.TP
+.B \-o FILENAME, \-\-output=FILENAME
+Specify name of output (PDF) file.
+.TP
+.B \-h, \-\-help
+Show usage message.
+.TP
+.B \-\-
+Any options appearing after ` \-\- ' on the command line will be passed
+directly to \fBpandoc\fR.  See \fBpandoc\fR(1) for a list of options
+that may be used.  Options specified in this way will override
+PANDOC_OPTS (see below).  Example:
+.IP
+markdown2pdf input.txt -- --custom-header=letterhead.tex
 .SH ENVIRONMENT
 Any command-line options contained in the PANDOC_OPTS environment variable
-will be passed to \fBpandoc\fR by this wrapper script.  See \fBpandoc\fR(1)
+will be passed directly to \fBpandoc\fR.  See \fBpandoc\fR(1)
 for a list of options that may be used.
 .SH "SEE ALSO"
 \fBpandoc\fR(1),
