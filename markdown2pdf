@@ -88,7 +88,7 @@ iconv -f utf-8 > $TEMP/$BASE.tex && (
     cd $TEMP
     if ! pdflatex -interaction=batchmode $BASE.tex >/dev/null 2>&1; then
         echo >&2 "LaTeX errors:"
-        cat >&2 $BASE.log
+        sed -ne '/^!/,/^ *$/p' $BASE.log >&2
         exit 1
     fi
 ) || exit $?
