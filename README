@@ -154,10 +154,12 @@ is in the path, and some have additional requirements.  (For example,
 
 	    markdown2pdf mytextfile.txt
 
-	creates a file `mytextfile.pdf`.  (If you get errors, be sure
-    your LaTeX installation includes `ucs.sty` -- see above.)
+	creates a file `mytextfile.pdf`.  To specify a different
+    name for the output file, use the `-o` option:
 
-If you want to use pandoc's command-line options in these scripts,
+        markdown2pdf -o final-draft.pdf mytextfile.txt
+
+If you want to use `pandoc`'s command-line options in these scripts,
 put the options in the environment variable `PANDOC_OPTS`.  For
 example, to convert `tusks.txt` to `tusks.html` using smart quotes,
 ellipses, and dashes, with "Elephants" as the page title prefix:
@@ -171,12 +173,12 @@ To make these options persistent, use `export`:
     markdown2html trunk.txt > trunk.html
 
 You may also specify options on the command line, separating them
-from the arguments with `-- `:
+from the arguments with '` -- `':
 
     markdown2html tusks.txt -- -S -T Elephants
 
 Options specified in this way will override any options set in
-PANDOC_OPTS.
+`PANDOC_OPTS`.
 
 # Command-line options
 
