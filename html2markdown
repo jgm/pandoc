@@ -30,9 +30,9 @@ REST=${ALL#$ARGS}; REST=${REST# -- }
 PANDOC_OPTS=${REST:-$PANDOC_OPTS}
 
 infile=$1
-shift
 
-if [ -n "$@" ]; then
+if [ $# -gt 1 ]; then
+    shift
     echo >&2 "Warning: extra arguments '$@' will be ignored!"
 fi
 
