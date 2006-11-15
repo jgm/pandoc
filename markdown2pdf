@@ -60,6 +60,11 @@ done
 
 infile=$1
 
+if ! [ -r $infile ]; then
+    echo >&2 "'$infile' not found"
+    exit 1
+fi
+
 if [ $# -gt 1 ]; then
     shift
     echo >&2 "Warning: extra arguments '$@' will be ignored!"
