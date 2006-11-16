@@ -17,14 +17,13 @@ CONFIGURE := configure
 #-------------------------------------------------------------------------------
 NAME      := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL).in)
 VERSION   := $(shell sed -ne 's/^[Vv]ersion:[[:space:]]*//p' $(CABAL).in)
-EXECNAMES := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
+EXECS     := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
+# First entry in Cabal's executable stanza is the main executable.
+MAIN      := $(firstword $(EXECS))
 
 #-------------------------------------------------------------------------------
 # Install targets
 #-------------------------------------------------------------------------------
-EXECS     :=$(join $(patsubst %,$(BUILDDIR)/build/%/,$(EXECNAMES)),$(EXECNAMES))
-# First entry in Cabal's executable stanza is the main executable.
-MAIN      := $(firstword $(EXECS))
 PROGS     := $(EXECS) html2markdown markdown2html latex2markdown markdown2latex markdown2pdf
 DOCS      := README.html README BUGS TODO
 
@@ -108,6 +107,12 @@ build: templates configure
 build-exec: $(EXECS)
 cleanup_files+=$(EXECS)
 $(EXECS): build
+	for f in $@; do \
+		[ -f $$f ] || { \
+        		find $(BUILDDIR) -type f -name "$$f" \
+					 -perm +a=x -exec ln -s {} . \; ; \
+		} \
+        done
 
 .PHONY: build-doc
 cleanup_files+=README.html 
@@ -153,7 +158,12 @@ uninstall-lib-doc:
 .PHONY: install-exec uninstall-exec
 install-exec: build-exec
 	$(INSTALL) -d $(BINPATH); \
-	for f in $(PROGS); do $(INSTALL_PROGRAM) $$f $(BINPATH)/; done
+	for f in $(PROGS); do \
+		if [ -L $$f ]; then \
+			f=$$(readlink $$f); \
+		fi; \
+		$(INSTALL_PROGRAM) $$f $(BINPATH)/; \
+	done
 uninstall-exec:
 	-for f in $(notdir $(PROGS)); do rm -f $(BINPATH)/$$f; done
 
