@@ -9,11 +9,12 @@ page.
 [GHC]: http://www.haskell.org/ghc/
 [GHC Download]: http://www.haskell.org/ghc/download.html
 
-You'll also need standard build tools: GNU `make`, `sed`, `bash`,
+You'll also need standard build tools: [GNU `make`], `sed`, `bash`,
 and `perl`.  These are standard on unix systems (including MacOS
 X).  If you're using Windows, you can install [Cygwin].
 
 [Cygwin]: http://www.cygwin.com/
+[GNU `make`]: http://www.gnu.org/software/make/
 
 # Installing Pandoc
 
@@ -22,6 +23,9 @@ X).  If you're using Windows, you can install [Cygwin].
 2.  Compile:
 
         make
+
+    If you get "Unknown modifier" errors, it is probably because `make`
+    on your system is not [GNU `make`].  Try using `gmake` instead.
 
 3.  See if it worked (optional, but recommended): 
 
