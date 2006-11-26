@@ -51,6 +51,10 @@ bracketedText openB closeB = try (do
 -- | Returns an option or argument of a LaTeX command
 optOrArg = choice [ (bracketedText '{' '}'), (bracketedText '[' ']') ]
 
+-- | True if the string begins with '{'
+isArg ('{':rest) = True
+isArg other = False
+
 -- | Returns list of options and arguments of a LaTeX command
 commandArgs = many optOrArg
 
@@ -549,7 +553,7 @@ link = try (do
 
 image = try (do
   ("includegraphics", _, args) <- command
-  let args' = filter (\arg -> (take 1 arg) /= "[") args
+  let args' = filter isArg args -- filter out options
   let src = if null args' then
               Src "" ""
             else
