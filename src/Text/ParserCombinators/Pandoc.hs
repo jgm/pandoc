@@ -82,9 +82,8 @@ many1Till p end = try (do
 -- | A more general form of @notFollowedBy@.  This one allows any type of parser to
 -- be specified, and succeeds only if that parser fails.  It does not consume any input.
 notFollowedBy' :: Show b => GenParser a st b -> GenParser a st ()
-notFollowedBy' parser = try (do{ c <- parser; unexpected (show c) }
-                             <|> return ()
-                            )
+notFollowedBy' parser = try (do { c <- try parser; unexpected (show c) }
+                           <|> return ())
 
 -- | The inverse of @notFollowedBy'@.  Fails if parser will fail, otherwise
 -- returns @()@ (but does not consume any input).

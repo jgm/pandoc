@@ -132,7 +132,7 @@ blockToHtml options (Note ref lst) =
     "<div class=\"pandocNote\">\n" ++ contents' ++ "</div>\n"
 blockToHtml options (Key _ _) = ""
 blockToHtml options (CodeBlock str) = "<pre><code>" ++ (codeStringToHtml str) ++ 
-                                      "</code></pre>\n"
+                                      "\n</code></pre>\n"
 blockToHtml options (RawHtml str) = str 
 blockToHtml options (BulletList lst) = 
     let attribs = if (writerIncremental options) then " class=\"incremental\"" else "" in

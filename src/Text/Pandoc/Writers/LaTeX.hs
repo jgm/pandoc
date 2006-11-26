@@ -107,7 +107,7 @@ blockToLaTeX notes (BlockQuote lst) =
     "\\begin{quote}\n" ++ (concatMap (blockToLaTeX notes) lst) ++ "\\end{quote}\n"
 blockToLaTeX notes (Note ref lst) = ""
 blockToLaTeX notes (Key _ _) = ""
-blockToLaTeX notes (CodeBlock str) = "\\begin{verbatim}\n" ++ str ++ "\\end{verbatim}\n"
+blockToLaTeX notes (CodeBlock str) = "\\begin{verbatim}\n" ++ str ++ "\n\\end{verbatim}\n"
 blockToLaTeX notes (RawHtml str) = ""
 blockToLaTeX notes (BulletList lst) = 
     "\\begin{itemize}\n" ++ (concatMap (listItemToLaTeX notes) lst) ++ "\\end{itemize}\n"

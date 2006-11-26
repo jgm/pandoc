@@ -292,7 +292,7 @@ indentedBlock variable = try (do
 codeBlock = try (do
     codeBlockStart
     result <- indentedBlock False  -- the False means we want one tab stop indent on each line
-    return (CodeBlock result))
+    return (CodeBlock (stripTrailingNewlines result)))
 
 --
 -- raw html

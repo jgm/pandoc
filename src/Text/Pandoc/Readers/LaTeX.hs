@@ -39,37 +39,33 @@ normalizeDashes = gsub "([0-9])--([0-9])" "\\1-\\2"
 normalizePunctuation :: String -> String
 normalizePunctuation = normalizeDashes . normalizeQuotes
 
--- | Returns command option (between []) if any, or empty string.
-commandOpt = option "" (between (char '[') (char ']') (many1 (noneOf "]")))
-
 -- | Returns text between brackets and its matching pair.
-bracketedText = try (do
-  char '{'
-  result <- many (choice [ try (do{ char '\\'; 
-                                    b <- oneOf "{}"; 
-                                    return (['\\', b])}), -- escaped bracket
-                           count 1 (noneOf "{}"),
-                           do {text <- bracketedText; return ("{" ++ text ++ "}")} ])
-  char '}'
-  return (concat result))
+bracketedText openB closeB = try (do
+  char openB
+  result <- many (choice [ oneOfStrings [ ['\\', openB], ['\\', closeB] ],
+                           count 1 (noneOf [openB, closeB]),
+                           bracketedText openB closeB ])
+  char closeB
+  return ([openB] ++ (concat result) ++ [closeB]))
 
--- | Parses list of arguments of LaTeX command.
-commandArgs = many bracketedText
+-- | Returns an option or argument of a LaTeX command
+optOrArg = choice [ (bracketedText '{' '}'), (bracketedText '[' ']') ]
 
--- | Parses LaTeX command, returns (name, star, option, list of arguments).
+-- | Returns list of options and arguments of a LaTeX command
+commandArgs = many optOrArg
+
+-- | Parses LaTeX command, returns (name, star, list of options/arguments).
 command = try (do
   char '\\'
   name <- many1 alphaNum
   star <- option "" (string "*")  -- some commands have starred versions
-  opt <- commandOpt
   args <- commandArgs
-  return (name, star, opt, args))
+  return (name, star, args))
 
 begin name = try (do
   string "\\begin{"
   string name
   char '}'
-  option "" commandOpt 
   option [] commandArgs
   spaces
   return name)
@@ -93,7 +89,6 @@ anyEnvironment =  try (do
   name <- many alphaNum 
   star <- option "" (string "*") -- some environments have starred variants
   char '}'
-  option "" commandOpt 
   option [] commandArgs
   spaces
   contents <- manyTill block (end (name ++ star))
@@ -103,15 +98,14 @@ anyEnvironment =  try (do
 -- parsing documents
 --
 
--- | Skip everything up through \begin{document}
-skipLaTeXHeader = try (do
-  manyTill anyChar (begin "document")
+-- | Process LaTeX preamble, extracting metadata
+processLaTeXPreamble = do
+  manyTill (choice [bibliographic, comment, unknownCommand]) (try (string "\\begin{document}"))
   spaces
-  return "")
 
 -- | Parse LaTeX and return 'Pandoc'.
 parseLaTeX = do
-  option "" skipLaTeXHeader            -- if parsing a fragment, this might not be present
+  option () processLaTeXPreamble    -- preamble might not be present, if a fragment
   blocks <- parseBlocks
   spaces
   option "" (string "\\end{document}") -- if parsing a fragment, this might not be present
@@ -121,7 +115,10 @@ parseLaTeX = do
   let keyBlocks = stateKeyBlocks state 
   let noteBlocks = stateNoteBlocks state
   let blocks' = filter (/= Null) blocks
-  return (Pandoc (Meta [] [] "") (blocks' ++ (reverse noteBlocks) ++ (reverse keyBlocks)))
+  let title' = stateTitle state
+  let authors' = stateAuthors state
+  let date' = stateDate state
+  return (Pandoc (Meta title' authors' date') (blocks' ++ (reverse noteBlocks) ++ (reverse keyBlocks)))
 
 --
 -- parsing blocks
@@ -209,7 +206,7 @@ mathBlockWith start end = try (do
 list = bulletList <|> orderedList <?> "list"
 
 listItem = try (do
-    ("item", _, _, _) <- command
+    ("item", _, _) <- command
     spaces
     state <- getState
     let oldParserContext = stateParserContext state
@@ -265,7 +262,7 @@ authors = try (do
   string "\\author{"
   authors <- manyTill anyChar (char '}')
   spaces
-  let authors' = map removeLeadingTrailingSpace $ lines $ gsub "\\\\" "\n" authors
+  let authors' = map removeLeadingTrailingSpace $ lines $ gsub "\\\\\\\\" "\n" authors
   updateState (\state -> state { stateAuthors = authors' })
   return Null)
 
@@ -283,15 +280,15 @@ date = try (do
 
 -- this forces items to be parsed in different blocks
 itemBlock = try (do
-  ("item", _, opt, _) <- command
+  ("item", _, args) <- command
   state <- getState
   if (stateParserContext state == ListItemState) then 
       fail "item should be handled by list block"
     else
-      if null opt then
+      if null args then
           return Null
         else
-          return (Plain [Str opt]))
+          return (Plain [Str (stripFirstAndLast (head args))]))
 
 --
 -- raw LaTeX 
@@ -312,15 +309,13 @@ rawLaTeXEnvironment = try (do
   star <- option "" (string "*") -- for starred variants
   let name' = name ++ star
   char '}'
-  opt <- option "" commandOpt 
   args <- option [] commandArgs
-  let optStr = if (null opt) then "" else "[" ++ opt ++ "]"
-  let argStr = concatMap (\arg -> ("{" ++ arg ++ "}")) args
+  let argStr = concat args
   contents <- manyTill (choice [(many1 (noneOf "\\")), 
                                 (do{ (Para [TeX str]) <- rawLaTeXEnvironment; return str }),
                                 string "\\"]) (end name')
   spaces
-  return (Para [TeX ("\\begin{" ++ name' ++ "}" ++ optStr ++ argStr ++ 
+  return (Para [TeX ("\\begin{" ++ name' ++ "}" ++ argStr ++ 
                                 (concat contents) ++ "\\end{" ++ name' ++ "}")]))
 
 unknownEnvironment = try (do
@@ -335,17 +330,16 @@ unknownCommand = try (do
   notFollowedBy' (string "\\end{itemize}")
   notFollowedBy' (string "\\end{enumerate}")
   notFollowedBy' (string "\\end{document}")
-  (name, star, opt, args) <- command
+  (name, star, args) <- command
   spaces
-  let optStr = if null opt then "" else "[" ++ opt ++ "]"
-  let argStr = concatMap (\arg -> ("{" ++ arg ++ "}")) args
+  let argStr = concat args
   state <- getState
   if (name == "item") && ((stateParserContext state) == ListItemState) then
       fail "should not be parsed as raw"
     else
       string ""
   if stateParseRaw state then
-      return (Plain [TeX ("\\" ++ name ++ star ++ optStr ++ argStr)])
+      return (Plain [TeX ("\\" ++ name ++ star ++ argStr)])
     else
       return (Plain [Str (joinWithSep " " args)]))
 
@@ -554,13 +548,19 @@ link = try (do
   return (Link (normalizeSpaces label) ref))
 
 image = try (do
-  ("includegraphics", _, _, (src:lst)) <- command
-  return (Image [Str "image"] (Src src "")))
+  ("includegraphics", _, args) <- command
+  let args' = filter (\arg -> (take 1 arg) /= "[") args
+  let src = if null args' then
+              Src "" ""
+            else
+              Src (stripFirstAndLast (head args')) ""
+  return (Image [Str "image"] src))
 
 footnote = try (do
-  ("footnote", _, _, (contents:[])) <- command
+  ("footnote", _, (contents:[])) <- command
+  let contents' = stripFirstAndLast contents
   let blocks = case runParser parseBlocks defaultParserState "footnote" contents of
-                 Left err -> error $ "Input:\n" ++ show contents ++
+                 Left err -> error $ "Input:\n" ++ show contents' ++
                              "\nError:\n" ++ show err
                  Right result -> result
   state <- getState
@@ -574,12 +574,11 @@ footnote = try (do
 -- | Parse any LaTeX command and return it in a raw TeX inline element.
 rawLaTeXInline :: GenParser Char ParserState Inline
 rawLaTeXInline = try (do
-  (name, star, opt, args) <- command
-  let optStr = if (null opt) then "" else "[" ++ opt ++ "]"
-  let argStr = concatMap (\arg -> "{" ++ arg ++ "}") args
+  (name, star, args) <- command
+  let argStr = concat args
   state <- getState
   if ((name == "begin") || (name == "end") || (name == "item")) then
       fail "not an inline command" 
     else
       string ""
-  return (TeX ("\\" ++ name ++ star ++ optStr ++ argStr)))
+  return (TeX ("\\" ++ name ++ star ++ argStr)))

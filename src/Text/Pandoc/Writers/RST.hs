@@ -91,7 +91,7 @@ blockToRST tabStop (Note ref blocks) =
 blockToRST tabStop (Key txt (Src src tit)) = 
     (text "ERROR - KEY FOUND", empty) -- shouldn't have a key here
 blockToRST tabStop (CodeBlock str) =  
-    (hang (text "::\n") tabStop (vcat $ map text (lines ('\n':(str ++ "\n")))), empty)
+    (hang (text "::\n") tabStop (vcat $ map text (lines ('\n':(str ++ "\n\n")))), empty)
 blockToRST tabStop (RawHtml str) = 
     let str' = if (endsWith '\n' str) then (str ++ "\n") else (str ++ "\n\n") in
     (hang (text "\n.. raw:: html\n") 3 (vcat $ map text (lines str')), empty)

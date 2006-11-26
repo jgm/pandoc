@@ -83,7 +83,7 @@ blockToMarkdown tabStop (Key txt (Src src tit)) =
     text "  " <> char '[' <> inlineListToMarkdown txt <> char ']' <> text ": " <> text src <> 
              (if tit /= "" then (text (" \"" ++ (escapeLinkTitle tit) ++ "\"")) else empty) 
 blockToMarkdown tabStop (CodeBlock str) = (nest tabStop $ vcat $ map text (lines str)) <> 
-           (if (endsWith '\n' str) then empty else text "\n") <> text "\n"
+           text "\n"
 blockToMarkdown tabStop (RawHtml str) = text str
 blockToMarkdown tabStop (BulletList lst) = 
     vcat (map (bulletListItemToMarkdown tabStop) lst) <> text "\n"

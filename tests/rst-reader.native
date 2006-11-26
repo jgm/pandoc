@@ -25,7 +25,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
 , BlockQuote
   [ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "block",Space,Str "quote.",Space,Str "It's",Space,Str "indented",Space,Str "with",Space,Str "a",Space,Str "tab."]
   , Para [Str "Code",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote",Str ":"]
-  , CodeBlock "sub status {\n    print \"working\";\n}\n"
+  , CodeBlock "sub status {\n    print \"working\";\n}"
   , Para [Str "List",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote",Str ":"]
   , OrderedList
     [ [ Plain [Str "item",Space,Str "one"] ]
@@ -38,10 +38,10 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
      ] ]
 , Header 1 [Str "Code",Space,Str "Blocks"]
 , Para [Str "Code",Str ":"]
-, CodeBlock "---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}\n"
-, CodeBlock "this code block is indented by one tab\n"
+, CodeBlock "---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}"
+, CodeBlock "this code block is indented by one tab"
 , Para [Str "And",Str ":"]
-, CodeBlock "    this block is indented by two tabs\n\n    These should not be escaped:  \\$ \\\\ \\> \\[ \\{\n"
+, CodeBlock "    this block is indented by two tabs\n\n    These should not be escaped:  \\$ \\\\ \\> \\[ \\{"
 , Header 1 [Str "Lists"]
 , Header 2 [Str "Unordered"]
 , Para [Str "Asterisks",Space,Str "tight",Str ":"]
@@ -166,7 +166,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
 , Key [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] (Src "http://example.com/?foo=1&bar=2" "")
 , Para [Str "Autolinks",Str ":",Space,Link [Str "http://example.com/?foo=1&bar=2"] (Src "http://example.com/?foo=1&bar=2" ""),Space,Str "and",Space,Link [Str "nobody@nowhere.net"] (Src "mailto:nobody@nowhere.net" ""),Str "."]
 , Para [Str "But",Space,Str "not",Space,Str "here",Str ":"]
-, CodeBlock "http://example.com/\n"
+, CodeBlock "http://example.com/"
 , Header 1 [Str "Images"]
 , Para [Str "From",Space,Str "\"Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune\"",Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(1902)",Str ":"]
 , Plain [Image [Str "image"] (Src "lalune.jpg" "")]

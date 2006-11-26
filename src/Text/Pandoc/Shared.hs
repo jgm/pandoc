@@ -11,6 +11,7 @@ module Text.Pandoc.Shared (
                      removeLeadingTrailingSpace,
                      removeLeadingSpace,
                      removeTrailingSpace,
+                     stripFirstAndLast,
                      -- * Parsing
                      readWith,
                      testStringWith,
@@ -226,6 +227,10 @@ removeLeadingSpace = dropWhile (\x -> (x == ' ') || (x == '\n') || (x == '\t'))
 -- | Remove trailing space (including newlines) from string.
 removeTrailingSpace :: String -> String
 removeTrailingSpace = reverse . removeLeadingSpace . reverse
+
+-- | Strip leading and trailing characters from string
+stripFirstAndLast str =
+  drop 1 $ take ((length str) - 1) str
 
 -- | Split list of inlines into groups separated by a space.
 splitBySpace :: [Inline] -> [[Inline]]

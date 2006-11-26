@@ -136,8 +136,7 @@ header = choice [ setextHeader, atxHeader ] <?> "header"
 atxHeader = try (do
   lead <- many1 (char atxHChar)
   skipSpaces
-  txt <- many1 (do {notFollowedBy' atxClosing; inline})
-  atxClosing
+  txt <- manyTill inline atxClosing
   return (Header (length lead) (normalizeSpaces txt)))
 
 atxClosing = try (do
@@ -195,7 +194,7 @@ indentedBlock = try (do
 codeBlock = do
     result <- choice [indentedBlock, indentedLine]
     option "" blanklines
-    return (CodeBlock result)
+    return (CodeBlock (stripTrailingNewlines result))
 
 --
 -- note block
@@ -286,9 +285,9 @@ orderedListStart =
 listLine start = try (do
   notFollowedBy' start
   notFollowedBy blankline
-  notFollowedBy' (try (do{ indentSpaces; 
-                           many (spaceChar);
-                           choice [bulletListStart, orderedListStart]}))
+  notFollowedBy' (do{ indentSpaces; 
+                      many (spaceChar);
+                      choice [bulletListStart, orderedListStart]})
   line <- manyTill anyChar newline
   return (line ++ "\n"))
 
@@ -311,7 +310,7 @@ listContinuation start =
            return ((concat result) ++ blanks))
 
 listContinuationLine start = try (do
-    notFollowedBy blankline
+    notFollowedBy' blankline
     notFollowedBy' start
     option "" indentSpaces
     result <- manyTill anyChar newline
@@ -404,10 +403,10 @@ special = choice [ link, referenceLink, rawHtmlInline, autoLink,
 
 escapedChar = escaped anyChar
 
-ltSign = do
+ltSign = try (do
   notFollowedBy' rawHtmlBlocks -- don't return < if it starts html
   char '<'
-  return (Str ['<'])
+  return (Str ['<']))
 
 specialCharsMinusLt = filter (/= '<') specialChars
 
@@ -487,7 +486,7 @@ endline =
            -- next line would allow block quotes without preceding blank line
            -- Markdown.pl does allow this, but there's a chance of a wrapped
            -- greater-than sign triggering a block quote by accident...
---         notFollowedBy (try (do { choice [emailBlockQuoteStart, string ",----"]; return ' ' }))  
+--         notFollowedBy' (choice [emailBlockQuoteStart, string ",----"])  
            notFollowedBy blankline
            -- parse potential list starts at beginning of line differently if in a list:
            st <- getState
@@ -560,7 +559,7 @@ referenceLinkSingle =     -- a link like [this]
 
 autoLink =                -- a link <like.this.com>
     try (do
-           notFollowedBy (do {anyHtmlBlockTag; return ' '})
+           notFollowedBy' anyHtmlBlockTag
            src <- between (char autoLinkStart) (char autoLinkEnd) 
                   (many (noneOf (spaceChars ++ endLineChars ++ [autoLinkEnd])))
            case (matchRegex emailAddress src) of

@@ -153,15 +153,15 @@ htmlScript = try (do
   rest <- manyTill anyChar (htmlEndTag "script")
   return (open ++ rest ++ "</script>"))
 
-rawHtmlBlock = do
-  notFollowedBy (do {choice [htmlTag "/body", htmlTag "/html"]; return ' '})
+rawHtmlBlock = try (do
+  notFollowedBy' (choice [htmlTag "/body", htmlTag "/html"])
   body <- choice [htmlScript, anyHtmlBlockTag, htmlComment, xmlDec, definition]
   sp <- (many space)
   state <- getState
   if stateParseRaw state then
       return (RawHtml (body ++ sp))
     else
-      return Null
+      return Null)
 
 htmlComment = try (do
   string "<!--"
@@ -284,12 +284,12 @@ preCodeBlock = try (do
     result <- manyTill anyChar (htmlEndTag "code")
     spaces
     htmlEndTag "pre"
-    return (CodeBlock (decodeEntities result)))
+    return (CodeBlock (stripTrailingNewlines (decodeEntities result))))
 
 bareCodeBlock = try (do
     htmlTag "code"
     result <- manyTill anyChar (htmlEndTag "code")
-    return (CodeBlock (decodeEntities result)))
+    return (CodeBlock (stripTrailingNewlines (decodeEntities result))))
 
 --
 -- block quotes
