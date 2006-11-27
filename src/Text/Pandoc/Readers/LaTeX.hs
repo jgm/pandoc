@@ -104,7 +104,7 @@ anyEnvironment =  try (do
 
 -- | Process LaTeX preamble, extracting metadata
 processLaTeXPreamble = do
-  manyTill (choice [bibliographic, comment, unknownCommand]) (try (string "\\begin{document}"))
+  manyTill (choice [bibliographic, comment, unknownCommand, nullBlock]) (try (string "\\begin{document}"))
   spaces
 
 -- | Parse LaTeX and return 'Pandoc'.
@@ -454,7 +454,9 @@ sect = try (do
   string "\\S"
   return (Str [chr 167]))
 
-escapedChar = escaped (oneOf " $%^&_#{}")
+escapedChar = do
+  result <- escaped (oneOf " $%^&_#{}\n")
+  return (if result == Str "\n" then Str " " else result)
 
 unescapedChar = do  -- ignore standalone, nonescaped special characters
   oneOf "$^&_#{}|<>"
@@ -561,7 +563,11 @@ image = try (do
   return (Image [Str "image"] src))
 
 footnote = try (do
-  ("footnote", _, (contents:[])) <- command
+  (name, _, (contents:[])) <- command
+  if ((name == "footnote") || (name == "thanks")) then
+      string ""
+    else
+      fail "not a footnote or thanks command"
   let contents' = stripFirstAndLast contents
   let blocks = case runParser parseBlocks defaultParserState "footnote" contents of
                  Left err -> error $ "Input:\n" ++ show contents' ++
