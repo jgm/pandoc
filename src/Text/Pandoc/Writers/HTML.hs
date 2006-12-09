@@ -90,10 +90,7 @@ attributeStringToHtml = gsub "\"" "&quot;"
 -- | Returns an HTML header with appropriate bibliographic information.
 htmlHeader :: WriterOptions -> Meta -> String
 htmlHeader options (Meta title authors date) = 
-    let titletext = if (null title) then 
-                        "" 
-                    else 
-                        "<title>" ++ (inlineListToHtml options title) ++ "</title>\n"
+    let titletext = "<title>" ++ (inlineListToHtml options title) ++ "</title>\n"
         authortext = if (null authors) then 
                          "" 
                      else 
