@@ -17,7 +17,7 @@ CONFIGURE := configure
 # Cabal constants
 #-------------------------------------------------------------------------------
 NAME      := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL).in)
-VERSION   := $(shell sed -ne 's/^[Vv]ersion:[[:space:]]*//p' $(CABAL).in)
+VERSION   := $(shell sed -ne 's/^version[[:space:]]*=[[:space:]]*"\([^"]*\)"/\1/p' $(SRCDIR)/Main.hs)
 EXECS     := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
 # First entry in Cabal's executable stanza is the main executable.
 MAIN      := $(firstword $(EXECS))
@@ -110,7 +110,7 @@ cleanup_files+=$(WRAPPERS)
 	@$(generate-shell-script)
 
 cleanup_files+=$(CABAL)
-$(CABAL): cabalize $(CABAL).in
+$(CABAL): cabalize $(CABAL).in $(SRCDIR)/Main.hs
 	./cabalize <$(CABAL).in >$(CABAL)
 
 .PHONY: configure

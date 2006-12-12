@@ -29,6 +29,8 @@ case "$ghc_version" in
 esac
 BUILD_DEPENDS=$(echo $BUILD_DEPENDS | sed -e 's# #, #g')
 
+PANDOC_VERSION=$(sed -ne 's/^version[[:space:]]*=[[:space:]]*"\([^"]*\)"/\1/p' src/Main.hs)
+
 # Handle 'Hs-Source-Dir' option name which was deprecated in Cabal > 1.1.3.
 HS_SOURCE_DIRS='Hs-Source-Dirs'
 cabal_version=$(ghc-pkg -l | sed -ne 's/.*[Cc]abal-\([^,]*\).*/\1/p')
@@ -38,4 +40,5 @@ fi
 
 sed -e "s#@HCFLAGS@#$HCFLAGS#g" \
     -e "s#@BUILD_DEPENDS@#$BUILD_DEPENDS#g" \
-    -e "s#@HS_SOURCE_DIRS@#$HS_SOURCE_DIRS#g"
+    -e "s#@HS_SOURCE_DIRS@#$HS_SOURCE_DIRS#g" \
+    -e "s#@VERSION@#$PANDOC_VERSION#g"
