@@ -86,6 +86,8 @@ pandoc (0.3) unstable; urgency=low
     + New osx directory contains files needed for construction
       of the package.
 
+  * Added website target to generate pandoc's website automatically.
+
   * Added code to html2markdown that tries to determine the character 
     encoding of an HTML file, by parsing the "Content-type" meta tag.
     + If the encoding can't be determined, then if the content is local,

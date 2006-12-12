@@ -1,1 +1,87 @@
 # TODO
+
+*   Revisions for building with windows under cygwin:
+    Cabal under windows produces 'pandoc.exe', and some of the scripts
+    expect 'pandoc'.
+
+*   Consider making section headers block titles rather than blocks.
+    Instead of:  [Header 1 "My title", Block1, Block2, Block3],
+    Section "My title" [Block1, Block2, Block3].
+    This seems cleaner and would facilitate a docbook writer.
+    It might also simplify the rst reader.
+
+*   pandoc's HTML output fails to validate completely (w3c).
+    There are a few quirks:
+    + HTML doesn't like the \> at the end of <meta tags.
+      But if we remove them, we'll have trouble with S5 output,
+      which seems to need the xhtml header?
+    + There's also a problem with the email obfuscation scheme.
+      <noscript> isn't allowed inside <p> blocks.  <script> is
+      allowed!  Options:
+          - come up with another scheme, perhaps more like markdown.pl's
+          - ignore the validation problems
+          - others?
+
+*   Consider adding support for acronyms.
+    Perhaps like this:  [AAAS]
+      [AAAS]: "American association for the advancement of science"
+    <acronym title="American association for the advancement 
+    of science">AAAS</acronym>
+
+*   Consider changing footnote syntax so that all footnotes in markdown
+    are embedded (and automatic).^[Like this.  Here's a footnote.  It
+    is parsed like a block, so you can have embedded code blocks:
+
+         like this { code }
+
+    ] That was the end of the note.  This means having block elements
+    embedded in inline elements, which is possible.
+    Advantage:  Much easier to write.  You don't have to pick a label,
+    move down to type your note, move back up.
+    Disadvantage:  Perhaps slightly harder to read.  (But HTML and LaTeX
+    output will still be easy to read.)
+
+*   Consider scrapping most of the wrapper scripts in favor of having
+    symlinks to pandoc.  Modify pandoc so that it changes its defaults
+    depending on the name of the calling program (getProgName).
+    This would eliminate a lot of complexity and allow better handling
+    of options (eliminating the need for a separation between wrapper
+    and pandoc options, for example).
+
+    If we do this, we should change option parsing in pandoc to allow
+    options after arguments.  This will preserve backward-compatibility
+    with the present wrapper system.  We'd also want to add an -o
+    option to pandoc (output file).  When -o foo is specified, pandoc
+    should print "Created foo" to stderr on success (unless --quiet
+    is specified).
+
+    A disadvantage is that we'd lose iconv conversion.  But maybe this
+    isn't needed anymore; UTF-8 seems to be standard on most systems now. 
+
+    The tricky wrappers to replace are markdown2pdf and html2markdown.
+
+    markdown2pdf: 
+
+        save working_directory
+        create tempdir
+        if markdown2latex "$@" >tempdir/output 2>tempdir/logfile; then
+           extract output-file from logfile (this will be foo.pdf)
+           if output-file found:
+              mv foo.pdf tempdir/foo.tex
+            else:
+              mv tempdir/output tempdir/foo.tex
+           cd tempdir
+           run pdflatex on foo.tex to produce foo.pdf
+           mv foo.pdf working_directory/foo.pdf     
+        else:
+           display logfile to inform user
+        on exit:
+           get rid of tempdir
+ 
+    html2markdown:  needs to run the HTML through tidy (mainly because
+    pandoc's html parser requires closing tags, etc.)  So we probably
+    need something like the existing wrapper script here.  roktas
+    suggests perhaps keeping html2markdown simple and using a separate
+    script, web2markdown.   note:  we also need iconv here, since web
+    pages may not be in UTF8.
+
