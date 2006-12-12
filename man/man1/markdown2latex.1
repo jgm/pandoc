@@ -1,27 +1,29 @@
-.TH PANDOC 1 "November 1, 2006" Linux "User Manuals"
+.TH MARKDOWN2LATEX 1 "November 21, 2006" Pandoc "User Manuals"
 .SH NAME
 markdown2latex \- converts markdown-formatted text to LaTeX 
 .SH SYNOPSIS
-\fBmarkdown2latex\fR [ \fIinput-files\fR ]
+\fBmarkdown2latex\fR [\fIoptions\fR] [\fIinput\-file\fR]...
+[\fB\-\-\fR] [\fIpandoc\-opts\fR]
 .SH DESCRIPTION
-\fBmarkdown2latex\fR converts \fIinput-files\fR (or text from STDIN)
-from markdown-formatted plain text to LaTeX.  If multiple files are
+\fBmarkdown2latex\fR converts \fIinput\-file\fR (or text from STDIN)
+from markdown\-formatted plain text to LaTeX.  If multiple files are
 specified, they will be combined to make a single LaTeX document.
+Output is sent to STDOUT.
 .PP
 \fBmarkdown2latex\fR is a wrapper for \fBpandoc\fR.
 .SH OPTIONS
 .TP
-.B \-\-
-Any options appearing after ` \-\- ' on the command line will be passed
-directly to \fBpandoc\fR.  See \fBpandoc\fR(1) for a list of options
-that may be used.  Options specified in this way will override
-PANDOC_OPTS (see below).  Example:
+.B \-h
+Show usage message.
+.TP
+.I pandoc\-opts
+Any options appearing after \fIinput\-file\fR... on the command line
+will be passed directly to \fBpandoc\fR.  If no \fIinput-file\fR
+is specified, these options must be preceded by ` \fB\-\-\fR '.
+(In other cases, ` \fB\-\-\fR ' is optional.)  See \fBpandoc\fR(1)
+for a list of options that may be used.  Example:
 .IP
-markdown2latex input.txt -- --custom-header=letterhead.tex
-.SH ENVIRONMENT
-Any command-line options contained in the PANDOC_OPTS environment variable
-will be passed directly to \fBpandoc\fR.  See \fBpandoc\fR(1)
-for a list of options that may be used.
+markdown2latex input.txt \-\- \-\-custom\-header=letterhead.tex
 .SH "SEE ALSO"
 \fBpandoc\fR(1),
 \fBmarkdown2html\fR(1),
@@ -29,4 +31,4 @@ for a list of options that may be used.
 \fBlatex2markdown\fR(1),
 \fBmarkdown2pdf\fR(1)
 .SH AUTHOR
-John MacFarlane
+John MacFarlane and Recai Oktas

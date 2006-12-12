@@ -1,0 +1,141 @@
+#!/bin/sh
+
+THIS=$1
+
+ASH="ash -s"
+BASH="bash --posix -s"
+DASH="dash -s"
+KSH="ksh -s"
+POSH="posh -s"
+ZSH="zsh -s"
+
+ERROR=""
+
+wrapper () {
+    $SH -- "$@" <<-'EOF'
+### common.sh
+
+outfile=
+while getopts o: opt; do
+    case $opt in
+    o) outfile="$OPTARG" ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+### postopts.sh
+
+echo "Options passed to wrapper:"
+[ -z "$outfile" ] || echo "|$outfile|"
+
+echo "Arguments passed to wrapper:"
+for arg; do
+    echo "|$arg|"
+done
+
+pandoc () {
+    echo "Arguments passed to wrappee:"
+    for arg; do
+        echo "|$arg|"
+    done
+}
+runpandoc
+EOF
+}
+
+# Portable which(1).
+pathfind () {
+    oldifs="$IFS"; IFS=':'
+    for _p in $PATH; do
+        if [ -x "$_p/$*" ] && [ -f "$_p/$*" ]; then
+            IFS="$oldifs"
+            return 0
+        fi
+    done
+    IFS="$oldifs"
+    return 1
+}
+
+check_results () {
+        if [ "$1" = "$2" ]; then
+            echo >&2 ok
+            return 0
+        else
+            echo >&2 failed
+            sed "s/^/\t/" >&2 <<EOF
+Command line: '$3'
+===> Expected:
+$2
+<=== Got:
+$1
+EOF
+            return 1
+        fi
+}
+
+for SH in "$BASH" "$DASH" "$KSH" "$ZSH"; do
+    CMD=${SH%% *}
+    echo >&2 "  Testing with $CMD..."
+    if pathfind "$CMD"; then
+        if [ "$CMD" = "zsh" ]; then
+            # Zsh needs to be called as 'sh' to enable POSIX mode.
+            ln -s $(which zsh) ./sh
+            SH="./sh ${SH#* }"
+            trap 'err=$?; rm -f ./sh; exit $err' 0 1 2 3 13 15
+        fi
+
+        set -e
+
+        # Test 1
+        printf >&2 "    test case 1... "
+        actual=$(wrapper -o "output file" "foo bar" -A "quux baz" -B)
+        expected=$(cat <<'EOF'
+Options passed to wrapper:
+|output file|
+Arguments passed to wrapper:
+|foo bar|
+Arguments passed to wrappee:
+|-A|
+|quux baz|
+|-B|
+EOF
+)
+        check_results "$actual" "$expected" \
+            'wrapper -o "output file" "foo bar" -A "quux baz" -B'
+
+        # Test 2
+        printf >&2 "    test case 2... "
+        actual=$(wrapper -- -A "foo bar")
+        expected=$(cat <<'EOF'
+Options passed to wrapper:
+Arguments passed to wrapper:
+Arguments passed to wrappee:
+|-A|
+|foo bar|
+EOF
+)
+        check_results "$actual" "$expected" 'wrapper -- -A "foo bar"'
+
+        # Test 3 (Test 1 with a redundant '--')
+        printf >&2 "    test case 4... "
+        actual=$(wrapper -o "output file" "foo bar" -- -A "quux baz" -B)
+        expected=$(cat <<'EOF'
+Options passed to wrapper:
+|output file|
+Arguments passed to wrapper:
+|foo bar|
+Arguments passed to wrappee:
+|-A|
+|quux baz|
+|-B|
+EOF
+)
+        check_results "$actual" "$expected" \
+            'wrapper -o "output file" "foo bar" -- -A "quux baz" -B'
+    else
+        echo >&2 "Warning: cannot verify correctness with $CMD; shell not available"
+    fi
+done
+
+exit 0

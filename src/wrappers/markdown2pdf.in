@@ -1,0 +1,64 @@
+#!/bin/sh -e
+# converts markdown to latex, then uses latex to make a PDF
+
+REQUIRED=pdflatex
+
+### common.sh
+
+outfile=
+while getopts o:h opt; do
+    case $opt in
+    o) outfile="$OPTARG" ;;
+    h|?) usage "[-o output_file] [-h] [input_file]..."; exit 2 ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+### postopts.sh
+
+### checkin.sh
+
+if [ -z "$outfile" ]; then
+    if [ -n "$1" ]; then
+        outfile="${1%.*}"
+    else
+        outfile="stdin" # input is STDIN, since no argument given
+    fi
+fi
+case "$outfile" in
+*.*) ;; # skip appending extension if one is already present
+*)   outfile="${outfile%.*}.pdf";;
+esac
+
+### tempdir.sh
+
+# We should use a filename without white spaces for pdflatex.
+TEXNAME=$THIS
+
+to_utf8 "$@" | runpandoc -w latex -s >$THIS_TEMPDIR/$TEXNAME.tex
+(
+    cd $THIS_TEMPDIR
+    if ! pdflatex -interaction=batchmode $TEXNAME.tex >/dev/null 2>&1; then
+        err "LaTeX errors:"
+        from_utf8 $TEXNAME.log | sed -ne '/^!/,/^ *$/p' >&2
+        if grep -q "File \`ucs.sty' not found" $TEXNAME.log; then
+            err "Please install the 'unicode' package from ctan.org."
+        fi
+        exit 1
+    fi
+)
+
+is_target_exists=
+if [ -f "$outfile" ]; then
+    is_target_exists=1
+    mv -f "$outfile" "$outfile~"
+fi
+
+mv -f $THIS_TEMPDIR/$TEXNAME.pdf "$outfile"
+
+errn "Created '$outfile'"
+[ -z "$is_target_exists" ] || {
+    errn " (previous file has been backed up as '$outfile~')"
+}
+err .

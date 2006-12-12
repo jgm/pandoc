@@ -1,0 +1,14 @@
+#!/bin/sh -e
+# runs pandoc to convert latex to markdown
+
+### common.sh
+
+### getopts.sh
+
+### postopts.sh
+
+### singlearg.sh
+
+### checkin.sh
+
+to_utf8 "$@" | runpandoc -r latex -w markdown -s | from_utf8

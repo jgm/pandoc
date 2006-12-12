@@ -39,24 +39,24 @@ STDIN.  If you run it with file names as arguments, it will take input
 from those files.  It accepts several command-line options.  For a
 list, type
 
-    pandoc -h
+	pandoc -h
 
 The most important options specify the format of the source file and
 the output.  The default reader is markdown; the default writer is
 HTML.  So if you don't specify a reader or writer, `pandoc` will
 convert markdown to HTML.  For example,
 
-    pandoc hello.txt
+	pandoc hello.txt
 
 will convert `hello.txt` from markdown to HTML.  For other conversions,
 you must specify a reader and/or a writer using the `-r` and `-w`
 flags.  To convert markdown to LaTeX, you would write:
 
-    pandoc -w latex hello.txt
+	pandoc -w latex hello.txt
 
 To convert html to markdown:
 
-    pandoc -r html -w markdown hello.txt
+	pandoc -r html -w markdown hello.txt
 
 Supported writers include `markdown`, `latex`, `html`, `rtf` (rich text
 format), `rst` (reStructuredText), and `s5` (which produces an HTML
@@ -120,72 +120,74 @@ before the files can be found by TeX.)
 
 # The shell scripts 
 
-For convenience, five shell scripts have been included that make it
-easy to run `pandoc` without remembering all the command-line options.
-All of the scripts use `iconv` to convert to and from the local
-character encoding.  All of the scripts presuppose that `pandoc`
-is in the path, and some have additional requirements.  (For example,
-`html2markdown` uses `tidy`, and `markdown2pdf` uses `pdflatex`.)
+Five shell scripts have been included that make it easy to run
+`pandoc` without worrying about character encodings, and without
+remembering all the command-line options:
 
-1.  `markdown2html` converts markdown to HTML. (This can be used
-    as a replacement for `Markdown.pl`.)
+- `markdown2html` converts markdown-formatted text to HTML
+- `markdown2latex` converts markdown-formatted text to LaTeX
+- `markdown2pdf` produces a PDF file from markdown-formatted
+  text, using `pdflatex`.
+- `html2markdown` converts HTML to markdown-formatted text
+- `latex2markdown` converts LaTeX to markdown-formatted text
 
-2.	`html2markdown` can take either a filename or a URL as argument.  If
-	it is given a URL, it uses `curl`, `wget`, or an available text-based
-    browser to fetch the contents of the specified URL, then filters this
-	through `tidy` to straighten up the HTML, and finally passes
-	this HTML to `pandoc` to produce markdown text:
+All of the scripts use `iconv` (if available) to convert to and from
+the local character encoding.  All of the scripts presuppose that
+`pandoc` is in the path, and some have additional requirements.  (For
+example, `html2markdown` uses `tidy`, and `markdown2pdf` uses
+`pdflatex`.)
 
-	    html2markdown http://www.fsf.org
+When no arguments are specified, text will be read from standard
+input.  Arguments specify input files (limited to one in the case of
+`latex2markdown` and `html2markdown`; the other scripts accept any number
+of arguments).  `html2markdown` may take a URL as argument instead of
+a filename; in this case, `curl`, `wget`, or an available text-based
+browser will be used to fetch the contents of the URL.  (The `-n` option
+inhibits this behavior; the `-g` option allows the user to specify a
+custom command that will be used to fetch from a URL.)
 
-	    html2markdown www.fsf.org
+With the exception of `markdown2pdf`, the scripts write to standard output.
+Output can be sent to a file using shell output redirection:
 
-	    html2markdown subdir/mylocalfile.html
+	latex2markdown sample.tex > sample.txt
 
-3. 	`latex2markdown` converts a LaTeX file to markdown:
+The default behavior of `markdown2pdf` is to create a file with the same
+base name as the first argument and the extension `pdf`; thus, for example,
 
-	    latex2markdown mytexfile.tex
+	markdown2pdf sample.txt endnotes.txt
 
-4. 	`markdown2latex` converts markdown to LaTeX:
+will produce `sample.pdf`.  (If `sample.pdf` exists already, it will be
+backed up before being overwritten.)  An output file name can be specified
+explicitly using the `-o` option:
 
-	    markdown2latex mytextfile.txt
+	markdown2pdf -o "My Book.pdf" chap1.txt chap2.txt chap3.txt  
 
-5.	`markdown2pdf` converts markdown to PDF using `pdflatex`:
+Options specific to the scripts, like `-o`, `-g`, and `-n`, must
+be specified *before* any command-line arguments (file names or URLs).
+Any options specified *after* the command-line arguments will be
+passed directly to `pandoc`. For example,
 
-	    markdown2pdf mytextfile.txt
+	markdown2html tusks.txt -S -T Elephants
 
-	creates a file `mytextfile.pdf`.  To specify a different
-    name for the output file, use the `-o` option:
+will convert `tusks.txt` to `tusks.html` using smart quotes, ellipses,
+and dashes, with "Elephants" as the page title prefix.  (For a
+complete list of `pandoc` options, see below.)  When there are no
+command-line arguments (because input is from STDIN), `pandoc`
+options must be preceded by ` -- `:
 
-        markdown2pdf -o final-draft.pdf mytextfile.txt
+	cat tusks.txt | markdown2html -- -S -T Elephants
 
-If you want to use `pandoc`'s command-line options in these scripts,
-put the options in the environment variable `PANDOC_OPTS`.  For
-example, to convert `tusks.txt` to `tusks.html` using smart quotes,
-ellipses, and dashes, with "Elephants" as the page title prefix:
+The ` -- ` separator may optionally be used when there are command-line
+arguments:
 
-    PANDOC_OPTS="-S -T Elephants" markdown2html tusks.txt > tusks.html
-
-To make these options persistent, use `export`:
-
-    export PANDOC_OPTS="-S -T Elephants"
-    markdown2html tusks.txt > tusks.html 
-    markdown2html trunk.txt > trunk.html
-
-You may also specify options on the command line, separating them
-from the arguments with '` -- `':
-
-    markdown2html tusks.txt -- -S -T Elephants
-
-Options specified in this way will override any options set in
-`PANDOC_OPTS`.
+	markdown2html -- tusks.txt -S -T Elephants
 
 # Command-line options
 
 Various command-line options can be used to customize the output.
 For a complete list, type 
 
-    pandoc --help
+	pandoc --help
 
 `-p` or `--preserve-tabs` causes tabs in the source text to be
 preserved, rather than converted to spaces (the default).
@@ -264,13 +266,13 @@ markdown test suite, type `make test-markdown`.)
 Pandoc behaves differently from standard markdown on some "edge
 cases" involving lists.  Consider this source: 
 
-    1.  First
-    2.  Second:
-        -   Fee
-        -   Fie
-        -   Foe
+	1.  First
+	2.  Second:
+		-   Fee
+		-   Fie
+		-   Foe
 
-    3.  Third
+	3.  Third
 
 Pandoc transforms this into a "compact list" (with no `<p>` tags
 around "First", "Second", or "Third"), while markdown puts `<p>`
@@ -286,20 +288,20 @@ is followed by a blank line is irrelevant.
 Standard markdown allows unescaped literal quotes in titles, as
 in 
 
-    [foo]: "bar "embedded" baz"
+	[foo]: "bar "embedded" baz"
 
 Pandoc requires all quotes within titles to be escaped:
 
-    [foo]: "bar \"embedded\" baz"
+	[foo]: "bar \"embedded\" baz"
 
 ## Reference links
 
 Pandoc allows implicit reference links in either of two styles:
 
-    1. Here's my [link]
-    2. Here's my [link][]
+	1. Here's my [link]
+	2. Here's my [link][]
 
-    [link]: linky.com
+	[link]: linky.com
 
 If there's no corresponding reference, the implicit reference link
 will appear as regular bracketed text.  Note: even `[link][]` will
@@ -313,18 +315,18 @@ Pandoc's markdown allows footnotes, using the following syntax:
 	here is a footnote reference,^(1) and another.^(longnote)
 
 	^(1) Here is the footnote.  It can go anywhere in the document,
-    except in embedded contexts like block quotes or lists.	
+	except in embedded contexts like block quotes or lists.	
 
 	^(longnote) Here's the other note.  This one contains multiple
 	blocks.
 	^
 	^ Caret characters are used to indicate that the blocks all belong
-    to a single footnote (as with block quotes).
+	to a single footnote (as with block quotes).
 	^
 	^ If you want, you can use a caret at the beginning of every line,
-    ^ as with blockquotes, but all that you need is a caret at the
-    ^ beginning of the first line of the block and any preceding 
-    ^ blank lines.
+	^ as with blockquotes, but all that you need is a caret at the
+	^ beginning of the first line of the block and any preceding 
+	^ blank lines.
 
 Footnote references may not contain spaces, tabs, or newlines.
 
@@ -335,21 +337,21 @@ Markdown 1.0.  While Markdown 1.0 leaves HTML blocks exactly as they
 are, Pandoc treats text between HTML tags as markdown.  Thus, for
 example, Pandoc will turn
 
-    <table>
-        <tr>
-            <td>*one*</td>
-            <td>[a link](http://google.com)</td>
-        </tr>
-    </table>
+	<table>
+		<tr>
+			<td>*one*</td>
+			<td>[a link](http://google.com)</td>
+		</tr>
+	</table>
 
 into
 
-    <table>
-        <tr>
-            <td><em>one</em></td>
-            <td><a href="http://google.com">a link</a></td>
-        </tr>
-    </table>
+	<table>
+		<tr>
+			<td><em>one</em></td>
+			<td><a href="http://google.com">a link</a></td>
+		</tr>
+	</table>
 
 whereas Markdown 1.0 will preserve it as is.
 
@@ -426,10 +428,10 @@ include BibTeX citations:
 You can also use LaTeX environments.  For example,
 
 	\begin{tabular}{|l|l|}\hline
-    Age & Frequency \\ \hline
+	Age & Frequency \\ \hline
 	18--25  & 15 \\
-    26--35  & 33 \\ 
-    36--45  & 22 \\ \hline
+	26--35  & 33 \\ 
+	36--45  & 22 \\ \hline
 	\end{tabular}
 
 Note, however, that material between the begin and end tags will
@@ -441,14 +443,14 @@ When run with the "standalone" option (`-s`), `pandoc` creates a
 standalone file, complete with an appropriate header.  To see the
 default headers used for html and latex, use the following commands:
 
-    pandoc -D html
+	pandoc -D html
 
-    pandoc -D latex 
+	pandoc -D latex 
 
 If you want to use a different header, just create a file containing
 it and specify it on the command line as follows:
 
-    pandoc --header=MyHeaderFile
+	pandoc --header=MyHeaderFile
 
 # Producing S5 with Pandoc
 

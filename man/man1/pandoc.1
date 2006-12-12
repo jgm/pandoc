@@ -1,36 +1,35 @@
-.TH PANDOC 1 "November 1, 2006" Linux "User Manuals"
+.TH PANDOC 1 "November 21, 2006" Pandoc "User Manuals"
 .SH NAME
 pandoc \- general markup converter
 .SH SYNOPSIS
-\fBpandoc\fR [ \fIoptions\fR ] [ \fIinput-files\fR ]
-
+\fBpandoc\fR [\fIoptions\fR] [\fIinput\-file\fR]...
 .SH DESCRIPTION
 \fIPandoc\fR converts files from one markup format to another. It can
 read markdown and (subsets of) reStructuredText, HTML, and LaTeX, and
 it can write markdown, reStructuredText, HTML, LaTeX, RTF, and S5 HTML
 slide shows.
 .PP
-If no \fIinput-files\fR are specified, input is read from STDIN.  Otherwise,
-the \fIinput-files\fR are concatenated (with a blank line between each)
+If no \fIinput\-file\fR is specified, input is read from STDIN.  Otherwise,
+the \fIinput\-files\fR are concatenated (with a blank line between each)
 and used as input.  Output goes to STDOUT.  If you want output to a file,
 use shell redirection:
 .IP
 .B pandoc input.txt > output.html
 .PP
 The default behavior of \fIPandoc\fR is to convert the input from
-markdown-formatted plain text to HTML.  Different input and output
-formats can be specified using command-line options.  For example,
+markdown\-formatted plain text to HTML.  Different input and output
+formats can be specified using command\-line options.  For example,
 .IP
-.B pandoc -f latex -t markdown chap1.tex > chap1.txt
+.B pandoc \-f latex \-t markdown chap1.tex > chap1.txt
 .PP
-converts \fIchap1.tex\fR from LaTeX to markdown-formatted plain text.
-See below for a detailed list of command-line options.
+converts \fIchap1.tex\fR from LaTeX to markdown\-formatted plain text.
+See below for a detailed list of command\-line options.
 .PP
-\fIPandoc\fR uses the UTF-8 character encoding for both input and output.
-If your local character encoding is not UTF-8, you should pipe input
+\fIPandoc\fR uses the UTF\-8 character encoding for both input and output.
+If your local character encoding is not UTF\-8, you should pipe input
 and output through \fBiconv\fR:
 .IP
-.B iconv -t utf-8 input.txt | pandoc | iconv -f utf-8
+.B iconv \-t utf\-8 input.txt | pandoc | iconv \-f utf\-8
 
 .SH OPTIONS
 .TP
@@ -40,7 +39,7 @@ Print version.
 .B \-h, \-\-help
 Show usage message.
 .TP
-.B \-f FORMAT, \-r FORMAT, --from=FORMAT, --read=FORMAT
+.B \-f FORMAT, \-r FORMAT, \-\-from=FORMAT, \-\-read=FORMAT
 Specify input format.
 .I FORMAT
 can be
@@ -56,7 +55,7 @@ or
 .I latex
 (LaTeX).
 .TP
-.B \-t FORMAT, \-w FORMAT, --to=FORMAT, --write=FORMAT
+.B \-t FORMAT, \-w FORMAT, \-\-to=FORMAT, \-\-write=FORMAT
 Specify output format.
 .I FORMAT
 can be

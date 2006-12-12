@@ -1,33 +1,60 @@
-.TH PANDOC 1 "November 1, 2006" Linux "User Manuals"
+.TH HTML2MARKDOWN 1 "November 21, 2006" Pandoc "User Manuals"
 .SH NAME
 html2markdown \- converts HTML to markdown-formatted text
 .SH SYNOPSIS
-\fBhtml2markdown\fR [ \fIinput-file\fR or \fIURL\fR ]
+\fBhtml2markdown\fR [\fIoptions\fR] [\fIinput\-file\fR or \fIURL\fR]
+[\fB\-\-\fR] [\fIpandoc\-opts\fR]
 .SH DESCRIPTION
-\fBhtml2markdown\fR converts \fIinput-file\fR or \fIURL\fR 
-(or text from STDIN) from HTML to  markdown-formatted plain text.
-It uses an available program (e.g. wget, w3m, lynx or curl) to fetch
-the contents of the URL. 
+\fBhtml2markdown\fR converts \fIinput\-file\fR or \fIURL\fR (or text
+from STDIN) from HTML to markdown\-formatted plain text. 
+If a URL is specified, \fBhtml2markdown\fR uses an available program
+(e.g. wget, w3m, lynx or curl) to fetch its contents.  Output is sent
+to STDOUT.
 .PP
 \fBhtml2markdown\fR is a wrapper for \fBpandoc\fR.
 .SH OPTIONS
 .TP
-.B \-\-
-Any options appearing after ` \-\- ' on the command line will be passed
-directly to \fBpandoc\fR.  See \fBpandoc\fR(1) for a list of options
-that may be used.  Options specified in this way will override
-PANDOC_OPTS (see below).  Example:
+.B \-h
+Show usage message.
+.TP
+.B \-e \fIencoding\fR
+Assume the character encoding \fIencoding\fR in reading the HTML.
+(Note: \fIencoding\fR will be passed to \fBiconv\fR; a list of
+available encodings may be obtained using `\fBiconv \-l\fR'.)
+If the \fB\-e\fR option is not specified, the encoding will be
+determined as follows:  If input is from STDIN, the local encoding 
+will be assumed.  Otherwise, \fBhtml2markdown\fR will try to
+extract the character encoding from the "Content-type" meta tag.
+If no character encoding is specified in this way, UTF-8 will be
+assumed for a URL argument, and the local encoding will be assumed
+for a file argument.
+.TP
+.B \-g \fIcommand\fR
+Use \fIcommand\fR to fetch the contents of a URL.  (By default,
+\fBhtml2markdown\fR searches for an available program or text-based
+browser to fetch the contents of a URL.)  For example:
 .IP
-html2markdown input.txt -- -R
-.SH ENVIRONMENT
-Any command-line options contained in the PANDOC_OPTS environment variable
-will be passed directly to \fBpandoc\fR.  See \fBpandoc\fR(1)
-for a list of options that may be used.
+html2markdown \-g 'wget \-\-user=foo \-\-password=bar' mysite.com
+.TP
+.B \-n
+Disable automatic fetching of contents when URLs are specified as
+arguments.
+.TP
+.I pandoc\-opts
+Any options appearing after \fIinput\-file\fR or \fIURL\fR on the
+command line will be passed directly to \fBpandoc\fR.  If no
+\fIinput-file\fR or \fIURL\fR is specified, these options must
+be preceded by ` \fB\-\-\fR '.  (In other cases, ` \fB\-\-\fR ' is
+optional.)  See \fBpandoc\fR(1) for a list of options that may be used.
+Example:
+.IP
+html2markdown input.txt \-\- \-R
 .SH "SEE ALSO"
 \fBpandoc\fR(1),
 \fBmarkdown2html\fR(1),
 \fBmarkdown2latex\fR(1),
 \fBlatex2markdown\fR(1),
-\fBmarkdown2pdf\fR(1)
+\fBmarkdown2pdf\fR(1),
+\fBiconv\fR(1)
 .SH AUTHOR
-John MacFarlane
+John MacFarlane and Recai Oktas

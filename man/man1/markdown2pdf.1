@@ -1,38 +1,37 @@
-.TH PANDOC 1 "November 1, 2006" Linux "User Manuals"
+.TH MARKDOWN2PDF 1 "November 21, 2006" Pandoc "User Manuals"
 .SH NAME
 markdown2pdf \- converts markdown-formatted text to PDF, using pdflatex 
 .SH SYNOPSIS
-\fBmarkdown2pdf\fR [ \fB-o|--output\fR \fIoutput-file\fR ] 
-[ \fIinput-file\fR ]
+\fBmarkdown2pdf\fR [\fIoptions\fR] [\fB\-o\fR \fIoutput-file\fR]
+[\fIinput-file\fR]... [\fB\-\-\fR] [\fIpandoc\-opts\fR]
 .SH DESCRIPTION
-\fBmarkdown2pdf\fR converts \fIinput-file\fR (or text from STDIN) from
-markdown-formatted plain text to PDF, using \fBpdflatex\fR.  If no output
+\fBmarkdown2pdf\fR converts \fIinput\-file\fR (or text from STDIN) from
+markdown\-formatted plain text to PDF, using \fBpdflatex\fR.  If no output
 filename is specified, the name of the output file is derived from the
 input file; thus, for example, if the input file is \fIhello.txt\fR,
 the output file will be \fIhello.pdf\fR.  If the input is read from STDIN
 and no output filename is specified, the output file will be named 
-\fIstdin.pdf\fR.
+\fIstdin.pdf\fR.  If multiple input files are specified, they will be
+concatenated before conversion, and the name of the output file will be
+derived from the first input file.
 .PP
 \fBmarkdown2pdf\fR is a wrapper for \fBpandoc\fR.
 .SH OPTIONS
 .TP
-.B \-o FILENAME, \-\-output=FILENAME
-Specify name of output (PDF) file.
-.TP
-.B \-h, \-\-help
+.B \-h
 Show usage message.
 .TP
-.B \-\-
-Any options appearing after ` \-\- ' on the command line will be passed
-directly to \fBpandoc\fR.  See \fBpandoc\fR(1) for a list of options
-that may be used.  Options specified in this way will override
-PANDOC_OPTS (see below).  Example:
+.B \-o \fIoutput-file\fR
+Specify name of output (PDF) file.
+.TP
+.I pandoc\-opts
+Any options appearing after \fIinput\-file\fR... on the command line
+will be passed directly to \fBpandoc\fR.  If no \fIinput-file\fR
+is specified, these options must be preceded by ` \fB\-\-\fR '.
+(In other cases, ` \fB\-\-\fR ' is optional.)  See \fBpandoc\fR(1)
+for a list of options that may be used.  Example:
 .IP
-markdown2pdf input.txt -- --custom-header=letterhead.tex
-.SH ENVIRONMENT
-Any command-line options contained in the PANDOC_OPTS environment variable
-will be passed directly to \fBpandoc\fR.  See \fBpandoc\fR(1)
-for a list of options that may be used.
+markdown2pdf input.txt \-\- \-\-custom\-header=letterhead.tex
 .SH "SEE ALSO"
 \fBpandoc\fR(1),
 \fBmarkdown2html\fR(1),
@@ -41,4 +40,4 @@ for a list of options that may be used.
 \fBlatex2markdown\fR(1),
 \fBpdflatex\fR(1)
 .SH AUTHOR
-John MacFarlane
+John MacFarlane and Recai Oktas

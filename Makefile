@@ -6,6 +6,7 @@
 CABAL     := Pandoc.cabal
 SRCDIR    := src
 MANDIR    := man
+TESTDIR   := tests
 BUILDDIR  := dist
 BUILDCONF := .setup-config
 BUILDCMD  := runhaskell Setup.hs
@@ -24,7 +25,8 @@ MAIN      := $(firstword $(EXECS))
 #-------------------------------------------------------------------------------
 # Install targets
 #-------------------------------------------------------------------------------
-PROGS     := $(EXECS) html2markdown markdown2html latex2markdown markdown2latex markdown2pdf
+WRAPPERS  := html2markdown latex2markdown markdown2html markdown2latex markdown2pdf
+PROGS     := $(EXECS) $(WRAPPERS)
 DOCS      := README.html README BUGS TODO
 
 #-------------------------------------------------------------------------------
@@ -86,6 +88,27 @@ templates: $(SRCDIR)/templates
 $(SRCDIR)/templates:
 	$(MAKE) -C $(SRCDIR)/templates
 
+define generate-shell-script
+echo "Generating $@...";                                 \
+awk '                                                    \
+	/^[ \t]*###+ / {                                 \
+                lead = $$0; sub(/[^ \t].*$$/, "", lead); \
+		t = "$(dir $<)/"$$2;                     \
+		while (getline line < t > 0)             \
+			print lead line;                 \
+		next;                                    \
+	}                                                \
+	{ print }                                        \
+' <$< >$@
+endef
+
+.PHONY: wrappers
+wrappers: $(WRAPPERS)
+wrapper_deps := $(wildcard $(SRCDIR)/wrappers/*.sh)
+cleanup_files+=$(WRAPPERS)
+%: $(SRCDIR)/wrappers/%.in $(wrapper_deps)
+	@$(generate-shell-script)
+
 cleanup_files+=$(CABAL)
 $(CABAL): cabalize $(CABAL).in
 	./cabalize <$(CABAL).in >$(CABAL)
@@ -104,7 +127,7 @@ build: templates configure
 	$(BUILDCMD) build
 
 .PHONY: build-exec
-build-exec: $(EXECS)
+build-exec: $(PROGS)
 cleanup_files+=$(EXECS)
 $(EXECS): build
 	for f in $@; do \
@@ -250,11 +273,15 @@ osx-dmg: ../$(osx_dmg_name)
 	-rm -f $(osx_dmg_name)
 	mv $(osx_udzo_name) ../$(osx_dmg_name)
 
-.PHONY: test test-markdown
+.PHONY: test test-markdown test-wrapper
 test: $(MAIN)
-	@cd tests && perl runtests.pl -s $(PWD)/$(MAIN)
+	@cd $(TESTDIR) && perl runtests.pl -s $(PWD)/$(MAIN)
 test-markdown: $(MAIN)
-	@cd tests/MarkdownTest_1.0.3 && perl MarkdownTest.pl -s $(PWD)/$(MAIN) -tidy
+	@cd $(TESTDIR)/MarkdownTest_1.0.3 && perl MarkdownTest.pl -s $(PWD)/$(MAIN) -tidy
+cleanup_files+=testwrapper
+test-wrappers: testwrapper
+	@echo "Running $<..."
+	@sh testwrapper
 
 # Stolen and slightly improved from a GPLed Makefile.  Credits to John Meacham.
 src_all:=$(shell find $(SRCDIR) -type f -name '*hs' | egrep -v '^\./(_darcs|lib|test)/')
