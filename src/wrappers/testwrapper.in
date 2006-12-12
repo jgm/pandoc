@@ -118,7 +118,7 @@ EOF
         check_results "$actual" "$expected" 'wrapper -- -A "foo bar"'
 
         # Test 3 (Test 1 with a redundant '--')
-        printf >&2 "    test case 4... "
+        printf >&2 "    test case 3... "
         actual=$(wrapper -o "output file" "foo bar" -- -A "quux baz" -B)
         expected=$(cat <<'EOF'
 Options passed to wrapper:
