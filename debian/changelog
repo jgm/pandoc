@@ -15,10 +15,30 @@ pandoc (0.3) unstable; urgency=low
       Cabal versions.
 
   * Refactored template processing (fillTemplates.pl).
-	
-  * Modified wrapper scripts to make them more robust.
 
-  * Added '--output' option to markdown2pdf.
+  * Modified wrapper scripts to make them more robust and portable.
+    To avoid code duplication and ensure consistency, wrappers are 
+    generated via a templating system from templates in src/wrappers.
+    + New command line convention allows options to be passed to
+      pandoc, as follows:
+        1st form: input files specified
+          <wrapper> [wrapper_arg...] input_files... [pandoc_option...]
+        2nd form: using STDIN, no input file is specified
+          <wrapper> [wrapper_arg...] -- [pandoc_option...]
+        3rd form: input files specified, optional '--'
+          <wrapper> [wrapper_arg...] input_files... -- [pandoc_option...]
+    + All wrappers except 'html2markdown' and 'latex2markdown' now
+      accept multiple filenames.
+    + getopts shell builtin is used for portable option parsing.
+    + Spaces and tabs allowed in filenames.
+    + Improved html2markdown's web grabber code, making it more robust,
+      configurable and verbose.  Added '-e', '-n', '-g' options.
+      Possible use case:
+        # Use wget by setting timeout to 10 seconds and limit retries
+        to 2.  html2markdown -g 'wget --timeout=10 --tries=2'
+    + Added tests for wrappers' processing of command line arguments.
+
+  * Added '-o' option to markdown2pdf.
 
   [ John MacFarlane ]
 
@@ -33,6 +53,30 @@ pandoc (0.3) unstable; urgency=low
     + Process quotes before dashes.  This way (foo -- 'bar') will turn into
       (foo---`bar') instead of (foo---'bar').
 
+  * Minor improvements to LaTeX reader:
+    + Fixed parsing of metadata.  Now the title, author, and date
+      are parsed correctly.  Everything else in the preamble is skipped.
+    + Modified escapedChar to allow a \ at the end of a line to count
+      as escaped whitespace.
+    + '\thanks' now treated like a footnote.    
+    + Simplified parsing of LaTeX command arguments and options.
+      commandArgs now returns a list of arguments OR options (in
+      whatever order they appear).  The brackets are included, and
+      a new stripFirstAndLast function is provided to strip them off
+      when needed.  This fixes a problem in dealing with \newcommand
+      and \newenvironment.
+
+  * Fixed bug in notFollowedBy' combinator (adding 'try' before 'parser').
+    Adjusted code that uses this combinator accordingly.
+
+  * Made handling of code blocks more consistent.  Previously, some
+    readers allowed trailing newlines, while others stripped them.
+    Now, all readers strip trailing newlines in code blocks. Writers
+    insert a newline at the end of code blocks as needed.
+
+  * Changed HTML writer to include title block in header even
+    when title is null.
+
   * Revised pandoc wrapper scripts to pipe output (as well as input)
     through iconv.
 
@@ -42,10 +86,22 @@ pandoc (0.3) unstable; urgency=low
     + New osx directory contains files needed for construction
       of the package.
 
+  * Added code to html2markdown that tries to determine the character 
+    encoding of an HTML file, by parsing the "Content-type" meta tag.
+    + If the encoding can't be determined, then if the content is local,
+      the local encoding is used; if it comes from a URL, UTF-8 is used 
+      by default.
+    + Encoding can be specified explicitly using '-e' option.
+
+  * Improved warning messages:
+    + Print warning if iconv not available
+    + More user-friendly error messages in markdown2pdf, when
+      pdflatex fails.
+
   * Rewrote documentation and man pages.  Split README into INSTALL
     and README.
 
- -- Recai Oktaş <roktas@debian.org>  Tue, 24 Oct 2006 07:48:30 +0300
+ -- Recai Oktaş <roktas@debian.org>  Tue, 12 Dec 2006 07:48:30 +0300
 
 pandoc (0.2) unstable; urgency=low
 
