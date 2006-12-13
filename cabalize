@@ -38,7 +38,11 @@ if printf "$cabal_version\n1.1.3" | sort | tail -n 1 | grep -q '1\.1\.3'; then
 	HS_SOURCE_DIRS='Hs-Source-Dir'
 fi
 
+# If running Windows/Cygwin, add .exe to executable name
+EXTENSION=$(uname | tr 'A-Z' 'a-z' | sed -ne 's/^cygwin.*$/\.exe/p')
+
 sed -e "s#@HCFLAGS@#$HCFLAGS#g" \
     -e "s#@BUILD_DEPENDS@#$BUILD_DEPENDS#g" \
     -e "s#@HS_SOURCE_DIRS@#$HS_SOURCE_DIRS#g" \
-    -e "s#@VERSION@#$PANDOC_VERSION#g"
+    -e "s#@VERSION@#$PANDOC_VERSION#g" \
+    -e "s#^\(Executable:[[:space:]]*pandoc\)#\1$EXTENSION#g"
