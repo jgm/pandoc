@@ -18,7 +18,10 @@ CONFIGURE := configure
 #-------------------------------------------------------------------------------
 NAME      := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL).in)
 VERSION   := $(shell sed -ne 's/^version[[:space:]]*=[[:space:]]*"\([^"]*\)"/\1/p' $(SRCDIR)/Main.hs)
-EXECS     := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
+EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
+# Add .exe extensions if we're running Windows/Cygwin.
+EXTENSION := $(shell uname | tr '[:upper:]' '[:lower:]' | sed -ne 's/^cygwin.*$$/\.exe/p')
+EXECS     := $(patsubst %,%$(EXTENSION),$(EXECSBASE))
 # First entry in Cabal's executable stanza is the main executable.
 MAIN      := $(firstword $(EXECS))
 
