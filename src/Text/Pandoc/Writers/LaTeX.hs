@@ -63,12 +63,16 @@ escapeLt        = gsub "<" "\\\\textless{}"
 escapeGt        = gsub ">" "\\\\textgreater{}"
 
 escapeDoubleQuotes = 
-    gsub "\"" "''" . -- rest are right quotes
+    gsub "\"" "''" . -- rest are right quotes .
+    gsub "``\\\\footnote" "''\\\\footnote" . -- except \footnote
+    gsub "\"\\\\" "``\\\\" . -- left quote before latex command
     gsub "([[:space:]])\"" "\\1``" . -- never right quote after space 
     gsub "\"('|`)([^[:punct:][:space:]])" "``{}`\\2" . -- "'word left
     gsub "\"([^[:punct:][:space:]])" "``\\1"  -- "word left
     
 escapeSingleQuotes =
+    gsub "`\\\\footnote" "'\\\\footnote" . -- except \footnote
+    gsub "'\\\\" "`\\\\" . -- left quote before latex command
     gsub "('|`)(\"|``)" "`{}``" .  -- '"word left
     gsub "([^[:punct:][:space:]])`(s|S)" "\\1'\\2" . -- catch possessives 
     gsub "^'([^[:punct:][:space:]])" "`\\1" .  -- 'word left 

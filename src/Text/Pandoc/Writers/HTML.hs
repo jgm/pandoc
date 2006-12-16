@@ -55,19 +55,26 @@ stringToHtml str = escapePreservingRegex stringToHtmlString (mkRegex "\"|(&[[:al
 stringToSmartHtml :: String -> String
 stringToSmartHtml = 
     let escapeDoubleQuotes = 
-            gsub "(\"|&quot;|'')" "&rdquo;" . -- rest are right quotes
-            gsub "([[:space:]])(\"|&quot;)" "\\1&ldquo;" . -- never right quo after space 
-            gsub "(\"|&quot;|``)('|`|&lsquo;)([^[:punct:][:space:]])" "&ldquo;&lsquo;\\3" . -- "'word left
-            gsub "(\"|&quot;|``)([^[:punct:][:space:]])" "&ldquo;\\2"  -- "word left
+            gsub "(\"|&quot;)" "&rdquo;" . -- rest are right quotes
+            gsub "(\"|&quot;)(&r[sd]quo;)" "&rdquo;\\2" . -- never left quo before right quo
+            gsub "(&l[sd]quo;)(\"|&quot;)" "\\2&ldquo;" . -- never right quo after left quo
+            gsub "([ \t])(\"|&quot;)" "\\1&ldquo;" . -- never right quo after space 
+            gsub "(\"|&quot;)([^,.;:!?^) \t-])" "&ldquo;\\2" . -- "word left
+            gsub "(\"|&quot;)('|`|&lsquo;)" "&rdquo;&rsquo;" . -- right if it got through last filter
+            gsub "(\"|&quot;)('|`|&lsquo;)([^,.;:!?^) \t-])" "&ldquo;&lsquo;\\3" . -- "'word left
+            gsub "``" "&ldquo;" .
+            gsub "''" "&rdquo;"
         escapeSingleQuotes =
             gsub "'" "&rsquo;"  . -- otherwise right
-            gsub "([[:space:]])'" "\\1&lsquo;" . -- never right quo after space 
+            gsub "'(&r[sd]quo;)" "&rsquo;\\1" . -- never left quo before right quo
+            gsub "(&l[sd]quo;)'" "\\1&lsquo;" . -- never right quo after left quo
+            gsub "([ \t])'" "\\1&lsquo;" . -- never right quo after space 
             gsub "`" "&lsquo;"  . -- ` is left
-            gsub "([^[:punct:][:space:]])'" "\\1&rsquo;" .  -- word' right
+            gsub "([^,.;:!?^) \t-])'" "\\1&rsquo;" .  -- word' right
+            gsub "^('|`)([^,.;:!?^) \t-])" "&lsquo;\\2" . -- 'word left 
             gsub "('|`)(\"|&quot;|&ldquo;|``)" "&lsquo;&ldquo;" .  -- '"word left
-            gsub "^('|`)([^[:punct:][:space:]])" "&lsquo;\\2" . -- 'word left 
-            gsub "([^[:punct:][:space:]])'(s|S)" "\\1&rsquo;\\2" . -- possessive
-            gsub "([[:space:]])'([^[:punct:][:space:]])" "\\1&lsquo;\\2" . -- 'word left
+            gsub "([^,.;:!?^) \t-])'(s|S)" "\\1&rsquo;\\2" . -- possessive
+            gsub "([[:space:]])'([^,.;:!?^) \t-])" "\\1&lsquo;\\2" . -- 'word left
             gsub "'([0-9][0-9](s|S))" "&rsquo;\\1"  -- '80s - decade abbrevs.
         escapeDashes = gsub " ?-- ?" "&mdash;" .
                        gsub " ?--- ?" "&mdash;" .

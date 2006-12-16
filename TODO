@@ -1,7 +1,5 @@
 # TODO
 
-*   Fix bug in latex reader?  "... gets converted the wrong way.
-
 *   Use XHTML library for HTML writer?
 
 *   Revisions for building with windows under cygwin:
