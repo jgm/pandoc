@@ -283,6 +283,35 @@ paragraph.  Since "Second" is followed by a list, and not a blank
 line, it isn't treated as a paragraph.  The fact that the list
 is followed by a blank line is irrelevant. 
 
+Unlike standard markdown, Pandoc allows ordered list items to be
+marked with single letters, instead of numbers.  So, for example,
+this source yields a nested ordered list:
+
+    1.  First
+    2.  Second
+        a.  Fee
+        b.  Fie
+    3.  Third
+
+Pandoc also extends standard markdown in allowing list item markers
+to be terminated by ')':
+
+    1)  First
+    2)  Second
+        A)  Fee
+        B)  Fie
+    3)  Third
+
+Note that Pandoc pays no attention to the *type* of ordered list
+item marker used.  Thus, the following is treated just the same as
+the example above:
+
+    A)  First
+    1.  Second
+        2.  Fee
+        B)  Fie
+    C)  Third
+
 ## Literal quotes in titles
 
 Standard markdown allows unescaped literal quotes in titles, as

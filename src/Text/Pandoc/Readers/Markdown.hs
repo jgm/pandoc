@@ -45,7 +45,7 @@ autoLinkEnd = '>'
 mathStart = '$'
 mathEnd = '$'
 bulletListMarkers = "*+-"
-orderedListDelimiters = "."
+orderedListDelimiters = ".)"
 escapeChar = '\\'
 hruleChars = "*-_"
 quoteChars = "'\""
@@ -276,7 +276,7 @@ orderedListStart =
     try (do
            option ' ' newline -- if preceded by a Plain block in a list context
            skipNonindentSpaces
-           many1 digit
+           many1 digit <|> count 1 letter
            oneOf orderedListDelimiters
            oneOf spaceChars
            skipSpaces)
@@ -535,7 +535,7 @@ title = choice [titleWith '(' ')', titleWith '"' '"', titleWith '\'' '\''] <?> "
 
 link = choice [explicitLink, referenceLink] <?> "link"
 
-explicitLink = 
+explicitLink =
     try (do
            label <- reference
            src <- source 
