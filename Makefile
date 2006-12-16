@@ -19,16 +19,18 @@ CONFIGURE := configure
 NAME      := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL).in)
 VERSION   := $(shell sed -ne 's/^version[[:space:]]*=[[:space:]]*"\([^"]*\)"/\1/p' $(SRCDIR)/Main.hs)
 EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
-# Add .exe extensions if we're running Windows/Cygwin.
-EXTENSION := $(shell uname | tr '[:upper:]' '[:lower:]' | sed -ne 's/^cygwin.*$$/\.exe/p')
-EXECS     := $(patsubst %,%$(EXTENSION),$(EXECSBASE))
-# First entry in Cabal's executable stanza is the main executable.
-MAIN      := $(firstword $(EXECS))
 
 #-------------------------------------------------------------------------------
 # Install targets
 #-------------------------------------------------------------------------------
-WRAPPERS  := html2markdown latex2markdown markdown2html markdown2latex markdown2pdf
+# Add .exe extensions if we're running Windows/Cygwin.
+EXTENSION := $(shell uname | tr '[:upper:]' '[:lower:]' | \
+               sed -ne 's/^cygwin.*$$/\.exe/p')
+EXECS     := $(addsuffix $(EXTENSION),$(EXECSBASE))
+# First entry in Cabal's executable stanza is the main executable.
+MAIN      := $(firstword $(EXECS))
+WRAPPERS  := html2markdown latex2markdown markdown2html \
+             markdown2latex markdown2pdf
 PROGS     := $(EXECS) $(WRAPPERS)
 DOCS      := README.html README BUGS TODO
 
@@ -331,6 +333,7 @@ web_dest:=web/pandoc
 make_page:=./$(MAIN) -s -B $(web_src)/header.html \
                         -A $(web_src)/footer.html \
 	                -H $(web_src)/css 
+win_main:=$(basename $(MAIN)).exe
 cleanup_files+=$(web_dest)
 website: $(web_dest)
 $(web_dest)/: $(MAIN) html $(tarball_name)
@@ -342,12 +345,17 @@ $(web_dest)/: $(MAIN) html $(tarball_name)
 		echo "*** Missing ../$(deb_main). ***"; \
 		exit 1; \
 	}
+	@[ -f $(win_main) ] || { \
+		echo "*** Missing $(win_main). ***"; \
+		exit 1; \
+	}
 	-rm -rf $(web_dest)
 	( \
 		mkdir $(web_dest); \
 		cp -r html $(web_dest)/doc; \
 		cp ../$(osx_dmg_name) $(web_dest)/; \
 		cp ../$(deb_main) $(web_dest)/; \
+		cp $(win_main) $(web_dest)/; \
 		cp $(tarball_name) $(web_dest)/; \
 		cp $(web_src)/*.css $(web_dest)/; \
 		sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome | \
@@ -361,6 +369,8 @@ $(web_dest)/: $(MAIN) html $(tarball_name)
 		sed -e 's/@TARBALL_NAME@/$(tarball_name)/g' $(web_src)/index.txt | \
 			sed -e 's/@DEB_NAME@/$(deb_main)/g' | \
 			sed -e 's/@OSX_DMG_NAME@/$(osx_dmg_name)/g' | \
+			sed -e 's/@WINDOWS_EXE_NAME@/$(win_main)/g' | \
+			sed -e 's/@VERSION@/$(VERSION)/g' | \
 			$(make_page) > $(web_dest)/index.html; \
 	) || { rm -rf $(web_dest); exit 1; }
 
