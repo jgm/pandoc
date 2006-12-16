@@ -19,7 +19,7 @@ import Text.Pandoc.Shared
 import System ( exitWith, getArgs, getProgName )
 import System.Exit
 import System.Console.GetOpt
-import IO ( stdout, stderr, hPutStrLn )
+import System.IO
 import Data.Maybe ( fromMaybe )
 import Data.List ( isPrefixOf )
 import Char ( toLower )
@@ -286,7 +286,7 @@ main = do
                                       writerIncludeBefore  = includeBefore, 
                                       writerIncludeAfter   = includeAfter }
 
-  (readSources sources) >>= (putStrLn . encodeUTF8 . (writer writerOptions) . 
+  (readSources sources) >>= (putStr . encodeUTF8 . (writer writerOptions) . 
                              (reader startParserState) .  filter .
                              decodeUTF8 . (joinWithSep "\n"))
 

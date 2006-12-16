@@ -11,8 +11,7 @@ import Text.PrettyPrint.HughesPJ hiding ( Str )
 writeMarkdown :: WriterOptions -> Pandoc -> String
 writeMarkdown options (Pandoc meta blocks) = 
   let body = text (writerIncludeBefore options) <> 
-             vcat (map (blockToMarkdown (writerTabStop options)) (formatKeys blocks)) $$ 
-                  text (writerIncludeAfter options) in
+             vcat (map (blockToMarkdown (writerTabStop options)) (formatKeys blocks)) $$ text (writerIncludeAfter options) in
   let head = if (writerStandalone options) then 
                  ((metaToMarkdown meta) $$ text (writerHeader options)) 
              else 

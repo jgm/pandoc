@@ -338,4 +338,3 @@ From "Voyage dans la Lune" by Georges Melies (1902):
 Here is a movie |movie| icon.
 
 .. |movie| image:: movie.jpg
-

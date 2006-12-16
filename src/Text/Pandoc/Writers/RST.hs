@@ -16,14 +16,15 @@ writeRST options (Pandoc meta blocks) =
                   (metaToRST meta) $$ text (writerHeader options) 
               else 
                   empty in 
-    let refs' = nubBy (\x y -> (render x) == (render y)) refs in -- remove duplicate keys
+    -- remove duplicate keys
+    let refs' = nubBy (\x y -> (render x) == (render y)) refs in
     let body = text (writerIncludeBefore options) <> 
                vcat main $$ text (writerIncludeAfter options) in
-    render $ top <> body $$ vcat refs'
+    render $ top <> body $$ vcat refs' $$ text "\n"
 
 -- | Escape special RST characters.
 escapeString :: String -> String
-escapeString = backslashEscape "`\\|*_" 
+escapeString = backslashEscape "`\\|*_"
 
 -- | Convert list of inline elements into one 'Doc' of wrapped text and another
 -- containing references.

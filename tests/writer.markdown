@@ -625,4 +625,3 @@ space\^(my note).
 ^ with blockquotes, but all that you need is a caret at the beginning
 ^ of the first line of the block and any preceding blank lines.
 
-

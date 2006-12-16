@@ -1,14 +1,29 @@
 # TODO
 
+*   Fix bug in latex reader?  "... gets converted the wrong way.
+
+*   Use XHTML library for HTML writer?
+
 *   Revisions for building with windows under cygwin:
     Cabal under windows produces 'pandoc.exe', and some of the scripts
-    expect 'pandoc'.
+    expect 'pandoc'.  (See if this has now been fixed by Makefile change.)
+
+*   Windows binary distribution:  pandoc.exe.  Work this into the website
+    target.
+
+*   Consider allowing 'a.', 'b.', etc. to mark ordered lists.  Perhaps
+    also '(a)', '(1)', 'a)', '1)', etc., as in rst.  This does depart from
+    markdown syntax.
 
 *   Consider making section headers block titles rather than blocks.
     Instead of:  [Header 1 "My title", Block1, Block2, Block3],
     Section "My title" [Block1, Block2, Block3].
     This seems cleaner and would facilitate a docbook writer.
     It might also simplify the rst reader.
+
+*   Consider merging changes in pandoc-wrappers (symlinks rather than
+    wrapper scripts, except web2markdown and markdown2pdf).  This also
+    needs documentation.
 
 *   pandoc's HTML output fails to validate completely (w3c).
     There are a few quirks:
@@ -40,48 +55,4 @@
     move down to type your note, move back up.
     Disadvantage:  Perhaps slightly harder to read.  (But HTML and LaTeX
     output will still be easy to read.)
-
-*   Consider scrapping most of the wrapper scripts in favor of having
-    symlinks to pandoc.  Modify pandoc so that it changes its defaults
-    depending on the name of the calling program (getProgName).
-    This would eliminate a lot of complexity and allow better handling
-    of options (eliminating the need for a separation between wrapper
-    and pandoc options, for example).
-
-    If we do this, we should change option parsing in pandoc to allow
-    options after arguments.  This will preserve backward-compatibility
-    with the present wrapper system.  We'd also want to add an -o
-    option to pandoc (output file).  When -o foo is specified, pandoc
-    should print "Created foo" to stderr on success (unless --quiet
-    is specified).
-
-    A disadvantage is that we'd lose iconv conversion.  But maybe this
-    isn't needed anymore; UTF-8 seems to be standard on most systems now. 
-
-    The tricky wrappers to replace are markdown2pdf and html2markdown.
-
-    markdown2pdf: 
-
-        save working_directory
-        create tempdir
-        if markdown2latex "$@" >tempdir/output 2>tempdir/logfile; then
-           extract output-file from logfile (this will be foo.pdf)
-           if output-file found:
-              mv foo.pdf tempdir/foo.tex
-            else:
-              mv tempdir/output tempdir/foo.tex
-           cd tempdir
-           run pdflatex on foo.tex to produce foo.pdf
-           mv foo.pdf working_directory/foo.pdf     
-        else:
-           display logfile to inform user
-        on exit:
-           get rid of tempdir
- 
-    html2markdown:  needs to run the HTML through tidy (mainly because
-    pandoc's html parser requires closing tags, etc.)  So we probably
-    need something like the existing wrapper script here.  roktas
-    suggests perhaps keeping html2markdown simple and using a separate
-    script, web2markdown.   note:  we also need iconv here, since web
-    pages may not be in UTF8.
 

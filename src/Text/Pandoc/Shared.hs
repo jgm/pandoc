@@ -140,7 +140,7 @@ prettyBlock block = show block
 
 -- | Prettyprint Pandoc document.
 prettyPandoc :: Pandoc -> String
-prettyPandoc (Pandoc meta blocks) = "Pandoc " ++ "(" ++ (show meta) ++ ")\n" ++ (prettyBlockList 0 blocks)
+prettyPandoc (Pandoc meta blocks) = "Pandoc " ++ "(" ++ (show meta) ++ ")\n" ++ (prettyBlockList 0 blocks) ++ "\n"
 
 -- | Convert tabs to spaces (with adjustable tab stop).
 tabsToSpaces :: Int     -- ^ Tabstop
