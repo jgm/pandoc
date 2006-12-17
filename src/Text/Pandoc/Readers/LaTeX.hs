@@ -48,17 +48,17 @@ bracketedText openB closeB = try (do
   char closeB
   return ([openB] ++ (concat result) ++ [closeB]))
 
--- | Returns an option or argument of a LaTeX command
+-- | Returns an option or argument of a LaTeX command.
 optOrArg = choice [ (bracketedText '{' '}'), (bracketedText '[' ']') ]
 
--- | True if the string begins with '{'
+-- | True if the string begins with '{'.
 isArg ('{':rest) = True
 isArg other = False
 
--- | Returns list of options and arguments of a LaTeX command
+-- | Returns list of options and arguments of a LaTeX command.
 commandArgs = many optOrArg
 
--- | Parses LaTeX command, returns (name, star, list of options/arguments).
+-- | Parses LaTeX command, returns (name, star, list of options or arguments).
 command = try (do
   char '\\'
   name <- many1 alphaNum
@@ -102,7 +102,7 @@ anyEnvironment =  try (do
 -- parsing documents
 --
 
--- | Process LaTeX preamble, extracting metadata
+-- | Process LaTeX preamble, extracting metadata.
 processLaTeXPreamble = do
   manyTill (choice [bibliographic, comment, unknownCommand, nullBlock]) (try (string "\\begin{document}"))
   spaces
@@ -303,7 +303,7 @@ specialEnvironment = do  -- these are always parsed as raw
                                                    "picture", "table", "verse", "theorem"]))
   rawLaTeXEnvironment
 
--- | Parse any LaTeX environment and return a Para block containing 
+-- | Parse any LaTeX environment and return a Para block containing
 -- the whole literal environment as raw TeX.
 rawLaTeXEnvironment :: GenParser Char st Block
 rawLaTeXEnvironment = try (do
