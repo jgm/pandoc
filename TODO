@@ -1,27 +1,17 @@
 # TODO
 
-*   Use XHTML library for HTML writer?
+*   Use new downloads and wiki features on googlecode?  Perhaps
+    some makefile targets can be simplified...
 
-*   Revisions for building with windows under cygwin:
-    Cabal under windows produces 'pandoc.exe', and some of the scripts
-    expect 'pandoc'.  (See if this has now been fixed by Makefile change.)
+*   state license on first page of website.  also at top of every
+    source file... (c) date, and license with link to text.
 
-*   Windows binary distribution:  pandoc.exe.  Work this into the website
-    target.
-
-*   Consider allowing 'a.', 'b.', etc. to mark ordered lists.  Perhaps
-    also '(a)', '(1)', 'a)', '1)', etc., as in rst.  This does depart from
-    markdown syntax.
-
-*   Consider making section headers block titles rather than blocks.
-    Instead of:  [Header 1 "My title", Block1, Block2, Block3],
-    Section "My title" [Block1, Block2, Block3].
-    This seems cleaner and would facilitate a docbook writer.
-    It might also simplify the rst reader.
+*   Use XHTML library for HTML writer?  Not yet - it's not standard
+    with 6.4.2 (but is with 6.6).  When we can drop support for 
+    6.4.2, we can use it.
 
 *   Consider merging changes in pandoc-wrappers (symlinks rather than
-    wrapper scripts, except web2markdown and markdown2pdf).  This also
-    needs documentation.
+    wrapper scripts, except web2markdown and markdown2pdf). 
 
 *   pandoc's HTML output fails to validate completely (w3c).
     There are a few quirks:
@@ -53,4 +43,12 @@
     move down to type your note, move back up.
     Disadvantage:  Perhaps slightly harder to read.  (But HTML and LaTeX
     output will still be easy to read.)
+
+    Perhaps a better idea would be to conform to the syntax suggested
+    in http://rephrase.net/box/word/footnotes/syntax/#fnref-4
+    which seems to have become a de facto standard.  Note that this
+    allows inline footnotes, with a slightly uglier syntax - though
+    we could introduce ^[blah] as a simplified alternate syntax.
+    Note also the implementation changes: auto-numbered footnotes
+    in HTML.
 
