@@ -73,7 +73,7 @@ data Opt = Opt
     , optTitlePrefix        :: String           -- ^ Optional prefix for HTML title
     , optNumberSections     :: Bool             -- ^ If @True@, number sections in LaTeX
     , optIncremental        :: Bool             -- ^ If @True@, show lists incrementally in S5
-    , optSmartypants        :: Bool             -- ^ If @True@, use smart quotes, dashes, ...
+    , optSmart              :: Bool             -- ^ If @True@, use smart quotes, dashes, ...
     , optASCIIMathML        :: Bool             -- ^ If @True@, use ASCIIMathML in HTML or S5
     }
 
@@ -95,7 +95,7 @@ startOpt = Opt
     , optTitlePrefix       = ""
     , optNumberSections    = False
     , optIncremental       = False
-    , optSmartypants       = False
+    , optSmart             = False
     , optASCIIMathML       = False
     }
 
@@ -157,10 +157,10 @@ options =
                   (\opt -> return opt { optParseRaw = True }))
                  "Parse untranslatable HTML codes and LaTeX environments as raw"
 
-    , Option "S" ["smartypants"]
+    , Option "S" ["smart"]
                  (NoArg
-                  (\opt -> return opt { optSmartypants = True }))
-                 "Use smartypants for html output"
+                  (\opt -> return opt { optSmart = True }))
+                 "Use smart quotes, dashes, and ellipses in HTML output"
 
     , Option "m" ["asciimathml"]
                  (NoArg
@@ -255,7 +255,7 @@ main = do
               , optTitlePrefix       = titlePrefix
               , optNumberSections    = numberSections
               , optIncremental       = incremental
-              , optSmartypants       = smartypants
+              , optSmart             = smart
               , optASCIIMathML       = asciiMathML
              } = opts
 
@@ -278,7 +278,7 @@ main = do
   let writerOptions = WriterOptions { writerStandalone     = standalone, 
                                       writerHeader         = header, 
                                       writerTitlePrefix    = titlePrefix,
-                                      writerSmartypants    = smartypants, 
+                                      writerSmart          = smart, 
                                       writerTabStop        = tabStop, 
                                       writerS5             = writingS5,
                                       writerIncremental    = incremental, 

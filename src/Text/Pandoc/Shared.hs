@@ -276,7 +276,7 @@ data WriterOptions = WriterOptions
     , writerHeader               :: String -- ^ Header for the document
     , writerIncludeBefore        :: String -- ^ String to include before the document body
     , writerIncludeAfter         :: String -- ^ String to include after the document body
-    , writerSmartypants          :: Bool   -- ^ If @True@, use smart quotes, dashes, and ellipses
+    , writerSmart                :: Bool   -- ^ If @True@, use smart quotes, dashes, and ellipses
     , writerS5                   :: Bool   -- ^ @True@ if we're writing S5 instead of normal HTML
     , writerIncremental          :: Bool   -- ^ If @True@, display S5 lists incrementally
     , writerNumberSections       :: Bool   -- ^ If @True@, number sections in LaTeX

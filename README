@@ -232,7 +232,7 @@ at the beginning of the title that appears in the HTML header (but not
 in the title as it appears at the beginning of the HTML body).  (See
 below on Titles.)
 
-`-S` or `--smartypants` causes `pandoc` to produce typographically
+`-S` or `--smart` causes `pandoc` to produce typographically
 correct HTML output, along the lines of John Gruber's [Smartypants].
 Straight quotes are converted to curly quotes, `---` to dashes, and
 `...` to ellipses.

@@ -51,7 +51,7 @@ obfuscateChar char = let num = ord char in
 stringToHtml :: String -> String
 stringToHtml str = escapePreservingRegex stringToHtmlString (mkRegex "\"|(&[[:alnum:]]*;)") str
 
--- | Escape string as in 'stringToHtml' but add smartypants filter.
+-- | Escape string as in 'stringToHtml' but add smart typography filter.
 stringToSmartHtml :: String -> String
 stringToSmartHtml = 
     let escapeDoubleQuotes = 
@@ -157,7 +157,7 @@ listItemToHtml options list = "<li>" ++ (concatMap (blockToHtml options) list) +
 inlineListToHtml :: WriterOptions -> [Inline] -> String
 inlineListToHtml options lst = 
     -- consolidate adjacent Str and Space elements for more intelligent 
-    -- smartypants filtering
+    -- smart typography filtering
     let lst' = consolidateList lst in
     concatMap (inlineToHtml options) lst'
 
@@ -166,7 +166,7 @@ inlineToHtml :: WriterOptions -> Inline -> String
 inlineToHtml options (Emph lst) = "<em>" ++ (inlineListToHtml options lst) ++ "</em>"
 inlineToHtml options (Strong lst) = "<strong>" ++ (inlineListToHtml options lst) ++ "</strong>"
 inlineToHtml options (Code str) = "<code>" ++ (codeStringToHtml str) ++ "</code>"
-inlineToHtml options (Str str) = if (writerSmartypants options) then 
+inlineToHtml options (Str str) = if (writerSmart options) then 
                                      stringToSmartHtml str 
                                  else 
                                      stringToHtml str
