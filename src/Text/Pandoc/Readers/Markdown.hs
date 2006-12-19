@@ -4,7 +4,6 @@ module Text.Pandoc.Readers.Markdown (
                                     ) where
 
 import Data.List ( findIndex, sortBy )
-import Data.Ord ( comparing )
 import Text.ParserCombinators.Pandoc
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment )
@@ -123,7 +122,7 @@ parseMarkdown = do
   state <- getState
   let keys = reverse $ stateKeyBlocks state
   let notes = reverse $ stateNoteBlocks state
-  let sortedNotes = sortBy (comparing numberOfNote) notes
+  let sortedNotes = sortBy (\x y -> compare (numberOfNote x) (numberOfNote y)) notes
   return (Pandoc (Meta title author date) (blocks' ++ sortedNotes ++ keys))
 
 --

@@ -142,7 +142,7 @@ blockToHtml options (Note ref lst) =
     let contents = (concatMap (blockToHtml options) lst) in
     "<li id=\"fn" ++ ref ++ "\">" ++ contents ++ " <a href=\"#fnref" ++ ref ++ 
     "\" class=\"footnoteBacklink\" title=\"Jump back to footnote " ++ ref ++ 
-    "\">&#8617;</a></li>" 
+    "\">&#8617;</a></li>\n" 
 blockToHtml options (Key _ _) = ""
 blockToHtml options (CodeBlock str) = "<pre><code>" ++ (codeStringToHtml str) ++ 
                                       "\n</code></pre>\n"
