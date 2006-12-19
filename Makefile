@@ -380,5 +380,6 @@ distclean: clean
 	fi
 
 clean:
+	make -C $(SRCDIR)/templates clean
 	-if [ -f $(BUILDCONF) ]; then $(BUILDCMD) clean; fi
 	-rm -rf $(cleanup_files)

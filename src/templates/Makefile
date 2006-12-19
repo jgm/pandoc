@@ -14,3 +14,7 @@ Text/Pandoc/Writers/S5.hs: S5.hs $(PROCESSOR) $(VPATH)/ui/default/*
 
 Text/Pandoc/Writers/DefaultHeaders.hs: DefaultHeaders.hs $(PROCESSOR) $(VPATH)/headers/*
 	perl $(PROCESSOR) $@ $(VPATH)
+
+.PHONY: clean
+clean:
+	cd $(VPATH); rm -f $(TARGETS)
