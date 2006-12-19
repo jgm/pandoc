@@ -90,7 +90,6 @@ all: build-program
 
 .PHONY: templates
 templates: $(SRCDIR)/templates
-$(SRCDIR)/templates:
 	$(MAKE) -C $(SRCDIR)/templates
 
 define generate-shell-script
@@ -120,7 +119,7 @@ $(CABAL): cabalize $(CABAL).in $(SRCDIR)/Main.hs
 
 .PHONY: configure
 cleanup_files+=$(BUILDDIR) $(BUILDCONF) $(BUILDVARS)
-configure: $(BUILDCONF)
+configure: $(BUILDCONF) templates
 $(BUILDCONF): $(CABAL)
 	$(BUILDCMD) configure --prefix=$(PREFIX)
 	# Make configuration time settings persistent (definitely a hack).
@@ -128,7 +127,7 @@ $(BUILDCONF): $(CABAL)
 	@echo "DESTDIR?=$(DESTDIR)" >>$(BUILDVARS)
 
 .PHONY: build
-build: templates configure
+build: configure
 	$(BUILDCMD) build
 
 .PHONY: build-exec

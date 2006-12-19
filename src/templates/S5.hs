@@ -14,25 +14,25 @@ import Text.Pandoc.Writers.HTML ( writeHtml )
 import Text.Pandoc.Definition
 
 s5Javascript :: String
-s5Javascript = "<script type=\"text/javascript\">\n<slides.js></script>\n" 
+s5Javascript = "<script type=\"text/javascript\">\n@slides.js@</script>\n" 
 
 s5CoreCSS :: String
-s5CoreCSS = "<s5-core.css>"
+s5CoreCSS = "@s5-core.css@"
 
 s5FramingCSS :: String
-s5FramingCSS = "<framing.css>"
+s5FramingCSS = "@framing.css@"
 
 s5PrettyCSS :: String
-s5PrettyCSS = "<pretty.css>"
+s5PrettyCSS = "@pretty.css@"
 
 s5OperaCSS :: String
-s5OperaCSS = "<opera.css>"
+s5OperaCSS = "@opera.css@"
 
 s5OutlineCSS :: String
-s5OutlineCSS = "<outline.css>"
+s5OutlineCSS = "@outline.css@"
 
 s5PrintCSS :: String
-s5PrintCSS = "<print.css>"
+s5PrintCSS = "@print.css@"
 
 s5CSS :: String
 s5CSS = "<style type=\"text/css\" media=\"projection\" id=\"slideProj\">\n" ++ s5CoreCSS ++ "\n" ++ s5FramingCSS ++ "\n" ++ s5PrettyCSS ++ "\n</style>\n<style type=\"text/css\" media=\"projection\" id=\"operaFix\">\n" ++ s5OperaCSS ++ "\n</style>\n<style type=\"text/css\" media=\"screen\" id=\"outlineStyle\">\n" ++ s5OutlineCSS ++ "\n</style>\n<style type=\"text/css\" media=\"print\" id=\"slidePrint\">\n" ++ s5PrintCSS ++ "\n</style>\n"

@@ -8,13 +8,13 @@ module Text.Pandoc.Writers.DefaultHeaders  (
 import Text.Pandoc.Writers.S5
 
 defaultLaTeXHeader :: String
-defaultLaTeXHeader = "<LaTeXHeader>"
+defaultLaTeXHeader = "@LaTeXHeader@"
 
 defaultHtmlHeader :: String
-defaultHtmlHeader = "<HtmlHeader>"
+defaultHtmlHeader = "@HtmlHeader@"
 
 defaultS5Header :: String
-defaultS5Header = "<S5Header>" ++ s5CSS ++ s5Javascript
+defaultS5Header = "@S5Header@" ++ s5CSS ++ s5Javascript
 
 defaultRTFHeader :: String
-defaultRTFHeader = "<RTFHeader>"
+defaultRTFHeader = "@RTFHeader@"

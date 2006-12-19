@@ -6,11 +6,11 @@ TARGETS   := Text/Pandoc/ASCIIMathML.hs \
 
 all: $(TARGETS)
 
-Text/Pandoc/ASCIIMathML.hs: ASCIIMathML.hs $(PROCESSOR) $(VPATH)/ASCIIMathML.js  
+Text/Pandoc/ASCIIMathML.hs: ASCIIMathML.hs $(PROCESSOR) $(VPATH)/ASCIIMathML.js
 	perl $(PROCESSOR) $@ $(VPATH)
 
-Text/Pandoc/Writers/S5.hs: S5.hs $(PROCESSOR) $(VPATH)/headers/*
+Text/Pandoc/Writers/S5.hs: S5.hs $(PROCESSOR) $(VPATH)/ui/default/*
 	perl $(PROCESSOR) $@ $(VPATH)
 
-Text/Pandoc/Writers/DefaultHeaders.hs: DefaultHeaders.hs $(PROCESSOR) $(VPATH)/ui/default/*
+Text/Pandoc/Writers/DefaultHeaders.hs: DefaultHeaders.hs $(PROCESSOR) $(VPATH)/headers/*
 	perl $(PROCESSOR) $@ $(VPATH)

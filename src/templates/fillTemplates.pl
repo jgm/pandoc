@@ -45,13 +45,13 @@ my %processor = (
 	    my $outline = escape_for_haskell(slurp "ui/default/outline.css");
 	    my $print   = escape_for_haskell(slurp "ui/default/print.css");
 
-	    $template =~ s/<slides\.js>/$slides/;
-	    $template =~ s/<s5-core\.css>/$s5core/;
-	    $template =~ s/<framing\.css>/$framing/;
-	    $template =~ s/<pretty\.css>/$pretty/;
-	    $template =~ s/<opera\.css>/$opera/;
-	    $template =~ s/<outline\.css>/$outline/;
-	    $template =~ s/<print\.css>/$print/;
+	    $template =~ s/\@slides\.js@/$slides/;
+	    $template =~ s/\@s5-core\.css@/$s5core/;
+	    $template =~ s/\@framing\.css@/$framing/;
+	    $template =~ s/\@pretty\.css@/$pretty/;
+	    $template =~ s/\@opera\.css@/$opera/;
+	    $template =~ s/\@outline\.css@/$outline/;
+	    $template =~ s/\@print\.css@/$print/;
 
 	    return $template;
 	},
@@ -68,7 +68,7 @@ my %processor = (
 		" released under the GPL\\nSee ".
 		"http://www1.chapman.edu/~jipsen/mathml/asciimath.html/ ";
 	    $script =~ s/\/\*.*?\*\//\/\*$acknowledgements\*\//g; # strip comments
-	    $template =~ s/<ASCIIMathML\.js>/$script/;
+	    $template =~ s/\@ASCIIMathML\.js@/$script/;
 
 	    return $template;
 	},
@@ -84,10 +84,10 @@ my %processor = (
 	    my $rtf   = escape_for_haskell(slurp "headers/RTFHeader");
 	    my $s5    = escape_for_haskell(slurp "headers/S5Header");
 
-	    $template =~ s/<HtmlHeader>/$html/;
-	    $template =~ s/<LaTeXHeader>/$latex/;
-	    $template =~ s/<RTFHeader>/$rtf/;
-	    $template =~ s/<S5Header>/$s5/;
+	    $template =~ s/\@HtmlHeader@/$html/;
+	    $template =~ s/\@LaTeXHeader@/$latex/;
+	    $template =~ s/\@RTFHeader@/$rtf/;
+	    $template =~ s/\@S5Header@/$s5/;
 	    
 	    return $template;
 	},
