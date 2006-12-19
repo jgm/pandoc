@@ -438,17 +438,17 @@ Cat    &amp; 1      \\ \hline
 <p>Here is a movie <img src="movie.jpg" alt="movie"> icon.</p>
 <hr />
 <h1>Footnotes</h1>
-<p>Here is a footnote reference<span class="pandocNoteRef"><a name="ref_1" href="#note_1">(1)</a></span>, and another<span class="pandocNoteRef"><a name="ref_longnote" href="#note_longnote">(longnote)</a></span>. This should <em>not</em> be a footnote reference, because it contains a space^(my note).</p>
+<p>Here is a footnote reference<span class="pandocNoteRef"><a name="ref_1" href="#note_1">(1)</a></span>, and another<span class="pandocNoteRef"><a name="ref_longnote" href="#note_longnote">(longnote)</a></span>. This should <em>not</em> be a footnote reference, because it contains a space[^my note].</p>
 <div class="pandocNote">
 <p class="first"><span class="pandocNoteMarker"><a name="note_1" href="#ref_1">(1)</a></span> Here is the footnote. It can go anywhere in the document, not just at the end.</p>
 
 </div>
 <div class="pandocNote">
 <p class="first"><span class="pandocNoteMarker"><a name="note_longnote" href="#ref_longnote">(longnote)</a></span> Here's the other note. This one contains multiple blocks.</p>
-<p>Caret characters are used to indicate that the blocks all belong to a single footnote (as with block quotes).</p>
+<p>Subsequent blocks are indented to show that they belong to the footnote (as with list items).</p>
 <pre><code>  { &lt;code> }
 </code></pre>
-<p>If you want, you can use a caret at the beginning of every line, as with blockquotes, but all that you need is a caret at the beginning of the first line of the block and any preceding blank lines.</p>
+<p>If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.</p>
 
 </div>
 </body>

@@ -76,8 +76,8 @@ blockToMarkdown tabStop (Note ref lst) =
     else
         let first = head lns
             rest = tail lns in
-        text ("^(" ++ (escapeString ref) ++ ") ") <> (text first) $$ (vcat $
-             map (\line -> (text "^ ") <> (text line)) rest) <> (text "\n")
+        text ("[^" ++ (escapeString ref) ++ "]: ") <> (text first) $$ (vcat $
+             map (\line -> (text "    ") <> (text line)) rest) <> (text "\n")
 blockToMarkdown tabStop (Key txt (Src src tit)) = 
     text "  " <> char '[' <> inlineListToMarkdown txt <> char ']' <> text ": " <> text src <> 
              (if tit /= "" then (text (" \"" ++ (escapeLinkTitle tit) ++ "\"")) else empty) 
@@ -145,4 +145,4 @@ inlineToMarkdown (Image alternate (Ref [])) =
 inlineToMarkdown (Image alternate (Ref ref)) = 
     char '!' <> char '[' <> inlineListToMarkdown alternate <> char ']' <> 
          char '[' <> inlineListToMarkdown ref <> char ']'
-inlineToMarkdown (NoteRef ref) = char '^' <> char '(' <> text (escapeString ref) <> char ')'
+inlineToMarkdown (NoteRef ref) = text "[^" <> text (escapeString ref) <> char ']'

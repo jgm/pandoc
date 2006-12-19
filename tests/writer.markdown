@@ -607,21 +607,20 @@ Here is a movie ![movie](movie.jpg) icon.
 
 # Footnotes
 
-Here is a footnote reference^(1), and another^(longnote). This
+Here is a footnote reference[^1], and another[^longnote]. This
 should *not* be a footnote reference, because it contains a
-space\^(my note).
+space[\^my note].
 
-^(1) Here is the footnote. It can go anywhere in the document, not just
-^ at the end.
+[^1]: Here is the footnote. It can go anywhere in the document, not just
+    at the end.
 
-^(longnote) Here's the other note. This one contains multiple blocks.
-^ 
-^ Caret characters are used to indicate that the blocks all belong to
-^ a single footnote (as with block quotes).
-^ 
-^       { <code> }
-^ 
-^ If you want, you can use a caret at the beginning of every line, as
-^ with blockquotes, but all that you need is a caret at the beginning
-^ of the first line of the block and any preceding blank lines.
+[^longnote]: Here's the other note. This one contains multiple blocks.
+    
+    Subsequent blocks are indented to show that they belong to the
+    footnote (as with list items).
+    
+          { <code> }
+    
+    If you want, you can indent every line, but you can also be lazy
+    and just indent the first line of each block.
 

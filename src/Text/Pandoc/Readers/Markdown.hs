@@ -124,7 +124,7 @@ parseBlocks = do
   result <- manyTill block eof
   return result
 
-block = choice [ codeBlock, referenceKey, note, header, hrule, list, blockQuote, rawHtmlBlocks, 
+block = choice [ codeBlock, note, referenceKey, header, hrule, list, blockQuote, rawHtmlBlocks, 
                  rawLaTeXEnvironment, para, plain, blankBlock, nullBlock ] <?> "block"
 
 --
@@ -200,19 +200,31 @@ codeBlock = do
 -- note block
 --
 
+rawLine = try (do
+    notFollowedBy' blankline
+    contents <- many1 nonEndline
+    end <- option "" (do
+                        newline
+                        option "" indentSpaces
+                        return "\n")
+    return (contents ++ end))
+
+rawLines = do
+    lines <- many1 rawLine
+    return (concat lines)
+
 note = try (do
     (NoteRef ref) <- noteRef 
+    char ':'
     skipSpaces
-    raw <- sepBy (many (choice [nonEndline, 
-                                (try (do {endline; notFollowedBy (char noteStart); return '\n'}))
-                               ])) (try (do {newline; char noteStart; option ' ' (char ' ')}))
-    newline
-    blanklines
-    -- parse the extracted block, which may contain various block elements:
+    skipEndline
+    raw <- sepBy rawLines (try (do {blankline; indentSpaces}))
+    option "" blanklines
+    -- parse the extracted text, which may contain various block elements:
     state <- getState
     let parsed = case runParser parseBlocks (state {stateParserContext = BlockQuoteState}) "block" ((joinWithSep "\n" raw) ++ "\n\n") of
                    Left err -> error $ "Raw block:\n" ++ show raw ++ "\nError:\n" ++ show err
-                   Right result -> result
+                   Right result -> result 
     return (Note ref parsed))
 
 --
@@ -398,8 +410,8 @@ text = choice [ math, strong, emph, code2, code1, str, linebreak, tabchar,
 
 inline = choice [ rawLaTeXInline, escapedChar, special, hyphens, text, ltSign, symbol ] <?> "inline"
 
-special = choice [ link, referenceLink, rawHtmlInline, autoLink, 
-                   image, noteRef ] <?> "link, inline html, note, or image"
+special = choice [ noteRef, link, referenceLink, rawHtmlInline, autoLink, 
+                   image ] <?> "link, inline html, note, or image"
 
 escapedChar = escaped anyChar
 
@@ -505,6 +517,7 @@ endline =
 -- a reference label for a link
 reference = do
   char labelStart
+  notFollowedBy (char noteStart)
   label <- manyTill inline (char labelEnd)
   return (normalizeSpaces label)
 
@@ -575,7 +588,8 @@ image =
            return (Image label src)) 
 
 noteRef = try (do
+    char labelStart
     char noteStart
-    ref <- between (char '(') (char ')') (many1 (noneOf " \t\n)"))
+    ref <- manyTill (noneOf " \t\n") (char labelEnd)
     return (NoteRef ref))
 

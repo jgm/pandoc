@@ -341,23 +341,25 @@ appear as `[link]` if there's no reference for `link`.  If you want
 
 Pandoc's markdown allows footnotes, using the following syntax:
 
-	here is a footnote reference,^(1) and another.^(longnote)
+	Here is a footnote reference,[^1] and another.[^longnote]
 
-	^(1) Here is the footnote.  It can go anywhere in the document,
+	[^1]: Here is the footnote.  It can go anywhere in the document,
 	except in embedded contexts like block quotes or lists.	
 
-	^(longnote) Here's the other note.  This one contains multiple
+	[^longnote]: Here's the other note.  This one contains multiple
 	blocks.
-	^
-	^ Caret characters are used to indicate that the blocks all belong
-	to a single footnote (as with block quotes).
-	^
-	^ If you want, you can use a caret at the beginning of every line,
-	^ as with blockquotes, but all that you need is a caret at the
-	^ beginning of the first line of the block and any preceding 
-	^ blank lines.
 
-Footnote references may not contain spaces, tabs, or newlines.
+        Subsequent blocks are indented to show that they belong to
+    the previous footnote.
+
+            { some.code }
+
+	    The whole block can be indented, or just the first line.
+	    In this way, multi-block footnotes work just like multi-block
+	    list items in markdown.
+
+The identifiers in footnote references may not contain spaces, tabs,
+or newlines.
 
 ## Embedded HTML
 
