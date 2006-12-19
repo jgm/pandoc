@@ -550,8 +550,7 @@ link = try (do
   url <- manyTill anyChar (char '}')
   char '{'
   label <- manyTill inline (char '}') 
-  ref <- generateReference url ""
-  return (Link (normalizeSpaces label) ref))
+  return (Link (normalizeSpaces label) (Src url "")))
 
 image = try (do
   ("includegraphics", _, args) <- command
@@ -569,11 +568,11 @@ footnote = try (do
     else
       fail "not a footnote or thanks command"
   let contents' = stripFirstAndLast contents
-  let blocks = case runParser parseBlocks defaultParserState "footnote" contents of
+  state <- getState
+  let blocks = case runParser parseBlocks state "footnote" contents of
                  Left err -> error $ "Input:\n" ++ show contents' ++
                              "\nError:\n" ++ show err
                  Right result -> result
-  state <- getState
   let notes = stateNoteBlocks state
   let nextRef  = case notes of
                    []                   -> "1"

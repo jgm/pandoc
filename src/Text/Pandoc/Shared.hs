@@ -79,6 +79,7 @@ data ParserState = ParserState
       stateKeyBlocks             :: [Block],        -- ^ List of reference key blocks
       stateKeysUsed              :: [[Inline]],     -- ^ List of references used so far
       stateNoteBlocks            :: [Block],        -- ^ List of note blocks
+      stateNoteIdentifiers       :: [String],       -- ^ List of footnote identifiers, in order encountered
       stateTabStop               :: Int,            -- ^ Tab stop
       stateStandalone            :: Bool,           -- ^ If @True@, parse bibliographic info
       stateTitle                 :: [Inline],       -- ^ Title of document
@@ -90,17 +91,18 @@ data ParserState = ParserState
 
 defaultParserState :: ParserState
 defaultParserState = 
-    ParserState { stateParseRaw      = False,
-                  stateParserContext = NullState,
-                  stateKeyBlocks     = [],
-                  stateKeysUsed      = [],
-                  stateNoteBlocks    = [],
-                  stateTabStop       = 4,
-                  stateStandalone    = False,
-                  stateTitle         = [],
-                  stateAuthors       = [],
-                  stateDate          = [],
-                  stateHeaderTable   = [] }
+    ParserState { stateParseRaw        = False,
+                  stateParserContext   = NullState,
+                  stateKeyBlocks       = [],
+                  stateKeysUsed        = [],
+                  stateNoteBlocks      = [],
+                  stateNoteIdentifiers = [],
+                  stateTabStop         = 4,
+                  stateStandalone      = False,
+                  stateTitle           = [],
+                  stateAuthors         = [],
+                  stateDate            = [],
+                  stateHeaderTable     = [] }
 
 -- | Consolidate @Str@s and @Space@s in an inline list into one big @Str@.
 -- Collapse adjacent @Space@s.

@@ -349,17 +349,30 @@ Pandoc's markdown allows footnotes, using the following syntax:
 	[^longnote]: Here's the other note.  This one contains multiple
 	blocks.
 
-        Subsequent blocks are indented to show that they belong to
+        Subsequent paragraphs are indented to show that they belong to
     the previous footnote.
 
             { some.code }
 
-	    The whole block can be indented, or just the first line.
-	    In this way, multi-block footnotes work just like multi-block
-	    list items in markdown.
+	    The whole paragraph can be indented, or just the first line.
+	    In this way, multi-paragraph footnotes work just like
+	    multi-paragraph list items in markdown.
+
+    This paragraph won't be part of the note.
 
 The identifiers in footnote references may not contain spaces, tabs,
-or newlines.
+or newlines.  These identifiers are used only to correlate the
+footnote reference with the note itself; in the output, footnotes
+will be numbered sequentially.
+
+Inline footnotes are also allowed (though, unlike regular notes,
+they cannot contain multiple paragraphs).  The syntax is as follows:
+
+    Here is an inline note.^[Inlines notes are easier to write, since
+    you don't have to pick an identifier and move down to type the
+    note.]
+
+Inline and regular footnotes may be mixed freely.
 
 ## Embedded HTML
 

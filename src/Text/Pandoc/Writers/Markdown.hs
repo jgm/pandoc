@@ -77,7 +77,7 @@ blockToMarkdown tabStop (Note ref lst) =
         let first = head lns
             rest = tail lns in
         text ("[^" ++ (escapeString ref) ++ "]: ") <> (text first) $$ (vcat $
-             map (\line -> (text "    ") <> (text line)) rest) <> (text "\n")
+             map (\line -> (text "    ") <> (text line)) rest) <> text "\n"
 blockToMarkdown tabStop (Key txt (Src src tit)) = 
     text "  " <> char '[' <> inlineListToMarkdown txt <> char ']' <> text ": " <> text src <> 
              (if tit /= "" then (text (" \"" ++ (escapeLinkTitle tit) ++ "\"")) else empty) 

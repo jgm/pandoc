@@ -4,11 +4,6 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="generator" content="pandoc" />
-<style type="text/css">
-div.pandocNote { border-left: 1px solid grey; padding-left: 1em; }
-span.pandocNoteRef { vertical-align: super; font-size: 80%; }
-span.pandocNoteMarker { }
-</style>
 <meta name="author" content="John MacFarlane, Anonymous" />
 <meta name="date" content="July 17, 2006" />
 <title>Pandoc Test Suite</title>
@@ -438,18 +433,19 @@ Cat    &amp; 1      \\ \hline
 <p>Here is a movie <img src="movie.jpg" alt="movie"> icon.</p>
 <hr />
 <h1>Footnotes</h1>
-<p>Here is a footnote reference<span class="pandocNoteRef"><a name="ref_1" href="#note_1">(1)</a></span>, and another<span class="pandocNoteRef"><a name="ref_longnote" href="#note_longnote">(longnote)</a></span>. This should <em>not</em> be a footnote reference, because it contains a space[^my note].</p>
-<div class="pandocNote">
-<p class="first"><span class="pandocNoteMarker"><a name="note_1" href="#ref_1">(1)</a></span> Here is the footnote. It can go anywhere in the document, not just at the end.</p>
-
-</div>
-<div class="pandocNote">
-<p class="first"><span class="pandocNoteMarker"><a name="note_longnote" href="#ref_longnote">(longnote)</a></span> Here&rsquo;s the other note. This one contains multiple blocks.</p>
+<p>Here is a footnote reference,<sup class="footnoteRef" id="fnref1"><a href="#fn1">1</a></sup> and another.<sup class="footnoteRef" id="fnref2"><a href="#fn2">2</a></sup> This should <em>not</em> be a footnote reference, because it contains a space.[^my note] Here is an inline note.<sup class="footnoteRef" id="fnref3"><a href="#fn3">3</a></sup></p>
+<p>This paragraph should not be part of the note, as it is not indented.</p>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.</p>
+ <a href="#fnref1" class="footnoteBacklink" title="Jump back to footnote 1">&#8617;</a></li><li id="fn2"><p>Here&rsquo;s the long note. This one contains multiple blocks.</p>
 <p>Subsequent blocks are indented to show that they belong to the footnote (as with list items).</p>
 <pre><code>  { &lt;code> }
 </code></pre>
 <p>If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.</p>
-
+ <a href="#fnref2" class="footnoteBacklink" title="Jump back to footnote 2">&#8617;</a></li><li id="fn3"><p>This is <em>easier</em> to type. Inline notes may contain <a href="http://google.com">links</a> and <code>]</code> verbatim characters.</p>
+ <a href="#fnref3" class="footnoteBacklink" title="Jump back to footnote 3">&#8617;</a></li></ol>
 </div>
 </body>
 </html>

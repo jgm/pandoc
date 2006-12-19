@@ -3,6 +3,8 @@ module Text.Pandoc.Readers.Markdown (
                                      readMarkdown 
                                     ) where
 
+import Data.List ( findIndex, sortBy )
+import Data.Ord ( comparing )
 import Text.ParserCombinators.Pandoc
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment )
@@ -108,13 +110,21 @@ titleBlock = try (do
   option "" blanklines
   return (title, author, date))
 
+-- | Returns the number assigned to a Note block
+numberOfNote :: Block -> Int
+numberOfNote (Note ref _) = (read ref) 
+numberOfNote _ = 0 
+
 parseMarkdown = do
   updateState (\state -> state { stateParseRaw = True }) -- need to parse raw HTML
   (title, author, date) <- option ([],[],"") titleBlock
   blocks <- parseBlocks
+  let blocks' = filter (/= Null) blocks
   state <- getState
   let keys = reverse $ stateKeyBlocks state
-  return (Pandoc (Meta title author date) (blocks ++ keys))
+  let notes = reverse $ stateNoteBlocks state
+  let sortedNotes = sortBy (comparing numberOfNote) notes
+  return (Pandoc (Meta title author date) (blocks' ++ sortedNotes ++ keys))
 
 --
 -- parsing blocks
@@ -202,6 +212,7 @@ codeBlock = do
 
 rawLine = try (do
     notFollowedBy' blankline
+    notFollowedBy' noteMarker
     contents <- many1 nonEndline
     end <- option "" (do
                         newline
@@ -214,7 +225,8 @@ rawLines = do
     return (concat lines)
 
 note = try (do
-    (NoteRef ref) <- noteRef 
+    ref <- noteMarker
+    char ':'
     char ':'
     skipSpaces
     skipEndline
@@ -225,7 +237,12 @@ note = try (do
     let parsed = case runParser parseBlocks (state {stateParserContext = BlockQuoteState}) "block" ((joinWithSep "\n" raw) ++ "\n\n") of
                    Left err -> error $ "Raw block:\n" ++ show raw ++ "\nError:\n" ++ show err
                    Right result -> result 
-    return (Note ref parsed))
+    let identifiers = stateNoteIdentifiers state
+    case (findIndex (== ref) identifiers) of
+      Just n  -> updateState (\s -> s {stateNoteBlocks = 
+                 (Note (show (n+1)) parsed):(stateNoteBlocks s)})
+      Nothing -> updateState id 
+    return Null)
 
 --
 -- block quotes
@@ -410,7 +427,7 @@ text = choice [ math, strong, emph, code2, code1, str, linebreak, tabchar,
 
 inline = choice [ rawLaTeXInline, escapedChar, special, hyphens, text, ltSign, symbol ] <?> "inline"
 
-special = choice [ noteRef, link, referenceLink, rawHtmlInline, autoLink, 
+special = choice [ noteRef, inlineNote, link, referenceLink, rawHtmlInline, autoLink, 
                    image ] <?> "link, inline html, note, or image"
 
 escapedChar = escaped anyChar
@@ -587,9 +604,27 @@ image =
            (Link label src) <- link
            return (Image label src)) 
 
-noteRef = try (do
+noteMarker = try (do
     char labelStart
     char noteStart
-    ref <- manyTill (noneOf " \t\n") (char labelEnd)
+    manyTill (noneOf " \t\n") (char labelEnd))
+
+noteRef = try (do
+    ref <- noteMarker
+    state <- getState
+    let identifiers = (stateNoteIdentifiers state) ++ [ref] 
+    updateState (\st -> st {stateNoteIdentifiers = identifiers})
+    return (NoteRef (show (length identifiers))))
+
+inlineNote = try (do
+    char noteStart
+    char labelStart
+    contents <- manyTill inline (char labelEnd)
+    state <- getState
+    let identifiers = stateNoteIdentifiers state
+    let ref = show $ (length identifiers) + 1
+    let noteBlocks = stateNoteBlocks state
+    updateState (\st -> st {stateNoteIdentifiers = (identifiers ++ [ref]),
+                            stateNoteBlocks = (Note ref [Para contents]):noteBlocks})
     return (NoteRef ref))
 

@@ -8,7 +8,7 @@ import Text.Html ( stringToHtmlString )
 import Text.Regex ( mkRegex )
 import Numeric ( showHex )
 import Char ( ord )
-import List ( isPrefixOf )
+import Data.List ( isPrefixOf, partition )
 
 -- | Convert Pandoc document to string in HTML format.
 writeHtml :: WriterOptions -> Pandoc -> String
@@ -28,10 +28,22 @@ writeHtml options (Pandoc (Meta title authors date) blocks) =
                      else
                          []
         foot = if (writerStandalone options) then "</body>\n</html>\n" else "" 
+        blocks' = replaceReferenceLinks (titleBlocks ++ blocks)
+        (noteBlocks, blocks'') = partition isNoteBlock blocks' 
         body = (writerIncludeBefore options) ++ 
-               concatMap (blockToHtml options) (replaceReferenceLinks (titleBlocks ++ blocks)) ++
-                             (writerIncludeAfter options) in
+               concatMap (blockToHtml options) blocks'' ++
+               footnoteSection options noteBlocks ++
+               (writerIncludeAfter options) in
     head ++ body ++ foot
+
+-- | Convert list of Note blocks to a footnote <div>.  Assumes notes are sorted.
+footnoteSection :: WriterOptions -> [Block] -> String
+footnoteSection options notes =
+    if null notes 
+      then ""
+      else "<div class=\"footnotes\">\n<hr />\n<ol>\n" ++
+           concatMap (blockToHtml options) notes ++
+           "</ol>\n</div>\n"  
 
 -- | Obfuscate a "mailto:" link using Javascript.
 obfuscateLink :: WriterOptions -> [Inline] -> String -> String
@@ -127,13 +139,10 @@ blockToHtml options (BlockQuote blocks) =
     else
         "<blockquote>\n" ++ (concatMap (blockToHtml options) blocks) ++ "</blockquote>\n"
 blockToHtml options (Note ref lst) = 
-    let marker = "<span class=\"pandocNoteMarker\"><a name=\"note_" ++ ref ++ 
-                 "\" href=\"#ref_" ++ ref ++ "\">(" ++ ref ++ ")</a></span> " in
     let contents = (concatMap (blockToHtml options) lst) in
-    let contents' = case contents of
-                      ('<':'p':'>':rest) -> "<p class=\"first\">" ++ marker ++ rest ++ "\n"
-                      otherwise -> marker ++ contents ++ "\n" in
-    "<div class=\"pandocNote\">\n" ++ contents' ++ "</div>\n"
+    "<li id=\"fn" ++ ref ++ "\">" ++ contents ++ " <a href=\"#fnref" ++ ref ++ 
+    "\" class=\"footnoteBacklink\" title=\"Jump back to footnote " ++ ref ++ 
+    "\">&#8617;</a></li>" 
 blockToHtml options (Key _ _) = ""
 blockToHtml options (CodeBlock str) = "<pre><code>" ++ (codeStringToHtml str) ++ 
                                       "\n</code></pre>\n"
@@ -196,6 +205,6 @@ inlineToHtml options (Image alternate (Ref [])) =
 inlineToHtml options (Image alternate (Ref ref)) = 
     "![" ++ (inlineListToHtml options alternate) ++ "][" ++ (inlineListToHtml options ref) ++ "]"
 inlineToHtml options (NoteRef ref) = 
-    "<span class=\"pandocNoteRef\"><a name=\"ref_" ++ ref ++ "\" href=\"#note_" ++ ref ++ 
-                                                       "\">(" ++ ref ++ ")</a></span>"
+    "<sup class=\"footnoteRef\" id=\"fnref" ++ ref ++ "\"><a href=\"#fn" ++ ref ++ 
+    "\">" ++ ref ++ "</a></sup>"
 
