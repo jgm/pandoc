@@ -227,7 +227,6 @@ rawLines = do
 note = try (do
     ref <- noteMarker
     char ':'
-    char ':'
     skipSpaces
     skipEndline
     raw <- sepBy rawLines (try (do {blankline; indentSpaces}))
