@@ -3,12 +3,16 @@ Version:         @VERSION@
 License:         GPL
 License-File:    COPYING
 Author:          John MacFarlane <jgm at berkeley dot edu>
+Stability:       provisional
 Homepage:        http://sophos.berkeley.edu/macfarlane/pandoc
+Package-URL:      
 Category:        Text
+Tested-With:     GHC
 Synopsis:        Utilities for translating between various markup formats    
 Description:     Haskell utilities for translating between markdown, HTML,
                  reStructuredText, LaTeX, and RTF
 Build-Depends:   @BUILD_DEPENDS@
+Extra-Source-Files: README COPYRIGHT man/man1/pandoc.1 
 @HS_SOURCE_DIRS@: src
 Exposed-Modules: Text.ParserCombinators.Pandoc,
                  Text.Pandoc.ASCIIMathML,
