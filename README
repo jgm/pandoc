@@ -261,6 +261,26 @@ markdown test suite, type `make test-markdown`.)
 
 [standard markdown]:  http://daringfireball.net/projects/markdown/syntax
 
+## Section Headings
+
+Pandoc creates an invisible anchor in front of every HTML section
+heading.  The ID of this anchor is derived from the section heading
+itself:  spaces are converted to underscores, and formatting, links,
+and other markup are removed.  Thus, for example, the source
+
+    ## Aristotle's *De Anima*
+
+gets converted to HTML as follows:
+
+    <a id="Aristotle's_De_Anima"></a>
+    <h2>Aristotle's <em>De Anima</em></h2>
+
+This makes it easy to provide internal links that jump to a particular
+place in a document.  To provide a link to the heading above, for
+example, just insert:
+
+    [Back to Aristotle](#Aristotle's_De_Anima)
+
 ## Lists
 
 Pandoc behaves differently from standard markdown on some "edge

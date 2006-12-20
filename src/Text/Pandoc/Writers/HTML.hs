@@ -154,12 +154,14 @@ blockToHtml options (OrderedList lst) =
     let attribs = if (writerIncremental options) then " class=\"incremental\"" else "" in
     "<ol" ++ attribs ++ ">\n" ++ (concatMap (listItemToHtml options) lst) ++ "</ol>\n"
 blockToHtml options HorizontalRule = "<hr />\n"
-blockToHtml options (Header level lst) = if ((level > 0) && (level <= 6)) then
-                                             "<h" ++ (show level) ++ ">" ++ 
-                                                      (inlineListToHtml options lst) ++ 
-                                                      "</h" ++ (show level) ++ ">\n"
-                                         else 
-                                             "<p>" ++ (inlineListToHtml options lst) ++ "</p>\n"
+blockToHtml options (Header level lst) = 
+    let contents = inlineListToHtml options lst in
+    let simplify = gsub "<[^>]*>" ""  . gsub " " "_" in
+    if ((level > 0) && (level <= 6))
+        then "<a id=\"" ++ simplify contents ++ "\"></a>\n" ++
+             "<h" ++ (show level) ++ ">" ++ contents ++ 
+             "</h" ++ (show level) ++ ">\n"
+        else "<p>" ++ contents ++ "</p>\n"
 listItemToHtml options list = "<li>" ++ (concatMap (blockToHtml options) list) ++ "</li>\n"
 
 -- | Convert list of Pandoc inline elements to HTML.
