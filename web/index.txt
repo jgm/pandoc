@@ -16,6 +16,8 @@ or output format requires only adding a reader or writer.
 
 For more information, see the [README](README.html) file.
 
+Pandoc is free software, released under the [GPL].
+
 **Source distribution:** [`@TARBALL_NAME@`](@TARBALL_NAME@). 
 To install, unpack the archive and follow the instructions in the
 [INSTALL](INSTALL.html) file. You'll need the [GHC] Haskell compiler,
@@ -58,5 +60,5 @@ kind.
 [RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
 [Haskell]:  http://www.haskell.org/
 [GHC]:  http://www.haskell.org/ghc/
-
+[GPL]:  http://www.gnu.org/copyleft/gpl.html
 
