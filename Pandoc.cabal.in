@@ -2,7 +2,7 @@ Name:            Pandoc
 Version:         @VERSION@
 License:         GPL
 License-File:    COPYING
-Author:          John MacFarlane <jgm@berkeley.edu>
+Author:          John MacFarlane <jgm at berkeley dot edu>
 Homepage:        http://sophos.berkeley.edu/macfarlane/pandoc
 Category:        Text
 Synopsis:        Utilities for translating between various markup formats    
