@@ -1,28 +1,28 @@
 Name:            Pandoc
 Version:         @VERSION@
 License:         GPL
-License-File:    LICENSE
+License-File:    COPYING
 Author:          John MacFarlane <jgm@berkeley.edu>
 Homepage:        http://sophos.berkeley.edu/macfarlane/pandoc
 Category:        Text
-Synopsis:        Utilities for translating between various markup formats	
+Synopsis:        Utilities for translating between various markup formats    
 Description:     Haskell utilities for translating between markdown, HTML,
                  reStructuredText, LaTeX, and RTF
-Build-Depends:	 @BUILD_DEPENDS@
+Build-Depends:   @BUILD_DEPENDS@
 @HS_SOURCE_DIRS@: src
 Exposed-Modules: Text.ParserCombinators.Pandoc,
                  Text.Pandoc.ASCIIMathML,
-	         Text.Pandoc.Definition,
-	         Text.Pandoc.HtmlEntities,
-	         Text.Pandoc.Shared,
-	         Text.Pandoc.UTF8,
-	         Text.Pandoc.Writers.DefaultHeaders,
-	         Text.Pandoc.Writers.HTML,
-	         Text.Pandoc.Writers.Markdown,
-	         Text.Pandoc.Writers.LaTeX,
-	         Text.Pandoc.Writers.RST,
-	         Text.Pandoc.Writers.S5,
-	         Text.Pandoc.Writers.RTF,
+                 Text.Pandoc.Definition,
+                 Text.Pandoc.HtmlEntities,
+                 Text.Pandoc.Shared,
+                 Text.Pandoc.UTF8,
+                 Text.Pandoc.Writers.DefaultHeaders,
+                 Text.Pandoc.Writers.HTML,
+                 Text.Pandoc.Writers.Markdown,
+                 Text.Pandoc.Writers.LaTeX,
+                 Text.Pandoc.Writers.RST,
+                 Text.Pandoc.Writers.S5,
+                 Text.Pandoc.Writers.RTF,
                  Text.Pandoc.Readers.HTML,
                  Text.Pandoc.Readers.Markdown,
                  Text.Pandoc.Readers.RST,
