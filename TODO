@@ -1,17 +1,23 @@
 # TODO
 
-*   Use new downloads and wiki features on googlecode?  Perhaps
-    some makefile targets can be simplified...
+*   Use new downloads feature on google code.  Figure out naming
+    scheme for releases.
 
 *   state license on first page of website.  also at top of every
-    source file... (c) date, and license with link to text.
+    source file...some say? (c) date, and license with link to text.
+
+*   Clean up Haskell code, refactor, etc.
+
+*   new writers?  man page! (but we'd really need definition lists),
+    docbook.
 
 *   Use XHTML library for HTML writer?  Not yet - it's not standard
     with 6.4.2 (but is with 6.6).  When we can drop support for 
     6.4.2, we can use it.
 
-*   Consider merging changes in pandoc-wrappers (symlinks rather than
-    wrapper scripts, except web2markdown and markdown2pdf). 
+*   Windows zipfile:  zip -r pandoc-0.3-windows.zip pandoc.exe README LICENSE
+    Be sure to convert to Windows line-endings. 
+    in bash: sed -e 's/$'"/`echo \\\r`/" README > README.txt
 
 *   pandoc's HTML output fails to validate completely (w3c).
     There are a few quirks:
@@ -22,6 +28,8 @@
       <noscript> isn't allowed inside <p> blocks.  <script> is
       allowed!  Options:
           - come up with another scheme, perhaps more like markdown.pl's
+            See the nice idea at http://subversion.tigris.org/security.html,
+            using spans.
           - ignore the validation problems
           - others?
 
@@ -30,25 +38,3 @@
       [AAAS]: "American association for the advancement of science"
     <acronym title="American association for the advancement 
     of science">AAAS</acronym>
-
-*   Consider changing footnote syntax so that all footnotes in markdown
-    are embedded (and automatic).^[Like this.  Here's a footnote.  It
-    is parsed like a block, so you can have embedded code blocks:
-
-         like this { code }
-
-    ] That was the end of the note.  This means having block elements
-    embedded in inline elements, which is possible.
-    Advantage:  Much easier to write.  You don't have to pick a label,
-    move down to type your note, move back up.
-    Disadvantage:  Perhaps slightly harder to read.  (But HTML and LaTeX
-    output will still be easy to read.)
-
-    Perhaps a better idea would be to conform to the syntax suggested
-    in http://rephrase.net/box/word/footnotes/syntax/#fnref-4
-    which seems to have become a de facto standard.  Note that this
-    allows inline footnotes, with a slightly uglier syntax - though
-    we could introduce ^[blah] as a simplified alternate syntax.
-    Note also the implementation changes: auto-numbered footnotes
-    in HTML.
-
