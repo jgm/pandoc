@@ -15,9 +15,9 @@ module Text.Pandoc.Writers.HTML (
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Html ( stringToHtmlString )
-import Text.Regex ( mkRegex )
+import Text.Regex ( mkRegex, matchRegex )
 import Numeric ( showHex )
-import Char ( ord )
+import Data.Char ( ord, toLower )
 import Data.List ( isPrefixOf, partition )
 
 -- | Convert Pandoc document to string in HTML format.
@@ -59,14 +59,27 @@ footnoteSection options notes =
 -- | Obfuscate a "mailto:" link using Javascript.
 obfuscateLink :: WriterOptions -> [Inline] -> String -> String
 obfuscateLink options text src =
-  let text' = inlineListToHtml options text in
-  let linkText = if src == ("mailto:" ++ text')
-                    then "e"
-                    else "'" ++ text' ++ "'" 
-      altText = if src == ("mailto:" ++ text')
-                    then "\\1 [at] \\2"
-                    else text' ++ " (\\1 [at] \\2)" in  
-  gsub "mailto:([^@]*)@(.*)" ("<script type=\"text/javascript\">h='\\2';n='\\1';e=n+'@'+h;document.write('<a href=\"mailto:'+e+'\">'+" ++ linkText  ++ "+'<\\/a>');</script><noscript>" ++ altText ++ "</noscript>") src 
+  let emailRegex = mkRegex "mailto:*([^@]*)@(.*)"
+      text' = inlineListToHtml options text 
+      src' = map toLower src in
+  case (matchRegex emailRegex src') of
+    (Just [name, domain]) ->
+      let domain' = gsub "\\." " dot " domain
+          at' = obfuscateChar '@' in
+      let linkText = if src' == ("mailto:" ++ text')
+                        then "e"
+                        else "'" ++ text' ++ "'" 
+          altText  = if src' == ("mailto:" ++ text')
+                        then name ++ " at " ++ domain'
+                        else text' ++ " (" ++ name ++ " at " ++ 
+                             domain' ++ ")" in 
+      "<script type=\"text/javascript\">\n<!--\nh='" ++ 
+      obfuscateString domain ++ "';a='" ++ at' ++ "';n='" ++ 
+      obfuscateString name ++ "';e=n+a+h;\n" ++
+      "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\">'+" ++ 
+      linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n</script><noscript>" ++ 
+      obfuscateString altText ++ "</noscript>"
+    _ -> "<a href=\"" ++ src ++ "\">" ++ text' ++ "</a>" -- malformed email
 
 -- | Obfuscate character as entity.
 obfuscateChar :: Char -> String
@@ -74,6 +87,10 @@ obfuscateChar char =
   let num = ord char in
   let numstr = if even num then (show num) else ("x" ++ (showHex num "")) in
   "&#" ++ numstr ++ ";"
+
+-- | Obfuscate string using entities.
+obfuscateString :: String -> String
+obfuscateString = concatMap obfuscateChar
 
 -- | Escape string, preserving character entities and quote.
 stringToHtml :: String -> String
