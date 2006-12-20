@@ -4,7 +4,7 @@
    License     : GNU GPL, version 2 or above 
 
    Maintainer  : John MacFarlane <jgm at berkeley dot edu>
-   Stability   : provisional
+   Stability   : alpha
    Portability : portable
 
 Utility functions and definitions used by the various Pandoc modules.
