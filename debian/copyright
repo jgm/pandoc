@@ -1,14 +1,33 @@
-Pandoc is copyright 2006 by John MacFarlane <jgm@berkeley.edu>.  It is licensed
-under the terms of the GPL version 2 or later. On Debian systems, the complete
-text of the GPL can be found in /usr/share/common-licenses/GPL.
+Pandoc
+Copyright (C) 2006 John MacFarlane <jgm@berkeley.edu>
 
-This package was debianized by Recai Oktaş <roktas@debian.org>.  It was
-downloaded from http://sophos.berkeley.edu/macfarlane/pandoc/
+This code is released under the [GPL], version 2 or later:
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+The GNU General Public License is available in the file COPYING in
+the source distribution.
+
+[GPL]: http://www.gnu.org/copyleft/gpl.html
+
+Pandoc includes some code from other authors.  The copyright and license
+statements for these sources are included below.  All are GPL-compatible
+licenses.
 
 ----------------------------------------------------------------------
-
 UTF8.hs 
-
 Copyright (c) 2003, OGI School of Science & Engineering, Oregon Health &
 Science University, All rights reserved.
 
@@ -40,22 +59,18 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-modified by Martin Norbäck 
-modified to pass illegal utf-8 sequences through unchanged
+This version of UTF8.hs was Modified by Martin Norbäck, to pass illegal
+utf-8 sequences through unchanged.
 
 ----------------------------------------------------------------------
-
 ASCIIMathML.js
-
 Copyright 2005, Peter Jipsen, Chapman University
 <http://www1.chapman.edu/~jipsen/mathml/asciimath.html>
 
 Released under the GPL.
 
 ----------------------------------------------------------------------
-
 S5 slides.js and css files 
-
 by Eric A. Meyer
 <http://meyerweb.com/eric/tools/s5
 
