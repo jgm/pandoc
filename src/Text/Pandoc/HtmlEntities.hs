@@ -4,7 +4,7 @@
    License     : GNU GPL, version 2 or above 
 
    Maintainer  : John MacFarlane <jgm at berkeley dot edu>
-   Stability   : unstable
+   Stability   : provisional
    Portability : portable
 
 Functions for encoding unicode characters as HTML entity references,
