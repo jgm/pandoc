@@ -4,7 +4,8 @@
 -- (c) 2003, OGI School of Science & Engineering, Oregon Health and
 -- Science University.  
 --
--- Modified by Martin Norbaeck to pass illegal UTF-8 sequences through unchanged.
+-- Modified by Martin Norbaeck
+-- to pass illegal UTF-8 sequences through unchanged.
 module Text.Pandoc.UTF8 ( 
              decodeUTF8, 
              encodeUTF8 

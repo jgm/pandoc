@@ -1,12 +1,22 @@
--- | Functions for encoding unicode characters as HTML entity 
--- references, and vice versa.
+{- |
+   Module      : Text.Pandoc.HtmlEntities
+   Copyright   : Copyright (C) 2006 John MacFarlane
+   License     : GNU GPL, version 2 or above 
+
+   Maintainer  : John MacFarlane <jgm at berkeley dot edu>
+   Stability   : unstable
+   Portability : portable
+
+Functions for encoding unicode characters as HTML entity references,
+and vice versa.
+-}
 module Text.Pandoc.HtmlEntities (
                      htmlEntityToChar,
                      charToHtmlEntity,
                      decodeEntities,
                      encodeEntities
                     ) where
-import Char ( chr, ord )
+import Data.Char ( chr, ord )
 import Text.Regex ( mkRegex, matchRegexAll )
 import Maybe ( fromMaybe )
 
@@ -19,13 +29,15 @@ characterEntity = mkRegex "&#[0-9]+;|&[A-Za-z0-9]+;"
 decodeEntities :: String -> String
 decodeEntities str = 
   case (matchRegexAll characterEntity str) of
-    Nothing -> str
-    Just (before, match, rest, _) -> before ++ replacement ++ (decodeEntities rest)
+    Nothing                       -> str
+    Just (before, match, rest, _) -> before ++ replacement ++ 
+                                     (decodeEntities rest)
       where replacement = case (htmlEntityToChar match) of
                             Just ch -> [ch]
                             Nothing -> match
 
--- | Returns a string with characters replaced with entity references where possible.
+-- | Returns a string with characters replaced with entity references where
+-- possible.
 encodeEntities :: String -> String
 encodeEntities = concatMap (\c -> fromMaybe [c] (charToHtmlEntity c)) 
 
@@ -44,10 +56,9 @@ htmlEntityToChar entity =
 charToHtmlEntity :: Char -> Maybe String
 charToHtmlEntity char = 
     let matches = filter (\(entity, character) -> (character == char)) htmlEntityTable in
-    if (length matches) == 0 then
-        Nothing
-    else
-        Just (fst (head matches))
+    if (length matches) == 0
+       then Nothing
+       else Just (fst (head matches))
 
 htmlEntityTable :: [(String, Char)]
 htmlEntityTable =  [

@@ -1,5 +1,15 @@
--- | Main Pandoc program.  Parses command-line options and calls the
--- appropriate readers and writers.
+{- |
+   Module      : Main
+   Copyright   : Copyright (C) 2006 John MacFarlane
+   License     : GNU GPL, version 2 or above 
+
+   Maintainer  : John MacFarlane <jgm at berkeley dot edu>
+   Stability   : unstable
+   Portability : portable
+
+Parses command-line options and calls the appropriate readers and
+writers.
+-}
 module Main where
 import Text.Pandoc.UTF8 ( decodeUTF8, encodeUTF8 )
 import Text.Pandoc.Readers.Markdown ( readMarkdown )
@@ -13,7 +23,8 @@ import Text.Pandoc.Writers.LaTeX ( writeLaTeX )
 import Text.Pandoc.Readers.LaTeX ( readLaTeX )
 import Text.Pandoc.Writers.RTF ( writeRTF )
 import Text.Pandoc.Writers.Markdown ( writeMarkdown )
-import Text.Pandoc.Writers.DefaultHeaders ( defaultHtmlHeader, defaultRTFHeader, defaultS5Header, defaultLaTeXHeader )
+import Text.Pandoc.Writers.DefaultHeaders ( defaultHtmlHeader, 
+       defaultRTFHeader, defaultS5Header, defaultLaTeXHeader )
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import System ( exitWith, getArgs, getProgName )
@@ -58,23 +69,24 @@ writeDoc options = prettyPandoc
 
 -- | Data structure for command line options.
 data Opt = Opt
-    { optPreserveTabs       :: Bool             -- ^ If @False@, convert tabs to spaces
-    , optTabStop            :: Int              -- ^ Number of spaces per tab
-    , optStandalone         :: Bool             -- ^ If @True@, include header and footer
-    , optReader             :: ParserState -> String -> Pandoc   -- ^ Reader to use
-    , optWriter             :: WriterOptions -> Pandoc -> String -- ^ Writer to use
-    , optParseRaw           :: Bool             -- ^ If @True@, parse unconvertable HTML and TeX
-    , optCSS                :: String           -- ^ CSS file to link to
-    , optIncludeInHeader    :: String           -- ^ File to include in header
-    , optIncludeBeforeBody  :: String           -- ^ File to include at beginning of body
-    , optIncludeAfterBody   :: String           -- ^ File to include at end of body
-    , optCustomHeader       :: String           -- ^ Custom header to use, or "DEFAULT"
-    , optDefaultHeader      :: String           -- ^ Default header
-    , optTitlePrefix        :: String           -- ^ Optional prefix for HTML title
-    , optNumberSections     :: Bool             -- ^ If @True@, number sections in LaTeX
-    , optIncremental        :: Bool             -- ^ If @True@, show lists incrementally in S5
-    , optSmart              :: Bool             -- ^ If @True@, use smart quotes, dashes, ...
-    , optASCIIMathML        :: Bool             -- ^ If @True@, use ASCIIMathML in HTML or S5
+    { optPreserveTabs      :: Bool    -- ^ If @False@, convert tabs to spaces
+    , optTabStop           :: Int     -- ^ Number of spaces per tab
+    , optStandalone        :: Bool    -- ^ If @True@, include header, footer
+    , optReader            :: ParserState -> String -> Pandoc -- ^ Read format
+    , optWriter            :: WriterOptions -> Pandoc -> String -- ^ Write fmt
+    , optParseRaw          :: Bool    -- ^ If @True@, parse unconvertable 
+                                      -- HTML and TeX
+    , optCSS               :: String  -- ^ CSS file to link to
+    , optIncludeInHeader   :: String  -- ^ File to include in header
+    , optIncludeBeforeBody :: String  -- ^ File to include at top of body
+    , optIncludeAfterBody  :: String  -- ^ File to include at end of body
+    , optCustomHeader      :: String  -- ^ Custom header to use, or "DEFAULT"
+    , optDefaultHeader     :: String  -- ^ Default header
+    , optTitlePrefix       :: String  -- ^ Optional prefix for HTML title
+    , optNumberSections    :: Bool    -- ^ If @True@, number sections in LaTeX
+    , optIncremental       :: Bool    -- ^ If @True@, incremental lists in S5
+    , optSmart             :: Bool    -- ^ If @True@, use smart typography
+    , optASCIIMathML       :: Bool    -- ^ If @True@, use ASCIIMathML in HTML
     }
 
 -- | Defaults for command-line options.
@@ -121,18 +133,19 @@ options =
     , Option "fr" ["from","read"]
                  (ReqArg
                   (\arg opt -> case (lookup (map toLower arg) readers) of
-                                 Just reader -> return opt { optReader = reader }
-                                 Nothing     -> error ("Unknown reader: " ++ arg) )
+                      Just reader -> return opt { optReader = reader }
+                      Nothing     -> error ("Unknown reader: " ++ arg) )
                   "FORMAT")
-                 ("Source format (" ++ (concatMap (\(name, fn) -> " " ++ name) readers) ++ " )")
+                 ("Source format (" ++ 
+                  (concatMap (\(name, fn) -> " " ++ name) readers) ++ " )")
 
     , Option "tw" ["to","write"]
                  (ReqArg
                   (\arg opt -> case (lookup (map toLower arg) writers) of
-                                 Just (writer, defaultHeader) -> 
-                                     return opt { optWriter = writer, 
-                                                  optDefaultHeader = defaultHeader }
-                                 Nothing     -> error ("Unknown writer: " ++ arg) )
+                      Just (writer, defaultHeader) -> 
+                              return opt { optWriter = writer, 
+                                           optDefaultHeader = defaultHeader }
+                      Nothing     -> error ("Unknown writer: " ++ arg) )
                   "FORMAT")
                  ("Output format (" ++ (concatMap (\(name, fn) -> " " ++ name) writers) ++ " )")
     
@@ -164,7 +177,8 @@ options =
 
     , Option "m" ["asciimathml"]
                  (NoArg
-                  (\opt -> return opt { optASCIIMathML = True, optStandalone = True }))
+                  (\opt -> return opt { optASCIIMathML = True, 
+                                        optStandalone = True }))
                  "Use ASCIIMathML script in html output"
 
     , Option "i" ["incremental"]
@@ -179,7 +193,8 @@ options =
 
     , Option "c" ["css"]
                  (ReqArg
-                  (\arg opt -> return opt { optCSS = arg, optStandalone = True })
+                  (\arg opt -> return opt { optCSS = arg, 
+                                            optStandalone = True })
                   "CSS")
                  "Link to CSS style sheet"
 
@@ -187,7 +202,8 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      text <- readFile arg
-                     return opt { optIncludeInHeader = text, optStandalone = True })
+                     return opt { optIncludeInHeader = text, 
+                                  optStandalone = True })
                   "FILENAME")
                  "File to include at end of header (implies -s)"
 
@@ -211,13 +227,15 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      text <- readFile arg
-                     return opt { optCustomHeader = text, optStandalone = True })
+                     return opt { optCustomHeader = text, 
+                                  optStandalone = True })
                   "FILENAME")
                  "File to use for custom header (implies -s)"
 
     , Option "T" ["title-prefix"]
                  (ReqArg
-                  (\arg opt -> return opt { optTitlePrefix = arg, optStandalone = True })
+                  (\arg opt -> return opt { optTitlePrefix = arg, 
+                                            optStandalone = True })
                   "STRING")
                  "String to prefix to HTML window title"
                  
@@ -225,8 +243,8 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      let header = case (lookup arg writers) of
-                                    Just (writer, head) -> head
-                                    Nothing     -> error ("Unknown reader: " ++ arg) 
+                           Just (writer, head) -> head
+                           Nothing     -> error ("Unknown reader: " ++ arg) 
                      hPutStrLn stdout header
                      exitWith ExitSuccess)
                   "FORMAT")
@@ -267,13 +285,14 @@ main = do
   let startParserState = defaultParserState { stateParseRaw     = parseRaw,
                                               stateTabStop      = tabStop, 
                                               stateStandalone   = standalone }
-  let csslink = if (css == "") then 
-                    "" 
-                else 
-                    "<link rel=\"stylesheet\" href=\"" ++ css ++ 
-                    "\" type=\"text/css\" media=\"all\" />\n"
+  let csslink = if (css == "")
+                   then "" 
+                   else "<link rel=\"stylesheet\" href=\"" ++ css ++ 
+                        "\" type=\"text/css\" media=\"all\" />\n"
   let asciiMathMLLink = if asciiMathML then asciiMathMLScript else ""
-  let header = (if (customHeader == "DEFAULT") then defaultHeader else customHeader) ++ 
+  let header = (if (customHeader == "DEFAULT") 
+                   then defaultHeader
+                   else customHeader) ++ 
                csslink ++ asciiMathMLLink ++ includeHeader
   let writerOptions = WriterOptions { writerStandalone     = standalone, 
                                       writerHeader         = header, 

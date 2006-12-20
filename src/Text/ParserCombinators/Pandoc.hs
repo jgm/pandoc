@@ -1,4 +1,14 @@
--- | Special parser combinators for Pandoc readers. 
+{- |
+   Module      : Text.ParserCombinators.Pandoc 
+   Copyright   : Copyright (C) 2006 John MacFarlane
+   License     : GNU GPL, version 2 or above 
+
+   Maintainer  : John MacFarlane <jgm at berkeley dot edu>
+   Stability   : unstable
+   Portability : portable
+
+Special parser combinators for Pandoc readers.
+-}
 module Text.ParserCombinators.Pandoc ( 
                                       many1Till,
                                       followedBy',
@@ -79,8 +89,9 @@ many1Till p end = try (do
          rest <- manyTill p end
          return (first:rest))
 
--- | A more general form of @notFollowedBy@.  This one allows any type of parser to
--- be specified, and succeeds only if that parser fails.  It does not consume any input.
+-- | A more general form of @notFollowedBy@.  This one allows any 
+-- type of parser to be specified, and succeeds only if that parser fails.
+-- It does not consume any input.
 notFollowedBy' :: Show b => GenParser a st b -> GenParser a st ()
 notFollowedBy' parser = try (do { c <- try parser; unexpected (show c) }
                            <|> return ())
@@ -90,10 +101,9 @@ notFollowedBy' parser = try (do { c <- try parser; unexpected (show c) }
 followedBy' :: (Show b) => GenParser a st b -> GenParser a st ()
 followedBy' parser = do 
   isNotFollowed <- option False (do{ notFollowedBy' parser; return True})
-  if isNotFollowed then 
-      fail "not followed by parser" 
-    else 
-      return ()
+  if isNotFollowed 
+     then fail "not followed by parser" 
+     else return ()
 
 -- | Parses one of a list of strings (tried in order).  
 oneOfStrings :: [String] -> GenParser Char st String

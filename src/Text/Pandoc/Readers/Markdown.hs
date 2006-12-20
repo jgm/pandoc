@@ -1,4 +1,14 @@
--- | Convert markdown to Pandoc document.
+{- |
+   Module      : Text.Pandoc.Readers.Markdown
+   Copyright   : Copyright (C) 2006 John MacFarlane
+   License     : GNU GPL, version 2 or above 
+
+   Maintainer  : John MacFarlane <jgm at berkeley dot edu>
+   Stability   : unstable
+   Portability : portable
+
+Conversion of markdown-formatted plain text to 'Pandoc' document.
+-}
 module Text.Pandoc.Readers.Markdown ( 
                                      readMarkdown 
                                     ) where
@@ -8,8 +18,8 @@ import Text.ParserCombinators.Pandoc
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment )
 import Text.Pandoc.Shared 
-import Text.Pandoc.Readers.HTML ( rawHtmlInline, rawHtmlBlock, anyHtmlBlockTag, 
-                                               anyHtmlInlineTag )
+import Text.Pandoc.Readers.HTML ( rawHtmlInline, rawHtmlBlock, 
+                                  anyHtmlBlockTag, anyHtmlInlineTag )
 import Text.Pandoc.HtmlEntities ( decodeEntities )
 import Text.Regex ( matchRegex, mkRegex )
 import Text.ParserCombinators.Parsec
@@ -57,9 +67,10 @@ blockQuoteChar = '>'
 hyphenChar = '-'
 
 -- treat these as potentially non-text when parsing inline:
-specialChars = [escapeChar, labelStart, labelEnd, emphStart, emphEnd, emphStartAlt, 
-                emphEndAlt, codeStart, codeEnd, autoLinkEnd, autoLinkStart, mathStart, 
-                mathEnd, imageStart, noteStart, hyphenChar]
+specialChars = [escapeChar, labelStart, labelEnd, emphStart, emphEnd,
+                emphStartAlt, emphEndAlt, codeStart, codeEnd, autoLinkEnd,
+                autoLinkStart, mathStart, mathEnd, imageStart, noteStart,
+                hyphenChar]
 
 --
 -- auxiliary functions
@@ -115,14 +126,16 @@ numberOfNote (Note ref _) = (read ref)
 numberOfNote _ = 0 
 
 parseMarkdown = do
-  updateState (\state -> state { stateParseRaw = True }) -- need to parse raw HTML
+  updateState (\state -> state { stateParseRaw = True }) 
+  -- need to parse raw HTML, since markdown allows it
   (title, author, date) <- option ([],[],"") titleBlock
   blocks <- parseBlocks
   let blocks' = filter (/= Null) blocks
   state <- getState
   let keys = reverse $ stateKeyBlocks state
   let notes = reverse $ stateNoteBlocks state
-  let sortedNotes = sortBy (\x y -> compare (numberOfNote x) (numberOfNote y)) notes
+  let sortedNotes = sortBy (\x y -> compare (numberOfNote x) 
+                           (numberOfNote y)) notes
   return (Pandoc (Meta title author date) (blocks' ++ sortedNotes ++ keys))
 
 --
@@ -133,8 +146,9 @@ parseBlocks = do
   result <- manyTill block eof
   return result
 
-block = choice [ codeBlock, note, referenceKey, header, hrule, list, blockQuote, rawHtmlBlocks, 
-                 rawLaTeXEnvironment, para, plain, blankBlock, nullBlock ] <?> "block"
+block = choice [ codeBlock, note, referenceKey, header, hrule, list, 
+                 blockQuote, rawHtmlBlocks, rawLaTeXEnvironment, para,
+                 plain, blankBlock, nullBlock ] <?> "block"
 
 --
 -- header blocks
@@ -154,33 +168,33 @@ atxClosing = try (do
   newline
   option "" blanklines)
 
-setextHeader = choice (map (\x -> setextH x) (enumFromTo 1 (length setextHChars)))
+setextHeader = choice $ 
+               map (\x -> setextH x) (enumFromTo 1 (length setextHChars))
 
 setextH n = try (do
-    txt <- many1 (do {notFollowedBy newline; inline})
-    endline
-    many1 (char (setextHChars !! (n-1)))
-    skipSpaces
-    newline
-    option "" blanklines
-    return (Header n (normalizeSpaces txt)))
+  txt <- many1 (do {notFollowedBy newline; inline})
+  endline
+  many1 (char (setextHChars !! (n-1)))
+  skipSpaces
+  newline
+  option "" blanklines
+  return (Header n (normalizeSpaces txt)))
 
 --
 -- hrule block
 --
 
-hruleWith chr = 
-    try (do
-           skipSpaces
-           char chr
-           skipSpaces
-           char chr
-           skipSpaces
-           char chr
-           skipMany (oneOf (chr:spaceChars))
-           newline
-           option "" blanklines
-           return HorizontalRule)
+hruleWith chr = try (do
+  skipSpaces
+  char chr
+  skipSpaces
+  char chr
+  skipSpaces
+  char chr
+  skipMany (oneOf (chr:spaceChars))
+  newline
+  option "" blanklines
+  return HorizontalRule)
 
 hrule = choice (map hruleWith hruleChars) <?> "hrule"
 
@@ -189,9 +203,9 @@ hrule = choice (map hruleWith hruleChars) <?> "hrule"
 --
 
 indentedLine = try (do
-    indentSpaces
-    result <- manyTill anyChar newline
-    return (result ++ "\n"))
+  indentSpaces
+  result <- manyTill anyChar newline
+  return (result ++ "\n"))
 
 -- two or more indented lines, possibly separated by blank lines
 indentedBlock = try (do 
@@ -201,62 +215,66 @@ indentedBlock = try (do
   return (res1 ++ blanks ++ res2))
 
 codeBlock = do
-    result <- choice [indentedBlock, indentedLine]
-    option "" blanklines
-    return (CodeBlock (stripTrailingNewlines result))
+  result <- choice [indentedBlock, indentedLine]
+  option "" blanklines
+  return (CodeBlock (stripTrailingNewlines result))
 
 --
 -- note block
 --
 
 rawLine = try (do
-    notFollowedBy' blankline
-    notFollowedBy' noteMarker
-    contents <- many1 nonEndline
-    end <- option "" (do
-                        newline
-                        option "" indentSpaces
-                        return "\n")
-    return (contents ++ end))
+  notFollowedBy' blankline
+  notFollowedBy' noteMarker
+  contents <- many1 nonEndline
+  end <- option "" (do
+                      newline
+                      option "" indentSpaces
+                      return "\n")
+  return (contents ++ end))
 
 rawLines = do
     lines <- many1 rawLine
     return (concat lines)
 
 note = try (do
-    ref <- noteMarker
-    char ':'
-    skipSpaces
-    skipEndline
-    raw <- sepBy rawLines (try (do {blankline; indentSpaces}))
-    option "" blanklines
-    -- parse the extracted text, which may contain various block elements:
-    state <- getState
-    let parsed = case runParser parseBlocks (state {stateParserContext = BlockQuoteState}) "block" ((joinWithSep "\n" raw) ++ "\n\n") of
-                   Left err -> error $ "Raw block:\n" ++ show raw ++ "\nError:\n" ++ show err
-                   Right result -> result 
-    let identifiers = stateNoteIdentifiers state
-    case (findIndex (== ref) identifiers) of
-      Just n  -> updateState (\s -> s {stateNoteBlocks = 
-                 (Note (show (n+1)) parsed):(stateNoteBlocks s)})
-      Nothing -> updateState id 
-    return Null)
+  ref <- noteMarker
+  char ':'
+  skipSpaces
+  skipEndline
+  raw <- sepBy rawLines (try (do {blankline; indentSpaces}))
+  option "" blanklines
+  -- parse the extracted text, which may contain various block elements:
+  state <- getState
+  let parsed = case runParser parseBlocks 
+                    (state {stateParserContext = BlockQuoteState}) "block" 
+                    ((joinWithSep "\n" raw) ++ "\n\n") of
+                       Left err     -> error $ "Raw block:\n" ++ show raw ++
+                                       "\nError:\n" ++ show err
+                       Right result -> result 
+  let identifiers = stateNoteIdentifiers state
+  case (findIndex (== ref) identifiers) of
+    Just n  -> updateState (\s -> s {stateNoteBlocks = 
+               (Note (show (n+1)) parsed):(stateNoteBlocks s)})
+    Nothing -> updateState id 
+  return Null)
 
 --
 -- block quotes
 --
 
 emacsBoxQuote = try (do
-    string ",----"
-    manyTill anyChar newline
-    raw <- manyTill (try (do{ char '|'; 
-                              option ' ' (char ' '); 
-                              result <- manyTill anyChar newline; 
-                              return result})) 
-                     (string "`----")
-    manyTill anyChar newline
-    option "" blanklines
-    return raw)
+  string ",----"
+  manyTill anyChar newline
+  raw <- manyTill (try (do 
+                          char '|'
+                          option ' ' (char ' ')
+                          result <- manyTill anyChar newline
+                          return result))
+                   (string "`----")
+  manyTill anyChar newline
+  option "" blanklines
+  return raw)
 
 emailBlockQuoteStart = try (do
   skipNonindentSpaces
@@ -265,24 +283,28 @@ emailBlockQuoteStart = try (do
   return "> ")
 
 emailBlockQuote = try (do
-    emailBlockQuoteStart
-    raw <- sepBy (many (choice [nonEndline, 
-                                (try (do{ endline; 
-                                          notFollowedBy' emailBlockQuoteStart;
-                                          return '\n'}))])) 
-           (try (do {newline; emailBlockQuoteStart}))
-    newline <|> (do{ eof; return '\n'})
-    option "" blanklines
-    return raw)
+  emailBlockQuoteStart
+  raw <- sepBy (many (choice [nonEndline, 
+                              (try (do 
+                                      endline
+                                      notFollowedBy' emailBlockQuoteStart
+                                      return '\n'))]))
+               (try (do {newline; emailBlockQuoteStart}))
+  newline <|> (do{ eof; return '\n' })
+  option "" blanklines
+  return raw)
 
 blockQuote = do 
-    raw <- choice [ emailBlockQuote, emacsBoxQuote ]
-    -- parse the extracted block, which may contain various block elements:
-    state <- getState
-    let parsed = case runParser parseBlocks (state {stateParserContext = BlockQuoteState}) "block" ((joinWithSep "\n" raw) ++ "\n\n") of
-                   Left err -> error $ "Raw block:\n" ++ show raw ++ "\nError:\n" ++ show err
-                   Right result -> result
-    return (BlockQuote parsed)
+  raw <- choice [ emailBlockQuote, emacsBoxQuote ]
+  -- parse the extracted block, which may contain various block elements:
+  state <- getState
+  let parsed = case runParser parseBlocks 
+                    (state {stateParserContext = BlockQuoteState}) "block" 
+                    ((joinWithSep "\n" raw) ++ "\n\n") of
+                       Left err     -> error $ "Raw block:\n" ++ show raw ++ 
+                                               "\nError:\n" ++ show err
+                       Right result -> result
+  return (BlockQuote parsed)
 
 --
 -- list blocks
@@ -290,85 +312,81 @@ blockQuote = do
 
 list = choice [ bulletList, orderedList ] <?> "list"
 
-bulletListStart = 
-    try (do
-           option ' ' newline -- if preceded by a Plain block in a list context
-           skipNonindentSpaces
-           notFollowedBy' hrule  -- because hrules start out just like lists
-           oneOf bulletListMarkers
-           spaceChar
-           skipSpaces)
+bulletListStart = try (do
+  option ' ' newline -- if preceded by a Plain block in a list context
+  skipNonindentSpaces
+  notFollowedBy' hrule  -- because hrules start out just like lists
+  oneOf bulletListMarkers
+  spaceChar
+  skipSpaces)
 
-orderedListStart = 
-    try (do
-           option ' ' newline -- if preceded by a Plain block in a list context
-           skipNonindentSpaces
-           many1 digit <|> count 1 letter
-           oneOf orderedListDelimiters
-           oneOf spaceChars
-           skipSpaces)
+orderedListStart = try (do
+  option ' ' newline -- if preceded by a Plain block in a list context
+  skipNonindentSpaces
+  many1 digit <|> count 1 letter
+  oneOf orderedListDelimiters
+  oneOf spaceChars
+  skipSpaces)
 
 -- parse a line of a list item (start = parser for beginning of list item)
 listLine start = try (do
   notFollowedBy' start
   notFollowedBy blankline
-  notFollowedBy' (do{ indentSpaces; 
-                      many (spaceChar);
-                      choice [bulletListStart, orderedListStart]})
+  notFollowedBy' (do 
+                    indentSpaces
+                    many (spaceChar)
+                    choice [bulletListStart, orderedListStart])
   line <- manyTill anyChar newline
   return (line ++ "\n"))
 
 -- parse raw text for one list item, excluding start marker and continuations
-rawListItem start = 
-    try (do
-           start
-           result <- many1 (listLine start)
-           blanks <- many blankline
-           return ((concat result) ++ blanks))
+rawListItem start = try (do
+  start
+  result <- many1 (listLine start)
+  blanks <- many blankline
+  return ((concat result) ++ blanks))
 
 -- continuation of a list item - indented and separated by blankline 
 -- or (in compact lists) endline.
 -- note: nested lists are parsed as continuations
-listContinuation start = 
-    try (do
-           followedBy' indentSpaces
-           result <- many1 (listContinuationLine start)
-           blanks <- many blankline
-           return ((concat result) ++ blanks))
+listContinuation start = try (do
+  followedBy' indentSpaces
+  result <- many1 (listContinuationLine start)
+  blanks <- many blankline
+  return ((concat result) ++ blanks))
 
 listContinuationLine start = try (do
-    notFollowedBy' blankline
-    notFollowedBy' start
-    option "" indentSpaces
-    result <- manyTill anyChar newline
-    return (result ++ "\n"))
+  notFollowedBy' blankline
+  notFollowedBy' start
+  option "" indentSpaces
+  result <- manyTill anyChar newline
+  return (result ++ "\n"))
 
-listItem start = 
-    try (do 
-           first <- rawListItem start
-           rest <- many (listContinuation start)
-           -- parsing with ListItemState forces markers at beginning of lines to
-           -- count as list item markers, even if not separated by blank space.
-           -- see definition of "endline"
-           state <- getState
-           let parsed = case runParser parseBlocks (state {stateParserContext = ListItemState}) 
-                        "block" raw of
-                          Left err -> error $ "Raw block:\n" ++ raw ++ "\nError:\n" ++ show err
-                          Right result -> result
-                   where raw = concat (first:rest) 
-           return parsed)
+listItem start = try (do 
+  first <- rawListItem start
+  rest <- many (listContinuation start)
+  -- parsing with ListItemState forces markers at beginning of lines to
+  -- count as list item markers, even if not separated by blank space.
+  -- see definition of "endline"
+  state <- getState
+  let parsed = case runParser parseBlocks 
+                    (state {stateParserContext = ListItemState}) 
+                    "block" raw of
+                       Left err     -> error $ "Raw block:\n" ++ raw ++ 
+                                       "\nError:\n" ++ show err
+                       Right result -> result
+          where raw = concat (first:rest) 
+  return parsed)
 
-orderedList = 
-    try (do
-           items <- many1 (listItem orderedListStart)
-           let items' = compactify items
-           return (OrderedList items'))
+orderedList = try (do
+  items <- many1 (listItem orderedListStart)
+  let items' = compactify items
+  return (OrderedList items'))
 
-bulletList = 
-    try (do
-           items <- many1 (listItem bulletListStart)
-           let items' = compactify items
-           return (BulletList items'))
+bulletList = try (do
+  items <- many1 (listItem bulletListStart)
+  let items' = compactify items
+  return (BulletList items'))
 
 --
 -- paragraph block
@@ -377,7 +395,10 @@ bulletList =
 para = try (do 
   result <- many1 inline
   newline
-  choice [ (do{ followedBy' (oneOfStrings [">", ",----"]); return "" }), blanklines ]  
+  choice [ (do 
+              followedBy' (oneOfStrings [">", ",----"])
+              return "" ), 
+           blanklines ]  
   let result' = normalizeSpaces result
   return (Para result'))
 
@@ -391,30 +412,28 @@ plain = do
 --
 
 rawHtmlBlocks = try (do
-   htmlBlocks <- many1 rawHtmlBlock    
-   let combined = concatMap (\(RawHtml str) -> str) htmlBlocks
-   let combined' = if (last combined == '\n') then 
-                       init combined  -- strip extra newline 
-                   else 
-                       combined 
-   return (RawHtml combined'))
+  htmlBlocks <- many1 rawHtmlBlock    
+  let combined = concatMap (\(RawHtml str) -> str) htmlBlocks
+  let combined' = if (last combined == '\n')
+                     then init combined  -- strip extra newline 
+                     else combined 
+  return (RawHtml combined'))
 
 -- 
 -- reference key
 --
 
-referenceKey = 
-    try (do
-           skipSpaces
-           label <- reference
-           char labelSep
-           skipSpaces
-           option ' ' (char autoLinkStart)
-           src <- many (noneOf (titleOpeners ++ [autoLinkEnd] ++ endLineChars))
-           option ' ' (char autoLinkEnd)
-           tit <- option "" title 
-           blanklines 
-           return (Key label (Src (removeTrailingSpace src) tit))) 
+referenceKey = try (do
+  skipSpaces
+  label <- reference
+  char labelSep
+  skipSpaces
+  option ' ' (char autoLinkStart)
+  src <- many (noneOf (titleOpeners ++ [autoLinkEnd] ++ endLineChars))
+  option ' ' (char autoLinkEnd)
+  tit <- option "" title 
+  blanklines 
+  return (Key label (Src (removeTrailingSpace src) tit))) 
 
 -- 
 -- inline
@@ -423,10 +442,11 @@ referenceKey =
 text = choice [ math, strong, emph, code2, code1, str, linebreak, tabchar, 
                 whitespace, endline ] <?> "text"
 
-inline = choice [ rawLaTeXInline, escapedChar, special, hyphens, text, ltSign, symbol ] <?> "inline"
+inline = choice [ rawLaTeXInline, escapedChar, special, hyphens, text, 
+                  ltSign, symbol ] <?> "inline"
 
-special = choice [ noteRef, inlineNote, link, referenceLink, rawHtmlInline, autoLink, 
-                   image ] <?> "link, inline html, note, or image"
+special = choice [ noteRef, inlineNote, link, referenceLink, rawHtmlInline, 
+                   autoLink, image ] <?> "link, inline html, note, or image"
 
 escapedChar = escaped anyChar
 
@@ -443,30 +463,33 @@ symbol = do
 
 hyphens = try (do
   result <- many1 (char '-')
-  if (length result) == 1 then
-      skipEndline   -- don't want to treat endline after hyphen as a space
-    else
-      do{ string ""; return Space }
+  if (length result) == 1
+     then skipEndline   -- don't want to treat endline after hyphen as a space
+     else do{ string ""; return Space }
   return (Str result))
 
 -- parses inline code, between codeStart and codeEnd
-code1 = 
-    try (do 
-           char codeStart
-           result <- many (noneOf [codeEnd])
-           char codeEnd
-           let result' = removeLeadingTrailingSpace $ joinWithSep " " $ lines result -- get rid of any internal newlines
-           return (Code result'))
+code1 = try (do 
+  char codeStart
+  result <- many (noneOf [codeEnd])
+  char codeEnd
+  -- get rid of any internal newlines
+  let result' = removeLeadingTrailingSpace $ joinWithSep " " $ lines result
+  return (Code result'))
 
 -- parses inline code, between 2 codeStarts and 2 codeEnds
-code2 = 
-    try (do
-           string [codeStart, codeStart]
-           result <- manyTill anyChar (try (string [codeEnd, codeEnd]))
-           let result' = removeLeadingTrailingSpace $ joinWithSep " " $ lines result -- get rid of any internal newlines
-           return (Code result'))
+code2 = try (do
+  string [codeStart, codeStart]
+  result <- manyTill anyChar (try (string [codeEnd, codeEnd]))
+  let result' = removeLeadingTrailingSpace $ joinWithSep " " $ lines result
+  -- get rid of any internal newlines
+  return (Code result'))
 
-mathWord = many1 (choice [(noneOf (" \t\n\\" ++ [mathEnd])), (try (do {c <- char '\\'; notFollowedBy (char mathEnd); return c}))])
+mathWord = many1 (choice [ (noneOf (" \t\n\\" ++ [mathEnd])), 
+                           (try (do
+                                   c <- char '\\'
+                                   notFollowedBy (char mathEnd)
+                                   return c))])
 
 math = try (do
   char mathStart
@@ -477,12 +500,14 @@ math = try (do
 
 emph = do
   result <- choice [ (enclosed (char emphStart) (char emphEnd) inline), 
-                      (enclosed (char emphStartAlt) (char emphEndAlt) inline) ]
+                     (enclosed (char emphStartAlt) (char emphEndAlt) inline) ]
   return (Emph (normalizeSpaces result))
 
 strong = do
-  result <- choice [ (enclosed (count 2 (char emphStart)) (count 2 (char emphEnd)) inline), 
-                     (enclosed (count 2 (char emphStartAlt)) (count 2 (char emphEndAlt)) inline)]
+  result <- choice [ (enclosed (count 2 (char emphStart)) 
+                               (count 2 (char emphEnd)) inline), 
+                     (enclosed (count 2 (char emphStartAlt)) 
+                               (count 2 (char emphEndAlt)) inline) ]
   return (Strong (normalizeSpaces result))
 
 whitespace = do
@@ -507,23 +532,21 @@ str = do
   return (Str (decodeEntities result))
 
 -- an endline character that can be treated as a space, not a structural break
-endline =
-    try (do
-           newline
-           -- next line would allow block quotes without preceding blank line
-           -- Markdown.pl does allow this, but there's a chance of a wrapped
-           -- greater-than sign triggering a block quote by accident...
---         notFollowedBy' (choice [emailBlockQuoteStart, string ",----"])  
-           notFollowedBy blankline
-           -- parse potential list starts at beginning of line differently if in a list:
-           st <- getState
-           if (stateParserContext st) == ListItemState then 
-               do
-                 notFollowedBy' orderedListStart
-                 notFollowedBy' bulletListStart
-             else
-               option () pzero
-           return Space)
+endline = try (do
+  newline
+  -- next line would allow block quotes without preceding blank line
+  -- Markdown.pl does allow this, but there's a chance of a wrapped
+  -- greater-than sign triggering a block quote by accident...
+  -- notFollowedBy' (choice [emailBlockQuoteStart, string ",----"])  
+  notFollowedBy blankline
+  -- parse potential list-starts differently if in a list:
+  st <- getState
+  if (stateParserContext st) == ListItemState
+     then do
+            notFollowedBy' orderedListStart
+            notFollowedBy' bulletListStart
+     else option () pzero
+  return Space)
 
 --
 -- links
@@ -537,92 +560,92 @@ reference = do
   return (normalizeSpaces label)
 
 -- source for a link, with optional title
-source = 
-    try (do 
-           char srcStart
-           option ' ' (char autoLinkStart)
-           src <- many (noneOf ([srcEnd, autoLinkEnd] ++ titleOpeners))
-           option ' ' (char autoLinkEnd)
-           tit <- option "" title
-           skipSpaces
-           char srcEnd
-           return (Src (removeTrailingSpace src) tit))
+source = try (do 
+  char srcStart
+  option ' ' (char autoLinkStart)
+  src <- many (noneOf ([srcEnd, autoLinkEnd] ++ titleOpeners))
+  option ' ' (char autoLinkEnd)
+  tit <- option "" title
+  skipSpaces
+  char srcEnd
+  return (Src (removeTrailingSpace src) tit))
 
-titleWith startChar endChar =
-    try (do
-           skipSpaces
-           skipEndline  -- a title can be on the next line from the source
-           skipSpaces
-           char startChar
-           tit <- manyTill (choice [ try (do {char '\\'; char endChar}), 
-                                     (noneOf (endChar:endLineChars)) ]) (char endChar) 
-           let tit' = gsub "\"" "&quot;" tit
-           return tit')
+titleWith startChar endChar = try (do
+  skipSpaces
+  skipEndline  -- a title can be on the next line from the source
+  skipSpaces
+  char startChar
+  tit <- manyTill (choice [ try (do {char '\\'; char endChar}), 
+                            (noneOf (endChar:endLineChars)) ]) (char endChar) 
+  let tit' = gsub "\"" "&quot;" tit
+  return tit')
 
-title = choice [titleWith '(' ')', titleWith '"' '"', titleWith '\'' '\''] <?> "title"
+title = choice [ titleWith '(' ')', 
+                 titleWith '"' '"', 
+                 titleWith '\'' '\''] <?> "title"
 
 link = choice [explicitLink, referenceLink] <?> "link"
 
-explicitLink =
-    try (do
-           label <- reference
-           src <- source 
-           return (Link label src)) 
+explicitLink = try (do
+  label <- reference
+  src <- source 
+  return (Link label src)) 
 
 referenceLink = choice [referenceLinkDouble, referenceLinkSingle]
 
-referenceLinkDouble =     -- a link like [this][/url/]
-    try (do
-           label <- reference
-           skipSpaces
-           skipEndline
-           skipSpaces
-           ref <- reference 
-           return (Link label (Ref ref))) 
+-- a link like [this][/url/]
+referenceLinkDouble = try (do
+  label <- reference
+  skipSpaces
+  skipEndline
+  skipSpaces
+  ref <- reference 
+  return (Link label (Ref ref))) 
 
-referenceLinkSingle =     -- a link like [this]
-    try (do
-           label <- reference
-           return (Link label (Ref []))) 
+-- a link like [this]
+referenceLinkSingle = try (do
+  label <- reference
+  return (Link label (Ref []))) 
 
-autoLink =                -- a link <like.this.com>
-    try (do
-           notFollowedBy' anyHtmlBlockTag
-           src <- between (char autoLinkStart) (char autoLinkEnd) 
-                  (many (noneOf (spaceChars ++ endLineChars ++ [autoLinkEnd])))
-           case (matchRegex emailAddress src) of
-             Just _  -> return (Link [Str src] (Src ("mailto:" ++ src) ""))
-             Nothing -> return (Link [Str src] (Src src ""))) 
+-- a link <like.this.com>
+autoLink = try (do
+  notFollowedBy' anyHtmlBlockTag
+  src <- between (char autoLinkStart) (char autoLinkEnd) 
+         (many (noneOf (spaceChars ++ endLineChars ++ [autoLinkEnd])))
+  case (matchRegex emailAddress src) of
+    Just _  -> return (Link [Str src] (Src ("mailto:" ++ src) ""))
+    Nothing -> return (Link [Str src] (Src src ""))) 
 
-emailAddress = mkRegex "([^@:/]+)@(([^.]+[.]?)*([^.]+))"  -- presupposes no whitespace
+emailAddress = 
+    mkRegex "([^@:/]+)@(([^.]+[.]?)*([^.]+))"  -- presupposes no whitespace
 
-image = 
-    try (do
-           char imageStart
-           (Link label src) <- link
-           return (Image label src)) 
+image = try (do
+  char imageStart
+  (Link label src) <- link
+  return (Image label src)) 
 
 noteMarker = try (do
-    char labelStart
-    char noteStart
-    manyTill (noneOf " \t\n") (char labelEnd))
+  char labelStart
+  char noteStart
+  manyTill (noneOf " \t\n") (char labelEnd))
 
 noteRef = try (do
-    ref <- noteMarker
-    state <- getState
-    let identifiers = (stateNoteIdentifiers state) ++ [ref] 
-    updateState (\st -> st {stateNoteIdentifiers = identifiers})
-    return (NoteRef (show (length identifiers))))
+  ref <- noteMarker
+  state <- getState
+  let identifiers = (stateNoteIdentifiers state) ++ [ref] 
+  updateState (\st -> st {stateNoteIdentifiers = identifiers})
+  return (NoteRef (show (length identifiers))))
 
 inlineNote = try (do
-    char noteStart
-    char labelStart
-    contents <- manyTill inline (char labelEnd)
-    state <- getState
-    let identifiers = stateNoteIdentifiers state
-    let ref = show $ (length identifiers) + 1
-    let noteBlocks = stateNoteBlocks state
-    updateState (\st -> st {stateNoteIdentifiers = (identifiers ++ [ref]),
-                            stateNoteBlocks = (Note ref [Para contents]):noteBlocks})
-    return (NoteRef ref))
+  char noteStart
+  char labelStart
+  contents <- manyTill inline (char labelEnd)
+  state <- getState
+  let identifiers = stateNoteIdentifiers state
+  let ref = show $ (length identifiers) + 1
+  let noteBlocks = stateNoteBlocks state
+  updateState (\st -> st {stateNoteIdentifiers = (identifiers ++ [ref]),
+                          stateNoteBlocks = 
+                               (Note ref [Para contents]):noteBlocks})
+  return (NoteRef ref))
 

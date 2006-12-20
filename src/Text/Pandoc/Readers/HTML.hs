@@ -1,4 +1,14 @@
--- | Converts HTML to 'Pandoc' document.
+{- |
+   Module      : Text.Pandoc.Readers.HTML
+   Copyright   : Copyright (C) 2006 John MacFarlane
+   License     : GNU GPL, version 2 or above 
+
+   Maintainer  : John MacFarlane <jgm at berkeley dot edu>
+   Stability   : unstable
+   Portability : portable
+
+Conversion of HTML to 'Pandoc' document.
+-}
 module Text.Pandoc.Readers.HTML ( 
                                  readHtml, 
                                  rawHtmlInline, 
@@ -30,10 +40,11 @@ testString = testStringWith parseHtml
 -- Constants
 --
 
-inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big", "br", "cite", 
-                  "code", "dfn", "em", "font", "i", "img", "input", "kbd", "label", "q", 
-                  "s", "samp", "select", "small", "span", "strike", "strong", "sub", 
-                  "sup", "textarea", "tt", "u", "var"]
+inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big",
+                  "br", "cite", "code", "dfn", "em", "font", "i", "img",
+                  "input", "kbd", "label", "q", "s", "samp", "select",
+                  "small", "span", "strike", "strong", "sub", "sup",
+                  "textarea", "tt", "u", "var"]
 
 --
 -- HTML utility functions
@@ -50,9 +61,10 @@ inlinesTilEnd tag = try (do
   return inlines)
 
 -- extract type from a tag:  e.g. br from <br>, < br >, </br>, etc.
-extractTagType tag = case (matchRegex (mkRegex  "<[[:space:]]*/?([A-Za-z0-9]+)") tag) of
-                       Just [match]   -> (map toLower match)
-                       Nothing        -> ""
+extractTagType tag = 
+    case (matchRegex (mkRegex  "<[[:space:]]*/?([A-Za-z0-9]+)") tag) of
+          Just [match]   -> (map toLower match)
+          Nothing        -> ""
 
 anyHtmlTag = try (do
   char '<'
@@ -90,7 +102,8 @@ htmlTag tag = try (do
 
 -- parses a quoted html attribute value
 quoted quoteChar = do
-  result <- between (char quoteChar) (char quoteChar) (many (noneOf [quoteChar]))
+  result <- between (char quoteChar) (char quoteChar) 
+                    (many (noneOf [quoteChar]))
   return (result, [quoteChar])
 
 htmlAttributes = do
@@ -116,9 +129,11 @@ htmlRegularAttribute = try (do
   spaces
   (content, quoteStr) <- choice [ (quoted '\''), 
                                   (quoted '"'), 
-                                  (do{ a <- (many (alphaNum <|> (oneOf "-._:"))); 
-                                       return (a,"")} ) ]
-  return (name, content, (" " ++ name ++ "=" ++ quoteStr ++ content ++ quoteStr)))
+                                  (do
+                                     a <- many (alphaNum <|> (oneOf "-._:"))
+                                     return (a,"")) ]
+  return (name, content, 
+          (" " ++ name ++ "=" ++ quoteStr ++ content ++ quoteStr)))
 
 htmlEndTag tag = try (do
   char '<'   
@@ -135,17 +150,11 @@ isInline tag = (extractTagType tag) `elem` inlineHtmlTags
 
 anyHtmlBlockTag = try (do
   tag <- choice [anyHtmlTag, anyHtmlEndTag]
-  if isInline tag then
-      fail "inline tag"
-    else
-      return tag)
+  if isInline tag then fail "inline tag" else return tag)
 
 anyHtmlInlineTag = try (do
   tag <- choice [ anyHtmlTag, anyHtmlEndTag ]
-  if isInline tag then
-      return tag
-    else
-      fail "not an inline tag")
+  if isInline tag then return tag else fail "not an inline tag")
 
 -- scripts must be treated differently, because they can contain <> etc.
 htmlScript = try (do
@@ -155,13 +164,11 @@ htmlScript = try (do
 
 rawHtmlBlock = try (do
   notFollowedBy' (choice [htmlTag "/body", htmlTag "/html"])
-  body <- choice [htmlScript, anyHtmlBlockTag, htmlComment, xmlDec, definition]
+  body <- choice [htmlScript, anyHtmlBlockTag, htmlComment, xmlDec, 
+                  definition]
   sp <- (many space)
   state <- getState
-  if stateParseRaw state then
-      return (RawHtml (body ++ sp))
-    else
-      return Null)
+  if stateParseRaw state then return (RawHtml (body ++ sp)) else return Null)
 
 htmlComment = try (do
   string "<!--"
@@ -266,10 +273,10 @@ headerLevel n = try (do
 hrule = try (do
   (tag, attribs) <- htmlTag "hr"
   state <- getState
-  if (not (null attribs)) && (stateParseRaw state) then
-       unexpected "attributes in hr"  -- in this case we want to parse it as raw html
-     else
-       return HorizontalRule)
+  if (not (null attribs)) && (stateParseRaw state)
+     then -- in this case we want to parse it as raw html
+          unexpected "attributes in hr"
+     else return HorizontalRule)
 
 --
 -- code blocks
@@ -352,29 +359,31 @@ inline = choice [ text, special ] <?> "inline"
 
 text =  choice [ entity, strong, emph, code, str, linebreak, whitespace ] <?> "text"
 
-special = choice [ link, image, rawHtmlInline ] <?> "link, inline html, or image"
+special = choice [ link, image, rawHtmlInline ] <?> 
+                 "link, inline html, or image"
 
 entity = try (do
   char '&'
-  body <- choice [(many1 letter), 
-                  (try (do{ char '#'; num <- many1 digit; return ("#" ++ num)}))]
+  body <- choice [(many1 letter), (try (do
+                                          char '#'
+                                          num <- many1 digit
+                                          return ("#" ++ num)))]
   char ';'
   return (Str [fromMaybe '?' (htmlEntityToChar ("&" ++ body ++ ";"))]))
 
 code = try (do 
   htmlTag "code"
   result <- manyTill anyChar (htmlEndTag "code")
-  -- remove internal line breaks, leading and trailing space, and decode entities
-  let result' = decodeEntities $ removeLeadingTrailingSpace $ joinWithSep " " $ lines result 
+  -- remove internal line breaks, leading and trailing space,
+  -- and decode entities
+  let result' = decodeEntities $ removeLeadingTrailingSpace $ 
+                joinWithSep " " $ lines result 
   return (Code result'))
 
 rawHtmlInline = do
   result <- choice [htmlScript, anyHtmlInlineTag]
   state <- getState
-  if stateParseRaw state then
-      return (HtmlInline result)
-    else
-      return (Str "")
+  if stateParseRaw state then return (HtmlInline result) else return (Str "")
 
 betweenTags tag = try (do
   htmlTag tag
