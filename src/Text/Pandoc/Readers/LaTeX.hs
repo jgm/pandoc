@@ -601,13 +601,14 @@ footnote = try (do
      then string ""
      else fail "not a footnote or thanks command"
   let contents' = stripFirstAndLast contents
+  -- parse the extracted block, which may contain various block elements:
+  rest <- getInput
+  setInput $ contents'
+  blocks <- parseBlocks
+  setInput rest
   state <- getState
-  let blocks = case runParser parseBlocks state "footnote" contents of
-                 Left err     -> error $ "Input:\n" ++ show contents' ++
-                                 "\nError:\n" ++ show err
-                 Right result -> result
   let notes = stateNoteBlocks state
-  let nextRef  = case notes of
+  let nextRef = case notes of 
                    []                   -> "1"
                    (Note ref body):rest -> (show ((read ref) + 1))
   setState (state { stateNoteBlocks = (Note nextRef blocks):notes })

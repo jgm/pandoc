@@ -95,8 +95,7 @@ data HeaderType
     deriving (Eq, Show)
 
 data ParserContext 
-    = BlockQuoteState -- ^ Used when running parser on contents of blockquote
-    | ListItemState   -- ^ Used when running parser on list item contents
+    = ListItemState   -- ^ Used when running parser on list item contents
     | NullState       -- ^ Default state
     deriving (Eq, Show)
 

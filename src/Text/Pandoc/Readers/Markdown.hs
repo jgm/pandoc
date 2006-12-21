@@ -263,17 +263,15 @@ note = try (do
   raw <- sepBy rawLines (try (do {blankline; indentSpaces}))
   option "" blanklines
   -- parse the extracted text, which may contain various block elements:
+  rest <- getInput
+  setInput $ (joinWithSep "\n" raw) ++ "\n\n"
+  contents <- parseBlocks
+  setInput rest
   state <- getState
-  let parsed = case runParser parseBlocks 
-                    (state {stateParserContext = BlockQuoteState}) "block" 
-                    ((joinWithSep "\n" raw) ++ "\n\n") of
-                       Left err     -> error $ "Raw block:\n" ++ show raw ++
-                                       "\nError:\n" ++ show err
-                       Right result -> result 
   let identifiers = stateNoteIdentifiers state
   case (findIndex (== ref) identifiers) of
     Just n  -> updateState (\s -> s {stateNoteBlocks = 
-               (Note (show (n+1)) parsed):(stateNoteBlocks s)})
+               (Note (show (n+1)) contents):(stateNoteBlocks s)})
     Nothing -> updateState id 
   return Null)
 
@@ -315,15 +313,12 @@ emailBlockQuote = try (do
 blockQuote = do 
   raw <- choice [ emailBlockQuote, emacsBoxQuote ]
   -- parse the extracted block, which may contain various block elements:
-  state <- getState
-  let parsed = case runParser parseBlocks 
-                    (state {stateParserContext = BlockQuoteState}) "block" 
-                    ((joinWithSep "\n" raw) ++ "\n\n") of
-                       Left err     -> error $ "Raw block:\n" ++ show raw ++ 
-                                               "\nError:\n" ++ show err
-                       Right result -> result
-  return (BlockQuote parsed)
-
+  rest <- getInput
+  setInput $ (joinWithSep "\n" raw) ++ "\n\n"
+  contents <- parseBlocks
+  setInput rest
+  return (BlockQuote contents)
+ 
 --
 -- list blocks
 --
@@ -382,19 +377,21 @@ listContinuationLine start = try (do
 
 listItem start = try (do 
   first <- rawListItem start
-  rest <- many (listContinuation start)
+  continuations <- many (listContinuation start)
   -- parsing with ListItemState forces markers at beginning of lines to
   -- count as list item markers, even if not separated by blank space.
   -- see definition of "endline"
   state <- getState
-  let parsed = case runParser parseBlocks 
-                    (state {stateParserContext = ListItemState}) 
-                    "block" raw of
-                       Left err     -> error $ "Raw block:\n" ++ raw ++ 
-                                       "\nError:\n" ++ show err
-                       Right result -> result
-          where raw = concat (first:rest) 
-  return parsed)
+  let oldContext = stateParserContext state
+  setState $ state {stateParserContext = ListItemState}
+  -- parse the extracted block, which may contain various block elements:
+  rest <- getInput
+  let raw = concat (first:continuations)
+  setInput $ raw
+  contents <- parseBlocks
+  setInput rest
+  updateState (\st -> st {stateParserContext = oldContext})
+  return contents)
 
 orderedList = try (do
   items <- many1 (listItem orderedListStart)

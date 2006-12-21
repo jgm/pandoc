@@ -112,7 +112,7 @@ parseRST = do
                              "RST source, second pass" input of
                                 Left err   -> error $ "\nError:\n" ++ show err
                                 Right result -> 
-                                  (filter isNotAnonKeyBlock result)
+                                  filter isNotAnonKeyBlock result
   let (blocks'', title) = if stateStandalone state
                              then titleTransform blocks'
                              else (blocks', [])
@@ -352,16 +352,13 @@ rawLaTeXBlock = try (do
 --
 
 blockQuote = try (do
-  block <- indentedBlock True
+  raw <- indentedBlock True
   -- parse the extracted block, which may contain various block elements:
-  state <- getState
-  let parsed = case runParser parseBlocks 
-                    (state {stateParserContext = BlockQuoteState}) 
-                    "block" (block ++ "\n\n") of
-                       Left err -> error $ "Raw block:\n" ++ show block ++ 
-                                           "\nError:\n" ++ show err
-                       Right result -> result
-  return (BlockQuote parsed))
+  rest <- getInput
+  setInput $ raw ++ "\n\n"
+  contents <- parseBlocks
+  setInput rest
+  return (BlockQuote contents))
 
 --
 -- list blocks
