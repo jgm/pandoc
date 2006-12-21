@@ -32,7 +32,7 @@ MAIN      := $(firstword $(EXECS))
 WRAPPERS  := html2markdown latex2markdown markdown2html \
              markdown2latex markdown2pdf
 PROGS     := $(EXECS) $(WRAPPERS)
-DOCS      := README.html README BUGS TODO
+DOCS      := README.html README BUGS 
 
 #-------------------------------------------------------------------------------
 # Variables to setup through environment
