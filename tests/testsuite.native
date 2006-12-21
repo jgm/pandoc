@@ -319,6 +319,12 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , HorizontalRule
 , Header 1 [Str "Footnotes"]
 , Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "footnote",Space,Str "reference,",NoteRef "1",Space,Str "and",Space,Str "another.",NoteRef "2",Space,Str "This",Space,Str "should",Space,Emph [Str "not"],Space,Str "be",Space,Str "a",Space,Str "footnote",Space,Str "reference,",Space,Str "because",Space,Str "it",Space,Str "contains",Space,Str "a",Space,Str "space.",Str "[",Str "^",Str "my",Space,Str "note",Str "]",Space,Str "Here",Space,Str "is",Space,Str "an",Space,Str "inline",Space,Str "note.",NoteRef "3"]
+, BlockQuote
+  [ Para [Str "Notes",Space,Str "can",Space,Str "go",Space,Str "in",Space,Str "quotes.",NoteRef "4"] ]
+
+, OrderedList
+  [ [ Plain [Str "And",Space,Str "in",Space,Str "list",Space,Str "items.",NoteRef "5"] ]
+ ]
 , Para [Str "This",Space,Str "paragraph",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "part",Space,Str "of",Space,Str "the",Space,Str "note,",Space,Str "as",Space,Str "it",Space,Str "is",Space,Str "not",Space,Str "indented."]
 , Note "1"
   [ Para [Str "Here",Space,Str "is",Space,Str "the",Space,Str "footnote.",Space,Str "It",Space,Str "can",Space,Str "go",Space,Str "anywhere",Space,Str "after",Space,Str "the",Space,Str "footnote",Space,Str "reference.",Space,Str "It",Space,Str "need",Space,Str "not",Space,Str "be",Space,Str "placed",Space,Str "at",Space,Str "the",Space,Str "end",Space,Str "of",Space,Str "the",Space,Str "document."] ]
@@ -330,4 +336,10 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
   , Para [Str "If",Space,Str "you",Space,Str "want,",Space,Str "you",Space,Str "can",Space,Str "indent",Space,Str "every",Space,Str "line,",Space,Str "but",Space,Str "you",Space,Str "can",Space,Str "also",Space,Str "be",Space,Str "lazy",Space,Str "and",Space,Str "just",Space,Str "indent",Space,Str "the",Space,Str "first",Space,Str "line",Space,Str "of",Space,Str "each",Space,Str "block."] ]
 , Note "3"
   [ Para [Str "This",Space,Str "is",Space,Emph [Str "easier"],Space,Str "to",Space,Str "type.",Space,Str "Inline",Space,Str "notes",Space,Str "may",Space,Str "contain",Space,Link [Str "links"] (Src "http://google.com" ""),Space,Str "and",Space,Code "]",Space,Str "verbatim",Space,Str "characters."] ]
+
+, Note "4"
+  [ Para [Str "In",Space,Str "quote."] ]
+
+, Note "5"
+  [ Para [Str "In",Space,Str "list."] ]
  ]

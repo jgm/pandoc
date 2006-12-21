@@ -596,6 +596,10 @@ contains a space.[^my note]  Here is an inline note.^[This
 is *easier* to type.  Inline notes may contain
 [links](http://google.com) and `]` verbatim characters.]
 
+> Notes can go in quotes.^[In quote.]
+
+1.  And in list items.^[In list.]
+
 [^longnote]: Here's the long note.  This one contains multiple
 blocks.  
 

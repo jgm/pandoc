@@ -611,6 +611,10 @@ Here is a footnote reference,[^1] and another.[^2] This should
 *not* be a footnote reference, because it contains a space.[\^my
 note] Here is an inline note.[^3]
 
+> Notes can go in quotes.[^4]
+
+1.  And in list items.[^5]
+
 This paragraph should not be part of the note, as it is not
 indented.
 
@@ -629,4 +633,10 @@ indented.
 
 [^3]: This is *easier* to type. Inline notes may contain
     [links](http://google.com) and `]` verbatim characters.
+
+[^4]: In quote.
+
+
+[^5]: In list.
+
 

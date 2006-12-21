@@ -32,6 +32,7 @@ module Text.Pandoc.Writers.RTF (
                                ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Regex ( matchRegexAll, mkRegex )
 import List ( isSuffixOf )
 import Char ( ord, chr )
 
@@ -189,9 +190,12 @@ listItemToRTF notes indent marker [] =
              (marker ++ "\\tx" ++ (show listIncrement) ++ "\\tab ") 
 listItemToRTF notes indent marker list = 
   let (first:rest) = map (blockToRTF notes (indent + listIncrement)) list in
-  let modFirst = gsub "\\\\fi-?[0-9]+" ("\\\\fi" ++ 
-                 (show (0 - listIncrement)) ++ " " ++ marker ++ 
-                 "\\\\tx" ++ (show listIncrement) ++ "\\\\tab") first in
+  -- insert the list marker into the (processed) first block
+  let modFirst = case matchRegexAll (mkRegex "\\\\fi-?[0-9]+") first of
+                    Just (before, matched, after, _) -> before ++ "\\fi" ++
+                               show (0 - listIncrement) ++ " " ++ marker ++ "\\tx" ++ 
+                               show listIncrement ++ "\\tab" ++ after
+                    Nothing -> first in
   modFirst ++ (concat rest)
 
 -- | Convert list of inline items to RTF.
