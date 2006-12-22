@@ -45,6 +45,7 @@ import Text.Pandoc.Writers.DefaultHeaders ( defaultHtmlHeader,
        defaultRTFHeader, defaultS5Header, defaultLaTeXHeader )
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Regex ( mkRegex, splitRegex )
 import System ( exitWith, getArgs, getProgName )
 import System.Exit
 import System.Console.GetOpt
@@ -56,6 +57,9 @@ import Control.Monad ( (>>=) )
 
 version :: String
 version = "0.3"
+
+copyrightMessage :: String
+copyrightMessage = "\nCopyright (C) 2006 John MacFarlane\nWeb:  http://sophos.berkeley.edu/macfarlane/pandoc\nThis is free software; see the source for copying conditions.  There is no\nwarranty, not even for merchantability or fitness for a particular purpose."
 
 -- | Association list of formats and readers.
 readers :: [(String, ParserState -> String -> Pandoc)]
@@ -101,10 +105,13 @@ data Opt = Opt
     , optCustomHeader      :: String  -- ^ Custom header to use, or "DEFAULT"
     , optDefaultHeader     :: String  -- ^ Default header
     , optTitlePrefix       :: String  -- ^ Optional prefix for HTML title
+    , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ If @True@, number sections in LaTeX
     , optIncremental       :: Bool    -- ^ If @True@, incremental lists in S5
     , optSmart             :: Bool    -- ^ If @True@, use smart typography
     , optASCIIMathML       :: Bool    -- ^ If @True@, use ASCIIMathML in HTML
+    , optShowUsage         :: Bool    -- ^ If @True@, show usage message
+    , optDebug             :: Bool    -- ^ If @True@, output debug messages 
     }
 
 -- | Defaults for command-line options.
@@ -123,32 +130,20 @@ startOpt = Opt
     , optCustomHeader      = "DEFAULT"
     , optDefaultHeader     = defaultHtmlHeader
     , optTitlePrefix       = ""
+    , optOutputFile        = ""    -- null for stdout
     , optNumberSections    = False
     , optIncremental       = False
     , optSmart             = False
     , optASCIIMathML       = False
+    , optShowUsage         = False
+    , optDebug             = False
     }
 
 -- | A list of functions, each transforming the options data structure in response
 -- to a command-line option.
-options :: [OptDescr (Opt -> IO Opt)]
-options =
-    [ Option "v" ["version"]
-                 (NoArg
-                  (\_ -> do
-                     hPutStrLn stderr ("Version " ++ version)
-                     exitWith ExitSuccess))
-                 "Print version"
-
-    , Option "h" ["help"]
-                 (NoArg
-                  (\_ -> do
-                     prg <- getProgName
-                     hPutStrLn stderr (usageInfo (prg ++ " [OPTIONS] [FILES] - convert FILES from one markup format to another\nIf no OPTIONS specified, converts from markdown to html.\nIf no FILES specified, input is read from STDIN.\nOptions:") options)
-                     exitWith ExitSuccess))
-                 "Show help"
-
-    , Option "fr" ["from","read"]
+allOptions :: [OptDescr (Opt -> IO Opt)]
+allOptions =
+    [ Option "fr" ["from","read"]
                  (ReqArg
                   (\arg opt -> case (lookup (map toLower arg) readers) of
                       Just reader -> return opt { optReader = reader }
@@ -171,6 +166,13 @@ options =
                  (NoArg
                   (\opt -> return opt { optStandalone = True }))
                  "Include needed header and footer on output"
+
+    , Option "o" ["output"]
+                 (ReqArg
+                  (\arg opt -> do
+                     return opt { optOutputFile = arg })
+                  "FILENAME")
+                 "Name of output file"
 
     , Option "p" ["preserve-tabs"]
                  (NoArg
@@ -241,7 +243,7 @@ options =
                   "FILENAME")
                  "File to include after document body"
 
-    , Option "" ["custom-header"]
+    , Option "C" ["custom-header"]
                  (ReqArg
                   (\arg opt -> do
                      text <- readFile arg
@@ -263,18 +265,87 @@ options =
                      let header = case (lookup arg writers) of
                            Just (writer, head) -> head
                            Nothing     -> error ("Unknown reader: " ++ arg) 
-                     hPutStrLn stdout header
+                     hPutStr stdout header
                      exitWith ExitSuccess)
                   "FORMAT")
                  "Print default header for FORMAT"
+
+    , Option "d" ["debug"]
+                 (NoArg
+                  (\opt -> return opt { optDebug = True }))
+                 "Print debug messages to stderr, output to stdout"
+    
+    , Option "v" ["version"]
+                 (NoArg
+                  (\_ -> do
+                     prg <- getProgName
+                     hPutStrLn stderr (prg ++ " " ++ version ++ 
+                                       copyrightMessage)
+                     exitWith $ ExitFailure 2))
+                 "Print version"
+
+    , Option "h" ["help"]
+                 (NoArg
+                  (\opt -> return opt { optShowUsage = True }))
+                 "Show help"
     ]
+
+-- parse name of calling program and return default reader and writer descriptions
+parseProgName name =
+    case (splitRegex (mkRegex "2") (map toLower name)) of
+      [from, to] -> (from, to)
+      _          -> ("markdown", "html")
+
+-- set default options based on reader and writer descriptions; start is starting options
+setDefaultOpts from to start =
+    case ((lookup from readers), (lookup to writers)) of
+      (Just reader, Just (writer, header)) -> start {optReader      = reader, 
+                                                     optWriter      = writer, 
+                                                     optDefaultHeader = header}
+      _                                    -> start
+
+-- True if single-letter option is in option list
+inOptList :: [Char] -> OptDescr (Opt -> IO Opt) -> Bool
+inOptList list desc =
+  let (Option letters _ _ _) = desc in
+  any (\x -> x `elem` list) letters
+
+-- Reformat usage message so it doesn't wrap illegibly
+reformatUsageInfo = gsub "   *--" "  --" .
+                    gsub "(-[A-Za-z0-9])   *--" "\\1, --" . 
+                    gsub "   *([^- ])" "\n\t\\1"
+
 main = do
 
+  name <- getProgName
+  let (from, to) = parseProgName name
+
+  let irrelevantOptions = if not ('2' `elem` name)
+         then ""
+         else "frtwD" ++
+              (if (to /= "html" && to /= "s5") then "SmcT" else "") ++
+              (if (to /= "latex") then "N" else "") ++
+              (if (to /= "s5") then "i" else "") ++
+              (if (from /= "html" && from /= "latex") then "R" else "")
+  
+  let options = filter (not . inOptList irrelevantOptions) allOptions
+
+  let defaultOpts = setDefaultOpts from to startOpt
+
   args <- getArgs
-  let (actions, sources, errors) = getOpt RequireOrder options args
+  let (actions, sources, errors) = getOpt Permute options args
+
+  if (not (null errors))
+    then do
+      mapM (\e -> hPutStrLn stderr e) errors
+      hPutStrLn stderr (reformatUsageInfo $ 
+                        usageInfo (name ++ " [OPTIONS] [FILES]") options)
+      exitWith $ ExitFailure 2
+    else
+      return ()
 
   -- thread option data structure through all supplied option actions
-  opts <- foldl (>>=) (return startOpt) actions
+  opts <- foldl (>>=) (return defaultOpts) actions
 
   let Opt    { optPreserveTabs       = preserveTabs
               , optTabStop           = tabStop
@@ -289,11 +360,30 @@ main = do
               , optCustomHeader      = customHeader
               , optDefaultHeader     = defaultHeader 
               , optTitlePrefix       = titlePrefix
+              , optOutputFile        = outputFile
               , optNumberSections    = numberSections
               , optIncremental       = incremental
               , optSmart             = smart
               , optASCIIMathML       = asciiMathML
+              , optShowUsage         = showUsage
+			  , optDebug             = debug
              } = opts
+
+  if showUsage
+    then do
+        hPutStr stderr (reformatUsageInfo $ usageInfo (name ++ " [OPTIONS] [FILES]") options)
+        exitWith $ ExitFailure 2
+    else return ()
+
+  output <- if ((null outputFile) || debug)
+              then return stdout 
+              else openFile outputFile WriteMode
+
+  if debug 
+	then do
+        hPutStrLn stderr ("OUTPUT=" ++ outputFile)
+        hPutStr stderr $ concatMap (\s -> "INPUT=" ++ s ++ "\n") sources
+    else return ()
 
   let writingS5 = (defaultHeader == defaultS5Header)
   let tabFilter = if preserveTabs then id else (tabsToSpaces tabStop)
@@ -323,13 +413,13 @@ main = do
                                       writerIncludeBefore  = includeBefore, 
                                       writerIncludeAfter   = includeAfter }
 
-  (readSources sources) >>= (putStr . encodeUTF8 . (writer writerOptions) . 
+  (readSources sources) >>= (hPutStr output . encodeUTF8 . 
+                             (writer writerOptions) . 
                              (reader startParserState) .  filter .
-                             decodeUTF8 . (joinWithSep "\n"))
+                             decodeUTF8 . (joinWithSep "\n")) >> hClose output
 
   where 
     readSources [] = mapM readSource ["-"]
     readSources sources = mapM readSource sources
-    readSource "-" = getContents 
+    readSource "-" = getContents
     readSource source = readFile source
-

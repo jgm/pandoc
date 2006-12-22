@@ -23,15 +23,16 @@ EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
 #-------------------------------------------------------------------------------
 # Install targets
 #-------------------------------------------------------------------------------
+WRAPPERS  := web2markdown markdown2pdf
+SYMLINKS  := markdown2html markdown2latex markdown2s5 markdown2rst \
+			 markdown2rtf html2markdown latex2markdown rst2markdown
+PROGS     := $(EXECS) $(WRAPPERS) 
 # Add .exe extensions if we're running Windows/Cygwin.
 EXTENSION := $(shell uname | tr '[:upper:]' '[:lower:]' | \
                sed -ne 's/^cygwin.*$$/\.exe/p')
 EXECS     := $(addsuffix $(EXTENSION),$(EXECSBASE))
 # First entry in Cabal's executable stanza is the main executable.
 MAIN      := $(firstword $(EXECS))
-WRAPPERS  := html2markdown latex2markdown markdown2html \
-             markdown2latex markdown2pdf
-PROGS     := $(EXECS) $(WRAPPERS)
 DOCS      := README.html README BUGS 
 
 #-------------------------------------------------------------------------------
@@ -92,6 +93,12 @@ all: build-program
 templates: $(SRCDIR)/templates
 	$(MAKE) -C $(SRCDIR)/templates
 
+.PHONY: symlinks
+cleanup_files+=$(SYMLINKS)
+symlinks: $(SYMLINKS)
+$(SYMLINKS): $(MAIN)
+	ln -sf ./$(MAIN) $@ 
+
 define generate-shell-script
 echo "Generating $@...";                                 \
 awk '                                                    \
@@ -131,7 +138,7 @@ build: configure
 	$(BUILDCMD) build
 
 .PHONY: build-exec
-build-exec: $(PROGS)
+build-exec: $(PROGS) $(SYMLINKS)
 cleanup_files+=$(EXECS)
 $(EXECS): build
 	for f in $@; do \
@@ -191,8 +198,9 @@ install-exec: build-exec
 		fi; \
 		$(INSTALL_PROGRAM) $$f $(BINPATH)/; \
 	done
+	cd $(BINPATH); for f in $(SYMLINKS); do ln -sf $(MAIN) $$f; done
 uninstall-exec:
-	-for f in $(notdir $(PROGS)); do rm -f $(BINPATH)/$$f; done
+	-for f in $(notdir $(PROGS) $(SYMLINKS)); do rm -f $(BINPATH)/$$f; done ;
 
 # Program + user documents installation.
 .PHONY: install-program uninstall-program
@@ -277,15 +285,11 @@ osx-dmg: ../$(osx_dmg_name)
 	-rm -f $(osx_dmg_name)
 	mv $(osx_udzo_name) ../$(osx_dmg_name)
 
-.PHONY: test test-markdown test-wrapper
+.PHONY: test test-markdown
 test: $(MAIN)
 	@cd $(TESTDIR) && perl runtests.pl -s $(PWD)/$(MAIN)
 test-markdown: $(MAIN)
 	@cd $(TESTDIR)/MarkdownTest_1.0.3 && perl MarkdownTest.pl -s $(PWD)/$(MAIN) -tidy
-cleanup_files+=testwrapper
-test-wrappers: testwrapper
-	@echo "Running $<..."
-	@sh testwrapper
 
 # Stolen and slightly improved from a GPLed Makefile.  Credits to John Meacham.
 src_all:=$(shell find $(SRCDIR) -type f -name '*hs' | egrep -v '^\./(_darcs|lib|test)/')

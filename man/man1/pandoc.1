@@ -1,18 +1,23 @@
-.TH PANDOC 1 "November 21, 2006" Pandoc "User Manuals"
+.TH PANDOC 1 "December 15, 2006" Pandoc "User Manuals"
 .SH NAME
-pandoc \- general markup converter
+pandoc, markdown2html, markdown2latex, markdown2rst, markdown2rtf,
+markdown2s5, html2markdown2, latex2markdown, rst2markdown \- general
+markup converter
 .SH SYNOPSIS
 \fBpandoc\fR [\fIoptions\fR] [\fIinput\-file\fR]...
 .SH DESCRIPTION
-\fIPandoc\fR converts files from one markup format to another. It can
+\fBPandoc\fR converts files from one markup format to another. It can
 read markdown and (subsets of) reStructuredText, HTML, and LaTeX, and
 it can write markdown, reStructuredText, HTML, LaTeX, RTF, and S5 HTML
 slide shows.
 .PP
-If no \fIinput\-file\fR is specified, input is read from STDIN.  Otherwise,
-the \fIinput\-files\fR are concatenated (with a blank line between each)
-and used as input.  Output goes to STDOUT.  If you want output to a file,
-use shell redirection:
+If no \fIinput\-file\fR is specified, input is read from STDIN.
+Otherwise, the \fIinput\-files\fR are concatenated (with a blank
+line between each) and used as input.  Output goes to standard
+output.  If you want output to a file, use the \fB\-o\fR option or
+shell redirection:
+.IP
+.B pandoc \-o output.html input.txt
 .IP
 .B pandoc input.txt > output.html
 .PP
@@ -25,6 +30,19 @@ formats can be specified using command\-line options.  For example,
 converts \fIchap1.tex\fR from LaTeX to markdown\-formatted plain text.
 See below for a detailed list of command\-line options.
 .PP
+For convenience, eight variant programs are available:
+\fBmarkdown2html\fR (same as \fBpandoc \-w html\fR),
+\fBmarkdown2latex\fR (same as \fBpandoc \-w latex\fR),
+\fBmarkdown2rst\fR (same as \fBpandoc \-w rst\fR),
+\fBmarkdown2rtf\fR (same as \fBpandoc \-w rtf\fR),
+\fBmarkdown2s5\fR (same as \fBpandoc \-w s5\fR),
+\fBhtml2markdown\fR (same as \fBpandoc \-r html \-w markdown\fR),
+\fBlatex2markdown\fR (same as \fBpandoc \-r latex \-w markdown\fR),
+and \fBrst2markdown\fR (same as \fBpandoc \-r rst \-w markdown\fR).
+These programs take an appropriately restricted subset of \fBpandoc\fR's
+options.  (Run them with the \fB-h\fR flag for a full list of allowed
+options.)  
+.PP
 \fIPandoc\fR uses the UTF\-8 character encoding for both input and output.
 If your local character encoding is not UTF\-8, you should pipe input
 and output through \fBiconv\fR:
@@ -33,61 +51,58 @@ and output through \fBiconv\fR:
 
 .SH OPTIONS
 .TP
-.B \-v, \-\-version
-Print version.
-.TP
-.B \-h, \-\-help
-Show usage message.
-.TP
-.B \-f FORMAT, \-r FORMAT, \-\-from=FORMAT, \-\-read=FORMAT
+.B \-f \fIFORMAT\fB, \-r \fIFORMAT\fB, \-\-from=\fIFORMAT\fB, \-\-read=\fIFORMAT\fB
 Specify input format.
 .I FORMAT
 can be
-.I native
+.B native
 (native Haskell),
-.I markdown
+.B markdown
 (markdown or plain text),
-.I rst
+.B rst
 (reStructuredText),
-.I html
+.B html
 (HTML),
 or 
-.I latex
+.B latex
 (LaTeX).
 .TP
-.B \-t FORMAT, \-w FORMAT, \-\-to=FORMAT, \-\-write=FORMAT
+.B \-t \fIFORMAT\fB, \-w \fIFORMAT\fB, \-\-to=\fIFORMAT\fB, \-\-write=\fIFORMAT\fB
 Specify output format.
 .I FORMAT
 can be
-.I native
+.B native
 (native Haskell),
-.I markdown
+.B markdown
 (markdown or plain text), 
-.I rst
+.B rst
 (reStructuredText),
-.I html
+.B html
 (HTML),
-.I latex
+.B latex
 (LaTeX),
-.I s5
+.B s5
 (S5 HTML and javascript slide show),
 or
-.I rtf
+.B rtf
 (rich text format).
 .TP
 .B \-s, \-\-standalone
 Produce output with an appropriate header and footer (e.g. a
 standalone HTML, LaTeX, or RTF file, not a fragment).
 .TP
+.B \-o FILE, \-\-output=FILE
+Write output to \fIFILE\fR instead of STDOUT.
+.TP
 .B \-p, \-\-preserve-tabs
 Preserve tabs instead of converting them to spaces.
 .TP
-.B \-\-tab-stop=TABSTOP
+.B \-\-tab-stop=\fITABSTOP\fB
 Specify tab stop (default is 4).
 .TP
 .B \-R, \-\-parse-raw
-Parse untranslatable HTML codes and LaTeX environments as raw HTML or
-LaTeX, instead of ignoring them.
+Parse untranslatable HTML codes and LaTeX environments as raw HTML
+or LaTeX, instead of ignoring them.
 .TP
 .B \-S, \-\-smartypants
 Use smart quotes, dashes, and ellipses in HTML output.
@@ -99,41 +114,50 @@ Use ASCIIMathML to display embedded LaTeX math in HTML output.
 Make list items in S5 display incrementally (one by one).
 .TP
 .B \-N, \-\-number-sections
-Number section headings in LaTeX output.  (Default is not to number them.)
+Number section headings in LaTeX output.  (Default is not to number
+them.)
 .TP
-.B \-c CSS, \-\-css=CSS
+.B \-c \fICSS\fB, \-\-css=\fICSS\fB
 Link to a CSS style sheet.
 .I CSS
 is the pathname of the style sheet.
 .TP
-.B \-H FILENAME, \-\-include-in-header=FILENAME
-Include contents of \fIFILENAME\fR at the end of the header.  Implies
+.B \-H \fIFILE\fB, \-\-include-in-header=\fIFILE\fB
+Include contents of \fIFILE\fR at the end of the header.  Implies
 \fB\-s\fR.
 .TP
-.B \-B FILENAME, \-\-include-before-body=FILENAME
-Include contents of \fIFILENAME\fR at the beginning of the document body.
+.B \-B \fIFILE\fB, \-\-include-before-body=\fIFILE\fB
+Include contents of \fIFILE\fR at the beginning of the document
+body.
 .TP
-.B \-A FILENAME, \-\-include-after-body=FILENAME
-Include contents of \fIFILENAME\fR at the end of the document body.
+.B \-A \fIFILE\fB, \-\-include-after-body=\fIFILE\fB
+Include contents of \fIFILE\fR at the end of the document body.
 .TP
-.B \-\-custom-header=FILENAME
-Use contents of \fIFILENAME\fR
-as the document header (overriding the default header, which can be
-printed by using the \fB\-D\fR option).  Implies
-\fB-s\fR.
+.B \-C \fIFILE\fB, \-\-custom-header=\fIFILE\fB
+Use contents of \fIFILE\fR as the document header (overriding the
+default header, which can be printed by using the \fB\-D\fR option).
+Implies \fB-s\fR.
 .TP
-.B \-D FORMAT, \-\-print-default-header=FORMAT
-Print the default header for \fIFORMAT\fR
-(\fIhtml, s5, latex, markdown, rst, rtf\fR).
+.B \-D \fIFORMAT\fB, \-\-print-default-header=\fIFORMAT\fB
+Print the default header for \fIFORMAT\fR (\fIhtml, s5, latex,
+markdown, rst, rtf\fR).
 .TP
-.B \-T STRING, \-\-title-prefix=STRING
+.B \-T \fISTRING\fB, \-\-title-prefix=\fISTRING\fB
 Specify \fISTRING\fR as a prefix to the HTML window title.
+.TP
+.B \-d, \-\-debug
+Print debugging information (names of input and output files) to
+STDERR.  Write output to STDOUT, even if an output file was specified
+using the \fB\-o\fR option.
+.TP
+.B \-v, \-\-version
+Print version.
+.TP
+.B \-h, \-\-help
+Show usage message.
 
 .SH "SEE ALSO"
-\fBmarkdown2html\fR(1),
-\fBhtml2markdown\fR(1),
-\fBmarkdown2latex\fR(1),
-\fBlatex2markdown\fR(1),
+\fBweb2markdown\fR(1),
 \fBmarkdown2pdf\fR(1),
 \fBiconv\fR(1)
 

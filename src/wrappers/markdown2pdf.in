@@ -1,64 +1,54 @@
 #!/bin/sh -e
-# converts markdown to latex, then uses latex to make a PDF
 
-REQUIRED=pdflatex
+REQUIRED="markdown2latex pdflatex"
 
 ### common.sh
 
-outfile=
-while getopts o:h opt; do
-    case $opt in
-    o) outfile="$OPTARG" ;;
-    h|?) usage "[-o output_file] [-h] [input_file]..."; exit 2 ;;
-    esac
-done
-
-shift $(($OPTIND - 1))
-
-### postopts.sh
-
-### checkin.sh
-
-if [ -z "$outfile" ]; then
-    if [ -n "$1" ]; then
-        outfile="${1%.*}"
-    else
-        outfile="stdin" # input is STDIN, since no argument given
-    fi
-fi
-case "$outfile" in
-*.*) ;; # skip appending extension if one is already present
-*)   outfile="${outfile%.*}.pdf";;
-esac
-
 ### tempdir.sh
 
-# We should use a filename without white spaces for pdflatex.
-TEXNAME=$THIS
+texname=output
+logfile=$THIS_TEMPDIR/log
 
-to_utf8 "$@" | runpandoc -w latex -s >$THIS_TEMPDIR/$TEXNAME.tex
+if ! markdown2latex -s -d "$@" >$THIS_TEMPDIR/$texname.tex 2>$logfile; then
+    [ -f $logfile ] && sed -e 's/markdown2latex/markdown2pdf/g' \
+        -e '/^INPUT=/d' -e '/^OUTPUT=/d' $logfile >&2
+    exit 1
+fi
+
+outfile="$(sed -ne 's/^OUTPUT=//p' $logfile)"
+IFS="$NEWLINE"
+set -- $(sed -ne 's/^INPUT=//p' $logfile)
+firstinfilebase="${1%.*}"
+defaultdest="${firstinfilebase:-stdin}.pdf"
+destname="${outfile:-$defaultdest}"
+
 (
     cd $THIS_TEMPDIR
-    if ! pdflatex -interaction=batchmode $TEXNAME.tex >/dev/null 2>&1; then
+    if ! pdflatex -interaction=batchmode $texname.tex >/dev/null 2>&1; then
         err "LaTeX errors:"
-        from_utf8 $TEXNAME.log | sed -ne '/^!/,/^ *$/p' >&2
-        if grep -q "File \`ucs.sty' not found" $TEXNAME.log; then
-            err "Please install the 'unicode' package from ctan.org."
+        sed -ne '/^!/,/^ *$/p' $texname.log >&2
+        if grep -q "File \`ucs.sty' not found" $texname.log; then
+            err "Please install the 'unicode' package from CTAN:"
+            err "http://www.ctan.org/tex-archive/macros/latex/contrib/unicode/"
+        fi
+        if grep -q "File \`fancyvrb.sty' not found" $texname.log; then
+            err "Please install the 'fancyvrb' package from CTAN:"
+            err "http://www.ctan.org/tex-archive/macros/latex/contrib/fancyvrb/"
         fi
         exit 1
     fi
-)
+) || exit $?
 
 is_target_exists=
-if [ -f "$outfile" ]; then
+if [ -f "$destname" ]; then
     is_target_exists=1
-    mv -f "$outfile" "$outfile~"
+    mv "$destname" "$destname~" 
 fi
 
-mv -f $THIS_TEMPDIR/$TEXNAME.pdf "$outfile"
+mv -f $THIS_TEMPDIR/$texname.pdf "$destname"
 
-errn "Created '$outfile'"
+errn "Created $destname"
 [ -z "$is_target_exists" ] || {
-    errn " (previous file has been backed up as '$outfile~')"
+    errn " (previous file has been backed up as $destname~)"
 }
 err .

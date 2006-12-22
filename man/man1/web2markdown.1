@@ -1,0 +1,82 @@
+.TH WEB2MARKDOWN 1 "December 15, 2006" Pandoc "User Manuals"
+.SH NAME
+web2markdown \- converts HTML to markdown-formatted text
+.SH SYNOPSIS
+\fBweb2markdown\fR [\fIoptions\fR] [\fIinput\-file\fR or \fIURL\fR]
+.SH DESCRIPTION
+\fBweb2markdown\fR converts \fIinput\-file\fR or \fIURL\fR (or text
+from STDIN) from HTML to markdown\-formatted plain text. 
+If a URL is specified, \fBweb2markdown\fR uses an available program
+(e.g. wget, w3m, lynx or curl) to fetch its contents.  Output is sent
+to STDOUT unless an output file is specified using the \fB\-o\fR
+option.
+.PP
+\fBweb2markdown\fR uses the character encoding specified in the
+"Content-type" meta tag.  If this is not present, or if input comes
+from STDIN, UTF-8 is assumed.  A character encoding may be specified
+explicitly using the \fB\-e\fR option.
+.PP
+\fBweb2markdown\fR is a wrapper for \fBhtml2markdown\fR.
+.SH OPTIONS
+.TP
+.B \-s, \-\-standalone
+Include title, author, and date information (if present) at the
+top of markdown output.
+.TP
+.B \-o FILE, \-\-output=FILE
+Write output to \fIFILE\fR instead of STDOUT. 
+.TP
+.B \-p, \-\-preserve-tabs
+Preserve tabs instead of converting them to spaces.
+.TP
+.B \-\-tab-stop=\fITABSTOP\fB
+Specify tab stop (default is 4).
+.TP
+.B \-R, \-\-parse-raw
+Parse untranslatable HTML codes as raw HTML.
+.TP
+.B \-H \fIFILE\fB, \-\-include-in-header=\fIFILE\fB
+Include contents of \fIFILE\fR at the end of the header.  Implies
+\fB\-s\fR.
+.TP
+.B \-B \fIFILE\fB, \-\-include-before-body=\fIFILE\fB
+Include contents of \fIFILE\fR at the beginning of the document body.
+.TP
+.B \-A \fIFILE\fB, \-\-include-after-body=\fIFILE\fB
+Include contents of \fIFILE\fR at the end of the document body.
+.TP
+.B \-C \fIFILE\fB, \-\-custom-header=\fIFILE\fB
+Use contents of \fIFILE\fR
+as the document header (overriding the default header, which can be
+printed using '\fBpandoc \-D markdown\fR').  Implies
+\fB-s\fR.
+.TP
+.B \-v, \-\-version
+Print version.
+.TP
+.B \-h, \-\-help
+Show usage message.
+.TP
+.B \-e \fIencoding\fR
+Assume the character encoding \fIencoding\fR in reading HTML.
+(Note: \fIencoding\fR will be passed to \fBiconv\fR; a list of
+available encodings may be obtained using `\fBiconv \-l\fR'.)
+If the \fB\-e\fR option is not specified and input is not from
+STDIN, \fBweb2markdown\fR will try to extract the character encoding
+from the "Content-type" meta tag.  If no character encoding is
+specified in this way, or if input is from STDIN, UTF-8 will be
+assumed.
+.TP
+.B \-g \fIcommand\fR
+Use \fIcommand\fR to fetch the contents of a URL.  (By default,
+\fBweb2markdown\fR searches for an available program or text-based
+browser to fetch the contents of a URL.)  For example:
+.IP
+web2markdown \-g 'wget \-\-user=foo \-\-password=bar' mysite.com
+
+.SH "SEE ALSO"
+\fBpandoc\fR(1),
+\fBhtml2markdown\fR(1),
+\fBiconv\fR(1)
+.SH AUTHOR
+John MacFarlane and Recai Oktas

@@ -1,43 +1,71 @@
-.TH MARKDOWN2PDF 1 "November 21, 2006" Pandoc "User Manuals"
+.TH MARKDOWN2PDF 1 "December 15, 2006" Pandoc "User Manuals"
 .SH NAME
 markdown2pdf \- converts markdown-formatted text to PDF, using pdflatex 
 .SH SYNOPSIS
-\fBmarkdown2pdf\fR [\fIoptions\fR] [\fB\-o\fR \fIoutput-file\fR]
-[\fIinput-file\fR]... [\fB\-\-\fR] [\fIpandoc\-opts\fR]
+\fBmarkdown2pdf\fR [\fIoptions\fR] [\fIinput-file\fR]...
 .SH DESCRIPTION
-\fBmarkdown2pdf\fR converts \fIinput\-file\fR (or text from STDIN) from
-markdown\-formatted plain text to PDF, using \fBpdflatex\fR.  If no output
-filename is specified, the name of the output file is derived from the
-input file; thus, for example, if the input file is \fIhello.txt\fR,
-the output file will be \fIhello.pdf\fR.  If the input is read from STDIN
-and no output filename is specified, the output file will be named 
-\fIstdin.pdf\fR.  If multiple input files are specified, they will be
-concatenated before conversion, and the name of the output file will be
-derived from the first input file.
+\fBmarkdown2pdf\fR converts \fIinput\-file\fR (or text from standard 
+input) from markdown\-formatted plain text to PDF, using \fBpdflatex\fR.
+If no output filename is specified, the name of the output file is
+derived from the input file; thus, for example, if the input file
+is \fIhello.txt\fR, the output file will be \fIhello.pdf\fR.  If
+the input is read from STDIN and no output filename is
+specified, the output file will be named \fIstdin.pdf\fR.  If
+multiple input files are specified, they will be concatenated before
+conversion, and the name of the output file will be derived from
+the first input file.
 .PP
-\fBmarkdown2pdf\fR is a wrapper for \fBpandoc\fR.
+Input is assumed to be in the UTF\-8 character encoding.  If your
+local character encoding is not UTF\-8, you should pipe input and
+output through \fBiconv\fR:
+.IP
+.B iconv \-t utf\-8 input.txt | pandoc | iconv \-f utf\-8
+.PP
+\fBmarkdown2pdf\fR assumes that the 'unicode' package
+is in latex's search path.  If this package is not included in your
+latex setup, it can be obtained from <http://ctan.org>.
+.PP
+\fBmarkdown2pdf\fR is a wrapper around \fBmarkdown2latex\fR.
 .SH OPTIONS
 .TP
-.B \-h
+.B \-o FILE, \-\-output=FILE
+Write output to \fIFILE\fR.
+.TP
+.B \-p, \-\-preserve-tabs
+Preserve tabs instead of converting them to spaces.
+.TP
+.B \-\-tab-stop=\fITABSTOP\fB
+Specify tab stop (default is 4).
+.TP
+.B \-R, \-\-parse-raw
+Parse untranslatable LaTeX environments as raw LaTeX,
+instead of ignoring them.
+.TP
+.B \-N, \-\-number-sections
+Number section headings in LaTeX output.  (Default is not to number them.)
+.TP
+.B \-H \fIFILE\fB, \-\-include-in-header=\fIFILE\fB
+Include (LaTeX) contents of \fIFILE\fR at the end of the header.  Implies
+\fB\-s\fR.
+.TP
+.B \-B \fIFILE\fB, \-\-include-before-body=\fIFILE\fB
+Include (LaTeX) contents of \fIFILE\fR at the beginning of the document body.
+.TP
+.B \-A \fIFILE\fB, \-\-include-after-body=\fIFILE\fB
+Include (LaTeX) contents of \fIFILE\fR at the end of the document body.
+.TP
+.B \-C \fIFILE\fB, \-\-custom-header=\fIFILE\fB
+Use contents of \fIFILE\fR
+as the LaTeX document header (overriding the default header, which can be
+printed using '\fBpandoc \-D latex\fR').  Implies \fB-s\fR.
+.TP
+.B \-v, \-\-version
+Print version.
+.TP
+.B \-h, \-\-help
 Show usage message.
-.TP
-.B \-o \fIoutput-file\fR
-Specify name of output (PDF) file.
-.TP
-.I pandoc\-opts
-Any options appearing after \fIinput\-file\fR... on the command line
-will be passed directly to \fBpandoc\fR.  If no \fIinput-file\fR
-is specified, these options must be preceded by ` \fB\-\-\fR '.
-(In other cases, ` \fB\-\-\fR ' is optional.)  See \fBpandoc\fR(1)
-for a list of options that may be used.  Example:
-.IP
-markdown2pdf input.txt \-\- \-\-custom\-header=letterhead.tex
 .SH "SEE ALSO"
 \fBpandoc\fR(1),
-\fBmarkdown2html\fR(1),
-\fBhtml2markdown\fR(1),
-\fBmarkdown2latex\fR(1),
-\fBlatex2markdown\fR(1),
 \fBpdflatex\fR(1)
 .SH AUTHOR
 John MacFarlane and Recai Oktas

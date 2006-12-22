@@ -14,6 +14,8 @@ pandoc (0.22) unstable; urgency=low
 
   * Refactored template processing (fillTemplates.pl).
 
+  * Modified wrapper scripts to make them more robust.
+
   * Modified wrapper scripts to make them more robust and portable.
     To avoid code duplication and ensure consistency, wrappers are 
     generated via a templating system from templates in src/wrappers.
