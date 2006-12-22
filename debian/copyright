@@ -22,6 +22,10 @@ the source distribution.
 
 [GPL]: http://www.gnu.org/copyleft/gpl.html
 
+Pandoc's complete source code is available from the [Pandoc home page].
+
+[Pandoc home page]: http://sophos.berkeley.edu/macfarlane/pandoc/ 
+
 Pandoc includes some code from other authors.  The copyright and license
 statements for these sources are included below.  All are GPL-compatible
 licenses.
