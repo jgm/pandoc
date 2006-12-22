@@ -238,7 +238,7 @@ uninstall: uninstall-program
 
 osx_dest:=osx-pkg-tmp
 osx_src:=osx
-doc_more:=README.rtf LICENSE.rtf $(osx_src)/Welcome.rtf
+doc_more:=README.rtf COPYRIGHT.rtf $(osx_src)/Welcome.rtf
 osx_pkg_name:=$(NAME)_$(VERSION).pkg
 cleanup_files+=$(osx_dest) $(doc_more) $(osx_pkg_name)
 osx-pkg-prep: build-program $(osx_dest)
@@ -251,7 +251,7 @@ $(osx_dest)/: $(doc_more)
 	find $(osx_dest) -type f -regex ".*bin/$(notdir $(MAIN))" | xargs $(STRIP)
 	$(INSTALL) -d $(osx_dest)/Resources
 	cp README.rtf $(osx_dest)/Resources/ReadMe.rtf
-	cp LICENSE.rtf $(osx_dest)/Resources/License.rtf
+	cp COPYRIGHT.rtf $(osx_dest)/Resources/License.rtf
 	sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome.rtf > $(osx_dest)/Resources/Welcome.rtf
 	sed -e 's/@VERSION@/$(VERSION)/g' $(osx_src)/Info.plist > $(osx_dest)/Info.plist
 	cp $(osx_src)/Description.plist $(osx_dest)/
