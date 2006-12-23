@@ -25,12 +25,12 @@ EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
 #-------------------------------------------------------------------------------
 WRAPPERS  := web2markdown markdown2pdf
 SYMLINKS  := markdown2html markdown2latex markdown2s5 markdown2rst \
-			 markdown2rtf html2markdown latex2markdown rst2markdown
-PROGS     := $(EXECS) $(WRAPPERS) 
+             markdown2rtf html2markdown latex2markdown rst2markdown
 # Add .exe extensions if we're running Windows/Cygwin.
 EXTENSION := $(shell uname | tr '[:upper:]' '[:lower:]' | \
                sed -ne 's/^cygwin.*$$/\.exe/p')
 EXECS     := $(addsuffix $(EXTENSION),$(EXECSBASE))
+PROGS     := $(EXECS) $(WRAPPERS) 
 # First entry in Cabal's executable stanza is the main executable.
 MAIN      := $(firstword $(EXECS))
 DOCS      := README.html README BUGS 
