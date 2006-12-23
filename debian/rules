@@ -109,7 +109,7 @@ binary-arch: build install
 	dh_installexamples -a
 	dh_installman -a
 	dh_link -a
-	dh_strip -a -Xhtml2 -Xmarkdown2 -Xlatex2 
+	dh_strip -a -Xhtml2 -Xmarkdown2 -Xlatex2 -Xrst2
 	dh_compress -a
 	dh_fixperms -a
 	dh_installdeb -a
