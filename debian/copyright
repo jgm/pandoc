@@ -18,7 +18,8 @@ This code is released under the [GPL], version 2 or later:
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 The GNU General Public License is available in the file COPYING in
-the source distribution.
+the source distribution.  On Debian systems, the complete text of the
+GPL can be found in `/usr/share/common-licenses/GPL`.
 
 [GPL]: http://www.gnu.org/copyleft/gpl.html
 
