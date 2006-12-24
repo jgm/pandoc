@@ -16,7 +16,7 @@ If you use it on a webpage, please send the URL to jipsen@chapman.edu
 
 Modified July 2006 by John MacFarlane (added CODE to list of contexts
 in which replacement does not occur, modified AMisMathMLAvailable
-to better identify Safari browser).
+to better identify Safari browser, changed mathcolor to "").
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ for more details.
 var checkForMathML = true;   // check if browser can display MathML
 var notifyIfNoMathML = true; // display note if no MathML capability
 var alertIfNoMathML = false;  // show alert box if no MathML capability
-var mathcolor = "red";       // change it to "" (to inherit) or any other color
+var mathcolor = "";       // change it to "" (to inherit) or any other color
 var mathfontfamily = "serif"; // change to "" to inherit (works in IE) 
                               // or another family (e.g. "arial")
 var displaystyle = true;      // puts limits above and below large operators
