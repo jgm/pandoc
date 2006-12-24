@@ -18,23 +18,38 @@ For more information, see the [README](README.html) file.
 
 Pandoc is free software, released under the [GPL].
 
-**Source distribution:** [`@TARBALL_NAME@`](@TARBALL_NAME@). 
+**Source distribution:** [`@TARBALL_NAME@`].
 To install, unpack the archive and follow the instructions in the
 [INSTALL](INSTALL.html) file. You'll need the [GHC] Haskell compiler,
 version 6.4 or higher.
 
-**MacOS X binary package:** [`@OSX_DMG_NAME@`](@OSX_DMG_NAME@).
+**MacOS X binary package:** [`@OSX_DMG_NAME@`].
 To install, just double-click the package icon in the disk
 image.  See the [installation notes](osx-notes.html) for important
 information about setting your `PATH`.  Note:  This package was
 compiled on a G4 Mac; it will also work on an Intel Mac via emulation.
 
-**Debian binary package:**  [`@DEB_NAME@`](@DEB_NAME@).
-To install (on x86 Debian-based linux systems only):
+**Windows binary package:**  [`@WINDOWS_PKG_NAME@`].
+The zip file contains the `pandoc.exe` command-line program (which
+you should extract from the zip archive and put somewhere in your
+PATH).  See the included file `README-WINDOWS.txt` for instructions
+on using the program.  Note:  If you use [Cygwin], we recommend that
+you compile Pandoc from source.  This will give you access to the
+wrapper scripts `markdown2pdf` and `web2markdown`, which are not
+included in the Windows binary package.
 
-        sudo dpkg -i @DEB_NAME@
+[`@TARBALL_NAME@`]: http://pandoc.googlecode.com/files/@TARBALL_NAME@
+  "Download source tarball from Pandoc's Google Code site"
+[`@OSX_DMG_NAME@`]: http://pandoc.googlecode.com/files/@OSX_DMG_NAME@
+  "Download Mac OS X disk image from Pandoc's Google Code site"
+[`@WINDOWS_PKG_NAME@`]: http://pandoc.googlecode.com/files/@WINDOWS_PKG_NAME@
+  "Download Windows zip file from Pandoc's Google Code site"
+[Cygwin]: http://www.cygwin.com/
+  "Cygwin - a linux-like environment for Windows"
 
-**Windows executable:**  [`@WINDOWS_EXE_NAME@`](@WINDOWS_EXE_NAME@).
+**Debian packages:**  Pandoc will be available soon in the Debian unstable
+package repository, thanks to the efforts of Recai Oktaş.  Watch this
+space for details.
 
 **Repository:**  Pandoc has a publicly accesible subversion repository
 at Google Code (<http://code.google.com/p/pandoc>).  To check out the

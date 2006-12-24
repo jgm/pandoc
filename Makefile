@@ -17,7 +17,9 @@ CONFIGURE := configure
 # Cabal constants
 #-------------------------------------------------------------------------------
 NAME      := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL).in)
+THIS      := $(shell echo $(NAME) | tr A-Z a-z)
 VERSION   := $(shell sed -ne 's/^version[[:space:]]*=[[:space:]]*"\([^"]*\)"/\1/p' $(SRCDIR)/Main.hs)
+RELNAME   := $(THIS)-$(VERSION)
 EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
 
 #-------------------------------------------------------------------------------
@@ -51,7 +53,6 @@ DESTDIR   ?= $(destdir)
 #-------------------------------------------------------------------------------
 # Installation paths
 #-------------------------------------------------------------------------------
-THIS        := $(shell echo $(NAME) | tr A-Z a-z)
 DESTPATH    := $(DESTDIR)$(PREFIX)
 BINPATH     := $(DESTPATH)/bin
 DATAPATH    := $(DESTPATH)/share
@@ -88,6 +89,8 @@ all: build-program
 	./$(MAIN) -s -w rtf $< >$@ || rm -f $@
 %.pdf: % $(MAIN) markdown2pdf
 	sh ./markdown2pdf $< || rm -f $@
+%.txt: %
+	perl -p -e 's/\n/\r\n/' $< > $@ || rm -f $@ # convert to DOS line endings
 
 .PHONY: templates
 templates: $(SRCDIR)/templates
@@ -236,13 +239,15 @@ uninstall-all: uninstall-exec uninstall-doc uninstall-lib-doc
 install: install-program
 uninstall: uninstall-program
 
+# OSX packages:  make osx-pkg-prep, then (as root) make osx-pkg
+.PHONY: osx-pkg osx-pkg-prep
 osx_dest:=osx-pkg-tmp
 osx_src:=osx
 doc_more:=README.rtf COPYRIGHT.rtf $(osx_src)/Welcome.rtf
-osx_pkg_name:=$(NAME)_$(VERSION).pkg
+osx_pkg_name:=$(RELNAME).pkg
 cleanup_files+=$(osx_dest) $(doc_more) $(osx_pkg_name)
-osx-pkg-prep: build-program $(osx_dest)
-$(osx_dest)/: $(doc_more)
+osx-pkg-prep: $(osx_dest)
+$(osx_dest)/: build-program $(doc_more)
 	-rm -rf $(osx_dest)
 	$(INSTALL) -d $(osx_dest)
 	DESTDIR=$(osx_dest)/Package_root $(MAKE) install-program
@@ -255,7 +260,8 @@ $(osx_dest)/: $(doc_more)
 	sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome.rtf > $(osx_dest)/Resources/Welcome.rtf
 	sed -e 's/@VERSION@/$(VERSION)/g' $(osx_src)/Info.plist > $(osx_dest)/Info.plist
 	cp $(osx_src)/Description.plist $(osx_dest)/
-osx-pkg: osx-pkg-prep
+osx-pkg: $(osx_pkg_name)
+$(osx_pkg_name): $(osx_dest)
 	if [ "`id -u`" != 0 ]; then \
 		echo "Root permissions needed to create OSX package!"; \
 		exit 1; \
@@ -270,11 +276,12 @@ osx-pkg: osx-pkg-prep
 	-rm -rf $(osx_dest)
 
 .PHONY: osx-dmg
-osx_dmg_name:=$(NAME).dmg
-osx_udzo_name:=$(NAME).udzo.dmg
+osx_dmg_name:=$(RELNAME).dmg
+cleanup_files+=$(osx_dmg_name)
+osx_udzo_name:=$(RELNAME).udzo.dmg
 osx_dmg_volume:="$(NAME) $(VERSION)"
-osx-dmg: ../$(osx_dmg_name)
-../$(osx_dmg_name): $(osx_pkg_name)
+osx-dmg: $(osx_dmg_name)
+$(osx_dmg_name): $(osx_pkg_name)
 	-rm -f $(osx_dmg_name)
 	hdiutil create $(osx_dmg_name) -size 05m -fs HFS+ -volname $(osx_dmg_volume)
 	dev_handle=`hdid $(osx_dmg_name) | grep Apple_HFS | \
@@ -283,7 +290,20 @@ osx-dmg: ../$(osx_dmg_name)
 	hdiutil detach $$dev_handle
 	hdiutil convert $(osx_dmg_name) -format UDZO -o $(osx_udzo_name)
 	-rm -f $(osx_dmg_name)
-	mv $(osx_udzo_name) ../$(osx_dmg_name)
+	mv $(osx_udzo_name) $(osx_dmg_name)
+
+
+.PHONY: win-pkg
+win_pkg_name:=$(RELNAME).zip
+win_docs:=COPYING.txt COPYRIGHT.txt BUGS.txt README-WINDOWS.txt
+cleanup_files+=$(win_pkg_name) $(win_docs)
+win-pkg: $(win_pkg_name)
+$(win_pkg_name): $(THIS).exe  $(win_docs)
+	zip -r $(win_pkg_name) $(THIS).exe $(win_docs)
+cleanup_files+=README-WINDOWS	
+README-WINDOWS: README
+	sed -e '/^Requirements/,/^\[fancyvrb\]:/ d' \
+        -e '/^Character encodings/,/mysite.com$$/ d' $< > $@	
 
 .PHONY: test test-markdown
 test: $(MAIN)
@@ -299,13 +319,12 @@ tags: $(src_all)
 	LC_ALL=C sort tags >tags.sorted; mv tags.sorted tags
 
 .PHONY: tarball
-fullname:=$(THIS)-$(VERSION)
-tarball_name:=$(fullname).tar.gz
+tarball_name:=$(RELNAME).tar.gz
 cleanup_files+=$(tarball_name)
 tarball: $(tarball_name)
 $(tarball_name):
-	svn export . $(fullname)
-	tar cvzf $(tarball_name) $(fullname)
+	svn export . $(RELNAME)
+	tar cvzf $(tarball_name) $(RELNAME)
 	-rm -rf $(fullname)
 
 .PHONY: deb
@@ -336,30 +355,13 @@ web_dest:=web/pandoc
 make_page:=./$(MAIN) -s -B $(web_src)/header.html \
                         -A $(web_src)/footer.html \
 	                -H $(web_src)/css 
-win_main:=$(basename $(MAIN)).exe
 cleanup_files+=$(web_dest)
 website: $(web_dest)
-$(web_dest)/: $(MAIN) html $(tarball_name)
-	@[ -f ../$(osx_dmg_name) ] || { \
-		echo "*** Missing ../$(osx_dmg_name). ***"; \
-		exit 1; \
-	}
-	@[ -f ../$(deb_main) ] || { \
-		echo "*** Missing ../$(deb_main). ***"; \
-		exit 1; \
-	}
-	@[ -f $(win_main) ] || { \
-		echo "*** Missing $(win_main). ***"; \
-		exit 1; \
-	}
+$(web_dest)/: $(MAIN) html
 	-rm -rf $(web_dest)
 	( \
 		mkdir $(web_dest); \
 		cp -r html $(web_dest)/doc; \
-		cp ../$(osx_dmg_name) $(web_dest)/; \
-		cp ../$(deb_main) $(web_dest)/; \
-		cp $(win_main) $(web_dest)/; \
-		cp $(tarball_name) $(web_dest)/; \
 		cp $(web_src)/*.css $(web_dest)/; \
 		sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome | \
 			$(make_page) > $(web_dest)/osx-notes.html; \
@@ -370,9 +372,8 @@ $(web_dest)/: $(MAIN) html $(tarball_name)
 		$(make_page) README > $(web_dest)/README.html; \
 		$(make_page) INSTALL > $(web_dest)/INSTALL.html; \
 		sed -e 's/@TARBALL_NAME@/$(tarball_name)/g' $(web_src)/index.txt | \
-			sed -e 's/@DEB_NAME@/$(deb_main)/g' | \
 			sed -e 's/@OSX_DMG_NAME@/$(osx_dmg_name)/g' | \
-			sed -e 's/@WINDOWS_EXE_NAME@/$(win_main)/g' | \
+			sed -e 's/@WINDOWS_PKG_NAME@/$(win_pkg_name)/g' | \
 			sed -e 's/@VERSION@/$(VERSION)/g' | \
 			$(make_page) > $(web_dest)/index.html; \
 	) || { rm -rf $(web_dest); exit 1; }
