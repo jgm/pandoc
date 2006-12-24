@@ -295,7 +295,7 @@ $(osx_dmg_name): $(osx_pkg_name)
 
 .PHONY: win-pkg
 win_pkg_name:=$(RELNAME).zip
-win_docs:=COPYING.txt COPYRIGHT.txt BUGS.txt README-WINDOWS.txt
+win_docs:=COPYING.txt COPYRIGHT.txt BUGS.txt README-WINDOWS.txt README-WINDOWS.html
 cleanup_files+=$(win_pkg_name) $(win_docs)
 win-pkg: $(win_pkg_name)
 $(win_pkg_name): $(THIS).exe  $(win_docs)
