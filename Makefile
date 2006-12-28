@@ -363,8 +363,10 @@ $(web_dest)/: $(MAIN) html
 			sed -e 's/@WINDOWS_PKG_NAME@/$(win_pkg_name)/g' | \
 			sed -e 's/@VERSION@/$(VERSION)/g' | \
 			$(make_page) > $(web_dest)/index.html; \
-		cp README $(web_dest)/README; \
-		cp $(web_src)/S5DEMO $(web_dest)/S5DEMO; \
+		cp README $(web_dest)/ ; \
+		cp $(web_src)/S5DEMO $(web_dest)/ ; \
+		cp $(web_src)/header.html $(web_dest)/ ; \
+		cp $(web_src)/footer.html $(web_dest)/ ; \
 		sh $(web_src)/demos.sh $(web_dest) | \
 		    $(make_page) > $(web_dest)/demos.html; \
 	) || { rm -rf $(web_dest); exit 1; }
