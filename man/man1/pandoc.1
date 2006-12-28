@@ -1,8 +1,6 @@
 .TH PANDOC 1 "December 15, 2006" Pandoc "User Manuals"
 .SH NAME
-pandoc, markdown2html, markdown2latex, markdown2rst, markdown2rtf,
-markdown2s5, html2markdown2, latex2markdown, rst2markdown \- general
-markup converter
+pandoc \- general markup converter
 .SH SYNOPSIS
 \fBpandoc\fR [\fIoptions\fR] [\fIinput\-file\fR]...
 .SH DESCRIPTION
@@ -13,41 +11,37 @@ slide shows.
 .PP
 If no \fIinput\-file\fR is specified, input is read from STDIN.
 Otherwise, the \fIinput\-files\fR are concatenated (with a blank
-line between each) and used as input.  Output goes to standard
-output.  If you want output to a file, use the \fB\-o\fR option or
-shell redirection:
+line between each) and used as input.  Output goes to STDOUT by
+default.  For output to a file, use the \fB\-o\fR option:
 .IP
 .B pandoc \-o output.html input.txt
+.PP
+The input and output formats may be specified using command-line options
+(see \fBOPTIONS\fR, below, for details).  If these formats are not
+specified explicitly, \fIPandoc\fR will attempt to determine them
+from the extensions of the input and output filenames.  If input comes
+from STDIN or from a file with an unknown extension, the input is assumed
+to be markdown.  If no output filename is specified using the \fB\-o\fR
+option, or if a filename is specified but its extension is unknown,
+the output will default to HTML.  Thus, for example,
 .IP
-.B pandoc input.txt > output.html
+.B pandoc -o chap1.tex chap1.txt
 .PP
-The default behavior of \fIPandoc\fR is to convert the input from
-markdown\-formatted plain text to HTML.  Different input and output
-formats can be specified using command\-line options.  For example,
+converts \fIchap1.txt\fR from markdown to LaTeX.  And
 .IP
-.B pandoc \-f latex \-t markdown chap1.tex > chap1.txt
+.B pandoc README
 .PP
-converts \fIchap1.tex\fR from LaTeX to markdown\-formatted plain text.
-See below for a detailed list of command\-line options.
-.PP
-For convenience, eight variant programs are available:
-\fBmarkdown2html\fR (same as \fBpandoc \-w html\fR),
-\fBmarkdown2latex\fR (same as \fBpandoc \-w latex\fR),
-\fBmarkdown2rst\fR (same as \fBpandoc \-w rst\fR),
-\fBmarkdown2rtf\fR (same as \fBpandoc \-w rtf\fR),
-\fBmarkdown2s5\fR (same as \fBpandoc \-w s5\fR),
-\fBhtml2markdown\fR (same as \fBpandoc \-r html \-w markdown\fR),
-\fBlatex2markdown\fR (same as \fBpandoc \-r latex \-w markdown\fR),
-and \fBrst2markdown\fR (same as \fBpandoc \-r rst \-w markdown\fR).
-These programs take an appropriately restricted subset of \fBpandoc\fR's
-options.  (Run them with the \fB-h\fR flag for a full list of allowed
-options.)  
+converts \fIREADME\fR from markdown to HTML.
 .PP
 \fIPandoc\fR uses the UTF\-8 character encoding for both input and output.
 If your local character encoding is not UTF\-8, you should pipe input
 and output through \fBiconv\fR:
 .IP
 .B iconv \-t utf\-8 input.txt | pandoc | iconv \-f utf\-8
+.PP
+\fIPandoc\fR's HTML parser is not very forgiving.  If your input is
+HTML, consider running it through \fBtidy\fR(1) before passing it
+to Pandoc.  Or use \fBweb2markdown\fR(1), a wrapper around \fBpandoc\fR.
 
 .SH OPTIONS
 .TP
@@ -158,9 +152,7 @@ Show usage message.
 
 .SH "SEE ALSO"
 \fBweb2markdown\fR(1),
-\fBmarkdown2pdf\fR(1),
-\fBiconv\fR(1)
-
+\fBmarkdown2pdf\fR(1).
 The
 .I README
 file distributed with Pandoc contains full documentation.

@@ -6,14 +6,13 @@ markdown2pdf \- converts markdown-formatted text to PDF, using pdflatex
 .SH DESCRIPTION
 \fBmarkdown2pdf\fR converts \fIinput\-file\fR (or text from standard 
 input) from markdown\-formatted plain text to PDF, using \fBpdflatex\fR.
-If no output filename is specified, the name of the output file is
-derived from the input file; thus, for example, if the input file
-is \fIhello.txt\fR, the output file will be \fIhello.pdf\fR.  If
-the input is read from STDIN and no output filename is
-specified, the output file will be named \fIstdin.pdf\fR.  If
-multiple input files are specified, they will be concatenated before
-conversion, and the name of the output file will be derived from
-the first input file.
+If no output filename is specified (using the \fB\-o\fR option),
+the name of the output file is derived from the input file; thus, for
+example, if the input file is \fIhello.txt\fR, the output file will be
+\fIhello.pdf\fR.  If the input is read from STDIN and no output filename
+is specified, the output file will be named \fIstdin.pdf\fR.  If multiple
+input files are specified, they will be concatenated before conversion,
+and the name of the output file will be derived from the first input file.
 .PP
 Input is assumed to be in the UTF\-8 character encoding.  If your
 local character encoding is not UTF\-8, you should pipe input and
@@ -21,11 +20,11 @@ output through \fBiconv\fR:
 .IP
 .B iconv \-t utf\-8 input.txt | pandoc | iconv \-f utf\-8
 .PP
-\fBmarkdown2pdf\fR assumes that the 'unicode' package
-is in latex's search path.  If this package is not included in your
-latex setup, it can be obtained from <http://ctan.org>.
+\fBmarkdown2pdf\fR assumes that the 'unicode' and 'fancyvrb' packages
+are in latex's search path.  If these packages are not included in your
+latex setup, they can be obtained from <http://ctan.org>.
 .PP
-\fBmarkdown2pdf\fR is a wrapper around \fBmarkdown2latex\fR.
+\fBmarkdown2pdf\fR is a wrapper around \fBpandoc\fR.
 .SH OPTIONS
 .TP
 .B \-o FILE, \-\-output=FILE
@@ -36,10 +35,6 @@ Preserve tabs instead of converting them to spaces.
 .TP
 .B \-\-tab-stop=\fITABSTOP\fB
 Specify tab stop (default is 4).
-.TP
-.B \-R, \-\-parse-raw
-Parse untranslatable LaTeX environments as raw LaTeX,
-instead of ignoring them.
 .TP
 .B \-N, \-\-number-sections
 Number section headings in LaTeX output.  (Default is not to number them.)

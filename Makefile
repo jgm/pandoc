@@ -26,8 +26,6 @@ EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
 # Install targets
 #-------------------------------------------------------------------------------
 WRAPPERS  := web2markdown markdown2pdf
-SYMLINKS  := markdown2html markdown2latex markdown2s5 markdown2rst \
-             markdown2rtf html2markdown latex2markdown rst2markdown
 # Add .exe extensions if we're running Windows/Cygwin.
 EXTENSION := $(shell uname | tr '[:upper:]' '[:lower:]' | \
                sed -ne 's/^cygwin.*$$/\.exe/p')
@@ -96,12 +94,6 @@ all: build-program
 templates: $(SRCDIR)/templates
 	$(MAKE) -C $(SRCDIR)/templates
 
-.PHONY: symlinks
-cleanup_files+=$(SYMLINKS)
-symlinks: $(SYMLINKS)
-$(SYMLINKS): $(MAIN)
-	ln -sf ./$(MAIN) $@ 
-
 define generate-shell-script
 echo "Generating $@...";                                 \
 awk '                                                    \
@@ -141,7 +133,7 @@ build: configure
 	$(BUILDCMD) build
 
 .PHONY: build-exec
-build-exec: $(PROGS) $(SYMLINKS)
+build-exec: $(PROGS)
 cleanup_files+=$(EXECS)
 $(EXECS): build
 	for f in $@; do \
@@ -201,9 +193,8 @@ install-exec: build-exec
 		fi; \
 		$(INSTALL_PROGRAM) $$f $(BINPATH)/; \
 	done
-	cd $(BINPATH); for f in $(SYMLINKS); do ln -sf $(MAIN) $$f; done
 uninstall-exec:
-	-for f in $(notdir $(PROGS) $(SYMLINKS)); do rm -f $(BINPATH)/$$f; done ;
+	-for f in $(notdir $(PROGS)); do rm -f $(BINPATH)/$$f; done ;
 
 # Program + user documents installation.
 .PHONY: install-program uninstall-program
@@ -295,15 +286,11 @@ $(osx_dmg_name): $(osx_pkg_name)
 
 .PHONY: win-pkg
 win_pkg_name:=$(RELNAME).zip
-win_docs:=COPYING.txt COPYRIGHT.txt BUGS.txt README-WINDOWS.txt README-WINDOWS.html
+win_docs:=COPYING.txt COPYRIGHT.txt BUGS.txt README.txt README.html
 cleanup_files+=$(win_pkg_name) $(win_docs)
 win-pkg: $(win_pkg_name)
 $(win_pkg_name): $(THIS).exe  $(win_docs)
 	zip -r $(win_pkg_name) $(THIS).exe $(win_docs)
-cleanup_files+=README-WINDOWS	
-README-WINDOWS: README
-	sed -e '/^Requirements/,/^\[fancyvrb\]:/ d' \
-        -e '/^Character encodings/,/mysite.com$$/ d' $< > $@	
 
 .PHONY: test test-markdown
 test: $(MAIN)

@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-REQUIRED="markdown2latex pdflatex"
+REQUIRED="pdflatex"
 
 ### common.sh
 
@@ -9,9 +9,12 @@ REQUIRED="markdown2latex pdflatex"
 texname=output
 logfile=$THIS_TEMPDIR/log
 
-if ! markdown2latex -s -d "$@" >$THIS_TEMPDIR/$texname.tex 2>$logfile; then
-    [ -f $logfile ] && sed -e 's/markdown2latex/markdown2pdf/g' \
-        -e '/^INPUT=/d' -e '/^OUTPUT=/d' $logfile >&2
+if ! pandoc -s -d -r markdown -w latex "$@" >$THIS_TEMPDIR/$texname.tex \
+2>$logfile; then
+    [ -f $logfile ] && sed -e 's/^pandoc/markdown2pdf/g' \
+        -e '/^INPUT=/d' -e '/^OUTPUT=/d' \
+        -e '/^[[:space:]]*\(-f\|-t\|-s\|-R\|-S\|-m\|-i\|-c\|-T\|-D\|-d\)/,/./d'\
+        -e 's/(implies -s)//g' $logfile >&2
     exit 1
 fi
 

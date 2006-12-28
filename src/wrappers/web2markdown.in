@@ -2,7 +2,7 @@
 # converts HTML from a URL, file, or stdin to markdown
 # uses an available program to fetch URL and tidy to normalize it first
 
-REQUIRED="tidy html2markdown"
+REQUIRED="tidy"
 
 ### common.sh
 
@@ -72,14 +72,16 @@ grabber=
 while [ $# -gt 0 ]; do
     case "$1" in
         -h|--help)
-            html2markdown -h 2>&1 | sed -e 's/html2markdown/web2markdown/' 1>&2 
+            pandoc -h 2>&1 | sed -e 's/pandoc/web2markdown/' \
+            -e '/^[[:space:]]*\(-f\|-t\|-S\|-N\|-m\|-i\|-c\|-T\|-D\|-d\)/,/./d'\
+            1>&2 
             err "  -e ENCODING, --encoding=ENCODING"
             err "        Specify character encoding of input"
             err "  -g COMMAND, --grabber=COMMAND"
             err "        Specify command to be used to grab contents of URL"
             exit 0 ;;
         -v|--version) 
-            html2markdown -v
+            pandoc -v 2>&1 | sed -e 's/pandoc/web2markdown/' 1>&2
             exit 0 ;;
         -e)
             shift
@@ -112,7 +114,7 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-# Unpack options.  Now "$@" will hold the html2markdown options.
+# Unpack options.  Now "$@" will hold the pandoc options.
 oldifs="$IFS"; IFS="$NEWLINE"; set -- $options; IFS="$oldifs"
 
 inurl=
@@ -162,10 +164,11 @@ else # assume UTF-8
 fi 
 
 if [ -z "$argument" ]; then
-    tidy -utf8 2>/dev/null | html2markdown "$@"
+    tidy -utf8 2>/dev/null | pandoc -r html -w markdown "$@"
 else
     if [ -f "$argument" ]; then
-        to_utf8 "$argument" | tidy -utf8 2>/dev/null | html2markdown "$@"
+        to_utf8 "$argument" | 
+        tidy -utf8 2>/dev/null | pandoc -r html -w markdown "$@"
     else
         err "File '$argument' not found."
         exit 1

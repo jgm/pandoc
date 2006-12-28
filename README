@@ -36,14 +36,11 @@ Requirements
 ============
 
 The `pandoc` program itself does not depend on any external libraries
-or programs.  The convenience programs `markdown2html`, `markdown2latex`,
-`markdown2rst`, `markdown2rtf`, `markdown2s5`, `html2markdown`,
-`latex2markdown`, and `rst2markdown` are implemented as symbolic links to
-`pandoc`.
+or programs.
 
 The wrapper script `web2markdown` requires
 
-  - `html2markdown` (included with Pandoc)
+  - `pandoc` (which must be in the PATH)
   - a POSIX-compliant shell (installed by default on all linux and unix
     systems, including Mac OS X, and in [Cygwin] for Windows),
   - `HTML Tidy`
@@ -56,7 +53,7 @@ The wrapper script `web2markdown` requires
 
 The wrapper script `markdown2pdf` requires
 
-  - `markdown2latex` (included with Pandoc)
+  - `pandoc` (which must be in the PATH)
   - a POSIX-compliant shell
   - `pdflatex`, which should be part of any [LaTeX] distribution
   - the [unicode] and [fancyvrb] LaTeX packages, which are included
@@ -80,46 +77,10 @@ Using Pandoc
 
 If you run `pandoc` without arguments, it will accept input from
 STDIN.  If you run it with file names as arguments, it will take input
-from those files.  It accepts several command-line options.  For a
-list, type
-
-	pandoc -h
-
-The most important options specify the format of the source file and
-the output.  The default reader is markdown; the default writer is
-HTML.  So if you don't specify a reader or writer, `pandoc` will
-convert markdown to HTML.  For example,
-
-	pandoc hello.txt
-
-will convert `hello.txt` from markdown to HTML.  For other conversions,
-you must specify a reader and/or a writer using the `-r` and `-w`
-flags.  To convert markdown to LaTeX, you would write:
-
-	pandoc -w latex hello.txt
-
-To convert html to markdown:
-
-	pandoc -r html -w markdown hello.txt
-
-Supported writers include `markdown`, `latex`, `html`, `rtf` (rich text
-format), `rst` (reStructuredText), and `s5` (which produces an HTML
-file that acts like powerpoint).  Supported readers include `markdown`,
-`html`, `latex`, and `rst`.  Note that the `rst` reader only parses
-a subset of reStructuredText syntax.  For example, it doesn't handle
-tables, definition lists, option lists, or footnotes.  It handles only the
-constructs expressible in unextended markdown.  But for simple documents
-it should be adequate.  The `latex` and `html` readers are also limited
-in what they can do.  Because the `html` reader is picky about the HTML
-it parses, it is recommended that you pipe HTML through [HTML Tidy] before
-sending it to `pandoc`, or use the `web2markdown` script described below.
-
-By default, `pandoc` writes its output to STDOUT.  If you want to
-write to a file, use the `-o` option or shell redirection:
+from those files.  By default, `pandoc` writes its output to STDOUT.
+If you want to write to a file, use the `-o` option:
 
     pandoc -o hello.html hello.txt
-
-	pandoc hello.txt > hello.html
 
 Note that you can specify multiple input files on the command line.
 `pandoc` will concatenate them all (with blank lines between them)
@@ -130,6 +91,44 @@ before parsing:
 (The `-s` option here tells `pandoc` to produce a standalone HTML file,
 with a proper header, rather than a fragment.  For more details on this
 and many other command-line options, see below.)
+
+The format of the input and output can be specified explicitly using
+command-line options.  The input format can be specified using the
+`-r/--read` or `-f/--from` options, the output format using the
+`-w/--write` or `-t/--to` options.  Thus, to convert `hello.txt` from
+markdown to LaTeX, you could type:
+
+	pandoc -f markdown -t latex hello.txt
+
+To convert `hello.html` from html to markdown:
+
+	pandoc -f html -t markdown hello.html
+
+Supported output formats include `markdown`, `latex`, `html`, `rtf`
+(rich text format), `rst` (reStructuredText), and `s5` (which produces
+an HTML file that acts like powerpoint).  Supported input formats
+include `markdown`, `html`, `latex`, and `rst`.  Note that the `rst`
+reader only parses a subset of reStructuredText syntax.  For example,
+it doesn't handle tables, definition lists, option lists, or footnotes.
+It handles only the constructs expressible in unextended markdown.
+But for simple documents it should be adequate.  The `latex` and `html`
+readers are also limited in what they can do.  Because the `html`
+reader is picky about the HTML it parses, it is recommended that you
+pipe HTML through [HTML Tidy] before sending it to `pandoc`, or use the
+`web2markdown` script described below.
+
+If you don't specify a reader or writer explicitly, `pandoc` will
+try to determine the input and output format from the extensions of
+the input and output filenames.  Thus, for example, 
+
+	pandoc -o hello.tex hello.txt
+
+will convert `hello.txt` from markdown to LaTeX.  If no output file
+is specified (so that output goes to STDOUT), or if the output file's
+extension is unknown, the output format will default to HTML.
+If no input file is specified (so that input comes from STDIN), or
+if the input files' extensions are unknown, the input format will
+be assumed to be markdown unless explicitly specified.
 
 Character encodings
 -------------------
@@ -150,31 +149,16 @@ The shell scripts (described below) automatically convert the input
 from the local encoding to UTF-8 before running them through `pandoc`,
 then convert the output back to the local encoding.
 
-Convenience programs and wrapper scripts 
-========================================
+`markdown2pdf` and `web2markdown`
+=================================
 
-For convenience, eight variant programs are included with Pandoc:
-`markdown2html` (which is equivalent to `pandoc  -w  html`),
-`markdown2latex` (equivalent to `pandoc -w latex`), `markdown2rst`
-(equivalent to `pandoc -w rst`), `markdown2rtf` (equivalent to
-`pandoc -w rtf`), `markdown2s5` (equivalent to `pandoc -w s5`),
-`html2markdown` (equivalent to `pandoc -r html -w markdown`),
-`latex2markdown` (equivalent to `pandoc -r latex -w markdown`), and
-`rst2markdown` (equivalent to `pandoc -r rst -w markdown`).  These
-programs take an appropriately restricted subset of `pandoc`'s
-options.  (Run them with the `-h` flag for a full list of allowed
-options.)
-
-Like `pandoc`, all of these programs produce fragments by default.
-If you want to produce a standalone file, complete with a header
-and footer appropriate to the format, use the `-s` option:
-
-   markdown2latex -s sample.txt > sample.tex 
-
-Two shell scripts have also been included:
+Two shell scripts, `markdown2pdf` and `web2markdown`, are included in
+the standard Pandoc installation.  (They are not included in the Windows
+binary package, as they require a POSIX shell, but they may be used
+in Windows under Cygwin.)
 
 1.  `markdown2pdf` produces a PDF file from markdown-formatted
-    text, using `markdown2latex` and `pdflatex`.  The default
+    text, using `pandoc` and `pdflatex`.  The default
     behavior of `markdown2pdf` is to create a file with the same
     base name as the first argument and the extension `pdf`; thus,
     for example,
@@ -190,7 +174,7 @@ Two shell scripts have also been included:
     If no input file is specified, input will be taken from STDIN.
 
 2.  `web2markdown` grabs a web page from a file or URL and converts
-    it to markdown-formatted text, using `tidy` and `html2markdown`.
+    it to markdown-formatted text, using `tidy` and `pandoc`.
     Unless input is from STDIN, an attempt is made to determine the
     character encoding of the page from the "Content-type" meta tag.
     If this is not present, UTF-8 is assumed.  Alternatively, a character
@@ -207,9 +191,20 @@ Command-line options
 ====================
 
 Various command-line options can be used to customize the output.
-For a complete list, type 
 
-	pandoc --help
+`-f`, `--from`, `-r`, or `--read` can be used to specify the input
+format -- the format Pandoc will be converting *from*.  Available
+formats are `native`, `markdown`, `rst`, `html`, and `latex`.
+
+`-t`, `--to`, `-w`, or `--write` can be used to specify the output
+format -- the format Pandoc will be converting *to*.  Available formats
+are `native`, `html`, `s5`, `latex`, `markdown`, `rst`, and `rtf`.
+
+`-s` or `--standalone` indicates that a standalone document is to be
+produced (with appropriate headers and footers), rather than a fragment.
+
+`-o` or `--output` specifies the name of the output file.  If no output
+filename is given, output will be sent to STDOUT.
 
 `-p` or `--preserve-tabs` causes tabs in the source text to be
 preserved, rather than converted to spaces (the default).
@@ -224,12 +219,6 @@ and LaTeX output.  The default is for the readers to omit
 untranslatable HTML codes and LaTeX environments.  (The LaTeX reader
 does pass through untranslatable LaTeX commands, even if `-R` is not
 specified.)
-
-`-s` or `--standalone` causes `pandoc` to produce a standalone file,
-complete with appropriate document headers.  By default, `pandoc`
-produces a fragment.
-
-`-o` or `--output-file` can be used to specify an output file.
 
 `-C` or `--custom-header` can be used to specify a custom document
 header.  To see the headers used by default, use the `-D` option:
