@@ -344,7 +344,7 @@ make_page:=./$(MAIN) -s -B $(web_src)/header.html \
 	                -H $(web_src)/css 
 cleanup_files+=$(web_dest)
 website: $(web_dest)
-$(web_dest)/: $(MAIN) html
+$(web_dest)/: $(MAIN) html 
 	-rm -rf $(web_dest)
 	( \
 		mkdir $(web_dest); \
@@ -363,6 +363,10 @@ $(web_dest)/: $(MAIN) html
 			sed -e 's/@WINDOWS_PKG_NAME@/$(win_pkg_name)/g' | \
 			sed -e 's/@VERSION@/$(VERSION)/g' | \
 			$(make_page) > $(web_dest)/index.html; \
+		cp README $(web_dest)/README; \
+		cp $(web_src)/S5DEMO $(web_dest)/S5DEMO; \
+		sh $(web_src)/demos.sh $(web_dest) | \
+		    $(make_page) > $(web_dest)/demos.html; \
 	) || { rm -rf $(web_dest); exit 1; }
 
 .PHONY: distclean clean
