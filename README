@@ -57,9 +57,7 @@ The wrapper script `markdown2pdf` requires
   - a POSIX-compliant shell
   - `pdflatex`, which should be part of any [LaTeX] distribution
   - the [unicode] and [fancyvrb] LaTeX packages, which are included
-    in many LaTeX distributions.  The [unicode] package allows LaTeX to
-    process UTF-8 characters.  [fancyvrb] allows code blocks and verbatim
-    text to be used within footnotes.  If your installation of LaTeX
+    in many LaTeX distributions.[^1] If your installation of LaTeX
     does not include these packages, you will get an error (complaining
     about missing `ucs.sty` or `fancyvrb.sty`) when you try to compile
     a LaTeX file produced by Pandoc, or when you use the `markdown2pdf`
@@ -71,6 +69,10 @@ The wrapper script `markdown2pdf` requires
 [CTAN]: http://www.ctan.org "Comprehensive TeX Archive Network"
 [unicode]: http://www.ctan.org/tex-archive/macros/latex/contrib/unicode/
 [fancyvrb]: http://www.ctan.org/tex-archive/macros/latex/contrib/fancyvrb/
+
+[^1]: The [unicode] package allows LaTeX to process UTF-8 characters.
+[fancyvrb] allows code blocks and verbatim text to be used within
+footnotes.
 
 Using Pandoc
 ============

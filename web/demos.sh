@@ -15,7 +15,8 @@ pandoc -s -w rst README -o demo0.txt
 pandoc -s README -o demo0.rtf 
 pandoc -s -m -i -w s5 S5DEMO -o demo0.html
 web2markdown http://www.gnu.org/software/make/ -o demo0.txt
-markdown2pdf README -o demo0.pdf'
+markdown2pdf README -o demo0.pdf
+markdown2pdf -C myheader.tex README -o demo0.pdf'
 
 oldifs=$IFS
 IFS=$NEWLINE
