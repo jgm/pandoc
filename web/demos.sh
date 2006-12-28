@@ -10,6 +10,7 @@ DEMOS='pandoc README -o demo0.html
 pandoc -s -S README -o demo0.html
 pandoc -s -S -c main.css -B header.html -A footer.html README -o demo0.html
 pandoc -s README -o demo0.tex
+pandoc -s README.tex -o demo0.txt
 pandoc -s -w rst README -o demo0.txt
 pandoc -s README -o demo0.rtf 
 pandoc -s -m -i -w s5 S5DEMO -o demo0.html

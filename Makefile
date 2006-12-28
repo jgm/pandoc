@@ -364,6 +364,7 @@ $(web_dest)/: $(MAIN) html
 			sed -e 's/@VERSION@/$(VERSION)/g' | \
 			$(make_page) > $(web_dest)/index.html; \
 		cp README $(web_dest)/ ; \
+		./$(MAIN) -s -w latex README > $(web_dest)/README.tex ; \
 		cp $(web_src)/S5DEMO $(web_dest)/ ; \
 		cp $(web_src)/header.html $(web_dest)/ ; \
 		cp $(web_src)/footer.html $(web_dest)/ ; \
