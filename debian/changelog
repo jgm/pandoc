@@ -34,7 +34,8 @@ pandoc (0.3) unstable; urgency=low
     + Added '-o/--output' option to send output to a file.
     + Added '-d/--debug' option:
       - Prints OUTPUT= followed by output filename (or blank) to stderr.
-      - Prints INPUT= followed by input filename, for each input file (if any).
+      - Prints INPUT= followed by input filename to stderr, for each 
+        input file (if any).
       - Sends output to STDOUT, even if output file was specified.
       - This is intended mainly to make it easier to write wrappers.
     + Modified '-v' and '-h' output to go to STDERR, not STDOUT, and return
@@ -43,33 +44,49 @@ pandoc (0.3) unstable; urgency=low
     + Removed extra blanks after '-h' and '-D' output.
     + Added copyright message to '-v' output, modeled after FSF messages.
 
-  * Added implicit setting of input and output format based on input
-    and output filename extensions.  This is documented in pandoc(1)
-    man page and README.
+  * Added implicit setting of default input and output format based
+    on input and output filename extensions.  These defaults are
+    overridden if explicit input and output formats are specified using
+    '-t', '-f', '-r', or '-w' options.  Documented in pandoc(1) man page
+    and README.
 
-  * Extensions to markdown reader:
-    + Allow ordered list items to begin with (single) letters, as well
-      as numbers.  The list item marker may now be terminated either by
-      '.' or by ')'.  These extensions to standard markdown are documented
-      in README.
-    + Added supportfor footnotes in markdown reader.  (See README for
-      details on syntax.  Both reference and inline footnotes are
-      supported.)
+  * Allow ordered list items to begin with (single) letters, as well
+    as numbers.  The list item marker may now be terminated either by
+    '.' or by ')'.  This extension to standard markdown is documented
+    in README.
+
+  * Revised footnote syntax.  (See README for full details.)  The
+    '[^1]' format now standard in markdown extensions is supported,
+    as are inline footnotes with this syntax: '^[My note.]'.
+    The earlier footnote syntax '^(1)' is no longer supported.
+
+  * Improved HTML representation of footnotes.  All footnotes
+    are now auto-numbered and appear in an ordered list at the
+    end of the HTML document.  Since the default appearance is now
+    acceptable, the old footnote styles have been removed from the
+    HTML header.
 
   * Bug fixes:
-    + Fixed a serious bug in the markdown reader (also affecting LaTeX
-      and RST readers).  These readers ran 'runParser' on processed chunks
-      of text to handle embedded block lists in lists and quotation blocks.
-      But then any changes made to the parser state in these chunks
-      was lost, as the state is local to the parser.  So, for example,
-      footnotes didn't work in quotes or list items.  The fix:  instead of
-      calling runParser on some raw text, use setInput to make it the input,
-      then parse it, then use setInput to restore the input to what it was
+    + Fixed a serious bug in the markdown, LaTeX, and RST readers.
+      These readers ran 'runParser' on processed chunks of text to handle
+      embedded block lists in lists and quotation blocks.  But then
+      any changes made to the parser state in these chunks was lost,
+      as the state is local to the parser.  So, for example, footnotes
+      didn't work in quotes or list items.  The fix:  instead of calling
+      runParser on some raw text, use setInput to make it the input, then
+      parse it, then use setInput to restore the input to what it was
       before.  This is shorter and more elegant, and it fixes the problem.
-    + Fixed bug in notFollowedBy' combinator (adding 'try' before 'parser').
-      Adjusted code that uses this combinator accordingly.
+    + Fixed bug in notFollowedBy' combinator (adding 'try' before
+      'parser').  Adjusted code that uses this combinator accordingly.
     + Fixed bug in RTF writer that caused improper indentation on
       footnotes occurring in indented blocks like lists.
+    + Fixed parsing of metadata in LaTeX reader.  Now the title, author,
+      and date are parsed correctly.  Everything else in the preamble
+      is skipped.
+    + Modified escapedChar in LaTeX reader to allow a '\' at the end of a
+      line to count as escaped whitespace.
+    + Modified LaTeX reader to produce inline links rather than reference
+      links.  Otherwise, links in footnotes aren't handled properly.
 
   * Made handling of code blocks more consistent.  Previously, some
     readers allowed trailing newlines, while others stripped them.
@@ -79,10 +96,6 @@ pandoc (0.3) unstable; urgency=low
   * Modified readers to make spacing at the end of output more consistent.
 
   * Minor improvements to LaTeX reader:
-    + Fixed parsing of metadata.  Now the title, author, and date
-      are parsed correctly.  Everything else in the preamble is skipped.
-    + Modified escapedChar to allow a \ at the end of a line to count
-      as escaped whitespace.
     + '\thanks' now treated like a footnote.    
     + Simplified parsing of LaTeX command arguments and options.
       commandArgs now returns a list of arguments OR options (in
@@ -93,23 +106,22 @@ pandoc (0.3) unstable; urgency=low
 
   * Revised RTF writer:
     + Default font is now Helvetica.
-    + An \f0 is added to each \pard, so that font resizing works correctly.
+    + An '\f0' is added to each '\pard', so that font resizing works
+      correctly.
 
-  * Improved handling of smart quotes in HTML and LaTeX writers, to
-    handle cases where latex commands or HTML entity references appear
-    after quotes.
-
-  * Fixed handling of dashes in LaTeX writer:
+  * Improved handling of dashes in LaTeX writer:
     + Recognize a double hyphen as an Em-dash, even when it occurs next
       to punctuation (e.g. a quotation mark).
     + Collapse space around Em-dashes.
     + Process quotes before dashes.  This way (foo -- 'bar') will turn into
       (foo---`bar') instead of (foo---'bar').
 
+  * Improved handling of smart quotes in HTML and LaTeX writers, to
+    handle cases where latex commands or HTML entity references appear
+    after quotes.
+
   * Changes in HTML writer:
     + Include title block in header even when title is null.
-    + Add line break after </li> in HTML footnote output, for easier
-      inspection of the source.
     + Made javascript obfuscation of emails even more obfuscatory,
       by combining it with entity obfuscation.
  
@@ -121,14 +133,15 @@ pandoc (0.3) unstable; urgency=low
     + Added regression tests with footnotes in quote blocks and lists.
 
   * Makefile changes:
-    + osx-pkg target creates a Mac OS X package (directory)
+    + osx-pkg target creates a Mac OS X package (directory). New osx
+      directory contains files needed for construction of the package.
     + osx-dmg target creates a compressed disk image containing the package.
-    + New osx directory contains files needed for construction
-      of the package.
     + win-pkg target creates Windows binary package.
     + tarball target creates distribution source tarball.
     + website target generates pandoc's website automatically, including
-      demos.
+      demos.  New 'web' directory containts files needed for construction
+      of the website (which will be created as the 'pandoc' subdirectory
+      of 'web').
     + Makefile checks to see if we're running Windows/Cygwin; if so,
       a '.exe' extension is added to each executable in EXECS.
 
