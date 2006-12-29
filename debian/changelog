@@ -14,44 +14,69 @@ pandoc (0.3) unstable; urgency=low
 
   * Refactored template processing (fillTemplates.pl).
 
-  * Modified wrapper scripts to make them more robust.
-
   * Modified wrapper scripts to make them more robust and portable.
     To avoid code duplication and ensure consistency, wrappers are 
     generated via a templating system from templates in src/wrappers.
-    + New command line convention allows options to be passed to
-      pandoc, as follows:
-        1st form: input files specified
-          <wrapper> [wrapper_arg...] input_files... [pandoc_option...]
-        2nd form: using STDIN, no input file is specified
-          <wrapper> [wrapper_arg...] -- [pandoc_option...]
-        3rd form: input files specified, optional '--'
-          <wrapper> [wrapper_arg...] input_files... -- [pandoc_option...]
-    + All wrappers except 'html2markdown' and 'latex2markdown' now
-      accept multiple filenames.
-    + getopts shell builtin is used for portable option parsing.
+    + Wrappers now accept multiple filenames, when appropriate.
     + Spaces and tabs allowed in filenames.
+    + getopts shell builtin is used for portable option parsing.
     + Improved html2markdown's web grabber code, making it more robust,
-      configurable and verbose.  Added '-e', '-n', '-g' options.
+      configurable and verbose.  Added '-e', '-g' options.
       Possible use case:
-        # Use wget by setting timeout to 10 seconds and limit retries
-        to 2.  html2markdown -g 'wget --timeout=10 --tries=2'
-    + Added tests for wrappers' processing of command line arguments.
-
-  * Added '-o' option to markdown2pdf.
+        # Use wget by setting timeout to 10 seconds and limit retries to 2.
+        html2markdown -g 'wget --timeout=10 --tries=2'
 
   [ John MacFarlane ]
 
-  * Revised RTF writer:
-    + Default font is now Helvetica.
-    + An \f0 is added to each \pard, so that font resizing works correctly.
+  * Changes in pandoc options:
+    + Allow options to follow or precede arguments.
+    + Changed '--smartypants' to '--smart' and adjusted symbols accordingly.
+    + Added '-o/--output' option to send output to a file.
+    + Added '-d/--debug' option:
+      - Prints OUTPUT= followed by output filename (or blank) to stderr.
+      - Prints INPUT= followed by input filename, for each input file (if any).
+      - Sends output to STDOUT, even if output file was specified.
+      - This is intended mainly to make it easier to write wrappers.
+    + Modified '-v' and '-h' output to go to STDERR, not STDOUT, and return
+      error condition (2).  This is helpful for writing wrappers.
+    + Reformatted usage message so that it doesn't wrap illegibly.
+    + Removed extra blanks after '-h' and '-D' output.
+    + Added copyright message to '-v' output, modeled after FSF messages.
 
-  * Fixed handling of dashes in LaTeX writer:
-    + Recognize a double hyphen as an Em-dash, even when it occurs next
-      to punctuation (e.g. a quotation mark).
-    + Collapse space around Em-dashes.
-    + Process quotes before dashes.  This way (foo -- 'bar') will turn into
-      (foo---`bar') instead of (foo---'bar').
+  * Added implicit setting of input and output format based on input
+    and output filename extensions.  This is documented in pandoc(1)
+    man page and README.
+
+  * Extensions to markdown reader:
+    + Allow ordered list items to begin with (single) letters, as well
+      as numbers.  The list item marker may now be terminated either by
+      '.' or by ')'.  These extensions to standard markdown are documented
+      in README.
+    + Added supportfor footnotes in markdown reader.  (See README for
+      details on syntax.  Both reference and inline footnotes are
+      supported.)
+
+  * Bug fixes:
+    + Fixed a serious bug in the markdown reader (also affecting LaTeX
+      and RST readers).  These readers ran 'runParser' on processed chunks
+      of text to handle embedded block lists in lists and quotation blocks.
+      But then any changes made to the parser state in these chunks
+      was lost, as the state is local to the parser.  So, for example,
+      footnotes didn't work in quotes or list items.  The fix:  instead of
+      calling runParser on some raw text, use setInput to make it the input,
+      then parse it, then use setInput to restore the input to what it was
+      before.  This is shorter and more elegant, and it fixes the problem.
+    + Fixed bug in notFollowedBy' combinator (adding 'try' before 'parser').
+      Adjusted code that uses this combinator accordingly.
+    + Fixed bug in RTF writer that caused improper indentation on
+      footnotes occurring in indented blocks like lists.
+
+  * Made handling of code blocks more consistent.  Previously, some
+    readers allowed trailing newlines, while others stripped them.
+    Now, all readers strip trailing newlines in code blocks. Writers
+    insert a newline at the end of code blocks as needed.
+
+  * Modified readers to make spacing at the end of output more consistent.
 
   * Minor improvements to LaTeX reader:
     + Fixed parsing of metadata.  Now the title, author, and date
@@ -66,42 +91,80 @@ pandoc (0.3) unstable; urgency=low
       when needed.  This fixes a problem in dealing with \newcommand
       and \newenvironment.
 
-  * Fixed bug in notFollowedBy' combinator (adding 'try' before 'parser').
-    Adjusted code that uses this combinator accordingly.
+  * Revised RTF writer:
+    + Default font is now Helvetica.
+    + An \f0 is added to each \pard, so that font resizing works correctly.
 
-  * Made handling of code blocks more consistent.  Previously, some
-    readers allowed trailing newlines, while others stripped them.
-    Now, all readers strip trailing newlines in code blocks. Writers
-    insert a newline at the end of code blocks as needed.
+  * Improved handling of smart quotes in HTML and LaTeX writers, to
+    handle cases where latex commands or HTML entity references appear
+    after quotes.
 
-  * Changed HTML writer to include title block in header even
-    when title is null.
+  * Fixed handling of dashes in LaTeX writer:
+    + Recognize a double hyphen as an Em-dash, even when it occurs next
+      to punctuation (e.g. a quotation mark).
+    + Collapse space around Em-dashes.
+    + Process quotes before dashes.  This way (foo -- 'bar') will turn into
+      (foo---`bar') instead of (foo---'bar').
 
-  * Revised pandoc wrapper scripts to pipe output (as well as input)
-    through iconv.
+  * Changes in HTML writer:
+    + Include title block in header even when title is null.
+    + Add line break after </li> in HTML footnote output, for easier
+      inspection of the source.
+    + Made javascript obfuscation of emails even more obfuscatory,
+      by combining it with entity obfuscation.
+ 
+  * Changed default ASCIIMathML text color to black.
 
-  * Added osx-pkg and osx-dmg targets to Makefile:
-    + osx-pkg creates a Mac OS X package (directory); osx-dmg creates a 
-      compressed disk image containing the package.
+  * Test suite:
+    + Added --strip-trailing-cr option to diff in runtests.pl, for
+      compatibility with Windows.
+    + Added regression tests with footnotes in quote blocks and lists.
+
+  * Makefile changes:
+    + osx-pkg target creates a Mac OS X package (directory)
+    + osx-dmg target creates a compressed disk image containing the package.
     + New osx directory contains files needed for construction
       of the package.
+    + win-pkg target creates Windows binary package.
+    + tarball target creates distribution source tarball.
+    + website target generates pandoc's website automatically, including
+      demos.
+    + Makefile checks to see if we're running Windows/Cygwin; if so,
+      a '.exe' extension is added to each executable in EXECS.
 
-  * Added website target to generate pandoc's website automatically.
+  * Removed all wrappers except markdown2pdf and html2markdown.
 
   * Added code to html2markdown that tries to determine the character 
     encoding of an HTML file, by parsing the "Content-type" meta tag.
     + If the encoding can't be determined, then if the content is local,
       the local encoding is used; if it comes from a URL, UTF-8 is used 
       by default.
+    + If input is from STDIN, don't try to determine character encoding.
     + Encoding can be specified explicitly using '-e' option.
 
-  * Improved warning messages:
+  * Improved warning messages in wrappers:
     + Print warning if iconv not available
     + More user-friendly error messages in markdown2pdf, when
       pdflatex fails.
 
+  * Code cleanup:
+    + Removed 'BlockQuoteContext' from ParserContext, as it isn't
+      used anywhere.
+    + Refactored LaTeX reader for clarity (added isArg function).
+    + Converted some CR's to LF's in src/ui/default/print.css.
+    + Added license text to top of source files.
+    + Added module data for haddock to source files.
+    + Reformatted code for consistency.
+
   * Rewrote documentation and man pages.  Split README into INSTALL
     and README.
+
+  * Split LICENSE into COPYING and COPYRIGHT.
+
+  * Removed TODO, since we now maintain ToDo on the wiki.
+
+  * Made COPYRIGHT in top level a symlink to debian/copyright, to avoid
+    duplication.
 
  -- Recai Oktaş <roktas@debian.org>  Tue, 12 Dec 2006 07:48:30 +0300
 
