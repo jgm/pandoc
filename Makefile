@@ -106,6 +106,7 @@ awk '                                                    \
 	}                                                \
 	{ print }                                        \
 ' <$< >$@
+chmod +x $@
 endef
 
 .PHONY: wrappers
