@@ -1,5 +1,5 @@
 #!/bin/sh -e
-# creates demo page for pandoc
+# creates example page for pandoc
 # argument #1 is the destination directory
 # argument #2 is the directory containing pandoc, html2markdown, markdown2pdf
 
@@ -8,27 +8,27 @@ PROGPATH=$2
 
 NEWLINE='
 '
-DEMOS='pandoc README -o demo0.html
-pandoc -s -S README -o demo0.html
-pandoc -s -S -c main.css -B header.html -A footer.html README -o demo0.html
-pandoc -s README -o demo0.tex
-pandoc -s README.tex -o demo0.txt
-pandoc -s -w rst README -o demo0.txt
-pandoc -s README -o demo0.rtf 
-pandoc -s -m -i -w s5 S5DEMO -o demo0.html
-html2markdown http://www.gnu.org/software/make/ -o demo0.txt
-markdown2pdf README -o demo0.pdf
-markdown2pdf -C myheader.tex README -o demo0.pdf'
+EXAMPLES='pandoc README -o example0.html
+pandoc -s -S README -o example0.html
+pandoc -s -S -c main.css -B header.html -A footer.html README -o example0.html
+pandoc -s README -o example0.tex
+pandoc -s README.tex -o example0.txt
+pandoc -s -w rst README -o example0.txt
+pandoc -s README -o example0.rtf 
+pandoc -s -m -i -w s5 S5DEMO -o example0.html
+html2markdown http://www.gnu.org/software/make/ -o example0.txt
+markdown2pdf README -o example0.pdf
+markdown2pdf -C myheader.tex README -o example0.pdf'
 
 oldifs=$IFS
 IFS=$NEWLINE
-set -- $DEMOS
+set -- $EXAMPLES
 IFS=$oldifs
 
 cd $DEST
 PATH=$PROGPATH:$PATH
 
-echo '% Pandoc demos
+echo '% Pandoc examples
 
 To see the output created by each of the commands below,
 click on the name of the output file:

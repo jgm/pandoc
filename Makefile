@@ -353,10 +353,9 @@ $(web_dest)/: $(MAIN) html
 		cp $(web_src)/*.css $(web_dest)/; \
 		sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome | \
 			$(make_page) > $(web_dest)/osx-notes.html; \
-		sed -e '/^ --.*/d' changelog | \
-			sed -e 's#^#    #g' | \
+		sed -e '/^ --.*/d' -e 's#^#    #g' changelog | \
 			sed -e 's/    \(pandoc (.*\)/## \1/g' | \
-			$(make_page) > $(web_dest)/history.html; \
+			$(make_page) -T "Pandoc changelog" > $(web_dest)/changelog.html; \
 		$(make_page) README > $(web_dest)/README.html; \
 		$(make_page) INSTALL > $(web_dest)/INSTALL.html; \
 		sed -e 's/@TARBALL_NAME@/$(tarball_name)/g' $(web_src)/index.txt | \
@@ -371,7 +370,7 @@ $(web_dest)/: $(MAIN) html
 		cp $(web_src)/header.html $(web_dest)/ ; \
 		cp $(web_src)/footer.html $(web_dest)/ ; \
 		sh $(web_src)/mkdemos.sh $(web_dest) $(abspath .) | \
-		    $(make_page) > $(web_dest)/demos.html; \
+		    $(make_page) > $(web_dest)/examples.html; \
 	) || { rm -rf $(web_dest); exit 1; }
 
 .PHONY: distclean clean
