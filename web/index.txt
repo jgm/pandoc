@@ -35,7 +35,7 @@ you should extract from the zip archive and put somewhere in your
 PATH).  See the included file `README-WINDOWS.txt` for instructions
 on using the program.  Note:  If you use [Cygwin], we recommend that
 you compile Pandoc from source.  This will give you access to the
-wrapper scripts `markdown2pdf` and `web2markdown`, which are not
+wrapper scripts `markdown2pdf` and `html2markdown`, which are not
 included in the Windows binary package.
 
 [`@TARBALL_NAME@`]: http://pandoc.googlecode.com/files/@TARBALL_NAME@

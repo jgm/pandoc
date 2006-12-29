@@ -1,22 +1,22 @@
-.TH WEB2MARKDOWN 1 "December 15, 2006" Pandoc "User Manuals"
+.TH HTML2MARKDOWN 1 "December 15, 2006" Pandoc "User Manuals"
 .SH NAME
-web2markdown \- converts HTML to markdown-formatted text
+html2markdown \- converts HTML to markdown-formatted text
 .SH SYNOPSIS
-\fBweb2markdown\fR [\fIoptions\fR] [\fIinput\-file\fR or \fIURL\fR]
+\fBhtml2markdown\fR [\fIoptions\fR] [\fIinput\-file\fR or \fIURL\fR]
 .SH DESCRIPTION
-\fBweb2markdown\fR converts \fIinput\-file\fR or \fIURL\fR (or text
+\fBhtml2markdown\fR converts \fIinput\-file\fR or \fIURL\fR (or text
 from STDIN) from HTML to markdown\-formatted plain text. 
-If a URL is specified, \fBweb2markdown\fR uses an available program
+If a URL is specified, \fBhtml2markdown\fR uses an available program
 (e.g. wget, w3m, lynx or curl) to fetch its contents.  Output is sent
 to STDOUT unless an output file is specified using the \fB\-o\fR
 option.
 .PP
-\fBweb2markdown\fR uses the character encoding specified in the
+\fBhtml2markdown\fR uses the character encoding specified in the
 "Content-type" meta tag.  If this is not present, or if input comes
 from STDIN, UTF-8 is assumed.  A character encoding may be specified
 explicitly using the \fB\-e\fR option.
 .PP
-\fBweb2markdown\fR is a wrapper for \fBpandoc\fR.
+\fBhtml2markdown\fR is a wrapper for \fBpandoc\fR.
 .SH OPTIONS
 .TP
 .B \-s, \-\-standalone
@@ -62,17 +62,17 @@ Assume the character encoding \fIencoding\fR in reading HTML.
 (Note: \fIencoding\fR will be passed to \fBiconv\fR; a list of
 available encodings may be obtained using `\fBiconv \-l\fR'.)
 If the \fB\-e\fR option is not specified and input is not from
-STDIN, \fBweb2markdown\fR will try to extract the character encoding
+STDIN, \fBhtml2markdown\fR will try to extract the character encoding
 from the "Content-type" meta tag.  If no character encoding is
 specified in this way, or if input is from STDIN, UTF-8 will be
 assumed.
 .TP
 .B \-g \fIcommand\fR
 Use \fIcommand\fR to fetch the contents of a URL.  (By default,
-\fBweb2markdown\fR searches for an available program or text-based
+\fBhtml2markdown\fR searches for an available program or text-based
 browser to fetch the contents of a URL.)  For example:
 .IP
-web2markdown \-g 'wget \-\-user=foo \-\-password=bar' mysite.com
+html2markdown \-g 'wget \-\-user=foo \-\-password=bar' mysite.com
 
 .SH "SEE ALSO"
 \fBpandoc\fR(1),

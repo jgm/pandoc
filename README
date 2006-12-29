@@ -38,14 +38,14 @@ Requirements
 The `pandoc` program itself does not depend on any external libraries
 or programs.
 
-The wrapper script `web2markdown` requires
+The wrapper script `html2markdown` requires
 
   - `pandoc` (which must be in the PATH)
   - a POSIX-compliant shell (installed by default on all linux and unix
     systems, including Mac OS X, and in [Cygwin] for Windows),
   - `HTML Tidy`
   - `iconv` (for character encoding conversion).  (If `iconv` is absent,
-    `web2markdown` will still work, but it will treat everything as UTF-8.)
+    `html2markdown` will still work, but it will treat everything as UTF-8.)
 
 [Cygwin]:  http://www.cygwin.com/ 
 [HTML Tidy]:  http://tidy.sourceforge.net/
@@ -117,7 +117,7 @@ But for simple documents it should be adequate.  The `latex` and `html`
 readers are also limited in what they can do.  Because the `html`
 reader is picky about the HTML it parses, it is recommended that you
 pipe HTML through [HTML Tidy] before sending it to `pandoc`, or use the
-`web2markdown` script described below.
+`html2markdown` script described below.
 
 If you don't specify a reader or writer explicitly, `pandoc` will
 try to determine the input and output format from the extensions of
@@ -151,10 +151,10 @@ The shell scripts (described below) automatically convert the input
 from the local encoding to UTF-8 before running them through `pandoc`,
 then convert the output back to the local encoding.
 
-`markdown2pdf` and `web2markdown`
-=================================
+`markdown2pdf` and `html2markdown`
+==================================
 
-Two shell scripts, `markdown2pdf` and `web2markdown`, are included in
+Two shell scripts, `markdown2pdf` and `html2markdown`, are included in
 the standard Pandoc installation.  (They are not included in the Windows
 binary package, as they require a POSIX shell, but they may be used
 in Windows under Cygwin.)
@@ -175,19 +175,19 @@ in Windows under Cygwin.)
 
     If no input file is specified, input will be taken from STDIN.
 
-2.  `web2markdown` grabs a web page from a file or URL and converts
+2.  `html2markdown` grabs a web page from a file or URL and converts
     it to markdown-formatted text, using `tidy` and `pandoc`.
     Unless input is from STDIN, an attempt is made to determine the
     character encoding of the page from the "Content-type" meta tag.
     If this is not present, UTF-8 is assumed.  Alternatively, a character
     encoding may be specified explicitly using the `-e` option.
 
-    `web2markdown` searches for an available program (`wget`, `curl`,
+    `html2markdown` searches for an available program (`wget`, `curl`,
     or a text-mode browser) to fetch the contents of a URL.
     Optionally, the `-g` command may be used to specify the command
     to be used:
 
-        web2markdown -g 'wget --user=foo --password=bar' mysite.com
+        html2markdown -g 'wget --user=foo --password=bar' mysite.com
 
 Command-line options
 ====================

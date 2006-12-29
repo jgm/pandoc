@@ -72,7 +72,7 @@ grabber=
 while [ $# -gt 0 ]; do
     case "$1" in
         -h|--help)
-            pandoc -h 2>&1 | sed -e 's/pandoc/web2markdown/' \
+            pandoc -h 2>&1 | sed -e 's/pandoc/html2markdown/' \
             -e '/^[[:space:]]*\(-f\|-t\|-S\|-N\|-m\|-i\|-c\|-T\|-D\|-d\)/,/./d'\
             1>&2 
             err "  -e ENCODING, --encoding=ENCODING"
@@ -81,7 +81,7 @@ while [ $# -gt 0 ]; do
             err "        Specify command to be used to grab contents of URL"
             exit 0 ;;
         -v|--version) 
-            pandoc -v 2>&1 | sed -e 's/pandoc/web2markdown/' 1>&2
+            pandoc -v 2>&1 | sed -e 's/pandoc/html2markdown/' 1>&2
             exit 0 ;;
         -e)
             shift
