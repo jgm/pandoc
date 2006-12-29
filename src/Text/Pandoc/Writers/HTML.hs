@@ -228,10 +228,8 @@ blockToHtml options (OrderedList lst) =
 blockToHtml options HorizontalRule = "<hr />\n"
 blockToHtml options (Header level lst) = 
   let contents = inlineListToHtml options lst in
-  let simplify = gsub "<[^>]*>" ""  . gsub " " "_" in
   if ((level > 0) && (level <= 6))
-      then "<a id=\"" ++ simplify contents ++ "\"></a>\n" ++
-           "<h" ++ (show level) ++ ">" ++ contents ++ 
+      then "<h" ++ (show level) ++ ">" ++ contents ++ 
            "</h" ++ (show level) ++ ">\n"
       else "<p>" ++ contents ++ "</p>\n"
 listItemToHtml options list = 
