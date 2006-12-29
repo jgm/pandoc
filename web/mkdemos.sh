@@ -42,7 +42,7 @@ for command in "$@"; do
     input=$(echo $command | sed -e 's/.* \([^ ]*\) -o.*/\1/') 
     output=$(echo $command | sed -e 's/.*-o \(.*\)/\1/')
     echo "1. <code>$firstpart <a href=\""$input"\" title=\""View input file"\">$input</a> -o <a href=\""$output"\" title=\""View pandoc output"\">$output</a></code>"
+    echo $command >&2
     result=$($command) # run the command and create output file
-    echo "Created $output." >&2
 done
 
