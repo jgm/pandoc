@@ -344,7 +344,7 @@ make_page:=./$(MAIN) -s -B $(web_src)/header.html \
 	                -H $(web_src)/css 
 cleanup_files+=$(web_dest)
 website: $(web_dest)
-$(web_dest)/: $(MAIN) html 
+$(web_dest)/: $(MAIN) html
 	-rm -rf $(web_dest)
 	( \
 		mkdir $(web_dest); \
@@ -369,7 +369,7 @@ $(web_dest)/: $(MAIN) html
 		cp $(web_src)/S5DEMO $(web_dest)/ ; \
 		cp $(web_src)/header.html $(web_dest)/ ; \
 		cp $(web_src)/footer.html $(web_dest)/ ; \
-		sh $(web_src)/demos.sh $(web_dest) | \
+		sh $(web_src)/mkdemos.sh $(web_dest) $(abspath .) | \
 		    $(make_page) > $(web_dest)/demos.html; \
 	) || { rm -rf $(web_dest); exit 1; }
 

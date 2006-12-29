@@ -1,8 +1,10 @@
 #!/bin/sh -e
 # creates demo page for pandoc
-# argument is the destination directory
+# argument #1 is the destination directory
+# argument #2 is the directory containing pandoc, html2markdown, markdown2pdf
 
 DEST=$1
+PROGPATH=$2
 
 NEWLINE='
 '
@@ -24,7 +26,7 @@ set -- $DEMOS
 IFS=$oldifs
 
 cd $DEST
-PATH=../..:$PATH
+PATH=$PROGPATH:$PATH
 
 echo '% Pandoc demos
 
@@ -34,7 +36,7 @@ click on the name of the output file:
 '
 num=0
 for command in "$@"; do
-    num=$((num + 1))
+    num=$(($num + 1))
     command=$(echo $command | sed -e "s/0/$num/")
     firstpart=$(echo $command | sed -e 's/\(.*\) [^ ]* -o.*/\1/')
     input=$(echo $command | sed -e 's/.* \([^ ]*\) -o.*/\1/') 
