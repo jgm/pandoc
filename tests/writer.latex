@@ -514,7 +514,7 @@ Indented \href{/url}{twice}.
 
 Indented \href{/url}{thrice}.
 
-This should [not] be a link.
+This should [not][] be a link.
 
 \begin{verbatim}
 [not]: /url

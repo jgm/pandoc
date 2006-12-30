@@ -277,18 +277,18 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Para [Str "Foo",Space,Link [Str "bar"] (Ref [Str "a"]),Str "."]
 , Para [Str "Foo",Space,Link [Str "bar"] (Ref [Str "a"]),Str "."]
 , Key [Str "a"] (Src "/url/" "")
-, Para [Str "With",Space,Link [Str "embedded",Space,Link [Str "brackets"] (Ref [])] (Ref [Str "b"]),Str "."]
-, Para [Link [Str "b"] (Ref []),Space,Str "by",Space,Str "itself",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "link."]
-, Para [Str "Indented",Space,Link [Str "once"] (Ref []),Str "."]
-, Para [Str "Indented",Space,Link [Str "twice"] (Ref []),Str "."]
-, Para [Str "Indented",Space,Link [Str "thrice"] (Ref []),Str "."]
-, Para [Str "This",Space,Str "should",Space,Link [Str "not"] (Ref []),Space,Str "be",Space,Str "a",Space,Str "link."]
+, Para [Str "With",Space,Link [Str "embedded",Space,Str "[",Str "brackets",Str "]"] (Ref [Str "b"]),Str "."]
+, Para [Link [Str "b"] (Ref [Str "b"]),Space,Str "by",Space,Str "itself",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "link."]
+, Para [Str "Indented",Space,Link [Str "once"] (Ref [Str "once"]),Str "."]
+, Para [Str "Indented",Space,Link [Str "twice"] (Ref [Str "twice"]),Str "."]
+, Para [Str "Indented",Space,Link [Str "thrice"] (Ref [Str "thrice"]),Str "."]
+, Para [Str "This",Space,Str "should",Space,Str "[",Str "not",Str "]",Str "[",Str "]",Space,Str "be",Space,Str "a",Space,Str "link."]
 , Key [Str "once"] (Src "/url" "")
 , Key [Str "twice"] (Src "/url" "")
 , Key [Str "thrice"] (Src "/url" "")
 , CodeBlock "[not]: /url"
 , Key [Str "b"] (Src "/url/" "")
-, Para [Str "Foo",Space,Link [Str "bar"] (Ref []),Str "."]
+, Para [Str "Foo",Space,Link [Str "bar"] (Ref [Str "bar"]),Str "."]
 , Para [Str "Foo",Space,Link [Str "biz"] (Src "/url/" "Title with &quot;quote&quot; inside"),Str "."]
 , Key [Str "bar"] (Src "/url/" "Title with &quot;quotes&quot; inside")
 , Header 2 [Str "With",Space,Str "ampersands"]
@@ -313,7 +313,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , HorizontalRule
 , Header 1 [Str "Images"]
 , Para [Str "From",Space,Str "\"Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune\"",Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(1902):"]
-, Para [Image [Str "lalune"] (Ref [])]
+, Para [Image [Str "lalune"] (Ref [Str "lalune"])]
 , Key [Str "lalune"] (Src "lalune.jpg" "Voyage dans la Lune")
 , Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "movie"] (Src "movie.jpg" ""),Space,Str "icon."]
 , HorizontalRule

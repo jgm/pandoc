@@ -32,7 +32,12 @@ module Text.Pandoc.Readers.HTML (
                                  rawHtmlInline, 
                                  rawHtmlBlock, 
                                  anyHtmlBlockTag, 
-                                 anyHtmlInlineTag  
+                                 anyHtmlInlineTag,  
+                                 anyHtmlTag,
+                                 anyHtmlEndTag,
+                                 htmlEndTag,
+                                 extractTagType,
+                                 htmlBlockElement 
                                 ) where
 
 import Text.Regex ( matchRegex, mkRegex )
@@ -78,17 +83,18 @@ inlinesTilEnd tag = try (do
   inlines <- manyTill inline (htmlEndTag tag)
   return inlines)
 
--- extract type from a tag:  e.g. br from <br>, < br >, </br>, etc.
+-- | Extract type from a tag:  e.g. 'br' from '<br>'
 extractTagType tag = 
     case (matchRegex (mkRegex  "<[[:space:]]*/?([A-Za-z0-9]+)") tag) of
           Just [match]   -> (map toLower match)
           Nothing        -> ""
 
+-- | Parse any HTML tag (closing or opening) and return text of tag
 anyHtmlTag = try (do
   char '<'
   spaces
   tag <- many1 alphaNum
-  attribs <- htmlAttributes  
+  attribs <- htmlAttributes
   spaces
   ender <- option "" (string "/")
   let ender' = if (null ender) then "" else " /"
@@ -150,9 +156,10 @@ htmlRegularAttribute = try (do
                                   (do
                                      a <- many (alphaNum <|> (oneOf "-._:"))
                                      return (a,"")) ]
-  return (name, content, 
+  return (name, content,
           (" " ++ name ++ "=" ++ quoteStr ++ content ++ quoteStr)))
 
+-- | Parse an end tag of type 'tag'
 htmlEndTag tag = try (do
   char '<'   
   spaces
@@ -174,20 +181,23 @@ anyHtmlInlineTag = try (do
   tag <- choice [ anyHtmlTag, anyHtmlEndTag ]
   if isInline tag then return tag else fail "not an inline tag")
 
--- scripts must be treated differently, because they can contain <> etc.
+-- | Parses material between script tags.
+-- Scripts must be treated differently, because they can contain '<>' etc.
 htmlScript = try (do
   open <- string "<script"
   rest <- manyTill anyChar (htmlEndTag "script")
   return (open ++ rest ++ "</script>"))
 
+htmlBlockElement = choice [ htmlScript, htmlComment, xmlDec, definition ]
+
 rawHtmlBlock = try (do
   notFollowedBy' (choice [htmlTag "/body", htmlTag "/html"])
-  body <- choice [htmlScript, anyHtmlBlockTag, htmlComment, xmlDec, 
-                  definition]
+  body <- htmlBlockElement <|> anyHtmlBlockTag
   sp <- (many space)
   state <- getState
   if stateParseRaw state then return (RawHtml (body ++ sp)) else return Null)
 
+-- | Parses an HTML comment.
 htmlComment = try (do
   string "<!--"
   comment <- manyTill anyChar (try (string "-->"))

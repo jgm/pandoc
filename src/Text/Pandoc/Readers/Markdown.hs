@@ -36,8 +36,11 @@ import Text.ParserCombinators.Pandoc
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment )
 import Text.Pandoc.Shared 
-import Text.Pandoc.Readers.HTML ( rawHtmlInline, rawHtmlBlock, 
-                                  anyHtmlBlockTag, anyHtmlInlineTag )
+import Text.Pandoc.Readers.HTML ( rawHtmlBlock, 
+                                  anyHtmlBlockTag, anyHtmlInlineTag,
+                                  anyHtmlTag, anyHtmlEndTag,
+                                  htmlEndTag, extractTagType,
+                                  htmlBlockElement )
 import Text.Pandoc.HtmlEntities ( decodeEntities )
 import Text.Regex ( matchRegex, mkRegex )
 import Text.ParserCombinators.Parsec
@@ -107,6 +110,16 @@ skipNonindentSpaces = do
   let tabStop = stateTabStop state
   choice (map (\n -> (try (count n (char ' ')))) (reverse [0..(tabStop - 1)]))
 
+-- | Fail if reader is in strict markdown syntax mode.
+failIfStrict = do
+    state <- getState
+    if stateStrict state then fail "Strict markdown mode" else return ()
+
+-- | Fail unless we're at beginning of a line.
+failUnlessBeginningOfLine = do
+  pos <- getPosition
+  if sourceColumn pos == 1 then return () else fail "not beginning of line"
+
 --
 -- document structure
 --
@@ -132,6 +145,7 @@ dateLine = try (do
   return (removeTrailingSpace date))
 
 titleBlock = try (do
+  failIfStrict
   title <- option [] titleLine
   author <- option [] authorsLine
   date <- option "" dateLine
@@ -147,7 +161,14 @@ parseMarkdown = do
   updateState (\state -> state { stateParseRaw = True }) 
   -- need to parse raw HTML, since markdown allows it
   (title, author, date) <- option ([],[],"") titleBlock
-  blocks <- parseBlocks
+  oldState <- getState
+  oldInput <- getInput
+  parseBlocks -- go through once just to get list of reference keys
+  newState <- getState
+  let keysUsed = stateKeysUsed newState
+  setInput oldInput
+  setState (oldState { stateKeysUsed = keysUsed })
+  blocks <- parseBlocks  -- go through again, for real
   let blocks' = filter (/= Null) blocks
   state <- getState
   let keys = reverse $ stateKeyBlocks state
@@ -165,7 +186,7 @@ parseBlocks = do
   return result
 
 block = choice [ codeBlock, note, referenceKey, header, hrule, list, 
-                 blockQuote, rawHtmlBlocks, rawLaTeXEnvironment, para,
+                 blockQuote, htmlBlock, rawLaTeXEnvironment', para,
                  plain, blankBlock, nullBlock ] <?> "block"
 
 --
@@ -190,8 +211,7 @@ setextHeader = choice $
                map (\x -> setextH x) (enumFromTo 1 (length setextHChars))
 
 setextH n = try (do
-  txt <- many1 (do {notFollowedBy newline; inline})
-  endline
+  txt <- many1Till inline newline
   many1 (char (setextHChars !! (n-1)))
   skipSpaces
   newline
@@ -256,6 +276,7 @@ rawLines = do
     return (concat lines)
 
 note = try (do
+  failIfStrict
   ref <- noteMarker
   char ':'
   skipSpaces
@@ -280,6 +301,7 @@ note = try (do
 --
 
 emacsBoxQuote = try (do
+  failIfStrict
   string ",----"
   manyTill anyChar newline
   raw <- manyTill (try (do 
@@ -336,8 +358,9 @@ bulletListStart = try (do
 orderedListStart = try (do
   option ' ' newline -- if preceded by a Plain block in a list context
   skipNonindentSpaces
-  many1 digit <|> count 1 letter
-  oneOf orderedListDelimiters
+  many1 digit <|> (do{failIfStrict; count 1 letter})
+  delim <- oneOf orderedListDelimiters
+  if delim /= '.' then failIfStrict else return ()
   oneOf spaceChars
   skipSpaces)
 
@@ -410,10 +433,12 @@ bulletList = try (do
 para = try (do 
   result <- many1 inline
   newline
-  choice [ (do 
-              followedBy' (oneOfStrings [">", ",----"])
-              return "" ), 
-           blanklines ]  
+  st <- getState
+  if stateStrict st
+     then choice [followedBy' blockQuote, followedBy' header, 
+                  (do{blanklines; return ()})]
+     else choice [followedBy' emacsBoxQuote, 
+                  (do{blanklines; return ()})]
   let result' = normalizeSpaces result
   return (Para result'))
 
@@ -425,6 +450,36 @@ plain = do
 -- 
 -- raw html
 --
+
+htmlElement = choice [strictHtmlBlock,
+                      htmlBlockElement] <?> "html element"
+
+htmlBlock = do
+  st <- getState
+  if stateStrict st
+    then do
+           failUnlessBeginningOfLine
+           first <- htmlElement
+           finalSpace <- many (oneOf spaceChars)
+           finalNewlines <- many newline
+           return (RawHtml (first ++ finalSpace ++ finalNewlines))
+    else rawHtmlBlocks
+
+-- True if tag is self-closing
+selfClosing tag = case (matchRegex (mkRegex "\\/[[:space:]]*>$") tag) of
+                      Just _  -> True
+                      Nothing -> False
+
+strictHtmlBlock = try (do
+  tag <- anyHtmlBlockTag 
+  let tag' = extractTagType tag
+  if selfClosing tag || tag' == "hr" 
+     then return tag
+     else do
+            contents <- many (do{notFollowedBy' (htmlEndTag tag'); 
+                                 htmlElement <|> (count 1 anyChar)})
+            end <- htmlEndTag tag'
+            return $ tag ++ (concat contents) ++ end)
 
 rawHtmlBlocks = try (do
   htmlBlocks <- many1 rawHtmlBlock    
@@ -448,7 +503,18 @@ referenceKey = try (do
   option ' ' (char autoLinkEnd)
   tit <- option "" title 
   blanklines 
-  return (Key label (Src (removeTrailingSpace src) tit))) 
+  state <- getState
+  let keysUsed = stateKeysUsed state
+  updateState (\st -> st { stateKeysUsed = (label:keysUsed) })
+  return $ Key label (Src (removeTrailingSpace src) tit))
+
+--
+-- LaTeX
+--
+
+rawLaTeXEnvironment' = do
+  failIfStrict
+  rawLaTeXEnvironment
 
 -- 
 -- inline
@@ -457,10 +523,10 @@ referenceKey = try (do
 text = choice [ math, strong, emph, code2, code1, str, linebreak, tabchar, 
                 whitespace, endline ] <?> "text"
 
-inline = choice [ rawLaTeXInline, escapedChar, special, hyphens, text, 
+inline = choice [ rawLaTeXInline', escapedChar, special, hyphens, text, 
                   ltSign, symbol ] <?> "inline"
 
-special = choice [ noteRef, inlineNote, link, referenceLink, rawHtmlInline, 
+special = choice [ noteRef, inlineNote, link, referenceLink, rawHtmlInline', 
                    autoLink, image ] <?> "link, inline html, note, or image"
 
 escapedChar = escaped anyChar
@@ -507,6 +573,7 @@ mathWord = many1 (choice [ (noneOf (" \t\n\\" ++ [mathEnd])),
                                    return c))])
 
 math = try (do
+  failIfStrict
   char mathStart
   notFollowedBy space
   words <- sepBy1 mathWord (many1 space)
@@ -549,18 +616,17 @@ str = do
 -- an endline character that can be treated as a space, not a structural break
 endline = try (do
   newline
-  -- next line would allow block quotes without preceding blank line
-  -- Markdown.pl does allow this, but there's a chance of a wrapped
-  -- greater-than sign triggering a block quote by accident...
-  -- notFollowedBy' (choice [emailBlockQuoteStart, string ",----"])  
   notFollowedBy blankline
-  -- parse potential list-starts differently if in a list:
   st <- getState
+  if stateStrict st 
+    then do
+           notFollowedBy' emailBlockQuoteStart
+           notFollowedBy' header
+    else return () 
+  -- parse potential list-starts differently if in a list:
   if (stateParserContext st) == ListItemState
-     then do
-            notFollowedBy' orderedListStart
-            notFollowedBy' bulletListStart
-     else option () pzero
+     then notFollowedBy' (orderedListStart <|> bulletListStart)
+     else return ()
   return Space)
 
 --
@@ -571,8 +637,12 @@ endline = try (do
 reference = do
   char labelStart
   notFollowedBy (char noteStart)
-  label <- manyTill inline (char labelEnd)
-  return (normalizeSpaces label)
+  -- allow for embedded brackets:
+  label <- manyTill ((do{res <- reference;
+                         return $ [Str "["] ++ res ++ [Str "]"]}) <|>
+                      count 1 inline)
+                    (char labelEnd)
+  return (normalizeSpaces (concat label))
 
 -- source for a link, with optional title
 source = try (do 
@@ -590,8 +660,10 @@ titleWith startChar endChar = try (do
   skipEndline  -- a title can be on the next line from the source
   skipSpaces
   char startChar
-  tit <- manyTill (choice [ try (do {char '\\'; char endChar}), 
-                            (noneOf (endChar:endLineChars)) ]) (char endChar) 
+  tit <- manyTill anyChar (try (do
+                                  char endChar
+                                  skipSpaces
+                                  followedBy' (char ')' <|> newline)))
   let tit' = gsub "\"" "&quot;" tit
   return tit')
 
@@ -608,19 +680,26 @@ explicitLink = try (do
 
 referenceLink = choice [referenceLinkDouble, referenceLinkSingle]
 
--- a link like [this][/url/]
+-- a link like [this][ref]
 referenceLinkDouble = try (do
   label <- reference
   skipSpaces
   skipEndline
   skipSpaces
   ref <- reference 
-  return (Link label (Ref ref))) 
+  let ref' = if null ref then label else ref
+  state <- getState
+  if ref' `elem` (stateKeysUsed state)
+     then return () else fail "no corresponding key"
+  return (Link label (Ref ref'))) 
 
 -- a link like [this]
 referenceLinkSingle = try (do
   label <- reference
-  return (Link label (Ref []))) 
+  state <- getState
+  if label `elem` (stateKeysUsed state)
+     then return () else fail "no corresponding key"
+  return (Link label (Ref label))) 
 
 -- a link <like.this.com>
 autoLink = try (do
@@ -645,6 +724,7 @@ noteMarker = try (do
   manyTill (noneOf " \t\n") (char labelEnd))
 
 noteRef = try (do
+  failIfStrict
   ref <- noteMarker
   state <- getState
   let identifiers = (stateNoteIdentifiers state) ++ [ref] 
@@ -652,6 +732,7 @@ noteRef = try (do
   return (NoteRef (show (length identifiers))))
 
 inlineNote = try (do
+  failIfStrict
   char noteStart
   char labelStart
   contents <- manyTill inline (char labelEnd)
@@ -663,4 +744,15 @@ inlineNote = try (do
                           stateNoteBlocks = 
                                (Note ref [Para contents]):noteBlocks})
   return (NoteRef ref))
+
+rawLaTeXInline' = do
+  failIfStrict
+  rawLaTeXInline
+
+rawHtmlInline' = do
+  st <- getState
+  result <- if stateStrict st
+              then choice [htmlBlockElement, anyHtmlTag, anyHtmlEndTag] 
+              else choice [htmlBlockElement, anyHtmlInlineTag]
+  return (HtmlInline result)
 

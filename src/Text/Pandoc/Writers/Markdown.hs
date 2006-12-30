@@ -168,11 +168,12 @@ inlineToMarkdown (Link txt (Src src tit)) =
   (if tit /= ""
       then text (" \"" ++ (escapeLinkTitle tit) ++ "\"") 
       else empty) <> char ')'
-inlineToMarkdown (Link txt (Ref [])) = 
-  char '[' <> inlineListToMarkdown txt <> text "][]"
 inlineToMarkdown (Link txt (Ref ref)) = 
-  char '[' <> inlineListToMarkdown txt <> char ']' <> char '[' <> 
-  inlineListToMarkdown ref <> char ']'
+  let first = char '[' <> inlineListToMarkdown txt <> char ']'
+      second = if (txt == ref) 
+                 then empty
+                 else char '[' <> inlineListToMarkdown ref <> char ']' in
+      first <> second
 inlineToMarkdown (Image alternate (Src source tit)) = 
   let alt = if (null alternate) || (alternate == [Str ""])
                then text "image" 
@@ -181,10 +182,7 @@ inlineToMarkdown (Image alternate (Src source tit)) =
   (if tit /= ""
       then text (" \"" ++ (escapeLinkTitle tit) ++ "\"") 
       else empty) <> char ')'
-inlineToMarkdown (Image alternate (Ref [])) = 
-  char '!' <> char '[' <> inlineListToMarkdown alternate <> char ']'
 inlineToMarkdown (Image alternate (Ref ref)) = 
-  char '!' <> char '[' <> inlineListToMarkdown alternate <> char ']' <> 
-  char '[' <> inlineListToMarkdown ref <> char ']'
+  char '!' <> inlineToMarkdown (Link alternate (Ref ref))
 inlineToMarkdown (NoteRef ref) = 
   text "[^" <> text (escapeString ref) <> char ']'

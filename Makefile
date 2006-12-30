@@ -296,8 +296,13 @@ $(win_pkg_name): $(THIS).exe  $(win_docs)
 .PHONY: test test-markdown
 test: $(MAIN)
 	@cd $(TESTDIR) && perl runtests.pl -s $(PWD)/$(MAIN)
-test-markdown: $(MAIN)
-	@cd $(TESTDIR)/MarkdownTest_1.0.3 && perl MarkdownTest.pl -s $(PWD)/$(MAIN) -tidy
+strict:=$(MAIN)-strict
+cleanup_files+=$(strict)
+$(strict): $(MAIN)
+	echo "#!/bin/sh -e\n$(PWD)/$(MAIN) --strict \"\$$@\"" > $@; \
+	chmod +x $(strict)
+test-markdown: $(strict)
+	@cd $(TESTDIR)/MarkdownTest_1.0.3 && perl MarkdownTest.pl -s $(PWD)/$(strict) -tidy
 
 # Stolen and slightly improved from a GPLed Makefile.  Credits to John Meacham.
 src_all:=$(shell find $(SRCDIR) -type f -name '*hs' | egrep -v '^\./(_darcs|lib|test)/')

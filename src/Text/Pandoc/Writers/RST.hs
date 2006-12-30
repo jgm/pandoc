@@ -202,9 +202,6 @@ inlineToRST (Link txt (Src src tit)) =
                      else linktext' in
     let ref = text ".. _" <> text linktext'' <> text ": " <> text src  in
     (link, ref' $$ ref)
-inlineToRST (Link txt (Ref [])) = 
-  let (linktext, refs) = inlineListToRST txt in
-  (char '[' <> linktext <> char ']', refs)   
 inlineToRST (Link txt (Ref ref)) = 
   let (linktext, refs1) = inlineListToRST txt 
       (reftext, refs2) = inlineListToRST ref in
@@ -216,9 +213,6 @@ inlineToRST (Image alternate (Src source tit)) =
   let link = char '|' <> alt <> char '|' in
   let ref = text ".. " <> link <> text " image:: " <> text source  in
   (link, ref' $$ ref)
-inlineToRST (Image alternate (Ref [])) = 
-  let (alttext, refs) = inlineListToRST alternate in
-  (char '|' <> alttext <> char '|', refs)
 -- The following case won't normally occur...
 inlineToRST (Image alternate (Ref ref)) = 
   let (alttext, refs1) = inlineListToRST alternate

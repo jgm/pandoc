@@ -114,6 +114,7 @@ data ParserState = ParserState
       stateTitle           :: [Inline],      -- ^ Title of document
       stateAuthors         :: [String],      -- ^ Authors of document
       stateDate            :: String,        -- ^ Date of document
+      stateStrict          :: Bool,          -- ^ Use strict markdown syntax
       stateHeaderTable     :: [HeaderType]   -- ^ List of header types used,
                                              -- in what order (rst only)
     }
@@ -132,6 +133,7 @@ defaultParserState =
                   stateTitle           = [],
                   stateAuthors         = [],
                   stateDate            = [],
+                  stateStrict          = False,
                   stateHeaderTable     = [] }
 
 -- | Consolidate @Str@s and @Space@s in an inline list into one big @Str@.
@@ -325,10 +327,11 @@ data WriterOptions = WriterOptions
     , writerHeader          :: String -- ^ Header for the document
     , writerIncludeBefore   :: String -- ^ String to include before the  body
     , writerIncludeAfter    :: String -- ^ String to include after the body
-    , writerSmart           :: Bool   -- ^ If @True@, use smart typography
-    , writerS5              :: Bool   -- ^ @True@ if we're writing S5 
-    , writerIncremental     :: Bool   -- ^ If @True@, inceremental S5 lists
-    , writerNumberSections  :: Bool   -- ^ If @True@, number sections in LaTeX
+    , writerSmart           :: Bool   -- ^ Use smart typography
+    , writerS5              :: Bool   -- ^ We're writing S5 
+    , writerIncremental     :: Bool   -- ^ Incremental S5 lists
+    , writerNumberSections  :: Bool   -- ^ Number sections in LaTeX
+    , writerStrictMarkdown  :: Bool   -- ^ Use strict markdown syntax
     , writerTabStop         :: Int    -- ^ Tabstop for conversion between 
                                       -- spaces and tabs
     } deriving Show

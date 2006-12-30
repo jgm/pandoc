@@ -180,15 +180,11 @@ inlineToLaTeX notes (LineBreak) = "\\\\\n"
 inlineToLaTeX notes Space = " "
 inlineToLaTeX notes (Link text (Src src tit)) = 
     "\\href{" ++ src ++ "}{" ++ (inlineListToLaTeX notes (deVerb text)) ++ "}"
-inlineToLaTeX notes (Link text (Ref [])) = "[" ++ 
-    (inlineListToLaTeX notes text) ++ "]"
 inlineToLaTeX notes (Link text (Ref ref)) = "[" ++ 
     (inlineListToLaTeX notes text) ++ "][" ++ (inlineListToLaTeX notes ref) ++
     "]"  -- this is what markdown does, for better or worse
 inlineToLaTeX notes (Image alternate (Src source tit)) = 
     "\\includegraphics{" ++ source ++ "}" 
-inlineToLaTeX notes (Image alternate (Ref [])) = 
-    "![" ++ (inlineListToLaTeX notes alternate) ++ "]" 
 inlineToLaTeX notes (Image alternate (Ref ref)) = 
     "![" ++ (inlineListToLaTeX notes alternate) ++ "][" ++ 
     (inlineListToLaTeX notes ref) ++ "]"

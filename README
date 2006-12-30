@@ -213,6 +213,9 @@ preserved, rather than converted to spaces (the default).
 
 `--tabstop` allows the user to set the tab stop (which defaults to 4).
 
+`--strict` specifies that strict markdown syntax is to be used, without
+pandoc's usual extensions and variants (described below).
+
 `-R` or `--parse-raw` causes the HTML and LaTeX readers to parse HTML
 codes and LaTeX environments that it can't translate as raw HTML or
 LaTeX.  Raw HTML can be printed in markdown, reStructuredText, HTML,
@@ -293,7 +296,8 @@ Pandoc's markdown vs. standard markdown
 
 In parsing markdown, Pandoc departs from and extends [standard markdown]
 in a few respects.  (To run Pandoc on the official
-markdown test suite, type `make test-markdown`.)
+markdown test suite, type `make test-markdown`.)  These differences can
+be suppressed by specifying the `--strict` command-line option.
 
 [standard markdown]:  http://daringfireball.net/projects/markdown/syntax
   "Markdown syntax description"
@@ -319,7 +323,10 @@ the blank space around "Third".  Pandoc follows a simple rule:
 if the text is followed by a blank line, it is treated as a
 paragraph.  Since "Second" is followed by a list, and not a blank
 line, it isn't treated as a paragraph.  The fact that the list
-is followed by a blank line is irrelevant. 
+is followed by a blank line is irrelevant.  (Note:  Pandoc works
+this way even when the `--strict` option is specified.  This
+behavior is consistent with the official markdown syntax
+description, even though it is different from that of `Markdown.pl`.)
 
 Unlike standard markdown, Pandoc allows ordered list items to be
 marked with single letters, instead of numbers.  So, for example,
@@ -350,32 +357,16 @@ the example above:
         B)  Fie
     C)  Third
 
-Literal quotes in titles
-------------------------
-
-Standard markdown allows unescaped literal quotes in titles, as
-in 
-
-	[foo]: "bar "embedded" baz"
-
-Pandoc requires all quotes within titles to be escaped:
-
-	[foo]: "bar \"embedded\" baz"
-
 Reference links
 ---------------
 
-Pandoc allows implicit reference links in either of two styles:
+Pandoc allows implicit reference links with just a single set of
+brackets.  So, the following links are equivalent:
 
 	1. Here's my [link]
 	2. Here's my [link][]
 
 	[link]: linky.com
-
-If there's no corresponding reference, the implicit reference link
-will appear as regular bracketed text.  Note: even `[link][]` will
-appear as `[link]` if there's no reference for `link`.  If you want
-`[link][]`, use a backslash escape: `\[link]\[]`.
 
 Footnotes
 ---------
@@ -439,7 +430,7 @@ into
 		</tr>
 	</table>
 
-whereas Markdown 1.0 will preserve it as is.
+whereas `Markdown.pl` will preserve it as is.
 
 There is one exception to this rule:  text between `<script>` and
 `</script>` tags is not interpreted as markdown.
@@ -527,7 +518,7 @@ Note, however, that material between the begin and end tags will
 be interpreted as raw LaTeX, not as markdown.
 
 Custom headers
---------------
+==============
 
 When run with the "standalone" option (`-s`), `pandoc` creates a
 standalone file, complete with an appropriate header.  To see the

@@ -220,15 +220,11 @@ inlineToRTF notes Space = " "
 inlineToRTF notes (Link text (Src src tit)) = 
   "{\\field{\\*\\fldinst{HYPERLINK \"" ++ (codeStringToRTF src) ++ 
   "\"}}{\\fldrslt{\\ul\n" ++ (inlineListToRTF notes text) ++ "\n}}}\n"
-inlineToRTF notes (Link text (Ref [])) = 
-  "[" ++ (inlineListToRTF notes text) ++ "]"
 inlineToRTF notes (Link text (Ref ref)) = 
   "[" ++ (inlineListToRTF notes text) ++ "][" ++ 
   (inlineListToRTF notes ref) ++ "]"  -- this is what markdown does
 inlineToRTF notes (Image alternate (Src source tit)) = 
   "{\\cf1 [image: " ++ source ++ "]\\cf0}" 
-inlineToRTF notes (Image alternate (Ref [])) = 
-  "![" ++ (inlineListToRTF notes alternate) ++ "]" 
 inlineToRTF notes (Image alternate (Ref ref)) = "![" ++ 
   (inlineListToRTF notes alternate) ++ "][" ++ 
   (inlineListToRTF notes ref) ++ "]"

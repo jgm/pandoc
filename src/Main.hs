@@ -91,13 +91,12 @@ writeDoc options = prettyPandoc
 
 -- | Data structure for command line options.
 data Opt = Opt
-    { optPreserveTabs      :: Bool    -- ^ If @False@, convert tabs to spaces
+    { optPreserveTabs      :: Bool    -- ^ Convert tabs to spaces
     , optTabStop           :: Int     -- ^ Number of spaces per tab
-    , optStandalone        :: Bool    -- ^ If @True@, include header, footer
+    , optStandalone        :: Bool    -- ^ Include header, footer
     , optReader            :: String  -- ^ Reader format
     , optWriter            :: String  -- ^ Writer format
-    , optParseRaw          :: Bool    -- ^ If @True@, parse unconvertable 
-                                      -- HTML and TeX
+    , optParseRaw          :: Bool    -- ^ Parse unconvertable HTML and TeX
     , optCSS               :: String  -- ^ CSS file to link to
     , optIncludeInHeader   :: String  -- ^ File to include in header
     , optIncludeBeforeBody :: String  -- ^ File to include at top of body
@@ -105,11 +104,12 @@ data Opt = Opt
     , optCustomHeader      :: String  -- ^ Custom header to use, or "DEFAULT"
     , optTitlePrefix       :: String  -- ^ Optional prefix for HTML title
     , optOutputFile        :: String  -- ^ Name of output file
-    , optNumberSections    :: Bool    -- ^ If @True@, number sections in LaTeX
-    , optIncremental       :: Bool    -- ^ If @True@, incremental lists in S5
-    , optSmart             :: Bool    -- ^ If @True@, use smart typography
-    , optASCIIMathML       :: Bool    -- ^ If @True@, use ASCIIMathML in HTML
-    , optDebug             :: Bool    -- ^ If @True@, output debug messages 
+    , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
+    , optIncremental       :: Bool    -- ^ Use incremental lists in S5
+    , optSmart             :: Bool    -- ^ Use smart typography
+    , optASCIIMathML       :: Bool    -- ^ Use ASCIIMathML in HTML
+    , optDebug             :: Bool    -- ^ Output debug messages 
+    , optStrict            :: Bool    -- ^ Use strict markdown syntax
     }
 
 -- | Defaults for command-line options.
@@ -133,6 +133,7 @@ defaultOpts = Opt
     , optSmart             = False
     , optASCIIMathML       = False
     , optDebug             = False
+    , optStrict            = False
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -174,6 +175,11 @@ options =
                   (\arg opt -> return opt { optTabStop = (read arg) } )
                   "TABSTOP")
                  "Tab stop (default 4)"
+
+    , Option "" ["strict"]
+                 (NoArg
+                  (\opt -> return opt { optStrict = True } ))
+                 "Use strict markdown syntax with no extensions"
 
     , Option "R" ["parse-raw"]
                  (NoArg
@@ -364,6 +370,7 @@ main = do
               , optSmart             = smart
               , optASCIIMathML       = asciiMathML
 			  , optDebug             = debug
+              , optStrict            = strict
              } = opts
 
   -- assign reader and writer based on options and filenames
@@ -399,7 +406,9 @@ main = do
   let filter = tabFilter . addBlank . removeCRs
   let startParserState = defaultParserState { stateParseRaw     = parseRaw,
                                               stateTabStop      = tabStop, 
-                                              stateStandalone   = standalone }
+                                              stateStandalone   = standalone &&
+                                                                  (not strict),
+                                              stateStrict       = strict }
   let csslink = if (css == "")
                    then "" 
                    else "<link rel=\"stylesheet\" href=\"" ++ css ++ 
@@ -409,16 +418,19 @@ main = do
                    then defaultHeader
                    else customHeader) ++ 
                csslink ++ asciiMathMLLink ++ includeHeader
-  let writerOptions = WriterOptions { writerStandalone     = standalone, 
+  let writerOptions = WriterOptions { writerStandalone     = standalone &&
+                                                             (not strict), 
                                       writerHeader         = header, 
                                       writerTitlePrefix    = titlePrefix,
-                                      writerSmart          = smart, 
+                                      writerSmart          = smart && 
+                                                             (not strict), 
                                       writerTabStop        = tabStop, 
                                       writerS5             = (writerName=="s5"),
                                       writerIncremental    = incremental, 
                                       writerNumberSections = numberSections,
                                       writerIncludeBefore  = includeBefore, 
-                                      writerIncludeAfter   = includeAfter }
+                                      writerIncludeAfter   = includeAfter,
+                                      writerStrictMarkdown = strict }
 
   (readSources sources) >>= (hPutStr output . encodeUTF8 . 
                              (writer writerOptions) . 

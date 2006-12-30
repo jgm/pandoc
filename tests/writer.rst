@@ -638,7 +638,7 @@ Indented `twice`_.
 
 Indented `thrice`_.
 
-This should [not] be a link.
+This should [not][] be a link.
 
 ::
  
