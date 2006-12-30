@@ -31,6 +31,8 @@ pandoc (0.3) unstable; urgency=low
   * Changes in pandoc options:
     + Allow options to follow or precede arguments.
     + Changed '--smartypants' to '--smart' and adjusted symbols accordingly.
+    + Added '--strict' option for maximum compatibility with official
+      Markdown syntax.
     + Added '-o/--output' option to send output to a file.
     + Added '-d/--debug' option:
       - Prints OUTPUT= followed by output filename (or blank) to stderr.
@@ -87,6 +89,11 @@ pandoc (0.3) unstable; urgency=low
       line to count as escaped whitespace.
     + Modified LaTeX reader to produce inline links rather than reference
       links.  Otherwise, links in footnotes aren't handled properly.
+    + Fixed handling of titles in links in Markdown reader, so that
+      embedded quotation marks are now handled properly.
+    + Fixed Markdown reader's handling of embedded brackets in links.
+    + Fixed Markdown reader so that it only parses bracketed material
+      as a reference link if there is actually a corresponding key.
 
   * Made handling of code blocks more consistent.  Previously, some
     readers allowed trailing newlines, while others stripped them.
