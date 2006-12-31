@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Special parser combinators for Pandoc readers.
 -}
 module Text.ParserCombinators.Pandoc ( 
+                                      anyLine,
                                       many1Till,
                                       followedBy',
                                       notFollowedBy',
@@ -46,6 +47,10 @@ import Text.ParserCombinators.Parsec
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Char ( toUpper, toLower )
+
+--- | Parse any line of text
+anyLine :: GenParser Char st [Char]
+anyLine = manyTill anyChar (newline <|> (do{eof; return '\n'}))
 
 -- | Parses a character and returns 'Null' (so that the parser can move on
 -- if it gets stuck).

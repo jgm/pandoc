@@ -163,7 +163,8 @@ parseMarkdown = do
   (title, author, date) <- option ([],[],"") titleBlock
   oldState <- getState
   oldInput <- getInput
-  parseBlocks -- go through once just to get list of reference keys
+  -- go through once just to get list of reference keys
+  manyTill (referenceKey <|> (do{anyLine; return Null})) eof 
   newState <- getState
   let keysUsed = stateKeysUsed newState
   setInput oldInput
@@ -492,7 +493,7 @@ rawHtmlBlocks = try (do
 --
 
 referenceKey = try (do
-  skipSpaces
+  skipNonindentSpaces
   label <- reference
   char labelSep
   skipSpaces
