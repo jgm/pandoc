@@ -59,3 +59,56 @@ Each of the installation steps described above can be reversed:
 
     sudo make uninstall-all
 
+# Other targets
+
+The following 'make' targets should not be needed by the average user,
+but are documented here for packagers and developers:
+
+## Building and installing
+
+* `configure`:  Performs the needed preprocessing to create a proper
+  Cabal package for Pandoc:
+    - Builds `Pandoc.cabal` from `Pandoc.cabal.in`, using
+      the shell script `cabalize`.  
+    - Builds `ASCIIMathML.hs`, `DefaultHeaders.hs`, and `S5.hs`
+      from templates in `src/templates` and data in `src/ASCIIMathML.js`,
+      `src/ui`, and `src/headers`.
+    - Stores values of relevant environment variables in `vars` for
+      persistence.
+    - Runs Cabal's "configure" command.
+* `build-exec`:  Builds `pandoc` executable (using Cabal's "build"
+  command) and creates the wrappers `html2markdown` and `markdown2pdf`
+  from templates in `src/wrappers`.
+* `build-doc`:  Builds program documentation (e.g. `README.html`).
+* `build-lib-doc`:  Builds Haddock documentation for Pandoc libraries.
+* `install-doc`, `uninstall-doc`:  Installs/uninstalls user documentation
+   and man pages.
+* `install-lib-doc`, `uninstall-lib-doc`:  Installs/uninstalls library
+  documentation and man pages.
+* `install-exec`, `uninstall-exec`:  Installs/uninstalls programs
+  (`pandoc` and wrappers).
+
+## Testing
+
+* `test`:  Runs Pandoc's test suite.  (All tests should pass.)
+* `test-markdown`:  Runs the Markdown regression test suite, using
+  `pandoc --strict`.  (One of the list tests will fail.)
+
+## Cleaning
+
+* `clean`:  Restores directory to pre-build state, removing generated files.
+* `distclean`:  Like clean, but also cleans up files created by `make deb`.
+
+## Packaging
+
+* `osx-pkg-prep`:  Prepares for building a MacOS X package.
+* `osx-pkg`:  Builds a MacOS X package (must be run as root, and on OS X).
+  You should make `osx-pkg-prep` first (not as root).
+* `osx-dmg`:  Creates a compressed disk image containing Mac OS X package
+  (must be run on OS X).  You should make `osx-pkg` first.
+* `win-pkg`:  Creates a Windows binary package (presupposes `pandoc.exe`,
+  which must be created by building Pandoc on a Windows machine).
+* `tarball`:  Creates a source tarball for distribution.
+* `deb`:  Creates debian packages in `..` directory.
+* `website`:  Creates Pandoc's website in `web/pandoc` directory.
+
