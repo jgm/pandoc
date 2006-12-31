@@ -519,7 +519,7 @@ rawLaTeXEnvironment' = do
 -- inline
 --
 
-text = choice [ math, strong, emph, code2, code1, str, linebreak, tabchar, 
+text = choice [ math, strong, emph, code, str, linebreak, tabchar, 
                 whitespace, endline ] <?> "text"
 
 inline = choice [ rawLaTeXInline', escapedChar, special, hyphens, text, 
@@ -548,21 +548,13 @@ hyphens = try (do
      else do{ string ""; return Space }
   return (Str result))
 
--- parses inline code, between codeStart and codeEnd
-code1 = try (do 
-  char codeStart
-  result <- many (noneOf [codeEnd])
-  char codeEnd
+-- parses inline code, between n codeStarts and n codeEnds
+code = try (do 
+  starts <- many1 (char codeStart)
+  let num = length starts
+  result <- many1Till anyChar (try (count num (char codeEnd)))
   -- get rid of any internal newlines
   let result' = removeLeadingTrailingSpace $ joinWithSep " " $ lines result
-  return (Code result'))
-
--- parses inline code, between 2 codeStarts and 2 codeEnds
-code2 = try (do
-  string [codeStart, codeStart]
-  result <- manyTill anyChar (try (string [codeEnd, codeEnd]))
-  let result' = removeLeadingTrailingSpace $ joinWithSep " " $ lines result
-  -- get rid of any internal newlines
   return (Code result'))
 
 mathWord = many1 (choice [ (noneOf (" \t\n\\" ++ [mathEnd])), 
