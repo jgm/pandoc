@@ -102,33 +102,28 @@ titleTransform blocks = (blocks, [])
 parseRST = do
   state <- getState
   input <- getInput
-  blocks <- parseBlocks   -- first pass
-  let anonymousKeys = filter isAnonKeyBlock blocks
-  let blocks' = if (null anonymousKeys)
-                   then blocks
-                   else -- run parser again to fill in anonymous links...
-                        case runParser parseBlocks 
-                             (state { stateKeyBlocks = anonymousKeys }) 
-                             "RST source, second pass" input of
-                                Left err   -> error $ "\nError:\n" ++ show err
-                                Right result -> 
-                                  filter isNotAnonKeyBlock result
+  -- first pass: get anonymous keys
+  keyBlocks <- manyTill (anonymousKey <|> (do{anyLine; return Null})) eof
+  let anonymousKeys = filter (/= Null) keyBlocks
+  -- run parser again to fill in anonymous links...
+  setState (state { stateKeyBlocks = anonymousKeys })
+  setInput input
+  blocks <- parseBlocks
+  let blocks' = filter isNotAnonKeyBlock blocks
   let (blocks'', title) = if stateStandalone state
-                             then titleTransform blocks'
-                             else (blocks', [])
-  state <- getState
-  let authors = stateAuthors state
-  let date = stateDate state
-  let title' = if (null title) then (stateTitle state) else title
+                              then titleTransform blocks'
+                              else (blocks', [])
+  state' <- getState
+  let authors = stateAuthors state'
+  let date = stateDate state'
+  let title' = if (null title) then (stateTitle state') else title
   return (Pandoc (Meta title' authors date) blocks'')
 
 --
 -- parsing blocks
 --
 
-parseBlocks = do
-  result <- manyTill block eof
-  return result
+parseBlocks = manyTill block eof
 
 block = choice [ codeBlock, rawHtmlBlock, rawLaTeXBlock, blockQuote, 
                  referenceKey, imageBlock, unknownDirective, header,
