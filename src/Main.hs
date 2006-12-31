@@ -144,75 +144,73 @@ options =
                  (ReqArg
                   (\arg opt -> return opt { optReader = map toLower arg })
                   "FORMAT")
-                 ("Input format (" ++ (joinWithSep ", " (map fst readers)) ++
-                  ")")
+                 "" -- ("(" ++ (joinWithSep ", " (map fst readers)) ++ ")")
 
     , Option "tw" ["to","write"]
                  (ReqArg
                   (\arg opt -> return opt { optWriter = map toLower arg })
                   "FORMAT")
-                 ("Output format (" ++ (joinWithSep ", " (map fst writers)) ++ 
-                  ")")
+                 "" -- ("(" ++ (joinWithSep ", " (map fst writers)) ++ ")")
     
     , Option "s" ["standalone"]
                  (NoArg
                   (\opt -> return opt { optStandalone = True }))
-                 "Include needed header and footer on output"
+                 "" -- "Include needed header and footer on output"
 
     , Option "o" ["output"]
                  (ReqArg
                   (\arg opt -> return opt { optOutputFile = arg })
                   "FILENAME")
-                 "Name of output file"
+                 "" -- "Name of output file"
 
     , Option "p" ["preserve-tabs"]
                  (NoArg
                   (\opt -> return opt { optPreserveTabs = True }))
-                 "Preserve tabs instead of converting to spaces"
+                 "" -- "Preserve tabs instead of converting to spaces"
 
     , Option "" ["tab-stop"]
                  (ReqArg
                   (\arg opt -> return opt { optTabStop = (read arg) } )
                   "TABSTOP")
-                 "Tab stop (default 4)"
+                 "" -- "Tab stop (default 4)"
 
     , Option "" ["strict"]
                  (NoArg
                   (\opt -> return opt { optStrict = True } ))
-                 "Use strict markdown syntax with no extensions"
+                 "" -- "Use strict markdown syntax with no extensions"
 
     , Option "R" ["parse-raw"]
                  (NoArg
                   (\opt -> return opt { optParseRaw = True }))
-                 "Parse untranslatable HTML codes and LaTeX environments as raw"
+                 "" -- "Parse untranslatable HTML codes and LaTeX environments as raw"
 
     , Option "S" ["smart"]
                  (NoArg
                   (\opt -> return opt { optSmart = True }))
-                 "Use smart quotes, dashes, and ellipses in HTML output"
+                 "" -- "Use smart quotes, dashes, and ellipses in HTML output"
 
     , Option "m" ["asciimathml"]
                  (NoArg
                   (\opt -> return opt { optASCIIMathML = True, 
                                         optStandalone = True }))
-                 "Use ASCIIMathML script in html output"
+                 "" -- "Use ASCIIMathML script in html output"
 
     , Option "i" ["incremental"]
                  (NoArg
                   (\opt -> return opt { optIncremental = True }))
-                 "Make list items display incrementally in S5"
+                 "" -- "Make list items display incrementally in S5"
 
     , Option "N" ["number-sections"]
                  (NoArg
                   (\opt -> return opt { optNumberSections = True }))
-                 "Number sections in LaTeX"
+                 "" -- "Number sections in LaTeX"
 
     , Option "c" ["css"]
                  (ReqArg
                   (\arg opt -> return opt { optCSS = arg, 
                                             optStandalone = True })
                   "CSS")
-                 "Link to CSS style sheet"
+                 "" -- "Link to CSS style sheet"
 
     , Option "H" ["include-in-header"]
                  (ReqArg
@@ -221,7 +219,7 @@ options =
                      return opt { optIncludeInHeader = text, 
                                   optStandalone = True })
                   "FILENAME")
-                 "File to include at end of header (implies -s)"
+                 "" -- "File to include at end of header (implies -s)"
 
     , Option "B" ["include-before-body"]
                  (ReqArg
@@ -229,7 +227,7 @@ options =
                      text <- readFile arg
                      return opt { optIncludeBeforeBody = text })
                   "FILENAME")
-                 "File to include before document body"
+                 "" -- "File to include before document body"
 
     , Option "A" ["include-after-body"]
                  (ReqArg
@@ -237,7 +235,7 @@ options =
                      text <- readFile arg
                      return opt { optIncludeAfterBody = text })
                   "FILENAME")
-                 "File to include after document body"
+                 "" -- "File to include after document body"
 
     , Option "C" ["custom-header"]
                  (ReqArg
@@ -246,14 +244,14 @@ options =
                      return opt { optCustomHeader = text, 
                                   optStandalone = True })
                   "FILENAME")
-                 "File to use for custom header (implies -s)"
+                 "" -- "File to use for custom header (implies -s)"
 
     , Option "T" ["title-prefix"]
                  (ReqArg
                   (\arg opt -> return opt { optTitlePrefix = arg, 
                                             optStandalone = True })
                   "STRING")
-                 "String to prefix to HTML window title"
+                 "" -- "String to prefix to HTML window title"
                  
     , Option "D" ["print-default-header"]
                  (ReqArg
@@ -264,12 +262,12 @@ options =
                      hPutStr stdout header
                      exitWith ExitSuccess)
                   "FORMAT")
-                 "Print default header for FORMAT"
+                 "" -- "Print default header for FORMAT"
 
     , Option "d" ["debug"]
                  (NoArg
                   (\opt -> return opt { optDebug = True }))
-                 "Print debug messages to stderr, output to stdout"
+                 "" -- "Print debug messages to stderr, output to stdout"
     
     , Option "v" ["version"]
                  (NoArg
@@ -278,24 +276,25 @@ options =
                      hPutStrLn stderr (prg ++ " " ++ version ++ 
                                        copyrightMessage)
                      exitWith $ ExitFailure 2))
-                 "Print version"
+                 "" -- "Print version"
 
     , Option "h" ["help"]
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     hPutStr stderr (reformatUsageInfo $ 
-                             usageInfo (prg ++ " [OPTIONS] [FILES]") options)
+                     hPutStr stderr (usageMessage prg options)
                      exitWith $ ExitFailure 2))
-                 "Show help"
+                 "" -- "Show help"
     ]
 
--- Reformat usage message so it doesn't wrap illegibly
-reformatUsageInfo :: String -> String
-reformatUsageInfo = gsub "   *--" "  --" .
-                    gsub "(-[A-Za-z0-9])   *--" "\\1, --" . 
-                    gsub "   *([^- ])" "\n\t\\1"
-
+-- Returns usage message
+usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
+usageMessage programName options = usageInfo  
+  (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++ 
+  joinWithSep ", " (map fst readers) ++ "\nOutput formats:  " ++ 
+  joinWithSep ", " (map fst writers) ++ "\nOptions:")
+  options
+ 
 -- Determine default reader based on source file extensions
 defaultReaderName :: [String] -> String
 defaultReaderName [] = "markdown"
@@ -343,8 +342,7 @@ main = do
     then do
       name <- getProgName
       mapM (\e -> hPutStrLn stderr e) errors
-      hPutStrLn stderr (reformatUsageInfo $ 
-                        usageInfo (name ++ " [OPTIONS] [FILES]") options)
+      hPutStr stderr (usageMessage name options)
       exitWith $ ExitFailure 2
     else
       return ()
