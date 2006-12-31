@@ -1,0 +1,6 @@
+To use the GHC profiler:
+
+    make clean
+    HCFLAGS="-prof -auto-all -O0" make
+    ./pandoc +RTS -p -RTS [file]...
+    less pandoc.prof
