@@ -453,13 +453,14 @@ listItem start = try (do
   -- count as list item markers, even if not separated by blank space.
   -- see definition of "endline"
   state <- getState
-  let parsed = case runParser parseBlocks 
-                    (state {stateParserContext = ListItemState}) "list item"
-                    raw of
-                      Left err     -> error $ "Raw:\n" ++ raw ++ 
-                                              "\nError:\n" ++ show err
-                      Right result -> result
-          where raw = concat (first:rest) ++ blanks 
+  let oldContext = stateParserContext state
+  remaining <- getInput
+  setState $ state {stateParserContext = ListItemState}
+  -- parse the extracted block, which may itself contain block elements
+  setInput $ concat (first:rest) ++ blanks
+  parsed <- parseBlocks
+  setInput remaining 
+  updateState (\st -> st {stateParserContext = oldContext})
   return parsed)
 
 orderedList = try (do
