@@ -33,6 +33,11 @@ converts \fIchap1.txt\fR from markdown to LaTeX.  And
 .PP
 converts \fIREADME\fR from markdown to HTML.
 .PP
+Pandoc's version of markdown is an extended variant of standard
+markdown: the differences are described in the \fIREADME\fR file in
+the user documentation.  If standard markdown syntax is desired, the
+\fB\-\-strict\fR option may be used.
+.PP
 \fIPandoc\fR uses the UTF\-8 character encoding for both input and output.
 If your local character encoding is not UTF\-8, you should pipe input
 and output through \fBiconv\fR:
