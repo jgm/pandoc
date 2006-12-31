@@ -181,9 +181,7 @@ parseMarkdown = do
 -- parsing blocks
 --
 
-parseBlocks = do
-  result <- manyTill block eof
-  return result
+parseBlocks = manyTill block eof
 
 block = choice [ codeBlock, note, referenceKey, header, hrule, list, 
                  blockQuote, htmlBlock, rawLaTeXEnvironment', para,
