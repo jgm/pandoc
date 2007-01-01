@@ -253,7 +253,7 @@ $(osx_dest)/: build-program $(doc_more)
 	sed -e 's/@VERSION@/$(VERSION)/g' $(osx_src)/Info.plist > $(osx_dest)/Info.plist
 	cp $(osx_src)/Description.plist $(osx_dest)/
 osx-pkg: $(osx_pkg_name)
-$(osx_pkg_name): $(osx_dest)
+$(osx_pkg_name)/: $(osx_dest)
 	if [ "`id -u`" != 0 ]; then \
 		echo "Root permissions needed to create OSX package!"; \
 		exit 1; \
