@@ -96,6 +96,10 @@ pandoc (0.3) unstable; urgency=low
     + Fixed Markdown reader's handling of embedded brackets in links.
     + Fixed Markdown reader so that it only parses bracketed material
       as a reference link if there is actually a corresponding key.
+    + Revised inline code parsing in Markdown reader to conform to
+      markdown standard.  Now any number of `s can begin inline code,
+      which will end with the same number of `s.  For example, to
+      have two backticks as code, write ``` `` ```.
 
   * Made handling of code blocks more consistent.  Previously, some
     readers allowed trailing newlines, while others stripped them.
