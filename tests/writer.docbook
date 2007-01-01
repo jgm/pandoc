@@ -87,9 +87,11 @@
       <para>
         Code in a block quote:
       </para>
-      <programlisting><![CDATA[sub status {
+      <screen>
+sub status {
     print "working";
-}]]></programlisting>
+}
+</screen>
       <para>
         A list:
       </para>
@@ -129,9 +131,11 @@
       <para>
         Example:
       </para>
-      <programlisting><![CDATA[sub status {
+      <screen>
+sub status {
     print "working";
-}]]></programlisting>
+}
+</screen>
     </blockquote>
     <blockquote>
       <orderedlist>
@@ -169,19 +173,23 @@
     <para>
       Code:
     </para>
-    <programlisting><![CDATA[---- (should be four hyphens)
+    <screen>
+---- (should be four hyphens)
 
 sub status {
     print "working";
 }
 
-this code block is indented by one tab]]></programlisting>
+this code block is indented by one tab
+</screen>
     <para>
       And:
     </para>
-    <programlisting><![CDATA[    this code block is indented by two tabs
+    <screen>
+    this code block is indented by two tabs
 
-These should not be escaped:  \$ \\ \> \[ \{]]></programlisting>
+These should not be escaped:  \$ \\ \> \[ \{
+</screen>
   </section>
   <section>
     <title>Lists</title>
@@ -839,7 +847,9 @@ Cat    &amp; 1      \\ \hline
       <para>
         This should [not][] be a link.
       </para>
-      <programlisting><![CDATA[[not]: /url]]></programlisting>
+      <screen>
+[not]: /url
+</screen>
       <para>
         Foo <ulink url="/url/">bar</ulink>.
       </para>
@@ -901,7 +911,9 @@ Cat    &amp; 1      \\ \hline
         Auto-links should not occur here:
         <literal>&lt;http://example.com/></literal>
       </para>
-      <programlisting><![CDATA[or here: <http://example.com/>]]></programlisting>
+      <screen>
+or here: &lt;http://example.com/>
+</screen>
     </section>
   </section>
   <section>
@@ -950,7 +962,9 @@ Cat    &amp; 1      \\ \hline
                   Subsequent blocks are indented to show that they belong to the
                   footnote (as with list items).
                 </para>
-                <programlisting><![CDATA[  { <code> }]]></programlisting>
+                <screen>
+  { &lt;code> }
+</screen>
                 <para>
                   If you want, you can indent every line, but you can also be lazy
                   and just indent the first line of each block.

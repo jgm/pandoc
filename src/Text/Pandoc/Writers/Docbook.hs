@@ -158,7 +158,7 @@ blockToDocbook options (Para lst) =
 blockToDocbook options (BlockQuote blocks) =
   indentedInTags options "blockquote" (blocksToDocbook options blocks)
 blockToDocbook options (CodeBlock str) = 
-  text "<programlisting>" <> (cdata str) <> text "</programlisting>"
+  text "<screen>\n" <> text (codeStringToXML str) <> text "\n</screen>"
 blockToDocbook options (BulletList lst) = 
   indentedInTags options "itemizedlist" $ listItemsToDocbook options lst 
 blockToDocbook options (OrderedList lst) = 
