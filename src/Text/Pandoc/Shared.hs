@@ -322,7 +322,7 @@ containsPara (x:rest) = containsPara rest
 
 -- | Options for writers
 data WriterOptions = WriterOptions
-    { writerStandalone      :: Bool   -- ^ If @True@, writer header and footer
+    { writerStandalone      :: Bool   -- ^ Include header and footer
     , writerTitlePrefix     :: String -- ^ Prefix for HTML titles
     , writerHeader          :: String -- ^ Header for the document
     , writerIncludeBefore   :: String -- ^ String to include before the  body
@@ -334,6 +334,7 @@ data WriterOptions = WriterOptions
     , writerStrictMarkdown  :: Bool   -- ^ Use strict markdown syntax
     , writerTabStop         :: Int    -- ^ Tabstop for conversion between 
                                       -- spaces and tabs
+    , writerNotes           :: [Block] -- ^ List of note blocks
     } deriving Show
 
 --

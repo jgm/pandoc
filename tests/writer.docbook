@@ -1,0 +1,997 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+                  "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+
+<article>
+  <articleinfo>
+    <title>Pandoc Test Suite</title>
+    <author>
+      <firstname>John</firstname>
+      <surname>MacFarlane</surname>
+    </author>
+    <author>
+      <firstname></firstname>
+      <surname>Anonymous</surname>
+    </author>
+    <date>July 17, 2006</date>
+  </articleinfo>
+  <para>
+    This is a set of tests for pandoc. Most of them are adapted from
+    John Gruber's markdown test suite.
+  </para>
+  <section>
+    <title>Headers</title>
+    <section>
+      <title>Level 2 with an
+             <ulink url="/url">embedded link</ulink></title>
+      <section>
+        <title>Level 3 with <emphasis>emphasis</emphasis></title>
+        <section>
+          <title>Level 4</title>
+          <section>
+            <title>Level 5</title>
+            <para>
+            </para>
+          </section>
+        </section>
+      </section>
+    </section>
+  </section>
+  <section>
+    <title>Level 1</title>
+    <section>
+      <title>Level 2 with <emphasis>emphasis</emphasis></title>
+      <section>
+        <title>Level 3</title>
+        <para>
+          with no blank line
+        </para>
+      </section>
+    </section>
+    <section>
+      <title>Level 2</title>
+      <para>
+        with no blank line
+      </para>
+    </section>
+  </section>
+  <section>
+    <title>Paragraphs</title>
+    <para>
+      Here's a regular paragraph.
+    </para>
+    <para>
+      In Markdown 1.0.0 and earlier. Version 8. This line turns into a
+      list item. Because a hard-wrapped line in the middle of a paragraph
+      looked like a list item.
+    </para>
+    <para>
+      Here's one with a bullet. * criminey.
+    </para>
+    <para>
+      There should be a hard line
+      break<literallayout></literallayout>here.
+    </para>
+  </section>
+  <section>
+    <title>Block Quotes</title>
+    <para>
+      E-mail style:
+    </para>
+    <blockquote>
+      <para>
+        This is a block quote. It is pretty short.
+      </para>
+    </blockquote>
+    <blockquote>
+      <para>
+        Code in a block quote:
+      </para>
+      <programlisting><![CDATA[sub status {
+    print "working";
+}]]></programlisting>
+      <para>
+        A list:
+      </para>
+      <orderedlist>
+        <listitem>
+          <para>
+            item one
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            item two
+          </para>
+        </listitem>
+      </orderedlist>
+      <para>
+        Nested block quotes:
+      </para>
+      <blockquote>
+        <para>
+          nested
+        </para>
+      </blockquote>
+      <blockquote>
+        <para>
+          nested
+        </para>
+      </blockquote>
+    </blockquote>
+    <para>
+      This should not be a block quote: 2 &gt; 1.
+    </para>
+    <para>
+      Box-style:
+    </para>
+    <blockquote>
+      <para>
+        Example:
+      </para>
+      <programlisting><![CDATA[sub status {
+    print "working";
+}]]></programlisting>
+    </blockquote>
+    <blockquote>
+      <orderedlist>
+        <listitem>
+          <para>
+            do laundry
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            take out the trash
+          </para>
+        </listitem>
+      </orderedlist>
+    </blockquote>
+    <para>
+      Here's a nested one:
+    </para>
+    <blockquote>
+      <para>
+        Joe said:
+      </para>
+      <blockquote>
+        <para>
+          Don't quote me.
+        </para>
+      </blockquote>
+    </blockquote>
+    <para>
+      And a following paragraph.
+    </para>
+  </section>
+  <section>
+    <title>Code Blocks</title>
+    <para>
+      Code:
+    </para>
+    <programlisting><![CDATA[---- (should be four hyphens)
+
+sub status {
+    print "working";
+}
+
+this code block is indented by one tab]]></programlisting>
+    <para>
+      And:
+    </para>
+    <programlisting><![CDATA[    this code block is indented by two tabs
+
+These should not be escaped:  \$ \\ \> \[ \{]]></programlisting>
+  </section>
+  <section>
+    <title>Lists</title>
+    <section>
+      <title>Unordered</title>
+      <para>
+        Asterisks tight:
+      </para>
+      <itemizedlist>
+        <listitem>
+          <para>
+            asterisk 1
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            asterisk 2
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            asterisk 3
+          </para>
+        </listitem>
+      </itemizedlist>
+      <para>
+        Asterisks loose:
+      </para>
+      <itemizedlist>
+        <listitem>
+          <para>
+            asterisk 1
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            asterisk 2
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            asterisk 3
+          </para>
+        </listitem>
+      </itemizedlist>
+      <para>
+        Pluses tight:
+      </para>
+      <itemizedlist>
+        <listitem>
+          <para>
+            Plus 1
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Plus 2
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Plus 3
+          </para>
+        </listitem>
+      </itemizedlist>
+      <para>
+        Pluses loose:
+      </para>
+      <itemizedlist>
+        <listitem>
+          <para>
+            Plus 1
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Plus 2
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Plus 3
+          </para>
+        </listitem>
+      </itemizedlist>
+      <para>
+        Minuses tight:
+      </para>
+      <itemizedlist>
+        <listitem>
+          <para>
+            Minus 1
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Minus 2
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Minus 3
+          </para>
+        </listitem>
+      </itemizedlist>
+      <para>
+        Minuses loose:
+      </para>
+      <itemizedlist>
+        <listitem>
+          <para>
+            Minus 1
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Minus 2
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Minus 3
+          </para>
+        </listitem>
+      </itemizedlist>
+    </section>
+    <section>
+      <title>Ordered</title>
+      <para>
+        Tight:
+      </para>
+      <orderedlist>
+        <listitem>
+          <para>
+            First
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Second
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Third
+          </para>
+        </listitem>
+      </orderedlist>
+      <para>
+        and:
+      </para>
+      <orderedlist>
+        <listitem>
+          <para>
+            One
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Two
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Three
+          </para>
+        </listitem>
+      </orderedlist>
+      <para>
+        Loose using tabs:
+      </para>
+      <orderedlist>
+        <listitem>
+          <para>
+            First
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Second
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Third
+          </para>
+        </listitem>
+      </orderedlist>
+      <para>
+        and using spaces:
+      </para>
+      <orderedlist>
+        <listitem>
+          <para>
+            One
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Two
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Three
+          </para>
+        </listitem>
+      </orderedlist>
+      <para>
+        Multiple paragraphs:
+      </para>
+      <orderedlist>
+        <listitem>
+          <para>
+            Item 1, graf one.
+          </para>
+          <para>
+            Item 1. graf two. The quick brown fox jumped over the lazy dog's
+            back.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Item 2.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Item 3.
+          </para>
+        </listitem>
+      </orderedlist>
+    </section>
+    <section>
+      <title>Nested</title>
+      <itemizedlist>
+        <listitem>
+          <para>
+            Tab
+          </para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                Tab
+              </para>
+              <itemizedlist>
+                <listitem>
+                  <para>
+                    Tab
+                  </para>
+                </listitem>
+              </itemizedlist>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+      </itemizedlist>
+      <para>
+        Here's another:
+      </para>
+      <orderedlist>
+        <listitem>
+          <para>
+            First
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Second:
+          </para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                Fee
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                Fie
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                Foe
+              </para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+        <listitem>
+          <para>
+            Third
+          </para>
+        </listitem>
+      </orderedlist>
+      <para>
+        Same thing but with paragraphs:
+      </para>
+      <orderedlist>
+        <listitem>
+          <para>
+            First
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Second:
+          </para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                Fee
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                Fie
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                Foe
+              </para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+        <listitem>
+          <para>
+            Third
+          </para>
+        </listitem>
+      </orderedlist>
+    </section>
+    <section>
+      <title>Tabs and spaces</title>
+      <itemizedlist>
+        <listitem>
+          <para>
+            this is a list item indented with tabs
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            this is a list item indented with spaces
+          </para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                this is an example list item indented with tabs
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                this is an example list item indented with spaces
+              </para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+      </itemizedlist>
+    </section>
+  </section>
+  <section>
+    <title>Inline Markup</title>
+    <para>
+      This is <emphasis>emphasized</emphasis>, and so
+      <emphasis>is this</emphasis>.
+    </para>
+    <para>
+      This is <emphasis role="strong">strong</emphasis>, and so
+      <emphasis role="strong">is this</emphasis>.
+    </para>
+    <para>
+      An <emphasis><ulink url="/url">emphasized link</ulink></emphasis>.
+    </para>
+    <para>
+      <emphasis role="strong"><emphasis>This is strong and em.</emphasis></emphasis>
+    </para>
+    <para>
+      So is <emphasis role="strong"><emphasis>this</emphasis></emphasis>
+      word.
+    </para>
+    <para>
+      <emphasis role="strong"><emphasis>This is strong and em.</emphasis></emphasis>
+    </para>
+    <para>
+      So is <emphasis role="strong"><emphasis>this</emphasis></emphasis>
+      word.
+    </para>
+    <para>
+      This is code: <literal>></literal>, <literal>$</literal>,
+      <literal>\</literal>, <literal>\$</literal>,
+      <literal>&lt;html></literal>.
+    </para>
+  </section>
+  <section>
+    <title>Smart quotes, ellipses, dashes</title>
+    <para>
+      "Hello," said the spider. "'Shelob' is my name."
+    </para>
+    <para>
+      'A', 'B', and 'C' are letters.
+    </para>
+    <para>
+      'Oak,' 'elm,' and 'beech' are names of trees. So is 'pine.'
+    </para>
+    <para>
+      'He said, "I want to go."' Were you alive in the 70's?
+    </para>
+    <para>
+      Here is some quoted '<literal>code</literal>' and a
+      "<ulink url="http://example.com/?foo=1&amp;bar=2">quoted link</ulink>".
+    </para>
+    <para>
+      Some dashes: one---two --- three--four -- five.
+    </para>
+    <para>
+      Dashes between numbers: 5-7, 255-66, 1987-1999.
+    </para>
+    <para>
+      Ellipses...and. . .and . . . .
+    </para>
+  </section>
+  <section>
+    <title>LaTeX</title>
+    <itemizedlist>
+      <listitem>
+        <para>
+          <literal>\cite[22-23]{smith.1899}</literal>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <literal>\doublespacing</literal>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <literal>$2+2=4$</literal>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <literal>$x \in y$</literal>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <literal>$\alpha \wedge \omega$</literal>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <literal>$223$</literal>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <literal>$p$</literal>-Tree
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <literal>$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$</literal>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Here's one that has a line break in it:
+          <literal>$\alpha + \omega \times x^2$</literal>.
+        </para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      These shouldn't be math:
+    </para>
+    <itemizedlist>
+      <listitem>
+        <para>
+          To get the famous equation, write <literal>$e = mc^2$</literal>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          $22,000 is a <emphasis>lot</emphasis> of money. So is $34,000. (It
+          worked if "lot" is emphasized.)
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Escaped <literal>$</literal>: $73
+          <emphasis>this should be emphasized</emphasis> 23$.
+        </para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      Here's a LaTeX table:
+    </para>
+    <para>
+      <literal>\begin{tabular}{|l|l|}\hline
+Animal &amp; Number \\ \hline
+Dog    &amp; 2      \\
+Cat    &amp; 1      \\ \hline
+\end{tabular}</literal>
+    </para>
+  </section>
+  <section>
+    <title>Special Characters</title>
+    <para>
+      Here is some unicode:
+    </para>
+    <itemizedlist>
+      <listitem>
+        <para>
+          I hat: Î
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          o umlaut: ö
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          section: §
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          set membership: ∈
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          copyright: ©
+        </para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      AT&amp;T has an ampersand in their name.
+    </para>
+    <para>
+      AT&amp;T is another way to write it.
+    </para>
+    <para>
+      This &amp; that.
+    </para>
+    <para>
+      4 &lt; 5.
+    </para>
+    <para>
+      6 &gt; 5.
+    </para>
+    <para>
+      Backslash: \
+    </para>
+    <para>
+      Backtick: `
+    </para>
+    <para>
+      Asterisk: *
+    </para>
+    <para>
+      Underscore: _
+    </para>
+    <para>
+      Left brace: {
+    </para>
+    <para>
+      Right brace: }
+    </para>
+    <para>
+      Left bracket: [
+    </para>
+    <para>
+      Right bracket: ]
+    </para>
+    <para>
+      Left paren: (
+    </para>
+    <para>
+      Right paren: )
+    </para>
+    <para>
+      Greater-than: &gt;
+    </para>
+    <para>
+      Hash: #
+    </para>
+    <para>
+      Period: .
+    </para>
+    <para>
+      Bang: !
+    </para>
+    <para>
+      Plus: +
+    </para>
+    <para>
+      Minus: -
+    </para>
+  </section>
+  <section>
+    <title>Links</title>
+    <section>
+      <title>Explicit</title>
+      <para>
+        Just a <ulink url="/url/">URL</ulink>.
+      </para>
+      <para>
+        <ulink url="/url/">URL and title</ulink>.
+      </para>
+      <para>
+        <ulink url="/url/">URL and title</ulink>.
+      </para>
+      <para>
+        <ulink url="/url/">URL and title</ulink>.
+      </para>
+      <para>
+        <ulink url="/url/">URL and title</ulink>
+      </para>
+      <para>
+        <ulink url="/url/">URL and title</ulink>
+      </para>
+      <para>
+        <email>nobody@nowhere.net</email>
+      </para>
+      <para>
+        <ulink url="">Empty</ulink>.
+      </para>
+    </section>
+    <section>
+      <title>Reference</title>
+      <para>
+        Foo <ulink url="/url/">bar</ulink>.
+      </para>
+      <para>
+        Foo <ulink url="/url/">bar</ulink>.
+      </para>
+      <para>
+        Foo <ulink url="/url/">bar</ulink>.
+      </para>
+      <para>
+        With <ulink url="/url/">embedded [brackets]</ulink>.
+      </para>
+      <para>
+        <ulink url="/url/">b</ulink> by itself should be a link.
+      </para>
+      <para>
+        Indented <ulink url="/url">once</ulink>.
+      </para>
+      <para>
+        Indented <ulink url="/url">twice</ulink>.
+      </para>
+      <para>
+        Indented <ulink url="/url">thrice</ulink>.
+      </para>
+      <para>
+        This should [not][] be a link.
+      </para>
+      <programlisting><![CDATA[[not]: /url]]></programlisting>
+      <para>
+        Foo <ulink url="/url/">bar</ulink>.
+      </para>
+      <para>
+        Foo <ulink url="/url/">biz</ulink>.
+      </para>
+    </section>
+    <section>
+      <title>With ampersands</title>
+      <para>
+        Here's a
+        <ulink url="http://example.com/?foo=1&amp;bar=2">link with an ampersand in the URL</ulink>.
+      </para>
+      <para>
+        Here's a link with an amersand in the link text:
+        <ulink url="http://att.com/">AT&amp;T</ulink>.
+      </para>
+      <para>
+        Here's an <ulink url="/script?foo=1&amp;bar=2">inline link</ulink>.
+      </para>
+      <para>
+        Here's an
+        <ulink url="/script?foo=1&amp;bar=2">inline link in pointy braces</ulink>.
+      </para>
+    </section>
+    <section>
+      <title>Autolinks</title>
+      <para>
+        With an ampersand:
+        <ulink url="http://example.com/?foo=1&amp;bar=2">http://example.com/?foo=1&amp;bar=2</ulink>
+      </para>
+      <itemizedlist>
+        <listitem>
+          <para>
+            In a list?
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <ulink url="http://example.com/">http://example.com/</ulink>
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            It should.
+          </para>
+        </listitem>
+      </itemizedlist>
+      <para>
+        An e-mail address: <email>nobody@nowhere.net</email>
+      </para>
+      <blockquote>
+        <para>
+          Blockquoted:
+          <ulink url="http://example.com/">http://example.com/</ulink>
+        </para>
+      </blockquote>
+      <para>
+        Auto-links should not occur here:
+        <literal>&lt;http://example.com/></literal>
+      </para>
+      <programlisting><![CDATA[or here: <http://example.com/>]]></programlisting>
+    </section>
+  </section>
+  <section>
+    <title>Images</title>
+    <para>
+      From "Voyage dans la Lune" by Georges Melies (1902):
+    </para>
+    <para>
+      <inlinemediaobject>
+        <imageobject>
+          <objectinfo>
+            <title>
+              Voyage dans la Lune
+            </title>
+          </objectinfo>
+          <imagedata fileref="lalune.jpg" />
+        </imageobject>
+      </inlinemediaobject>
+    </para>
+    <para>
+      Here is a movie
+      <inlinemediaobject>
+        <imageobject>
+          <imagedata fileref="movie.jpg" />
+        </imageobject>
+      </inlinemediaobject>
+      icon.
+    </para>
+  </section>
+  <section>
+    <title>Footnotes</title>
+    <para>
+      Here is a footnote
+      reference,<footnote>
+                  <para>
+                    Here is the footnote. It can go anywhere after the footnote
+                    reference. It need not be placed at the end of the document.
+                  </para>
+                </footnote>
+      and
+      another.<footnote>
+                <para>
+                  Here's the long note. This one contains multiple blocks.
+                </para>
+                <para>
+                  Subsequent blocks are indented to show that they belong to the
+                  footnote (as with list items).
+                </para>
+                <programlisting><![CDATA[  { <code> }]]></programlisting>
+                <para>
+                  If you want, you can indent every line, but you can also be lazy
+                  and just indent the first line of each block.
+                </para>
+              </footnote>
+      This should <emphasis>not</emphasis> be a footnote reference,
+      because it contains a space.[^my note] Here is an inline
+      note.<footnote>
+             <para>
+               This is <emphasis>easier</emphasis> to type. Inline notes may
+               contain <ulink url="http://google.com">links</ulink> and
+               <literal>]</literal> verbatim characters.
+             </para>
+           </footnote>
+    </para>
+    <blockquote>
+      <para>
+        Notes can go in
+        quotes.<footnote>
+                 <para>
+                   In quote.
+                 </para>
+               </footnote>
+      </para>
+    </blockquote>
+    <orderedlist>
+      <listitem>
+        <para>
+          And in list
+          items.<footnote>
+                  <para>
+                    In list.
+                  </para>
+                </footnote>
+        </para>
+      </listitem>
+    </orderedlist>
+    <para>
+      This paragraph should not be part of the note, as it is not
+      indented.
+    </para>
+  </section>
+  
+</article>

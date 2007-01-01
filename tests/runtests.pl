@@ -52,6 +52,11 @@ foreach my $format (@writeformats)
     test_results("$format writer", "tmp.$extension", "writer.$format");
 }
 
+print "Testing docbook writer...";
+# remove HTML block tests, as this produces invalid docbook...
+`sed -e '/^, Header 1 \\[Str "HTML",Space,Str "Blocks"\\]/,/^, HorizontalRule/d' testsuite.native | $script -r native -w docbook -s > tmp.docbook`;
+test_results("docbook writer", "tmp.docbook", "writer.docbook");
+
 print "Testing s5 writer (basic)...";
 `$script -r native -w s5 -s s5.native > tmp.html`;
 test_results("s5 writer (basic)", "tmp.html", "s5.basic.html");

@@ -46,6 +46,8 @@ pandoc (0.3) unstable; urgency=low
     + Removed extra blanks after '-h' and '-D' output.
     + Added copyright message to '-v' output, modeled after FSF messages.
 
+  * Added docbook writer.
+
   * Added implicit setting of default input and output format based
     on input and output filename extensions.  These defaults are
     overridden if explicit input and output formats are specified using

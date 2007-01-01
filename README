@@ -6,8 +6,8 @@ Pandoc is a [Haskell] library for converting from one markup format
 to another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX],
 and it can write [markdown], [reStructuredText], [HTML], [LaTeX], [RTF],
-and [S5] HTML slide shows. Pandoc's version of markdown contains some
-enhancements, like footnotes and embedded LaTeX.
+[DocBook XML], and [S5] HTML slide shows. Pandoc's version of markdown
+contains some enhancements, like footnotes and embedded LaTeX.
 
 In contrast to existing tools for converting markdown to HTML, which
 use regex substitutions, Pandoc has a modular design: it consists of a
@@ -22,6 +22,7 @@ or output format requires only adding a reader or writer.
 [HTML]:  http://www.w3.org/TR/html40/
 [LaTeX]: http://www.latex-project.org/
 [RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
+[DocBook XML]:  http://www.docbook.org/
 [Haskell]:  http://www.haskell.org/
 
 (c) 2006 John MacFarlane (jgm at berkeley dot edu). Released under the
@@ -107,17 +108,17 @@ To convert `hello.html` from html to markdown:
 	pandoc -f html -t markdown hello.html
 
 Supported output formats include `markdown`, `latex`, `html`, `rtf`
-(rich text format), `rst` (reStructuredText), and `s5` (which produces
-an HTML file that acts like powerpoint).  Supported input formats
-include `markdown`, `html`, `latex`, and `rst`.  Note that the `rst`
-reader only parses a subset of reStructuredText syntax.  For example,
-it doesn't handle tables, definition lists, option lists, or footnotes.
-It handles only the constructs expressible in unextended markdown.
-But for simple documents it should be adequate.  The `latex` and `html`
-readers are also limited in what they can do.  Because the `html`
-reader is picky about the HTML it parses, it is recommended that you
-pipe HTML through [HTML Tidy] before sending it to `pandoc`, or use the
-`html2markdown` script described below.
+(rich text format), `rst` (reStructuredText), `docbook` (DocBook
+XML), and `s5` (which produces an HTML file that acts like powerpoint).
+Supported input formats include `markdown`, `html`, `latex`, and `rst`.
+Note that the `rst` reader only parses a subset of reStructuredText
+syntax.  For example, it doesn't handle tables, definition lists, option
+lists, or footnotes.  It handles only the constructs expressible in
+unextended markdown.  But for simple documents it should be adequate.
+The `latex` and `html` readers are also limited in what they can do.
+Because the `html` reader is picky about the HTML it parses, it is
+recommended that you pipe HTML through [HTML Tidy] before sending it to
+`pandoc`, or use the `html2markdown` script described below.
 
 If you don't specify a reader or writer explicitly, `pandoc` will
 try to determine the input and output format from the extensions of
@@ -200,7 +201,8 @@ formats are `native`, `markdown`, `rst`, `html`, and `latex`.
 
 `-t`, `--to`, `-w`, or `--write` can be used to specify the output
 format -- the format Pandoc will be converting *to*.  Available formats
-are `native`, `html`, `s5`, `latex`, `markdown`, `rst`, and `rtf`.
+are `native`, `html`, `s5`, `docbook`, `latex`, `markdown`, `rst`, and
+`rtf`.
 
 `-s` or `--standalone` indicates that a standalone document is to be
 produced (with appropriate headers and footers), rather than a fragment.

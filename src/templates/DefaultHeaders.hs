@@ -1,6 +1,7 @@
 -- | Default headers for Pandoc writers.
 module Text.Pandoc.Writers.DefaultHeaders  (
                                       defaultLaTeXHeader,
+                                      defaultDocbookHeader,
                                       defaultHtmlHeader,
                                       defaultS5Header,
                                       defaultRTFHeader
@@ -9,6 +10,9 @@ import Text.Pandoc.Writers.S5
 
 defaultLaTeXHeader :: String
 defaultLaTeXHeader = "@LaTeXHeader@"
+
+defaultDocbookHeader :: String
+defaultDocbookHeader = "@DocbookHeader@"
 
 defaultHtmlHeader :: String
 defaultHtmlHeader = "@HtmlHeader@"

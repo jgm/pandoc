@@ -16,6 +16,7 @@ pandoc -s README.tex -o example0.txt
 pandoc -s -w rst README -o example0.txt
 pandoc -s README -o example0.rtf 
 pandoc -s -m -i -w s5 S5DEMO -o example0.html
+pandoc -s -w docbook README -o example0.db
 html2markdown http://www.gnu.org/software/make/ -o example0.txt
 markdown2pdf README -o example0.pdf
 markdown2pdf -C myheader.tex README -o example0.pdf'

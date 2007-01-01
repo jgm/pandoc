@@ -6,8 +6,8 @@ pandoc \- general markup converter
 .SH DESCRIPTION
 \fBPandoc\fR converts files from one markup format to another. It can
 read markdown and (subsets of) reStructuredText, HTML, and LaTeX, and
-it can write markdown, reStructuredText, HTML, LaTeX, RTF, and S5 HTML
-slide shows.
+it can write markdown, reStructuredText, HTML, LaTeX, RTF, DocBook
+XML, and S5 HTML slide shows.
 .PP
 If no \fIinput\-file\fR is specified, input is read from STDIN.
 Otherwise, the \fIinput\-files\fR are concatenated (with a blank
@@ -80,6 +80,8 @@ can be
 (HTML),
 .B latex
 (LaTeX),
+.B docbook
+(DocBook XML),
 .B s5
 (S5 HTML and javascript slide show),
 or
@@ -141,7 +143,7 @@ default header, which can be printed by using the \fB\-D\fR option).
 Implies \fB-s\fR.
 .TP
 .B \-D \fIFORMAT\fB, \-\-print-default-header=\fIFORMAT\fB
-Print the default header for \fIFORMAT\fR (\fIhtml, s5, latex,
+Print the default header for \fIFORMAT\fR (\fIhtml, s5, latex, docbook,
 markdown, rst, rtf\fR).
 .TP
 .B \-T \fISTRING\fB, \-\-title-prefix=\fISTRING\fB

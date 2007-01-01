@@ -37,12 +37,14 @@ import Text.Pandoc.Writers.RST ( writeRST )
 import Text.Pandoc.Readers.RST ( readRST )
 import Text.Pandoc.ASCIIMathML ( asciiMathMLScript )
 import Text.Pandoc.Writers.HTML ( writeHtml )
+import Text.Pandoc.Writers.Docbook ( writeDocbook )
 import Text.Pandoc.Writers.LaTeX ( writeLaTeX )
 import Text.Pandoc.Readers.LaTeX ( readLaTeX )
 import Text.Pandoc.Writers.RTF ( writeRTF )
 import Text.Pandoc.Writers.Markdown ( writeMarkdown )
 import Text.Pandoc.Writers.DefaultHeaders ( defaultHtmlHeader, 
-       defaultRTFHeader, defaultS5Header, defaultLaTeXHeader )
+       defaultRTFHeader, defaultS5Header, defaultLaTeXHeader,
+       defaultDocbookHeader )
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Regex ( mkRegex, matchRegex )
@@ -79,6 +81,7 @@ writers :: [ ( String, ( WriterOptions -> Pandoc -> String, String ) ) ]
 writers = [("native"   , (writeDoc, ""))
           ,("html"     , (writeHtml, defaultHtmlHeader))
           ,("s5"       , (writeS5, defaultS5Header))
+          ,("docbook"  , (writeDocbook, defaultDocbookHeader))
           ,("latex"    , (writeLaTeX, defaultLaTeXHeader))
           ,("markdown" , (writeMarkdown, ""))
           ,("rst"      , (writeRST, ""))
@@ -331,6 +334,8 @@ defaultWriterName x =
     Just ["text"]     -> "markdown"
     Just ["md"]       -> "markdown"
     Just ["markdown"] -> "markdown"
+    Just ["db"]       -> "docbook"
+    Just ["xml"]      -> "docbook"
     Just _            -> "html"
 
 main = do
@@ -423,6 +428,7 @@ main = do
                                       writerSmart          = smart && 
                                                              (not strict), 
                                       writerTabStop        = tabStop, 
+                                      writerNotes          = [],
                                       writerS5             = (writerName=="s5"),
                                       writerIncremental    = incremental, 
                                       writerNumberSections = numberSections,
