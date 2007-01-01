@@ -37,22 +37,15 @@ my %processor = (
 	proc     => sub {
 	    my ($template) = @_;
 
-	    my $slides  = escape_for_haskell(slurp "ui/default/slides.js"); 
-	    my $s5core  = escape_for_haskell(slurp "ui/default/s5-core.css");
-	    my $framing = escape_for_haskell(slurp "ui/default/framing.css");
-	    my $pretty  = escape_for_haskell(slurp "ui/default/pretty.css");
-	    my $opera   = escape_for_haskell(slurp "ui/default/opera.css");
-	    my $outline = escape_for_haskell(slurp "ui/default/outline.css");
-	    my $print   = escape_for_haskell(slurp "ui/default/print.css");
+        my (@files) = qw(slides.js s5-core.css framing.css pretty.css 
+                         opera.css outline.css print.css);
 
-	    $template =~ s/\@slides\.js@/$slides/;
-	    $template =~ s/\@s5-core\.css@/$s5core/;
-	    $template =~ s/\@framing\.css@/$framing/;
-	    $template =~ s/\@pretty\.css@/$pretty/;
-	    $template =~ s/\@opera\.css@/$opera/;
-	    $template =~ s/\@outline\.css@/$outline/;
-	    $template =~ s/\@print\.css@/$print/;
-
+        foreach my $file (@files) {
+	        my $replacement = escape_for_haskell(slurp "ui/default/$file");
+            my $escapedfile = $file;
+            $escapedfile =~ s/\./\\./g;
+            $template =~ s/\@$escapedfile\@/$replacement/;
+        } 
 	    return $template;
 	},
     },
@@ -79,15 +72,11 @@ my %processor = (
 	proc     => sub {
 	    my ($template) = @_;
 
-	    my $html  = escape_for_haskell(slurp "headers/HtmlHeader");
-	    my $latex = escape_for_haskell(slurp "headers/LaTeXHeader");
-	    my $rtf   = escape_for_haskell(slurp "headers/RTFHeader");
-	    my $s5    = escape_for_haskell(slurp "headers/S5Header");
-
-	    $template =~ s/\@HtmlHeader@/$html/;
-	    $template =~ s/\@LaTeXHeader@/$latex/;
-	    $template =~ s/\@RTFHeader@/$rtf/;
-	    $template =~ s/\@S5Header@/$s5/;
+        my (@headers) = split(/\s/,`ls headers`);
+        foreach my $header (@headers) {
+           my ($replacement) = escape_for_haskell(slurp "headers/$header");
+           $template =~ s/\@$header\@/$replacement/;
+        }
 	    
 	    return $template;
 	},
