@@ -15,8 +15,8 @@ Description: General markup converter
  Pandoc is a Haskell library for converting from one markup format to
  another, and a command-line tool that uses this library. It can read
  markdown and (subsets of) reStructuredText, HTML, and LaTeX, and it
- can write markdown, reStructuredText, HTML, LaTeX, RTF, and S5 HTML
- slide shows.
+ can write markdown, reStructuredText, HTML, LaTeX, DocBook, RTF, and
+ S5 HTML slide shows.
 
 Package: libghc6-pandoc-dev
 Section: libdevel
@@ -27,8 +27,8 @@ Description: General markup converter
  Pandoc is a Haskell library for converting from one markup format to
  another, and a command-line tool that uses this library. It can read
  markdown and (subsets of) reStructuredText, HTML, and LaTeX, and it
- can write markdown, reStructuredText, HTML, LaTeX, RTF, and S5 HTML
- slide shows.
+ can write markdown, reStructuredText, HTML, LaTeX, DocBook, RTF, and
+ S5 HTML slide shows.
  . 
  This package contains the libraries compiled for GHC 6.
 
@@ -39,7 +39,7 @@ Description: General markup converter
  Pandoc is a Haskell library for converting from one markup format to
  another, and a command-line tool that uses this library. It can read
  markdown and (subsets of) reStructuredText, HTML, and LaTeX, and it
- can write markdown, reStructuredText, HTML, LaTeX, RTF, and S5 HTML
- slide shows.
+ can write markdown, reStructuredText, HTML, LaTeX, DocBook, RTF, and
+ S5 HTML slide shows.
  .
  This package contains the library documentation for Pandoc.
