@@ -233,4 +233,3 @@ inlineToDocbook options (NoteRef ref) =
     then empty
     else let (Note _ contents) = head hits in
          indentedInTags options "footnote" $ blocksToDocbook options contents
-inlineToDocbook options _ = empty
