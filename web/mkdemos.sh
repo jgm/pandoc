@@ -27,7 +27,6 @@ set -- $EXAMPLES
 IFS=$oldifs
 
 cd $DEST
-PATH=$PROGPATH:$PATH
 
 echo '% Pandoc examples
 
@@ -44,6 +43,6 @@ for command in "$@"; do
     output=$(echo $command | sed -e 's/.*-o \(.*\)/\1/')
     echo "1. <code>$firstpart <a href=\""$input"\" title=\""View input file"\">$input</a> -o <a href=\""$output"\" title=\""View pandoc output"\">$output</a></code>"
     echo $command >&2
-    result=$($command) # run the command and create output file
+    result=$(PATH=$PROGPATH:$PATH $command) # run the command and create output file
 done
 

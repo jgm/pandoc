@@ -374,7 +374,7 @@ $(web_dest)/: $(MAIN) html
 		cp $(web_src)/S5DEMO $(web_dest)/ ; \
 		cp $(web_src)/header.html $(web_dest)/ ; \
 		cp $(web_src)/footer.html $(web_dest)/ ; \
-		sh $(web_src)/mkdemos.sh $(web_dest) $(abspath .) | \
+		sh $(web_src)/mkdemos.sh $(web_dest) $(shell pwd) | \
 		    $(make_page) > $(web_dest)/examples.html; \
 	) || { rm -rf $(web_dest); exit 1; }
 
