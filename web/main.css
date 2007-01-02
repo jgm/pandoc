@@ -8,6 +8,12 @@ body {
     line-height: 1.3em;
     color: #333; 
 }
+pre {
+    border: 1px dotted;
+    background-color: #DDDDDD;
+    color: #1111111;
+    padding: 0.5em;
+}
 h1, h2, h3, h4, h5 { font-family: verdana;
                      font-weight: bold;
                      color: #7a5ada; }
@@ -140,10 +146,11 @@ dt {
     color: #7a5ada;
 }
 #main {
-    padding-right: 5em;
-    padding-left: 0.8em;
+    margin-top: 1em;
+    padding-right: 1em;
+    padding-left: 1em;
     max-width: 42em; 
-    border-left: 1px solid gray;
+    border: 1px solid gray;
 }
 #main.withleftmenu {
     margin-left: 9em;
