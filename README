@@ -48,10 +48,6 @@ The wrapper script `html2markdown` requires
   - `iconv` (for character encoding conversion).  (If `iconv` is absent,
     `html2markdown` will still work, but it will treat everything as UTF-8.)
 
-[Cygwin]:  http://www.cygwin.com/ 
-[HTML Tidy]:  http://tidy.sourceforge.net/
-[`iconv`]: http://www.gnu.org/software/libiconv/
-
 The wrapper script `markdown2pdf` requires
 
   - `pandoc` (which must be in the PATH)
@@ -67,6 +63,11 @@ The wrapper script `markdown2pdf` requires
     and unpack it into `~/texmf/tex/latex/`.  You may also need to run
     `mktexlsr` or `texhash` before the files can be found by TeX.)
 
+The wrapper script `hsmarkdown` requires only a POSIX-compliant shell.
+
+[Cygwin]:  http://www.cygwin.com/ 
+[HTML Tidy]:  http://tidy.sourceforge.net/
+[`iconv`]: http://www.gnu.org/software/libiconv/
 [CTAN]: http://www.ctan.org "Comprehensive TeX Archive Network"
 [unicode]: http://www.ctan.org/tex-archive/macros/latex/contrib/unicode/
 [fancyvrb]: http://www.ctan.org/tex-archive/macros/latex/contrib/fancyvrb/
@@ -152,13 +153,13 @@ The shell scripts (described below) automatically convert the input
 from the local encoding to UTF-8 before running them through `pandoc`,
 then convert the output back to the local encoding.
 
-`markdown2pdf` and `html2markdown`
-==================================
+`markdown2pdf`, `html2markdown`, and `hsmarkdown`
+=================================================
 
-Two shell scripts, `markdown2pdf` and `html2markdown`, are included in
-the standard Pandoc installation.  (They are not included in the Windows
-binary package, as they require a POSIX shell, but they may be used
-in Windows under Cygwin.)
+Three shell scripts, `markdown2pdf`, `html2markdown`, and `hsmarkdown`,
+are included in the standard Pandoc installation.  (They are not included
+in the Windows binary package, as they require a POSIX shell, but they
+may be used in Windows under Cygwin.)
 
 1.  `markdown2pdf` produces a PDF file from markdown-formatted
     text, using `pandoc` and `pdflatex`.  The default
@@ -189,6 +190,14 @@ in Windows under Cygwin.)
     to be used:
 
         html2markdown -g 'wget --user=foo --password=bar' mysite.com
+
+3.  `hsmarkdown` is designed to be used as a drop-in replacement for
+    `Markdown.pl`.  It forces `pandoc` to convert from markdown to
+    HTML, and to use the `--strict` flag for maximal compliance with
+    official markdown syntax.  (All of Pandoc's syntax extensions and
+    variants, described below, are disabled.)  No other command-line
+    options are allowed.  (In fact, options will be interpreted as
+    filenames.)
 
 Command-line options
 ====================
@@ -299,7 +308,8 @@ Pandoc's markdown vs. standard markdown
 In parsing markdown, Pandoc departs from and extends [standard markdown]
 in a few respects.  (To run Pandoc on the official
 markdown test suite, type `make test-markdown`.)  These differences can
-be suppressed by specifying the `--strict` command-line option.
+be suppressed by specifying the `--strict` command-line option or by
+using the `hsmarkdown` wrapper.
 
 [standard markdown]:  http://daringfireball.net/projects/markdown/syntax
   "Markdown syntax description"

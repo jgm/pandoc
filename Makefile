@@ -25,7 +25,7 @@ EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
 #-------------------------------------------------------------------------------
 # Install targets
 #-------------------------------------------------------------------------------
-WRAPPERS  := html2markdown markdown2pdf
+WRAPPERS  := html2markdown markdown2pdf hsmarkdown
 # Add .exe extensions if we're running Windows/Cygwin.
 EXTENSION := $(shell uname | tr '[:upper:]' '[:lower:]' | \
                sed -ne 's/^cygwin.*$$/\.exe/p')

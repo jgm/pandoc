@@ -1,0 +1,5 @@
+#!/bin/sh
+# hsmarkdown - intended as a drop-in replacement for Markdown.pl.
+# Uses pandoc to convert from markdown to HTML, using --strict mode
+# for maximum compatibility with official markdown syntax.
+exec pandoc --from markdown --to html --strict -- "$@"

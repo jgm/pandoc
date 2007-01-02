@@ -159,6 +159,9 @@ pandoc (0.3) unstable; urgency=low
       a '.exe' extension is added to each executable in EXECS.
 
   * Removed all wrappers except markdown2pdf and html2markdown.
+    Added new wrapper hsmarkdown, to be used as a drop-in replacement
+    for Markdown.pl.  hsmarkdown calls pandoc with the '--strict'
+    option and disables other options.
 
   * Added code to html2markdown that tries to determine the character 
     encoding of an HTML file, by parsing the "Content-type" meta tag.

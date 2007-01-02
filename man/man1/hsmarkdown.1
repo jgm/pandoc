@@ -1,0 +1,36 @@
+.TH HSMARKDOWN 1 "January 1, 2007" Pandoc "User Manuals"
+.SH NAME
+hsmarkdown \- convert markdown-formatted text to HTML
+.SH SYNOPSIS
+\fBhsmarkdown\fR [\fIinput\-file\fR]...
+.SH DESCRIPTION
+\fBhsmarkdown\fR converts markdown-formatted text to HTML. It is designed
+to be usable as a drop-in replacement for John Gruber's \fBMarkdown.pl\fR.
+.PP
+If no \fIinput\-file\fR is specified, input is read from STDIN.
+Otherwise, the \fIinput\-files\fR are concatenated (with a blank
+line between each) and used as input.  Output goes to STDOUT by
+default.  For output to a file, use shell redirection:
+.IP
+.B hsmarkdown input.txt > output.html
+.PP
+\fBhsmarkdown\fR uses the UTF\-8 character encoding for both input and output.
+If your local character encoding is not UTF\-8, you should pipe input
+and output through \fBiconv\fR:
+.IP
+.B iconv \-t utf\-8 input.txt | hsmarkdown | iconv \-f utf\-8
+.PP
+\fBhsmarkdown\fR is implemented as a wrapper around \fBpandoc\fR(1).  It
+calls \fBpandoc\fR with the options \fB\-\-from markdown \-\-to html
+\-\-strict\fR and disables all other options.  (Command-line options
+will be interpreted as filenames, as they are by \fBMarkdown.pl\fR.)
+.SH "SEE ALSO"
+\fBpandoc\fR(1).
+The
+.I README
+file distributed with Pandoc contains full documentation.
+
+The Pandoc source code and all documentation may be downloaded from
+<http://sophos.berkeley.edu/macfarlane/pandoc/>.
+.SH AUTHOR
+John MacFarlane
