@@ -33,7 +33,7 @@ module Text.Pandoc.Writers.Docbook (
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.HTML ( stringToSmartHtml, stringToHtml )
-import Text.Pandoc.HtmlEntities ( encodeEntities )
+import Text.Pandoc.Entities ( encodeEntities )
 import Text.Html ( stringToHtmlString )
 import Text.Regex ( mkRegex, matchRegex )
 import Data.Char ( toLower, ord )

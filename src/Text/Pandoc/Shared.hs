@@ -66,7 +66,7 @@ module Text.Pandoc.Shared (
                     ) where
 import Text.Pandoc.Definition
 import Text.ParserCombinators.Parsec
-import Text.Pandoc.HtmlEntities ( decodeEntities )
+import Text.Pandoc.Entities ( decodeEntities )
 import Text.Regex ( matchRegexAll, mkRegex, subRegex, Regex )
 import Char ( toLower )
 import List ( find, groupBy )

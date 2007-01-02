@@ -17,7 +17,7 @@ Extra-Source-Files: README COPYRIGHT man/man1/pandoc.1
 Exposed-Modules: Text.ParserCombinators.Pandoc,
                  Text.Pandoc.ASCIIMathML,
                  Text.Pandoc.Definition,
-                 Text.Pandoc.HtmlEntities,
+                 Text.Pandoc.Entities,
                  Text.Pandoc.Shared,
                  Text.Pandoc.UTF8,
                  Text.Pandoc.Writers.DefaultHeaders,

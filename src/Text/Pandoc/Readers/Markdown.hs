@@ -41,7 +41,7 @@ import Text.Pandoc.Readers.HTML ( rawHtmlBlock,
                                   anyHtmlTag, anyHtmlEndTag,
                                   htmlEndTag, extractTagType,
                                   htmlBlockElement )
-import Text.Pandoc.HtmlEntities ( decodeEntities )
+import Text.Pandoc.Entities ( decodeEntities )
 import Text.Regex ( matchRegex, mkRegex )
 import Text.ParserCombinators.Parsec
 

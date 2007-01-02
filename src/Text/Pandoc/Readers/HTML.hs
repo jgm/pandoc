@@ -45,7 +45,7 @@ import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Pandoc
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
-import Text.Pandoc.HtmlEntities ( decodeEntities, htmlEntityToChar )
+import Text.Pandoc.Entities ( decodeEntities, entityToChar )
 import Maybe ( fromMaybe )
 import Char ( toUpper, toLower )
 
@@ -397,7 +397,7 @@ entity = try (do
                                           num <- many1 digit
                                           return ("#" ++ num)))]
   char ';'
-  return (Str [fromMaybe '?' (htmlEntityToChar ("&" ++ body ++ ";"))]))
+  return (Str [fromMaybe '?' (entityToChar ("&" ++ body ++ ";"))]))
 
 code = try (do 
   htmlTag "code"

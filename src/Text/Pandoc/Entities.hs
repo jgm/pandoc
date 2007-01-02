@@ -17,7 +17,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.HtmlEntities
+   Module      : Text.Pandoc.Entities
    Copyright   : Copyright (C) 2006 John MacFarlane
    License     : GNU GPL, version 2 or above 
 
@@ -25,12 +25,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Functions for encoding unicode characters as HTML entity references,
+Functions for encoding unicode characters as entity references,
 and vice versa.
 -}
-module Text.Pandoc.HtmlEntities (
-                     htmlEntityToChar,
-                     charToHtmlEntity,
+module Text.Pandoc.Entities (
+                     entityToChar,
+                     charToEntity,
                      decodeEntities,
                      encodeEntities
                     ) where
@@ -50,7 +50,7 @@ decodeEntities str =
     Nothing                       -> str
     Just (before, match, rest, _) -> before ++ replacement ++ 
                                      (decodeEntities rest)
-      where replacement = case (htmlEntityToChar match) of
+      where replacement = case (entityToChar match) of
                             Just ch -> [ch]
                             Nothing -> match
 
@@ -60,29 +60,29 @@ encodeEntities :: String -> String
 encodeEntities [] = []
 encodeEntities (c:cs) = if ord c < 127
                           then c:(encodeEntities cs)
-                          else (charToHtmlEntity c) ++ (encodeEntities cs) 
+                          else (charToEntity c) ++ (encodeEntities cs) 
 
 -- | If the string is a valid entity reference, returns @Just@ the character,
 -- otherwise @Nothing@.
-htmlEntityToChar :: String -> Maybe Char 
-htmlEntityToChar entity = 
-    case (lookup entity htmlEntityTable) of
+entityToChar :: String -> Maybe Char 
+entityToChar entity = 
+    case (lookup entity entityTable) of
       Just ch -> Just ch
       Nothing -> case (matchRegexAll decimalCodedEntity entity) of
                    Just (_, _, _, [sub]) -> Just (chr (read sub))
                    Nothing               -> Nothing
 
 -- | Returns a string containing an entity reference for the character.
-charToHtmlEntity :: Char -> String
-charToHtmlEntity char = 
+charToEntity :: Char -> String
+charToEntity char = 
     let matches = filter (\(entity, character) -> (character == char)) 
-                         htmlEntityTable in
+                         entityTable in
     if (length matches) == 0
        then "&#" ++ show (ord char) ++ ";"
        else fst (head matches)
 
-htmlEntityTable :: [(String, Char)]
-htmlEntityTable =  [
+entityTable :: [(String, Char)]
+entityTable =  [
 	("&quot;", chr 34),
 	("&amp;", chr 38),
 	("&lt;", chr 60),
