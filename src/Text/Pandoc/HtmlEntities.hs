@@ -57,7 +57,10 @@ decodeEntities str =
 -- | Returns a string with characters replaced with entity references where
 -- possible.
 encodeEntities :: String -> String
-encodeEntities = concatMap (\c -> fromMaybe [c] (charToHtmlEntity c)) 
+encodeEntities [] = []
+encodeEntities (c:cs) = if ord c < 127
+                          then c:(encodeEntities cs)
+                          else (charToHtmlEntity c) ++ (encodeEntities cs) 
 
 -- | If the string is a valid entity reference, returns @Just@ the character,
 -- otherwise @Nothing@.
@@ -69,14 +72,14 @@ htmlEntityToChar entity =
                    Just (_, _, _, [sub]) -> Just (chr (read sub))
                    Nothing               -> Nothing
 
--- | If there is an entity reference corresponding to the character, returns
--- @Just@ the entity reference, otherwise @Nothing@.
-charToHtmlEntity :: Char -> Maybe String
+-- | Returns a string containing an entity reference for the character.
+charToHtmlEntity :: Char -> String
 charToHtmlEntity char = 
-    let matches = filter (\(entity, character) -> (character == char)) htmlEntityTable in
+    let matches = filter (\(entity, character) -> (character == char)) 
+                         htmlEntityTable in
     if (length matches) == 0
-       then Nothing
-       else Just (fst (head matches))
+       then "&#" ++ show (ord char) ++ ";"
+       else fst (head matches)
 
 htmlEntityTable :: [(String, Char)]
 htmlEntityTable =  [

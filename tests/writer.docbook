@@ -701,27 +701,27 @@ Cat    &amp; 1      \\ \hline
     <itemizedlist>
       <listitem>
         <para>
-          I hat: Î
+          I hat: &Icirc;
         </para>
       </listitem>
       <listitem>
         <para>
-          o umlaut: ö
+          o umlaut: &ouml;
         </para>
       </listitem>
       <listitem>
         <para>
-          section: §
+          section: &sect;
         </para>
       </listitem>
       <listitem>
         <para>
-          set membership: ∈
+          set membership: &isin;
         </para>
       </listitem>
       <listitem>
         <para>
-          copyright: ©
+          copyright: &copy;
         </para>
       </listitem>
     </itemizedlist>

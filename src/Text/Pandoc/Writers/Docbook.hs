@@ -33,9 +33,10 @@ module Text.Pandoc.Writers.Docbook (
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.HTML ( stringToSmartHtml, stringToHtml )
+import Text.Pandoc.HtmlEntities ( encodeEntities )
 import Text.Html ( stringToHtmlString )
 import Text.Regex ( mkRegex, matchRegex )
-import Data.Char ( toLower )
+import Data.Char ( toLower, ord )
 import Data.List ( isPrefixOf, partition )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
@@ -179,9 +180,10 @@ wrap options lst = fsep $ map (hcat . (map (inlineToDocbook options))) (splitByS
 
 -- | Escape a string for XML (with "smart" option if specified).
 stringToXML :: WriterOptions -> String -> String
-stringToXML options = if writerSmart options
-                        then stringToSmartHtml
-                        else stringToHtml
+stringToXML options = encodeEntities .
+                      (if writerSmart options
+                         then stringToSmartHtml
+                         else stringToHtml)
 
 -- | Escape string to XML appropriate for attributes
 attributeStringToXML :: String -> String
@@ -189,7 +191,7 @@ attributeStringToXML = gsub "\"" "&quot;" . codeStringToXML
 
 -- | Escape a literal string for XML.
 codeStringToXML :: String -> String
-codeStringToXML = gsub "<" "&lt;" . gsub "&" "&amp;" 
+codeStringToXML = encodeEntities . gsub "<" "&lt;" . gsub "&" "&amp;" 
 
 -- | Convert a list of inline elements to Docbook.
 inlinesToDocbook :: WriterOptions -> [Inline] -> Doc
