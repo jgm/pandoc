@@ -11,35 +11,80 @@ Section: text
 Architecture: any
 Depends: ${shlibs:Depends}
 Suggests: tetex-bin, tidy, wget | w3m
-Description: General markup converter
- Pandoc is a Haskell library for converting from one markup format to
- another, and a command-line tool that uses this library. It can read
- markdown and (subsets of) reStructuredText, HTML, and LaTeX, and it
- can write markdown, reStructuredText, HTML, LaTeX, DocBook, RTF, and
- S5 HTML slide shows.
-
-Package: libghc6-pandoc-dev
-Section: libdevel
-Architecture: any
-Depends: ${haskell:Depends}
-Suggests: pandoc-doc
-Description: General markup converter
- Pandoc is a Haskell library for converting from one markup format to
- another, and a command-line tool that uses this library. It can read
- markdown and (subsets of) reStructuredText, HTML, and LaTeX, and it
- can write markdown, reStructuredText, HTML, LaTeX, DocBook, RTF, and
- S5 HTML slide shows.
- . 
- This package contains the libraries compiled for GHC 6.
-
-Package: pandoc-doc
-Section: doc
-Architecture: all
-Description: General markup converter
+Description: general markup converter
  Pandoc is a Haskell library for converting from one markup format to
  another, and a command-line tool that uses this library. It can read
  markdown and (subsets of) reStructuredText, HTML, and LaTeX, and it
  can write markdown, reStructuredText, HTML, LaTeX, DocBook, RTF, and
  S5 HTML slide shows.
  .
+ Pandoc extends standard markdown syntax with footnotes, embedded LaTeX,
+ and other features.  A compatibility mode is provided for those who
+ need a drop-in replacement for Markdown.pl.  Included wrapper scripts
+ make it easy to convert markdown documents to PDFs and to convert web
+ pages to markdown documents.
+ .
+ In contrast to existing tools for converting markdown to HTML, which
+ use regex substitutions, pandoc has a modular design: it consists of a
+ set of readers, which parse text in a given format and produce a native
+ representation of the document, and a set of writers, which convert
+ this native representation into a target format. Thus, adding an input
+ or output format requires only adding a reader or writer.
+ .
+  Homepage: http://sophos.berkeley.edu/macfarlane/pandoc/
+
+Package: libghc6-pandoc-dev
+Section: libdevel
+Architecture: any
+Depends: ${haskell:Depends}
+Suggests: pandoc-doc
+Description: general markup converter
+ Pandoc is a Haskell library for converting from one markup format to
+ another, and a command-line tool that uses this library. It can read
+ markdown and (subsets of) reStructuredText, HTML, and LaTeX, and it
+ can write markdown, reStructuredText, HTML, LaTeX, DocBook, RTF, and
+ S5 HTML slide shows.
+ .
+ Pandoc extends standard markdown syntax with footnotes, embedded LaTeX,
+ and other features.  A compatibility mode is provided for those who
+ need a drop-in replacement for Markdown.pl.  Included wrapper scripts
+ make it easy to convert markdown documents to PDFs and to convert web
+ pages to markdown documents.
+ .
+ In contrast to existing tools for converting markdown to HTML, which
+ use regex substitutions, pandoc has a modular design: it consists of a
+ set of readers, which parse text in a given format and produce a native
+ representation of the document, and a set of writers, which convert
+ this native representation into a target format. Thus, adding an input
+ or output format requires only adding a reader or writer.
+ . 
+ This package contains the libraries compiled for GHC 6.
+ .
+  Homepage: http://sophos.berkeley.edu/macfarlane/pandoc/
+
+Package: pandoc-doc
+Section: doc
+Architecture: all
+Description: general markup converter
+ Pandoc is a Haskell library for converting from one markup format to
+ another, and a command-line tool that uses this library. It can read
+ markdown and (subsets of) reStructuredText, HTML, and LaTeX, and it
+ can write markdown, reStructuredText, HTML, LaTeX, DocBook, RTF, and
+ S5 HTML slide shows.
+ .
+ Pandoc extends standard markdown syntax with footnotes, embedded LaTeX,
+ and other features.  A compatibility mode is provided for those who
+ need a drop-in replacement for Markdown.pl.  Included wrapper scripts
+ make it easy to convert markdown documents to PDFs and to convert web
+ pages to markdown documents.
+ .
+ In contrast to existing tools for converting markdown to HTML, which
+ use regex substitutions, pandoc has a modular design: it consists of a
+ set of readers, which parse text in a given format and produce a native
+ representation of the document, and a set of writers, which convert
+ this native representation into a target format. Thus, adding an input
+ or output format requires only adding a reader or writer.
+ .
  This package contains the library documentation for Pandoc.
+ .
+  Homepage: http://sophos.berkeley.edu/macfarlane/pandoc/
