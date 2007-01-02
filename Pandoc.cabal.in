@@ -5,7 +5,7 @@ License-File:    COPYING
 Author:          John MacFarlane <jgm at berkeley dot edu>
 Stability:       alpha
 Homepage:        http://sophos.berkeley.edu/macfarlane/pandoc
-Package-URL:      
+Package-URL:     http://pandoc.googlecode.com/files/pandoc-@VERSION@.tar.gz
 Category:        Text
 Tested-With:     GHC
 Synopsis:        Utilities for translating between various markup formats    
