@@ -342,7 +342,12 @@ defaultWriterName x =
 main = do
 
   args <- getArgs
-  let (actions, sources, errors) = getOpt Permute options args
+  prg <- getProgName
+  let compatMode = (prg == "hsmarkdown")
+
+  let (actions, sources, errors) = if compatMode
+                                     then ([], args, [])
+                                     else getOpt Permute options args
 
   if (not (null errors))
     then do
@@ -353,8 +358,14 @@ main = do
     else
       return ()
 
+  let defaultOpts' = if compatMode 
+                       then defaultOpts { optReader = "markdown"
+                                        , optWriter = "html"
+                                        , optStrict = True }
+                       else defaultOpts
+
   -- thread option data structure through all supplied option actions
-  opts <- foldl (>>=) (return defaultOpts) actions
+  opts <- foldl (>>=) (return defaultOpts') actions
 
   let Opt    { optPreserveTabs       = preserveTabs
               , optTabStop           = tabStop
@@ -408,11 +419,11 @@ main = do
   let addBlank str = str ++ "\n\n"
   let removeCRs str = filter (/= '\r') str  -- remove DOS-style line endings
   let filter = tabFilter . addBlank . removeCRs
-  let startParserState = defaultParserState { stateParseRaw     = parseRaw,
-                                              stateTabStop      = tabStop, 
-                                              stateStandalone   = standalone &&
-                                                                  (not strict),
-                                              stateStrict       = strict }
+  let startParserState = 
+         defaultParserState { stateParseRaw   = parseRaw,
+                              stateTabStop    = tabStop, 
+                              stateStandalone = standalone && (not strict),
+                              stateStrict     = strict }
   let csslink = if (css == "")
                    then "" 
                    else "<link rel=\"stylesheet\" href=\"" ++ css ++ 
