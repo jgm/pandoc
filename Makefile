@@ -111,10 +111,8 @@ endef
 
 .PHONY: wrappers
 wrappers: $(WRAPPERS)
-wrapper_deps := $(wildcard $(SRCDIR)/wrappers/*.sh)
-wrapper_templates := $(wildcard $(SRCDIR)/wrappers/*.in)
 cleanup_files+=$(WRAPPERS)
-$(WRAPPERS): $(wrapper_deps) $(wrapper_templates)
+$(WRAPPERS): %: $(SRCDIR)/wrappers/%.in $(SRCDIR)/wrappers/*.sh
 	@$(generate-shell-script)
 
 cleanup_files+=$(CABAL)
