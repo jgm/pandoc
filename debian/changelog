@@ -100,6 +100,9 @@ pandoc (0.3) unstable; urgency=low
       markdown standard.  Now any number of `s can begin inline code,
       which will end with the same number of `s.  For example, to
       have two backticks as code, write ``` `` ```.
+    + Modified HTML reader to skip a newline following a <br> tag.
+      Otherwise the newline will be treated as a space at the beginning
+      of the next line.
 
   * Made handling of code blocks more consistent.  Previously, some
     readers allowed trailing newlines, while others stripped them.

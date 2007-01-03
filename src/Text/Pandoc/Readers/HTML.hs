@@ -433,6 +433,7 @@ whitespace = do
 -- hard line break
 linebreak = do
   htmlTag "br"
+  option ' ' newline
   return LineBreak 
 
 str = do 
