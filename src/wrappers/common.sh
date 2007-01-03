@@ -2,8 +2,6 @@ THIS=${0##*/}
 
 NEWLINE='
 '
-WRAPPER_ARGS=
-WRAPPEE_ARGS=
 
 err ()  { echo "$*"   | fold -s -w ${COLUMNS:-110} >&2; }
 errn () { printf "$*" | fold -s -w ${COLUMNS:-110} >&2; }
