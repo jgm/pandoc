@@ -89,7 +89,7 @@
       </para>
       <screen>
 sub status {
-    print "working";
+    print &quot;working&quot;;
 }
 </screen>
       <para>
@@ -133,7 +133,7 @@ sub status {
       </para>
       <screen>
 sub status {
-    print "working";
+    print &quot;working&quot;;
 }
 </screen>
     </blockquote>
@@ -177,7 +177,7 @@ sub status {
 ---- (should be four hyphens)
 
 sub status {
-    print "working";
+    print &quot;working&quot;;
 }
 
 this code block is indented by one tab
@@ -188,7 +188,7 @@ this code block is indented by one tab
     <screen>
     this code block is indented by two tabs
 
-These should not be escaped:  \$ \\ \> \[ \{
+These should not be escaped:  \$ \\ \&gt; \[ \{
 </screen>
   </section>
   <section>
@@ -577,15 +577,16 @@ These should not be escaped:  \$ \\ \> \[ \{
       word.
     </para>
     <para>
-      This is code: <literal>></literal>, <literal>$</literal>,
+      This is code: <literal>&gt;</literal>, <literal>$</literal>,
       <literal>\</literal>, <literal>\$</literal>,
-      <literal>&lt;html></literal>.
+      <literal>&lt;html&gt;</literal>.
     </para>
   </section>
   <section>
     <title>Smart quotes, ellipses, dashes</title>
     <para>
-      "Hello," said the spider. "'Shelob' is my name."
+      &quot;Hello,&quot; said the spider. &quot;'Shelob' is my
+      name.&quot;
     </para>
     <para>
       'A', 'B', and 'C' are letters.
@@ -594,11 +595,11 @@ These should not be escaped:  \$ \\ \> \[ \{
       'Oak,' 'elm,' and 'beech' are names of trees. So is 'pine.'
     </para>
     <para>
-      'He said, "I want to go."' Were you alive in the 70's?
+      'He said, &quot;I want to go.&quot;' Were you alive in the 70's?
     </para>
     <para>
       Here is some quoted '<literal>code</literal>' and a
-      "<ulink url="http://example.com/?foo=1&amp;bar=2">quoted link</ulink>".
+      &quot;<ulink url="http://example.com/?foo=1&amp;bar=2">quoted link</ulink>&quot;.
     </para>
     <para>
       Some dashes: one---two --- three--four -- five.
@@ -672,7 +673,7 @@ These should not be escaped:  \$ \\ \> \[ \{
       <listitem>
         <para>
           $22,000 is a <emphasis>lot</emphasis> of money. So is $34,000. (It
-          worked if "lot" is emphasized.)
+          worked if &quot;lot&quot; is emphasized.)
         </para>
       </listitem>
       <listitem>
@@ -909,17 +910,17 @@ Cat    &amp; 1      \\ \hline
       </blockquote>
       <para>
         Auto-links should not occur here:
-        <literal>&lt;http://example.com/></literal>
+        <literal>&lt;http://example.com/&gt;</literal>
       </para>
       <screen>
-or here: &lt;http://example.com/>
+or here: &lt;http://example.com/&gt;
 </screen>
     </section>
   </section>
   <section>
     <title>Images</title>
     <para>
-      From "Voyage dans la Lune" by Georges Melies (1902):
+      From &quot;Voyage dans la Lune&quot; by Georges Melies (1902):
     </para>
     <para>
       <inlinemediaobject>
@@ -963,7 +964,7 @@ or here: &lt;http://example.com/>
                   footnote (as with list items).
                 </para>
                 <screen>
-  { &lt;code> }
+  { &lt;code&gt; }
 </screen>
                 <para>
                   If you want, you can indent every line, but you can also be lazy

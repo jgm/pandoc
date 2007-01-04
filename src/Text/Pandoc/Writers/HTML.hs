@@ -29,12 +29,10 @@ Conversion of 'Pandoc' documents to HTML.
 -}
 module Text.Pandoc.Writers.HTML ( 
                                  writeHtml,
-                                 stringToSmartHtml,
-                                 stringToHtml
                                 ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
-import Text.Html ( stringToHtmlString )
+import Text.Pandoc.Entities ( encodeEntities )
 import Text.Regex ( mkRegex, matchRegex )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
@@ -115,61 +113,6 @@ obfuscateChar char =
 obfuscateString :: String -> String
 obfuscateString = concatMap obfuscateChar
 
--- | Escape string, preserving character entities and quote.
-stringToHtml :: String -> String
-stringToHtml str = escapePreservingRegex stringToHtmlString 
-                   (mkRegex "\"|(&[[:alnum:]]*;)") str
-
--- | Escape string as in 'stringToHtml' but add smart typography filter.
-stringToSmartHtml :: String -> String
-stringToSmartHtml = 
-  let escapeDoubleQuotes = 
-        gsub "(\"|&quot;)" "&rdquo;" . -- rest are right quotes
-        gsub "(\"|&quot;)(&r[sd]quo;)" "&rdquo;\\2" . 
-             -- never left quo before right quo
-        gsub "(&l[sd]quo;)(\"|&quot;)" "\\2&ldquo;" . 
-             -- never right quo after left quo
-        gsub "([ \t])(\"|&quot;)" "\\1&ldquo;" . 
-             -- never right quo after space 
-        gsub "(\"|&quot;)([^,.;:!?^) \t-])" "&ldquo;\\2" . -- "word left
-        gsub "(\"|&quot;)('|`|&lsquo;)" "&rdquo;&rsquo;" . 
-             -- right if it got through last filter
-        gsub "(\"|&quot;)('|`|&lsquo;)([^,.;:!?^) \t-])" "&ldquo;&lsquo;\\3" .
-             -- "'word left
-        gsub "``" "&ldquo;" .
-        gsub "''" "&rdquo;"
-      escapeSingleQuotes =
-        gsub "'" "&rsquo;"  . -- otherwise right
-        gsub "'(&r[sd]quo;)" "&rsquo;\\1" . -- never left quo before right quo
-        gsub "(&l[sd]quo;)'" "\\1&lsquo;" . -- never right quo after left quo
-        gsub "([ \t])'" "\\1&lsquo;" . -- never right quo after space 
-        gsub "`" "&lsquo;"  . -- ` is left
-        gsub "([^,.;:!?^) \t-])'" "\\1&rsquo;" .  -- word' right
-        gsub "^('|`)([^,.;:!?^) \t-])" "&lsquo;\\2" . -- 'word left 
-        gsub "('|`)(\"|&quot;|&ldquo;|``)" "&lsquo;&ldquo;" .  -- '"word left
-        gsub "([^,.;:!?^) \t-])'(s|S)" "\\1&rsquo;\\2" . -- possessive
-        gsub "([[:space:]])'([^,.;:!?^) \t-])" "\\1&lsquo;\\2" . -- 'word left
-        gsub "'([0-9][0-9](s|S))" "&rsquo;\\1"  -- '80s - decade abbrevs.
-      escapeDashes = 
-        gsub " ?-- ?" "&mdash;" .
-        gsub " ?--- ?" "&mdash;" .
-        gsub "([0-9])--?([0-9])" "\\1&ndash;\\2" 
-      escapeEllipses = gsub "\\.\\.\\.|\\. \\. \\." "&hellip;" in
-  escapeSingleQuotes . escapeDoubleQuotes . escapeDashes . 
-  escapeEllipses . stringToHtml 
-
--- | Escape code string as needed for HTML.
-codeStringToHtml :: String -> String
-codeStringToHtml [] = []
-codeStringToHtml (x:xs) = case x of
-  '&' -> "&amp;" ++ codeStringToHtml xs
-  '<' -> "&lt;"  ++ codeStringToHtml xs
-  _   -> x:(codeStringToHtml xs) 
-
--- | Escape string to HTML appropriate for attributes
-attributeStringToHtml :: String -> String
-attributeStringToHtml = gsub "\"" "&quot;"
-
 -- | Returns an HTML header with appropriate bibliographic information.
 htmlHeader :: WriterOptions -> Meta -> String
 htmlHeader options (Meta title authors date) = 
@@ -178,12 +121,12 @@ htmlHeader options (Meta title authors date) =
       authortext = if (null authors) 
                       then "" 
                       else "<meta name=\"author\" content=\"" ++ 
-                           (joinWithSep ", " (map stringToHtml authors)) ++ 
+                           (joinWithSep ", " (map (stringToSGML options) authors)) ++ 
                            "\" />\n" 
       datetext = if (date == "")
                     then "" 
                     else "<meta name=\"date\" content=\"" ++ 
-                         (stringToHtml date) ++ "\" />\n" in
+                         (stringToSGML options date) ++ "\" />\n" in
   (writerHeader options) ++ authortext ++ datetext ++ titletext ++ 
   "</head>\n<body>\n"
 
@@ -216,7 +159,7 @@ blockToHtml options (Note ref lst) =
   "\">&#8617;</a></li>\n" 
 blockToHtml options (Key _ _) = ""
 blockToHtml options (CodeBlock str) = 
-  "<pre><code>" ++ (codeStringToHtml str) ++ "\n</code></pre>\n"
+  "<pre><code>" ++ (escapeSGML str) ++ "\n</code></pre>\n"
 blockToHtml options (RawHtml str) = str 
 blockToHtml options (BulletList lst) = 
   let attribs = if (writerIncremental options)
@@ -255,18 +198,17 @@ inlineToHtml options (Emph lst) =
 inlineToHtml options (Strong lst) = 
   "<strong>" ++ (inlineListToHtml options lst) ++ "</strong>"
 inlineToHtml options (Code str) =  
-  "<code>" ++ (codeStringToHtml str) ++ "</code>"
-inlineToHtml options (Str str) = 
-  if (writerSmart options) then stringToSmartHtml str else stringToHtml str
-inlineToHtml options (TeX str) = (codeStringToHtml str)
+  "<code>" ++ (escapeSGML str) ++ "</code>"
+inlineToHtml options (Str str) = stringToSGML options str
+inlineToHtml options (TeX str) = (escapeSGML str)
 inlineToHtml options (HtmlInline str) = str
 inlineToHtml options (LineBreak) = "<br />\n"
 inlineToHtml options Space = " "
 inlineToHtml options (Link text (Src src tit)) = 
-  let title = attributeStringToHtml tit in
+  let title = stringToSGML options tit in
   if (isPrefixOf "mailto:" src)
      then obfuscateLink options text src 
-     else "<a href=\"" ++ (codeStringToHtml src) ++ "\"" ++ 
+     else "<a href=\"" ++ (escapeSGML src) ++ "\"" ++ 
           (if tit /= "" then " title=\"" ++ title  ++ "\">" else ">") ++ 
           (inlineListToHtml options text) ++ "</a>"
 inlineToHtml options (Link text (Ref ref)) = 
@@ -274,7 +216,7 @@ inlineToHtml options (Link text (Ref ref)) =
   (inlineListToHtml options ref) ++ "]"  
   -- this is what markdown does, for better or worse
 inlineToHtml options (Image alt (Src source tit)) = 
-  let title = attributeStringToHtml tit
+  let title = stringToSGML options tit
       alternate = inlineListToHtml options alt in 
   "<img src=\"" ++ source ++ "\"" ++ 
   (if tit /= "" then " title=\"" ++ title ++ "\"" else "") ++ 

@@ -32,9 +32,7 @@ module Text.Pandoc.Writers.Docbook (
                                    ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
-import Text.Pandoc.Writers.HTML ( stringToSmartHtml, stringToHtml )
 import Text.Pandoc.Entities ( encodeEntities )
-import Text.Html ( stringToHtmlString )
 import Text.Regex ( mkRegex, matchRegex )
 import Data.Char ( toLower, ord )
 import Data.List ( isPrefixOf, partition )
@@ -54,19 +52,21 @@ hierarchicalize :: [Block] -> [Element]
 hierarchicalize [] = []
 hierarchicalize (block:rest) = 
   case block of
-    (Header level title) -> let (thisSection, rest') = break (headerAtLeast level) rest in
-                            (Sec title (hierarchicalize thisSection)):(hierarchicalize rest') 
+    (Header level title) -> let (thisSection, rest') = break (headerAtLeast 
+                                                       level) rest in
+                            (Sec title (hierarchicalize thisSection)):
+                            (hierarchicalize rest') 
     x                    -> (Blk x):(hierarchicalize rest)
 
 -- | Convert list of authors to a docbook <author> section
 authorToDocbook :: WriterOptions -> [Char] -> Doc
-authorToDocbook options name = indentedInTags "author" $ 
+authorToDocbook opts name = inTagsIndented opts "author" $ 
   if ',' `elem` name
     then -- last name first
       let (lastname, rest) = break (==',') name 
           firstname = removeLeadingSpace rest in
-      inTags "firstname" (text $ stringToXML options firstname) <> 
-      inTags "surname" (text $ stringToXML options lastname) 
+      inTagsSimple opts "firstname" (text $ stringToSGML opts firstname) <> 
+      inTagsSimple opts "surname" (text $ stringToSGML opts lastname) 
     else -- last name last
       let namewords = words name
           lengthname = length namewords 
@@ -74,101 +74,82 @@ authorToDocbook options name = indentedInTags "author" $
             0  -> ("","") 
             1  -> ("", name)
             n  -> (joinWithSep " " (take (n-1) namewords), last namewords) in
-       inTags "firstname" (text $ stringToXML options firstname) $$ 
-       inTags "surname" (text $ stringToXML options lastname) 
+       inTagsSimple opts "firstname" (text $ stringToSGML opts firstname) $$ 
+       inTagsSimple opts "surname" (text $ stringToSGML opts lastname) 
 
 -- | Convert Pandoc document to string in Docbook format.
 writeDocbook :: WriterOptions -> Pandoc -> String
-writeDocbook options (Pandoc (Meta title authors date) blocks) = 
-  let head = if (writerStandalone options)
-                then text (writerHeader options)
+writeDocbook opts (Pandoc (Meta title authors date) blocks) = 
+  let head = if (writerStandalone opts)
+                then text (writerHeader opts)
                 else empty
-      meta = if (writerStandalone options)
-                then indentedInTags "articleinfo" $
-                     (inTags "title" (inlinesToDocbook options title)) $$ 
-                     (vcat (map (authorToDocbook options) authors)) $$ 
-                     (inTags "date" (text date)) 
+      meta = if (writerStandalone opts)
+                then inTagsIndented opts "articleinfo" $
+                     (inTagsSimple opts "title" (inlinesToDocbook opts title)) $$ 
+                     (vcat (map (authorToDocbook opts) authors)) $$ 
+                     (inTagsSimple opts "date" (text $ stringToSGML opts date)) 
                 else empty
       blocks' = replaceReferenceLinks blocks
       (noteBlocks, blocks'') = partition isNoteBlock blocks' 
-      options' = options {writerNotes = noteBlocks}
+      opts' = opts {writerNotes = noteBlocks}
       elements = hierarchicalize blocks''
-      body = text (writerIncludeBefore options') <>
-             vcat (map (elementToDocbook options') elements) $$
-             text (writerIncludeAfter options')
-      body' = if writerStandalone options'
-                then indentedInTags "article" (meta $$ body)
+      body = text (writerIncludeBefore opts') <>
+             vcat (map (elementToDocbook opts') elements) $$
+             text (writerIncludeAfter opts')
+      body' = if writerStandalone opts'
+                then inTagsIndented opts "article" (meta $$ body)
                 else body in  
   render $ head $$ body' <> text "\n"
 
--- | Put the supplied contents between start and end tags of tagType,
---   with specified attributes.
-inTagsWithAttrib :: String -> [(String, String)] -> Doc -> Doc
-inTagsWithAttrib tagType attribs contents = text ("<" ++ tagType ++ 
-  (concatMap (\(a, b) -> " " ++ attributeStringToXML a ++ 
-  "=\"" ++ attributeStringToXML b ++ "\"") attribs)) <> 
-  if isEmpty contents
-    then text " />" -- self-closing tag
-    else text ">" <> contents <> text ("</" ++ tagType ++ ">") 
-
--- | Put the supplied contents between start and end tags of tagType.
-inTags :: String -> Doc -> Doc
-inTags tagType contents = inTagsWithAttrib tagType [] contents
-
--- | Put the supplied contents in indented block btw start and end tags.
-indentedInTags :: [Char] -> Doc -> Doc
-indentedInTags tagType contents = text ("<" ++ tagType ++ ">") $$
-  nest 2 contents $$ text ("</" ++ tagType ++ ">") 
-
 -- | Convert an Element to Docbook.
 elementToDocbook :: WriterOptions -> Element -> Doc
-elementToDocbook options (Blk block) = blockToDocbook options block 
-elementToDocbook options (Sec title elements) =
+elementToDocbook opts (Blk block) = blockToDocbook opts block 
+elementToDocbook opts (Sec title elements) =
   -- Docbook doesn't allow sections with no content, so insert some if needed
   let elements' = if null elements
                     then [Blk (Para [])]
                     else elements in 
-  indentedInTags "section" $
-  inTags "title" (wrap options title) $$
-  vcat (map (elementToDocbook options) elements') 
+  inTagsIndented opts "section" $
+  inTagsSimple opts "title" (wrap opts title) $$
+  vcat (map (elementToDocbook opts) elements') 
 
 -- | Convert a list of Pandoc blocks to Docbook.
 blocksToDocbook :: WriterOptions -> [Block] -> Doc
-blocksToDocbook options = vcat . map (blockToDocbook options)
+blocksToDocbook opts = vcat . map (blockToDocbook opts)
 
 -- | Convert a list of lists of blocks to a list of Docbook list items.
 listItemsToDocbook :: WriterOptions -> [[Block]] -> Doc
-listItemsToDocbook options items = 
-  vcat $ map (listItemToDocbook options) items
+listItemsToDocbook opts items = 
+  vcat $ map (listItemToDocbook opts) items
 
 -- | Convert a list of blocks into a Docbook list item.
 listItemToDocbook :: WriterOptions -> [Block] -> Doc
-listItemToDocbook options item =
+listItemToDocbook opts item =
   let plainToPara (Plain x) = Para x
       plainToPara y = y in
   let item' = map plainToPara item in
-  indentedInTags "listitem" (blocksToDocbook options item')
+  inTagsIndented opts "listitem" (blocksToDocbook opts item')
 
 -- | Convert a Pandoc block element to Docbook.
 blockToDocbook :: WriterOptions -> Block -> Doc
-blockToDocbook options Blank = text ""
-blockToDocbook options Null = empty
-blockToDocbook options (Plain lst) = wrap options lst
-blockToDocbook options (Para lst) = 
-  indentedInTags "para" (wrap options lst)
-blockToDocbook options (BlockQuote blocks) =
-  indentedInTags "blockquote" (blocksToDocbook options blocks)
-blockToDocbook options (CodeBlock str) = 
-  text "<screen>\n" <> text (codeStringToXML str) <> text "\n</screen>"
-blockToDocbook options (BulletList lst) = 
-  indentedInTags "itemizedlist" $ listItemsToDocbook options lst 
-blockToDocbook options (OrderedList lst) = 
-  indentedInTags "orderedlist" $ listItemsToDocbook options lst 
-blockToDocbook options (RawHtml str) = text str -- raw XML block 
-blockToDocbook options HorizontalRule = empty -- not semantic
-blockToDocbook options (Note _ _) = empty -- shouldn't occur
-blockToDocbook options (Key _ _) = empty  -- shouldn't occur
-blockToDocbook options _ = indentedInTags "para" (text "Unknown block type")
+blockToDocbook opts Blank = text ""
+blockToDocbook opts Null = empty
+blockToDocbook opts (Plain lst) = wrap opts lst
+blockToDocbook opts (Para lst) = 
+  inTagsIndented opts "para" (wrap opts lst)
+blockToDocbook opts (BlockQuote blocks) =
+  inTagsIndented opts "blockquote" (blocksToDocbook opts blocks)
+blockToDocbook opts (CodeBlock str) = 
+  text "<screen>\n" <> text (escapeSGML str) <> text "\n</screen>"
+blockToDocbook opts (BulletList lst) = 
+  inTagsIndented opts "itemizedlist" $ listItemsToDocbook opts lst 
+blockToDocbook opts (OrderedList lst) = 
+  inTagsIndented opts "orderedlist" $ listItemsToDocbook opts lst 
+blockToDocbook opts (RawHtml str) = text str -- raw XML block 
+blockToDocbook opts HorizontalRule = empty -- not semantic
+blockToDocbook opts (Note _ _) = empty -- shouldn't occur
+blockToDocbook opts (Key _ _) = empty  -- shouldn't occur
+blockToDocbook opts _ = inTagsIndented opts "para" (text "Unknown block type")
 
 -- | Put string in CDATA section
 cdata :: String -> Doc
@@ -176,62 +157,47 @@ cdata str = text $ "<![CDATA[" ++ str ++ "]]>"
 
 -- | Take list of inline elements and return wrapped doc.
 wrap :: WriterOptions -> [Inline] -> Doc
-wrap options lst = fsep $ map (inlinesToDocbook options) (splitBy Space lst)
-
--- | Escape a string for XML (with "smart" option if specified).
-stringToXML :: WriterOptions -> String -> String
-stringToXML options = encodeEntities .
-                      (if writerSmart options
-                         then stringToSmartHtml
-                         else stringToHtml)
-
--- | Escape string to XML appropriate for attributes
-attributeStringToXML :: String -> String
-attributeStringToXML = gsub "\"" "&quot;" . codeStringToXML
-
--- | Escape a literal string for XML.
-codeStringToXML :: String -> String
-codeStringToXML = encodeEntities . gsub "<" "&lt;" . gsub "&" "&amp;" 
+wrap opts lst = fsep $ map (inlinesToDocbook opts) (splitBy Space lst)
 
 -- | Convert a list of inline elements to Docbook.
 inlinesToDocbook :: WriterOptions -> [Inline] -> Doc
-inlinesToDocbook options lst = hcat (map (inlineToDocbook options) lst)
+inlinesToDocbook opts lst = hcat (map (inlineToDocbook opts) lst)
 
 -- | Convert an inline element to Docbook.
 inlineToDocbook :: WriterOptions -> Inline -> Doc
-inlineToDocbook options (Str str) = text $ stringToXML options str 
-inlineToDocbook options (Emph lst) = 
-  inTags "emphasis" (inlinesToDocbook options lst)
-inlineToDocbook options (Strong lst) = 
-  inTagsWithAttrib "emphasis" [("role", "strong")] 
-  (inlinesToDocbook options lst)
-inlineToDocbook options (Code str) = 
-  inTags "literal" $ text (codeStringToXML str)
-inlineToDocbook options (TeX str) = inlineToDocbook options (Code str)
-inlineToDocbook options (HtmlInline str) = empty
-inlineToDocbook options LineBreak = 
+inlineToDocbook opts (Str str) = text $ stringToSGML opts str 
+inlineToDocbook opts (Emph lst) = 
+  inTagsSimple opts "emphasis" (inlinesToDocbook opts lst)
+inlineToDocbook opts (Strong lst) = 
+  inTags False opts "emphasis" [("role", "strong")] 
+  (inlinesToDocbook opts lst)
+inlineToDocbook opts (Code str) = 
+  inTagsSimple opts "literal" $ text (escapeSGML str)
+inlineToDocbook opts (TeX str) = inlineToDocbook opts (Code str)
+inlineToDocbook opts (HtmlInline str) = empty
+inlineToDocbook opts LineBreak = 
   text $ "<literallayout></literallayout>" 
-inlineToDocbook options Space = char ' '
-inlineToDocbook options (Link txt (Src src tit)) =
+inlineToDocbook opts Space = char ' '
+inlineToDocbook opts (Link txt (Src src tit)) =
   case (matchRegex (mkRegex "mailto:(.*)") src) of
-    Just [addr] -> inTags "email" $ text (codeStringToXML addr)
-    Nothing     -> inTagsWithAttrib "ulink" [("url", src)] $
-                   inlinesToDocbook options txt
-inlineToDocbook options (Link text (Ref ref)) = empty -- shouldn't occur
-inlineToDocbook options (Image alt (Src src tit)) = 
+    Just [addr] -> inTagsSimple opts "email" $ text (escapeSGML addr)
+    Nothing     -> inTags False opts "ulink" [("url", src)] $
+                   inlinesToDocbook opts txt
+inlineToDocbook opts (Link text (Ref ref)) = empty -- shouldn't occur
+inlineToDocbook opts (Image alt (Src src tit)) = 
   let titleDoc = if null tit
                    then empty
-                   else indentedInTags "objectinfo" $
-                        indentedInTags "title" 
-                        (text $ stringToXML options tit) in
-  indentedInTags "inlinemediaobject" $ 
-  indentedInTags "imageobject" $
-  titleDoc $$ inTagsWithAttrib "imagedata" [("fileref", src)] empty 
-inlineToDocbook options (Image alternate (Ref ref)) = empty --shouldn't occur
-inlineToDocbook options (NoteRef ref) = 
-  let notes = writerNotes options
+                   else inTagsIndented opts "objectinfo" $
+                        inTagsIndented opts "title" 
+                        (text $ stringToSGML opts tit) in
+  inTagsIndented opts "inlinemediaobject" $ 
+  inTagsIndented opts "imageobject" $
+  titleDoc $$ selfClosingTag opts "imagedata" [("fileref", src)] 
+inlineToDocbook opts (Image alternate (Ref ref)) = empty --shouldn't occur
+inlineToDocbook opts (NoteRef ref) = 
+  let notes = writerNotes opts
       hits = filter (\(Note r _) -> r == ref) notes in
   if null hits
     then empty
     else let (Note _ contents) = head hits in
-         indentedInTags "footnote" $ blocksToDocbook options contents
+         inTagsIndented opts "footnote" $ blocksToDocbook opts contents

@@ -186,6 +186,8 @@ pandoc (0.3) unstable; urgency=low
     + Renamed 'Text/Pandoc/HtmlEntities' module to 
       'Text/Pandoc/Entities'. Also changed function names so as
       not to be HTML-specific.
+    + Refactored SGML string escaping functions from HTML and Docbook
+      writers into Text/Pandoc/Shared.  (escapeSGML, stringToSGML)
     + Removed 'BlockQuoteContext' from ParserContext, as it isn't
       used anywhere.
     + Removed splitBySpace and replaced it with a general, polymorphic

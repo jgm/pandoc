@@ -39,7 +39,7 @@ here.</p>
 <blockquote>
 <p>Code in a block quote:</p>
 <pre><code>sub status {
-    print "working";
+    print &quot;working&quot;;
 }
 </code></pre>
 <p>A list:</p>
@@ -60,7 +60,7 @@ here.</p>
 <blockquote>
 <p>Example:</p>
 <pre><code>sub status {
-    print "working";
+    print &quot;working&quot;;
 }
 </code></pre>
 </blockquote>
@@ -84,7 +84,7 @@ here.</p>
 <pre><code>---- (should be four hyphens)
 
 sub status {
-    print "working";
+    print &quot;working&quot;;
 }
 
 this code block is indented by one tab
@@ -92,7 +92,7 @@ this code block is indented by one tab
 <p>And:</p>
 <pre><code>    this code block is indented by two tabs
 
-These should not be escaped:  \$ \\ \> \[ \{
+These should not be escaped:  \$ \\ \&gt; \[ \{
 </code></pre>
 <hr />
 <h1>Lists</h1>
@@ -255,12 +255,12 @@ These should not be escaped:  \$ \\ \> \[ \{
 <div>
     foo</div>
 <p>This should be a code block, though:</p>
-<pre><code>&lt;div>
+<pre><code>&lt;div&gt;
     foo
-&lt;/div>
+&lt;/div&gt;
 </code></pre>
 <p>As should this:</p>
-<pre><code>&lt;div>foo&lt;/div>
+<pre><code>&lt;div&gt;foo&lt;/div&gt;
 </code></pre>
 <p>Now, nested:</p>
 <div>
@@ -281,12 +281,12 @@ Blah
     This is another comment.
 -->
 <p>Code block:</p>
-<pre><code>&lt;!-- Comment -->
+<pre><code>&lt;!-- Comment --&gt;
 </code></pre>
 <p>Just plain comment, with trailing spaces on the line:</p>
 <!-- foo -->   
 <p>Code:</p>
-<pre><code>&lt;hr />
+<pre><code>&lt;hr /&gt;
 </code></pre>
 <p>Hr's:</p>
 <hr>
@@ -315,14 +315,14 @@ Blah
 <p>So is <strong><em>this</em></strong> word.</p>
 <p><strong><em>This is strong and em.</em></strong></p>
 <p>So is <strong><em>this</em></strong> word.</p>
-<p>This is code: <code>></code>, <code>$</code>, <code>\</code>, <code>\$</code>, <code>&lt;html></code>.</p>
+<p>This is code: <code>&gt;</code>, <code>$</code>, <code>\</code>, <code>\$</code>, <code>&lt;html&gt;</code>.</p>
 <hr />
 <h1>Smart quotes, ellipses, dashes</h1>
-<p>"Hello," said the spider. "'Shelob' is my name."</p>
+<p>&quot;Hello,&quot; said the spider. &quot;'Shelob' is my name.&quot;</p>
 <p>'A', 'B', and 'C' are letters.</p>
 <p>'Oak,' 'elm,' and 'beech' are names of trees. So is 'pine.'</p>
-<p>'He said, "I want to go."' Were you alive in the 70's?</p>
-<p>Here is some quoted '<code>code</code>' and a "<a href="http://example.com/?foo=1&amp;bar=2">quoted link</a>".</p>
+<p>'He said, &quot;I want to go.&quot;' Were you alive in the 70's?</p>
+<p>Here is some quoted '<code>code</code>' and a &quot;<a href="http://example.com/?foo=1&amp;bar=2">quoted link</a>&quot;.</p>
 <p>Some dashes: one---two --- three--four -- five.</p>
 <p>Dashes between numbers: 5-7, 255-66, 1987-1999.</p>
 <p>Ellipses...and. . .and . . . .</p>
@@ -342,7 +342,7 @@ Blah
 <p>These shouldn't be math:</p>
 <ul>
 <li>To get the famous equation, write <code>$e = mc^2$</code>.</li>
-<li>$22,000 is a <em>lot</em> of money. So is $34,000. (It worked if "lot" is emphasized.)</li>
+<li>$22,000 is a <em>lot</em> of money. So is $34,000. (It worked if &quot;lot&quot; is emphasized.)</li>
 <li>Escaped <code>$</code>: $73 <em>this should be emphasized</em> 23$.</li>
 </ul>
 <p>Here's a LaTeX table:</p>
@@ -355,11 +355,11 @@ Cat    &amp; 1      \\ \hline
 <h1>Special Characters</h1>
 <p>Here is some unicode:</p>
 <ul>
-<li>I hat: Î</li>
-<li>o umlaut: ö</li>
-<li>section: §</li>
-<li>set membership: ∈</li>
-<li>copyright: ©</li>
+<li>I hat: &Icirc;</li>
+<li>o umlaut: &ouml;</li>
+<li>section: &sect;</li>
+<li>set membership: &isin;</li>
+<li>copyright: &copy;</li>
 </ul>
 <p>AT&amp;T has an ampersand in their name.</p>
 <p>AT&amp;T is another way to write it.</p>
@@ -414,7 +414,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+'Email link'+'<\/'+'a'+'>')
 <p>Foo <a href="/url/" title="Title with &quot;quote&quot; inside">biz</a>.</p>
 <h2>With ampersands</h2>
 <p>Here's a <a href="http://example.com/?foo=1&amp;bar=2">link with an ampersand in the URL</a>.</p>
-<p>Here's a link with an amersand in the link text: <a href="http://att.com/" title="AT&T">AT&amp;T</a>.</p>
+<p>Here's a link with an amersand in the link text: <a href="http://att.com/" title="AT&amp;T">AT&amp;T</a>.</p>
 <p>Here's an <a href="/script?foo=1&amp;bar=2">inline link</a>.</p>
 <p>Here's an <a href="/script?foo=1&amp;bar=2">inline link in pointy braces</a>.</p>
 <h2>Autolinks</h2>
@@ -433,12 +433,12 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
 <blockquote>
 <p>Blockquoted: <a href="http://example.com/">http://example.com/</a></p>
 </blockquote>
-<p>Auto-links should not occur here: <code>&lt;http://example.com/></code></p>
-<pre><code>or here: &lt;http://example.com/>
+<p>Auto-links should not occur here: <code>&lt;http://example.com/&gt;</code></p>
+<pre><code>or here: &lt;http://example.com/&gt;
 </code></pre>
 <hr />
 <h1>Images</h1>
-<p>From "Voyage dans la Lune" by Georges Melies (1902):</p>
+<p>From &quot;Voyage dans la Lune&quot; by Georges Melies (1902):</p>
 <p><img src="lalune.jpg" title="Voyage dans la Lune" alt="lalune"></p>
 <p>Here is a movie <img src="movie.jpg" alt="movie"> icon.</p>
 <hr />
@@ -458,7 +458,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
  <a href="#fnref1" class="footnoteBacklink" title="Jump back to footnote 1">&#8617;</a></li>
 <li id="fn2"><p>Here's the long note. This one contains multiple blocks.</p>
 <p>Subsequent blocks are indented to show that they belong to the footnote (as with list items).</p>
-<pre><code>  { &lt;code> }
+<pre><code>  { &lt;code&gt; }
 </code></pre>
 <p>If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.</p>
  <a href="#fnref2" class="footnoteBacklink" title="Jump back to footnote 2">&#8617;</a></li>

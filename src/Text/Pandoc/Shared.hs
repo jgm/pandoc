@@ -28,6 +28,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Utility functions and definitions used by the various Pandoc modules.
 -}
 module Text.Pandoc.Shared ( 
+                     -- * List processing
+                     splitBy,
                      -- * Text processing
                      gsub,
                      joinWithSep,
@@ -52,7 +54,6 @@ module Text.Pandoc.Shared (
                      -- * Pandoc block list processing
                      consolidateList,
                      isNoteBlock,
-                     splitBy,
                      normalizeSpaces,
                      compactify,
                      generateReference,
@@ -62,12 +63,21 @@ module Text.Pandoc.Shared (
                      lookupKeySrc,
                      refsMatch,
                      replaceReferenceLinks,
-                     replaceRefLinksBlockList 
+                     replaceRefLinksBlockList,
+                     -- * SGML
+                     escapeSGML,
+                     stringToSGML,
+                     inTags,
+                     selfClosingTag,
+                     inTagsSimple,
+                     inTagsIndented
                     ) where
 import Text.Pandoc.Definition
 import Text.ParserCombinators.Parsec
-import Text.Pandoc.Entities ( decodeEntities )
+import Text.Pandoc.Entities ( decodeEntities, encodeEntities )
 import Text.Regex ( matchRegexAll, mkRegex, subRegex, Regex )
+import Text.PrettyPrint.HughesPJ as PP ( text, char, (<>), ($$), nest, Doc, 
+                                         isEmpty )
 import Char ( toLower )
 import List ( find, groupBy )
 
@@ -507,3 +517,85 @@ replaceRefLinksInline keytable (Emph lst) =
 replaceRefLinksInline keytable (Strong lst) = 
     Strong (map (replaceRefLinksInline keytable) lst)
 replaceRefLinksInline keytable other = other
+
+-- | Escape string, preserving character entities and quote, and adding
+--   smart typography if specified.
+stringToSGML :: WriterOptions -> String -> String
+stringToSGML options = 
+  let escapeDoubleQuotes = 
+        gsub "(\"|&quot;)" "&rdquo;" . -- rest are right quotes
+        gsub "(\"|&quot;)(&r[sd]quo;)" "&rdquo;\\2" . 
+             -- never left quo before right quo
+        gsub "(&l[sd]quo;)(\"|&quot;)" "\\2&ldquo;" . 
+             -- never right quo after left quo
+        gsub "([ \t])(\"|&quot;)" "\\1&ldquo;" . 
+             -- never right quo after space 
+        gsub "(\"|&quot;)([^,.;:!?^) \t-])" "&ldquo;\\2" . -- "word left
+        gsub "(\"|&quot;)('|`|&lsquo;)" "&rdquo;&rsquo;" . 
+             -- right if it got through last filter
+        gsub "(\"|&quot;)('|`|&lsquo;)([^,.;:!?^) \t-])" "&ldquo;&lsquo;\\3" .
+             -- "'word left
+        gsub "``" "&ldquo;" .
+        gsub "''" "&rdquo;"
+      escapeSingleQuotes =
+        gsub "'" "&rsquo;"  . -- otherwise right
+        gsub "'(&r[sd]quo;)" "&rsquo;\\1" . -- never left quo before right quo
+        gsub "(&l[sd]quo;)'" "\\1&lsquo;" . -- never right quo after left quo
+        gsub "([ \t])'" "\\1&lsquo;" . -- never right quo after space 
+        gsub "`" "&lsquo;"  . -- ` is left
+        gsub "([^,.;:!?^) \t-])'" "\\1&rsquo;" .  -- word' right
+        gsub "^('|`)([^,.;:!?^) \t-])" "&lsquo;\\2" . -- 'word left 
+        gsub "('|`)(\"|&quot;|&ldquo;|``)" "&lsquo;&ldquo;" .  -- '"word left
+        gsub "([^,.;:!?^) \t-])'(s|S)" "\\1&rsquo;\\2" . -- possessive
+        gsub "([[:space:]])'([^,.;:!?^) \t-])" "\\1&lsquo;\\2" . -- 'word left
+        gsub "'([0-9][0-9](s|S))" "&rsquo;\\1"  -- '80s - decade abbrevs.
+      escapeDashes = 
+        gsub " ?-- ?" "&mdash;" .
+        gsub " ?--- ?" "&mdash;" .
+        gsub "([0-9])--?([0-9])" "\\1&ndash;\\2" 
+      escapeEllipses = gsub "\\.\\.\\.|\\. \\. \\." "&hellip;"
+      smartFilter = escapeSingleQuotes . escapeDoubleQuotes . escapeDashes .
+                    escapeEllipses in 
+  encodeEntities . (if (writerSmart options) then smartFilter else id) .
+  (escapePreservingRegex escapeSGML (mkRegex "&[[:alnum:]]*;"))
+
+-- | Escape string as needed for HTML.  Entity references are not preserved.
+escapeSGML :: String -> String
+escapeSGML [] = []
+escapeSGML (x:xs) = case x of
+  '&' -> "&amp;" ++ escapeSGML xs
+  '<' -> "&lt;"  ++ escapeSGML xs
+  '>' -> "&gt;"  ++ escapeSGML xs
+  '"' -> "&quot;"  ++ escapeSGML xs
+  _   -> x:(escapeSGML xs) 
+
+-- | Return a text object with a string of formatted SGML attributes. 
+attributeList :: WriterOptions -> [(String, String)] -> Doc
+attributeList options =
+  text . concatMap (\(a, b) -> " " ++ stringToSGML options a ++ "=\"" ++ 
+                    stringToSGML options b ++ "\"") 
+
+-- | Put the supplied contents between start and end tags of tagType,
+--   with specified attributes and (if specified) indentation.
+inTags:: Bool -> WriterOptions -> String -> [(String, String)] -> Doc -> Doc
+inTags isIndented options tagType attribs contents = 
+  let openTag = PP.char '<' <> text tagType <> attributeList options attribs <> 
+                PP.char '>'
+      closeTag  = text "</" <> text tagType <> PP.char '>' in
+  if isIndented
+    then openTag $$ nest 2 contents $$ closeTag
+    else openTag <> contents <> closeTag
+
+-- | Return a self-closing tag of tagType with specified attributes
+selfClosingTag :: WriterOptions -> String -> [(String, String)] -> Doc
+selfClosingTag options tagType attribs = 
+  PP.char '<' <> text tagType <> attributeList options attribs <> text " />" 
+ 
+-- | Put the supplied contents between start and end tags of tagType.
+inTagsSimple :: WriterOptions -> String -> Doc -> Doc
+inTagsSimple options tagType = inTags False options tagType []
+
+-- | Put the supplied contents in indented block btw start and end tags.
+inTagsIndented :: WriterOptions -> String -> Doc -> Doc
+inTagsIndented options tagType = inTags True options tagType []
+
