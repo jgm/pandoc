@@ -31,20 +31,37 @@ X).  If you're using Windows, you can install [Cygwin].
 
         make test
 
+    If you want to try `pandoc` before installing it (the next step),
+    run it with a `./` prefix, as follows:
+
+        ./pandoc README
+
+    If you want to try the shell scripts (`hsmarkdown`, `html2markdown`,
+    and `markdown2pdf`) before installing `pandoc`, you will need to set
+    your path to include the build directory, so that the scripts will
+    find the version of `pandoc` you have just built.  So, for example:
+
+        PATH=$PATH:. ./html2markdown http://haskell.org
+
 4.  Install:
 
         sudo make install
 
     Note:  This installs `pandoc`, together with its wrappers and
-    documentation, into the `/usr/local` directory.  If you don't
-    have root privileges or would prefer to install `pandoc` and
-    the associated wrappers into your `~/bin` directory, type
-    this instead:
+    documentation, into the `/usr/local` directory.  If you'd rather
+    install `pandoc` somewhere else--say, in `/opt/local`--you can
+    set the `PREFIX` environment variable:
+
+        PREFIX=/opt/local sudo make install
+
+    If you don't have root privileges or would prefer to install
+    `pandoc` and the associated wrappers into your `~/bin` directory,
+    type this instead:
 
         PREFIX=~ make install-exec
 
 5.  Build and install the Haskell libraries and library
-    documentation (optional):
+    documentation (optional--for Haskell programmers only):
 
         make build-all
         sudo make install-all
