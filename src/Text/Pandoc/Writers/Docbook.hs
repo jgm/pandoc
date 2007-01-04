@@ -60,7 +60,7 @@ hierarchicalize (block:rest) =
 
 -- | Convert list of authors to a docbook <author> section
 authorToDocbook :: WriterOptions -> [Char] -> Doc
-authorToDocbook options name = indentedInTags options "author" $ 
+authorToDocbook options name = indentedInTags "author" $ 
   if ',' `elem` name
     then -- last name first
       let (lastname, rest) = break (==',') name 
@@ -84,7 +84,7 @@ writeDocbook options (Pandoc (Meta title authors date) blocks) =
                 then text (writerHeader options)
                 else empty
       meta = if (writerStandalone options)
-                then indentedInTags options "articleinfo" $
+                then indentedInTags "articleinfo" $
                      (inTags "title" (inlinesToDocbook options title)) $$ 
                      (vcat (map (authorToDocbook options) authors)) $$ 
                      (inTags "date" (text date)) 
@@ -97,7 +97,7 @@ writeDocbook options (Pandoc (Meta title authors date) blocks) =
              vcat (map (elementToDocbook options') elements) $$
              text (writerIncludeAfter options')
       body' = if writerStandalone options'
-                then indentedInTags options' "article" (meta $$ body)
+                then indentedInTags "article" (meta $$ body)
                 else body in  
   render $ head $$ body' <> text "\n"
 
@@ -116,8 +116,8 @@ inTags :: String -> Doc -> Doc
 inTags tagType contents = inTagsWithAttrib tagType [] contents
 
 -- | Put the supplied contents in indented block btw start and end tags.
-indentedInTags :: WriterOptions -> [Char] -> Doc -> Doc
-indentedInTags options tagType contents = text ("<" ++ tagType ++ ">") $$
+indentedInTags :: [Char] -> Doc -> Doc
+indentedInTags tagType contents = text ("<" ++ tagType ++ ">") $$
   nest 2 contents $$ text ("</" ++ tagType ++ ">") 
 
 -- | Convert an Element to Docbook.
@@ -128,7 +128,7 @@ elementToDocbook options (Sec title elements) =
   let elements' = if null elements
                     then [Blk (Para [])]
                     else elements in 
-  indentedInTags options "section" $
+  indentedInTags "section" $
   inTags "title" (wrap options title) $$
   vcat (map (elementToDocbook options) elements') 
 
@@ -147,7 +147,7 @@ listItemToDocbook options item =
   let plainToPara (Plain x) = Para x
       plainToPara y = y in
   let item' = map plainToPara item in
-  indentedInTags options "listitem" (blocksToDocbook options item')
+  indentedInTags "listitem" (blocksToDocbook options item')
 
 -- | Convert a Pandoc block element to Docbook.
 blockToDocbook :: WriterOptions -> Block -> Doc
@@ -155,20 +155,20 @@ blockToDocbook options Blank = text ""
 blockToDocbook options Null = empty
 blockToDocbook options (Plain lst) = wrap options lst
 blockToDocbook options (Para lst) = 
-  indentedInTags options "para" (wrap options lst)
+  indentedInTags "para" (wrap options lst)
 blockToDocbook options (BlockQuote blocks) =
-  indentedInTags options "blockquote" (blocksToDocbook options blocks)
+  indentedInTags "blockquote" (blocksToDocbook options blocks)
 blockToDocbook options (CodeBlock str) = 
   text "<screen>\n" <> text (codeStringToXML str) <> text "\n</screen>"
 blockToDocbook options (BulletList lst) = 
-  indentedInTags options "itemizedlist" $ listItemsToDocbook options lst 
+  indentedInTags "itemizedlist" $ listItemsToDocbook options lst 
 blockToDocbook options (OrderedList lst) = 
-  indentedInTags options "orderedlist" $ listItemsToDocbook options lst 
+  indentedInTags "orderedlist" $ listItemsToDocbook options lst 
 blockToDocbook options (RawHtml str) = text str -- raw XML block 
 blockToDocbook options HorizontalRule = empty -- not semantic
 blockToDocbook options (Note _ _) = empty -- shouldn't occur
 blockToDocbook options (Key _ _) = empty  -- shouldn't occur
-blockToDocbook options _ = indentedInTags options "para" (text "Unknown block type")
+blockToDocbook options _ = indentedInTags "para" (text "Unknown block type")
 
 -- | Put string in CDATA section
 cdata :: String -> Doc
@@ -221,11 +221,11 @@ inlineToDocbook options (Link text (Ref ref)) = empty -- shouldn't occur
 inlineToDocbook options (Image alt (Src src tit)) = 
   let titleDoc = if null tit
                    then empty
-                   else indentedInTags options "objectinfo" $
-                        indentedInTags options "title" 
+                   else indentedInTags "objectinfo" $
+                        indentedInTags "title" 
                         (text $ stringToXML options tit) in
-  indentedInTags options "inlinemediaobject" $ 
-  indentedInTags options "imageobject" $
+  indentedInTags "inlinemediaobject" $ 
+  indentedInTags "imageobject" $
   titleDoc $$ inTagsWithAttrib "imagedata" [("fileref", src)] empty 
 inlineToDocbook options (Image alternate (Ref ref)) = empty --shouldn't occur
 inlineToDocbook options (NoteRef ref) = 
@@ -234,4 +234,4 @@ inlineToDocbook options (NoteRef ref) =
   if null hits
     then empty
     else let (Note _ contents) = head hits in
-         indentedInTags options "footnote" $ blocksToDocbook options contents
+         indentedInTags "footnote" $ blocksToDocbook options contents
