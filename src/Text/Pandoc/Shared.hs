@@ -150,6 +150,7 @@ defaultParserState =
 -- Collapse adjacent @Space@s.
 consolidateList :: [Inline] -> [Inline]
 consolidateList ((Str a):(Str b):rest) = consolidateList ((Str (a ++ b)):rest)
+consolidateList ((Str a):Space:Space:rest) = consolidateList ((Str a):Space:rest)
 consolidateList ((Str a):Space:rest) = consolidateList ((Str (a ++ " ")):rest)
 consolidateList (Space:(Str a):rest) = consolidateList ((Str (" " ++ a)):rest)
 consolidateList (Space:Space:rest) = consolidateList ((Str " "):rest)
