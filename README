@@ -306,8 +306,8 @@ Pandoc's markdown vs. standard markdown
 =======================================
 
 In parsing markdown, Pandoc departs from and extends [standard markdown]
-in a few respects.  (To run Pandoc on the official
-markdown test suite, type `make test-markdown`.)  These differences can
+in a few respects.  (To run Pandoc on the official markdown test suite,
+type `make test-markdown`.)  Except where noted, these differences can
 be suppressed by specifying the `--strict` command-line option or by
 using the `hsmarkdown` wrapper.
 
@@ -379,6 +379,9 @@ brackets.  So, the following links are equivalent:
 	2. Here's my [link][]
 
 	[link]: linky.com
+
+(Note:  Pandoc works this way even if `--strict` is specified, because
+`Markdown.pl` 1.0.2b7 allows single-bracket links.)
 
 Footnotes
 ---------
