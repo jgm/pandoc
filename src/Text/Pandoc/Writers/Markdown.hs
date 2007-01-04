@@ -58,8 +58,13 @@ escapeLinkTitle = gsub "\"" "\\\\\""
 
 -- | Take list of inline elements and return wrapped doc.
 wrappedMarkdown :: [Inline] -> Doc
-wrappedMarkdown lst = fsep $ 
-                      map (fcat . (map inlineToMarkdown)) (splitBySpace lst) 
+wrappedMarkdown lst = 
+  let wrapSection sec = fsep $ map inlineListToMarkdown $ (splitBy Space sec) 
+      wrappedSecs     = map wrapSection $ splitBy LineBreak lst
+      wrappedSecs'    = foldr (\s rest -> if not (null rest)
+                                            then (s <> text "  "):rest
+                                            else s:rest) [] wrappedSecs  in
+  vcat wrappedSecs'
 
 -- | Insert Blank block between key and non-key
 formatKeys :: [Block] -> [Block]

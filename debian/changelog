@@ -103,6 +103,8 @@ pandoc (0.3) unstable; urgency=low
     + Modified HTML reader to skip a newline following a <br> tag.
       Otherwise the newline will be treated as a space at the beginning
       of the next line.
+    + Fixed bug in text-wrapping routine in Markdown and RST writers.
+      Now LineBreaks no longer cause wrapping problems.
 
   * Made handling of code blocks more consistent.  Previously, some
     readers allowed trailing newlines, while others stripped them.
@@ -162,7 +164,8 @@ pandoc (0.3) unstable; urgency=low
       a '.exe' extension is added to each executable in EXECS.
 
   * Removed all wrappers except markdown2pdf and html2markdown.
-    Added new wrapper hsmarkdown, to be used as a drop-in replacement
+
+  * Added new wrapper hsmarkdown, to be used as a drop-in replacement
     for Markdown.pl.  hsmarkdown calls pandoc with the '--strict'
     option and disables other options.
 
@@ -185,6 +188,8 @@ pandoc (0.3) unstable; urgency=low
       not to be HTML-specific.
     + Removed 'BlockQuoteContext' from ParserContext, as it isn't
       used anywhere.
+    + Removed splitBySpace and replaced it with a general, polymorphic
+      splitBy function.
     + Refactored LaTeX reader for clarity (added isArg function).
     + Converted some CR's to LF's in src/ui/default/print.css.
     + Added license text to top of source files.

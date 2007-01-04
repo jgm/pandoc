@@ -52,7 +52,7 @@ module Text.Pandoc.Shared (
                      -- * Pandoc block list processing
                      consolidateList,
                      isNoteBlock,
-                     splitBySpace,
+                     splitBy,
                      normalizeSpaces,
                      compactify,
                      generateReference,
@@ -274,10 +274,13 @@ removeTrailingSpace = reverse . removeLeadingSpace . reverse
 stripFirstAndLast str =
   drop 1 $ take ((length str) - 1) str
 
--- | Split list of inlines into groups separated by a space.
-splitBySpace :: [Inline] -> [[Inline]]
-splitBySpace lst = filter (\a -> (/= Space) (head a)) 
-                     (groupBy (\a b -> (/= Space) a && (/= Space) b) lst)
+-- | Split list into groups separated by sep.
+splitBy :: (Eq a) => a -> [a] -> [[a]]
+splitBy _ [] = []
+splitBy sep lst = 
+  let (first, rest) = break (== sep) lst
+      rest'         = dropWhile (== sep) rest in
+  first:(splitBy sep rest')
 
 -- | Normalize a list of inline elements: remove leading and trailing
 -- @Space@ elements, and collapse double @Space@s into singles.

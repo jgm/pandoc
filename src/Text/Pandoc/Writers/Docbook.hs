@@ -176,7 +176,7 @@ cdata str = text $ "<![CDATA[" ++ str ++ "]]>"
 
 -- | Take list of inline elements and return wrapped doc.
 wrap :: WriterOptions -> [Inline] -> Doc
-wrap options lst = fsep $ map (hcat . (map (inlineToDocbook options))) (splitBySpace lst)
+wrap options lst = fsep $ map (inlinesToDocbook options) (splitBy Space lst)
 
 -- | Escape a string for XML (with "smart" option if specified).
 stringToXML :: WriterOptions -> String -> String

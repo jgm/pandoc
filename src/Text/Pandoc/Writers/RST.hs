@@ -59,9 +59,10 @@ escapeString = backslashEscape "`\\|*_"
 -- and another containing references.
 wrappedRST :: [Inline] -> (Doc, Doc)
 wrappedRST lst = 
-  let words = splitBySpace lst in
-  ( fsep $ map (fcat . (map (fst . inlineToRST))) words, 
-    vcat (map (snd . inlineToRST) lst) )
+  let wrap_section sec = fsep $ map (fst . inlineListToRST) $ 
+                         (splitBy Space sec) in
+  ((vcat $ map wrap_section $ (splitBy LineBreak lst)),
+  vcat $ map (snd . inlineToRST) lst)
 
 -- | Remove reference keys, and make sure there are blanks before each list.
 reformatBlocks :: [Block] -> [Block]
