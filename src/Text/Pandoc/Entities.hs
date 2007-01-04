@@ -58,7 +58,7 @@ decodeEntities str =
 -- possible.
 encodeEntities :: String -> String
 encodeEntities [] = []
-encodeEntities (c:cs) = if ord c < 127
+encodeEntities (c:cs) = if ord c < 128
                           then c:(encodeEntities cs)
                           else (charToEntity c) ++ (encodeEntities cs) 
 
