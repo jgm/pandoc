@@ -296,10 +296,16 @@ $(win_pkg_name): $(THIS).exe  $(win_docs)
 test: $(MAIN)
 	@cd $(TESTDIR) && perl runtests.pl -s $(PWD)/$(MAIN)
 compat:=$(PWD)/hsmarkdown
+markdown_test_dirs:=$(wildcard $(TESTDIR)/MarkdownTest_*)
 test-markdown: $(MAIN) $(compat)
-	@# set path so that wrapper can be run even if pandoc not installed
-	@PATH=$(PWD):$$PATH; export PATH; cd $(TESTDIR)/MarkdownTest_1.0.3 && \
-	perl MarkdownTest.pl -s $(compat) -tidy \
+	@for suite in $(markdown_test_dirs); do \
+		( \
+			suite_version=$$(echo $$suite | sed -e 's/.*_//');\
+			echo "\nRunning Markdown test suite version $${suite_version}.";\
+			PATH=$(PWD):$$PATH; export PATH; cd $$suite && \
+			perl MarkdownTest.pl -s $(compat) -tidy ; \
+		) \
+	done
 
 # Stolen and slightly improved from a GPLed Makefile.  Credits to John Meacham.
 src_all:=$(shell find $(SRCDIR) -type f -name '*hs' | egrep -v '^\./(_darcs|lib|test)/')
