@@ -208,7 +208,7 @@ pandoc (0.3) unstable; urgency=low
   * Made COPYRIGHT in top level a symlink to debian/copyright, to avoid
     duplication.
 
- -- Recai Oktaş <roktas@debian.org>  Tue, 12 Dec 2006 07:48:30 +0300
+ -- Recai Oktaş <roktas@debian.org>  Fri, 05 Jan 2007 09:41:19 +0200
 
 pandoc (0.2) unstable; urgency=low
 
