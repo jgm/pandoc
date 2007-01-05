@@ -176,7 +176,7 @@ inlineToMarkdown (Link txt (Src src tit)) =
 inlineToMarkdown (Link txt (Ref ref)) = 
   let first = char '[' <> inlineListToMarkdown txt <> char ']'
       second = if (txt == ref) 
-                 then empty
+                 then text "[]"
                  else char '[' <> inlineListToMarkdown ref <> char ']' in
       first <> second
 inlineToMarkdown (Image alternate (Src source tit)) = 

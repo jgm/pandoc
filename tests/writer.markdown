@@ -531,13 +531,13 @@ Foo [bar][a].
 
 With [embedded [brackets]][b].
 
-[b] by itself should be a link.
+[b][] by itself should be a link.
 
-Indented [once].
+Indented [once][].
 
-Indented [twice].
+Indented [twice][].
 
-Indented [thrice].
+Indented [thrice][].
 
 This should [not][] be a link.
 
@@ -550,7 +550,7 @@ This should [not][] be a link.
 
   [b]: /url/
 
-Foo [bar].
+Foo [bar][].
 
 Foo [biz](/url/ "Title with &quot;quote&quot; inside").
 
@@ -595,7 +595,7 @@ Auto-links should not occur here: `<http://example.com/>`
 
 From "Voyage dans la Lune" by Georges Melies (1902):
 
-![lalune]
+![lalune][]
 
 
   [lalune]: lalune.jpg "Voyage dans la Lune"
