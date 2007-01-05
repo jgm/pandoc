@@ -301,7 +301,8 @@ test-markdown: $(MAIN) $(compat)
 	@for suite in $(markdown_test_dirs); do \
 		( \
 			suite_version=$$(echo $$suite | sed -e 's/.*_//');\
-			echo "\nRunning Markdown test suite version $${suite_version}.";\
+			echo "-----------------------------------------";\
+			echo "Running Markdown test suite version $${suite_version}.";\
 			PATH=$(PWD):$$PATH; export PATH; cd $$suite && \
 			perl MarkdownTest.pl -s $(compat) -tidy ; \
 		) \
