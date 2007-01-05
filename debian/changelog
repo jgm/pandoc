@@ -1,31 +1,5 @@
 pandoc (0.3) unstable; urgency=low
 
-  [ Recai Oktaş ]
-
-  * Revamped build process to conform to debian standards and created
-    a proper debian package.  Closes: #391666.
-
-  * Modified build process to support GHC 6.6.
-    + The package can still be compiled using GHC 6.4.2, though because
-      of dependencies the "make deb" target works only with GHC 6.6+.
-    + The script 'cabalize' is used to create an appropriate
-      'Pandoc.cabal' from 'Pandoc.cabal.in', depending on the GHC and
-      Cabal versions.
-
-  * Refactored template processing (fillTemplates.pl).
-
-  * Modified wrapper scripts to make them more robust and portable.
-    To avoid code duplication and ensure consistency, wrappers are 
-    generated via a templating system from templates in src/wrappers.
-    + Wrappers now accept multiple filenames, when appropriate.
-    + Spaces and tabs allowed in filenames.
-    + getopts shell builtin is used for portable option parsing.
-    + Improved html2markdown's web grabber code, making it more robust,
-      configurable and verbose.  Added '-e', '-g' options.
-      Possible use case:
-        # Use wget by setting timeout to 10 seconds and limit retries to 2.
-        html2markdown -g 'wget --timeout=10 --tries=2'
-
   [ John MacFarlane ]
 
   * Changes in pandoc options:
@@ -207,6 +181,32 @@ pandoc (0.3) unstable; urgency=low
 
   * Made COPYRIGHT in top level a symlink to debian/copyright, to avoid
     duplication.
+
+  [ Recai Oktaş ]
+
+  * Revamped build process to conform to debian standards and created
+    a proper debian package.  Closes: #391666.
+
+  * Modified build process to support GHC 6.6.
+    + The package can still be compiled using GHC 6.4.2, though because
+      of dependencies the "make deb" target works only with GHC 6.6+.
+    + The script 'cabalize' is used to create an appropriate
+      'Pandoc.cabal' from 'Pandoc.cabal.in', depending on the GHC and
+      Cabal versions.
+
+  * Refactored template processing (fillTemplates.pl).
+
+  * Modified wrapper scripts to make them more robust and portable.
+    To avoid code duplication and ensure consistency, wrappers are 
+    generated via a templating system from templates in src/wrappers.
+    + Wrappers now accept multiple filenames, when appropriate.
+    + Spaces and tabs allowed in filenames.
+    + getopts shell builtin is used for portable option parsing.
+    + Improved html2markdown's web grabber code, making it more robust,
+      configurable and verbose.  Added '-e', '-g' options.
+      Possible use case:
+        # Use wget by setting timeout to 10 seconds and limit retries to 2.
+        html2markdown -g 'wget --timeout=10 --tries=2'
 
  -- Recai Oktaş <roktas@debian.org>  Fri, 05 Jan 2007 09:41:19 +0200
 
