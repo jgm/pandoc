@@ -41,7 +41,7 @@ X).  If you're using Windows, you can install [Cygwin].
     your path to include the build directory, so that the scripts will
     find the version of `pandoc` you have just built.  So, for example:
 
-        PATH=$PATH:. ./html2markdown http://haskell.org
+        PATH=.:$PATH html2markdown http://haskell.org
 
 4.  Install:
 
