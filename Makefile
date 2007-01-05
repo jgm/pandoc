@@ -183,16 +183,21 @@ uninstall-lib-doc:
 	-rm -rf $(LIBDOCPATH)/html
 	-rmdir $(LIBDOCPATH)
 
-# Program only installation.
-.PHONY: install-exec uninstall-exec
-install-exec: build-exec
-	$(INSTALL) -d $(BINPATH); \
-	for f in $(PROGS); do \
+# Helper to install the given files $(1) into the path $(2).
+# It also has the ability to follow symlinks.
+install-executable-files = \
+	$(INSTALL) -d $(2); \
+	for f in $(1); do \
 		if [ -L $$f ]; then \
 			f=$$(readlink $$f); \
 		fi; \
-		$(INSTALL_PROGRAM) $$f $(BINPATH)/; \
+		$(INSTALL_PROGRAM) $$f $(2)/; \
 	done
+
+# Program only installation.
+.PHONY: install-exec uninstall-exec
+install-exec: build-exec
+	$(call install-executable-files,$(PROGS),$(BINPATH))
 uninstall-exec:
 	-for f in $(notdir $(PROGS)); do rm -f $(BINPATH)/$$f; done ;
 
@@ -203,7 +208,8 @@ uninstall-program: uninstall-exec uninstall-doc
 
 # Install everything.
 .PHONY: install-all uninstall-all
-install-all: install-doc install-lib-doc
+install-all: build-exec install-doc install-lib-doc
+	# Install the library (+ main executable) and register it.
 	destdir=$(DESTDIR); \
 	# Older Cabal versions have no '--destdir' option.
 	if $(BUILDCMD) copy --help | grep -q '\-\-destdir'; then \
@@ -213,6 +219,9 @@ install-all: install-doc install-lib-doc
 	fi; \
 	$(BUILDCMD) copy $$opt; \
 	$(BUILDCMD) register
+	# Note that, we are in the position of having to install the wrappers
+	# separately, as Cabal installs the main exec along with the library.
+	$(call install-executable-files,$(WRAPPERS),$(BINPATH))
 uninstall-all: uninstall-exec uninstall-doc uninstall-lib-doc
 	-pkg_id="$(NAME)-$(VERSION)"; \
 	libdir=$$($(GHC_PKG) field $$pkg_id library-dirs 2>/dev/null | \
