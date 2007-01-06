@@ -423,8 +423,7 @@ main = do
          defaultParserState { stateParseRaw   = parseRaw,
                               stateTabStop    = tabStop, 
                               stateStandalone = standalone && (not strict),
-                              stateSmart      = (smart && (not strict)) || 
-                                                writerName' == "latex",
+                              stateSmart      = smart || writerName' == "latex",
                               stateStrict     = strict }
   let csslink = if (css == "")
                    then "" 
