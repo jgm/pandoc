@@ -47,6 +47,7 @@ module Text.Pandoc.Shared (
                      testStringWith,
                      HeaderType (..),
                      ParserContext (..),
+                     QuoteContext (..),
                      ParserState (..),
                      defaultParserState,
                      -- * Native format prettyprinting
@@ -108,10 +109,17 @@ data ParserContext
     | NullState       -- ^ Default state
     deriving (Eq, Show)
 
+data QuoteContext
+    = InSingleQuote   -- ^ Used when we're parsing inside single quotes
+    | InDoubleQuote   -- ^ Used when we're parsing inside double quotes
+    | NoQuote         -- ^ Used when we're not parsing inside quotes
+    deriving (Eq, Show)
+
 data ParserState = ParserState
     { stateParseRaw        :: Bool,          -- ^ Parse untranslatable HTML 
                                              -- and LaTeX?
       stateParserContext   :: ParserContext, -- ^ What are we parsing?  
+      stateQuoteContext    :: QuoteContext,  -- ^ Inside quoted environment?
       stateKeyBlocks       :: [Block],       -- ^ List of reference key blocks
       stateKeysUsed        :: [[Inline]],    -- ^ List of references used
       stateNoteBlocks      :: [Block],       -- ^ List of note blocks
@@ -134,6 +142,7 @@ defaultParserState :: ParserState
 defaultParserState = 
     ParserState { stateParseRaw        = False,
                   stateParserContext   = NullState,
+                  stateQuoteContext    = NoQuote,
                   stateKeyBlocks       = [],
                   stateKeysUsed        = [],
                   stateNoteBlocks      = [],

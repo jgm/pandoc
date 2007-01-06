@@ -594,24 +594,46 @@ apostrophe = do
 quoted = do
   doubleQuoted <|> singleQuoted 
 
-singleQuoted = try (do
-  result <- enclosed singleQuoteStart singleQuoteEnd 
-                     (do{notFollowedBy' singleQuoted; inline} <|> apostrophe)
-  return $ Quoted SingleQuote $ normalizeSpaces result)
+withQuoteContext context parser = do
+  oldState <- getState
+  let oldQuoteContext = stateQuoteContext oldState
+  setState oldState { stateQuoteContext = context }
+  result <- parser
+  newState <- getState
+  setState newState { stateQuoteContext = oldQuoteContext }
+  return result
 
-doubleQuoted = try (do
-  result <- enclosed doubleQuoteStart doubleQuoteEnd inline
-  return $ Quoted DoubleQuote $ normalizeSpaces result)
+singleQuoted = try $ do
+  singleQuoteStart
+  withQuoteContext InSingleQuote $ do
+    notFollowedBy space
+    result <- many1Till inline singleQuoteEnd
+    return $ Quoted SingleQuote $ normalizeSpaces result
 
-singleQuoteStart = try (do 
+doubleQuoted = try $ do 
+  doubleQuoteStart
+  withQuoteContext InDoubleQuote $ do
+    notFollowedBy space
+    result <- many1Till inline doubleQuoteEnd
+    return $ Quoted DoubleQuote $ normalizeSpaces result
+
+failIfInQuoteContext context = do
+  st <- getState
+  if (stateQuoteContext st == context)
+    then fail "already inside quotes"
+    else return ()
+
+singleQuoteStart = do 
+  failIfInQuoteContext InSingleQuote
   char '\'' <|> char '\8216'
-  notFollowedBy' whitespace)
 
 singleQuoteEnd = try (do
-  oneOfStrings ["'", "\8217"]
+  char '\'' <|> char '\8217'
   notFollowedBy alphaNum)
 
-doubleQuoteStart = char '"' <|> char '\8220'
+doubleQuoteStart = do
+  failIfInQuoteContext InDoubleQuote
+  char '"' <|> char '\8220'
 
 doubleQuoteEnd = char '"' <|> char '\8221'
 
@@ -623,7 +645,7 @@ dash = enDash <|> emDash
 
 enDash = try (do
   char '-'
-  followedBy' (many1 digit)
+  notFollowedBy (noneOf "0123456789")
   return EnDash) 
 
 emDash = try (do
