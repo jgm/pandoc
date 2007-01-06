@@ -492,6 +492,8 @@ Just a \href{/url/}{URL}.
 
 \href{/url/}{URL and title}
 
+\href{/url/with_underscore}{with\_underscore}
+
 \href{mailto:nobody@nowhere.net}{Email link}
 
 \href{}{Empty}.

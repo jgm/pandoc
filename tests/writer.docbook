@@ -816,6 +816,9 @@ Cat    &amp; 1      \\ \hline
         <ulink url="/url/">URL and title</ulink>
       </para>
       <para>
+        <ulink url="/url/with_underscore">with_underscore</ulink>
+      </para>
+      <para>
         <email>nobody@nowhere.net</email>
       </para>
       <para>

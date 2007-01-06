@@ -270,6 +270,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Para [Link [Str "URL",Space,Str "and",Space,Str "title"] (Src "/url/" "title preceded by a tab"),Str "."]
 , Para [Link [Str "URL",Space,Str "and",Space,Str "title"] (Src "/url/" "title with &quot;quotes&quot; in it")]
 , Para [Link [Str "URL",Space,Str "and",Space,Str "title"] (Src "/url/" "title with single quotes")]
+, Para [Link [Str "with",Str "_",Str "underscore"] (Src "/url/with_underscore" "")]
 , Para [Link [Str "Email",Space,Str "link"] (Src "mailto:nobody@nowhere.net" "")]
 , Para [Link [Str "Empty"] (Src "" ""),Str "."]
 , Header 2 [Str "Reference"]

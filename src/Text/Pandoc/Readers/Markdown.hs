@@ -696,17 +696,23 @@ endline = try (do
 -- links
 --
 
--- a reference label for a link
-reference = do
+rawLabel = try $ do
   char labelStart
-  notFollowedBy (char noteStart)
   -- allow for embedded brackets:
-  label <- manyTill ((do{res <- reference;
-                         return $ [Str "["] ++ res ++ [Str "]"]}) <|>
-                      count 1 inline)
-                    (char labelEnd)
-  return (normalizeSpaces (concat label))
+  raw <- manyTill (do{res <- rawLabel; return ("[" ++ res ++ "]")} <|> 
+                   count 1 anyChar) (char labelEnd)
+  return $ concat raw 
 
+-- a reference label for a link
+reference = try $ do
+  notFollowedBy (try (do{char labelStart; char noteStart}))
+  raw <- rawLabel
+  oldInput <- getInput
+  setInput raw
+  label <- many inline
+  setInput oldInput
+  return (normalizeSpaces label)
+ 
 -- source for a link, with optional title
 source = try (do 
   char srcStart

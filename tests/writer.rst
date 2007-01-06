@@ -616,6 +616,8 @@ Just a `URL`_.
 
 `URL and title`_
 
+`with\_underscore`_
+
 `Email link`_
 
 `Empty`_.
@@ -739,6 +741,7 @@ indented.
 .. _quoted link: http://example.com/?foo=1&bar=2
 .. _URL: /url/
 .. _URL and title: /url/
+.. _with\_underscore: /url/with_underscore
 .. _Email link: mailto:nobody@nowhere.net
 .. _Empty: 
 .. _bar: /url/
