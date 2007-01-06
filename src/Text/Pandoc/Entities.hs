@@ -39,13 +39,13 @@ import Data.Char ( chr, ord )
 import Text.Regex ( mkRegex, matchRegexAll, Regex )
 import Maybe ( fromMaybe )
 
--- | Regular expression for decimal coded entity.
-decimalCodedEntity :: Text.Regex.Regex
-decimalCodedEntity = mkRegex "&#([0-9]+);"
+-- | Regular expression for numerical coded entity.
+numericalEntity :: Text.Regex.Regex
+numericalEntity = mkRegex "&#([0-9]+|[xX][0-9A-Fa-f]+);"
 
 -- | Regular expression for character entity.
 characterEntity :: Text.Regex.Regex
-characterEntity = mkRegex "&#[0-9]+;|&[A-Za-z0-9]+;"
+characterEntity = mkRegex "&#[0-9]+;|&#[xX][0-9A-Fa-f]+;|&[A-Za-z0-9]+;"
 
 -- | Return a string with all entity references decoded to unicode characters
 -- where possible.  
@@ -73,8 +73,8 @@ entityToChar :: String -> Maybe Char
 entityToChar entity = 
     case (lookup entity entityTable) of
       Just ch -> Just ch
-      Nothing -> case (matchRegexAll decimalCodedEntity entity) of
-                   Just (_, _, _, [sub]) -> Just (chr (read sub))
+      Nothing -> case (matchRegexAll numericalEntity entity) of
+                   Just (_, _, _, [sub]) -> Just (chr (read ('0':sub)))
                    Nothing               -> Nothing
 
 -- | Returns a string containing an entity reference for the character.
