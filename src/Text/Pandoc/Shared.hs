@@ -52,7 +52,6 @@ module Text.Pandoc.Shared (
                      -- * Native format prettyprinting
                      prettyPandoc,
                      -- * Pandoc block list processing
-                     consolidateList,
                      isNoteBlock,
                      normalizeSpaces,
                      compactify,
@@ -74,7 +73,7 @@ module Text.Pandoc.Shared (
                     ) where
 import Text.Pandoc.Definition
 import Text.ParserCombinators.Parsec
-import Text.Pandoc.Entities ( decodeEntities, encodeEntities )
+import Text.Pandoc.Entities ( decodeEntities, encodeEntities, characterEntity )
 import Text.Regex ( matchRegexAll, mkRegex, subRegex, Regex )
 import Text.PrettyPrint.HughesPJ as PP ( text, char, (<>), ($$), nest, Doc, 
                                          isEmpty )
@@ -125,6 +124,7 @@ data ParserState = ParserState
       stateAuthors         :: [String],      -- ^ Authors of document
       stateDate            :: String,        -- ^ Date of document
       stateStrict          :: Bool,          -- ^ Use strict markdown syntax
+      stateSmart           :: Bool,          -- ^ Use smart typography
       stateHeaderTable     :: [HeaderType]   -- ^ List of header types used,
                                              -- in what order (rst only)
     }
@@ -144,18 +144,8 @@ defaultParserState =
                   stateAuthors         = [],
                   stateDate            = [],
                   stateStrict          = False,
+                  stateSmart           = False,
                   stateHeaderTable     = [] }
-
--- | Consolidate @Str@s and @Space@s in an inline list into one big @Str@.
--- Collapse adjacent @Space@s.
-consolidateList :: [Inline] -> [Inline]
-consolidateList ((Str a):(Str b):rest) = consolidateList ((Str (a ++ b)):rest)
-consolidateList ((Str a):Space:Space:rest) = consolidateList ((Str a):Space:rest)
-consolidateList ((Str a):Space:rest) = consolidateList ((Str (a ++ " ")):rest)
-consolidateList (Space:(Str a):rest) = consolidateList ((Str (" " ++ a)):rest)
-consolidateList (Space:Space:rest) = consolidateList ((Str " "):rest)
-consolidateList (inline:rest) = inline:(consolidateList rest)
-consolidateList [] = [] 
 
 -- | Indent string as a block.
 indentBy :: Int    -- ^ Number of spaces to indent the block 
@@ -341,7 +331,6 @@ data WriterOptions = WriterOptions
     , writerHeader          :: String -- ^ Header for the document
     , writerIncludeBefore   :: String -- ^ String to include before the  body
     , writerIncludeAfter    :: String -- ^ String to include after the body
-    , writerSmart           :: Bool   -- ^ Use smart typography
     , writerS5              :: Bool   -- ^ We're writing S5 
     , writerIncremental     :: Bool   -- ^ Incremental S5 lists
     , writerNumberSections  :: Bool   -- ^ Number sections in LaTeX
@@ -463,6 +452,8 @@ refsMatch ((Emph x):restx) ((Emph y):resty) =
     refsMatch x y && refsMatch restx resty
 refsMatch ((Strong x):restx) ((Strong y):resty) = 
     refsMatch x y && refsMatch restx resty
+refsMatch ((Quoted t x):restx) ((Quoted u y):resty) = 
+    t == u && refsMatch x y && refsMatch restx resty
 refsMatch (x:restx) (y:resty) = (x == y) && refsMatch restx resty
 refsMatch [] x = null x
 refsMatch x [] = null x
@@ -517,48 +508,14 @@ replaceRefLinksInline keytable (Emph lst) =
     Emph (map (replaceRefLinksInline keytable) lst)
 replaceRefLinksInline keytable (Strong lst) = 
     Strong (map (replaceRefLinksInline keytable) lst)
+replaceRefLinksInline keytable (Quoted t lst) = 
+    Quoted t (map (replaceRefLinksInline keytable) lst)
 replaceRefLinksInline keytable other = other
 
--- | Escape string, preserving character entities and quote, and adding
---   smart typography if specified.
-stringToSGML :: WriterOptions -> String -> String
-stringToSGML options = 
-  let escapeDoubleQuotes = 
-        gsub "(\"|&quot;)" "&rdquo;" . -- rest are right quotes
-        gsub "(\"|&quot;)(&r[sd]quo;)" "&rdquo;\\2" . 
-             -- never left quo before right quo
-        gsub "(&l[sd]quo;)(\"|&quot;)" "\\2&ldquo;" . 
-             -- never right quo after left quo
-        gsub "([ \t])(\"|&quot;)" "\\1&ldquo;" . 
-             -- never right quo after space 
-        gsub "(\"|&quot;)([^,.;:!?^) \t-])" "&ldquo;\\2" . -- "word left
-        gsub "(\"|&quot;)('|`|&lsquo;)" "&rdquo;&rsquo;" . 
-             -- right if it got through last filter
-        gsub "(\"|&quot;)('|`|&lsquo;)([^,.;:!?^) \t-])" "&ldquo;&lsquo;\\3" .
-             -- "'word left
-        gsub "``" "&ldquo;" .
-        gsub "''" "&rdquo;"
-      escapeSingleQuotes =
-        gsub "'" "&rsquo;"  . -- otherwise right
-        gsub "'(&r[sd]quo;)" "&rsquo;\\1" . -- never left quo before right quo
-        gsub "(&l[sd]quo;)'" "\\1&lsquo;" . -- never right quo after left quo
-        gsub "([ \t])'" "\\1&lsquo;" . -- never right quo after space 
-        gsub "`" "&lsquo;"  . -- ` is left
-        gsub "([^,.;:!?^) \t-])'" "\\1&rsquo;" .  -- word' right
-        gsub "^('|`)([^,.;:!?^) \t-])" "&lsquo;\\2" . -- 'word left 
-        gsub "('|`)(\"|&quot;|&ldquo;|``)" "&lsquo;&ldquo;" .  -- '"word left
-        gsub "([^,.;:!?^) \t-])'(s|S)" "\\1&rsquo;\\2" . -- possessive
-        gsub "([[:space:]])'([^,.;:!?^) \t-])" "\\1&lsquo;\\2" . -- 'word left
-        gsub "'([0-9][0-9](s|S))" "&rsquo;\\1"  -- '80s - decade abbrevs.
-      escapeDashes = 
-        gsub " ?-- ?" "&mdash;" .
-        gsub " ?--- ?" "&mdash;" .
-        gsub "([0-9])--?([0-9])" "\\1&ndash;\\2" 
-      escapeEllipses = gsub "\\.\\.\\.|\\. \\. \\." "&hellip;"
-      smartFilter = escapeSingleQuotes . escapeDoubleQuotes . escapeDashes .
-                    escapeEllipses in 
-  encodeEntities . (if (writerSmart options) then smartFilter else id) .
-  (escapePreservingRegex escapeSGML (mkRegex "&[[:alnum:]]*;"))
+-- | Escape string, preserving character entities.
+stringToSGML :: String -> String
+stringToSGML = 
+  encodeEntities . (escapePreservingRegex escapeSGML characterEntity)
 
 -- | Escape string as needed for HTML.  Entity references are not preserved.
 escapeSGML :: String -> String
@@ -571,16 +528,15 @@ escapeSGML (x:xs) = case x of
   _   -> x:(escapeSGML xs) 
 
 -- | Return a text object with a string of formatted SGML attributes. 
-attributeList :: WriterOptions -> [(String, String)] -> Doc
-attributeList options =
-  text . concatMap (\(a, b) -> " " ++ stringToSGML options a ++ "=\"" ++ 
-                    stringToSGML options b ++ "\"") 
+attributeList :: [(String, String)] -> Doc
+attributeList = text .  concatMap 
+  (\(a, b) -> " " ++ stringToSGML a ++ "=\"" ++ stringToSGML b ++ "\"") 
 
 -- | Put the supplied contents between start and end tags of tagType,
 --   with specified attributes and (if specified) indentation.
-inTags:: Bool -> WriterOptions -> String -> [(String, String)] -> Doc -> Doc
-inTags isIndented options tagType attribs contents = 
-  let openTag = PP.char '<' <> text tagType <> attributeList options attribs <> 
+inTags:: Bool -> String -> [(String, String)] -> Doc -> Doc
+inTags isIndented tagType attribs contents = 
+  let openTag = PP.char '<' <> text tagType <> attributeList attribs <> 
                 PP.char '>'
       closeTag  = text "</" <> text tagType <> PP.char '>' in
   if isIndented
@@ -588,15 +544,15 @@ inTags isIndented options tagType attribs contents =
     else openTag <> contents <> closeTag
 
 -- | Return a self-closing tag of tagType with specified attributes
-selfClosingTag :: WriterOptions -> String -> [(String, String)] -> Doc
-selfClosingTag options tagType attribs = 
-  PP.char '<' <> text tagType <> attributeList options attribs <> text " />" 
+selfClosingTag :: String -> [(String, String)] -> Doc
+selfClosingTag tagType attribs = 
+  PP.char '<' <> text tagType <> attributeList attribs <> text " />" 
  
 -- | Put the supplied contents between start and end tags of tagType.
-inTagsSimple :: WriterOptions -> String -> Doc -> Doc
-inTagsSimple options tagType = inTags False options tagType []
+inTagsSimple :: String -> Doc -> Doc
+inTagsSimple tagType = inTags False tagType []
 
 -- | Put the supplied contents in indented block btw start and end tags.
-inTagsIndented :: WriterOptions -> String -> Doc -> Doc
-inTagsIndented options tagType = inTags True options tagType []
+inTagsIndented :: String -> Doc -> Doc
+inTagsIndented tagType = inTags True tagType []
 

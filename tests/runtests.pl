@@ -14,7 +14,7 @@ unless (-x $script)   { die "$script is not executable.\n"; }
 
 print "Writer tests:\n";
 
-my @writeformats = ("html", "smart.html", "latex", "rst", "rtf", "markdown", "native"); # s5 separately
+my @writeformats = ("html", "latex", "rst", "rtf", "markdown", "native"); # s5 separately
 my @readformats = ("latex", "native"); # handle html,markdown & rst separately
 my $source = "testsuite.native";
 
@@ -62,7 +62,7 @@ print "Testing s5 writer (basic)...";
 test_results("s5 writer (basic)", "tmp.html", "s5.basic.html");
 
 print "Testing s5 writer (fancy)...";
-`$script -r native -w s5 -s -S -m -i s5.native > tmp.html`;
+`$script -r native -w s5 -s -m -i s5.native > tmp.html`;
 test_results("s5 writer (fancy)", "tmp.html", "s5.fancy.html");
 
 print "Testing html fragment...";
@@ -76,7 +76,7 @@ test_results("-B, -A, -H, -c options", "tmp.html", "s5.inserts.html");
 print "\nReader tests:\n";
 
 print "Testing markdown reader...";
-`$script -r markdown -w native -s testsuite.txt > tmp.native`;
+`$script -r markdown -w native -s -S testsuite.txt > tmp.native`;
 test_results("markdown reader", "tmp.native", "testsuite.native");
 
 print "Testing rst reader...";

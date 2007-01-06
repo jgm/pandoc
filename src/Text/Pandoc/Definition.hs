@@ -65,13 +65,21 @@ data Target
     | Ref [Inline]          -- ^ Label (list of inlines) for an indirect ref
     deriving (Show, Eq, Read)
 
+-- | Type of quotation marks to use in Quoted inline.
+data QuoteType = SingleQuote | DoubleQuote deriving (Show, Eq, Read)
+
 -- | Inline elements.
 data Inline 
     = Str String            -- ^ Text (string)
     | Emph [Inline]         -- ^ Emphasized text (list of inlines)
     | Strong [Inline]       -- ^ Strongly emphasized text (list of inlines)
+    | Quoted QuoteType [Inline] -- ^ Quoted text (list of inlines)
     | Code String           -- ^ Inline code (literal)
     | Space                 -- ^ Inter-word space
+    | EmDash                -- ^ Em dash
+    | EnDash                -- ^ En dash
+    | Apostrophe            -- ^ Apostrophe
+    | Ellipses              -- ^ Ellipses
     | LineBreak             -- ^ Hard line break
     | TeX String            -- ^ LaTeX code (literal)
     | HtmlInline String     -- ^ HTML code (literal)

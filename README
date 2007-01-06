@@ -262,9 +262,11 @@ in the title as it appears at the beginning of the HTML body).  (See
 below on Titles.)
 
 `-S` or `--smart` causes `pandoc` to produce typographically
-correct HTML output, along the lines of John Gruber's [Smartypants].
+correct output, along the lines of John Gruber's [Smartypants].
 Straight quotes are converted to curly quotes, `---` to dashes, and
-`...` to ellipses.
+`...` to ellipses.  (Note:  This option is only significant when
+the input format is `markdown`.  It is selected automatically
+when the output format is `latex`.)
 
 [Smartypants]: http://daringfireball.net/projects/smartypants/
 

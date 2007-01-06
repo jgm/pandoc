@@ -79,6 +79,8 @@ pandoc (0.3) unstable; urgency=low
       of the next line.
     + Fixed bug in text-wrapping routine in Markdown and RST writers.
       Now LineBreaks no longer cause wrapping problems.
+    + Fixed bug with inline Code in Markdown writer.  Now it's guaranteed
+      that enough `'s will be used, depending on the content.
 
   * Made handling of code blocks more consistent.  Previously, some
     readers allowed trailing newlines, while others stripped them.
@@ -108,9 +110,13 @@ pandoc (0.3) unstable; urgency=low
     + Process quotes before dashes.  This way (foo -- 'bar') will turn into
       (foo---`bar') instead of (foo---'bar').
 
-  * Improved handling of smart quotes in HTML and LaTeX writers, to
-    handle cases where latex commands or HTML entity references appear
-    after quotes.
+  * Moved handling of "smart typography" from the writers to the Markdown
+    and LaTeX readers.  This allows great simplification of the writers
+    and more accurate smart quotes, dashes, and ellipses.  DocBook can
+    now use '<quote>'.  The '--smart' option now toggles an option in
+    the parser state rather than a writer option.  Several new kinds
+    of inline elements have been added: Quoted, Ellipses, Apostrophe,
+    EmDash, EnDash.
 
   * Changes in HTML writer:
     + Include title block in header even when title is null.

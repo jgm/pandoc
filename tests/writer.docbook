@@ -17,7 +17,7 @@
   </articleinfo>
   <para>
     This is a set of tests for pandoc. Most of them are adapted from
-    John Gruber's markdown test suite.
+    John Gruber&apos;s markdown test suite.
   </para>
   <section>
     <title>Headers</title>
@@ -58,7 +58,7 @@
   <section>
     <title>Paragraphs</title>
     <para>
-      Here's a regular paragraph.
+      Here&apos;s a regular paragraph.
     </para>
     <para>
       In Markdown 1.0.0 and earlier. Version 8. This line turns into a
@@ -66,7 +66,7 @@
       looked like a list item.
     </para>
     <para>
-      Here's one with a bullet. * criminey.
+      Here&apos;s one with a bullet. * criminey.
     </para>
     <para>
       There should be a hard line
@@ -152,7 +152,7 @@ sub status {
       </orderedlist>
     </blockquote>
     <para>
-      Here's a nested one:
+      Here&apos;s a nested one:
     </para>
     <blockquote>
       <para>
@@ -160,7 +160,7 @@ sub status {
       </para>
       <blockquote>
         <para>
-          Don't quote me.
+          Don&apos;t quote me.
         </para>
       </blockquote>
     </blockquote>
@@ -407,8 +407,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
             Item 1, graf one.
           </para>
           <para>
-            Item 1. graf two. The quick brown fox jumped over the lazy dog's
-            back.
+            Item 1. graf two. The quick brown fox jumped over the lazy
+            dog&apos;s back.
           </para>
         </listitem>
         <listitem>
@@ -447,7 +447,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         </listitem>
       </itemizedlist>
       <para>
-        Here's another:
+        Here&apos;s another:
       </para>
       <orderedlist>
         <listitem>
@@ -585,30 +585,33 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <section>
     <title>Smart quotes, ellipses, dashes</title>
     <para>
-      &quot;Hello,&quot; said the spider. &quot;'Shelob' is my
-      name.&quot;
+      <quote>Hello,</quote> said the spider.
+      <quote><quote>Shelob</quote> is my name.</quote>
     </para>
     <para>
-      'A', 'B', and 'C' are letters.
+      <quote>A</quote>, <quote>B</quote>, and <quote>C</quote> are
+      letters.
     </para>
     <para>
-      'Oak,' 'elm,' and 'beech' are names of trees. So is 'pine.'
+      <quote>Oak,</quote> <quote>elm,</quote> and <quote>beech</quote>
+      are names of trees. So is <quote>pine.</quote>
     </para>
     <para>
-      'He said, &quot;I want to go.&quot;' Were you alive in the 70's?
+      <quote>He said, <quote>I want to go.</quote></quote> Were you alive
+      in the 70&apos;s?
     </para>
     <para>
-      Here is some quoted '<literal>code</literal>' and a
-      &quot;<ulink url="http://example.com/?foo=1&amp;bar=2">quoted link</ulink>&quot;.
+      Here is some quoted <quote><literal>code</literal></quote> and a
+      <quote><ulink url="http://example.com/?foo=1&amp;bar=2">quoted link</ulink></quote>.
     </para>
     <para>
-      Some dashes: one---two --- three--four -- five.
+      Some dashes: one&mdash;two&mdash;three&mdash;four&mdash;five.
     </para>
     <para>
-      Dashes between numbers: 5-7, 255-66, 1987-1999.
+      Dashes between numbers: 5&ndash;7, 255&ndash;66, 1987&ndash;1999.
     </para>
     <para>
-      Ellipses...and. . .and . . . .
+      Ellipses&hellip;and&hellip;and&hellip;.
     </para>
   </section>
   <section>
@@ -656,13 +659,13 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
       <listitem>
         <para>
-          Here's one that has a line break in it:
+          Here&apos;s one that has a line break in it:
           <literal>$\alpha + \omega \times x^2$</literal>.
         </para>
       </listitem>
     </itemizedlist>
     <para>
-      These shouldn't be math:
+      These shouldn&apos;t be math:
     </para>
     <itemizedlist>
       <listitem>
@@ -673,7 +676,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       <listitem>
         <para>
           $22,000 is a <emphasis>lot</emphasis> of money. So is $34,000. (It
-          worked if &quot;lot&quot; is emphasized.)
+          worked if <quote>lot</quote> is emphasized.)
         </para>
       </listitem>
       <listitem>
@@ -684,7 +687,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
     </itemizedlist>
     <para>
-      Here's a LaTeX table:
+      Here&apos;s a LaTeX table:
     </para>
     <para>
       <literal>\begin{tabular}{|l|l|}\hline
@@ -861,18 +864,19 @@ Cat    &amp; 1      \\ \hline
     <section>
       <title>With ampersands</title>
       <para>
-        Here's a
+        Here&apos;s a
         <ulink url="http://example.com/?foo=1&amp;bar=2">link with an ampersand in the URL</ulink>.
       </para>
       <para>
-        Here's a link with an amersand in the link text:
+        Here&apos;s a link with an amersand in the link text:
         <ulink url="http://att.com/">AT&amp;T</ulink>.
       </para>
       <para>
-        Here's an <ulink url="/script?foo=1&amp;bar=2">inline link</ulink>.
+        Here&apos;s an
+        <ulink url="/script?foo=1&amp;bar=2">inline link</ulink>.
       </para>
       <para>
-        Here's an
+        Here&apos;s an
         <ulink url="/script?foo=1&amp;bar=2">inline link in pointy braces</ulink>.
       </para>
     </section>
@@ -920,7 +924,7 @@ or here: &lt;http://example.com/&gt;
   <section>
     <title>Images</title>
     <para>
-      From &quot;Voyage dans la Lune&quot; by Georges Melies (1902):
+      From <quote>Voyage dans la Lune</quote> by Georges Melies (1902):
     </para>
     <para>
       <inlinemediaobject>
@@ -957,7 +961,7 @@ or here: &lt;http://example.com/&gt;
       and
       another.<footnote>
                 <para>
-                  Here's the long note. This one contains multiple blocks.
+                  Here&apos;s the long note. This one contains multiple blocks.
                 </para>
                 <para>
                   Subsequent blocks are indented to show that they belong to the
@@ -1008,5 +1012,4 @@ or here: &lt;http://example.com/&gt;
       indented.
     </para>
   </section>
-  
 </article>

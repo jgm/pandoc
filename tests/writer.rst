@@ -501,11 +501,11 @@ Smart quotes, ellipses, dashes
 
 Here is some quoted '``code``' and a "`quoted link`_".
 
-Some dashes: one---two --- three--four -- five.
+Some dashes: one--two--three--four--five.
 
 Dashes between numbers: 5-7, 255-66, 1987-1999.
 
-Ellipses...and. . .and . . . .
+Ellipses...and...and....
 
 --------------
 

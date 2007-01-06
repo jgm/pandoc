@@ -108,8 +108,10 @@ Use strict markdown syntax, with no extensions or variants.
 Parse untranslatable HTML codes and LaTeX environments as raw HTML
 or LaTeX, instead of ignoring them.
 .TP
-.B \-S, \-\-smartypants
-Use smart quotes, dashes, and ellipses in HTML output.
+.B \-S, \-\-smart
+Use smart quotes, dashes, and ellipses.  (This option is significant
+only when the input format is \fBmarkdown\fR.  It is selected automatically
+when the output format is \fBlatex\fR.)
 .TP
 .B \-m, \-\-asciimathml
 Use ASCIIMathML to display embedded LaTeX math in HTML output.

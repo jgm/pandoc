@@ -35,6 +35,7 @@ module Text.Pandoc.Writers.Markdown (
 import Text.Regex ( matchRegex, mkRegex )
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
+import Data.List ( group )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
 -- | Convert Pandoc to Markdown.
@@ -154,12 +155,22 @@ inlineToMarkdown (Emph lst) = text "*" <>
   (inlineListToMarkdown lst) <> text "*"
 inlineToMarkdown (Strong lst) = text "**" <> 
   (inlineListToMarkdown lst) <> text "**"
-inlineToMarkdown (Code str) = 
-  case (matchRegex (mkRegex "``") str) of
-          Just match -> text ("` " ++ str ++ " `")
-          Nothing    -> case (matchRegex (mkRegex "`") str) of
-                          Just match -> text ("`` " ++ str ++ " ``")
-                          Nothing    -> text ("`" ++ str ++ "`")
+inlineToMarkdown (Quoted SingleQuote lst) = char '\'' <> 
+  (inlineListToMarkdown lst) <> char '\''
+inlineToMarkdown (Quoted DoubleQuote lst) = char '"' <> 
+  (inlineListToMarkdown lst) <> char '"'
+inlineToMarkdown EmDash = text "--"
+inlineToMarkdown EnDash = char '-'
+inlineToMarkdown Apostrophe = char '\''
+inlineToMarkdown Ellipses = text "..."
+inlineToMarkdown (Code str) =
+  let tickGroups = filter (\s -> '`' `elem` s) $ group str 
+      longest    = if null tickGroups
+                     then 0
+                     else maximum $ map length tickGroups 
+      marker     = replicate (longest + 1) '`' 
+      spacer     = if (longest == 0) then "" else " " in 
+  text (marker ++ spacer ++ str ++ spacer ++ marker)
 inlineToMarkdown (Str str) = text $ escapeString str
 inlineToMarkdown (TeX str) = text str
 inlineToMarkdown (HtmlInline str) = text str 

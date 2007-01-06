@@ -190,7 +190,7 @@ options =
     , Option "S" ["smart"]
                  (NoArg
                   (\opt -> return opt { optSmart = True }))
-                 "" -- "Use smart quotes, dashes, and ellipses in HTML output"
+                 "" -- "Use smart quotes, dashes, and ellipses"
 
     , Option "m" ["asciimathml"]
                  (NoArg
@@ -423,6 +423,8 @@ main = do
          defaultParserState { stateParseRaw   = parseRaw,
                               stateTabStop    = tabStop, 
                               stateStandalone = standalone && (not strict),
+                              stateSmart      = (smart && (not strict)) || 
+                                                writerName' == "latex",
                               stateStrict     = strict }
   let csslink = if (css == "")
                    then "" 
@@ -437,8 +439,6 @@ main = do
                                                              (not strict), 
                                       writerHeader         = header, 
                                       writerTitlePrefix    = titlePrefix,
-                                      writerSmart          = smart && 
-                                                             (not strict), 
                                       writerTabStop        = tabStop, 
                                       writerNotes          = [],
                                       writerS5             = (writerName=="s5"),

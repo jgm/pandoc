@@ -37,48 +37,53 @@ import Text.Regex ( mkRegex, matchRegex )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
 import Data.List ( isPrefixOf, partition )
+import Text.PrettyPrint.HughesPJ hiding ( Str )
 
 -- | Convert Pandoc document to string in HTML format.
 writeHtml :: WriterOptions -> Pandoc -> String
-writeHtml options (Pandoc (Meta title authors date) blocks) = 
-  let titlePrefix = writerTitlePrefix options in
+writeHtml opts (Pandoc (Meta title authors date) blocks) = 
+  let titlePrefix = writerTitlePrefix opts in
   let topTitle = if not (null titlePrefix)
                     then [Str titlePrefix] ++ (if not (null title) 
                                                   then [Str " - "] ++ title
                                                   else [])
                     else title in
-  let head = if (writerStandalone options)
-                then htmlHeader options (Meta topTitle authors date)
-                else "" 
-      titleBlocks = if (writerStandalone options) && (not (null title)) && 
-                    (not (writerS5 options))
+  let head = if (writerStandalone opts)
+                then htmlHeader opts (Meta topTitle authors date)
+                else empty 
+      titleBlocks = if (writerStandalone opts) && (not (null title)) && 
+                    (not (writerS5 opts))
                        then [RawHtml "<h1 class=\"title\">", Plain title, 
-                             RawHtml "</h1>\n"]
+                             RawHtml "</h1>"]
                        else []
-      foot = if (writerStandalone options) then "</body>\n</html>\n" else "" 
+      foot = if (writerStandalone opts) 
+               then text "</body>\n</html>"
+               else empty 
       blocks' = replaceReferenceLinks (titleBlocks ++ blocks)
       (noteBlocks, blocks'') = partition isNoteBlock blocks' 
-      body = (writerIncludeBefore options) ++ 
-             concatMap (blockToHtml options) blocks'' ++
-             footnoteSection options noteBlocks ++
-             (writerIncludeAfter options) in
-  head ++ body ++ foot
+      before = writerIncludeBefore opts
+      after = writerIncludeAfter opts
+      body = (if null before then empty else text before) $$
+             vcat (map (blockToHtml opts) blocks'') $$
+             footnoteSection opts noteBlocks $$
+             (if null after then empty else text after) in
+  render $ head $$ body $$ foot $$ text ""
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
-footnoteSection :: WriterOptions -> [Block] -> String
-footnoteSection options notes =
+footnoteSection :: WriterOptions -> [Block] -> Doc
+footnoteSection opts notes =
   if null notes 
-    then ""
-    else "<div class=\"footnotes\">\n<hr />\n<ol>\n" ++
-         concatMap (blockToHtml options) notes ++
-         "</ol>\n</div>\n"  
+    then empty
+    else inTags True "div" [("class","footnotes")] $
+         selfClosingTag "hr" [] $$ (inTagsIndented "ol" 
+         (vcat $ map (blockToHtml opts) notes))
 
 -- | Obfuscate a "mailto:" link using Javascript.
-obfuscateLink :: WriterOptions -> [Inline] -> String -> String
-obfuscateLink options text src =
+obfuscateLink :: WriterOptions -> [Inline] -> String -> Doc
+obfuscateLink opts txt src =
   let emailRegex = mkRegex "mailto:*([^@]*)@(.*)"
-      text' = inlineListToHtml options text 
+      text' = render $ inlineListToHtml opts txt 
       src' = map toLower src in
   case (matchRegex emailRegex src') of
     (Just [name, domain]) ->
@@ -91,16 +96,17 @@ obfuscateLink options text src =
                         then name ++ " at " ++ domain'
                         else text' ++ " (" ++ name ++ " at " ++ 
                              domain' ++ ")" in 
-      if writerStrictMarkdown options
-        then "<a href=\"" ++ obfuscateString src' ++ "\">" ++ 
-             obfuscateString text' ++ "</a>"
-        else "<script type=\"text/javascript\">\n<!--\nh='" ++ 
+      if writerStrictMarkdown opts
+        then inTags False "a" [("href", obfuscateString src')] $
+             text $ obfuscateString text'
+        else inTags False "script" [("type", "text/javascript")] 
+             (text ("\n<!--\nh='" ++ 
              obfuscateString domain ++ "';a='" ++ at' ++ "';n='" ++ 
              obfuscateString name ++ "';e=n+a+h;\n" ++
              "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\">'+" ++ 
-             linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n</script><noscript>" ++ 
-             obfuscateString altText ++ "</noscript>"
-    _ -> "<a href=\"" ++ src ++ "\">" ++ text' ++ "</a>" -- malformed email
+             linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) <> 
+             inTagsSimple "noscript" (text (obfuscateString altText))
+    _ -> inTags False "a" [("href", src)]  (text text') -- malformed email
 
 -- | Obfuscate character as entity.
 obfuscateChar :: Char -> String
@@ -113,117 +119,123 @@ obfuscateChar char =
 obfuscateString :: String -> String
 obfuscateString = concatMap obfuscateChar
 
--- | Returns an HTML header with appropriate bibliographic information.
-htmlHeader :: WriterOptions -> Meta -> String
-htmlHeader options (Meta title authors date) = 
-  let titletext = "<title>" ++ (inlineListToHtml options title) ++ 
-                  "</title>\n"
+-- | Return an HTML header with appropriate bibliographic information.
+htmlHeader :: WriterOptions -> Meta -> Doc
+htmlHeader opts (Meta title authors date) = 
+  let titletext = inTagsSimple "title" (wrap opts title)
       authortext = if (null authors) 
-                      then "" 
-                      else "<meta name=\"author\" content=\"" ++ 
-                           (joinWithSep ", " (map (stringToSGML options) authors)) ++ 
-                           "\" />\n" 
+                      then empty 
+                      else selfClosingTag "meta" [("name", "author"), 
+                           ("content", 
+                            joinWithSep ", " (map stringToSGML authors))]  
       datetext = if (date == "")
-                    then "" 
-                    else "<meta name=\"date\" content=\"" ++ 
-                         (stringToSGML options date) ++ "\" />\n" in
-  (writerHeader options) ++ authortext ++ datetext ++ titletext ++ 
-  "</head>\n<body>\n"
+                    then empty 
+                    else selfClosingTag "meta" [("name", "date"),
+                         ("content", stringToSGML date)] in
+  text (writerHeader opts) $$ authortext $$ datetext $$ titletext $$ 
+  text "</head>\n<body>"
+
+-- | Take list of inline elements and return wrapped doc.
+wrap :: WriterOptions -> [Inline] -> Doc
+wrap opts lst = fsep $ map (inlineListToHtml opts) (splitBy Space lst)
 
 -- | Convert Pandoc block element to HTML.
-blockToHtml :: WriterOptions -> Block -> String
-blockToHtml options Blank = "\n" 
-blockToHtml options Null = ""
-blockToHtml options (Plain lst) = inlineListToHtml options lst 
-blockToHtml options (Para lst) = "<p>" ++ (inlineListToHtml options lst) ++ "</p>\n"
-blockToHtml options (BlockQuote blocks) = 
-  if (writerS5 options)
+blockToHtml :: WriterOptions -> Block -> Doc
+blockToHtml opts Blank = text ""
+blockToHtml opts Null = empty
+blockToHtml opts (Plain lst) = wrap opts lst 
+blockToHtml opts (Para lst) = inTagsIndented "p" $ wrap opts lst
+blockToHtml opts (BlockQuote blocks) = 
+  if (writerS5 opts)
      then  -- in S5, treat list in blockquote specially
            -- if default is incremental, make it nonincremental; 
            -- otherwise incremental
-           let inc = not (writerIncremental options) in
+           let inc = not (writerIncremental opts) in
            case blocks of 
-              [BulletList lst] -> blockToHtml (options {writerIncremental = 
+              [BulletList lst] -> blockToHtml (opts {writerIncremental = 
                                                         inc}) (BulletList lst)
-              [OrderedList lst] -> blockToHtml (options {writerIncremental =
+              [OrderedList lst] -> blockToHtml (opts {writerIncremental =
                                                        inc}) (OrderedList lst)
-              otherwise         -> "<blockquote>\n" ++ 
-                                   (concatMap (blockToHtml options) blocks) ++
-                                   "</blockquote>\n"
-     else "<blockquote>\n" ++ (concatMap (blockToHtml options) blocks) ++ 
-          "</blockquote>\n"
-blockToHtml options (Note ref lst) = 
-  let contents = (concatMap (blockToHtml options) lst) in
-  "<li id=\"fn" ++ ref ++ "\">" ++ contents ++ " <a href=\"#fnref" ++ ref ++ 
-  "\" class=\"footnoteBacklink\" title=\"Jump back to footnote " ++ ref ++ 
-  "\">&#8617;</a></li>\n" 
-blockToHtml options (Key _ _) = ""
-blockToHtml options (CodeBlock str) = 
-  "<pre><code>" ++ (escapeSGML str) ++ "\n</code></pre>\n"
-blockToHtml options (RawHtml str) = str 
-blockToHtml options (BulletList lst) = 
-  let attribs = if (writerIncremental options)
-                   then " class=\"incremental\"" 
-                   else "" in
-  "<ul" ++ attribs ++ ">\n" ++ (concatMap (listItemToHtml options) lst) ++ 
-  "</ul>\n"
-blockToHtml options (OrderedList lst) = 
-  let attribs = if (writerIncremental options)
-                   then " class=\"incremental\""
-                   else "" in
-  "<ol" ++ attribs ++ ">\n" ++ (concatMap (listItemToHtml options) lst) ++ 
-  "</ol>\n"
-blockToHtml options HorizontalRule = "<hr />\n"
-blockToHtml options (Header level lst) = 
-  let contents = inlineListToHtml options lst in
+              otherwise         -> inTagsIndented "blockquote" $
+                                   vcat $ map (blockToHtml opts) blocks
+     else inTagsIndented "blockquote" $ vcat $ map (blockToHtml opts) blocks
+blockToHtml opts (Note ref lst) = 
+  let contents = (vcat $ map (blockToHtml opts) lst) in
+  inTags True "li" [("id", "fn" ++ ref)] $
+  contents <> inTags False "a" [("href", "#fnref" ++ ref), 
+                                ("class", "footnoteBacklink"), 
+                                ("title", "Jump back to footnote " ++ ref)] 
+                     (text "&#8617;")
+blockToHtml opts (Key _ _) = empty
+blockToHtml opts (CodeBlock str) = 
+  text "<pre><code>" <> text (escapeSGML str) <> text "\n</code></pre>"
+blockToHtml opts (RawHtml str) = text str 
+blockToHtml opts (BulletList lst) = 
+  let attribs = if (writerIncremental opts)
+                   then [("class","incremental")]
+                   else [] in
+  inTags True "ul" attribs $ vcat $ map (listItemToHtml opts) lst 
+blockToHtml opts (OrderedList lst) = 
+  let attribs = if (writerIncremental opts)
+                   then [("class","incremental")]
+                   else [] in
+  inTags True "ol" attribs $ vcat $ map (listItemToHtml opts) lst 
+blockToHtml opts HorizontalRule = selfClosingTag "hr" []
+blockToHtml opts (Header level lst) = 
+  let contents = wrap opts lst in
   if ((level > 0) && (level <= 6))
-      then "<h" ++ (show level) ++ ">" ++ contents ++ 
-           "</h" ++ (show level) ++ ">\n"
-      else "<p>" ++ contents ++ "</p>\n"
-listItemToHtml options list = 
-  "<li>" ++ (concatMap (blockToHtml options) list) ++ "</li>\n"
+      then inTagsSimple ("h" ++ show level) contents 
+      else inTagsSimple "p" contents 
+
+listItemToHtml :: WriterOptions -> [Block] -> Doc
+listItemToHtml opts list = 
+  inTagsSimple "li" $ vcat $ map (blockToHtml opts) list
 
 -- | Convert list of Pandoc inline elements to HTML.
-inlineListToHtml :: WriterOptions -> [Inline] -> String
-inlineListToHtml options lst = 
-  -- consolidate adjacent Str and Space elements for more intelligent 
-  -- smart typography filtering
-  let lst' = consolidateList lst in
-  concatMap (inlineToHtml options) lst'
+inlineListToHtml :: WriterOptions -> [Inline] -> Doc
+inlineListToHtml opts lst = hcat (map (inlineToHtml opts) lst)
 
 -- | Convert Pandoc inline element to HTML.
-inlineToHtml :: WriterOptions -> Inline -> String
-inlineToHtml options (Emph lst) = 
-  "<em>" ++ (inlineListToHtml options lst) ++ "</em>"
-inlineToHtml options (Strong lst) = 
-  "<strong>" ++ (inlineListToHtml options lst) ++ "</strong>"
-inlineToHtml options (Code str) =  
-  "<code>" ++ (escapeSGML str) ++ "</code>"
-inlineToHtml options (Str str) = stringToSGML options str
-inlineToHtml options (TeX str) = (escapeSGML str)
-inlineToHtml options (HtmlInline str) = str
-inlineToHtml options (LineBreak) = "<br />\n"
-inlineToHtml options Space = " "
-inlineToHtml options (Link text (Src src tit)) = 
-  let title = stringToSGML options tit in
+inlineToHtml :: WriterOptions -> Inline -> Doc
+inlineToHtml opts (Emph lst) = 
+  inTagsSimple "em" (inlineListToHtml opts lst)
+inlineToHtml opts (Strong lst) = 
+  inTagsSimple "strong" (inlineListToHtml opts lst)
+inlineToHtml opts (Code str) =  
+  inTagsSimple "code" $ text (escapeSGML str)
+inlineToHtml opts (Quoted SingleQuote lst) =
+  text "&lsquo;" <> (inlineListToHtml opts lst) <> text "&rsquo;"
+inlineToHtml opts (Quoted DoubleQuote lst) =
+  text "&ldquo;" <> (inlineListToHtml opts lst) <> text "&rdquo;"
+inlineToHtml opts EmDash = text "&mdash;"
+inlineToHtml opts EnDash = text "&ndash;"
+inlineToHtml opts Ellipses = text "&hellip;"
+inlineToHtml opts Apostrophe = text "&rsquo;"
+inlineToHtml opts (Str str) = text $ stringToSGML str
+inlineToHtml opts (TeX str) = text $ escapeSGML str
+inlineToHtml opts (HtmlInline str) = text str
+inlineToHtml opts (LineBreak) = selfClosingTag "br" []
+inlineToHtml opts Space = space
+inlineToHtml opts (Link txt (Src src tit)) = 
+  let title = stringToSGML tit in
   if (isPrefixOf "mailto:" src)
-     then obfuscateLink options text src 
-     else "<a href=\"" ++ (escapeSGML src) ++ "\"" ++ 
-          (if tit /= "" then " title=\"" ++ title  ++ "\">" else ">") ++ 
-          (inlineListToHtml options text) ++ "</a>"
-inlineToHtml options (Link text (Ref ref)) = 
-  "[" ++ (inlineListToHtml options text) ++ "][" ++ 
-  (inlineListToHtml options ref) ++ "]"  
+     then obfuscateLink opts txt src 
+     else inTags False "a" ([("href", escapeSGML src)] ++ 
+          if null tit then [] else [("title", title)]) 
+          (inlineListToHtml opts txt)
+inlineToHtml opts (Link txt (Ref ref)) = 
+  char '[' <> (inlineListToHtml opts txt) <> text "][" <> 
+  (inlineListToHtml opts ref) <> char ']'
   -- this is what markdown does, for better or worse
-inlineToHtml options (Image alt (Src source tit)) = 
-  let title = stringToSGML options tit
-      alternate = inlineListToHtml options alt in 
-  "<img src=\"" ++ source ++ "\"" ++ 
-  (if tit /= "" then " title=\"" ++ title ++ "\"" else "") ++ 
-  (if alternate /= "" then " alt=\"" ++ alternate ++ "\"" else "") ++ ">"
-inlineToHtml options (Image alternate (Ref ref)) = 
-  "![" ++ (inlineListToHtml options alternate) ++ "][" ++ 
-  (inlineListToHtml options ref) ++ "]"
-inlineToHtml options (NoteRef ref) = 
-  "<sup class=\"footnoteRef\" id=\"fnref" ++ ref ++ "\"><a href=\"#fn" ++ 
-  ref ++ "\">" ++ ref ++ "</a></sup>"
+inlineToHtml opts (Image alt (Src source tit)) = 
+  let title = stringToSGML tit
+      alternate = render $ inlineListToHtml opts alt in 
+  selfClosingTag "img" $ [("src", source)] ++  
+  (if null tit then [] else [("title", title)]) ++ 
+  (if null alternate then [] else [("alt", alternate)])  
+inlineToHtml opts (Image alternate (Ref ref)) = 
+  text "![" <> (inlineListToHtml opts alternate) <> text "][" <> 
+  (inlineListToHtml opts ref) <> char ']'
+inlineToHtml opts (NoteRef ref) = 
+  inTags False "sup" [("class", "footnoteRef"), ("id", "fnref" ++ ref)]
+  (inTags False "a" [("href", "#fn" ++ ref)] $ text ref) 

@@ -50,22 +50,11 @@ readLaTeX = readWith parseLaTeX
 testString = testStringWith parseLaTeX
 
 -- characters with special meaning
-specialChars = "\\$%&^&_~#{}\n \t|<>"
+specialChars = "\\$%&^&_~#{}\n \t|<>'\"-"
 
 --
 -- utility functions
 --
-
--- | Change quotation marks in a string back to "basic" quotes.
-normalizeQuotes :: String -> String
-normalizeQuotes = gsub "''" "\"" . gsub "`" "'"
-
--- | Change LaTeX En dashes between digits to hyphens.
-normalizeDashes :: String -> String
-normalizeDashes = gsub "([0-9])--([0-9])" "\\1-\\2"
-
-normalizePunctuation :: String -> String
-normalizePunctuation = normalizeDashes . normalizeQuotes
 
 -- | Returns text between brackets and its matching pair.
 bracketedText openB closeB = try (do
@@ -132,10 +121,10 @@ anyEnvironment =  try (do
 --
 
 -- | Process LaTeX preamble, extracting metadata.
-processLaTeXPreamble = do
+processLaTeXPreamble = try (do
   manyTill (choice [bibliographic, comment, unknownCommand, nullBlock]) 
            (try (string "\\begin{document}"))
-  spaces
+  spaces)
 
 -- | Parse LaTeX and return 'Pandoc'.
 parseLaTeX = do
@@ -392,16 +381,13 @@ comment = try (do
 -- inline
 --
 
-inline =  choice [ strong, emph, ref, lab, code, linebreak, math, ldots,
+inline =  choice [ strong, emph, ref, lab, code, linebreak, math, ellipses,
+                   emDash, enDash, hyphen, quoted, apostrophe,
                    accentedChar, specialChar, specialInline, escapedChar,
                    unescapedChar, str, endline, whitespace ] <?> "inline"
 
-specialInline = choice [ link, image, footnote, rawLaTeXInline ] <?> 
-                "link, raw TeX, note, or image"
-
-ldots = try (do
-  string "\\ldots"
-  return (Str "..."))
+specialInline = choice [ link, image, footnote, rawLaTeXInline ] 
+                <?> "link, raw TeX, note, or image"
 
 accentedChar = normalAccentedChar <|> specialAccentedChar
 
@@ -526,6 +512,49 @@ emph = try (do
   result <- manyTill inline (char '}')
   return (Emph result))
 
+apostrophe = do
+  char '\''
+  return Apostrophe
+
+quoted = do
+  doubleQuoted <|> singleQuoted
+
+singleQuoted = try (do
+  result <- enclosed singleQuoteStart singleQuoteEnd inline
+  return $ Quoted SingleQuote $ normalizeSpaces result)
+
+doubleQuoted = try (do
+  result <- enclosed doubleQuoteStart doubleQuoteEnd inline
+  return $ Quoted DoubleQuote $ normalizeSpaces result)
+
+singleQuoteStart = char '`'
+
+singleQuoteEnd = try (do
+  char '\''
+  notFollowedBy alphaNum)
+
+doubleQuoteStart = try (string "``")
+
+doubleQuoteEnd = try (string "''")
+
+ellipses = try (do
+  string "\\ldots"
+  option "" (string "{}")
+  return Ellipses)
+
+enDash = try (do
+  string "--"
+  notFollowedBy (char '-')
+  return EnDash) 
+
+emDash = try (do
+  string "---"
+  return EmDash)
+
+hyphen = do
+  char '-'
+  return (Str "-")
+
 lab = try (do
   string "\\label{"
   result <- manyTill anyChar (char '}')
@@ -552,7 +581,7 @@ linebreak = try (do
 
 str = do 
   result <- many1 (noneOf specialChars)
-  return (Str (normalizePunctuation result))
+  return (Str result)
 
 -- endline internal to paragraph
 endline = try (do
@@ -624,3 +653,4 @@ rawLaTeXInline = try (do
      then fail "not an inline command" 
      else string ""
   return (TeX ("\\" ++ name ++ star ++ argStr)))
+

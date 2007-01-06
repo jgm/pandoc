@@ -403,11 +403,11 @@ This is code: `>`, `$`, `\`, `\$`, `<html>`.
 
 Here is some quoted '`code`' and a "[quoted link][1]".
 
-Some dashes: one---two --- three--four -- five.
+Some dashes: one--two--three--four--five.
 
 Dashes between numbers: 5-7, 255-66, 1987-1999.
 
-Ellipses...and. . .and . . . .
+Ellipses...and...and....
 
 
 * * * * *

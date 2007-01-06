@@ -373,7 +373,7 @@ This is code: \verb!>!, \verb!$!, \verb!\!, \verb!\$!, \verb!<html>!.
 
 \section{Smart quotes, ellipses, dashes}
 
-``Hello,'' said the spider. ``{}`Shelob' is my name.''
+``Hello,'' said the spider. ```Shelob' is my name.''
 
 `A', `B', and `C' are letters.
 
@@ -387,7 +387,7 @@ Some dashes: one---two---three---four---five.
 
 Dashes between numbers: 5--7, 255--66, 1987--1999.
 
-Ellipses\ldots{}and\ldots{}and \ldots{} .
+Ellipses\ldots{}and\ldots{}and\ldots{}.
 
 \begin{center}\rule{3in}{0.4pt}\end{center}
 

@@ -182,6 +182,14 @@ inlineToRST (Emph lst) = let (main, refs) = inlineListToRST lst in
                          (text "*" <> main <> text "*", refs)
 inlineToRST (Strong lst) = let (main, refs) = inlineListToRST lst in
                          (text "**" <> main <> text "**", refs)
+inlineToRST (Quoted SingleQuote lst) = let (main, refs) = inlineListToRST lst in
+  (char '\'' <> main <> char '\'', refs)
+inlineToRST (Quoted DoubleQuote lst) = let (main, refs) = inlineListToRST lst in
+  (char '"' <> main <> char '"', refs)
+inlineToRST EmDash = (text "--", empty)
+inlineToRST EnDash = (char '-', empty)
+inlineToRST Apostrophe = (char '\'', empty)
+inlineToRST Ellipses = (text "...", empty)
 inlineToRST (Code str) = (text $ "``" ++ str ++ "``", empty)
 inlineToRST (Str str) = (text $ escapeString str, empty)
 inlineToRST (TeX str) = (text str, empty)

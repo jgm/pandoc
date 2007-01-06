@@ -1,5 +1,5 @@
 Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane","Anonymous"] "July 17, 2006")
-[ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc.",Space,Str "Most",Space,Str "of",Space,Str "them",Space,Str "are",Space,Str "adapted",Space,Str "from",Space,Str "John",Space,Str "Gruber's",Space,Str "markdown",Space,Str "test",Space,Str "suite."]
+[ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc",Str ".",Space,Str "Most",Space,Str "of",Space,Str "them",Space,Str "are",Space,Str "adapted",Space,Str "from",Space,Str "John",Space,Str "Gruber",Apostrophe,Str "s",Space,Str "markdown",Space,Str "test",Space,Str "suite",Str "."]
 , HorizontalRule
 , Header 1 [Str "Headers"]
 , Header 2 [Str "Level",Space,Str "2",Space,Str "with",Space,Str "an",Space,Link [Str "embedded",Space,Str "link"] (Src "/url" "")]
@@ -14,15 +14,15 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Para [Str "with",Space,Str "no",Space,Str "blank",Space,Str "line"]
 , HorizontalRule
 , Header 1 [Str "Paragraphs"]
-, Para [Str "Here's",Space,Str "a",Space,Str "regular",Space,Str "paragraph."]
-, Para [Str "In",Space,Str "Markdown",Space,Str "1.0.0",Space,Str "and",Space,Str "earlier.",Space,Str "Version",Space,Str "8.",Space,Str "This",Space,Str "line",Space,Str "turns",Space,Str "into",Space,Str "a",Space,Str "list",Space,Str "item.",Space,Str "Because",Space,Str "a",Space,Str "hard",Str "-",Str "wrapped",Space,Str "line",Space,Str "in",Space,Str "the",Space,Str "middle",Space,Str "of",Space,Str "a",Space,Str "paragraph",Space,Str "looked",Space,Str "like",Space,Str "a",Space,Str "list",Space,Str "item."]
-, Para [Str "Here's",Space,Str "one",Space,Str "with",Space,Str "a",Space,Str "bullet.",Space,Str "*",Space,Str "criminey."]
-, Para [Str "There",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "hard",Space,Str "line",Space,Str "break",LineBreak,Str "here."]
+, Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "regular",Space,Str "paragraph",Str "."]
+, Para [Str "In",Space,Str "Markdown",Space,Str "1",Str ".",Str "0",Str ".",Str "0",Space,Str "and",Space,Str "earlier",Str ".",Space,Str "Version",Space,Str "8",Str ".",Space,Str "This",Space,Str "line",Space,Str "turns",Space,Str "into",Space,Str "a",Space,Str "list",Space,Str "item",Str ".",Space,Str "Because",Space,Str "a",Space,Str "hard",Str "-",Str "wrapped",Space,Str "line",Space,Str "in",Space,Str "the",Space,Str "middle",Space,Str "of",Space,Str "a",Space,Str "paragraph",Space,Str "looked",Space,Str "like",Space,Str "a",Space,Str "list",Space,Str "item",Str "."]
+, Para [Str "Here",Apostrophe,Str "s",Space,Str "one",Space,Str "with",Space,Str "a",Space,Str "bullet",Str ".",Space,Str "*",Space,Str "criminey",Str "."]
+, Para [Str "There",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "hard",Space,Str "line",Space,Str "break",LineBreak,Str "here",Str "."]
 , HorizontalRule
 , Header 1 [Str "Block",Space,Str "Quotes"]
 , Para [Str "E",Str "-",Str "mail",Space,Str "style:"]
 , BlockQuote
-  [ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "block",Space,Str "quote.",Space,Str "It",Space,Str "is",Space,Str "pretty",Space,Str "short."] ]
+  [ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "block",Space,Str "quote",Str ".",Space,Str "It",Space,Str "is",Space,Str "pretty",Space,Str "short",Str "."] ]
 
 , BlockQuote
   [ Para [Str "Code",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote:"]
@@ -38,7 +38,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
   , BlockQuote
     [ Para [Str "nested"] ]
    ]
-, Para [Str "This",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "a",Space,Str "block",Space,Str "quote:",Space,Str "2",Space,Str ">",Space,Str "1."]
+, Para [Str "This",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "a",Space,Str "block",Space,Str "quote:",Space,Str "2",Space,Str ">",Space,Str "1",Str "."]
 , Para [Str "Box",Str "-",Str "style:"]
 , BlockQuote
   [ Para [Str "Example:"]
@@ -47,13 +47,13 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
   [ OrderedList
     [ [ Plain [Str "do",Space,Str "laundry"] ]
     , [ Plain [Str "take",Space,Str "out",Space,Str "the",Space,Str "trash"] ] ] ]
-, Para [Str "Here's",Space,Str "a",Space,Str "nested",Space,Str "one:"]
+, Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "nested",Space,Str "one:"]
 , BlockQuote
   [ Para [Str "Joe",Space,Str "said:"]
   , BlockQuote
-    [ Para [Str "Don't",Space,Str "quote",Space,Str "me."] ]
+    [ Para [Str "Don",Apostrophe,Str "t",Space,Str "quote",Space,Str "me",Str "."] ]
    ]
-, Para [Str "And",Space,Str "a",Space,Str "following",Space,Str "paragraph."]
+, Para [Str "And",Space,Str "a",Space,Str "following",Space,Str "paragraph",Str "."]
 , HorizontalRule
 , Header 1 [Str "Code",Space,Str "Blocks"]
 , Para [Str "Code:"]
@@ -116,9 +116,9 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
   , [ Para [Str "Three"] ] ]
 , Para [Str "Multiple",Space,Str "paragraphs:"]
 , OrderedList
-  [ [ Para [Str "Item",Space,Str "1,",Space,Str "graf",Space,Str "one."]
-    , Para [Str "Item",Space,Str "1.",Space,Str "graf",Space,Str "two.",Space,Str "The",Space,Str "quick",Space,Str "brown",Space,Str "fox",Space,Str "jumped",Space,Str "over",Space,Str "the",Space,Str "lazy",Space,Str "dog's",Space,Str "back."] ], [ Para [Str "Item",Space,Str "2."] ]
-  , [ Para [Str "Item",Space,Str "3."] ] ]
+  [ [ Para [Str "Item",Space,Str "1,",Space,Str "graf",Space,Str "one",Str "."]
+    , Para [Str "Item",Space,Str "1",Str ".",Space,Str "graf",Space,Str "two",Str ".",Space,Str "The",Space,Str "quick",Space,Str "brown",Space,Str "fox",Space,Str "jumped",Space,Str "over",Space,Str "the",Space,Str "lazy",Space,Str "dog",Apostrophe,Str "s",Space,Str "back",Str "."] ], [ Para [Str "Item",Space,Str "2",Str "."] ]
+  , [ Para [Str "Item",Space,Str "3",Str "."] ] ]
 , Header 2 [Str "Nested"]
 , BulletList
   [ [ Plain [Str "Tab"]
@@ -127,7 +127,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
         , BulletList
           [ [ Plain [Str "Tab"] ]
          ] ] ] ] ]
-, Para [Str "Here's",Space,Str "another:"]
+, Para [Str "Here",Apostrophe,Str "s",Space,Str "another:"]
 , OrderedList
   [ [ Plain [Str "First"] ]
   , [ Plain [Str "Second:"]
@@ -168,7 +168,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , RawHtml "</td>\n<td>"
 , Plain [Str "And",Space,Str "this",Space,Str "is",Space,Strong [Str "strong"]]
 , RawHtml "</td>\n</tr>\n</table>\n\n<script type=\"text/javascript\">document.write('This *should not* be interpreted as markdown');</script>\n"
-, Para [Str "Here's",Space,Str "a",Space,Str "simple",Space,Str "block:"]
+, Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "simple",Space,Str "block:"]
 , RawHtml "<div>\n    "
 , Plain [Str "foo"]
 , RawHtml "</div>\n"
@@ -190,28 +190,28 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , RawHtml "<!-- foo -->   \n"
 , Para [Str "Code:"]
 , CodeBlock "<hr />"
-, Para [Str "Hr's:"]
+, Para [Str "Hr",Apostrophe,Str "s:"]
 , RawHtml "<hr>\n\n<hr />\n\n<hr />\n\n<hr>   \n\n<hr />  \n\n<hr /> \n\n<hr class=\"foo\" id=\"bar\" />\n\n<hr class=\"foo\" id=\"bar\" />\n\n<hr class=\"foo\" id=\"bar\">\n"
 , HorizontalRule
 , Header 1 [Str "Inline",Space,Str "Markup"]
 , Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str "."]
 , Para [Str "This",Space,Str "is",Space,Strong [Str "strong"],Str ",",Space,Str "and",Space,Str "so",Space,Strong [Str "is",Space,Str "this"],Str "."]
 , Para [Str "An",Space,Emph [Link [Str "emphasized",Space,Str "link"] (Src "/url" "")],Str "."]
-, Para [Strong [Emph [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em."]]]
-, Para [Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word."]
-, Para [Strong [Emph [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em."]]]
-, Para [Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word."]
+, Para [Strong [Emph [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em",Str "."]]]
+, Para [Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word",Str "."]
+, Para [Strong [Emph [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em",Str "."]]]
+, Para [Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word",Str "."]
 , Para [Str "This",Space,Str "is",Space,Str "code:",Space,Code ">",Str ",",Space,Code "$",Str ",",Space,Code "\\",Str ",",Space,Code "\\$",Str ",",Space,Code "<html>",Str "."]
 , HorizontalRule
 , Header 1 [Str "Smart",Space,Str "quotes,",Space,Str "ellipses,",Space,Str "dashes"]
-, Para [Str "\"Hello,\"",Space,Str "said",Space,Str "the",Space,Str "spider.",Space,Str "\"'Shelob'",Space,Str "is",Space,Str "my",Space,Str "name.\""]
-, Para [Str "'A',",Space,Str "'B',",Space,Str "and",Space,Str "'C'",Space,Str "are",Space,Str "letters."]
-, Para [Str "'Oak,'",Space,Str "'elm,'",Space,Str "and",Space,Str "'beech'",Space,Str "are",Space,Str "names",Space,Str "of",Space,Str "trees.",Space,Str "So",Space,Str "is",Space,Str "'pine.'"]
-, Para [Str "'He",Space,Str "said,",Space,Str "\"I",Space,Str "want",Space,Str "to",Space,Str "go.\"'",Space,Str "Were",Space,Str "you",Space,Str "alive",Space,Str "in",Space,Str "the",Space,Str "70's?"]
-, Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "quoted",Space,Str "'",Code "code",Str "'",Space,Str "and",Space,Str "a",Space,Str "\"",Link [Str "quoted",Space,Str "link"] (Ref [Str "1"]),Str "\"."]
-, Para [Str "Some",Space,Str "dashes:",Space,Str "one",Str "---",Str "two",Space,Str "---",Space,Str "three",Str "--",Str "four",Space,Str "--",Space,Str "five."]
-, Para [Str "Dashes",Space,Str "between",Space,Str "numbers:",Space,Str "5",Str "-",Str "7,",Space,Str "255",Str "-",Str "66,",Space,Str "1987",Str "-",Str "1999."]
-, Para [Str "Ellipses...and.",Space,Str ".",Space,Str ".and",Space,Str ".",Space,Str ".",Space,Str ".",Space,Str "."]
+, Para [Quoted DoubleQuote [Str "Hello,"],Space,Str "said",Space,Str "the",Space,Str "spider",Str ".",Space,Quoted DoubleQuote [Quoted SingleQuote [Str "Shelob"],Space,Str "is",Space,Str "my",Space,Str "name",Str "."]]
+, Para [Quoted SingleQuote [Str "A"],Str ",",Space,Quoted SingleQuote [Str "B"],Str ",",Space,Str "and",Space,Quoted SingleQuote [Str "C"],Space,Str "are",Space,Str "letters",Str "."]
+, Para [Quoted SingleQuote [Str "Oak,"],Space,Quoted SingleQuote [Str "elm,"],Space,Str "and",Space,Quoted SingleQuote [Str "beech"],Space,Str "are",Space,Str "names",Space,Str "of",Space,Str "trees",Str ".",Space,Str "So",Space,Str "is",Space,Quoted SingleQuote [Str "pine",Str "."]]
+, Para [Quoted SingleQuote [Str "He",Space,Str "said,",Space,Quoted DoubleQuote [Str "I",Space,Str "want",Space,Str "to",Space,Str "go",Str "."]],Space,Str "Were",Space,Str "you",Space,Str "alive",Space,Str "in",Space,Str "the",Space,Str "70",Apostrophe,Str "s?"]
+, Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "quoted",Space,Quoted SingleQuote [Code "code"],Space,Str "and",Space,Str "a",Space,Quoted DoubleQuote [Link [Str "quoted",Space,Str "link"] (Ref [Str "1"])],Str "."]
+, Para [Str "Some",Space,Str "dashes:",Space,Str "one",EmDash,Str "two",EmDash,Str "three",EmDash,Str "four",EmDash,Str "five",Str "."]
+, Para [Str "Dashes",Space,Str "between",Space,Str "numbers:",Space,Str "5",EnDash,Str "7,",Space,Str "255",EnDash,Str "66,",Space,Str "1987",EnDash,Str "1999",Str "."]
+, Para [Str "Ellipses",Ellipses,Str "and",Ellipses,Str "and",Ellipses,Str "."]
 , HorizontalRule
 , Header 1 [Str "LaTeX"]
 , BulletList
@@ -223,13 +223,13 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
   , [ Plain [TeX "$223$"] ]
   , [ Plain [TeX "$p$",Str "-",Str "Tree"] ]
   , [ Plain [TeX "$\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}$"] ]
-  , [ Plain [Str "Here's",Space,Str "one",Space,Str "that",Space,Str "has",Space,Str "a",Space,Str "line",Space,Str "break",Space,Str "in",Space,Str "it:",Space,TeX "$\\alpha + \\omega \\times x^2$",Str "."] ] ]
-, Para [Str "These",Space,Str "shouldn't",Space,Str "be",Space,Str "math:"]
+  , [ Plain [Str "Here",Apostrophe,Str "s",Space,Str "one",Space,Str "that",Space,Str "has",Space,Str "a",Space,Str "line",Space,Str "break",Space,Str "in",Space,Str "it:",Space,TeX "$\\alpha + \\omega \\times x^2$",Str "."] ] ]
+, Para [Str "These",Space,Str "shouldn",Apostrophe,Str "t",Space,Str "be",Space,Str "math:"]
 , BulletList
   [ [ Plain [Str "To",Space,Str "get",Space,Str "the",Space,Str "famous",Space,Str "equation,",Space,Str "write",Space,Code "$e = mc^2$",Str "."] ]
-  , [ Plain [Str "$",Str "22,000",Space,Str "is",Space,Str "a",Space,Emph [Str "lot"],Space,Str "of",Space,Str "money.",Space,Str "So",Space,Str "is",Space,Str "$",Str "34,000.",Space,Str "(It",Space,Str "worked",Space,Str "if",Space,Str "\"lot\"",Space,Str "is",Space,Str "emphasized.)"] ]
+  , [ Plain [Str "$",Str "22,000",Space,Str "is",Space,Str "a",Space,Emph [Str "lot"],Space,Str "of",Space,Str "money",Str ".",Space,Str "So",Space,Str "is",Space,Str "$",Str "34,000",Str ".",Space,Str "(It",Space,Str "worked",Space,Str "if",Space,Quoted DoubleQuote [Str "lot"],Space,Str "is",Space,Str "emphasized",Str ".",Str ")"] ]
   , [ Plain [Str "Escaped",Space,Code "$",Str ":",Space,Str "$",Str "73",Space,Emph [Str "this",Space,Str "should",Space,Str "be",Space,Str "emphasized"],Space,Str "23",Str "$",Str "."] ] ]
-, Para [Str "Here's",Space,Str "a",Space,Str "LaTeX",Space,Str "table:"]
+, Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "LaTeX",Space,Str "table:"]
 , Para [TeX "\\begin{tabular}{|l|l|}\\hline\nAnimal & Number \\\\ \\hline\nDog    & 2      \\\\\nCat    & 1      \\\\ \\hline\n\\end{tabular}"]
 , HorizontalRule
 , Header 1 [Str "Special",Space,Str "Characters"]
@@ -240,11 +240,11 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
   , [ Plain [Str "section:",Space,Str "\167"] ]
   , [ Plain [Str "set",Space,Str "membership:",Space,Str "\8712"] ]
   , [ Plain [Str "copyright:",Space,Str "\169"] ] ]
-, Para [Str "AT&T",Space,Str "has",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "their",Space,Str "name."]
-, Para [Str "AT&T",Space,Str "is",Space,Str "another",Space,Str "way",Space,Str "to",Space,Str "write",Space,Str "it."]
-, Para [Str "This",Space,Str "&",Space,Str "that."]
-, Para [Str "4",Space,Str "<",Space,Str "5."]
-, Para [Str "6",Space,Str ">",Space,Str "5."]
+, Para [Str "AT&T",Space,Str "has",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "their",Space,Str "name",Str "."]
+, Para [Str "AT&T",Space,Str "is",Space,Str "another",Space,Str "way",Space,Str "to",Space,Str "write",Space,Str "it",Str "."]
+, Para [Str "This",Space,Str "&",Space,Str "that",Str "."]
+, Para [Str "4",Space,Str "<",Space,Str "5",Str "."]
+, Para [Str "6",Space,Str ">",Space,Str "5",Str "."]
 , Para [Str "Backslash:",Space,Str "\\"]
 , Para [Str "Backtick:",Space,Str "`"]
 , Para [Str "Asterisk:",Space,Str "*"]
@@ -278,11 +278,11 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Para [Str "Foo",Space,Link [Str "bar"] (Ref [Str "a"]),Str "."]
 , Key [Str "a"] (Src "/url/" "")
 , Para [Str "With",Space,Link [Str "embedded",Space,Str "[",Str "brackets",Str "]"] (Ref [Str "b"]),Str "."]
-, Para [Link [Str "b"] (Ref [Str "b"]),Space,Str "by",Space,Str "itself",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "link."]
+, Para [Link [Str "b"] (Ref [Str "b"]),Space,Str "by",Space,Str "itself",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "link",Str "."]
 , Para [Str "Indented",Space,Link [Str "once"] (Ref [Str "once"]),Str "."]
 , Para [Str "Indented",Space,Link [Str "twice"] (Ref [Str "twice"]),Str "."]
 , Para [Str "Indented",Space,Link [Str "thrice"] (Ref [Str "thrice"]),Str "."]
-, Para [Str "This",Space,Str "should",Space,Str "[",Str "not",Str "]",Str "[",Str "]",Space,Str "be",Space,Str "a",Space,Str "link."]
+, Para [Str "This",Space,Str "should",Space,Str "[",Str "not",Str "]",Str "[",Str "]",Space,Str "be",Space,Str "a",Space,Str "link",Str "."]
 , Key [Str "once"] (Src "/url" "")
 , Key [Str "twice"] (Src "/url" "")
 , Key [Str "thrice"] (Src "/url" "")
@@ -292,10 +292,10 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Para [Str "Foo",Space,Link [Str "biz"] (Src "/url/" "Title with &quot;quote&quot; inside"),Str "."]
 , Key [Str "bar"] (Src "/url/" "Title with &quot;quotes&quot; inside")
 , Header 2 [Str "With",Space,Str "ampersands"]
-, Para [Str "Here's",Space,Str "a",Space,Link [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] (Ref [Str "1"]),Str "."]
-, Para [Str "Here's",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "amersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text:",Space,Link [Str "AT&T"] (Ref [Str "2"]),Str "."]
-, Para [Str "Here's",Space,Str "an",Space,Link [Str "inline",Space,Str "link"] (Src "/script?foo=1&bar=2" ""),Str "."]
-, Para [Str "Here's",Space,Str "an",Space,Link [Str "inline",Space,Str "link",Space,Str "in",Space,Str "pointy",Space,Str "braces"] (Src "/script?foo=1&bar=2" ""),Str "."]
+, Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Link [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] (Ref [Str "1"]),Str "."]
+, Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "amersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text:",Space,Link [Str "AT&T"] (Ref [Str "2"]),Str "."]
+, Para [Str "Here",Apostrophe,Str "s",Space,Str "an",Space,Link [Str "inline",Space,Str "link"] (Src "/script?foo=1&bar=2" ""),Str "."]
+, Para [Str "Here",Apostrophe,Str "s",Space,Str "an",Space,Link [Str "inline",Space,Str "link",Space,Str "in",Space,Str "pointy",Space,Str "braces"] (Src "/script?foo=1&bar=2" ""),Str "."]
 , Key [Str "1"] (Src "http://example.com/?foo=1&bar=2" "")
 , Key [Str "2"] (Src "http://att.com/" "AT&T")
 , Header 2 [Str "Autolinks"]
@@ -303,7 +303,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , BulletList
   [ [ Plain [Str "In",Space,Str "a",Space,Str "list?"] ]
   , [ Plain [Link [Str "http://example.com/"] (Src "http://example.com/" "")] ]
-  , [ Plain [Str "It",Space,Str "should."] ] ]
+  , [ Plain [Str "It",Space,Str "should",Str "."] ] ]
 , Para [Str "An",Space,Str "e",Str "-",Str "mail",Space,Str "address:",Space,Link [Str "nobody@nowhere.net"] (Src "mailto:nobody@nowhere.net" "")]
 , BlockQuote
   [ Para [Str "Blockquoted:",Space,Link [Str "http://example.com/"] (Src "http://example.com/" "")] ]
@@ -312,34 +312,34 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , CodeBlock "or here: <http://example.com/>"
 , HorizontalRule
 , Header 1 [Str "Images"]
-, Para [Str "From",Space,Str "\"Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune\"",Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(1902):"]
+, Para [Str "From",Space,Quoted DoubleQuote [Str "Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune"],Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(1902):"]
 , Para [Image [Str "lalune"] (Ref [Str "lalune"])]
 , Key [Str "lalune"] (Src "lalune.jpg" "Voyage dans la Lune")
-, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "movie"] (Src "movie.jpg" ""),Space,Str "icon."]
+, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "movie"] (Src "movie.jpg" ""),Space,Str "icon",Str "."]
 , HorizontalRule
 , Header 1 [Str "Footnotes"]
-, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "footnote",Space,Str "reference,",NoteRef "1",Space,Str "and",Space,Str "another.",NoteRef "2",Space,Str "This",Space,Str "should",Space,Emph [Str "not"],Space,Str "be",Space,Str "a",Space,Str "footnote",Space,Str "reference,",Space,Str "because",Space,Str "it",Space,Str "contains",Space,Str "a",Space,Str "space.",Str "[",Str "^",Str "my",Space,Str "note",Str "]",Space,Str "Here",Space,Str "is",Space,Str "an",Space,Str "inline",Space,Str "note.",NoteRef "3"]
+, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "footnote",Space,Str "reference,",NoteRef "1",Space,Str "and",Space,Str "another",Str ".",NoteRef "2",Space,Str "This",Space,Str "should",Space,Emph [Str "not"],Space,Str "be",Space,Str "a",Space,Str "footnote",Space,Str "reference,",Space,Str "because",Space,Str "it",Space,Str "contains",Space,Str "a",Space,Str "space",Str ".",Str "[",Str "^",Str "my",Space,Str "note",Str "]",Space,Str "Here",Space,Str "is",Space,Str "an",Space,Str "inline",Space,Str "note",Str ".",NoteRef "3"]
 , BlockQuote
-  [ Para [Str "Notes",Space,Str "can",Space,Str "go",Space,Str "in",Space,Str "quotes.",NoteRef "4"] ]
+  [ Para [Str "Notes",Space,Str "can",Space,Str "go",Space,Str "in",Space,Str "quotes",Str ".",NoteRef "4"] ]
 
 , OrderedList
-  [ [ Plain [Str "And",Space,Str "in",Space,Str "list",Space,Str "items.",NoteRef "5"] ]
+  [ [ Plain [Str "And",Space,Str "in",Space,Str "list",Space,Str "items",Str ".",NoteRef "5"] ]
  ]
-, Para [Str "This",Space,Str "paragraph",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "part",Space,Str "of",Space,Str "the",Space,Str "note,",Space,Str "as",Space,Str "it",Space,Str "is",Space,Str "not",Space,Str "indented."]
+, Para [Str "This",Space,Str "paragraph",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "part",Space,Str "of",Space,Str "the",Space,Str "note,",Space,Str "as",Space,Str "it",Space,Str "is",Space,Str "not",Space,Str "indented",Str "."]
 , Note "1"
-  [ Para [Str "Here",Space,Str "is",Space,Str "the",Space,Str "footnote.",Space,Str "It",Space,Str "can",Space,Str "go",Space,Str "anywhere",Space,Str "after",Space,Str "the",Space,Str "footnote",Space,Str "reference.",Space,Str "It",Space,Str "need",Space,Str "not",Space,Str "be",Space,Str "placed",Space,Str "at",Space,Str "the",Space,Str "end",Space,Str "of",Space,Str "the",Space,Str "document."] ]
+  [ Para [Str "Here",Space,Str "is",Space,Str "the",Space,Str "footnote",Str ".",Space,Str "It",Space,Str "can",Space,Str "go",Space,Str "anywhere",Space,Str "after",Space,Str "the",Space,Str "footnote",Space,Str "reference",Str ".",Space,Str "It",Space,Str "need",Space,Str "not",Space,Str "be",Space,Str "placed",Space,Str "at",Space,Str "the",Space,Str "end",Space,Str "of",Space,Str "the",Space,Str "document",Str "."] ]
 
 , Note "2"
-  [ Para [Str "Here's",Space,Str "the",Space,Str "long",Space,Str "note.",Space,Str "This",Space,Str "one",Space,Str "contains",Space,Str "multiple",Space,Str "blocks."]
-  , Para [Str "Subsequent",Space,Str "blocks",Space,Str "are",Space,Str "indented",Space,Str "to",Space,Str "show",Space,Str "that",Space,Str "they",Space,Str "belong",Space,Str "to",Space,Str "the",Space,Str "footnote",Space,Str "(as",Space,Str "with",Space,Str "list",Space,Str "items)."]
+  [ Para [Str "Here",Apostrophe,Str "s",Space,Str "the",Space,Str "long",Space,Str "note",Str ".",Space,Str "This",Space,Str "one",Space,Str "contains",Space,Str "multiple",Space,Str "blocks",Str "."]
+  , Para [Str "Subsequent",Space,Str "blocks",Space,Str "are",Space,Str "indented",Space,Str "to",Space,Str "show",Space,Str "that",Space,Str "they",Space,Str "belong",Space,Str "to",Space,Str "the",Space,Str "footnote",Space,Str "(as",Space,Str "with",Space,Str "list",Space,Str "items)",Str "."]
   , CodeBlock "  { <code> }"
-  , Para [Str "If",Space,Str "you",Space,Str "want,",Space,Str "you",Space,Str "can",Space,Str "indent",Space,Str "every",Space,Str "line,",Space,Str "but",Space,Str "you",Space,Str "can",Space,Str "also",Space,Str "be",Space,Str "lazy",Space,Str "and",Space,Str "just",Space,Str "indent",Space,Str "the",Space,Str "first",Space,Str "line",Space,Str "of",Space,Str "each",Space,Str "block."] ]
+  , Para [Str "If",Space,Str "you",Space,Str "want,",Space,Str "you",Space,Str "can",Space,Str "indent",Space,Str "every",Space,Str "line,",Space,Str "but",Space,Str "you",Space,Str "can",Space,Str "also",Space,Str "be",Space,Str "lazy",Space,Str "and",Space,Str "just",Space,Str "indent",Space,Str "the",Space,Str "first",Space,Str "line",Space,Str "of",Space,Str "each",Space,Str "block",Str "."] ]
 , Note "3"
-  [ Para [Str "This",Space,Str "is",Space,Emph [Str "easier"],Space,Str "to",Space,Str "type.",Space,Str "Inline",Space,Str "notes",Space,Str "may",Space,Str "contain",Space,Link [Str "links"] (Src "http://google.com" ""),Space,Str "and",Space,Code "]",Space,Str "verbatim",Space,Str "characters."] ]
+  [ Para [Str "This",Space,Str "is",Space,Emph [Str "easier"],Space,Str "to",Space,Str "type",Str ".",Space,Str "Inline",Space,Str "notes",Space,Str "may",Space,Str "contain",Space,Link [Str "links"] (Src "http://google.com" ""),Space,Str "and",Space,Code "]",Space,Str "verbatim",Space,Str "characters",Str "."] ]
 
 , Note "4"
-  [ Para [Str "In",Space,Str "quote."] ]
+  [ Para [Str "In",Space,Str "quote",Str "."] ]
 
 , Note "5"
-  [ Para [Str "In",Space,Str "list."] ]
+  [ Para [Str "In",Space,Str "list",Str "."] ]
  ]

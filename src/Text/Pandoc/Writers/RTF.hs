@@ -211,6 +211,14 @@ inlineToRTF :: [Block]        -- ^ list of note blocks
 inlineToRTF notes (Emph lst) = "{\\i " ++ (inlineListToRTF notes lst) ++ "} "
 inlineToRTF notes (Strong lst) = 
   "{\\b " ++ (inlineListToRTF notes lst) ++ "} "
+inlineToRTF notes (Quoted SingleQuote lst) = 
+  "\\u8216'" ++ (inlineListToRTF notes lst) ++ "\\u8217'"
+inlineToRTF notes (Quoted DoubleQuote lst) = 
+  "\\u8220\"" ++ (inlineListToRTF notes lst) ++ "\\u8221\""
+inlineToRTF notes Apostrophe = "\\u8217'"
+inlineToRTF notes Ellipses = "\\u8230?"
+inlineToRTF notes EmDash = "\\u8212-"
+inlineToRTF notes EnDash = "\\u8211-"
 inlineToRTF notes (Code str) = "{\\f1 " ++ (codeStringToRTF str) ++ "} "
 inlineToRTF notes (Str str) = stringToRTF str
 inlineToRTF notes (TeX str) = latexToRTF str

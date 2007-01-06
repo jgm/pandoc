@@ -86,12 +86,13 @@ titleOpeners = "\"'("
 setextHChars = ['=','-']
 blockQuoteChar = '>'
 hyphenChar = '-'
+ellipsesChar = '.'
 
 -- treat these as potentially non-text when parsing inline:
 specialChars = [escapeChar, labelStart, labelEnd, emphStart, emphEnd,
                 emphStartAlt, emphEndAlt, codeStart, codeEnd, autoLinkEnd,
                 autoLinkStart, mathStart, mathEnd, imageStart, noteStart,
-                hyphenChar]
+                hyphenChar, ellipsesChar] ++ quoteChars
 
 --
 -- auxiliary functions
@@ -119,6 +120,11 @@ failIfStrict = do
 failUnlessBeginningOfLine = do
   pos <- getPosition
   if sourceColumn pos == 1 then return () else fail "not beginning of line"
+
+-- | Fail unless we're in "smart typography" mode.
+failUnlessSmart = do
+  state <- getState
+  if stateSmart state then return () else fail "Smart typography feature"
 
 --
 -- document structure
@@ -519,11 +525,11 @@ rawLaTeXEnvironment' = do
 -- inline
 --
 
-text = choice [ math, strong, emph, code, str, linebreak, tabchar, 
-                whitespace, endline ] <?> "text"
+text = choice [ escapedChar, math, strong, emph, smartPunctuation,
+                code, ltSign, symbol,
+                str, linebreak, tabchar, whitespace, endline ] <?> "text"
 
-inline = choice [ rawLaTeXInline', escapedChar, special, hyphens, text, 
-                  ltSign, symbol ] <?> "inline"
+inline = choice [ rawLaTeXInline', escapedChar, special, text ] <?> "inline"
 
 special = choice [ noteRef, inlineNote, link, referenceLink, rawHtmlInline', 
                    autoLink, image ] <?> "link, inline html, note, or image"
@@ -531,6 +537,7 @@ special = choice [ noteRef, inlineNote, link, referenceLink, rawHtmlInline',
 escapedChar = escaped anyChar
 
 ltSign = try (do
+  notFollowedBy (noneOf "<")   -- continue only if it's a <
   notFollowedBy' rawHtmlBlocks -- don't return < if it starts html
   char '<'
   return (Str ['<']))
@@ -540,13 +547,6 @@ specialCharsMinusLt = filter (/= '<') specialChars
 symbol = do 
   result <- oneOf specialCharsMinusLt
   return (Str [result])
-
-hyphens = try (do
-  result <- many1 (char '-')
-  if (length result) == 1
-     then skipEndline   -- don't want to treat endline after hyphen as a space
-     else do{ string ""; return Space }
-  return (Str result))
 
 -- parses inline code, between n codeStarts and n codeEnds
 code = try (do 
@@ -582,6 +582,56 @@ strong = do
                      (enclosed (count 2 (char emphStartAlt)) 
                                (count 2 (char emphEndAlt)) inline) ]
   return (Strong (normalizeSpaces result))
+
+smartPunctuation = do
+  failUnlessSmart
+  choice [ quoted, apostrophe, dash, ellipses ]
+
+apostrophe = do
+  char '\'' <|> char '\8217'
+  return Apostrophe
+
+quoted = do
+  doubleQuoted <|> singleQuoted 
+
+singleQuoted = try (do
+  result <- enclosed singleQuoteStart singleQuoteEnd 
+                     (do{notFollowedBy' singleQuoted; inline} <|> apostrophe)
+  return $ Quoted SingleQuote $ normalizeSpaces result)
+
+doubleQuoted = try (do
+  result <- enclosed doubleQuoteStart doubleQuoteEnd inline
+  return $ Quoted DoubleQuote $ normalizeSpaces result)
+
+singleQuoteStart = try (do 
+  char '\'' <|> char '\8216'
+  notFollowedBy' whitespace)
+
+singleQuoteEnd = try (do
+  oneOfStrings ["'", "\8217"]
+  notFollowedBy alphaNum)
+
+doubleQuoteStart = char '"' <|> char '\8220'
+
+doubleQuoteEnd = char '"' <|> char '\8221'
+
+ellipses = try (do
+  oneOfStrings ["...", " . . . ", ". . .", " . . ."]
+  return Ellipses)
+
+dash = enDash <|> emDash
+
+enDash = try (do
+  char '-'
+  followedBy' (many1 digit)
+  return EnDash) 
+
+emDash = try (do
+  skipSpaces
+  oneOfStrings ["---", "--"]
+  skipSpaces
+  option ' ' newline
+  return EmDash)
 
 whitespace = do
   many1 (oneOf spaceChars) <?> "whitespace"

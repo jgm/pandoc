@@ -32,14 +32,19 @@ module Text.Pandoc.Entities (
                      entityToChar,
                      charToEntity,
                      decodeEntities,
-                     encodeEntities
+                     encodeEntities,
+                     characterEntity
                     ) where
 import Data.Char ( chr, ord )
-import Text.Regex ( mkRegex, matchRegexAll )
+import Text.Regex ( mkRegex, matchRegexAll, Regex )
 import Maybe ( fromMaybe )
 
--- regexs for entities
+-- | Regular expression for decimal coded entity.
+decimalCodedEntity :: Text.Regex.Regex
 decimalCodedEntity = mkRegex "&#([0-9]+);"
+
+-- | Regular expression for character entity.
+characterEntity :: Text.Regex.Regex
 characterEntity = mkRegex "&#[0-9]+;|&[A-Za-z0-9]+;"
 
 -- | Return a string with all entity references decoded to unicode characters

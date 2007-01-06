@@ -84,36 +84,9 @@ escapeBar       = gsub "\\|" "\\\\textbar{}"
 escapeLt        = gsub "<" "\\\\textless{}"
 escapeGt        = gsub ">" "\\\\textgreater{}"
 
-escapeDoubleQuotes = 
-    gsub "\"" "''" . -- rest are right quotes .
-    gsub "``\\\\footnote" "''\\\\footnote" . -- except \footnote
-    gsub "\"\\\\" "``\\\\" . -- left quote before latex command
-    gsub "([[:space:]])\"" "\\1``" . -- never right quote after space 
-    gsub "\"('|`)([^[:punct:][:space:]])" "``{}`\\2" . -- "'word left
-    gsub "\"([^[:punct:][:space:]])" "``\\1"  -- "word left
-    
-escapeSingleQuotes =
-    gsub "`\\\\footnote" "'\\\\footnote" . -- except \footnote
-    gsub "'\\\\" "`\\\\" . -- left quote before latex command
-    gsub "('|`)(\"|``)" "`{}``" .  -- '"word left
-    gsub "([^[:punct:][:space:]])`(s|S)" "\\1'\\2" . -- catch possessives 
-    gsub "^'([^[:punct:][:space:]])" "`\\1" .  -- 'word left 
-    gsub "([[:space:]])'" "\\1`" . -- never right quote after space 
-    gsub "([[:space:]])'([^[:punct:][:space:]])" "\\1`\\2" 
-         -- 'word left (leave possessives)
-
-escapeEllipses = gsub "\\.\\.\\.|\\. \\. \\." "\\ldots{}" 
-
-escapeDashes = gsub "([0-9])-([0-9])" "\\1--\\2" .
-               gsub " *--- *" "---" .
-               gsub "([^-])--([^-])" "\\1---\\2" 
-
-escapeSmart = escapeDashes . escapeSingleQuotes . escapeDoubleQuotes . 
-              escapeEllipses 
-
--- | Escape string for LaTeX (including smart quotes, dashes, ellipses)
+-- | Escape string for LaTeX
 stringToLaTeX :: String -> String
-stringToLaTeX = escapeSmart . escapeGt . escapeLt . escapeBar . escapeHat . 
+stringToLaTeX = escapeGt . escapeLt . escapeBar . escapeHat . 
                 escapeSpecial . fixBackslash . escapeBrackets . 
                 escapeBackslash 
 
@@ -158,9 +131,7 @@ inlineListToLaTeX :: [Block]   -- ^ List of note blocks to use in resolving note
                   -> [Inline]  -- ^ Inlines to convert
                   -> String
 inlineListToLaTeX notes lst = 
-  -- first, consolidate Str and Space for more effective smartquotes:
-  let lst' = consolidateList lst in
-  concatMap (inlineToLaTeX notes) lst'
+  concatMap (inlineToLaTeX notes) lst
 
 -- | Convert inline element to LaTeX
 inlineToLaTeX :: [Block]   -- ^ List of note blocks to use in resolving note refs
@@ -173,6 +144,14 @@ inlineToLaTeX notes (Strong lst) = "\\textbf{" ++
 inlineToLaTeX notes (Code str) = "\\verb" ++ [chr] ++ stuffing ++ [chr]
                      where stuffing = str 
                            chr      = ((enumFromTo '!' '~') \\ stuffing) !! 0
+inlineToLaTeX notes (Quoted SingleQuote lst) =
+  "`" ++ inlineListToLaTeX notes lst ++ "'"
+inlineToLaTeX notes (Quoted DoubleQuote lst) =
+  "``" ++ inlineListToLaTeX notes lst ++ "''"
+inlineToLaTeX notes Apostrophe = "'"
+inlineToLaTeX notes EmDash = "---"
+inlineToLaTeX notes EnDash = "--"
+inlineToLaTeX notes Ellipses = "\\ldots{}"
 inlineToLaTeX notes (Str str) = stringToLaTeX str
 inlineToLaTeX notes (TeX str) = str
 inlineToLaTeX notes (HtmlInline str) = ""
