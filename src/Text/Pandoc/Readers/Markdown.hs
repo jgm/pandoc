@@ -104,7 +104,8 @@ skipEndline = option Space endline
 indentSpaces = do
   state <- getState
   let tabStop = stateTabStop state
-  oneOfStrings [ "\t", (replicate tabStop ' ') ] <?> "indentation"
+  count tabStop (char ' ') <|> 
+    (do{skipNonindentSpaces; string "\t"}) <?> "indentation"
 
 skipNonindentSpaces = do
   state <- getState
