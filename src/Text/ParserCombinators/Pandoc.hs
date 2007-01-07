@@ -81,8 +81,7 @@ blankline = try (do
 
 -- | Parses one or more blank lines and returns a string of newlines.
 blanklines :: GenParser Char st [Char]
-blanklines = try (do
-                    many1 blankline)
+blanklines = try (many1 blankline)
 
 -- | Parses backslash, then applies character parser.
 escaped :: GenParser Char st Char  -- ^ Parser for character to escape

@@ -285,7 +285,7 @@ note = try (do
   ref <- noteMarker
   char ':'
   skipSpaces
-  skipEndline
+  skipEndline 
   raw <- sepBy rawLines (try (do {blankline; indentSpaces}))
   option "" blanklines
   -- parse the extracted text, which may contain various block elements:
@@ -510,7 +510,7 @@ referenceKey = try (do
   blanklines 
   state <- getState
   let keysUsed = stateKeysUsed state
-  updateState (\st -> st { stateKeysUsed = (label:keysUsed) })
+  setState state { stateKeysUsed = (label:keysUsed) }
   return $ Key label (Src (removeTrailingSpace src) tit))
 
 --
@@ -652,7 +652,6 @@ emDash = try (do
   skipSpaces
   oneOfStrings ["---", "--"]
   skipSpaces
-  option ' ' newline
   return EmDash)
 
 whitespace = do
@@ -684,7 +683,9 @@ endline = try (do
   if stateStrict st 
     then do
            notFollowedBy' emailBlockQuoteStart
-           notFollowedBy' header
+           notFollowedBy (char atxHChar)  -- atx header
+           notFollowedBy (try (do{manyTill anyChar newline; 
+                                  oneOf setextHChars}))  -- setext header
     else return () 
   -- parse potential list-starts differently if in a list:
   if (stateParserContext st) == ListItemState
@@ -705,7 +706,6 @@ rawLabel = try $ do
 
 -- a reference label for a link
 reference = try $ do
-  notFollowedBy (try (do{char labelStart; char noteStart}))
   raw <- rawLabel
   oldInput <- getInput
   setInput raw
@@ -726,13 +726,13 @@ source = try (do
 
 titleWith startChar endChar = try (do
   skipSpaces
-  skipEndline  -- a title can be on the next line from the source
+  option ' ' newline -- a title can be on the next line from the source
   skipSpaces
   char startChar
   tit <- manyTill anyChar (try (do
                                   char endChar
                                   skipSpaces
-                                  followedBy' (char ')' <|> newline)))
+                                  notFollowedBy (noneOf ")\n")))
   let tit' = gsub "\"" "&quot;" tit
   return tit')
 
@@ -753,13 +753,14 @@ referenceLink = choice [referenceLinkDouble, referenceLinkSingle]
 referenceLinkDouble = try (do
   label <- reference
   skipSpaces
-  skipEndline
+  option ' ' newline
   skipSpaces
   ref <- reference 
   let ref' = if null ref then label else ref
   state <- getState
   if ref' `elem` (stateKeysUsed state)
-     then return () else fail "no corresponding key"
+     then return ()
+     else fail "no corresponding key"
   return (Link label (Ref ref'))) 
 
 -- a link like [this]
@@ -767,12 +768,13 @@ referenceLinkSingle = try (do
   label <- reference
   state <- getState
   if label `elem` (stateKeysUsed state)
-     then return () else fail "no corresponding key"
+     then return ()
+     else fail "no corresponding key"
   return (Link label (Ref label))) 
 
 -- a link <like.this.com>
 autoLink = try (do
-  notFollowedBy' anyHtmlBlockTag
+  notFollowedBy' (anyHtmlTag <|> anyHtmlEndTag)
   src <- between (char autoLinkStart) (char autoLinkEnd) 
          (many (noneOf (spaceChars ++ endLineChars ++ [autoLinkEnd])))
   case (matchRegex emailAddress src) of
@@ -797,7 +799,7 @@ noteRef = try (do
   ref <- noteMarker
   state <- getState
   let identifiers = (stateNoteIdentifiers state) ++ [ref] 
-  updateState (\st -> st {stateNoteIdentifiers = identifiers})
+  setState state {stateNoteIdentifiers = identifiers}
   return (NoteRef (show (length identifiers))))
 
 inlineNote = try (do
@@ -809,9 +811,9 @@ inlineNote = try (do
   let identifiers = stateNoteIdentifiers state
   let ref = show $ (length identifiers) + 1
   let noteBlocks = stateNoteBlocks state
-  updateState (\st -> st {stateNoteIdentifiers = (identifiers ++ [ref]),
-                          stateNoteBlocks = 
-                               (Note ref [Para contents]):noteBlocks})
+  setState state {stateNoteIdentifiers = (identifiers ++ [ref]),
+                        stateNoteBlocks = 
+                                 (Note ref [Para contents]):noteBlocks}
   return (NoteRef ref))
 
 rawLaTeXInline' = do
