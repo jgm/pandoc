@@ -1,5 +1,5 @@
 \documentclass{article}
-\usepackage{hyperref}
+\usepackage[breaklinks=true]{hyperref}
 \usepackage{ucs}
 \usepackage[utf8x]{inputenc}
 \usepackage{graphicx}
