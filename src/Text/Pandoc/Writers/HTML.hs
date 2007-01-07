@@ -230,9 +230,9 @@ inlineToHtml opts (Link txt (Ref ref)) =
 inlineToHtml opts (Image alt (Src source tit)) = 
   let title = stringToSGML tit
       alternate = render $ inlineListToHtml opts alt in 
-  selfClosingTag "img" $ [("src", source)] ++  
-  (if null tit then [] else [("title", title)]) ++ 
-  (if null alternate then [] else [("alt", alternate)])  
+  selfClosingTag "img" $ [("src", source)] ++
+  (if null alternate then [] else [("alt", alternate)]) ++
+  [("title", title)]  -- note:  null title is included, as in Markdown.pl 
 inlineToHtml opts (Image alternate (Ref ref)) = 
   text "![" <> (inlineListToHtml opts alternate) <> text "][" <> 
   (inlineListToHtml opts ref) <> char ']'
