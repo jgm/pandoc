@@ -29,7 +29,7 @@ destname="${outfile:-$defaultdest}"
     cd $THIS_TEMPDIR
     if ! pdflatex -interaction=batchmode $texname.tex >/dev/null 2>&1; then
 	err "${THIS}: pdfLaTeX error context:"
-        sed -ne '/^![[:space:]]/,/^[[:space:]]*$/p' \
+        sed -ne '/^!/,/^[[:space:]]*$/p' \
             -ne '/^[Ll]a[Tt]e[Xx] [Ww]arning/,/^[[:space:]]*$/p' \
             -ne '/^[Ee]rror/,/^[[:space:]]*$/p' $texname.log >&2
         if grep -q "File \`ucs.sty' not found" $texname.log; then
