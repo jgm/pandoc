@@ -27,9 +27,16 @@ destname="${outfile:-$defaultdest}"
 
 (
     cd $THIS_TEMPDIR
-    if ! pdflatex -interaction=batchmode $texname.tex >/dev/null 2>&1; then
-        err "LaTeX errors:"
-        sed -ne '/^!/,/^ *$/p' $texname.log >&2
+    if ! pdflatex -interaction=batchmode $texname.tex >$texname.log 2>&1; then
+	shortlog="$(sed -ne 's/^[Ee]rror:*[[:space:]]*//p' $texname.log)"
+	if [ -n "$shortlog" ]; then
+		err "Errors:"
+		err "$shortlog"
+	else
+		# Short log is not available, dump the whole log.
+		err "pdfLaTeX log:"
+		cat $texname.log >&2
+	fi
         if grep -q "File \`ucs.sty' not found" $texname.log; then
             err "Please install the 'unicode' package from CTAN:"
             err "http://www.ctan.org/tex-archive/macros/latex/contrib/unicode/"
