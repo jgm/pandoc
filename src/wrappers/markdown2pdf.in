@@ -25,6 +25,7 @@ fi
     origdir=$(pwd)
     cd $THIS_TEMPDIR
     TEXINPUTS=$origdir:$TEXINPUTS:
+    export TEXINPUTS
     pdflatex -interaction=batchmode $texname.tex >/dev/null || {
         errcode=$?
 	err "${THIS}: pdfLaTeX failed with error code $errcode"
