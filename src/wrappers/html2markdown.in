@@ -3,6 +3,7 @@
 # uses an available program to fetch URL and tidy to normalize it first
 
 REQUIRED="tidy"
+SYNOPSIS="converts HTML from a URL, file, or STDIN to markdown-formatted text."
 
 ### common.sh
 
@@ -59,63 +60,46 @@ grab_url_with () {
     $prog "$@" "$url"
 }
 
-add_option () {
-    options="$options$NEWLINE$1"
-}
-
-options=
 argument=
 encoding=
 grabber=
 
 # Parse command-line arguments
-while [ $# -gt 0 ]; do
-    case "$1" in
-        -h|--help)
-            pandoc -h 2>&1 | sed -e 's/pandoc/html2markdown/' \
-            -e '/^[[:space:]]*\(-f\|-t\|-S\|-N\|-m\|-i\|-c\|-T\|-D\|-d\)/,/./d'\
-            1>&2 
-            err "  -e ENCODING, --encoding=ENCODING"
-            err "        Specify character encoding of input"
-            err "  -g COMMAND, --grabber=COMMAND"
-            err "        Specify command to be used to grab contents of URL"
-            exit 0 ;;
-        -v|--version) 
-            pandoc -v 2>&1 | sed -e 's/pandoc/html2markdown/' 1>&2
-            exit 0 ;;
-        -e)
-            shift
-            encoding=$1 ;; 
-        --encoding=*)
-            wholeopt=$1
-            # extract encoding from after =
-            encoding=${wholeopt#*=} ;;
-        -g)
-            shift
-            grabber=$1 ;; 
-        --grabber=*)
-            wholeopt=$1
-            # extract encoding from after =
-            grabber=${wholeopt#*=} ;;
-        -o|--output|-b|--tab-stop|-H|--include-in-header| \
-        -A|--include-after-body|-C|-B|--include-before-body| \
-        -C|--custom-header|-T|--title-prefix) 
-            add_option $1
-            shift
-            add_option $1 ;;
-        -*) add_option $1 ;;
-        *) 
-            if [ -z "$argument" ]; then
-                argument=$1
-            else
-                err "Warning: extra argument '$1' will be ignored."
-            fi ;;            
-    esac
-    shift
-done
+parse_arguments () {
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --encoding=*)
+                wholeopt="$1"
+                # extract encoding from after =
+                encoding="${wholeopt#*=}" ;;
+            -e|--encoding|-encoding)
+                shift
+                encoding="$1" ;; 
+            --grabber=*)
+                wholeopt="$1"
+                # extract encoding from after =
+                grabber="\"${wholeopt#*=}\"" ;;
+            -g|--grabber|-grabber)
+                shift
+                grabber="$1" ;; 
+            *)
+                if [ -z "$argument" ]; then
+                    argument="$1"
+                else
+                    err "Warning:  extra argument '$1' will be ignored."
+                fi ;;
+            esac
+        shift
+    done
+    export encoding
+    export grabber
+    export argument
+}
 
-# Unpack options.  Now "$@" will hold the pandoc options.
-oldifs="$IFS"; IFS="$NEWLINE"; set -- $options; IFS="$oldifs"
+oldifs="$IFS"
+IFS=$NEWLINE
+parse_arguments $ARGS
+IFS="$oldifs"
 
 inurl=
 if [ -n "$argument" ] && ! [ -f "$argument" ]; then
@@ -164,11 +148,11 @@ else # assume UTF-8
 fi 
 
 if [ -z "$argument" ]; then
-    tidy -utf8 2>/dev/null | pandoc -r html -w markdown "$@"
+    tidy -utf8 2>/dev/null | pandoc --ignore-args -r html -w markdown "$@"
 else
     if [ -f "$argument" ]; then
         to_utf8 "$argument" | 
-        tidy -utf8 2>/dev/null | pandoc -r html -w markdown "$@"
+        tidy -utf8 2>/dev/null | pandoc --ignore-args -r html -w markdown "$@"
     else
         err "File '$argument' not found."
         exit 1
