@@ -342,6 +342,28 @@ using the `hsmarkdown` wrapper.
 [standard markdown]:  http://daringfireball.net/projects/markdown/syntax
   "Markdown syntax description"
 
+Backslash escapes
+-----------------
+
+Except inside a code block or inline code, any punctuation or space
+character preceded by a backslash will be treated literally, even if it
+would normally indicate formatting.  Thus, for example, if one writes
+
+    *\*hello\**
+
+one will get
+
+    <em>*hello*</em>
+
+instead of
+
+    <strong>hello</strong>
+
+This rule is easier to remember than standard markdown's rule,
+which allows only the following characters to be backslash-escaped:
+
+    \`*_{}[]()>#+-.!
+
 Lists
 -----
 

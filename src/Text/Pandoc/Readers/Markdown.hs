@@ -32,6 +32,7 @@ module Text.Pandoc.Readers.Markdown (
                                     ) where
 
 import Data.List ( findIndex, sortBy )
+import Data.Char ( isAlphaNum )
 import Text.ParserCombinators.Pandoc
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment )
@@ -535,7 +536,13 @@ inline = choice [ rawLaTeXInline', escapedChar, special, text ] <?> "inline"
 special = choice [ noteRef, inlineNote, link, referenceLink, rawHtmlInline', 
                    autoLink, image ] <?> "link, inline html, note, or image"
 
-escapedChar = escaped anyChar
+escapedChar = try $ do
+  char '\\'
+  state <- getState
+  result <- if stateStrict state 
+              then oneOf "\\`*_{}[]()>#+-.!"
+              else satisfy (not . isAlphaNum)
+  return (Str [result])
 
 ltSign = try (do
   notFollowedBy (noneOf "<")   -- continue only if it's a <
