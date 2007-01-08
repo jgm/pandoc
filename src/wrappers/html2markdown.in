@@ -60,10 +60,6 @@ grab_url_with () {
     $prog "$@" "$url"
 }
 
-argument=
-encoding=
-grabber=
-
 # Parse command-line arguments
 parse_arguments () {
     while [ $# -gt 0 ]; do
@@ -91,10 +87,11 @@ parse_arguments () {
             esac
         shift
     done
-    export encoding
-    export grabber
-    export argument
 }
+
+argument=
+encoding=
+grabber=
 
 oldifs="$IFS"
 IFS=$NEWLINE
