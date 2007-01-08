@@ -23,18 +23,15 @@ output through \fBiconv\fR:
 \fBmarkdown2pdf\fR assumes that the 'unicode' and 'fancyvrb' packages
 are in latex's search path.  If these packages are not included in your
 latex setup, they can be obtained from <http://ctan.org>.
-.PP
-\fBmarkdown2pdf\fR is a wrapper around \fBpandoc\fR.
 .SH OPTIONS
+.PP
+\fBmarkdown2pdf\fR is a wrapper around \fBpandoc\fR, so all of
+\fBpandoc\fR's options can be used with \fBmarkdown2pdf\fR as well.
+See \fBpandoc\fR(1) for a complete list.
+The following options are most relevant:
 .TP
 .B \-o FILE, \-\-output=FILE
 Write output to \fIFILE\fR.
-.TP
-.B \-p, \-\-preserve-tabs
-Preserve tabs instead of converting them to spaces.
-.TP
-.B \-\-tab-stop=\fITABSTOP\fB
-Specify tab stop (default is 4).
 .TP
 .B \-\-strict
 Use strict markdown syntax, with no extensions or variants.
@@ -57,12 +54,6 @@ Include (LaTeX) contents of \fIFILE\fR at the end of the document body.
 Use contents of \fIFILE\fR
 as the LaTeX document header (overriding the default header, which can be
 printed using '\fBpandoc \-D latex\fR').  Implies \fB-s\fR.
-.TP
-.B \-v, \-\-version
-Print version.
-.TP
-.B \-h, \-\-help
-Show usage message.
 .SH "SEE ALSO"
 \fBpandoc\fR(1),
 \fBpdflatex\fR(1)

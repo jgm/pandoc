@@ -210,9 +210,6 @@ pandoc (0.3) unstable; urgency=low
     + getopts shell builtin is used for portable option parsing.
     + Improved html2markdown's web grabber code, making it more robust,
       configurable and verbose.  Added '-e', '-g' options.
-      Possible use case:
-        # Use wget by setting timeout to 10 seconds and limit retries to 2.
-        html2markdown -g 'wget --timeout=10 --tries=2'
 
  -- Recai Oktaş <roktas@debian.org>  Fri, 05 Jan 2007 09:41:19 +0200
 

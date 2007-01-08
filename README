@@ -176,20 +176,32 @@ may be used in Windows under Cygwin.)
 	    markdown2pdf -o "My Book.pdf" chap1.txt chap2.txt chap3.txt  
 
     If no input file is specified, input will be taken from STDIN.
+    All of `pandoc`'s options will work with `markdown2pdf` as well.
 
 2.  `html2markdown` grabs a web page from a file or URL and converts
     it to markdown-formatted text, using `tidy` and `pandoc`.
-    Unless input is from STDIN, an attempt is made to determine the
-    character encoding of the page from the "Content-type" meta tag.
-    If this is not present, UTF-8 is assumed.  Alternatively, a character
-    encoding may be specified explicitly using the `-e` option.
 
-    `html2markdown` searches for an available program (`wget`, `curl`,
-    or a text-mode browser) to fetch the contents of a URL.
-    Optionally, the `-g` command may be used to specify the command
-    to be used:
+    All of `pandoc`'s options will work with `html2markdown` as well.
+    In addition, the following special options may be used.
+    The special options must be separated from the `html2markdown`
+    command and any regular Pandoc options by the delimiter `--`:
 
-        html2markdown -g 'wget --user=foo --password=bar' mysite.com
+        html2markdown -o out.txt -- -e latin1 -g curl google.com 
+
+    The `-e` or `--encoding` option specifies the character encoding
+    of the HTML input.  If this option is not specified, and input
+    is not from STDIN, `html2markdown` will attempt to determine the
+    page's character encoding from the "Content-type" meta tag.
+    If this is not present, UTF-8 is assumed.
+     
+    The `-g` or `--grabber` option specifies the command to be used to
+    fetch the contents of a URL:
+
+        html2markdown -g 'curl --user foo:bar' www.mysite.com
+
+    If this option is not specified, `html2markdown` searches for an
+    available program (`wget`, `curl`, or a text-mode browser) to fetch
+    the contents of a URL.
 
 3.  `hsmarkdown` is designed to be used as a drop-in replacement for
     `Markdown.pl`.  It forces `pandoc` to convert from markdown to

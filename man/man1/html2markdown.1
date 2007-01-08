@@ -2,7 +2,8 @@
 .SH NAME
 html2markdown \- converts HTML to markdown-formatted text
 .SH SYNOPSIS
-\fBhtml2markdown\fR [\fIoptions\fR] [\fIinput\-file\fR or \fIURL\fR]
+\fBhtml2markdown\fR [\fIpandoc\-options\fR] 
+[\-\- \fIspecial\-options\fR] [\fIinput\-file\fR or \fIURL\fR]
 .SH DESCRIPTION
 \fBhtml2markdown\fR converts \fIinput\-file\fR or \fIURL\fR (or text
 from STDIN) from HTML to markdown\-formatted plain text. 
@@ -14,10 +15,12 @@ option.
 \fBhtml2markdown\fR uses the character encoding specified in the
 "Content-type" meta tag.  If this is not present, or if input comes
 from STDIN, UTF-8 is assumed.  A character encoding may be specified
-explicitly using the \fB\-e\fR option.
-.PP
-\fBhtml2markdown\fR is a wrapper for \fBpandoc\fR.
+explicitly using the \fB\-e\fR special option.
 .SH OPTIONS
+.PP
+\fBhtml2markdown\fR is a wrapper for \fBpandoc\fR, so all of
+\fBpandoc\fR's options may be used.  See \fBpandoc\fR(1) for
+a complete list.  The following options are most relevant:
 .TP
 .B \-s, \-\-standalone
 Include title, author, and date information (if present) at the
@@ -25,12 +28,6 @@ top of markdown output.
 .TP
 .B \-o FILE, \-\-output=FILE
 Write output to \fIFILE\fR instead of STDOUT. 
-.TP
-.B \-p, \-\-preserve-tabs
-Preserve tabs instead of converting them to spaces.
-.TP
-.B \-\-tab-stop=\fITABSTOP\fB
-Specify tab stop (default is 4).
 .TP
 .B \-\-strict
 Use strict markdown syntax, with no extensions or variants.
@@ -54,29 +51,29 @@ Use contents of \fIFILE\fR
 as the document header (overriding the default header, which can be
 printed using '\fBpandoc \-D markdown\fR').  Implies
 \fB-s\fR.
+.SH "SPECIAL OPTIONS"
+.PP
+In addition, the following special options may be used.  The special
+options must be separated from the \fBhtml2markdown\fR command and any
+regular \fBpandoc\fR options by the delimiter `\-\-', as in
+.IP
+.B html2markdown \-o foo.txt \-\- \-g 'curl \-u bar:baz' \-e latin1 
+.B www.foo.com
 .TP
-.B \-v, \-\-version
-Print version.
-.TP
-.B \-h, \-\-help
-Show usage message.
-.TP
-.B \-e \fIencoding\fR
+.B \-e \fIencoding\fR, \-\-encoding=\fIencoding\fR 
 Assume the character encoding \fIencoding\fR in reading HTML.
 (Note: \fIencoding\fR will be passed to \fBiconv\fR; a list of
 available encodings may be obtained using `\fBiconv \-l\fR'.)
-If the \fB\-e\fR option is not specified and input is not from
+If this option is not specified and input is not from
 STDIN, \fBhtml2markdown\fR will try to extract the character encoding
 from the "Content-type" meta tag.  If no character encoding is
 specified in this way, or if input is from STDIN, UTF-8 will be
 assumed.
 .TP
-.B \-g \fIcommand\fR
+.B \-g \fIcommand\fR, \-\-grabber=\fIcommand\fR
 Use \fIcommand\fR to fetch the contents of a URL.  (By default,
 \fBhtml2markdown\fR searches for an available program or text-based
-browser to fetch the contents of a URL.)  For example:
-.IP
-html2markdown \-g 'wget \-\-user=foo \-\-password=bar' mysite.com
+browser to fetch the contents of a URL.)
 
 .SH "SEE ALSO"
 \fBpandoc\fR(1),
