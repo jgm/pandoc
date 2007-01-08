@@ -8,12 +8,7 @@ pandoc (0.3) unstable; urgency=low
     + Added '--strict' option for maximum compatibility with official
       Markdown syntax.
     + Added '-o/--output' option to send output to a file.
-    + Added '-d/--debug' option:
-      - Prints OUTPUT= followed by output filename (or blank) to stderr.
-      - Prints INPUT= followed by input filename to stderr, for each 
-        input file (if any).
-      - Sends output to STDOUT, even if output file was specified.
-      - This is intended mainly to make it easier to write wrappers.
+    + Added '--dump-args' and '--ignore-args' options (for use in wrappers).
     + Modified '-v' and '-h' output to go to STDERR, not STDOUT, and return
       error condition (2).  This is helpful for writing wrappers.
     + Reformatted usage message so that it doesn't wrap illegibly.

@@ -111,7 +111,8 @@ data Opt = Opt
     , optIncremental       :: Bool    -- ^ Use incremental lists in S5
     , optSmart             :: Bool    -- ^ Use smart typography
     , optASCIIMathML       :: Bool    -- ^ Use ASCIIMathML in HTML
-    , optDebug             :: Bool    -- ^ Output debug messages 
+    , optDumpArgs          :: Bool    -- ^ Output command-line arguments
+    , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optStrict            :: Bool    -- ^ Use strict markdown syntax
     }
 
@@ -130,12 +131,13 @@ defaultOpts = Opt
     , optIncludeAfterBody  = ""
     , optCustomHeader      = "DEFAULT"
     , optTitlePrefix       = ""
-    , optOutputFile        = ""    -- null for stdout
+    , optOutputFile        = "-"    -- "-" means stdout
     , optNumberSections    = False
     , optIncremental       = False
     , optSmart             = False
     , optASCIIMathML       = False
-    , optDebug             = False
+    , optDumpArgs          = False
+    , optIgnoreArgs        = False
     , optStrict            = False
     }
 
@@ -267,10 +269,15 @@ options =
                   "FORMAT")
                  "" -- "Print default header for FORMAT"
 
-    , Option "d" ["debug"]
+    , Option "" ["dump-args"]
                  (NoArg
-                  (\opt -> return opt { optDebug = True }))
-                 "" -- "Print debug messages to stderr, output to stdout"
+                  (\opt -> return opt { optDumpArgs = True }))
+                 "" -- "Print output filename and arguments to stdout."
+
+     , Option "" ["ignore-args"]
+                 (NoArg
+                  (\opt -> return opt { optIgnoreArgs = True }))
+                 "" -- "Ignore command-line arguments."
     
     , Option "v" ["version"]
                  (NoArg
@@ -278,7 +285,7 @@ options =
                      prg <- getProgName
                      hPutStrLn stderr (prg ++ " " ++ version ++ 
                                        copyrightMessage)
-                     exitWith $ ExitFailure 2))
+                     exitWith $ ExitFailure 4))
                  "" -- "Print version"
 
     , Option "h" ["help"]
@@ -317,7 +324,7 @@ defaultReaderName (x:xs) =
 
 -- Determine default writer based on output file extension
 defaultWriterName :: String -> String
-defaultWriterName "" = "html" -- no output file
+defaultWriterName "-" = "html" -- no output file
 defaultWriterName x =
   let x' = map toLower x in
   case (matchRegex (mkRegex ".*\\.(.*)") x') of
@@ -341,20 +348,20 @@ defaultWriterName x =
 
 main = do
 
-  args <- getArgs
+  rawArgs <- getArgs
   prg <- getProgName
   let compatMode = (prg == "hsmarkdown")
 
-  let (actions, sources, errors) = if compatMode
-                                     then ([], args, [])
-                                     else getOpt Permute options args
+  let (actions, args, errors) = if compatMode
+                                  then ([], rawArgs, [])
+                                  else getOpt Permute options rawArgs
 
   if (not (null errors))
     then do
       name <- getProgName
       mapM (\e -> hPutStrLn stderr e) errors
       hPutStr stderr (usageMessage name options)
-      exitWith $ ExitFailure 2
+      exitWith $ ExitFailure 3 
     else
       return ()
 
@@ -384,9 +391,12 @@ main = do
               , optIncremental       = incremental
               , optSmart             = smart
               , optASCIIMathML       = asciiMathML
-			  , optDebug             = debug
+              , optDumpArgs          = dumpArgs
+              , optIgnoreArgs        = ignoreArgs
               , optStrict            = strict
              } = opts
+
+  let sources = if ignoreArgs then [] else args
 
   -- assign reader and writer based on options and filenames
   let readerName' = if null readerName 
@@ -405,14 +415,15 @@ main = do
      Just (w,h) -> return (w, h)
      Nothing    -> error ("Unknown writer: " ++ writerName')
 
-  output <- if ((null outputFile) || debug)
+  output <- if (outputFile == "-")
               then return stdout 
               else openFile outputFile WriteMode
 
-  if debug 
-	then do
-        hPutStrLn stderr ("OUTPUT=" ++ outputFile)
-        hPutStr stderr $ concatMap (\s -> "INPUT=" ++ s ++ "\n") sources
+  if dumpArgs
+    then do
+        hPutStrLn stdout outputFile
+        mapM (\arg -> hPutStrLn stdout arg) args
+        exitWith $ ExitSuccess
     else return ()
 
   let tabFilter = if preserveTabs then id else (tabsToSpaces tabStop)

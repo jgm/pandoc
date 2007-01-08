@@ -93,7 +93,8 @@ Produce output with an appropriate header and footer (e.g. a
 standalone HTML, LaTeX, or RTF file, not a fragment).
 .TP
 .B \-o FILE, \-\-output=FILE
-Write output to \fIFILE\fR instead of STDOUT.
+Write output to \fIFILE\fR instead of STDOUT.  If \fIFILE\fR is
+`\-', output will go to STDOUT.
 .TP
 .B \-p, \-\-preserve-tabs
 Preserve tabs instead of converting them to spaces.
@@ -151,10 +152,25 @@ markdown, rst, rtf\fR).
 .B \-T \fISTRING\fB, \-\-title-prefix=\fISTRING\fB
 Specify \fISTRING\fR as a prefix to the HTML window title.
 .TP
-.B \-d, \-\-debug
-Print debugging information (names of input and output files) to
-STDERR.  Write output to STDOUT, even if an output file was specified
-using the \fB\-o\fR option.
+.B \-\-dump\-args
+Print information about command\-line arguments to STDOUT, then exit.
+The first line of output contains the name of the output file specified
+with the \fB\-o\fR option, or `\-' (for STDOUT) if no output file was
+specified.  The remaining lines contain the command\-line arguments,
+one per line, in the order they appear.  These do not include regular
+Pandoc options and their arguments, but do include any options appearing
+after a `\-\-' separator at the end of the line.
+This option is intended primarily for use in wrapper scripts.
+.TP
+.B \-\-ignore\-args
+Ignore command\-line arguments (for use in wrapper scripts).
+Regular Pandoc options are not ignored.  Thus, for example,
+.IP
+.B pandoc \-\-ignore\-args \-o foo.html \-s foo.txt -- -e latin1
+.IP
+is equivalent to
+.IP
+.B pandoc \-o foo.html \-s
 .TP
 .B \-v, \-\-version
 Print version.

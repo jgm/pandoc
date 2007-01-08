@@ -203,6 +203,7 @@ Command-line options
 ====================
 
 Various command-line options can be used to customize the output.
+For further documentation, see the `pandoc(1)` man page.
 
 `-f`, `--from`, `-r`, or `--read` can be used to specify the input
 format -- the format Pandoc will be converting *from*.  Available
@@ -216,8 +217,9 @@ are `native`, `html`, `s5`, `docbook`, `latex`, `markdown`, `rst`, and
 `-s` or `--standalone` indicates that a standalone document is to be
 produced (with appropriate headers and footers), rather than a fragment.
 
-`-o` or `--output` specifies the name of the output file.  If no output
-filename is given, output will be sent to STDOUT.
+`-o` or `--output` specifies the name of the output file.  If this
+option is not specified, or if its argument is `-`, output will be sent
+to STDOUT.
 
 `-p` or `--preserve-tabs` causes tabs in the source text to be
 preserved, rather than converted to spaces (the default).
@@ -284,21 +286,33 @@ is for lists to be displayed all at once.
 `-N` or `--number-sections` causes sections to be numbered in LaTeX
 output.  By default, sections are not numbered.
 
-`-d` or `--debug` causes a debugging message to be written to STDERR.
-The format of the message is as follows:
+`--dump-args` is intended to make it easier to create wrapper scripts
+that use Pandoc.  It causes Pandoc to dump information about the arguments
+with which it was called to STDOUT, then exit.  The first line printed
+is the name of the output file specified using the `-o` or `--output`
+option, or `-` if output would go to STDOUT.  The remaining lines, if any,
+list command-line arguments.  These will include the names of input
+files and any special options passed after ` -- ` on the command line.
+So, for example,
 
-    OUTPUT=foo
-    INPUT=bar
-    INPUT=Foo Baz
+    pandoc --dump-args -o foo.html -s foo.txt appendix.txt -- -e latin1
 
-Here `OUTPUT=` is followed by the name of the output file specified
-using `-o`, if any.  If no output file was specified, `OUTPUT=`
-will appear with nothing following it.  Lines beginning `INPUT=`
-specify input files.  If there are no input files, no `INPUT=` lines
-will be printed.  The `-d` option forces output to be written to
-STDOUT, even if an output file was specified using the `-o` option.
-(This option is provided to make it easier to write wrappers for
-`pandoc`.)
+will cause the following to be printed to STDOUT:
+
+    foo.html
+    foo.txt
+    appendix.txt
+    -e
+    latin1
+
+`--ignore-args` causes Pandoc to ignore all command-line arguments.
+Regular Pandoc options are not ignored.  Thus, for example,
+
+    pandoc --ignore-args -o foo.html -s foo.txt -- -e latin1
+
+is equivalent to
+
+    pandoc -o foo.html -s   
 
 `-v` or `--version` prints the version number to STDERR.
 
