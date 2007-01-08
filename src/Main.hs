@@ -48,8 +48,8 @@ import Text.Pandoc.Writers.DefaultHeaders ( defaultHtmlHeader,
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Regex ( mkRegex, matchRegex )
-import System ( exitWith, getArgs, getProgName )
-import System.Exit
+import System.Environment ( getArgs, getProgName )
+import System.Exit ( exitWith, ExitCode (..) )
 import System.Console.GetOpt
 import System.IO
 import Data.Maybe ( fromMaybe )
@@ -361,7 +361,7 @@ main = do
       name <- getProgName
       mapM (\e -> hPutStrLn stderr e) errors
       hPutStr stderr (usageMessage name options)
-      exitWith $ ExitFailure 3 
+      exitWith $ ExitFailure 2
     else
       return ()
 
