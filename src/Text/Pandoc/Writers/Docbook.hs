@@ -175,10 +175,10 @@ inlineToDocbook opts (Strong lst) =
   (inlinesToDocbook opts lst)
 inlineToDocbook opts (Quoted _ lst) = 
   inTagsSimple "quote" (inlinesToDocbook opts lst)
-inlineToDocbook opts Apostrophe = text "&apos;"
-inlineToDocbook opts Ellipses = text "&hellip;"
-inlineToDocbook opts EmDash = text "&mdash;" 
-inlineToDocbook opts EnDash = text "&ndash;" 
+inlineToDocbook opts Apostrophe = text "'"
+inlineToDocbook opts Ellipses = text "&#8230;"
+inlineToDocbook opts EmDash = text "&#8212;" 
+inlineToDocbook opts EnDash = text "&#8211;" 
 inlineToDocbook opts (Code str) = 
   inTagsSimple "literal" $ text (escapeSGML str)
 inlineToDocbook opts (TeX str) = inlineToDocbook opts (Code str)
