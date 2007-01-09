@@ -50,11 +50,13 @@ fi
       if [ $runs -lt 3 ] && 
       grep -q "LaTeX Warning: There were undefined references." $texname.log; then
         runs=$(($runs + 1))
-        if grep -q "LaTeX Warning:.*[Cc]itation" $texname.log &&
-        ! bibtex $texname >/dev/null 2>&1 >bibtex.err; then 
+        if grep -q "LaTeX Warning:.*[Cc]itation" $texname.log; then
+          bibtex $texname 2>&1 >bibtex.err
           if [ $runs -gt 2 ]; then
-            err "${THIS}: bibtex warning messages:"
-            cat bibtex.err >&2
+            if grep -q "error message" bibtex.err ||
+            grep -q "Warning" bibtex.err; then
+              cat bibtex.err >&2
+            fi
           fi
         fi
       else
