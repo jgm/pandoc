@@ -23,8 +23,7 @@ sub test_results
     my $testname = $_[0];
     my $output = $_[1];
     my $norm = $_[2];
-    $output =~ s/\r$//;  # remove DOS line endings if present
-    my $diffoutput = `diff $output $norm`;
+    my $diffoutput = `diff --strip-trailing-cr $output $norm`;
     if ($diffoutput eq "") 
     {
         print "PASSED\n";
