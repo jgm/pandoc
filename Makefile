@@ -358,12 +358,11 @@ deb: debian
 .PHONY: website
 web_src:=web
 web_dest:=web/pandoc
-make_page:=./$(MAIN) -s -B $(web_src)/header.html \
+make_page:=./$(MAIN) -s -S -B $(web_src)/header.html \
                         -A $(web_src)/footer.html \
 	                -H $(web_src)/css 
 cleanup_files+=$(web_dest)
-website: $(web_dest)
-$(web_dest)/: $(MAIN) html
+website: $(MAIN) html
 	-rm -rf $(web_dest)
 	( \
 		mkdir $(web_dest); \
@@ -381,6 +380,7 @@ $(web_dest)/: $(MAIN) html
 			sed -e 's/@WINDOWS_PKG_NAME@/$(win_pkg_name)/g' | \
 			sed -e 's/@VERSION@/$(VERSION)/g' | \
 			$(make_page) > $(web_dest)/index.html; \
+		$(make_page) $(web_src)/features.txt > $(web_dest)/features.html; \
 		cp README $(web_dest)/ ; \
 		./$(MAIN) -s -w latex README > $(web_dest)/README.tex ; \
 		cp $(web_src)/myheader.tex $(web_dest)/ ; \
