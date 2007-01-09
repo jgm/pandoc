@@ -25,7 +25,9 @@ pandoc -s README -o example0.rtf
 S5 HTML slide show (all in one file):
 pandoc -s -m -i -w s5 S5DEMO -o example0.html
 Docbook XML:
-pandoc -s -w docbook README -o example0.db
+pandoc -s -S -w docbook README -o example0.db
+Chunked XHTML via Docbook and the third-party `xmlto` tool:
+xmlto xhtml example(-1).db -o example0/
 Converting a web page to markdown:
 html2markdown http://www.gnu.org/software/make/ -o example0.txt
 From markdown to PDF:
@@ -49,9 +51,9 @@ click on the name of the output file:
 num=0
 while [ $# -gt 0 ]; do
     description="$1"
-    command="$2"
+    lastnum=$num
     num=$(($num + 1))
-    command=$(echo $command | sed -e "s/0/$num/")
+    command=$(echo $2 | sed -e "s/0/$num/" -e "s/(-1)/$lastnum/")
     firstpart=$(echo $command | sed -e 's/\(.*\) [^ ]* -o.*/\1/')
     input=$(echo $command | sed -e 's/.* \([^ ]*\) -o.*/\1/') 
     output=$(echo $command | sed -e 's/.*-o \(.*\)/\1/')

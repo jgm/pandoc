@@ -1,11 +1,17 @@
-all: index.html osx-notes.html README.html INSTALL.html features.html changelog.html examples.html
-
+ALL := index.html osx-notes.html README.html INSTALL.html features.html changelog.html examples.html
 PANDOC_PATH ?= $(dir $(shell which pandoc))
 MAKEPAGE = $(PANDOC_PATH)/pandoc -s -S -B header.html -A footer.html -H css 
 PANDOC_DEPS = header.html footer.html css
 
+all : $(ALL)
+
+.PHONY: clean
+clean:
+	for file in $(ALL); do rm $$file; done; \
+	rm -r example*;
+
 examples.txt : $(PANDOC_DEPS) mkdemos.sh
-	./mkdemos.sh . $$PANDOC_PATH > $@
+	./mkdemos.sh . $(PANDOC_PATH) > $@
 
 %.html : %.txt $(PANDOC_DEPS)
 	$(MAKEPAGE) $< > $@

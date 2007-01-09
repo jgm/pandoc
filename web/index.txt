@@ -47,9 +47,12 @@ which are not included in the Windows binary package.
 [Cygwin]: http://www.cygwin.com/
   "Cygwin - a linux-like environment for Windows"
 
-**Debian packages:**  Pandoc will be available soon in the Debian unstable
-package repository, thanks to the efforts of Recai Oktaş.  Watch this
-space for details.
+**Debian linux package:**  [`pandoc_0.3_i386.deb`] (thanks to Recai Oktaş).  
+To install, download the file and type:
+
+    sudo dpkg -i pandoc_0.3_i386.deb
+
+[`pandoc_0.3_i386.deb`]:  http://people.debian.org/~roktas/packages/pandoc_0.3_i386.deb
 
 **Repository:**  Pandoc has a publicly accesible subversion repository
 at Google Code (<http://code.google.com/p/pandoc>).  To check out the
