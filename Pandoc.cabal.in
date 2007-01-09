@@ -12,7 +12,6 @@ Synopsis:        Utilities for translating between various markup formats
 Description:     Haskell utilities for translating between markdown, HTML,
                  reStructuredText, LaTeX, and RTF
 Build-Depends:   @BUILD_DEPENDS@
-Extra-Source-Files: README COPYRIGHT man/man1/pandoc.1 
 @HS_SOURCE_DIRS@: src
 Exposed-Modules: Text.ParserCombinators.Pandoc,
                  Text.Pandoc.ASCIIMathML,
