@@ -60,12 +60,17 @@ latest, bleeding-edge source code:
 **Bugs:**  You may view existing bug reports and submit new ones at 
 <http://code.google.com/p/pandoc/issues/list>.
 
+**Announcements list:**  If you'd like to receive announcements of
+new releases of Pandoc, you may subscribe to the [pandoc-announce
+mailing list].
+
 **API:**  You can browse the API documentation for the Pandoc Haskell
 libraries [here](doc/index.html).
 
 This is an early, "alpha" release. It carries no warranties of any
 kind.
 
+[pandoc-announce mailing list]: http://groups.google.com/group/pandoc-announce
 [John MacFarlane]: http://sophos.berkeley.edu/macfarlane/
 [markdown]: http://daringfireball.net/projects/markdown/
 [reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html
