@@ -1,7 +1,7 @@
 #!/bin/sh -e
 # creates example page for pandoc
 # argument #1 is the destination directory
-# argument #2 is the directory containing pandoc, html2markdown, markdown2pdf
+# argument #2 is pandoc path
 
 DEST=$1
 PROGPATH=$2

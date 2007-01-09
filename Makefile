@@ -368,27 +368,27 @@ website: $(MAIN) html
 		mkdir $(web_dest); \
 		cp -r html $(web_dest)/doc; \
 		cp $(web_src)/*.css $(web_dest)/; \
-		sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome | \
-			$(make_page) > $(web_dest)/osx-notes.html; \
+		cp $(web_src)/css $(web_dest)/; \
+		sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome > \
+			$(web_dest)/osx-notes.txt; \
 		sed -e '/^ --.*/d' -e 's#^#    #g' changelog | \
-			sed -e 's/    \(pandoc (.*\)/## \1/g' | \
-			$(make_page) -T "Pandoc changelog" > $(web_dest)/changelog.html; \
-		$(make_page) README > $(web_dest)/README.html; \
-		$(make_page) INSTALL > $(web_dest)/INSTALL.html; \
+			sed -e 's/    \(pandoc (.*\)/## \1/g' > \
+			$(web_dest)/changelog.txt; \
+		cp README $(web_dest)/ ; \
+		cp INSTALL $(web_dest)/ ; \
 		sed -e 's/@TARBALL_NAME@/$(tarball_name)/g' $(web_src)/index.txt | \
 			sed -e 's/@OSX_DMG_NAME@/$(osx_dmg_name)/g' | \
 			sed -e 's/@WINDOWS_PKG_NAME@/$(win_pkg_name)/g' | \
-			sed -e 's/@VERSION@/$(VERSION)/g' | \
-			$(make_page) > $(web_dest)/index.html; \
-		$(make_page) $(web_src)/features.txt > $(web_dest)/features.html; \
-		cp README $(web_dest)/ ; \
+			sed -e 's/@VERSION@/$(VERSION)/g' > $(web_dest)/index.txt; \
+		cp $(web_src)/features.txt $(web_dest)/ ; \
 		./$(MAIN) -s -w latex README > $(web_dest)/README.tex ; \
 		cp $(web_src)/myheader.tex $(web_dest)/ ; \
 		cp $(web_src)/S5DEMO $(web_dest)/ ; \
 		cp $(web_src)/header.html $(web_dest)/ ; \
 		cp $(web_src)/footer.html $(web_dest)/ ; \
-		sh $(web_src)/mkdemos.sh $(web_dest) $(shell pwd) | \
-		    $(make_page) > $(web_dest)/examples.html; \
+		cp $(web_src)/mkdemos.sh $(web_dest)/ ; \
+		cp $(web_src)/Makefile $(web_dest)/ ; \
+		PANDOC_PATH=$(shell pwd) make -C $(web_dest) ; \
 	) || { rm -rf $(web_dest); exit 1; }
 
 .PHONY: distclean clean
