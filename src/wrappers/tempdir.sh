@@ -6,6 +6,7 @@ cygwin=
 cygwin=$(uname | sed -ne '/^CYGWIN/p')
 if [ -n "$cygwin" ]; then
     TMPDIR=.
+    export TMPDIR
 fi
 
 THIS_TEMPDIR=
