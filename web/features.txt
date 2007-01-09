@@ -1,0 +1,26 @@
+% Pandoc features
+
+- A real markdown parser, not based on regex substitutions.
+- [More accurate] and [faster], in many cases, than `Markdown.pl`.
+- Multiple output formats--HTML, Docbook XML, LaTeX, reStructuredText,
+  RTF, S5 slide shows--generated natively, with no XSLT postprocessing.
+- Converts *to* markdown from HTML, LaTeX, and reStructuredText.
+- Convenient wrapper scripts:
+    + `html2markdown` makes it easy to produce a markdown version
+      of any web page.
+    + `markdown2pdf` converts markdown to PDF in one step.
+    + `hsmarkdown` is a drop-in replacement for `Markdown.pl`.
+- Unicode support.
+- Support for footnotes.
+- Support for "smart" quotes, dashes, and ellipses.
+- Support for document metadata (title, author, date).
+- Support for inline LaTeX math and [ASCIIMathML].
+- Support for inline LaTeX commands.
+- Compatibility mode to turn off syntax entensions and emulate
+  `Markdown.pl`.
+- Multi-platform:  runs on Windows, MacOS X, Linux, Unix.
+
+[More accurate]: http://code.google.com/p/pandoc/wiki/PandocVsMarkdownPl
+[faster]: http://code.google.com/p/pandoc/wiki/Benchmarks
+[ASCIIMathML]: http://www1.chapman.edu/~jipsen/mathml/asciimath.html
+ 
