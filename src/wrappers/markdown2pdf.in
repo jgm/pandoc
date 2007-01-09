@@ -10,7 +10,7 @@ SYNOPSIS="converts markdown-formatted text to PDF, using pdflatex."
 texname=output
 logfile=$THIS_TEMPDIR/log
 
-pandoc -s -r markdown -w latex "$@" -o $THIS_TEMPDIR/$texname.tex || exit $?
+pandoc -s -r markdown -w latex "$@" -o $THIS_TEMPDIR/$texname.tex
 
 if [ "$OUTPUT" = "-" ]; then
     firstinfile="$(echo $ARGS | sed -ne '1p')"
@@ -54,7 +54,7 @@ fi
         ! bibtex $texname >/dev/null 2>&1 >bibtex.err; then 
           if [ $runs -gt 2 ]; then
             err "${THIS}: bibtex warning messages:"
-            cat bibtex.err
+            cat bibtex.err >&2
           fi
         fi
       else
