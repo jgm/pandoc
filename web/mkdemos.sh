@@ -30,8 +30,8 @@ Converting a web page to markdown:
 html2markdown http://www.gnu.org/software/make/ -o example0.txt
 From markdown to PDF:
 markdown2pdf README -o example0.pdf
-Using a custom LaTeX header to change the font style of the PDF:
-markdown2pdf -C myheader.tex README -o example0.pdf'
+PDF with numbered sections and a custom LaTeX header:
+markdown2pdf -N -C myheader.tex README -o example0.pdf'
 
 oldifs=$IFS
 IFS=$NEWLINE
