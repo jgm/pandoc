@@ -10,7 +10,7 @@ SYNOPSIS="converts markdown-formatted text to PDF, using pdflatex."
 texname=output
 logfile=$THIS_TEMPDIR/log
 
-pandoc -s -r markdown -w latex "$@" -o $THIS_TEMPDIR/$texname.tex 2>$logfile
+pandoc -s -r markdown -w latex "$@" -o $THIS_TEMPDIR/$texname.tex || exit $?
 
 if [ "$OUTPUT" = "-" ]; then
     firstinfile="$(echo $ARGS | sed -ne '1p')"
@@ -25,25 +25,42 @@ fi
     cd $THIS_TEMPDIR
     TEXINPUTS=$origdir:$TEXINPUTS:
     export TEXINPUTS
-    pdflatex -interaction=batchmode $texname.tex >/dev/null || {
-      errcode=$?
-      err "${THIS}: pdfLaTeX failed with error code $errcode"
-      [ -f $texname.log ] && {
-        err "${THIS}: error context:"
-        sed -ne '/^!/,/^[[:space:]]*$/p' \
-          -ne '/^[Ll]a[Tt]e[Xx] [Ww]arning/,/^[[:space:]]*$/p' \
-          -ne '/^[Ee]rror/,/^[[:space:]]*$/p' $texname.log >&2
-        if grep -q "File \`ucs.sty' not found" $texname.log; then
-          err "${THIS}: Please install the 'unicode' package from CTAN:"
-          err "  http://www.ctan.org/tex-archive/macros/latex/contrib/unicode/"
-        fi
-        if grep -q "File \`fancyvrb.sty' not found" $texname.log; then
-          err "${THIS}: Please install the 'fancyvrb' package from CTAN:"
-          err "  http://www.ctan.org/tex-archive/macros/latex/contrib/fancyvrb/"
-        fi
+    finished=no
+    runs=0
+    while [ $finished = "no" ]; do
+      pdflatex -interaction=batchmode $texname.tex >/dev/null || {
+        errcode=$?
+        err "${THIS}: pdfLaTeX failed with error code $errcode"
+        [ -f $texname.log ] && {
+          err "${THIS}: error context:"
+          sed -ne '/^!/,/^[[:space:]]*$/p' \
+            -ne '/^[Ll]a[Tt]e[Xx] [Ww]arning/,/^[[:space:]]*$/p' \
+            -ne '/^[Ee]rror/,/^[[:space:]]*$/p' $texname.log >&2
+          if grep -q "File \`ucs.sty' not found" $texname.log; then
+            err "${THIS}: Please install the 'unicode' package from CTAN:"
+            err "  http://www.ctan.org/tex-archive/macros/latex/contrib/unicode/"
+          fi
+          if grep -q "File \`fancyvrb.sty' not found" $texname.log; then
+            err "${THIS}: Please install the 'fancyvrb' package from CTAN:"
+            err "  http://www.ctan.org/tex-archive/macros/latex/contrib/fancyvrb/"
+          fi
+        }
+        exit $errcode
       }
-      exit $errcode
-    }
+      if [ $runs -lt 3 ] && 
+      grep -q "LaTeX Warning: There were undefined references." $texname.log; then
+        runs=$(($runs + 1))
+        if grep -q "LaTeX Warning:.*[Cc]itation" $texname.log &&
+        ! bibtex $texname >/dev/null 2>&1 >bibtex.err; then 
+          if [ $runs -gt 2 ]; then
+            err "${THIS}: bibtex warning messages:"
+            cat bibtex.err
+          fi
+        fi
+      else
+        finished=yes
+      fi
+    done
 ) || exit $?
 
 is_target_exists=
