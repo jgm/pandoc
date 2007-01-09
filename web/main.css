@@ -9,8 +9,8 @@ body {
     color: #333; 
 }
 pre {
-    border: 1px dotted;
-    background-color: #DDDDDD;
+    border: 1px dotted gray;
+    background-color: #ececec;
     color: #1111111;
     padding: 0.5em;
 }
