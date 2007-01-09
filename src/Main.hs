@@ -396,6 +396,13 @@ main = do
               , optStrict            = strict
              } = opts
 
+  if dumpArgs
+    then do
+        hPutStrLn stdout outputFile
+        mapM (\arg -> hPutStrLn stdout arg) args
+        exitWith $ ExitSuccess
+    else return ()
+
   let sources = if ignoreArgs then [] else args
 
   -- assign reader and writer based on options and filenames
@@ -418,13 +425,6 @@ main = do
   output <- if (outputFile == "-")
               then return stdout 
               else openFile outputFile WriteMode
-
-  if dumpArgs
-    then do
-        hPutStrLn stdout outputFile
-        mapM (\arg -> hPutStrLn stdout arg) args
-        exitWith $ ExitSuccess
-    else return ()
 
   let tabFilter = if preserveTabs then id else (tabsToSpaces tabStop)
   let addBlank str = str ++ "\n\n"
