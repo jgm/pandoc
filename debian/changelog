@@ -3,17 +3,17 @@ pandoc (0.3) unstable; urgency=low
   [ John MacFarlane ]
 
   * Changes in pandoc options:
+
     + Allow options to follow or precede arguments.
     + Changed '--smartypants' to '--smart' and adjusted symbols accordingly.
-    + Added '--strict' option for maximum compatibility with official
-      Markdown syntax.
-    + Added '-o/--output' option to send output to a file.
+    + Added '--strict' option.
+    + Added '-o/--output' option.
     + Added '--dump-args' and '--ignore-args' options (for use in wrappers).
     + Modified '-v' and '-h' output to go to STDERR, not STDOUT, and return
-      error condition (2).  This is helpful for writing wrappers.
+      error conditions.  This is helpful for writing wrappers.
+    + Added copyright message to '-v' output, modeled after FSF messages.
     + Reformatted usage message so that it doesn't wrap illegibly.
     + Removed extra blanks after '-h' and '-D' output.
-    + Added copyright message to '-v' output, modeled after FSF messages.
 
   * Added docbook writer.
 
@@ -40,6 +40,7 @@ pandoc (0.3) unstable; urgency=low
     HTML header.
 
   * Bug fixes:
+
     + Fixed a serious bug in the markdown, LaTeX, and RST readers.
       These readers ran 'runParser' on processed chunks of text to handle
       embedded block lists in lists and quotation blocks.  But then
@@ -70,9 +71,6 @@ pandoc (0.3) unstable; urgency=low
       which will end with the same number of `s.  For example, to
       have two backticks as code, write ``` `` ```.  Modified Markdown
       writer accordingly.
-    + Modified HTML reader to skip a newline following a <br> tag.
-      Otherwise the newline will be treated as a space at the beginning
-      of the next line.
     + Fixed bug in text-wrapping routine in Markdown and RST writers.
       Now LineBreaks no longer cause wrapping problems.
     + Supported hexadecimal numerical entity references as well as
@@ -81,6 +79,13 @@ pandoc (0.3) unstable; urgency=low
       inline formatting markers inside reference labels:  for example,
       in '[A_B]: /url/a_b', the material between underscores was being
       parsed as emphasized inlines.
+    + Changed Markdown reader's handling of backslash escapes so that
+      only non-alphanumeric characters can be escaped.  Strict mode
+      follows Markdown.pl in only allowing a select group of punctuation
+      characters to be escaped.
+    + Modified HTML reader to skip a newline following a <br> tag.
+      Otherwise the newline will be treated as a space at the beginning
+      of the next line.
  
   * Made handling of code blocks more consistent.  Previously, some
     readers allowed trailing newlines, while others stripped them.
@@ -90,6 +95,7 @@ pandoc (0.3) unstable; urgency=low
   * Modified readers to make spacing at the end of output more consistent.
 
   * Minor improvements to LaTeX reader:
+
     + '\thanks' now treated like a footnote.    
     + Simplified parsing of LaTeX command arguments and options.
       commandArgs now returns a list of arguments OR options (in
@@ -99,16 +105,10 @@ pandoc (0.3) unstable; urgency=low
       and \newenvironment.
 
   * Revised RTF writer:
+
     + Default font is now Helvetica.
     + An '\f0' is added to each '\pard', so that font resizing works
       correctly.
-
-  * Improved handling of dashes in LaTeX writer:
-    + Recognize a double hyphen as an Em-dash, even when it occurs next
-      to punctuation (e.g. a quotation mark).
-    + Collapse space around Em-dashes.
-    + Process quotes before dashes.  This way (foo -- 'bar') will turn into
-      (foo---`bar') instead of (foo---'bar').
 
   * Moved handling of "smart typography" from the writers to the Markdown
     and LaTeX readers.  This allows great simplification of the writers
@@ -119,6 +119,7 @@ pandoc (0.3) unstable; urgency=low
     EmDash, EnDash.
 
   * Changes in HTML writer:
+
     + Include title block in header even when title is null.
     + Made javascript obfuscation of emails even more obfuscatory,
       by combining it with entity obfuscation.
@@ -126,11 +127,13 @@ pandoc (0.3) unstable; urgency=low
   * Changed default ASCIIMathML text color to black.
 
   * Test suite:
+
     + Added --strip-trailing-cr option to diff in runtests.pl, for
       compatibility with Windows.
     + Added regression tests with footnotes in quote blocks and lists.
 
   * Makefile changes:
+
     + osx-pkg target creates a Mac OS X package (directory). New osx
       directory contains files needed for construction of the package.
     + osx-dmg target creates a compressed disk image containing the package.
@@ -151,6 +154,7 @@ pandoc (0.3) unstable; urgency=low
 
   * Added code to html2markdown that tries to determine the character 
     encoding of an HTML file, by parsing the "Content-type" meta tag.
+
     + If the encoding can't be determined, then if the content is local,
       the local encoding is used; if it comes from a URL, UTF-8 is used 
       by default.
@@ -158,11 +162,13 @@ pandoc (0.3) unstable; urgency=low
     + Encoding can be specified explicitly using '-e' option.
 
   * Improved warning messages in wrappers:
+
     + Print warning if iconv not available
     + More user-friendly error messages in markdown2pdf, when
       pdflatex fails.
 
   * Code cleanup:
+
     + Renamed 'Text/Pandoc/HtmlEntities' module to 
       'Text/Pandoc/Entities'. Also changed function names so as
       not to be HTML-specific.
@@ -194,6 +200,7 @@ pandoc (0.3) unstable; urgency=low
     a proper debian package.  Closes: #391666.
 
   * Modified build process to support GHC 6.6.
+
     + The package can still be compiled using GHC 6.4.2, though because
       of dependencies the "make deb" target works only with GHC 6.6+.
     + The script 'cabalize' is used to create an appropriate
@@ -205,6 +212,7 @@ pandoc (0.3) unstable; urgency=low
   * Modified wrapper scripts to make them more robust and portable.
     To avoid code duplication and ensure consistency, wrappers are 
     generated via a templating system from templates in src/wrappers.
+
     + Wrappers now accept multiple filenames, when appropriate.
     + Spaces and tabs allowed in filenames.
     + getopts shell builtin is used for portable option parsing.
