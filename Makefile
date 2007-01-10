@@ -386,7 +386,8 @@ website: $(MAIN) html
 		cp $(web_src)/S5DEMO $(web_dest)/ ; \
 		cp $(web_src)/header.html $(web_dest)/ ; \
 		cp $(web_src)/footer.html $(web_dest)/ ; \
-		cp $(web_src)/mkdemos.sh $(web_dest)/ ; \
+		cp $(web_src)/mkdemos.pl $(web_dest)/ ; \
+		cp $(web_src)/demos $(web_dest)/ ; \
 		cp $(web_src)/Makefile $(web_dest)/ ; \
 		PANDOC_PATH=$(shell pwd) make -C $(web_dest) ; \
 	) || { rm -rf $(web_dest); exit 1; }
