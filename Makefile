@@ -381,13 +381,14 @@ website: $(MAIN) html
 			sed -e 's/@WINDOWS_PKG_NAME@/$(win_pkg_name)/g' | \
 			sed -e 's/@VERSION@/$(VERSION)/g' > $(web_dest)/index.txt; \
 		cp $(web_src)/features.txt $(web_dest)/ ; \
-		./$(MAIN) -s -w latex README > $(web_dest)/README.tex ; \
 		cp $(web_src)/myheader.tex $(web_dest)/ ; \
 		cp $(web_src)/S5DEMO $(web_dest)/ ; \
 		cp $(web_src)/header.html $(web_dest)/ ; \
 		cp $(web_src)/footer.html $(web_dest)/ ; \
 		cp $(web_src)/mkdemos.pl $(web_dest)/ ; \
 		cp $(web_src)/demos $(web_dest)/ ; \
+		cp $(web_src)/docbook.css $(web_dest)/ ; \
+		cp $(web_src)/config.xsl $(web_dest)/ ; \
 		cp $(web_src)/Makefile $(web_dest)/ ; \
 		PANDOC_PATH=$(shell pwd) make -C $(web_dest) ; \
 	) || { rm -rf $(web_dest); exit 1; }

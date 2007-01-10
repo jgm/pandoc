@@ -1,0 +1,29 @@
+body {
+    font-family: Verdana, sans-serif;
+}
+
+.screen {
+    font-family: monospace;
+    font-size: 1em;
+    display: block;
+    padding: 10px;
+    border: 1px solid #bbb;
+    background-color: #eee;
+    color: #000;   
+    overflow: auto;
+    border-radius: 2.5px;
+    -moz-border-radius: 2.5px;
+    margin: 0.5em 2em;
+}
+
+a {
+    text-decoration: none;
+    border-bottom: 1px dotted #000;
+}
+
+a:hover {
+    background-color: #777;
+    color: #fff;
+}
+
+        

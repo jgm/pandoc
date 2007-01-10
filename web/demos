@@ -21,7 +21,7 @@ click on the name of the output file:
 
 5.  From LaTeX to markdown:
 
-@   pandoc -s README.tex -o example5.txt
+@   pandoc -s example4.tex -o example5.txt
 
 6.  reStructuredText:
 
@@ -41,7 +41,7 @@ click on the name of the output file:
 
 10. Chunked XHTML via DocBook and [xmlto]:
 
-@   xmlto xhtml example9.db -o example10/
+@   xmlto -m config.xsl xhtml example9.db -o example10/
 
 11. ODF (open document format) via DocBook and [docbook2odf]:
 

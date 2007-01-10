@@ -10,7 +10,7 @@ clean:
 	for file in $(ALL); do rm $$file; done; \
 	rm -r example*;
 
-examples.txt : $(PANDOC_DEPS) mkdemos.pl
+examples.txt : $(PANDOC_DEPS) mkdemos.pl config.xsl S5DEMO README
 	PATH=$(PANDOC_PATH):$$PATH ./mkdemos.pl demos $@
 
 %.html : %.txt $(PANDOC_DEPS)
