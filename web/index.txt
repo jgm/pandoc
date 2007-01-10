@@ -38,11 +38,11 @@ you compile Pandoc from source.  This will give you access to the
 wrapper scripts `markdown2pdf`, `html2markdown`, and `hsmarkdown`,
 which are not included in the Windows binary package.
 
-[`@TARBALL_NAME@`]: http://pandoc.googlecode.com/files/@TARBALL_NAME@
+[`@TARBALL_NAME@`]: http://code.google.com/p/pandoc/downloads/detail?name=@TARBALL_NAME@
   "Download source tarball from Pandoc's Google Code site"
-[`@OSX_DMG_NAME@`]: http://pandoc.googlecode.com/files/@OSX_DMG_NAME@
+[`@OSX_DMG_NAME@`]: http://code.google.com/p/pandoc/downloads/detail?name=@OSX_DMG_NAME@
   "Download Mac OS X disk image from Pandoc's Google Code site"
-[`@WINDOWS_PKG_NAME@`]: http://pandoc.googlecode.com/files/@WINDOWS_PKG_NAME@
+[`@WINDOWS_PKG_NAME@`]: http://code.google.com/p/pandoc/downloads/detail?name=@WINDOWS_PKG_NAME@
   "Download Windows zip file from Pandoc's Google Code site"
 [Cygwin]: http://www.cygwin.com/
   "Cygwin - a linux-like environment for Windows"
