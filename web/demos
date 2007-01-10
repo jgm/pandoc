@@ -1,0 +1,64 @@
+% Pandoc examples
+
+To see the output created by each of the commands below,
+click on the name of the output file:
+
+1.  HTML fragment:
+
+@   pandoc README -o example1.html
+
+2.  Standalone HTML file:
+
+@   pandoc -s -S README -o example2.html
+
+3.  HTML with smart quotes, CSS, and custom header and footer:
+
+@   pandoc -s -S -c main.css -B header.html -A footer.html README -o example3.html
+
+4.  LaTeX:
+
+@   pandoc -s README -o example4.tex
+
+5.  From LaTeX to markdown:
+
+@   pandoc -s README.tex -o example5.txt
+
+6.  reStructuredText:
+
+@   pandoc -s -w rst README -o example6.txt
+
+7.  Rich text format (RTF):
+
+@   pandoc -s README -o example7.rtf 
+
+8.  S5 HTML slide show (all in one file):
+
+@   pandoc -s -m -i -w s5 S5DEMO -o example8.html
+
+9.  DocBook XML:
+
+@   pandoc -s -S -w docbook README -o example9.db
+
+10. Chunked XHTML via DocBook and [xmlto]:
+
+@   xmlto xhtml example9.db -o example10/
+
+11. ODF (open document format) via DocBook and [docbook2odf]:
+
+@   docbook2odf --input-file example9.db --output-file example11.odf
+
+12. Converting a web page to markdown:
+
+@   html2markdown http://www.gnu.org/software/make/ -o example12.txt
+
+13. From markdown to PDF:
+
+@   markdown2pdf README -o example13.pdf
+
+14. PDF with numbered sections and a custom LaTeX header:
+
+@   markdown2pdf -N -C myheader.tex README -o example14.pdf
+
+[xmlto]:  http://cyberelk.net/tim/xmlto/
+[docbook2odf]:  http://open.comsultia.com/docbook2odf/
+

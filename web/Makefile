@@ -10,8 +10,8 @@ clean:
 	for file in $(ALL); do rm $$file; done; \
 	rm -r example*;
 
-examples.txt : $(PANDOC_DEPS) mkdemos.sh
-	./mkdemos.sh . $(PANDOC_PATH) > $@
+examples.txt : $(PANDOC_DEPS) mkdemos.pl
+	PATH=$(PANDOC_PATH):$$PATH ./mkdemos.pl demos $@
 
 %.html : %.txt $(PANDOC_DEPS)
 	$(MAKEPAGE) $< > $@
