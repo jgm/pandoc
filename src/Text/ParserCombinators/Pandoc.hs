@@ -41,7 +41,8 @@ module Text.ParserCombinators.Pandoc (
                                       enclosed,
                                       blankBlock,
                                       nullBlock,
-                                      stringAnyCase
+                                      stringAnyCase,
+                                      parseFromStr
                                      ) where
 import Text.ParserCombinators.Parsec
 import Text.Pandoc.Definition
@@ -138,3 +139,14 @@ stringAnyCase (x:xs) = try (do
   firstChar <- choice [ char (toUpper x), char (toLower x) ]
   rest <- stringAnyCase xs
   return (firstChar:rest))
+
+-- | Parse contents of 'str' using 'parser' and return result.
+parseFromStr :: GenParser tok st a -> [tok] -> GenParser tok st a
+parseFromStr parser str = try $ do
+  oldInput <- getInput
+  setInput str
+  result <- parser
+  setInput oldInput
+  return result
+
+

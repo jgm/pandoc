@@ -186,6 +186,38 @@ blockToHtml opts (Header level lst) =
   if ((level > 0) && (level <= 6))
       then inTagsSimple ("h" ++ show level) contents 
       else inTagsSimple "p" contents 
+blockToHtml opts (Table caption aligns widths headers rows) =
+  let alignStrings = map alignmentToString aligns
+      captionDoc   = if null caption
+                       then empty
+                       else inTagsSimple "caption" 
+                            (inlineListToHtml opts caption) in
+  inTagsIndented "table" $ captionDoc $$ 
+  (colHeadsToHtml opts alignStrings widths headers) $$ 
+  (vcat $ map (tableRowToHtml opts alignStrings) rows)
+
+colHeadsToHtml opts alignStrings widths headers =
+  let heads = zipWith3
+              (\align width item -> tableItemToHtml opts "th" align width item) 
+              alignStrings widths headers in
+  inTagsIndented "tr" $ vcat heads
+
+alignmentToString alignment = case alignment of
+                                 AlignLeft -> "left"
+                                 AlignRight -> "right"
+                                 AlignCenter -> "center"
+                                 AlignDefault -> "left"
+
+tableRowToHtml opts aligns cols =
+  inTagsIndented "tr" $ vcat $ zipWith3 (tableItemToHtml opts "td") aligns (repeat 0) cols
+
+tableItemToHtml opts tag align width item =
+  let attrib = [("align", align)] ++ 
+               if (width /= 0) 
+                 then [("style", "{width: " ++ 
+                                 show (truncate (100*width)) ++ "%;}")]
+                 else [] in 
+  inTags False tag attrib $ vcat $ map (blockToHtml opts) item
 
 listItemToHtml :: WriterOptions -> [Block] -> Doc
 listItemToHtml opts list = 

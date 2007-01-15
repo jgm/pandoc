@@ -148,6 +148,9 @@ blockToRST tabStop (Header level lst) =
   let headerChar = if (level > 5) then ' ' else "=-~^'" !! (level - 1) in
   let border = text $ replicate headerLength headerChar in
   (headerText <> char '\n' <> border <> char '\n', refs)
+blockToRST tabStop (Table caption _ _ headers rows) =
+  blockToRST tabStop (Para [Str "pandoc: TABLE unsupported in RST writer"])
+
 
 -- | Convert bullet list item (list of blocks) to reStructuredText.
 -- Returns a pair of 'Doc', the first the main text, the second references

@@ -32,6 +32,7 @@ module Text.Pandoc.Writers.LaTeX (
                                  ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Printf ( printf )
 import List ( (\\) )
 
 -- | Convert Pandoc to LaTeX.
@@ -123,6 +124,38 @@ blockToLaTeX notes (Header level lst) =
        then "\\" ++ (concat (replicate (level - 1) "sub")) ++ "section{" ++ 
             (inlineListToLaTeX notes (deVerb lst)) ++ "}\n\n"
        else (inlineListToLaTeX notes lst) ++ "\n\n"
+blockToLaTeX notes (Table caption aligns widths heads rows) =
+    let colWidths = map printDecimal widths
+        colDescriptors = concat $ zipWith
+                                  (\width align -> ">{\\PBS" ++ 
+                                  (case align of 
+                                         AlignLeft -> "\\raggedright"
+                                         AlignRight -> "\\raggedleft"
+                                         AlignCenter -> "\\centering"
+                                         AlignDefault -> "\\raggedright") ++
+                                  "\\hspace{0pt}}p{" ++ width ++ 
+                                  "\\textwidth}")
+                                  colWidths aligns
+        headers        = tableRowToLaTeX notes heads 
+        captionText    = inlineListToLaTeX notes caption 
+        tableBody      = "\\begin{tabular}{" ++ colDescriptors ++ "}\n" ++
+                         headers ++ "\\hline\n" ++ 
+                         (concatMap (tableRowToLaTeX notes) rows) ++ 
+                         "\\end{tabular}\n" 
+        centered str   = "\\begin{center}\n" ++ str ++ "\\end{center}\n" in
+    if null captionText
+      then centered tableBody ++ "\n"
+      else "\\begin{table}[h]\n" ++ centered tableBody ++ "\\caption{" ++
+           captionText ++ "}\n" ++ "\\end{table}\n\n" 
+      
+
+printDecimal :: Float -> String
+printDecimal = printf "%.2f" 
+
+tableColumnWidths notes cols = map (length . (concatMap (blockToLaTeX notes))) cols
+
+tableRowToLaTeX notes cols = joinWithSep " & " (map (concatMap (blockToLaTeX notes)) cols) ++ "\\\\\n"
+
 listItemToLaTeX notes list = "\\item " ++ 
     (concatMap (blockToLaTeX notes) list) 
 

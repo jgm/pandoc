@@ -30,6 +30,7 @@ Utility functions and definitions used by the various Pandoc modules.
 module Text.Pandoc.Shared ( 
                      -- * List processing
                      splitBy,
+                     splitByIndices,
                      -- * Text processing
                      gsub,
                      joinWithSep,
@@ -133,6 +134,8 @@ data ParserState = ParserState
       stateDate            :: String,        -- ^ Date of document
       stateStrict          :: Bool,          -- ^ Use strict markdown syntax
       stateSmart           :: Bool,          -- ^ Use smart typography
+      stateColumns         :: Int,           -- ^ Number of columns in
+                                             -- terminal (used for tables)
       stateHeaderTable     :: [HeaderType]   -- ^ List of header types used,
                                              -- in what order (rst only)
     }
@@ -154,6 +157,7 @@ defaultParserState =
                   stateDate            = [],
                   stateStrict          = False,
                   stateSmart           = False,
+                  stateColumns         = 80,
                   stateHeaderTable     = [] }
 
 -- | Indent string as a block.
@@ -291,6 +295,13 @@ splitBy sep lst =
   let (first, rest) = break (== sep) lst
       rest'         = dropWhile (== sep) rest in
   first:(splitBy sep rest')
+
+-- | Split list into chunks divided at specified indices.
+splitByIndices :: [Int] -> [a] -> [[a]]
+splitByIndices [] lst = [lst]
+splitByIndices (x:xs) lst =
+    let (first, rest) = splitAt x lst in
+    first:(splitByIndices (map (\y -> y - x)  xs) rest)
 
 -- | Normalize a list of inline elements: remove leading and trailing
 -- @Space@ elements, and collapse double @Space@s into singles.

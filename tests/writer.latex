@@ -3,11 +3,15 @@
 \usepackage{ucs}
 \usepackage[utf8x]{inputenc}
 \usepackage{graphicx}
+\usepackage{array}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 % This is needed for code blocks in footnotes:
 \usepackage{fancyvrb}
 \VerbatimFootnotes
+% This is needed because raggedright in table elements redefines //:
+\newcommand{\PreserveBackslash}[1]{\let\temp=\\#1\let\\=\temp}
+\let\PBS=\PreserveBackslash
 \setcounter{secnumdepth}{0}
 \title{Pandoc Test Suite}
 \author{John MacFarlane\\Anonymous}

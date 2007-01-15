@@ -4,7 +4,7 @@ $verbose = 1;
 my $diffexists = `which diff`;
 if ($diffexists eq "") { die "diff not found in path.\n"; }
 
-my $script  = "./pandoc";
+my $script  = "COLUMNS=78 ./pandoc";
 
 use Getopt::Long;
 GetOptions("script=s" => \$script);
@@ -73,11 +73,28 @@ print "Testing -H -B -A -c options...";
 `$script -r native -s -w html -H insert -B insert -A insert -c main.css s5.native > tmp.html`;
 test_results("-B, -A, -H, -c options", "tmp.html", "s5.inserts.html");
 
+print "Testing tables:\n";
+print "   html writer...";
+`$script -r native -w html tables.native > tmp.html`;
+test_results("html table writer", "tmp.html", "tables.html");
+
+print "   latex writer...";
+`$script -r native -w latex tables.native > tmp.tex`;
+test_results("latex table writer", "tmp.tex", "tables.tex");
+
+print "   docbook writer...";
+`$script -r native -w docbook tables.native > tmp.db`;
+test_results("docbook table writer", "tmp.db", "tables.db");
+
 print "\nReader tests:\n";
 
 print "Testing markdown reader...";
 `$script -r markdown -w native -s -S testsuite.txt > tmp.native`;
 test_results("markdown reader", "tmp.native", "testsuite.native");
+
+print "   tables...";
+`$script -r markdown -w native tables.txt > tmp.native`;
+test_results("markdown table reader", "tmp.native", "tables.native");
 
 print "Testing rst reader...";
 `$script -r rst -w native -s rst-reader.rst > tmp.native`;

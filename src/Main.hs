@@ -48,7 +48,7 @@ import Text.Pandoc.Writers.DefaultHeaders ( defaultHtmlHeader,
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Regex ( mkRegex, matchRegex )
-import System.Environment ( getArgs, getProgName )
+import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
 import System.Console.GetOpt
 import System.IO
@@ -58,7 +58,7 @@ import Char ( toLower )
 import Control.Monad ( (>>=) )
 
 version :: String
-version = "0.3"
+version = "0.4"
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006 John MacFarlane\nWeb:  http://sophos.berkeley.edu/macfarlane/pandoc\nThis is free software; see the source for copying conditions.  There is no\nwarranty, not even for merchantability or fitness for a particular purpose."
@@ -426,6 +426,11 @@ main = do
               then return stdout 
               else openFile outputFile WriteMode
 
+  environment <- getEnvironment
+  let columns = case lookup "COLUMNS" environment of
+                 Just cols -> read cols
+                 Nothing   -> stateColumns defaultParserState
+
   let tabFilter = if preserveTabs then id else (tabsToSpaces tabStop)
   let addBlank str = str ++ "\n\n"
   let removeCRs str = filter (/= '\r') str  -- remove DOS-style line endings
@@ -435,6 +440,7 @@ main = do
                               stateTabStop    = tabStop, 
                               stateStandalone = standalone && (not strict),
                               stateSmart      = smart || writerName' == "latex",
+                              stateColumns    = columns,
                               stateStrict     = strict }
   let csslink = if (css == "")
                    then "" 

@@ -170,6 +170,8 @@ blockToRTF notes indent HorizontalRule =
 blockToRTF notes indent (Header level lst) = 
   rtfPar indent 0 ("\\b \\fs" ++ (show (40 - (level * 4))) ++ " " ++ 
   (inlineListToRTF notes lst))
+blockToRTF notes indent (Table caption _ _ headers rows) = 
+  blockToRTF notes indent (Para [Str "pandoc: TABLE unsupported in RST writer"])
 
 -- | Ensure that there's the same amount of space after compact
 -- lists as after regular lists.

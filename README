@@ -471,6 +471,71 @@ they cannot contain multiple paragraphs).  The syntax is as follows:
 
 Inline and regular footnotes may be mixed freely.
 
+Tables
+------
+
+Two kinds of tables may be used.  Both kinds presuppose the use of
+a fixed-width font, such as Courier.  Currently only the HTML,
+Docbook, and LaTeX writers support tables.
+
+Simple tables look like this:
+
+      Right     Left     Center     Default   
+    -------     ------ ----------   -------   
+         12     12        12            12    
+        123     123       123          123    
+          1     1          1             1    
+
+    Table:  Demonstration of simple table syntax.
+
+The headers and table rows must each fit on one line.  Column
+alignments are determined by the position of the header text relative
+to the dashed line below it:[^2]
+
+  - If the dashed line is flush with the header text on the right side
+    but extends beyond it on the left, the column is right-aligned.
+  - If the dashed line is flush with the header text on the left side 
+    but extends beyond it on the right, the column is left-aligned.
+  - If the dashed line extends beyond the header text on both sides,
+    the column is centered.
+  - If the dashed line is flush with the header text on both sides,
+    the default alignment is used (in most cases, this will be left).
+
+[^2]:  This scheme is due to Michel Fortin, who proposed it on the
+    Markdown discussion list: <http://six.pairlist.net/pipermail/markdown-discuss/2005-March/001097.html>
+
+The table must end with a blank line.  Optionally, a caption may be
+provided (as illustrated in the example above).  A caption is a paragraph
+beginning with the string `Table:`, which will be stripped off.
+
+The table parser pays attention to the widths of the columns, and
+the writers try to reproduce these relative widths in the output.
+So, if you find that one of the columns is too narrow in the output,
+try widening it in the markdown source.
+
+Multiline tables allow headers and table rows to span multiple lines
+of text.  Here is an example:
+
+    ---------------------------------------------------------------
+     Centered   Left             Right
+      Header    Aligned        Aligned  Default aligned
+    ----------  ---------  -----------  ---------------------------
+       First    row               12.0  Example of a row that spans
+                                        multiple lines.
+
+       Second   row                5.0  Here's another one.  Note
+                                        the blank line between rows.
+    ---------------------------------------------------------------
+  
+    Table:  Optional caption.  This, too, may span multiple
+    lines.
+
+These work like simple tables, but with the following differences:
+
+  - They must begin with a row of dashes, before the header text.
+  - They must end with a row of dashes, then a blank line.
+  - The rows must be separated by blank lines. 
+
 Embedded HTML
 -------------
 

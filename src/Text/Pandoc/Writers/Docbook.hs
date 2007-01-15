@@ -151,7 +151,39 @@ blockToDocbook opts (RawHtml str) = text str -- raw XML block
 blockToDocbook opts HorizontalRule = empty -- not semantic
 blockToDocbook opts (Note _ _) = empty -- shouldn't occur
 blockToDocbook opts (Key _ _) = empty  -- shouldn't occur
-blockToDocbook opts _ = inTagsIndented "para" (text "Unknown block type")
+blockToDocbook opts (Table caption aligns widths headers rows) =
+  let alignStrings = map alignmentToString aligns
+      captionDoc   = if null caption
+                      then empty
+                      else inTagsIndented "caption" 
+                           (inlinesToDocbook opts caption)
+      tableType   = if isEmpty captionDoc then "informaltable" else "table" in
+  inTagsIndented tableType $ captionDoc $$
+  (colHeadsToDocbook opts alignStrings widths headers) $$ 
+  (vcat $ map (tableRowToDocbook opts alignStrings) rows)
+
+colHeadsToDocbook opts alignStrings widths headers =
+  let heads = zipWith3
+              (\align width item -> tableItemToDocbook opts "th" align width item) 
+              alignStrings widths headers in
+  inTagsIndented "tr" $ vcat heads
+
+alignmentToString alignment = case alignment of
+                                 AlignLeft -> "left"
+                                 AlignRight -> "right"
+                                 AlignCenter -> "center"
+                                 AlignDefault -> "left"
+
+tableRowToDocbook opts aligns cols =
+  inTagsIndented "tr" $ vcat $ zipWith3 (tableItemToDocbook opts "td") aligns (repeat 0) cols
+
+tableItemToDocbook opts tag align width item =
+  let attrib = [("align", align)] ++ 
+               if (width /= 0) 
+                 then [("style", "{width: " ++ 
+                                 show (truncate (100*width)) ++ "%;}")]
+                 else [] in 
+  inTags True tag attrib $ vcat $ map (blockToDocbook opts) item
 
 -- | Put string in CDATA section
 cdata :: String -> Doc

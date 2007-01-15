@@ -31,7 +31,7 @@ module Text.Pandoc.Readers.Markdown (
                                      readMarkdown 
                                     ) where
 
-import Data.List ( findIndex, sortBy )
+import Data.List ( findIndex, sortBy, transpose )
 import Data.Char ( isAlphaNum )
 import Text.ParserCombinators.Pandoc
 import Text.Pandoc.Definition
@@ -88,6 +88,7 @@ setextHChars = ['=','-']
 blockQuoteChar = '>'
 hyphenChar = '-'
 ellipsesChar = '.'
+listColSepChar = '|'
 
 -- treat these as potentially non-text when parsing inline:
 specialChars = [escapeChar, labelStart, labelEnd, emphStart, emphEnd,
@@ -106,9 +107,9 @@ indentSpaces = do
   state <- getState
   let tabStop = stateTabStop state
   count tabStop (char ' ') <|> 
-    (do{skipNonindentSpaces; string "\t"}) <?> "indentation"
+    (do{nonindentSpaces; string "\t"}) <?> "indentation"
 
-skipNonindentSpaces = do
+nonindentSpaces = do
   state <- getState
   let tabStop = stateTabStop state
   choice (map (\n -> (try (count n (char ' ')))) (reverse [0..(tabStop - 1)]))
@@ -192,7 +193,7 @@ parseMarkdown = do
 
 parseBlocks = manyTill block eof
 
-block = choice [ codeBlock, note, referenceKey, header, hrule, list, 
+block = choice [ header, table, codeBlock, note, referenceKey, hrule, list, 
                  blockQuote, htmlBlock, rawLaTeXEnvironment', para,
                  plain, blankBlock, nullBlock ] <?> "block"
 
@@ -322,7 +323,7 @@ emacsBoxQuote = try (do
   return raw)
 
 emailBlockQuoteStart = try (do
-  skipNonindentSpaces
+  nonindentSpaces
   char blockQuoteChar
   option ' ' (char ' ')
   return "> ")
@@ -356,7 +357,7 @@ list = choice [ bulletList, orderedList ] <?> "list"
 
 bulletListStart = try (do
   option ' ' newline -- if preceded by a Plain block in a list context
-  skipNonindentSpaces
+  nonindentSpaces
   notFollowedBy' hrule  -- because hrules start out just like lists
   oneOf bulletListMarkers
   spaceChar
@@ -364,7 +365,7 @@ bulletListStart = try (do
 
 orderedListStart = try (do
   option ' ' newline -- if preceded by a Plain block in a list context
-  skipNonindentSpaces
+  nonindentSpaces
   many1 digit <|> (do{failIfStrict; count 1 letter})
   delim <- oneOf orderedListDelimiters
   if delim /= '.' then failIfStrict else return ()
@@ -501,7 +502,7 @@ rawHtmlBlocks = try (do
 --
 
 referenceKey = try (do
-  skipNonindentSpaces
+  nonindentSpaces
   label <- reference
   char labelSep
   skipSpaces
@@ -522,6 +523,150 @@ referenceKey = try (do
 rawLaTeXEnvironment' = do
   failIfStrict
   rawLaTeXEnvironment
+
+--
+-- Tables
+-- 
+
+-- | Parse a dashed line with optional trailing spaces; return its length
+--   and the length including trailing space.
+dashedLine ch = do
+    dashes <- many1 (char ch)
+    sp     <- many spaceChar
+    return $ (length dashes, length $ dashes ++ sp)
+
+-- | Parse a table header with dashed lines of '-' preceded by 
+--   one line of text.
+simpleTableHeader = do
+    rawContent  <- anyLine
+    initSp      <- nonindentSpaces
+    dashes      <- many1 (dashedLine '-')
+    newline
+    let (lengths, lines) = unzip dashes
+    let indices  = scanl (+) (length initSp) lines
+    let rawHeads = tail $ splitByIndices (init indices) rawContent
+    let aligns   = zipWith alignType (map (\a -> [a]) rawHeads) lengths
+    return $ (rawHeads, aligns, indices)
+
+-- | Parse a table footer - dashed lines followed by blank line.
+tableFooter = try $ do
+    nonindentSpaces
+    many1 (dashedLine '-')
+    blanklines
+
+-- | Parse a table separator - dashed line.
+tableSep = try $ do
+    nonindentSpaces
+    many1 (dashedLine '-')
+    string "\n"
+
+-- | Parse a raw line and split it into chunks by indices.
+rawTableLine indices = do
+    notFollowedBy' (blanklines <|> tableFooter)
+    line <- many1Till anyChar newline
+    return $ map removeLeadingTrailingSpace $ tail $ 
+             splitByIndices (init indices) line
+
+-- | Parse a table line and return a list of lists of blocks (columns).
+tableLine indices = try $ do
+    rawline <- rawTableLine indices
+    mapM (parseFromStr (many plain)) rawline
+
+-- | Parse a multiline table row and return a list of blocks (columns).
+multilineRow indices = try $ do
+    colLines <- many1 (rawTableLine indices)
+    option "" blanklines
+    let cols = map unlines $ transpose colLines
+    mapM (parseFromStr (many plain)) cols
+
+-- | Calculate relative widths of table columns, based on indices
+widthsFromIndices :: Int     -- ^ Number of columns on terminal
+                  -> [Int]   -- ^ Indices
+                  -> [Float] -- ^ Fractional relative sizes of columns
+widthsFromIndices _ [] = []  
+widthsFromIndices numColumns indices = 
+    let lengths = zipWith (-) indices (0:indices)
+        totLength = sum lengths
+        quotient = if totLength > numColumns
+                     then fromIntegral totLength
+                     else fromIntegral numColumns
+        fracs = map (\l -> (fromIntegral l) / quotient) lengths in
+    tail fracs
+
+-- | Parses a table caption:  inlines beginning with 'Table:'
+--   and followed by blank lines
+tableCaption = try $ do
+    nonindentSpaces
+    string "Table:"
+    result <- many1 inline
+    blanklines
+    return $ normalizeSpaces result
+
+-- | Parse a table using 'headerParser', 'lineParser', and 'footerParser'
+tableWith headerParser lineParser footerParser = try $ do
+    (rawHeads, aligns, indices) <- headerParser
+    lines <- many1Till (lineParser indices) footerParser
+    caption <- option [] tableCaption
+    heads <- mapM (parseFromStr (many plain)) rawHeads
+    state <- getState
+    let numColumns = stateColumns state
+    let widths = widthsFromIndices numColumns indices
+    return $ Table caption aligns widths heads lines
+
+-- | Parse a simple table with '---' header and one line per row.
+simpleTable = tableWith simpleTableHeader tableLine blanklines
+
+-- | Parse a multiline table:  starts with row of '-' on top, then header
+--   (which may be multiline), then the rows,
+--   which may be multiline, separated by blank lines, and
+--   ending with a footer (dashed line followed by blank line).
+multilineTable = tableWith multilineTableHeader multilineRow tableFooter
+
+multilineTableHeader = try $ do
+    tableSep 
+    rawContent  <- many1 (do{notFollowedBy' tableSep; 
+                             many1Till anyChar newline})
+    initSp      <- nonindentSpaces
+    dashes      <- many1 (dashedLine '-')
+    newline
+    let (lengths, lines) = unzip dashes
+    let indices  = scanl (+) (length initSp) lines
+    let rawHeadsList = transpose $ map 
+                       (\ln -> tail $ splitByIndices (init indices) ln)
+                       rawContent
+    let rawHeads = map (joinWithSep " ") rawHeadsList
+    let aligns   = zipWith alignType rawHeadsList lengths
+    return $ ((map removeLeadingTrailingSpace rawHeads),
+             aligns, indices)
+
+-- | Returns the longest of a list of strings.
+longest :: [String] -> String
+longest [] = ""
+longest [x] = x
+longest (x:xs) =
+    if (length x) >= (maximum $ map length xs)
+      then x
+      else longest xs
+
+-- | Returns an alignment type for a table, based on a list of strings
+--   (the rows of the column header) and a number (the length of the
+--   dashed line under the rows.
+alignType :: [String] -> Int -> Alignment
+alignType []  len = AlignDefault
+alignType strLst len =
+    let str        = longest $ map removeTrailingSpace strLst
+        leftSpace  = if null str then False else ((str !! 0) `elem` " \t")
+        rightSpace = (length str < len || (str !! (len - 1)) `elem` " \t") in
+    case (leftSpace, rightSpace) of
+        (True,  False)   -> AlignRight
+        (False, True)    -> AlignLeft
+        (True, True)     -> AlignCenter
+        (False, False)   -> AlignDefault
+
+table = do
+    failIfStrict
+    result <- simpleTable <|> multilineTable <?> "table"
+    return result
 
 -- 
 -- inline

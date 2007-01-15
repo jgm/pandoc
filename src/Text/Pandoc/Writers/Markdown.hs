@@ -132,6 +132,10 @@ blockToMarkdown tabStop (OrderedList lst) =
 blockToMarkdown tabStop HorizontalRule = text "\n* * * * *\n"
 blockToMarkdown tabStop (Header level lst) = text ((replicate level '#') ++ 
   " ") <> (inlineListToMarkdown lst) <> (text "\n")
+blockToMarkdown tabStop (Table caption _ _ headers rows) =
+  blockToMarkdown tabStop (Para [Str "pandoc: TABLE unsupported in Markdown writer"])
+
+
 bulletListItemToMarkdown tabStop list = 
   hang (text "-  ") tabStop (vcat (map (blockToMarkdown tabStop) list))
 

@@ -39,6 +39,12 @@ data Meta   = Meta [Inline] -- title
                    String   -- date
               deriving (Eq, Show, Read)
 
+-- | Alignment of a table column.
+data Alignment = AlignLeft 
+               | AlignRight 
+               | AlignCenter 
+               | AlignDefault deriving (Eq, Show, Read)
+
 -- | Block element.
 data Block  
     = Plain [Inline]        -- ^ Plain text, not a paragraph
@@ -57,6 +63,11 @@ data Block
     | HorizontalRule        -- ^ Horizontal rule
     | Note String [Block]   -- ^ Footnote or endnote - reference (string),
                             -- text (list of blocks)
+    | Table [Inline]        -- ^ Table caption,
+            [Alignment]     -- column alignments,
+            [Float]         -- column widths (relative to page),
+            [[Block]]       -- column headers, and 
+            [[[Block]]]     -- rows
     deriving (Eq, Read, Show)
                
 -- | Target for a link:  either a URL or an indirect (labeled) reference.

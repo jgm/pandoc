@@ -1,0 +1,139 @@
+Simple table with caption:
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{>{\PBS\raggedleft\hspace{0pt}}p{0.15\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.09\textwidth}>{\PBS\centering\hspace{0pt}}p{0.16\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.13\textwidth}}
+Right
+ & Left
+ & Center
+ & Default
+\\
+\hline
+12
+ & 12
+ & 12
+ & 12
+\\
+123
+ & 123
+ & 123
+ & 123
+\\
+1
+ & 1
+ & 1
+ & 1
+\\
+\end{tabular}
+\end{center}
+\caption{Demonstration of simple table syntax.}
+\end{table}
+
+Simple table without caption:
+
+\begin{center}
+\begin{tabular}{>{\PBS\raggedleft\hspace{0pt}}p{0.15\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.09\textwidth}>{\PBS\centering\hspace{0pt}}p{0.16\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.13\textwidth}}
+Right
+ & Left
+ & Center
+ & Default
+\\
+\hline
+12
+ & 12
+ & 12
+ & 12
+\\
+123
+ & 123
+ & 123
+ & 123
+\\
+1
+ & 1
+ & 1
+ & 1
+\\
+\end{tabular}
+\end{center}
+
+Simple table indented two spaces:
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{>{\PBS\raggedleft\hspace{0pt}}p{0.15\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.09\textwidth}>{\PBS\centering\hspace{0pt}}p{0.16\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.13\textwidth}}
+Right
+ & Left
+ & Center
+ & Default
+\\
+\hline
+12
+ & 12
+ & 12
+ & 12
+\\
+123
+ & 123
+ & 123
+ & 123
+\\
+1
+ & 1
+ & 1
+ & 1
+\\
+\end{tabular}
+\end{center}
+\caption{Demonstration of simple table syntax.}
+\end{table}
+
+Multiline table with caption:
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{>{\PBS\centering\hspace{0pt}}p{0.15\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.14\textwidth}>{\PBS\raggedleft\hspace{0pt}}p{0.16\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.34\textwidth}}
+Centered Header
+ & Left Aligned
+ & Right Aligned
+ & Default aligned
+\\
+\hline
+First
+ & row
+ & 12.0
+ & Example of a row that spans multiple lines.
+\\
+Second
+ & row
+ & 5.0
+ & Here's another one. Note the blank line between rows.
+\\
+\end{tabular}
+\end{center}
+\caption{Here's the caption. It may span multiple lines.}
+\end{table}
+
+Multiline table without caption:
+
+\begin{center}
+\begin{tabular}{>{\PBS\centering\hspace{0pt}}p{0.15\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.14\textwidth}>{\PBS\raggedleft\hspace{0pt}}p{0.16\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.34\textwidth}}
+Centered Header
+ & Left Aligned
+ & Right Aligned
+ & Default aligned
+\\
+\hline
+First
+ & row
+ & 12.0
+ & Example of a row that spans multiple lines.
+\\
+Second
+ & row
+ & 5.0
+ & Here's another one. Note the blank line between rows.
+\\
+\end{tabular}
+\end{center}
+

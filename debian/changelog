@@ -1,3 +1,11 @@
+pandoc (0.4) unstable; urgency=low
+
+  [ John MacFarlane ]
+
+  * Added support for simple and multiline tables to markdown reader,
+    LaTeX writer, DocBook writer, and HTML writer.  Added tests and
+    documentation in README.
+
 pandoc (0.3) unstable; urgency=low
 
   [ John MacFarlane ]
