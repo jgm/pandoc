@@ -1,10 +1,12 @@
-pandoc (0.4) unstable; urgency=low
+pandoc (0.4) UNRELEASED; urgency=low
 
   [ John MacFarlane ]
 
   * Added support for simple and multiline tables to markdown reader,
     LaTeX writer, DocBook writer, and HTML writer.  Added tests and
     documentation in README.
+ 
+ -- Recai Oktaş <roktas@debian.org>  Tue, 16 Jan 2007 00:37:21 +0200
 
 pandoc (0.3) unstable; urgency=low
 
