@@ -776,13 +776,14 @@ failIfInQuoteContext context = do
     then fail "already inside quotes"
     else return ()
 
-singleQuoteStart = do 
+singleQuoteStart = try $ do 
   failIfInQuoteContext InSingleQuote
   char '\'' <|> char '\8216'
+  notFollowedBy (oneOf ")!],.;:-?")
 
-singleQuoteEnd = try (do
+singleQuoteEnd = try $ do
   char '\'' <|> char '\8217'
-  notFollowedBy alphaNum)
+  notFollowedBy alphaNum
 
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
