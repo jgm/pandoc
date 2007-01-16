@@ -63,11 +63,11 @@ data Block
     | HorizontalRule        -- ^ Horizontal rule
     | Note String [Block]   -- ^ Footnote or endnote - reference (string),
                             -- text (list of blocks)
-    | Table [Inline]        -- ^ Table caption,
-            [Alignment]     -- column alignments,
-            [Float]         -- column widths (relative to page),
-            [[Block]]       -- column headers, and 
-            [[[Block]]]     -- rows
+    | Table [Inline] [Alignment] [Float] [[Block]] [[[Block]]]  -- ^ Table,
+                            -- with caption, column alignments,
+                            -- relative column widths, column headers
+                            -- (each a list of blocks), and rows
+                            -- (each a list of lists of blocks)
     deriving (Eq, Read, Show)
                
 -- | Target for a link:  either a URL or an indirect (labeled) reference.

@@ -528,15 +528,15 @@ rawLaTeXEnvironment' = do
 -- Tables
 -- 
 
--- | Parse a dashed line with optional trailing spaces; return its length
---   and the length including trailing space.
+-- Parse a dashed line with optional trailing spaces; return its length
+-- and the length including trailing space.
 dashedLine ch = do
     dashes <- many1 (char ch)
     sp     <- many spaceChar
     return $ (length dashes, length $ dashes ++ sp)
 
--- | Parse a table header with dashed lines of '-' preceded by 
---   one line of text.
+-- Parse a table header with dashed lines of '-' preceded by 
+-- one line of text.
 simpleTableHeader = do
     rawContent  <- anyLine
     initSp      <- nonindentSpaces
@@ -548,41 +548,41 @@ simpleTableHeader = do
     let aligns   = zipWith alignType (map (\a -> [a]) rawHeads) lengths
     return $ (rawHeads, aligns, indices)
 
--- | Parse a table footer - dashed lines followed by blank line.
+-- Parse a table footer - dashed lines followed by blank line.
 tableFooter = try $ do
     nonindentSpaces
     many1 (dashedLine '-')
     blanklines
 
--- | Parse a table separator - dashed line.
+-- Parse a table separator - dashed line.
 tableSep = try $ do
     nonindentSpaces
     many1 (dashedLine '-')
     string "\n"
 
--- | Parse a raw line and split it into chunks by indices.
+-- Parse a raw line and split it into chunks by indices.
 rawTableLine indices = do
     notFollowedBy' (blanklines <|> tableFooter)
     line <- many1Till anyChar newline
     return $ map removeLeadingTrailingSpace $ tail $ 
              splitByIndices (init indices) line
 
--- | Parse a table line and return a list of lists of blocks (columns).
+-- Parse a table line and return a list of lists of blocks (columns).
 tableLine indices = try $ do
     rawline <- rawTableLine indices
     mapM (parseFromStr (many plain)) rawline
 
--- | Parse a multiline table row and return a list of blocks (columns).
+-- Parse a multiline table row and return a list of blocks (columns).
 multilineRow indices = try $ do
     colLines <- many1 (rawTableLine indices)
     option "" blanklines
     let cols = map unlines $ transpose colLines
     mapM (parseFromStr (many plain)) cols
 
--- | Calculate relative widths of table columns, based on indices
-widthsFromIndices :: Int     -- ^ Number of columns on terminal
-                  -> [Int]   -- ^ Indices
-                  -> [Float] -- ^ Fractional relative sizes of columns
+-- Calculate relative widths of table columns, based on indices
+widthsFromIndices :: Int     -- Number of columns on terminal
+                  -> [Int]   -- Indices
+                  -> [Float] -- Fractional relative sizes of columns
 widthsFromIndices _ [] = []  
 widthsFromIndices numColumns indices = 
     let lengths = zipWith (-) indices (0:indices)
@@ -593,8 +593,8 @@ widthsFromIndices numColumns indices =
         fracs = map (\l -> (fromIntegral l) / quotient) lengths in
     tail fracs
 
--- | Parses a table caption:  inlines beginning with 'Table:'
---   and followed by blank lines
+-- Parses a table caption:  inlines beginning with 'Table:'
+-- and followed by blank lines.
 tableCaption = try $ do
     nonindentSpaces
     string "Table:"
@@ -602,7 +602,7 @@ tableCaption = try $ do
     blanklines
     return $ normalizeSpaces result
 
--- | Parse a table using 'headerParser', 'lineParser', and 'footerParser'
+-- Parse a table using 'headerParser', 'lineParser', and 'footerParser'.
 tableWith headerParser lineParser footerParser = try $ do
     (rawHeads, aligns, indices) <- headerParser
     lines <- many1Till (lineParser indices) footerParser
@@ -613,13 +613,13 @@ tableWith headerParser lineParser footerParser = try $ do
     let widths = widthsFromIndices numColumns indices
     return $ Table caption aligns widths heads lines
 
--- | Parse a simple table with '---' header and one line per row.
+-- Parse a simple table with '---' header and one line per row.
 simpleTable = tableWith simpleTableHeader tableLine blanklines
 
--- | Parse a multiline table:  starts with row of '-' on top, then header
---   (which may be multiline), then the rows,
---   which may be multiline, separated by blank lines, and
---   ending with a footer (dashed line followed by blank line).
+-- Parse a multiline table:  starts with row of '-' on top, then header
+-- (which may be multiline), then the rows,
+-- which may be multiline, separated by blank lines, and
+-- ending with a footer (dashed line followed by blank line).
 multilineTable = tableWith multilineTableHeader multilineRow tableFooter
 
 multilineTableHeader = try $ do
@@ -639,7 +639,7 @@ multilineTableHeader = try $ do
     return $ ((map removeLeadingTrailingSpace rawHeads),
              aligns, indices)
 
--- | Returns the longest of a list of strings.
+-- Returns the longest of a list of strings.
 longest :: [String] -> String
 longest [] = ""
 longest [x] = x
@@ -648,9 +648,9 @@ longest (x:xs) =
       then x
       else longest xs
 
--- | Returns an alignment type for a table, based on a list of strings
---   (the rows of the column header) and a number (the length of the
---   dashed line under the rows.
+-- Returns an alignment type for a table, based on a list of strings
+-- (the rows of the column header) and a number (the length of the
+-- dashed line under the rows.
 alignType :: [String] -> Int -> Alignment
 alignType []  len = AlignDefault
 alignType strLst len =
