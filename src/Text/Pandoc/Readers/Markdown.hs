@@ -759,14 +759,12 @@ withQuoteContext context parser = do
 singleQuoted = try $ do
   singleQuoteStart
   withQuoteContext InSingleQuote $ do
-    notFollowedBy space
     result <- many1Till inline singleQuoteEnd
     return $ Quoted SingleQuote $ normalizeSpaces result
 
 doubleQuoted = try $ do 
   doubleQuoteStart
   withQuoteContext InDoubleQuote $ do
-    notFollowedBy space
     result <- many1Till inline doubleQuoteEnd
     return $ Quoted DoubleQuote $ normalizeSpaces result
 
@@ -779,15 +777,16 @@ failIfInQuoteContext context = do
 singleQuoteStart = try $ do 
   failIfInQuoteContext InSingleQuote
   char '\'' <|> char '\8216'
-  notFollowedBy (oneOf ")!],.;:-?")
+  notFollowedBy (oneOf ")!],.;:-? \t\n")
 
 singleQuoteEnd = try $ do
   char '\'' <|> char '\8217'
   notFollowedBy alphaNum
 
-doubleQuoteStart = do
+doubleQuoteStart = try $ do
   failIfInQuoteContext InDoubleQuote
   char '"' <|> char '\8220'
+  notFollowedBy (oneOf " \t\n")
 
 doubleQuoteEnd = char '"' <|> char '\8221'
 
