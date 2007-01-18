@@ -778,7 +778,7 @@ singleQuoteStart = try $ do
   failIfInQuoteContext InSingleQuote
   char '\'' <|> char '\8216'
   notFollowedBy (oneOf ")!],.;:-? \t\n")
-  notFollowedBy (do{char 's'; satisfy (not . isAlphaNum)})
+  notFollowedBy (try (do{oneOf "sS"; satisfy (not . isAlphaNum)}))
 
 singleQuoteEnd = try $ do
   char '\'' <|> char '\8217'
