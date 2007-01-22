@@ -55,7 +55,7 @@ escapeString = backslashEscape "`<\\*_^"
 
 -- | Escape embedded \" in link title.
 escapeLinkTitle :: String -> String
-escapeLinkTitle = gsub "\"" "\\\\\""
+escapeLinkTitle = substitute "\"" "\\\""
 
 -- | Take list of inline elements and return wrapped doc.
 wrappedMarkdown :: [Inline] -> Doc

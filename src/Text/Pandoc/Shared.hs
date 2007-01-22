@@ -33,7 +33,6 @@ module Text.Pandoc.Shared (
                      splitByIndices,
                      substitute,
                      -- * Text processing
-                     gsub,
                      joinWithSep,
                      tabsToSpaces,
                      backslashEscape,
@@ -219,13 +218,6 @@ tabsInLine num tabstop (c:cs) =
                      then (nextnumraw + tabstop)
                      else nextnumraw in
     replacement ++ (tabsInLine nextnum tabstop cs)
-
--- | Substitute string for every occurrence of regular expression.
-gsub :: String  -- ^ Regular expression (as string) to substitute for
-     -> String  -- ^ String to substitute for the regex
-     -> String  -- ^ String to be substituted in
-     -> String
-gsub regex replacement str = subRegex (mkRegex regex) str replacement
 
 -- | Escape designated characters with backslash.
 backslashEscape :: [Char]    -- ^ list of special characters to escape

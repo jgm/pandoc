@@ -87,7 +87,7 @@ obfuscateLink opts txt src =
       src' = map toLower src in
   case (matchRegex emailRegex src') of
     (Just [name, domain]) ->
-      let domain' = gsub "\\." " dot " domain
+      let domain' = substitute "." " dot " domain
           at' = obfuscateChar '@' in
       let linkText = if src' == ("mailto:" ++ text')
                         then "e"

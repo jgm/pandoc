@@ -59,7 +59,7 @@ handleUnicode (c:cs) = if (ord c) > 127
                           else c:(handleUnicode cs)
 
 escapeSpecial = backslashEscape "{\\}"
-escapeTab = gsub "\\\\t" "\\\\tab "
+escapeTab = substitute "\\t" "\\tab "
 
 -- | Escape strings as needed for rich text format.
 stringToRTF :: String -> String

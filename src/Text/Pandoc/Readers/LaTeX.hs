@@ -291,7 +291,7 @@ authors = try (do
   authors <- manyTill anyChar (char '}')
   spaces
   let authors' = map removeLeadingTrailingSpace $ lines $
-                 gsub "\\\\\\\\" "\n" authors
+                 substitute "\\\\" "\n" authors
   updateState (\state -> state { stateAuthors = authors' })
   return Null)
 
