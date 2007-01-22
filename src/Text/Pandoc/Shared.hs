@@ -31,6 +31,7 @@ module Text.Pandoc.Shared (
                      -- * List processing
                      splitBy,
                      splitByIndices,
+                     substitute,
                      -- * Text processing
                      gsub,
                      joinWithSep,
@@ -79,8 +80,8 @@ import Text.Pandoc.Entities ( decodeEntities, encodeEntities, characterEntity )
 import Text.Regex ( matchRegexAll, mkRegex, subRegex, Regex )
 import Text.PrettyPrint.HughesPJ as PP ( text, char, (<>), ($$), nest, Doc, 
                                          isEmpty )
-import Char ( toLower )
-import List ( find, groupBy )
+import Data.Char ( toLower )
+import Data.List ( find, groupBy, isPrefixOf )
 
 -- | Parse a string with a given parser and state.
 readWith :: GenParser Char ParserState a      -- ^ parser
@@ -287,6 +288,15 @@ removeTrailingSpace = reverse . removeLeadingSpace . reverse
 -- | Strip leading and trailing characters from string
 stripFirstAndLast str =
   drop 1 $ take ((length str) - 1) str
+
+-- | Replace each occurrence of one sublist in a list with another.
+substitute :: (Eq a) => [a] -> [a] -> [a] -> [a]
+substitute _ _ [] = []
+substitute [] _ lst = lst
+substitute target replacement lst = 
+    if isPrefixOf target lst
+       then replacement ++ (substitute target replacement $ drop (length target) lst)
+       else (head lst):(substitute target replacement $ tail lst)
 
 -- | Split list into groups separated by sep.
 splitBy :: (Eq a) => a -> [a] -> [[a]]

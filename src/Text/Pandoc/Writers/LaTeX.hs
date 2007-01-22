@@ -78,12 +78,12 @@ latexHeader notes options (Meta title authors date) =
 escapeBrackets  = backslashEscape "{}"
 escapeSpecial   = backslashEscape "$%&~_#"
 
-escapeBackslash = gsub "\\\\" "\\\\textbackslash{}" 
-fixBackslash    = gsub "\\\\textbackslash\\\\\\{\\\\\\}" "\\\\textbackslash{}"
-escapeHat       = gsub "\\^" "\\\\^{}"
-escapeBar       = gsub "\\|" "\\\\textbar{}"
-escapeLt        = gsub "<" "\\\\textless{}"
-escapeGt        = gsub ">" "\\\\textgreater{}"
+escapeBackslash = substitute "\\" "\\textbackslash{}" 
+fixBackslash    = substitute "\\textbackslash\\{\\}" "\\textbackslash{}"
+escapeHat       = substitute "^" "\\^{}"
+escapeBar       = substitute "|" "\\textbar{}"
+escapeLt        = substitute "<" "\\textless{}"
+escapeGt        = substitute ">" "\\textgreater{}"
 
 -- | Escape string for LaTeX
 stringToLaTeX :: String -> String
