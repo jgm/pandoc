@@ -40,7 +40,6 @@ module Text.Pandoc.Readers.HTML (
                                  htmlBlockElement 
                                 ) where
 
-import Text.Regex ( matchRegex, mkRegex )
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Pandoc
 import Text.Pandoc.Definition
@@ -84,10 +83,13 @@ inlinesTilEnd tag = try (do
   return inlines)
 
 -- | Extract type from a tag:  e.g. 'br' from '<br>'
-extractTagType tag = 
-    case (matchRegex (mkRegex  "<[[:space:]]*/?([A-Za-z0-9]+)") tag) of
-          Just [match]   -> (map toLower match)
-          Nothing        -> ""
+extractTagType :: String -> String
+extractTagType "" = ""
+extractTagType ('<':rest) =  
+  if (not (null rest)) && (last rest == '>')
+    then map toLower $ removeLeadingTrailingSpace (init rest) 
+    else ""
+extractTagType _ = ""
 
 -- | Parse any HTML tag (closing or opening) and return text of tag
 anyHtmlTag = try (do
