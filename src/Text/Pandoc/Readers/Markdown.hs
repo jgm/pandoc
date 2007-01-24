@@ -31,7 +31,7 @@ module Text.Pandoc.Readers.Markdown (
                                      readMarkdown 
                                     ) where
 
-import Data.List ( findIndex, sortBy, transpose )
+import Data.List ( findIndex, sortBy, transpose, isSuffixOf, intersect )
 import Data.Char ( isAlphaNum )
 import Text.ParserCombinators.Pandoc
 import Text.Pandoc.Definition
@@ -43,7 +43,6 @@ import Text.Pandoc.Readers.HTML ( rawHtmlBlock,
                                   htmlEndTag, extractTagType,
                                   htmlBlockElement )
 import Text.Pandoc.Entities ( decodeEntities )
-import Text.Regex ( matchRegex, mkRegex )
 import Text.ParserCombinators.Parsec
 
 -- | Read markdown from an input string and return a Pandoc document.
@@ -474,14 +473,13 @@ htmlBlock = do
     else rawHtmlBlocks
 
 -- True if tag is self-closing
-selfClosing tag = case (matchRegex (mkRegex "\\/[[:space:]]*>$") tag) of
-                      Just _  -> True
-                      Nothing -> False
+isSelfClosing tag = 
+  isSuffixOf "/>" $ filter (\c -> (not (c `elem` " \n\t"))) tag
 
 strictHtmlBlock = try (do
   tag <- anyHtmlBlockTag 
   let tag' = extractTagType tag
-  if selfClosing tag || tag' == "hr" 
+  if isSelfClosing tag || tag' == "hr" 
      then return tag
      else do
             contents <- many (do{notFollowedBy' (htmlEndTag tag'); 
@@ -930,17 +928,24 @@ referenceLinkSingle = try (do
      else fail "no corresponding key"
   return (Link label (Ref label))) 
 
--- a link <like.this.com>
-autoLink = try (do
+autoLink = do
   notFollowedBy' (anyHtmlTag <|> anyHtmlEndTag)
+  autoLinkEmail <|> autoLinkRegular
+
+-- a link <like@this.com>
+autoLinkEmail = try $ do
+  char autoLinkStart
+  name <- many1Till (noneOf "/:<> \t\n") (char '@')
+  domain <- sepBy1 (many1 (noneOf "/:.@<> \t\n")) (char '.')
+  let src = name ++ "@" ++ (joinWithSep "." domain)
+  char autoLinkEnd
+  return $ Link [Str src] (Src ("mailto:" ++ src) "")
+
+-- a link <like.this.com>
+autoLinkRegular = try $ do
   src <- between (char autoLinkStart) (char autoLinkEnd) 
          (many (noneOf (spaceChars ++ endLineChars ++ [autoLinkEnd])))
-  case (matchRegex emailAddress src) of
-    Just _  -> return (Link [Str src] (Src ("mailto:" ++ src) ""))
-    Nothing -> return (Link [Str src] (Src src ""))) 
-
-emailAddress = 
-    mkRegex "([^@:/]+)@(([^.]+[.]?)*([^.]+))"  -- presupposes no whitespace
+  return $ Link [Str src] (Src src "")
 
 image = try (do
   char imageStart
