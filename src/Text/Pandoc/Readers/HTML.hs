@@ -46,6 +46,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Entities ( decodeEntities, entityToChar )
 import Maybe ( fromMaybe )
+import Data.List ( intersect, takeWhile, dropWhile )
 import Data.Char ( toUpper, toLower, isAlphaNum )
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
@@ -84,7 +85,9 @@ inlinesTilEnd tag = try (do
 
 -- | Extract type from a tag:  e.g. 'br' from '<br>'
 extractTagType :: String -> String
-extractTagType ('<':rest) =  map toLower $ takeWhile isAlphaNum rest
+extractTagType ('<':rest) = 
+  let isSpaceOrSlash c = c `elem` "/ \n\t" in
+  map toLower $ takeWhile isAlphaNum $ dropWhile isSpaceOrSlash rest
 extractTagType _ = ""
 
 -- | Parse any HTML tag (closing or opening) and return text of tag
