@@ -35,7 +35,7 @@ module Text.Pandoc.Writers.Markdown (
 import Text.Regex ( matchRegex, mkRegex )
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
-import Data.List ( group )
+import Data.List ( group, isPrefixOf, drop )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
 -- | Convert Pandoc to Markdown.
@@ -183,11 +183,15 @@ inlineToMarkdown Space = char ' '
 inlineToMarkdown (Link txt (Src src tit)) = 
   let linktext = if (null txt) || (txt == [Str ""])
                     then text "link"
-                    else inlineListToMarkdown txt in
-  char '[' <> linktext <> char ']' <> char '(' <> text src <> 
-  (if tit /= ""
-      then text (" \"" ++ (escapeLinkTitle tit) ++ "\"") 
-      else empty) <> char ')'
+                    else inlineListToMarkdown txt 
+      linktitle = if null tit
+                    then empty
+                    else text (" \"" ++ (escapeLinkTitle tit) ++ "\"")
+      srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src in
+  if (null tit) && (txt == [Str srcSuffix])
+    then char '<' <> text srcSuffix <> char '>' 
+    else char '[' <> linktext <> char ']' <> char '(' <> text src <> 
+         linktitle <> char ')' 
 inlineToMarkdown (Link txt (Ref ref)) = 
   let first = char '[' <> inlineListToMarkdown txt <> char ']'
       second = if (txt == ref) 

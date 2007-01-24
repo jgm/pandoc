@@ -575,16 +575,15 @@ Here's an [inline link in pointy braces](/script?foo=1&bar=2).
 
 ## Autolinks
 
-With an ampersand:
-[http://example.com/?foo=1&bar=2](http://example.com/?foo=1&bar=2)
+With an ampersand: <http://example.com/?foo=1&bar=2>
 
 -   In a list?
--   [http://example.com/](http://example.com/)
+-   <http://example.com/>
 -   It should.
 
-An e-mail address: [nobody@nowhere.net](mailto:nobody@nowhere.net)
+An e-mail address: <nobody@nowhere.net>
 
-> Blockquoted: [http://example.com/](http://example.com/)
+> Blockquoted: <http://example.com/>
 
 Auto-links should not occur here: `<http://example.com/>`
 
