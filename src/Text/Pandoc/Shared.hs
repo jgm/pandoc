@@ -36,7 +36,6 @@ module Text.Pandoc.Shared (
                      joinWithSep,
                      tabsToSpaces,
                      backslashEscape,
-                     escapePreservingRegex,
                      endsWith,
                      stripTrailingNewlines,
                      removeLeadingTrailingSpace,
@@ -74,12 +73,11 @@ module Text.Pandoc.Shared (
                      inTagsIndented
                     ) where
 import Text.Pandoc.Definition
-import Text.ParserCombinators.Parsec
-import Text.Pandoc.Entities ( decodeEntities, encodeEntities, characterEntity )
-import Text.Regex ( matchRegexAll, mkRegex, subRegex, Regex )
-import Text.PrettyPrint.HughesPJ as PP ( text, char, (<>), ($$), nest, Doc, 
-                                         isEmpty )
-import Data.Char ( toLower )
+import Text.ParserCombinators.Parsec as Parsec
+import Text.Pandoc.Entities ( decodeEntities, charToEntity )
+import Text.PrettyPrint.HughesPJ as PP ( text, char, (<>), 
+                                         ($$), nest, Doc, isEmpty )
+import Data.Char ( toLower, ord )
 import Data.List ( find, groupBy, isPrefixOf )
 
 -- | Parse a string with a given parser and state.
@@ -227,17 +225,6 @@ backslashEscape special [] = []
 backslashEscape special (x:xs) = if x `elem` special
     then '\\':x:(backslashEscape special xs)
     else x:(backslashEscape special xs)
-
--- | Escape string by applying a function, but don't touch anything that matches regex.
-escapePreservingRegex :: (String -> String)      -- ^ Escaping function
-			 -> Regex                -- ^ Regular expression
-			 -> String               -- ^ String to be escaped
-			 -> String
-escapePreservingRegex escapeFunction regex str =
-    case (matchRegexAll regex str) of
-      Nothing                          -> escapeFunction str
-      Just (before, matched, after, _) -> (escapeFunction before) ++ 
-            matched ++ (escapePreservingRegex escapeFunction regex after)
 
 -- | Returns @True@ if string ends with given character.
 endsWith :: Char -> [Char] -> Bool
@@ -536,20 +523,56 @@ replaceRefLinksInline keytable (Quoted t lst) =
     Quoted t (map (replaceRefLinksInline keytable) lst)
 replaceRefLinksInline keytable other = other
 
+-- | Parse SGML character entity.
+sgmlCharacterEntity :: GenParser Char st [Char]
+sgmlCharacterEntity = sgmlNamedEntity <|> sgmlDecimalEntity <|> 
+                      sgmlHexEntity <?> "SGML entity"
+
+-- | Parse SGML character entity.
+sgmlNamedEntity :: GenParser Char st [Char]
+sgmlNamedEntity = try $ do
+  st <- Parsec.char '&'
+  body <- many1 alphaNum
+  end <- Parsec.char ';'
+  return $ (st:body) ++ [end] 
+   
+-- | Parse SGML decimal entity.
+sgmlDecimalEntity :: GenParser Char st [Char]
+sgmlDecimalEntity = try $ do
+  st <- string "&#"
+  body <- many1 (oneOf "0123456789")
+  end <- Parsec.char ';'
+  return $ st ++ body ++ [end]
+
+-- | Parse SGML hexadecimal entity.
+sgmlHexEntity :: GenParser Char st [Char]
+sgmlHexEntity = try $ do
+  st <- string "&#"
+  hex <- oneOf "Xx"
+  body <- many1 (oneOf "0123456789ABCDEFabcdef")
+  end <- Parsec.char ';'
+  return $ st ++ (hex:body) ++ [end]
+
+-- | Escape special character to SGML entity.
+specialCharToEntity :: Char -> [Char]
+specialCharToEntity c = if (c `elem` "&<>\"") || (ord c > 127)
+                          then charToEntity c
+                          else [c]
+
 -- | Escape string, preserving character entities.
 stringToSGML :: String -> String
-stringToSGML = 
-  encodeEntities . (escapePreservingRegex escapeSGML characterEntity)
+stringToSGML str =
+  let segment = sgmlCharacterEntity <|>
+                (do{c <- anyChar;
+                    return $ specialCharToEntity c})
+      sgmlString = (do{segs <- many segment; return $ concat segs}) in
+  case parse sgmlString str str of
+      Left err     -> error $ "\nError:\n" ++ show err
+      Right result -> result
 
--- | Escape string as needed for HTML.  Entity references are not preserved.
+-- | Escape string as needed for SGML.  Entity references are not preserved.
 escapeSGML :: String -> String
-escapeSGML [] = []
-escapeSGML (x:xs) = case x of
-  '&' -> "&amp;" ++ escapeSGML xs
-  '<' -> "&lt;"  ++ escapeSGML xs
-  '>' -> "&gt;"  ++ escapeSGML xs
-  '"' -> "&quot;"  ++ escapeSGML xs
-  _   -> x:(escapeSGML xs) 
+escapeSGML = concatMap specialCharToEntity 
 
 -- | Return a text object with a string of formatted SGML attributes. 
 attributeList :: [(String, String)] -> Doc
