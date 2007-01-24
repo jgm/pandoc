@@ -776,9 +776,13 @@ failIfInQuoteContext context = do
 
 singleQuoteStart = try $ do 
   failIfInQuoteContext InSingleQuote
-  char '\'' <|> char '\8216'
-  notFollowedBy (oneOf ")!],.;:-? \t\n")
-  notFollowedBy (try (do{oneOf "sS"; satisfy (not . isAlphaNum)}))
+  char '\8216' <|> do 
+                     char '\''  
+                     notFollowedBy (oneOf ")!],.;:-? \t\n")
+                     notFollowedBy (try (do  -- possessive or contraction
+                                           oneOf "sStT"
+                                           satisfy (not . isAlphaNum)))
+                     return '\''
 
 singleQuoteEnd = try $ do
   char '\'' <|> char '\8217'
