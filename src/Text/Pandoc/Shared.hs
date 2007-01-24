@@ -306,12 +306,14 @@ splitByIndices (x:xs) lst =
     first:(splitByIndices (map (\y -> y - x)  xs) rest)
 
 -- | Normalize a list of inline elements: remove leading and trailing
--- @Space@ elements, and collapse double @Space@s into singles.
+-- @Space@ elements, collapse double @Space@s into singles, and
+-- remove empty Str elements.
 normalizeSpaces :: [Inline] -> [Inline]
 normalizeSpaces [] = []
 normalizeSpaces list = 
     let removeDoubles [] = []
         removeDoubles (Space:Space:rest) = removeDoubles (Space:rest)
+        removeDoubles ((Str ""):rest) = removeDoubles rest 
         removeDoubles (x:rest) = x:(removeDoubles rest) in
     let removeLeading [] = []
         removeLeading lst = if ((head lst) == Space)

@@ -381,7 +381,8 @@ comment = try (do
 -- inline
 --
 
-inline =  choice [ strong, emph, ref, lab, code, linebreak, math, ellipses,
+inline =  choice [ strong, emph, ref, lab, code, linebreak, spacer,
+                   math, ellipses,
                    emDash, enDash, hyphen, quoted, apostrophe,
                    accentedChar, specialChar, specialInline, escapedChar,
                    unescapedChar, str, endline, whitespace ] <?> "inline"
@@ -578,6 +579,10 @@ whitespace = do
 linebreak = try (do
   string "\\\\"
   return LineBreak)
+
+spacer = try $ do
+  string "\\," 
+  return (Str "")
 
 str = do 
   result <- many1 (noneOf specialChars)

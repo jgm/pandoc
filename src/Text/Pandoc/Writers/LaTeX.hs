@@ -166,6 +166,11 @@ inlineListToLaTeX :: [Block]   -- ^ List of note blocks to use in resolving note
 inlineListToLaTeX notes lst = 
   concatMap (inlineToLaTeX notes) lst
 
+isQuoted :: Inline -> Bool
+isQuoted (Quoted _ _) = True
+isQuoted Apostrophe = True
+isQuoted _ = False
+
 -- | Convert inline element to LaTeX
 inlineToLaTeX :: [Block]   -- ^ List of note blocks to use in resolving note refs
               -> Inline    -- ^ Inline to convert
@@ -178,9 +183,13 @@ inlineToLaTeX notes (Code str) = "\\verb" ++ [chr] ++ stuffing ++ [chr]
                      where stuffing = str 
                            chr      = ((enumFromTo '!' '~') \\ stuffing) !! 0
 inlineToLaTeX notes (Quoted SingleQuote lst) =
-  "`" ++ inlineListToLaTeX notes lst ++ "'"
+  let s1 = if (not (null lst)) && (isQuoted (head lst)) then "\\," else ""
+      s2 = if (not (null lst)) && (isQuoted (last lst)) then "\\," else "" in
+  "`" ++ s1 ++ inlineListToLaTeX notes lst ++ s2 ++ "'"
 inlineToLaTeX notes (Quoted DoubleQuote lst) =
-  "``" ++ inlineListToLaTeX notes lst ++ "''"
+  let s1 = if (not (null lst)) && (isQuoted (head lst)) then "\\," else ""
+      s2 = if (not (null lst)) && (isQuoted (last lst)) then "\\," else "" in
+  "``" ++ s1 ++ inlineListToLaTeX notes lst ++ s2 ++ "''"
 inlineToLaTeX notes Apostrophe = "'"
 inlineToLaTeX notes EmDash = "---"
 inlineToLaTeX notes EnDash = "--"

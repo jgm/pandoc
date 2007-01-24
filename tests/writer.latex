@@ -377,13 +377,13 @@ This is code: \verb!>!, \verb!$!, \verb!\!, \verb!\$!, \verb!<html>!.
 
 \section{Smart quotes, ellipses, dashes}
 
-``Hello,'' said the spider. ```Shelob' is my name.''
+``Hello,'' said the spider. ``\,`Shelob' is my name.''
 
 `A', `B', and `C' are letters.
 
 `Oak,' `elm,' and `beech' are names of trees. So is `pine.'
 
-`He said, ``I want to go.''' Were you alive in the 70's?
+`He said, ``I want to go.''\,' Were you alive in the 70's?
 
 Here is some quoted `\verb!code!' and a ``\href{http://example.com/?foo=1&bar=2}{quoted link}''.
 
