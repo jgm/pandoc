@@ -140,7 +140,7 @@ htmlAttribute = htmlRegularAttribute <|> htmlMinimizedAttribute
 
 -- minimized boolean attribute (no = and value)
 htmlMinimizedAttribute = try (do
-  spaces
+  many1 space
   name <- many1 (choice [letter, oneOf ".-_:"])
   spaces
   notFollowedBy (char '=')
@@ -148,7 +148,7 @@ htmlMinimizedAttribute = try (do
   return (name, content, (" " ++ name)))
 
 htmlRegularAttribute = try (do
-  spaces
+  many1 space
   name <- many1 (choice [letter, oneOf ".-_:"])
   spaces
   char '='
