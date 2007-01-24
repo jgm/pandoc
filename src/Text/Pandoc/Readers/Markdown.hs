@@ -928,9 +928,7 @@ referenceLinkSingle = try (do
      else fail "no corresponding key"
   return (Link label (Ref label))) 
 
-autoLink = do
-  notFollowedBy' (anyHtmlTag <|> anyHtmlEndTag)
-  autoLinkEmail <|> autoLinkRegular
+autoLink = autoLinkEmail <|> autoLinkRegular
 
 -- a link <like@this.com>
 autoLinkEmail = try $ do
@@ -941,10 +939,12 @@ autoLinkEmail = try $ do
   char autoLinkEnd
   return $ Link [Str src] (Src ("mailto:" ++ src) "")
 
--- a link <like.this.com>
+-- a link <http://like.this.com>
 autoLinkRegular = try $ do
-  src <- between (char autoLinkStart) (char autoLinkEnd) 
-         (many (noneOf (spaceChars ++ endLineChars ++ [autoLinkEnd])))
+  char autoLinkStart
+  prot <- oneOfStrings ["http:", "ftp:", "mailto:"]
+  rest <- many1Till (noneOf " \t\n<>") (char autoLinkEnd)
+  let src = prot ++ rest
   return $ Link [Str src] (Src src "")
 
 image = try (do
