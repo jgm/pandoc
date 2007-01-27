@@ -240,8 +240,8 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
   , [ Plain [Str "section:",Space,Str "\167"] ]
   , [ Plain [Str "set",Space,Str "membership:",Space,Str "\8712"] ]
   , [ Plain [Str "copyright:",Space,Str "\169"] ] ]
-, Para [Str "AT&T",Space,Str "has",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "their",Space,Str "name",Str "."]
-, Para [Str "AT&T",Space,Str "is",Space,Str "another",Space,Str "way",Space,Str "to",Space,Str "write",Space,Str "it",Str "."]
+, Para [Str "AT",Str "&",Str "T",Space,Str "has",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "their",Space,Str "name",Str "."]
+, Para [Str "AT",Str "&",Str "T",Space,Str "is",Space,Str "another",Space,Str "way",Space,Str "to",Space,Str "write",Space,Str "it",Str "."]
 , Para [Str "This",Space,Str "&",Space,Str "that",Str "."]
 , Para [Str "4",Space,Str "<",Space,Str "5",Str "."]
 , Para [Str "6",Space,Str ">",Space,Str "5",Str "."]
@@ -294,7 +294,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Key [Str "bar"] (Src "/url/" "Title with &quot;quotes&quot; inside")
 , Header 2 [Str "With",Space,Str "ampersands"]
 , Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Link [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] (Ref [Str "1"]),Str "."]
-, Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "amersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text:",Space,Link [Str "AT&T"] (Ref [Str "2"]),Str "."]
+, Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "amersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text:",Space,Link [Str "AT",Str "&",Str "T"] (Ref [Str "2"]),Str "."]
 , Para [Str "Here",Apostrophe,Str "s",Space,Str "an",Space,Link [Str "inline",Space,Str "link"] (Src "/script?foo=1&bar=2" ""),Str "."]
 , Para [Str "Here",Apostrophe,Str "s",Space,Str "an",Space,Link [Str "inline",Space,Str "link",Space,Str "in",Space,Str "pointy",Space,Str "braces"] (Src "/script?foo=1&bar=2" ""),Str "."]
 , Key [Str "1"] (Src "http://example.com/?foo=1&bar=2" "")

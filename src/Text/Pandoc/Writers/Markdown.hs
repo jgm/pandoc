@@ -32,7 +32,6 @@ Markdown:  <http://daringfireball.net/projects/markdown/>
 module Text.Pandoc.Writers.Markdown (
                                      writeMarkdown
                                     ) where
-import Text.Regex ( matchRegex, mkRegex )
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Data.List ( group, isPrefixOf, drop )

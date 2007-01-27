@@ -32,10 +32,9 @@ module Text.Pandoc.Writers.Docbook (
                                    ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
-import Text.Pandoc.Entities ( encodeEntities )
-import Text.Regex ( mkRegex, matchRegex )
+import Text.Pandoc.Entities ( encodeEntities, stringToSGML )
 import Data.Char ( toLower, ord )
-import Data.List ( isPrefixOf, partition )
+import Data.List ( isPrefixOf, partition, drop )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
 -- | Data structure for defining hierarchical Pandoc documents
@@ -65,8 +64,8 @@ authorToDocbook name = inTagsIndented "author" $
     then -- last name first
       let (lastname, rest) = break (==',') name 
           firstname = removeLeadingSpace rest in
-      inTagsSimple "firstname" (text $ stringToSGML firstname) <> 
-      inTagsSimple "surname" (text $ stringToSGML lastname) 
+      inTagsSimple "firstname" (text $ stringToSGML True firstname) <> 
+      inTagsSimple "surname" (text $ stringToSGML True lastname) 
     else -- last name last
       let namewords = words name
           lengthname = length namewords 
@@ -74,8 +73,8 @@ authorToDocbook name = inTagsIndented "author" $
             0  -> ("","") 
             1  -> ("", name)
             n  -> (joinWithSep " " (take (n-1) namewords), last namewords) in
-       inTagsSimple "firstname" (text $ stringToSGML firstname) $$ 
-       inTagsSimple "surname" (text $ stringToSGML lastname) 
+       inTagsSimple "firstname" (text $ stringToSGML True firstname) $$ 
+       inTagsSimple "surname" (text $ stringToSGML True lastname) 
 
 -- | Convert Pandoc document to string in Docbook format.
 writeDocbook :: WriterOptions -> Pandoc -> String
@@ -87,7 +86,7 @@ writeDocbook opts (Pandoc (Meta title authors date) blocks) =
                 then inTagsIndented "articleinfo" $
                      (inTagsSimple "title" (wrap opts title)) $$ 
                      (vcat (map authorToDocbook authors)) $$ 
-                     (inTagsSimple "date" (text $ stringToSGML date)) 
+                     (inTagsSimple "date" (text $ stringToSGML True date)) 
                 else empty
       blocks' = replaceReferenceLinks blocks
       (noteBlocks, blocks'') = partition isNoteBlock blocks' 
@@ -142,7 +141,7 @@ blockToDocbook opts (Para lst) =
 blockToDocbook opts (BlockQuote blocks) =
   inTagsIndented "blockquote" (blocksToDocbook opts blocks)
 blockToDocbook opts (CodeBlock str) = 
-  text "<screen>\n" <> text (escapeSGML str) <> text "\n</screen>"
+  text "<screen>\n" <> text (encodeEntities True str) <> text "\n</screen>"
 blockToDocbook opts (BulletList lst) = 
   inTagsIndented "itemizedlist" $ listItemsToDocbook opts lst 
 blockToDocbook opts (OrderedList lst) = 
@@ -199,7 +198,7 @@ inlinesToDocbook opts lst = hcat (map (inlineToDocbook opts) lst)
 
 -- | Convert an inline element to Docbook.
 inlineToDocbook :: WriterOptions -> Inline -> Doc
-inlineToDocbook opts (Str str) = text $ stringToSGML str 
+inlineToDocbook opts (Str str) = text $ stringToSGML True str 
 inlineToDocbook opts (Emph lst) = 
   inTagsSimple "emphasis" (inlinesToDocbook opts lst)
 inlineToDocbook opts (Strong lst) = 
@@ -212,24 +211,23 @@ inlineToDocbook opts Ellipses = text "&#8230;"
 inlineToDocbook opts EmDash = text "&#8212;" 
 inlineToDocbook opts EnDash = text "&#8211;" 
 inlineToDocbook opts (Code str) = 
-  inTagsSimple "literal" $ text (escapeSGML str)
+  inTagsSimple "literal" $ text (encodeEntities True str)
 inlineToDocbook opts (TeX str) = inlineToDocbook opts (Code str)
 inlineToDocbook opts (HtmlInline str) = empty
 inlineToDocbook opts LineBreak = 
   text $ "<literallayout></literallayout>" 
 inlineToDocbook opts Space = char ' '
 inlineToDocbook opts (Link txt (Src src tit)) =
-  case (matchRegex (mkRegex "mailto:(.*)") src) of
-    Just [addr] -> inTagsSimple "email" $ text (escapeSGML addr)
-    Nothing     -> inTags False "ulink" [("url", src)] $
-                   inlinesToDocbook opts txt
+  if isPrefixOf "mailto:" src
+    then inTagsSimple "email" $ text (encodeEntities True $ drop 7 src)
+    else inTags False "ulink" [("url", src)] $ inlinesToDocbook opts txt
 inlineToDocbook opts (Link text (Ref ref)) = empty -- shouldn't occur
 inlineToDocbook opts (Image alt (Src src tit)) = 
   let titleDoc = if null tit
                    then empty
                    else inTagsIndented "objectinfo" $
                         inTagsIndented "title" 
-                        (text $ stringToSGML tit) in
+                        (text $ stringToSGML True tit) in
   inTagsIndented "inlinemediaobject" $ 
   inTagsIndented "imageobject" $
   titleDoc $$ selfClosingTag "imagedata" [("fileref", src)] 

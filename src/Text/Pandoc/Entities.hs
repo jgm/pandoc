@@ -29,62 +29,109 @@ Functions for encoding unicode characters as entity references,
 and vice versa.
 -}
 module Text.Pandoc.Entities (
-                     entityToChar,
                      charToEntity,
-                     decodeEntities,
+                     charToNumericalEntity,
+                     specialCharToEntity,
                      encodeEntities,
+                     decodeEntities,
+                     stringToSGML,
                      characterEntity
                     ) where
 import Data.Char ( chr, ord )
-import Text.Regex ( mkRegex, matchRegexAll, Regex )
-import Maybe ( fromMaybe )
-
--- | Regular expression for numerical coded entity.
-numericalEntity :: Text.Regex.Regex
-numericalEntity = mkRegex "&#([0-9]+|[xX][0-9A-Fa-f]+);"
-
--- | Regular expression for character entity.
-characterEntity :: Text.Regex.Regex
-characterEntity = mkRegex "&#[0-9]+;|&#[xX][0-9A-Fa-f]+;|&[A-Za-z0-9]+;"
-
--- | Return a string with all entity references decoded to unicode characters
--- where possible.  
-decodeEntities :: String -> String
-decodeEntities str = 
-  case (matchRegexAll characterEntity str) of
-    Nothing                       -> str
-    Just (before, match, rest, _) -> before ++ replacement ++ 
-                                     (decodeEntities rest)
-      where replacement = case (entityToChar match) of
-                            Just ch -> [ch]
-                            Nothing -> match
-
--- | Returns a string with characters replaced with entity references where
--- possible.
-encodeEntities :: String -> String
-encodeEntities [] = []
-encodeEntities (c:cs) = if ord c < 128
-                          then c:(encodeEntities cs)
-                          else (charToEntity c) ++ (encodeEntities cs) 
-
--- | If the string is a valid entity reference, returns @Just@ the character,
--- otherwise @Nothing@.
-entityToChar :: String -> Maybe Char 
-entityToChar entity = 
-    case (lookup entity entityTable) of
-      Just ch -> Just ch
-      Nothing -> case (matchRegexAll numericalEntity entity) of
-                   Just (_, _, _, [sub]) -> Just (chr (read ('0':sub)))
-                   Nothing               -> Nothing
+import Text.ParserCombinators.Parsec
+import Data.Maybe ( fromMaybe )
 
 -- | Returns a string containing an entity reference for the character.
 charToEntity :: Char -> String
 charToEntity char = 
-    let matches = filter (\(entity, character) -> (character == char)) 
-                         entityTable in
-    if (length matches) == 0
-       then "&#" ++ show (ord char) ++ ";"
-       else fst (head matches)
+  let matches = filter (\(entity, character) -> (character == char)) 
+                       entityTable in
+  if (length matches) == 0
+     then charToNumericalEntity char
+     else fst (head matches)
+
+-- | Returns a string containing a numerical entity reference for the char.
+charToNumericalEntity :: Char -> String
+charToNumericalEntity ch = "&#" ++ show (ord ch) ++ ";"
+
+-- | Escape special character to SGML entity.
+specialCharToEntity :: Bool    -- ^ Use numerical entities only.
+                    -> Char    -- ^ Character to convert.
+                    -> [Char]
+specialCharToEntity numericalEntities c = 
+  if (c `elem` "&<>\"") || (ord c > 127)
+     then if numericalEntities
+             then charToNumericalEntity c
+             else charToEntity c
+     else [c]
+
+-- | Parse SGML character entity.
+characterEntity :: GenParser Char st Char
+characterEntity = namedEntity <|> hexEntity <|> decimalEntity <?> "SGML entity"
+
+-- | Parse SGML character entity.
+namedEntity :: GenParser Char st Char
+namedEntity = try $ do
+  st <- char '&'
+  body <- many1 alphaNum
+  end <- char ';'
+  let entity = "&" ++ body ++ ";"
+  return $ case (lookup entity entityTable) of
+             Just ch -> ch
+             Nothing -> '?'
+   
+-- | Parse SGML hexadecimal entity.
+hexEntity :: GenParser Char st Char
+hexEntity = try $ do
+  st <- string "&#"
+  hex <- oneOf "Xx"
+  body <- many1 (oneOf "0123456789ABCDEFabcdef")
+  end <- char ';'
+  return $ chr $ read ('0':'x':body)
+
+-- | Parse SGML decimal entity.
+decimalEntity :: GenParser Char st Char
+decimalEntity = try $ do
+  st <- string "&#"
+  body <- many1 digit
+  end <- char ';'
+  return $ chr $ read body
+
+-- | Escape string as needed for SGML.  Entity references are not preserved.
+encodeEntities :: Bool   -- ^ Use only numerical entities.
+               -> String -- ^ String to convert.
+               -> String
+encodeEntities numericalEntities = 
+  concatMap (specialCharToEntity numericalEntities)
+
+-- | Escape string as needed for SGML, using only numerical entities.
+--   Entity references are not preserved.
+encodeEntitiesNumerical :: String -> String
+encodeEntitiesNumerical = 
+  concatMap (\c -> "&#" ++ show (ord c) ++ ";")
+
+-- | Convert entities in a string to characters.
+decodeEntities :: String -> String
+decodeEntities str = 
+  case parse (many (characterEntity <|> anyChar)) str str of
+	Left err        -> error $ "\nError: " ++ show err
+	Right result    -> result
+
+-- | Escape string for SGML, preserving entity references.
+stringToSGML :: Bool     -- ^ Use only numerical entities.
+             -> String   -- ^ String to convert.
+             -> String
+stringToSGML numericalEntities str = 
+  let nonentity = do
+                    notFollowedBy characterEntity
+                    c <- anyChar
+                    return $ specialCharToEntity numericalEntities c
+      entity    = do
+                    ent <- manyTill anyChar (char ';')
+                    return (ent ++ ";") in 
+  case parse (many (nonentity <|> entity)) str str of
+    Left err       -> error $ "\nError: " ++ show err
+    Right result   -> concat result
 
 entityTable :: [(String, Char)]
 entityTable =  [

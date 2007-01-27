@@ -42,7 +42,7 @@ import Text.Pandoc.Readers.HTML ( rawHtmlBlock,
                                   anyHtmlTag, anyHtmlEndTag,
                                   htmlEndTag, extractTagType,
                                   htmlBlockElement )
-import Text.Pandoc.Entities ( decodeEntities )
+import Text.Pandoc.Entities ( characterEntity )
 import Text.ParserCombinators.Parsec
 
 -- | Read markdown from an input string and return a Pandoc document.
@@ -88,12 +88,13 @@ blockQuoteChar = '>'
 hyphenChar = '-'
 ellipsesChar = '.'
 listColSepChar = '|'
+entityStart = '&'
 
 -- treat these as potentially non-text when parsing inline:
 specialChars = [escapeChar, labelStart, labelEnd, emphStart, emphEnd,
                 emphStartAlt, emphEndAlt, codeStart, codeEnd, autoLinkEnd,
                 autoLinkStart, mathStart, mathEnd, imageStart, noteStart,
-                hyphenChar, ellipsesChar] ++ quoteChars
+                hyphenChar, ellipsesChar, entityStart] ++ quoteChars
 
 --
 -- auxiliary functions
@@ -674,7 +675,7 @@ text = choice [ escapedChar, math, strong, emph, smartPunctuation,
                 code, ltSign, symbol,
                 str, linebreak, tabchar, whitespace, endline ] <?> "text"
 
-inline = choice [ rawLaTeXInline', escapedChar, special, text ] <?> "inline"
+inline = choice [ rawLaTeXInline', escapedChar, entity, special, text ] <?> "inline"
 
 special = choice [ noteRef, inlineNote, link, referenceLink, rawHtmlInline', 
                    autoLink, image ] <?> "link, inline html, note, or image"
@@ -827,9 +828,13 @@ linebreak = try (do
 
 nonEndline = noneOf endLineChars
 
+entity = do
+  ent <- characterEntity
+  return $ Str [ent]
+
 str = do 
   result <- many1 ((noneOf (specialChars ++ spaceChars ++ endLineChars))) 
-  return (Str (decodeEntities result))
+  return (Str result)
 
 -- an endline character that can be treated as a space, not a structural break
 endline = try (do

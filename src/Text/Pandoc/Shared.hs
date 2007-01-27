@@ -65,8 +65,6 @@ module Text.Pandoc.Shared (
                      replaceReferenceLinks,
                      replaceRefLinksBlockList,
                      -- * SGML
-                     escapeSGML,
-                     stringToSGML,
                      inTags,
                      selfClosingTag,
                      inTagsSimple,
@@ -74,7 +72,7 @@ module Text.Pandoc.Shared (
                     ) where
 import Text.Pandoc.Definition
 import Text.ParserCombinators.Parsec as Parsec
-import Text.Pandoc.Entities ( decodeEntities, charToEntity )
+import Text.Pandoc.Entities ( decodeEntities, encodeEntities, stringToSGML )
 import Text.PrettyPrint.HughesPJ as PP ( text, char, (<>), 
                                          ($$), nest, Doc, isEmpty )
 import Data.Char ( toLower, ord )
@@ -523,61 +521,11 @@ replaceRefLinksInline keytable (Quoted t lst) =
     Quoted t (map (replaceRefLinksInline keytable) lst)
 replaceRefLinksInline keytable other = other
 
--- | Parse SGML character entity.
-sgmlCharacterEntity :: GenParser Char st [Char]
-sgmlCharacterEntity = sgmlNamedEntity <|> sgmlDecimalEntity <|> 
-                      sgmlHexEntity <?> "SGML entity"
-
--- | Parse SGML character entity.
-sgmlNamedEntity :: GenParser Char st [Char]
-sgmlNamedEntity = try $ do
-  st <- Parsec.char '&'
-  body <- many1 alphaNum
-  end <- Parsec.char ';'
-  return $ (st:body) ++ [end] 
-   
--- | Parse SGML decimal entity.
-sgmlDecimalEntity :: GenParser Char st [Char]
-sgmlDecimalEntity = try $ do
-  st <- string "&#"
-  body <- many1 (oneOf "0123456789")
-  end <- Parsec.char ';'
-  return $ st ++ body ++ [end]
-
--- | Parse SGML hexadecimal entity.
-sgmlHexEntity :: GenParser Char st [Char]
-sgmlHexEntity = try $ do
-  st <- string "&#"
-  hex <- oneOf "Xx"
-  body <- many1 (oneOf "0123456789ABCDEFabcdef")
-  end <- Parsec.char ';'
-  return $ st ++ (hex:body) ++ [end]
-
--- | Escape special character to SGML entity.
-specialCharToEntity :: Char -> [Char]
-specialCharToEntity c = if (c `elem` "&<>\"") || (ord c > 127)
-                          then charToEntity c
-                          else [c]
-
--- | Escape string, preserving character entities.
-stringToSGML :: String -> String
-stringToSGML str =
-  let segment = sgmlCharacterEntity <|>
-                (do{c <- anyChar;
-                    return $ specialCharToEntity c})
-      sgmlString = (do{segs <- many segment; return $ concat segs}) in
-  case parse sgmlString str str of
-      Left err     -> error $ "\nError:\n" ++ show err
-      Right result -> result
-
--- | Escape string as needed for SGML.  Entity references are not preserved.
-escapeSGML :: String -> String
-escapeSGML = concatMap specialCharToEntity 
-
 -- | Return a text object with a string of formatted SGML attributes. 
 attributeList :: [(String, String)] -> Doc
 attributeList = text .  concatMap 
-  (\(a, b) -> " " ++ stringToSGML a ++ "=\"" ++ stringToSGML b ++ "\"") 
+  (\(a, b) -> " " ++ stringToSGML True a ++ "=\"" ++ 
+  stringToSGML True b ++ "\"") 
 
 -- | Put the supplied contents between start and end tags of tagType,
 --   with specified attributes and (if specified) indentation.

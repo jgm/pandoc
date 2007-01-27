@@ -44,7 +44,7 @@ import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Pandoc
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
-import Text.Pandoc.Entities ( decodeEntities, entityToChar )
+import Text.Pandoc.Entities ( characterEntity, decodeEntities )
 import Maybe ( fromMaybe )
 import Data.List ( intersect, takeWhile, dropWhile )
 import Data.Char ( toUpper, toLower, isAlphaNum )
@@ -391,14 +391,9 @@ text =  choice [ entity, strong, emph, code, str, linebreak, whitespace ] <?> "t
 special = choice [ link, image, rawHtmlInline ] <?> 
                  "link, inline html, or image"
 
-entity = try (do
-  char '&'
-  body <- choice [(many1 letter), (try (do
-                                          char '#'
-                                          num <- many1 digit
-                                          return ("#" ++ num)))]
-  char ';'
-  return (Str [fromMaybe '?' (entityToChar ("&" ++ body ++ ";"))]))
+entity = do
+  ent <- characterEntity
+  return $ Str [ent]
 
 code = try (do 
   htmlTag "code"
@@ -439,7 +434,7 @@ linebreak = do
 
 str = do 
   result <- many1 (noneOf "<& \t\n")
-  return (Str (decodeEntities result))
+  return (Str result)
 
 --
 -- links and images
