@@ -127,11 +127,11 @@ htmlHeader opts (Meta title authors date) =
                       then empty 
                       else selfClosingTag "meta" [("name", "author"), 
                            ("content", 
-                            joinWithSep ", " (map (stringToSGML False) authors))]  
+                            joinWithSep ", " (map stringToSGML authors))]  
       datetext = if (date == "")
                     then empty 
                     else selfClosingTag "meta" [("name", "date"),
-                         ("content", stringToSGML False date)] in
+                         ("content", stringToSGML date)] in
   text (writerHeader opts) $$ authortext $$ datetext $$ titletext $$ 
   text "</head>\n<body>"
 
@@ -168,7 +168,7 @@ blockToHtml opts (Note ref lst) =
                      (text "&#8617;")
 blockToHtml opts (Key _ _) = empty
 blockToHtml opts (CodeBlock str) = 
-  text "<pre><code>" <> text (encodeEntities False str) <> text "\n</code></pre>"
+  text "<pre><code>" <> text (encodeEntities str) <> text "\n</code></pre>"
 blockToHtml opts (RawHtml str) = text str 
 blockToHtml opts (BulletList lst) = 
   let attribs = if (writerIncremental opts)
@@ -234,7 +234,7 @@ inlineToHtml opts (Emph lst) =
 inlineToHtml opts (Strong lst) = 
   inTagsSimple "strong" (inlineListToHtml opts lst)
 inlineToHtml opts (Code str) =  
-  inTagsSimple "code" $ text (encodeEntities False str)
+  inTagsSimple "code" $ text (encodeEntities str)
 inlineToHtml opts (Quoted SingleQuote lst) =
   text "&lsquo;" <> (inlineListToHtml opts lst) <> text "&rsquo;"
 inlineToHtml opts (Quoted DoubleQuote lst) =
@@ -243,16 +243,16 @@ inlineToHtml opts EmDash = text "&mdash;"
 inlineToHtml opts EnDash = text "&ndash;"
 inlineToHtml opts Ellipses = text "&hellip;"
 inlineToHtml opts Apostrophe = text "&rsquo;"
-inlineToHtml opts (Str str) = text $ stringToSGML False str
-inlineToHtml opts (TeX str) = text $ encodeEntities False str
+inlineToHtml opts (Str str) = text $ stringToSGML str
+inlineToHtml opts (TeX str) = text $ encodeEntities str
 inlineToHtml opts (HtmlInline str) = text str
 inlineToHtml opts (LineBreak) = selfClosingTag "br" []
 inlineToHtml opts Space = space
 inlineToHtml opts (Link txt (Src src tit)) = 
-  let title = stringToSGML False tit in
+  let title = stringToSGML tit in
   if (isPrefixOf "mailto:" src)
      then obfuscateLink opts txt src 
-     else inTags False "a" ([("href", encodeEntities False src)] ++ 
+     else inTags False "a" ([("href", encodeEntities src)] ++ 
           if null tit then [] else [("title", title)]) 
           (inlineListToHtml opts txt)
 inlineToHtml opts (Link txt (Ref ref)) = 
@@ -260,7 +260,7 @@ inlineToHtml opts (Link txt (Ref ref)) =
   (inlineListToHtml opts ref) <> char ']'
   -- this is what markdown does, for better or worse
 inlineToHtml opts (Image alt (Src source tit)) = 
-  let title = stringToSGML False tit
+  let title = stringToSGML tit
       alternate = render $ inlineListToHtml opts alt in 
   selfClosingTag "img" $ [("src", source)] ++
   (if null alternate then [] else [("alt", alternate)]) ++

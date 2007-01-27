@@ -31,9 +31,9 @@ and vice versa.
 module Text.Pandoc.Entities (
                      charToEntity,
                      charToNumericalEntity,
-                     specialCharToEntity,
                      encodeEntities,
                      decodeEntities,
+                     escapeSGMLChar,
                      stringToSGML,
                      characterEntity
                     ) where
@@ -53,17 +53,6 @@ charToEntity char =
 -- | Returns a string containing a numerical entity reference for the char.
 charToNumericalEntity :: Char -> String
 charToNumericalEntity ch = "&#" ++ show (ord ch) ++ ";"
-
--- | Escape special character to SGML entity.
-specialCharToEntity :: Bool    -- ^ Use numerical entities only.
-                    -> Char    -- ^ Character to convert.
-                    -> [Char]
-specialCharToEntity numericalEntities c = 
-  if (c `elem` "&<>\"") || (ord c > 127)
-     then if numericalEntities
-             then charToNumericalEntity c
-             else charToEntity c
-     else [c]
 
 -- | Parse SGML character entity.
 characterEntity :: GenParser Char st Char
@@ -97,18 +86,27 @@ decimalEntity = try $ do
   end <- char ';'
   return $ chr $ read body
 
--- | Escape string as needed for SGML.  Entity references are not preserved.
-encodeEntities :: Bool   -- ^ Use only numerical entities.
-               -> String -- ^ String to convert.
-               -> String
-encodeEntities numericalEntities = 
-  concatMap (specialCharToEntity numericalEntities)
+-- | Escape one character as needed for SGML.
+escapeSGMLChar :: Char -> String
+escapeSGMLChar x = 
+  case x of
+    '&'  -> "&amp;"
+    '<'  -> "&lt;"
+    '>'  -> "&gt;"
+    '"'  -> "&quot;"
+    c    -> [c] 
 
--- | Escape string as needed for SGML, using only numerical entities.
---   Entity references are not preserved.
-encodeEntitiesNumerical :: String -> String
-encodeEntitiesNumerical = 
-  concatMap (\c -> "&#" ++ show (ord c) ++ ";")
+-- | True if the character needs to be escaped.
+needsEscaping :: Char -> Bool
+needsEscaping c = c `elem` "&<>\""
+
+-- | Escape string as needed for SGML.  Entity references are not preserved.
+encodeEntities :: String -> String
+encodeEntities ""  = ""
+encodeEntities str = 
+  case break needsEscaping str of
+    (okay, "")     -> okay
+    (okay, (c:cs)) -> okay ++ escapeSGMLChar c ++ encodeEntities cs 
 
 -- | Convert entities in a string to characters.
 decodeEntities :: String -> String
@@ -118,18 +116,19 @@ decodeEntities str =
 	Right result    -> result
 
 -- | Escape string for SGML, preserving entity references.
-stringToSGML :: Bool     -- ^ Use only numerical entities.
-             -> String   -- ^ String to convert.
-             -> String
-stringToSGML numericalEntities str = 
-  let nonentity = do
+stringToSGML :: String -> String
+stringToSGML str = 
+  let regular   = do
+                    str <- many1 (satisfy (not . needsEscaping))
+                    return str 
+      special   = do
                     notFollowedBy characterEntity
                     c <- anyChar
-                    return $ specialCharToEntity numericalEntities c
+                    return $ escapeSGMLChar c 
       entity    = do
                     ent <- manyTill anyChar (char ';')
-                    return (ent ++ ";") in 
-  case parse (many (nonentity <|> entity)) str str of
+                    return (ent ++ ";") in
+  case parse (many (regular <|> special <|> entity)) str str of
     Left err       -> error $ "\nError: " ++ show err
     Right result   -> concat result
 

@@ -64,8 +64,8 @@ authorToDocbook name = inTagsIndented "author" $
     then -- last name first
       let (lastname, rest) = break (==',') name 
           firstname = removeLeadingSpace rest in
-      inTagsSimple "firstname" (text $ stringToSGML True firstname) <> 
-      inTagsSimple "surname" (text $ stringToSGML True lastname) 
+      inTagsSimple "firstname" (text $ stringToSGML firstname) <> 
+      inTagsSimple "surname" (text $ stringToSGML lastname) 
     else -- last name last
       let namewords = words name
           lengthname = length namewords 
@@ -73,8 +73,8 @@ authorToDocbook name = inTagsIndented "author" $
             0  -> ("","") 
             1  -> ("", name)
             n  -> (joinWithSep " " (take (n-1) namewords), last namewords) in
-       inTagsSimple "firstname" (text $ stringToSGML True firstname) $$ 
-       inTagsSimple "surname" (text $ stringToSGML True lastname) 
+       inTagsSimple "firstname" (text $ stringToSGML firstname) $$ 
+       inTagsSimple "surname" (text $ stringToSGML lastname) 
 
 -- | Convert Pandoc document to string in Docbook format.
 writeDocbook :: WriterOptions -> Pandoc -> String
@@ -86,7 +86,7 @@ writeDocbook opts (Pandoc (Meta title authors date) blocks) =
                 then inTagsIndented "articleinfo" $
                      (inTagsSimple "title" (wrap opts title)) $$ 
                      (vcat (map authorToDocbook authors)) $$ 
-                     (inTagsSimple "date" (text $ stringToSGML True date)) 
+                     (inTagsSimple "date" (text $ stringToSGML date)) 
                 else empty
       blocks' = replaceReferenceLinks blocks
       (noteBlocks, blocks'') = partition isNoteBlock blocks' 
@@ -141,7 +141,7 @@ blockToDocbook opts (Para lst) =
 blockToDocbook opts (BlockQuote blocks) =
   inTagsIndented "blockquote" (blocksToDocbook opts blocks)
 blockToDocbook opts (CodeBlock str) = 
-  text "<screen>\n" <> text (encodeEntities True str) <> text "\n</screen>"
+  text "<screen>\n" <> text (encodeEntities str) <> text "\n</screen>"
 blockToDocbook opts (BulletList lst) = 
   inTagsIndented "itemizedlist" $ listItemsToDocbook opts lst 
 blockToDocbook opts (OrderedList lst) = 
@@ -198,7 +198,7 @@ inlinesToDocbook opts lst = hcat (map (inlineToDocbook opts) lst)
 
 -- | Convert an inline element to Docbook.
 inlineToDocbook :: WriterOptions -> Inline -> Doc
-inlineToDocbook opts (Str str) = text $ stringToSGML True str 
+inlineToDocbook opts (Str str) = text $ stringToSGML str 
 inlineToDocbook opts (Emph lst) = 
   inTagsSimple "emphasis" (inlinesToDocbook opts lst)
 inlineToDocbook opts (Strong lst) = 
@@ -211,7 +211,7 @@ inlineToDocbook opts Ellipses = text "&#8230;"
 inlineToDocbook opts EmDash = text "&#8212;" 
 inlineToDocbook opts EnDash = text "&#8211;" 
 inlineToDocbook opts (Code str) = 
-  inTagsSimple "literal" $ text (encodeEntities True str)
+  inTagsSimple "literal" $ text (encodeEntities str)
 inlineToDocbook opts (TeX str) = inlineToDocbook opts (Code str)
 inlineToDocbook opts (HtmlInline str) = empty
 inlineToDocbook opts LineBreak = 
@@ -219,7 +219,7 @@ inlineToDocbook opts LineBreak =
 inlineToDocbook opts Space = char ' '
 inlineToDocbook opts (Link txt (Src src tit)) =
   if isPrefixOf "mailto:" src
-    then inTagsSimple "email" $ text (encodeEntities True $ drop 7 src)
+    then inTagsSimple "email" $ text (encodeEntities $ drop 7 src)
     else inTags False "ulink" [("url", src)] $ inlinesToDocbook opts txt
 inlineToDocbook opts (Link text (Ref ref)) = empty -- shouldn't occur
 inlineToDocbook opts (Image alt (Src src tit)) = 
@@ -227,7 +227,7 @@ inlineToDocbook opts (Image alt (Src src tit)) =
                    then empty
                    else inTagsIndented "objectinfo" $
                         inTagsIndented "title" 
-                        (text $ stringToSGML True tit) in
+                        (text $ stringToSGML tit) in
   inTagsIndented "inlinemediaobject" $ 
   inTagsIndented "imageobject" $
   titleDoc $$ selfClosingTag "imagedata" [("fileref", src)] 

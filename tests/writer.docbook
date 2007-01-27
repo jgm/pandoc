@@ -89,7 +89,7 @@
       </para>
       <screen>
 sub status {
-    print &#34;working&#34;;
+    print &quot;working&quot;;
 }
 </screen>
       <para>
@@ -122,7 +122,7 @@ sub status {
       </blockquote>
     </blockquote>
     <para>
-      This should not be a block quote: 2 &#62; 1.
+      This should not be a block quote: 2 &gt; 1.
     </para>
     <para>
       Box-style:
@@ -133,7 +133,7 @@ sub status {
       </para>
       <screen>
 sub status {
-    print &#34;working&#34;;
+    print &quot;working&quot;;
 }
 </screen>
     </blockquote>
@@ -177,7 +177,7 @@ sub status {
 ---- (should be four hyphens)
 
 sub status {
-    print &#34;working&#34;;
+    print &quot;working&quot;;
 }
 
 this code block is indented by one tab
@@ -188,7 +188,7 @@ this code block is indented by one tab
     <screen>
     this code block is indented by two tabs
 
-These should not be escaped:  \$ \\ \&#62; \[ \{
+These should not be escaped:  \$ \\ \&gt; \[ \{
 </screen>
   </section>
   <section>
@@ -577,9 +577,9 @@ These should not be escaped:  \$ \\ \&#62; \[ \{
       word.
     </para>
     <para>
-      This is code: <literal>&#62;</literal>, <literal>$</literal>,
+      This is code: <literal>&gt;</literal>, <literal>$</literal>,
       <literal>\</literal>, <literal>\$</literal>,
-      <literal>&#60;html&#62;</literal>.
+      <literal>&lt;html&gt;</literal>.
     </para>
   </section>
   <section>
@@ -602,7 +602,7 @@ These should not be escaped:  \$ \\ \&#62; \[ \{
     </para>
     <para>
       Here is some quoted <quote><literal>code</literal></quote> and a
-      <quote><ulink url="http://example.com/?foo=1&#38;bar=2">quoted link</ulink></quote>.
+      <quote><ulink url="http://example.com/?foo=1&amp;bar=2">quoted link</ulink></quote>.
     </para>
     <para>
       Some dashes: one&#8212;two&#8212;three&#8212;four&#8212;five.
@@ -691,9 +691,9 @@ These should not be escaped:  \$ \\ \&#62; \[ \{
     </para>
     <para>
       <literal>\begin{tabular}{|l|l|}\hline
-Animal &#38; Number \\ \hline
-Dog    &#38; 2      \\
-Cat    &#38; 1      \\ \hline
+Animal &amp; Number \\ \hline
+Dog    &amp; 2      \\
+Cat    &amp; 1      \\ \hline
 \end{tabular}</literal>
     </para>
   </section>
@@ -705,44 +705,44 @@ Cat    &#38; 1      \\ \hline
     <itemizedlist>
       <listitem>
         <para>
-          I hat: &#206;
+          I hat: Î
         </para>
       </listitem>
       <listitem>
         <para>
-          o umlaut: &#246;
+          o umlaut: ö
         </para>
       </listitem>
       <listitem>
         <para>
-          section: &#167;
+          section: §
         </para>
       </listitem>
       <listitem>
         <para>
-          set membership: &#8712;
+          set membership: ∈
         </para>
       </listitem>
       <listitem>
         <para>
-          copyright: &#169;
+          copyright: ©
         </para>
       </listitem>
     </itemizedlist>
     <para>
-      AT&#38;T has an ampersand in their name.
+      AT&amp;T has an ampersand in their name.
     </para>
     <para>
-      AT&#38;T is another way to write it.
+      AT&amp;T is another way to write it.
     </para>
     <para>
-      This &#38; that.
+      This &amp; that.
     </para>
     <para>
-      4 &#60; 5.
+      4 &lt; 5.
     </para>
     <para>
-      6 &#62; 5.
+      6 &gt; 5.
     </para>
     <para>
       Backslash: \
@@ -775,7 +775,7 @@ Cat    &#38; 1      \\ \hline
       Right paren: )
     </para>
     <para>
-      Greater-than: &#62;
+      Greater-than: &gt;
     </para>
     <para>
       Hash: #
@@ -868,25 +868,25 @@ Cat    &#38; 1      \\ \hline
       <title>With ampersands</title>
       <para>
         Here's a
-        <ulink url="http://example.com/?foo=1&#38;bar=2">link with an ampersand in the URL</ulink>.
+        <ulink url="http://example.com/?foo=1&amp;bar=2">link with an ampersand in the URL</ulink>.
       </para>
       <para>
         Here's a link with an amersand in the link text:
-        <ulink url="http://att.com/">AT&#38;T</ulink>.
+        <ulink url="http://att.com/">AT&amp;T</ulink>.
       </para>
       <para>
-        Here's an <ulink url="/script?foo=1&#38;bar=2">inline link</ulink>.
+        Here's an <ulink url="/script?foo=1&amp;bar=2">inline link</ulink>.
       </para>
       <para>
         Here's an
-        <ulink url="/script?foo=1&#38;bar=2">inline link in pointy braces</ulink>.
+        <ulink url="/script?foo=1&amp;bar=2">inline link in pointy braces</ulink>.
       </para>
     </section>
     <section>
       <title>Autolinks</title>
       <para>
         With an ampersand:
-        <ulink url="http://example.com/?foo=1&#38;bar=2">http://example.com/?foo=1&#38;bar=2</ulink>
+        <ulink url="http://example.com/?foo=1&amp;bar=2">http://example.com/?foo=1&amp;bar=2</ulink>
       </para>
       <itemizedlist>
         <listitem>
@@ -916,10 +916,10 @@ Cat    &#38; 1      \\ \hline
       </blockquote>
       <para>
         Auto-links should not occur here:
-        <literal>&#60;http://example.com/&#62;</literal>
+        <literal>&lt;http://example.com/&gt;</literal>
       </para>
       <screen>
-or here: &#60;http://example.com/&#62;
+or here: &lt;http://example.com/&gt;
 </screen>
     </section>
   </section>
@@ -970,7 +970,7 @@ or here: &#60;http://example.com/&#62;
                   footnote (as with list items).
                 </para>
                 <screen>
-  { &#60;code&#62; }
+  { &lt;code&gt; }
 </screen>
                 <para>
                   If you want, you can indent every line, but you can also be lazy

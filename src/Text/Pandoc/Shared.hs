@@ -524,8 +524,8 @@ replaceRefLinksInline keytable other = other
 -- | Return a text object with a string of formatted SGML attributes. 
 attributeList :: [(String, String)] -> Doc
 attributeList = text .  concatMap 
-  (\(a, b) -> " " ++ stringToSGML True a ++ "=\"" ++ 
-  stringToSGML True b ++ "\"") 
+  (\(a, b) -> " " ++ stringToSGML a ++ "=\"" ++ 
+  stringToSGML b ++ "\"") 
 
 -- | Put the supplied contents between start and end tags of tagType,
 --   with specified attributes and (if specified) indentation.
