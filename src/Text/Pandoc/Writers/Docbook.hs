@@ -198,7 +198,7 @@ inlinesToDocbook opts lst = hcat (map (inlineToDocbook opts) lst)
 
 -- | Convert an inline element to Docbook.
 inlineToDocbook :: WriterOptions -> Inline -> Doc
-inlineToDocbook opts (Str str) = text $ stringToSGML str 
+inlineToDocbook opts (Str str) = text $ encodeEntities str 
 inlineToDocbook opts (Emph lst) = 
   inTagsSimple "emphasis" (inlinesToDocbook opts lst)
 inlineToDocbook opts (Strong lst) = 
