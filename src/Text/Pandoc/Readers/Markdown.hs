@@ -894,8 +894,7 @@ titleWith startChar endChar = try (do
                                   char endChar
                                   skipSpaces
                                   notFollowedBy (noneOf ")\n")))
-  let tit' = substitute "\"" "&quot;" tit
-  return tit')
+  return tit)
 
 title = choice [ titleWith '(' ')', 
                  titleWith '"' '"', 

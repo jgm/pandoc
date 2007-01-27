@@ -268,7 +268,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Para [Link [Str "URL",Space,Str "and",Space,Str "title"] (Src "/url/" "title"),Str "."]
 , Para [Link [Str "URL",Space,Str "and",Space,Str "title"] (Src "/url/" "title preceded by two spaces"),Str "."]
 , Para [Link [Str "URL",Space,Str "and",Space,Str "title"] (Src "/url/" "title preceded by a tab"),Str "."]
-, Para [Link [Str "URL",Space,Str "and",Space,Str "title"] (Src "/url/" "title with &quot;quotes&quot; in it")]
+, Para [Link [Str "URL",Space,Str "and",Space,Str "title"] (Src "/url/" "title with \"quotes\" in it")]
 , Para [Link [Str "URL",Space,Str "and",Space,Str "title"] (Src "/url/" "title with single quotes")]
 , Para [Link [Str "with",Str "_",Str "underscore"] (Src "/url/with_underscore" "")]
 , Para [Link [Str "Email",Space,Str "link"] (Src "mailto:nobody@nowhere.net" "")]
@@ -290,8 +290,8 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , CodeBlock "[not]: /url"
 , Key [Str "b"] (Src "/url/" "")
 , Para [Str "Foo",Space,Link [Str "bar"] (Ref [Str "bar"]),Str "."]
-, Para [Str "Foo",Space,Link [Str "biz"] (Src "/url/" "Title with &quot;quote&quot; inside"),Str "."]
-, Key [Str "bar"] (Src "/url/" "Title with &quot;quotes&quot; inside")
+, Para [Str "Foo",Space,Link [Str "biz"] (Src "/url/" "Title with \"quote\" inside"),Str "."]
+, Key [Str "bar"] (Src "/url/" "Title with \"quotes\" inside")
 , Header 2 [Str "With",Space,Str "ampersands"]
 , Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Link [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] (Ref [Str "1"]),Str "."]
 , Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "amersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text:",Space,Link [Str "AT",Str "&",Str "T"] (Ref [Str "2"]),Str "."]

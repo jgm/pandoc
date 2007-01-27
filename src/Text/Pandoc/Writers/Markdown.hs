@@ -52,10 +52,6 @@ writeMarkdown options (Pandoc meta blocks) =
 escapeString :: String -> String
 escapeString = backslashEscape "`<\\*_^" 
 
--- | Escape embedded \" in link title.
-escapeLinkTitle :: String -> String
-escapeLinkTitle = substitute "\"" "\\\""
-
 -- | Take list of inline elements and return wrapped doc.
 wrappedMarkdown :: [Inline] -> Doc
 wrappedMarkdown lst = 
@@ -119,7 +115,7 @@ blockToMarkdown tabStop (Note ref lst) =
 blockToMarkdown tabStop (Key txt (Src src tit)) = 
   text "  " <> char '[' <> inlineListToMarkdown txt <> char ']' <> 
   text ": " <> text src <> 
-  if tit /= "" then text (" \"" ++ (escapeLinkTitle tit) ++ "\"") else empty
+  if tit /= "" then text (" \"" ++ tit ++ "\"") else empty
 blockToMarkdown tabStop (CodeBlock str) = 
   (nest tabStop $ vcat $ map text (lines str)) <> text "\n"
 blockToMarkdown tabStop (RawHtml str) = text str
@@ -185,7 +181,7 @@ inlineToMarkdown (Link txt (Src src tit)) =
                     else inlineListToMarkdown txt 
       linktitle = if null tit
                     then empty
-                    else text (" \"" ++ (escapeLinkTitle tit) ++ "\"")
+                    else text (" \"" ++ tit ++ "\"")
       srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src in
   if (null tit) && (txt == [Str srcSuffix])
     then char '<' <> text srcSuffix <> char '>' 
@@ -203,7 +199,7 @@ inlineToMarkdown (Image alternate (Src source tit)) =
                else inlineListToMarkdown alternate in
   char '!' <> char '[' <> alt <> char ']' <> char '(' <> text source <> 
   (if tit /= ""
-      then text (" \"" ++ (escapeLinkTitle tit) ++ "\"") 
+      then text (" \"" ++ tit ++ "\"") 
       else empty) <> char ')'
 inlineToMarkdown (Image alternate (Ref ref)) = 
   char '!' <> inlineToMarkdown (Link alternate (Ref ref))

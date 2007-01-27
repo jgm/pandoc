@@ -510,7 +510,7 @@ Just a [URL](/url/).
 
 [URL and title](/url/ "title preceded by a tab").
 
-[URL and title](/url/ "title with &quot;quotes&quot; in it")
+[URL and title](/url/ "title with "quotes" in it")
 
 [URL and title](/url/ "title with single quotes")
 
@@ -554,10 +554,10 @@ This should [not][] be a link.
 
 Foo [bar][].
 
-Foo [biz](/url/ "Title with &quot;quote&quot; inside").
+Foo [biz](/url/ "Title with "quote" inside").
 
 
-  [bar]: /url/ "Title with &quot;quotes&quot; inside"
+  [bar]: /url/ "Title with "quotes" inside"
 
 ## With ampersands
 
