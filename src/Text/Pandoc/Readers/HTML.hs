@@ -445,7 +445,9 @@ extractAttribute name [] = Nothing
 extractAttribute name ((attrName, contents):rest) = 
   let name' = map toLower name 
       attrName' = map toLower attrName in
-  if (attrName' == name') then Just contents else extractAttribute name rest
+  if (attrName' == name')
+     then Just (decodeEntities contents)
+     else extractAttribute name rest
 
 link = try (do
   (tag, attributes) <- htmlTag "a"  

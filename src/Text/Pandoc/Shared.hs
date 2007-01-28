@@ -72,7 +72,7 @@ module Text.Pandoc.Shared (
                     ) where
 import Text.Pandoc.Definition
 import Text.ParserCombinators.Parsec as Parsec
-import Text.Pandoc.Entities ( decodeEntities, encodeEntities, stringToSGML )
+import Text.Pandoc.Entities ( decodeEntities, encodeEntities )
 import Text.PrettyPrint.HughesPJ as PP ( text, char, (<>), 
                                          ($$), nest, Doc, isEmpty )
 import Data.Char ( toLower, ord )
@@ -524,8 +524,8 @@ replaceRefLinksInline keytable other = other
 -- | Return a text object with a string of formatted SGML attributes. 
 attributeList :: [(String, String)] -> Doc
 attributeList = text .  concatMap 
-  (\(a, b) -> " " ++ stringToSGML a ++ "=\"" ++ 
-  stringToSGML b ++ "\"") 
+  (\(a, b) -> " " ++ encodeEntities a ++ "=\"" ++ 
+  encodeEntities b ++ "\"") 
 
 -- | Put the supplied contents between start and end tags of tagType,
 --   with specified attributes and (if specified) indentation.

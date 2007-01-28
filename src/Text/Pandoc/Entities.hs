@@ -34,7 +34,6 @@ module Text.Pandoc.Entities (
                      encodeEntities,
                      decodeEntities,
                      escapeSGMLChar,
-                     stringToSGML,
                      characterEntity
                     ) where
 import Data.Char ( chr, ord )
@@ -114,23 +113,6 @@ decodeEntities str =
   case parse (many (characterEntity <|> anyChar)) str str of
 	Left err        -> error $ "\nError: " ++ show err
 	Right result    -> result
-
--- | Escape string for SGML, preserving entity references.
-stringToSGML :: String -> String
-stringToSGML str = 
-  let regular   = do
-                    str <- many1 (satisfy (not . needsEscaping))
-                    return str 
-      special   = do
-                    notFollowedBy characterEntity
-                    c <- anyChar
-                    return $ escapeSGMLChar c 
-      entity    = do
-                    ent <- manyTill anyChar (char ';')
-                    return (ent ++ ";") in
-  case parse (many (regular <|> special <|> entity)) str str of
-    Left err       -> error $ "\nError: " ++ show err
-    Right result   -> concat result
 
 entityTable :: [(String, Char)]
 entityTable =  [

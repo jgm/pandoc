@@ -42,7 +42,7 @@ import Text.Pandoc.Readers.HTML ( rawHtmlBlock,
                                   anyHtmlTag, anyHtmlEndTag,
                                   htmlEndTag, extractTagType,
                                   htmlBlockElement )
-import Text.Pandoc.Entities ( characterEntity )
+import Text.Pandoc.Entities ( characterEntity, decodeEntities )
 import Text.ParserCombinators.Parsec
 
 -- | Read markdown from an input string and return a Pandoc document.
@@ -144,14 +144,14 @@ authorsLine = try (do
   skipSpaces
   authors <- sepEndBy (many1 (noneOf ",;\n")) (oneOf ",;")
   newline
-  return (map removeLeadingTrailingSpace authors))
+  return (map (decodeEntities . removeLeadingTrailingSpace) authors))
 
 dateLine = try (do
   char '%'
   skipSpaces
   date <- many (noneOf "\n")
   newline
-  return (removeTrailingSpace date))
+  return (decodeEntities $ removeTrailingSpace date))
 
 titleBlock = try (do
   failIfStrict
@@ -894,7 +894,7 @@ titleWith startChar endChar = try (do
                                   char endChar
                                   skipSpaces
                                   notFollowedBy (noneOf ")\n")))
-  return tit)
+  return $ decodeEntities tit)
 
 title = choice [ titleWith '(' ')', 
                  titleWith '"' '"', 

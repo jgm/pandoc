@@ -32,7 +32,7 @@ module Text.Pandoc.Writers.HTML (
                                 ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
-import Text.Pandoc.Entities ( encodeEntities, stringToSGML )
+import Text.Pandoc.Entities ( encodeEntities )
 import Text.Regex ( mkRegex, matchRegex )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
@@ -127,11 +127,11 @@ htmlHeader opts (Meta title authors date) =
                       then empty 
                       else selfClosingTag "meta" [("name", "author"), 
                            ("content", 
-                            joinWithSep ", " (map stringToSGML authors))]  
+                            joinWithSep ", " (map encodeEntities authors))]  
       datetext = if (date == "")
                     then empty 
                     else selfClosingTag "meta" [("name", "date"),
-                         ("content", stringToSGML date)] in
+                         ("content", encodeEntities date)] in
   text (writerHeader opts) $$ authortext $$ datetext $$ titletext $$ 
   text "</head>\n<body>"
 
@@ -248,20 +248,18 @@ inlineToHtml opts (TeX str) = text $ encodeEntities str
 inlineToHtml opts (HtmlInline str) = text str
 inlineToHtml opts (LineBreak) = selfClosingTag "br" []
 inlineToHtml opts Space = space
-inlineToHtml opts (Link txt (Src src tit)) = 
-  let title = stringToSGML tit in
+inlineToHtml opts (Link txt (Src src title)) = 
   if (isPrefixOf "mailto:" src)
      then obfuscateLink opts txt src 
-     else inTags False "a" ([("href", encodeEntities src)] ++ 
-          if null tit then [] else [("title", title)]) 
+     else inTags False "a" ([("href", src)] ++ 
+          if null title then [] else [("title", title)]) 
           (inlineListToHtml opts txt)
 inlineToHtml opts (Link txt (Ref ref)) = 
   char '[' <> (inlineListToHtml opts txt) <> text "][" <> 
   (inlineListToHtml opts ref) <> char ']'
   -- this is what markdown does, for better or worse
-inlineToHtml opts (Image alt (Src source tit)) = 
-  let title = stringToSGML tit
-      alternate = render $ inlineListToHtml opts alt in 
+inlineToHtml opts (Image alt (Src source title)) = 
+  let alternate = render $ inlineListToHtml opts alt in 
   selfClosingTag "img" $ [("src", source)] ++
   (if null alternate then [] else [("alt", alternate)]) ++
   [("title", title)]  -- note:  null title is included, as in Markdown.pl 

@@ -32,7 +32,7 @@ module Text.Pandoc.Writers.Docbook (
                                    ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
-import Text.Pandoc.Entities ( encodeEntities, stringToSGML )
+import Text.Pandoc.Entities ( encodeEntities )
 import Data.Char ( toLower, ord )
 import Data.List ( isPrefixOf, partition, drop )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
@@ -64,8 +64,8 @@ authorToDocbook name = inTagsIndented "author" $
     then -- last name first
       let (lastname, rest) = break (==',') name 
           firstname = removeLeadingSpace rest in
-      inTagsSimple "firstname" (text $ stringToSGML firstname) <> 
-      inTagsSimple "surname" (text $ stringToSGML lastname) 
+      inTagsSimple "firstname" (text $ encodeEntities firstname) <> 
+      inTagsSimple "surname" (text $ encodeEntities lastname) 
     else -- last name last
       let namewords = words name
           lengthname = length namewords 
@@ -73,8 +73,8 @@ authorToDocbook name = inTagsIndented "author" $
             0  -> ("","") 
             1  -> ("", name)
             n  -> (joinWithSep " " (take (n-1) namewords), last namewords) in
-       inTagsSimple "firstname" (text $ stringToSGML firstname) $$ 
-       inTagsSimple "surname" (text $ stringToSGML lastname) 
+       inTagsSimple "firstname" (text $ encodeEntities firstname) $$ 
+       inTagsSimple "surname" (text $ encodeEntities lastname) 
 
 -- | Convert Pandoc document to string in Docbook format.
 writeDocbook :: WriterOptions -> Pandoc -> String
@@ -86,7 +86,7 @@ writeDocbook opts (Pandoc (Meta title authors date) blocks) =
                 then inTagsIndented "articleinfo" $
                      (inTagsSimple "title" (wrap opts title)) $$ 
                      (vcat (map authorToDocbook authors)) $$ 
-                     (inTagsSimple "date" (text $ stringToSGML date)) 
+                     (inTagsSimple "date" (text $ encodeEntities date)) 
                 else empty
       blocks' = replaceReferenceLinks blocks
       (noteBlocks, blocks'') = partition isNoteBlock blocks' 
@@ -227,7 +227,7 @@ inlineToDocbook opts (Image alt (Src src tit)) =
                    then empty
                    else inTagsIndented "objectinfo" $
                         inTagsIndented "title" 
-                        (text $ stringToSGML tit) in
+                        (text $ encodeEntities tit) in
   inTagsIndented "inlinemediaobject" $ 
   inTagsIndented "imageobject" $
   titleDoc $$ selfClosingTag "imagedata" [("fileref", src)] 
