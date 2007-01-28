@@ -32,7 +32,7 @@ module Text.Pandoc.Writers.HTML (
                                 ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
-import Text.Pandoc.Entities ( encodeEntities )
+import Text.Pandoc.Entities ( escapeSGMLString )
 import Text.Regex ( mkRegex, matchRegex )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
@@ -127,11 +127,11 @@ htmlHeader opts (Meta title authors date) =
                       then empty 
                       else selfClosingTag "meta" [("name", "author"), 
                            ("content", 
-                            joinWithSep ", " (map encodeEntities authors))]  
+                            joinWithSep ", " (map escapeSGMLString authors))]  
       datetext = if (date == "")
                     then empty 
                     else selfClosingTag "meta" [("name", "date"),
-                         ("content", encodeEntities date)] in
+                         ("content", escapeSGMLString date)] in
   text (writerHeader opts) $$ authortext $$ datetext $$ titletext $$ 
   text "</head>\n<body>"
 
@@ -168,7 +168,7 @@ blockToHtml opts (Note ref lst) =
                      (text "&#8617;")
 blockToHtml opts (Key _ _) = empty
 blockToHtml opts (CodeBlock str) = 
-  text "<pre><code>" <> text (encodeEntities str) <> text "\n</code></pre>"
+  text "<pre><code>" <> text (escapeSGMLString str) <> text "\n</code></pre>"
 blockToHtml opts (RawHtml str) = text str 
 blockToHtml opts (BulletList lst) = 
   let attribs = if (writerIncremental opts)
@@ -234,7 +234,7 @@ inlineToHtml opts (Emph lst) =
 inlineToHtml opts (Strong lst) = 
   inTagsSimple "strong" (inlineListToHtml opts lst)
 inlineToHtml opts (Code str) =  
-  inTagsSimple "code" $ text (encodeEntities str)
+  inTagsSimple "code" $ text (escapeSGMLString str)
 inlineToHtml opts (Quoted SingleQuote lst) =
   text "&lsquo;" <> (inlineListToHtml opts lst) <> text "&rsquo;"
 inlineToHtml opts (Quoted DoubleQuote lst) =
@@ -243,8 +243,8 @@ inlineToHtml opts EmDash = text "&mdash;"
 inlineToHtml opts EnDash = text "&ndash;"
 inlineToHtml opts Ellipses = text "&hellip;"
 inlineToHtml opts Apostrophe = text "&rsquo;"
-inlineToHtml opts (Str str) = text $ encodeEntities str
-inlineToHtml opts (TeX str) = text $ encodeEntities str
+inlineToHtml opts (Str str) = text $ escapeSGMLString str
+inlineToHtml opts (TeX str) = text $ escapeSGMLString str
 inlineToHtml opts (HtmlInline str) = text str
 inlineToHtml opts (LineBreak) = selfClosingTag "br" []
 inlineToHtml opts Space = space

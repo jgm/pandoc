@@ -31,9 +31,9 @@ and vice versa.
 module Text.Pandoc.Entities (
                      charToEntity,
                      charToNumericalEntity,
-                     encodeEntities,
                      decodeEntities,
                      escapeSGMLChar,
+                     escapeSGMLString,
                      characterEntity
                     ) where
 import Data.Char ( chr, ord )
@@ -100,12 +100,12 @@ needsEscaping :: Char -> Bool
 needsEscaping c = c `elem` "&<>\""
 
 -- | Escape string as needed for SGML.  Entity references are not preserved.
-encodeEntities :: String -> String
-encodeEntities ""  = ""
-encodeEntities str = 
+escapeSGMLString :: String -> String
+escapeSGMLString ""  = ""
+escapeSGMLString str = 
   case break needsEscaping str of
     (okay, "")     -> okay
-    (okay, (c:cs)) -> okay ++ escapeSGMLChar c ++ encodeEntities cs 
+    (okay, (c:cs)) -> okay ++ escapeSGMLChar c ++ escapeSGMLString cs 
 
 -- | Convert entities in a string to characters.
 decodeEntities :: String -> String
