@@ -61,7 +61,10 @@ version :: String
 version = "0.4"
 
 copyrightMessage :: String
-copyrightMessage = "\nCopyright (C) 2006 John MacFarlane\nWeb:  http://sophos.berkeley.edu/macfarlane/pandoc\nThis is free software; see the source for copying conditions.  There is no\nwarranty, not even for merchantability or fitness for a particular purpose."
+copyrightMessage = "\nCopyright (C) 2006 John MacFarlane\n\
+                    \Web:  http://sophos.berkeley.edu/macfarlane/pandoc\n\
+                    \This is free software; see the source for copying conditions.  There is no\n\
+                    \warranty, not even for merchantability or fitness for a particular purpose."
 
 -- | Association list of formats and readers.
 readers :: [(String, ParserState -> String -> Pandoc)]
