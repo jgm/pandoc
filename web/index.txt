@@ -54,6 +54,8 @@ To install, download the file and type:
 
 [`pandoc_0.3_i386.deb`]:  http://people.debian.org/~roktas/packages/pandoc_0.3_i386.deb
 
+**FreeBSD port:**  <http://www.freshports.org/textproc/pandoc/>
+
 **Repository:**  Pandoc has a publicly accesible subversion repository
 at Google Code (<http://code.google.com/p/pandoc>).  To check out the
 latest, bleeding-edge source code:
