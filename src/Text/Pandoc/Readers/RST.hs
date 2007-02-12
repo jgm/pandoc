@@ -397,8 +397,8 @@ romanNumeral = do
   return result
 
 orderedListEnumerator = choice [ many1 digit, 
-                                 string "#", 
-                                 count 1 letter, 
+                                 count 1 (char '#'),
+                                 count 1 letter,
                                  romanNumeral ]
 
 -- parses ordered list start and returns its length (inc following whitespace)
@@ -506,7 +506,7 @@ imageKey = try (do
               (Src (removeLeadingTrailingSpace src) "")))
 
 anonymousKey = try (do
-  choice [string ".. __:", string "__"]
+  oneOfStrings [".. __:", "__"]
   skipSpaces
   option ' ' newline
   src <- manyTill anyChar newline
@@ -515,7 +515,8 @@ anonymousKey = try (do
 
 regularKeyQuoted = try (do
   string ".. _`"
-  ref <- manyTill inline (string "`:")
+  ref <- manyTill inline (char '`')
+  char ':'
   skipSpaces
   option ' ' newline
   src <- manyTill anyChar newline
@@ -557,7 +558,7 @@ symbol = do
 -- parses inline code, between codeStart and codeEnd
 code = try (do 
   string "``"
-  result <- manyTill anyChar (string "``")
+  result <- manyTill anyChar (try (string "``"))
   let result' = removeLeadingTrailingSpace $ joinWithSep " " $ lines result
   return (Code result'))
 
@@ -624,7 +625,8 @@ anonymousLinkEnding = try (do
 
 referenceLink = try (do
   char '`'
-  label <- manyTill inline (string "`_")
+  label <- manyTill inline (char '`')
+  char '_'
   src <- option (Ref []) anonymousLinkEnding
   return (Link (normalizeSpaces label) src)) 
 
