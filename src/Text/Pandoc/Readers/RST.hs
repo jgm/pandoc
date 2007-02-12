@@ -508,6 +508,7 @@ imageKey = try (do
 anonymousKey = try (do
   choice [string ".. __:", string "__"]
   skipSpaces
+  option ' ' newline
   src <- manyTill anyChar newline
   state <- getState
   return (Key [Str "_"] (Src (removeLeadingTrailingSpace src) "")))
@@ -516,6 +517,7 @@ regularKeyQuoted = try (do
   string ".. _`"
   ref <- manyTill inline (string "`:")
   skipSpaces
+  option ' ' newline
   src <- manyTill anyChar newline
   return (Key (normalizeSpaces ref) 
               (Src (removeLeadingTrailingSpace src) "")))
@@ -524,6 +526,7 @@ regularKey = try (do
   string ".. _"
   ref <- manyTill inline (char ':')
   skipSpaces
+  option ' ' newline
   src <- manyTill anyChar newline
   return (Key (normalizeSpaces ref) 
               (Src (removeLeadingTrailingSpace src) "")))
