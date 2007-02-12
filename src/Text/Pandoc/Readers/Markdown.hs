@@ -729,10 +729,10 @@ emph = do
   return (Emph (normalizeSpaces result))
 
 strong = do
-  result <- choice [ (enclosed (count 2 (char emphStart)) 
-                               (count 2 (char emphEnd)) inline), 
-                     (enclosed (count 2 (char emphStartAlt)) 
-                               (count 2 (char emphEndAlt)) inline) ]
+  result <- choice [ (enclosed (try (count 2 (char emphStart))) 
+                               (try (count 2 (char emphEnd))) inline), 
+                     (enclosed (try (count 2 (char emphStartAlt))) 
+                               (try (count 2 (char emphEndAlt))) inline) ]
   return (Strong (normalizeSpaces result))
 
 smartPunctuation = do

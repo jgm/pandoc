@@ -93,14 +93,14 @@ escaped parser = try (do
                         return (Str [result]))
 
 -- | Parses material enclosed between start and end parsers.
-enclosed :: GenParser Char st t       -- ^ start parser
+enclosed :: GenParser Char st t   -- ^ start parser
 	    -> GenParser Char st end  -- ^ end parser
 	    -> GenParser Char st a    -- ^ content parser (to be used repeatedly)
 	    -> GenParser Char st [a]
 enclosed start end parser = try (do
                                    start
                                    notFollowedBy space
-                                   result <- many1Till parser (try end)
+                                   result <- many1Till parser end
                                    return result)
 
 -- | Like @manyTill@, but reads at least one item.

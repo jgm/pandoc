@@ -131,7 +131,7 @@ parseLaTeX = do
   option () processLaTeXPreamble -- preamble might not be present (fragment)
   blocks <- parseBlocks
   spaces
-  option "" (string "\\end{document}") -- might not be present (in fragment)
+  option "" (try (string "\\end{document}")) -- might not be present (in fragment)
   spaces
   eof
   state <- getState
@@ -540,7 +540,7 @@ doubleQuoteEnd = try (string "''")
 
 ellipses = try (do
   string "\\ldots"
-  option "" (string "{}")
+  option "" (try (string "{}"))
   return Ellipses)
 
 enDash = try (do

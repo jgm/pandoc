@@ -567,7 +567,7 @@ emph = do
   return (Emph (normalizeSpaces result))
 
 strong = do
-  result <- enclosed (string "**") (string "**") inline
+  result <- enclosed (try (string "**")) (try (string "**")) inline
   return (Strong (normalizeSpaces result))
 
 whitespace = do
