@@ -423,24 +423,24 @@ specialAccentedChar = choice [ ccedil, aring, iuml, szlig, aelig,
 
 ccedil = try (do
   char '\\'
-  letter <- choice [try (string "cc"), try (string "cC")]
+  letter <- oneOfStrings ["cc", "cC"]
   let num = if letter == "cc" then 231 else 199
   return (Str [chr num]))
 
 aring = try (do
   char '\\'
-  letter <- choice [try (string "aa"), try (string "AA")]
+  letter <- oneOfStrings ["aa", "AA"]
   let num = if letter == "aa" then 229 else 197
   return (Str [chr num]))
 
 iuml = try (do
   string "\\\""
-  choice [try (string "\\i"), try (string "{\\i}")]
+  oneOfStrings ["\\i", "{\\i}"]
   return (Str [chr 239]))
 
 icirc = try (do
   string "\\^"
-  choice [try (string "\\i"), try (string "{\\i}")]
+  oneOfStrings ["\\i", "{\\i}"]
   return (Str [chr 238]))
 
 szlig = try (do
@@ -455,7 +455,7 @@ oslash = try (do
 
 aelig = try (do
   char '\\'
-  letter <- choice [try (string "ae"), try (string "AE")]
+  letter <- oneOfStrings ["ae", "AE"]
   let num = if letter == "ae" then 230 else 198
   return (Str [chr num]))
 
