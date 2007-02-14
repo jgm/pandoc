@@ -39,15 +39,15 @@ module Text.Pandoc.Entities (
 import Data.Char ( chr, ord )
 import Text.ParserCombinators.Parsec
 import Data.Maybe ( fromMaybe )
+import qualified Data.Map as Map
 
 -- | Returns a string containing an entity reference for the character.
 charToEntity :: Char -> String
 charToEntity char = 
-  let matches = filter (\(entity, character) -> (character == char)) 
-                       entityTable in
-  if (length matches) == 0
+  let matches = Map.filter (== char) entityTable in
+  if Map.null matches
      then charToNumericalEntity char
-     else fst (head matches)
+     else head $ Map.keys matches
 
 -- | Returns a string containing a numerical entity reference for the char.
 charToNumericalEntity :: Char -> String
@@ -64,9 +64,7 @@ namedEntity = try $ do
   body <- many1 alphaNum
   end <- char ';'
   let entity = "&" ++ body ++ ";"
-  return $ case (lookup entity entityTable) of
-             Just ch -> ch
-             Nothing -> '?'
+  return $ Map.findWithDefault '?' entity entityTable
    
 -- | Parse SGML hexadecimal entity.
 hexEntity :: GenParser Char st Char
@@ -114,8 +112,8 @@ decodeEntities str =
 	Left err        -> error $ "\nError: " ++ show err
 	Right result    -> result
 
-entityTable :: [(String, Char)]
-entityTable =  [
+entityTable :: Map.Map String Char
+entityTable =  Map.fromList [
 	("&quot;", chr 34),
 	("&amp;", chr 38),
 	("&lt;", chr 60),
