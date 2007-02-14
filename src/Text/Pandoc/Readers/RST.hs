@@ -603,6 +603,7 @@ link = choice [explicitLink, referenceLink, autoLink,
 
 explicitLink = try (do
   char '`'
+  notFollowedBy (char '`') -- `` is marks start of inline code
   label <- manyTill inline (try (do {spaces; char '<'}))
   src <- manyTill (noneOf ">\n ") (char '>')
   skipSpaces
@@ -625,6 +626,7 @@ anonymousLinkEnding = try (do
 
 referenceLink = try (do
   char '`'
+  notFollowedBy (char '`')
   label <- manyTill inline (char '`')
   char '_'
   src <- option (Ref []) anonymousLinkEnding
