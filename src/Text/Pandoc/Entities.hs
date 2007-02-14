@@ -43,11 +43,7 @@ import qualified Data.Map as Map
 
 -- | Returns a string containing an entity reference for the character.
 charToEntity :: Char -> String
-charToEntity char = 
-  let matches = Map.filter (== char) entityTable in
-  if Map.null matches
-     then charToNumericalEntity char
-     else head $ Map.keys matches
+charToEntity char = Map.findWithDefault (charToNumericalEntity char) char reverseEntityTable
 
 -- | Returns a string containing a numerical entity reference for the char.
 charToNumericalEntity :: Char -> String
@@ -113,7 +109,13 @@ decodeEntities str =
 	Right result    -> result
 
 entityTable :: Map.Map String Char
-entityTable =  Map.fromList [
+entityTable = Map.fromList entityTableList
+
+reverseEntityTable :: Map.Map Char String
+reverseEntityTable = Map.fromList $ map (\(a,b) -> (b,a)) entityTableList 
+
+entityTableList :: [(String, Char)]
+entityTableList =  [
 	("&quot;", chr 34),
 	("&amp;", chr 38),
 	("&lt;", chr 60),
