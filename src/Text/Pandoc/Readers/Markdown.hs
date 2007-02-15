@@ -726,11 +726,13 @@ emph = do
   return (Emph (normalizeSpaces result))
 
 strong = do
-  result <- choice [ (enclosed (try (count 2 (char emphStart))) 
-                               (try (count 2 (char emphEnd))) inline), 
-                     (enclosed (try (count 2 (char emphStartAlt))) 
-                               (try (count 2 (char emphEndAlt))) inline) ]
+  result <- (enclosed strongStart strongEnd inline) <|> 
+            (enclosed strongStartAlt strongEndAlt inline)
   return (Strong (normalizeSpaces result))
+  where strongStart = count 2 (char emphStart)
+        strongEnd = try strongStart
+        strongStartAlt = count 2 (char emphStartAlt)
+        strongEndAlt = try strongStartAlt
 
 smartPunctuation = do
   failUnlessSmart
@@ -829,8 +831,10 @@ entity = do
   ent <- characterEntity
   return $ Str [ent]
 
+strChar = noneOf (specialChars ++ spaceChars ++ endLineChars)
+
 str = do 
-  result <- many1 ((noneOf (specialChars ++ spaceChars ++ endLineChars))) 
+  result <- many1 strChar
   return (Str result)
 
 -- an endline character that can be treated as a space, not a structural break
