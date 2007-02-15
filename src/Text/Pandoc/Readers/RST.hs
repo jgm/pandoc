@@ -101,13 +101,11 @@ titleTransform blocks = (blocks, [])
 
 parseRST = do
   state <- getState
-  input <- getInput
   -- first pass: get anonymous keys
-  keyBlocks <- manyTill (anonymousKey <|> (do{anyLine; return Null})) eof
+  keyBlocks <- lookAhead $ manyTill (anonymousKey <|> (do{anyLine; return Null})) eof
   let anonymousKeys = filter (/= Null) keyBlocks
   -- run parser again to fill in anonymous links...
   setState (state { stateKeyBlocks = anonymousKeys })
-  setInput input
   blocks <- parseBlocks
   let blocks' = filter isNotAnonKeyBlock blocks
   let (blocks'', title) = if stateStandalone state
