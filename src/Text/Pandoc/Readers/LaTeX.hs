@@ -322,7 +322,7 @@ itemBlock = try (do
 --
 
 specialEnvironment = do  -- these are always parsed as raw
-  followedBy' (choice (map (\name -> begin name)  ["tabular", "figure",
+  lookAhead (choice (map (\name -> begin name)  ["tabular", "figure",
               "tabbing", "eqnarry", "picture", "table", "verse", "theorem"]))
   rawLaTeXEnvironment
 

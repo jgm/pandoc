@@ -198,7 +198,7 @@ codeBlockStart = try (do
 -- paragraph that ends in a :: starting a code block
 paraBeforeCodeBlock = try (do
   result <- many1 (do {notFollowedBy' codeBlockStart; inline})
-  followedBy' (string "::")
+  lookAhead (string "::")
   return (Para (if (last result == Space)
                    then normalizeSpaces result
                    else (normalizeSpaces result) ++ [Str ":"])))
@@ -446,7 +446,7 @@ listItem start = try (do
   rest <- many (listContinuation markerLength)
   blanks <- choice [ try (do 
                             b <- many blankline
-                            followedBy' start
+                            lookAhead start
                             return b), 
                      many1 blankline ]  -- whole list must end with blank
   -- parsing with ListItemState forces markers at beginning of lines to

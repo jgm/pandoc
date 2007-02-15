@@ -394,7 +394,7 @@ rawListItem start = try (do
 -- or (in compact lists) endline.
 -- note: nested lists are parsed as continuations
 listContinuation start = try (do
-  followedBy' indentSpaces
+  lookAhead indentSpaces
   result <- many1 (listContinuationLine start)
   blanks <- many blankline
   return ((concat result) ++ blanks))
@@ -443,10 +443,10 @@ para = try (do
   newline
   st <- getState
   if stateStrict st
-     then choice [followedBy' blockQuote, followedBy' header, 
-                  (do{blanklines; return ()})]
-     else choice [followedBy' emacsBoxQuote, 
-                  (do{blanklines; return ()})]
+     then choice [lookAhead blockQuote, lookAhead header, 
+                  (do{blanklines; return Null})]
+     else choice [(do{lookAhead emacsBoxQuote; return Null}), 
+                  (do{blanklines; return Null})]
   let result' = normalizeSpaces result
   return (Para result'))
 

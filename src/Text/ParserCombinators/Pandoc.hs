@@ -30,7 +30,6 @@ Special parser combinators for Pandoc readers.
 module Text.ParserCombinators.Pandoc ( 
                                       anyLine,
                                       many1Till,
-                                      followedBy',
                                       notFollowedBy',
                                       oneOfStrings,
                                       spaceChar,
@@ -118,15 +117,6 @@ many1Till p end = try (do
 notFollowedBy' :: Show b => GenParser a st b -> GenParser a st ()
 notFollowedBy' parser = try (do { c <- try parser; unexpected (show c) }
                            <|> return ())
-
--- | The inverse of @notFollowedBy'@.  Fails if parser will fail, otherwise
--- returns @()@ (but does not consume any input).
-followedBy' :: (Show b) => GenParser a st b -> GenParser a st ()
-followedBy' parser = do 
-  isNotFollowed <- option False (do{ notFollowedBy' parser; return True})
-  if isNotFollowed 
-     then fail "not followed by parser" 
-     else return ()
 
 -- | Parses one of a list of strings (tried in order).  
 oneOfStrings :: [String] -> GenParser Char st String
