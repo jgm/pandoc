@@ -171,12 +171,10 @@ parseMarkdown = do
   -- need to parse raw HTML, since markdown allows it
   (title, author, date) <- option ([],[],"") titleBlock
   oldState <- getState
-  oldInput <- getInput
   -- go through once just to get list of reference keys
-  manyTill (referenceKey <|> (do{anyLine; return Null})) eof 
-  newState <- getState
-  let keysUsed = stateKeysUsed newState
-  setInput oldInput
+  keysUsed <- lookAhead $ (do {manyTill (referenceKey <|> (do{anyLine; return Null})) eof; 
+                               newState <- getState;
+                               return $ stateKeysUsed newState}) 
   setState (oldState { stateKeysUsed = keysUsed })
   blocks <- parseBlocks  -- go through again, for real
   let blocks' = filter (/= Null) blocks
