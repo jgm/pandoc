@@ -100,12 +100,12 @@ titleTransform ((Header 1 head1):rest) =       -- title, no subtitle
 titleTransform blocks = (blocks, [])
 
 parseRST = do
-  state <- getState
   -- first pass: get anonymous keys
   keyBlocks <- lookAhead $ manyTill (anonymousKey <|> (do{anyLine; return Null})) eof
   let anonymousKeys = filter (/= Null) keyBlocks
   -- run parser again to fill in anonymous links...
-  setState (state { stateKeyBlocks = anonymousKeys })
+  updateState (\st -> st { stateKeyBlocks = anonymousKeys })
+  state <- getState
   blocks <- parseBlocks
   let blocks' = filter isNotAnonKeyBlock blocks
   let (blocks'', title) = if stateStandalone state
