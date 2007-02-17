@@ -87,11 +87,12 @@ escapeSGMLChar x =
     '<'  -> "&lt;"
     '>'  -> "&gt;"
     '"'  -> "&quot;"
+    '\160' -> "&nbsp;"
     c    -> [c] 
 
 -- | True if the character needs to be escaped.
 needsEscaping :: Char -> Bool
-needsEscaping c = c `elem` "&<>\""
+needsEscaping c = c `elem` "&<>\"\160"
 
 -- | Escape string as needed for SGML.  Entity references are not preserved.
 escapeSGMLString :: String -> String
