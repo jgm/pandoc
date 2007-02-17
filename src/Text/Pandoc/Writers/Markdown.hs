@@ -48,9 +48,16 @@ writeMarkdown options (Pandoc meta blocks) =
                 else empty in
   render $ head <> body
 
+-- | Escape nonbreaking space as &nbsp; entity
+escapeNbsp "" = ""
+escapeNbsp ('\160':xs) = "&nbsp;" ++ escapeNbsp xs
+escapeNbsp str = 
+  let (a,b) = break (=='\160') str in
+  a ++ escapeNbsp b
+
 -- | Escape special characters for Markdown.
 escapeString :: String -> String
-escapeString = backslashEscape "`<\\*_^" 
+escapeString = backslashEscape "`<\\*_^" . escapeNbsp
 
 -- | Take list of inline elements and return wrapped doc.
 wrappedMarkdown :: [Inline] -> Doc
