@@ -12,6 +12,10 @@ clean:
 
 examples.txt : $(PANDOC_DEPS) mkdemos.pl config.xsl S5DEMO README
 	PATH=$(PANDOC_PATH):$$PATH ./mkdemos.pl demos $@
+	perl -pi -e 's!(href="(main|(my)?header|footer|example\d+)\.(html|tex|xml|css))"!\1.html"!g' $@
+	for file in $$(ls | egrep '(main|(my)?header|footer|example[0-9]+)\.(html|tex|xml|css)$$'); \
+		do highlight -u utf-8 --style emacs $$file > $$file.html; \
+	done
 
 %.html : %.txt $(PANDOC_DEPS)
 	$(MAKEPAGE) $< > $@

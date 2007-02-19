@@ -21,7 +21,11 @@ while (<IN>) {
         $line =~ s/ ([A-Za-z0-9_:\/]+(\.|\/)[a-zA-Z0-9.\/]*|README|S5DEMO)/ <a href="$1">$1<\/a>/g;
         $line =~ s/-/\\-/g;
         $line =~ s/^(.*)$/    <code>$1<\/code>/g;        
+        if ( $line =~ /(example\d+\.html)<\/a><\/code>/m ) {
+            $line .= "\n    (View [`$1` as a web page]($1).)\n";
+        }
     }
     print OUT $line;
 
 }
+
