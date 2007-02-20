@@ -2,10 +2,121 @@ pandoc (0.4) UNRELEASED; urgency=low
 
   [ John MacFarlane ]
 
-  * Added support for simple and multiline tables to markdown reader,
-    LaTeX writer, DocBook writer, and HTML writer.  Added tests and
-    documentation in README.
- 
+  * Added support for Markdown tables.  Two kinds of tables are supported
+    (a simple table with one-line rows, and a more complex variety with
+    multiline rows).  Currently only the Markdown reader and the LaTeX,
+    Docbook, and HTML writers support tables. The syntax is documented in
+    README.
+  
+  * Refactored to avoid reliance on Haskell's Text.Regex library, which
+    (a) is slow, and (b) does not properly handle unicode.  This fixed
+    some strange bugs, e.g. in parsing S-cedilla, and improved performance.
+  
+    + Replaced 'gsub' with a general list function  'substitute'
+      that does not rely on Text.Regex.
+    + Rewrote extractTagType in HTML reader so that it doesn't use
+      regexs.
+    + In Markdown reader, replaced email regex test with a custom email
+      autolink parser (autoLinkEmail). Also replaced selfClosingTag regex
+      with a custom function isSelfClosingTag.
+    + Modified Docbook writer so that it doesn't rely on Text.Regex for
+      detecting 'mailto' links.
+    + Removed escapePreservingRegex and reamped entity-handling
+      functions in Text/Pandoc/Shared.hs and Text/Pandoc/Entities.hs to
+      avoid reliance on Text.Regex (see below on Entity handling changes).
+  
+  * Changed handling of SGML entities.  Entities are now parsed (and unicode
+    characters returned) in the Markdown and HTML readers, rather than being
+    handled in the writers.  In HTML and Docbook writers, UTF-8 is now used
+    instead of entities for characters above 128.  This makes the HTML and 
+    Docbook output much more readable and more easily editable.
+  
+    + Removed sgmlHexEntity, sgmlDecimalEntity, sgmlNamedEntity, and
+      sgmlCharacterEntity regexes from Shared.hs.
+    + Added parsers characterEntity, namedEntity, decimalEntity, hexEntity 
+      to Entities.hs; these parse a string and return a unicode character.
+    + Added new 'entity' parser to Markdown reader, and added '&' as a 
+      special character.
+    + Changed 'entity' parser in HTML reader to use characterEntity.
+    + Rewrote decodeEntities to use the new parsers instead of Text.Regex.
+    + Modified HTML and Markdown readers to call decodeEntities on all raw
+      strings (e.g. authors, dates, link titles), to ensure that no 
+      unprocessed entities are included in the native representation of
+      the document.  (In the HTML reader, most of this work is done by a 
+      change in extractAttributeName.)
+    + Added escapeSGMLChar to Entities.hs. Modified escapeSGMLString to 
+      use escapeSGMLChar.
+    + In SGML and Markdown output, escape unicode nonbreaking space as '&nbsp;', 
+      since a unicode non-breaking space is impossible to distinguish visually
+      from a regular space.  (Resolves issue #3.)
+    + Replaced all calls to stringToSGML and encodeEntities with calls to
+      escapeSGMLString.
+    + Rewrote escapeSGMLString for better performance.
+    + Added charToEntity and charToNumericalEntity to Entities.hs.
+      Removed encodeEntitiesNumerical.
+    + Use Data.Map for entityTable and (new) reverseEntityTable, for a
+      slight performance boost over the old association list.
+    + Removed unneeded decodeEntities from 'str' parser in HTML and
+      Markdown readers.
+  
+  * Fixed several bugs in HTML reader (extractTagType, attribute parsing).
+  
+  * Markdown reader:
+  
+    + Fixed several bugs in smart quote recognition.
+    + Changed autoLink parsing to conform better to Markdown.pl's
+      behavior. <google.com> is not treated as a link, but 
+      <http://google.com>, <ftp://google.com>, and <mailto:google@google.com> are.
+    + Cleaned up handling of embedded quotes in link titles.  Now these are 
+      stored as a '"' character, not as '&quot;'.
+    + Use lookAhead parser for the 'first pass' (looking for reference keys),
+      instead of parsing normally, then using setInput to reset input.  This
+      yields a slight performance boost.
+  
+  * Markdown writer:  Use autolinks when possible.  Instead of
+    [site.com](site.com), use <site.com>.
+  
+  * RST Reader:
+  
+    + Allow the URI in a RST hyperlink target to start on the line
+      after the reference key.
+    + Added 'try' in front of 'string', where needed, or used a different parser,
+      in RST reader. This fixes a bug where ````` would not be correctly parsed as
+      a verbatim `.
+    + Fixed slow performance in parsing inline literals in RST reader.  The 
+      problem was that ``#`` was seen by 'inline' as a potential link or image.
+      Fix:  inserted 'notFollowedBy (char '`')' in link parsers.
+      (Resolves issue #8.)
+    + Use lookAhead instead of getInput/setInput in RST reader.  Removed
+      unneeded getState call, since lookAhead automatically saves and
+      restores the parser state.
+  
+  * LaTeX Reader: replaced 'choice [(try (string ...), ...]' idiom with
+    'oneOfStrings' in LaTeX reader, for clarity.
+  
+  * Modified LaTeX writer to insert '\,' between consecutive quotes.
+  
+  * Text.ParserCombinators.Pandoc:
+  
+    + Removed followedBy' parser, replacing it with the lookAhead parser from
+      Text/ParserCombinators/Parsec.
+    + Added some needed 'try's before multicharacter parsers, especially in 
+      'option' contexts.
+    + Removed the 'try' from the 'end' parser in 'enclosed', so that
+      'enclosed' behaves like 'option', 'manyTill', etc.
+  
+  * Improved website target:
+  
+    + Use a subsidiary Makefile that can be run from the website
+      directory.
+    + Improved "Examples" page: added a templating system, syntax
+      highlighting of xml, tex, and html files, and a demo of
+      docbook postprocessed by xmlto.
+    + Download links now go to Google's download details page (with
+      SHA1 checksum) rather than directly to the files.
+  
+  * Added FreeBSD port.
+  
  -- Recai Oktaş <roktas@debian.org>  Tue, 16 Jan 2007 00:37:21 +0200
 
 pandoc (0.3) unstable; urgency=low
