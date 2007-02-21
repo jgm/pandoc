@@ -104,7 +104,9 @@ pandoc (0.4) UNRELEASED; urgency=low
       'option' contexts.
     + Removed the 'try' from the 'end' parser in 'enclosed', so that
       'enclosed' behaves like 'option', 'manyTill', etc.
-  
+
+  * Added defaultWriterOptions to Text/Pandoc/Shared.
+ 
   * Improved website target:
   
     + Use a subsidiary Makefile that can be run from the website
