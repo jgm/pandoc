@@ -58,6 +58,7 @@ module Text.Pandoc.Shared (
                      compactify,
                      generateReference,
                      WriterOptions (..),
+                     defaultWriterOptions,
                      KeyTable,
                      keyTable,
                      lookupKeySrc,
@@ -348,6 +349,20 @@ data WriterOptions = WriterOptions
                                       -- spaces and tabs
     , writerNotes           :: [Block] -- ^ List of note blocks
     } deriving Show
+
+-- | Default writer options.
+defaultWriterOptions = 
+    WriterOptions { writerStandalone     = True,
+                    writerHeader         = "",
+                    writerTitlePrefix    = "",
+                    writerTabStop        = 4,
+                    writerNotes          = [],
+                    writerS5             = False,
+                    writerIncremental    = False,
+                    writerNumberSections = False,
+                    writerIncludeBefore  = "",
+                    writerIncludeAfter   = "",
+                    writerStrictMarkdown = False }
 
 --
 -- Functions for constructing lists of reference keys
