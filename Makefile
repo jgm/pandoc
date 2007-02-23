@@ -178,7 +178,7 @@ uninstall-doc:
 # Library documents installation.
 .PHONY: install-lib-doc uninstall-lib-doc
 install-lib-doc: build-lib-doc
-	$(INSTALL) -d $(LIBDOCPATH) && cp -a html $(LIBDOCPATH)/
+	$(INSTALL) -d $(LIBDOCPATH) && cp -R html $(LIBDOCPATH)/
 uninstall-lib-doc:
 	-rm -rf $(LIBDOCPATH)/html
 	-rmdir $(LIBDOCPATH)
