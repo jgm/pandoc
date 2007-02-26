@@ -2,16 +2,22 @@
 -- (See <http://meyerweb.com/eric/tools/s5/>.)
 module Text.Pandoc.Writers.S5 (
                 -- * Strings
+                s5Meta,
                 s5Javascript,
                 s5CSS,
                 s5Links,
                 -- * Functions
                 writeS5,
+                writeS5String,
                 insertS5Structure
                 ) where
 import Text.Pandoc.Shared ( joinWithSep, WriterOptions )
-import Text.Pandoc.Writers.HTML ( writeHtml )
+import Text.Pandoc.Writers.HTML ( writeHtml, writeHtmlString )
 import Text.Pandoc.Definition
+import Text.XHtml.Strict
+
+s5Meta :: String
+s5Meta = "<!-- configuration parameters -->\n<meta name=\"defaultView\" content=\"slideshow\" />\n<meta name=\"controlVis\" content=\"hidden\" />\n"
 
 s5Javascript :: String
 s5Javascript = "<script type=\"text/javascript\">\n@slides.js@</script>\n" 
@@ -40,9 +46,13 @@ s5CSS = "<style type=\"text/css\" media=\"projection\" id=\"slideProj\">\n" ++ s
 s5Links :: String
 s5Links = "<!-- style sheet links -->\n<link rel=\"stylesheet\" href=\"ui/default/slides.css\" type=\"text/css\" media=\"projection\" id=\"slideProj\" />\n<link rel=\"stylesheet\" href=\"ui/default/outline.css\" type=\"text/css\" media=\"screen\" id=\"outlineStyle\" />\n<link rel=\"stylesheet\" href=\"ui/default/print.css\" type=\"text/css\" media=\"print\" id=\"slidePrint\" />\n<link rel=\"stylesheet\" href=\"ui/default/opera.css\" type=\"text/css\" media=\"projection\" id=\"operaFix\" />\n<!-- S5 JS -->\n<script src=\"ui/default/slides.js\" type=\"text/javascript\"></script>\n"
 
--- | Converts 'Pandoc' to an S5 HTML presentation.
-writeS5 :: WriterOptions -> Pandoc -> String
-writeS5 options = writeHtml options . insertS5Structure
+-- | Converts Pandoc document to an S5 HTML presentation (Html structure).
+writeS5 :: WriterOptions -> Pandoc -> Html
+writeS5 options = (writeHtml options) . insertS5Structure
+
+-- | Converts Pandoc document to an S5 HTML presentation (string).
+writeS5String :: WriterOptions -> Pandoc -> String
+writeS5String options = (writeHtmlString options) . insertS5Structure
 
 -- | Inserts HTML needed for an S5 presentation (e.g. around slides).
 layoutDiv :: [Inline]  -- ^ Title of document (for header or footer)

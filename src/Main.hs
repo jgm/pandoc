@@ -32,19 +32,20 @@ module Main where
 import Text.Pandoc.UTF8 ( decodeUTF8, encodeUTF8 )
 import Text.Pandoc.Readers.Markdown ( readMarkdown )
 import Text.Pandoc.Readers.HTML ( readHtml )
-import Text.Pandoc.Writers.S5 ( s5CSS, s5Javascript, writeS5 )
+import Text.Pandoc.Writers.S5 ( writeS5String )
 import Text.Pandoc.Writers.RST ( writeRST )
 import Text.Pandoc.Readers.RST ( readRST )
 import Text.Pandoc.ASCIIMathML ( asciiMathMLScript )
-import Text.Pandoc.Writers.HTML ( writeHtml )
+import Text.Pandoc.Writers.HTML ( writeHtmlString )
 import Text.Pandoc.Writers.Docbook ( writeDocbook )
 import Text.Pandoc.Writers.LaTeX ( writeLaTeX )
 import Text.Pandoc.Readers.LaTeX ( readLaTeX )
 import Text.Pandoc.Writers.RTF ( writeRTF )
 import Text.Pandoc.Writers.Markdown ( writeMarkdown )
-import Text.Pandoc.Writers.DefaultHeaders ( defaultHtmlHeader, 
-       defaultRTFHeader, defaultS5Header, defaultLaTeXHeader,
-       defaultDocbookHeader )
+import Text.Pandoc.Writers.DefaultHeaders ( defaultRTFHeader, 
+                                            defaultS5Header, 
+                                            defaultLaTeXHeader, 
+                                            defaultDocbookHeader )
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Regex ( mkRegex, matchRegex )
@@ -82,8 +83,8 @@ readPandoc state input = read input
 -- | Association list of formats and pairs of writers and default headers.
 writers :: [ ( String, ( WriterOptions -> Pandoc -> String, String ) ) ]
 writers = [("native"   , (writeDoc, ""))
-          ,("html"     , (writeHtml, defaultHtmlHeader))
-          ,("s5"       , (writeS5, defaultS5Header))
+          ,("html"     , (writeHtmlString, ""))
+          ,("s5"       , (writeS5String, defaultS5Header))
           ,("docbook"  , (writeDocbook, defaultDocbookHeader))
           ,("latex"    , (writeLaTeX, defaultLaTeXHeader))
           ,("markdown" , (writeMarkdown, ""))
