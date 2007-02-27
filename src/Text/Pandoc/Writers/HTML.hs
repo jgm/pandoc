@@ -106,15 +106,14 @@ obfuscateLink opts txt src =
                         else text' ++ " (" ++ name ++ " at " ++ 
                              domain' ++ ")" in 
       if writerStrictMarkdown opts
-        then anchor ! [href $ obfuscateString src'] $
-             stringToHtml $ obfuscateString text'
+        then anchor ! [href $ obfuscateString src'] << obfuscateString text'
         else (script ! [thetype "text/javascript"] $
              primHtml ("\n<!--\nh='" ++ 
              obfuscateString domain ++ "';a='" ++ at' ++ "';n='" ++ 
              obfuscateString name ++ "';e=n+a+h;\n" ++
              "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\">'+" ++ 
              linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) +++  
-             noscript (stringToHtml $ obfuscateString altText)
+             noscript << obfuscateString altText
     _ -> anchor ! [href src] $ inlineListToHtml opts txt -- malformed email
 
 -- | Obfuscate character as entity.
@@ -156,7 +155,7 @@ blockToHtml opts (Note ref lst) =
   li ! [identifier ("fn" ++ ref)] $ contents +++ backlink
 blockToHtml opts (Key _ _) = noHtml
 blockToHtml opts (CodeBlock str) = 
-  pre $ thecode $ stringToHtml (str ++ "\n") -- the final \n for consistency with Markdown.pl
+  pre $ thecode << (str ++ "\n") -- the final \n for consistency with Markdown.pl
 blockToHtml opts (RawHtml str) = primHtml str 
 blockToHtml opts (BulletList lst) = 
   let attribs = if writerIncremental opts
@@ -224,7 +223,7 @@ inlineToHtml opts (Emph lst) =
 inlineToHtml opts (Strong lst) = 
   strong $ inlineListToHtml opts lst
 inlineToHtml opts (Code str) =  
-  thecode $ stringToHtml $ str
+  thecode << str
 inlineToHtml opts (Quoted SingleQuote lst) =
   primHtmlChar "lsquo" +++ inlineListToHtml opts lst +++ primHtmlChar "rsquo"
 inlineToHtml opts (Quoted DoubleQuote lst) =
@@ -249,12 +248,12 @@ inlineToHtml opts (Link txt (Ref ref)) =
   ']'
   -- this is what markdown does, for better or worse
 inlineToHtml opts (Image alttext (Src source tit)) = 
-  let alternate = renderHtml $ inlineListToHtml opts alttext in 
+  let alternate = renderHtmlFragment $ inlineListToHtml opts alttext in 
   image ! ([src source, title tit] ++ if null alttext then [] else [alt alternate])
   -- note:  null title is included, as in Markdown.pl 
 inlineToHtml opts (Image alternate (Ref ref)) = 
   '!' +++ inlineToHtml opts (Link alternate (Ref ref))
 inlineToHtml opts (NoteRef ref) = 
-  anchor ! [href ("#fn" ++ ref), theclass "footnoteRef", identifier ("fnref" ++ ref)] $
-  sup (stringToHtml ref)
+  anchor ! [href ("#fn" ++ ref), theclass "footnoteRef", identifier ("fnref" ++ ref)] <<
+  sup << ref
 
