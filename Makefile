@@ -197,6 +197,7 @@ install-executable-files = \
 # Program only installation.
 .PHONY: install-exec uninstall-exec
 install-exec: build-exec
+	$(STRIP) $(EXECS)
 	$(call install-executable-files,$(PROGS),$(BINPATH))
 uninstall-exec:
 	-for f in $(notdir $(PROGS)); do rm -f $(BINPATH)/$$f; done ;
