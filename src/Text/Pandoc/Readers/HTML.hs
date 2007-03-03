@@ -449,15 +449,18 @@ extractAttribute name ((attrName, contents):rest) =
      then Just (decodeEntities contents)
      else extractAttribute name rest
 
-link = try (do
+link = try $ do
   (tag, attributes) <- htmlTag "a"  
   url <- case (extractAttribute "href" attributes) of
            Just url -> do {return url}
            Nothing  -> fail "no href"
   let title = fromMaybe "" (extractAttribute "title" attributes)
   label <- inlinesTilEnd "a"
-  ref <- generateReference url title
-  return (Link (normalizeSpaces label) ref))
+  state <- getState
+  ref <- if stateInlineLinks state
+            then return (Src url title)
+            else generateReference url title
+  return $ Link (normalizeSpaces label) ref 
 
 image = try (do
   (tag, attributes) <- htmlTag "img" 

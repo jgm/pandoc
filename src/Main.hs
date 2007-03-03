@@ -118,6 +118,7 @@ data Opt = Opt
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optStrict            :: Bool    -- ^ Use strict markdown syntax
+    , optInlineLinks       :: Bool    -- ^ Use inline links in parsing HTML
     }
 
 -- | Defaults for command-line options.
@@ -143,6 +144,7 @@ defaultOpts = Opt
     , optDumpArgs          = False
     , optIgnoreArgs        = False
     , optStrict            = False
+    , optInlineLinks       = False
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -187,6 +189,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optStrict = True } ))
                  "" -- "Use strict markdown syntax with no extensions"
+
+    , Option "" ["inline-links"]
+                 (NoArg
+                  (\opt -> return opt { optInlineLinks = True } ))
+                 "" -- "Use inline links in parsing HTML"
 
     , Option "R" ["parse-raw"]
                  (NoArg
@@ -398,6 +405,7 @@ main = do
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
               , optStrict            = strict
+              , optInlineLinks       = inlineLinks
              } = opts
 
   if dumpArgs
@@ -440,12 +448,13 @@ main = do
   let removeCRs str = filter (/= '\r') str  -- remove DOS-style line endings
   let filter = tabFilter . addBlank . removeCRs
   let startParserState = 
-         defaultParserState { stateParseRaw   = parseRaw,
-                              stateTabStop    = tabStop, 
-                              stateStandalone = standalone && (not strict),
-                              stateSmart      = smart || writerName' == "latex",
-                              stateColumns    = columns,
-                              stateStrict     = strict }
+         defaultParserState { stateParseRaw    = parseRaw,
+                              stateTabStop     = tabStop, 
+                              stateStandalone  = standalone && (not strict),
+                              stateSmart       = smart || writerName' == "latex",
+                              stateColumns     = columns,
+                              stateStrict      = strict,
+                              stateInlineLinks = inlineLinks }
   let csslink = if (css == "")
                    then "" 
                    else "<link rel=\"stylesheet\" href=\"" ++ css ++ 

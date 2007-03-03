@@ -241,6 +241,9 @@ preserved, rather than converted to spaces (the default).
 `--strict` specifies that strict markdown syntax is to be used, without
 pandoc's usual extensions and variants (described below).
 
+`--inline-links` causes links in HTML to be parsed as inline links, rather
+than reference links.
+
 `-R` or `--parse-raw` causes the HTML and LaTeX readers to parse HTML
 codes and LaTeX environments that it can't translate as raw HTML or
 LaTeX.  Raw HTML can be printed in markdown, reStructuredText, HTML,

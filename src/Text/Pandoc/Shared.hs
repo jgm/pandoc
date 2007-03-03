@@ -133,6 +133,7 @@ data ParserState = ParserState
       stateSmart           :: Bool,          -- ^ Use smart typography
       stateColumns         :: Int,           -- ^ Number of columns in
                                              -- terminal (used for tables)
+      stateInlineLinks     :: Bool,          -- ^ Parse html links as inline
       stateHeaderTable     :: [HeaderType]   -- ^ List of header types used,
                                              -- in what order (rst only)
     }
@@ -155,6 +156,7 @@ defaultParserState =
                   stateStrict          = False,
                   stateSmart           = False,
                   stateColumns         = 80,
+                  stateInlineLinks     = False,
                   stateHeaderTable     = [] }
 
 -- | Indent string as a block.
