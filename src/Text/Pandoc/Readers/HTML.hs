@@ -462,12 +462,15 @@ link = try $ do
             else generateReference url title
   return $ Link (normalizeSpaces label) ref 
 
-image = try (do
+image = try $ do
   (tag, attributes) <- htmlTag "img" 
   url <- case (extractAttribute "src" attributes) of
            Just url -> do {return url}
            Nothing  -> fail "no src"
   let title = fromMaybe "" (extractAttribute "title" attributes)
   let alt = fromMaybe "" (extractAttribute "alt" attributes)
-  ref <- generateReference url title
-  return (Image [Str alt] ref)) 
+  state <- getState
+  ref <- if stateInlineLinks state
+            then return (Src url title)
+            else generateReference url title
+  return $ Image [Str alt] ref 
