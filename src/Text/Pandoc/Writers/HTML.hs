@@ -113,7 +113,7 @@ obfuscateLink opts txt src =
              obfuscateString name ++ "';e=n+a+h;\n" ++
              "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\">'+" ++ 
              linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) +++  
-             noscript << obfuscateString altText
+             noscript (primHtml $ obfuscateString altText)
     _ -> anchor ! [href src] $ inlineListToHtml opts txt -- malformed email
 
 -- | Obfuscate character as entity.
