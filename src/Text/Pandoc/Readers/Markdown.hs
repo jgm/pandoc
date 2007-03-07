@@ -32,7 +32,7 @@ module Text.Pandoc.Readers.Markdown (
                                     ) where
 
 import Data.List ( findIndex, sortBy, transpose, isSuffixOf, intersect )
-import Data.Char ( isAlphaNum, toUpper )
+import Data.Char ( isAlphaNum )
 import Text.ParserCombinators.Pandoc
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment )
@@ -778,9 +778,7 @@ singleQuoteStart = try $ do
                      char '\''  
                      notFollowedBy (oneOf ")!],.;:-? \t\n")
                      notFollowedBy (try (do  -- possessive or contraction
-                                           let endings = ["s","t","ve","ll","re"]
-                                           oneOfStrings (endings ++ 
-                                             map (map toUpper) endings) 
+                                           oneOfStrings ["s","t","m","ve","ll","re"]
                                            satisfy (not . isAlphaNum)))
                      return '\''
 
