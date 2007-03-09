@@ -394,8 +394,8 @@ behavior is consistent with the official markdown syntax
 description, even though it is different from that of `Markdown.pl`.)
 
 Unlike standard markdown, Pandoc allows ordered list items to be
-marked with single letters, instead of numbers.  So, for example,
-this source yields a nested ordered list:
+marked with single lowercase letters (from 'a' to 'n'), instead of
+numbers. So, for example, this source yields a nested ordered list:
 
     1.  First
     2.  Second
@@ -403,24 +403,23 @@ this source yields a nested ordered list:
         b.  Fie
     3.  Third
 
-Pandoc also extends standard markdown in allowing list item markers
-to be terminated by ')':
+The letters may be followed by either '.' or ')':
 
-    1)  First
-    2)  Second
-        A)  Fee
-        B)  Fie
-    3)  Third
+    1.  First
+    2.  Second
+        a)  Fee
+        b)  Fie
+    3.  Third
 
 Note that Pandoc pays no attention to the *type* of ordered list
 item marker used.  Thus, the following is treated just the same as
 the example above:
 
-    A)  First
+    a)  First
     1.  Second
         2.  Fee
-        B)  Fie
-    C)  Third
+        b)  Fie
+    c.  Third
 
 Reference links
 ---------------

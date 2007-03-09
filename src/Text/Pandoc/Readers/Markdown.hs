@@ -77,7 +77,6 @@ autoLinkEnd = '>'
 mathStart = '$'
 mathEnd = '$'
 bulletListMarkers = "*+-"
-orderedListDelimiters = ".)"
 escapeChar = '\\'
 hruleChars = "*-_"
 quoteChars = "'\""
@@ -360,14 +359,21 @@ bulletListStart = try (do
   spaceChar
   skipSpaces)
 
-orderedListStart = try (do
+standardOrderedListStart = do
+  many1 digit
+  char '.'
+
+extendedOrderedListStart = do
+  failIfStrict
+  oneOf ['a'..'n']
+  oneOf ".)"
+
+orderedListStart = try $ do
   option ' ' newline -- if preceded by a Plain block in a list context
   nonindentSpaces
-  many1 digit <|> (do{failIfStrict; count 1 letter})
-  delim <- oneOf orderedListDelimiters
-  if delim /= '.' then failIfStrict else return ()
+  standardOrderedListStart <|> extendedOrderedListStart
   oneOf spaceChars
-  skipSpaces)
+  skipSpaces
 
 -- parse a line of a list item (start = parser for beginning of list item)
 listLine start = try (do
