@@ -456,15 +456,16 @@ definitionListItem = try $ do
   return ((normalizeSpaces term), contents)
 
 defRawBlock = try $ do
-  indentSpaces
-  first <- anyLine
-  rest <- manyTill (do {option "" (try indentSpaces);
-                        anyLine}) blanklines
-  return $ (unlines (first:rest)) ++ "\n"
+  rawlines <- many1 (do {notFollowedBy' blankline; indentSpaces; anyLine})
+  trailing <- option "" blanklines
+  return $ (unlines rawlines) ++ trailing
 
 definitionList = do
   items <- many1 definitionListItem
-  return $ DefinitionList items
+  let (terms, defs) = unzip items
+  let defs' = compactify defs
+  let items' = zip terms defs'
+  return $ DefinitionList items'
 
 --
 -- paragraph block
