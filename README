@@ -193,7 +193,7 @@ may be used in Windows under Cygwin.)
     is not from STDIN, `html2markdown` will attempt to determine the
     page's character encoding from the "Content-type" meta tag.
     If this is not present, UTF-8 is assumed.
-     
+
     The `-g` or `--grabber` option specifies the command to be used to
     fetch the contents of a URL:
 
@@ -421,6 +421,45 @@ the example above:
         b)  Fie
     c.  Third
 
+Definition lists
+----------------
+
+Pandoc supports definition lists, using a syntax inspired by
+[reStructuredText]'s definition list syntax:
+
+    Term 1
+        Definition 1
+
+    Term 2
+        Definition 2
+
+        Second paragraph of definition 2.
+
+The terms must fit on one line, but they may contain arbitrary inline
+markup (emphasis, links, etc.).  The definition must begin on the line
+after the term, indented by one tab stop.  The definition consists of
+one or more block elements (paragraph, code block, list, etc.).
+Each block must be indented one tab stop.
+
+    Term *with inline markup*
+        Here is the definition.  It may
+        contain multiple blocks.  Here is some code:
+
+            {* my code *} 
+
+        Here is the third paragraph of this definition.
+
+If you leave space after the definition (as in the first example above),
+the definitions will be considered paragraphs. In some output formats,
+this will mean greater spacing between term/definition pairs. For a
+compact definition list, do not leave space between the definition and
+the next term:
+
+    Term 1
+        Definition 1
+    Term 2
+        Definition 2
+
 Reference links
 ---------------
 
@@ -528,7 +567,7 @@ of text.  Here is an example:
        Second   row                5.0  Here's another one.  Note
                                         the blank line between rows.
     ---------------------------------------------------------------
-  
+
     Table:  Optional caption.  This, too, may span multiple
     lines.
 
