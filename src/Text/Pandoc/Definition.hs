@@ -59,6 +59,9 @@ data Block
                             -- a list of blocks)
     | BulletList [[Block]]  -- ^ Bullet list (list of items, each
                             -- a list of blocks)
+    | DefinitionList [([Inline],[Block])]  -- ^ Definition list 
+                            -- (list of items, each a pair of an inline list,
+                            -- the term, and a block list)
     | Header Int [Inline]   -- ^ Header - level (integer) and text (inlines) 
     | HorizontalRule        -- ^ Horizontal rule
     | Note String [Block]   -- ^ Footnote or endnote - reference (string),
