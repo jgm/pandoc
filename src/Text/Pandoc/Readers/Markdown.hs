@@ -271,7 +271,7 @@ rawLine = try (do
   contents <- many1 nonEndline
   end <- option "" (do
                       newline
-                      option "" indentSpaces
+                      option "" (try indentSpaces)
                       return "\n")
   return (contents ++ end))
 
@@ -405,7 +405,7 @@ listContinuation start = try (do
 listContinuationLine start = try (do
   notFollowedBy' blankline
   notFollowedBy' start
-  option "" indentSpaces
+  option "" (try indentSpaces)
   result <- manyTill anyChar newline
   return (result ++ "\n"))
 
@@ -421,7 +421,7 @@ listItem start = try (do
   -- parse the extracted block, which may contain various block elements:
   rest <- getInput
   let raw = concat (first:continuations)
-  setInput $ raw
+  setInput raw
   contents <- parseBlocks
   setInput rest
   updateState (\st -> st {stateParserContext = oldContext})
@@ -436,6 +436,35 @@ bulletList = try (do
   items <- many1 (listItem bulletListStart)
   let items' = compactify items
   return (BulletList items'))
+
+-- definition lists
+
+definitionListItem = try $ do
+  notFollowedBy blankline
+  notFollowedBy' indentSpaces
+  term <- manyTill inline newline
+  raw <- many1 defRawBlock
+  state <- getState
+  let oldContext = stateParserContext state
+  setState $ state {stateParserContext = ListItemState}
+  -- parse the extracted block, which may contain various block elements:
+  rest <- getInput
+  setInput (concat raw)
+  contents <- parseBlocks
+  setInput rest
+  updateState (\st -> st {stateParserContext = oldContext})
+  return ((normalizeSpaces term), contents)
+
+defRawBlock = try $ do
+  indentSpaces
+  first <- anyLine
+  rest <- manyTill (do {option "" (try indentSpaces);
+                        anyLine}) blanklines
+  return $ (unlines (first:rest)) ++ "\n"
+
+definitionList = do
+  items <- many1 definitionListItem
+  return $ DefinitionList items
 
 --
 -- paragraph block
