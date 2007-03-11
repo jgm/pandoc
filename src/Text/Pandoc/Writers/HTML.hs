@@ -106,7 +106,9 @@ obfuscateLink opts txt src =
                         else text' ++ " (" ++ name ++ " at " ++ 
                              domain' ++ ")" in 
       if writerStrictMarkdown opts
-        then anchor ! [href $ obfuscateString src'] << obfuscateString text'
+        then -- need to use primHtml or &'s are escaped to &amp; in URL
+             primHtml $ "<a href=\"" ++ (obfuscateString src')
+             ++ "\">" ++ (obfuscateString text') ++ "</a>"
         else (script ! [thetype "text/javascript"] $
              primHtml ("\n<!--\nh='" ++ 
              obfuscateString domain ++ "';a='" ++ at' ++ "';n='" ++ 
