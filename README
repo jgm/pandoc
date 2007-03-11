@@ -425,24 +425,26 @@ Definition lists
 ----------------
 
 Pandoc supports definition lists, using a syntax inspired by
-[reStructuredText]'s definition list syntax:
+[PHP Markdown Extra] and [reStructuredText]:
+
+  [PHP Markdown Extra]: http://www.michelf.com/projects/php-markdown/extra/
 
     Term 1
-        Definition 1
+    :   Definition 1
 
     Term 2
-        Definition 2
+    :   Definition 2
 
         Second paragraph of definition 2.
 
 The terms must fit on one line, but they may contain arbitrary inline
 markup (emphasis, links, etc.).  The definition must begin on the line
-after the term, indented by one tab stop.  The definition consists of
+after the term, and must begin with a colon.  The definition consists of
 one or more block elements (paragraph, code block, list, etc.).
 Each block must be indented one tab stop.
 
     Term *with inline markup*
-        Here is the definition.  It may
+    :   Here is the definition.  It may
         contain multiple blocks.  Here is some code:
 
             {* my code *} 
@@ -456,9 +458,9 @@ compact definition list, do not leave space between the definition and
 the next term:
 
     Term 1
-        Definition 1
+    :   Definition 1
     Term 2
-        Definition 2
+    :   Definition 2
 
 Reference links
 ---------------
