@@ -105,8 +105,8 @@ skipEndline = option Space endline
 indentSpaces = do
   state <- getState
   let tabStop = stateTabStop state
-  count tabStop (char ' ') <|> 
-    (do{nonindentSpaces; string "\t"}) <?> "indentation"
+  try (count tabStop (char ' ')) <|> 
+    (do{many (char ' '); string "\t"}) <?> "indentation"
 
 nonindentSpaces = do
   state <- getState
@@ -349,7 +349,7 @@ blockQuote = do
 -- list blocks
 --
 
-list = choice [ bulletList, orderedList ] <?> "list"
+list = choice [ bulletList, orderedList, definitionList ] <?> "list"
 
 bulletListStart = try (do
   option ' ' newline -- if preceded by a Plain block in a list context
@@ -443,13 +443,18 @@ definitionListItem = try $ do
   notFollowedBy blankline
   notFollowedBy' indentSpaces
   term <- manyTill inline newline
-  raw <- many1 defRawBlock
+  char ':'
   state <- getState
+  let tabStop = stateTabStop state
+  try (count (tabStop - 1) (char ' ')) <|> (do{many (char ' '); string "\t"})
+  firstline <- anyLine
+  blanksAfterFirst <- option "" blanklines
+  raw <- many defRawBlock
   let oldContext = stateParserContext state
   setState $ state {stateParserContext = ListItemState}
   -- parse the extracted block, which may contain various block elements:
   rest <- getInput
-  setInput (concat raw)
+  setInput (concat (firstline:"\n":blanksAfterFirst:raw))
   contents <- parseBlocks
   setInput rest
   updateState (\st -> st {stateParserContext = oldContext})
@@ -461,6 +466,7 @@ defRawBlock = try $ do
   return $ (unlines rawlines) ++ trailing
 
 definitionList = do
+  failIfStrict
   items <- many1 definitionListItem
   let (terms, defs) = unzip items
   let defs' = compactify defs
