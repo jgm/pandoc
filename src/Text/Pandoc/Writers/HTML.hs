@@ -163,12 +163,18 @@ blockToHtml opts (BulletList lst) =
   let attribs = if writerIncremental opts
                    then [theclass "incremental"]
                    else [] in
-  ulist ! attribs $ toHtmlFromList $ map (listItemToHtml opts) lst 
+  unordList ! attribs $ map (blockListToHtml opts) lst 
 blockToHtml opts (OrderedList lst) = 
   let attribs = if writerIncremental opts
                    then [theclass "incremental"]
                    else [] in
-  olist ! attribs $ toHtmlFromList $ map (listItemToHtml opts) lst 
+  ordList ! attribs $ map (blockListToHtml opts) lst 
+blockToHtml opts (DefinitionList lst) = 
+  let attribs = if writerIncremental opts
+                   then [theclass "incremental"]
+                   else [] in
+  defList ! attribs $ map (\(term, def) -> (inlineListToHtml opts term, 
+                          blockListToHtml opts def)) lst 
 blockToHtml opts HorizontalRule = hr
 blockToHtml opts (Header level lst) = 
   let contents = inlineListToHtml opts lst in
@@ -210,9 +216,9 @@ tableItemToHtml opts tag align' width item =
                  else [] in 
   tag ! attrib $ toHtmlFromList $ map (blockToHtml opts) item
 
-listItemToHtml :: WriterOptions -> [Block] -> Html
-listItemToHtml opts list = 
-  li $ toHtmlFromList $ map (blockToHtml opts) list
+blockListToHtml :: WriterOptions -> [Block] -> Html
+blockListToHtml opts list = 
+  toHtmlFromList $ map (blockToHtml opts) list
 
 -- | Convert list of Pandoc inline elements to HTML.
 inlineListToHtml :: WriterOptions -> [Inline] -> Html
