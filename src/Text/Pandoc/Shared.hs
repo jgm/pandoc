@@ -497,6 +497,14 @@ replaceRefLinksBlock keytable (OrderedList lst) =
     OrderedList (map (replaceRefLinksBlockList keytable) lst)
 replaceRefLinksBlock keytable (BulletList lst) = 
     BulletList (map (replaceRefLinksBlockList keytable) lst)
+replaceRefLinksBlock keytable (DefinitionList lst) = 
+    DefinitionList (map (\(term, def) -> 
+                          (map (replaceRefLinksInline keytable) term, 
+                           replaceRefLinksBlockList keytable def)) lst)
+replaceRefLinksBlock keytable (Table caption alignment widths headers rows) =
+    Table (map (replaceRefLinksInline keytable) caption) alignment widths 
+      (map (replaceRefLinksBlockList keytable) headers)
+      (map (map (replaceRefLinksBlockList keytable)) rows)
 replaceRefLinksBlock keytable other = other
 
 -- | Use key table to replace reference links with explicit links in an 
