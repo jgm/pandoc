@@ -433,26 +433,6 @@ keyTable ((Key ref target):lst) = (((ref, target):table), rest)
                                   where (table, rest) = keyTable lst
 keyTable (Null:lst) = keyTable lst  -- get rid of Nulls
 keyTable (Blank:lst) = keyTable lst  -- get rid of Blanks
-keyTable ((BlockQuote blocks):lst) = ((table1 ++ table2), 
-                                      ((BlockQuote rest1):rest2))
-                                  where (table1, rest1) = keyTable blocks
-                                        (table2, rest2) = keyTable lst
-keyTable ((Note ref blocks):lst) = ((table1 ++ table2), 
-                                    ((Note ref rest1):rest2))
-                                  where (table1, rest1) = keyTable blocks
-                                        (table2, rest2) = keyTable lst
-keyTable ((OrderedList blockLists):lst) = ((table1 ++ table2), 
-                                           ((OrderedList rest1):rest2))
-                                  where results    = map keyTable blockLists
-                                        rest1      = map snd results
-                                        table1     = concatMap fst results
-                                        (table2, rest2) = keyTable lst
-keyTable ((BulletList blockLists):lst) = ((table1 ++ table2), 
-                                          ((BulletList rest1):rest2))
-                                  where results    = map keyTable blockLists
-                                        rest1      = map snd results
-                                        table1     = concatMap fst results
-                                        (table2, rest2) = keyTable lst
 keyTable (other:lst) = (table, (other:rest))
                        where (table, rest) = keyTable lst
 
