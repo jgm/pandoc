@@ -359,14 +359,14 @@ bulletListStart = try (do
   spaceChar
   skipSpaces)
 
-standardOrderedListStart = do
+standardOrderedListStart = try (do
   many1 digit
-  char '.'
+  char '.')
 
-extendedOrderedListStart = do
+extendedOrderedListStart = try (do
   failIfStrict
   oneOf ['a'..'n']
-  oneOf ".)"
+  oneOf ".)")
 
 orderedListStart = try $ do
   option ' ' newline -- if preceded by a Plain block in a list context
