@@ -710,14 +710,29 @@ table = do
 -- inline
 --
 
-text = choice [ escapedChar, math, strong, emph, smartPunctuation,
-                code, ltSign, symbol,
-                str, linebreak, tabchar, whitespace, endline ] <?> "text"
-
-inline = choice [ rawLaTeXInline', escapedChar, entity, special, text ] <?> "inline"
-
-special = choice [ noteRef, inlineNote, link, referenceLink, rawHtmlInline', 
-                   autoLink, image ] <?> "link, inline html, note, or image"
+inline = choice [ rawLaTeXInline'
+                , escapedChar
+                , entity
+                , noteRef
+                , inlineNote
+                , link
+                , referenceLink
+                , rawHtmlInline'
+                , autoLink
+                , image
+                , escapedChar
+                , math
+                , strong
+                , emph
+                , smartPunctuation
+                , code
+                , ltSign
+                , symbol
+                , str
+                , linebreak
+                , tabchar
+                , whitespace
+                , endline ] <?> "inline"
 
 escapedChar = try $ do
   char '\\'
