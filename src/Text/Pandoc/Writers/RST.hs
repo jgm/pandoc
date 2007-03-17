@@ -112,7 +112,6 @@ dateToRST str = text ":Date: " <> text (escapeString str) <> char '\n'
 blockToRST :: Int        -- ^ tab stop
            -> Block      -- ^ block element to convert
            -> (Doc, Doc) -- ^ first element is text, second is references for end of file
-blockToRST tabStop Blank = (text "\n", empty)
 blockToRST tabStop Null = (empty, empty)
 blockToRST tabStop (Plain lst) = wrappedRST lst
 blockToRST tabStop (Para [TeX str]) =    -- raw latex block

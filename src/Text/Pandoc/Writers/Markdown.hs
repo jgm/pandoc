@@ -75,8 +75,8 @@ formatKeys [] = []
 formatKeys [x] = [x]
 formatKeys ((Key x1 y1):(Key x2 y2):rest) = 
   (Key x1 y1):(formatKeys ((Key x2 y2):rest))
-formatKeys ((Key x1 y1):rest) = (Key x1 y1):Blank:(formatKeys rest)
-formatKeys (x:(Key x1 y1):rest) = x:Blank:(formatKeys ((Key x1 y1):rest))
+formatKeys ((Key x1 y1):rest) = (Key x1 y1):(Plain [Str ""]):(formatKeys rest)
+formatKeys (x:(Key x1 y1):rest) = x:(Plain [Str ""]):(formatKeys ((Key x1 y1):rest))
 formatKeys (x:rest) = x:(formatKeys rest)
 
 -- | Convert bibliographic information into Markdown header.
@@ -103,7 +103,6 @@ dateToMarkdown str = text "% " <> text (escapeString str)
 blockToMarkdown :: Int    -- ^ Tab stop
                 -> Block  -- ^ Block element
                 -> Doc 
-blockToMarkdown tabStop Blank = text ""
 blockToMarkdown tabStop Null = empty
 blockToMarkdown tabStop (Plain lst) = wrappedMarkdown lst
 blockToMarkdown tabStop (Para lst) = (wrappedMarkdown lst) <> (text "\n")

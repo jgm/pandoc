@@ -126,7 +126,7 @@ parseBlocks = manyTill block eof
 block = choice [ codeBlock, rawHtmlBlock, rawLaTeXBlock, blockQuote, 
                  referenceKey, imageBlock, unknownDirective, header,
                  hrule, list, fieldList, lineBlock, para, plain,
-                 blankBlock, nullBlock ] <?> "block"
+                 nullBlock ] <?> "block"
 
 --
 -- field list

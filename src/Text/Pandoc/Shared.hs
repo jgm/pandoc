@@ -432,7 +432,6 @@ keyTable [] = ([],[])
 keyTable ((Key ref target):lst) = (((ref, target):table), rest)
                                   where (table, rest) = keyTable lst
 keyTable (Null:lst) = keyTable lst  -- get rid of Nulls
-keyTable (Blank:lst) = keyTable lst  -- get rid of Blanks
 keyTable (other:lst) = (table, (other:rest))
                        where (table, rest) = keyTable lst
 

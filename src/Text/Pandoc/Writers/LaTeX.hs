@@ -102,7 +102,6 @@ deVerb (other:rest) = other:(deVerb rest)
 blockToLaTeX :: [Block]   -- ^ List of note blocks to use in resolving note refs
              -> Block     -- ^ Block to convert
              -> String 
-blockToLaTeX notes Blank = "\n" 
 blockToLaTeX notes Null = ""
 blockToLaTeX notes (Plain lst) = inlineListToLaTeX notes lst ++ "\n"
 blockToLaTeX notes (Para lst) = (inlineListToLaTeX notes lst) ++ "\n\n"

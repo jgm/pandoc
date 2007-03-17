@@ -131,7 +131,6 @@ obfuscateString = concatMap obfuscateChar
 
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: WriterOptions -> Block -> Html
-blockToHtml opts Blank = noHtml
 blockToHtml opts Null = noHtml
 blockToHtml opts (Plain lst) = inlineListToHtml opts lst
 blockToHtml opts (Para lst) = paragraph $ inlineListToHtml opts lst

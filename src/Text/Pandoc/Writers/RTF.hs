@@ -146,7 +146,6 @@ blockToRTF :: [Block]   -- ^ list of note blocks
            -> Int       -- ^ indent level
            -> Block     -- ^ block to convert
            -> String
-blockToRTF notes indent Blank = rtfPar indent 0 ""
 blockToRTF notes indent Null = ""
 blockToRTF notes indent (Plain lst) = 
   rtfCompact indent 0 (inlineListToRTF notes lst)

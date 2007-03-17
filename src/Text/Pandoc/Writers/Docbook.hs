@@ -133,7 +133,6 @@ listItemToDocbook opts item =
 
 -- | Convert a Pandoc block element to Docbook.
 blockToDocbook :: WriterOptions -> Block -> Doc
-blockToDocbook opts Blank = text ""
 blockToDocbook opts Null = empty
 blockToDocbook opts (Plain lst) = wrap opts lst
 blockToDocbook opts (Para lst) = 

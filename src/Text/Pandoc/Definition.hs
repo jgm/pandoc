@@ -48,7 +48,6 @@ data Alignment = AlignLeft
 -- | Block element.
 data Block  
     = Plain [Inline]        -- ^ Plain text, not a paragraph
-    | Blank                 -- ^ A blank line
     | Null                  -- ^ Nothing
     | Para [Inline]         -- ^ Paragraph
     | Key [Inline] Target   -- ^ Reference key:  name (inlines) and 'Target'

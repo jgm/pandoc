@@ -172,4 +172,5 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
 , Plain [Image [Str "image"] (Src "lalune.jpg" "")]
 , Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "movie"] (Ref [Str "movie"]),Space,Str "icon."]
 , Key [Str "movie"] (Src "movie.jpg" "")
-, Blank ]
+, Null
+, Plain [] ]

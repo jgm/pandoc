@@ -191,7 +191,7 @@ parseBlocks = manyTill block eof
 
 block = choice [ header, table, codeBlock, note, referenceKey, hrule, list, 
                  blockQuote, htmlBlock, rawLaTeXEnvironment', para,
-                 plain, blankBlock, nullBlock ] <?> "block"
+                 plain, nullBlock ] <?> "block"
 
 --
 -- header blocks

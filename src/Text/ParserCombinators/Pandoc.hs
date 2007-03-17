@@ -38,7 +38,6 @@ module Text.ParserCombinators.Pandoc (
                                       blanklines,
                                       escaped,
                                       enclosed,
-                                      blankBlock,
                                       nullBlock,
                                       stringAnyCase,
                                       parseFromStr
@@ -58,12 +57,6 @@ nullBlock :: GenParser Char st Block
 nullBlock = do
   anyChar 
   return Null
-
--- | Parses one or more blank lines; returns 'Blank'.
-blankBlock :: GenParser Char st Block
-blankBlock = do
-  blanklines
-  return Blank
 
 -- | Parses a space or tab.
 spaceChar :: CharParser st Char
