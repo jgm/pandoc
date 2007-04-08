@@ -30,6 +30,7 @@ Conversion of 'Pandoc' documents to HTML.
 module Text.Pandoc.Writers.HTML ( writeHtml, writeHtmlString ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Pandoc.Entities (decodeEntities)
 import Text.Regex ( mkRegex, matchRegex )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
@@ -127,7 +128,7 @@ obfuscateChar char =
 
 -- | Obfuscate string using entities.
 obfuscateString :: String -> String
-obfuscateString = concatMap obfuscateChar
+obfuscateString = (concatMap obfuscateChar) . decodeEntities
 
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: WriterOptions -> Block -> Html
