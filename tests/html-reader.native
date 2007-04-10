@@ -2,7 +2,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] [] "")
 [ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc.",Space,Str "Most",Space,Str "of",Space,Str "them",Space,Str "are",Space,Str "adapted",Space,Str "from",Space,Str "John",Space,Str "Gruber's",Space,Str "markdown",Space,Str "test",Space,Str "suite."]
 , HorizontalRule
 , Header 1 [Str "Headers"]
-, Header 2 [Str "Level",Space,Str "2",Space,Str "with",Space,Str "an",Space,Link [Str "embedded",Space,Str "link"] (Ref [Str "1"])]
+, Header 2 [Str "Level",Space,Str "2",Space,Str "with",Space,Str "an",Space,Link [Str "embedded",Space,Str "link"] ("/url","")]
 , Header 3 [Str "Level",Space,Str "3",Space,Str "with",Space,Emph [Str "emphasis"]]
 , Header 4 [Str "Level",Space,Str "4"]
 , Header 5 [Str "Level",Space,Str "5"]
@@ -187,7 +187,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] [] "")
 , Header 1 [Str "Inline",Space,Str "Markup"]
 , Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str "."]
 , Para [Str "This",Space,Str "is",Space,Strong [Str "strong"],Str ",",Space,Str "and",Space,Str "so",Space,Strong [Str "is",Space,Str "this"],Str "."]
-, Para [Str "An",Space,Emph [Link [Str "emphasized",Space,Str "link"] (Ref [Str "1"])],Str "."]
+, Para [Str "An",Space,Emph [Link [Str "emphasized",Space,Str "link"] ("/url","")],Str "."]
 , Para [Strong [Emph [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em."]]]
 , Para [Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word."]
 , Para [Strong [Emph [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em."]]]
@@ -199,7 +199,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] [] "")
 , Para [Str "'A',",Space,Str "'B',",Space,Str "and",Space,Str "'C'",Space,Str "are",Space,Str "letters."]
 , Para [Str "'Oak,'",Space,Str "'elm,'",Space,Str "and",Space,Str "'beech'",Space,Str "are",Space,Str "names",Space,Str "of",Space,Str "trees.",Space,Str "So",Space,Str "is",Space,Str "'pine.'"]
 , Para [Str "'He",Space,Str "said,",Space,Str "\"I",Space,Str "want",Space,Str "to",Space,Str "go.\"'",Space,Str "Were",Space,Str "you",Space,Str "alive",Space,Str "in",Space,Str "the",Space,Str "70's?"]
-, Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "quoted",Space,Str "'",Code "code",Str "'",Space,Str "and",Space,Str "a",Space,Str "\"",Link [Str "quoted",Space,Str "link"] (Ref [Str "2"]),Str "\"."]
+, Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "quoted",Space,Str "'",Code "code",Str "'",Space,Str "and",Space,Str "a",Space,Str "\"",Link [Str "quoted",Space,Str "link"] ("http://example.com/?foo=1&bar=2",""),Str "\"."]
 , Para [Str "Some",Space,Str "dashes:",Space,Str "one---two",Space,Str "---",Space,Str "three--four",Space,Str "--",Space,Str "five."]
 , Para [Str "Dashes",Space,Str "between",Space,Str "numbers:",Space,Str "5-7,",Space,Str "255-66,",Space,Str "1987-1999."]
 , Para [Str "Ellipses...and.",Space,Str ".",Space,Str ".and",Space,Str ".",Space,Str ".",Space,Str ".",Space,Str "."]
@@ -255,74 +255,54 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] [] "")
 , HorizontalRule
 , Header 1 [Str "Links"]
 , Header 2 [Str "Explicit"]
-, Para [Str "Just",Space,Str "a",Space,Link [Str "URL"] (Ref [Str "3"]),Str "."]
-, Para [Link [Str "URL",Space,Str "and",Space,Str "title"] (Ref [Str "4"]),Str "."]
-, Para [Link [Str "URL",Space,Str "and",Space,Str "title"] (Ref [Str "5"]),Str "."]
-, Para [Link [Str "URL",Space,Str "and",Space,Str "title"] (Ref [Str "6"]),Str "."]
-, Para [Link [Str "URL",Space,Str "and",Space,Str "title"] (Ref [Str "7"])]
-, Para [Link [Str "URL",Space,Str "and",Space,Str "title"] (Ref [Str "8"])]
+, Para [Str "Just",Space,Str "a",Space,Link [Str "URL"] ("/url/",""),Str "."]
+, Para [Link [Str "URL",Space,Str "and",Space,Str "title"] ("/url/","title"),Str "."]
+, Para [Link [Str "URL",Space,Str "and",Space,Str "title"] ("/url/","title preceded by two spaces"),Str "."]
+, Para [Link [Str "URL",Space,Str "and",Space,Str "title"] ("/url/","title preceded by a tab"),Str "."]
+, Para [Link [Str "URL",Space,Str "and",Space,Str "title"] ("/url/","title with \"quotes\" in it")]
+, Para [Link [Str "URL",Space,Str "and",Space,Str "title"] ("/url/","title with single quotes")]
 , Plain [Str "Email",Space,Str "link",Space,Str "(nobody",Space,Str "[at]",Space,Str "nowhere.net)"]
-, Para [Link [Str "Empty"] (Ref [Str "9"]),Str "."]
+, Para [Link [Str "Empty"] ("",""),Str "."]
 , Header 2 [Str "Reference"]
-, Para [Str "Foo",Space,Link [Str "bar"] (Ref [Str "3"]),Str "."]
-, Para [Str "Foo",Space,Link [Str "bar"] (Ref [Str "3"]),Str "."]
-, Para [Str "Foo",Space,Link [Str "bar"] (Ref [Str "3"]),Str "."]
-, Para [Str "With",Space,Link [Str "embedded",Space,Str "[brackets]"] (Ref [Str "3"]),Str "."]
-, Para [Link [Str "b"] (Ref [Str "3"]),Space,Str "by",Space,Str "itself",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "link."]
-, Para [Str "Indented",Space,Link [Str "once"] (Ref [Str "1"]),Str "."]
-, Para [Str "Indented",Space,Link [Str "twice"] (Ref [Str "1"]),Str "."]
-, Para [Str "Indented",Space,Link [Str "thrice"] (Ref [Str "1"]),Str "."]
+, Para [Str "Foo",Space,Link [Str "bar"] ("/url/",""),Str "."]
+, Para [Str "Foo",Space,Link [Str "bar"] ("/url/",""),Str "."]
+, Para [Str "Foo",Space,Link [Str "bar"] ("/url/",""),Str "."]
+, Para [Str "With",Space,Link [Str "embedded",Space,Str "[brackets]"] ("/url/",""),Str "."]
+, Para [Link [Str "b"] ("/url/",""),Space,Str "by",Space,Str "itself",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "link."]
+, Para [Str "Indented",Space,Link [Str "once"] ("/url",""),Str "."]
+, Para [Str "Indented",Space,Link [Str "twice"] ("/url",""),Str "."]
+, Para [Str "Indented",Space,Link [Str "thrice"] ("/url",""),Str "."]
 , Para [Str "This",Space,Str "should",Space,Str "[not]",Space,Str "be",Space,Str "a",Space,Str "link."]
 , CodeBlock "[not]: /url"
-, Para [Str "Foo",Space,Link [Str "bar"] (Ref [Str "10"]),Str "."]
-, Para [Str "Foo",Space,Link [Str "biz"] (Ref [Str "11"]),Str "."]
+, Para [Str "Foo",Space,Link [Str "bar"] ("/url/","Title with \"quotes\" inside"),Str "."]
+, Para [Str "Foo",Space,Link [Str "biz"] ("/url/","Title with \"quote\" inside"),Str "."]
 , Header 2 [Str "With",Space,Str "ampersands"]
-, Para [Str "Here's",Space,Str "a",Space,Link [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] (Ref [Str "2"]),Str "."]
-, Para [Str "Here's",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "amersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text:",Space,Link [Str "AT",Str "&",Str "T"] (Ref [Str "12"]),Str "."]
-, Para [Str "Here's",Space,Str "an",Space,Link [Str "inline",Space,Str "link"] (Ref [Str "13"]),Str "."]
-, Para [Str "Here's",Space,Str "an",Space,Link [Str "inline",Space,Str "link",Space,Str "in",Space,Str "pointy",Space,Str "braces"] (Ref [Str "13"]),Str "."]
+, Para [Str "Here's",Space,Str "a",Space,Link [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] ("http://example.com/?foo=1&bar=2",""),Str "."]
+, Para [Str "Here's",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "amersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text:",Space,Link [Str "AT",Str "&",Str "T"] ("http://att.com/","AT&T"),Str "."]
+, Para [Str "Here's",Space,Str "an",Space,Link [Str "inline",Space,Str "link"] ("/script?foo=1&bar=2",""),Str "."]
+, Para [Str "Here's",Space,Str "an",Space,Link [Str "inline",Space,Str "link",Space,Str "in",Space,Str "pointy",Space,Str "braces"] ("/script?foo=1&bar=2",""),Str "."]
 , Header 2 [Str "Autolinks"]
-, Para [Str "With",Space,Str "an",Space,Str "ampersand:",Space,Link [Str "http://example.com/?foo=1",Str "&",Str "bar=2"] (Ref [Str "2"])]
+, Para [Str "With",Space,Str "an",Space,Str "ampersand:",Space,Link [Str "http://example.com/?foo=1",Str "&",Str "bar=2"] ("http://example.com/?foo=1&bar=2","")]
 , BulletList
   [ [ Plain [Str "In",Space,Str "a",Space,Str "list?"] ]
-  , [ Plain [Link [Str "http://example.com/"] (Ref [Str "14"])] ]
+  , [ Plain [Link [Str "http://example.com/"] ("http://example.com/","")] ]
   , [ Plain [Str "It",Space,Str "should."] ] ]
 , Plain [Str "An",Space,Str "e-mail",Space,Str "address:",Space,Str "nobody",Space,Str "[at]",Space,Str "nowhere.net"]
 , BlockQuote
-  [ Para [Str "Blockquoted:",Space,Link [Str "http://example.com/"] (Ref [Str "14"])] ]
+  [ Para [Str "Blockquoted:",Space,Link [Str "http://example.com/"] ("http://example.com/","")] ]
 
 , Para [Str "Auto-links",Space,Str "should",Space,Str "not",Space,Str "occur",Space,Str "here:",Space,Code "<http://example.com/>"]
 , CodeBlock "or here: <http://example.com/>"
 , HorizontalRule
 , Header 1 [Str "Images"]
 , Para [Str "From",Space,Str "\"Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune\"",Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(1902):"]
-, Para [Image [Str "lalune"] (Ref [Str "15"])]
-, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "movie"] (Ref [Str "16"]),Space,Str "icon."]
+, Para [Image [Str "lalune"] ("lalune.jpg","Voyage dans la Lune")]
+, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "movie"] ("movie.jpg",""),Space,Str "icon."]
 , HorizontalRule
 , Header 1 [Str "Footnotes"]
-, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "footnote",Space,Str "reference",Link [Str "(1)"] (Ref [Str "17"]),Str ",",Space,Str "and",Space,Str "another",Link [Str "(longnote)"] (Ref [Str "18"]),Str ".",Space,Str "This",Space,Str "should",Space,Emph [Str "not"],Space,Str "be",Space,Str "a",Space,Str "footnote",Space,Str "reference,",Space,Str "because",Space,Str "it",Space,Str "contains",Space,Str "a",Space,Str "space^(my",Space,Str "note)."]
-, Para [Link [Str "(1)"] (Ref [Str "19"]),Space,Str "Here",Space,Str "is",Space,Str "the",Space,Str "footnote.",Space,Str "It",Space,Str "can",Space,Str "go",Space,Str "anywhere",Space,Str "in",Space,Str "the",Space,Str "document,",Space,Str "not",Space,Str "just",Space,Str "at",Space,Str "the",Space,Str "end."]
-, Para [Link [Str "(longnote)"] (Ref [Str "20"]),Space,Str "Here's",Space,Str "the",Space,Str "other",Space,Str "note.",Space,Str "This",Space,Str "one",Space,Str "contains",Space,Str "multiple",Space,Str "blocks."]
+, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "footnote",Space,Str "reference",Link [Str "(1)"] ("#note_1",""),Str ",",Space,Str "and",Space,Str "another",Link [Str "(longnote)"] ("#note_longnote",""),Str ".",Space,Str "This",Space,Str "should",Space,Emph [Str "not"],Space,Str "be",Space,Str "a",Space,Str "footnote",Space,Str "reference,",Space,Str "because",Space,Str "it",Space,Str "contains",Space,Str "a",Space,Str "space^(my",Space,Str "note)."]
+, Para [Link [Str "(1)"] ("#ref_1",""),Space,Str "Here",Space,Str "is",Space,Str "the",Space,Str "footnote.",Space,Str "It",Space,Str "can",Space,Str "go",Space,Str "anywhere",Space,Str "in",Space,Str "the",Space,Str "document,",Space,Str "not",Space,Str "just",Space,Str "at",Space,Str "the",Space,Str "end."]
+, Para [Link [Str "(longnote)"] ("#ref_longnote",""),Space,Str "Here's",Space,Str "the",Space,Str "other",Space,Str "note.",Space,Str "This",Space,Str "one",Space,Str "contains",Space,Str "multiple",Space,Str "blocks."]
 , Para [Str "Caret",Space,Str "characters",Space,Str "are",Space,Str "used",Space,Str "to",Space,Str "indicate",Space,Str "that",Space,Str "the",Space,Str "blocks",Space,Str "all",Space,Str "belong",Space,Str "to",Space,Str "a",Space,Str "single",Space,Str "footnote",Space,Str "(as",Space,Str "with",Space,Str "block",Space,Str "quotes)."]
 , CodeBlock "  { <code> }"
-, Para [Str "If",Space,Str "you",Space,Str "want,",Space,Str "you",Space,Str "can",Space,Str "use",Space,Str "a",Space,Str "caret",Space,Str "at",Space,Str "the",Space,Str "beginning",Space,Str "of",Space,Str "every",Space,Str "line,",Space,Str "as",Space,Str "with",Space,Str "blockquotes,",Space,Str "but",Space,Str "all",Space,Str "that",Space,Str "you",Space,Str "need",Space,Str "is",Space,Str "a",Space,Str "caret",Space,Str "at",Space,Str "the",Space,Str "beginning",Space,Str "of",Space,Str "the",Space,Str "first",Space,Str "line",Space,Str "of",Space,Str "the",Space,Str "block",Space,Str "and",Space,Str "any",Space,Str "preceding",Space,Str "blank",Space,Str "lines."]
-, Key [Str "1"] (Src "/url" "")
-, Key [Str "2"] (Src "http://example.com/?foo=1&bar=2" "")
-, Key [Str "3"] (Src "/url/" "")
-, Key [Str "4"] (Src "/url/" "title")
-, Key [Str "5"] (Src "/url/" "title preceded by two spaces")
-, Key [Str "6"] (Src "/url/" "title preceded by a tab")
-, Key [Str "7"] (Src "/url/" "title with \"quotes\" in it")
-, Key [Str "8"] (Src "/url/" "title with single quotes")
-, Key [Str "9"] (Src "" "")
-, Key [Str "10"] (Src "/url/" "Title with \"quotes\" inside")
-, Key [Str "11"] (Src "/url/" "Title with \"quote\" inside")
-, Key [Str "12"] (Src "http://att.com/" "AT&T")
-, Key [Str "13"] (Src "/script?foo=1&bar=2" "")
-, Key [Str "14"] (Src "http://example.com/" "")
-, Key [Str "15"] (Src "lalune.jpg" "Voyage dans la Lune")
-, Key [Str "16"] (Src "movie.jpg" "")
-, Key [Str "17"] (Src "#note_1" "")
-, Key [Str "18"] (Src "#note_longnote" "")
-, Key [Str "19"] (Src "#ref_1" "")
-, Key [Str "20"] (Src "#ref_longnote" "") ]
+, Para [Str "If",Space,Str "you",Space,Str "want,",Space,Str "you",Space,Str "can",Space,Str "use",Space,Str "a",Space,Str "caret",Space,Str "at",Space,Str "the",Space,Str "beginning",Space,Str "of",Space,Str "every",Space,Str "line,",Space,Str "as",Space,Str "with",Space,Str "blockquotes,",Space,Str "but",Space,Str "all",Space,Str "that",Space,Str "you",Space,Str "need",Space,Str "is",Space,Str "a",Space,Str "caret",Space,Str "at",Space,Str "the",Space,Str "beginning",Space,Str "of",Space,Str "the",Space,Str "first",Space,Str "line",Space,Str "of",Space,Str "the",Space,Str "block",Space,Str "and",Space,Str "any",Space,Str "preceding",Space,Str "blank",Space,Str "lines."] ]

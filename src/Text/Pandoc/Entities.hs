@@ -32,8 +32,8 @@ module Text.Pandoc.Entities (
                      charToEntity,
                      charToNumericalEntity,
                      decodeEntities,
-                     escapeSGMLChar,
-                     escapeSGMLString,
+                     escapeCharForXML,
+                     escapeStringForXML,
                      characterEntity
                     ) where
 import Data.Char ( chr, ord )
@@ -49,11 +49,11 @@ charToEntity char = Map.findWithDefault (charToNumericalEntity char) char revers
 charToNumericalEntity :: Char -> String
 charToNumericalEntity ch = "&#" ++ show (ord ch) ++ ";"
 
--- | Parse SGML character entity.
+-- | Parse character entity.
 characterEntity :: GenParser Char st Char
-characterEntity = namedEntity <|> hexEntity <|> decimalEntity <?> "SGML entity"
+characterEntity = namedEntity <|> hexEntity <|> decimalEntity <?> "character entity"
 
--- | Parse SGML character entity.
+-- | Parse character entity.
 namedEntity :: GenParser Char st Char
 namedEntity = try $ do
   st <- char '&'
@@ -62,7 +62,7 @@ namedEntity = try $ do
   let entity = "&" ++ body ++ ";"
   return $ Map.findWithDefault '?' entity entityTable
    
--- | Parse SGML hexadecimal entity.
+-- | Parse hexadecimal entity.
 hexEntity :: GenParser Char st Char
 hexEntity = try $ do
   st <- string "&#"
@@ -71,7 +71,7 @@ hexEntity = try $ do
   end <- char ';'
   return $ chr $ read ('0':'x':body)
 
--- | Parse SGML decimal entity.
+-- | Parse decimal entity.
 decimalEntity :: GenParser Char st Char
 decimalEntity = try $ do
   st <- string "&#"
@@ -79,9 +79,9 @@ decimalEntity = try $ do
   end <- char ';'
   return $ chr $ read body
 
--- | Escape one character as needed for SGML.
-escapeSGMLChar :: Char -> String
-escapeSGMLChar x = 
+-- | Escape one character as needed for XML.
+escapeCharForXML :: Char -> String
+escapeCharForXML x = 
   case x of
     '&'  -> "&amp;"
     '<'  -> "&lt;"
@@ -94,13 +94,13 @@ escapeSGMLChar x =
 needsEscaping :: Char -> Bool
 needsEscaping c = c `elem` "&<>\"\160"
 
--- | Escape string as needed for SGML.  Entity references are not preserved.
-escapeSGMLString :: String -> String
-escapeSGMLString ""  = ""
-escapeSGMLString str = 
+-- | Escape string as needed for XML.  Entity references are not preserved.
+escapeStringForXML :: String -> String
+escapeStringForXML ""  = ""
+escapeStringForXML str = 
   case break needsEscaping str of
     (okay, "")     -> okay
-    (okay, (c:cs)) -> okay ++ escapeSGMLChar c ++ escapeSGMLString cs 
+    (okay, (c:cs)) -> okay ++ escapeCharForXML c ++ escapeStringForXML cs 
 
 -- | Convert entities in a string to characters.
 decodeEntities :: String -> String

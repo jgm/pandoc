@@ -37,8 +37,8 @@ import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Pandoc
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
-import Maybe ( fromMaybe )
-import Char ( chr )
+import Data.Maybe ( fromMaybe )
+import Data.Char ( chr )
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ParserState   -- ^ Parser state, including options for parser
@@ -135,14 +135,11 @@ parseLaTeX = do
   spaces
   eof
   state <- getState
-  let keyBlocks = stateKeyBlocks state 
-  let noteBlocks = stateNoteBlocks state
   let blocks' = filter (/= Null) blocks
   let title' = stateTitle state
   let authors' = stateAuthors state
   let date' = stateDate state
-  return (Pandoc (Meta title' authors' date') 
-          (blocks' ++ (reverse noteBlocks) ++ (reverse keyBlocks)))
+  return (Pandoc (Meta title' authors' date')  blocks')
 
 --
 -- parsing blocks
@@ -618,15 +615,15 @@ link = try (do
   url <- manyTill anyChar (char '}')
   char '{'
   label <- manyTill inline (char '}') 
-  return (Link (normalizeSpaces label) (Src url "")))
+  return (Link (normalizeSpaces label) (url, "")))
 
 image = try (do
   ("includegraphics", _, args) <- command
   let args' = filter isArg args -- filter out options
   let src = if null args' then
-              Src "" ""
+              ("", "")
             else
-              Src (stripFirstAndLast (head args')) ""
+              (stripFirstAndLast (head args'), "")
   return (Image [Str "image"] src))
 
 footnote = try (do
@@ -640,13 +637,7 @@ footnote = try (do
   setInput $ contents'
   blocks <- parseBlocks
   setInput rest
-  state <- getState
-  let notes = stateNoteBlocks state
-  let nextRef = case notes of 
-                   []                   -> "1"
-                   (Note ref body):rest -> (show ((read ref) + 1))
-  setState (state { stateNoteBlocks = (Note nextRef blocks):notes })
-  return (NoteRef nextRef))
+  return (Note blocks))
 
 -- | Parse any LaTeX command and return it in a raw TeX inline element.
 rawLaTeXInline :: GenParser Char ParserState Inline

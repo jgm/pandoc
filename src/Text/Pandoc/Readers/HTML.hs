@@ -45,7 +45,7 @@ import Text.ParserCombinators.Pandoc
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Entities ( characterEntity, decodeEntities )
-import Maybe ( fromMaybe )
+import Data.Maybe ( fromMaybe )
 import Data.List ( intersect, takeWhile, dropWhile )
 import Data.Char ( toUpper, toLower, isAlphaNum )
 
@@ -267,9 +267,7 @@ parseHtml = do
   option "" (htmlEndTag "html")
   many anyChar -- ignore anything after </html>
   eof
-  state <- getState
-  let keyBlocks = stateKeyBlocks state 
-  return (Pandoc (Meta title authors date) (blocks ++ (reverse keyBlocks)))
+  return (Pandoc (Meta title authors date) blocks)
 
 --
 -- parsing blocks
@@ -456,11 +454,7 @@ link = try $ do
            Nothing  -> fail "no href"
   let title = fromMaybe "" (extractAttribute "title" attributes)
   label <- inlinesTilEnd "a"
-  state <- getState
-  ref <- if stateInlineLinks state
-            then return (Src url title)
-            else generateReference url title
-  return $ Link (normalizeSpaces label) ref 
+  return $ Link (normalizeSpaces label) (url, title)
 
 image = try $ do
   (tag, attributes) <- htmlTag "img" 
@@ -469,8 +463,5 @@ image = try $ do
            Nothing  -> fail "no src"
   let title = fromMaybe "" (extractAttribute "title" attributes)
   let alt = fromMaybe "" (extractAttribute "alt" attributes)
-  state <- getState
-  ref <- if stateInlineLinks state
-            then return (Src url title)
-            else generateReference url title
-  return $ Image [Str alt] ref 
+  return $ Image [Str alt] (url, title)
+

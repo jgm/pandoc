@@ -55,7 +55,7 @@ import System.Console.GetOpt
 import System.IO
 import Data.Maybe ( fromMaybe )
 import Data.List ( isPrefixOf )
-import Char ( toLower )
+import Data.Char ( toLower )
 import Control.Monad ( (>>=) )
 
 version :: String
@@ -118,7 +118,7 @@ data Opt = Opt
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optStrict            :: Bool    -- ^ Use strict markdown syntax
-    , optInlineLinks       :: Bool    -- ^ Use inline links in parsing HTML
+    , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     }
 
 -- | Defaults for command-line options.
@@ -144,7 +144,7 @@ defaultOpts = Opt
     , optDumpArgs          = False
     , optIgnoreArgs        = False
     , optStrict            = False
-    , optInlineLinks       = False
+    , optReferenceLinks    = False
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -190,10 +190,10 @@ options =
                   (\opt -> return opt { optStrict = True } ))
                  "" -- "Use strict markdown syntax with no extensions"
 
-    , Option "" ["inline-links"]
+    , Option "" ["reference-links"]
                  (NoArg
-                  (\opt -> return opt { optInlineLinks = True } ))
-                 "" -- "Use inline links in parsing HTML"
+                  (\opt -> return opt { optReferenceLinks = True } ))
+                 "" -- "Use reference links in parsing HTML"
 
     , Option "R" ["parse-raw"]
                  (NoArg
@@ -405,7 +405,7 @@ main = do
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
               , optStrict            = strict
-              , optInlineLinks       = inlineLinks
+              , optReferenceLinks    = referenceLinks
              } = opts
 
   if dumpArgs
@@ -453,8 +453,7 @@ main = do
                               stateStandalone  = standalone && (not strict),
                               stateSmart       = smart || writerName' == "latex",
                               stateColumns     = columns,
-                              stateStrict      = strict,
-                              stateInlineLinks = inlineLinks }
+                              stateStrict      = strict }
   let csslink = if (css == "")
                    then "" 
                    else "<link rel=\"stylesheet\" href=\"" ++ css ++ 
@@ -469,13 +468,13 @@ main = do
                                       writerHeader         = header, 
                                       writerTitlePrefix    = titlePrefix,
                                       writerTabStop        = tabStop, 
-                                      writerNotes          = [],
                                       writerS5             = (writerName=="s5"),
                                       writerIncremental    = incremental, 
                                       writerNumberSections = numberSections,
                                       writerIncludeBefore  = includeBefore, 
                                       writerIncludeAfter   = includeAfter,
-                                      writerStrictMarkdown = strict }
+                                      writerStrictMarkdown = strict,
+                                      writerReferenceLinks = referenceLinks }
 
   (readSources sources) >>= (hPutStr output . encodeUTF8 . 
                              (writer writerOptions) . 

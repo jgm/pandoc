@@ -17,7 +17,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      :  
+   Module      : Text.Pandoc.Writers.RTF
    Copyright   : Copyright (C) 2006 John MacFarlane
    License     : GNU GPL, version 2 or above 
 
@@ -27,26 +27,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to RTF (rich text format).
 -}
-module Text.Pandoc.Writers.RTF (
-                                writeRTF
-                               ) where
+module Text.Pandoc.Writers.RTF ( writeRTF) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Regex ( matchRegexAll, mkRegex )
-import List ( isSuffixOf )
-import Char ( ord, chr )
+import Data.List ( isSuffixOf )
+import Data.Char ( ord, chr )
 
 -- | Convert Pandoc to a string in rich text format.
 writeRTF :: WriterOptions -> Pandoc -> String
 writeRTF options (Pandoc meta blocks) = 
-  -- assumes all notes are at outer level 
-  let notes = filter isNoteBlock blocks in  
   let head = if writerStandalone options
-                then rtfHeader notes (writerHeader options) meta 
+                then rtfHeader (writerHeader options) meta 
                 else ""  
       foot = if writerStandalone options then "\n}\n" else "" 
-      body = (writerIncludeBefore options) ++ (concatMap (blockToRTF notes 0) 
-             (replaceReferenceLinks blocks)) ++
+      body = (writerIncludeBefore options) ++ concatMap (blockToRTF 0) blocks ++ 
              (writerIncludeAfter options) in
   head ++ body ++ foot
 
@@ -120,15 +115,14 @@ orderedMarkers indent =
       otherwise -> map (\x -> show x ++ ".") $ cycle ['a'..'z']
 
 -- | Returns RTF header.
-rtfHeader :: [Block]   -- ^ list of note blocks
-          -> String    -- ^ header text
+rtfHeader :: String    -- ^ header text
           -> Meta      -- ^ bibliographic information
           -> String
-rtfHeader notes headerText (Meta title authors date) =
+rtfHeader headerText (Meta title authors date) =
     let titletext = if null title
                        then "" 
                        else rtfPar 0 0 ("\\qc \\b \\fs36 " ++ 
-                                        inlineListToRTF notes title)
+                                        inlineListToRTF title)
         authorstext = if null authors
                          then "" 
                          else rtfPar 0 0 ("\\qc " ++ (joinWithSep "\\" 
@@ -142,35 +136,32 @@ rtfHeader notes headerText (Meta title authors date) =
     headerText ++ titletext ++ authorstext ++ datetext ++ spacer
 
 -- | Convert Pandoc block element to RTF.
-blockToRTF :: [Block]   -- ^ list of note blocks
-           -> Int       -- ^ indent level
+blockToRTF :: Int       -- ^ indent level
            -> Block     -- ^ block to convert
            -> String
-blockToRTF notes indent Null = ""
-blockToRTF notes indent (Plain lst) = 
-  rtfCompact indent 0 (inlineListToRTF notes lst)
-blockToRTF notes indent (Para lst) = 
-  rtfPar indent 0 (inlineListToRTF notes lst)
-blockToRTF notes indent (BlockQuote lst) = 
-  concatMap (blockToRTF notes (indent + indentIncrement)) lst 
-blockToRTF notes indent (Note ref lst) = "" -- shouldn't be any aftr filtering
-blockToRTF notes indent (Key _ _) = ""
-blockToRTF notes indent (CodeBlock str) =
+blockToRTF indent Null = ""
+blockToRTF indent (Plain lst) = 
+  rtfCompact indent 0 (inlineListToRTF lst)
+blockToRTF indent (Para lst) = 
+  rtfPar indent 0 (inlineListToRTF lst)
+blockToRTF indent (BlockQuote lst) = 
+  concatMap (blockToRTF (indent + indentIncrement)) lst 
+blockToRTF indent (CodeBlock str) =
   rtfPar indent 0 ("\\f1 " ++ (codeStringToRTF str))
-blockToRTF notes indent (RawHtml str) = ""
-blockToRTF notes indent (BulletList lst) = 
+blockToRTF indent (RawHtml str) = ""
+blockToRTF indent (BulletList lst) = 
   spaceAtEnd $ 
-  concatMap (listItemToRTF notes indent (bulletMarker indent)) lst
-blockToRTF notes indent (OrderedList lst) = 
+  concatMap (listItemToRTF indent (bulletMarker indent)) lst
+blockToRTF indent (OrderedList lst) = 
   spaceAtEnd $ concat $ 
-  zipWith (listItemToRTF notes indent) (orderedMarkers indent) lst
-blockToRTF notes indent HorizontalRule = 
+  zipWith (listItemToRTF indent) (orderedMarkers indent) lst
+blockToRTF indent HorizontalRule = 
   rtfPar indent 0 "\\qc \\emdash\\emdash\\emdash\\emdash\\emdash"
-blockToRTF notes indent (Header level lst) = 
+blockToRTF indent (Header level lst) = 
   rtfPar indent 0 ("\\b \\fs" ++ (show (40 - (level * 4))) ++ " " ++ 
-  (inlineListToRTF notes lst))
-blockToRTF notes indent (Table caption _ _ headers rows) = 
-  blockToRTF notes indent (Para [Str "pandoc: TABLE unsupported in RST writer"])
+  (inlineListToRTF lst))
+blockToRTF indent (Table caption _ _ headers rows) = 
+  blockToRTF indent (Para [Str "pandoc: TABLE unsupported in RST writer"])
 
 -- | Ensure that there's the same amount of space after compact
 -- lists as after regular lists.
@@ -181,16 +172,15 @@ spaceAtEnd str =
      else str
 
 -- | Convert list item (list of blocks) to RTF.
-listItemToRTF :: [Block]    -- ^ list of note blocks
-              -> Int        -- ^ indent level
+listItemToRTF :: Int        -- ^ indent level
               -> String     -- ^ list start marker
               -> [Block]    -- ^ list item (list of blocks)
               -> [Char]
-listItemToRTF notes indent marker [] = 
+listItemToRTF indent marker [] = 
   rtfCompact (indent + listIncrement) (0 - listIncrement) 
              (marker ++ "\\tx" ++ (show listIncrement) ++ "\\tab ") 
-listItemToRTF notes indent marker list = 
-  let (first:rest) = map (blockToRTF notes (indent + listIncrement)) list in
+listItemToRTF indent marker list = 
+  let (first:rest) = map (blockToRTF (indent + listIncrement)) list in
   -- insert the list marker into the (processed) first block
   let modFirst = case matchRegexAll (mkRegex "\\\\fi-?[0-9]+") first of
                     Just (before, matched, after, _) -> before ++ "\\fi" ++
@@ -200,47 +190,36 @@ listItemToRTF notes indent marker list =
   modFirst ++ (concat rest)
 
 -- | Convert list of inline items to RTF.
-inlineListToRTF :: [Block]    -- ^ list of note blocks
-                -> [Inline]   -- ^ list of inlines to convert
+inlineListToRTF :: [Inline]   -- ^ list of inlines to convert
                 -> String
-inlineListToRTF notes lst = concatMap (inlineToRTF notes) lst
+inlineListToRTF lst = concatMap inlineToRTF lst
 
 -- | Convert inline item to RTF.
-inlineToRTF :: [Block]        -- ^ list of note blocks
-            -> Inline         -- ^ inline to convert
+inlineToRTF :: Inline         -- ^ inline to convert
             -> String
-inlineToRTF notes (Emph lst) = "{\\i " ++ (inlineListToRTF notes lst) ++ "} "
-inlineToRTF notes (Strong lst) = 
-  "{\\b " ++ (inlineListToRTF notes lst) ++ "} "
-inlineToRTF notes (Quoted SingleQuote lst) = 
-  "\\u8216'" ++ (inlineListToRTF notes lst) ++ "\\u8217'"
-inlineToRTF notes (Quoted DoubleQuote lst) = 
-  "\\u8220\"" ++ (inlineListToRTF notes lst) ++ "\\u8221\""
-inlineToRTF notes Apostrophe = "\\u8217'"
-inlineToRTF notes Ellipses = "\\u8230?"
-inlineToRTF notes EmDash = "\\u8212-"
-inlineToRTF notes EnDash = "\\u8211-"
-inlineToRTF notes (Code str) = "{\\f1 " ++ (codeStringToRTF str) ++ "} "
-inlineToRTF notes (Str str) = stringToRTF str
-inlineToRTF notes (TeX str) = latexToRTF str
-inlineToRTF notes (HtmlInline str) = ""
-inlineToRTF notes (LineBreak) = "\\line "
-inlineToRTF notes Space = " "
-inlineToRTF notes (Link text (Src src tit)) = 
+inlineToRTF (Emph lst) = "{\\i " ++ (inlineListToRTF lst) ++ "} "
+inlineToRTF (Strong lst) = 
+  "{\\b " ++ (inlineListToRTF lst) ++ "} "
+inlineToRTF (Quoted SingleQuote lst) = 
+  "\\u8216'" ++ (inlineListToRTF lst) ++ "\\u8217'"
+inlineToRTF (Quoted DoubleQuote lst) = 
+  "\\u8220\"" ++ (inlineListToRTF lst) ++ "\\u8221\""
+inlineToRTF Apostrophe = "\\u8217'"
+inlineToRTF Ellipses = "\\u8230?"
+inlineToRTF EmDash = "\\u8212-"
+inlineToRTF EnDash = "\\u8211-"
+inlineToRTF (Code str) = "{\\f1 " ++ (codeStringToRTF str) ++ "} "
+inlineToRTF (Str str) = stringToRTF str
+inlineToRTF (TeX str) = latexToRTF str
+inlineToRTF (HtmlInline str) = ""
+inlineToRTF (LineBreak) = "\\line "
+inlineToRTF Space = " "
+inlineToRTF (Link text (src, tit)) = 
   "{\\field{\\*\\fldinst{HYPERLINK \"" ++ (codeStringToRTF src) ++ 
-  "\"}}{\\fldrslt{\\ul\n" ++ (inlineListToRTF notes text) ++ "\n}}}\n"
-inlineToRTF notes (Link text (Ref ref)) = 
-  "[" ++ (inlineListToRTF notes text) ++ "][" ++ 
-  (inlineListToRTF notes ref) ++ "]"  -- this is what markdown does
-inlineToRTF notes (Image alternate (Src source tit)) = 
+  "\"}}{\\fldrslt{\\ul\n" ++ (inlineListToRTF text) ++ "\n}}}\n"
+inlineToRTF (Image alternate (source, tit)) = 
   "{\\cf1 [image: " ++ source ++ "]\\cf0}" 
-inlineToRTF notes (Image alternate (Ref ref)) = "![" ++ 
-  (inlineListToRTF notes alternate) ++ "][" ++ 
-  (inlineListToRTF notes ref) ++ "]"
-inlineToRTF [] (NoteRef ref) = ""
-inlineToRTF ((Note firstref firstblocks):rest) (NoteRef ref) = 
-  if firstref == ref
-     then "{\\super\\chftn}{\\*\\footnote\\chftn\\~\\plain\\pard " ++ 
-          (concatMap (blockToRTF rest 0) firstblocks)  ++ "}"
-     else inlineToRTF rest (NoteRef ref) 
+inlineToRTF (Note contents) =
+  "{\\super\\chftn}{\\*\\footnote\\chftn\\~\\plain\\pard " ++ 
+  (concatMap (blockToRTF 0) contents) ++ "}"
 

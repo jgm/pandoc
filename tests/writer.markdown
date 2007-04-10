@@ -401,7 +401,8 @@ This is code: `>`, `$`, `\`, `\$`, `<html>`.
 
 'He said, "I want to go."' Were you alive in the 70's?
 
-Here is some quoted '`code`' and a "[quoted link][1]".
+Here is some quoted '`code`' and a
+"[quoted link](http://example.com/?foo=1&bar=2)".
 
 Some dashes: one--two--three--four--five.
 
@@ -522,56 +523,41 @@ Just a [URL](/url/).
 
 ## Reference
 
-Foo [bar][a].
+Foo [bar](/url/).
 
-Foo [bar][a].
+Foo [bar](/url/).
 
-Foo [bar][a].
+Foo [bar](/url/).
 
+With [embedded [brackets]](/url/).
 
-  [a]: /url/
+[b](/url/) by itself should be a link.
 
-With [embedded [brackets]][b].
+Indented [once](/url).
 
-[b][] by itself should be a link.
+Indented [twice](/url).
 
-Indented [once][].
-
-Indented [twice][].
-
-Indented [thrice][].
+Indented [thrice](/url).
 
 This should [not][] be a link.
 
-
-  [once]: /url
-  [twice]: /url
-  [thrice]: /url
     [not]: /url
 
-
-  [b]: /url/
-
-Foo [bar][].
+Foo [bar](/url/ "Title with "quotes" inside").
 
 Foo [biz](/url/ "Title with "quote" inside").
 
-
-  [bar]: /url/ "Title with "quotes" inside"
-
 ## With ampersands
 
-Here's a [link with an ampersand in the URL][1].
+Here's a
+[link with an ampersand in the URL](http://example.com/?foo=1&bar=2).
 
-Here's a link with an amersand in the link text: [AT&T][2].
+Here's a link with an amersand in the link text:
+[AT&T](http://att.com/ "AT&T").
 
 Here's an [inline link](/script?foo=1&bar=2).
 
 Here's an [inline link in pointy braces](/script?foo=1&bar=2).
-
-
-  [1]: http://example.com/?foo=1&bar=2
-  [2]: http://att.com/ "AT&T"
 
 ## Autolinks
 
@@ -596,10 +582,7 @@ Auto-links should not occur here: `<http://example.com/>`
 
 From "Voyage dans la Lune" by Georges Melies (1902):
 
-![lalune][]
-
-
-  [lalune]: lalune.jpg "Voyage dans la Lune"
+![lalune](lalune.jpg "Voyage dans la Lune")
 
 Here is a movie ![movie](movie.jpg) icon.
 
@@ -619,25 +602,27 @@ note] Here is an inline note.[^3]
 This paragraph should not be part of the note, as it is not
 indented.
 
-[^1]: Here is the footnote. It can go anywhere after the footnote
+
+[^1]:
+    Here is the footnote. It can go anywhere after the footnote
     reference. It need not be placed at the end of the document.
 
-[^2]: Here's the long note. This one contains multiple blocks.
-    
+[^2]:
+    Here's the long note. This one contains multiple blocks.
+
     Subsequent blocks are indented to show that they belong to the
     footnote (as with list items).
-    
+
           { <code> }
-    
+
     If you want, you can indent every line, but you can also be lazy
     and just indent the first line of each block.
 
-[^3]: This is *easier* to type. Inline notes may contain
+[^3]:
+    This is *easier* to type. Inline notes may contain
     [links](http://google.com) and `]` verbatim characters.
 
 [^4]: In quote.
 
-
 [^5]: In list.
-
 

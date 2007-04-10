@@ -33,31 +33,28 @@ module Text.Pandoc.Writers.LaTeX (
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
-import List ( (\\) )
+import Data.List ( (\\) )
 
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: WriterOptions -> Pandoc -> String
 writeLaTeX options (Pandoc meta blocks) = 
-  let notes = filter isNoteBlock blocks in -- assumes all notes at outer level
   let body = (writerIncludeBefore options) ++ 
-             (concatMap (blockToLaTeX notes) 
-                        (replaceReferenceLinks blocks)) ++ 
+             (concatMap blockToLaTeX blocks) ++
              (writerIncludeAfter options) in
   let head = if writerStandalone options
-                then latexHeader notes options meta
+                then latexHeader options meta
                 else "" in
   let foot = if writerStandalone options then "\n\\end{document}\n" else "" in
   head ++ body ++ foot
 
 -- | Insert bibliographic information into LaTeX header.
-latexHeader ::  [Block] -- ^ List of note blocks to use in resolving note refs
-            -> WriterOptions -- ^ Options, including LaTeX header
+latexHeader :: WriterOptions -- ^ Options, including LaTeX header
             -> Meta          -- ^ Meta with bibliographic information
             -> String
-latexHeader notes options (Meta title authors date) =
+latexHeader options (Meta title authors date) =
   let titletext = if null title
                      then "" 
-                     else "\\title{" ++ inlineListToLaTeX notes title ++ "}\n"
+                     else "\\title{" ++ inlineListToLaTeX title ++ "}\n"
       authorstext = if null authors
                        then "" 
                        else "\\author{" ++ (joinWithSep "\\\\" 
@@ -99,31 +96,28 @@ deVerb ((Code str):rest) = (Str str):(deVerb rest)
 deVerb (other:rest) = other:(deVerb rest)
 
 -- | Convert Pandoc block element to LaTeX.
-blockToLaTeX :: [Block]   -- ^ List of note blocks to use in resolving note refs
-             -> Block     -- ^ Block to convert
+blockToLaTeX :: Block     -- ^ Block to convert
              -> String 
-blockToLaTeX notes Null = ""
-blockToLaTeX notes (Plain lst) = inlineListToLaTeX notes lst ++ "\n"
-blockToLaTeX notes (Para lst) = (inlineListToLaTeX notes lst) ++ "\n\n"
-blockToLaTeX notes (BlockQuote lst) = "\\begin{quote}\n" ++ 
-    (concatMap (blockToLaTeX notes) lst) ++ "\\end{quote}\n"
-blockToLaTeX notes (Note ref lst) = ""
-blockToLaTeX notes (Key _ _) = ""
-blockToLaTeX notes (CodeBlock str) = "\\begin{verbatim}\n" ++ str ++ 
+blockToLaTeX Null = ""
+blockToLaTeX (Plain lst) = inlineListToLaTeX lst ++ "\n"
+blockToLaTeX (Para lst) = (inlineListToLaTeX lst) ++ "\n\n"
+blockToLaTeX (BlockQuote lst) = "\\begin{quote}\n" ++ 
+    (concatMap blockToLaTeX lst) ++ "\\end{quote}\n"
+blockToLaTeX (CodeBlock str) = "\\begin{verbatim}\n" ++ str ++ 
     "\n\\end{verbatim}\n"
-blockToLaTeX notes (RawHtml str) = ""
-blockToLaTeX notes (BulletList lst) = "\\begin{itemize}\n" ++ 
-    (concatMap (listItemToLaTeX notes) lst) ++ "\\end{itemize}\n"
-blockToLaTeX notes (OrderedList lst) = "\\begin{enumerate}\n" ++ 
-    (concatMap (listItemToLaTeX notes) lst) ++ "\\end{enumerate}\n"
-blockToLaTeX notes HorizontalRule = 
+blockToLaTeX (RawHtml str) = ""
+blockToLaTeX (BulletList lst) = "\\begin{itemize}\n" ++ 
+    (concatMap listItemToLaTeX lst) ++ "\\end{itemize}\n"
+blockToLaTeX (OrderedList lst) = "\\begin{enumerate}\n" ++ 
+    (concatMap listItemToLaTeX lst) ++ "\\end{enumerate}\n"
+blockToLaTeX HorizontalRule = 
     "\\begin{center}\\rule{3in}{0.4pt}\\end{center}\n\n"
-blockToLaTeX notes (Header level lst) = 
+blockToLaTeX (Header level lst) = 
     if (level > 0) && (level <= 3)
        then "\\" ++ (concat (replicate (level - 1) "sub")) ++ "section{" ++ 
-            (inlineListToLaTeX notes (deVerb lst)) ++ "}\n\n"
-       else (inlineListToLaTeX notes lst) ++ "\n\n"
-blockToLaTeX notes (Table caption aligns widths heads rows) =
+            (inlineListToLaTeX (deVerb lst)) ++ "}\n\n"
+       else (inlineListToLaTeX lst) ++ "\n\n"
+blockToLaTeX (Table caption aligns widths heads rows) =
     let colWidths = map printDecimal widths
         colDescriptors = concat $ zipWith
                                   (\width align -> ">{\\PBS" ++ 
@@ -135,11 +129,11 @@ blockToLaTeX notes (Table caption aligns widths heads rows) =
                                   "\\hspace{0pt}}p{" ++ width ++ 
                                   "\\textwidth}")
                                   colWidths aligns
-        headers        = tableRowToLaTeX notes heads 
-        captionText    = inlineListToLaTeX notes caption 
+        headers        = tableRowToLaTeX heads 
+        captionText    = inlineListToLaTeX caption 
         tableBody      = "\\begin{tabular}{" ++ colDescriptors ++ "}\n" ++
                          headers ++ "\\hline\n" ++ 
-                         (concatMap (tableRowToLaTeX notes) rows) ++ 
+                         (concatMap tableRowToLaTeX rows) ++ 
                          "\\end{tabular}\n" 
         centered str   = "\\begin{center}\n" ++ str ++ "\\end{center}\n" in
     if null captionText
@@ -151,19 +145,18 @@ blockToLaTeX notes (Table caption aligns widths heads rows) =
 printDecimal :: Float -> String
 printDecimal = printf "%.2f" 
 
-tableColumnWidths notes cols = map (length . (concatMap (blockToLaTeX notes))) cols
+tableColumnWidths cols = map (length . (concatMap blockToLaTeX)) cols
 
-tableRowToLaTeX notes cols = joinWithSep " & " (map (concatMap (blockToLaTeX notes)) cols) ++ "\\\\\n"
+tableRowToLaTeX cols = joinWithSep " & " (map (concatMap blockToLaTeX) cols) ++ "\\\\\n"
 
-listItemToLaTeX notes list = "\\item " ++ 
-    (concatMap (blockToLaTeX notes) list) 
+listItemToLaTeX list = "\\item " ++ 
+    (concatMap blockToLaTeX list) 
 
 -- | Convert list of inline elements to LaTeX.
-inlineListToLaTeX :: [Block]   -- ^ List of note blocks to use in resolving note refs
-                  -> [Inline]  -- ^ Inlines to convert
+inlineListToLaTeX :: [Inline]  -- ^ Inlines to convert
                   -> String
-inlineListToLaTeX notes lst = 
-  concatMap (inlineToLaTeX notes) lst
+inlineListToLaTeX lst = 
+  concatMap inlineToLaTeX lst
 
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
@@ -171,47 +164,35 @@ isQuoted Apostrophe = True
 isQuoted _ = False
 
 -- | Convert inline element to LaTeX
-inlineToLaTeX :: [Block]   -- ^ List of note blocks to use in resolving note refs
-              -> Inline    -- ^ Inline to convert
+inlineToLaTeX :: Inline    -- ^ Inline to convert
               -> String
-inlineToLaTeX notes (Emph lst) = "\\emph{" ++ 
-    (inlineListToLaTeX notes (deVerb lst)) ++ "}"
-inlineToLaTeX notes (Strong lst) = "\\textbf{" ++ 
-    (inlineListToLaTeX notes (deVerb lst)) ++ "}"
-inlineToLaTeX notes (Code str) = "\\verb" ++ [chr] ++ stuffing ++ [chr]
+inlineToLaTeX (Emph lst) = "\\emph{" ++ 
+    (inlineListToLaTeX (deVerb lst)) ++ "}"
+inlineToLaTeX (Strong lst) = "\\textbf{" ++ 
+    (inlineListToLaTeX (deVerb lst)) ++ "}"
+inlineToLaTeX (Code str) = "\\verb" ++ [chr] ++ stuffing ++ [chr]
                      where stuffing = str 
                            chr      = ((enumFromTo '!' '~') \\ stuffing) !! 0
-inlineToLaTeX notes (Quoted SingleQuote lst) =
+inlineToLaTeX (Quoted SingleQuote lst) =
   let s1 = if (not (null lst)) && (isQuoted (head lst)) then "\\," else ""
       s2 = if (not (null lst)) && (isQuoted (last lst)) then "\\," else "" in
-  "`" ++ s1 ++ inlineListToLaTeX notes lst ++ s2 ++ "'"
-inlineToLaTeX notes (Quoted DoubleQuote lst) =
+  "`" ++ s1 ++ inlineListToLaTeX lst ++ s2 ++ "'"
+inlineToLaTeX (Quoted DoubleQuote lst) =
   let s1 = if (not (null lst)) && (isQuoted (head lst)) then "\\," else ""
       s2 = if (not (null lst)) && (isQuoted (last lst)) then "\\," else "" in
-  "``" ++ s1 ++ inlineListToLaTeX notes lst ++ s2 ++ "''"
-inlineToLaTeX notes Apostrophe = "'"
-inlineToLaTeX notes EmDash = "---"
-inlineToLaTeX notes EnDash = "--"
-inlineToLaTeX notes Ellipses = "\\ldots{}"
-inlineToLaTeX notes (Str str) = stringToLaTeX str
-inlineToLaTeX notes (TeX str) = str
-inlineToLaTeX notes (HtmlInline str) = ""
-inlineToLaTeX notes (LineBreak) = "\\\\\n"
-inlineToLaTeX notes Space = " "
-inlineToLaTeX notes (Link text (Src src tit)) = 
-    "\\href{" ++ src ++ "}{" ++ (inlineListToLaTeX notes (deVerb text)) ++ "}"
-inlineToLaTeX notes (Link text (Ref ref)) = "[" ++ 
-    (inlineListToLaTeX notes text) ++ "][" ++ (inlineListToLaTeX notes ref) ++
-    "]"  -- this is what markdown does, for better or worse
-inlineToLaTeX notes (Image alternate (Src source tit)) = 
+  "``" ++ s1 ++ inlineListToLaTeX lst ++ s2 ++ "''"
+inlineToLaTeX Apostrophe = "'"
+inlineToLaTeX EmDash = "---"
+inlineToLaTeX EnDash = "--"
+inlineToLaTeX Ellipses = "\\ldots{}"
+inlineToLaTeX (Str str) = stringToLaTeX str
+inlineToLaTeX (TeX str) = str
+inlineToLaTeX (HtmlInline str) = ""
+inlineToLaTeX (LineBreak) = "\\\\\n"
+inlineToLaTeX Space = " "
+inlineToLaTeX (Link text (src, tit)) = 
+    "\\href{" ++ src ++ "}{" ++ (inlineListToLaTeX (deVerb text)) ++ "}"
+inlineToLaTeX (Image alternate (source, tit)) = 
     "\\includegraphics{" ++ source ++ "}" 
-inlineToLaTeX notes (Image alternate (Ref ref)) = 
-    "![" ++ (inlineListToLaTeX notes alternate) ++ "][" ++ 
-    (inlineListToLaTeX notes ref) ++ "]"
-inlineToLaTeX [] (NoteRef ref) = ""
-inlineToLaTeX ((Note firstref firstblocks):rest) (NoteRef ref) = 
-    if (firstref == ref)
-       then "\\footnote{" ++ (stripTrailingNewlines 
-            (concatMap (blockToLaTeX rest) firstblocks))  ++ "}"
-       else inlineToLaTeX rest (NoteRef ref) 
-
+inlineToLaTeX (Note contents) = 
+    "\\footnote{" ++ (stripTrailingNewlines $ concatMap blockToLaTeX contents)  ++ "}"

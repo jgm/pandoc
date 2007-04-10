@@ -50,7 +50,6 @@ data Block
     = Plain [Inline]        -- ^ Plain text, not a paragraph
     | Null                  -- ^ Nothing
     | Para [Inline]         -- ^ Paragraph
-    | Key [Inline] Target   -- ^ Reference key:  name (inlines) and 'Target'
     | CodeBlock String      -- ^ Code block (literal)
     | RawHtml String        -- ^ Raw HTML block (literal)
     | BlockQuote [Block]    -- ^ Block quote (list of blocks)
@@ -63,23 +62,17 @@ data Block
                             -- the term, and a block list)
     | Header Int [Inline]   -- ^ Header - level (integer) and text (inlines) 
     | HorizontalRule        -- ^ Horizontal rule
-    | Note String [Block]   -- ^ Footnote or endnote - reference (string),
-                            -- text (list of blocks)
     | Table [Inline] [Alignment] [Float] [[Block]] [[[Block]]]  -- ^ Table,
                             -- with caption, column alignments,
                             -- relative column widths, column headers
                             -- (each a list of blocks), and rows
                             -- (each a list of lists of blocks)
     deriving (Eq, Read, Show)
-               
--- | Target for a link:  either a URL or an indirect (labeled) reference.
-data Target 
-    = Src String String     -- ^ First string is URL, second is title
-    | Ref [Inline]          -- ^ Label (list of inlines) for an indirect ref
-    deriving (Show, Eq, Read)
 
 -- | Type of quotation marks to use in Quoted inline.
 data QuoteType = SingleQuote | DoubleQuote deriving (Show, Eq, Read)
+
+type Target = (String, String)  -- ^ Link target (URL, title)
 
 -- | Inline elements.
 data Inline 
@@ -96,8 +89,9 @@ data Inline
     | LineBreak             -- ^ Hard line break
     | TeX String            -- ^ LaTeX code (literal)
     | HtmlInline String     -- ^ HTML code (literal)
-    | Link [Inline] Target  -- ^ Hyperlink: text (list of inlines) and target
-    | Image [Inline] Target -- ^ Image:  alternative text (list of inlines)
+    | Link [Inline] Target  -- ^ Hyperlink: text (list of inlines), target
+    | Image [Inline] Target -- ^ Image:  alt text (list of inlines), target
                             -- and target
-    | NoteRef String        -- ^ Footnote or endnote reference
+    | Note [Block]          -- ^ Footnote or endnote - reference (string),
+                            -- text (list of blocks)
     deriving (Show, Eq, Read)

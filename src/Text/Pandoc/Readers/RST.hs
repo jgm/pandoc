@@ -37,8 +37,8 @@ import Text.Pandoc.Readers.HTML ( anyHtmlBlockTag, anyHtmlInlineTag )
 import Text.Regex ( matchRegex, mkRegex )
 import Text.ParserCombinators.Parsec
 import Data.Maybe ( fromMaybe )
-import List ( findIndex )
-import Char ( toUpper )
+import Data.List ( findIndex, delete )
+import Data.Char ( toUpper )
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: ParserState -> String -> Pandoc
@@ -62,11 +62,7 @@ specialChars = "\\`|*_<>$:[-"
 -- parsing documents
 --
 
-isAnonKeyBlock block = case block of
-                         (Key [Str "_"] str) -> True
-                         otherwise -> False
-
-isNotAnonKeyBlock block = not (isAnonKeyBlock block)
+isAnonKey (ref, src) = (ref == [Str "_"])
 
 isHeader1 :: Block -> Bool
 isHeader1 (Header 1 _) = True
@@ -101,20 +97,22 @@ titleTransform blocks = (blocks, [])
 
 parseRST = do
   -- first pass: get anonymous keys
-  keyBlocks <- lookAhead $ manyTill (anonymousKey <|> (do{anyLine; return Null})) eof
-  let anonymousKeys = filter (/= Null) keyBlocks
-  -- run parser again to fill in anonymous links...
-  updateState (\st -> st { stateKeyBlocks = anonymousKeys })
-  state <- getState
+  refs <- manyTill (referenceKey <|> (do l <- lineClump
+                                         return (LineClump l))) eof
+  let keys = map (\(KeyBlock label target) -> (label, target)) $
+                 filter isKeyBlock refs
+  let rawlines = map (\(LineClump ln) -> ln) $ filter isLineClump refs
+  setInput $ concat rawlines -- with keys stripped out
+  updateState (\state -> state { stateKeys = keys })
   blocks <- parseBlocks
-  let blocks' = filter isNotAnonKeyBlock blocks
+  let blocks' = filter (/= Null) blocks
+  state <- getState
   let (blocks'', title) = if stateStandalone state
                               then titleTransform blocks'
                               else (blocks', [])
-  state' <- getState
-  let authors = stateAuthors state'
-  let date = stateDate state'
-  let title' = if (null title) then (stateTitle state') else title
+  let authors = stateAuthors state
+  let date = stateDate state
+  let title' = if (null title) then (stateTitle state) else title
   return (Pandoc (Meta title' authors date) blocks'')
 
 --
@@ -124,7 +122,7 @@ parseRST = do
 parseBlocks = manyTill block eof
 
 block = choice [ codeBlock, rawHtmlBlock, rawLaTeXBlock, blockQuote, 
-                 referenceKey, imageBlock, unknownDirective, header,
+                 imageBlock, unknownDirective, header,
                  hrule, list, fieldList, lineBlock, para, plain,
                  nullBlock ] <?> "block"
 
@@ -221,7 +219,7 @@ plain = do
 imageBlock = try (do
   string ".. image:: "
   src <- manyTill anyChar newline
-  return (Plain [Image [Str "image"] (Src src "")]))
+  return (Plain [Image [Str "image"] (src, "")]))
 
 --
 -- header blocks
@@ -492,43 +490,43 @@ unknownDirective = try (do
 -- reference key
 --
 
-referenceKey = choice [imageKey, anonymousKey, regularKeyQuoted, regularKey]
+referenceKey = do
+  result <- choice [imageKey, anonymousKey, regularKeyQuoted, regularKey]
+  option "" blanklines
+  return result
 
-imageKey = try (do
+imageKey = try $ do
   string ".. |"
   ref <- manyTill inline (char '|')
   skipSpaces
   string "image::"
   src <- manyTill anyChar newline
-  return (Key (normalizeSpaces ref) 
-              (Src (removeLeadingTrailingSpace src) "")))
+  return $ KeyBlock (normalizeSpaces ref) (removeLeadingTrailingSpace src, "")
 
-anonymousKey = try (do
+anonymousKey = try $ do
   oneOfStrings [".. __:", "__"]
   skipSpaces
   option ' ' newline
   src <- manyTill anyChar newline
   state <- getState
-  return (Key [Str "_"] (Src (removeLeadingTrailingSpace src) "")))
+  return $ KeyBlock [Str "_"] (removeLeadingTrailingSpace src, "")
 
-regularKeyQuoted = try (do
+regularKeyQuoted = try $ do
   string ".. _`"
   ref <- manyTill inline (char '`')
   char ':'
   skipSpaces
   option ' ' newline
   src <- manyTill anyChar newline
-  return (Key (normalizeSpaces ref) 
-              (Src (removeLeadingTrailingSpace src) "")))
+  return $ KeyBlock (normalizeSpaces ref) (removeLeadingTrailingSpace src, "")
 
-regularKey = try (do
+regularKey = try $ do
   string ".. _"
   ref <- manyTill inline (char ':')
   skipSpaces
   option ' ' newline
   src <- manyTill anyChar newline
-  return (Key (normalizeSpaces ref) 
-              (Src (removeLeadingTrailingSpace src) "")))
+  return $ KeyBlock (normalizeSpaces ref) (removeLeadingTrailingSpace src, "")
 
  -- 
  -- inline
@@ -577,7 +575,7 @@ tabchar = do
   return (Str "\t")
 
 str = do 
-  notFollowedBy' oneWordReferenceLink
+  notFollowedBy' oneWordReference
   result <- many1 (noneOf (specialChars ++ "\t\n "))
   return (Str result)
 
@@ -596,46 +594,44 @@ endline = try (do
 -- links
 --
 
-link = choice [explicitLink, referenceLink, autoLink, 
-               oneWordReferenceLink] <?> "link"
+link = choice [explicitLink, referenceLink, autoLink]  <?> "link"
 
-explicitLink = try (do
+explicitLink = try $ do
   char '`'
   notFollowedBy (char '`') -- `` is marks start of inline code
   label <- manyTill inline (try (do {spaces; char '<'}))
   src <- manyTill (noneOf ">\n ") (char '>')
   skipSpaces
   string "`_"
-  return (Link (normalizeSpaces label) 
-               (Src (removeLeadingTrailingSpace src) ""))) 
+  return $ Link (normalizeSpaces label) (removeLeadingTrailingSpace src, "")
 
-anonymousLinkEnding = try (do
-  char '_'
-  state <- getState
-  let anonKeys = stateKeyBlocks state
-  -- if there's a list of anon key refs (from previous pass), pop one off.
-  -- otherwise return an anon key ref for the next pass to take care of...
-  case anonKeys of
-    (Key [Str "_"] src):rest -> 
-        do 
-          setState (state { stateKeyBlocks = rest }) 
-          return src
-    otherwise -> return (Ref [Str "_"]))
-
-referenceLink = try (do
+reference = try $ do
   char '`'
   notFollowedBy (char '`')
-  label <- manyTill inline (char '`')
+  label <- many1Till inline (char '`') 
   char '_'
-  src <- option (Ref []) anonymousLinkEnding
-  return (Link (normalizeSpaces label) src)) 
+  return label
 
-oneWordReferenceLink = try (do
-  label <- many1 alphaNum
+oneWordReference = do
+  raw <- many1 alphaNum
   char '_'
-  src <- option (Ref []) anonymousLinkEnding
   notFollowedBy alphaNum    -- because this_is_not a link
-  return (Link [Str label] src)) 
+  return [Str raw]
+
+referenceLink = try $ do
+  label <- reference <|> oneWordReference
+  key <- option label (do{char '_'; return [Str "_"]}) -- anonymous link
+  state <- getState
+  let keyTable = stateKeys state
+  src <- case lookupKeySrc keyTable key of
+           Nothing     -> fail "no corresponding key"
+           Just target -> return target
+  -- if anonymous link, remove first anon key so it won't be used again
+  let keyTable' = if (key == [Str "_"]) -- anonymous link? 
+                    then delete ([Str "_"], src) keyTable -- remove first anon key 
+                    else keyTable                    
+  setState $ state { stateKeys = keyTable' }
+  return $ Link (normalizeSpaces label) src 
 
 uriScheme = oneOfStrings [ "http://", "https://", "ftp://", "file://", 
                            "mailto:", "news:", "telnet:" ]
@@ -645,9 +641,9 @@ uri = try (do
   identifier <- many1 (noneOf " \t\n")
   return (scheme ++ identifier))
 
-autoURI = try (do
+autoURI = try $ do
   src <- uri
-  return (Link [Str src] (Src src "")))
+  return $ Link [Str src] (src, "")
 
 emailChar = alphaNum <|> oneOf "-+_."
 
@@ -666,14 +662,20 @@ domain = try (do
   dom <- many1 (try (do{ char '.'; many1 domainChar }))
   return (joinWithSep "." (first:dom)))
 
-autoEmail = try (do
+autoEmail = try $ do
   src <- emailAddress
-  return (Link [Str src] (Src ("mailto:" ++ src) "")))
+  return $ Link [Str src] ("mailto:" ++ src, "")
 
 autoLink = autoURI <|> autoEmail
 
 -- For now, we assume that all substitution references are for images.
-image = try (do
+image = try $ do
   char '|'
   ref <- manyTill inline (char '|')
-  return (Image (normalizeSpaces ref) (Ref ref))) 
+  state <- getState
+  let keyTable = stateKeys state
+  src <- case lookupKeySrc keyTable ref of
+           Nothing     -> fail "no corresponding key"
+           Just target -> return target
+  return (Image (normalizeSpaces ref) src)
+

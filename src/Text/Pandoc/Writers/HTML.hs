@@ -35,7 +35,10 @@ import Text.Regex ( mkRegex, matchRegex )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
 import Data.List ( isPrefixOf, partition )
+import Control.Monad.State
 import Text.XHtml.Strict
+
+type Notes = [Html]
 
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
@@ -48,13 +51,10 @@ writeHtmlString opts =
 writeHtml :: WriterOptions -> Pandoc -> Html
 writeHtml opts (Pandoc (Meta tit authors date) blocks) = 
   let titlePrefix = writerTitlePrefix opts
-      topTitle    = inlineListToHtml opts tit
-      topTitle'   = if not (null titlePrefix)
-                       then stringToHtml titlePrefix +++
-                            if not (null tit)
-                               then '-' +++ topTitle
-                               else noHtml
-                       else topTitle
+      topTitle    = evalState (inlineListToHtml opts tit) []
+      topTitle'   = if null titlePrefix
+                        then topTitle
+                        else titlePrefix +++ " - " +++ topTitle
       head        = header $ thetitle topTitle' +++ 
                     meta ! [httpequiv "Content-Type", 
                             content "text/html; charset=UTF-8"] +++
@@ -69,31 +69,30 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
                     (not (writerS5 opts))
                         then h1 ! [theclass "title"] $ topTitle
                         else noHtml
-      blocks'     = replaceReferenceLinks blocks
-      (noteBlocks, blocks'') = partition isNoteBlock blocks' 
+      (blocks', revnotes) = runState (blockListToHtml opts blocks) []
+      notes       = reverse revnotes
       before      = primHtml $ writerIncludeBefore opts
       after       = primHtml $ writerIncludeAfter opts
-      thebody     = before +++ titleHeader +++
-                    toHtmlFromList (map (blockToHtml opts) blocks'') +++
-                    footnoteSection opts noteBlocks +++ after
+      thebody     = before +++ titleHeader +++ blocks' +++
+                    footnoteSection opts notes +++ after
   in  if writerStandalone opts
          then head +++ (body thebody)
          else thebody
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
-footnoteSection :: WriterOptions -> [Block] -> Html
+footnoteSection :: WriterOptions -> Notes -> Html
 footnoteSection opts notes =
   if null notes 
-    then noHtml
-    else thediv ! [theclass "footnotes"] $
-         hr +++ (olist $ toHtmlFromList $ map (blockToHtml opts) notes)
+     then noHtml
+     else thediv ! [theclass "footnotes"] $
+                   hr +++ (olist << notes)
 
 -- | Obfuscate a "mailto:" link using Javascript.
-obfuscateLink :: WriterOptions -> [Inline] -> String -> Html
-obfuscateLink opts txt src =
+obfuscateLink :: WriterOptions -> Html -> String -> Html
+obfuscateLink opts text src =
   let emailRegex = mkRegex "mailto:*([^@]*)@(.*)"
-      text' = show $ inlineListToHtml opts txt 
+      text' = show $ text
       src'  = map toLower src in
   case (matchRegex emailRegex src') of
     (Just [name, domain]) ->
@@ -117,7 +116,7 @@ obfuscateLink opts txt src =
              "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\">'+" ++ 
              linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) +++  
              noscript (primHtml $ obfuscateString altText)
-    _ -> anchor ! [href src] $ inlineListToHtml opts txt -- malformed email
+    _ -> anchor ! [href src] $ text  -- malformed email
 
 -- | Obfuscate character as entity.
 obfuscateChar :: Char -> String
@@ -131,137 +130,153 @@ obfuscateString :: String -> String
 obfuscateString = (concatMap obfuscateChar) . decodeEntities
 
 -- | Convert Pandoc block element to HTML.
-blockToHtml :: WriterOptions -> Block -> Html
-blockToHtml opts Null = noHtml
-blockToHtml opts (Plain lst) = inlineListToHtml opts lst
-blockToHtml opts (Para lst) = paragraph $ inlineListToHtml opts lst
-blockToHtml opts (BlockQuote blocks) = 
-  if (writerS5 opts)
-     then  -- in S5, treat list in blockquote specially
-           -- if default is incremental, make it nonincremental; 
-           -- otherwise incremental
-           let inc = not (writerIncremental opts) in
-           case blocks of 
-              [BulletList lst]  -> blockToHtml (opts {writerIncremental = 
-                                                        inc}) (BulletList lst)
-              [OrderedList lst] -> blockToHtml (opts {writerIncremental =
-                                                       inc}) (OrderedList lst)
-              otherwise         -> blockquote $ toHtmlFromList $ 
-                                   map (blockToHtml opts) blocks
-     else blockquote $ toHtmlFromList $ map (blockToHtml opts) blocks
-blockToHtml opts (Note ref lst) = 
-  let contents = toHtmlFromList $ map (blockToHtml opts) lst
-      backlink = anchor ! [href ("#fnref" ++ ref), theclass "footnoteBacklink",
-                           title ("Jump back to footnote " ++ ref)] $
-                 (primHtmlChar "#8617") in
-  li ! [identifier ("fn" ++ ref)] $ contents +++ backlink
-blockToHtml opts (Key _ _) = noHtml
-blockToHtml opts (CodeBlock str) = 
-  pre $ thecode << (str ++ "\n") -- the final \n for consistency with Markdown.pl
-blockToHtml opts (RawHtml str) = primHtml str 
-blockToHtml opts (BulletList lst) = 
-  let attribs = if writerIncremental opts
-                   then [theclass "incremental"]
-                   else [] in
-  unordList ! attribs $ map (blockListToHtml opts) lst 
-blockToHtml opts (OrderedList lst) = 
-  let attribs = if writerIncremental opts
-                   then [theclass "incremental"]
-                   else [] in
-  ordList ! attribs $ map (blockListToHtml opts) lst 
-blockToHtml opts (DefinitionList lst) = 
-  let attribs = if writerIncremental opts
-                   then [theclass "incremental"]
-                   else [] in
-  defList ! attribs $ map (\(term, def) -> (inlineListToHtml opts term, 
-                          blockListToHtml opts def)) lst 
-blockToHtml opts HorizontalRule = hr
-blockToHtml opts (Header level lst) = 
-  let contents = inlineListToHtml opts lst in
-  case level of
-    1 -> h1 contents
-    2 -> h2 contents
-    3 -> h3 contents
-    4 -> h4 contents
-    5 -> h5 contents
-    6 -> h6 contents
-    _ -> paragraph contents
-blockToHtml opts (Table capt aligns widths headers rows) =
-  let alignStrings = map alignmentToString aligns
-      captionDoc   = if null capt
-                       then noHtml
-                       else caption $ inlineListToHtml opts capt in
-  table $ captionDoc +++
-  (colHeadsToHtml opts alignStrings widths headers) +++
-  (toHtmlFromList $ map (tableRowToHtml opts alignStrings) rows)
+blockToHtml :: WriterOptions -> Block -> State Notes Html
+blockToHtml opts block = 
+  case block of
+    (Null)            -> return $ noHtml
+    (Plain lst)       -> inlineListToHtml opts lst
+    (Para lst)        -> inlineListToHtml opts lst >>= (return . paragraph)
+    (RawHtml str)     -> return $ primHtml str
+    (HorizontalRule)  -> return $ hr
+    (CodeBlock str)   -> return $ pre $ thecode << (str ++ "\n") 
+                       -- the final \n for consistency with Markdown.pl
+    (BlockQuote blocks) ->  -- in S5, treat list in blockquote specially
+                            -- if default is incremental, make it nonincremental; 
+                            -- otherwise incremental
+       if writerS5 opts
+          then let inc = not (writerIncremental opts) in
+               case blocks of 
+                  [BulletList lst]  -> blockToHtml (opts {writerIncremental = inc})
+                                       (BulletList lst)
+                  [OrderedList lst] -> blockToHtml (opts {writerIncremental = inc})
+                                       (OrderedList lst)
+                  otherwise         -> blockListToHtml opts blocks >>= 
+                                       (return . blockquote)
+          else blockListToHtml opts blocks >>= (return . blockquote)
+    (Header level lst) -> do contents <- inlineListToHtml opts lst
+                             return $  case level of
+                                         1 -> h1 contents
+                                         2 -> h2 contents
+                                         3 -> h3 contents
+                                         4 -> h4 contents
+                                         5 -> h5 contents
+                                         6 -> h6 contents
+                                         _ -> paragraph contents
+    (BulletList lst)   -> do contents <- mapM (blockListToHtml opts) lst
+                             let attribs = if writerIncremental opts
+                                              then [theclass "incremental"]
+                                              else []
+                             return $ unordList ! attribs $ contents
+    (OrderedList lst)  -> do contents <- mapM (blockListToHtml opts) lst
+                             let attribs = if writerIncremental opts
+                                              then [theclass "incremental"]
+                                              else []
+                             return $ ordList ! attribs $ contents
+    (DefinitionList lst) -> do contents <- mapM (\(term, def) ->
+                                                 do term' <- inlineListToHtml opts term
+                                                    def' <- blockListToHtml opts def
+                                                    return $ (term', def'))
+                                                 lst
+                               let attribs = if writerIncremental opts
+                                                then [theclass "incremental"]
+                                                else []
+                               return $ defList ! attribs $ contents
+    (Table capt aligns widths headers rows) ->
+                            do let alignStrings = map alignmentToString aligns
+                               captionDoc <- if null capt
+                                                then return noHtml
+                                                else inlineListToHtml opts capt >>=
+                                                     (return . caption)
+                               colHeads <- colHeadsToHtml opts alignStrings 
+                                                          widths headers
+                               rows' <- mapM (tableRowToHtml opts alignStrings) rows
+                               return $ table $ captionDoc +++ colHeads +++ rows'
 
 colHeadsToHtml opts alignStrings widths headers =
-  let heads = zipWith3
-              (\align width item -> tableItemToHtml opts th align width item) 
-              alignStrings widths headers in
-  tr $ toHtmlFromList heads
+  do heads <- sequence $ zipWith3 
+                         (\align width item -> tableItemToHtml opts th align width item) 
+                         alignStrings widths headers
+     return $ tr $ toHtmlFromList heads
 
 alignmentToString alignment = case alignment of
                                  AlignLeft    -> "left"
                                  AlignRight   -> "right"
                                  AlignCenter  -> "center"
                                  AlignDefault -> "left"
+
 tableRowToHtml opts aligns cols =
-  tr $ toHtmlFromList $ zipWith3 (tableItemToHtml opts td) aligns (repeat 0) cols
+  do contents <- sequence $ zipWith3 (tableItemToHtml opts td) aligns (repeat 0) cols 
+     return $ tr $ toHtmlFromList contents
 
 tableItemToHtml opts tag align' width item =
-  let attrib = [align align'] ++ 
-               if (width /= 0) 
-                 then [thestyle ("{width: " ++ show (truncate (100*width)) ++ "%;}")]
-                 else [] in 
-  tag ! attrib $ toHtmlFromList $ map (blockToHtml opts) item
+  do contents <- blockListToHtml opts item
+     let attrib = [align align'] ++ 
+                  if (width /= 0) 
+                    then [thestyle ("{width: " ++ show (truncate (100*width)) ++ "%;}")]
+                    else [] 
+     return $ tag ! attrib $ contents
 
-blockListToHtml :: WriterOptions -> [Block] -> Html
-blockListToHtml opts list = 
-  toHtmlFromList $ map (blockToHtml opts) list
+blockListToHtml :: WriterOptions -> [Block] -> State Notes Html
+blockListToHtml opts lst = mapM (blockToHtml opts) lst >>= (return . toHtmlFromList)
 
 -- | Convert list of Pandoc inline elements to HTML.
-inlineListToHtml :: WriterOptions -> [Inline] -> Html
-inlineListToHtml opts lst = toHtmlFromList $ map (inlineToHtml opts) lst
+inlineListToHtml :: WriterOptions -> [Inline] -> State Notes Html
+inlineListToHtml opts lst = mapM (inlineToHtml opts) lst >>= (return . toHtmlFromList)
 
 -- | Convert Pandoc inline element to HTML.
-inlineToHtml :: WriterOptions -> Inline -> Html
-inlineToHtml opts (Emph lst) = 
-  emphasize $ inlineListToHtml opts lst
-inlineToHtml opts (Strong lst) = 
-  strong $ inlineListToHtml opts lst
-inlineToHtml opts (Code str) =  
-  thecode << str
-inlineToHtml opts (Quoted SingleQuote lst) =
-  primHtmlChar "lsquo" +++ inlineListToHtml opts lst +++ primHtmlChar "rsquo"
-inlineToHtml opts (Quoted DoubleQuote lst) =
-  primHtmlChar "ldquo" +++ inlineListToHtml opts lst +++ primHtmlChar "rdquo"
-inlineToHtml opts EmDash = primHtmlChar "mdash"
-inlineToHtml opts EnDash = primHtmlChar "ndash"
-inlineToHtml opts Ellipses = primHtmlChar "hellip"
-inlineToHtml opts Apostrophe = primHtmlChar "rsquo"
-inlineToHtml opts (Str str) = stringToHtml str
-inlineToHtml opts (TeX str) = stringToHtml str
-inlineToHtml opts (HtmlInline str) = primHtml str
-inlineToHtml opts (LineBreak) = br
-inlineToHtml opts Space = stringToHtml " "
-inlineToHtml opts (Link txt (Src src tit)) = 
-  if (isPrefixOf "mailto:" src)
-     then obfuscateLink opts txt src 
-     else anchor ! ([href src] ++ if null tit then [] else [title tit]) $
-          inlineListToHtml opts txt
-inlineToHtml opts (Link txt (Ref ref)) = 
-  '[' +++ (inlineListToHtml opts txt) +++ 
-  ']' +++ '[' +++ (inlineListToHtml opts ref) +++
-  ']'
-  -- this is what markdown does, for better or worse
-inlineToHtml opts (Image alttext (Src source tit)) = 
-  let alternate = renderHtmlFragment $ inlineListToHtml opts alttext in 
-  image ! ([src source, title tit] ++ if null alttext then [] else [alt alternate])
-  -- note:  null title is included, as in Markdown.pl 
-inlineToHtml opts (Image alternate (Ref ref)) = 
-  '!' +++ inlineToHtml opts (Link alternate (Ref ref))
-inlineToHtml opts (NoteRef ref) = 
-  anchor ! [href ("#fn" ++ ref), theclass "footnoteRef", identifier ("fnref" ++ ref)] <<
-  sup << ref
+inlineToHtml :: WriterOptions -> Inline -> State Notes Html
+inlineToHtml opts inline =
+  case inline of  
+    (Str str)        -> return $ stringToHtml str
+    (Space)          -> return $ stringToHtml " "
+    (LineBreak)      -> return $ br
+    (EmDash)         -> return $ primHtmlChar "mdash"
+    (EnDash)         -> return $ primHtmlChar "ndash"
+    (Ellipses)       -> return $ primHtmlChar "hellip"
+    (Apostrophe)     -> return $ primHtmlChar "rsquo"
+    (Emph lst)       -> inlineListToHtml opts lst >>= (return . emphasize)
+    (Strong lst)     -> inlineListToHtml opts lst >>= (return . strong)
+    (Code str)       -> return $ thecode << str
+    (Quoted quoteType lst) ->
+                        let (leftQuote, rightQuote) = case quoteType of
+                              SingleQuote -> (primHtmlChar "lsquo", 
+                                              primHtmlChar "rsquo")
+                              DoubleQuote -> (primHtmlChar "ldquo", 
+                                              primHtmlChar "rdquo") in 
+                        do contents <- inlineListToHtml opts lst
+                           return $ leftQuote +++ contents +++ rightQuote
+    (TeX str)        -> return $ stringToHtml str
+    (HtmlInline str) -> return $ primHtml str 
+    (Link txt (src,tit)) ->
+                        do linkText <- inlineListToHtml opts txt
+                           return $ if (isPrefixOf "mailto:" src)
+                                      then obfuscateLink opts linkText src 
+                                      else anchor ! ([href src] ++ 
+                                                     if null tit 
+                                                        then [] 
+                                                        else [title tit]) $ 
+                                           linkText
+    (Image txt (source,tit)) ->
+                        do alternate <- inlineListToHtml opts txt
+                           let alternate' = renderHtmlFragment alternate
+                           let attributes = [src source, title tit] ++ 
+                                            if null txt then [] else [alt alternate']
+                           return $ image ! attributes 
+                           -- note:  null title included, as in Markdown.pl 
+    (Note contents)  -> do notes <- get
+                           let number = (length notes) + 1
+                           let ref = show number
+                           htmlContents <- blockListToNote opts ref contents 
+                           modify (htmlContents:) -- push contents onto front of notes
+                           return $ anchor ! [href ("#fn" ++ ref),
+                                              theclass "footnoteRef",
+                                              identifier ("fnref" ++ ref)] << sup << ref
+
+blockListToNote :: WriterOptions -> String -> [Block] -> State Notes Html
+blockListToNote opts ref blocks =
+  do contents <- blockListToHtml opts blocks
+     let backlink = anchor ! [href ("#fnref" ++ ref), theclass "footnoteBacklink",
+                             title ("Jump back to footnote " ++ ref)] $
+                             (primHtmlChar "#8617")
+     return $ li ! [identifier ("fn" ++ ref)] $ contents +++ backlink
 

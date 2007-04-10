@@ -14,8 +14,8 @@ John Gruber's markdown test suite.
 Headers
 =======
 
-Level 2 with an `embedded link`_
---------------------------------
+Level 2 with an `embedded link </url>`_
+---------------------------------------
 
 Level 3 with *emphasis*
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -71,11 +71,11 @@ E-mail style:
     Code in a block quote:
 
     ::
- 
+
         sub status {
             print "working";
         }
-        
+
     A list:
 
     1.  item one
@@ -97,11 +97,11 @@ Box-style:
     Example:
 
     ::
- 
+
         sub status {
             print "working";
         }
-        
+
 
     1.  do laundry
     2.  take out the trash
@@ -125,7 +125,7 @@ Code Blocks
 Code:
 
 ::
- 
+
     ---- (should be four hyphens)
     
     sub status {
@@ -133,15 +133,15 @@ Code:
     }
     
     this code block is indented by one tab
-    
+
 And:
 
 ::
- 
+
         this code block is indented by two tabs
     
     These should not be escaped:  \$ \\ \> \[ \{
-    
+
 --------------
 
 Lists
@@ -244,9 +244,7 @@ Nested
 ------
 
 -   Tab
-
     -   Tab
-
         -   Tab
 
 
@@ -255,7 +253,6 @@ Here's another:
 
 1.  First
 2.  Second:
-
     -   Fee
     -   Fie
     -   Foe
@@ -373,17 +370,17 @@ foo
 This should be a code block, though:
 
 ::
- 
+
     <div>
         foo
     </div>
-    
+
 As should this:
 
 ::
- 
+
     <div>foo</div>
-    
+
 Now, nested:
 
 
@@ -426,9 +423,9 @@ Multiline:
 Code block:
 
 ::
- 
+
     <!-- Comment -->
-    
+
 Just plain comment, with trailing spaces on the line:
 
 
@@ -439,9 +436,9 @@ Just plain comment, with trailing spaces on the line:
 Code:
 
 ::
- 
+
     <hr />
-    
+
 Hr's:
 
 
@@ -474,7 +471,7 @@ This is *emphasized*, and so *is this*.
 
 This is **strong**, and so **is this**.
 
-An *`emphasized link`_*.
+An *`emphasized link </url>`_*.
 
 ***This is strong and em.***
 
@@ -499,7 +496,8 @@ Smart quotes, ellipses, dashes
 
 'He said, "I want to go."' Were you alive in the 70's?
 
-Here is some quoted '``code``' and a "`quoted link`_".
+Here is some quoted '``code``' and a
+"`quoted link <http://example.com/?foo=1&bar=2>`_".
 
 Some dashes: one--two--three--four--five.
 
@@ -604,84 +602,88 @@ Links
 Explicit
 --------
 
-Just a `URL`_.
+Just a `URL </url/>`_.
 
-`URL and title`_.
+`URL and title </url/>`_.
 
-`URL and title`_.
+`URL and title </url/>`_.
 
-`URL and title`_.
+`URL and title </url/>`_.
 
-`URL and title`_
+`URL and title </url/>`_
 
-`URL and title`_
+`URL and title </url/>`_
 
-`with\_underscore`_
+`with\_underscore </url/with_underscore>`_
 
-`Email link`_
+`Email link <mailto:nobody@nowhere.net>`_
 
-`Empty`_.
+`Empty <>`_.
 
 Reference
 ---------
 
-Foo `bar`_.
+Foo `bar </url/>`_.
 
-Foo `bar`_.
+Foo `bar </url/>`_.
 
-Foo `bar`_.
+Foo `bar </url/>`_.
 
-With `embedded [brackets]`_.
+With `embedded [brackets] </url/>`_.
 
-`b`_ by itself should be a link.
+`b </url/>`_ by itself should be a link.
 
-Indented `once`_.
+Indented `once </url>`_.
 
-Indented `twice`_.
+Indented `twice </url>`_.
 
-Indented `thrice`_.
+Indented `thrice </url>`_.
 
 This should [not][] be a link.
 
 ::
- 
-    [not]: /url
-    
-Foo `bar`_.
 
-Foo `biz`_.
+    [not]: /url
+
+Foo `bar </url/>`_.
+
+Foo `biz </url/>`_.
 
 With ampersands
 ---------------
 
-Here's a `link with an ampersand in the URL`_.
+Here's a
+`link with an ampersand in the URL <http://example.com/?foo=1&bar=2>`_.
 
-Here's a link with an amersand in the link text: `AT&T`_.
+Here's a link with an amersand in the link text:
+`AT&T <http://att.com/>`_.
 
-Here's an `inline link`_.
+Here's an `inline link </script?foo=1&bar=2>`_.
 
-Here's an `inline link in pointy braces`_.
+Here's an `inline link in pointy braces </script?foo=1&bar=2>`_.
 
 Autolinks
 ---------
 
-With an ampersand: `http://example.com/?foo=1&bar=2`_
+With an ampersand:
+`http://example.com/?foo=1&bar=2 <http://example.com/?foo=1&bar=2>`_
 
 -   In a list?
--   `http://example.com/`_
+-   `http://example.com/ <http://example.com/>`_
 -   It should.
 
-An e-mail address: `nobody@nowhere.net`_
+An e-mail address:
+`nobody@nowhere.net <mailto:nobody@nowhere.net>`_
 
-    Blockquoted: `http://example.com/`_
+    Blockquoted: `http://example.com/ <http://example.com/>`_
 
 
 Auto-links should not occur here: ``<http://example.com/>``
 
 ::
- 
+
     or here: <http://example.com/>
-    
+
 --------------
 
 Images
@@ -721,44 +723,20 @@ indented.
    footnote (as with list items).
 
    ::
- 
+
          { <code> }
-       
+
    If you want, you can indent every line, but you can also be lazy
    and just indent the first line of each block.
 
 .. [3] 
-   This is *easier* to type. Inline notes may contain `links`_ and
-   ``]`` verbatim characters.
+   This is *easier* to type. Inline notes may contain
+   `links <http://google.com>`_ and ``]`` verbatim characters.
 
 .. [4]  In quote.
 
 .. [5]  In list.
 
 
-.. _embedded link: /url
-.. _emphasized link: /url
-.. _quoted link: http://example.com/?foo=1&bar=2
-.. _URL: /url/
-.. _URL and title: /url/
-.. _with\_underscore: /url/with_underscore
-.. _Email link: mailto:nobody@nowhere.net
-.. _Empty: 
-.. _bar: /url/
-.. _embedded [brackets]: /url/
-.. _b: /url/
-.. _once: /url
-.. _twice: /url
-.. _thrice: /url
-.. _biz: /url/
-.. _link with an ampersand in the URL: http://example.com/?foo=1&bar=2
-.. _AT&T: http://att.com/
-.. _inline link: /script?foo=1&bar=2
-.. _inline link in pointy braces: /script?foo=1&bar=2
-.. _`http://example.com/?foo=1&bar=2`: http://example.com/?foo=1&bar=2
-.. _`http://example.com/`: http://example.com/
-.. _nobody@nowhere.net: mailto:nobody@nowhere.net
 .. |lalune| image:: lalune.jpg
 .. |movie| image:: movie.jpg
-.. _links: http://google.com
-

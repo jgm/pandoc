@@ -40,12 +40,13 @@ module Text.ParserCombinators.Pandoc (
                                       enclosed,
                                       nullBlock,
                                       stringAnyCase,
-                                      parseFromStr
+                                      parseFromStr,
+                                      lineClump
                                      ) where
 import Text.ParserCombinators.Parsec
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
-import Char ( toUpper, toLower )
+import Data.Char ( toUpper, toLower )
 
 --- | Parse any line of text
 anyLine :: GenParser Char st [Char]
@@ -131,5 +132,12 @@ parseFromStr parser str = try $ do
   result <- parser
   setInput oldInput
   return result
+
+-- | Parse raw line block up to and including blank lines.
+lineClump :: GenParser Char st String
+lineClump = do
+  lines <- many1 (do{notFollowedBy blankline; anyLine})
+  blanks <- blanklines <|> (do{eof; return "\n"})
+  return ((unlines lines) ++ blanks)
 
 

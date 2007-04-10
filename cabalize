@@ -1,10 +1,10 @@
 #!/bin/sh
 # Preprocesses cabal file.
 
-BASE_DEPENDS="base haskell98 parsec xhtml"
+BASE_DEPENDS="base parsec xhtml mtl"
 
 GHC64_DEPENDS=${GHC64_DEPENDS}
-GHC66_DEPENDS=${GHC66_DEPENDS-"regex-compat html"}
+GHC66_DEPENDS=${GHC66_DEPENDS-"regex-compat"}
 HCFLAGS=${HCFLAGS-"-O0"}
 
 set -- $(ghc --version)

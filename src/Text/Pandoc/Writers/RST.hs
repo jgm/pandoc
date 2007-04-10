@@ -30,204 +30,245 @@ Conversion of 'Pandoc' documents to reStructuredText.
 reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 -}
 module Text.Pandoc.Writers.RST (
-                                writeRST 
-                               ) where
+                                     writeRST
+                                    ) where
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared
-import List ( nubBy )
+import Text.Pandoc.Shared 
+import Data.List ( group, isPrefixOf, drop, find )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
+import Control.Monad.State
 
--- | Convert Pandoc to reStructuredText.
+type Notes = [[Block]]
+type Refs = KeyTable
+type WriterState = (Notes, Refs, Refs) -- first Refs is links, second pictures
+
+-- | Convert Pandoc to RST.
 writeRST :: WriterOptions -> Pandoc -> String
-writeRST options (Pandoc meta blocks) = 
-  let (main, refs) = unzip $ map (blockToRST (writerTabStop options)) 
-                       (reformatBlocks $ replaceReferenceLinks blocks) 
-      top = if (writerStandalone options)
-              then (metaToRST meta) $$ text (writerHeader options) 
-              else empty in 
-  -- remove duplicate keys
-  let refs' = nubBy (\x y -> (render x) == (render y)) refs in
-  let body = text (writerIncludeBefore options) <> 
-             vcat main $$ text (writerIncludeAfter options) in
-  render $ top <> body $$ vcat refs' $$ text "\n"
+writeRST opts document = 
+  render $ evalState (pandocToRST opts document) ([],[],[]) 
 
--- | Escape special RST characters.
+-- | Return RST representation of document.
+pandocToRST :: WriterOptions -> Pandoc -> State WriterState Doc
+pandocToRST opts (Pandoc meta blocks) = do
+  let before  = writerIncludeBefore opts
+  let after   = writerIncludeAfter opts
+      before' = if null before then empty else text before
+      after'  = if null after then empty else text after
+  metaBlock <- metaToRST opts meta
+  let head = if (writerStandalone opts)
+                then metaBlock $$ text (writerHeader opts)
+                else empty
+  body <- blockListToRST opts blocks
+  (notes, _, _) <- get
+  notes' <- notesToRST opts (reverse notes)
+  (_, refs, pics) <- get  -- note that the notes may contain refs
+  refs' <- keyTableToRST opts (reverse refs)
+  pics' <- pictTableToRST opts (reverse pics)
+  return $ head <> (before' $$ body $$ notes' <> text "\n" $$ refs' $$ 
+           pics' $$ after')
+
+-- | Return RST representation of reference key table.
+keyTableToRST :: WriterOptions -> KeyTable -> State WriterState Doc
+keyTableToRST opts refs = 
+  mapM (keyToRST opts) refs >>= (return . vcat)
+ 
+-- | Return RST representation of a reference key. 
+keyToRST :: WriterOptions 
+         -> ([Inline], (String, String)) 
+         -> State WriterState Doc
+keyToRST opts (label, (src, tit)) = do
+  label' <- inlineListToRST opts label
+  return $ text ".. _" <> label' <> text ": " <> text src
+
+-- | Return RST representation of notes.
+notesToRST :: WriterOptions -> [[Block]] -> State WriterState Doc
+notesToRST opts notes = 
+  mapM (\(num, note) -> noteToRST opts num note) (zip [1..] notes) >>= 
+  (return . vcat)
+
+-- | Return RST representation of a note.
+noteToRST :: WriterOptions -> Int -> [Block] -> State WriterState Doc
+noteToRST opts num note = do
+  contents <- blockListToRST opts note
+  let marker = text ".. [" <> text (show num) <> text "] "
+  return $ hang marker 3 contents 
+
+-- | Return RST representation of picture reference table.
+pictTableToRST :: WriterOptions -> KeyTable -> State WriterState Doc
+pictTableToRST opts refs = 
+  mapM (pictToRST opts) refs >>= (return . vcat)
+ 
+-- | Return RST representation of a picture substitution reference. 
+pictToRST :: WriterOptions 
+         -> ([Inline], (String, String)) 
+         -> State WriterState Doc
+pictToRST opts (label, (src, _)) = do
+  label' <- inlineListToRST opts label
+  return $ text ".. " <> char '|' <> label' <> char '|' <> text " image:: " <>
+           text src
+
+-- | Take list of inline elements and return wrapped doc.
+wrappedRST :: WriterOptions -> [Inline] -> State WriterState Doc
+wrappedRST opts inlines = 
+  mapM (wrappedRSTSection opts) (splitBy LineBreak inlines) >>= 
+  (return . vcat)
+
+wrappedRSTSection :: WriterOptions -> [Inline] -> State WriterState Doc
+wrappedRSTSection opts sect = do
+  let chunks = splitBy Space sect
+  chunks' <- mapM (inlineListToRST opts) chunks
+  return $ fsep chunks'
+
+-- | Escape special characters for RST.
 escapeString :: String -> String
 escapeString = backslashEscape "`\\|*_"
 
--- | Convert list of inline elements into one 'Doc' of wrapped text
--- and another containing references.
-wrappedRST :: [Inline] -> (Doc, Doc)
-wrappedRST lst = 
-  let wrap_section sec = fsep $ map (fst . inlineListToRST) $ 
-                         (splitBy Space sec) in
-  ((vcat $ map wrap_section $ (splitBy LineBreak lst)),
-  vcat $ map (snd . inlineToRST) lst)
+-- | Convert bibliographic information into RST header.
+metaToRST :: WriterOptions -> Meta -> State WriterState Doc
+metaToRST opts (Meta title authors date) = do
+  title'   <- titleToRST opts title
+  authors' <- authorsToRST authors
+  date'    <- dateToRST date
+  return $ title' <> authors' <> date'
 
--- | Remove reference keys, and make sure there are blanks before each list.
-reformatBlocks :: [Block] -> [Block]
-reformatBlocks [] = []
-reformatBlocks ((Plain x):(OrderedList y):rest) = 
-    (Para x):(reformatBlocks ((OrderedList y):rest))
-reformatBlocks ((Plain x):(BulletList y):rest) = 
-    (Para x):(reformatBlocks ((BulletList y):rest))
-reformatBlocks ((OrderedList x):rest) = 
-    (OrderedList (map reformatBlocks x)):(reformatBlocks rest)
-reformatBlocks ((BulletList x):rest) = 
-    (BulletList (map reformatBlocks x)):(reformatBlocks rest)
-reformatBlocks ((BlockQuote x):rest) = 
-    (BlockQuote (reformatBlocks x)):(reformatBlocks rest)
-reformatBlocks ((Note ref x):rest) = 
-    (Note ref (reformatBlocks x)):(reformatBlocks rest)
-reformatBlocks ((Key x1 y1):rest) = reformatBlocks rest
-reformatBlocks (x:rest) = x:(reformatBlocks rest)
+titleToRST :: WriterOptions -> [Inline] -> State WriterState Doc
+titleToRST opts [] = return empty
+titleToRST opts lst = do
+  contents <- inlineListToRST opts lst
+  let titleLength = length $ render contents
+  let border = text (replicate titleLength '=')
+  return $ border <> char '\n' <> contents <> char '\n' <> border <> text "\n\n"
 
--- | Convert bibliographic information to 'Doc'.
-metaToRST :: Meta -> Doc
-metaToRST (Meta title authors date) = 
-    (titleToRST title) <> (authorsToRST authors) <> (dateToRST date) 
+authorsToRST :: [String] -> State WriterState Doc
+authorsToRST [] = return empty
+authorsToRST (first:rest) = do
+  rest' <- authorsToRST rest
+  return $ text ":Author: " <> text first <> char '\n' <> rest'
 
--- | Convert title to 'Doc'.
-titleToRST :: [Inline] -> Doc
-titleToRST [] = empty
-titleToRST lst = 
-  let title = fst $ inlineListToRST lst in
-  let titleLength = length $ render title in
-  let border = text (replicate titleLength '=') in
-  border <> char '\n' <> title <> char '\n' <> border <> text "\n\n"
+dateToRST :: String -> State WriterState Doc
+dateToRST [] = return empty
+dateToRST str = return $ text ":Date: " <> text (escapeString str) <> char '\n'
 
--- | Convert author list to 'Doc'.
-authorsToRST :: [String] -> Doc
-authorsToRST [] = empty
-authorsToRST (first:rest) = text ":Author: " <> text first <> 
-                            char '\n' <> (authorsToRST rest)
-
--- | Convert date to 'Doc'.
-dateToRST :: String -> Doc
-dateToRST [] = empty
-dateToRST str = text ":Date: " <> text (escapeString str) <> char '\n'
-
--- | Convert Pandoc block element to a 'Doc' containing the main text and 
--- another one containing any references.
-blockToRST :: Int        -- ^ tab stop
-           -> Block      -- ^ block element to convert
-           -> (Doc, Doc) -- ^ first element is text, second is references for end of file
-blockToRST tabStop Null = (empty, empty)
-blockToRST tabStop (Plain lst) = wrappedRST lst
-blockToRST tabStop (Para [TeX str]) =    -- raw latex block
+-- | Convert Pandoc block element to RST. 
+blockToRST :: WriterOptions -- ^ Options
+                -> Block         -- ^ Block element
+                -> State WriterState Doc 
+blockToRST opts Null = return empty
+blockToRST opts (Plain inlines) = wrappedRST opts inlines
+blockToRST opts (Para [TeX str]) =
   let str' = if (endsWith '\n' str) then (str ++ "\n") else (str ++ "\n\n") in
-  (hang (text "\n.. raw:: latex\n") 3 (vcat $ map text (lines str')), empty)
-blockToRST tabStop (Para lst) = ( (fst $ wrappedRST lst) <> (text "\n"), 
-                                  snd $ wrappedRST lst )
-blockToRST tabStop (BlockQuote lst) = 
-  let (main, refs) = unzip $ map (blockToRST tabStop) lst in
-  ((nest tabStop $ vcat $ main) <> text "\n", vcat refs)
-blockToRST tabStop (Note ref blocks) = 
-  let (main, refs) = unzip $ map (blockToRST tabStop) blocks in
-  ((hang (text ".. [" <> text (escapeString ref) <> text "] ") 3 (vcat main)),
-   vcat refs)
-blockToRST tabStop (Key txt (Src src tit)) = 
-  (text "ERROR - KEY FOUND", empty) -- shouldn't have a key here
-blockToRST tabStop (CodeBlock str) =  (hang (text "::\n") tabStop 
-  (vcat $ map text (lines ('\n':(str ++ "\n\n")))), empty)
-blockToRST tabStop (RawHtml str) = 
+  return $ hang (text "\n.. raw:: latex\n") 3 (vcat $ map text (lines str'))
+blockToRST opts (Para inlines) = do
+  contents <- wrappedRST opts inlines
+  return $ contents <> text "\n"
+blockToRST opts (RawHtml str) = 
   let str' = if (endsWith '\n' str) then (str ++ "\n") else (str ++ "\n\n") in
-  (hang (text "\n.. raw:: html\n") 3 (vcat $ map text (lines str')), empty)
-blockToRST tabStop (BulletList lst) =  
-  let (main, refs) = unzip $ map (bulletListItemToRST tabStop) lst in
-  (vcat main <> text "\n", vcat refs)
-blockToRST tabStop (OrderedList lst) =  
-  let (main, refs) = unzip $ zipWith (orderedListItemToRST tabStop) 
-                                     (enumFromTo 1 (length lst)) lst in
-  (vcat main <> text "\n", vcat refs)
-blockToRST tabStop HorizontalRule = (text "--------------\n", empty)
-blockToRST tabStop (Header level lst) = 
-  let (headerText, refs) = inlineListToRST lst in
-  let headerLength = length $ render headerText in
-  let headerChar = if (level > 5) then ' ' else "=-~^'" !! (level - 1) in
-  let border = text $ replicate headerLength headerChar in
-  (headerText <> char '\n' <> border <> char '\n', refs)
-blockToRST tabStop (Table caption _ _ headers rows) =
-  blockToRST tabStop (Para [Str "pandoc: TABLE unsupported in RST writer"])
+  return $ hang (text "\n.. raw:: html\n") 3 (vcat $ map text (lines str'))
+blockToRST opts HorizontalRule = return $ text "--------------\n"
+blockToRST opts (Header level inlines) = do
+  contents <- inlineListToRST opts inlines
+  let headerLength = length $ render contents
+  let headerChar = if (level > 5) then ' ' else "=-~^'" !! (level - 1)
+  let border = text $ replicate headerLength headerChar
+  return $ contents <> char '\n' <> border <> char '\n'
+blockToRST opts (CodeBlock str) = return $ (text "::\n") $$ text "" $$ 
+  (nest (writerTabStop opts) $ vcat $ map text (lines str)) <> text "\n"
+blockToRST opts (BlockQuote blocks) = do
+  contents <- blockListToRST opts blocks 
+  return $ (nest (writerTabStop opts) contents) <> text "\n"
+blockToRST opts (Table caption _ _ headers rows) = blockToRST opts 
+  (Para [Str "pandoc: TABLE unsupported in RST writer"])
+blockToRST opts (BulletList items) = do
+  contents <- mapM (bulletListItemToRST opts) items
+  return $ (vcat contents) <> text "\n"
+blockToRST opts (OrderedList items) = do
+  contents <- mapM (\(item, num) -> orderedListItemToRST opts item num) $
+              zip [1..] items  
+  return $ (vcat contents) <> text "\n"
 
+-- | Convert bullet list item (list of blocks) to RST.
+bulletListItemToRST :: WriterOptions -> [Block] -> State WriterState Doc
+bulletListItemToRST opts items = do
+  contents <- blockListToRST opts items
+  return $ hang (text "-  ") (writerTabStop opts) contents
 
--- | Convert bullet list item (list of blocks) to reStructuredText.
--- Returns a pair of 'Doc', the first the main text, the second references
-bulletListItemToRST :: Int        -- ^ tab stop
-                    -> [Block]    -- ^ list item (list of blocks)
-                    -> (Doc, Doc)
-bulletListItemToRST tabStop list = 
-  let (main, refs) = unzip $ map (blockToRST tabStop) list in
-  (hang (text "-  ") tabStop (vcat main), (vcat refs))
+-- | Convert ordered list item (a list of blocks) to RST.
+orderedListItemToRST :: WriterOptions -- ^ options
+                          -> Int           -- ^ ordinal number of list item
+                          -> [Block]       -- ^ list item (list of blocks)
+                          -> State WriterState Doc
+orderedListItemToRST opts num items = do
+  contents <- blockListToRST opts items
+  let spacer = if (num < 10) then " " else ""
+  return $ hang (text ((show num) ++ "." ++ spacer)) (writerTabStop opts)
+           contents 
 
--- | Convert an ordered list item (list of blocks) to reStructuredText.
--- Returns a pair of 'Doc', the first the main text, the second references
-orderedListItemToRST :: Int         -- ^ tab stop
-                     -> Int         -- ^ ordinal number of list item
-                     -> [Block]     -- ^ list item (list of blocks)
-                     -> (Doc, Doc)
-orderedListItemToRST tabStop num list = 
-  let (main, refs) = unzip $ map (blockToRST tabStop) list 
-      spacer = if (length (show num) < 2) then " " else "" in
-  (hang (text ((show num) ++ "." ++ spacer)) tabStop (vcat main), (vcat refs))
+-- | Convert list of Pandoc block elements to RST.
+blockListToRST :: WriterOptions -- ^ Options
+                    -> [Block]       -- ^ List of block elements
+                    -> State WriterState Doc 
+blockListToRST opts blocks =
+  mapM (blockToRST opts) blocks >>= (return . vcat)
 
--- | Convert a list of inline elements to reStructuredText.
--- Returns a pair of 'Doc', the first the main text, the second references.
-inlineListToRST :: [Inline] -> (Doc, Doc)
-inlineListToRST lst = let (main, refs) = unzip $ map inlineToRST lst in
-                      (hcat main, hcat refs)
+-- | Convert list of Pandoc inline elements to RST.
+inlineListToRST :: WriterOptions -> [Inline] -> State WriterState Doc
+inlineListToRST opts lst = mapM (inlineToRST opts) lst >>= (return . hcat)
 
--- | Convert an inline element to reStructuredText.
--- Returns a pair of 'Doc', the first the main text, the second references.
-inlineToRST :: Inline -> (Doc, Doc) -- second Doc is list of refs for end of file
-inlineToRST (Emph lst) = let (main, refs) = inlineListToRST lst in
-                         (text "*" <> main <> text "*", refs)
-inlineToRST (Strong lst) = let (main, refs) = inlineListToRST lst in
-                         (text "**" <> main <> text "**", refs)
-inlineToRST (Quoted SingleQuote lst) = let (main, refs) = inlineListToRST lst in
-  (char '\'' <> main <> char '\'', refs)
-inlineToRST (Quoted DoubleQuote lst) = let (main, refs) = inlineListToRST lst in
-  (char '"' <> main <> char '"', refs)
-inlineToRST EmDash = (text "--", empty)
-inlineToRST EnDash = (char '-', empty)
-inlineToRST Apostrophe = (char '\'', empty)
-inlineToRST Ellipses = (text "...", empty)
-inlineToRST (Code str) = (text $ "``" ++ str ++ "``", empty)
-inlineToRST (Str str) = (text $ escapeString str, empty)
-inlineToRST (TeX str) = (text str, empty)
-inlineToRST (HtmlInline str) = (empty, empty)
-inlineToRST (LineBreak) = inlineToRST Space -- RST doesn't have line breaks
-inlineToRST Space = (char ' ', empty)
---
--- Note:  can assume reference links have been replaced where possible 
--- with explicit links.
---
-inlineToRST (Link txt (Src src tit)) = 
-  let (linktext, ref') = if (null txt) || (txt == [Str ""])
-                            then (text "link", empty)
-                            else inlineListToRST $ normalizeSpaces txt in
-  let link = char '`' <> linktext <> text "`_" 
-      linktext' = render linktext in
-  let linktext'' = if (':' `elem` linktext')
-                     then "`" ++ linktext' ++ "`"
-                     else linktext' in
-    let ref = text ".. _" <> text linktext'' <> text ": " <> text src  in
-    (link, ref' $$ ref)
-inlineToRST (Link txt (Ref ref)) = 
-  let (linktext, refs1) = inlineListToRST txt 
-      (reftext, refs2) = inlineListToRST ref in
-  (char '[' <> linktext <> text "][" <> reftext <> char ']', refs1 $$ refs2)
-inlineToRST (Image alternate (Src source tit)) = 
-  let (alt, ref') = if (null alternate) || (alternate == [Str ""])
-                       then (text "image", empty) 
-                       else inlineListToRST $ normalizeSpaces alternate in
-  let link = char '|' <> alt <> char '|' in
-  let ref = text ".. " <> link <> text " image:: " <> text source  in
-  (link, ref' $$ ref)
--- The following case won't normally occur...
-inlineToRST (Image alternate (Ref ref)) = 
-  let (alttext, refs1) = inlineListToRST alternate
-      (reftext, refs2) = inlineListToRST ref in
-  (char '|' <> alttext <> char '|', refs1 $$ refs2)
-inlineToRST (NoteRef ref) = 
-  (text " [" <> text (escapeString ref) <> char ']' <> char '_', empty)
+-- | Convert Pandoc inline element to RST.
+inlineToRST :: WriterOptions -> Inline -> State WriterState Doc
+inlineToRST opts (Emph lst) = do 
+  contents <- inlineListToRST opts lst
+  return $ text "*" <> contents <> text "*"
+inlineToRST opts (Strong lst) = do
+  contents <- inlineListToRST opts lst
+  return $ text "**" <> contents <> text "**"
+inlineToRST opts (Quoted SingleQuote lst) = do
+  contents <- inlineListToRST opts lst
+  return $ char '\'' <> contents <> char '\''
+inlineToRST opts (Quoted DoubleQuote lst) = do
+  contents <- inlineListToRST opts lst
+  return $ char '"' <> contents <> char '"'
+inlineToRST opts EmDash = return $ text "--"
+inlineToRST opts EnDash = return $ char '-'
+inlineToRST opts Apostrophe = return $ char '\''
+inlineToRST opts Ellipses = return $ text "..."
+inlineToRST opts (Code str) = return $ text $ "``" ++ str ++ "``"
+inlineToRST opts (Str str) = return $ text $ escapeString str
+inlineToRST opts (TeX str) = return $ text str
+inlineToRST opts (HtmlInline str) = return empty
+inlineToRST opts (LineBreak) = return $ text " " -- RST doesn't have linebreaks 
+inlineToRST opts Space = return $ char ' '
+inlineToRST opts (Link txt (src, tit)) = do
+  let useReferenceLinks = writerReferenceLinks opts
+  let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
+  let useAuto = null tit && txt == [Str srcSuffix]
+  (notes, refs, pics) <- get
+  linktext <- inlineListToRST opts $ normalizeSpaces txt
+  link <- if useReferenceLinks
+             then do let refs' = if (txt, (src, tit)) `elem` refs
+                                    then refs
+                                    else (txt, (src, tit)):refs
+                     put (notes, refs', pics)
+                     return $ char '`' <> linktext <> text "`_"
+             else return $ char '`' <> linktext <> text " <" <>
+                           text src <> text ">`_"
+  return link
+inlineToRST opts (Image alternate (source, tit)) = do
+  (notes, refs, pics) <- get
+  let labelsUsed = map fst pics 
+  let txt = if (null alternate) || (alternate == [Str ""]) || 
+               (alternate `elem` labelsUsed)
+               then [Str $ "image" ++ show (length refs)]
+               else alternate
+  let pics' = if (txt, (source, tit)) `elem` pics
+                 then pics
+                 else (txt, (source, tit)):pics
+  put (notes, refs, pics')
+  label <- inlineListToRST opts txt
+  return $ char '|' <> label <> char '|'
+inlineToRST opts (Note contents) = do 
+  -- add to notes in state
+  modify (\(notes, refs, pics) -> (contents:notes, refs, pics))
+  (notes, _, _) <- get
+  let ref = show $ (length notes)
+  return $ text " [" <> text ref <> text "]_"

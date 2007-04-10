@@ -241,8 +241,8 @@ preserved, rather than converted to spaces (the default).
 `--strict` specifies that strict markdown syntax is to be used, without
 pandoc's usual extensions and variants (described below).
 
-`--inline-links` causes links in HTML to be parsed as inline links, rather
-than reference links.
+`--reference-links` causes reference-style links to be used in markdown 
+and reStructuredText output.  By default inline links are used.
 
 `-R` or `--parse-raw` causes the HTML and LaTeX readers to parse HTML
 codes and LaTeX environments that it can't translate as raw HTML or
@@ -498,12 +498,16 @@ Pandoc's markdown allows footnotes, using the following syntax:
 	    In this way, multi-paragraph footnotes work just like
 	    multi-paragraph list items in markdown.
 
-    This paragraph won't be part of the note.
+    This paragraph won't be part of the note, because it isn't indented.
 
 The identifiers in footnote references may not contain spaces, tabs,
 or newlines.  These identifiers are used only to correlate the
 footnote reference with the note itself; in the output, footnotes
 will be numbered sequentially.
+
+The footnotes themselves need not be placed at the end of the
+document.  They may appear anywhere except inside other block elements
+(lists, block quotes, tables, etc.).
 
 Inline footnotes are also allowed (though, unlike regular notes,
 they cannot contain multiple paragraphs).  The syntax is as follows:

@@ -45,6 +45,10 @@ module Text.Pandoc.Shared (
                      -- * Parsing
                      readWith,
                      testStringWith,
+                     Reference (..),
+                     isNoteBlock,
+                     isKeyBlock,
+                     isLineClump,
                      HeaderType (..),
                      ParserContext (..),
                      QuoteContext (..),
@@ -53,27 +57,19 @@ module Text.Pandoc.Shared (
                      -- * Native format prettyprinting
                      prettyPandoc,
                      -- * Pandoc block list processing
-                     isNoteBlock,
                      normalizeSpaces,
                      compactify,
-                     generateReference,
+                     -- * Writer options
                      WriterOptions (..),
                      defaultWriterOptions,
+                     -- * Reference key lookup functions
                      KeyTable,
-                     keyTable,
                      lookupKeySrc,
                      refsMatch,
-                     replaceReferenceLinks,
-                     replaceRefLinksBlockList,
-                     -- * SGML
-                     inTags,
-                     selfClosingTag,
-                     inTagsSimple,
-                     inTagsIndented
                     ) where
 import Text.Pandoc.Definition
 import Text.ParserCombinators.Parsec as Parsec
-import Text.Pandoc.Entities ( decodeEntities, escapeSGMLString )
+import Text.Pandoc.Entities ( decodeEntities, escapeStringForXML )
 import Text.PrettyPrint.HughesPJ as PP ( text, char, (<>), 
                                          ($$), nest, Doc, isEmpty )
 import Data.Char ( toLower, ord )
@@ -113,16 +109,37 @@ data QuoteContext
     | NoQuote         -- ^ Used when we're not parsing inside quotes
     deriving (Eq, Show)
 
+type KeyTable = [([Inline], Target)]
+
+type NoteTable = [(String, [Block])]
+
+-- | References from preliminary parsing
+data Reference
+  = KeyBlock [Inline] Target  -- ^ Key for reference-style link (label URL title)
+  | NoteBlock String [Block]  -- ^ Footnote reference and contents
+  | LineClump String          -- ^ Raw clump of lines with blanks at end
+  deriving (Eq, Read, Show)
+
+-- | Auxiliary functions used in preliminary parsing
+isNoteBlock :: Reference -> Bool
+isNoteBlock (NoteBlock _ _) = True
+isNoteBlock _ = False
+
+isKeyBlock :: Reference -> Bool
+isKeyBlock (KeyBlock _ _) = True
+isKeyBlock _ = False
+
+isLineClump :: Reference -> Bool
+isLineClump (LineClump _) = True
+isLineClump _ = False
+
 data ParserState = ParserState
     { stateParseRaw        :: Bool,          -- ^ Parse untranslatable HTML 
                                              -- and LaTeX?
       stateParserContext   :: ParserContext, -- ^ What are we parsing?  
       stateQuoteContext    :: QuoteContext,  -- ^ Inside quoted environment?
-      stateKeyBlocks       :: [Block],       -- ^ List of reference key blocks
-      stateKeysUsed        :: [[Inline]],    -- ^ List of references used
-      stateNoteBlocks      :: [Block],       -- ^ List of note blocks
-      stateNoteIdentifiers :: [String],      -- ^ List of footnote identifiers
-                                             -- in the order encountered
+      stateKeys            :: KeyTable,      -- ^ List of reference keys
+      stateNotes           :: NoteTable,     -- ^ List of notes
       stateTabStop         :: Int,           -- ^ Tab stop
       stateStandalone      :: Bool,          -- ^ If @True@, parse 
                                              -- bibliographic info
@@ -133,7 +150,6 @@ data ParserState = ParserState
       stateSmart           :: Bool,          -- ^ Use smart typography
       stateColumns         :: Int,           -- ^ Number of columns in
                                              -- terminal (used for tables)
-      stateInlineLinks     :: Bool,          -- ^ Parse html links as inline
       stateHeaderTable     :: [HeaderType]   -- ^ List of header types used,
                                              -- in what order (rst only)
     }
@@ -144,10 +160,8 @@ defaultParserState =
     ParserState { stateParseRaw        = False,
                   stateParserContext   = NullState,
                   stateQuoteContext    = NoQuote,
-                  stateKeyBlocks       = [],
-                  stateKeysUsed        = [],
-                  stateNoteBlocks      = [],
-                  stateNoteIdentifiers = [],
+                  stateKeys            = [],
+                  stateNotes           = [],
                   stateTabStop         = 4,
                   stateStandalone      = False,
                   stateTitle           = [],
@@ -156,7 +170,6 @@ defaultParserState =
                   stateStrict          = False,
                   stateSmart           = False,
                   stateColumns         = 80,
-                  stateInlineLinks     = False,
                   stateHeaderTable     = [] }
 
 -- | Indent string as a block.
@@ -182,8 +195,6 @@ prettyBlockList indent blocks = indentBy indent (-2) $ "[ " ++
 prettyBlock :: Block -> String
 prettyBlock (BlockQuote blocks) = "BlockQuote\n  " ++ 
                                   (prettyBlockList 2 blocks) 
-prettyBlock (Note ref blocks) = "Note " ++ (show ref) ++ "\n  " ++ 
-                                (prettyBlockList 2 blocks) 
 prettyBlock (OrderedList blockLists) = 
    "OrderedList\n" ++ indentBy 2 0 ("[ " ++ (joinWithSep ", " 
    (map (\blocks -> prettyBlockList 2 blocks) blockLists))) ++ " ]"
@@ -235,11 +246,6 @@ backslashEscape special (x:xs) = if x `elem` special
 endsWith :: Char -> [Char] -> Bool
 endsWith char [] = False
 endsWith char str = (char == last str)
-
--- | Returns @True@ if block is a @Note@ block
-isNoteBlock :: Block -> Bool
-isNoteBlock (Note ref blocks) = True
-isNoteBlock _ = False
 
 -- | Joins a list of lists, separated by another list.
 joinWithSep :: [a]    -- ^ List to use as separator
@@ -351,9 +357,9 @@ data WriterOptions = WriterOptions
     , writerIncremental     :: Bool   -- ^ Incremental S5 lists
     , writerNumberSections  :: Bool   -- ^ Number sections in LaTeX
     , writerStrictMarkdown  :: Bool   -- ^ Use strict markdown syntax
+    , writerReferenceLinks  :: Bool   -- ^ Use reference links in writing markdown, rst
     , writerTabStop         :: Int    -- ^ Tabstop for conversion between 
                                       -- spaces and tabs
-    , writerNotes           :: [Block] -- ^ List of note blocks
     } deriving Show
 
 -- | Default writer options.
@@ -362,78 +368,17 @@ defaultWriterOptions =
                     writerHeader         = "",
                     writerTitlePrefix    = "",
                     writerTabStop        = 4,
-                    writerNotes          = [],
                     writerS5             = False,
                     writerIncremental    = False,
                     writerNumberSections = False,
                     writerIncludeBefore  = "",
                     writerIncludeAfter   = "",
-                    writerStrictMarkdown = False }
+                    writerStrictMarkdown = False,
+                    writerReferenceLinks = False }
 
 --
--- Functions for constructing lists of reference keys
+-- code to lookup reference keys in key table
 --
-
--- | Returns @Just@ numerical key reference if there's already a key
--- for the specified target in the list of blocks, otherwise @Nothing@.
-keyFoundIn :: [Block]        -- ^ List of key blocks to search     
-           -> Target         -- ^ Target to search for
-           -> Maybe String
-keyFoundIn [] src = Nothing
-keyFoundIn ((Key [Str num] src1):rest) src = if (src1 == src)
-                                                then Just num
-                                                else keyFoundIn rest src
-keyFoundIn (_:rest) src = keyFoundIn rest src
-
--- | Return next unique numerical key, given keyList
-nextUniqueKey :: [[Inline]] -> String
-nextUniqueKey keys = 
-  let nums = [1..10000] 
-      notAKey n = not (any (== [Str (show n)]) keys) in
-  case (find notAKey nums) of
-    Just x  -> show x
-    Nothing -> error "Could not find unique key for reference link"
-
--- | Generate a reference for a URL (either an existing reference, if
--- there is one, or a new one, if there isn't) and update parser state.
-generateReference :: String   -- ^ URL
-		  -> String   -- ^ Title
-		  -> GenParser tok ParserState Target
-generateReference url title = do
-  let src = Src (decodeEntities url) (decodeEntities title)
-  state <- getState  
-  let keyBlocks = stateKeyBlocks state
-  let keysUsed = stateKeysUsed state
-  case (keyFoundIn keyBlocks src) of
-    Just num -> return (Ref [Str num])
-    Nothing  -> do 
-                  let nextNum = nextUniqueKey keysUsed
-                  updateState (\st -> st { stateKeyBlocks = 
-                                           (Key [Str nextNum] src):keyBlocks, 
-                                           stateKeysUsed = 
-                                          [Str nextNum]:keysUsed })
-                  return (Ref [Str nextNum])
-
---
--- code to replace reference links with real links and remove unneeded key blocks
---
-
-type KeyTable = [([Inline], Target)]
-
--- | Returns @True@ if block is a Key block
-isRefBlock :: Block -> Bool
-isRefBlock (Key _ _) = True
-isRefBlock _         = False
-
--- | Returns a pair of a list of pairs of keys and associated sources, and a new 
--- list of blocks with the included key blocks deleted.
-keyTable :: [Block] -> (KeyTable, [Block])
-keyTable [] = ([],[])
-keyTable ((Key ref target):lst) = (((ref, target):table), rest)
-                                  where (table, rest) = keyTable lst
-keyTable (Null:lst) = keyTable lst  -- get rid of Nulls
-keyTable (other:lst) = (table, (other:rest))
-                       where (table, rest) = keyTable lst
 
 -- | Look up key in key table and return target object.
 lookupKeySrc :: KeyTable  -- ^ Key table
@@ -455,8 +400,6 @@ refsMatch ((TeX x):restx) ((TeX y):resty) =
     ((map toLower x) == (map toLower y)) && refsMatch restx resty
 refsMatch ((HtmlInline x):restx) ((HtmlInline y):resty) = 
     ((map toLower x) == (map toLower y)) && refsMatch restx resty
-refsMatch ((NoteRef x):restx) ((NoteRef y):resty) = 
-    ((map toLower x) == (map toLower y)) && refsMatch restx resty
 refsMatch ((Emph x):restx) ((Emph y):resty) = 
     refsMatch x y && refsMatch restx resty
 refsMatch ((Strong x):restx) ((Strong y):resty) = 
@@ -466,96 +409,4 @@ refsMatch ((Quoted t x):restx) ((Quoted u y):resty) =
 refsMatch (x:restx) (y:resty) = (x == y) && refsMatch restx resty
 refsMatch [] x = null x
 refsMatch x [] = null x
-
--- | Replace reference links with explicit links in list of blocks,
--- removing key blocks.
-replaceReferenceLinks :: [Block] -> [Block]
-replaceReferenceLinks blocks =
-    let (keytable, purged) = keyTable blocks in
-    replaceRefLinksBlockList keytable purged
-
--- | Use key table to replace reference links with explicit links in a list 
--- of blocks
-replaceRefLinksBlockList :: KeyTable -> [Block] -> [Block]
-replaceRefLinksBlockList keytable lst = 
-    map (replaceRefLinksBlock keytable) lst
-
--- | Use key table to replace reference links with explicit links in a block
-replaceRefLinksBlock :: KeyTable -> Block -> Block
-replaceRefLinksBlock keytable (Plain lst) = 
-    Plain (map (replaceRefLinksInline keytable) lst)
-replaceRefLinksBlock keytable (Para lst) = 
-    Para (map (replaceRefLinksInline keytable) lst)
-replaceRefLinksBlock keytable (Header lvl lst) = 
-    Header lvl (map (replaceRefLinksInline keytable) lst)
-replaceRefLinksBlock keytable (BlockQuote lst) = 
-    BlockQuote (map (replaceRefLinksBlock keytable) lst)
-replaceRefLinksBlock keytable (Note ref lst) = 
-    Note ref (map (replaceRefLinksBlock keytable) lst)
-replaceRefLinksBlock keytable (OrderedList lst) = 
-    OrderedList (map (replaceRefLinksBlockList keytable) lst)
-replaceRefLinksBlock keytable (BulletList lst) = 
-    BulletList (map (replaceRefLinksBlockList keytable) lst)
-replaceRefLinksBlock keytable (DefinitionList lst) = 
-    DefinitionList (map (\(term, def) -> 
-                          (map (replaceRefLinksInline keytable) term, 
-                           replaceRefLinksBlockList keytable def)) lst)
-replaceRefLinksBlock keytable (Table caption alignment widths headers rows) =
-    Table (map (replaceRefLinksInline keytable) caption) alignment widths 
-      (map (replaceRefLinksBlockList keytable) headers)
-      (map (map (replaceRefLinksBlockList keytable)) rows)
-replaceRefLinksBlock keytable other = other
-
--- | Use key table to replace reference links with explicit links in an 
--- inline element.
-replaceRefLinksInline :: KeyTable -> Inline -> Inline
-replaceRefLinksInline keytable (Link text (Ref ref)) = (Link newText newRef)
-    where newRef = case lookupKeySrc keytable 
-                        (if (null ref) then text else ref) of
-                     Nothing  -> (Ref ref)
-                     Just src -> src
-          newText = map (replaceRefLinksInline keytable) text
-replaceRefLinksInline keytable (Image text (Ref ref)) = (Image newText newRef)
-    where newRef = case lookupKeySrc keytable 
-                        (if (null ref) then text else ref) of
-                     Nothing -> (Ref ref)
-                     Just src -> src
-          newText = map (replaceRefLinksInline keytable) text
-replaceRefLinksInline keytable (Emph lst) = 
-    Emph (map (replaceRefLinksInline keytable) lst)
-replaceRefLinksInline keytable (Strong lst) = 
-    Strong (map (replaceRefLinksInline keytable) lst)
-replaceRefLinksInline keytable (Quoted t lst) = 
-    Quoted t (map (replaceRefLinksInline keytable) lst)
-replaceRefLinksInline keytable other = other
-
--- | Return a text object with a string of formatted SGML attributes. 
-attributeList :: [(String, String)] -> Doc
-attributeList = text .  concatMap 
-  (\(a, b) -> " " ++ escapeSGMLString a ++ "=\"" ++ 
-  escapeSGMLString b ++ "\"") 
-
--- | Put the supplied contents between start and end tags of tagType,
---   with specified attributes and (if specified) indentation.
-inTags:: Bool -> String -> [(String, String)] -> Doc -> Doc
-inTags isIndented tagType attribs contents = 
-  let openTag = PP.char '<' <> text tagType <> attributeList attribs <> 
-                PP.char '>'
-      closeTag  = text "</" <> text tagType <> PP.char '>' in
-  if isIndented
-    then openTag $$ nest 2 contents $$ closeTag
-    else openTag <> contents <> closeTag
-
--- | Return a self-closing tag of tagType with specified attributes
-selfClosingTag :: String -> [(String, String)] -> Doc
-selfClosingTag tagType attribs = 
-  PP.char '<' <> text tagType <> attributeList attribs <> text " />" 
- 
--- | Put the supplied contents between start and end tags of tagType.
-inTagsSimple :: String -> Doc -> Doc
-inTagsSimple tagType = inTags False tagType []
-
--- | Put the supplied contents in indented block btw start and end tags.
-inTagsIndented :: String -> Doc -> Doc
-inTagsIndented tagType = inTags True tagType []
 

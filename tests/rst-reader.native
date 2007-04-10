@@ -156,21 +156,15 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
 , Para [Str "Plus",Str ":",Space,Str "+"]
 , Para [Str "Minus",Str ":",Space,Str "-"]
 , Header 1 [Str "Links"]
-, Para [Str "Explicit",Str ":",Space,Str "a",Space,Link [Str "URL"] (Src "/url/" ""),Str "."]
-, Para [Str "Two",Space,Str "anonymous",Space,Str "links",Str ":",Space,Link [Str "the",Space,Str "first"] (Src "/url1/" ""),Space,Str "and",Space,Link [Str "the",Space,Str "second"] (Src "/url2/" "")]
-, Para [Str "Reference",Space,Str "links",Str ":",Space,Link [Str "link1"] (Ref []),Space,Str "and",Space,Link [Str "link2"] (Ref []),Space,Str "and",Space,Link [Str "link1"] (Ref []),Space,Str "again."]
-, Key [Str "link1"] (Src "/url1/" "")
-, Key [Str "link2"] (Src "/url2/" "")
-, Para [Str "Here's",Space,Str "a",Space,Link [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] (Ref []),Str "."]
-, Para [Str "Here's",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "amersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text",Str ":",Space,Link [Str "AT&T"] (Src "/url/" ""),Str "."]
-, Key [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] (Src "http://example.com/?foo=1&bar=2" "")
-, Para [Str "Autolinks",Str ":",Space,Link [Str "http://example.com/?foo=1&bar=2"] (Src "http://example.com/?foo=1&bar=2" ""),Space,Str "and",Space,Link [Str "nobody@nowhere.net"] (Src "mailto:nobody@nowhere.net" ""),Str "."]
+, Para [Str "Explicit",Str ":",Space,Str "a",Space,Link [Str "URL"] ("/url/",""),Str "."]
+, Para [Str "Two",Space,Str "anonymous",Space,Str "links",Str ":",Space,Link [Str "the",Space,Str "first"] ("/url1/",""),Space,Str "and",Space,Link [Str "the",Space,Str "second"] ("/url2/","")]
+, Para [Str "Reference",Space,Str "links",Str ":",Space,Link [Str "link1"] ("/url1/",""),Space,Str "and",Space,Link [Str "link2"] ("/url2/",""),Space,Str "and",Space,Link [Str "link1"] ("/url1/",""),Space,Str "again."]
+, Para [Str "Here's",Space,Str "a",Space,Link [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] ("http://example.com/?foo=1&bar=2",""),Str "."]
+, Para [Str "Here's",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "amersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text",Str ":",Space,Link [Str "AT&T"] ("/url/",""),Str "."]
+, Para [Str "Autolinks",Str ":",Space,Link [Str "http://example.com/?foo=1&bar=2"] ("http://example.com/?foo=1&bar=2",""),Space,Str "and",Space,Link [Str "nobody@nowhere.net"] ("mailto:nobody@nowhere.net",""),Str "."]
 , Para [Str "But",Space,Str "not",Space,Str "here",Str ":"]
 , CodeBlock "http://example.com/"
 , Header 1 [Str "Images"]
 , Para [Str "From",Space,Str "\"Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune\"",Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(1902)",Str ":"]
-, Plain [Image [Str "image"] (Src "lalune.jpg" "")]
-, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "movie"] (Ref [Str "movie"]),Space,Str "icon."]
-, Key [Str "movie"] (Src "movie.jpg" "")
-, Null
-, Plain [] ]
+, Plain [Image [Str "image"] ("lalune.jpg","")]
+, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "movie"] ("movie.jpg",""),Space,Str "icon."] ]

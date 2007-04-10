@@ -31,7 +31,7 @@ module Text.Pandoc.Readers.Markdown (
                                      readMarkdown 
                                     ) where
 
-import Data.List ( findIndex, sortBy, transpose, isSuffixOf, intersect )
+import Data.List ( findIndex, sortBy, transpose, isSuffixOf, intersect, lookup )
 import Data.Char ( isAlphaNum )
 import Text.ParserCombinators.Pandoc
 import Text.Pandoc.Definition
@@ -160,28 +160,72 @@ titleBlock = try (do
   option "" blanklines
   return (title, author, date))
 
--- | Returns the number assigned to a Note block
-numberOfNote :: Block -> Int
-numberOfNote (Note ref _) = (read ref) 
-numberOfNote _ = 0 
-
 parseMarkdown = do
-  updateState (\state -> state { stateParseRaw = True }) 
-  -- need to parse raw HTML, since markdown allows it
+  updateState (\state -> state { stateParseRaw = True }) -- parse raw HTML: markdown allows it
   (title, author, date) <- option ([],[],"") titleBlock
   -- go through once just to get list of reference keys
-  keysUsed <- lookAhead $ (do {manyTill (referenceKey <|> (do{anyLine; return Null})) eof; 
-                               newState <- getState;
-                               return $ stateKeysUsed newState}) 
-  updateState (\st -> st { stateKeysUsed = keysUsed })
+  refs <- manyTill (noteBlock <|> referenceKey <|> (do l <- lineClump
+                                                       return (LineClump l))) eof 
+  let keys = map (\(KeyBlock label target) -> (label, target)) $ 
+                 filter isKeyBlock refs
+  let notes = map (\(NoteBlock label blocks) -> (label, blocks)) $ 
+                   filter isNoteBlock refs
+  let rawlines = map (\(LineClump ln) -> ln) $ filter isLineClump refs
+  setInput $ concat rawlines -- with note blocks and keys stripped out 
+  updateState (\state -> state { stateKeys = keys, stateNotes = notes })
   blocks <- parseBlocks  -- go through again, for real
   let blocks' = filter (/= Null) blocks
-  state <- getState
-  let keys = reverse $ stateKeyBlocks state
-  let notes = reverse $ stateNoteBlocks state
-  let sortedNotes = sortBy (\x y -> compare (numberOfNote x) 
-                           (numberOfNote y)) notes
-  return (Pandoc (Meta title author date) (blocks' ++ sortedNotes ++ keys))
+  return (Pandoc (Meta title author date) blocks')
+
+-- 
+-- initial pass for references
+--
+
+referenceKey = try $ do
+  nonindentSpaces
+  label <- reference
+  char labelSep
+  skipSpaces
+  option ' ' (char autoLinkStart)
+  src <- many (noneOf (titleOpeners ++ [autoLinkEnd] ++ endLineChars))
+  option ' ' (char autoLinkEnd)
+  tit <- option "" title 
+  blanklines 
+  return $ KeyBlock label (removeTrailingSpace src,  tit)
+
+noteMarker = try (do
+  char labelStart
+  char noteStart
+  manyTill (noneOf " \t\n") (char labelEnd))
+
+rawLine = try (do
+  notFollowedBy' blankline
+  notFollowedBy' noteMarker
+  contents <- many1 nonEndline
+  end <- option "" (do
+                      newline
+                      option "" (try indentSpaces)
+                      return "\n")
+  return (contents ++ end))
+
+rawLines = do
+    lines <- many1 rawLine
+    return (concat lines)
+
+noteBlock = try $ do
+  failIfStrict
+  ref <- noteMarker
+  char ':'
+  option ' ' (try blankline)
+  option "" (try indentSpaces)
+  raw <- sepBy rawLines (try (do {blankline; indentSpaces}))
+  option "" blanklines
+  -- parse the extracted text, which may contain various block elements:
+  rest <- getInput
+  setInput $ (joinWithSep "\n" raw) ++ "\n\n"
+  contents <- parseBlocks
+  setInput rest
+  return (NoteBlock ref contents)
 
 --
 -- parsing blocks
@@ -189,9 +233,17 @@ parseMarkdown = do
 
 parseBlocks = manyTill block eof
 
-block = choice [ header, table, codeBlock, note, referenceKey, hrule, list, 
-                 blockQuote, htmlBlock, rawLaTeXEnvironment', para,
-                 plain, nullBlock ] <?> "block"
+block = choice [ header 
+               , table
+               , codeBlock
+               , hrule
+               , list
+               , blockQuote
+               , htmlBlock
+               , rawLaTeXEnvironment'
+               , para
+               , plain
+               , nullBlock ] <?> "block"
 
 --
 -- header blocks
@@ -260,45 +312,6 @@ codeBlock = do
   result <- choice [indentedBlock, indentedLine]
   option "" blanklines
   return (CodeBlock (stripTrailingNewlines result))
-
---
--- note block
---
-
-rawLine = try (do
-  notFollowedBy' blankline
-  notFollowedBy' noteMarker
-  contents <- many1 nonEndline
-  end <- option "" (do
-                      newline
-                      option "" (try indentSpaces)
-                      return "\n")
-  return (contents ++ end))
-
-rawLines = do
-    lines <- many1 rawLine
-    return (concat lines)
-
-note = try (do
-  failIfStrict
-  ref <- noteMarker
-  char ':'
-  skipSpaces
-  skipEndline 
-  raw <- sepBy rawLines (try (do {blankline; indentSpaces}))
-  option "" blanklines
-  -- parse the extracted text, which may contain various block elements:
-  rest <- getInput
-  setInput $ (joinWithSep "\n" raw) ++ "\n\n"
-  contents <- parseBlocks
-  setInput rest
-  state <- getState
-  let identifiers = stateNoteIdentifiers state
-  case (findIndex (== ref) identifiers) of
-    Just n  -> updateState (\s -> s {stateNoteBlocks = 
-               (Note (show (n+1)) contents):(stateNoteBlocks s)})
-    Nothing -> updateState id 
-  return Null)
 
 --
 -- block quotes
@@ -535,25 +548,6 @@ rawHtmlBlocks = try (do
                      else combined 
   return (RawHtml combined'))
 
--- 
--- reference key
---
-
-referenceKey = try (do
-  nonindentSpaces
-  label <- reference
-  char labelSep
-  skipSpaces
-  option ' ' (char autoLinkStart)
-  src <- many (noneOf (titleOpeners ++ [autoLinkEnd] ++ endLineChars))
-  option ' ' (char autoLinkEnd)
-  tit <- option "" title 
-  blanklines 
-  state <- getState
-  let keysUsed = stateKeysUsed state
-  setState state { stateKeysUsed = (label:keysUsed) }
-  return $ Key label (Src (removeTrailingSpace src) tit))
-
 --
 -- LaTeX
 --
@@ -713,7 +707,7 @@ table = do
 inline = choice [ rawLaTeXInline'
                 , escapedChar
                 , entity
-                , noteRef
+                , note
                 , inlineNote
                 , link
                 , referenceLink
@@ -933,7 +927,7 @@ reference = try $ do
   return (normalizeSpaces label)
  
 -- source for a link, with optional title
-source = try (do 
+source = try $ do 
   char srcStart
   option ' ' (char autoLinkStart)
   src <- many (noneOf ([srcEnd, autoLinkEnd] ++ titleOpeners))
@@ -941,7 +935,7 @@ source = try (do
   tit <- option "" title
   skipSpaces
   char srcEnd
-  return (Src (removeTrailingSpace src) tit))
+  return (removeTrailingSpace src, tit)
 
 titleWith startChar endChar = try (do
   skipSpaces
@@ -965,30 +959,18 @@ explicitLink = try (do
   src <- source 
   return (Link label src)) 
 
-referenceLink = choice [referenceLinkDouble, referenceLinkSingle]
-
--- a link like [this][ref]
-referenceLinkDouble = try (do
+-- a link like [this][ref] or [this][] or [this]
+referenceLink = try $ do
   label <- reference
-  skipSpaces
-  option ' ' newline
-  skipSpaces
-  ref <- reference 
+  ref <- option [] (try (do skipSpaces
+                            option ' ' newline
+                            skipSpaces
+                            reference))
   let ref' = if null ref then label else ref
   state <- getState
-  if ref' `elem` (stateKeysUsed state)
-     then return ()
-     else fail "no corresponding key"
-  return (Link label (Ref ref'))) 
-
--- a link like [this]
-referenceLinkSingle = try (do
-  label <- reference
-  state <- getState
-  if label `elem` (stateKeysUsed state)
-     then return ()
-     else fail "no corresponding key"
-  return (Link label (Ref label))) 
+  case lookupKeySrc (stateKeys state) ref' of
+     Nothing -> fail "no corresponding key" 
+     Just target -> return (Link label target)
 
 autoLink = autoLinkEmail <|> autoLinkRegular
 
@@ -999,7 +981,7 @@ autoLinkEmail = try $ do
   domain <- sepBy1 (many1 (noneOf "/:.@<> \t\n")) (char '.')
   let src = name ++ "@" ++ (joinWithSep "." domain)
   char autoLinkEnd
-  return $ Link [Str src] (Src ("mailto:" ++ src) "")
+  return $ Link [Str src] (("mailto:" ++ src), "")
 
 -- a link <http://like.this.com>
 autoLinkRegular = try $ do
@@ -1007,39 +989,28 @@ autoLinkRegular = try $ do
   prot <- oneOfStrings ["http:", "ftp:", "mailto:"]
   rest <- many1Till (noneOf " \t\n<>") (char autoLinkEnd)
   let src = prot ++ rest
-  return $ Link [Str src] (Src src "")
+  return $ Link [Str src] (src, "")
 
 image = try (do
   char imageStart
   (Link label src) <- link
   return (Image label src)) 
 
-noteMarker = try (do
-  char labelStart
-  char noteStart
-  manyTill (noneOf " \t\n") (char labelEnd))
-
-noteRef = try (do
+note = try $ do
   failIfStrict
   ref <- noteMarker
   state <- getState
-  let identifiers = (stateNoteIdentifiers state) ++ [ref] 
-  setState state {stateNoteIdentifiers = identifiers}
-  return (NoteRef (show (length identifiers))))
+  let notes = stateNotes state
+  case lookup ref notes of
+    Nothing -> fail "note not found"
+    Just contents -> return (Note contents)
 
-inlineNote = try (do
+inlineNote = try $ do
   failIfStrict
   char noteStart
   char labelStart
   contents <- manyTill inline (char labelEnd)
-  state <- getState
-  let identifiers = stateNoteIdentifiers state
-  let ref = show $ (length identifiers) + 1
-  let noteBlocks = stateNoteBlocks state
-  setState state {stateNoteIdentifiers = (identifiers ++ [ref]),
-                        stateNoteBlocks = 
-                                 (Note ref [Para contents]):noteBlocks}
-  return (NoteRef ref))
+  return (Note [Para contents])
 
 rawLaTeXInline' = do
   failIfStrict
