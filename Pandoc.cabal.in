@@ -14,6 +14,7 @@ Description:     Haskell utilities for translating between markdown, HTML,
 Build-Depends:   @BUILD_DEPENDS@
 @HS_SOURCE_DIRS@: src
 Exposed-Modules: Text.ParserCombinators.Pandoc,
+                 Text.Pandoc,
                  Text.Pandoc.ASCIIMathML,
                  Text.Pandoc.Definition,
                  Text.Pandoc.Entities,
