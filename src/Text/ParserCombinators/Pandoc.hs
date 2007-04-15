@@ -36,15 +36,12 @@ module Text.ParserCombinators.Pandoc (
                                       skipSpaces,
                                       blankline,
                                       blanklines,
-                                      escaped,
                                       enclosed,
-                                      nullBlock,
                                       stringAnyCase,
                                       parseFromStr,
                                       lineClump
                                      ) where
 import Text.ParserCombinators.Parsec
-import Text.Pandoc.Shared
 import Data.Char ( toUpper, toLower )
 
 --- | Parse any line of text
