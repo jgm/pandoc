@@ -44,20 +44,12 @@ module Text.ParserCombinators.Pandoc (
                                       lineClump
                                      ) where
 import Text.ParserCombinators.Parsec
-import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Data.Char ( toUpper, toLower )
 
 --- | Parse any line of text
 anyLine :: GenParser Char st [Char]
 anyLine = manyTill anyChar (newline <|> (do{eof; return '\n'}))
-
--- | Parses a character and returns 'Null' (so that the parser can move on
--- if it gets stuck).
-nullBlock :: GenParser Char st Block
-nullBlock = do
-  anyChar 
-  return Null
 
 -- | Parses a space or tab.
 spaceChar :: CharParser st Char
@@ -76,14 +68,6 @@ blankline = try (do
 -- | Parses one or more blank lines and returns a string of newlines.
 blanklines :: GenParser Char st [Char]
 blanklines = try (many1 blankline)
-
--- | Parses backslash, then applies character parser.
-escaped :: GenParser Char st Char  -- ^ Parser for character to escape
-        -> GenParser Char st Inline
-escaped parser = try (do
-                        char '\\'
-                        result <- parser
-                        return (Str [result]))
 
 -- | Parses material enclosed between start and end parsers.
 enclosed :: GenParser Char st t   -- ^ start parser

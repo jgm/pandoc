@@ -54,6 +54,8 @@ module Text.Pandoc.Shared (
                      QuoteContext (..),
                      ParserState (..),
                      defaultParserState,
+                     nullBlock,
+                     escaped,
                      -- * Native format prettyprinting
                      prettyPandoc,
                      -- * Pandoc block list processing
@@ -68,10 +70,8 @@ module Text.Pandoc.Shared (
                      refsMatch,
                     ) where
 import Text.Pandoc.Definition
-import Text.ParserCombinators.Parsec as Parsec
+import Text.ParserCombinators.Parsec
 import Text.Pandoc.Entities ( decodeEntities, escapeStringForXML )
-import Text.PrettyPrint.HughesPJ as PP ( text, char, (<>), 
-                                         ($$), nest, Doc, isEmpty )
 import Data.Char ( toLower, ord )
 import Data.List ( find, groupBy, isPrefixOf )
 
@@ -171,6 +171,21 @@ defaultParserState =
                   stateSmart           = False,
                   stateColumns         = 80,
                   stateHeaderTable     = [] }
+
+-- | Parses a character and returns 'Null' (so that the parser can move on
+-- if it gets stuck).
+nullBlock :: GenParser Char st Block
+nullBlock = do
+  anyChar 
+  return Null
+
+-- | Parses backslash, then applies character parser.
+escaped :: GenParser Char st Char  -- ^ Parser for character to escape
+        -> GenParser Char st Inline
+escaped parser = try (do
+                        char '\\'
+                        result <- parser
+                        return (Str [result]))
 
 -- | Indent string as a block.
 indentBy :: Int    -- ^ Number of spaces to indent the block 
