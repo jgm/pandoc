@@ -110,6 +110,12 @@ blockToLaTeX (BulletList lst) = "\\begin{itemize}\n" ++
     (concatMap listItemToLaTeX lst) ++ "\\end{itemize}\n"
 blockToLaTeX (OrderedList lst) = "\\begin{enumerate}\n" ++ 
     (concatMap listItemToLaTeX lst) ++ "\\end{enumerate}\n"
+blockToLaTeX (DefinitionList lst) = 
+    let defListItemToLaTeX (term, def) = "\\item[" ++ 
+           substitute "]" "\\]" (inlineListToLaTeX term) ++ "] " ++
+           concatMap blockToLaTeX def
+    in  "\\begin{description}\n" ++ concatMap defListItemToLaTeX lst ++ 
+        "\\end{description}\n"
 blockToLaTeX HorizontalRule = 
     "\\begin{center}\\rule{3in}{0.4pt}\\end{center}\n\n"
 blockToLaTeX (Header level lst) = 
@@ -140,7 +146,6 @@ blockToLaTeX (Table caption aligns widths heads rows) =
       then centered tableBody ++ "\n"
       else "\\begin{table}[h]\n" ++ centered tableBody ++ "\\caption{" ++
            captionText ++ "}\n" ++ "\\end{table}\n\n" 
-      
 
 printDecimal :: Float -> String
 printDecimal = printf "%.2f" 
