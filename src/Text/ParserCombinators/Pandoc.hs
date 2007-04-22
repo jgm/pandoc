@@ -46,7 +46,8 @@ import Data.Char ( toUpper, toLower )
 
 --- | Parse any line of text
 anyLine :: GenParser Char st [Char]
-anyLine = manyTill anyChar (newline <|> (do{eof; return '\n'}))
+anyLine = try (manyTill anyChar newline) <|> many1 anyChar
+          -- second alternative is for a line ending with eof
 
 -- | Parses a space or tab.
 spaceChar :: CharParser st Char
