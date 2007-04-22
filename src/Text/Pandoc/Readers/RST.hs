@@ -42,7 +42,7 @@ import Data.Char ( toUpper )
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: ParserState -> String -> Pandoc
-readRST = readWith parseRST
+readRST state str = (readWith parseRST) state (str ++ "\n\n")
 
 -- | Parse a string and print result (for testing).
 testString :: String -> IO ()

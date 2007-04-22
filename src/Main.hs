@@ -444,7 +444,7 @@ main = do
                  Nothing   -> stateColumns defaultParserState
 
   let tabFilter = if preserveTabs then id else (tabsToSpaces tabStop)
-  let addBlank str = str ++ "\n\n"
+  let addBlank str = str
   let removeCRs str = filter (/= '\r') str  -- remove DOS-style line endings
   let filter = tabFilter . addBlank . removeCRs
   let startParserState = 

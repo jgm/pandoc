@@ -47,7 +47,7 @@ import Text.ParserCombinators.Parsec
 
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: ParserState -> String -> Pandoc
-readMarkdown = readWith parseMarkdown
+readMarkdown state str = (readWith parseMarkdown) state (str ++ "\n\n")
 
 -- | Parse markdown string with default options and print result (for testing).
 testString :: String -> IO ()
