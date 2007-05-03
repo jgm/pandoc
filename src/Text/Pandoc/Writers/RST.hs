@@ -185,6 +185,9 @@ blockToRST opts (OrderedList items) = do
   contents <- mapM (\(item, num) -> orderedListItemToRST opts item num) $
               zip [1..] items  
   return $ (vcat contents) <> text "\n"
+blockToRST opts (DefinitionList items) = do
+  contents <- mapM (definitionListItemToRST opts) items
+  return $ (vcat contents) <> text "\n"
 
 -- | Convert bullet list item (list of blocks) to RST.
 bulletListItemToRST :: WriterOptions -> [Block] -> State WriterState Doc
@@ -202,6 +205,13 @@ orderedListItemToRST opts num items = do
   let spacer = if (num < 10) then " " else ""
   return $ hang (text ((show num) ++ "." ++ spacer)) (writerTabStop opts)
            contents 
+
+-- | Convert defintion list item (label, list of blocks) to RST.
+definitionListItemToRST :: WriterOptions -> ([Inline], [Block]) -> State WriterState Doc
+definitionListItemToRST opts (label, items) = do
+  label <- inlineListToRST opts label
+  contents <- blockListToRST opts items
+  return $ label $+$ nest (writerTabStop opts) contents
 
 -- | Convert list of Pandoc block elements to RST.
 blockListToRST :: WriterOptions -- ^ Options
