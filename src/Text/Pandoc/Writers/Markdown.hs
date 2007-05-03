@@ -163,6 +163,9 @@ blockToMarkdown opts (OrderedList items) = do
   contents <- mapM (\(item, num) -> orderedListItemToMarkdown opts item num) $
               zip [1..] items  
   return $ (vcat contents) <> text "\n"
+blockToMarkdown opts (DefinitionList items) = do
+  contents <- mapM (definitionListItemToMarkdown opts) items
+  return $ (vcat contents) <> text "\n"
 
 -- | Convert bullet list item (list of blocks) to markdown.
 bulletListItemToMarkdown :: WriterOptions -> [Block] -> State WriterState Doc
@@ -180,6 +183,17 @@ orderedListItemToMarkdown opts num items = do
   let spacer = if (num < 10) then " " else ""
   return $ hang (text ((show num) ++ "." ++ spacer)) (writerTabStop opts)
            contents 
+
+-- | Convert definition list item (label, list of blocks) to markdown.
+definitionListItemToMarkdown :: WriterOptions
+                             -> ([Inline],[Block]) 
+                             -> State WriterState Doc
+definitionListItemToMarkdown opts (label, items) = do
+  labelText <- inlineListToMarkdown opts label
+  contents <- mapM (\item -> blockToMarkdown opts item >>= 
+              (return . hang (text ":  ") (writerTabStop opts)))
+              items >>= (return . vcat)
+  return $ labelText $+$ contents
 
 -- | Convert list of Pandoc block elements to markdown.
 blockListToMarkdown :: WriterOptions -- ^ Options
