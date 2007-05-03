@@ -41,7 +41,8 @@ writeRTF options (Pandoc meta blocks) =
                 then rtfHeader (writerHeader options) meta 
                 else ""  
       foot = if writerStandalone options then "\n}\n" else "" 
-      body = (writerIncludeBefore options) ++ concatMap (blockToRTF 0) blocks ++ 
+      body = (writerIncludeBefore options) ++ 
+             concatMap (blockToRTF 0 AlignDefault) blocks ++ 
              (writerIncludeAfter options) in
   head ++ body ++ foot
 
@@ -74,26 +75,35 @@ latexToRTF :: String -> String
 latexToRTF str = "{\\cf1 " ++ (latexStringToRTF str) ++ "\\cf0 } "
 
 -- | Make a paragraph with first-line indent, block indent, and space after.
-rtfParSpaced :: Int     -- ^ space after (in twips)
-             -> Int     -- ^ block indent (in twips)
-             -> Int     -- ^ first line indent (relative to block) (in twips)
-             -> String  -- ^ string with content
+rtfParSpaced :: Int       -- ^ space after (in twips)
+             -> Int       -- ^ block indent (in twips)
+             -> Int       -- ^ first line indent (relative to block) (in twips)
+             -> Alignment -- ^ alignment
+             -> String    -- ^ string with content
              -> String 
-rtfParSpaced spaceAfter indent firstLineIndent content = 
-  "{\\pard \\f0 \\sa" ++ (show spaceAfter) ++ " \\li" ++ (show indent) ++ 
-  " \\fi" ++ (show firstLineIndent) ++ " " ++ content ++ "\\par}\n"
+rtfParSpaced spaceAfter indent firstLineIndent alignment content = 
+  let alignString = case alignment of
+                           AlignLeft -> "\\ql"
+                           AlignRight -> "\\qr"
+                           AlignCenter -> "\\qc"
+                           AlignDefault -> "\\ql"
+  in  "{\\pard " ++ alignString ++
+      "\\f0 \\sa" ++ (show spaceAfter) ++ " \\li" ++ (show indent) ++ 
+      " \\fi" ++ (show firstLineIndent) ++ " " ++ content ++ "\\par}\n"
 
 -- | Default paragraph. 
-rtfPar :: Int     -- ^ block indent (in twips)
-       -> Int     -- ^ first line indent (relative to block) (in twips)
-       -> String  -- ^ string with content
+rtfPar :: Int       -- ^ block indent (in twips)
+       -> Int       -- ^ first line indent (relative to block) (in twips)
+       -> Alignment -- ^ alignment
+       -> String    -- ^ string with content
        -> String 
 rtfPar = rtfParSpaced 180 
 
 -- | Compact paragraph (e.g. for compact list items).
-rtfCompact ::  Int     -- ^ block indent (in twips)
-           ->  Int     -- ^ first line indent (relative to block) (in twips)
-           ->  String  -- ^ string with content
+rtfCompact ::  Int       -- ^ block indent (in twips)
+           ->  Int       -- ^ first line indent (relative to block) (in twips)
+           ->  Alignment -- ^ alignment
+           ->  String    -- ^ string with content
            ->  String 
 rtfCompact = rtfParSpaced 0 
 
@@ -121,47 +131,71 @@ rtfHeader :: String    -- ^ header text
 rtfHeader headerText (Meta title authors date) =
     let titletext = if null title
                        then "" 
-                       else rtfPar 0 0 ("\\qc \\b \\fs36 " ++ 
-                                        inlineListToRTF title)
+                       else rtfPar 0 0 AlignDefault ("\\qc \\b \\fs36 " ++ 
+                                                    inlineListToRTF title)
         authorstext = if null authors
                          then "" 
-                         else rtfPar 0 0 ("\\qc " ++ (joinWithSep "\\" 
-                                         (map stringToRTF authors))) 
+                         else rtfPar 0 0 AlignDefault ("\\qc " ++ (joinWithSep "\\" 
+                                                      (map stringToRTF authors))) 
         datetext = if date == "" 
                       then ""
-                      else rtfPar 0 0 ("\\qc " ++ stringToRTF date) in
+                      else rtfPar 0 0 AlignDefault ("\\qc " ++ stringToRTF date) in
     let spacer = if null (titletext ++ authorstext ++ datetext)
                     then ""
-                    else rtfPar 0 0 "" in
+                    else rtfPar 0 0 AlignDefault "" in
     headerText ++ titletext ++ authorstext ++ datetext ++ spacer
 
 -- | Convert Pandoc block element to RTF.
 blockToRTF :: Int       -- ^ indent level
+           -> Alignment -- ^ alignment
            -> Block     -- ^ block to convert
            -> String
-blockToRTF indent Null = ""
-blockToRTF indent (Plain lst) = 
-  rtfCompact indent 0 (inlineListToRTF lst)
-blockToRTF indent (Para lst) = 
-  rtfPar indent 0 (inlineListToRTF lst)
-blockToRTF indent (BlockQuote lst) = 
-  concatMap (blockToRTF (indent + indentIncrement)) lst 
-blockToRTF indent (CodeBlock str) =
-  rtfPar indent 0 ("\\f1 " ++ (codeStringToRTF str))
-blockToRTF indent (RawHtml str) = ""
-blockToRTF indent (BulletList lst) = 
+blockToRTF _ _ Null = ""
+blockToRTF indent alignment (Plain lst) = 
+  rtfCompact indent 0 alignment (inlineListToRTF lst)
+blockToRTF indent alignment (Para lst) = 
+  rtfPar indent 0 alignment (inlineListToRTF lst)
+blockToRTF indent alignment (BlockQuote lst) = 
+  concatMap (blockToRTF (indent + indentIncrement) alignment) lst 
+blockToRTF indent _ (CodeBlock str) =
+  rtfPar indent 0 AlignLeft ("\\f1 " ++ (codeStringToRTF str))
+blockToRTF _ _ (RawHtml str) = ""
+blockToRTF indent alignment (BulletList lst) = 
   spaceAtEnd $ 
-  concatMap (listItemToRTF indent (bulletMarker indent)) lst
-blockToRTF indent (OrderedList lst) = 
+  concatMap (listItemToRTF alignment indent (bulletMarker indent)) lst
+blockToRTF indent alignment (OrderedList lst) = 
   spaceAtEnd $ concat $ 
-  zipWith (listItemToRTF indent) (orderedMarkers indent) lst
-blockToRTF indent HorizontalRule = 
-  rtfPar indent 0 "\\qc \\emdash\\emdash\\emdash\\emdash\\emdash"
-blockToRTF indent (Header level lst) = 
-  rtfPar indent 0 ("\\b \\fs" ++ (show (40 - (level * 4))) ++ " " ++ 
+  zipWith (listItemToRTF alignment indent) (orderedMarkers indent) lst
+blockToRTF indent alignment (DefinitionList lst) = 
+  spaceAtEnd $ 
+  concatMap (definitionListItemToRTF alignment indent) lst
+blockToRTF indent _ HorizontalRule = 
+  rtfPar indent 0 AlignCenter "\\emdash\\emdash\\emdash\\emdash\\emdash"
+blockToRTF indent alignment (Header level lst) = 
+  rtfPar indent 0 alignment ("\\b \\fs" ++ (show (40 - (level * 4))) ++ " " ++ 
   (inlineListToRTF lst))
-blockToRTF indent (Table caption _ _ headers rows) = 
-  blockToRTF indent (Para [Str "pandoc: TABLE unsupported in RST writer"])
+blockToRTF indent alignment (Table caption aligns sizes headers rows) = 
+  (tableRowToRTF True indent aligns sizes headers) ++ (concatMap
+  (tableRowToRTF False indent aligns sizes) rows) ++
+  rtfPar indent 0 alignment (inlineListToRTF caption)
+
+tableRowToRTF :: Bool -> Int -> [Alignment] -> [Float] -> [[Block]] -> String 
+tableRowToRTF header indent aligns sizes cols =
+  let columns = concat $ zipWith (tableItemToRTF indent) aligns cols
+      totalTwips = 6 * 1440 -- 6 inches
+      rightEdges = tail $ scanl (\sofar new -> sofar + floor (new * totalTwips))
+                                0 sizes
+      cellDefs = map (\edge -> (if header then "\\clbrdrb\\brdrs"
+                      else "") ++ "\\cellx" ++ show edge) rightEdges
+      start = "{\n\\trowd \\trgaph120\n" ++ concat cellDefs ++ "\n" ++
+              "\\trkeep\\intbl\n{\n"
+      end = "}\n\\intbl\\row}\n"
+  in  start ++ columns ++ end
+
+tableItemToRTF :: Int -> Alignment -> [Block] -> String 
+tableItemToRTF indent alignment item =
+  let contents = concatMap (blockToRTF indent alignment) item
+  in  "{\\intbl " ++ contents ++ "\\cell}\n"
 
 -- | Ensure that there's the same amount of space after compact
 -- lists as after regular lists.
@@ -172,15 +206,16 @@ spaceAtEnd str =
      else str
 
 -- | Convert list item (list of blocks) to RTF.
-listItemToRTF :: Int        -- ^ indent level
+listItemToRTF :: Alignment  -- ^ alignment
+              -> Int        -- ^ indent level
               -> String     -- ^ list start marker
               -> [Block]    -- ^ list item (list of blocks)
               -> [Char]
-listItemToRTF indent marker [] = 
-  rtfCompact (indent + listIncrement) (0 - listIncrement) 
+listItemToRTF alignment indent marker [] = 
+  rtfCompact (indent + listIncrement) (0 - listIncrement) alignment 
              (marker ++ "\\tx" ++ (show listIncrement) ++ "\\tab ") 
-listItemToRTF indent marker list = 
-  let (first:rest) = map (blockToRTF (indent + listIncrement)) list in
+listItemToRTF alignment indent marker list = 
+  let (first:rest) = map (blockToRTF (indent + listIncrement) alignment) list in
   -- insert the list marker into the (processed) first block
   let modFirst = case matchRegexAll (mkRegex "\\\\fi-?[0-9]+") first of
                     Just (before, matched, after, _) -> before ++ "\\fi" ++
@@ -188,6 +223,16 @@ listItemToRTF indent marker list =
                                show listIncrement ++ "\\tab" ++ after
                     Nothing -> first in
   modFirst ++ (concat rest)
+
+-- | Convert definition list item (label, list of blocks) to RTF.
+definitionListItemToRTF :: Alignment          -- ^ alignment
+                        -> Int                -- ^ indent level
+                        -> ([Inline],[Block]) -- ^ list item (list of blocks)
+                        -> [Char]
+definitionListItemToRTF alignment indent (label, items) =
+  let labelText = blockToRTF indent alignment (Plain label)
+      itemsText = concatMap (blockToRTF (indent + listIncrement) alignment) items
+  in  labelText ++ itemsText 
 
 -- | Convert list of inline items to RTF.
 inlineListToRTF :: [Inline]   -- ^ list of inlines to convert
@@ -221,5 +266,5 @@ inlineToRTF (Image alternate (source, tit)) =
   "{\\cf1 [image: " ++ source ++ "]\\cf0}" 
 inlineToRTF (Note contents) =
   "{\\super\\chftn}{\\*\\footnote\\chftn\\~\\plain\\pard " ++ 
-  (concatMap (blockToRTF 0) contents) ++ "}"
+  (concatMap (blockToRTF 0 AlignDefault) contents) ++ "}"
 
