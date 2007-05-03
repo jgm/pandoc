@@ -145,11 +145,11 @@ else # assume UTF-8
 fi 
 
 if [ -z "$argument" ]; then
-    tidy -utf8 2>/dev/null | pandoc --ignore-args -r html -w markdown "$@"
+    tidy -asxhtml -utf8 2>/dev/null | pandoc --ignore-args -r html -w markdown "$@"
 else
     if [ -f "$argument" ]; then
         to_utf8 "$argument" | 
-        tidy -utf8 2>/dev/null | pandoc --ignore-args -r html -w markdown "$@"
+        tidy -asxhtml -utf8 2>/dev/null | pandoc --ignore-args -r html -w markdown "$@"
     else
         err "File '$argument' not found."
         exit 1
