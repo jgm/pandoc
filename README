@@ -435,21 +435,20 @@ Pandoc supports definition lists, using a syntax inspired by
     Term 2
     :   Definition 2
 
-        Second paragraph of definition 2.
+    :   Second paragraph of definition 2.
 
-The terms must fit on one line, but they may contain arbitrary inline
-markup (emphasis, links, etc.).  The definition must begin on the line
-after the term, and must begin with a colon.  The definition consists of
-one or more block elements (paragraph, code block, list, etc.).
-Each block must be indented one tab stop.
+Each term must fit on one line. The definition must begin on the line
+after the term. The definition consists of one or more block elements
+(paragraph, code block, list, etc.), each beginning with a colon and
+(aside from the colon) indented one tab stop.
 
     Term *with inline markup*
     :   Here is the definition.  It may
         contain multiple blocks.  Here is some code:
 
-            {* my code *} 
+    :       {* my code *} 
 
-        Here is the third paragraph of this definition.
+    :   Here is the third paragraph of this definition.
 
 If you leave space after the definition (as in the first example above),
 the definitions will be considered paragraphs. In some output formats,

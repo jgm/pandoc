@@ -456,27 +456,26 @@ definitionListItem = try $ do
   notFollowedBy blankline
   notFollowedBy' indentSpaces
   term <- manyTill inline newline
-  char ':'
+  raw <- many1 defRawBlock
   state <- getState
-  let tabStop = stateTabStop state
-  try (count (tabStop - 1) (char ' ')) <|> (do{many (char ' '); string "\t"})
-  firstline <- anyLine
-  blanksAfterFirst <- option "" blanklines
-  raw <- many defRawBlock
   let oldContext = stateParserContext state
-  setState $ state {stateParserContext = ListItemState}
   -- parse the extracted block, which may contain various block elements:
   rest <- getInput
-  setInput (concat (firstline:"\n":blanksAfterFirst:raw))
+  setInput (concat raw)
   contents <- parseBlocks
   setInput rest
   updateState (\st -> st {stateParserContext = oldContext})
   return ((normalizeSpaces term), contents)
 
 defRawBlock = try $ do
-  rawlines <- many1 (do {notFollowedBy' blankline; indentSpaces; anyLine})
+  char ':'
+  state <- getState
+  let tabStop = stateTabStop state
+  try (count (tabStop - 1) (char ' ')) <|> (do{many (char ' '); string "\t"})
+  firstline <- anyLine
+  rawlines <- many (do {notFollowedBy' blankline; indentSpaces; anyLine})
   trailing <- option "" blanklines
-  return $ (unlines rawlines) ++ trailing
+  return $ firstline ++ "\n" ++ unlines rawlines ++ trailing
 
 definitionList = do
   failIfStrict
