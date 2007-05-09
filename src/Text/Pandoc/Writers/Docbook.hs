@@ -152,6 +152,24 @@ elementToDocbook opts (Sec title elements) =
 blocksToDocbook :: WriterOptions -> [Block] -> Doc
 blocksToDocbook opts = vcat . map (blockToDocbook opts)
 
+-- | Auxiliary function to convert Plain block to Para.
+plainToPara (Plain x) = Para x
+plainToPara x = x
+
+-- | Convert a list of pairs of terms and definitions into a list of 
+-- Docbook varlistentrys.
+deflistItemsToDocbook :: WriterOptions -> [([Inline],[Block])] -> Doc
+deflistItemsToDocbook opts items = 
+  vcat $ map (\(term, def) -> deflistItemToDocbook opts term def) items
+
+-- | Convert a term and a list of blocks into a Docbook varlistentry.
+deflistItemToDocbook :: WriterOptions -> [Inline] -> [Block] -> Doc
+deflistItemToDocbook opts term def =
+  let def' = map plainToPara def in
+  inTagsIndented "varlistentry" $
+  inTagsIndented "term" (inlinesToDocbook opts term) $$
+  inTagsIndented "listitem" (blocksToDocbook opts def')
+
 -- | Convert a list of lists of blocks to a list of Docbook list items.
 listItemsToDocbook :: WriterOptions -> [[Block]] -> Doc
 listItemsToDocbook opts items = 
@@ -160,8 +178,6 @@ listItemsToDocbook opts items =
 -- | Convert a list of blocks into a Docbook list item.
 listItemToDocbook :: WriterOptions -> [Block] -> Doc
 listItemToDocbook opts item =
-  let plainToPara (Plain x) = Para x
-      plainToPara y = y in
   let item' = map plainToPara item in
   inTagsIndented "listitem" (blocksToDocbook opts item')
 
@@ -179,6 +195,8 @@ blockToDocbook opts (BulletList lst) =
   inTagsIndented "itemizedlist" $ listItemsToDocbook opts lst 
 blockToDocbook opts (OrderedList lst) = 
   inTagsIndented "orderedlist" $ listItemsToDocbook opts lst 
+blockToDocbook opts (DefinitionList lst) = 
+  inTagsIndented "variablelist" $ deflistItemsToDocbook opts lst 
 blockToDocbook opts (RawHtml str) = text str -- raw XML block 
 blockToDocbook opts HorizontalRule = empty -- not semantic
 blockToDocbook opts (Table caption aligns widths headers rows) =
