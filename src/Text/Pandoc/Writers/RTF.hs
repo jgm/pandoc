@@ -83,10 +83,10 @@ rtfParSpaced :: Int       -- ^ space after (in twips)
              -> String 
 rtfParSpaced spaceAfter indent firstLineIndent alignment content = 
   let alignString = case alignment of
-                           AlignLeft -> "\\ql"
-                           AlignRight -> "\\qr"
-                           AlignCenter -> "\\qc"
-                           AlignDefault -> "\\ql"
+                           AlignLeft -> "\\ql "
+                           AlignRight -> "\\qr "
+                           AlignCenter -> "\\qc "
+                           AlignDefault -> "\\ql "
   in  "{\\pard " ++ alignString ++
       "\\f0 \\sa" ++ (show spaceAfter) ++ " \\li" ++ (show indent) ++ 
       " \\fi" ++ (show firstLineIndent) ++ " " ++ content ++ "\\par}\n"
@@ -131,15 +131,15 @@ rtfHeader :: String    -- ^ header text
 rtfHeader headerText (Meta title authors date) =
     let titletext = if null title
                        then "" 
-                       else rtfPar 0 0 AlignDefault ("\\qc \\b \\fs36 " ++ 
-                                                    inlineListToRTF title)
+                       else rtfPar 0 0 AlignCenter ("\\b \\fs36 " ++ 
+                                                   inlineListToRTF title)
         authorstext = if null authors
                          then "" 
-                         else rtfPar 0 0 AlignDefault ("\\qc " ++ (joinWithSep "\\" 
+                         else rtfPar 0 0 AlignCenter (" " ++ (joinWithSep "\\" 
                                                       (map stringToRTF authors))) 
         datetext = if date == "" 
                       then ""
-                      else rtfPar 0 0 AlignDefault ("\\qc " ++ stringToRTF date) in
+                      else rtfPar 0 0 AlignCenter (" " ++ stringToRTF date) in
     let spacer = if null (titletext ++ authorstext ++ datetext)
                     then ""
                     else rtfPar 0 0 AlignDefault "" in
