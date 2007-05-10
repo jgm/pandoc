@@ -304,6 +304,49 @@ Same thing but with paragraphs:
 \end{itemize}
 \begin{center}\rule{3in}{0.4pt}\end{center}
 
+\section{Definition Lists}
+
+Tight using spaces:
+
+\begin{description}
+\item[apple] red fruit
+\item[orange] orange fruit
+\item[banana] yellow fruit
+\end{description}
+Tight using tabs:
+
+\begin{description}
+\item[apple] red fruit
+\item[orange] orange fruit
+\item[banana] yellow fruit
+\end{description}
+Loose:
+
+\begin{description}
+\item[apple] red fruit
+
+\item[orange] orange fruit
+
+\item[banana] yellow fruit
+
+\end{description}
+Multiple blocks with italics:
+
+\begin{description}
+\item[\emph{apple}] red fruit
+
+contains seeds, crisp, pleasant to taste
+
+\item[\emph{orange}] orange fruit
+
+\begin{verbatim}
+{ orange code block }
+\end{verbatim}
+\begin{quote}
+orange block quote
+
+\end{quote}
+\end{description}
 \section{HTML Blocks}
 
 Simple block on one line:

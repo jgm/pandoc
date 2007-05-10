@@ -287,6 +287,57 @@ Tabs and spaces
 
 --------------
 
+Definition Lists
+================
+
+Tight using spaces:
+
+apple
+    red fruit
+orange
+    orange fruit
+banana
+    yellow fruit
+
+Tight using tabs:
+
+apple
+    red fruit
+orange
+    orange fruit
+banana
+    yellow fruit
+
+Loose:
+
+apple
+    red fruit
+
+orange
+    orange fruit
+
+banana
+    yellow fruit
+
+
+Multiple blocks with italics:
+
+*apple*
+    red fruit
+
+    contains seeds, crisp, pleasant to taste
+
+*orange*
+    orange fruit
+
+    ::
+
+        { orange code block }
+
+        orange block quote
+
+
+
 HTML Blocks
 ===========
 

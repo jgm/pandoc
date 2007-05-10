@@ -550,6 +550,150 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     </section>
   </section>
   <section>
+    <title>Definition Lists</title>
+    <para>
+      Tight using spaces:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>
+          apple
+        </term>
+        <listitem>
+          <para>
+            red fruit
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          orange
+        </term>
+        <listitem>
+          <para>
+            orange fruit
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          banana
+        </term>
+        <listitem>
+          <para>
+            yellow fruit
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      Tight using tabs:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>
+          apple
+        </term>
+        <listitem>
+          <para>
+            red fruit
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          orange
+        </term>
+        <listitem>
+          <para>
+            orange fruit
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          banana
+        </term>
+        <listitem>
+          <para>
+            yellow fruit
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      Loose:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>
+          apple
+        </term>
+        <listitem>
+          <para>
+            red fruit
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          orange
+        </term>
+        <listitem>
+          <para>
+            orange fruit
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          banana
+        </term>
+        <listitem>
+          <para>
+            yellow fruit
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      Multiple blocks with italics:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>
+          <emphasis>apple</emphasis>
+        </term>
+        <listitem>
+          <para>
+            red fruit
+          </para>
+          <para>
+            contains seeds, crisp, pleasant to taste
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <emphasis>orange</emphasis>
+        </term>
+        <listitem>
+          <para>
+            orange fruit
+          </para>
+          <screen>
+{ orange code block }
+</screen>
+          <blockquote>
+            <para>
+              orange block quote
+            </para>
+          </blockquote>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </section>
+  <section>
     <title>Inline Markup</title>
     <para>
       This is <emphasis>emphasized</emphasis>, and so
