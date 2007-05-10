@@ -190,8 +190,10 @@ definitionListItemToMarkdown :: WriterOptions
                              -> State WriterState Doc
 definitionListItemToMarkdown opts (label, items) = do
   labelText <- inlineListToMarkdown opts label
+  let tabStop = writerTabStop opts
+  let leader  = text ":"
   contents <- mapM (\item -> blockToMarkdown opts item >>= 
-              (return . hang (text ":  ") (writerTabStop opts)))
+              (\txt -> return (leader $$ nest tabStop txt)))
               items >>= (return . vcat)
   return $ labelText $+$ contents
 
