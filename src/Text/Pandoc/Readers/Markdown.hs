@@ -187,7 +187,7 @@ referenceKey = try $ do
   char labelSep
   skipSpaces
   option ' ' (char autoLinkStart)
-  src <- many (noneOf (titleOpeners ++ [autoLinkEnd] ++ endLineChars))
+  src <- many (noneOf [autoLinkEnd, '\n', '\t', ' '])
   option ' ' (char autoLinkEnd)
   tit <- option "" title 
   blanklines 
@@ -929,7 +929,7 @@ reference = try $ do
 source = try $ do 
   char srcStart
   option ' ' (char autoLinkStart)
-  src <- many (noneOf ([srcEnd, autoLinkEnd] ++ titleOpeners))
+  src <- many (noneOf [srcEnd, autoLinkEnd, ' ', '\t', '\n'])
   option ' ' (char autoLinkEnd)
   tit <- option "" title
   skipSpaces
@@ -937,9 +937,10 @@ source = try $ do
   return (removeTrailingSpace src, tit)
 
 titleWith startChar endChar = try (do
-  skipSpaces
-  option ' ' newline -- a title can be on the next line from the source
-  skipSpaces
+  leadingSpace <- many1 (oneOf " \t\n")
+  if length (filter (=='\n') leadingSpace) > 1
+    then fail "title must be separated by space and on same or next line"
+    else return ()
   char startChar
   tit <- manyTill anyChar (try (do
                                   char endChar
