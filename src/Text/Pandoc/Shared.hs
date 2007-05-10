@@ -217,9 +217,9 @@ prettyBlock (BulletList blockLists) = "BulletList\n" ++
    indentBy 2 0 ("[ " ++ (joinWithSep ", " 
    (map (\blocks -> prettyBlockList 2 blocks) blockLists))) ++ " ]" 
 prettyBlock (DefinitionList blockLists) = "DefinitionList\n" ++ 
-   indentBy 2 0 ("[ " ++ (joinWithSep ", " 
-   (map (\(term, blocks) -> "(" ++ show term ++ ",\n" ++ 
-   indentBy 1 2 (prettyBlockList 2 blocks) ++ ")") blockLists))) ++ " ]" 
+   indentBy 2 0 ("[" ++ (joinWithSep ",\n" 
+   (map (\(term, blocks) -> "  (" ++ show term ++ ",\n" ++ 
+   indentBy 1 2 (prettyBlockList 2 blocks) ++ "  )") blockLists))) ++ " ]" 
 prettyBlock (Table caption aligns widths header rows) = 
    "Table " ++ show caption ++ " " ++ show aligns ++ " " ++ 
    show widths ++ "\n" ++ prettyRow header ++ " [\n" ++  
