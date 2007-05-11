@@ -86,6 +86,10 @@ print "   docbook writer...";
 `$script -r native -w docbook tables.native > tmp.db`;
 test_results("docbook table writer", "tmp.db", "tables.db");
 
+print "   rtf writer...";
+`$script -r native -w rtf tables.native > tmp.rtf`;
+test_results("rtf table writer", "tmp.rtf", "tables.rtf");
+
 print "\nReader tests:\n";
 
 print "Testing markdown reader...";
