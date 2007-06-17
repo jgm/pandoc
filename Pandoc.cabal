@@ -1,18 +1,18 @@
 Name:            Pandoc
-Version:         @VERSION@
+Version:         0.4
 License:         GPL
 License-File:    COPYING
 Author:          John MacFarlane <jgm at berkeley dot edu>
 Stability:       alpha
 Homepage:        http://sophos.berkeley.edu/macfarlane/pandoc
-Package-URL:     http://pandoc.googlecode.com/files/pandoc-@VERSION@.tar.gz
+Package-URL:     http://pandoc.googlecode.com/files/pandoc-0.4.tar.gz
 Category:        Text
 Tested-With:     GHC
 Synopsis:        Utilities for translating between various markup formats    
 Description:     Haskell utilities for translating between markdown, HTML,
                  reStructuredText, LaTeX, DocBook, and RTF
-Build-Depends:   @BUILD_DEPENDS@
-@HS_SOURCE_DIRS@: src
+Build-Depends:   base, parsec, xhtml, mtl, regex-compat
+Hs-Source-Dirs: src
 Exposed-Modules: Text.ParserCombinators.Pandoc,
                  Text.Pandoc,
                  Text.Pandoc.ASCIIMathML,
@@ -32,9 +32,9 @@ Exposed-Modules: Text.ParserCombinators.Pandoc,
                  Text.Pandoc.Readers.Markdown,
                  Text.Pandoc.Readers.RST,
                  Text.Pandoc.Readers.LaTeX
-Ghc-Options:     @HCFLAGS@
+Ghc-Options:     -O0
 
 Executable:      pandoc
-@HS_SOURCE_DIRS@: src
+Hs-Source-Dirs: src
 Main-Is:         Main.hs
-Ghc-Options:     @HCFLAGS@
+Ghc-Options:     -O0
