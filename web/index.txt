@@ -21,7 +21,7 @@ Pandoc is free software, released under the [GPL].
 **Source distribution:** [`@TARBALL_NAME@`].
 To install, unpack the archive and follow the instructions in the
 [INSTALL](INSTALL.html) file. You'll need the [GHC] Haskell compiler,
-version 6.4 or higher.
+version 6.6 or higher.
 
 **MacOS X binary package:** [`@OSX_DMG_NAME@`].
 To install, just double-click the package icon in the disk

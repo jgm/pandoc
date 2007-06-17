@@ -2,18 +2,12 @@
 
 # Installing GHC
 
-To compile Pandoc, you'll need [GHC] version 6.4 or greater.  If
+To compile Pandoc, you'll need [GHC] version 6.6 or greater.  If
 you don't have GHC already, you can get it from the [GHC Download]
 page.
 
 [GHC]: http://www.haskell.org/ghc/
 [GHC Download]: http://www.haskell.org/ghc/download.html
-
-If you're using GHC 6.4, you'll also need to install the
-[Text.XHtml] library.  This library is included in the standard
-hierarchical libraries in GHC 6.6.
-
-[Text.XHtml]: http://www.cs.chalmers.se/~bringert/darcs/haskell-xhtml/doc/
 
 You'll also need standard build tools: [GNU `make`], `sed`, `bash`,
 and `perl`.  These are standard on unix systems (including MacOS
