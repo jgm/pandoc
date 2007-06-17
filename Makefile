@@ -16,11 +16,11 @@ CONFIGURE := configure
 #-------------------------------------------------------------------------------
 # Cabal constants
 #-------------------------------------------------------------------------------
-NAME      := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL).in)
+NAME      := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL))
 THIS      := $(shell echo $(NAME) | tr A-Z a-z)
 VERSION   := $(shell sed -ne 's/^version[[:space:]]*=[[:space:]]*"\([^"]*\)"/\1/p' $(SRCDIR)/Main.hs)
 RELNAME   := $(THIS)-$(VERSION)
-EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL).in)
+EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL))
 
 #-------------------------------------------------------------------------------
 # Install targets
@@ -31,7 +31,6 @@ EXTENSION := $(shell uname | tr '[:upper:]' '[:lower:]' | \
                sed -ne 's/^cygwin.*$$/\.exe/p')
 EXECS     := $(addsuffix $(EXTENSION),$(EXECSBASE))
 PROGS     := $(EXECS) $(WRAPPERS) 
-# First entry in Cabal's executable stanza is the main executable.
 MAIN      := $(firstword $(EXECS))
 DOCS      := README.html README BUGS 
 
@@ -115,10 +114,6 @@ cleanup_files+=$(WRAPPERS)
 $(WRAPPERS): %: $(SRCDIR)/wrappers/%.in $(SRCDIR)/wrappers/*.sh
 	@$(generate-shell-script)
 
-cleanup_files+=$(CABAL)
-$(CABAL): cabalize $(CABAL).in $(SRCDIR)/Main.hs
-	./cabalize <$(CABAL).in >$(CABAL)
-
 .PHONY: configure
 cleanup_files+=$(BUILDDIR) $(BUILDCONF) $(BUILDVARS)
 configure: $(BUILDCONF) templates
@@ -138,10 +133,10 @@ cleanup_files+=$(EXECS)
 $(EXECS): build
 	for f in $@; do \
 		[ -f $$f ] || { \
-        		find $(BUILDDIR) -type f -name "$$f" \
-					 -perm +a=x -exec ln -s {} . \; ; \
+			find $(BUILDDIR) -type f -name "$$f" \
+							 -perm +a=x -exec ln -s {} . \; ; \
 		} \
-        done
+	done
 
 .PHONY: build-doc
 cleanup_files+=README.html 
@@ -331,6 +326,8 @@ cleanup_files+=$(tarball_name)
 tarball: $(tarball_name)
 $(tarball_name):
 	svn export . $(RELNAME)
+	$(MAKE) -C $(RELNAME) templates
+	$(MAKE) -C $(RELNAME) wrappers
 	tar cvzf $(tarball_name) $(RELNAME)
 	-rm -rf $(fullname)
 
