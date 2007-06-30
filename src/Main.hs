@@ -41,6 +41,7 @@ import Text.Pandoc.Writers.Docbook ( writeDocbook )
 import Text.Pandoc.Writers.LaTeX ( writeLaTeX )
 import Text.Pandoc.Readers.LaTeX ( readLaTeX )
 import Text.Pandoc.Writers.RTF ( writeRTF )
+import Text.Pandoc.Writers.Man ( writeMan )
 import Text.Pandoc.Writers.Markdown ( writeMarkdown )
 import Text.Pandoc.Writers.DefaultHeaders ( defaultRTFHeader, 
                                             defaultS5Header, 
@@ -87,6 +88,7 @@ writers = [("native"   , (writeDoc, ""))
           ,("s5"       , (writeS5String, defaultS5Header))
           ,("docbook"  , (writeDocbook, defaultDocbookHeader))
           ,("latex"    , (writeLaTeX, defaultLaTeXHeader))
+          ,("man"      , (writeMan, ""))
           ,("markdown" , (writeMarkdown, ""))
           ,("rst"      , (writeRST, ""))
           ,("rtf"      , (writeRTF, defaultRTFHeader))
@@ -355,6 +357,7 @@ defaultWriterName x =
     Just ["db"]       -> "docbook"
     Just ["xml"]      -> "docbook"
     Just ["sgml"]     -> "docbook"
+    Just ["1"]        -> "man"
     Just _            -> "html"
 
 main = do
