@@ -69,8 +69,8 @@ metaToMan options (Meta title authors date) = do
              "\" \"") <> title' <> text ("\" \"User Manuals\"")
   let foot = case length authors of
                 0 -> text $ ""
-                1 -> text $ ".SH AUTHOR\n" ++ joinWithSep "\n" authors
-                2 -> text $ ".SH AUTHORS\n" ++ joinWithSep "\n" authors
+                1 -> text $ ".SH AUTHOR\n" ++ joinWithSep ", " authors
+                2 -> text $ ".SH AUTHORS\n" ++ joinWithSep ", " authors
   return $ if writerStandalone options
      then (head, foot)
      else (empty, empty)
@@ -105,11 +105,11 @@ escapeNbsp str =
 
 -- | Escape special characters for Man.
 escapeString :: String -> String
-escapeString = escapeNbsp . backslashEscape "-\\"
+escapeString = escapeNbsp . backslashEscape "\"-'.\\"
 
 -- | Escape a literal (code) section for Man.
 escapeCode :: String -> String
-escapeCode = backslashEscape "-\\\t "
+escapeCode = backslashEscape "\t " . escapeString
 
 -- | Convert Pandoc block element to man.
 blockToMan :: WriterOptions -- ^ Options
@@ -259,5 +259,5 @@ inlineToMan opts (Note contents) = do
   modify (\notes -> contents:notes) -- add to notes in state
   notes <- get
   let ref = show $ (length notes)
-  return $ text "[^" <> text ref <> char ']'
+  return $ text "[" <> text ref <> char ']'
 
