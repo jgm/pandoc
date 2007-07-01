@@ -33,6 +33,7 @@ EXECS     := $(addsuffix $(EXTENSION),$(EXECSBASE))
 PROGS     := $(EXECS) $(WRAPPERS) 
 MAIN      := $(firstword $(EXECS))
 DOCS      := README.html README BUGS 
+MANPAGES  := $(patsubst %.md,%,$(wildcard $(MANDIR)/man?/*.?.md))
 
 #-------------------------------------------------------------------------------
 # Variables to setup through environment
@@ -88,6 +89,8 @@ all: build-program
 	sh ./markdown2pdf $< || rm -f $@
 %.txt: %
 	perl -p -e 's/\n/\r\n/' $< > $@ || rm -f $@ # convert to DOS line endings
+%.1: %.1.md $(MAIN)
+	./$(MAIN) -s -S -w man $< >$@ || rm -f $@
 
 .PHONY: templates
 templates: $(SRCDIR)/templates
@@ -139,8 +142,8 @@ $(EXECS): build
 	done
 
 .PHONY: build-doc
-cleanup_files+=README.html 
-build-doc: $(DOCS)
+cleanup_files+=README.html $(MANPAGES)
+build-doc: $(DOCS) $(MANPAGES)
 
 .PHONY: build-program
 build-program: build-exec build-doc
@@ -158,7 +161,7 @@ build-all: build-program build-lib-doc
 
 # User documents installation.
 .PHONY: install-doc uninstall-doc
-man_all:=$(patsubst $(MANDIR)/%,%,$(wildcard $(MANDIR)/man?/*.1))
+man_all:=$(patsubst $(MANDIR)/%,%,$(MANPAGES))
 install-doc: build-doc
 	$(INSTALL) -d $(DOCPATH) && $(INSTALL_DATA) $(DOCS) $(DOCPATH)/
 	for f in $(man_all); do \
