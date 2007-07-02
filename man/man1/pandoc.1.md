@@ -8,7 +8,7 @@ pandoc - general markup converter
 
 # SYNOPSIS
 
-**pandoc [*options*] [*input-file*]...**
+pandoc [*options*] [*input-file*]...
 
 # DESCRIPTION
 
@@ -77,7 +77,7 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 
 -o *FILE*, --output=*FILE*
 :   Write output to *FILE* instead of STDOUT.  If *FILE* is
-    '`-`', output will go to STDOUT.
+    \``-`', output will go to STDOUT.
 
 -p, --preserve-tabs
 :   Preserve tabs instead of converting them to spaces.
@@ -138,11 +138,11 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 --dump-args
 :   Print information about command-line arguments to STDOUT, then exit.
     The first line of output contains the name of the output file specified
-    with the `-o` option, or '`-`' (for STDOUT) if no output file was
+    with the `-o` option, or \``-`' (for STDOUT) if no output file was
     specified.  The remaining lines contain the command-line arguments,
     one per line, in the order they appear.  These do not include regular
     Pandoc options and their arguments, but do include any options appearing
-    after a '`--`' separator at the end of the line.
+    after a \``--`' separator at the end of the line.
     This option is intended primarily for use in wrapper scripts.
 
 --ignore-args

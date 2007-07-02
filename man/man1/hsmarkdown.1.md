@@ -8,7 +8,7 @@ hsmarkdown - convert markdown-formatted text to HTML
 
 # SYNOPSIS
 
-**hsmarkdown [*input-file*]...**
+hsmarkdown [*input-file*]...
 
 # DESCRIPTION
 

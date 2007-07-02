@@ -8,8 +8,8 @@ html2markdown - converts HTML to markdown-formatted text
 
 # SYNOPSIS
 
-**html2markdown [*pandoc-options*] [-- *special-options*] [*input-file* or
-*URL*]**
+html2markdown [*pandoc-options*] [-- *special-options*] [*input-file* or
+*URL*]
 
 # DESCRIPTION
 
@@ -59,16 +59,15 @@ a complete list.  The following options are most relevant:
 :   Include contents of *FILE* at the end of the document body.
 
 -C *FILE*, --custom-header=*FILE*
-Use contents of *FILE*
-as the document header (overriding the default header, which can be
-printed using `pandoc -D markdown`).  Implies
-`-s`.
+:   Use contents of *FILE*
+    as the document header (overriding the default header, which can be
+    printed using `pandoc -D markdown`).  Implies `-s`.
 
 # SPECIAL OPTIONS
 
 In addition, the following special options may be used.  The special
 options must be separated from the `html2markdown` command and any
-regular `pandoc` options by the delimiter '`--`', as in
+regular `pandoc` options by the delimiter \``--`', as in
 
     html2markdown -o foo.txt -- -g 'curl -u bar:baz' -e latin1  \
     www.foo.com

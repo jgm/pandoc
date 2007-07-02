@@ -8,7 +8,7 @@ markdown2pdf - converts markdown-formatted text to PDF, using pdflatex
 
 # SYNOPSIS
 
-**markdown2pdf [*options*] [*input-file*]...**
+markdown2pdf [*options*] [*input-file*]...
 
 # DESCRIPTION
 
@@ -28,7 +28,7 @@ output through `iconv`:
 
     iconv -t utf-8 input.txt | pandoc | iconv -f utf-8
 
-`markdown2pdf` assumes that the 'unicode' and 'fancyvrb' packages
+`markdown2pdf` assumes that the `unicode` and `fancyvrb` packages
 are in latex's search path.  If these packages are not included in your
 latex setup, they can be obtained from <http://ctan.org>.
 
