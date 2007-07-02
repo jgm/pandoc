@@ -112,7 +112,7 @@ escapeSingleQuote str =
 
 -- | Escape special characters for Man.
 escapeString :: String -> String
-escapeString = escapeSingleQuote . escapeNbsp . backslashEscape "\".-\\"
+escapeString = escapeSingleQuote . escapeNbsp . backslashEscape "\".\\"
 
 -- | Escape a literal (code) section for Man.
 escapeCode :: String -> String
