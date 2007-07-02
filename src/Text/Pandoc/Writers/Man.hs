@@ -103,9 +103,16 @@ escapeNbsp str =
   let (a,b) = break (=='\160') str in
   a ++ escapeNbsp b
 
+-- | Escape single quote as \[aq]
+escapeSingleQuote "" = ""
+escapeSingleQuote ('\'':xs) = "\\[aq]" ++ escapeSingleQuote xs
+escapeSingleQuote str =
+  let (a,b) = break (=='\160') str in
+  a ++ escapeSingleQuote b
+
 -- | Escape special characters for Man.
 escapeString :: String -> String
-escapeString = escapeNbsp . backslashEscape "\"-'.\\"
+escapeString = escapeSingleQuote . escapeNbsp . backslashEscape "\".-\\"
 
 -- | Escape a literal (code) section for Man.
 escapeCode :: String -> String
@@ -119,21 +126,22 @@ blockToMan opts Null = return empty
 blockToMan opts (Plain inlines) = wrappedMan opts inlines
 blockToMan opts (Para inlines) = do
   contents <- wrappedMan opts inlines
-  return $ text "\n.PP" $$ contents 
+  return $ text ".PP" $$ contents 
 blockToMan opts (RawHtml str) = return $ text str
-blockToMan opts HorizontalRule = return $ text $ "\n.PP\n" ++ "   *   *   *   *   *"
+blockToMan opts HorizontalRule = return $ text $ ".PP\n   *   *   *   *   *"
 blockToMan opts (Header level inlines) = do
   contents <- inlineListToMan opts inlines
   let heading = case level of
-                  1 -> "\n.SH "
-                  _ -> "\n.SS "
+                  1 -> ".SH "
+                  _ -> ".SS "
   return $ text heading <> contents 
 blockToMan opts (CodeBlock str) = return $
-  text "\n\\f[B]" $$ text ((unlines . map ("      " ++) . lines) (escapeCode str)) <> 
+  text ".PP" $$ text "\\f[CR]" $$ 
+  text ((unlines . map ("      " ++) . lines) (escapeCode str)) <>
   text "\\f[]"
 blockToMan opts (BlockQuote blocks) = do  
   contents <- blockListToMan opts blocks
-  return $ text "\n.RS" $$ contents $$ text "\n.RE"
+  return $ text ".RS" $$ contents $$ text ".RE"
 blockToMan opts (Table caption _ _ headers rows) = blockToMan opts 
   (Para [Str "pandoc: TABLE unsupported in Man writer"])
 
@@ -156,15 +164,15 @@ bulletListItemToMan opts ((Para first):rest) =
 bulletListItemToMan opts ((Plain first):rest) = do
   first' <- blockToMan opts (Plain first) 
   rest' <- blockListToMan opts rest
-  let first'' = text "\n.IP \\[bu] 2" $$ first'
+  let first'' = text ".IP \\[bu] 2" $$ first'
   let rest''  = if null rest
                    then empty
-                   else text "\n.RS 2" $$ rest' $$ text "\n.RE"
+                   else text ".RS 2" $$ rest' $$ text ".RE"
   return (first'' $$ rest'') 
 bulletListItemToMan opts (first:rest) = do
   first' <- blockToMan opts first
   rest' <- blockListToMan opts rest
-  return $ text "\n\\[bu] \n.RS 2" $$ first' $$ rest' $$ text "\n.RE"
+  return $ text "\\[bu] .RS 2" $$ first' $$ rest' $$ text ".RE"
  
 -- | Convert ordered list item (a list of blocks) to man.
 orderedListItemToMan :: WriterOptions -- ^ options
@@ -177,16 +185,16 @@ orderedListItemToMan opts num ((Para first):rest) =
 orderedListItemToMan opts num ((Plain first):rest) = do
   first' <- blockToMan opts (Plain first) 
   rest' <- blockListToMan opts rest
-  let first'' = text ("\n.IP " ++ show num ++ "." ++ " 4") $$ first'
+  let first'' = text (".IP " ++ show num ++ "." ++ " 4") $$ first'
   let rest''  = if null rest
-                   then text "\n"
-                   else text "\n.RS 4" $$ rest' $$ text "\n.RE"
+                   then empty
+                   else text ".RS 4" $$ rest' $$ text ".RE"
   return (first'' $$ rest'') 
 orderedListItemToMan opts num (first:rest) = do
   first' <- blockToMan opts first
   rest' <- blockListToMan opts rest
-  return $ text ("\n.IP " ++ show num ++ "." ++ " 4") $$ first' $$ 
-           rest' $$ text "\n.RE"
+  return $ text (".IP " ++ show num ++ "." ++ " 4") $$ first' $$ 
+           rest' $$ text ".RE"
 
 -- | Convert definition list item (label, list of blocks) to man.
 definitionListItemToMan :: WriterOptions
@@ -203,8 +211,8 @@ definitionListItemToMan opts (label, items) = do
                         rest' <- mapM (\item -> blockToMan opts item)
                                  rest >>= (return . vcat)
                         first' <- blockToMan opts first
-                        return $ first' $$ text "\n.RS" $$ rest' $$ text "\n.RE"
-  return $ text "\n.TP\n.B " <> labelText $+$ contents
+                        return $ first' $$ text ".RS" $$ rest' $$ text ".RE"
+  return $ text ".TP\n.B " <> labelText $+$ contents
 
 -- | Convert list of Pandoc block elements to man.
 blockListToMan :: WriterOptions -- ^ Options
@@ -240,7 +248,7 @@ inlineToMan opts (Code str) =
 inlineToMan opts (Str str) = return $ text $ escapeString str
 inlineToMan opts (TeX str) = return $ text $ escapeCode str
 inlineToMan opts (HtmlInline str) = return $ text $ escapeCode str 
-inlineToMan opts (LineBreak) = return $ text "\n.P\n"
+inlineToMan opts (LineBreak) = return $ text "\n.P 0\n"
 inlineToMan opts Space = return $ char ' '
 inlineToMan opts (Link txt (src, _)) = do
   linktext <- inlineListToMan opts txt
