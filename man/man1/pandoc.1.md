@@ -14,8 +14,8 @@ pandoc [*options*] [*input-file*]...
 
 Pandoc converts files from one markup format to another. It can
 read markdown and (subsets of) reStructuredText, HTML, and LaTeX, and
-it can write markdown, reStructuredText, HTML, LaTeX, RTF, DocBook
-XML, and S5 HTML slide shows.
+it can write markdown, reStructuredText, HTML, LaTeX, groff man,
+RTF, DocBook XML, and S5 HTML slide shows.
 
 If no *input-file* is specified, input is read from STDIN.
 Otherwise, the *input-files* are concatenated (with a blank
@@ -67,9 +67,9 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
     `man` (groff man page),
     `markdown` (markdown or plain text), `rst` (reStructuredText),
-    `html` (HTML), `latex` (LaTeX), `docbook` (DocBook XML),
-    `s5` (S5 HTML and javascript slide show), or 
-    `rtf` (rich text format).
+    `html` (HTML), `latex` (LaTeX), `man` (groff man), 
+    `docbook` (DocBook XML), `s5` (S5 HTML and javascript slide show),
+     or `rtf` (rich text format).
 
 -s, --standalone
 :   Produce output with an appropriate header and footer (e.g. a
