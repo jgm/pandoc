@@ -6,7 +6,7 @@
 #
 
 PORTNAME=	pandoc
-PORTVERSION=	0.3
+PORTVERSION=	0.4
 CATEGORIES=	textproc haskell
 MASTER_SITES=	http://pandoc.googlecode.com/files/
 DISTNAME=	pandoc-${PORTVERSION}
@@ -14,7 +14,7 @@ DISTNAME=	pandoc-${PORTVERSION}
 MAINTAINER=	jgm@berkeley.edu
 COMMENT=	A general markup converter
 
-BUILD_DEPENDS=	ghc>=6.4:${PORTSDIR}/lang/ghc
+BUILD_DEPENDS=	ghc>=6.6:${PORTSDIR}/lang/ghc
 
 MANCOMPRESSED=	no
 MAN1=		pandoc.1 markdown2pdf.1 html2markdown.1 hsmarkdown.1
