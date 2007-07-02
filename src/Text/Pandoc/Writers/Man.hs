@@ -248,7 +248,7 @@ inlineToMan opts (Code str) =
 inlineToMan opts (Str str) = return $ text $ escapeString str
 inlineToMan opts (TeX str) = return $ text $ escapeCode str
 inlineToMan opts (HtmlInline str) = return $ text $ escapeCode str 
-inlineToMan opts (LineBreak) = return $ text "\n.P 0\n"
+inlineToMan opts (LineBreak) = return $ text "\n.PD 0\n.P\n.PD\n"
 inlineToMan opts Space = return $ char ' '
 inlineToMan opts (Link txt (src, _)) = do
   linktext <- inlineListToMan opts txt
