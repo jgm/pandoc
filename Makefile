@@ -377,6 +377,7 @@ website: $(MAIN) html
 			$(web_dest)/changelog.txt; \
 		cp README $(web_dest)/ ; \
 		cp INSTALL $(web_dest)/ ; \
+		cp $(MANDIR)/man1/pandoc.1.md $(web_dest)/ ; \
 		sed -e 's/@TARBALL_NAME@/$(tarball_name)/g' $(web_src)/index.txt | \
 			sed -e 's/@OSX_DMG_NAME@/$(osx_dmg_name)/g' | \
 			sed -e 's/@WINDOWS_PKG_NAME@/$(win_pkg_name)/g' | \
