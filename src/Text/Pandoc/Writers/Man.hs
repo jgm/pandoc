@@ -33,18 +33,20 @@ module Text.Pandoc.Writers.Man (
                                     ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
+import Text.Printf ( printf )
 import Data.Char ( toUpper )
-import Data.List ( group, isPrefixOf, drop, find )
+import Data.List ( group, isPrefixOf, drop, find, nub, intersperse )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 
 type Notes = [[Block]]
-type WriterState = Notes
+type Preprocessors = [String] -- e.g. "t" for tbl
+type WriterState = (Notes, Preprocessors)
 
 -- | Convert Pandoc to Man.
 writeMan :: WriterOptions -> Pandoc -> String
 writeMan opts document = 
-  render $ evalState (pandocToMan opts document) [] 
+  render $ evalState (pandocToMan opts document) ([],[]) 
 
 -- | Return groff man representation of document.
 pandocToMan :: WriterOptions -> Pandoc -> State WriterState Doc
@@ -55,9 +57,12 @@ pandocToMan opts (Pandoc meta blocks) = do
       after'  = if null after then empty else text after
   (head, foot) <- metaToMan opts meta
   body <- blockListToMan opts blocks
-  notes <- get
+  (notes, preprocessors) <- get
+  let preamble = if null preprocessors
+                    then empty
+                    else text $ ".\\\" " ++ concat (nub preprocessors)
   notes' <- notesToMan opts (reverse notes)
-  return $ head $$ before' $$ body $$ notes' $$ foot $$ after'
+  return $ preamble $$ head $$ before' $$ body $$ notes' $$ foot $$ after'
 
 -- | Insert bibliographic information into Man header and footer.
 metaToMan :: WriterOptions -- ^ Options, including Man header
@@ -112,7 +117,7 @@ escapeSingleQuote str =
 
 -- | Escape special characters for Man.
 escapeString :: String -> String
-escapeString = escapeSingleQuote . escapeNbsp . backslashEscape "\".\\"
+escapeString = escapeSingleQuote . escapeNbsp . backslashEscape "\".@\\"
 
 -- | Escape a literal (code) section for Man.
 escapeCode :: String -> String
@@ -142,8 +147,29 @@ blockToMan opts (CodeBlock str) = return $
 blockToMan opts (BlockQuote blocks) = do  
   contents <- blockListToMan opts blocks
   return $ text ".RS" $$ contents $$ text ".RE"
-blockToMan opts (Table caption _ _ headers rows) = blockToMan opts 
-  (Para [Str "pandoc: TABLE unsupported in Man writer"])
+blockToMan opts (Table caption alignments widths headers rows) = 
+  let aligncode AlignLeft    = "l"
+      aligncode AlignRight   = "r"
+      aligncode AlignCenter  = "c"
+      aligncode AlignDefault = "l"
+  in do
+  caption' <- inlineListToMan opts caption
+  modify (\(notes, preprocessors) -> (notes, "t":preprocessors))
+  let iwidths = map (printf "w(%.2fi)" . (6.5 *)) widths -- 6.5i default width
+  let coldescriptions = text $ joinWithSep " " 
+                        (zipWith (\align width -> aligncode align ++ width) 
+                        alignments iwidths) ++ "."
+  colheadings <- mapM (blockListToMan opts) headers
+  let makeRow cols = text "T{" $$ 
+                     (vcat $ intersperse (text "T}@T{") cols) $$ 
+                     text "T}"
+  let colheadings' = makeRow colheadings
+  body <- mapM (\row -> do 
+                         cols <- mapM (blockListToMan opts) row
+                         return $ makeRow cols) rows
+  return $ text ".PP" $$ caption' $$ 
+           text ".TS" $$ text "tab(@);" $$ coldescriptions $$ 
+           colheadings' $$ text "_" $$ vcat body $$ text ".TE"
 
 blockToMan opts (BulletList items) = do
   contents <- mapM (bulletListItemToMan opts) items
@@ -264,8 +290,8 @@ inlineToMan opts (Image alternate (source, tit)) = do
   linkPart <- inlineToMan opts (Link txt (source, tit)) 
   return $ char '[' <> text "IMAGE: " <> linkPart <> char ']'
 inlineToMan opts (Note contents) = do 
-  modify (\notes -> contents:notes) -- add to notes in state
-  notes <- get
+  modify (\(notes, prep) -> (contents:notes, prep)) -- add to notes in state
+  (notes, _) <- get
   let ref = show $ (length notes)
   return $ text "[" <> text ref <> char ']'
 
