@@ -34,7 +34,8 @@ module Text.Pandoc.Writers.Markdown (
                                     ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
-import Data.List ( group, isPrefixOf, drop, find )
+import Text.Pandoc.Blocks
+import Data.List ( group, isPrefixOf, drop, find, intersperse )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 
@@ -154,8 +155,38 @@ blockToMarkdown opts (BlockQuote blocks) = do
   contents <- blockListToMarkdown opts blocks
   let quotedContents = unlines $ map ("> " ++) $ lines $ render contents
   return $ text quotedContents 
-blockToMarkdown opts (Table caption _ _ headers rows) = blockToMarkdown opts 
-  (Para [Str "pandoc: TABLE unsupported in Markdown writer"])
+blockToMarkdown opts (Table caption aligns widths headers rows) =  do
+  caption' <- inlineListToMarkdown opts caption
+  let caption'' = if null caption
+                     then empty
+                     else text "" $$ (text "Table: " <> caption')
+  headers' <- mapM (blockListToMarkdown opts) headers
+  let widthsInChars = map (floor . (78 *)) widths
+  let alignHeader alignment = case alignment of
+                                AlignLeft    -> leftAlignBlock
+                                AlignCenter  -> centerAlignBlock
+                                AlignRight   -> rightAlignBlock
+                                AlignDefault -> leftAlignBlock  
+  let makeRow = hsepBlocks . (zipWith alignHeader aligns) . 
+                (zipWith docToBlock widthsInChars)
+  let head = makeRow headers'
+  rows' <- mapM (\row -> do 
+                           cols <- mapM (blockListToMarkdown opts) row
+                           return $ makeRow cols) rows
+  let tableWidth = sum widthsInChars
+  let maxRowHeight = maximum $ map heightOfBlock (head:rows')
+  let isMultilineTable = maxRowHeight > 1
+  let border = if isMultilineTable
+                  then text $ replicate tableWidth '-'
+                  else empty
+  let underline = hsep $ 
+                  map (\width -> text $ replicate width '-') widthsInChars
+  let spacer = if isMultilineTable
+                  then text ""
+                  else empty
+  let body = vcat $ intersperse spacer $ map blockToDoc rows'
+  return $ nest 2 $ border $$ (blockToDoc head) $$ underline $$ body $$ 
+                    border $$ caption'' $$ text ""
 blockToMarkdown opts (BulletList items) = do
   contents <- mapM (bulletListItemToMarkdown opts) items
   return $ (vcat contents) <> text "\n"
