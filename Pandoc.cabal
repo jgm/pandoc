@@ -10,7 +10,7 @@ Category:        Text
 Tested-With:     GHC
 Synopsis:        Utilities for translating between various markup formats    
 Description:     Haskell utilities for translating between markdown, HTML,
-                 reStructuredText, LaTeX, DocBook, and RTF
+                 reStructuredText, LaTeX, DocBook, groff man, and RTF
 Build-Depends:   base, parsec, xhtml, mtl, regex-compat
 Hs-Source-Dirs: src
 Exposed-Modules: Text.ParserCombinators.Pandoc,
@@ -20,6 +20,7 @@ Exposed-Modules: Text.ParserCombinators.Pandoc,
                  Text.Pandoc.Entities,
                  Text.Pandoc.Shared,
                  Text.Pandoc.UTF8,
+                 Text.Pandoc.Blocks,
                  Text.Pandoc.Writers.DefaultHeaders,
                  Text.Pandoc.Writers.Docbook,
                  Text.Pandoc.Writers.HTML,
