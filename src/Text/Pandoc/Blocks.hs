@@ -1,11 +1,15 @@
-module Text.Blocks
+module Text.Pandoc.Blocks
                ( 
+                TextBlock (..),
                 docToBlock,
                 blockToDoc,
                 widthOfBlock,
                 heightOfBlock,
                 hcatBlocks,
-                hsepBlocks
+                hsepBlocks,
+                centerAlignBlock,
+                leftAlignBlock,
+                rightAlignBlock
                )
 where
 
@@ -32,7 +36,7 @@ blockToDoc :: TextBlock -> Doc
 blockToDoc (TextBlock _ _ lns) = 
   if null lns
      then empty
-     else text $ unlines (init lns) ++ last lns  -- to avoid trailing \n
+     else vcat $ map text lns
 
 widthOfBlock :: TextBlock -> Int
 widthOfBlock (TextBlock width _ _) = width
@@ -60,4 +64,29 @@ hcatBlocks ((TextBlock width1 height1 lns1):xs) =
    in TextBlock width height lns 
 
 hsepBlocks = hcatBlocks . (intersperse (TextBlock 1 1 [" "]))
+
+isWhitespace x = x `elem` " \t"
+
+leftAlignBlock :: TextBlock -> TextBlock
+leftAlignBlock (TextBlock width height lns) =
+  TextBlock width height $ 
+            map (dropWhile isWhitespace) lns
+
+rightAlignBlock :: TextBlock -> TextBlock
+rightAlignBlock (TextBlock width height lns) =
+  let rightAlignLine ln = 
+        let (spaces, rest) = span isWhitespace $ reverse $ hPad width ln
+        in  reverse (rest ++ spaces)
+  in  TextBlock width height $ map rightAlignLine lns
+
+centerAlignBlock :: TextBlock -> TextBlock
+centerAlignBlock (TextBlock width height lns) = 
+  let centerAlignLine ln =
+        let ln' = hPad width ln
+            (startSpaces, rest) = span isWhitespace ln'
+            endSpaces = takeWhile isWhitespace (reverse ln')
+            numSpaces = length (startSpaces ++ endSpaces)
+            startSpaces' = replicate (quot numSpaces 2) ' '
+        in  startSpaces' ++ rest 
+  in  TextBlock width height $ map centerAlignLine lns
 
