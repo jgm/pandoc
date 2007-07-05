@@ -34,7 +34,8 @@ module Text.Pandoc.Writers.RST (
                                     ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
-import Data.List ( group, isPrefixOf, drop, find )
+import Text.Pandoc.Blocks
+import Data.List ( group, isPrefixOf, drop, find, intersperse )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 
@@ -176,8 +177,38 @@ blockToRST opts (CodeBlock str) = return $ (text "::\n") $$ text "" $$
 blockToRST opts (BlockQuote blocks) = do
   contents <- blockListToRST opts blocks 
   return $ (nest (writerTabStop opts) contents) <> text "\n"
-blockToRST opts (Table caption _ _ headers rows) = blockToRST opts 
-  (Para [Str "pandoc: TABLE unsupported in RST writer"])
+blockToRST opts (Table caption aligns widths headers rows) =  do
+  caption' <- inlineListToRST opts caption
+  let caption'' = if null caption
+                     then empty
+                     else text "" $$ (text "Table: " <> caption')
+  headers' <- mapM (blockListToRST opts) headers
+  let widthsInChars = map (floor . (78 *)) widths
+  let alignHeader alignment = case alignment of
+                                AlignLeft    -> leftAlignBlock
+                                AlignCenter  -> centerAlignBlock
+                                AlignRight   -> rightAlignBlock
+                                AlignDefault -> leftAlignBlock  
+  let hpipeBlocks blocks = hcatBlocks [beg, middle, end] 
+        where height = maximum (map heightOfBlock blocks)
+              sep    = TextBlock 3 height (replicate height " | ")
+              beg    = TextBlock 2 height (replicate height "| ")
+              end    = TextBlock 2 height (replicate height " |")
+              middle = hcatBlocks $ intersperse sep blocks
+  let makeRow = hpipeBlocks . (zipWith docToBlock widthsInChars)
+  let head = makeRow headers'
+  rows' <- mapM (\row -> do 
+                           cols <- mapM (blockListToRST opts) row
+                           return $ makeRow cols) rows
+  let tableWidth = sum widthsInChars
+  let maxRowHeight = maximum $ map heightOfBlock (head:rows')
+  let border ch = char '+' <> char ch <>
+                  (hcat $ intersperse (char ch <> char '+' <> char ch) $ 
+                          map (\l -> text $ replicate l ch) widthsInChars) <>
+                  char ch <> char '+'
+  let body = vcat $ intersperse (border '-') $ map blockToDoc rows'
+  return $ border '-' $$ blockToDoc head $$ border '=' $$ body $$ 
+           border '-' $$ caption'' $$ text ""
 blockToRST opts (BulletList items) = do
   contents <- mapM (bulletListItemToRST opts) items
   return $ (vcat contents) <> text "\n"
