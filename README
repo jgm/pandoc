@@ -153,8 +153,8 @@ The shell scripts (described below) automatically convert the input
 from the local encoding to UTF-8 before running them through `pandoc`,
 then convert the output back to the local encoding.
 
-`markdown2pdf`, `html2markdown`, and `hsmarkdown`
-=================================================
+Shell scripts
+=============
 
 Three shell scripts, `markdown2pdf`, `html2markdown`, and `hsmarkdown`,
 are included in the standard Pandoc installation.  (They are not included
@@ -654,7 +654,7 @@ Box-style blockquotes
 ---------------------
 
 Pandoc supports emacs-style boxquote block quotes, in addition to
-standard markdown (email-style) boxquotes:
+standard markdown (email-style) block quotes:
 
 	,----
 	| They look like this.
