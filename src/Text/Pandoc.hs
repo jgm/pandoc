@@ -31,7 +31,13 @@ from the Pandoc libraries.
 
 module Text.Pandoc
                ( 
-                 module Text.Pandoc.Definition
+                 Pandoc (..)
+               , Meta (..)
+               , Alignment (..)
+               , Block (..)
+               , QuoteType (..)
+               , Target
+               , Inline (..)
 
                -- Text.Pandoc.UTF8
                , encodeUTF8
