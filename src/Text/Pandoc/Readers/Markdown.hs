@@ -161,18 +161,24 @@ titleBlock = try (do
   return (title, author, date))
 
 parseMarkdown = do
-  updateState (\state -> state { stateParseRaw = True }) -- parse raw HTML: markdown allows it
+  updateState (\state -> state { stateParseRaw = True }) -- markdown allows raw HTML
   (title, author, date) <- option ([],[],"") titleBlock
   -- go through once just to get list of reference keys
-  refs <- manyTill (noteBlock <|> referenceKey <|> (do l <- lineClump
-                                                       return (LineClump l))) eof 
+  refs <- manyTill (referenceKey <|> (do l <- lineClump
+                                         return (LineClump l))) eof 
   let keys = map (\(KeyBlock label target) -> (label, target)) $ 
                  filter isKeyBlock refs
+  let rawlines = map (\(LineClump ln) -> ln) $ filter isLineClump refs
+  setInput $ concat rawlines -- with keys stripped out 
+  updateState (\state -> state { stateKeys = keys })
+  -- now go through for notes
+  refs <- manyTill (noteBlock <|> (do l <- lineClump
+                                      return (LineClump l))) eof 
   let notes = map (\(NoteBlock label blocks) -> (label, blocks)) $ 
                    filter isNoteBlock refs
   let rawlines = map (\(LineClump ln) -> ln) $ filter isLineClump refs
   setInput $ concat rawlines -- with note blocks and keys stripped out 
-  updateState (\state -> state { stateKeys = keys, stateNotes = notes })
+  updateState (\state -> state { stateNotes = notes })
   blocks <- parseBlocks  -- go through again, for real
   let blocks' = filter (/= Null) blocks
   return (Pandoc (Meta title author date) blocks')
