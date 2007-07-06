@@ -211,6 +211,14 @@ may be used in Windows under Cygwin.)
     options are allowed.  (In fact, options will be interpreted as
     filenames.)
 
+    As an alternative to using the `hsmarkdown` shell script, the
+    user may create a symbolic link to `pandoc` called `hsmarkdown`.
+    When invoked under the name `hsmarkdown`, `pandoc` will behave
+    as if the `--strict` flag had been selected, and no command-line
+    options will be recognized.  However, this approach does not work
+    under Cygwin, due to problems with its simulation of symbolic
+    links.
+
 Command-line options
 ====================
 
