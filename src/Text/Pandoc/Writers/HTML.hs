@@ -40,8 +40,7 @@ import Text.XHtml.Strict
 
 type Notes = [Html]
 type Ids = [String]
-type Toc = Html
-type WriterState = (Notes, Ids, Toc)
+type WriterState = (Notes, Ids)
 
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
@@ -54,7 +53,7 @@ writeHtmlString opts =
 writeHtml :: WriterOptions -> Pandoc -> Html
 writeHtml opts (Pandoc (Meta tit authors date) blocks) = 
   let titlePrefix = writerTitlePrefix opts
-      topTitle    = evalState (inlineListToHtml opts tit) ([],[],noHtml)
+      topTitle    = evalState (inlineListToHtml opts tit) ([],[])
       topTitle'   = if null titlePrefix
                         then topTitle
                         else titlePrefix +++ " - " +++ topTitle
@@ -74,13 +73,15 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
                         else noHtml
       headerBlocks = filter isHeaderBlock blocks
       ids = uniqueIdentifiers $ map (\(Header _ lst) -> lst) headerBlocks
-      toc = noHtml -- for debugging: tableOfContents headerBlocks ids
-      (blocks', (revnotes,_,_)) = 
-                    runState (blockListToHtml opts blocks) ([],ids,toc)
+      toc = if writerTableOfContents opts 
+               then tableOfContents opts headerBlocks ids
+               else noHtml
+      (blocks', (revnotes,_)) = 
+                    runState (blockListToHtml opts blocks) ([],ids)
       notes       = reverse revnotes
       before      = primHtml $ writerIncludeBefore opts
       after       = primHtml $ writerIncludeAfter opts
-      thebody     = before +++ titleHeader +++ blocks' +++
+      thebody     = before +++ titleHeader +++ toc +++ blocks' +++
                     footnoteSection opts notes +++ after
   in  if writerStandalone opts
          then head +++ (body thebody)
@@ -90,6 +91,33 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
 isHeaderBlock :: Block -> Bool
 isHeaderBlock (Header _ _) = True
 isHeaderBlock _ = False
+
+-- | Construct table of contents from list of header blocks and identifiers.
+-- Assumes there are as many identifiers as header blocks.
+tableOfContents :: WriterOptions -> [Block] -> Ids -> Html
+tableOfContents opts headers ids =
+  let opts' = opts { writerIgnoreNotes = True }
+      contentsTree = hierarchicalize headers
+      contents = evalState (mapM (elementToListItem opts') contentsTree) 
+                 ([],ids)
+  in  unordList ! [identifier "toc"] $ contents
+
+-- | Converts an Element to a list item for a table of contents,
+-- retrieving the appropriate identifier from state.
+elementToListItem :: WriterOptions -> Element -> State WriterState Html
+elementToListItem opts (Blk _) = return noHtml
+elementToListItem opts (Sec headerText subsecs) = do
+  (notes, ids) <- get
+  let (id, rest) = if null ids
+                      then ("",[])
+                      else (head ids, tail ids)
+  put (notes, rest)
+  txt <- inlineListToHtml opts headerText
+  subHeads <- mapM (elementToListItem opts) subsecs
+  let subList = if null subHeads
+                   then noHtml
+                   else unordList subHeads 
+  return $ (anchor ! [href ("#" ++ id)] $ txt) +++ subList
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
@@ -167,12 +195,12 @@ inlineListToIdentifier (x:xs) =
 -- | Return unique identifiers for list of inline lists.
 uniqueIdentifiers :: [[Inline]] -> [String]
 uniqueIdentifiers ls =
-  reverse (foldl addIdentifier [] ls) where
-  addIdentifier ids l =
+  let addIdentifier (nonuniqueIds, uniqueIds) l =
         let new = inlineListToIdentifier l
-            matches = length $ filter (== new) ids
+            matches = length $ filter (== new) nonuniqueIds
             new' = new ++ if matches > 0 then show matches else ""
-        in  new':ids
+        in  (new:nonuniqueIds, new':uniqueIds)
+  in  reverse $ snd (foldl addIdentifier ([],[]) $ ls)
 
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: WriterOptions -> Block -> State WriterState Html
@@ -199,19 +227,25 @@ blockToHtml opts block =
                                        (return . blockquote)
           else blockListToHtml opts blocks >>= (return . blockquote)
     (Header level lst) -> do contents <- inlineListToHtml opts lst
-                             (notes, ids, toc) <- get
+                             (notes, ids) <- get
                              let (id, rest) = if null ids
                                                  then ("", [])
                                                  else (head ids, tail ids)
-                             put (notes, rest, toc)
-                             return $  case level of
-                                         1 -> h1 contents ! [identifier id]
-                                         2 -> h2 contents ! [identifier id]
-                                         3 -> h3 contents ! [identifier id]
-                                         4 -> h4 contents ! [identifier id]
-                                         5 -> h5 contents ! [identifier id]
-                                         6 -> h6 contents ! [identifier id]
-                                         _ -> paragraph contents ! [identifier id]
+                             put (notes, rest)
+                             let attribs = [identifier id]
+                             let headerHtml = case level of
+                                         1 -> h1 contents ! attribs
+                                         2 -> h2 contents ! attribs
+                                         3 -> h3 contents ! attribs
+                                         4 -> h4 contents ! attribs
+                                         5 -> h5 contents ! attribs
+                                         6 -> h6 contents ! attribs
+                                         _ -> paragraph contents ! attribs
+                             let headerHtml' = if writerTableOfContents opts
+                                                  then anchor ! [href "#toc"] $
+                                                       headerHtml
+                                                  else headerHtml
+                             return headerHtml'
     (BulletList lst)   -> do contents <- mapM (blockListToHtml opts) lst
                              let attribs = if writerIncremental opts
                                               then [theclass "incremental"]
@@ -313,11 +347,11 @@ inlineToHtml opts inline =
                                             if null txt then [] else [alt alternate']
                            return $ image ! attributes 
                            -- note:  null title included, as in Markdown.pl 
-    (Note contents)  -> do (notes, ids, toc) <- get
+    (Note contents)  -> do (notes, ids) <- get
                            let number = (length notes) + 1
                            let ref = show number
                            htmlContents <- blockListToNote opts ref contents 
-                           put (htmlContents:notes, ids, toc) -- push contents onto front of notes
+                           put (htmlContents:notes, ids) -- push contents onto front of notes
                            return $ anchor ! [href ("#fn" ++ ref),
                                               theclass "footnoteRef",
                                               identifier ("fnref" ++ ref)] << sup << ref
