@@ -482,6 +482,7 @@ main = do
                                       writerTableOfContents = toc &&
                                                               (not strict),
                                       writerS5             = (writerName=="s5"),
+                                      writerIgnoreNotes    = False,
                                       writerIncremental    = incremental, 
                                       writerNumberSections = numberSections,
                                       writerIncludeBefore  = includeBefore, 

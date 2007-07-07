@@ -61,6 +61,8 @@ module Text.Pandoc.Shared (
                      -- * Pandoc block and inline list processing
                      normalizeSpaces,
                      compactify,
+                     Element (..),
+                     hierarchicalize,
                      -- * Writer options
                      WriterOptions (..),
                      defaultWriterOptions,
@@ -368,6 +370,26 @@ containsPara ((OrderedList items):rest) = (any containsPara items) ||
                                           (containsPara rest)
 containsPara (x:rest) = containsPara rest
 
+-- | Data structure for defining hierarchical Pandoc documents
+data Element = Blk Block 
+             | Sec [Inline] [Element] deriving (Eq, Read, Show)
+
+-- | Returns true on Header block with level at least 'level'
+headerAtLeast :: Int -> Block -> Bool
+headerAtLeast level (Header x _) = x <= level
+headerAtLeast level _ = False
+
+-- | Convert list of Pandoc blocks into list of Elements (hierarchical) 
+hierarchicalize :: [Block] -> [Element]
+hierarchicalize [] = []
+hierarchicalize (block:rest) = 
+  case block of
+    (Header level title) -> let (thisSection, rest') = break (headerAtLeast 
+                                                       level) rest in
+                            (Sec title (hierarchicalize thisSection)):
+                            (hierarchicalize rest') 
+    x                    -> (Blk x):(hierarchicalize rest)
+
 -- | Options for writers
 data WriterOptions = WriterOptions
     { writerStandalone      :: Bool   -- ^ Include header and footer
@@ -377,6 +399,7 @@ data WriterOptions = WriterOptions
     , writerIncludeAfter    :: String -- ^ String to include after the body
     , writerTableOfContents :: Bool   -- ^ Include table of contents
     , writerS5              :: Bool   -- ^ We're writing S5 
+    , writerIgnoreNotes     :: Bool   -- ^ Ignore footnotes (used in making toc)
     , writerIncremental     :: Bool   -- ^ Incremental S5 lists
     , writerNumberSections  :: Bool   -- ^ Number sections in LaTeX
     , writerStrictMarkdown  :: Bool   -- ^ Use strict markdown syntax
@@ -393,6 +416,7 @@ defaultWriterOptions =
                     writerTabStop         = 4,
                     writerTableOfContents = False,
                     writerS5              = False,
+                    writerIgnoreNotes     = False,
                     writerIncremental     = False,
                     writerNumberSections  = False,
                     writerIncludeBefore   = "",
@@ -433,4 +457,5 @@ refsMatch ((Quoted t x):restx) ((Quoted u y):resty) =
 refsMatch (x:restx) (y:resty) = (x == y) && refsMatch restx resty
 refsMatch [] x = null x
 refsMatch x [] = null x
+
 

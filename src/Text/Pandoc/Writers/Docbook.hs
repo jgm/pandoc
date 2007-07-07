@@ -74,26 +74,6 @@ inTagsIndented tagType = inTags True tagType []
 -- Docbook writer
 --
 
--- | Data structure for defining hierarchical Pandoc documents
-data Element = Blk Block 
-             | Sec [Inline] [Element] deriving (Eq, Read, Show)
-
--- | Returns true on Header block with level at least 'level'
-headerAtLeast :: Int -> Block -> Bool
-headerAtLeast level (Header x _) = x <= level
-headerAtLeast level _ = False
-
--- | Convert list of Pandoc blocks into list of Elements (hierarchical) 
-hierarchicalize :: [Block] -> [Element]
-hierarchicalize [] = []
-hierarchicalize (block:rest) = 
-  case block of
-    (Header level title) -> let (thisSection, rest') = break (headerAtLeast 
-                                                       level) rest in
-                            (Sec title (hierarchicalize thisSection)):
-                            (hierarchicalize rest') 
-    x                    -> (Blk x):(hierarchicalize rest)
-
 -- | Convert list of authors to a docbook <author> section
 authorToDocbook :: [Char] -> Doc
 authorToDocbook name = inTagsIndented "author" $ 
