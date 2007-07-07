@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 # Constant names and commands in source tree
 #-------------------------------------------------------------------------------
-CABAL     := Pandoc.cabal
+CABAL     := pandoc.cabal
 SRCDIR    := src
 MANDIR    := man
 TESTDIR   := tests

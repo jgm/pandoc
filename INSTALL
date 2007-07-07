@@ -85,8 +85,6 @@ but are documented here for packagers and developers:
 
 * `configure`:  Performs the needed preprocessing to create a proper
   Cabal package for Pandoc:
-    - Builds `Pandoc.cabal` from `Pandoc.cabal.in`, using
-      the shell script `cabalize`.  
     - Builds `ASCIIMathML.hs`, `DefaultHeaders.hs`, and `S5.hs`
       from templates in `src/templates` and data in `src/ASCIIMathML.js`,
       `src/ui`, and `src/headers`.
