@@ -39,6 +39,9 @@ import Control.Monad.State
 import Text.XHtml.Strict
 
 type Notes = [Html]
+type Ids = [String]
+type Toc = Html
+type WriterState = (Notes, Ids, Toc)
 
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
@@ -51,7 +54,7 @@ writeHtmlString opts =
 writeHtml :: WriterOptions -> Pandoc -> Html
 writeHtml opts (Pandoc (Meta tit authors date) blocks) = 
   let titlePrefix = writerTitlePrefix opts
-      topTitle    = evalState (inlineListToHtml opts tit) []
+      topTitle    = evalState (inlineListToHtml opts tit) ([],[],noHtml)
       topTitle'   = if null titlePrefix
                         then topTitle
                         else titlePrefix +++ " - " +++ topTitle
@@ -69,7 +72,11 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
                     (not (writerS5 opts))
                         then h1 ! [theclass "title"] $ topTitle
                         else noHtml
-      (blocks', revnotes) = runState (blockListToHtml opts blocks) []
+      headerBlocks = filter isHeaderBlock blocks
+      ids = uniqueIdentifiers $ map (\(Header _ lst) -> lst) headerBlocks
+      toc = noHtml -- for debugging: tableOfContents headerBlocks ids
+      (blocks', (revnotes,_,_)) = 
+                    runState (blockListToHtml opts blocks) ([],ids,toc)
       notes       = reverse revnotes
       before      = primHtml $ writerIncludeBefore opts
       after       = primHtml $ writerIncludeAfter opts
@@ -78,6 +85,11 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
   in  if writerStandalone opts
          then head +++ (body thebody)
          else thebody
+
+-- | True if block is a Header block.
+isHeaderBlock :: Block -> Bool
+isHeaderBlock (Header _ _) = True
+isHeaderBlock _ = False
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
@@ -129,8 +141,41 @@ obfuscateChar char =
 obfuscateString :: String -> String
 obfuscateString = (concatMap obfuscateChar) . decodeEntities
 
+-- | Convert Pandoc inline list to plain text identifier.
+inlineListToIdentifier :: [Inline] -> String
+inlineListToIdentifier [] = ""
+inlineListToIdentifier (x:xs) = 
+  xAsText ++ inlineListToIdentifier xs
+  where xAsText = case x of
+                       Str s        -> s
+                       Emph lst     -> inlineListToIdentifier lst
+                       Strong lst   -> inlineListToIdentifier lst
+                       Quoted _ lst -> inlineListToIdentifier lst
+                       Code s       -> s
+                       Space        -> "_"
+                       EmDash       -> "--"
+                       EnDash       -> "-"
+                       Apostrophe   -> ""
+                       Ellipses     -> "..."
+                       LineBreak    -> "_"
+                       TeX _        -> ""
+                       HtmlInline _ -> ""
+                       Link lst _   -> inlineListToIdentifier lst
+                       Image lst _  -> inlineListToIdentifier lst
+                       Note _       -> ""
+
+-- | Return unique identifiers for list of inline lists.
+uniqueIdentifiers :: [[Inline]] -> [String]
+uniqueIdentifiers ls =
+  reverse (foldl addIdentifier [] ls) where
+  addIdentifier ids l =
+        let new = inlineListToIdentifier l
+            matches = length $ filter (== new) ids
+            new' = new ++ if matches > 0 then show matches else ""
+        in  new':ids
+
 -- | Convert Pandoc block element to HTML.
-blockToHtml :: WriterOptions -> Block -> State Notes Html
+blockToHtml :: WriterOptions -> Block -> State WriterState Html
 blockToHtml opts block = 
   case block of
     (Null)            -> return $ noHtml
@@ -154,14 +199,19 @@ blockToHtml opts block =
                                        (return . blockquote)
           else blockListToHtml opts blocks >>= (return . blockquote)
     (Header level lst) -> do contents <- inlineListToHtml opts lst
+                             (notes, ids, toc) <- get
+                             let (id, rest) = if null ids
+                                                 then ("", [])
+                                                 else (head ids, tail ids)
+                             put (notes, rest, toc)
                              return $  case level of
-                                         1 -> h1 contents
-                                         2 -> h2 contents
-                                         3 -> h3 contents
-                                         4 -> h4 contents
-                                         5 -> h5 contents
-                                         6 -> h6 contents
-                                         _ -> paragraph contents
+                                         1 -> h1 contents ! [identifier id]
+                                         2 -> h2 contents ! [identifier id]
+                                         3 -> h3 contents ! [identifier id]
+                                         4 -> h4 contents ! [identifier id]
+                                         5 -> h5 contents ! [identifier id]
+                                         6 -> h6 contents ! [identifier id]
+                                         _ -> paragraph contents ! [identifier id]
     (BulletList lst)   -> do contents <- mapM (blockListToHtml opts) lst
                              let attribs = if writerIncremental opts
                                               then [theclass "incremental"]
@@ -216,15 +266,15 @@ tableItemToHtml opts tag align' width item =
                     else [] 
      return $ tag ! attrib $ contents
 
-blockListToHtml :: WriterOptions -> [Block] -> State Notes Html
+blockListToHtml :: WriterOptions -> [Block] -> State WriterState Html
 blockListToHtml opts lst = mapM (blockToHtml opts) lst >>= (return . toHtmlFromList)
 
 -- | Convert list of Pandoc inline elements to HTML.
-inlineListToHtml :: WriterOptions -> [Inline] -> State Notes Html
+inlineListToHtml :: WriterOptions -> [Inline] -> State WriterState Html
 inlineListToHtml opts lst = mapM (inlineToHtml opts) lst >>= (return . toHtmlFromList)
 
 -- | Convert Pandoc inline element to HTML.
-inlineToHtml :: WriterOptions -> Inline -> State Notes Html
+inlineToHtml :: WriterOptions -> Inline -> State WriterState Html
 inlineToHtml opts inline =
   case inline of  
     (Str str)        -> return $ stringToHtml str
@@ -263,16 +313,16 @@ inlineToHtml opts inline =
                                             if null txt then [] else [alt alternate']
                            return $ image ! attributes 
                            -- note:  null title included, as in Markdown.pl 
-    (Note contents)  -> do notes <- get
+    (Note contents)  -> do (notes, ids, toc) <- get
                            let number = (length notes) + 1
                            let ref = show number
                            htmlContents <- blockListToNote opts ref contents 
-                           modify (htmlContents:) -- push contents onto front of notes
+                           put (htmlContents:notes, ids, toc) -- push contents onto front of notes
                            return $ anchor ! [href ("#fn" ++ ref),
                                               theclass "footnoteRef",
                                               identifier ("fnref" ++ ref)] << sup << ref
 
-blockListToNote :: WriterOptions -> String -> [Block] -> State Notes Html
+blockListToNote :: WriterOptions -> String -> [Block] -> State WriterState Html
 blockListToNote opts ref blocks =
   do contents <- blockListToHtml opts blocks
      let backlink = anchor ! [href ("#fnref" ++ ref), theclass "footnoteBacklink",
