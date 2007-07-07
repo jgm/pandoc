@@ -161,7 +161,8 @@ blockToMan opts (Table caption alignments widths headers rows) =
   in do
   caption' <- inlineListToMan opts caption
   modify (\(notes, preprocessors) -> (notes, "t":preprocessors))
-  let iwidths = map (printf "w(%.2fi)" . (6.5 *)) widths -- 6.5i default width
+  let iwidths = map (printf "w(%0.2fn)" . (70 *)) widths 
+  -- 78n default width - 8n indent = 70n
   let coldescriptions = text $ joinWithSep " " 
                         (zipWith (\align width -> aligncode align ++ width) 
                         alignments iwidths) ++ "."
