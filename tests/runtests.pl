@@ -90,6 +90,18 @@ print "   rtf writer...";
 `$script -r native -w rtf tables.native > tmp.rtf`;
 test_results("rtf table writer", "tmp.rtf", "tables.rtf");
 
+print "   markdown writer...";
+`$script -r native -w markdown tables.native > tmp.markdown`;
+test_results("markdown table writer", "tmp.markdown", "tables.markdown");
+
+print "   rst writer...";
+`$script -r native -w rst tables.native > tmp.rst`;
+test_results("rst table writer", "tmp.rst", "tables.rst");
+
+print "   man writer...";
+`$script -r native -w man tables.native > tmp.man`;
+test_results("man table writer", "tmp.man", "tables.man");
+
 print "\nReader tests:\n";
 
 print "Testing markdown reader...";
