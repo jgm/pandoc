@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2006 John MacFarlane <jgm at berkeley dot edu>
+Copyright (C) 2006-7 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,10 +18,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Main
-   Copyright   : Copyright (C) 2006 John MacFarlane
+   Copyright   : Copyright (C) 2006-7 John MacFarlane
    License     : GNU GPL, version 2 or above 
 
-   Maintainer  : John MacFarlane <jgm at berkeley dot edu>
+   Maintainer  : John MacFarlane <jgm@berkeley@edu>
    Stability   : alpha 
    Portability : portable
 
@@ -63,7 +63,7 @@ version :: String
 version = "0.4"
 
 copyrightMessage :: String
-copyrightMessage = "\nCopyright (C) 2006 John MacFarlane\n\
+copyrightMessage = "\nCopyright (C) 2006-7 John MacFarlane\n\
                     \Web:  http://sophos.berkeley.edu/macfarlane/pandoc\n\
                     \This is free software; see the source for copying conditions.  There is no\n\
                     \warranty, not even for merchantability or fitness for a particular purpose."
