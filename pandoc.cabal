@@ -2,7 +2,9 @@ Name:            pandoc
 Version:         0.4
 License:         GPL
 License-File:    COPYING
-Author:          John MacFarlane <jgm at berkeley dot edu>
+Copyright:       (c) 2006-2007 John MacFarlane
+Author:          John MacFarlane <jgm@berkeley.edu>
+Maintainer:      John MacFarlane <jgm@berkeley.edu>
 Stability:       alpha
 Homepage:        http://sophos.berkeley.edu/macfarlane/pandoc
 Package-URL:     http://pandoc.googlecode.com/files/pandoc-0.4.tar.gz
