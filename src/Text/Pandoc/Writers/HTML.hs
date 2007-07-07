@@ -100,7 +100,7 @@ tableOfContents opts headers ids =
       contentsTree = hierarchicalize headers
       contents = evalState (mapM (elementToListItem opts') contentsTree) 
                  ([],ids)
-  in  unordList ! [identifier "toc"] $ contents
+  in  thediv ! [identifier "toc"] $ unordList contents
 
 -- | Converts an Element to a list item for a table of contents,
 -- retrieving the appropriate identifier from state.
