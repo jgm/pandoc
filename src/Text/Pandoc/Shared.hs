@@ -58,7 +58,7 @@ module Text.Pandoc.Shared (
                      escaped,
                      -- * Native format prettyprinting
                      prettyPandoc,
-                     -- * Pandoc block list processing
+                     -- * Pandoc block and inline list processing
                      normalizeSpaces,
                      compactify,
                      -- * Writer options
