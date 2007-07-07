@@ -375,6 +375,7 @@ data WriterOptions = WriterOptions
     , writerHeader          :: String -- ^ Header for the document
     , writerIncludeBefore   :: String -- ^ String to include before the  body
     , writerIncludeAfter    :: String -- ^ String to include after the body
+    , writerTableOfContents :: Bool   -- ^ Include table of contents
     , writerS5              :: Bool   -- ^ We're writing S5 
     , writerIncremental     :: Bool   -- ^ Incremental S5 lists
     , writerNumberSections  :: Bool   -- ^ Number sections in LaTeX
@@ -386,17 +387,18 @@ data WriterOptions = WriterOptions
 
 -- | Default writer options.
 defaultWriterOptions = 
-    WriterOptions { writerStandalone     = True,
-                    writerHeader         = "",
-                    writerTitlePrefix    = "",
-                    writerTabStop        = 4,
-                    writerS5             = False,
-                    writerIncremental    = False,
-                    writerNumberSections = False,
-                    writerIncludeBefore  = "",
-                    writerIncludeAfter   = "",
-                    writerStrictMarkdown = False,
-                    writerReferenceLinks = False }
+    WriterOptions { writerStandalone      = True,
+                    writerHeader          = "",
+                    writerTitlePrefix     = "",
+                    writerTabStop         = 4,
+                    writerTableOfContents = False,
+                    writerS5              = False,
+                    writerIncremental     = False,
+                    writerNumberSections  = False,
+                    writerIncludeBefore   = "",
+                    writerIncludeAfter    = "",
+                    writerStrictMarkdown  = False,
+                    writerReferenceLinks  = False }
 
 --
 -- code to lookup reference keys in key table

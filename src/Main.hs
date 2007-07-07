@@ -107,6 +107,7 @@ data Opt = Opt
     , optWriter            :: String  -- ^ Writer format
     , optParseRaw          :: Bool    -- ^ Parse unconvertable HTML and TeX
     , optCSS               :: String  -- ^ CSS file to link to
+    , optTableOfContents   :: Bool    -- ^ Include table of contents
     , optIncludeInHeader   :: String  -- ^ File to include in header
     , optIncludeBeforeBody :: String  -- ^ File to include at top of body
     , optIncludeAfterBody  :: String  -- ^ File to include at end of body
@@ -133,6 +134,7 @@ defaultOpts = Opt
     , optWriter            = ""    -- null for default writer
     , optParseRaw          = False
     , optCSS               = ""
+    , optTableOfContents   = False
     , optIncludeInHeader   = ""
     , optIncludeBeforeBody = ""
     , optIncludeAfterBody  = ""
@@ -229,6 +231,11 @@ options =
                                             optStandalone = True })
                   "CSS")
                  "" -- "Link to CSS style sheet"
+
+    , Option "" ["toc", "table-of-contents"]
+                (NoArg
+                 (\opt -> return opt { optTableOfContents = True }))
+               "" -- "Include table of contents" 
 
     , Option "H" ["include-in-header"]
                  (ReqArg
@@ -395,6 +402,7 @@ main = do
               , optWriter            = writerName
               , optParseRaw          = parseRaw
               , optCSS               = css
+              , optTableOfContents   = toc
               , optIncludeInHeader   = includeHeader
               , optIncludeBeforeBody = includeBefore
               , optIncludeAfterBody  = includeAfter
@@ -471,6 +479,8 @@ main = do
                                       writerHeader         = header, 
                                       writerTitlePrefix    = titlePrefix,
                                       writerTabStop        = tabStop, 
+                                      writerTableOfContents = toc &&
+                                                              (not strict),
                                       writerS5             = (writerName=="s5"),
                                       writerIncremental    = incremental, 
                                       writerNumberSections = numberSections,
