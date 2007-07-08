@@ -40,12 +40,17 @@ writeLaTeX :: WriterOptions -> Pandoc -> String
 writeLaTeX options (Pandoc meta blocks) = 
   let body = (writerIncludeBefore options) ++ 
              (concatMap blockToLaTeX blocks) ++
-             (writerIncludeAfter options) in
-  let head = if writerStandalone options
+             (writerIncludeAfter options)
+      head = if writerStandalone options
                 then latexHeader options meta
-                else "" in
-  let foot = if writerStandalone options then "\n\\end{document}\n" else "" in
-  head ++ body ++ foot
+                else ""
+      toc  = if writerTableOfContents options
+                then "\\tableofcontents\n\n"
+                else "" 
+      foot = if writerStandalone options
+                then "\n\\end{document}\n"
+                else ""
+  in  head ++ toc ++ body ++ foot
 
 -- | Insert bibliographic information into LaTeX header.
 latexHeader :: WriterOptions -- ^ Options, including LaTeX header
@@ -62,7 +67,7 @@ latexHeader options (Meta title authors date) =
       datetext = if date == ""
                     then "" 
                     else "\\date{" ++ stringToLaTeX date ++ "}\n"
-      maketitle = if null title then "" else "\\maketitle\n" 
+      maketitle = if null title then "" else "\\maketitle\n\n" 
       secnumline = if (writerNumberSections options)
                       then "" 
                       else "\\setcounter{secnumdepth}{0}\n" 

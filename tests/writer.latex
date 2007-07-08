@@ -18,6 +18,7 @@
 \date{July 17, 2006}
 \begin{document}
 \maketitle
+
 This is a set of tests for pandoc. Most of them are adapted from John Gruber's markdown test suite.
 
 \begin{center}\rule{3in}{0.4pt}\end{center}
