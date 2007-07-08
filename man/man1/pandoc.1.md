@@ -58,12 +58,12 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 
 # OPTIONS
 
--f *FORMAT*, -r *FORMAT*, --from=*FORMAT*, --read=*FORMAT*
+-f *FORMAT*, -r *FORMAT*, \--from=*FORMAT*, \--read=*FORMAT*
 :   Specify input format.  *FORMAT* can be
     `native` (native Haskell), `markdown` (markdown or plain text),
     `rst` (reStructuredText), `html` (HTML), or `latex` (LaTeX).
 
--t *FORMAT*, -w *FORMAT*, --to=*FORMAT*, --write=*FORMAT*
+-t *FORMAT*, -w *FORMAT*, \--to=*FORMAT*, \--write=*FORMAT*
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
     `man` (groff man page),
     `markdown` (markdown or plain text), `rst` (reStructuredText),
@@ -71,71 +71,71 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     `docbook` (DocBook XML), `s5` (S5 HTML and javascript slide show),
      or `rtf` (rich text format).
 
--s, --standalone
+-s, \--standalone
 :   Produce output with an appropriate header and footer (e.g. a
     standalone HTML, LaTeX, or RTF file, not a fragment).
 
--o *FILE*, --output=*FILE*
+-o *FILE*, \--output=*FILE*
 :   Write output to *FILE* instead of STDOUT.  If *FILE* is
     \``-`', output will go to STDOUT.
 
--p, --preserve-tabs
+-p, \--preserve-tabs
 :   Preserve tabs instead of converting them to spaces.
 
---tab-stop=*TABSTOP*
+\--tab-stop=*TABSTOP*
 :   Specify tab stop (default is 4).
 
---strict
+\--strict
 :   Use strict markdown syntax, with no extensions or variants.
 
---reference-links
+\--reference-links
 :   Use reference-style links, rather than inline links, in writing markdown
     or reStructuredText.
 
--R, --parse-raw
+-R, \--parse-raw
 :   Parse untranslatable HTML codes and LaTeX environments as raw HTML
     or LaTeX, instead of ignoring them.
 
--S, --smart
+-S, \--smart
 :   Use smart quotes, dashes, and ellipses.  (This option is significant
     only when the input format is `markdown`.  It is selected automatically
     when the output format is `latex`.)
 
--m, --asciimathml
+-m, \--asciimathml
 :   Use ASCIIMathML to display embedded LaTeX math in HTML output.
 
--i, --incremental
+-i, \--incremental
 :   Make list items in S5 display incrementally (one by one).
 
--N, --number-sections
+-N, \--number-sections
 :   Number section headings in LaTeX output.  (Default is not to number
     them.)
 
--c *CSS*, --css=*CSS*
+-c *CSS*, \--css=*CSS*
 :   Link to a CSS style sheet.  *CSS* is the pathname of the style sheet.
 
--H *FILE*, --include-in-header=*FILE*
+-H *FILE*, \--include-in-header=*FILE*
 :   Include contents of *FILE* at the end of the header.  Implies `-s`.
 
--B *FILE*, --include-before-body=*FILE*
+-B *FILE*, \--include-before-body=*FILE*
 :   Include contents of *FILE* at the beginning of the document body.
 
--A *FILE*, --include-after-body=*FILE*
+-A *FILE*, \--include-after-body=*FILE*
 :   Include contents of *FILE* at the end of the document body.
 
--C *FILE*, --custom-header=*FILE*
+-C *FILE*, \--custom-header=*FILE*
 :   Use contents of *FILE* as the document header (overriding the
     default header, which can be printed by using the `-D` option).
     Implies `-s`.
 
--D *FORMAT*, --print-default-header=*FORMAT*
+-D *FORMAT*, \--print-default-header=*FORMAT*
 :   Print the default header for *FORMAT* (`html`, `s5`, `latex`,
     `docbook`, `man`, `markdown`, `rst`, `rtf`).
 
--T *STRING*, --title-prefix=*STRING*
+-T *STRING*, \--title-prefix=*STRING*
 :   Specify *STRING* as a prefix to the HTML window title.
 
---dump-args
+\--dump-args
 :   Print information about command-line arguments to STDOUT, then exit.
     The first line of output contains the name of the output file specified
     with the `-o` option, or \``-`' (for STDOUT) if no output file was
@@ -145,7 +145,7 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     after a \``--`' separator at the end of the line.
     This option is intended primarily for use in wrapper scripts.
 
---ignore-args
+\--ignore-args
 :   Ignore command-line arguments (for use in wrapper scripts).
     Regular Pandoc options are not ignored.  Thus, for example,
 
@@ -155,10 +155,10 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 
 :       pandoc -o foo.html -s
 
--v, --version
+-v, \--version
 :   Print version.
 
--h, --help
+-h, \--help
 :   Show usage message.
 
 # SEE ALSO

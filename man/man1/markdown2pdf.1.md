@@ -39,26 +39,26 @@ latex setup, they can be obtained from <http://ctan.org>.
 See `pandoc`(1) for a complete list.
 The following options are most relevant:
 
--o *FILE*, --output=*FILE*
+-o *FILE*, \--output=*FILE*
 :   Write output to *FILE*.
 
---strict
+\--strict
 :   Use strict markdown syntax, with no extensions or variants.
 
--N, --number-sections
+-N, \--number-sections
 :   Number section headings in LaTeX output.  (Default is not to number them.)
 
--H *FILE*, --include-in-header=*FILE*
+-H *FILE*, \--include-in-header=*FILE*
 :   Include (LaTeX) contents of *FILE* at the end of the header.  Implies
     `-s`.
 
--B *FILE*, --include-before-body=*FILE*
+-B *FILE*, \--include-before-body=*FILE*
 :   Include (LaTeX) contents of *FILE* at the beginning of the document body.
 
--A *FILE*, --include-after-body=*FILE*
+-A *FILE*, \--include-after-body=*FILE*
 :   Include (LaTeX) contents of *FILE* at the end of the document body.
 
--C *FILE*, --custom-header=*FILE*
+-C *FILE*, \--custom-header=*FILE*
 :   Use contents of *FILE*
     as the LaTeX document header (overriding the default header, which can be
     printed using `pandoc -D latex`).  Implies `-s`.

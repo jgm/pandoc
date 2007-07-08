@@ -8,7 +8,7 @@ html2markdown - converts HTML to markdown-formatted text
 
 # SYNOPSIS
 
-html2markdown [*pandoc-options*] [-- *special-options*] [*input-file* or
+html2markdown [*pandoc-options*] [\-- *special-options*] [*input-file* or
 *URL*]
 
 # DESCRIPTION
@@ -31,34 +31,34 @@ explicitly using the `-e` special option.
 `pandoc`'s options may be used.  See `pandoc`(1) for
 a complete list.  The following options are most relevant:
 
--s, --standalone
+-s, \--standalone
 :   Include title, author, and date information (if present) at the
     top of markdown output.
 
--o *FILE*, --output=*FILE*
+-o *FILE*, \--output=*FILE*
 :   Write output to *FILE* instead of STDOUT. 
 
---strict
+\--strict
 :   Use strict markdown syntax, with no extensions or variants.
 
---reference-links
+\--reference-links
 :   Use reference-style links, rather than inline links, in writing markdown
     or reStructuredText.
 
--R, --parse-raw
+-R, \--parse-raw
 :   Parse untranslatable HTML codes as raw HTML.
 
--H *FILE*, --include-in-header=*FILE*
+-H *FILE*, \--include-in-header=*FILE*
 :   Include contents of *FILE* at the end of the header.  Implies
     `-s`.
 
--B *FILE*, --include-before-body=*FILE*
+-B *FILE*, \--include-before-body=*FILE*
 :   Include contents of *FILE* at the beginning of the document body.
 
--A *FILE*, --include-after-body=*FILE*
+-A *FILE*, \--include-after-body=*FILE*
 :   Include contents of *FILE* at the end of the document body.
 
--C *FILE*, --custom-header=*FILE*
+-C *FILE*, \--custom-header=*FILE*
 :   Use contents of *FILE*
     as the document header (overriding the default header, which can be
     printed using `pandoc -D markdown`).  Implies `-s`.
@@ -72,7 +72,7 @@ regular `pandoc` options by the delimiter \``--`', as in
     html2markdown -o foo.txt -- -g 'curl -u bar:baz' -e latin1  \
     www.foo.com
 
--e *encoding*, --encoding=*encoding* 
+-e *encoding*, \--encoding=*encoding* 
 :   Assume the character encoding *encoding* in reading HTML.
     (Note: *encoding* will be passed to `iconv`; a list of
     available encodings may be obtained using `iconv -l`.)
@@ -82,7 +82,7 @@ regular `pandoc` options by the delimiter \``--`', as in
     specified in this way, or if input is from STDIN, UTF-8 will be
     assumed.
 
--g *command*, --grabber=*command*
+-g *command*, \--grabber=*command*
 :   Use *command* to fetch the contents of a URL.  (By default,
     `html2markdown` searches for an available program or text-based
     browser to fetch the contents of a URL.)
