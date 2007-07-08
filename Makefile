@@ -90,7 +90,7 @@ all: build-program
 %.txt: %
 	perl -p -e 's/\n/\r\n/' $< > $@ || rm -f $@ # convert to DOS line endings
 %.1: %.1.md $(MAIN)
-	./$(MAIN) -s -w man $< >$@ || rm -f $@
+	./$(MAIN) -s -S -w man $< >$@ || rm -f $@
 
 .PHONY: templates
 templates: $(SRCDIR)/templates
