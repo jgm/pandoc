@@ -92,7 +92,7 @@ notesToMan opts notes =
   if null notes
      then return empty
      else mapM (\(num, note) -> noteToMan opts num note) (zip [1..] notes) >>= 
-          (return . (text ".SH NOTES\n" <>) . vcat)
+          (return . (text ".SH NOTES" $$) . vcat)
 
 -- | Return man representation of a note.
 noteToMan :: WriterOptions -> Int -> [Block] -> State WriterState Doc
