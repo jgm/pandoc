@@ -117,7 +117,7 @@ elementToListItem opts (Sec headerText subsecs) = do
   let subList = if null subHeads
                    then noHtml
                    else unordList subHeads 
-  return $ (anchor ! [href ("#" ++ id)] $ txt) +++ subList
+  return $ (anchor ! [href ("#" ++ id), identifier ("TOC-" ++ id)] $ txt) +++ subList
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
@@ -175,17 +175,17 @@ inlineListToIdentifier [] = ""
 inlineListToIdentifier (x:xs) = 
   xAsText ++ inlineListToIdentifier xs
   where xAsText = case x of
-                       Str s        -> s
+                       Str s        -> map toLower s
                        Emph lst     -> inlineListToIdentifier lst
                        Strong lst   -> inlineListToIdentifier lst
                        Quoted _ lst -> inlineListToIdentifier lst
                        Code s       -> s
-                       Space        -> "_"
+                       Space        -> "-"
                        EmDash       -> "--"
                        EnDash       -> "-"
                        Apostrophe   -> ""
                        Ellipses     -> "..."
-                       LineBreak    -> "_"
+                       LineBreak    -> "-"
                        TeX _        -> ""
                        HtmlInline _ -> ""
                        Link lst _   -> inlineListToIdentifier lst
@@ -242,7 +242,7 @@ blockToHtml opts block =
                                          6 -> h6 contents ! attribs
                                          _ -> paragraph contents ! attribs
                              let headerHtml' = if writerTableOfContents opts
-                                                  then anchor ! [href "#toc"] $
+                                                  then anchor ! [href ("#TOC-" ++ id)] $
                                                        headerHtml
                                                   else headerHtml
                              return headerHtml'
