@@ -34,7 +34,7 @@ import Text.Pandoc.Entities (decodeEntities)
 import Text.Regex ( mkRegex, matchRegex )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
-import Data.List ( isPrefixOf, partition )
+import Data.List ( isPrefixOf, partition, intersperse )
 import Control.Monad.State
 import Text.XHtml.Strict
 
@@ -169,22 +169,32 @@ obfuscateChar char =
 obfuscateString :: String -> String
 obfuscateString = (concatMap obfuscateChar) . decodeEntities
 
+-- | True if character is a punctuation character (unicode).
+isPunctuation :: Char -> Bool
+isPunctuation c =
+  let c' = ord c in
+  if (c `elem` "!\"'()*,-./:;<>?[\\]`{|}~") || (c' >= 0x2000 && c' <= 0x206F) ||
+     (c' >= 0xE000 && c' <= 0xE0FF)
+     then True
+     else False
+
 -- | Convert Pandoc inline list to plain text identifier.
 inlineListToIdentifier :: [Inline] -> String
 inlineListToIdentifier [] = ""
 inlineListToIdentifier (x:xs) = 
   xAsText ++ inlineListToIdentifier xs
   where xAsText = case x of
-                       Str s        -> map toLower s
+                       Str s        -> filter (\c -> (c == '-') || not (isPunctuation c)) $
+                                       concat $ intersperse "-" $ words $ map toLower s
                        Emph lst     -> inlineListToIdentifier lst
                        Strong lst   -> inlineListToIdentifier lst
                        Quoted _ lst -> inlineListToIdentifier lst
                        Code s       -> s
                        Space        -> "-"
-                       EmDash       -> "--"
+                       EmDash       -> "-"
                        EnDash       -> "-"
                        Apostrophe   -> ""
-                       Ellipses     -> "..."
+                       Ellipses     -> ""
                        LineBreak    -> "-"
                        TeX _        -> ""
                        HtmlInline _ -> ""
