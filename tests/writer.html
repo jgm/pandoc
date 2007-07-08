@@ -15,36 +15,36 @@
     ><p
     >This is a set of tests for pandoc. Most of them are adapted from John Gruber&rsquo;s markdown test suite.</p
     ><hr
-     /><h1
+     /><h1 id="Headers"
     >Headers</h1
-    ><h2
+    ><h2 id="Level_2_with_an_embedded_link"
     >Level 2 with an <a href="/url"
       >embedded link</a
       ></h2
-    ><h3
+    ><h3 id="Level_3_with_emphasis"
     >Level 3 with <em
       >emphasis</em
       ></h3
-    ><h4
+    ><h4 id="Level_4"
     >Level 4</h4
-    ><h5
+    ><h5 id="Level_5"
     >Level 5</h5
-    ><h1
+    ><h1 id="Level_1"
     >Level 1</h1
-    ><h2
+    ><h2 id="Level_2_with_emphasis"
     >Level 2 with <em
       >emphasis</em
       ></h2
-    ><h3
+    ><h3 id="Level_3"
     >Level 3</h3
     ><p
     >with no blank line</p
-    ><h2
+    ><h2 id="Level_2"
     >Level 2</h2
     ><p
     >with no blank line</p
     ><hr
-     /><h1
+     /><h1 id="Paragraphs"
     >Paragraphs</h1
     ><p
     >Here&rsquo;s a regular paragraph.</p
@@ -56,7 +56,7 @@
     >There should be a hard line break<br
        />here.</p
     ><hr
-     /><h1
+     /><h1 id="Block_Quotes"
     >Block Quotes</h1
     ><p
     >E-mail style:</p
@@ -129,7 +129,7 @@
     ><p
     >And a following paragraph.</p
     ><hr
-     /><h1
+     /><h1 id="Code_Blocks"
     >Code Blocks</h1
     ><p
     >Code:</p
@@ -154,9 +154,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
 </code
       ></pre
     ><hr
-     /><h1
+     /><h1 id="Lists"
     >Lists</h1
-    ><h2
+    ><h2 id="Unordered"
     >Unordered</h2
     ><p
     >Asterisks tight:</p
@@ -236,7 +236,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
 	>Minus 3</p
 	></li
       ></ul
-    ><h2
+    ><h2 id="Ordered"
     >Ordered</h2
     ><p
     >Tight:</p
@@ -308,7 +308,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
 	>Item 3.</p
 	></li
       ></ol
-    ><h2
+    ><h2 id="Nested"
     >Nested</h2
     ><ul
     ><li
@@ -364,7 +364,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
 	>Third</p
 	></li
       ></ol
-    ><h2
+    ><h2 id="Tabs_and_spaces"
     >Tabs and spaces</h2
     ><ul
     ><li
@@ -387,7 +387,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
 	></li
       ></ul
     ><hr
-     /><h1
+     /><h1 id="Definition_Lists"
     >Definition Lists</h1
     ><p
     >Tight using spaces:</p
@@ -474,7 +474,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
 	  ></blockquote
 	></dd
       ></dl
-    ><h1
+    ><h1 id="HTML_Blocks"
     >HTML Blocks</h1
     ><p
     >Simple block on one line:</p
@@ -579,7 +579,7 @@ Blah
 
 <hr class="foo" id="bar">
 <hr
-     /><h1
+     /><h1 id="Inline_Markup"
     >Inline Markup</h1
     ><p
     >This is <em
@@ -636,7 +636,7 @@ Blah
       >&lt;html&gt;</code
       >.</p
     ><hr
-     /><h1
+     /><h1 id="Smart_quotes,_ellipses,_dashes"
     >Smart quotes, ellipses, dashes</h1
     ><p
     >&ldquo;Hello,&rdquo; said the spider. &ldquo;&lsquo;Shelob&rsquo; is my name.&rdquo;</p
@@ -659,7 +659,7 @@ Blah
     ><p
     >Ellipses&hellip;and&hellip;and&hellip;.</p
     ><hr
-     /><h1
+     /><h1 id="LaTeX"
     >LaTeX</h1
     ><ul
     ><li
@@ -708,7 +708,7 @@ Dog    &amp; 2      \\
 Cat    &amp; 1      \\ \hline
 \end{tabular}</p
     ><hr
-     /><h1
+     /><h1 id="Special_Characters"
     >Special Characters</h1
     ><p
     >Here is some unicode:</p
@@ -767,9 +767,9 @@ Cat    &amp; 1      \\ \hline
     ><p
     >Minus: -</p
     ><hr
-     /><h1
+     /><h1 id="Links"
     >Links</h1
-    ><h2
+    ><h2 id="Explicit"
     >Explicit</h2
     ><p
     >Just a <a href="/url/"
@@ -814,7 +814,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+'Email link'+'<\/'+'a'+'>')
     ><a href=""
       >Empty</a
       >.</p
-    ><h2
+    ><h2 id="Reference"
     >Reference</h2
     ><p
     >Foo <a href="/url/"
@@ -863,7 +863,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+'Email link'+'<\/'+'a'+'>')
     >Foo <a href="/url/" title="Title with &quot;quote&quot; inside"
       >biz</a
       >.</p
-    ><h2
+    ><h2 id="With_ampersands"
     >With ampersands</h2
     ><p
     >Here&rsquo;s a <a href="http://example.com/?foo=1&amp;bar=2"
@@ -881,7 +881,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+'Email link'+'<\/'+'a'+'>')
     >Here&rsquo;s an <a href="/script?foo=1&amp;bar=2"
       >inline link in pointy braces</a
       >.</p
-    ><h2
+    ><h2 id="Autolinks"
     >Autolinks</h2
     ><p
     >With an ampersand: <a href="http://example.com/?foo=1&amp;bar=2"
@@ -924,7 +924,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
 </code
       ></pre
     ><hr
-     /><h1
+     /><h1 id="Images"
     >Images</h1
     ><p
     >From &ldquo;Voyage dans la Lune&rdquo; by Georges Melies (1902):</p
@@ -935,7 +935,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
     >Here is a movie <img src="movie.jpg" title="" alt="movie"
        /> icon.</p
     ><hr
-     /><h1
+     /><h1 id="Footnotes"
     >Footnotes</h1
     ><p
     >Here is a footnote reference,<a href="#fn1" class="footnoteRef" id="fnref1"
