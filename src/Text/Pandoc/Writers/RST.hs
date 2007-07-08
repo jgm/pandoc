@@ -130,7 +130,10 @@ metaToRST opts (Meta title authors date) = do
   title'   <- titleToRST opts title
   authors' <- authorsToRST authors
   date'    <- dateToRST date
-  return $ title' <> authors' <> date'
+  let toc  =  if writerTableOfContents opts
+                 then text "" $$ text ".. contents::"
+                 else empty
+  return $ title' $$ authors' $$ date' $$ toc $$ text ""
 
 titleToRST :: WriterOptions -> [Inline] -> State WriterState Doc
 titleToRST opts [] = return empty
@@ -138,17 +141,17 @@ titleToRST opts lst = do
   contents <- inlineListToRST opts lst
   let titleLength = length $ render contents
   let border = text (replicate titleLength '=')
-  return $ border <> char '\n' <> contents <> char '\n' <> border <> text "\n\n"
+  return $ border <> char '\n' <> contents <> char '\n' <> border <> text "\n"
 
 authorsToRST :: [String] -> State WriterState Doc
 authorsToRST [] = return empty
 authorsToRST (first:rest) = do
   rest' <- authorsToRST rest
-  return $ text ":Author: " <> text first <> char '\n' <> rest'
+  return $ (text ":Author: " <> text first) $$ rest'
 
 dateToRST :: String -> State WriterState Doc
 dateToRST [] = return empty
-dateToRST str = return $ text ":Date: " <> text (escapeString str) <> char '\n'
+dateToRST str = return $ text ":Date: " <> text (escapeString str)
 
 -- | Convert Pandoc block element to RST. 
 blockToRST :: WriterOptions -- ^ Options
