@@ -14,7 +14,7 @@ unless (-x $script)   { die "$script is not executable.\n"; }
 
 print "Writer tests:\n";
 
-my @writeformats = ("html", "latex", "rst", "rtf", "markdown", "native"); # s5 separately
+my @writeformats = ("html", "latex", "rst", "rtf", "markdown", "man", "native"); # docbook and s5 handled separately
 my @readformats = ("latex", "native"); # handle html,markdown & rst separately
 my $source = "testsuite.native";
 
