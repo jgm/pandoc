@@ -58,7 +58,7 @@ pandocToMan opts (Pandoc meta blocks) = do
   (head, foot) <- metaToMan opts meta
   body <- blockListToMan opts blocks
   (notes, preprocessors) <- get
-  let preamble = if null preprocessors
+  let preamble = if null preprocessors || not (writerStandalone opts)
                     then empty
                     else text $ ".\\\" " ++ concat (nub preprocessors)
   notes' <- notesToMan opts (reverse notes)
