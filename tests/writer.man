@@ -1,0 +1,749 @@
+.TH "Pandoc Test Suite" "" "July 17, 2006"
+.PP
+This is a set of tests for pandoc\. Most of them are adapted from
+John Gruber's markdown test suite\.
+.PP
+   *   *   *   *   *
+.SH Headers
+.SS Level 2 with an embedded link (/url)
+.SS Level 3 with \f[I]emphasis\f[]
+.SS Level 4
+.SS Level 5
+.SH Level 1
+.SS Level 2 with \f[I]emphasis\f[]
+.SS Level 3
+.PP
+with no blank line
+.SS Level 2
+.PP
+with no blank line
+.PP
+   *   *   *   *   *
+.SH Paragraphs
+.PP
+Here's a regular paragraph\.
+.PP
+In Markdown 1\.0\.0 and earlier\. Version 8\. This line turns into
+a list item\. Because a hard-wrapped line in the middle of a
+paragraph looked like a list item\.
+.PP
+Here's one with a bullet\. * criminey\.
+.PP
+There should be a hard line break
+.PD 0
+.P
+.PD
+here\.
+.PP
+   *   *   *   *   *
+.SH Block Quotes
+.PP
+E-mail style:
+.RS
+.PP
+This is a block quote\. It is pretty short\.
+.RE
+.RS
+.PP
+Code in a block quote:
+.PP
+\f[CR]
+      sub\ status\ {
+      \ \ \ \ print\ \"working\";
+      }
+\f[]
+.PP
+A list:
+.IP 1. 4
+item one
+.IP 2. 4
+item two
+.PP
+Nested block quotes:
+.RS
+.PP
+nested
+.RE
+.RS
+.PP
+nested
+.RE
+.RE
+.PP
+This should not be a block quote: 2 > 1\.
+.PP
+Box-style:
+.RS
+.PP
+Example:
+.PP
+\f[CR]
+      sub\ status\ {
+      \ \ \ \ print\ \"working\";
+      }
+\f[]
+.RE
+.RS
+.IP 1. 4
+do laundry
+.IP 2. 4
+take out the trash
+.RE
+.PP
+Here's a nested one:
+.RS
+.PP
+Joe said:
+.RS
+.PP
+Don't quote me\.
+.RE
+.RE
+.PP
+And a following paragraph\.
+.PP
+   *   *   *   *   *
+.SH Code Blocks
+.PP
+Code:
+.PP
+\f[CR]
+      ----\ (should\ be\ four\ hyphens)
+      
+      sub\ status\ {
+      \ \ \ \ print\ \"working\";
+      }
+      
+      this\ code\ block\ is\ indented\ by\ one\ tab
+\f[]
+.PP
+And:
+.PP
+\f[CR]
+      \ \ \ \ this\ code\ block\ is\ indented\ by\ two\ tabs
+      
+      These\ should\ not\ be\ escaped:\ \ \\$\ \\\\\ \\>\ \\[\ \\{
+\f[]
+.PP
+   *   *   *   *   *
+.SH Lists
+.SS Unordered
+.PP
+Asterisks tight:
+.IP \[bu] 2
+asterisk 1
+.IP \[bu] 2
+asterisk 2
+.IP \[bu] 2
+asterisk 3
+.PP
+Asterisks loose:
+.IP \[bu] 2
+asterisk 1
+.IP \[bu] 2
+asterisk 2
+.IP \[bu] 2
+asterisk 3
+.PP
+Pluses tight:
+.IP \[bu] 2
+Plus 1
+.IP \[bu] 2
+Plus 2
+.IP \[bu] 2
+Plus 3
+.PP
+Pluses loose:
+.IP \[bu] 2
+Plus 1
+.IP \[bu] 2
+Plus 2
+.IP \[bu] 2
+Plus 3
+.PP
+Minuses tight:
+.IP \[bu] 2
+Minus 1
+.IP \[bu] 2
+Minus 2
+.IP \[bu] 2
+Minus 3
+.PP
+Minuses loose:
+.IP \[bu] 2
+Minus 1
+.IP \[bu] 2
+Minus 2
+.IP \[bu] 2
+Minus 3
+.SS Ordered
+.PP
+Tight:
+.IP 1. 4
+First
+.IP 2. 4
+Second
+.IP 3. 4
+Third
+.PP
+and:
+.IP 1. 4
+One
+.IP 2. 4
+Two
+.IP 3. 4
+Three
+.PP
+Loose using tabs:
+.IP 1. 4
+First
+.IP 2. 4
+Second
+.IP 3. 4
+Third
+.PP
+and using spaces:
+.IP 1. 4
+One
+.IP 2. 4
+Two
+.IP 3. 4
+Three
+.PP
+Multiple paragraphs:
+.IP 1. 4
+Item 1, graf one\.
+.RS 4
+.PP
+Item 1\. graf two\. The quick brown fox jumped over the lazy dog's
+back\.
+.RE
+.IP 2. 4
+Item 2\.
+.IP 3. 4
+Item 3\.
+.SS Nested
+.IP \[bu] 2
+Tab
+.RS 2
+.IP \[bu] 2
+Tab
+.RS 2
+.IP \[bu] 2
+Tab
+.RE
+.RE
+.PP
+Here's another:
+.IP 1. 4
+First
+.IP 2. 4
+Second:
+.RS 4
+.IP \[bu] 2
+Fee
+.IP \[bu] 2
+Fie
+.IP \[bu] 2
+Foe
+.RE
+.IP 3. 4
+Third
+.PP
+Same thing but with paragraphs:
+.IP 1. 4
+First
+.IP 2. 4
+Second:
+.RS 4
+.IP \[bu] 2
+Fee
+.IP \[bu] 2
+Fie
+.IP \[bu] 2
+Foe
+.RE
+.IP 3. 4
+Third
+.SS Tabs and spaces
+.IP \[bu] 2
+this is a list item indented with tabs
+.IP \[bu] 2
+this is a list item indented with spaces
+.RS 2
+.IP \[bu] 2
+this is an example list item indented with tabs
+.IP \[bu] 2
+this is an example list item indented with spaces
+.RE
+.PP
+   *   *   *   *   *
+.SH Definition Lists
+.PP
+Tight using spaces:
+.TP
+.B apple
+red fruit
+.RS
+.RE
+.TP
+.B orange
+orange fruit
+.RS
+.RE
+.TP
+.B banana
+yellow fruit
+.RS
+.RE
+.PP
+Tight using tabs:
+.TP
+.B apple
+red fruit
+.RS
+.RE
+.TP
+.B orange
+orange fruit
+.RS
+.RE
+.TP
+.B banana
+yellow fruit
+.RS
+.RE
+.PP
+Loose:
+.TP
+.B apple
+red fruit
+.RS
+.RE
+.TP
+.B orange
+orange fruit
+.RS
+.RE
+.TP
+.B banana
+yellow fruit
+.RS
+.RE
+.PP
+Multiple blocks with italics:
+.TP
+.B \f[I]apple\f[]
+red fruit
+.RS
+.PP
+contains seeds, crisp, pleasant to taste
+.RE
+.TP
+.B \f[I]orange\f[]
+orange fruit
+.RS
+.PP
+\f[CR]
+      {\ orange\ code\ block\ }
+\f[]
+.RS
+.PP
+orange block quote
+.RE
+.RE
+.SH HTML Blocks
+.PP
+Simple block on one line:
+<div>
+foo
+</div>
+
+.PP
+And nested without indentation:
+<div>
+<div>
+<div>
+foo
+</div>
+</div>
+<div>
+bar
+</div>
+</div>
+
+.PP
+Interpreted markdown in a table:
+<table>
+<tr>
+<td>
+This is \f[I]emphasized\f[]
+</td>
+<td>
+And this is \f[B]strong\f[]
+</td>
+</tr>
+</table>
+
+<script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
+
+.PP
+Here's a simple block:
+<div>
+    
+foo
+</div>
+
+.PP
+This should be a code block, though:
+.PP
+\f[CR]
+      <div>
+      \ \ \ \ foo
+      </div>
+\f[]
+.PP
+As should this:
+.PP
+\f[CR]
+      <div>foo</div>
+\f[]
+.PP
+Now, nested:
+<div>
+    <div>
+        <div>
+            
+foo
+</div>
+    </div>
+</div>
+
+.PP
+This should just be an HTML comment:
+<!-- Comment -->
+
+.PP
+Multiline:
+<!--
+Blah
+Blah
+-->
+
+<!--
+    This is another comment.
+-->
+
+.PP
+Code block:
+.PP
+\f[CR]
+      <!--\ Comment\ -->
+\f[]
+.PP
+Just plain comment, with trailing spaces on the line:
+<!-- foo -->   
+
+.PP
+Code:
+.PP
+\f[CR]
+      <hr\ />
+\f[]
+.PP
+Hr's:
+<hr>
+
+<hr />
+
+<hr />
+
+<hr>   
+
+<hr />  
+
+<hr /> 
+
+<hr class="foo" id="bar" />
+
+<hr class="foo" id="bar" />
+
+<hr class="foo" id="bar">
+
+.PP
+   *   *   *   *   *
+.SH Inline Markup
+.PP
+This is \f[I]emphasized\f[], and so \f[I]is this\f[]\.
+.PP
+This is \f[B]strong\f[], and so \f[B]is this\f[]\.
+.PP
+An \f[I]emphasized link (/url)\f[]\.
+.PP
+\f[B]\f[I]This is strong and em\.\f[]\f[]
+.PP
+So is \f[B]\f[I]this\f[]\f[] word\.
+.PP
+\f[B]\f[I]This is strong and em\.\f[]\f[]
+.PP
+So is \f[B]\f[I]this\f[]\f[] word\.
+.PP
+This is code: \f[B]>\f[], \f[B]$\f[], \f[B]\\\f[], \f[B]\\$\f[],
+\f[B]<html>\f[]\.
+.PP
+   *   *   *   *   *
+.SH Smart quotes, ellipses, dashes
+.PP
+\[lq]Hello,\[rq] said the spider\. \[lq]`Shelob' is my name\.\[rq]
+.PP
+`A', `B', and `C' are letters\.
+.PP
+`Oak,' `elm,' and `beech' are names of trees\. So is `pine\.'
+.PP
+`He said, \[lq]I want to go\.\[rq]' Were you alive in the 70's?
+.PP
+Here is some quoted `\f[B]code\f[]' and a
+\[lq]quoted link (http://example.com/?foo=1&bar=2)\[rq]\.
+.PP
+Some dashes: one\[em]two\[em]three\[em]four\[em]five\.
+.PP
+Dashes between numbers: 5\[en]7, 255\[en]66, 1987\[en]1999\.
+.PP
+Ellipses\&...and\&...and\&...\.
+.PP
+   *   *   *   *   *
+.SH LaTeX
+.IP \[bu] 2
+\\cite[22-23]{smith\.1899}
+.IP \[bu] 2
+\\doublespacing
+.IP \[bu] 2
+$2+2=4$
+.IP \[bu] 2
+$x\ \\in\ y$
+.IP \[bu] 2
+$\\alpha\ \\wedge\ \\omega$
+.IP \[bu] 2
+$223$
+.IP \[bu] 2
+$p$-Tree
+.IP \[bu] 2
+$\\frac{d}{dx}f(x)=\\lim_{h\\to\ 0}\\frac{f(x+h)-f(x)}{h}$
+.IP \[bu] 2
+Here's one that has a line break in it:
+$\\alpha\ +\ \\omega\ \\times\ x^2$\.
+.PP
+These shouldn't be math:
+.IP \[bu] 2
+To get the famous equation, write \f[B]$e\ =\ mc^2$\f[]\.
+.IP \[bu] 2
+$22,000 is a \f[I]lot\f[] of money\. So is $34,000\. (It worked if
+\[lq]lot\[rq] is emphasized\.)
+.IP \[bu] 2
+Escaped \f[B]$\f[]: $73 \f[I]this should be emphasized\f[] 23$\.
+.PP
+Here's a LaTeX table:
+.PP
+\\begin{tabular}{|l|l|}\\hline
+Animal\ &\ Number\ \\\\\ \\hline
+Dog\ \ \ \ &\ 2\ \ \ \ \ \ \\\\
+Cat\ \ \ \ &\ 1\ \ \ \ \ \ \\\\\ \\hline
+\\end{tabular}
+.PP
+   *   *   *   *   *
+.SH Special Characters
+.PP
+Here is some unicode:
+.IP \[bu] 2
+I hat: Î
+.IP \[bu] 2
+o umlaut: ö
+.IP \[bu] 2
+section: §
+.IP \[bu] 2
+set membership: ∈
+.IP \[bu] 2
+copyright: ©
+.PP
+AT&T has an ampersand in their name\.
+.PP
+AT&T is another way to write it\.
+.PP
+This & that\.
+.PP
+4 < 5\.
+.PP
+6 > 5\.
+.PP
+Backslash: \\
+.PP
+Backtick: `
+.PP
+Asterisk: *
+.PP
+Underscore: _
+.PP
+Left brace: {
+.PP
+Right brace: }
+.PP
+Left bracket: [
+.PP
+Right bracket: ]
+.PP
+Left paren: (
+.PP
+Right paren: )
+.PP
+Greater-than: >
+.PP
+Hash: #
+.PP
+Period: \.
+.PP
+Bang: !
+.PP
+Plus: +
+.PP
+Minus: -
+.PP
+   *   *   *   *   *
+.SH Links
+.SS Explicit
+.PP
+Just a URL (/url/)\.
+.PP
+URL and title (/url/)\.
+.PP
+URL and title (/url/)\.
+.PP
+URL and title (/url/)\.
+.PP
+URL and title (/url/)
+.PP
+URL and title (/url/)
+.PP
+with_underscore (/url/with_underscore)
+.PP
+Email link (mailto:nobody@nowhere.net)
+.PP
+Empty ()\.
+.SS Reference
+.PP
+Foo bar (/url/)\.
+.PP
+Foo bar (/url/)\.
+.PP
+Foo bar (/url/)\.
+.PP
+With embedded [brackets] (/url/)\.
+.PP
+b (/url/) by itself should be a link\.
+.PP
+Indented once (/url)\.
+.PP
+Indented twice (/url)\.
+.PP
+Indented thrice (/url)\.
+.PP
+This should [not][] be a link\.
+.PP
+\f[CR]
+      [not]:\ /url
+\f[]
+.PP
+Foo bar (/url/)\.
+.PP
+Foo biz (/url/)\.
+.SS With ampersands
+.PP
+Here's a
+link with an ampersand in the URL (http://example.com/?foo=1&bar=2)\.
+.PP
+Here's a link with an amersand in the link text:
+AT&T (http://att.com/)\.
+.PP
+Here's an inline link (/script?foo=1&bar=2)\.
+.PP
+Here's an inline link in pointy braces (/script?foo=1&bar=2)\.
+.SS Autolinks
+.PP
+With an ampersand: <http://example.com/?foo=1&bar=2>
+.IP \[bu] 2
+In a list?
+.IP \[bu] 2
+<http://example.com/>
+.IP \[bu] 2
+It should\.
+.PP
+An e-mail address: <nobody@nowhere.net>
+.RS
+.PP
+Blockquoted: <http://example.com/>
+.RE
+.PP
+Auto-links should not occur here: \f[B]<http://example\.com/>\f[]
+.PP
+\f[CR]
+      or\ here:\ <http://example\.com/>
+\f[]
+.PP
+   *   *   *   *   *
+.SH Images
+.PP
+From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
+.PP
+[IMAGE: lalune (lalune.jpg)]
+.PP
+Here is a movie [IMAGE: movie (movie.jpg)] icon\.
+.PP
+   *   *   *   *   *
+.SH Footnotes
+.PP
+Here is a footnote reference,[1] and another\.[2] This should
+\f[I]not\f[] be a footnote reference, because it contains a
+space\.[^my note] Here is an inline note\.[3]
+.RS
+.PP
+Notes can go in quotes\.[4]
+.RE
+.IP 1. 4
+And in list items\.[5]
+.PP
+This paragraph should not be part of the note, as it is not
+indented\.
+.SH NOTES
+
+.SS [1]
+.PP
+Here is the footnote\. It can go anywhere after the footnote
+reference\. It need not be placed at the end of the document\.
+
+.SS [2]
+.PP
+Here's the long note\. This one contains multiple blocks\.
+.PP
+Subsequent blocks are indented to show that they belong to the
+footnote (as with list items)\.
+.PP
+\f[CR]
+      \ \ {\ <code>\ }
+\f[]
+.PP
+If you want, you can indent every line, but you can also be lazy
+and just indent the first line of each block\.
+
+.SS [3]
+.PP
+This is \f[I]easier\f[] to type\. Inline notes may contain
+links (http://google.com) and \f[B]]\f[] verbatim characters\.
+
+.SS [4]
+.PP
+In quote\.
+
+.SS [5]
+.PP
+In list\.
+.SH AUTHORS
+John MacFarlane, Anonymous
