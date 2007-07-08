@@ -198,7 +198,7 @@ uniqueIdentifiers ls =
   let addIdentifier (nonuniqueIds, uniqueIds) l =
         let new = inlineListToIdentifier l
             matches = length $ filter (== new) nonuniqueIds
-            new' = new ++ if matches > 0 then show matches else ""
+            new' = new ++ if matches > 0 then ("-" ++ show matches) else ""
         in  (new:nonuniqueIds, new':uniqueIds)
   in  reverse $ snd (foldl addIdentifier ([],[]) $ ls)
 
