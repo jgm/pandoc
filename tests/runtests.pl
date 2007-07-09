@@ -26,7 +26,7 @@ sub test_results
     my $diffoutput = `diff --strip-trailing-cr $output $norm`;
     if ($diffoutput eq "") 
     {
-        print "PASSED\n";
+        print "passed\n";
     }
     else
     {
@@ -95,7 +95,7 @@ print "\nReader tests (roundtrip: X -> native -> X -> native):\n";
 
 foreach my $format (@readformats)
 {
-    print "testing $format reader...";
+    print "Testing $format reader...";
     `$script -r $format -w native -s -R writer.$format > tmp1.native`;
     `$script -r native -w $format -s -R tmp1.native | $script -r $format -w native -s -R - > tmp2.native`;
     test_results("$format reader", "tmp1.native", "tmp2.native");
