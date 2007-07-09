@@ -59,13 +59,17 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   let head = if (writerStandalone opts)
                 then metaBlock $$ text (writerHeader opts)
                 else empty
+  let headerBlocks = filter isHeaderBlock blocks
+  let toc = if writerTableOfContents opts 
+               then tableOfContents opts headerBlocks
+               else empty
   body <- blockListToMarkdown opts blocks
   (notes, _) <- get
   notes' <- notesToMarkdown opts (reverse notes)
   (_, refs) <- get  -- note that the notes may contain refs
   refs' <- keyTableToMarkdown opts (reverse refs)
-  return $ head <> (before' $$ body <> text "\n" $$ 
-                    notes' <> text "\n" $$ refs' $$ after')
+  return $ head $$ before' $$ toc $$ body $$ text "" $$ 
+           notes' $$ text "" $$ refs' $$ after'
 
 -- | Return markdown representation of reference key table.
 keyTableToMarkdown :: WriterOptions -> KeyTable -> State WriterState Doc
@@ -118,22 +122,38 @@ metaToMarkdown opts (Meta title authors date) = do
   title'   <- titleToMarkdown opts title
   authors' <- authorsToMarkdown authors
   date'    <- dateToMarkdown date
-  return $ title' <> authors' <> date'
+  return $ title' $$ authors' $$ date'
 
 titleToMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
 titleToMarkdown opts [] = return empty
 titleToMarkdown opts lst = do
   contents <- inlineListToMarkdown opts lst
-  return $ text "% " <> contents <> text "\n"
+  return $ text "% " <> contents 
 
 authorsToMarkdown :: [String] -> State WriterState Doc
 authorsToMarkdown [] = return empty
 authorsToMarkdown lst = return $ 
-  text "% " <> text (joinWithSep ", " (map escapeString lst)) <> text "\n"
+  text "% " <> text (joinWithSep ", " (map escapeString lst))
 
 dateToMarkdown :: String -> State WriterState Doc
 dateToMarkdown [] = return empty
-dateToMarkdown str = return $ text "% " <> text (escapeString str) <> text "\n"
+dateToMarkdown str = return $ text "% " <> text (escapeString str)
+
+-- | Construct table of contents from list of header blocks.
+tableOfContents :: WriterOptions -> [Block] -> Doc 
+tableOfContents opts headers =
+  let opts' = opts { writerIgnoreNotes = True }
+      contents = BulletList $ map elementToListItem $ hierarchicalize headers
+  in  evalState (blockToMarkdown opts' contents) ([],[])
+
+-- | Converts an Element to a list item for a table of contents,
+elementToListItem :: Element -> [Block]
+elementToListItem (Blk _) = []
+elementToListItem (Sec headerText subsecs) =
+  [Plain headerText] ++ 
+  if null subsecs
+     then []
+     else [BulletList $ map elementToListItem subsecs]
 
 -- | Convert Pandoc block element to markdown.
 blockToMarkdown :: WriterOptions -- ^ Options
