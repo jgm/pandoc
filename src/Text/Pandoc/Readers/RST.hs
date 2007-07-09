@@ -495,19 +495,27 @@ referenceKey = do
   option "" blanklines
   return result
 
+targetURI = try $ do
+  skipSpaces
+  option ' ' newline
+  contents <- many1 (try (do many spaceChar
+                             newline
+                             many1 spaceChar
+                             noneOf " \t\n") <|> noneOf "\n")
+  blanklines
+  return contents
+
 imageKey = try $ do
   string ".. |"
   ref <- manyTill inline (char '|')
   skipSpaces
   string "image::"
-  src <- manyTill anyChar newline
+  src <- targetURI
   return $ KeyBlock (normalizeSpaces ref) (removeLeadingTrailingSpace src, "")
 
 anonymousKey = try $ do
   oneOfStrings [".. __:", "__"]
-  skipSpaces
-  option ' ' newline
-  src <- manyTill anyChar newline
+  src <- targetURI
   state <- getState
   return $ KeyBlock [Str "_"] (removeLeadingTrailingSpace src, "")
 
@@ -515,17 +523,13 @@ regularKeyQuoted = try $ do
   string ".. _`"
   ref <- manyTill inline (char '`')
   char ':'
-  skipSpaces
-  option ' ' newline
-  src <- manyTill anyChar newline
+  src <- targetURI
   return $ KeyBlock (normalizeSpaces ref) (removeLeadingTrailingSpace src, "")
 
 regularKey = try $ do
   string ".. _"
   ref <- manyTill inline (char ':')
-  skipSpaces
-  option ' ' newline
-  src <- manyTill anyChar newline
+  src <- targetURI
   return $ KeyBlock (normalizeSpaces ref) (removeLeadingTrailingSpace src, "")
 
  -- 
