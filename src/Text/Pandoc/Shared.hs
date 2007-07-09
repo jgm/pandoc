@@ -63,6 +63,7 @@ module Text.Pandoc.Shared (
                      compactify,
                      Element (..),
                      hierarchicalize,
+                     isHeaderBlock,
                      -- * Writer options
                      WriterOptions (..),
                      defaultWriterOptions,
@@ -389,6 +390,11 @@ hierarchicalize (block:rest) =
                             (Sec title (hierarchicalize thisSection)):
                             (hierarchicalize rest') 
     x                    -> (Blk x):(hierarchicalize rest)
+
+-- | True if block is a Header block.
+isHeaderBlock :: Block -> Bool
+isHeaderBlock (Header _ _) = True
+isHeaderBlock _ = False
 
 -- | Options for writers
 data WriterOptions = WriterOptions

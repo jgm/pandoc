@@ -87,11 +87,6 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
          then head +++ (body thebody)
          else thebody
 
--- | True if block is a Header block.
-isHeaderBlock :: Block -> Bool
-isHeaderBlock (Header _ _) = True
-isHeaderBlock _ = False
-
 -- | Construct table of contents from list of header blocks and identifiers.
 -- Assumes there are as many identifiers as header blocks.
 tableOfContents :: WriterOptions -> [Block] -> Ids -> Html
