@@ -736,7 +736,8 @@ and just indent the first line of each block\.
 .SS [3]
 .PP
 This is \f[I]easier\f[] to type\. Inline notes may contain
-links (http://google.com) and \f[B]]\f[] verbatim characters\.
+links (http://google.com) and \f[B]]\f[] verbatim characters, as
+well as [bracketed text]\.
 
 .SS [4]
 .PP

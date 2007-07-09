@@ -667,7 +667,8 @@ indented.
 
 [^3]:
     This is *easier* to type. Inline notes may contain
-    [links](http://google.com) and `]` verbatim characters.
+    [links](http://google.com) and `]` verbatim characters, as well as
+    [bracketed text].
 
 [^4]: In quote.
 

@@ -624,7 +624,7 @@ Subsequent blocks are indented to show that they belong to the footnote (as with
 \begin{verbatim}
   { <code> }
 \end{verbatim}
-If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.} This should \emph{not} be a footnote reference, because it contains a space.[\^{}my note] Here is an inline note.\footnote{This is \emph{easier} to type. Inline notes may contain \href{http://google.com}{links} and \verb!]! verbatim characters.}
+If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.} This should \emph{not} be a footnote reference, because it contains a space.[\^{}my note] Here is an inline note.\footnote{This is \emph{easier} to type. Inline notes may contain \href{http://google.com}{links} and \verb!]! verbatim characters, as well as [bracketed text].}
 
 \begin{quote}
 Notes can go in quotes.\footnote{In quote.}

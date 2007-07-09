@@ -1127,7 +1127,8 @@ or here: &lt;http://example.com/&gt;
              <para>
                This is <emphasis>easier</emphasis> to type. Inline notes may
                contain <ulink url="http://google.com">links</ulink> and
-               <literal>]</literal> verbatim characters.
+               <literal>]</literal> verbatim characters, as well as [bracketed
+               text].
              </para>
            </footnote>
     </para>

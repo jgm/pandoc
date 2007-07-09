@@ -642,7 +642,8 @@ Here is a footnote reference,[^1] and another.[^longnote]
 This should *not* be a footnote reference, because it 
 contains a space.[^my note]  Here is an inline note.^[This
 is *easier* to type.  Inline notes may contain
-[links](http://google.com) and `]` verbatim characters.]
+[links](http://google.com) and `]` verbatim characters,
+as well as [bracketed text].]
 
 > Notes can go in quotes.^[In quote.]
 
