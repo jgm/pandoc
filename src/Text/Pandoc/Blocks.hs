@@ -97,6 +97,7 @@ hPad width line =
 -- which they appear side by side.
 hcatBlocks :: [TextBlock] -> TextBlock
 hcatBlocks [] = TextBlock 0 0 []
+hcatBlocks [x] = x -- This is not redundant!  We don't want last item hPad'd.
 hcatBlocks ((TextBlock width1 height1 lns1):xs) = 
   let (TextBlock width2 height2 lns2) = hcatBlocks xs
       height = max height1 height2

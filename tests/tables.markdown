@@ -1,59 +1,59 @@
 Simple table with caption:
 
-        Right Left      Center    Default  
+        Right Left      Center    Default
   ----------- ------ ------------ ---------
-           12 12          12      12       
-          123 123        123      123      
-            1 1           1       1        
+           12 12          12      12
+          123 123        123      123
+            1 1           1       1
   
   Table: Demonstration of simple table syntax.
-  
+
 Simple table without caption:
 
-        Right Left      Center    Default  
+        Right Left      Center    Default
   ----------- ------ ------------ ---------
-           12 12          12      12       
-          123 123        123      123      
-            1 1           1       1        
-  
+           12 12          12      12
+          123 123        123      123
+            1 1           1       1
+
 Simple table indented two spaces:
 
-        Right Left      Center    Default  
+        Right Left      Center    Default
   ----------- ------ ------------ ---------
-           12 12          12      12       
-          123 123        123      123      
-            1 1           1       1        
+           12 12          12      12
+          123 123        123      123
+            1 1           1       1
   
   Table: Demonstration of simple table syntax.
-  
+
 Multiline table with caption:
 
   --------------------------------------------------------------
-   Centered   Left              Right Default aligned           
+   Centered   Left              Right Default aligned
     Header    Aligned         Aligned
   ----------- ---------- ------------ --------------------------
-     First    row                12.0 Example of a row that     
-                                      spans multiple lines.     
+     First    row                12.0 Example of a row that
+                                      spans multiple lines.
   
-    Second    row                 5.0 Here's another one. Note  
-                                      the blank line between    
-                                      rows.                     
+    Second    row                 5.0 Here's another one. Note
+                                      the blank line between
+                                      rows.
   --------------------------------------------------------------
   
   Table: Here's the caption. It may span multiple lines.
-  
+
 Multiline table without caption:
 
   --------------------------------------------------------------
-   Centered   Left              Right Default aligned           
+   Centered   Left              Right Default aligned
     Header    Aligned         Aligned
   ----------- ---------- ------------ --------------------------
-     First    row                12.0 Example of a row that     
-                                      spans multiple lines.     
+     First    row                12.0 Example of a row that
+                                      spans multiple lines.
   
-    Second    row                 5.0 Here's another one. Note  
-                                      the blank line between    
-                                      rows.                     
+    Second    row                 5.0 Here's another one. Note
+                                      the blank line between
+                                      rows.
   --------------------------------------------------------------
-  
+
 

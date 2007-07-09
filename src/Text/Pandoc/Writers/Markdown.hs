@@ -205,8 +205,8 @@ blockToMarkdown opts (Table caption aligns widths headers rows) =  do
                   then text ""
                   else empty
   let body = vcat $ intersperse spacer $ map blockToDoc rows'
-  return $ nest 2 $ border $$ (blockToDoc head) $$ underline $$ body $$ 
-                    border $$ caption'' $$ text ""
+  return $ (nest 2 $ border $$ (blockToDoc head) $$ underline $$ body $$ 
+                     border $$ caption'') $$ text ""
 blockToMarkdown opts (BulletList items) = do
   contents <- mapM (bulletListItemToMarkdown opts) items
   return $ (vcat contents) <> text "\n"
