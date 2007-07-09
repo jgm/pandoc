@@ -41,7 +41,7 @@ module Text.Pandoc.Readers.HTML (
                                 ) where
 
 import Text.ParserCombinators.Parsec
-import Text.ParserCombinators.Pandoc
+import Text.Pandoc.ParserCombinators
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Entities ( characterEntity, decodeEntities )

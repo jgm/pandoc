@@ -34,7 +34,7 @@ module Text.Pandoc.Readers.LaTeX (
                                  ) where
 
 import Text.ParserCombinators.Parsec
-import Text.ParserCombinators.Pandoc
+import Text.Pandoc.ParserCombinators
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Data.Maybe ( fromMaybe )

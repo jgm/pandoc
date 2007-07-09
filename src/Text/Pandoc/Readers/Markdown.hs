@@ -33,7 +33,7 @@ module Text.Pandoc.Readers.Markdown (
 
 import Data.List ( findIndex, sortBy, transpose, isSuffixOf, intersect, lookup )
 import Data.Char ( isAlphaNum )
-import Text.ParserCombinators.Pandoc
+import Text.Pandoc.ParserCombinators
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment )
 import Text.Pandoc.Shared 

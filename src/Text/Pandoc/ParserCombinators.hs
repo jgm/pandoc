@@ -17,7 +17,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.ParserCombinators.Pandoc 
+   Module      : Text.Pandoc.ParserCombinators
    Copyright   : Copyright (C) 2006-7 John MacFarlane
    License     : GNU GPL, version 2 or above 
 
@@ -25,9 +25,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Special parser combinators for Pandoc readers.
+Parser combinators used in Pandoc readers.
 -}
-module Text.ParserCombinators.Pandoc ( 
+module Text.Pandoc.ParserCombinators ( 
                                       anyLine,
                                       many1Till,
                                       notFollowedBy',
@@ -121,5 +121,4 @@ lineClump = do
   lines <- many1 (do{notFollowedBy blankline; anyLine})
   blanks <- blanklines <|> (do{eof; return "\n"})
   return ((unlines lines) ++ blanks)
-
 

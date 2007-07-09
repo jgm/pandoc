@@ -31,7 +31,7 @@ module Text.Pandoc.Readers.RST (
                                 readRST
                                ) where
 import Text.Pandoc.Definition
-import Text.ParserCombinators.Pandoc
+import Text.Pandoc.ParserCombinators
 import Text.Pandoc.Shared 
 import Text.Pandoc.Readers.HTML ( anyHtmlBlockTag, anyHtmlInlineTag )
 import Text.Regex ( matchRegex, mkRegex )

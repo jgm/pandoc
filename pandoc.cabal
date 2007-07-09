@@ -15,27 +15,27 @@ Description:     Haskell utilities for translating between markdown, HTML,
                  reStructuredText, LaTeX, DocBook, groff man, and RTF
 Build-Depends:   base, parsec, xhtml, mtl, regex-compat
 Hs-Source-Dirs: src
-Exposed-Modules: Text.ParserCombinators.Pandoc,
-                 Text.Pandoc,
+Exposed-Modules: Text.Pandoc,
                  Text.Pandoc.ASCIIMathML,
+                 Text.Pandoc.Blocks,
                  Text.Pandoc.Definition,
                  Text.Pandoc.Entities,
+                 Text.Pandoc.ParserCombinators,
                  Text.Pandoc.Shared,
                  Text.Pandoc.UTF8,
-                 Text.Pandoc.Blocks,
                  Text.Pandoc.Writers.DefaultHeaders,
                  Text.Pandoc.Writers.Docbook,
                  Text.Pandoc.Writers.HTML,
+                 Text.Pandoc.Writers.LaTeX,
                  Text.Pandoc.Writers.Man,
                  Text.Pandoc.Writers.Markdown,
-                 Text.Pandoc.Writers.LaTeX,
                  Text.Pandoc.Writers.RST,
-                 Text.Pandoc.Writers.S5,
                  Text.Pandoc.Writers.RTF,
+                 Text.Pandoc.Writers.S5,
                  Text.Pandoc.Readers.HTML,
+                 Text.Pandoc.Readers.LaTeX,
                  Text.Pandoc.Readers.Markdown,
-                 Text.Pandoc.Readers.RST,
-                 Text.Pandoc.Readers.LaTeX
+                 Text.Pandoc.Readers.RST
 Ghc-Options:     -O0
 
 Executable:      pandoc
