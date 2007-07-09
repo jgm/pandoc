@@ -108,6 +108,7 @@ hcatBlocks ((TextBlock width1 height1 lns1):xs) =
    in TextBlock width height lns 
 
 -- | Like @hcatBlocks@, but inserts space between the @TextBlock@s.
+hsepBlocks :: [TextBlock] -> TextBlock
 hsepBlocks = hcatBlocks . (intersperse (TextBlock 1 1 [" "]))
 
 isWhitespace x = x `elem` " \t"
