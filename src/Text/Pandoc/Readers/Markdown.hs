@@ -1011,11 +1011,19 @@ note = try $ do
     Nothing -> fail "note not found"
     Just contents -> return (Note contents)
 
+inlinesInBrackets = try $ do
+  char '['
+  results <- many $ count 1 (choice [link, referenceLink, image]) <|>
+                    try (do{res <- inlinesInBrackets; return 
+                    ([Str "["] ++ res ++ [Str "]"])}) <|>
+                    (do{notFollowedBy (char ']'); count 1 inline})
+  char ']'
+  return $ concat results
+
 inlineNote = try $ do
   failIfStrict
   char noteStart
-  char labelStart
-  contents <- manyTill inline (char labelEnd)
+  contents <- inlinesInBrackets
   return (Note [Para contents])
 
 rawLaTeXInline' = do
