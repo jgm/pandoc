@@ -196,11 +196,11 @@ blockToMarkdown opts (Table caption aligns widths headers rows) =  do
   let tableWidth = sum widthsInChars
   let maxRowHeight = maximum $ map heightOfBlock (head:rows')
   let isMultilineTable = maxRowHeight > 1
-  let border = if isMultilineTable
-                  then text $ replicate tableWidth '-'
-                  else empty
   let underline = hsep $ 
                   map (\width -> text $ replicate width '-') widthsInChars
+  let border = if isMultilineTable
+                  then text $ replicate (sum widthsInChars + (length widthsInChars - 1)) '-'
+                  else empty
   let spacer = if isMultilineTable
                   then text ""
                   else empty

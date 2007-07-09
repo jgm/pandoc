@@ -28,7 +28,7 @@ Simple table indented two spaces:
   
 Multiline table with caption:
 
-  -----------------------------------------------------------
+  --------------------------------------------------------------
    Centered   Left              Right Default aligned           
     Header    Aligned         Aligned
   ----------- ---------- ------------ --------------------------
@@ -38,13 +38,13 @@ Multiline table with caption:
     Second    row                 5.0 Here's another one. Note  
                                       the blank line between    
                                       rows.                     
-  -----------------------------------------------------------
+  --------------------------------------------------------------
   
   Table: Here's the caption. It may span multiple lines.
   
 Multiline table without caption:
 
-  -----------------------------------------------------------
+  --------------------------------------------------------------
    Centered   Left              Right Default aligned           
     Header    Aligned         Aligned
   ----------- ---------- ------------ --------------------------
@@ -54,7 +54,6 @@ Multiline table without caption:
     Second    row                 5.0 Here's another one. Note  
                                       the blank line between    
                                       rows.                     
-  -----------------------------------------------------------
+  --------------------------------------------------------------
   
-
 
