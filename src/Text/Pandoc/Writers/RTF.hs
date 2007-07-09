@@ -39,12 +39,30 @@ writeRTF :: WriterOptions -> Pandoc -> String
 writeRTF options (Pandoc meta blocks) = 
   let head = if writerStandalone options
                 then rtfHeader (writerHeader options) meta 
-                else ""  
+                else ""
+      toc  = if writerTableOfContents options
+                then tableOfContents $ filter isHeaderBlock blocks
+                else "" 
       foot = if writerStandalone options then "\n}\n" else "" 
       body = (writerIncludeBefore options) ++ 
              concatMap (blockToRTF 0 AlignDefault) blocks ++ 
              (writerIncludeAfter options) in
-  head ++ body ++ foot
+  head ++ toc ++ body ++ foot
+
+-- | Construct table of contents from list of header blocks.
+tableOfContents :: [Block] -> String 
+tableOfContents headers =
+  let contentsTree = hierarchicalize headers
+  in  concatMap (blockToRTF 0 AlignDefault) $ [Header 1 [Str "Contents"], 
+                                               BulletList (map elementToListItem contentsTree)]
+
+elementToListItem :: Element -> [Block]
+elementToListItem (Blk _) = []
+elementToListItem (Sec sectext subsecs) = 
+  [Plain sectext] ++
+  if null subsecs
+     then []
+     else [BulletList (map elementToListItem subsecs)]
 
 -- | Convert unicode characters (> 127) into rich text format representation.
 handleUnicode :: String -> String
