@@ -3,14 +3,16 @@
 - A real markdown parser, not based on regex substitutions.
 - [More accurate] and [faster], in many cases, than `Markdown.pl`.
 - Multiple output formats--HTML, Docbook XML, LaTeX, reStructuredText,
-  RTF, S5 slide shows--generated natively, with no XSLT postprocessing.
+  RTF, groff man pages, S5 slide shows--generated natively,
+  with no XSLT postprocessing.
 - Converts *to* markdown from HTML, LaTeX, and reStructuredText.
 - Unicode support.
-- Support for footnotes.
-- Support for "smart" quotes, dashes, and ellipses.
-- Support for document metadata (title, author, date).
-- Support for inline LaTeX math and [ASCIIMathML].
-- Support for inline LaTeX commands.
+- Optional "smart" quotes, dashes, and ellipses.
+- Document metadata (title, author, date).
+- Inline LaTeX math and LaTeX commands.
+- [ASCIIMathML] support for equations in HTML.
+- Footnotes, tables, and definition lists in all output formats.
+- Automatically generated tables of contents.
 - Compatibility mode to turn off syntax entensions and emulate
   `Markdown.pl`.
 - Convenient wrapper scripts:
