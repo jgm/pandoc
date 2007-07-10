@@ -364,7 +364,7 @@ defaultWriterName x =
     Just ["db"]       -> "docbook"
     Just ["xml"]      -> "docbook"
     Just ["sgml"]     -> "docbook"
-    Just ["1"]        -> "man"
+    Just [[x]] | x `elem` ['1'..'9'] -> "man"
     Just _            -> "html"
 
 main = do
