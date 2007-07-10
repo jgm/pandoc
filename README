@@ -6,8 +6,9 @@ Pandoc is a [Haskell] library for converting from one markup format
 to another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX],
 and it can write [markdown], [reStructuredText], [HTML], [LaTeX], [RTF],
-[DocBook XML], and [S5] HTML slide shows. Pandoc's version of markdown
-contains some enhancements, like footnotes and embedded LaTeX.
+[DocBook XML], [groff man] pages, and [S5] HTML slide shows. Pandoc's
+version of markdown contains some enhancements, like footnotes and
+embedded LaTeX.
 
 In contrast to existing tools for converting markdown to HTML, which
 use regex substitutions, Pandoc has a modular design: it consists of a
@@ -23,6 +24,7 @@ or output format requires only adding a reader or writer.
 [LaTeX]: http://www.latex-project.org/
 [RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook XML]:  http://www.docbook.org/
+[groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
 [Haskell]:  http://www.haskell.org/
 
 (c) 2006 John MacFarlane (jgm at berkeley dot edu). Released under the
@@ -110,16 +112,17 @@ To convert `hello.html` from html to markdown:
 
 Supported output formats include `markdown`, `latex`, `html`, `rtf`
 (rich text format), `rst` (reStructuredText), `docbook` (DocBook
-XML), and `s5` (which produces an HTML file that acts like powerpoint).
-Supported input formats include `markdown`, `html`, `latex`, and `rst`.
-Note that the `rst` reader only parses a subset of reStructuredText
-syntax.  For example, it doesn't handle tables, definition lists, option
-lists, or footnotes.  It handles only the constructs expressible in
-unextended markdown.  But for simple documents it should be adequate.
-The `latex` and `html` readers are also limited in what they can do.
-Because the `html` reader is picky about the HTML it parses, it is
-recommended that you pipe HTML through [HTML Tidy] before sending it to
-`pandoc`, or use the `html2markdown` script described below.
+XML), `man` (groff man), and `s5` (which produces an HTML file that
+acts like powerpoint). Supported input formats include `markdown`,
+`html`, `latex`, and `rst`. Note that the `rst` reader only parses
+a subset of reStructuredText syntax. For example, it doesn't handle
+tables, definition lists, option lists, or footnotes. It handles only
+the constructs expressible in unextended markdown. But for simple
+documents it should be adequate. The `latex` and `html` readers are also
+limited in what they can do. Because the `html` reader is picky about
+the HTML it parses, it is recommended that you pipe HTML through [HTML
+Tidy] before sending it to `pandoc`, or use the `html2markdown` script
+described below.
 
 If you don't specify a reader or writer explicitly, `pandoc` will
 try to determine the input and output format from the extensions of
@@ -137,11 +140,10 @@ be assumed to be markdown unless explicitly specified.
 Character encodings
 -------------------
 
-Unfortunately, due to limitations in GHC, `pandoc` does not automatically
-detect the system's local character encoding.  Hence, all input and
-output is assumed to be in the UTF-8 encoding.  If your local character
-encoding is not UTF-8 and you use accented or foreign characters,
-you should pipe the input and output through [`iconv`]. For example,
+All input is assumed to be in the UTF-8 encoding, and all output
+is in UTF-8. If your local character encoding is not UTF-8 and you use
+accented or foreign characters, you should pipe the input and output
+through [`iconv`]. For example,
 
 	iconv -t utf-8 source.txt | pandoc | iconv -f utf-8 > output.html
 
@@ -652,11 +654,21 @@ window in a browser -- and once at the beginning of the document body.
 The title in the document head can have an optional prefix attached
 (`--title-prefix` or `-T` option).  The title in the body appears as
 an H1 element with class "title", so it can be suppressed or
-reformatted with CSS.
+reformatted with CSS. If a title prefix is specified with `-T` and no
+title block appears in the document, the title prefix will be used by
+itself as the HTML title.
 
-If a title prefix is specified with `-T` and no title block appears
-in the document, the title prefix will be used by itself as the
-HTML title.
+The man page writer extracts a title, man page section number, and
+other header and footer information from the title line.  These should
+be separated by pipe characters (`|`), as follows:
+
+    % title | section number (1-9) | footer left | header center 
+
+For example,
+
+    % pandoc | 1 | Pandoc User Manuals | Version 4.0
+
+The middle of the man page footer is used for the date.
 
 Box-style blockquotes
 ---------------------
