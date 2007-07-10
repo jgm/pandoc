@@ -1,4 +1,4 @@
-% HTML2MARKDOWN | 1
+% HTML2MARKDOWN | 1 | Pandoc User Manuals
 % John MacFarlane and Recai Oktas
 % June 30, 2007
 
