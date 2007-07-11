@@ -4,8 +4,8 @@ body {
     background-color: white;
     color: black;
     font-family: Verdana, sans-serif;
-    font-size: 0.9em;
-    line-height: 1.3em;
+    font-size: 100%;
+    line-height: 130%;
     color: #333; 
 }
 pre {
@@ -16,7 +16,7 @@ pre {
 }
 code {
     font-family: monospace;
-    font-size: 1.25em;
+    font-size: 110%;
 }
 h1, h2, h3, h4, h5 { font-family: verdana;
                      font-weight: bold;
@@ -151,6 +151,7 @@ dt {
 }
 #main {
     margin-top: 1em;
+    margin-bottom: 1em;
     padding-right: 1em;
     padding-left: 1em;
     max-width: 42em; 
