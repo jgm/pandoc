@@ -4,7 +4,7 @@ body {
     background-color: white;
     color: black;
     font-family: Verdana, sans-serif;
-    font-size: medium;
+    font-size: 0.9em;
     line-height: 1.3em;
     color: #333; 
 }
@@ -13,6 +13,10 @@ pre {
     background-color: #ececec;
     color: #1111111;
     padding: 0.5em;
+}
+code {
+    font-family: monospace;
+    font-size: 1.25em;
 }
 h1, h2, h3, h4, h5 { font-family: verdana;
                      font-weight: bold;
