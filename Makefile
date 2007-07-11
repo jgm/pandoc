@@ -80,7 +80,7 @@ all: build-program
 
 # Document process rules.
 %.html: % $(MAIN)
-	./$(MAIN) -s $< >$@ || rm -f $@
+	./$(MAIN) -s -S --toc $< >$@ || rm -f $@
 %.tex: % $(MAIN)
 	./$(MAIN) -s -w latex $< >$@ || rm -f $@
 %.rtf: % $(MAIN)
