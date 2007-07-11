@@ -7,9 +7,9 @@ click on the name of the output file:
 
 @   pandoc README -o example1.html
 
-2.  Standalone HTML file:
+2.  Standalone HTML file with table of contents:
 
-@   pandoc -s -S README -o example2.html
+@   pandoc -s --toc README -o example2.html
 
 3.  HTML with smart quotes, CSS, and custom header and footer:
 
@@ -25,7 +25,7 @@ click on the name of the output file:
 
 6.  reStructuredText:
 
-@   pandoc -s -w rst README -o example6.text
+@   pandoc -s -w rst --toc README -o example6.text
 
 7.  Rich text format (RTF):
 
@@ -45,7 +45,7 @@ click on the name of the output file:
 
 11. ODF (open document format) via DocBook and [docbook2odf]:
 
-@   docbook2odf --input-file example9.db --output-file example11.odf
+@   docbook2odf example9.db --output-file example11.odf
 
 12. Man page:
 
