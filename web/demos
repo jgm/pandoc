@@ -7,13 +7,13 @@ click on the name of the output file:
 
 @   pandoc README -o example1.html
 
-2.  Standalone HTML file with table of contents:
+2.  Standalone HTML file:
 
-@   pandoc -s --toc README -o example2.html
+@   pandoc -s README -o example2.html
 
-3.  HTML with smart quotes, CSS, and custom header and footer:
+3.  HTML with smart quotes, table of contents, CSS, and custom header and footer:
 
-@   pandoc -s -S -c main.css -B header.html -A footer.html README -o example3.html
+@   pandoc -s -S --toc -c main.css -B header.html -A footer.html README -o example3.html
 
 4.  LaTeX:
 
@@ -41,25 +41,21 @@ click on the name of the output file:
 
 10. Chunked XHTML via DocBook and [xmlto]:
 
-@   xmlto -m config.xsl xhtml example9.db -o example10/
+@   xmlto xhtml -m config.xsl example9.db -o example10/
 
-11. ODF (open document format) via DocBook and [docbook2odf]:
+11. Man page:
 
-@   docbook2odf example9.db --output-file example11.odf
+@   pandoc -s -w man pandoc.1.md -o example11.1
 
-12. Man page:
-
-@   pandoc -s -w man pandoc.1.md -o pandoc.1
-
-13. Converting a web page to markdown:
+12. Converting a web page to markdown:
 
 @   html2markdown http://www.gnu.org/software/make/ -o example12.text
 
-14. From markdown to PDF:
+13. From markdown to PDF:
 
 @   markdown2pdf README -o example13.pdf
 
-15. PDF with numbered sections and a custom LaTeX header:
+14. PDF with numbered sections and a custom LaTeX header:
 
 @   markdown2pdf -N -C myheader.tex README -o example14.pdf
 
