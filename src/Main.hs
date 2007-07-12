@@ -480,7 +480,8 @@ main = do
                                       writerTitlePrefix    = titlePrefix,
                                       writerTabStop        = tabStop, 
                                       writerTableOfContents = toc &&
-                                                              (not strict),
+                                                              (not strict) &&
+                                                              writerName/="s5",
                                       writerS5             = (writerName=="s5"),
                                       writerIgnoreNotes    = False,
                                       writerIncremental    = incremental, 
