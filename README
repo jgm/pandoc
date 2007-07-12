@@ -267,6 +267,11 @@ specified.)
 header.  To see the headers used by default, use the `-D` option:
 for example, `pandoc -D html` prints the default HTML header.
 
+`--toc` or `--table-of-contents` includes an automatically generated
+table of contents (or, in the case of `latex` and `rst`, an instruction
+to create one) in the output document. This option has no effect with
+`man`, `docbook`, or `s5` output formats.
+
 `-c` or `--css` allows the user to specify a custom stylesheet that
 will be linked to in HTML and S5 output.
 
