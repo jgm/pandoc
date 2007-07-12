@@ -31,25 +31,17 @@ from the Pandoc libraries.
 
 module Text.Pandoc
                ( 
-                 Pandoc (..)
-               , Meta (..)
-               , Alignment (..)
-               , Block (..)
-               , QuoteType (..)
-               , Target
-               , Inline (..)
-
-               -- Text.Pandoc.UTF8
-               , encodeUTF8
-               , decodeUTF8
-            
-               -- readers
+               -- * Definitions
+               module Text.Pandoc.Definition
+               -- * Readers: converting /to/ Pandoc format
                , readMarkdown
                , readRST
                , readLaTeX
                , readHtml
-
-               -- writers
+               -- * Parser state used in readers
+               , ParserState (..)
+               , defaultParserState
+               -- * Writers: converting /from/ Pandoc format
                , writeMarkdown
                , writeRST
                , writeLaTeX
@@ -57,15 +49,15 @@ module Text.Pandoc
                , writeHtmlString
                , writeS5
                , writeDocbook
+               , writeMan
                , writeRTF
-
-               -- module Text.Pandoc.Shared
-               , ParserContext (..)
-               , QuoteContext (..)
-               , ParserState (..)
-               , defaultParserState
+               , prettyPandoc
+               -- * Writer options used in writers 
                , WriterOptions (..)
                , defaultWriterOptions
+               -- * UTF-8 encoding and decoding
+               , encodeUTF8
+               , decodeUTF8
              ) where
 
 import Text.Pandoc.Definition
@@ -79,6 +71,7 @@ import Text.Pandoc.Writers.LaTeX
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.S5
 import Text.Pandoc.Writers.Docbook
+import Text.Pandoc.Writers.Man
 import Text.Pandoc.Writers.RTF 
 import Text.Pandoc.UTF8
 import Text.Pandoc.Shared
