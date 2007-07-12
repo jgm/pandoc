@@ -416,7 +416,7 @@ data WriterOptions = WriterOptions
 
 -- | Default writer options.
 defaultWriterOptions = 
-    WriterOptions { writerStandalone      = True,
+    WriterOptions { writerStandalone      = False,
                     writerHeader          = "",
                     writerTitlePrefix     = "",
                     writerTabStop         = 4,
