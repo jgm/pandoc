@@ -127,7 +127,7 @@ dt {
     color:#336666;
     padding-left:2em;
     margin-bottom:0;
-    width: 7em;
+    width: 8em;
 }
 #sidebar li {
     font-family: verdana;
@@ -158,7 +158,7 @@ dt {
     border: 1px solid gray;
 }
 #main.withleftmenu {
-    margin-left: 9em;
+    margin-left: 10em;
 }
 
 div.clear { clear: both; 
