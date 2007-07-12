@@ -53,6 +53,7 @@ module Text.Pandoc.Shared (
                      ParserContext (..),
                      QuoteContext (..),
                      ParserState (..),
+                     NoteTable,
                      defaultParserState,
                      nullBlock,
                      escaped,
