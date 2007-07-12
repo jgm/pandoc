@@ -689,7 +689,7 @@ derive the identifier from the header text,
 Thus,
 
                          Header text     Identifier
-   --------------------------------- --- ----------------------------
+   --------------------------------- --- --------------------------------
          Header identifiers in HTML   →  `header-identifiers-in-html`
              *Dogs*?--in *my* house?  →  `dogs--in-my-house`
              [HTML], [S5], or [RTF]?  →  `html-s5-or-rtf`
