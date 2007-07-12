@@ -10,9 +10,27 @@ Homepage:        http://sophos.berkeley.edu/macfarlane/pandoc
 Package-URL:     http://pandoc.googlecode.com/files/pandoc-0.4.tar.gz
 Category:        Text
 Tested-With:     GHC
-Synopsis:        Utilities for translating between various markup formats    
-Description:     Haskell utilities for translating between markdown, HTML,
-                 reStructuredText, LaTeX, DocBook, groff man, and RTF
+Synopsis:        Functions for translating between various markup formats    
+Description:     Pandoc is a Haskell library for converting from one markup
+                 format to another, and a command-line tool that uses
+                 this library. It can read markdown and (subsets of)
+                 reStructuredText, HTML, and LaTeX, and it can write
+                 markdown, reStructuredText, HTML, LaTeX, Docbook, RTF,
+                 groff man pages, and S5 HTML slide shows.
+                 .
+                 Pandoc extends standard markdown syntax with footnotes,
+                 embedded LaTeX, definition lists, tables, and other
+                 features. A compatibility mode is provided for those
+                 who need a drop-in replacement for Markdown.pl.
+                 .
+                 In contrast to existing tools for converting markdown
+                 to HTML, which use regex substitutions, pandoc has
+                 a modular design: it consists of a set of readers,
+                 which parse text in a given format and produce a native
+                 representation of the document, and a set of writers,
+                 which convert this native representation into a target
+                 format. Thus, adding an input or output format requires
+                 only adding a reader or writer.
 Build-Depends:   base, parsec, xhtml, mtl, regex-compat
 Hs-Source-Dirs: src
 Exposed-Modules: Text.Pandoc,
@@ -23,6 +41,10 @@ Exposed-Modules: Text.Pandoc,
                  Text.Pandoc.ParserCombinators,
                  Text.Pandoc.Shared,
                  Text.Pandoc.UTF8,
+                 Text.Pandoc.Readers.HTML,
+                 Text.Pandoc.Readers.LaTeX,
+                 Text.Pandoc.Readers.Markdown,
+                 Text.Pandoc.Readers.RST,
                  Text.Pandoc.Writers.DefaultHeaders,
                  Text.Pandoc.Writers.Docbook,
                  Text.Pandoc.Writers.HTML,
@@ -31,11 +53,7 @@ Exposed-Modules: Text.Pandoc,
                  Text.Pandoc.Writers.Markdown,
                  Text.Pandoc.Writers.RST,
                  Text.Pandoc.Writers.RTF,
-                 Text.Pandoc.Writers.S5,
-                 Text.Pandoc.Readers.HTML,
-                 Text.Pandoc.Readers.LaTeX,
-                 Text.Pandoc.Readers.Markdown,
-                 Text.Pandoc.Readers.RST
+                 Text.Pandoc.Writers.S5
 Ghc-Options:     -O0
 
 Executable:      pandoc
