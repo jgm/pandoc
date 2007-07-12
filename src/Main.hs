@@ -225,17 +225,17 @@ options =
                   (\opt -> return opt { optNumberSections = True }))
                  "" -- "Number sections in LaTeX"
 
+    , Option "" ["toc", "table-of-contents"]
+                (NoArg
+                 (\opt -> return opt { optTableOfContents = True }))
+               "" -- "Include table of contents" 
+
     , Option "c" ["css"]
                  (ReqArg
                   (\arg opt -> return opt { optCSS = arg, 
                                             optStandalone = True })
                   "CSS")
                  "" -- "Link to CSS style sheet"
-
-    , Option "" ["toc", "table-of-contents"]
-                (NoArg
-                 (\opt -> return opt { optTableOfContents = True }))
-               "" -- "Include table of contents" 
 
     , Option "H" ["include-in-header"]
                  (ReqArg
