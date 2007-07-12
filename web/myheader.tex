@@ -1,11 +1,13 @@
 \documentclass[12pt]{article}
 \usepackage{txfonts}
-\usepackage{hyperref}
+\usepackage[breaklinks=true]{hyperref}
 \usepackage{ucs}
 \usepackage[utf8x]{inputenc}
 \usepackage{graphicx}
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\usepackage{array}
 % This is needed for code blocks in footnotes:
 \usepackage{fancyvrb}
 \VerbatimFootnotes
+% This is needed because raggedright in table elements redefines //:
+\newcommand{\PreserveBackslash}[1]{\let\temp=\\#1\let\\=\temp}
+\let\PBS=\PreserveBackslash
