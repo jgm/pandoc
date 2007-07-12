@@ -29,26 +29,10 @@ Parses command-line options and calls the appropriate readers and
 writers.
 -}
 module Main where
-import Text.Pandoc.UTF8 ( decodeUTF8, encodeUTF8 )
-import Text.Pandoc.Readers.Markdown ( readMarkdown )
-import Text.Pandoc.Readers.HTML ( readHtml )
-import Text.Pandoc.Writers.S5 ( writeS5String )
-import Text.Pandoc.Writers.RST ( writeRST )
-import Text.Pandoc.Readers.RST ( readRST )
+import Text.Pandoc
+import Text.Pandoc.UTF8 ( encodeUTF8, decodeUTF8 )
 import Text.Pandoc.ASCIIMathML ( asciiMathMLScript )
-import Text.Pandoc.Writers.HTML ( writeHtmlString )
-import Text.Pandoc.Writers.Docbook ( writeDocbook )
-import Text.Pandoc.Writers.LaTeX ( writeLaTeX )
-import Text.Pandoc.Readers.LaTeX ( readLaTeX )
-import Text.Pandoc.Writers.RTF ( writeRTF )
-import Text.Pandoc.Writers.Man ( writeMan )
-import Text.Pandoc.Writers.Markdown ( writeMarkdown )
-import Text.Pandoc.Writers.DefaultHeaders ( defaultRTFHeader, 
-                                            defaultS5Header, 
-                                            defaultLaTeXHeader, 
-                                            defaultDocbookHeader )
-import Text.Pandoc.Definition
-import Text.Pandoc.Shared
+import Text.Pandoc.Shared ( joinWithSep, tabsToSpaces )
 import Text.Regex ( mkRegex, matchRegex )
 import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
@@ -159,13 +143,13 @@ options =
                  (ReqArg
                   (\arg opt -> return opt { optReader = map toLower arg })
                   "FORMAT")
-                 "" -- ("(" ++ (joinWithSep ", " (map fst readers)) ++ ")")
+                 "" -- ("(" ++ (joinWithSep ", " $ map fst readers) ++ ")")
 
     , Option "tw" ["to","write"]
                  (ReqArg
                   (\arg opt -> return opt { optWriter = map toLower arg })
                   "FORMAT")
-                 "" -- ("(" ++ (joinWithSep ", " (map fst writers)) ++ ")")
+                 "" -- ("(" ++ (joinWithSep ", " $ map fst writers) ++ ")")
     
     , Option "s" ["standalone"]
                  (NoArg
@@ -321,8 +305,8 @@ options =
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName options = usageInfo  
   (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++ 
-  joinWithSep ", " (map fst readers) ++ "\nOutput formats:  " ++ 
-  joinWithSep ", " (map fst writers) ++ "\nOptions:")
+  (joinWithSep ", " $ map fst readers) ++ "\nOutput formats:  " ++ 
+  (joinWithSep ", " $ map fst writers) ++ "\nOptions:")
   options
  
 -- Determine default reader based on source file extensions
@@ -494,7 +478,8 @@ main = do
   (readSources sources) >>= (hPutStr output . encodeUTF8 . 
                              (writer writerOptions) . 
                              (reader startParserState) .  filter .
-                             decodeUTF8 . (joinWithSep "\n")) >> hClose output
+                             decodeUTF8 . (joinWithSep "\n")) >> 
+                             hClose output
 
   where 
     readSources [] = mapM readSource ["-"]
