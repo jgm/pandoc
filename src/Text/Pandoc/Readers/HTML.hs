@@ -83,7 +83,7 @@ inlinesTilEnd tag = try (do
   inlines <- manyTill inline (htmlEndTag tag)
   return inlines)
 
--- | Extract type from a tag:  e.g. 'br' from '<br>'
+-- | Extract type from a tag:  e.g. @br@ from @\<br\>@
 extractTagType :: String -> String
 extractTagType ('<':rest) = 
   let isSpaceOrSlash c = c `elem` "/ \n\t" in
