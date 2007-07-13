@@ -38,9 +38,9 @@ inline links:
 > import Text.Pandoc
 > 
 > markdownToRST :: String -> String
-> markdownToRST = encodeUTF8 .
+> markdownToRST = toUTF8 .
 >         (writeRST defaultWriterOptions {writerReferenceLinks = True}) .
->         (readMarkdown defaultParserState) .  decodeUTF8
+>         (readMarkdown defaultParserState) .  fromUTF8
 > 
 > main = interact markdownToRST
 

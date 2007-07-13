@@ -30,8 +30,8 @@ writers.
 -}
 module Main where
 import Text.Pandoc
-import Text.Pandoc.UTF8 ( encodeUTF8, decodeUTF8 )
-import Text.Pandoc.ASCIIMathML ( asciiMathMLScript )
+import Text.Pandoc.UTF8
+import Text.Pandoc.ASCIIMathML
 import Text.Pandoc.Shared ( joinWithSep, tabsToSpaces )
 import Text.Regex ( mkRegex, matchRegex )
 import System.Environment ( getArgs, getProgName, getEnvironment )
@@ -439,9 +439,7 @@ main = do
                  Nothing   -> stateColumns defaultParserState
 
   let tabFilter = if preserveTabs then id else (tabsToSpaces tabStop)
-  let addBlank str = str
   let removeCRs str = filter (/= '\r') str  -- remove DOS-style line endings
-  let filter = tabFilter . addBlank . removeCRs
   let startParserState = 
          defaultParserState { stateParseRaw    = parseRaw,
                               stateTabStop     = tabStop, 
@@ -475,10 +473,10 @@ main = do
                                       writerStrictMarkdown = strict,
                                       writerReferenceLinks = referenceLinks }
 
-  (readSources sources) >>= (hPutStr output . encodeUTF8 . 
+  (readSources sources) >>= (hPutStr output . toUTF8 . 
                              (writer writerOptions) . 
-                             (reader startParserState) .  filter .
-                             decodeUTF8 . (joinWithSep "\n")) >> 
+                             (reader startParserState) .  tabFilter .
+                             removeCRs .  fromUTF8 .  (joinWithSep "\n")) >> 
                              hClose output
 
   where 
