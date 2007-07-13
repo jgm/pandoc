@@ -743,8 +743,9 @@ closing $ must have a character immediately to its left.  Thus,
 escaped with a backslash if needed.
 
 If you pass the `-m` (`--asciimathml`) option to `pandoc`, it will
-include the [ASCIIMathML] script in the resulting HTML.  This will
-cause LaTeX math to be displayed as formulas in better browsers.
+embed the [ASCIIMathML] script in the resulting HTML.  This will
+cause LaTeX math to be displayed as formulas in better
+browsers.[^3]
 
 [ASCIIMathML]: http://www1.chapman.edu/~jipsen/asciimath.html 
 
@@ -765,6 +766,15 @@ You can also use LaTeX environments.  For example,
 
 Note, however, that material between the begin and end tags will
 be interpreted as raw LaTeX, not as markdown.
+
+[^3]: If you are serving several pages that use ASCIIMathML, it will be
+    more efficient to link to an external copy of `ASCIIMathML.js`
+    instead of using the `-m|--asciimathml` option to embed it directly
+    in web pages. To do this, get a copy of `ASCIIMathML.js` from the
+    [ASCIIMathML] website and make it available on your webserver. Then
+    create a custom header for your web page that includes the line
+
+        <script src=/path/to/ASCIIMathML.js></script> 
 
 Custom headers
 ==============
