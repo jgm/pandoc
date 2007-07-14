@@ -77,21 +77,27 @@ latexHeader options (Meta title authors date) =
 
 -- escape things as needed for LaTeX
 
-escapeBrackets  = backslashEscape "{}"
-escapeSpecial   = backslashEscape "$%&~_#"
-
-escapeBackslash = substitute "\\" "\\textbackslash{}" 
-fixBackslash    = substitute "\\textbackslash\\{\\}" "\\textbackslash{}"
-escapeHat       = substitute "^" "\\^{}"
-escapeBar       = substitute "|" "\\textbar{}"
-escapeLt        = substitute "<" "\\textless{}"
-escapeGt        = substitute ">" "\\textgreater{}"
+escapeCharForLaTeX :: Char -> String
+escapeCharForLaTeX ch =
+  case ch of
+       '\\' -> "\\textbackslash{}"
+       '{'  -> "\\{"
+       '}'  -> "\\}"
+       '$'  -> "\\$"
+       '%'  -> "\\%"
+       '&'  -> "\\&"
+       '~'  -> "\\~"
+       '_'  -> "\\_"
+       '#'  -> "\\#"
+       '^'  -> "\\^{}"
+       '|'  -> "\\textbar{}"
+       '<'  -> "\\textless{}"
+       '>'  -> "\\textgreater{}"
+       x    -> [x]
 
 -- | Escape string for LaTeX
 stringToLaTeX :: String -> String
-stringToLaTeX = escapeGt . escapeLt . escapeBar . escapeHat . 
-                escapeSpecial . fixBackslash . escapeBrackets . 
-                escapeBackslash 
+stringToLaTeX = concatMap escapeCharForLaTeX
 
 -- | Remove all code elements from list of inline elements
 -- (because it's illegal to have a \\verb inside a command argument)
