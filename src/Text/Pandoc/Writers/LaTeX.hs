@@ -75,7 +75,7 @@ latexHeader options (Meta title authors date) =
   header ++ secnumline ++ titletext ++ authorstext ++ datetext ++ 
   "\\begin{document}\n" ++ maketitle
 
--- escape things as needed for LaTeX (also ldots, dashes, quotes, etc.) 
+-- escape things as needed for LaTeX
 
 escapeBrackets  = backslashEscape "{}"
 escapeSpecial   = backslashEscape "$%&~_#"
