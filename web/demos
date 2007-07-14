@@ -11,9 +11,9 @@ click on the name of the output file:
 
 @   pandoc -s README -o example2.html
 
-3.  HTML with smart quotes, table of contents, CSS, and custom header and footer:
+3.  HTML with smart quotes, table of contents, CSS, and custom footer:
 
-@   pandoc -s -S --toc -c main.css -B header.html -A footer.html README -o example3.html
+@   pandoc -s -S --toc -c pandoc.css -A footer.html README -o example3.html
 
 4.  LaTeX:
 

@@ -368,30 +368,14 @@ website: $(MAIN) html
 	( \
 		mkdir $(web_dest); \
 		cp -r html $(web_dest)/doc; \
-		cp $(web_src)/*.css $(web_dest)/; \
-		cp $(web_src)/css $(web_dest)/; \
+		cp $(web_src)/* $(web_dest)/; \
 		sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome > \
 			$(web_dest)/osx-notes.txt; \
-		sed -e '/^ --.*/d' -e 's#^#    #g' changelog | \
-			sed -e 's/    \(pandoc (.*\)/## \1/g' > \
-			$(web_dest)/changelog.txt; \
+		cp changelog $(web_dest)/ ; \
 		cp README $(web_dest)/ ; \
 		cp INSTALL $(web_dest)/ ; \
 		cp $(MANDIR)/man1/pandoc.1.md $(web_dest)/ ; \
-		sed -e 's/@TARBALL_NAME@/$(tarball_name)/g' $(web_src)/index.txt | \
-			sed -e 's/@OSX_DMG_NAME@/$(osx_dmg_name)/g' | \
-			sed -e 's/@WINDOWS_PKG_NAME@/$(win_pkg_name)/g' | \
-			sed -e 's/@VERSION@/$(VERSION)/g' > $(web_dest)/index.txt; \
-		cp $(web_src)/features.txt $(web_dest)/ ; \
-		cp $(web_src)/myheader.tex $(web_dest)/ ; \
-		cp $(web_src)/S5DEMO $(web_dest)/ ; \
-		cp $(web_src)/header.html $(web_dest)/ ; \
-		cp $(web_src)/footer.html $(web_dest)/ ; \
-		cp $(web_src)/mkdemos.pl $(web_dest)/ ; \
-		cp $(web_src)/demos $(web_dest)/ ; \
-		cp $(web_src)/docbook.css $(web_dest)/ ; \
-		cp $(web_src)/config.xsl $(web_dest)/ ; \
-		cp $(web_src)/Makefile $(web_dest)/ ; \
+		cp $(MANDIR)/man1/*.1 $(web_dest)/ ; \
 		PANDOC_PATH=$(shell pwd) make -C $(web_dest) ; \
 	) || { rm -rf $(web_dest); exit 1; }
 

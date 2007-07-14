@@ -1,8 +1,6 @@
-ALL := index.html osx-notes.html README.html INSTALL.html features.html changelog.html examples.html
+ALL := index.html osx-notes.html README.html INSTALL.html examples.html pandoc1.html markdown2pdf1.html html2markdown1.html hsmarkdown1.html
 PANDOC_PATH ?= $(dir $(shell which pandoc))
-MAKEPAGE = $(PANDOC_PATH)/pandoc -s -S -B header.html -A footer.html -H css 
-PANDOC_DEPS = header.html footer.html css
-
+MAKEPAGE = $(PANDOC_PATH)/pandoc -s -S -c pandoc.css -A footer.html
 all : $(ALL)
 
 .PHONY: clean
@@ -17,14 +15,23 @@ examples.txt : $(PANDOC_DEPS) mkdemos.pl config.xsl S5DEMO README demos
 		do highlight -u utf-8 --style emacs $$file > $$file.html; \
 	done
 
-%.html : %.txt $(PANDOC_DEPS)
+index.html : index.txt
+	$(MAKEPAGE) --toc $< > $@
+
+README.html : README
+	$(MAKEPAGE) --toc $< > $@
+
+INSTALL.html : INSTALL
+	$(MAKEPAGE) --toc $< > $@
+
+%.html : %.txt
 	$(MAKEPAGE) $< > $@
 
-%.html : % $(PANDOC_DEPS)
-	$(MAKEPAGE) $< > $@
+%1.html : %.1
+	groff -man -T html $< > $@
 
-changelog.html : changelog.txt $(PANDOC_DEPS)
-	$(MAKEPAGE) -T "Pandoc changelog" $< > $@
+%.html : %
+	$(MAKEPAGE) $< > $@
 
 upload : 
 	sitecopy --update macfarlane 

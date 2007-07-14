@@ -1,81 +1,116 @@
 % Pandoc
 
+# Overview
+
 Pandoc is a [Haskell] library for converting from one markup format
 to another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX],
 and it can write [markdown], [reStructuredText], [HTML], [LaTeX], [RTF],
-[DocBook XML], [groff man], and [S5] HTML slide shows. Pandoc's version 
-of markdown contains some enhancements, like footnotes and embedded LaTeX.
+[DocBook XML], [groff man], and [S5] HTML slide shows. 
 
-In contrast to existing tools for converting markdown to HTML, which
-use regex substitutions, Pandoc has a modular design: it consists of a
-set of readers, which parse text in a given format and produce a native
-representation of the document, and a set of writers, which convert
-this native representation into a target format. Thus, adding an input
-or output format requires only adding a reader or writer.
+- A real markdown parser, not based on regex substitutions.
+- Modular design, using separate writers and readers for each
+  supported format, for easy extensibility.
+- [More accurate] and [faster], in many cases, than `Markdown.pl`.
+- Multiple output formats--HTML, Docbook XML, LaTeX, reStructuredText,
+  RTF, groff man pages, S5 slide shows--generated natively,
+  with no XSLT postprocessing.
+- Converts *to* markdown from HTML, LaTeX, and reStructuredText.
+- Unicode support.
+- Optional "smart" quotes, dashes, and ellipses.
+- Document metadata (title, author, date).
+- Inline LaTeX math and LaTeX commands.
+- [ASCIIMathML] support for equations in HTML.
+- Footnotes, tables, and definition lists in all output formats.
+- Automatically generated tables of contents.
+- Compatibility mode to turn off syntax entensions and emulate
+  `Markdown.pl`.
+- Convenient wrapper scripts:
+    + `html2markdown` makes it easy to produce a markdown version
+      of any web page.
+    + `markdown2pdf` converts markdown to PDF in one step.
+    + `hsmarkdown` is a drop-in replacement for `Markdown.pl`.
+- Multi-platform:  runs on Windows, MacOS X, Linux, Unix.
+- Free software, released under the [GPL].
 
-For more information, see the [README](README.html) file.
+To see what pandoc can do, see the [demonstration page](examples.html).
 
-Pandoc is free software, released under the [GPL].
+# Documentation
 
-**Source distribution:** [`@TARBALL_NAME@`].
-To install, unpack the archive and follow the instructions in the
-[INSTALL](INSTALL.html) file. You'll need the [GHC] Haskell compiler,
-version 6.6 or higher.
+- [User's Guide](README.html)
+- [Demonstrations](examples.html)
+- Man pages
+    - [`pandoc(1)`](pandoc1.html)
+    - [`markdown2pdf(1)`](markdown2pdf1.html)
+    - [`html2markdown(1)`](html2markdown1.html)
+    - [`hsmarkdown(1)`](hsmarkdown1.html)
+- [Library documentation](doc/index.html) (for Haskell programmers)
+- [Instructions for installing from source](INSTALL.html)
+- [Changelog](changelog)
 
-**MacOS X binary package:** [`@OSX_DMG_NAME@`].
-To install, just double-click the package icon in the disk
-image.  See the [installation notes](osx-notes.html) for important
-information about setting your `PATH`.  Note:  This package was
-compiled on a G4 Mac; it will also work on an Intel Mac via emulation.
+# Downloads
 
-**Windows binary package:**  [`@WINDOWS_PKG_NAME@`].
-The zip file contains the `pandoc.exe` command-line program (which
-you should extract from the zip archive and put somewhere in your
-PATH).  See the included file `README-WINDOWS.txt` for instructions
-on using the program.  Note:  If you use [Cygwin], we recommend that
-you compile Pandoc from source.  This will give you access to the
-wrapper scripts `markdown2pdf`, `html2markdown`, and `hsmarkdown`,
-which are not included in the Windows binary package.
+- [Source tarball].
+  To install, unpack the archive and follow the instructions in the
+  [INSTALL](INSTALL.html) file. You'll need the [GHC] Haskell compiler,
+  version 6.6 or higher.
 
-[`@TARBALL_NAME@`]: http://code.google.com/p/pandoc/downloads/detail?name=@TARBALL_NAME@
-  "Download source tarball from Pandoc's Google Code site"
-[`@OSX_DMG_NAME@`]: http://code.google.com/p/pandoc/downloads/detail?name=@OSX_DMG_NAME@
-  "Download Mac OS X disk image from Pandoc's Google Code site"
-[`@WINDOWS_PKG_NAME@`]: http://code.google.com/p/pandoc/downloads/detail?name=@WINDOWS_PKG_NAME@
-  "Download Windows zip file from Pandoc's Google Code site"
-[Cygwin]: http://www.cygwin.com/
-  "Cygwin - a linux-like environment for Windows"
+- [MacOS X binary package].
+  To install, just double-click the package icon in the disk
+  image.  See the [installation notes](osx-notes.html) for important
+  information about setting your `PATH`.  Note:  This package was
+  compiled on a G4 Mac; it will also work on an Intel Mac via emulation.
 
-**Debian linux package:**  [`pandoc_0.3_i386.deb`] (thanks to Recai Oktaş).  
-To install, download the file and type:
+- [Windows binary package].
+  The zip file contains the `pandoc.exe` command-line program (which
+  you should extract from the zip archive and put somewhere in your
+  PATH).  See the included file `README-WINDOWS.txt` for instructions
+  on using the program.  Note:  If you use [Cygwin], we recommend that
+  you compile Pandoc from source.  This will give you access to the
+  wrapper scripts `markdown2pdf`, `html2markdown`, and `hsmarkdown`,
+  which are not included in the Windows binary package.
 
-    sudo dpkg -i pandoc_0.3_i386.deb
+- [FreeBSD port].
 
-[`pandoc_0.3_i386.deb`]:  http://people.debian.org/~roktas/packages/pandoc_0.3_i386.deb
+- [Debian linux package] (thanks to Recai Oktaş).  
+  To install, download the file and type:
 
-**FreeBSD port:**  <http://www.freshports.org/textproc/pandoc/>
+        sudo dpkg -i pandoc_0.3_i386.deb
 
-**Repository:**  Pandoc has a publicly accesible subversion repository
-at Google Code (<http://code.google.com/p/pandoc>).  To check out the
-latest, bleeding-edge source code:
+# Code repository
 
-        svn checkout http://pandoc.googlecode.com/svn/trunk/ pandoc
+Pandoc has a publicly accesible subversion repository at Google
+Code (<http://code.google.com/p/pandoc>). To check out the latest,
+bleeding-edge source code:
 
-**Bugs:**  You may view existing bug reports and submit new ones at 
+    svn checkout http://pandoc.googlecode.com/svn/trunk/ pandoc
+
+# Reporting bugs
+
+You may view existing bug reports and submit new ones at 
 <http://code.google.com/p/pandoc/issues/list>.
 
-**Announcements list:**  If you'd like to receive announcements of
-new releases of Pandoc, you may subscribe to the [pandoc-announce
-mailing list].
+# Mailing lists
 
-**API:**  You can browse the API documentation for the Pandoc Haskell
-libraries [here](doc/index.html).
+- [pandoc-announce]:  Announcements of new releases only.
+- [pandoc-discuss]:  General discussion of pandoc.
+
+# News
+
+- Version 0.4 released (?? July 2007).  Features:
+    - list
+    - of 
+    - features
+
+# Disclaimer
 
 This is an early, "alpha" release. It carries no warranties of any
 kind.
 
-[pandoc-announce mailing list]: http://groups.google.com/group/pandoc-announce
+[More accurate]: http://code.google.com/p/pandoc/wiki/PandocVsMarkdownPl
+[faster]: http://code.google.com/p/pandoc/wiki/Benchmarks
+[ASCIIMathML]: http://www1.chapman.edu/~jipsen/mathml/asciimath.html
+ 
 [John MacFarlane]: http://sophos.berkeley.edu/macfarlane/
 [markdown]: http://daringfireball.net/projects/markdown/
 [reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html
@@ -88,4 +123,12 @@ kind.
 [Haskell]:  http://www.haskell.org/
 [GHC]:  http://www.haskell.org/ghc/
 [GPL]:  http://www.gnu.org/copyleft/gpl.html
+[Source tarball]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-0.4.tar.gz "Download source tarball from Pandoc's Google Code site"
+[MacOS X binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-0.4.dmg "Download Mac OS X disk image from Pandoc's Google Code site"
+[Windows binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-0.4.zip "Download Windows zip file from Pandoc's Google Code site"
+[Cygwin]: http://www.cygwin.com/ "Cygwin - a linux-like environment for Windows"
+[Debian linux package]:  http://people.debian.org/~roktas/packages/pandoc_0.3_i386.deb
+[FreeBSD port]: http://www.freshports.org/textproc/pandoc/
+[pandoc-announce]: http://groups.google.com/group/pandoc-announce
+[pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
 
