@@ -363,9 +363,22 @@ inlineToHtml opts inline =
 
 blockListToNote :: WriterOptions -> String -> [Block] -> State WriterState Html
 blockListToNote opts ref blocks =
-  do contents <- blockListToHtml opts blocks
-     let backlink = anchor ! [href ("#fnref" ++ ref), theclass "footnoteBacklink",
-                             title ("Jump back to footnote " ++ ref)] $
-                             (primHtmlChar "#8617")
-     return $ li ! [identifier ("fn" ++ ref)] $ contents +++ backlink
+  -- If last block is Para or Plain, include the backlink at the end of
+  -- that block. Otherwise, insert a new Plain block with the backlink.
+  let backlink = [HtmlInline $ " <a href=\"#fnref" ++ ref ++ 
+                 "\" class=\"footnoteBackLink\"" ++
+                 " title=\"Jump back to footnote " ++ ref ++ "\">&#8617;</a>"]
+      blocks'  = if null blocks
+                    then []
+                    else let lastBlock   = last blocks
+                             otherBlocks = init blocks
+                         in  case lastBlock of
+                                  (Para lst)  -> otherBlocks ++
+                                                 [Para (lst ++ backlink)]
+                                  (Plain lst) -> otherBlocks ++
+                                                 [Plain (lst ++ backlink)]
+                                  _           -> otherBlocks ++ [lastBlock,
+                                                 Plain backlink]
+  in do contents <- blockListToHtml opts blocks'
+        return $ li ! [identifier ("fn" ++ ref)] $ contents
 
