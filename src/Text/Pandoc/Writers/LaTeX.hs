@@ -161,8 +161,6 @@ blockToLaTeX (Table caption aligns widths heads rows) =
 printDecimal :: Float -> String
 printDecimal = printf "%.2f" 
 
-tableColumnWidths cols = map (length . (concatMap blockToLaTeX)) cols
-
 tableRowToLaTeX cols = joinWithSep " & " (map (concatMap blockToLaTeX) cols) ++ "\\\\\n"
 
 listItemToLaTeX list = "\\item " ++ 
