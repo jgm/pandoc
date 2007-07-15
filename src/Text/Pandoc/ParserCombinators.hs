@@ -39,7 +39,8 @@ module Text.Pandoc.ParserCombinators (
                                       enclosed,
                                       stringAnyCase,
                                       parseFromStr,
-                                      lineClump
+                                      lineClump,
+                                      charsInBalanced
                                      ) where
 import Text.ParserCombinators.Parsec
 import Data.Char ( toUpper, toLower )
@@ -121,4 +122,19 @@ lineClump = do
   lines <- many1 (do{notFollowedBy blankline; anyLine})
   blanks <- blanklines <|> (do{eof; return "\n"})
   return ((unlines lines) ++ blanks)
+
+-- | Parse a string of characters between an open character
+-- and a close character, including text between balanced
+-- pairs of open and close. For example,
+-- @charsInBalanced '(' ')'@ will parse "(hello (there))"
+-- and return "hello (there)". 
+charsInBalanced :: Char -> Char -> GenParser Char st String
+charsInBalanced open close = try $ do
+  char open
+  raw <- manyTill (   (do res <- charsInBalanced open close
+                          return $ [open] ++ res ++ [close])
+                  <|> (do notFollowedBy' (blankline >> blanklines)
+                          count 1 anyChar))
+                  (char close)
+  return $ concat raw
 
