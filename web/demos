@@ -49,7 +49,7 @@ click on the name of the output file:
 
 12. ConTeXt:
 
-@   pandoc -s -S -w context README -o example12.tex
+@   pandoc -s -w context README -o example12.tex
 
 13. PDF via pandoc and ConTeXt's `texexec`:
 

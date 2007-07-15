@@ -447,7 +447,8 @@ main = do
          defaultParserState { stateParseRaw    = parseRaw,
                               stateTabStop     = tabStop, 
                               stateStandalone  = standalone && (not strict),
-                              stateSmart       = smart || writerName' == "latex",
+                              stateSmart       = smart || writerName' `elem` 
+                                                          ["latex", "context"],
                               stateColumns     = columns,
                               stateStrict      = strict }
   let csslink = if (css == "")
