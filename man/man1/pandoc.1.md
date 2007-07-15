@@ -14,7 +14,7 @@ pandoc [*options*] [*input-file*]...
 
 Pandoc converts files from one markup format to another. It can
 read markdown and (subsets of) reStructuredText, HTML, and LaTeX, and
-it can write markdown, reStructuredText, HTML, LaTeX, groff man,
+it can write markdown, reStructuredText, HTML, LaTeX, ConTeXt, groff man,
 RTF, DocBook XML, and S5 HTML slide shows.
 
 If no *input-file* is specified, input is read from STDIN.
@@ -67,7 +67,7 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
     `man` (groff man page),
     `markdown` (markdown or plain text), `rst` (reStructuredText),
-    `html` (HTML), `latex` (LaTeX), `man` (groff man), 
+    `html` (HTML), `latex` (LaTeX), `context` (ConTeXt), `man` (groff man), 
     `docbook` (DocBook XML), `s5` (S5 HTML and javascript slide show),
      or `rtf` (rich text format).
 
@@ -99,7 +99,7 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 -S, \--smart
 :   Use smart quotes, dashes, and ellipses.  (This option is significant
     only when the input format is `markdown`.  It is selected automatically
-    when the output format is `latex`.)
+    when the output format is `latex` or `context`.)
 
 -m, \--asciimathml
 :   Use ASCIIMathML to display embedded LaTeX math in HTML output.
@@ -135,7 +135,7 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 
 -D *FORMAT*, \--print-default-header=*FORMAT*
 :   Print the default header for *FORMAT* (`html`, `s5`, `latex`,
-    `docbook`, `man`, `markdown`, `rst`, `rtf`).
+    `context`, `docbook`, `man`, `markdown`, `rst`, `rtf`).
 
 -T *STRING*, \--title-prefix=*STRING*
 :   Specify *STRING* as a prefix to the HTML window title.
