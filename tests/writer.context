@@ -4,9 +4,10 @@
 \setupinteraction[state=start, color=middlered] % needed for hyperlinks
 
 \setuppapersize[letter][letter]  % use letter paper
-\setuplayout[width=6in, height=9.5in] % page layout
-\setuppagenumbering[location={footer,center}, style=bold]  % number pages
-\setupbodyfont[11pt]  % 11pt font
+\setuplayout[width=middle, backspace=1.5in, cutspace=1.5in,
+             height=middle, header=0.75in, footer=0.75in] % page layout
+\setuppagenumbering[location={footer,center}]  % number pages
+\setupbodyfont[12pt]  % 12pt font
 \setupwhitespace[medium]  % inter-paragraph spacing
 
 \setuphead[section][style=\tfc]
@@ -51,6 +52,12 @@
 \setupitemgroup[ltxenum][4][A,packed]
 
 \setupthinrules[width=15em]  % width of horizontal rules
+
+% for block quotations
+\definestartstop [blockquote]
+                 [before={\startnarrower\switchtobodyfont[11pt]
+                          \whitespace\setupindenting[no]},
+                  after={\stopnarrower\whitespace}]
 
 \setupheads[sectionnumber=no, style=\bf]
 \doctitle{Pandoc Test Suite}
@@ -105,12 +112,12 @@ here.
 
 E-mail style:
 
-\startnarrower
+\startblockquote
 This is a block quote. It is pretty short.
 
-\stopnarrower
+\stopblockquote
 
-\startnarrower
+\startblockquote
 Code in a block quote:
 
 \starttyping
@@ -126,23 +133,23 @@ A list:
 \stopltxenum
 Nested block quotes:
 
-\startnarrower
+\startblockquote
 nested
 
-\stopnarrower
+\stopblockquote
 
-\startnarrower
+\startblockquote
 nested
 
-\stopnarrower
+\stopblockquote
 
-\stopnarrower
+\stopblockquote
 
 This should not be a block quote: 2 \lettermore{} 1.
 
 Box-style:
 
-\startnarrower
+\startblockquote
 Example:
 
 \starttyping
@@ -150,26 +157,26 @@ sub status {
     print "working";
 }
 \stoptyping
-\stopnarrower
+\stopblockquote
 
-\startnarrower
+\startblockquote
 \startltxenum
 \item do laundry
 \item take out the trash
 \stopltxenum
-\stopnarrower
+\stopblockquote
 
 Here's a nested one:
 
-\startnarrower
+\startblockquote
 Joe said:
 
-\startnarrower
+\startblockquote
 Don't quote me.
 
-\stopnarrower
+\stopblockquote
 
-\stopnarrower
+\stopblockquote
 
 And a following paragraph.
 
@@ -419,10 +426,10 @@ orange fruit
 \starttyping
 { orange code block }
 \stoptyping
-\startnarrower
+\startblockquote
 orange block quote
 
-\stopnarrower
+\stopblockquote
 
 
 \stopdescr
@@ -643,10 +650,10 @@ With an ampersand: \useurl[27][http://example.com/?foo=1&bar=2][][http://example
 \stopltxitem
 An e-mail address: \useurl[29][mailto:nobody@nowhere.net][][nobody@nowhere.net]\from[29]
 
-\startnarrower
+\startblockquote
 Blockquoted: \useurl[30][http://example.com/][][http://example.com/]\from[30]
 
-\stopnarrower
+\stopblockquote
 
 Auto-links should not occur here: \type{<http://example.com/>}
 
@@ -690,12 +697,12 @@ If you want, you can indent every line, but you can also be lazy and just indent
 
 }
 
-\startnarrower
+\startblockquote
 Notes can go in quotes.\footnote{In quote.
 
 }
 
-\stopnarrower
+\stopblockquote
 
 \startltxenum
 \item And in list items.\footnote{In list.
