@@ -115,7 +115,7 @@ blockToConTeXt (Plain lst) = inlineListToConTeXt lst >>= (return . (++ "\n"))
 blockToConTeXt (Para lst) = inlineListToConTeXt lst >>= (return . (++ "\n\n"))
 blockToConTeXt (BlockQuote lst) = do
   contents <- blockListToConTeXt lst
-  return $ "\\startnarrower\n" ++ contents ++ "\\stopnarrower\n\n"
+  return $ "\\startblockquote\n" ++ contents ++ "\\stopblockquote\n\n"
 blockToConTeXt (CodeBlock str) = 
   return $ "\\starttyping\n" ++ str ++ "\n\\stoptyping\n"
 blockToConTeXt (RawHtml str) = return ""
