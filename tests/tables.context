@@ -1,0 +1,135 @@
+Simple table with caption:
+
+\placetable[here]{Demonstration of simple table syntax.}
+\starttable[|rp(0.15\textwidth)|lp(0.09\textwidth)|cp(0.16\textwidth)|lp(0.13\textwidth)|]
+\HL
+\NC Right
+\NC Left
+\NC Center
+\NC Default
+\NC\AR
+\HL
+\NC 12
+\NC 12
+\NC 12
+\NC 12
+\NC\AR
+\NC 123
+\NC 123
+\NC 123
+\NC 123
+\NC\AR
+\NC 1
+\NC 1
+\NC 1
+\NC 1
+\NC\AR
+\HL
+\stoptable
+
+Simple table without caption:
+
+\placetable[here]{none}
+\starttable[|rp(0.15\textwidth)|lp(0.09\textwidth)|cp(0.16\textwidth)|lp(0.13\textwidth)|]
+\HL
+\NC Right
+\NC Left
+\NC Center
+\NC Default
+\NC\AR
+\HL
+\NC 12
+\NC 12
+\NC 12
+\NC 12
+\NC\AR
+\NC 123
+\NC 123
+\NC 123
+\NC 123
+\NC\AR
+\NC 1
+\NC 1
+\NC 1
+\NC 1
+\NC\AR
+\HL
+\stoptable
+
+Simple table indented two spaces:
+
+\placetable[here]{Demonstration of simple table syntax.}
+\starttable[|rp(0.15\textwidth)|lp(0.09\textwidth)|cp(0.16\textwidth)|lp(0.13\textwidth)|]
+\HL
+\NC Right
+\NC Left
+\NC Center
+\NC Default
+\NC\AR
+\HL
+\NC 12
+\NC 12
+\NC 12
+\NC 12
+\NC\AR
+\NC 123
+\NC 123
+\NC 123
+\NC 123
+\NC\AR
+\NC 1
+\NC 1
+\NC 1
+\NC 1
+\NC\AR
+\HL
+\stoptable
+
+Multiline table with caption:
+
+\placetable[here]{Here's the caption. It may span multiple lines.}
+\starttable[|cp(0.15\textwidth)|lp(0.14\textwidth)|rp(0.16\textwidth)|lp(0.34\textwidth)|]
+\HL
+\NC Centered Header
+\NC Left Aligned
+\NC Right Aligned
+\NC Default aligned
+\NC\AR
+\HL
+\NC First
+\NC row
+\NC 12.0
+\NC Example of a row that spans multiple lines.
+\NC\AR
+\NC Second
+\NC row
+\NC 5.0
+\NC Here's another one. Note the blank line between rows.
+\NC\AR
+\HL
+\stoptable
+
+Multiline table without caption:
+
+\placetable[here]{none}
+\starttable[|cp(0.15\textwidth)|lp(0.14\textwidth)|rp(0.16\textwidth)|lp(0.34\textwidth)|]
+\HL
+\NC Centered Header
+\NC Left Aligned
+\NC Right Aligned
+\NC Default aligned
+\NC\AR
+\HL
+\NC First
+\NC row
+\NC 12.0
+\NC Example of a row that spans multiple lines.
+\NC\AR
+\NC Second
+\NC row
+\NC 5.0
+\NC Here's another one. Note the blank line between rows.
+\NC\AR
+\HL
+\stoptable
+

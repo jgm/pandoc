@@ -1,0 +1,54 @@
+\enableregime[utf]  % use UTF-8
+
+\setupcolors[state=start]
+\setupinteraction[state=start, color=middlered] % needed for hyperlinks
+
+\setuppapersize[letter][letter]  % use letter paper
+\setuplayout[width=6in, height=9.5in] % page layout
+\setuppagenumbering[location={footer,center}, style=bold]  % number pages
+\setupbodyfont[11pt]  % 11pt font
+\setupwhitespace[medium]  % inter-paragraph spacing
+
+\setuphead[section][style=\tfc]
+\setuphead[subsection][style=\tfb]
+\setuphead[subsubsection][style=\bf]
+
+% define title block commands
+\unprotect
+\def\doctitle#1{\gdef\@title{#1}}
+\def\author#1{\gdef\@author{#1}}
+\def\date#1{\gdef\@date{#1}}
+\date{\currentdate}  % Default to today unless specified otherwise.
+\def\maketitle{%
+  \startalignment[center]
+    \blank[2*big]
+      {\tfd \@title}
+    \blank[3*medium]
+      {\tfa \@author}
+    \blank[2*medium]
+      {\tfa \@date}
+    \blank[3*medium]
+  \stopalignment}
+\protect
+
+% define descr (for definition lists)
+\definedescription[descr][
+  headstyle=bold,style=normal,align=left,location=hanging,
+  width=broad,margin=1cm]
+
+% define ltxitem (for bulleted lists)  
+\defineitemgroup[ltxitem][levels=4]
+\setupitemgroup[ltxitem][1][1]
+\setupitemgroup[ltxitem][2][2]
+\setupitemgroup[ltxitem][3][3]
+\setupitemgroup[ltxitem][4][4,packed]
+
+% define ltxenum (for enumerated lists)
+\defineitemgroup[ltxenum][levels=4]
+\setupitemgroup[ltxenum][1][n]
+\setupitemgroup[ltxenum][2][a]
+\setupitemgroup[ltxenum][3][r]
+\setupitemgroup[ltxenum][4][A,packed]
+
+\setupthinrules[width=15em]  % width of horizontal rules
+

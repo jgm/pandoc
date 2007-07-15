@@ -14,7 +14,7 @@ unless (-x $script)   { die "$script is not executable.\n"; }
 
 print "Writer tests:\n";
 
-my @writeformats = ("html", "latex", "rst", "rtf", "markdown", "man", "native"); # docbook and s5 handled separately
+my @writeformats = ("html", "latex", "rst", "rtf", "markdown", "man", "native"); # docbook, context, and s5 handled separately
 my @readformats = ("latex", "native"); # handle html,markdown & rst separately
 my $source = "testsuite.native";
 
@@ -60,6 +60,14 @@ test_results("docbook writer", "tmp.docbook", "writer.docbook");
 `$script -r native -w docbook tables.native > tmp.docbook`;
 print "        docbook tables...";
 test_results("docbook tables", "tmp.docbook", "tables.docbook");
+
+print "Testing context writer...";
+# remove LaTeX tests, as this produces invalid docbook...
+`sed -e '/^, Header 1 \\[Str "LaTeX"\\]/,/^, HorizontalRule/d' testsuite.native | $script -r native -w context -s > tmp.context`;
+test_results("context writer", "tmp.context", "writer.context");
+`$script -r native -w context tables.native > tmp.context`;
+print "        context tables...";
+test_results("context tables", "tmp.context", "tables.context");
 
 print "Testing s5 writer (basic)...";
 `$script -r native -w s5 -s s5.native > tmp.html`;
