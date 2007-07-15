@@ -338,6 +338,8 @@ defaultWriterName x =
     Just ["tex"]      -> "latex"
     Just ["latex"]    -> "latex"
     Just ["ltx"]      -> "latex"
+    Just ["context"]  -> "context"
+    Just ["ctx"]      -> "context"
     Just ["rtf"]      -> "rtf"
     Just ["rst"]      -> "rst"
     Just ["s5"]       -> "s5"
