@@ -47,17 +47,25 @@ click on the name of the output file:
 
 @   pandoc -s -w man pandoc.1.md -o example11.1
 
-12. Converting a web page to markdown:
+12. ConTeXt:
 
-@   html2markdown http://www.gnu.org/software/make/ -o example12.text
+@   pandoc -s -S -w context README -o example12.tex
 
-13. From markdown to PDF:
+13. PDF via pandoc and ConTeXt's `texexec`:
 
-@   markdown2pdf README -o example13.pdf
+@   texexec --pdf example12.tex --result example13.pdf
 
-14. PDF with numbered sections and a custom LaTeX header:
+14. Converting a web page to markdown:
 
-@   markdown2pdf -N -C myheader.tex README -o example14.pdf
+@   html2markdown http://www.gnu.org/software/make/ -o example14.text
+
+15. From markdown to PDF:
+
+@   markdown2pdf README -o example15.pdf
+
+16. PDF with numbered sections and a custom LaTeX header:
+
+@   markdown2pdf -N -C myheader.tex README -o example16.pdf
 
 [xmlto]:  http://cyberelk.net/tim/xmlto/
 [docbook2odf]:  http://open.comsultia.com/docbook2odf/

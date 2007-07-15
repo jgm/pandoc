@@ -5,15 +5,15 @@
 Pandoc is a [Haskell] library for converting from one markup format
 to another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX],
-and it can write [markdown], [reStructuredText], [HTML], [LaTeX], [RTF],
-[DocBook XML], [groff man], and [S5] HTML slide shows. 
+and it can write [markdown], [reStructuredText], [HTML], [LaTeX], [ConTeXt],
+[RTF], [DocBook XML], [groff man], and [S5] HTML slide shows. 
 
 - A real markdown parser, not based on regex substitutions.
 - Modular design, using separate writers and readers for each
   supported format, for easy extensibility.
 - [More accurate] and [faster], in many cases, than `Markdown.pl`.
-- Multiple output formats--HTML, Docbook XML, LaTeX, reStructuredText,
-  RTF, groff man pages, S5 slide shows--generated natively,
+- Multiple output formats--HTML, Docbook XML, LaTeX, ConTeXt,
+  reStructuredText, RTF, groff man pages, S5 slide shows--generated natively,
   with no XSLT postprocessing.
 - Converts *to* markdown from HTML, LaTeX, and reStructuredText.
 - Unicode support.
@@ -117,6 +117,7 @@ kind.
 [S5]: http://meyerweb.com/eric/tools/s5/
 [HTML]:  http://www.w3.org/TR/html40/
 [LaTeX]:  http://www.latex-project.org/
+[ConTeXt]: http://www.pragma-ade.nl/ 
 [RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook XML]: http://www.docbook.org/
 [groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
