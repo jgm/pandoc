@@ -128,6 +128,24 @@ failUnlessSmart = do
   state <- getState
   if stateSmart state then return () else fail "Smart typography feature"
 
+-- | Parse a sequence of inline elements between a string
+--  @opener@ and a string @closer@, including inlines
+--  between balanced pairs of @opener@ and a @closer@.
+inlinesInBalanced :: String -> String -> GenParser Char ParserState [Inline]
+inlinesInBalanced opener closer = try $ do
+  let nonOpenerSymbol = try $ do  -- succeeds if next inline would be Str opener
+         res <- inline            -- fails if next inline merely begins with opener
+         if res == Str opener
+            then pzero
+            else return ' '
+  try (string opener)
+  result <- manyTill (     (do notFollowedBy nonOpenerSymbol
+                               bal <- inlinesInBalanced opener closer 
+                               return $ [Str opener] ++ bal ++ [Str closer])
+                       <|> (count 1 inline)) 
+                     (try (string closer))
+  return $ concat result
+
 --
 -- document structure
 --
@@ -915,22 +933,9 @@ endline = try (do
 -- links
 --
 
-rawLabel = try $ do
-  char labelStart
-  -- allow for embedded brackets:
-  raw <- manyTill (do{res <- rawLabel; return ("[" ++ res ++ "]")} <|> 
-                   count 1 anyChar) (char labelEnd)
-  return $ concat raw 
-
 -- a reference label for a link
-reference = try $ do
-  raw <- rawLabel
-  oldInput <- getInput
-  setInput raw
-  label <- many inline
-  setInput oldInput
-  return (normalizeSpaces label)
- 
+reference = inlinesInBalanced [labelStart] [labelEnd] >>= (return . normalizeSpaces)
+
 -- source for a link, with optional title
 source = try $ do 
   char srcStart
@@ -948,10 +953,9 @@ titleWith startChar endChar = try (do
     then fail "title must be separated by space and on same or next line"
     else return ()
   char startChar
-  tit <- manyTill anyChar (try (do
-                                  char endChar
-                                  skipSpaces
-                                  notFollowedBy (noneOf ")\n")))
+  tit <- manyTill anyChar (try (do char endChar
+                                   skipSpaces
+                                   notFollowedBy (noneOf ")\n")))
   return $ decodeEntities tit)
 
 title = choice [ titleWith '(' ')', 
@@ -1011,19 +1015,10 @@ note = try $ do
     Nothing -> fail "note not found"
     Just contents -> return (Note contents)
 
-inlinesInBrackets = try $ do
-  char '['
-  results <- many $ count 1 (choice [link, referenceLink, image]) <|>
-                    try (do{res <- inlinesInBrackets; return 
-                    ([Str "["] ++ res ++ [Str "]"])}) <|>
-                    (do{notFollowedBy (char ']'); count 1 inline})
-  char ']'
-  return $ concat results
-
 inlineNote = try $ do
   failIfStrict
   char noteStart
-  contents <- inlinesInBrackets
+  contents <- inlinesInBalanced "[" "]"
   return (Note [Para contents])
 
 rawLaTeXInline' = do
