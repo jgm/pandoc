@@ -1,13 +1,22 @@
-% Installing Pandoc
+% Installing pandoc
+
+The following instructions are for installing pandoc from source. Binary
+packages are also available for Windows, MacOS X, Linux (Debian and
+derivatives), and FreeBSD. See the [pandoc home page] for more details.
+
+[pandoc home page]: http://sophos.berkeley.edu/macfarlane/pandoc/
 
 # Installing GHC
 
 To compile Pandoc, you'll need [GHC] version 6.6 or greater.  If
 you don't have GHC already, you can get it from the [GHC Download]
-page.
+page. If you're running MacOS X, you can also install GHC using
+[MacPorts] or [Fink].
 
 [GHC]: http://www.haskell.org/ghc/
 [GHC Download]: http://www.haskell.org/ghc/download.html
+[MacPorts]: http://macports.org
+[Fink]: http://finkproject.org
 
 You'll also need standard build tools: [GNU `make`], `sed`, `bash`,
 and `perl`.  These are standard on unix systems (including MacOS
@@ -31,18 +40,6 @@ X).  If you're using Windows, you can install [Cygwin].
 
         make test
 
-    If you want to try `pandoc` before installing it (the next step),
-    run it with a `./` prefix, as follows:
-
-        ./pandoc README
-
-    If you want to try the shell scripts (`hsmarkdown`, `html2markdown`,
-    and `markdown2pdf`) before installing `pandoc`, you will need to set
-    your path to include the build directory, so that the scripts will
-    find the version of `pandoc` you have just built.  So, for example:
-
-        PATH=.:$PATH html2markdown http://haskell.org
-
 4.  Install:
 
         sudo make install
@@ -65,6 +62,10 @@ X).  If you're using Windows, you can install [Cygwin].
 
         make build-all
         sudo make install-all
+
+    Note that building the library documentation requires [haddock].
+
+[haddock]: http://www.haskell.org/haddock/ 
 
 # Removing Pandoc
 
@@ -107,7 +108,7 @@ but are documented here for packagers and developers:
 
 * `test`:  Runs Pandoc's test suite.  (All tests should pass.)
 * `test-markdown`:  Runs the Markdown regression test suite, using
-  `pandoc --strict`.  (One of the list tests will fail.)
+  `pandoc --strict`.  (Three of the tests will fail.)
 
 ## Cleaning
 
@@ -116,6 +117,8 @@ but are documented here for packagers and developers:
 
 ## Packaging
 
+* `tarball`:  Creates a source tarball for distribution.
+* `deb`:  Creates debian packages in `..` directory.
 * `osx-pkg-prep`:  Prepares for building a MacOS X package.
 * `osx-pkg`:  Builds a MacOS X package (must be run as root, and on OS X).
   You should make `osx-pkg-prep` first (not as root).
@@ -123,7 +126,5 @@ but are documented here for packagers and developers:
   (must be run on OS X).  You should make `osx-pkg` first.
 * `win-pkg`:  Creates a Windows binary package (presupposes `pandoc.exe`,
   which must be created by building Pandoc on a Windows machine).
-* `tarball`:  Creates a source tarball for distribution.
-* `deb`:  Creates debian packages in `..` directory.
 * `website`:  Creates Pandoc's website in `web/pandoc` directory.
 
