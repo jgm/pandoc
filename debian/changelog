@@ -2,16 +2,41 @@ pandoc (0.4) UNRELEASED; urgency=low
 
   [ John MacFarlane ]
 
-  * Added support for Markdown tables.  Two kinds of tables are supported
-    (a simple table with one-line rows, and a more complex variety with
-    multiline rows).  Currently only the Markdown reader and the LaTeX,
-    Docbook, and HTML writers support tables. The syntax is documented in
-    README.
-  
+  * Added two new output formats: groff man pages and ConTeXt. By
+    default, output files with extensions ".ctx" and ".context" are
+    assumed to be ConTeXt, and output files with single-digit extensions
+    are assumed to be man pages.
+
+  * Added support for tables (with a new Table block element). Two kinds
+    of tables are supported: a simple table with one-line rows, and a
+    more complex variety with multiline rows. All output formats are
+    supported, but only markdown tables are parsed at the moment. The
+    syntax is documented in README.
+
+  * Added support for definition lists (with a new DefinitionList block
+    element). All output formats are supported, but only markdown
+    definition lists are parsed at the moment. The syntax is documented
+    in README.
+
+  * Added a --toc|--table-of-contents option.  This causes an automatically
+    generated table of contents (or an instruction that creates one) to
+    be inserted at the beginning of the document. Not supported in S5,
+    DocBook, or man page writers.
+
+  * Added Text.Pandoc module that exports basic readers, writers,
+    definitions, and utility functions. This should export everything
+    needed for most uses of Pandoc libraries. The haddock documentation
+    includes a short example program.
+
+  * Added Text.Pandoc.Blocks module to help in printing markdown
+    and RST tables.  This module provides functions for working with
+    fixed-width blocks of text--e.g., placing them side by side, as
+    in a table row.
+
   * Refactored to avoid reliance on Haskell's Text.Regex library, which
     (a) is slow, and (b) does not properly handle unicode.  This fixed
     some strange bugs, e.g. in parsing S-cedilla, and improved performance.
-  
+
     + Replaced 'gsub' with a general list function  'substitute'
       that does not rely on Text.Regex.
     + Rewrote extractTagType in HTML reader so that it doesn't use
@@ -22,17 +47,47 @@ pandoc (0.4) UNRELEASED; urgency=low
     + Modified Docbook writer so that it doesn't rely on Text.Regex for
       detecting 'mailto' links.
     + Removed escapePreservingRegex and reamped entity-handling
-      functions in Text/Pandoc/Shared.hs and Text/Pandoc/Entities.hs to
+      functions in Text.Pandoc.Shared and Text.Pandoc.Entities to
       avoid reliance on Text.Regex (see below on Entity handling changes).
-  
-  * Changed handling of SGML entities.  Entities are now parsed (and unicode
+
+  * Removed Key and Note blocks from the Pandoc data structure. All
+    links are now stored as explicit links, and note contents are
+    stored with the (inline) notes.
+
+    + All link Targets are now explicit (URL, title) pairs; there
+      is no longer a 'Ref' target.
+    + Markdown and RST parsers now need to extract data from key and
+      note blocks and insert them into the relevant inline elements.
+      Other parsers have been simplified, since there is no longer any need
+      to construct separate key and note blocks.
+    + Markdown, RST, and HTML writers need to construct lists of
+      notes; Markdown and RST writers need to construct lists of link
+      references (when the --reference-links option is specified); and
+      the RST writer needs to construct a list of image substitution
+      references. All writers have been rewritten to use the State monad
+      when state is required.
+    + Several functions (generateReference, keyTable,
+      replaceReferenceLinks, replaceRefLinksBlockList, and some auxiliaries
+      used by them) have been removed from Text.Pandoc.Shared, since
+      they are no longer needed. New functions and data structures
+      (Reference, isNoteBlock, isKeyBlock, isLineClump) have been
+      added. The functions inTags, selfClosingTag, inTagsSimple, and
+      inTagsIndented have been moved to the DocBook writer, since that
+      is now the only module that uses them. NoteTable is now exported
+      in Text.Pandoc.Shared.
+    + Added stateKeys and stateNotes to ParserState; removed stateKeyBlocks,
+      stateKeysUsed, stateNoteBlocks, stateNoteIdentifiers, stateInlineLinks. 
+    + Added writerNotes and writerReferenceLinks to WriterOptions.
+
+  * Changed handling of XML entities.  Entities are now parsed (and unicode
     characters returned) in the Markdown and HTML readers, rather than being
     handled in the writers.  In HTML and Docbook writers, UTF-8 is now used
     instead of entities for characters above 128.  This makes the HTML and 
-    Docbook output much more readable and more easily editable.
-  
+    DocBook output much more readable and more easily editable.
+
     + Removed sgmlHexEntity, sgmlDecimalEntity, sgmlNamedEntity, and
-      sgmlCharacterEntity regexes from Shared.hs.
+      sgmlCharacterEntity regexes from Text.Pandoc.Shared.
+    + Renamed escapeSGMLChar to escapeCharForXML.  Added escapeStringForXML.
     + Added parsers characterEntity, namedEntity, decimalEntity, hexEntity 
       to Entities.hs; these parse a string and return a unicode character.
     + Added new 'entity' parser to Markdown reader, and added '&' as a 
@@ -44,26 +99,71 @@ pandoc (0.4) UNRELEASED; urgency=low
       unprocessed entities are included in the native representation of
       the document.  (In the HTML reader, most of this work is done by a 
       change in extractAttributeName.)
-    + Added escapeSGMLChar to Entities.hs. Modified escapeSGMLString to 
-      use escapeSGMLChar.
-    + In SGML and Markdown output, escape unicode nonbreaking space as '&nbsp;', 
+    + In XML and Markdown output, escape unicode nonbreaking space as '&nbsp;', 
       since a unicode non-breaking space is impossible to distinguish visually
-      from a regular space.  (Resolves issue #3.)
-    + Replaced all calls to stringToSGML and encodeEntities with calls to
-      escapeSGMLString.
-    + Rewrote escapeSGMLString for better performance.
+      from a regular space.  (Resolves Issue #3.)
     + Added charToEntity and charToNumericalEntity to Entities.hs.
       Removed encodeEntitiesNumerical.
     + Use Data.Map for entityTable and (new) reverseEntityTable, for a
       slight performance boost over the old association list.
     + Removed unneeded decodeEntities from 'str' parser in HTML and
       Markdown readers.
-  
+
+  * Text.Pandoc.UTF8:  Renamed encodeUTF8 to toUTF8, decodeUTF8 to
+    fromUTF8, for clarity.
+
+  * Replaced old haskell98 module names replaced by hierarchical module
+    names, e.g. List by Data.List.  Removed haskell98 from dependencies
+    in pandoc.cabal, and added mtl (needed for state monad). Substituted
+    xhtml for html.
+
+  * Removed Blank block element as unnecessary.
+
+  * HTML writer:
+
+    + Modified HTML writer to use the Text.XHtml library. This results
+      in cleaner, faster code, and it makes it easier to use Pandoc in
+      other projects, like wikis, which use Text.XHtml. Two functions are
+      now provided, writeHtml and writeHtmlString: the former outputs an
+      Html structure, the latter a rendered string. The S5 writer is also
+      changed, in parallel ways (writeS5, writeS5String). 
+    + The Html header is now written programmatically, so it has been
+      removed from the 'headers' directory. The S5 header is still
+      needed, but the doctype and some of the meta declarations have
+      been removed, since they are written programatically. This change
+      introduces a new dependency on the xhtml package.
+    + Fixed two bugs in email obfuscation involving improper escaping
+      of '&' in the <noscript> section and in --strict mode. Resolves
+      Issue #9.
+    + Fixed another bug in email obfuscation: If the text to be obfuscated
+      contains an entity, this needs to be decoded before obfuscation.
+      Thanks to thsutton for the patch. Resolves Issue #15.
+    + Changed the way the backlink is displayed in HTML footnotes.
+      Instead of appearing on a line by itself, it now generally
+      appears on the last line of the note.  (Exception:  when the
+      note does not end with a Plain or Para block.) This saves space
+      and looks better.
+    + Added automatic unique identifiers to headers:
+      - The identifier is derived from the header via a scheme
+        documented in README.
+      - WriterState now includes a list of header identifiers and a table
+        of contents in addition to notes.
+      - The function uniqueIdentifiers creates a list of unique identifiers
+        from a list of inline lists (e.g. headers).
+      - This list is part of WriterState and gets consumed by blockToHtml
+        each time a header is encountered.
+
   * Fixed several bugs in HTML reader (extractTagType, attribute parsing).
-  
+
   * Markdown reader:
-  
-    + Fixed several bugs in smart quote recognition.
+
+    + Ordered list items may no longer begin with uppercase letters, or
+      letters greater than 'n'.  (This prevents first initials and page
+      reference, e.g. 'p. 400', from being parsed as beginning lists.)
+      Also, numbers beginning list items may no longer end with ')',
+      which is now allowed only after letters.  Note: These changes
+      may cause documents to be parsed differently. Users should take
+      care in upgrading.
     + Changed autoLink parsing to conform better to Markdown.pl's
       behavior. <google.com> is not treated as a link, but 
       <http://google.com>, <ftp://google.com>, and <mailto:google@google.com> are.
@@ -72,53 +172,132 @@ pandoc (0.4) UNRELEASED; urgency=low
     + Use lookAhead parser for the 'first pass' (looking for reference keys),
       instead of parsing normally, then using setInput to reset input.  This
       yields a slight performance boost.
-  
-  * Markdown writer:  Use autolinks when possible.  Instead of
-    [site.com](site.com), use <site.com>.
-  
-  * RST Reader:
-  
+    + Fixed several bugs in smart quote recognition.
+    + Fixed bug in indentSpaces (which didn't properly handle
+      cases with mixed spaces and tabs).
+    + Consolidated 'text', 'special', and 'inline' into 'inline'.
+    + Fixed bug which allowed URL and title to be separated by multiple blank
+      lines in links and reference keys.  They can be on separate lines but
+      can't have blank lines between them.
+    + Correctly handle bracketed text inside inline footnotes and links,using
+      new function inlinesInBalanced.  Resolves Issue #14. 
+    + Fixed bug in footnotes: links in footnotes were not being
+      processed. Solution: three-stage parse. First, get all the
+      reference keys and add information to state. Next, get all the
+      notes and add information to state. (Reference keys may be needed
+      at this stage.) Finally, parse everything else.
+
+  * Markdown writer:
+
+    + Links in markdown output are now printed as inline links by default,
+      rather than reference links.  A --reference-links option has been added
+      that forces links to be printed as reference links.  Resolves Issue #4.
+    + Use autolinks when possible.  Instead of [site.com](site.com), 
+      use <site.com>.
+
+  * RST reader:
+
     + Allow the URI in a RST hyperlink target to start on the line
       after the reference key.
-    + Added 'try' in front of 'string', where needed, or used a different parser,
-      in RST reader. This fixes a bug where ````` would not be correctly parsed as
+    + Added 'try' in front of 'string', where needed, or used a different
+      parser.  This fixes a bug where ````` would not be correctly parsed as
       a verbatim `.
     + Fixed slow performance in parsing inline literals in RST reader.  The 
       problem was that ``#`` was seen by 'inline' as a potential link or image.
       Fix:  inserted 'notFollowedBy (char '`')' in link parsers.
-      (Resolves issue #8.)
+      Resolves Issue #8.
     + Use lookAhead instead of getInput/setInput in RST reader.  Removed
       unneeded getState call, since lookAhead automatically saves and
       restores the parser state.
-  
-  * LaTeX Reader: replaced 'choice [(try (string ...), ...]' idiom with
+    + Allow hyperlink target URIs to be split over multiple lines, and
+      to start on the line after the reference. Resolves Issue #7.
+
+  * LaTeX reader: replaced 'choice [(try (string ...), ...]' idiom with
     'oneOfStrings' in LaTeX reader, for clarity.
-  
-  * Modified LaTeX writer to insert '\,' between consecutive quotes.
-  
+
+  * LaTeX writer:
+
+    + Modified LaTeX writer to insert '\,' between consecutive quotes.
+    + Removed unused function tableRowColumnWidths.
+    + Simplified code for escaping special characters.
+    + Leave extra blank line after \maketitle.
+
+  * Instead of adding "\n\n" to the end of an input string in Main.hs,
+    this is now done in the readers. This makes the libraries behave
+    the way you'd expect from the pandoc program. Resolves Issue #10.
+
   * Text.ParserCombinators.Pandoc:
-  
+
+    + Renamed to Text.Pandoc.ParserCombinators, in order to have all the
+      pandoc libraries in the same place.
+    + Fixed a bug in the anyLine parser. Previously it would parse an empty
+      string "", but it should fail on an empty string, or we get an error
+      when it is used inside "many" combinators.
     + Removed followedBy' parser, replacing it with the lookAhead parser from
       Text/ParserCombinators/Parsec.
     + Added some needed 'try's before multicharacter parsers, especially in 
       'option' contexts.
     + Removed the 'try' from the 'end' parser in 'enclosed', so that
       'enclosed' behaves like 'option', 'manyTill', etc.
+    + Added lineClump parser, which parses a raw line block up to and
+      including any following blank lines.
 
-  * Added defaultWriterOptions to Text/Pandoc/Shared.
+  * Text.Pandoc.Shared:
+
+    + Added defaultWriterOptions.
+    + Added writerTableOfContents to WriterOptions.
+    + Added writerIgnoreNotes option to WriterOptions.  This is needed
+      for processing header blocks for a table of contents, since notes on
+      headers should not appear in the TOC.
+    + Added prettyprinting for native Table format.
+    + Removed some unneeded imports.   
+    + Moved escape and nullBlock parsers from
+      Text.ParserCombinators.Pandoc, since the latter is for
+      general-purpose parsers that don't depend on Text.Pandoc.Definition.
+    + Moved isHeaderBlock from Text.Pandoc.Writers.HTML.
+    + Moved Element, headerAtLeast, and hierarchicalize from Docbook
+      writer, because HTML writer now uses these in constructing a table
+      of contents.
+
+  * Refactored runtests.pl; added separate tests for tables. 
+
+  * Shell scripts:
+
+    + Added -asxhtml flag to tidy in html2markdown. This will
+      perhaps help the parser, which expects closing tags.
+    + Modified markdown2pdf to run pdflatex a second time if --toc or
+      --table-of-contents was specified; otherwise the table of 
+      contents won't appear.
  
-  * Improved website target:
-  
-    + Use a subsidiary Makefile that can be run from the website
-      directory.
-    + Improved "Examples" page: added a templating system, syntax
-      highlighting of xml, tex, and html files, and a demo of
-      docbook postprocessed by xmlto.
-    + Download links now go to Google's download details page (with
-      SHA1 checksum) rather than directly to the files.
-  
+  * Changes to build process:
+
+    + Dropped support for compilation with GHC 6.4.  GHC 6.6 or higher
+      is now required.
+    + Removed cabalize and Pandoc.cabal.in. The repository now contains
+      pandoc.cabal itself.
+    + Pandoc.cabal has been changed to pandoc.cabal, because HackageDB
+      likes the cabal file to have the same name as the tarball. 
+    + Expanded and revised the package description in pandoc.cabal.
+      Revised the package synopsis.
+    + The tarball built by 'make tarball' now contains files built from
+      templates (including man pages and shell scripts), so pandoc can
+      be built directly using Cabal tools, without preprocessing.
+    + Executable binaries are now stripped before installing.
+    + Man pages are now generated from markdown sources, using pandoc's
+      man page writer.
+
   * Added FreeBSD port.
-  
+
+  [ Recai Oktaş ]
+
+  * debian/control:
+
+    + Changed pandoc's Build-Depends to include libghc6-mtl-dev and
+      libghc6-xhtml-dev.  Removed libghc6-html-dev.
+    + Suggest texlive-latex-recommended | tetex-extra instead of
+      tetex-bin.  This brings in fancyvrb and unicode support.
+
+
  -- Recai Oktaş <roktas@debian.org>  Tue, 16 Jan 2007 00:37:21 +0200
 
 pandoc (0.3) unstable; urgency=low
@@ -209,7 +388,7 @@ pandoc (0.3) unstable; urgency=low
     + Modified HTML reader to skip a newline following a <br> tag.
       Otherwise the newline will be treated as a space at the beginning
       of the next line.
- 
+
   * Made handling of code blocks more consistent.  Previously, some
     readers allowed trailing newlines, while others stripped them.
     Now, all readers strip trailing newlines in code blocks. Writers
@@ -246,7 +425,7 @@ pandoc (0.3) unstable; urgency=low
     + Include title block in header even when title is null.
     + Made javascript obfuscation of emails even more obfuscatory,
       by combining it with entity obfuscation.
- 
+
   * Changed default ASCIIMathML text color to black.
 
   * Test suite:
