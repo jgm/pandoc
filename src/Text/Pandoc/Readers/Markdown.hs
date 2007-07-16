@@ -133,13 +133,13 @@ failUnlessSmart = do
 --  between balanced pairs of @opener@ and a @closer@.
 inlinesInBalanced :: String -> String -> GenParser Char ParserState [Inline]
 inlinesInBalanced opener closer = try $ do
-  let nonOpenerSymbol = try $ do  -- succeeds if next inline would be Str opener
-         res <- inline            -- fails if next inline merely begins with opener
+  let openerSymbol = try $ do 
+         res <- inline 
          if res == Str opener
-            then pzero
-            else return ' '
+            then return res 
+            else pzero
   try (string opener)
-  result <- manyTill (     (do notFollowedBy nonOpenerSymbol
+  result <- manyTill (     (do lookAhead openerSymbol
                                bal <- inlinesInBalanced opener closer 
                                return $ [Str opener] ++ bal ++ [Str closer])
                        <|> (count 1 inline)) 
