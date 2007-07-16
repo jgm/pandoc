@@ -348,6 +348,7 @@ deb: debian
 		echo "*** Please install dpkg-dev package. ***"; \
 		exit 1; \
 	}
+	-mv $(BUILDVARS) $(BUILDVARS).old # backup settings 
 	if [ -x /usr/bin/debuild ]; then \
 		debuild -uc -us -i.svn -I.svn -i_darcs -I_darcs --lintian-opts -i; \
 	else \
@@ -355,6 +356,7 @@ deb: debian
 		echo "*** Using dpkg-buildpackage for package building. ***"; \
 		dpkg-buildpackage -rfakeroot -uc -us -i.svn -I.svn -i_darcs -I_darcs; \
 	fi
+	-mv $(BUILDVARS).old $(BUILDVARS) # restore 
 
 .PHONY: website
 web_src:=web
