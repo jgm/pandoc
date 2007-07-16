@@ -49,7 +49,7 @@ fi
       }
       if [ $runs -lt 3 ] && 
       ((grep -q "LaTeX Warning: There were undefined references." $texname.log) ||
-       (echo "$@" | grep -q -- "--toc")); then
+       (echo "$@" | grep -q -- "--toc\|--table-of-contents")); then
         runs=$(($runs + 1))
         if grep -q "LaTeX Warning:.*[Cc]itation" $texname.log; then
           bibtex $texname 2>&1 >bibtex.err
