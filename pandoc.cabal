@@ -10,7 +10,7 @@ Homepage:        http://sophos.berkeley.edu/macfarlane/pandoc
 Package-URL:     http://pandoc.googlecode.com/files/pandoc-0.4.tar.gz
 Category:        Text
 Tested-With:     GHC
-Synopsis:        Functions for translating between various markup formats    
+Synopsis:        Conversion between markup formats
 Description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
                  this library. It can read markdown and (subsets of)
