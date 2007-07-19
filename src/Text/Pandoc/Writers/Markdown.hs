@@ -105,16 +105,10 @@ wrappedMarkdown opts sect = do
   chunks' <- mapM (inlineListToMarkdown opts) chunks
   return $ fsep chunks'
 
--- | Escape nonbreaking space as &nbsp; entity
-escapeNbsp "" = ""
-escapeNbsp ('\160':xs) = "&nbsp;" ++ escapeNbsp xs
-escapeNbsp str = 
-  let (a,b) = break (=='\160') str in
-  a ++ escapeNbsp b
-
 -- | Escape special characters for Markdown.
 escapeString :: String -> String
-escapeString = backslashEscape "`<\\*_^" . escapeNbsp
+escapeString = backslashEscape "`<\\*_^" . 
+               escapeCharAsString '\160' "&nbsp;"
 
 -- | Convert bibliographic information into Markdown header.
 metaToMarkdown :: WriterOptions -> Meta -> State WriterState Doc
