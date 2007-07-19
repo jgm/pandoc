@@ -36,6 +36,7 @@ module Text.Pandoc.Shared (
                      joinWithSep,
                      tabsToSpaces,
                      backslashEscape,
+                     escapeCharAsString,
                      endsWith,
                      stripTrailingNewlines,
                      removeLeadingTrailingSpace,
@@ -267,6 +268,14 @@ backslashEscape special [] = []
 backslashEscape special (x:xs) = if x `elem` special
     then '\\':x:(backslashEscape special xs)
     else x:(backslashEscape special xs)
+
+-- | Escape a character as a string
+escapeCharAsString ch str "" = ""
+escapeCharAsString ch str (x:xs) | x == ch = 
+  str ++ escapeCharAsString ch str xs
+escapeCharAsString ch str xs =
+  let (a,b) = break (== ch) xs in
+      a ++ escapeCharAsString ch str b
 
 -- | Returns @True@ if string ends with given character.
 endsWith :: Char -> [Char] -> Bool
