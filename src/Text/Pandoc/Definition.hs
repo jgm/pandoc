@@ -79,6 +79,9 @@ data Inline
     = Str String            -- ^ Text (string)
     | Emph [Inline]         -- ^ Emphasized text (list of inlines)
     | Strong [Inline]       -- ^ Strongly emphasized text (list of inlines)
+    | Strikeout [Inline]    -- ^ Strikeout text (list of inlines)
+    | Superscript [Inline]  -- ^ Superscripted text (list of inlines)
+    | Subscript [Inline]    -- ^ Subscripted text (list of inlines)
     | Quoted QuoteType [Inline] -- ^ Quoted text (list of inlines)
     | Code String           -- ^ Inline code (literal)
     | Space                 -- ^ Inter-word space
