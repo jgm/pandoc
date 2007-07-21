@@ -107,8 +107,8 @@ wrappedMarkdown opts sect = do
 
 -- | Escape special characters for Markdown.
 escapeString :: String -> String
-escapeString = backslashEscape "`<\\*_^" . 
-               escapeCharAsString '\160' "&nbsp;"
+escapeString = escapeStringUsing markdownEscapes
+  where markdownEscapes = ('\160', "&nbsp;"):(backslashEscapes "`<\\*_^")
 
 -- | Convert bibliographic information into Markdown header.
 metaToMarkdown :: WriterOptions -> Meta -> State WriterState Doc
@@ -276,6 +276,9 @@ inlineToMarkdown :: WriterOptions -> Inline -> State WriterState Doc
 inlineToMarkdown opts (Emph lst) = do 
   contents <- inlineListToMarkdown opts lst
   return $ text "*" <> contents <> text "*"
+inlineToMarkdown opts (Strikeout lst) = do
+  contents <- inlineListToMarkdown opts lst
+  return $ text "~" <> contents <> text "~"
 inlineToMarkdown opts (Strong lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ text "**" <> contents <> text "**"
