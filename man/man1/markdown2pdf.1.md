@@ -1,4 +1,4 @@
-% MARKDOWN2PDF | 1 | Pandoc User Manuals
+% MARKDOWN2PDF(1) Pandoc User Manuals
 % John MacFarlane and Recai Oktas
 % June 30, 2007
 
@@ -28,9 +28,10 @@ output through `iconv`:
 
     iconv -t utf-8 input.txt | pandoc | iconv -f utf-8
 
-`markdown2pdf` assumes that the `unicode` and `fancyvrb` packages
-are in latex's search path.  If these packages are not included in your
-latex setup, they can be obtained from <http://ctan.org>.
+`markdown2pdf` assumes that the `unicode`, `fancyvrb`, `array`,
+`graphicx`, and `ulem` packages are in latex's search path. If these
+packages are not included in your latex setup, they can be obtained from
+<http://ctan.org>.
 
 # OPTIONS
 
