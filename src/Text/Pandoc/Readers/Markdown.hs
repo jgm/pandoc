@@ -58,42 +58,13 @@ testString = testStringWith parseMarkdown
 --
 
 spaceChars = " \t"
-endLineChars = "\n"
-labelStart = '['
-labelEnd = ']'
-labelSep = ':'
-srcStart = '('
-srcEnd = ')'
-imageStart = '!'
-noteStart = '^'
-codeStart = '`'
-codeEnd = '`'
-emphStart = '*'
-emphEnd = '*'
-emphStartAlt = '_'
-emphEndAlt = '_'
-autoLinkStart = '<'
-autoLinkEnd = '>'
-mathStart = '$'
-mathEnd = '$'
 bulletListMarkers = "*+-"
-escapeChar = '\\'
 hruleChars = "*-_"
-quoteChars = "'\""
-atxHChar = '#'
 titleOpeners = "\"'("
-setextHChars = ['=','-']
-blockQuoteChar = '>'
-hyphenChar = '-'
-ellipsesChar = '.'
-listColSepChar = '|'
-entityStart = '&'
+setextHChars = "=-"
 
 -- treat these as potentially non-text when parsing inline:
-specialChars = [escapeChar, labelStart, labelEnd, emphStart, emphEnd,
-                emphStartAlt, emphEndAlt, codeStart, codeEnd, autoLinkEnd,
-                autoLinkStart, mathStart, mathEnd, imageStart, noteStart,
-                hyphenChar, ellipsesChar, entityStart] ++ quoteChars
+specialChars = "\\[]*_~`<>$!^-.&'\""
 
 --
 -- auxiliary functions
@@ -112,11 +83,6 @@ nonindentSpaces = do
   state <- getState
   let tabStop = stateTabStop state
   choice (map (\n -> (try (count n (char ' ')))) (reverse [0..(tabStop - 1)]))
-
--- | Fail if reader is in strict markdown syntax mode.
-failIfStrict = do
-    state <- getState
-    if stateStrict state then fail "Strict markdown mode" else return ()
 
 -- | Fail unless we're at beginning of a line.
 failUnlessBeginningOfLine = do
@@ -208,21 +174,21 @@ parseMarkdown = do
 referenceKey = try $ do
   nonindentSpaces
   label <- reference
-  char labelSep
+  char ':'
   skipSpaces
-  option ' ' (char autoLinkStart)
-  src <- many (noneOf [autoLinkEnd, '\n', '\t', ' '])
-  option ' ' (char autoLinkEnd)
+  option ' ' (char '<')
+  src <- many (noneOf "> \n\t")
+  option ' ' (char '>')
   tit <- option "" title 
   blanklines 
   return $ KeyBlock label (removeTrailingSpace src,  tit)
 
-noteMarker = try (do
-  char labelStart
-  char noteStart
-  manyTill (noneOf " \t\n") (char labelEnd))
+noteMarker = try $ do
+  char '['
+  char '^'
+  manyTill (noneOf " \t\n") (char ']')
 
-rawLine = try (do
+rawLine = try $ do
   notFollowedBy' blankline
   notFollowedBy' noteMarker
   contents <- many1 nonEndline
@@ -230,7 +196,7 @@ rawLine = try (do
                       newline
                       option "" (try indentSpaces)
                       return "\n")
-  return (contents ++ end))
+  return (contents ++ end)
 
 rawLines = do
     lines <- many1 rawLine
@@ -276,13 +242,13 @@ block = choice [ header
 header = choice [ setextHeader, atxHeader ] <?> "header"
 
 atxHeader = try (do
-  lead <- many1 (char atxHChar)
+  lead <- many1 (char '#')
   skipSpaces
   txt <- manyTill inline atxClosing
   return (Header (length lead) (normalizeSpaces txt)))
 
 atxClosing = try (do
-  skipMany (char atxHChar)
+  skipMany (char '#')
   skipSpaces
   newline
   option "" blanklines)
@@ -357,7 +323,7 @@ emacsBoxQuote = try (do
 
 emailBlockQuoteStart = try (do
   nonindentSpaces
-  char blockQuoteChar
+  char '>'
   option ' ' (char ' ')
   return "> ")
 
@@ -741,6 +707,9 @@ inline = choice [ rawLaTeXInline'
                 , math
                 , strong
                 , emph
+                , strikeout
+                , superscript
+                , subscript
                 , smartPunctuation
                 , code
                 , ltSign
@@ -755,7 +724,7 @@ escapedChar = try $ do
   char '\\'
   state <- getState
   result <- if stateStrict state 
-              then oneOf "\\`*_{}[]()>#+-.!"
+              then oneOf "\\`*_{}[]()>#+-.!~"
               else satisfy (not . isAlphaNum)
   return (Str [result])
 
@@ -771,42 +740,55 @@ symbol = do
   result <- oneOf specialCharsMinusLt
   return (Str [result])
 
--- parses inline code, between n codeStarts and n codeEnds
+-- parses inline code, between n `s and n `s
 code = try (do 
-  starts <- many1 (char codeStart)
+  starts <- many1 (char '`')
   let num = length starts
-  result <- many1Till anyChar (try (count num (char codeEnd)))
+  result <- many1Till anyChar (try (count num (char '`')))
   -- get rid of any internal newlines
   let result' = removeLeadingTrailingSpace $ joinWithSep " " $ lines result
   return (Code result'))
 
-mathWord = many1 (choice [ (noneOf (" \t\n\\" ++ [mathEnd])), 
+mathWord = many1 (choice [ (noneOf " \t\n\\$"), 
                            (try (do
                                    c <- char '\\'
-                                   notFollowedBy (char mathEnd)
+                                   notFollowedBy (char '$')
                                    return c))])
 
 math = try (do
   failIfStrict
-  char mathStart
+  char '$'
   notFollowedBy space
   words <- sepBy1 mathWord (many1 space)
-  char mathEnd
+  char '$'
   return (TeX ("$" ++ (joinWithSep " " words) ++ "$")))
 
 emph = do
-  result <- choice [ (enclosed (char emphStart) (char emphEnd) inline), 
-                     (enclosed (char emphStartAlt) (char emphEndAlt) inline) ]
-  return (Emph (normalizeSpaces result))
+  result <- choice [ (enclosed (char '*') (char '*') inline), 
+                     (enclosed (char '_') (char '_') inline) ]
+  return $ Emph (normalizeSpaces result)
 
 strong = do
-  result <- (enclosed strongStart strongEnd inline) <|> 
-            (enclosed strongStartAlt strongEndAlt inline)
-  return (Strong (normalizeSpaces result))
-  where strongStart = count 2 (char emphStart)
-        strongEnd = try strongStart
-        strongStartAlt = count 2 (char emphStartAlt)
-        strongEndAlt = try strongStartAlt
+  result <- (enclosed (string "**") (string "**") inline) <|> 
+            (enclosed (string "__") (string "__") inline)
+  return $ Strong (normalizeSpaces result)
+
+strikeout = do
+  failIfStrict
+  result <- enclosed (string "~~") (string "~~") inline
+  return $ Strikeout (normalizeSpaces result)
+
+superscript = do
+  failIfStrict
+  result <- enclosed (char '^') (char '^') 
+            (notFollowedBy' whitespace >> inline)  -- may not contain Space
+  return $ Superscript result
+
+subscript = do
+  failIfStrict
+  result <- enclosed (char '~') (char '~')
+           (notFollowedBy' whitespace >> inline)   -- may not contain Space
+  return $ Subscript result
 
 smartPunctuation = do
   failUnlessSmart
@@ -899,13 +881,13 @@ linebreak = try (do
   endline
   return LineBreak )
 
-nonEndline = noneOf endLineChars
+nonEndline = satisfy (/='\n')
 
 entity = do
   ent <- characterEntity
   return $ Str [ent]
 
-strChar = noneOf (specialChars ++ spaceChars ++ endLineChars)
+strChar = noneOf (specialChars ++ spaceChars ++ "\n")
 
 str = do 
   result <- many1 strChar
@@ -919,7 +901,7 @@ endline = try (do
   if stateStrict st 
     then do
            notFollowedBy' emailBlockQuoteStart
-           notFollowedBy (char atxHChar)  -- atx header
+           notFollowedBy (char '#')  -- atx header
            notFollowedBy (try (do{manyTill anyChar newline; 
                                   oneOf setextHChars}))  -- setext header
     else return () 
@@ -934,17 +916,17 @@ endline = try (do
 --
 
 -- a reference label for a link
-reference = inlinesInBalanced [labelStart] [labelEnd] >>= (return . normalizeSpaces)
+reference = inlinesInBalanced "[" "]" >>= (return . normalizeSpaces)
 
 -- source for a link, with optional title
 source = try $ do 
-  char srcStart
-  option ' ' (char autoLinkStart)
-  src <- many (noneOf [srcEnd, autoLinkEnd, ' ', '\t', '\n'])
-  option ' ' (char autoLinkEnd)
+  char '('
+  option ' ' (char '<')
+  src <- many (noneOf ")> \t\n")
+  option ' ' (char '>')
   tit <- option "" title
   skipSpaces
-  char srcEnd
+  char ')'
   return (removeTrailingSpace src, tit)
 
 titleWith startChar endChar = try (do
@@ -986,23 +968,23 @@ autoLink = autoLinkEmail <|> autoLinkRegular
 
 -- a link <like@this.com>
 autoLinkEmail = try $ do
-  char autoLinkStart
+  char '<'
   name <- many1Till (noneOf "/:<> \t\n") (char '@')
   domain <- sepBy1 (many1 (noneOf "/:.@<> \t\n")) (char '.')
   let src = name ++ "@" ++ (joinWithSep "." domain)
-  char autoLinkEnd
+  char '>'
   return $ Link [Str src] (("mailto:" ++ src), "")
 
 -- a link <http://like.this.com>
 autoLinkRegular = try $ do
-  char autoLinkStart
+  char '<'
   prot <- oneOfStrings ["http:", "ftp:", "mailto:"]
-  rest <- many1Till (noneOf " \t\n<>") (char autoLinkEnd)
+  rest <- many1Till (noneOf " \t\n<>") (char '>')
   let src = prot ++ rest
   return $ Link [Str src] (src, "")
 
 image = try (do
-  char imageStart
+  char '!'
   (Link label src) <- link
   return (Image label src)) 
 
@@ -1017,7 +999,7 @@ note = try $ do
 
 inlineNote = try $ do
   failIfStrict
-  char noteStart
+  char '^'
   contents <- inlinesInBalanced "[" "]"
   return (Note [Para contents])
 
