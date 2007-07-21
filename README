@@ -242,7 +242,10 @@ preserved, rather than converted to spaces (the default).
 `--tabstop` allows the user to set the tab stop (which defaults to 4).
 
 `--strict` specifies that strict markdown syntax is to be used, without
-pandoc's usual extensions and variants (described below).
+pandoc's usual extensions and variants (described below).  When the
+input format is not markdown, this means that constructs that have no
+equivalents in standard markdown (e.g. definition lists or strikeout
+text) will not be parsed.
 
 `--reference-links` causes reference-style links to be used in markdown 
 and reStructuredText output.  By default inline links are used.
