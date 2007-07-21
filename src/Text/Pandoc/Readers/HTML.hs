@@ -384,7 +384,9 @@ plain = do
 
 inline = choice [ text, special ] <?> "inline"
 
-text =  choice [ entity, strong, emph, code, str, linebreak, whitespace ] <?> "text"
+text =  choice [ entity, strong, emph, superscript, subscript,
+                 strikeout, spanStrikeout, code, str,
+                 linebreak, whitespace ] <?> "text"
 
 special = choice [ link, image, rawHtmlInline ] <?> 
                  "link, inline html, or image"
@@ -415,6 +417,29 @@ betweenTags tag = try (do
 emph = try (do 
   result <- choice [betweenTags "em", betweenTags "it"]
   return (Emph result))
+
+superscript = try $ do
+  failIfStrict -- strict markdown has no superscript, so treat as raw HTML
+  result <- betweenTags "sup"
+  return (Superscript result)  
+
+subscript = try $ do
+  failIfStrict -- strict markdown has no subscript, so treat as raw HTML
+  result <- betweenTags "sub"
+  return (Subscript result)  
+
+strikeout = try $ do
+  failIfStrict -- strict markdown has no strikeout, so treat as raw HTML
+  result <- choice [betweenTags "s", betweenTags "strike"]
+  return (Strikeout result)
+
+spanStrikeout = try $ do
+  failIfStrict -- strict markdown has no strikeout, so treat as raw HTML
+  (tag, attributes) <- htmlTag "span" 
+  result <- case (extractAttribute "class" attributes) of
+              Just "strikeout" -> inlinesTilEnd "span"
+              Nothing          -> fail "not a strikeout"
+  return (Strikeout result)
 
 strong = try (do 
   result <- choice [betweenTags "b", betweenTags "strong"]
