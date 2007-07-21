@@ -458,20 +458,24 @@ lookupKeySrc table key = case table of
 refsMatch :: [Inline] -> [Inline] -> Bool
 refsMatch ((Str x):restx) ((Str y):resty) = 
     ((map toLower x) == (map toLower y)) && refsMatch restx resty
+refsMatch ((Emph x):restx) ((Emph y):resty) = 
+    refsMatch x y && refsMatch restx resty
+refsMatch ((Strong x):restx) ((Strong y):resty) = 
+    refsMatch x y && refsMatch restx resty
+refsMatch ((Strikeout x):restx) ((Strikeout y):resty) = 
+    refsMatch x y && refsMatch restx resty
+refsMatch ((Superscript x):restx) ((Superscript y):resty) = 
+    refsMatch x y && refsMatch restx resty
+refsMatch ((Subscript x):restx) ((Subscript y):resty) = 
+    refsMatch x y && refsMatch restx resty
+refsMatch ((Quoted t x):restx) ((Quoted u y):resty) = 
+    t == u && refsMatch x y && refsMatch restx resty
 refsMatch ((Code x):restx) ((Code y):resty) = 
     ((map toLower x) == (map toLower y)) && refsMatch restx resty
 refsMatch ((TeX x):restx) ((TeX y):resty) = 
     ((map toLower x) == (map toLower y)) && refsMatch restx resty
 refsMatch ((HtmlInline x):restx) ((HtmlInline y):resty) = 
     ((map toLower x) == (map toLower y)) && refsMatch restx resty
-refsMatch ((Emph x):restx) ((Emph y):resty) = 
-    refsMatch x y && refsMatch restx resty
-refsMatch ((Strong x):restx) ((Strong y):resty) = 
-    refsMatch x y && refsMatch restx resty
-refsMatch ((Quoted t x):restx) ((Quoted u y):resty) = 
-    t == u && refsMatch x y && refsMatch restx resty
 refsMatch (x:restx) (y:resty) = (x == y) && refsMatch restx resty
 refsMatch [] x = null x
 refsMatch x [] = null x
-
-
