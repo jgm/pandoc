@@ -57,6 +57,7 @@ module Text.Pandoc.Shared (
                      NoteTable,
                      defaultParserState,
                      nullBlock,
+                     failIfStrict,
                      escaped,
                      -- * Native format prettyprinting
                      prettyPandoc,
@@ -183,6 +184,12 @@ nullBlock :: GenParser Char st Block
 nullBlock = do
   anyChar 
   return Null
+
+-- | Fail if reader is in strict markdown syntax mode.
+failIfStrict :: GenParser Char ParserState ()
+failIfStrict = do
+    state <- getState
+    if stateStrict state then fail "Strict mode" else return ()
 
 -- | Parses backslash, then applies character parser.
 escaped :: GenParser Char st Char  -- ^ Parser for character to escape
