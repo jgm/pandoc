@@ -69,15 +69,16 @@ metaToMan :: WriterOptions -- ^ Options, including Man header
           -> Meta          -- ^ Meta with bibliographic information
           -> State WriterState (Doc, Doc)
 metaToMan options (Meta title authors date) = do
-  titleParts <- mapM (inlineListToMan options) $ map normalizeSpaces $
-                splitBy (Str "|") title
-  let titleParts' = map doubleQuotes titleParts 
-  let (title', section, rest) = case titleParts' of
-                                  []       -> (text "\"\"", text "\"\"", [])
-                                  [x]      -> (x, text "\"\"", [])
-                                  (x:y:zs) -> (x, y, zs)
+  titleText <- inlineListToMan options title
+  let (cmdName, rest) = break (== ' ') $ render titleText
+  let (title', section) = case reverse cmdName of
+                            (')':d:'(':xs) | d `elem` ['0'..'9'] -> 
+                                  (text (reverse xs), text [d])
+                            xs -> (text (reverse xs), empty)                    
+  let extras = map (doubleQuotes . text . removeLeadingTrailingSpace) $
+               splitBy '|' rest
   let head = (text ".TH") <+> title' <+> section <+> 
-             doubleQuotes (text date) <+> hsep rest
+             doubleQuotes (text date) <+> hsep extras
   let foot = case length authors of
                 0 -> text $ ""
                 1 -> text $ ".SH AUTHOR\n" ++ joinWithSep ", " authors
