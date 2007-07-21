@@ -8,23 +8,26 @@ to another, and a command-line tool that uses this library. It can read
 and it can write [markdown], [reStructuredText], [HTML], [LaTeX], [ConTeXt],
 [RTF], [DocBook XML], [groff man], and [S5] HTML slide shows. 
 
-- A real markdown parser, not based on regex substitutions.
+Pandoc features
+
 - Modular design, using separate writers and readers for each
-  supported format, for easy extensibility.
-- [More accurate] and [faster], in many cases, than `Markdown.pl`.
+  supported format.
+- A real markdown parser, not based on regex substitutions.
+  [More accurate] and [faster], in many cases, than `Markdown.pl`.
 - Multiple output formats--HTML, Docbook XML, LaTeX, ConTeXt,
-  reStructuredText, RTF, groff man pages, S5 slide shows--generated natively,
-  with no XSLT postprocessing.
-- Converts *to* markdown from HTML, LaTeX, and reStructuredText.
+  reStructuredText, RTF, groff man pages, S5 slide shows--all 
+  generated natively, with no XSLT postprocessing.
 - Unicode support.
 - Optional "smart" quotes, dashes, and ellipses.
-- Document metadata (title, author, date).
-- Inline LaTeX math and LaTeX commands.
-- [ASCIIMathML] support for equations in HTML.
-- Footnotes, tables, and definition lists in all output formats.
 - Automatically generated tables of contents.
-- Compatibility mode to turn off syntax entensions and emulate
-  `Markdown.pl`.
+- [ASCIIMathML] support for equations in HTML.
+- Extensions to markdown syntax:
+    + Document metadata (title, author, date).
+    + Footnotes, tables, and definition lists.
+    + Inline LaTeX math and LaTeX commands.
+    + Superscripts, subscripts, and strikeout.
+    + Compatibility mode to turn off syntax entensions and emulate
+      `Markdown.pl`.
 - Convenient wrapper scripts:
     + `html2markdown` makes it easy to produce a markdown version
       of any web page.
@@ -97,10 +100,32 @@ You may view existing bug reports and submit new ones at
 
 # News
 
-- Version 0.4 released (?? July 2007).  Features:
-    - list
-    - of 
-    - features
+-   Version 0.4 released (?? July 2007).
+
+    For users:
+
+    + New output formats:  ConTeXt and groff man.
+    + Support for definition lists and tables.
+    + Support for superscript, subscript, and strikeout.
+    + Support for automatically generated tables of contents.
+    + Automatically generated unique identifiers in HTML headers.
+    + Markdown links now printed as inline links by default,
+      unless `--reference-links` option is specified.
+    + Many bugs fixed.
+
+    For programmers:
+
+    + Added a Text.Pandoc module that exports the main functions
+      and data structures. Library documentation includes a sample
+      program using the library.
+
+    Under the hood:
+
+    + Refactored to avoid reliance on GHC's `Text.Regex`, which
+      is slow and does not support unicode.
+    + Removed Key and Note block elements and simplified parsers.
+    + Improved handling of character entities.
+    + HTML output is now generated using `Text.XHtml`.
 
 # Disclaimer
 
