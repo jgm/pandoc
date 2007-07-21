@@ -35,8 +35,8 @@ module Text.Pandoc.Shared (
                      -- * Text processing
                      joinWithSep,
                      tabsToSpaces,
-                     backslashEscape,
-                     escapeCharAsString,
+                     backslashEscapes,
+                     escapeStringUsing,
                      endsWith,
                      stripTrailingNewlines,
                      removeLeadingTrailingSpace,
@@ -260,22 +260,21 @@ tabsInLine num tabstop (c:cs) =
                      else nextnumraw in
     replacement ++ (tabsInLine nextnum tabstop cs)
 
--- | Escape designated characters with backslash.
-backslashEscape :: [Char]    -- ^ list of special characters to escape
-                -> String    -- ^ string input
-                -> String 
-backslashEscape special [] = []
-backslashEscape special (x:xs) = if x `elem` special
-    then '\\':x:(backslashEscape special xs)
-    else x:(backslashEscape special xs)
+-- | Returns an association list of backslash escapes for the
+-- designated characters.
+backslashEscapes :: [Char]    -- ^ list of special characters to escape
+                 -> [(Char, String)]
+backslashEscapes = map (\ch -> (ch, ['\\',ch]))
 
--- | Escape a character as a string
-escapeCharAsString ch str "" = ""
-escapeCharAsString ch str (x:xs) | x == ch = 
-  str ++ escapeCharAsString ch str xs
-escapeCharAsString ch str xs =
-  let (a,b) = break (== ch) xs in
-      a ++ escapeCharAsString ch str b
+-- | Escape a string of characters, using an association list of
+-- characters and strings.
+escapeStringUsing :: [(Char, String)] -> String -> String
+escapeStringUsing escapeTable "" = ""
+escapeStringUsing escapeTable (x:xs) = 
+  case (lookup x escapeTable) of
+       Just str  -> str ++ rest
+       Nothing   -> x:rest
+  where rest = escapeStringUsing escapeTable xs
 
 -- | Returns @True@ if string ends with given character.
 endsWith :: Char -> [Char] -> Bool
