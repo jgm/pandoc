@@ -38,15 +38,11 @@ import Data.List ( isPrefixOf, partition, intersperse )
 import Control.Monad.State
 import Text.XHtml.Strict
 
-type Notes = [Html]
-type Ids = [String]
-type ForHeader = [Html]
-type WriterState = (Notes, Ids, ForHeader)
-
--- | Add some Html to be included in the document header.
-addToHeader :: Html -> State WriterState ()
-addToHeader item = modify (\(notes, ids, forheader) ->
-                            (notes, ids, item:forheader))
+data WriterState = WriterState
+    { stNotes            :: [Html]   -- ^ List of notes
+    , stIds              :: [String] -- ^ List of header identifiers
+    , stHead             :: [Html]   -- ^ Html to include in header
+    } deriving Show
 
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
@@ -59,7 +55,8 @@ writeHtmlString opts =
 writeHtml :: WriterOptions -> Pandoc -> Html
 writeHtml opts (Pandoc (Meta tit authors date) blocks) = 
   let titlePrefix = writerTitlePrefix opts
-      topTitle    = evalState (inlineListToHtml opts tit) ([],[],[])
+      topTitle    = evalState (inlineListToHtml opts tit) 
+                    (WriterState {stNotes = [], stIds = [], stHead = []})
       topTitle'   = if null titlePrefix
                         then topTitle
                         else titlePrefix +++ " - " +++ topTitle
@@ -81,11 +78,12 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
       toc = if writerTableOfContents opts 
                then tableOfContents opts headerBlocks ids
                else noHtml
-      (blocks', (revnotes,_,forhead)) = 
-                    runState (blockListToHtml opts blocks) ([],ids,[])
-      head        = header $ metadata +++ toHtmlFromList forhead +++ 
+      (blocks', newstate) = 
+                    runState (blockListToHtml opts blocks)
+                    (WriterState {stNotes = [], stIds = ids, stHead = []})
+      head        = header $ metadata +++ toHtmlFromList (stHead newstate) +++ 
                              primHtml (writerHeader opts)
-      notes       = reverse revnotes
+      notes       = reverse (stNotes newstate)
       before      = primHtml $ writerIncludeBefore opts
       after       = primHtml $ writerIncludeAfter opts
       thebody     = before +++ titleHeader +++ toc +++ blocks' +++
@@ -96,12 +94,12 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
 
 -- | Construct table of contents from list of header blocks and identifiers.
 -- Assumes there are as many identifiers as header blocks.
-tableOfContents :: WriterOptions -> [Block] -> Ids -> Html
+tableOfContents :: WriterOptions -> [Block] -> [String] -> Html
 tableOfContents opts headers ids =
   let opts' = opts { writerIgnoreNotes = True }
       contentsTree = hierarchicalize headers
       contents = evalState (mapM (elementToListItem opts') contentsTree) 
-                 ([],ids,[])
+                 (WriterState {stNotes= [], stIds = [], stHead = []})
   in  thediv ! [identifier "toc"] $ unordList contents
 
 -- | Converts an Element to a list item for a table of contents,
@@ -109,11 +107,12 @@ tableOfContents opts headers ids =
 elementToListItem :: WriterOptions -> Element -> State WriterState Html
 elementToListItem opts (Blk _) = return noHtml
 elementToListItem opts (Sec headerText subsecs) = do
-  (notes, ids, forhead) <- get
+  st <- get
+  let ids = stIds st
   let (id, rest) = if null ids
-                      then ("",[])
+                      then ("", [])
                       else (head ids, tail ids)
-  put (notes, rest, forhead)
+  put $ st {stIds = rest}
   txt <- inlineListToHtml opts headerText
   subHeads <- mapM (elementToListItem opts) subsecs
   let subList = if null subHeads
@@ -123,7 +122,7 @@ elementToListItem opts (Sec headerText subsecs) = do
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
-footnoteSection :: WriterOptions -> Notes -> Html
+footnoteSection :: WriterOptions -> [Html] -> Html
 footnoteSection opts notes =
   if null notes 
      then noHtml
@@ -179,6 +178,13 @@ isPunctuation c =
      (c' >= 0xE000 && c' <= 0xE0FF)
      then True
      else False
+
+-- | Add Html to document header.
+addToHeader :: Html -> State WriterState ()
+addToHeader item = do
+  st <- get
+  let current = stHead st
+  put $ st {stHead = (item:current)}
 
 -- | Convert Pandoc inline list to plain text identifier.
 inlineListToIdentifier :: [Inline] -> String
@@ -243,11 +249,12 @@ blockToHtml opts block =
                                        (return . blockquote)
           else blockListToHtml opts blocks >>= (return . blockquote)
     (Header level lst) -> do contents <- inlineListToHtml opts lst
-                             (notes, ids, forhead) <- get
+                             st <- get
+                             let ids = stIds st
                              let (id, rest) = if null ids
                                                  then ("", [])
                                                  else (head ids, tail ids)
-                             put (notes, rest, forhead)
+                             put $ st {stIds = rest}
                              let attribs = [identifier id]
                              let headerHtml = case level of
                                          1 -> h1 contents ! attribs
@@ -369,11 +376,12 @@ inlineToHtml opts inline =
                                             if null txt then [] else [alt alternate']
                            return $ image ! attributes 
                            -- note:  null title included, as in Markdown.pl 
-    (Note contents)  -> do (notes, ids, forhead) <- get
+    (Note contents)  -> do st <- get
+                           let notes = stNotes st
                            let number = (length notes) + 1
                            let ref = show number
                            htmlContents <- blockListToNote opts ref contents 
-                           put (htmlContents:notes, ids, forhead) -- push contents onto front of notes
+                           put $ st {stNotes = (htmlContents:notes)} -- push contents onto front of notes
                            return $ anchor ! [href ("#fn" ++ ref),
                                               theclass "footnoteRef",
                                               identifier ("fnref" ++ ref)] << sup << ref
