@@ -72,25 +72,21 @@ handleUnicode (c:cs) = if (ord c) > 127
                                (handleUnicode cs)
                           else c:(handleUnicode cs)
 
-escapeSpecial = backslashEscape "{\\}"
-escapeTab = substitute "\\t" "\\tab "
+-- | Escape special characters.
+escapeSpecial :: String -> String
+escapeSpecial = escapeStringUsing (('\t',"\\tab "):(backslashEscapes "{\\}"))
 
 -- | Escape strings as needed for rich text format.
 stringToRTF :: String -> String
-stringToRTF = handleUnicode . escapeSpecial . escapeTab
-
--- | Escape raw LaTeX strings for RTF.  Don't escape \t; it might
--- be the first letter of a command!
-latexStringToRTF :: String -> String
-latexStringToRTF = handleUnicode . escapeSpecial  
+stringToRTF = handleUnicode . escapeSpecial
 
 -- | Escape things as needed for code block in RTF.
 codeStringToRTF :: String -> String
-codeStringToRTF str = joinWithSep "\\line\n" (lines (stringToRTF str))
+codeStringToRTF str = joinWithSep "\\line\n" $ lines (stringToRTF str)
 
 -- | Deal with raw LaTeX.
 latexToRTF :: String -> String
-latexToRTF str = "{\\cf1 " ++ (latexStringToRTF str) ++ "\\cf0 } "
+latexToRTF str = "{\\cf1 " ++ (stringToRTF str) ++ "\\cf0 } "
 
 -- | Make a paragraph with first-line indent, block indent, and space after.
 rtfParSpaced :: Int       -- ^ space after (in twips)
@@ -261,8 +257,10 @@ inlineListToRTF lst = concatMap inlineToRTF lst
 inlineToRTF :: Inline         -- ^ inline to convert
             -> String
 inlineToRTF (Emph lst) = "{\\i " ++ (inlineListToRTF lst) ++ "} "
-inlineToRTF (Strong lst) = 
-  "{\\b " ++ (inlineListToRTF lst) ++ "} "
+inlineToRTF (Strong lst) = "{\\b " ++ (inlineListToRTF lst) ++ "} "
+inlineToRTF (Strikeout lst) = "{\\strike " ++ (inlineListToRTF lst) ++ "} "
+inlineToRTF (Superscript lst) = "{\\super " ++ (inlineListToRTF lst) ++ "} "
+inlineToRTF (Subscript lst) = "{\\sub " ++ (inlineListToRTF lst) ++ "} "
 inlineToRTF (Quoted SingleQuote lst) = 
   "\\u8216'" ++ (inlineListToRTF lst) ++ "\\u8217'"
 inlineToRTF (Quoted DoubleQuote lst) = 

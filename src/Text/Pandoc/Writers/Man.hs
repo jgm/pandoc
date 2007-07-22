@@ -108,27 +108,18 @@ wrappedMan opts sect = do
   chunks' <- mapM (inlineListToMan opts) chunks
   return $ fsep chunks'
 
--- | Escape nonbreaking space as \  
-escapeNbsp "" = ""
-escapeNbsp ('\160':xs) = "\\ " ++ escapeNbsp xs
-escapeNbsp str = 
-  let (a,b) = break (=='\160') str in
-  a ++ escapeNbsp b
-
--- | Escape single quote as \[aq]
-escapeSingleQuote "" = ""
-escapeSingleQuote ('\'':xs) = "\\[aq]" ++ escapeSingleQuote xs
-escapeSingleQuote str =
-  let (a,b) = break (=='\160') str in
-  a ++ escapeSingleQuote b
+-- | Association list of characters to escape.
+manEscapes :: [(Char, String)]
+manEscapes = [('\160', "\\ "), ('\'', "\\[aq]")] ++
+  backslashEscapes "\".@\\"
 
 -- | Escape special characters for Man.
 escapeString :: String -> String
-escapeString = escapeSingleQuote . escapeNbsp . backslashEscape "\".@\\"
+escapeString = escapeStringUsing manEscapes
 
 -- | Escape a literal (code) section for Man.
 escapeCode :: String -> String
-escapeCode = backslashEscape "\t " . escapeString
+escapeCode = escapeStringUsing (manEscapes ++ backslashEscapes "\t ")
 
 -- | Convert Pandoc block element to man.
 blockToMan :: WriterOptions -- ^ Options
@@ -267,6 +258,12 @@ inlineToMan opts (Emph lst) = do
 inlineToMan opts (Strong lst) = do
   contents <- inlineListToMan opts lst
   return $ text "\\f[B]" <> contents <> text "\\f[]"
+inlineToMan opts (Strikeout lst) = do
+  contents <- inlineListToMan opts lst
+  return $ text "[STRIKEOUT:" <> contents <> text "]"
+-- just treat superscripts and subscripts like normal text
+inlineToMan opts (Superscript lst) = inlineListToMan opts lst
+inlineToMan opts (Subscript lst) = inlineListToMan opts lst
 inlineToMan opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMan opts lst
   return $ char '`' <> contents <> char '\''

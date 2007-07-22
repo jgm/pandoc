@@ -276,12 +276,20 @@ inlineToMarkdown :: WriterOptions -> Inline -> State WriterState Doc
 inlineToMarkdown opts (Emph lst) = do 
   contents <- inlineListToMarkdown opts lst
   return $ text "*" <> contents <> text "*"
-inlineToMarkdown opts (Strikeout lst) = do
-  contents <- inlineListToMarkdown opts lst
-  return $ text "~" <> contents <> text "~"
 inlineToMarkdown opts (Strong lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ text "**" <> contents <> text "**"
+inlineToMarkdown opts (Strikeout lst) = do
+  contents <- inlineListToMarkdown opts lst
+  return $ text "~~" <> contents <> text "~~"
+inlineToMarkdown opts (Superscript lst) = do
+  contents <- inlineListToMarkdown opts lst
+  let contents' = text $ substitute " " "\\ " $ render contents
+  return $ text "^" <> contents' <> text "^"
+inlineToMarkdown opts (Subscript lst) = do
+  contents <- inlineListToMarkdown opts lst
+  let contents' = text $ substitute " " "\\ " $ render contents
+  return $ text "~" <> contents' <> text "~"
 inlineToMarkdown opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ char '\'' <> contents <> char '\''

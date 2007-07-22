@@ -192,6 +192,15 @@ inlineToConTeXt (Emph lst) = do
 inlineToConTeXt (Strong lst) = do
   contents <- inlineListToConTeXt lst
   return $ "{\\bf " ++ contents ++ "}" 
+inlineToConTeXt (Strikeout lst) = do
+  contents <- inlineListToConTeXt lst
+  return $ "\\overstrikes{" ++ contents ++ "}" 
+inlineToConTeXt (Superscript lst) = do
+  contents <- inlineListToConTeXt lst
+  return $ "\\high{" ++ contents ++ "}" 
+inlineToConTeXt (Subscript lst) = do
+  contents <- inlineListToConTeXt lst
+  return $ "\\low{" ++ contents ++ "}" 
 inlineToConTeXt (Code str) = return $ "\\type{" ++ str ++ "}"
 inlineToConTeXt (Quoted SingleQuote lst) = do
   contents <- inlineListToConTeXt lst
@@ -206,7 +215,7 @@ inlineToConTeXt Ellipses = return "\\ldots{}"
 inlineToConTeXt (Str str) = return $ stringToConTeXt str
 inlineToConTeXt (TeX str) = return str
 inlineToConTeXt (HtmlInline str) = return ""
-inlineToConTeXt (LineBreak) = return "\\hfil\\break\n"
+inlineToConTeXt (LineBreak) = return "\\crlf\n"
 inlineToConTeXt Space = return " "
 inlineToConTeXt (Link text (src, _)) = do
   next <- get

@@ -66,6 +66,7 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
                     (if null date
                        then noHtml
                        else meta ! [name "date", content date]) +++
+                    (style ! [thetype "text/css"] $ (stringToHtml ".strikeout { text-decoration: line-through; }")) +++
                     primHtml (writerHeader opts)
       titleHeader = if (writerStandalone opts) && (not (null tit)) && 
                     (not (writerS5 opts))
@@ -179,23 +180,27 @@ inlineListToIdentifier [] = ""
 inlineListToIdentifier (x:xs) = 
   xAsText ++ inlineListToIdentifier xs
   where xAsText = case x of
-                       Str s        -> filter (\c -> (c == '-') || not (isPunctuation c)) $
-                                       concat $ intersperse "-" $ words $ map toLower s
-                       Emph lst     -> inlineListToIdentifier lst
-                       Strong lst   -> inlineListToIdentifier lst
-                       Quoted _ lst -> inlineListToIdentifier lst
-                       Code s       -> s
-                       Space        -> "-"
-                       EmDash       -> "-"
-                       EnDash       -> "-"
-                       Apostrophe   -> ""
-                       Ellipses     -> ""
-                       LineBreak    -> "-"
-                       TeX _        -> ""
-                       HtmlInline _ -> ""
-                       Link lst _   -> inlineListToIdentifier lst
-                       Image lst _  -> inlineListToIdentifier lst
-                       Note _       -> ""
+                       Str s          -> filter 
+                                         (\c -> (c == '-') || not (isPunctuation c)) $
+                                         concat $ intersperse "-" $ words $ map toLower s
+                       Emph lst       -> inlineListToIdentifier lst
+                       Strikeout lst  -> inlineListToIdentifier lst
+                       Superscript lst -> inlineListToIdentifier lst
+                       Subscript lst  -> inlineListToIdentifier lst
+                       Strong lst     -> inlineListToIdentifier lst
+                       Quoted _ lst   -> inlineListToIdentifier lst
+                       Code s         -> s
+                       Space          -> "-"
+                       EmDash         -> "-"
+                       EnDash         -> "-"
+                       Apostrophe     -> ""
+                       Ellipses       -> ""
+                       LineBreak      -> "-"
+                       TeX _          -> ""
+                       HtmlInline _   -> ""
+                       Link lst _     -> inlineListToIdentifier lst
+                       Image lst _    -> inlineListToIdentifier lst
+                       Note _         -> ""
 
 -- | Return unique identifiers for list of inline lists.
 uniqueIdentifiers :: [[Inline]] -> [String]
@@ -326,6 +331,10 @@ inlineToHtml opts inline =
     (Emph lst)       -> inlineListToHtml opts lst >>= (return . emphasize)
     (Strong lst)     -> inlineListToHtml opts lst >>= (return . strong)
     (Code str)       -> return $ thecode << str
+    (Strikeout lst)  -> inlineListToHtml opts lst >>=
+                                    (return . (thespan ! [theclass "strikeout"]))
+    (Superscript lst) -> inlineListToHtml opts lst >>= (return . sup)
+    (Subscript lst)   -> inlineListToHtml opts lst >>= (return . sub)
     (Quoted quoteType lst) ->
                         let (leftQuote, rightQuote) = case quoteType of
                               SingleQuote -> (primHtmlChar "lsquo", 

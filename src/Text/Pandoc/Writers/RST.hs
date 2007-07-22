@@ -122,7 +122,7 @@ wrappedRSTSection opts sect = do
 
 -- | Escape special characters for RST.
 escapeString :: String -> String
-escapeString = backslashEscape "`\\|*_"
+escapeString = escapeStringUsing (backslashEscapes "`\\|*_")
 
 -- | Convert bibliographic information into RST header.
 metaToRST :: WriterOptions -> Meta -> State WriterState Doc
@@ -266,6 +266,15 @@ inlineToRST opts (Emph lst) = do
 inlineToRST opts (Strong lst) = do
   contents <- inlineListToRST opts lst
   return $ text "**" <> contents <> text "**"
+inlineToRST opts (Strikeout lst) = do 
+  contents <- inlineListToRST opts lst
+  return $ text "[STRIKEOUT:" <> contents <> text "]"
+inlineToRST opts (Superscript lst) = do 
+  contents <- inlineListToRST opts lst
+  return $ text "\\ :sup:`" <> contents <> text "`\\ "
+inlineToRST opts (Subscript lst) = do 
+  contents <- inlineListToRST opts lst
+  return $ text "\\ :sub:`" <> contents <> text "`\\ "
 inlineToRST opts (Quoted SingleQuote lst) = do
   contents <- inlineListToRST opts lst
   return $ char '\'' <> contents <> char '\''

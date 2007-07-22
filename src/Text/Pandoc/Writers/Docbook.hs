@@ -233,6 +233,13 @@ inlineToDocbook opts (Emph lst) =
 inlineToDocbook opts (Strong lst) = 
   inTags False "emphasis" [("role", "strong")] 
   (inlinesToDocbook opts lst)
+inlineToDocbook opts (Strikeout lst) = 
+  inTags False "emphasis" [("role", "strikethrough")] 
+  (inlinesToDocbook opts lst)
+inlineToDocbook opts (Superscript lst) = 
+  inTagsSimple "superscript" (inlinesToDocbook opts lst)
+inlineToDocbook opts (Subscript lst) = 
+  inTagsSimple "subscript" (inlinesToDocbook opts lst)
 inlineToDocbook opts (Quoted _ lst) = 
   inTagsSimple "quote" (inlinesToDocbook opts lst)
 inlineToDocbook opts Apostrophe = text "'"
