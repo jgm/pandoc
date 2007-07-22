@@ -378,7 +378,8 @@ comment = try (do
 -- inline
 --
 
-inline =  choice [ strong, emph, strikeout, ref, lab, code, linebreak, spacer,
+inline =  choice [ strong, emph, strikeout, superscript, subscript,
+                   ref, lab, code, linebreak, spacer,
                    math, ellipses, emDash, enDash, hyphen, quoted, apostrophe,
                    accentedChar, specialChar, specialInline, escapedChar,
                    unescapedChar, str, endline, whitespace ] <?> "inline"
@@ -521,6 +522,18 @@ strikeout = try $ do
   string "\\sout{"
   result <- manyTill inline (char '}')
   return (Strikeout result)
+
+superscript = try $ do
+  string "\\textsuperscript{"
+  result <- manyTill inline (char '}')
+  return (Superscript result)
+
+-- note: \textsubscript isn't a standard latex command, but we use
+-- a defined version in pandoc.
+subscript = try $ do
+  string "\\textsubscript{"
+  result <- manyTill inline (char '}')
+  return (Subscript result)
 
 apostrophe = do
   char '\''
