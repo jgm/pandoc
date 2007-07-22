@@ -247,6 +247,10 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Para [Strong [Emph [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em",Str "."]]]
 , Para [Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word",Str "."]
 , Para [Str "This",Space,Str "is",Space,Str "code:",Space,Code ">",Str ",",Space,Code "$",Str ",",Space,Code "\\",Str ",",Space,Code "\\$",Str ",",Space,Code "<html>",Str "."]
+, Para [Strikeout [Str "This",Space,Str "is",Space,Emph [Str "strikeout"],Str "."]]
+, Para [Str "Superscripts:",Space,Str "a",Superscript [Str "bc"],Str "d",Space,Str "a",Superscript [Emph [Str "hello"]],Space,Str "a",Superscript [Str "hello",Str " ",Str "there"],Str "."]
+, Para [Str "Subscripts:",Space,Str "H",Subscript [Str "2"],Str "O,",Space,Str "H",Subscript [Str "23"],Str "O,",Space,Str "H",Subscript [Str "many",Str " ",Str "of",Str " ",Str "them"],Str "O",Str "."]
+, Para [Str "These",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "superscripts",Space,Str "or",Space,Str "subscripts,",Space,Str "because",Space,Str "of",Space,Str "the",Space,Str "unescaped",Space,Str "spaces:",Space,Str "a",Str "^",Str "b",Space,Str "c",Str "^",Str "d,",Space,Str "a",Str "~",Str "b",Space,Str "c",Str "~",Str "d",Str "."]
 , HorizontalRule
 , Header 1 [Str "Smart",Space,Str "quotes,",Space,Str "ellipses,",Space,Str "dashes"]
 , Para [Quoted DoubleQuote [Str "Hello,"],Space,Str "said",Space,Str "the",Space,Str "spider",Str ".",Space,Quoted DoubleQuote [Quoted SingleQuote [Str "Shelob"],Space,Str "is",Space,Str "my",Space,Str "name",Str "."]]

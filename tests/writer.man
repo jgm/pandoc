@@ -491,6 +491,15 @@ So is \f[B]\f[I]this\f[]\f[] word\.
 This is code: \f[B]>\f[], \f[B]$\f[], \f[B]\\\f[], \f[B]\\$\f[],
 \f[B]<html>\f[]\.
 .PP
+[STRIKEOUT:This is \f[I]strikeout\f[]\.]
+.PP
+Superscripts: a^bc^d a^\f[I]hello\f[]^ a^hello there^\.
+.PP
+Subscripts: H~2~O, H~23~O, H~many of them~O\.
+.PP
+These should not be superscripts or subscripts, because of the
+unescaped spaces: a^b c^d, a~b c~d\.
+.PP
    *   *   *   *   *
 .SH Smart quotes, ellipses, dashes
 .PP

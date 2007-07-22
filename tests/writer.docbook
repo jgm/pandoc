@@ -725,6 +725,22 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       <literal>\</literal>, <literal>\$</literal>,
       <literal>&lt;html&gt;</literal>.
     </para>
+    <para>
+      <emphasis role="strikethrough">This is <emphasis>strikeout</emphasis>.</emphasis>
+    </para>
+    <para>
+      Superscripts: a<superscript>bc</superscript>d
+      a<superscript><emphasis>hello</emphasis></superscript>
+      a<superscript>hello there</superscript>.
+    </para>
+    <para>
+      Subscripts: H<subscript>2</subscript>O,
+      H<subscript>23</subscript>O, H<subscript>many of them</subscript>O.
+    </para>
+    <para>
+      These should not be superscripts or subscripts, because of the
+      unescaped spaces: a^b c^d, a~b c~d.
+    </para>
   </section>
   <section>
     <title>Smart quotes, ellipses, dashes</title>

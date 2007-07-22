@@ -6,7 +6,9 @@
 % This is needed for code blocks in footnotes:
 \usepackage{fancyvrb}
 \VerbatimFootnotes
+\newcommand{\textsubscript}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
 \usepackage[breaklinks=true]{hyperref}
+\usepackage[normalem]{ulem}
 \usepackage{graphicx}
 \setcounter{secnumdepth}{0}
 \title{Pandoc Test Suite}
@@ -412,6 +414,14 @@ So is \textbf{\emph{this}} word.
 So is \textbf{\emph{this}} word.
 
 This is code: \verb!>!, \verb!$!, \verb!\!, \verb!\$!, \verb!<html>!.
+
+\sout{This is \emph{strikeout}.}
+
+Superscripts: a\textsuperscript{bc}d a\textsuperscript{\emph{hello}} a\textsuperscript{hello there}.
+
+Subscripts: H\textsubscript{2}O, H\textsubscript{23}O, H\textsubscript{many of them}O.
+
+These should not be superscripts or subscripts, because of the unescaped spaces: a\^{}b c\^{}d, a\ensuremath{\sim}b c\ensuremath{\sim}d.
 
 \begin{center}\rule{3in}{0.4pt}\end{center}
 

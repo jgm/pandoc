@@ -8,7 +8,9 @@
      /><meta name="author" content="John MacFarlane"
      /><meta name="author" content="Anonymous"
      /><meta name="date" content="July 17, 2006"
-     /></head
+     /><style type="text/css"
+    >.strikeout { text-decoration: line-through; }</style
+    ></head
   ><body
   ><h1 class="title"
     >Pandoc Test Suite</h1
@@ -635,6 +637,32 @@ Blah
       >, <code
       >&lt;html&gt;</code
       >.</p
+    ><p
+    ><span class="strikeout"
+      >This is <em
+	>strikeout</em
+	>.</span
+      ></p
+    ><p
+    >Superscripts: a<sup
+      >bc</sup
+      >d a<sup
+      ><em
+	>hello</em
+	></sup
+      > a<sup
+      >hello there</sup
+      >.</p
+    ><p
+    >Subscripts: H<sub
+      >2</sub
+      >O, H<sub
+      >23</sub
+      >O, H<sub
+      >many of them</sub
+      >O.</p
+    ><p
+    >These should not be superscripts or subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.</p
     ><hr
      /><h1 id="smart-quotes-ellipses-dashes"
     >Smart quotes, ellipses, dashes</h1
