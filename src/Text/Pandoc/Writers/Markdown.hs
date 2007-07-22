@@ -108,7 +108,7 @@ wrappedMarkdown opts sect = do
 -- | Escape special characters for Markdown.
 escapeString :: String -> String
 escapeString = escapeStringUsing markdownEscapes
-  where markdownEscapes = ('\160', "&nbsp;"):(backslashEscapes "`<\\*_^")
+  where markdownEscapes = ('\160', "&nbsp;"):(backslashEscapes "`<\\*_^~")
 
 -- | Convert bibliographic information into Markdown header.
 metaToMarkdown :: WriterOptions -> Meta -> State WriterState Doc
