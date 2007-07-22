@@ -703,7 +703,6 @@ inline = choice [ rawLaTeXInline'
                 , rawHtmlInline'
                 , autoLink
                 , image
-                , escapedChar
                 , math
                 , strong
                 , emph
