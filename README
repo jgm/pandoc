@@ -243,9 +243,9 @@ preserved, rather than converted to spaces (the default).
 
 `--strict` specifies that strict markdown syntax is to be used, without
 pandoc's usual extensions and variants (described below).  When the
-input format is not markdown, this means that constructs that have no
+input format is HTML, this means that constructs that have no
 equivalents in standard markdown (e.g. definition lists or strikeout
-text) will not be parsed.
+text) will be parsed as raw HTML.
 
 `--reference-links` causes reference-style links to be used in markdown 
 and reStructuredText output.  By default inline links are used.
