@@ -99,7 +99,7 @@ notesToMan opts notes =
 noteToMan :: WriterOptions -> Int -> [Block] -> State WriterState Doc
 noteToMan opts num note = do
   contents <- blockListToMan opts note
-  let marker = text "\n.SS [" <> text (show num) <> text "]"
+  let marker = text "\n.SS [" <> text (show num) <> char ']'
   return $ marker $$ contents 
 
 wrappedMan :: WriterOptions -> [Inline] -> State WriterState Doc
@@ -168,7 +168,7 @@ blockToMan opts (Table caption alignments widths headers rows) =
                          return $ makeRow cols) rows
   return $ text ".PP" $$ caption' $$ 
            text ".TS" $$ text "tab(@);" $$ coldescriptions $$ 
-           colheadings' $$ text "_" $$ vcat body $$ text ".TE"
+           colheadings' $$ char '_' $$ vcat body $$ text ".TE"
 
 blockToMan opts (BulletList items) = do
   contents <- mapM (bulletListItemToMan opts) items
@@ -260,7 +260,7 @@ inlineToMan opts (Strong lst) = do
   return $ text "\\f[B]" <> contents <> text "\\f[]"
 inlineToMan opts (Strikeout lst) = do
   contents <- inlineListToMan opts lst
-  return $ text "[STRIKEOUT:" <> contents <> text "]"
+  return $ text "[STRIKEOUT:" <> contents <> char ']'
 -- just treat superscripts and subscripts like normal text
 inlineToMan opts (Superscript lst) = inlineListToMan opts lst
 inlineToMan opts (Subscript lst) = inlineListToMan opts lst
@@ -298,5 +298,5 @@ inlineToMan opts (Note contents) = do
   modify (\(notes, prep) -> (contents:notes, prep)) -- add to notes in state
   (notes, _) <- get
   let ref = show $ (length notes)
-  return $ text "[" <> text ref <> char ']'
+  return $ char '[' <> text ref <> char ']'
 

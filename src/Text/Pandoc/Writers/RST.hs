@@ -262,13 +262,13 @@ inlineListToRST opts lst = mapM (inlineToRST opts) lst >>= (return . hcat)
 inlineToRST :: WriterOptions -> Inline -> State WriterState Doc
 inlineToRST opts (Emph lst) = do 
   contents <- inlineListToRST opts lst
-  return $ text "*" <> contents <> text "*"
+  return $ char '*' <> contents <> char '*'
 inlineToRST opts (Strong lst) = do
   contents <- inlineListToRST opts lst
   return $ text "**" <> contents <> text "**"
 inlineToRST opts (Strikeout lst) = do 
   contents <- inlineListToRST opts lst
-  return $ text "[STRIKEOUT:" <> contents <> text "]"
+  return $ text "[STRIKEOUT:" <> contents <> char ']'
 inlineToRST opts (Superscript lst) = do 
   contents <- inlineListToRST opts lst
   return $ text "\\ :sup:`" <> contents <> text "`\\ "
@@ -289,7 +289,7 @@ inlineToRST opts (Code str) = return $ text $ "``" ++ str ++ "``"
 inlineToRST opts (Str str) = return $ text $ escapeString str
 inlineToRST opts (TeX str) = return $ text str
 inlineToRST opts (HtmlInline str) = return empty
-inlineToRST opts (LineBreak) = return $ text " " -- RST doesn't have linebreaks 
+inlineToRST opts (LineBreak) = return $ char ' ' -- RST doesn't have linebreaks 
 inlineToRST opts Space = return $ char ' '
 inlineToRST opts (Link txt (src, tit)) = do
   let useReferenceLinks = writerReferenceLinks opts

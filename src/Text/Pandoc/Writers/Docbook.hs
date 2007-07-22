@@ -242,7 +242,7 @@ inlineToDocbook opts (Subscript lst) =
   inTagsSimple "subscript" (inlinesToDocbook opts lst)
 inlineToDocbook opts (Quoted _ lst) = 
   inTagsSimple "quote" (inlinesToDocbook opts lst)
-inlineToDocbook opts Apostrophe = text "'"
+inlineToDocbook opts Apostrophe = char '\''
 inlineToDocbook opts Ellipses = text "&#8230;"
 inlineToDocbook opts EmDash = text "&#8212;" 
 inlineToDocbook opts EnDash = text "&#8211;" 
