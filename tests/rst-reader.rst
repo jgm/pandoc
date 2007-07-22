@@ -250,6 +250,8 @@ This is *emphasized*. This is **strong**.
 
 This is code: ``>``, ``$``, ``\``, ``\$``, ``<html>``.
 
+This is\ :sub:`subscripted` and this is :sup:`superscripted`\ .
+
 Special Characters
 ==================
 

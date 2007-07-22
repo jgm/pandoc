@@ -127,6 +127,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
 , Header 1 [Str "Inline",Space,Str "Markup"]
 , Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ".",Space,Str "This",Space,Str "is",Space,Strong [Str "strong"],Str "."]
 , Para [Str "This",Space,Str "is",Space,Str "code",Str ":",Space,Code ">",Str ",",Space,Code "$",Str ",",Space,Code "\\",Str ",",Space,Code "\\$",Str ",",Space,Code "<html>",Str "."]
+, Para [Str "This",Space,Str "is",Subscript [Str "subscripted"],Space,Str "and",Space,Str "this",Space,Str "is",Space,Superscript [Str "superscripted"],Str "."]
 , Header 1 [Str "Special",Space,Str "Characters"]
 , Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "unicode",Str ":"]
 , BulletList
