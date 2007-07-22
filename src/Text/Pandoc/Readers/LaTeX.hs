@@ -472,18 +472,26 @@ sect = try (do
   return (Str [chr 167]))
 
 escapedChar = do
-  result <- escaped (oneOf " $%^&_#{}\n")
+  result <- escaped (oneOf " $%&_#{}\n")
   return (if result == Str "\n" then Str " " else result)
 
 unescapedChar = do  -- ignore standalone, nonescaped special characters
   oneOf "$^&_#{}|<>"
   return (Str "")
 
-specialChar = choice [ backslash, bar, lt, gt ]
+specialChar = choice [ backslash, tilde, caret, bar, lt, gt ]
 
 backslash = try (do 
   string "\\textbackslash"
   return (Str "\\"))
+
+tilde = try (do 
+  string "\\ensuremath{\\sim}"
+  return (Str "~"))
+
+caret = try (do 
+  string "\\^{}"
+  return (Str "^"))
 
 bar = try (do
   string "\\textbar"
