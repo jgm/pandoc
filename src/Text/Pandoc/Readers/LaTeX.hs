@@ -378,9 +378,8 @@ comment = try (do
 -- inline
 --
 
-inline =  choice [ strong, emph, ref, lab, code, linebreak, spacer,
-                   math, ellipses,
-                   emDash, enDash, hyphen, quoted, apostrophe,
+inline =  choice [ strong, emph, strikeout, ref, lab, code, linebreak, spacer,
+                   math, ellipses, emDash, enDash, hyphen, quoted, apostrophe,
                    accentedChar, specialChar, specialInline, escapedChar,
                    unescapedChar, str, endline, whitespace ] <?> "inline"
 
@@ -509,6 +508,11 @@ emph = try (do
   oneOfStrings [ "\\emph{", "\\textit{" ]
   result <- manyTill inline (char '}')
   return (Emph result))
+
+strikeout = try $ do 
+  string "\\sout{"
+  result <- manyTill inline (char '}')
+  return (Strikeout result)
 
 apostrophe = do
   char '\''
