@@ -536,12 +536,9 @@ regularKey = try $ do
  -- inline
  --
 
-text = choice [ strong, emph, code, str, tabchar, whitespace, 
-                endline ] <?> "text"
-
-inline = choice [ escapedChar, special, hyphens, text, symbol ] <?> "inline"
-
-special = choice [ link, image ] <?> "link, inline html, or image"
+inline = choice [ escapedChar, link, image, hyphens, strong, emph, 
+                  superscript, subscript, code,
+                  str, tabchar, whitespace, endline, symbol ] <?> "inline"
 
 hyphens = try (do
   result <- many1 (char '-')
@@ -567,8 +564,16 @@ emph = do
   return (Emph (normalizeSpaces result))
 
 strong = do
-  result <- enclosed (try (string "**")) (try (string "**")) inline
+  result <- enclosed (string "**") (string "**") inline
   return (Strong (normalizeSpaces result))
+
+superscript = do
+  result <- enclosed (string "\\ :sup:`") (string "`\\ ") anyChar
+  return (Superscript [Str result])
+
+subscript = do
+  result <- enclosed (string "\\ :sub:`") (string "`\\ ") anyChar
+  return (Subscript [Str result])
 
 whitespace = do
   many1 spaceChar <?> "whitespace"

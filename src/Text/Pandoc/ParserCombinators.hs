@@ -76,7 +76,7 @@ enclosed :: GenParser Char st t   -- ^ start parser
 enclosed start end parser = try (do
                                    start
                                    notFollowedBy space
-                                   result <- many1Till parser end
+                                   result <- many1Till parser (try end)
                                    return result)
 
 -- | Like @manyTill@, but reads at least one item.

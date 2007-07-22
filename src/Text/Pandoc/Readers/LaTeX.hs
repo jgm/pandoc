@@ -552,13 +552,11 @@ doubleQuoted = try (do
 
 singleQuoteStart = char '`'
 
-singleQuoteEnd = try (do
-  char '\''
-  notFollowedBy alphaNum)
+singleQuoteEnd = char '\'' >> notFollowedBy alphaNum
 
-doubleQuoteStart = try (string "``")
+doubleQuoteStart = string "``"
 
-doubleQuoteEnd = try (string "''")
+doubleQuoteEnd = string "''"
 
 ellipses = try (do
   string "\\ldots"
