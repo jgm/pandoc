@@ -177,7 +177,7 @@ options =
     , Option "" ["strict"]
                  (NoArg
                   (\opt -> return opt { optStrict = True } ))
-                 "" -- "Use strict markdown syntax with no extensions"
+                 "" -- "Disable markdown syntax extensions"
 
     , Option "" ["reference-links"]
                  (NoArg
@@ -399,7 +399,7 @@ main = do
               , optNumberSections    = numberSections
               , optIncremental       = incremental
               , optSmart             = smart
-              , optASCIIMathML       = asciiMathML
+              , optASCIIMathML       = math
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
               , optStrict            = strict
@@ -455,11 +455,11 @@ main = do
                    then "" 
                    else "<link rel=\"stylesheet\" href=\"" ++ css ++ 
                         "\" type=\"text/css\" media=\"all\" />\n"
-  let asciiMathMLLink = if asciiMathML then asciiMathMLScript else ""
+  let asciiMathML = if math then asciiMathMLScript else ""
   let header = (if (customHeader == "DEFAULT") 
                    then defaultHeader
                    else customHeader) ++ 
-               csslink ++ asciiMathMLLink ++ includeHeader
+               csslink ++ asciiMathML ++ includeHeader
   let writerOptions = WriterOptions { writerStandalone     = standalone &&
                                                              (not strict), 
                                       writerHeader         = header, 
