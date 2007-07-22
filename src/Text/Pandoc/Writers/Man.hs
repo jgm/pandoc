@@ -80,9 +80,9 @@ metaToMan options (Meta title authors date) = do
   let head = (text ".TH") <+> title' <+> section <+> 
              doubleQuotes (text date) <+> hsep extras
   let foot = case length authors of
-                0 -> text $ ""
-                1 -> text $ ".SH AUTHOR\n" ++ joinWithSep ", " authors
-                2 -> text $ ".SH AUTHORS\n" ++ joinWithSep ", " authors
+                0 -> empty
+                1 -> text ".SH AUTHOR" $$ (text $ joinWithSep ", " authors)
+                2 -> text ".SH AUTHORS" $$ (text $ joinWithSep ", " authors)
   return $ if writerStandalone options
      then (head, foot)
      else (empty, empty)
@@ -261,9 +261,12 @@ inlineToMan opts (Strong lst) = do
 inlineToMan opts (Strikeout lst) = do
   contents <- inlineListToMan opts lst
   return $ text "[STRIKEOUT:" <> contents <> char ']'
--- just treat superscripts and subscripts like normal text
-inlineToMan opts (Superscript lst) = inlineListToMan opts lst
-inlineToMan opts (Subscript lst) = inlineListToMan opts lst
+inlineToMan opts (Superscript lst) = do
+  contents <- inlineListToMan opts lst
+  return $ char '^' <> contents <> char '^'
+inlineToMan opts (Subscript lst) = do
+  contents <- inlineListToMan opts lst
+  return $ char '~' <> contents <> char '~'
 inlineToMan opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMan opts lst
   return $ char '`' <> contents <> char '\''
