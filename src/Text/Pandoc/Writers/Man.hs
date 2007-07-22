@@ -73,8 +73,8 @@ metaToMan options (Meta title authors date) = do
   let (cmdName, rest) = break (== ' ') $ render titleText
   let (title', section) = case reverse cmdName of
                             (')':d:'(':xs) | d `elem` ['0'..'9'] -> 
-                                  (text (reverse xs), text [d])
-                            xs -> (text (reverse xs), empty)                    
+                                  (text (reverse xs), char d)
+                            xs -> (text (reverse xs), doubleQuotes empty)                    
   let extras = map (doubleQuotes . text . removeLeadingTrailingSpace) $
                splitBy '|' rest
   let head = (text ".TH") <+> title' <+> section <+> 
