@@ -95,21 +95,14 @@ latexHeader options (Meta title authors date) = do
 
 stringToLaTeX :: String -> String
 stringToLaTeX = escapeStringUsing latexEscapes
-  where latexEscapes = [
-          ('\\', "\\textbackslash{}"),
-          ('{', "\\{"),
-          ('}', "\\}"),
-          ('$', "\\$"),
-          ('%', "\\%"),
-          ('&', "\\&"),
-          ('~', "\\~"),
-          ('_', "\\_"),
-          ('#', "\\#"),
-          ('^', "\\^{}"),
-          ('|', "\\textbar{}"),
-          ('<', "\\textless{}"),
-          ('>', "\\textgreater{}")
-          ]
+  where latexEscapes = backslashEscapes "{}$%&_#" ++ 
+                       [ ('^', "\\^{}")
+                       , ('\\', "\\textbackslash{}")
+                       , ('~', "\\ensuremath{\\sim}")
+                       , ('|', "\\textbar{}")
+                       , ('<', "\\textless{}")
+                       , ('>', "\\textgreater{}")
+                       ]
 
 -- | Remove all code elements from list of inline elements
 -- (because it's illegal to have a \\verb inside a command argument)
