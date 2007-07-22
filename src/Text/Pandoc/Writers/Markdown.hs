@@ -236,7 +236,7 @@ definitionListItemToMarkdown :: WriterOptions
 definitionListItemToMarkdown opts (label, items) = do
   labelText <- inlineListToMarkdown opts label
   let tabStop = writerTabStop opts
-  let leader  = text ":"
+  let leader  = char ':'
   contents <- mapM (\item -> blockToMarkdown opts item >>= 
               (\txt -> return (leader $$ nest tabStop txt)))
               items >>= (return . vcat)
@@ -275,7 +275,7 @@ inlineListToMarkdown opts lst = mapM (inlineToMarkdown opts) lst >>= (return . h
 inlineToMarkdown :: WriterOptions -> Inline -> State WriterState Doc
 inlineToMarkdown opts (Emph lst) = do 
   contents <- inlineListToMarkdown opts lst
-  return $ text "*" <> contents <> text "*"
+  return $ char '*' <> contents <> char '*'
 inlineToMarkdown opts (Strong lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ text "**" <> contents <> text "**"
@@ -285,11 +285,11 @@ inlineToMarkdown opts (Strikeout lst) = do
 inlineToMarkdown opts (Superscript lst) = do
   contents <- inlineListToMarkdown opts lst
   let contents' = text $ substitute " " "\\ " $ render contents
-  return $ text "^" <> contents' <> text "^"
+  return $ char '^' <> contents' <> char '^'
 inlineToMarkdown opts (Subscript lst) = do
   contents <- inlineListToMarkdown opts lst
   let contents' = text $ substitute " " "\\ " $ render contents
-  return $ text "~" <> contents' <> text "~"
+  return $ char '~' <> contents' <> char '~'
 inlineToMarkdown opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ char '\'' <> contents <> char '\''
