@@ -40,7 +40,13 @@ import Text.XHtml.Strict
 
 type Notes = [Html]
 type Ids = [String]
-type WriterState = (Notes, Ids)
+type ForHeader = [Html]
+type WriterState = (Notes, Ids, ForHeader)
+
+-- | Add some Html to be included in the document header.
+addToHeader :: Html -> State WriterState ()
+addToHeader item = modify (\(notes, ids, forheader) ->
+                            (notes, ids, item:forheader))
 
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
@@ -53,11 +59,11 @@ writeHtmlString opts =
 writeHtml :: WriterOptions -> Pandoc -> Html
 writeHtml opts (Pandoc (Meta tit authors date) blocks) = 
   let titlePrefix = writerTitlePrefix opts
-      topTitle    = evalState (inlineListToHtml opts tit) ([],[])
+      topTitle    = evalState (inlineListToHtml opts tit) ([],[],[])
       topTitle'   = if null titlePrefix
                         then topTitle
                         else titlePrefix +++ " - " +++ topTitle
-      head        = header $ thetitle topTitle' +++ 
+      metadata    = thetitle topTitle' +++ 
                     meta ! [httpequiv "Content-Type", 
                             content "text/html; charset=UTF-8"] +++
                     meta ! [name "generator", content "pandoc"] +++
@@ -65,9 +71,7 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
                     map (\a -> meta ! [name "author", content a]) authors) +++
                     (if null date
                        then noHtml
-                       else meta ! [name "date", content date]) +++
-                    (style ! [thetype "text/css"] $ (stringToHtml ".strikeout { text-decoration: line-through; }")) +++
-                    primHtml (writerHeader opts)
+                       else meta ! [name "date", content date]) 
       titleHeader = if (writerStandalone opts) && (not (null tit)) && 
                     (not (writerS5 opts))
                         then h1 ! [theclass "title"] $ topTitle
@@ -77,8 +81,10 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
       toc = if writerTableOfContents opts 
                then tableOfContents opts headerBlocks ids
                else noHtml
-      (blocks', (revnotes,_)) = 
-                    runState (blockListToHtml opts blocks) ([],ids)
+      (blocks', (revnotes,_,forhead)) = 
+                    runState (blockListToHtml opts blocks) ([],ids,[])
+      head        = header $ metadata +++ toHtmlFromList forhead +++ 
+                             primHtml (writerHeader opts)
       notes       = reverse revnotes
       before      = primHtml $ writerIncludeBefore opts
       after       = primHtml $ writerIncludeAfter opts
@@ -95,7 +101,7 @@ tableOfContents opts headers ids =
   let opts' = opts { writerIgnoreNotes = True }
       contentsTree = hierarchicalize headers
       contents = evalState (mapM (elementToListItem opts') contentsTree) 
-                 ([],ids)
+                 ([],ids,[])
   in  thediv ! [identifier "toc"] $ unordList contents
 
 -- | Converts an Element to a list item for a table of contents,
@@ -103,11 +109,11 @@ tableOfContents opts headers ids =
 elementToListItem :: WriterOptions -> Element -> State WriterState Html
 elementToListItem opts (Blk _) = return noHtml
 elementToListItem opts (Sec headerText subsecs) = do
-  (notes, ids) <- get
+  (notes, ids, forhead) <- get
   let (id, rest) = if null ids
                       then ("",[])
                       else (head ids, tail ids)
-  put (notes, rest)
+  put (notes, rest, forhead)
   txt <- inlineListToHtml opts headerText
   subHeads <- mapM (elementToListItem opts) subsecs
   let subList = if null subHeads
@@ -237,11 +243,11 @@ blockToHtml opts block =
                                        (return . blockquote)
           else blockListToHtml opts blocks >>= (return . blockquote)
     (Header level lst) -> do contents <- inlineListToHtml opts lst
-                             (notes, ids) <- get
+                             (notes, ids, forhead) <- get
                              let (id, rest) = if null ids
                                                  then ("", [])
                                                  else (head ids, tail ids)
-                             put (notes, rest)
+                             put (notes, rest, forhead)
                              let attribs = [identifier id]
                              let headerHtml = case level of
                                          1 -> h1 contents ! attribs
@@ -331,8 +337,10 @@ inlineToHtml opts inline =
     (Emph lst)       -> inlineListToHtml opts lst >>= (return . emphasize)
     (Strong lst)     -> inlineListToHtml opts lst >>= (return . strong)
     (Code str)       -> return $ thecode << str
-    (Strikeout lst)  -> inlineListToHtml opts lst >>=
-                                    (return . (thespan ! [theclass "strikeout"]))
+    (Strikeout lst)  -> addToHeader (style ! [thetype "text/css"] $ (stringToHtml 
+                        ".strikeout { text-decoration: line-through; }")) >> 
+                        inlineListToHtml opts lst >>=
+                        (return . (thespan ! [theclass "strikeout"]))
     (Superscript lst) -> inlineListToHtml opts lst >>= (return . sup)
     (Subscript lst)   -> inlineListToHtml opts lst >>= (return . sub)
     (Quoted quoteType lst) ->
@@ -361,11 +369,11 @@ inlineToHtml opts inline =
                                             if null txt then [] else [alt alternate']
                            return $ image ! attributes 
                            -- note:  null title included, as in Markdown.pl 
-    (Note contents)  -> do (notes, ids) <- get
+    (Note contents)  -> do (notes, ids, forhead) <- get
                            let number = (length notes) + 1
                            let ref = show number
                            htmlContents <- blockListToNote opts ref contents 
-                           put (htmlContents:notes, ids) -- push contents onto front of notes
+                           put (htmlContents:notes, ids, forhead) -- push contents onto front of notes
                            return $ anchor ! [href ("#fn" ++ ref),
                                               theclass "footnoteRef",
                                               identifier ("fnref" ++ ref)] << sup << ref
