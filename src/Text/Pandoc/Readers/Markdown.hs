@@ -591,14 +591,14 @@ rawTableLine indices = do
 -- Parse a table line and return a list of lists of blocks (columns).
 tableLine indices = try $ do
     rawline <- rawTableLine indices
-    mapM (parseFromStr (many plain)) rawline
+    mapM (parseFromString (many plain)) rawline
 
 -- Parse a multiline table row and return a list of blocks (columns).
 multilineRow indices = try $ do
     colLines <- many1 (rawTableLine indices)
     option "" blanklines
     let cols = map unlines $ transpose colLines
-    mapM (parseFromStr (many plain)) cols
+    mapM (parseFromString (many plain)) cols
 
 -- Calculate relative widths of table columns, based on indices
 widthsFromIndices :: Int     -- Number of columns on terminal
@@ -628,7 +628,7 @@ tableWith headerParser lineParser footerParser = try $ do
     (rawHeads, aligns, indices) <- headerParser
     lines <- many1Till (lineParser indices) footerParser
     caption <- option [] tableCaption
-    heads <- mapM (parseFromStr (many plain)) rawHeads
+    heads <- mapM (parseFromString (many plain)) rawHeads
     state <- getState
     let numColumns = stateColumns state
     let widths = widthsFromIndices numColumns indices

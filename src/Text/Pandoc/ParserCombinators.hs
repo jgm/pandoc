@@ -38,7 +38,7 @@ module Text.Pandoc.ParserCombinators (
                                       blanklines,
                                       enclosed,
                                       stringAnyCase,
-                                      parseFromStr,
+                                      parseFromString,
                                       lineClump,
                                       charsInBalanced
                                      ) where
@@ -108,8 +108,8 @@ stringAnyCase (x:xs) = try (do
   return (firstChar:rest))
 
 -- | Parse contents of 'str' using 'parser' and return result.
-parseFromStr :: GenParser tok st a -> [tok] -> GenParser tok st a
-parseFromStr parser str = try $ do
+parseFromString :: GenParser tok st a -> [tok] -> GenParser tok st a
+parseFromString parser str = try $ do
   oldInput <- getInput
   setInput str
   result <- parser
