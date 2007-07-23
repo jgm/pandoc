@@ -109,13 +109,12 @@ Supported output formats include `markdown`, `latex`, `context`
 HTML file that acts like powerpoint). Supported input formats include
 `markdown`, `html`, `latex`, and `rst`. Note that the `rst` reader only
 parses a subset of reStructuredText syntax. For example, it doesn't
-handle tables, definition lists, option lists, or footnotes. It handles
-only the constructs expressible in unextended markdown. But for simple
-documents it should be adequate. The `latex` and `html` readers are also
-limited in what they can do. Because the `html` reader is picky about
-the HTML it parses, it is recommended that you pipe HTML through [HTML
-Tidy] before sending it to `pandoc`, or use the `html2markdown` script
-described below.
+handle tables, option lists, or footnotes. But for simple documents it
+should be adequate. The `latex` and `html` readers are also limited in
+what they can do. Because the `html` reader is picky about the HTML it
+parses, it is recommended that you pipe HTML through [HTML Tidy] before
+sending it to `pandoc`, or use the `html2markdown` script described
+below.
 
 If you don't specify a reader or writer explicitly, `pandoc` will
 try to determine the input and output format from the extensions of

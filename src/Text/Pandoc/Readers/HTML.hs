@@ -368,6 +368,7 @@ bulletList = try $ do
     return (BulletList items)
 
 definitionList = try $ do
+    failIfStrict  -- def lists not part of standard markdown
     tag <- htmlTag "dl"
     spaces
     items <- sepEndBy1 definitionListItem spaces
