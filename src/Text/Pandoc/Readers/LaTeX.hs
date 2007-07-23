@@ -39,6 +39,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Data.Maybe ( fromMaybe )
 import Data.Char ( chr )
+import Data.List ( isPrefixOf, isSuffixOf )
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ParserState   -- ^ Parser state, including options for parser
@@ -228,33 +229,45 @@ mathBlockWith start end = try (do
 -- list blocks
 --
 
-list = bulletList <|> orderedList <?> "list"
+list = bulletList <|> orderedList <|> definitionList <?> "list"
 
-listItem = try (do
-    ("item", _, _) <- command
+listItem = try $ do
+    ("item", _, args) <- command
     spaces
     state <- getState
     let oldParserContext = stateParserContext state
     updateState (\state -> state {stateParserContext = ListItemState})
     blocks <- many block
     updateState (\state -> state {stateParserContext = oldParserContext})
-    return blocks)
+    opt <- case args of
+             ([x]) | "[" `isPrefixOf` x && "]" `isSuffixOf` x -> 
+                         parseFromString (many inline) $ tail $ init x
+             _        -> return []
+    return (opt, blocks)
 
-orderedList = try (do
+orderedList = try $ do
     begin "enumerate"
     spaces
     items <- many listItem
     end "enumerate"
     spaces
-    return (OrderedList items))
+    return (OrderedList $ map snd items)
 
-bulletList = try (do
+bulletList = try $ do
     begin "itemize"
     spaces
     items <- many listItem
     end "itemize"
     spaces
-    return (BulletList items))
+    return (BulletList $ map snd items)
+
+definitionList = try $ do
+    begin "description"
+    spaces
+    items <- many listItem
+    end "description"
+    spaces
+    return (DefinitionList items)
 
 --
 -- paragraph block
@@ -353,9 +366,8 @@ unknownEnvironment = try (do
   return result)
 
 unknownCommand = try (do
-  notFollowedBy' (string "\\end{itemize}")
-  notFollowedBy' (string "\\end{enumerate}")
-  notFollowedBy' (string "\\end{document}")
+  notFollowedBy' $ choice $ map end 
+                            ["itemize", "enumerate", "description", "document"]
   (name, star, args) <- command
   spaces
   let argStr = concat args
