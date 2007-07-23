@@ -83,6 +83,18 @@ inlinesTilEnd tag = try (do
   inlines <- manyTill inline (htmlEndTag tag)
   return inlines)
 
+-- | Parse blocks between open and close tag.
+blocksIn tag = try $ do
+  htmlTag tag
+  spaces
+  blocksTilEnd tag
+
+-- | Parse inlines between open and close tag.
+inlinesIn tag = try $ do
+  htmlTag tag
+  spaces
+  inlinesTilEnd tag
+
 -- | Extract type from a tag:  e.g. @br@ from @\<br\>@
 extractTagType :: String -> String
 extractTagType ('<':rest) = 
@@ -339,27 +351,34 @@ blockQuote = try (do
 -- list blocks
 --
 
-list = choice [ bulletList, orderedList ] <?> "list"
+list = choice [ bulletList, orderedList, definitionList ] <?> "list"
 
-orderedList = try (do
-    tag <- htmlTag "ol"
+orderedList = try $ do
+    htmlTag "ol"
     spaces
-    items <- sepEndBy1 listItem spaces
+    items <- sepEndBy1 (blocksIn "li") spaces
     htmlEndTag "ol"
-    return (OrderedList items))
+    return (OrderedList items)
 
-bulletList = try (do
-    tag <- htmlTag "ul"
+bulletList = try $ do
+    htmlTag "ul"
     spaces
-    items <- sepEndBy1 listItem spaces
+    items <- sepEndBy1 (blocksIn "li") spaces
     htmlEndTag "ul"
-    return (BulletList items))
+    return (BulletList items)
 
-listItem = try (do
-    tag <- htmlTag "li"
+definitionList = try $ do
+    tag <- htmlTag "dl"
     spaces
-    blocks <- blocksTilEnd "li"
-    return blocks)
+    items <- sepEndBy1 definitionListItem spaces
+    htmlEndTag "dl"
+    return (DefinitionList items)
+
+definitionListItem = try $ do
+    terms <- sepEndBy1 (inlinesIn "dt") spaces
+    defs <- sepEndBy1 (blocksIn "dd") spaces
+    let term = joinWithSep [LineBreak] terms
+    return (term, concat defs)
 
 --
 -- paragraph block

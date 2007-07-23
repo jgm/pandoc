@@ -150,6 +150,14 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] [] "")
     , BulletList
       [ [ Para [Str "this",Space,Str "is",Space,Str "an",Space,Str "example",Space,Str "list",Space,Str "item",Space,Str "indented",Space,Str "with",Space,Str "tabs"] ]
       , [ Para [Str "this",Space,Str "is",Space,Str "an",Space,Str "example",Space,Str "list",Space,Str "item",Space,Str "indented",Space,Str "with",Space,Str "spaces"] ] ] ] ]
+, Header 2 [Str "Definition"]
+, DefinitionList
+  [  ([Str "Violin"],
+     [ Plain [Str "Stringed",Space,Str "musical",Space,Str "instrument."]
+     , Plain [Str "Torture",Space,Str "device."] ]  ),
+    ([Str "Cello",LineBreak,Str "Violoncello"],
+     [ Plain [Str "Low-voiced",Space,Str "stringed",Space,Str "instrument."] ]
+    ) ]
 , HorizontalRule
 , Header 1 [Str "HTML",Space,Str "Blocks"]
 , Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line:"]
