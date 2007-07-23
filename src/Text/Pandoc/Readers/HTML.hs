@@ -76,7 +76,7 @@ inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big",
 -- | Read blocks until end tag.
 blocksTilEnd tag = try (do
   blocks <- manyTill (do {b <- block; spaces; return b}) (htmlEndTag tag)
-  return blocks)
+  return $ filter (/= Null) blocks)
 
 -- | Read inlines until end tag.
 inlinesTilEnd tag = try (do
@@ -288,7 +288,7 @@ parseHtml = do
 parseBlocks = do
   spaces
   result <- sepEndBy block spaces
-  return result
+  return $ filter (/= Null) result
 
 block = choice [ codeBlock, header, hrule, list, blockQuote, para, plain, 
                  rawHtmlBlock ] <?> "block"
