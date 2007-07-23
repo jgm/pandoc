@@ -800,7 +800,7 @@ be interpreted as raw LaTeX, not as markdown.
     [ASCIIMathML] website and make it available on your webserver. Then
     create a custom header for your web page that includes the line
 
-        <script src=/path/to/ASCIIMathML.js></script> 
+        <script src="/path/to/ASCIIMathML.js"></script>
 
 Custom headers
 ==============
