@@ -33,7 +33,7 @@ module Text.Pandoc.Writers.LaTeX (
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
-import Data.List ( (\\) )
+import Data.List ( (\\), isInfixOf )
 import qualified Data.Set as S
 import Control.Monad.State
 
@@ -74,7 +74,7 @@ latexHeader options (Meta title authors date) = do
                      then return "" 
                      else do title' <- inlineListToLaTeX title
                              return $ "\\title{" ++ title' ++ "}\n"
-  extras       <- get
+  extras       <- get >>= (return . unlines . S.toList)
   let authorstext = if null authors
                        then "" 
                        else "\\author{" ++ (joinWithSep "\\\\" 
@@ -82,14 +82,17 @@ latexHeader options (Meta title authors date) = do
   let datetext  = if date == ""
                      then "" 
                      else "\\date{" ++ stringToLaTeX date ++ "}\n"
-  let maketitle = if null title then "" else "\\maketitle\n\n" 
+  let maketitle = if null title then "" else "\\maketitle\n" 
+  let verbatim  = if "\\usepackage{fancyvrb}" `isInfixOf` extras
+                     then "\\VerbatimFootnotes % allows verbatim text in footnotes\n"
+                     else ""
   let secnumline = if (writerNumberSections options)
                       then "" 
                       else "\\setcounter{secnumdepth}{0}\n" 
   let baseHeader = writerHeader options
-  let header     = baseHeader ++ (unlines $ S.toList extras)
+  let header     = baseHeader ++ extras
   return $ header ++ secnumline ++ titletext ++ authorstext ++ datetext ++ 
-           "\\begin{document}\n" ++ maketitle
+           "\\begin{document}\n" ++ maketitle ++ verbatim ++ "\n"
 
 -- escape things as needed for LaTeX
 
@@ -160,7 +163,7 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
                   headers ++ "\\hline\n" ++ concat rows' ++ "\\end{tabular}\n" 
   let centered str   = "\\begin{center}\n" ++ str ++ "\\end{center}\n"
   addToHeader "\\usepackage{array}\n\
-      \% This is needed because raggedright in table elements redefines //:\n\
+      \% This is needed because raggedright in table elements redefines \\\\:\n\
       \\\newcommand{\\PreserveBackslash}[1]{\\let\\temp=\\\\#1\\let\\\\=\\temp}\n\
       \\\let\\PBS=\\PreserveBackslash"
   return $ if null captionText
@@ -243,8 +246,7 @@ inlineToLaTeX (Image alternate (source, tit)) = do
   addToHeader "\\usepackage{graphicx}"
   return $ "\\includegraphics{" ++ source ++ "}" 
 inlineToLaTeX (Note contents) = do
-  addToHeader "% This is needed for code blocks in footnotes:\n\
-              \\\usepackage{fancyvrb}\n\\VerbatimFootnotes"
+  addToHeader "\\usepackage{fancyvrb}"
   contents' <- blockListToLaTeX contents
   return $ "\\footnote{" ++ stripTrailingNewlines contents'  ++ "}"
 
