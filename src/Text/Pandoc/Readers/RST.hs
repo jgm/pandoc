@@ -355,7 +355,21 @@ blockQuote = try (do
 -- list blocks
 --
 
-list = choice [ bulletList, orderedList ] <?> "list"
+list = choice [ bulletList, orderedList, definitionList ] <?> "list"
+
+definitionListItem = try $ do
+  term <- many1Till inline endline
+  raw <- indentedBlock True
+  -- parse the extracted block, which may contain various block elements:
+  rest <- getInput
+  setInput $ raw ++ "\n\n"
+  contents <- parseBlocks
+  setInput rest
+  return (normalizeSpaces term, contents)
+
+definitionList = try $ do
+  items <- many1 definitionListItem 
+  return (DefinitionList items)
 
 -- parses bullet list start and returns its length (inc. following whitespace)
 bulletListStart = try (do

@@ -211,6 +211,20 @@ Here's another:
 
 3. Third 
 
+Definition
+----------
+
+term 1
+    Definition 1.
+
+term 2
+    Definition 2, paragraph 1.
+
+    Definition 2, paragraph 2.
+
+term with *emphasis* 
+    Definition 3.
+
 HTML Blocks
 ===========
 

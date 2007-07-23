@@ -117,6 +117,17 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
         [ [ Plain [Str "Fee"] ]
         , [ Plain [Str "Fie"] ]
         , [ Plain [Str "Foe"] ] ] ] ], [ Para [Str "Third"] ] ]
+, Header 2 [Str "Definition"]
+, DefinitionList
+  [  ([Str "term",Space,Str "1"],
+     [ Para [Str "Definition",Space,Str "1."] ]
+    ),
+    ([Str "term",Space,Str "2"],
+     [ Para [Str "Definition",Space,Str "2,",Space,Str "paragraph",Space,Str "1."]
+     , Para [Str "Definition",Space,Str "2,",Space,Str "paragraph",Space,Str "2."] ]  ),
+    ([Str "term",Space,Str "with",Space,Emph [Str "emphasis"]],
+     [ Para [Str "Definition",Space,Str "3."] ]
+    ) ]
 , Header 1 [Str "HTML",Space,Str "Blocks"]
 , Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line",Str ":"]
 , RawHtml "<div>foo</div>\n"
