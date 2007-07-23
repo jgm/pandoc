@@ -458,7 +458,7 @@ spanStrikeout = try $ do
   (tag, attributes) <- htmlTag "span" 
   result <- case (extractAttribute "class" attributes) of
               Just "strikeout" -> inlinesTilEnd "span"
-              Nothing          -> fail "not a strikeout"
+              _                -> fail "not a strikeout"
   return (Strikeout result)
 
 strong = try (do 
