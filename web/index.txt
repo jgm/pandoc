@@ -24,8 +24,9 @@ Pandoc features
 - Extensions to markdown syntax:
     + Document metadata (title, author, date).
     + Footnotes, tables, and definition lists.
-    + Inline LaTeX math and LaTeX commands.
     + Superscripts, subscripts, and strikeout.
+    + Inline LaTeX math and LaTeX commands.
+    + Markdown inside HTML blocks.
     + Compatibility mode to turn off syntax entensions and emulate
       `Markdown.pl`.
 - Convenient wrapper scripts:
