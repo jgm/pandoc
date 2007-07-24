@@ -390,7 +390,7 @@ If the superscripted or subscripted text contains spaces, these spaces
 must be escaped with backslashes.  (This is to prevent accidental
 superscripting and subscripting through the ordinary use of `~` and `^`.)
 Thus, if you want the letter P with 'a cat' in subscripts, use
-`P~a\ cat`, not `P~a cat~`.
+`P~a\ cat~`, not `P~a cat~`.
 
 Strikeout
 ---------
