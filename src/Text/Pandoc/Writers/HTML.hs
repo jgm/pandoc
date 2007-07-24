@@ -99,7 +99,7 @@ tableOfContents opts headers ids =
   let opts' = opts { writerIgnoreNotes = True }
       contentsTree = hierarchicalize headers
       contents = evalState (mapM (elementToListItem opts') contentsTree) 
-                 (WriterState {stNotes= [], stIds = [], stHead = []})
+                 (WriterState {stNotes= [], stIds = ids, stHead = []})
   in  thediv ! [identifier "toc"] $ unordList contents
 
 -- | Converts an Element to a list item for a table of contents,
