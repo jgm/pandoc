@@ -219,129 +219,145 @@ Command-line options
 Various command-line options can be used to customize the output.
 For further documentation, see the `pandoc(1)` man page.
 
-`-f`, `--from`, `-r`, or `--read` can be used to specify the input
-format -- the format Pandoc will be converting *from*.  Available
-formats are `native`, `markdown`, `rst`, `html`, and `latex`.
+`-f`, `--from`, `-r`, or `--read` *format*
+:   specifies the input format (the format Pandoc will be converting
+    *from*). *format* can be `native`, `markdown`, `rst`, `html`, or
+    `latex`.
 
-`-t`, `--to`, `-w`, or `--write` can be used to specify the output
-format -- the format Pandoc will be converting *to*.  Available formats
-are `native`, `html`, `s5`, `docbook`, `latex`, `context`, `markdown`,
-`rst`, and `rtf`.
+`-t`, `--to`, `-w`, or `--write` *format*
+:   specifies the output format -- the format Pandoc will
+    be converting *to*. *format* can be `native`, `html`, `s5`,
+    `docbook`, `latex`, `context`, `markdown`, `man`, `rst`, and `rtf`.
 
-`-s` or `--standalone` indicates that a standalone document is to be
-produced (with appropriate headers and footers), rather than a fragment.
+`-s` or `--standalone`
+:   indicates that a standalone document is to be produced (with
+    appropriate headers and footers), rather than a fragment.
 
-`-o` or `--output` specifies the name of the output file.  If this
-option is not specified, or if its argument is `-`, output will be sent
-to STDOUT.
+`-o` or `--output` *filename*
+:   sends output to *filename*. If this option is not specified,
+    or if its argument is `-`, output will be sent to STDOUT.
 
-`-p` or `--preserve-tabs` causes tabs in the source text to be
-preserved, rather than converted to spaces (the default).
+`-p` or `--preserve-tabs`
+:   causes tabs in the source text to be preserved, rather than converted
+    to spaces (the default).
 
-`--tabstop` allows the user to set the tab stop (which defaults to 4).
+`--tabstop` *tabstop*
+:   sets the number of spaces per tab to *tabstop* (defaults to 4).
 
-`--strict` specifies that strict markdown syntax is to be used, without
-pandoc's usual extensions and variants (described below).  When the
-input format is HTML, this means that constructs that have no
-equivalents in standard markdown (e.g. definition lists or strikeout
-text) will be parsed as raw HTML.
+`--strict`
+:   specifies that strict markdown syntax is to be used, without
+    pandoc's usual extensions and variants (described below).  When the
+    input format is HTML, this means that constructs that have no
+    equivalents in standard markdown (e.g. definition lists or strikeout
+    text) will be parsed as raw HTML.
 
-`--reference-links` causes reference-style links to be used in markdown 
-and reStructuredText output.  By default inline links are used.
+`--reference-links`
+:   causes reference-style links to be used in markdown 
+    and reStructuredText output.  By default inline links are used.
 
-`-R` or `--parse-raw` causes the HTML and LaTeX readers to parse HTML
-codes and LaTeX environments that it can't translate as raw HTML or
-LaTeX.  Raw HTML can be printed in markdown, reStructuredText, HTML,
-and S5 output; raw LaTeX can be printed in markdown, reStructuredText,
-LaTeX, and ConTeXt output.  The default is for the readers to omit
-untranslatable HTML codes and LaTeX environments.  (The LaTeX reader
-does pass through untranslatable LaTeX commands, even if `-R` is not
-specified.)
+`-R` or `--parse-raw`
+:   causes the HTML and LaTeX readers to parse HTML codes and LaTeX
+    environments that it can't translate as raw HTML or LaTeX. Raw HTML can
+    be printed in markdown, reStructuredText, HTML, and S5 output; raw LaTeX
+    can be printed in markdown, reStructuredText, LaTeX, and ConTeXt output.
+    The default is for the readers to omit untranslatable HTML codes and
+    LaTeX environments. (The LaTeX reader does pass through untranslatable
+    LaTeX *commands*, even if `-R` is not specified.)
 
-`-C` or `--custom-header` can be used to specify a custom document
-header.  To see the headers used by default, use the `-D` option:
-for example, `pandoc -D html` prints the default HTML header.
+`-C` or `--custom-header` *filename*
+:   can be used to specify a custom document header. To see the headers
+    used by default, use the `-D` option: for example, `pandoc -D html`
+    prints the default HTML header.
 
-`--toc` or `--table-of-contents` includes an automatically generated
-table of contents (or, in the case of `latex`, `context`, and `rst`, an
-instruction to create one) in the output document. This option has no
-effect with `man`, `docbook`, or `s5` output formats.
+`--toc` or `--table-of-contents`
+:   includes an automatically generated table of contents (or, in the
+    case of `latex`, `context`, and `rst`, an instruction to create
+    one) in the output document. This option has no effect with `man`,
+    `docbook`, or `s5` output formats.
 
-`-c` or `--css` allows the user to specify a custom stylesheet that
-will be linked to in HTML and S5 output.
+`-c` or `--css` *filename*
+:   allows the user to specify a custom stylesheet that will be linked to
+    in HTML and S5 output.
 
-`-H` or `--include-in-header` specifies a file to be included
-(verbatim) at the end of the document header.  This can be used, for
-example, to include special CSS or javascript in HTML documents.
+`-H` or `--include-in-header` *filename*
+:   includes the contents of *filename* (verbatim) at the end of the
+    document header. This can be used, for example, to include special
+    CSS or javascript in HTML documents.
 
-`-B` or `--include-before-body` specifies a file to be included
-(verbatim) at the beginning of the document body (e.g. after the `<body>`
-tag in HTML, or the `\begin{document}` command in LaTeX).  This can be
-used to include navigation bars or banners in HTML documents.
+`-B` or `--include-before-body` *filename*
+:   includes the contents of *filename* (verbatim) at the beginning of
+    the document body (e.g. after the `<body>` tag in HTML, or the
+    `\begin{document}` command in LaTeX). This can be used to include
+    navigation bars or banners in HTML documents.
 
-`-A` or `--include-after-body` specifies a file to be included
-(verbatim) at the end of the document body (before the `</body>` tag in
-HTML, or the `\end{document}` command in LaTeX).
+`-A` or `--include-after-body` *filename*
+:   includes the contents of *filename* (verbatim) at the end of
+    the document body (before the `</body>` tag in HTML, or the
+    `\end{document}` command in LaTeX).
 
-`-T` or `--title-prefix` specifies a string to be included as a prefix
-at the beginning of the title that appears in the HTML header (but not
-in the title as it appears at the beginning of the HTML body).  (See
-below on Titles.)
+`-T` or `--title-prefix` *string*
+:   includes *string* as a prefix at the beginning of the title that
+    appears in the HTML header (but not in the title as it appears at
+    the beginning of the HTML body). (See below on
+    [Title Blocks](#title-blocks).)
 
-`-S` or `--smart` causes `pandoc` to produce typographically
-correct output, along the lines of John Gruber's [Smartypants].
-Straight quotes are converted to curly quotes, `---` to dashes, and
-`...` to ellipses.  (Note:  This option is only significant when
-the input format is `markdown`.  It is selected automatically
-when the output format is `latex` or `context`.)
+`-S` or `--smart`
+:   causes `pandoc` to produce typographically correct output, along the
+    lines of John Gruber's [Smartypants]. Straight quotes are converted
+    to curly quotes, `---` to dashes, and `...` to ellipses. (Note: This
+    option is only significant when the input format is `markdown`.
+    It is selected automatically when the output format is `latex` or
+    `context`.)
+
+`-m` or `--asciimathml`
+:   will cause LaTeX formulas (between $ signs) in HTML or S5 to display
+    as formulas rather than as code. The trick will not work in all
+    browsers, but it works in Firefox. Peter Jipsen's [ASCIIMathML]
+    script is used to do the magic.
+
+`-i` or `--incremental`
+:   causes all lists in S5 output to be displayed incrementally by
+    default (one item at a time). The normal default is for lists to be
+    displayed all at once.
+
+`-N` or `--number-sections`
+:   causes sections to be numbered in LaTeX or ConTeXt output. By default,
+    sections are not numbered.
+
+`--dump-args`
+:   is intended to make it easier to create wrapper scripts that use
+    Pandoc. It causes Pandoc to dump information about the arguments
+    with which it was called to STDOUT, then exit. The first line
+    printed is the name of the output file specified using the `-o`
+    or `--output` option, or `-` if output would go to STDOUT. The
+    remaining lines, if any, list command-line arguments. These will
+    include the names of input files and any special options passed
+    after ` -- ` on the command line. So, for example,
+
+:       pandoc --dump-args -o foo.html -s foo.txt appendix.txt -- -e latin1
+
+:   will cause the following to be printed to STDOUT:
+
+:       foo.html foo.txt appendix.txt -e latin1
+
+`--ignore-args`
+:   causes Pandoc to ignore all command-line arguments.
+    Regular Pandoc options are not ignored.  Thus, for example,
+
+:       pandoc --ignore-args -o foo.html -s foo.txt -- -e latin1
+
+:   is equivalent to
+
+:       pandoc -o foo.html -s   
+
+`-v` or `--version`
+:   prints the version number to STDERR.
+
+`-h` or `--help`
+:   prints a usage message to STDERR.
 
 [Smartypants]: http://daringfireball.net/projects/smartypants/
-
-`-m` or `--asciimathml` will cause LaTeX formulas (between $ signs) in
-HTML or S5 to display as formulas rather than as code.  The trick will
-not work in all browsers, but it works in Firefox.  Peter Jipsen's
-[ASCIIMathML] script is used to do the magic.
-
 [ASCIIMathML]: http://www1.chapman.edu/~jipsen/mathml/asciimath.html
-
-`-i` or `--incremental` causes all lists in S5 output to be displayed
-incrementally by default (one item at a time).  The normal default
-is for lists to be displayed all at once.
-
-`-N` or `--number-sections` causes sections to be numbered in LaTeX
-or ConTeXt output.  By default, sections are not numbered.
-
-`--dump-args` is intended to make it easier to create wrapper scripts
-that use Pandoc.  It causes Pandoc to dump information about the arguments
-with which it was called to STDOUT, then exit.  The first line printed
-is the name of the output file specified using the `-o` or `--output`
-option, or `-` if output would go to STDOUT.  The remaining lines, if any,
-list command-line arguments.  These will include the names of input
-files and any special options passed after ` -- ` on the command line.
-So, for example,
-
-    pandoc --dump-args -o foo.html -s foo.txt appendix.txt -- -e latin1
-
-will cause the following to be printed to STDOUT:
-
-    foo.html
-    foo.txt
-    appendix.txt
-    -e
-    latin1
-
-`--ignore-args` causes Pandoc to ignore all command-line arguments.
-Regular Pandoc options are not ignored.  Thus, for example,
-
-    pandoc --ignore-args -o foo.html -s foo.txt -- -e latin1
-
-is equivalent to
-
-    pandoc -o foo.html -s   
-
-`-v` or `--version` prints the version number to STDERR.
-
-`-h` or `--help` prints a usage message to STDERR.
 
 Pandoc's markdown vs. standard markdown
 =======================================
