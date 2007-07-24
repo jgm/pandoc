@@ -56,6 +56,13 @@ h1.title {
         border: none;
 }
 
+dt code {
+        font-weight: bold;
+}
+dd p {
+        margin-top: 0;
+}
+
 #footer {
         padding-top: 1em;
         font-size: 70%;
