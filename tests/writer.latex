@@ -3,14 +3,13 @@
 \usepackage[utf8x]{inputenc}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
-% This is needed for code blocks in footnotes:
-\usepackage{fancyvrb}
-\VerbatimFootnotes
 \newcommand{\textsubscript}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
 \usepackage[breaklinks=true]{hyperref}
 \usepackage[normalem]{ulem}
+\usepackage{fancyvrb}
 \usepackage{graphicx}
 \setcounter{secnumdepth}{0}
+\VerbatimFootnotes % allows verbatim text in footnotes
 \title{Pandoc Test Suite}
 \author{John MacFarlane\\Anonymous}
 \date{July 17, 2006}

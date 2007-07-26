@@ -91,8 +91,8 @@ latexHeader options (Meta title authors date) = do
                       else "\\setcounter{secnumdepth}{0}\n" 
   let baseHeader = writerHeader options
   let header     = baseHeader ++ extras
-  return $ header ++ secnumline ++ titletext ++ authorstext ++ datetext ++ 
-           "\\begin{document}\n" ++ maketitle ++ verbatim ++ "\n"
+  return $ header ++ secnumline ++ verbatim ++ titletext ++ authorstext ++
+           datetext ++ "\\begin{document}\n" ++ maketitle ++ "\n"
 
 -- escape things as needed for LaTeX
 
@@ -112,7 +112,7 @@ stringToLaTeX = escapeStringUsing latexEscapes
 deVerb :: [Inline] -> [Inline]
 deVerb [] = []
 deVerb ((Code str):rest) = 
-  (Str $ "\\texttt{" ++ stringToLaTeX str ++ "}"):(deVerb rest)
+  (Str $ stringToLaTeX str):(deVerb rest)
 deVerb (other:rest) = other:(deVerb rest)
 
 -- | Convert Pandoc block element to LaTeX.
@@ -179,9 +179,9 @@ tableRowToLaTeX cols =
 listItemToLaTeX lst = blockListToLaTeX lst >>= (return . ("\\item "++)) 
 
 defListItemToLaTeX (term, def) = do
-    term' <- inlineListToLaTeX term
+    term' <- inlineListToLaTeX (deVerb term)
     def'  <- blockListToLaTeX def
-    return $ "\\item[" ++ substitute "]" "\\]" term' ++ "] " ++ def'
+    return $ "\\item[" ++ term' ++ "] " ++ def'
 
 -- | Convert list of inline elements to LaTeX.
 inlineListToLaTeX :: [Inline]  -- ^ Inlines to convert
