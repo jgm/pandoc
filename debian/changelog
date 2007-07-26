@@ -31,6 +31,13 @@ pandoc (0.4) unstable; urgency=low
     be inserted at the beginning of the document. Not supported in S5,
     DocBook, or man page writers.
 
+  * Modified the -m|--asciimathml option:
+
+    + If an optional URL argument is provided, a link is inserted
+      instead of the contents of the ASCIIMathML.js script.
+    + Nothing is inserted unless the document actually contains
+      LaTeX math.
+
   * Removed Blank block element as unnecessary.
 
   * Removed Key and Note blocks from the Pandoc data structure. All
@@ -134,7 +141,10 @@ pandoc (0.4) unstable; urgency=low
     this is now done in the readers. This makes the libraries behave
     the way you'd expect from the pandoc program. Resolves Issue #10.
 
-  * Fixed several bugs in HTML reader (extractTagType, attribute parsing).
+  * HTML reader:
+
+    + Fixed several bugs (extractTagType, attribute parsing).
+    + Remove Null blocks in lists of blocks when possible.
 
   * Markdown reader:
 
