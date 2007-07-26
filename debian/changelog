@@ -261,6 +261,8 @@ pandoc (0.4) unstable; urgency=low
     + Removed unused function tableRowColumnWidths.
     + Simplified code for escaping special characters.
     + Leave extra blank line after \maketitle.
+    + Include empty '\author{}' when no author specified to avoid LaTeX
+      errors.
 
   * Text.ParserCombinators.Pandoc:
 
