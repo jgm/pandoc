@@ -101,8 +101,11 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     only when the input format is `markdown`.  It is selected automatically
     when the output format is `latex` or `context`.)
 
--m, \--asciimathml
+-m*URL*, \--asciimathml=*URL*
 :   Use ASCIIMathML to display embedded LaTeX math in HTML output.
+    To insert a link to a local copy of the `ASCIIMathML.js` script,
+    provide a *URL*. If no *URL* is provided, the contents of the
+    script will be inserted directly into the HTML header.
 
 -i, \--incremental
 :   Make list items in S5 display incrementally (one by one).

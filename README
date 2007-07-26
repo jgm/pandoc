@@ -309,11 +309,17 @@ For further documentation, see the `pandoc(1)` man page.
     It is selected automatically when the output format is `latex` or
     `context`.)
 
-`-m` or `--asciimathml`
+`-m`*[URL]* or `--asciimathml=`*[URL]*
 :   will cause LaTeX formulas (between $ signs) in HTML or S5 to display
     as formulas rather than as code. The trick will not work in all
     browsers, but it works in Firefox. Peter Jipsen's [ASCIIMathML]
-    script is used to do the magic.
+    script is used to do the magic. If a local copy of `ASCIIMathML.js`
+    is available on the webserver where the page will be viewed,
+    provide a *URL* and a link will be inserted in the generated
+    HTML or S5. If no *URL* is provided, the contents of the script
+    will be inserted directly; this provides portability at the price of
+    efficiency. If you plan to use math on several pages, it is much
+    better to link to a copy of `ASCIIMathML.js`, which can be cached.
 
 `-i` or `--incremental`
 :   causes all lists in S5 output to be displayed incrementally by
@@ -784,10 +790,9 @@ closing $ must have a character immediately to its left.  Thus,
 `$20,000 and $30,000` won't parse as math.  The $ character can be
 escaped with a backslash if needed.
 
-If you pass the `-m` (`--asciimathml`) option to `pandoc`, it will
-embed the [ASCIIMathML] script in the resulting HTML.  This will
-cause LaTeX math to be displayed as formulas in better
-browsers.[^2]
+Pandoc can use the [ASCIIMathML] script to display LaTeX formulas
+in HTML (at least on better browsers). See above on the
+`-m|--asciimathml` command-line option.
 
 [ASCIIMathML]: http://www1.chapman.edu/~jipsen/asciimath.html 
 
@@ -797,7 +802,7 @@ include BibTeX citations:
 
 	This result was proved in \cite{jones.1967}.
 
-You can also use LaTeX environments.  For example,
+Note that in LaTeX environments, like
 
 	\begin{tabular}{|l|l|}\hline
 	Age & Frequency \\ \hline
@@ -806,17 +811,8 @@ You can also use LaTeX environments.  For example,
 	36--45  & 22 \\ \hline
 	\end{tabular}
 
-Note, however, that material between the begin and end tags will
-be interpreted as raw LaTeX, not as markdown.
-
-[^2]: If you are serving several pages that use ASCIIMathML, it will be
-    more efficient to link to an external copy of `ASCIIMathML.js`
-    instead of using the `-m|--asciimathml` option to embed it directly
-    in web pages. To do this, get a copy of `ASCIIMathML.js` from the
-    [ASCIIMathML] website and make it available on your webserver. Then
-    create a custom header for your web page that includes the line
-
-        <script src="/path/to/ASCIIMathML.js"></script>
+the material between the begin and end tags will be interpreted as raw
+LaTeX, not as markdown.
 
 Custom headers
 ==============
