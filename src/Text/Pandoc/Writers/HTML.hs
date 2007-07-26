@@ -29,6 +29,7 @@ Conversion of 'Pandoc' documents to HTML.
 -}
 module Text.Pandoc.Writers.HTML ( writeHtml, writeHtmlString ) where
 import Text.Pandoc.Definition
+import Text.Pandoc.ASCIIMathML
 import Text.Pandoc.Shared
 import Text.Pandoc.Entities (decodeEntities)
 import Text.Regex ( mkRegex, matchRegex )
@@ -358,7 +359,15 @@ inlineToHtml opts inline =
                                               primHtmlChar "rdquo") in 
                         do contents <- inlineListToHtml opts lst
                            return $ leftQuote +++ contents +++ rightQuote
-    (TeX str)        -> return $ stringToHtml str
+    (TeX str)        -> do if writerUseASCIIMathML opts
+                              then addToHeader $
+                                   case writerASCIIMathMLURL opts of
+                                        Just path -> script !  [src path, 
+                                                     thetype "text/javascript"] $
+                                                     noHtml
+                                        Nothing   -> primHtml asciiMathMLScript
+                              else return ()
+                           return $ stringToHtml str
     (HtmlInline str) -> return $ primHtml str 
     (Link txt (src,tit)) ->
                         do linkText <- inlineListToHtml opts txt

@@ -421,6 +421,8 @@ data WriterOptions = WriterOptions
     , writerIncludeAfter    :: String -- ^ String to include after the body
     , writerTableOfContents :: Bool   -- ^ Include table of contents
     , writerS5              :: Bool   -- ^ We're writing S5 
+    , writerUseASCIIMathML  :: Bool   -- ^ Use ASCIIMathML
+    , writerASCIIMathMLURL  :: Maybe String -- ^ URL to asciiMathML.js 
     , writerIgnoreNotes     :: Bool   -- ^ Ignore footnotes (used in making toc)
     , writerIncremental     :: Bool   -- ^ Incremental S5 lists
     , writerNumberSections  :: Bool   -- ^ Number sections in LaTeX
@@ -438,6 +440,8 @@ defaultWriterOptions =
                     writerTabStop         = 4,
                     writerTableOfContents = False,
                     writerS5              = False,
+                    writerUseASCIIMathML  = False,
+                    writerASCIIMathMLURL  = Nothing,
                     writerIgnoreNotes     = False,
                     writerIncremental     = False,
                     writerNumberSections  = False,

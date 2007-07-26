@@ -31,7 +31,6 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.UTF8
-import Text.Pandoc.ASCIIMathML
 import Text.Pandoc.Shared ( joinWithSep, tabsToSpaces )
 import Text.Regex ( mkRegex, matchRegex )
 import System.Environment ( getArgs, getProgName, getEnvironment )
@@ -102,7 +101,8 @@ data Opt = Opt
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optIncremental       :: Bool    -- ^ Use incremental lists in S5
     , optSmart             :: Bool    -- ^ Use smart typography
-    , optASCIIMathML       :: Bool    -- ^ Use ASCIIMathML in HTML
+    , optUseASCIIMathML    :: Bool    -- ^ Use ASCIIMathML
+    , optASCIIMathMLURL    :: Maybe String -- ^ URL to ASCIIMathML.js
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optStrict            :: Bool    -- ^ Use strict markdown syntax
@@ -129,7 +129,8 @@ defaultOpts = Opt
     , optNumberSections    = False
     , optIncremental       = False
     , optSmart             = False
-    , optASCIIMathML       = False
+    , optUseASCIIMathML    = False
+    , optASCIIMathMLURL    = Nothing
     , optDumpArgs          = False
     , optIgnoreArgs        = False
     , optStrict            = False
@@ -195,9 +196,11 @@ options =
                  "" -- "Use smart quotes, dashes, and ellipses"
 
     , Option "m" ["asciimathml"]
-                 (NoArg
-                  (\opt -> return opt { optASCIIMathML = True, 
-                                        optStandalone = True }))
+                 (OptArg
+                  (\arg opt -> return opt { optUseASCIIMathML = True,
+                                            optASCIIMathMLURL = arg, 
+                                            optStandalone = True })
+                  "URL")
                  "" -- "Use ASCIIMathML script in html output"
 
     , Option "i" ["incremental"]
@@ -399,7 +402,8 @@ main = do
               , optNumberSections    = numberSections
               , optIncremental       = incremental
               , optSmart             = smart
-              , optASCIIMathML       = math
+              , optUseASCIIMathML    = useAsciiMathML
+              , optASCIIMathMLURL    = asciiMathMLURL
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
               , optStrict            = strict
@@ -455,11 +459,9 @@ main = do
                    then "" 
                    else "<link rel=\"stylesheet\" href=\"" ++ css ++ 
                         "\" type=\"text/css\" media=\"all\" />\n"
-  let asciiMathML = if math then asciiMathMLScript else ""
   let header = (if (customHeader == "DEFAULT") 
                    then defaultHeader
-                   else customHeader) ++ 
-               csslink ++ asciiMathML ++ includeHeader
+                   else customHeader) ++ csslink ++ includeHeader
   let writerOptions = WriterOptions { writerStandalone     = standalone &&
                                                              (not strict), 
                                       writerHeader         = header, 
@@ -468,6 +470,8 @@ main = do
                                       writerTableOfContents = toc &&
                                                               (not strict) &&
                                                               writerName/="s5",
+                                      writerUseASCIIMathML = useAsciiMathML,
+                                      writerASCIIMathMLURL = asciiMathMLURL,
                                       writerS5             = (writerName=="s5"),
                                       writerIgnoreNotes    = False,
                                       writerIncremental    = incremental, 
