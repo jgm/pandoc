@@ -75,10 +75,8 @@ latexHeader options (Meta title authors date) = do
                      else do title' <- inlineListToLaTeX title
                              return $ "\\title{" ++ title' ++ "}\n"
   extras       <- get >>= (return . unlines . S.toList)
-  let authorstext = if null authors
-                       then "" 
-                       else "\\author{" ++ (joinWithSep "\\\\" 
-                            (map stringToLaTeX authors)) ++ "}\n"
+  let authorstext = "\\author{" ++ (joinWithSep "\\\\" 
+                                   (map stringToLaTeX authors)) ++ "}\n"
   let datetext  = if date == ""
                      then "" 
                      else "\\date{" ++ stringToLaTeX date ++ "}\n"
