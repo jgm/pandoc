@@ -254,7 +254,7 @@ $(osx_dest)/: build-program $(doc_more)
 	find $(osx_dest) -type f -regex ".*bin/.*" | xargs chmod +x
 	find $(osx_dest) -type f -regex ".*bin/$(notdir $(MAIN))" | xargs $(STRIP)
 	$(INSTALL) -d $(osx_dest)/Resources
-	cp README $(osx_dest)/Resources/ReadMe.txt
+	./$(MAIN) -s -S README -o $(osx_dest)/Resources/ReadMe.html
 	cp COPYRIGHT.rtf $(osx_dest)/Resources/License.rtf
 	sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome.rtf > $(osx_dest)/Resources/Welcome.rtf
 	sed -e 's/@VERSION@/$(VERSION)/g' $(osx_src)/Info.plist > $(osx_dest)/Info.plist
