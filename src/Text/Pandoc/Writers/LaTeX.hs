@@ -216,7 +216,7 @@ inlineToLaTeX (Subscript lst) = do
   return $ "\\textsubscript{" ++ contents ++ "}"
 inlineToLaTeX (Code str) = return $ "\\verb" ++ [chr] ++ stuffing ++ [chr]
                      where stuffing = str 
-                           chr      = ((enumFromTo '!' '~') \\ stuffing) !! 0
+                           chr      = (('`':(enumFromTo '!' '~')) \\ stuffing) !! 0
 inlineToLaTeX (Quoted SingleQuote lst) = do
   contents <- inlineListToLaTeX lst
   let s1 = if (not (null lst)) && (isQuoted (head lst)) then "\\," else ""
