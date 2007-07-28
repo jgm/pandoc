@@ -217,6 +217,8 @@ inlineToConTeXt (TeX str) = return str
 inlineToConTeXt (HtmlInline str) = return ""
 inlineToConTeXt (LineBreak) = return "\\crlf\n"
 inlineToConTeXt Space = return " "
+inlineToConTeXt (Link [Code str] (src, tit)) = -- since ConTeXt has its own 
+  inlineToConTeXt (Link [Str str] (src, tit))  -- way of printing links... 
 inlineToConTeXt (Link text (src, _)) = do
   next <- get
   put (next + 1)
