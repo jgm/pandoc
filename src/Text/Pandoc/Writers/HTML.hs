@@ -142,7 +142,7 @@ obfuscateLink opts text src =
           at'      = obfuscateChar '@'
           (linkText, altText) = 
                      if "mailto:" `isPrefixOf` src' &&
-                        text' == ("<code>" ++ drop 7 src' ++ "</code>")
+                        text' == drop 7 src'
                         then ("e", name ++ " at " ++ domain')
                         else ("'" ++ text' ++ "'",
                               text' ++ " (" ++ name ++ " at " ++ 
@@ -369,15 +369,15 @@ inlineToHtml opts inline =
                               else return ()
                            return $ stringToHtml str
     (HtmlInline str) -> return $ primHtml str 
+    (Link [Code str] (src,tit)) | src == "mailto:" ++ str ->
+                           return $ obfuscateLink opts (stringToHtml str) src
+    (Link txt (src,tit)) | "mailto:" `isPrefixOf` src ->
+                        do linkText <- inlineListToHtml opts txt  
+                           return $ obfuscateLink opts linkText src
     (Link txt (src,tit)) ->
                         do linkText <- inlineListToHtml opts txt
-                           return $ if (isPrefixOf "mailto:" src)
-                                      then obfuscateLink opts linkText src 
-                                      else anchor ! ([href src] ++ 
-                                                     if null tit 
-                                                        then [] 
-                                                        else [title tit]) $ 
-                                           linkText
+                           return $ anchor ! ([href src] ++ 
+                                    if null tit then [] else [title tit]) $ linkText
     (Image txt (source,tit)) ->
                         do alternate <- inlineListToHtml opts txt
                            let alternate' = renderHtmlFragment alternate
