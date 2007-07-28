@@ -341,10 +341,10 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Para [Str "Here",Apostrophe,Str "s",Space,Str "an",Space,Link [Str "inline",Space,Str "link"] ("/script?foo=1&bar=2",""),Str "."]
 , Para [Str "Here",Apostrophe,Str "s",Space,Str "an",Space,Link [Str "inline",Space,Str "link",Space,Str "in",Space,Str "pointy",Space,Str "braces"] ("/script?foo=1&bar=2",""),Str "."]
 , Header 2 [Str "Autolinks"]
-, Para [Str "With",Space,Str "an",Space,Str "ampersand:",Space,Link [Str "http://example.com/?foo=1&bar=2"] ("http://example.com/?foo=1&bar=2","")]
+, Para [Str "With",Space,Str "an",Space,Str "ampersand:",Space,Link [Code "http://example.com/?foo=1&bar=2"] ("http://example.com/?foo=1&bar=2","")]
 , BulletList
   [ [ Plain [Str "In",Space,Str "a",Space,Str "list?"] ]
-  , [ Plain [Link [Str "http://example.com/"] ("http://example.com/","")] ]
+  , [ Plain [Link [Code "http://example.com/"] ("http://example.com/","")] ]
   , [ Plain [Str "It",Space,Str "should",Str "."] ] ]
 , Para [Str "An",Space,Str "e",Str "-",Str "mail",Space,Str "address:",Space,Link [Code "nobody@nowhere.net"] ("mailto:nobody@nowhere.net","")]
 , BlockQuote
@@ -367,3 +367,4 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
   [ [ Plain [Str "And",Space,Str "in",Space,Str "list",Space,Str "items",Str ".",Note [Para [Str "In",Space,Str "list",Str "."]]] ]
  ]
 , Para [Str "This",Space,Str "paragraph",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "part",Space,Str "of",Space,Str "the",Space,Str "note,",Space,Str "as",Space,Str "it",Space,Str "is",Space,Str "not",Space,Str "indented",Str "."] ]
+

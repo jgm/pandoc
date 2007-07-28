@@ -913,14 +913,18 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+'Email link'+'<\/'+'a'+'>')
     >Autolinks</h2
     ><p
     >With an ampersand: <a href="http://example.com/?foo=1&amp;bar=2"
-      >http://example.com/?foo=1&amp;bar=2</a
+      ><code
+	>http://example.com/?foo=1&amp;bar=2</code
+	></a
       ></p
     ><ul
     ><li
       >In a list?</li
       ><li
       ><a href="http://example.com/"
-	>http://example.com/</a
+	><code
+	  >http://example.com/</code
+	  ></a
 	></li
       ><li
       >It should.</li
@@ -930,7 +934,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+'Email link'+'<\/'+'a'+'>')
       >
 <!--
 h='&#110;&#x6f;&#x77;&#104;&#x65;&#114;&#x65;&#46;&#110;&#x65;&#116;';a='&#64;';n='&#110;&#x6f;&#98;&#x6f;&#100;&#x79;';e=n+a+h;
-document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+'<code>'+e+'</code>'+'<\/'+'a'+'>');
 // -->
 </script
       ><noscript
@@ -939,7 +943,9 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
     ><blockquote
     ><p
       >Blockquoted: <a href="http://example.com/"
-	>http://example.com/</a
+	><code
+	  >http://example.com/</code
+	  ></a
 	></p
       ></blockquote
     ><p
@@ -1042,3 +1048,4 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
     ></body
   ></html
 >
+

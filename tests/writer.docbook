@@ -979,7 +979,7 @@ Cat    &amp; 1      \\ \hline
         <ulink url="/url/with_underscore">with_underscore</ulink>
       </para>
       <para>
-        <email>nobody@nowhere.net</email>
+        Email link (<email>nobody@nowhere.net</email>)
       </para>
       <para>
         <ulink url="">Empty</ulink>.
@@ -1046,7 +1046,7 @@ Cat    &amp; 1      \\ \hline
       <title>Autolinks</title>
       <para>
         With an ampersand:
-        <ulink url="http://example.com/?foo=1&amp;bar=2">http://example.com/?foo=1&amp;bar=2</ulink>
+        <ulink url="http://example.com/?foo=1&amp;bar=2"><literal>http://example.com/?foo=1&amp;bar=2</literal></ulink>
       </para>
       <itemizedlist>
         <listitem>
@@ -1056,7 +1056,7 @@ Cat    &amp; 1      \\ \hline
         </listitem>
         <listitem>
           <para>
-            <ulink url="http://example.com/">http://example.com/</ulink>
+            <ulink url="http://example.com/"><literal>http://example.com/</literal></ulink>
           </para>
         </listitem>
         <listitem>
@@ -1071,7 +1071,7 @@ Cat    &amp; 1      \\ \hline
       <blockquote>
         <para>
           Blockquoted:
-          <ulink url="http://example.com/">http://example.com/</ulink>
+          <ulink url="http://example.com/"><literal>http://example.com/</literal></ulink>
         </para>
       </blockquote>
       <para>
@@ -1176,3 +1176,4 @@ or here: &lt;http://example.com/&gt;
     </para>
   </section>
 </article>
+
