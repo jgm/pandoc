@@ -185,12 +185,21 @@ hrule = try (do
 -- code blocks
 --
 
-codeBlock = try (do
+codeBlock = codeBlock1 <|> codeBlock2
+
+codeBlock1 = try (do
   string "\\begin{verbatim}"  -- don't use begin function because it 
                               -- gobbles whitespace
   option "" blanklines        -- we want to gobble blank lines, but not 
                               -- leading space
   contents <- manyTill anyChar (try (string "\\end{verbatim}"))
+  spaces
+  return (CodeBlock (stripTrailingNewlines contents)))
+
+codeBlock2 = try (do
+  string "\\begin{Verbatim}"  -- used by fancyverb package
+  option "" blanklines
+  contents <- manyTill anyChar (try (string "\\end{Verbatim}"))
   spaces
   return (CodeBlock (stripTrailingNewlines contents)))
 
@@ -518,10 +527,22 @@ gt = try (do
   string "\\textgreater"
   return (Str ">"))
 
-code = try (do 
+code = code1 <|> code2
+
+code1 = try (do 
   string "\\verb"
   marker <- anyChar
   result <- manyTill anyChar (char marker)
+  let result' = removeLeadingTrailingSpace result
+  return (Code result'))
+
+-- examplep package uses \Q{} with backslash-escaped symbols
+code2 = try (do
+  string "\\Q{"
+  result <- manyTill (alphaNum <|>
+                      try (do{char '\\'; oneOf "XSVB"; return ' '}) <|>
+                      try (do{string "\\n"; return '\n'}) <|>
+                      try (do{char '\\'; anyChar})) (char '}')
   let result' = removeLeadingTrailingSpace result
   return (Code result'))
 
