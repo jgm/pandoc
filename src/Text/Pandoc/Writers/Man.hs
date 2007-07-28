@@ -287,7 +287,7 @@ inlineToMan opts Space = return $ char ' '
 inlineToMan opts (Link txt (src, _)) = do
   linktext <- inlineListToMan opts txt
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
-  return $ if txt == [Str srcSuffix]
+  return $ if txt == [Code srcSuffix]
               then char '<' <> text srcSuffix <> char '>' 
               else linktext <> text " (" <> text src <> char ')' 
 inlineToMan opts (Image alternate (source, tit)) = do
