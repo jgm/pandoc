@@ -59,7 +59,7 @@ The wrapper script `markdown2pdf` requires
   - the following LaTeX packages (available from [CTAN], if they
     are not already included in your LaTeX distribution):
     + `unicode` (for UTF8 characters)
-    + `fancyvrb` (for verbatim text in footnotes)
+    + `examplep` (for verbatim text in footnotes and definition lists)
     + `graphicx` (for images)
     + `array` (for tables)
     + `ulem` (for strikeout text)
@@ -85,7 +85,7 @@ Note that you can specify multiple input files on the command line.
 `pandoc` will concatenate them all (with blank lines between them)
 before parsing:
 
-	pandoc -s chapter1.txt chapter2.txt references.txt > book.html
+	pandoc -s ch1.txt ch2.txt refs.txt > book.html
 
 (The `-s` option here tells `pandoc` to produce a standalone HTML file,
 with a proper header, rather than a fragment.  For more details on this
@@ -167,7 +167,7 @@ may be used in Windows under Cygwin.)
     it will be backed up before being overwritten.)  An output file
     name can be specified explicitly using the `-o` option:
 
-	    markdown2pdf -o "My Book.pdf" chap1.txt chap2.txt chap3.txt  
+	    markdown2pdf -o book.pdf chap1 chap2
 
     If no input file is specified, input will be taken from STDIN.
     All of `pandoc`'s options will work with `markdown2pdf` as well.
@@ -340,7 +340,8 @@ For further documentation, see the `pandoc(1)` man page.
     include the names of input files and any special options passed
     after ` -- ` on the command line. So, for example,
 
-:       pandoc --dump-args -o foo.html -s foo.txt appendix.txt -- -e latin1
+:       pandoc --dump-args -o foo.html -s foo.txt \
+        appendix.txt -- -e latin1
 
 :   will cause the following to be printed to STDOUT:
 
@@ -499,11 +500,13 @@ after the term. The definition consists of one or more block elements
 
     Term *with inline markup*
     :   Here is the definition.  It may
-        contain multiple blocks.  Here is some code:
+        contain multiple blocks.  Here is
+        some code:
 
     :       {* my code *} 
 
-    :   Here is the third paragraph of this definition.
+    :   Here is the third paragraph of this
+        definition.
 
 If you leave space after the definition (as in the first example above),
 the definitions will be considered paragraphs. In some output formats,
@@ -537,20 +540,19 @@ Pandoc's markdown allows footnotes, using the following syntax:
 
 	Here is a footnote reference,[^1] and another.[^longnote]
 
-	[^1]: Here is the footnote.  It can go anywhere in the document,
-	except in embedded contexts like block quotes or lists.	
+	[^1]: Here is the footnote.
 
-	[^longnote]: Here's the other note.  This one contains multiple
-	blocks.
+	[^longnote]: Here's one with multiple blocks.
 
-        Subsequent paragraphs are indented to show that they belong to
-    the previous footnote.
+        Subsequent paragraphs are indented to show
+    that they belong to the previous footnote.
 
             { some.code }
 
-	    The whole paragraph can be indented, or just the first line.
-	    In this way, multi-paragraph footnotes work just like
-	    multi-paragraph list items in markdown.
+	    The whole paragraph can be indented, or
+        just the first line.  In this way,
+        multi-paragraph footnotes work like
+	    multi-paragraph list items.
 
     This paragraph won't be part of the note, because it isn't indented.
 
@@ -616,19 +618,20 @@ try widening it in the markdown source.
 Multiline tables allow headers and table rows to span multiple lines
 of text.  Here is an example:
 
-    ---------------------------------------------------------------
-     Centered   Left             Right
-      Header    Aligned        Aligned  Default aligned
-    ----------  ---------  -----------  ---------------------------
-       First    row               12.0  Example of a row that spans
-                                        multiple lines.
+    ----------------------------------------
+     Centered   Left-aligned   Right-aligned
+      Header    Header                Header
+    ----------  ------------- --------------
+       First    This is a               12.0
+                two-line row.
+  
+       Second   This row is              5.0
+                three lines
+                long.
+    ----------------------------------------
 
-       Second   row                5.0  Here's another one.  Note
-                                        the blank line between rows.
-    ---------------------------------------------------------------
-
-    Table:  Optional caption.  This, too, may span multiple
-    lines.
+    Table:  Optional caption.  This, too,
+    may span multiple lines.
 
 These work like simple tables, but with the following differences:
 
@@ -734,13 +737,11 @@ derive the identifier from the header text,
   - Replace all spaces, dashes, newlines, and hyphens with hyphens.
   - Convert all alphabetic characters to lowercase.
 
-Thus,
-
-                         Header text     Identifier
-   --------------------------------- --- --------------------------------
-         Header identifiers in HTML   →  `header-identifiers-in-html`
-             *Dogs*?--in *my* house?  →  `dogs--in-my-house`
-             [HTML], [S5], or [RTF]?  →  `html-s5-or-rtf`
+Thus, for example, a heading 'Header identifiers in HTML' will get
+the identifier `header-identifiers-in-html`, a heading
+'*Dogs*?--in *my* house?' will get the identifier `dogs--in-my-house`,
+and a heading '[HTML], [S5], or [RTF]?' will get the identifier
+`html-s5-or-rtf`.
 
 These rules should, in most cases, allow one to determine the identifier
 from the header text. The exception is when several headers have the

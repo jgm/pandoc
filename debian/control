@@ -10,7 +10,7 @@ Package: pandoc
 Section: text
 Architecture: any
 Depends: ${shlibs:Depends}
-Suggests: texlive-latex-recommended | tetex-extra, tidy, wget | w3m
+Suggests: texlive-latex-recommended | tetex-extra, texlive-latex-extra, tidy, wget | w3m
 Description: general markup converter
  Pandoc is a Haskell library for converting from one markup format to
  another, and a command-line tool that uses this library. It can read

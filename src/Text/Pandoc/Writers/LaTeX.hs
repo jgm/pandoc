@@ -34,6 +34,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
 import Data.List ( (\\), isInfixOf )
+import Data.Char ( isAlphaNum )
 import qualified Data.Set as S
 import Control.Monad.State
 
@@ -81,15 +82,12 @@ latexHeader options (Meta title authors date) = do
                      then "" 
                      else "\\date{" ++ stringToLaTeX date ++ "}\n"
   let maketitle = if null title then "" else "\\maketitle\n" 
-  let verbatim  = if "\\usepackage{fancyvrb}" `isInfixOf` extras
-                     then "\\VerbatimFootnotes % allows verbatim text in footnotes\n"
-                     else ""
   let secnumline = if (writerNumberSections options)
                       then "" 
                       else "\\setcounter{secnumdepth}{0}\n" 
   let baseHeader = writerHeader options
   let header     = baseHeader ++ extras
-  return $ header ++ secnumline ++ verbatim ++ titletext ++ authorstext ++
+  return $ header ++ secnumline ++ titletext ++ authorstext ++
            datetext ++ "\\begin{document}\n" ++ maketitle ++ "\n"
 
 -- escape things as needed for LaTeX
@@ -106,11 +104,11 @@ stringToLaTeX = escapeStringUsing latexEscapes
                        ]
 
 -- | Remove all code elements from list of inline elements
--- (because it's illegal to have a \\verb inside a command argument)
+-- (because it's illegal to have verbatim inside some command arguments)
 deVerb :: [Inline] -> [Inline]
 deVerb [] = []
 deVerb ((Code str):rest) = 
-  (Str $ stringToLaTeX str):(deVerb rest)
+  (TeX $ "\\texttt{" ++ stringToLaTeX str ++ "}"):(deVerb rest)
 deVerb (other:rest) = other:(deVerb rest)
 
 -- | Convert Pandoc block element to LaTeX.
@@ -155,7 +153,7 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
                                        AlignCenter -> "\\centering"
                                        AlignDefault -> "\\raggedright") ++
                                 "\\hspace{0pt}}p{" ++ width ++ 
-                                "\\textwidth}")
+                                "\\columnwidth}")
                                 colWidths aligns
   let tableBody = "\\begin{tabular}{" ++ colDescriptors ++ "}\n" ++
                   headers ++ "\\hline\n" ++ concat rows' ++ "\\end{tabular}\n" 
@@ -177,7 +175,7 @@ tableRowToLaTeX cols =
 listItemToLaTeX lst = blockListToLaTeX lst >>= (return . ("\\item "++)) 
 
 defListItemToLaTeX (term, def) = do
-    term' <- inlineListToLaTeX (deVerb term)
+    term' <- inlineListToLaTeX term
     def'  <- blockListToLaTeX def
     return $ "\\item[" ++ term' ++ "] " ++ def'
 
@@ -196,27 +194,28 @@ isQuoted _ = False
 inlineToLaTeX :: Inline    -- ^ Inline to convert
               -> State WriterState String
 inlineToLaTeX (Emph lst) = do
-  contents <- inlineListToLaTeX (deVerb lst)
+  contents <- inlineListToLaTeX lst
   return $ "\\emph{" ++ contents ++ "}"
 inlineToLaTeX (Strong lst) = do
-  contents <- inlineListToLaTeX (deVerb lst)
+  contents <- inlineListToLaTeX lst
   return $ "\\textbf{" ++ contents ++ "}"
 inlineToLaTeX (Strikeout lst) = do
-  contents <- inlineListToLaTeX (deVerb lst)
+  contents <- inlineListToLaTeX lst
   addToHeader "\\usepackage[normalem]{ulem}"
   return $ "\\sout{" ++ contents ++ "}"
 inlineToLaTeX (Superscript lst) = do
-  contents <- inlineListToLaTeX (deVerb lst)
+  contents <- inlineListToLaTeX lst
   return $ "\\textsuperscript{" ++ contents ++ "}"
 inlineToLaTeX (Subscript lst) = do
-  contents <- inlineListToLaTeX (deVerb lst)
+  contents <- inlineListToLaTeX lst
   -- oddly, latex includes \textsuperscript but not \textsubscript
   -- so we have to define it:
   addToHeader "\\newcommand{\\textsubscript}[1]{\\ensuremath{_{\\scriptsize\\textrm{#1}}}}"
   return $ "\\textsubscript{" ++ contents ++ "}"
-inlineToLaTeX (Code str) = return $ "\\verb" ++ [chr] ++ stuffing ++ [chr]
-                     where stuffing = str 
-                           chr      = (('`':(enumFromTo '!' '~')) \\ stuffing) !! 0
+inlineToLaTeX (Code str) = return $ "\\Q{" ++ stuffing ++ "}"
+                     where stuffing = concatMap (\c -> if isAlphaNum c 
+                                                         then [c]
+                                                         else ['\\',c]) str
 inlineToLaTeX (Quoted SingleQuote lst) = do
   contents <- inlineListToLaTeX lst
   let s1 = if (not (null lst)) && (isQuoted (head lst)) then "\\," else ""
@@ -244,7 +243,6 @@ inlineToLaTeX (Image alternate (source, tit)) = do
   addToHeader "\\usepackage{graphicx}"
   return $ "\\includegraphics{" ++ source ++ "}" 
 inlineToLaTeX (Note contents) = do
-  addToHeader "\\usepackage{fancyvrb}"
   contents' <- blockListToLaTeX contents
   return $ "\\footnote{" ++ stripTrailingNewlines contents'  ++ "}"
 
