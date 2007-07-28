@@ -291,21 +291,21 @@ inlineToRST opts (TeX str) = return $ text str
 inlineToRST opts (HtmlInline str) = return empty
 inlineToRST opts (LineBreak) = return $ char ' ' -- RST doesn't have linebreaks 
 inlineToRST opts Space = return $ char ' '
+inlineToRST opts (Link [Code str] (src, tit)) | src == str ||
+                                                src == "mailto:" ++ str = do
+  let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
+  return $ text srcSuffix
 inlineToRST opts (Link txt (src, tit)) = do
   let useReferenceLinks = writerReferenceLinks opts
-  let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
-  let useAuto = null tit && txt == [Str srcSuffix]
-  (notes, refs, pics) <- get
   linktext <- inlineListToRST opts $ normalizeSpaces txt
-  link <- if useReferenceLinks
-             then do let refs' = if (txt, (src, tit)) `elem` refs
-                                    then refs
-                                    else (txt, (src, tit)):refs
-                     put (notes, refs', pics)
-                     return $ char '`' <> linktext <> text "`_"
-             else return $ char '`' <> linktext <> text " <" <>
-                           text src <> text ">`_"
-  return link
+  if useReferenceLinks
+    then do (notes, refs, pics) <- get
+            let refs' = if (txt, (src, tit)) `elem` refs
+                           then refs
+                           else (txt, (src, tit)):refs
+            put (notes, refs', pics)
+            return $ char '`' <> linktext <> text "`_"
+    else return $ char '`' <> linktext <> text " <" <> text src <> text ">`_"
 inlineToRST opts (Image alternate (source, tit)) = do
   (notes, refs, pics) <- get
   let labelsUsed = map fst pics 
