@@ -247,7 +247,7 @@ inlineToLaTeX (HtmlInline str) = return ""
 inlineToLaTeX (LineBreak) = return "\\\\\n"
 inlineToLaTeX Space = return " "
 inlineToLaTeX (Link text (src, tit)) = do
-  contents <- inlineListToLaTeX (deVerb text)
+  contents <- inlineListToLaTeX text
   addToHeader "\\usepackage[breaklinks=true]{hyperref}"
   return $ "\\href{" ++ src ++ "}{" ++ contents ++ "}"
 inlineToLaTeX (Image alternate (source, tit)) = do

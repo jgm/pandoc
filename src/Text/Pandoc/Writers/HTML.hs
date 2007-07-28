@@ -140,13 +140,13 @@ obfuscateLink opts text src =
     (Just [name, domain]) ->
       let domain'  = substitute "." " dot " domain
           at'      = obfuscateChar '@'
-          linkText = if src' == ("mailto:" ++ text')
-                        then "e"
-                        else "'" ++ text' ++ "'" 
-          altText  = if src' == ("mailto:" ++ text')
-                        then name ++ " at " ++ domain'
-                        else text' ++ " (" ++ name ++ " at " ++ 
-                             domain' ++ ")" in 
+          (linkText, altText) = 
+                     if "mailto:" `isPrefixOf` src' &&
+                        text' == ("<code>" ++ drop 7 src' ++ "</code>")
+                        then ("e", name ++ " at " ++ domain')
+                        else ("'" ++ text' ++ "'",
+                              text' ++ " (" ++ name ++ " at " ++ 
+                              domain' ++ ")") in 
       if writerStrictMarkdown opts
         then -- need to use primHtml or &'s are escaped to &amp; in URL
              primHtml $ "<a href=\"" ++ (obfuscateString src')
