@@ -2,7 +2,7 @@ Simple table with caption:
 
 \begin{table}[h]
 \begin{center}
-\begin{tabular}{>{\PBS\raggedleft\hspace{0pt}}p{0.15\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.09\textwidth}>{\PBS\centering\hspace{0pt}}p{0.16\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.13\textwidth}}
+\begin{tabular}{>{\PBS\raggedleft\hspace{0pt}}p{0.15\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.09\columnwidth}>{\PBS\centering\hspace{0pt}}p{0.16\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.13\columnwidth}}
 Right
  & Left
  & Center
@@ -32,7 +32,7 @@ Right
 Simple table without caption:
 
 \begin{center}
-\begin{tabular}{>{\PBS\raggedleft\hspace{0pt}}p{0.15\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.09\textwidth}>{\PBS\centering\hspace{0pt}}p{0.16\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.13\textwidth}}
+\begin{tabular}{>{\PBS\raggedleft\hspace{0pt}}p{0.15\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.09\columnwidth}>{\PBS\centering\hspace{0pt}}p{0.16\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.13\columnwidth}}
 Right
  & Left
  & Center
@@ -61,7 +61,7 @@ Simple table indented two spaces:
 
 \begin{table}[h]
 \begin{center}
-\begin{tabular}{>{\PBS\raggedleft\hspace{0pt}}p{0.15\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.09\textwidth}>{\PBS\centering\hspace{0pt}}p{0.16\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.13\textwidth}}
+\begin{tabular}{>{\PBS\raggedleft\hspace{0pt}}p{0.15\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.09\columnwidth}>{\PBS\centering\hspace{0pt}}p{0.16\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.13\columnwidth}}
 Right
  & Left
  & Center
@@ -92,7 +92,7 @@ Multiline table with caption:
 
 \begin{table}[h]
 \begin{center}
-\begin{tabular}{>{\PBS\centering\hspace{0pt}}p{0.15\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.14\textwidth}>{\PBS\raggedleft\hspace{0pt}}p{0.16\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.34\textwidth}}
+\begin{tabular}{>{\PBS\centering\hspace{0pt}}p{0.15\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.14\columnwidth}>{\PBS\raggedleft\hspace{0pt}}p{0.16\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.34\columnwidth}}
 Centered Header
  & Left Aligned
  & Right Aligned
@@ -117,7 +117,7 @@ Second
 Multiline table without caption:
 
 \begin{center}
-\begin{tabular}{>{\PBS\centering\hspace{0pt}}p{0.15\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.14\textwidth}>{\PBS\raggedleft\hspace{0pt}}p{0.16\textwidth}>{\PBS\raggedright\hspace{0pt}}p{0.34\textwidth}}
+\begin{tabular}{>{\PBS\centering\hspace{0pt}}p{0.15\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.14\columnwidth}>{\PBS\raggedleft\hspace{0pt}}p{0.16\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.34\columnwidth}}
 Centered Header
  & Left Aligned
  & Right Aligned

@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage{ucs}
 \usepackage[utf8x]{inputenc}
+\usepackage[Q=yes,verbatimenv=yes,pverb-linebreak=no]{examplep}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 \newcommand{\textsubscript}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
@@ -412,7 +413,7 @@ So is \textbf{\emph{this}} word.
 
 So is \textbf{\emph{this}} word.
 
-This is code: \verb`>`, \verb`$`, \verb`\`, \verb`\$`, \verb`<html>`.
+This is code: \Q{\>}, \Q{\$}, \Q{\\}, \Q{\\\$}, \Q{\<html\>}.
 
 \sout{This is \emph{strikeout}.}
 
@@ -434,7 +435,7 @@ These should not be superscripts or subscripts, because of the unescaped spaces:
 
 `He said, ``I want to go.''\,' Were you alive in the 70's?
 
-Here is some quoted `\verb`code`' and a ``\href{http://example.com/?foo=1&bar=2}{quoted link}''.
+Here is some quoted `\Q{code}' and a ``\href{http://example.com/?foo=1&bar=2}{quoted link}''.
 
 Some dashes: one---two---three---four---five.
 
@@ -460,9 +461,9 @@ Ellipses\ldots{}and\ldots{}and\ldots{}.
 These shouldn't be math:
 
 \begin{itemize}
-\item To get the famous equation, write \verb`$e = mc^2$`.
+\item To get the famous equation, write \Q{\$e\ \=\ mc\^2\$}.
 \item \$22,000 is a \emph{lot} of money. So is \$34,000. (It worked if ``lot'' is emphasized.)
-\item Escaped \verb`$`: \$73 \emph{this should be emphasized} 23\$.
+\item Escaped \Q{\$}: \$73 \emph{this should be emphasized} 23\$.
 \end{itemize}
 Here's a LaTeX table:
 
@@ -603,7 +604,7 @@ An e-mail address: \href{mailto:nobody@nowhere.net}{nobody@nowhere.net}
 Blockquoted: \href{http://example.com/}{http://example.com/}
 
 \end{quote}
-Auto-links should not occur here: \verb`<http://example.com/>`
+Auto-links should not occur here: \Q{\<http\:\/\/example\.com\/\>}
 
 \begin{verbatim}
 or here: <http://example.com/>
@@ -626,10 +627,10 @@ Here is a footnote reference,\footnote{Here is the footnote. It can go anywhere 
 
 Subsequent blocks are indented to show that they belong to the footnote (as with list items).
 
-\begin{verbatim}
+\begin{Verbatim}
   { <code> }
-\end{verbatim}
-If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.} This should \emph{not} be a footnote reference, because it contains a space.[\^{}my note] Here is an inline note.\footnote{This is \emph{easier} to type. Inline notes may contain \href{http://google.com}{links} and \verb`]` verbatim characters, as well as [bracketed text].}
+\end{Verbatim}
+If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.} This should \emph{not} be a footnote reference, because it contains a space.[\^{}my note] Here is an inline note.\footnote{This is \emph{easier} to type. Inline notes may contain \href{http://google.com}{links} and \Q{\]} verbatim characters, as well as [bracketed text].}
 
 \begin{quote}
 Notes can go in quotes.\footnote{In quote.}
