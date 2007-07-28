@@ -130,9 +130,10 @@ blockToLaTeX (BlockQuote lst) = do
   return $ "\\begin{quote}\n" ++ contents ++ "\\end{quote}\n"
 blockToLaTeX (CodeBlock str) = do
   st <- get
-  let verbEnv = if stInNote st then "Verbatim" else "verbatim"
-  return $ "\\begin{" ++ verbEnv ++ "}\n" ++ str ++ 
-           "\n\\end{" ++ verbEnv ++ "}\n"
+  if stInNote st
+     then do addToHeader "\\usepackage{fancyvrb}"
+             return $ "\\begin{Verbatim}\n" ++ str ++ "\n\\end{Verbatim}\n"
+     else return $ "\\begin{verbatim}\n" ++ str ++ "\n\\end{verbatim}\n"
 blockToLaTeX (RawHtml str) = return ""
 blockToLaTeX (BulletList lst) = do
   items <- mapM listItemToLaTeX lst
@@ -259,5 +260,4 @@ inlineToLaTeX (Note contents) = do
   contents' <- blockListToLaTeX contents
   st <- get
   put (st {stInNote = False})
-  addToHeader "\\usepackage{fancyvrb}"
   return $ "\\footnote{" ++ stripTrailingNewlines contents'  ++ "}"
