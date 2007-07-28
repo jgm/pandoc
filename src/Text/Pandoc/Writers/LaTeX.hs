@@ -34,7 +34,6 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
 import Data.List ( (\\), isInfixOf )
-import Data.Char ( isAlphaNum )
 import qualified Data.Set as S
 import Control.Monad.State
 
@@ -187,7 +186,7 @@ tableRowToLaTeX cols =
 listItemToLaTeX lst = blockListToLaTeX lst >>= (return . ("\\item "++)) 
 
 defListItemToLaTeX (term, def) = do
-    term' <- inlineListToLaTeX term
+    term' <- inlineListToLaTeX $ deVerb term
     def'  <- blockListToLaTeX def
     return $ "\\item[" ++ term' ++ "] " ++ def'
 
@@ -206,28 +205,31 @@ isQuoted _ = False
 inlineToLaTeX :: Inline    -- ^ Inline to convert
               -> State WriterState String
 inlineToLaTeX (Emph lst) = do
-  contents <- inlineListToLaTeX lst
+  contents <- inlineListToLaTeX $ deVerb lst
   return $ "\\emph{" ++ contents ++ "}"
 inlineToLaTeX (Strong lst) = do
-  contents <- inlineListToLaTeX lst
+  contents <- inlineListToLaTeX $ deVerb lst
   return $ "\\textbf{" ++ contents ++ "}"
 inlineToLaTeX (Strikeout lst) = do
-  contents <- inlineListToLaTeX lst
+  contents <- inlineListToLaTeX $ deVerb lst
   addToHeader "\\usepackage[normalem]{ulem}"
   return $ "\\sout{" ++ contents ++ "}"
 inlineToLaTeX (Superscript lst) = do
-  contents <- inlineListToLaTeX lst
+  contents <- inlineListToLaTeX $ deVerb lst
   return $ "\\textsuperscript{" ++ contents ++ "}"
 inlineToLaTeX (Subscript lst) = do
-  contents <- inlineListToLaTeX lst
+  contents <- inlineListToLaTeX $ deVerb lst
   -- oddly, latex includes \textsuperscript but not \textsubscript
   -- so we have to define it:
   addToHeader "\\newcommand{\\textsubscript}[1]{\\ensuremath{_{\\scriptsize\\textrm{#1}}}}"
   return $ "\\textsubscript{" ++ contents ++ "}"
-inlineToLaTeX (Code str) = return $ "\\Q{" ++ stuffing ++ "}"
-                     where stuffing = concatMap (\c -> if isAlphaNum c 
-                                                         then [c]
-                                                         else ['\\',c]) str
+inlineToLaTeX (Code str) = do
+  st <- get
+  if stInNote st
+     then do addToHeader "\\usepackage{fancyvrb}"
+     else return ()
+  let chr = ((enumFromTo '!' '~') \\ str) !! 0
+  return $ "\\verb" ++ [chr] ++ str ++ [chr]
 inlineToLaTeX (Quoted SingleQuote lst) = do
   contents <- inlineListToLaTeX lst
   let s1 = if (not (null lst)) && (isQuoted (head lst)) then "\\," else ""
@@ -248,7 +250,7 @@ inlineToLaTeX (HtmlInline str) = return ""
 inlineToLaTeX (LineBreak) = return "\\\\\n"
 inlineToLaTeX Space = return " "
 inlineToLaTeX (Link text (src, tit)) = do
-  contents <- inlineListToLaTeX text
+  contents <- inlineListToLaTeX $ deVerb text
   addToHeader "\\usepackage[breaklinks=true]{hyperref}"
   return $ "\\href{" ++ src ++ "}{" ++ contents ++ "}"
 inlineToLaTeX (Image alternate (source, tit)) = do
