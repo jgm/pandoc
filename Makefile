@@ -135,10 +135,8 @@ build-exec: $(PROGS)
 cleanup_files+=$(EXECS)
 $(EXECS): build
 	for f in $@; do \
-		[ -f $$f ] || { \
-			find $(BUILDDIR) -type f -name "$$f" \
-							 -perm +a=x -exec ln -s {} . \; ; \
-		} \
+		find $(BUILDDIR) -type f -name "$$f" \
+						 -perm +a=x -exec ln -s -f {} . \; ; \
 	done
 
 .PHONY: build-doc
