@@ -58,12 +58,11 @@ The wrapper script `markdown2pdf` requires
   - `pdflatex`, which should be part of any [LaTeX] distribution
   - the following LaTeX packages (available from [CTAN], if they
     are not already included in your LaTeX distribution):
-    + `unicode` (for UTF8 characters)
-    + `examplep` (for verbatim text in definition lists, etc.)
-    + `fancyhdr` (for verbatim text in footnotes)
-    + `graphicx` (for images)
-    + `array` (for tables)
-    + `ulem` (for strikeout text)
+    + `unicode`
+    + `fancyhdr` (if you have verbatim text in footnotes)
+    + `graphicx` (if you use images)
+    + `array` (if you use tables)
+    + `ulem` (if you use strikeout text)
 
 The wrapper script `hsmarkdown` requires only a POSIX-compliant shell.
 
@@ -310,7 +309,7 @@ For further documentation, see the `pandoc(1)` man page.
     It is selected automatically when the output format is `latex` or
     `context`.)
 
-`-m`*[url]* or `--asciimathml=`*[url]*
+`-m`*[url]* or `--asciimathml`*[=url]*
 :   will cause LaTeX formulas (between $ signs) in HTML or S5 to display
     as formulas rather than as code. The trick will not work in all
     browsers, but it works in Firefox. Peter Jipsen's [ASCIIMathML]
@@ -342,7 +341,7 @@ For further documentation, see the `pandoc(1)` man page.
     after ` -- ` on the command line. So, for example,
 
 :       pandoc --dump-args -o foo.html -s foo.txt \
-        appendix.txt -- -e latin1
+          appendix.txt -- -e latin1
 
 :   will cause the following to be printed to STDOUT:
 
@@ -500,14 +499,12 @@ after the term. The definition consists of one or more block elements
 (aside from the colon) indented one tab stop.
 
     Term *with inline markup*
-    :   Here is the definition.  It may
-        contain multiple blocks.  Here is
-        some code:
+    :   Here is the definition.  It may contain multiple blocks.
+        Here is some code:
 
     :       {* my code *} 
 
-    :   Here is the third paragraph of this
-        definition.
+    :   Here is the third paragraph of this definition.
 
 If you leave space after the definition (as in the first example above),
 the definitions will be considered paragraphs. In some output formats,
@@ -545,14 +542,13 @@ Pandoc's markdown allows footnotes, using the following syntax:
 
 	[^longnote]: Here's one with multiple blocks.
 
-        Subsequent paragraphs are indented to show
-    that they belong to the previous footnote.
+        Subsequent paragraphs are indented to show that they 
+    belong to the previous footnote.
 
             { some.code }
 
-	    The whole paragraph can be indented, or
-        just the first line.  In this way,
-        multi-paragraph footnotes work like
+	    The whole paragraph can be indented, or just the first
+        line.  In this way, multi-paragraph footnotes work like
 	    multi-paragraph list items.
 
     This paragraph won't be part of the note, because it isn't indented.
@@ -619,20 +615,20 @@ try widening it in the markdown source.
 Multiline tables allow headers and table rows to span multiple lines
 of text.  Here is an example:
 
-    ----------------------------------------
-     Centered   Left-aligned   Right-aligned
-      Header    Header                Header
-    ----------  ------------- --------------
-       First    This is a               12.0
-                two-line row.
-  
-       Second   This row is              5.0
-                three lines
-                long.
-    ----------------------------------------
-
-    Table:  Optional caption.  This, too,
-    may span multiple lines.
+    -------------------------------------------------------------
+     Centered   Default           Right Left
+      Header    Aligned         Aligned Aligned
+    ----------- ------- --------------- -------------------------
+       First    row                12.0 Example of a row that
+                                        spans multiple lines.
+    
+      Second    row                 5.0 Here's another one. Note
+                                        the blank line between
+                                        rows.
+    -------------------------------------------------------------
+    
+    Table: Here's the caption. It, too, may span
+    multiple lines.
 
 These work like simple tables, but with the following differences:
 
