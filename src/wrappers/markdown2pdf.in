@@ -40,10 +40,6 @@ fi
             err "${THIS}: Please install the 'unicode' package from CTAN:"
             err "  http://www.ctan.org/tex-archive/macros/latex/contrib/unicode/"
           fi
-          if grep -q "File \`examplep.sty' not found" $texname.log; then
-            err "${THIS}: Please install the 'examplep' package from CTAN:"
-            err "  http://www.ctan.org/tex-archive/macros/latex/contrib/examplep/"
-          fi
           if grep -q "File \`ulem.sty' not found" $texname.log; then
             err "${THIS}: Please install the 'ulem' package from CTAN:"
             err "  http://www.ctan.org/tex-archive/macros/latex/contrib/misc/ulem.sty"
