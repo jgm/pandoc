@@ -73,7 +73,7 @@ specialChars = "\\[]*_~`<>$!^-.&'\""
 -- | Skip a single endline if there is one.
 skipEndline = option Space endline
 
-indentSpaces = do
+indentSpaces = try $ do
   state <- getState
   let tabStop = stateTabStop state
   try (count tabStop (char ' ')) <|> 
@@ -194,7 +194,7 @@ rawLine = try $ do
   contents <- many1 nonEndline
   end <- option "" (do
                       newline
-                      option "" (try indentSpaces)
+                      option "" indentSpaces
                       return "\n")
   return (contents ++ end)
 
@@ -206,8 +206,8 @@ noteBlock = try $ do
   failIfStrict
   ref <- noteMarker
   char ':'
-  option ' ' (try blankline)
-  option "" (try indentSpaces)
+  option ' ' blankline
+  option "" indentSpaces
   raw <- sepBy rawLines (try (do {blankline; indentSpaces}))
   option "" blanklines
   -- parse the extracted text, which may contain various block elements:
@@ -408,7 +408,7 @@ listContinuation start = try (do
 listContinuationLine start = try (do
   notFollowedBy' blankline
   notFollowedBy' start
-  option "" (try indentSpaces)
+  option "" indentSpaces
   result <- manyTill anyChar newline
   return (result ++ "\n"))
 
@@ -915,7 +915,8 @@ endline = try (do
 --
 
 -- a reference label for a link
-reference = inlinesInBalanced "[" "]" >>= (return . normalizeSpaces)
+reference = notFollowedBy' (string "[^") >>  -- footnote reference
+            inlinesInBalanced "[" "]" >>= (return . normalizeSpaces)
 
 -- source for a link, with optional title
 source = try $ do 
