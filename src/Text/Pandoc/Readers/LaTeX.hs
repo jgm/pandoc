@@ -527,22 +527,10 @@ gt = try (do
   string "\\textgreater"
   return (Str ">"))
 
-code = code1 <|> code2
-
-code1 = try (do 
+code = try (do 
   string "\\verb"
   marker <- anyChar
   result <- manyTill anyChar (char marker)
-  let result' = removeLeadingTrailingSpace result
-  return (Code result'))
-
--- examplep package uses \Q{} with backslash-escaped symbols
-code2 = try (do
-  string "\\Q{"
-  result <- manyTill (alphaNum <|>
-                      try (do{char '\\'; oneOf "XSVB"; return ' '}) <|>
-                      try (do{string "\\n"; return '\n'}) <|>
-                      try (do{char '\\'; anyChar})) (char '}')
   let result' = removeLeadingTrailingSpace result
   return (Code result'))
 
