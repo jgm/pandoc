@@ -131,26 +131,23 @@ footnoteSection opts notes =
                    hr +++ (olist << notes)
 
 -- | Obfuscate a "mailto:" link using Javascript.
-obfuscateLink :: WriterOptions -> Html -> String -> Html
+obfuscateLink :: WriterOptions -> String -> String -> Html
 obfuscateLink opts text src =
-  let emailRegex = mkRegex "mailto:*([^@]*)@(.*)"
-      text' = show $ text
+  let emailRegex = mkRegex "^mailto:([^@]*)@(.*)$"
       src'  = map toLower src in
   case (matchRegex emailRegex src') of
     (Just [name, domain]) ->
       let domain'  = substitute "." " dot " domain
           at'      = obfuscateChar '@'
           (linkText, altText) = 
-                     if "mailto:" `isPrefixOf` src' &&
-                        text' == drop 7 src'
-                        then ("e", name ++ " at " ++ domain')
-                        else ("'" ++ text' ++ "'",
-                              text' ++ " (" ++ name ++ " at " ++ 
-                              domain' ++ ")") in 
+             if text == drop 7 src' -- autolink
+                then ("'<code>'+e+'</code>'", name ++ " at " ++ domain')
+                else ("'" ++ text ++ "'", text ++ " (" ++ name ++ " at " ++ 
+                      domain' ++ ")") in 
       if writerStrictMarkdown opts
         then -- need to use primHtml or &'s are escaped to &amp; in URL
              primHtml $ "<a href=\"" ++ (obfuscateString src')
-             ++ "\">" ++ (obfuscateString text') ++ "</a>"
+             ++ "\">" ++ (obfuscateString text) ++ "</a>"
         else (script ! [thetype "text/javascript"] $
              primHtml ("\n<!--\nh='" ++ 
              obfuscateString domain ++ "';a='" ++ at' ++ "';n='" ++ 
@@ -158,7 +155,7 @@ obfuscateLink opts text src =
              "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\">'+" ++ 
              linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) +++  
              noscript (primHtml $ obfuscateString altText)
-    _ -> anchor ! [href src] $ text  -- malformed email
+    _ -> anchor ! [href src] $ primHtml text  -- malformed email
 
 -- | Obfuscate character as entity.
 obfuscateChar :: Char -> String
@@ -369,11 +366,11 @@ inlineToHtml opts inline =
                               else return ()
                            return $ stringToHtml str
     (HtmlInline str) -> return $ primHtml str 
-    (Link [Code str] (src,tit)) | src == "mailto:" ++ str ->
-                           return $ obfuscateLink opts (stringToHtml str) src
+    (Link [Code str] (src,tit)) | "mailto:" `isPrefixOf` src ->
+                        do return $ obfuscateLink opts str src
     (Link txt (src,tit)) | "mailto:" `isPrefixOf` src ->
                         do linkText <- inlineListToHtml opts txt  
-                           return $ obfuscateLink opts linkText src
+                           return $ obfuscateLink opts (show linkText) src
     (Link txt (src,tit)) ->
                         do linkText <- inlineListToHtml opts txt
                            return $ anchor ! ([href src] ++ 
