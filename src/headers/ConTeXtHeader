@@ -7,7 +7,7 @@
 \setuplayout[width=middle, backspace=1.5in, cutspace=1.5in,
              height=middle, header=0.75in, footer=0.75in] % page layout
 \setuppagenumbering[location={footer,center}]  % number pages
-\setupbodyfont[12pt]  % 12pt font
+\setupbodyfont[11pt]  % 11pt font
 \setupwhitespace[medium]  % inter-paragraph spacing
 
 \setuphead[section][style=\tfc]
