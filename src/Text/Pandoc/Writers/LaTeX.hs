@@ -38,17 +38,22 @@ import Data.Char ( isAlphaNum )
 import qualified Data.Set as S
 import Control.Monad.State
 
-type WriterState = S.Set String  -- set of strings to include in header
-                                 -- constructed based on content of document
+data WriterState = 
+  WriterState { stIncludes :: S.Set String -- strings to include in header
+              , stInNote   :: Bool }       -- @True@ if we're in a note
 
 -- | Add line to header.
 addToHeader :: String -> State WriterState ()
-addToHeader str = modify (S.insert str)
+addToHeader str = do
+  st <- get
+  let includes = stIncludes st
+  put st {stIncludes = S.insert str includes}
 
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: WriterOptions -> Pandoc -> String
 writeLaTeX options document = 
-  evalState (pandocToLaTeX options document) S.empty 
+  evalState (pandocToLaTeX options document) $ 
+  WriterState { stIncludes = S.empty, stInNote = False } 
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc meta blocks) = do
@@ -75,7 +80,10 @@ latexHeader options (Meta title authors date) = do
                      then return "" 
                      else do title' <- inlineListToLaTeX title
                              return $ "\\title{" ++ title' ++ "}\n"
-  extras       <- get >>= (return . unlines . S.toList)
+  extras       <- get >>= (return . unlines . S.toList. stIncludes)
+  let verbatim  = if "\\usepackage{fancyvrb}" `isInfixOf` extras
+                     then "\\VerbatimFootnotes % allows verbatim text in footnotes\n"
+                     else ""
   let authorstext = "\\author{" ++ (joinWithSep "\\\\" 
                                    (map stringToLaTeX authors)) ++ "}\n"
   let datetext  = if date == ""
@@ -87,7 +95,7 @@ latexHeader options (Meta title authors date) = do
                       else "\\setcounter{secnumdepth}{0}\n" 
   let baseHeader = writerHeader options
   let header     = baseHeader ++ extras
-  return $ header ++ secnumline ++ titletext ++ authorstext ++
+  return $ header ++ secnumline ++ verbatim ++ titletext ++ authorstext ++
            datetext ++ "\\begin{document}\n" ++ maketitle ++ "\n"
 
 -- escape things as needed for LaTeX
@@ -120,8 +128,11 @@ blockToLaTeX (Para lst) = (inlineListToLaTeX lst) >>= (return . (++ "\n\n"))
 blockToLaTeX (BlockQuote lst) = do
   contents <- blockListToLaTeX lst
   return $ "\\begin{quote}\n" ++ contents ++ "\\end{quote}\n"
-blockToLaTeX (CodeBlock str) = return $ 
-  "\\begin{verbatim}\n" ++ str ++ "\n\\end{verbatim}\n"
+blockToLaTeX (CodeBlock str) = do
+  st <- get
+  let verbEnv = if stInNote st then "Verbatim" else "verbatim"
+  return $ "\\begin{" ++ verbEnv ++ "}\n" ++ str ++ 
+           "\n\\end{" ++ verbEnv ++ "}\n"
 blockToLaTeX (RawHtml str) = return ""
 blockToLaTeX (BulletList lst) = do
   items <- mapM listItemToLaTeX lst
@@ -243,6 +254,10 @@ inlineToLaTeX (Image alternate (source, tit)) = do
   addToHeader "\\usepackage{graphicx}"
   return $ "\\includegraphics{" ++ source ++ "}" 
 inlineToLaTeX (Note contents) = do
+  st <- get
+  put (st {stInNote = True})
   contents' <- blockListToLaTeX contents
+  st <- get
+  put (st {stInNote = False})
+  addToHeader "\\usepackage{fancyvrb}"
   return $ "\\footnote{" ++ stripTrailingNewlines contents'  ++ "}"
-

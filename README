@@ -59,7 +59,8 @@ The wrapper script `markdown2pdf` requires
   - the following LaTeX packages (available from [CTAN], if they
     are not already included in your LaTeX distribution):
     + `unicode` (for UTF8 characters)
-    + `examplep` (for verbatim text in footnotes and definition lists)
+    + `examplep` (for verbatim text in definition lists, etc.)
+    + `fancyhdr` (for verbatim text in footnotes)
     + `graphicx` (for images)
     + `array` (for tables)
     + `ulem` (for strikeout text)

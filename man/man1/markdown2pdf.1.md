@@ -29,9 +29,9 @@ output through `iconv`:
     iconv -t utf-8 input.txt | pandoc | iconv -f utf-8
 
 `markdown2pdf` assumes that the `unicode`, `examplep`, `array`,
-`graphicx`, and `ulem` packages are in latex's search path. If these
-packages are not included in your latex setup, they can be obtained from
-<http://ctan.org>.
+`fancyvrb`, `graphicx`, and `ulem` packages are in latex's search path.
+If these packages are not included in your latex setup, they can be
+ obtained from <http://ctan.org>.
 
 # OPTIONS
 
