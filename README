@@ -310,14 +310,14 @@ For further documentation, see the `pandoc(1)` man page.
     It is selected automatically when the output format is `latex` or
     `context`.)
 
-`-m`*[URL]* or `--asciimathml=`*[URL]*
+`-m`*[url]* or `--asciimathml=`*[url]*
 :   will cause LaTeX formulas (between $ signs) in HTML or S5 to display
     as formulas rather than as code. The trick will not work in all
     browsers, but it works in Firefox. Peter Jipsen's [ASCIIMathML]
     script is used to do the magic. If a local copy of `ASCIIMathML.js`
     is available on the webserver where the page will be viewed,
-    provide a *URL* and a link will be inserted in the generated
-    HTML or S5. If no *URL* is provided, the contents of the script
+    provide a *url* and a link will be inserted in the generated
+    HTML or S5. If no *url* is provided, the contents of the script
     will be inserted directly; this provides portability at the price of
     efficiency. If you plan to use math on several pages, it is much
     better to link to a copy of `ASCIIMathML.js`, which can be cached.
