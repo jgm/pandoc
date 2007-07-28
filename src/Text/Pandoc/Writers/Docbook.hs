@@ -255,7 +255,12 @@ inlineToDocbook opts LineBreak =
 inlineToDocbook opts Space = char ' '
 inlineToDocbook opts (Link txt (src, tit)) =
   if isPrefixOf "mailto:" src
-    then inTagsSimple "email" $ text (escapeStringForXML $ drop 7 src)
+    then let src' = drop 7 src
+             emailLink = inTagsSimple "email" $ text (escapeStringForXML $ src')
+         in  if txt == [Code src']
+                then emailLink
+                else inlinesToDocbook opts txt <+> char '(' <> emailLink <> 
+                     char ')'
     else inTags False "ulink" [("url", src)] $ inlinesToDocbook opts txt
 inlineToDocbook opts (Image alt (src, tit)) = 
   let titleDoc = if null tit
