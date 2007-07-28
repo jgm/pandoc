@@ -481,7 +481,7 @@ main = do
                                       writerStrictMarkdown = strict,
                                       writerReferenceLinks = referenceLinks }
 
-  (readSources sources) >>= (hPutStr output . toUTF8 . 
+  (readSources sources) >>= (hPutStrLn output . toUTF8 . 
                              (writer writerOptions) . 
                              (reader startParserState) .  tabFilter .
                              removeCRs .  fromUTF8 .  (joinWithSep "\n")) >> 
