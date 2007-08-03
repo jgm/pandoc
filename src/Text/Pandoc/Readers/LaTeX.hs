@@ -405,7 +405,7 @@ inline =  choice [ strong, emph, strikeout, superscript, subscript,
                    accentedChar, specialChar, specialInline, escapedChar,
                    unescapedChar, str, endline, whitespace ] <?> "inline"
 
-specialInline = choice [ link, image, footnote, rawLaTeXInline ] 
+specialInline = choice [ url, link, image, footnote, rawLaTeXInline ] 
                 <?> "link, raw TeX, note, or image"
 
 accentedChar = normalAccentedChar <|> specialAccentedChar
@@ -653,6 +653,11 @@ math2 = try (do
 --
 -- links and images
 --
+
+url = try (do
+  string "\\url"
+  url <- charsInBalanced '{' '}'
+  return (Link [Code url] (url, ""))) 
 
 link = try (do
   string "\\href{"
