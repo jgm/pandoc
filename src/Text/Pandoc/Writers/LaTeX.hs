@@ -250,9 +250,12 @@ inlineToLaTeX (HtmlInline str) = return ""
 inlineToLaTeX (LineBreak) = return "\\\\\n"
 inlineToLaTeX Space = return " "
 inlineToLaTeX (Link text (src, tit)) = do
-  contents <- inlineListToLaTeX $ deVerb text
   addToHeader "\\usepackage[breaklinks=true]{hyperref}"
-  return $ "\\href{" ++ src ++ "}{" ++ contents ++ "}"
+  case text of
+        [Code x] | x == src ->  -- autolink
+             return $ "\\url{" ++ x ++ "}"
+        _ -> do contents <- inlineListToLaTeX $ deVerb text
+                return $ "\\href{" ++ src ++ "}{" ++ contents ++ "}"
 inlineToLaTeX (Image alternate (source, tit)) = do
   addToHeader "\\usepackage{graphicx}"
   return $ "\\includegraphics{" ++ source ++ "}" 

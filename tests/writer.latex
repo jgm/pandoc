@@ -590,17 +590,17 @@ Here's an \href{/script?foo=1&bar=2}{inline link in pointy braces}.
 
 \subsection{Autolinks}
 
-With an ampersand: \href{http://example.com/?foo=1&bar=2}{\texttt{http://example.com/?foo=1\&bar=2}}
+With an ampersand: \url{http://example.com/?foo=1&bar=2}
 
 \begin{itemize}
 \item In a list?
-\item \href{http://example.com/}{\texttt{http://example.com/}}
+\item \url{http://example.com/}
 \item It should.
 \end{itemize}
 An e-mail address: \href{mailto:nobody@nowhere.net}{\texttt{nobody@nowhere.net}}
 
 \begin{quote}
-Blockquoted: \href{http://example.com/}{\texttt{http://example.com/}}
+Blockquoted: \url{http://example.com/}
 
 \end{quote}
 Auto-links should not occur here: \verb!<http://example.com/>!
