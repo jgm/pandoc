@@ -173,8 +173,21 @@ blockToDocbook opts (CodeBlock str) =
   text "<screen>\n" <> text (escapeStringForXML str) <> text "\n</screen>"
 blockToDocbook opts (BulletList lst) = 
   inTagsIndented "itemizedlist" $ listItemsToDocbook opts lst 
-blockToDocbook opts (OrderedList lst) = 
-  inTagsIndented "orderedlist" $ listItemsToDocbook opts lst 
+blockToDocbook opts (OrderedList _ []) = empty 
+blockToDocbook opts (OrderedList (start, numstyle, numdelim) (first:rest)) =
+  let attribs  = case numstyle of
+                       DefaultStyle -> []
+                       Decimal      -> [("numeration", "arabic")]
+                       UpperAlpha   -> [("numeration", "upperalpha")]
+                       LowerAlpha   -> [("numeration", "loweralpha")]
+                       UpperRoman   -> [("numeration", "upperroman")]
+                       LowerRoman   -> [("numeration", "lowerroman")]
+      items    = if start == 1
+                    then listItemsToDocbook opts (first:rest)
+                    else (inTags True "listitem" [("override",show start)]
+                         (blocksToDocbook opts $ map plainToPara first)) $$ 
+                         listItemsToDocbook opts rest 
+  in  inTags True "orderedlist" attribs items
 blockToDocbook opts (DefinitionList lst) = 
   inTagsIndented "variablelist" $ deflistItemsToDocbook opts lst 
 blockToDocbook opts (RawHtml str) = text str -- raw XML block 

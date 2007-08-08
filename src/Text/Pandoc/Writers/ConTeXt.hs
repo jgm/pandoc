@@ -122,9 +122,20 @@ blockToConTeXt (RawHtml str) = return ""
 blockToConTeXt (BulletList lst) = do 
   contents <- mapM listItemToConTeXt lst
   return $ "\\startltxitem\n" ++ concat contents ++ "\\stopltxitem\n"
-blockToConTeXt (OrderedList lst) = do
-  contents <- mapM listItemToConTeXt lst
-  return $  "\\startltxenum\n" ++ concat contents ++ "\\stopltxenum\n"
+blockToConTeXt (OrderedList attribs lst) = case attribs of
+  (1, DefaultStyle, DefaultDelim) -> do
+    contents <- mapM listItemToConTeXt lst
+    return $  "\\startltxenum\n" ++ concat contents ++ "\\stopltxenum\n"
+  _ -> do
+    let markers = take (length lst) $ orderedListMarkers attribs
+    contents <- zipWithM orderedListItemToConTeXt markers lst
+    let markerWidth = maximum $ map length markers 
+    let markerWidth' = if markerWidth < 3
+                          then ""
+                          else "[width=" ++ 
+                               show ((markerWidth + 2) `div` 2)  ++ "em]"
+    return $ "\\startitemize" ++ markerWidth' ++ "\n" ++ concat contents ++ 
+             "\\stopitemize\n"
 blockToConTeXt (DefinitionList lst) =
   mapM defListItemToConTeXt lst >>= (return . (++ "\n") . concat)
 blockToConTeXt HorizontalRule = return "\\thinrule\n\n"
@@ -162,6 +173,10 @@ tableRowToConTeXt cols = do
 listItemToConTeXt list = do
   contents <- blockListToConTeXt list
   return $ "\\item " ++ contents
+
+orderedListItemToConTeXt marker list = do
+  contents <- blockListToConTeXt list
+  return $ "\\sym{" ++ marker ++ "} " ++ contents
 
 defListItemToConTeXt (term, def) = do
   term' <- inlineListToConTeXt term

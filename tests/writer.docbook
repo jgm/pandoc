@@ -95,7 +95,7 @@ sub status {
       <para>
         A list:
       </para>
-      <orderedlist>
+      <orderedlist numeration="arabic">
         <listitem>
           <para>
             item one
@@ -138,7 +138,7 @@ sub status {
 </screen>
     </blockquote>
     <blockquote>
-      <orderedlist>
+      <orderedlist numeration="arabic">
         <listitem>
           <para>
             do laundry
@@ -321,7 +321,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       <para>
         Tight:
       </para>
-      <orderedlist>
+      <orderedlist numeration="arabic">
         <listitem>
           <para>
             First
@@ -341,7 +341,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       <para>
         and:
       </para>
-      <orderedlist>
+      <orderedlist numeration="arabic">
         <listitem>
           <para>
             One
@@ -361,7 +361,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       <para>
         Loose using tabs:
       </para>
-      <orderedlist>
+      <orderedlist numeration="arabic">
         <listitem>
           <para>
             First
@@ -381,7 +381,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       <para>
         and using spaces:
       </para>
-      <orderedlist>
+      <orderedlist numeration="arabic">
         <listitem>
           <para>
             One
@@ -401,7 +401,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       <para>
         Multiple paragraphs:
       </para>
-      <orderedlist>
+      <orderedlist numeration="arabic">
         <listitem>
           <para>
             Item 1, graf one.
@@ -449,7 +449,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       <para>
         Here's another:
       </para>
-      <orderedlist>
+      <orderedlist numeration="arabic">
         <listitem>
           <para>
             First
@@ -486,7 +486,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       <para>
         Same thing but with paragraphs:
       </para>
-      <orderedlist>
+      <orderedlist numeration="arabic">
         <listitem>
           <para>
             First
@@ -547,6 +547,101 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
           </itemizedlist>
         </listitem>
       </itemizedlist>
+    </section>
+    <section>
+      <title>Fancy list markers</title>
+      <orderedlist numeration="arabic">
+        <listitem override="2">
+          <para>
+            begins with 2
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            and now 3
+          </para>
+          <para>
+            with a continuation
+          </para>
+          <orderedlist numeration="lowerroman">
+            <listitem override="4">
+              <para>
+                sublist with roman numerals, starting with 4
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                more items
+              </para>
+              <orderedlist numeration="upperalpha">
+                <listitem>
+                  <para>
+                    a subsublist
+                  </para>
+                </listitem>
+                <listitem>
+                  <para>
+                    a subsublist
+                  </para>
+                </listitem>
+              </orderedlist>
+            </listitem>
+          </orderedlist>
+        </listitem>
+      </orderedlist>
+      <para>
+        Nesting:
+      </para>
+      <orderedlist numeration="upperalpha">
+        <listitem>
+          <para>
+            Upper Alpha
+          </para>
+          <orderedlist numeration="upperroman">
+            <listitem>
+              <para>
+                Upper Roman.
+              </para>
+              <orderedlist numeration="arabic">
+                <listitem override="6">
+                  <para>
+                    Decimal start with 6
+                  </para>
+                  <orderedlist numeration="loweralpha">
+                    <listitem override="3">
+                      <para>
+                        Lower alpha with paren
+                      </para>
+                    </listitem>
+                  </orderedlist>
+                </listitem>
+              </orderedlist>
+            </listitem>
+          </orderedlist>
+        </listitem>
+      </orderedlist>
+      <para>
+        Autonumbering:
+      </para>
+      <orderedlist>
+        <listitem>
+          <para>
+            Autonumber.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            More.
+          </para>
+          <orderedlist>
+            <listitem>
+              <para>
+                Nested.
+              </para>
+            </listitem>
+          </orderedlist>
+        </listitem>
+      </orderedlist>
     </section>
   </section>
   <section>
@@ -1158,7 +1253,7 @@ or here: &lt;http://example.com/&gt;
                </footnote>
       </para>
     </blockquote>
-    <orderedlist>
+    <orderedlist numeration="arabic">
       <listitem>
         <para>
           And in list

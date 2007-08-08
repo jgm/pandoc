@@ -1,11 +1,12 @@
 \documentclass{article}
-\usepackage{ucs}
+\usepackage[mathletters]{ucs}
 \usepackage[utf8x]{inputenc}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 \newcommand{\textsubscript}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
 \usepackage[breaklinks=true]{hyperref}
 \usepackage[normalem]{ulem}
+\usepackage{enumerate}
 \usepackage{fancyvrb}
 \usepackage{graphicx}
 \setcounter{secnumdepth}{0}
@@ -75,7 +76,7 @@ sub status {
 \end{verbatim}
 A list:
 
-\begin{enumerate}
+\begin{enumerate}[1.]
 \item item one
 \item item two
 \end{enumerate}
@@ -104,7 +105,7 @@ sub status {
 \end{verbatim}
 \end{quote}
 \begin{quote}
-\begin{enumerate}
+\begin{enumerate}[1.]
 \item do laundry
 \item take out the trash
 \end{enumerate}
@@ -204,21 +205,21 @@ Minuses loose:
 
 Tight:
 
-\begin{enumerate}
+\begin{enumerate}[1.]
 \item First
 \item Second
 \item Third
 \end{enumerate}
 and:
 
-\begin{enumerate}
+\begin{enumerate}[1.]
 \item One
 \item Two
 \item Three
 \end{enumerate}
 Loose using tabs:
 
-\begin{enumerate}
+\begin{enumerate}[1.]
 \item First
 
 \item Second
@@ -228,7 +229,7 @@ Loose using tabs:
 \end{enumerate}
 and using spaces:
 
-\begin{enumerate}
+\begin{enumerate}[1.]
 \item One
 
 \item Two
@@ -238,7 +239,7 @@ and using spaces:
 \end{enumerate}
 Multiple paragraphs:
 
-\begin{enumerate}
+\begin{enumerate}[1.]
 \item Item 1, graf one.
 
 Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
@@ -261,7 +262,7 @@ Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
 \end{itemize}
 Here's another:
 
-\begin{enumerate}
+\begin{enumerate}[1.]
 \item First
 \item Second:
 \begin{itemize}
@@ -273,7 +274,7 @@ Here's another:
 \end{enumerate}
 Same thing but with paragraphs:
 
-\begin{enumerate}
+\begin{enumerate}[1.]
 \item First
 
 \item Second:
@@ -300,6 +301,50 @@ Same thing but with paragraphs:
 
 \end{itemize}
 \end{itemize}
+\subsection{Fancy list markers}
+
+\begin{enumerate}[(1)]
+\setcounter{enumi}{1}
+\item begins with 2
+\item and now 3
+
+with a continuation
+
+\begin{enumerate}[i.]
+\setcounter{enumii}{3}
+\item sublist with roman numerals, starting with 4
+\item more items
+\begin{enumerate}[(A)]
+\item a subsublist
+\item a subsublist
+\end{enumerate}
+\end{enumerate}
+\end{enumerate}
+Nesting:
+
+\begin{enumerate}[A.]
+\item Upper Alpha
+\begin{enumerate}[I.]
+\item Upper Roman.
+\begin{enumerate}[(1)]
+\setcounter{enumiii}{5}
+\item Decimal start with 6
+\begin{enumerate}[a)]
+\setcounter{enumiv}{2}
+\item Lower alpha with paren
+\end{enumerate}
+\end{enumerate}
+\end{enumerate}
+\end{enumerate}
+Autonumbering:
+
+\begin{enumerate}
+\item Autonumber.
+\item More.
+\begin{enumerate}
+\item Nested.
+\end{enumerate}
+\end{enumerate}
 \begin{center}\rule{3in}{0.4pt}\end{center}
 
 \section{Definition Lists}
@@ -635,7 +680,7 @@ If you want, you can indent every line, but you can also be lazy and just indent
 Notes can go in quotes.\footnote{In quote.}
 
 \end{quote}
-\begin{enumerate}
+\begin{enumerate}[1.]
 \item And in list items.\footnote{In list.}
 \end{enumerate}
 This paragraph should not be part of the note, as it is not indented.

@@ -54,9 +54,9 @@ Code in a block quote:
 \f[]
 .PP
 A list:
-.IP 1. 4
+.IP "1." 3
 item one
-.IP 2. 4
+.IP "2." 3
 item two
 .PP
 Nested block quotes:
@@ -84,9 +84,9 @@ Example:
 \f[]
 .RE
 .RS
-.IP 1. 4
+.IP "1." 3
 do laundry
-.IP 2. 4
+.IP "2." 3
 take out the trash
 .RE
 .PP
@@ -179,48 +179,48 @@ Minus 3
 .SS Ordered
 .PP
 Tight:
-.IP 1. 4
+.IP "1." 3
 First
-.IP 2. 4
+.IP "2." 3
 Second
-.IP 3. 4
+.IP "3." 3
 Third
 .PP
 and:
-.IP 1. 4
+.IP "1." 3
 One
-.IP 2. 4
+.IP "2." 3
 Two
-.IP 3. 4
+.IP "3." 3
 Three
 .PP
 Loose using tabs:
-.IP 1. 4
+.IP "1." 3
 First
-.IP 2. 4
+.IP "2." 3
 Second
-.IP 3. 4
+.IP "3." 3
 Third
 .PP
 and using spaces:
-.IP 1. 4
+.IP "1." 3
 One
-.IP 2. 4
+.IP "2." 3
 Two
-.IP 3. 4
+.IP "3." 3
 Three
 .PP
 Multiple paragraphs:
-.IP 1. 4
+.IP "1." 3
 Item 1, graf one\.
 .RS 4
 .PP
 Item 1\. graf two\. The quick brown fox jumped over the lazy dog's
 back\.
 .RE
-.IP 2. 4
+.IP "2." 3
 Item 2\.
-.IP 3. 4
+.IP "3." 3
 Item 3\.
 .SS Nested
 .IP \[bu] 2
@@ -235,9 +235,9 @@ Tab
 .RE
 .PP
 Here's another:
-.IP 1. 4
+.IP "1." 3
 First
-.IP 2. 4
+.IP "2." 3
 Second:
 .RS 4
 .IP \[bu] 2
@@ -247,13 +247,13 @@ Fie
 .IP \[bu] 2
 Foe
 .RE
-.IP 3. 4
+.IP "3." 3
 Third
 .PP
 Same thing but with paragraphs:
-.IP 1. 4
+.IP "1." 3
 First
-.IP 2. 4
+.IP "2." 3
 Second:
 .RS 4
 .IP \[bu] 2
@@ -263,7 +263,7 @@ Fie
 .IP \[bu] 2
 Foe
 .RE
-.IP 3. 4
+.IP "3." 3
 Third
 .SS Tabs and spaces
 .IP \[bu] 2
@@ -275,6 +275,51 @@ this is a list item indented with spaces
 this is an example list item indented with tabs
 .IP \[bu] 2
 this is an example list item indented with spaces
+.RE
+.SS Fancy list markers
+.IP "(2)" 4
+begins with 2
+.IP "(3)" 4
+and now 3
+.RS 4
+.PP
+with a continuation
+.IP "iv." 4
+sublist with roman numerals, starting with 4
+.IP " v." 4
+more items
+.RS 4
+.IP "(A)" 4
+a subsublist
+.IP "(B)" 4
+a subsublist
+.RE
+.RE
+.PP
+Nesting:
+.IP "A." 3
+Upper Alpha
+.RS 4
+.IP "I." 3
+Upper Roman\.
+.RS 4
+.IP "(6)" 4
+Decimal start with 6
+.RS 4
+.IP "c)" 3
+Lower alpha with paren
+.RE
+.RE
+.RE
+.PP
+Autonumbering:
+.IP "1." 3
+Autonumber\.
+.IP "2." 3
+More\.
+.RS 4
+.IP "1." 3
+Nested\.
 .RE
 .PP
    *   *   *   *   *
@@ -716,7 +761,7 @@ space\.[^my note] Here is an inline note\.[3]
 .PP
 Notes can go in quotes\.[4]
 .RE
-.IP 1. 4
+.IP "1." 3
 And in list items\.[5]
 .PP
 This paragraph should not be part of the note, as it is not

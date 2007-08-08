@@ -243,6 +243,8 @@ header = choice [ setextHeader, atxHeader ] <?> "header"
 
 atxHeader = try (do
   lead <- many1 (char '#')
+  notFollowedBy (char '.') -- this would be a list
+  notFollowedBy (char ')')
   skipSpaces
   txt <- manyTill inline atxClosing
   return (Header (length lead) (normalizeSpaces txt)))
@@ -354,27 +356,33 @@ blockQuote = do
 
 list = choice [ bulletList, orderedList, definitionList ] <?> "list"
 
-bulletListStart = try (do
+bulletListStart = try $ do
   option ' ' newline -- if preceded by a Plain block in a list context
   nonindentSpaces
   notFollowedBy' hrule  -- because hrules start out just like lists
   oneOf bulletListMarkers
   spaceChar
-  skipSpaces)
+  skipSpaces
 
-standardOrderedListStart = try (do
-  many1 digit
-  char '.')
-
-extendedOrderedListStart = try (do
-  failIfStrict
-  oneOf ['a'..'n']
-  oneOf ".)")
-
-orderedListStart = try $ do
+anyOrderedListStart = try $ do
   option ' ' newline -- if preceded by a Plain block in a list context
   nonindentSpaces
-  standardOrderedListStart <|> extendedOrderedListStart
+  state <- getState
+  if stateStrict state
+     then do many1 digit
+             char '.'
+             return (1, DefaultStyle, DefaultDelim)
+     else anyOrderedListMarker
+
+orderedListStart style delim = try $ do
+  option ' ' newline -- if preceded by a Plain block in a list context
+  nonindentSpaces
+  state <- getState
+  if stateStrict state
+     then do many1 digit
+             char '.'
+             return 1
+     else orderedListMarker style delim 
   oneOf spaceChars
   skipSpaces
 
@@ -385,7 +393,7 @@ listLine start = try (do
   notFollowedBy' (do 
                     indentSpaces
                     many (spaceChar)
-                    choice [bulletListStart, orderedListStart])
+                    choice [bulletListStart, anyOrderedListStart >> return ()])
   line <- manyTill anyChar newline
   return (line ++ "\n"))
 
@@ -431,9 +439,10 @@ listItem start = try (do
   return contents)
 
 orderedList = try (do
-  items <- many1 (listItem orderedListStart)
+  (start, style, delim) <- lookAhead anyOrderedListStart
+  items <- many1 (listItem (orderedListStart style delim))
   let items' = compactify items
-  return (OrderedList items'))
+  return (OrderedList (start, style, delim) items'))
 
 bulletList = try (do
   items <- many1 (listItem bulletListStart)
@@ -906,7 +915,7 @@ endline = try (do
     else return () 
   -- parse potential list-starts differently if in a list:
   if (stateParserContext st) == ListItemState
-     then notFollowedBy' (orderedListStart <|> bulletListStart)
+     then notFollowedBy' $ choice [bulletListStart, anyOrderedListStart >> return ()]
      else return ()
   return Space)
 

@@ -36,14 +36,20 @@ import Text.Regex ( mkRegex, matchRegex )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
 import Data.List ( isPrefixOf, partition, intersperse )
+import qualified Data.Set as S
 import Control.Monad.State
-import Text.XHtml.Strict
+import Text.XHtml.Transitional
 
 data WriterState = WriterState
-    { stNotes            :: [Html]   -- ^ List of notes
-    , stIds              :: [String] -- ^ List of header identifiers
-    , stHead             :: [Html]   -- ^ Html to include in header
+    { stNotes            :: [Html]       -- ^ List of notes
+    , stIds              :: [String]     -- ^ List of header identifiers
+    , stMath             :: Bool         -- ^ Math is used in document
+    , stCSS              :: S.Set String -- ^ CSS to include in header
     } deriving Show
+
+defaultWriterState :: WriterState
+defaultWriterState = WriterState {stNotes= [], stIds = [], 
+                                  stMath = False, stCSS = S.empty}
 
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
@@ -56,8 +62,7 @@ writeHtmlString opts =
 writeHtml :: WriterOptions -> Pandoc -> Html
 writeHtml opts (Pandoc (Meta tit authors date) blocks) = 
   let titlePrefix = writerTitlePrefix opts
-      topTitle    = evalState (inlineListToHtml opts tit) 
-                    (WriterState {stNotes = [], stIds = [], stHead = []})
+      topTitle    = evalState (inlineListToHtml opts tit) defaultWriterState
       topTitle'   = if null titlePrefix
                         then topTitle
                         else titlePrefix +++ " - " +++ topTitle
@@ -81,8 +86,19 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
                else noHtml
       (blocks', newstate) = 
                     runState (blockListToHtml opts blocks)
-                    (WriterState {stNotes = [], stIds = ids, stHead = []})
-      head        = header $ metadata +++ toHtmlFromList (stHead newstate) +++ 
+                    (defaultWriterState {stIds = ids})
+      cssLines    = stCSS newstate
+      css         = if S.null cssLines
+                       then noHtml
+                       else style ! [thetype "text/css"] $ primHtml $
+                            '\n':(unlines $ S.toList cssLines)
+      math        = if stMath newstate
+                       then case writerASCIIMathMLURL opts of
+                                  Just path -> script !  [src path, 
+                                               thetype "text/javascript"] $ noHtml
+                                  Nothing   -> primHtml asciiMathMLScript
+                       else noHtml
+      head        = header $ metadata +++ math +++ css +++ 
                              primHtml (writerHeader opts)
       notes       = reverse (stNotes newstate)
       before      = primHtml $ writerIncludeBefore opts
@@ -100,7 +116,7 @@ tableOfContents opts headers ids =
   let opts' = opts { writerIgnoreNotes = True }
       contentsTree = hierarchicalize headers
       contents = evalState (mapM (elementToListItem opts') contentsTree) 
-                 (WriterState {stNotes= [], stIds = ids, stHead = []})
+                 (defaultWriterState {stIds = ids})
   in  thediv ! [identifier "toc"] $ unordList contents
 
 -- | Converts an Element to a list item for a table of contents,
@@ -177,12 +193,12 @@ isPunctuation c =
      then True
      else False
 
--- | Add Html to document header.
-addToHeader :: Html -> State WriterState ()
-addToHeader item = do
+-- | Add CSS for document header.
+addToCSS :: String -> State WriterState ()
+addToCSS item = do
   st <- get
-  let current = stHead st
-  put $ st {stHead = (item:current)}
+  let current = stCSS st
+  put $ st {stCSS = (S.insert item current)}
 
 -- | Convert Pandoc inline list to plain text identifier.
 inlineListToIdentifier :: [Inline] -> String
@@ -241,8 +257,9 @@ blockToHtml opts block =
                case blocks of 
                   [BulletList lst]  -> blockToHtml (opts {writerIncremental = inc})
                                        (BulletList lst)
-                  [OrderedList lst] -> blockToHtml (opts {writerIncremental = inc})
-                                       (OrderedList lst)
+                  [OrderedList attribs lst] -> 
+                                       blockToHtml (opts {writerIncremental = inc})
+                                       (OrderedList attribs lst)
                   otherwise         -> blockListToHtml opts blocks >>= 
                                        (return . blockquote)
           else blockListToHtml opts blocks >>= (return . blockquote)
@@ -272,10 +289,23 @@ blockToHtml opts block =
                                               then [theclass "incremental"]
                                               else []
                              return $ unordList ! attribs $ contents
-    (OrderedList lst)  -> do contents <- mapM (blockListToHtml opts) lst
-                             let attribs = if writerIncremental opts
+    (OrderedList (startnum, numstyle, _) lst)  -> do
+                             contents <- mapM (blockListToHtml opts) lst
+                             let numstyle' = camelCaseToHyphenated $ show numstyle
+                             let attribs = (if writerIncremental opts
                                               then [theclass "incremental"]
-                                              else []
+                                              else []) ++
+                                           (if startnum /= 1
+                                              then [start startnum]
+                                              else []) ++
+                                           (if numstyle /= DefaultStyle
+                                              then [theclass numstyle']
+                                              else [])
+                             if numstyle /= DefaultStyle
+                                then addToCSS $ "ol." ++ numstyle' ++ 
+                                                " { list-style-type: " ++ 
+                                                numstyle' ++ "; }"
+                                else return ()
                              return $ ordList ! attribs $ contents
     (DefinitionList lst) -> do contents <- mapM (\(term, def) ->
                                                  do term' <- inlineListToHtml opts term
@@ -342,8 +372,7 @@ inlineToHtml opts inline =
     (Emph lst)       -> inlineListToHtml opts lst >>= (return . emphasize)
     (Strong lst)     -> inlineListToHtml opts lst >>= (return . strong)
     (Code str)       -> return $ thecode << str
-    (Strikeout lst)  -> addToHeader (style ! [thetype "text/css"] $ (stringToHtml 
-                        ".strikeout { text-decoration: line-through; }")) >> 
+    (Strikeout lst)  -> addToCSS ".strikeout { text-decoration: line-through; }" >> 
                         inlineListToHtml opts lst >>=
                         (return . (thespan ! [theclass "strikeout"]))
     (Superscript lst) -> inlineListToHtml opts lst >>= (return . sup)
@@ -357,12 +386,7 @@ inlineToHtml opts inline =
                         do contents <- inlineListToHtml opts lst
                            return $ leftQuote +++ contents +++ rightQuote
     (TeX str)        -> do if writerUseASCIIMathML opts
-                              then addToHeader $
-                                   case writerASCIIMathMLURL opts of
-                                        Just path -> script !  [src path, 
-                                                     thetype "text/javascript"] $
-                                                     noHtml
-                                        Nothing   -> primHtml asciiMathMLScript
+                              then modify (\st -> st {stMath = True})
                               else return ()
                            return $ stringToHtml str
     (HtmlInline str) -> return $ primHtml str 

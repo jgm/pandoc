@@ -127,10 +127,10 @@ sub status {
 \stoptyping
 A list:
 
-\startltxenum
-\item item one
-\item item two
-\stopltxenum
+\startitemize
+\sym{1.} item one
+\sym{2.} item two
+\stopitemize
 Nested block quotes:
 
 \startblockquote
@@ -160,10 +160,10 @@ sub status {
 \stopblockquote
 
 \startblockquote
-\startltxenum
-\item do laundry
-\item take out the trash
-\stopltxenum
+\startitemize
+\sym{1.} do laundry
+\sym{2.} take out the trash
+\stopitemize
 \stopblockquote
 
 Here's a nested one:
@@ -263,50 +263,50 @@ Minuses loose:
 
 Tight:
 
-\startltxenum
-\item First
-\item Second
-\item Third
-\stopltxenum
+\startitemize
+\sym{1.} First
+\sym{2.} Second
+\sym{3.} Third
+\stopitemize
 and:
 
-\startltxenum
-\item One
-\item Two
-\item Three
-\stopltxenum
+\startitemize
+\sym{1.} One
+\sym{2.} Two
+\sym{3.} Three
+\stopitemize
 Loose using tabs:
 
-\startltxenum
-\item First
+\startitemize
+\sym{1.} First
 
-\item Second
+\sym{2.} Second
 
-\item Third
+\sym{3.} Third
 
-\stopltxenum
+\stopitemize
 and using spaces:
 
-\startltxenum
-\item One
+\startitemize
+\sym{1.} One
 
-\item Two
+\sym{2.} Two
 
-\item Three
+\sym{3.} Three
 
-\stopltxenum
+\stopitemize
 Multiple paragraphs:
 
-\startltxenum
-\item Item 1, graf one.
+\startitemize
+\sym{1.} Item 1, graf one.
 
 Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
 
-\item Item 2.
+\sym{2.} Item 2.
 
-\item Item 3.
+\sym{3.} Item 3.
 
-\stopltxenum
+\stopitemize
 \subsection{Nested}
 
 \startltxitem
@@ -320,31 +320,31 @@ Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
 \stopltxitem
 Here's another:
 
-\startltxenum
-\item First
-\item Second:
+\startitemize
+\sym{1.} First
+\sym{2.} Second:
 \startltxitem
 \item Fee
 \item Fie
 \item Foe
 \stopltxitem
-\item Third
-\stopltxenum
+\sym{3.} Third
+\stopitemize
 Same thing but with paragraphs:
 
-\startltxenum
-\item First
+\startitemize
+\sym{1.} First
 
-\item Second:
+\sym{2.} Second:
 
 \startltxitem
 \item Fee
 \item Fie
 \item Foe
 \stopltxitem
-\item Third
+\sym{3.} Third
 
-\stopltxenum
+\stopitemize
 \subsection{Tabs and spaces}
 
 \startltxitem
@@ -359,6 +359,46 @@ Same thing but with paragraphs:
 
 \stopltxitem
 \stopltxitem
+\subsection{Fancy list markers}
+
+\startitemize[width=2em]
+\sym{(2)} begins with 2
+\sym{(3)} and now 3
+
+with a continuation
+
+\startitemize[width=2em]
+\sym{iv.} sublist with roman numerals, starting with 4
+\sym{v.} more items
+\startitemize[width=2em]
+\sym{(A)} a subsublist
+\sym{(B)} a subsublist
+\stopitemize
+\stopitemize
+\stopitemize
+Nesting:
+
+\startitemize
+\sym{A.} Upper Alpha
+\startitemize
+\sym{I.} Upper Roman.
+\startitemize[width=2em]
+\sym{(6)} Decimal start with 6
+\startitemize
+\sym{c)} Lower alpha with paren
+\stopitemize
+\stopitemize
+\stopitemize
+\stopitemize
+Autonumbering:
+
+\startltxenum
+\item Autonumber.
+\item More.
+\startltxenum
+\item Nested.
+\stopltxenum
+\stopltxenum
 \thinrule
 
 \section{Definition Lists}
@@ -712,11 +752,11 @@ Notes can go in quotes.\footnote{In quote.
 
 \stopblockquote
 
-\startltxenum
-\item And in list items.\footnote{In list.
+\startitemize
+\sym{1.} And in list items.\footnote{In list.
 
 }
-\stopltxenum
+\stopitemize
 This paragraph should not be part of the note, as it is not indented.
 
 

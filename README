@@ -437,45 +437,76 @@ cases" involving lists.  Consider this source:
 
 	3.  Third
 
-Pandoc transforms this into a "compact list" (with no `<p>` tags
-around "First", "Second", or "Third"), while markdown puts `<p>`
-tags around "Second" and "Third" (but not "First"), because of
-the blank space around "Third".  Pandoc follows a simple rule:
-if the text is followed by a blank line, it is treated as a
-paragraph.  Since "Second" is followed by a list, and not a blank
-line, it isn't treated as a paragraph.  The fact that the list
-is followed by a blank line is irrelevant.  (Note:  Pandoc works
-this way even when the `--strict` option is specified.  This
-behavior is consistent with the official markdown syntax
-description, even though it is different from that of `Markdown.pl`.)
+Pandoc transforms this into a "compact list" (with no `<p>` tags around
+"First", "Second", or "Third"), while markdown puts `<p>` tags around
+"Second" and "Third" (but not "First"), because of the blank space
+around "Third". Pandoc follows a simple rule: if the text is followed by
+a blank line, it is treated as a paragraph. Since "Second" is followed
+by a list, and not a blank line, it isn't treated as a paragraph. The
+fact that the list is followed by a blank line is irrelevant. (Note:
+Pandoc works this way even when the `--strict` option is specified. This
+behavior is consistent with the official markdown syntax description,
+even though it is different from that of `Markdown.pl`.)
 
-Unlike standard markdown, Pandoc allows ordered list items to be
-marked with single lowercase letters (from 'a' to 'n'), instead of
-numbers. So, for example, this source yields a nested ordered list:
+Unlike standard markdown, Pandoc allows ordered list items to be marked
+with uppercase and lowercase letters and roman numerals, in addition to
+arabic numerals. (This behavior can be turned off using the `--strict`
+option.) List markers may be enclosed in parentheses or followed by a
+single right-parentheses or period. Pandoc also pays attention to the
+type of list marker used, and to the starting number, and both of these
+are preserved where possible in the output format. Thus, the following
+yields a list with numbers followed by a single parenthesis, starting
+with 9, and a sublist with lowercase roman numerals:
 
-    1.  First
-    2.  Second
-        a.  Fee
-        b.  Fie
-    3.  Third
+     9)  Ninth
+    10)  Tenth
+    11)  Eleventh
+           i. subone
+          ii. subtwo
+         iii. subthree
 
-The letters may be followed by either '.' or ')':
+Note that Pandoc pays attention only to the *starting* number in a list.
+So, the following yields a list numbered sequentially starting from 2:
 
-    1.  First
-    2.  Second
-        a)  Fee
-        b)  Fie
-    3.  Third
+    (2) Two
+    (5) Three
+    (2) Four
 
-Note that Pandoc pays no attention to the *type* of ordered list
-item marker used.  Thus, the following is treated just the same as
-the example above:
+If default list markers are desired, use '`#.`':
 
-    a)  First
-    1.  Second
-        2.  Fee
-        b)  Fie
-    c.  Third
+    #.  one
+    #.  two
+    #.  three
+
+If you change list style in mid-list, Pandoc will notice and assume you
+are starting a sublist. So,
+
+    1.  One
+    2.  Two
+    A.  Sub
+    B.  Sub
+    3.  Three
+
+gets treated as if it were
+
+    1.  One
+    2.  Two
+        A. Sub
+        B. Sub
+    3.  Three
+
+Note that a list beginning with a single letter will be interpreted as
+an alphabetic list. So you are out of luck if you want a roman-numbered
+list starting with 100 (C).
+
+Note also that a paragraph starting with a capital letter and a period
+(for example, an initial) will be interpreted as a list:
+
+    B. Russell was an English philosopher.
+
+To avoid this, use backslash escapes:
+
+    B\. Russell was an English philosopher.
 
 Definition lists
 ----------------

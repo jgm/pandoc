@@ -78,8 +78,9 @@ E-mail style:
 
     A list:
 
-    1.  item one
-    2.  item two
+    
+    1. item one
+    2. item two
 
     Nested block quotes:
 
@@ -103,8 +104,9 @@ Box-style:
         }
 
 
-    1.  do laundry
-    2.  take out the trash
+    
+    1. do laundry
+    2. take out the trash
 
 
 Here's a nested one:
@@ -152,11 +154,13 @@ Unordered
 
 Asterisks tight:
 
+
 -   asterisk 1
 -   asterisk 2
 -   asterisk 3
 
 Asterisks loose:
+
 
 -   asterisk 1
 
@@ -167,11 +171,13 @@ Asterisks loose:
 
 Pluses tight:
 
+
 -   Plus 1
 -   Plus 2
 -   Plus 3
 
 Pluses loose:
+
 
 -   Plus 1
 
@@ -182,11 +188,13 @@ Pluses loose:
 
 Minuses tight:
 
+
 -   Minus 1
 -   Minus 2
 -   Minus 3
 
 Minuses loose:
+
 
 -   Minus 1
 
@@ -200,89 +208,144 @@ Ordered
 
 Tight:
 
-1.  First
-2.  Second
-3.  Third
+
+1. First
+2. Second
+3. Third
 
 and:
 
-1.  One
-2.  Two
-3.  Three
+
+1. One
+2. Two
+3. Three
 
 Loose using tabs:
 
-1.  First
 
-2.  Second
+1. First
 
-3.  Third
+2. Second
+
+3. Third
 
 
 and using spaces:
 
-1.  One
 
-2.  Two
+1. One
 
-3.  Three
+2. Two
+
+3. Three
 
 
 Multiple paragraphs:
+
 
 1.  Item 1, graf one.
 
     Item 1. graf two. The quick brown fox jumped over the lazy dog's
     back.
 
-2.  Item 2.
+2. Item 2.
 
-3.  Item 3.
+3. Item 3.
 
 
 Nested
 ------
 
+
 -   Tab
+    
     -   Tab
+        
         -   Tab
 
 
 
 Here's another:
 
-1.  First
+
+1. First
 2.  Second:
+    
     -   Fee
     -   Fie
     -   Foe
 
-3.  Third
+3. Third
 
 Same thing but with paragraphs:
 
-1.  First
+
+1. First
 
 2.  Second:
 
+    
     -   Fee
     -   Fie
     -   Foe
 
-3.  Third
+3. Third
 
 
 Tabs and spaces
 ---------------
 
+
 -   this is a list item indented with tabs
 
 -   this is a list item indented with spaces
 
+    
     -   this is an example list item indented with tabs
 
     -   this is an example list item indented with spaces
 
+
+
+Fancy list markers
+------------------
+
+
+(2) begins with 2
+(3) and now 3
+
+    with a continuation
+
+    
+    iv. sublist with roman numerals, starting with 4
+    v.  more items
+        
+        (A) a subsublist
+        (B) a subsublist
+
+
+
+Nesting:
+
+
+A.  Upper Alpha
+    
+    I.  Upper Roman.
+        
+        (6) Decimal start with 6
+            
+            c) Lower alpha with paren
+
+
+
+
+Autonumbering:
+
+
+#. Autonumber.
+#.  More.
+    
+    #. Nested.
 
 
 --------------
@@ -572,6 +635,7 @@ Ellipses...and...and....
 LaTeX
 =====
 
+
 -   \cite[22-23]{smith.1899}
 -   \doublespacing
 -   $2+2=4$
@@ -584,6 +648,7 @@ LaTeX
     $\alpha + \omega \times x^2$.
 
 These shouldn't be math:
+
 
 -   To get the famous equation, write ``$e = mc^2$``.
 -   $22,000 is a *lot* of money. So is $34,000. (It worked if "lot"
@@ -607,6 +672,7 @@ Special Characters
 ==================
 
 Here is some unicode:
+
 
 -   I hat: Î
 -   o umlaut: ö
@@ -729,6 +795,7 @@ Autolinks
 
 With an ampersand: http://example.com/?foo=1&bar=2
 
+
 -   In a list?
 -   http://example.com/
 -   It should.
@@ -767,7 +834,8 @@ note] Here is an inline note. [3]_
     Notes can go in quotes. [4]_
 
 
-1.  And in list items. [5]_
+
+1. And in list items. [5]_
 
 This paragraph should not be part of the note, as it is not
 indented.

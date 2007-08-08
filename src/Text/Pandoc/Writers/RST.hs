@@ -57,7 +57,7 @@ pandocToRST opts (Pandoc meta blocks) = do
       after'  = if null after then empty else text after
   metaBlock <- metaToRST opts meta
   let head = if (writerStandalone opts)
-                then metaBlock $$ text (writerHeader opts)
+                then metaBlock $+$ text (writerHeader opts)
                 else empty
   body <- blockListToRST opts blocks
   (notes, _, _) <- get
@@ -65,8 +65,8 @@ pandocToRST opts (Pandoc meta blocks) = do
   (_, refs, pics) <- get  -- note that the notes may contain refs
   refs' <- keyTableToRST opts (reverse refs)
   pics' <- pictTableToRST opts (reverse pics)
-  return $ head <> (before' $$ body $$ notes' <> text "\n" $$ refs' $$ 
-           pics' $$ after')
+  return $ head $+$ before' $+$ body $+$ notes' $+$ text "" $+$ refs' $+$ 
+           pics' $+$ after'
 
 -- | Return RST representation of reference key table.
 keyTableToRST :: WriterOptions -> KeyTable -> State WriterState Doc
@@ -131,9 +131,9 @@ metaToRST opts (Meta title authors date) = do
   authors' <- authorsToRST authors
   date'    <- dateToRST date
   let toc  =  if writerTableOfContents opts
-                 then text "" $$ text ".. contents::"
+                 then text "" $+$ text ".. contents::"
                  else empty
-  return $ title' $$ authors' $$ date' $$ toc $$ text ""
+  return $ title' $+$ authors' $+$ date' $+$ toc
 
 titleToRST :: WriterOptions -> [Inline] -> State WriterState Doc
 titleToRST opts [] = return empty
@@ -141,13 +141,13 @@ titleToRST opts lst = do
   contents <- inlineListToRST opts lst
   let titleLength = length $ render contents
   let border = text (replicate titleLength '=')
-  return $ border <> char '\n' <> contents <> char '\n' <> border <> text "\n"
+  return $ border $+$ contents $+$ border <> text "\n"
 
 authorsToRST :: [String] -> State WriterState Doc
 authorsToRST [] = return empty
 authorsToRST (first:rest) = do
   rest' <- authorsToRST rest
-  return $ (text ":Author: " <> text first) $$ rest'
+  return $ (text ":Author: " <> text first) $+$ rest'
 
 dateToRST :: String -> State WriterState Doc
 dateToRST [] = return empty
@@ -161,21 +161,23 @@ blockToRST opts Null = return empty
 blockToRST opts (Plain inlines) = wrappedRST opts inlines
 blockToRST opts (Para [TeX str]) =
   let str' = if (endsWith '\n' str) then (str ++ "\n") else (str ++ "\n\n") in
-  return $ hang (text "\n.. raw:: latex\n") 3 (vcat $ map text (lines str'))
+  return $ hang (text "\n.. raw:: latex\n") 3 
+                (vcat $ map text (lines str'))
 blockToRST opts (Para inlines) = do
   contents <- wrappedRST opts inlines
   return $ contents <> text "\n"
 blockToRST opts (RawHtml str) = 
   let str' = if (endsWith '\n' str) then (str ++ "\n") else (str ++ "\n\n") in
-  return $ hang (text "\n.. raw:: html\n") 3 (vcat $ map text (lines str'))
+  return $ hang (text "\n.. raw:: html\n") 3 
+                (vcat $ map text (lines str'))
 blockToRST opts HorizontalRule = return $ text "--------------\n"
 blockToRST opts (Header level inlines) = do
   contents <- inlineListToRST opts inlines
   let headerLength = length $ render contents
   let headerChar = if (level > 5) then ' ' else "=-~^'" !! (level - 1)
   let border = text $ replicate headerLength headerChar
-  return $ contents <> char '\n' <> border <> char '\n'
-blockToRST opts (CodeBlock str) = return $ (text "::\n") $$ text "" $$ 
+  return $ contents $+$ border <> text "\n"
+blockToRST opts (CodeBlock str) = return $ (text "::\n") $+$ 
   (nest (writerTabStop opts) $ vcat $ map text (lines str)) <> text "\n"
 blockToRST opts (BlockQuote blocks) = do
   contents <- blockListToRST opts blocks 
@@ -184,7 +186,7 @@ blockToRST opts (Table caption aligns widths headers rows) =  do
   caption' <- inlineListToRST opts caption
   let caption'' = if null caption
                      then empty
-                     else text "" $$ (text "Table: " <> caption')
+                     else text "" $+$ (text "Table: " <> caption')
   headers' <- mapM (blockListToRST opts) headers
   let widthsInChars = map (floor . (78 *)) widths
   let alignHeader alignment = case alignment of
@@ -210,15 +212,25 @@ blockToRST opts (Table caption aligns widths headers rows) =  do
                           map (\l -> text $ replicate l ch) widthsInChars) <>
                   char ch <> char '+'
   let body = vcat $ intersperse (border '-') $ map blockToDoc rows'
-  return $ border '-' $$ blockToDoc head $$ border '=' $$ body $$ 
+  return $ border '-' $+$ blockToDoc head $+$ border '=' $+$ body $+$ 
            border '-' $$ caption'' $$ text ""
 blockToRST opts (BulletList items) = do
   contents <- mapM (bulletListItemToRST opts) items
-  return $ (vcat contents) <> text "\n"
-blockToRST opts (OrderedList items) = do
+  -- ensure that sublists have preceding blank line
+  return $ text "" $+$ vcat contents <> text "\n"
+blockToRST opts (OrderedList (start, style, delim) items) = do
+  let markers = if start == 1 && style == DefaultStyle && delim == DefaultDelim 
+                   then take (length items) $ repeat "#."
+                   else take (length items) $ orderedListMarkers 
+                                              (start, style, delim)
+  let maxMarkerLength = maximum $ map length markers
+  let markers' = map (\m -> let s = maxMarkerLength - length m
+                            in  m ++ replicate s ' ')
+                     markers
   contents <- mapM (\(item, num) -> orderedListItemToRST opts item num) $
-              zip [1..] items  
-  return $ (vcat contents) <> text "\n"
+              zip markers' items  
+  -- ensure that sublists have preceding blank line
+  return $ text "" $+$ vcat contents <> text "\n"
 blockToRST opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToRST opts) items
   return $ (vcat contents) <> text "\n"
@@ -231,14 +243,12 @@ bulletListItemToRST opts items = do
 
 -- | Convert ordered list item (a list of blocks) to RST.
 orderedListItemToRST :: WriterOptions -- ^ options
-                          -> Int           -- ^ ordinal number of list item
-                          -> [Block]       -- ^ list item (list of blocks)
+                          -> String   -- ^ marker for list item
+                          -> [Block]  -- ^ list item (list of blocks)
                           -> State WriterState Doc
-orderedListItemToRST opts num items = do
+orderedListItemToRST opts marker items = do
   contents <- blockListToRST opts items
-  let spacer = if (num < 10) then " " else ""
-  return $ hang (text ((show num) ++ "." ++ spacer)) (writerTabStop opts)
-           contents 
+  return $ hang (text marker) (writerTabStop opts) contents 
 
 -- | Convert defintion list item (label, list of blocks) to RST.
 definitionListItemToRST :: WriterOptions -> ([Inline], [Block]) -> State WriterState Doc

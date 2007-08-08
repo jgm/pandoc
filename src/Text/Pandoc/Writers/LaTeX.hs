@@ -36,10 +36,12 @@ import Text.Printf ( printf )
 import Data.List ( (\\), isInfixOf )
 import qualified Data.Set as S
 import Control.Monad.State
+import Data.Char ( toLower )
 
 data WriterState = 
   WriterState { stIncludes :: S.Set String -- strings to include in header
-              , stInNote   :: Bool }       -- @True@ if we're in a note
+              , stInNote   :: Bool         -- @True@ if we're in a note
+              , stOLLevel  :: Int }        -- level of ordered list nesting 
 
 -- | Add line to header.
 addToHeader :: String -> State WriterState ()
@@ -52,7 +54,7 @@ addToHeader str = do
 writeLaTeX :: WriterOptions -> Pandoc -> String
 writeLaTeX options document = 
   evalState (pandocToLaTeX options document) $ 
-  WriterState { stIncludes = S.empty, stInNote = False } 
+  WriterState { stIncludes = S.empty, stInNote = False, stOLLevel = 1 } 
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc meta blocks) = do
@@ -137,9 +139,23 @@ blockToLaTeX (RawHtml str) = return ""
 blockToLaTeX (BulletList lst) = do
   items <- mapM listItemToLaTeX lst
   return $ "\\begin{itemize}\n" ++ concat items ++ "\\end{itemize}\n"
-blockToLaTeX (OrderedList lst) = do
+blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
+  st <- get
+  let oldlevel = stOLLevel st
+  put $ st {stOLLevel = oldlevel + 1}
   items <- mapM listItemToLaTeX lst
-  return $ "\\begin{enumerate}\n" ++ concat items ++ "\\end{enumerate}\n"
+  put $ st {stOLLevel = oldlevel}
+  exemplar <- if numstyle /= DefaultStyle || numdelim /= DefaultDelim
+                 then do addToHeader "\\usepackage{enumerate}"
+                         return $ "[" ++ head (orderedListMarkers (1, numstyle, numdelim)) ++ "]"
+                 else return ""
+  let resetcounter = if start /= 1 && oldlevel <= 4
+                        then "\\setcounter{enum" ++ 
+                             map toLower (toRomanNumeral oldlevel) ++
+                             "}{" ++ show (start - 1) ++ "}\n"
+                        else ""
+  return $ "\\begin{enumerate}" ++ exemplar ++ "\n" ++
+           resetcounter ++ concat items ++ "\\end{enumerate}\n"
 blockToLaTeX (DefinitionList lst) = do
   items <- mapM defListItemToLaTeX lst
   return $ "\\begin{description}\n" ++ concat items ++ "\\end{description}\n"

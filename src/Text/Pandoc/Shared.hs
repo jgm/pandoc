@@ -43,6 +43,8 @@ module Text.Pandoc.Shared (
                      removeLeadingSpace,
                      removeTrailingSpace,
                      stripFirstAndLast,
+                     camelCaseToHyphenated,
+                     toRomanNumeral,
                      -- * Parsing
                      readWith,
                      testStringWith,
@@ -59,9 +61,12 @@ module Text.Pandoc.Shared (
                      nullBlock,
                      failIfStrict,
                      escaped,
+                     anyOrderedListMarker,
+                     orderedListMarker,
                      -- * Native format prettyprinting
                      prettyPandoc,
                      -- * Pandoc block and inline list processing
+                     orderedListMarkers,
                      normalizeSpaces,
                      compactify,
                      Element (..),
@@ -77,8 +82,9 @@ module Text.Pandoc.Shared (
                     ) where
 import Text.Pandoc.Definition
 import Text.ParserCombinators.Parsec
+import Text.Pandoc.ParserCombinators
 import Text.Pandoc.Entities ( decodeEntities, escapeStringForXML )
-import Data.Char ( toLower, ord )
+import Data.Char ( toLower, toUpper, ord, chr, isLower, isUpper )
 import Data.List ( find, groupBy, isPrefixOf )
 
 -- | Parse a string with a given parser and state.
@@ -199,6 +205,105 @@ escaped parser = try (do
                         result <- parser
                         return (Str [result]))
 
+-- | Parses an uppercase roman numeral and returns (UpperRoman, number).
+upperRoman :: GenParser Char st (ListNumberStyle, Int)
+upperRoman = do
+    num <- romanNumeral True
+    return (UpperRoman, num)
+
+-- | Parses a lowercase roman numeral and returns (LowerRoman, number).
+lowerRoman :: GenParser Char st (ListNumberStyle, Int)
+lowerRoman = do
+    num <- romanNumeral False
+    return (LowerRoman, num)
+
+-- | Parses a decimal numeral and returns (Decimal, number).
+decimal :: GenParser Char st (ListNumberStyle, Int)
+decimal = do
+    num <- many1 digit
+    return (Decimal, read num)
+
+-- | Parses a '#' returns (DefaultStyle, 1).
+defaultNum :: GenParser Char st (ListNumberStyle, Int)
+defaultNum = do
+    char '#'
+    return (DefaultStyle, 1)
+
+-- | Parses a lowercase letter and returns (LowerAlpha, number).
+lowerAlpha :: GenParser Char st (ListNumberStyle, Int)
+lowerAlpha = do
+    ch <- oneOf ['a'..'z']
+    return (LowerAlpha, ord ch - ord 'a' + 1)
+
+-- | Parses an uppercase letter and returns (UpperAlpha, number).
+upperAlpha :: GenParser Char st (ListNumberStyle, Int)
+upperAlpha = do
+    ch <- oneOf ['A'..'Z']
+    return (UpperAlpha, ord ch - ord 'A' + 1)
+
+-- | Parses a roman numeral i or I
+romanOne :: GenParser Char st (ListNumberStyle, Int)
+romanOne = (do char 'i'
+               return (LowerRoman, 1)) <|>
+           (do char 'I'
+               return (UpperRoman, 1))
+
+-- | Parses an ordered list marker and returns list attributes.
+anyOrderedListMarker :: GenParser Char st ListAttributes 
+anyOrderedListMarker = choice $ [delimParser numParser | delimParser <- 
+                                 [inPeriod, inOneParen, inTwoParens],
+                                 numParser <- [decimal, defaultNum, romanOne,
+                                 lowerAlpha, lowerRoman, upperAlpha, upperRoman]]
+
+-- | Parses a list number (num) followed by a period, returns list attributes.
+inPeriod :: GenParser Char st (ListNumberStyle, Int)
+         -> GenParser Char st ListAttributes 
+inPeriod num = try $ do
+    (style, start) <- num
+    char '.'
+    let delim = if style == DefaultStyle
+                   then DefaultDelim
+                   else Period
+    return (start, style, delim)
+ 
+-- | Parses a list number (num) followed by a paren, returns list attributes.
+inOneParen :: GenParser Char st (ListNumberStyle, Int)
+           -> GenParser Char st ListAttributes 
+inOneParen num = try $ do
+   (style, start) <- num
+   char ')'
+   return (start, style, OneParen)
+
+-- | Parses a list number (num) enclosed in parens, returns list attributes.
+inTwoParens :: GenParser Char st (ListNumberStyle, Int)
+            -> GenParser Char st ListAttributes 
+inTwoParens num = try $ do
+    char '('
+    (style, start) <- num
+    char ')'
+    return (start, style, TwoParens)
+
+-- | Parses an ordered list marker with a given style and delimiter,
+-- returns number.
+orderedListMarker :: ListNumberStyle 
+                  -> ListNumberDelim 
+                  -> GenParser Char st Int
+orderedListMarker style delim = do
+    let num = case style of
+                 DefaultStyle -> decimal <|> defaultNum
+                 Decimal      -> decimal
+                 UpperRoman   -> upperRoman
+                 LowerRoman   -> lowerRoman
+                 UpperAlpha   -> upperAlpha
+                 LowerAlpha   -> lowerAlpha
+    let context = case delim of
+                 DefaultDelim -> inPeriod
+                 Period       -> inPeriod
+                 OneParen     -> inOneParen
+                 TwoParens    -> inTwoParens
+    (start, style, delim) <- context num
+    return start
+
 -- | Indent string as a block.
 indentBy :: Int    -- ^ Number of spaces to indent the block 
          -> Int    -- ^ Number of spaces (rel to block) to indent first line
@@ -222,9 +327,10 @@ prettyBlockList indent blocks = indentBy indent (-2) $ "[ " ++
 prettyBlock :: Block -> String
 prettyBlock (BlockQuote blocks) = "BlockQuote\n  " ++ 
                                   (prettyBlockList 2 blocks) 
-prettyBlock (OrderedList blockLists) = 
-   "OrderedList\n" ++ indentBy 2 0 ("[ " ++ (joinWithSep ", " 
-   (map (\blocks -> prettyBlockList 2 blocks) blockLists))) ++ " ]"
+prettyBlock (OrderedList attribs blockLists) = 
+   "OrderedList " ++ show attribs ++ "\n" ++ indentBy 2 0 ("[ " ++ 
+   (joinWithSep ", " $ map (\blocks -> prettyBlockList 2 blocks) 
+   blockLists)) ++ " ]"
 prettyBlock (BulletList blockLists) = "BulletList\n" ++ 
    indentBy 2 0 ("[ " ++ (joinWithSep ", " 
    (map (\blocks -> prettyBlockList 2 blocks) blockLists))) ++ " ]" 
@@ -317,8 +423,16 @@ removeTrailingSpace :: String -> String
 removeTrailingSpace = reverse . removeLeadingSpace . reverse
 
 -- | Strip leading and trailing characters from string
+stripFirstAndLast :: String -> String
 stripFirstAndLast str =
   drop 1 $ take ((length str) - 1) str
+
+-- | Change CamelCase word to hyphenated lowercase (e.g., camel-case). 
+camelCaseToHyphenated :: String -> String
+camelCaseToHyphenated "" = ""
+camelCaseToHyphenated (a:b:rest) | isLower a && isUpper b =
+  a:'-':(toLower b):(camelCaseToHyphenated rest)
+camelCaseToHyphenated (a:rest) = (toLower a):(camelCaseToHyphenated rest)
 
 -- | Replace each occurrence of one sublist in a list with another.
 substitute :: (Eq a) => [a] -> [a] -> [a] -> [a]
@@ -343,6 +457,46 @@ splitByIndices [] lst = [lst]
 splitByIndices (x:xs) lst =
     let (first, rest) = splitAt x lst in
     first:(splitByIndices (map (\y -> y - x)  xs) rest)
+
+-- | Generate infinite lazy list of markers for an ordered list,
+-- depending on list attributes.
+orderedListMarkers :: (Int, ListNumberStyle, ListNumberDelim) -> [String]
+orderedListMarkers (start, numstyle, numdelim) = 
+  let singleton c = [c]
+      seq = case numstyle of
+                    DefaultStyle -> map show [start..]
+                    Decimal      -> map show [start..]
+                    UpperAlpha   -> drop (start - 1) $ cycle $ map singleton ['A'..'Z']
+                    LowerAlpha   -> drop (start - 1) $ cycle $ map singleton ['a'..'z']
+                    UpperRoman   -> map toRomanNumeral [start..]
+                    LowerRoman   -> map (map toLower . toRomanNumeral) [start..]
+      inDelim str = case numdelim of
+                            DefaultDelim -> str ++ "."
+                            Period       -> str ++ "."
+                            OneParen     -> str ++ ")"
+                            TwoParens    -> "(" ++ str ++ ")"
+  in  map inDelim seq
+
+-- | Convert number < 4000 to uppercase roman numeral.
+toRomanNumeral :: Int -> String
+toRomanNumeral x =
+  if x >= 4000 || x < 0
+     then "?"
+     else case x of
+              x | x >= 1000 -> "M" ++ toRomanNumeral (x - 1000)
+              x | x >= 900  -> "CM" ++ toRomanNumeral (x - 900)
+              x | x >= 500  -> "D" ++ toRomanNumeral (x - 500)
+              x | x >= 400  -> "CD" ++ toRomanNumeral (x - 400)
+              x | x >= 100  -> "C" ++ toRomanNumeral (x - 100)
+              x | x >= 90   -> "XC" ++ toRomanNumeral (x - 90)
+              x | x >= 50   -> "L"  ++ toRomanNumeral (x - 50)
+              x | x >= 40   -> "XL" ++ toRomanNumeral (x - 40)
+              x | x >= 10   -> "X" ++ toRomanNumeral (x - 10)
+              x | x >= 9    -> "IX" ++ toRomanNumeral (x - 5)
+              x | x >= 5    -> "V" ++ toRomanNumeral (x - 5)
+              x | x >= 4    -> "IV" ++ toRomanNumeral (x - 4)
+              x | x >= 1    -> "I" ++ toRomanNumeral (x - 1)
+              0             -> ""
 
 -- | Normalize a list of inline elements: remove leading and trailing
 -- @Space@ elements, collapse double @Space@s into singles, and
@@ -383,8 +537,8 @@ containsPara [] = False
 containsPara ((Para a):rest) = True
 containsPara ((BulletList items):rest) =  (any containsPara items) ||
                                           (containsPara rest)
-containsPara ((OrderedList items):rest) = (any containsPara items) ||
-                                          (containsPara rest)
+containsPara ((OrderedList _ items):rest) = (any containsPara items) ||
+                                            (containsPara rest)
 containsPara (x:rest) = containsPara rest
 
 -- | Data structure for defining hierarchical Pandoc documents

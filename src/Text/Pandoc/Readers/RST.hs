@@ -379,46 +379,11 @@ bulletListStart = try (do
   let len = length (marker:white)
   return len) 
 
-withPeriodSuffix parser = try (do
-  a <- parser
-  b <- char '.'
-  return (a ++ [b]))
-
-withParentheses parser = try (do
-  a <- char '('
-  b <- parser
-  c <- char ')'
-  return ([a] ++ b ++ [c]))
-
-withRightParen parser = try (do
-  a <- parser
-  b <- char ')'
-  return (a ++ [b]))
-
-upcaseWord = map toUpper
-
-romanNumeral = do
-  let lowerNumerals = ["i", "ii", "iii", "iiii", "iv", "v", "vi",
-                       "vii", "viii", "ix", "x", "xi", "xii", "xiii",
-                       "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx",
-                       "xxi", "xxii", "xxiii", "xxiv" ]
-  let upperNumerals = map upcaseWord lowerNumerals
-  result <- choice $ map string (lowerNumerals ++ upperNumerals)
-  return result
-
-orderedListEnumerator = choice [ many1 digit, 
-                                 count 1 (char '#'),
-                                 count 1 letter,
-                                 romanNumeral ]
-
 -- parses ordered list start and returns its length (inc following whitespace)
-orderedListStart = try (do
-  marker <- choice [ withPeriodSuffix orderedListEnumerator, 
-                     withParentheses orderedListEnumerator, 
-                     withRightParen orderedListEnumerator ]
+orderedListStart style delim = try $ do
+  (_, markerLen) <- withHorizDisplacement (orderedListMarker style delim)
   white <- many1 spaceChar
-  let len = length (marker ++ white)
-  return len)
+  return $ markerLen + length white
 
 -- parse a line of a list item
 listLine markerLength = try (do
@@ -437,11 +402,11 @@ indentWith num = do
                    (try (do {char '\t'; count (num - tabStop) (char ' ')})) ] 
 
 -- parse raw text for one list item, excluding start marker and continuations
-rawListItem start = try (do
+rawListItem start = try $ do
   markerLength <- start
   firstLine <- manyTill anyChar newline
   restLines <- many (listLine markerLength)
-  return (markerLength, (firstLine ++ "\n" ++ (concat restLines))))
+  return (markerLength, (firstLine ++ "\n" ++ (concat restLines)))
 
 -- continuation of a list item - indented and separated by blankline or 
 -- (in compact lists) endline.  
@@ -473,10 +438,11 @@ listItem start = try (do
   updateState (\st -> st {stateParserContext = oldContext})
   return parsed)
 
-orderedList = try (do
-  items <- many1 (listItem orderedListStart)
+orderedList = try $ do
+  (start, style, delim) <- lookAhead anyOrderedListMarker 
+  items <- many1 (listItem (orderedListStart style delim))
   let items' = compactify items
-  return (OrderedList items'))
+  return (OrderedList (start, style, delim) items')
 
 bulletList = try (do
   items <- many1 (listItem bulletListStart)
@@ -611,7 +577,8 @@ endline = try (do
   -- parse potential list-starts at beginning of line differently in a list:
   st <- getState
   if ((stateParserContext st) == ListItemState)
-     then notFollowedBy' (choice [orderedListStart, bulletListStart])
+     then do notFollowedBy' anyOrderedListMarker
+             notFollowedBy' bulletListStart
      else option () pzero
   return Space)
 

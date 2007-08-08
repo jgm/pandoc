@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html
 ><head
   ><title
@@ -9,7 +9,14 @@
      /><meta name="author" content="Anonymous"
      /><meta name="date" content="July 17, 2006"
      /><style type="text/css"
-    >.strikeout { text-decoration: line-through; }</style
+    >
+.strikeout { text-decoration: line-through; }
+ol.decimal { list-style-type: decimal; }
+ol.lower-alpha { list-style-type: lower-alpha; }
+ol.lower-roman { list-style-type: lower-roman; }
+ol.upper-alpha { list-style-type: upper-alpha; }
+ol.upper-roman { list-style-type: upper-roman; }
+</style
     ></head
   ><body
   ><h1 class="title"
@@ -78,7 +85,7 @@
 	></pre
       ><p
       >A list:</p
-      ><ol
+      ><ol class="decimal"
       ><li
 	>item one</li
 	><li
@@ -111,7 +118,7 @@
 	></pre
       ></blockquote
     ><blockquote
-    ><ol
+    ><ol class="decimal"
       ><li
 	>do laundry</li
 	><li
@@ -242,7 +249,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     >Ordered</h2
     ><p
     >Tight:</p
-    ><ol
+    ><ol class="decimal"
     ><li
       >First</li
       ><li
@@ -252,7 +259,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       ></ol
     ><p
     >and:</p
-    ><ol
+    ><ol class="decimal"
     ><li
       >One</li
       ><li
@@ -262,7 +269,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       ></ol
     ><p
     >Loose using tabs:</p
-    ><ol
+    ><ol class="decimal"
     ><li
       ><p
 	>First</p
@@ -278,7 +285,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       ></ol
     ><p
     >and using spaces:</p
-    ><ol
+    ><ol class="decimal"
     ><li
       ><p
 	>One</p
@@ -294,7 +301,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       ></ol
     ><p
     >Multiple paragraphs:</p
-    ><ol
+    ><ol class="decimal"
     ><li
       ><p
 	>Item 1, graf one.</p
@@ -326,7 +333,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       ></ul
     ><p
     >Here&rsquo;s another:</p
-    ><ol
+    ><ol class="decimal"
     ><li
       >First</li
       ><li
@@ -344,7 +351,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       ></ol
     ><p
     >Same thing but with paragraphs:</p
-    ><ol
+    ><ol class="decimal"
     ><li
       ><p
 	>First</p
@@ -388,6 +395,60 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
 	  ></ul
 	></li
       ></ul
+    ><h2 id="fancy-list-markers"
+    >Fancy list markers</h2
+    ><ol start="2" class="decimal"
+    ><li
+      >begins with 2</li
+      ><li
+      ><p
+	>and now 3</p
+	><p
+	>with a continuation</p
+	><ol start="4" class="lower-roman"
+	><li
+	  >sublist with roman numerals, starting with 4</li
+	  ><li
+	  >more items<ol class="upper-alpha"
+	    ><li
+	      >a subsublist</li
+	      ><li
+	      >a subsublist</li
+	      ></ol
+	    ></li
+	  ></ol
+	></li
+      ></ol
+    ><p
+    >Nesting:</p
+    ><ol class="upper-alpha"
+    ><li
+      >Upper Alpha<ol class="upper-roman"
+	><li
+	  >Upper Roman.<ol start="6" class="decimal"
+	    ><li
+	      >Decimal start with 6<ol start="3" class="lower-alpha"
+		><li
+		  >Lower alpha with paren</li
+		  ></ol
+		></li
+	      ></ol
+	    ></li
+	  ></ol
+	></li
+      ></ol
+    ><p
+    >Autonumbering:</p
+    ><ol
+    ><li
+      >Autonumber.</li
+      ><li
+      >More.<ol
+	><li
+	  >Nested.</li
+	  ></ol
+	></li
+      ></ol
     ><hr
      /><h1 id="definition-lists"
     >Definition Lists</h1
@@ -995,7 +1056,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+'<code>'+e+'</code>'+'<\/'+
 	  ></a
 	></p
       ></blockquote
-    ><ol
+    ><ol class="decimal"
     ><li
       >And in list items.<a href="#fn5" class="footnoteRef" id="fnref5"
 	><sup

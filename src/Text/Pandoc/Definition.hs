@@ -45,6 +45,23 @@ data Alignment = AlignLeft
                | AlignCenter 
                | AlignDefault deriving (Eq, Show, Read)
 
+-- | List attributes.
+type ListAttributes = (Int, ListNumberStyle, ListNumberDelim)
+
+-- | Style of list numbers.
+data ListNumberStyle = DefaultStyle
+                     | Decimal 
+                     | LowerRoman 
+                     | UpperRoman
+                     | LowerAlpha 
+                     | UpperAlpha deriving (Eq, Show, Read)
+
+-- | Delimiter of list numbers.
+data ListNumberDelim = DefaultDelim
+                     | Period
+                     | OneParen 
+                     | TwoParens deriving (Eq, Show, Read)
+                   
 -- | Block element.
 data Block  
     = Plain [Inline]        -- ^ Plain text, not a paragraph
@@ -53,8 +70,8 @@ data Block
     | CodeBlock String      -- ^ Code block (literal)
     | RawHtml String        -- ^ Raw HTML block (literal)
     | BlockQuote [Block]    -- ^ Block quote (list of blocks)
-    | OrderedList [[Block]] -- ^ Ordered list (list of items, each 
-                            -- a list of blocks)
+    | OrderedList ListAttributes [[Block]] -- ^ Ordered list (attributes,
+                            -- and a list of items, each a list of blocks)
     | BulletList [[Block]]  -- ^ Bullet list (list of items, each
                             -- a list of blocks)
     | DefinitionList [([Inline],[Block])]  -- ^ Definition list 

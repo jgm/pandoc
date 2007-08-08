@@ -211,6 +211,37 @@ Here's another:
 
 3. Third 
 
+Fancy list markers
+------------------
+
+(2) begins with 2
+(3) and now 3
+
+    with a continuation
+
+    iv. sublist with roman numerals, starting with 4
+    v.  more items
+        
+        (A) a subsublist
+        (B) a subsublist
+
+Nesting:
+
+A.  Upper Alpha
+    
+    I.  Upper Roman.
+        
+        (6) Decimal start with 6
+            
+            c) Lower alpha with paren
+
+Autonumbering:
+
+#. Autonumber.
+#.  More.
+    
+    #. Nested.
+
 Definition
 ----------
 

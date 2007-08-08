@@ -57,7 +57,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
       after'  = if null after then empty else text after
   metaBlock <- metaToMarkdown opts meta
   let head = if (writerStandalone opts)
-                then metaBlock $$ text (writerHeader opts)
+                then metaBlock $+$ text (writerHeader opts)
                 else empty
   let headerBlocks = filter isHeaderBlock blocks
   let toc = if writerTableOfContents opts 
@@ -68,8 +68,8 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   notes' <- notesToMarkdown opts (reverse notes)
   (_, refs) <- get  -- note that the notes may contain refs
   refs' <- keyTableToMarkdown opts (reverse refs)
-  return $ head $$ before' $$ toc $$ body $$ text "" $$ 
-           notes' $$ text "" $$ refs' $$ after'
+  return $ head $+$ before' $+$ toc $+$ body $+$ text "" $+$ 
+           notes' $+$ text "" $+$ refs' $+$ after'
 
 -- | Return markdown representation of reference key table.
 keyTableToMarkdown :: WriterOptions -> KeyTable -> State WriterState Doc
@@ -116,7 +116,7 @@ metaToMarkdown opts (Meta title authors date) = do
   title'   <- titleToMarkdown opts title
   authors' <- authorsToMarkdown authors
   date'    <- dateToMarkdown date
-  return $ title' $$ authors' $$ date'
+  return $ title' $+$ authors' $+$ date'
 
 titleToMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
 titleToMarkdown opts [] = return empty
@@ -173,7 +173,7 @@ blockToMarkdown opts (Table caption aligns widths headers rows) =  do
   caption' <- inlineListToMarkdown opts caption
   let caption'' = if null caption
                      then empty
-                     else text "" $$ (text "Table: " <> caption')
+                     else text "" $+$ (text "Table: " <> caption')
   headers' <- mapM (blockListToMarkdown opts) headers
   let widthsInChars = map (floor . (78 *)) widths
   let alignHeader alignment = case alignment of
@@ -199,14 +199,19 @@ blockToMarkdown opts (Table caption aligns widths headers rows) =  do
                   then text ""
                   else empty
   let body = vcat $ intersperse spacer $ map blockToDoc rows'
-  return $ (nest 2 $ border $$ (blockToDoc head) $$ underline $$ body $$ 
-                     border $$ caption'') $$ text ""
+  return $ (nest 2 $ border $+$ (blockToDoc head) $+$ underline $+$ body $+$ 
+                     border $+$ caption'') <> text "\n"
 blockToMarkdown opts (BulletList items) = do
   contents <- mapM (bulletListItemToMarkdown opts) items
   return $ (vcat contents) <> text "\n"
-blockToMarkdown opts (OrderedList items) = do
+blockToMarkdown opts (OrderedList attribs items) = do
+  let markers  = orderedListMarkers attribs
+  let markers' = map (\m -> if length m < 3
+                               then m ++ replicate (3 - length m) ' '
+                               else m) 
+                     markers 
   contents <- mapM (\(item, num) -> orderedListItemToMarkdown opts item num) $
-              zip [1..] items  
+              zip markers' items  
   return $ (vcat contents) <> text "\n"
 blockToMarkdown opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToMarkdown opts) items
@@ -220,14 +225,12 @@ bulletListItemToMarkdown opts items = do
 
 -- | Convert ordered list item (a list of blocks) to markdown.
 orderedListItemToMarkdown :: WriterOptions -- ^ options
-                          -> Int           -- ^ ordinal number of list item
+                          -> String        -- ^ list item marker
                           -> [Block]       -- ^ list item (list of blocks)
                           -> State WriterState Doc
-orderedListItemToMarkdown opts num items = do
+orderedListItemToMarkdown opts marker items = do
   contents <- blockListToMarkdown opts items
-  let spacer = if (num < 10) then " " else ""
-  return $ hang (text ((show num) ++ "." ++ spacer)) (writerTabStop opts)
-           contents 
+  return $ hang (text marker) (writerTabStop opts) contents 
 
 -- | Convert definition list item (label, list of blocks) to markdown.
 definitionListItemToMarkdown :: WriterOptions

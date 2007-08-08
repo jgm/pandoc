@@ -132,11 +132,13 @@ bulletMarker indent = case (indent `mod` 720) of
                              otherwise -> "\\endash "
 
 -- | Returns appropriate (list of) ordered list markers for indent level.
-orderedMarkers :: Int -> [String]
-orderedMarkers indent = 
-  case (indent `mod` 720) of
-      0         -> map (\x -> show x ++ ".") [1..]
-      otherwise -> map (\x -> show x ++ ".") $ cycle ['a'..'z']
+orderedMarkers :: Int -> ListAttributes -> [String]
+orderedMarkers indent (start, style, delim) = 
+  if style == DefaultStyle && delim == DefaultDelim
+     then case (indent `mod` 720) of
+              0         -> orderedListMarkers (start, Decimal, Period)
+              otherwise -> orderedListMarkers (start, LowerAlpha, Period)
+     else orderedListMarkers (start, style, delim)
 
 -- | Returns RTF header.
 rtfHeader :: String    -- ^ header text
@@ -177,9 +179,9 @@ blockToRTF _ _ (RawHtml str) = ""
 blockToRTF indent alignment (BulletList lst) = 
   spaceAtEnd $ 
   concatMap (listItemToRTF alignment indent (bulletMarker indent)) lst
-blockToRTF indent alignment (OrderedList lst) = 
+blockToRTF indent alignment (OrderedList attribs lst) = 
   spaceAtEnd $ concat $ 
-  zipWith (listItemToRTF alignment indent) (orderedMarkers indent) lst
+  zipWith (listItemToRTF alignment indent) (orderedMarkers indent attribs) lst
 blockToRTF indent alignment (DefinitionList lst) = 
   spaceAtEnd $ 
   concatMap (definitionListItemToRTF alignment indent) lst

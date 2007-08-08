@@ -40,7 +40,10 @@ module Text.Pandoc.ParserCombinators (
                                       stringAnyCase,
                                       parseFromString,
                                       lineClump,
-                                      charsInBalanced
+                                      charsInBalanced,
+                                      charsInBalanced',
+                                      romanNumeral,
+                                      withHorizDisplacement
                                      ) where
 import Text.ParserCombinators.Parsec
 import Data.Char ( toUpper, toLower )
@@ -127,7 +130,8 @@ lineClump = do
 -- and a close character, including text between balanced
 -- pairs of open and close. For example,
 -- @charsInBalanced '(' ')'@ will parse "(hello (there))"
--- and return "hello (there)". 
+-- and return "hello (there)".  Stop if a blank line is
+-- encountered.
 charsInBalanced :: Char -> Char -> GenParser Char st String
 charsInBalanced open close = try $ do
   char open
@@ -137,4 +141,58 @@ charsInBalanced open close = try $ do
                           count 1 anyChar))
                   (char close)
   return $ concat raw
+
+-- | Like charsInBalanced, but allow blank lines in the content.
+charsInBalanced' :: Char -> Char -> GenParser Char st String
+charsInBalanced' open close = try $ do
+  char open
+  raw <- manyTill (   (do res <- charsInBalanced open close
+                          return $ [open] ++ res ++ [close])
+                  <|> count 1 anyChar)
+                  (char close)
+  return $ concat raw
+
+-- | Parses a roman numeral (uppercase or lowercase), returns number.
+romanNumeral :: Bool ->  -- ^ Uppercase if true
+                GenParser Char st Int
+romanNumeral upper = try $ do
+    let char' c = char (if upper then toUpper c else c)
+    let one = char' 'i'
+    let five = char' 'v'
+    let ten = char' 'x'
+    let fifty = char' 'l'
+    let hundred = char' 'c'
+    let fivehundred = char' 'd'
+    let thousand = char' 'm'
+    thousands <- many thousand >>= (return . (1000 *) . length)
+    ninehundreds <- option 0 $ try $ hundred >> thousand >> return 900
+    fivehundreds <- many fivehundred >>= (return . (500 *) . length)
+    fourhundreds <- option 0 $ try $ hundred >> fivehundred >> return 400
+    hundreds <- many hundred >>= (return . (100 *) . length)
+    nineties <- option 0 $ try $ ten >> hundred >> return 90
+    fifties <- many fifty >>= (return . (50 *) . length)
+    forties <- option 0 $ try $ ten >> fifty >> return 40
+    tens <- many ten >>= (return . (10 *) . length)
+    nines <- option 0 $ try $ one >> ten >> return 9
+    fives <- many five >>= (return . (5*) . length)
+    fours <- option 0 $ try $ one >> five >> return 4
+    ones <- many one >>= (return . length)
+    let total = thousands + ninehundreds + fivehundreds + fourhundreds +
+                hundreds + nineties + fifties + forties + tens + nines +
+                fives + fours + ones
+    if total == 0
+       then fail "not a roman numeral"
+       else return total
+
+-- | Applies a parser, returns tuple of its results and its horizontal
+-- displacement (the difference between the source column at the end
+-- and the source column at the beginning). Vertical displacement
+-- (source row) is ignored.
+withHorizDisplacement :: GenParser Char st a  -- ^ Parser to apply
+                      -> GenParser Char st (a, Int) -- ^ (result, displacement)
+withHorizDisplacement parser = do
+  pos1 <- getPosition
+  result <- parser
+  pos2 <- getPosition
+  return (result, sourceColumn pos2 - sourceColumn pos1)
 

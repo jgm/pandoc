@@ -354,11 +354,26 @@ blockQuote = try (do
 list = choice [ bulletList, orderedList, definitionList ] <?> "list"
 
 orderedList = try $ do
-    htmlTag "ol"
+    (_, attribs) <- htmlTag "ol"
+    (start, style) <- option (1, DefaultStyle) $
+                             do failIfStrict
+                                let sta = fromMaybe "1" $ 
+                                          lookup "start" attribs
+                                let sty = fromMaybe (fromMaybe "" $
+                                          lookup "style" attribs) $
+                                          lookup "class" attribs
+                                let sty' = case sty of
+                                            "lower-roman"  -> LowerRoman
+                                            "upper-roman"  -> UpperRoman
+                                            "lower-alpha"  -> LowerAlpha
+                                            "upper-alpha"  -> UpperAlpha
+                                            "decimal"      -> Decimal
+                                            _              -> DefaultStyle
+                                return (read sta, sty')
     spaces
     items <- sepEndBy1 (blocksIn "li") spaces
     htmlEndTag "ol"
-    return (OrderedList items)
+    return (OrderedList (start, style, DefaultDelim) items)
 
 bulletList = try $ do
     htmlTag "ul"

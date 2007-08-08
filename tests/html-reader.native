@@ -28,7 +28,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] [] "")
   [ Para [Str "Code",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote:"]
   , CodeBlock "sub status {\n    print \"working\";\n}"
   , Para [Str "A",Space,Str "list:"]
-  , OrderedList
+  , OrderedList (1,DefaultStyle,DefaultDelim)
     [ [ Plain [Str "item",Space,Str "one"] ]
     , [ Plain [Str "item",Space,Str "two"] ] ]
   , Para [Str "Nested",Space,Str "block",Space,Str "quotes:"]
@@ -44,7 +44,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] [] "")
   [ Para [Str "Example:"]
   , CodeBlock "sub status {\n    print \"working\";\n}" ]
 , BlockQuote
-  [ OrderedList
+  [ OrderedList (1,DefaultStyle,DefaultDelim)
     [ [ Plain [Str "do",Space,Str "laundry"] ]
     , [ Plain [Str "take",Space,Str "out",Space,Str "the",Space,Str "trash"] ] ] ]
 , Para [Str "Here's",Space,Str "a",Space,Str "nested",Space,Str "one:"]
@@ -95,27 +95,27 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] [] "")
   , [ Para [Str "Minus",Space,Str "3"] ] ]
 , Header 2 [Str "Ordered"]
 , Para [Str "Tight:"]
-, OrderedList
+, OrderedList (1,DefaultStyle,DefaultDelim)
   [ [ Plain [Str "First"] ]
   , [ Plain [Str "Second"] ]
   , [ Plain [Str "Third"] ] ]
 , Para [Str "and:"]
-, OrderedList
+, OrderedList (1,DefaultStyle,DefaultDelim)
   [ [ Plain [Str "One"] ]
   , [ Plain [Str "Two"] ]
   , [ Plain [Str "Three"] ] ]
 , Para [Str "Loose",Space,Str "using",Space,Str "tabs:"]
-, OrderedList
+, OrderedList (1,DefaultStyle,DefaultDelim)
   [ [ Para [Str "First"] ]
   , [ Para [Str "Second"] ]
   , [ Para [Str "Third"] ] ]
 , Para [Str "and",Space,Str "using",Space,Str "spaces:"]
-, OrderedList
+, OrderedList (1,DefaultStyle,DefaultDelim)
   [ [ Para [Str "One"] ]
   , [ Para [Str "Two"] ]
   , [ Para [Str "Three"] ] ]
 , Para [Str "Multiple",Space,Str "paragraphs:"]
-, OrderedList
+, OrderedList (1,DefaultStyle,DefaultDelim)
   [ [ Para [Str "Item",Space,Str "1,",Space,Str "graf",Space,Str "one."]
     , Para [Str "Item",Space,Str "1.",Space,Str "graf",Space,Str "two.",Space,Str "The",Space,Str "quick",Space,Str "brown",Space,Str "fox",Space,Str "jumped",Space,Str "over",Space,Str "the",Space,Str "lazy",Space,Str "dog's",Space,Str "back."] ], [ Para [Str "Item",Space,Str "2."] ]
   , [ Para [Str "Item",Space,Str "3."] ] ]
@@ -128,7 +128,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] [] "")
           [ [ Plain [Str "Tab"] ]
          ] ] ] ] ]
 , Para [Str "Here's",Space,Str "another:"]
-, OrderedList
+, OrderedList (1,DefaultStyle,DefaultDelim)
   [ [ Plain [Str "First"] ]
   , [ Plain [Str "Second:"]
     , BulletList
@@ -136,7 +136,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] [] "")
       , [ Plain [Str "Fie"] ]
       , [ Plain [Str "Foe"] ] ] ], [ Plain [Str "Third"] ] ]
 , Para [Str "Same",Space,Str "thing",Space,Str "but",Space,Str "with",Space,Str "paragraphs:"]
-, OrderedList
+, OrderedList (1,DefaultStyle,DefaultDelim)
   [ [ Para [Str "First"] ]
   , [ Para [Str "Second:"]
     , BulletList
@@ -150,6 +150,35 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] [] "")
     , BulletList
       [ [ Para [Str "this",Space,Str "is",Space,Str "an",Space,Str "example",Space,Str "list",Space,Str "item",Space,Str "indented",Space,Str "with",Space,Str "tabs"] ]
       , [ Para [Str "this",Space,Str "is",Space,Str "an",Space,Str "example",Space,Str "list",Space,Str "item",Space,Str "indented",Space,Str "with",Space,Str "spaces"] ] ] ] ]
+, Header 2 [Str "Fancy",Space,Str "list",Space,Str "markers"]
+, OrderedList (2,Decimal,DefaultDelim)
+  [ [ Plain [Str "begins",Space,Str "with",Space,Str "2"] ]
+  , [ Para [Str "and",Space,Str "now",Space,Str "3"]
+    , Para [Str "with",Space,Str "a",Space,Str "continuation"]
+    , OrderedList (4,LowerRoman,DefaultDelim)
+      [ [ Plain [Str "sublist",Space,Str "with",Space,Str "roman",Space,Str "numerals,",Space,Str "starting",Space,Str "with",Space,Str "4"] ]
+      , [ Plain [Str "more",Space,Str "items"]
+        , OrderedList (1,UpperAlpha,DefaultDelim)
+          [ [ Plain [Str "a",Space,Str "subsublist"] ]
+          , [ Plain [Str "a",Space,Str "subsublist"] ] ] ] ] ] ]
+, Para [Str "Nesting:"]
+, OrderedList (1,UpperAlpha,DefaultDelim)
+  [ [ Plain [Str "Upper",Space,Str "Alpha"]
+    , OrderedList (1,UpperRoman,DefaultDelim)
+      [ [ Plain [Str "Upper",Space,Str "Roman."]
+        , OrderedList (6,Decimal,DefaultDelim)
+          [ [ Plain [Str "Decimal",Space,Str "start",Space,Str "with",Space,Str "6"]
+            , OrderedList (3,LowerAlpha,DefaultDelim)
+              [ [ Plain [Str "Lower",Space,Str "alpha",Space,Str "with",Space,Str "paren"] ]
+             ] ] ] ] ] ] ]
+, Para [Str "Autonumbering:"]
+, OrderedList (1,DefaultStyle,DefaultDelim)
+  [ [ Plain [Str "Autonumber."] ]
+  , [ Plain [Str "More."]
+    , OrderedList (1,DefaultStyle,DefaultDelim)
+      [ [ Plain [Str "Nested."] ]
+     ] ] ]
+, HorizontalRule
 , Header 2 [Str "Definition"]
 , DefinitionList
   [  ([Str "Violin"],

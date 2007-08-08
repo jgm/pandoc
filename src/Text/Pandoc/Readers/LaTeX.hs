@@ -59,12 +59,8 @@ specialChars = "\\$%&^&_~#{}\n \t|<>'\"-"
 
 -- | Returns text between brackets and its matching pair.
 bracketedText openB closeB = try (do
-  char openB
-  result <- many (choice [ oneOfStrings [ ['\\', openB], ['\\', closeB] ],
-                           count 1 (noneOf [openB, closeB]),
-                           bracketedText openB closeB ])
-  char closeB
-  return ([openB] ++ (concat result) ++ [closeB]))
+  result <- charsInBalanced' openB closeB
+  return ([openB] ++ result ++ [closeB]))
 
 -- | Returns an option or argument of a LaTeX command.
 optOrArg = choice [ (bracketedText '{' '}'), (bracketedText '[' ']') ]
@@ -255,12 +251,30 @@ listItem = try $ do
     return (opt, blocks)
 
 orderedList = try $ do
-    begin "enumerate"
+    string "\\begin{enumerate}"
+    (_, style, delim) <- option (1, DefaultStyle, DefaultDelim) $
+                                try $ do failIfStrict
+                                         char '['
+                                         res <- anyOrderedListMarker
+                                         char ']'
+                                         return res
     spaces
+    option "" $ try $ do string "\\setlength{\\itemindent}"
+                         char '{'
+                         manyTill anyChar (char '}')
+    spaces
+    start <- option 1 $ try $ do failIfStrict
+                                 string "\\setcounter{enum"
+                                 many1 (char 'i')
+                                 string "}{"
+                                 num <- many1 digit
+                                 char '}' 
+                                 spaces
+                                 return $ (read num) + 1
     items <- many listItem
     end "enumerate"
     spaces
-    return (OrderedList $ map snd items)
+    return $ OrderedList (start, style, delim) $ map snd items
 
 bulletList = try $ do
     begin "itemize"

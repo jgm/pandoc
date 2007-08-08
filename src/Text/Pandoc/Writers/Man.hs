@@ -173,9 +173,11 @@ blockToMan opts (Table caption alignments widths headers rows) =
 blockToMan opts (BulletList items) = do
   contents <- mapM (bulletListItemToMan opts) items
   return (vcat contents) 
-blockToMan opts (OrderedList items) = do
-  contents <- mapM (\(item, num) -> orderedListItemToMan opts item num) $
-              zip [1..] items  
+blockToMan opts (OrderedList attribs items) = do
+  let markers = take (length items) $ orderedListMarkers attribs  
+  let indent = 1 + (maximum $ map length markers)
+  contents <- mapM (\(num, item) -> orderedListItemToMan opts num indent item) $
+              zip markers items  
   return (vcat contents)
 blockToMan opts (DefinitionList items) = do  
   contents <- mapM (definitionListItemToMan opts) items
@@ -201,25 +203,22 @@ bulletListItemToMan opts (first:rest) = do
  
 -- | Convert ordered list item (a list of blocks) to man.
 orderedListItemToMan :: WriterOptions -- ^ options
-                          -> Int           -- ^ ordinal number of list item
-                          -> [Block]       -- ^ list item (list of blocks)
+                          -> String   -- ^ order marker for list item
+                          -> Int      -- ^ number of spaces to indent
+                          -> [Block]  -- ^ list item (list of blocks)
                           -> State WriterState Doc
-orderedListItemToMan _ _ [] = return empty
-orderedListItemToMan opts num ((Para first):rest) = 
-  orderedListItemToMan opts num ((Plain first):rest)
-orderedListItemToMan opts num ((Plain first):rest) = do
-  first' <- blockToMan opts (Plain first) 
+orderedListItemToMan _ _ _ [] = return empty
+orderedListItemToMan opts num indent ((Para first):rest) = 
+  orderedListItemToMan opts num indent ((Plain first):rest)
+orderedListItemToMan opts num indent (first:rest) = do
+  first' <- blockToMan opts first
   rest' <- blockListToMan opts rest
-  let first'' = text (".IP " ++ show num ++ "." ++ " 4") $$ first'
+  let num' = printf ("%" ++ show (indent - 1) ++ "s") num
+  let first'' = text (".IP \"" ++ num' ++ "\" " ++ show indent) $$ first'
   let rest''  = if null rest
                    then empty
                    else text ".RS 4" $$ rest' $$ text ".RE"
-  return (first'' $$ rest'') 
-orderedListItemToMan opts num (first:rest) = do
-  first' <- blockToMan opts first
-  rest' <- blockListToMan opts rest
-  return $ text (".IP " ++ show num ++ "." ++ " 4") $$ first' $$ 
-           rest' $$ text ".RE"
+  return $ first'' $$ rest'' 
 
 -- | Convert definition list item (label, list of blocks) to man.
 definitionListItemToMan :: WriterOptions
