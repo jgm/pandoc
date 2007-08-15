@@ -78,8 +78,9 @@ To see what pandoc can do, see the [demonstration page](examples.html).
 
 - [FreeBSD port].
 
-- [Debian linux package] (will also work on Ubuntu and other Debian
-  derivatives).  To install, download the file and type:
+- [Debian linux package] (thanks to Recai Oktaş). This will also work
+  on Ubuntu and other Debian derivatives. To install, download the file
+  and type:
 
         sudo dpkg -i pandoc_0.4_i386.deb
 
