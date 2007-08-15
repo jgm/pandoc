@@ -500,13 +500,18 @@ an alphabetic list. So you are out of luck if you want a roman-numbered
 list starting with 100 (C).
 
 Note also that a paragraph starting with a capital letter and a period
-(for example, an initial) will be interpreted as a list:
+(for example, an initial) or a capital letter in parentheses
+(for example, `(C)`) will be interpreted as a list:
 
     B. Russell was an English philosopher.
+
+    (C) 2007 Joe Smith
 
 To avoid this, use backslash escapes:
 
     B\. Russell was an English philosopher.
+
+    \(C) 2007 Joe Smith
 
 Definition lists
 ----------------
