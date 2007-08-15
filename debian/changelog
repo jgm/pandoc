@@ -7,6 +7,13 @@ pandoc (0.4) unstable; urgency=low
     assumed to be ConTeXt, and output files with single-digit extensions
     are assumed to be man pages.
 
+  * Enhanced ordered lists (documented in README, under Lists):
+    + The OrderedList block element now stores information about
+      list number style, list number delimiter, and starting number.
+    + The readers parse this information when possible.
+    + The writers use this information to style ordered lists.
+    + The enhancement can be disabled using the --strict option. 
+
   * Added support for tables (with a new Table block element). Two kinds
     of tables are supported: a simple table with one-line rows, and a
     more complex variety with multiline rows. All output formats are
@@ -74,6 +81,8 @@ pandoc (0.4) unstable; urgency=low
     needed for most uses of Pandoc libraries. The haddock documentation
     includes a short example program.
 
+  * Text.Pandoc.ASCIIMathML is no longer an exported module.
+
   * Added Text.Pandoc.Blocks module to help in printing markdown
     and RST tables.  This module provides functions for working with
     fixed-width blocks of text--e.g., placing them side by side, as
@@ -93,8 +102,11 @@ pandoc (0.4) unstable; urgency=low
     + Modified Docbook writer so that it doesn't rely on Text.Regex for
       detecting 'mailto' links.
     + Removed escapePreservingRegex and reamped entity-handling
-      functions in Text.Pandoc.Shared and Text.Pandoc.Entities to
-      avoid reliance on Text.Regex (see below on Entity handling changes).
+      functions in Text.Pandoc.Shared and Text.Pandoc.CharacterReferences to
+      avoid reliance on Text.Regex (see below on character reference
+      handling changes).
+
+  * Renamed Text.Pandoc.Entities as Text.Pandoc.CharacterReferences.
 
   * Changed handling of XML entities.  Entities are now parsed (and unicode
     characters returned) in the Markdown and HTML readers, rather than being
@@ -105,12 +117,13 @@ pandoc (0.4) unstable; urgency=low
     + Removed sgmlHexEntity, sgmlDecimalEntity, sgmlNamedEntity, and
       sgmlCharacterEntity regexes from Text.Pandoc.Shared.
     + Renamed escapeSGMLChar to escapeCharForXML.  Added escapeStringForXML.
-    + Added parsers characterEntity, namedEntity, decimalEntity, hexEntity 
-      to Entities.hs; these parse a string and return a unicode character.
-    + Added new 'entity' parser to Markdown reader, and added '&' as a 
-      special character.
-    + Changed 'entity' parser in HTML reader to use characterEntity.
-    + Rewrote decodeEntities to use the new parsers instead of Text.Regex.
+      Moved both functions to Text.Pandoc.Writers.Docbook.
+    + Added characterReference parser to Text.Pandoc.CharacterReferences.
+      This parses a string and return a unicode character.
+    + Rewrote decodeCharacterReferences to use the new parser instead of 
+      Text.Regex.
+    + Added new charRef parser for Markdown and HTML, which replaces the
+      old 'entity' parser. Added '&' as a special character in Markdown reader.
     + Modified HTML and Markdown readers to call decodeEntities on all raw
       strings (e.g. authors, dates, link titles), to ensure that no 
       unprocessed entities are included in the native representation of
@@ -119,8 +132,7 @@ pandoc (0.4) unstable; urgency=low
     + In XML and Markdown output, escape unicode nonbreaking space as '&nbsp;', 
       since a unicode non-breaking space is impossible to distinguish visually
       from a regular space.  (Resolves Issue #3.)
-    + Added charToEntity and charToNumericalEntity to Entities.hs.
-      Removed encodeEntitiesNumerical.
+    + Removed encodeEntitiesNumerical.
     + Use Data.Map for entityTable and (new) reverseEntityTable, for a
       slight performance boost over the old association list.
     + Removed unneeded decodeEntities from 'str' parser in HTML and
@@ -141,6 +153,14 @@ pandoc (0.4) unstable; urgency=low
     this is now done in the readers. This makes the libraries behave
     the way you'd expect from the pandoc program. Resolves Issue #10.
 
+  * URLs and email addresses in autolinks are now typeset as Code.
+
+  * In Main.hs, changed putStr to putStrLn -- mainly because MacOS X
+    doesn't display the whole output unless there's a line ending.
+
+  * Major code cleanup in all modules, for greater consistency, concision,
+    and readability.
+
   * HTML reader:
 
     + Fixed several bugs (extractTagType, attribute parsing).
@@ -157,7 +177,8 @@ pandoc (0.4) unstable; urgency=low
       care in upgrading.
     + Changed autoLink parsing to conform better to Markdown.pl's
       behavior. <google.com> is not treated as a link, but 
-      <http://google.com>, <ftp://google.com>, and <mailto:google@google.com> are.
+      <http://google.com>, <ftp://google.com>, and <mailto:google@google.com>
+      are.
     + Cleaned up handling of embedded quotes in link titles.  Now these are 
       stored as a '"' character, not as '&quot;'.
     + Use lookAhead parser for the 'first pass' (looking for reference keys),
@@ -196,6 +217,7 @@ pandoc (0.4) unstable; urgency=low
       restores the parser state.
     + Allow hyperlink target URIs to be split over multiple lines, and
       to start on the line after the reference. Resolves Issue #7.
+    + Fixed handling of autolinks.
 
   * LaTeX reader:
 
@@ -203,6 +225,7 @@ pandoc (0.4) unstable; urgency=low
       for clarity.
     + Added clauses for tilde and caret. Tilde is \ensuremath{\sim}, and
       caret is \^{}, not \^ as before.
+    + Added parsing for \url.
 
   * HTML writer:
 
@@ -242,6 +265,8 @@ pandoc (0.4) unstable; urgency=low
     + If the 'strict' option is specified, elements that do not appear in
       standard markdown (like definition lists) are passed through as
       raw HTML.
+    + Simplified treatment of autolinks, using pattern matching instead of
+      conditionals.
 
   * Markdown writer:
 
@@ -263,26 +288,20 @@ pandoc (0.4) unstable; urgency=low
     + Leave extra blank line after \maketitle.
     + Include empty '\author{}' when no author specified to avoid LaTeX
       errors.
+    + Include fancyvrb code in header only if needed -- that is, only
+      if there is actually code in a footnote.
+    + Use \url{} for autolinks.
+    + Include [mathletters] option in ucs package, so that basic unicode
+      Greek letters will work correctly.
 
-  * Text.ParserCombinators.Pandoc:
+  * RST writer:  Force blank line before lists, so that sublists will
+    be handled correctly.
 
-    + Renamed to Text.Pandoc.ParserCombinators, in order to have all the
-      pandoc libraries in the same place.
-    + Fixed a bug in the anyLine parser. Previously it would parse an empty
-      string "", but it should fail on an empty string, or we get an error
-      when it is used inside "many" combinators.
-    + Removed followedBy' parser, replacing it with the lookAhead parser from
-      Text/ParserCombinators/Parsec.
-    + Added some needed 'try's before multicharacter parsers, especially in 
-      'option' contexts.
-    + Removed the 'try' from the 'end' parser in 'enclosed', so that
-      'enclosed' behaves like 'option', 'manyTill', etc.
-    + Added lineClump parser, which parses a raw line block up to and
-      including any following blank lines.
-    + Renamed parseFromStr to parseFromString.
-    + Added a 'try' to the 'end' parser in 'enclosed'.  This makes errors in
-      the use of 'enclosed' less likely. Removed some now-unnecessary 'try's
-      in calling code.
+  * Docbook writer:  Fixed a bug:  email links with text, like
+    [foo](me@bar.baz), were being incorrectly treated as autolinks.
+
+  * Removed Text.ParserCombinators.Pandoc and moved all its functions to
+    Text.Pandoc.Shared.
 
   * Text.Pandoc.Shared:
 
@@ -306,6 +325,31 @@ pandoc (0.4) unstable; urgency=low
       backslashEscapes.
     + Moved failIfStrict from markdown reader, since it is now used also
       by the HTML reader.
+    + Added a 'try' to the definition of indentSpaces.
+    + In definition of 'reference', added check to make sure it's not a note
+      reference.
+    + Added functions: camelCaseToHyphenated, toRomanNumeral,
+      anyOrderedListMarker, orderedListmarker, orderedListMarkers,
+      charsInBalanced', withHorizDisplacement, romanNumeral
+    + Fixed a bug in the anyLine parser. Previously it would parse an empty
+      string "", but it should fail on an empty string, or we get an error
+      when it is used inside "many" combinators.
+    + Removed followedBy' parser, replacing it with the lookAhead parser from
+      Parsec. 
+    + Added some needed 'try's before multicharacter parsers, especially in 
+      'option' contexts.
+    + Removed the 'try' from the 'end' parser in 'enclosed', so that
+      'enclosed' behaves like 'option', 'manyTill', etc.
+    + Added lineClump parser, which parses a raw line block up to and
+      including any following blank lines.
+    + Renamed parseFromStr to parseFromString.
+    + Added a 'try' to the 'end' parser in 'enclosed'.  This makes errors in
+      the use of 'enclosed' less likely. Removed some now-unnecessary 'try's
+      in calling code.
+    + Removed unneeded 'try' in blanklines.
+    + Removed endsWith function and rewrote calling functions to use
+      isSuffixOf instead.
+    + Added >>~ combinator.
 
   * Refactored runtests.pl; added separate tests for tables. 
 
@@ -335,6 +379,9 @@ pandoc (0.4) unstable; urgency=low
     + Executable binaries are now stripped before installing.
     + Man pages are now generated from markdown sources, using pandoc's
       man page writer.
+    + Use HTML version of README (instead of RTF) in Mac OS X installer.
+    + Instead of testing for the existence of a pandoc symlink in build-exec,
+      use ln -f.
 
   * Documentation:
 
