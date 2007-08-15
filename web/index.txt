@@ -27,6 +27,8 @@ Pandoc features
     + Superscripts, subscripts, and strikeout.
     + Inline LaTeX math and LaTeX commands.
     + Markdown inside HTML blocks.
+    + Enhanced ordered lists:  start number and numbering style
+      are significant.
     + Compatibility mode to turn off syntax entensions and emulate
       `Markdown.pl`.
 - Convenient wrapper scripts:
@@ -76,10 +78,10 @@ To see what pandoc can do, see the [demonstration page](examples.html).
 
 - [FreeBSD port].
 
-- [Debian linux package] (thanks to Recai Oktaş).  
+- [Debian linux package]. 
   To install, download the file and type:
 
-        sudo dpkg -i pandoc_0.3_i386.deb
+        sudo dpkg -i pandoc_0.4_i386.deb
 
 # Code repository
 
@@ -101,7 +103,7 @@ You may view existing bug reports and submit new ones at
 
 # News
 
--   Version 0.4 released (?? July 2007).
+-   Version 0.4 released (August 2007).
 
     For users:
 
@@ -110,6 +112,8 @@ You may view existing bug reports and submit new ones at
     + Support for superscript, subscript, and strikeout.
     + Support for automatically generated tables of contents.
     + Automatically generated unique identifiers in HTML headers.
+    + Enhanced ordered lists (start number and list number style
+      are now significant).
     + Markdown links now printed as inline links by default,
       unless `--reference-links` option is specified.
     + Many bugs fixed.
@@ -154,7 +158,7 @@ kind.
 [MacOS X binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-0.4.dmg "Download Mac OS X disk image from Pandoc's Google Code site"
 [Windows binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-0.4.zip "Download Windows zip file from Pandoc's Google Code site"
 [Cygwin]: http://www.cygwin.com/ "Cygwin - a linux-like environment for Windows"
-[Debian linux package]:  http://people.debian.org/~roktas/packages/pandoc_0.3_i386.deb
+[Debian linux package]:  pandoc_0.4_i386.deb
 [FreeBSD port]: http://www.freshports.org/textproc/pandoc/
 [pandoc-announce]: http://groups.google.com/group/pandoc-announce
 [pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
