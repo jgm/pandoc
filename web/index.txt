@@ -70,7 +70,7 @@ To see what pandoc can do, see the [demonstration page](examples.html).
 - [Windows binary package].
   The zip file contains the `pandoc.exe` command-line program (which
   you should extract from the zip archive and put somewhere in your
-  PATH).  See the included file `README-WINDOWS.txt` for instructions
+  PATH).  See the included file `README.txt` for instructions
   on using the program.  Note:  If you use [Cygwin], we recommend that
   you compile Pandoc from source.  This will give you access to the
   wrapper scripts `markdown2pdf`, `html2markdown`, and `hsmarkdown`,
