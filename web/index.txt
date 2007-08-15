@@ -14,9 +14,9 @@ Pandoc features
   supported format.
 - A real markdown parser, not based on regex substitutions.
   [More accurate] and [faster], in many cases, than `Markdown.pl`.
-- Multiple output formats--HTML, Docbook XML, LaTeX, ConTeXt,
-  reStructuredText, RTF, groff man pages, S5 slide shows--all 
-  generated natively, with no XSLT postprocessing.
+- Also parses (subsets of) reStructuredText, LaTeX, and HTML.
+- Multiple output formats: HTML, Docbook XML, LaTeX, ConTeXt,
+  reStructuredText, Markdown, RTF, groff man pages, S5 slide shows.
 - Unicode support.
 - Optional "smart" quotes, dashes, and ellipses.
 - Automatically generated tables of contents.
@@ -104,7 +104,7 @@ You may view existing bug reports and submit new ones at
 
 # News
 
--   Version 0.4 released (August 2007).
+-   Version 0.4 released (August 15, 2007).
 
     For users:
 
