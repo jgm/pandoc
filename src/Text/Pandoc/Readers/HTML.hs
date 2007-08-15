@@ -408,7 +408,8 @@ inline = choice [ charRef
                 , whitespace
                 , link
                 , image
-                , rawHtmlInline ] <?> "inline"
+                , rawHtmlInline
+                ] <?> "inline"
 
 code = try $ do 
   htmlTag "code"
@@ -419,7 +420,7 @@ code = try $ do
                   joinWithSep " " $ lines result 
 
 rawHtmlInline = do
-  result <- htmlScript <|> anyHtmlInlineTag
+  result <- htmlScript <|> htmlComment <|> anyHtmlInlineTag
   state <- getState
   if stateParseRaw state then return (HtmlInline result) else return (Str "")
 
