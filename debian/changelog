@@ -165,6 +165,7 @@ pandoc (0.4) unstable; urgency=low
 
     + Fixed several bugs (extractTagType, attribute parsing).
     + Remove Null blocks in lists of blocks when possible.
+    + Allow HTML comments as raw HTML inline.
 
   * Markdown reader:
 
@@ -226,6 +227,7 @@ pandoc (0.4) unstable; urgency=low
     + Added clauses for tilde and caret. Tilde is \ensuremath{\sim}, and
       caret is \^{}, not \^ as before.
     + Added parsing for \url.
+    + Parse \texttt{} as code, provided there's nothing fancy inside.
 
   * HTML writer:
 
@@ -350,6 +352,8 @@ pandoc (0.4) unstable; urgency=low
     + Removed endsWith function and rewrote calling functions to use
       isSuffixOf instead.
     + Added >>~ combinator.
+    + Fixed bug in normalizeSpaces:  Space:Str "":Space should compress to
+      Space.
 
   * Refactored runtests.pl; added separate tests for tables. 
 
