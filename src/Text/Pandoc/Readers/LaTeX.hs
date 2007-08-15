@@ -47,7 +47,7 @@ readLaTeX :: ParserState   -- ^ Parser state, including options for parser
 readLaTeX = readWith parseLaTeX
 
 -- characters with special meaning
-specialChars = "\\$%&^&_~#{}\n \t|<>'\"-"
+specialChars = "\\$%^&_~#{}\n \t|<>'\"-"
 
 --
 -- utility functions
@@ -507,11 +507,18 @@ lt = try (string "\\textless") >> return (Str "<")
 
 gt = try (string "\\textgreater") >> return (Str ">")
 
-code = try $ do 
+code = code1 <|> code2
+
+code1 = try $ do 
   string "\\verb"
   marker <- anyChar
   result <- manyTill anyChar (char marker)
   return $ Code $ removeLeadingTrailingSpace result
+
+code2 = try $ do
+  string "\\texttt{"
+  result <- manyTill (noneOf "\\\n~$%^&{}") (char '}')
+  return $ Code result
 
 emph = try $ oneOfStrings [ "\\emph{", "\\textit{" ] >>
              manyTill inline (char '}') >>= return . Emph
