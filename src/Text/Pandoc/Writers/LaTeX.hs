@@ -27,16 +27,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' format into LaTeX.
 -}
-module Text.Pandoc.Writers.LaTeX ( 
-                                  writeLaTeX 
-                                 ) where
+module Text.Pandoc.Writers.LaTeX ( writeLaTeX ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
 import Data.List ( (\\), isInfixOf )
+import Data.Char ( toLower )
 import qualified Data.Set as S
 import Control.Monad.State
-import Data.Char ( toLower )
 
 data WriterState = 
   WriterState { stIncludes :: S.Set String -- strings to include in header
@@ -77,16 +75,16 @@ latexHeader :: WriterOptions -- ^ Options, including LaTeX header
             -> Meta          -- ^ Meta with bibliographic information
             -> State WriterState String
 latexHeader options (Meta title authors date) = do
-  titletext    <- if null title
-                     then return "" 
-                     else do title' <- inlineListToLaTeX title
-                             return $ "\\title{" ++ title' ++ "}\n"
-  extras       <- get >>= (return . unlines . S.toList. stIncludes)
+  titletext <- if null title
+                  then return "" 
+                  else do title' <- inlineListToLaTeX title
+                          return $ "\\title{" ++ title' ++ "}\n"
+  extras <- get >>= (return . unlines . S.toList. stIncludes)
   let verbatim  = if "\\usepackage{fancyvrb}" `isInfixOf` extras
                      then "\\VerbatimFootnotes % allows verbatim text in footnotes\n"
                      else ""
-  let authorstext = "\\author{" ++ (joinWithSep "\\\\" 
-                                   (map stringToLaTeX authors)) ++ "}\n"
+  let authorstext = "\\author{" ++ 
+                    joinWithSep "\\\\" (map stringToLaTeX authors) ++ "}\n"
   let datetext  = if date == ""
                      then "" 
                      else "\\date{" ++ stringToLaTeX date ++ "}\n"
@@ -124,8 +122,8 @@ deVerb (other:rest) = other:(deVerb rest)
 blockToLaTeX :: Block     -- ^ Block to convert
              -> State WriterState String 
 blockToLaTeX Null = return ""
-blockToLaTeX (Plain lst) = (inlineListToLaTeX lst) >>= (return . (++ "\n"))
-blockToLaTeX (Para lst) = (inlineListToLaTeX lst) >>= (return . (++ "\n\n"))
+blockToLaTeX (Plain lst) = inlineListToLaTeX lst >>= return . (++ "\n")
+blockToLaTeX (Para lst) = inlineListToLaTeX lst >>= return . (++ "\n\n")
 blockToLaTeX (BlockQuote lst) = do
   contents <- blockListToLaTeX lst
   return $ "\\begin{quote}\n" ++ contents ++ "\\end{quote}\n"
@@ -184,22 +182,22 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
                                 colWidths aligns
   let tableBody = "\\begin{tabular}{" ++ colDescriptors ++ "}\n" ++
                   headers ++ "\\hline\n" ++ concat rows' ++ "\\end{tabular}\n" 
-  let centered str   = "\\begin{center}\n" ++ str ++ "\\end{center}\n"
+  let centered str = "\\begin{center}\n" ++ str ++ "\\end{center}\n"
   addToHeader "\\usepackage{array}\n\
-      \% This is needed because raggedright in table elements redefines \\\\:\n\
-      \\\newcommand{\\PreserveBackslash}[1]{\\let\\temp=\\\\#1\\let\\\\=\\temp}\n\
-      \\\let\\PBS=\\PreserveBackslash"
+    \% This is needed because raggedright in table elements redefines \\\\:\n\
+    \\\newcommand{\\PreserveBackslash}[1]{\\let\\temp=\\\\#1\\let\\\\=\\temp}\n\
+    \\\let\\PBS=\\PreserveBackslash"
   return $ if null captionText
               then centered tableBody ++ "\n"
-              else "\\begin{table}[h]\n" ++ centered tableBody ++ "\\caption{" ++
-                   captionText ++ "}\n" ++ "\\end{table}\n\n" 
+              else "\\begin{table}[h]\n" ++ centered tableBody ++ 
+                   "\\caption{" ++ captionText ++ "}\n" ++ "\\end{table}\n\n" 
 
-blockListToLaTeX lst = mapM blockToLaTeX lst >>= (return . concat)
+blockListToLaTeX lst = mapM blockToLaTeX lst >>= return . concat
 
 tableRowToLaTeX cols = 
-  mapM blockListToLaTeX cols >>= (return . (++ "\\\\\n") . (joinWithSep " & "))
+  mapM blockListToLaTeX cols >>= return . (++ "\\\\\n") . (joinWithSep " & ")
 
-listItemToLaTeX lst = blockListToLaTeX lst >>= (return . ("\\item "++)) 
+listItemToLaTeX lst = blockListToLaTeX lst >>= return . ("\\item "++)
 
 defListItemToLaTeX (term, def) = do
     term' <- inlineListToLaTeX $ deVerb term
@@ -209,8 +207,7 @@ defListItemToLaTeX (term, def) = do
 -- | Convert list of inline elements to LaTeX.
 inlineListToLaTeX :: [Inline]  -- ^ Inlines to convert
                   -> State WriterState String
-inlineListToLaTeX lst = 
-  mapM inlineToLaTeX lst >>= (return . concat)
+inlineListToLaTeX lst = mapM inlineToLaTeX lst >>= return . concat
 
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True

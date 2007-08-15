@@ -34,10 +34,10 @@ data Pandoc = Pandoc Meta [Block] deriving (Eq, Read, Show)
 
 -- | Bibliographic information for the document:  title (list of 'Inline'),
 -- authors (list of strings), date (string).
-data Meta   = Meta [Inline] -- title
-                   [String] -- authors
-                   String   -- date
-              deriving (Eq, Show, Read)
+data Meta = Meta [Inline] -- title
+                 [String] -- authors
+                 String   -- date
+            deriving (Eq, Show, Read)
 
 -- | Alignment of a table column.
 data Alignment = AlignLeft 
@@ -65,12 +65,11 @@ data ListNumberDelim = DefaultDelim
 -- | Block element.
 data Block  
     = Plain [Inline]        -- ^ Plain text, not a paragraph
-    | Null                  -- ^ Nothing
     | Para [Inline]         -- ^ Paragraph
     | CodeBlock String      -- ^ Code block (literal)
     | RawHtml String        -- ^ Raw HTML block (literal)
     | BlockQuote [Block]    -- ^ Block quote (list of blocks)
-    | OrderedList ListAttributes [[Block]] -- ^ Ordered list (attributes,
+    | OrderedList ListAttributes [[Block]] -- ^ Ordered list (attributes
                             -- and a list of items, each a list of blocks)
     | BulletList [[Block]]  -- ^ Bullet list (list of items, each
                             -- a list of blocks)
@@ -84,6 +83,7 @@ data Block
                             -- relative column widths, column headers
                             -- (each a list of blocks), and rows
                             -- (each a list of lists of blocks)
+    | Null                  -- ^ Nothing
     deriving (Eq, Read, Show)
 
 -- | Type of quotation marks to use in Quoted inline.
@@ -112,6 +112,5 @@ data Inline
     | Link [Inline] Target  -- ^ Hyperlink: text (list of inlines), target
     | Image [Inline] Target -- ^ Image:  alt text (list of inlines), target
                             -- and target
-    | Note [Block]          -- ^ Footnote or endnote - reference (string),
-                            -- text (list of blocks)
+    | Note [Block]          -- ^ Footnote or endnote 
     deriving (Show, Eq, Read)

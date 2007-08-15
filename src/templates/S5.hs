@@ -1,5 +1,33 @@
--- | Definitions for creation of S5 powerpoint-like HTML.
--- (See <http://meyerweb.com/eric/tools/s5/>.)
+{-
+Copyright (C) 2006-7 John MacFarlane <jgm@berkeley.edu>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-}
+
+{- |
+   Module      : Text.Pandoc.Writers.S5
+   Copyright   : Copyright (C) 2006-7 John MacFarlane
+   License     : GNU GPL, version 2 or above 
+
+   Maintainer  : John MacFarlane <jgm@berkeley.edu>
+   Stability   : alpha
+   Portability : portable
+
+Definitions for creation of S5 powerpoint-like HTML.
+(See <http://meyerweb.com/eric/tools/s5/>.)
+-}
 module Text.Pandoc.Writers.S5 (
                 -- * Strings
                 s5Meta,
@@ -60,13 +88,13 @@ layoutDiv :: [Inline]  -- ^ Title of document (for header or footer)
           -> [Block]   -- ^ List of block elements returned
 layoutDiv title date = [(RawHtml "<div class=\"layout\">\n<div id=\"controls\"></div>\n<div id=\"currentSlide\"></div>\n<div id=\"header\"></div>\n<div id=\"footer\">\n"), (Header 1 [Str date]), (Header 2 title), (RawHtml "</div>\n</div>\n")]
 
-presentationStart = (RawHtml "<div class=\"presentation\">\n\n")
+presentationStart = RawHtml "<div class=\"presentation\">\n\n"
 
-presentationEnd = (RawHtml "</div>\n")
+presentationEnd = RawHtml "</div>\n"
 
-slideStart = (RawHtml "<div class=\"slide\">\n")
+slideStart = RawHtml "<div class=\"slide\">\n"
 
-slideEnd = (RawHtml "</div>\n") 
+slideEnd = RawHtml "</div>\n"
 
 -- | Returns 'True' if block is a Header 1.
 isH1 :: Block -> Bool
@@ -84,15 +112,22 @@ insertSlides beginning blocks =
             beforeHead ++ [slideEnd]
     else
         if beginning then
-            beforeHead ++ slideStart:(head rest):(insertSlides False (tail rest))
+            beforeHead ++ 
+            slideStart:(head rest):(insertSlides False (tail rest))
         else
-            beforeHead ++ slideEnd:slideStart:(head rest):(insertSlides False (tail rest)) 
+            beforeHead ++ 
+            slideEnd:slideStart:(head rest):(insertSlides False (tail rest)) 
 
 -- | Insert blocks into 'Pandoc' for slide structure.
 insertS5Structure :: Pandoc -> Pandoc
 insertS5Structure (Pandoc meta []) = Pandoc meta []
 insertS5Structure (Pandoc (Meta title authors date) blocks) = 
-    let slides = insertSlides True blocks 
-        firstSlide = if (not (null title)) then [slideStart, (Header 1 title), (Header 3 [Str (joinWithSep ", " authors)]), (Header 4 [Str date]), slideEnd] else [] in
-    let newBlocks = (layoutDiv title date) ++ presentationStart:firstSlide ++ slides ++ [presentationEnd] in
-    Pandoc (Meta title authors date) newBlocks
+    let slides     = insertSlides True blocks 
+        firstSlide = if not (null title)
+                        then [slideStart, (Header 1 title), 
+                              (Header 3 [Str (joinWithSep ", " authors)]),
+                              (Header 4 [Str date]), slideEnd]
+                        else []
+        newBlocks  = (layoutDiv title date) ++ presentationStart:firstSlide ++
+                     slides ++ [presentationEnd]
+    in  Pandoc (Meta title authors date) newBlocks

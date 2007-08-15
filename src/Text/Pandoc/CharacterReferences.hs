@@ -17,7 +17,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Entities
+   Module      : Text.Pandoc.CharacterReferences
    Copyright   : Copyright (C) 2006-7 John MacFarlane
    License     : GNU GPL, version 2 or above 
 
@@ -25,37 +25,26 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Functions for encoding unicode characters as entity references,
-and vice versa.
+Functions for parsing character references.
 -}
-module Text.Pandoc.Entities (
-                     charToEntity,
-                     charToNumericalEntity,
-                     decodeEntities,
-                     escapeCharForXML,
-                     escapeStringForXML,
-                     characterEntity
+module Text.Pandoc.CharacterReferences (
+                     characterReference,
+                     decodeCharacterReferences,
                     ) where
-import Data.Char ( chr, ord )
+import Data.Char ( chr )
 import Text.ParserCombinators.Parsec
-import Data.Maybe ( fromMaybe )
 import qualified Data.Map as Map
 
--- | Returns a string containing an entity reference for the character.
-charToEntity :: Char -> String
-charToEntity char = Map.findWithDefault (charToNumericalEntity char) char reverseEntityTable
-
--- | Returns a string containing a numerical entity reference for the char.
-charToNumericalEntity :: Char -> String
-charToNumericalEntity ch = "&#" ++ show (ord ch) ++ ";"
+-- | Parse character entity.
+characterReference :: GenParser Char st Char
+characterReference = characterEntity <|> 
+                     hexadecimalCharacterReference <|> 
+                     decimalCharacterReference <?> 
+                     "character entity"
 
 -- | Parse character entity.
 characterEntity :: GenParser Char st Char
-characterEntity = namedEntity <|> hexEntity <|> decimalEntity <?> "character entity"
-
--- | Parse character entity.
-namedEntity :: GenParser Char st Char
-namedEntity = try $ do
+characterEntity = try $ do
   st <- char '&'
   body <- many1 alphaNum
   end <- char ';'
@@ -63,8 +52,8 @@ namedEntity = try $ do
   return $ Map.findWithDefault '?' entity entityTable
    
 -- | Parse hexadecimal entity.
-hexEntity :: GenParser Char st Char
-hexEntity = try $ do
+hexadecimalCharacterReference :: GenParser Char st Char
+hexadecimalCharacterReference = try $ do
   st <- string "&#"
   hex <- oneOf "Xx"
   body <- many1 (oneOf "0123456789ABCDEFabcdef")
@@ -72,48 +61,22 @@ hexEntity = try $ do
   return $ chr $ read ('0':'x':body)
 
 -- | Parse decimal entity.
-decimalEntity :: GenParser Char st Char
-decimalEntity = try $ do
+decimalCharacterReference :: GenParser Char st Char
+decimalCharacterReference = try $ do
   st <- string "&#"
   body <- many1 digit
   end <- char ';'
   return $ chr $ read body
 
--- | Escape one character as needed for XML.
-escapeCharForXML :: Char -> String
-escapeCharForXML x = 
-  case x of
-    '&'  -> "&amp;"
-    '<'  -> "&lt;"
-    '>'  -> "&gt;"
-    '"'  -> "&quot;"
-    '\160' -> "&nbsp;"
-    c    -> [c] 
-
--- | True if the character needs to be escaped.
-needsEscaping :: Char -> Bool
-needsEscaping c = c `elem` "&<>\"\160"
-
--- | Escape string as needed for XML.  Entity references are not preserved.
-escapeStringForXML :: String -> String
-escapeStringForXML ""  = ""
-escapeStringForXML str = 
-  case break needsEscaping str of
-    (okay, "")     -> okay
-    (okay, (c:cs)) -> okay ++ escapeCharForXML c ++ escapeStringForXML cs 
-
 -- | Convert entities in a string to characters.
-decodeEntities :: String -> String
-decodeEntities str = 
-  case parse (many (characterEntity <|> anyChar)) str str of
+decodeCharacterReferences :: String -> String
+decodeCharacterReferences str = 
+  case parse (many (characterReference <|> anyChar)) str str of
 	Left err        -> error $ "\nError: " ++ show err
 	Right result    -> result
 
 entityTable :: Map.Map String Char
 entityTable = Map.fromList entityTableList
-
-reverseEntityTable :: Map.Map Char String
-reverseEntityTable = Map.fromList $ map (\(a,b) -> (b,a)) entityTableList 
 
 entityTableList :: [(String, Char)]
 entityTableList =  [

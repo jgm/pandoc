@@ -39,8 +39,8 @@ inline links:
 > 
 > markdownToRST :: String -> String
 > markdownToRST = toUTF8 .
->         (writeRST defaultWriterOptions {writerReferenceLinks = True}) .
->         (readMarkdown defaultParserState) .  fromUTF8
+>   (writeRST defaultWriterOptions {writerReferenceLinks = True}) .
+>   (readMarkdown defaultParserState) .  fromUTF8
 > 
 > main = interact markdownToRST
 

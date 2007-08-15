@@ -27,12 +27,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to RTF (rich text format).
 -}
-module Text.Pandoc.Writers.RTF ( writeRTF) where
+module Text.Pandoc.Writers.RTF ( writeRTF ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Regex ( matchRegexAll, mkRegex )
 import Data.List ( isSuffixOf )
-import Data.Char ( ord, chr )
+import Data.Char ( ord )
 
 -- | Convert Pandoc to a string in rich text format.
 writeRTF :: WriterOptions -> Pandoc -> String
@@ -44,22 +44,22 @@ writeRTF options (Pandoc meta blocks) =
                 then tableOfContents $ filter isHeaderBlock blocks
                 else "" 
       foot = if writerStandalone options then "\n}\n" else "" 
-      body = (writerIncludeBefore options) ++ 
+      body = writerIncludeBefore options ++ 
              concatMap (blockToRTF 0 AlignDefault) blocks ++ 
-             (writerIncludeAfter options) in
-  head ++ toc ++ body ++ foot
+             writerIncludeAfter options
+  in  head ++ toc ++ body ++ foot
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: [Block] -> String 
 tableOfContents headers =
   let contentsTree = hierarchicalize headers
-  in  concatMap (blockToRTF 0 AlignDefault) $ [Header 1 [Str "Contents"], 
-                                               BulletList (map elementToListItem contentsTree)]
+  in  concatMap (blockToRTF 0 AlignDefault) $ 
+      [Header 1 [Str "Contents"], 
+       BulletList (map elementToListItem contentsTree)]
 
 elementToListItem :: Element -> [Block]
 elementToListItem (Blk _) = []
-elementToListItem (Sec sectext subsecs) = 
-  [Plain sectext] ++
+elementToListItem (Sec sectext subsecs) = [Plain sectext] ++
   if null subsecs
      then []
      else [BulletList (map elementToListItem subsecs)]
@@ -67,10 +67,10 @@ elementToListItem (Sec sectext subsecs) =
 -- | Convert unicode characters (> 127) into rich text format representation.
 handleUnicode :: String -> String
 handleUnicode [] = []
-handleUnicode (c:cs) = if (ord c) > 127 
-                          then '\\':'u':(show (ord c)) ++ "?" ++ 
-                               (handleUnicode cs)
-                          else c:(handleUnicode cs)
+handleUnicode (c:cs) =
+  if ord c > 127 
+     then '\\':'u':(show (ord c)) ++ "?" ++ handleUnicode cs
+     else c:(handleUnicode cs)
 
 -- | Escape special characters.
 escapeSpecial :: String -> String
@@ -127,7 +127,7 @@ listIncrement = 360
 
 -- | Returns appropriate bullet list marker for indent level.
 bulletMarker :: Int -> String
-bulletMarker indent = case (indent `mod` 720) of
+bulletMarker indent = case indent `mod` 720 of
                              0         -> "\\bullet "
                              otherwise -> "\\endash "
 
@@ -135,7 +135,7 @@ bulletMarker indent = case (indent `mod` 720) of
 orderedMarkers :: Int -> ListAttributes -> [String]
 orderedMarkers indent (start, style, delim) = 
   if style == DefaultStyle && delim == DefaultDelim
-     then case (indent `mod` 720) of
+     then case indent `mod` 720 of
               0         -> orderedListMarkers (start, Decimal, Period)
               otherwise -> orderedListMarkers (start, LowerAlpha, Period)
      else orderedListMarkers (start, style, delim)
@@ -145,21 +145,21 @@ rtfHeader :: String    -- ^ header text
           -> Meta      -- ^ bibliographic information
           -> String
 rtfHeader headerText (Meta title authors date) =
-    let titletext = if null title
+  let titletext = if null title
+                     then "" 
+                     else rtfPar 0 0 AlignCenter $
+                          "\\b \\fs36 " ++ inlineListToRTF title
+      authorstext = if null authors
                        then "" 
-                       else rtfPar 0 0 AlignCenter ("\\b \\fs36 " ++ 
-                                                   inlineListToRTF title)
-        authorstext = if null authors
-                         then "" 
-                         else rtfPar 0 0 AlignCenter (" " ++ (joinWithSep "\\" 
-                                                      (map stringToRTF authors))) 
-        datetext = if date == "" 
-                      then ""
-                      else rtfPar 0 0 AlignCenter (" " ++ stringToRTF date) in
-    let spacer = if null (titletext ++ authorstext ++ datetext)
+                       else rtfPar 0 0 AlignCenter (" " ++ (joinWithSep "\\" $
+                                                    map stringToRTF authors))
+      datetext = if date == "" 
                     then ""
-                    else rtfPar 0 0 AlignDefault "" in
-    headerText ++ titletext ++ authorstext ++ datetext ++ spacer
+                    else rtfPar 0 0 AlignCenter (" " ++ stringToRTF date) in
+  let spacer = if null (titletext ++ authorstext ++ datetext)
+                  then ""
+                  else rtfPar 0 0 AlignDefault "" in
+  headerText ++ titletext ++ authorstext ++ datetext ++ spacer
 
 -- | Convert Pandoc block element to RTF.
 blockToRTF :: Int       -- ^ indent level
@@ -168,31 +168,27 @@ blockToRTF :: Int       -- ^ indent level
            -> String
 blockToRTF _ _ Null = ""
 blockToRTF indent alignment (Plain lst) = 
-  rtfCompact indent 0 alignment (inlineListToRTF lst)
+  rtfCompact indent 0 alignment $ inlineListToRTF lst
 blockToRTF indent alignment (Para lst) = 
-  rtfPar indent 0 alignment (inlineListToRTF lst)
+  rtfPar indent 0 alignment $ inlineListToRTF lst
 blockToRTF indent alignment (BlockQuote lst) = 
   concatMap (blockToRTF (indent + indentIncrement) alignment) lst 
 blockToRTF indent _ (CodeBlock str) =
   rtfPar indent 0 AlignLeft ("\\f1 " ++ (codeStringToRTF str))
 blockToRTF _ _ (RawHtml str) = ""
-blockToRTF indent alignment (BulletList lst) = 
-  spaceAtEnd $ 
+blockToRTF indent alignment (BulletList lst) = spaceAtEnd $ 
   concatMap (listItemToRTF alignment indent (bulletMarker indent)) lst
-blockToRTF indent alignment (OrderedList attribs lst) = 
-  spaceAtEnd $ concat $ 
+blockToRTF indent alignment (OrderedList attribs lst) = spaceAtEnd $ concat $ 
   zipWith (listItemToRTF alignment indent) (orderedMarkers indent attribs) lst
-blockToRTF indent alignment (DefinitionList lst) = 
-  spaceAtEnd $ 
+blockToRTF indent alignment (DefinitionList lst) = spaceAtEnd $ 
   concatMap (definitionListItemToRTF alignment indent) lst
 blockToRTF indent _ HorizontalRule = 
   rtfPar indent 0 AlignCenter "\\emdash\\emdash\\emdash\\emdash\\emdash"
-blockToRTF indent alignment (Header level lst) = 
-  rtfPar indent 0 alignment ("\\b \\fs" ++ (show (40 - (level * 4))) ++ " " ++ 
-  (inlineListToRTF lst))
+blockToRTF indent alignment (Header level lst) = rtfPar indent 0 alignment $
+  "\\b \\fs" ++ (show (40 - (level * 4))) ++ " " ++ inlineListToRTF lst
 blockToRTF indent alignment (Table caption aligns sizes headers rows) = 
-  (tableRowToRTF True indent aligns sizes headers) ++ (concatMap
-  (tableRowToRTF False indent aligns sizes) rows) ++
+  tableRowToRTF True indent aligns sizes headers ++ 
+  concatMap (tableRowToRTF False indent aligns sizes) rows ++
   rtfPar indent 0 alignment (inlineListToRTF caption)
 
 tableRowToRTF :: Bool -> Int -> [Alignment] -> [Float] -> [[Block]] -> String 
@@ -201,8 +197,10 @@ tableRowToRTF header indent aligns sizes cols =
       totalTwips = 6 * 1440 -- 6 inches
       rightEdges = tail $ scanl (\sofar new -> sofar + floor (new * totalTwips))
                                 0 sizes
-      cellDefs = map (\edge -> (if header then "\\clbrdrb\\brdrs"
-                      else "") ++ "\\cellx" ++ show edge) rightEdges
+      cellDefs = map (\edge -> (if header
+                                   then "\\clbrdrb\\brdrs"
+                                   else "") ++ "\\cellx" ++ show edge)
+                     rightEdges
       start = "{\n\\trowd \\trgaph120\n" ++ concat cellDefs ++ "\n" ++
               "\\trkeep\\intbl\n{\n"
       end = "}\n\\intbl\\row}\n"
@@ -234,11 +232,12 @@ listItemToRTF alignment indent marker list =
   let (first:rest) = map (blockToRTF (indent + listIncrement) alignment) list in
   -- insert the list marker into the (processed) first block
   let modFirst = case matchRegexAll (mkRegex "\\\\fi-?[0-9]+") first of
-                    Just (before, matched, after, _) -> before ++ "\\fi" ++
-                               show (0 - listIncrement) ++ " " ++ marker ++ "\\tx" ++ 
-                               show listIncrement ++ "\\tab" ++ after
+                    Just (before, matched, after, _) -> 
+                                before ++ "\\fi" ++ show (0 - listIncrement) ++ 
+                                " " ++ marker ++ "\\tx" ++ 
+                                show listIncrement ++ "\\tab" ++ after
                     Nothing -> first in
-  modFirst ++ (concat rest)
+  modFirst ++ concat rest
 
 -- | Convert definition list item (label, list of blocks) to RTF.
 definitionListItemToRTF :: Alignment          -- ^ alignment
@@ -285,4 +284,3 @@ inlineToRTF (Image alternate (source, tit)) =
 inlineToRTF (Note contents) =
   "{\\super\\chftn}{\\*\\footnote\\chftn\\~\\plain\\pard " ++ 
   (concatMap (blockToRTF 0 AlignDefault) contents) ++ "}"
-

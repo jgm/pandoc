@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.ConTeXt
-   Copyright   : Copyright (C) 2006-7 John MacFarlane
+   Copyright   : Copyright (C) 2007 John MacFarlane
    License     : GNU GPL, version 2 or above 
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -27,9 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' format into ConTeXt.
 -}
-module Text.Pandoc.Writers.ConTeXt ( 
-                                  writeConTeXt 
-                                 ) where
+module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
@@ -40,8 +38,7 @@ type WriterState = Int -- number of next URL reference
 
 -- | Convert Pandoc to ConTeXt.
 writeConTeXt :: WriterOptions -> Pandoc -> String
-writeConTeXt options document = 
-  evalState (pandocToConTeXt options document) 1 
+writeConTeXt options document = evalState (pandocToConTeXt options document) 1 
 
 pandocToConTeXt :: WriterOptions -> Pandoc -> State WriterState String
 pandocToConTeXt options (Pandoc meta blocks) = do
@@ -111,8 +108,8 @@ stringToConTeXt = concatMap escapeCharForConTeXt
 -- | Convert Pandoc block element to ConTeXt.
 blockToConTeXt :: Block -> State WriterState String 
 blockToConTeXt Null = return ""
-blockToConTeXt (Plain lst) = inlineListToConTeXt lst >>= (return . (++ "\n"))
-blockToConTeXt (Para lst) = inlineListToConTeXt lst >>= (return . (++ "\n\n"))
+blockToConTeXt (Plain lst) = inlineListToConTeXt lst >>= return . (++ "\n")
+blockToConTeXt (Para lst) = inlineListToConTeXt lst >>= return . (++ "\n\n")
 blockToConTeXt (BlockQuote lst) = do
   contents <- blockListToConTeXt lst
   return $ "\\startblockquote\n" ++ contents ++ "\\stopblockquote\n\n"
@@ -137,12 +134,12 @@ blockToConTeXt (OrderedList attribs lst) = case attribs of
     return $ "\\startitemize" ++ markerWidth' ++ "\n" ++ concat contents ++ 
              "\\stopitemize\n"
 blockToConTeXt (DefinitionList lst) =
-  mapM defListItemToConTeXt lst >>= (return . (++ "\n") . concat)
+  mapM defListItemToConTeXt lst >>= return . (++ "\n") . concat
 blockToConTeXt HorizontalRule = return "\\thinrule\n\n"
 blockToConTeXt (Header level lst) = do
   contents <- inlineListToConTeXt lst
-  return $ if (level > 0) && (level <= 3)
-              then "\\" ++ (concat (replicate (level - 1) "sub")) ++ 
+  return $ if level > 0 && level <= 3
+              then "\\" ++ concat (replicate (level - 1) "sub") ++ 
                    "section{" ++ contents ++ "}\n\n"
               else contents ++ "\n\n"
 blockToConTeXt (Table caption aligns widths heads rows) = do
@@ -186,12 +183,12 @@ defListItemToConTeXt (term, def) = do
 
 -- | Convert list of block elements to ConTeXt.
 blockListToConTeXt :: [Block] -> State WriterState String
-blockListToConTeXt lst = mapM blockToConTeXt lst >>= (return . concat)
+blockListToConTeXt lst = mapM blockToConTeXt lst >>= return . concat
 
 -- | Convert list of inline elements to ConTeXt.
 inlineListToConTeXt :: [Inline]  -- ^ Inlines to convert
                     -> State WriterState String
-inlineListToConTeXt lst = mapM inlineToConTeXt lst >>= (return . concat)
+inlineListToConTeXt lst = mapM inlineToConTeXt lst >>= return . concat
 
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True

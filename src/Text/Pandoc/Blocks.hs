@@ -43,15 +43,25 @@ module Text.Pandoc.Blocks
                 rightAlignBlock
                )
 where
-
 import Text.PrettyPrint
-import Data.List (transpose, intersperse)
+import Data.List ( intersperse )
 
 -- | A fixed-width block of text.  Parameters are width of block,
 -- height of block, and list of lines.
 data TextBlock = TextBlock Int Int [String]
 instance Show TextBlock where
   show x = show $ blockToDoc x
+
+-- | Break lines in a list of lines so that none are greater than
+-- a given width.
+breakLines :: Int      -- ^ Maximum length of lines.
+           -> [String] -- ^ List of lines.
+           -> [String]
+breakLines width [] = []
+breakLines width (l:ls) =
+  if length l > width
+     then (take width l):(breakLines width ((drop width l):ls))
+     else l:(breakLines width ls)
 
 -- | Convert a @Doc@ element into a @TextBlock@ with a specified width. 
 docToBlock :: Int  -- ^ Width of text block.
@@ -60,13 +70,8 @@ docToBlock :: Int  -- ^ Width of text block.
 docToBlock width doc =
   let rendered    = renderStyle (style {lineLength = width, 
                                         ribbonsPerLine = 1}) doc
-      lns         = lines rendered
-      chop []     = []
-      chop (l:ls) = if length l > width
-                       then (take width l):(chop ((drop width l):ls))
-                       else l:(chop ls)
-      lns'        = chop lns
-  in  TextBlock width (length lns') lns' 
+      lns         = breakLines width $ lines rendered
+  in  TextBlock width (length lns) lns
 
 -- | Convert a @TextBlock@ to a @Doc@ element.
 blockToDoc :: TextBlock -> Doc
@@ -116,8 +121,7 @@ isWhitespace x = x `elem` " \t"
 -- | Left-aligns the contents of a @TextBlock@ within the block.
 leftAlignBlock :: TextBlock -> TextBlock
 leftAlignBlock (TextBlock width height lns) =
-  TextBlock width height $ 
-            map (dropWhile isWhitespace) lns
+  TextBlock width height $ map (dropWhile isWhitespace) lns
 
 -- | Right-aligns the contents of a @TextBlock@ within the block.
 rightAlignBlock :: TextBlock -> TextBlock

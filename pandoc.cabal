@@ -34,11 +34,9 @@ Description:     Pandoc is a Haskell library for converting from one markup
 Build-Depends:   base, parsec, xhtml, mtl, regex-compat
 Hs-Source-Dirs: src
 Exposed-Modules: Text.Pandoc,
-                 Text.Pandoc.ASCIIMathML,
                  Text.Pandoc.Blocks,
                  Text.Pandoc.Definition,
-                 Text.Pandoc.Entities,
-                 Text.Pandoc.ParserCombinators,
+                 Text.Pandoc.CharacterReferences,
                  Text.Pandoc.Shared,
                  Text.Pandoc.UTF8,
                  Text.Pandoc.Readers.HTML,

@@ -29,13 +29,11 @@ Conversion of 'Pandoc' documents to reStructuredText.
 
 reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 -}
-module Text.Pandoc.Writers.RST (
-                                     writeRST
-                                    ) where
+module Text.Pandoc.Writers.RST ( writeRST) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Blocks
-import Data.List ( group, isPrefixOf, drop, find, intersperse )
+import Data.List ( isPrefixOf, isSuffixOf, drop, intersperse )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 
@@ -70,8 +68,7 @@ pandocToRST opts (Pandoc meta blocks) = do
 
 -- | Return RST representation of reference key table.
 keyTableToRST :: WriterOptions -> KeyTable -> State WriterState Doc
-keyTableToRST opts refs = 
-  mapM (keyToRST opts) refs >>= (return . vcat)
+keyTableToRST opts refs = mapM (keyToRST opts) refs >>= return . vcat
  
 -- | Return RST representation of a reference key. 
 keyToRST :: WriterOptions 
@@ -85,7 +82,7 @@ keyToRST opts (label, (src, tit)) = do
 notesToRST :: WriterOptions -> [[Block]] -> State WriterState Doc
 notesToRST opts notes = 
   mapM (\(num, note) -> noteToRST opts num note) (zip [1..] notes) >>= 
-  (return . vcat)
+  return . vcat
 
 -- | Return RST representation of a note.
 noteToRST :: WriterOptions -> Int -> [Block] -> State WriterState Doc
@@ -96,8 +93,7 @@ noteToRST opts num note = do
 
 -- | Return RST representation of picture reference table.
 pictTableToRST :: WriterOptions -> KeyTable -> State WriterState Doc
-pictTableToRST opts refs = 
-  mapM (pictToRST opts) refs >>= (return . vcat)
+pictTableToRST opts refs = mapM (pictToRST opts) refs >>= return . vcat
  
 -- | Return RST representation of a picture substitution reference. 
 pictToRST :: WriterOptions 
@@ -112,7 +108,7 @@ pictToRST opts (label, (src, _)) = do
 wrappedRST :: WriterOptions -> [Inline] -> State WriterState Doc
 wrappedRST opts inlines = 
   mapM (wrappedRSTSection opts) (splitBy LineBreak inlines) >>= 
-  (return . vcat)
+  return . vcat
 
 wrappedRSTSection :: WriterOptions -> [Inline] -> State WriterState Doc
 wrappedRSTSection opts sect = do
@@ -160,21 +156,19 @@ blockToRST :: WriterOptions -- ^ Options
 blockToRST opts Null = return empty
 blockToRST opts (Plain inlines) = wrappedRST opts inlines
 blockToRST opts (Para [TeX str]) =
-  let str' = if (endsWith '\n' str) then (str ++ "\n") else (str ++ "\n\n") in
-  return $ hang (text "\n.. raw:: latex\n") 3 
-                (vcat $ map text (lines str'))
+  let str' = if "\n" `isSuffixOf` str then str ++ "\n" else str ++ "\n\n" in
+  return $ hang (text "\n.. raw:: latex\n") 3 $ vcat $ map text (lines str')
 blockToRST opts (Para inlines) = do
   contents <- wrappedRST opts inlines
   return $ contents <> text "\n"
 blockToRST opts (RawHtml str) = 
-  let str' = if (endsWith '\n' str) then (str ++ "\n") else (str ++ "\n\n") in
-  return $ hang (text "\n.. raw:: html\n") 3 
-                (vcat $ map text (lines str'))
+  let str' = if "\n" `isSuffixOf` str then str ++ "\n" else str ++ "\n\n" in
+  return $ hang (text "\n.. raw:: html\n") 3 $ vcat $ map text (lines str')
 blockToRST opts HorizontalRule = return $ text "--------------\n"
 blockToRST opts (Header level inlines) = do
   contents <- inlineListToRST opts inlines
   let headerLength = length $ render contents
-  let headerChar = if (level > 5) then ' ' else "=-~^'" !! (level - 1)
+  let headerChar = if level > 5 then ' ' else "=-~^'" !! (level - 1)
   let border = text $ replicate headerLength headerChar
   return $ contents $+$ border <> text "\n"
 blockToRST opts (CodeBlock str) = return $ (text "::\n") $+$ 
@@ -200,11 +194,10 @@ blockToRST opts (Table caption aligns widths headers rows) =  do
               beg    = TextBlock 2 height (replicate height "| ")
               end    = TextBlock 2 height (replicate height " |")
               middle = hcatBlocks $ intersperse sep blocks
-  let makeRow = hpipeBlocks . (zipWith docToBlock widthsInChars)
+  let makeRow = hpipeBlocks . zipWith docToBlock widthsInChars
   let head = makeRow headers'
-  rows' <- mapM (\row -> do 
-                           cols <- mapM (blockListToRST opts) row
-                           return $ makeRow cols) rows
+  rows' <- mapM (\row -> do cols <- mapM (blockListToRST opts) row
+                            return $ makeRow cols) rows
   let tableWidth = sum widthsInChars
   let maxRowHeight = maximum $ map heightOfBlock (head:rows')
   let border ch = char '+' <> char ch <>
@@ -225,8 +218,7 @@ blockToRST opts (OrderedList (start, style, delim) items) = do
                                               (start, style, delim)
   let maxMarkerLength = maximum $ map length markers
   let markers' = map (\m -> let s = maxMarkerLength - length m
-                            in  m ++ replicate s ' ')
-                     markers
+                            in  m ++ replicate s ' ') markers
   contents <- mapM (\(item, num) -> orderedListItemToRST opts item num) $
               zip markers' items  
   -- ensure that sublists have preceding blank line
@@ -262,11 +254,11 @@ blockListToRST :: WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
                     -> State WriterState Doc 
 blockListToRST opts blocks =
-  mapM (blockToRST opts) blocks >>= (return . vcat)
+  mapM (blockToRST opts) blocks >>= return . vcat
 
 -- | Convert list of Pandoc inline elements to RST.
 inlineListToRST :: WriterOptions -> [Inline] -> State WriterState Doc
-inlineListToRST opts lst = mapM (inlineToRST opts) lst >>= (return . hcat)
+inlineListToRST opts lst = mapM (inlineToRST opts) lst >>= return . hcat
 
 -- | Convert Pandoc inline element to RST.
 inlineToRST :: WriterOptions -> Inline -> State WriterState Doc
@@ -319,8 +311,8 @@ inlineToRST opts (Link txt (src, tit)) = do
 inlineToRST opts (Image alternate (source, tit)) = do
   (notes, refs, pics) <- get
   let labelsUsed = map fst pics 
-  let txt = if (null alternate) || (alternate == [Str ""]) || 
-               (alternate `elem` labelsUsed)
+  let txt = if null alternate || alternate == [Str ""] || 
+               alternate `elem` labelsUsed
                then [Str $ "image" ++ show (length refs)]
                else alternate
   let pics' = if (txt, (source, tit)) `elem` pics

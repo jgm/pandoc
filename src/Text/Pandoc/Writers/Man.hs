@@ -28,14 +28,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to groff man page format.
 
 -}
-module Text.Pandoc.Writers.Man (
-                                     writeMan
-                                    ) where
+module Text.Pandoc.Writers.Man ( writeMan) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Printf ( printf )
-import Data.Char ( toUpper )
-import Data.List ( group, isPrefixOf, drop, find, nub, intersperse )
+import Data.List ( isPrefixOf, drop, nub, intersperse )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 
@@ -45,16 +42,15 @@ type WriterState = (Notes, Preprocessors)
 
 -- | Convert Pandoc to Man.
 writeMan :: WriterOptions -> Pandoc -> String
-writeMan opts document = 
-  render $ evalState (pandocToMan opts document) ([],[]) 
+writeMan opts document = render $ evalState (pandocToMan opts document) ([],[]) 
 
 -- | Return groff man representation of document.
 pandocToMan :: WriterOptions -> Pandoc -> State WriterState Doc
 pandocToMan opts (Pandoc meta blocks) = do
   let before  = writerIncludeBefore opts
   let after   = writerIncludeAfter opts
-      before' = if null before then empty else text before
-      after'  = if null after then empty else text after
+  let before' = if null before then empty else text before
+  let after'  = if null after then empty else text after
   (head, foot) <- metaToMan opts meta
   body <- blockListToMan opts blocks
   (notes, preprocessors) <- get
@@ -84,8 +80,8 @@ metaToMan options (Meta title authors date) = do
                 1 -> text ".SH AUTHOR" $$ (text $ joinWithSep ", " authors)
                 2 -> text ".SH AUTHORS" $$ (text $ joinWithSep ", " authors)
   return $ if writerStandalone options
-     then (head, foot)
-     else (empty, empty)
+              then (head, foot)
+              else (empty, empty)
 
 -- | Return man representation of notes.
 notesToMan :: WriterOptions -> [[Block]] -> State WriterState Doc
@@ -93,7 +89,7 @@ notesToMan opts notes =
   if null notes
      then return empty
      else mapM (\(num, note) -> noteToMan opts num note) (zip [1..] notes) >>= 
-          (return . (text ".SH NOTES" $$) . vcat)
+          return . (text ".SH NOTES" $$) . vcat
 
 -- | Return man representation of a note.
 noteToMan :: WriterOptions -> Int -> [Block] -> State WriterState Doc
@@ -110,8 +106,7 @@ wrappedMan opts sect = do
 
 -- | Association list of characters to escape.
 manEscapes :: [(Char, String)]
-manEscapes = [('\160', "\\ "), ('\'', "\\[aq]")] ++
-  backslashEscapes "\".@\\"
+manEscapes = [('\160', "\\ "), ('\'', "\\[aq]")] ++ backslashEscapes "\".@\\"
 
 -- | Escape special characters for Man.
 escapeString :: String -> String
@@ -140,8 +135,7 @@ blockToMan opts (Header level inlines) = do
   return $ text heading <> contents 
 blockToMan opts (CodeBlock str) = return $
   text ".PP" $$ text "\\f[CR]" $$ 
-  text ((unlines . map ("      " ++) . lines) (escapeCode str)) <>
-  text "\\f[]"
+  text ((unlines . map ("      " ++) . lines) (escapeCode str)) <> text "\\f[]"
 blockToMan opts (BlockQuote blocks) = do  
   contents <- blockListToMan opts blocks
   return $ text ".RS" $$ contents $$ text ".RE"

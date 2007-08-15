@@ -29,9 +29,7 @@ Conversion of 'Pandoc' documents to markdown-formatted plain text.
 
 Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
-module Text.Pandoc.Writers.Markdown (
-                                     writeMarkdown
-                                    ) where
+module Text.Pandoc.Writers.Markdown ( writeMarkdown) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Blocks
@@ -53,10 +51,10 @@ pandocToMarkdown :: WriterOptions -> Pandoc -> State WriterState Doc
 pandocToMarkdown opts (Pandoc meta blocks) = do
   let before  = writerIncludeBefore opts
   let after   = writerIncludeAfter opts
-      before' = if null before then empty else text before
-      after'  = if null after then empty else text after
+  let before' = if null before then empty else text before
+  let after'  = if null after then empty else text after
   metaBlock <- metaToMarkdown opts meta
-  let head = if (writerStandalone opts)
+  let head = if writerStandalone opts
                 then metaBlock $+$ text (writerHeader opts)
                 else empty
   let headerBlocks = filter isHeaderBlock blocks
@@ -73,8 +71,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
 
 -- | Return markdown representation of reference key table.
 keyTableToMarkdown :: WriterOptions -> KeyTable -> State WriterState Doc
-keyTableToMarkdown opts refs = 
-  mapM (keyToMarkdown opts) refs >>= (return . vcat)
+keyTableToMarkdown opts refs = mapM (keyToMarkdown opts) refs >>= return . vcat
  
 -- | Return markdown representation of a reference key. 
 keyToMarkdown :: WriterOptions 
@@ -90,7 +87,7 @@ keyToMarkdown opts (label, (src, tit)) = do
 notesToMarkdown :: WriterOptions -> [[Block]] -> State WriterState Doc
 notesToMarkdown opts notes = 
   mapM (\(num, note) -> noteToMarkdown opts num note) (zip [1..] notes) >>= 
-  (return . vcat)
+  return . vcat
 
 -- | Return markdown representation of a note.
 noteToMarkdown :: WriterOptions -> Int -> [Block] -> State WriterState Doc
@@ -143,8 +140,7 @@ tableOfContents opts headers =
 -- | Converts an Element to a list item for a table of contents,
 elementToListItem :: Element -> [Block]
 elementToListItem (Blk _) = []
-elementToListItem (Sec headerText subsecs) =
-  [Plain headerText] ++ 
+elementToListItem (Sec headerText subsecs) = [Plain headerText] ++ 
   if null subsecs
      then []
      else [BulletList $ map elementToListItem subsecs]
@@ -184,9 +180,8 @@ blockToMarkdown opts (Table caption aligns widths headers rows) =  do
   let makeRow = hsepBlocks . (zipWith alignHeader aligns) . 
                 (zipWith docToBlock widthsInChars)
   let head = makeRow headers'
-  rows' <- mapM (\row -> do 
-                           cols <- mapM (blockListToMarkdown opts) row
-                           return $ makeRow cols) rows
+  rows' <- mapM (\row -> do cols <- mapM (blockListToMarkdown opts) row
+                            return $ makeRow cols) rows
   let tableWidth = sum widthsInChars
   let maxRowHeight = maximum $ map heightOfBlock (head:rows')
   let isMultilineTable = maxRowHeight > 1
@@ -208,8 +203,7 @@ blockToMarkdown opts (OrderedList attribs items) = do
   let markers  = orderedListMarkers attribs
   let markers' = map (\m -> if length m < 3
                                then m ++ replicate (3 - length m) ' '
-                               else m) 
-                     markers 
+                               else m) markers 
   contents <- mapM (\(item, num) -> orderedListItemToMarkdown opts item num) $
               zip markers' items  
   return $ (vcat contents) <> text "\n"
@@ -241,8 +235,8 @@ definitionListItemToMarkdown opts (label, items) = do
   let tabStop = writerTabStop opts
   let leader  = char ':'
   contents <- mapM (\item -> blockToMarkdown opts item >>= 
-              (\txt -> return (leader $$ nest tabStop txt)))
-              items >>= (return . vcat)
+                   (\txt -> return (leader $$ nest tabStop txt)))
+                   items >>= return . vcat
   return $ labelText $+$ contents
 
 -- | Convert list of Pandoc block elements to markdown.
@@ -250,29 +244,30 @@ blockListToMarkdown :: WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
                     -> State WriterState Doc 
 blockListToMarkdown opts blocks =
-  mapM (blockToMarkdown opts) blocks >>= (return . vcat)
+  mapM (blockToMarkdown opts) blocks >>= return . vcat
 
 -- | Get reference for target; if none exists, create unique one and return.
 --   Prefer label if possible; otherwise, generate a unique key.
 getReference :: [Inline] -> Target -> State WriterState [Inline]
 getReference label (src, tit) = do
-    (_,refs) <- get
-    case find ((== (src, tit)) . snd) refs of
-      Just (ref, _) -> return ref
-      Nothing       -> do
-        let label' = case find ((== label) . fst) refs of
-                        Just _ -> -- label is used; generate numerical label
-                                   case find (\n -> not (any (== [Str (show n)])
-                                             (map fst refs))) [1..10000] of
-                                        Just x  -> [Str (show x)]
-                                        Nothing -> error "no unique label"
-                        Nothing -> label
-        modify (\(notes, refs) -> (notes, (label', (src,tit)):refs))
-        return label'
+  (_,refs) <- get
+  case find ((== (src, tit)) . snd) refs of
+    Just (ref, _) -> return ref
+    Nothing       -> do
+      let label' = case find ((== label) . fst) refs of
+                      Just _ -> -- label is used; generate numerical label
+                                 case find (\n -> not (any (== [Str (show n)])
+                                           (map fst refs))) [1..10000] of
+                                      Just x  -> [Str (show x)]
+                                      Nothing -> error "no unique label"
+                      Nothing -> label
+      modify (\(notes, refs) -> (notes, (label', (src,tit)):refs))
+      return label'
 
 -- | Convert list of Pandoc inline elements to markdown.
 inlineListToMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
-inlineListToMarkdown opts lst = mapM (inlineToMarkdown opts) lst >>= (return . hcat)
+inlineListToMarkdown opts lst =
+  mapM (inlineToMarkdown opts) lst >>= return . hcat
 
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: WriterOptions -> Inline -> State WriterState Doc
@@ -327,13 +322,13 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
   return $ if useAuto
               then char '<' <> text srcSuffix <> char '>' 
               else if useRefLinks
-                  then let first  = char '[' <> linktext <> char ']'
-                           second = if txt == ref
-                                      then text "[]"
-                                      else char '[' <> reftext <> char ']'
-                       in  first <> second
-                  else char '[' <> linktext <> char ']' <> 
-                       char '(' <> text src <> linktitle <> char ')' 
+                      then let first  = char '[' <> linktext <> char ']'
+                               second = if txt == ref
+                                           then text "[]"
+                                           else char '[' <> reftext <> char ']'
+                           in  first <> second
+                      else char '[' <> linktext <> char ']' <> 
+                           char '(' <> text src <> linktitle <> char ')' 
 inlineToMarkdown opts (Image alternate (source, tit)) = do
   let txt = if (null alternate) || (alternate == [Str ""]) || 
                (alternate == [Str source]) -- to prevent autolinks
