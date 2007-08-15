@@ -37,10 +37,9 @@ import Data.Char ( isAlphaNum )
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment )
-import Text.Pandoc.Readers.HTML ( rawHtmlBlock, 
-                                  anyHtmlBlockTag, anyHtmlInlineTag,
-                                  anyHtmlTag, anyHtmlEndTag,
-                                  htmlEndTag, extractTagType,
+import Text.Pandoc.Readers.HTML ( rawHtmlBlock, anyHtmlBlockTag, 
+                                  anyHtmlInlineTag, anyHtmlTag,
+                                  anyHtmlEndTag, htmlEndTag, extractTagType,
                                   htmlBlockElement )
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.ParserCombinators.Parsec
