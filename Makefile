@@ -330,7 +330,7 @@ $(tarball_name):
 	$(MAKE) -C $(RELNAME) templates
 	$(MAKE) -C $(RELNAME) wrappers
 	tar cvzf $(tarball_name) $(RELNAME)
-	-rm -rf $(fullname)
+	-rm -rf $(RELNAME)
 
 .PHONY: deb
 deb_name:=$(shell grep ^Package debian/control | cut -d' ' -f2 | head -n 1)
