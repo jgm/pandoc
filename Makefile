@@ -152,7 +152,7 @@ haddock: build-lib-doc
 cleanup_files+=html
 html/: configure
 	-rm -rf html
-	$(BUILDCMD) haddock && mv $(BUILDDIR)/doc/html .
+	$(BUILDCMD) haddock && cp -r $(BUILDDIR)/doc/html .
 
 .PHONY: build-all
 build-all: build-program build-lib-doc
@@ -203,9 +203,9 @@ uninstall-exec:
 install-program: install-exec install-doc
 uninstall-program: uninstall-exec uninstall-doc
 
-# Install everything.
 .PHONY: install-all uninstall-all
-install-all: build-exec install-doc install-lib-doc
+# Install libraries
+install-all: build-all install-doc install-lib-doc
 	# Install the library (+ main executable) and register it.
 	destdir=$(DESTDIR); \
 	# Older Cabal versions have no '--destdir' option.
@@ -219,7 +219,7 @@ install-all: build-exec install-doc install-lib-doc
 	# Note that, we are in the position of having to install the wrappers
 	# separately, as Cabal installs the main exec along with the library.
 	$(call install-executable-files,$(WRAPPERS),$(BINPATH))
-uninstall-all: uninstall-exec uninstall-doc uninstall-lib-doc
+uninstall-all: uninstall-program uninstall-lib-doc
 	-pkg_id="$(NAME)-$(VERSION)"; \
 	libdir=$$($(GHC_PKG) field $$pkg_id library-dirs 2>/dev/null | \
 		  sed 's/^library-dirs: *//'); \
