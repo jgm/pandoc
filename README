@@ -28,7 +28,7 @@ or output format requires only adding a reader or writer.
 [groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
 [Haskell]:  http://www.haskell.org/
 
-(c) 2006-7 John MacFarlane (jgm at berkeley dot edu). Released under the
+© 2006-7 John MacFarlane (jgm at berkeley dot edu). Released under the
 [GPL], version 2 or greater.  This software carries no warranty of
 any kind.  (See COPYRIGHT for full copyright and warranty notices.)
 Recai Oktaş (roktas at debian dot org) deserves credit for the build
