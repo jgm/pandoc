@@ -1,6 +1,9 @@
 To use the GHC profiler:
 
+first, add -auto-all to ghc-options in pandoc.cabal.  then
+
 make clean
+make templates
 runhaskell Setup.hs configure --enable-library-profiling --enable-executable-profiling
 runhaskell Setup.hs build
 dist/build/pandoc/pandoc +RTS -p -RTS [file]...
