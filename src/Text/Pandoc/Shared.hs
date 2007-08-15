@@ -716,6 +716,7 @@ normalizeSpaces [] = []
 normalizeSpaces list = 
     let removeDoubles [] = []
         removeDoubles (Space:Space:rest) = removeDoubles (Space:rest)
+        removeDoubles (Space:(Str ""):Space:rest) = removeDoubles (Space:rest)
         removeDoubles ((Str ""):rest) = removeDoubles rest 
         removeDoubles (x:rest) = x:(removeDoubles rest)
         removeLeading (Space:xs) = removeLeading xs
