@@ -40,6 +40,15 @@ X).  If you're using Windows, you can install [Cygwin].
 
         make test
 
+    Note: if you see errors like the following, they're due to differences
+    between different versions of the xhtml library, and can safely be
+    disregarded:
+
+        2c2
+        < <html xmlns="http://www.w3.org/1999/xhtml"
+        ---
+        > <html
+
 4.  Install:
 
         sudo make install
