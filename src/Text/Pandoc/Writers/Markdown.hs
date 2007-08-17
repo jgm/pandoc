@@ -91,8 +91,8 @@ notesToMarkdown opts notes =
 
 -- | Return markdown representation of a note.
 noteToMarkdown :: WriterOptions -> Int -> [Block] -> State WriterState Doc
-noteToMarkdown opts num note = do
-  contents <- blockListToMarkdown opts note
+noteToMarkdown opts num blocks = do
+  contents  <- blockListToMarkdown opts blocks
   let marker = text "[^" <> text (show num) <> text "]:"
   return $ hang marker (writerTabStop opts) contents 
 
@@ -163,8 +163,8 @@ blockToMarkdown opts (CodeBlock str) = return $
   (nest (writerTabStop opts) $ vcat $ map text (lines str)) <> text "\n"
 blockToMarkdown opts (BlockQuote blocks) = do
   contents <- blockListToMarkdown opts blocks
-  let quotedContents = unlines $ map ("> " ++) $ lines $ render contents
-  return $ text quotedContents 
+  return $ (vcat $ map (text . ("> " ++)) $ lines $ render contents) <> 
+           text "\n"
 blockToMarkdown opts (Table caption aligns widths headers rows) =  do
   caption' <- inlineListToMarkdown opts caption
   let caption'' = if null caption
