@@ -59,11 +59,21 @@ readHtml = readWith parseHtml
 -- Constants
 --
 
+eitherBlockOrInline = ["applet", "button", "del", "iframe", "ins",
+                  "map", "area", "object", "script"]
+
 inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big",
                   "br", "cite", "code", "dfn", "em", "font", "i", "img",
                   "input", "kbd", "label", "q", "s", "samp", "select",
                   "small", "span", "strike", "strong", "sub", "sup",
-                  "textarea", "tt", "u", "var"]
+                  "textarea", "tt", "u", "var"] ++ eitherBlockOrInline
+
+blockHtmlTags = ["address", "blockquote", "center", "dir", "div",
+                 "dl", "fieldset", "form", "h1", "h2", "h3", "h4",
+                 "h5", "h6", "hr", "isindex", "menu", "noframes",
+                 "noscript", "ol", "p", "pre", "table", "ul", "dd",
+                 "dt", "frameset", "li", "tbody", "td", "tfoot",
+                 "th", "thead", "tr"] ++ eitherBlockOrInline
 
 --
 -- HTML utility functions
@@ -171,12 +181,15 @@ htmlEndTag tag = try $ do
   char '>'
   return $ "</" ++ tag ++ ">"
 
--- | Returns @True@ if the tag is an inline tag.
+-- | Returns @True@ if the tag is (or can be) an inline tag.
 isInline tag = (extractTagType tag) `elem` inlineHtmlTags
+
+-- | Returns @True@ if the tag is (or can be) a block tag.
+isBlock tag = (extractTagType tag) `elem` blockHtmlTags 
 
 anyHtmlBlockTag = try $ do
   tag <- anyHtmlTag <|> anyHtmlEndTag
-  if isInline tag then fail "inline tag" else return tag
+  if isBlock tag then return tag else fail "inline tag"
 
 anyHtmlInlineTag = try $ do
   tag <- anyHtmlTag <|> anyHtmlEndTag
@@ -193,7 +206,7 @@ htmlBlockElement = choice [ htmlScript, htmlComment, xmlDec, definition ]
 
 rawHtmlBlock = try $ do
   notFollowedBy' (htmlTag "/body" <|> htmlTag "/html")
-  body <- htmlBlockElement <|> anyHtmlBlockTag
+  body <- htmlBlockElement <|> anyHtmlTag <|> anyHtmlEndTag
   sp <- many space
   state <- getState
   if stateParseRaw state then return (RawHtml (body ++ sp)) else return Null
@@ -260,8 +273,7 @@ parseHtml = do
   spaces
   optional (htmlEndTag "body")
   spaces
-  optional (htmlEndTag "html")
-  many anyChar -- ignore anything after </html>
+  optional (htmlEndTag "html" >> many anyChar) -- ignore anything after </html>
   eof
   return $ Pandoc (Meta title authors date) blocks
 

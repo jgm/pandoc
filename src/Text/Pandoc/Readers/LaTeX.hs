@@ -117,7 +117,8 @@ parseLaTeX = do
   spaces
   blocks <- parseBlocks
   spaces
-  optional $ try (string "\\end{document}") -- might not be present (fragment)
+  optional $ try (string "\\end{document}" >> many anyChar) 
+  -- might not be present (fragment)
   spaces
   eof
   state <- getState
