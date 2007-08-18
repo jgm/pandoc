@@ -642,6 +642,12 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
           </orderedlist>
         </listitem>
       </orderedlist>
+      <para>
+        Should not be a list item:
+      </para>
+      <para>
+        M.A. 2007
+      </para>
     </section>
   </section>
   <section>

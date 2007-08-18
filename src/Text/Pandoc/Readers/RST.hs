@@ -418,7 +418,7 @@ listItem start = try $ do
   return parsed
 
 orderedList = try $ do
-  (start, style, delim) <- lookAhead anyOrderedListMarker 
+  (start, style, delim) <- lookAhead (anyOrderedListMarker >>~ spaceChar)
   items <- many1 (listItem (orderedListStart style delim))
   let items' = compactify items
   return $ OrderedList (start, style, delim) items'
@@ -551,7 +551,8 @@ endline = try $ do
   -- parse potential list-starts at beginning of line differently in a list:
   st <- getState
   if ((stateParserContext st) == ListItemState)
-     then notFollowedBy' anyOrderedListMarker >> notFollowedBy' bulletListStart
+     then notFollowedBy (anyOrderedListMarker >> spaceChar) >>
+          notFollowedBy' bulletListStart
      else return ()
   return Space
 

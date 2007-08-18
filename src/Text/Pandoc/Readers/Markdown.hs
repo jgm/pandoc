@@ -334,8 +334,9 @@ anyOrderedListStart = try $ do
   if stateStrict state
      then do many1 digit
              char '.'
+             spaceChar
              return (1, DefaultStyle, DefaultDelim)
-     else anyOrderedListMarker
+     else anyOrderedListMarker >>~ spaceChar
 
 orderedListStart style delim = try $ do
   optional newline -- if preceded by a Plain block in a list context
@@ -346,7 +347,7 @@ orderedListStart style delim = try $ do
              char '.'
              return 1
      else orderedListMarker style delim 
-  oneOf spaceChars
+  spaceChar
   skipSpaces
 
 -- parse a line of a list item (start = parser for beginning of list item)

@@ -322,6 +322,10 @@ More\.
 Nested\.
 .RE
 .PP
+Should not be a list item:
+.PP
+M\.A\. 2007
+.PP
    *   *   *   *   *
 .SH Definition Lists
 .PP

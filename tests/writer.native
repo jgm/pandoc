@@ -178,6 +178,8 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
     , OrderedList (1,DefaultStyle,DefaultDelim)
       [ [ Plain [Str "Nested",Str "."] ]
      ] ] ]
+, Para [Str "Should",Space,Str "not",Space,Str "be",Space,Str "a",Space,Str "list",Space,Str "item:"]
+, Para [Str "M",Str ".",Str "A",Str ".",Space,Str "2007"]
 , HorizontalRule
 , Header 1 [Str "Definition",Space,Str "Lists"]
 , Para [Str "Tight",Space,Str "using",Space,Str "spaces:"]

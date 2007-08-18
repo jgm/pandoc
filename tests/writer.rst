@@ -348,6 +348,10 @@ Autonumbering:
     #. Nested.
 
 
+Should not be a list item:
+
+M.A. 2007
+
 --------------
 
 Definition Lists
