@@ -395,7 +395,8 @@ definitionListItem = try $ do
 -- paragraph block
 --
 
-para = htmlTag "p" >> inlinesTilEnd "p" >>= return . Para . normalizeSpaces
+para = try $ htmlTag "p" >> inlinesTilEnd "p" >>= 
+             return . Para . normalizeSpaces
 
 -- 
 -- plain block
