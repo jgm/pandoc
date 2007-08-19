@@ -43,7 +43,7 @@ import Data.Char ( toLower )
 import Control.Monad ( (>>=) )
 
 version :: String
-version = "0.4"
+version = "0.41"
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-7 John MacFarlane\n\
