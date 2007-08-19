@@ -31,6 +31,8 @@ pandoc (0.41) unstable; urgency=low
   * Added note to INSTALL about variations in versions of the xhtml
     library that can lead to failed tests (thanks to Leif LeBaron).
 
+ -- John MacFarlane <jgm@berkeley.edu>  Sun, 19 Aug 2007 00:00:00 -0400
+
 pandoc (0.4) unstable; urgency=low
 
   [ John MacFarlane ]
@@ -437,7 +439,6 @@ pandoc (0.4) unstable; urgency=low
       libghc6-xhtml-dev.  Removed libghc6-html-dev.
     + Suggest texlive-latex-recommended | tetex-extra instead of
       tetex-bin.  This brings in fancyvrb and unicode support.
-
 
  -- Recai Oktaş <roktas@debian.org>  Tue, 16 Jan 2007 00:37:21 +0200
 
