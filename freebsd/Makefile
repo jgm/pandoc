@@ -1,12 +1,12 @@
 # New ports collection makefile for: pandoc
-# Date created:                      9 February 2007
+# Date created:                      19 August 2007
 # Whom:                              John MacFarlane <jgm@berkeley.edu>
 #
 # $FreeBSD: ports/textproc/pandoc/Makefile,v 1.1 2007/02/11 17:21:55 nox Exp $
 #
 
 PORTNAME=	pandoc
-PORTVERSION=	0.4
+PORTVERSION=	0.41
 CATEGORIES=	textproc haskell
 MASTER_SITES=	http://pandoc.googlecode.com/files/
 DISTNAME=	pandoc-${PORTVERSION}
