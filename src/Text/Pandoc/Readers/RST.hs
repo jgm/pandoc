@@ -328,10 +328,7 @@ rawLaTeXBlock = try $ do
 blockQuote = try $ do
   raw <- indentedBlock True
   -- parse the extracted block, which may contain various block elements:
-  rest <- getInput
-  setInput $ raw ++ "\n\n"
-  contents <- parseBlocks
-  setInput rest
+  contents <- parseFromString parseBlocks $ raw ++ "\n\n"
   return $ BlockQuote contents
 
 --
@@ -344,10 +341,7 @@ definitionListItem = try $ do
   term <- many1Till inline endline
   raw <- indentedBlock True
   -- parse the extracted block, which may contain various block elements:
-  rest <- getInput
-  setInput $ raw ++ "\n\n"
-  contents <- parseBlocks
-  setInput rest
+  contents <- parseFromString parseBlocks $ raw ++ "\n\n"
   return (normalizeSpaces term, contents)
 
 definitionList = try $ do
@@ -408,12 +402,9 @@ listItem start = try $ do
   -- see definition of "endline"
   state <- getState
   let oldContext = stateParserContext state
-  remaining <- getInput
   setState $ state {stateParserContext = ListItemState}
   -- parse the extracted block, which may itself contain block elements
-  setInput $ concat (first:rest) ++ blanks
-  parsed <- parseBlocks
-  setInput remaining 
+  parsed <- parseFromString parseBlocks $ concat (first:rest) ++ blanks
   updateState (\st -> st {stateParserContext = oldContext})
   return parsed
 

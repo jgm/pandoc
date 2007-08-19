@@ -195,10 +195,7 @@ noteBlock = try $ do
   raw <- sepBy rawLines (try (blankline >> indentSpaces))
   optional blanklines
   -- parse the extracted text, which may contain various block elements:
-  rest <- getInput
-  setInput $ (joinWithSep "\n" raw) ++ "\n\n"
-  contents <- parseBlocks
-  setInput rest
+  contents <- parseFromString parseBlocks $ (joinWithSep "\n" raw) ++ "\n\n"
   return $ NoteBlock ref contents
 
 --
@@ -307,10 +304,7 @@ emailBlockQuote = try $ do
 blockQuote = do 
   raw <- emailBlockQuote <|> emacsBoxQuote
   -- parse the extracted block, which may contain various block elements:
-  rest <- getInput
-  setInput $ (joinWithSep "\n" raw) ++ "\n\n"
-  contents <- parseBlocks
-  setInput rest
+  contents <- parseFromString parseBlocks $ (joinWithSep "\n" raw) ++ "\n\n"
   return $ BlockQuote contents
  
 --
@@ -393,11 +387,8 @@ listItem start = try $ do
   let oldContext = stateParserContext state
   setState $ state {stateParserContext = ListItemState}
   -- parse the extracted block, which may contain various block elements:
-  rest <- getInput
   let raw = concat (first:continuations)
-  setInput raw
-  contents <- parseBlocks
-  setInput rest
+  contents <- parseFromString parseBlocks raw
   updateState (\st -> st {stateParserContext = oldContext})
   return contents
 
@@ -419,10 +410,7 @@ definitionListItem = try $ do
   state <- getState
   let oldContext = stateParserContext state
   -- parse the extracted block, which may contain various block elements:
-  rest <- getInput
-  setInput (concat raw)
-  contents <- parseBlocks
-  setInput rest
+  contents <- parseFromString parseBlocks $ concat raw
   updateState (\st -> st {stateParserContext = oldContext})
   return ((normalizeSpaces term), contents)
 
