@@ -31,7 +31,7 @@ pandoc (0.41) unstable; urgency=low
   * Added note to INSTALL about variations in versions of the xhtml
     library that can lead to failed tests (thanks to Leif LeBaron).
 
- -- John MacFarlane <jgm@berkeley.edu>  Sun, 19 Aug 2007 00:00:00 -0400
+ -- Recai Oktaş <roktas@debian.org>  Sun, 19 Aug 2007 23:26:07 +0300
 
 pandoc (0.4) unstable; urgency=low
 

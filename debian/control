@@ -5,6 +5,8 @@ Maintainer: Recai Oktaş <roktas@debian.org>
 Build-Depends: debhelper (>= 4.0.0), haskell-devscripts (>=0.5.12), ghc6 (>= 6.6-1), libghc6-xhtml-dev, libghc6-mtl-dev, perl
 Build-Depends-Indep: haddock
 Standards-Version: 3.7.2.0
+XS-Vcs-Svn: http://pandoc.googlecode.com/svn/trunk
+XS-Vcs-Browser: http://pandoc.googlecode.com/svn/trunk
 
 Package: pandoc
 Section: text
