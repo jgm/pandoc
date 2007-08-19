@@ -1,3 +1,36 @@
+pandoc (0.41) unstable; urgency=low
+
+  [ John MacFarlane ]
+
+  * Fixed bugs in HTML reader:
+    + Skip material at end *only if* </html> is present (previously,
+      only part of the document would be parsed if an error was
+      found; now a proper error message is given).
+    + Added new constant eitherBlockOrInline with elements that may
+      count either as block-level or as inline. Modified isInline and
+      isBlock to take this into account.
+    + Modified rawHtmlBlock to accept any tag (even an inline tag):
+      this is innocuous, because rawHtmlBlock is tried only if a regular
+      inline element can't be parsed.
+    + Added a necessary 'try' in definition of 'para'.
+
+  * Fixed bug in markdown ordered list parsing.  The problem was that
+    anyOrderedListStart did not check for a space following the
+    ordered list marker.  So in 'A.B. 2007' the parser would be
+    expecting a list item, but would not find one, causing an error.
+    Fixed a similar bug in the RST reader.  Resolves Issue #22.
+
+  * Refactored RST and Markdown readers using parseFromString.
+
+  * LaTeX reader will now skip anything after \end{document}.
+
+  * Fixed blockquote output in markdown writer: previously, block
+    quotes in indented contexts would be indented only in the first
+    line.
+
+  * Added note to INSTALL about variations in versions of the xhtml
+    library that can lead to failed tests (thanks to Leif LeBaron).
+
 pandoc (0.4) unstable; urgency=low
 
   [ John MacFarlane ]
