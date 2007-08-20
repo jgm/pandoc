@@ -322,7 +322,7 @@ bulletListStart = try $ do
   skipSpaces
 
 anyOrderedListStart = try $ do
-  optional  newline -- if preceded by a Plain block in a list context
+  optional newline -- if preceded by a Plain block in a list context
   nonindentSpaces
   state <- getState
   if stateStrict state
@@ -786,8 +786,6 @@ endline = try $ do
     then do
            notFollowedBy emailBlockQuoteStart
            notFollowedBy (char '#')  -- atx header
-           notFollowedBy (manyTill anyChar newline >> oneOf setextHChars) 
-           -- setext header
     else return () 
   -- parse potential list-starts differently if in a list:
   if stateParserContext st == ListItemState
@@ -854,9 +852,10 @@ autoLinkEmail = try $ do
   char '<'
   name <- many1Till (noneOf "/:<> \t\n") (char '@')
   domain <- sepBy1 (many1 (noneOf "/:.@<> \t\n")) (char '.')
-  let src = name ++ "@" ++ (joinWithSep "." domain)
   char '>'
-  return $ Link [Code src] (("mailto:" ++ src), "")
+  let src = name ++ "@" ++ (joinWithSep "." domain)
+  txt <- autoLinkText src
+  return $ Link txt (("mailto:" ++ src), "")
 
 -- a link <http://like.this.com>
 autoLinkRegular = try $ do
@@ -864,7 +863,14 @@ autoLinkRegular = try $ do
   prot <- oneOfStrings ["http:", "ftp:", "mailto:"]
   rest <- many1Till (noneOf " \t\n<>") (char '>')
   let src = prot ++ rest
-  return $ Link [Code src] (src, "")
+  txt <- autoLinkText src
+  return $ Link txt (src, "")
+
+autoLinkText src = do
+  st <- getState
+  return $ if stateStrict st
+              then [Str src]
+              else [Code src]
 
 image = try $ do
   char '!'
