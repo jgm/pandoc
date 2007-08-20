@@ -271,7 +271,9 @@ blockToHtml opts (Header level lst) = do
                       then ("", [])
                       else (head ids, tail ids)
   put $ st {stIds = rest}
-  let attribs = [identifier id]
+  let attribs = if writerStrictMarkdown opts && not (writerTableOfContents opts)
+                   then []
+                   else [identifier id]
   let headerHtml = case level of
               1 -> h1 contents ! attribs
               2 -> h2 contents ! attribs
