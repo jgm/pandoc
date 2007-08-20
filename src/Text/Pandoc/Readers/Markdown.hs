@@ -223,25 +223,21 @@ block = choice [ header
 header = setextHeader <|> atxHeader <?> "header"
 
 atxHeader = try $ do
-  lead <- many1 (char '#')
+  level <- many1 (char '#') >>= return . length
   notFollowedBy (char '.' <|> char ')') -- this would be a list
   skipSpaces
-  txt <- manyTill inline atxClosing
-  return $ Header (length lead) (normalizeSpaces txt)
+  text <- manyTill inline atxClosing >>= return . normalizeSpaces
+  return $ Header level text
 
-atxClosing = try $ skipMany (char '#') >> skipSpaces >> newline >> 
-                   option "" blanklines
+atxClosing = try $ skipMany (char '#') >> blanklines
 
-setextHeader = choice $ 
-               map (\x -> setextH x) $ enumFromTo 1 (length setextHChars)
+setextHeader = choice $ map setextH $ enumFromTo 1 (length setextHChars)
 
-setextH n = try $ do
-  txt <- many1Till inline newline
-  many1 (char (setextHChars !! (n-1)))
-  skipSpaces
-  newline
-  optional blanklines
-  return $ Header n (normalizeSpaces txt)
+setextH level = try $ do
+  text <- many1Till inline newline >>= return . normalizeSpaces
+  many1 $ char (setextHChars !! (level - 1))
+  blanklines
+  return $ Header level text
 
 --
 -- hrule block
@@ -260,20 +256,15 @@ hrule = choice (map hruleWith hruleChars) <?> "hrule"
 -- code blocks
 --
 
-indentedLine = try $ do
-  indentSpaces
-  result <- manyTill anyChar newline
-  return $ result ++ "\n"
+indentedLine = indentSpaces >> manyTill anyChar newline >>= return . (++ "\n")
 
--- two or more indented lines, possibly separated by blank lines
-indentedBlock = try $ do 
-  res1 <- indentedLine
-  blanks <- many blankline 
-  res2 <- indentedBlock <|> indentedLine
-  return $ res1 ++ blanks ++ res2
-
-codeBlock = (indentedBlock <|> indentedLine) >>~ optional blanklines >>=
-            return . CodeBlock . stripTrailingNewlines
+codeBlock = try $ do
+  contents <- many1 (indentedLine <|> 
+                     try (do b <- blanklines
+                             l <- indentedLine
+                             return $ b ++ l))
+  blanklines
+  return $ CodeBlock $ stripTrailingNewlines $ concat contents
 
 --
 -- block quotes
