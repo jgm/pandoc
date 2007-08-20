@@ -1,8 +1,8 @@
 # New ports collection makefile for: pandoc
-# Date created:                      19 August 2007
+# Date created:                      9 February 2007
 # Whom:                              John MacFarlane <jgm@berkeley.edu>
 #
-# $FreeBSD: ports/textproc/pandoc/Makefile,v 1.1 2007/02/11 17:21:55 nox Exp $
+# $FreeBSD: ports/textproc/pandoc/Makefile,v 1.2 2007/05/19 20:24:07 flz Exp $
 #
 
 PORTNAME=	pandoc
