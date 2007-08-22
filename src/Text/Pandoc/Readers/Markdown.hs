@@ -383,7 +383,7 @@ listItem start = try $ do
   updateState (\st -> st {stateParserContext = oldContext})
   return contents
 
-orderedList = do
+orderedList = try $ do
   (start, style, delim) <- lookAhead anyOrderedListStart
   items <- many1 (listItem (orderedListStart style delim))
   return $ OrderedList (start, style, delim) $ compactify items
