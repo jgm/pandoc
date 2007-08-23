@@ -6,7 +6,7 @@
 #
 
 PORTNAME=	pandoc
-PORTVERSION=	0.41
+PORTVERSION=	0.42
 CATEGORIES=	textproc haskell
 MASTER_SITES=	http://pandoc.googlecode.com/files/
 DISTNAME=	pandoc-${PORTVERSION}
