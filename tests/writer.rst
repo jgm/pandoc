@@ -352,6 +352,8 @@ Should not be a list item:
 
 M.A. 2007
 
+B. Williams
+
 --------------
 
 Definition Lists

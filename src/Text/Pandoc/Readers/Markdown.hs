@@ -327,12 +327,15 @@ orderedListStart style delim = try $ do
   optional newline -- if preceded by a Plain block in a list context
   nonindentSpaces
   state <- getState
-  if stateStrict state
-     then do many1 digit
-             char '.'
-             return 1
-     else orderedListMarker style delim 
-  spaceChar
+  num <- if stateStrict state
+            then do many1 digit
+                    char '.'
+                    return 1
+            else orderedListMarker style delim 
+  if delim == Period && (style == UpperAlpha || (style == UpperRoman &&
+     num `elem` [1, 5, 10, 50, 100, 500, 1000]))
+     then char '\t' <|> (spaceChar >> spaceChar)
+     else spaceChar
   skipSpaces
 
 -- parse a line of a list item (start = parser for beginning of list item)

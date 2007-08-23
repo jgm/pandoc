@@ -452,11 +452,31 @@ Unlike standard markdown, Pandoc allows ordered list items to be marked
 with uppercase and lowercase letters and roman numerals, in addition to
 arabic numerals. (This behavior can be turned off using the `--strict`
 option.) List markers may be enclosed in parentheses or followed by a
-single right-parentheses or period. Pandoc also pays attention to the
-type of list marker used, and to the starting number, and both of these
-are preserved where possible in the output format. Thus, the following
-yields a list with numbers followed by a single parenthesis, starting
-with 9, and a sublist with lowercase roman numerals:
+single right-parentheses or period. They must be separated from the
+text that follows by at least one space, and, if the list marker is a
+capital letter with a period, by at least two spaces.[^2]
+
+[^2]:  The point of this rule is to ensure that normal paragraphs
+    starting with people's initials, like
+
+        B. Russell was an English philosopher.
+
+    do not get treated as list items.
+
+    This rule will not prevent
+
+        (C) 2007 Joe Smith
+
+    from being interpreted as a list item.  In this case, a backslash
+    escape can be used:
+
+        (C\) 2007 Joe Smith
+    
+Pandoc also pays attention to the type of list marker used, and to the
+starting number, and both of these are preserved where possible in the
+output format. Thus, the following yields a list with numbers followed
+by a single parenthesis, starting with 9, and a sublist with lowercase
+roman numerals:
 
      9)  Ninth
     10)  Tenth
@@ -491,27 +511,10 @@ gets treated as if it were
 
     1.  One
     2.  Two
-        A. Sub
-        B. Sub
+        A.  Sub
+        B.  Sub
     3.  Three
 
-Note that a list beginning with a single letter will be interpreted as
-an alphabetic list. So you are out of luck if you want a roman-numbered
-list starting with 100 (C).
-
-Note also that a paragraph starting with a capital letter and a period
-(for example, an initial) or a capital letter in parentheses
-(for example, `(C)`) will be interpreted as a list:
-
-    B. Russell was an English philosopher.
-
-    (C) 2007 Joe Smith
-
-To avoid this, use backslash escapes:
-
-    B\. Russell was an English philosopher.
-
-    \(C) 2007 Joe Smith
 
 Definition lists
 ----------------
