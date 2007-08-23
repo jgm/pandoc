@@ -229,7 +229,7 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      text <- readFile arg
-                     return opt { optIncludeInHeader = text, 
+                     return opt { optIncludeInHeader = fromUTF8 text, 
                                   optStandalone = True })
                   "FILENAME")
                  "" -- "File to include at end of header (implies -s)"
@@ -238,7 +238,7 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      text <- readFile arg
-                     return opt { optIncludeBeforeBody = text })
+                     return opt { optIncludeBeforeBody = fromUTF8 text })
                   "FILENAME")
                  "" -- "File to include before document body"
 
@@ -246,7 +246,7 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      text <- readFile arg
-                     return opt { optIncludeAfterBody = text })
+                     return opt { optIncludeAfterBody = fromUTF8 text })
                   "FILENAME")
                  "" -- "File to include after document body"
 
@@ -254,7 +254,7 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      text <- readFile arg
-                     return opt { optCustomHeader = text, 
+                     return opt { optCustomHeader = fromUTF8 text, 
                                   optStandalone = True })
                   "FILENAME")
                  "" -- "File to use for custom header (implies -s)"
