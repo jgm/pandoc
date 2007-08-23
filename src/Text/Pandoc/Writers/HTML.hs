@@ -347,8 +347,8 @@ tableItemToHtml opts tag align' width item = do
   contents <- blockListToHtml opts item
   let attrib = [align align'] ++ 
                if width /= 0 
-                  then [thestyle ("{width: " ++ show (truncate (100*width)) ++ 
-                        "%;}")]
+                  then [thestyle ("width: " ++ show (truncate (100*width)) ++ 
+                        "%;")]
                   else [] 
   return $ tag ! attrib $ contents
 
