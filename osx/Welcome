@@ -1,5 +1,13 @@
 % OS X Installation Notes
 
+**Important:** Pandoc requires that `GMP.framework` be installed
+on your system. You can obtain it from
+
+> <http://www.haskell.org/ghc/dist/mac_frameworks/GMP-framework.zip>.
+
+To install, just unzip and drag the `GMP-framework` directory into your
+`/Library/Frameworks` directory.
+
 Pandoc will be installed into your `@PREFIX@` directory.  In order
 to use `pandoc` and the associated wrapper scripts, you must have
 `@PREFIX@/bin` in your `PATH.`   To add `@PREFIX@/bin` to your
