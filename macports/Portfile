@@ -1,0 +1,23 @@
+# ID$
+
+PortSystem          1.0
+name                pandoc
+version             0.41
+categories          textproc
+maintainers         jgm@berkeley.edu
+description         General markup converter
+long_description    \
+    Pandoc is a command-line tool for converting from one markup format \
+    to another.  It can read markdown and (subsets of) reStructuredText, \
+    HTML, and LaTeX, and it can write markdown, reStructuredText, HTML, \
+    LaTeX, ConTeXt, DocBook, RTF, groff man pages, and S5 HTML slide shows.
+
+homepage            http://sophos.berkeley.edu/pandoc/
+platforms           darwin
+master_sites        http://pandoc.googlecode.com/files/
+checksums           md5 732d5b690dda755c3b0b34d485488dd3
+depends_lib         port:ghc
+
+configure           {}
+build.cmd           PREFIX=${prefix} make
+
