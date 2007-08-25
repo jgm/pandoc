@@ -236,6 +236,21 @@ uninstall-all: uninstall-program uninstall-lib-doc
 install: install-program
 uninstall: uninstall-program
 
+# FreeBSD port
+.PHONY: freebsd
+freebsd_dest:=freebsd
+freebsd_distinfo:=$(freebsd_dest)/distinfo
+freebsd_makefile:=$(freebsd_dest)/Makefile
+freebsd_template:=$(freebsd_makefile).in
+cleanup_files+=$(freebsd_makefile) $(freebsd_distinfo)
+freebsd : $(freebsd_makefile) $(freebsd_distinfo)
+$(freebsd_makefile) : $(freebsd_template)
+	sed -e 's/@VERSION@/$(VERSION)/' $< > $@
+$(freebsd_distinfo) : $(tarball)
+	echo "MD5 ($(tarball)) = $(word 1, $(shell md5sum $(tarball)))" > $@ ; \
+	echo "SHA256 ($(tarball)) = $(word 1, $(shell sha256sum $(tarball)))" >> $@ ; \
+	echo "SIZE ($(tarball)) = $(word 5, $(shell ls -l $(tarball)))" >> $@ 
+
 # MacPort
 .PHONY: macport
 macport_dest:=macports
@@ -243,9 +258,10 @@ portfile:=$(macport_dest)/Portfile
 portfile_template:=$(portfile).in
 cleanup_files+=$(portfile)
 macport : $(portfile)
-$(portfile) : $(portfile_template) $(tarball_name)
+$(portfile) : $(portfile_template) $(tarball)
 	sed -e 's/@VERSION@/$(VERSION)/' $(portfile_template) | \
-	sed -e 's/@TARBALLMD5SUM@/$(shell md5sum $(tarball_name))/' > $(portfile)  
+	sed -e 's/@TARBALLMD5SUM@/$(word 1, $(shell md5sum $(tarball)))/' > \
+	$(portfile)  
 
 # OSX packages:  make osx-pkg-prep, then (as root) make osx-pkg
 .PHONY: osx-pkg osx-pkg-prep
@@ -333,14 +349,14 @@ tags: $(src_all)
 	LC_ALL=C sort tags >tags.sorted; mv tags.sorted tags
 
 .PHONY: tarball
-tarball_name:=$(RELNAME).tar.gz
-cleanup_files+=$(tarball_name)
-tarball: $(tarball_name)
-$(tarball_name):
+tarball:=$(RELNAME).tar.gz
+cleanup_files+=$(tarball)
+tarball: $(tarball)
+$(tarball):
 	svn export . $(RELNAME)
 	$(MAKE) -C $(RELNAME) templates
 	$(MAKE) -C $(RELNAME) wrappers
-	tar cvzf $(tarball_name) $(RELNAME)
+	tar cvzf $(tarball) $(RELNAME)
 	-rm -rf $(RELNAME)
 
 .PHONY: deb

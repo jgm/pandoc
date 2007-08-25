@@ -129,6 +129,7 @@ but are documented here for packagers and developers:
 * `tarball`:  Creates a source tarball for distribution.
 * `deb`:  Creates debian packages in `..` directory.
 * `macport`: Creates MacPorts Portfile in `macports` directory.
+* `freebsd`: Creates freebsd Makefile and distinfo in `freebsd` directory.
 * `osx-pkg-prep`:  Prepares for building a MacOS X package.
 * `osx-pkg`:  Builds a MacOS X package (must be run as root, and on OS X).
   You should make `osx-pkg-prep` first (not as root).
