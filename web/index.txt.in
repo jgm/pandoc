@@ -104,7 +104,7 @@ You may view existing bug reports and submit new ones at
 
 # News
 
--   Version @VERSION@ released (August 19, 2007).
+-   Version 0.41 released (August 19, 2007).
 
     Fixes bugs in the handling of ordered lists and raw HTML.
     For details, see the changelog.

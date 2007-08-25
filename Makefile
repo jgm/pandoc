@@ -385,18 +385,19 @@ deb: debian
 
 .PHONY: website
 web_src:=web
-web_dest:=web/pandoc
+web_dest:=pandoc-website
 make_page:=./$(MAIN) -s -S -B $(web_src)/header.html \
                         -A $(web_src)/footer.html \
 	                -H $(web_src)/css 
 cleanup_files+=$(web_dest)
-website: $(MAIN) html
+$(web_dest) : html $(wildcard $(web_src)/*) $(osx_src)/Welcome changelog \
+    INSTALL $(MANPAGES) $(MANDIR)/man1/pandoc.1.md README
 	-rm -rf $(web_dest)
 	( \
 		mkdir $(web_dest); \
 		cp -r html $(web_dest)/doc; \
 		cp $(web_src)/* $(web_dest)/; \
-		sed -e 's#@VERSION@#$(VERSION)g' $(osx_src)/index.txt.in > \
+		sed -e 's#@VERSION@#$(VERSION)#g' $(web_src)/index.txt.in > \
 			$(web_dest)/index.txt; \
 		sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome > \
 			$(web_dest)/osx-notes.txt; \
@@ -405,8 +406,9 @@ website: $(MAIN) html
 		cp INSTALL $(web_dest)/ ; \
 		cp $(MANDIR)/man1/pandoc.1.md $(web_dest)/ ; \
 		cp $(MANDIR)/man1/*.1 $(web_dest)/ ; \
-		PANDOC_PATH=$(shell pwd) make -C $(web_dest) ; \
 	) || { rm -rf $(web_dest); exit 1; }
+website: $(MAIN) $(web_dest)
+	PANDOC_PATH=$(shell pwd) make -C $(web_dest) 
 
 .PHONY: distclean clean
 distclean: clean
