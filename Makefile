@@ -396,6 +396,8 @@ website: $(MAIN) html
 		mkdir $(web_dest); \
 		cp -r html $(web_dest)/doc; \
 		cp $(web_src)/* $(web_dest)/; \
+		sed -e 's#@VERSION@#$(VERSION)g' $(osx_src)/index.txt.in > \
+			$(web_dest)/index.txt; \
 		sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome > \
 			$(web_dest)/osx-notes.txt; \
 		cp changelog $(web_dest)/ ; \
