@@ -2,7 +2,7 @@
 
 PortSystem          1.0
 name                pandoc
-version             0.41
+version             @VERSION@
 categories          textproc
 maintainers         jgm@berkeley.edu
 description         General markup converter
@@ -15,7 +15,7 @@ long_description    \
 homepage            http://sophos.berkeley.edu/pandoc/
 platforms           darwin
 master_sites        http://pandoc.googlecode.com/files/
-checksums           md5 732d5b690dda755c3b0b34d485488dd3
+checksums           md5 @TARBALLMD5SUM@
 depends_lib         port:ghc
 
 configure           {}
