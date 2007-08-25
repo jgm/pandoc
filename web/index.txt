@@ -82,7 +82,7 @@ To see what pandoc can do, see the [demonstration page](examples.html).
   on Ubuntu and other Debian derivatives. To install, download the file
   and type:
 
-        sudo dpkg -i pandoc_0.41_i386.deb
+        sudo dpkg -i pandoc_@VERSION@_i386.deb
 
 # Code repository
 
@@ -104,7 +104,7 @@ You may view existing bug reports and submit new ones at
 
 # News
 
--   Version 0.41 released (August 19, 2007).
+-   Version @VERSION@ released (August 19, 2007).
 
     Fixes bugs in the handling of ordered lists and raw HTML.
     For details, see the changelog.
@@ -160,11 +160,11 @@ kind.
 [Haskell]:  http://www.haskell.org/
 [GHC]:  http://www.haskell.org/ghc/
 [GPL]:  http://www.gnu.org/copyleft/gpl.html
-[Source tarball]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-0.41.tar.gz "Download source tarball from Pandoc's Google Code site"
-[MacOS X binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-0.41.dmg "Download Mac OS X disk image from Pandoc's Google Code site"
-[Windows binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-0.41.zip "Download Windows zip file from Pandoc's Google Code site"
+[Source tarball]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.tar.gz "Download source tarball from Pandoc's Google Code site"
+[MacOS X binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.dmg "Download Mac OS X disk image from Pandoc's Google Code site"
+[Windows binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.zip "Download Windows zip file from Pandoc's Google Code site"
 [Cygwin]: http://www.cygwin.com/ "Cygwin - a linux-like environment for Windows"
-[Debian linux package]:  pandoc_0.41_i386.deb
+[Debian linux package]:  pandoc_@VERSION@_i386.deb
 [FreeBSD port]: http://www.freshports.org/textproc/pandoc/
 [pandoc-announce]: http://groups.google.com/group/pandoc-announce
 [pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
