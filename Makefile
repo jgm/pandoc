@@ -253,7 +253,7 @@ $(freebsd_distinfo) : $(tarball)
 
 # MacPort
 .PHONY: macport
-macport_dest:=macport
+macport_dest:=macports
 portfile:=$(macport_dest)/Portfile
 portfile_template:=$(portfile).in
 cleanup_files+=$(portfile)
