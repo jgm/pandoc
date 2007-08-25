@@ -278,4 +278,6 @@ inlineToLaTeX (Note contents) = do
   contents' <- blockListToLaTeX contents
   st <- get
   put (st {stInNote = False})
-  return $ "\\footnote{" ++ stripTrailingNewlines contents'  ++ "}"
+  return $ "\\footnote{" ++ stripTrailingNewlines contents'  ++ "\n}" 
+  -- note: the \n before } is important; removing it causes problems
+  -- if a Verbatim environment occurs at the end of the footnote.
