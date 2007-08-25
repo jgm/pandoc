@@ -236,6 +236,17 @@ uninstall-all: uninstall-program uninstall-lib-doc
 install: install-program
 uninstall: uninstall-program
 
+# MacPort
+.PHONY: macport
+macport_dest:=macports
+portfile:=$(macport_dest)/Portfile
+portfile_template:=$(portfile).in
+cleanup_files+=$(portfile)
+macport : $(portfile)
+$(portfile) : $(portfile_template) $(tarball_name)
+	sed -e 's/@VERSION@/$(VERSION)/' $(portfile_template) | \
+	sed -e 's/@TARBALLMD5SUM@/$(shell md5sum $(tarball_name))/' > $(portfile)  
+
 # OSX packages:  make osx-pkg-prep, then (as root) make osx-pkg
 .PHONY: osx-pkg osx-pkg-prep
 osx_dest:=osx-pkg-tmp
