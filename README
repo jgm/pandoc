@@ -640,7 +640,8 @@ to the dashed line below it:[^1]
     the default alignment is used (in most cases, this will be left).
 
 [^1]:  This scheme is due to Michel Fortin, who proposed it on the
-    Markdown discussion list: <http://six.pairlist.net/pipermail/markdown-discuss/2005-March/001097.html>
+    Markdown discussion list: 
+    <http://six.pairlist.net/pipermail/markdown-discuss/2005-March/001097.html>.
 
 The table must end with a blank line.  Optionally, a caption may be
 provided (as illustrated in the example above).  A caption is a paragraph
