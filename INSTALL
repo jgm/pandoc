@@ -1,7 +1,7 @@
 % Installing pandoc
 
-The following instructions are for installing pandoc from source. Binary
-packages are also available for Windows, MacOS X, Linux (Debian and
+The following instructions are for installing pandoc from source. 
+Packages are also available for Windows, MacOS X, Linux (Debian and
 derivatives), and FreeBSD. See the [pandoc home page] for more details.
 
 [pandoc home page]: http://sophos.berkeley.edu/macfarlane/pandoc/
