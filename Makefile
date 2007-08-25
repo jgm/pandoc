@@ -260,7 +260,7 @@ cleanup_files+=$(portfile)
 macport : $(portfile)
 $(portfile) : $(portfile_template) $(tarball)
 	sed -e 's/@VERSION@/$(VERSION)/' $(portfile_template) | \
-	sed -e 's/@TARBALLMD5SUM@/$(word 1, $(shell md5sum $(tarball)))/' > \
+	sed -e 's/@TARBALLMD5SUM@/$(word 2, $(shell openssl md5 $(tarball)))/' > \
 	$(portfile)  
 
 # OSX packages:  make osx-pkg-prep, then (as root) make osx-pkg
