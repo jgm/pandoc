@@ -46,6 +46,13 @@ pandoc (0.42) unstable; urgency=low
       from the repository.
     + Added macport target to Makefile. Portfile is built from template
       Portfile.in.
+    + Removed OSX package targets.  (Too many difficulties involving
+      dependencies on dynamic libraries.)
+    + More complete INSTALL instructions for all architectures.
+
+  * Website:
+    + Added a programming demo, pandocwiki.
+
 
 pandoc (0.41) unstable; urgency=low
 
