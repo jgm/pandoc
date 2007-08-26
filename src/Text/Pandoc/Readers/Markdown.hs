@@ -315,6 +315,7 @@ bulletListStart = try $ do
 anyOrderedListStart = try $ do
   optional newline -- if preceded by a Plain block in a list context
   nonindentSpaces
+  notFollowedBy $ string "p." >> spaceChar >> digit  -- page number
   state <- getState
   if stateStrict state
      then do many1 digit
