@@ -183,7 +183,7 @@ and insert the line
     file:///Users/yourusername/ports
 
 before the line beginning `rsync:`, so MacPorts will know about your
-local repository.
+local repository. (Replace `yourusername` here with your user name.)
 
 Now you should be able to install pandoc by typing
 
