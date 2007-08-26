@@ -246,7 +246,7 @@ cleanup_files+=$(freebsd_makefile) $(freebsd_distinfo)
 freebsd : $(freebsd_makefile) $(freebsd_distinfo)
 $(freebsd_makefile) : $(freebsd_template)
 	sed -e 's/@VERSION@/$(VERSION)/' $< > $@
-$(freebsd_distinfo) : $(tarball)
+$(freebsd_distinfo) : tarball
 	echo "MD5 ($(tarball)) = $(word 1, $(shell md5sum $(tarball)))" > $@ ; \
 	echo "SHA256 ($(tarball)) = $(word 1, $(shell sha256sum $(tarball)))" >> $@ ; \
 	echo "SIZE ($(tarball)) = $(word 5, $(shell ls -l $(tarball)))" >> $@ 
@@ -258,7 +258,7 @@ portfile:=$(macport_dest)/Portfile
 portfile_template:=$(portfile).in
 cleanup_files+=$(portfile)
 macport : $(portfile)
-$(portfile) : $(portfile_template) $(tarball)
+$(portfile) : $(portfile_template) tarball
 	sed -e 's/@VERSION@/$(VERSION)/' $(portfile_template) | \
 	sed -e 's/@TARBALLMD5SUM@/$(word 2, $(shell openssl md5 $(tarball)))/' > \
 	$(portfile)  
