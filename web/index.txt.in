@@ -51,7 +51,7 @@ To see what pandoc can do, see the [demonstration page](examples.html).
     - [`html2markdown(1)`](html2markdown1.html)
     - [`hsmarkdown(1)`](hsmarkdown1.html)
 - [Library documentation](doc/index.html) (for Haskell programmers)
-- [Instructions for installing from source](INSTALL.html)
+- [Installation instructions](INSTALL.html)
 - [Changelog](changelog)
 
 # Downloads
