@@ -96,6 +96,7 @@ You may view existing bug reports and submit new ones at
     + Improved strict markdown compatibility.
     + OSX packages are no longer supported. There were too many issues with
       dynamic libraries. Instead, a MacPorts Portfile is now provided.
+    + Exposed Text.Pandoc.ASCIIMathML.
 
 -   Version 0.41 released (August 19, 2007).
 
