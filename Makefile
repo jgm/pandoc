@@ -263,60 +263,6 @@ $(portfile) : $(portfile_template) $(tarball)
 	sed -e 's/@TARBALLMD5SUM@/$(word 2, $(shell openssl md5 $(tarball)))/' > \
 	$(portfile)  
 
-# OSX packages:  make osx-pkg-prep, then (as root) make osx-pkg
-.PHONY: osx-pkg osx-pkg-prep
-osx_dest:=osx-pkg-tmp
-osx_src:=osx
-doc_more:=COPYRIGHT.rtf $(osx_src)/Welcome.rtf
-osx_pkg_name:=$(RELNAME).pkg
-cleanup_files+=$(osx_dest) $(doc_more) $(osx_pkg_name)
-osx-pkg-prep: $(osx_dest)
-$(osx_dest)/: build-program $(doc_more)
-	-rm -rf $(osx_dest)
-	$(INSTALL) -d $(osx_dest)
-	DESTDIR=$(osx_dest)/Package_root $(MAKE) install-program
-	cp $(osx_src)/uninstall-pandoc $(osx_dest)/Package_root/usr/local/bin/
-	find $(osx_dest) -type f -regex ".*bin/.*" | xargs chmod +x
-	find $(osx_dest) -type f -regex ".*bin/$(notdir $(MAIN))" | xargs $(STRIP)
-	$(INSTALL) -d $(osx_dest)/Resources
-	./$(MAIN) -s -S README -o $(osx_dest)/Resources/ReadMe.html
-	cp COPYRIGHT.rtf $(osx_dest)/Resources/License.rtf
-	sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome.rtf > $(osx_dest)/Resources/Welcome.rtf
-	sed -e 's/@VERSION@/$(VERSION)/g' $(osx_src)/Info.plist > $(osx_dest)/Info.plist
-	cp $(osx_src)/Description.plist $(osx_dest)/
-osx-pkg: $(osx_pkg_name)
-$(osx_pkg_name)/: $(osx_dest)
-	if [ "`id -u`" != 0 ]; then \
-		echo "Root permissions needed to create OSX package!"; \
-		exit 1; \
-	fi
-	find $(osx_dest) | xargs chown root:wheel
-	PackageMaker -build -p $(osx_pkg_name) \
-	                    -f $(osx_dest)/Package_root \
-	                    -r $(osx_dest)/Resources \
-	                    -i $(osx_dest)/Info.plist \
-	                    -d $(osx_dest)/Description.plist
-	chgrp admin $(osx_pkg_name)
-	-rm -rf $(osx_dest)
-
-.PHONY: osx-dmg
-osx_dmg_name:=$(RELNAME).dmg
-cleanup_files+=$(osx_dmg_name)
-osx_udzo_name:=$(RELNAME).udzo.dmg
-osx_dmg_volume:="$(NAME) $(VERSION)"
-osx-dmg: $(osx_dmg_name)
-$(osx_dmg_name): $(osx_pkg_name)
-	-rm -f $(osx_dmg_name)
-	hdiutil create $(osx_dmg_name) -size 05m -fs HFS+ -volname $(osx_dmg_volume)
-	dev_handle=`hdid $(osx_dmg_name) | grep Apple_HFS | \
-		    perl -e '\$$_=<>; /^\\/dev\\/(disk.)/; print \$$1'`; \
-	ditto $(osx_pkg_name) /Volumes/$(osx_dmg_volume)/$(osx_pkg_name); \
-	hdiutil detach $$dev_handle
-	hdiutil convert $(osx_dmg_name) -format UDZO -o $(osx_udzo_name)
-	-rm -f $(osx_dmg_name)
-	mv $(osx_udzo_name) $(osx_dmg_name)
-
-
 .PHONY: win-pkg
 win_pkg_name:=$(RELNAME).zip
 win_docs:=COPYING.txt COPYRIGHT.txt BUGS.txt README.txt README.html
