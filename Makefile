@@ -239,17 +239,12 @@ uninstall: uninstall-program
 # FreeBSD port
 .PHONY: freebsd
 freebsd_dest:=freebsd
-freebsd_distinfo:=$(freebsd_dest)/distinfo
 freebsd_makefile:=$(freebsd_dest)/Makefile
 freebsd_template:=$(freebsd_makefile).in
-cleanup_files+=$(freebsd_makefile) $(freebsd_distinfo)
-freebsd : $(freebsd_makefile) $(freebsd_distinfo)
+cleanup_files+=$(freebsd_makefile) 
+freebsd : $(freebsd_makefile) 
 $(freebsd_makefile) : $(freebsd_template)
 	sed -e 's/@VERSION@/$(VERSION)/' $< > $@
-$(freebsd_distinfo) : tarball
-	echo "MD5 ($(tarball)) = $(word 1, $(shell md5sum $(tarball)))" > $@ ; \
-	echo "SHA256 ($(tarball)) = $(word 1, $(shell sha256sum $(tarball)))" >> $@ ; \
-	echo "SIZE ($(tarball)) = $(word 5, $(shell ls -l $(tarball)))" >> $@ 
 
 # MacPort
 .PHONY: macport
