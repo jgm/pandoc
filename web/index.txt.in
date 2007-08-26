@@ -85,10 +85,22 @@ You may view existing bug reports and submit new ones at
 
 # News
 
+-   Version 0.42 released (August 26, 2006).
+
+    + Fixes bugs in ordered list handling, LaTeX footnotes,
+      UTF8 in include files, and HTML tables.  See [changelog] for details.
+    + Added new rule for enhanced ordered lists:  capital letters
+      followed by periods must be separated from the list item by
+      two spaces, to avoid misinterpretation of initials.  See
+      [README](README#lists) for details.
+    + Improved strict markdown compatibility.
+    + OSX packages are no longer supported. There were too many issues with
+      dynamic libraries. Instead, a MacPorts Portfile is now provided.
+
 -   Version 0.41 released (August 19, 2007).
 
-    Fixes bugs in the handling of ordered lists and raw HTML.
-    For details, see the changelog.
+    + Fixes bugs in the handling of ordered lists and raw HTML.
+      For details, see the [changelog].
 
 -   Version 0.4 released (August 15, 2007).
 
@@ -149,4 +161,5 @@ kind.
 [FreeBSD port]: http://www.freshports.org/textproc/pandoc/
 [pandoc-announce]: http://groups.google.com/group/pandoc-announce
 [pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
+[changelog]: changelog
 
