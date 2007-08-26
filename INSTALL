@@ -1,12 +1,18 @@
 % Installing pandoc
 
-The following instructions are for installing pandoc from source. 
-Packages are also available for Windows, MacOS X, Linux (Debian and
-derivatives), and FreeBSD. See the [pandoc home page] for more details.
+Installing from Source
+======================
 
-[pandoc home page]: http://sophos.berkeley.edu/macfarlane/pandoc/
+This method will work on all architectures, but requires that you first
+install the GHC compiler and some build tools: [GNU `make`], `sed`,
+`bash`, and `perl`. These are standard on unix systems (including MacOS
+X). If you're using Windows, you can install [Cygwin].
 
-# Installing GHC
+[Cygwin]: http://www.cygwin.com/
+[GNU `make`]: http://www.gnu.org/software/make/
+
+Installing GHC
+--------------
 
 To compile Pandoc, you'll need [GHC] version 6.6 or greater.  If
 you don't have GHC already, you can get it from the [GHC Download]
@@ -18,14 +24,18 @@ page. If you're running MacOS X, you can also install GHC using
 [MacPorts]: http://macports.org
 [Fink]: http://finkproject.org
 
-You'll also need standard build tools: [GNU `make`], `sed`, `bash`,
-and `perl`.  These are standard on unix systems (including MacOS
-X).  If you're using Windows, you can install [Cygwin].
+Getting the source
+------------------
 
-[Cygwin]: http://www.cygwin.com/
-[GNU `make`]: http://www.gnu.org/software/make/
+Download the source tarball from pandoc's [pandoc's google code site].
+Extract the contents into a subdirectory:
 
-# Installing Pandoc
+    tar xvzf pandoc-0.xy.tar.gz
+
+[pandoc's google code site]: http://pandoc.googlecode.com
+
+Installing Pandoc
+-----------------
 
 1.  Change to the directory containing the Pandoc distribution.
 
@@ -76,7 +86,8 @@ X).  If you're using Windows, you can install [Cygwin].
 
 [haddock]: http://www.haskell.org/haddock/ 
 
-# Removing Pandoc
+Removing Pandoc
+---------------
 
 Each of the installation steps described above can be reversed:
 
@@ -86,12 +97,13 @@ Each of the installation steps described above can be reversed:
 
     sudo make uninstall-all
 
-# Other targets
+Other targets
+-------------
 
 The following 'make' targets should not be needed by the average user,
 but are documented here for packagers and developers:
 
-## Building and installing
+### Building and installing
 
 * `configure`:  Performs the needed preprocessing to create a proper
   Cabal package for Pandoc:
@@ -113,18 +125,18 @@ but are documented here for packagers and developers:
 * `install-exec`, `uninstall-exec`:  Installs/uninstalls programs
   (`pandoc` and wrappers).
 
-## Testing
+### Testing
 
 * `test`:  Runs Pandoc's test suite.  (All tests should pass.)
 * `test-markdown`:  Runs the Markdown regression test suite, using
   `pandoc --strict`.  (Three of the tests will fail.)
 
-## Cleaning
+### Cleaning
 
 * `clean`:  Restores directory to pre-build state, removing generated files.
 * `distclean`:  Like clean, but also cleans up files created by `make deb`.
 
-## Packaging
+### Packaging
 
 * `tarball`:  Creates a source tarball for distribution.
 * `deb`:  Creates debian packages in `..` directory.
@@ -138,4 +150,77 @@ but are documented here for packagers and developers:
 * `win-pkg`:  Creates a Windows binary package (presupposes `pandoc.exe`,
   which must be created by building Pandoc on a Windows machine).
 * `website`:  Creates Pandoc's website in `web/pandoc` directory.
+
+Installing pandoc using MacPorts
+================================
+
+This is an alternative to compiling from source on MacOS X.
+[MacPorts] is a system for building and maintaining \*nix software
+on MacOS X computers.  If you don't already have MacPorts, follow
+[these instructions for installing 
+it](http://trac.macosforge.org/projects/macports/wiki/InstallingMacPorts).  
+Note that you'll need OSX 10.4 and the latest version of XCode Tools.
+
+Once you've installed MacPorts, you'll need to create a local ports
+repository and copy the [pandoc `Portfile`](Portfile) into it:
+
+    mkdir -p ~/ports/textproc/pandoc
+    cp Portfile ~/ports/textproc/pandoc/ 
+
+Then (as root) open `/opt/local/etc/macports/sources.conf` in an editor
+and insert the line
+
+    file:///Users/yourusername/ports
+
+before the line beginning `rsync:`, so MacPorts will know about your
+local repository.
+
+Now you should be able to install pandoc by typing
+
+    sudo port install pandoc
+
+Since pandoc requires GHC to build, the process may take a long time.
+
+Installing the Windows binary
+=============================
+
+Simply download the zip file from [pandoc's google code site].
+Extract the files from the archive, and put `pandoc.exe` somewhere
+in your PATH.
+
+Note that the Windows binary distribution does not include the shell
+scripts `markdown2pdf`, `html2markdown`, or `hsmarkdown`.  If you need
+these, compile from source.
+
+Installing pandoc on Debian
+===========================
+
+This method will work on Debian linux and derivatives (including Ubuntu).
+Download the latest debian package from the [pandoc home page].
+To install it, just type
+
+    sudo dpkg -i pandoc_0.xx_i386.deb
+
+where `pandoc_0.xx_i386.deb` is the filename of the debian package.
+To uninstall later, use
+
+    sudo apt-get remove pandoc
+
+[pandoc home page]: http://sophos.berkeley.edu/macfarlane/pandoc/
+
+Installing pandoc on FreeBSD
+============================
+
+Pandoc is in the FreeBSD ports repository (`textproc/pandoc`) and can be
+installed in the normal way:
+
+    cd /usr/ports/textproc/pandoc
+    make install clean   # as root
+
+Alternatively, you can use `pkg_add`:
+
+    pkg_add -r pandoc
+
+Note that the version of pandoc in FreeBSD's official repository may be
+somewhat older than the most recent version.
 
