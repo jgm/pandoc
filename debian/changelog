@@ -1,3 +1,52 @@
+pandoc (0.42) unstable; urgency=low
+
+  [ John MacFarlane ]
+
+  * Main.hs: Use utf8 conversion on the extra files loaded with
+    the -H, -C, -B, and -A options.  This fixes problems with unicode
+    characters in these files.
+
+  * Exposed Text.Pandoc.ASCIIMathML, since it is imported in
+    Text.Pandoc.Readers.HTML and without it we get a linking error when
+    using the library.
+
+  * Markdown reader:
+
+    + Added new rule for enhanced markdown ordered lists: if the list
+      marker is a capital letter followed by a period (including a
+      single-letter capital roman numeral), then it must be followed by
+      at least two spaces. The point of this is to avoid accidentally
+      treating people's initials as list markers: a paragraph might begin,
+      "B. Russell was an English philosopher," and this shouldn't be
+      treated as a list.  Documented change in README.
+    + Blocks that start with "p. " and a digit are no longer treated
+      as ordered lists (it's a page number).
+    + Added a needed 'try' to listItem.
+    + Removed check for a following setext header in endline.
+      A full test is too inefficient (doubles benchmark time), and the
+      substitute we had before is not 100% accurate.
+    + Don't use Code elements for autolinks if --strict specified. 
+
+  * LaTeX writer:  When a footnote ends with a Verbatim environment, the
+    close } of the footnote cannot occur on the same line or an error occurs.
+    Fixed this by adding a newline before the closing } of every footnote.
+
+  * HTML writer:
+    + Removed incorrect "{}" around style information in HTML tables.
+      Column widths now work properly in HTML.
+    + If --strict option is specified (and --toc is not), don't include
+      identifiers in headers, for better Markdown compatibility.
+
+  * Build process:
+
+    + Separated $(web_dest) and website targets.
+    + In website, index.txt is now constructed from template index.txt.in.
+    + Added freebsd target to Markefile. This creates the freebsd Makefile
+      from Makefile.in, and creates distinfo.  Removed Makefile and distinfo
+      from the repository.
+    + Added macport target to Makefile. Portfile is built from template
+      Portfile.in.
+
 pandoc (0.41) unstable; urgency=low
 
   [ John MacFarlane ]
