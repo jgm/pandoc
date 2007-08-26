@@ -404,6 +404,8 @@ $(web_dest) : html $(wildcard $(web_src)/*) $(osx_src)/Welcome changelog \
 		cp changelog $(web_dest)/ ; \
 		cp README $(web_dest)/ ; \
 		cp INSTALL $(web_dest)/ ; \
+		cp $(portfile) $(web_dest)/ ; \
+		cp ../$(deb_main) $(web_dest)/ ; \
 		cp $(MANDIR)/man1/pandoc.1.md $(web_dest)/ ; \
 		cp $(MANDIR)/man1/*.1 $(web_dest)/ ; \
 	) || { rm -rf $(web_dest); exit 1; }
