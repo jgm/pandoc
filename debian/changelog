@@ -53,6 +53,11 @@ pandoc (0.42) unstable; urgency=low
   * Website:
     + Added a programming demo, pandocwiki.
 
+  [ Recai Oktaş ]
+
+  * Do not forget to close pandoc's ITP.  Closes: #391666
+
+ -- Recai Oktaş <roktas@debian.org>  Sun, 26 Aug 2007 22:51:32 +0300
 
 pandoc (0.41) unstable; urgency=low
 
