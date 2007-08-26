@@ -336,7 +336,7 @@ make_page:=./$(MAIN) -s -S -B $(web_src)/header.html \
                         -A $(web_src)/footer.html \
 	                -H $(web_src)/css 
 cleanup_files+=$(web_dest)
-$(web_dest) : html $(wildcard $(web_src)/*) $(osx_src)/Welcome changelog \
+$(web_dest) : html $(wildcard $(web_src)/*) changelog \
     INSTALL $(MANPAGES) $(MANDIR)/man1/pandoc.1.md README
 	-rm -rf $(web_dest)
 	( \
@@ -345,8 +345,6 @@ $(web_dest) : html $(wildcard $(web_src)/*) $(osx_src)/Welcome changelog \
 		cp $(web_src)/* $(web_dest)/; \
 		sed -e 's#@VERSION@#$(VERSION)#g' $(web_src)/index.txt.in > \
 			$(web_dest)/index.txt; \
-		sed -e 's#@PREFIX@#$(PREFIX)#g' $(osx_src)/Welcome > \
-			$(web_dest)/osx-notes.txt; \
 		cp changelog $(web_dest)/ ; \
 		cp README $(web_dest)/ ; \
 		cp INSTALL $(web_dest)/ ; \

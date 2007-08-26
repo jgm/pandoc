@@ -1,4 +1,4 @@
-ALL := index.html osx-notes.html README.html INSTALL.html examples.html pandoc1.html markdown2pdf1.html html2markdown1.html hsmarkdown1.html
+ALL := index.html README.html INSTALL.html examples.html pandoc1.html markdown2pdf1.html html2markdown1.html hsmarkdown1.html
 PANDOC_PATH ?= $(dir $(shell which pandoc))
 MAKEPAGE = $(PANDOC_PATH)/pandoc -s -S -c pandoc.css -A footer.html
 all : $(ALL)
