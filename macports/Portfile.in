@@ -1,6 +1,7 @@
-# ID$
+# $Id$
 
 PortSystem          1.0
+
 name                pandoc
 version             @VERSION@
 categories          textproc
@@ -15,9 +16,9 @@ long_description    \
 homepage            http://sophos.berkeley.edu/pandoc/
 platforms           darwin
 master_sites        http://pandoc.googlecode.com/files/
-checksums           md5 @TARBALLMD5SUM@
-depends_lib         port:ghc
+checksums           md5 e8c452fee346a57e82b24fbb2c801410
+depends_build       port:ghc
+depends_lib         port:gmp
 
-configure           {}
-build.cmd           PREFIX=${prefix} make
-
+use_configure       no
+build.args          PREFIX=${prefix}
