@@ -169,27 +169,13 @@ This is an alternative to compiling from source on MacOS X.
 on MacOS X computers.  If you don't already have MacPorts, follow
 [these instructions for installing 
 it](http://trac.macosforge.org/projects/macports/wiki/InstallingMacPorts).  
-Note that you'll need OSX 10.4 and the latest version of XCode Tools.
 
-Once you've installed MacPorts, you'll need to create a local ports
-repository and copy the [pandoc `Portfile`](Portfile) into it:
+Once you've installed MacPorts, you can install pandoc by typing:
 
-    mkdir -p ~/ports/textproc/pandoc
-    cp Portfile ~/ports/textproc/pandoc/ 
-
-Then (as root) open `/opt/local/etc/macports/sources.conf` in an editor
-and insert the line
-
-    file:///Users/yourusername/ports
-
-before the line beginning `rsync:`, so MacPorts will know about your
-local repository. (Replace `yourusername` here with your user name.)
-
-Now you should be able to install pandoc by typing
-
+    sudo port sync                 # to get the most recent ports
     sudo port install pandoc
 
-Since pandoc requires GHC to build, the process may take a long time.
+Since pandoc depends on GHC, the process may take a long time.
 
 Installing the Windows binary
 =============================
@@ -205,18 +191,14 @@ these, compile from source.
 Installing pandoc on Debian
 ===========================
 
-This method will work on Debian linux and derivatives (including Ubuntu).
-Download the latest debian package from the [pandoc home page].
-To install it, just type
+Pandoc is now in the debian unstable archive, and can be installed
+using `apt-get` (as root):
 
-    sudo dpkg -i pandoc_0.xx_i386.deb
+    apt-get install pandoc               # the program, shell scripts, and docs
+    apt-get install libghc6-pandoc-dev   # the libraries
+    apt-get install pandoc-doc           # library documentation
 
-where `pandoc_0.xx_i386.deb` is the filename of the debian package.
-To uninstall later, use
-
-    sudo apt-get remove pandoc
-
-[pandoc home page]: http://sophos.berkeley.edu/macfarlane/pandoc/
+Thanks to Recai Oktaş for setting up the debian packages.
 
 Installing pandoc on FreeBSD
 ============================

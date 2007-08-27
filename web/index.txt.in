@@ -57,13 +57,11 @@ To see what pandoc can do, see the [demonstration page](examples.html).
 # Downloads
 
 For installation instructions for all architectures, see
-[INSTALL](INSTALL.html).
+[INSTALL](INSTALL.html).  Note that pandoc is in the MacPorts,
+[Debian unstable], and [FreeBSD ports] repositories.
 
 - [Source tarball]
 - [Windows binary package]
-- [MacPorts Portfile]
-- [FreeBSD port]
-- [Debian linux package] (thanks to Recai Oktaş)
 
 # Code repository
 
@@ -157,9 +155,8 @@ kind.
 [Source tarball]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.tar.gz "Download source tarball from Pandoc's Google Code site"
 [MacOS X binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.dmg "Download Mac OS X disk image from Pandoc's Google Code site"
 [Windows binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.zip "Download Windows zip file from Pandoc's Google Code site"
-[MacPorts Portfile]: Portfile
-[Debian linux package]: http://packages.debian.org/unstable/text/pandoc
-[FreeBSD port]: http://www.freshports.org/textproc/pandoc/
+[Debian unstable]: http://packages.debian.org/unstable/text/pandoc
+[FreeBSD ports]: http://www.freshports.org/textproc/pandoc/
 [pandoc-announce]: http://groups.google.com/group/pandoc-announce
 [pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
 [changelog]: changelog
