@@ -92,7 +92,7 @@ You may view existing bug reports and submit new ones at
     + Added new rule for enhanced ordered lists:  capital letters
       followed by periods must be separated from the list item by
       two spaces, to avoid misinterpretation of initials.  See
-      [README](README#lists) for details.
+      [README](README.html#lists) for details.
     + Improved strict markdown compatibility.
     + OSX packages are no longer supported. There were too many issues with
       dynamic libraries. Instead, a MacPorts Portfile is now provided.
@@ -158,7 +158,7 @@ kind.
 [MacOS X binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.dmg "Download Mac OS X disk image from Pandoc's Google Code site"
 [Windows binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.zip "Download Windows zip file from Pandoc's Google Code site"
 [MacPorts Portfile]: Portfile
-[Debian linux package]:  pandoc_@VERSION@_i386.deb
+[Debian linux package]: http://packages.debian.org/unstable/text/pandoc
 [FreeBSD port]: http://www.freshports.org/textproc/pandoc/
 [pandoc-announce]: http://groups.google.com/group/pandoc-announce
 [pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
