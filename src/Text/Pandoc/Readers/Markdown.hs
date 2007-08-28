@@ -639,12 +639,12 @@ inline = choice [ str
                 , symbol
                 , ltSign ] <?> "inline"
 
-escapedChar = try $ do
+escapedChar = do
   char '\\'
   state <- getState
-  result <- if stateStrict state 
-              then oneOf "\\`*_{}[]()>#+-.!~"
-              else satisfy (not . isAlphaNum)
+  result <- option '\\' $ if stateStrict state 
+                             then oneOf "\\`*_{}[]()>#+-.!~"
+                             else satisfy (not . isAlphaNum)
   return $ Str [result]
 
 ltSign = do
