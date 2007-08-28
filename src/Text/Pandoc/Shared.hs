@@ -299,7 +299,7 @@ stringAnyCase (x:xs) = do
 
 -- | Parse contents of 'str' using 'parser' and return result.
 parseFromString :: GenParser tok st a -> [tok] -> GenParser tok st a
-parseFromString parser str = try $ do
+parseFromString parser str = do
   oldInput <- getInput
   setInput str
   result <- parser
