@@ -292,8 +292,8 @@ enclosed start end parser = try $
 -- | Parse string, case insensitive.
 stringAnyCase :: [Char] -> CharParser st String
 stringAnyCase [] = string ""
-stringAnyCase (x:xs) = try $ do
-  firstChar <- choice [ char (toUpper x), char (toLower x) ]
+stringAnyCase (x:xs) = do
+  firstChar <- char (toUpper x) <|> char (toLower x)
   rest <- stringAnyCase xs
   return (firstChar:rest)
 
