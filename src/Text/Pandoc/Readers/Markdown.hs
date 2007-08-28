@@ -493,7 +493,7 @@ rawLaTeXEnvironment' = failIfStrict >> rawLaTeXEnvironment
 
 -- Parse a dashed line with optional trailing spaces; return its length
 -- and the length including trailing space.
-dashedLine ch = try $ do
+dashedLine ch = do
   dashes <- many1 (char ch)
   sp     <- many spaceChar
   return $ (length dashes, length $ dashes ++ sp)
