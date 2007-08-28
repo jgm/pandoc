@@ -306,7 +306,7 @@ list = choice [ bulletList, orderedList, definitionList ] <?> "list"
 bulletListStart = try $ do
   optional newline -- if preceded by a Plain block in a list context
   nonindentSpaces
-  notFollowedBy' hrule  -- because hrules start out just like lists
+  notFollowedBy' hrule     -- because hrules start out just like lists
   oneOf bulletListMarkers
   spaceChar
   skipSpaces
@@ -473,7 +473,7 @@ strictHtmlBlock = try $ do
              end <- htmlEndTag tag'
              return $ tag ++ concat contents ++ end
 
-rawHtmlBlocks = try $ do
+rawHtmlBlocks = do
   htmlBlocks <- many1 rawHtmlBlock    
   let combined = concatMap (\(RawHtml str) -> str) htmlBlocks
   let combined' = if not (null combined) && last combined == '\n'
