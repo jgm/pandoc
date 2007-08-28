@@ -620,23 +620,23 @@ inline = choice [ str
                 , linebreak
                 , endline
                 , whitespace
-                , rawLaTeXInline'
-                , escapedChar
+                , code
                 , charRef
+                , strong
+                , emph
                 , note
                 , inlineNote
                 , link
-                , referenceLink
-                , rawHtmlInline'
-                , autoLink
                 , image
+                , referenceLink
                 , math
-                , strong
-                , emph
                 , strikeout
                 , superscript
                 , subscript
-                , code
+                , autoLink
+                , rawHtmlInline'
+                , rawLaTeXInline'
+                , escapedChar
                 , symbol
                 , ltSign ] <?> "inline"
 
