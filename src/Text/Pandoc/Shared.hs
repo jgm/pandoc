@@ -287,8 +287,8 @@ enclosed :: GenParser Char st t   -- ^ start parser
 	    -> GenParser Char st a    -- ^ content parser (to be used repeatedly)
 	    -> GenParser Char st [a]
 enclosed start end parser = try $ 
-  start >> notFollowedBy space >> many1Till parser (try end)
-                                                     
+  start >> notFollowedBy space >> many1Till parser end
+
 -- | Parse string, case insensitive.
 stringAnyCase :: [Char] -> CharParser st String
 stringAnyCase [] = string ""

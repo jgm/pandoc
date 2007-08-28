@@ -684,11 +684,11 @@ emph = ((enclosed (char '*') (char '*') inline) <|>
         (enclosed (char '_') (char '_') inline)) >>= 
         return . Emph . normalizeSpaces
 
-strong = ((enclosed (string "**") (string "**") inline) <|> 
-          (enclosed (string "__") (string "__") inline)) >>=
+strong = ((enclosed (string "**") (try $ string "**") inline) <|> 
+          (enclosed (string "__") (try $ string "__") inline)) >>=
          return . Strong . normalizeSpaces
 
-strikeout = failIfStrict >> enclosed (string "~~") (string "~~") inline >>=
+strikeout = failIfStrict >> enclosed (string "~~") (try $ string "~~") inline >>=
             return . Strikeout . normalizeSpaces
 
 superscript = failIfStrict >> enclosed (char '^') (char '^') 

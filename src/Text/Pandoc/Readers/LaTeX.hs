@@ -551,7 +551,7 @@ singleQuoteEnd = try $ char '\'' >> notFollowedBy alphaNum
 
 doubleQuoteStart = string "``"
 
-doubleQuoteEnd = string "''"
+doubleQuoteEnd = try $ string "''"
 
 ellipses = try $ string "\\ldots" >> optional (try (string "{}")) >>
                  return Ellipses

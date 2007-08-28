@@ -514,7 +514,7 @@ code = try $ do
 emph = enclosed (char '*') (char '*') inline >>= 
        return . Emph . normalizeSpaces
 
-strong = enclosed (string "**") (string "**") inline >>= 
+strong = enclosed (string "**") (try $ string "**") inline >>= 
          return . Strong . normalizeSpaces
 
 interpreted role = try $ do
