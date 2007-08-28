@@ -617,6 +617,11 @@ table = failIfStrict >> (simpleTable <|> multilineTable) <?> "table"
 
 inline = choice [ rawLaTeXInline'
                 , escapedChar
+                , smartPunctuation
+                , linebreak
+                , endline
+                , whitespace
+                , str
                 , charRef
                 , note
                 , inlineNote
@@ -631,15 +636,9 @@ inline = choice [ rawLaTeXInline'
                 , strikeout
                 , superscript
                 , subscript
-                , smartPunctuation
                 , code
-                , ltSign
                 , symbol
-                , str
-                , linebreak
-                , tabchar
-                , whitespace
-                , endline ] <?> "inline"
+                , ltSign ] <?> "inline"
 
 escapedChar = try $ do
   char '\\'
@@ -649,10 +648,11 @@ escapedChar = try $ do
               else satisfy (not . isAlphaNum)
   return $ Str [result]
 
-ltSign = try $ do
-  notFollowedBy (noneOf "<")   -- continue only if it's a <
-  notFollowedBy' rawHtmlBlocks -- don't return < if it starts html
-  char '<'
+ltSign = do
+  st <- getState
+  if stateStrict st
+     then char '<'
+     else notFollowedBy' rawHtmlBlocks >> char '<' -- unless it starts html
   return $ Str ['<']
 
 specialCharsMinusLt = filter (/= '<') specialChars
@@ -759,8 +759,6 @@ emDash = try $ skipSpaces >> oneOfStrings ["---", "--"] >>
                skipSpaces >> return EmDash
 
 whitespace = (many1 (oneOf spaceChars) >> return Space) <?> "whitespace"
-
-tabchar = tab >> return (Str "\t")
 
 -- hard line break
 linebreak = try $ oneOf spaceChars >> many1 (oneOf spaceChars) >>
