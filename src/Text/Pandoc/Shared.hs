@@ -102,6 +102,7 @@ import Text.ParserCombinators.Parsec
 import Text.Pandoc.CharacterReferences ( characterReference )
 import Data.Char ( toLower, toUpper, ord, chr, isLower, isUpper )
 import Data.List ( find, groupBy, isPrefixOf, isSuffixOf )
+import Control.Monad ( join )
 
 --
 -- List processing
@@ -254,9 +255,11 @@ many1Till p end = do
 -- type of parser to be specified, and succeeds only if that parser fails.
 -- It does not consume any input.
 notFollowedBy' :: Show b => GenParser a st b -> GenParser a st ()
-notFollowedBy' parser = try $     (do result <- try parser
-                                      unexpected (show result))
-                              <|> return ()
+notFollowedBy' p  = try $ join $  do  a <- try p
+                                      return (unexpected (show a))
+                                  <|>
+                                  return (return ())
+-- (This version due to Andrew Pimlott on the Haskell mailing list.)
 
 -- | Parses one of a list of strings (tried in order).  
 oneOfStrings :: [String] -> GenParser Char st String
@@ -264,7 +267,7 @@ oneOfStrings listOfStrings = choice $ map (try . string) listOfStrings
 
 -- | Parses a space or tab.
 spaceChar :: CharParser st Char
-spaceChar = oneOf " \t"
+spaceChar = char ' ' <|> char '\t'
 
 -- | Skips zero or more spaces or tabs.
 skipSpaces :: GenParser Char st ()
