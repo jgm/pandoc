@@ -31,7 +31,7 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.UTF8
-import Text.Pandoc.Shared ( joinWithSep, tabsToSpaces )
+import Text.Pandoc.Shared ( joinWithSep )
 import Text.Regex ( mkRegex, matchRegex )
 import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
@@ -445,8 +445,18 @@ main = do
                  Just cols -> read cols
                  Nothing   -> stateColumns defaultParserState
 
-  let tabFilter = if preserveTabs then id else (tabsToSpaces tabStop)
-  let removeCRs str = filter (/= '\r') str  -- remove DOS-style line endings
+  let tabsToSpacesInLine _ [] = ""
+      tabsToSpacesInLine _ ('\r':[]) = ""  -- remove DOS line-endings
+      tabsToSpacesInLine spsToNextStop (x:xs) = 
+         if x == '\t'
+            then if preserveTabs
+                    then x:(tabsToSpacesInLine tabStop xs) 
+                    else replicate spsToNextStop ' ' ++ 
+                         tabsToSpacesInLine tabStop xs 
+            else x:(tabsToSpacesInLine (spsToNextStop - 1) xs)
+
+  let tabFilter = unlines . map (tabsToSpacesInLine tabStop) . lines
+
   let startParserState = 
          defaultParserState { stateParseRaw    = parseRaw,
                               stateTabStop     = tabStop, 
@@ -484,7 +494,7 @@ main = do
   (readSources sources) >>= (hPutStrLn output . toUTF8 . 
                              (writer writerOptions) . 
                              (reader startParserState) .  tabFilter .
-                             removeCRs .  fromUTF8 .  (joinWithSep "\n")) >> 
+                             fromUTF8 .  (joinWithSep "\n")) >> 
                              hClose output
 
   where 

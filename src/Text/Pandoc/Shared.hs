@@ -34,7 +34,6 @@ module Text.Pandoc.Shared (
                      substitute,
                      joinWithSep,
                      -- * Text processing
-                     tabsToSpaces,
                      backslashEscapes,
                      escapeStringUsing,
                      stripTrailingNewlines,
@@ -142,27 +141,6 @@ joinWithSep sep lst = foldr1 (\a b -> a ++ sep ++ b) lst
 --
 -- Text processing
 --
-
--- | Convert tabs to spaces (with adjustable tab stop).
-tabsToSpaces :: Int     -- ^ Tabstop
-             -> String  -- ^ String to convert
-             -> String
-tabsToSpaces tabstop str =
-  unlines $ map (tabsInLine tabstop tabstop) (lines str)
-
--- | Convert tabs to spaces in one line.
-tabsInLine :: Int      -- ^ Number of spaces to next tab stop
-           -> Int      -- ^ Tabstop
-           -> String   -- ^ Line to convert
-           -> String
-tabsInLine num tabstop [] = ""
-tabsInLine num tabstop (c:cs) = 
-  let (replacement, nextnum) = if c == '\t'
-                                  then (replicate num ' ', tabstop)
-                                  else if num > 1
-                                          then ([c], num - 1)
-                                          else ([c], tabstop)
-  in  replacement ++ tabsInLine nextnum tabstop cs
 
 -- | Returns an association list of backslash escapes for the
 -- designated characters.
