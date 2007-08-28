@@ -242,14 +242,14 @@ setextHeader = try $ do
 -- hrule block
 --
 
-hruleWith chr = try $ do
-  count 3 (skipSpaces >> char chr)
-  skipMany (skipSpaces >> char chr)
+hrule = try $ do
+  skipSpaces
+  start <- oneOf hruleChars
+  count 2 (skipSpaces >> char start)
+  skipMany (skipSpaces >> char start)
   newline
   optional blanklines
   return HorizontalRule
-
-hrule = choice (map hruleWith hruleChars) <?> "hrule"
 
 --
 -- code blocks
