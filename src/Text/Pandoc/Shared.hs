@@ -342,7 +342,7 @@ charsInBalanced' open close = try $ do
 -- | Parses a roman numeral (uppercase or lowercase), returns number.
 romanNumeral :: Bool                  -- ^ Uppercase if true
              -> GenParser Char st Int
-romanNumeral upper = try $ do
+romanNumeral upper = do
     let charAnyCase c = char (if upper then toUpper c else c)
     let one = charAnyCase 'i'
     let five = charAnyCase 'v'
