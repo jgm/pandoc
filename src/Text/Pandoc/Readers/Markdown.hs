@@ -615,13 +615,13 @@ table = failIfStrict >> (simpleTable <|> multilineTable) <?> "table"
 -- inline
 --
 
-inline = choice [ rawLaTeXInline'
-                , escapedChar
+inline = choice [ str
                 , smartPunctuation
                 , linebreak
                 , endline
                 , whitespace
-                , str
+                , rawLaTeXInline'
+                , escapedChar
                 , charRef
                 , note
                 , inlineNote
