@@ -627,7 +627,6 @@ inline = choice [ str
                 , inlineNote
                 , link
                 , image
-                , referenceLink
                 , math
                 , strikeout
                 , superscript
