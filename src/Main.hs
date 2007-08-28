@@ -445,17 +445,18 @@ main = do
                  Just cols -> read cols
                  Nothing   -> stateColumns defaultParserState
 
-  let tabsToSpacesInLine _ [] = ""
-      tabsToSpacesInLine _ ('\r':[]) = ""  -- remove DOS line-endings
-      tabsToSpacesInLine spsToNextStop (x:xs) = 
-         if x == '\t'
-            then if preserveTabs
-                    then x:(tabsToSpacesInLine tabStop xs) 
-                    else replicate spsToNextStop ' ' ++ 
-                         tabsToSpacesInLine tabStop xs 
-            else x:(tabsToSpacesInLine (spsToNextStop - 1) xs)
-
-  let tabFilter = unlines . map (tabsToSpacesInLine tabStop) . lines
+  let tabFilter _ [] = ""
+      tabFilter _ ('\n':xs) = '\n':(tabFilter tabStop xs)
+      tabFilter _ ('\r':'\n':xs) = '\n':(tabFilter tabStop xs)
+                                      -- remove DOS line endings
+      tabFilter spsToNextStop ('\t':xs) = 
+        if preserveTabs
+           then '\t':(tabFilter tabStop xs) 
+           else replicate spsToNextStop ' ' ++ tabFilter tabStop xs 
+      tabFilter 1 (x:xs) = 
+        x:(tabFilter tabStop xs)
+      tabFilter spsToNextStop (x:xs) = 
+        x:(tabFilter (spsToNextStop - 1) xs)
 
   let startParserState = 
          defaultParserState { stateParseRaw    = parseRaw,
@@ -493,7 +494,7 @@ main = do
 
   (readSources sources) >>= (hPutStrLn output . toUTF8 . 
                              (writer writerOptions) . 
-                             (reader startParserState) .  tabFilter .
+                             (reader startParserState) .  tabFilter tabStop .
                              fromUTF8 .  (joinWithSep "\n")) >> 
                              hClose output
 
