@@ -369,8 +369,8 @@ nullBlock = anyChar >> return Null
 -- | Fail if reader is in strict markdown syntax mode.
 failIfStrict :: GenParser Char ParserState ()
 failIfStrict = do
-    state <- getState
-    if stateStrict state then fail "strict mode" else return ()
+  state <- getState
+  if stateStrict state then fail "strict mode" else return ()
 
 -- | Parses backslash, then applies character parser.
 escaped :: GenParser Char st Char  -- ^ Parser for character to escape
