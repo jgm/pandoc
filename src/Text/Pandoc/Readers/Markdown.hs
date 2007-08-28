@@ -233,8 +233,9 @@ atxClosing = try $ skipMany (char '#') >> blanklines
 
 setextHeader = try $ do
   text <- many1Till inline newline >>= return . normalizeSpaces
-  level <- choice $ zipWith (\ch lev -> try (many1 $ char ch) >> blanklines >> return lev)
-                    setextHChars [1..(length setextHChars)]
+  level <- choice $ zipWith 
+           (\ch lev -> try (many1 $ char ch) >> blanklines >> return lev)
+           setextHChars [1..(length setextHChars)]
   return $ Header level text
 
 --
