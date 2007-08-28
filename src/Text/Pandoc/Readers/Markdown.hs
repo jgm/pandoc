@@ -231,12 +231,10 @@ atxHeader = try $ do
 
 atxClosing = try $ skipMany (char '#') >> blanklines
 
-setextHeader = choice $ map setextH $ enumFromTo 1 (length setextHChars)
-
-setextH level = try $ do
+setextHeader = try $ do
   text <- many1Till inline newline >>= return . normalizeSpaces
-  many1 $ char (setextHChars !! (level - 1))
-  blanklines
+  level <- choice $ zipWith (\ch lev -> try (many1 $ char ch) >> blanklines >> return lev)
+                    setextHChars [1..(length setextHChars)]
   return $ Header level text
 
 --
