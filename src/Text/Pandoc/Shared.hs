@@ -218,7 +218,7 @@ a >>~ b = a >>= \x -> b >> return x
 
 -- | Parse any line of text
 anyLine :: GenParser Char st [Char]
-anyLine = manyTill anyChar (newline <|> (eof >> return '\n'))
+anyLine = manyTill anyChar newline
 
 -- | Like @manyTill@, but reads at least one item.
 many1Till :: GenParser tok st a
