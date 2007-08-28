@@ -324,7 +324,7 @@ charsInBalanced open close = try $ do
   char open
   raw <- manyTill (   (do res <- charsInBalanced open close
                           return $ [open] ++ res ++ [close])
-                  <|> (do notFollowedBy' (blankline >> blanklines)
+                  <|> (do notFollowedBy (blankline >> blanklines >> return '\n')
                           count 1 anyChar))
                   (char close)
   return $ concat raw
