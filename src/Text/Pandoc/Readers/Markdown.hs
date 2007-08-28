@@ -818,23 +818,20 @@ title = choice [ titleWith '(' ')',
                  titleWith '"' '"', 
                  titleWith '\'' '\''] <?> "title"
 
-link = choice [explicitLink, referenceLink] <?> "link"
-
-explicitLink = try $ do
+link = try $ do
   label <- reference
-  src <- source 
+  src <- source <|> referenceLink label
   return $ Link label src
 
 -- a link like [this][ref] or [this][] or [this]
-referenceLink = try $ do
-  label <- reference
+referenceLink label = do
   ref <- option [] (try (skipSpaces >> optional newline >>
                          skipSpaces >> reference))
   let ref' = if null ref then label else ref
   state <- getState
   case lookupKeySrc (stateKeys state) ref' of
      Nothing     -> fail "no corresponding key" 
-     Just target -> return (Link label target)
+     Just target -> return target 
 
 autoLink = autoLinkEmail <|> autoLinkRegular
 
