@@ -528,7 +528,7 @@ rawTableLine indices = do
 tableLine indices = rawTableLine indices >>= mapM (parseFromString (many plain))
 
 -- Parse a multiline table row and return a list of blocks (columns).
-multilineRow indices = try $ do
+multilineRow indices = do
   colLines <- many1 (rawTableLine indices)
   optional blanklines
   let cols = map unlines $ transpose colLines
