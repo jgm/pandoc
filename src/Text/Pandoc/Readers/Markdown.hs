@@ -666,10 +666,12 @@ symbol = do
 -- parses inline code, between n `s and n `s
 code = try $ do 
   starts <- many1 (char '`')
-  let num = length starts
-  result <- many1Till anyChar (try (count num (char '`')))
-  -- get rid of any internal newlines
-  return $ Code $ removeLeadingTrailingSpace $ joinWithSep " " $ lines result
+  skipSpaces
+  result <- many1Till (many1 (noneOf "`\n") <|> many1 (char '`') <|>
+                       (char '\n' >> return " ")) 
+                      (try (skipSpaces >> count (length starts) (char '`') >> 
+                      notFollowedBy (char '`')))
+  return $ Code $ removeLeadingTrailingSpace $ concat result
 
 mathWord = many1 ((noneOf " \t\n\\$") <|>
                   (try (char '\\') >>~ notFollowedBy (char '$')))
