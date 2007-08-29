@@ -142,7 +142,7 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   let oldlevel = stOLLevel st
   put $ st {stOLLevel = oldlevel + 1}
   items <- mapM listItemToLaTeX lst
-  put $ st {stOLLevel = oldlevel}
+  modify (\st -> st {stOLLevel = oldlevel})
   exemplar <- if numstyle /= DefaultStyle || numdelim /= DefaultDelim
                  then do addToHeader "\\usepackage{enumerate}"
                          return $ "[" ++ head (orderedListMarkers (1, numstyle, numdelim)) ++ "]"
@@ -262,11 +262,12 @@ inlineToLaTeX (TeX str) = return str
 inlineToLaTeX (HtmlInline str) = return ""
 inlineToLaTeX (LineBreak) = return "\\\\\n"
 inlineToLaTeX Space = return " "
-inlineToLaTeX (Link text (src, tit)) = do
+inlineToLaTeX (Link text (src, _)) = do
   addToHeader "\\usepackage[breaklinks=true]{hyperref}"
   case text of
         [Code x] | x == src ->  -- autolink
-             return $ "\\url{" ++ x ++ "}"
+             do addToHeader "\\usepackage{url}" 
+                return $ "\\url{" ++ x ++ "}"
         _ -> do contents <- inlineListToLaTeX $ deVerb text
                 return $ "\\href{" ++ src ++ "}{" ++ contents ++ "}"
 inlineToLaTeX (Image alternate (source, tit)) = do
@@ -276,8 +277,7 @@ inlineToLaTeX (Note contents) = do
   st <- get
   put (st {stInNote = True})
   contents' <- blockListToLaTeX contents
-  st <- get
-  put (st {stInNote = False})
+  modify (\st -> st {stInNote = False})
   return $ "\\footnote{" ++ stripTrailingNewlines contents'  ++ "\n}" 
   -- note: the \n before } is important; removing it causes problems
   -- if a Verbatim environment occurs at the end of the footnote.

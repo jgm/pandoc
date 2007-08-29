@@ -9,6 +9,7 @@
 \usepackage{enumerate}
 \usepackage{fancyvrb}
 \usepackage{graphicx}
+\usepackage{url}
 \setcounter{secnumdepth}{0}
 \VerbatimFootnotes % allows verbatim text in footnotes
 \title{Pandoc Test Suite}
