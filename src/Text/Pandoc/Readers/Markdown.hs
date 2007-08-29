@@ -753,8 +753,7 @@ doubleQuoteStart = failIfInQuoteContext InDoubleQuote >>
 
 doubleQuoteEnd = char '"' <|> char '\8221'
 
-ellipses = try $ oneOfStrings ["...", " . . . ", ". . .", " . . ."] >>
-                 return Ellipses
+ellipses = oneOfStrings ["...", " . . . ", ". . .", " . . ."] >> return Ellipses
 
 dash = enDash <|> emDash
 
