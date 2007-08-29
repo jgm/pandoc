@@ -478,19 +478,18 @@ regularKey = try $ do
  -- inline
  --
 
-inline = choice [ superscript
-                , subscript
-                , escapedChar
-                , link
-                , image
-                , hyphens
+inline = choice [ link
+                , str
+                , whitespace
+                , endline
                 , strong
                 , emph
                 , code
-                , str
-                , tabchar
-                , whitespace
-                , endline
+                , image
+                , hyphens
+                , superscript
+                , subscript
+                , escapedChar
                 , symbol ] <?> "inline"
 
 hyphens = try $ do
@@ -529,8 +528,6 @@ superscript = interpreted "sup" >>= (return . Superscript)
 subscript = interpreted "sub" >>= (return . Subscript)
 
 whitespace = many1 spaceChar >> return Space <?> "whitespace"
-
-tabchar = tab >> return (Str "\t")
 
 str = notFollowedBy' oneWordReference >> 
       many1 (noneOf (specialChars ++ "\t\n ")) >>= return . Str
