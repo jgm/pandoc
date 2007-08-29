@@ -466,7 +466,7 @@ htmlBlock = do
 
 -- True if tag is self-closing
 isSelfClosing tag = 
-  isSuffixOf "/>" $ filter (\c -> (not (c `elem` " \n\t"))) tag
+  isSuffixOf "/>" $ filter (not . (`elem` " \n\t")) tag
 
 strictHtmlBlock = try $ do
   tag <- anyHtmlBlockTag 
