@@ -293,28 +293,28 @@ lineClump = do
 
 -- | Parse a string of characters between an open character
 -- and a close character, including text between balanced
--- pairs of open and close. For example,
+-- pairs of open and close, which must be different. For example,
 -- @charsInBalanced '(' ')'@ will parse "(hello (there))"
 -- and return "hello (there)".  Stop if a blank line is
 -- encountered.
 charsInBalanced :: Char -> Char -> GenParser Char st String
 charsInBalanced open close = try $ do
   char open
-  raw <- manyTill (   (do res <- charsInBalanced open close
-                          return $ [open] ++ res ++ [close])
-                  <|> (do notFollowedBy (blankline >> blanklines >> return '\n')
-                          count 1 anyChar))
-                  (char close)
+  raw <- many $     (many1 (noneOf [open, close, '\n']))
+                <|> (do res <- charsInBalanced open close
+                        return $ [open] ++ res ++ [close])
+                <|> try (string "\n" >>~ notFollowedBy' blanklines)
+  char close
   return $ concat raw
 
 -- | Like @charsInBalanced@, but allow blank lines in the content.
 charsInBalanced' :: Char -> Char -> GenParser Char st String
 charsInBalanced' open close = try $ do
   char open
-  raw <- manyTill (   (do res <- charsInBalanced open close
+  raw <- many $       (many1 (noneOf [open, close]))
+                  <|> (do res <- charsInBalanced' open close
                           return $ [open] ++ res ++ [close])
-                  <|> count 1 anyChar)
-                  (char close)
+  char close
   return $ concat raw
 
 -- | Parses a roman numeral (uppercase or lowercase), returns number.
