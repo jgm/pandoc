@@ -178,8 +178,7 @@ referenceTitle = try $ do
   skipSpaces
   tit <-    (charsInBalanced '(' ')' >>= return . unwords . words)
         <|> do delim <- char '\'' <|> char '"'
-               manyTill anyChar (try (char delim >> skipSpaces >>
-                                      notFollowedBy (noneOf ")\n")))
+               manyTill anyChar (try (char delim >> blankline))
   return $ decodeCharacterReferences tit
 
 noteMarker = string "[^" >> manyTill (noneOf " \t\n") (char ']')
