@@ -179,7 +179,7 @@ lineBlock = try $ do
 
 para = paraBeforeCodeBlock <|> paraNormal <?> "paragraph"
 
-codeBlockStart = try $ string "::" >> blankline >> blankline
+codeBlockStart = string "::" >> blankline >> blankline
 
 -- paragraph that ends in a :: starting a code block
 paraBeforeCodeBlock = try $ do
@@ -260,15 +260,13 @@ singleHeader = try $ do
 -- hrule block
 --
 
-hruleWith chr = try $ do
-  count 4 (char chr)
+hrule = try $ do
+  chr <- oneOf underlineChars
+  count 3 (char chr)
   skipMany (char chr)
-  skipSpaces
-  newline
+  blankline
   blanklines
   return HorizontalRule
-
-hrule = choice (map hruleWith underlineChars) <?> "hrule"
 
 --
 -- code blocks
@@ -325,7 +323,7 @@ rawLaTeXBlock = try $ do
 -- block quotes
 --
 
-blockQuote = try $ do
+blockQuote = do
   raw <- indentedBlock True
   -- parse the extracted block, which may contain various block elements:
   contents <- parseFromString parseBlocks $ raw ++ "\n\n"
@@ -344,9 +342,7 @@ definitionListItem = try $ do
   contents <- parseFromString parseBlocks $ raw ++ "\n\n"
   return (normalizeSpaces term, contents)
 
-definitionList = try $ do
-  items <- many1 definitionListItem 
-  return $ DefinitionList items
+definitionList = many1 definitionListItem >>= return . DefinitionList
 
 -- parses bullet list start and returns its length (inc. following whitespace)
 bulletListStart = try $ do
@@ -378,7 +374,7 @@ indentWith num = do
                    (try (char '\t' >> count (num - tabStop) (char ' '))) ] 
 
 -- parse raw text for one list item, excluding start marker and continuations
-rawListItem start = try $ do
+rawListItem start = do
   markerLength <- start
   firstLine <- manyTill anyChar newline
   restLines <- many (listLine markerLength)
@@ -408,16 +404,14 @@ listItem start = try $ do
   updateState (\st -> st {stateParserContext = oldContext})
   return parsed
 
-orderedList = try $ do
+orderedList = do
   (start, style, delim) <- lookAhead (anyOrderedListMarker >>~ spaceChar)
   items <- many1 (listItem (orderedListStart style delim))
   let items' = compactify items
   return $ OrderedList (start, style, delim) items'
 
-bulletList = try $ do
-  items <- many1 (listItem bulletListStart)
-  let items' = compactify items
-  return $ BulletList items'
+bulletList = many1 (listItem bulletListStart) >>= 
+             return . BulletList . compactify
 
 --
 -- unknown directive (e.g. comment)
@@ -439,7 +433,7 @@ referenceKey =
   choice [imageKey, anonymousKey, regularKeyQuoted, regularKey] >>~ 
   optional blanklines
 
-targetURI = try $ do
+targetURI = do
   skipSpaces
   optional newline
   contents <- many1 (try (many spaceChar >> newline >> 
@@ -492,7 +486,7 @@ inline = choice [ link
                 , escapedChar
                 , symbol ] <?> "inline"
 
-hyphens = try $ do
+hyphens = do
   result <- many1 (char '-')
   option Space endline 
   -- don't want to treat endline after hyphen or dash as a space
@@ -538,7 +532,7 @@ endline = try $ do
   notFollowedBy blankline
   -- parse potential list-starts at beginning of line differently in a list:
   st <- getState
-  if ((stateParserContext st) == ListItemState)
+  if (stateParserContext st) == ListItemState
      then notFollowedBy (anyOrderedListMarker >> spaceChar) >>
           notFollowedBy' bulletListStart
      else return ()
@@ -595,7 +589,7 @@ uri = try $ do
   identifier <- many1 (noneOf " \t\n")
   return $ scheme ++ identifier
 
-autoURI = try $ do
+autoURI = do
   src <- uri
   return $ Link [Str src] (src, "")
 
@@ -611,12 +605,12 @@ emailAddress = try $ do
 
 domainChar = alphaNum <|> char '-'
 
-domain = try $ do
+domain = do
   first <- many1 domainChar
   dom <- many1 (try (do{ char '.'; many1 domainChar }))
   return $ joinWithSep "." (first:dom)
 
-autoEmail = try $ do
+autoEmail = do
   src <- emailAddress
   return $ Link [Str src] ("mailto:" ++ src, "")
 
