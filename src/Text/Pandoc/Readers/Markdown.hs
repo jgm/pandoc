@@ -433,12 +433,10 @@ definitionList = do
 para = try $ do 
   result <- many1 inline
   newline
-  st <- getState
-  if stateStrict st
-     then choice [ lookAhead blockQuote, lookAhead header, 
-                   (blanklines >> return Null) ]
-     else choice [ lookAhead emacsBoxQuote >> return Null, 
-                   (blanklines >> return Null) ]
+  blanklines <|> do st <- getState
+                    if stateStrict st
+                       then lookAhead (blockQuote <|> header) >> return ""
+                       else lookAhead emacsBoxQuote >> return ""
   return $ Para $ normalizeSpaces result
 
 plain = many1 inline >>= return . Plain . normalizeSpaces 
