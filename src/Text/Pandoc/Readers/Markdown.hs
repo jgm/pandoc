@@ -172,10 +172,7 @@ referenceKey = try $ do
   blanklines 
   return $ KeyBlock label (removeTrailingSpace src,  tit)
 
-noteMarker = try $ do
-  char '['
-  char '^'
-  manyTill (noneOf " \t\n") (char ']')
+noteMarker = string "[^" >> manyTill (noneOf " \t\n") (char ']')
 
 rawLine = try $ do
   notFollowedBy blankline
