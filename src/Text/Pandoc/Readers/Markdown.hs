@@ -168,8 +168,8 @@ referenceKey = try $ do
   optional (char '<')
   src <- many (noneOf "> \n\t")
   optional (char '>')
-  tit <- option "" referenceTitle 
-  blanklines 
+  tit <- option "" referenceTitle
+  blanklines
   return $ KeyBlock label (removeTrailingSpace src,  tit)
 
 referenceTitle = try $ do 
@@ -178,7 +178,8 @@ referenceTitle = try $ do
   skipSpaces
   tit <-    (charsInBalanced '(' ')' >>= return . unwords . words)
         <|> do delim <- char '\'' <|> char '"'
-               manyTill anyChar (try (char delim >> blankline))
+               manyTill anyChar (try (char delim >> skipSpaces >>
+                                      notFollowedBy (noneOf ")\n")))
   return $ decodeCharacterReferences tit
 
 noteMarker = string "[^" >> manyTill (noneOf " \t\n") (char ']')
@@ -825,8 +826,8 @@ link = try $ do
 
 -- a link like [this][ref] or [this][] or [this]
 referenceLink label = do
-  ref <- option [] (try (skipSpaces >> optional newline >>
-                         skipSpaces >> reference))
+  ref <- option [] (try (optional (char ' ') >> 
+                         optional (newline >> skipSpaces) >> reference))
   let ref' = if null ref then label else ref
   state <- getState
   case lookupKeySrc (stateKeys state) ref' of
