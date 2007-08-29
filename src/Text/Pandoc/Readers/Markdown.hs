@@ -168,9 +168,19 @@ referenceKey = try $ do
   optional (char '<')
   src <- many (noneOf "> \n\t")
   optional (char '>')
-  tit <- option "" title 
+  tit <- option "" referenceTitle 
   blanklines 
   return $ KeyBlock label (removeTrailingSpace src,  tit)
+
+referenceTitle = try $ do 
+  skipSpaces
+  optional newline
+  skipSpaces
+  tit <-    (charsInBalanced '(' ')' >>= return . unwords . words)
+        <|> do delim <- char '\'' <|> char '"'
+               manyTill anyChar (try (char delim >> skipSpaces >>
+                                      notFollowedBy (noneOf ")\n")))
+  return $ decodeCharacterReferences tit
 
 noteMarker = string "[^" >> manyTill (noneOf " \t\n") (char ']')
 
@@ -793,24 +803,19 @@ source = try $ do
   optional (char '<')
   src <- many (noneOf ")> \t\n")
   optional (char '>')
-  tit <- option "" title
+  tit <- option "" linkTitle
   skipSpaces
   char ')'
   return (removeTrailingSpace src, tit)
 
-titleWith startChar endChar = try $ do
-  leadingSpace <- many1 (oneOf " \t\n")
-  if length (filter (=='\n') leadingSpace) > 1
-    then fail "title must be separated by space and on same or next line"
-    else return ()
-  char startChar
-  tit <- manyTill anyChar (try (char endChar >> skipSpaces >>
-                                notFollowedBy (noneOf ")\n")))
+linkTitle = try $ do 
+  skipSpaces
+  optional newline
+  skipSpaces
+  delim <- char '\'' <|> char '"'
+  tit <-   manyTill anyChar (try (char delim >> skipSpaces >>
+                                  notFollowedBy (noneOf ")\n")))
   return $ decodeCharacterReferences tit
-
-title = choice [ titleWith '(' ')', 
-                 titleWith '"' '"', 
-                 titleWith '\'' '\''] <?> "title"
 
 link = try $ do
   label <- reference
