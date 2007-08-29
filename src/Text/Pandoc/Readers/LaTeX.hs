@@ -47,7 +47,7 @@ readLaTeX :: ParserState   -- ^ Parser state, including options for parser
 readLaTeX = readWith parseLaTeX
 
 -- characters with special meaning
-specialChars = "\\$%^&_~#{}\n \t|<>'\"-"
+specialChars = "\\`$%^&_~#{}\n \t|<>'\"-"
 
 --
 -- utility functions
@@ -69,7 +69,7 @@ isArg other = False
 commandArgs = many optOrArg
 
 -- | Parses LaTeX command, returns (name, star, list of options or arguments).
-command = try $ do
+command = do
   char '\\'
   name <- many1 alphaNum
   star <- option "" (string "*")  -- some commands have starred versions
@@ -152,16 +152,15 @@ block = choice [ hrule
 -- header blocks
 --
 
-header = choice (map headerLevel (enumFromTo 1 5)) <?> "header"
-
-headerLevel n = try $ do
-  let subs = concat $ replicate (n - 1) "sub"
-  string ("\\" ++ subs ++ "section")
+header = try $ do
+  char '\\'
+  subs <- many (try (string "sub"))
+  string "section"
   optional (char '*')
   char '{'
   title <- manyTill inline (char '}')
   spaces
-  return $ Header n (normalizeSpaces title)
+  return $ Header (length subs + 1) (normalizeSpaces title)
 
 --
 -- hrule block
@@ -386,7 +385,18 @@ comment = try $ char '%' >> manyTill anyChar newline >> spaces >> return Null
 -- inline
 --
 
-inline =  choice [ strong
+inline =  choice [ str
+                 , endline
+                 , whitespace
+                 , quoted
+                 , apostrophe
+                 , spacer
+                 , strong
+                 , math
+                 , ellipses
+                 , emDash
+                 , enDash
+                 , hyphen
                  , emph
                  , strikeout
                  , superscript
@@ -394,27 +404,17 @@ inline =  choice [ strong
                  , ref
                  , lab
                  , code
-                 , linebreak
-                 , spacer
-                 , math
-                 , ellipses
-                 , emDash
-                 , enDash
-                 , hyphen
-                 , quoted
-                 , apostrophe
-                 , accentedChar
-                 , specialChar
                  , url
                  , link
                  , image
                  , footnote
+                 , linebreak
+                 , accentedChar
+                 , specialChar
                  , rawLaTeXInline
                  , escapedChar
                  , unescapedChar
-                 , str
-                 , endline
-                 , whitespace ] <?> "inline"
+                 ] <?> "inline"
 
 accentedChar = normalAccentedChar <|> specialAccentedChar
 
@@ -492,7 +492,7 @@ escapedChar = do
   return $ if result == Str "\n" then Str " " else result
 
 -- ignore standalone, nonescaped special characters
-unescapedChar = oneOf "$^&_#{}|<>" >> return (Str "")
+unescapedChar = oneOf "`$^&_#{}|<>" >> return (Str "")
 
 specialChar = choice [ backslash, tilde, caret, bar, lt, gt ]
 
