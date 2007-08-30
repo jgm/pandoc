@@ -827,5 +827,4 @@ Notes can go in quotes.\footnote{ In quote.
 This paragraph should not be part of the note, as it is not
 indented.
 
-
 \end{document}
