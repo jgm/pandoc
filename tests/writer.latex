@@ -3,6 +3,7 @@
 \usepackage[utf8x]{inputenc}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
+
 \newcommand{\textsubscript}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
 \usepackage[breaklinks=true]{hyperref}
 \usepackage[normalem]{ulem}
@@ -10,6 +11,7 @@
 \usepackage{fancyvrb}
 \usepackage{graphicx}
 \usepackage{url}
+
 \setcounter{secnumdepth}{0}
 \VerbatimFootnotes % allows verbatim text in footnotes
 \title{Pandoc Test Suite}
@@ -18,7 +20,8 @@
 \begin{document}
 \maketitle
 
-This is a set of tests for pandoc. Most of them are adapted from John Gruber's markdown test suite.
+This is a set of tests for pandoc. Most of them are adapted from
+John Gruber's markdown test suite.
 
 \begin{center}\rule{3in}{0.4pt}\end{center}
 
@@ -50,12 +53,13 @@ with no blank line
 
 Here's a regular paragraph.
 
-In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.
+In Markdown 1.0.0 and earlier. Version 8. This line turns into a
+list item. Because a hard-wrapped line in the middle of a paragraph
+looked like a list item.
 
 Here's one with a bullet. * criminey.
 
-There should be a hard line break\\
-here.
+There should be a hard line break\\here.
 
 \begin{center}\rule{3in}{0.4pt}\end{center}
 
@@ -78,8 +82,10 @@ sub status {
 A list:
 
 \begin{enumerate}[1.]
-\item item one
-\item item two
+\item 
+  item one
+\item 
+  item two
 \end{enumerate}
 Nested block quotes:
 
@@ -107,8 +113,10 @@ sub status {
 \end{quote}
 \begin{quote}
 \begin{enumerate}[1.]
-\item do laundry
-\item take out the trash
+\item 
+  do laundry
+\item 
+  take out the trash
 \end{enumerate}
 \end{quote}
 Here's a nested one:
@@ -154,52 +162,70 @@ These should not be escaped:  \$ \\ \> \[ \{
 Asterisks tight:
 
 \begin{itemize}
-\item asterisk 1
-\item asterisk 2
-\item asterisk 3
+\item 
+  asterisk 1
+\item 
+  asterisk 2
+\item 
+  asterisk 3
 \end{itemize}
 Asterisks loose:
 
 \begin{itemize}
-\item asterisk 1
+\item 
+  asterisk 1
 
-\item asterisk 2
+\item 
+  asterisk 2
 
-\item asterisk 3
+\item 
+  asterisk 3
 
 \end{itemize}
 Pluses tight:
 
 \begin{itemize}
-\item Plus 1
-\item Plus 2
-\item Plus 3
+\item 
+  Plus 1
+\item 
+  Plus 2
+\item 
+  Plus 3
 \end{itemize}
 Pluses loose:
 
 \begin{itemize}
-\item Plus 1
+\item 
+  Plus 1
 
-\item Plus 2
+\item 
+  Plus 2
 
-\item Plus 3
+\item 
+  Plus 3
 
 \end{itemize}
 Minuses tight:
 
 \begin{itemize}
-\item Minus 1
-\item Minus 2
-\item Minus 3
+\item 
+  Minus 1
+\item 
+  Minus 2
+\item 
+  Minus 3
 \end{itemize}
 Minuses loose:
 
 \begin{itemize}
-\item Minus 1
+\item 
+  Minus 1
 
-\item Minus 2
+\item 
+  Minus 2
 
-\item Minus 3
+\item 
+  Minus 3
 
 \end{itemize}
 \subsection{Ordered}
@@ -207,144 +233,192 @@ Minuses loose:
 Tight:
 
 \begin{enumerate}[1.]
-\item First
-\item Second
-\item Third
+\item 
+  First
+\item 
+  Second
+\item 
+  Third
 \end{enumerate}
 and:
 
 \begin{enumerate}[1.]
-\item One
-\item Two
-\item Three
+\item 
+  One
+\item 
+  Two
+\item 
+  Three
 \end{enumerate}
 Loose using tabs:
 
 \begin{enumerate}[1.]
-\item First
+\item 
+  First
 
-\item Second
+\item 
+  Second
 
-\item Third
+\item 
+  Third
 
 \end{enumerate}
 and using spaces:
 
 \begin{enumerate}[1.]
-\item One
+\item 
+  One
 
-\item Two
+\item 
+  Two
 
-\item Three
+\item 
+  Three
 
 \end{enumerate}
 Multiple paragraphs:
 
 \begin{enumerate}[1.]
-\item Item 1, graf one.
+\item 
+  Item 1, graf one.
 
-Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
+  Item 1. graf two. The quick brown fox jumped over the lazy dog's
+  back.
 
-\item Item 2.
+\item 
+  Item 2.
 
-\item Item 3.
+\item 
+  Item 3.
 
 \end{enumerate}
 \subsection{Nested}
 
 \begin{itemize}
-\item Tab
-\begin{itemize}
-\item Tab
-\begin{itemize}
-\item Tab
-\end{itemize}
-\end{itemize}
+\item 
+  Tab
+  \begin{itemize}
+  \item 
+    Tab
+    \begin{itemize}
+    \item 
+      Tab
+    \end{itemize}
+  \end{itemize}
 \end{itemize}
 Here's another:
 
 \begin{enumerate}[1.]
-\item First
-\item Second:
-\begin{itemize}
-\item Fee
-\item Fie
-\item Foe
-\end{itemize}
-\item Third
+\item 
+  First
+\item 
+  Second:
+  \begin{itemize}
+  \item 
+    Fee
+  \item 
+    Fie
+  \item 
+    Foe
+  \end{itemize}
+\item 
+  Third
 \end{enumerate}
 Same thing but with paragraphs:
 
 \begin{enumerate}[1.]
-\item First
+\item 
+  First
 
-\item Second:
+\item 
+  Second:
 
-\begin{itemize}
-\item Fee
-\item Fie
-\item Foe
-\end{itemize}
-\item Third
+  \begin{itemize}
+  \item 
+    Fee
+  \item 
+    Fie
+  \item 
+    Foe
+  \end{itemize}
+\item 
+  Third
 
 \end{enumerate}
 \subsection{Tabs and spaces}
 
 \begin{itemize}
-\item this is a list item indented with tabs
+\item 
+  this is a list item indented with tabs
 
-\item this is a list item indented with spaces
+\item 
+  this is a list item indented with spaces
 
-\begin{itemize}
-\item this is an example list item indented with tabs
+  \begin{itemize}
+  \item 
+    this is an example list item indented with tabs
 
-\item this is an example list item indented with spaces
+  \item 
+    this is an example list item indented with spaces
 
-\end{itemize}
+  \end{itemize}
 \end{itemize}
 \subsection{Fancy list markers}
 
 \begin{enumerate}[(1)]
 \setcounter{enumi}{1}
-\item begins with 2
-\item and now 3
+\item 
+  begins with 2
+\item 
+  and now 3
 
-with a continuation
+  with a continuation
 
-\begin{enumerate}[i.]
-\setcounter{enumii}{3}
-\item sublist with roman numerals, starting with 4
-\item more items
-\begin{enumerate}[(A)]
-\item a subsublist
-\item a subsublist
-\end{enumerate}
-\end{enumerate}
+  \begin{enumerate}[i.]
+  \setcounter{enumii}{3}
+  \item 
+    sublist with roman numerals, starting with 4
+  \item 
+    more items
+    \begin{enumerate}[(A)]
+    \item 
+      a subsublist
+    \item 
+      a subsublist
+    \end{enumerate}
+  \end{enumerate}
 \end{enumerate}
 Nesting:
 
 \begin{enumerate}[A.]
-\item Upper Alpha
-\begin{enumerate}[I.]
-\item Upper Roman.
-\begin{enumerate}[(1)]
-\setcounter{enumiii}{5}
-\item Decimal start with 6
-\begin{enumerate}[a)]
-\setcounter{enumiv}{2}
-\item Lower alpha with paren
-\end{enumerate}
-\end{enumerate}
-\end{enumerate}
+\item 
+  Upper Alpha
+  \begin{enumerate}[I.]
+  \item 
+    Upper Roman.
+    \begin{enumerate}[(1)]
+    \setcounter{enumiii}{5}
+    \item 
+      Decimal start with 6
+      \begin{enumerate}[a)]
+      \setcounter{enumiv}{2}
+      \item 
+        Lower alpha with paren
+      \end{enumerate}
+    \end{enumerate}
+  \end{enumerate}
 \end{enumerate}
 Autonumbering:
 
 \begin{enumerate}
-\item Autonumber.
-\item More.
-\begin{enumerate}
-\item Nested.
-\end{enumerate}
+\item 
+  Autonumber.
+\item 
+  More.
+  \begin{enumerate}
+  \item 
+    Nested.
+  \end{enumerate}
 \end{enumerate}
 Should not be a list item:
 
@@ -359,35 +433,46 @@ B. Williams
 Tight using spaces:
 
 \begin{description}
-\item[apple] red fruit
-\item[orange] orange fruit
-\item[banana] yellow fruit
+\item[apple]
+red fruit
+\item[orange]
+orange fruit
+\item[banana]
+yellow fruit
 \end{description}
 Tight using tabs:
 
 \begin{description}
-\item[apple] red fruit
-\item[orange] orange fruit
-\item[banana] yellow fruit
+\item[apple]
+red fruit
+\item[orange]
+orange fruit
+\item[banana]
+yellow fruit
 \end{description}
 Loose:
 
 \begin{description}
-\item[apple] red fruit
+\item[apple]
+red fruit
 
-\item[orange] orange fruit
+\item[orange]
+orange fruit
 
-\item[banana] yellow fruit
+\item[banana]
+yellow fruit
 
 \end{description}
 Multiple blocks with italics:
 
 \begin{description}
-\item[\emph{apple}] red fruit
+\item[\emph{apple}]
+red fruit
 
 contains seeds, crisp, pleasant to taste
 
-\item[\emph{orange}] orange fruit
+\item[\emph{orange}]
+orange fruit
 
 \begin{verbatim}
 { orange code block }
@@ -464,15 +549,20 @@ So is \textbf{\emph{this}} word.
 
 So is \textbf{\emph{this}} word.
 
-This is code: \verb!>!, \verb!$!, \verb!\!, \verb!\$!, \verb!<html>!.
+This is code: \verb!>!, \verb!$!, \verb!\!, \verb!\$!,
+\verb!<html>!.
 
 \sout{This is \emph{strikeout}.}
 
-Superscripts: a\textsuperscript{bc}d a\textsuperscript{\emph{hello}} a\textsuperscript{hello there}.
+Superscripts: a\textsuperscript{bc}d
+a\textsuperscript{\emph{hello}} a\textsuperscript{hello there}.
 
-Subscripts: H\textsubscript{2}O, H\textsubscript{23}O, H\textsubscript{many of them}O.
+Subscripts: H\textsubscript{2}O, H\textsubscript{23}O,
+H\textsubscript{many of them}O.
 
-These should not be superscripts or subscripts, because of the unescaped spaces: a\^{}b c\^{}d, a\ensuremath{\sim}b c\ensuremath{\sim}d.
+These should not be superscripts or subscripts, because of the
+unescaped spaces: a\^{}b c\^{}d, a\ensuremath{\sim}b
+c\ensuremath{\sim}d.
 
 \begin{center}\rule{3in}{0.4pt}\end{center}
 
@@ -486,7 +576,8 @@ These should not be superscripts or subscripts, because of the unescaped spaces:
 
 `He said, ``I want to go.''\,' Were you alive in the 70's?
 
-Here is some quoted `\verb!code!' and a ``\href{http://example.com/?foo=1&bar=2}{quoted link}''.
+Here is some quoted `\verb!code!' and a
+``\href{http://example.com/?foo=1&bar=2}{quoted link}''.
 
 Some dashes: one---two---three---four---five.
 
@@ -499,22 +590,36 @@ Ellipses\ldots{}and\ldots{}and\ldots{}.
 \section{LaTeX}
 
 \begin{itemize}
-\item \cite[22-23]{smith.1899}
-\item \doublespacing
-\item $2+2=4$
-\item $x \in y$
-\item $\alpha \wedge \omega$
-\item $223$
-\item $p$-Tree
-\item $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$
-\item Here's one that has a line break in it: $\alpha + \omega \times x^2$.
+\item 
+  \cite[22-23]{smith.1899}
+\item 
+  \doublespacing
+\item 
+  $2+2=4$
+\item 
+  $x \in y$
+\item 
+  $\alpha \wedge \omega$
+\item 
+  $223$
+\item 
+  $p$-Tree
+\item 
+  $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$
+\item 
+  Here's one that has a line break in it:
+  $\alpha + \omega \times x^2$.
 \end{itemize}
 These shouldn't be math:
 
 \begin{itemize}
-\item To get the famous equation, write \verb!$e = mc^2$!.
-\item \$22,000 is a \emph{lot} of money. So is \$34,000. (It worked if ``lot'' is emphasized.)
-\item Escaped \verb!$!: \$73 \emph{this should be emphasized} 23\$.
+\item 
+  To get the famous equation, write \verb!$e = mc^2$!.
+\item 
+  \$22,000 is a \emph{lot} of money. So is \$34,000. (It worked if
+  ``lot'' is emphasized.)
+\item 
+  Escaped \verb!$!: \$73 \emph{this should be emphasized} 23\$.
 \end{itemize}
 Here's a LaTeX table:
 
@@ -531,11 +636,16 @@ Cat    & 1      \\ \hline
 Here is some unicode:
 
 \begin{itemize}
-\item I hat: Î
-\item o umlaut: ö
-\item section: §
-\item set membership: ∈
-\item copyright: ©
+\item 
+  I hat: Î
+\item 
+  o umlaut: ö
+\item 
+  section: §
+\item 
+  set membership: ∈
+\item 
+  copyright: ©
 \end{itemize}
 AT\&T has an ampersand in their name.
 
@@ -632,24 +742,31 @@ Foo \href{/url/}{biz}.
 
 \subsection{With ampersands}
 
-Here's a \href{http://example.com/?foo=1&bar=2}{link with an ampersand in the URL}.
+Here's a
+\href{http://example.com/?foo=1&bar=2}{link with an ampersand in the URL}.
 
-Here's a link with an amersand in the link text: \href{http://att.com/}{AT\&T}.
+Here's a link with an amersand in the link text:
+\href{http://att.com/}{AT\&T}.
 
 Here's an \href{/script?foo=1&bar=2}{inline link}.
 
-Here's an \href{/script?foo=1&bar=2}{inline link in pointy braces}.
+Here's an
+\href{/script?foo=1&bar=2}{inline link in pointy braces}.
 
 \subsection{Autolinks}
 
 With an ampersand: \url{http://example.com/?foo=1&bar=2}
 
 \begin{itemize}
-\item In a list?
-\item \url{http://example.com/}
-\item It should.
+\item 
+  In a list?
+\item 
+  \url{http://example.com/}
+\item 
+  It should.
 \end{itemize}
-An e-mail address: \href{mailto:nobody@nowhere.net}{\texttt{nobody@nowhere.net}}
+An e-mail address:
+\href{mailto:nobody@nowhere.net}{\texttt{nobody@nowhere.net}}
 
 \begin{quote}
 Blockquoted: \url{http://example.com/}
@@ -674,29 +791,41 @@ Here is a movie \includegraphics{movie.jpg} icon.
 
 \section{Footnotes}
 
-Here is a footnote reference,\footnote{Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.
-} and another.\footnote{Here's the long note. This one contains multiple blocks.
+Here is a footnote
+reference,\footnote{ Here is the footnote. It can go anywhere after the footnote
+reference. It need not be placed at the end of the document.
+}
+and
+another.\footnote{ Here's the long note. This one contains multiple blocks.
 
-Subsequent blocks are indented to show that they belong to the footnote (as with list items).
+Subsequent blocks are indented to show that they belong to the
+footnote (as with list items).
 
 \begin{Verbatim}
   { <code> }
 \end{Verbatim}
-If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
-} This should \emph{not} be a footnote reference, because it contains a space.[\^{}my note] Here is an inline note.\footnote{This is \emph{easier} to type. Inline notes may contain \href{http://google.com}{links} and \verb!]! verbatim characters, as well as [bracketed text].
+If you want, you can indent every line, but you can also be lazy
+and just indent the first line of each block.
+}
+This should \emph{not} be a footnote reference, because it contains
+a space.[\^{}my note] Here is an inline
+note.\footnote{ This is \emph{easier} to type. Inline notes may contain
+\href{http://google.com}{links} and \verb!]! verbatim characters,
+as well as [bracketed text].
 }
 
 \begin{quote}
-Notes can go in quotes.\footnote{In quote.
+Notes can go in quotes.\footnote{ In quote.
 }
 
 \end{quote}
 \begin{enumerate}[1.]
-\item And in list items.\footnote{In list.
+\item 
+  And in list items.\footnote{ In list.
 }
 \end{enumerate}
-This paragraph should not be part of the note, as it is not indented.
+This paragraph should not be part of the note, as it is not
+indented.
 
 
 \end{document}
-
