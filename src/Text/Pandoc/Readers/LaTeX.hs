@@ -248,7 +248,7 @@ orderedList = try $ do
   spaces
   start <- option 1 $ try $ do failIfStrict
                                string "\\setcounter{enum"
-                               many1 (char 'i')
+                               many1 (oneOf "iv")
                                string "}{"
                                num <- many1 digit
                                char '}' 
