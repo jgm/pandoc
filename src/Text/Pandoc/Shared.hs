@@ -43,6 +43,7 @@ module Text.Pandoc.Shared (
                      stripFirstAndLast,
                      camelCaseToHyphenated,
                      toRomanNumeral,
+                     wrapped,
                      -- * Parsing
                      (>>~),
                      anyLine,
@@ -98,6 +99,7 @@ module Text.Pandoc.Shared (
 
 import Text.Pandoc.Definition
 import Text.ParserCombinators.Parsec
+import Text.PrettyPrint.HughesPJ ( Doc (..), fsep )
 import Text.Pandoc.CharacterReferences ( characterReference )
 import Data.Char ( toLower, toUpper, ord, chr, isLower, isUpper )
 import Data.List ( find, groupBy, isPrefixOf, isSuffixOf )
@@ -206,6 +208,11 @@ toRomanNumeral x =
               x | x >= 4    -> "IV" ++ toRomanNumeral (x - 4)
               x | x >= 1    -> "I" ++ toRomanNumeral (x - 1)
               0             -> ""
+
+-- | Wrap inlines to line length.
+wrapped :: Monad m => ([Inline] -> m Doc) -> [Inline] -> m Doc
+wrapped listWriter sect = (mapM listWriter $ splitBy Space sect) >>= 
+                          return . fsep
 
 --
 -- Parsing
