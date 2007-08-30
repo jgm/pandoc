@@ -107,14 +107,8 @@ pictToRST opts (label, (src, _)) = do
 -- | Take list of inline elements and return wrapped doc.
 wrappedRST :: WriterOptions -> [Inline] -> State WriterState Doc
 wrappedRST opts inlines = 
-  mapM (wrappedRSTSection opts) (splitBy LineBreak inlines) >>= 
+  mapM (wrapped (inlineListToRST opts)) (splitBy LineBreak inlines) >>= 
   return . vcat
-
-wrappedRSTSection :: WriterOptions -> [Inline] -> State WriterState Doc
-wrappedRSTSection opts sect = do
-  let chunks = splitBy Space sect
-  chunks' <- mapM (inlineListToRST opts) chunks
-  return $ fsep chunks'
 
 -- | Escape special characters for RST.
 escapeString :: String -> String

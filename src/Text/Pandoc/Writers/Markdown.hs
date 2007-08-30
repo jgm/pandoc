@@ -96,12 +96,6 @@ noteToMarkdown opts num blocks = do
   let marker = text "[^" <> text (show num) <> text "]:"
   return $ hang marker (writerTabStop opts) contents 
 
-wrappedMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
-wrappedMarkdown opts sect = do
-  let chunks = splitBy Space sect
-  chunks' <- mapM (inlineListToMarkdown opts) chunks
-  return $ fsep chunks'
-
 -- | Escape special characters for Markdown.
 escapeString :: String -> String
 escapeString = escapeStringUsing markdownEscapes
@@ -150,9 +144,10 @@ blockToMarkdown :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
                 -> State WriterState Doc 
 blockToMarkdown opts Null = return empty
-blockToMarkdown opts (Plain inlines) = wrappedMarkdown opts inlines
+blockToMarkdown opts (Plain inlines) = 
+  wrapped (inlineListToMarkdown opts) inlines
 blockToMarkdown opts (Para inlines) = do
-  contents <- wrappedMarkdown opts inlines
+  contents <- wrapped (inlineListToMarkdown opts) inlines
   return $ contents <> text "\n"
 blockToMarkdown opts (RawHtml str) = return $ text str
 blockToMarkdown opts HorizontalRule = return $ text "\n* * * * *\n"

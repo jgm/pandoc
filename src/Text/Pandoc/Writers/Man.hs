@@ -98,12 +98,6 @@ noteToMan opts num note = do
   let marker = text "\n.SS [" <> text (show num) <> char ']'
   return $ marker $$ contents 
 
-wrappedMan :: WriterOptions -> [Inline] -> State WriterState Doc
-wrappedMan opts sect = do
-  let chunks = splitBy Space sect
-  chunks' <- mapM (inlineListToMan opts) chunks
-  return $ fsep chunks'
-
 -- | Association list of characters to escape.
 manEscapes :: [(Char, String)]
 manEscapes = [('\160', "\\ "), ('\'', "\\[aq]")] ++ backslashEscapes "\".@\\"
@@ -121,9 +115,9 @@ blockToMan :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
                 -> State WriterState Doc 
 blockToMan opts Null = return empty
-blockToMan opts (Plain inlines) = wrappedMan opts inlines
+blockToMan opts (Plain inlines) = wrapped (inlineListToMan opts) inlines
 blockToMan opts (Para inlines) = do
-  contents <- wrappedMan opts inlines
+  contents <- wrapped (inlineListToMan opts) inlines
   return $ text ".PP" $$ contents 
 blockToMan opts (RawHtml str) = return $ text str
 blockToMan opts HorizontalRule = return $ text $ ".PP\n   *   *   *   *   *"
