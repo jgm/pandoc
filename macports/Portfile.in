@@ -17,8 +17,10 @@ homepage            http://sophos.berkeley.edu/pandoc/
 platforms           darwin
 master_sites        http://pandoc.googlecode.com/files/
 checksums           md5 @TARBALLMD5SUM@
-depends_build       port:ghc
+depends_build       port:ghc port:haddock
 depends_lib         port:gmp
 
 use_configure       no
 build.args          PREFIX=${prefix}
+build.target        build-all
+destroot.target     install-all
