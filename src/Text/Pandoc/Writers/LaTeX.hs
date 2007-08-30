@@ -31,10 +31,11 @@ module Text.Pandoc.Writers.LaTeX ( writeLaTeX ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
-import Data.List ( (\\), isInfixOf )
+import Data.List ( (\\), isInfixOf, intersperse )
 import Data.Char ( toLower )
 import qualified Data.Set as S
 import Control.Monad.State
+import Text.PrettyPrint.HughesPJ hiding ( Str )
 
 data WriterState = 
   WriterState { stIncludes :: S.Set String -- strings to include in header
@@ -51,51 +52,56 @@ addToHeader str = do
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: WriterOptions -> Pandoc -> String
 writeLaTeX options document = 
-  evalState (pandocToLaTeX options document) $ 
+  render $ evalState (pandocToLaTeX options document) $ 
   WriterState { stIncludes = S.empty, stInNote = False, stOLLevel = 1 } 
 
-pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
+pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState Doc
 pandocToLaTeX options (Pandoc meta blocks) = do
   main     <- blockListToLaTeX blocks
   head     <- if writerStandalone options
                  then latexHeader options meta
-                 else return ""
-  let body =  writerIncludeBefore options ++ main ++
-              writerIncludeAfter options
+                 else return empty
+  let before = if null (writerIncludeBefore options)
+                  then empty
+                  else text (writerIncludeBefore options)
+  let after  = if null (writerIncludeAfter options)
+                  then empty
+                  else text (writerIncludeAfter options)
+  let body = before $$ main $$ after
   let toc  =  if writerTableOfContents options
-                 then "\\tableofcontents\n\n"
-                 else "" 
+                 then text "\\tableofcontents\n"
+                 else empty 
   let foot = if writerStandalone options
-                then "\n\\end{document}\n"
-                else ""
-  return $ head ++ toc ++ body ++ foot
+                then text "\\end{document}"
+                else empty 
+  return $ head $$ toc $$ body $$ foot
 
 -- | Insert bibliographic information into LaTeX header.
 latexHeader :: WriterOptions -- ^ Options, including LaTeX header
             -> Meta          -- ^ Meta with bibliographic information
-            -> State WriterState String
+            -> State WriterState Doc
 latexHeader options (Meta title authors date) = do
   titletext <- if null title
-                  then return "" 
-                  else do title' <- inlineListToLaTeX title
-                          return $ "\\title{" ++ title' ++ "}\n"
-  extras <- get >>= (return . unlines . S.toList. stIncludes)
-  let verbatim  = if "\\usepackage{fancyvrb}" `isInfixOf` extras
-                     then "\\VerbatimFootnotes % allows verbatim text in footnotes\n"
-                     else ""
-  let authorstext = "\\author{" ++ 
-                    joinWithSep "\\\\" (map stringToLaTeX authors) ++ "}\n"
+                  then return empty
+                  else inlineListToLaTeX title >>= return . inCmd "title"
+  headerIncludes <- get >>= return . S.toList . stIncludes
+  let extras = text $ unlines headerIncludes
+  let verbatim  = if "\\usepackage{fancyvrb}" `elem` headerIncludes
+                     then text "\\VerbatimFootnotes % allows verbatim text in footnotes"
+                     else empty
+  let authorstext = text $ "\\author{" ++ 
+                    joinWithSep "\\\\" (map stringToLaTeX authors) ++ "}"
   let datetext  = if date == ""
-                     then "" 
-                     else "\\date{" ++ stringToLaTeX date ++ "}\n"
-  let maketitle = if null title then "" else "\\maketitle\n" 
+                     then empty 
+                     else text $ "\\date{" ++ stringToLaTeX date ++ "}"
+  let maketitle = if null title then empty else text "\\maketitle"
   let secnumline = if (writerNumberSections options)
-                      then "" 
-                      else "\\setcounter{secnumdepth}{0}\n" 
-  let baseHeader = writerHeader options
-  let header     = baseHeader ++ extras
-  return $ header ++ secnumline ++ verbatim ++ titletext ++ authorstext ++
-           datetext ++ "\\begin{document}\n" ++ maketitle ++ "\n"
+                      then empty 
+                      else text "\\setcounter{secnumdepth}{0}"
+  let baseHeader = text $ writerHeader options
+  let header     = baseHeader $$ extras
+  return $ header $$ secnumline $$ verbatim $$ titletext $$ authorstext $$
+           datetext $$ text "\\begin{document}" $$ maketitle $$ text ""
 
 -- escape things as needed for LaTeX
 
@@ -110,6 +116,10 @@ stringToLaTeX = escapeStringUsing latexEscapes
                        , ('>', "\\textgreater{}")
                        ]
 
+-- | Puts contents into LaTeX command.
+inCmd :: String -> Doc -> Doc
+inCmd cmd contents = char '\\' <> text cmd <> braces contents
+
 -- | Remove all code elements from list of inline elements
 -- (because it's illegal to have verbatim inside some command arguments)
 deVerb :: [Inline] -> [Inline]
@@ -120,23 +130,26 @@ deVerb (other:rest) = other:(deVerb rest)
 
 -- | Convert Pandoc block element to LaTeX.
 blockToLaTeX :: Block     -- ^ Block to convert
-             -> State WriterState String 
-blockToLaTeX Null = return ""
-blockToLaTeX (Plain lst) = inlineListToLaTeX lst >>= return . (++ "\n")
-blockToLaTeX (Para lst) = inlineListToLaTeX lst >>= return . (++ "\n\n")
+             -> State WriterState Doc
+blockToLaTeX Null = return empty
+blockToLaTeX (Plain lst) = wrapped inlineListToLaTeX lst >>= return 
+blockToLaTeX (Para lst) = 
+  wrapped inlineListToLaTeX lst >>= return . (<> char '\n')
 blockToLaTeX (BlockQuote lst) = do
   contents <- blockListToLaTeX lst
-  return $ "\\begin{quote}\n" ++ contents ++ "\\end{quote}\n"
+  return $ text "\\begin{quote}" $$ contents $$ text "\\end{quote}"
 blockToLaTeX (CodeBlock str) = do
   st <- get
-  if stInNote st
-     then do addToHeader "\\usepackage{fancyvrb}"
-             return $ "\\begin{Verbatim}\n" ++ str ++ "\n\\end{Verbatim}\n"
-     else return $ "\\begin{verbatim}\n" ++ str ++ "\n\\end{verbatim}\n"
-blockToLaTeX (RawHtml str) = return ""
+  env <- if stInNote st
+            then do addToHeader "\\usepackage{fancyvrb}"
+                    return "Verbatim"
+            else return "verbatim"
+  return $ text ("\\begin{" ++ env ++ "}\n") <> text str <> 
+           text ("\n\\end{" ++ env ++ "}")
+blockToLaTeX (RawHtml str) = return empty
 blockToLaTeX (BulletList lst) = do
   items <- mapM listItemToLaTeX lst
-  return $ "\\begin{itemize}\n" ++ concat items ++ "\\end{itemize}\n"
+  return $ text "\\begin{itemize}" $$ vcat items $$ text "\\end{itemize}"
 blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   st <- get
   let oldlevel = stOLLevel st
@@ -145,26 +158,29 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   modify (\st -> st {stOLLevel = oldlevel})
   exemplar <- if numstyle /= DefaultStyle || numdelim /= DefaultDelim
                  then do addToHeader "\\usepackage{enumerate}"
-                         return $ "[" ++ head (orderedListMarkers (1, numstyle, numdelim)) ++ "]"
-                 else return ""
+                         return $ char '[' <> 
+                                  text (head (orderedListMarkers (1, numstyle,
+                                  numdelim))) <> char ']'
+                 else return empty
   let resetcounter = if start /= 1 && oldlevel <= 4
-                        then "\\setcounter{enum" ++ 
+                        then text $ "\\setcounter{enum" ++ 
                              map toLower (toRomanNumeral oldlevel) ++
-                             "}{" ++ show (start - 1) ++ "}\n"
-                        else ""
-  return $ "\\begin{enumerate}" ++ exemplar ++ "\n" ++
-           resetcounter ++ concat items ++ "\\end{enumerate}\n"
+                             "}{" ++ show (start - 1) ++ "}"
+                        else empty 
+  return $ text "\\begin{enumerate}" <> exemplar $$ resetcounter $$
+           vcat items $$ text "\\end{enumerate}"
 blockToLaTeX (DefinitionList lst) = do
   items <- mapM defListItemToLaTeX lst
-  return $ "\\begin{description}\n" ++ concat items ++ "\\end{description}\n"
-blockToLaTeX HorizontalRule = return $
-    "\\begin{center}\\rule{3in}{0.4pt}\\end{center}\n\n"
+  return $ text "\\begin{description}" $$ vcat items $$
+           text "\\end{description}"
+blockToLaTeX HorizontalRule = return $ text $
+    "\\begin{center}\\rule{3in}{0.4pt}\\end{center}\n"
 blockToLaTeX (Header level lst) = do
-  text <- inlineListToLaTeX (deVerb lst)
+  txt <- inlineListToLaTeX (deVerb lst)
   return $ if (level > 0) && (level <= 3)
-              then "\\" ++ (concat (replicate (level - 1) "sub")) ++ 
-                   "section{" ++ text ++ "}\n\n"
-              else text ++ "\n\n"
+              then text ("\\" ++ (concat (replicate (level - 1) "sub")) ++ 
+                   "section{") <> txt <> text "}\n"
+              else txt <> char '\n'
 blockToLaTeX (Table caption aligns widths heads rows) = do
   headers <- tableRowToLaTeX heads
   captionText <- inlineListToLaTeX caption
@@ -180,34 +196,37 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
                                 "\\hspace{0pt}}p{" ++ width ++ 
                                 "\\columnwidth}")
                                 colWidths aligns
-  let tableBody = "\\begin{tabular}{" ++ colDescriptors ++ "}\n" ++
-                  headers ++ "\\hline\n" ++ concat rows' ++ "\\end{tabular}\n" 
-  let centered str = "\\begin{center}\n" ++ str ++ "\\end{center}\n"
+  let tableBody = text ("\\begin{tabular}{" ++ colDescriptors ++ "}") $$
+                  headers $$ text "\\hline" $$ vcat rows' $$ 
+                  text "\\end{tabular}" 
+  let centered txt = text "\\begin{center}" $$ txt $$ text "\\end{center}"
   addToHeader "\\usepackage{array}\n\
     \% This is needed because raggedright in table elements redefines \\\\:\n\
     \\\newcommand{\\PreserveBackslash}[1]{\\let\\temp=\\\\#1\\let\\\\=\\temp}\n\
     \\\let\\PBS=\\PreserveBackslash"
-  return $ if null captionText
-              then centered tableBody ++ "\n"
-              else "\\begin{table}[h]\n" ++ centered tableBody ++ 
-                   "\\caption{" ++ captionText ++ "}\n" ++ "\\end{table}\n\n" 
+  return $ if isEmpty captionText
+              then centered tableBody <> char '\n'
+              else text "\\begin{table}[h]" $$ centered tableBody $$ 
+                   inCmd "caption" captionText $$ text "\\end{table}\n" 
 
-blockListToLaTeX lst = mapM blockToLaTeX lst >>= return . concat
+blockListToLaTeX lst = mapM blockToLaTeX lst >>= return . vcat
 
-tableRowToLaTeX cols = 
-  mapM blockListToLaTeX cols >>= return . (++ "\\\\\n") . (joinWithSep " & ")
+tableRowToLaTeX cols = mapM blockListToLaTeX cols >>= 
+  return . ($$ text "\\\\") . foldl (\row item -> row $$
+  (if isEmpty row then empty else text " & ") <> item) empty
 
-listItemToLaTeX lst = blockListToLaTeX lst >>= return . ("\\item "++)
+listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item " $$) .
+                      (nest 2)
 
 defListItemToLaTeX (term, def) = do
     term' <- inlineListToLaTeX $ deVerb term
     def'  <- blockListToLaTeX def
-    return $ "\\item[" ++ term' ++ "] " ++ def'
+    return $ text "\\item[" <> term' <> text "]" $$ def'
 
 -- | Convert list of inline elements to LaTeX.
 inlineListToLaTeX :: [Inline]  -- ^ Inlines to convert
-                  -> State WriterState String
-inlineListToLaTeX lst = mapM inlineToLaTeX lst >>= return . concat
+                  -> State WriterState Doc
+inlineListToLaTeX lst = mapM inlineToLaTeX lst >>= return . hcat
 
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
@@ -216,68 +235,75 @@ isQuoted _ = False
 
 -- | Convert inline element to LaTeX
 inlineToLaTeX :: Inline    -- ^ Inline to convert
-              -> State WriterState String
-inlineToLaTeX (Emph lst) = do
-  contents <- inlineListToLaTeX $ deVerb lst
-  return $ "\\emph{" ++ contents ++ "}"
-inlineToLaTeX (Strong lst) = do
-  contents <- inlineListToLaTeX $ deVerb lst
-  return $ "\\textbf{" ++ contents ++ "}"
+              -> State WriterState Doc
+inlineToLaTeX (Emph lst) =
+  inlineListToLaTeX (deVerb lst) >>= return . inCmd "emph"
+inlineToLaTeX (Strong lst) = 
+  inlineListToLaTeX (deVerb lst) >>= return . inCmd "textbf" 
 inlineToLaTeX (Strikeout lst) = do
   contents <- inlineListToLaTeX $ deVerb lst
   addToHeader "\\usepackage[normalem]{ulem}"
-  return $ "\\sout{" ++ contents ++ "}"
-inlineToLaTeX (Superscript lst) = do
-  contents <- inlineListToLaTeX $ deVerb lst
-  return $ "\\textsuperscript{" ++ contents ++ "}"
+  return $ inCmd "sout" contents
+inlineToLaTeX (Superscript lst) = 
+  inlineListToLaTeX (deVerb lst) >>= return . inCmd "textsuperscript"
 inlineToLaTeX (Subscript lst) = do
   contents <- inlineListToLaTeX $ deVerb lst
   -- oddly, latex includes \textsuperscript but not \textsubscript
   -- so we have to define it:
   addToHeader "\\newcommand{\\textsubscript}[1]{\\ensuremath{_{\\scriptsize\\textrm{#1}}}}"
-  return $ "\\textsubscript{" ++ contents ++ "}"
+  return $ inCmd "textsubscript" contents
 inlineToLaTeX (Code str) = do
   st <- get
   if stInNote st
      then do addToHeader "\\usepackage{fancyvrb}"
      else return ()
   let chr = ((enumFromTo '!' '~') \\ str) !! 0
-  return $ "\\verb" ++ [chr] ++ str ++ [chr]
+  return $ text $ "\\verb" ++ [chr] ++ str ++ [chr]
 inlineToLaTeX (Quoted SingleQuote lst) = do
   contents <- inlineListToLaTeX lst
-  let s1 = if (not (null lst)) && (isQuoted (head lst)) then "\\," else ""
-  let s2 = if (not (null lst)) && (isQuoted (last lst)) then "\\," else ""
-  return $ "`" ++ s1 ++ contents ++ s2 ++ "'"
+  let s1 = if (not (null lst)) && (isQuoted (head lst))
+              then text "\\,"
+              else empty 
+  let s2 = if (not (null lst)) && (isQuoted (last lst))
+              then text "\\,"
+              else empty
+  return $ char '`' <> s1 <> contents <> s2 <> char '\''
 inlineToLaTeX (Quoted DoubleQuote lst) = do
   contents <- inlineListToLaTeX lst
-  let s1 = if (not (null lst)) && (isQuoted (head lst)) then "\\," else ""
-  let s2 = if (not (null lst)) && (isQuoted (last lst)) then "\\," else ""
-  return $ "``" ++ s1 ++ contents ++ s2 ++ "''"
-inlineToLaTeX Apostrophe = return "'"
-inlineToLaTeX EmDash = return "---"
-inlineToLaTeX EnDash = return "--"
-inlineToLaTeX Ellipses = return "\\ldots{}"
-inlineToLaTeX (Str str) = return $ stringToLaTeX str
-inlineToLaTeX (TeX str) = return str
-inlineToLaTeX (HtmlInline str) = return ""
-inlineToLaTeX (LineBreak) = return "\\\\\n"
-inlineToLaTeX Space = return " "
-inlineToLaTeX (Link text (src, _)) = do
+  let s1 = if (not (null lst)) && (isQuoted (head lst))
+              then text "\\,"
+              else empty 
+  let s2 = if (not (null lst)) && (isQuoted (last lst))
+              then text "\\,"
+              else empty
+  return $ text "``" <> s1 <> contents <> s2 <> text "''"
+inlineToLaTeX Apostrophe = return $ char '\''
+inlineToLaTeX EmDash = return $ text "---"
+inlineToLaTeX EnDash = return $ text "--"
+inlineToLaTeX Ellipses = return $ text "\\ldots{}"
+inlineToLaTeX (Str str) = return $ text $ stringToLaTeX str
+inlineToLaTeX (TeX str) = return $ text str
+inlineToLaTeX (HtmlInline str) = return empty
+inlineToLaTeX (LineBreak) = return $ text "\\\\" 
+inlineToLaTeX Space = return $ char ' '
+inlineToLaTeX (Link txt (src, _)) = do
   addToHeader "\\usepackage[breaklinks=true]{hyperref}"
-  case text of
+  case txt of
         [Code x] | x == src ->  -- autolink
              do addToHeader "\\usepackage{url}" 
-                return $ "\\url{" ++ x ++ "}"
-        _ -> do contents <- inlineListToLaTeX $ deVerb text
-                return $ "\\href{" ++ src ++ "}{" ++ contents ++ "}"
+                return $ text $ "\\url{" ++ x ++ "}"
+        _ -> do contents <- inlineListToLaTeX $ deVerb txt
+                return $ text ("\\href{" ++ src ++ "}{") <> contents <> 
+                         char '}'
 inlineToLaTeX (Image alternate (source, tit)) = do
   addToHeader "\\usepackage{graphicx}"
-  return $ "\\includegraphics{" ++ source ++ "}" 
+  return $ text $ "\\includegraphics{" ++ source ++ "}" 
 inlineToLaTeX (Note contents) = do
   st <- get
   put (st {stInNote = True})
   contents' <- blockListToLaTeX contents
   modify (\st -> st {stInNote = False})
-  return $ "\\footnote{" ++ stripTrailingNewlines contents'  ++ "\n}" 
+  return $ text "\\footnote{" $$ 
+           (nest 11 $ text (stripTrailingNewlines $ render contents') <> text "\n}")
   -- note: the \n before } is important; removing it causes problems
   -- if a Verbatim environment occurs at the end of the footnote.
