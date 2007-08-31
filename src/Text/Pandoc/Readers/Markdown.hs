@@ -269,7 +269,7 @@ codeBlock = try $ do
                      try (do b <- blanklines
                              l <- indentedLine
                              return $ b ++ l))
-  blanklines
+  optional blanklines
   return $ CodeBlock $ stripTrailingNewlines $ concat contents
 
 --
