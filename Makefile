@@ -18,7 +18,7 @@ CONFIGURE := configure
 #-------------------------------------------------------------------------------
 NAME      := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL))
 THIS      := $(shell echo $(NAME) | tr A-Z a-z)
-VERSION   := $(shell sed -ne 's/^version[[:space:]]*=[[:space:]]*"\([^"]*\)"/\1/p' $(SRCDIR)/Main.hs)
+VERSION   := $(shell sed -ne 's/^[Vv]ersion:[[:space:]]*//p' $(CABAL))
 RELNAME   := $(THIS)-$(VERSION)
 EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL))
 
