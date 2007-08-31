@@ -686,7 +686,7 @@ math = try $ do
   return $ TeX ("$" ++ (joinWithSep " " words) ++ "$")
 
 emph = ((enclosed (char '*') (char '*') inline) <|>
-        (enclosed (char '_') (char '_') inline)) >>= 
+        (enclosed (char '_') (char '_' >> notFollowedBy alphaNum) inline)) >>= 
         return . Emph . normalizeSpaces
 
 strong = ((enclosed (string "**") (try $ string "**") inline) <|> 
