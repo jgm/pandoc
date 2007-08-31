@@ -99,10 +99,10 @@ module Text.Pandoc.Shared (
 
 import Text.Pandoc.Definition
 import Text.ParserCombinators.Parsec
-import Text.PrettyPrint.HughesPJ ( Doc (..), fsep )
+import Text.PrettyPrint.HughesPJ ( Doc, fsep )
 import Text.Pandoc.CharacterReferences ( characterReference )
-import Data.Char ( toLower, toUpper, ord, chr, isLower, isUpper )
-import Data.List ( find, groupBy, isPrefixOf, isSuffixOf )
+import Data.Char ( toLower, toUpper, ord, isLower, isUpper )
+import Data.List ( find, isPrefixOf )
 import Control.Monad ( join )
 
 --
@@ -137,7 +137,7 @@ substitute target replacement lst =
 joinWithSep :: [a]    -- ^ List to use as separator
             -> [[a]]  -- ^ Lists to join
             -> [a]
-joinWithSep sep [] = []
+joinWithSep _ [] = []
 joinWithSep sep lst = foldr1 (\a b -> a ++ sep ++ b) lst
 
 --
@@ -153,7 +153,7 @@ backslashEscapes = map (\ch -> (ch, ['\\',ch]))
 -- | Escape a string of characters, using an association list of
 -- characters and strings.
 escapeStringUsing :: [(Char, String)] -> String -> String
-escapeStringUsing escapeTable [] = ""
+escapeStringUsing _ [] = ""
 escapeStringUsing escapeTable (x:xs) = 
   case (lookup x escapeTable) of
        Just str  -> str ++ rest
@@ -194,20 +194,20 @@ toRomanNumeral x =
   if x >= 4000 || x < 0
      then "?"
      else case x of
-              x | x >= 1000 -> "M" ++ toRomanNumeral (x - 1000)
-              x | x >= 900  -> "CM" ++ toRomanNumeral (x - 900)
-              x | x >= 500  -> "D" ++ toRomanNumeral (x - 500)
-              x | x >= 400  -> "CD" ++ toRomanNumeral (x - 400)
-              x | x >= 100  -> "C" ++ toRomanNumeral (x - 100)
-              x | x >= 90   -> "XC" ++ toRomanNumeral (x - 90)
-              x | x >= 50   -> "L"  ++ toRomanNumeral (x - 50)
-              x | x >= 40   -> "XL" ++ toRomanNumeral (x - 40)
-              x | x >= 10   -> "X" ++ toRomanNumeral (x - 10)
-              x | x >= 9    -> "IX" ++ toRomanNumeral (x - 5)
-              x | x >= 5    -> "V" ++ toRomanNumeral (x - 5)
-              x | x >= 4    -> "IV" ++ toRomanNumeral (x - 4)
-              x | x >= 1    -> "I" ++ toRomanNumeral (x - 1)
-              0             -> ""
+              _ | x >= 1000 -> "M" ++ toRomanNumeral (x - 1000)
+              _ | x >= 900  -> "CM" ++ toRomanNumeral (x - 900)
+              _ | x >= 500  -> "D" ++ toRomanNumeral (x - 500)
+              _ | x >= 400  -> "CD" ++ toRomanNumeral (x - 400)
+              _ | x >= 100  -> "C" ++ toRomanNumeral (x - 100)
+              _ | x >= 90   -> "XC" ++ toRomanNumeral (x - 90)
+              _ | x >= 50   -> "L"  ++ toRomanNumeral (x - 50)
+              _ | x >= 40   -> "XL" ++ toRomanNumeral (x - 40)
+              _ | x >= 10   -> "X" ++ toRomanNumeral (x - 10)
+              _ | x >= 9    -> "IX" ++ toRomanNumeral (x - 5)
+              _ | x >= 5    -> "V" ++ toRomanNumeral (x - 5)
+              _ | x >= 4    -> "IV" ++ toRomanNumeral (x - 4)
+              _ | x >= 1    -> "I" ++ toRomanNumeral (x - 1)
+              _             -> ""
 
 -- | Wrap inlines to line length.
 wrapped :: Monad m => ([Inline] -> m Doc) -> [Inline] -> m Doc
@@ -294,9 +294,9 @@ parseFromString parser str = do
 -- | Parse raw line block up to and including blank lines.
 lineClump :: GenParser Char st String
 lineClump = do
-  lines <- many1 (notFollowedBy blankline >> anyLine)
+  lns <- many1 (notFollowedBy blankline >> anyLine)
   blanks <- blanklines <|> (eof >> return "\n")
-  return $ (unlines lines) ++ blanks
+  return $ (unlines lns) ++ blanks
 
 -- | Parse a string of characters between an open character
 -- and a close character, including text between balanced
@@ -327,8 +327,8 @@ charsInBalanced' open close = try $ do
 -- | Parses a roman numeral (uppercase or lowercase), returns number.
 romanNumeral :: Bool                  -- ^ Uppercase if true
              -> GenParser Char st Int
-romanNumeral upper = do
-    let charAnyCase c = char (if upper then toUpper c else c)
+romanNumeral upperCase = do
+    let charAnyCase c = char (if upperCase then toUpper c else c)
     let one = charAnyCase 'i'
     let five = charAnyCase 'v'
     let ten = charAnyCase 'x'
@@ -481,7 +481,7 @@ orderedListMarker style delim = do
                Period       -> inPeriod
                OneParen     -> inOneParen
                TwoParens    -> inTwoParens
-  (start, style, delim) <- context num
+  (start, _, _) <- context num
   return start
 
 -- | Parses a character reference and returns a Str element.
@@ -626,7 +626,7 @@ indentBy :: Int    -- ^ Number of spaces to indent the block
          -> Int    -- ^ Number of spaces (rel to block) to indent first line
          -> String -- ^ Contents of block to indent
          -> String
-indentBy num first [] = ""
+indentBy _ _ [] = ""
 indentBy num first str = 
   let (firstLine:restLines) = lines str 
       firstLineIndent = num + first
@@ -679,21 +679,21 @@ prettyPandoc (Pandoc meta blocks) = "Pandoc " ++ "(" ++ show meta ++
 orderedListMarkers :: (Int, ListNumberStyle, ListNumberDelim) -> [String]
 orderedListMarkers (start, numstyle, numdelim) = 
   let singleton c = [c]
-      seq = case numstyle of
-                    DefaultStyle -> map show [start..]
-                    Decimal      -> map show [start..]
-                    UpperAlpha   -> drop (start - 1) $ cycle $ 
-                                    map singleton ['A'..'Z']
-                    LowerAlpha   -> drop (start - 1) $ cycle $
-                                    map singleton ['a'..'z']
-                    UpperRoman   -> map toRomanNumeral [start..]
-                    LowerRoman   -> map (map toLower . toRomanNumeral) [start..]
+      nums = case numstyle of
+                     DefaultStyle -> map show [start..]
+                     Decimal      -> map show [start..]
+                     UpperAlpha   -> drop (start - 1) $ cycle $ 
+                                     map singleton ['A'..'Z']
+                     LowerAlpha   -> drop (start - 1) $ cycle $
+                                     map singleton ['a'..'z']
+                     UpperRoman   -> map toRomanNumeral [start..]
+                     LowerRoman   -> map (map toLower . toRomanNumeral) [start..]
       inDelim str = case numdelim of
                             DefaultDelim -> str ++ "."
                             Period       -> str ++ "."
                             OneParen     -> str ++ ")"
                             TwoParens    -> "(" ++ str ++ ")"
-  in  map inDelim seq
+  in  map inDelim nums
 
 -- | Normalize a list of inline elements: remove leading and trailing
 -- @Space@ elements, collapse double @Space@s into singles, and
@@ -726,18 +726,18 @@ compactify items =
           [Para a]  -> if any containsPara others
                           then items
                           else others ++ [[Plain a]]
-          otherwise -> items
+          _         -> items
 
 containsPara :: [Block] -> Bool
 containsPara [] = False
-containsPara ((Para a):rest) = True
+containsPara ((Para _):_) = True
 containsPara ((BulletList items):rest) =  any containsPara items ||
                                           containsPara rest
 containsPara ((OrderedList _ items):rest) = any containsPara items ||
                                             containsPara rest
 containsPara ((DefinitionList items):rest) = any containsPara (map snd items) ||
                                              containsPara rest
-containsPara (x:rest) = containsPara rest
+containsPara (_:rest) = containsPara rest
 
 -- | Data structure for defining hierarchical Pandoc documents
 data Element = Blk Block 
@@ -746,7 +746,7 @@ data Element = Blk Block
 -- | Returns @True@ on Header block with at least the specified level
 headerAtLeast :: Int -> Block -> Bool
 headerAtLeast level (Header x _) = x <= level
-headerAtLeast level _ = False
+headerAtLeast _ _ = False
 
 -- | Convert list of Pandoc blocks into (hierarchical) list of Elements
 hierarchicalize :: [Block] -> [Element]
@@ -787,6 +787,7 @@ data WriterOptions = WriterOptions
   } deriving Show
 
 -- | Default writer options.
+defaultWriterOptions :: WriterOptions
 defaultWriterOptions = 
   WriterOptions { writerStandalone      = False,
                   writerHeader          = "",
