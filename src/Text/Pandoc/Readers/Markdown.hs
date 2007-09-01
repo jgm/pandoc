@@ -31,9 +31,10 @@ module Text.Pandoc.Readers.Markdown (
                                      readMarkdown 
                                     ) where
 
-import Data.List ( transpose, isSuffixOf, lookup, sortBy )
+import Data.List ( transpose, isPrefixOf, isSuffixOf, lookup, sortBy )
 import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum )
+import Network.URI ( isURI )
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment )
@@ -738,9 +739,9 @@ doubleQuoted = try $ do
 
 failIfInQuoteContext context = do
   st <- getState
-  if (stateQuoteContext st == context)
-    then fail "already inside quotes"
-    else return ()
+  if stateQuoteContext st == context
+     then fail "already inside quotes"
+     else return ()
 
 singleQuoteStart = do 
   failIfInQuoteContext InSingleQuote
@@ -839,32 +840,30 @@ referenceLink label = do
      Nothing     -> fail "no corresponding key" 
      Just target -> return target 
 
-autoLink = autoLinkEmail <|> autoLinkRegular
+emailAddress = try $ do
+  name <- many1 (alphaNum <|> char '+')
+  char '@'
+  first <- many1 alphaNum
+  rest <- many1 (char '.' >> many1 alphaNum)
+  return $ "mailto:" ++ name ++ "@" ++ joinWithSep "." (first:rest)
 
--- a link <like@this.com>
-autoLinkEmail = try $ do
+uri = try $ do
+  str <- many1 (noneOf "\n\t >")
+  if isURI str
+     then return str
+     else fail "not a URI"
+
+autoLink = try $ do
   char '<'
-  name <- many1Till (noneOf "/:<> \t\n") (char '@')
-  domain <- sepBy1 (many1 (noneOf "/:.@<> \t\n")) (char '.')
+  src <- uri <|> emailAddress
   char '>'
-  let src = name ++ "@" ++ (joinWithSep "." domain)
-  txt <- autoLinkText src
-  return $ Link txt (("mailto:" ++ src), "")
-
--- a link <http://like.this.com>
-autoLinkRegular = try $ do
-  char '<'
-  prot <- oneOfStrings ["http:", "ftp:", "mailto:"]
-  rest <- many1Till (noneOf " \t\n<>") (char '>')
-  let src = prot ++ rest
-  txt <- autoLinkText src
-  return $ Link txt (src, "")
-
-autoLinkText src = do
+  let src' = if "mailto:" `isPrefixOf` src
+                then drop 7 src
+                else src 
   st <- getState
   return $ if stateStrict st
-              then [Str src]
-              else [Code src]
+              then Link [Str src'] (src, "")
+              else Link [Code src'] (src, "")
 
 image = try $ do
   char '!'
