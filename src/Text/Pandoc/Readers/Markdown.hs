@@ -266,7 +266,7 @@ hrule = try $ do
 
 indentedLine = indentSpaces >> manyTill anyChar newline >>= return . (++ "\n")
 
-codeBlock = try $ do
+codeBlock = do
   contents <- many1 (indentedLine <|> 
                      try (do b <- blanklines
                              l <- indentedLine
