@@ -143,22 +143,25 @@ parseMarkdown = do
   (title, author, date) <- option ([],[],"") titleBlock
   -- go through once just to get list of reference keys
   refs <- manyTill (referenceKey <|> (lineClump >>= return . LineClump)) eof
-  let keys = map (\(KeyBlock label target) -> (label, target)) $ 
+  let keys = map (\(KeyBlock label target) -> (label, target)) $
                  filter isKeyBlock refs
-  let rawlines = map (\(LineClump ln) -> ln) $ filter isLineClump refs
-  setInput $ concat rawlines -- with keys stripped out 
+  -- strip out keys
+  setInput $ concatMap (\(LineClump ln) -> ln) $ filter isLineClump refs
   updateState (\state -> state { stateKeys = keys })
-  -- now go through for notes (which may contain references - hence 2nd pass)
-  refs <- manyTill (noteBlock <|> (lineClump >>= return . LineClump)) eof 
-  let notes = map (\(NoteBlock label blocks) -> (label, blocks)) $ 
-                   filter isNoteBlock refs
-  let rawlines = map (\(LineClump ln) -> ln) $ filter isLineClump refs
-  -- go through a 3rd time, with note blocks and keys stripped out
-  setInput $ concat rawlines 
-  updateState (\state -> state { stateNotes = notes })
+  st <- getState
+  if stateStrict st
+     then return ()
+     else do -- go through for notes (which may contain refs - hence 2nd pass)
+             refs' <- manyTill (noteBlock <|> 
+                                (lineClump >>= return . LineClump)) eof 
+             let notes = map (\(NoteBlock label blocks) -> (label, blocks)) $ 
+                              filter isNoteBlock refs'
+             updateState (\state -> state { stateNotes = notes })
+             setInput $ concatMap (\(LineClump ln) -> ln) $ 
+                        filter isLineClump refs'
+  -- go through again, with note blocks and keys stripped out
   blocks <- parseBlocks 
-  let blocks' = filter (/= Null) blocks
-  return $ Pandoc (Meta title author date) blocks'
+  return $ Pandoc (Meta title author date) $ filter (/= Null) blocks
 
 -- 
 -- initial pass for references and notes
@@ -198,7 +201,6 @@ rawLine = do
 rawLines = many1 rawLine >>= return . concat
 
 noteBlock = try $ do
-  failIfStrict
   ref <- noteMarker
   char ':'
   optional blankline
