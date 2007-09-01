@@ -15,7 +15,6 @@ unless (-x $script)   { die "$script is not executable.\n"; }
 print "Writer tests:\n";
 
 my @writeformats = ("html", "latex", "rst", "rtf", "markdown", "man", "native"); # docbook, context, and s5 handled separately
-my @readformats = ("latex", "native"); # handle html,markdown & rst separately
 my $source = "testsuite.native";
 
 sub test_results 
@@ -99,16 +98,13 @@ print "Testing html reader...";
 `$script -r html -w native -s html-reader.html > tmp.native`;
 test_results("html reader", "tmp.native", "html-reader.native");
 
-print "\nReader tests (roundtrip: X -> native -> X -> native):\n";
+print "Testing latex reader...";
+`$script -r latex -w native -s latex-reader.latex > tmp.native`;
+test_results("latex reader", "tmp.native", "latex-reader.native");
 
-foreach my $format (@readformats)
-{
-    print "Testing $format reader...";
-    `$script -r $format -w native -s -R writer.$format > tmp1.native`;
-    `$script -r native -w $format -s -R tmp1.native | $script -r $format -w native -s -R - > tmp2.native`;
-    test_results("$format reader", "tmp1.native", "tmp2.native");
-}
+print "Testing native reader...";
+`$script -r native -w native -s testsuite.native > tmp.native`;
+test_results("native reader", "tmp.native", "testsuite.native");
 
-`rm tmp?.*`;
 `rm tmp.*`;
 
