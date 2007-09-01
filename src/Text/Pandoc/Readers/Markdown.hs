@@ -74,7 +74,10 @@ indentSpaces = try $ do
 nonindentSpaces = do
   state <- getState
   let tabStop = stateTabStop state
-  choice $ map (\n -> (try (count n (char ' ')))) $ reverse [0..(tabStop - 1)]
+  sps <- many (char ' ')
+  if length sps < tabStop 
+     then return sps
+     else unexpected "indented line"
 
 -- | Fail unless we're at beginning of a line.
 failUnlessBeginningOfLine = do
