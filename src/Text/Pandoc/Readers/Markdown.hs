@@ -625,9 +625,8 @@ table = failIfStrict >> (simpleTable <|> multilineTable) <?> "table"
 
 inline = choice [ str
                 , smartPunctuation
-                , linebreak
-                , endline
                 , whitespace
+                , endline
                 , code
                 , charRef
                 , strong
@@ -766,11 +765,11 @@ enDash = try $ char '-' >> notFollowedBy (noneOf "0123456789") >> return EnDash
 emDash = try $ skipSpaces >> oneOfStrings ["---", "--"] >>
                skipSpaces >> return EmDash
 
-whitespace = (many1 (oneOf spaceChars) >> return Space) <?> "whitespace"
-
--- hard line break
-linebreak = try $ oneOf spaceChars >> many1 (oneOf spaceChars) >>
-                  endline >> return LineBreak
+whitespace = do
+  sps <- many1 (oneOf spaceChars)
+  if length sps >= 2
+     then option Space (endline >> return LineBreak)
+     else return Space <?> "whitespace"
 
 nonEndline = satisfy (/='\n')
 
