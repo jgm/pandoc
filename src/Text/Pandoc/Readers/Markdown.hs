@@ -184,7 +184,7 @@ referenceTitle = try $ do
 
 noteMarker = string "[^" >> manyTill (noneOf " \t\n") (char ']')
 
-rawLine = try $ do
+rawLine = do
   notFollowedBy blankline
   notFollowedBy' noteMarker
   contents <- many1 nonEndline
