@@ -227,7 +227,7 @@ block = choice [ header
 -- header blocks
 --
 
-header = setextHeader <|> atxHeader <?> "header"
+header = atxHeader <|> setextHeader <?> "header"
 
 atxHeader = try $ do
   level <- many1 (char '#') >>= return . length
@@ -239,6 +239,8 @@ atxHeader = try $ do
 atxClosing = try $ skipMany (char '#') >> blanklines
 
 setextHeader = try $ do
+  -- first, see if this block has any chance of being a setextHeader:
+  lookAhead (anyLine >> oneOf setextHChars)
   text <- many1Till inline newline >>= return . normalizeSpaces
   level <- choice $ zipWith 
            (\ch lev -> try (many1 $ char ch) >> blanklines >> return lev)
@@ -406,6 +408,8 @@ bulletList = many1 (listItem bulletListStart) >>=
 definitionListItem = try $ do
   notFollowedBy blankline
   notFollowedBy' indentSpaces
+  -- first, see if this has any chance of being a definition list:
+  lookAhead (anyLine >> char ':')
   term <- manyTill inline newline
   raw <- many1 defRawBlock
   state <- getState
