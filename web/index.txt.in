@@ -58,7 +58,9 @@ To see what pandoc can do, see the [demonstration page](examples.html).
 
 For installation instructions for all architectures, see
 [INSTALL](INSTALL.html).  Note that pandoc is in the [MacPorts],
-[Debian unstable], and [FreeBSD ports] repositories.
+[Debian unstable], and [FreeBSD ports] repositories.  There is
+also a [PKGBUILD script for building pandoc on Arch linux],
+courtesy of Abhishek Dasgupta.
 
 - [Source tarball]
 - [Windows binary package]
@@ -174,6 +176,7 @@ kind.
 [Windows binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.zip "Download Windows zip file from Pandoc's Google Code site"
 [Debian unstable]: http://packages.debian.org/unstable/text/pandoc
 [FreeBSD ports]: http://www.freshports.org/textproc/pandoc/
+[PKGBUILD script for building pandoc on Arch linux]: http://aur.archlinux.org/packages.php?do_Details=1&ID=12751&O=0&L=0&C=0&K=pandoc&SB=n&SO=a&PP=25&do_MyPackages=0&do_Orphans=0&SeB=nd
 [MacPorts]: http://www.macports.org/
 [pandoc-announce]: http://groups.google.com/group/pandoc-announce
 [pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
