@@ -71,7 +71,7 @@ commandArgs = many optOrArg
 -- | Parses LaTeX command, returns (name, star, list of options or arguments).
 command = do
   char '\\'
-  name <- many1 alphaNum
+  name <- many1 letter
   star <- option "" (string "*")  -- some commands have starred versions
   args <- commandArgs
   return (name, star, args)
@@ -93,7 +93,7 @@ environment name = try $ begin name >> spaces >> manyTill block (end name)
 
 anyEnvironment =  try $ do
   string "\\begin{"
-  name <- many alphaNum 
+  name <- many letter
   star <- option "" (string "*") -- some environments have starred variants
   char '}'
   optional commandArgs
@@ -341,7 +341,7 @@ specialEnvironment = do  -- these are always parsed as raw
 rawLaTeXEnvironment :: GenParser Char st Block
 rawLaTeXEnvironment = try $ do
   string "\\begin{"
-  name <- many1 alphaNum
+  name <- many1 letter
   star <- option "" (string "*") -- for starred variants
   let name' = name ++ star
   char '}'
@@ -421,7 +421,7 @@ accentedChar = normalAccentedChar <|> specialAccentedChar
 normalAccentedChar = try $ do
   char '\\'
   accent <- oneOf "'`^\"~"
-  character <- (try $ char '{' >> alphaNum >>~ char '}') <|> alphaNum
+  character <- (try $ char '{' >> letter >>~ char '}') <|> letter
   let table = fromMaybe [] $ lookup character accentTable 
   let result = case lookup accent table of
                  Just num  -> chr num
