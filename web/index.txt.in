@@ -57,7 +57,7 @@ To see what pandoc can do, see the [demonstration page](examples.html).
 # Downloads
 
 For installation instructions for all architectures, see
-[INSTALL](INSTALL.html).  Note that pandoc is in the MacPorts,
+[INSTALL](INSTALL.html).  Note that pandoc is in the [MacPorts],
 [Debian unstable], and [FreeBSD ports] repositories.
 
 - [Source tarball]
@@ -83,7 +83,23 @@ You may view existing bug reports and submit new ones at
 
 # News
 
--   Version 0.42 released (August 26, 2006).
+-   Version 0.43 released (September 2, 2007).
+
+    + HUGE increase in performance:  markdown is parsed five times
+      faster than with 0.42 on large benchmark files.
+    + Prettyprinting library used in LaTeX writer, so that LaTeX output
+      is wrapped and intelligently indented.
+    + Fixed bugs in LaTeX ordered lists and LaTeX command and environment
+      parsers.
+    + Blank lines are no longer required after code blocks.
+    + Fixed inline code parsing so that it uses the method of Markdown.pl:
+      the delimiters are blocks of N ` characters not followed by another
+      ` character.  For example:  ` h ``` i ` -> <code>h ``` i</code>.
+    + Markdown writer escapes paragraphs that begin like list items.
+    + MacPorts Portfile now installs library as well as executable.
+    + Added pandocwiki demonstration to the website.
+ 
+-   Version 0.42 released (August 26, 2007).
 
     + Fixes bugs in ordered list handling, LaTeX footnotes,
       UTF8 in include files, and HTML tables.  See [changelog] for details.
@@ -157,6 +173,7 @@ kind.
 [Windows binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.zip "Download Windows zip file from Pandoc's Google Code site"
 [Debian unstable]: http://packages.debian.org/unstable/text/pandoc
 [FreeBSD ports]: http://www.freshports.org/textproc/pandoc/
+[MacPorts]: http://www.macports.org/
 [pandoc-announce]: http://groups.google.com/group/pandoc-announce
 [pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
 [changelog]: changelog
