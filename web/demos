@@ -70,5 +70,5 @@ click on the name of the output file:
 [xmlto]:  http://cyberelk.net/tim/xmlto/
 
 15. A simple wiki program using [HAppS](http://happs.org) and pandoc: 
-    [pandocwiki](pandocwiki-0.1.tar.gz).
+    [pandocwiki](http://pandocwiki.googlecode.com/svn/trunk/)
 
