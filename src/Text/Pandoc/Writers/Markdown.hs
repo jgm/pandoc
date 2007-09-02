@@ -33,6 +33,7 @@ module Text.Pandoc.Writers.Markdown ( writeMarkdown) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Blocks
+import Text.ParserCombinators.Parsec ( parse, (<|>), GenParser )
 import Data.List ( group, isPrefixOf, drop, find, intersperse )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
@@ -139,6 +140,22 @@ elementToListItem (Sec headerText subsecs) = [Plain headerText] ++
      then []
      else [BulletList $ map elementToListItem subsecs]
 
+-- | Ordered list start parser for use in Para below.
+olMarker :: GenParser Char st Char
+olMarker = do (start, style, delim) <- anyOrderedListMarker
+              if delim == Period && 
+                          (style == UpperAlpha || (style == UpperRoman &&
+                          start `elem` [1, 5, 10, 50, 100, 500, 1000]))
+                          then spaceChar >> spaceChar
+                          else spaceChar
+
+-- | True if string begins with an ordered list marker
+beginsWithOrderedListMarker :: String -> Bool
+beginsWithOrderedListMarker str = 
+  case parse olMarker "para start" str of
+         Left  _  -> False 
+         Right _  -> True
+
 -- | Convert Pandoc block element to markdown.
 blockToMarkdown :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
@@ -148,7 +165,12 @@ blockToMarkdown opts (Plain inlines) =
   wrapped (inlineListToMarkdown opts) inlines
 blockToMarkdown opts (Para inlines) = do
   contents <- wrapped (inlineListToMarkdown opts) inlines
-  return $ contents <> text "\n"
+  -- escape if para starts with ordered list marker
+  let esc = if (not (writerStrictMarkdown opts)) && 
+               beginsWithOrderedListMarker (render contents)
+               then char '\\'
+               else empty 
+  return $ esc <> contents <> text "\n"
 blockToMarkdown opts (RawHtml str) = return $ text str
 blockToMarkdown opts HorizontalRule = return $ text "\n* * * * *\n"
 blockToMarkdown opts (Header level inlines) = do
