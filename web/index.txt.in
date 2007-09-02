@@ -13,7 +13,7 @@ Pandoc features
 - Modular design, using separate writers and readers for each
   supported format.
 - A real markdown parser, not based on regex substitutions.
-  [More accurate] and [faster], in many cases, than `Markdown.pl`.
+  [More accurate] and [much faster] than `Markdown.pl`.
 - Also parses (subsets of) reStructuredText, LaTeX, and HTML.
 - Multiple output formats: HTML, Docbook XML, LaTeX, ConTeXt,
   reStructuredText, Markdown, RTF, groff man pages, S5 slide shows.
@@ -153,7 +153,7 @@ This is an early, "alpha" release. It carries no warranties of any
 kind.
 
 [More accurate]: http://code.google.com/p/pandoc/wiki/PandocVsMarkdownPl
-[faster]: http://code.google.com/p/pandoc/wiki/Benchmarks
+[much faster]: http://code.google.com/p/pandoc/wiki/Benchmarks
 [ASCIIMathML]: http://www1.chapman.edu/~jipsen/mathml/asciimath.html
  
 [John MacFarlane]: http://sophos.berkeley.edu/macfarlane/
