@@ -1,3 +1,139 @@
+pandoc (0.43) unstable; urgency=low
+
+  [ John MacFarlane ]
+
+  * The focus of this release is performance.  The markdown parser
+    is about five times faster than in 0.42, based on benchmarks
+    with the TextMate manual. 
+
+  * Main.hs: Replaced CRFilter and tabFilter with single function
+    tabFilter, which operates on the whole string rather than breaking
+    it into lines, and handles dos-style line-endings as well as tabs.
+
+  * Added separate LaTeX reader and native reader tests; removed
+    round-trip tests.
+
+  * Text.Pandoc.Shared:
+
+    + Removed tabsToSpaces and tabsInLine (they were used only in Main.hs.)
+    + General code cleanup (to elimante warnings when compiling with -Wall.)
+    + Added 'wrapped' function, which helps wrap text into paragraphs,
+      using the prettyprinting library.
+    + Rewrote charsInBalanced and charsInBalanced'.
+        - Documented restriction: open and close must be distinct characters.
+        - Rearranged options for greater efficiency.
+        - Bug fix: Changed inner call to charsInBalanced inside
+          charsInBalanced' to charsInBalanced'.
+    + anyLine now requires that the line end with a newline (not eof).
+      This is a harmless assumption, since we always add newlines to the
+      end of a block before parsing with anyLine, and it yields a 10% speed
+      boost.
+    + Removed unnecessary 'try' in anyLine.
+    + Removed unneeded 'try' from romanNumeral parser.
+    + Use notFollowedBy instead of notFollowedBy' in charsInBalanced.
+    + Removed unneeded 'try' in parseFromString.
+    + Removed unneeded 'try' from stringAnyCase.  (Now it behaves
+      like 'string'.)
+    + Changed definition of 'enclosed' in Text.Pandoc.Shared so that
+      'try' is not automatically applied to the 'end' parser. Added
+      'try' in calls to 'enclosed' where needed. Slight speed increase.
+
+  * Writers:
+
+    + Replaced individual wrapping routines in RST, Man, and Markdown
+      writers with 'wrapped' from Text.Pandoc.Shared.
+    + Rewrote LaTeX writer to use the prettyprinting library,
+      so we get word wrapping, etc.
+    + Modified latex writer tests for new latex writer using prettyprinter.
+    + Fixed bug in LaTeX writer: autolinks would not cause
+      '\usepackage{url}' to be put in the document header. Also, changes
+      to state in enumerated list items would be overwritten.
+    + In Markdown writer, escape paragraphs that begin with ordered list
+      markers, so they don't get interpreted as ordered lists.
+
+  * Text.Pandoc.Reades.LaTeX:
+
+    + Fixed bug in LaTeX reader, which wrongly assumed that the roman
+      numeral after "enum" in "setcounter" would consist entirely of
+      "i"s. 'enumiv' is legitimate.
+    + LaTeX command and environment names can't contain numbers.
+    + Rearranged order of parsers in inline for slight speed improvement.
+    + Added '`' to special characters and 'unescapedChar'.
+
+  * Text.Pandoc.Readers.RST:
+
+    + Removed unneeded try's in RST reader; also minor code cleanup.
+    + Removed tabchar.
+    + Rearranged parsers in inline (doubled speed).
+
+  * Text.Pandoc.Readers.Markdown:
+
+    + Skip notes parsing if running in strict mode. (This yields a nice
+      speed improvement in strict mode.)
+    + Simplify autolink parsing code, using Network.URI to test for
+      URIs. Added dependency on network library to debian/control and
+      pandoc.cabal.
+    + More perspicuous definition of nonindentSpaces.
+    + Removed unneeded 'try' in 'rawLine'.
+    + Combined linebreak and whitespace into a new whitespace parser, to
+      avoid unnecessary reparsing of space characters.
+    + Removed unnecessary 'try' in 'codeBlock', 'ellipses', 'noteMarker',
+      'multilineRow', 'dashedLine', 'rawHtmlBlocks'.
+    + Use lookAhead in parsers for setext headers and definition lists
+      to see if the next line begins appropriately; if not, don't waste
+      any more time parsing.
+    + Don't require blank lines after code block. (It's sufficient to
+      end code block with a nonindented line.)
+    + Changed definition of 'emph': italics with '_' must not
+      be followed by an alphanumeric character. This is to help
+      prevent interpretation of e.g. [LC_TYPE]: my_type as
+      '[LC<em>TYPE]:my</em>type'.
+    + Improved Markdown.pl-compatibility in referenceLink: the two parts
+      of a reference-style link may be separated by one space, but not
+      more... [a] [link], [not]    [a link].
+    + Fixed markdown inline code parsing so it better accords with
+      Markdown.pl: the marker for the end of the code section is a clump
+      of the same number of `'s with which the section began, followed
+      by a non-` character. So, for example,
+         ` h ``` i ` -> <code>h ``` i</code>.
+    + Split 'title' into 'linkTitle' and 'referenceTitle', since the
+      rules are slightly different.
+    + Rewrote 'para' for greater efficiency.
+    + Rewrote link parsers for greater efficiency.
+    + Removed redundant 'referenceLink' in definition of inline (it's
+      already in 'link').
+    + Refactored escapeChar so it doesn't need 'try'.
+    + Refactored hrule for performance in Markdown reader.
+    + More intelligent rearranging of 'inline' so that most frequently
+      used parsers are tried first.
+    + Removed tabchar parser, as whitespace handles tabs anyway.
+
+  * Text.Pandoc.CharacterReferences:
+
+    + Refactored.
+    + Removed unnecessary 'try's for a speed improvement.
+    + Removed unnecessary '&' and ';' from the entity table.
+
+  * Build process:
+
+    + Makefile: Get VERSION from cabal file, not Main.hs.
+    + Modified MacPorts Portfile:
+        - Depend on haddock
+        - Build and install libraries and library documentation in
+          addition to pandoc executable
+        - Added template item for md5 sum in Portfile.in.
+        - Incorporated changes from MacPorts repository (r28278).
+    + FreeBSD port:  Don't try to generate distinfo in Makefile.
+      It can be made using 'make makesum' in FreeBSD.
+    + Make both freebsd and macports targets depend on tarball.
+
+  * Website and documentation:
+
+    + Updated INSTALL instructions.
+    + Added pandocwiki demo to website.
+    + Removed local references to Portfile, since pandoc is now in the
+      MacPorts repository.
+
 pandoc (0.42) unstable; urgency=low
 
   [ John MacFarlane ]
