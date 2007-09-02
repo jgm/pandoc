@@ -134,6 +134,8 @@ pandoc (0.43) unstable; urgency=low
     + Removed local references to Portfile, since pandoc is now in the
       MacPorts repository.
 
+ -- Recai Oktaş <roktas@debian.org>  Sun, 02 Sep 2007 15:50:11 +0300
+
 pandoc (0.42) unstable; urgency=low
 
   [ John MacFarlane ]
