@@ -93,8 +93,9 @@ You may view existing bug reports and submit new ones at
       parsers.
     + Blank lines are no longer required after code blocks.
     + Fixed inline code parsing so that it uses the method of Markdown.pl:
-      the delimiters are blocks of N ` characters not followed by another
-      ` character.  For example:  ` h ``` i ` -> <code>h ``` i</code>.
+      the delimiters are blocks of N `` ` `` characters not followed by another
+      `` ` `` character.  For example:
+      ```` ` h ``` i ` ```` -> `<code>h ``` i</code>`.
     + Markdown writer escapes paragraphs that begin like list items.
     + MacPorts Portfile now installs library as well as executable.
     + Added pandocwiki demonstration to the website.
