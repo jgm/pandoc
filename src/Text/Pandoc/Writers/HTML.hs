@@ -274,17 +274,17 @@ blockToHtml opts (Header level lst) = do
   let attribs = if writerStrictMarkdown opts && not (writerTableOfContents opts)
                    then []
                    else [identifier id]
-  let headerHtml = case level of
-              1 -> h1 contents ! attribs
-              2 -> h2 contents ! attribs
-              3 -> h3 contents ! attribs
-              4 -> h4 contents ! attribs
-              5 -> h5 contents ! attribs
-              6 -> h6 contents ! attribs
-              _ -> paragraph contents ! attribs
-  return $ if writerTableOfContents opts
-              then anchor ! [href ("#TOC-" ++ id)] $ headerHtml
-              else headerHtml
+  let contents'  = if writerTableOfContents opts
+                      then anchor ! [href ("#TOC-" ++ id)] $ contents
+                      else contents
+  return $ case level of
+              1 -> h1 contents' ! attribs
+              2 -> h2 contents' ! attribs
+              3 -> h3 contents' ! attribs
+              4 -> h4 contents' ! attribs
+              5 -> h5 contents' ! attribs
+              6 -> h6 contents' ! attribs
+              _ -> paragraph contents' ! attribs
 blockToHtml opts (BulletList lst) = do
   contents <- mapM (blockListToHtml opts) lst
   let attribs = if writerIncremental opts
