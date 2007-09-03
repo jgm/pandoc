@@ -84,6 +84,15 @@ You may view existing bug reports and submit new ones at
 
 # News
 
+-   Version 0.44 released (September 3, 2007).
+
+    + Fixed bug in HTML writer:  when `--toc` was used, anchors were put around
+      headers, which is invalid XHTML (block content within inline element).
+      Now the anchors are put inside the header tags.  Resolves Issue #23.
+    + Changed build process to compile `Setup.hs` instead of using
+      `runhaskell`, which throws an error on platforms where GHC is
+      "not built for interactive use".  Closes Debian #440668.
+
 -   Version 0.43 released (September 2, 2007).
 
     + HUGE increase in performance:  markdown is parsed five times
