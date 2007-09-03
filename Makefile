@@ -118,7 +118,7 @@ $(WRAPPERS): %: $(SRCDIR)/wrappers/%.in $(SRCDIR)/wrappers/*.sh
 	@$(generate-shell-script)
 
 .PHONY: configure
-cleanup_files+=Setup.hi Setup.o $(BUILDCMD) $(BUILDDIR) $(BUILDCONF) $(BUILDVARS)
+cleanup_files+=Setup.hi Setup.o $(BUILDCMD) $(BUILDVARS)
 configure: $(BUILDCONF) templates
 $(BUILDCONF): $(CABAL)
 	ghc -package Cabal Setup.hs -o $(BUILDCMD)
