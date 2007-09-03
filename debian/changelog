@@ -1,5 +1,15 @@
 pandoc (0.44) unstable; urgency=low
 
+  [ John MacFarlane ]
+
+  * Fixed bug in HTML writer:  when --toc was used, anchors were put around
+    headers, which is invalid XHTML (block content within inline element).
+    Now the anchors are put inside the header tags.  Resolves Issue #23.
+
+  * Added xmlns attribute to html element in html writer tests.
+    This attribute is added by more recent versions of the
+    xhtml library (>= 3000), and is required for valid XHTML.
+
   [ Recai Oktaş ]
 
   * On configure, compile 'Setup.hs' to 'setup' and use 'setup' as the build
