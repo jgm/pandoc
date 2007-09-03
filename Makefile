@@ -9,7 +9,7 @@ MANDIR    := man
 TESTDIR   := tests
 BUILDDIR  := dist
 BUILDCONF := .setup-config
-BUILDCMD  := runhaskell Setup.hs
+BUILDCMD  := ./Setup.hs
 BUILDVARS := vars
 CONFIGURE := configure
 

@@ -1,3 +1,17 @@
+pandoc (0.44) unstable; urgency=low
+
+  [ Recai Oktaş ]
+
+  * Use ./Setup.hs instead of runhaskell, which, on some platforms (such as
+    s390, alpha, m68k), throws the following error:
+
+        runhaskell Setup.hs configure --prefix=/usr
+        ghc-6.6.1: not built for interactive use
+
+    This causes a serious FTBFS bug.  Closes: #440668.
+
+ -- Recai Oktaş <roktas@debian.org>  Mon, 03 Sep 2007 18:24:02 +0300
+
 pandoc (0.43) unstable; urgency=low
 
   [ John MacFarlane ]
