@@ -9,7 +9,7 @@ MANDIR    := man
 TESTDIR   := tests
 BUILDDIR  := dist
 BUILDCONF := .setup-config
-BUILDCMD  := ./Setup.hs
+BUILDCMD  := ./setup
 BUILDVARS := vars
 CONFIGURE := configure
 
@@ -118,9 +118,10 @@ $(WRAPPERS): %: $(SRCDIR)/wrappers/%.in $(SRCDIR)/wrappers/*.sh
 	@$(generate-shell-script)
 
 .PHONY: configure
-cleanup_files+=$(BUILDDIR) $(BUILDCONF) $(BUILDVARS)
+cleanup_files+=Setup.hi Setup.o $(BUILDCMD) $(BUILDDIR) $(BUILDCONF) $(BUILDVARS)
 configure: $(BUILDCONF) templates
 $(BUILDCONF): $(CABAL)
+	ghc -package Cabal Setup.hs -o $(BUILDCMD)
 	$(BUILDCMD) configure --prefix=$(PREFIX)
 	# Make configuration time settings persistent (definitely a hack).
 	@echo "PREFIX?=$(PREFIX)" >$(BUILDVARS)
