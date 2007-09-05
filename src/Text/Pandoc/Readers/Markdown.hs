@@ -140,26 +140,24 @@ titleBlock = try $ do
 parseMarkdown = do
   -- markdown allows raw HTML
   updateState (\state -> state { stateParseRaw = True })
-  (title, author, date) <- option ([],[],"") titleBlock
+  startPos <- getPosition
   -- go through once just to get list of reference keys
-  refs <- manyTill (referenceKey <|> (lineClump >>= return . LineClump)) eof
-  let keys = map (\(KeyBlock label target) -> (label, target)) $
-                 filter isKeyBlock refs
-  -- strip out keys
-  setInput $ concatMap (\(LineClump ln) -> ln) $ filter isLineClump refs
-  updateState (\state -> state { stateKeys = keys })
+  -- docMinusKeys is the raw document with blanks where the keys were...
+  docMinusKeys <- many (referenceKey <|> lineClump) >>= return . concat
+  setInput docMinusKeys
+  setPosition startPos
   st <- getState
+  -- go through again for notes unless strict...
   if stateStrict st
      then return ()
-     else do -- go through for notes (which may contain refs - hence 2nd pass)
-             refs' <- manyTill (noteBlock <|> 
-                                (lineClump >>= return . LineClump)) eof 
-             let notes = map (\(NoteBlock label blocks) -> (label, blocks)) $ 
-                              filter isNoteBlock refs'
-             updateState (\state -> state { stateNotes = notes })
-             setInput $ concatMap (\(LineClump ln) -> ln) $ 
-                        filter isLineClump refs'
-  -- go through again, with note blocks and keys stripped out
+     else do docMinusNotes <- many (noteBlock <|> lineClump) >>= return . concat
+             st <- getState
+             let reversedNotes = stateNotes st
+             updateState $ \st -> st { stateNotes = reverse reversedNotes }
+             setInput docMinusNotes
+             setPosition startPos
+  -- now parse it for real...
+  (title, author, date) <- option ([],[],"") titleBlock
   blocks <- parseBlocks 
   return $ Pandoc (Meta title author date) $ filter (/= Null) blocks
 
@@ -168,6 +166,7 @@ parseMarkdown = do
 --
 
 referenceKey = try $ do
+  startPos <- getPosition
   nonindentSpaces
   label <- reference
   char ':'
@@ -177,7 +176,13 @@ referenceKey = try $ do
   optional (char '>')
   tit <- option "" referenceTitle
   blanklines
-  return $ KeyBlock label (removeTrailingSpace src,  tit)
+  endPos <- getPosition
+  let newkey = (label, (removeTrailingSpace src,  tit))
+  st <- getState
+  let oldkeys = stateKeys st
+  updateState $ \st -> st { stateKeys = newkey : oldkeys }
+  -- return blanks so line count isn't affected
+  return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
 referenceTitle = try $ do 
   skipSpaces
@@ -201,15 +206,22 @@ rawLine = do
 rawLines = many1 rawLine >>= return . concat
 
 noteBlock = try $ do
+  startPos <- getPosition
   ref <- noteMarker
   char ':'
   optional blankline
   optional indentSpaces
   raw <- sepBy rawLines (try (blankline >> indentSpaces))
   optional blanklines
+  endPos <- getPosition
   -- parse the extracted text, which may contain various block elements:
   contents <- parseFromString parseBlocks $ (joinWithSep "\n" raw) ++ "\n\n"
-  return $ NoteBlock ref contents
+  let newnote = (ref, contents)
+  st <- getState
+  let oldnotes = stateNotes st
+  updateState $ \st -> st { stateNotes = newnote : oldnotes }
+  -- return blanks so line count isn't affected
+  return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
 --
 -- parsing blocks

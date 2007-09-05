@@ -72,10 +72,6 @@ module Text.Pandoc.Shared (
                      testStringWith,
                      ParserState (..),
                      defaultParserState,
-                     Reference (..),
-                     isNoteBlock,
-                     isKeyBlock,
-                     isLineClump,
                      HeaderType (..),
                      ParserContext (..),
                      QuoteContext (..),
@@ -542,26 +538,6 @@ defaultParserState =
                   stateSmart           = False,
                   stateColumns         = 80,
                   stateHeaderTable     = [] }
-
--- | References from preliminary parsing.
-data Reference
-  = KeyBlock [Inline] Target  -- ^ Key for reference-style link (label URL title)
-  | NoteBlock String [Block]  -- ^ Footnote reference and contents
-  | LineClump String          -- ^ Raw clump of lines with blanks at end
-  deriving (Eq, Read, Show)
-
--- | Auxiliary functions used in preliminary parsing.
-isNoteBlock :: Reference -> Bool
-isNoteBlock (NoteBlock _ _) = True
-isNoteBlock _ = False
-
-isKeyBlock :: Reference -> Bool
-isKeyBlock (KeyBlock _ _) = True
-isKeyBlock _ = False
-
-isLineClump :: Reference -> Bool
-isLineClump (LineClump _) = True
-isLineClump _ = False
 
 data HeaderType 
     = SingleHeader Char  -- ^ Single line of characters underneath

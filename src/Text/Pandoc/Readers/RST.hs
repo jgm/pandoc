@@ -83,15 +83,17 @@ titleTransform ((Header 1 head1):rest) =       -- title, no subtitle
 titleTransform blocks = (blocks, [])
 
 parseRST = do
-  -- first pass: get keys
-  refs <- manyTill (referenceKey <|> (lineClump >>= return . LineClump)) eof
-  let keys = map (\(KeyBlock label target) -> (label, target)) $
-                 filter isKeyBlock refs
-  -- second pass, with keys stripped out
-  let rawlines = map (\(LineClump ln) -> ln) $ filter isLineClump refs
-  setInput $ concat rawlines 
-  updateState (\state -> state { stateKeys = keys })
-  blocks <- parseBlocks
+  startPos <- getPosition
+  -- go through once just to get list of reference keys
+  -- docMinusKeys is the raw document with blanks where the keys were...
+  docMinusKeys <- many (referenceKey <|> lineClump) >>= return . concat
+  setInput docMinusKeys
+  setPosition startPos
+  st <- getState
+  let reversedKeys = stateKeys st
+  updateState $ \st -> st { stateKeys = reverse reversedKeys }
+  -- now parse it for real...
+  blocks <- parseBlocks 
   let blocks' = filter (/= Null) blocks
   state <- getState
   let (blocks'', title) = if stateStandalone state
@@ -429,9 +431,16 @@ unknownDirective = try $ do
 -- reference key
 --
 
-referenceKey = 
-  choice [imageKey, anonymousKey, regularKeyQuoted, regularKey] >>~ 
+referenceKey = do
+  startPos <- getPosition
+  key <- choice [imageKey, anonymousKey, regularKeyQuoted, regularKey]
+  st <- getState
+  let oldkeys = stateKeys st
+  updateState $ \st -> st { stateKeys = key : oldkeys }
   optional blanklines
+  endPos <- getPosition
+  -- return enough blanks to replace key
+  return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
 targetURI = do
   skipSpaces
@@ -447,26 +456,26 @@ imageKey = try $ do
   skipSpaces
   string "image::"
   src <- targetURI
-  return $ KeyBlock (normalizeSpaces ref) (removeLeadingTrailingSpace src, "")
+  return (normalizeSpaces ref, (removeLeadingTrailingSpace src, ""))
 
 anonymousKey = try $ do
   oneOfStrings [".. __:", "__"]
   src <- targetURI
   state <- getState
-  return $ KeyBlock [Str "_"] (removeLeadingTrailingSpace src, "")
+  return ([Str "_"], (removeLeadingTrailingSpace src, ""))
 
 regularKeyQuoted = try $ do
   string ".. _`"
   ref <- manyTill inline (char '`')
   char ':'
   src <- targetURI
-  return $ KeyBlock (normalizeSpaces ref) (removeLeadingTrailingSpace src, "")
+  return (normalizeSpaces ref, (removeLeadingTrailingSpace src, ""))
 
 regularKey = try $ do
   string ".. _"
   ref <- manyTill inline (char ':')
   src <- targetURI
-  return $ KeyBlock (normalizeSpaces ref) (removeLeadingTrailingSpace src, "")
+  return (normalizeSpaces ref, (removeLeadingTrailingSpace src, ""))
 
  -- 
  -- inline
