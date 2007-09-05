@@ -114,6 +114,7 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
 -- | Construct table of contents from list of header blocks and identifiers.
 -- Assumes there are as many identifiers as header blocks.
 tableOfContents :: WriterOptions -> [Block] -> [String] -> Html
+tableOfContents _ [] _ = noHtml
 tableOfContents opts headers ids =
   let opts'        = opts { writerIgnoreNotes = True }
       contentsTree = hierarchicalize headers
