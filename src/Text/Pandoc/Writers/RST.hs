@@ -225,7 +225,7 @@ blockToRST opts (DefinitionList items) = do
 bulletListItemToRST :: WriterOptions -> [Block] -> State WriterState Doc
 bulletListItemToRST opts items = do
   contents <- blockListToRST opts items
-  return $ hang (text "-  ") (writerTabStop opts) contents
+  return $ hang (text "- ") 3 contents
 
 -- | Convert ordered list item (a list of blocks) to RST.
 orderedListItemToRST :: WriterOptions -- ^ options
@@ -234,7 +234,7 @@ orderedListItemToRST :: WriterOptions -- ^ options
                           -> State WriterState Doc
 orderedListItemToRST opts marker items = do
   contents <- blockListToRST opts items
-  return $ hang (text marker) (writerTabStop opts) contents 
+  return $ hang (text marker) (length marker + 1) contents 
 
 -- | Convert defintion list item (label, list of blocks) to RST.
 definitionListItemToRST :: WriterOptions -> ([Inline], [Block]) -> State WriterState Doc
