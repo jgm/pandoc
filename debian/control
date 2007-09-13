@@ -33,7 +33,7 @@ Description: general markup converter
  this native representation into a target format. Thus, adding an input
  or output format requires only adding a reader or writer.
  .
-  Homepage: http://sophos.berkeley.edu/macfarlane/pandoc/
+  Homepage: http://johnmacfarlane.net/pandoc/
 
 Package: libghc6-pandoc-dev
 Section: libdevel
@@ -62,7 +62,7 @@ Description: general markup converter
  .
  This package contains the libraries compiled for GHC 6.
  .
-  Homepage: http://sophos.berkeley.edu/macfarlane/pandoc/
+  Homepage: http://johnmacfarlane.net/pandoc/
 
 Package: pandoc-doc
 Section: doc
@@ -89,4 +89,4 @@ Description: general markup converter
  .
  This package contains the library documentation for Pandoc.
  .
-  Homepage: http://sophos.berkeley.edu/macfarlane/pandoc/
+  Homepage: http://johnmacfarlane.net/pandoc/

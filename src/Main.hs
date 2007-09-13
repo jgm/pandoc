@@ -47,7 +47,7 @@ version = "0.45"
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-7 John MacFarlane\n\
-                    \Web:  http://sophos.berkeley.edu/macfarlane/pandoc\n\
+                    \Web:  http://johnmacfarlane.net/pandoc\n\
                     \This is free software; see the source for copying conditions.  There is no\n\
                     \warranty, not even for merchantability or fitness for a particular purpose."
 

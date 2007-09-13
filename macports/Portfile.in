@@ -13,7 +13,7 @@ long_description    \
     HTML, and LaTeX, and it can write markdown, reStructuredText, HTML, \
     LaTeX, ConTeXt, DocBook, RTF, groff man pages, and S5 HTML slide shows.
 
-homepage            http://sophos.berkeley.edu/pandoc/
+homepage            http://johnmacfarlane.net/pandoc/
 platforms           darwin
 master_sites        http://pandoc.googlecode.com/files/
 checksums           md5 @TARBALLMD5SUM@

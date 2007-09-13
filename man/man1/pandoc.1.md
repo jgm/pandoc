@@ -176,5 +176,5 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 The *README* file distributed with Pandoc contains full documentation.
 
 The Pandoc source code and all documentation may be downloaded from
-<http://sophos.berkeley.edu/macfarlane/pandoc/>.
+<http://johnmacfarlane.net/pandoc/>.
 

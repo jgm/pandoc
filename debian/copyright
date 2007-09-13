@@ -25,7 +25,7 @@ GPL can be found in `/usr/share/common-licenses/GPL`.
 
 Pandoc's complete source code is available from the [Pandoc home page].
 
-[Pandoc home page]: http://sophos.berkeley.edu/macfarlane/pandoc/ 
+[Pandoc home page]: http://johnmacfarlane.net/pandoc/
 
 Pandoc includes some code from other authors.  The copyright and license
 statements for these sources are included below.  All are GPL-compatible

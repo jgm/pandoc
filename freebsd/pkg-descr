@@ -16,4 +16,4 @@ representation of the document, and a set of writers, which convert
 this native representation into a target format. Thus, adding an input
 or output format requires only adding a reader or writer.
 
-WWW: http://sophos.berkeley.edu/macfarlane/pandoc/
+WWW: http://johnmacfarlane.net/pandoc/

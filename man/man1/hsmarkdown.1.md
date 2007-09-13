@@ -39,4 +39,4 @@ will be interpreted as filenames, as they are by `Markdown.pl`.)
 file distributed with Pandoc contains full documentation.
 
 The Pandoc source code and all documentation may be downloaded from
-<http://sophos.berkeley.edu/macfarlane/pandoc/>.
+<http://johnmacfarlane.net/pandoc/>.
