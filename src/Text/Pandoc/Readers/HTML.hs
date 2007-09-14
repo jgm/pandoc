@@ -151,8 +151,7 @@ htmlAttribute = htmlRegularAttribute <|> htmlMinimizedAttribute
 htmlMinimizedAttribute = try $ do
   many1 space
   name <- many1 (choice [letter, oneOf ".-_:"])
-  spaces
-  notFollowedBy (char '=')
+  notFollowedBy (spaces >> char '=')
   let content = name
   return (name, content, (" " ++ name))
 
@@ -319,19 +318,13 @@ hrule = try  $ do
 -- code blocks
 --
 
-codeBlock = preCodeBlock <|> bareCodeBlock <?> "code block"
-
-preCodeBlock = try $ do
+codeBlock = try $ do
     htmlTag "pre" 
     spaces
-    result <- bareCodeBlock
-    spaces
-    htmlEndTag "pre"
-    return result
-
-bareCodeBlock = try $ do
     htmlTag "code"
     result <- manyTill anyChar (htmlEndTag "code")
+    spaces
+    htmlEndTag "pre"
     return $ CodeBlock $ stripTrailingNewlines $ 
              decodeCharacterReferences result
 
