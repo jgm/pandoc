@@ -19,14 +19,16 @@ if ($format =~ /^markdown\+$/) {
 }
 
 # Validate URL and format
-unless ($url =~ /^(https?:\/\/)?[\w#?_-]+(\.[\w#?_-]+)+[\w\/#?_.-]*$/) {
+unless ($url =~ /^(https?:\/\/)?[\w#_-]+(\.[\w#_-]+)+[\w\/#=?_.-]*$/) {
   die "Illegal URL: $url\n" ;
 }
 unless ($format =~ /^markdown\+?|rst|latex|context|rtf|man|docbook$/) {
   die "Illegal format: $format\n";
 }
 
-my $output = `wget -O- $url | tidy -asxhtml -utf8 | pandoc -w $format $options`;
+# Note - pass through head to truncate file to 100K if greater.
+# This should prevent certain kinds of DoS attacks.
+my $output = `wget -O- $url | head -c100000 | tidy -asxhtml -utf8 | pandoc -w $format $options`;
 if ($output =~ /^\s*$/) {
   print start_html,
         h1("No output"),
