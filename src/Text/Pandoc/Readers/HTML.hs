@@ -105,13 +105,14 @@ anyHtmlTag = try $ do
   char '<'
   spaces
   tag <- many1 alphaNum
-  attribs <- htmlAttributes
+  attribs <- many htmlAttribute
   spaces
   ender <- option "" (string "/")
   let ender' = if null ender then "" else " /"
   spaces
   char '>'
-  return $ "<" ++ tag ++ attribs ++ ender' ++ ">"
+  return $ "<" ++ tag ++ 
+           concatMap (\(_, _, raw) -> (' ':raw)) attribs ++ ender' ++ ">"
 
 anyHtmlEndTag = try $ do
   char '<'   
@@ -141,19 +142,13 @@ quoted quoteChar = do
                     (many (noneOf [quoteChar]))
   return (result, [quoteChar])
 
-htmlAttributes = do
-  attrList <- many htmlAttribute
-  return $ concatMap (\(name, content, raw) -> raw) attrList
-
 htmlAttribute = htmlRegularAttribute <|> htmlMinimizedAttribute
 
 -- minimized boolean attribute
 htmlMinimizedAttribute = try $ do
   many1 space
   name <- many1 (choice [letter, oneOf ".-_:"])
-  notFollowedBy (spaces >> char '=')
-  let content = name
-  return (name, content, (" " ++ name))
+  return (name, name, name)
 
 htmlRegularAttribute = try $ do
   many1 space
@@ -167,7 +162,7 @@ htmlRegularAttribute = try $ do
                                      a <- many (alphaNum <|> (oneOf "-._:"))
                                      return (a,"")) ]
   return (name, content,
-          (" " ++ name ++ "=" ++ quoteStr ++ content ++ quoteStr))
+          (name ++ "=" ++ quoteStr ++ content ++ quoteStr))
 
 -- | Parse an end tag of type 'tag'
 htmlEndTag tag = try $ do
