@@ -1,6 +1,6 @@
 ALL := index.html README.html INSTALL.html examples.html pandoc1.html markdown2pdf1.html html2markdown1.html hsmarkdown1.html html2x.html
 PANDOC_PATH ?= $(dir $(shell which pandoc))
-MAKEPAGE = $(PANDOC_PATH)/pandoc -s -S -c pandoc.css -A footer.html
+MAKEPAGE = $(PANDOC_PATH)/pandoc -s -S -H css -A footer.html
 all : $(ALL) 
 
 .PHONY: clean
@@ -15,22 +15,22 @@ examples.txt : $(PANDOC_DEPS) mkdemos.pl config.xsl S5DEMO README demos
 		do highlight -k monospace -u utf-8 --style emacs $$file > $$file.html; \
 	done
 
-index.html : index.txt
+index.html : index.txt css
 	$(MAKEPAGE) --toc $< > $@
 
-README.html : README
+README.html : README css
 	$(MAKEPAGE) --toc $< > $@
 
-INSTALL.html : INSTALL
+INSTALL.html : INSTALL css
 	$(MAKEPAGE) --toc $< > $@
 
-%.html : %.txt
+%.html : %.txt css
 	$(MAKEPAGE) $< > $@
 
-%1.html : %.1
+%1.html : %.1 
 	groff -man -T html $< > $@
 
-%.html : %
+%.html : % css
 	$(MAKEPAGE) $< > $@
 
 upload : 
