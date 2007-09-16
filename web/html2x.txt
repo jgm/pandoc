@@ -1,15 +1,18 @@
 % html2x
 
-This form uses [pandoc] to convert a web page to markdown,
-reStructuredText, DocBook XML, LaTeX, RTF, or a unix man page.
-
 <form action="/pandoc/html2x.pl" method="get">
 <p>
 <label for="url">URL:</label>
 <input type="text" size="60" name="url" /> 
+<input type="submit" value="Convert" />
 </p>
-<p>
-<label for="format">Format:</label><br/>
+<table>
+<tr>
+<th>Convert to:</th>
+<th style="padding-left: 1em;">Bookmarklets<br/>(right-click, add bookmark)</th>
+</tr>
+<tr>
+<td style="border-right: 1px solid gray; padding-right: 2em;">
 <input type="radio" name="format" value="markdown" checked="checked" />Markdown<br/>
 <input type="radio" name="format" value="markdown+" />Markdown with 
 <a href="/pandoc/README.html#pandocs-markdown-vs-standard-markdown">pandoc extensions</a><br/>
@@ -19,12 +22,8 @@ reStructuredText, DocBook XML, LaTeX, RTF, or a unix man page.
 <input type="radio" name="format" value="context" />ConTeXt<br/>
 <input type="radio" name="format" value="rtf" />Rich Text Format (RTF)<br/>
 <input type="radio" name="format" value="man" />Groff man page
-</p>
-<input type="submit" value="Convert" /><br/>
-</form>
-
-Javascript bookmarklets (right-click and add bookmark):
-
+</td>
+<td style="padding-left: 1em;">
 - [2markdown]
 - [2markdown+]
 - [2rst]
@@ -33,8 +32,14 @@ Javascript bookmarklets (right-click and add bookmark):
 - [2ConTeXt]
 - [2RTF]
 - [2man]
+</td>
+</table>
+</form>
 
-(Inspired by [the Asciinator].)
+<center>
+Powered by [pandoc].  Inspired by [the Asciinator].
+
+</center>
 
 [2markdown]: javascript:location.href='http://johnmacfarlane.net/pandoc/html2x.pl?format=markdown&url='+document.location.href;
 [2markdown+]: javascript:location.href='http://johnmacfarlane.net/pandoc/html2x.pl?format=markdown+&url='+document.location.href;
