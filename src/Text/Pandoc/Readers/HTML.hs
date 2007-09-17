@@ -100,7 +100,7 @@ extractTagType ('<':rest) =
   map toLower $ takeWhile isAlphaNum $ dropWhile isSpaceOrSlash rest
 extractTagType _ = ""
 
--- | Parse any HTML tag (closing or opening) and return text of tag
+-- | Parse any HTML tag (opening or self-closing) and return text of tag
 anyHtmlTag = try $ do
   char '<'
   spaces
@@ -313,15 +313,16 @@ hrule = try  $ do
 -- code blocks
 --
 
+-- Note:  HTML tags in code blocks (e.g. for syntax highlighting) are 
+-- skipped, because they are not portable to output formats other than HTML.
 codeBlock = try $ do
     htmlTag "pre" 
-    spaces
-    htmlTag "code"
-    result <- manyTill anyChar (htmlEndTag "code")
-    spaces
-    htmlEndTag "pre"
+    result <- manyTill 
+              (many1 (satisfy (/= '<')) <|> 
+               ((anyHtmlTag <|> anyHtmlEndTag) >> return ""))
+              (htmlEndTag "pre")
     return $ CodeBlock $ stripTrailingNewlines $ 
-             decodeCharacterReferences result
+             decodeCharacterReferences $ concat result
 
 --
 -- block quotes
