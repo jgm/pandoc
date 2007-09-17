@@ -46,7 +46,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.CharacterReferences ( characterReference, 
                                          decodeCharacterReferences )
 import Data.Maybe ( fromMaybe )
-import Data.List ( takeWhile, dropWhile )
+import Data.List ( takeWhile, dropWhile, isPrefixOf, isSuffixOf )
 import Data.Char ( toUpper, toLower, isAlphaNum )
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
@@ -321,8 +321,16 @@ codeBlock = try $ do
               (many1 (satisfy (/= '<')) <|> 
                ((anyHtmlTag <|> anyHtmlEndTag) >> return ""))
               (htmlEndTag "pre")
-    return $ CodeBlock $ stripTrailingNewlines $ 
-             decodeCharacterReferences $ concat result
+    let result' = concat result
+    -- drop leading newline if any
+    let result'' = if "\n" `isPrefixOf` result'
+                      then drop 1 result'
+                      else result'
+    -- drop trailing newline if any
+    let result''' = if "\n" `isSuffixOf` result''
+                       then init result''
+                       else result''
+    return $ CodeBlock $ decodeCharacterReferences result'''
 
 --
 -- block quotes
