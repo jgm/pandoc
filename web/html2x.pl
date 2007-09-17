@@ -19,7 +19,7 @@ if ($format =~ /^markdown\+$/) {
 }
 
 # Validate URL and format
-unless ($url =~ /^(https?:\/\/)?[\w#_-]+(\.[\w#_-]+)+[\w\/#=?_.-]*$/) {
+unless ($url =~ /^(https?:\/\/)?[\w#_-]+(\.[\w#_-]+)+(:\d+)?[\w\/#=:?_.-]*$/) {
   die "Illegal URL: $url\n" ;
 }
 unless ($format =~ /^markdown\+?|rst|latex|context|rtf|man|docbook$/) {
