@@ -447,8 +447,9 @@ main = do
 
   let tabFilter _ [] = ""
       tabFilter _ ('\n':xs) = '\n':(tabFilter tabStop xs)
-      tabFilter _ ('\r':'\n':xs) = '\n':(tabFilter tabStop xs)
                                       -- remove DOS line endings
+      tabFilter _ ('\r':'\n':xs) = '\n':(tabFilter tabStop xs)
+      tabFilter _ ('\r':xs) = '\n':(tabFilter tabStop xs)
       tabFilter spsToNextStop ('\t':xs) = 
         if preserveTabs
            then '\t':(tabFilter tabStop xs) 
