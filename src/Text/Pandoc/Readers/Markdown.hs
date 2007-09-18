@@ -56,7 +56,6 @@ readMarkdown state str = (readWith parseMarkdown) state (str ++ "\n\n")
 spaceChars = " \t"
 bulletListMarkers = "*+-"
 hruleChars = "*-_"
-titleOpeners = "\"'("
 setextHChars = "=-"
 
 -- treat these as potentially non-text when parsing inline:
@@ -185,8 +184,7 @@ referenceKey = try $ do
   return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
 referenceTitle = try $ do 
-  skipSpaces
-  optional newline
+  (many1 spaceChar >> option '\n' newline) <|> newline
   skipSpaces
   tit <-    (charsInBalanced '(' ')' >>= return . unwords . words)
         <|> do delim <- char '\'' <|> char '"'
@@ -831,8 +829,7 @@ source = try $ do
   return (removeTrailingSpace src, tit)
 
 linkTitle = try $ do 
-  skipSpaces
-  optional newline
+  (many1 spaceChar >> option '\n' newline) <|> newline
   skipSpaces
   delim <- char '\'' <|> char '"'
   tit <-   manyTill anyChar (try (char delim >> skipSpaces >>
