@@ -407,7 +407,10 @@ inlineToHtml opts inline =
     (Image txt (source,tit)) -> do
                         alternate <- inlineListToHtml opts txt
                         let alternate' = renderHtmlFragment alternate
-                        let attributes = [src source, title tit] ++ 
+                        let attributes = [src source] ++
+                                         (if null tit 
+                                            then [] 
+                                            else [title tit]) ++ 
                                          if null txt 
                                             then [] 
                                             else [alt alternate']
