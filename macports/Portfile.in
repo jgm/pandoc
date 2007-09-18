@@ -23,4 +23,32 @@ depends_lib         port:gmp
 use_configure       no
 build.args          PREFIX=${prefix}
 build.target        build-all
-destroot.target     install-all
+
+destroot            { 
+  cd ${worksrcpath}
+  # This command installs the pandoc executable, the haskell libraries, and
+  # the haddock library documentation:
+  system "./setup copy --destdir=${destroot}"
+  system "strip ${destroot}${prefix}/bin/pandoc"
+  system "./setup register --gen-script"
+  system "./setup unregister --gen-script"
+  xinstall -d ${destroot}${prefix}/libexec/${name}-${version}
+  xinstall -m 755 register.sh ${destroot}${prefix}/libexec/${name}-${version}
+  xinstall -m 755 unregister.sh ${destroot}${prefix}/libexec/${name}-${version}
+  xinstall -m 755 markdown2pdf html2markdown hsmarkdown \
+    ${destroot}${prefix}/bin
+  xinstall -d ${destroot}${prefix}/share/doc/${name}
+  xinstall -m 644 README README.html COPYRIGHT BUGS \
+    ${destroot}${prefix}/share/doc/${name}
+  xinstall -m 644 -W man/man1 pandoc.1 hsmarkdown.1 markdown2pdf.1 \
+    html2markdown.1 ${destroot}${prefix}/share/man/man1
+}
+ 
+post-activate       { 
+  # Register the library with the ghc package database:
+  system "${prefix}/libexec/${name}-${version}/register.sh" 
+}
+
+#pre-deactivate     {
+#  system "${prefix}/libexec/${name}-${version}/unregister.sh" 
+#}
