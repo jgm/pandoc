@@ -76,7 +76,10 @@ keyToRST :: WriterOptions
          -> State WriterState Doc
 keyToRST opts (label, (src, tit)) = do
   label' <- inlineListToRST opts label
-  return $ text ".. _" <> label' <> text ": " <> text src
+  let label'' = if ':' `elem` (render label')
+                   then char '`' <> label' <> char '`'
+                   else label'
+  return $ text ".. _" <> label'' <> text ": " <> text src
 
 -- | Return RST representation of notes.
 notesToRST :: WriterOptions -> [[Block]] -> State WriterState Doc
