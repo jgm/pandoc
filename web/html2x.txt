@@ -1,6 +1,6 @@
 % html2x
 
-<form action="/pandoc/html2x.pl" method="get">
+<form action="/cgi-bin/html2x.pl" method="get">
 <p>
 <label for="url">URL:</label>
 <input type="text" size="60" name="url" /> 
@@ -41,14 +41,14 @@ Powered by [pandoc].  Inspired by [the Asciinator].
 
 </center>
 
-[2markdown]: javascript:location.href='http://johnmacfarlane.net/pandoc/html2x.pl?format=markdown&url='+document.location.href;
-[2markdown+]: javascript:location.href='http://johnmacfarlane.net/pandoc/html2x.pl?format=markdown+&url='+document.location.href;
-[2rst]: javascript:location.href='http://johnmacfarlane.net/pandoc/html2x.pl?format=rst&url='+document.location.href;
-[2docbook]: javascript:location.href='http://johnmacfarlane.net/pandoc/html2x.pl?format=docbook&url='+document.location.href;
-[2LaTeX]: javascript:location.href='http://johnmacfarlane.net/pandoc/html2x.pl?format=latex&url='+document.location.href;
-[2ConTeXt]: javascript:location.href='http://johnmacfarlane.net/pandoc/html2x.pl?format=context&url='+document.location.href;
-[2RTF]: javascript:location.href='http://johnmacfarlane.net/pandoc/html2x.pl?format=rtf&url='+document.location.href;
-[2man]: javascript:location.href='http://johnmacfarlane.net/pandoc/html2x.pl?format=man&url='+document.location.href;
+[2markdown]: javascript:location.href='http://johnmacfarlane.net/cgi-bin/html2x.pl?format=markdown&url='+document.location.href;
+[2markdown+]: javascript:location.href='http://johnmacfarlane.net/cgi-bin/html2x.pl?format=markdown+&url='+document.location.href;
+[2rst]: javascript:location.href='http://johnmacfarlane.net/cgi-bin/html2x.pl?format=rst&url='+document.location.href;
+[2docbook]: javascript:location.href='http://johnmacfarlane.net/cgi-bin/html2x.pl?format=docbook&url='+document.location.href;
+[2LaTeX]: javascript:location.href='http://johnmacfarlane.net/cgi-bin/html2x.pl?format=latex&url='+document.location.href;
+[2ConTeXt]: javascript:location.href='http://johnmacfarlane.net/cgi-bin/html2x.pl?format=context&url='+document.location.href;
+[2RTF]: javascript:location.href='http://johnmacfarlane.net/cgi-bin/html2x.pl?format=rtf&url='+document.location.href;
+[2man]: javascript:location.href='http://johnmacfarlane.net/cgi-bin/html2x.pl?format=man&url='+document.location.href;
 
 [pandoc]: /pandoc/
 [the Asciinator]: http://www.aaronsw.com/2002/html2text/
