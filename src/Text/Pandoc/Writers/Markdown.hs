@@ -156,15 +156,24 @@ beginsWithOrderedListMarker str =
          Left  _  -> False 
          Right _  -> True
 
+wrappedMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
+wrappedMarkdown opts inlines = do
+  let chunks  = splitBy LineBreak inlines
+  let chunks' = if null chunks
+                   then []
+                   else (map (++ [Str "  "]) $ init chunks) ++ [last chunks]
+  lns <- mapM (wrapped (inlineListToMarkdown opts)) chunks'
+  return $ vcat lns
+
 -- | Convert Pandoc block element to markdown.
 blockToMarkdown :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
                 -> State WriterState Doc 
 blockToMarkdown opts Null = return empty
 blockToMarkdown opts (Plain inlines) = 
-  wrapped (inlineListToMarkdown opts) inlines
+  wrappedMarkdown opts inlines
 blockToMarkdown opts (Para inlines) = do
-  contents <- wrapped (inlineListToMarkdown opts) inlines
+  contents <- wrappedMarkdown opts inlines
   -- escape if para starts with ordered list marker
   let esc = if (not (writerStrictMarkdown opts)) && 
                beginsWithOrderedListMarker (render contents)
