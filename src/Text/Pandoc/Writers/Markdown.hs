@@ -250,7 +250,11 @@ orderedListItemToMarkdown :: WriterOptions -- ^ options
                           -> State WriterState Doc
 orderedListItemToMarkdown opts marker items = do
   contents <- blockListToMarkdown opts items
-  return $ hang (text marker) (writerTabStop opts) contents 
+  -- The complexities here are needed to ensure that if the list
+  -- marker is 4 characters or longer, the second and following
+  -- lines are indented 4 spaces but the list item begins after the marker.
+  return $ sep [nest (min (3 - length marker) 0) (text marker), 
+                nest (writerTabStop opts) contents]
 
 -- | Convert definition list item (label, list of blocks) to markdown.
 definitionListItemToMarkdown :: WriterOptions
