@@ -185,7 +185,7 @@ kind.
 [Debian unstable]: http://packages.debian.org/unstable/text/pandoc
 [FreeBSD ports]: http://www.freshports.org/textproc/pandoc/
 [Arch linux PKGBUILD script]: http://aur.archlinux.org/packages.php?do_Details=1&ID=12751&O=0&L=0&C=0&K=pandoc&SB=n&SO=a&PP=25&do_MyPackages=0&do_Orphans=0&SeB=nd
-[MacPorts]: http://www.macports.org/
+[MacPorts]: http://db.macports.org/port/show/4218
 [pandoc-announce]: http://groups.google.com/group/pandoc-announce
 [pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
 [changelog]: changelog
