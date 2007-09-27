@@ -48,6 +48,9 @@ a complete list.  The following options are most relevant:
 -R, \--parse-raw
 :   Parse untranslatable HTML codes as raw HTML.
 
+\--no-wrap
+:   Disable text wrapping in output.  (Default is to wrap text.)
+
 -H *FILE*, \--include-in-header=*FILE*
 :   Include contents of *FILE* at the end of the header.  Implies
     `-s`.

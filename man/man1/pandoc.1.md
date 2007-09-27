@@ -114,6 +114,10 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 :   Number section headings in LaTeX output.  (Default is not to number
     them.)
 
+\--no-wrap
+:   Disable text wrapping in Markdown, reStructuredText, DocBook, and man
+    output.  (Default is to wrap text.)
+
 \--toc, \--table-of-contents
 :   Include an automatically generated table of contents (HTML, markdown,
     RTF) or an instruction to create one (LaTeX, reStructuredText).

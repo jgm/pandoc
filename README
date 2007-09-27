@@ -330,6 +330,10 @@ For further documentation, see the `pandoc(1)` man page.
 :   causes sections to be numbered in LaTeX or ConTeXt output. By default,
     sections are not numbered.
 
+`--no-wrap`
+:   disables text-wrapping in Markdown, reStructuredText, DocBook, and man
+    output.
+
 `--dump-args`
 :   is intended to make it easier to create wrapper scripts that use
     Pandoc. It causes Pandoc to dump information about the arguments
