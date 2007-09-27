@@ -107,6 +107,7 @@ data Opt = Opt
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optStrict            :: Bool    -- ^ Use strict markdown syntax
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
+    , optWrapText          :: Bool    -- ^ Wrap text
     }
 
 -- | Defaults for command-line options.
@@ -135,6 +136,7 @@ defaultOpts = Opt
     , optIgnoreArgs        = False
     , optStrict            = False
     , optReferenceLinks    = False
+    , optWrapText          = True
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -212,6 +214,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optNumberSections = True }))
                  "" -- "Number sections in LaTeX"
+
+    , Option "" ["no-wrap"]
+                 (NoArg
+                  (\opt -> return opt { optWrapText = False }))
+                 "" -- "Do not wrap text in output"
 
     , Option "" ["toc", "table-of-contents"]
                 (NoArg
@@ -408,6 +415,7 @@ main = do
               , optIgnoreArgs        = ignoreArgs
               , optStrict            = strict
               , optReferenceLinks    = referenceLinks
+              , optWrapText          = wrap
              } = opts
 
   if dumpArgs
@@ -491,7 +499,8 @@ main = do
                                       writerIncludeBefore  = includeBefore, 
                                       writerIncludeAfter   = includeAfter,
                                       writerStrictMarkdown = strict,
-                                      writerReferenceLinks = referenceLinks }
+                                      writerReferenceLinks = referenceLinks,
+                                      writerWrapText       = wrap }
 
   (readSources sources) >>= (hPutStrLn output . toUTF8 . 
                              (writer writerOptions) . 

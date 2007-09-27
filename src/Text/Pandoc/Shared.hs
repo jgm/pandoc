@@ -44,6 +44,7 @@ module Text.Pandoc.Shared (
                      camelCaseToHyphenated,
                      toRomanNumeral,
                      wrapped,
+                     wrapIfNeeded,
                      -- * Parsing
                      (>>~),
                      anyLine,
@@ -209,6 +210,12 @@ toRomanNumeral x =
 wrapped :: Monad m => ([Inline] -> m Doc) -> [Inline] -> m Doc
 wrapped listWriter sect = (mapM listWriter $ splitBy Space sect) >>= 
                           return . fsep
+
+wrapIfNeeded :: Monad m => WriterOptions -> ([Inline] -> m Doc) -> 
+                           [Inline] -> m Doc
+wrapIfNeeded opts = if writerWrapText opts
+                       then wrapped 
+                       else ($)
 
 --
 -- Parsing
@@ -760,23 +767,26 @@ data WriterOptions = WriterOptions
   , writerIncludeAfter    :: String -- ^ String to include after the body
   , writerStrictMarkdown  :: Bool   -- ^ Use strict markdown syntax
   , writerReferenceLinks  :: Bool   -- ^ Use reference links in writing markdown, rst
+  , writerWrapText        :: Bool   -- ^ Wrap text to line length
   } deriving Show
 
 -- | Default writer options.
 defaultWriterOptions :: WriterOptions
 defaultWriterOptions = 
-  WriterOptions { writerStandalone      = False,
-                  writerHeader          = "",
-                  writerTitlePrefix     = "",
-                  writerTabStop         = 4,
-                  writerTableOfContents = False,
-                  writerS5              = False,
-                  writerUseASCIIMathML  = False,
-                  writerASCIIMathMLURL  = Nothing,
-                  writerIgnoreNotes     = False,
-                  writerIncremental     = False,
-                  writerNumberSections  = False,
-                  writerIncludeBefore   = "",
-                  writerIncludeAfter    = "",
-                  writerStrictMarkdown  = False,
-                  writerReferenceLinks  = False }
+  WriterOptions { writerStandalone      = False
+                , writerHeader          = ""
+                , writerTitlePrefix     = ""
+                , writerTabStop         = 4
+                , writerTableOfContents = False
+                , writerS5              = False
+                , writerUseASCIIMathML  = False
+                , writerASCIIMathMLURL  = Nothing
+                , writerIgnoreNotes     = False
+                , writerIncremental     = False
+                , writerNumberSections  = False
+                , writerIncludeBefore   = ""
+                , writerIncludeAfter    = ""
+                , writerStrictMarkdown  = False
+                , writerReferenceLinks  = False
+                , writerWrapText        = True
+                }

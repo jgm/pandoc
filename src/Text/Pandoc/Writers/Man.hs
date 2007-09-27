@@ -115,9 +115,10 @@ blockToMan :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
                 -> State WriterState Doc 
 blockToMan opts Null = return empty
-blockToMan opts (Plain inlines) = wrapped (inlineListToMan opts) inlines
+blockToMan opts (Plain inlines) = 
+  wrapIfNeeded opts (inlineListToMan opts) inlines
 blockToMan opts (Para inlines) = do
-  contents <- wrapped (inlineListToMan opts) inlines
+  contents <- wrapIfNeeded opts (inlineListToMan opts) inlines
   return $ text ".PP" $$ contents 
 blockToMan opts (RawHtml str) = return $ text str
 blockToMan opts HorizontalRule = return $ text $ ".PP\n   *   *   *   *   *"

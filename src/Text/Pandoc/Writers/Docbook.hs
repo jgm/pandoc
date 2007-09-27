@@ -244,7 +244,9 @@ tableItemToDocbook opts tag align width item =
 
 -- | Take list of inline elements and return wrapped doc.
 wrap :: WriterOptions -> [Inline] -> Doc
-wrap opts lst = fsep $ map (inlinesToDocbook opts) (splitBy Space lst)
+wrap opts lst = if writerWrapText opts
+                   then fsep $ map (inlinesToDocbook opts) (splitBy Space lst)
+                   else inlinesToDocbook opts lst
 
 -- | Convert a list of inline elements to Docbook.
 inlinesToDocbook :: WriterOptions -> [Inline] -> Doc

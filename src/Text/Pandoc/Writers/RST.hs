@@ -109,9 +109,8 @@ pictToRST opts (label, (src, _)) = do
 
 -- | Take list of inline elements and return wrapped doc.
 wrappedRST :: WriterOptions -> [Inline] -> State WriterState Doc
-wrappedRST opts inlines = 
-  mapM (wrapped (inlineListToRST opts)) (splitBy LineBreak inlines) >>= 
-  return . vcat
+wrappedRST opts inlines = mapM (wrapIfNeeded opts (inlineListToRST opts))
+                          (splitBy LineBreak inlines) >>= return . vcat
 
 -- | Escape special characters for RST.
 escapeString :: String -> String

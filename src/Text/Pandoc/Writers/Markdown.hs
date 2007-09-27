@@ -162,7 +162,7 @@ wrappedMarkdown opts inlines = do
   let chunks' = if null chunks
                    then []
                    else (map (++ [Str "  "]) $ init chunks) ++ [last chunks]
-  lns <- mapM (wrapped (inlineListToMarkdown opts)) chunks'
+  lns <- mapM (wrapIfNeeded opts (inlineListToMarkdown opts)) chunks'
   return $ vcat lns
 
 -- | Convert Pandoc block element to markdown.
