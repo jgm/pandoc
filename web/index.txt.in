@@ -39,7 +39,8 @@ Pandoc features
 - Multi-platform:  runs on Windows, MacOS X, Linux, Unix.
 - Free software, released under the [GPL].
 
-To see what pandoc can do, see the [demonstration page](examples.html).
+To see what pandoc can do, see the [demonstration page](examples.html),
+or [try pandoc on the web](/pandoc/try).
 
 # Documentation
 
