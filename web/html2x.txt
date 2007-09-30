@@ -3,7 +3,7 @@
 <form action="/cgi-bin/html2x.pl" method="get">
 <p>
 <label for="url">URL:</label>
-<input type="text" size="60" name="url" /> 
+<input type="text" size="60" name="url" value="http://johnmacfarlane.net/pandoc" /> 
 <input type="submit" value="Convert" />
 </p>
 <table>
