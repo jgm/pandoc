@@ -104,10 +104,10 @@ if [ -n "$argument" ] && ! [ -f "$argument" ]; then
     inurl="$argument"
 fi
 
+### tempdir.sh
+
 if [ -n "$inurl" ]; then
     err "Attempting to fetch file from '$inurl'..."
-
-    ### tempdir.sh
 
     grabber_out=$THIS_TEMPDIR/grabber.out
     grabber_log=$THIS_TEMPDIR/grabber.log
@@ -144,14 +144,19 @@ else # assume UTF-8
     alias to_utf8='cat'
 fi 
 
+htmlinput=$THIS_TEMPDIR/htmlinput
+
 if [ -z "$argument" ]; then
-    tidy -asxhtml -utf8 2>/dev/null | pandoc --ignore-args -r html -w markdown "$@"
+    to_utf8 > $htmlinput                # read from STDIN
+elif [ -f "$argument" ]; then
+    to_utf8 "$argument" > $htmlinput    # read from file
 else
-    if [ -f "$argument" ]; then
-        to_utf8 "$argument" | 
-        tidy -asxhtml -utf8 2>/dev/null | pandoc --ignore-args -r html -w markdown "$@"
-    else
-        err "File '$argument' not found."
-        exit 1
-    fi
+    err "File '$argument' not found."
+    exit 1
+fi
+
+if ! cat $htmlinput | pandoc --ignore-args -r html -w markdown "$@" ; then
+     err "Failed to parse HTML.  Trying again with tidy..."
+     tidy -q -asxhtml -utf8 $htmlinput | \
+        pandoc --ignore-args -r html -w markdown "$@"
 fi
