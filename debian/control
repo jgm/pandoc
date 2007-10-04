@@ -38,7 +38,7 @@ Description: general markup converter
 Package: libghc6-pandoc-dev
 Section: libdevel
 Architecture: any
-Depends: ${haskell:Depends}
+Depends: ${haskell:Depends}, libghc6-xhtml-dev, libghc6-mtl-dev, libghc6-network-dev
 Suggests: pandoc-doc
 Description: general markup converter
  Pandoc is a Haskell library for converting from one markup format to
