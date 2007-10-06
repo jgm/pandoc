@@ -1,3 +1,105 @@
+pandoc (0.45) unstable; urgency=low
+
+  [ John MacFarlane ]
+
+  * Simplified parsing of reference keys and notes in markdown and RST
+    readers: The Reference data structure from Text.Pandoc.Shared is no
+    longer needed, since referenceKey and noteBlock parses return strings
+    (as many blank lines as are occuried by the key or note) and update
+    state themselves.  getPosition and setPosition are now used to ensure
+    that error messages will give the correct line number. This yields
+    cleaner (and slightly faster) code, with more accurate parsing error
+    messages.
+ 
+  * HTML reader:
+  
+    + Fixed bug: parser for minimized attributes should not swallow
+      trailing spaces.
+    + Simplified HTML attribute parsing.
+    + Changed parsing of code blocks in HTML reader:  <code> tag is no
+      longer needed. <pre> suffices. All HTML tags in the code block
+      (e.g. for syntax highlighting) are skipped, because they are not
+      portable to other output formats. <code>...</code> not surrounded
+      by <pre> now counts as inline HTML, not code block.
+    + Remove just one leading and one trailing newline from contents of
+      <pre>...</pre> in codeBlock parser.
+ 
+  * Markdown reader: Require space before title in links and references.
+    This fixes a bug in parsing URLs like http://silly/url(withparen).
+
+  * HTML writer: Don't produce HTML for table of contents if there are
+    no headers. (This would be an empty list, which is invalid XHTML.)
+
+  * Markdown writer:
+  
+    + Don't print title attribute if title is empty. (This differs from
+      the behavior of Markdown.pl, and agrees with PHP Markdown. But John
+      Gruber has indicated that he prefers this behavior.) Adjusted test
+      suite accordingly.
+    + Fixed incorrect line wrapping in paragraphs including hard line
+      breaks. Resolves Issue #25.
+    + Fixed bug in markdown writer:  If an ordered list item began with
+      a marker greater than 3 characters in width, and the item took more
+      than one line, it would appear on the line after the list marker,
+      e.g.:
+  
+          (12)
+              My list item.
+              Multiline.
+      
+      Now it works as follows:
+      
+          (12) My list item.
+              Multiline.
+  
+  * RST writer
+  
+    + Fixed bug in RST writer's handling of ordered lists. Previously,
+      list items with multiple lines would not always line up with
+      single-line list items. Now, list items are nested the length of
+      the list marker + 1. This looks better and ensures that list items
+      all line up. (Note that list markers are padded to the length of
+      the longest list marker in the series.)
+    + Use 3-space indent for unordered lists.
+    + If label for a link reference contains a colon, surround it by `
+      signs so it won't be interpreted as the end of the link label.
+
+  * Main.hs (tabFilter): Treat '\r' at end of line as newline (in
+    addition to "\r\n" and '\n').
+
+  * Added a writer option for wrapped text and a command-line option
+    '--no-wrap', which disables text wrapping. (Resolves Issue #26.)
+
+    + Added support for '--no-wrap' to Main.hs.
+    + Added wrapIfNeeded function to Text.Pandoc.Shared.
+    + Use wrapIfNeeded instead of wrapped in the RST, Man, Docbook, and
+      Markdown writers.
+    + Note: Not yet implemented in HTML, LaTeX, or ConTeXt writers.
+
+  * Modified html2markdown to run tidy only if the HTML cannot be
+    parsed. Previously html2markdown piped all input through tidy
+    before passing it to pandoc. This caused problems on certain pages
+    (e.g. http://daringfireball.com/markdown) which have well-formed
+    XHTML that causes tidy to choke. The solution is to pipe through
+    tidy only if pandoc cannot parse the input by itself. This means
+    that a temp file is now always used, even when input comes from a
+    local file or standard input.
+
+  * Fixed MacPorts Portfile:
+
+    + Modified to install the pandoc library in addition to programs.  
+    + Installation must be done manually rather than using Makefile's
+      install-all.
+    + Note that the library must be registered in the activate phase,
+      after the library files have been copied out of the destroot.
+      Cabal generates a 'register.sh' script that will do this.
+
+  * debian/control: Added libghc6-network-dev, libghc6-xhtml-dev, and
+    libghc6-mtl-dev as dependencies for libghc6-pandoc-dev. Resolves
+    Debian Bug #445235.
+
+  * Changed pandoc home page to http://johnmacfarlane.net/pandoc/.
+
 pandoc (0.44) unstable; urgency=low
 
   [ John MacFarlane ]
