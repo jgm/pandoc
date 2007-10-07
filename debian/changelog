@@ -95,10 +95,17 @@ pandoc (0.45) unstable; urgency=low
       Cabal generates a 'register.sh' script that will do this.
 
   * debian/control: Added libghc6-network-dev, libghc6-xhtml-dev, and
-    libghc6-mtl-dev as dependencies for libghc6-pandoc-dev. Resolves
-    Debian Bug #445235.
+    libghc6-mtl-dev as dependencies for libghc6-pandoc-dev.
+    Closes: #445235
 
   * Changed pandoc home page to http://johnmacfarlane.net/pandoc/.
+
+  [ Recai Oktaş ]
+
+  * Makefile: fix the issue of having two copies of the library documentation
+    under some usage scenarios.
+
+ -- Recai Oktaş <roktas@debian.org>  Sun, 07 Oct 2007 20:51:43 +0300
 
 pandoc (0.44) unstable; urgency=low
 
