@@ -12,6 +12,8 @@
 THIS    := $(shell sed -ne 's/^Source: \(.*\)/\1/p' debian/control)
 PREFIX  := /usr
 DESTDIR := debian/$(THIS)
+DATADIR := $(THIS)
+DOCDIR  := doc/$(THIS)
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
@@ -29,7 +31,7 @@ HCFLAGS+=-O0
 endif
 
 # Export all variables which will be used in various stages of build process.
-export PREFIX DESTDIR HCFLAGS
+export PREFIX DESTDIR DATADIR DOCDIR HCFLAGS
 
 configure: configure-stamp
 configure-stamp:

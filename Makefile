@@ -46,6 +46,8 @@ destdir   :=
 # Fallback to defaults but allow to get the values from environment.
 PREFIX    ?= $(prefix)
 DESTDIR   ?= $(destdir)
+DATADIR   ?= $(PKGID)
+DOCDIR    ?= $(PKGID)/doc
 
 #-------------------------------------------------------------------------------
 # Installation paths
@@ -54,8 +56,8 @@ DESTPATH    := $(DESTDIR)$(PREFIX)
 BINPATH     := $(DESTPATH)/bin
 DATAPATH    := $(DESTPATH)/share
 MANPATH     := $(DATAPATH)/man
-PKGDATAPATH := $(DATAPATH)/$(PKGID)
-PKGDOCPATH  := $(PKGDATAPATH)/doc
+PKGDATAPATH := $(DATAPATH)/$(DATADIR)
+PKGDOCPATH  := $(DATAPATH)/$(DOCDIR)
 
 #-------------------------------------------------------------------------------
 # Generic Makefile variables
@@ -190,7 +192,7 @@ uninstall-program: uninstall-exec uninstall-doc
 
 .PHONY: install-all uninstall-all
 # Full installation through Cabal: main + wrappers + user docs + lib + lib docs
-install-all: install-program
+install-all: build-all install-program
 	destdir=$(DESTDIR); \
 	# Older Cabal versions have no '--destdir' option.
 	if $(BUILDCMD) copy --help | grep -q '\-\-destdir'; then \
