@@ -16,10 +16,9 @@ CONFIGURE := configure
 #-------------------------------------------------------------------------------
 # Cabal constants
 #-------------------------------------------------------------------------------
-NAME      := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL))
-THIS      := $(shell echo $(NAME) | tr A-Z a-z)
+PKG       := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL) | tr A-Z a-z)
 VERSION   := $(shell sed -ne 's/^[Vv]ersion:[[:space:]]*//p' $(CABAL))
-RELNAME   := $(THIS)-$(VERSION)
+PKGID     := $(PKG)-$(VERSION)
 EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL))
 
 #-------------------------------------------------------------------------------
@@ -30,9 +29,9 @@ WRAPPERS  := html2markdown markdown2pdf hsmarkdown
 EXTENSION := $(shell uname | tr '[:upper:]' '[:lower:]' | \
                sed -ne 's/^cygwin.*$$/\.exe/p')
 EXECS     := $(addsuffix $(EXTENSION),$(EXECSBASE))
-PROGS     := $(EXECS) $(WRAPPERS) 
+PROGS     := $(EXECS) $(WRAPPERS)
 MAIN      := $(firstword $(EXECS))
-DOCS      := README.html README BUGS 
+DOCS      := README.html README BUGS
 MANPAGES  := $(patsubst %.md,%,$(wildcard $(MANDIR)/man?/*.?.md))
 
 #-------------------------------------------------------------------------------
@@ -41,7 +40,7 @@ MANPAGES  := $(patsubst %.md,%,$(wildcard $(MANDIR)/man?/*.?.md))
 
 # Specify default values.
 prefix    := /usr/local
-destdir   := 
+destdir   :=
 # Attempt to set variables from a previous make session.
 -include $(BUILDVARS)
 # Fallback to defaults but allow to get the values from environment.
@@ -54,11 +53,9 @@ DESTDIR   ?= $(destdir)
 DESTPATH    := $(DESTDIR)$(PREFIX)
 BINPATH     := $(DESTPATH)/bin
 DATAPATH    := $(DESTPATH)/share
-LIBPATH     := $(DESTPATH)/$(NAME)-$(VERSION)
-DOCPATH     := $(DATAPATH)/doc/$(THIS)
-LIBDOCPATH  := $(DATAPATH)/doc/$(THIS)-doc
 MANPATH     := $(DATAPATH)/man
-PKGPATH     := $(DATAPATH)/$(THIS)
+PKGDATAPATH := $(DATAPATH)/$(PKGID)
+PKGDOCPATH  := $(PKGDATAPATH)/doc
 
 #-------------------------------------------------------------------------------
 # Generic Makefile variables
@@ -97,7 +94,7 @@ templates: $(SRCDIR)/templates
 	$(MAKE) -C $(SRCDIR)/templates
 
 define generate-shell-script
-echo "Generating $@...";                                 \
+echo >&2 "Generating $@...";                             \
 awk '                                                    \
 	/^[ \t]*###+ / {                                 \
                 lead = $$0; sub(/[^ \t].*$$/, "", lead); \
@@ -136,8 +133,8 @@ build-exec: $(PROGS)
 cleanup_files+=$(EXECS)
 $(EXECS): build
 	for f in $@; do \
-		find $(BUILDDIR) -type f -name "$$f" \
-						 -perm +a=x -exec ln -s -f {} . \; ; \
+		find $(BUILDDIR) -type f -name "$$f" -perm +a=x \
+		                 -exec ln -s -f {} . \; ; \
 	done
 
 .PHONY: build-doc
@@ -162,42 +159,29 @@ build-all: build-program build-lib-doc
 .PHONY: install-doc uninstall-doc
 man_all:=$(patsubst $(MANDIR)/%,%,$(MANPAGES))
 install-doc: build-doc
-	$(INSTALL) -d $(DOCPATH) && $(INSTALL_DATA) $(DOCS) $(DOCPATH)/
+	$(INSTALL) -d $(PKGDOCPATH) && $(INSTALL_DATA) $(DOCS) $(PKGDOCPATH)/
 	for f in $(man_all); do \
 		$(INSTALL) -d $(MANPATH)/$$(dirname $$f); \
 		$(INSTALL_DATA) $(MANDIR)/$$f $(MANPATH)/$$f; \
 	done
 uninstall-doc:
-	-for f in $(DOCS); do rm -f $(DOCPATH)/$$f; done
+	-for f in $(DOCS); do rm -f $(PKGDOCPATH)/$$f; done
 	-for f in $(man_all); do rm -f $(MANPATH)/$$f; done
-	-rmdir $(DOCPATH)
-
-# Library documents installation.
-.PHONY: install-lib-doc uninstall-lib-doc
-install-lib-doc: build-lib-doc
-	$(INSTALL) -d $(LIBDOCPATH) && cp -R html $(LIBDOCPATH)/
-uninstall-lib-doc:
-	-rm -rf $(LIBDOCPATH)/html
-	-rmdir $(LIBDOCPATH)
-
-# Helper to install the given files $(1) into the path $(2).
-# It also has the ability to follow symlinks.
-install-executable-files = \
-	$(INSTALL) -d $(2); \
-	for f in $(1); do \
-		if [ -L $$f ]; then \
-			f=$$(readlink $$f); \
-		fi; \
-		$(INSTALL_PROGRAM) $$f $(2)/; \
-	done
+	rmdir $(PKGDOCPATH) $(PKGDATAPATH) 2>/dev/null ||:
 
 # Program only installation.
 .PHONY: install-exec uninstall-exec
 install-exec: build-exec
 	$(STRIP) $(EXECS)
-	$(call install-executable-files,$(PROGS),$(BINPATH))
+	$(INSTALL) -d $(BINPATH); \
+	for f in $(PROGS); do \
+		if [ -L $$f ]; then \
+			f=$$(readlink $$f); \
+		fi; \
+		$(INSTALL_PROGRAM) $$f $(BINPATH)/; \
+	done
 uninstall-exec:
-	-for f in $(notdir $(PROGS)); do rm -f $(BINPATH)/$$f; done ;
+	-for f in $(notdir $(PROGS)); do rm -f $(BINPATH)/$$f; done
 
 # Program + user documents installation.
 .PHONY: install-program uninstall-program
@@ -205,9 +189,8 @@ install-program: install-exec install-doc
 uninstall-program: uninstall-exec uninstall-doc
 
 .PHONY: install-all uninstall-all
-# Install libraries
-install-all: build-all install-doc install-lib-doc
-	# Install the library (+ main executable) and register it.
+# Full installation through Cabal: main + wrappers + user docs + lib + lib docs
+install-all: install-program
 	destdir=$(DESTDIR); \
 	# Older Cabal versions have no '--destdir' option.
 	if $(BUILDCMD) copy --help | grep -q '\-\-destdir'; then \
@@ -215,22 +198,24 @@ install-all: build-all install-doc install-lib-doc
 	else \
 		opt="--copy-prefix=$${destdir}$(PREFIX)"; \
 	fi; \
-	$(BUILDCMD) copy $$opt; \
-	$(BUILDCMD) register
-	# Note that, we are in the position of having to install the wrappers
-	# separately, as Cabal installs the main exec along with the library.
-	$(call install-executable-files,$(WRAPPERS),$(BINPATH))
-uninstall-all: uninstall-program uninstall-lib-doc
-	-pkg_id="$(NAME)-$(VERSION)"; \
-	libdir=$$($(GHC_PKG) field $$pkg_id library-dirs 2>/dev/null | \
+	$(BUILDCMD) copy $$opt; $(BUILDCMD) register
+# Cabal lacks an 'uninstall' command.  We have to remove some cruft manually.
+uninstall-all: uninstall-program
+	@libdir=$$($(GHC_PKG) field $(PKGID) library-dirs 2>/dev/null | \
 		  sed 's/^library-dirs: *//'); \
-	if [ -d "$$libdir" ]; then \
-		$(BUILDCMD) unregister; \
-		rm -rf $$libdir; \
-		rmdir $$(dirname $$libdir); \
+	htmldir=$$($(GHC_PKG) field $(PKGID) haddock-html 2>/dev/null | \
+		  sed 's/^haddock-html: *//'); \
+	if [ -d $$libdir ]; then \
+		$(BUILDCMD) unregister ||:; \
 	else \
-		echo "*** Couldn't locate library files for pkgid: $$pkg_id. ***"; \
-	fi
+		echo >&2 "*** Couldn't locate library for pkgid: $(PKGID). ***"; \
+	fi; \
+	for d in $$libdir $$htmldir; do \
+		[ -d $$d ] && { \
+			rm -rf $$d; rmdir $$(dirname $$d) 2>/dev/null ||:; \
+		} \
+	done; \
+	rmdir $(PKGDOCPATH) $(PKGDATAPATH) 2>/dev/null ||:
 
 # Default installation recipe for a common deployment scenario.
 .PHONY: install uninstall
@@ -242,8 +227,8 @@ uninstall: uninstall-program
 freebsd_dest:=freebsd
 freebsd_makefile:=$(freebsd_dest)/Makefile
 freebsd_template:=$(freebsd_makefile).in
-cleanup_files+=$(freebsd_makefile) 
-freebsd : $(freebsd_makefile) 
+cleanup_files+=$(freebsd_makefile)
+freebsd : $(freebsd_makefile)
 $(freebsd_makefile) : $(freebsd_template)
 	sed -e 's/@VERSION@/$(VERSION)/' $< > $@
 
@@ -257,15 +242,15 @@ macport : $(portfile)
 $(portfile) : $(portfile_template) tarball
 	sed -e 's/@VERSION@/$(VERSION)/' $(portfile_template) | \
 	sed -e 's/@TARBALLMD5SUM@/$(word 2, $(shell openssl md5 $(tarball)))/' > \
-	$(portfile)  
+	$(portfile)
 
 .PHONY: win-pkg
-win_pkg_name:=$(RELNAME).zip
+win_pkg_name:=$(PKGID).zip
 win_docs:=COPYING.txt COPYRIGHT.txt BUGS.txt README.txt README.html
 cleanup_files+=$(win_pkg_name) $(win_docs)
 win-pkg: $(win_pkg_name)
-$(win_pkg_name): $(THIS).exe  $(win_docs)
-	zip -r $(win_pkg_name) $(THIS).exe $(win_docs)
+$(win_pkg_name): $(PKG).exe  $(win_docs)
+	zip -r $(win_pkg_name) $(PKG).exe $(win_docs)
 
 .PHONY: test test-markdown
 test: $(MAIN)
@@ -276,8 +261,8 @@ test-markdown: $(MAIN) $(compat)
 	@for suite in $(markdown_test_dirs); do \
 		( \
 			suite_version=$$(echo $$suite | sed -e 's/.*_//');\
-			echo "-----------------------------------------";\
-			echo "Running Markdown test suite version $${suite_version}.";\
+			echo >&2 "-----------------------------------------";\
+			echo >&2 "Running Markdown test suite version $${suite_version}.";\
 			PATH=$(PWD):$$PATH; export PATH; cd $$suite && \
 			perl MarkdownTest.pl -s $(compat) -tidy ; \
 		) \
@@ -291,15 +276,15 @@ tags: $(src_all)
 	LC_ALL=C sort tags >tags.sorted; mv tags.sorted tags
 
 .PHONY: tarball
-tarball:=$(RELNAME).tar.gz
+tarball:=$(PKGID).tar.gz
 cleanup_files+=$(tarball)
 tarball: $(tarball)
 $(tarball):
-	svn export . $(RELNAME)
-	$(MAKE) -C $(RELNAME) templates
-	$(MAKE) -C $(RELNAME) wrappers
-	tar cvzf $(tarball) $(RELNAME)
-	-rm -rf $(RELNAME)
+	svn export . $(PKGID)
+	$(MAKE) -C $(PKGID) templates
+	$(MAKE) -C $(PKGID) wrappers
+	tar cvzf $(tarball) $(PKGID)
+	-rm -rf $(PKGID)
 
 .PHONY: deb
 deb_name:=$(shell grep ^Package debian/control | cut -d' ' -f2 | head -n 1)
@@ -308,34 +293,33 @@ deb_arch:=i386
 deb_main:=$(deb_name)_$(deb_version)_$(deb_arch).deb
 deb: debian
 	@[ -x /usr/bin/fakeroot ] || { \
-		echo "*** Please install fakeroot package. ***"; \
+		echo >&2 "*** Please install fakeroot package. ***"; \
 		exit 1; \
 	}
 	@[ -x /usr/bin/dpkg-buildpackage ] || { \
-		echo "*** Please install dpkg-dev package. ***"; \
+		echo >&2 "*** Please install dpkg-dev package. ***"; \
 		exit 1; \
 	}
-	-mv $(BUILDVARS) $(BUILDVARS).old # backup settings 
+	mv $(BUILDVARS) $(BUILDVARS).old 2>/dev/null ||: # backup settings
 	if [ -x /usr/bin/debuild ]; then \
 		debuild -uc -us -i.svn -I.svn -i_darcs -I_darcs --lintian-opts -i; \
 	else \
-		echo "*** Please install devscripts package. ***"; \
-		echo "*** Using dpkg-buildpackage for package building. ***"; \
+		echo >&2 "*** Please install devscripts package. ***"; \
+		echo >&2 "*** Using dpkg-buildpackage for package building. ***"; \
 		dpkg-buildpackage -rfakeroot -uc -us -i.svn -I.svn -i_darcs -I_darcs; \
 	fi
-	-mv $(BUILDVARS).old $(BUILDVARS) # restore 
+	mv $(BUILDVARS).old $(BUILDVARS) 2>/dev/null ||: # restore
 
 .PHONY: website
 web_src:=web
 web_dest:=pandoc-website
 make_page:=./$(MAIN) -s -S -B $(web_src)/header.html \
                         -A $(web_src)/footer.html \
-	                -H $(web_src)/css 
+	                -H $(web_src)/css
 cleanup_files+=$(web_dest)
 $(web_dest) : html $(wildcard $(web_src)/*) changelog \
     INSTALL $(MANPAGES) $(MANDIR)/man1/pandoc.1.md README
-	-rm -rf $(web_dest)
-	( \
+	rm -rf $(web_dest) && { \
 		mkdir $(web_dest); \
 		cp -r html $(web_dest)/doc; \
 		cp $(web_src)/* $(web_dest)/; \
@@ -346,9 +330,9 @@ $(web_dest) : html $(wildcard $(web_src)/*) changelog \
 		cp INSTALL $(web_dest)/ ; \
 		cp $(MANDIR)/man1/pandoc.1.md $(web_dest)/ ; \
 		cp $(MANDIR)/man1/*.1 $(web_dest)/ ; \
-	) || { rm -rf $(web_dest); exit 1; }
+	} || { rm -rf $(web_dest); exit 1; }
 website: $(MAIN) $(web_dest)
-	PANDOC_PATH=$(shell pwd) make -C $(web_dest) 
+	PANDOC_PATH=$(shell pwd) make -C $(web_dest)
 
 .PHONY: distclean clean
 distclean: clean
