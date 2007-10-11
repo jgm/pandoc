@@ -41,7 +41,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
 , CodeBlock "---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}"
 , CodeBlock "this code block is indented by one tab"
 , Para [Str "And",Str ":"]
-, CodeBlock "    this block is indented by two tabs\n\n    These should not be escaped:  \\$ \\\\ \\> \\[ \\{"
+, CodeBlock "this block is indented by two tabs\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{"
 , Header 1 [Str "Lists"]
 , Header 2 [Str "Unordered"]
 , Para [Str "Asterisks",Space,Str "tight",Str ":"]

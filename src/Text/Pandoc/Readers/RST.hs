@@ -281,15 +281,11 @@ indentedLine indents = try $ do
   return $ result ++ "\n"
 
 -- two or more indented lines, possibly separated by blank lines.
--- if variable = True, then any indent will work, but it must be
--- consistent through the block.
--- if variable = False, indent should be one tab or equivalent in spaces.
-indentedBlock variable = try $ do 
+-- any amount of indentation will work.
+indentedBlock = try $ do 
   state <- getState
   let tabStop = stateTabStop state
-  indents <- if variable
-                then many1 (oneOf " \t")
-                else oneOfStrings ["\t", (replicate tabStop ' ')]
+  indents <- many1 (oneOf " \t")
   firstline <- manyTill anyChar newline
   rest <- many (choice [ indentedLine indents, 
                          try (do b <- blanklines
@@ -300,8 +296,7 @@ indentedBlock variable = try $ do
 
 codeBlock = try $ do
   codeBlockStart
-  result <- indentedBlock False
-  -- the False means we want one tab stop indent on each line
+  result <- indentedBlock
   return $ CodeBlock $ stripTrailingNewlines result
 
 --
@@ -309,7 +304,7 @@ codeBlock = try $ do
 --
 
 rawHtmlBlock = try $ string ".. raw:: html" >> blanklines >>
-                     indentedBlock True >>= return . RawHtml
+                     indentedBlock >>= return . RawHtml
 
 --
 -- raw latex
@@ -318,7 +313,7 @@ rawHtmlBlock = try $ string ".. raw:: html" >> blanklines >>
 rawLaTeXBlock = try $ do
   string ".. raw:: latex"
   blanklines
-  result <- indentedBlock True
+  result <- indentedBlock
   return $ Para [(TeX result)]
 
 --
@@ -326,7 +321,7 @@ rawLaTeXBlock = try $ do
 --
 
 blockQuote = do
-  raw <- indentedBlock True
+  raw <- indentedBlock
   -- parse the extracted block, which may contain various block elements:
   contents <- parseFromString parseBlocks $ raw ++ "\n\n"
   return $ BlockQuote contents
@@ -339,7 +334,7 @@ list = choice [ bulletList, orderedList, definitionList ] <?> "list"
 
 definitionListItem = try $ do
   term <- many1Till inline endline
-  raw <- indentedBlock True
+  raw <- indentedBlock
   -- parse the extracted block, which may contain various block elements:
   contents <- parseFromString parseBlocks $ raw ++ "\n\n"
   return (normalizeSpaces term, contents)

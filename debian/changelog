@@ -27,6 +27,10 @@ pandoc (0.45) unstable; urgency=low
   * Markdown reader: Require space before title in links and references.
     This fixes a bug in parsing URLs like http://silly/url(withparen).
 
+  * RST reader:  Fixed bug in parsing of code blocks.  Previously a
+    full tab indent was required, but RST allows code to be indented
+    any amount.  Resolves Issue #27.
+
   * HTML writer: Don't produce HTML for table of contents if there are
     no headers. (This would be an empty list, which is invalid XHTML.)
 
