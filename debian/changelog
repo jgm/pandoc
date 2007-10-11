@@ -68,6 +68,8 @@ pandoc (0.45) unstable; urgency=low
     + If label for a link reference contains a colon, surround it by `
       signs so it won't be interpreted as the end of the link label.
 
+  * Man writer:  Don't print link source for internal links (#...).
+
   * Main.hs (tabFilter): Treat '\r' at end of line as newline (in
     addition to "\r\n" and '\n').
 
