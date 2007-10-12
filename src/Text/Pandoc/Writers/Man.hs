@@ -272,7 +272,6 @@ inlineToMan opts (TeX str) = return $ text $ escapeCode str
 inlineToMan opts (HtmlInline str) = return $ text $ escapeCode str 
 inlineToMan opts (LineBreak) = return $ text "\n.PD 0\n.P\n.PD\n"
 inlineToMan opts Space = return $ char ' '
-inlineToMan opts (Link txt (('#':_), _)) = inlineListToMan opts txt
 inlineToMan opts (Link txt (src, _)) = do
   linktext <- inlineListToMan opts txt
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
