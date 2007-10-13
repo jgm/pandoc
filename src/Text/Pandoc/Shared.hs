@@ -288,10 +288,12 @@ stringAnyCase (x:xs) = do
 -- | Parse contents of 'str' using 'parser' and return result.
 parseFromString :: GenParser tok st a -> [tok] -> GenParser tok st a
 parseFromString parser str = do
+  oldPos <- getPosition
   oldInput <- getInput
   setInput str
   result <- parser
   setInput oldInput
+  setPosition oldPos
   return result
 
 -- | Parse raw line block up to and including blank lines.
