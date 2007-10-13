@@ -113,13 +113,13 @@ parseBlocks = manyTill block eof
 block = choice [ codeBlock
                , rawHtmlBlock
                , rawLaTeXBlock
+               , fieldList
                , blockQuote
                , imageBlock
                , unknownDirective
                , header
                , hrule
                , list
-               , fieldList
                , lineBlock
                , para
                , plain
@@ -129,36 +129,42 @@ block = choice [ codeBlock
 -- field list
 --
 
-fieldListItem = try $ do
+fieldListItem indent = try $ do
+  string indent
   char ':'
   name <- many1 alphaNum
   string ": "
   skipSpaces
   first <- manyTill anyChar newline
-  rest <- many (notFollowedBy ((char ':') <|> blankline)  >>
-                skipSpaces >> manyTill anyChar newline)
-  return $ (name, (joinWithSep " " (first:rest)))
+  rest <- option "" $ try $ lookAhead (string indent >> oneOf " \t") >> 
+                            indentedBlock
+  return (name, joinWithSep " " (first:(lines rest)))
 
 fieldList = try $ do
-  items <- many1 fieldListItem
+  indent <- lookAhead $ many (oneOf " \t")
+  items <- many1 $ fieldListItem indent
   blanklines
   let authors = case lookup "Authors" items of
                   Just auth -> [auth]
                   Nothing  -> map snd (filter (\(x,y) -> x == "Author") items)
-  let date = case (lookup "Date" items) of
-                  Just dat -> dat
-                  Nothing  -> ""
-  let title = case (lookup "Title" items) of
-                  Just tit -> [Str tit]
-                  Nothing  -> []
+  if null authors 
+     then return () 
+     else updateState $ \st -> st {stateAuthors = authors}
+  case (lookup "Date" items) of
+           Just dat -> updateState $ \st -> st {stateDate = dat}
+           Nothing  -> return ()
+  case (lookup "Title" items) of
+           Just tit -> parseFromString (many inline) tit >>=
+                       \t -> updateState $ \st -> st {stateTitle = t}
+           Nothing  -> return ()
   let remaining = filter (\(x,y) -> (x /= "Authors") && (x /= "Author") && 
                   (x /= "Date") && (x /= "Title")) items
-  let result = map (\(x,y) -> 
-               Para [Strong [Str x], Str ":", Space, Str y]) remaining
-  updateState (\st -> st { stateAuthors = authors, 
-                           stateDate = date, 
-                           stateTitle = title })
-  return $ BlockQuote result
+  if null remaining
+              then return Null
+              else do terms <- mapM (return . (:[]) . Str . fst) remaining
+                      defs  <- mapM (parseFromString (many block) . snd) 
+                                    remaining
+                      return $ DefinitionList $ zip terms defs
 
 --
 -- line block
@@ -207,8 +213,12 @@ plain = many1 inline >>= return . Plain . normalizeSpaces
 imageBlock = try $ do
   string ".. image:: "
   src <- manyTill anyChar newline
-  return $ Plain [Image [Str "image"] (src, "")]
-
+  fields <- option [] $ do indent <- lookAhead $ many (oneOf " /t")
+                           many1 $ fieldListItem indent
+  optional blanklines
+  case lookup "alt" fields of
+        Just alt -> return $ Plain [Image [Str alt] (src, alt)]
+        Nothing  -> return $ Plain [Image [Str "image"] (src, "")]
 --
 -- header blocks
 --
@@ -282,17 +292,14 @@ indentedLine indents = try $ do
 
 -- two or more indented lines, possibly separated by blank lines.
 -- any amount of indentation will work.
-indentedBlock = try $ do 
-  state <- getState
-  let tabStop = stateTabStop state
-  indents <- many1 (oneOf " \t")
-  firstline <- manyTill anyChar newline
-  rest <- many (choice [ indentedLine indents, 
-                         try (do b <- blanklines
-                                 l <- indentedLine indents
-                                 return (b ++ l))])
-  optional blanklines
-  return $ firstline ++ "\n" ++ concat rest
+indentedBlock = do 
+  indents <- lookAhead $ many1 (oneOf " \t")
+  lns <- many $ choice $ [ indentedLine indents,
+                           try $ do b <- blanklines
+                                    l <- indentedLine indents
+                                    return (b ++ l) ]
+  optional blanklines 
+  return $ concat lns
 
 codeBlock = try $ do
   codeBlockStart

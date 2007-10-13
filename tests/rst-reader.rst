@@ -256,6 +256,19 @@ term 2
 term with *emphasis* 
     Definition 3.
 
+Field Lists
+===========
+
+ :address:  61 Main St.
+ :city:  *Nowhere*, MA,
+    USA
+ :phone: 123-4567
+
+:address:  61 Main St.
+:city:  *Nowhere*, MA,
+    USA
+:phone: 123-4567
+
 HTML Blocks
 ===========
 
@@ -381,6 +394,10 @@ Images
 From "Voyage dans la Lune" by Georges Melies (1902):
 
 .. image:: lalune.jpg
+
+.. image:: lalune.jpg
+   :height: 2343
+   :alt: Voyage dans la Lune
 
 Here is a movie |movie| icon.
 
