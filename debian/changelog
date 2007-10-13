@@ -27,9 +27,18 @@ pandoc (0.45) unstable; urgency=low
   * Markdown reader: Require space before title in links and references.
     This fixes a bug in parsing URLs like http://silly/url(withparen).
 
-  * RST reader:  Fixed bug in parsing of code blocks.  Previously a
-    full tab indent was required, but RST allows code to be indented
-    any amount.  Resolves Issue #27.
+  * RST reader:
+
+    + Fixed bug in parsing of code blocks. Previously a full tab indent
+      was required, but RST allows code to be indented any amount.
+      Resolves Issue #27.
+    + Allow field lists to be indented.
+    + Parse the contents of field lists instead of treating as a raw string.
+    + Represent field lists as definition lists instead of blockquotes. 
+    + Fixed bug in which metadata would be overridden if the document
+      contained multiple field lists.
+    + Parse fields associated with '.. image::' blocks, and use 'alt'
+      field, if given, for image alt and title attributes.  
 
   * HTML writer: Don't produce HTML for table of contents if there are
     no headers. (This would be an empty list, which is invalid XHTML.)
@@ -67,6 +76,9 @@ pandoc (0.45) unstable; urgency=low
     + Use 3-space indent for unordered lists.
     + If label for a link reference contains a colon, surround it by `
       signs so it won't be interpreted as the end of the link label.
+
+  * Text.Pandoc.Shared:  save and restore position in parseFromString,
+    so that accurate error messages can be given.
 
   * Main.hs (tabFilter): Treat '\r' at end of line as newline (in
     addition to "\r\n" and '\n').
