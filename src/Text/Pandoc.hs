@@ -83,6 +83,8 @@ module Text.Pandoc
                , module Text.Pandoc.Writers.DefaultHeaders
                -- * Functions for converting to and from UTF-8
                , module Text.Pandoc.UTF8
+               -- * Version
+               , pandocVersion
              ) where
 
 import Text.Pandoc.Definition
@@ -103,3 +105,6 @@ import Text.Pandoc.Writers.DefaultHeaders
 import Text.Pandoc.UTF8
 import Text.Pandoc.Shared
 
+-- | Version number of pandoc library.
+pandocVersion :: String
+pandocVersion = "0.45"

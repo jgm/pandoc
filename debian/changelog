@@ -101,6 +101,9 @@ pandoc (0.45) unstable; urgency=low
     that a temp file is now always used, even when input comes from a
     local file or standard input.
 
+  * Removed 'version' constant from Main.hs; added 'pandocVersion' to
+    Text.Pandoc library.
+
   * Fixed MacPorts Portfile:
 
     + Modified to install the pandoc library in addition to programs.  
