@@ -115,8 +115,8 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     them.)
 
 \--no-wrap
-:   Disable text wrapping in Markdown, reStructuredText, DocBook, and man
-    output.  (Default is to wrap text.)
+:   Disable text wrapping in Markdown, reStructuredText, DocBook, HTML,
+    and man output.  (Default is to wrap text.)
 
 \--toc, \--table-of-contents
 :   Include an automatically generated table of contents (HTML, markdown,

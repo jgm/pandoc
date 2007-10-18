@@ -51,12 +51,18 @@ defaultWriterState :: WriterState
 defaultWriterState = WriterState {stNotes= [], stIds = [], 
                                   stMath = False, stCSS = S.empty}
 
+-- Helpers to render HTML with the appropriate function.
+render opts    = if writerWrapText opts then renderHtml else showHtml
+renderFragment opts = if writerWrapText opts
+                         then renderHtmlFragment
+                         else showHtmlFragment
+
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
 writeHtmlString opts = 
   if writerStandalone opts
-     then renderHtml . writeHtml opts
-     else renderHtmlFragment . writeHtml opts
+     then render opts . writeHtml opts
+     else renderFragment opts . writeHtml opts
 
 -- | Convert Pandoc document to Html structure.
 writeHtml :: WriterOptions -> Pandoc -> Html
@@ -406,7 +412,7 @@ inlineToHtml opts inline =
                                  linkText
     (Image txt (source,tit)) -> do
                         alternate <- inlineListToHtml opts txt
-                        let alternate' = renderHtmlFragment alternate
+                        let alternate' = renderFragment opts alternate
                         let attributes = [src source] ++
                                          (if null tit 
                                             then [] 

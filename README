@@ -331,8 +331,8 @@ For further documentation, see the `pandoc(1)` man page.
     sections are not numbered.
 
 `--no-wrap`
-:   disables text-wrapping in Markdown, reStructuredText, DocBook, and man
-    output.
+:   disables text-wrapping in Markdown, reStructuredText, DocBook, HTML,
+    and man output.
 
 `--dump-args`
 :   is intended to make it easier to create wrapper scripts that use

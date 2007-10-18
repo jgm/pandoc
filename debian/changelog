@@ -84,13 +84,15 @@ pandoc (0.45) unstable; urgency=low
     addition to "\r\n" and '\n').
 
   * Added a writer option for wrapped text and a command-line option
-    '--no-wrap', which disables text wrapping. (Resolves Issue #26.)
+    '--no-wrap', which disables text wrapping and minimizes whitespace
+    in HTML. (Resolves Issue #26.)
 
     + Added support for '--no-wrap' to Main.hs.
     + Added wrapIfNeeded function to Text.Pandoc.Shared.
     + Use wrapIfNeeded instead of wrapped in the RST, Man, Docbook, and
       Markdown writers.
-    + Note: Not yet implemented in HTML, LaTeX, or ConTeXt writers.
+    + Added render and renderFragment helpers to HTML writer.
+    + Note: Not yet implemented in LaTeX or ConTeXt writers.
 
   * Modified html2markdown to run tidy only if the HTML cannot be
     parsed. Previously html2markdown piped all input through tidy
