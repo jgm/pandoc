@@ -80,6 +80,10 @@ pandoc (0.45) unstable; urgency=low
   * Text.Pandoc.Shared:  save and restore position in parseFromString,
     so that accurate error messages can be given.
 
+  * Text.Pandoc.UTF8:  modified fromUTF8 to strip out the BOM
+    if present.  Windows Notepad and other applications insert a
+    BOM at the beginning of a UTF8 file.
+
   * Main.hs (tabFilter): Treat '\r' at end of line as newline (in
     addition to "\r\n" and '\n').
 
