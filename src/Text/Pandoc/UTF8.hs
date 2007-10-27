@@ -16,6 +16,7 @@ module Text.Pandoc.UTF8 (
 -- | Take a UTF-8 string and decode it into a Unicode string.
 fromUTF8 :: String -> String
 fromUTF8 "" = ""
+fromUTF8 ('\xef':'\xbb':'\xbf':cs) = fromUTF8 cs -- skip BOM (byte order marker)
 fromUTF8 (c:c':cs) | '\xc0' <= c  && c  <= '\xdf' && 
 		             '\x80' <= c' && c' <= '\xbf' =
 	toEnum ((fromEnum c `mod` 0x20) * 0x40 + fromEnum c' `mod` 0x40) : fromUTF8 cs
