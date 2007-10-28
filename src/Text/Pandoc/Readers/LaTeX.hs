@@ -494,7 +494,7 @@ escapedChar = do
 -- ignore standalone, nonescaped special characters
 unescapedChar = oneOf "`$^&_#{}|<>" >> return (Str "")
 
-specialChar = choice [ backslash, tilde, caret, bar, lt, gt ]
+specialChar = choice [ backslash, tilde, caret, bar, lt, gt, doubleQuote ]
 
 backslash = try (string "\\textbackslash") >> return (Str "\\")
 
@@ -507,6 +507,8 @@ bar = try (string "\\textbar") >> return (Str "\\")
 lt = try (string "\\textless") >> return (Str "<")
 
 gt = try (string "\\textgreater") >> return (Str ">")
+
+doubleQuote = char '"' >> return (Str "\"")
 
 code = code1 <|> code2
 
