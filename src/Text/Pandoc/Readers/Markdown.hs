@@ -142,14 +142,16 @@ parseMarkdown = do
   startPos <- getPosition
   -- go through once just to get list of reference keys
   -- docMinusKeys is the raw document with blanks where the keys were...
-  docMinusKeys <- many (referenceKey <|> lineClump) >>= return . concat
+  docMinusKeys <- manyTill (referenceKey <|> lineClump) eof >>= 
+                  return . concat
   setInput docMinusKeys
   setPosition startPos
   st <- getState
   -- go through again for notes unless strict...
   if stateStrict st
      then return ()
-     else do docMinusNotes <- many (noteBlock <|> lineClump) >>= return . concat
+     else do docMinusNotes <- manyTill (noteBlock <|> lineClump) eof >>= 
+                              return . concat
              st <- getState
              let reversedNotes = stateNotes st
              updateState $ \st -> st { stateNotes = reverse reversedNotes }

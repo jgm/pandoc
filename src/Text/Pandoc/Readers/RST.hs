@@ -86,7 +86,7 @@ parseRST = do
   startPos <- getPosition
   -- go through once just to get list of reference keys
   -- docMinusKeys is the raw document with blanks where the keys were...
-  docMinusKeys <- many (referenceKey <|> lineClump) >>= return . concat
+  docMinusKeys <- manyTill (referenceKey <|> lineClump) eof >>= return . concat
   setInput docMinusKeys
   setPosition startPos
   st <- getState

@@ -298,10 +298,8 @@ parseFromString parser str = do
 
 -- | Parse raw line block up to and including blank lines.
 lineClump :: GenParser Char st String
-lineClump = do
-  lns <- many1 (notFollowedBy blankline >> anyLine)
-  blanks <- blanklines <|> (eof >> return "\n")
-  return $ (unlines lns) ++ blanks
+lineClump = blanklines 
+          <|> (many1 (notFollowedBy blankline >> anyLine) >>= return . unlines)
 
 -- | Parse a string of characters between an open character
 -- and a close character, including text between balanced
