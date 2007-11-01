@@ -31,7 +31,7 @@ module Text.Pandoc.Writers.LaTeX ( writeLaTeX ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
-import Data.List ( (\\), isInfixOf, intersperse )
+import Data.List ( (\\), isInfixOf, isSuffixOf, intersperse )
 import Data.Char ( toLower )
 import qualified Data.Set as S
 import Control.Monad.State
@@ -303,7 +303,8 @@ inlineToLaTeX (Note contents) = do
   put (st {stInNote = True})
   contents' <- blockListToLaTeX contents
   modify (\st -> st {stInNote = False})
-  return $ text "\\footnote{" $$ 
-           (nest 11 $ text (stripTrailingNewlines $ render contents') <> text "\n}")
-  -- note: the \n before } is important; removing it causes problems
-  -- if a Verbatim environment occurs at the end of the footnote.
+  let rawnote = stripTrailingNewlines $ render contents'
+  -- note: a \n before } is needed when note ends with a Verbatim environment
+  let optNewline = "\\end{Verbatim}" `isSuffixOf` rawnote
+  return $ text "%\n\\footnote{" <> 
+           text rawnote <> (if optNewline then char '\n' else empty) <> char '}'
