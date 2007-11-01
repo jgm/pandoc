@@ -79,6 +79,11 @@ pandoc (0.45) unstable; urgency=low
     + If label for a link reference contains a colon, surround it by `
       signs so it won't be interpreted as the end of the link label.
 
+  * LaTeX writer:  Cleaner output for footnotes.  Footnotes now always
+    begin on a new line, and the final } is on a line by itself only
+    when it needs to be (i.e. only when the note ends with a Verbatim
+    environment).
+
   * Text.Pandoc.Shared:  save and restore position in parseFromString,
     so that accurate error messages can be given.
 
