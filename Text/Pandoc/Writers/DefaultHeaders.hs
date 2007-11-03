@@ -35,18 +35,20 @@ module Text.Pandoc.Writers.DefaultHeaders  (
                                       defaultRTFHeader
                                       ) where
 import Text.Pandoc.Writers.S5
+import Text.Pandoc.Include ( includeStrFrom, headerPath )
 
 defaultLaTeXHeader :: String
-defaultLaTeXHeader = "@LaTeXHeader@"
+defaultLaTeXHeader = $(includeStrFrom $ headerPath "LaTeXHeader")
 
 defaultConTeXtHeader :: String
-defaultConTeXtHeader = "@ConTeXtHeader@"
+defaultConTeXtHeader = $(includeStrFrom $ headerPath "ConTeXtHeader")
 
 defaultDocbookHeader :: String
-defaultDocbookHeader = "@DocbookHeader@"
+defaultDocbookHeader = $(includeStrFrom $ headerPath "DocbookHeader")
 
 defaultS5Header :: String
 defaultS5Header = s5Meta ++ s5CSS ++ s5Javascript
 
 defaultRTFHeader :: String
-defaultRTFHeader = "@RTFHeader@"
+defaultRTFHeader = $(includeStrFrom $ headerPath "RTFHeader")
+

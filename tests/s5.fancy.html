@@ -8,9 +8,38 @@
      /><meta name="author" content="Sam Smith"
      /><meta name="author" content="Jen Jones"
      /><meta name="date" content="July 15, 2006"
-     /><script type="text/javascript">
-/* ASCIIMathML.js - copyright Peter Jipsen, released under the GPL
-See http://www1.chapman.edu/~jipsen/mathml/asciimath.html/ */
+     /><script type="text/javascript"
+    >/*
+ASCIIMathML.js
+==============
+This file contains JavaScript functions to convert ASCII math notation
+to Presentation MathML. The conversion is done while the (X)HTML page 
+loads, and should work with Firefox/Mozilla/Netscape 7+ and Internet 
+Explorer 6+MathPlayer (http://www.dessci.com/en/products/mathplayer/).
+Just add the next line to your (X)HTML page with this file in the same folder:
+<script type="text/javascript" src="ASCIIMathML.js"></script>
+This is a convenient and inexpensive solution for authoring MathML.
+
+Version 1.4.7 Dec 15, 2005, (c) Peter Jipsen http://www.chapman.edu/~jipsen
+Latest version at http://www.chapman.edu/~jipsen/mathml/ASCIIMathML.js
+For changes see http://www.chapman.edu/~jipsen/mathml/asciimathchanges.txt
+If you use it on a webpage, please send the URL to jipsen@chapman.edu
+
+Modified July 2006 by John MacFarlane (added CODE to list of contexts
+in which replacement does not occur, modified AMisMathMLAvailable
+to better identify Safari browser, changed mathcolor to "").
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or (at
+your option) any later version.
+
+This program is distributed in the hope that it will be useful, 
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License (at http://www.gnu.org/copyleft/gpl.html) 
+for more details.
+*/
 
 var checkForMathML = true;   // check if browser can display MathML
 var notifyIfNoMathML = true; // display note if no MathML capability
@@ -59,8 +88,7 @@ function AMnoMathMLNote() {
 }
 
 function AMisMathMLavailable() {
-  var regex = /KHTML/;   /* ASCIIMathML.js - copyright Peter Jipsen, released under the GPL
-See http://www1.chapman.edu/~jipsen/mathml/asciimath.html/ */
+  var regex = /KHTML/;   /* This line and the next two modified by JM for better Safari detection */
   if (navigator.appName.slice(0,8)=="Netscape")
     if (navigator.appVersion.slice(0,1)>="5" && !regex.test(navigator.userAgent)) return null;
     else return AMnoMathMLNote();
@@ -443,8 +471,16 @@ function AMremoveBrackets(node) {
   }
 }
 
-/* ASCIIMathML.js - copyright Peter Jipsen, released under the GPL
-See http://www1.chapman.edu/~jipsen/mathml/asciimath.html/ */
+/*Parsing ASCII math expressions with the following grammar
+v ::= [A-Za-z] | greek letters | numbers | other constant symbols
+u ::= sqrt | text | bb | other unary symbols for font commands
+b ::= frac | root | stackrel         binary symbols
+l ::= ( | [ | { | (: | {:            left brackets
+r ::= ) | ] | } | :) | :}            right brackets
+S ::= v | lEr | uS | bSS             Simple expression
+I ::= S_S | S^S | S_S^S | S          Intermediate expression
+E ::= IE | I/I                       Expression
+Each terminal symbol is translated into a corresponding mathml node.*/
 
 var AMnestingDepth,AMpreviousSymbol,AMcurrentSymbol;
 
@@ -783,8 +819,7 @@ function AMprocessNodeR(n, linebreaks) {
    if ((n.nodeType!=8 || linebreaks) &&
     n.parentNode.nodeName!="form" && n.parentNode.nodeName!="FORM" &&
     n.parentNode.nodeName!="textarea" && n.parentNode.nodeName!="TEXTAREA" &&
-    n.parentNode.nodeName!="code" && n.parentNode.nodeName!="CODE" &&  /* ASCIIMathML.js - copyright Peter Jipsen, released under the GPL
-See http://www1.chapman.edu/~jipsen/mathml/asciimath.html/ */
+    n.parentNode.nodeName!="code" && n.parentNode.nodeName!="CODE" &&  /* added by JM */
     n.parentNode.nodeName!="pre" && n.parentNode.nodeName!="PRE") {
     str = n.nodeValue;
     if (!(str == null)) {
@@ -919,8 +954,8 @@ else
     window.onload = generic;
   }
 }
-</script>
-<!-- configuration parameters -->
+</script
+    ><!-- configuration parameters -->
 <meta name="defaultView" content="slideshow" />
 <meta name="controlVis" content="hidden" />
 <style type="text/css" media="projection" id="slideProj">

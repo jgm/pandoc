@@ -31,15 +31,14 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  which convert this native representation into a target
                  format. Thus, adding an input or output format requires
                  only adding a reader or writer.
-Build-Depends:   base, parsec, xhtml, mtl, regex-compat, network
-Hs-Source-Dirs: src
+Build-Depends:   base, parsec, xhtml, mtl, regex-compat, network, template-haskell, filepath
+Hs-Source-Dirs:  .
 Exposed-Modules: Text.Pandoc,
                  Text.Pandoc.Blocks,
                  Text.Pandoc.Definition,
                  Text.Pandoc.CharacterReferences,
                  Text.Pandoc.Shared,
                  Text.Pandoc.UTF8,
-                 Text.Pandoc.ASCIIMathML,
                  Text.Pandoc.Readers.HTML,
                  Text.Pandoc.Readers.LaTeX,
                  Text.Pandoc.Readers.Markdown,
@@ -54,9 +53,10 @@ Exposed-Modules: Text.Pandoc,
                  Text.Pandoc.Writers.RST,
                  Text.Pandoc.Writers.RTF,
                  Text.Pandoc.Writers.S5
-Ghc-Options:     -O0
+Other-Modules:   Text.Pandoc.Include
+Ghc-Options:     -O0 -fth
 
 Executable:      pandoc
-Hs-Source-Dirs: src
+Hs-Source-Dirs:  .
 Main-Is:         Main.hs
-Ghc-Options:     -O0
+Ghc-Options:     -O0 -fth

@@ -4,7 +4,7 @@
 # Constant names and commands in source tree
 #-------------------------------------------------------------------------------
 CABAL     := pandoc.cabal
-SRCDIR    := src
+SRCDIR    := .
 MANDIR    := man
 TESTDIR   := tests
 BUILDDIR  := dist
@@ -91,10 +91,6 @@ all: build-program
 %.1: %.1.md $(MAIN)
 	./$(MAIN) -s -S -w man $< >$@ || rm -f $@
 
-.PHONY: templates
-templates: $(SRCDIR)/templates
-	$(MAKE) -C $(SRCDIR)/templates
-
 define generate-shell-script
 echo >&2 "Generating $@...";                             \
 awk '                                                    \
@@ -118,7 +114,7 @@ $(WRAPPERS): %: $(SRCDIR)/wrappers/%.in $(SRCDIR)/wrappers/*.sh
 
 .PHONY: configure
 cleanup_files+=Setup.hi Setup.o $(BUILDCMD) $(BUILDVARS)
-configure: $(BUILDCONF) templates
+configure: $(BUILDCONF) 
 $(BUILDCONF): $(CABAL)
 	ghc -package Cabal Setup.hs -o $(BUILDCMD)
 	$(BUILDCMD) configure --prefix=$(PREFIX)
@@ -283,7 +279,6 @@ cleanup_files+=$(tarball)
 tarball: $(tarball)
 $(tarball):
 	svn export . $(PKGID)
-	$(MAKE) -C $(PKGID) templates
 	$(MAKE) -C $(PKGID) wrappers
 	tar cvzf $(tarball) $(PKGID)
 	-rm -rf $(PKGID)
@@ -343,6 +338,5 @@ distclean: clean
 	fi
 
 clean:
-	make -C $(SRCDIR)/templates clean
 	-if [ -f $(BUILDCONF) ]; then $(BUILDCMD) clean; fi
 	-rm -rf $(cleanup_files)

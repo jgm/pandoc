@@ -107,15 +107,12 @@ but are documented here for packagers and developers:
 
 * `configure`:  Performs the needed preprocessing to create a proper
   Cabal package for Pandoc:
-    - Builds `ASCIIMathML.hs`, `DefaultHeaders.hs`, and `S5.hs`
-      from templates in `src/templates` and data in `src/ASCIIMathML.js`,
-      `src/ui`, and `src/headers`.
     - Stores values of relevant environment variables in `vars` for
       persistence.
     - Runs Cabal's "configure" command.
 * `build-exec`:  Builds `pandoc` executable (using Cabal's "build"
   command) and creates the wrappers `html2markdown` and `markdown2pdf`
-  from templates in `src/wrappers`.
+  from templates in `wrappers`.
 * `build-doc`:  Builds program documentation (e.g. `README.html`).
 * `build-lib-doc`:  Builds Haddock documentation for Pandoc libraries.
 * `install-doc`, `uninstall-doc`:  Installs/uninstalls user documentation

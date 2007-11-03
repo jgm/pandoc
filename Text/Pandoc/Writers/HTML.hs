@@ -29,7 +29,6 @@ Conversion of 'Pandoc' documents to HTML.
 -}
 module Text.Pandoc.Writers.HTML ( writeHtml , writeHtmlString ) where
 import Text.Pandoc.Definition
-import Text.Pandoc.ASCIIMathML
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.Pandoc.Shared
 import Text.Regex ( mkRegex, matchRegex )
@@ -39,6 +38,7 @@ import Data.List ( isPrefixOf, intersperse )
 import qualified Data.Set as S
 import Control.Monad.State
 import Text.XHtml.Transitional
+import Text.Pandoc.Include ( includeStrFrom, asciiMathMLPath )
 
 data WriterState = WriterState
     { stNotes            :: [Html]       -- ^ List of notes
@@ -46,6 +46,8 @@ data WriterState = WriterState
     , stMath             :: Bool         -- ^ Math is used in document
     , stCSS              :: S.Set String -- ^ CSS to include in header
     } deriving Show
+
+asciiMathMLScript = $(includeStrFrom asciiMathMLPath)
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState {stNotes= [], stIds = [], 
@@ -104,7 +106,9 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
                                    Just path -> script !  [src path, 
                                                 thetype "text/javascript"] $
                                                 noHtml
-                                   Nothing   -> primHtml asciiMathMLScript
+                                   Nothing   -> script ! 
+                                                [thetype "text/javascript"] $
+                                                primHtml asciiMathMLScript
                         else noHtml
       head         = header $ metadata +++ math +++ css +++ 
                               primHtml (writerHeader opts)
