@@ -117,6 +117,10 @@ pandoc (0.45) unstable; urgency=low
   * Removed 'version' constant from Main.hs; added 'pandocVersion' to
     Text.Pandoc library.
 
+  * Modified Makefile to work with Cabal configurations and GHC 6.8.
+    Provide pandoc.cabal.ghc66 for people who are still using older
+    versions of Cabal, which don't support configurations.
+
   * Fixed MacPorts Portfile:
 
     + Modified to install the pandoc library in addition to programs.  
@@ -133,6 +137,10 @@ pandoc (0.45) unstable; urgency=low
   * Changed pandoc home page to http://johnmacfarlane.net/pandoc/.
 
   [ Recai Oktaş ]
+
+  * Revised debian/rules to use pandoc.cabal.ghc66, as a transition
+    measure until GHC 6.8 gets into debian.  Modified debian/control
+    to require GHC 6.6, as a safety measure.
 
   * Makefile: fix the issue of having two copies of the library documentation
     under some usage scenarios.

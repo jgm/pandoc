@@ -1,5 +1,6 @@
 Name:            pandoc
 Version:         0.45
+Cabal-Version:   >= 1.2
 License:         GPL
 License-File:    COPYING
 Copyright:       (c) 2006-2007 John MacFarlane
@@ -31,32 +32,41 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  which convert this native representation into a target
                  format. Thus, adding an input or output format requires
                  only adding a reader or writer.
-Build-Depends:   base, parsec, xhtml, mtl, regex-compat, network
-Hs-Source-Dirs: src
-Exposed-Modules: Text.Pandoc,
-                 Text.Pandoc.Blocks,
-                 Text.Pandoc.Definition,
-                 Text.Pandoc.CharacterReferences,
-                 Text.Pandoc.Shared,
-                 Text.Pandoc.UTF8,
-                 Text.Pandoc.ASCIIMathML,
-                 Text.Pandoc.Readers.HTML,
-                 Text.Pandoc.Readers.LaTeX,
-                 Text.Pandoc.Readers.Markdown,
-                 Text.Pandoc.Readers.RST,
-                 Text.Pandoc.Writers.DefaultHeaders,
-                 Text.Pandoc.Writers.Docbook,
-                 Text.Pandoc.Writers.HTML,
-                 Text.Pandoc.Writers.LaTeX,
-                 Text.Pandoc.Writers.ConTeXt,
-                 Text.Pandoc.Writers.Man,
-                 Text.Pandoc.Writers.Markdown,
-                 Text.Pandoc.Writers.RST,
-                 Text.Pandoc.Writers.RTF,
-                 Text.Pandoc.Writers.S5
-Ghc-Options:     -O0
+Flag splitBase
+  Description:  Choose the new, smaller, split-up base package.
+  Default:      True
 
-Executable:      pandoc
-Hs-Source-Dirs: src
-Main-Is:         Main.hs
-Ghc-Options:     -O0
+Library
+  if flag(splitBase)
+    Build-Depends: base >= 3, pretty, containers
+  else
+    Build-Depends: base < 3
+  Build-Depends: parsec, xhtml, mtl, regex-compat, network
+  Hs-Source-Dirs:  src
+  Exposed-Modules: Text.Pandoc,
+                   Text.Pandoc.Blocks,
+                   Text.Pandoc.Definition,
+                   Text.Pandoc.CharacterReferences,
+                   Text.Pandoc.Shared,
+                   Text.Pandoc.UTF8,
+                   Text.Pandoc.ASCIIMathML,
+                   Text.Pandoc.Readers.HTML,
+                   Text.Pandoc.Readers.LaTeX,
+                   Text.Pandoc.Readers.Markdown,
+                   Text.Pandoc.Readers.RST,
+                   Text.Pandoc.Writers.DefaultHeaders,
+                   Text.Pandoc.Writers.Docbook,
+                   Text.Pandoc.Writers.HTML,
+                   Text.Pandoc.Writers.LaTeX,
+                   Text.Pandoc.Writers.ConTeXt,
+                   Text.Pandoc.Writers.Man,
+                   Text.Pandoc.Writers.Markdown,
+                   Text.Pandoc.Writers.RST,
+                   Text.Pandoc.Writers.RTF,
+                   Text.Pandoc.Writers.S5
+  Ghc-Options:     -O2
+
+Executable pandoc
+  Hs-Source-Dirs:  src
+  Main-Is:         Main.hs
+  Ghc-Options:     -O2

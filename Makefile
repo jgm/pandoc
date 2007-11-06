@@ -19,7 +19,7 @@ CONFIGURE := configure
 PKG       := $(shell sed -ne 's/^[Nn]ame:[[:space:]]*//p' $(CABAL) | tr A-Z a-z)
 VERSION   := $(shell sed -ne 's/^[Vv]ersion:[[:space:]]*//p' $(CABAL))
 PKGID     := $(PKG)-$(VERSION)
-EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:[[:space:]]*//p' $(CABAL))
+EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:\?[[:space:]]*//p' $(CABAL))
 
 #-------------------------------------------------------------------------------
 # Install targets

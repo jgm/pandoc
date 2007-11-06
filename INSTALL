@@ -38,6 +38,12 @@ Installing Pandoc
 -----------------
 
 1.  Change to the directory containing the Pandoc distribution.
+    If you are using a version of Cabal < 1.2 (which you probably
+    are unless you've upgraded to GHC 6.8), do the following before
+    proceeding:
+
+        cp pandoc.cabal pandoc.cabal.orig
+        cp pandoc.cabal.ghc66 pandoc.cabal
 
 2.  Compile:
 
