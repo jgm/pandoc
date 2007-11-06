@@ -42,7 +42,6 @@ $(THIS).cabal.ghccurrent:
 		cp $(THIS).cabal.ghc66 $(THIS).cabal;      \
 	fi
 cabalrestore:
-	# Special code dealing with ghc 6.6 -> 6.8 transition.
 	if [ -f $(THIS).cabal.ghc66 ] && [ -f $(THIS).cabal.ghccurrent ]; then \
 		mv $(THIS).cabal.ghccurrent $(THIS).cabal;                     \
 	fi
