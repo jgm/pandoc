@@ -40,7 +40,10 @@ pandoc (0.45) unstable; urgency=low
     + Parse fields associated with '.. image::' blocks, and use 'alt'
       field, if given, for image alt and title attributes.  
 
-  * LaTeX reader: Modified specialChar so that '"' characters are parsed.
+  * LaTeX reader: 
+
+    + Modified specialChar so that '"' characters are parsed.
+    + Fixed a bug in parsing of \[ \] math blocks (thanks to Mark Kalderon).
 
   * HTML writer: Don't produce HTML for table of contents if there are
     no headers. (This would be an empty list, which is invalid XHTML.)
