@@ -204,7 +204,8 @@ blockQuote = (environment "quote" <|> environment "quotation") >>~ spaces >>=
 
 mathBlock = mathBlockWith (begin "equation") (end "equation") <|> 
             mathBlockWith (begin "displaymath") (end "displaymath") <|>
-            mathBlockWith (string "\\[") (string "\\]") <?> "math block"
+            mathBlockWith (try $ string "\\[") (try $ string "\\]") <?> 
+            "math block"
 
 mathBlockWith start end = try $ do
   start
