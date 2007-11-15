@@ -38,9 +38,11 @@ import Control.Monad.State
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
 data WriterState = 
-  WriterState { stIncludes :: S.Set String -- strings to include in header
-              , stInNote   :: Bool         -- @True@ if we're in a note
-              , stOLLevel  :: Int }        -- level of ordered list nesting 
+  WriterState { stIncludes :: S.Set String  -- strings to include in header
+              , stInNote   :: Bool          -- @True@ if we're in a note
+              , stOLLevel  :: Int           -- level of ordered list nesting
+              , stOptions  :: WriterOptions -- writer options, so they don't have to be parameter 
+              }
 
 -- | Add line to header.
 addToHeader :: String -> State WriterState ()
@@ -53,7 +55,7 @@ addToHeader str = do
 writeLaTeX :: WriterOptions -> Pandoc -> String
 writeLaTeX options document = 
   render $ evalState (pandocToLaTeX options document) $ 
-  WriterState { stIncludes = S.empty, stInNote = False, stOLLevel = 1 } 
+  WriterState { stIncludes = S.empty, stInNote = False, stOLLevel = 1, stOptions = options } 
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState Doc
 pandocToLaTeX options (Pandoc meta blocks) = do
@@ -132,9 +134,15 @@ deVerb (other:rest) = other:(deVerb rest)
 blockToLaTeX :: Block     -- ^ Block to convert
              -> State WriterState Doc
 blockToLaTeX Null = return empty
-blockToLaTeX (Plain lst) = wrapped inlineListToLaTeX lst >>= return 
-blockToLaTeX (Para lst) = 
-  wrapped inlineListToLaTeX lst >>= return . (<> char '\n')
+blockToLaTeX (Plain lst) = do
+  st <- get
+  let opts = stOptions st
+  wrapTeXIfNeeded opts inlineListToLaTeX lst
+blockToLaTeX (Para lst) = do
+  st <- get
+  let opts = stOptions st
+  result <- wrapTeXIfNeeded opts inlineListToLaTeX lst
+  return $ result <> char '\n'
 blockToLaTeX (BlockQuote lst) = do
   contents <- blockListToLaTeX lst
   return $ text "\\begin{quote}" $$ contents $$ text "\\end{quote}"
@@ -306,5 +314,5 @@ inlineToLaTeX (Note contents) = do
   let rawnote = stripTrailingNewlines $ render contents'
   -- note: a \n before } is needed when note ends with a Verbatim environment
   let optNewline = "\\end{Verbatim}" `isSuffixOf` rawnote
-  return $ text "%\n\\footnote{" <> 
+  return $ text "\\footnote{" <> 
            text rawnote <> (if optNewline then char '\n' else empty) <> char '}'
