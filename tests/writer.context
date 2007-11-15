@@ -59,47 +59,49 @@
                           \whitespace\setupindenting[no]},
                   after={\stopnarrower\whitespace}]
 
-\setupheads[sectionnumber=no, style=\bf]
-\doctitle{Pandoc Test Suite}
- \author{John MacFarlane \& Anonymous}
- \date{July 17, 2006}
 
+\doctitle{Pandoc Test Suite}
+\author{John MacFarlane \& Anonymous}
+\date{July 17, 2006}
 \starttext
 \maketitle
 
-This is a set of tests for pandoc. Most of them are adapted from John Gruber's markdown test suite.
+This is a set of tests for pandoc. Most of them are adapted from
+John Gruber's markdown test suite.
 
 \thinrule
 
-\section{Headers}
+\subject{Headers}
 
-\subsection{Level 2 with an \useurl[1][/url][][embedded link]\from[1]}
+\subsubject{Level 2 with an \useurl[1][/url][][embedded link]\from[1]}
 
-\subsubsection{Level 3 with {\em emphasis}}
+\subsubsubject{Level 3 with {\em emphasis}}
 
 Level 4
 
 Level 5
 
-\section{Level 1}
+\subject{Level 1}
 
-\subsection{Level 2 with {\em emphasis}}
+\subsubject{Level 2 with {\em emphasis}}
 
-\subsubsection{Level 3}
+\subsubsubject{Level 3}
 
 with no blank line
 
-\subsection{Level 2}
+\subsubject{Level 2}
 
 with no blank line
 
 \thinrule
 
-\section{Paragraphs}
+\subject{Paragraphs}
 
 Here's a regular paragraph.
 
-In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.
+In Markdown 1.0.0 and earlier. Version 8. This line turns into a
+list item. Because a hard-wrapped line in the middle of a paragraph
+looked like a list item.
 
 Here's one with a bullet. * criminey.
 
@@ -108,7 +110,7 @@ here.
 
 \thinrule
 
-\section{Block Quotes}
+\subject{Block Quotes}
 
 E-mail style:
 
@@ -116,7 +118,6 @@ E-mail style:
 This is a block quote. It is pretty short.
 
 \stopblockquote
-
 \startblockquote
 Code in a block quote:
 
@@ -125,11 +126,14 @@ sub status {
     print "working";
 }
 \stoptyping
+
 A list:
 
 \startitemize
-\sym{1.} item one
-\sym{2.} item two
+\sym{1.} 
+  item one
+\sym{2.} 
+  item two
 \stopitemize
 Nested block quotes:
 
@@ -137,14 +141,11 @@ Nested block quotes:
 nested
 
 \stopblockquote
-
 \startblockquote
 nested
 
 \stopblockquote
-
 \stopblockquote
-
 This should not be a block quote: 2 \lettermore{} 1.
 
 Box-style:
@@ -157,15 +158,16 @@ sub status {
     print "working";
 }
 \stoptyping
-\stopblockquote
 
+\stopblockquote
 \startblockquote
 \startitemize
-\sym{1.} do laundry
-\sym{2.} take out the trash
+\sym{1.} 
+  do laundry
+\sym{2.} 
+  take out the trash
 \stopitemize
 \stopblockquote
-
 Here's a nested one:
 
 \startblockquote
@@ -175,14 +177,12 @@ Joe said:
 Don't quote me.
 
 \stopblockquote
-
 \stopblockquote
-
 And a following paragraph.
 
 \thinrule
 
-\section{Code Blocks}
+\subject{Code Blocks}
 
 Code:
 
@@ -195,6 +195,7 @@ sub status {
 
 this code block is indented by one tab
 \stoptyping
+
 And:
 
 \starttyping
@@ -202,202 +203,269 @@ And:
 
 These should not be escaped:  \$ \\ \> \[ \{
 \stoptyping
+
 \thinrule
 
-\section{Lists}
+\subject{Lists}
 
-\subsection{Unordered}
+\subsubject{Unordered}
 
 Asterisks tight:
 
 \startltxitem
-\item asterisk 1
-\item asterisk 2
-\item asterisk 3
+\item 
+  asterisk 1
+\item 
+  asterisk 2
+\item 
+  asterisk 3
 \stopltxitem
 Asterisks loose:
 
 \startltxitem
-\item asterisk 1
+\item 
+  asterisk 1
 
-\item asterisk 2
+\item 
+  asterisk 2
 
-\item asterisk 3
+\item 
+  asterisk 3
 
 \stopltxitem
 Pluses tight:
 
 \startltxitem
-\item Plus 1
-\item Plus 2
-\item Plus 3
+\item 
+  Plus 1
+\item 
+  Plus 2
+\item 
+  Plus 3
 \stopltxitem
 Pluses loose:
 
 \startltxitem
-\item Plus 1
+\item 
+  Plus 1
 
-\item Plus 2
+\item 
+  Plus 2
 
-\item Plus 3
+\item 
+  Plus 3
 
 \stopltxitem
 Minuses tight:
 
 \startltxitem
-\item Minus 1
-\item Minus 2
-\item Minus 3
+\item 
+  Minus 1
+\item 
+  Minus 2
+\item 
+  Minus 3
 \stopltxitem
 Minuses loose:
 
 \startltxitem
-\item Minus 1
+\item 
+  Minus 1
 
-\item Minus 2
+\item 
+  Minus 2
 
-\item Minus 3
+\item 
+  Minus 3
 
 \stopltxitem
-\subsection{Ordered}
+\subsubject{Ordered}
 
 Tight:
 
 \startitemize
-\sym{1.} First
-\sym{2.} Second
-\sym{3.} Third
+\sym{1.} 
+  First
+\sym{2.} 
+  Second
+\sym{3.} 
+  Third
 \stopitemize
 and:
 
 \startitemize
-\sym{1.} One
-\sym{2.} Two
-\sym{3.} Three
+\sym{1.} 
+  One
+\sym{2.} 
+  Two
+\sym{3.} 
+  Three
 \stopitemize
 Loose using tabs:
 
 \startitemize
-\sym{1.} First
+\sym{1.} 
+  First
 
-\sym{2.} Second
+\sym{2.} 
+  Second
 
-\sym{3.} Third
+\sym{3.} 
+  Third
 
 \stopitemize
 and using spaces:
 
 \startitemize
-\sym{1.} One
+\sym{1.} 
+  One
 
-\sym{2.} Two
+\sym{2.} 
+  Two
 
-\sym{3.} Three
+\sym{3.} 
+  Three
 
 \stopitemize
 Multiple paragraphs:
 
 \startitemize
-\sym{1.} Item 1, graf one.
+\sym{1.} 
+  Item 1, graf one.
 
-Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
+  Item 1. graf two. The quick brown fox jumped over the lazy dog's
+  back.
 
-\sym{2.} Item 2.
+\sym{2.} 
+  Item 2.
 
-\sym{3.} Item 3.
+\sym{3.} 
+  Item 3.
 
 \stopitemize
-\subsection{Nested}
+\subsubject{Nested}
 
 \startltxitem
-\item Tab
-\startltxitem
-\item Tab
-\startltxitem
-\item Tab
-\stopltxitem
-\stopltxitem
+\item 
+  Tab
+  \startltxitem
+  \item 
+    Tab
+    \startltxitem
+    \item 
+      Tab
+    \stopltxitem
+  \stopltxitem
 \stopltxitem
 Here's another:
 
 \startitemize
-\sym{1.} First
-\sym{2.} Second:
-\startltxitem
-\item Fee
-\item Fie
-\item Foe
-\stopltxitem
-\sym{3.} Third
+\sym{1.} 
+  First
+\sym{2.} 
+  Second:
+  \startltxitem
+  \item 
+    Fee
+  \item 
+    Fie
+  \item 
+    Foe
+  \stopltxitem
+\sym{3.} 
+  Third
 \stopitemize
 Same thing but with paragraphs:
 
 \startitemize
-\sym{1.} First
+\sym{1.} 
+  First
 
-\sym{2.} Second:
+\sym{2.} 
+  Second:
 
-\startltxitem
-\item Fee
-\item Fie
-\item Foe
-\stopltxitem
-\sym{3.} Third
+  \startltxitem
+  \item 
+    Fee
+  \item 
+    Fie
+  \item 
+    Foe
+  \stopltxitem
+\sym{3.} 
+  Third
 
 \stopitemize
-\subsection{Tabs and spaces}
+\subsubject{Tabs and spaces}
 
 \startltxitem
-\item this is a list item indented with tabs
+\item 
+  this is a list item indented with tabs
 
-\item this is a list item indented with spaces
+\item 
+  this is a list item indented with spaces
 
-\startltxitem
-\item this is an example list item indented with tabs
+  \startltxitem
+  \item 
+    this is an example list item indented with tabs
 
-\item this is an example list item indented with spaces
+  \item 
+    this is an example list item indented with spaces
 
+  \stopltxitem
 \stopltxitem
-\stopltxitem
-\subsection{Fancy list markers}
+\subsubject{Fancy list markers}
 
 \startitemize[width=2em]
-\sym{(2)} begins with 2
-\sym{(3)} and now 3
+\sym{(2)} 
+  begins with 2
+\sym{(3)} 
+  and now 3
 
-with a continuation
+  with a continuation
 
-\startitemize[width=2em]
-\sym{iv.} sublist with roman numerals, starting with 4
-\sym{v.} more items
-\startitemize[width=2em]
-\sym{(A)} a subsublist
-\sym{(B)} a subsublist
-\stopitemize
-\stopitemize
+  \startitemize[width=2em]
+  \sym{iv.} 
+    sublist with roman numerals, starting with 4
+  \sym{v.} 
+    more items
+    \startitemize[width=2em]
+    \sym{(A)} 
+      a subsublist
+    \sym{(B)} 
+      a subsublist
+    \stopitemize
+  \stopitemize
 \stopitemize
 Nesting:
 
 \startitemize
-\sym{A.} Upper Alpha
-\startitemize
-\sym{I.} Upper Roman.
-\startitemize[width=2em]
-\sym{(6)} Decimal start with 6
-\startitemize
-\sym{c)} Lower alpha with paren
-\stopitemize
-\stopitemize
-\stopitemize
+\sym{A.} 
+  Upper Alpha
+  \startitemize
+  \sym{I.} 
+    Upper Roman.
+    \startitemize[width=2em]
+    \sym{(6)} 
+      Decimal start with 6
+      \startitemize
+      \sym{c)} 
+        Lower alpha with paren
+      \stopitemize
+    \stopitemize
+  \stopitemize
 \stopitemize
 Autonumbering:
 
 \startltxenum
-\item Autonumber.
-\item More.
-\startltxenum
-\item Nested.
-\stopltxenum
+\item 
+  Autonumber.
+\item 
+  More.
+  \startltxenum
+  \item 
+    Nested.
+  \stopltxenum
 \stopltxenum
 Should not be a list item:
 
@@ -407,36 +475,30 @@ B. Williams
 
 \thinrule
 
-\section{Definition Lists}
+\subject{Definition Lists}
 
 Tight using spaces:
 
 \startdescr{apple}
 red fruit
-
 \stopdescr
 \startdescr{orange}
 orange fruit
-
 \stopdescr
 \startdescr{banana}
 yellow fruit
-
 \stopdescr
 
 Tight using tabs:
 
 \startdescr{apple}
 red fruit
-
 \stopdescr
 \startdescr{orange}
 orange fruit
-
 \stopdescr
 \startdescr{banana}
 yellow fruit
-
 \stopdescr
 
 Loose:
@@ -444,16 +506,13 @@ Loose:
 \startdescr{apple}
 red fruit
 
-
 \stopdescr
 \startdescr{orange}
 orange fruit
 
-
 \stopdescr
 \startdescr{banana}
 yellow fruit
-
 
 \stopdescr
 
@@ -464,7 +523,6 @@ red fruit
 
 contains seeds, crisp, pleasant to taste
 
-
 \stopdescr
 \startdescr{{\em orange}}
 orange fruit
@@ -472,15 +530,14 @@ orange fruit
 \starttyping
 { orange code block }
 \stoptyping
+
 \startblockquote
 orange block quote
 
 \stopblockquote
-
-
 \stopdescr
 
-\section{HTML Blocks}
+\subject{HTML Blocks}
 
 Simple block on one line:
 
@@ -503,11 +560,13 @@ This should be a code block, though:
     foo
 </div>
 \stoptyping
+
 As should this:
 
 \starttyping
 <div>foo</div>
 \stoptyping
+
 Now, nested:
 
 foo
@@ -520,6 +579,7 @@ Code block:
 \starttyping
 <!-- Comment -->
 \stoptyping
+
 Just plain comment, with trailing spaces on the line:
 
 Code:
@@ -527,11 +587,12 @@ Code:
 \starttyping
 <hr />
 \stoptyping
+
 Hr's:
 
 \thinrule
 
-\section{Inline Markup}
+\subject{Inline Markup}
 
 This is {\em emphasized}, and so {\em is this}.
 
@@ -547,7 +608,8 @@ So is {\bf {\em this}} word.
 
 So is {\bf {\em this}} word.
 
-This is code: \type{>}, \type{$}, \type{\}, \type{\$}, \type{<html>}.
+This is code: \type{>}, \type{$}, \type{\}, \type{\$},
+\type{<html>}.
 
 \overstrikes{This is {\em strikeout}.}
 
@@ -555,21 +617,27 @@ Superscripts: a\high{bc}d a\high{{\em hello}} a\high{hello there}.
 
 Subscripts: H\low{2}O, H\low{23}O, H\low{many of them}O.
 
-These should not be superscripts or subscripts, because of the unescaped spaces: a\letterhat{}b c\letterhat{}d, a\lettertilde{}b c\lettertilde{}d.
+These should not be superscripts or subscripts, because of the
+unescaped spaces: a\letterhat{}b c\letterhat{}d, a\lettertilde{}b
+c\lettertilde{}d.
 
 \thinrule
 
-\section{Smart quotes, ellipses, dashes}
+\subject{Smart quotes, ellipses, dashes}
 
-\quotation{Hello,} said the spider. \quotation{\quote{Shelob} is my name.}
+\quotation{Hello,} said the spider.
+\quotation{\quote{Shelob} is my name.}
 
 \quote{A}, \quote{B}, and \quote{C} are letters.
 
-\quote{Oak,} \quote{elm,} and \quote{beech} are names of trees. So is \quote{pine.}
+\quote{Oak,} \quote{elm,} and \quote{beech} are names of trees. So
+is \quote{pine.}
 
-\quote{He said, \quotation{I want to go.}} Were you alive in the 70's?
+\quote{He said, \quotation{I want to go.}} Were you alive in the
+70's?
 
-Here is some quoted \quote{\type{code}} and a \quotation{\useurl[3][http://example.com/?foo=1&bar=2][][quoted link]\from[3]}.
+Here is some quoted \quote{\type{code}} and a
+\quotation{\useurl[3][http://example.com/?foo=1&bar=2][][quoted link]\from[3]}.
 
 Some dashes: one---two---three---four---five.
 
@@ -579,16 +647,21 @@ Ellipses\ldots{}and\ldots{}and\ldots{}.
 
 \thinrule
 
-\section{Special Characters}
+\subject{Special Characters}
 
 Here is some unicode:
 
 \startltxitem
-\item I hat: Î
-\item o umlaut: ö
-\item section: §
-\item set membership: ∈
-\item copyright: ©
+\item 
+  I hat: Î
+\item 
+  o umlaut: ö
+\item 
+  section: §
+\item 
+  set membership: ∈
+\item 
+  copyright: ©
 \stopltxitem
 AT\&T has an ampersand in their name.
 
@@ -634,9 +707,9 @@ Minus: -
 
 \thinrule
 
-\section{Links}
+\subject{Links}
 
-\subsection{Explicit}
+\subsubject{Explicit}
 
 Just a \useurl[4][/url/][][URL]\from[4].
 
@@ -656,7 +729,7 @@ Just a \useurl[4][/url/][][URL]\from[4].
 
 \useurl[12][][][Empty]\from[12].
 
-\subsection{Reference}
+\subsubject{Reference}
 
 Foo \useurl[13][/url/][][bar]\from[13].
 
@@ -679,44 +752,55 @@ This should [not][] be a link.
 \starttyping
 [not]: /url
 \stoptyping
+
 Foo \useurl[21][/url/][][bar]\from[21].
 
 Foo \useurl[22][/url/][][biz]\from[22].
 
-\subsection{With ampersands}
+\subsubject{With ampersands}
 
-Here's a \useurl[23][http://example.com/?foo=1&bar=2][][link with an ampersand in the URL]\from[23].
+Here's a
+\useurl[23][http://example.com/?foo=1&bar=2][][link with an ampersand in the URL]\from[23].
 
-Here's a link with an amersand in the link text: \useurl[24][http://att.com/][][AT\&T]\from[24].
+Here's a link with an amersand in the link text:
+\useurl[24][http://att.com/][][AT\&T]\from[24].
 
-Here's an \useurl[25][/script?foo=1&bar=2][][inline link]\from[25].
+Here's an
+\useurl[25][/script?foo=1&bar=2][][inline link]\from[25].
 
-Here's an \useurl[26][/script?foo=1&bar=2][][inline link in pointy braces]\from[26].
+Here's an
+\useurl[26][/script?foo=1&bar=2][][inline link in pointy braces]\from[26].
 
-\subsection{Autolinks}
+\subsubject{Autolinks}
 
-With an ampersand: \useurl[27][http://example.com/?foo=1&bar=2][][http://example.com/?foo=1\&bar=2]\from[27]
+With an ampersand:
+\useurl[27][http://example.com/?foo=1&bar=2][][http://example.com/?foo=1\&bar=2]\from[27]
 
 \startltxitem
-\item In a list?
-\item \useurl[28][http://example.com/][][http://example.com/]\from[28]
-\item It should.
+\item 
+  In a list?
+\item 
+  \useurl[28][http://example.com/][][http://example.com/]\from[28]
+\item 
+  It should.
 \stopltxitem
-An e-mail address: \useurl[29][mailto:nobody@nowhere.net][][nobody@nowhere.net]\from[29]
+An e-mail address:
+\useurl[29][mailto:nobody@nowhere.net][][nobody@nowhere.net]\from[29]
 
 \startblockquote
-Blockquoted: \useurl[30][http://example.com/][][http://example.com/]\from[30]
+Blockquoted:
+\useurl[30][http://example.com/][][http://example.com/]\from[30]
 
 \stopblockquote
-
 Auto-links should not occur here: \type{<http://example.com/>}
 
 \starttyping
 or here: <http://example.com/>
 \stoptyping
+
 \thinrule
 
-\section{Images}
+\subject{Images}
 
 From \quotation{Voyage dans la Lune} by Georges Melies (1902):
 
@@ -726,7 +810,8 @@ From \quotation{Voyage dans la Lune} by Georges Melies (1902):
 {Voyage dans la Lune}
 {\externalfigure[lalune.jpg]}
 
-Here is a movie \placefigure
+Here is a movie
+\placefigure
 []
 [fig:movie]
 {}
@@ -734,37 +819,41 @@ Here is a movie \placefigure
 
 \thinrule
 
-\section{Footnotes}
+\subject{Footnotes}
 
-Here is a footnote reference,\footnote{Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.
+Here is a footnote reference,%
+\footnote{Here is the footnote. It can go anywhere after the footnote
+reference. It need not be placed at the end of the document.}
+and another.%
+\footnote{Here's the long note. This one contains multiple blocks.
 
-} and another.\footnote{Here's the long note. This one contains multiple blocks.
-
-Subsequent blocks are indented to show that they belong to the footnote (as with list items).
+Subsequent blocks are indented to show that they belong to the
+footnote (as with list items).
 
 \starttyping
   { <code> }
 \stoptyping
-If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
 
-} This should {\em not} be a footnote reference, because it contains a space.[\letterhat{}my note] Here is an inline note.\footnote{This is {\em easier} to type. Inline notes may contain \useurl[31][http://google.com][][links]\from[31] and \type{]} verbatim characters, as well as [bracketed text].
-
-}
+If you want, you can indent every line, but you can also be lazy
+and just indent the first line of each block.}
+This should {\em not} be a footnote reference, because it contains
+a space.[\letterhat{}my note] Here is an inline note.%
+\footnote{This is {\em easier} to type. Inline notes may contain
+\useurl[31][http://google.com][][links]\from[31] and \type{]}
+verbatim characters, as well as [bracketed text].}
 
 \startblockquote
-Notes can go in quotes.\footnote{In quote.
-
-}
+Notes can go in quotes.%
+\footnote{In quote.}
 
 \stopblockquote
-
 \startitemize
-\sym{1.} And in list items.\footnote{In list.
-
-}
+\sym{1.} 
+  And in list items.%
+  \footnote{In list.}
 \stopitemize
-This paragraph should not be part of the note, as it is not indented.
-
+This paragraph should not be part of the note, as it is not
+indented.
 
 \stoptext
 
