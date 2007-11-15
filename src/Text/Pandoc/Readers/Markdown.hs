@@ -760,21 +760,24 @@ failIfInQuoteContext context = do
 singleQuoteStart = do 
   failIfInQuoteContext InSingleQuote
   char '\8216' <|> 
-     do char '\''  
-        notFollowedBy (oneOf ")!],.;:-? \t\n")
-        notFollowedBy (try (oneOfStrings ["s","t","m","ve","ll","re"] >>
-                            satisfy (not . isAlphaNum))) -- possess/contraction
-        return '\''
+     (try $ do char '\''  
+               notFollowedBy (oneOf ")!],.;:-? \t\n")
+               notFollowedBy (try (oneOfStrings ["s","t","m","ve","ll","re"] >>
+                                   satisfy (not . isAlphaNum))) 
+                                   -- possess/contraction
+               return '\'')
 
-singleQuoteEnd = char '\8217' <|> 
-                 (char '\'' >> notFollowedBy alphaNum >> return '\'')
+singleQuoteEnd = try $ do
+  char '\8217' <|> char '\''
+  notFollowedBy alphaNum
+  return '\''
 
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
   char '\8220' <|>
-     do char '"'
-        notFollowedBy (oneOf " \t\n")
-        return '"'
+     (try $ do char '"'
+               notFollowedBy (oneOf " \t\n")
+               return '"')
 
 doubleQuoteEnd = char '\8221' <|> char '"'
 
