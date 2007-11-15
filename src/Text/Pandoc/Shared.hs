@@ -45,6 +45,8 @@ module Text.Pandoc.Shared (
                      toRomanNumeral,
                      wrapped,
                      wrapIfNeeded,
+                     wrappedTeX,
+                     wrapTeXIfNeeded,
                      -- * Parsing
                      (>>~),
                      anyLine,
@@ -96,7 +98,8 @@ module Text.Pandoc.Shared (
 
 import Text.Pandoc.Definition
 import Text.ParserCombinators.Parsec
-import Text.PrettyPrint.HughesPJ ( Doc, fsep )
+import Text.PrettyPrint.HughesPJ ( Doc, fsep, ($$), (<>), empty )
+import qualified Text.PrettyPrint.HughesPJ as PP
 import Text.Pandoc.CharacterReferences ( characterReference )
 import Data.Char ( toLower, toUpper, ord, isLower, isUpper )
 import Data.List ( find, isPrefixOf )
@@ -211,11 +214,39 @@ wrapped :: Monad m => ([Inline] -> m Doc) -> [Inline] -> m Doc
 wrapped listWriter sect = (mapM listWriter $ splitBy Space sect) >>= 
                           return . fsep
 
+-- | Wrap inlines if the text wrap option is selected.
 wrapIfNeeded :: Monad m => WriterOptions -> ([Inline] -> m Doc) -> 
                            [Inline] -> m Doc
 wrapIfNeeded opts = if writerWrapText opts
                        then wrapped 
                        else ($)
+
+-- auxiliary function for wrappedTeX
+isNote (Note _) = True
+isNote _ = False
+
+-- | Wrap inlines to line length, treating footnotes in a way that
+-- makes sense in LaTeX and ConTeXt.
+wrappedTeX :: Monad m => ([Inline] -> m Doc) -> [Inline] -> m Doc
+wrappedTeX listWriter sect = do
+  let (firstpart, rest) = break isNote sect
+  firstpartWrapped <- wrapped listWriter firstpart
+  if null rest
+     then return firstpartWrapped
+     else do let (note:rest') = rest
+             restWrapped <- if null rest'
+                               then return empty
+                               else wrappedTeX listWriter rest'
+             noteText <- listWriter [note]
+             return $ firstpartWrapped <> PP.char '%' $$ noteText $$ restWrapped  
+
+-- | Wrap inlines if the text wrap option is selected, specialized 
+-- for LaTeX and ConTeXt.
+wrapTeXIfNeeded :: Monad m => WriterOptions -> ([Inline] -> m Doc) -> 
+                            [Inline] -> m Doc
+wrapTeXIfNeeded opts = if writerWrapText opts
+                          then wrappedTeX
+                          else ($)
 
 --
 -- Parsing
