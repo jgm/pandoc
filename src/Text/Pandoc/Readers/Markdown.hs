@@ -59,7 +59,7 @@ hruleChars = "*-_"
 setextHChars = "=-"
 
 -- treat these as potentially non-text when parsing inline:
-specialChars = "\\[]*_~`<>$!^-.&'\""
+specialChars = "\\[]*_~`<>$!^-.&'\"\8216\8217\8220\8221"
 
 --
 -- auxiliary functions
@@ -766,13 +766,17 @@ singleQuoteStart = do
                             satisfy (not . isAlphaNum))) -- possess/contraction
         return '\''
 
-singleQuoteEnd = (char '\'' <|> char '\8217') >> notFollowedBy alphaNum
+singleQuoteEnd = char '\8217' <|> 
+                 (char '\'' >> notFollowedBy alphaNum >> return '\'')
 
-doubleQuoteStart = failIfInQuoteContext InDoubleQuote >>
-                   (char '"' <|> char '\8220') >>
-                   notFollowedBy (oneOf " \t\n")
+doubleQuoteStart = do
+  failIfInQuoteContext InDoubleQuote
+  char '\8220' <|>
+     do char '"'
+        notFollowedBy (oneOf " \t\n")
+        return '"'
 
-doubleQuoteEnd = char '"' <|> char '\8221'
+doubleQuoteEnd = char '\8221' <|> char '"'
 
 ellipses = oneOfStrings ["...", " . . . ", ". . .", " . . ."] >> return Ellipses
 
