@@ -129,20 +129,34 @@ blockToConTeXt opts (RawHtml str) = return empty
 blockToConTeXt opts (BulletList lst) = do 
   contents <- mapM (listItemToConTeXt opts) lst
   return $ text "\\startltxitem" $$ vcat contents $$ text "\\stopltxitem"
-blockToConTeXt opts (OrderedList attribs lst) = case attribs of
-  (1, DefaultStyle, DefaultDelim) -> do
-    contents <- mapM (listItemToConTeXt opts) lst
-    return $  text "\\startltxenum"$$ vcat contents $$ text "\\stopltxenum"
-  _ -> do
-    let markers = take (length lst) $ orderedListMarkers attribs
-    contents <- zipWithM (orderedListItemToConTeXt opts) markers lst
-    let markerWidth = maximum $ map length markers 
-    let markerWidth' = if markerWidth < 3
-                          then ""
-                          else "[width=" ++ 
-                               show ((markerWidth + 2) `div` 2)  ++ "em]"
-    return $ text ("\\startitemize" ++ markerWidth') $$ vcat contents $$ 
-             text "\\stopitemize"
+blockToConTeXt opts (OrderedList (start, style, delim) lst) = do
+    contents <- mapM (listItemToConTeXt opts) lst 
+    let start' = if start == 1 then "" else "start=" ++ show start
+    let delim' = case delim of
+                        DefaultDelim -> ""
+                        Period       -> "stopper=." 
+                        OneParen     -> "stopper=)" 
+                        TwoParens    -> "left=(,stopper=)"
+    let width = maximum $ map length $ take (length contents) 
+                          (orderedListMarkers (start, style, delim))
+    let width' = (toEnum width + 1) / 2
+    let width'' = if width' > 1.5 
+                     then "width=" ++ show width' ++ "em" 
+                     else ""
+    let specs2Items = filter (not . null) [start', delim', width'']
+    let specs2 = if null specs2Items
+                    then ""
+                    else "[" ++ joinWithSep "," specs2Items ++ "]"
+    let style' = case style of
+                        DefaultStyle -> if null specs2 then "" else "[]"
+                        Decimal      -> "[n]" 
+                        LowerRoman   -> "[r]"
+                        UpperRoman   -> "[R]"
+                        LowerAlpha   -> "[a]"
+                        UpperAlpha   -> "[A]"
+    let specs = style' ++ specs2
+    return $ text ("\\startitemize" ++ specs) $$ vcat contents $$ 
+             text "\\stopitemize\n"
 blockToConTeXt opts (DefinitionList lst) =
   mapM (defListItemToConTeXt opts) lst >>= return . (<> char '\n') . vcat
 blockToConTeXt opts HorizontalRule = return $ text "\\thinrule\n"
