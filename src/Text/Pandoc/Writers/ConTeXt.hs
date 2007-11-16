@@ -121,7 +121,7 @@ blockToConTeXt opts (Para lst) =
   wrapTeXIfNeeded opts (inlineListToConTeXt opts) lst >>= return . (<> char '\n')
 blockToConTeXt opts (BlockQuote lst) = do
   contents <- blockListToConTeXt opts lst
-  return $ text "\\startblockquote" $$ contents $$ text "\\stopblockquote"
+  return $ text "\\startblockquote\n" $$ contents $$ text "\\stopblockquote"
 blockToConTeXt opts (CodeBlock str) = 
   return $ text $ "\\starttyping\n" ++ str ++ "\n\\stoptyping\n" -- \n needed
   -- because \stoptyping can't have anything after it

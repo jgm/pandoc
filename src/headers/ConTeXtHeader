@@ -54,8 +54,22 @@
 \setupthinrules[width=15em]  % width of horizontal rules
 
 % for block quotations
-\definestartstop [blockquote]
-                 [before={\startnarrower\switchtobodyfont[11pt]
-                          \whitespace\setupindenting[no]},
-                  after={\stopnarrower\whitespace}]
+\unprotect
 
+\startvariables all
+blockquote: blockquote
+\stopvariables
+
+\definedelimitedtext
+[\v!blockquote][\v!quotation]
+
+\setupdelimitedtext
+[\v!blockquote]
+[\c!left=,
+\c!right=,
+before={\blank[medium]},
+after={\blank[medium]},
+]
+
+\protect
+	
