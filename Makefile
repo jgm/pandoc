@@ -66,8 +66,8 @@ INSTALL         := install -c
 INSTALL_PROGRAM := $(INSTALL) -m 755
 INSTALL_DATA    := $(INSTALL) -m 644
 STRIP           := strip
-GHC             := ghc
-GHC_PKG         := ghc-pkg
+GHC             ?= ghc
+GHC_PKG         ?= ghc-pkg
 
 #-------------------------------------------------------------------------------
 # Recipes
@@ -120,7 +120,7 @@ $(WRAPPERS): %: $(SRCDIR)/wrappers/%.in $(SRCDIR)/wrappers/*.sh
 cleanup_files+=Setup.hi Setup.o $(BUILDCMD) $(BUILDVARS)
 configure: $(BUILDCONF) templates
 $(BUILDCONF): $(CABAL)
-	ghc -package Cabal Setup.hs -o $(BUILDCMD)
+	$(GHC) -package Cabal Setup.hs -o $(BUILDCMD)
 	$(BUILDCMD) configure --prefix=$(PREFIX)
 	# Make configuration time settings persistent (definitely a hack).
 	@echo "PREFIX?=$(PREFIX)" >$(BUILDVARS)
