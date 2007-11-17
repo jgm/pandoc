@@ -227,8 +227,12 @@ isNote _ = False
 
 -- | Wrap inlines to line length, treating footnotes in a way that
 -- makes sense in LaTeX and ConTeXt.
-wrappedTeX :: Monad m => ([Inline] -> m Doc) -> [Inline] -> m Doc
-wrappedTeX listWriter sect = do
+wrappedTeX :: Monad m 
+           => Bool                   -- | Include % on line before notes.
+           -> ([Inline] -> m Doc)    -- | Inline list writer. 
+           -> [Inline] 
+           -> m Doc
+wrappedTeX includePercent listWriter sect = do
   let (firstpart, rest) = break isNote sect
   firstpartWrapped <- wrapped listWriter firstpart
   if null rest
@@ -236,17 +240,23 @@ wrappedTeX listWriter sect = do
      else do let (note:rest') = rest
              restWrapped <- if null rest'
                                then return empty
-                               else wrappedTeX listWriter rest'
+                               else wrappedTeX includePercent listWriter rest'
              noteText <- listWriter [note]
-             return $ firstpartWrapped <> PP.char '%' $$ noteText $$ restWrapped  
+             return $ firstpartWrapped <> 
+                      (if includePercent then PP.char '%' else empty) $$ 
+                      noteText $$ restWrapped  
 
 -- | Wrap inlines if the text wrap option is selected, specialized 
 -- for LaTeX and ConTeXt.
-wrapTeXIfNeeded :: Monad m => WriterOptions -> ([Inline] -> m Doc) -> 
-                            [Inline] -> m Doc
-wrapTeXIfNeeded opts = if writerWrapText opts
-                          then wrappedTeX
-                          else ($)
+wrapTeXIfNeeded :: Monad m 
+                => WriterOptions
+                -> Bool                 -- | Include % on line before notes.
+                -> ([Inline] -> m Doc)  -- | Inline list writer. 
+                -> [Inline] 
+                -> m Doc
+wrapTeXIfNeeded opts includePercent = if writerWrapText opts
+                                         then wrappedTeX includePercent
+                                         else ($)
 
 --
 -- Parsing

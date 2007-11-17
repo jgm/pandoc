@@ -821,11 +821,11 @@ Here is a movie
 
 \subject{Footnotes}
 
-Here is a footnote reference,%
-\footnote{Here is the footnote. It can go anywhere after the footnote
+Here is a footnote reference,
+    \footnote{Here is the footnote. It can go anywhere after the footnote
 reference. It need not be placed at the end of the document.}
-and another.%
-\footnote{Here's the long note. This one contains multiple blocks.
+and another.
+    \footnote{Here's the long note. This one contains multiple blocks.
 
 Subsequent blocks are indented to show that they belong to the
 footnote (as with list items).
@@ -837,20 +837,20 @@ footnote (as with list items).
 If you want, you can indent every line, but you can also be lazy
 and just indent the first line of each block.}
 This should {\em not} be a footnote reference, because it contains
-a space.[\letterhat{}my note] Here is an inline note.%
-\footnote{This is {\em easier} to type. Inline notes may contain
+a space.[\letterhat{}my note] Here is an inline note.
+    \footnote{This is {\em easier} to type. Inline notes may contain
 \useurl[31][http://google.com][][links]\from[31] and \type{]}
 verbatim characters, as well as [bracketed text].}
 
 \startblockquote
-Notes can go in quotes.%
-\footnote{In quote.}
+Notes can go in quotes.
+    \footnote{In quote.}
 
 \stopblockquote
 \startitemize
 \sym{1.} 
-  And in list items.%
-  \footnote{In list.}
+  And in list items.
+      \footnote{In list.}
 \stopitemize
 This paragraph should not be part of the note, as it is not
 indented.

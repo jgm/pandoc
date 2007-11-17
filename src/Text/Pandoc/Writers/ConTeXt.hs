@@ -116,9 +116,9 @@ blockToConTeXt :: WriterOptions
                -> State WriterState Doc 
 blockToConTeXt opts Null = return empty
 blockToConTeXt opts (Plain lst) = 
-  wrapTeXIfNeeded opts (inlineListToConTeXt opts) lst >>= return
+  wrapTeXIfNeeded opts False (inlineListToConTeXt opts) lst >>= return
 blockToConTeXt opts (Para lst) = 
-  wrapTeXIfNeeded opts (inlineListToConTeXt opts) lst >>= return . (<> char '\n')
+  wrapTeXIfNeeded opts False (inlineListToConTeXt opts) lst >>= return . (<> char '\n')
 blockToConTeXt opts (BlockQuote lst) = do
   contents <- blockListToConTeXt opts lst
   return $ text "\\startblockquote\n" $$ contents $$ text "\\stopblockquote"
@@ -270,7 +270,7 @@ inlineToConTeXt opts (Image alternate (src, tit)) = do
            text tit <> text "}\n{\\externalfigure[" <> text src <> text "]}" 
 inlineToConTeXt opts (Note contents) = do
   contents' <- blockListToConTeXt opts contents
-  return $ text "\\footnote{" <> 
+  return $ text "    \\footnote{" <> 
            text (stripTrailingNewlines $ render contents') <> 
            char '}'
 

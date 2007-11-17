@@ -137,11 +137,11 @@ blockToLaTeX Null = return empty
 blockToLaTeX (Plain lst) = do
   st <- get
   let opts = stOptions st
-  wrapTeXIfNeeded opts inlineListToLaTeX lst
+  wrapTeXIfNeeded opts True inlineListToLaTeX lst
 blockToLaTeX (Para lst) = do
   st <- get
   let opts = stOptions st
-  result <- wrapTeXIfNeeded opts inlineListToLaTeX lst
+  result <- wrapTeXIfNeeded opts True inlineListToLaTeX lst
   return $ result <> char '\n'
 blockToLaTeX (BlockQuote lst) = do
   contents <- blockListToLaTeX lst
@@ -314,5 +314,5 @@ inlineToLaTeX (Note contents) = do
   let rawnote = stripTrailingNewlines $ render contents'
   -- note: a \n before } is needed when note ends with a Verbatim environment
   let optNewline = "\\end{Verbatim}" `isSuffixOf` rawnote
-  return $ text "\\footnote{" <> 
+  return $ text "    \\footnote{" <> 
            text rawnote <> (if optNewline then char '\n' else empty) <> char '}'
