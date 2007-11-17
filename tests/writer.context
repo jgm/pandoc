@@ -77,9 +77,9 @@ John Gruber's markdown test suite.
 
 \subsubsubject{Level 3 with {\em emphasis}}
 
-Level 4
+\subsubsubsubject{Level 4}
 
-Level 5
+\subsubsubsubsubject{Level 5}
 
 \subject{Level 1}
 

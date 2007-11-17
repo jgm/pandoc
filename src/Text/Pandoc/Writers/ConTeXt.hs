@@ -163,8 +163,10 @@ blockToConTeXt opts HorizontalRule = return $ text "\\thinrule\n"
 blockToConTeXt opts (Header level lst) = do
   contents <- inlineListToConTeXt opts lst
   let base = if writerNumberSections opts then "section" else "subject"
-  return $ char '\\' <> text (concat (replicate (level - 1) "sub")) <> 
-           text base <> char '{' <> contents <> char '}' <> char '\n'
+  return $ if level >= 1 && level <= 5
+              then char '\\' <> text (concat (replicate (level - 1) "sub")) <> 
+                   text base <> char '{' <> contents <> char '}' <> char '\n'
+              else contents <> char '\n'
 blockToConTeXt opts (Table caption aligns widths heads rows) = do
     let colWidths = map printDecimal widths
     let colDescriptor colWidth alignment = (case alignment of
