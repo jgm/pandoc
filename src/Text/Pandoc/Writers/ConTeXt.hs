@@ -35,16 +35,27 @@ import Data.List ( (\\), intersperse )
 import Control.Monad.State
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
-type WriterState = Int -- number of next URL reference 
+data WriterState = 
+  WriterState { stNextRef          :: Int  -- number of next URL reference
+              , stOrderedListLevel :: Int  -- level of ordered list
+              , stOptions          :: WriterOptions -- writer options
+              }
+
+orderedListStyles = cycle ["[n]","[a]", "[r]", "[g]"] 
 
 -- | Convert Pandoc to ConTeXt.
 writeConTeXt :: WriterOptions -> Pandoc -> String
-writeConTeXt options document = render $ 
-  evalState (pandocToConTeXt options document) 1 
+writeConTeXt options document = 
+  let defaultWriterState = WriterState { stNextRef = 1
+                                       , stOrderedListLevel = 0
+                                       , stOptions = options
+                                       } 
+  in  render $ 
+  evalState (pandocToConTeXt options document) defaultWriterState 
 
 pandocToConTeXt :: WriterOptions -> Pandoc -> State WriterState Doc
 pandocToConTeXt options (Pandoc meta blocks) = do
-  main    <- blockListToConTeXt options blocks 
+  main    <- blockListToConTeXt blocks 
   let before = if null (writerIncludeBefore options)
                   then empty
                   else text $ writerIncludeBefore options
@@ -70,7 +81,7 @@ contextHeader :: WriterOptions -- ^ Options, including ConTeXt header
 contextHeader options (Meta title authors date) = do
   titletext    <- if null title
                      then return empty 
-                     else inlineListToConTeXt options title
+                     else inlineListToConTeXt title
   let authorstext = if null authors
                        then ""
                        else if length authors == 1
@@ -111,26 +122,35 @@ stringToConTeXt :: String -> String
 stringToConTeXt = concatMap escapeCharForConTeXt
 
 -- | Convert Pandoc block element to ConTeXt.
-blockToConTeXt :: WriterOptions
-               -> Block 
+blockToConTeXt :: Block 
                -> State WriterState Doc 
-blockToConTeXt opts Null = return empty
-blockToConTeXt opts (Plain lst) = 
-  wrapTeXIfNeeded opts False (inlineListToConTeXt opts) lst >>= return
-blockToConTeXt opts (Para lst) = 
-  wrapTeXIfNeeded opts False (inlineListToConTeXt opts) lst >>= return . (<> char '\n')
-blockToConTeXt opts (BlockQuote lst) = do
-  contents <- blockListToConTeXt opts lst
+blockToConTeXt Null = return empty
+blockToConTeXt (Plain lst) = do
+  st <- get
+  let options = stOptions st
+  contents <- wrapTeXIfNeeded options False inlineListToConTeXt lst 
+  return contents
+blockToConTeXt (Para lst) = do 
+  st <- get
+  let options = stOptions st
+  contents <- wrapTeXIfNeeded options False inlineListToConTeXt lst
+  return $ contents <> char '\n'
+blockToConTeXt (BlockQuote lst) = do
+  contents <- blockListToConTeXt lst
   return $ text "\\startblockquote\n" $$ contents $$ text "\\stopblockquote"
-blockToConTeXt opts (CodeBlock str) = 
+blockToConTeXt (CodeBlock str) = 
   return $ text $ "\\starttyping\n" ++ str ++ "\n\\stoptyping\n" -- \n needed
   -- because \stoptyping can't have anything after it
-blockToConTeXt opts (RawHtml str) = return empty
-blockToConTeXt opts (BulletList lst) = do 
-  contents <- mapM (listItemToConTeXt opts) lst
-  return $ text "\\startltxitem" $$ vcat contents $$ text "\\stopltxitem"
-blockToConTeXt opts (OrderedList (start, style, delim) lst) = do
-    contents <- mapM (listItemToConTeXt opts) lst 
+blockToConTeXt (RawHtml str) = return empty
+blockToConTeXt (BulletList lst) = do 
+  contents <- mapM listItemToConTeXt lst
+  return $ text "\\startitemize" $$ vcat contents $$ text "\\stopitemize\n"
+blockToConTeXt (OrderedList (start, style, delim) lst) = do
+    st <- get
+    let level = stOrderedListLevel st
+    put $ st {stOrderedListLevel = level + 1}
+    contents <- mapM listItemToConTeXt lst
+    put $ st {stOrderedListLevel = level} 
     let start' = if start == 1 then "" else "start=" ++ show start
     let delim' = case delim of
                         DefaultDelim -> ""
@@ -148,7 +168,7 @@ blockToConTeXt opts (OrderedList (start, style, delim) lst) = do
                     then ""
                     else "[" ++ joinWithSep "," specs2Items ++ "]"
     let style' = case style of
-                        DefaultStyle -> if null specs2 then "" else "[]"
+                        DefaultStyle -> orderedListStyles !! level
                         Decimal      -> "[n]" 
                         LowerRoman   -> "[r]"
                         UpperRoman   -> "[R]"
@@ -157,17 +177,19 @@ blockToConTeXt opts (OrderedList (start, style, delim) lst) = do
     let specs = style' ++ specs2
     return $ text ("\\startitemize" ++ specs) $$ vcat contents $$ 
              text "\\stopitemize\n"
-blockToConTeXt opts (DefinitionList lst) =
-  mapM (defListItemToConTeXt opts) lst >>= return . (<> char '\n') . vcat
-blockToConTeXt opts HorizontalRule = return $ text "\\thinrule\n"
-blockToConTeXt opts (Header level lst) = do
-  contents <- inlineListToConTeXt opts lst
+blockToConTeXt (DefinitionList lst) =
+  mapM defListItemToConTeXt lst >>= return . (<> char '\n') . vcat
+blockToConTeXt HorizontalRule = return $ text "\\thinrule\n"
+blockToConTeXt (Header level lst) = do
+  contents <- inlineListToConTeXt lst
+  st <- get
+  let opts = stOptions st
   let base = if writerNumberSections opts then "section" else "subject"
   return $ if level >= 1 && level <= 5
               then char '\\' <> text (concat (replicate (level - 1) "sub")) <> 
                    text base <> char '{' <> contents <> char '}' <> char '\n'
               else contents <> char '\n'
-blockToConTeXt opts (Table caption aligns widths heads rows) = do
+blockToConTeXt (Table caption aligns widths heads rows) = do
     let colWidths = map printDecimal widths
     let colDescriptor colWidth alignment = (case alignment of
                                                AlignLeft    -> 'l' 
@@ -177,10 +199,10 @@ blockToConTeXt opts (Table caption aligns widths heads rows) = do
                                            "p(" ++ colWidth ++ "\\textwidth)|"
     let colDescriptors = "|" ++ (concat $ 
                                  zipWith colDescriptor colWidths aligns)
-    headers <- tableRowToConTeXt opts heads 
-    captionText <- inlineListToConTeXt opts caption 
+    headers <- tableRowToConTeXt heads 
+    captionText <- inlineListToConTeXt caption 
     let captionText' = if null caption then text "none" else captionText
-    rows' <- mapM (tableRowToConTeXt opts) rows 
+    rows' <- mapM tableRowToConTeXt rows 
     return $ text "\\placetable[here]{" <> captionText' <> char '}' $$
              text "\\starttable[" <> text colDescriptors <> char ']' $$
              text "\\HL" $$ headers $$ text "\\HL" $$
@@ -189,31 +211,30 @@ blockToConTeXt opts (Table caption aligns widths heads rows) = do
 printDecimal :: Float -> String
 printDecimal = printf "%.2f" 
 
-tableRowToConTeXt opts cols = do
-  cols' <- mapM (blockListToConTeXt opts) cols
+tableRowToConTeXt cols = do
+  cols' <- mapM blockListToConTeXt cols
   return $ (vcat (map (text "\\NC " <>) cols')) $$ 
            text "\\NC\\AR"
 
-listItemToConTeXt opts list = blockListToConTeXt opts list >>=
+listItemToConTeXt list = blockListToConTeXt list >>=
   return . (text "\\item " $$) . (nest 2)
 
-orderedListItemToConTeXt opts marker list = blockListToConTeXt opts list >>=
+orderedListItemToConTeXt marker list = blockListToConTeXt list >>=
   return . (text ("\\sym{" ++ marker ++ "} ") $$) . (nest 2)
 
-defListItemToConTeXt opts (term, def) = do
-  term' <- inlineListToConTeXt opts term
-  def'  <- blockListToConTeXt opts def
+defListItemToConTeXt (term, def) = do
+  term' <- inlineListToConTeXt term
+  def'  <- blockListToConTeXt def
   return $ text "\\startdescr{" <> term' <> char '}' $$ def' $$ text "\\stopdescr"
 
 -- | Convert list of block elements to ConTeXt.
-blockListToConTeXt :: WriterOptions -> [Block] -> State WriterState Doc
-blockListToConTeXt opts lst = mapM (blockToConTeXt opts) lst >>= return . vcat
+blockListToConTeXt :: [Block] -> State WriterState Doc
+blockListToConTeXt lst = mapM blockToConTeXt lst >>= return . vcat
 
 -- | Convert list of inline elements to ConTeXt.
-inlineListToConTeXt :: WriterOptions
-                    -> [Inline]  -- ^ Inlines to convert
+inlineListToConTeXt :: [Inline]  -- ^ Inlines to convert
                     -> State WriterState Doc
-inlineListToConTeXt opts lst = mapM (inlineToConTeXt opts) lst >>= return . hcat
+inlineListToConTeXt lst = mapM inlineToConTeXt lst >>= return . hcat
 
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
@@ -221,55 +242,55 @@ isQuoted Apostrophe = True
 isQuoted _ = False
 
 -- | Convert inline element to ConTeXt
-inlineToConTeXt :: WriterOptions
-                -> Inline    -- ^ Inline to convert
+inlineToConTeXt :: Inline    -- ^ Inline to convert
                 -> State WriterState Doc
-inlineToConTeXt opts (Emph lst) = do 
-  contents <- inlineListToConTeXt opts lst
+inlineToConTeXt (Emph lst) = do 
+  contents <- inlineListToConTeXt lst
   return $ text "{\\em " <> contents <> char '}'
-inlineToConTeXt opts (Strong lst) = do
-  contents <- inlineListToConTeXt opts lst
+inlineToConTeXt (Strong lst) = do
+  contents <- inlineListToConTeXt lst
   return $ text "{\\bf " <> contents <> char '}'
-inlineToConTeXt opts (Strikeout lst) = do
-  contents <- inlineListToConTeXt opts lst
+inlineToConTeXt (Strikeout lst) = do
+  contents <- inlineListToConTeXt lst
   return $ text "\\overstrikes{" <> contents <> char '}'
-inlineToConTeXt opts (Superscript lst) = do
-  contents <- inlineListToConTeXt opts lst
+inlineToConTeXt (Superscript lst) = do
+  contents <- inlineListToConTeXt lst
   return $ text "\\high{" <> contents <> char '}'
-inlineToConTeXt opts (Subscript lst) = do
-  contents <- inlineListToConTeXt opts lst
+inlineToConTeXt (Subscript lst) = do
+  contents <- inlineListToConTeXt lst
   return $ text "\\low{" <> contents <> char '}'
-inlineToConTeXt opts (Code str) = return $ text $ "\\type{" ++ str ++ "}"
-inlineToConTeXt opts (Quoted SingleQuote lst) = do
-  contents <- inlineListToConTeXt opts lst
+inlineToConTeXt (Code str) = return $ text $ "\\type{" ++ str ++ "}"
+inlineToConTeXt (Quoted SingleQuote lst) = do
+  contents <- inlineListToConTeXt lst
   return $ text "\\quote{" <> contents <> char '}'
-inlineToConTeXt opts (Quoted DoubleQuote lst) = do
-  contents <- inlineListToConTeXt opts lst
+inlineToConTeXt (Quoted DoubleQuote lst) = do
+  contents <- inlineListToConTeXt lst
   return $ text "\\quotation{" <> contents <> char '}'
-inlineToConTeXt opts Apostrophe = return $ char '\''
-inlineToConTeXt opts EmDash = return $ text "---"
-inlineToConTeXt opts EnDash = return $ text "--"
-inlineToConTeXt opts Ellipses = return $ text "\\ldots{}"
-inlineToConTeXt opts (Str str) = return $ text $ stringToConTeXt str
-inlineToConTeXt opts (TeX str) = return $ text str
-inlineToConTeXt opts (HtmlInline str) = return empty
-inlineToConTeXt opts (LineBreak) = return $ text "\\crlf\n"
-inlineToConTeXt opts Space = return $ char ' '
-inlineToConTeXt opts (Link [Code str] (src, tit)) = -- since ConTeXt has its own 
-  inlineToConTeXt opts (Link [Str str] (src, tit))  -- way of printing links... 
-inlineToConTeXt opts (Link txt (src, _)) = do
-  next <- get
-  put (next + 1)
+inlineToConTeXt Apostrophe = return $ char '\''
+inlineToConTeXt EmDash = return $ text "---"
+inlineToConTeXt EnDash = return $ text "--"
+inlineToConTeXt Ellipses = return $ text "\\ldots{}"
+inlineToConTeXt (Str str) = return $ text $ stringToConTeXt str
+inlineToConTeXt (TeX str) = return $ text str
+inlineToConTeXt (HtmlInline str) = return empty
+inlineToConTeXt (LineBreak) = return $ text "\\crlf\n"
+inlineToConTeXt Space = return $ char ' '
+inlineToConTeXt (Link [Code str] (src, tit)) = -- since ConTeXt has its own 
+  inlineToConTeXt (Link [Str str] (src, tit))  -- way of printing links... 
+inlineToConTeXt (Link txt (src, _)) = do
+  st <- get
+  let next = stNextRef st
+  put $ st {stNextRef = next + 1}
   let ref = show next
-  label <- inlineListToConTeXt opts txt
+  label <- inlineListToConTeXt txt
   return $ text "\\useurl[" <> text ref <> text "][" <> text src <>
            text "][][" <> label <> text "]\\from[" <> text ref <> char ']'
-inlineToConTeXt opts (Image alternate (src, tit)) = do
-  alt <- inlineListToConTeXt opts alternate
+inlineToConTeXt (Image alternate (src, tit)) = do
+  alt <- inlineListToConTeXt alternate
   return $ text "\\placefigure\n[]\n[fig:" <> alt <> text "]\n{" <> 
            text tit <> text "}\n{\\externalfigure[" <> text src <> text "]}" 
-inlineToConTeXt opts (Note contents) = do
-  contents' <- blockListToConTeXt opts contents
+inlineToConTeXt (Note contents) = do
+  contents' <- blockListToConTeXt contents
   return $ text "    \\footnote{" <> 
            text (stripTrailingNewlines $ render contents') <> 
            char '}'

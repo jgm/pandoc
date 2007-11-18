@@ -37,19 +37,11 @@
   headstyle=bold,style=normal,align=left,location=hanging,
   width=broad,margin=1cm]
 
-% define ltxitem (for bulleted lists)  
-\defineitemgroup[ltxitem][levels=4]
-\setupitemgroup[ltxitem][1][1]
-\setupitemgroup[ltxitem][2][2]
-\setupitemgroup[ltxitem][3][3]
-\setupitemgroup[ltxitem][4][4,packed]
-
-% define ltxenum (for enumerated lists)
-\defineitemgroup[ltxenum][levels=4]
-\setupitemgroup[ltxenum][1][n]
-\setupitemgroup[ltxenum][2][a]
-\setupitemgroup[ltxenum][3][r]
-\setupitemgroup[ltxenum][4][A,packed]
+% define defaults for bulleted lists 
+\setupitemize[1][symbol=1][indentnext=no]
+\setupitemize[2][symbol=2][indentnext=no]
+\setupitemize[3][symbol=3][indentnext=no]
+\setupitemize[4][symbol=4][indentnext=no]
 
 \setupthinrules[width=15em]  % width of horizontal rules
 
