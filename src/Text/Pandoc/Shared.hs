@@ -228,8 +228,8 @@ isNote _ = False
 -- | Wrap inlines to line length, treating footnotes in a way that
 -- makes sense in LaTeX and ConTeXt.
 wrappedTeX :: Monad m 
-           => Bool                   -- | Include % on line before notes.
-           -> ([Inline] -> m Doc)    -- | Inline list writer. 
+           => Bool
+           -> ([Inline] -> m Doc) 
            -> [Inline] 
            -> m Doc
 wrappedTeX includePercent listWriter sect = do
@@ -250,8 +250,8 @@ wrappedTeX includePercent listWriter sect = do
 -- for LaTeX and ConTeXt.
 wrapTeXIfNeeded :: Monad m 
                 => WriterOptions
-                -> Bool                 -- | Include % on line before notes.
-                -> ([Inline] -> m Doc)  -- | Inline list writer. 
+                -> Bool
+                -> ([Inline] -> m Doc) 
                 -> [Inline] 
                 -> m Doc
 wrapTeXIfNeeded opts includePercent = if writerWrapText opts
