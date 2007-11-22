@@ -33,8 +33,8 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  format. Thus, adding an input or output format requires
                  only adding a reader or writer.
 Flag splitBase
-  Description:  Choose the new, smaller, split-up base package.
-  Default:      True
+  Description:   Choose the new, smaller, split-up base package.
+  Default:       True
 
 Library
   if flag(splitBase)
@@ -65,8 +65,10 @@ Library
                    Text.Pandoc.Writers.RTF,
                    Text.Pandoc.Writers.S5
   Ghc-Options:     -O2
+  Ghc-Prof-Options: -auto-all
 
 Executable pandoc
   Hs-Source-Dirs:  src
   Main-Is:         Main.hs
   Ghc-Options:     -O2
+  Ghc-Prof-Options: -auto-all
