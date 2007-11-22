@@ -31,9 +31,10 @@ module Text.Pandoc.Readers.Markdown (
                                      readMarkdown
                                     ) where
 
-import Data.List ( transpose, isPrefixOf, isSuffixOf, lookup, sortBy )
+import Data.List ( transpose, isPrefixOf, isSuffixOf, lookup, sortBy, findIndex )
 import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum )
+import Data.Maybe ( fromMaybe )
 import Network.URI ( isURI )
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
@@ -276,13 +277,12 @@ atxHeader = try $ do
 atxClosing = try $ skipMany (char '#') >> blanklines
 
 setextHeader = try $ do
-  -- first, see if this block has any chance of being a setextHeader:
-  lookAhead (anyLine >> oneOf setextHChars)
-  text <- many1Till inline newline >>= return . normalizeSpaces
-  level <- choice $ zipWith
-           (\ch lev -> try (many1 $ char ch) >> blanklines >> return lev)
-           setextHChars [1..(length setextHChars)]
-  return $ Header level text
+  text <- many1Till inline newline
+  underlineChar <- oneOf setextHChars
+  many (char underlineChar)
+  blanklines
+  let level = (fromMaybe 0 $ findIndex (== underlineChar) setextHChars) + 1
+  return $ Header level (normalizeSpaces text)
 
 --
 -- hrule block
