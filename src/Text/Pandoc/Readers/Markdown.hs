@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Text.Pandoc.Readers.Markdown
    Copyright   : Copyright (C) 2006-7 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
@@ -27,8 +27,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of markdown-formatted plain text to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.Markdown ( 
-                                     readMarkdown 
+module Text.Pandoc.Readers.Markdown (
+                                     readMarkdown
                                     ) where
 
 import Data.List ( transpose, isPrefixOf, isSuffixOf, lookup, sortBy )
@@ -36,9 +36,9 @@ import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum )
 import Network.URI ( isURI )
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared 
+import Text.Pandoc.Shared
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment )
-import Text.Pandoc.Readers.HTML ( rawHtmlBlock, anyHtmlBlockTag, 
+import Text.Pandoc.Readers.HTML ( rawHtmlBlock, anyHtmlBlockTag,
                                   anyHtmlInlineTag, anyHtmlTag,
                                   anyHtmlEndTag, htmlEndTag, extractTagType,
                                   htmlBlockElement )
@@ -68,14 +68,14 @@ specialChars = "\\[]*_~`<>$!^-.&'\"\8216\8217\8220\8221"
 indentSpaces = try $ do
   state <- getState
   let tabStop = stateTabStop state
-  try (count tabStop (char ' ')) <|> 
+  try (count tabStop (char ' ')) <|>
     (many (char ' ') >> string "\t") <?> "indentation"
 
 nonindentSpaces = do
   state <- getState
   let tabStop = stateTabStop state
   sps <- many (char ' ')
-  if length sps < tabStop 
+  if length sps < tabStop
      then return sps
      else unexpected "indented line"
 
@@ -90,8 +90,8 @@ failUnlessSmart = do
   if stateSmart state then return () else fail "Smart typography feature"
 
 -- | Parse an inline Str element with a given content.
-inlineString str = try $ do 
-  (Str res) <- inline 
+inlineString str = try $ do
+  (Str res) <- inline
   if res == str then return res else fail $ "unexpected Str content"
 
 -- | Parse a sequence of inline elements between a string
@@ -102,9 +102,9 @@ inlinesInBalanced opener closer = try $ do
   string opener
   result <- manyTill ( (do lookAhead (inlineString opener)
                            -- because it might be a link...
-                           bal <- inlinesInBalanced opener closer 
+                           bal <- inlinesInBalanced opener closer
                            return $ [Str opener] ++ bal ++ [Str closer])
-                       <|> (count 1 inline)) 
+                       <|> (count 1 inline))
                      (try (string closer))
   return $ concat result
 
@@ -114,7 +114,7 @@ inlinesInBalanced opener closer = try $ do
 
 titleLine = try $ char '%' >> skipSpaces >> manyTill inline newline
 
-authorsLine = try $ do 
+authorsLine = try $ do
   char '%'
   skipSpaces
   authors <- sepEndBy (many1 (noneOf ",;\n")) (oneOf ",;")
@@ -142,15 +142,24 @@ parseMarkdown = do
   startPos <- getPosition
   -- go through once just to get list of reference keys
   -- docMinusKeys is the raw document with blanks where the keys were...
-  docMinusKeys <- manyTill (referenceKey <|> lineClump) eof >>= 
-                  return . concat
+  docMinusKeys <- manyTill (referenceKey <|> headerReference <|>
+                            lineClump) eof >>= return . concat
   setInput docMinusKeys
   setPosition startPos
   st <- getState
+  -- get headers and construct implicit references unless strict
+  if stateStrict st
+     then return ()
+     else do let oldkeys = stateKeys st
+             let headers = reverse $ stateHeaders st
+             let idents = uniqueIdentifiers headers
+             let implicitRefs = zipWith (\hd ident -> (hd, ("#" ++ ident, "")))
+                                headers idents
+             updateState $ \st -> st { stateKeys = oldkeys ++ implicitRefs }
   -- go through again for notes unless strict...
   if stateStrict st
      then return ()
-     else do docMinusNotes <- manyTill (noteBlock <|> lineClump) eof >>= 
+     else do docMinusNotes <- manyTill (noteBlock <|> lineClump) eof >>=
                               return . concat
              st <- getState
              let reversedNotes = stateNotes st
@@ -159,10 +168,10 @@ parseMarkdown = do
              setPosition startPos
   -- now parse it for real...
   (title, author, date) <- option ([],[],"") titleBlock
-  blocks <- parseBlocks 
+  blocks <- parseBlocks
   return $ Pandoc (Meta title author date) $ filter (/= Null) blocks
 
--- 
+--
 -- initial pass for references and notes
 --
 
@@ -185,7 +194,17 @@ referenceKey = try $ do
   -- return blanks so line count isn't affected
   return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
-referenceTitle = try $ do 
+headerReference = try $ do
+  failIfStrict
+  startPos <- getPosition
+  (Header level text) <- lookAhead $ atxHeader <|> setextHeader
+  st <- getState
+  let headers = stateHeaders st
+  updateState $ \st -> st { stateHeaders = text:headers }
+  endPos <- getPosition
+  lineClump  -- return the raw header, because we need to parse it later
+
+referenceTitle = try $ do
   (many1 spaceChar >> option '\n' newline) <|> newline
   skipSpaces
   tit <-    (charsInBalanced '(' ')' >>= return . unwords . words)
@@ -200,7 +219,7 @@ rawLine = do
   notFollowedBy blankline
   notFollowedBy' noteMarker
   contents <- many1 nonEndline
-  end <- option "" (newline >> optional indentSpaces >> return "\n") 
+  end <- option "" (newline >> optional indentSpaces >> return "\n")
   return $ contents ++ end
 
 rawLines = many1 rawLine >>= return . concat
@@ -229,7 +248,7 @@ noteBlock = try $ do
 
 parseBlocks = manyTill block eof
 
-block = choice [ header 
+block = choice [ header
                , table
                , codeBlock
                , hrule
@@ -260,7 +279,7 @@ setextHeader = try $ do
   -- first, see if this block has any chance of being a setextHeader:
   lookAhead (anyLine >> oneOf setextHChars)
   text <- many1Till inline newline >>= return . normalizeSpaces
-  level <- choice $ zipWith 
+  level <- choice $ zipWith
            (\ch lev -> try (many1 $ char ch) >> blanklines >> return lev)
            setextHChars [1..(length setextHChars)]
   return $ Header level text
@@ -285,7 +304,7 @@ hrule = try $ do
 indentedLine = indentSpaces >> manyTill anyChar newline >>= return . (++ "\n")
 
 codeBlock = do
-  contents <- many1 (indentedLine <|> 
+  contents <- many1 (indentedLine <|>
                      try (do b <- blanklines
                              l <- indentedLine
                              return $ b ++ l))
@@ -300,7 +319,7 @@ emacsBoxQuote = try $ do
   failIfStrict
   string ",----"
   manyTill anyChar newline
-  raw <- manyTill 
+  raw <- manyTill
          (try (char '|' >> optional (char ' ') >> manyTill anyChar newline))
          (try (string "`----"))
   blanklines
@@ -310,7 +329,7 @@ emailBlockQuoteStart = try $ nonindentSpaces >> char '>' >>~ optional (char ' ')
 
 emailBlockQuote = try $ do
   emailBlockQuoteStart
-  raw <- sepBy (many (nonEndline <|> 
+  raw <- sepBy (many (nonEndline <|>
                       (try (endline >> notFollowedBy emailBlockQuoteStart >>
                        return '\n'))))
                (try (newline >> emailBlockQuoteStart))
@@ -318,12 +337,12 @@ emailBlockQuote = try $ do
   optional blanklines
   return raw
 
-blockQuote = do 
+blockQuote = do
   raw <- emailBlockQuote <|> emacsBoxQuote
   -- parse the extracted block, which may contain various block elements:
   contents <- parseFromString parseBlocks $ (joinWithSep "\n" raw) ++ "\n\n"
   return $ BlockQuote contents
- 
+
 --
 -- list blocks
 --
@@ -358,7 +377,7 @@ orderedListStart style delim = try $ do
             then do many1 digit
                     char '.'
                     return 1
-            else orderedListMarker style delim 
+            else orderedListMarker style delim
   if delim == Period && (style == UpperAlpha || (style == UpperRoman &&
      num `elem` [1, 5, 10, 50, 100, 500, 1000]))
      then char '\t' <|> (spaceChar >> spaceChar)
@@ -382,7 +401,7 @@ rawListItem start = try $ do
   blanks <- many blankline
   return $ concat result ++ blanks
 
--- continuation of a list item - indented and separated by blankline 
+-- continuation of a list item - indented and separated by blankline
 -- or (in compact lists) endline.
 -- note: nested lists are parsed as continuations
 listContinuation start = try $ do
@@ -398,7 +417,7 @@ listContinuationLine start = try $ do
   result <- manyTill anyChar newline
   return $ result ++ "\n"
 
-listItem start = try $ do 
+listItem start = try $ do
   first <- rawListItem start
   continuations <- many (listContinuation start)
   -- parsing with ListItemState forces markers at beginning of lines to
@@ -418,7 +437,7 @@ orderedList = try $ do
   items <- many1 (listItem (orderedListStart style delim))
   return $ OrderedList (start, style, delim) $ compactify items
 
-bulletList = many1 (listItem bulletListStart) >>= 
+bulletList = many1 (listItem bulletListStart) >>=
              return . BulletList . compactify
 
 -- definition lists
@@ -459,7 +478,7 @@ definitionList = do
 -- paragraph block
 --
 
-para = try $ do 
+para = try $ do
   result <- many1 inline
   newline
   blanklines <|> do st <- getState
@@ -468,9 +487,9 @@ para = try $ do
                        else lookAhead emacsBoxQuote >> return ""
   return $ Para $ normalizeSpaces result
 
-plain = many1 inline >>= return . Plain . normalizeSpaces 
+plain = many1 inline >>= return . Plain . normalizeSpaces
 
--- 
+--
 -- raw html
 --
 
@@ -487,25 +506,25 @@ htmlBlock = do
     else rawHtmlBlocks
 
 -- True if tag is self-closing
-isSelfClosing tag = 
+isSelfClosing tag =
   isSuffixOf "/>" $ filter (not . (`elem` " \n\t")) tag
 
 strictHtmlBlock = try $ do
-  tag <- anyHtmlBlockTag 
+  tag <- anyHtmlBlockTag
   let tag' = extractTagType tag
-  if isSelfClosing tag || tag' == "hr" 
+  if isSelfClosing tag || tag' == "hr"
      then return tag
-     else do contents <- many (notFollowedBy' (htmlEndTag tag') >> 
+     else do contents <- many (notFollowedBy' (htmlEndTag tag') >>
                                (htmlElement <|> (count 1 anyChar)))
              end <- htmlEndTag tag'
              return $ tag ++ concat contents ++ end
 
 rawHtmlBlocks = do
-  htmlBlocks <- many1 rawHtmlBlock    
+  htmlBlocks <- many1 rawHtmlBlock
   let combined = concatMap (\(RawHtml str) -> str) htmlBlocks
   let combined' = if not (null combined) && last combined == '\n'
-                     then init combined  -- strip extra newline 
-                     else combined 
+                     then init combined  -- strip extra newline
+                     else combined
   return $ RawHtml combined'
 
 --
@@ -516,7 +535,7 @@ rawLaTeXEnvironment' = failIfStrict >> rawLaTeXEnvironment
 
 --
 -- Tables
--- 
+--
 
 -- Parse a dashed line with optional trailing spaces; return its length
 -- and the length including trailing space.
@@ -525,7 +544,7 @@ dashedLine ch = do
   sp     <- many spaceChar
   return $ (length dashes, length $ dashes ++ sp)
 
--- Parse a table header with dashed lines of '-' preceded by 
+-- Parse a table header with dashed lines of '-' preceded by
 -- one line of text.
 simpleTableHeader = try $ do
   rawContent  <- anyLine
@@ -548,7 +567,7 @@ tableSep = try $ nonindentSpaces >> many1 (dashedLine '-') >> string "\n"
 rawTableLine indices = do
   notFollowedBy' (blanklines <|> tableFooter)
   line <- many1Till anyChar newline
-  return $ map removeLeadingTrailingSpace $ tail $ 
+  return $ map removeLeadingTrailingSpace $ tail $
            splitByIndices (init indices) line
 
 -- Parse a table line and return a list of lists of blocks (columns).
@@ -565,8 +584,8 @@ multilineRow indices = do
 widthsFromIndices :: Int     -- Number of columns on terminal
                   -> [Int]   -- Indices
                   -> [Float] -- Fractional relative sizes of columns
-widthsFromIndices _ [] = []  
-widthsFromIndices numColumns indices = 
+widthsFromIndices _ [] = []
+widthsFromIndices numColumns indices =
   let lengths = zipWith (-) indices (0:indices)
       totLength = sum lengths
       quotient = if totLength > numColumns
@@ -605,14 +624,14 @@ simpleTable = tableWith simpleTableHeader tableLine blanklines
 multilineTable = tableWith multilineTableHeader multilineRow tableFooter
 
 multilineTableHeader = try $ do
-  tableSep 
+  tableSep
   rawContent  <- many1 (notFollowedBy' tableSep >> many1Till anyChar newline)
   initSp      <- nonindentSpaces
   dashes      <- many1 (dashedLine '-')
   newline
   let (lengths, lines) = unzip dashes
   let indices  = scanl (+) (length initSp) lines
-  let rawHeadsList = transpose $ map 
+  let rawHeadsList = transpose $ map
                      (\ln -> tail $ splitByIndices (init indices) ln)
                      rawContent
   let rawHeads = map (joinWithSep " ") rawHeadsList
@@ -625,7 +644,7 @@ multilineTableHeader = try $ do
 alignType :: [String] -> Int -> Alignment
 alignType []  len = AlignDefault
 alignType strLst len =
-  let str        = head $ sortBy (comparing length) $ 
+  let str        = head $ sortBy (comparing length) $
                           map removeTrailingSpace strLst
       leftSpace  = if null str then False else (str !! 0) `elem` " \t"
       rightSpace = length str < len || (str !! (len - 1)) `elem` " \t"
@@ -637,7 +656,7 @@ alignType strLst len =
 
 table = failIfStrict >> (simpleTable <|> multilineTable) <?> "table"
 
--- 
+--
 -- inline
 --
 
@@ -667,7 +686,7 @@ inline = choice [ str
 escapedChar = do
   char '\\'
   state <- getState
-  result <- option '\\' $ if stateStrict state 
+  result <- option '\\' $ if stateStrict state
                              then oneOf "\\`*_{}[]()>#+-.!~"
                              else satisfy (not . isAlphaNum)
   return $ Str [result]
@@ -681,17 +700,17 @@ ltSign = do
 
 specialCharsMinusLt = filter (/= '<') specialChars
 
-symbol = do 
+symbol = do
   result <- oneOf specialCharsMinusLt
   return $ Str [result]
 
 -- parses inline code, between n `s and n `s
-code = try $ do 
+code = try $ do
   starts <- many1 (char '`')
   skipSpaces
   result <- many1Till (many1 (noneOf "`\n") <|> many1 (char '`') <|>
-                       (char '\n' >> return " ")) 
-                      (try (skipSpaces >> count (length starts) (char '`') >> 
+                       (char '\n' >> return " "))
+                      (try (skipSpaces >> count (length starts) (char '`') >>
                       notFollowedBy (char '`')))
   return $ Code $ removeLeadingTrailingSpace $ concat result
 
@@ -707,30 +726,30 @@ math = try $ do
   return $ TeX ("$" ++ (joinWithSep " " words) ++ "$")
 
 emph = ((enclosed (char '*') (char '*') inline) <|>
-        (enclosed (char '_') (char '_' >> notFollowedBy alphaNum) inline)) >>= 
+        (enclosed (char '_') (char '_' >> notFollowedBy alphaNum) inline)) >>=
         return . Emph . normalizeSpaces
 
-strong = ((enclosed (string "**") (try $ string "**") inline) <|> 
+strong = ((enclosed (string "**") (try $ string "**") inline) <|>
           (enclosed (string "__") (try $ string "__") inline)) >>=
          return . Strong . normalizeSpaces
 
 strikeout = failIfStrict >> enclosed (string "~~") (try $ string "~~") inline >>=
             return . Strikeout . normalizeSpaces
 
-superscript = failIfStrict >> enclosed (char '^') (char '^') 
+superscript = failIfStrict >> enclosed (char '^') (char '^')
               (notFollowedBy' whitespace >> inline) >>= -- may not contain Space
               return . Superscript
 
 subscript = failIfStrict >> enclosed (char '~') (char '~')
             (notFollowedBy' whitespace >> inline) >>=  -- may not contain Space
-            return . Subscript 
+            return . Subscript
 
-smartPunctuation = failUnlessSmart >> 
+smartPunctuation = failUnlessSmart >>
                    choice [ quoted, apostrophe, dash, ellipses ]
 
 apostrophe = (char '\'' <|> char '\8217') >> return Apostrophe
 
-quoted = doubleQuoted <|> singleQuoted 
+quoted = doubleQuoted <|> singleQuoted
 
 withQuoteContext context parser = do
   oldState <- getState
@@ -746,7 +765,7 @@ singleQuoted = try $ do
   withQuoteContext InSingleQuote $ many1Till inline singleQuoteEnd >>=
     return . Quoted SingleQuote . normalizeSpaces
 
-doubleQuoted = try $ do 
+doubleQuoted = try $ do
   doubleQuoteStart
   withQuoteContext InDoubleQuote $ many1Till inline doubleQuoteEnd >>=
     return . Quoted DoubleQuote . normalizeSpaces
@@ -757,13 +776,13 @@ failIfInQuoteContext context = do
      then fail "already inside quotes"
      else return ()
 
-singleQuoteStart = do 
+singleQuoteStart = do
   failIfInQuoteContext InSingleQuote
-  char '\8216' <|> 
-     (try $ do char '\''  
+  char '\8216' <|>
+     (try $ do char '\''
                notFollowedBy (oneOf ")!],.;:-? \t\n")
                notFollowedBy (try (oneOfStrings ["s","t","m","ve","ll","re"] >>
-                                   satisfy (not . isAlphaNum))) 
+                                   satisfy (not . isAlphaNum)))
                                    -- possess/contraction
                return '\'')
 
@@ -807,13 +826,13 @@ endline = try $ do
   newline
   notFollowedBy blankline
   st <- getState
-  if stateStrict st 
+  if stateStrict st
     then do notFollowedBy emailBlockQuoteStart
             notFollowedBy (char '#')  -- atx header
-    else return () 
+    else return ()
   -- parse potential list-starts differently if in a list:
   if stateParserContext st == ListItemState
-     then notFollowedBy' (bulletListStart <|> 
+     then notFollowedBy' (bulletListStart <|>
                           (anyOrderedListStart >> return ()))
      else return ()
   return Space
@@ -827,7 +846,7 @@ reference = notFollowedBy' (string "[^") >>  -- footnote reference
             inlinesInBalanced "[" "]" >>= (return . normalizeSpaces)
 
 -- source for a link, with optional title
-source = try $ do 
+source = try $ do
   char '('
   optional (char '<')
   src <- many (noneOf ")> \t\n")
@@ -837,7 +856,7 @@ source = try $ do
   char ')'
   return (removeTrailingSpace src, tit)
 
-linkTitle = try $ do 
+linkTitle = try $ do
   (many1 spaceChar >> option '\n' newline) <|> newline
   skipSpaces
   delim <- char '\'' <|> char '"'
@@ -852,13 +871,13 @@ link = try $ do
 
 -- a link like [this][ref] or [this][] or [this]
 referenceLink label = do
-  ref <- option [] (try (optional (char ' ') >> 
+  ref <- option [] (try (optional (char ' ') >>
                          optional (newline >> skipSpaces) >> reference))
   let ref' = if null ref then label else ref
   state <- getState
   case lookupKeySrc (stateKeys state) ref' of
-     Nothing     -> fail "no corresponding key" 
-     Just target -> return target 
+     Nothing     -> fail "no corresponding key"
+     Just target -> return target
 
 emailAddress = try $ do
   name <- many1 (alphaNum <|> char '+')
@@ -879,7 +898,7 @@ autoLink = try $ do
   char '>'
   let src' = if "mailto:" `isPrefixOf` src
                 then drop 7 src
-                else src 
+                else src
   st <- getState
   return $ if stateStrict st
               then Link [Str src'] (src, "")
@@ -910,7 +929,7 @@ rawLaTeXInline' = failIfStrict >> rawLaTeXInline
 rawHtmlInline' = do
   st <- getState
   result <- choice $ if stateStrict st
-                        then [htmlBlockElement, anyHtmlTag, anyHtmlEndTag] 
+                        then [htmlBlockElement, anyHtmlTag, anyHtmlEndTag]
                         else [htmlBlockElement, anyHtmlInlineTag]
   return $ HtmlInline result
 

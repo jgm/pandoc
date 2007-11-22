@@ -34,6 +34,7 @@ module Text.Pandoc.Shared (
                      substitute,
                      joinWithSep,
                      -- * Text processing
+                     isPunctuation,
                      backslashEscapes,
                      escapeStringUsing,
                      stripTrailingNewlines,
@@ -91,6 +92,7 @@ module Text.Pandoc.Shared (
                      Element (..),
                      hierarchicalize,
                      isHeaderBlock,
+                     uniqueIdentifiers,
                      -- * Writer options
                      WriterOptions (..),
                      defaultWriterOptions
@@ -102,7 +104,7 @@ import Text.PrettyPrint.HughesPJ ( Doc, fsep, ($$), (<>), empty )
 import qualified Text.PrettyPrint.HughesPJ as PP
 import Text.Pandoc.CharacterReferences ( characterReference )
 import Data.Char ( toLower, toUpper, ord, isLower, isUpper )
-import Data.List ( find, isPrefixOf )
+import Data.List ( find, isPrefixOf, intersperse )
 import Control.Monad ( join )
 
 --
@@ -143,6 +145,15 @@ joinWithSep sep lst = foldr1 (\a b -> a ++ sep ++ b) lst
 --
 -- Text processing
 --
+
+-- | True if character is a punctuation character (unicode).
+isPunctuation :: Char -> Bool
+isPunctuation c =
+  let c' = ord c
+  in  if c `elem` "!\"'()*,-./:;<>?[\\]`{|}~" || c' >= 0x2000 && c' <= 0x206F ||
+         c' >= 0xE000 && c' <= 0xE0FF
+         then True
+         else False
 
 -- | Returns an association list of backslash escapes for the
 -- designated characters.
@@ -566,7 +577,8 @@ data ParserState = ParserState
       stateStrict          :: Bool,          -- ^ Use strict markdown syntax?
       stateSmart           :: Bool,          -- ^ Use smart typography?
       stateColumns         :: Int,           -- ^ Number of columns in terminal
-      stateHeaderTable     :: [HeaderType]   -- ^ Ordered list of header types used
+      stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
+      stateHeaders         :: [[Inline]]     -- ^ List of header texts used
     }
     deriving Show
 
@@ -585,7 +597,8 @@ defaultParserState =
                   stateStrict          = False,
                   stateSmart           = False,
                   stateColumns         = 80,
-                  stateHeaderTable     = [] }
+                  stateHeaderTable     = [],
+                  stateHeaders         = [] }
 
 data HeaderType 
     = SingleHeader Char  -- ^ Single line of characters underneath
@@ -786,6 +799,43 @@ hierarchicalize (block:rest) =
 isHeaderBlock :: Block -> Bool
 isHeaderBlock (Header _ _) = True
 isHeaderBlock _ = False
+
+-- | Convert Pandoc inline list to plain text identifier.
+inlineListToIdentifier :: [Inline] -> String
+inlineListToIdentifier [] = ""
+inlineListToIdentifier (x:xs) = 
+  xAsText ++ inlineListToIdentifier xs
+  where xAsText = case x of
+          Str s          -> filter (\c -> c == '-' || not (isPunctuation c)) $
+                            concat $ intersperse "-" $ words $ map toLower s
+          Emph lst       -> inlineListToIdentifier lst
+          Strikeout lst  -> inlineListToIdentifier lst
+          Superscript lst -> inlineListToIdentifier lst
+          Subscript lst  -> inlineListToIdentifier lst
+          Strong lst     -> inlineListToIdentifier lst
+          Quoted _ lst   -> inlineListToIdentifier lst
+          Code s         -> s
+          Space          -> "-"
+          EmDash         -> "-"
+          EnDash         -> "-"
+          Apostrophe     -> ""
+          Ellipses       -> ""
+          LineBreak      -> "-"
+          TeX _          -> ""
+          HtmlInline _   -> ""
+          Link lst _     -> inlineListToIdentifier lst
+          Image lst _    -> inlineListToIdentifier lst
+          Note _         -> ""
+
+-- | Return unique identifiers for list of inline lists.
+uniqueIdentifiers :: [[Inline]] -> [String]
+uniqueIdentifiers ls =
+  let addIdentifier (nonuniqueIds, uniqueIds) l =
+        let new = inlineListToIdentifier l
+            matches = length $ filter (== new) nonuniqueIds
+            new' = new ++ if matches > 0 then ("-" ++ show matches) else ""
+        in  (new:nonuniqueIds, new':uniqueIds)
+  in  reverse $ snd $ foldl addIdentifier ([],[]) ls
 
 --
 -- Writer options
