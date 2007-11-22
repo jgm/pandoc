@@ -1,7 +1,7 @@
 \enableregime[utf]  % use UTF-8
 
 \setupcolors[state=start]
-\setupinteraction[state=start, color=middlered] % needed for hyperlinks
+\setupinteraction[state=start, color=middleblue] % needed for hyperlinks
 
 \setuppapersize[letter][letter]  % use letter paper
 \setuplayout[width=middle, backspace=1.5in, cutspace=1.5in,
@@ -79,7 +79,7 @@ John Gruber's markdown test suite.
 
 \subject{Headers}
 
-\subsubject{Level 2 with an \useurl[1][/url][][embedded link]\from[1]}
+\subsubject{Level 2 with an \useURL[1][/url][][embedded link]\from[1]}
 
 \subsubsubject{Level 3 with {\em emphasis}}
 
@@ -644,7 +644,7 @@ This is {\em emphasized}, and so {\em is this}.
 
 This is {\bf strong}, and so {\bf is this}.
 
-An {\em \useurl[2][/url][][emphasized link]\from[2]}.
+An {\em \useURL[2][/url][][emphasized link]\from[2]}.
 
 {\bf {\em This is strong and em.}}
 
@@ -683,7 +683,7 @@ is \quote{pine.}
 70's?
 
 Here is some quoted \quote{\type{code}} and a
-\quotation{\useurl[3][http://example.com/?foo=1&bar=2][][quoted link]\from[3]}.
+\quotation{\useURL[3][http://example.com/?foo=1&bar=2][][quoted link]\from[3]}.
 
 Some dashes: one---two---three---four---five.
 
@@ -758,41 +758,41 @@ Minus: -
 
 \subsubject{Explicit}
 
-Just a \useurl[4][/url/][][URL]\from[4].
+Just a \useURL[4][/url/][][URL]\from[4].
 
-\useurl[5][/url/][][URL and title]\from[5].
+\useURL[5][/url/][][URL and title]\from[5].
 
-\useurl[6][/url/][][URL and title]\from[6].
+\useURL[6][/url/][][URL and title]\from[6].
 
-\useurl[7][/url/][][URL and title]\from[7].
+\useURL[7][/url/][][URL and title]\from[7].
 
-\useurl[8][/url/][][URL and title]\from[8]
+\useURL[8][/url/][][URL and title]\from[8]
 
-\useurl[9][/url/][][URL and title]\from[9]
+\useURL[9][/url/][][URL and title]\from[9]
 
-\useurl[10][/url/with_underscore][][with\letterunderscore{}underscore]\from[10]
+\useURL[10][/url/with_underscore][][with\letterunderscore{}underscore]\from[10]
 
-\useurl[11][mailto:nobody@nowhere.net][][Email link]\from[11]
+\useURL[11][mailto:nobody@nowhere.net][][Email link]\from[11]
 
-\useurl[12][][][Empty]\from[12].
+\useURL[12][][][Empty]\from[12].
 
 \subsubject{Reference}
 
-Foo \useurl[13][/url/][][bar]\from[13].
+Foo \useURL[13][/url/][][bar]\from[13].
 
-Foo \useurl[14][/url/][][bar]\from[14].
+Foo \useURL[14][/url/][][bar]\from[14].
 
-Foo \useurl[15][/url/][][bar]\from[15].
+Foo \useURL[15][/url/][][bar]\from[15].
 
-With \useurl[16][/url/][][embedded [brackets]]\from[16].
+With \useURL[16][/url/][][embedded [brackets]]\from[16].
 
-\useurl[17][/url/][][b]\from[17] by itself should be a link.
+\useURL[17][/url/][][b]\from[17] by itself should be a link.
 
-Indented \useurl[18][/url][][once]\from[18].
+Indented \useURL[18][/url][][once]\from[18].
 
-Indented \useurl[19][/url][][twice]\from[19].
+Indented \useURL[19][/url][][twice]\from[19].
 
-Indented \useurl[20][/url][][thrice]\from[20].
+Indented \useURL[20][/url][][thrice]\from[20].
 
 This should [not][] be a link.
 
@@ -800,45 +800,45 @@ This should [not][] be a link.
 [not]: /url
 \stoptyping
 
-Foo \useurl[21][/url/][][bar]\from[21].
+Foo \useURL[21][/url/][][bar]\from[21].
 
-Foo \useurl[22][/url/][][biz]\from[22].
+Foo \useURL[22][/url/][][biz]\from[22].
 
 \subsubject{With ampersands}
 
 Here's a
-\useurl[23][http://example.com/?foo=1&bar=2][][link with an ampersand in the URL]\from[23].
+\useURL[23][http://example.com/?foo=1&bar=2][][link with an ampersand in the URL]\from[23].
 
 Here's a link with an amersand in the link text:
-\useurl[24][http://att.com/][][AT\&T]\from[24].
+\useURL[24][http://att.com/][][AT\&T]\from[24].
 
 Here's an
-\useurl[25][/script?foo=1&bar=2][][inline link]\from[25].
+\useURL[25][/script?foo=1&bar=2][][inline link]\from[25].
 
 Here's an
-\useurl[26][/script?foo=1&bar=2][][inline link in pointy braces]\from[26].
+\useURL[26][/script?foo=1&bar=2][][inline link in pointy braces]\from[26].
 
 \subsubject{Autolinks}
 
 With an ampersand:
-\useurl[27][http://example.com/?foo=1&bar=2][][http://example.com/?foo=1\&bar=2]\from[27]
+\useURL[27][http://example.com/?foo=1&bar=2][][http://example.com/?foo=1\&bar=2]\from[27]
 
 \startitemize
 \item 
   In a list?
 \item 
-  \useurl[28][http://example.com/][][http://example.com/]\from[28]
+  \useURL[28][http://example.com/][][http://example.com/]\from[28]
 \item 
   It should.
 \stopitemize
 
 An e-mail address:
-\useurl[29][mailto:nobody@nowhere.net][][nobody@nowhere.net]\from[29]
+\useURL[29][mailto:nobody@nowhere.net][][nobody@nowhere.net]\from[29]
 
 \startblockquote
 
 Blockquoted:
-\useurl[30][http://example.com/][][http://example.com/]\from[30]
+\useURL[30][http://example.com/][][http://example.com/]\from[30]
 
 \stopblockquote
 Auto-links should not occur here: \type{<http://example.com/>}
@@ -888,7 +888,7 @@ and just indent the first line of each block.}
 This should {\em not} be a footnote reference, because it contains
 a space.[\letterhat{}my note] Here is an inline note.
     \footnote{This is {\em easier} to type. Inline notes may contain
-\useurl[31][http://google.com][][links]\from[31] and \type{]}
+\useURL[31][http://google.com][][links]\from[31] and \type{]}
 verbatim characters, as well as [bracketed text].}
 
 \startblockquote
