@@ -283,7 +283,7 @@ inlineToConTeXt (Link txt (src, _)) = do
   put $ st {stNextRef = next + 1}
   let ref = show next
   label <- inlineListToConTeXt txt
-  return $ text "\\useurl[" <> text ref <> text "][" <> text src <>
+  return $ text "\\useURL[" <> text ref <> text "][" <> text src <>
            text "][][" <> label <> text "]\\from[" <> text ref <> char ']'
 inlineToConTeXt (Image alternate (src, tit)) = do
   alt <- inlineListToConTeXt alternate

@@ -1,7 +1,7 @@
 \enableregime[utf]  % use UTF-8
 
 \setupcolors[state=start]
-\setupinteraction[state=start, color=middlered] % needed for hyperlinks
+\setupinteraction[state=start, color=middleblue] % needed for hyperlinks
 
 \setuppapersize[letter][letter]  % use letter paper
 \setuplayout[width=middle, backspace=1.5in, cutspace=1.5in,
