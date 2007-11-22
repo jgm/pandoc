@@ -379,18 +379,21 @@ charsInBalanced' open close = try $ do
   char close
   return $ concat raw
 
+-- Auxiliary functions for romanNumeral:
+
+lowercaseRomanDigits = ['i','v','x','l','c','d','m']
+uppercaseRomanDigits = map toUpper lowercaseRomanDigits
+
 -- | Parses a roman numeral (uppercase or lowercase), returns number.
 romanNumeral :: Bool                  -- ^ Uppercase if true
              -> GenParser Char st Int
 romanNumeral upperCase = do
-    let charAnyCase c = char (if upperCase then toUpper c else c)
-    let one = charAnyCase 'i'
-    let five = charAnyCase 'v'
-    let ten = charAnyCase 'x'
-    let fifty = charAnyCase 'l'
-    let hundred = charAnyCase 'c'
-    let fivehundred = charAnyCase 'd'
-    let thousand = charAnyCase 'm'
+    let romanDigits = if upperCase 
+                         then uppercaseRomanDigits 
+                         else lowercaseRomanDigits
+    lookAhead $ oneOf romanDigits 
+    let [one, five, ten, fifty, hundred, fivehundred, thousand] = 
+          map char romanDigits
     thousands <- many thousand >>= (return . (1000 *) . length)
     ninehundreds <- option 0 $ try $ hundred >> thousand >> return 900
     fivehundreds <- many fivehundred >>= (return . (500 *) . length)
