@@ -193,12 +193,58 @@ obfuscateChar char =
 obfuscateString :: String -> String
 obfuscateString = concatMap obfuscateChar . decodeCharacterReferences
 
+-- | True if character is a punctuation character (unicode).
+isPunctuation :: Char -> Bool
+isPunctuation c =
+  let c' = ord c
+  in  if c `elem` "!\"'()*,-./:;<>?[\\]`{|}~" || c' >= 0x2000 && c' <= 0x206F ||
+         c' >= 0xE000 && c' <= 0xE0FF
+         then True
+         else False
+
 -- | Add CSS for document header.
 addToCSS :: String -> State WriterState ()
 addToCSS item = do
   st <- get
   let current = stCSS st
   put $ st {stCSS = S.insert item current}
+
+-- | Convert Pandoc inline list to plain text identifier.
+inlineListToIdentifier :: [Inline] -> String
+inlineListToIdentifier [] = ""
+inlineListToIdentifier (x:xs) = 
+  xAsText ++ inlineListToIdentifier xs
+  where xAsText = case x of
+          Str s          -> filter (\c -> c == '-' || not (isPunctuation c)) $
+                            concat $ intersperse "-" $ words $ map toLower s
+          Emph lst       -> inlineListToIdentifier lst
+          Strikeout lst  -> inlineListToIdentifier lst
+          Superscript lst -> inlineListToIdentifier lst
+          Subscript lst  -> inlineListToIdentifier lst
+          Strong lst     -> inlineListToIdentifier lst
+          Quoted _ lst   -> inlineListToIdentifier lst
+          Code s         -> s
+          Space          -> "-"
+          EmDash         -> "-"
+          EnDash         -> "-"
+          Apostrophe     -> ""
+          Ellipses       -> ""
+          LineBreak      -> "-"
+          TeX _          -> ""
+          HtmlInline _   -> ""
+          Link lst _     -> inlineListToIdentifier lst
+          Image lst _    -> inlineListToIdentifier lst
+          Note _         -> ""
+
+-- | Return unique identifiers for list of inline lists.
+uniqueIdentifiers :: [[Inline]] -> [String]
+uniqueIdentifiers ls =
+  let addIdentifier (nonuniqueIds, uniqueIds) l =
+        let new = inlineListToIdentifier l
+            matches = length $ filter (== new) nonuniqueIds
+            new' = new ++ if matches > 0 then ("-" ++ show matches) else ""
+        in  (new:nonuniqueIds, new':uniqueIds)
+  in  reverse $ snd $ foldl addIdentifier ([],[]) ls
 
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: WriterOptions -> Block -> State WriterState Html

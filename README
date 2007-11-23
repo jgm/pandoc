@@ -299,7 +299,7 @@ For further documentation, see the `pandoc(1)` man page.
 :   includes *string* as a prefix at the beginning of the title that
     appears in the HTML header (but not in the title as it appears at
     the beginning of the HTML body). (See below on
-    [Title Blocks].)
+    [Title Blocks](#title-blocks).)
 
 `-S` or `--smart`
 :   causes `pandoc` to produce typographically correct output, along the
@@ -797,28 +797,8 @@ another. A link to this section, for example, might look like this:
 
     See the section on [header identifiers](#header-identifiers-in-html). 
 
-Note that this method of providing links to sections works only in
-HTML.
-
-Shortcut links to section headers
----------------------------------
-
-You may use the following shortcut to link to a section header:
-
-    See the section on [Header identifiers in HTML].
-
-Pandoc will behave as if the document contains
-
-    [Header identifiers in HTML]: #header-identifiers-in-html
-
-If there are multiple headers labeled "Header identifiers in HTML",
-this will link to the first one. Note that implicit references are always
-overridden by explicit ones, so the link in the following text
-will be to `/url`, not `#header-identifiers-in-html`:
-
-    See the section on [Header identifiers in HTML].
-
-    [Header identifiers in HTML]: /url
+Note, however, that this method of providing links to sections works
+only in HTML.
 
 Box-style blockquotes
 ---------------------
