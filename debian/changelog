@@ -5,7 +5,7 @@ pandoc (0.45) unstable; urgency=low
   * Simplified parsing of reference keys and notes in markdown and RST
     readers: The Reference data structure from Text.Pandoc.Shared is no
     longer needed, since referenceKey and noteBlock parses return strings
-    (as many blank lines as are occuried by the key or note) and update
+    (as many blank lines as were occupied by the key or note) and update
     state themselves.  getPosition and setPosition are now used to ensure
     that error messages will give the correct line number. This yields
     cleaner (and slightly faster) code, with more accurate parsing error
@@ -19,13 +19,20 @@ pandoc (0.45) unstable; urgency=low
     + Changed parsing of code blocks in HTML reader:  <code> tag is no
       longer needed. <pre> suffices. All HTML tags in the code block
       (e.g. for syntax highlighting) are skipped, because they are not
-      portable to other output formats. <code>...</code> not surrounded
-      by <pre> now counts as inline HTML, not code block.
+      portable to other output formats. A <code>...</code> block not
+      surrounded by <pre> now counts as inline HTML, not a code block.
     + Remove just one leading and one trailing newline from contents of
       <pre>...</pre> in codeBlock parser.
  
-  * Markdown reader: Require space before title in links and references.
-    This fixes a bug in parsing URLs like http://silly/url(withparen).
+  * Markdown reader:
+
+    + Require space before title in links and references.
+      This fixes a bug in parsing URLs like http://silly/url(withparen).
+    + Improved and simplified setextHeader parser.
+    + Fixed logic in smart quote parsing, adding some needed 'try'
+      statements.
+    + Fixed smart quote parsing so that unicode characters 8216 and 8217
+      are recognized as single quotes, and 8220 and 8221 as double quotes.
 
   * RST reader:
 
@@ -82,13 +89,45 @@ pandoc (0.45) unstable; urgency=low
     + If label for a link reference contains a colon, surround it by `
       signs so it won't be interpreted as the end of the link label.
 
-  * LaTeX writer:  Cleaner output for footnotes.  Footnotes now always
-    begin on a new line, and the final } is on a line by itself only
-    when it needs to be (i.e. only when the note ends with a Verbatim
-    environment).
+  * LaTeX writer:
 
-  * Text.Pandoc.Shared:  save and restore position in parseFromString,
-    so that accurate error messages can be given.
+    + Cleaner output for footnotes. Footnotes now always begin on a new
+      line, and the final } is on a line by itself only when it needs to
+      be (i.e. only when the note ends with a Verbatim environment).
+    + Added writer options to state, so state doesn't need to be passed as
+      a parameter.
+    + Text wrapping now provided, using wrapTeXIfNeeded.
+
+  * ConTeXt writer:  many improvements for more idiomatic ConTeXt output.
+
+    + PrettyPrint module now used for output.
+    + Writer options are now in state, so they don't have to be passed as
+      a parameter.
+    + Text wrapping now provided, using wrapTeXIfNeeded.
+    + Better treatment of footnotes:  footnotes are always on lines by themselves.
+    + Use \subject, \subsubject, ... or \section, \subsection, ... for headings,
+      depending on whether --number-sections option is selected.
+    + Extra blank line inserted after \stopitemize
+    + Use new, "official" definition of blockquote environment. Also, use
+      blank line after \startblockquote to balance blank line at the end.
+    + Both itemized and enumerated lists are now generated using \start-stopitemize,
+      with appropriate options.  Removed definitions of ltxenum and ltxitem,
+      which are no longer needed.  Provided defaults for itemized lists in
+      the preamble.  State keeps track of ordered list level, so that
+      when default numbering is specified, the appropriate scheme can be used.
+    + Changed \useurl to \useURL.
+    + Changed link color from red to blue.
+    + Use \subsubsubsubsection etc., since these are supported 
+      (up to at least sub x 5).
+
+  * Text.Pandoc.Shared:
+
+    + Save and restore position in parseFromString, so that accurate
+      error messages can be given.
+    + Improved efficiency of romanNumeral parser.
+    + Added wrappedTeX and wrapTeXIfNeeded functions.  These ensure
+      that footnotes occur on lines by themselves (to make them
+      easier to see and move) and do not screw up line wrapping.
 
   * Text.Pandoc.UTF8:  modified fromUTF8 to strip out the BOM
     if present.  Windows Notepad and other applications insert a
@@ -106,7 +145,6 @@ pandoc (0.45) unstable; urgency=low
     + Use wrapIfNeeded instead of wrapped in the RST, Man, Docbook, and
       Markdown writers.
     + Added render and renderFragment helpers to HTML writer.
-    + Note: Not yet implemented in LaTeX or ConTeXt writers.
 
   * Modified html2markdown to run tidy only if the HTML cannot be
     parsed. Previously html2markdown piped all input through tidy
@@ -120,11 +158,20 @@ pandoc (0.45) unstable; urgency=low
   * Removed 'version' constant from Main.hs; added 'pandocVersion' to
     Text.Pandoc library.
 
-  * Modified Makefile to work with Cabal configurations and GHC 6.8.
-    Provide pandoc.cabal.ghc66 for people who are still using older
-    versions of Cabal, which don't support configurations.
+  * pandoc.cabal:
 
-  * Fixed MacPorts Portfile:
+    + Modified to work with GHC 6.8 and Cabal configurations. (For GHC
+      6.8, pretty and containers must be added to Build-Depends, and it
+      is desirable to use the -O2 compiler option.)  Cabal configurations
+      allows one to select options depending on the compiler version.
+      For GHC 6.6, the splitBase option can be disabled.
+    + pandoc.cabal.ghc66 is provided for users with older versions of
+      Cabal, which do not support configurations.
+    + Use Ghc-Prof-Options to ensure that '-auto-all' is used when
+      '--enable-(executable|library)-profiling' is specified. Updated
+      PROFILING instructions accordingly.
+
+  * MacPorts Portfile:
 
     + Modified to install the pandoc library in addition to programs.  
     + Installation must be done manually rather than using Makefile's
@@ -145,8 +192,13 @@ pandoc (0.45) unstable; urgency=low
     measure until GHC 6.8 gets into debian.  Modified debian/control
     to require GHC 6.6, as a safety measure.
 
-  * Makefile: fix the issue of having two copies of the library documentation
+  * Fixed the issue of having two copies of the library documentation
     under some usage scenarios.
+
+  * Replaced 'ghc' with '$(GHC)' in Makefile, and made GHC
+    and GHC_PKG configurable through the environment, to support
+    unusual ghc installations.  For example:
+    GHC=/opt/ghc/bin/ghc GHC_PKG=/opt/ghc/bin/ghc-pkg make
 
  -- Recai Oktaş <roktas@debian.org>  Sun, 07 Oct 2007 20:51:43 +0300
 
