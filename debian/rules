@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # debian/rules for pandoc.
-# Copyright © 2006  Recai Oktaþ <roktasATdebian.org>
+# Copyright Â© 2006  Recai OktaÅŸ <roktasATdebian.org>
 #
 # This file is based on John Goerzen's Cabal Debian template.
 # See http://www.n-heptane.com/nhlab/repos/cabalDebianTemplate/
@@ -33,21 +33,8 @@ endif
 # Export all variables which will be used in various stages of build process.
 export PREFIX DESTDIR DATADIR DOCDIR HCFLAGS
 
-# Special code dealing with ghc 6.6 -> 6.8 transition.
-.PHONY: cabalbackup cabalrestore
-cabalbackup: $(THIS).cabal.ghccurrent
-$(THIS).cabal.ghccurrent:
-	if [ -f $(THIS).cabal.ghc66 ]; then                \
-		mv $(THIS).cabal $(THIS).cabal.ghccurrent; \
-		cp $(THIS).cabal.ghc66 $(THIS).cabal;      \
-	fi
-cabalrestore:
-	if [ -f $(THIS).cabal.ghc66 ] && [ -f $(THIS).cabal.ghccurrent ]; then \
-		mv $(THIS).cabal.ghccurrent $(THIS).cabal;                     \
-	fi
-
 configure: configure-stamp
-configure-stamp: cabalbackup
+configure-stamp:
 	dh_testdir
 	$(MAKE) configure
 
@@ -133,5 +120,5 @@ binary-arch: build install
 	dh_md5sums -a
 	dh_builddeb -a
 
-binary: binary-indep binary-arch cabalrestore
+binary: binary-indep binary-arch
 .PHONY: build clean binary-indep binary-arch binary install build-indep install-indep

@@ -68,6 +68,7 @@ INSTALL_DATA    := $(INSTALL) -m 644
 STRIP           := strip
 GHC             ?= ghc
 GHC_PKG         ?= ghc-pkg
+GHC_VERSION     := $(shell $(GHC) --version | sed -e 's/[^0-9]*//')
 
 #-------------------------------------------------------------------------------
 # Recipes
@@ -116,12 +117,20 @@ cleanup_files+=$(WRAPPERS)
 $(WRAPPERS): %: $(SRCDIR)/wrappers/%.in $(SRCDIR)/wrappers/*.sh
 	@$(generate-shell-script)
 
+CABAL_BACKUP=$(CABAL).orig
+cleanup_files+=$(CABAL_BACKUP)
+$(CABAL_BACKUP):
+	cp $(CABAL) $(CABAL_BACKUP) ; \
+	if echo $(GHC_VERSION) | grep -q '^6.6'; then \
+		cp $(CABAL).ghc66 $(CABAL); \
+	fi
+
 .PHONY: configure
 cleanup_files+=Setup.hi Setup.o $(BUILDCMD) $(BUILDVARS)
 configure: $(BUILDCONF) templates
-$(BUILDCONF): $(CABAL)
+$(BUILDCONF): $(CABAL) $(CABAL_BACKUP) 
 	$(GHC) -package Cabal Setup.hs -o $(BUILDCMD)
-	$(BUILDCMD) configure --prefix=$(PREFIX)
+	$(BUILDCMD) configure --prefix=$(PREFIX) --with-compiler=$(GHC) --with-hc-pkg=$(GHC_PKG)
 	# Make configuration time settings persistent (definitely a hack).
 	@echo "PREFIX?=$(PREFIX)" >$(BUILDVARS)
 	@echo "DESTDIR?=$(DESTDIR)" >>$(BUILDVARS)
