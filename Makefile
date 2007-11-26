@@ -9,7 +9,6 @@ MANDIR    := man
 TESTDIR   := tests
 BUILDDIR  := dist
 BUILDCONF := .setup-config
-BUILDCMD  := ./setup
 BUILDVARS := vars
 CONFIGURE := configure
 
@@ -28,6 +27,7 @@ WRAPPERS  := html2markdown markdown2pdf hsmarkdown
 # Add .exe extensions if we're running Windows/Cygwin.
 EXTENSION := $(shell uname | tr '[:upper:]' '[:lower:]' | \
                sed -ne 's/^cygwin.*$$/\.exe/p')
+BUILDCMD  := $(addsuffix $(EXTENSION), ./setup)
 EXECS     := $(addsuffix $(EXTENSION),$(EXECSBASE))
 PROGS     := $(EXECS) $(WRAPPERS)
 MAIN      := $(firstword $(EXECS))
