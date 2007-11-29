@@ -41,7 +41,7 @@ my %processor = (
                          opera.css outline.css print.css);
 
         foreach my $file (@files) {
-	        my $replacement = escape_for_haskell(slurp "ui/default/$file");
+	        my $replacement = escape_for_haskell(slurp "templates/ui/default/$file");
             my $escapedfile = $file;
             $escapedfile =~ s/\./\\./g;
             $template =~ s/\@$escapedfile\@/$replacement/;
@@ -55,7 +55,7 @@ my %processor = (
 	proc     => sub {
 	    my ($template) = @_;
 
-	    my $script = escape_for_haskell(slurp "ASCIIMathML.js"); 
+	    my $script = escape_for_haskell(slurp "templates/ASCIIMathML.js"); 
 	    my $acknowledgements =
 		" ASCIIMathML.js - copyright Peter Jipsen,".
 		" released under the GPL\\nSee ".
@@ -72,9 +72,9 @@ my %processor = (
 	proc     => sub {
 	    my ($template) = @_;
 
-        my (@headers) = split(/\s/,`ls headers`);
+        my (@headers) = split(/\s/,`ls templates/headers`);
         foreach my $header (@headers) {
-           my ($replacement) = escape_for_haskell(slurp "headers/$header");
+           my ($replacement) = escape_for_haskell(slurp "templates/headers/$header");
            $template =~ s/\@$header\@/$replacement/;
         }
 	    
