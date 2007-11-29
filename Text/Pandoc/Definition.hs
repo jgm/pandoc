@@ -107,6 +107,7 @@ data Inline
     | Apostrophe            -- ^ Apostrophe
     | Ellipses              -- ^ Ellipses
     | LineBreak             -- ^ Hard line break
+    | Math String           -- ^ TeX math (literal)
     | TeX String            -- ^ LaTeX code (literal)
     | HtmlInline String     -- ^ HTML code (literal)
     | Link [Inline] Target  -- ^ Hyperlink: text (list of inlines), target
