@@ -290,6 +290,7 @@ inlineToLaTeX EmDash = return $ text "---"
 inlineToLaTeX EnDash = return $ text "--"
 inlineToLaTeX Ellipses = return $ text "\\ldots{}"
 inlineToLaTeX (Str str) = return $ text $ stringToLaTeX str
+inlineToLaTeX (Math str) = return $ char '$' <> text str <> char '$'
 inlineToLaTeX (TeX str) = return $ text str
 inlineToLaTeX (HtmlInline str) = return empty
 inlineToLaTeX (LineBreak) = return $ text "\\\\" 

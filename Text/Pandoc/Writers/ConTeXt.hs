@@ -271,6 +271,7 @@ inlineToConTeXt EmDash = return $ text "---"
 inlineToConTeXt EnDash = return $ text "--"
 inlineToConTeXt Ellipses = return $ text "\\ldots{}"
 inlineToConTeXt (Str str) = return $ text $ stringToConTeXt str
+inlineToConTeXt (Math str) = return $ char '$' <> text str <> char '$'
 inlineToConTeXt (TeX str) = return $ text str
 inlineToConTeXt (HtmlInline str) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf\n"

@@ -274,7 +274,8 @@ inlineToDocbook opts EmDash = text "&#8212;"
 inlineToDocbook opts EnDash = text "&#8211;" 
 inlineToDocbook opts (Code str) = 
   inTagsSimple "literal" $ text (escapeStringForXML str)
-inlineToDocbook opts (TeX str) = inlineToDocbook opts (Code str)
+inlineToDocbook opts (Math str) = inlineToDocbook opts (Code str)
+inlineToDocbook opts (TeX str) = empty
 inlineToDocbook opts (HtmlInline str) = empty
 inlineToDocbook opts LineBreak = text $ "<literallayout></literallayout>" 
 inlineToDocbook opts Space = char ' '

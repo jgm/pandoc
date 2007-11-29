@@ -337,6 +337,7 @@ inlineToMarkdown opts (Code str) =
       spacer     = if (longest == 0) then "" else " " in
   return $ text (marker ++ spacer ++ str ++ spacer ++ marker)
 inlineToMarkdown opts (Str str) = return $ text $ escapeString str
+inlineToMarkdown opts (Math str) = return $ char '$' <> text str <> char '$'
 inlineToMarkdown opts (TeX str) = return $ text str
 inlineToMarkdown opts (HtmlInline str) = return $ text str 
 inlineToMarkdown opts (LineBreak) = return $ text "  \n"

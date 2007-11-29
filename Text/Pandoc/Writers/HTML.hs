@@ -230,6 +230,7 @@ inlineListToIdentifier (x:xs) =
           Apostrophe     -> ""
           Ellipses       -> ""
           LineBreak      -> "-"
+          Math _         -> ""
           TeX _          -> ""
           HtmlInline _   -> ""
           Link lst _     -> inlineListToIdentifier lst
@@ -396,9 +397,11 @@ inlineToHtml opts inline =
                                               primHtmlChar "rdquo")
                         in  do contents <- inlineListToHtml opts lst
                                return $ leftQuote +++ contents +++ rightQuote
-    (TeX str)        -> (if writerUseASCIIMathML opts
+    (Math str)       -> (if writerUseASCIIMathML opts
                             then modify (\st -> st {stMath = True})
-                            else return ()) >> return (stringToHtml str)
+                            else return ()) >> 
+                        return (stringToHtml ("$" ++ str ++ "$"))
+    (TeX str)        -> return noHtml
     (HtmlInline str) -> return $ primHtml str 
     (Link [Code str] (src,tit)) | "mailto:" `isPrefixOf` src ->
                         return $ obfuscateLink opts str src

@@ -268,7 +268,8 @@ inlineToMan opts Ellipses = return $ text "\\&..."
 inlineToMan opts (Code str) =
   return $ text $ "\\f[B]" ++ escapeCode str ++ "\\f[]"
 inlineToMan opts (Str str) = return $ text $ escapeString str
-inlineToMan opts (TeX str) = return $ text $ escapeCode str
+inlineToMan opts (Math str) = return $ text $ escapeCode str
+inlineToMan opts (TeX str) = return empty
 inlineToMan opts (HtmlInline str) = return $ text $ escapeCode str 
 inlineToMan opts (LineBreak) = return $ text "\n.PD 0\n.P\n.PD\n"
 inlineToMan opts Space = return $ char ' '
