@@ -704,7 +704,7 @@ math = try $ do
   notFollowedBy space
   words <- sepBy1 mathWord (many1 space)
   char '$'
-  return $ TeX ("$" ++ (joinWithSep " " words) ++ "$")
+  return $ Math $ joinWithSep " " words
 
 emph = ((enclosed (char '*') (char '*') inline) <|>
         (enclosed (char '_') (char '_' >> notFollowedBy alphaNum) inline)) >>= 
