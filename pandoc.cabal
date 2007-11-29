@@ -42,7 +42,7 @@ Library
   else
     Build-Depends: base < 3
   Build-Depends: parsec, xhtml, mtl, regex-compat, network
-  Hs-Source-Dirs:  src
+  Hs-Source-Dirs:  .
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Blocks,
                    Text.Pandoc.Definition,
@@ -68,7 +68,7 @@ Library
   Ghc-Prof-Options: -auto-all
 
 Executable pandoc
-  Hs-Source-Dirs:  src
+  Hs-Source-Dirs:  .
   Main-Is:         Main.hs
   Ghc-Options:     -O2
   Ghc-Prof-Options: -auto-all

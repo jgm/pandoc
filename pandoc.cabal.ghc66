@@ -32,7 +32,7 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  format. Thus, adding an input or output format requires
                  only adding a reader or writer.
 Build-Depends:   base, parsec, xhtml, mtl, regex-compat, network
-Hs-Source-Dirs:  src
+Hs-Source-Dirs:  .
 Exposed-Modules: Text.Pandoc,
                  Text.Pandoc.Blocks,
                  Text.Pandoc.Definition,
@@ -57,6 +57,6 @@ Exposed-Modules: Text.Pandoc,
 Ghc-Options:     -O0
 
 Executable:      pandoc
-Hs-Source-Dirs:  src
+Hs-Source-Dirs:  .
 Main-Is:         Main.hs
 Ghc-Options:     -O0
