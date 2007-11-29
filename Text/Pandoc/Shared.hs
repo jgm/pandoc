@@ -636,6 +636,8 @@ refsMatch ((Quoted t x):restx) ((Quoted u y):resty) =
     t == u && refsMatch x y && refsMatch restx resty
 refsMatch ((Code x):restx) ((Code y):resty) = 
     ((map toLower x) == (map toLower y)) && refsMatch restx resty
+refsMatch ((Math x):restx) ((Math y):resty) = 
+    ((map toLower x) == (map toLower y)) && refsMatch restx resty
 refsMatch ((TeX x):restx) ((TeX y):resty) = 
     ((map toLower x) == (map toLower y)) && refsMatch restx resty
 refsMatch ((HtmlInline x):restx) ((HtmlInline y):resty) = 
