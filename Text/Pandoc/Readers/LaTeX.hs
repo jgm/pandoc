@@ -212,7 +212,7 @@ mathBlockWith start end = try $ do
   spaces
   result <- manyTill anyChar end
   spaces
-  return $ BlockQuote [Para [TeX ("$" ++ result ++ "$")]]
+  return $ BlockQuote [Para [Math result]]
 
 --
 -- list blocks
@@ -594,13 +594,13 @@ math1 = try $ do
   char '$'
   result <- many (noneOf "$")
   char '$'
-  return $ TeX ("$" ++ result ++ "$")
+  return $ Math result
 
 math2 = try $ do
   string "\\("
   result <- many (noneOf "$")
   string "\\)"
-  return $ TeX ("$" ++ result ++ "$")
+  return $ Math result
 
 --
 -- links and images
