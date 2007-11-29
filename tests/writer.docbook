@@ -883,48 +883,46 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <itemizedlist>
       <listitem>
         <para>
-          <literal>\cite[22-23]{smith.1899}</literal>
         </para>
       </listitem>
       <listitem>
         <para>
-          <literal>\doublespacing</literal>
         </para>
       </listitem>
       <listitem>
         <para>
-          <literal>$2+2=4$</literal>
+          <literal>2+2=4</literal>
         </para>
       </listitem>
       <listitem>
         <para>
-          <literal>$x \in y$</literal>
+          <literal>x \in y</literal>
         </para>
       </listitem>
       <listitem>
         <para>
-          <literal>$\alpha \wedge \omega$</literal>
+          <literal>\alpha \wedge \omega</literal>
         </para>
       </listitem>
       <listitem>
         <para>
-          <literal>$223$</literal>
+          <literal>223</literal>
         </para>
       </listitem>
       <listitem>
         <para>
-          <literal>$p$</literal>-Tree
+          <literal>p</literal>-Tree
         </para>
       </listitem>
       <listitem>
         <para>
-          <literal>$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$</literal>
+          <literal>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</literal>
         </para>
       </listitem>
       <listitem>
         <para>
           Here's one that has a line break in it:
-          <literal>$\alpha + \omega \times x^2$</literal>.
+          <literal>\alpha + \omega \times x^2</literal>.
         </para>
       </listitem>
     </itemizedlist>
@@ -954,11 +952,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       Here's a LaTeX table:
     </para>
     <para>
-      <literal>\begin{tabular}{|l|l|}\hline
-Animal &amp; Number \\ \hline
-Dog    &amp; 2      \\
-Cat    &amp; 1      \\ \hline
-\end{tabular}</literal>
     </para>
   </section>
   <section>

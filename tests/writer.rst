@@ -642,8 +642,8 @@ LaTeX
 =====
 
 
--  \cite[22-23]{smith.1899}
--  \doublespacing
+- 
+- 
 -  $2+2=4$
 -  $x \in y$
 -  $\alpha \wedge \omega$
@@ -664,14 +664,7 @@ These shouldn't be math:
 Here's a LaTeX table:
 
 
-.. raw:: latex
 
-   \begin{tabular}{|l|l|}\hline
-   Animal & Number \\ \hline
-   Dog    & 2      \\
-   Cat    & 1      \\ \hline
-   \end{tabular}
-   
 --------------
 
 Special Characters
