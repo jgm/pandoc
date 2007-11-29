@@ -299,7 +299,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
   , [ Plain [TeX "\\doublespacing"] ]
   , [ Plain [Math "2+2=4"] ]
   , [ Plain [Math "x \\in y"] ]
-  , [ Plain [Math "\\alpha \\wedge \\omega$] ]
+  , [ Plain [Math "\\alpha \\wedge \\omega"] ]
   , [ Plain [Math "223"] ]
   , [ Plain [Math "p",Str "-",Str "Tree"] ]
   , [ Plain [Math "\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}"] ]
