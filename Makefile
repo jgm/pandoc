@@ -93,7 +93,7 @@ all: build-program
 	./$(MAIN) -s -S -w man $< >$@ || rm -f $@
 
 .PHONY: templates
-templates: $(SRCDIR)/templates
+templates: 
 	$(MAKE) -C $(SRCDIR)/templates
 
 define generate-shell-script
@@ -128,10 +128,11 @@ $(CABAL_BACKUP):
 .PHONY: configure
 cleanup_files+=Setup.hi Setup.o $(BUILDCMD) $(BUILDVARS)
 configure: $(BUILDCONF) templates
-$(BUILDCONF): $(CABAL) $(CABAL_BACKUP) 
+$(BUILDCMD): Setup.hs
 	$(GHC) -package Cabal Setup.hs -o $(BUILDCMD)
+$(BUILDCONF): $(CABAL) $(CABAL_BACKUP) $(BUILDCMD)
 	$(BUILDCMD) configure --prefix=$(PREFIX) --with-compiler=$(GHC) --with-hc-pkg=$(GHC_PKG)
-	# Make configuration time settings persistent (definitely a hack).
+	@# Make configuration time settings persistent (definitely a hack).
 	@echo "PREFIX?=$(PREFIX)" >$(BUILDVARS)
 	@echo "DESTDIR?=$(DESTDIR)" >>$(BUILDVARS)
 
