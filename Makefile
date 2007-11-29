@@ -8,7 +8,7 @@ SRCDIR    := .
 MANDIR    := man
 TESTDIR   := tests
 BUILDDIR  := dist
-BUILDCONF := .setup-config
+BUILDCONF := $(BUILDDIR)/setup-config
 BUILDVARS := vars
 CONFIGURE := configure
 
@@ -118,7 +118,6 @@ $(WRAPPERS): %: $(SRCDIR)/wrappers/%.in $(SRCDIR)/wrappers/*.sh
 	@$(generate-shell-script)
 
 CABAL_BACKUP=$(CABAL).orig
-cleanup_files+=$(CABAL_BACKUP)
 $(CABAL_BACKUP):
 	cp $(CABAL) $(CABAL_BACKUP) ; \
 	if echo $(GHC_VERSION) | grep -q '^6.6'; then \
