@@ -310,16 +310,27 @@ For further documentation, see the `pandoc(1)` man page.
     `context`.)
 
 `-m`*[url]* or `--asciimathml`*[=url]*
-:   will cause LaTeX formulas (between $ signs) in HTML or S5 to display
-    as formulas rather than as code. The trick will not work in all
-    browsers, but it works in Firefox. Peter Jipsen's [ASCIIMathML]
-    script is used to do the magic. If a local copy of `ASCIIMathML.js`
-    is available on the webserver where the page will be viewed,
-    provide a *url* and a link will be inserted in the generated
-    HTML or S5. If no *url* is provided, the contents of the script
-    will be inserted directly; this provides portability at the price of
-    efficiency. If you plan to use math on several pages, it is much
-    better to link to a copy of `ASCIIMathML.js`, which can be cached.
+:   causes `pandoc` to use Peter Jipsen's [ASCIIMathML] script to display
+    TeX math in HTML or S5. If a local copy of `ASCIIMathML.js` is
+    available on the webserver where the page will be viewed, provide a
+    *url* and a link will be inserted in the generated HTML or S5. If
+    no *url* is provided, the contents of the script will be inserted
+    directly; this provides portability at the price of efficiency. If
+    you plan to use math on several pages, it is much better to link to
+    a copy of `ASCIIMathML.js`, which can be cached.  (See `--gladtex`
+    and `--mimetex` for alternative ways of dealing with math in HTML.)
+
+`--gladtex`*[=url]*
+:   causes TeX formulas to be enclosed in `<eq>` tags in HTML or S5 output.
+    This output can then be processed by [gladTeX] to produce links to
+    images with the typeset formulas.  (See `--asciimathml` and
+    `--mimetex` for alternative ways of dealing with math in HTML.)
+
+`--mimetex`*[=url]*
+:   causes TeX formulas to be replaced by `<img>` tags linking to the
+    [mimeTeX] CGI script, which will produce images with the typeset
+    formulas.  (See `--asciimathml` and `--mimetex` for alternative
+    ways of dealing with math in HTML.)
 
 `-i` or `--incremental`
 :   causes all lists in S5 output to be displayed incrementally by
@@ -369,6 +380,8 @@ For further documentation, see the `pandoc(1)` man page.
 
 [Smartypants]: http://daringfireball.net/projects/smartypants/
 [ASCIIMathML]: http://www1.chapman.edu/~jipsen/mathml/asciimath.html
+[gladTeX]:  http://www.math.uio.no/~martingu/gladtex/index.html
+[mimeTeX]: http://www.forkosh.com/mimetex.html 
 
 Pandoc's markdown vs. standard markdown
 =======================================
@@ -823,24 +836,55 @@ example:
     I like several of their flavors of ice cream:  #22, for example, and
     #5.
 
-Inline LaTeX
-------------
+Math
+----
 
-Anything between two $ characters will be parsed as LaTeX math.  The
+Anything between two $ characters will be treated as TeX math.  The
 opening $ must have a character immediately to its right, while the
 closing $ must have a character immediately to its left.  Thus,
 `$20,000 and $30,000` won't parse as math.  If for some reason
 you need to enclose text in literal $ characters, backslash-escape
 them and they won't be treated as math delimiters.
 
-Pandoc can use the [ASCIIMathML] script to display LaTeX formulas
-in HTML (at least on better browsers). See above on the
-`-m|--asciimathml` command-line option.
+TeX math will be printed in all output formats. In Markdown, LaTeX, and
+ConTeXt output, it will appear between $ characters, so that it may be
+treated as math.  In HTML and S5 output, there are four possible ways
+to display math:
 
-[ASCIIMathML]: http://www1.chapman.edu/~jipsen/asciimath.html 
+1.  The default is to display TeX math verbatim.
 
-Inline LaTeX commands will also be preserved and passed unchanged
-to the LaTeX writer.  Thus, for example, you can use LaTeX to
+2.  If the `--asciimathml` option is used, TeX math will be displayed
+    between $ characters, as in LaTeX, and the [ASCIIMathML] script will
+    be used to render it as formulas. (This trick does not work in all
+    browsers, but it works in Firefox. In browsers that do not support
+    ASCIIMathML, TeX math will appear verbatim between $ characters.)
+
+3.  If the `--mimetex` option is used, the [mimeTeX] CGI script will
+    be called to generate images for each TeX formula. This should
+    work in all browsers. The `--mimetex` option takes an optional URL
+    as argument. If no URL is specified, it will be assumed that the
+    mimeTeX CGI script is at `/cgi-bin/mimetex.cgi`. If you are not able
+    to install the CGI script on your server, you may use the public
+    mimeTeX server at `http://www.forkosh.dreamhost.com/mimetex.cgi`.
+
+4.  If the `--gladtex` option is used, TeX formulas will be enclosed
+    in `<eq>` tags in the HTML output.  The resulting `htex` file may then
+    be processed by [gladTeX], which will produce image files for each
+    formula and an `html` file with links to these images.  So, the
+    procedure is:
+
+        pandoc -s --gladtex myfile.txt -o myfile.htex
+        gladtex -d myfile-images myfile.htex  # produces myfile.html
+                                              # and images in myfile-images
+
+In other output formats, TeX math will appear verbatim, with no enclosing
+$'s.
+
+Inline TeX
+----------
+
+Inline TeX commands will be preserved and passed unchanged to the
+LaTeX and ConTeXt writers. Thus, for example, you can use LaTeX to
 include BibTeX citations:
 
 	This result was proved in \cite{jones.1967}.
@@ -856,6 +900,9 @@ Note that in LaTeX environments, like
 
 the material between the begin and end tags will be interpreted as raw
 LaTeX, not as markdown.
+
+Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
+and ConTeXt.
 
 Custom headers
 ==============

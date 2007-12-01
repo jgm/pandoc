@@ -1,6 +1,6 @@
 % PANDOC(1) Pandoc User Manuals
 % John MacFarlane
-% June 30, 2007
+% November 30, 2007 
 
 # NAME
 
@@ -102,10 +102,19 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     when the output format is `latex` or `context`.)
 
 -m*URL*, \--asciimathml=*URL*
-:   Use ASCIIMathML to display embedded LaTeX math in HTML output.
+:   Use ASCIIMathML to display embedded TeX math in HTML output.
     To insert a link to a local copy of the `ASCIIMathML.js` script,
     provide a *URL*. If no *URL* is provided, the contents of the
     script will be inserted directly into the HTML header.
+
+\--gladtex
+:   Enclose TeX math in `<eq>` tags in HTML output.  These can then
+    be processed by gladTeX to produce links to images of the typeset
+    formulas. 
+
+\--mimetex=*URL*
+:   Render TeX math using the mimeTeX CGI script.  If *URL* is not specified,
+    it is assumed that the script is at `/cgi-bin/mimetex.cgi`.
 
 -i, \--incremental
 :   Make list items in S5 display incrementally (one by one).
