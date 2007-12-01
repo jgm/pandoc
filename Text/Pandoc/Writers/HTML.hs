@@ -404,9 +404,13 @@ inlineToHtml opts inline =
                         (return $ case writerHTMLMathMethod opts of
                                         ASCIIMathML _ -> 
                                            stringToHtml ("$" ++ str ++ "$")
+                                        MimeTeX url -> 
+                                           image ! [src (url ++ "?" ++ str),
+                                                    alt str, title str]
                                         GladTeX ->
                                            tag "eq" << str
-                                        _ -> stringToHtml ("$" ++ str ++ "$"))
+                                        PlainMath -> 
+                                           stringToHtml str)
     (TeX str)        -> return noHtml
     (HtmlInline str) -> return $ primHtml str 
     (Link [Code str] (src,tit)) | "mailto:" `isPrefixOf` src ->

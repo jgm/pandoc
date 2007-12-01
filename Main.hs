@@ -98,8 +98,7 @@ data Opt = Opt
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optIncremental       :: Bool    -- ^ Use incremental lists in S5
     , optSmart             :: Bool    -- ^ Use smart typography
-    , optUseASCIIMathML    :: Bool    -- ^ Use ASCIIMathML
-    , optASCIIMathMLURL    :: Maybe String -- ^ URL to ASCIIMathML.js
+    , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optStrict            :: Bool    -- ^ Use strict markdown syntax
@@ -127,8 +126,7 @@ defaultOpts = Opt
     , optNumberSections    = False
     , optIncremental       = False
     , optSmart             = False
-    , optUseASCIIMathML    = False
-    , optASCIIMathMLURL    = Nothing
+    , optHTMLMathMethod    = PlainMath
     , optDumpArgs          = False
     , optIgnoreArgs        = False
     , optStrict            = False
@@ -196,11 +194,22 @@ options =
 
     , Option "m" ["asciimathml"]
                  (OptArg
-                  (\arg opt -> return opt { optUseASCIIMathML = True,
-                                            optASCIIMathMLURL = arg, 
-                                            optStandalone = True })
+                  (\arg opt -> return opt { optHTMLMathMethod = 
+                                               ASCIIMathML arg })
                   "URL")
                  "" -- "Use ASCIIMathML script in html output"
+
+    , Option "" ["mimetex"]
+                 (OptArg
+                  (\arg opt -> return opt { optHTMLMathMethod = MimeTeX
+                                  (fromMaybe "/cgi-bin/mimetex.cgi" arg)})
+                  "URL")
+                 "" -- "Use mimetex for HTML math"
+
+    , Option "" ["gladtex"]
+                 (NoArg
+                  (\opt -> return opt { optHTMLMathMethod = GladTeX }))
+                 "" -- "Use gladtex for HTML math"
 
     , Option "i" ["incremental"]
                  (NoArg
@@ -406,8 +415,7 @@ main = do
               , optNumberSections    = numberSections
               , optIncremental       = incremental
               , optSmart             = smart
-              , optUseASCIIMathML    = useASCIIMathML
-              , optASCIIMathMLURL    = asciiMathMLURL
+              , optHTMLMathMethod    = mathMethod
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
               , optStrict            = strict
@@ -449,10 +457,6 @@ main = do
   let columns = case lookup "COLUMNS" environment of
                  Just cols -> read cols
                  Nothing   -> stateColumns defaultParserState
-
-  let mathMethod = if useASCIIMathML
-                      then ASCIIMathML asciiMathMLURL
-                      else PlainMath
 
   let tabFilter _ [] = ""
       tabFilter _ ('\n':xs) = '\n':(tabFilter tabStop xs)
