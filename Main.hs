@@ -31,7 +31,7 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.UTF8
-import Text.Pandoc.Shared ( joinWithSep )
+import Text.Pandoc.Shared ( joinWithSep, HTMLMathMethod (..) )
 import Text.Regex ( mkRegex, matchRegex )
 import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
@@ -406,7 +406,7 @@ main = do
               , optNumberSections    = numberSections
               , optIncremental       = incremental
               , optSmart             = smart
-              , optUseASCIIMathML    = useAsciiMathML
+              , optUseASCIIMathML    = useASCIIMathML
               , optASCIIMathMLURL    = asciiMathMLURL
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
@@ -450,6 +450,10 @@ main = do
                  Just cols -> read cols
                  Nothing   -> stateColumns defaultParserState
 
+  let mathMethod = if useASCIIMathML
+                      then ASCIIMathML asciiMathMLURL
+                      else PlainMath
+
   let tabFilter _ [] = ""
       tabFilter _ ('\n':xs) = '\n':(tabFilter tabStop xs)
                                       -- remove DOS line endings
@@ -487,8 +491,7 @@ main = do
                                       writerTableOfContents = toc &&
                                                               (not strict) &&
                                                               writerName/="s5",
-                                      writerUseASCIIMathML = useAsciiMathML,
-                                      writerASCIIMathMLURL = asciiMathMLURL,
+                                      writerHTMLMathMethod = mathMethod,
                                       writerS5             = (writerName=="s5"),
                                       writerIgnoreNotes    = False,
                                       writerIncremental    = incremental, 

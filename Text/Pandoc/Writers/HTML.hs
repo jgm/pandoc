@@ -100,11 +100,14 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
                         else style ! [thetype "text/css"] $ primHtml $
                              '\n':(unlines $ S.toList cssLines)
       math         = if stMath newstate
-                        then case writerASCIIMathMLURL opts of
-                                   Just path -> script !  [src path, 
-                                                thetype "text/javascript"] $
-                                                noHtml
-                                   Nothing   -> primHtml asciiMathMLScript
+                        then case writerHTMLMathMethod opts of
+                                   ASCIIMathML Nothing -> 
+                                      primHtml asciiMathMLScript
+                                   ASCIIMathML (Just url) ->
+                                      script ! 
+                                      [src url, thetype "text/javascript"] $
+                                      noHtml
+                                   _ -> noHtml
                         else noHtml
       head         = header $ metadata +++ math +++ css +++ 
                               primHtml (writerHeader opts)
@@ -397,10 +400,13 @@ inlineToHtml opts inline =
                                               primHtmlChar "rdquo")
                         in  do contents <- inlineListToHtml opts lst
                                return $ leftQuote +++ contents +++ rightQuote
-    (Math str)       -> (if writerUseASCIIMathML opts
-                            then modify (\st -> st {stMath = True})
-                            else return ()) >> 
-                        return (stringToHtml ("$" ++ str ++ "$"))
+    (Math str)       -> modify (\st -> st {stMath = True}) >> 
+                        (return $ case writerHTMLMathMethod opts of
+                                        ASCIIMathML _ -> 
+                                           stringToHtml ("$" ++ str ++ "$")
+                                        GladTeX ->
+                                           tag "eq" << str
+                                        _ -> stringToHtml ("$" ++ str ++ "$"))
     (TeX str)        -> return noHtml
     (HtmlInline str) -> return $ primHtml str 
     (Link [Code str] (src,tit)) | "mailto:" `isPrefixOf` src ->

@@ -92,6 +92,7 @@ module Text.Pandoc.Shared (
                      hierarchicalize,
                      isHeaderBlock,
                      -- * Writer options
+                     HTMLMathMethod (..),
                      WriterOptions (..),
                      defaultWriterOptions
                     ) where
@@ -796,6 +797,12 @@ isHeaderBlock _ = False
 -- Writer options
 --
 
+data HTMLMathMethod = PlainMath 
+                    | ASCIIMathML (Maybe String)  -- url of ASCIIMathML.js
+                    | GladTeX
+                    | MimeTeX String              -- url of mimetex.cgi 
+                    deriving (Show, Read, Eq)
+
 -- | Options for writers
 data WriterOptions = WriterOptions
   { writerStandalone      :: Bool   -- ^ Include header and footer
@@ -804,8 +811,7 @@ data WriterOptions = WriterOptions
   , writerTabStop         :: Int    -- ^ Tabstop for conversion btw spaces and tabs
   , writerTableOfContents :: Bool   -- ^ Include table of contents
   , writerS5              :: Bool   -- ^ We're writing S5 
-  , writerUseASCIIMathML  :: Bool   -- ^ Use ASCIIMathML
-  , writerASCIIMathMLURL  :: Maybe String -- ^ URL to asciiMathML.js 
+  , writerHTMLMathMethod  :: HTMLMathMethod  -- ^ How to print math in HTML
   , writerIgnoreNotes     :: Bool   -- ^ Ignore footnotes (used in making toc)
   , writerIncremental     :: Bool   -- ^ Incremental S5 lists
   , writerNumberSections  :: Bool   -- ^ Number sections in LaTeX
@@ -825,8 +831,7 @@ defaultWriterOptions =
                 , writerTabStop         = 4
                 , writerTableOfContents = False
                 , writerS5              = False
-                , writerUseASCIIMathML  = False
-                , writerASCIIMathMLURL  = Nothing
+                , writerHTMLMathMethod  = PlainMath
                 , writerIgnoreNotes     = False
                 , writerIncremental     = False
                 , writerNumberSections  = False
