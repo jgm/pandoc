@@ -829,8 +829,9 @@ Inline LaTeX
 Anything between two $ characters will be parsed as LaTeX math.  The
 opening $ must have a character immediately to its right, while the
 closing $ must have a character immediately to its left.  Thus,
-`$20,000 and $30,000` won't parse as math.  The $ character can be
-escaped with a backslash if needed.
+`$20,000 and $30,000` won't parse as math.  If for some reason
+you need to enclose text in literal $ characters, backslash-escape
+them and they won't be treated as math delimiters.
 
 Pandoc can use the [ASCIIMathML] script to display LaTeX formulas
 in HTML (at least on better browsers). See above on the
