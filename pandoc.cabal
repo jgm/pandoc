@@ -54,6 +54,7 @@ Library
                    Text.Pandoc.Readers.LaTeX,
                    Text.Pandoc.Readers.Markdown,
                    Text.Pandoc.Readers.RST,
+                   Text.Pandoc.Readers.TeXMath,
                    Text.Pandoc.Writers.DefaultHeaders,
                    Text.Pandoc.Writers.Docbook,
                    Text.Pandoc.Writers.HTML,

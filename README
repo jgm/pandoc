@@ -846,12 +846,23 @@ closing $ must have a character immediately to its left.  Thus,
 you need to enclose text in literal $ characters, backslash-escape
 them and they won't be treated as math delimiters.
 
-TeX math will be printed in all output formats. In Markdown, LaTeX, and
-ConTeXt output, it will appear between $ characters, so that it may be
-treated as math.  In HTML and S5 output, there are four possible ways
-to display math:
+TeX math will be printed in all output formats. In Markdown,
+reStructuredText, LaTeX, and ConTeXt output, it will appear verbatim
+between $ characters.
 
-1.  The default is to display TeX math verbatim.
+In groff man output, it will be rendered verbatim without $'s.
+
+In RTF and Docbook output, it will be rendered, as far as possible,
+using unicode characters, and will otherwise appear verbatim. Unknown
+commands and symbols, and commands that cannot be dealt with this way
+(like `\frac`), will be rendered verbatim. So the results may be a mix
+of raw TeX code and properly rendered unicode math.
+
+In HTML and S5 output, the way math is rendered will depend on the
+command-line options selected:
+
+1.  The default is to render TeX math as far as possible using unicode
+    characters, as with RTF and Docbook output.
 
 2.  If the `--asciimathml` option is used, TeX math will be displayed
     between $ characters, as in LaTeX, and the [ASCIIMathML] script will
@@ -876,9 +887,6 @@ to display math:
         pandoc -s --gladtex myfile.txt -o myfile.htex
         gladtex -d myfile-images myfile.htex  # produces myfile.html
                                               # and images in myfile-images
-
-In other output formats, TeX math will appear verbatim, with no enclosing
-$'s.
 
 Inline TeX
 ----------

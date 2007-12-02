@@ -30,7 +30,8 @@ Conversion of 'Pandoc' documents to groff man page format.
 -}
 module Text.Pandoc.Writers.Man ( writeMan) where
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared 
+import Text.Pandoc.Shared
+import Text.Pandoc.Readers.TeXMath
 import Text.Printf ( printf )
 import Data.List ( isPrefixOf, drop, nub, intersperse )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
@@ -268,7 +269,7 @@ inlineToMan opts Ellipses = return $ text "\\&..."
 inlineToMan opts (Code str) =
   return $ text $ "\\f[B]" ++ escapeCode str ++ "\\f[]"
 inlineToMan opts (Str str) = return $ text $ escapeString str
-inlineToMan opts (Math str) = return $ text $ escapeCode str
+inlineToMan opts (Math str) = inlineToMan opts (Code str)
 inlineToMan opts (TeX str) = return empty
 inlineToMan opts (HtmlInline str) = return $ text $ escapeCode str 
 inlineToMan opts (LineBreak) = return $ text "\n.PD 0\n.P\n.PD\n"

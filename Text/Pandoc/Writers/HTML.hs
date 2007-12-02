@@ -32,6 +32,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.ASCIIMathML
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.Pandoc.Shared
+import Text.Pandoc.Readers.TeXMath
 import Text.Regex ( mkRegex, matchRegex )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
@@ -401,16 +402,16 @@ inlineToHtml opts inline =
                         in  do contents <- inlineListToHtml opts lst
                                return $ leftQuote +++ contents +++ rightQuote
     (Math str)       -> modify (\st -> st {stMath = True}) >> 
-                        (return $ case writerHTMLMathMethod opts of
-                                        ASCIIMathML _ -> 
-                                           stringToHtml ("$" ++ str ++ "$")
-                                        MimeTeX url -> 
-                                           image ! [src (url ++ "?" ++ str),
+                        (case writerHTMLMathMethod opts of
+                               ASCIIMathML _ -> 
+                                  return $ stringToHtml ("$" ++ str ++ "$")
+                               MimeTeX url -> 
+                                  return $ image ! [src (url ++ "?" ++ str),
                                                     alt str, title str]
-                                        GladTeX ->
-                                           tag "eq" << str
-                                        PlainMath -> 
-                                           stringToHtml str)
+                               GladTeX ->
+                                  return $ tag "eq" << str
+                               PlainMath -> 
+                                  inlineListToHtml opts (readTeXMath str))
     (TeX str)        -> return noHtml
     (HtmlInline str) -> return $ primHtml str 
     (Link [Code str] (src,tit)) | "mailto:" `isPrefixOf` src ->

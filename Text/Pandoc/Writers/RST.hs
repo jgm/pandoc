@@ -32,6 +32,7 @@ reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 module Text.Pandoc.Writers.RST ( writeRST) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
+import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Blocks
 import Data.List ( isPrefixOf, isSuffixOf, drop, intersperse )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
@@ -151,10 +152,6 @@ blockToRST :: WriterOptions -- ^ Options
                 -> State WriterState Doc 
 blockToRST opts Null = return empty
 blockToRST opts (Plain inlines) = wrappedRST opts inlines
-blockToRST opts (Para [Math str]) =
-  let str' = if "\n" `isSuffixOf` str then str ++ "\n" else str ++ "\n\n" in
-  return $ hang (text "\n.. raw:: latex\n") 3 $ text "\\[" <> 
-           (vcat $ map text (lines str')) <> text "\\]"
 blockToRST opts (Para inlines) = do
   contents <- wrappedRST opts inlines
   return $ contents <> text "\n"
@@ -286,7 +283,7 @@ inlineToRST opts Apostrophe = return $ char '\''
 inlineToRST opts Ellipses = return $ text "..."
 inlineToRST opts (Code str) = return $ text $ "``" ++ str ++ "``"
 inlineToRST opts (Str str) = return $ text $ escapeString str
-inlineToRST opts (Math str) = return $ char '$' <> text str <> char '$'
+inlineToRST opts (Math str) = return $ text $ "$" ++ str ++ "$"
 inlineToRST opts (TeX str) = return empty
 inlineToRST opts (HtmlInline str) = return empty
 inlineToRST opts (LineBreak) = return $ char ' ' -- RST doesn't have linebreaks 

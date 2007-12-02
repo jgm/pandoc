@@ -891,38 +891,38 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
       <listitem>
         <para>
-          <literal>2+2=4</literal>
+          <emphasis>2</emphasis>+<emphasis>2</emphasis>=<emphasis>4</emphasis>
         </para>
       </listitem>
       <listitem>
         <para>
-          <literal>x \in y</literal>
+          <emphasis>x</emphasis> ∈ <emphasis>y</emphasis>
         </para>
       </listitem>
       <listitem>
         <para>
-          <literal>\alpha \wedge \omega</literal>
+          α ∧ ω
         </para>
       </listitem>
       <listitem>
         <para>
-          <literal>223</literal>
+          <emphasis>223</emphasis>
         </para>
       </listitem>
       <listitem>
         <para>
-          <literal>p</literal>-Tree
+          <emphasis>p</emphasis>-Tree
         </para>
       </listitem>
       <listitem>
         <para>
-          <literal>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</literal>
+          \frac{<emphasis>d</emphasis>}{<emphasis>dx</emphasis>}<emphasis>f</emphasis>(<emphasis>x</emphasis>)=\lim<subscript><emphasis>h</emphasis> → <emphasis>0</emphasis></subscript>\frac{<emphasis>f</emphasis>(<emphasis>x</emphasis>+<emphasis>h</emphasis>)-<emphasis>f</emphasis>(<emphasis>x</emphasis>)}{<emphasis>h</emphasis>}
         </para>
       </listitem>
       <listitem>
         <para>
           Here's one that has a line break in it:
-          <literal>\alpha + \omega \times x^2</literal>.
+          α+ω × <emphasis>x</emphasis><superscript>2</superscript>.
         </para>
       </listitem>
     </itemizedlist>

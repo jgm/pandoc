@@ -30,6 +30,7 @@ Conversion of 'Pandoc' documents to RTF (rich text format).
 module Text.Pandoc.Writers.RTF ( writeRTF ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Pandoc.Readers.TeXMath
 import Text.Regex ( matchRegexAll, mkRegex )
 import Data.List ( isSuffixOf )
 import Data.Char ( ord )
@@ -272,7 +273,7 @@ inlineToRTF EmDash = "\\u8212-"
 inlineToRTF EnDash = "\\u8211-"
 inlineToRTF (Code str) = "{\\f1 " ++ (codeStringToRTF str) ++ "} "
 inlineToRTF (Str str) = stringToRTF str
-inlineToRTF (Math str) = latexToRTF str
+inlineToRTF (Math str) = inlineListToRTF $ readTeXMath str
 inlineToRTF (TeX str) = ""
 inlineToRTF (HtmlInline str) = ""
 inlineToRTF (LineBreak) = "\\line "

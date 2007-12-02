@@ -30,6 +30,7 @@ Conversion of 'Pandoc' documents to Docbook XML.
 module Text.Pandoc.Writers.Docbook ( writeDocbook) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Pandoc.Readers.TeXMath
 import Data.List ( isPrefixOf, drop )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
@@ -274,7 +275,7 @@ inlineToDocbook opts EmDash = text "&#8212;"
 inlineToDocbook opts EnDash = text "&#8211;" 
 inlineToDocbook opts (Code str) = 
   inTagsSimple "literal" $ text (escapeStringForXML str)
-inlineToDocbook opts (Math str) = inlineToDocbook opts (Code str)
+inlineToDocbook opts (Math str) = inlinesToDocbook opts $ readTeXMath str
 inlineToDocbook opts (TeX str) = empty
 inlineToDocbook opts (HtmlInline str) = empty
 inlineToDocbook opts LineBreak = text $ "<literallayout></literallayout>" 
