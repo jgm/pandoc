@@ -862,7 +862,9 @@ In HTML and S5 output, the way math is rendered will depend on the
 command-line options selected:
 
 1.  The default is to render TeX math as far as possible using unicode
-    characters, as with RTF and Docbook output.
+    characters, as with RTF and Docbook output.  Formulas are put inside
+    a `span` with `class="math"`, so that they may be styled differently
+    from the surrounding text if needed.
 
 2.  If the `--asciimathml` option is used, TeX math will be displayed
     between $ characters, as in LaTeX, and the [ASCIIMathML] script will

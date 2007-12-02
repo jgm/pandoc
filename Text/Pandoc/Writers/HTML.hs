@@ -411,7 +411,8 @@ inlineToHtml opts inline =
                                GladTeX ->
                                   return $ tag "eq" << str
                                PlainMath -> 
-                                  inlineListToHtml opts (readTeXMath str))
+                                  inlineListToHtml opts (readTeXMath str) >>=
+                                  return . (thespan ! [theclass "math"])) 
     (TeX str)        -> return noHtml
     (HtmlInline str) -> return $ primHtml str 
     (Link [Code str] (src,tit)) | "mailto:" `isPrefixOf` src ->
