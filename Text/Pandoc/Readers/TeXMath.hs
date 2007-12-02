@@ -45,7 +45,7 @@ readTeXMath inp = case parse teXMath "input" inp of
 teXMath = manyTill mathPart eof >>= return . concat
 
 mathPart = whitespace <|> superscript <|> subscript <|> symbol <|> 
-           argument <|> plain <|> misc
+           argument <|> digits <|> letters <|> misc
 
 whitespace = many1 space >> return []
 
@@ -64,9 +64,13 @@ argument = try $ do
               then [Str " "]
               else [Str "{"] ++ concat res ++ [Str "}"]
 
-plain = do
-  res <- many1 alphaNum 
-  return $ [Emph [Str res]]
+digits = do
+  res <- many1 digit
+  return [Str res]
+
+letters = do
+  res <- many1 letter
+  return [Emph [Str res]]
 
 misc = do
   res <- noneOf "{}\\"
