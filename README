@@ -876,9 +876,7 @@ command-line options selected:
     be called to generate images for each TeX formula. This should
     work in all browsers. The `--mimetex` option takes an optional URL
     as argument. If no URL is specified, it will be assumed that the
-    mimeTeX CGI script is at `/cgi-bin/mimetex.cgi`. If you are not able
-    to install the CGI script on your server, you may use the public
-    mimeTeX server at `http://www.forkosh.dreamhost.com/mimetex.cgi`.
+    mimeTeX CGI script is at `/cgi-bin/mimetex.cgi`.
 
 4.  If the `--gladtex` option is used, TeX formulas will be enclosed
     in `<eq>` tags in the HTML output.  The resulting `htex` file may then
