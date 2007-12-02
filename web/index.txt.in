@@ -61,6 +61,8 @@ For installation instructions for all architectures, see
 [INSTALL](INSTALL.html).  Note that pandoc is in the [MacPorts],
 [Debian unstable], and [FreeBSD ports] repositories.
 Abhishek Dasgupta has also contributed an [Arch linux PKGBUILD script].
+Starting with release 8.04 ("Hardy Heron"), pandoc will be included
+in [Ubuntu linux].
 
 - [Source tarball]
 - [Windows binary package]
@@ -186,6 +188,7 @@ kind.
 [Debian unstable]: http://packages.debian.org/unstable/text/pandoc
 [FreeBSD ports]: http://www.freshports.org/textproc/pandoc/
 [Arch linux PKGBUILD script]: http://aur.archlinux.org/packages.php?do_Details=1&ID=12751&O=0&L=0&C=0&K=pandoc&SB=n&SO=a&PP=25&do_MyPackages=0&do_Orphans=0&SeB=nd
+[Ubuntu linux]: http://www.ubuntu.com
 [MacPorts]: http://db.macports.org/port/show/4218
 [pandoc-announce]: http://groups.google.com/group/pandoc-announce
 [pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
