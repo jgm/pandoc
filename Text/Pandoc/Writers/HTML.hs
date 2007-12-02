@@ -409,7 +409,7 @@ inlineToHtml opts inline =
                                   return $ image ! [src (url ++ "?" ++ str),
                                                     alt str, title str]
                                GladTeX ->
-                                  return $ tag "eq" << str
+                                  return $ primHtml $ "<EQ>" ++ str ++ "</EQ>"
                                PlainMath -> 
                                   inlineListToHtml opts (readTeXMath str) >>=
                                   return . (thespan ! [theclass "math"])) 
