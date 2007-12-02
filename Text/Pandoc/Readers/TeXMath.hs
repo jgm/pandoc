@@ -38,8 +38,8 @@ import Text.Pandoc.Shared
 
 -- | Converts a string of raw TeX math to a list of 'Pandoc' inlines. 
 readTeXMath :: String -> [Inline]
-readTeXMath inp = case parse teXMath "input" inp of
-   Left err  -> error $ "\nError:\n" ++ show err
+readTeXMath inp = case parse teXMath ("formula: " ++ inp) inp of
+   Left err  -> [Str inp]  -- if unparseable, just include original
    Right res -> res
 
 teXMath = manyTill mathPart eof >>= return . concat
@@ -73,7 +73,7 @@ letters = do
   return [Emph [Str res]]
 
 misc = do
-  res <- noneOf "{}\\"
+  res <- noneOf "}"
   return [Str [res]] 
 
 scriptArg = try $ do
