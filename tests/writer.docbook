@@ -891,7 +891,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
       <listitem>
         <para>
-          <emphasis>2</emphasis>+<emphasis>2</emphasis>=<emphasis>4</emphasis>
+          2+2=4
         </para>
       </listitem>
       <listitem>
@@ -906,7 +906,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
       <listitem>
         <para>
-          <emphasis>223</emphasis>
+          223
         </para>
       </listitem>
       <listitem>
@@ -916,7 +916,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
       <listitem>
         <para>
-          \frac{<emphasis>d</emphasis>}{<emphasis>dx</emphasis>}<emphasis>f</emphasis>(<emphasis>x</emphasis>)=\lim<subscript><emphasis>h</emphasis> → <emphasis>0</emphasis></subscript>\frac{<emphasis>f</emphasis>(<emphasis>x</emphasis>+<emphasis>h</emphasis>)-<emphasis>f</emphasis>(<emphasis>x</emphasis>)}{<emphasis>h</emphasis>}
+          \frac{<emphasis>d</emphasis>}{<emphasis>dx</emphasis>}<emphasis>f</emphasis>(<emphasis>x</emphasis>)=\lim<subscript><emphasis>h</emphasis> → 0</subscript>\frac{<emphasis>f</emphasis>(<emphasis>x</emphasis>+<emphasis>h</emphasis>)-<emphasis>f</emphasis>(<emphasis>x</emphasis>)}{<emphasis>h</emphasis>}
         </para>
       </listitem>
       <listitem>
