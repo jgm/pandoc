@@ -792,10 +792,10 @@ Here is a movie \includegraphics{movie.jpg} icon.
 \section{Footnotes}
 
 Here is a footnote reference,%
-    \footnote{Here is the footnote. It can go anywhere after the footnote
+\footnote{Here is the footnote. It can go anywhere after the footnote
 reference. It need not be placed at the end of the document.}
 and another.%
-    \footnote{Here's the long note. This one contains multiple blocks.
+\footnote{Here's the long note. This one contains multiple blocks.
 
 Subsequent blocks are indented to show that they belong to the
 footnote (as with list items).
@@ -807,19 +807,19 @@ If you want, you can indent every line, but you can also be lazy
 and just indent the first line of each block.}
 This should \emph{not} be a footnote reference, because it contains
 a space.[\^{}my note] Here is an inline note.%
-    \footnote{This is \emph{easier} to type. Inline notes may contain
+\footnote{This is \emph{easier} to type. Inline notes may contain
 \href{http://google.com}{links} and \verb!]! verbatim characters,
 as well as [bracketed text].}
 
 \begin{quote}
 Notes can go in quotes.%
-    \footnote{In quote.}
+\footnote{In quote.}
 
 \end{quote}
 \begin{enumerate}[1.]
 \item 
   And in list items.%
-      \footnote{In list.}
+  \footnote{In list.}
 \end{enumerate}
 This paragraph should not be part of the note, as it is not
 indented.
