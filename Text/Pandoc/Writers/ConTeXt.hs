@@ -31,7 +31,7 @@ module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
-import Data.List ( (\\), intersperse )
+import Data.List ( (\\), intersperse, isSuffixOf )
 import Control.Monad.State
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
@@ -292,7 +292,9 @@ inlineToConTeXt (Image alternate (src, tit)) = do
            text tit <> text "}\n{\\externalfigure[" <> text src <> text "]}" 
 inlineToConTeXt (Note contents) = do
   contents' <- blockListToConTeXt contents
-  return $ text "    \\footnote{" <> 
-           text (stripTrailingNewlines $ render contents') <> 
-           char '}'
+  let rawnote = stripTrailingNewlines $ render contents'
+  -- note: a \n before } is needed when note ends with a \stoptyping
+  let optNewline = "\\stoptyping" `isSuffixOf` rawnote
+  return $ text "\\footnote{" <> 
+           text rawnote <> (if optNewline then char '\n' else empty) <> char '}'
 

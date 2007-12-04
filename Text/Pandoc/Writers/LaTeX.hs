@@ -315,5 +315,5 @@ inlineToLaTeX (Note contents) = do
   let rawnote = stripTrailingNewlines $ render contents'
   -- note: a \n before } is needed when note ends with a Verbatim environment
   let optNewline = "\\end{Verbatim}" `isSuffixOf` rawnote
-  return $ text "    \\footnote{" <> 
+  return $ text "\\footnote{" <> 
            text rawnote <> (if optNewline then char '\n' else empty) <> char '}'
