@@ -5,67 +5,67 @@ click on the name of the output file:
 
 1.  HTML fragment:
 
-@   pandoc README -o example1.html
+@   pandoc @@README@@ -o @@example1.html@@
 
 2.  Standalone HTML file:
 
-@   pandoc -s README -o example2.html
+@   pandoc -s @@README@@ -o @@example2.html@@
 
 3.  HTML with smart quotes, table of contents, CSS, and custom footer:
 
-@   pandoc -s -S --toc -c pandoc.css -A footer.html README -o example3.html
+@   pandoc -s -S --toc -c @@pandoc.css@@ -A @@footer.html@@ @@README@@ -o @@example3.html@@
 
 4.  LaTeX:
 
-@   pandoc -s README -o example4.tex
+@   pandoc -s @@README@@ -o @@example4.tex@@
 
 5.  From LaTeX to markdown:
 
-@   pandoc -s example4.tex -o example5.text
+@   pandoc -s @@example4.tex@@ -o @@example5.text@@
 
 6.  reStructuredText:
 
-@   pandoc -s -w rst --toc README -o example6.text
+@   pandoc -s -w rst --toc @@README@@ -o @@example6.text@@
 
 7.  Rich text format (RTF):
 
-@   pandoc -s README -o example7.rtf 
+@   pandoc -s @@README@@ -o @@example7.rtf@@
 
 8.  S5 HTML slide show (all in one file):
 
-@   pandoc -s -m -i -w s5 S5DEMO -o example8.html
+@   pandoc -s -m -i -w s5 @@S5DEMO@@ -o @@example8.html@@
 
 9.  DocBook XML:
 
-@   pandoc -s -S -w docbook README -o example9.db
+@   pandoc -s -S -w docbook @@README@@ -o @@example9.db@@
 
     Chunked XHTML via DocBook and [xmlto]:
 
-@   xmlto xhtml -m config.xsl example9.db -o example9/
+@   xmlto xhtml -m @@config.xsl@@ @@example9.db@@ -o @@example9/@@
 
 10. Man page:
 
-@   pandoc -s -w man pandoc.1.md -o example10.1
+@   pandoc -s -w man @@pandoc.1.md@@ -o @@example10.1@@
 
 11. ConTeXt:
 
-@   pandoc -s -w context README -o example11.tex
+@   pandoc -s -w context @@README@@ -o @@example11.tex@@
 
     PDF via pandoc and ConTeXt's `texexec`:
 
-@   texexec --pdf example11.tex --result example11.pdf
+@   texexec --pdf @@example11.tex@@   # produces @@example11.pdf@@
 
 12. Converting a web page to markdown:
 
-@   html2markdown http://www.gnu.org/software/make/ -o example12.text
+@   html2markdown @@http://www.gnu.org/software/make/@@ -o @@example12.text@@
 
 13. From markdown to PDF:
 
-@   markdown2pdf README -o example13.pdf
+@   markdown2pdf @@README@@ -o @@example13.pdf@@
 
 14. PDF with numbered sections and a custom LaTeX header:
 
-@   markdown2pdf -N -C myheader.tex README -o example14.pdf
+@   markdown2pdf -N -C @@myheader.tex@@ @@README@@ -o @@example14.pdf@@
 
 [xmlto]:  http://cyberelk.net/tim/xmlto/
 
@@ -74,4 +74,12 @@ click on the name of the output file:
 
 16. A web application that converts web pages to any of eight different
     formats:  [html2x](html2x.html).
+
+17. TeX math in HTML:
+
+@   pandoc @@math.txt@@ -s -o @@mathDefault.html@@
+@   pandoc @@math.txt@@ -s -m -o @@mathAsciimathml.html@@
+@   pandoc @@math.txt@@ -s --mimetex=/cgi-bin/mimetex.cgi -o @@mathMimetex.html@@
+@   pandoc @@math.txt@@ -s --gladtex -o mathGladtex.htex
+@   gladtex @@mathGladtex.htex@@   # produces @@mathGladtex.html@@
 

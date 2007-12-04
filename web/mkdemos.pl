@@ -14,13 +14,16 @@ while (<IN>) {
     my $firstchar = substr ($line,0,1);
     if ( $firstchar eq '@' ) {
         my $command = substr ($line,4);
-        print STDERR "$command";
-        system "$command";
+        my $commandExec = $command;
+        $commandExec =~ s/[#].*$//g;  # strip off comments
+        $commandExec =~ s/@@//g;   # strip off hotlink markers
+        print STDERR "$commandExec";
+        system "$commandExec";
         $line = $command;
         $line =~ s/-/\-/;
-        $line =~ s/ ([A-Za-z0-9_:\/]+(\.|\/)[a-zA-Z0-9.\/]*|README|S5DEMO)/ <a href="$1">$1<\/a>/g;
-        $line =~ s/-/\\-/g;
-        $line =~ s/^(.*)$/    <code>$1<\/code>/g;        
+        $line =~ s/@@([^@]*)@@/<a href="$1">$1<\/a>/g;
+        $line =~ s/-/\\-/g;   # to prevent smart dashes!
+        $line =~ s/^(.*)$/    <pre><code>$1<\/code><\/pre>/g;        
         if ( $line =~ /(example\d+\.html)<\/a><\/code>/m ) {
             $line .= "\n    (View [`$1` as a web page]($1).)\n";
         }
