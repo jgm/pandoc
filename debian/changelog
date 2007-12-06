@@ -10,7 +10,41 @@ pandoc (0.45) unstable; urgency=low
     that error messages will give the correct line number. This yields
     cleaner (and slightly faster) code, with more accurate parsing error
     messages.
- 
+
+  * Added new Math inline element:
+
+    + Markdown and LaTeX readers now convert TeX math into Math elements,
+      not TeX.
+    + This allows math to be treated differently from raw TeX in output.
+      TeX elements are no longer printed in output formats other than
+      Markdown, LaTeX, and ConTeXt.  But Math elements are always printed.
+
+  * New default handling of math in writers:
+
+    + New module Text.Pandoc.Readers.TeXMath exports readTeXMath, which
+      parses raw TeX math and outputs a string of Pandoc inlines that
+      tries to render it as far as possible using unicode characters,
+      lapsing into literal TeX when needed.
+    + readTeXMath is now used for default HTML output in HTML, S5, RTF,
+      and Docbook, if no other method for displaying math in HTML is
+      specified.  Enclosing $'s are no longer printed by default.
+    + By default, math is put inside <span class="math">. This way it can be
+      distinguished from the surrounding text, e.g. put in a different
+      font.
+
+  * New --gladtex and --mimetex options for display of math in HTML:
+
+    + If --gladtex is specified, math is output between <eq> tags, so
+      it can be processed by gladTeX.
+    + If --mimetex is specified, math is put in <img> tags with a link
+      to the mimetex CGI script (or any other script that takes TeX math
+      as input and outputs an image).  The URL of the script may be
+      specified, but defaults to /cgi-bin/mimetex.cgi.
+    + HTMLMathMethod structure in WriterOptions keeps track of how to
+      display math in HTML output.
+    + Updated README with a description of the four options for displaying
+      math in HTML.
+
   * HTML reader:
   
     + Fixed bug: parser for minimized attributes should not swallow
@@ -52,8 +86,11 @@ pandoc (0.45) unstable; urgency=low
     + Modified specialChar so that '"' characters are parsed.
     + Fixed a bug in parsing of \[ \] math blocks (thanks to Mark Kalderon).
 
-  * HTML writer: Don't produce HTML for table of contents if there are
-    no headers. (This would be an empty list, which is invalid XHTML.)
+  * HTML writer:
+
+    + Changes in handling of math (see above).
+    + Don't produce HTML for table of contents if there are
+      no headers. (This would be an empty list, which is invalid XHTML.)
 
   * Markdown writer:
   
@@ -98,23 +135,27 @@ pandoc (0.45) unstable; urgency=low
       a parameter.
     + Text wrapping now provided, using wrapTeXIfNeeded.
 
-  * ConTeXt writer:  many improvements for more idiomatic ConTeXt output.
+  * ConTeXt writer:  many improvements for more idiomatic ConTeXt output
+    (thanks to Idris Samawi Hamid for suggestions).
 
     + PrettyPrint module now used for output.
     + Writer options are now in state, so they don't have to be passed as
       a parameter.
     + Text wrapping now provided, using wrapTeXIfNeeded.
-    + Better treatment of footnotes:  footnotes are always on lines by themselves.
+    + Better treatment of footnotes:  footnotes are always on lines by
+      themselves, and the final } is on a line by itself only when
+      it needs to be (after \stoptyping).
     + Use \subject, \subsubject, ... or \section, \subsection, ... for headings,
       depending on whether --number-sections option is selected.
     + Extra blank line inserted after \stopitemize
     + Use new, "official" definition of blockquote environment. Also, use
       blank line after \startblockquote to balance blank line at the end.
-    + Both itemized and enumerated lists are now generated using \start-stopitemize,
-      with appropriate options.  Removed definitions of ltxenum and ltxitem,
-      which are no longer needed.  Provided defaults for itemized lists in
-      the preamble.  State keeps track of ordered list level, so that
-      when default numbering is specified, the appropriate scheme can be used.
+    + Both itemized and enumerated lists are now generated using
+      \start-stopitemize, with appropriate options. Removed definitions
+      of ltxenum and ltxitem, which are no longer needed. Provided
+      defaults for itemized lists in the preamble. State keeps track of
+      ordered list level, so that when default numbering is specified,
+      the appropriate scheme can be used.
     + Changed \useurl to \useURL.
     + Changed link color from red to blue.
     + Use \subsubsubsubsection etc., since these are supported 
@@ -171,6 +212,19 @@ pandoc (0.45) unstable; urgency=low
       '--enable-(executable|library)-profiling' is specified. Updated
       PROFILING instructions accordingly.
 
+  * Makefile:
+
+    + Makefile now checks GHC version. If GHC is 6.6, pandoc.cabal.ghc66
+      is copied to pandoc.cabal, and the old pandoc.cabal is copied
+      to pandoc.cabal.orig. Otherwise, pandoc.cabal is copied to
+      pandoc.cabal.orig but otherwise unmodified. This way, the Makefile
+      will work properly with either GHC 6.6 or 6.8.
+    + Changed BUILDCONF to point to dist/setup-config, not .setup-config.
+      This is where current versions of Cabal put it. 
+    + Added $(BUILDCMD) target, so setup doesn't get compiled every time.
+    + Removed dependency of templates on ./templates, which is circular
+      now that templates is a subdirectory of the top-level.
+
   * MacPorts Portfile:
 
     + Modified to install the pandoc library in addition to programs.  
@@ -184,16 +238,24 @@ pandoc (0.45) unstable; urgency=low
     libghc6-mtl-dev as dependencies for libghc6-pandoc-dev.
     Closes: #445235
 
+  * debian/rules:  Converted to UTF-8.
+
   * Changed pandoc home page to http://johnmacfarlane.net/pandoc/.
+
+  * Updated ASCIIMathML.js to latest version.
+
+  * Directory structure:
+
+    + Moved everything from src into the top-level directory.
+    + Changed references to source directory in Makefile and
+      pandoc.cabal.*.
+    + Moved ASCIIMathML.js, headers, and ui into templates directory.
+    + Modified fillTemplates.pl to reflect new paths.
 
   [ Recai Oktaş ]
 
-  * Revised debian/rules to use pandoc.cabal.ghc66, as a transition
-    measure until GHC 6.8 gets into debian.  Modified debian/control
-    to require GHC 6.6, as a safety measure.
-
-  * Fixed the issue of having two copies of the library documentation
-    under some usage scenarios.
+  * Makefile: Fixed the issue of having two copies of the library
+    documentation under some usage scenarios.
 
   * Replaced 'ghc' with '$(GHC)' in Makefile, and made GHC
     and GHC_PKG configurable through the environment, to support
