@@ -20,7 +20,7 @@ Pandoc features
 - Unicode support.
 - Optional "smart" quotes, dashes, and ellipses.
 - Automatically generated tables of contents.
-- [ASCIIMathML] support for equations in HTML.
+- Support for displaying math in HTML.
 - Extensions to markdown syntax:
     + Document metadata (title, author, date).
     + Footnotes, tables, and definition lists.
@@ -53,7 +53,7 @@ or [try pandoc on the web](/pandoc/try).
     - [`hsmarkdown(1)`](hsmarkdown1.html)
 - [Library documentation](doc/index.html) (for Haskell programmers)
 - [Installation instructions](INSTALL.html)
-- [Changelog](changelog)
+- [Changelog](changelog.txt)
 
 # Downloads
 
@@ -87,6 +87,27 @@ You may view existing bug reports and submit new ones at
 
 # News
 
+-   Version 0.45 released (???, 200?).
+
+    + Many bug fixes and structural improvements.  See [changelog] for
+      full details.
+    + Improved treatment of math. Math is now rendered using unicode
+      by default in HTML, RTF, and DocBook output. For more accurate
+      display of math in HTML, `--gladtex`, `--mimetex`, and `--asciimathml`
+      options are provided. See the [User's Guide](README.html#math) for
+      details.
+    + Removed support for box-style block quotes in markdown.
+    + More idiomatic ConTeXt output.
+    + Text wrapping in ConTeXt and LaTeX output.
+    + Pandoc now correctly handles all standard line endings
+      (CR, LF, CRLF).
+    + New `--no-wrap` option that disables line wrapping and minimizes
+      whitespace in HTML output.
+    + Build process is now compatible with both GHC 6.8 and GHC 6.6.
+      GHC and GHC_PKG environment variables may be used to specify
+      which version of the compiler to use, when multiple versions are
+      installed.
+
 -   Version 0.44 released (September 3, 2007).
 
     + Fixed bug in HTML writer:  when `--toc` was used, anchors were put around
@@ -112,53 +133,6 @@ You may view existing bug reports and submit new ones at
     + Markdown writer escapes paragraphs that begin like list items.
     + MacPorts Portfile now installs library as well as executable.
     + Added pandocwiki demonstration to the website.
- 
--   Version 0.42 released (August 26, 2007).
-
-    + Fixes bugs in ordered list handling, LaTeX footnotes,
-      UTF8 in include files, and HTML tables.  See [changelog] for details.
-    + Added new rule for enhanced ordered lists:  capital letters
-      followed by periods must be separated from the list item by
-      two spaces, to avoid misinterpretation of initials.  See
-      [README](README.html#lists) for details.
-    + Improved strict markdown compatibility.
-    + OSX packages are no longer supported. There were too many issues with
-      dynamic libraries. Instead, a MacPorts Portfile is now provided.
-    + Exposed Text.Pandoc.ASCIIMathML.
-
--   Version 0.41 released (August 19, 2007).
-
-    + Fixes bugs in the handling of ordered lists and raw HTML.
-      For details, see the [changelog].
-
--   Version 0.4 released (August 15, 2007).
-
-    For users:
-
-    + New output formats:  ConTeXt and groff man.
-    + Support for definition lists and tables.
-    + Support for superscript, subscript, and strikeout.
-    + Support for automatically generated tables of contents.
-    + Automatically generated unique identifiers in HTML headers.
-    + Enhanced ordered lists (start number and list number style
-      are now significant).
-    + Markdown links now printed as inline links by default,
-      unless `--reference-links` option is specified.
-    + Many bugs fixed.
-
-    For programmers:
-
-    + Added a Text.Pandoc module that exports the main functions
-      and data structures. Library documentation includes a sample
-      program using the library.
-
-    Under the hood:
-
-    + Refactored to avoid reliance on GHC's `Text.Regex`, which
-      is slow and does not support unicode.
-    + Removed Key and Note block elements and simplified parsers.
-    + Improved handling of character entities.
-    + HTML output is now generated using `Text.XHtml`.
 
 # Disclaimer
 
@@ -192,5 +166,5 @@ kind.
 [MacPorts]: http://db.macports.org/port/show/4218
 [pandoc-announce]: http://groups.google.com/group/pandoc-announce
 [pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
-[changelog]: changelog
+[changelog]: changelog.txt
 
