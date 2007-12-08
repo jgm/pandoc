@@ -328,7 +328,7 @@ make_page:=./$(MAIN) -s -S -B $(web_src)/header.html \
                         -A $(web_src)/footer.html \
 	                -H $(web_src)/css
 cleanup_files+=$(web_dest)
-$(web_dest) : html $(wildcard $(web_src)/*) changelog \
+$(web_dest) : html $(wildcard $(web_src)/*) debian/changelog \
     INSTALL $(MANPAGES) $(MANDIR)/man1/pandoc.1.md README
 	rm -rf $(web_dest) && { \
 		mkdir $(web_dest); \
@@ -336,7 +336,7 @@ $(web_dest) : html $(wildcard $(web_src)/*) changelog \
 		cp $(web_src)/* $(web_dest)/; \
 		sed -e 's#@VERSION@#$(VERSION)#g' $(web_src)/index.txt.in > \
 			$(web_dest)/index.txt; \
-		cp changelog $(web_dest)/ ; \
+		cp debian/changelog $(web_dest)/changelog.txt ; \
 		cp README $(web_dest)/ ; \
 		cp INSTALL $(web_dest)/ ; \
 		cp $(MANDIR)/man1/pandoc.1.md $(web_dest)/ ; \
