@@ -100,35 +100,6 @@ nested
 \end{quote}
 This should not be a block quote: 2 \textgreater{} 1.
 
-Box-style:
-
-\begin{quote}
-Example:
-
-\begin{verbatim}
-sub status {
-    print "working";
-}
-\end{verbatim}
-\end{quote}
-\begin{quote}
-\begin{enumerate}[1.]
-\item 
-  do laundry
-\item 
-  take out the trash
-\end{enumerate}
-\end{quote}
-Here's a nested one:
-
-\begin{quote}
-Joe said:
-
-\begin{quote}
-Don't quote me.
-
-\end{quote}
-\end{quote}
 And a following paragraph.
 
 \begin{center}\rule{3in}{0.4pt}\end{center}

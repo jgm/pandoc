@@ -159,41 +159,6 @@ nested
 \stopblockquote
 This should not be a block quote: 2 \lettermore{} 1.
 
-Box-style:
-
-\startblockquote
-
-Example:
-
-\starttyping
-sub status {
-    print "working";
-}
-\stoptyping
-
-\stopblockquote
-\startblockquote
-
-\startitemize[n][stopper=.]
-\item 
-  do laundry
-\item 
-  take out the trash
-\stopitemize
-
-\stopblockquote
-Here's a nested one:
-
-\startblockquote
-
-Joe said:
-
-\startblockquote
-
-Don't quote me.
-
-\stopblockquote
-\stopblockquote
 And a following paragraph.
 
 \thinrule

@@ -813,16 +813,6 @@ another. A link to this section, for example, might look like this:
 Note, however, that this method of providing links to sections works
 only in HTML.
 
-Box-style blockquotes
----------------------
-
-Pandoc supports emacs-style boxquote block quotes, in addition to
-standard markdown (email-style) block quotes:
-
-	,----
-	| They look like this.
-	`----
-
 Blank lines before headers and blockquotes
 ------------------------------------------
 

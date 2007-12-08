@@ -125,46 +125,6 @@ sub status {
       This should not be a block quote: 2 &gt; 1.
     </para>
     <para>
-      Box-style:
-    </para>
-    <blockquote>
-      <para>
-        Example:
-      </para>
-      <screen>
-sub status {
-    print &quot;working&quot;;
-}
-</screen>
-    </blockquote>
-    <blockquote>
-      <orderedlist numeration="arabic">
-        <listitem>
-          <para>
-            do laundry
-          </para>
-        </listitem>
-        <listitem>
-          <para>
-            take out the trash
-          </para>
-        </listitem>
-      </orderedlist>
-    </blockquote>
-    <para>
-      Here's a nested one:
-    </para>
-    <blockquote>
-      <para>
-        Joe said:
-      </para>
-      <blockquote>
-        <para>
-          Don't quote me.
-        </para>
-      </blockquote>
-    </blockquote>
-    <para>
       And a following paragraph.
     </para>
   </section>

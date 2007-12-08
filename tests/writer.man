@@ -72,34 +72,6 @@ nested
 .PP
 This should not be a block quote: 2 > 1\.
 .PP
-Box-style:
-.RS
-.PP
-Example:
-.PP
-\f[CR]
-      sub\ status\ {
-      \ \ \ \ print\ \"working\";
-      }
-\f[]
-.RE
-.RS
-.IP "1." 3
-do laundry
-.IP "2." 3
-take out the trash
-.RE
-.PP
-Here's a nested one:
-.RS
-.PP
-Joe said:
-.RS
-.PP
-Don't quote me\.
-.RE
-.RE
-.PP
 And a following paragraph\.
 .PP
    *   *   *   *   *

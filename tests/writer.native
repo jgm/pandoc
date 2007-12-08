@@ -39,20 +39,6 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
     [ Para [Str "nested"] ]
    ]
 , Para [Str "This",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "a",Space,Str "block",Space,Str "quote:",Space,Str "2",Space,Str ">",Space,Str "1",Str "."]
-, Para [Str "Box",Str "-",Str "style:"]
-, BlockQuote
-  [ Para [Str "Example:"]
-  , CodeBlock "sub status {\n    print \"working\";\n}" ]
-, BlockQuote
-  [ OrderedList (1,Decimal,Period)
-    [ [ Plain [Str "do",Space,Str "laundry"] ]
-    , [ Plain [Str "take",Space,Str "out",Space,Str "the",Space,Str "trash"] ] ] ]
-, Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "nested",Space,Str "one:"]
-, BlockQuote
-  [ Para [Str "Joe",Space,Str "said:"]
-  , BlockQuote
-    [ Para [Str "Don",Apostrophe,Str "t",Space,Str "quote",Space,Str "me",Str "."] ]
-   ]
 , Para [Str "And",Space,Str "a",Space,Str "following",Space,Str "paragraph",Str "."]
 , HorizontalRule
 , Header 1 [Str "Code",Space,Str "Blocks"]

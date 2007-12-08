@@ -60,6 +60,7 @@ pandoc (0.45) unstable; urgency=low
  
   * Markdown reader:
 
+    + Removed support for box-style block quotes.
     + Require space before title in links and references.
       This fixes a bug in parsing URLs like http://silly/url(withparen).
     + Improved and simplified setextHeader parser.

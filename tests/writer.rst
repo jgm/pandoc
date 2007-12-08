@@ -93,30 +93,6 @@ E-mail style:
 
 This should not be a block quote: 2 > 1.
 
-Box-style:
-
-    Example:
-
-    ::
-
-        sub status {
-            print "working";
-        }
-
-
-    
-    1. do laundry
-    2. take out the trash
-
-
-Here's a nested one:
-
-    Joe said:
-
-        Don't quote me.
-
-
-
 And a following paragraph.
 
 --------------

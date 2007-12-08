@@ -296,16 +296,6 @@ codeBlock = do
 -- block quotes
 --
 
-emacsBoxQuote = try $ do
-  failIfStrict
-  string ",----"
-  manyTill anyChar newline
-  raw <- manyTill 
-         (try (char '|' >> optional (char ' ') >> manyTill anyChar newline))
-         (try (string "`----"))
-  blanklines
-  return raw
-
 emailBlockQuoteStart = try $ nonindentSpaces >> char '>' >>~ optional (char ' ')
 
 emailBlockQuote = try $ do
@@ -319,7 +309,7 @@ emailBlockQuote = try $ do
   return raw
 
 blockQuote = do 
-  raw <- emailBlockQuote <|> emacsBoxQuote
+  raw <- emailBlockQuote
   -- parse the extracted block, which may contain various block elements:
   contents <- parseFromString parseBlocks $ (joinWithSep "\n" raw) ++ "\n\n"
   return $ BlockQuote contents
@@ -465,7 +455,7 @@ para = try $ do
   blanklines <|> do st <- getState
                     if stateStrict st
                        then lookAhead (blockQuote <|> header) >> return ""
-                       else lookAhead emacsBoxQuote >> return ""
+                       else pzero
   return $ Para $ normalizeSpaces result
 
 plain = many1 inline >>= return . Plain . normalizeSpaces 
