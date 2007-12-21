@@ -64,6 +64,8 @@ module Text.Pandoc.Shared (
                      charsInBalanced,
                      charsInBalanced',
                      romanNumeral,
+                     emailAddress,
+                     uri,
                      withHorizDisplacement,
                      nullBlock,
                      failIfStrict,
@@ -105,6 +107,7 @@ import Text.Pandoc.CharacterReferences ( characterReference )
 import Data.Char ( toLower, toUpper, ord, isLower, isUpper )
 import Data.List ( find, isPrefixOf )
 import Control.Monad ( join )
+import Network.URI ( parseURI, URI (..), isAllowedInURI )
 
 --
 -- List processing
@@ -403,6 +406,38 @@ romanNumeral upperCase = do
     if total == 0
        then fail "not a roman numeral"
        else return total
+
+-- Parsers for email addresses and URIs
+
+emailChar = alphaNum <|> oneOf "-+_."
+
+domainChar = alphaNum <|> char '-'
+
+domain = do
+  first <- many1 domainChar
+  dom <- many1 (try (do{ char '.'; many1 domainChar }))
+  return $ joinWithSep "." (first:dom)
+
+-- | Parses an email address; returns string.
+emailAddress :: GenParser Char st [Char]
+emailAddress = try $ do
+  firstLetter <- alphaNum
+  restAddr <- many emailChar
+  let addr = firstLetter:restAddr
+  char '@'
+  dom <- domain
+  return $ addr ++ '@':dom
+
+-- | Parses a URI.
+uri = try $ do
+  str <- many1 $ satisfy isAllowedInURI
+  case parseURI str of
+       Just uri' -> if uriScheme uri' `elem` [ "http:", "https:", "ftp:",
+                                               "file:", "mailto:",
+                                               "news:", "telnet:" ]
+                       then return $ show uri'
+                       else fail "not a URI"
+       Nothing   -> fail "not a URI"
 
 -- | Applies a parser, returns tuple of its results and its horizontal
 -- displacement (the difference between the source column at the end

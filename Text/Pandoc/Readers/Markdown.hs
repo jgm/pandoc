@@ -35,7 +35,6 @@ import Data.List ( transpose, isPrefixOf, isSuffixOf, lookup, sortBy, findIndex 
 import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum )
 import Data.Maybe ( fromMaybe )
-import Network.URI ( isURI )
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment )
@@ -850,22 +849,9 @@ referenceLink label = do
      Nothing     -> fail "no corresponding key" 
      Just target -> return target 
 
-emailAddress = try $ do
-  name <- many1 (alphaNum <|> char '+')
-  char '@'
-  first <- many1 alphaNum
-  rest <- many1 (char '.' >> many1 alphaNum)
-  return $ "mailto:" ++ name ++ "@" ++ joinWithSep "." (first:rest)
-
-uri = try $ do
-  str <- many1 (noneOf "\n\t >")
-  if isURI str
-     then return str
-     else fail "not a URI"
-
 autoLink = try $ do
   char '<'
-  src <- uri <|> emailAddress
+  src <- uri <|> (emailAddress >>= (return . ("mailto:" ++)))
   char '>'
   let src' = if "mailto:" `isPrefixOf` src
                 then drop 7 src

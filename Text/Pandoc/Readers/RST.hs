@@ -592,34 +592,9 @@ referenceLink = try $ do
   setState $ state { stateKeys = keyTable' }
   return $ Link (normalizeSpaces label) src 
 
-uriScheme = oneOfStrings [ "http://", "https://", "ftp://", "file://", 
-                           "mailto:", "news:", "telnet:" ]
-
-uri = try $ do
-  scheme <- uriScheme
-  identifier <- many1 (noneOf " \t\n")
-  return $ scheme ++ identifier
-
 autoURI = do
   src <- uri
   return $ Link [Str src] (src, "")
-
-emailChar = alphaNum <|> oneOf "-+_."
-
-emailAddress = try $ do
-  firstLetter <- alphaNum
-  restAddr <- many emailChar
-  let addr = firstLetter:restAddr
-  char '@'
-  dom <- domain
-  return $ addr ++ '@':dom
-
-domainChar = alphaNum <|> char '-'
-
-domain = do
-  first <- many1 domainChar
-  dom <- many1 (try (do{ char '.'; many1 domainChar }))
-  return $ joinWithSep "." (first:dom)
 
 autoEmail = do
   src <- emailAddress
