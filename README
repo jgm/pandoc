@@ -790,12 +790,19 @@ derive the identifier from the header text,
   - Remove all punctuation, except dashes and hyphens.
   - Replace all spaces, dashes, newlines, and hyphens with hyphens.
   - Convert all alphabetic characters to lowercase.
+  - Remove everything up to the first letter (identifiers may
+    not begin with a number or punctuation mark).
+  - If nothing is left after this, use the identifier `section`.
 
-Thus, for example, a heading 'Header identifiers in HTML' will get
-the identifier `header-identifiers-in-html`, a heading
-'*Dogs*?--in *my* house?' will get the identifier `dogs--in-my-house`,
-and a heading '[HTML], [S5], or [RTF]?' will get the identifier
-`html-s5-or-rtf`.
+Thus, for example,
+
+  Header                                  Identifier
+  -------------------------------------   ---------------------------
+  Header identifiers in HTML              `header-identifiers-in-html`
+  *Dogs*?--in *my* house?                 `dogs--in-my-house`
+  [HTML], [S5], or [RTF]?                 `html-s5-or-rtf`
+  3. Applications                         `applications`
+  33                                      `section`
 
 These rules should, in most cases, allow one to determine the identifier
 from the header text. The exception is when several headers have the

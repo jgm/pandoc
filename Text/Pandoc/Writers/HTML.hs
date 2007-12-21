@@ -35,7 +35,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
 import Text.Regex ( mkRegex, matchRegex )
 import Numeric ( showHex )
-import Data.Char ( ord, toLower )
+import Data.Char ( ord, toLower, isAlpha )
 import Data.List ( isPrefixOf, intersperse )
 import qualified Data.Set as S
 import Control.Monad.State
@@ -215,18 +215,20 @@ addToCSS item = do
 
 -- | Convert Pandoc inline list to plain text identifier.
 inlineListToIdentifier :: [Inline] -> String
-inlineListToIdentifier [] = ""
-inlineListToIdentifier (x:xs) = 
-  xAsText ++ inlineListToIdentifier xs
+inlineListToIdentifier = dropWhile (not . isAlpha) . inlineListToIdentifier'
+
+inlineListToIdentifier' [] = ""
+inlineListToIdentifier' (x:xs) = 
+  xAsText ++ inlineListToIdentifier' xs
   where xAsText = case x of
           Str s          -> filter (\c -> c == '-' || not (isPunctuation c)) $
                             concat $ intersperse "-" $ words $ map toLower s
-          Emph lst       -> inlineListToIdentifier lst
-          Strikeout lst  -> inlineListToIdentifier lst
-          Superscript lst -> inlineListToIdentifier lst
-          Subscript lst  -> inlineListToIdentifier lst
-          Strong lst     -> inlineListToIdentifier lst
-          Quoted _ lst   -> inlineListToIdentifier lst
+          Emph lst       -> inlineListToIdentifier' lst
+          Strikeout lst  -> inlineListToIdentifier' lst
+          Superscript lst -> inlineListToIdentifier' lst
+          Subscript lst  -> inlineListToIdentifier' lst
+          Strong lst     -> inlineListToIdentifier' lst
+          Quoted _ lst   -> inlineListToIdentifier' lst
           Code s         -> s
           Space          -> "-"
           EmDash         -> "-"
@@ -237,8 +239,8 @@ inlineListToIdentifier (x:xs) =
           Math _         -> ""
           TeX _          -> ""
           HtmlInline _   -> ""
-          Link lst _     -> inlineListToIdentifier lst
-          Image lst _    -> inlineListToIdentifier lst
+          Link lst _     -> inlineListToIdentifier' lst
+          Image lst _    -> inlineListToIdentifier' lst
           Note _         -> ""
 
 -- | Return unique identifiers for list of inline lists.
@@ -247,7 +249,8 @@ uniqueIdentifiers ls =
   let addIdentifier (nonuniqueIds, uniqueIds) l =
         let new = inlineListToIdentifier l
             matches = length $ filter (== new) nonuniqueIds
-            new' = new ++ if matches > 0 then ("-" ++ show matches) else ""
+            new' = (if null new then "section" else new) ++ 
+                   if matches > 0 then ("-" ++ show matches) else ""
         in  (new:nonuniqueIds, new':uniqueIds)
   in  reverse $ snd $ foldl addIdentifier ([],[]) ls
 
