@@ -818,9 +818,10 @@ reference = notFollowedBy' (string "[^") >>  -- footnote reference
 -- source for a link, with optional title
 source = try $ do 
   char '('
-  optional (char '<')
-  src <- many (noneOf ")> \t\n")
-  optional (char '>')
+  src <- try (char '<' >>
+              many ((char '\\' >> anyChar) <|> noneOf "> \t\n") >>~
+              char '>')
+         <|> many ((char '\\' >> anyChar) <|> noneOf ") \t\n")
   tit <- option "" linkTitle
   skipSpaces
   char ')'
