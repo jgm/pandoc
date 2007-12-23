@@ -199,11 +199,15 @@ htmlScript = try $ do
 htmlBlockElement = choice [ htmlScript, htmlComment, xmlDec, definition ]
 
 rawHtmlBlock = try $ do
-  notFollowedBy' (htmlTag "/body" <|> htmlTag "/html")
   body <- htmlBlockElement <|> anyHtmlTag <|> anyHtmlEndTag
   sp <- many space
   state <- getState
   if stateParseRaw state then return (RawHtml (body ++ sp)) else return Null
+
+-- We don't want to parse </body> or </html> as raw HTML, since these
+-- are handled in parseHtml.
+rawHtmlBlock' = do notFollowedBy' (htmlTag "/body" <|> htmlTag "/html")
+                   rawHtmlBlock
 
 -- | Parses an HTML comment.
 htmlComment = try $ do
@@ -284,7 +288,8 @@ block = choice [ codeBlock
                , blockQuote
                , para
                , plain
-               , rawHtmlBlock ] <?> "block"
+               , rawHtmlBlock'
+               ] <?> "block"
 
 --
 -- header blocks
