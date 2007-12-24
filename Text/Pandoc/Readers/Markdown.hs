@@ -235,9 +235,9 @@ block = choice [ header
                , hrule
                , list
                , blockQuote
-               , htmlBlock
                , rawLaTeXEnvironment'
                , para
+               , htmlBlock
                , plain
                , nullBlock ] <?> "block"
 
@@ -448,8 +448,16 @@ definitionList = do
 -- paragraph block
 --
 
+isHtmlOrBlank (HtmlInline _) = True
+isHtmlOrBlank (Space) = True
+isHtmlOrBlank (LineBreak) = True
+isHtmlOrBlank _ = False
+
 para = try $ do 
   result <- many1 inline
+  if all isHtmlOrBlank result
+     then fail "treat as raw HTML"
+     else return ()
   newline
   blanklines <|> do st <- getState
                     if stateStrict st
@@ -886,8 +894,8 @@ rawLaTeXInline' = failIfStrict >> rawLaTeXInline
 
 rawHtmlInline' = do
   st <- getState
-  result <- choice $ if stateStrict st
-                        then [htmlBlockElement, anyHtmlTag, anyHtmlEndTag] 
-                        else [htmlBlockElement, anyHtmlInlineTag]
+  result <- if stateStrict st
+               then choice [htmlBlockElement, anyHtmlTag, anyHtmlEndTag] 
+               else anyHtmlInlineTag
   return $ HtmlInline result
 
