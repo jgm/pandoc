@@ -831,23 +831,30 @@ reference = do notFollowedBy' (string "[^")   -- footnote reference
                return $ normalizeSpaces result
 
 -- source for a link, with optional title
-source = try $ do 
-  char '('
+source =
+  (try $ charsInBalanced '(' ')' >>= parseFromString source') <|>
+  -- the following is needed for cases like:  [ref](/url(a).
+  (enclosed (char '(') (char ')') anyChar >>=
+   parseFromString source')
+
+-- auxiliary function for source
+source' = do
+  skipSpaces
   src <- try (char '<' >>
-              many ((char '\\' >> anyChar) <|> noneOf "> \t\n") >>~
+              many (optional (char '\\') >> noneOf "> \t\n") >>~
               char '>')
-         <|> many ((char '\\' >> anyChar) <|> noneOf ") \t\n")
+         <|> many (optional (char '\\') >> noneOf " \t\n")
   tit <- option "" linkTitle
   skipSpaces
-  char ')'
+  eof
   return (removeTrailingSpace src, tit)
 
 linkTitle = try $ do 
   (many1 spaceChar >> option '\n' newline) <|> newline
   skipSpaces
-  delim <- char '\'' <|> char '"'
-  tit <-   manyTill anyChar (try (char delim >> skipSpaces >>
-                                  notFollowedBy (noneOf ")\n")))
+  delim <- oneOf "'\""
+  tit <-   manyTill (optional (char '\\') >> anyChar)
+                    (try (char delim >> skipSpaces >> eof))
   return $ decodeCharacterReferences tit
 
 link = try $ do
