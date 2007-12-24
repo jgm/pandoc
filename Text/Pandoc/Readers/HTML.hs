@@ -183,7 +183,7 @@ isBlock tag = (extractTagType tag) `elem` blockHtmlTags
 
 anyHtmlBlockTag = try $ do
   tag <- anyHtmlTag <|> anyHtmlEndTag
-  if isBlock tag then return tag else fail "inline tag"
+  if isBlock tag then return tag else fail "not a block tag"
 
 anyHtmlInlineTag = try $ do
   tag <- anyHtmlTag <|> anyHtmlEndTag
