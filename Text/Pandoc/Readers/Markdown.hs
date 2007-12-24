@@ -89,23 +89,20 @@ failUnlessSmart = do
   state <- getState
   if stateSmart state then return () else fail "Smart typography feature"
 
--- | Parse an inline Str element with a given content.
-inlineString str = try $ do 
-  (Str res) <- inline 
-  if res == str then return res else fail $ "unexpected Str content"
-
--- | Parse a sequence of inline elements between a string
---  @opener@ and a string @closer@, including inlines
---  between balanced pairs of @opener@ and a @closer@.
-inlinesInBalanced :: String -> String -> GenParser Char ParserState [Inline]
-inlinesInBalanced opener closer = try $ do
-  string opener
-  result <- manyTill ( (do lookAhead (inlineString opener)
-                           -- because it might be a link...
-                           bal <- inlinesInBalanced opener closer 
-                           return $ [Str opener] ++ bal ++ [Str closer])
-                       <|> (count 1 inline)) 
-                     (try (string closer))
+-- | Parse a sequence of inline elements between square brackets,
+-- including inlines between balanced pairs of square brackets.
+inlinesInBalancedBrackets :: GenParser Char ParserState Inline
+                          -> GenParser Char ParserState [Inline]
+inlinesInBalancedBrackets parser = try $ do
+  char '['
+  result <- manyTill ( (do lookAhead $ try $ do (Str res) <- parser
+                                                if res == "["
+                                                   then return ()
+                                                   else pzero
+                           bal <- inlinesInBalancedBrackets parser
+                           return $ [Str "["] ++ bal ++ [Str "]"])
+                       <|> (count 1 parser))
+                     (char ']')
   return $ concat result
 
 --
@@ -638,7 +635,9 @@ table = failIfStrict >> (simpleTable <|> multilineTable) <?> "table"
 -- inline
 --
 
-inline = choice [ str
+inline = choice inlineParsers <?> "inline"
+
+inlineParsers = [ str
                 , smartPunctuation
                 , whitespace
                 , endline
@@ -659,7 +658,14 @@ inline = choice [ str
                 , rawLaTeXInline'
                 , escapedChar
                 , symbol
-                , ltSign ] <?> "inline"
+                , ltSign ]
+
+inlineNonLink = (choice $
+                 map (\parser -> try (parser >>= failIfLink)) inlineParsers)
+                <?> "inline (non-link)"
+
+failIfLink (Link _ _) = pzero
+failIfLink elt = return elt
 
 escapedChar = do
   char '\\'
@@ -820,8 +826,9 @@ endline = try $ do
 --
 
 -- a reference label for a link
-reference = notFollowedBy' (string "[^") >>  -- footnote reference
-            inlinesInBalanced "[" "]" >>= (return . normalizeSpaces)
+reference = do notFollowedBy' (string "[^")   -- footnote reference
+               result <- inlinesInBalancedBrackets inlineNonLink
+               return $ normalizeSpaces result
 
 -- source for a link, with optional title
 source = try $ do 
@@ -887,7 +894,7 @@ note = try $ do
 inlineNote = try $ do
   failIfStrict
   char '^'
-  contents <- inlinesInBalanced "[" "]"
+  contents <- inlinesInBalancedBrackets inline
   return $ Note [Para contents]
 
 rawLaTeXInline' = failIfStrict >> rawLaTeXInline
