@@ -226,17 +226,32 @@ noteBlock = try $ do
 
 parseBlocks = manyTill block eof
 
-block = choice [ header 
-               , table
-               , codeBlock
-               , hrule
-               , list
-               , blockQuote
-               , rawLaTeXEnvironment'
-               , para
-               , htmlBlock
-               , plain
-               , nullBlock ] <?> "block"
+block = do
+  st <- getState
+  choice (if stateStrict st
+              then [ header
+                   , codeBlock
+                   , hrule
+                   , bulletList
+                   , orderedList
+                   , blockQuote
+                   , htmlBlock
+                   , para
+                   , plain
+                   , nullBlock ]
+              else [ header 
+                   , table
+                   , codeBlock
+                   , hrule
+                   , bulletList
+                   , orderedList
+                   , definitionList
+                   , blockQuote
+                   , rawLaTeXEnvironment
+                   , para
+                   , htmlBlock
+                   , plain
+                   , nullBlock ]) <?> "block"
 
 --
 -- header blocks
@@ -313,8 +328,6 @@ blockQuote = do
 --
 -- list blocks
 --
-
-list = choice [ bulletList, orderedList, definitionList ] <?> "list"
 
 bulletListStart = try $ do
   optional newline -- if preceded by a Plain block in a list context
@@ -434,7 +447,6 @@ defRawBlock = try $ do
   return $ firstline ++ "\n" ++ unlines rawlines ++ trailing
 
 definitionList = do
-  failIfStrict
   items <- many1 definitionListItem
   let (terms, defs) = unzip items
   let defs' = compactify defs
@@ -501,12 +513,6 @@ rawHtmlBlocks = do
                      then init combined  -- strip extra newline 
                      else combined 
   return $ RawHtml combined'
-
---
--- LaTeX
---
-
-rawLaTeXEnvironment' = failIfStrict >> rawLaTeXEnvironment
 
 --
 -- Tables
@@ -629,7 +635,7 @@ alignType strLst len =
         (True,  True)    -> AlignCenter
         (False, False)   -> AlignDefault
 
-table = failIfStrict >> (simpleTable <|> multilineTable) <?> "table"
+table = simpleTable <|> multilineTable <?> "table"
 
 -- 
 -- inline
