@@ -71,8 +71,10 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
   let titlePrefix = writerTitlePrefix opts
       topTitle    = evalState (inlineListToHtml opts tit) defaultWriterState
       topTitle'   = if null titlePrefix
-                        then topTitle
-                        else titlePrefix +++ " - " +++ topTitle
+                       then topTitle
+                       else if null tit 
+                               then stringToHtml titlePrefix
+                               else titlePrefix +++ " - " +++ topTitle
       metadata    = thetitle topTitle' +++ 
                     meta ! [httpequiv "Content-Type", 
                             content "text/html; charset=UTF-8"] +++
