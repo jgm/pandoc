@@ -121,12 +121,10 @@ here.
 E-mail style:
 
 \startblockquote
-
 This is a block quote. It is pretty short.
-
 \stopblockquote
-\startblockquote
 
+\startblockquote
 Code in a block quote:
 
 \starttyping
@@ -147,16 +145,14 @@ A list:
 Nested block quotes:
 
 \startblockquote
-
 nested
-
 \stopblockquote
+
 \startblockquote
-
 nested
+\stopblockquote
+\stopblockquote
 
-\stopblockquote
-\stopblockquote
 This should not be a block quote: 2 \lettermore{} 1.
 
 And a following paragraph.
@@ -207,13 +203,10 @@ Asterisks loose:
 \startitemize
 \item 
   asterisk 1
-
 \item 
   asterisk 2
-
 \item 
   asterisk 3
-
 \stopitemize
 
 Pluses tight:
@@ -232,13 +225,10 @@ Pluses loose:
 \startitemize
 \item 
   Plus 1
-
 \item 
   Plus 2
-
 \item 
   Plus 3
-
 \stopitemize
 
 Minuses tight:
@@ -257,13 +247,10 @@ Minuses loose:
 \startitemize
 \item 
   Minus 1
-
 \item 
   Minus 2
-
 \item 
   Minus 3
-
 \stopitemize
 
 \subsubject{Ordered}
@@ -295,13 +282,10 @@ Loose using tabs:
 \startitemize[n][stopper=.]
 \item 
   First
-
 \item 
   Second
-
 \item 
   Third
-
 \stopitemize
 
 and using spaces:
@@ -309,13 +293,10 @@ and using spaces:
 \startitemize[n][stopper=.]
 \item 
   One
-
 \item 
   Two
-
 \item 
   Three
-
 \stopitemize
 
 Multiple paragraphs:
@@ -323,16 +304,13 @@ Multiple paragraphs:
 \startitemize[n][stopper=.]
 \item 
   Item 1, graf one.
-
+  
   Item 1. graf two. The quick brown fox jumped over the lazy dog's
   back.
-
 \item 
   Item 2.
-
 \item 
   Item 3.
-
 \stopitemize
 
 \subsubject{Nested}
@@ -347,9 +325,7 @@ Multiple paragraphs:
     \item 
       Tab
     \stopitemize
-
   \stopitemize
-
 \stopitemize
 
 Here's another:
@@ -367,7 +343,6 @@ Here's another:
   \item 
     Foe
   \stopitemize
-
 \item 
   Third
 \stopitemize
@@ -377,10 +352,9 @@ Same thing but with paragraphs:
 \startitemize[n][stopper=.]
 \item 
   First
-
 \item 
   Second:
-
+  
   \startitemize
   \item 
     Fee
@@ -389,10 +363,8 @@ Same thing but with paragraphs:
   \item 
     Foe
   \stopitemize
-
 \item 
   Third
-
 \stopitemize
 
 \subsubject{Tabs and spaces}
@@ -400,19 +372,15 @@ Same thing but with paragraphs:
 \startitemize
 \item 
   this is a list item indented with tabs
-
 \item 
   this is a list item indented with spaces
-
+  
   \startitemize
   \item 
     this is an example list item indented with tabs
-
   \item 
     this is an example list item indented with spaces
-
   \stopitemize
-
 \stopitemize
 
 \subsubject{Fancy list markers}
@@ -422,9 +390,9 @@ Same thing but with paragraphs:
   begins with 2
 \item 
   and now 3
-
+  
   with a continuation
-
+  
   \startitemize[r][start=4,stopper=.,width=2.0em]
   \item 
     sublist with roman numerals, starting with 4
@@ -436,9 +404,7 @@ Same thing but with paragraphs:
     \item 
       a subsublist
     \stopitemize
-
   \stopitemize
-
 \stopitemize
 
 Nesting:
@@ -456,11 +422,8 @@ Nesting:
       \item 
         Lower alpha with paren
       \stopitemize
-
     \stopitemize
-
   \stopitemize
-
 \stopitemize
 
 Autonumbering:
@@ -474,7 +437,6 @@ Autonumbering:
   \item 
     Nested.
   \stopitemize
-
 \stopitemize
 
 Should not be a list item:
@@ -492,9 +454,11 @@ Tight using spaces:
 \startdescr{apple}
 red fruit
 \stopdescr
+
 \startdescr{orange}
 orange fruit
 \stopdescr
+
 \startdescr{banana}
 yellow fruit
 \stopdescr
@@ -504,9 +468,11 @@ Tight using tabs:
 \startdescr{apple}
 red fruit
 \stopdescr
+
 \startdescr{orange}
 orange fruit
 \stopdescr
+
 \startdescr{banana}
 yellow fruit
 \stopdescr
@@ -515,15 +481,14 @@ Loose:
 
 \startdescr{apple}
 red fruit
-
 \stopdescr
+
 \startdescr{orange}
 orange fruit
-
 \stopdescr
+
 \startdescr{banana}
 yellow fruit
-
 \stopdescr
 
 Multiple blocks with italics:
@@ -532,8 +497,8 @@ Multiple blocks with italics:
 red fruit
 
 contains seeds, crisp, pleasant to taste
-
 \stopdescr
+
 \startdescr{{\em orange}}
 orange fruit
 
@@ -542,9 +507,7 @@ orange fruit
 \stoptyping
 
 \startblockquote
-
 orange block quote
-
 \stopblockquote
 \stopdescr
 
@@ -777,8 +740,7 @@ Here's a
 Here's a link with an amersand in the link text:
 \useURL[24][http://att.com/][][AT\&T]\from[24].
 
-Here's an
-\useURL[25][/script?foo=1&bar=2][][inline link]\from[25].
+Here's an \useURL[25][/script?foo=1&bar=2][][inline link]\from[25].
 
 Here's an
 \useURL[26][/script?foo=1&bar=2][][inline link in pointy braces]\from[26].
@@ -801,11 +763,10 @@ An e-mail address:
 \useURL[29][mailto:nobody@nowhere.net][][nobody@nowhere.net]\from[29]
 
 \startblockquote
-
 Blockquoted:
 \useURL[30][http://example.com/][][http://example.com/]\from[30]
-
 \stopblockquote
+
 Auto-links should not occur here: \type{<http://example.com/>}
 
 \starttyping
@@ -857,11 +818,10 @@ a space.[\letterhat{}my note] Here is an inline note.
 verbatim characters, as well as [bracketed text].}
 
 \startblockquote
-
 Notes can go in quotes.
 \footnote{In quote.}
-
 \stopblockquote
+
 \startitemize[n][stopper=.]
 \item 
   And in list items.
@@ -870,6 +830,5 @@ Notes can go in quotes.
 
 This paragraph should not be part of the note, as it is not
 indented.
-
 \stoptext
 
