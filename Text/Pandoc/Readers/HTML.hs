@@ -442,7 +442,7 @@ rawHtmlInline = do
 betweenTags tag = try $ htmlTag tag >> inlinesTilEnd tag >>= 
                         return . normalizeSpaces
 
-emph = (betweenTags "em" <|> betweenTags "it") >>= return . Emph
+emph = (betweenTags "em" <|> betweenTags "i") >>= return . Emph
 
 strong = (betweenTags "b" <|> betweenTags "strong") >>= return . Strong
 
