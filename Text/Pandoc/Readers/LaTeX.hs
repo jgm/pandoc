@@ -374,7 +374,7 @@ unknownCommand = try $ do
   state <- getState
   if name == "item" && (stateParserContext state) == ListItemState
      then fail "should not be parsed as raw"
-     else string ""
+     else return ""
   if stateParseRaw state
      then return $ Plain [TeX ("\\" ++ name ++ star ++ argStr)]
      else return $ Plain [Str (joinWithSep " " args)]
@@ -648,5 +648,7 @@ rawLaTeXInline = try $ do
   if ((name == "begin") || (name == "end") || (name == "item"))
      then fail "not an inline command" 
      else string ""
-  return $ TeX ("\\" ++ name ++ star ++ concat args)
+  if stateParseRaw state
+     then return $ TeX ("\\" ++ name ++ star ++ concat args)
+     else return $ Str (joinWithSep " " args)
 

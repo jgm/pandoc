@@ -99,7 +99,7 @@ print "Testing html reader...";
 test_results("html reader", "tmp.native", "html-reader.native");
 
 print "Testing latex reader...";
-`$script -r latex -w native -s latex-reader.latex > tmp.native`;
+`$script -r latex -w native -R -s latex-reader.latex > tmp.native`;
 test_results("latex reader", "tmp.native", "latex-reader.native");
 
 print "Testing native reader...";
