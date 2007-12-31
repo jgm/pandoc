@@ -196,7 +196,14 @@ htmlScript = try $ do
   rest <- manyTill anyChar (htmlEndTag "script")
   return $ open ++ rest ++ "</script>"
 
-htmlBlockElement = choice [ htmlScript, htmlComment, xmlDec, definition ]
+-- | Parses material between style tags.
+-- Style tags must be treated differently, because they can contain CSS
+htmlStyle = try $ do
+  open <- string "<style"
+  rest <- manyTill anyChar (htmlEndTag "style")
+  return $ open ++ rest ++ "</style>"
+
+htmlBlockElement = choice [ htmlScript, htmlStyle, htmlComment, xmlDec, definition ]
 
 rawHtmlBlock = try $ do
   body <- htmlBlockElement <|> anyHtmlTag <|> anyHtmlEndTag
@@ -435,7 +442,7 @@ code = try $ do
                   joinWithSep " " $ lines result 
 
 rawHtmlInline = do
-  result <- htmlScript <|> htmlComment <|> anyHtmlInlineTag
+  result <- htmlScript <|> htmlStyle <|> htmlComment <|> anyHtmlInlineTag
   state <- getState
   if stateParseRaw state then return (HtmlInline result) else return (Str "")
 
