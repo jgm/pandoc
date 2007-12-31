@@ -207,9 +207,8 @@ htmlBlockElement = choice [ htmlScript, htmlStyle, htmlComment, xmlDec, definiti
 
 rawHtmlBlock = try $ do
   body <- htmlBlockElement <|> anyHtmlTag <|> anyHtmlEndTag
-  sp <- many space
   state <- getState
-  if stateParseRaw state then return (RawHtml (body ++ sp)) else return Null
+  if stateParseRaw state then return (RawHtml body) else return Null
 
 -- We don't want to parse </body> or </html> as raw HTML, since these
 -- are handled in parseHtml.

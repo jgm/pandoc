@@ -507,11 +507,18 @@ strictHtmlBlock = try $ do
              return $ tag ++ concat contents ++ end
 
 rawHtmlBlocks = do
-  htmlBlocks <- many1 rawHtmlBlock    
-  let combined = concatMap (\(RawHtml str) -> str) htmlBlocks
-  let combined' = if not (null combined) && last combined == '\n'
-                     then init combined  -- strip extra newline 
-                     else combined 
+  htmlBlocks <- many1 $ do (RawHtml blk) <- rawHtmlBlock
+                           sps <- do sp1 <- many spaceChar
+                                     sp2 <- option "" (blankline >> return "\n")
+                                     sp3 <- many spaceChar
+                                     sp4 <- option "" blanklines
+                                     return $ sp1 ++ sp2 ++ sp3 ++ sp4
+                           -- note: we want raw html to be able to
+                           -- precede a code block, when separated
+                           -- by a blank line
+                           return $ blk ++ sps
+  let combined = concat htmlBlocks
+  let combined' = if last combined == '\n' then init combined else combined
   return $ RawHtml combined'
 
 --
