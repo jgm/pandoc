@@ -60,7 +60,7 @@ readHtml = readWith parseHtml
 --
 
 eitherBlockOrInline = ["applet", "button", "del", "iframe", "ins",
-                  "map", "area", "object", "script"]
+                  "map", "area", "object"]
 
 inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big",
                   "br", "cite", "code", "dfn", "em", "font", "i", "img",
@@ -73,7 +73,7 @@ blockHtmlTags = ["address", "blockquote", "center", "dir", "div",
                  "h5", "h6", "hr", "isindex", "menu", "noframes",
                  "noscript", "ol", "p", "pre", "table", "ul", "dd",
                  "dt", "frameset", "li", "tbody", "td", "tfoot",
-                 "th", "thead", "tr"] ++ eitherBlockOrInline
+                 "th", "thead", "tr", "script"] ++ eitherBlockOrInline
 
 --
 -- HTML utility functions
