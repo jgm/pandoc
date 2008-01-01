@@ -241,8 +241,9 @@ options =
     , Option "H" ["include-in-header"]
                  (ReqArg
                   (\arg opt -> do
+                     let old = optIncludeInHeader opt
                      text <- readFile arg
-                     return opt { optIncludeInHeader = fromUTF8 text, 
+                     return opt { optIncludeInHeader = old ++ fromUTF8 text, 
                                   optStandalone = True })
                   "FILENAME")
                  "" -- "File to include at end of header (implies -s)"
@@ -250,16 +251,18 @@ options =
     , Option "B" ["include-before-body"]
                  (ReqArg
                   (\arg opt -> do
+                     let old = optIncludeBeforeBody opt
                      text <- readFile arg
-                     return opt { optIncludeBeforeBody = fromUTF8 text })
+                     return opt { optIncludeBeforeBody = old ++ fromUTF8 text })
                   "FILENAME")
                  "" -- "File to include before document body"
 
     , Option "A" ["include-after-body"]
                  (ReqArg
                   (\arg opt -> do
+                     let old = optIncludeAfterBody opt
                      text <- readFile arg
-                     return opt { optIncludeAfterBody = fromUTF8 text })
+                     return opt { optIncludeAfterBody = old ++ fromUTF8 text })
                   "FILENAME")
                  "" -- "File to include after document body"
 
