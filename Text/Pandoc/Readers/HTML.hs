@@ -75,9 +75,53 @@ blockHtmlTags = ["address", "blockquote", "center", "dir", "div",
                  "dt", "frameset", "li", "tbody", "td", "tfoot",
                  "th", "thead", "tr", "script"] ++ eitherBlockOrInline
 
+sanitaryTags = ["a", "abbr", "acronym", "address", "area", "b", "big",
+                "blockquote", "br", "button", "caption", "center",
+                "cite", "code", "col", "colgroup", "dd", "del", "dfn",
+                "dir", "div", "dl", "dt", "em", "fieldset", "font",
+                "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr",
+                "i", "img", "input", "ins", "kbd", "label", "legend",
+                "li", "map", "menu", "ol", "optgroup", "option", "p",
+                "pre", "q", "s", "samp", "select", "small", "span",
+                "strike", "strong", "sub", "sup", "table", "tbody",
+                "td", "textarea", "tfoot", "th", "thead", "tr", "tt",
+                "u", "ul", "var"]
+
+sanitaryAttributes = ["abbr", "accept", "accept-charset",
+                      "accesskey", "action", "align", "alt", "axis",
+                      "border", "cellpadding", "cellspacing", "char",
+                      "charoff", "charset", "checked", "cite", "class",
+                      "clear", "cols", "colspan", "color", "compact",
+                      "coords", "datetime", "dir", "disabled",
+                      "enctype", "for", "frame", "headers", "height",
+                      "href", "hreflang", "hspace", "id", "ismap",
+                      "label", "lang", "longdesc", "maxlength", "media",
+                      "method", "multiple", "name", "nohref", "noshade",
+                      "nowrap", "prompt", "readonly", "rel", "rev",
+                      "rows", "rowspan", "rules", "scope", "selected",
+                      "shape", "size", "span", "src", "start",
+                      "summary", "tabindex", "target", "title", "type",
+                      "usemap", "valign", "value", "vspace", "width"]
+
 --
 -- HTML utility functions
 --
+
+-- | Returns @True@ if sanitization is specified and the specified tag is 
+--  not on the sanitized tag list.
+unsanitaryTag tag = do
+  st <- getState
+  if stateSanitizeHTML st && not (tag `elem` sanitaryTags)
+     then return True
+     else return False
+
+-- | returns @True@ if sanitization is specified and the specified attribute
+--  is not on the sanitized attribute list.
+unsanitaryAttribute (attr, _, _) = do
+  st <- getState
+  if stateSanitizeHTML st && not (attr `elem` sanitaryAttributes)
+    then return True
+    else return False
 
 -- | Read blocks until end tag.
 blocksTilEnd tag = do
@@ -111,20 +155,28 @@ anyHtmlTag = try $ do
   let ender' = if null ender then "" else " /"
   spaces
   char '>'
-  return $ "<" ++ tag ++ 
-           concatMap (\(_, _, raw) -> (' ':raw)) attribs ++ ender' ++ ">"
+  let result = "<" ++ tag ++ 
+               concatMap (\(_, _, raw) -> (' ':raw)) attribs ++ ender' ++ ">"
+  unsanitary <- unsanitaryTag tag
+  if unsanitary
+     then return $ "<!-- unsafe tag " ++ result ++ " omitted -->"
+     else return result
 
 anyHtmlEndTag = try $ do
   char '<'   
   spaces
   char '/'
   spaces
-  tagType <- many1 alphaNum
+  tag <- many1 alphaNum
   spaces
   char '>'
-  return $ "</" ++ tagType ++ ">"
+  let result = "</" ++ tag ++ ">"
+  unsanitary <- unsanitaryTag tag
+  if unsanitary
+     then return $ "<!-- unsafe tag " ++ result ++ " omitted -->"
+     else return result 
 
-htmlTag :: String -> GenParser Char st (String, [(String, String)])
+htmlTag :: String -> GenParser Char ParserState (String, [(String, String)])
 htmlTag tag = try $ do
   char '<'
   spaces
@@ -142,7 +194,14 @@ quoted quoteChar = do
                     (many (noneOf [quoteChar]))
   return (result, [quoteChar])
 
-htmlAttribute = htmlRegularAttribute <|> htmlMinimizedAttribute
+nullAttribute = ("", "", "") 
+
+htmlAttribute = do
+  attr <- htmlRegularAttribute <|> htmlMinimizedAttribute
+  unsanitary <- unsanitaryAttribute attr
+  if unsanitary
+     then return nullAttribute
+     else return attr
 
 -- minimized boolean attribute
 htmlMinimizedAttribute = try $ do
@@ -183,7 +242,7 @@ isBlock tag = (extractTagType tag) `elem` blockHtmlTags
 
 anyHtmlBlockTag = try $ do
   tag <- anyHtmlTag <|> anyHtmlEndTag
-  if isBlock tag then return tag else fail "not a block tag"
+  if not (isInline tag) then return tag else fail "not a block tag"
 
 anyHtmlInlineTag = try $ do
   tag <- anyHtmlTag <|> anyHtmlEndTag
@@ -194,19 +253,25 @@ anyHtmlInlineTag = try $ do
 htmlScript = try $ do
   open <- string "<script"
   rest <- manyTill anyChar (htmlEndTag "script")
-  return $ open ++ rest ++ "</script>"
+  st <- getState
+  if stateSanitizeHTML st && not ("script" `elem` sanitaryTags)
+     then return "<!-- unsafe script omitted -->"
+     else return $ open ++ rest ++ "</script>"
 
 -- | Parses material between style tags.
 -- Style tags must be treated differently, because they can contain CSS
 htmlStyle = try $ do
   open <- string "<style"
   rest <- manyTill anyChar (htmlEndTag "style")
-  return $ open ++ rest ++ "</style>"
+  st <- getState
+  if stateSanitizeHTML st && not ("style" `elem` sanitaryTags)
+     then return "<!-- unsafe style omitted -->"
+     else return $ open ++ rest ++ "</style>"
 
 htmlBlockElement = choice [ htmlScript, htmlStyle, htmlComment, xmlDec, definition ]
 
 rawHtmlBlock = try $ do
-  body <- htmlBlockElement <|> anyHtmlTag <|> anyHtmlEndTag
+  body <- htmlBlockElement <|> anyHtmlBlockTag
   state <- getState
   if stateParseRaw state then return (RawHtml body) else return Null
 
@@ -235,8 +300,10 @@ definition = try $ do
   rest <- manyTill anyChar (char '>')
   return $ "<!" ++ rest ++ ">"
 
-nonTitleNonHead = try $ notFollowedBy' (htmlTag "title" <|> htmlTag "/head") >>
-  ((rawHtmlBlock >> return ' ') <|> anyChar)
+nonTitleNonHead = try $ do
+  notFollowedBy $ (htmlTag "title" >> return ' ') <|> 
+                  (htmlEndTag "head" >> return ' ')
+  (rawHtmlBlock >> return ' ') <|> anyChar
 
 parseTitle = try $ do
   (tag, _) <- htmlTag "title"
@@ -251,7 +318,7 @@ parseHead = try $ do
   skipMany nonTitleNonHead
   contents <- option [] parseTitle
   skipMany nonTitleNonHead
-  htmlTag "/head"
+  htmlEndTag "head"
   return (contents, [], "")
 
 skipHtmlTag tag = optional (htmlTag tag)

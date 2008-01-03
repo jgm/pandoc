@@ -51,6 +51,10 @@ a complete list.  The following options are most relevant:
 \--no-wrap
 :   Disable text wrapping in output.  (Default is to wrap text.)
 
+\--sanitize-html
+:   Sanitizes HTML using a whitelist. Unsafe tags are replaced by HTML
+    comments; unsafe attributes are omitted.
+
 -H *FILE*, \--include-in-header=*FILE*
 :   Include contents of *FILE* at the end of the header.  Implies
     `-s`.

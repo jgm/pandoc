@@ -249,7 +249,7 @@ block = do
                    , blockQuote
                    , rawLaTeXEnvironment
                    , para
-                   , htmlBlock
+                   , rawHtmlBlocks
                    , plain
                    , nullBlock ]) <?> "block"
 
@@ -482,15 +482,12 @@ plain = many1 inline >>= return . Plain . normalizeSpaces
 
 htmlElement = strictHtmlBlock <|> htmlBlockElement <?> "html element"
 
-htmlBlock = do
-  st <- getState
-  if stateStrict st
-    then try $ do failUnlessBeginningOfLine
-                  first <- htmlElement
-                  finalSpace <- many (oneOf spaceChars)
-                  finalNewlines <- many newline
-                  return $ RawHtml $ first ++ finalSpace ++ finalNewlines
-    else rawHtmlBlocks
+htmlBlock = try $ do
+    failUnlessBeginningOfLine
+    first <- htmlElement
+    finalSpace <- many (oneOf spaceChars)
+    finalNewlines <- many newline
+    return $ RawHtml $ first ++ finalSpace ++ finalNewlines
 
 -- True if tag is self-closing
 isSelfClosing tag = 

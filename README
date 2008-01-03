@@ -345,6 +345,11 @@ For further documentation, see the `pandoc(1)` man page.
 :   disables text-wrapping in output.  By default, text is wrapped
     appropriately for the output format.
 
+`--sanitize-html`
+:   sanitizes HTML (in markdown or HTML input) using a whitelist.
+    Unsafe tags are replaced by HTML comments; unsafe attributes
+    are omitted.
+
 `--dump-args`
 :   is intended to make it easier to create wrapper scripts that use
     Pandoc. It causes Pandoc to dump information about the arguments

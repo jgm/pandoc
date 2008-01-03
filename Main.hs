@@ -104,6 +104,7 @@ data Opt = Opt
     , optStrict            :: Bool    -- ^ Use strict markdown syntax
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optWrapText          :: Bool    -- ^ Wrap text
+    , optSanitizeHTML      :: Bool    -- ^ Sanitize HTML
     }
 
 -- | Defaults for command-line options.
@@ -132,6 +133,7 @@ defaultOpts = Opt
     , optStrict            = False
     , optReferenceLinks    = False
     , optWrapText          = True
+    , optSanitizeHTML      = False
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -225,6 +227,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optWrapText = False }))
                  "" -- "Do not wrap text in output"
+
+    , Option "" ["sanitize-html"]
+                 (NoArg
+                  (\opt -> return opt { optSanitizeHTML = True }))
+                 "" -- "Sanitize HTML"
 
     , Option "" ["toc", "table-of-contents"]
                 (NoArg
@@ -424,6 +431,7 @@ main = do
               , optStrict            = strict
               , optReferenceLinks    = referenceLinks
               , optWrapText          = wrap
+              , optSanitizeHTML      = sanitize
              } = opts
 
   if dumpArgs
@@ -476,13 +484,14 @@ main = do
         x:(tabFilter (spsToNextStop - 1) xs)
 
   let startParserState = 
-         defaultParserState { stateParseRaw    = parseRaw,
-                              stateTabStop     = tabStop, 
-                              stateStandalone  = standalone && (not strict),
-                              stateSmart       = smart || writerName' `elem` 
-                                                          ["latex", "context"],
-                              stateColumns     = columns,
-                              stateStrict      = strict }
+         defaultParserState { stateParseRaw     = parseRaw,
+                              stateTabStop      = tabStop, 
+                              stateSanitizeHTML = sanitize,
+                              stateStandalone   = standalone && (not strict),
+                              stateSmart        = smart || writerName' `elem` 
+                                                           ["latex", "context"],
+                              stateColumns      = columns,
+                              stateStrict       = strict }
   let csslink = if (css == "")
                    then "" 
                    else "<link rel=\"stylesheet\" href=\"" ++ css ++ 

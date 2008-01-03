@@ -595,6 +595,7 @@ data ParserState = ParserState
     { stateParseRaw        :: Bool,          -- ^ Parse raw HTML and LaTeX?
       stateParserContext   :: ParserContext, -- ^ Inside list?
       stateQuoteContext    :: QuoteContext,  -- ^ Inside quoted environment?
+      stateSanitizeHTML    :: Bool,          -- ^ Sanitize HTML?
       stateKeys            :: KeyTable,      -- ^ List of reference keys
       stateNotes           :: NoteTable,     -- ^ List of notes
       stateTabStop         :: Int,           -- ^ Tab stop
@@ -614,6 +615,7 @@ defaultParserState =
     ParserState { stateParseRaw        = False,
                   stateParserContext   = NullState,
                   stateQuoteContext    = NoQuote,
+                  stateSanitizeHTML    = False,
                   stateKeys            = [],
                   stateNotes           = [],
                   stateTabStop         = 4,
