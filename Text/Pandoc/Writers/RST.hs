@@ -40,16 +40,26 @@ import Control.Monad.State
 
 type Notes = [[Block]]
 type Refs = KeyTable
-type WriterState = (Notes, Refs, Refs) -- first Refs is links, second pictures
+data WriterState = 
+  WriterState { stNotes     :: [[Block]]
+              , stLinks     :: KeyTable
+              , stImages    :: KeyTable
+              , stIncludes  :: [Doc]
+              , stOptions   :: WriterOptions
+              }
 
 -- | Convert Pandoc to RST.
 writeRST :: WriterOptions -> Pandoc -> String
 writeRST opts document = 
-  render $ evalState (pandocToRST opts document) ([],[],[]) 
+  let st = WriterState { stNotes = [], stLinks = [],
+                         stImages = [], stIncludes = [],
+                         stOptions = opts }
+  in render $ evalState (pandocToRST document) st
 
 -- | Return RST representation of document.
-pandocToRST :: WriterOptions -> Pandoc -> State WriterState Doc
-pandocToRST opts (Pandoc meta blocks) = do
+pandocToRST :: Pandoc -> State WriterState Doc
+pandocToRST (Pandoc meta blocks) = do
+  opts <- get >>= (return . stOptions)
   let before  = writerIncludeBefore opts
   let after   = writerIncludeAfter opts
       before' = if null before then empty else text before
@@ -58,60 +68,57 @@ pandocToRST opts (Pandoc meta blocks) = do
   let head = if (writerStandalone opts)
                 then metaBlock $+$ text (writerHeader opts)
                 else empty
-  body <- blockListToRST opts blocks
-  (notes, _, _) <- get
-  notes' <- notesToRST opts (reverse notes)
-  (_, refs, pics) <- get  -- note that the notes may contain refs
-  refs' <- keyTableToRST opts (reverse refs)
-  pics' <- pictTableToRST opts (reverse pics)
-  return $ head $+$ before' $+$ body $+$ notes' $+$ text "" $+$ refs' $+$ 
-           pics' $+$ after'
+  body <- blockListToRST blocks
+  notes <- get >>= (notesToRST . reverse . stNotes)
+  -- note that the notes may contain refs, so we do them first
+  refs <- get >>= (keyTableToRST . reverse . stLinks)
+  pics <- get >>= (pictTableToRST . reverse . stImages)
+  return $ head $+$ before' $+$ body $+$ notes $+$ text "" $+$ refs $+$ 
+           pics $+$ after'
 
 -- | Return RST representation of reference key table.
-keyTableToRST :: WriterOptions -> KeyTable -> State WriterState Doc
-keyTableToRST opts refs = mapM (keyToRST opts) refs >>= return . vcat
+keyTableToRST :: KeyTable -> State WriterState Doc
+keyTableToRST refs = mapM keyToRST refs >>= return . vcat
  
 -- | Return RST representation of a reference key. 
-keyToRST :: WriterOptions 
-         -> ([Inline], (String, String)) 
+keyToRST :: ([Inline], (String, String)) 
          -> State WriterState Doc
-keyToRST opts (label, (src, tit)) = do
-  label' <- inlineListToRST opts label
+keyToRST (label, (src, tit)) = do
+  label' <- inlineListToRST label
   let label'' = if ':' `elem` (render label')
                    then char '`' <> label' <> char '`'
                    else label'
   return $ text ".. _" <> label'' <> text ": " <> text src
 
 -- | Return RST representation of notes.
-notesToRST :: WriterOptions -> [[Block]] -> State WriterState Doc
-notesToRST opts notes = 
-  mapM (\(num, note) -> noteToRST opts num note) (zip [1..] notes) >>= 
+notesToRST :: [[Block]] -> State WriterState Doc
+notesToRST notes = 
+  mapM (\(num, note) -> noteToRST num note) (zip [1..] notes) >>= 
   return . vcat
 
 -- | Return RST representation of a note.
-noteToRST :: WriterOptions -> Int -> [Block] -> State WriterState Doc
-noteToRST opts num note = do
-  contents <- blockListToRST opts note
+noteToRST :: Int -> [Block] -> State WriterState Doc
+noteToRST num note = do
+  contents <- blockListToRST note
   let marker = text ".. [" <> text (show num) <> text "] "
   return $ hang marker 3 contents 
 
 -- | Return RST representation of picture reference table.
-pictTableToRST :: WriterOptions -> KeyTable -> State WriterState Doc
-pictTableToRST opts refs = mapM (pictToRST opts) refs >>= return . vcat
+pictTableToRST :: KeyTable -> State WriterState Doc
+pictTableToRST refs = mapM pictToRST refs >>= return . vcat
  
 -- | Return RST representation of a picture substitution reference. 
-pictToRST :: WriterOptions 
-         -> ([Inline], (String, String)) 
-         -> State WriterState Doc
-pictToRST opts (label, (src, _)) = do
-  label' <- inlineListToRST opts label
+pictToRST :: ([Inline], (String, String)) 
+          -> State WriterState Doc
+pictToRST (label, (src, _)) = do
+  label' <- inlineListToRST label
   return $ text ".. " <> char '|' <> label' <> char '|' <> text " image:: " <>
            text src
 
 -- | Take list of inline elements and return wrapped doc.
 wrappedRST :: WriterOptions -> [Inline] -> State WriterState Doc
-wrappedRST opts inlines = mapM (wrapIfNeeded opts (inlineListToRST opts))
-                          (splitBy LineBreak inlines) >>= return . vcat
+wrappedRST opts inlines = mapM (wrapIfNeeded opts inlineListToRST)
+                               (splitBy LineBreak inlines) >>= return . vcat
 
 -- | Escape special characters for RST.
 escapeString :: String -> String
@@ -120,7 +127,7 @@ escapeString = escapeStringUsing (backslashEscapes "`\\|*_")
 -- | Convert bibliographic information into RST header.
 metaToRST :: WriterOptions -> Meta -> State WriterState Doc
 metaToRST opts (Meta title authors date) = do
-  title'   <- titleToRST opts title
+  title'   <- titleToRST title
   authors' <- authorsToRST authors
   date'    <- dateToRST date
   let toc  =  if writerTableOfContents opts
@@ -128,10 +135,10 @@ metaToRST opts (Meta title authors date) = do
                  else empty
   return $ title' $+$ authors' $+$ date' $+$ toc
 
-titleToRST :: WriterOptions -> [Inline] -> State WriterState Doc
-titleToRST opts [] = return empty
-titleToRST opts lst = do
-  contents <- inlineListToRST opts lst
+titleToRST :: [Inline] -> State WriterState Doc
+titleToRST [] = return empty
+titleToRST lst = do
+  contents <- inlineListToRST lst
   let titleLength = length $ render contents
   let border = text (replicate titleLength '=')
   return $ border $+$ contents $+$ border <> text "\n"
@@ -147,35 +154,40 @@ dateToRST [] = return empty
 dateToRST str = return $ text ":Date: " <> text (escapeString str)
 
 -- | Convert Pandoc block element to RST. 
-blockToRST :: WriterOptions -- ^ Options
-                -> Block         -- ^ Block element
-                -> State WriterState Doc 
-blockToRST opts Null = return empty
-blockToRST opts (Plain inlines) = wrappedRST opts inlines
-blockToRST opts (Para inlines) = do
+blockToRST :: Block         -- ^ Block element
+           -> State WriterState Doc 
+blockToRST Null = return empty
+blockToRST (Plain inlines) = do
+  opts <- get >>= (return . stOptions)
+  wrappedRST opts inlines
+blockToRST (Para inlines) = do
+  opts <- get >>= (return . stOptions)
   contents <- wrappedRST opts inlines
   return $ contents <> text "\n"
-blockToRST opts (RawHtml str) = 
+blockToRST (RawHtml str) = 
   let str' = if "\n" `isSuffixOf` str then str ++ "\n" else str ++ "\n\n" in
   return $ hang (text "\n.. raw:: html\n") 3 $ vcat $ map text (lines str')
-blockToRST opts HorizontalRule = return $ text "--------------\n"
-blockToRST opts (Header level inlines) = do
-  contents <- inlineListToRST opts inlines
+blockToRST HorizontalRule = return $ text "--------------\n"
+blockToRST (Header level inlines) = do
+  contents <- inlineListToRST inlines
   let headerLength = length $ render contents
   let headerChar = if level > 5 then ' ' else "=-~^'" !! (level - 1)
   let border = text $ replicate headerLength headerChar
   return $ contents $+$ border <> text "\n"
-blockToRST opts (CodeBlock str) = return $ (text "::\n") $+$ 
-  (nest (writerTabStop opts) $ vcat $ map text (lines str)) <> text "\n"
-blockToRST opts (BlockQuote blocks) = do
-  contents <- blockListToRST opts blocks 
-  return $ (nest (writerTabStop opts) contents) <> text "\n"
-blockToRST opts (Table caption aligns widths headers rows) =  do
-  caption' <- inlineListToRST opts caption
+blockToRST (CodeBlock str) = do
+  tabstop <- get >>= (return . writerTabStop . stOptions)
+  return $ (text "::\n") $+$ 
+            (nest tabstop $ vcat $ map text (lines str)) <> text "\n"
+blockToRST (BlockQuote blocks) = do
+  tabstop <- get >>= (return . writerTabStop . stOptions)
+  contents <- blockListToRST blocks 
+  return $ (nest tabstop contents) <> text "\n"
+blockToRST (Table caption aligns widths headers rows) =  do
+  caption' <- inlineListToRST caption
   let caption'' = if null caption
                      then empty
                      else text "" $+$ (text "Table: " <> caption')
-  headers' <- mapM (blockListToRST opts) headers
+  headers' <- mapM blockListToRST headers
   let widthsInChars = map (floor . (78 *)) widths
   let alignHeader alignment = case alignment of
                                 AlignLeft    -> leftAlignBlock
@@ -190,7 +202,7 @@ blockToRST opts (Table caption aligns widths headers rows) =  do
               middle = hcatBlocks $ intersperse sep blocks
   let makeRow = hpipeBlocks . zipWith docToBlock widthsInChars
   let head = makeRow headers'
-  rows' <- mapM (\row -> do cols <- mapM (blockListToRST opts) row
+  rows' <- mapM (\row -> do cols <- mapM blockListToRST row
                             return $ makeRow cols) rows
   let tableWidth = sum widthsInChars
   let maxRowHeight = maximum $ map heightOfBlock (head:rows')
@@ -201,11 +213,11 @@ blockToRST opts (Table caption aligns widths headers rows) =  do
   let body = vcat $ intersperse (border '-') $ map blockToDoc rows'
   return $ border '-' $+$ blockToDoc head $+$ border '=' $+$ body $+$ 
            border '-' $$ caption'' $$ text ""
-blockToRST opts (BulletList items) = do
-  contents <- mapM (bulletListItemToRST opts) items
+blockToRST (BulletList items) = do
+  contents <- mapM bulletListItemToRST items
   -- ensure that sublists have preceding blank line
   return $ text "" $+$ vcat contents <> text "\n"
-blockToRST opts (OrderedList (start, style, delim) items) = do
+blockToRST (OrderedList (start, style, delim) items) = do
   let markers = if start == 1 && style == DefaultStyle && delim == DefaultDelim 
                    then take (length items) $ repeat "#."
                    else take (length items) $ orderedListMarkers 
@@ -213,112 +225,110 @@ blockToRST opts (OrderedList (start, style, delim) items) = do
   let maxMarkerLength = maximum $ map length markers
   let markers' = map (\m -> let s = maxMarkerLength - length m
                             in  m ++ replicate s ' ') markers
-  contents <- mapM (\(item, num) -> orderedListItemToRST opts item num) $
+  contents <- mapM (\(item, num) -> orderedListItemToRST item num) $
               zip markers' items  
   -- ensure that sublists have preceding blank line
   return $ text "" $+$ vcat contents <> text "\n"
-blockToRST opts (DefinitionList items) = do
-  contents <- mapM (definitionListItemToRST opts) items
+blockToRST (DefinitionList items) = do
+  contents <- mapM definitionListItemToRST items
   return $ (vcat contents) <> text "\n"
 
 -- | Convert bullet list item (list of blocks) to RST.
-bulletListItemToRST :: WriterOptions -> [Block] -> State WriterState Doc
-bulletListItemToRST opts items = do
-  contents <- blockListToRST opts items
+bulletListItemToRST :: [Block] -> State WriterState Doc
+bulletListItemToRST items = do
+  contents <- blockListToRST items
   return $ hang (text "- ") 3 contents
 
 -- | Convert ordered list item (a list of blocks) to RST.
-orderedListItemToRST :: WriterOptions -- ^ options
-                          -> String   -- ^ marker for list item
-                          -> [Block]  -- ^ list item (list of blocks)
-                          -> State WriterState Doc
-orderedListItemToRST opts marker items = do
-  contents <- blockListToRST opts items
+orderedListItemToRST :: String   -- ^ marker for list item
+                     -> [Block]  -- ^ list item (list of blocks)
+                     -> State WriterState Doc
+orderedListItemToRST marker items = do
+  contents <- blockListToRST items
   return $ hang (text marker) (length marker + 1) contents 
 
 -- | Convert defintion list item (label, list of blocks) to RST.
-definitionListItemToRST :: WriterOptions -> ([Inline], [Block]) -> State WriterState Doc
-definitionListItemToRST opts (label, items) = do
-  label <- inlineListToRST opts label
-  contents <- blockListToRST opts items
-  return $ label $+$ nest (writerTabStop opts) contents
+definitionListItemToRST :: ([Inline], [Block]) -> State WriterState Doc
+definitionListItemToRST (label, items) = do
+  label <- inlineListToRST label
+  contents <- blockListToRST items
+  tabstop <- get >>= (return . writerTabStop . stOptions)
+  return $ label $+$ nest tabstop contents
 
 -- | Convert list of Pandoc block elements to RST.
-blockListToRST :: WriterOptions -- ^ Options
-                    -> [Block]       -- ^ List of block elements
-                    -> State WriterState Doc 
-blockListToRST opts blocks =
-  mapM (blockToRST opts) blocks >>= return . vcat
+blockListToRST :: [Block]       -- ^ List of block elements
+               -> State WriterState Doc 
+blockListToRST blocks = mapM blockToRST blocks >>= return . vcat
 
 -- | Convert list of Pandoc inline elements to RST.
-inlineListToRST :: WriterOptions -> [Inline] -> State WriterState Doc
-inlineListToRST opts lst = mapM (inlineToRST opts) lst >>= return . hcat
+inlineListToRST :: [Inline] -> State WriterState Doc
+inlineListToRST lst = mapM inlineToRST lst >>= return . hcat
 
 -- | Convert Pandoc inline element to RST.
-inlineToRST :: WriterOptions -> Inline -> State WriterState Doc
-inlineToRST opts (Emph lst) = do 
-  contents <- inlineListToRST opts lst
+inlineToRST :: Inline -> State WriterState Doc
+inlineToRST (Emph lst) = do 
+  contents <- inlineListToRST lst
   return $ char '*' <> contents <> char '*'
-inlineToRST opts (Strong lst) = do
-  contents <- inlineListToRST opts lst
+inlineToRST (Strong lst) = do
+  contents <- inlineListToRST lst
   return $ text "**" <> contents <> text "**"
-inlineToRST opts (Strikeout lst) = do 
-  contents <- inlineListToRST opts lst
+inlineToRST (Strikeout lst) = do 
+  contents <- inlineListToRST lst
   return $ text "[STRIKEOUT:" <> contents <> char ']'
-inlineToRST opts (Superscript lst) = do 
-  contents <- inlineListToRST opts lst
+inlineToRST (Superscript lst) = do 
+  contents <- inlineListToRST lst
   return $ text "\\ :sup:`" <> contents <> text "`\\ "
-inlineToRST opts (Subscript lst) = do 
-  contents <- inlineListToRST opts lst
+inlineToRST (Subscript lst) = do 
+  contents <- inlineListToRST lst
   return $ text "\\ :sub:`" <> contents <> text "`\\ "
-inlineToRST opts (Quoted SingleQuote lst) = do
-  contents <- inlineListToRST opts lst
+inlineToRST (Quoted SingleQuote lst) = do
+  contents <- inlineListToRST lst
   return $ char '\'' <> contents <> char '\''
-inlineToRST opts (Quoted DoubleQuote lst) = do
-  contents <- inlineListToRST opts lst
+inlineToRST (Quoted DoubleQuote lst) = do
+  contents <- inlineListToRST lst
   return $ char '"' <> contents <> char '"'
-inlineToRST opts EmDash = return $ text "--"
-inlineToRST opts EnDash = return $ char '-'
-inlineToRST opts Apostrophe = return $ char '\''
-inlineToRST opts Ellipses = return $ text "..."
-inlineToRST opts (Code str) = return $ text $ "``" ++ str ++ "``"
-inlineToRST opts (Str str) = return $ text $ escapeString str
-inlineToRST opts (Math str) = return $ text $ "$" ++ str ++ "$"
-inlineToRST opts (TeX str) = return empty
-inlineToRST opts (HtmlInline str) = return empty
-inlineToRST opts (LineBreak) = return $ char ' ' -- RST doesn't have linebreaks 
-inlineToRST opts Space = return $ char ' '
-inlineToRST opts (Link [Code str] (src, tit)) | src == str ||
+inlineToRST EmDash = return $ text "--"
+inlineToRST EnDash = return $ char '-'
+inlineToRST Apostrophe = return $ char '\''
+inlineToRST Ellipses = return $ text "..."
+inlineToRST (Code str) = return $ text $ "``" ++ str ++ "``"
+inlineToRST (Str str) = return $ text $ escapeString str
+inlineToRST (Math str) = return $ text $ "$" ++ str ++ "$"
+inlineToRST (TeX str) = return empty
+inlineToRST (HtmlInline str) = return empty
+inlineToRST (LineBreak) = return $ char ' ' -- RST doesn't have linebreaks 
+inlineToRST Space = return $ char ' '
+inlineToRST (Link [Code str] (src, tit)) | src == str ||
                                                 src == "mailto:" ++ str = do
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
   return $ text srcSuffix
-inlineToRST opts (Link txt (src, tit)) = do
-  let useReferenceLinks = writerReferenceLinks opts
-  linktext <- inlineListToRST opts $ normalizeSpaces txt
+inlineToRST (Link txt (src, tit)) = do
+  useReferenceLinks <- get >>= (return . writerReferenceLinks . stOptions)
+  linktext <- inlineListToRST $ normalizeSpaces txt
   if useReferenceLinks
-    then do (notes, refs, pics) <- get
+    then do refs <- get >>= (return . stLinks)
             let refs' = if (txt, (src, tit)) `elem` refs
                            then refs
                            else (txt, (src, tit)):refs
-            put (notes, refs', pics)
+            modify $ \st -> st { stLinks = refs' }
             return $ char '`' <> linktext <> text "`_"
     else return $ char '`' <> linktext <> text " <" <> text src <> text ">`_"
-inlineToRST opts (Image alternate (source, tit)) = do
-  (notes, refs, pics) <- get
+inlineToRST (Image alternate (source, tit)) = do
+  pics <- get >>= (return . stImages)
   let labelsUsed = map fst pics 
   let txt = if null alternate || alternate == [Str ""] || 
                alternate `elem` labelsUsed
-               then [Str $ "image" ++ show (length refs)]
+               then [Str $ "image" ++ show (length pics)]
                else alternate
   let pics' = if (txt, (source, tit)) `elem` pics
                  then pics
                  else (txt, (source, tit)):pics
-  put (notes, refs, pics')
-  label <- inlineListToRST opts txt
+  modify $ \st -> st { stImages = pics' }
+  label <- inlineListToRST txt
   return $ char '|' <> label <> char '|'
-inlineToRST opts (Note contents) = do 
+inlineToRST (Note contents) = do 
   -- add to notes in state
-  modify (\(notes, refs, pics) -> (contents:notes, refs, pics))
-  (notes, _, _) <- get
-  let ref = show $ (length notes)
+  notes <- get >>= (return . stNotes)
+  modify $ \st -> st { stNotes = contents:notes }
+  let ref = show $ (length notes) + 1
   return $ text " [" <> text ref <> text "]_"
