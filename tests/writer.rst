@@ -6,6 +6,9 @@ Pandoc Test Suite
 :Author: Anonymous
 :Date: July 17, 2006
 
+.. role:: math(raw)
+   :format: html latex
+
 This is a set of tests for pandoc. Most of them are adapted from
 John Gruber's markdown test suite.
 
@@ -620,14 +623,14 @@ LaTeX
 
 - 
 - 
--  $2+2=4$
--  $x \in y$
--  $\alpha \wedge \omega$
--  $223$
--  $p$-Tree
--  $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$
+-  :math:`$2+2=4$`
+-  :math:`$x \in y$`
+-  :math:`$\alpha \wedge \omega$`
+-  :math:`$223$`
+-  :math:`$p$`-Tree
+-  :math:`$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$`
 -  Here's one that has a line break in it:
-   $\alpha + \omega \times x^2$.
+   :math:`$\alpha + \omega \times x^2$`.
 
 These shouldn't be math:
 

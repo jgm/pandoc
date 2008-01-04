@@ -44,7 +44,7 @@ data WriterState =
   WriterState { stNotes     :: [[Block]]
               , stLinks     :: KeyTable
               , stImages    :: KeyTable
-              , stIncludes  :: [Doc]
+              , stIncludes  :: [String]
               , stOptions   :: WriterOptions
               }
 
@@ -69,12 +69,14 @@ pandocToRST (Pandoc meta blocks) = do
                 then metaBlock $+$ text (writerHeader opts)
                 else empty
   body <- blockListToRST blocks
+  includes <- get >>= (return . concat . stIncludes)
+  let includes' = if null includes then empty else text includes
   notes <- get >>= (notesToRST . reverse . stNotes)
   -- note that the notes may contain refs, so we do them first
   refs <- get >>= (keyTableToRST . reverse . stLinks)
   pics <- get >>= (pictTableToRST . reverse . stImages)
-  return $ head $+$ before' $+$ body $+$ notes $+$ text "" $+$ refs $+$ 
-           pics $+$ after'
+  return $ head $+$ before' $+$ includes' $+$ body $+$ notes $+$ text "" $+$
+           refs $+$ pics $+$ after'
 
 -- | Return RST representation of reference key table.
 keyTableToRST :: KeyTable -> State WriterState Doc
@@ -117,8 +119,11 @@ pictToRST (label, (src, _)) = do
 
 -- | Take list of inline elements and return wrapped doc.
 wrappedRST :: WriterOptions -> [Inline] -> State WriterState Doc
-wrappedRST opts inlines = mapM (wrapIfNeeded opts inlineListToRST)
-                               (splitBy LineBreak inlines) >>= return . vcat
+wrappedRST opts inlines = do
+  lineBreakDoc <- inlineToRST LineBreak  
+  chunks <- mapM (wrapIfNeeded opts inlineListToRST)
+                 (splitBy LineBreak inlines)
+  return $ vcat $ intersperse lineBreakDoc chunks
 
 -- | Escape special characters for RST.
 escapeString :: String -> String
@@ -293,10 +298,18 @@ inlineToRST Apostrophe = return $ char '\''
 inlineToRST Ellipses = return $ text "..."
 inlineToRST (Code str) = return $ text $ "``" ++ str ++ "``"
 inlineToRST (Str str) = return $ text $ escapeString str
-inlineToRST (Math str) = return $ text $ "$" ++ str ++ "$"
+inlineToRST (Math str) = do
+  includes <- get >>= (return . stIncludes)
+  let rawMathRole = ".. role:: math(raw)\n\
+                    \   :format: html latex\n"
+  if not (rawMathRole `elem` includes)
+     then modify $ \st -> st { stIncludes = rawMathRole : includes }
+     else return ()
+  return $ text $ ":math:`$" ++ str ++ "$`"
 inlineToRST (TeX str) = return empty
 inlineToRST (HtmlInline str) = return empty
-inlineToRST (LineBreak) = return $ char ' ' -- RST doesn't have linebreaks 
+inlineToRST (LineBreak) = do
+  return $ empty -- there's no line break in RST
 inlineToRST Space = return $ char ' '
 inlineToRST (Link [Code str] (src, tit)) | src == str ||
                                                 src == "mailto:" ++ str = do

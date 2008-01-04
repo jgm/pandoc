@@ -852,6 +852,10 @@ TeX math will be printed in all output formats. In Markdown,
 reStructuredText, LaTeX, and ConTeXt output, it will appear verbatim
 between $ characters.
 
+In reStructuredText output, it will be rendered using an interpreted
+text role `:math:`, as described
+[here](http://www.american.edu/econ/itex2mml/mathhack.rst).
+
 In groff man output, it will be rendered verbatim without $'s.
 
 In RTF and Docbook output, it will be rendered, as far as possible,
