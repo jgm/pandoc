@@ -534,8 +534,7 @@ subscript = interpreted "sub" >>= (return . Subscript)
 
 whitespace = many1 spaceChar >> return Space <?> "whitespace"
 
-str = notFollowedBy' oneWordReference >> 
-      many1 (noneOf (specialChars ++ "\t\n ")) >>= return . Str
+str = many1 (noneOf (specialChars ++ "\t\n ")) >>= return . Str
 
 -- an endline character that can be treated as a space, not a structural break
 endline = try $ do
