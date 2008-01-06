@@ -433,9 +433,29 @@ unknownDirective = try $ do
 -- reference key
 --
 
+quotedReferenceName = try $ do
+  char '`' >> notFollowedBy (char '`') -- `` means inline code!
+  label <- many1Till inline (char '`') 
+  return label
+
+unquotedReferenceName = try $ do
+  label <- many1Till inline (lookAhead $ char ':')
+  return label
+
+isolated ch = try $ char ch >>~ notFollowedBy (char ch)
+
+simpleReferenceName = do
+  raw <- many1 (alphaNum <|> isolated '-' <|> isolated '.' <|>
+                (try $ char '_' >>~ lookAhead alphaNum))
+  return [Str raw]
+
+referenceName = quotedReferenceName <|>
+                (try $ simpleReferenceName >>~ lookAhead (char ':')) <|>
+                unquotedReferenceName
+
 referenceKey = do
   startPos <- getPosition
-  key <- choice [imageKey, anonymousKey, regularKeyQuoted, regularKey]
+  key <- choice [imageKey, anonymousKey, regularKey]
   st <- getState
   let oldkeys = stateKeys st
   updateState $ \st -> st { stateKeys = key : oldkeys }
@@ -466,16 +486,10 @@ anonymousKey = try $ do
   state <- getState
   return ([Str "_"], (removeLeadingTrailingSpace src, ""))
 
-regularKeyQuoted = try $ do
-  string ".. _`"
-  ref <- manyTill inline (char '`')
-  char ':'
-  src <- targetURI
-  return (normalizeSpaces ref, (removeLeadingTrailingSpace src, ""))
-
 regularKey = try $ do
   string ".. _"
-  ref <- manyTill inline (char ':')
+  ref <- referenceName
+  char ':'
   src <- targetURI
   return (normalizeSpaces ref, (removeLeadingTrailingSpace src, ""))
 
@@ -557,27 +571,14 @@ link = choice [explicitLink, referenceLink, autoLink]  <?> "link"
 explicitLink = try $ do
   char '`'
   notFollowedBy (char '`') -- `` is marks start of inline code
-  label <- manyTill inline (try (do {spaces; char '<'}))
+  label <- manyTill inline (try (spaces >> char '<'))
   src <- manyTill (noneOf ">\n ") (char '>')
   skipSpaces
   string "`_"
   return $ Link (normalizeSpaces label) (removeLeadingTrailingSpace src, "")
 
-reference = try $ do
-  char '`'
-  notFollowedBy (char '`')
-  label <- many1Till inline (char '`') 
-  char '_'
-  return label
-
-oneWordReference = do
-  raw <- many1 alphaNum
-  char '_'
-  notFollowedBy alphaNum    -- because this_is_not a link
-  return [Str raw]
-
 referenceLink = try $ do
-  label <- reference <|> oneWordReference
+  label <- (quotedReferenceName <|> simpleReferenceName) >>~ char '_'
   key <- option label (do{char '_'; return [Str "_"]}) -- anonymous link
   state <- getState
   let keyTable = stateKeys state
