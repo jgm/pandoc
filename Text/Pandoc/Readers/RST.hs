@@ -570,8 +570,9 @@ link = choice [explicitLink, referenceLink, autoLink]  <?> "link"
 
 explicitLink = try $ do
   char '`'
-  notFollowedBy (char '`') -- `` is marks start of inline code
-  label <- manyTill inline (try (spaces >> char '<'))
+  notFollowedBy (char '`') -- `` marks start of inline code
+  label <- manyTill (notFollowedBy (char '`') >> inline) 
+                    (try (spaces >> char '<'))
   src <- manyTill (noneOf ">\n ") (char '>')
   skipSpaces
   string "`_"
