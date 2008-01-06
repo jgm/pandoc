@@ -231,10 +231,10 @@ block = do
   choice (if stateStrict st
               then [ header
                    , codeBlock
+                   , blockQuote
                    , hrule
                    , bulletList
                    , orderedList
-                   , blockQuote
                    , htmlBlock
                    , para
                    , plain
@@ -242,11 +242,11 @@ block = do
               else [ header 
                    , table
                    , codeBlock
+                   , blockQuote
                    , hrule
                    , bulletList
                    , orderedList
                    , definitionList
-                   , blockQuote
                    , rawLaTeXEnvironment
                    , para
                    , rawHtmlBlocks
