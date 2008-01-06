@@ -719,8 +719,9 @@ math = try $ do
   char '$'
   return $ Math $ joinWithSep " " words
 
-emph = ((enclosed (char '*') (char '*') inline) <|>
-        (enclosed (char '_') (char '_' >> notFollowedBy alphaNum) inline)) >>= 
+emph = ((enclosed (char '*') (notFollowedBy' strong >> char '*') inline) <|>
+        (enclosed (char '_') (notFollowedBy' strong >> char '_' >> 
+                              notFollowedBy alphaNum) inline)) >>= 
         return . Emph . normalizeSpaces
 
 strong = ((enclosed (string "**") (try $ string "**") inline) <|> 
