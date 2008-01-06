@@ -1,0 +1,39 @@
+_ Test: make build-all, make install-all, make uninstall-all, 
+        make deb, run website demos, test on windows, test on mac
+
+_ Finalize debian changelog
+
+_ Tag release
+    svn copy https://pandoc.googlecode.com/svn/trunk https://pandoc.googlecode.com/svn/tags/pandoc-x.yy
+
+_ Generate tarball (make tarball)
+
+_ Generate Windows package and copy to directory
+
+_ Upload to Google Code
+    googlecode-upload.py -s "Source tarball" -p pandoc -u fiddlosopher --labels=Featured,Type-Source,OpSys-All  pandoc-x.yy.tar.gz
+    googlecode-upload.py -s "Windows binary package" -p pandoc -u fiddlosopher --labels=Featured,Type-Archive,OpSys-Windows  pandoc-x.yy.zip
+
+_ Go to Google code and deprecate the old versions
+
+_ Upload to HackageDB
+
+_ email roktas to upload to debian
+
+_ make macport, test on a mac
+
+_ submit change request to MacPorts launchpad
+    http://guide.macports.org/#project.update-policies
+
+_ make FreeBSD port, test on FreeBSD
+
+_ submit change request to FreeBSD 
+    http://www.freebsd.org/doc/en_US.ISO8859-1/books/porters-handbook/port-upgrading.html
+    http://www.freebsd.org/send-pr.html
+
+_ Update website, including short description of changes
+
+_ Announce on pandoc-announce, pandoc-discuss
+
+_ Update freshmeat page
+
