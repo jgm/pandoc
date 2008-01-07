@@ -1,3 +1,188 @@
+pandoc (0.46) unstable; urgency=low
+
+  [ John MacFarlane ]
+
+  * Made -H, -A, and -B options cumulative: if they are specified
+    multiple times, multiple files will be included.
+
+  * Added optional HTML sanitization using a whitelist.
+    When this option is specified (--sanitize-html on the command line),
+    unsafe HTML tags will be replaced by HTML comments, and unsafe HTML
+    attributes will be removed.  This option should be especially useful
+    for those who want to use pandoc libraries in web applications, where
+    users will provide the input.
+    
+    + Main.hs:  Added --sanitize-html option.
+
+    + Text.Pandoc.Shared:  Added stateSanitizeHTML to ParserState.
+
+    + Text.Pandoc.Readers.HTML:
+      - Added whitelists of sanitaryTags and sanitaryAttributes.
+      - Added parsers to check these lists (and state) to see if a given
+        tag or attribute should be counted unsafe.
+      - Modified anyHtmlTag and anyHtmlEndTag to replace unsafe tags
+        with comments.
+      - Modified htmlAttribute to remove unsafe attributes.
+      - Modified htmlScript and htmlStyle to remove these elements if
+        unsafe.
+
+    + Modified README and man pages to document new option.
+
+  * Improved handling of email addresses in markdown and reStructuredText.
+    Consolidated uri and email address parsers.  (Resolves Issue #37.)
+
+    + New emailAddress and uri parsers in Text.Pandoc.Shared.
+      - uri parser uses parseURI from Network.URI.
+      - emailAddress parser properly handles email addresses with periods
+        in them.
+
+    + Removed uri and emailAddress parsers from Text.Pandoc.Readers.RST
+      and Text.Pandoc.Readers.Markdown.
+
+  * Markdown reader:
+
+    + Fixed emph parser so that "*hi **there***" is parsed as a Strong
+      nested in an Emph. (A '*' is only recognized as the end of the
+      emphasis if it's not the beginning of a strong emphasis.)
+
+    + Moved blockQuote parser before list parsers for performance.
+
+    + Modified 'source' parser to allow backslash-escapes in URLs.
+      So, for example, [my](/url\(1\)) yields a link to /url(1).
+      Resolves Issue #34.
+
+    + Disallowed links within links. (Resolves Issue #35.)
+      - Replaced inlinesInBalanced with inlinesInBalancedBrackets, which 
+        instead of hard-coding the inline parser takes an inline parser
+        as a parameter.
+      - Modified reference and inlineNote to use inlinesInBalancedBrackets.
+      - Removed unneeded inlineString function.
+      - Added inlineNonLink parser, which is now used in the definition of
+        reference.
+      - Added inlineParsers list and redefined inline and inlineNonLink parsers
+        in terms of it.
+      - Added failIfLink parser.
+ 
+    + Better handling of parentheses in URLs and quotation marks in titles.
+      - 'source' parser first tries to parse URL with balanced parentheses;
+        if that doesn't work, it tries to parse everything beginning with
+        '(' and ending with ')'.
+      - source parser now uses an auxiliary function source'.
+      - linkTitle parser simplified and improved, under assumption that it
+        will be called in context of source'.
+
+    + Make 'block' conditional on strictness state, instead of using
+      failIfStrict in block parsers. Use a different ordering of parsers
+      in strict mode (raw HTML block before paragraph) for performance.
+      In non-strict mode use rawHtmlBlocks instead of htmlBlock.
+      Simplified htmlBlock, since we know it's only called in strict
+      mode.
+
+    + Improved handling of raw HTML.  (Resolves Issue #36.)
+      - Tags that can be either block or inline (e.g. <ins>) should
+        be treated as block when appropriate and as inline when
+        appropriate. Thus, for example,
+        <ins>hi</ins>
+        should be treated as a paragraph with inline <ins> tags, while
+        <ins>
+        hi
+        </ins>
+        should be treated as a paragraph within <ins> tags.
+      - Moved htmlBlock after para in list of block parsers.  This ensures
+        that tags that can be either block or inline get parsed as inline
+        when appropriate.
+      - Modified rawHtmlInline' so that block elements aren't treated as
+        inline.
+      - Modified para parser so that paragraphs containing only HTML tags and
+        blank space are not allowed.  Treat these as raw HTML blocks instead.
+
+    + Fixed bug wherein HTML preceding a code block could cause it to
+      be parsed as a paragraph.  The problem is that the HTML parser
+      used to eat all blank space after an HTML block, including the
+      indentation of the code block.  (Resolves Issue #39.)
+      - In Text.Pandoc.Readers.HTML, removed parsing of following space
+        from rawHtmlBlock.
+      - In Text.Pandoc.Readers.Markdown, modified rawHtmlBlocks so that
+        indentation is eaten *only* on the first line after the HTML
+        block.  This means that in
+        <div>
+             foo
+        <div>
+        the foo won't be treated as a code block, but in
+        <div>
+      
+            foo
+      
+        </div>
+        it will.  This seems the right approach for least surprise.
+
+  * RST reader:
+
+    + Fixed bug in parsing explicit links (resolves Issue #44).
+      The problem was that we were looking for inlines until a '<' character
+      signaled the start of the URL; so, if you hit a reference-style link,
+      it would keep looking til the end of the document.  Fix:  change
+      inline => (notFollowedBy (char '`') >> inline).  Note that this won't
+      allow code inlines in links, but these aren't allowed in resT anyway.
+
+    + Cleaned up parsing of reference names in key blocks and links.
+      Allow nonquoted reference links to contain isolated '.', '-', '_', so
+      so that strings like 'a_b_' count as links.
+
+    + Removed unnecessary check for following link in str.
+      This is unnecessary now that link is above str in the definition of
+      'inline'.
+     
+  * HTML reader:
+
+    + Modified rawHtmlBlock so it parses </html> and </body> tags.
+      This allows these tags to be handled correctly in Markdown.
+      HTML reader now uses rawHtmlBlock', which excludes </html> and </body>,
+      since these are handled in parseHtml.  (Resolves Issue #38.)
+
+    + Fixed bug (emph parser was looking for <IT> tag, not <I>).
+
+    + Don't interpret contents of style tags as markdown.
+      (Resolves Issue #40.)
+      - Added htmlStyle, analagous to htmlScript.
+      - Use htmlStyle in htmlBlockElement and rawHtmlInline.
+      - Moved "script" from the list of tags that can be either block or
+        inline to the list of block tags.
+
+    + Modified rawHtmlBlock to use anyHtmlBlockTag instead of anyHtmlTag
+      and anyHtmlEndTag.  This fixes a bug in markdown parsing, where
+      inline tags would be included in raw HTML blocks.
+
+    + Modified anyHtmlBlockTag to test for (not inline) rather than
+      directly for block.  This allows us to handle e.g. docbook in
+      the markdown reader.
+
+  * LaTeX reader:  Properly recognize --parse-raw in rawLaTeXInline.
+    Updated LaTeX reader test to use --parse-raw.
+
+  * HTML writer:
+
+    + Modified rules for automatic HTML header identifiers to
+      ensure that identifiers begin with an alphabetic character.
+      The new rules are described in README.  (Resolves Issue #33.)
+
+    + Changed handling of titles in HTML writer so you don't get
+      "titleprefix - " followed by nothing.
+
+  * ConTeXt writer: Use wrappers around Doc elements to ensure proper
+    spacing.  Each block element is wrapped with either Pad or Reg.
+    Pad'ed elements are guaranteed to have a blank line in between.
+
+  * RST writer:
+
+    + Refactored RST writer to use a record instead of a tuple for state,
+      and to include options in state so it doesn't need to be passed as
+      a parameter.
+
+    + Use an interpreted text role to render math in restructuredText.
+      See http://www.american.edu/econ/itex2mml/mathhack.rst for the
+      strategy.
+ 
 pandoc (0.45) unstable; urgency=low
 
   [ John MacFarlane ]
