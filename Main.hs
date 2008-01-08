@@ -87,7 +87,7 @@ data Opt = Opt
     , optReader            :: String  -- ^ Reader format
     , optWriter            :: String  -- ^ Writer format
     , optParseRaw          :: Bool    -- ^ Parse unconvertable HTML and TeX
-    , optCSS               :: String  -- ^ CSS file to link to
+    , optCSS               :: [String] -- ^ CSS file to link to
     , optTableOfContents   :: Bool    -- ^ Include table of contents
     , optIncludeInHeader   :: String  -- ^ File to include in header
     , optIncludeBeforeBody :: String  -- ^ File to include at top of body
@@ -116,7 +116,7 @@ defaultOpts = Opt
     , optReader            = ""    -- null for default reader
     , optWriter            = ""    -- null for default writer
     , optParseRaw          = False
-    , optCSS               = ""
+    , optCSS               = []
     , optTableOfContents   = False
     , optIncludeInHeader   = ""
     , optIncludeBeforeBody = ""
@@ -240,8 +240,10 @@ options =
 
     , Option "c" ["css"]
                  (ReqArg
-                  (\arg opt -> return opt { optCSS = arg, 
-                                            optStandalone = True })
+                  (\arg opt -> do 
+                     let old = optCSS opt
+                     return opt { optCSS = old ++ [arg], 
+                                  optStandalone = True })
                   "CSS")
                  "" -- "Link to CSS style sheet"
 
@@ -492,10 +494,12 @@ main = do
                                                            ["latex", "context"],
                               stateColumns      = columns,
                               stateStrict       = strict }
-  let csslink = if (css == "")
-                   then "" 
-                   else "<link rel=\"stylesheet\" href=\"" ++ css ++ 
-                        "\" type=\"text/css\" media=\"all\" />\n"
+  let csslink = if null css
+                   then ""
+                   else concatMap 
+                        (\f -> "<link rel=\"stylesheet\" href=\"" ++
+                               f ++ "\" type=\"text/css\" media=\"all\" />\n")
+                        css
   let header = (if (customHeader == "DEFAULT") 
                    then defaultHeader
                    else customHeader) ++ csslink ++ includeHeader

@@ -277,23 +277,30 @@ For further documentation, see the `pandoc(1)` man page.
 
 `-c` or `--css` *filename*
 :   allows the user to specify a custom stylesheet that will be linked to
-    in HTML and S5 output.
+    in HTML and S5 output.  This option can be used repeatedly to include
+    multiple stylesheets. They will be included in the order specified.
 
 `-H` or `--include-in-header` *filename*
 :   includes the contents of *filename* (verbatim) at the end of the
     document header. This can be used, for example, to include special
-    CSS or javascript in HTML documents.
+    CSS or javascript in HTML documents.  This option can be used
+    repeatedly to include multiple files in the header.  They will be
+    included in the order specified.
 
 `-B` or `--include-before-body` *filename*
 :   includes the contents of *filename* (verbatim) at the beginning of
     the document body (e.g. after the `<body>` tag in HTML, or the
     `\begin{document}` command in LaTeX). This can be used to include
-    navigation bars or banners in HTML documents.
+    navigation bars or banners in HTML documents. This option can be
+    used repeatedly to include multiple files. They will be included in
+    the order specified.
 
 `-A` or `--include-after-body` *filename*
 :   includes the contents of *filename* (verbatim) at the end of
     the document body (before the `</body>` tag in HTML, or the
-    `\end{document}` command in LaTeX).
+    `\end{document}` command in LaTeX). This option can be be used
+    repeatedly to include multiple files. They will be included in the
+    order specified.
 
 `-T` or `--title-prefix` *string*
 :   includes *string* as a prefix at the beginning of the title that
