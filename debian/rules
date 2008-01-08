@@ -63,6 +63,8 @@ install: build
 
 	dh_haskell -a
 
+	# Remove empty directories, which lintian complains about.
+	find debian/libghc6-$(THIS)-dev -type d -name 'include' -empty -delete
 	# Hack!  Cabal builds executables while building libraries.  Move these
 	# files to top dir where the Makefile install target expects to find.
 	# See "BUGS" section at the following document:

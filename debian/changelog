@@ -183,6 +183,18 @@ pandoc (0.46) unstable; urgency=low
       See http://www.american.edu/econ/itex2mml/mathhack.rst for the
       strategy.
  
+  [ Recai Oktaş ]
+
+  * Debian packaging changes:
+
+    + Remove the empty 'include' directory in -dev package, which lintian
+      complains about.
+    + Bump Standarts-Version to 3.7.3.
+    + Use new 'Homepage:' field to specify the upstream URL on suggestion of
+      lintian.
+
+ -- Recai Oktaş <roktas@debian.org>  Tue, 08 Jan 2008 05:13:31 +0200
+
 pandoc (0.45) unstable; urgency=low
 
   [ John MacFarlane ]
