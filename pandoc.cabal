@@ -3,7 +3,7 @@ Version:         0.46
 Cabal-Version:   >= 1.2
 License:         GPL
 License-File:    COPYING
-Copyright:       (c) 2006-2007 John MacFarlane
+Copyright:       (c) 2006-2008 John MacFarlane
 Author:          John MacFarlane <jgm@berkeley.edu>
 Maintainer:      John MacFarlane <jgm@berkeley.edu>
 Stability:       alpha
