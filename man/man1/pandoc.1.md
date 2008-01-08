@@ -1,6 +1,6 @@
 % PANDOC(1) Pandoc User Manuals
 % John MacFarlane
-% November 30, 2007 
+% January 8, 2008
 
 # NAME
 
