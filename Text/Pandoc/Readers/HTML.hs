@@ -159,7 +159,7 @@ anyHtmlTag = try $ do
                concatMap (\(_, _, raw) -> (' ':raw)) attribs ++ ender' ++ ">"
   unsanitary <- unsanitaryTag tag
   if unsanitary
-     then return $ "<!-- unsafe tag " ++ result ++ " omitted -->"
+     then return $ "<!-- unsafe HTML removed -->"
      else return result
 
 anyHtmlEndTag = try $ do
@@ -173,7 +173,7 @@ anyHtmlEndTag = try $ do
   let result = "</" ++ tag ++ ">"
   unsanitary <- unsanitaryTag tag
   if unsanitary
-     then return $ "<!-- unsafe tag " ++ result ++ " omitted -->"
+     then return $ "<!-- unsafe HTML removed -->"
      else return result 
 
 htmlTag :: String -> GenParser Char ParserState (String, [(String, String)])
@@ -255,7 +255,7 @@ htmlScript = try $ do
   rest <- manyTill anyChar (htmlEndTag "script")
   st <- getState
   if stateSanitizeHTML st && not ("script" `elem` sanitaryTags)
-     then return "<!-- unsafe script omitted -->"
+     then return "<!-- unsafe HTML removed -->"
      else return $ open ++ rest ++ "</script>"
 
 -- | Parses material between style tags.
@@ -265,7 +265,7 @@ htmlStyle = try $ do
   rest <- manyTill anyChar (htmlEndTag "style")
   st <- getState
   if stateSanitizeHTML st && not ("style" `elem` sanitaryTags)
-     then return "<!-- unsafe style omitted -->"
+     then return "<!-- unsafe HTML removed -->"
      else return $ open ++ rest ++ "</style>"
 
 htmlBlockElement = choice [ htmlScript, htmlStyle, htmlComment, xmlDec, definition ]
