@@ -23,11 +23,14 @@ _ email roktas to upload to debian
 _ make macport, test on a mac
 
 _ submit change request to MacPorts launchpad
+    http://trac.macports.org/
     http://guide.macports.org/#project.update-policies
 
 _ make FreeBSD port, test on FreeBSD
 
 _ submit change request to FreeBSD 
+    make makesum
+    diff -ruN pandoc.bak pandoc
     http://www.freebsd.org/doc/en_US.ISO8859-1/books/porters-handbook/port-upgrading.html
     http://www.freebsd.org/send-pr.html
 
