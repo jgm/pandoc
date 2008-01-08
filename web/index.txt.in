@@ -157,7 +157,6 @@ kind.
 [GHC]:  http://www.haskell.org/ghc/
 [GPL]:  http://www.gnu.org/copyleft/gpl.html
 [Source tarball]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.tar.gz "Download source tarball from Pandoc's Google Code site"
-[MacOS X binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.dmg "Download Mac OS X disk image from Pandoc's Google Code site"
 [Windows binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.zip "Download Windows zip file from Pandoc's Google Code site"
 [Debian unstable]: http://packages.debian.org/unstable/text/pandoc
 [FreeBSD ports]: http://www.freshports.org/textproc/pandoc/
