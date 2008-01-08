@@ -87,6 +87,20 @@ You may view existing bug reports and submit new ones at
 
 # News
 
+-   Version 0.46 released (January 8, 2008).
+
+    + Added a `--sanitize-html` option (and a corresponding parameter
+      in `ParserState` for those using the pandoc libraries in programs).
+      This option causes pandoc to sanitize HTML (in HTML or Markdown
+      input) using a whitelist method. Possibly harmful HTML elements
+      are replaced with HTML comments. This should be useful in the
+      context of web applications, where pandoc may be used to convert
+      user input into HTML.
+    + Made -H, -A, and -B options cumulative: if they are specified
+      multiple times, multiple files will be included.
+    + Many bug fixes and small improvements.  See [changelog] for full
+      details.
+
 -   Version 0.45 released (December 9, 2007).
 
     + Many bug fixes and structural improvements.  See [changelog] for
