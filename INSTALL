@@ -14,10 +14,11 @@ X). If you're using Windows, you can install [Cygwin].
 Installing GHC
 --------------
 
-To compile Pandoc, you'll need [GHC] version 6.6 or greater.  If
-you don't have GHC already, you can get it from the [GHC Download]
-page. If you're running MacOS X, you can also install GHC using
-[MacPorts] or [Fink].
+To compile Pandoc, you'll need [GHC] version 6.6 or greater.  If you don't
+have GHC already, you can get it from the [GHC Download] page. If you're
+running MacOS X, you can also install GHC using [MacPorts] or [Fink].
+If you compile GHC from source, be sure to get the `extralibs` in
+addition to the base tarball.
 
 [GHC]: http://www.haskell.org/ghc/
 [GHC Download]: http://www.haskell.org/ghc/download.html
@@ -221,4 +222,12 @@ Alternatively, you can use `pkg_add`:
 
 Note that the version of pandoc in FreeBSD's official repository may be
 somewhat older than the most recent version.
+
+Installing pandoc on Arch linux
+===============================
+
+Abhishek Dasgupta has created a binary package for `pandoc` in the
+Arch linux repository.  Arch users can install `pandoc` by typing
+
+    pacman -Sy pandoc
 
