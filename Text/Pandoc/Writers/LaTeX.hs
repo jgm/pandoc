@@ -31,7 +31,7 @@ module Text.Pandoc.Writers.LaTeX ( writeLaTeX ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
-import Data.List ( (\\), isInfixOf, isSuffixOf, intersperse )
+import Data.List ( (\\), isSuffixOf )
 import Data.Char ( toLower )
 import qualified Data.Set as S
 import Control.Monad.State

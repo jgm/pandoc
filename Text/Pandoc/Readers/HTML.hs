@@ -43,11 +43,10 @@ module Text.Pandoc.Readers.HTML (
 import Text.ParserCombinators.Parsec
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
-import Text.Pandoc.CharacterReferences ( characterReference, 
-                                         decodeCharacterReferences )
+import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Data.Maybe ( fromMaybe )
 import Data.List ( takeWhile, dropWhile, isPrefixOf, isSuffixOf )
-import Data.Char ( toUpper, toLower, isAlphaNum )
+import Data.Char ( toLower, isAlphaNum )
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: ParserState   -- ^ Parser state

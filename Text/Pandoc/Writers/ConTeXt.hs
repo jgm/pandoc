@@ -31,7 +31,7 @@ module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
-import Data.List ( (\\), intersperse, isSuffixOf )
+import Data.List ( isSuffixOf )
 import Control.Monad.State
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 

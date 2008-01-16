@@ -32,9 +32,7 @@ module Text.Pandoc.Readers.TeXMath (
                                    ) where
 
 import Text.ParserCombinators.Parsec
-import Text.Pandoc.UTF8
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared
 
 -- | Converts a string of raw TeX math to a list of 'Pandoc' inlines. 
 readTeXMath :: String -> [Inline]

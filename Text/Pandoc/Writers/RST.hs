@@ -32,7 +32,6 @@ reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 module Text.Pandoc.Writers.RST ( writeRST) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
-import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Blocks
 import Data.List ( isPrefixOf, isSuffixOf, drop, intersperse )
 import Text.PrettyPrint.HughesPJ hiding ( Str )

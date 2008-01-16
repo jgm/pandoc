@@ -31,7 +31,6 @@ Conversion of 'Pandoc' documents to groff man page format.
 module Text.Pandoc.Writers.Man ( writeMan) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
-import Text.Pandoc.Readers.TeXMath
 import Text.Printf ( printf )
 import Data.List ( isPrefixOf, drop, nub, intersperse )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
@@ -79,7 +78,7 @@ metaToMan options (Meta title authors date) = do
   let foot = case length authors of
                 0 -> empty
                 1 -> text ".SH AUTHOR" $$ (text $ joinWithSep ", " authors)
-                2 -> text ".SH AUTHORS" $$ (text $ joinWithSep ", " authors)
+                _ -> text ".SH AUTHORS" $$ (text $ joinWithSep ", " authors)
   return $ if writerStandalone options
               then (head, foot)
               else (empty, empty)

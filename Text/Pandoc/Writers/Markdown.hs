@@ -33,7 +33,7 @@ module Text.Pandoc.Writers.Markdown ( writeMarkdown) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Blocks
-import Text.ParserCombinators.Parsec ( parse, (<|>), GenParser )
+import Text.ParserCombinators.Parsec ( parse, GenParser )
 import Data.List ( group, isPrefixOf, drop, find, intersperse )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State

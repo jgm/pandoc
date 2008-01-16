@@ -38,7 +38,6 @@ import System.Exit ( exitWith, ExitCode (..) )
 import System.Console.GetOpt
 import System.IO
 import Data.Maybe ( fromMaybe )
-import Data.List ( isPrefixOf )
 import Data.Char ( toLower )
 import Control.Monad ( (>>=) )
 
