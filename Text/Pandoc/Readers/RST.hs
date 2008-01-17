@@ -378,7 +378,7 @@ indentWith num = do
                    (try (char '\t' >> count (num - tabStop) (char ' '))) ] 
 
 -- parse raw text for one list item, excluding start marker and continuations
-rawListItem start = do
+rawListItem start = try $ do
   markerLength <- start
   firstLine <- manyTill anyChar newline
   restLines <- many (listLine markerLength)
@@ -408,7 +408,7 @@ listItem start = try $ do
   updateState (\st -> st {stateParserContext = oldContext})
   return parsed
 
-orderedList = do
+orderedList = try $ do
   (start, style, delim) <- lookAhead (anyOrderedListMarker >>~ spaceChar)
   items <- many1 (listItem (orderedListStart style delim))
   let items' = compactify items
