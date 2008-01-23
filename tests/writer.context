@@ -37,6 +37,9 @@
   headstyle=bold,style=normal,align=left,location=hanging,
   width=broad,margin=1cm]
 
+% prevent orphaned list intros
+\setupitemize[autointro]
+
 % define defaults for bulleted lists 
 \setupitemize[1][symbol=1][indentnext=no]
 \setupitemize[2][symbol=2][indentnext=no]
