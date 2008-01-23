@@ -1,4 +1,4 @@
-ALL := index.html README.html INSTALL.html examples.html pandoc1.html markdown2pdf1.html html2markdown1.html hsmarkdown1.html html2x.html
+ALL := index.html README.html INSTALL.html examples.html pandoc.1.html markdown2pdf.1.html html2markdown.1.html hsmarkdown.1.html html2x.html
 PANDOC_PATH ?= $(dir $(shell which pandoc))
 MAKEPAGE = $(PANDOC_PATH)/pandoc -s -S -H css -A footer.html
 all : $(ALL) 
@@ -27,7 +27,7 @@ INSTALL.html : INSTALL css
 %.html : %.txt css
 	$(MAKEPAGE) $< > $@
 
-%1.html : %.1 
+%.1.html : %.1
 	groff -man -T html $< > $@
 
 %.html : % css

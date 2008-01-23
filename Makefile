@@ -260,7 +260,7 @@ win_pkg_name:=$(PKGID).zip
 win_docs:=COPYING.txt COPYRIGHT.txt BUGS.txt README.txt README.html
 cleanup_files+=$(win_pkg_name) $(win_docs)
 win-pkg: $(win_pkg_name)
-$(win_pkg_name): $(PKG).exe  $(win_docs)
+$(win_pkg_name): $(PKG).exe $(win_docs)
 	zip -r $(win_pkg_name) $(PKG).exe $(win_docs)
 
 .PHONY: test test-markdown
@@ -340,7 +340,7 @@ $(web_dest) : html $(wildcard $(web_src)/*) debian/changelog \
 		cp README $(web_dest)/ ; \
 		cp INSTALL $(web_dest)/ ; \
 		cp $(MANDIR)/man1/pandoc.1.md $(web_dest)/ ; \
-		cp $(MANDIR)/man1/*.1 $(web_dest)/ ; \
+		cp $(MANPAGES) $(web_dest)/ ; \
 	} || { rm -rf $(web_dest); exit 1; }
 website: $(MAIN) $(web_dest)
 	PANDOC_PATH=$(shell pwd) make -C $(web_dest)
