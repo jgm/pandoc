@@ -171,11 +171,20 @@ tarball, unpack, and type:
 This will install the pandoc executable and the Haskell libraries,
 but not the shell scripts, man pages, or other documentation.
 
-Note:  If you are using GHC 6.6.*, you will need to start by
-replacing `pandoc.cabal` with a version suitable for GHC 6.6:
+Notes:
 
-    cp pandoc.cabal pandoc.cabal.orig
-    cp pandoc.cabal.ghc66 pandoc.cabal 
+1.  If you've checked out the source from the subversion repository rather
+    than getting it from a release tarball, you'll need to do:
+
+        make templates
+
+    before you can build pandoc using the above commands.
+
+2.  If you are using GHC 6.6.*, you will need to start by
+    replacing `pandoc.cabal` with a version suitable for GHC 6.6:
+
+        cp pandoc.cabal pandoc.cabal.orig
+        cp pandoc.cabal.ghc66 pandoc.cabal 
 
 Installing pandoc using MacPorts
 ================================
