@@ -41,7 +41,7 @@ Library
     Build-Depends: base >= 3, pretty, containers
   else
     Build-Depends: base < 3
-  Build-Depends: parsec, xhtml, mtl, regex-compat, network, highlighting-kate
+  Build-Depends: parsec, xhtml, mtl, network, filepath, highlighting-kate
   Hs-Source-Dirs:  .
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Blocks,

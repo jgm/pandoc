@@ -33,7 +33,6 @@ import Text.Pandoc.ASCIIMathML
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
-import Text.Regex ( mkRegex, matchRegex )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower, isAlpha )
 import Data.List ( isPrefixOf, intersperse, find )
@@ -162,13 +161,21 @@ footnoteSection opts notes =
      then noHtml
      else thediv ! [theclass "footnotes"] $ hr +++ (olist << notes)
 
+
+-- | Parse a mailto link; return Just (name, domain) or Nothing.
+parseMailto :: String -> Maybe (String, String)
+parseMailto ('m':'a':'i':'l':'t':'o':':':address) =
+  let (name, rest) = span (/='@') address
+      domain = drop 1 rest
+  in  Just (name, domain)
+parseMailto _ = Nothing 
+
 -- | Obfuscate a "mailto:" link using Javascript.
 obfuscateLink :: WriterOptions -> String -> String -> Html
 obfuscateLink opts text src =
-  let emailRegex = mkRegex "^mailto:([^@]*)@(.*)$"
-      src'       = map toLower src
-  in  case (matchRegex emailRegex src') of
-        (Just [name, domain]) ->
+  let src' = map toLower src
+  in  case parseMailto src' of
+        (Just (name, domain)) ->
           let domain'  = substitute "." " dot " domain
               at'      = obfuscateChar '@'
               (linkText, altText) = 

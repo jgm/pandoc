@@ -31,9 +31,8 @@ module Text.Pandoc.Writers.RTF ( writeRTF ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
-import Text.Regex ( matchRegexAll, mkRegex )
 import Data.List ( isSuffixOf )
-import Data.Char ( ord )
+import Data.Char ( ord, isDigit )
 
 -- | Convert Pandoc to a string in rich text format.
 writeRTF :: WriterOptions -> Pandoc -> String
@@ -230,15 +229,18 @@ listItemToRTF alignment indent marker [] =
   rtfCompact (indent + listIncrement) (0 - listIncrement) alignment 
              (marker ++ "\\tx" ++ (show listIncrement) ++ "\\tab ") 
 listItemToRTF alignment indent marker list = 
-  let (first:rest) = map (blockToRTF (indent + listIncrement) alignment) list in
-  -- insert the list marker into the (processed) first block
-  let modFirst = case matchRegexAll (mkRegex "\\\\fi-?[0-9]+") first of
-                    Just (before, matched, after, _) -> 
-                                before ++ "\\fi" ++ show (0 - listIncrement) ++ 
-                                " " ++ marker ++ "\\tx" ++ 
-                                show listIncrement ++ "\\tab" ++ after
-                    Nothing -> first in
-  modFirst ++ concat rest
+  let (first:rest) = map (blockToRTF (indent + listIncrement) alignment) list
+      listMarker = "\\fi" ++ show (0 - listIncrement) ++ " " ++ marker ++ "\\tx" ++
+                      show listIncrement ++ "\\tab"
+      insertListMarker ('\\':'f':'i':'-':d:xs) | isDigit d =
+        listMarker ++ dropWhile isDigit xs
+      insertListMarker ('\\':'f':'i':d:xs) | isDigit d =
+        listMarker ++ dropWhile isDigit xs
+      insertListMarker (x:xs) =
+        x : insertListMarker xs
+      insertListmarker [] = []
+      -- insert the list marker into the (processed) first block
+  in  insertListMarker first ++ concat rest
 
 -- | Convert definition list item (label, list of blocks) to RTF.
 definitionListItemToRTF :: Alignment          -- ^ alignment

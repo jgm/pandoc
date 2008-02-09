@@ -32,9 +32,9 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.UTF8
 import Text.Pandoc.Shared ( joinWithSep, HTMLMathMethod (..) )
-import Text.Regex ( mkRegex, matchRegex )
 import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
+import System.FilePath ( takeExtension )
 import System.Console.GetOpt
 import System.IO
 import Data.Maybe ( fromMaybe )
@@ -338,48 +338,44 @@ usageMessage programName options = usageInfo
   options
  
 -- Determine default reader based on source file extensions
-defaultReaderName :: [String] -> String
+defaultReaderName :: [FilePath] -> String
 defaultReaderName [] = "markdown"
 defaultReaderName (x:xs) = 
-  let x' = map toLower x in
-  case (matchRegex (mkRegex ".*\\.(.*)") x') of
-    Nothing         -> defaultReaderName xs -- no extension
-    Just ["xhtml"]  -> "html"
-    Just ["html"]   -> "html"
-    Just ["htm"]    -> "html"
-    Just ["tex"]    -> "latex"
-    Just ["latex"]  -> "latex"
-    Just ["ltx"]    -> "latex"
-    Just ["rst"]    -> "rst"
-    Just ["native"] -> "native"
-    Just _          -> "markdown"
+  case takeExtension (map toLower x) of
+    ".xhtml"    -> "html"
+    ".html"     -> "html"
+    ".htm"      -> "html"
+    ".tex"      -> "latex"
+    ".latex"    -> "latex"
+    ".ltx"      -> "latex"
+    ".rst"      -> "rst"
+    ".native"   -> "native"
+    _           -> defaultReaderName xs
 
 -- Determine default writer based on output file extension
-defaultWriterName :: String -> String
+defaultWriterName :: FilePath -> String
 defaultWriterName "-" = "html" -- no output file
 defaultWriterName x =
-  let x' = map toLower x in
-  case (matchRegex (mkRegex ".*\\.(.*)") x') of
-    Nothing           -> "markdown" -- no extension
-    Just [""]         -> "markdown" -- empty extension 
-    Just ["tex"]      -> "latex"
-    Just ["latex"]    -> "latex"
-    Just ["ltx"]      -> "latex"
-    Just ["context"]  -> "context"
-    Just ["ctx"]      -> "context"
-    Just ["rtf"]      -> "rtf"
-    Just ["rst"]      -> "rst"
-    Just ["s5"]       -> "s5"
-    Just ["native"]   -> "native"
-    Just ["txt"]      -> "markdown"
-    Just ["text"]     -> "markdown"
-    Just ["md"]       -> "markdown"
-    Just ["markdown"] -> "markdown"
-    Just ["db"]       -> "docbook"
-    Just ["xml"]      -> "docbook"
-    Just ["sgml"]     -> "docbook"
-    Just [[x]] | x `elem` ['1'..'9'] -> "man"
-    Just _            -> "html"
+  case takeExtension (map toLower x) of
+    ""         -> "markdown" -- empty extension 
+    "tex"      -> "latex"
+    "latex"    -> "latex"
+    "ltx"      -> "latex"
+    "context"  -> "context"
+    "ctx"      -> "context"
+    "rtf"      -> "rtf"
+    "rst"      -> "rst"
+    "s5"       -> "s5"
+    "native"   -> "native"
+    "txt"      -> "markdown"
+    "text"     -> "markdown"
+    "md"       -> "markdown"
+    "markdown" -> "markdown"
+    "db"       -> "docbook"
+    "xml"      -> "docbook"
+    "sgml"     -> "docbook"
+    [x] | x `elem` ['1'..'9'] -> "man"
+    _          -> "html"
 
 main = do
 
