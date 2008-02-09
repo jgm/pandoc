@@ -230,7 +230,7 @@ block = do
   st <- getState
   choice (if stateStrict st
               then [ header
-                   , codeBlock
+                   , codeBlockIndented
                    , blockQuote
                    , hrule
                    , bulletList
@@ -239,9 +239,10 @@ block = do
                    , para
                    , plain
                    , nullBlock ]
-              else [ header 
+              else [ codeBlockDelimited
+                   , header 
                    , table
-                   , codeBlock
+                   , codeBlockIndented
                    , blockQuote
                    , hrule
                    , bulletList
@@ -294,8 +295,6 @@ hrule = try $ do
 --
 
 indentedLine = indentSpaces >> manyTill anyChar newline >>= return . (++ "\n")
-
-codeBlock = codeBlockIndented <|> codeBlockDelimited 
 
 codeBlockDelimiter len = try $ do
   size <- case len of
