@@ -83,3 +83,7 @@ click on the name of the output file:
 @   pandoc @@math.text@@ -s --gladtex -o mathGladtex.htex
 @   gladtex @@mathGladtex.htex@@   # produces @@mathGladtex.html@@
 
+18. Syntax highlighting of delimited code blocks:
+
+@   pandoc @@code.txt@@ -s -o @@example18.html@@
+
