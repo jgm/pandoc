@@ -303,23 +303,24 @@ codeBlockDelimiter len = try $ do
               Nothing -> count 3 (char '~') >> many (char '~') >>= 
                          return . (+ 3) . length 
   many spaceChar
-  lang <- option "" classAttribute
+  lang <- option "" classAttributes
   blankline
   return (size, lang) 
 
-classAttribute = try $ do
+classAttributes = try $ do
   char '{'
   many spaceChar
-  char '.'
-  attr <- many1 alphaNum
-  many spaceChar
+  attrs <- many $ do char '.'
+                     attr <- many1 alphaNum
+                     many spaceChar
+                     return attr
   char '}'
-  return attr
+  return $ unwords attrs
 
 codeBlockDelimited = try $ do
   (size, lang) <- codeBlockDelimiter Nothing
   contents <- manyTill anyLine (codeBlockDelimiter (Just size))
-  return $ CodeBlock lang $ concat contents
+  return $ CodeBlock lang $ joinWithSep "\n" contents
 
 codeBlockIndented = do
   contents <- many1 (indentedLine <|> 
