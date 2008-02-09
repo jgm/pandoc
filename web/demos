@@ -85,5 +85,5 @@ click on the name of the output file:
 
 18. Syntax highlighting of delimited code blocks:
 
-@   pandoc @@code.txt@@ -s -o @@example18.html@@
+@   pandoc @@code.text@@ -s -o @@example18.html@@
 
