@@ -216,6 +216,27 @@ addToCSS item = do
   let current = stCSS st
   put $ st {stCSS = S.insert item current}
 
+-- | Generic CSS for syntax highlighting.
+highlightingCSS :: String
+highlightingCSS =
+  "pre.sourceCode { }\n\
+  \pre.sourceCode span.LineNumber { display: none; }\n\
+  \pre.numberLines span.LineNumber { display: inline; color: #AAAAAA; padding-right: 0; border-right: 1px solid #AAAAAA; margin-right: 3px; }\n\
+  \pre.sourceCode span.Normal { }\n\
+  \pre.sourceCode span.Keyword { color: #007020; font-weight: bold; } \n\
+  \pre.sourceCode span.DataType { color: #902000; }\n\
+  \pre.sourceCode span.DecVal { color: #40a070; }\n\
+  \pre.sourceCode span.BaseN { color: #40a070; }\n\
+  \pre.sourceCode span.Float { color: #40a070; }\n\
+  \pre.sourceCode span.Char { color: #4070a0; }\n\
+  \pre.sourceCode span.String { color: #4070a0; }\n\
+  \pre.sourceCode span.Comment { color: #60a0b0; font-style: italic; }\n\
+  \pre.sourceCode span.Others { color: #007020; }\n\
+  \pre.sourceCode span.Alert { color: red; font-weight: bold; }\n\
+  \pre.sourceCode span.Function { color: #06287e; }\n\
+  \pre.sourceCode span.RegionMarker { }\n\
+  \pre.sourceCode span.Error { color: red; font-weight: bold; }"
+
 -- | Convert Pandoc inline list to plain text identifier.
 inlineListToIdentifier :: [Inline] -> String
 inlineListToIdentifier = dropWhile (not . isAlpha) . inlineListToIdentifier'
@@ -271,11 +292,12 @@ blockToHtml opts (CodeBlock (_,classes,_) rawCode) = do
               Just _    -> [OptNumberLines]
   let toPre str = pre ! (if null classes then [] else [theclass $ unwords classes]) $ thecode << str 
   let lcLanguages = map (map toLower) languages
-  return $ case find (\c -> (map toLower c) `elem` lcLanguages) classes of
-                 Nothing   -> toPre (rawCode ++ "\n")
-                 Just lang -> case highlightAs lang rawCode of
-                                    Left _   -> toPre (rawCode ++ "\n")
-                                    Right hl -> formatAsXHtml fmtOpts lang hl
+  case find (\c -> (map toLower c) `elem` lcLanguages) classes of
+        Nothing   -> return $ toPre (rawCode ++ "\n")
+        Just lang -> case highlightAs lang rawCode of
+                           Left _   -> return $ toPre (rawCode ++ "\n")
+                           Right hl -> do addToCSS highlightingCSS 
+                                          return $ formatAsXHtml fmtOpts lang hl
 blockToHtml opts (BlockQuote blocks) =
   -- in S5, treat list in blockquote specially
   -- if default is incremental, make it nonincremental; 
