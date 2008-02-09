@@ -116,7 +116,7 @@ Note:  If you are using GHC 6.6.*, you will need to start by
 replacing `pandoc.cabal` with a version suitable for GHC 6.6:
 
     cp pandoc.cabal pandoc.cabal.orig
-    cp pandoc.cabal.ghc66 pandoc.cabal 
+    cp pandoc.cabal.ghc66 pandoc.cabal
 
 Optional syntax highlighting support
 ------------------------------------
