@@ -67,7 +67,6 @@ INSTALL_PROGRAM := $(INSTALL) -m 755
 INSTALL_DATA    := $(INSTALL) -m 644
 STRIP           := strip
 GHC             ?= ghc
-GHC_PKG         ?= ghc-pkg
 GHC_VERSION     := $(shell $(GHC) --version | sed -e 's/[^0-9]*//')
 
 #-------------------------------------------------------------------------------
@@ -122,11 +121,16 @@ $(CABAL_BACKUP):
 
 .PHONY: configure
 cleanup_files+=Setup.hi Setup.o $(BUILDCMD) $(BUILDVARS)
+ifdef GHC_PKG
+  hc_pkg = --with-hc-pkg=$(GHC_PKG)
+else
+  hc_pkg =
+endif
 configure: $(BUILDCONF)
 $(BUILDCMD): Setup.hs
 	$(GHC) -package Cabal Setup.hs -o $(BUILDCMD)
 $(BUILDCONF): $(CABAL) $(CABAL_BACKUP) $(BUILDCMD)
-	$(BUILDCMD) configure --prefix=$(PREFIX) --with-compiler=$(GHC) --with-hc-pkg=$(GHC_PKG)
+	$(BUILDCMD) configure --prefix=$(PREFIX) --with-compiler=$(GHC) $(hc_pkg)
 	@# Make configuration time settings persistent (definitely a hack).
 	@echo "PREFIX?=$(PREFIX)" >$(BUILDVARS)
 	@echo "DESTDIR?=$(DESTDIR)" >>$(BUILDVARS)
