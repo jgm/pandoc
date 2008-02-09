@@ -146,7 +146,7 @@ blockToLaTeX (Para lst) = do
 blockToLaTeX (BlockQuote lst) = do
   contents <- blockListToLaTeX lst
   return $ text "\\begin{quote}" $$ contents $$ text "\\end{quote}"
-blockToLaTeX (CodeBlock str) = do
+blockToLaTeX (CodeBlock _ str) = do
   st <- get
   env <- if stInNote st
             then do addToHeader "\\usepackage{fancyvrb}"

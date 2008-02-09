@@ -186,7 +186,7 @@ blockToDocbook opts (Plain lst) = wrap opts lst
 blockToDocbook opts (Para lst) = inTagsIndented "para" $ wrap opts lst
 blockToDocbook opts (BlockQuote blocks) =
   inTagsIndented "blockquote" $ blocksToDocbook opts blocks
-blockToDocbook opts (CodeBlock str) = 
+blockToDocbook opts (CodeBlock _ str) = 
   text "<screen>\n" <> text (escapeStringForXML str) <> text "\n</screen>"
 blockToDocbook opts (BulletList lst) = 
   inTagsIndented "itemizedlist" $ listItemsToDocbook opts lst 

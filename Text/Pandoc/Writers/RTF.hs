@@ -174,7 +174,7 @@ blockToRTF indent alignment (Para lst) =
   rtfPar indent 0 alignment $ inlineListToRTF lst
 blockToRTF indent alignment (BlockQuote lst) = 
   concatMap (blockToRTF (indent + indentIncrement) alignment) lst 
-blockToRTF indent _ (CodeBlock str) =
+blockToRTF indent _ (CodeBlock _ str) =
   rtfPar indent 0 AlignLeft ("\\f1 " ++ (codeStringToRTF str))
 blockToRTF _ _ (RawHtml str) = ""
 blockToRTF indent alignment (BulletList lst) = spaceAtEnd $ 

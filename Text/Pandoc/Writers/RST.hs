@@ -178,7 +178,7 @@ blockToRST (Header level inlines) = do
   let headerChar = if level > 5 then ' ' else "=-~^'" !! (level - 1)
   let border = text $ replicate headerLength headerChar
   return $ contents $+$ border <> text "\n"
-blockToRST (CodeBlock str) = do
+blockToRST (CodeBlock _ str) = do
   tabstop <- get >>= (return . writerTabStop . stOptions)
   return $ (text "::\n") $+$ 
             (nest tabstop $ vcat $ map text (lines str)) <> text "\n"

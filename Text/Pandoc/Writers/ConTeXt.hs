@@ -140,7 +140,7 @@ blockToConTeXt (Para lst) = do
 blockToConTeXt (BlockQuote lst) = do
   contents <- blockListToConTeXt lst
   return $ Pad $ text "\\startblockquote" $$ contents $$ text "\\stopblockquote"
-blockToConTeXt (CodeBlock str) = 
+blockToConTeXt (CodeBlock _ str) = 
   return $ Reg $ text $ "\\starttyping\n" ++ str ++ "\n\\stoptyping\n" 
   -- \n because \stoptyping can't have anything after it, inc. }
 blockToConTeXt (RawHtml str) = return $ Reg empty

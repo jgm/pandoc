@@ -128,7 +128,7 @@ blockToMan opts (Header level inlines) = do
                   1 -> ".SH "
                   _ -> ".SS "
   return $ text heading <> contents 
-blockToMan opts (CodeBlock str) = return $
+blockToMan opts (CodeBlock _ str) = return $
   text ".PP" $$ text "\\f[CR]" $$ 
   text ((unlines . map ("      " ++) . lines) (escapeCode str)) <> text "\\f[]"
 blockToMan opts (BlockQuote blocks) = do  
