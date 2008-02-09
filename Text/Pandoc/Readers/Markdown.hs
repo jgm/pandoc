@@ -301,7 +301,7 @@ codeBlock = do
                              l <- indentedLine
                              return $ b ++ l))
   optional blanklines
-  return $ CodeBlock $ stripTrailingNewlines $ concat contents
+  return $ CodeBlock "" $ stripTrailingNewlines $ concat contents
 
 --
 -- block quotes
