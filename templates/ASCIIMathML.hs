@@ -4,4 +4,4 @@ module Text.Pandoc.ASCIIMathML ( asciiMathMLScript ) where
 
 -- | String containing ASCIIMathML javascript.
 asciiMathMLScript :: String
-asciiMathMLScript = "<script type=\"text/javascript\">\n@ASCIIMathML.js@</script>\n"
+asciiMathMLScript = "<script type=\"text/javascript\">\n" ++ @ASCIIMathML.js.comment@ ++ @ASCIIMathML.js.packed@ ++ "</script>\n"

@@ -92,10 +92,6 @@ all: build-program
 %.1: %.1.md $(MAIN)
 	./$(MAIN) -s -S -w man $< >$@ || rm -f $@
 
-.PHONY: templates
-templates: 
-	$(MAKE) -C $(SRCDIR)/templates
-
 define generate-shell-script
 echo >&2 "Generating $@...";                             \
 awk '                                                    \
@@ -126,7 +122,7 @@ $(CABAL_BACKUP):
 
 .PHONY: configure
 cleanup_files+=Setup.hi Setup.o $(BUILDCMD) $(BUILDVARS)
-configure: $(BUILDCONF) templates
+configure: $(BUILDCONF)
 $(BUILDCMD): Setup.hs
 	$(GHC) -package Cabal Setup.hs -o $(BUILDCMD)
 $(BUILDCONF): $(CABAL) $(CABAL_BACKUP) $(BUILDCMD)
@@ -292,7 +288,6 @@ cleanup_files+=$(tarball)
 tarball: $(tarball)
 $(tarball):
 	svn export . $(PKGID)
-	$(MAKE) -C $(PKGID) templates
 	$(MAKE) -C $(PKGID) wrappers
 	tar cvzf $(tarball) $(PKGID)
 	-rm -rf $(PKGID)
@@ -352,6 +347,5 @@ distclean: clean
 	fi
 
 clean:
-	make -C $(SRCDIR)/templates clean
 	-if [ -f $(BUILDCONF) ]; then $(BUILDCMD) clean; fi
 	-rm -rf $(cleanup_files)
