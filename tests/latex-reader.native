@@ -26,7 +26,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 
 , BlockQuote
   [ Para [Str "Code",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote:"]
-  , CodeBlock "" "sub status {\n    print \"working\";\n}"
+  , CodeBlock ("",[],[]) "sub status {\n    print \"working\";\n}"
   , Para [Str "A",Space,Str "list:"]
   , OrderedList (1,Decimal,Period)
     [ [ Para [Str "item",Space,Str "one"] ]
@@ -42,7 +42,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Para [Str "Box",Str "-",Str "style:"]
 , BlockQuote
   [ Para [Str "Example:"]
-  , CodeBlock "" "sub status {\n    print \"working\";\n}" ]
+  , CodeBlock ("",[],[]) "sub status {\n    print \"working\";\n}" ]
 , BlockQuote
   [ OrderedList (1,Decimal,Period)
     [ [ Para [Str "do",Space,Str "laundry"] ]
@@ -57,9 +57,9 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , HorizontalRule
 , Header 1 [Str "Code",Space,Str "Blocks"]
 , Para [Str "Code:"]
-, CodeBlock "" "---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}\n\nthis code block is indented by one tab"
+, CodeBlock ("",[],[]) "---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}\n\nthis code block is indented by one tab"
 , Para [Str "And:"]
-, CodeBlock "" "    this code block is indented by two tabs\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{"
+, CodeBlock ("",[],[]) "    this code block is indented by two tabs\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{"
 , HorizontalRule
 , Header 1 [Str "Lists"]
 , Header 2 [Str "Unordered"]
@@ -223,7 +223,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
      , Para [Str "contains",Space,Str "seeds,",Space,Str "crisp,",Space,Str "pleasant",Space,Str "to",Space,Str "taste"] ]  ),
     ([Emph [Str "orange"]],
      [ Para [Str "orange",Space,Str "fruit"]
-     , CodeBlock "" "{ orange code block }"
+     , CodeBlock ("",[],[]) "{ orange code block }"
      , BlockQuote
        [ Para [Str "orange",Space,Str "block",Space,Str "quote"] ]
       ]  ) ]
@@ -233,17 +233,17 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Para [Str "foo",Space,Str "bar",Space,Str "Interpreted",Space,Str "markdown",Space,Str "in",Space,Str "a",Space,Str "table:"]
 , Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Space,Str "And",Space,Str "this",Space,Str "is",Space,Strong [Str "strong"],Space,Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "simple",Space,Str "block:"]
 , Para [Str "foo",Space,Str "This",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "code",Space,Str "block,",Space,Str "though:"]
-, CodeBlock "" "<div>\n    foo\n</div>"
+, CodeBlock ("",[],[]) "<div>\n    foo\n</div>"
 , Para [Str "As",Space,Str "should",Space,Str "this:"]
-, CodeBlock "" "<div>foo</div>"
+, CodeBlock ("",[],[]) "<div>foo</div>"
 , Para [Str "Now,",Space,Str "nested:"]
 , Para [Str "foo",Space,Str "This",Space,Str "should",Space,Str "just",Space,Str "be",Space,Str "an",Space,Str "HTML",Space,Str "comment:"]
 , Para [Str "Multiline:"]
 , Para [Str "Code",Space,Str "block:"]
-, CodeBlock "" "<!-- Comment -->"
+, CodeBlock ("",[],[]) "<!-- Comment -->"
 , Para [Str "Just",Space,Str "plain",Space,Str "comment,",Space,Str "with",Space,Str "trailing",Space,Str "spaces",Space,Str "on",Space,Str "the",Space,Str "line:"]
 , Para [Str "Code:"]
-, CodeBlock "" "<hr />"
+, CodeBlock ("",[],[]) "<hr />"
 , Para [Str "Hr",Apostrophe,Str "s:"]
 , HorizontalRule
 , Header 1 [Str "Inline",Space,Str "Markup"]
@@ -340,7 +340,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Para [Str "Indented",Space,Link [Str "twice"] ("/url",""),Str "."]
 , Para [Str "Indented",Space,Link [Str "thrice"] ("/url",""),Str "."]
 , Para [Str "This",Space,Str "should",Space,Str "[not][]",Space,Str "be",Space,Str "a",Space,Str "link."]
-, CodeBlock "" "[not]: /url"
+, CodeBlock ("",[],[]) "[not]: /url"
 , Para [Str "Foo",Space,Link [Str "bar"] ("/url/",""),Str "."]
 , Para [Str "Foo",Space,Link [Str "biz"] ("/url/",""),Str "."]
 , Header 2 [Str "With",Space,Str "ampersands"]
@@ -359,7 +359,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
   [ Para [Str "Blockquoted:",Space,Link [Code "http://example.com/"] ("http://example.com/","")] ]
 
 , Para [Str "Auto",Str "-",Str "links",Space,Str "should",Space,Str "not",Space,Str "occur",Space,Str "here:",Space,Code "<http://example.com/>"]
-, CodeBlock "" "or here: <http://example.com/>"
+, CodeBlock ("",[],[]) "or here: <http://example.com/>"
 , HorizontalRule
 , Header 1 [Str "Images"]
 , Para [Str "From",Space,Quoted DoubleQuote [Str "Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune"],Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(1902):"]
@@ -367,7 +367,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "image"] ("movie.jpg",""),Space,Str "icon."]
 , HorizontalRule
 , Header 1 [Str "Footnotes"]
-, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "footnote",Space,Str "reference,",Note [Para [Str "Here",Space,Str "is",Space,Str "the",Space,Str "footnote.",Space,Str "It",Space,Str "can",Space,Str "go",Space,Str "anywhere",Space,Str "after",Space,Str "the",Space,Str "footnote",Space,Str "reference.",Space,Str "It",Space,Str "need",Space,Str "not",Space,Str "be",Space,Str "placed",Space,Str "at",Space,Str "the",Space,Str "end",Space,Str "of",Space,Str "the",Space,Str "document."]],Space,Str "and",Space,Str "another.",Note [Para [Str "Here",Apostrophe,Str "s",Space,Str "the",Space,Str "long",Space,Str "note.",Space,Str "This",Space,Str "one",Space,Str "contains",Space,Str "multiple",Space,Str "blocks."],Para [Str "Subsequent",Space,Str "blocks",Space,Str "are",Space,Str "indented",Space,Str "to",Space,Str "show",Space,Str "that",Space,Str "they",Space,Str "belong",Space,Str "to",Space,Str "the",Space,Str "footnote",Space,Str "(as",Space,Str "with",Space,Str "list",Space,Str "items)."],CodeBlock "" "  { <code> }",Para [Str "If",Space,Str "you",Space,Str "want,",Space,Str "you",Space,Str "can",Space,Str "indent",Space,Str "every",Space,Str "line,",Space,Str "but",Space,Str "you",Space,Str "can",Space,Str "also",Space,Str "be",Space,Str "lazy",Space,Str "and",Space,Str "just",Space,Str "indent",Space,Str "the",Space,Str "first",Space,Str "line",Space,Str "of",Space,Str "each",Space,Str "block."]],Space,Str "This",Space,Str "should",Space,Emph [Str "not"],Space,Str "be",Space,Str "a",Space,Str "footnote",Space,Str "reference,",Space,Str "because",Space,Str "it",Space,Str "contains",Space,Str "a",Space,Str "space.[",Str "^",Str "my",Space,Str "note]",Space,Str "Here",Space,Str "is",Space,Str "an",Space,Str "inline",Space,Str "note.",Note [Para [Str "This",Space,Str "is",Space,Emph [Str "easier"],Space,Str "to",Space,Str "type.",Space,Str "Inline",Space,Str "notes",Space,Str "may",Space,Str "contain",Space,Link [Str "links"] ("http://google.com",""),Space,Str "and",Space,Code "]",Space,Str "verbatim",Space,Str "characters,",Space,Str "as",Space,Str "well",Space,Str "as",Space,Str "[bracketed",Space,Str "text]."]]]
+, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "footnote",Space,Str "reference,",Note [Para [Str "Here",Space,Str "is",Space,Str "the",Space,Str "footnote.",Space,Str "It",Space,Str "can",Space,Str "go",Space,Str "anywhere",Space,Str "after",Space,Str "the",Space,Str "footnote",Space,Str "reference.",Space,Str "It",Space,Str "need",Space,Str "not",Space,Str "be",Space,Str "placed",Space,Str "at",Space,Str "the",Space,Str "end",Space,Str "of",Space,Str "the",Space,Str "document."]],Space,Str "and",Space,Str "another.",Note [Para [Str "Here",Apostrophe,Str "s",Space,Str "the",Space,Str "long",Space,Str "note.",Space,Str "This",Space,Str "one",Space,Str "contains",Space,Str "multiple",Space,Str "blocks."],Para [Str "Subsequent",Space,Str "blocks",Space,Str "are",Space,Str "indented",Space,Str "to",Space,Str "show",Space,Str "that",Space,Str "they",Space,Str "belong",Space,Str "to",Space,Str "the",Space,Str "footnote",Space,Str "(as",Space,Str "with",Space,Str "list",Space,Str "items)."],CodeBlock ("",[],[]) "  { <code> }",Para [Str "If",Space,Str "you",Space,Str "want,",Space,Str "you",Space,Str "can",Space,Str "indent",Space,Str "every",Space,Str "line,",Space,Str "but",Space,Str "you",Space,Str "can",Space,Str "also",Space,Str "be",Space,Str "lazy",Space,Str "and",Space,Str "just",Space,Str "indent",Space,Str "the",Space,Str "first",Space,Str "line",Space,Str "of",Space,Str "each",Space,Str "block."]],Space,Str "This",Space,Str "should",Space,Emph [Str "not"],Space,Str "be",Space,Str "a",Space,Str "footnote",Space,Str "reference,",Space,Str "because",Space,Str "it",Space,Str "contains",Space,Str "a",Space,Str "space.[",Str "^",Str "my",Space,Str "note]",Space,Str "Here",Space,Str "is",Space,Str "an",Space,Str "inline",Space,Str "note.",Note [Para [Str "This",Space,Str "is",Space,Emph [Str "easier"],Space,Str "to",Space,Str "type.",Space,Str "Inline",Space,Str "notes",Space,Str "may",Space,Str "contain",Space,Link [Str "links"] ("http://google.com",""),Space,Str "and",Space,Code "]",Space,Str "verbatim",Space,Str "characters,",Space,Str "as",Space,Str "well",Space,Str "as",Space,Str "[bracketed",Space,Str "text]."]]]
 , BlockQuote
   [ Para [Str "Notes",Space,Str "can",Space,Str "go",Space,Str "in",Space,Str "quotes.",Note [Para [Str "In",Space,Str "quote."]]] ]
 

@@ -26,7 +26,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
 , BlockQuote
   [ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "block",Space,Str "quote.",Space,Str "It's",Space,Str "indented",Space,Str "with",Space,Str "a",Space,Str "tab."]
   , Para [Str "Code",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote",Str ":"]
-  , CodeBlock "" "sub status {\n    print \"working\";\n}"
+  , CodeBlock ("",[],[]) "sub status {\n    print \"working\";\n}"
   , Para [Str "List",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote",Str ":"]
   , OrderedList (1,Decimal,Period)
     [ [ Plain [Str "item",Space,Str "one"] ]
@@ -39,10 +39,10 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
      ] ]
 , Header 1 [Str "Code",Space,Str "Blocks"]
 , Para [Str "Code",Str ":"]
-, CodeBlock "" "---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}"
-, CodeBlock "" "this code block is indented by one tab"
+, CodeBlock ("",[],[]) "---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}"
+, CodeBlock ("",[],[]) "this code block is indented by one tab"
 , Para [Str "And",Str ":"]
-, CodeBlock "" "this block is indented by two tabs\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{"
+, CodeBlock ("",[],[]) "this block is indented by two tabs\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{"
 , Header 1 [Str "Lists"]
 , Header 2 [Str "Unordered"]
 , Para [Str "Asterisks",Space,Str "tight",Str ":"]
@@ -225,7 +225,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
 , Para [Str "Here's",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "amersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text",Str ":",Space,Link [Str "AT&T"] ("/url/",""),Str "."]
 , Para [Str "Autolinks",Str ":",Space,Link [Str "http://example.com/?foo=1&bar=2"] ("http://example.com/?foo=1&bar=2",""),Space,Str "and",Space,Link [Str "nobody@nowhere.net"] ("mailto:nobody@nowhere.net",""),Str "."]
 , Para [Str "But",Space,Str "not",Space,Str "here",Str ":"]
-, CodeBlock "" "http://example.com/"
+, CodeBlock ("",[],[]) "http://example.com/"
 , Header 1 [Str "Images"]
 , Para [Str "From",Space,Str "\"Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune\"",Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(1902)",Str ":"]
 , Plain [Image [Str "image"] ("lalune.jpg","")]
