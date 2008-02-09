@@ -299,7 +299,7 @@ codeBlock = codeBlockIndented <|> codeBlockDelimited
 
 codeBlockDelimiter len = try $ do
   size <- case len of
-              Just l  -> count l (char '~') >> return l
+              Just l  -> count l (char '~') >> many (char '~') >> return l
               Nothing -> count 3 (char '~') >> many (char '~') >>= 
                          return . (+ 3) . length 
   many spaceChar
@@ -320,6 +320,7 @@ classAttributes = try $ do
 codeBlockDelimited = try $ do
   (size, lang) <- codeBlockDelimiter Nothing
   contents <- manyTill anyLine (codeBlockDelimiter (Just size))
+  blanklines
   return $ CodeBlock lang $ joinWithSep "\n" contents
 
 codeBlockIndented = do
