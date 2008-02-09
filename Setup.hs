@@ -2,7 +2,7 @@ import Distribution.Simple
 import Distribution.Simple.Setup
 import Distribution.PackageDescription
 import Distribution.Simple.LocalBuildInfo
-import System.FilePath (combine, joinPath, takeFileName)
+import System.FilePath (combine, joinPath, takeFileName, takeExtension)
 import System.Directory (getDirectoryContents, removeFile, copyFile)
 import System.IO (readFile, writeFile)
 import Control.Monad (foldM)
@@ -52,7 +52,7 @@ fillS5WriterTemplate =
 fillDefaultHeadersTemplate :: IO ()
 fillDefaultHeadersTemplate = do
   files <- getDirectoryContents (combine "templates" "headers") >>= 
-             return . map (combine "headers") . filter (\x -> not (x `elem` [".",".."]))
+             return . map (combine "headers") . filter (\x -> takeExtension x == ".header")
   fillTemplate files "DefaultHeaders.hs" "DefaultHeaders.hs"
 
 -- Post-clean: remove the files generated from templates.

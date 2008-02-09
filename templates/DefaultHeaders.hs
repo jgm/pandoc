@@ -37,16 +37,16 @@ module Text.Pandoc.DefaultHeaders (
 import Text.Pandoc.Writers.S5
 
 defaultLaTeXHeader :: String
-defaultLaTeXHeader = @LaTeXHeader@
+defaultLaTeXHeader = @LaTeX.header@
 
 defaultConTeXtHeader :: String
-defaultConTeXtHeader = @ConTeXtHeader@
+defaultConTeXtHeader = @ConTeXt.header@
 
 defaultDocbookHeader :: String
-defaultDocbookHeader = @DocbookHeader@
+defaultDocbookHeader = @Docbook.header@
 
 defaultS5Header :: String
 defaultS5Header = s5Meta ++ s5CSS ++ s5Javascript
 
 defaultRTFHeader :: String
-defaultRTFHeader = @RTFHeader@
+defaultRTFHeader = @RTF.header@
