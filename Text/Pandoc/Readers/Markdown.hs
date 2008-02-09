@@ -310,10 +310,10 @@ codeBlockDelimiter len = try $ do
 classAttributes = try $ do
   char '{'
   many spaceChar
-  attrs <- many $ do char '.'
-                     attr <- many1 alphaNum
-                     many spaceChar
-                     return attr
+  attrs <- many $ try $  do char '.'
+                            attr <- many1 alphaNum
+                            many spaceChar
+                            return attr
   char '}'
   return $ unwords attrs
 
