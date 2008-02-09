@@ -263,8 +263,8 @@ blockToHtml opts (Plain lst) = inlineListToHtml opts lst
 blockToHtml opts (Para lst) = inlineListToHtml opts lst >>= (return . paragraph)
 blockToHtml opts (RawHtml str) = return $ primHtml str
 blockToHtml opts (HorizontalRule) = return $ hr
-blockToHtml opts (CodeBlock lang str) = return $ 
-  pre ! (if null lang then [] else [theclass lang]) $
+blockToHtml opts (CodeBlock (_,classes,_) str) = return $ 
+  pre ! (if null classes then [] else [theclass $ unwords classes]) $
   thecode << (str ++ "\n") -- the final \n for consistency with Markdown.pl
 blockToHtml opts (BlockQuote blocks) =
   -- in S5, treat list in blockquote specially

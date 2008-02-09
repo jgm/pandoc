@@ -182,14 +182,14 @@ codeBlock1 = try $ do
                               -- leading space
   contents <- manyTill anyChar (try (string "\\end{verbatim}"))
   spaces
-  return $ CodeBlock "" (stripTrailingNewlines contents)
+  return $ CodeBlock ("",[],[]) (stripTrailingNewlines contents)
 
 codeBlock2 = try $ do
   string "\\begin{Verbatim}"  -- used by fancyvrb package
   optional blanklines
   contents <- manyTill anyChar (try (string "\\end{Verbatim}"))
   spaces
-  return $ CodeBlock "" (stripTrailingNewlines contents)
+  return $ CodeBlock ("",[],[]) (stripTrailingNewlines contents)
 
 --
 -- block quotes

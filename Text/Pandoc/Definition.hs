@@ -61,12 +61,15 @@ data ListNumberDelim = DefaultDelim
                      | Period
                      | OneParen 
                      | TwoParens deriving (Eq, Show, Read)
-                   
+
+-- | Attributes.
+type Attr = (String, [String], [(String, String)])  -- ^ Identifier, classes, key-value pairs
+
 -- | Block element.
 data Block  
     = Plain [Inline]        -- ^ Plain text, not a paragraph
     | Para [Inline]         -- ^ Paragraph
-    | CodeBlock String String -- ^ Code block (literal) with class
+    | CodeBlock Attr String -- ^ Code block (literal) with attributes 
     | RawHtml String        -- ^ Raw HTML block (literal)
     | BlockQuote [Block]    -- ^ Block quote (list of blocks)
     | OrderedList ListAttributes [[Block]] -- ^ Ordered list (attributes

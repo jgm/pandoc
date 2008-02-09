@@ -407,7 +407,7 @@ codeBlock = try $ do
     let result''' = if "\n" `isSuffixOf` result''
                        then init result''
                        else result''
-    return $ CodeBlock "" $ decodeCharacterReferences result'''
+    return $ CodeBlock ("",[],[]) $ decodeCharacterReferences result'''
 
 --
 -- block quotes

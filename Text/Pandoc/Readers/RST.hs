@@ -304,7 +304,7 @@ indentedBlock = do
 codeBlock = try $ do
   codeBlockStart
   result <- indentedBlock
-  return $ CodeBlock "" $ stripTrailingNewlines result
+  return $ CodeBlock ("",[],[]) $ stripTrailingNewlines result
 
 --
 -- raw html

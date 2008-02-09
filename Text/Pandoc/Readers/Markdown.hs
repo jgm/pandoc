@@ -303,25 +303,48 @@ codeBlockDelimiter len = try $ do
               Nothing -> count 3 (char '~') >> many (char '~') >>= 
                          return . (+ 3) . length 
   many spaceChar
-  lang <- option "" classAttributes
+  attr <- option ([],[],[]) attributes
   blankline
-  return (size, lang) 
+  return (size, attr) 
 
-classAttributes = try $ do
+attributes = try $ do
   char '{'
   many spaceChar
-  attrs <- many $ try $  do char '.'
-                            attr <- many1 alphaNum
-                            many spaceChar
-                            return attr
+  attrs <- many (attribute >>~ many spaceChar)
   char '}'
-  return $ unwords attrs
+  let (ids, classes, keyvals) = unzip3 attrs
+  let id = if null ids then "" else head ids
+  return (id, concat classes, concat keyvals)  
+
+attribute = identifierAttr <|> classAttr <|> keyValAttr
+
+identifier = do
+  first <- letter
+  rest <- many alphaNum
+  return (first:rest)
+
+identifierAttr = try $ do
+  char '#'
+  result <- identifier
+  return (result,[],[])
+
+classAttr = try $ do
+  char '.'
+  result <- identifier
+  return ("",[result],[])
+
+keyValAttr = try $ do
+  key <- identifier
+  char '='
+  char '"'
+  val <- manyTill (noneOf "\n") (char '"')
+  return ("",[],[(key,val)])
 
 codeBlockDelimited = try $ do
-  (size, lang) <- codeBlockDelimiter Nothing
+  (size, attr) <- codeBlockDelimiter Nothing
   contents <- manyTill anyLine (codeBlockDelimiter (Just size))
   blanklines
-  return $ CodeBlock lang $ joinWithSep "\n" contents
+  return $ CodeBlock attr $ joinWithSep "\n" contents
 
 codeBlockIndented = do
   contents <- many1 (indentedLine <|> 
@@ -329,7 +352,7 @@ codeBlockIndented = do
                              l <- indentedLine
                              return $ b ++ l))
   optional blanklines
-  return $ CodeBlock "" $ stripTrailingNewlines $ concat contents
+  return $ CodeBlock ("",[],[]) $ stripTrailingNewlines $ concat contents
 
 --
 -- block quotes
