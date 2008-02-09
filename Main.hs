@@ -49,9 +49,18 @@ copyrightMessage = "\nCopyright (C) 2006-7 John MacFarlane\n\
                     \warranty, not even for merchantability or fitness for a particular purpose."
 
 compileOptions :: String
-compileOptions = if null languages
-                    then " [compiled without syntax highlighting support]"
-                    else " [compiled with syntax highlighting support]" 
+compileOptions =
+  if null languages
+     then "\nCompiled without syntax highlighting support."
+     else "\nCompiled with syntax highlighting support for the following languages:\n" ++ 
+          (unlines $ map unwords $ chunk 5 $ 
+           map (\s -> s ++ replicate (15 - length s) ' ') languages)
+
+-- | Splits a list into groups of at most n.
+chunk :: Int -> [a] -> [[a]]
+chunk size lst =
+  let (next, rest) = splitAt size lst
+  in  if null rest then [next] else next : chunk size rest
 
 -- | Association list of formats and readers.
 readers :: [(String, ParserState -> String -> Pandoc)]
