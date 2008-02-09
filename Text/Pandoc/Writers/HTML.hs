@@ -36,10 +36,11 @@ import Text.Pandoc.Readers.TeXMath
 import Text.Regex ( mkRegex, matchRegex )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower, isAlpha )
-import Data.List ( isPrefixOf, intersperse )
+import Data.List ( isPrefixOf, intersperse, find )
 import qualified Data.Set as S
 import Control.Monad.State
 import Text.XHtml.Transitional
+import Text.Highlighting.Kate
 
 data WriterState = WriterState
     { stNotes            :: [Html]       -- ^ List of notes
@@ -263,9 +264,18 @@ blockToHtml opts (Plain lst) = inlineListToHtml opts lst
 blockToHtml opts (Para lst) = inlineListToHtml opts lst >>= (return . paragraph)
 blockToHtml opts (RawHtml str) = return $ primHtml str
 blockToHtml opts (HorizontalRule) = return $ hr
-blockToHtml opts (CodeBlock (_,classes,_) str) = return $ 
-  pre ! (if null classes then [] else [theclass $ unwords classes]) $
-  thecode << (str ++ "\n") -- the final \n for consistency with Markdown.pl
+blockToHtml opts (CodeBlock (_,classes,_) rawCode) = do
+  let fmtOpts = 
+        case find (`elem` ["number","numberLines","number-lines"]) classes of
+              Nothing   -> []
+              Just _    -> [OptNumberLines]
+  let toPre str = pre ! (if null classes then [] else [theclass $ unwords classes]) $ thecode << str 
+  let lcLanguages = map (map toLower) languages
+  return $ case find (\c -> (map toLower c) `elem` lcLanguages) classes of
+                 Nothing   -> toPre (rawCode ++ "\n")
+                 Just lang -> case highlightAs lang rawCode of
+                                    Left _   -> toPre (rawCode ++ "\n")
+                                    Right hl -> formatAsXHtml fmtOpts lang hl
 blockToHtml opts (BlockQuote blocks) =
   -- in S5, treat list in blockquote specially
   -- if default is incremental, make it nonincremental; 
