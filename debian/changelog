@@ -1,3 +1,18 @@
+pandoc (0.47) unstable; urgency=low
+
+  [ Recai Oktaş ]
+
+  * Debian packaging changes:
+  
+    + Migrate to GHC 6.8.2.  Closes: #461606
+    + Add new dependencies libghc6-regex-compat-dev and libghc6-uulib-dev.
+    + Remove the code in debian/rules which attempts to remove empty ghc6.6
+      include directory.  This code may cause an installation failure for the
+      -dev package.  Closes: #460658
+    + Fix doc-base to prevent a lintian warning.
+
+ -- Recai Oktaş <roktas@debian.org>  Sat, 09 Feb 2008 04:41:46 +0200
+
 pandoc (0.46) unstable; urgency=low
 
   [ John MacFarlane ]
