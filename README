@@ -452,8 +452,8 @@ with `~~`. Thus, for example,
 
     This ~~is deleted text.~~
 
-Lists
------
+Nested Lists
+------------
 
 Pandoc behaves differently from standard markdown on some "edge
 cases" involving lists.  Consider this source: 
@@ -476,6 +476,9 @@ fact that the list is followed by a blank line is irrelevant. (Note:
 Pandoc works this way even when the `--strict` option is specified. This
 behavior is consistent with the official markdown syntax description,
 even though it is different from that of `Markdown.pl`.)
+
+Ordered Lists
+-------------
 
 Unlike standard markdown, Pandoc allows ordered list items to be marked
 with uppercase and lowercase letters and roman numerals, in addition to
@@ -704,6 +707,52 @@ These work like simple tables, but with the following differences:
   - They must begin with a row of dashes, before the header text.
   - They must end with a row of dashes, then a blank line.
   - The rows must be separated by blank lines. 
+
+Delimited Code blocks
+---------------------
+
+In addition to standard indented code blocks, Pandoc supports
+*delimited* code blocks.  These begin with a row of three or more
+tildes (`~`) and end with a row of tildes that must be at least
+as long as the starting row.  Everything between the tilde-lines
+is treated as code.  No indentation is necessary:
+
+    ~~~~~~~
+    {code here}
+    ~~~~~~~
+
+If the code itself contains a row of tildes, just use a longer
+row of tildes at the start and end:
+
+    ~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~
+    code including tildes
+    ~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~
+
+Optionally, you may specify the language of the code block using
+this syntax:
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+    qsort []     = []
+    qsort (x:xs) = qsort (filter (< x) xs) ++ [x] ++
+                   qsort (filter (>= x) xs) 
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some output formats can use this information to do syntax highlighting.
+Currently, the only output format that uses this information is HTML.
+The code block above would appear in the context
+
+    <pre class="haskell">
+      <code>
+      ...
+      </code>
+    </pre>
+
+This allows the HTML to be postprocessed using a syntax highlighting tool.
+(Pandoc itself does not do any syntax highlighting.) Note that multiple
+classes can be specified: for example, one might use `{.haskell
+.number}` to specify that lines be numbered in the highlighted output.
 
 Title blocks
 ------------
