@@ -733,7 +733,7 @@ row of tildes at the start and end:
 Optionally, you may specify the language of the code block using
 this syntax:
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell}
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell .numberLines}
     qsort []     = []
     qsort (x:xs) = qsort (filter (< x) xs) ++ [x] ++
                    qsort (filter (>= x) xs) 
@@ -741,18 +741,19 @@ this syntax:
 
 Some output formats can use this information to do syntax highlighting.
 Currently, the only output format that uses this information is HTML.
-The code block above would appear in the context
+
+If pandoc has been compiled with syntax highlighting support, then the
+code block above will appear highlighted, with numbered lines.  (To see
+which languages are supported, do `pandoc --version`.)
+
+If pandoc has not been compiled with syntax highlighting support, the
+code block above will appear as follows:
 
     <pre class="haskell">
       <code>
       ...
       </code>
     </pre>
-
-This allows the HTML to be postprocessed using a syntax highlighting tool.
-(Pandoc itself does not do any syntax highlighting.) Note that multiple
-classes can be specified: for example, one might use `{.haskell
-.number}` to specify that lines be numbered in the highlighted output.
 
 Title blocks
 ------------
