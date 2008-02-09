@@ -52,8 +52,8 @@ myPostClean :: Args -> CleanFlags -> PackageDescription -> Maybe LocalBuildInfo 
 myPostClean _ _ _ _ = do
   putStrLn "Removing source files generated from templates:"
   removeGeneratedFile $ joinPath [pandocPath, "ASCIIMathML.hs"]
+  removeGeneratedFile $ joinPath [pandocPath, "DefaultHeaders.hs"]
   removeGeneratedFile $ joinPath [pandocPath, "Writers", "S5.hs"]
-  removeGeneratedFile $ joinPath [pandocPath, "Writers", "DefaultHeaders.hs"]
 
 -- Remove file and print message.
 removeGeneratedFile :: FilePath -> IO () 
@@ -65,7 +65,9 @@ removeGeneratedFile fpath = do
 writeTemplate :: FilePath -> String -> IO ()
 writeTemplate outfile contents = do
   putStrLn $ "  " ++ outfile
-  writeFile outfile contents
+  let warning = "-- This file is generated from a template in the templates subdirectory.\n\
+                \-- Modify that file, not this one.\n"
+  writeFile outfile (warning ++ contents)
 
 -- Read contents of fpath and insert in template replacing @fpath@.
 processFile :: String -> FilePath -> IO String
