@@ -35,13 +35,18 @@ Description:     Pandoc is a Haskell library for converting from one markup
 Flag splitBase
   Description:   Choose the new, smaller, split-up base package.
   Default:       True
+Flag highlighting
+  Description:   Compile in support for syntax highlighting of code blocks.
+  Default:       False
 
 Library
   if flag(splitBase)
     Build-Depends: base >= 3, pretty, containers
   else
     Build-Depends: base < 3
-  Build-Depends: parsec, xhtml, mtl, network, filepath, highlighting-kate
+  if flag(highlighting)
+    Build-depends: highlighting-kate
+  Build-Depends: parsec, xhtml, mtl, network, filepath
   Hs-Source-Dirs:  .
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Blocks,
@@ -51,6 +56,7 @@ Library
                    Text.Pandoc.UTF8,
                    Text.Pandoc.ASCIIMathML,
                    Text.Pandoc.DefaultHeaders,
+                   Text.Pandoc.Highlighting,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,
                    Text.Pandoc.Readers.Markdown,

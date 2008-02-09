@@ -32,6 +32,7 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.UTF8
 import Text.Pandoc.Shared ( joinWithSep, HTMLMathMethod (..) )
+import Text.Pandoc.Highlighting ( languages )
 import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath ( takeExtension )
@@ -46,6 +47,11 @@ copyrightMessage = "\nCopyright (C) 2006-7 John MacFarlane\n\
                     \Web:  http://johnmacfarlane.net/pandoc\n\
                     \This is free software; see the source for copying conditions.  There is no\n\
                     \warranty, not even for merchantability or fitness for a particular purpose."
+
+compileOptions :: String
+compileOptions = if null languages
+                    then " [compiled without syntax highlighting support]"
+                    else " [compiled with syntax highlighting support]" 
 
 -- | Association list of formats and readers.
 readers :: [(String, ParserState -> String -> Pandoc)]
@@ -315,7 +321,7 @@ options =
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     hPutStrLn stderr (prg ++ " " ++ pandocVersion ++ 
+                     hPutStrLn stderr (prg ++ " " ++ pandocVersion ++ compileOptions ++
                                        copyrightMessage)
                      exitWith $ ExitFailure 4))
                  "" -- "Print version"

@@ -3,7 +3,7 @@ import Distribution.Simple.Setup
 import Distribution.PackageDescription
 import Distribution.Simple.LocalBuildInfo
 import System.FilePath (combine, joinPath, takeFileName)
-import System.Directory (getDirectoryContents, removeFile)
+import System.Directory (getDirectoryContents, removeFile, copyFile)
 import System.IO (readFile, writeFile)
 import Control.Monad (foldM)
 import Data.List (isPrefixOf)
@@ -22,6 +22,14 @@ myPostConf _ configFlags pkgDescription buildInfo = do
   fillAsciiMathMLTemplate
   fillS5WriterTemplate
   fillDefaultHeadersTemplate
+  let deps = packageDeps buildInfo
+  let highlighting = any (\id -> pkgName id == "highlighting-kate") deps 
+  let highlightingModule = if highlighting
+                              then combine "templates" "Highlighting.yes.hs"
+                              else combine "templates" "Highlighting.no.hs"
+  copyFile highlightingModule $ joinPath ["Text", "Pandoc", "Highlighting.hs"] 
+  putStrLn $ "  Text/Pandoc/Highlighting.hs [" ++ 
+             (if highlighting then "with" else "without") ++ " syntax highlighting support]"
 
 -- Fill templateFile with data in dataFiles and write to outputFile.
 fillTemplate :: [FilePath] -> FilePath -> FilePath -> IO ()
@@ -53,6 +61,7 @@ myPostClean _ _ _ _ = do
   putStrLn "Removing source files generated from templates:"
   removeGeneratedFile $ joinPath [pandocPath, "ASCIIMathML.hs"]
   removeGeneratedFile $ joinPath [pandocPath, "DefaultHeaders.hs"]
+  removeGeneratedFile $ joinPath [pandocPath, "Highlighting.hs"]
   removeGeneratedFile $ joinPath [pandocPath, "Writers", "S5.hs"]
 
 -- Remove file and print message.

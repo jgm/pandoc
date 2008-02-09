@@ -33,13 +33,13 @@ import Text.Pandoc.ASCIIMathML
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
+import Text.Pandoc.Highlighting ( highlightHtml )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower, isAlpha )
 import Data.List ( isPrefixOf, intersperse, find )
 import qualified Data.Set as S
 import Control.Monad.State
 import Text.XHtml.Transitional
-import Text.Highlighting.Kate
 
 data WriterState = WriterState
     { stNotes            :: [Html]       -- ^ List of notes
@@ -293,18 +293,12 @@ blockToHtml opts (Para lst) = inlineListToHtml opts lst >>= (return . paragraph)
 blockToHtml opts (RawHtml str) = return $ primHtml str
 blockToHtml opts (HorizontalRule) = return $ hr
 blockToHtml opts (CodeBlock (_,classes,_) rawCode) = do
-  let fmtOpts = 
-        case find (`elem` ["number","numberLines","number-lines"]) classes of
-              Nothing   -> []
-              Just _    -> [OptNumberLines]
-  let toPre str = pre ! (if null classes then [] else [theclass $ unwords classes]) $ thecode << str 
-  let lcLanguages = map (map toLower) languages
-  case find (\c -> (map toLower c) `elem` lcLanguages) classes of
-        Nothing   -> return $ toPre (rawCode ++ "\n")
-        Just lang -> case highlightAs lang rawCode of
-                           Left _   -> return $ toPre (rawCode ++ "\n")
-                           Right hl -> do addToCSS highlightingCSS 
-                                          return $ formatAsXHtml fmtOpts lang hl
+  case highlightHtml classes rawCode of
+         Left _  -> return $ pre ! (if null classes
+                                       then []
+                                       else [theclass $ unwords classes]) $ thecode << 
+                                            (rawCode ++ "\n")
+         Right h -> addToCSS highlightingCSS >> return h
 blockToHtml opts (BlockQuote blocks) =
   -- in S5, treat list in blockquote specially
   -- if default is incremental, make it nonincremental; 
