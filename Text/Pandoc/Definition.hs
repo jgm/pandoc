@@ -66,7 +66,7 @@ data ListNumberDelim = DefaultDelim
 data Block  
     = Plain [Inline]        -- ^ Plain text, not a paragraph
     | Para [Inline]         -- ^ Paragraph
-    | CodeBlock String      -- ^ Code block (literal)
+    | CodeBlock String String -- ^ Code block (literal) with class
     | RawHtml String        -- ^ Raw HTML block (literal)
     | BlockQuote [Block]    -- ^ Block quote (list of blocks)
     | OrderedList ListAttributes [[Block]] -- ^ Ordered list (attributes
