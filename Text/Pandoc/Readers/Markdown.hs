@@ -295,7 +295,33 @@ hrule = try $ do
 
 indentedLine = indentSpaces >> manyTill anyChar newline >>= return . (++ "\n")
 
-codeBlock = do
+codeBlock = codeBlockIndented <|> codeBlockDelimited 
+
+codeBlockDelimiter len = try $ do
+  size <- case len of
+              Just l  -> count l (char '~') >> return l
+              Nothing -> count 3 (char '~') >> many (char '~') >>= 
+                         return . (+ 3) . length 
+  many spaceChar
+  lang <- option "" classAttribute
+  blankline
+  return (size, lang) 
+
+classAttribute = try $ do
+  char '{'
+  many spaceChar
+  char '.'
+  attr <- many1 alphaNum
+  many spaceChar
+  char '}'
+  return attr
+
+codeBlockDelimited = try $ do
+  (size, lang) <- codeBlockDelimiter Nothing
+  contents <- manyTill anyLine (codeBlockDelimiter (Just size))
+  return $ CodeBlock lang $ concat contents
+
+codeBlockIndented = do
   contents <- many1 (indentedLine <|> 
                      try (do b <- blanklines
                              l <- indentedLine
