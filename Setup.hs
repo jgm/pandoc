@@ -45,7 +45,7 @@ fillDefaultHeadersTemplate :: IO ()
 fillDefaultHeadersTemplate = do
   files <- getDirectoryContents (combine "templates" "headers") >>= 
              return . map (combine "headers") . filter (\x -> not (x `elem` [".",".."]))
-  fillTemplate files "DefaultHeaders.hs" (combine "Writers" "DefaultHeaders.hs")
+  fillTemplate files "DefaultHeaders.hs" "DefaultHeaders.hs"
 
 -- Post-clean: remove the files generated from templates.
 myPostClean :: Args -> CleanFlags -> PackageDescription -> Maybe LocalBuildInfo -> IO ()

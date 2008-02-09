@@ -17,7 +17,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Writers.DefaultHeaders
+   Module      : Text.Pandoc.DefaultHeaders
    Copyright   : Copyright (C) 2006-7 John MacFarlane
    License     : GNU GPL, version 2 or above 
 
@@ -27,13 +27,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Default headers for Pandoc writers.
 -}
-module Text.Pandoc.Writers.DefaultHeaders  (
-                                      defaultLaTeXHeader,
-                                      defaultConTeXtHeader,
-                                      defaultDocbookHeader,
-                                      defaultS5Header,
-                                      defaultRTFHeader
-                                      ) where
+module Text.Pandoc.DefaultHeaders (
+                                    defaultLaTeXHeader,
+                                    defaultConTeXtHeader,
+                                    defaultDocbookHeader,
+                                    defaultS5Header,
+                                    defaultRTFHeader
+                                  ) where
 import Text.Pandoc.Writers.S5
 
 defaultLaTeXHeader :: String

@@ -80,7 +80,7 @@ module Text.Pandoc
                , WriterOptions (..)
                , defaultWriterOptions
                -- * Default headers for various output formats
-               , module Text.Pandoc.Writers.DefaultHeaders
+               , module Text.Pandoc.DefaultHeaders
                -- * Functions for converting to and from UTF-8
                , module Text.Pandoc.UTF8
                -- * Version
@@ -101,7 +101,7 @@ import Text.Pandoc.Writers.S5
 import Text.Pandoc.Writers.Docbook
 import Text.Pandoc.Writers.Man
 import Text.Pandoc.Writers.RTF 
-import Text.Pandoc.Writers.DefaultHeaders
+import Text.Pandoc.DefaultHeaders
 import Text.Pandoc.UTF8
 import Text.Pandoc.Shared
 
