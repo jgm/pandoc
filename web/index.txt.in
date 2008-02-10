@@ -29,6 +29,7 @@ Pandoc features
     + Markdown inside HTML blocks.
     + Enhanced ordered lists:  start number and numbering style
       are significant.
+    + Delimited (unindented) code blocks with syntax highlighting.
     + Compatibility mode to turn off syntax entensions and emulate
       `Markdown.pl`.
 - Convenient wrapper scripts:
