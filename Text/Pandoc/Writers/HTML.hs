@@ -292,8 +292,8 @@ blockToHtml opts (Plain lst) = inlineListToHtml opts lst
 blockToHtml opts (Para lst) = inlineListToHtml opts lst >>= (return . paragraph)
 blockToHtml opts (RawHtml str) = return $ primHtml str
 blockToHtml opts (HorizontalRule) = return $ hr
-blockToHtml opts (CodeBlock (_,classes,_) rawCode) = do
-  case highlightHtml classes rawCode of
+blockToHtml opts (CodeBlock attr@(_,classes,_) rawCode) = do
+  case highlightHtml attr rawCode of
          Left _  -> return $ pre ! (if null classes
                                        then []
                                        else [theclass $ unwords classes]) $ thecode << 

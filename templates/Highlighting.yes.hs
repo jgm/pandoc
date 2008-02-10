@@ -31,12 +31,16 @@ Exports functions for syntax highlighting.
 module Text.Pandoc.Highlighting ( languages, highlightHtml ) where
 import Text.Highlighting.Kate
 import Text.XHtml
-import Data.List (find)
+import Data.List (find, lookup)
+import Data.Maybe (fromMaybe)
 import Data.Char (toLower)
+import Text.Pandoc.Definition
 
-highlightHtml :: [String] -> String -> Either String Html
-highlightHtml classes rawCode =
-  let fmtOpts = case find (`elem` ["number","numberLines","number-lines"]) classes of
+highlightHtml :: Attr -> String -> Either String Html
+highlightHtml (_, classes, keyvals) rawCode =
+  let firstNum = read $ fromMaybe "1" $ lookup "startFrom" keyvals
+      fmtOpts = [OptNumberFrom firstNum] ++
+                case find (`elem` ["number","numberLines","number-lines"]) classes of
                   Nothing   -> []
                   Just _    -> [OptNumberLines]
       lcLanguages = map (map toLower) languages

@@ -30,10 +30,10 @@ Exports functions for syntax highlighting.
 
 module Text.Pandoc.Highlighting ( languages, highlightHtml ) where
 import Text.XHtml
+import Text.Pandoc.Definition
 
 languages :: [String]
 languages = []
 
-highlightHtml :: [String] -> String -> Either String Html
-highlightHtml classes str = Left "Pandoc was not compiled with support for highlighting"
-
+highlightHtml :: Attr -> String -> Either String Html
+highlightHtml _ _ = Left "Pandoc was not compiled with support for highlighting"
