@@ -28,9 +28,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Exports functions for syntax highlighting.
 -}
 
-module Text.Pandoc.Highlighting ( languages, highlightHtml ) where
+module Text.Pandoc.Highlighting ( languages, highlightHtml, defaultHighlightingCss ) where
 import Text.XHtml
 import Text.Pandoc.Definition
+
+defaultHighlightingCss :: String
+defaultHighlightingCss = ""
 
 languages :: [String]
 languages = []
