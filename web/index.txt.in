@@ -6,7 +6,7 @@ Pandoc is a [Haskell] library for converting from one markup format
 to another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX],
 and it can write [markdown], [reStructuredText], [HTML], [LaTeX], [ConTeXt],
-[RTF], [DocBook XML], [groff man], and [S5] HTML slide shows. 
+[RTF], [DocBook XML], [GNU Texinfo], [groff man], and [S5] HTML slide shows. 
 
 Pandoc features
 
@@ -168,6 +168,7 @@ kind.
 [RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook XML]: http://www.docbook.org/
 [groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
+[GNU Texinfo]: http://www.gnu.org/software/texinfo/
 [Haskell]:  http://www.haskell.org/
 [GHC]:  http://www.haskell.org/ghc/
 [GPL]:  http://www.gnu.org/copyleft/gpl.html

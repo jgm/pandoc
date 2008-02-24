@@ -1,5 +1,5 @@
 Pandoc
-Copyright (C) 2006-7 John MacFarlane <jgm at berkeley dot edu>
+Copyright (C) 2006-8 John MacFarlane <jgm at berkeley dot edu>
 
 This code is released under the [GPL], version 2 or later:
 
@@ -30,6 +30,12 @@ Pandoc's complete source code is available from the [Pandoc home page].
 Pandoc includes some code from other authors.  The copyright and license
 statements for these sources are included below.  All are GPL-compatible
 licenses.
+
+----------------------------------------------------------------------
+Text/Pandoc/Writers/Texinfo.hs
+Copyright (C) 2008 John MacFarlane and Peter Wang
+
+Released under the GPL.
 
 ----------------------------------------------------------------------
 UTF8.hs 

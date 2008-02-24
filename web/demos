@@ -87,3 +87,10 @@ click on the name of the output file:
 
 @   pandoc @@code.text@@ -s -o @@example18.html@@
 
+19. GNU Texinfo, converted to info, HTML, and PDF formats:
+
+@   pandoc @@README@@ -s -o @@example19.texi@@
+@   makeinfo @@example19.texi@@ -o @@example19.info@@
+@   makeinfo @@example19.texi@@ --html -o @@example19@@
+@   texi2pdf @@example19.texi@@  # produces @@example19.pdf@@
+

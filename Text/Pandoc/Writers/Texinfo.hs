@@ -129,14 +129,6 @@ stringToTexinfo = escapeStringUsing texinfoEscapes
 inCmd :: String -> Doc -> Doc
 inCmd cmd contents = char '@' <> text cmd <> braces contents
 
--- | Remove all code elements from list of inline elements
--- (because it's illegal to have verbatim inside some command arguments)
--- XXX not sure about this
-deVerb :: [Inline] -> [Inline]
-deVerb [] = []
-deVerb ((Code str):rest) = (Code $ stringToTexinfo str):(deVerb rest)
-deVerb (other:rest) = other:(deVerb rest)
-
 -- | Convert Pandoc block element to Texinfo.
 blockToTexinfo :: Block     -- ^ Block to convert
 	       -> State WriterState Doc
@@ -146,9 +138,8 @@ blockToTexinfo Null = return empty
 blockToTexinfo (Plain lst) =
   inlineListToTexinfo lst
 
-blockToTexinfo (Para lst) = do
-  result <- inlineListToTexinfo lst
-  return $ result <> char '\n'
+blockToTexinfo (Para lst) =
+  inlineListToTexinfo lst    -- this is handled differently from Plain in blockListToTexinfo
 
 blockToTexinfo (BlockQuote lst) = do
   contents <- blockListToTexinfo lst
@@ -157,9 +148,6 @@ blockToTexinfo (BlockQuote lst) = do
            text "@end quotation"
 
 blockToTexinfo (CodeBlock _ str) = do
-  -- XXX a paragraph followed by verbatim looks better if there is no blank
-  -- line between the paragraph and verbatim, otherwise there is extra blank
-  -- line in makeinfo output.
   return $ text "@verbatim" $$
            vcat (map text (lines str)) $$
            text "@end verbatim\n"
@@ -176,7 +164,7 @@ blockToTexinfo (OrderedList (start, numstyle, numdelim) lst) = do
   items <- mapM listItemToTexinfo lst
   return $ text "@enumerate " <> exemplar $$
            vcat items $$
-           text "@end enumerate"
+           text "@end enumerate\n"
   where
     exemplar = case numstyle of
                 DefaultStyle -> decimal
@@ -195,7 +183,7 @@ blockToTexinfo (DefinitionList lst) = do
   items <- mapM defListItemToTexinfo lst
   return $ text "@table @asis" $$
            vcat items $$
-           text "@end table"
+           text "@end table\n"
 
 blockToTexinfo HorizontalRule =
     -- XXX can't get the equivalent from LaTeX.hs to work
@@ -209,13 +197,13 @@ blockToTexinfo HorizontalRule =
 blockToTexinfo (Header 0 lst) = do
   txt <- if null lst
             then return $ text "Top"
-            else inlineListToTexinfo (deVerb lst)
+            else inlineListToTexinfo lst
   return $ text "@node Top" $$
            text "@top " <> txt <> char '\n'
 
 blockToTexinfo (Header level lst) = do
-  node <- inlineListForNode (deVerb lst)
-  txt <- inlineListToTexinfo (deVerb lst)
+  node <- inlineListForNode lst
+  txt <- inlineListToTexinfo lst
   return $ if (level > 0) && (level <= 4)
               then text "\n@node " <> node <> char '\n' <>
                    text (seccmd level) <> txt
@@ -228,7 +216,7 @@ blockToTexinfo (Header level lst) = do
 
 blockToTexinfo (Table caption aligns widths heads rows) = do
   headers <- tableHeadToTexinfo aligns heads
-  captionText <- inlineListToTexinfo (deVerb caption)
+  captionText <- inlineListToTexinfo caption
   rowsText <- mapM (tableRowToTexinfo aligns) rows
   let colWidths = map (printf "%.2f ") widths
   let colDescriptors = concat colWidths
@@ -279,7 +267,7 @@ blockListToTexinfo [] = return $ empty
 blockListToTexinfo (x:xs) = do
   x' <- blockToTexinfo x
   case x of
-    (Header level _) -> do
+    Header level _ -> do
       -- We need need to insert a menu for this node.
       let (before, after) = break isHeader xs
       before' <- blockListToTexinfo before
@@ -294,6 +282,11 @@ blockListToTexinfo (x:xs) = do
                          text "@end menu"
       after' <- blockListToTexinfo after
       return $ x' $$ before' $$ menu' $$ after'
+    Para x -> do
+      xs' <- blockListToTexinfo xs
+      case xs of
+           ((CodeBlock _ _):_) -> return $ x' $$ xs'
+           _                   -> return $ x' $$ text "" $$ xs'
     _ -> do
       xs' <- blockListToTexinfo xs
       return $ x' $$ xs'
@@ -316,7 +309,7 @@ collectNodes level (x:xs) =
 makeMenuLine :: Block
              -> State WriterState Doc
 makeMenuLine (Header _ lst) = do
-  txt <- inlineListForNode (deVerb lst)
+  txt <- inlineListForNode lst
   return $ text "* " <> txt <> text "::"
 
 listItemToTexinfo :: [Block]
@@ -327,7 +320,7 @@ listItemToTexinfo lst = blockListToTexinfo lst >>=
 defListItemToTexinfo :: ([Inline], [Block])
                      -> State WriterState Doc
 defListItemToTexinfo (term, def) = do
-    term' <- inlineListToTexinfo $ deVerb term
+    term' <- inlineListToTexinfo term
     def'  <- blockListToTexinfo def
     return $ text "@item " <> term' <> text "\n" $$ def'
 
@@ -342,12 +335,12 @@ inlineListForNode :: [Inline]  -- ^ Inlines to convert
 inlineListForNode lst = mapM inlineForNode lst >>= return . hcat
 
 inlineForNode (Str str) = return $ text $ filter (not.disallowedInNode) str
-inlineForNode (Emph lst) = inlineListForNode (deVerb lst)
-inlineForNode (Strong lst) = inlineListForNode (deVerb lst)
-inlineForNode (Strikeout lst) = inlineListForNode (deVerb lst)
-inlineForNode (Superscript lst) = inlineListForNode (deVerb lst)
-inlineForNode (Subscript lst) = inlineListForNode (deVerb lst)
-inlineForNode (Quoted _ lst) = inlineListForNode (deVerb lst)
+inlineForNode (Emph lst) = inlineListForNode lst
+inlineForNode (Strong lst) = inlineListForNode lst
+inlineForNode (Strikeout lst) = inlineListForNode lst
+inlineForNode (Superscript lst) = inlineListForNode lst
+inlineForNode (Subscript lst) = inlineListForNode lst
+inlineForNode (Quoted _ lst) = inlineListForNode lst
 inlineForNode (Code str) = inlineForNode (Str str)
 inlineForNode Space = return $ char ' '
 inlineForNode EmDash = return $ text "---"
@@ -358,8 +351,8 @@ inlineForNode LineBreak = return empty
 inlineForNode (Math _) = return empty
 inlineForNode (TeX _) = return empty
 inlineForNode (HtmlInline _) = return empty
-inlineForNode (Link lst _) = inlineListForNode (deVerb lst)
-inlineForNode (Image lst _) = inlineListForNode (deVerb lst)
+inlineForNode (Link lst _) = inlineListForNode lst
+inlineForNode (Image lst _) = inlineListForNode lst
 inlineForNode (Note _) = return empty
 
 -- XXX not sure what the complete set of illegal characters is.
@@ -372,16 +365,16 @@ inlineToTexinfo :: Inline    -- ^ Inline to convert
                 -> State WriterState Doc
 
 inlineToTexinfo (Emph lst) =
-  inlineListToTexinfo (deVerb lst) >>= return . inCmd "emph"
+  inlineListToTexinfo lst >>= return . inCmd "emph"
 
 inlineToTexinfo (Strong lst) = 
-  inlineListToTexinfo (deVerb lst) >>= return . inCmd "strong" 
+  inlineListToTexinfo lst >>= return . inCmd "strong" 
 
 inlineToTexinfo (Strikeout lst) = do
   addToHeader $ "@macro textstrikeout{text}\n" ++
                 "~~\\text\\~~\n" ++
                 "@end macro\n"
-  contents <- inlineListToTexinfo $ deVerb lst
+  contents <- inlineListToTexinfo lst
   return $ text "@textstrikeout{" <> contents <> text "}"
 
 inlineToTexinfo (Superscript lst) = do
@@ -393,7 +386,7 @@ inlineToTexinfo (Superscript lst) = do
                 "^@{\\text\\@}\n" ++
                 "@end ifnottex\n" ++
                 "@end macro\n"
-  contents <- inlineListToTexinfo $ deVerb lst
+  contents <- inlineListToTexinfo lst
   return $ text "@textsuperscript{" <> contents <> char '}'
 
 inlineToTexinfo (Subscript lst) = do
@@ -405,12 +398,11 @@ inlineToTexinfo (Subscript lst) = do
                 "_@{\\text\\@}\n" ++
                 "@end ifnottex\n" ++
                 "@end macro\n"
-  contents <- inlineListToTexinfo $ deVerb lst
+  contents <- inlineListToTexinfo lst
   return $ text "@textsubscript{" <> contents <> char '}'
 
 inlineToTexinfo (Code str) = do
-  let chr = ((enumFromTo '!' '~') \\ str) !! 0
-  return $ text $ "@verb{" ++ [chr] ++ str ++ [chr] ++ "}"
+  return $ text $ "@code{" ++ stringToTexinfo str ++ "}"
 
 inlineToTexinfo (Quoted SingleQuote lst) = do
   contents <- inlineListToTexinfo lst
@@ -435,13 +427,13 @@ inlineToTexinfo (Link txt (src, _)) = do
   case txt of
         [Code x] | x == src ->  -- autolink
              do return $ text $ "@url{" ++ x ++ "}"
-        _ -> do contents <- inlineListToTexinfo $ deVerb txt
+        _ -> do contents <- inlineListToTexinfo txt
                 let src1 = stringToTexinfo src
                 return $ text ("@uref{" ++ src1 ++ ",") <> contents <>
                          char '}'
 
 inlineToTexinfo (Image alternate (source, tit)) = do
-  content <- inlineListToTexinfo $ deVerb alternate
+  content <- inlineListToTexinfo alternate
   return $ text ("@image{" ++ base ++ ",,,") <> content <> text "," <>
            text (ext ++ "}")
   where
