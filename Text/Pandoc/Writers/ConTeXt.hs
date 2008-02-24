@@ -41,8 +41,6 @@ data WriterState =
               , stOptions          :: WriterOptions -- writer options
               }
 
-data BlockWrapper = Pad Doc | Reg Doc 
-
 orderedListStyles = cycle ["[n]","[a]", "[r]", "[g]"] 
 
 -- | Convert Pandoc to ConTeXt.
@@ -228,12 +226,6 @@ defListItemToConTeXt (term, def) = do
   term' <- inlineListToConTeXt term
   def'  <- blockListToConTeXt def
   return $ Pad $ text "\\startdescr{" <> term' <> char '}' $$ def' $$ text "\\stopdescr"
-
-wrappedBlocksToDoc :: [BlockWrapper] -> Doc
-wrappedBlocksToDoc = foldr addBlock empty 
-     where addBlock (Pad d) accum | isEmpty accum = d
-           addBlock (Pad d) accum = d $$ text "" $$ accum
-           addBlock (Reg d) accum = d $$ accum
 
 -- | Convert list of block elements to ConTeXt.
 blockListToConTeXt :: [Block] -> State WriterState Doc

@@ -47,6 +47,8 @@ module Text.Pandoc.Shared (
                      wrapIfNeeded,
                      wrappedTeX,
                      wrapTeXIfNeeded,
+                     BlockWrapper (..),
+                     wrappedBlocksToDoc,
                      -- * Parsing
                      (>>~),
                      anyLine,
@@ -101,7 +103,7 @@ module Text.Pandoc.Shared (
 
 import Text.Pandoc.Definition
 import Text.ParserCombinators.Parsec
-import Text.PrettyPrint.HughesPJ ( Doc, fsep, ($$), (<>), empty )
+import Text.PrettyPrint.HughesPJ ( Doc, fsep, ($$), (<>), empty, isEmpty, text )
 import qualified Text.PrettyPrint.HughesPJ as PP
 import Text.Pandoc.CharacterReferences ( characterReference )
 import Data.Char ( toLower, toUpper, ord, isLower, isUpper )
@@ -261,6 +263,16 @@ wrapTeXIfNeeded :: Monad m
 wrapTeXIfNeeded opts includePercent = if writerWrapText opts
                                          then wrappedTeX includePercent
                                          else ($)
+
+-- | Indicates whether block should be surrounded by blank lines (@Pad@) or not (@Reg@).
+data BlockWrapper = Pad Doc | Reg Doc
+
+-- | Converts a list of wrapped blocks to a Doc, with appropriate spaces around blocks.
+wrappedBlocksToDoc :: [BlockWrapper] -> Doc
+wrappedBlocksToDoc = foldr addBlock empty
+     where addBlock (Pad d) accum | isEmpty accum = d
+           addBlock (Pad d) accum = d $$ text "" $$ accum
+           addBlock (Reg d) accum = d $$ accum
 
 --
 -- Parsing
