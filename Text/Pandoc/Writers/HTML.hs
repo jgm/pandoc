@@ -331,13 +331,8 @@ blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
                    then [start startnum]
                    else []) ++
                 (if numstyle /= DefaultStyle
-                   then [theclass numstyle']
+                   then [thestyle $ "list-style-type: " ++ numstyle' ++ ";"]
                    else [])
-  if numstyle /= DefaultStyle
-     then addToCSS $ "ol." ++ numstyle' ++ 
-                     " { list-style-type: " ++ 
-                     numstyle' ++ "; }"
-     else return ()
   return $ ordList ! attribs $ contents
 blockToHtml opts (DefinitionList lst) = do
   contents <- mapM (\(term, def) -> do term' <- inlineListToHtml opts term
@@ -405,10 +400,8 @@ inlineToHtml opts inline =
     (Emph lst)       -> inlineListToHtml opts lst >>= return . emphasize
     (Strong lst)     -> inlineListToHtml opts lst >>= return . strong
     (Code str)       -> return $ thecode << str
-    (Strikeout lst)  -> addToCSS 
-                        ".strikeout { text-decoration: line-through; }" >> 
-                        inlineListToHtml opts lst >>=
-                        return . (thespan ! [theclass "strikeout"])
+    (Strikeout lst)  -> inlineListToHtml opts lst >>=
+                        return . (thespan ! [thestyle "text-decoration: line-through;"])
     (Superscript lst) -> inlineListToHtml opts lst >>= return . sup
     (Subscript lst)   -> inlineListToHtml opts lst >>= return . sub
     (Quoted quoteType lst) ->
