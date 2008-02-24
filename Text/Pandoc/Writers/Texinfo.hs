@@ -355,10 +355,8 @@ inlineForNode (Link lst _) = inlineListForNode lst
 inlineForNode (Image lst _) = inlineListForNode lst
 inlineForNode (Note _) = return empty
 
--- XXX not sure what the complete set of illegal characters is.
-disallowedInNode '.' = True
-disallowedInNode ',' = True
-disallowedInNode _ = False
+-- periods, commas, colons, and parentheses are disallowed in node names
+disallowedInNode c = c `elem` ".,:()"
 
 -- | Convert inline element to Texinfo
 inlineToTexinfo :: Inline    -- ^ Inline to convert
