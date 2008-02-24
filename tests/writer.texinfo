@@ -1,0 +1,951 @@
+\input texinfo
+
+@macro textstrikeout{text}
+~~\text\~~
+@end macro
+
+@macro textsubscript{text}
+@iftex
+@textsubscript{\text\}
+@end iftex
+@ifnottex
+_@{\text\@}
+@end ifnottex
+@end macro
+
+@macro textsuperscript{text}
+@iftex
+@textsuperscript{\text\}
+@end iftex
+@ifnottex
+^@{\text\@}
+@end ifnottex
+@end macro
+
+
+@ifnottex
+@paragraphindent 0
+@end ifnottex
+@titlepage
+@title Pandoc Test Suite
+@author John MacFarlane
+@author Anonymous
+July 17@comma{} 2006
+@end titlepage
+@node Top
+@top Pandoc Test Suite
+
+This is a set of tests for pandoc. Most of them are adapted from John Gruber's markdown test suite.
+
+@iftex
+@bigskip@hrule@bigskip
+@end iftex
+@ifnottex
+------------------------------------------------------------------------
+@end ifnottex
+@menu
+* Headers::
+* Level 1::
+* Paragraphs::
+* Block Quotes::
+* Code Blocks::
+* Lists::
+* Definition Lists::
+* HTML Blocks::
+* Inline Markup::
+* Smart quotes ellipses dashes::
+* LaTeX::
+* Special Characters::
+* Links::
+* Images::
+* Footnotes::
+@end menu
+
+@node Headers
+@chapter Headers
+@menu
+* Level 2 with an embedded link::
+@end menu
+
+@node Level 2 with an embedded link
+@section Level 2 with an @uref{/url,embedded link}
+@menu
+* Level 3 with emphasis::
+@end menu
+
+@node Level 3 with emphasis
+@subsection Level 3 with @emph{emphasis}
+@menu
+* Level 4::
+@end menu
+
+@node Level 4
+@subsubsection Level 4
+Level 5
+
+@node Level 1
+@chapter Level 1
+@menu
+* Level 2 with emphasis::
+* Level 2::
+@end menu
+
+@node Level 2 with emphasis
+@section Level 2 with @emph{emphasis}
+@menu
+* Level 3::
+@end menu
+
+@node Level 3
+@subsection Level 3
+with no blank line
+
+
+@node Level 2
+@section Level 2
+with no blank line
+
+@iftex
+@bigskip@hrule@bigskip
+@end iftex
+@ifnottex
+------------------------------------------------------------------------
+@end ifnottex
+
+@node Paragraphs
+@chapter Paragraphs
+Here's a regular paragraph.
+
+In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.
+
+Here's one with a bullet. * criminey.
+
+There should be a hard line break@*here.
+
+@iftex
+@bigskip@hrule@bigskip
+@end iftex
+@ifnottex
+------------------------------------------------------------------------
+@end ifnottex
+
+@node Block Quotes
+@chapter Block Quotes
+E-mail style:
+
+@quotation
+This is a block quote. It is pretty short.
+
+@end quotation
+@quotation
+Code in a block quote:
+
+@verbatim
+sub status {
+    print "working";
+}
+@end verbatim
+
+A list:
+
+@enumerate 
+@item
+item one
+@item
+item two
+@end enumerate
+Nested block quotes:
+
+@quotation
+nested
+
+@end quotation
+@quotation
+nested
+
+@end quotation
+@end quotation
+This should not be a block quote: 2 > 1.
+
+And a following paragraph.
+
+@iftex
+@bigskip@hrule@bigskip
+@end iftex
+@ifnottex
+------------------------------------------------------------------------
+@end ifnottex
+
+@node Code Blocks
+@chapter Code Blocks
+Code:
+
+@verbatim
+---- (should be four hyphens)
+
+sub status {
+    print "working";
+}
+
+this code block is indented by one tab
+@end verbatim
+
+And:
+
+@verbatim
+    this code block is indented by two tabs
+
+These should not be escaped:  \$ \\ \> \[ \{
+@end verbatim
+
+@iftex
+@bigskip@hrule@bigskip
+@end iftex
+@ifnottex
+------------------------------------------------------------------------
+@end ifnottex
+
+@node Lists
+@chapter Lists
+@menu
+* Unordered::
+* Ordered::
+* Nested::
+* Tabs and spaces::
+* Fancy list markers::
+@end menu
+
+@node Unordered
+@section Unordered
+Asterisks tight:
+
+@itemize
+@item
+asterisk 1
+@item
+asterisk 2
+@item
+asterisk 3
+@end itemize
+
+Asterisks loose:
+
+@itemize
+@item
+asterisk 1
+
+@item
+asterisk 2
+
+@item
+asterisk 3
+
+@end itemize
+
+Pluses tight:
+
+@itemize
+@item
+Plus 1
+@item
+Plus 2
+@item
+Plus 3
+@end itemize
+
+Pluses loose:
+
+@itemize
+@item
+Plus 1
+
+@item
+Plus 2
+
+@item
+Plus 3
+
+@end itemize
+
+Minuses tight:
+
+@itemize
+@item
+Minus 1
+@item
+Minus 2
+@item
+Minus 3
+@end itemize
+
+Minuses loose:
+
+@itemize
+@item
+Minus 1
+
+@item
+Minus 2
+
+@item
+Minus 3
+
+@end itemize
+
+
+@node Ordered
+@section Ordered
+Tight:
+
+@enumerate 
+@item
+First
+@item
+Second
+@item
+Third
+@end enumerate
+and:
+
+@enumerate 
+@item
+One
+@item
+Two
+@item
+Three
+@end enumerate
+Loose using tabs:
+
+@enumerate 
+@item
+First
+
+@item
+Second
+
+@item
+Third
+
+@end enumerate
+and using spaces:
+
+@enumerate 
+@item
+One
+
+@item
+Two
+
+@item
+Three
+
+@end enumerate
+Multiple paragraphs:
+
+@enumerate 
+@item
+Item 1@comma{} graf one.
+
+Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
+
+@item
+Item 2.
+
+@item
+Item 3.
+
+@end enumerate
+
+@node Nested
+@section Nested
+@itemize
+@item
+Tab
+@itemize
+@item
+Tab
+@itemize
+@item
+Tab
+@end itemize
+
+@end itemize
+
+@end itemize
+
+Here's another:
+
+@enumerate 
+@item
+First
+@item
+Second:
+@itemize
+@item
+Fee
+@item
+Fie
+@item
+Foe
+@end itemize
+
+@item
+Third
+@end enumerate
+Same thing but with paragraphs:
+
+@enumerate 
+@item
+First
+
+@item
+Second:
+
+@itemize
+@item
+Fee
+@item
+Fie
+@item
+Foe
+@end itemize
+
+@item
+Third
+
+@end enumerate
+
+@node Tabs and spaces
+@section Tabs and spaces
+@itemize
+@item
+this is a list item indented with tabs
+
+@item
+this is a list item indented with spaces
+
+@itemize
+@item
+this is an example list item indented with tabs
+
+@item
+this is an example list item indented with spaces
+
+@end itemize
+
+@end itemize
+
+
+@node Fancy list markers
+@section Fancy list markers
+@enumerate 2
+@item
+begins with 2
+@item
+and now 3
+
+with a continuation
+
+@enumerate 4
+@item
+sublist with roman numerals@comma{} starting with 4
+@item
+more items
+@enumerate A
+@item
+a subsublist
+@item
+a subsublist
+@end enumerate
+@end enumerate
+@end enumerate
+Nesting:
+
+@enumerate A
+@item
+Upper Alpha
+@enumerate 
+@item
+Upper Roman.
+@enumerate 6
+@item
+Decimal start with 6
+@enumerate c
+@item
+Lower alpha with paren
+@end enumerate
+@end enumerate
+@end enumerate
+@end enumerate
+Autonumbering:
+
+@enumerate 
+@item
+Autonumber.
+@item
+More.
+@enumerate 
+@item
+Nested.
+@end enumerate
+@end enumerate
+Should not be a list item:
+
+M.A. 2007
+
+B. Williams
+
+@iftex
+@bigskip@hrule@bigskip
+@end iftex
+@ifnottex
+------------------------------------------------------------------------
+@end ifnottex
+
+@node Definition Lists
+@chapter Definition Lists
+Tight using spaces:
+
+@table @asis
+@item apple
+
+red fruit
+@item orange
+
+orange fruit
+@item banana
+
+yellow fruit
+@end table
+Tight using tabs:
+
+@table @asis
+@item apple
+
+red fruit
+@item orange
+
+orange fruit
+@item banana
+
+yellow fruit
+@end table
+Loose:
+
+@table @asis
+@item apple
+
+red fruit
+
+@item orange
+
+orange fruit
+
+@item banana
+
+yellow fruit
+
+@end table
+Multiple blocks with italics:
+
+@table @asis
+@item @emph{apple}
+
+red fruit
+
+contains seeds@comma{} crisp@comma{} pleasant to taste
+
+@item @emph{orange}
+
+orange fruit
+
+@verbatim
+{ orange code block }
+@end verbatim
+
+@quotation
+orange block quote
+
+@end quotation
+@end table
+
+@node HTML Blocks
+@chapter HTML Blocks
+Simple block on one line:
+
+foo
+And nested without indentation:
+
+foo
+bar
+Interpreted markdown in a table:
+
+This is @emph{emphasized}
+And this is @strong{strong}
+Here's a simple block:
+
+foo
+This should be a code block@comma{} though:
+
+@verbatim
+<div>
+    foo
+</div>
+@end verbatim
+
+As should this:
+
+@verbatim
+<div>foo</div>
+@end verbatim
+
+Now@comma{} nested:
+
+foo
+This should just be an HTML comment:
+
+Multiline:
+
+Code block:
+
+@verbatim
+<!-- Comment -->
+@end verbatim
+
+Just plain comment@comma{} with trailing spaces on the line:
+
+Code:
+
+@verbatim
+<hr />
+@end verbatim
+
+Hr's:
+
+@iftex
+@bigskip@hrule@bigskip
+@end iftex
+@ifnottex
+------------------------------------------------------------------------
+@end ifnottex
+
+@node Inline Markup
+@chapter Inline Markup
+This is @emph{emphasized}@comma{} and so @emph{is this}.
+
+This is @strong{strong}@comma{} and so @strong{is this}.
+
+An @emph{@uref{/url,emphasized link}}.
+
+@strong{@emph{This is strong and em.}}
+
+So is @strong{@emph{this}} word.
+
+@strong{@emph{This is strong and em.}}
+
+So is @strong{@emph{this}} word.
+
+This is code: @verb{!>!}@comma{} @verb{!$!}@comma{} @verb{!\!}@comma{} @verb{!\$!}@comma{} @verb{!<html>!}.
+
+@textstrikeout{This is @emph{strikeout}.}
+
+Superscripts: a@textsuperscript{bc}d a@textsuperscript{@emph{hello}} a@textsuperscript{hello there}.
+
+Subscripts: H@textsubscript{2}O@comma{} H@textsubscript{23}O@comma{} H@textsubscript{many of them}O.
+
+These should not be superscripts or subscripts@comma{} because of the unescaped spaces: a^b c^d@comma{} a~b c~d.
+
+@iftex
+@bigskip@hrule@bigskip
+@end iftex
+@ifnottex
+------------------------------------------------------------------------
+@end ifnottex
+
+@node Smart quotes ellipses dashes
+@chapter Smart quotes@comma{} ellipses@comma{} dashes
+``Hello@comma{}'' said the spider. ```Shelob' is my name.''
+
+`A'@comma{} `B'@comma{} and `C' are letters.
+
+`Oak@comma{}' `elm@comma{}' and `beech' are names of trees. So is `pine.'
+
+`He said@comma{} ``I want to go.''' Were you alive in the 70's?
+
+Here is some quoted `@verb{!code!}' and a ``@uref{http://example.com/?foo=1&bar=2,quoted link}''.
+
+Some dashes: one---two---three---four---five.
+
+Dashes between numbers: 5--7@comma{} 255--66@comma{} 1987--1999.
+
+Ellipses@dots{}and@dots{}and@dots{}.
+
+@iftex
+@bigskip@hrule@bigskip
+@end iftex
+@ifnottex
+------------------------------------------------------------------------
+@end ifnottex
+
+@node LaTeX
+@chapter LaTeX
+@itemize
+@item
+@tex
+\cite[22-23]{smith.1899}
+@end tex
+@item
+@tex
+\doublespacing
+@end tex
+@item
+@math{2+2=4}
+@item
+@math{x \in y}
+@item
+@math{\alpha \wedge \omega}
+@item
+@math{223}
+@item
+@math{p}-Tree
+@item
+@math{\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}}
+@item
+Here's one that has a line break in it: @math{\alpha + \omega \times x^2}.
+@end itemize
+
+These shouldn't be math:
+
+@itemize
+@item
+To get the famous equation@comma{} write @verb{!$e = mc^2$!}.
+@item
+$22@comma{}000 is a @emph{lot} of money. So is $34@comma{}000. (It worked if ``lot'' is emphasized.)
+@item
+Escaped @verb{!$!}: $73 @emph{this should be emphasized} 23$.
+@end itemize
+
+Here's a LaTeX table:
+
+@tex
+\begin{tabular}{|l|l|}\hline
+Animal & Number \\ \hline
+Dog    & 2      \\
+Cat    & 1      \\ \hline
+\end{tabular}
+@end tex
+
+@iftex
+@bigskip@hrule@bigskip
+@end iftex
+@ifnottex
+------------------------------------------------------------------------
+@end ifnottex
+
+@node Special Characters
+@chapter Special Characters
+Here is some unicode:
+
+@itemize
+@item
+I hat: Î
+@item
+o umlaut: ö
+@item
+section: §
+@item
+set membership: ∈
+@item
+copyright: ©
+@end itemize
+
+AT&T has an ampersand in their name.
+
+AT&T is another way to write it.
+
+This & that.
+
+4 < 5.
+
+6 > 5.
+
+Backslash: \
+
+Backtick: `
+
+Asterisk: *
+
+Underscore: _
+
+Left brace: @{
+
+Right brace: @}
+
+Left bracket: [
+
+Right bracket: ]
+
+Left paren: (
+
+Right paren: )
+
+Greater-than: >
+
+Hash: #
+
+Period: .
+
+Bang: !
+
+Plus: +
+
+Minus: -
+
+@iftex
+@bigskip@hrule@bigskip
+@end iftex
+@ifnottex
+------------------------------------------------------------------------
+@end ifnottex
+
+@node Links
+@chapter Links
+@menu
+* Explicit::
+* Reference::
+* With ampersands::
+* Autolinks::
+@end menu
+
+@node Explicit
+@section Explicit
+Just a @uref{/url/,URL}.
+
+@uref{/url/,URL and title}.
+
+@uref{/url/,URL and title}.
+
+@uref{/url/,URL and title}.
+
+@uref{/url/,URL and title}
+
+@uref{/url/,URL and title}
+
+@uref{/url/with_underscore,with_underscore}
+
+@uref{mailto:nobody@@nowhere.net,Email link}
+
+@uref{,Empty}.
+
+
+@node Reference
+@section Reference
+Foo @uref{/url/,bar}.
+
+Foo @uref{/url/,bar}.
+
+Foo @uref{/url/,bar}.
+
+With @uref{/url/,embedded [brackets]}.
+
+@uref{/url/,b} by itself should be a link.
+
+Indented @uref{/url,once}.
+
+Indented @uref{/url,twice}.
+
+Indented @uref{/url,thrice}.
+
+This should [not][] be a link.
+
+@verbatim
+[not]: /url
+@end verbatim
+
+Foo @uref{/url/,bar}.
+
+Foo @uref{/url/,biz}.
+
+
+@node With ampersands
+@section With ampersands
+Here's a @uref{http://example.com/?foo=1&bar=2,link with an ampersand in the URL}.
+
+Here's a link with an amersand in the link text: @uref{http://att.com/,AT&T}.
+
+Here's an @uref{/script?foo=1&bar=2,inline link}.
+
+Here's an @uref{/script?foo=1&bar=2,inline link in pointy braces}.
+
+
+@node Autolinks
+@section Autolinks
+With an ampersand: @url{http://example.com/?foo=1&bar=2}
+
+@itemize
+@item
+In a list?
+@item
+@url{http://example.com/}
+@item
+It should.
+@end itemize
+
+An e-mail address: @uref{mailto:nobody@@nowhere.net,@verb{!nobody@@nowhere.net!}}
+
+@quotation
+Blockquoted: @url{http://example.com/}
+
+@end quotation
+Auto-links should not occur here: @verb{!<http://example.com/>!}
+
+@verbatim
+or here: <http://example.com/>
+@end verbatim
+
+@iftex
+@bigskip@hrule@bigskip
+@end iftex
+@ifnottex
+------------------------------------------------------------------------
+@end ifnottex
+
+@node Images
+@chapter Images
+From ``Voyage dans la Lune'' by Georges Melies (1902):
+
+@image{lalune,,,lalune,jpg}
+
+Here is a movie @image{movie,,,movie,jpg} icon.
+
+@iftex
+@bigskip@hrule@bigskip
+@end iftex
+@ifnottex
+------------------------------------------------------------------------
+@end ifnottex
+
+@node Footnotes
+@chapter Footnotes
+Here is a footnote reference@comma{}@footnote{Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.} and another.@footnote{Here's the long note. This one contains multiple blocks.
+
+Subsequent blocks are indented to show that they belong to the footnote (as with list items).
+
+@verbatim
+  { <code> }
+@end verbatim
+
+If you want@comma{} you can indent every line@comma{} but you can also be lazy and just indent the first line of each block.} This should @emph{not} be a footnote reference@comma{} because it contains a space.[^my note] Here is an inline note.@footnote{This is @emph{easier} to type. Inline notes may contain @uref{http://google.com,links} and @verb{!]!} verbatim characters@comma{} as well as [bracketed text].}
+
+@quotation
+Notes can go in quotes.@footnote{In quote.}
+
+@end quotation
+@enumerate 
+@item
+And in list items.@footnote{In list.}
+@end enumerate
+This paragraph should not be part of the note@comma{} as it is not indented.
+
+@bye

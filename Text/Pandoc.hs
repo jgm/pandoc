@@ -68,6 +68,7 @@ module Text.Pandoc
                , writeRST
                , writeLaTeX
                , writeConTeXt
+               , writeTexinfo
                , writeHtml
                , writeHtmlString
                , writeS5
@@ -96,6 +97,7 @@ import Text.Pandoc.Writers.Markdown
 import Text.Pandoc.Writers.RST 
 import Text.Pandoc.Writers.LaTeX
 import Text.Pandoc.Writers.ConTeXt
+import Text.Pandoc.Writers.Texinfo
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.S5
 import Text.Pandoc.Writers.Docbook
