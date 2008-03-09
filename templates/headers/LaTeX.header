@@ -1,4 +1,5 @@
 \documentclass{article}
+\usepackage{amsmath}
 \usepackage[mathletters]{ucs}
 \usepackage[utf8x]{inputenc}
 \setlength{\parindent}{0pt}
