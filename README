@@ -29,12 +29,11 @@ or output format requires only adding a reader or writer.
 [Haskell]:  http://www.haskell.org/
 [GNU Texinfo]: http://www.gnu.org/software/texinfo/
 
-© 2006-7 John MacFarlane (jgm at berkeley dot edu). Released under the
+© 2006-8 John MacFarlane (jgm at berkeley dot edu). Released under the
 [GPL], version 2 or greater.  This software carries no warranty of
 any kind.  (See COPYRIGHT for full copyright and warranty notices.)
-Recai Oktaş (roktas at debian dot org) deserves credit for the build
-system, the debian package, and the robust wrapper scripts.
-Peter Wang deserves credit for the Texinfo writer.
+Contributors:  Recai Oktaş (build system, debian package, wrapper
+scripts), Peter Wang (Texinfo writer), Andrea Rossato (OpenDocument writer).
 
 [GPL]: http://www.gnu.org/copyleft/gpl.html "GNU General Public License"
 
