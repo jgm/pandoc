@@ -94,3 +94,11 @@ click on the name of the output file:
 @   makeinfo @@example19.texi@@ --html -o @@example19@@
 @   texi2pdf @@example19.texi@@  # produces @@example19.pdf@@
 
+20. OpenDocument XML:
+
+@   pandoc @@README@@ -s -w opendocument -o @@example20.xml@@
+
+21. From markdown to ODT (OpenDocument Text, readable by OpenOffice):
+
+@   markdown2odt @@README@@ -o @@README.odt@@
+
