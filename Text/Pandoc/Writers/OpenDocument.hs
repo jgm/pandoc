@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# LANGUAGE PatternGuards #-}
 {-
-Copyright (C) 2008 Andrea Rossato <andrea.rossato@unibz.it>
+Copyright (C) 2008 Andrea Rossato <andrea.rossato@ing.unitn.it>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Copyright   : Copyright (C) 2008 Andrea Rossato
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Andrea Rossato <andrea.rossato@unibz.it>
+   Maintainer  : Andrea Rossato <andrea.rossato@ing.unitn.it>
    Stability   : alpha
    Portability : portable
 
@@ -50,12 +50,12 @@ plainToPara x = x
 --
 
 data WriterState =
-    WriterState { stNotes       ::  [Doc]
-                , stTableStyles ::  [Doc]
-                , stParaStyles  ::  [Doc]
+    WriterState { stNotes       :: [Doc]
+                , stTableStyles :: [Doc]
+                , stParaStyles  :: [Doc]
                 , stListStyles  :: [(Int, [Doc])]
                 , indentPara    :: Int
-                } deriving Show
+                }
 
 defaultWriterState :: WriterState
 defaultWriterState =
@@ -222,7 +222,7 @@ blockToOpenDocument o bs
     | Plain          b <- bs = wrap o b
     | Para           b <- bs = inParagraphTags <$> wrap o b
     | Header       i b <- bs = inHeaderTags  i <$> wrap o b
-    | BlockQuote     b <- bs = doBlockQuote b
+    | BlockQuote     b <- bs = mkBlockQuote b
     | CodeBlock    _ s <- bs = preformatted s
     | RawHtml        _ <- bs = return empty
     | DefinitionList b <- bs = defList b
@@ -235,7 +235,7 @@ blockToOpenDocument o bs
     where
       defList       b = vcat <$> mapM (deflistItemToOpenDocument o) b
       preformatted  s = vcat <$> mapM (inPreformattedTags . escapeStringForXML) (lines s)
-      doBlockQuote  b = do increaseIndent
+      mkBlockQuote  b = do increaseIndent
                            i <- paraStyle "Quotations" []
                            inBlockQuote o i (map plainToPara b)
       orderedList a b = do (ln,pn) <- newOrderedListStyle a
@@ -275,7 +275,7 @@ tableRowToOpenDocument o tn ns cs =
 
 tableItemToOpenDocument :: WriterOptions -> String -> (String,[Block])-> State WriterState Doc
 tableItemToOpenDocument o tn (n,i) =
-  let a = [ ("table:style-name"  , tn ++ ".A1" )
+  let a = [ ("table:style-name" , tn ++ ".A1" )
           , ("office:value-type", "string"     )
           ]
   in  inTags True "table:table-cell" a <$>
@@ -310,13 +310,13 @@ inlineToOpenDocument o ils
     | Code        s <- ils = preformatted s
     | Math        s <- ils = inlinesToOpenDocument o (readTeXMath s)
     | TeX         s <- ils = preformatted s
-    | HtmlInline  _ <- ils = return empty
+    | HtmlInline  s <- ils = preformatted s
     | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
     | Image l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
     | Note        l <- ils = mkNote l
     | otherwise            = return empty
     where
-      preformatted = return . inSpanTags "Teletype" .  text . escapeStringForXML
+      preformatted = return . inSpanTags "Teletype" . text . escapeStringForXML
       mkLink   s t = inTags False "text:a" [ ("xlink:type" , "simple")
                                            , ("xlink:href" , s       )
                                            , ("office:name", t       )
@@ -368,39 +368,45 @@ orderedListLevelStyle (s,n, d) (l,ls) =
                       LowerRoman   -> "i"
                       _            -> "1"
         listStyle = inTags True "text:list-level-style-number"
-                    ([ ("text:level"      , show $ 1 + length ls )
+                    ([ ("text:level"      , show $ 1 + length ls  )
                      , ("text:style-name" , "Numbering_20_Symbols")
                      , ("style:num-format", format                )
-                     , ("text:start-value", show s            )
+                     , ("text:start-value", show s                )
                      ] ++ suffix) (listLevelStyle (1 + length ls))
     in  (l, ls ++ [listStyle])
 
 listLevelStyle :: Int -> Doc
 listLevelStyle i =
+    let indent = show (0.25 * fromIntegral i :: Double) in
     selfClosingTag "style:list-level-properties"
-                       [ ("text:space-before"   , show (0.25 * fromIntegral i :: Double) ++ "in")
-                       , ("text:min-label-width","0.25in")]
+                       [ ("text:space-before"   , indent ++ "in")
+                       , ("text:min-label-width",       "0.25in")]
 
 tableStyle :: Int -> [(Char,Float)] -> Doc
 tableStyle num wcs =
     let tableId        = "Table" ++ show (num + 1)
-        table          = inTags True    "style:style" [("style:name", tableId)] $
-                         selfClosingTag "style:table-properties" [ ("style:rel-width", "100%"  )
-                                                                 , ("table:align"    , "center")]
-        colStyle (c,w) = inTags True    "style:style" [ ("style:name"  , tableId ++ "." ++ [c])
-                                                      , ("style:family", "table-column"       )] $
-                         selfClosingTag "style:table-column-properties" [("style:column-width", show (7 * w) ++ "in")]
-        cellStyle      = inTags True    "style:style" [ ("style:name"  , tableId ++ ".A1")
-                                                      , ("style:family", "table-cell"    )] $
-                         selfClosingTag "style:table-cell-properties" [ ("fo:border", "none")]
+        table          = inTags True "style:style"
+                         [("style:name", tableId)] $
+                         selfClosingTag "style:table-properties"
+                         [ ("style:rel-width", "100%"  )
+                         , ("table:align"    , "center")]
+        colStyle (c,w) = inTags True "style:style"
+                         [ ("style:name"  , tableId ++ "." ++ [c])
+                         , ("style:family", "table-column"       )] $
+                         selfClosingTag "style:table-column-properties"
+                         [("style:column-width", show (7 * w) ++ "in")]
+        cellStyle      = inTags True "style:style"
+                         [ ("style:name"  , tableId ++ ".A1")
+                         , ("style:family", "table-cell"    )] $
+                         selfClosingTag "style:table-cell-properties"
+                         [ ("fo:border", "none")]
         columnStyles   = map colStyle wcs
-
     in  table $$ vcat columnStyles $$ cellStyle
 
 paraStyle :: String -> [(String,String)] -> State WriterState Int
 paraStyle parent attrs = do
   pn <- (+)   1 . length       <$> gets stParaStyles
-  i  <- (*) 0.5 . fromIntegral <$> gets indentPara   :: State WriterState Double
+  i  <- (*) 0.5 . fromIntegral <$> gets indentPara :: State WriterState Double
   let styleAttr = [ ("style:name"             , "P" ++ show pn)
                   , ("style:family"           , "paragraph"   )
                   , ("style:parent-style-name", parent        )]
@@ -415,8 +421,7 @@ paraStyle parent attrs = do
   return pn
 
 paraListStyle :: Int -> State WriterState Int
-paraListStyle l =
-    paraStyle "Text_20_body" [("style:list-style-name", "L" ++ show l )]
+paraListStyle l = paraStyle "Text_20_body" [("style:list-style-name", "L" ++ show l )]
 
 paraTableStyles :: String -> Int -> [Alignment] -> [(String, Doc)]
 paraTableStyles _ _ [] = []
@@ -428,12 +433,10 @@ paraTableStyles t s (a:xs)
           res sn x = inTags True "style:style"
                      [ ("style:name"             , pName sn        )
                      , ("style:family"           , "paragraph"     )
-                     , ("style:parent-style-name", "Table_20_" ++ t)
-                     ] $
+                     , ("style:parent-style-name", "Table_20_" ++ t)] $
                      selfClosingTag "style:paragraph-properties"
                      [ ("fo:text-align", x)
-                     , ("style:justify-single-word", "false")
-                     ]
+                     , ("style:justify-single-word", "false")]
 
 openDocumentNameSpaces :: [(String, String)]
 openDocumentNameSpaces =
