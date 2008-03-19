@@ -158,9 +158,9 @@ inPreformattedTags s = do
 
 
 orderedListToOpenDocument :: WriterOptions -> Int -> [[Block]] -> State WriterState Doc
-orderedListToOpenDocument o pn is =
+orderedListToOpenDocument o pn bs =
     vcat . map (inTagsIndented "text:list-item") <$>
-    mapM (orderedItemToOpenDocument o pn . map plainToPara) is
+    mapM (orderedItemToOpenDocument o pn . map plainToPara) bs
 
 orderedItemToOpenDocument :: WriterOptions -> Int -> [Block] -> State WriterState Doc
 orderedItemToOpenDocument  o n (b:bs)
@@ -198,8 +198,8 @@ listItemsToOpenDocument s o is =
 
 deflistItemToOpenDocument :: WriterOptions -> ([Inline],[Block]) -> State WriterState Doc
 deflistItemToOpenDocument o (t,d) = do
-  t' <- withParagraphStyle o "Definition-term"       [Para t]
-  d' <- withParagraphStyle o "Definition-definition" (map plainToPara d)
+  t' <- withParagraphStyle o "Definition_20_Term"       [Para t]
+  d' <- withParagraphStyle o "Definition_20_Definition" (map plainToPara d)
   return $ t' $$ d'
 
 inBlockQuote :: WriterOptions -> Int -> [Block] -> State WriterState Doc
@@ -338,8 +338,8 @@ generateStyles acc =
         fonts   = inTagsIndented "office:font-face-decls"
                   (vcat $ map font ["Lucida Sans Unicode", "Tahoma", "Times New Roman"])
         font fn = selfClosingTag "style:font-face"
-                  [ ("style:name", fn)
-                  , ("svg:font-family", fn)]
+                  [ ("style:name"     , "&apos;" ++ fn ++ "&apos;")
+                  , ("svg:font-family", fn                        )]
     in  scripts $$ fonts $$ inTagsIndented "office:automatic-styles" (vcat $ reverse acc)
 
 bulletListStyle :: Int -> State WriterState (Int,(Int,[Doc]))
