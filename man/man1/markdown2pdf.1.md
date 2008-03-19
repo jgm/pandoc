@@ -23,10 +23,10 @@ input files are specified, they will be concatenated before conversion,
 and the name of the output file will be derived from the first input file.
 
 Input is assumed to be in the UTF-8 character encoding.  If your
-local character encoding is not UTF-8, you should pipe input and
-output through `iconv`:
+local character encoding is not UTF-8, you should pipe input
+through `iconv`:
 
-    iconv -t utf-8 input.txt | pandoc | iconv -f utf-8
+    iconv -t utf-8 input.txt | markdown2pdf
 
 `markdown2pdf` assumes that the `unicode`, `array`, `fancyvrb`,
 `graphicx`, and `ulem` packages are in latex's search path. If these
