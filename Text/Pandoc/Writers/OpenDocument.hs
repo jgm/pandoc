@@ -224,7 +224,7 @@ blockToOpenDocument o bs
     | Header       i b <- bs = inHeaderTags  i <$> wrap o b
     | BlockQuote     b <- bs = doBlockQuote b
     | CodeBlock    _ s <- bs = preformatted s
-    | RawHtml        s <- bs = preformatted s
+    | RawHtml        _ <- bs = return empty
     | DefinitionList b <- bs = defList b
     | BulletList     b <- bs = bulletListToOpenDocument o b
     | OrderedList  a b <- bs = orderedList a b
@@ -310,7 +310,7 @@ inlineToOpenDocument o ils
     | Code        s <- ils = preformatted s
     | Math        s <- ils = inlinesToOpenDocument o (readTeXMath s)
     | TeX         s <- ils = preformatted s
-    | HtmlInline  s <- ils = preformatted s
+    | HtmlInline  _ <- ils = return empty
     | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
     | Image l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
     | Note        l <- ils = mkNote l
