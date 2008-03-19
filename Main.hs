@@ -77,17 +77,18 @@ readPandoc state input = read input
     
 -- | Association list of formats and pairs of writers and default headers.
 writers :: [ ( String, ( WriterOptions -> Pandoc -> String, String ) ) ]
-writers = [("native"   , (writeDoc, ""))
-          ,("html"     , (writeHtmlString, ""))
-          ,("s5"       , (writeS5String, defaultS5Header))
-          ,("docbook"  , (writeDocbook, defaultDocbookHeader))
-          ,("latex"    , (writeLaTeX, defaultLaTeXHeader))
-          ,("context"  , (writeConTeXt, defaultConTeXtHeader))
-          ,("texinfo"  , (writeTexinfo, ""))
-          ,("man"      , (writeMan, ""))
-          ,("markdown" , (writeMarkdown, ""))
-          ,("rst"      , (writeRST, ""))
-          ,("rtf"      , (writeRTF, defaultRTFHeader))
+writers = [("native"       , (writeDoc, ""))
+          ,("html"         , (writeHtmlString, ""))
+          ,("s5"           , (writeS5String, defaultS5Header))
+          ,("docbook"      , (writeDocbook, defaultDocbookHeader))
+          ,("opendocument" , (writeOpenDocument, defaultOpenDocumentHeader))
+          ,("latex"        , (writeLaTeX, defaultLaTeXHeader))
+          ,("context"      , (writeConTeXt, defaultConTeXtHeader))
+          ,("texinfo"      , (writeTexinfo, ""))
+          ,("man"          , (writeMan, ""))
+          ,("markdown"     , (writeMarkdown, ""))
+          ,("rst"          , (writeRST, ""))
+          ,("rtf"          , (writeRTF, defaultRTFHeader))
           ]
 
 -- | Writer for Pandoc native format.

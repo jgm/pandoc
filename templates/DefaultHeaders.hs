@@ -31,6 +31,7 @@ module Text.Pandoc.DefaultHeaders (
                                     defaultLaTeXHeader,
                                     defaultConTeXtHeader,
                                     defaultDocbookHeader,
+                                    defaultOpenDocumentHeader,
                                     defaultS5Header,
                                     defaultRTFHeader
                                   ) where
@@ -44,6 +45,9 @@ defaultConTeXtHeader = @ConTeXt.header@
 
 defaultDocbookHeader :: String
 defaultDocbookHeader = @Docbook.header@
+
+defaultOpenDocumentHeader :: String
+defaultOpenDocumentHeader = @OpenDocument.header@
 
 defaultS5Header :: String
 defaultS5Header = s5Meta ++ s5CSS ++ s5Javascript

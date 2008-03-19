@@ -74,6 +74,7 @@ module Text.Pandoc
                , writeS5
                , writeS5String
                , writeDocbook
+               , writeOpenDocument
                , writeMan
                , writeRTF
                , prettyPandoc
@@ -101,6 +102,7 @@ import Text.Pandoc.Writers.Texinfo
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.S5
 import Text.Pandoc.Writers.Docbook
+import Text.Pandoc.Writers.OpenDocument
 import Text.Pandoc.Writers.Man
 import Text.Pandoc.Writers.RTF 
 import Text.Pandoc.DefaultHeaders
