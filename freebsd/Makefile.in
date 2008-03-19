@@ -16,17 +16,22 @@ COMMENT=	A general markup converter
 BUILD_DEPENDS=	ghc>=6.6:${PORTSDIR}/lang/ghc
 
 MANCOMPRESSED=	no
-MAN1=		pandoc.1 markdown2pdf.1 html2markdown.1 hsmarkdown.1
+MAN1=		pandoc.1 markdown2pdf.1 html2markdown.1 hsmarkdown.1 markdown2odt.1
 
 USE_GMAKE=	yes
 USE_PERL5=	yes
 
-PLIST_FILES=	bin/pandoc bin/markdown2pdf bin/html2markdown bin/hsmarkdown
+PLIST_FILES=	bin/pandoc bin/markdown2pdf bin/html2markdown bin/hsmarkdown \
+				bin/markdown2odt
 PORTDOCS=	BUGS README README.html
-SCRIPTS=	hsmarkdown html2markdown markdown2pdf
+SCRIPTS=	hsmarkdown html2markdown markdown2pdf markdown2odt
+DATA_FILES=	odt-styles/reference.odt
 
 do-install:
 	@${INSTALL_PROGRAM} ${WRKSRC}/dist/build/pandoc/pandoc ${PREFIX}/bin
+.for f in ${DATA_FILES}
+    @${INSTALL_DATA} ${WRKSRC}/${f} ${DATADIR}
+.endfor
 .for script in ${SCRIPTS}
 	@${INSTALL_SCRIPT} ${WRKSRC}/${script} ${PREFIX}/bin
 .endfor

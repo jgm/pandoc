@@ -11,6 +11,7 @@ BUILDDIR  := dist
 BUILDCONF := $(BUILDDIR)/setup-config
 BUILDVARS := vars
 CONFIGURE := configure
+ODTSTYLES := odt-styles
 
 #-------------------------------------------------------------------------------
 # Cabal constants
@@ -23,7 +24,7 @@ EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:\{0,1\}[[:space:]]*//p' $(CABAL))
 #-------------------------------------------------------------------------------
 # Install targets
 #-------------------------------------------------------------------------------
-WRAPPERS  := html2markdown markdown2pdf hsmarkdown
+WRAPPERS  := html2markdown markdown2pdf hsmarkdown markdown2odt
 # Add .exe extensions if we're running Windows/Cygwin.
 EXTENSION := $(shell uname | tr '[:upper:]' '[:lower:]' | \
                sed -ne 's/^cygwin.*$$/\.exe/p')
@@ -33,6 +34,7 @@ PROGS     := $(EXECS) $(WRAPPERS)
 MAIN      := $(firstword $(EXECS))
 DOCS      := README.html README BUGS
 MANPAGES  := $(patsubst %.md,%,$(wildcard $(MANDIR)/man?/*.?.md))
+ODTREF    := $(ODTSTYLES)/reference.odt
 
 #-------------------------------------------------------------------------------
 # Variables to setup through environment
@@ -106,10 +108,21 @@ awk '                                                    \
 chmod +x $@
 endef
 
+cleanup_files+=$(ODTREF)
+$(ODTREF): $(addprefix $(ODTSTYLES)/, layout-cache meta.xml styles.xml content.xml mimetype \
+                                     settings.xml Configurations2 Thumbnails META-INF)
+	cd $(ODTSTYLES) ; \
+	zip -9 -r $(notdir $@) * -x $(notdir $@)
+
+ODTREFSH=$(SRCDIR)/wrappers/odtref.sh
+cleanup_files+=$(ODTREFSH)
+$(ODTREFSH): $(ODTREF)
+	echo "REFERENCEODT='$(PKGDATAPATH)/$(notdir $(ODTREF))'" > $@
+
 .PHONY: wrappers
 wrappers: $(WRAPPERS)
 cleanup_files+=$(WRAPPERS)
-$(WRAPPERS): %: $(SRCDIR)/wrappers/%.in $(SRCDIR)/wrappers/*.sh
+$(WRAPPERS): %: $(SRCDIR)/wrappers/%.in $(SRCDIR)/wrappers/*.sh $(ODTREFSH)
 	@$(generate-shell-script)
 
 CABAL_BACKUP=$(CABAL).orig
@@ -179,7 +192,15 @@ install-doc: build-doc
 uninstall-doc:
 	-for f in $(DOCS); do rm -f $(PKGDOCPATH)/$$f; done
 	-for f in $(man_all); do rm -f $(MANPATH)/$$f; done
-	rmdir $(PKGDOCPATH) $(PKGDATAPATH) 2>/dev/null ||:
+	rmdir $(PKGDOCPATH) 2>/dev/null ||:
+
+# Data file installation.
+.PHONY: install-data uninstall-data
+install-data: $(ODTREF)
+	$(INSTALL) -d $(PKGDATAPATH) && $(INSTALL_DATA) $(ODTREF) $(PKGDATAPATH)/
+uninstall-data:
+	-rm -f $(PKGDATAPATH)/$(notdir $(ODTREF))
+	rmdir $(PKGDATAPATH) 2>/dev/null ||:
 
 # Program only installation.
 .PHONY: install-exec uninstall-exec
@@ -197,8 +218,8 @@ uninstall-exec:
 
 # Program + user documents installation.
 .PHONY: install-program uninstall-program
-install-program: install-exec install-doc
-uninstall-program: uninstall-exec uninstall-doc
+install-program: install-exec install-data install-doc
+uninstall-program: uninstall-exec uninstall-doc uninstall-data
 
 .PHONY: install-all uninstall-all
 # Full installation through Cabal: main + wrappers + user docs + lib + lib docs

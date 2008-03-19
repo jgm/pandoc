@@ -40,13 +40,18 @@ destroot            {
     ${destroot}${prefix}/libexec/${name}-${version}
   # install shell scripts:
   xinstall -m 755 -W ${worksrcpath} html2markdown hsmarkdown markdown2pdf \
-    ${destroot}${prefix}/bin
+    markdown2odt ${destroot}${prefix}/bin
+  # install data file:
+  xinstall -d ${destroot}${prefix}/share/${name}
+  xinstall -m 644 -W ${worksrcpath} odt-styles/reference.odt \
+    ${destroot}${prefix}/share/${name}
   # install user documentation and man pages:
   xinstall -d ${destroot}${prefix}/share/doc/${name}
   xinstall -m 644 -W ${worksrcpath} README README.html COPYRIGHT BUGS \
     ${destroot}${prefix}/share/doc/${name}
   xinstall -m 644 -W ${worksrcpath}/man/man1 pandoc.1 hsmarkdown.1 \
-    markdown2pdf.1 html2markdown.1 ${destroot}${prefix}/share/man/man1
+    markdown2pdf.1 html2markdown.1 markdown2odt.1 \
+    ${destroot}${prefix}/share/man/man1
 }
  
 post-activate       { 
