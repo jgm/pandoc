@@ -73,6 +73,7 @@ Library
                    Text.Pandoc.Writers.RST,
                    Text.Pandoc.Writers.RTF,
                    Text.Pandoc.Writers.S5
+  Other-Modules:   Text.Pandoc.XML
   Ghc-Options:     -O2
   Ghc-Prof-Options: -auto-all
 

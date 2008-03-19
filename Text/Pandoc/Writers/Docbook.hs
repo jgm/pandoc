@@ -29,70 +29,11 @@ Conversion of 'Pandoc' documents to Docbook XML.
 -}
 module Text.Pandoc.Writers.Docbook ( writeDocbook) where
 import Text.Pandoc.Definition
+import Text.Pandoc.XML
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
 import Data.List ( isPrefixOf, drop )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
-
---
--- code to format XML
---
-
--- | Escape one character as needed for XML.
-escapeCharForXML :: Char -> String
-escapeCharForXML x = case x of
-                       '&'  -> "&amp;"
-                       '<'  -> "&lt;"
-                       '>'  -> "&gt;"
-                       '"'  -> "&quot;"
-                       '\160' -> "&nbsp;"
-                       c    -> [c] 
-
--- | True if the character needs to be escaped.
-needsEscaping :: Char -> Bool
-needsEscaping c = c `elem` "&<>\"\160"
-
--- | Escape string as needed for XML.  Entity references are not preserved.
-escapeStringForXML :: String -> String
-escapeStringForXML ""  = ""
-escapeStringForXML str = 
-  case break needsEscaping str of
-    (okay, "")     -> okay
-    (okay, (c:cs)) -> okay ++ escapeCharForXML c ++ escapeStringForXML cs 
-
--- | Return a text object with a string of formatted XML attributes. 
-attributeList :: [(String, String)] -> Doc
-attributeList = text .  concatMap 
-  (\(a, b) -> " " ++ escapeStringForXML a ++ "=\"" ++ 
-  escapeStringForXML b ++ "\"") 
-
--- | Put the supplied contents between start and end tags of tagType,
---   with specified attributes and (if specified) indentation.
-inTags:: Bool -> String -> [(String, String)] -> Doc -> Doc
-inTags isIndented tagType attribs contents = 
-  let openTag = char '<' <> text tagType <> attributeList attribs <> 
-                char '>'
-      closeTag  = text "</" <> text tagType <> char '>'
-  in  if isIndented
-         then openTag $$ nest 2 contents $$ closeTag
-         else openTag <> contents <> closeTag
-
--- | Return a self-closing tag of tagType with specified attributes
-selfClosingTag :: String -> [(String, String)] -> Doc
-selfClosingTag tagType attribs = 
-  char '<' <> text tagType <> attributeList attribs <> text " />" 
- 
--- | Put the supplied contents between start and end tags of tagType.
-inTagsSimple :: String -> Doc -> Doc
-inTagsSimple tagType = inTags False tagType []
-
--- | Put the supplied contents in indented block btw start and end tags.
-inTagsIndented :: String -> Doc -> Doc
-inTagsIndented tagType = inTags True tagType []
-
---
--- Docbook writer
---
 
 -- | Convert list of authors to a docbook <author> section
 authorToDocbook :: [Char] -> Doc
