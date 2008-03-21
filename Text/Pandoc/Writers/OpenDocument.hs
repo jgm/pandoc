@@ -94,6 +94,10 @@ inHeaderTags :: Int -> Doc -> Doc
 inHeaderTags i = inTags False "text:h" [ ("text:style-name", "Heading_20_" ++ show i)
                                        , ("text:outline-level", show i)]
 
+inQuotes :: QuoteType -> Doc -> Doc
+inQuotes SingleQuote s = text "&#8216;" <> s <> text "&#8217;"
+inQuotes DoubleQuote s = text "&#8220;" <> s <> text "&#8221;"
+
 -- | Convert list of authors to a docbook <author> section
 authorToOpenDocument :: [Char] -> Doc
 authorToOpenDocument name =
@@ -297,7 +301,7 @@ inlineToOpenDocument o ils
     | Ellipses      <- ils = return $ text "&#8230;"
     | EmDash        <- ils = return $ text "&#8212;"
     | EnDash        <- ils = return $ text "&#8211;"
-    | Apostrophe    <- ils = return $ char '\''
+    | Apostrophe    <- ils = return $ text "&#8217;"
     | Space         <- ils = return $ char ' '
     | LineBreak     <- ils = return $ selfClosingTag "text:line-break" []
     | Str         s <- ils = return $ text $ escapeStringForXML s
@@ -306,7 +310,7 @@ inlineToOpenDocument o ils
     | Strikeout   l <- ils = inSpanTags "Strikeout"          <$> inlinesToOpenDocument o l
     | Superscript l <- ils = inSpanTags "Superscript"        <$> inlinesToOpenDocument o l
     | Subscript   l <- ils = inSpanTags "Subscript"          <$> inlinesToOpenDocument o l
-    | Quoted    _ l <- ils = inSpanTags "Citation"           <$> inlinesToOpenDocument o l
+    | Quoted    t l <- ils = inQuotes t <$> inlinesToOpenDocument o l
     | Code        s <- ils = preformatted s
     | Math        s <- ils = inlinesToOpenDocument o (readTeXMath s)
     | TeX         s <- ils = preformatted s
