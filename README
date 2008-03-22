@@ -356,7 +356,8 @@ For further documentation, see the `pandoc(1)` man page.
 `--sanitize-html`
 :   sanitizes HTML (in markdown or HTML input) using a whitelist.
     Unsafe tags are replaced by HTML comments; unsafe attributes
-    are omitted.
+    are omitted. URIs in links and images are also checked against a
+    whitelist of URI schemes.
 
 `--dump-args`
 :   is intended to make it easier to create wrapper scripts that use

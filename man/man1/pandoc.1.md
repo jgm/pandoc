@@ -128,7 +128,8 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 \--sanitize-html
 :   Sanitizes HTML (in markdown or HTML input) using a whitelist.
     Unsafe tags are replaced by HTML comments; unsafe attributes
-    are omitted.
+    are omitted.  URIs in links and images are also checked against a
+    whitelist of URI schemes.
 
 \--toc, \--table-of-contents
 :   Include an automatically generated table of contents (HTML, markdown,

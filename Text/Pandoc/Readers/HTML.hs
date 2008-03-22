@@ -37,7 +37,8 @@ module Text.Pandoc.Readers.HTML (
                                  anyHtmlEndTag,
                                  htmlEndTag,
                                  extractTagType,
-                                 htmlBlockElement 
+                                 htmlBlockElement,
+                                 unsanitaryURI
                                 ) where
 
 import Text.ParserCombinators.Parsec
@@ -47,6 +48,7 @@ import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Data.Maybe ( fromMaybe )
 import Data.List ( takeWhile, dropWhile, isPrefixOf, isSuffixOf )
 import Data.Char ( toLower, isAlphaNum )
+import Network.URI ( parseURIReference, URI (..) )
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: ParserState   -- ^ Parser state
@@ -110,17 +112,31 @@ sanitaryAttributes = ["abbr", "accept", "accept-charset",
 --  not on the sanitized tag list.
 unsanitaryTag tag = do
   st <- getState
-  if stateSanitizeHTML st && not (tag `elem` sanitaryTags)
-     then return True
-     else return False
+  return $ stateSanitizeHTML st && tag `notElem` sanitaryTags
 
 -- | returns @True@ if sanitization is specified and the specified attribute
 --  is not on the sanitized attribute list.
-unsanitaryAttribute (attr, _, _) = do
+unsanitaryAttribute (attr, val, _) = do
   st <- getState
-  if stateSanitizeHTML st && not (attr `elem` sanitaryAttributes)
-    then return True
-    else return False
+  return $ stateSanitizeHTML st &&
+           (attr `notElem` sanitaryAttributes ||
+             (attr `elem` ["href","src"] && unsanitaryURI val))
+
+-- | Returns @True@ if the specified URI is potentially a security risk.
+unsanitaryURI uri =
+  let safeURISchemes = [ "", "http", "https", "ftp", "mailto", "file",
+             "telnet", "gopher", "aaa", "aaas", "acap", "cap", "cid",
+             "crid", "dav", "dict", "dns", "fax", "go", "h323", "im",
+             "imap", "ldap", "mid", "news", "nfs", "nntp", "pop",
+             "pres", "sip", "sips", "snmp", "tel", "urn", "wais",
+             "xmpp", "z39.50r", "z39.50s", "aim", "callto", "cvs",
+             "ed2k", "feed", "fish", "gg", "irc", "ircs", "lastfm",
+             "ldaps", "magnet", "mms", "msnim", "notes", "rsync",
+             "secondlife", "skype", "ssh", "sftp", "smb", "sms",
+             "snews", "webcal", "ymsgr"]
+  in  case parseURIReference uri of
+           Just p  -> (map toLower $ uriScheme p) `notElem` safeURISchemes
+           Nothing -> True
 
 -- | Read blocks until end tag.
 blocksTilEnd tag = do

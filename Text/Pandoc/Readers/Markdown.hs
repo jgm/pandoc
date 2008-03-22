@@ -41,7 +41,7 @@ import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment )
 import Text.Pandoc.Readers.HTML ( rawHtmlBlock, anyHtmlBlockTag, 
                                   anyHtmlInlineTag, anyHtmlTag,
                                   anyHtmlEndTag, htmlEndTag, extractTagType,
-                                  htmlBlockElement )
+                                  htmlBlockElement, unsanitaryURI )
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.ParserCombinators.Parsec
 
@@ -921,7 +921,10 @@ linkTitle = try $ do
 link = try $ do
   label <- reference
   src <- source <|> referenceLink label
-  return $ Link label src
+  sanitize <- getState >>= return . stateSanitizeHTML
+  if sanitize && unsanitaryURI (fst src)
+     then fail "Unsanitary URI"
+     else return $ Link label src
 
 -- a link like [this][ref] or [this][] or [this]
 referenceLink label = do
@@ -941,9 +944,12 @@ autoLink = try $ do
                 then drop 7 src
                 else src 
   st <- getState
-  return $ if stateStrict st
-              then Link [Str src'] (src, "")
-              else Link [Code src'] (src, "")
+  let sanitize = stateSanitizeHTML st
+  if sanitize && unsanitaryURI src
+     then fail "Unsanitary URI"
+     else return $ if stateStrict st
+                      then Link [Str src'] (src, "")
+                      else Link [Code src'] (src, "")
 
 image = try $ do
   char '!'
