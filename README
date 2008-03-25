@@ -72,16 +72,16 @@ To convert `hello.html` from html to markdown:
 
 Supported output formats include `markdown`, `latex`, `context`
 (ConTeXt), `html`, `rtf` (rich text format), `rst` (reStructuredText),
-`docbook` (DocBook XML), `texinfo`, `man` (groff man), and `s5` (which
-produces an HTML file that acts like powerpoint). Supported input
-formats include `markdown`, `html`, `latex`, and `rst`. Note that the
-`rst` reader only parses a subset of reStructuredText syntax. For
-example, it doesn't handle tables, option lists, or footnotes. But for
-simple documents it should be adequate. The `latex` and `html` readers
-are also limited in what they can do. Because the `html` reader is picky
-about the HTML it parses, it is recommended that you pipe HTML through
-[HTML Tidy] before sending it to `pandoc`, or use the `html2markdown`
-script described below.
+`docbook` (DocBook XML), `opendocument` (OpenDocument XML), `texinfo`,
+`man` (groff man), and `s5` (which produces an HTML file that acts
+like powerpoint). Supported input formats include `markdown`, `html`,
+`latex`, and `rst`. Note that the `rst` reader only parses a subset of
+reStructuredText syntax. For example, it doesn't handle tables, option
+lists, or footnotes. But for simple documents it should be adequate. The
+`latex` and `html` readers are also limited in what they can do. Because
+the `html` reader is picky about the HTML it parses, it is recommended
+that you pipe HTML through [HTML Tidy] before sending it to `pandoc`, or
+use the `html2markdown` script described below.
 
 If you don't specify a reader or writer explicitly, `pandoc` will
 try to determine the input and output format from the extensions of
@@ -231,7 +231,8 @@ For further documentation, see the `pandoc(1)` man page.
 `-t`, `--to`, `-w`, or `--write` *format*
 :   specifies the output format -- the format Pandoc will
     be converting *to*. *format* can be `native`, `html`, `s5`,
-    `docbook`, `latex`, `context`, `markdown`, `man`, `rst`, and `rtf`.
+    `docbook`, `opendocument`, `latex`, `context`, `markdown`, `man`,
+    `rst`, and `rtf`.
 
 `-s` or `--standalone`
 :   indicates that a standalone document is to be produced (with
@@ -922,19 +923,19 @@ In Texinfo output, it will be rendered inside a `@math` command.
 
 In groff man output, it will be rendered verbatim without $'s.
 
-In RTF and Docbook output, it will be rendered, as far as possible,
-using unicode characters, and will otherwise appear verbatim. Unknown
-commands and symbols, and commands that cannot be dealt with this way
-(like `\frac`), will be rendered verbatim. So the results may be a mix
-of raw TeX code and properly rendered unicode math.
+In RTF, Docbook, and OpenDocument output, it will be rendered, as far as
+possible, using unicode characters, and will otherwise appear verbatim.
+Unknown commands and symbols, and commands that cannot be dealt with
+this way (like `\frac`), will be rendered verbatim. So the results may
+be a mix of raw TeX code and properly rendered unicode math.
 
 In HTML and S5 output, the way math is rendered will depend on the
 command-line options selected:
 
 1.  The default is to render TeX math as far as possible using unicode
-    characters, as with RTF and Docbook output.  Formulas are put inside
-    a `span` with `class="math"`, so that they may be styled differently
-    from the surrounding text if needed.
+    characters, as with RTF, Docbook, and OpenDocument output. Formulas
+    are put inside a `span` with `class="math"`, so that they may be
+    styled differently from the surrounding text if needed.
 
 2.  If the `--asciimathml` option is used, TeX math will be displayed
     between $ characters, as in LaTeX, and the [ASCIIMathML] script will
