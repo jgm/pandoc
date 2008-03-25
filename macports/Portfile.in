@@ -11,7 +11,8 @@ long_description    \
     Pandoc is a command-line tool for converting from one markup format \
     to another.  It can read markdown and (subsets of) reStructuredText, \
     HTML, and LaTeX, and it can write markdown, reStructuredText, HTML, \
-    LaTeX, ConTeXt, DocBook, RTF, Texinfo, groff man, and S5 HTML slide shows.
+    LaTeX, ConTeXt, DocBook, OpenDocument XML, RTF, Texinfo, groff man, \
+    and S5 HTML slide shows.
 
 homepage            http://johnmacfarlane.net/pandoc/
 platforms           darwin
