@@ -100,5 +100,5 @@ click on the name of the output file:
 
 21. From markdown to ODT (OpenDocument Text, readable by OpenOffice):
 
-@   markdown2odt @@README@@ -o @@README.odt@@
+@   markdown2odt @@README@@ -o @@example21.odt@@
 
