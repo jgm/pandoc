@@ -1,14 +1,14 @@
 % Pandoc User's Guide
 % John MacFarlane
-% January 8, 2008
+% March 24, 2008
 
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX], and
 it can write [markdown], [reStructuredText], [HTML], [LaTeX], [ConTeXt],
-[RTF], [DocBook XML], [GNU Texinfo], [groff man] pages, and [S5] HTML
-slide shows. Pandoc's version of markdown contains some enhancements,
-like footnotes and embedded LaTeX.
+[RTF], [DocBook XML], [OpenDocument XML], [GNU Texinfo], [groff man]
+pages, and [S5] HTML slide shows. Pandoc's version of markdown contains
+some enhancements, like footnotes and embedded LaTeX.
 
 In contrast to existing tools for converting markdown to HTML, which
 use regex substitutions, Pandoc has a modular design: it consists of a
@@ -25,6 +25,7 @@ or output format requires only adding a reader or writer.
 [ConTeXt]: http://www.pragma-ade.nl/ 
 [RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook XML]:  http://www.docbook.org/
+[OpenDocument XML]: http://opendocument.xml.org/ 
 [groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
 [Haskell]:  http://www.haskell.org/
 [GNU Texinfo]: http://www.gnu.org/software/texinfo/
@@ -36,41 +37,6 @@ Contributors:  Recai Oktaş (build system, debian package, wrapper
 scripts), Peter Wang (Texinfo writer), Andrea Rossato (OpenDocument writer).
 
 [GPL]: http://www.gnu.org/copyleft/gpl.html "GNU General Public License"
-
-Requirements
-============
-
-The `pandoc` program itself does not depend on any external libraries
-or programs.
-
-The wrapper script `html2markdown` requires
-
-  - `pandoc` (which must be in the PATH)
-  - a POSIX-compliant shell (installed by default on all linux and unix
-    systems, including Mac OS X, and in [Cygwin] for Windows),
-  - `HTML Tidy`
-  - `iconv` (for character encoding conversion).  (If `iconv` is absent,
-    `html2markdown` will still work, but it will treat everything as UTF-8.)
-
-The wrapper script `markdown2pdf` requires
-
-  - `pandoc` (which must be in the PATH)
-  - a POSIX-compliant shell
-  - `pdflatex`, which should be part of any [LaTeX] distribution
-  - the following LaTeX packages (available from [CTAN], if they
-    are not already included in your LaTeX distribution):
-    + `unicode`
-    + `fancyhdr` (if you have verbatim text in footnotes)
-    + `graphicx` (if you use images)
-    + `array` (if you use tables)
-    + `ulem` (if you use strikeout text)
-
-The wrapper script `hsmarkdown` requires only a POSIX-compliant shell.
-
-[Cygwin]:  http://www.cygwin.com/ 
-[HTML Tidy]:  http://tidy.sourceforge.net/
-[`iconv`]: http://www.gnu.org/software/libiconv/
-[CTAN]: http://www.ctan.org "Comprehensive TeX Archive Network"
 
 Using Pandoc
 ============
@@ -151,10 +117,10 @@ then convert the output back to the local encoding.
 Shell scripts
 =============
 
-Three shell scripts, `markdown2pdf`, `html2markdown`, and `hsmarkdown`,
-are included in the standard Pandoc installation.  (They are not included
-in the Windows binary package, as they require a POSIX shell, but they
-may be used in Windows under Cygwin.)
+Four shell scripts, `markdown2pdf`, `markdown2odt`, `html2markdown`, and
+`hsmarkdown`, are included in the standard Pandoc installation. (They
+are not included in the Windows binary package, as they require a POSIX
+shell, but they may be used in Windows under Cygwin.)
 
 1.  `markdown2pdf` produces a PDF file from markdown-formatted
     text, using `pandoc` and `pdflatex`.  The default
@@ -173,7 +139,35 @@ may be used in Windows under Cygwin.)
     If no input file is specified, input will be taken from STDIN.
     All of `pandoc`'s options will work with `markdown2pdf` as well.
 
-2.  `html2markdown` grabs a web page from a file or URL and converts
+    `markdown2pdf` assumes that `pdflatex` is in the path.  It also
+    assumes that the following LaTeX packages are available:
+    `unicode`, `fancyhdr` (if you have verbatim text in footnotes),
+    `graphicx` (if you use images), `array` (if you use tables),
+    and `ulem` (if you use strikeout text).  If they are not already
+    included in your LaTeX distribution, you can get them from
+    [CTAN].
+
+2.  `markdown2odt` produces an ODT file from markdown-formatted
+    text, using `pandoc` and `pdflatex`.  (ODT is "OpenDocument
+    Text," the default format for the OpenOffice.org Writer.)
+    The default behavior of `markdown2odt` is to create a file with the
+    same base name as the first argument and the extension `odt`; thus,
+    for example,
+
+	    markdown2odt sample.txt endnotes.txt
+
+    will produce `sample.odt`.  (If `sample.odt` exists already,
+    it will be backed up before being overwritten.)  An output file
+    name can be specified explicitly using the `-o` option:
+
+	    markdown2odt -o book.odt chap1 chap2
+
+    If no input file is specified, input will be taken from STDIN.
+    All of `pandoc`'s options will work with `markdown2odt` as well.
+
+    `markdown2odt` requires `zip`, which must be in the path.
+
+3.  `html2markdown` grabs a web page from a file or URL and converts
     it to markdown-formatted text, using `tidy` and `pandoc`.
 
     All of `pandoc`'s options will work with `html2markdown` as well.
@@ -198,7 +192,11 @@ may be used in Windows under Cygwin.)
     available program (`wget`, `curl`, or a text-mode browser) to fetch
     the contents of a URL.
 
-3.  `hsmarkdown` is designed to be used as a drop-in replacement for
+    `html2markdown` requires [HTML Tidy], which must be in the path.
+    It uses [`iconv`] for character encoding conversions; if `iconv`
+    is absent, it will still work, but it will treat everything as UTF-8.
+
+4.  `hsmarkdown` is designed to be used as a drop-in replacement for
     `Markdown.pl`.  It forces `pandoc` to convert from markdown to
     HTML, and to use the `--strict` flag for maximal compliance with
     official markdown syntax.  (All of Pandoc's syntax extensions and
@@ -213,6 +211,11 @@ may be used in Windows under Cygwin.)
     options will be recognized.  However, this approach does not work
     under Cygwin, due to problems with its simulation of symbolic
     links.
+
+[Cygwin]:  http://www.cygwin.com/ 
+[HTML Tidy]:  http://tidy.sourceforge.net/
+[`iconv`]: http://www.gnu.org/software/libiconv/
+[CTAN]: http://www.ctan.org "Comprehensive TeX Archive Network"
 
 Command-line options
 ====================
