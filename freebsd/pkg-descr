@@ -1,14 +1,14 @@
 Pandoc is a command-line tool for converting from one markup format
 to another.  It can read markdown and (subsets of) reStructuredText,
 HTML, and LaTeX, and it can write markdown, reStructuredText, HTML,
-LaTeX, ConTeXt, DocBook, RTF, GNU Texinfo, groff man pages, and S5 HTML
-slide shows.
+LaTeX, ConTeXt, DocBook, OpenDocument XML, RTF, GNU Texinfo, groff man
+pages, and S5 HTML slide shows.
 
 Pandoc extends standard markdown syntax with footnotes, embedded LaTeX,
 and other features.  A compatibility mode is provided for those who
 need a drop-in replacement for Markdown.pl.  Included wrapper scripts
-make it easy to convert markdown documents to PDFs and to convert web
-pages to markdown documents.
+make it easy to convert markdown documents to PDF or ODT format and to
+convert web pages to markdown documents.
 
 In contrast to existing tools for converting markdown to HTML, which
 use regex substitutions, pandoc has a modular design: it consists of a
