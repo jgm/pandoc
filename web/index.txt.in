@@ -6,7 +6,8 @@ Pandoc is a [Haskell] library for converting from one markup format
 to another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX],
 and it can write [markdown], [reStructuredText], [HTML], [LaTeX], [ConTeXt],
-[RTF], [DocBook XML], [GNU Texinfo], [groff man], and [S5] HTML slide shows. 
+[RTF], [DocBook XML], [OpenDocument XML], [GNU Texinfo], [groff man]
+pages, and [S5] HTML slide shows.
 
 Pandoc features
 
@@ -36,6 +37,7 @@ Pandoc features
     + `html2markdown` makes it easy to produce a markdown version
       of any web page.
     + `markdown2pdf` converts markdown to PDF in one step.
+    + `markdown2odt` converts markdown to ODT in one step.
     + `hsmarkdown` is a drop-in replacement for `Markdown.pl`.
 - Multi-platform:  runs on Windows, MacOS X, Linux, Unix.
 - Free software, released under the [GPL].
