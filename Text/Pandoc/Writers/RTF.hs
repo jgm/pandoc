@@ -86,7 +86,7 @@ codeStringToRTF str = joinWithSep "\\line\n" $ lines (stringToRTF str)
 
 -- | Deal with raw LaTeX.
 latexToRTF :: String -> String
-latexToRTF str = "{\\cf1 " ++ (stringToRTF str) ++ "\\cf0 } "
+latexToRTF str = "{\\cf1 " ++ (stringToRTF str) ++ "\\cf0 }"
 
 -- | Make a paragraph with first-line indent, block indent, and space after.
 rtfParSpaced :: Int       -- ^ space after (in twips)
@@ -260,11 +260,11 @@ inlineListToRTF lst = concatMap inlineToRTF lst
 -- | Convert inline item to RTF.
 inlineToRTF :: Inline         -- ^ inline to convert
             -> String
-inlineToRTF (Emph lst) = "{\\i " ++ (inlineListToRTF lst) ++ "} "
-inlineToRTF (Strong lst) = "{\\b " ++ (inlineListToRTF lst) ++ "} "
-inlineToRTF (Strikeout lst) = "{\\strike " ++ (inlineListToRTF lst) ++ "} "
-inlineToRTF (Superscript lst) = "{\\super " ++ (inlineListToRTF lst) ++ "} "
-inlineToRTF (Subscript lst) = "{\\sub " ++ (inlineListToRTF lst) ++ "} "
+inlineToRTF (Emph lst) = "{\\i " ++ (inlineListToRTF lst) ++ "}"
+inlineToRTF (Strong lst) = "{\\b " ++ (inlineListToRTF lst) ++ "}"
+inlineToRTF (Strikeout lst) = "{\\strike " ++ (inlineListToRTF lst) ++ "}"
+inlineToRTF (Superscript lst) = "{\\super " ++ (inlineListToRTF lst) ++ "}"
+inlineToRTF (Subscript lst) = "{\\sub " ++ (inlineListToRTF lst) ++ "}"
 inlineToRTF (Quoted SingleQuote lst) = 
   "\\u8216'" ++ (inlineListToRTF lst) ++ "\\u8217'"
 inlineToRTF (Quoted DoubleQuote lst) = 
@@ -273,7 +273,7 @@ inlineToRTF Apostrophe = "\\u8217'"
 inlineToRTF Ellipses = "\\u8230?"
 inlineToRTF EmDash = "\\u8212-"
 inlineToRTF EnDash = "\\u8211-"
-inlineToRTF (Code str) = "{\\f1 " ++ (codeStringToRTF str) ++ "} "
+inlineToRTF (Code str) = "{\\f1 " ++ (codeStringToRTF str) ++ "}"
 inlineToRTF (Str str) = stringToRTF str
 inlineToRTF (Math str) = inlineListToRTF $ readTeXMath str
 inlineToRTF (TeX str) = ""
