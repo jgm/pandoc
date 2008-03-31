@@ -92,7 +92,8 @@ data Block
 -- | Type of quotation marks to use in Quoted inline.
 data QuoteType = SingleQuote | DoubleQuote deriving (Show, Eq, Read)
 
-type Target = (String, String)  -- ^ Link target (URL, title)
+-- | Link target (URL, title).
+type Target = (String, String)
 
 -- | Inline elements.
 data Inline 
