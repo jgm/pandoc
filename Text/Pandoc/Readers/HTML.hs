@@ -69,9 +69,9 @@ inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big",
                   "small", "span", "strike", "strong", "sub", "sup",
                   "textarea", "tt", "u", "var"] ++ eitherBlockOrInline
 
-blockHtmlTags = ["address", "blockquote", "center", "dir", "div",
+blockHtmlTags = ["address", "blockquote", "body", "center", "dir", "div",
                  "dl", "fieldset", "form", "h1", "h2", "h3", "h4",
-                 "h5", "h6", "hr", "isindex", "menu", "noframes",
+                 "h5", "h6", "hr", "html", "isindex", "menu", "noframes",
                  "noscript", "ol", "p", "pre", "table", "ul", "dd",
                  "dt", "frameset", "li", "tbody", "td", "tfoot",
                  "th", "thead", "tr", "script"] ++ eitherBlockOrInline
@@ -257,11 +257,11 @@ isBlock tag = (extractTagType tag) `elem` blockHtmlTags
 
 anyHtmlBlockTag = try $ do
   tag <- anyHtmlTag <|> anyHtmlEndTag
-  if not (isInline tag) then return tag else fail "not a block tag"
+  if isBlock tag then return tag else fail "not a block tag"
 
 anyHtmlInlineTag = try $ do
   tag <- anyHtmlTag <|> anyHtmlEndTag
-  if isInline tag then return tag else fail "not an inline tag"
+  if not (isBlock tag) then return tag else fail "not an inline tag"
 
 -- | Parses material between script tags.
 -- Scripts must be treated differently, because they can contain '<>' etc.
