@@ -273,10 +273,14 @@ blockToHtml opts (RawHtml str) = return $ primHtml str
 blockToHtml opts (HorizontalRule) = return $ hr
 blockToHtml opts (CodeBlock attr@(_,classes,_) rawCode) = do
   case highlightHtml attr rawCode of
-         Left _  -> return $ pre ! (if null classes
-                                       then []
-                                       else [theclass $ unwords classes]) $ thecode << 
-                                            (rawCode ++ "\n")
+         Left _  -> -- change leading newlines into <br /> tags, because some
+                    -- browsers ignore leading newlines in pre blocks
+                    let (leadingBreaks, rawCode') = span (=='\n') rawCode
+                    in  return $ pre ! (if null classes
+                                           then []
+                                           else [theclass $ unwords classes]) $ thecode <<
+                                                (replicate (length leadingBreaks) br +++
+                                                [stringToHtml $ rawCode' ++ "\n"])
          Right h -> addToCSS defaultHighlightingCss >> return h
 blockToHtml opts (BlockQuote blocks) =
   -- in S5, treat list in blockquote specially
