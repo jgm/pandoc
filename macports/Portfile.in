@@ -25,7 +25,7 @@ use_configure       no
 build.args          PREFIX=${prefix}
 build.target        build-all
 
-destroot            { 
+destroot            {
   # install pandoc executable, libraries, and library documentation:
   system "(cd ${worksrcpath}; ./setup copy --destdir=${destroot})"
   # strip the pandoc binary:
@@ -54,12 +54,12 @@ destroot            {
     markdown2pdf.1 html2markdown.1 markdown2odt.1 \
     ${destroot}${prefix}/share/man/man1
 }
- 
-post-activate       { 
+
+post-activate       {
   # Register the library with the ghc package database:
-  system "${prefix}/libexec/${name}-${version}/register.sh" 
+  system "${prefix}/libexec/${name}-${version}/register.sh"
 }
 
 #pre-deactivate     {
-#  system "${prefix}/libexec/${name}-${version}/unregister.sh" 
+#  system "${prefix}/libexec/${name}-${version}/unregister.sh"
 #}
