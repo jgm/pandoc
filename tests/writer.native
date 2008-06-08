@@ -275,7 +275,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Para [Quoted SingleQuote [Str "Oak,"],Space,Quoted SingleQuote [Str "elm,"],Space,Str "and",Space,Quoted SingleQuote [Str "beech"],Space,Str "are",Space,Str "names",Space,Str "of",Space,Str "trees",Str ".",Space,Str "So",Space,Str "is",Space,Quoted SingleQuote [Str "pine",Str "."]]
 , Para [Quoted SingleQuote [Str "He",Space,Str "said,",Space,Quoted DoubleQuote [Str "I",Space,Str "want",Space,Str "to",Space,Str "go",Str "."]],Space,Str "Were",Space,Str "you",Space,Str "alive",Space,Str "in",Space,Str "the",Space,Str "70",Apostrophe,Str "s?"]
 , Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "quoted",Space,Quoted SingleQuote [Code "code"],Space,Str "and",Space,Str "a",Space,Quoted DoubleQuote [Link [Str "quoted",Space,Str "link"] ("http://example.com/?foo=1&bar=2","")],Str "."]
-, Para [Str "Some",Space,Str "dashes:",Space,Str "one",EmDash,Str "two",EmDash,Str "three",EmDash,Str "four",EmDash,Str "five",Str "."]
+, Para [Str "Some",Space,Str "dashes:",Space,Str "one",EmDash,Str "two",Space,EmDash,Space,Str "three",EmDash,Str "four",Space,EmDash,Space,Str "five",Str "."]
 , Para [Str "Dashes",Space,Str "between",Space,Str "numbers:",Space,Str "5",EnDash,Str "7,",Space,Str "255",EnDash,Str "66,",Space,Str "1987",EnDash,Str "1999",Str "."]
 , Para [Str "Ellipses",Ellipses,Str "and",Ellipses,Str "and",Ellipses,Str "."]
 , HorizontalRule

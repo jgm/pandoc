@@ -537,7 +537,7 @@ unescaped spaces: a^b c^d, a~b c~d\.
 Here is some quoted `\f[B]code\f[]' and a
 \[lq]quoted link (http://example.com/?foo=1&bar=2)\[rq]\.
 .PP
-Some dashes: one\[em]two\[em]three\[em]four\[em]five\.
+Some dashes: one\[em]two \[em] three\[em]four \[em] five\.
 .PP
 Dashes between numbers: 5\[en]7, 255\[en]66, 1987\[en]1999\.
 .PP

@@ -829,7 +829,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       <quote><ulink url="http://example.com/?foo=1&amp;bar=2">quoted link</ulink></quote>.
     </para>
     <para>
-      Some dashes: one&#8212;two&#8212;three&#8212;four&#8212;five.
+      Some dashes: one&#8212;two &#8212; three&#8212;four &#8212; five.
     </para>
     <para>
       Dashes between numbers: 5&#8211;7, 255&#8211;66, 1987&#8211;1999.

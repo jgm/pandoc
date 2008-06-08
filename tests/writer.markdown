@@ -480,7 +480,7 @@ unescaped spaces: a\^b c\^d, a\~b c\~d.
 Here is some quoted '`code`' and a
 "[quoted link](http://example.com/?foo=1&bar=2)".
 
-Some dashes: one--two--three--four--five.
+Some dashes: one--two -- three--four -- five.
 
 Dashes between numbers: 5-7, 255-66, 1987-1999.
 

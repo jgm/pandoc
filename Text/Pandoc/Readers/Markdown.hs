@@ -851,8 +851,7 @@ dash = enDash <|> emDash
 
 enDash = try $ char '-' >> notFollowedBy (noneOf "0123456789") >> return EnDash
 
-emDash = try $ skipSpaces >> oneOfStrings ["---", "--"] >>
-               skipSpaces >> return EmDash
+emDash = oneOfStrings ["---", "--"] >> return EmDash
 
 whitespace = do
   sps <- many1 (oneOf spaceChars)

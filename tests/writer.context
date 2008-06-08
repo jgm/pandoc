@@ -616,7 +616,7 @@ is \quote{pine.}
 Here is some quoted \quote{\type{code}} and a
 \quotation{\useURL[3][http://example.com/?foo=1&bar=2][][quoted link]\from[3]}.
 
-Some dashes: one---two---three---four---five.
+Some dashes: one---two --- three---four --- five.
 
 Dashes between numbers: 5--7, 255--66, 1987--1999.
 

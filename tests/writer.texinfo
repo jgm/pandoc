@@ -688,7 +688,7 @@ These should not be superscripts or subscripts@comma{} because of the unescaped 
 
 Here is some quoted `@code{code}' and a ``@uref{http://example.com/?foo=1&bar=2,quoted link}''.
 
-Some dashes: one---two---three---four---five.
+Some dashes: one---two --- three---four --- five.
 
 Dashes between numbers: 5--7@comma{} 255--66@comma{} 1987--1999.
 
