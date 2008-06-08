@@ -257,9 +257,9 @@ inlineToLaTeX (Superscript lst) =
 inlineToLaTeX (Subscript lst) = do
   contents <- inlineListToLaTeX $ deVerb lst
   -- oddly, latex includes \textsuperscript but not \textsubscript
-  -- so we have to define it:
-  addToHeader "\\newcommand{\\textsubscript}[1]{\\ensuremath{_{\\scriptsize\\textrm{#1}}}}"
-  return $ inCmd "textsubscript" contents
+  -- so we have to define it (using a different name so as not to conflict with memoir class):
+  addToHeader "\\newcommand{\\textsubscr}[1]{\\ensuremath{_{\\scriptsize\\textrm{#1}}}}"
+  return $ inCmd "textsubscr" contents
 inlineToLaTeX (Code str) = do
   st <- get
   if stInNote st

@@ -5,7 +5,7 @@
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 
-\newcommand{\textsubscript}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
+\newcommand{\textsubscr}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
 \usepackage[breaklinks=true]{hyperref}
 \usepackage[normalem]{ulem}
 \usepackage{enumerate}
@@ -529,8 +529,8 @@ This is code: \verb!>!, \verb!$!, \verb!\!, \verb!\$!,
 Superscripts: a\textsuperscript{bc}d
 a\textsuperscript{\emph{hello}} a\textsuperscript{hello there}.
 
-Subscripts: H\textsubscript{2}O, H\textsubscript{23}O,
-H\textsubscript{many of them}O.
+Subscripts: H\textsubscr{2}O, H\textsubscr{23}O,
+H\textsubscr{many of them}O.
 
 These should not be superscripts or subscripts, because of the
 unescaped spaces: a\^{}b c\^{}d, a\ensuremath{\sim}b
