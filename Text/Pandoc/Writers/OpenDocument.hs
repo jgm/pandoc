@@ -55,6 +55,7 @@ data WriterState =
                 , stParaStyles  :: [Doc]
                 , stListStyles  :: [(Int, [Doc])]
                 , indentPara    :: Int
+                , inDefinition  :: Bool
                 }
 
 defaultWriterState :: WriterState
@@ -64,6 +65,7 @@ defaultWriterState =
                 , stParaStyles  = []
                 , stListStyles  = []
                 , indentPara    = 0
+                , inDefinition  = False
                 }
 
 addTableStyle :: Doc -> State WriterState ()
@@ -80,6 +82,9 @@ increaseIndent = modify $ \s -> s { indentPara = 1 + indentPara s }
 
 resetIndent :: State WriterState ()
 resetIndent = modify $ \s -> s { indentPara = 0 }
+
+setInDefinitionList :: Bool -> State WriterState ()
+setInDefinitionList b = modify $  \s -> s { inDefinition = b }
 
 inParagraphTags :: Doc -> Doc
 inParagraphTags = inTags False "text:p" [("text:style-name", "Text_20_body")]
@@ -231,7 +236,10 @@ blockToOpenDocument o bs
     | HorizontalRule   <- bs = return empty
     | otherwise              = return empty
     where
-      defList       b = vcat <$> mapM (deflistItemToOpenDocument o) b
+      defList       b = do setInDefinitionList True
+                           r <- vcat  <$> mapM (deflistItemToOpenDocument o) b
+                           setInDefinitionList False
+                           return r
       preformatted  s = vcat <$> mapM (inPreformattedTags . escapeStringForXML) (lines s)
       mkBlockQuote  b = do increaseIndent
                            i <- paraStyle "Quotations" []
@@ -406,16 +414,18 @@ paraStyle :: String -> [(String,String)] -> State WriterState Int
 paraStyle parent attrs = do
   pn <- (+)   1 . length       <$> gets stParaStyles
   i  <- (*) 0.5 . fromIntegral <$> gets indentPara :: State WriterState Double
+  b  <- gets inDefinition
   let styleAttr = [ ("style:name"             , "P" ++ show pn)
                   , ("style:family"           , "paragraph"   )
                   , ("style:parent-style-name", parent        )]
-      indent    = if i == 0
+      indentVal = if b then "0.5in" else show i ++ "in"
+      indent    = if i == 0 && not b
                   then empty
                   else selfClosingTag "style:paragraph-properties"
-                           [ ("fo:margin-left"         , show  i ++ "in")
-                           , ("fo:margin-right"        , "0in"          )
-                           , ("fo:text-indent"         , "0in"          )
-                           , ("style:auto-text-indent" , "false"        )]
+                           [ ("fo:margin-left"         , indentVal)
+                           , ("fo:margin-right"        , "0in"    )
+                           , ("fo:text-indent"         , "0in"    )
+                           , ("style:auto-text-indent" , "false"  )]
   addParaStyle $ inTags True "style:style" (styleAttr ++ attrs) indent
   return pn
 
