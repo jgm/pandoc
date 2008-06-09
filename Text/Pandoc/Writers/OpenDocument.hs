@@ -37,7 +37,7 @@ import Text.Pandoc.Readers.TeXMath
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
 import Control.Applicative ((<$>))
-import Control.Monad.State
+import Control.Monad.State hiding ( when )
 import Data.Char (chr)
 
 -- | Auxiliary function to convert Plain block to Para.
@@ -120,16 +120,14 @@ authorToOpenDocument name =
 -- | Convert Pandoc document to string in OpenDocument format.
 writeOpenDocument :: WriterOptions -> Pandoc -> String
 writeOpenDocument opts (Pandoc (Meta title authors date) blocks) =
-  let root     = inTags True "office:document-content" openDocumentNameSpaces
-      header   = if writerStandalone opts
-                    then text (writerHeader opts)
-                    else empty
-      (tit, _) = runState (wrap opts title) defaultWriterState
-      meta     = if writerStandalone opts
-                    then inHeaderTags 1 tit $$
-                         (vcat (map authorToOpenDocument authors)) $$
-                         (inParagraphTags (text $ escapeStringForXML date))
-                    else empty
+  let when p a = if p then a else empty
+      root     = inTags True "office:document-content" openDocumentNameSpaces
+      header   = when (writerStandalone opts) $ text (writerHeader opts)
+      title'   = case runState (wrap opts title) defaultWriterState of
+                   (t,_) -> if isEmpty t then empty else inHeaderTags 1 t
+      authors' = when (authors /= []) $ vcat (map authorToOpenDocument authors)
+      date'    = when (date    /= []) $ inParagraphTags (text $ escapeStringForXML date)
+      meta     = when (writerStandalone opts) $ title' $$ authors' $$ date'
       before   = writerIncludeBefore opts
       after    = writerIncludeAfter opts
       (doc, s) = runState (blocksToOpenDocument opts blocks) defaultWriterState
