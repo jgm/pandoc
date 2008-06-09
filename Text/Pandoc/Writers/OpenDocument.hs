@@ -155,11 +155,7 @@ withParagraphStyle _ _ [] = return empty
 inPreformattedTags :: String -> State WriterState Doc
 inPreformattedTags s = do
   n <- paraStyle "Preformatted_20_Text" []
-  return . inParagraphTagsWithStyle ("P" ++ show n) . hcat . rest $ s
-      where rest (' ':' ':' ':' ':xs) = selfClosingTag "text:tab" [] : rest xs
-            rest (              x:xs) = char x : rest xs
-            rest                   [] = []
-
+  return . inParagraphTagsWithStyle ("P" ++ show n) . text $ s
 
 orderedListToOpenDocument :: WriterOptions -> Int -> [[Block]] -> State WriterState Doc
 orderedListToOpenDocument o pn bs =
