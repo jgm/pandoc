@@ -418,7 +418,7 @@ paraStyle parent attrs = do
   let styleAttr = [ ("style:name"             , "P" ++ show pn)
                   , ("style:family"           , "paragraph"   )
                   , ("style:parent-style-name", parent        )]
-      indentVal = if b then "0.5in" else show i ++ "in"
+      indentVal = flip (++) "in" . show $ if b then (max 0.5 i) else i
       indent    = if i == 0 && not b
                   then empty
                   else selfClosingTag "style:paragraph-properties"
