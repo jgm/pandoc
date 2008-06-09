@@ -343,12 +343,13 @@ generateStyles acc =
 bulletListStyle :: Int -> State WriterState (Int,(Int,[Doc]))
 bulletListStyle l =
     let doStyles  i = inTags True "text:list-level-style-bullet"
-                      [ ("text:level"      , show i             )
+                      [ ("text:level"      , show (i + 1)       )
                       , ("text:style-name" , "Bullet_20_Symbols")
                       , ("style:num-suffix", "."                )
-                      , ("text:bullet-char", "*"                )
+                      , ("text:bullet-char", [bulletList !! i]  )
                       ] (listLevelStyle i)
-        listElStyle = map doStyles [1..10]
+        bulletList  = map chr $ cycle [8226,8227,8259]
+        listElStyle = map doStyles [0..9]
     in  do pn <- paraListStyle l
            return (pn, (l, listElStyle))
 
