@@ -36,7 +36,8 @@ import Text.Pandoc.XML
 import Text.Pandoc.Readers.TeXMath
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
-import Control.Applicative ((<$>))
+import Control.Applicative ( (<$>) )
+import Control.Arrow ( (***), (>>>) )
 import Control.Monad.State hiding ( when )
 import Data.Char (chr)
 
@@ -67,6 +68,9 @@ defaultWriterState =
                 , indentPara    = 0
                 , inDefinition  = False
                 }
+
+when :: Bool -> Doc -> Doc
+when p a = if p then a else empty
 
 addTableStyle :: Doc -> State WriterState ()
 addTableStyle i = modify $ \s -> s { stTableStyles = i : stTableStyles s }
@@ -103,6 +107,19 @@ inQuotes :: QuoteType -> Doc -> Doc
 inQuotes SingleQuote s = text "&#8216;" <> s <> text "&#8217;"
 inQuotes DoubleQuote s = text "&#8220;" <> s <> text "&#8221;"
 
+handleSpaces :: String -> Doc
+handleSpaces s
+    | ( ' ':_) <- s = genTag s
+    | ('\t':x) <- s = selfClosingTag "text:tab" [] <> rm x
+    | otherwise     = rm s
+    where
+        genTag       = span (==' ') >>> tag . length *** rm >>> uncurry (<>)
+        tag n        = when (n /= 0) $ selfClosingTag "text:s" [("text:c", show n)]
+        rm ( ' ':xs) = char ' ' <> genTag xs
+        rm ('\t':xs) = selfClosingTag "text:tab" [] <> genTag xs
+        rm (   x:xs) = char  x  <> rm xs
+        rm        [] = empty
+
 -- | Convert list of authors to a docbook <author> section
 authorToOpenDocument :: [Char] -> Doc
 authorToOpenDocument name =
@@ -125,8 +142,7 @@ authorToOpenDocument name =
 -- | Convert Pandoc document to string in OpenDocument format.
 writeOpenDocument :: WriterOptions -> Pandoc -> String
 writeOpenDocument opts (Pandoc (Meta title authors date) blocks) =
-  let when p a = if p then a else empty
-      root     = inTags True "office:document-content" openDocumentNameSpaces
+  let root     = inTags True "office:document-content" openDocumentNameSpaces
       header   = when (writerStandalone opts) $ text (writerHeader opts)
       title'   = case runState (wrap opts title) defaultWriterState of
                    (t,_) -> if isEmpty t then empty else inHeaderTags 1 t
@@ -136,7 +152,6 @@ writeOpenDocument opts (Pandoc (Meta title authors date) blocks) =
       before   = writerIncludeBefore opts
       after    = writerIncludeAfter opts
       (doc, s) = runState (blocksToOpenDocument opts blocks) defaultWriterState
-
       body     = (if null before then empty else text before) $$
                  doc $$
                  (if null after then empty else text after)
@@ -158,7 +173,7 @@ withParagraphStyle _ _ [] = return empty
 inPreformattedTags :: String -> State WriterState Doc
 inPreformattedTags s = do
   n <- paraStyle "Preformatted_20_Text" []
-  return . inParagraphTagsWithStyle ("P" ++ show n) . text $ s
+  return . inParagraphTagsWithStyle ("P" ++ show n) . handleSpaces $ s
 
 orderedListToOpenDocument :: WriterOptions -> Int -> [[Block]] -> State WriterState Doc
 orderedListToOpenDocument o pn bs =
@@ -212,7 +227,7 @@ inBlockQuote  o i (b:bs)
                              go ni =<< inBlockQuote o ni l
     | Para       l <- b = do go i  =<< inParagraphTagsWithStyle ("P" ++ show  i) <$> inlinesToOpenDocument o l
     | otherwise         = do go i  =<< blockToOpenDocument o b
-    where go  ni block  = ($$) block <$>  inBlockQuote o ni bs
+    where go  ni block  = ($$) block <$> inBlockQuote o ni bs
 inBlockQuote     _ _ [] = resetIndent >> return empty
 
 -- | Convert a list of Pandoc blocks to OpenDocument.
@@ -306,7 +321,7 @@ inlineToOpenDocument o ils
     | Apostrophe    <- ils = return $ text "&#8217;"
     | Space         <- ils = return $ char ' '
     | LineBreak     <- ils = return $ selfClosingTag "text:line-break" []
-    | Str         s <- ils = return $ text $ escapeStringForXML s
+    | Str         s <- ils = return $ handleSpaces $ escapeStringForXML s
     | Emph        l <- ils = inSpanTags "Emphasis"           <$> inlinesToOpenDocument o l
     | Strong      l <- ils = inSpanTags "Strong_20_Emphasis" <$> inlinesToOpenDocument o l
     | Strikeout   l <- ils = inSpanTags "Strikeout"          <$> inlinesToOpenDocument o l
@@ -322,7 +337,7 @@ inlineToOpenDocument o ils
     | Note        l <- ils = mkNote l
     | otherwise            = return empty
     where
-      preformatted = return . inSpanTags "Teletype" . text . escapeStringForXML
+      preformatted = return . inSpanTags "Teletype" . handleSpaces . escapeStringForXML
       mkLink   s t = inTags False "text:a" [ ("xlink:type" , "simple")
                                            , ("xlink:href" , s       )
                                            , ("office:name", t       )
@@ -419,9 +434,8 @@ paraStyle parent attrs = do
                   , ("style:family"           , "paragraph"   )
                   , ("style:parent-style-name", parent        )]
       indentVal = flip (++) "in" . show $ if b then (max 0.5 i) else i
-      indent    = if i == 0 && not b
-                  then empty
-                  else selfClosingTag "style:paragraph-properties"
+      indent    = when (i /= 0 || b) $
+                  selfClosingTag "style:paragraph-properties"
                            [ ("fo:margin-left"         , indentVal)
                            , ("fo:margin-right"        , "0in"    )
                            , ("fo:text-indent"         , "0in"    )
