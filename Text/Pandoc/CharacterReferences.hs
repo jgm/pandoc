@@ -38,9 +38,9 @@ import qualified Data.Map as Map
 -- | Parse character entity.
 characterReference :: GenParser Char st Char
 characterReference = try $ do
-  st <- char '&'
+  char '&'
   character <- numRef <|> entity
-  end <- char ';'
+  char ';'
   return character  
 
 numRef :: GenParser Char st Char
