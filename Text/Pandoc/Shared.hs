@@ -228,6 +228,7 @@ wrapIfNeeded opts = if writerWrapText opts
                        else ($)
 
 -- auxiliary function for wrappedTeX
+isNote :: Inline -> Bool
 isNote (Note _) = True
 isNote _ = False
 
@@ -386,7 +387,10 @@ charsInBalanced' open close = try $ do
 
 -- Auxiliary functions for romanNumeral:
 
+lowercaseRomanDigits :: [Char]
 lowercaseRomanDigits = ['i','v','x','l','c','d','m']
+
+uppercaseRomanDigits :: [Char]
 uppercaseRomanDigits = map toUpper lowercaseRomanDigits
 
 -- | Parses a roman numeral (uppercase or lowercase), returns number.
@@ -421,13 +425,16 @@ romanNumeral upperCase = do
 
 -- Parsers for email addresses and URIs
 
+emailChar :: GenParser Char st Char
 emailChar = alphaNum <|> oneOf "-+_."
 
+domainChar :: GenParser Char st Char
 domainChar = alphaNum <|> char '-'
 
+domain :: GenParser Char st [Char]
 domain = do
   first <- many1 domainChar
-  dom <- many1 (try (do{ char '.'; many1 domainChar }))
+  dom <- many1 $ try (char '.' >> many1 domainChar )
   return $ joinWithSep "." (first:dom)
 
 -- | Parses an email address; returns string.
@@ -441,6 +448,7 @@ emailAddress = try $ do
   return $ addr ++ '@':dom
 
 -- | Parses a URI.
+uri :: GenParser Char st String
 uri = try $ do
   str <- many1 $ satisfy isAllowedInURI
   case parseURI str of
