@@ -73,7 +73,7 @@ readers = [("native"   , readPandoc)
 
 -- | Reader for native Pandoc format.
 readPandoc :: ParserState -> String -> Pandoc
-readPandoc state input = read input
+readPandoc _ input = read input
     
 -- | Association list of formats and pairs of writers and default headers.
 writers :: [ ( String, ( WriterOptions -> Pandoc -> String, String ) ) ]
@@ -93,7 +93,7 @@ writers = [("native"       , (writeDoc, ""))
 
 -- | Writer for Pandoc native format.
 writeDoc :: WriterOptions -> Pandoc -> String
-writeDoc options = prettyPandoc 
+writeDoc _ = prettyPandoc
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -309,9 +309,9 @@ options =
                  
     , Option "D" ["print-default-header"]
                  (ReqArg
-                  (\arg opt -> do
+                  (\arg _ -> do
                      let header = case (lookup arg writers) of
-                           Just (writer, head) -> head
+                           Just (_, h) -> h
                            Nothing     -> error ("Unknown reader: " ++ arg) 
                      hPutStr stdout header
                      exitWith ExitSuccess)
@@ -348,11 +348,11 @@ options =
 
 -- Returns usage message
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
-usageMessage programName options = usageInfo  
+usageMessage programName opts = usageInfo
   (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++ 
   (joinWithSep ", " $ map fst readers) ++ "\nOutput formats:  " ++ 
   (joinWithSep ", " $ map fst writers) ++ "\nOptions:")
-  options
+  opts
  
 -- Determine default reader based on source file extensions
 defaultReaderName :: [FilePath] -> String
@@ -393,9 +393,10 @@ defaultWriterName x =
     ".db"       -> "docbook"
     ".xml"      -> "docbook"
     ".sgml"     -> "docbook"
-    ['.',x] | x `elem` ['1'..'9'] -> "man"
+    ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
+main :: IO ()
 main = do
 
   rawArgs <- getArgs
