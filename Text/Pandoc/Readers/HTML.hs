@@ -60,15 +60,18 @@ readHtml = readWith parseHtml
 -- Constants
 --
 
+eitherBlockOrInline :: [[Char]]
 eitherBlockOrInline = ["applet", "button", "del", "iframe", "ins",
                   "map", "area", "object"]
 
+inlineHtmlTags :: [[Char]]
 inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big",
                   "br", "cite", "code", "dfn", "em", "font", "i", "img",
                   "input", "kbd", "label", "q", "s", "samp", "select",
                   "small", "span", "strike", "strong", "sub", "sup",
                   "textarea", "tt", "u", "var"] ++ eitherBlockOrInline
 
+blockHtmlTags :: [[Char]]
 blockHtmlTags = ["address", "blockquote", "body", "center", "dir", "div",
                  "dl", "fieldset", "form", "h1", "h2", "h3", "h4",
                  "h5", "h6", "hr", "html", "isindex", "menu", "noframes",
@@ -76,6 +79,7 @@ blockHtmlTags = ["address", "blockquote", "body", "center", "dir", "div",
                  "dt", "frameset", "li", "tbody", "td", "tfoot",
                  "th", "thead", "tr", "script"] ++ eitherBlockOrInline
 
+sanitaryTags :: [[Char]]
 sanitaryTags = ["a", "abbr", "acronym", "address", "area", "b", "big",
                 "blockquote", "br", "button", "caption", "center",
                 "cite", "code", "col", "colgroup", "dd", "del", "dfn",
@@ -88,6 +92,7 @@ sanitaryTags = ["a", "abbr", "acronym", "address", "area", "b", "big",
                 "td", "textarea", "tfoot", "th", "thead", "tr", "tt",
                 "u", "ul", "var"]
 
+sanitaryAttributes :: [[Char]]
 sanitaryAttributes = ["abbr", "accept", "accept-charset",
                       "accesskey", "action", "align", "alt", "axis",
                       "border", "cellpadding", "cellspacing", "char",
@@ -110,12 +115,16 @@ sanitaryAttributes = ["abbr", "accept", "accept-charset",
 
 -- | Returns @True@ if sanitization is specified and the specified tag is 
 --  not on the sanitized tag list.
+unsanitaryTag :: [Char]
+              -> GenParser tok ParserState Bool
 unsanitaryTag tag = do
   st <- getState
   return $ stateSanitizeHTML st && tag `notElem` sanitaryTags
 
 -- | returns @True@ if sanitization is specified and the specified attribute
 --  is not on the sanitized attribute list.
+unsanitaryAttribute :: ([Char], String, t)
+                    -> GenParser tok ParserState Bool
 unsanitaryAttribute (attr, val, _) = do
   st <- getState
   return $ stateSanitizeHTML st &&
@@ -123,7 +132,8 @@ unsanitaryAttribute (attr, val, _) = do
              (attr `elem` ["href","src"] && unsanitaryURI val))
 
 -- | Returns @True@ if the specified URI is potentially a security risk.
-unsanitaryURI uri =
+unsanitaryURI :: String -> Bool
+unsanitaryURI u =
   let safeURISchemes = [ "", "http", "https", "ftp", "mailto", "file",
              "telnet", "gopher", "aaa", "aaas", "acap", "cap", "cid",
              "crid", "dav", "dict", "dns", "fax", "go", "h323", "im",
@@ -134,22 +144,26 @@ unsanitaryURI uri =
              "ldaps", "magnet", "mms", "msnim", "notes", "rsync",
              "secondlife", "skype", "ssh", "sftp", "smb", "sms",
              "snews", "webcal", "ymsgr"]
-  in  case parseURIReference uri of
+  in  case parseURIReference u of
            Just p  -> (map toLower $ uriScheme p) `notElem` safeURISchemes
            Nothing -> True
 
 -- | Read blocks until end tag.
+blocksTilEnd :: String -> GenParser Char ParserState [Block]
 blocksTilEnd tag = do
   blocks <- manyTill (block >>~ spaces) (htmlEndTag tag)
   return $ filter (/= Null) blocks
 
 -- | Read inlines until end tag.
+inlinesTilEnd :: String -> GenParser Char ParserState [Inline]
 inlinesTilEnd tag = manyTill inline (htmlEndTag tag)
 
 -- | Parse blocks between open and close tag.
+blocksIn :: String -> GenParser Char ParserState [Block]
 blocksIn tag = try $ htmlTag tag >> spaces >> blocksTilEnd tag
 
 -- | Parse inlines between open and close tag.
+inlinesIn :: String -> GenParser Char ParserState [Inline]
 inlinesIn tag = try $ htmlTag tag >> spaces >> inlinesTilEnd tag
 
 -- | Extract type from a tag:  e.g. @br@ from @\<br\>@
@@ -160,6 +174,7 @@ extractTagType ('<':rest) =
 extractTagType _ = ""
 
 -- | Parse any HTML tag (opening or self-closing) and return text of tag
+anyHtmlTag :: GenParser Char ParserState [Char]
 anyHtmlTag = try $ do
   char '<'
   spaces
@@ -177,6 +192,7 @@ anyHtmlTag = try $ do
      then return $ "<!-- unsafe HTML removed -->"
      else return result
 
+anyHtmlEndTag :: GenParser Char ParserState [Char]
 anyHtmlEndTag = try $ do
   char '<'   
   spaces
@@ -201,16 +217,19 @@ htmlTag tag = try $ do
   optional (string "/")
   spaces
   char '>'
-  return (tag, (map (\(name, content, raw) -> (name, content)) attribs))
+  return (tag, (map (\(name, content, _) -> (name, content)) attribs))
 
 -- parses a quoted html attribute value
+quoted :: Char -> GenParser Char st (String, String)
 quoted quoteChar = do
   result <- between (char quoteChar) (char quoteChar) 
                     (many (noneOf [quoteChar]))
   return (result, [quoteChar])
 
+nullAttribute :: ([Char], [Char], [Char])
 nullAttribute = ("", "", "") 
 
+htmlAttribute :: GenParser Char ParserState ([Char], [Char], [Char])
 htmlAttribute = do
   attr <- htmlRegularAttribute <|> htmlMinimizedAttribute
   unsanitary <- unsanitaryAttribute attr
@@ -219,11 +238,13 @@ htmlAttribute = do
      else return attr
 
 -- minimized boolean attribute
+htmlMinimizedAttribute :: GenParser Char st ([Char], [Char], [Char])
 htmlMinimizedAttribute = try $ do
   many1 space
   name <- many1 (choice [letter, oneOf ".-_:"])
   return (name, name, name)
 
+htmlRegularAttribute :: GenParser Char st ([Char], [Char], [Char])
 htmlRegularAttribute = try $ do
   many1 space
   name <- many1 (choice [letter, oneOf ".-_:"])
@@ -239,6 +260,7 @@ htmlRegularAttribute = try $ do
           (name ++ "=" ++ quoteStr ++ content ++ quoteStr))
 
 -- | Parse an end tag of type 'tag'
+htmlEndTag :: [Char] -> GenParser Char st [Char]
 htmlEndTag tag = try $ do
   char '<'   
   spaces
@@ -250,21 +272,26 @@ htmlEndTag tag = try $ do
   return $ "</" ++ tag ++ ">"
 
 -- | Returns @True@ if the tag is (or can be) an inline tag.
+isInline :: String -> Bool
 isInline tag = (extractTagType tag) `elem` inlineHtmlTags
 
 -- | Returns @True@ if the tag is (or can be) a block tag.
+isBlock :: String -> Bool
 isBlock tag = (extractTagType tag) `elem` blockHtmlTags 
 
+anyHtmlBlockTag :: GenParser Char ParserState [Char]
 anyHtmlBlockTag = try $ do
   tag <- anyHtmlTag <|> anyHtmlEndTag
   if isBlock tag then return tag else fail "not a block tag"
 
+anyHtmlInlineTag :: GenParser Char ParserState [Char]
 anyHtmlInlineTag = try $ do
   tag <- anyHtmlTag <|> anyHtmlEndTag
   if not (isBlock tag) then return tag else fail "not an inline tag"
 
 -- | Parses material between script tags.
 -- Scripts must be treated differently, because they can contain '<>' etc.
+htmlScript :: GenParser Char ParserState [Char]
 htmlScript = try $ do
   open <- string "<script"
   rest <- manyTill anyChar (htmlEndTag "script")
@@ -275,6 +302,7 @@ htmlScript = try $ do
 
 -- | Parses material between style tags.
 -- Style tags must be treated differently, because they can contain CSS
+htmlStyle :: GenParser Char ParserState [Char]
 htmlStyle = try $ do
   open <- string "<style"
   rest <- manyTill anyChar (htmlEndTag "style")
@@ -283,8 +311,10 @@ htmlStyle = try $ do
      then return "<!-- unsafe HTML removed -->"
      else return $ open ++ rest ++ "</style>"
 
+htmlBlockElement :: GenParser Char ParserState [Char]
 htmlBlockElement = choice [ htmlScript, htmlStyle, htmlComment, xmlDec, definition ]
 
+rawHtmlBlock :: GenParser Char ParserState Block
 rawHtmlBlock = try $ do
   body <- htmlBlockElement <|> anyHtmlBlockTag
   state <- getState
@@ -292,10 +322,12 @@ rawHtmlBlock = try $ do
 
 -- We don't want to parse </body> or </html> as raw HTML, since these
 -- are handled in parseHtml.
+rawHtmlBlock' :: GenParser Char ParserState Block
 rawHtmlBlock' = do notFollowedBy' (htmlTag "/body" <|> htmlTag "/html")
                    rawHtmlBlock
 
 -- | Parses an HTML comment.
+htmlComment :: GenParser Char st [Char]
 htmlComment = try $ do
   string "<!--"
   comment <- manyTill anyChar (try (string "-->"))
@@ -305,21 +337,25 @@ htmlComment = try $ do
 -- parsing documents
 --
 
+xmlDec :: GenParser Char st [Char]
 xmlDec = try $ do
   string "<?"
   rest <- manyTill anyChar (char '>')
   return $ "<?" ++ rest ++ ">"
 
+definition :: GenParser Char st [Char]
 definition = try $ do
   string "<!"
   rest <- manyTill anyChar (char '>')
   return $ "<!" ++ rest ++ ">"
 
+nonTitleNonHead :: GenParser Char ParserState Char
 nonTitleNonHead = try $ do
   notFollowedBy $ (htmlTag "title" >> return ' ') <|> 
                   (htmlEndTag "head" >> return ' ')
   (rawHtmlBlock >> return ' ') <|> anyChar
 
+parseTitle :: GenParser Char ParserState [Inline]
 parseTitle = try $ do
   (tag, _) <- htmlTag "title"
   contents <- inlinesTilEnd tag
@@ -327,6 +363,7 @@ parseTitle = try $ do
   return contents
 
 -- parse header and return meta-information (for now, just title)
+parseHead :: GenParser Char ParserState ([Inline], [a], [Char])
 parseHead = try $ do
   htmlTag "head"
   spaces
@@ -336,16 +373,19 @@ parseHead = try $ do
   htmlEndTag "head"
   return (contents, [], "")
 
+skipHtmlTag :: String -> GenParser Char ParserState ()
 skipHtmlTag tag = optional (htmlTag tag)
 
 -- h1 class="title" representation of title in body
+bodyTitle :: GenParser Char ParserState [Inline]
 bodyTitle = try $ do
-  (tag, attribs) <- htmlTag "h1"  
-  cl <- case (extractAttribute "class" attribs) of
-          Just "title" -> return ""
-          otherwise    -> fail "not title"
+  (_, attribs) <- htmlTag "h1"  
+  case (extractAttribute "class" attribs) of
+       Just "title" -> return ""
+       _            -> fail "not title"
   inlinesTilEnd "h1"
 
+parseHtml :: GenParser Char ParserState Pandoc
 parseHtml = do
   sepEndBy (choice [xmlDec, definition, htmlComment]) spaces
   skipHtmlTag "html"
@@ -367,8 +407,10 @@ parseHtml = do
 -- parsing blocks
 --
 
+parseBlocks :: GenParser Char ParserState [Block]
 parseBlocks = spaces >> sepEndBy block spaces >>= (return . filter (/= Null))
 
+block :: GenParser Char ParserState Block
 block = choice [ codeBlock
                , header
                , hrule
@@ -383,11 +425,13 @@ block = choice [ codeBlock
 -- header blocks
 --
 
+header :: GenParser Char ParserState Block
 header = choice (map headerLevel (enumFromTo 1 5)) <?> "header"
 
+headerLevel :: Int -> GenParser Char ParserState Block
 headerLevel n = try $ do
     let level = "h" ++ show n
-    (tag, attribs) <- htmlTag level
+    htmlTag level
     contents <- inlinesTilEnd level
     return $ Header n (normalizeSpaces contents)
 
@@ -395,8 +439,9 @@ headerLevel n = try $ do
 -- hrule block
 --
 
+hrule :: GenParser Char ParserState Block
 hrule = try  $ do
-  (tag, attribs) <- htmlTag "hr"
+  (_, attribs) <- htmlTag "hr"
   state <- getState
   if not (null attribs) && stateParseRaw state
      then unexpected "attributes in hr" -- parse as raw in this case
@@ -408,6 +453,7 @@ hrule = try  $ do
 
 -- Note:  HTML tags in code blocks (e.g. for syntax highlighting) are 
 -- skipped, because they are not portable to output formats other than HTML.
+codeBlock :: GenParser Char ParserState Block
 codeBlock = try $ do
     htmlTag "pre" 
     result <- manyTill 
@@ -429,6 +475,7 @@ codeBlock = try $ do
 -- block quotes
 --
 
+blockQuote :: GenParser Char ParserState Block
 blockQuote = try $ htmlTag "blockquote" >> spaces >> 
                    blocksTilEnd "blockquote" >>= (return . BlockQuote)
 
@@ -436,8 +483,10 @@ blockQuote = try $ htmlTag "blockquote" >> spaces >>
 -- list blocks
 --
 
+list :: GenParser Char ParserState Block
 list = choice [ bulletList, orderedList, definitionList ] <?> "list"
 
+orderedList :: GenParser Char ParserState Block
 orderedList = try $ do
   (_, attribs) <- htmlTag "ol"
   (start, style) <- option (1, DefaultStyle) $
@@ -460,6 +509,7 @@ orderedList = try $ do
   htmlEndTag "ol"
   return $ OrderedList (start, style, DefaultDelim) items
 
+bulletList :: GenParser Char ParserState Block
 bulletList = try $ do
   htmlTag "ul"
   spaces
@@ -467,14 +517,16 @@ bulletList = try $ do
   htmlEndTag "ul"
   return $ BulletList items
 
+definitionList :: GenParser Char ParserState Block
 definitionList = try $ do
   failIfStrict  -- def lists not part of standard markdown
-  tag <- htmlTag "dl"
+  htmlTag "dl"
   spaces
   items <- sepEndBy1 definitionListItem spaces
   htmlEndTag "dl"
   return $ DefinitionList items
 
+definitionListItem :: GenParser Char ParserState ([Inline], [Block])
 definitionListItem = try $ do
   terms <- sepEndBy1 (inlinesIn "dt") spaces
   defs <- sepEndBy1 (blocksIn "dd") spaces
@@ -485,6 +537,7 @@ definitionListItem = try $ do
 -- paragraph block
 --
 
+para :: GenParser Char ParserState Block
 para = try $ htmlTag "p" >> inlinesTilEnd "p" >>= 
              return . Para . normalizeSpaces
 
@@ -492,12 +545,14 @@ para = try $ htmlTag "p" >> inlinesTilEnd "p" >>=
 -- plain block
 --
 
+plain :: GenParser Char ParserState Block
 plain = many1 inline >>= return . Plain . normalizeSpaces
 
 -- 
 -- inline
 --
 
+inline :: GenParser Char ParserState Inline
 inline = choice [ charRef
                 , strong
                 , emph
@@ -514,6 +569,7 @@ inline = choice [ charRef
                 , rawHtmlInline
                 ] <?> "inline"
 
+code :: GenParser Char ParserState Inline
 code = try $ do 
   htmlTag "code"
   result <- manyTill anyChar (htmlEndTag "code")
@@ -522,38 +578,49 @@ code = try $ do
   return $ Code $ decodeCharacterReferences $ removeLeadingTrailingSpace $ 
                   joinWithSep " " $ lines result 
 
+rawHtmlInline :: GenParser Char ParserState Inline
 rawHtmlInline = do
   result <- htmlScript <|> htmlStyle <|> htmlComment <|> anyHtmlInlineTag
   state <- getState
   if stateParseRaw state then return (HtmlInline result) else return (Str "")
 
+betweenTags :: [Char] -> GenParser Char ParserState [Inline]
 betweenTags tag = try $ htmlTag tag >> inlinesTilEnd tag >>= 
                         return . normalizeSpaces
 
+emph :: GenParser Char ParserState Inline
 emph = (betweenTags "em" <|> betweenTags "i") >>= return . Emph
 
+strong :: GenParser Char ParserState Inline
 strong = (betweenTags "b" <|> betweenTags "strong") >>= return . Strong
 
+superscript :: GenParser Char ParserState Inline
 superscript = failIfStrict >> betweenTags "sup" >>= return . Superscript
 
+subscript :: GenParser Char ParserState Inline
 subscript = failIfStrict >> betweenTags "sub" >>= return . Subscript
 
+strikeout :: GenParser Char ParserState Inline
 strikeout = failIfStrict >> (betweenTags "s" <|> betweenTags "strike") >>=
             return . Strikeout
 
+spanStrikeout :: GenParser Char ParserState Inline
 spanStrikeout = try $ do
   failIfStrict -- strict markdown has no strikeout, so treat as raw HTML
-  (tag, attributes) <- htmlTag "span" 
+  (_, attributes) <- htmlTag "span" 
   result <- case (extractAttribute "class" attributes) of
               Just "strikeout" -> inlinesTilEnd "span"
               _                -> fail "not a strikeout"
   return $ Strikeout result
 
+whitespace :: GenParser Char st Inline
 whitespace = many1 space >> return Space
 
 -- hard line break
+linebreak :: GenParser Char ParserState Inline
 linebreak = htmlTag "br" >> optional newline >> return LineBreak
 
+str :: GenParser Char st Inline
 str = many1 (noneOf "<& \t\n") >>= return . Str
 
 --
@@ -561,7 +628,8 @@ str = many1 (noneOf "<& \t\n") >>= return . Str
 --
 
 -- extract contents of attribute (attribute names are case-insensitive)
-extractAttribute name [] = Nothing
+extractAttribute :: [Char] -> [([Char], String)] -> Maybe String
+extractAttribute _    [] = Nothing
 extractAttribute name ((attrName, contents):rest) = 
   let name'     = map toLower name 
       attrName' = map toLower attrName
@@ -569,17 +637,19 @@ extractAttribute name ((attrName, contents):rest) =
          then Just (decodeCharacterReferences contents)
          else extractAttribute name rest
 
+link :: GenParser Char ParserState Inline
 link = try $ do
-  (tag, attributes) <- htmlTag "a"  
+  (_, attributes) <- htmlTag "a"  
   url <- case (extractAttribute "href" attributes) of
            Just url -> return url
            Nothing  -> fail "no href"
   let title = fromMaybe "" $ extractAttribute "title" attributes
-  label <- inlinesTilEnd "a"
-  return $ Link (normalizeSpaces label) (url, title)
+  lab <- inlinesTilEnd "a"
+  return $ Link (normalizeSpaces lab) (url, title)
 
+image :: GenParser Char ParserState Inline
 image = try $ do
-  (tag, attributes) <- htmlTag "img" 
+  (_, attributes) <- htmlTag "img" 
   url <- case (extractAttribute "src" attributes) of
            Just url -> return url
            Nothing  -> fail "no src"
