@@ -1,0 +1,8 @@
+Note to Debian users on "Suggested" dependencies:
+
+If you intend to use the markdown2pdf script, you should install
+texlive-latex-recommended (or, if you use teTeX, tetex-extra). This
+provides LaTeX packages that are needed by markdown2pdf.
+
+If you intend to use the html2markdown script, you should install
+tidy, plus either wget or w3m.
