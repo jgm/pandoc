@@ -14,10 +14,14 @@ X). If you're using Windows, you can install [Cygwin].
 Installing GHC
 --------------
 
-To compile Pandoc, you'll need [GHC] version 6.6 or greater. If you
-don't have GHC already, you can get it from the [GHC Download] page. If
-you're compiling GHC from source, be sure to get the `extralibs` in
-addition to the base tarball.
+To compile Pandoc, you'll need [GHC] version 6.6 or greater and [Cabal]
+version 1.2 or greater. If you don't have GHC already, you can get it
+from the [GHC Download] page. If you're compiling GHC from source, be
+sure to get the `extralibs` in addition to the base tarball. GHC comes
+with a version of Cabal. Note, however, that the version of Cabal that
+comes with GHC 6.6 is not recent enough. So if you are using GHC 6.6,
+you'll probably need to [install Cabal] separately. You can check your
+Cabal version using `ghc-pkg list`.
 
 If you're running MacOS X, it may be more convenient to install GHC
 using [MacPorts] or [Fink].
@@ -29,6 +33,8 @@ GHC and the required libraries using `apt-get`:
 
 [GHC]: http://www.haskell.org/ghc/
 [GHC Download]: http://www.haskell.org/ghc/download.html
+[Cabal]: http://www.haskell.org/cabal/
+[install Cabal]: http://www.haskell.org/cabal/download.html
 [MacPorts]: http://macports.org
 [Fink]: http://finkproject.org
 [Ubuntu]: http://www.ubuntu.com
@@ -101,8 +107,8 @@ Installing pandoc using Cabal
 
 Pandoc can also be installed using the standard Haskell packaging tool,
 [Cabal](http://www.haskell.org/cabal/).  You'll need GHC 6.6 or greater
-(see [Installing GHC](#installing-ghc), above). Just download the source
-tarball, unpack, and type:
+and Cabal 1.2 or greater (see [Installing GHC](#installing-ghc), above).
+Just download the source tarball, unpack, and type:
 
     runhaskell Setup.hs configure
     runhaskell Setup.hs build
