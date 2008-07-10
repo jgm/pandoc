@@ -51,22 +51,22 @@ plainToPara x = x
 --
 
 data WriterState =
-    WriterState { stNotes       :: [Doc]
-                , stTableStyles :: [Doc]
-                , stParaStyles  :: [Doc]
-                , stListStyles  :: [(Int, [Doc])]
-                , indentPara    :: Int
-                , inDefinition  :: Bool
+    WriterState { stNotes        :: [Doc]
+                , stTableStyles  :: [Doc]
+                , stParaStyles   :: [Doc]
+                , stListStyles   :: [(Int, [Doc])]
+                , stIndentPara   :: Int
+                , stInDefinition :: Bool
                 }
 
 defaultWriterState :: WriterState
 defaultWriterState =
-    WriterState { stNotes       = []
-                , stTableStyles = []
-                , stParaStyles  = []
-                , stListStyles  = []
-                , indentPara    = 0
-                , inDefinition  = False
+    WriterState { stNotes         = []
+                , stTableStyles   = []
+                , stParaStyles    = []
+                , stListStyles    = []
+                , stIndentPara    = 0
+                , stInDefinition  = False
                 }
 
 when :: Bool -> Doc -> Doc
@@ -82,13 +82,13 @@ addParaStyle :: Doc -> State WriterState ()
 addParaStyle i = modify $ \s -> s { stParaStyles = i : stParaStyles s }
 
 increaseIndent :: State WriterState ()
-increaseIndent = modify $ \s -> s { indentPara = 1 + indentPara s }
+increaseIndent = modify $ \s -> s { stIndentPara = 1 + stIndentPara s }
 
 resetIndent :: State WriterState ()
-resetIndent = modify $ \s -> s { indentPara = 0 }
+resetIndent = modify $ \s -> s { stIndentPara = 0 }
 
 setInDefinitionList :: Bool -> State WriterState ()
-setInDefinitionList b = modify $  \s -> s { inDefinition = b }
+setInDefinitionList b = modify $  \s -> s { stInDefinition = b }
 
 inParagraphTags :: Doc -> Doc
 inParagraphTags = inTags False "text:p" [("text:style-name", "Text_20_body")]
@@ -428,8 +428,8 @@ tableStyle num wcs =
 paraStyle :: String -> [(String,String)] -> State WriterState Int
 paraStyle parent attrs = do
   pn <- (+)   1 . length       <$> gets stParaStyles
-  i  <- (*) 0.5 . fromIntegral <$> gets indentPara :: State WriterState Double
-  b  <- gets inDefinition
+  i  <- (*) 0.5 . fromIntegral <$> gets stIndentPara :: State WriterState Double
+  b  <- gets stInDefinition
   let styleAttr = [ ("style:name"             , "P" ++ show pn)
                   , ("style:family"           , "paragraph"   )
                   , ("style:parent-style-name", parent        )]
