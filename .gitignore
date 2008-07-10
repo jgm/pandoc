@@ -1,5 +1,6 @@
 dist/*
 README.*
+!README.Debian
 INSTALL.*
 .configure-stamp
 man/man?/*.1
