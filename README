@@ -1032,8 +1032,7 @@ To produce the slide show, simply type
 
 	pandoc -w s5 -s eating.txt > eating.html
 
-and open up `eating.html` in a browser.  The HTML file embeds
-all the required javascript and CSS, so no other files are necessary.
+and open up `eating.html` in a browser.
 
 Note that by default, the S5 writer produces lists that display
 "all at once."  If you want your lists to display incrementally
@@ -1047,4 +1046,18 @@ incrementally without the `-i` option and all at once with the
 
 In this way incremental and nonincremental lists can be mixed in
 a single document.
+
+Note: the S5 file produced by pandoc with the `-s/--standalone` option
+embeds the javascript and CSS required to show the slides. Thus it
+does not depend on any additional files: you can send the HTML file to
+others, and they will be able to view the slide show just by opening
+it. However, if you intend to produce several S5 slide shows, and you
+are displaying them on your own website, it is better to keep the S5
+javascript and CSS files separate from the slide shows themselves, so
+that they may be cached. The best approach in this case is to use pandoc
+without the `-s` option to produce the body of the S5 document, which
+can then be inserted into an HTML template that links to the javascript
+and CSS files required by S5. (See the instructions on the S5 website.)
+Alternatively, you may use `-s` together with the `-H/--custom-header`
+option.
 
