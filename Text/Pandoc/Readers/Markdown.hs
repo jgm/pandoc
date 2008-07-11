@@ -809,7 +809,8 @@ assumedAbbrev = try $ do
 -- by a capital letter (such as a name).
 knownAbbrev = try $ do
   result <- oneOfStrings [ "Mr", "Mrs", "Ms", "Capt", "Dr", "Prof", "Gen",
-                           "Gov", "e.g", "i.e", "Sgt", "St", "vol", "vs" ]
+                           "Gov", "e.g", "i.e", "Sgt", "St", "vol", "vs",
+                           "Sen", "Rep", "Pres", "Hon", "Rev" ]
   string ". "
   return result
   
