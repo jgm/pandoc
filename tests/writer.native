@@ -165,7 +165,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
       [ [ Plain [Str "Nested",Str "."] ]
      ] ] ]
 , Para [Str "Should",Space,Str "not",Space,Str "be",Space,Str "a",Space,Str "list",Space,Str "item:"]
-, Para [Str "M",Str ".",Str "A",Str ".",Space,Str "2007"]
+, Para [Str "M",Str ".",Str "A.\160",Str "2007"]
 , Para [Str "B",Str ".",Space,Str "Williams"]
 , HorizontalRule
 , Header 1 [Str "Definition",Space,Str "Lists"]

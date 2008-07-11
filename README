@@ -316,10 +316,11 @@ For further documentation, see the `pandoc(1)` man page.
 `-S` or `--smart`
 :   causes `pandoc` to produce typographically correct output, along the
     lines of John Gruber's [Smartypants]. Straight quotes are converted
-    to curly quotes, `---` to dashes, and `...` to ellipses. (Note: This
-    option is only significant when the input format is `markdown`.
-    It is selected automatically when the output format is `latex` or
-    `context`.)
+    to curly quotes, `---` to dashes, and `...` to ellipses. Nonbreaking
+    spaces are inserted after certain abbreviations, such as "Mr."
+    (Note: This option is only significant when the input format is
+    `markdown`. It is selected automatically when the output format is
+    `latex` or `context`.)
 
 `-m`*[url]* or `--asciimathml`*[=url]*
 :   causes `pandoc` to use Peter Jipsen's [ASCIIMathML] script to display

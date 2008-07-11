@@ -33,7 +33,7 @@ module Text.Pandoc.Readers.Markdown (
 
 import Data.List ( transpose, isPrefixOf, isSuffixOf, lookup, sortBy, findIndex )
 import Data.Ord ( comparing )
-import Data.Char ( isAlphaNum )
+import Data.Char ( isAlphaNum, isAlpha, isLower, isDigit )
 import Data.Maybe ( fromMaybe )
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
@@ -697,7 +697,8 @@ table = simpleTable <|> multilineTable <?> "table"
 
 inline = choice inlineParsers <?> "inline"
 
-inlineParsers = [ str
+inlineParsers = [ abbrev
+                , str
                 , smartPunctuation
                 , whitespace
                 , endline
@@ -792,6 +793,26 @@ subscript = failIfStrict >> enclosed (char '~') (char '~')
             (notFollowedBy' whitespace >> inline) >>=  -- may not contain Space
             return . Subscript 
 
+abbrev = failUnlessSmart >>
+         (assumedAbbrev <|> knownAbbrev) >>= return . Str . (++ ".\160")
+
+-- an string of letters followed by a period that does not end a sentence
+-- is assumed to be an abbreviation.  It is assumed that sentences don't
+-- start with lowercase letters or numerals.
+assumedAbbrev = try $ do
+  result <- many1 $ satisfy isAlpha
+  string ". "
+  lookAhead $ satisfy (\x -> isLower x || isDigit x)
+  return result
+
+-- these strings are treated as abbreviations even if they are followed
+-- by a capital letter (such as a name).
+knownAbbrev = try $ do
+  result <- oneOfStrings [ "Mr", "Mrs", "Ms", "Capt", "Dr", "Prof", "Gen",
+                           "Gov", "e.g", "i.e", "Sgt", "St", "vol", "vs" ]
+  string ". "
+  return result
+  
 smartPunctuation = failUnlessSmart >> 
                    choice [ quoted, apostrophe, dash, ellipses ]
 

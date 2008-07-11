@@ -269,7 +269,7 @@ Autonumbering:
 
 Should not be a list item:
 
-M.A. 2007
+M.A.&nbsp;2007
 
 B. Williams
 
