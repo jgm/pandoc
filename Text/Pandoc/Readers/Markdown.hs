@@ -47,30 +47,40 @@ import Text.ParserCombinators.Parsec
 
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: ParserState -> String -> Pandoc
-readMarkdown state str = (readWith parseMarkdown) state (str ++ "\n\n")
+readMarkdown state s = (readWith parseMarkdown) state (s ++ "\n\n")
 
 --
 -- Constants and data structure definitions
 --
 
+spaceChars :: [Char]
 spaceChars = " \t"
+
+bulletListMarkers :: [Char]
 bulletListMarkers = "*+-"
+
+hruleChars :: [Char]
 hruleChars = "*-_"
+
+setextHChars :: [Char]
 setextHChars = "=-"
 
 -- treat these as potentially non-text when parsing inline:
+specialChars :: [Char]
 specialChars = "\\[]*_~`<>$!^-.&'\"\8216\8217\8220\8221"
 
 --
 -- auxiliary functions
 --
 
+indentSpaces :: GenParser Char ParserState [Char]
 indentSpaces = try $ do
   state <- getState
   let tabStop = stateTabStop state
   try (count tabStop (char ' ')) <|> 
     (many (char ' ') >> string "\t") <?> "indentation"
 
+nonindentSpaces :: GenParser Char ParserState [Char]
 nonindentSpaces = do
   state <- getState
   let tabStop = stateTabStop state
@@ -80,11 +90,13 @@ nonindentSpaces = do
      else unexpected "indented line"
 
 -- | Fail unless we're at beginning of a line.
+failUnlessBeginningOfLine :: GenParser tok st () 
 failUnlessBeginningOfLine = do
   pos <- getPosition
   if sourceColumn pos == 1 then return () else fail "not beginning of line"
 
 -- | Fail unless we're in "smart typography" mode.
+failUnlessSmart :: GenParser tok ParserState ()
 failUnlessSmart = do
   state <- getState
   if stateSmart state then return () else fail "Smart typography feature"
@@ -109,8 +121,10 @@ inlinesInBalancedBrackets parser = try $ do
 -- document structure
 --
 
+titleLine :: GenParser Char ParserState [Inline]
 titleLine = try $ char '%' >> skipSpaces >> manyTill inline newline
 
+authorsLine :: GenParser Char st [String]
 authorsLine = try $ do 
   char '%'
   skipSpaces
@@ -118,6 +132,7 @@ authorsLine = try $ do
   newline
   return $ map (decodeCharacterReferences . removeLeadingTrailingSpace) authors
 
+dateLine :: GenParser Char st String
 dateLine = try $ do
   char '%'
   skipSpaces
@@ -125,6 +140,7 @@ dateLine = try $ do
   newline
   return $ decodeCharacterReferences $ removeTrailingSpace date
 
+titleBlock :: GenParser Char ParserState ([Inline], [String], [Char])
 titleBlock = try $ do
   failIfStrict
   title <- option [] titleLine
@@ -133,6 +149,7 @@ titleBlock = try $ do
   optional blanklines
   return (title, author, date)
 
+parseMarkdown :: GenParser Char ParserState Pandoc 
 parseMarkdown = do
   -- markdown allows raw HTML
   updateState (\state -> state { stateParseRaw = True })
@@ -149,9 +166,9 @@ parseMarkdown = do
      then return ()
      else do docMinusNotes <- manyTill (noteBlock <|> lineClump) eof >>= 
                               return . concat
-             st <- getState
-             let reversedNotes = stateNotes st
-             updateState $ \st -> st { stateNotes = reverse reversedNotes }
+             st' <- getState
+             let reversedNotes = stateNotes st'
+             updateState $ \s -> s { stateNotes = reverse reversedNotes }
              setInput docMinusNotes
              setPosition startPos
   -- now parse it for real...
@@ -163,10 +180,11 @@ parseMarkdown = do
 -- initial pass for references and notes
 --
 
+referenceKey :: GenParser Char ParserState [Char]
 referenceKey = try $ do
   startPos <- getPosition
   nonindentSpaces
-  label <- reference
+  lab <- reference
   char ':'
   skipSpaces
   optional (char '<')
@@ -175,13 +193,14 @@ referenceKey = try $ do
   tit <- option "" referenceTitle
   blanklines
   endPos <- getPosition
-  let newkey = (label, (removeTrailingSpace src,  tit))
+  let newkey = (lab, (removeTrailingSpace src,  tit))
   st <- getState
   let oldkeys = stateKeys st
-  updateState $ \st -> st { stateKeys = newkey : oldkeys }
+  updateState $ \s -> s { stateKeys = newkey : oldkeys }
   -- return blanks so line count isn't affected
   return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
+referenceTitle :: GenParser Char st String
 referenceTitle = try $ do 
   (many1 spaceChar >> option '\n' newline) <|> newline
   skipSpaces
@@ -191,8 +210,10 @@ referenceTitle = try $ do
                                       notFollowedBy (noneOf ")\n")))
   return $ decodeCharacterReferences tit
 
+noteMarker :: GenParser Char st [Char]
 noteMarker = string "[^" >> manyTill (noneOf " \t\n") (char ']')
 
+rawLine :: GenParser Char ParserState [Char]
 rawLine = do
   notFollowedBy blankline
   notFollowedBy' noteMarker
@@ -200,8 +221,10 @@ rawLine = do
   end <- option "" (newline >> optional indentSpaces >> return "\n") 
   return $ contents ++ end
 
+rawLines :: GenParser Char ParserState [Char]
 rawLines = many1 rawLine >>= return . concat
 
+noteBlock :: GenParser Char ParserState [Char]
 noteBlock = try $ do
   startPos <- getPosition
   ref <- noteMarker
@@ -216,7 +239,7 @@ noteBlock = try $ do
   let newnote = (ref, contents)
   st <- getState
   let oldnotes = stateNotes st
-  updateState $ \st -> st { stateNotes = newnote : oldnotes }
+  updateState $ \s -> s { stateNotes = newnote : oldnotes }
   -- return blanks so line count isn't affected
   return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
@@ -224,8 +247,10 @@ noteBlock = try $ do
 -- parsing blocks
 --
 
+parseBlocks :: GenParser Char ParserState [Block]
 parseBlocks = manyTill block eof
 
+block :: GenParser Char ParserState Block
 block = do
   st <- getState
   choice (if stateStrict st
@@ -258,8 +283,10 @@ block = do
 -- header blocks
 --
 
+header :: GenParser Char ParserState Block
 header = atxHeader <|> setextHeader <?> "header"
 
+atxHeader :: GenParser Char ParserState Block
 atxHeader = try $ do
   level <- many1 (char '#') >>= return . length
   notFollowedBy (char '.' <|> char ')') -- this would be a list
@@ -267,8 +294,10 @@ atxHeader = try $ do
   text <- manyTill inline atxClosing >>= return . normalizeSpaces
   return $ Header level text
 
+atxClosing :: GenParser Char st [Char]
 atxClosing = try $ skipMany (char '#') >> blanklines
 
+setextHeader :: GenParser Char ParserState Block
 setextHeader = try $ do
   text <- many1Till inline newline
   underlineChar <- oneOf setextHChars
@@ -281,6 +310,7 @@ setextHeader = try $ do
 -- hrule block
 --
 
+hrule :: GenParser Char st Block
 hrule = try $ do
   skipSpaces
   start <- oneOf hruleChars
@@ -294,8 +324,11 @@ hrule = try $ do
 -- code blocks
 --
 
+indentedLine :: GenParser Char ParserState [Char]
 indentedLine = indentSpaces >> manyTill anyChar newline >>= return . (++ "\n")
 
+codeBlockDelimiter :: Maybe Int
+                   -> GenParser Char st (Int, ([Char], [[Char]], [([Char], [Char])]))
 codeBlockDelimiter len = try $ do
   size <- case len of
               Just l  -> count l (char '~') >> many (char '~') >> return l
@@ -306,32 +339,38 @@ codeBlockDelimiter len = try $ do
   blankline
   return (size, attr) 
 
+attributes :: GenParser Char st ([Char], [[Char]], [([Char], [Char])])
 attributes = try $ do
   char '{'
   many spaceChar
   attrs <- many (attribute >>~ many spaceChar)
   char '}'
   let (ids, classes, keyvals) = unzip3 attrs
-  let id = if null ids then "" else head ids
-  return (id, concat classes, concat keyvals)  
+  let id' = if null ids then "" else head ids
+  return (id', concat classes, concat keyvals)  
 
+attribute :: GenParser Char st ([Char], [[Char]], [([Char], [Char])])
 attribute = identifierAttr <|> classAttr <|> keyValAttr
 
+identifier :: GenParser Char st [Char]
 identifier = do
   first <- letter
   rest <- many alphaNum
   return (first:rest)
 
+identifierAttr :: GenParser Char st ([Char], [a], [a1])
 identifierAttr = try $ do
   char '#'
   result <- identifier
   return (result,[],[])
 
+classAttr :: GenParser Char st ([Char], [[Char]], [a])
 classAttr = try $ do
   char '.'
   result <- identifier
   return ("",[result],[])
 
+keyValAttr :: GenParser Char st ([Char], [a], [([Char], [Char])])
 keyValAttr = try $ do
   key <- identifier
   char '='
@@ -339,12 +378,14 @@ keyValAttr = try $ do
   val <- manyTill (noneOf "\n") (char '"')
   return ("",[],[(key,val)])
 
+codeBlockDelimited :: GenParser Char st Block
 codeBlockDelimited = try $ do
   (size, attr) <- codeBlockDelimiter Nothing
   contents <- manyTill anyLine (codeBlockDelimiter (Just size))
   blanklines
   return $ CodeBlock attr $ joinWithSep "\n" contents
 
+codeBlockIndented :: GenParser Char ParserState Block
 codeBlockIndented = do
   contents <- many1 (indentedLine <|> 
                      try (do b <- blanklines
@@ -357,8 +398,10 @@ codeBlockIndented = do
 -- block quotes
 --
 
+emailBlockQuoteStart :: GenParser Char ParserState Char
 emailBlockQuoteStart = try $ nonindentSpaces >> char '>' >>~ optional (char ' ')
 
+emailBlockQuote :: GenParser Char ParserState [[Char]]
 emailBlockQuote = try $ do
   emailBlockQuoteStart
   raw <- sepBy (many (nonEndline <|> 
@@ -369,6 +412,7 @@ emailBlockQuote = try $ do
   optional blanklines
   return raw
 
+blockQuote :: GenParser Char ParserState Block
 blockQuote = do 
   raw <- emailBlockQuote
   -- parse the extracted block, which may contain various block elements:
@@ -379,6 +423,7 @@ blockQuote = do
 -- list blocks
 --
 
+bulletListStart :: GenParser Char ParserState ()
 bulletListStart = try $ do
   optional newline -- if preceded by a Plain block in a list context
   nonindentSpaces
@@ -387,6 +432,7 @@ bulletListStart = try $ do
   spaceChar
   skipSpaces
 
+anyOrderedListStart :: GenParser Char ParserState (Int, ListNumberStyle, ListNumberDelim) 
 anyOrderedListStart = try $ do
   optional newline -- if preceded by a Plain block in a list context
   nonindentSpaces
@@ -399,6 +445,9 @@ anyOrderedListStart = try $ do
              return (1, DefaultStyle, DefaultDelim)
      else anyOrderedListMarker >>~ spaceChar
 
+orderedListStart :: ListNumberStyle
+                 -> ListNumberDelim
+                 -> GenParser Char ParserState ()
 orderedListStart style delim = try $ do
   optional newline -- if preceded by a Plain block in a list context
   nonindentSpaces
@@ -415,6 +464,8 @@ orderedListStart style delim = try $ do
   skipSpaces
 
 -- parse a line of a list item (start = parser for beginning of list item)
+listLine :: GenParser Char ParserState ()
+         -> GenParser Char ParserState [Char]
 listLine start = try $ do
   notFollowedBy' start
   notFollowedBy blankline
@@ -425,6 +476,8 @@ listLine start = try $ do
   return $ line ++ "\n"
 
 -- parse raw text for one list item, excluding start marker and continuations
+rawListItem :: GenParser Char ParserState () 
+            -> GenParser Char ParserState [Char]
 rawListItem start = try $ do
   start
   result <- many1 (listLine start)
@@ -434,12 +487,15 @@ rawListItem start = try $ do
 -- continuation of a list item - indented and separated by blankline 
 -- or (in compact lists) endline.
 -- note: nested lists are parsed as continuations
+listContinuation :: GenParser Char ParserState () -> GenParser Char ParserState [Char]
 listContinuation start = try $ do
   lookAhead indentSpaces
   result <- many1 (listContinuationLine start)
   blanks <- many blankline
   return $ concat result ++ blanks
 
+listContinuationLine :: GenParser Char ParserState ()
+                     -> GenParser Char ParserState [Char]
 listContinuationLine start = try $ do
   notFollowedBy blankline
   notFollowedBy' start
@@ -447,6 +503,8 @@ listContinuationLine start = try $ do
   result <- manyTill anyChar newline
   return $ result ++ "\n"
 
+listItem :: GenParser Char ParserState ()
+         -> GenParser Char ParserState [Block]
 listItem start = try $ do 
   first <- rawListItem start
   continuations <- many (listContinuation start)
@@ -462,16 +520,19 @@ listItem start = try $ do
   updateState (\st -> st {stateParserContext = oldContext})
   return contents
 
+orderedList :: GenParser Char ParserState Block
 orderedList = try $ do
   (start, style, delim) <- lookAhead anyOrderedListStart
   items <- many1 (listItem (orderedListStart style delim))
   return $ OrderedList (start, style, delim) $ compactify items
 
+bulletList :: GenParser Char ParserState Block
 bulletList = many1 (listItem bulletListStart) >>= 
              return . BulletList . compactify
 
 -- definition lists
 
+definitionListItem :: GenParser Char ParserState ([Inline], [Block])
 definitionListItem = try $ do
   notFollowedBy blankline
   notFollowedBy' indentSpaces
@@ -486,6 +547,7 @@ definitionListItem = try $ do
   updateState (\st -> st {stateParserContext = oldContext})
   return ((normalizeSpaces term), contents)
 
+defRawBlock :: GenParser Char ParserState [Char]
 defRawBlock = try $ do
   char ':'
   state <- getState
@@ -496,6 +558,7 @@ defRawBlock = try $ do
   trailing <- option "" blanklines
   return $ firstline ++ "\n" ++ unlines rawlines ++ trailing
 
+definitionList :: GenParser Char ParserState Block
 definitionList = do
   items <- many1 definitionListItem
   let (terms, defs) = unzip items
@@ -507,11 +570,13 @@ definitionList = do
 -- paragraph block
 --
 
+isHtmlOrBlank :: Inline -> Bool
 isHtmlOrBlank (HtmlInline _) = True
-isHtmlOrBlank (Space) = True
-isHtmlOrBlank (LineBreak) = True
-isHtmlOrBlank _ = False
+isHtmlOrBlank (Space)        = True
+isHtmlOrBlank (LineBreak)    = True
+isHtmlOrBlank _              = False
 
+para :: GenParser Char ParserState Block
 para = try $ do 
   result <- many1 inline
   if all isHtmlOrBlank result
@@ -524,14 +589,17 @@ para = try $ do
                        else pzero
   return $ Para $ normalizeSpaces result
 
+plain :: GenParser Char ParserState Block
 plain = many1 inline >>= return . Plain . normalizeSpaces 
 
 -- 
 -- raw html
 --
 
+htmlElement :: GenParser Char ParserState [Char]
 htmlElement = strictHtmlBlock <|> htmlBlockElement <?> "html element"
 
+htmlBlock :: GenParser Char ParserState Block
 htmlBlock = try $ do
     failUnlessBeginningOfLine
     first <- htmlElement
@@ -540,9 +608,11 @@ htmlBlock = try $ do
     return $ RawHtml $ first ++ finalSpace ++ finalNewlines
 
 -- True if tag is self-closing
+isSelfClosing :: [Char] -> Bool
 isSelfClosing tag = 
   isSuffixOf "/>" $ filter (not . (`elem` " \n\t")) tag
 
+strictHtmlBlock :: GenParser Char ParserState [Char]
 strictHtmlBlock = try $ do
   tag <- anyHtmlBlockTag 
   let tag' = extractTagType tag
@@ -553,6 +623,7 @@ strictHtmlBlock = try $ do
              end <- htmlEndTag tag'
              return $ tag ++ concat contents ++ end
 
+rawHtmlBlocks :: GenParser Char ParserState Block
 rawHtmlBlocks = do
   htmlBlocks <- many1 $ do (RawHtml blk) <- rawHtmlBlock
                            sps <- do sp1 <- many spaceChar
@@ -574,6 +645,8 @@ rawHtmlBlocks = do
 
 -- Parse a dashed line with optional trailing spaces; return its length
 -- and the length including trailing space.
+dashedLine :: Char 
+           -> GenParser Char st (Int, Int)
 dashedLine ch = do
   dashes <- many1 (char ch)
   sp     <- many spaceChar
@@ -581,24 +654,29 @@ dashedLine ch = do
 
 -- Parse a table header with dashed lines of '-' preceded by 
 -- one line of text.
+simpleTableHeader :: GenParser Char ParserState ([[Char]], [Alignment], [Int])
 simpleTableHeader = try $ do
   rawContent  <- anyLine
   initSp      <- nonindentSpaces
   dashes      <- many1 (dashedLine '-')
   newline
-  let (lengths, lines) = unzip dashes
-  let indices  = scanl (+) (length initSp) lines
+  let (lengths, lines') = unzip dashes
+  let indices  = scanl (+) (length initSp) lines'
   let rawHeads = tail $ splitByIndices (init indices) rawContent
   let aligns   = zipWith alignType (map (\a -> [a]) rawHeads) lengths
   return (rawHeads, aligns, indices)
 
 -- Parse a table footer - dashed lines followed by blank line.
+tableFooter :: GenParser Char ParserState [Char]
 tableFooter = try $ nonindentSpaces >> many1 (dashedLine '-') >> blanklines
 
 -- Parse a table separator - dashed line.
+tableSep :: GenParser Char ParserState String
 tableSep = try $ nonindentSpaces >> many1 (dashedLine '-') >> string "\n"
 
 -- Parse a raw line and split it into chunks by indices.
+rawTableLine :: [Int]
+             -> GenParser Char ParserState [String]
 rawTableLine indices = do
   notFollowedBy' (blanklines <|> tableFooter)
   line <- many1Till anyChar newline
@@ -606,9 +684,13 @@ rawTableLine indices = do
            splitByIndices (init indices) line
 
 -- Parse a table line and return a list of lists of blocks (columns).
+tableLine :: [Int]
+          -> GenParser Char ParserState [[Block]]
 tableLine indices = rawTableLine indices >>= mapM (parseFromString (many plain))
 
 -- Parse a multiline table row and return a list of blocks (columns).
+multilineRow :: [Int]
+             -> GenParser Char ParserState [[Block]]
 multilineRow indices = do
   colLines <- many1 (rawTableLine indices)
   optional blanklines
@@ -631,6 +713,7 @@ widthsFromIndices numColumns indices =
 
 -- Parses a table caption:  inlines beginning with 'Table:'
 -- and followed by blank lines.
+tableCaption :: GenParser Char ParserState [Inline]
 tableCaption = try $ do
   nonindentSpaces
   string "Table:"
@@ -639,33 +722,40 @@ tableCaption = try $ do
   return $ normalizeSpaces result
 
 -- Parse a table using 'headerParser', 'lineParser', and 'footerParser'.
+tableWith :: GenParser Char ParserState ([[Char]], [Alignment], [Int])
+          -> ([Int] -> GenParser Char ParserState [[Block]])
+          -> GenParser Char ParserState end
+          -> GenParser Char ParserState Block
 tableWith headerParser lineParser footerParser = try $ do
     (rawHeads, aligns, indices) <- headerParser
-    lines <- many1Till (lineParser indices) footerParser
+    lines' <- many1Till (lineParser indices) footerParser
     caption <- option [] tableCaption
     heads <- mapM (parseFromString (many plain)) rawHeads
     state <- getState
     let numColumns = stateColumns state
     let widths = widthsFromIndices numColumns indices
-    return $ Table caption aligns widths heads lines
+    return $ Table caption aligns widths heads lines'
 
 -- Parse a simple table with '---' header and one line per row.
+simpleTable :: GenParser Char ParserState Block
 simpleTable = tableWith simpleTableHeader tableLine blanklines
 
 -- Parse a multiline table:  starts with row of '-' on top, then header
 -- (which may be multiline), then the rows,
 -- which may be multiline, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
+multilineTable :: GenParser Char ParserState Block
 multilineTable = tableWith multilineTableHeader multilineRow tableFooter
 
+multilineTableHeader :: GenParser Char ParserState ([String], [Alignment], [Int])
 multilineTableHeader = try $ do
   tableSep 
   rawContent  <- many1 (notFollowedBy' tableSep >> many1Till anyChar newline)
   initSp      <- nonindentSpaces
   dashes      <- many1 (dashedLine '-')
   newline
-  let (lengths, lines) = unzip dashes
-  let indices  = scanl (+) (length initSp) lines
+  let (lengths, lines') = unzip dashes
+  let indices  = scanl (+) (length initSp) lines'
   let rawHeadsList = transpose $ map 
                      (\ln -> tail $ splitByIndices (init indices) ln)
                      rawContent
@@ -676,27 +766,32 @@ multilineTableHeader = try $ do
 -- Returns an alignment type for a table, based on a list of strings
 -- (the rows of the column header) and a number (the length of the
 -- dashed line under the rows.
-alignType :: [String] -> Int -> Alignment
-alignType []  len = AlignDefault
+alignType :: [String]
+          -> Int
+          -> Alignment
+alignType [] _ = AlignDefault
 alignType strLst len =
-  let str        = head $ sortBy (comparing length) $ 
+  let s          = head $ sortBy (comparing length) $ 
                           map removeTrailingSpace strLst
-      leftSpace  = if null str then False else (str !! 0) `elem` " \t"
-      rightSpace = length str < len || (str !! (len - 1)) `elem` " \t"
+      leftSpace  = if null s then False else (s !! 0) `elem` " \t"
+      rightSpace = length s < len || (s !! (len - 1)) `elem` " \t"
   in  case (leftSpace, rightSpace) of
         (True,  False)   -> AlignRight
         (False, True)    -> AlignLeft
         (True,  True)    -> AlignCenter
         (False, False)   -> AlignDefault
 
+table :: GenParser Char ParserState Block
 table = simpleTable <|> multilineTable <?> "table"
 
 -- 
 -- inline
 --
 
+inline :: GenParser Char ParserState Inline
 inline = choice inlineParsers <?> "inline"
 
+inlineParsers :: [GenParser Char ParserState Inline]
 inlineParsers = [ abbrev
                 , str
                 , smartPunctuation
@@ -721,13 +816,16 @@ inlineParsers = [ abbrev
                 , symbol
                 , ltSign ]
 
+inlineNonLink :: GenParser Char ParserState Inline
 inlineNonLink = (choice $
                  map (\parser -> try (parser >>= failIfLink)) inlineParsers)
                 <?> "inline (non-link)"
 
+failIfLink :: Inline -> GenParser tok st Inline
 failIfLink (Link _ _) = pzero
-failIfLink elt = return elt
+failIfLink elt        = return elt
 
+escapedChar :: GenParser Char ParserState Inline
 escapedChar = do
   char '\\'
   state <- getState
@@ -739,6 +837,7 @@ escapedChar = do
                    else result
   return $ Str [result']
 
+ltSign :: GenParser Char ParserState Inline
 ltSign = do
   st <- getState
   if stateStrict st
@@ -746,13 +845,16 @@ ltSign = do
      else notFollowedBy' rawHtmlBlocks >> char '<' -- unless it starts html
   return $ Str ['<']
 
+specialCharsMinusLt :: [Char]
 specialCharsMinusLt = filter (/= '<') specialChars
 
+symbol :: GenParser Char ParserState Inline
 symbol = do 
   result <- oneOf specialCharsMinusLt
   return $ Str [result]
 
 -- parses inline code, between n `s and n `s
+code :: GenParser Char ParserState Inline
 code = try $ do 
   starts <- many1 (char '`')
   skipSpaces
@@ -762,43 +864,52 @@ code = try $ do
                       notFollowedBy (char '`')))
   return $ Code $ removeLeadingTrailingSpace $ concat result
 
+mathWord :: GenParser Char st [Char]
 mathWord = many1 ((noneOf " \t\n\\$") <|>
                   (try (char '\\') >>~ notFollowedBy (char '$')))
 
+math :: GenParser Char ParserState Inline
 math = try $ do
   failIfStrict
   char '$'
   notFollowedBy space
-  words <- sepBy1 mathWord (many1 space)
+  words' <- sepBy1 mathWord (many1 space)
   char '$'
-  return $ Math $ joinWithSep " " words
+  return $ Math $ joinWithSep " " words'
 
+emph :: GenParser Char ParserState Inline
 emph = ((enclosed (char '*') (notFollowedBy' strong >> char '*') inline) <|>
         (enclosed (char '_') (notFollowedBy' strong >> char '_' >> 
                               notFollowedBy alphaNum) inline)) >>= 
         return . Emph . normalizeSpaces
 
+strong :: GenParser Char ParserState Inline
 strong = ((enclosed (string "**") (try $ string "**") inline) <|> 
           (enclosed (string "__") (try $ string "__") inline)) >>=
          return . Strong . normalizeSpaces
 
+strikeout :: GenParser Char ParserState Inline
 strikeout = failIfStrict >> enclosed (string "~~") (try $ string "~~") inline >>=
             return . Strikeout . normalizeSpaces
 
+superscript :: GenParser Char ParserState Inline
 superscript = failIfStrict >> enclosed (char '^') (char '^') 
               (notFollowedBy' whitespace >> inline) >>= -- may not contain Space
               return . Superscript
 
+subscript :: GenParser Char ParserState Inline
 subscript = failIfStrict >> enclosed (char '~') (char '~')
             (notFollowedBy' whitespace >> inline) >>=  -- may not contain Space
             return . Subscript 
 
+abbrev :: GenParser Char ParserState Inline
 abbrev = failUnlessSmart >>
          (assumedAbbrev <|> knownAbbrev) >>= return . Str . (++ ".\160")
 
 -- an string of letters followed by a period that does not end a sentence
 -- is assumed to be an abbreviation.  It is assumed that sentences don't
 -- start with lowercase letters or numerals.
+assumedAbbrev :: GenParser Char ParserState [Char]
 assumedAbbrev = try $ do
   result <- many1 $ satisfy isAlpha
   string ". "
@@ -807,20 +918,27 @@ assumedAbbrev = try $ do
 
 -- these strings are treated as abbreviations even if they are followed
 -- by a capital letter (such as a name).
+knownAbbrev :: GenParser Char ParserState [Char]
 knownAbbrev = try $ do
   result <- oneOfStrings [ "Mr", "Mrs", "Ms", "Capt", "Dr", "Prof", "Gen",
                            "Gov", "e.g", "i.e", "Sgt", "St", "vol", "vs",
                            "Sen", "Rep", "Pres", "Hon", "Rev" ]
   string ". "
   return result
-  
+
+smartPunctuation :: GenParser Char ParserState Inline
 smartPunctuation = failUnlessSmart >> 
                    choice [ quoted, apostrophe, dash, ellipses ]
 
+apostrophe :: GenParser Char ParserState Inline
 apostrophe = (char '\'' <|> char '\8217') >> return Apostrophe
 
+quoted :: GenParser Char ParserState Inline
 quoted = doubleQuoted <|> singleQuoted 
 
+withQuoteContext :: QuoteContext
+                 -> (GenParser Char ParserState Inline)
+                 -> GenParser Char ParserState Inline
 withQuoteContext context parser = do
   oldState <- getState
   let oldQuoteContext = stateQuoteContext oldState
@@ -830,22 +948,26 @@ withQuoteContext context parser = do
   setState newState { stateQuoteContext = oldQuoteContext }
   return result
 
+singleQuoted :: GenParser Char ParserState Inline
 singleQuoted = try $ do
   singleQuoteStart
   withQuoteContext InSingleQuote $ many1Till inline singleQuoteEnd >>=
     return . Quoted SingleQuote . normalizeSpaces
 
+doubleQuoted :: GenParser Char ParserState Inline
 doubleQuoted = try $ do 
   doubleQuoteStart
   withQuoteContext InDoubleQuote $ many1Till inline doubleQuoteEnd >>=
     return . Quoted DoubleQuote . normalizeSpaces
 
+failIfInQuoteContext :: QuoteContext -> GenParser tok ParserState ()
 failIfInQuoteContext context = do
   st <- getState
   if stateQuoteContext st == context
      then fail "already inside quotes"
      else return ()
 
+singleQuoteStart :: GenParser Char ParserState Char
 singleQuoteStart = do 
   failIfInQuoteContext InSingleQuote
   char '\8216' <|> 
@@ -856,11 +978,13 @@ singleQuoteStart = do
                                    -- possess/contraction
                return '\'')
 
+singleQuoteEnd :: GenParser Char st Char
 singleQuoteEnd = try $ do
   char '\8217' <|> char '\''
   notFollowedBy alphaNum
   return '\''
 
+doubleQuoteStart :: GenParser Char ParserState Char
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
   char '\8220' <|>
@@ -868,29 +992,39 @@ doubleQuoteStart = do
                notFollowedBy (oneOf " \t\n")
                return '"')
 
+doubleQuoteEnd :: GenParser Char st Char
 doubleQuoteEnd = char '\8221' <|> char '"'
 
+ellipses :: GenParser Char st Inline
 ellipses = oneOfStrings ["...", " . . . ", ". . .", " . . ."] >> return Ellipses
 
+dash :: GenParser Char st Inline
 dash = enDash <|> emDash
 
+enDash :: GenParser Char st Inline
 enDash = try $ char '-' >> notFollowedBy (noneOf "0123456789") >> return EnDash
 
+emDash :: GenParser Char st Inline
 emDash = oneOfStrings ["---", "--"] >> return EmDash
 
+whitespace :: GenParser Char ParserState Inline
 whitespace = do
   sps <- many1 (oneOf spaceChars)
   if length sps >= 2
      then option Space (endline >> return LineBreak)
      else return Space <?> "whitespace"
 
+nonEndline :: GenParser Char st Char
 nonEndline = satisfy (/='\n')
 
+strChar :: GenParser Char st Char
 strChar = noneOf (specialChars ++ spaceChars ++ "\n")
 
+str :: GenParser Char st Inline
 str = many1 strChar >>= return . Str
 
 -- an endline character that can be treated as a space, not a structural break
+endline :: GenParser Char ParserState Inline
 endline = try $ do
   newline
   notFollowedBy blankline
@@ -911,11 +1045,13 @@ endline = try $ do
 --
 
 -- a reference label for a link
+reference :: GenParser Char ParserState [Inline]
 reference = do notFollowedBy' (string "[^")   -- footnote reference
                result <- inlinesInBalancedBrackets inlineNonLink
                return $ normalizeSpaces result
 
 -- source for a link, with optional title
+source :: GenParser Char st (String, [Char])
 source =
   (try $ charsInBalanced '(' ')' >>= parseFromString source') <|>
   -- the following is needed for cases like:  [ref](/url(a).
@@ -923,6 +1059,7 @@ source =
    parseFromString source')
 
 -- auxiliary function for source
+source' :: GenParser Char st (String, [Char])
 source' = do
   skipSpaces
   src <- try (char '<' >>
@@ -934,6 +1071,7 @@ source' = do
   eof
   return (removeTrailingSpace src, tit)
 
+linkTitle :: GenParser Char st String
 linkTitle = try $ do 
   (many1 spaceChar >> option '\n' newline) <|> newline
   skipSpaces
@@ -942,24 +1080,28 @@ linkTitle = try $ do
                     (try (char delim >> skipSpaces >> eof))
   return $ decodeCharacterReferences tit
 
+link :: GenParser Char ParserState Inline
 link = try $ do
-  label <- reference
-  src <- source <|> referenceLink label
+  lab <- reference
+  src <- source <|> referenceLink lab
   sanitize <- getState >>= return . stateSanitizeHTML
   if sanitize && unsanitaryURI (fst src)
      then fail "Unsanitary URI"
-     else return $ Link label src
+     else return $ Link lab src
 
 -- a link like [this][ref] or [this][] or [this]
-referenceLink label = do
+referenceLink :: [Inline]
+              -> GenParser Char ParserState (String, [Char])
+referenceLink lab = do
   ref <- option [] (try (optional (char ' ') >> 
                          optional (newline >> skipSpaces) >> reference))
-  let ref' = if null ref then label else ref
+  let ref' = if null ref then lab else ref
   state <- getState
   case lookupKeySrc (stateKeys state) ref' of
      Nothing     -> fail "no corresponding key" 
      Just target -> return target 
 
+autoLink :: GenParser Char ParserState Inline
 autoLink = try $ do
   char '<'
   src <- uri <|> (emailAddress >>= (return . ("mailto:" ++)))
@@ -975,11 +1117,13 @@ autoLink = try $ do
                       then Link [Str src'] (src, "")
                       else Link [Code src'] (src, "")
 
+image :: GenParser Char ParserState Inline
 image = try $ do
   char '!'
-  (Link label src) <- link
-  return $ Image label src
+  (Link lab src) <- link
+  return $ Image lab src
 
+note :: GenParser Char ParserState Inline
 note = try $ do
   failIfStrict
   ref <- noteMarker
@@ -989,14 +1133,17 @@ note = try $ do
     Nothing       -> fail "note not found"
     Just contents -> return $ Note contents
 
+inlineNote :: GenParser Char ParserState Inline
 inlineNote = try $ do
   failIfStrict
   char '^'
   contents <- inlinesInBalancedBrackets inline
   return $ Note [Para contents]
 
+rawLaTeXInline' :: GenParser Char ParserState Inline
 rawLaTeXInline' = failIfStrict >> rawLaTeXInline
 
+rawHtmlInline' :: GenParser Char ParserState Inline
 rawHtmlInline' = do
   st <- getState
   result <- if stateStrict st
