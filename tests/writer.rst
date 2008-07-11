@@ -585,10 +585,10 @@ This is code: ``>``, ``$``, ``\``, ``\$``, ``<html>``.
 [STRIKEOUT:This is *strikeout*.]
 
 Superscripts: a\ :sup:`bc`\ d a\ :sup:`*hello*`\ 
-a\ :sup:`hello there`\ .
+a\ :sup:`hello there`\ .
 
 Subscripts: H\ :sub:`2`\ O, H\ :sub:`23`\ O,
-H\ :sub:`many of them`\ O.
+H\ :sub:`many of them`\ O.
 
 These should not be superscripts or subscripts, because of the
 unescaped spaces: a^b c^d, a~b c~d.

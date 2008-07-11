@@ -663,9 +663,9 @@ This is code: @code{>}@comma{} @code{$}@comma{} @code{\}@comma{} @code{\$}@comma
 
 @textstrikeout{This is @emph{strikeout}.}
 
-Superscripts: a@textsuperscript{bc}d a@textsuperscript{@emph{hello}} a@textsuperscript{hello there}.
+Superscripts: a@textsuperscript{bc}d a@textsuperscript{@emph{hello}} a@textsuperscript{hello@ there}.
 
-Subscripts: H@textsubscript{2}O@comma{} H@textsubscript{23}O@comma{} H@textsubscript{many of them}O.
+Subscripts: H@textsubscript{2}O@comma{} H@textsubscript{23}O@comma{} H@textsubscript{many@ of@ them}O.
 
 These should not be superscripts or subscripts@comma{} because of the unescaped spaces: a^b c^d@comma{} a~b c~d.
 

@@ -435,6 +435,9 @@ which allows only the following characters to be backslash-escaped:
 
     \`*_{}[]()>#+-.!
 
+A backslash-escaped space is parsed as a nonbreaking space.  It will
+appear in TeX output as '~' and in HTML and XML as '\&#160;' or '\&nbsp;'.
+
 Subscripts and superscripts
 ---------------------------
 

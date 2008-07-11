@@ -795,11 +795,12 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <para>
       Superscripts: a<superscript>bc</superscript>d
       a<superscript><emphasis>hello</emphasis></superscript>
-      a<superscript>hello there</superscript>.
+      a<superscript>hello&nbsp;there</superscript>.
     </para>
     <para>
       Subscripts: H<subscript>2</subscript>O,
-      H<subscript>23</subscript>O, H<subscript>many of them</subscript>O.
+      H<subscript>23</subscript>O,
+      H<subscript>many&nbsp;of&nbsp;them</subscript>O.
     </para>
     <para>
       These should not be superscripts or subscripts, because of the

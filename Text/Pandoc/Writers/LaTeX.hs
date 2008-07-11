@@ -116,6 +116,7 @@ stringToLaTeX = escapeStringUsing latexEscapes
                        , ('|', "\\textbar{}")
                        , ('<', "\\textless{}")
                        , ('>', "\\textgreater{}")
+                       , ('\160', "~")
                        ]
 
 -- | Puts contents into LaTeX command.

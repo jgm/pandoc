@@ -102,20 +102,21 @@ contextHeader options (Meta title authors date) = do
 escapeCharForConTeXt :: Char -> String
 escapeCharForConTeXt ch =
  case ch of
-    '{'  -> "\\letteropenbrace{}"
-    '}'  -> "\\letterclosebrace{}"
-    '\\' -> "\\letterbackslash{}"
-    '$'  -> "\\$"
-    '|'  -> "\\letterbar{}"
-    '^'  -> "\\letterhat{}"
-    '%'  -> "\\%"
-    '~'  -> "\\lettertilde{}"
-    '&'  -> "\\&"
-    '#'  -> "\\#"
-    '<'  -> "\\letterless{}"
-    '>'  -> "\\lettermore{}"
-    '_'  -> "\\letterunderscore{}"
-    x    -> [x]
+    '{'    -> "\\letteropenbrace{}"
+    '}'    -> "\\letterclosebrace{}"
+    '\\'   -> "\\letterbackslash{}"
+    '$'    -> "\\$"
+    '|'    -> "\\letterbar{}"
+    '^'    -> "\\letterhat{}"
+    '%'    -> "\\%"
+    '~'    -> "\\lettertilde{}"
+    '&'    -> "\\&"
+    '#'    -> "\\#"
+    '<'    -> "\\letterless{}"
+    '>'    -> "\\lettermore{}"
+    '_'    -> "\\letterunderscore{}"
+    '\160' -> "~"
+    x      -> [x]
 
 -- | Escape string for ConTeXt
 stringToConTeXt :: String -> String

@@ -733,7 +733,10 @@ escapedChar = do
   result <- option '\\' $ if stateStrict state 
                              then oneOf "\\`*_{}[]()>#+-.!~"
                              else satisfy (not . isAlphaNum)
-  return $ Str [result]
+  let result' = if result == ' '
+                   then '\160'  -- '\ ' is a nonbreaking space
+                   else result
+  return $ Str [result']
 
 ltSign = do
   st <- getState

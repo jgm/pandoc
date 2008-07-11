@@ -590,9 +590,9 @@ This is code: \type{>}, \type{$}, \type{\}, \type{\$},
 
 \overstrikes{This is {\em strikeout}.}
 
-Superscripts: a\high{bc}d a\high{{\em hello}} a\high{hello there}.
+Superscripts: a\high{bc}d a\high{{\em hello}} a\high{hello~there}.
 
-Subscripts: H\low{2}O, H\low{23}O, H\low{many of them}O.
+Subscripts: H\low{2}O, H\low{23}O, H\low{many~of~them}O.
 
 These should not be superscripts or subscripts, because of the
 unescaped spaces: a\letterhat{}b c\letterhat{}d, a\lettertilde{}b

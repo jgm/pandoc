@@ -123,6 +123,7 @@ stringToTexinfo = escapeStringUsing texinfoEscapes
                          , ('}', "@}")
                          , ('@', "@@")
                          , (',', "@comma{}") -- only needed in argument lists
+                         , ('\160', "@ ")
                          ]
 
 -- | Puts contents into Texinfo command.
