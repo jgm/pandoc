@@ -269,7 +269,7 @@ Autonumbering:
 
 Should not be a list item:
 
-M.A.&nbsp;2007
+M.A. 2007
 
 B. Williams
 
@@ -457,9 +457,9 @@ This is code: `>`, `$`, `\`, `\$`, `<html>`.
 
 ~~This is *strikeout*.~~
 
-Superscripts: a^bc^d a^*hello*^ a^hello&nbsp;there^.
+Superscripts: a^bc^d a^*hello*^ a^hello there^.
 
-Subscripts: H~2~O, H~23~O, H~many&nbsp;of&nbsp;them~O.
+Subscripts: H~2~O, H~23~O, H~many of them~O.
 
 These should not be superscripts or subscripts, because of the
 unescaped spaces: a\^b c\^d, a\~b c\~d.
