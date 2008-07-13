@@ -56,6 +56,7 @@ data WriterState =
                 , stListStyles   :: [(Int, [Doc])]
                 , stIndentPara   :: Int
                 , stInDefinition :: Bool
+                , stTight        :: Bool
                 }
 
 defaultWriterState :: WriterState
@@ -66,6 +67,7 @@ defaultWriterState =
                 , stListStyles    = []
                 , stIndentPara    = 0
                 , stInDefinition  = False
+                , stTight         = False
                 }
 
 when :: Bool -> Doc -> Doc
@@ -85,6 +87,12 @@ increaseIndent = modify $ \s -> s { stIndentPara = 1 + stIndentPara s }
 
 resetIndent :: State WriterState ()
 resetIndent = modify $ \s -> s { stIndentPara = (stIndentPara s) - 1 }
+
+inTightList :: State WriterState a -> State WriterState a
+inTightList  f = do modify $ \s -> s { stTight = True }
+                    r <- f
+                    modify $ \s -> s { stTight = False }
+                    return r
 
 setInDefinitionList :: Bool -> State WriterState ()
 setInDefinitionList b = modify $  \s -> s { stInDefinition = b }
@@ -193,18 +201,24 @@ orderedItemToOpenDocument  o n (b:bs)
         inTagsIndented "text:list" <$> orderedListToOpenDocument o nn l
 orderedItemToOpenDocument  _ _ [] = return empty
 
-newOrderedListStyle :: ListAttributes -> State WriterState (Int,Int)
-newOrderedListStyle a = do
+isTightList :: [[Block]] -> Bool
+isTightList []          = False
+isTightList (b:_)
+    | Plain {} : _ <- b = True
+    | otherwise         = False
+
+newOrderedListStyle :: Bool -> ListAttributes -> State WriterState (Int,Int)
+newOrderedListStyle b a = do
   ln <- (+) 1 . length  <$> gets stListStyles
-  pn <- paraListStyle ln
   let nbs = orderedListLevelStyle a (ln, [])
+  pn <- if b then inTightList (paraListStyle ln) else paraListStyle ln
   modify $ \s -> s { stListStyles = nbs : stListStyles s }
   return (ln,pn)
 
 bulletListToOpenDocument :: WriterOptions -> [[Block]] -> State WriterState Doc
 bulletListToOpenDocument o b = do
   ln <- (+) 1 . length <$> gets stListStyles
-  (pn,ns) <- bulletListStyle ln
+  (pn,ns) <- if isTightList b then inTightList (bulletListStyle ln) else bulletListStyle ln
   modify $ \s -> s { stListStyles = ns : stListStyles s }
   is <- listItemsToOpenDocument ("P" ++ show pn) o b
   return $ inTags True "text:list" [("text:style-name", "L" ++ show ln)] is
@@ -258,7 +272,7 @@ blockToOpenDocument o bs
       mkBlockQuote  b = do increaseIndent
                            i <- paraStyle "Quotations" []
                            inBlockQuote o i (map plainToPara b)
-      orderedList a b = do (ln,pn) <- newOrderedListStyle a
+      orderedList a b = do (ln,pn) <- newOrderedListStyle (isTightList b) a
                            inTags True "text:list" [ ("text:style-name", "L" ++ show ln)]
                                       <$> orderedListToOpenDocument o pn b
       table c a w h r = do
@@ -429,16 +443,21 @@ paraStyle parent attrs = do
   pn <- (+)   1 . length       <$> gets stParaStyles
   i  <- (*) 0.5 . fromIntegral <$> gets stIndentPara :: State WriterState Double
   b  <- gets stInDefinition
+  t  <- gets stTight
   let styleAttr = [ ("style:name"             , "P" ++ show pn)
                   , ("style:family"           , "paragraph"   )
                   , ("style:parent-style-name", parent        )]
       indentVal = flip (++) "in" . show $ if b then (max 0.5 i) else i
-      indent    = when (i /= 0 || b) $
-                  selfClosingTag "style:paragraph-properties"
+      tight     = if t then [ ("fo:margin-top"          , "0in"    )
+                            , ("fo:margin-bottom"       , "0in"    )]
+                       else []
+      indent    = when (i /= 0 || b || t) $
+                  selfClosingTag "style:paragraph-properties" $
                            [ ("fo:margin-left"         , indentVal)
                            , ("fo:margin-right"        , "0in"    )
                            , ("fo:text-indent"         , "0in"    )
                            , ("style:auto-text-indent" , "false"  )]
+                         ++ tight
   addParaStyle $ inTags True "style:style" (styleAttr ++ attrs) indent
   return pn
 
