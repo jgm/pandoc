@@ -86,14 +86,18 @@ writeS5String options = (writeHtmlString options) . insertS5Structure
 layoutDiv :: [Inline]  -- ^ Title of document (for header or footer)
           -> String    -- ^ Date of document (for header or footer)
           -> [Block]   -- ^ List of block elements returned
-layoutDiv title date = [(RawHtml "<div class=\"layout\">\n<div id=\"controls\"></div>\n<div id=\"currentSlide\"></div>\n<div id=\"header\"></div>\n<div id=\"footer\">\n"), (Header 1 [Str date]), (Header 2 title), (RawHtml "</div>\n</div>\n")]
+layoutDiv title' date = [(RawHtml "<div class=\"layout\">\n<div id=\"controls\"></div>\n<div id=\"currentSlide\"></div>\n<div id=\"header\"></div>\n<div id=\"footer\">\n"), (Header 1 [Str date]), (Header 2 title'), (RawHtml "</div>\n</div>\n")]
 
+presentationStart :: Block
 presentationStart = RawHtml "<div class=\"presentation\">\n\n"
 
+presentationEnd :: Block
 presentationEnd = RawHtml "</div>\n"
 
+slideStart :: Block
 slideStart = RawHtml "<div class=\"slide\">\n"
 
+slideEnd :: Block
 slideEnd = RawHtml "</div>\n"
 
 -- | Returns 'True' if block is a Header 1.
@@ -120,14 +124,14 @@ insertSlides beginning blocks =
 
 -- | Insert blocks into 'Pandoc' for slide structure.
 insertS5Structure :: Pandoc -> Pandoc
-insertS5Structure (Pandoc meta []) = Pandoc meta []
-insertS5Structure (Pandoc (Meta title authors date) blocks) = 
+insertS5Structure (Pandoc meta' []) = Pandoc meta' []
+insertS5Structure (Pandoc (Meta title' authors date) blocks) = 
     let slides     = insertSlides True blocks 
-        firstSlide = if not (null title)
-                        then [slideStart, (Header 1 title), 
+        firstSlide = if not (null title')
+                        then [slideStart, (Header 1 title'), 
                               (Header 3 [Str (joinWithSep ", " authors)]),
                               (Header 4 [Str date]), slideEnd]
                         else []
-        newBlocks  = (layoutDiv title date) ++ presentationStart:firstSlide ++
+        newBlocks  = (layoutDiv title' date) ++ presentationStart:firstSlide ++
                      slides ++ [presentationEnd]
-    in  Pandoc (Meta title authors date) newBlocks
+    in  Pandoc (Meta title' authors date) newBlocks
