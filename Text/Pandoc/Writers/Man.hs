@@ -51,14 +51,14 @@ pandocToMan opts (Pandoc meta blocks) = do
   let after   = writerIncludeAfter opts
   let before' = if null before then empty else text before
   let after'  = if null after then empty else text after
-  (head, foot) <- metaToMan opts meta
+  (head', foot) <- metaToMan opts meta
   body <- blockListToMan opts blocks
   (notes, preprocessors) <- get
   let preamble = if null preprocessors || not (writerStandalone opts)
                     then empty
                     else text $ ".\\\" " ++ concat (nub preprocessors)
   notes' <- notesToMan opts (reverse notes)
-  return $ preamble $$ head $$ before' $$ body $$ notes' $$ foot $$ after'
+  return $ preamble $$ head' $$ before' $$ body $$ notes' $$ foot $$ after'
 
 -- | Insert bibliographic information into Man header and footer.
 metaToMan :: WriterOptions -- ^ Options, including Man header
@@ -73,14 +73,14 @@ metaToMan options (Meta title authors date) = do
                             xs -> (text (reverse xs), doubleQuotes empty)                    
   let extras = map (doubleQuotes . text . removeLeadingTrailingSpace) $
                splitBy '|' rest
-  let head = (text ".TH") <+> title' <+> section <+> 
+  let head' = (text ".TH") <+> title' <+> section <+> 
              doubleQuotes (text date) <+> hsep extras
   let foot = case length authors of
                 0 -> empty
                 1 -> text ".SH AUTHOR" $$ (text $ joinWithSep ", " authors)
                 _ -> text ".SH AUTHORS" $$ (text $ joinWithSep ", " authors)
   return $ if writerStandalone options
-              then (head, foot)
+              then (head', foot)
               else (empty, empty)
 
 -- | Return man representation of notes.
@@ -114,21 +114,21 @@ escapeCode = escapeStringUsing (manEscapes ++ backslashEscapes "\t ")
 blockToMan :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
                 -> State WriterState Doc 
-blockToMan opts Null = return empty
+blockToMan _ Null = return empty
 blockToMan opts (Plain inlines) = 
   wrapIfNeeded opts (inlineListToMan opts) inlines
 blockToMan opts (Para inlines) = do
   contents <- wrapIfNeeded opts (inlineListToMan opts) inlines
   return $ text ".PP" $$ contents 
-blockToMan opts (RawHtml str) = return $ text str
-blockToMan opts HorizontalRule = return $ text $ ".PP\n   *   *   *   *   *"
+blockToMan _ (RawHtml str) = return $ text str
+blockToMan _ HorizontalRule = return $ text $ ".PP\n   *   *   *   *   *"
 blockToMan opts (Header level inlines) = do
   contents <- inlineListToMan opts inlines
   let heading = case level of
                   1 -> ".SH "
                   _ -> ".SS "
   return $ text heading <> contents 
-blockToMan opts (CodeBlock _ str) = return $
+blockToMan _ (CodeBlock _ str) = return $
   text ".PP" $$ text "\\f[CR]" $$ 
   text ((unlines . map ("      " ++) . lines) (escapeCode str)) <> text "\\f[]"
 blockToMan opts (BlockQuote blocks) = do  
@@ -174,7 +174,7 @@ blockToMan opts (DefinitionList items) = do
 
 -- | Convert bullet list item (list of blocks) to man.
 bulletListItemToMan :: WriterOptions -> [Block] -> State WriterState Doc
-bulletListItemToMan opts [] = return empty
+bulletListItemToMan _ [] = return empty
 bulletListItemToMan opts ((Para first):rest) = 
   bulletListItemToMan opts ((Plain first):rest)
 bulletListItemToMan opts ((Plain first):rest) = do
@@ -219,8 +219,9 @@ definitionListItemToMan opts (label, items) = do
                  then return empty
                  else do 
                         let (first, rest) = case items of
-                             ((Para x):y) -> (Plain x,y)
-                             (x:y)        -> (x,y)
+                              ((Para x):y) -> (Plain x,y)
+                              (x:y)        -> (x,y)
+                              []           -> error "items is null"
                         rest' <- mapM (\item -> blockToMan opts item)
                                  rest >>= (return . vcat)
                         first' <- blockToMan opts first
@@ -261,18 +262,18 @@ inlineToMan opts (Quoted SingleQuote lst) = do
 inlineToMan opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMan opts lst
   return $ text "\\[lq]" <> contents <> text "\\[rq]"
-inlineToMan opts EmDash = return $ text "\\[em]"
-inlineToMan opts EnDash = return $ text "\\[en]"
-inlineToMan opts Apostrophe = return $ char '\''
-inlineToMan opts Ellipses = return $ text "\\&..."
-inlineToMan opts (Code str) =
+inlineToMan _ EmDash = return $ text "\\[em]"
+inlineToMan _ EnDash = return $ text "\\[en]"
+inlineToMan _ Apostrophe = return $ char '\''
+inlineToMan _ Ellipses = return $ text "\\&..."
+inlineToMan _ (Code str) =
   return $ text $ "\\f[B]" ++ escapeCode str ++ "\\f[]"
-inlineToMan opts (Str str) = return $ text $ escapeString str
+inlineToMan _ (Str str) = return $ text $ escapeString str
 inlineToMan opts (Math str) = inlineToMan opts (Code str)
-inlineToMan opts (TeX str) = return empty
-inlineToMan opts (HtmlInline str) = return $ text $ escapeCode str 
-inlineToMan opts (LineBreak) = return $ text "\n.PD 0\n.P\n.PD\n"
-inlineToMan opts Space = return $ char ' '
+inlineToMan _ (TeX _) = return empty
+inlineToMan _ (HtmlInline str) = return $ text $ escapeCode str 
+inlineToMan _ (LineBreak) = return $ text "\n.PD 0\n.P\n.PD\n"
+inlineToMan _ Space = return $ char ' '
 inlineToMan opts (Link txt (src, _)) = do
   linktext <- inlineListToMan opts txt
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
@@ -286,7 +287,7 @@ inlineToMan opts (Image alternate (source, tit)) = do
                else alternate
   linkPart <- inlineToMan opts (Link txt (source, tit)) 
   return $ char '[' <> text "IMAGE: " <> linkPart <> char ']'
-inlineToMan opts (Note contents) = do 
+inlineToMan _ (Note contents) = do 
   modify (\(notes, prep) -> (contents:notes, prep)) -- add to notes in state
   (notes, _) <- get
   let ref = show $ (length notes)
