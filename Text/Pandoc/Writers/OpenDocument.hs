@@ -383,7 +383,7 @@ bulletListStyle l =
                       , ("text:style-name" , "Bullet_20_Symbols")
                       , ("style:num-suffix", "."                )
                       , ("text:bullet-char", [bulletList !! i]  )
-                      ] (listLevelStyle i)
+                      ] (listLevelStyle (1 + i))
         bulletList  = map chr $ cycle [8226,8227,8259]
         listElStyle = map doStyles [0..9]
     in  do pn <- paraListStyle l
