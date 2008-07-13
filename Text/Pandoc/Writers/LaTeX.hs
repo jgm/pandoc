@@ -60,7 +60,7 @@ writeLaTeX options document =
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState Doc
 pandocToLaTeX options (Pandoc meta blocks) = do
   main     <- blockListToLaTeX blocks
-  head     <- if writerStandalone options
+  head'    <- if writerStandalone options
                  then latexHeader options meta
                  else return empty
   let before = if null (writerIncludeBefore options)
@@ -76,7 +76,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let foot = if writerStandalone options
                 then text "\\end{document}"
                 else empty 
-  return $ head $$ toc $$ body $$ foot
+  return $ head' $$ toc $$ body $$ foot
 
 -- | Insert bibliographic information into LaTeX header.
 latexHeader :: WriterOptions -- ^ Options, including LaTeX header
@@ -155,7 +155,7 @@ blockToLaTeX (CodeBlock _ str) = do
             else return "verbatim"
   return $ text ("\\begin{" ++ env ++ "}\n") <> text str <> 
            text ("\n\\end{" ++ env ++ "}")
-blockToLaTeX (RawHtml str) = return empty
+blockToLaTeX (RawHtml _) = return empty
 blockToLaTeX (BulletList lst) = do
   items <- mapM listItemToLaTeX lst
   return $ text "\\begin{itemize}" $$ vcat items $$ text "\\end{itemize}"
@@ -164,7 +164,7 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   let oldlevel = stOLLevel st
   put $ st {stOLLevel = oldlevel + 1}
   items <- mapM listItemToLaTeX lst
-  modify (\st -> st {stOLLevel = oldlevel})
+  modify (\s -> s {stOLLevel = oldlevel})
   exemplar <- if numstyle /= DefaultStyle || numdelim /= DefaultDelim
                  then do addToHeader "\\usepackage{enumerate}"
                          return $ char '[' <> 
@@ -218,15 +218,19 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
               else text "\\begin{table}[h]" $$ centered tableBody $$ 
                    inCmd "caption" captionText $$ text "\\end{table}\n" 
 
+blockListToLaTeX :: [Block] -> State WriterState Doc
 blockListToLaTeX lst = mapM blockToLaTeX lst >>= return . vcat
 
+tableRowToLaTeX :: [[Block]] -> State WriterState Doc
 tableRowToLaTeX cols = mapM blockListToLaTeX cols >>= 
   return . ($$ text "\\\\") . foldl (\row item -> row $$
   (if isEmpty row then empty else text " & ") <> item) empty
 
+listItemToLaTeX :: [Block] -> State WriterState Doc
 listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item " $$) .
                       (nest 2)
 
+defListItemToLaTeX :: ([Inline], [Block]) -> State WriterState Doc
 defListItemToLaTeX (term, def) = do
     term' <- inlineListToLaTeX $ deVerb term
     def'  <- blockListToLaTeX def
@@ -293,7 +297,7 @@ inlineToLaTeX Ellipses = return $ text "\\ldots{}"
 inlineToLaTeX (Str str) = return $ text $ stringToLaTeX str
 inlineToLaTeX (Math str) = return $ char '$' <> text str <> char '$'
 inlineToLaTeX (TeX str) = return $ text str
-inlineToLaTeX (HtmlInline str) = return empty
+inlineToLaTeX (HtmlInline _) = return empty
 inlineToLaTeX (LineBreak) = return $ text "\\\\" 
 inlineToLaTeX Space = return $ char ' '
 inlineToLaTeX (Link txt (src, _)) = do
@@ -305,14 +309,14 @@ inlineToLaTeX (Link txt (src, _)) = do
         _ -> do contents <- inlineListToLaTeX $ deVerb txt
                 return $ text ("\\href{" ++ src ++ "}{") <> contents <> 
                          char '}'
-inlineToLaTeX (Image alternate (source, tit)) = do
+inlineToLaTeX (Image _ (source, _)) = do
   addToHeader "\\usepackage{graphicx}"
   return $ text $ "\\includegraphics{" ++ source ++ "}" 
 inlineToLaTeX (Note contents) = do
   st <- get
   put (st {stInNote = True})
   contents' <- blockListToLaTeX contents
-  modify (\st -> st {stInNote = False})
+  modify (\s -> s {stInNote = False})
   let rawnote = stripTrailingNewlines $ render contents'
   -- note: a \n before } is needed when note ends with a Verbatim environment
   let optNewline = "\\end{Verbatim}" `isSuffixOf` rawnote
