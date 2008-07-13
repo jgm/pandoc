@@ -36,7 +36,7 @@ import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Highlighting ( highlightHtml, defaultHighlightingCss )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower, isAlpha )
-import Data.List ( isPrefixOf, intersperse, find )
+import Data.List ( isPrefixOf, intersperse )
 import qualified Data.Set as S
 import Control.Monad.State
 import Text.XHtml.Transitional
@@ -53,7 +53,11 @@ defaultWriterState = WriterState {stNotes= [], stIds = [],
                                   stMath = False, stCSS = S.empty}
 
 -- Helpers to render HTML with the appropriate function.
-render opts    = if writerWrapText opts then renderHtml else showHtml
+
+render :: (HTML html) => WriterOptions -> html -> String
+render opts = if writerWrapText opts then renderHtml else showHtml
+
+renderFragment :: (HTML html) => WriterOptions -> html -> String
 renderFragment opts = if writerWrapText opts
                          then renderHtmlFragment
                          else showHtmlFragment
@@ -112,15 +116,15 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
                                       noHtml
                                    _ -> noHtml
                         else noHtml
-      head         = header $ metadata +++ math +++ css +++ 
+      head'        = header $ metadata +++ math +++ css +++ 
                               primHtml (writerHeader opts)
       notes        = reverse (stNotes newstate)
       before       = primHtml $ writerIncludeBefore opts
       after        = primHtml $ writerIncludeAfter opts
       thebody      = before +++ titleHeader +++ toc +++ blocks' +++
-                     footnoteSection opts notes +++ after
+                     footnoteSection notes +++ after
   in  if writerStandalone opts
-         then head +++ body thebody
+         then head' +++ body thebody
          else thebody
 
 -- | Construct table of contents from list of header blocks and identifiers.
@@ -137,11 +141,11 @@ tableOfContents opts headers ids =
 -- | Converts an Element to a list item for a table of contents,
 -- retrieving the appropriate identifier from state.
 elementToListItem :: WriterOptions -> Element -> State WriterState Html
-elementToListItem opts (Blk _) = return noHtml
+elementToListItem _ (Blk _) = return noHtml
 elementToListItem opts (Sec headerText subsecs) = do
   st <- get
   let ids = stIds st
-  let (id, rest) = if null ids
+  let (id', rest) = if null ids
                       then ("", [])
                       else (head ids, tail ids)
   put $ st {stIds = rest}
@@ -150,13 +154,13 @@ elementToListItem opts (Sec headerText subsecs) = do
   let subList = if null subHeads
                    then noHtml
                    else unordList subHeads 
-  return $ (anchor ! [href ("#" ++ id), identifier ("TOC-" ++ id)] $ txt) +++ 
+  return $ (anchor ! [href ("#" ++ id'), identifier ("TOC-" ++ id')] $ txt) +++ 
            subList
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
-footnoteSection :: WriterOptions -> [Html] -> Html
-footnoteSection opts notes =
+footnoteSection :: [Html] -> Html
+footnoteSection notes =
   if null notes 
      then noHtml
      else thediv ! [theclass "footnotes"] $ hr +++ (olist << notes)
@@ -164,37 +168,37 @@ footnoteSection opts notes =
 
 -- | Parse a mailto link; return Just (name, domain) or Nothing.
 parseMailto :: String -> Maybe (String, String)
-parseMailto ('m':'a':'i':'l':'t':'o':':':address) =
-  let (name, rest) = span (/='@') address
+parseMailto ('m':'a':'i':'l':'t':'o':':':addr) =
+  let (name', rest) = span (/='@') addr
       domain = drop 1 rest
-  in  Just (name, domain)
+  in  Just (name', domain)
 parseMailto _ = Nothing 
 
 -- | Obfuscate a "mailto:" link using Javascript.
 obfuscateLink :: WriterOptions -> String -> String -> Html
-obfuscateLink opts text src =
-  let src' = map toLower src
-  in  case parseMailto src' of
-        (Just (name, domain)) ->
+obfuscateLink opts txt s =
+  let s' = map toLower s 
+  in  case parseMailto s' of
+        (Just (name', domain)) ->
           let domain'  = substitute "." " dot " domain
               at'      = obfuscateChar '@'
               (linkText, altText) = 
-                 if text == drop 7 src' -- autolink
-                    then ("'<code>'+e+'</code>'", name ++ " at " ++ domain')
-                    else ("'" ++ text ++ "'", text ++ " (" ++ name ++ " at " ++ 
+                 if txt == drop 7 s' -- autolink
+                    then ("'<code>'+e+'</code>'", name' ++ " at " ++ domain')
+                    else ("'" ++ txt ++ "'", txt ++ " (" ++ name' ++ " at " ++ 
                           domain' ++ ")")
           in  if writerStrictMarkdown opts
                 then -- need to use primHtml or &'s are escaped to &amp; in URL
-                     primHtml $ "<a href=\"" ++ (obfuscateString src')
-                     ++ "\">" ++ (obfuscateString text) ++ "</a>"
+                     primHtml $ "<a href=\"" ++ (obfuscateString s')
+                     ++ "\">" ++ (obfuscateString txt) ++ "</a>"
                 else (script ! [thetype "text/javascript"] $
                      primHtml ("\n<!--\nh='" ++ 
                      obfuscateString domain ++ "';a='" ++ at' ++ "';n='" ++ 
-                     obfuscateString name ++ "';e=n+a+h;\n" ++
+                     obfuscateString name' ++ "';e=n+a+h;\n" ++
                      "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\">'+" ++ 
                      linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) +++  
                      noscript (primHtml $ obfuscateString altText)
-        _ -> anchor ! [href src] $ primHtml text  -- malformed email
+        _ -> anchor ! [href s] $ primHtml txt  -- malformed email
 
 -- | Obfuscate character as entity.
 obfuscateChar :: Char -> String
@@ -227,6 +231,7 @@ addToCSS item = do
 inlineListToIdentifier :: [Inline] -> String
 inlineListToIdentifier = dropWhile (not . isAlpha) . inlineListToIdentifier'
 
+inlineListToIdentifier' :: [Inline] -> [Char]
 inlineListToIdentifier' [] = ""
 inlineListToIdentifier' (x:xs) = 
   xAsText ++ inlineListToIdentifier' xs
@@ -266,12 +271,12 @@ uniqueIdentifiers ls =
 
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: WriterOptions -> Block -> State WriterState Html
-blockToHtml opts Null = return $ noHtml 
+blockToHtml _ Null = return $ noHtml 
 blockToHtml opts (Plain lst) = inlineListToHtml opts lst
 blockToHtml opts (Para lst) = inlineListToHtml opts lst >>= (return . paragraph)
-blockToHtml opts (RawHtml str) = return $ primHtml str
-blockToHtml opts (HorizontalRule) = return $ hr
-blockToHtml opts (CodeBlock attr@(_,classes,_) rawCode) = do
+blockToHtml _ (RawHtml str) = return $ primHtml str
+blockToHtml _ (HorizontalRule) = return $ hr
+blockToHtml _ (CodeBlock attr@(_,classes,_) rawCode) = do
   case highlightHtml attr rawCode of
          Left _  -> -- change leading newlines into <br /> tags, because some
                     -- browsers ignore leading newlines in pre blocks
@@ -294,22 +299,22 @@ blockToHtml opts (BlockQuote blocks) =
              [OrderedList attribs lst] -> 
                                   blockToHtml (opts {writerIncremental = inc})
                                   (OrderedList attribs lst)
-             otherwise         -> blockListToHtml opts blocks >>= 
+             _                 -> blockListToHtml opts blocks >>= 
                                   (return . blockquote)
      else blockListToHtml opts blocks >>= (return . blockquote)
 blockToHtml opts (Header level lst) = do 
   contents <- inlineListToHtml opts lst
   st <- get
   let ids = stIds st
-  let (id, rest) = if null ids
+  let (id', rest) = if null ids
                       then ("", [])
                       else (head ids, tail ids)
   put $ st {stIds = rest}
   let attribs = if writerStrictMarkdown opts && not (writerTableOfContents opts)
                    then []
-                   else [identifier id]
+                   else [identifier id']
   let contents'  = if writerTableOfContents opts
-                      then anchor ! [href ("#TOC-" ++ id)] $ contents
+                      then anchor ! [href ("#TOC-" ++ id')] $ contents
                       else contents
   return $ case level of
               1 -> h1 contents' ! attribs
@@ -346,40 +351,56 @@ blockToHtml opts (DefinitionList lst) = do
                    then [theclass "incremental"]
                    else []
   return $ defList ! attribs $ contents
-blockToHtml opts (Table capt aligns widths headers rows) = do
+blockToHtml opts (Table capt aligns widths headers rows') = do
   let alignStrings = map alignmentToString aligns
   captionDoc <- if null capt
                    then return noHtml
                    else inlineListToHtml opts capt >>= return . caption
   colHeads <- colHeadsToHtml opts alignStrings 
                              widths headers
-  rows' <- mapM (tableRowToHtml opts alignStrings) rows
-  return $ table $ captionDoc +++ colHeads +++ rows'
+  rows'' <- mapM (tableRowToHtml opts alignStrings) rows'
+  return $ table $ captionDoc +++ colHeads +++ rows''
 
+colHeadsToHtml :: WriterOptions
+               -> [[Char]]
+               -> [Float]
+               -> [[Block]]
+               -> State WriterState Html
 colHeadsToHtml opts alignStrings widths headers = do
   heads <- sequence $ zipWith3 
-           (\align width item -> tableItemToHtml opts th align width item) 
+           (\alignment columnwidth item -> tableItemToHtml opts th alignment columnwidth item) 
            alignStrings widths headers
   return $ tr $ toHtmlFromList heads
 
+alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of
                                  AlignLeft    -> "left"
                                  AlignRight   -> "right"
                                  AlignCenter  -> "center"
                                  AlignDefault -> "left"
 
-tableRowToHtml opts aligns cols = 
-  (sequence $ zipWith3 (tableItemToHtml opts td) aligns (repeat 0) cols) >>=
+tableRowToHtml :: WriterOptions
+               -> [[Char]]
+               -> [[Block]]
+               -> State WriterState Html
+tableRowToHtml opts aligns columns = 
+  (sequence $ zipWith3 (tableItemToHtml opts td) aligns (repeat 0) columns) >>=
   return . tr . toHtmlFromList
 
-tableItemToHtml opts tag align' width item = do
+tableItemToHtml :: WriterOptions
+                -> (Html -> Html)
+                -> [Char]
+                -> Float
+                -> [Block]
+                -> State WriterState Html
+tableItemToHtml opts tag' align' width' item = do
   contents <- blockListToHtml opts item
   let attrib = [align align'] ++ 
-               if width /= 0 
-                  then [thestyle ("width: " ++ show (truncate (100*width)) ++ 
+               if width' /= 0 
+                  then [thestyle ("width: " ++ show (truncate (100*width')) ++ 
                         "%;")]
                   else [] 
-  return $ tag ! attrib $ contents
+  return $ tag' ! attrib $ contents
 
 blockListToHtml :: WriterOptions -> [Block] -> State WriterState Html
 blockListToHtml opts lst = 
@@ -428,22 +449,22 @@ inlineToHtml opts inline =
                                PlainMath -> 
                                   inlineListToHtml opts (readTeXMath str) >>=
                                   return . (thespan ! [theclass "math"])) 
-    (TeX str)        -> return noHtml
+    (TeX _)          -> return noHtml
     (HtmlInline str) -> return $ primHtml str 
-    (Link [Code str] (src,tit)) | "mailto:" `isPrefixOf` src ->
-                        return $ obfuscateLink opts str src
-    (Link txt (src,tit)) | "mailto:" `isPrefixOf` src -> do
+    (Link [Code str] (s,_)) | "mailto:" `isPrefixOf` s ->
+                        return $ obfuscateLink opts str s
+    (Link txt (s,_)) | "mailto:" `isPrefixOf` s -> do
                         linkText <- inlineListToHtml opts txt  
-                        return $ obfuscateLink opts (show linkText) src
-    (Link txt (src,tit)) -> do
+                        return $ obfuscateLink opts (show linkText) s
+    (Link txt (s,tit)) -> do
                         linkText <- inlineListToHtml opts txt
-                        return $ anchor ! ([href src] ++ 
+                        return $ anchor ! ([href s] ++ 
                                  if null tit then [] else [title tit]) $ 
                                  linkText
-    (Image txt (source,tit)) -> do
+    (Image txt (s,tit)) -> do
                         alternate <- inlineListToHtml opts txt
                         let alternate' = renderFragment opts alternate
-                        let attributes = [src source] ++
+                        let attributes = [src s] ++
                                          (if null tit 
                                             then [] 
                                             else [title tit]) ++ 
