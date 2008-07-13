@@ -41,6 +41,7 @@ data WriterState =
               , stOptions          :: WriterOptions -- writer options
               }
 
+orderedListStyles :: [[Char]]
 orderedListStyles = cycle ["[n]","[a]", "[r]", "[g]"] 
 
 -- | Convert Pandoc to ConTeXt.
@@ -63,16 +64,16 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                   then empty
                   else text $ writerIncludeAfter options
   let body = before $$ main $$ after
-  head    <- if writerStandalone options
-                then contextHeader options meta
-                else return empty
+  head'    <- if writerStandalone options
+                 then contextHeader options meta
+                 else return empty
   let toc  = if writerTableOfContents options
                 then text "\\placecontent\n"
                 else empty 
   let foot = if writerStandalone options
                 then text "\\stoptext\n"
                 else empty 
-  return $ head $$ toc $$ body $$ foot
+  return $ head' $$ toc $$ body $$ foot
 
 -- | Insert bibliographic information into ConTeXt header.
 contextHeader :: WriterOptions -- ^ Options, including ConTeXt header
@@ -142,11 +143,11 @@ blockToConTeXt (BlockQuote lst) = do
 blockToConTeXt (CodeBlock _ str) = 
   return $ Reg $ text $ "\\starttyping\n" ++ str ++ "\n\\stoptyping\n" 
   -- \n because \stoptyping can't have anything after it, inc. }
-blockToConTeXt (RawHtml str) = return $ Reg empty
+blockToConTeXt (RawHtml _) = return $ Reg empty
 blockToConTeXt (BulletList lst) = do 
   contents <- mapM listItemToConTeXt lst
   return $ Pad $ text "\\startitemize" $$ vcat contents $$ text "\\stopitemize"
-blockToConTeXt (OrderedList (start, style, delim) lst) = do
+blockToConTeXt (OrderedList (start, style', delim) lst) = do
     st <- get
     let level = stOrderedListLevel st
     put $ st {stOrderedListLevel = level + 1}
@@ -159,7 +160,7 @@ blockToConTeXt (OrderedList (start, style, delim) lst) = do
                         OneParen     -> "stopper=)" 
                         TwoParens    -> "left=(,stopper=)"
     let width = maximum $ map length $ take (length contents) 
-                          (orderedListMarkers (start, style, delim))
+                          (orderedListMarkers (start, style', delim))
     let width' = (toEnum width + 1) / 2
     let width'' = if width' > 1.5 
                      then "width=" ++ show width' ++ "em" 
@@ -168,14 +169,14 @@ blockToConTeXt (OrderedList (start, style, delim) lst) = do
     let specs2 = if null specs2Items
                     then ""
                     else "[" ++ joinWithSep "," specs2Items ++ "]"
-    let style' = case style of
+    let style'' = case style' of
                         DefaultStyle -> orderedListStyles !! level
                         Decimal      -> "[n]" 
                         LowerRoman   -> "[r]"
                         UpperRoman   -> "[R]"
                         LowerAlpha   -> "[a]"
                         UpperAlpha   -> "[A]"
-    let specs = style' ++ specs2
+    let specs = style'' ++ specs2
     return $ Pad $ text ("\\startitemize" ++ specs) $$ vcat contents $$ 
              text "\\stopitemize"
 blockToConTeXt (DefinitionList lst) =
@@ -212,17 +213,17 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
 printDecimal :: Float -> String
 printDecimal = printf "%.2f" 
 
+tableRowToConTeXt :: [[Block]] -> State WriterState Doc
 tableRowToConTeXt cols = do
   cols' <- mapM blockListToConTeXt cols
   return $ (vcat (map (text "\\NC " <>) cols')) $$ 
            text "\\NC\\AR"
 
+listItemToConTeXt :: [Block] -> State WriterState Doc
 listItemToConTeXt list = blockListToConTeXt list >>=
   return . (text "\\item " $$) . (nest 2)
 
-orderedListItemToConTeXt marker list = blockListToConTeXt list >>=
-  return . (text ("\\sym{" ++ marker ++ "} ") $$) . (nest 2)
-
+defListItemToConTeXt :: ([Inline], [Block]) -> State WriterState BlockWrapper
 defListItemToConTeXt (term, def) = do
   term' <- inlineListToConTeXt term
   def'  <- blockListToConTeXt def
@@ -236,11 +237,6 @@ blockListToConTeXt lst = mapM blockToConTeXt lst >>= return . wrappedBlocksToDoc
 inlineListToConTeXt :: [Inline]  -- ^ Inlines to convert
                     -> State WriterState Doc
 inlineListToConTeXt lst = mapM inlineToConTeXt lst >>= return . hcat
-
-isQuoted :: Inline -> Bool
-isQuoted (Quoted _ _) = True
-isQuoted Apostrophe = True
-isQuoted _ = False
 
 -- | Convert inline element to ConTeXt
 inlineToConTeXt :: Inline    -- ^ Inline to convert
@@ -274,7 +270,7 @@ inlineToConTeXt Ellipses = return $ text "\\ldots{}"
 inlineToConTeXt (Str str) = return $ text $ stringToConTeXt str
 inlineToConTeXt (Math str) = return $ char '$' <> text str <> char '$'
 inlineToConTeXt (TeX str) = return $ text str
-inlineToConTeXt (HtmlInline str) = return empty
+inlineToConTeXt (HtmlInline _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf\n"
 inlineToConTeXt Space = return $ char ' '
 inlineToConTeXt (Link [Code str] (src, tit)) = -- since ConTeXt has its own 
