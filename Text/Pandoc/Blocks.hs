@@ -57,7 +57,7 @@ instance Show TextBlock where
 breakLines :: Int      -- ^ Maximum length of lines.
            -> [String] -- ^ List of lines.
            -> [String]
-breakLines width [] = []
+breakLines _ [] = []
 breakLines width (l:ls) =
   if length l > width
      then (take width l):(breakLines width ((drop width l):ls))
@@ -93,9 +93,9 @@ hPad :: Int     -- ^ Desired width.
      -> String  -- ^ String to pad.
      -> String
 hPad width line = 
-  let lineLength = length line
-  in  if lineLength <= width 
-         then line ++ replicate (width - lineLength) ' '
+  let linelen = length line
+  in  if linelen <= width
+         then line ++ replicate (width - linelen) ' '
          else take width line
 
 -- | Concatenates a list of @TextBlock@s into a new @TextBlock@ in
@@ -116,6 +116,7 @@ hcatBlocks ((TextBlock width1 height1 lns1):xs) =
 hsepBlocks :: [TextBlock] -> TextBlock
 hsepBlocks = hcatBlocks . (intersperse (TextBlock 1 1 [" "]))
 
+isWhitespace :: Char -> Bool
 isWhitespace x = x `elem` " \t"
 
 -- | Left-aligns the contents of a @TextBlock@ within the block.
