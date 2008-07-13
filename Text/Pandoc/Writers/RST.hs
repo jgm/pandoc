@@ -37,8 +37,6 @@ import Data.List ( isPrefixOf, isSuffixOf, drop, intersperse )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 
-type Notes = [[Block]]
-type Refs = KeyTable
 data WriterState = 
   WriterState { stNotes     :: [[Block]]
               , stLinks     :: KeyTable
@@ -64,9 +62,9 @@ pandocToRST (Pandoc meta blocks) = do
       before' = if null before then empty else text before
       after'  = if null after then empty else text after
   metaBlock <- metaToRST opts meta
-  let head = if (writerStandalone opts)
-                then metaBlock $+$ text (writerHeader opts)
-                else empty
+  let head' = if (writerStandalone opts)
+                 then metaBlock $+$ text (writerHeader opts)
+                 else empty
   body <- blockListToRST blocks
   includes <- get >>= (return . concat . stIncludes)
   let includes' = if null includes then empty else text includes
@@ -74,7 +72,7 @@ pandocToRST (Pandoc meta blocks) = do
   -- note that the notes may contain refs, so we do them first
   refs <- get >>= (keyTableToRST . reverse . stLinks)
   pics <- get >>= (pictTableToRST . reverse . stImages)
-  return $ head $+$ before' $+$ includes' $+$ body $+$ notes $+$ text "" $+$
+  return $ head' $+$ before' $+$ includes' $+$ body $+$ notes $+$ text "" $+$
            refs $+$ pics $+$ after'
 
 -- | Return RST representation of reference key table.
@@ -84,7 +82,7 @@ keyTableToRST refs = mapM keyToRST refs >>= return . vcat
 -- | Return RST representation of a reference key. 
 keyToRST :: ([Inline], (String, String)) 
          -> State WriterState Doc
-keyToRST (label, (src, tit)) = do
+keyToRST (label, (src, _)) = do
   label' <- inlineListToRST label
   let label'' = if ':' `elem` (render label')
                    then char '`' <> label' <> char '`'
@@ -186,46 +184,39 @@ blockToRST (BlockQuote blocks) = do
   tabstop <- get >>= (return . writerTabStop . stOptions)
   contents <- blockListToRST blocks 
   return $ (nest tabstop contents) <> text "\n"
-blockToRST (Table caption aligns widths headers rows) =  do
+blockToRST (Table caption _ widths headers rows) =  do
   caption' <- inlineListToRST caption
   let caption'' = if null caption
                      then empty
                      else text "" $+$ (text "Table: " <> caption')
   headers' <- mapM blockListToRST headers
   let widthsInChars = map (floor . (78 *)) widths
-  let alignHeader alignment = case alignment of
-                                AlignLeft    -> leftAlignBlock
-                                AlignCenter  -> centerAlignBlock
-                                AlignRight   -> rightAlignBlock
-                                AlignDefault -> leftAlignBlock  
   let hpipeBlocks blocks = hcatBlocks [beg, middle, end] 
         where height = maximum (map heightOfBlock blocks)
-              sep    = TextBlock 3 height (replicate height " | ")
+              sep'   = TextBlock 3 height (replicate height " | ")
               beg    = TextBlock 2 height (replicate height "| ")
               end    = TextBlock 2 height (replicate height " |")
-              middle = hcatBlocks $ intersperse sep blocks
+              middle = hcatBlocks $ intersperse sep' blocks
   let makeRow = hpipeBlocks . zipWith docToBlock widthsInChars
-  let head = makeRow headers'
+  let head' = makeRow headers'
   rows' <- mapM (\row -> do cols <- mapM blockListToRST row
                             return $ makeRow cols) rows
-  let tableWidth = sum widthsInChars
-  let maxRowHeight = maximum $ map heightOfBlock (head:rows')
   let border ch = char '+' <> char ch <>
                   (hcat $ intersperse (char ch <> char '+' <> char ch) $ 
                           map (\l -> text $ replicate l ch) widthsInChars) <>
                   char ch <> char '+'
   let body = vcat $ intersperse (border '-') $ map blockToDoc rows'
-  return $ border '-' $+$ blockToDoc head $+$ border '=' $+$ body $+$ 
+  return $ border '-' $+$ blockToDoc head' $+$ border '=' $+$ body $+$ 
            border '-' $$ caption'' $$ text ""
 blockToRST (BulletList items) = do
   contents <- mapM bulletListItemToRST items
   -- ensure that sublists have preceding blank line
   return $ text "" $+$ vcat contents <> text "\n"
-blockToRST (OrderedList (start, style, delim) items) = do
-  let markers = if start == 1 && style == DefaultStyle && delim == DefaultDelim 
+blockToRST (OrderedList (start, style', delim) items) = do
+  let markers = if start == 1 && style' == DefaultStyle && delim == DefaultDelim 
                    then take (length items) $ repeat "#."
                    else take (length items) $ orderedListMarkers 
-                                              (start, style, delim)
+                                              (start, style', delim)
   let maxMarkerLength = maximum $ map length markers
   let markers' = map (\m -> let s = maxMarkerLength - length m
                             in  m ++ replicate s ' ') markers
@@ -254,10 +245,10 @@ orderedListItemToRST marker items = do
 -- | Convert defintion list item (label, list of blocks) to RST.
 definitionListItemToRST :: ([Inline], [Block]) -> State WriterState Doc
 definitionListItemToRST (label, items) = do
-  label <- inlineListToRST label
+  label' <- inlineListToRST label
   contents <- blockListToRST items
   tabstop <- get >>= (return . writerTabStop . stOptions)
-  return $ label $+$ nest tabstop contents
+  return $ label' $+$ nest tabstop contents
 
 -- | Convert list of Pandoc block elements to RST.
 blockListToRST :: [Block]       -- ^ List of block elements
@@ -305,13 +296,13 @@ inlineToRST (Math str) = do
      then modify $ \st -> st { stIncludes = rawMathRole : includes }
      else return ()
   return $ text $ ":math:`$" ++ str ++ "$`"
-inlineToRST (TeX str) = return empty
-inlineToRST (HtmlInline str) = return empty
+inlineToRST (TeX _) = return empty
+inlineToRST (HtmlInline _) = return empty
 inlineToRST (LineBreak) = do
   return $ empty -- there's no line break in RST
 inlineToRST Space = return $ char ' '
-inlineToRST (Link [Code str] (src, tit)) | src == str ||
-                                                src == "mailto:" ++ str = do
+inlineToRST (Link [Code str] (src, _)) | src == str ||
+                                         src == "mailto:" ++ str = do
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
   return $ text srcSuffix
 inlineToRST (Link txt (src, tit)) = do
