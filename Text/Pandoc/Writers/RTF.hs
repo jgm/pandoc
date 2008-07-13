@@ -37,9 +37,9 @@ import Data.Char ( ord, isDigit )
 -- | Convert Pandoc to a string in rich text format.
 writeRTF :: WriterOptions -> Pandoc -> String
 writeRTF options (Pandoc meta blocks) = 
-  let head = if writerStandalone options
-                then rtfHeader (writerHeader options) meta 
-                else ""
+  let head' = if writerStandalone options
+                 then rtfHeader (writerHeader options) meta 
+                 else ""
       toc  = if writerTableOfContents options
                 then tableOfContents $ filter isHeaderBlock blocks
                 else "" 
@@ -47,7 +47,7 @@ writeRTF options (Pandoc meta blocks) =
       body = writerIncludeBefore options ++ 
              concatMap (blockToRTF 0 AlignDefault) blocks ++ 
              writerIncludeAfter options
-  in  head ++ toc ++ body ++ foot
+  in  head' ++ toc ++ body ++ foot
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: [Block] -> String 
@@ -84,10 +84,6 @@ stringToRTF = handleUnicode . escapeSpecial
 codeStringToRTF :: String -> String
 codeStringToRTF str = joinWithSep "\\line\n" $ lines (stringToRTF str)
 
--- | Deal with raw LaTeX.
-latexToRTF :: String -> String
-latexToRTF str = "{\\cf1 " ++ (stringToRTF str) ++ "\\cf0 }"
-
 -- | Make a paragraph with first-line indent, block indent, and space after.
 rtfParSpaced :: Int       -- ^ space after (in twips)
              -> Int       -- ^ block indent (in twips)
@@ -122,22 +118,25 @@ rtfCompact ::  Int       -- ^ block indent (in twips)
 rtfCompact = rtfParSpaced 0 
 
 -- number of twips to indent
+indentIncrement :: Int
 indentIncrement = 720
+
+listIncrement :: Int
 listIncrement = 360
 
 -- | Returns appropriate bullet list marker for indent level.
 bulletMarker :: Int -> String
 bulletMarker indent = case indent `mod` 720 of
-                             0         -> "\\bullet "
-                             otherwise -> "\\endash "
+                             0 -> "\\bullet "
+                             _ -> "\\endash "
 
 -- | Returns appropriate (list of) ordered list markers for indent level.
 orderedMarkers :: Int -> ListAttributes -> [String]
 orderedMarkers indent (start, style, delim) = 
   if style == DefaultStyle && delim == DefaultDelim
      then case indent `mod` 720 of
-              0         -> orderedListMarkers (start, Decimal, Period)
-              otherwise -> orderedListMarkers (start, LowerAlpha, Period)
+              0 -> orderedListMarkers (start, Decimal, Period)
+              _ -> orderedListMarkers (start, LowerAlpha, Period)
      else orderedListMarkers (start, style, delim)
 
 -- | Returns RTF header.
@@ -175,7 +174,7 @@ blockToRTF indent alignment (BlockQuote lst) =
   concatMap (blockToRTF (indent + indentIncrement) alignment) lst 
 blockToRTF indent _ (CodeBlock _ str) =
   rtfPar indent 0 AlignLeft ("\\f1 " ++ (codeStringToRTF str))
-blockToRTF _ _ (RawHtml str) = ""
+blockToRTF _ _ (RawHtml _) = ""
 blockToRTF indent alignment (BulletList lst) = spaceAtEnd $ 
   concatMap (listItemToRTF alignment indent (bulletMarker indent)) lst
 blockToRTF indent alignment (OrderedList attribs lst) = spaceAtEnd $ concat $ 
@@ -238,7 +237,7 @@ listItemToRTF alignment indent marker list =
         listMarker ++ dropWhile isDigit xs
       insertListMarker (x:xs) =
         x : insertListMarker xs
-      insertListmarker [] = []
+      insertListMarker [] = []
       -- insert the list marker into the (processed) first block
   in  insertListMarker first ++ concat rest
 
@@ -276,14 +275,14 @@ inlineToRTF EnDash = "\\u8211-"
 inlineToRTF (Code str) = "{\\f1 " ++ (codeStringToRTF str) ++ "}"
 inlineToRTF (Str str) = stringToRTF str
 inlineToRTF (Math str) = inlineListToRTF $ readTeXMath str
-inlineToRTF (TeX str) = ""
-inlineToRTF (HtmlInline str) = ""
+inlineToRTF (TeX _) = ""
+inlineToRTF (HtmlInline _) = ""
 inlineToRTF (LineBreak) = "\\line "
 inlineToRTF Space = " "
-inlineToRTF (Link text (src, tit)) = 
+inlineToRTF (Link text (src, _)) = 
   "{\\field{\\*\\fldinst{HYPERLINK \"" ++ (codeStringToRTF src) ++ 
   "\"}}{\\fldrslt{\\ul\n" ++ (inlineListToRTF text) ++ "\n}}}\n"
-inlineToRTF (Image alternate (source, tit)) = 
+inlineToRTF (Image _ (source, _)) = 
   "{\\cf1 [image: " ++ source ++ "]\\cf0}" 
 inlineToRTF (Note contents) =
   "{\\super\\chftn}{\\*\\footnote\\chftn\\~\\plain\\pard " ++ 
