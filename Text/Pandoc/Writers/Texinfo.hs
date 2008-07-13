@@ -31,8 +31,8 @@ module Text.Pandoc.Writers.Texinfo ( writeTexinfo ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
-import Data.List ( (\\), isSuffixOf )
-import Data.Char ( toLower, chr, ord )
+import Data.List ( isSuffixOf )
+import Data.Char ( chr, ord )
 import qualified Data.Set as S
 import Control.Monad.State
 import Text.PrettyPrint.HughesPJ hiding ( Str )
@@ -60,13 +60,14 @@ writeTexinfo options document =
   WriterState { stIncludes = S.empty } 
 
 -- | Add a "Top" node around the document, needed by Texinfo.
+wrapTop :: Pandoc -> Pandoc
 wrapTop (Pandoc (Meta title authors date) blocks) =
   Pandoc (Meta title authors date) (Header 0 title : blocks)
 
 pandocToTexinfo :: WriterOptions -> Pandoc -> State WriterState Doc
 pandocToTexinfo options (Pandoc meta blocks) = do
   main     <- blockListToTexinfo blocks
-  head     <- if writerStandalone options
+  head'    <- if writerStandalone options
                  then texinfoHeader options meta
                  else return empty
   let before = if null (writerIncludeBefore options)
@@ -83,7 +84,7 @@ pandocToTexinfo options (Pandoc meta blocks) = do
   let foot = if writerStandalone options
                 then text "@bye"
                 else empty 
-  return $ head $$ toc $$ body $$ foot
+  return $ head' $$ toc $$ body $$ foot
 
 -- | Insert bibliographic information into Texinfo header.
 texinfoHeader :: WriterOptions -- ^ Options, including Texinfo header
@@ -114,6 +115,7 @@ texinfoHeader options (Meta title authors date) = do
            datetext $$
            text "@end titlepage"
 
+makeAuthor :: String -> Doc
 makeAuthor author = text $ "@author " ++ (stringToTexinfo author)
 
 -- | Escape things as needed for Texinfo.
@@ -153,7 +155,7 @@ blockToTexinfo (CodeBlock _ str) = do
            vcat (map text (lines str)) $$
            text "@end verbatim\n"
 
-blockToTexinfo (RawHtml str) = return empty
+blockToTexinfo (RawHtml _) = return empty
 
 blockToTexinfo (BulletList lst) = do
   items <- mapM listItemToTexinfo lst
@@ -161,7 +163,7 @@ blockToTexinfo (BulletList lst) = do
            vcat items $$
            text "@end itemize\n"
 
-blockToTexinfo (OrderedList (start, numstyle, numdelim) lst) = do
+blockToTexinfo (OrderedList (start, numstyle, _) lst) = do
   items <- mapM listItemToTexinfo lst
   return $ text "@enumerate " <> exemplar $$
            vcat items $$
@@ -214,6 +216,7 @@ blockToTexinfo (Header level lst) = do
     seccmd 2 = "@section "
     seccmd 3 = "@subsection "
     seccmd 4 = "@subsubsection "
+    seccmd _ = error "illegal seccmd level"
 
 blockToTexinfo (Table caption aligns widths heads rows) = do
   headers <- tableHeadToTexinfo aligns heads
@@ -232,8 +235,14 @@ blockToTexinfo (Table caption aligns widths heads rows) = do
                    inCmd "caption" captionText $$
                    text "@end float"
 
+tableHeadToTexinfo :: [Alignment]
+                   -> [[Block]]
+                   -> State WriterState Doc
 tableHeadToTexinfo = tableAnyRowToTexinfo "@headitem "
 
+tableRowToTexinfo :: [Alignment]
+                  -> [[Block]]
+                  -> State WriterState Doc
 tableRowToTexinfo = tableAnyRowToTexinfo "@item "
 
 tableAnyRowToTexinfo :: String
@@ -275,15 +284,15 @@ blockListToTexinfo (x:xs) = do
       let menu = if level < 4
                     then collectNodes (level + 1) after
                     else []
-      lines <- mapM makeMenuLine menu
-      let menu' = if null lines
+      lines' <- mapM makeMenuLine menu
+      let menu' = if null lines'
                     then empty
                     else text "@menu" $$
-                         vcat lines $$
+                         vcat lines' $$
                          text "@end menu"
       after' <- blockListToTexinfo after
       return $ x' $$ before' $$ menu' $$ after'
-    Para x -> do
+    Para _ -> do
       xs' <- blockListToTexinfo xs
       case xs of
            ((CodeBlock _ _):_) -> return $ x' $$ xs'
@@ -292,10 +301,12 @@ blockListToTexinfo (x:xs) = do
       xs' <- blockListToTexinfo xs
       return $ x' $$ xs'
 
+isHeader :: Block -> Bool
 isHeader (Header _ _) = True
 isHeader _            = False
 
-collectNodes level [] = []
+collectNodes :: Int -> [Block] -> [Block]
+collectNodes _ [] = []
 collectNodes level (x:xs) =
   case x of
     (Header hl _) ->
@@ -312,6 +323,7 @@ makeMenuLine :: Block
 makeMenuLine (Header _ lst) = do
   txt <- inlineListForNode lst
   return $ text "* " <> txt <> text "::"
+makeMenuLine _ = error "makeMenuLine called with non-Header block"
 
 listItemToTexinfo :: [Block]
                   -> State WriterState Doc
@@ -335,6 +347,7 @@ inlineListForNode :: [Inline]  -- ^ Inlines to convert
                   -> State WriterState Doc
 inlineListForNode lst = mapM inlineForNode lst >>= return . hcat
 
+inlineForNode :: Inline -> State WriterState Doc
 inlineForNode (Str str) = return $ text $ filter (not.disallowedInNode) str
 inlineForNode (Emph lst) = inlineListForNode lst
 inlineForNode (Strong lst) = inlineListForNode lst
@@ -357,6 +370,7 @@ inlineForNode (Image lst _) = inlineListForNode lst
 inlineForNode (Note _) = return empty
 
 -- periods, commas, colons, and parentheses are disallowed in node names
+disallowedInNode :: Char -> Bool
 disallowedInNode c = c `elem` ".,:()"
 
 -- | Convert inline element to Texinfo
@@ -418,7 +432,7 @@ inlineToTexinfo Ellipses = return $ text "@dots{}"
 inlineToTexinfo (Str str) = return $ text (stringToTexinfo str)
 inlineToTexinfo (Math str) = return $ inCmd "math" $ text str
 inlineToTexinfo (TeX str) = return $ text "@tex" $$ text str $$ text "@end tex"
-inlineToTexinfo (HtmlInline str) = return empty
+inlineToTexinfo (HtmlInline _) = return empty
 inlineToTexinfo (LineBreak) = return $ text "@*"
 inlineToTexinfo Space = return $ char ' '
 
@@ -431,7 +445,7 @@ inlineToTexinfo (Link txt (src, _)) = do
                 return $ text ("@uref{" ++ src1 ++ ",") <> contents <>
                          char '}'
 
-inlineToTexinfo (Image alternate (source, tit)) = do
+inlineToTexinfo (Image alternate (source, _)) = do
   content <- inlineListToTexinfo alternate
   return $ text ("@image{" ++ base ++ ",,,") <> content <> text "," <>
            text (ext ++ "}")
