@@ -38,12 +38,12 @@ import Text.PrettyPrint.HughesPJ
 -- | Escape one character as needed for XML.
 escapeCharForXML :: Char -> String
 escapeCharForXML x = case x of
-                       '&'  -> "&amp;"
-                       '<'  -> "&lt;"
-                       '>'  -> "&gt;"
-                       '"'  -> "&quot;"
-                       '\160' -> "&nbsp;"
-                       c    -> [c]
+                       '&'    -> "&amp;"
+                       '<'    -> "&lt;"
+                       '>'    -> "&gt;"
+                       '"'    -> "&quot;"
+                       '\160' -> "&#160;"
+                       c      -> [c]
 
 -- | True if the character needs to be escaped.
 needsEscaping :: Char -> Bool
