@@ -57,7 +57,7 @@ authorToDocbook name = inTagsIndented "author" $
 -- | Convert Pandoc document to string in Docbook format.
 writeDocbook :: WriterOptions -> Pandoc -> String
 writeDocbook opts (Pandoc (Meta title authors date) blocks) = 
-  let head     = if writerStandalone opts
+  let head'    = if writerStandalone opts
                     then text (writerHeader opts)
                     else empty
       meta     = if writerStandalone opts
@@ -75,7 +75,7 @@ writeDocbook opts (Pandoc (Meta title authors date) blocks) =
       body'    = if writerStandalone opts
                    then inTagsIndented "article" (meta $$ body)
                    else body 
-  in  render $ head $$ body' $$ text ""
+  in  render $ head' $$ body' $$ text ""
 
 -- | Convert an Element to Docbook.
 elementToDocbook :: WriterOptions -> Element -> Doc
@@ -94,8 +94,9 @@ blocksToDocbook :: WriterOptions -> [Block] -> Doc
 blocksToDocbook opts = vcat . map (blockToDocbook opts)
 
 -- | Auxiliary function to convert Plain block to Para.
+plainToPara :: Block -> Block
 plainToPara (Plain x) = Para x
-plainToPara x = x
+plainToPara x         = x
 
 -- | Convert a list of pairs of terms and definitions into a list of 
 -- Docbook varlistentrys.
@@ -122,17 +123,18 @@ listItemToDocbook opts item =
 
 -- | Convert a Pandoc block element to Docbook.
 blockToDocbook :: WriterOptions -> Block -> Doc
-blockToDocbook opts Null = empty
+blockToDocbook _ Null = empty
+blockToDocbook _ (Header _ _) = empty -- should not occur after hierarchicalize
 blockToDocbook opts (Plain lst) = wrap opts lst
 blockToDocbook opts (Para lst) = inTagsIndented "para" $ wrap opts lst
 blockToDocbook opts (BlockQuote blocks) =
   inTagsIndented "blockquote" $ blocksToDocbook opts blocks
-blockToDocbook opts (CodeBlock _ str) = 
+blockToDocbook _ (CodeBlock _ str) = 
   text "<screen>\n" <> text (escapeStringForXML str) <> text "\n</screen>"
 blockToDocbook opts (BulletList lst) = 
   inTagsIndented "itemizedlist" $ listItemsToDocbook opts lst 
-blockToDocbook opts (OrderedList _ []) = empty 
-blockToDocbook opts (OrderedList (start, numstyle, numdelim) (first:rest)) =
+blockToDocbook _ (OrderedList _ []) = empty 
+blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) =
   let attribs  = case numstyle of
                        DefaultStyle -> []
                        Decimal      -> [("numeration", "arabic")]
@@ -148,8 +150,8 @@ blockToDocbook opts (OrderedList (start, numstyle, numdelim) (first:rest)) =
   in  inTags True "orderedlist" attribs items
 blockToDocbook opts (DefinitionList lst) = 
   inTagsIndented "variablelist" $ deflistItemsToDocbook opts lst 
-blockToDocbook opts (RawHtml str) = text str -- raw XML block 
-blockToDocbook opts HorizontalRule = empty -- not semantic
+blockToDocbook _ (RawHtml str) = text str -- raw XML block 
+blockToDocbook _ HorizontalRule = empty -- not semantic
 blockToDocbook opts (Table caption aligns widths headers rows) =
   let alignStrings = map alignmentToString aligns
       captionDoc   = if null caption
@@ -161,21 +163,34 @@ blockToDocbook opts (Table caption aligns widths headers rows) =
      (colHeadsToDocbook opts alignStrings widths headers) $$ 
      (vcat $ map (tableRowToDocbook opts alignStrings) rows)
 
+colHeadsToDocbook :: WriterOptions 
+                  -> [[Char]]
+                  -> [Float] 
+                  -> [[Block]] 
+                  -> Doc
 colHeadsToDocbook opts alignStrings widths headers =
   let heads = zipWith3 (\align width item -> 
               tableItemToDocbook opts "th" align width item) 
               alignStrings widths headers
   in  inTagsIndented "tr" $ vcat heads
 
+alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of
                                  AlignLeft -> "left"
                                  AlignRight -> "right"
                                  AlignCenter -> "center"
                                  AlignDefault -> "left"
 
+tableRowToDocbook :: WriterOptions -> [[Char]] -> [[Block]] -> Doc
 tableRowToDocbook opts aligns cols = inTagsIndented "tr" $ 
   vcat $ zipWith3 (tableItemToDocbook opts "td") aligns (repeat 0) cols
 
+tableItemToDocbook :: WriterOptions
+                   -> [Char]
+                   -> [Char]
+                   -> Float
+                   -> [Block]
+                   -> Doc
 tableItemToDocbook opts tag align width item =
   let attrib = [("align", align)] ++ 
                if width /= 0
@@ -196,7 +211,7 @@ inlinesToDocbook opts lst = hcat $ map (inlineToDocbook opts) lst
 
 -- | Convert an inline element to Docbook.
 inlineToDocbook :: WriterOptions -> Inline -> Doc
-inlineToDocbook opts (Str str) = text $ escapeStringForXML str 
+inlineToDocbook _ (Str str) = text $ escapeStringForXML str 
 inlineToDocbook opts (Emph lst) = 
   inTagsSimple "emphasis" $ inlinesToDocbook opts lst
 inlineToDocbook opts (Strong lst) = 
@@ -210,18 +225,18 @@ inlineToDocbook opts (Subscript lst) =
   inTagsSimple "subscript" $ inlinesToDocbook opts lst
 inlineToDocbook opts (Quoted _ lst) = 
   inTagsSimple "quote" $ inlinesToDocbook opts lst
-inlineToDocbook opts Apostrophe = char '\''
-inlineToDocbook opts Ellipses = text "&#8230;"
-inlineToDocbook opts EmDash = text "&#8212;" 
-inlineToDocbook opts EnDash = text "&#8211;" 
-inlineToDocbook opts (Code str) = 
+inlineToDocbook _ Apostrophe = char '\''
+inlineToDocbook _ Ellipses = text "&#8230;"
+inlineToDocbook _ EmDash = text "&#8212;" 
+inlineToDocbook _ EnDash = text "&#8211;" 
+inlineToDocbook _ (Code str) = 
   inTagsSimple "literal" $ text (escapeStringForXML str)
 inlineToDocbook opts (Math str) = inlinesToDocbook opts $ readTeXMath str
-inlineToDocbook opts (TeX str) = empty
-inlineToDocbook opts (HtmlInline str) = empty
-inlineToDocbook opts LineBreak = text $ "<literallayout></literallayout>" 
-inlineToDocbook opts Space = char ' '
-inlineToDocbook opts (Link txt (src, tit)) =
+inlineToDocbook _ (TeX _) = empty
+inlineToDocbook _ (HtmlInline _) = empty
+inlineToDocbook _ LineBreak = text $ "<literallayout></literallayout>" 
+inlineToDocbook _ Space = char ' '
+inlineToDocbook opts (Link txt (src, _)) =
   if isPrefixOf "mailto:" src
      then let src' = drop 7 src
               emailLink = inTagsSimple "email" $ text $ 
@@ -231,7 +246,7 @@ inlineToDocbook opts (Link txt (src, tit)) =
                  else inlinesToDocbook opts txt <+> char '(' <> emailLink <> 
                       char ')'
      else inTags False "ulink" [("url", src)] $ inlinesToDocbook opts txt
-inlineToDocbook opts (Image alt (src, tit)) = 
+inlineToDocbook _ (Image _ (src, tit)) = 
   let titleDoc = if null tit
                    then empty
                    else inTagsIndented "objectinfo" $
