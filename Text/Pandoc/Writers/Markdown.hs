@@ -55,7 +55,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   let before' = if null before then empty else text before
   let after'  = if null after then empty else text after
   metaBlock <- metaToMarkdown opts meta
-  let head = if writerStandalone opts
+  let head' = if writerStandalone opts
                 then metaBlock $+$ text (writerHeader opts)
                 else empty
   let headerBlocks = filter isHeaderBlock blocks
@@ -67,7 +67,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   notes' <- notesToMarkdown opts (reverse notes)
   (_, refs) <- get  -- note that the notes may contain refs
   refs' <- keyTableToMarkdown opts (reverse refs)
-  return $ head $+$ before' $+$ toc $+$ body $+$ text "" $+$ 
+  return $ head' $+$ before' $+$ toc $+$ body $+$ text "" $+$ 
            notes' $+$ text "" $+$ refs' $+$ after'
 
 -- | Return markdown representation of reference key table.
@@ -111,7 +111,7 @@ metaToMarkdown opts (Meta title authors date) = do
   return $ title' $+$ authors' $+$ date'
 
 titleToMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
-titleToMarkdown opts [] = return empty
+titleToMarkdown _    []  = return empty
 titleToMarkdown opts lst = do
   contents <- inlineListToMarkdown opts lst
   return $ text "% " <> contents 
@@ -142,9 +142,9 @@ elementToListItem (Sec headerText subsecs) = [Plain headerText] ++
 
 -- | Ordered list start parser for use in Para below.
 olMarker :: GenParser Char st Char
-olMarker = do (start, style, delim) <- anyOrderedListMarker
+olMarker = do (start, style', delim) <- anyOrderedListMarker
               if delim == Period && 
-                          (style == UpperAlpha || (style == UpperRoman &&
+                          (style' == UpperAlpha || (style' == UpperRoman &&
                           start `elem` [1, 5, 10, 50, 100, 500, 1000]))
                           then spaceChar >> spaceChar
                           else spaceChar
@@ -169,7 +169,7 @@ wrappedMarkdown opts inlines = do
 blockToMarkdown :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
                 -> State WriterState Doc 
-blockToMarkdown opts Null = return empty
+blockToMarkdown _ Null = return empty
 blockToMarkdown opts (Plain inlines) = 
   wrappedMarkdown opts inlines
 blockToMarkdown opts (Para inlines) = do
@@ -180,8 +180,8 @@ blockToMarkdown opts (Para inlines) = do
                then char '\\'
                else empty 
   return $ esc <> contents <> text "\n"
-blockToMarkdown opts (RawHtml str) = return $ text str
-blockToMarkdown opts HorizontalRule = return $ text "\n* * * * *\n"
+blockToMarkdown _ (RawHtml str) = return $ text str
+blockToMarkdown _ HorizontalRule = return $ text "\n* * * * *\n"
 blockToMarkdown opts (Header level inlines) = do
   contents <- inlineListToMarkdown opts inlines
   return $ text ((replicate level '#') ++ " ") <> contents <> text "\n"
@@ -205,11 +205,10 @@ blockToMarkdown opts (Table caption aligns widths headers rows) =  do
                                 AlignDefault -> leftAlignBlock  
   let makeRow = hsepBlocks . (zipWith alignHeader aligns) . 
                 (zipWith docToBlock widthsInChars)
-  let head = makeRow headers'
+  let head' = makeRow headers'
   rows' <- mapM (\row -> do cols <- mapM (blockListToMarkdown opts) row
                             return $ makeRow cols) rows
-  let tableWidth = sum widthsInChars
-  let maxRowHeight = maximum $ map heightOfBlock (head:rows')
+  let maxRowHeight = maximum $ map heightOfBlock (head':rows')
   let isMultilineTable = maxRowHeight > 1
   let underline = hsep $ 
                   map (\width -> text $ replicate width '-') widthsInChars
@@ -220,7 +219,7 @@ blockToMarkdown opts (Table caption aligns widths headers rows) =  do
                   then text ""
                   else empty
   let body = vcat $ intersperse spacer $ map blockToDoc rows'
-  return $ (nest 2 $ border $+$ (blockToDoc head) $+$ underline $+$ body $+$ 
+  return $ (nest 2 $ border $+$ (blockToDoc head') $+$ underline $+$ body $+$ 
                      border $+$ caption'') <> text "\n"
 blockToMarkdown opts (BulletList items) = do
   contents <- mapM (bulletListItemToMarkdown opts) items
@@ -291,7 +290,7 @@ getReference label (src, tit) = do
                                       Just x  -> [Str (show x)]
                                       Nothing -> error "no unique label"
                       Nothing -> label
-      modify (\(notes, refs) -> (notes, (label', (src,tit)):refs))
+      modify (\(notes, refs') -> (notes, (label', (src,tit)):refs'))
       return label'
 
 -- | Convert list of Pandoc inline elements to markdown.
@@ -324,11 +323,11 @@ inlineToMarkdown opts (Quoted SingleQuote lst) = do
 inlineToMarkdown opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ char '"' <> contents <> char '"'
-inlineToMarkdown opts EmDash = return $ text "--"
-inlineToMarkdown opts EnDash = return $ char '-'
-inlineToMarkdown opts Apostrophe = return $ char '\''
-inlineToMarkdown opts Ellipses = return $ text "..."
-inlineToMarkdown opts (Code str) =
+inlineToMarkdown _ EmDash = return $ text "--"
+inlineToMarkdown _ EnDash = return $ char '-'
+inlineToMarkdown _ Apostrophe = return $ char '\''
+inlineToMarkdown _ Ellipses = return $ text "..."
+inlineToMarkdown _ (Code str) =
   let tickGroups = filter (\s -> '`' `elem` s) $ group str 
       longest    = if null tickGroups
                      then 0
@@ -336,12 +335,12 @@ inlineToMarkdown opts (Code str) =
       marker     = replicate (longest + 1) '`' 
       spacer     = if (longest == 0) then "" else " " in
   return $ text (marker ++ spacer ++ str ++ spacer ++ marker)
-inlineToMarkdown opts (Str str) = return $ text $ escapeString str
-inlineToMarkdown opts (Math str) = return $ char '$' <> text str <> char '$'
-inlineToMarkdown opts (TeX str) = return $ text str
-inlineToMarkdown opts (HtmlInline str) = return $ text str 
-inlineToMarkdown opts (LineBreak) = return $ text "  \n"
-inlineToMarkdown opts Space = return $ char ' '
+inlineToMarkdown _ (Str str) = return $ text $ escapeString str
+inlineToMarkdown _ (Math str) = return $ char '$' <> text str <> char '$'
+inlineToMarkdown _ (TeX str) = return $ text str
+inlineToMarkdown _ (HtmlInline str) = return $ text str 
+inlineToMarkdown _ (LineBreak) = return $ text "  \n"
+inlineToMarkdown _ Space = return $ char ' '
 inlineToMarkdown opts (Link txt (src, tit)) = do
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if null tit then empty else text $ " \"" ++ tit ++ "\""
@@ -367,7 +366,7 @@ inlineToMarkdown opts (Image alternate (source, tit)) = do
                else alternate
   linkPart <- inlineToMarkdown opts (Link txt (source, tit)) 
   return $ char '!' <> linkPart
-inlineToMarkdown opts (Note contents) = do 
+inlineToMarkdown _ (Note contents) = do 
   modify (\(notes, refs) -> (contents:notes, refs)) -- add to notes in state
   (notes, _) <- get
   let ref = show $ (length notes)
