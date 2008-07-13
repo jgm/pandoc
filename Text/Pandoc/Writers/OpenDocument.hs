@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wall #-}
 {-# LANGUAGE PatternGuards #-}
 {-
 Copyright (C) 2008 Andrea Rossato <andrea.rossato@ing.unitn.it>
@@ -85,7 +84,7 @@ increaseIndent :: State WriterState ()
 increaseIndent = modify $ \s -> s { stIndentPara = 1 + stIndentPara s }
 
 resetIndent :: State WriterState ()
-resetIndent = modify $ \s -> s { stIndentPara = 0 }
+resetIndent = modify $ \s -> s { stIndentPara = (stIndentPara s) - 1 }
 
 setInDefinitionList :: Bool -> State WriterState ()
 setInDefinitionList b = modify $  \s -> s { stInDefinition = b }
@@ -224,11 +223,11 @@ inBlockQuote :: WriterOptions -> Int -> [Block] -> State WriterState Doc
 inBlockQuote  o i (b:bs)
     | BlockQuote l <- b = do increaseIndent
                              ni <- paraStyle "Quotations" []
-                             go ni =<< inBlockQuote o ni l
-    | Para       l <- b = do go i  =<< inParagraphTagsWithStyle ("P" ++ show  i) <$> inlinesToOpenDocument o l
-    | otherwise         = do go i  =<< blockToOpenDocument o b
-    where go  ni block  = ($$) block <$> inBlockQuote o ni bs
-inBlockQuote     _ _ [] = resetIndent >> return empty
+                             go =<< inBlockQuote o ni (map plainToPara l)
+    | Para       l <- b = do go =<< inParagraphTagsWithStyle ("P" ++ show  i) <$> inlinesToOpenDocument o l
+    | otherwise         = do go =<< blockToOpenDocument o b
+    where go  block  = ($$) block <$> inBlockQuote o i bs
+inBlockQuote     _ _ [] =  resetIndent >> return empty
 
 -- | Convert a list of Pandoc blocks to OpenDocument.
 blocksToOpenDocument :: WriterOptions -> [Block] -> State WriterState Doc
