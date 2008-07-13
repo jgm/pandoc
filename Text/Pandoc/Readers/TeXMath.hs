@@ -37,16 +37,20 @@ import Text.Pandoc.Definition
 -- | Converts a string of raw TeX math to a list of 'Pandoc' inlines. 
 readTeXMath :: String -> [Inline]
 readTeXMath inp = case parse teXMath ("formula: " ++ inp) inp of
-   Left err  -> [Str inp]  -- if unparseable, just include original
+   Left _    -> [Str inp]  -- if unparseable, just include original
    Right res -> res
 
+teXMath :: GenParser Char st [Inline]
 teXMath = manyTill mathPart eof >>= return . concat
 
+mathPart :: GenParser Char st [Inline]
 mathPart = whitespace <|> superscript <|> subscript <|> symbol <|> 
            argument <|> digits <|> letters <|> misc
 
+whitespace :: GenParser Char st [Inline]
 whitespace = many1 space >> return []
 
+symbol :: GenParser Char st [Inline]
 symbol = try $ do
   char '\\'
   res <- many1 letter
@@ -54,6 +58,7 @@ symbol = try $ do
     Just m  -> return [Str m]
     Nothing -> return [Str $ "\\" ++ res]
 
+argument :: GenParser Char st [Inline]
 argument = try $ do
   char '{'
   res <- many mathPart
@@ -62,35 +67,43 @@ argument = try $ do
               then [Str " "]
               else [Str "{"] ++ concat res ++ [Str "}"]
 
+digits :: GenParser Char st [Inline]
 digits = do
   res <- many1 digit
   return [Str res]
 
+letters :: GenParser Char st [Inline]
 letters = do
   res <- many1 letter
   return [Emph [Str res]]
 
+misc :: GenParser Char st [Inline]
 misc = do
   res <- noneOf "}"
   return [Str [res]] 
 
+scriptArg :: GenParser Char st [Inline]
 scriptArg = try $ do
   (try (do{char '{'; r <- many mathPart; char '}'; return $ concat r}))
    <|> symbol
    <|> (do{c <- (letter <|> digit); return [Str [c]]})
   
+superscript :: GenParser Char st [Inline]
 superscript = try $ do
   char '^'
   arg <- scriptArg
   return [Superscript arg]
 
+subscript :: GenParser Char st [Inline]
 subscript = try $ do
   char '_'
   arg <- scriptArg
   return [Subscript arg]
  
+withThinSpace :: String -> String
 withThinSpace str = "\x2009" ++ str ++ "\x2009"
 
+teXsymbols :: [(String, String)]
 teXsymbols = 
  [("alpha","\x3B1")
  ,("beta", "\x3B2")
