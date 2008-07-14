@@ -50,13 +50,15 @@ plainToPara x = x
 --
 
 data WriterState =
-    WriterState { stNotes        :: [Doc]
-                , stTableStyles  :: [Doc]
-                , stParaStyles   :: [Doc]
-                , stListStyles   :: [(Int, [Doc])]
-                , stIndentPara   :: Int
-                , stInDefinition :: Bool
-                , stTight        :: Bool
+    WriterState { stNotes         :: [Doc]
+                , stTableStyles   :: [Doc]
+                , stParaStyles    :: [Doc]
+                , stListStyles    :: [(Int, [Doc])]
+                , stTextStyles    :: [Doc]
+                , stTextStyleAttr :: [(TextStyle,[(String,String)])]
+                , stIndentPara    :: Int
+                , stInDefinition  :: Bool
+                , stTight         :: Bool
                 }
 
 defaultWriterState :: WriterState
@@ -65,6 +67,8 @@ defaultWriterState =
                 , stTableStyles   = []
                 , stParaStyles    = []
                 , stListStyles    = []
+                , stTextStyles    = []
+                , stTextStyleAttr = []
                 , stIndentPara    = 0
                 , stInDefinition  = False
                 , stTight         = False
@@ -82,6 +86,16 @@ addNote i = modify $ \s -> s { stNotes = i : stNotes s }
 addParaStyle :: Doc -> State WriterState ()
 addParaStyle i = modify $ \s -> s { stParaStyles = i : stParaStyles s }
 
+addTextStyle :: Doc -> State WriterState ()
+addTextStyle i = modify $ \s -> s { stTextStyles = i : stTextStyles s }
+
+addTextStyleAttr :: (TextStyle, [(String,String)]) -> State WriterState ()
+addTextStyleAttr i = modify $ \s -> s { stTextStyleAttr = i : stTextStyleAttr s }
+
+rmTextStyleAttr :: State WriterState ()
+rmTextStyleAttr = modify $ \s -> s { stTextStyleAttr = rmHead (stTextStyleAttr s) }
+    where rmHead l = if l /= [] then tail l else []
+
 increaseIndent :: State WriterState ()
 increaseIndent = modify $ \s -> s { stIndentPara = 1 + stIndentPara s }
 
@@ -89,10 +103,8 @@ resetIndent :: State WriterState ()
 resetIndent = modify $ \s -> s { stIndentPara = (stIndentPara s) - 1 }
 
 inTightList :: State WriterState a -> State WriterState a
-inTightList  f = do modify $ \s -> s { stTight = True }
-                    r <- f
-                    modify $ \s -> s { stTight = False }
-                    return r
+inTightList  f = modify (\s -> s { stTight = True  }) >> f >>= \r ->
+                 modify (\s -> s { stTight = False }) >> return r
 
 setInDefinitionList :: Bool -> State WriterState ()
 setInDefinitionList b = modify $  \s -> s { stInDefinition = b }
@@ -105,6 +117,22 @@ inParagraphTagsWithStyle sty = inTags False "text:p" [("text:style-name", sty)]
 
 inSpanTags :: String -> Doc -> Doc
 inSpanTags s = inTags False "text:span" [("text:style-name",s)]
+
+withTextStyle :: TextStyle -> State WriterState a -> State WriterState a
+withTextStyle s f = addTextStyleAttr (s,textStyleAttr s) >>
+                    f >>= \r -> rmTextStyleAttr >> return r
+
+inTextStyle :: Doc -> State WriterState Doc
+inTextStyle d = do
+  at <- gets stTextStyleAttr
+  if at == []
+     then return d
+     else do
+       tn <- (+) 1 . length  <$> gets stTextStyles
+       addTextStyle $ inTags False "style:style" [("style:name"  , "T" ++ show tn)
+                                                 ,("style:family", "text"        )]
+                    $ selfClosingTag "style:text-properties" (concatMap snd at)
+       return $ inTags False "text:span" [("text:style-name","T" ++ show tn)] d
 
 inHeaderTags :: Int -> Doc -> Doc
 inHeaderTags i = inTags False "text:h" [ ("text:style-name", "Heading_20_" ++ show i)
@@ -166,9 +194,10 @@ writeOpenDocument opts (Pandoc (Meta title authors date) blocks) =
                    then inTagsIndented "office:body" $
                         inTagsIndented "office:text" (meta $$ body)
                    else body
+      styles   = stTableStyles s ++ stParaStyles s ++ stTextStyles s
       listStyle (n,l) = inTags True "text:list-style" [("style:name", "L" ++ show n)] (vcat l)
       listStyles  = map listStyle (stListStyles s)
-  in  render $ header $$ root (generateStyles (stTableStyles s ++ stParaStyles s ++ listStyles) $$ body' $$ text "")
+  in  render $ header $$ root (generateStyles (styles ++ listStyles) $$ body' $$ text "")
 
 withParagraphStyle :: WriterOptions -> String -> [Block] -> State WriterState Doc
 withParagraphStyle  o s (b:bs)
@@ -328,18 +357,18 @@ inlinesToOpenDocument o l = hcat <$> mapM (inlineToOpenDocument o) l
 -- | Convert an inline element to OpenDocument.
 inlineToOpenDocument :: WriterOptions -> Inline -> State WriterState Doc
 inlineToOpenDocument o ils
-    | Ellipses      <- ils = return $ text "&#8230;"
-    | EmDash        <- ils = return $ text "&#8212;"
-    | EnDash        <- ils = return $ text "&#8211;"
-    | Apostrophe    <- ils = return $ text "&#8217;"
-    | Space         <- ils = return $ char ' '
+    | Ellipses      <- ils = inTextStyle $ text "&#8230;"
+    | EmDash        <- ils = inTextStyle $ text "&#8212;"
+    | EnDash        <- ils = inTextStyle $ text "&#8211;"
+    | Apostrophe    <- ils = inTextStyle $ text "&#8217;"
+    | Space         <- ils = inTextStyle $ char ' '
     | LineBreak     <- ils = return $ selfClosingTag "text:line-break" []
-    | Str         s <- ils = return $ handleSpaces $ escapeStringForXML s
-    | Emph        l <- ils = inSpanTags "Emphasis"           <$> inlinesToOpenDocument o l
-    | Strong      l <- ils = inSpanTags "Strong_20_Emphasis" <$> inlinesToOpenDocument o l
-    | Strikeout   l <- ils = inSpanTags "Strikeout"          <$> inlinesToOpenDocument o l
-    | Superscript l <- ils = inSpanTags "Superscript"        <$> inlinesToOpenDocument o l
-    | Subscript   l <- ils = inSpanTags "Subscript"          <$> inlinesToOpenDocument o l
+    | Str         s <- ils = inTextStyle $ handleSpaces $ escapeStringForXML s
+    | Emph        l <- ils = withTextStyle Italic $ inlinesToOpenDocument o l
+    | Strong      l <- ils = withTextStyle Bold   $ inlinesToOpenDocument o l
+    | Strikeout   l <- ils = withTextStyle Strike $ inlinesToOpenDocument o l
+    | Superscript l <- ils = withTextStyle Sup    $ inlinesToOpenDocument o l
+    | Subscript   l <- ils = withTextStyle Sub    $ inlinesToOpenDocument o l
     | Quoted    t l <- ils = inQuotes t <$> inlinesToOpenDocument o l
     | Code        s <- ils = preformatted s
     | Math        s <- ils = inlinesToOpenDocument o (readTeXMath s)
@@ -478,6 +507,21 @@ paraTableStyles t s (a:xs)
                      selfClosingTag "style:paragraph-properties"
                      [ ("fo:text-align", x)
                      , ("style:justify-single-word", "false")]
+
+data TextStyle = Italic | Bold | Strike | Sub | Sup deriving ( Eq )
+
+textStyleAttr :: TextStyle -> [(String,String)]
+textStyleAttr s
+    | Italic <- s = [("fo:font-style"                ,"italic" )
+                    ,("style:font-style-asian"       ,"italic" )
+                    ,("style:font-style-complex"     ,"italic" )]
+    | Bold   <- s = [("fo:font-weight"               ,"bold"   )
+                    ,("style:font-weight-asian"      ,"bold"   )
+                    ,("style:font-weight-complex"    ,"bold"   )]
+    | Strike <- s = [("style:text-line-through-style", "solid" )]
+    | Sub    <- s = [("style:text-position"          ,"sub 58%")]
+    | Sup    <- s = [("style:text-position"          ,"sup 58%")]
+    | otherwise   = []
 
 openDocumentNameSpaces :: [(String, String)]
 openDocumentNameSpaces =
