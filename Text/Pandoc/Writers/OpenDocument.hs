@@ -512,15 +512,15 @@ data TextStyle = Italic | Bold | Strike | Sub | Sup deriving ( Eq )
 
 textStyleAttr :: TextStyle -> [(String,String)]
 textStyleAttr s
-    | Italic <- s = [("fo:font-style"                ,"italic" )
-                    ,("style:font-style-asian"       ,"italic" )
-                    ,("style:font-style-complex"     ,"italic" )]
-    | Bold   <- s = [("fo:font-weight"               ,"bold"   )
-                    ,("style:font-weight-asian"      ,"bold"   )
-                    ,("style:font-weight-complex"    ,"bold"   )]
-    | Strike <- s = [("style:text-line-through-style", "solid" )]
-    | Sub    <- s = [("style:text-position"          ,"sub 58%")]
-    | Sup    <- s = [("style:text-position"          ,"sup 58%")]
+    | Italic <- s = [("fo:font-style"                ,"italic"   )
+                    ,("style:font-style-asian"       ,"italic"   )
+                    ,("style:font-style-complex"     ,"italic"   )]
+    | Bold   <- s = [("fo:font-weight"               ,"bold"     )
+                    ,("style:font-weight-asian"      ,"bold"     )
+                    ,("style:font-weight-complex"    ,"bold"     )]
+    | Strike <- s = [("style:text-line-through-style", "solid"   )]
+    | Sub    <- s = [("style:text-position"          ,"sub 58%"  )]
+    | Sup    <- s = [("style:text-position"          ,"super 58%")]
     | otherwise   = []
 
 openDocumentNameSpaces :: [(String, String)]
