@@ -241,6 +241,7 @@ inlineListToIdentifier' (x:xs) =
           Emph lst       -> inlineListToIdentifier' lst
           Strikeout lst  -> inlineListToIdentifier' lst
           Superscript lst -> inlineListToIdentifier' lst
+          SmallCaps   lst -> inlineListToIdentifier' lst
           Subscript lst  -> inlineListToIdentifier' lst
           Strong lst     -> inlineListToIdentifier' lst
           Quoted _ lst   -> inlineListToIdentifier' lst
@@ -426,6 +427,8 @@ inlineToHtml opts inline =
     (Code str)       -> return $ thecode << str
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . (thespan ! [thestyle "text-decoration: line-through;"])
+    (SmallCaps lst)   -> inlineListToHtml opts lst >>=
+                         return . (thespan ! [thestyle "font-variant: small-caps;"])
     (Superscript lst) -> inlineListToHtml opts lst >>= return . sup
     (Subscript lst)   -> inlineListToHtml opts lst >>= return . sub
     (Quoted quoteType lst) ->

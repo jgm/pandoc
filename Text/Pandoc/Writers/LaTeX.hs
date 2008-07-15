@@ -290,6 +290,7 @@ inlineToLaTeX (Quoted DoubleQuote lst) = do
               then text "\\,"
               else empty
   return $ text "``" <> s1 <> contents <> s2 <> text "''"
+inlineToLaTeX (SmallCaps lst) = inlineListToLaTeX lst
 inlineToLaTeX Apostrophe = return $ char '\''
 inlineToLaTeX EmDash = return $ text "---"
 inlineToLaTeX EnDash = return $ text "--"

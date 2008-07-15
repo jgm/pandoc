@@ -369,6 +369,7 @@ inlineToOpenDocument o ils
     | Strikeout   l <- ils = withTextStyle Strike $ inlinesToOpenDocument o l
     | Superscript l <- ils = withTextStyle Sup    $ inlinesToOpenDocument o l
     | Subscript   l <- ils = withTextStyle Sub    $ inlinesToOpenDocument o l
+    | SmallCaps   l <- ils = withTextStyle SmallC $ inlinesToOpenDocument o l
     | Quoted    t l <- ils = inQuotes t <$> inlinesToOpenDocument o l
     | Code        s <- ils = preformatted s
     | Math        s <- ils = inlinesToOpenDocument o (readTeXMath s)
@@ -508,19 +509,20 @@ paraTableStyles t s (a:xs)
                      [ ("fo:text-align", x)
                      , ("style:justify-single-word", "false")]
 
-data TextStyle = Italic | Bold | Strike | Sub | Sup deriving ( Eq )
+data TextStyle = Italic | Bold | Strike | Sub | Sup | SmallC deriving ( Eq )
 
 textStyleAttr :: TextStyle -> [(String,String)]
 textStyleAttr s
-    | Italic <- s = [("fo:font-style"                ,"italic"   )
-                    ,("style:font-style-asian"       ,"italic"   )
-                    ,("style:font-style-complex"     ,"italic"   )]
-    | Bold   <- s = [("fo:font-weight"               ,"bold"     )
-                    ,("style:font-weight-asian"      ,"bold"     )
-                    ,("style:font-weight-complex"    ,"bold"     )]
-    | Strike <- s = [("style:text-line-through-style", "solid"   )]
-    | Sub    <- s = [("style:text-position"          ,"sub 58%"  )]
-    | Sup    <- s = [("style:text-position"          ,"super 58%")]
+    | Italic <- s = [("fo:font-style"                ,"italic"    )
+                    ,("style:font-style-asian"       ,"italic"    )
+                    ,("style:font-style-complex"     ,"italic"    )]
+    | Bold   <- s = [("fo:font-weight"               ,"bold"      )
+                    ,("style:font-weight-asian"      ,"bold"      )
+                    ,("style:font-weight-complex"    ,"bold"      )]
+    | Strike <- s = [("style:text-line-through-style", "solid"    )]
+    | Sub    <- s = [("style:text-position"          ,"sub 58%"   )]
+    | Sup    <- s = [("style:text-position"          ,"super 58%" )]
+    | SmallC <- s = [("fo:font-variant"              ,"small-caps")]
     | otherwise   = []
 
 openDocumentNameSpaces :: [(String, String)]

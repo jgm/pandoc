@@ -263,6 +263,7 @@ inlineToConTeXt (Quoted SingleQuote lst) = do
 inlineToConTeXt (Quoted DoubleQuote lst) = do
   contents <- inlineListToConTeXt lst
   return $ text "\\quotation{" <> contents <> char '}'
+inlineToConTeXt (SmallCaps lst) = inlineListToConTeXt lst
 inlineToConTeXt Apostrophe = return $ char '\''
 inlineToConTeXt EmDash = return $ text "---"
 inlineToConTeXt EnDash = return $ text "--"

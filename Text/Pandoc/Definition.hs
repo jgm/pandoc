@@ -104,6 +104,7 @@ data Inline
     | Superscript [Inline]  -- ^ Superscripted text (list of inlines)
     | Subscript [Inline]    -- ^ Subscripted text (list of inlines)
     | Quoted QuoteType [Inline] -- ^ Quoted text (list of inlines)
+    | SmallCaps [Inline]    -- ^ Small caps text (list of inlines)
     | Code String           -- ^ Inline code (literal)
     | Space                 -- ^ Inter-word space
     | EmDash                -- ^ Em dash

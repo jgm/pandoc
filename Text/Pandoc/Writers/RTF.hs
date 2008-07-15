@@ -268,6 +268,7 @@ inlineToRTF (Quoted SingleQuote lst) =
   "\\u8216'" ++ (inlineListToRTF lst) ++ "\\u8217'"
 inlineToRTF (Quoted DoubleQuote lst) = 
   "\\u8220\"" ++ (inlineListToRTF lst) ++ "\\u8221\""
+inlineToRTF (SmallCaps lst) = inlineListToRTF lst
 inlineToRTF Apostrophe = "\\u8217'"
 inlineToRTF Ellipses = "\\u8230?"
 inlineToRTF EmDash = "\\u8212-"

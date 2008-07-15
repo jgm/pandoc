@@ -225,6 +225,7 @@ inlineToDocbook opts (Subscript lst) =
   inTagsSimple "subscript" $ inlinesToDocbook opts lst
 inlineToDocbook opts (Quoted _ lst) = 
   inTagsSimple "quote" $ inlinesToDocbook opts lst
+inlineToDocbook opts (SmallCaps lst) = inlinesToDocbook opts lst
 inlineToDocbook _ Apostrophe = char '\''
 inlineToDocbook _ Ellipses = text "&#8230;"
 inlineToDocbook _ EmDash = text "&#8212;" 

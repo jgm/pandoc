@@ -282,6 +282,7 @@ inlineToRST (Quoted SingleQuote lst) = do
 inlineToRST (Quoted DoubleQuote lst) = do
   contents <- inlineListToRST lst
   return $ char '"' <> contents <> char '"'
+inlineToRST (SmallCaps lst) = inlineListToRST lst
 inlineToRST EmDash = return $ text "--"
 inlineToRST EnDash = return $ char '-'
 inlineToRST Apostrophe = return $ char '\''
