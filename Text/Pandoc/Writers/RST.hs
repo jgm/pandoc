@@ -276,13 +276,13 @@ inlineToRST (Superscript lst) = do
 inlineToRST (Subscript lst) = do 
   contents <- inlineListToRST lst
   return $ text "\\ :sub:`" <> contents <> text "`\\ "
+inlineToRST (SmallCaps lst) = inlineListToRST lst
 inlineToRST (Quoted SingleQuote lst) = do
   contents <- inlineListToRST lst
   return $ char '\'' <> contents <> char '\''
 inlineToRST (Quoted DoubleQuote lst) = do
   contents <- inlineListToRST lst
   return $ char '"' <> contents <> char '"'
-inlineToRST (SmallCaps lst) = inlineListToRST lst
 inlineToRST EmDash = return $ text "--"
 inlineToRST EnDash = return $ char '-'
 inlineToRST Apostrophe = return $ char '\''

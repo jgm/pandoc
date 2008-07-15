@@ -265,6 +265,8 @@ inlineToLaTeX (Subscript lst) = do
   -- so we have to define it (using a different name so as not to conflict with memoir class):
   addToHeader "\\newcommand{\\textsubscr}[1]{\\ensuremath{_{\\scriptsize\\textrm{#1}}}}"
   return $ inCmd "textsubscr" contents
+inlineToLaTeX (SmallCaps lst) =
+  inlineListToLaTeX (deVerb lst) >>= return . inCmd "textsc"
 inlineToLaTeX (Code str) = do
   st <- get
   if stInNote st
@@ -290,7 +292,6 @@ inlineToLaTeX (Quoted DoubleQuote lst) = do
               then text "\\,"
               else empty
   return $ text "``" <> s1 <> contents <> s2 <> text "''"
-inlineToLaTeX (SmallCaps lst) = inlineListToLaTeX lst
 inlineToLaTeX Apostrophe = return $ char '\''
 inlineToLaTeX EmDash = return $ text "---"
 inlineToLaTeX EnDash = return $ text "--"

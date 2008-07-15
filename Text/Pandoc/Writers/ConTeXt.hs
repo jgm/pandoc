@@ -256,6 +256,9 @@ inlineToConTeXt (Superscript lst) = do
 inlineToConTeXt (Subscript lst) = do
   contents <- inlineListToConTeXt lst
   return $ text "\\low{" <> contents <> char '}'
+inlineToConTeXt (SmallCaps lst) = do
+  contents <- inlineListToConTeXt lst
+  return $ text "{\\sc " <> contents <> char '}'
 inlineToConTeXt (Code str) = return $ text $ "\\type{" ++ str ++ "}"
 inlineToConTeXt (Quoted SingleQuote lst) = do
   contents <- inlineListToConTeXt lst
@@ -263,7 +266,6 @@ inlineToConTeXt (Quoted SingleQuote lst) = do
 inlineToConTeXt (Quoted DoubleQuote lst) = do
   contents <- inlineListToConTeXt lst
   return $ text "\\quotation{" <> contents <> char '}'
-inlineToConTeXt (SmallCaps lst) = inlineListToConTeXt lst
 inlineToConTeXt Apostrophe = return $ char '\''
 inlineToConTeXt EmDash = return $ text "---"
 inlineToConTeXt EnDash = return $ text "--"

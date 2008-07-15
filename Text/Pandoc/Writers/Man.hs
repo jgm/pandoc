@@ -256,13 +256,13 @@ inlineToMan opts (Superscript lst) = do
 inlineToMan opts (Subscript lst) = do
   contents <- inlineListToMan opts lst
   return $ char '~' <> contents <> char '~'
+inlineToMan opts (SmallCaps lst) = inlineListToMan opts lst -- not supported
 inlineToMan opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMan opts lst
   return $ char '`' <> contents <> char '\''
 inlineToMan opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMan opts lst
   return $ text "\\[lq]" <> contents <> text "\\[rq]"
-inlineToMan opts (SmallCaps lst) = inlineListToMan opts lst
 inlineToMan _ EmDash = return $ text "\\[em]"
 inlineToMan _ EnDash = return $ text "\\[en]"
 inlineToMan _ Apostrophe = return $ char '\''

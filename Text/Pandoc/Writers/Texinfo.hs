@@ -354,9 +354,9 @@ inlineForNode (Strong lst) = inlineListForNode lst
 inlineForNode (Strikeout lst) = inlineListForNode lst
 inlineForNode (Superscript lst) = inlineListForNode lst
 inlineForNode (Subscript lst) = inlineListForNode lst
+inlineForNode (SmallCaps lst) = inlineListForNode lst
 inlineForNode (Quoted _ lst) = inlineListForNode lst
 inlineForNode (Code str) = inlineForNode (Str str)
-inlineForNode (SmallCaps lst) = inlineListForNode lst
 inlineForNode Space = return $ char ' '
 inlineForNode EmDash = return $ text "---"
 inlineForNode EnDash = return $ text "--"
@@ -415,6 +415,9 @@ inlineToTexinfo (Subscript lst) = do
   contents <- inlineListToTexinfo lst
   return $ text "@textsubscript{" <> contents <> char '}'
 
+inlineToTexinfo (SmallCaps lst) =
+  inlineListToTexinfo lst >>= return . inCmd "sc"
+
 inlineToTexinfo (Code str) = do
   return $ text $ "@code{" ++ stringToTexinfo str ++ "}"
 
@@ -426,7 +429,6 @@ inlineToTexinfo (Quoted DoubleQuote lst) = do
   contents <- inlineListToTexinfo lst
   return $ text "``" <> contents <> text "''"
 
-inlineToTexinfo (SmallCaps lst) = inlineListToTexinfo lst
 inlineToTexinfo Apostrophe = return $ char '\''
 inlineToTexinfo EmDash = return $ text "---"
 inlineToTexinfo EnDash = return $ text "--"

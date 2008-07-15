@@ -690,6 +690,8 @@ refsMatch ((Superscript x):restx) ((Superscript y):resty) =
     refsMatch x y && refsMatch restx resty
 refsMatch ((Subscript x):restx) ((Subscript y):resty) = 
     refsMatch x y && refsMatch restx resty
+refsMatch ((SmallCaps x):restx) ((SmallCaps y):resty) = 
+    refsMatch x y && refsMatch restx resty
 refsMatch ((Quoted t x):restx) ((Quoted u y):resty) = 
     t == u && refsMatch x y && refsMatch restx resty
 refsMatch ((Code x):restx) ((Code y):resty) = 

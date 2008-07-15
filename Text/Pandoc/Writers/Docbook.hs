@@ -223,9 +223,11 @@ inlineToDocbook opts (Superscript lst) =
   inTagsSimple "superscript" $ inlinesToDocbook opts lst
 inlineToDocbook opts (Subscript lst) = 
   inTagsSimple "subscript" $ inlinesToDocbook opts lst
+inlineToDocbook opts (SmallCaps lst) = 
+  inTags False "emphasis" [("role", "smallcaps")] $
+  inlinesToDocbook opts lst
 inlineToDocbook opts (Quoted _ lst) = 
   inTagsSimple "quote" $ inlinesToDocbook opts lst
-inlineToDocbook opts (SmallCaps lst) = inlinesToDocbook opts lst
 inlineToDocbook _ Apostrophe = char '\''
 inlineToDocbook _ Ellipses = text "&#8230;"
 inlineToDocbook _ EmDash = text "&#8212;" 

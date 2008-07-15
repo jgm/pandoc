@@ -317,13 +317,13 @@ inlineToMarkdown opts (Subscript lst) = do
   contents <- inlineListToMarkdown opts lst
   let contents' = text $ substitute " " "\\ " $ render contents
   return $ char '~' <> contents' <> char '~'
+inlineToMarkdown opts (SmallCaps lst) = inlineListToMarkdown opts lst
 inlineToMarkdown opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ char '\'' <> contents <> char '\''
 inlineToMarkdown opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ char '"' <> contents <> char '"'
-inlineToMarkdown opts (SmallCaps lst) = inlineListToMarkdown opts lst
 inlineToMarkdown _ EmDash = return $ text "--"
 inlineToMarkdown _ EnDash = return $ char '-'
 inlineToMarkdown _ Apostrophe = return $ char '\''
