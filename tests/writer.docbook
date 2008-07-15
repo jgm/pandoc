@@ -904,6 +904,11 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
       <listitem>
         <para>
+          Shoes ($20) and socks ($5).
+        </para>
+      </listitem>
+      <listitem>
+        <para>
           Escaped <literal>$</literal>: $73
           <emphasis>this should be emphasized</emphasis> 23$.
         </para>

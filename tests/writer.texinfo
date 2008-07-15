@@ -736,6 +736,8 @@ To get the famous equation@comma{} write @code{$e = mc^2$}.
 @item
 $22@comma{}000 is a @emph{lot} of money. So is $34@comma{}000. (It worked if ``lot'' is emphasized.)
 @item
+Shoes ($20) and socks ($5).
+@item
 Escaped @code{$}: $73 @emph{this should be emphasized} 23$.
 @end itemize
 

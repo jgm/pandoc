@@ -873,8 +873,9 @@ math = try $ do
   failIfStrict
   char '$'
   notFollowedBy space
-  words' <- sepBy1 mathWord (many1 space)
+  words' <- sepBy1 mathWord (many1 (spaceChar <|> (newline >>~ notFollowedBy' blankline)))
   char '$'
+  notFollowedBy digit
   return $ Math $ joinWithSep " " words'
 
 emph :: GenParser Char ParserState Inline
