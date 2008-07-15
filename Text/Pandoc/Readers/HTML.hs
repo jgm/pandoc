@@ -64,12 +64,14 @@ eitherBlockOrInline :: [[Char]]
 eitherBlockOrInline = ["applet", "button", "del", "iframe", "ins",
                   "map", "area", "object"]
 
+{-
 inlineHtmlTags :: [[Char]]
 inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big",
                   "br", "cite", "code", "dfn", "em", "font", "i", "img",
                   "input", "kbd", "label", "q", "s", "samp", "select",
                   "small", "span", "strike", "strong", "sub", "sup",
                   "textarea", "tt", "u", "var"] ++ eitherBlockOrInline
+-}
 
 blockHtmlTags :: [[Char]]
 blockHtmlTags = ["address", "blockquote", "body", "center", "dir", "div",
@@ -271,9 +273,11 @@ htmlEndTag tag = try $ do
   char '>'
   return $ "</" ++ tag ++ ">"
 
+{-
 -- | Returns @True@ if the tag is (or can be) an inline tag.
 isInline :: String -> Bool
 isInline tag = (extractTagType tag) `elem` inlineHtmlTags
+-}
 
 -- | Returns @True@ if the tag is (or can be) a block tag.
 isBlock :: String -> Bool
