@@ -97,8 +97,10 @@ end name = try $ do
 
 -- | Returns a list of block elements containing the contents of an
 -- environment.
+environment :: [Char] -> GenParser Char ParserState [Block]
 environment name = try $ begin name >> spaces >> manyTill block (end name)
 
+anyEnvironment :: GenParser Char ParserState Block
 anyEnvironment =  try $ do
   string "\\begin{"
   name <- many letter
@@ -142,8 +144,10 @@ parseLaTeX = do
 -- parsing blocks
 --
 
+parseBlocks :: GenParser Char ParserState [Block]
 parseBlocks = spaces >> many block
 
+block :: GenParser Char ParserState Block
 block = choice [ hrule
                , codeBlock
                , header
@@ -162,6 +166,7 @@ block = choice [ hrule
 -- header blocks
 --
 
+header :: GenParser Char ParserState Block
 header = try $ do
   char '\\'
   subs <- many (try (string "sub"))
@@ -209,6 +214,7 @@ codeBlock2 = try $ do
 -- block quotes
 --
 
+blockQuote :: GenParser Char ParserState Block
 blockQuote = (environment "quote" <|> environment "quotation") >>~ spaces >>= 
              return . BlockQuote
 
@@ -236,8 +242,10 @@ mathBlockWith start end' = try $ do
 -- list blocks
 --
 
+list :: GenParser Char ParserState Block
 list = bulletList <|> orderedList <|> definitionList <?> "list"
 
+listItem :: GenParser Char ParserState ([Inline], [Block])
 listItem = try $ do
   ("item", _, args) <- command
   spaces
@@ -252,6 +260,7 @@ listItem = try $ do
            _        -> return []
   return (opt, blocks)
 
+orderedList :: GenParser Char ParserState Block
 orderedList = try $ do
   string "\\begin{enumerate}"
   (_, style, delim) <- option (1, DefaultStyle, DefaultDelim) $
@@ -278,6 +287,7 @@ orderedList = try $ do
   spaces
   return $ OrderedList (start, style, delim) $ map snd items
 
+bulletList :: GenParser Char ParserState Block
 bulletList = try $ do
   begin "itemize"
   spaces
@@ -286,6 +296,7 @@ bulletList = try $ do
   spaces
   return (BulletList $ map snd items)
 
+definitionList :: GenParser Char ParserState Block
 definitionList = try $ do
   begin "description"
   spaces
@@ -298,17 +309,20 @@ definitionList = try $ do
 -- paragraph block
 --
 
+para :: GenParser Char ParserState Block
 para = many1 inline >>~ spaces >>= return . Para . normalizeSpaces
 
 --
 -- title authors date
 --
 
+bibliographic :: GenParser Char ParserState Block
 bibliographic = choice [ maketitle, title, authors, date ]
 
 maketitle :: GenParser Char st Block
 maketitle = try (string "\\maketitle") >> spaces >> return Null
 
+title :: GenParser Char ParserState Block
 title = try $ do
   string "\\title{"
   tit <- manyTill inline (char '}')
@@ -381,6 +395,7 @@ rawLaTeXEnvironment = try $ do
   return $ Para [TeX $ "\\begin{" ++ name' ++ "}" ++ argStr ++ 
                  concat contents ++ "\\end{" ++ name' ++ "}"]
 
+unknownEnvironment :: GenParser Char ParserState Block
 unknownEnvironment = try $ do
   state <- getState
   result <- if stateParseRaw state -- check whether we should include raw TeX 
@@ -443,8 +458,10 @@ inline =  choice [ str
                  , unescapedChar
                  ] <?> "inline"
 
+accentedChar :: GenParser Char st Inline
 accentedChar = normalAccentedChar <|> specialAccentedChar
 
+normalAccentedChar :: GenParser Char st Inline
 normalAccentedChar = try $ do
   char '\\'
   accent <- oneOf "'`^\"~"
@@ -457,6 +474,7 @@ normalAccentedChar = try $ do
 
 -- an association list of letters and association list of accents
 -- and decimal character numbers.
+accentTable :: [(Char, [(Char, Int)])]
 accentTable = 
   [ ('A', [('`', 192), ('\'', 193), ('^', 194), ('~', 195), ('"', 196)]),
     ('E', [('`', 200), ('\'', 201), ('^', 202), ('"', 203)]),
@@ -471,80 +489,101 @@ accentTable =
     ('o', [('`', 242), ('\'', 243), ('^', 244), ('~', 245), ('"', 246)]),
     ('u', [('`', 249), ('\'', 250), ('^', 251), ('"', 252)]) ]
 
+specialAccentedChar :: GenParser Char st Inline
 specialAccentedChar = choice [ ccedil, aring, iuml, szlig, aelig,
                                oslash, pound, euro, copyright, sect ]
 
+ccedil :: GenParser Char st Inline
 ccedil = try $ do
   char '\\'
-  letter <- oneOfStrings ["cc", "cC"]
-  let num = if letter == "cc" then 231 else 199
+  letter' <- oneOfStrings ["cc", "cC"]
+  let num = if letter' == "cc" then 231 else 199
   return $ Str [chr num]
 
+aring :: GenParser Char st Inline
 aring = try $ do
   char '\\'
-  letter <- oneOfStrings ["aa", "AA"]
-  let num = if letter == "aa" then 229 else 197
+  letter' <- oneOfStrings ["aa", "AA"]
+  let num = if letter' == "aa" then 229 else 197
   return $ Str [chr num]
 
+iuml :: GenParser Char st Inline
 iuml = try (string "\\\"") >> oneOfStrings ["\\i", "{\\i}"] >> 
        return (Str [chr 239])
 
-icirc = try (string "\\^") >> oneOfStrings ["\\i", "{\\i}"] >>
-        return (Str [chr 238])
-
+szlig :: GenParser Char st Inline
 szlig = try (string "\\ss") >> return (Str [chr 223])
 
+oslash :: GenParser Char st Inline
 oslash = try $ do
   char '\\'
-  letter <- choice [char 'o', char 'O']
-  let num = if letter == 'o' then 248 else 216
+  letter' <- choice [char 'o', char 'O']
+  let num = if letter' == 'o' then 248 else 216
   return $ Str [chr num]
 
+aelig :: GenParser Char st Inline
 aelig = try $ do
   char '\\'
-  letter <- oneOfStrings ["ae", "AE"]
-  let num = if letter == "ae" then 230 else 198
+  letter' <- oneOfStrings ["ae", "AE"]
+  let num = if letter' == "ae" then 230 else 198
   return $ Str [chr num]
 
+pound :: GenParser Char st Inline
 pound = try (string "\\pounds") >> return (Str [chr 163])
 
+euro :: GenParser Char st Inline
 euro = try (string "\\euro") >> return (Str [chr 8364])
 
+copyright :: GenParser Char st Inline
 copyright = try (string "\\copyright") >> return (Str [chr 169])
 
+sect :: GenParser Char st Inline
 sect = try (string "\\S") >> return (Str [chr 167])
 
+escapedChar :: GenParser Char st Inline
 escapedChar = do
   result <- escaped (oneOf " $%&_#{}\n")
   return $ if result == Str "\n" then Str " " else result
 
 -- ignore standalone, nonescaped special characters
+unescapedChar :: GenParser Char st Inline
 unescapedChar = oneOf "`$^&_#{}|<>" >> return (Str "")
 
+specialChar :: GenParser Char st Inline
 specialChar = choice [ backslash, tilde, caret, bar, lt, gt, doubleQuote ]
 
+backslash :: GenParser Char st Inline
 backslash = try (string "\\textbackslash") >> return (Str "\\")
 
+tilde :: GenParser Char st Inline
 tilde = try (string "\\ensuremath{\\sim}") >> return (Str "~")
 
+caret :: GenParser Char st Inline
 caret = try (string "\\^{}") >> return (Str "^")
 
+bar :: GenParser Char st Inline
 bar = try (string "\\textbar") >> return (Str "\\")
 
+lt :: GenParser Char st Inline
 lt = try (string "\\textless") >> return (Str "<")
 
+gt :: GenParser Char st Inline
 gt = try (string "\\textgreater") >> return (Str ">")
 
+doubleQuote :: GenParser Char st Inline
 doubleQuote = char '"' >> return (Str "\"")
 
+code :: GenParser Char st Inline
 code = code1 <|> code2
 
+code1 :: GenParser Char st Inline
 code1 = try $ do 
   string "\\verb"
   marker <- anyChar
   result <- manyTill anyChar (char marker)
   return $ Code $ removeLeadingTrailingSpace result
 
+code2 :: GenParser Char st Inline
 code2 = try $ do
   string "\\texttt{"
   result <- manyTill (noneOf "\\\n~$%^&{}") (char '}')
@@ -585,53 +624,70 @@ doubleQuoted = enclosed doubleQuoteStart doubleQuoteEnd inline >>=
 singleQuoteStart :: GenParser Char st Char
 singleQuoteStart = char '`'
 
+singleQuoteEnd :: GenParser Char st ()
 singleQuoteEnd = try $ char '\'' >> notFollowedBy alphaNum
 
+doubleQuoteStart :: CharParser st String
 doubleQuoteStart = string "``"
 
+doubleQuoteEnd :: CharParser st String
 doubleQuoteEnd = try $ string "''"
 
+ellipses :: GenParser Char st Inline
 ellipses = try $ string "\\ldots" >> optional (try (string "{}")) >>
                  return Ellipses
 
+enDash :: GenParser Char st Inline
 enDash = try (string "--") >> return EnDash
 
+emDash :: GenParser Char st Inline
 emDash = try (string "---") >> return EmDash
 
+hyphen :: GenParser Char st Inline
 hyphen = char '-' >> return (Str "-")
 
+lab :: GenParser Char st Inline
 lab = try $ do
   string "\\label{"
   result <- manyTill anyChar (char '}')
   return $ Str $ "(" ++ result ++ ")"
 
+ref :: GenParser Char st Inline
 ref = try (string "\\ref{") >> manyTill anyChar (char '}') >>= return . Str
 
 strong :: GenParser Char ParserState Inline
 strong = try (string "\\textbf{") >> manyTill inline (char '}') >>=
          return . Strong
 
+whitespace :: GenParser Char st Inline
 whitespace = many1 (oneOf "~ \t") >> return Space
 
 -- hard line break
+linebreak :: GenParser Char st Inline
 linebreak = try (string "\\\\") >> return LineBreak
 
+spacer :: GenParser Char st Inline
 spacer = try (string "\\,") >> return (Str "")
 
+str :: GenParser Char st Inline
 str = many1 (noneOf specialChars) >>= return . Str
 
 -- endline internal to paragraph
+endline :: GenParser Char st Inline
 endline = try $ newline >> notFollowedBy blankline >> return Space
 
 -- math
+math :: GenParser Char st Inline
 math = math1 <|> math2 <?> "math"
 
+math1 :: GenParser Char st Inline
 math1 = try $ do
   char '$'
   result <- many (noneOf "$")
   char '$'
   return $ Math result
 
+math2 :: GenParser Char st Inline
 math2 = try $ do
   string "\\("
   result <- many (noneOf "$")
@@ -642,18 +698,21 @@ math2 = try $ do
 -- links and images
 --
 
+url :: GenParser Char ParserState Inline
 url = try $ do
   string "\\url"
-  url <- charsInBalanced '{' '}'
-  return $ Link [Code url] (url, "")
+  url' <- charsInBalanced '{' '}'
+  return $ Link [Code url'] (url', "")
 
+link :: GenParser Char ParserState Inline
 link = try $ do
   string "\\href{"
-  url <- manyTill anyChar (char '}')
+  url' <- manyTill anyChar (char '}')
   char '{'
-  label <- manyTill inline (char '}') 
-  return $ Link (normalizeSpaces label) (url, "")
+  label' <- manyTill inline (char '}') 
+  return $ Link (normalizeSpaces label') (url', "")
 
+image :: GenParser Char ParserState Inline
 image = try $ do
   ("includegraphics", _, args) <- command
   let args' = filter isArg args -- filter out options
@@ -663,6 +722,7 @@ image = try $ do
               (stripFirstAndLast (head args'), "")
   return $ Image [Str "image"] src
 
+footnote :: GenParser Char ParserState Inline
 footnote = try $ do
   (name, _, (contents:[])) <- command
   if ((name == "footnote") || (name == "thanks"))
