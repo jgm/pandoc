@@ -396,9 +396,8 @@ tableItemToHtml :: WriterOptions
 tableItemToHtml opts tag' align' width' item = do
   contents <- blockListToHtml opts item
   let attrib = [align align'] ++ 
-               if width' /= 0 
-                  then [thestyle ("width: " ++ show (truncate (100*width')) ++ 
-                        "%;")]
+               if width' /= 0
+                  then [thestyle ("width: " ++ (show  (truncate (100 * width') :: Integer)) ++ "%;")]
                   else [] 
   return $ tag' ! attrib $ contents
 

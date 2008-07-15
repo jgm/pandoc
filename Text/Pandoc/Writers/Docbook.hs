@@ -195,7 +195,7 @@ tableItemToDocbook opts tag align width item =
   let attrib = [("align", align)] ++ 
                if width /= 0
                   then [("style", "{width: " ++ 
-                        show (truncate (100*width)) ++ "%;}")]
+                        show (truncate (100*width) :: Integer) ++ "%;}")]
                   else [] 
   in  inTags True tag attrib $ vcat $ map (blockToDocbook opts) item
 

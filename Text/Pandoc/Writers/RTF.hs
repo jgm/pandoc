@@ -195,7 +195,7 @@ tableRowToRTF header indent aligns sizes cols =
   let columns = concat $ zipWith (tableItemToRTF indent) aligns cols
       totalTwips = 6 * 1440 -- 6 inches
       rightEdges = tail $ scanl (\sofar new -> sofar + floor (new * totalTwips))
-                                0 sizes
+                                (0 :: Integer) sizes
       cellDefs = map (\edge -> (if header
                                    then "\\clbrdrb\\brdrs"
                                    else "") ++ "\\cellx" ++ show edge)

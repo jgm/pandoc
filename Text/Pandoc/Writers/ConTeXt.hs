@@ -162,7 +162,7 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
     let width = maximum $ map length $ take (length contents) 
                           (orderedListMarkers (start, style', delim))
     let width' = (toEnum width + 1) / 2
-    let width'' = if width' > 1.5 
+    let width'' = if width' > (1.5 :: Double) 
                      then "width=" ++ show width' ++ "em" 
                      else ""
     let specs2Items = filter (not . null) [start', delim', width'']

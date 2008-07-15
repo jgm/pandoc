@@ -286,7 +286,7 @@ getReference label (src, tit) = do
       let label' = case find ((== label) . fst) refs of
                       Just _ -> -- label is used; generate numerical label
                                  case find (\n -> not (any (== [Str (show n)])
-                                           (map fst refs))) [1..10000] of
+                                           (map fst refs))) [1..(10000 :: Integer)] of
                                       Just x  -> [Str (show x)]
                                       Nothing -> error "no unique label"
                       Nothing -> label
