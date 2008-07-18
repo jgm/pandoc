@@ -383,7 +383,7 @@ inlineToOpenDocument o ils
     | TeX         s <- ils = preformatted s
     | HtmlInline  s <- ils = preformatted s
     | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
-    | Image l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
+    | Image l (s,t) <- ils = mkImg  s t <$> inlinesToOpenDocument o l
     | Note        l <- ils = mkNote l
     | otherwise            = return empty
     where
@@ -392,6 +392,11 @@ inlineToOpenDocument o ils
                                            , ("xlink:href" , s       )
                                            , ("office:name", t       )
                                            ] . inSpanTags "Definition"
+      mkImg  s _ l = ($$) l . inTags False "draw:frame" [] $
+                     selfClosingTag "draw:image" [ ("xlink:href"   , s       )
+                                                 , ("xlink:type"   , "simple")
+                                                 , (" xlink:show"  , "embed" )
+                                                 , ("xlink:actuate", "onLoad")]
       mkNote     l = do
         n <- length <$> gets stNotes
         let footNote t = inTags False "text:note"
