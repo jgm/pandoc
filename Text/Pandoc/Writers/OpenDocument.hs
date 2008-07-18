@@ -161,9 +161,10 @@ authorToOpenDocument name =
   if ',' `elem` name
     then -- last name first
          let (lastname, rest) = break (==',') name
-             firstname = removeLeadingSpace rest in
-         inParagraphTags $ (text $ escapeStringForXML firstname) <+>
-                           (text $ escapeStringForXML lastname)
+             firstname = removeLeadingSpace rest
+         in  inParagraphTagsWithStyle "Author" $
+                 (text $ escapeStringForXML firstname) <+>
+                 (text $ escapeStringForXML lastname)
     else -- last name last
          let namewords = words name
              lengthname = length namewords
@@ -171,8 +172,9 @@ authorToOpenDocument name =
                0  -> ("","")
                1  -> ("", name)
                n  -> (joinWithSep " " (take (n-1) namewords), last namewords)
-          in inParagraphTags $ (text $ escapeStringForXML firstname) <+>
-                               (text $ escapeStringForXML lastname)
+          in inParagraphTagsWithStyle "Author" $
+                 (text $ escapeStringForXML firstname) <+>
+                 (text $ escapeStringForXML lastname)
 
 -- | Convert Pandoc document to string in OpenDocument format.
 writeOpenDocument :: WriterOptions -> Pandoc -> String
@@ -182,7 +184,8 @@ writeOpenDocument opts (Pandoc (Meta title authors date) blocks) =
       title'   = case runState (wrap opts title) defaultWriterState of
                    (t,_) -> if isEmpty t then empty else inHeaderTags 1 t
       authors' = when (authors /= []) $ vcat (map authorToOpenDocument authors)
-      date'    = when (date    /= []) $ inParagraphTags (text $ escapeStringForXML date)
+      date'    = when (date    /= []) $
+                 inParagraphTagsWithStyle "Date" (text $ escapeStringForXML date)
       meta     = when (writerStandalone opts) $ title' $$ authors' $$ date'
       before   = writerIncludeBefore opts
       after    = writerIncludeAfter opts
@@ -258,8 +261,12 @@ listItemsToOpenDocument s o is =
 
 deflistItemToOpenDocument :: WriterOptions -> ([Inline],[Block]) -> State WriterState Doc
 deflistItemToOpenDocument o (t,d) = do
-  t' <- withParagraphStyle o "Definition_20_Term"       [Para t]
-  d' <- withParagraphStyle o "Definition_20_Definition" (map plainToPara d)
+  let ts = if isTightList [d]
+           then "Definition_20_Term_20_Tight"       else "Definition_20_Term"
+      ds = if isTightList [d]
+           then "Definition_20_Definition_20_Tight" else "Definition_20_Definition"
+  t' <- withParagraphStyle o ts [Para t]
+  d' <- withParagraphStyle o ds (map plainToPara d)
   return $ t' $$ d'
 
 inBlockQuote :: WriterOptions -> Int -> [Block] -> State WriterState Doc
@@ -279,7 +286,7 @@ blocksToOpenDocument o b = vcat <$> mapM (blockToOpenDocument o) b
 -- | Convert a Pandoc block element to OpenDocument.
 blockToOpenDocument :: WriterOptions -> Block -> State WriterState Doc
 blockToOpenDocument o bs
-    | Plain          b <- bs = wrap o b
+    | Plain          b <- bs = inParagraphTags <$> wrap o b
     | Para           b <- bs = inParagraphTags <$> wrap o b
     | Header       i b <- bs = inHeaderTags  i <$> wrap o b
     | BlockQuote     b <- bs = mkBlockQuote b
