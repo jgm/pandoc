@@ -284,7 +284,7 @@ block = do
 --
 
 header :: GenParser Char ParserState Block
-header = atxHeader <|> setextHeader <?> "header"
+header = setextHeader <|> atxHeader <?> "header"
 
 atxHeader :: GenParser Char ParserState Block
 atxHeader = try $ do
