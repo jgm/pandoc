@@ -117,7 +117,7 @@ $(ODTREF): $(addprefix $(ODTSTYLES)/, layout-cache meta.xml styles.xml content.x
 ODTREFSH=$(SRCDIR)/wrappers/odtref.sh
 cleanup_files+=$(ODTREFSH)
 $(ODTREFSH): $(ODTREF)
-	echo "REFERENCEODT='$(PKGDATAPATH)/$(notdir $(ODTREF))'" > $@
+	echo "REFERENCEODT='$(PREFIX)/share/$(DATADIR)/$(notdir $(ODTREF))'" > $@
 
 .PHONY: wrappers
 wrappers: $(WRAPPERS)
