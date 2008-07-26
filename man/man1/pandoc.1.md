@@ -15,7 +15,7 @@ pandoc [*options*] [*input-file*]...
 Pandoc converts files from one markup format to another. It can
 read markdown and (subsets of) reStructuredText, HTML, and LaTeX, and
 it can write markdown, reStructuredText, HTML, LaTeX, ConTeXt, Texinfo,
-groff man, RTF, DocBook XML, and S5 HTML slide shows.
+groff man, RTF, OpenDocument XML, DocBook XML, and S5 HTML slide shows.
 
 If no *input-file* is specified, input is read from STDIN.
 Otherwise, the *input-files* are concatenated (with a blank
@@ -68,7 +68,8 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     `markdown` (markdown or plain text), `rst` (reStructuredText),
     `html` (HTML), `latex` (LaTeX), `context` (ConTeXt), `man` (groff man), 
     `texinfo` (GNU Texinfo), `docbook` (DocBook XML),
-    `s5` (S5 HTML and javascript slide show), or `rtf` (rich text format).
+    `opendocument` (OpenDocument XML), `s5` (S5 HTML and javascript slide
+    show), or `rtf` (rich text format).
 
 -s, \--standalone
 :   Produce output with an appropriate header and footer (e.g. a
@@ -155,7 +156,8 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 
 -D *FORMAT*, \--print-default-header=*FORMAT*
 :   Print the default header for *FORMAT* (`html`, `s5`, `latex`,
-    `context`, `docbook`, `man`, `markdown`, `rst`, `rtf`).
+    `context`, `docbook`, `man`, `markdown`, `opendocument`,
+    `rst`, `rtf`).
 
 -T *STRING*, \--title-prefix=*STRING*
 :   Specify *STRING* as a prefix to the HTML window title.
