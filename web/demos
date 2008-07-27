@@ -102,3 +102,7 @@ click on the name of the output file:
 
 @   markdown2odt @@README@@ -o @@example21.odt@@
 
+22. MediaWiki markup:
+
+@   pandoc -s -S -w mediawiki --toc @@README@@ -o @@example22.wiki@@
+

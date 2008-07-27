@@ -8,6 +8,7 @@
 ../pandoc -r native -s -w texinfo testsuite.native > writer.texinfo
 ../pandoc -r native -s -w rtf testsuite.native > writer.rtf
 ../pandoc -r native -s -w man testsuite.native > writer.man
+../pandoc -r native -s -w mediawiki testsuite.native > writer.mediawiki
 sed -e '/^, Header 1 \[Str "HTML",Space,Str "Blocks"\]/,/^, HorizontalRule/d' testsuite.native | ../pandoc -r native -w docbook -s > writer.docbook
 sed -e '/^, Header 1 \[Str "LaTeX"\]/,/^, HorizontalRule/d' testsuite.native | ../pandoc -r native -w context -s > writer.context
 

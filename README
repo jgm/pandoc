@@ -6,9 +6,9 @@ Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX], and
 it can write [markdown], [reStructuredText], [HTML], [LaTeX], [ConTeXt],
-[RTF], [DocBook XML], [OpenDocument XML], [GNU Texinfo], [groff man]
-pages, and [S5] HTML slide shows. Pandoc's version of markdown contains
-some enhancements, like footnotes and embedded LaTeX.
+[RTF], [DocBook XML], [OpenDocument XML], [GNU Texinfo], [MediaWiki markup],
+[groff man] pages, and [S5] HTML slide shows. Pandoc's version of
+markdown contains some enhancements, like footnotes and embedded LaTeX.
 
 In contrast to existing tools for converting markdown to HTML, which
 use regex substitutions, Pandoc has a modular design: it consists of a
@@ -26,6 +26,7 @@ or output format requires only adding a reader or writer.
 [RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook XML]:  http://www.docbook.org/
 [OpenDocument XML]: http://opendocument.xml.org/ 
+[MediaWiki markup]: http://www.mediawiki.org/wiki/Help:Formatting
 [groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
 [Haskell]:  http://www.haskell.org/
 [GNU Texinfo]: http://www.gnu.org/software/texinfo/
@@ -73,15 +74,16 @@ To convert `hello.html` from html to markdown:
 Supported output formats include `markdown`, `latex`, `context`
 (ConTeXt), `html`, `rtf` (rich text format), `rst` (reStructuredText),
 `docbook` (DocBook XML), `opendocument` (OpenDocument XML), `texinfo`,
-`man` (groff man), and `s5` (which produces an HTML file that acts
-like powerpoint). Supported input formats include `markdown`, `html`,
-`latex`, and `rst`. Note that the `rst` reader only parses a subset of
-reStructuredText syntax. For example, it doesn't handle tables, option
-lists, or footnotes. But for simple documents it should be adequate. The
-`latex` and `html` readers are also limited in what they can do. Because
-the `html` reader is picky about the HTML it parses, it is recommended
-that you pipe HTML through [HTML Tidy] before sending it to `pandoc`, or
-use the `html2markdown` script described below.
+`mediawiki` (MediaWiki markup), `man` (groff man), and `s5` (which
+produces an HTML file that acts like powerpoint). Supported input
+formats include `markdown`, `html`, `latex`, and `rst`. Note that the
+`rst` reader only parses a subset of reStructuredText syntax. For
+example, it doesn't handle tables, option lists, or footnotes. But for
+simple documents it should be adequate. The `latex` and `html` readers
+are also limited in what they can do. Because the `html` reader is picky
+about the HTML it parses, it is recommended that you pipe HTML through
+[HTML Tidy] before sending it to `pandoc`, or use the `html2markdown`
+script described below.
 
 If you don't specify a reader or writer explicitly, `pandoc` will
 try to determine the input and output format from the extensions of
@@ -926,6 +928,8 @@ text role `:math:`, as described
 In Texinfo output, it will be rendered inside a `@math` command.
 
 In groff man output, it will be rendered verbatim without $'s.
+
+In MediaWiki output, it will be rendered inside `<math>` tags.
 
 In RTF, Docbook, and OpenDocument output, it will be rendered, as far as
 possible, using unicode characters, and will otherwise appear verbatim.

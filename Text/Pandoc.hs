@@ -76,6 +76,7 @@ module Text.Pandoc
                , writeDocbook
                , writeOpenDocument
                , writeMan
+               , writeMediaWiki
                , writeRTF
                , prettyPandoc
                -- * Writer options used in writers 
@@ -105,6 +106,7 @@ import Text.Pandoc.Writers.Docbook
 import Text.Pandoc.Writers.OpenDocument
 import Text.Pandoc.Writers.Man
 import Text.Pandoc.Writers.RTF 
+import Text.Pandoc.Writers.MediaWiki
 import Text.Pandoc.DefaultHeaders
 import Text.Pandoc.UTF8
 import Text.Pandoc.Shared

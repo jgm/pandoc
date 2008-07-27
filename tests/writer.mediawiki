@@ -1,0 +1,605 @@
+This is a set of tests for pandoc. Most of them are adapted from John Gruber&rsquo;s markdown test suite.
+
+
+-----
+
+== Headers ==
+
+=== Level 2 with an [http://{{SERVERNAME}}/url embedded link] ===
+
+==== Level 3 with ''emphasis'' ====
+
+===== Level 4 =====
+
+====== Level 5 ======
+
+== Level 1 ==
+
+=== Level 2 with ''emphasis'' ===
+
+==== Level 3 ====
+
+with no blank line
+
+=== Level 2 ===
+
+with no blank line
+
+
+-----
+
+== Paragraphs ==
+
+Here&rsquo;s a regular paragraph.
+
+In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.
+
+Here&rsquo;s one with a bullet. * criminey.
+
+There should be a hard line break<br />
+here.
+
+
+-----
+
+== Block Quotes ==
+
+E-mail style:
+
+<blockquote>This is a block quote. It is pretty short.
+</blockquote>
+<blockquote>Code in a block quote:
+
+<pre>sub status {
+    print &quot;working&quot;;
+}</pre>
+A list:
+
+# item one
+# item two
+Nested block quotes:
+
+<blockquote>nested
+</blockquote>
+<blockquote>nested
+</blockquote></blockquote>
+This should not be a block quote: 2 &gt; 1.
+
+And a following paragraph.
+
+
+-----
+
+== Code Blocks ==
+
+Code:
+
+<pre>---- (should be four hyphens)
+
+sub status {
+    print &quot;working&quot;;
+}
+
+this code block is indented by one tab</pre>
+And:
+
+<pre>    this code block is indented by two tabs
+
+These should not be escaped:  \$ \\ \&gt; \[ \{</pre>
+
+-----
+
+== Lists ==
+
+=== Unordered ===
+
+Asterisks tight:
+
+* asterisk 1
+* asterisk 2
+* asterisk 3
+Asterisks loose:
+
+* asterisk 1
+* asterisk 2
+* asterisk 3
+Pluses tight:
+
+* Plus 1
+* Plus 2
+* Plus 3
+Pluses loose:
+
+* Plus 1
+* Plus 2
+* Plus 3
+Minuses tight:
+
+* Minus 1
+* Minus 2
+* Minus 3
+Minuses loose:
+
+* Minus 1
+* Minus 2
+* Minus 3
+=== Ordered ===
+
+Tight:
+
+# First
+# Second
+# Third
+and:
+
+# One
+# Two
+# Three
+Loose using tabs:
+
+# First
+# Second
+# Third
+and using spaces:
+
+# One
+# Two
+# Three
+Multiple paragraphs:
+
+<ol style="list-style-type: decimal;">
+<li><p>Item 1, graf one.</p>
+<p>Item 1. graf two. The quick brown fox jumped over the lazy dog&rsquo;s back.</p></li>
+<li><p>Item 2.</p></li>
+<li><p>Item 3.</p></li></ol>
+
+=== Nested ===
+
+* Tab
+** Tab
+*** Tab
+Here&rsquo;s another:
+
+# First
+# Second:
+#* Fee
+#* Fie
+#* Foe
+# Third
+Same thing but with paragraphs:
+
+# First
+# Second:
+#* Fee
+#* Fie
+#* Foe
+# Third
+=== Tabs and spaces ===
+
+* this is a list item indented with tabs
+* this is a list item indented with spaces
+** this is an example list item indented with tabs
+** this is an example list item indented with spaces
+=== Fancy list markers ===
+
+<ol start="2" style="list-style-type: decimal;">
+<li>begins with 2</li>
+<li><p>and now 3</p>
+<p>with a continuation</p>
+<ol start="4" style="list-style-type: lower-roman;">
+<li>sublist with roman numerals, starting with 4</li>
+<li>more items
+<ol style="list-style-type: upper-alpha;">
+<li>a subsublist</li>
+<li>a subsublist</li></ol>
+</li></ol>
+</li></ol>
+
+Nesting:
+
+<ol style="list-style-type: upper-alpha;">
+<li>Upper Alpha
+<ol style="list-style-type: upper-roman;">
+<li>Upper Roman.
+<ol start="6" style="list-style-type: decimal;">
+<li>Decimal start with 6
+<ol start="3" style="list-style-type: lower-alpha;">
+<li>Lower alpha with paren</li></ol>
+</li></ol>
+</li></ol>
+</li></ol>
+
+Autonumbering:
+
+# Autonumber.
+# More.
+## Nested.
+Should not be a list item:
+
+M.A.&#160;2007
+
+B. Williams
+
+
+-----
+
+== Definition Lists ==
+
+Tight using spaces:
+
+; apple
+: red fruit
+; orange
+: orange fruit
+; banana
+: yellow fruit
+Tight using tabs:
+
+; apple
+: red fruit
+; orange
+: orange fruit
+; banana
+: yellow fruit
+Loose:
+
+; apple
+: red fruit
+; orange
+: orange fruit
+; banana
+: yellow fruit
+Multiple blocks with italics:
+
+<dl>
+<dt>''apple''</dt>
+<dd><p>red fruit</p>
+<p>contains seeds, crisp, pleasant to taste</p></dd>
+<dt>''orange''</dt>
+<dd><p>orange fruit</p>
+<pre>{ orange code block }</pre>
+<blockquote><p>orange block quote</p></blockquote></dd></dl>
+
+== HTML Blocks ==
+
+Simple block on one line:
+
+<div>
+foo
+</div>
+
+And nested without indentation:
+
+<div>
+<div>
+<div>
+foo
+</div>
+</div>
+<div>
+bar
+</div>
+</div>
+
+Interpreted markdown in a table:
+
+<table>
+<tr>
+<td>
+This is ''emphasized''
+</td>
+<td>
+And this is '''strong'''
+</td>
+</tr>
+</table>
+
+<script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
+
+Here&rsquo;s a simple block:
+
+<div>
+    
+foo
+</div>
+
+This should be a code block, though:
+
+<pre>&lt;div&gt;
+    foo
+&lt;/div&gt;</pre>
+As should this:
+
+<pre>&lt;div&gt;foo&lt;/div&gt;</pre>
+Now, nested:
+
+<div>
+    <div>
+        <div>
+            
+foo
+</div>
+    </div>
+</div>
+
+This should just be an HTML comment:
+
+<!-- Comment -->
+
+Multiline:
+
+<!--
+Blah
+Blah
+-->
+
+<!--
+    This is another comment.
+-->
+
+Code block:
+
+<pre>&lt;!-- Comment --&gt;</pre>
+Just plain comment, with trailing spaces on the line:
+
+<!-- foo -->   
+
+Code:
+
+<pre>&lt;hr /&gt;</pre>
+Hr&rsquo;s:
+
+<hr>
+
+<hr />
+
+<hr />
+
+<hr>   
+
+<hr />  
+
+<hr /> 
+
+<hr class="foo" id="bar" />
+
+<hr class="foo" id="bar" />
+
+<hr class="foo" id="bar">
+
+
+-----
+
+== Inline Markup ==
+
+This is ''emphasized'', and so ''is this''.
+
+This is '''strong''', and so '''is this'''.
+
+An ''[http://{{SERVERNAME}}/url emphasized link]''.
+
+'''''This is strong and em.'''''
+
+So is '''''this''''' word.
+
+'''''This is strong and em.'''''
+
+So is '''''this''''' word.
+
+This is code: <tt>&gt;</tt>, <tt>$</tt>, <tt>\</tt>, <tt>\$</tt>, <tt>&lt;html&gt;</tt>.
+
+<s>This is ''strikeout''.</s>
+
+Superscripts: a<sup>bc</sup>d a<sup>''hello''</sup> a<sup>hello&#160;there</sup>.
+
+Subscripts: H<sub>2</sub>O, H<sub>23</sub>O, H<sub>many&#160;of&#160;them</sub>O.
+
+These should not be superscripts or subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.
+
+
+-----
+
+== Smart quotes, ellipses, dashes ==
+
+&ldquo;Hello,&rdquo; said the spider. &ldquo;&lsquo;Shelob&rsquo; is my name.&rdquo;
+
+&lsquo;A&rsquo;, &lsquo;B&rsquo;, and &lsquo;C&rsquo; are letters.
+
+&lsquo;Oak,&rsquo; &lsquo;elm,&rsquo; and &lsquo;beech&rsquo; are names of trees. So is &lsquo;pine.&rsquo;
+
+&lsquo;He said, &ldquo;I want to go.&rdquo;&rsquo; Were you alive in the 70&rsquo;s?
+
+Here is some quoted &lsquo;<tt>code</tt>&rsquo; and a &ldquo;[http://example.com/?foo=1&bar=2 quoted link]&rdquo;.
+
+Some dashes: one&mdash;two &mdash; three&mdash;four &mdash; five.
+
+Dashes between numbers: 5&ndash;7, 255&ndash;66, 1987&ndash;1999.
+
+Ellipses&hellip;and&hellip;and&hellip;.
+
+
+-----
+
+== LaTeX ==
+
+* 
+* 
+* <math>2+2=4</math>
+* <math>x \in y</math>
+* <math>\alpha \wedge \omega</math>
+* <math>223</math>
+* <math>p</math>-Tree
+* <math>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</math>
+* Here&rsquo;s one that has a line break in it: <math>\alpha + \omega \times x^2</math>.
+These shouldn&rsquo;t be math:
+
+* To get the famous equation, write <tt>$e = mc^2$</tt>.
+* $22,000 is a ''lot'' of money. So is $34,000. (It worked if &ldquo;lot&rdquo; is emphasized.)
+* Shoes ($20) and socks ($5).
+* Escaped <tt>$</tt>: $73 ''this should be emphasized'' 23$.
+Here&rsquo;s a LaTeX table:
+
+
+
+
+-----
+
+== Special Characters ==
+
+Here is some unicode:
+
+* I hat: Î
+* o umlaut: ö
+* section: §
+* set membership: ∈
+* copyright: ©
+AT&amp;T has an ampersand in their name.
+
+AT&amp;T is another way to write it.
+
+This &amp; that.
+
+4 &lt; 5.
+
+6 &gt; 5.
+
+Backslash: \
+
+Backtick: `
+
+Asterisk: *
+
+Underscore: _
+
+Left brace: {
+
+Right brace: }
+
+Left bracket: [
+
+Right bracket: ]
+
+Left paren: (
+
+Right paren: )
+
+Greater-than: &gt;
+
+Hash: #
+
+Period: .
+
+Bang: !
+
+Plus: +
+
+Minus: -
+
+
+-----
+
+== Links ==
+
+=== Explicit ===
+
+Just a [http://{{SERVERNAME}}/url/ URL].
+
+[http://{{SERVERNAME}}/url/ URL and title].
+
+[http://{{SERVERNAME}}/url/ URL and title].
+
+[http://{{SERVERNAME}}/url/ URL and title].
+
+[http://{{SERVERNAME}}/url/ URL and title]
+
+[http://{{SERVERNAME}}/url/ URL and title]
+
+[http://{{SERVERNAME}}/url/with_underscore with_underscore]
+
+[mailto:nobody@nowhere.net Email link]
+
+[http://{{SERVERNAME}}/ Empty].
+
+=== Reference ===
+
+Foo [http://{{SERVERNAME}}/url/ bar].
+
+Foo [http://{{SERVERNAME}}/url/ bar].
+
+Foo [http://{{SERVERNAME}}/url/ bar].
+
+With [http://{{SERVERNAME}}/url/ embedded [brackets]].
+
+[http://{{SERVERNAME}}/url/ b] by itself should be a link.
+
+Indented [http://{{SERVERNAME}}/url once].
+
+Indented [http://{{SERVERNAME}}/url twice].
+
+Indented [http://{{SERVERNAME}}/url thrice].
+
+This should [not][] be a link.
+
+<pre>[not]: /url</pre>
+Foo [http://{{SERVERNAME}}/url/ bar].
+
+Foo [http://{{SERVERNAME}}/url/ biz].
+
+=== With ampersands ===
+
+Here&rsquo;s a [http://example.com/?foo=1&bar=2 link with an ampersand in the URL].
+
+Here&rsquo;s a link with an amersand in the link text: [http://att.com/ AT&amp;T].
+
+Here&rsquo;s an [http://{{SERVERNAME}}/script?foo=1&bar=2 inline link].
+
+Here&rsquo;s an [http://{{SERVERNAME}}/script?foo=1&bar=2 inline link in pointy braces].
+
+=== Autolinks ===
+
+With an ampersand: http://example.com/?foo=1&bar=2
+
+* In a list?
+* http://example.com/
+* It should.
+An e-mail address: [mailto:nobody@nowhere.net <tt>nobody@nowhere.net</tt>]
+
+<blockquote>Blockquoted: http://example.com/
+</blockquote>
+Auto-links should not occur here: <tt>&lt;http://example.com/&gt;</tt>
+
+<pre>or here: &lt;http://example.com/&gt;</pre>
+
+-----
+
+== Images ==
+
+From &ldquo;Voyage dans la Lune&rdquo; by Georges Melies (1902):
+
+[[Image:lalune.jpg|Voyage dans la Lune]]
+
+Here is a movie [[Image:movie.jpg|movie]] icon.
+
+
+-----
+
+== Footnotes ==
+
+Here is a footnote reference,<ref>Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.
+</ref> and another.<ref>Here&rsquo;s the long note. This one contains multiple blocks.
+
+Subsequent blocks are indented to show that they belong to the footnote (as with list items).
+
+<pre>  { &lt;code&gt; }</pre>
+If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
+</ref> This should ''not'' be a footnote reference, because it contains a space.[^my note] Here is an inline note.<ref>This is ''easier'' to type. Inline notes may contain [http://google.com links] and <tt>]</tt> verbatim characters, as well as [bracketed text].
+</ref>
+
+<blockquote>Notes can go in quotes.<ref>In quote.
+</ref>
+</blockquote>
+# And in list items.<ref>In list.</ref>
+This paragraph should not be part of the note, as it is not indented.
+
+== Notes ==
+<references />

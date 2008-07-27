@@ -88,6 +88,7 @@ writers = [("native"       , (writeDoc, ""))
           ,("man"          , (writeMan, ""))
           ,("markdown"     , (writeMarkdown, ""))
           ,("rst"          , (writeRST, ""))
+          ,("mediawiki"    , (writeMediaWiki, ""))
           ,("rtf"          , (writeRTF, defaultRTFHeader))
           ]
 
