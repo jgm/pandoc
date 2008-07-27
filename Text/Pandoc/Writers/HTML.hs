@@ -39,7 +39,7 @@ import Data.Char ( ord, toLower, isAlpha )
 import Data.List ( isPrefixOf, intersperse )
 import qualified Data.Set as S
 import Control.Monad.State
-import Text.XHtml.Transitional
+import Text.XHtml.Transitional hiding ( stringToHtml )
 
 data WriterState = WriterState
     { stNotes            :: [Html]       -- ^ List of notes
@@ -61,6 +61,20 @@ renderFragment :: (HTML html) => WriterOptions -> html -> String
 renderFragment opts = if writerWrapText opts
                          then renderHtmlFragment
                          else showHtmlFragment
+
+-- | Slightly modified version of Text.XHtml's stringToHtml.
+-- Only uses numerical entities for 0xff and greater.
+-- Adds &nbsp;.
+stringToHtml :: String -> Html
+stringToHtml = primHtml . concatMap fixChar
+    where
+      fixChar '<' = "&lt;"
+      fixChar '>' = "&gt;"
+      fixChar '&' = "&amp;"
+      fixChar '"' = "&quot;"
+      fixChar '\160' = "&nbsp;"
+      fixChar c | ord c < 0xff = [c]
+      fixChar c = "&#" ++ show (ord c) ++ ";"
 
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
