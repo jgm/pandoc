@@ -64,6 +64,12 @@ Flag splitBase
 Flag highlighting
   Description:   Compile in support for syntax highlighting of code blocks.
   Default:       False
+Flag executable
+  Description:   Build the pandoc executable.
+  Default:       True
+Flag library
+  Description:   Build the pandoc library.
+  Default:       True
 
 Library
   if flag(splitBase)
@@ -107,8 +113,18 @@ Library
   Ghc-Options:     -O2 -Wall -threaded
   Ghc-Prof-Options: -auto-all
 
+  if flag(library)
+    Buildable:      True
+  else
+    Buildable:      False
+
 Executable pandoc
   Hs-Source-Dirs:     .
   Main-Is:            Main.hs
   Ghc-Options:        -O2 -Wall -threaded
   Ghc-Prof-Options:   -auto-all
+
+  if flag(executable)
+    Buildable:      True
+  else
+    Buildable:      False

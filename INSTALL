@@ -118,6 +118,13 @@ Just download the source tarball, unpack, and type:
 This will install the pandoc executable and the Haskell libraries,
 but not the shell scripts, man pages, or other documentation.
 
+You may just want the executable, or just the libraries.  This
+can be controlled with configuration flags (the `-` negates the
+flag):
+
+    runhaskell Setup.hs configure -f-library      # just the executable
+    runhaskell Setup.hs configure -f-executable   # just the libraries
+
 Note:  If you are using GHC 6.6.*, you will need to start by
 replacing `pandoc.cabal` with a version suitable for GHC 6.6:
 
