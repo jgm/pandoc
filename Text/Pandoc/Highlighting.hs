@@ -47,10 +47,10 @@ highlightHtml (_, classes, keyvals) rawCode =
                   Just _    -> [OptNumberLines]
       lcLanguages = map (map toLower) languages
   in  case find (\c -> (map toLower c) `elem` lcLanguages) classes of
-            Nothing   -> Left "Unknown or unsupported language"
-            Just lang -> case highlightAs lang rawCode of
-                               Left err -> Left err
-                               Right hl -> Right $ formatAsXHtml fmtOpts lang hl
+            Nothing        -> Left "Unknown or unsupported language"
+            Just language  -> case highlightAs language rawCode of
+                                   Left err -> Left err
+                                   Right hl -> Right $ formatAsXHtml fmtOpts language hl
 
 #else
 defaultHighlightingCss :: String
