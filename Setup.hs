@@ -10,7 +10,7 @@ import Data.List (isPrefixOf)
 
 main = defaultMainWithHooks myHooks
 
-myHooks = defaultUserHooks { postConf = myPostConf, postClean = myPostClean }
+myHooks = defaultUserHooks { postConf = myPostConf }
 
 pandocPath = combine "Text" "Pandoc"
 
@@ -46,20 +46,6 @@ fillDefaultHeadersTemplate = do
   files <- getDirectoryContents (combine "templates" "headers") >>= 
              return . map (combine "headers") . filter (\x -> takeExtension x == ".header")
   fillTemplate files "DefaultHeaders.hs" "DefaultHeaders.hs"
-
--- Post-clean: remove the files generated from templates.
-myPostClean :: Args -> CleanFlags -> PackageDescription -> Maybe LocalBuildInfo -> IO ()
-myPostClean _ _ _ _ = do
-  putStrLn "Removing source files generated from templates:"
-  removeGeneratedFile $ joinPath [pandocPath, "ASCIIMathML.hs"]
-  removeGeneratedFile $ joinPath [pandocPath, "DefaultHeaders.hs"]
-  removeGeneratedFile $ joinPath [pandocPath, "Writers", "S5.hs"]
-
--- Remove file and print message.
-removeGeneratedFile :: FilePath -> IO () 
-removeGeneratedFile fpath = do
-  putStrLn $ "  " ++ fpath
-  removeFile fpath
 
 -- Write the filled template file and print an explanatory message.
 writeTemplate :: FilePath -> String -> IO ()

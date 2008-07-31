@@ -54,6 +54,9 @@ Extra-Source-Files: README, INSTALL, COPYRIGHT, COPYRIGHT,
                  templates/ui/default/opera.css,
                  templates/ui/default/outline.css,
                  templates/ui/default/print.css
+Extra-Tmp-Files: Text/Pandoc/ASCIIMathML.hs,
+                 Text/Pandoc/DefaultHeaders.hs,
+                 Text/Pandoc/Writers/S5.hs
 Flag splitBase
   Description:   Choose the new, smaller, split-up base package.
   Default:       True
