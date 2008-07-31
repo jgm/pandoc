@@ -30,7 +30,6 @@ writers.
 -}
 module Main where
 import Text.Pandoc
-import Text.Pandoc.UTF8
 import Text.Pandoc.ODT
 import Text.Pandoc.Shared ( joinWithSep, HTMLMathMethod (..) )
 import Text.Pandoc.Highlighting ( languages )
@@ -38,7 +37,9 @@ import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath ( takeExtension, takeDirectory )
 import System.Console.GetOpt
-import System.IO
+import Prelude hiding ( putStrLn, writeFile, readFile, getContents )
+import System.IO ( stdout, stderr )
+import System.IO.UTF8
 import Data.Maybe ( fromMaybe )
 import Data.Char ( toLower )
 import Control.Monad ( (>>=) )
@@ -275,7 +276,7 @@ options =
                   (\arg opt -> do
                      let old = optIncludeInHeader opt
                      text <- readFile arg
-                     return opt { optIncludeInHeader = old ++ fromUTF8 text, 
+                     return opt { optIncludeInHeader = old ++ text,
                                   optStandalone = True })
                   "FILENAME")
                  "" -- "File to include at end of header (implies -s)"
@@ -285,7 +286,7 @@ options =
                   (\arg opt -> do
                      let old = optIncludeBeforeBody opt
                      text <- readFile arg
-                     return opt { optIncludeBeforeBody = old ++ fromUTF8 text })
+                     return opt { optIncludeBeforeBody = old ++ text })
                   "FILENAME")
                  "" -- "File to include before document body"
 
@@ -294,7 +295,7 @@ options =
                   (\arg opt -> do
                      let old = optIncludeAfterBody opt
                      text <- readFile arg
-                     return opt { optIncludeAfterBody = old ++ fromUTF8 text })
+                     return opt { optIncludeAfterBody = old ++ text })
                   "FILENAME")
                  "" -- "File to include after document body"
 
@@ -302,7 +303,7 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      text <- readFile arg
-                     return opt { optCustomHeader = fromUTF8 text, 
+                     return opt { optCustomHeader = text,
                                   optStandalone = True })
                   "FILENAME")
                  "" -- "File to use for custom header (implies -s)"
@@ -555,10 +556,11 @@ main = do
                                then putStrLn
                                else writeFile outputFile . (++ "\n")
 
-  (readSources sources) >>=  writeOutput . toUTF8 .
-                             (writer writerOptions) . 
-                             (reader startParserState) .  tabFilter tabStop .
-                             fromUTF8 .  (joinWithSep "\n")
+  (readSources sources) >>=  writeOutput .
+                             writer writerOptions .
+                             reader startParserState .
+                             tabFilter tabStop .
+                             joinWithSep "\n"
 
   where 
     readSources [] = mapM readSource ["-"]

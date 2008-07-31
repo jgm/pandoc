@@ -36,13 +36,14 @@ inline links:
 
 > module Main where
 > import Text.Pandoc
-> 
+> import qualified System.IO.UTF8 as U
+>
 > markdownToRST :: String -> String
-> markdownToRST = toUTF8 .
+> markdownToRST =
 >   (writeRST defaultWriterOptions {writerReferenceLinks = True}) .
->   (readMarkdown defaultParserState) .  fromUTF8
+>   readMarkdown defaultParserState
 > 
-> main = interact markdownToRST
+> main = U.getContents >>= U.putStrLn . markdownToRST
 
 -}
 
@@ -84,8 +85,6 @@ module Text.Pandoc
                , defaultWriterOptions
                -- * Default headers for various output formats
                , module Text.Pandoc.DefaultHeaders
-               -- * Functions for converting to and from UTF-8
-               , module Text.Pandoc.UTF8
                -- * Version
                , pandocVersion
              ) where
@@ -108,7 +107,6 @@ import Text.Pandoc.Writers.Man
 import Text.Pandoc.Writers.RTF 
 import Text.Pandoc.Writers.MediaWiki
 import Text.Pandoc.DefaultHeaders
-import Text.Pandoc.UTF8
 import Text.Pandoc.Shared
 
 -- | Version number of pandoc library.

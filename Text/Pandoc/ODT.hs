@@ -92,7 +92,6 @@ handlePictures tempODT sourceDirRelative xml = do
                    Just x  -> x
   cursor' <- scanPictures tempODT sourceDirRelative cursor
   let modified = parsed { elContent = toForest $ root cursor' }
-  putStrLn $ showTopElement modified
   return $ showTopElement modified
 
 scanPictures :: FilePath -> FilePath -> Cursor -> IO Cursor
