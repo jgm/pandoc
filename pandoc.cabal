@@ -80,7 +80,7 @@ Library
     Build-depends: highlighting-kate
     cpp-options:   -DHIGHLIGHTING
   Build-Depends: parsec < 3, xhtml, mtl, network, filepath, process, directory, xml,
-                 bytestring, binary, utf8-string
+                 utf8-string
   Hs-Source-Dirs:  .
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Blocks,
