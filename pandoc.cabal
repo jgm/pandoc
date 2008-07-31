@@ -1,6 +1,7 @@
 Name:            pandoc
 Version:         0.47
 Cabal-Version:   >= 1.2
+Build-Type:      Custom
 License:         GPL
 License-File:    COPYING
 Copyright:       (c) 2006-2008 John MacFarlane
@@ -33,6 +34,26 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  which convert this native representation into a target
                  format. Thus, adding an input or output format requires
                  only adding a reader or writer.
+Extra-Source-Files: README, INSTALL, COPYRIGHT, COPYRIGHT,
+                 templates/ASCIIMathML.js.comment,
+                 templates/ASCIIMathML.js.packed,
+                 templates/ASCIIMathML.hs,
+                 templates/S5.hs,
+                 templates/DefaultHeaders.hs,
+                 templates/headers/ConTeXt.header,
+                 templates/headers/Docbook.header,
+                 templates/headers/LaTeX.header,
+                 templates/headers/OpenDocument.header,
+                 templates/headers/RTF.header,
+                 templates/headers/S5.header,
+                 templates/ui/default/slides.js.comment,
+                 templates/ui/default/slides.js.packed,
+                 templates/ui/default/s5-core.css,
+                 templates/ui/default/framing.css,
+                 templates/ui/default/pretty.css,
+                 templates/ui/default/opera.css,
+                 templates/ui/default/outline.css,
+                 templates/ui/default/print.css
 Flag splitBase
   Description:   Choose the new, smaller, split-up base package.
   Default:       True
