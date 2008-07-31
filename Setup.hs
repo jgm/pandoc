@@ -8,9 +8,7 @@ import System.IO (readFile, writeFile)
 import Control.Monad (foldM)
 import Data.List (isPrefixOf)
 
-main = defaultMainWithHooks myHooks
-
-myHooks = defaultUserHooks { postConf = myPostConf }
+main = defaultMainWithHooks $ simpleUserHooks { postConf = myPostConf }
 
 pandocPath = combine "Text" "Pandoc"
 
