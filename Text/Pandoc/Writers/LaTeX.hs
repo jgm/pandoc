@@ -209,10 +209,10 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
                   headers $$ text "\\hline" $$ vcat rows' $$ 
                   text "\\end{tabular}" 
   let centered txt = text "\\begin{center}" $$ txt $$ text "\\end{center}"
-  addToHeader "\\usepackage{array}\n\
-    \% This is needed because raggedright in table elements redefines \\\\:\n\
-    \\\newcommand{\\PreserveBackslash}[1]{\\let\\temp=\\\\#1\\let\\\\=\\temp}\n\
-    \\\let\\PBS=\\PreserveBackslash"
+  addToHeader $ "\\usepackage{array}\n" ++
+    "% This is needed because raggedright in table elements redefines \\\\:\n" ++
+    "\\newcommand{\\PreserveBackslash}[1]{\\let\\temp=\\\\#1\\let\\\\=\\temp}\n" ++
+    "\\let\\PBS=\\PreserveBackslash"
   return $ if isEmpty captionText
               then centered tableBody <> char '\n'
               else text "\\begin{table}[h]" $$ centered tableBody $$ 

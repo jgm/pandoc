@@ -49,8 +49,8 @@ fillDefaultHeadersTemplate = do
 writeTemplate :: FilePath -> String -> IO ()
 writeTemplate outfile contents = do
   putStrLn $ "  " ++ outfile
-  let warning = "-- This file is generated from a template in the templates subdirectory.\n\
-                \-- Modify that file, not this one.\n"
+  let warning = "-- This file is generated from a template in the templates subdirectory.\n" ++
+                "-- Modify that file, not this one.\n"
   writeFile outfile (warning ++ contents)
 
 -- Read contents of fpath and insert in template replacing @fpath@.

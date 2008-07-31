@@ -45,10 +45,10 @@ import Data.Char ( toLower )
 import Control.Monad ( (>>=) )
 
 copyrightMessage :: String
-copyrightMessage = "\nCopyright (C) 2006-7 John MacFarlane\n\
-                    \Web:  http://johnmacfarlane.net/pandoc\n\
-                    \This is free software; see the source for copying conditions.  There is no\n\
-                    \warranty, not even for merchantability or fitness for a particular purpose."
+copyrightMessage = "\nCopyright (C) 2006-7 John MacFarlane\n" ++
+                    "Web:  http://johnmacfarlane.net/pandoc\n" ++
+                    "This is free software; see the source for copying conditions.  There is no\n" ++
+                    "warranty, not even for merchantability or fitness for a particular purpose."
 
 compileOptions :: String
 compileOptions =

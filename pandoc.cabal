@@ -111,6 +111,7 @@ Library
   Other-Modules:   Text.Pandoc.XML
   Ghc-Options:     -O2 -Wall -threaded
   Ghc-Prof-Options: -auto-all
+  Extensions:      CPP
 
   if flag(library)
     Buildable:      True

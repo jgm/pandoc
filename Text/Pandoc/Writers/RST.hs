@@ -291,8 +291,8 @@ inlineToRST (Code str) = return $ text $ "``" ++ str ++ "``"
 inlineToRST (Str str) = return $ text $ escapeString str
 inlineToRST (Math str) = do
   includes <- get >>= (return . stIncludes)
-  let rawMathRole = ".. role:: math(raw)\n\
-                    \   :format: html latex\n"
+  let rawMathRole = ".. role:: math(raw)\n" ++
+                    "   :format: html latex\n"
   if not (rawMathRole `elem` includes)
      then modify $ \st -> st { stIncludes = rawMathRole : includes }
      else return ()
