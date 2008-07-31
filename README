@@ -119,7 +119,7 @@ then convert the output back to the local encoding.
 Shell scripts
 =============
 
-Four shell scripts, `markdown2pdf`, `markdown2odt`, `html2markdown`, and
+Three shell scripts, `markdown2pdf`, `html2markdown`, and
 `hsmarkdown`, are included in the standard Pandoc installation. (They
 are not included in the Windows binary package, as they require a POSIX
 shell, but they may be used in Windows under Cygwin.)
@@ -149,27 +149,7 @@ shell, but they may be used in Windows under Cygwin.)
     included in your LaTeX distribution, you can get them from
     [CTAN].
 
-2.  `markdown2odt` produces an ODT file from markdown-formatted
-    text, using `pandoc` and `pdflatex`.  (ODT is "OpenDocument
-    Text," the default format for the OpenOffice.org Writer.)
-    The default behavior of `markdown2odt` is to create a file with the
-    same base name as the first argument and the extension `odt`; thus,
-    for example,
-
-	    markdown2odt sample.txt endnotes.txt
-
-    will produce `sample.odt`.  (If `sample.odt` exists already,
-    it will be backed up before being overwritten.)  An output file
-    name can be specified explicitly using the `-o` option:
-
-	    markdown2odt -o book.odt chap1 chap2
-
-    If no input file is specified, input will be taken from STDIN.
-    All of `pandoc`'s options will work with `markdown2odt` as well.
-
-    `markdown2odt` requires `zip`, which must be in the path.
-
-3.  `html2markdown` grabs a web page from a file or URL and converts
+2.  `html2markdown` grabs a web page from a file or URL and converts
     it to markdown-formatted text, using `tidy` and `pandoc`.
 
     All of `pandoc`'s options will work with `html2markdown` as well.
@@ -198,7 +178,7 @@ shell, but they may be used in Windows under Cygwin.)
     It uses [`iconv`] for character encoding conversions; if `iconv`
     is absent, it will still work, but it will treat everything as UTF-8.
 
-4.  `hsmarkdown` is designed to be used as a drop-in replacement for
+3.  `hsmarkdown` is designed to be used as a drop-in replacement for
     `Markdown.pl`.  It forces `pandoc` to convert from markdown to
     HTML, and to use the `--strict` flag for maximal compliance with
     official markdown syntax.  (All of Pandoc's syntax extensions and

@@ -98,7 +98,9 @@ module Text.Pandoc.Shared (
                      -- * Writer options
                      HTMLMathMethod (..),
                      WriterOptions (..),
-                     defaultWriterOptions
+                     defaultWriterOptions,
+                     -- * File handling
+                     withTempDir
                     ) where
 
 import Text.Pandoc.Definition
@@ -110,6 +112,9 @@ import Data.Char ( toLower, toUpper, ord, isLower, isUpper )
 import Data.List ( find, isPrefixOf )
 import Control.Monad ( join )
 import Network.URI ( parseURI, URI (..), isAllowedInURI )
+import System.FilePath ( (</>), (<.>) )
+import System.IO.Error ( catch, ioError, isAlreadyExistsError )
+import System.Directory
 
 --
 -- List processing
@@ -900,3 +905,22 @@ defaultWriterOptions =
                 , writerReferenceLinks  = False
                 , writerWrapText        = True
                 }
+
+-- | Perform a function in a temporary directory and clean up.
+withTempDir :: FilePath -> (FilePath -> IO a) -> IO a
+withTempDir baseName func = do
+  tempDir <- createTempDir 0 baseName
+  result <- catch (func tempDir) $ \e -> removeDirectoryRecursive tempDir >> ioError e
+  removeDirectoryRecursive tempDir
+  return result
+
+-- | Create a temporary directory with a unique name.
+createTempDir :: Integer -> FilePath -> IO FilePath
+createTempDir num baseName = do
+  sysTempDir <- getTemporaryDirectory
+  let dirName = sysTempDir </> baseName <.> show num
+  catch (createDirectory dirName >> return dirName) $
+      \e -> if isAlreadyExistsError e
+               then createTempDir (num + 1) baseName
+               else ioError e
+

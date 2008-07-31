@@ -24,7 +24,7 @@ EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:\{0,1\}[[:space:]]*//p' $(CABAL))
 #-------------------------------------------------------------------------------
 # Install targets
 #-------------------------------------------------------------------------------
-WRAPPERS  := html2markdown markdown2pdf hsmarkdown markdown2odt
+WRAPPERS  := html2markdown markdown2pdf hsmarkdown
 # Add .exe extensions if we're running Windows/Cygwin.
 EXTENSION := $(shell uname | tr '[:upper:]' '[:lower:]' | \
                sed -ne 's/^cygwin.*$$/\.exe/p')
@@ -113,11 +113,6 @@ $(ODTREF): $(addprefix $(ODTSTYLES)/, layout-cache meta.xml styles.xml content.x
                                      settings.xml Configurations2 Thumbnails META-INF)
 	cd $(ODTSTYLES) ; \
 	zip -9 -r $(notdir $@) * -x $(notdir $@)
-
-ODTREFSH=$(SRCDIR)/wrappers/odtref.sh
-cleanup_files+=$(ODTREFSH)
-$(ODTREFSH): $(ODTREF)
-	echo "REFERENCEODT='$(PREFIX)/share/$(DATADIR)/$(notdir $(ODTREF))'" > $@
 
 .PHONY: wrappers
 wrappers: $(WRAPPERS)

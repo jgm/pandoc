@@ -57,6 +57,7 @@ Extra-Source-Files: README, INSTALL, COPYRIGHT, COPYING,
 Extra-Tmp-Files: Text/Pandoc/ASCIIMathML.hs,
                  Text/Pandoc/DefaultHeaders.hs,
                  Text/Pandoc/Writers/S5.hs
+Data-Files:      odt-styles/reference.odt
 Flag splitBase
   Description:   Choose the new, smaller, split-up base package.
   Default:       True
@@ -72,7 +73,8 @@ Library
   if flag(highlighting)
     Build-depends: highlighting-kate
     cpp-options:   -DHIGHLIGHTING
-  Build-Depends: parsec < 3, xhtml, mtl, network, filepath
+  Build-Depends: parsec < 3, xhtml, mtl, network, filepath, process, directory, xml,
+                 bytestring, binary
   Hs-Source-Dirs:  .
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Blocks,
@@ -80,6 +82,7 @@ Library
                    Text.Pandoc.CharacterReferences,
                    Text.Pandoc.Shared,
                    Text.Pandoc.UTF8,
+                   Text.Pandoc.ODT,
                    Text.Pandoc.ASCIIMathML,
                    Text.Pandoc.DefaultHeaders,
                    Text.Pandoc.Highlighting,
@@ -101,11 +104,11 @@ Library
                    Text.Pandoc.Writers.RTF,
                    Text.Pandoc.Writers.S5
   Other-Modules:   Text.Pandoc.XML
-  Ghc-Options:     -O2 -Wall
+  Ghc-Options:     -O2 -Wall -threaded
   Ghc-Prof-Options: -auto-all
 
 Executable pandoc
-  Hs-Source-Dirs:  .
-  Main-Is:         Main.hs
-  Ghc-Options:     -O2 -Wall
-  Ghc-Prof-Options: -auto-all
+  Hs-Source-Dirs:     .
+  Main-Is:            Main.hs
+  Ghc-Options:        -O2 -Wall -threaded
+  Ghc-Prof-Options:   -auto-all

@@ -31,11 +31,12 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.UTF8
+import Text.Pandoc.ODT
 import Text.Pandoc.Shared ( joinWithSep, HTMLMathMethod (..) )
 import Text.Pandoc.Highlighting ( languages )
 import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
-import System.FilePath ( takeExtension )
+import System.FilePath ( takeExtension, takeDirectory )
 import System.Console.GetOpt
 import System.IO
 import Data.Maybe ( fromMaybe )
@@ -82,6 +83,7 @@ writers = [("native"       , (writeDoc, ""))
           ,("s5"           , (writeS5String, defaultS5Header))
           ,("docbook"      , (writeDocbook, defaultDocbookHeader))
           ,("opendocument" , (writeOpenDocument, defaultOpenDocumentHeader))
+          ,("odt"          , (writeOpenDocument, defaultOpenDocumentHeader))
           ,("latex"        , (writeLaTeX, defaultLaTeXHeader))
           ,("context"      , (writeConTeXt, defaultConTeXtHeader))
           ,("texinfo"      , (writeTexinfo, ""))
@@ -91,6 +93,10 @@ writers = [("native"       , (writeDoc, ""))
           ,("mediawiki"    , (writeMediaWiki, ""))
           ,("rtf"          , (writeRTF, defaultRTFHeader))
           ]
+
+isNonTextOutput :: String -> Bool
+isNonTextOutput "odt" = True
+isNonTextOutput _     = False
 
 -- | Writer for Pandoc native format.
 writeDoc :: WriterOptions -> Pandoc -> String
@@ -392,8 +398,7 @@ defaultWriterName x =
     ".texi"     -> "texinfo"
     ".texinfo"  -> "texinfo"
     ".db"       -> "docbook"
-    ".xml"      -> "docbook"
-    ".sgml"     -> "docbook"
+    ".odt"      -> "odt"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
@@ -478,10 +483,6 @@ main = do
      Just (w,h) -> return (w, h)
      Nothing    -> error ("Unknown writer: " ++ writerName')
 
-  output <- if (outputFile == "-")
-              then return stdout 
-              else openFile outputFile WriteMode
-
   environment <- getEnvironment
   let columns = case lookup "COLUMNS" environment of
                  Just cols -> read cols
@@ -501,11 +502,13 @@ main = do
       tabFilter spsToNextStop (x:xs) = 
         x:(tabFilter (spsToNextStop - 1) xs)
 
+  let standalone' = (standalone && not strict) || writerName' == "odt"
+
   let startParserState = 
          defaultParserState { stateParseRaw     = parseRaw,
                               stateTabStop      = tabStop, 
                               stateSanitizeHTML = sanitize,
-                              stateStandalone   = standalone && (not strict),
+                              stateStandalone   = standalone',
                               stateSmart        = smart || writerName' `elem` 
                                                            ["latex", "context"],
                               stateColumns      = columns,
@@ -519,16 +522,15 @@ main = do
   let header = (if (customHeader == "DEFAULT") 
                    then defaultHeader
                    else customHeader) ++ csslink ++ includeHeader
-  let writerOptions = WriterOptions { writerStandalone     = standalone &&
-                                                             (not strict), 
+  let writerOptions = WriterOptions { writerStandalone     = standalone',
                                       writerHeader         = header, 
                                       writerTitlePrefix    = titlePrefix,
                                       writerTabStop        = tabStop, 
                                       writerTableOfContents = toc &&
                                                               (not strict) &&
-                                                              writerName/="s5",
+                                                              writerName' /= "s5",
                                       writerHTMLMathMethod = mathMethod,
-                                      writerS5             = (writerName=="s5"),
+                                      writerS5             = (writerName' == "s5"),
                                       writerIgnoreNotes    = False,
                                       writerIncremental    = incremental, 
                                       writerNumberSections = numberSections,
@@ -538,11 +540,25 @@ main = do
                                       writerReferenceLinks = referenceLinks,
                                       writerWrapText       = wrap }
 
-  (readSources sources) >>= (hPutStrLn output . toUTF8 . 
+  let writeOutput = if writerName' == "odt"
+                       then if outputFile == "-"
+                               then \_ -> do
+                                 hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ 
+                                     " output to stdout.\n" ++
+                                     "Specify an output file using the -o option.")
+                                 exitWith $ ExitFailure 5
+                               else let sourceDirRelative = if null sources
+                                                               then ""
+                                                               else takeDirectory (head sources)
+                                    in  saveOpenDocumentAsODT outputFile sourceDirRelative
+                       else if outputFile == "-"
+                               then putStrLn
+                               else writeFile outputFile . (++ "\n")
+
+  (readSources sources) >>=  writeOutput . toUTF8 .
                              (writer writerOptions) . 
                              (reader startParserState) .  tabFilter tabStop .
-                             fromUTF8 .  (joinWithSep "\n")) >> 
-                             hClose output
+                             fromUTF8 .  (joinWithSep "\n")
 
   where 
     readSources [] = mapM readSource ["-"]
