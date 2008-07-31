@@ -47,6 +47,7 @@ Library
     Build-Depends: base < 3
   if flag(highlighting)
     Build-depends: highlighting-kate
+    cpp-options:   -DHIGHLIGHTING
   Build-Depends: parsec < 3, xhtml, mtl, network, filepath
   Hs-Source-Dirs:  .
   Exposed-Modules: Text.Pandoc,

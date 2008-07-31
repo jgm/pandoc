@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-
 Copyright (C) 2008 John MacFarlane <jgm@berkeley.edu>
 
@@ -29,12 +30,13 @@ Exports functions for syntax highlighting.
 -}
 
 module Text.Pandoc.Highlighting ( languages, highlightHtml, defaultHighlightingCss ) where
-import Text.Highlighting.Kate ( languages, highlightAs, formatAsXHtml, FormatOption (..), defaultHighlightingCss )
 import Text.XHtml
+import Text.Pandoc.Definition
+#ifdef HIGHLIGHTING
+import Text.Highlighting.Kate ( languages, highlightAs, formatAsXHtml, FormatOption (..), defaultHighlightingCss )
 import Data.List (find, lookup)
 import Data.Maybe (fromMaybe)
 import Data.Char (toLower)
-import Text.Pandoc.Definition
 
 highlightHtml :: Attr -> String -> Either String Html
 highlightHtml (_, classes, keyvals) rawCode =
@@ -50,3 +52,13 @@ highlightHtml (_, classes, keyvals) rawCode =
                                Left err -> Left err
                                Right hl -> Right $ formatAsXHtml fmtOpts lang hl
 
+#else
+defaultHighlightingCss :: String
+defaultHighlightingCss = ""
+
+languages :: [String]
+languages = []
+
+highlightHtml :: Attr -> String -> Either String Html
+highlightHtml _ _ = Left "Pandoc was not compiled with support for highlighting"
+#endif
