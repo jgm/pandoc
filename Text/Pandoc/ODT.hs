@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-
 Copyright (C) 2008 John MacFarlane <jgm@berkeley.edu>
 
@@ -43,11 +43,7 @@ import Text.XML.Light
 import Text.XML.Light.Cursor
 import Text.Pandoc.Shared ( withTempDir )
 import Network.URI ( isURI )
-import Data.String ( IsString (..) )
-import qualified Data.ByteString.Char8 as B ( writeFile, pack, ByteString )
-
-instance IsString B.ByteString
-  where fromString = B.pack
+import qualified Data.ByteString.Char8 as B ( writeFile, pack )
 
 -- | Produce an ODT file from OpenDocument XML.
 saveOpenDocumentAsODT :: FilePath    -- ^ Pathname of ODT file to be produced.
@@ -68,7 +64,7 @@ saveOpenDocumentAsODT destinationODTPath sourceDirRelative xml = do
   withTempDir "pandoc-odt" $ \tempDir -> do
     let tempODT = tempDir </> "reference.odt"
     copyFile "odt-styles/reference.odt" tempODT 
-    B.writeFile tempODT $(contentsOf "odt-styles/reference.odt")
+    B.writeFile tempODT $ B.pack $(contentsOf "odt-styles/reference.odt")
     createDirectory $ tempDir </> "Pictures"
     xml' <- handlePictures tempODT sourceDirRelative xml
     writeFile (tempDir </> "content.xml") xml'

@@ -74,8 +74,7 @@ Library
     Build-depends: highlighting-kate
     cpp-options:   -DHIGHLIGHTING
   Build-Depends: parsec < 3, xhtml, mtl, network, filepath, process, directory, utf8-string,
-                 template-haskell, bytestring == 0.9.0.1
-                 -- Note:  bytestring-0.9.1.0 contains an InString instance for ByteString
+                 template-haskell, bytestring
   Hs-Source-Dirs:  .
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Blocks,
