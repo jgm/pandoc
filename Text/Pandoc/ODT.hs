@@ -62,7 +62,7 @@ saveOpenDocumentAsODT destinationODTPath sourceDirRelative xml = do
   withTempDir "pandoc-odt" $ \tempDir -> do
     let tempODT = tempDir </> "reference.odt"
     copyFile "odt-styles/reference.odt" tempODT 
-    B.writeFile tempODT $ B.pack $(contentsOf "odt-styles/reference.odt")
+    B.writeFile tempODT $ B.pack $(contentsOf $ "odt-styles" </> "reference.odt")
     createDirectory $ tempDir </> "Pictures"
     xml' <- handlePictures tempODT sourceDirRelative xml
     writeFile (tempDir </> "content.xml") xml'
