@@ -79,8 +79,7 @@ Library
   if flag(highlighting)
     Build-depends: highlighting-kate
     cpp-options:   -DHIGHLIGHTING
-  Build-Depends: parsec < 3, xhtml, mtl, network, filepath, process, directory, xml,
-                 utf8-string
+  Build-Depends: parsec < 3, xhtml, mtl, network, filepath, process, directory, utf8-string
   Hs-Source-Dirs:  .
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Blocks,
@@ -108,10 +107,16 @@ Library
                    Text.Pandoc.Writers.MediaWiki,
                    Text.Pandoc.Writers.RTF,
                    Text.Pandoc.Writers.S5
-  Other-Modules:   Text.Pandoc.XML
+  Other-Modules:   Text.Pandoc.XML,
+                   Text.XML.Light,
+                   Text.XML.Light.Types,
+                   Text.XML.Light.Output,
+                   Text.XML.Light.Input,
+                   Text.XML.Light.Cursor
   Ghc-Options:     -O2 -Wall -threaded
   Ghc-Prof-Options: -auto-all
-  Extensions:      CPP
+  Extensions:      CPP, FlexibleInstances
+  --               FlexibleInstances needed for Text.XML.Light
 
   if flag(library)
     Buildable:      True
