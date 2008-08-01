@@ -43,7 +43,11 @@ import Text.XML.Light
 import Text.XML.Light.Cursor
 import Text.Pandoc.Shared ( withTempDir )
 import Network.URI ( isURI )
-import qualified Data.ByteString.Char8 as B ( writeFile )
+import Data.String ( IsString (..) )
+import qualified Data.ByteString.Char8 as B ( writeFile, pack, ByteString )
+
+instance IsString B.ByteString
+  where fromString = B.pack
 
 -- | Produce an ODT file from OpenDocument XML.
 saveOpenDocumentAsODT :: FilePath    -- ^ Pathname of ODT file to be produced.
