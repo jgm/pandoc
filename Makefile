@@ -112,12 +112,12 @@ cleanup_files+=$(ODTREF)
 $(ODTREF): $(addprefix $(ODTSTYLES)/, layout-cache meta.xml styles.xml content.xml mimetype \
                                      settings.xml Configurations2 Thumbnails META-INF)
 	cd $(ODTSTYLES) ; \
-	zip -9 -r $(notdir $@) * -x $(notdir $@)
+	zip -9 -q -r $(notdir $@) * -x $(notdir $@)
 
 .PHONY: wrappers
 wrappers: $(WRAPPERS)
 cleanup_files+=$(WRAPPERS)
-$(WRAPPERS): %: $(SRCDIR)/wrappers/%.in $(SRCDIR)/wrappers/*.sh $(ODTREFSH)
+$(WRAPPERS): %: $(SRCDIR)/wrappers/%.in $(SRCDIR)/wrappers/*.sh
 	@$(generate-shell-script)
 
 CABAL_BACKUP=$(CABAL).orig
@@ -138,7 +138,7 @@ templates=$(wildcard templates/*.* templates/headers/*.* templates/ui/default/*.
 configure: $(BUILDCONF)
 $(BUILDCMD): Setup.hs
 	$(GHC) -package Cabal Setup.hs -o $(BUILDCMD)
-$(BUILDCONF): $(CABAL) $(CABAL_BACKUP) $(BUILDCMD) $(templates)
+$(BUILDCONF): $(CABAL) $(CABAL_BACKUP) $(BUILDCMD) $(templates) $(ODTREF)
 	$(BUILDCMD) configure --prefix=$(PREFIX) --with-compiler=$(GHC) $(hc_pkg) $(CABALOPTS)
 	@# Make configuration time settings persistent (definitely a hack).
 	@echo "PREFIX?=$(PREFIX)" >$(BUILDVARS)
