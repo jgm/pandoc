@@ -2,7 +2,7 @@ Source: pandoc
 Section: text
 Priority: optional
 Maintainer: Recai Oktaş <roktas@debian.org>
-Build-Depends: debhelper (>= 4.0.0), haskell-devscripts (>=0.5.12), ghc6 (>= 6.8.2-1), libghc6-xhtml-dev, libghc6-mtl-dev, libghc6-network-dev
+Build-Depends: debhelper (>= 4.0.0), haskell-devscripts (>=0.5.12), ghc6 (>= 6.8.2-1), libghc6-xhtml-dev, libghc6-mtl-dev, libghc6-network-dev, libghc6-utf8-string-dev
 Build-Depends-Indep: haddock
 Standards-Version: 3.7.3
 Homepage: http://johnmacfarlane.net/pandoc/
@@ -38,7 +38,7 @@ Description: general markup converter
 Package: libghc6-pandoc-dev
 Section: libdevel
 Architecture: any
-Depends: ${haskell:Depends}, libghc6-xhtml-dev, libghc6-mtl-dev, libghc6-network-dev
+Depends: ${haskell:Depends}, libghc6-xhtml-dev, libghc6-mtl-dev, libghc6-network-dev, libghc6-utf8-string-dev
 Suggests: pandoc-doc
 Description: general markup converter
  Pandoc is a Haskell library for converting from one markup format to
