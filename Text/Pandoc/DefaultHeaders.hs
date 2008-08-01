@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP, TemplateHaskell #-}
 {-
 Copyright (C) 2006-7 John MacFarlane <jgm@berkeley.edu>
 
@@ -41,19 +41,29 @@ import System.FilePath ( (</>) )
 import Text.Pandoc.Shared ( contentsOf )
 
 defaultLaTeXHeader :: String
+#ifndef __HADDOCK__
 defaultLaTeXHeader = $(contentsOf $  "data" </> "headers" </> "LaTeX.header")
+#endif
 
 defaultConTeXtHeader :: String
+#ifndef __HADDOCK__
 defaultConTeXtHeader = $(contentsOf $  "data" </> "headers" </> "ConTeXt.header")
+#endif
 
 defaultDocbookHeader :: String
+#ifndef __HADDOCK__
 defaultDocbookHeader = $(contentsOf $  "data" </> "headers" </> "Docbook.header")
+#endif
 
 defaultOpenDocumentHeader :: String
+#ifndef __HADDOCK__
 defaultOpenDocumentHeader = $(contentsOf $  "data" </> "headers" </> "OpenDocument.header")
+#endif
 
 defaultS5Header :: String
 defaultS5Header = s5Meta ++ s5CSS ++ s5Javascript
 
 defaultRTFHeader :: String
+#ifndef __HADDOCK__
 defaultRTFHeader = $(contentsOf $ "data" </> "headers" </> "RTF.header")
+#endif

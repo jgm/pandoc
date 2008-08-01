@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP, TemplateHaskell #-}
 {-
 Copyright (C) 2006-7 John MacFarlane <jgm@berkeley.edu>
 
@@ -50,27 +50,41 @@ s5Meta :: String
 s5Meta = "<!-- configuration parameters -->\n<meta name=\"defaultView\" content=\"slideshow\" />\n<meta name=\"controlVis\" content=\"hidden\" />\n"
 
 s5Javascript :: String
+#ifndef __HADDOCK__
 s5Javascript = "<script type=\"text/javascript\">\n" ++
                $(contentsOf $ "data" </> "ui" </> "default" </> "slides.js.comment") ++
                $(contentsOf $ "data" </> "ui" </> "default" </> "slides.js.packed") ++ "</script>\n" 
+#endif
 
 s5CoreCSS :: String
+#ifndef __HADDOCK__
 s5CoreCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "s5-core.css")
+#endif
 
 s5FramingCSS :: String
+#ifndef __HADDOCK__
 s5FramingCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "framing.css")
+#endif
 
 s5PrettyCSS :: String
+#ifndef __HADDOCK__
 s5PrettyCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "pretty.css")
+#endif
 
 s5OperaCSS :: String
+#ifndef __HADDOCK__
 s5OperaCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "opera.css")
+#endif
 
 s5OutlineCSS :: String
+#ifndef __HADDOCK__
 s5OutlineCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "outline.css")
+#endif
 
 s5PrintCSS :: String
+#ifndef __HADDOCK__
 s5PrintCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "print.css")
+#endif
 
 s5CSS :: String
 s5CSS = "<style type=\"text/css\" media=\"projection\" id=\"slideProj\">\n" ++ s5CoreCSS ++ "\n" ++ s5FramingCSS ++ "\n" ++ s5PrettyCSS ++ "\n</style>\n<style type=\"text/css\" media=\"projection\" id=\"operaFix\">\n" ++ s5OperaCSS ++ "\n</style>\n<style type=\"text/css\" media=\"screen\" id=\"outlineStyle\">\n" ++ s5OutlineCSS ++ "\n</style>\n<style type=\"text/css\" media=\"print\" id=\"slidePrint\">\n" ++ s5PrintCSS ++ "\n</style>\n"

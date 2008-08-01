@@ -109,6 +109,7 @@ Library
                    Text.XML.Light.Input,
                    Text.XML.Light.Proc,
                    Text.XML.Light.Cursor
+  Extensions:      CPP, TemplateHaskell, FlexibleInstances
   Ghc-Options:     -O2 -Wall -threaded
   Ghc-Prof-Options: -auto-all
 
