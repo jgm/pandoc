@@ -61,7 +61,6 @@ saveOpenDocumentAsODT destinationODTPath sourceDirRelative xml = do
                                       "Windows: See http://gnuwin32.sourceforge.net/packages/zip.htm"
   withTempDir "pandoc-odt" $ \tempDir -> do
     let tempODT = tempDir </> "reference.odt"
-    copyFile "odt-styles/reference.odt" tempODT 
     B.writeFile tempODT $ B.pack $(contentsOf $ "odt-styles" </> "reference.odt")
     createDirectory $ tempDir </> "Pictures"
     xml' <- handlePictures tempODT sourceDirRelative xml
