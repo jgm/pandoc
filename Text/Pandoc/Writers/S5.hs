@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-
 Copyright (C) 2006-7 John MacFarlane <jgm@berkeley.edu>
 
@@ -39,34 +40,37 @@ module Text.Pandoc.Writers.S5 (
                 writeS5String,
                 insertS5Structure
                 ) where
-import Text.Pandoc.Shared ( joinWithSep, WriterOptions )
+import Text.Pandoc.Shared ( joinWithSep, WriterOptions, contentsOf )
 import Text.Pandoc.Writers.HTML ( writeHtml, writeHtmlString )
 import Text.Pandoc.Definition
 import Text.XHtml.Strict
+import System.FilePath ( (</>) )
 
 s5Meta :: String
 s5Meta = "<!-- configuration parameters -->\n<meta name=\"defaultView\" content=\"slideshow\" />\n<meta name=\"controlVis\" content=\"hidden\" />\n"
 
 s5Javascript :: String
-s5Javascript = "<script type=\"text/javascript\">\n" ++ @slides.js.comment@ ++ @slides.js.packed@ ++ "</script>\n" 
+s5Javascript = "<script type=\"text/javascript\">\n" ++
+               $(contentsOf $ "data" </> "ui" </> "default" </> "slides.js.comment") ++
+               $(contentsOf $ "data" </> "ui" </> "default" </> "slides.js.packed") ++ "</script>\n" 
 
 s5CoreCSS :: String
-s5CoreCSS = @s5-core.css@
+s5CoreCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "s5-core.css")
 
 s5FramingCSS :: String
-s5FramingCSS = @framing.css@
+s5FramingCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "framing.css")
 
 s5PrettyCSS :: String
-s5PrettyCSS = @pretty.css@
+s5PrettyCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "pretty.css")
 
 s5OperaCSS :: String
-s5OperaCSS = @opera.css@
+s5OperaCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "opera.css")
 
 s5OutlineCSS :: String
-s5OutlineCSS = @outline.css@
+s5OutlineCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "outline.css")
 
 s5PrintCSS :: String
-s5PrintCSS = @print.css@
+s5PrintCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "print.css")
 
 s5CSS :: String
 s5CSS = "<style type=\"text/css\" media=\"projection\" id=\"slideProj\">\n" ++ s5CoreCSS ++ "\n" ++ s5FramingCSS ++ "\n" ++ s5PrettyCSS ++ "\n</style>\n<style type=\"text/css\" media=\"projection\" id=\"operaFix\">\n" ++ s5OperaCSS ++ "\n</style>\n<style type=\"text/css\" media=\"screen\" id=\"outlineStyle\">\n" ++ s5OutlineCSS ++ "\n</style>\n<style type=\"text/css\" media=\"print\" id=\"slidePrint\">\n" ++ s5PrintCSS ++ "\n</style>\n"

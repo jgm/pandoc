@@ -1,7 +1,7 @@
 Name:            pandoc
 Version:         0.47
 Cabal-Version:   >= 1.2
-Build-Type:      Custom
+Build-Type:      Simple
 License:         GPL
 License-File:    COPYING
 Copyright:       (c) 2006-2008 John MacFarlane
@@ -35,29 +35,23 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  format. Thus, adding an input or output format requires
                  only adding a reader or writer.
 Extra-Source-Files: README, INSTALL, COPYRIGHT, COPYING,
-                 templates/ASCIIMathML.js.comment,
-                 templates/ASCIIMathML.js.packed,
-                 templates/ASCIIMathML.hs,
-                 templates/S5.hs,
-                 templates/DefaultHeaders.hs,
-                 templates/headers/ConTeXt.header,
-                 templates/headers/Docbook.header,
-                 templates/headers/LaTeX.header,
-                 templates/headers/OpenDocument.header,
-                 templates/headers/RTF.header,
-                 templates/headers/S5.header,
-                 templates/ui/default/slides.js.comment,
-                 templates/ui/default/slides.js.packed,
-                 templates/ui/default/s5-core.css,
-                 templates/ui/default/framing.css,
-                 templates/ui/default/pretty.css,
-                 templates/ui/default/opera.css,
-                 templates/ui/default/outline.css,
-                 templates/ui/default/print.css,
+                 data/ASCIIMathML.js.comment,
+                 data/ASCIIMathML.js.packed,
+                 data/headers/ConTeXt.header,
+                 data/headers/Docbook.header,
+                 data/headers/LaTeX.header,
+                 data/headers/OpenDocument.header,
+                 data/headers/RTF.header,
+                 data/headers/S5.header,
+                 data/ui/default/slides.js.comment,
+                 data/ui/default/slides.js.packed,
+                 data/ui/default/s5-core.css,
+                 data/ui/default/framing.css,
+                 data/ui/default/pretty.css,
+                 data/ui/default/opera.css,
+                 data/ui/default/outline.css,
+                 data/ui/default/print.css,
                  odt-styles/reference.odt
-Extra-Tmp-Files: Text/Pandoc/ASCIIMathML.hs,
-                 Text/Pandoc/DefaultHeaders.hs,
-                 Text/Pandoc/Writers/S5.hs
 Flag splitBase
   Description:   Choose the new, smaller, split-up base package.
   Default:       True
@@ -112,6 +106,7 @@ Library
                    Text.XML.Light.Types,
                    Text.XML.Light.Output,
                    Text.XML.Light.Input,
+                   Text.XML.Light.Proc,
                    Text.XML.Light.Cursor
   Ghc-Options:     -O2 -Wall -threaded
   Ghc-Prof-Options: -auto-all

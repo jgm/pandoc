@@ -189,14 +189,6 @@ uninstall-doc:
 	-for f in $(man_all); do rm -f $(MANPATH)/$$f; done
 	rmdir $(PKGDOCPATH) 2>/dev/null ||:
 
-# Data file installation.
-.PHONY: install-data uninstall-data
-install-data: $(ODTREF)
-	$(INSTALL) -d $(PKGDATAPATH) && $(INSTALL_DATA) $(ODTREF) $(PKGDATAPATH)/
-uninstall-data:
-	-rm -f $(PKGDATAPATH)/$(notdir $(ODTREF))
-	rmdir $(PKGDATAPATH) 2>/dev/null ||:
-
 # Program only installation.
 .PHONY: install-exec uninstall-exec
 install-exec: build-exec
@@ -213,8 +205,8 @@ uninstall-exec:
 
 # Program + user documents installation.
 .PHONY: install-program uninstall-program
-install-program: install-exec install-data install-doc
-uninstall-program: uninstall-exec uninstall-doc uninstall-data
+install-program: install-exec install-doc
+uninstall-program: uninstall-exec uninstall-doc
 
 .PHONY: install-all uninstall-all
 # Full installation through Cabal: main + wrappers + user docs + lib + lib docs

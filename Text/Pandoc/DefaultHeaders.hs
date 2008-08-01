@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-
 Copyright (C) 2006-7 John MacFarlane <jgm@berkeley.edu>
 
@@ -36,21 +37,23 @@ module Text.Pandoc.DefaultHeaders (
                                     defaultRTFHeader
                                   ) where
 import Text.Pandoc.Writers.S5
+import System.FilePath ( (</>) )
+import Text.Pandoc.Shared ( contentsOf )
 
 defaultLaTeXHeader :: String
-defaultLaTeXHeader = @LaTeX.header@
+defaultLaTeXHeader = $(contentsOf $  "data" </> "headers" </> "LaTeX.header")
 
 defaultConTeXtHeader :: String
-defaultConTeXtHeader = @ConTeXt.header@
+defaultConTeXtHeader = $(contentsOf $  "data" </> "headers" </> "ConTeXt.header")
 
 defaultDocbookHeader :: String
-defaultDocbookHeader = @Docbook.header@
+defaultDocbookHeader = $(contentsOf $  "data" </> "headers" </> "Docbook.header")
 
 defaultOpenDocumentHeader :: String
-defaultOpenDocumentHeader = @OpenDocument.header@
+defaultOpenDocumentHeader = $(contentsOf $  "data" </> "headers" </> "OpenDocument.header")
 
 defaultS5Header :: String
 defaultS5Header = s5Meta ++ s5CSS ++ s5Javascript
 
 defaultRTFHeader :: String
-defaultRTFHeader = @RTF.header@
+defaultRTFHeader = $(contentsOf $ "data" </> "headers" </> "RTF.header")
