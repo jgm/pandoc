@@ -30,7 +30,7 @@ Functions for producing an ODT file from OpenDocument XML.
 -}
 module Text.Pandoc.ODT ( saveOpenDocumentAsODT ) where
 import Text.Pandoc.Shared ( contentsOf )
-import Data.Maybe ( fromJust )
+import Data.Maybe ( fromJust, isJust )
 import Data.List ( partition, intersperse )
 import Prelude hiding ( writeFile, readFile )
 import System.IO.UTF8
@@ -44,6 +44,7 @@ import Text.XML.Light.Cursor
 import Text.Pandoc.Shared ( withTempDir )
 import Network.URI ( isURI )
 import qualified Data.ByteString.Char8 as B ( writeFile, pack )
+import Control.Monad ( unless )
 
 -- | Produce an ODT file from OpenDocument XML.
 saveOpenDocumentAsODT :: FilePath    -- ^ Pathname of ODT file to be produced.
@@ -53,11 +54,8 @@ saveOpenDocumentAsODT :: FilePath    -- ^ Pathname of ODT file to be produced.
 saveOpenDocumentAsODT destinationODTPath sourceDirRelative xml = do
   let zipCmd = "zip"
   -- check for zip in path:
-  maybeZipPath <- findExecutable zipCmd
-  let zipPath = case maybeZipPath of
-                     Just p  -> p
-                     Nothing -> error $ "The '" ++ zipCmd ++ "' command, which is needed to build an ODT file, " ++
-                                      "was not found.\n" ++
+  findExecutable zipCmd >>= \v -> unless (isJust v) $ error $ "The '" ++ zipCmd ++
+                                      "' command, which is needed to build an ODT file, was not found.\n" ++
                                       "It can be obtained from http://www.info-zip.org/Zip.html\n" ++
                                       "Debian (and Debian-based) linux: apt-get install zip\n" ++
                                       "Windows: See http://gnuwin32.sourceforge.net/packages/zip.htm"
@@ -70,7 +68,7 @@ saveOpenDocumentAsODT destinationODTPath sourceDirRelative xml = do
     writeFile (tempDir </> "content.xml") xml'
     oldDir <- getCurrentDirectory
     setCurrentDirectory tempDir
-    let zipCmdLine = zipPath ++ " -9 -q -r " ++ tempODT ++ " " ++ "content.xml Pictures"
+    let zipCmdLine = "zip -9 -q -r " ++ tempODT ++ " " ++ "content.xml Pictures"
     ec <- runCommand zipCmdLine >>= waitForProcess   -- this requires compilation with -threaded
     setCurrentDirectory oldDir
     case ec of
