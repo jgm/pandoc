@@ -111,7 +111,7 @@ Library
                    Text.XML.Light.Cursor
   Ghc-Options:     -O2 -Wall -threaded
   Ghc-Prof-Options: -auto-all
-  Extensions:      CPP, FlexibleInstances
+  Extensions:      FlexibleInstances
   --               FlexibleInstances needed for Text.XML.Light
 
   if flag(library)
