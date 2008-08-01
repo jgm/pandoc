@@ -53,11 +53,11 @@ Extra-Source-Files: README, INSTALL, COPYRIGHT, COPYING,
                  templates/ui/default/pretty.css,
                  templates/ui/default/opera.css,
                  templates/ui/default/outline.css,
-                 templates/ui/default/print.css
+                 templates/ui/default/print.css,
+                 odt-styles/reference.odt
 Extra-Tmp-Files: Text/Pandoc/ASCIIMathML.hs,
                  Text/Pandoc/DefaultHeaders.hs,
                  Text/Pandoc/Writers/S5.hs
-Data-Files:      odt-styles/reference.odt
 Flag splitBase
   Description:   Choose the new, smaller, split-up base package.
   Default:       True
@@ -79,7 +79,7 @@ Library
   if flag(highlighting)
     Build-depends: highlighting-kate
     cpp-options:   -DHIGHLIGHTING
-  Build-Depends: parsec < 3, xhtml, mtl, network, filepath, process, directory, utf8-string
+  Build-Depends: parsec < 3, xhtml, mtl, network, filepath, process, directory, utf8-string, template-haskell, bytestring
   Hs-Source-Dirs:  .
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Blocks,

@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
 {-
 Copyright (C) 2008 John MacFarlane <jgm@berkeley.edu>
 
@@ -28,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Functions for producing an ODT file from OpenDocument XML.
 -}
 module Text.Pandoc.ODT ( saveOpenDocumentAsODT ) where
+import Text.Pandoc.Shared ( contentsOf )
 import Data.Maybe ( fromJust )
 import Data.List ( partition, intersperse )
 import Prelude hiding ( writeFile, readFile )
@@ -41,7 +43,7 @@ import Text.XML.Light
 import Text.XML.Light.Cursor
 import Text.Pandoc.Shared ( withTempDir )
 import Network.URI ( isURI )
-import Paths_pandoc
+import qualified Data.ByteString.Char8 as B ( writeFile )
 
 -- | Produce an ODT file from OpenDocument XML.
 saveOpenDocumentAsODT :: FilePath    -- ^ Pathname of ODT file to be produced.
@@ -59,10 +61,10 @@ saveOpenDocumentAsODT destinationODTPath sourceDirRelative xml = do
                                       "It can be obtained from http://www.info-zip.org/Zip.html\n" ++
                                       "Debian (and Debian-based) linux: apt-get install zip\n" ++
                                       "Windows: See http://gnuwin32.sourceforge.net/packages/zip.htm"
-  referenceODTPath <- getDataFileName "reference.odt"
   withTempDir "pandoc-odt" $ \tempDir -> do
     let tempODT = tempDir </> "reference.odt"
-    copyFile referenceODTPath tempODT
+    copyFile "odt-styles/reference.odt" tempODT 
+    B.writeFile tempODT $(contentsOf "odt-styles/reference.odt")
     createDirectory $ tempDir </> "Pictures"
     xml' <- handlePictures tempODT sourceDirRelative xml
     writeFile (tempDir </> "content.xml") xml'
@@ -138,3 +140,4 @@ handleContent tempODT sourceDirRelative content@(Elem el) = do
      else return content
  
 handleContent _ _ c = return c  -- not Element
+

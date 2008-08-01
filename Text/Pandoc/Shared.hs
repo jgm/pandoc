@@ -100,7 +100,9 @@ module Text.Pandoc.Shared (
                      WriterOptions (..),
                      defaultWriterOptions,
                      -- * File handling
-                     withTempDir
+                     withTempDir,
+                     -- * Template haskell
+                     contentsOf
                     ) where
 
 import Text.Pandoc.Definition
@@ -115,6 +117,9 @@ import Network.URI ( parseURI, URI (..), isAllowedInURI )
 import System.FilePath ( (</>), (<.>) )
 import System.IO.Error ( catch, ioError, isAlreadyExistsError )
 import System.Directory
+import Language.Haskell.TH
+import Language.Haskell.TH.Syntax (Lift (..))
+import qualified Data.ByteString.Char8 as B
 
 --
 -- List processing
@@ -923,4 +928,11 @@ createTempDir num baseName = do
       \e -> if isAlreadyExistsError e
                then createTempDir (num + 1) baseName
                else ioError e
+
+-- | Template haskell function to insert bytestring contents of file into a template.
+contentsOf :: FilePath -> ExpQ
+contentsOf p = lift =<< runIO (B.readFile p)
+
+instance Lift B.ByteString where
+  lift x = return (LitE (StringL $ B.unpack x))
 
