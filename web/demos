@@ -98,9 +98,9 @@ click on the name of the output file:
 
 @   pandoc @@README@@ -s -w opendocument -o @@example20.xml@@
 
-21. From markdown to ODT (OpenDocument Text, readable by OpenOffice):
+21. ODT (OpenDocument Text, readable by OpenOffice):
 
-@   markdown2odt @@README@@ -o @@example21.odt@@
+@   pandoc @@README@@ -o @@example21.odt@@
 
 22. MediaWiki markup:
 
