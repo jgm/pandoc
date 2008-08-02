@@ -26,13 +26,18 @@ Cabal version using `ghc-pkg list`.
 If you're running MacOS X, it may be more convenient to install GHC
 using [MacPorts] or [Fink].
 
-In addition to the libraries that come with GHC, you'll need the
-[utf8-string] library.
-
 If you're on a [debian]-based linux system (such as [Ubuntu]), you can get
 GHC and the required libraries using `apt-get`:
     
     sudo apt-get install ghc6 libghc6-xhtml-dev libghc6-mtl-dev libghc6-network-dev libghc6-utf8-string-dev
+
+Otherwise, you should already have all the libraries you need except for
+`utf8-string`. Download the [utf8-string] tarball from HackageDB, extract it, and
+switch to that directory. Then:
+
+    runghc Setup.lhs configure
+    runghc Setup.lhs build
+    sudo runghc Setup.lhs install
 
 [GHC]: http://www.haskell.org/ghc/
 [GHC Download]: http://www.haskell.org/ghc/download.html
