@@ -4,13 +4,18 @@
 
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
-[markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX], and
+[markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX]; and
 it can write [markdown], [reStructuredText], [HTML], [LaTeX], [ConTeXt],
-[RTF], [DocBook XML], [OpenDocument XML], [GNU Texinfo], [MediaWiki markup],
-[groff man] pages, and [S5] HTML slide shows. Pandoc's version of
-markdown contains some enhancements, like footnotes and embedded LaTeX.
+[RTF], [DocBook XML], [OpenDocument XML], [ODT], [GNU Texinfo],
+[MediaWiki markup], [groff man] pages, and [S5] HTML slide shows.
+Pandoc's enhanced version of markdown includes syntax for footnotes,
+tables, flexible ordered lists, definition lists, delimited code blocks,
+superscript, subscript, strikeout, title blocks, automatic tables of
+contents, embedded LaTeX math, and markdown inside HTML block elements.
+(These enhancements can be disabled if a drop-in replacement for
+`Markdown.pl` is desired.)
 
-In contrast to existing tools for converting markdown to HTML, which
+In contrast to most existing tools for converting markdown to HTML, which
 use regex substitutions, Pandoc has a modular design: it consists of a
 set of readers, which parse text in a given format and produce a native
 representation of the document, and a set of writers, which convert
@@ -26,6 +31,7 @@ or output format requires only adding a reader or writer.
 [RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook XML]:  http://www.docbook.org/
 [OpenDocument XML]: http://opendocument.xml.org/ 
+[ODT]: http://en.wikipedia.org/wiki/OpenDocument
 [MediaWiki markup]: http://www.mediawiki.org/wiki/Help:Formatting
 [groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
 [Haskell]:  http://www.haskell.org/
@@ -43,11 +49,15 @@ Using Pandoc
 ============
 
 If you run `pandoc` without arguments, it will accept input from
-STDIN.  If you run it with file names as arguments, it will take input
-from those files.  By default, `pandoc` writes its output to STDOUT.
+stdin.  If you run it with file names as arguments, it will take input
+from those files.  By default, `pandoc` writes its output to stdout.[^1]
 If you want to write to a file, use the `-o` option:
 
     pandoc -o hello.html hello.txt
+
+[^1]:  The exception is for non-text output formats, such as `odt`.
+       For output in `odt` format, an output file must be specified
+       explicitly.
 
 Note that you can specify multiple input files on the command line.
 `pandoc` will concatenate them all (with blank lines between them)
@@ -73,17 +83,19 @@ To convert `hello.html` from html to markdown:
 
 Supported output formats include `markdown`, `latex`, `context`
 (ConTeXt), `html`, `rtf` (rich text format), `rst` (reStructuredText),
-`docbook` (DocBook XML), `opendocument` (OpenDocument XML), `texinfo`,
-`mediawiki` (MediaWiki markup), `man` (groff man), and `s5` (which
-produces an HTML file that acts like powerpoint). Supported input
-formats include `markdown`, `html`, `latex`, and `rst`. Note that the
-`rst` reader only parses a subset of reStructuredText syntax. For
-example, it doesn't handle tables, option lists, or footnotes. But for
-simple documents it should be adequate. The `latex` and `html` readers
-are also limited in what they can do. Because the `html` reader is picky
-about the HTML it parses, it is recommended that you pipe HTML through
-[HTML Tidy] before sending it to `pandoc`, or use the `html2markdown`
-script described below.
+`docbook` (DocBook XML), `opendocument` (OpenDocument XML), `odt`
+(OpenOffice text document), `texinfo`, (GNU Texinfo), `mediawiki`
+(MediaWiki markup), `man` (groff man), and `s5` (which produces an
+HTML file that acts like powerpoint).
+
+Supported input formats include `markdown`, `html`, `latex`, and `rst`.
+Note that the `rst` reader only parses a subset of reStructuredText
+syntax. For example, it doesn't handle tables, option lists, or
+footnotes. But for simple documents it should be adequate. The `latex`
+and `html` readers are also limited in what they can do. Because the
+`html` reader is picky about the HTML it parses, it is recommended that
+you pipe HTML through [HTML Tidy] before sending it to `pandoc`, or use
+the `html2markdown` script described below.
 
 If you don't specify a reader or writer explicitly, `pandoc` will
 try to determine the input and output format from the extensions of
@@ -92,9 +104,9 @@ the input and output filenames.  Thus, for example,
 	pandoc -o hello.tex hello.txt
 
 will convert `hello.txt` from markdown to LaTeX.  If no output file
-is specified (so that output goes to STDOUT), or if the output file's
+is specified (so that output goes to stdout), or if the output file's
 extension is unknown, the output format will default to HTML.
-If no input file is specified (so that input comes from STDIN), or
+If no input file is specified (so that input comes from stdin), or
 if the input files' extensions are unknown, the input format will
 be assumed to be markdown unless explicitly specified.
 
@@ -138,7 +150,7 @@ shell, but they may be used in Windows under Cygwin.)
 
 	    markdown2pdf -o book.pdf chap1 chap2
 
-    If no input file is specified, input will be taken from STDIN.
+    If no input file is specified, input will be taken from stdin.
     All of `pandoc`'s options will work with `markdown2pdf` as well.
 
     `markdown2pdf` assumes that `pdflatex` is in the path.  It also
@@ -161,7 +173,7 @@ shell, but they may be used in Windows under Cygwin.)
 
     The `-e` or `--encoding` option specifies the character encoding
     of the HTML input.  If this option is not specified, and input
-    is not from STDIN, `html2markdown` will attempt to determine the
+    is not from stdin, `html2markdown` will attempt to determine the
     page's character encoding from the "Content-type" meta tag.
     If this is not present, UTF-8 is assumed.
 
@@ -222,7 +234,9 @@ For further documentation, see the `pandoc(1)` man page.
 
 `-o` or `--output` *filename*
 :   sends output to *filename*. If this option is not specified,
-    or if its argument is `-`, output will be sent to STDOUT.
+    or if its argument is `-`, output will be sent to stdout.
+    (Exception:  if the output format is `odt`, output to stdout
+    is disabled.)
 
 `-p` or `--preserve-tabs`
 :   causes tabs in the source text to be preserved, rather than converted
@@ -349,9 +363,9 @@ For further documentation, see the `pandoc(1)` man page.
 `--dump-args`
 :   is intended to make it easier to create wrapper scripts that use
     Pandoc. It causes Pandoc to dump information about the arguments
-    with which it was called to STDOUT, then exit. The first line
+    with which it was called to stdout, then exit. The first line
     printed is the name of the output file specified using the `-o`
-    or `--output` option, or `-` if output would go to STDOUT. The
+    or `--output` option, or `-` if output would go to stdout. The
     remaining lines, if any, list command-line arguments. These will
     include the names of input files and any special options passed
     after ` -- ` on the command line. So, for example,
@@ -359,7 +373,7 @@ For further documentation, see the `pandoc(1)` man page.
 :       pandoc --dump-args -o foo.html -s foo.txt \
           appendix.txt -- -e latin1
 
-:   will cause the following to be printed to STDOUT:
+:   will cause the following to be printed to stdout:
 
 :       foo.html foo.txt appendix.txt -e latin1
 
@@ -652,7 +666,7 @@ Simple tables look like this:
 
 The headers and table rows must each fit on one line.  Column
 alignments are determined by the position of the header text relative
-to the dashed line below it:[^1]
+to the dashed line below it:[^3]
 
   - If the dashed line is flush with the header text on the right side
     but extends beyond it on the left, the column is right-aligned.
@@ -663,9 +677,8 @@ to the dashed line below it:[^1]
   - If the dashed line is flush with the header text on both sides,
     the default alignment is used (in most cases, this will be left).
 
-[^1]:  This scheme is due to Michel Fortin, who proposed it on the
-    Markdown discussion list: 
-    <http://six.pairlist.net/pipermail/markdown-discuss/2005-March/001097.html>.
+[^3]:  This scheme is due to Michel Fortin, who proposed it on the
+       [Markdown discussion list](http://six.pairlist.net/pipermail/markdown-discuss/2005-March/001097.html).
 
 The table must end with a blank line.  Optionally, a caption may be
 provided (as illustrated in the example above).  A caption is a paragraph

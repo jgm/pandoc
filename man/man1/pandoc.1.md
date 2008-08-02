@@ -15,13 +15,14 @@ pandoc [*options*] [*input-file*]...
 Pandoc converts files from one markup format to another. It can
 read markdown and (subsets of) reStructuredText, HTML, and LaTeX, and
 it can write markdown, reStructuredText, HTML, LaTeX, ConTeXt, Texinfo,
-groff man, MediaWiki markup, RTF, OpenDocument XML, DocBook XML,
+groff man, MediaWiki markup, RTF, OpenDocument XML, ODT, DocBook XML,
 and S5 HTML slide shows.
 
 If no *input-file* is specified, input is read from STDIN.
 Otherwise, the *input-files* are concatenated (with a blank
 line between each) and used as input.  Output goes to STDOUT by
-default.  For output to a file, use the `-o` option:
+default (though output to STDOUT is disabled for the `odt` output
+format).  For output to a file, use the `-o` option:
 
     pandoc -o output.html input.txt
 
@@ -70,8 +71,8 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     `html` (HTML), `latex` (LaTeX), `context` (ConTeXt), `man` (groff man), 
     `mediawiki` (MediaWiki markup), `texinfo` (GNU Texinfo),
     `docbook` (DocBook XML), `opendocument` (OpenDocument XML),
-    `s5` (S5 HTML and javascript slide show),
-    or `rtf` (rich text format).
+    `odt` (OpenOffice text document), `s5` (S5 HTML and javascript slide
+    show), or `rtf` (rich text format).
 
 -s, \--standalone
 :   Produce output with an appropriate header and footer (e.g. a
@@ -192,6 +193,7 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 
 # SEE ALSO
 
+`hsmarkdown`(1),
 `html2markdown`(1),
 `markdown2pdf`(1).
 The *README* file distributed with Pandoc contains full documentation.
