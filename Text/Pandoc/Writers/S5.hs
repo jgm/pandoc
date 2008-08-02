@@ -40,7 +40,8 @@ module Text.Pandoc.Writers.S5 (
                 writeS5String,
                 insertS5Structure
                 ) where
-import Text.Pandoc.Shared ( joinWithSep, WriterOptions, contentsOf )
+import Text.Pandoc.Shared ( joinWithSep, WriterOptions )
+import Text.Pandoc.TH ( contentsOf )
 import Text.Pandoc.Writers.HTML ( writeHtml, writeHtmlString )
 import Text.Pandoc.Definition
 import Text.XHtml.Strict

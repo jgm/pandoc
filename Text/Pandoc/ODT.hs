@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Functions for producing an ODT file from OpenDocument XML.
 -}
 module Text.Pandoc.ODT ( saveOpenDocumentAsODT ) where
-import Text.Pandoc.Shared ( contentsOf )
+import Text.Pandoc.TH ( binaryContentsOf )
 import Data.Maybe ( fromJust, isJust )
 import Data.List ( partition, intersperse )
 import Prelude hiding ( writeFile, readFile )
@@ -61,7 +61,7 @@ saveOpenDocumentAsODT destinationODTPath sourceDirRelative xml = do
                                       "Windows: See http://gnuwin32.sourceforge.net/packages/zip.htm"
   withTempDir "pandoc-odt" $ \tempDir -> do
     let tempODT = tempDir </> "reference.odt"
-    B.writeFile tempODT $ B.pack $(contentsOf $ "odt-styles" </> "reference.odt")
+    B.writeFile tempODT $ B.pack $(binaryContentsOf $ "odt-styles" </> "reference.odt")
     createDirectory $ tempDir </> "Pictures"
     xml' <- handlePictures tempODT sourceDirRelative xml
     writeFile (tempDir </> "content.xml") xml'

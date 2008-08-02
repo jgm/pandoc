@@ -38,7 +38,7 @@ module Text.Pandoc.DefaultHeaders (
                                   ) where
 import Text.Pandoc.Writers.S5
 import System.FilePath ( (</>) )
-import Text.Pandoc.Shared ( contentsOf )
+import Text.Pandoc.TH ( contentsOf )
 
 defaultLaTeXHeader :: String
 #ifndef __HADDOCK__

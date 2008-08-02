@@ -103,6 +103,7 @@ Library
                    Text.Pandoc.Writers.RTF,
                    Text.Pandoc.Writers.S5
   Other-Modules:   Text.Pandoc.XML,
+                   Text.Pandoc.TH,
                    Text.XML.Light,
                    Text.XML.Light.Types,
                    Text.XML.Light.Output,
