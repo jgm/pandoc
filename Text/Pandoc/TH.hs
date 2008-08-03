@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-
 Copyright (C) 2008 John MacFarlane <jgm@berkeley.edu>
@@ -37,6 +38,12 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Syntax (Lift (..))
 import qualified Data.ByteString as B
 import Data.ByteString.Internal ( w2c )
+import Prelude hiding ( readFile )
+#ifdef _UTF8
+import System.IO.UTF8
+#else
+import System.IO
+#endif
 
 -- | Insert contents of text file into a template.
 contentsOf :: FilePath -> ExpQ

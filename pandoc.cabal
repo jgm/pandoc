@@ -57,7 +57,7 @@ Flag splitBase
   Default:       True
 Flag highlighting
   Description:   Compile in support for syntax highlighting of code blocks.
-  Default:       False
+  Default:       True
 Flag executable
   Description:   Build the pandoc executable.
   Default:       True
@@ -75,10 +75,10 @@ Library
     Build-Depends: base < 3
   if flag(highlighting)
     Build-depends: highlighting-kate
-    cpp-options:   -DHIGHLIGHTING
+    cpp-options:   -D_HIGHLIGHTING
   if flag(utf8)
     Build-depends: utf8-string
-    cpp-options:   -DUTF_8
+    cpp-options:   -D_UTF8
   Build-Depends: parsec < 3, xhtml, mtl, network, filepath, process, directory,
                  template-haskell, bytestring
   Hs-Source-Dirs:  .
@@ -130,9 +130,12 @@ Executable pandoc
   Main-Is:            Main.hs
   Ghc-Options:        -O2 -Wall -threaded
   Ghc-Prof-Options:   -auto-all
+  Extensions:         CPP
 
+  if flag(highlighting)
+    cpp-options:   -D_HIGHLIGHTING
   if flag(utf8)
-    cpp-options:   -DUTF_8
+    cpp-options:   -D_UTF8
   if flag(executable)
     Buildable:      True
   else

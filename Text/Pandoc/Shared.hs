@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-
 Copyright (C) 2006-8 John MacFarlane <jgm@berkeley.edu>
 
@@ -115,6 +116,12 @@ import Network.URI ( parseURI, URI (..), isAllowedInURI )
 import System.FilePath ( (</>), (<.>) )
 import System.IO.Error ( catch, ioError, isAlreadyExistsError )
 import System.Directory
+import Prelude hiding ( putStrLn )
+#ifdef _UTF8
+import System.IO.UTF8
+#else
+import System.IO
+#endif
 
 --
 -- List processing
@@ -612,7 +619,7 @@ readWith parser state input =
 testStringWith :: (Show a) => GenParser Char ParserState a
                -> String
                -> IO ()
-testStringWith parser str = putStrLn $ show $ 
+testStringWith parser str = putStrLn $ show $
                             readWith parser defaultParserState str
 
 -- | Parsing options.

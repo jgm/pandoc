@@ -41,7 +41,7 @@ import System.Console.GetOpt
 import Data.Maybe ( fromMaybe )
 import Data.Char ( toLower )
 import Prelude hiding ( putStrLn, writeFile, readFile, getContents )
-#ifdef UTF_8
+#ifdef _UTF8
 import System.IO.UTF8
 import System.IO ( stdout, stderr )
 #else
@@ -54,13 +54,17 @@ copyrightMessage = "\nCopyright (C) 2006-7 John MacFarlane\n" ++
                     "This is free software; see the source for copying conditions.  There is no\n" ++
                     "warranty, not even for merchantability or fitness for a particular purpose."
 
-compileOptions :: String
-compileOptions =
+compileInfo :: String
+compileInfo = "Compiled" ++
+#ifdef _UTF8
+  " with UTF-8 support" ++
+#else
+  " without UTF-8 support" ++
+#endif
   if null languages
-     then "\nCompiled without syntax highlighting support."
-     else "\nCompiled with syntax highlighting support for the following languages:\n" ++ 
-          (unlines $ map unwords $ chunk 5 $ 
-           map (\s -> s ++ replicate (15 - length s) ' ') languages)
+     then " and without syntax highlighting support."
+     else " and with syntax highlighting support for:\n" ++
+          (unlines $ map unwords $ chunk 5 $ map (\s -> s ++ replicate (15 - length s) ' ') languages)
 
 -- | Splits a list into groups of at most n.
 chunk :: Int -> [a] -> [[a]]
@@ -344,7 +348,7 @@ options =
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     hPutStrLn stderr (prg ++ " " ++ pandocVersion ++ compileOptions ++
+                     hPutStrLn stderr (prg ++ " " ++ pandocVersion ++ "\n" ++ compileInfo ++
                                        copyrightMessage)
                      exitWith $ ExitFailure 4))
                  "" -- "Print version"

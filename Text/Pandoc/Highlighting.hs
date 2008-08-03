@@ -32,7 +32,7 @@ Exports functions for syntax highlighting.
 module Text.Pandoc.Highlighting ( languages, highlightHtml, defaultHighlightingCss ) where
 import Text.XHtml
 import Text.Pandoc.Definition
-#ifdef HIGHLIGHTING
+#ifdef _HIGHLIGHTING
 import Text.Highlighting.Kate ( languages, highlightAs, formatAsXHtml, FormatOption (..), defaultHighlightingCss )
 import Data.List (find, lookup)
 import Data.Maybe (fromMaybe)
