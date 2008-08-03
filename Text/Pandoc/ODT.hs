@@ -30,21 +30,21 @@ Functions for producing an ODT file from OpenDocument XML.
 -}
 module Text.Pandoc.ODT ( saveOpenDocumentAsODT ) where
 import Text.Pandoc.TH ( binaryContentsOf )
-import Data.Maybe ( fromJust, isJust )
+import Data.Maybe ( fromJust )
 import Data.List ( partition, intersperse )
-import Prelude hiding ( writeFile, readFile )
+import Prelude hiding ( writeFile, readFile, getContents )
 import System.IO.UTF8
 import System.IO ( stderr )
 import System.Directory
 import System.FilePath ( (</>), takeDirectory, takeFileName, splitDirectories )
-import System.Process ( runCommand, waitForProcess )
+import System.Process ( runProcess, waitForProcess )
 import System.Exit
 import Text.XML.Light
 import Text.XML.Light.Cursor
 import Text.Pandoc.Shared ( withTempDir )
 import Network.URI ( isURI )
-import qualified Data.ByteString.Char8 as B ( writeFile, pack )
-import Control.Monad ( unless )
+import qualified Data.ByteString as B ( writeFile, pack )
+import Data.ByteString.Internal ( c2w )
 
 -- | Produce an ODT file from OpenDocument XML.
 saveOpenDocumentAsODT :: FilePath    -- ^ Pathname of ODT file to be produced.
@@ -54,26 +54,25 @@ saveOpenDocumentAsODT :: FilePath    -- ^ Pathname of ODT file to be produced.
 saveOpenDocumentAsODT destinationODTPath sourceDirRelative xml = do
   let zipCmd = "zip"
   -- check for zip in path:
-  findExecutable zipCmd >>= \v -> unless (isJust v) $ error $ "The '" ++ zipCmd ++
-                                      "' command, which is needed to build an ODT file, was not found.\n" ++
-                                      "It can be obtained from http://www.info-zip.org/Zip.html\n" ++
-                                      "Debian (and Debian-based) linux: apt-get install zip\n" ++
-                                      "Windows: See http://gnuwin32.sourceforge.net/packages/zip.htm"
+  zipPathMaybe <- findExecutable zipCmd
+  let zipPath = case zipPathMaybe of
+                  Nothing -> error $ "The '" ++ zipCmd ++
+                                     "' command, which is needed to build an ODT file, was not found.\n" ++
+                                     "It can be obtained from http://www.info-zip.org/Zip.html\n" ++
+                                     "Debian (and Debian-based) linux: apt-get install zip\n" ++
+                                     "Windows: See http://gnuwin32.sourceforge.net/packages/zip.htm"
+                  Just x  -> x
   withTempDir "pandoc-odt" $ \tempDir -> do
     let tempODT = tempDir </> "reference.odt"
-    B.writeFile tempODT $ B.pack $(binaryContentsOf $ "odt-styles" </> "reference.odt")
-    createDirectory $ tempDir </> "Pictures"
+    B.writeFile tempODT $ B.pack $ map c2w $(binaryContentsOf $ "odt-styles" </> "reference.odt")
     xml' <- handlePictures tempODT sourceDirRelative xml
     writeFile (tempDir </> "content.xml") xml'
-    oldDir <- getCurrentDirectory
-    setCurrentDirectory tempDir
-    let zipCmdLine = "zip -9 -q -r " ++ tempODT ++ " " ++ "content.xml Pictures"
-    ec <- runCommand zipCmdLine >>= waitForProcess   -- this requires compilation with -threaded
-    setCurrentDirectory oldDir
+    ph <- runProcess zipPath ["-9", "-q", "-r", tempODT, "content.xml", "Pictures"]
+            (Just tempDir) Nothing Nothing Nothing (Just stderr)
+    ec <- waitForProcess ph   -- requires compilation with -threaded
     case ec of
          ExitSuccess -> copyFile tempODT destinationODTPath
          _           -> error "Error creating ODT." >> exitWith ec
-
 
 -- | Find <draw:image ... /> elements and copy the file (xlink:href attribute) into Pictures/ in
 -- the zip file.  If filename is a URL, attempt to download it.  Modify xlink:href attributes
@@ -128,6 +127,7 @@ handleContent tempODT sourceDirRelative content@(Elem el) = do
                                 splitDirectories $ takeDirectory $ attrVal href
                    let newLoc = "Pictures" </> pref ++ "_" ++ (takeFileName $ attrVal href)
                    let tempDir = takeDirectory tempODT
+                   createDirectoryIfMissing False $ tempDir </> takeDirectory newLoc
                    copyFile oldLoc $ tempDir </> newLoc
                    let newAttrs = (href { attrVal = newLoc }) : rest
                    return $ Elem (el { elAttribs = newAttrs })
