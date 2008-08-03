@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-
 Copyright (C) 2006-8 John MacFarlane <jgm@berkeley.edu>
 
@@ -37,12 +38,15 @@ import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath ( takeExtension, takeDirectory )
 import System.Console.GetOpt
-import Prelude hiding ( putStrLn, writeFile, readFile, getContents )
-import System.IO ( stdout, stderr )
-import System.IO.UTF8
 import Data.Maybe ( fromMaybe )
 import Data.Char ( toLower )
-import Control.Monad ( (>>=) )
+import Prelude hiding ( putStrLn, writeFile, readFile, getContents )
+#ifdef UTF_8
+import System.IO.UTF8
+import System.IO ( stdout, stderr )
+#else
+import System.IO
+#endif
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-7 John MacFarlane\n" ++

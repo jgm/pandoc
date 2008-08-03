@@ -64,6 +64,9 @@ Flag executable
 Flag library
   Description:   Build the pandoc library.
   Default:       True
+Flag utf8
+  Description:   Compile in support for UTF-8 input and output.
+  Default:       True
 
 Library
   if flag(splitBase)
@@ -73,7 +76,10 @@ Library
   if flag(highlighting)
     Build-depends: highlighting-kate
     cpp-options:   -DHIGHLIGHTING
-  Build-Depends: parsec < 3, xhtml, mtl, network, filepath, process, directory, utf8-string,
+  if flag(utf8)
+    Build-depends: utf8-string
+    cpp-options:   -DUTF_8
+  Build-Depends: parsec < 3, xhtml, mtl, network, filepath, process, directory,
                  template-haskell, bytestring
   Hs-Source-Dirs:  .
   Exposed-Modules: Text.Pandoc,
@@ -125,6 +131,8 @@ Executable pandoc
   Ghc-Options:        -O2 -Wall -threaded
   Ghc-Prof-Options:   -auto-all
 
+  if flag(utf8)
+    cpp-options:   -DUTF_8
   if flag(executable)
     Buildable:      True
   else

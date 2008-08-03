@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, CPP #-}
 {-
 Copyright (C) 2008 John MacFarlane <jgm@berkeley.edu>
 
@@ -32,9 +32,6 @@ module Text.Pandoc.ODT ( saveOpenDocumentAsODT ) where
 import Text.Pandoc.TH ( binaryContentsOf )
 import Data.Maybe ( fromJust )
 import Data.List ( partition, intersperse )
-import Prelude hiding ( writeFile, readFile, getContents )
-import System.IO.UTF8
-import System.IO ( stderr )
 import System.Directory
 import System.FilePath ( (</>), takeDirectory, takeFileName, splitDirectories )
 import System.Process ( runProcess, waitForProcess )
@@ -45,6 +42,13 @@ import Text.Pandoc.Shared ( withTempDir )
 import Network.URI ( isURI )
 import qualified Data.ByteString as B ( writeFile, pack )
 import Data.ByteString.Internal ( c2w )
+import Prelude hiding ( writeFile, readFile )
+#ifdef UTF_8
+import System.IO.UTF8
+import System.IO ( stderr )
+#else
+import System.IO
+#endif
 
 -- | Produce an ODT file from OpenDocument XML.
 saveOpenDocumentAsODT :: FilePath    -- ^ Pathname of ODT file to be produced.
