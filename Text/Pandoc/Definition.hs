@@ -125,8 +125,10 @@ data Inline
     | Note [Block]          -- ^ Footnote or endnote 
     deriving (Show, Eq, Read, Typeable, Data)
 
+-- | Applies a transformation to matching elements in a Pandoc document.
 processPandoc :: Typeable a => (a -> a) -> Pandoc -> Pandoc
 processPandoc f = everywhere (mkT f)
 
+-- | Runs a query on matching elements in a Pandoc document. 
 queryPandoc :: Typeable a => (a -> [b]) -> Pandoc -> [b]
 queryPandoc f = everything (++) ([] `mkQ` f)

@@ -57,7 +57,7 @@ Flag splitBase
   Default:       True
 Flag highlighting
   Description:   Compile in support for syntax highlighting of code blocks.
-  Default:       True
+  Default:       False
 Flag executable
   Description:   Build the pandoc executable.
   Default:       True
@@ -67,6 +67,9 @@ Flag library
 Flag utf8
   Description:   Compile in support for UTF-8 input and output.
   Default:       True
+Flag citeproc
+  Description:   Compile in support for citeproc-hs bibliographic formatting.
+  Default:       False
 
 Library
   if flag(splitBase)
@@ -79,10 +82,14 @@ Library
   if flag(utf8)
     Build-depends: utf8-string
     cpp-options:   -D_UTF8
+  if flag(citeproc)
+    Build-depends: citeproc-hs
+    cpp-options:   -D_CITEPROC
   Build-Depends: parsec < 3, xhtml, mtl, network, filepath, process, directory,
                  template-haskell, bytestring
   Hs-Source-Dirs:  .
   Exposed-Modules: Text.Pandoc,
+                   Text.Pandoc.Biblio,
                    Text.Pandoc.Blocks,
                    Text.Pandoc.Definition,
                    Text.Pandoc.CharacterReferences,
@@ -136,7 +143,11 @@ Executable pandoc
     cpp-options:   -D_HIGHLIGHTING
   if flag(utf8)
     cpp-options:   -D_UTF8
+  if flag(citeproc)
+    Build-depends: citeproc-hs
+    cpp-options:   -D_CITEPROC
   if flag(executable)
     Buildable:      True
   else
     Buildable:      False
+

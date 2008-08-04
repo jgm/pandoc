@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-
 Copyright (C) 2006-8 John MacFarlane <jgm@berkeley.edu>
 
@@ -34,7 +35,7 @@ module Text.Pandoc.Readers.Markdown (
 import Data.List ( transpose, isPrefixOf, isSuffixOf, lookup, sortBy, findIndex )
 import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum, isAlpha, isLower, isDigit )
-import Data.Maybe ( fromMaybe )
+import Data.Maybe
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment )
@@ -173,7 +174,7 @@ parseMarkdown = do
              setPosition startPos
   -- now parse it for real...
   (title, author, date) <- option ([],[],"") titleBlock
-  blocks <- parseBlocks 
+  blocks <- parseBlocks
   return $ Pandoc (Meta title author date) $ filter (/= Null) blocks
 
 -- 
@@ -804,6 +805,9 @@ inlineParsers = [ abbrev
                 , note
                 , inlineNote
                 , link
+#ifdef _CITEPROC
+                , inlineCitation
+#endif
                 , image
                 , math
                 , strikeout
@@ -1152,3 +1156,38 @@ rawHtmlInline' = do
                else anyHtmlInlineTag
   return $ HtmlInline result
 
+#ifdef _CITEPROC
+inlineCitation :: GenParser Char ParserState Inline
+inlineCitation = try $ do
+  failIfStrict
+  cit <- citeMarker
+  let citations = readWith parseCitation defaultParserState cit
+  mr <- mapM chkCit citations
+  if catMaybes mr /= []
+     then return $ Cite citations []
+     else fail "no citation found"
+
+chkCit :: Target -> GenParser Char ParserState (Maybe Target)
+chkCit t = do
+  st <- getState
+  case lookupKeySrc (stateKeys st) [Str $ fst t] of
+     Just  _ -> fail "This is a link"
+     Nothing -> if elem (fst t) $ stateCitations st
+                then return $ Just t
+                else return $ Nothing
+
+citeMarker :: GenParser Char ParserState String
+citeMarker = string "[" >> manyTill (noneOf "\t\n") (string "]")
+
+parseCitation :: GenParser Char ParserState [(String,String)]
+parseCitation = try $ sepBy (parseLabel) (oneOf ";")
+
+parseLabel :: GenParser Char ParserState (String,String)
+parseLabel = try $ do
+  res <- sepBy (skipSpaces >> many1 (noneOf "@;\n\t")) (oneOf "@")
+  case res of
+    [lab,loc] -> return (lab, loc)
+    [lab]     -> return (lab, "" )
+    _         -> return ("" , "" )
+
+#endif

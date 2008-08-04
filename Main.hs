@@ -47,6 +47,10 @@ import System.IO ( stdout, stderr )
 #else
 import System.IO
 #endif
+#ifdef _CITEPROC
+import Text.CSL
+import Text.Pandoc.Biblio
+#endif
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-7 John MacFarlane\n" ++
@@ -55,15 +59,25 @@ copyrightMessage = "\nCopyright (C) 2006-7 John MacFarlane\n" ++
                     "warranty, not even for merchantability or fitness for a particular purpose."
 
 compileInfo :: String
-compileInfo = "Compiled" ++
+compileInfo =
 #ifdef _UTF8
-  " with UTF-8 support" ++
+  " +utf8" ++
 #else
-  " without UTF-8 support" ++
+  " -utf8" ++
+#endif
+#ifdef _CITEPROC
+  " +citeproc" ++
+#else
+  " -citeproc" ++
+#endif
+#ifdef _HIGHLIGHTING
+  " +highlighting" ++
+#else
+  " -highlighting" ++
 #endif
   if null languages
-     then " and without syntax highlighting support."
-     else " and with syntax highlighting support for:\n" ++
+     then "\n"
+     else "\nCompiled with syntax highlighting support for:\n" ++
           (unlines $ map unwords $ chunk 5 $ map (\s -> s ++ replicate (15 - length s) ' ') languages)
 
 -- | Splits a list into groups of at most n.
@@ -137,6 +151,10 @@ data Opt = Opt
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optWrapText          :: Bool    -- ^ Wrap text
     , optSanitizeHTML      :: Bool    -- ^ Sanitize HTML
+#ifdef _CITEPROC
+    , optModsFile          :: String
+    , optCslFile           :: String
+#endif
     }
 
 -- | Defaults for command-line options.
@@ -166,6 +184,10 @@ defaultOpts = Opt
     , optReferenceLinks    = False
     , optWrapText          = True
     , optSanitizeHTML      = False
+#ifdef _CITEPROC
+    , optModsFile          = []
+    , optCslFile           = []
+#endif
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -333,13 +355,24 @@ options =
                      exitWith ExitSuccess)
                   "FORMAT")
                  "" -- "Print default header for FORMAT"
-
+#ifdef _CITEPROC
+    , Option "" ["mods"]
+                 (ReqArg
+                  (\arg opt -> return opt { optModsFile = arg} )
+                  "FILENAME")
+                 ""
+    , Option "" ["csl"]
+                 (ReqArg
+                  (\arg opt -> return opt { optCslFile = arg} )
+                  "FILENAME")
+                 ""
+#endif
     , Option "" ["dump-args"]
                  (NoArg
                   (\opt -> return opt { optDumpArgs = True }))
                  "" -- "Print output filename and arguments to stdout."
 
-     , Option "" ["ignore-args"]
+    , Option "" ["ignore-args"]
                  (NoArg
                   (\opt -> return opt { optIgnoreArgs = True }))
                  "" -- "Ignore command-line arguments."
@@ -348,7 +381,7 @@ options =
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     hPutStrLn stderr (prg ++ " " ++ pandocVersion ++ "\n" ++ compileInfo ++
+                     hPutStrLn stderr (prg ++ " " ++ pandocVersion ++ compileInfo ++
                                        copyrightMessage)
                      exitWith $ ExitFailure 4))
                  "" -- "Print version"
@@ -464,6 +497,10 @@ main = do
               , optReferenceLinks    = referenceLinks
               , optWrapText          = wrap
               , optSanitizeHTML      = sanitize
+#ifdef _CITEPROC
+             , optModsFile           = modsFile
+             , optCslFile            = cslFile
+#endif
              } = opts
 
   if dumpArgs
@@ -513,11 +550,18 @@ main = do
 
   let standalone' = (standalone && not strict) || writerName' == "odt"
 
+#ifdef _CITEPROC
+  refs <- if null modsFile then return [] else readModsColletionFile modsFile
+#endif
+
   let startParserState = 
          defaultParserState { stateParseRaw     = parseRaw,
                               stateTabStop      = tabStop, 
                               stateSanitizeHTML = sanitize,
                               stateStandalone   = standalone',
+#ifdef _CITEPROC
+                              stateCitations    = map citeKey refs,
+#endif
                               stateSmart        = smart || writerName' `elem` 
                                                            ["latex", "context"],
                               stateColumns      = columns,
@@ -564,11 +608,12 @@ main = do
                                then putStrLn
                                else writeFile outputFile . (++ "\n")
 
-  (readSources sources) >>=  writeOutput .
-                             writer writerOptions .
-                             reader startParserState .
-                             tabFilter tabStop .
-                             joinWithSep "\n"
+  fmap (reader startParserState . tabFilter tabStop . joinWithSep "\n")
+       (readSources sources) >>=
+#ifdef _CITEPROC
+        processBiblio cslFile refs >>=
+#endif
+        writeOutput . writer writerOptions
 
   where 
     readSources [] = mapM readSource ["-"]

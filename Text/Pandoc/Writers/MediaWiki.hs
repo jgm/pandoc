@@ -342,6 +342,8 @@ inlineToMediaWiki opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMediaWiki opts lst
   return $ "&ldquo;" ++ contents ++ "&rdquo;"
 
+inlineToMediaWiki opts (Cite _  lst) = inlineListToMediaWiki opts lst
+
 inlineToMediaWiki _ EmDash = return "&mdash;"
 
 inlineToMediaWiki _ EnDash = return "&ndash;"
