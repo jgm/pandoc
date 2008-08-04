@@ -380,6 +380,7 @@ inlineToOpenDocument o ils
     | Quoted    t l <- ils = inQuotes t <$> inlinesToOpenDocument o l
     | Code        s <- ils = preformatted s
     | Math        s <- ils = inlinesToOpenDocument o (readTeXMath s)
+    | Cite      _ l <- ils = inlinesToOpenDocument o l
     | TeX         s <- ils = preformatted s
     | HtmlInline  s <- ils = preformatted s
     | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l

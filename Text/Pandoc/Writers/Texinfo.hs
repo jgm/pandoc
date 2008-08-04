@@ -356,6 +356,7 @@ inlineForNode (Superscript lst) = inlineListForNode lst
 inlineForNode (Subscript lst) = inlineListForNode lst
 inlineForNode (SmallCaps lst) = inlineListForNode lst
 inlineForNode (Quoted _ lst) = inlineListForNode lst
+inlineForNode (Cite _ lst) = inlineListForNode lst
 inlineForNode (Code str) = inlineForNode (Str str)
 inlineForNode Space = return $ char ' '
 inlineForNode EmDash = return $ text "---"
@@ -429,6 +430,8 @@ inlineToTexinfo (Quoted DoubleQuote lst) = do
   contents <- inlineListToTexinfo lst
   return $ text "``" <> contents <> text "''"
 
+inlineToTexinfo (Cite _ lst) =
+  inlineListToTexinfo lst
 inlineToTexinfo Apostrophe = return $ char '\''
 inlineToTexinfo EmDash = return $ text "---"
 inlineToTexinfo EnDash = return $ text "--"

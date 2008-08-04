@@ -263,6 +263,8 @@ inlineToMan opts (Quoted SingleQuote lst) = do
 inlineToMan opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMan opts lst
   return $ text "\\[lq]" <> contents <> text "\\[rq]"
+inlineToMan opts (Cite _ lst) =
+  inlineListToMan opts lst
 inlineToMan _ EmDash = return $ text "\\[em]"
 inlineToMan _ EnDash = return $ text "\\[en]"
 inlineToMan _ Apostrophe = return $ char '\''

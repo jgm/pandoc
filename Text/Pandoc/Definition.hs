@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fglasgow-exts #-} -- for deriving Typeable
 {-
 Copyright (C) 2006-7 John MacFarlane <jgm@berkeley.edu>
 
@@ -30,20 +31,22 @@ of documents.
 -}
 module Text.Pandoc.Definition where
 
-data Pandoc = Pandoc Meta [Block] deriving (Eq, Read, Show)
+import Data.Generics
+
+data Pandoc = Pandoc Meta [Block] deriving (Eq, Read, Show, Typeable, Data)
 
 -- | Bibliographic information for the document:  title (list of 'Inline'),
 -- authors (list of strings), date (string).
 data Meta = Meta [Inline] -- title
                  [String] -- authors
                  String   -- date
-            deriving (Eq, Show, Read)
+            deriving (Eq, Show, Read, Typeable, Data)
 
 -- | Alignment of a table column.
 data Alignment = AlignLeft 
                | AlignRight 
                | AlignCenter 
-               | AlignDefault deriving (Eq, Show, Read)
+               | AlignDefault deriving (Eq, Show, Read, Typeable, Data)
 
 -- | List attributes.
 type ListAttributes = (Int, ListNumberStyle, ListNumberDelim)
@@ -54,13 +57,13 @@ data ListNumberStyle = DefaultStyle
                      | LowerRoman 
                      | UpperRoman
                      | LowerAlpha 
-                     | UpperAlpha deriving (Eq, Show, Read)
+                     | UpperAlpha deriving (Eq, Show, Read, Typeable, Data)
 
 -- | Delimiter of list numbers.
 data ListNumberDelim = DefaultDelim
                      | Period
                      | OneParen 
-                     | TwoParens deriving (Eq, Show, Read)
+                     | TwoParens deriving (Eq, Show, Read, Typeable, Data)
 
 -- | Attributes.
 type Attr = (String, [String], [(String, String)])  -- ^ Identifier, classes, key-value pairs
@@ -87,10 +90,10 @@ data Block
                             -- (each a list of blocks), and rows
                             -- (each a list of lists of blocks)
     | Null                  -- ^ Nothing
-    deriving (Eq, Read, Show)
+    deriving (Eq, Read, Show, Typeable, Data)
 
 -- | Type of quotation marks to use in Quoted inline.
-data QuoteType = SingleQuote | DoubleQuote deriving (Show, Eq, Read)
+data QuoteType = SingleQuote | DoubleQuote deriving (Show, Eq, Read, Typeable, Data)
 
 -- | Link target (URL, title).
 type Target = (String, String)
@@ -105,6 +108,7 @@ data Inline
     | Subscript [Inline]    -- ^ Subscripted text (list of inlines)
     | SmallCaps [Inline]    -- ^ Small caps text (list of inlines)
     | Quoted QuoteType [Inline] -- ^ Quoted text (list of inlines)
+    | Cite [Target] [Inline] -- ^ Citation (list of inlines)
     | Code String           -- ^ Inline code (literal)
     | Space                 -- ^ Inter-word space
     | EmDash                -- ^ Em dash
@@ -119,4 +123,10 @@ data Inline
     | Image [Inline] Target -- ^ Image:  alt text (list of inlines), target
                             -- and target
     | Note [Block]          -- ^ Footnote or endnote 
-    deriving (Show, Eq, Read)
+    deriving (Show, Eq, Read, Typeable, Data)
+
+processPandoc :: Typeable a => (a -> a) -> Pandoc -> Pandoc
+processPandoc f = everywhere (mkT f)
+
+queryPandoc :: Typeable a => (a -> [b]) -> Pandoc -> [b]
+queryPandoc f = everything (++) ([] `mkQ` f)

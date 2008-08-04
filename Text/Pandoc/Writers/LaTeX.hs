@@ -267,6 +267,8 @@ inlineToLaTeX (Subscript lst) = do
   return $ inCmd "textsubscr" contents
 inlineToLaTeX (SmallCaps lst) =
   inlineListToLaTeX (deVerb lst) >>= return . inCmd "textsc"
+inlineToLaTeX (Cite _ lst) =
+  inlineListToLaTeX lst
 inlineToLaTeX (Code str) = do
   st <- get
   if stInNote st

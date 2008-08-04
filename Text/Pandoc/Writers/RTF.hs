@@ -276,6 +276,7 @@ inlineToRTF EnDash = "\\u8211-"
 inlineToRTF (Code str) = "{\\f1 " ++ (codeStringToRTF str) ++ "}"
 inlineToRTF (Str str) = stringToRTF str
 inlineToRTF (Math str) = inlineListToRTF $ readTeXMath str
+inlineToRTF (Cite _ lst) = inlineListToRTF lst
 inlineToRTF (TeX _) = ""
 inlineToRTF (HtmlInline _) = ""
 inlineToRTF (LineBreak) = "\\line "

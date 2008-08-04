@@ -260,6 +260,7 @@ inlineListToIdentifier' (x:xs) =
           Subscript lst  -> inlineListToIdentifier' lst
           Strong lst     -> inlineListToIdentifier' lst
           Quoted _ lst   -> inlineListToIdentifier' lst
+          Cite   _ lst   -> inlineListToIdentifier' lst
           Code s         -> s
           Space          -> "-"
           EmDash         -> "-"
@@ -502,6 +503,7 @@ inlineToHtml opts inline =
                                           theclass "footnoteRef",
                                           identifier ("fnref" ++ ref)] << 
                                           sup << ref
+    (Cite _ il)  -> inlineListToHtml opts il
 
 blockListToNote :: WriterOptions -> String -> [Block] -> State WriterState Html
 blockListToNote opts ref blocks =
