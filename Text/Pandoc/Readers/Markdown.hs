@@ -1177,14 +1177,14 @@ chkCit t = do
                 else return $ Nothing
 
 citeMarker :: GenParser Char ParserState String
-citeMarker = string "[" >> manyTill (noneOf "\t\n") (string "]")
+citeMarker = string "[" >> manyTill anyChar (try $ string "]")
 
 parseCitation :: GenParser Char ParserState [(String,String)]
 parseCitation = try $ sepBy (parseLabel) (oneOf ";")
 
 parseLabel :: GenParser Char ParserState (String,String)
 parseLabel = try $ do
-  res <- sepBy (skipSpaces >> many1 (noneOf "@;\n\t")) (oneOf "@")
+  res <- sepBy (skipMany (oneOf "\t\n ") >> many1 (noneOf "@;")) (oneOf "@")
   case res of
     [lab,loc] -> return (lab, loc)
     [lab]     -> return (lab, "" )
