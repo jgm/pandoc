@@ -71,6 +71,6 @@ getCite i | Cite t _ <- i = [t]
           | otherwise     = []
 
 getRefs :: [Reference] -> [Target] -> [Reference]
-getRefs r = map $ getReference r
+getRefs = map . getReference
 
 #endif
