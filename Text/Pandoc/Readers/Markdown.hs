@@ -1173,18 +1173,18 @@ chkCit t = do
   case lookupKeySrc (stateKeys st) [Str $ fst t] of
      Just  _ -> fail "This is a link"
      Nothing -> if elem (fst t) $ stateCitations st
-                then return $ Just t
-                else return $ Nothing
+                   then return $ Just t
+                   else return $ Nothing
 
 citeMarker :: GenParser Char ParserState String
-citeMarker = string "[" >> manyTill anyChar (try $ string "]")
+citeMarker = char '[' >> manyTill ( noneOf "\n" <|> (newline >>~ notFollowedBy blankline) ) (char ']')
 
 parseCitation :: GenParser Char ParserState [(String,String)]
 parseCitation = try $ sepBy (parseLabel) (oneOf ";")
 
 parseLabel :: GenParser Char ParserState (String,String)
 parseLabel = try $ do
-  res <- sepBy (skipMany (oneOf "\t\n ") >> many1 (noneOf "@;")) (oneOf "@")
+  res <- sepBy (skipSpaces >> optional newline >> skipSpaces >> many1 (noneOf "@;")) (oneOf "@")
   case res of
     [lab,loc] -> return (lab, loc)
     [lab]     -> return (lab, "" )
