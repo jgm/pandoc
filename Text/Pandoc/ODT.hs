@@ -43,11 +43,11 @@ import Network.URI ( isURI )
 import qualified Data.ByteString as B ( writeFile, pack )
 import Data.ByteString.Internal ( c2w )
 import Prelude hiding ( writeFile, readFile )
-#ifdef _UTF8
-import System.IO.UTF8
 import System.IO ( stderr )
+#ifdef _UTF8STRING
+import System.IO.UTF8
 #else
-import System.IO
+import Text.Pandoc.UTF8
 #endif
 
 -- | Produce an ODT file from OpenDocument XML.

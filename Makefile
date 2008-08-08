@@ -120,13 +120,6 @@ cleanup_files+=$(WRAPPERS)
 $(WRAPPERS): %: $(SRCDIR)/wrappers/%.in $(SRCDIR)/wrappers/*.sh
 	@$(generate-shell-script)
 
-CABAL_BACKUP=$(CABAL).orig
-$(CABAL_BACKUP):
-	cp $(CABAL) $(CABAL_BACKUP) ; \
-	if echo $(GHC_VERSION) | grep -q '^6.6'; then \
-		cp $(CABAL).ghc66 $(CABAL); \
-	fi
-
 .PHONY: configure
 cleanup_files+=Setup.hi Setup.o $(BUILDCMD) $(BUILDVARS)
 ifdef GHC_PKG

@@ -41,11 +41,11 @@ import System.Console.GetOpt
 import Data.Maybe ( fromMaybe )
 import Data.Char ( toLower )
 import Prelude hiding ( putStrLn, writeFile, readFile, getContents )
-#ifdef _UTF8
-import System.IO.UTF8
 import System.IO ( stdout, stderr )
+#ifdef _UTF8STRING
+import System.IO.UTF8
 #else
-import System.IO
+import Text.Pandoc.UTF8
 #endif
 #ifdef _CITEPROC
 import Text.CSL
@@ -60,10 +60,10 @@ copyrightMessage = "\nCopyright (C) 2006-7 John MacFarlane\n" ++
 
 compileInfo :: String
 compileInfo =
-#ifdef _UTF8
-  " +utf8" ++
+#ifdef _UTF8STRING
+  " +utf8-string" ++
 #else
-  " -utf8" ++
+  " -utf8-string" ++
 #endif
 #ifdef _CITEPROC
   " +citeproc" ++

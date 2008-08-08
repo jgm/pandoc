@@ -1,43 +1,32 @@
 % Installing pandoc
 
-Installing from Source
-======================
+Installing pandoc from Source
+=============================
 
-This method will work on all architectures, but requires that you first
-install the GHC compiler and some build tools: [GNU `make`], `sed`,
-`bash`, and `perl`. These are standard on unix systems (including MacOS
-X). If you're using Windows, you can install [Cygwin].
-
-[Cygwin]: http://www.cygwin.com/
-[GNU `make`]: http://www.gnu.org/software/make/
+This method will work on all architectures for which the GHC compiler
+is available.
 
 Installing GHC
 --------------
 
-To compile Pandoc, you'll need [GHC] version 6.6 or greater and [Cabal]
-version 1.2 or greater. If you don't have GHC already, you can get it
-from the [GHC Download] page. If you're compiling GHC from source, be
-sure to get the `extralibs` in addition to the base tarball. GHC comes
-with a version of Cabal. Note, however, that the version of Cabal that
-comes with GHC 6.6 is not recent enough. So if you are using GHC 6.6,
-you'll probably need to [install Cabal] separately. You can check your
-Cabal version using `ghc-pkg list`.
+To compile Pandoc, you'll need [GHC] version 6.8 or greater. If you
+don't have GHC already, you can get it from the [GHC Download] page.
+If you're compiling GHC from source, be sure to get the `extralibs`
+in addition to the base tarball. Pandoc requires Cabal version 1.2 or
+greater. If your GHC comes with an older version of Cabal, you'll need
+to to [install Cabal] separately. You can check your Cabal version using
+`ghc-pkg list`.
 
-If you're running MacOS X, it may be more convenient to install GHC
-using [MacPorts] or [Fink].
+If you're running MacOS X, you can also install GHC using [MacPorts] or [Fink].
 
 If you're on a [debian]-based linux system (such as [Ubuntu]), you can get
 GHC and the required libraries using `apt-get`:
     
-    sudo apt-get install ghc6 libghc6-xhtml-dev libghc6-mtl-dev libghc6-network-dev libghc6-utf8-string-dev
+    sudo apt-get install ghc6 libghc6-xhtml-dev libghc6-mtl-dev libghc6-network-dev
 
-Otherwise, you should already have all the libraries you need except for
-`utf8-string`. Download the [utf8-string] tarball from HackageDB, extract it, and
-switch to that directory. Then:
-
-    runghc Setup.lhs configure
-    runghc Setup.lhs build
-    sudo runghc Setup.lhs install
+Pandoc will use the [utf8-string] library if it is installed; otherwise, it
+will use its own internal module for UTF-8 I/O.  The utf8-string library is
+not a required dependency, but it may improve performance slightly.
 
 [GHC]: http://www.haskell.org/ghc/
 [GHC Download]: http://www.haskell.org/ghc/download.html
@@ -52,15 +41,23 @@ switch to that directory. Then:
 Getting the source
 ------------------
 
-Download the source tarball from pandoc's [pandoc's google code site].
+Download the source tarball from [pandoc's google code site].
 Extract the contents into a subdirectory:
 
-    tar xvzf pandoc-0.xy.tar.gz
+    tar xvzf pandoc-x.y.tar.gz
 
 [pandoc's google code site]: http://pandoc.googlecode.com
 
-Installing Pandoc
------------------
+Now choose one of the following methods for compiling and installing
+pandoc. If you are on a linux or unix-based system, you can [install
+pandoc using Make]. If not, you should [install pandoc using Cabal].
+
+[install pandoc using Make]: #installing-pandoc-using-make
+[install pandoc using Cabal]: #installing-pandoc-using-cabal
+[build options]: #build-options
+
+Installing Pandoc using Make
+----------------------------
 
 1.  Change to the directory containing the Pandoc distribution.
 
@@ -109,20 +106,26 @@ Installing Pandoc
 
     Note that building the library documentation requires [haddock].
 
+6.  If you decide you don't want pandoc on your system, each of the
+    installation steps described above can be reversed:
+
+        sudo make uninstall
+
+        PREFIX=~ make uninstall-exec
+
+        sudo make uninstall-all
+
 [haddock]: http://www.haskell.org/haddock/ 
 
 Installing pandoc using Cabal
 -----------------------------
 
-Pandoc can also be installed using the standard Haskell packaging tool,
-[Cabal](http://www.haskell.org/cabal/).  You'll need GHC 6.6 or greater
-and Cabal 1.2 or greater (see [Installing GHC](#installing-ghc), above).
-Just download the source tarball, unpack, and type:
+Change to the directory containing the pandoc source, and type:
 
     runhaskell Setup.hs configure
     runhaskell Setup.hs build
     runhaskell Setup.hs haddock  # optional, to build library documentation
-    runhaskell Setup.hs install  # this one as root
+    runhaskell Setup.hs install  # this one as root or sudo
 
 This will install the pandoc executable and the Haskell libraries,
 but not the shell scripts, man pages, or other documentation.
@@ -134,19 +137,17 @@ flag):
     runhaskell Setup.hs configure -f-library      # just the executable
     runhaskell Setup.hs configure -f-executable   # just the libraries
 
-Note:  If you are using GHC 6.6.*, you will need to start by
-replacing `pandoc.cabal` with a version suitable for GHC 6.6:
+You can also specify the directory tree into which pandoc will be
+installed using the `--prefix=` option to `configure`.  For more details,
+see the [Cabal User's Guide].
 
-    cp pandoc.cabal pandoc.cabal.orig
-    cp pandoc.cabal.ghc66 pandoc.cabal
+[Cabal User's Guide]: http://www.haskell.org/cabal/release/latest/doc/users-guide/builders.html#setup-configure-paths
 
 Optional syntax highlighting support
 ------------------------------------
 
 Pandoc can optionally be compiled with support for syntax highlighting of
 delimited code blocks.  This feature requires the [`highlighting-kate` library].
-It also requires Cabal version 1.2 or greater.
-
 If you are using Cabal to compile pandoc, specify the `highlighting` flag in
 the configure step:
 
@@ -161,17 +162,6 @@ If you have already built pandoc, you may need to do a `make clean` or
 
 [`highlighting-kate` library]: http://johnmacfarlane.net/highlighting-kate
 
-Removing Pandoc
----------------
-
-Each of the installation steps described above can be reversed:
-
-    sudo make uninstall
-
-    PREFIX=~ make uninstall-exec
-
-    sudo make uninstall-all
-
 Other targets
 -------------
 
@@ -180,11 +170,7 @@ but are documented here for packagers and developers:
 
 ### Building and installing
 
-* `configure`:  Performs the needed preprocessing to create a proper
-  Cabal package for Pandoc:
-    - Builds `ASCIIMathML.hs`, `DefaultHeaders.hs`, and `S5.hs`
-      from templates in `src/templates` and data in `src/ASCIIMathML.js`,
-      `src/ui`, and `src/headers`.
+* `configure`:
     - Stores values of relevant environment variables in `vars` for
       persistence.
     - Runs Cabal's "configure" command.
@@ -204,7 +190,7 @@ but are documented here for packagers and developers:
 
 * `test`:  Runs Pandoc's test suite.  (All tests should pass.)
 * `test-markdown`:  Runs the Markdown regression test suite, using
-  `pandoc --strict`.  (Three of the tests will fail.)
+  `pandoc --strict`.  (One test will fail.)
 
 ### Cleaning
 
@@ -245,14 +231,12 @@ Extract the files from the archive, and put `pandoc.exe` somewhere
 in your PATH.
 
 Note that the Windows binary distribution does not include the shell
-scripts `markdown2pdf`, `html2markdown`, or `hsmarkdown`.  If you need
-these, compile from source.
+scripts `markdown2pdf`, `html2markdown`, or `hsmarkdown`.
 
 Installing pandoc on Debian
 ===========================
 
-Pandoc is now in the debian unstable archive, and can be installed
-using `apt-get` (as root):
+Pandoc is now in the debian archives, and can be installed using `apt-get` (as root):
 
     apt-get install pandoc               # the program, shell scripts, and docs
     apt-get install libghc6-pandoc-dev   # the libraries

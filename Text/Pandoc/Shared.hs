@@ -116,11 +116,11 @@ import Network.URI ( parseURI, URI (..), isAllowedInURI )
 import System.FilePath ( (</>), (<.>) )
 import System.IO.Error ( catch, ioError, isAlreadyExistsError )
 import System.Directory
-import Prelude hiding ( putStrLn )
-#ifdef _UTF8
+import Prelude hiding ( putStrLn, writeFile, readFile, getContents )
+#ifdef _UTF8STRING
 import System.IO.UTF8
 #else
-import System.IO
+import Text.Pandoc.UTF8
 #endif
 
 --

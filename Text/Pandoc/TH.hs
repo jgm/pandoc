@@ -39,10 +39,10 @@ import Language.Haskell.TH.Syntax (Lift (..))
 import qualified Data.ByteString as B
 import Data.ByteString.Internal ( w2c )
 import Prelude hiding ( readFile )
-#ifdef _UTF8
+#ifdef _UTF8STRING
 import System.IO.UTF8
 #else
-import System.IO
+import Text.Pandoc.UTF8
 #endif
 
 -- | Insert contents of text file into a template.

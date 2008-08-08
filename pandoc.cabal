@@ -64,8 +64,8 @@ Flag executable
 Flag library
   Description:   Build the pandoc library.
   Default:       True
-Flag utf8
-  Description:   Compile in support for UTF-8 input and output.
+Flag utf8-string
+  Description:   Use utf8-string library for UTF-8 I/O.
   Default:       True
 Flag citeproc
   Description:   Compile in support for citeproc-hs bibliographic formatting.
@@ -79,9 +79,11 @@ Library
   if flag(highlighting)
     Build-depends: highlighting-kate
     cpp-options:   -D_HIGHLIGHTING
-  if flag(utf8)
+  if flag(utf8-string)
     Build-depends: utf8-string
-    cpp-options:   -D_UTF8
+    cpp-options:   -D_UTF8STRING
+  else
+    Other-Modules: Text.Pandoc.UTF8
   if flag(citeproc)
     Build-depends: citeproc-hs
     cpp-options:   -D_CITEPROC
@@ -141,8 +143,11 @@ Executable pandoc
 
   if flag(highlighting)
     cpp-options:   -D_HIGHLIGHTING
-  if flag(utf8)
-    cpp-options:   -D_UTF8
+  if flag(utf8-string)
+    Build-depends: utf8-string
+    cpp-options:   -D_UTF8STRING
+  else
+    Other-Modules: Text.Pandoc.UTF8
   if flag(citeproc)
     Build-depends: citeproc-hs
     cpp-options:   -D_CITEPROC
