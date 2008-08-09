@@ -90,14 +90,6 @@ all: build-program
 	sh ./markdown2pdf $< || rm -f $@
 %.txt: %
 	perl -p -e 's/\n/\r\n/' $< > $@ || rm -f $@ # convert to DOS line endings
-%.1: %.1.md $(MAIN)
-	./$(MAIN) -s -S -w man $< >$@ || rm -f $@
-
-cleanup_files+=$(ODTREF)
-$(ODTREF): $(addprefix $(ODTSTYLES)/, meta.xml styles.xml content.xml mimetype \
-                                     settings.xml Thumbnails META-INF)
-	cd $(ODTSTYLES) ; \
-	zip -9 -q -r $(notdir $@) * -x $(notdir $@)
 
 .PHONY: configure
 cleanup_files+=Setup.hi Setup.o $(BUILDCMD) $(BUILDVARS)
@@ -272,10 +264,8 @@ tarball:=$(PKGID).tar.gz
 cleanup_files+=$(tarball)
 tarball: $(tarball)
 $(tarball):
-	svn export . $(PKGID)
-	$(MAKE) -C $(PKGID) wrappers
-	tar cvzf $(tarball) $(PKGID)
-	-rm -rf $(PKGID)
+	$(BUILDCMD) sdist
+	cp $(BUILDDIR)/$(tarball) .
 
 .PHONY: deb
 deb_name:=$(shell grep ^Package debian/control | cut -d' ' -f2 | head -n 1)
