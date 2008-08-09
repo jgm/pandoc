@@ -5,9 +5,6 @@ INSTALL.*
 .configure-stamp
 man/man?/*.1
 man/man?/*.html
-markdown2pdf
-html2markdown
-hsmarkdown
 *.diff
 pandoc.cabal.orig
 

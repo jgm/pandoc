@@ -93,32 +93,11 @@ all: build-program
 %.1: %.1.md $(MAIN)
 	./$(MAIN) -s -S -w man $< >$@ || rm -f $@
 
-define generate-shell-script
-echo >&2 "Generating $@...";                             \
-awk '                                                    \
-	/^[ \t]*###+ / {                                 \
-                lead = $$0; sub(/[^ \t].*$$/, "", lead); \
-		t = "$(dir $<)/"$$2;                     \
-		while (getline line < t > 0)             \
-			print lead line;                 \
-		next;                                    \
-	}                                                \
-	{ print }                                        \
-' <$< >$@
-chmod +x $@
-endef
-
 cleanup_files+=$(ODTREF)
 $(ODTREF): $(addprefix $(ODTSTYLES)/, layout-cache meta.xml styles.xml content.xml mimetype \
                                      settings.xml Configurations2 Thumbnails META-INF)
 	cd $(ODTSTYLES) ; \
 	zip -9 -q -r $(notdir $@) * -x $(notdir $@)
-
-.PHONY: wrappers
-wrappers: $(WRAPPERS)
-cleanup_files+=$(WRAPPERS)
-$(WRAPPERS): %: $(SRCDIR)/wrappers/%.in $(SRCDIR)/wrappers/*.sh
-	@$(generate-shell-script)
 
 .PHONY: configure
 cleanup_files+=Setup.hi Setup.o $(BUILDCMD) $(BUILDVARS)
