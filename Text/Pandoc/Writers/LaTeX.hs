@@ -227,7 +227,7 @@ tableRowToLaTeX cols = mapM blockListToLaTeX cols >>=
   (if isEmpty row then empty else text " & ") <> item) empty
 
 listItemToLaTeX :: [Block] -> State WriterState Doc
-listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item " $$) .
+listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
                       (nest 2)
 
 defListItemToLaTeX :: ([Inline], [Block]) -> State WriterState Doc

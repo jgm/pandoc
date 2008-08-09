@@ -221,7 +221,7 @@ tableRowToConTeXt cols = do
 
 listItemToConTeXt :: [Block] -> State WriterState Doc
 listItemToConTeXt list = blockListToConTeXt list >>=
-  return . (text "\\item " $$) . (nest 2)
+  return . (text "\\item" $$) . (nest 2)
 
 defListItemToConTeXt :: ([Inline], [Block]) -> State WriterState BlockWrapper
 defListItemToConTeXt (term, def) = do
