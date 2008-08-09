@@ -94,8 +94,8 @@ all: build-program
 	./$(MAIN) -s -S -w man $< >$@ || rm -f $@
 
 cleanup_files+=$(ODTREF)
-$(ODTREF): $(addprefix $(ODTSTYLES)/, layout-cache meta.xml styles.xml content.xml mimetype \
-                                     settings.xml Configurations2 Thumbnails META-INF)
+$(ODTREF): $(addprefix $(ODTSTYLES)/, meta.xml styles.xml content.xml mimetype \
+                                     settings.xml Thumbnails META-INF)
 	cd $(ODTSTYLES) ; \
 	zip -9 -q -r $(notdir $@) * -x $(notdir $@)
 
