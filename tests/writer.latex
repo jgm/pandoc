@@ -83,9 +83,9 @@ sub status {
 A list:
 
 \begin{enumerate}[1.]
-\item 
+\item
   item one
-\item 
+\item
   item two
 \end{enumerate}
 Nested block quotes:
@@ -134,69 +134,69 @@ These should not be escaped:  \$ \\ \> \[ \{
 Asterisks tight:
 
 \begin{itemize}
-\item 
+\item
   asterisk 1
-\item 
+\item
   asterisk 2
-\item 
+\item
   asterisk 3
 \end{itemize}
 Asterisks loose:
 
 \begin{itemize}
-\item 
+\item
   asterisk 1
 
-\item 
+\item
   asterisk 2
 
-\item 
+\item
   asterisk 3
 
 \end{itemize}
 Pluses tight:
 
 \begin{itemize}
-\item 
+\item
   Plus 1
-\item 
+\item
   Plus 2
-\item 
+\item
   Plus 3
 \end{itemize}
 Pluses loose:
 
 \begin{itemize}
-\item 
+\item
   Plus 1
 
-\item 
+\item
   Plus 2
 
-\item 
+\item
   Plus 3
 
 \end{itemize}
 Minuses tight:
 
 \begin{itemize}
-\item 
+\item
   Minus 1
-\item 
+\item
   Minus 2
-\item 
+\item
   Minus 3
 \end{itemize}
 Minuses loose:
 
 \begin{itemize}
-\item 
+\item
   Minus 1
 
-\item 
+\item
   Minus 2
 
-\item 
+\item
   Minus 3
 
 \end{itemize}
@@ -205,75 +205,75 @@ Minuses loose:
 Tight:
 
 \begin{enumerate}[1.]
-\item 
+\item
   First
-\item 
+\item
   Second
-\item 
+\item
   Third
 \end{enumerate}
 and:
 
 \begin{enumerate}[1.]
-\item 
+\item
   One
-\item 
+\item
   Two
-\item 
+\item
   Three
 \end{enumerate}
 Loose using tabs:
 
 \begin{enumerate}[1.]
-\item 
+\item
   First
 
-\item 
+\item
   Second
 
-\item 
+\item
   Third
 
 \end{enumerate}
 and using spaces:
 
 \begin{enumerate}[1.]
-\item 
+\item
   One
 
-\item 
+\item
   Two
 
-\item 
+\item
   Three
 
 \end{enumerate}
 Multiple paragraphs:
 
 \begin{enumerate}[1.]
-\item 
+\item
   Item 1, graf one.
 
   Item 1. graf two. The quick brown fox jumped over the lazy dog's
   back.
 
-\item 
+\item
   Item 2.
 
-\item 
+\item
   Item 3.
 
 \end{enumerate}
 \subsection{Nested}
 
 \begin{itemize}
-\item 
+\item
   Tab
   \begin{itemize}
-  \item 
+  \item
     Tab
     \begin{itemize}
-    \item 
+    \item
       Tab
     \end{itemize}
   \end{itemize}
@@ -281,56 +281,56 @@ Multiple paragraphs:
 Here's another:
 
 \begin{enumerate}[1.]
-\item 
+\item
   First
-\item 
+\item
   Second:
   \begin{itemize}
-  \item 
+  \item
     Fee
-  \item 
+  \item
     Fie
-  \item 
+  \item
     Foe
   \end{itemize}
-\item 
+\item
   Third
 \end{enumerate}
 Same thing but with paragraphs:
 
 \begin{enumerate}[1.]
-\item 
+\item
   First
 
-\item 
+\item
   Second:
 
   \begin{itemize}
-  \item 
+  \item
     Fee
-  \item 
+  \item
     Fie
-  \item 
+  \item
     Foe
   \end{itemize}
-\item 
+\item
   Third
 
 \end{enumerate}
 \subsection{Tabs and spaces}
 
 \begin{itemize}
-\item 
+\item
   this is a list item indented with tabs
 
-\item 
+\item
   this is a list item indented with spaces
 
   \begin{itemize}
-  \item 
+  \item
     this is an example list item indented with tabs
 
-  \item 
+  \item
     this is an example list item indented with spaces
 
   \end{itemize}
@@ -339,23 +339,23 @@ Same thing but with paragraphs:
 
 \begin{enumerate}[(1)]
 \setcounter{enumi}{1}
-\item 
+\item
   begins with 2
-\item 
+\item
   and now 3
 
   with a continuation
 
   \begin{enumerate}[i.]
   \setcounter{enumii}{3}
-  \item 
+  \item
     sublist with roman numerals, starting with 4
-  \item 
+  \item
     more items
     \begin{enumerate}[(A)]
-    \item 
+    \item
       a subsublist
-    \item 
+    \item
       a subsublist
     \end{enumerate}
   \end{enumerate}
@@ -363,18 +363,18 @@ Same thing but with paragraphs:
 Nesting:
 
 \begin{enumerate}[A.]
-\item 
+\item
   Upper Alpha
   \begin{enumerate}[I.]
-  \item 
+  \item
     Upper Roman.
     \begin{enumerate}[(1)]
     \setcounter{enumiii}{5}
-    \item 
+    \item
       Decimal start with 6
       \begin{enumerate}[a)]
       \setcounter{enumiv}{2}
-      \item 
+      \item
         Lower alpha with paren
       \end{enumerate}
     \end{enumerate}
@@ -383,12 +383,12 @@ Nesting:
 Autonumbering:
 
 \begin{enumerate}
-\item 
+\item
   Autonumber.
-\item 
+\item
   More.
   \begin{enumerate}
-  \item 
+  \item
     Nested.
   \end{enumerate}
 \end{enumerate}
@@ -562,37 +562,37 @@ Ellipses\ldots{}and\ldots{}and\ldots{}.
 \section{LaTeX}
 
 \begin{itemize}
-\item 
+\item
   \cite[22-23]{smith.1899}
-\item 
+\item
   \doublespacing
-\item 
+\item
   $2+2=4$
-\item 
+\item
   $x \in y$
-\item 
+\item
   $\alpha \wedge \omega$
-\item 
+\item
   $223$
-\item 
+\item
   $p$-Tree
-\item 
+\item
   $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$
-\item 
+\item
   Here's one that has a line break in it:
   $\alpha + \omega \times x^2$.
 \end{itemize}
 These shouldn't be math:
 
 \begin{itemize}
-\item 
+\item
   To get the famous equation, write \verb!$e = mc^2$!.
-\item 
+\item
   \$22,000 is a \emph{lot} of money. So is \$34,000. (It worked if
   ``lot'' is emphasized.)
-\item 
+\item
   Shoes (\$20) and socks (\$5).
-\item 
+\item
   Escaped \verb!$!: \$73 \emph{this should be emphasized} 23\$.
 \end{itemize}
 Here's a LaTeX table:
@@ -610,15 +610,15 @@ Cat    & 1      \\ \hline
 Here is some unicode:
 
 \begin{itemize}
-\item 
+\item
   I hat: Î
-\item 
+\item
   o umlaut: ö
-\item 
+\item
   section: §
-\item 
+\item
   set membership: ∈
-\item 
+\item
   copyright: ©
 \end{itemize}
 AT\&T has an ampersand in their name.
@@ -732,11 +732,11 @@ Here's an
 With an ampersand: \url{http://example.com/?foo=1&bar=2}
 
 \begin{itemize}
-\item 
+\item
   In a list?
-\item 
+\item
   \url{http://example.com/}
-\item 
+\item
   It should.
 \end{itemize}
 An e-mail address:
@@ -791,7 +791,7 @@ Notes can go in quotes.%
 
 \end{quote}
 \begin{enumerate}[1.]
-\item 
+\item
   And in list items.%
   \footnote{In list.}
 \end{enumerate}

@@ -139,9 +139,9 @@ sub status {
 A list:
 
 \startitemize[n][stopper=.]
-\item 
+\item
   item one
-\item 
+\item
   item two
 \stopitemize
 
@@ -193,66 +193,66 @@ These should not be escaped:  \$ \\ \> \[ \{
 Asterisks tight:
 
 \startitemize
-\item 
+\item
   asterisk 1
-\item 
+\item
   asterisk 2
-\item 
+\item
   asterisk 3
 \stopitemize
 
 Asterisks loose:
 
 \startitemize
-\item 
+\item
   asterisk 1
-\item 
+\item
   asterisk 2
-\item 
+\item
   asterisk 3
 \stopitemize
 
 Pluses tight:
 
 \startitemize
-\item 
+\item
   Plus 1
-\item 
+\item
   Plus 2
-\item 
+\item
   Plus 3
 \stopitemize
 
 Pluses loose:
 
 \startitemize
-\item 
+\item
   Plus 1
-\item 
+\item
   Plus 2
-\item 
+\item
   Plus 3
 \stopitemize
 
 Minuses tight:
 
 \startitemize
-\item 
+\item
   Minus 1
-\item 
+\item
   Minus 2
-\item 
+\item
   Minus 3
 \stopitemize
 
 Minuses loose:
 
 \startitemize
-\item 
+\item
   Minus 1
-\item 
+\item
   Minus 2
-\item 
+\item
   Minus 3
 \stopitemize
 
@@ -261,71 +261,71 @@ Minuses loose:
 Tight:
 
 \startitemize[n][stopper=.]
-\item 
+\item
   First
-\item 
+\item
   Second
-\item 
+\item
   Third
 \stopitemize
 
 and:
 
 \startitemize[n][stopper=.]
-\item 
+\item
   One
-\item 
+\item
   Two
-\item 
+\item
   Three
 \stopitemize
 
 Loose using tabs:
 
 \startitemize[n][stopper=.]
-\item 
+\item
   First
-\item 
+\item
   Second
-\item 
+\item
   Third
 \stopitemize
 
 and using spaces:
 
 \startitemize[n][stopper=.]
-\item 
+\item
   One
-\item 
+\item
   Two
-\item 
+\item
   Three
 \stopitemize
 
 Multiple paragraphs:
 
 \startitemize[n][stopper=.]
-\item 
+\item
   Item 1, graf one.
   
   Item 1. graf two. The quick brown fox jumped over the lazy dog's
   back.
-\item 
+\item
   Item 2.
-\item 
+\item
   Item 3.
 \stopitemize
 
 \subsubject{Nested}
 
 \startitemize
-\item 
+\item
   Tab
   \startitemize
-  \item 
+  \item
     Tab
     \startitemize
-    \item 
+    \item
       Tab
     \stopitemize
   \stopitemize
@@ -334,54 +334,54 @@ Multiple paragraphs:
 Here's another:
 
 \startitemize[n][stopper=.]
-\item 
+\item
   First
-\item 
+\item
   Second:
   \startitemize
-  \item 
+  \item
     Fee
-  \item 
+  \item
     Fie
-  \item 
+  \item
     Foe
   \stopitemize
-\item 
+\item
   Third
 \stopitemize
 
 Same thing but with paragraphs:
 
 \startitemize[n][stopper=.]
-\item 
+\item
   First
-\item 
+\item
   Second:
   
   \startitemize
-  \item 
+  \item
     Fee
-  \item 
+  \item
     Fie
-  \item 
+  \item
     Foe
   \stopitemize
-\item 
+\item
   Third
 \stopitemize
 
 \subsubject{Tabs and spaces}
 
 \startitemize
-\item 
+\item
   this is a list item indented with tabs
-\item 
+\item
   this is a list item indented with spaces
   
   \startitemize
-  \item 
+  \item
     this is an example list item indented with tabs
-  \item 
+  \item
     this is an example list item indented with spaces
   \stopitemize
 \stopitemize
@@ -389,22 +389,22 @@ Same thing but with paragraphs:
 \subsubject{Fancy list markers}
 
 \startitemize[n][start=2,left=(,stopper=),width=2.0em]
-\item 
+\item
   begins with 2
-\item 
+\item
   and now 3
   
   with a continuation
   
   \startitemize[r][start=4,stopper=.,width=2.0em]
-  \item 
+  \item
     sublist with roman numerals, starting with 4
-  \item 
+  \item
     more items
     \startitemize[A][left=(,stopper=),width=2.0em]
-    \item 
+    \item
       a subsublist
-    \item 
+    \item
       a subsublist
     \stopitemize
   \stopitemize
@@ -413,16 +413,16 @@ Same thing but with paragraphs:
 Nesting:
 
 \startitemize[A][stopper=.]
-\item 
+\item
   Upper Alpha
   \startitemize[R][stopper=.]
-  \item 
+  \item
     Upper Roman.
     \startitemize[n][start=6,left=(,stopper=),width=2.0em]
-    \item 
+    \item
       Decimal start with 6
       \startitemize[a][start=3,stopper=)]
-      \item 
+      \item
         Lower alpha with paren
       \stopitemize
     \stopitemize
@@ -432,12 +432,12 @@ Nesting:
 Autonumbering:
 
 \startitemize[n]
-\item 
+\item
   Autonumber.
-\item 
+\item
   More.
   \startitemize[a]
-  \item 
+  \item
     Nested.
   \stopitemize
 \stopitemize
@@ -624,20 +624,68 @@ Ellipses\ldots{}and\ldots{}and\ldots{}.
 
 \thinrule
 
+\subject{LaTeX}
+
+\startitemize
+\item
+  \cite[22-23]{smith.1899}
+\item
+  \doublespacing
+\item
+  $2+2=4$
+\item
+  $x \in y$
+\item
+  $\alpha \wedge \omega$
+\item
+  $223$
+\item
+  $p$-Tree
+\item
+  $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$
+\item
+  Here's one that has a line break in it:
+  $\alpha + \omega \times x^2$.
+\stopitemize
+
+These shouldn't be math:
+
+\startitemize
+\item
+  To get the famous equation, write \type{$e = mc^2$}.
+\item
+  \$22,000 is a {\em lot} of money. So is \$34,000. (It worked if
+  \quotation{lot} is emphasized.)
+\item
+  Shoes (\$20) and socks (\$5).
+\item
+  Escaped \type{$}: \$73 {\em this should be emphasized} 23\$.
+\stopitemize
+
+Here's a LaTeX table:
+
+\begin{tabular}{|l|l|}\hline
+Animal & Number \\ \hline
+Dog    & 2      \\
+Cat    & 1      \\ \hline
+\end{tabular}
+
+\thinrule
+
 \subject{Special Characters}
 
 Here is some unicode:
 
 \startitemize
-\item 
+\item
   I hat: Î
-\item 
+\item
   o umlaut: ö
-\item 
+\item
   section: §
-\item 
+\item
   set membership: ∈
-\item 
+\item
   copyright: ©
 \stopitemize
 
@@ -754,11 +802,11 @@ With an ampersand:
 \useURL[27][http://example.com/?foo=1&bar=2][][http://example.com/?foo=1\&bar=2]\from[27]
 
 \startitemize
-\item 
+\item
   In a list?
-\item 
+\item
   \useURL[28][http://example.com/][][http://example.com/]\from[28]
-\item 
+\item
   It should.
 \stopitemize
 
@@ -826,7 +874,7 @@ Notes can go in quotes.
 \stopblockquote
 
 \startitemize[n][stopper=.]
-\item 
+\item
   And in list items.
   \footnote{In list.}
 \stopitemize

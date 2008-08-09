@@ -1,7 +1,7 @@
 Name:            pandoc
 Version:         0.47
 Cabal-Version:   >= 1.2
-Build-Type:      Simple
+Build-Type:      Custom
 License:         GPL
 License-File:    COPYING
 Copyright:       (c) 2006-2008 John MacFarlane

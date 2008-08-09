@@ -758,6 +758,135 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     </variablelist>
   </section>
   <section>
+    <title>HTML Blocks</title>
+    <para>
+      Simple block on one line:
+    </para>
+    <div>
+    foo
+    </div>
+
+    <para>
+      And nested without indentation:
+    </para>
+    <div>
+<div>
+<div>
+    foo
+    </div>
+</div>
+<div>
+    bar
+    </div>
+</div>
+
+    <para>
+      Interpreted markdown in a table:
+    </para>
+    <table>
+<tr>
+<td>
+    This is <emphasis>emphasized</emphasis>
+    </td>
+<td>
+    And this is <emphasis role="strong">strong</emphasis>
+    </td>
+</tr>
+</table>
+
+<script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
+
+    <para>
+      Here's a simple block:
+    </para>
+    <div>
+    
+    foo
+    </div>
+
+    <para>
+      This should be a code block, though:
+    </para>
+    <screen>
+&lt;div&gt;
+    foo
+&lt;/div&gt;
+</screen>
+    <para>
+      As should this:
+    </para>
+    <screen>
+&lt;div&gt;foo&lt;/div&gt;
+</screen>
+    <para>
+      Now, nested:
+    </para>
+    <div>
+    <div>
+        <div>
+            
+    foo
+    </div>
+    </div>
+</div>
+
+    <para>
+      This should just be an HTML comment:
+    </para>
+    <!-- Comment -->
+
+    <para>
+      Multiline:
+    </para>
+    <!--
+Blah
+Blah
+-->
+
+<!--
+    This is another comment.
+-->
+
+    <para>
+      Code block:
+    </para>
+    <screen>
+&lt;!-- Comment --&gt;
+</screen>
+    <para>
+      Just plain comment, with trailing spaces on the line:
+    </para>
+    <!-- foo -->   
+
+    <para>
+      Code:
+    </para>
+    <screen>
+&lt;hr /&gt;
+</screen>
+    <para>
+      Hr's:
+    </para>
+    <hr>
+
+<hr />
+
+<hr />
+
+<hr>   
+
+<hr />  
+
+<hr /> 
+
+<hr class="foo" id="bar" />
+
+<hr class="foo" id="bar" />
+
+<hr class="foo" id="bar">
+
+  </section>
+  <section>
     <title>Inline Markup</title>
     <para>
       This is <emphasis>emphasized</emphasis>, and so

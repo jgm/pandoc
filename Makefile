@@ -267,7 +267,7 @@ $(win_pkg_name): $(PKG).exe $(win_docs)
 
 .PHONY: test test-markdown
 test: $(MAIN)
-	@cd $(TESTDIR) && perl runtests.pl -s $(PWD)/$(MAIN)
+	$(BUILDCMD) test
 compat:=$(PWD)/hsmarkdown
 markdown_test_dirs:=$(wildcard $(TESTDIR)/MarkdownTest_*)
 test-markdown: $(MAIN) $(compat)
