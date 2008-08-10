@@ -34,7 +34,6 @@ PROGS     := $(EXECS) $(WRAPPERS)
 MAIN      := $(firstword $(EXECS))
 DOCS      := README.html README BUGS
 MANPAGES  := $(patsubst %.md,%,$(wildcard $(MANDIR)/man?/*.?.md))
-ODTREF    := $(ODTSTYLES)/reference.odt
 
 #-------------------------------------------------------------------------------
 # Variables to setup through environment
@@ -102,7 +101,7 @@ templates=$(wildcard templates/*.* templates/headers/*.* templates/ui/default/*.
 configure: $(BUILDCONF)
 $(BUILDCMD): Setup.hs
 	$(GHC) -package Cabal Setup.hs -o $(BUILDCMD)
-$(BUILDCONF): $(CABAL) $(CABAL_BACKUP) $(BUILDCMD) $(templates) $(ODTREF)
+$(BUILDCONF): $(CABAL) $(CABAL_BACKUP) $(BUILDCMD) $(templates)
 	$(BUILDCMD) configure --prefix=$(PREFIX) --with-compiler=$(GHC) $(hc_pkg) $(CABALOPTS)
 	@# Make configuration time settings persistent (definitely a hack).
 	@echo "PREFIX?=$(PREFIX)" >$(BUILDVARS)
