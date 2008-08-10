@@ -165,6 +165,7 @@ Library
                    Text.Pandoc.CharacterReferences,
                    Text.Pandoc.Shared,
                    Text.Pandoc.ODT,
+                   Text.Pandoc.PDF,
                    Text.Pandoc.ASCIIMathML,
                    Text.Pandoc.DefaultHeaders,
                    Text.Pandoc.Highlighting,

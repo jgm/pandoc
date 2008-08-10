@@ -20,10 +20,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Main
    Copyright   : Copyright (C) 2006-8 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
-   Stability   : alpha 
+   Stability   : alpha
    Portability : portable
 
 Parses command-line options and calls the appropriate readers and
@@ -32,6 +32,7 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.ODT
+import Text.Pandoc.PDF
 import Text.Pandoc.Shared ( joinWithSep, HTMLMathMethod (..) )
 import Text.Pandoc.Highlighting ( languages )
 import System.Environment ( getArgs, getProgName, getEnvironment )
@@ -98,7 +99,7 @@ readers = [("native"   , readPandoc)
 -- | Reader for native Pandoc format.
 readPandoc :: ParserState -> String -> Pandoc
 readPandoc _ input = read input
-    
+
 -- | Association list of formats and pairs of writers and default headers.
 writers :: [ ( String, ( WriterOptions -> Pandoc -> String, String ) ) ]
 writers = [("native"       , (writeDoc, ""))
@@ -108,6 +109,7 @@ writers = [("native"       , (writeDoc, ""))
           ,("opendocument" , (writeOpenDocument, defaultOpenDocumentHeader))
           ,("odt"          , (writeOpenDocument, defaultOpenDocumentHeader))
           ,("latex"        , (writeLaTeX, defaultLaTeXHeader))
+          ,("pdf"          , (writeLaTeX, defaultLaTeXHeader))
           ,("context"      , (writeConTeXt, defaultConTeXtHeader))
           ,("texinfo"      , (writeTexinfo, ""))
           ,("man"          , (writeMan, ""))
@@ -118,8 +120,7 @@ writers = [("native"       , (writeDoc, ""))
           ]
 
 isNonTextOutput :: String -> Bool
-isNonTextOutput "odt" = True
-isNonTextOutput _     = False
+isNonTextOutput = (`elem` ["odt", "pdf"])
 
 -- | Writer for Pandoc native format.
 writeDoc :: WriterOptions -> Pandoc -> String
@@ -205,7 +206,7 @@ options =
                   (\arg opt -> return opt { optWriter = map toLower arg })
                   "FORMAT")
                  "" -- ("(" ++ (joinWithSep ", " $ map fst writers) ++ ")")
-    
+
     , Option "s" ["standalone"]
                  (NoArg
                   (\opt -> return opt { optStandalone = True }))
@@ -250,7 +251,7 @@ options =
 
     , Option "m" ["asciimathml"]
                  (OptArg
-                  (\arg opt -> return opt { optHTMLMathMethod = 
+                  (\arg opt -> return opt { optHTMLMathMethod =
                                                ASCIIMathML arg })
                   "URL")
                  "" -- "Use ASCIIMathML script in html output"
@@ -290,13 +291,13 @@ options =
     , Option "" ["toc", "table-of-contents"]
                 (NoArg
                  (\opt -> return opt { optTableOfContents = True }))
-               "" -- "Include table of contents" 
+               "" -- "Include table of contents"
 
     , Option "c" ["css"]
                  (ReqArg
-                  (\arg opt -> do 
+                  (\arg opt -> do
                      let old = optCSS opt
-                     return opt { optCSS = old ++ [arg], 
+                     return opt { optCSS = old ++ [arg],
                                   optStandalone = True })
                   "CSS")
                  "" -- "Link to CSS style sheet"
@@ -340,17 +341,17 @@ options =
 
     , Option "T" ["title-prefix"]
                  (ReqArg
-                  (\arg opt -> return opt { optTitlePrefix = arg, 
+                  (\arg opt -> return opt { optTitlePrefix = arg,
                                             optStandalone = True })
                   "STRING")
                  "" -- "String to prefix to HTML window title"
-                 
+
     , Option "D" ["print-default-header"]
                  (ReqArg
                   (\arg _ -> do
                      let header = case (lookup arg writers) of
                            Just (_, h) -> h
-                           Nothing     -> error ("Unknown reader: " ++ arg) 
+                           Nothing     -> error ("Unknown reader: " ++ arg)
                      hPutStr stdout header
                      exitWith ExitSuccess)
                   "FORMAT")
@@ -376,7 +377,7 @@ options =
                  (NoArg
                   (\opt -> return opt { optIgnoreArgs = True }))
                  "" -- "Ignore command-line arguments."
-    
+
     , Option "v" ["version"]
                  (NoArg
                   (\_ -> do
@@ -398,15 +399,15 @@ options =
 -- Returns usage message
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName opts = usageInfo
-  (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++ 
-  (joinWithSep ", " $ map fst readers) ++ "\nOutput formats:  " ++ 
+  (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++
+  (joinWithSep ", " $ map fst readers) ++ "\nOutput formats:  " ++
   (joinWithSep ", " $ map fst writers) ++ "\nOptions:")
   opts
- 
+
 -- Determine default reader based on source file extensions
 defaultReaderName :: [FilePath] -> String
 defaultReaderName [] = "markdown"
-defaultReaderName (x:xs) = 
+defaultReaderName (x:xs) =
   case takeExtension (map toLower x) of
     ".xhtml"    -> "html"
     ".html"     -> "html"
@@ -441,6 +442,7 @@ defaultWriterName x =
     ".texinfo"  -> "texinfo"
     ".db"       -> "docbook"
     ".odt"      -> "odt"
+    ".pdf"      -> "pdf"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
@@ -464,7 +466,7 @@ main = do
     else
       return ()
 
-  let defaultOpts' = if compatMode 
+  let defaultOpts' = if compatMode
                        then defaultOpts { optReader = "markdown"
                                         , optWriter = "html"
                                         , optStrict = True }
@@ -513,11 +515,11 @@ main = do
   let sources = if ignoreArgs then [] else args
 
   -- assign reader and writer based on options and filenames
-  let readerName' = if null readerName 
+  let readerName' = if null readerName
                       then defaultReaderName sources
                       else readerName
 
-  let writerName' = if null writerName 
+  let writerName' = if null writerName
                       then defaultWriterName outputFile
                       else writerName
 
@@ -539,74 +541,76 @@ main = do
                                       -- remove DOS line endings
       tabFilter _ ('\r':'\n':xs) = '\n':(tabFilter tabStop xs)
       tabFilter _ ('\r':xs) = '\n':(tabFilter tabStop xs)
-      tabFilter spsToNextStop ('\t':xs) = 
+      tabFilter spsToNextStop ('\t':xs) =
         if preserveTabs
-           then '\t':(tabFilter tabStop xs) 
-           else replicate spsToNextStop ' ' ++ tabFilter tabStop xs 
-      tabFilter 1 (x:xs) = 
+           then '\t':(tabFilter tabStop xs)
+           else replicate spsToNextStop ' ' ++ tabFilter tabStop xs
+      tabFilter 1 (x:xs) =
         x:(tabFilter tabStop xs)
-      tabFilter spsToNextStop (x:xs) = 
+      tabFilter spsToNextStop (x:xs) =
         x:(tabFilter (spsToNextStop - 1) xs)
 
-  let standalone' = (standalone && not strict) || writerName' == "odt"
+  let standalone' = (standalone && not strict) || isNonTextOutput writerName'
 
 #ifdef _CITEPROC
   refs <- if null modsFile then return [] else readModsColletionFile modsFile
 #endif
 
-  let startParserState = 
+  let startParserState =
          defaultParserState { stateParseRaw     = parseRaw,
-                              stateTabStop      = tabStop, 
+                              stateTabStop      = tabStop,
                               stateSanitizeHTML = sanitize,
                               stateStandalone   = standalone',
 #ifdef _CITEPROC
                               stateCitations    = map citeKey refs,
 #endif
-                              stateSmart        = smart || writerName' `elem` 
+                              stateSmart        = smart || writerName' `elem`
                                                            ["latex", "context"],
                               stateColumns      = columns,
                               stateStrict       = strict }
   let csslink = if null css
                    then ""
-                   else concatMap 
+                   else concatMap
                         (\f -> "<link rel=\"stylesheet\" href=\"" ++
                                f ++ "\" type=\"text/css\" media=\"all\" />\n")
                         css
-  let header = (if (customHeader == "DEFAULT") 
+  let header = (if (customHeader == "DEFAULT")
                    then defaultHeader
                    else customHeader) ++ csslink ++ includeHeader
   let writerOptions = WriterOptions { writerStandalone     = standalone',
-                                      writerHeader         = header, 
+                                      writerHeader         = header,
                                       writerTitlePrefix    = titlePrefix,
-                                      writerTabStop        = tabStop, 
+                                      writerTabStop        = tabStop,
                                       writerTableOfContents = toc &&
                                                               (not strict) &&
                                                               writerName' /= "s5",
                                       writerHTMLMathMethod = mathMethod,
                                       writerS5             = (writerName' == "s5"),
                                       writerIgnoreNotes    = False,
-                                      writerIncremental    = incremental, 
+                                      writerIncremental    = incremental,
                                       writerNumberSections = numberSections,
-                                      writerIncludeBefore  = includeBefore, 
+                                      writerIncludeBefore  = includeBefore,
                                       writerIncludeAfter   = includeAfter,
                                       writerStrictMarkdown = strict,
                                       writerReferenceLinks = referenceLinks,
                                       writerWrapText       = wrap }
 
-  let writeOutput = if writerName' == "odt"
-                       then if outputFile == "-"
-                               then \_ -> do
-                                 hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ 
-                                     " output to stdout.\n" ++
-                                     "Specify an output file using the -o option.")
-                                 exitWith $ ExitFailure 5
-                               else let sourceDirRelative = if null sources
-                                                               then ""
-                                                               else takeDirectory (head sources)
-                                    in  saveOpenDocumentAsODT outputFile sourceDirRelative
-                       else if outputFile == "-"
-                               then putStrLn
-                               else writeFile outputFile . (++ "\n")
+  if isNonTextOutput writerName' && outputFile == "-"
+     then do hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++
+                               "Specify an output file using the -o option.")
+             exitWith $ ExitFailure 5
+     else return ()
+
+  let sourceDirRelative = if null sources
+                             then ""
+                             else takeDirectory (head sources)
+
+  let writeOutput = case writerName' of
+                          "odt"   -> saveOpenDocumentAsODT outputFile sourceDirRelative
+                          "pdf"   -> saveLaTeXAsPDF outputFile sourceDirRelative
+                          _       -> if outputFile == "-"
+                                        then putStrLn
+                                        else writeFile outputFile . (++ "\n")
 
   fmap (reader startParserState . tabFilter tabStop . joinWithSep "\n")
        (readSources sources) >>=
@@ -615,7 +619,7 @@ main = do
 #endif
         writeOutput . writer writerOptions
 
-  where 
+  where
     readSources [] = mapM readSource ["-"]
     readSources sources = mapM readSource sources
     readSource "-" = getContents

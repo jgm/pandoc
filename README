@@ -82,11 +82,28 @@ To convert `hello.html` from html to markdown:
 	pandoc -f html -t markdown hello.html
 
 Supported output formats include `markdown`, `latex`, `context`
-(ConTeXt), `html`, `rtf` (rich text format), `rst` (reStructuredText),
-`docbook` (DocBook XML), `opendocument` (OpenDocument XML), `odt`
-(OpenOffice text document), `texinfo`, (GNU Texinfo), `mediawiki`
-(MediaWiki markup), `man` (groff man), and `s5` (which produces an
-HTML file that acts like powerpoint).
+(ConTeXt), `pdf`, `html`, `rtf` (rich text format), `rst`
+(reStructuredText), `docbook` (DocBook XML), `opendocument`
+(OpenDocument XML), `odt` (OpenOffice text document), `texinfo`, (GNU
+Texinfo), `mediawiki` (MediaWiki markup), `man` (groff man), and `s5`
+(which produces an HTML file that acts like powerpoint).
+
+Notes:
+
+- For `odt` output, you must have `zip` in the path. If you
+  don't have it installed, you can get the free [Info-ZIP].
+
+- For `pdf` output, you must have `pdflatex` and `bibtex` in the
+  path. You should also have the following LaTeX packages installed:
+  `unicode`, `fancyhdr` (if you have verbatim text in footnotes),
+  `graphicx` (if you use images), `array` (if you use tables), and
+  `ulem` (if you use strikeout text). If they are not already included
+  in your LaTeX distribution, you can get them from [CTAN].  A full
+  [TeX Live] or [MacTeX] distribution will have all of these packages.
+
+  [Info-ZIP]: http://www.info-zip.org/Zip.html
+  [TeX Live]: http://www.tug.org/texlive/
+  [MacTeX]:   http://www.tug.org/mactex/
 
 Supported input formats include `markdown`, `html`, `latex`, and `rst`.
 Note that the `rst` reader only parses a subset of reStructuredText
