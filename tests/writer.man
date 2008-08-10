@@ -49,7 +49,7 @@ Code in a block quote:
 .PP
 \f[CR]
       sub\ status\ {
-      \ \ \ \ print\ \"working\";
+      \ \ \ \ print\ "working";
       }
 \f[]
 .PP
@@ -83,7 +83,7 @@ Code:
       ----\ (should\ be\ four\ hyphens)
       
       sub\ status\ {
-      \ \ \ \ print\ \"working\";
+      \ \ \ \ print\ "working";
       }
       
       this\ code\ block\ is\ indented\ by\ one\ tab

@@ -100,7 +100,7 @@ noteToMan opts num note = do
 
 -- | Association list of characters to escape.
 manEscapes :: [(Char, String)]
-manEscapes = [('\160', "\\ "), ('\'', "\\[aq]")] ++ backslashEscapes "\".@\\"
+manEscapes = [('\160', "\\ "), ('\'', "\\[aq]")] ++ backslashEscapes ".@\\"
 
 -- | Escape special characters for Man.
 escapeString :: String -> String
