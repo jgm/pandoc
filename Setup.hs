@@ -63,7 +63,7 @@ makeManPage manpage = do
   if null modifiedDeps
      then return ()
      else do
-       ec <- runProcess pandoc ["-s", "-r", "markdown", "-w", "man", "-o", page, source]
+       ec <- runProcess pandoc ["-s", "-S", "-r", "markdown", "-w", "man", "-o", page, source]
                    Nothing Nothing Nothing Nothing (Just stderr) >>= waitForProcess
        case ec of
             ExitSuccess -> putStrLn $ "Created " ++ manDir </> manpage
