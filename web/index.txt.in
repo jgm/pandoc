@@ -6,8 +6,8 @@ Pandoc is a [Haskell] library for converting from one markup format
 to another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX],
 and it can write [markdown], [reStructuredText], [HTML], [LaTeX], [ConTeXt],
-[RTF], [DocBook XML], [OpenDocument XML], [GNU Texinfo], [MediaWiki markup],
-[groff man] pages, and [S5] HTML slide shows.
+[PDF], [RTF], [DocBook XML], [OpenDocument XML], [ODT], [GNU Texinfo],
+[[MediaWiki markup], groff man] pages, and [S5] HTML slide shows.
 
 Pandoc features
 
@@ -36,8 +36,6 @@ Pandoc features
 - Convenient wrapper scripts:
     + `html2markdown` makes it easy to produce a markdown version
       of any web page.
-    + `markdown2pdf` converts markdown to PDF in one step.
-    + `markdown2odt` converts markdown to ODT in one step.
     + `hsmarkdown` is a drop-in replacement for `Markdown.pl`.
 - Multi-platform:  runs on Windows, MacOS X, Linux, Unix.
 - Free software, released under the [GPL].
@@ -51,7 +49,6 @@ or [try pandoc on the web](/pandoc/try).
 - [Demonstrations](examples.html)
 - Man pages
     - [`pandoc(1)`](pandoc.1.html)
-    - [`markdown2pdf(1)`](markdown2pdf.1.html)
     - [`html2markdown(1)`](html2markdown.1.html)
     - [`hsmarkdown(1)`](hsmarkdown.1.html)
 - [Library documentation](doc/pandoc/index.html) (for Haskell programmers)
@@ -168,6 +165,8 @@ kind.
 [LaTeX]:  http://www.latex-project.org/
 [ConTeXt]: http://www.pragma-ade.nl/ 
 [RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
+[PDF]: http://en.wikipedia.org/wiki/Portable_Document_Format
+[ODT]: http://en.wikipedia.org/wiki/OpenDocument
 [DocBook XML]: http://www.docbook.org/
 [OpenDocument XML]: http://opendocument.xml.org/
 [MediaWiki markup]: http://www.mediawiki.org/wiki/Help:Formatting

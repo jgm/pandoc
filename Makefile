@@ -24,7 +24,7 @@ EXECSBASE := $(shell sed -ne 's/^[Ee]xecutable:\{0,1\}[[:space:]]*//p' $(CABAL))
 #-------------------------------------------------------------------------------
 # Install targets
 #-------------------------------------------------------------------------------
-WRAPPERS  := html2markdown markdown2pdf hsmarkdown
+WRAPPERS  := html2markdown hsmarkdown
 # Add .exe extensions if we're running Windows/Cygwin.
 EXTENSION := $(shell uname | tr '[:upper:]' '[:lower:]' | \
                sed -ne 's/^cygwin.*$$/\.exe/p')
@@ -85,8 +85,8 @@ all: build-program
 	./$(MAIN) -s -w latex $< >$@ || rm -f $@
 %.rtf: % $(MAIN)
 	./$(MAIN) -s -w rtf $< >$@ || rm -f $@
-%.pdf: % $(MAIN) markdown2pdf
-	sh ./markdown2pdf $< || rm -f $@
+%.pdf: % $(MAIN)
+	./$(MAIN) -w pdf -o $@ $< || rm -f $@
 %.txt: %
 	perl -p -e 's/\n/\r\n/' $< > $@ || rm -f $@ # convert to DOS line endings
 

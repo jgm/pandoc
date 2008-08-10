@@ -18,7 +18,7 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  this library. It can read markdown and (subsets of)
                  reStructuredText, HTML, and LaTeX, and it can write
                  markdown, reStructuredText, HTML, LaTeX, ConTeXt, Docbook,
-                 OpenDocument, ODT, RTF, MediaWiki, groff man pages, and
+                 OpenDocument, ODT, PDF, RTF, MediaWiki, groff man pages, and
                  S5 HTML slide shows.
                  .
                  Pandoc extends standard markdown syntax with footnotes,
@@ -38,12 +38,12 @@ Extra-Source-Files:
                  -- documentation
                  README, INSTALL, COPYRIGHT, COPYING, changelog,
                  -- sources for man pages
-                 man/man1/pandoc.1.md, man/man1/markdown2pdf.1.md,
+                 man/man1/pandoc.1.md,
                  man/man1/html2markdown.1.md, man/man1/hsmarkdown.1.md,
                  -- Makefile
                  Makefile,
                  -- wrappers
-                 markdown2pdf, html2markdown, hsmarkdown,
+                 html2markdown, hsmarkdown,
                  -- data for DefaultHeaders.hs
                  data/headers/ConTeXt.header,
                  data/headers/Docbook.header,
@@ -118,7 +118,7 @@ Extra-Source-Files:
                  tests/Diff.hs,
                  tests/RunTests.hs
 Extra-Tmp-Files: man/man1/pandoc.1, man/man1/hsmarkdown.1,
-                 man/man1/markdown2pdf.1, man/man1/html2markdown.1
+                 man/man1/html2markdown.1
 
 Flag splitBase
   Description:   Choose the new, smaller, split-up base package.

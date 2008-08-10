@@ -55,9 +55,9 @@ If you want to write to a file, use the `-o` option:
 
     pandoc -o hello.html hello.txt
 
-[^1]:  The exception is for non-text output formats, such as `odt`.
-       For output in `odt` format, an output file must be specified
-       explicitly.
+[^1]:  The exception is for non-text output formats, such as `odt`
+       and `pdf`. For output in these formats, an output file must be
+       specified explicitly.
 
 Note that you can specify multiple input files on the command line.
 `pandoc` will concatenate them all (with blank lines between them)
@@ -148,37 +148,12 @@ then convert the output back to the local encoding.
 Shell scripts
 =============
 
-Three shell scripts, `markdown2pdf`, `html2markdown`, and
-`hsmarkdown`, are included in the standard Pandoc installation. (They
-are not included in the Windows binary package, as they require a POSIX
-shell, but they may be used in Windows under Cygwin.)
+Two shell scripts, `html2markdown` and `hsmarkdown`, are included in
+the standard Pandoc installation. (They are not included in the Windows
+binary package, as they require a POSIX shell, but they may be used in
+Windows under Cygwin.)
 
-1.  `markdown2pdf` produces a PDF file from markdown-formatted
-    text, using `pandoc` and `pdflatex`.  The default
-    behavior of `markdown2pdf` is to create a file with the same
-    base name as the first argument and the extension `pdf`; thus,
-    for example,
-
-	    markdown2pdf sample.txt endnotes.txt
-
-    will produce `sample.pdf`.  (If `sample.pdf` exists already,
-    it will be backed up before being overwritten.)  An output file
-    name can be specified explicitly using the `-o` option:
-
-	    markdown2pdf -o book.pdf chap1 chap2
-
-    If no input file is specified, input will be taken from stdin.
-    All of `pandoc`'s options will work with `markdown2pdf` as well.
-
-    `markdown2pdf` assumes that `pdflatex` is in the path.  It also
-    assumes that the following LaTeX packages are available:
-    `unicode`, `fancyhdr` (if you have verbatim text in footnotes),
-    `graphicx` (if you use images), `array` (if you use tables),
-    and `ulem` (if you use strikeout text).  If they are not already
-    included in your LaTeX distribution, you can get them from
-    [CTAN].
-
-2.  `html2markdown` grabs a web page from a file or URL and converts
+1.  `html2markdown` grabs a web page from a file or URL and converts
     it to markdown-formatted text, using `tidy` and `pandoc`.
 
     All of `pandoc`'s options will work with `html2markdown` as well.
@@ -207,7 +182,7 @@ shell, but they may be used in Windows under Cygwin.)
     It uses [`iconv`] for character encoding conversions; if `iconv`
     is absent, it will still work, but it will treat everything as UTF-8.
 
-3.  `hsmarkdown` is designed to be used as a drop-in replacement for
+2.  `hsmarkdown` is designed to be used as a drop-in replacement for
     `Markdown.pl`.  It forces `pandoc` to convert from markdown to
     HTML, and to use the `--strict` flag for maximal compliance with
     official markdown syntax.  (All of Pandoc's syntax extensions and
@@ -252,7 +227,7 @@ For further documentation, see the `pandoc(1)` man page.
 `-o` or `--output` *filename*
 :   sends output to *filename*. If this option is not specified,
     or if its argument is `-`, output will be sent to stdout.
-    (Exception:  if the output format is `odt`, output to stdout
+    (Exception: if the output format is `odt` or `pdf`, output to stdout
     is disabled.)
 
 `-p` or `--preserve-tabs`

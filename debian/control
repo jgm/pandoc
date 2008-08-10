@@ -18,9 +18,9 @@ Description: general markup converter
  Pandoc is a Haskell library for converting from one markup format to
  another, and a command-line tool that uses this library. It can read
  markdown and (subsets of) reStructuredText, HTML, and LaTeX, and it
- can write markdown, reStructuredText, HTML, LaTeX, ConTeXt, DocBook XML,
- OpenDocument XML, RTF, GNU Texinfo, MediaWiki markup, groff man pages,
- and S5 HTML slide shows.
+ can write markdown, reStructuredText, HTML, LaTeX, ConTeXt, PDF,
+ DocBook XML, OpenDocument XML, ODT, RTF, GNU Texinfo, MediaWiki markup,
+ groff man pages, and S5 HTML slide shows.
  .
  Pandoc extends standard markdown syntax with footnotes, embedded LaTeX,
  tables, definition lists, and other features. A compatibility mode is
@@ -44,9 +44,9 @@ Description: general markup converter
  Pandoc is a Haskell library for converting from one markup format to
  another, and a command-line tool that uses this library. It can read
  markdown and (subsets of) reStructuredText, HTML, and LaTeX, and it
- can write markdown, reStructuredText, HTML, LaTeX, ConTeXt, DocBook XML,
- OpenDocument XML, RTF, GNU Texinfo, MediaWiki markup, groff man pages,
- and S5 HTML slide shows.
+ can write markdown, reStructuredText, HTML, LaTeX, ConTeXt, PDF,
+ DocBook XML, OpenDocument XML, ODT, RTF, GNU Texinfo, MediaWiki markup,
+ groff man pages, and S5 HTML slide shows.
  .
  Pandoc extends standard markdown syntax with footnotes, embedded LaTeX,
  tables, definition lists, and other features. A compatibility mode is
@@ -70,9 +70,9 @@ Description: general markup converter
  Pandoc is a Haskell library for converting from one markup format to
  another, and a command-line tool that uses this library. It can read
  markdown and (subsets of) reStructuredText, HTML, and LaTeX, and it
- can write markdown, reStructuredText, HTML, LaTeX, ConTeXt, DocBook XML,
- OpenDocument XML, RTF, GNU Texinfo, MediaWiki markup, groff man pages,
- and S5 HTML slide shows.
+ can write markdown, reStructuredText, HTML, LaTeX, ConTeXt, PDF,
+ DocBook XML, OpenDocument XML, ODT, RTF, GNU Texinfo, MediaWiki markup,
+ groff man pages, and S5 HTML slide shows.
  .
  Pandoc extends standard markdown syntax with footnotes, embedded LaTeX,
  tables, definition lists, and other features. A compatibility mode is
