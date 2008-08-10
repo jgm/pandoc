@@ -61,6 +61,8 @@ main = do
              "testsuite.txt" "testsuite.native"
   r7 <- runTest "markdown reader (tables)" ["-r", "markdown", "-w", "native"]
              "tables.txt" "tables.native"
+  r7a <- runTest "markdown reader (more)" ["-r", "markdown", "-w", "native"]
+             "markdown-reader-more.txt" "markdown-reader-more.native"
   r8 <- runTest "rst reader" ["-r", "rst", "-w", "native", "-s", "-S"]
              "rst-reader.rst" "rst-reader.native"
   r9 <- runTest "html reader" ["-r", "html", "-w", "native", "-s"]
@@ -69,7 +71,7 @@ main = do
              "latex-reader.latex" "latex-reader.native"
   r11 <- runTest "native reader" ["-r", "native", "-w", "native", "-s"]
              "testsuite.native" "testsuite.native"
-  let results = r1s ++ [r2, r3, r4, r5, r6, r7, r8, r9, r10, r11]
+  let results = r1s ++ [r2, r3, r4, r5, r6, r7, r7a, r8, r9, r10, r11]
   if all id results
      then do
        putStrLn "\nAll tests passed."

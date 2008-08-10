@@ -1,0 +1,13 @@
+# Additional markdown reader tests
+
+## Blank line before URL in link reference
+
+[foo] and [bar]
+
+[foo]: 
+  /url
+
+[bar]:
+/url
+"title"
+

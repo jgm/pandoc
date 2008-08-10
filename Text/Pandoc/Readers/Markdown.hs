@@ -187,10 +187,9 @@ referenceKey = try $ do
   nonindentSpaces
   lab <- reference
   char ':'
-  skipSpaces
-  optional (char '<')
-  src <- many (noneOf "> \n\t")
-  optional (char '>')
+  skipSpaces >> optional newline >> skipSpaces >> notFollowedBy (char '[')
+  src <- (char '<' >> many (noneOf "> \n\t") >>~ char '>')
+        <|> many (noneOf " \n\t")
   tit <- option "" referenceTitle
   blanklines
   endPos <- getPosition
@@ -203,8 +202,7 @@ referenceKey = try $ do
 
 referenceTitle :: GenParser Char st String
 referenceTitle = try $ do 
-  (many1 spaceChar >> option '\n' newline) <|> newline
-  skipSpaces
+  skipSpaces >> optional newline >> skipSpaces
   tit <-    (charsInBalanced '(' ')' >>= return . unwords . words)
         <|> do delim <- char '\'' <|> char '"'
                manyTill anyChar (try (char delim >> skipSpaces >>
