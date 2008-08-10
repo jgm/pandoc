@@ -183,7 +183,7 @@ install-all: build-all install-program
 	fi; \
 	$(BUILDCMD) copy $$opt; $(BUILDCMD) register
 # Cabal lacks an 'uninstall' command.  We have to remove some cruft manually.
-uninstall-all: uninstall-program
+uninstall-all: uninstall-program configure
 	@libdir=$$($(GHC_PKG) field $(PKGID) library-dirs 2>/dev/null | \
 		  sed 's/^library-dirs: *//'); \
 	htmldir=$$($(GHC_PKG) field $(PKGID) haddock-html 2>/dev/null | \
