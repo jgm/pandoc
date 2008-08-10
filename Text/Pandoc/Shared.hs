@@ -112,6 +112,7 @@ import Text.Pandoc.CharacterReferences ( characterReference )
 import Data.Char ( toLower, toUpper, ord, isLower, isUpper )
 import Data.List ( find, isPrefixOf )
 import Control.Monad ( join )
+import Control.Exception ( bracket )
 import Network.URI ( parseURI, URI (..), isAllowedInURI )
 import System.FilePath ( (</>), (<.>) )
 import System.IO.Error ( catch, ioError, isAlreadyExistsError )
@@ -925,11 +926,7 @@ defaultWriterOptions =
 
 -- | Perform a function in a temporary directory and clean up.
 withTempDir :: FilePath -> (FilePath -> IO a) -> IO a
-withTempDir baseName func = do
-  tempDir <- createTempDir 0 baseName
-  result <- catch (func tempDir) $ \e -> removeDirectoryRecursive tempDir >> ioError e
-  removeDirectoryRecursive tempDir
-  return result
+withTempDir baseName = bracket (createTempDir 0 baseName) (removeDirectoryRecursive)
 
 -- | Create a temporary directory with a unique name.
 createTempDir :: Integer -> FilePath -> IO FilePath
