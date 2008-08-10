@@ -18,10 +18,10 @@ it can write markdown, reStructuredText, HTML, LaTeX, ConTeXt, Texinfo,
 groff man, MediaWiki markup, RTF, OpenDocument XML, ODT, DocBook XML,
 and S5 HTML slide shows.
 
-If no *input-file* is specified, input is read from STDIN.
+If no *input-file* is specified, input is read from *stdin*.
 Otherwise, the *input-files* are concatenated (with a blank
-line between each) and used as input.  Output goes to STDOUT by
-default (though output to STDOUT is disabled for the `odt` output
+line between each) and used as input.  Output goes to *stdout* by
+default (though output to *stdout* is disabled for the `odt` output
 format).  For output to a file, use the `-o` option:
 
     pandoc -o output.html input.txt
@@ -30,7 +30,7 @@ The input and output formats may be specified using command-line options
 (see **OPTIONS**, below, for details).  If these formats are not
 specified explicitly, Pandoc will attempt to determine them
 from the extensions of the input and output filenames.  If input comes
-from STDIN or from a file with an unknown extension, the input is assumed
+from *stdin* or from a file with an unknown extension, the input is assumed
 to be markdown.  If no output filename is specified using the `-o`
 option, or if a filename is specified but its extension is unknown,
 the output will default to HTML.  Thus, for example,
@@ -72,15 +72,18 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     `mediawiki` (MediaWiki markup), `texinfo` (GNU Texinfo),
     `docbook` (DocBook XML), `opendocument` (OpenDocument XML),
     `odt` (OpenOffice text document), `s5` (S5 HTML and javascript slide
-    show), or `rtf` (rich text format).
+    show), `pdf` (Portable Document Format), or `rtf` (rich text
+    format). Note that for `odt` and `pdf` output, output will not be
+    directed to *stdout*; an output filename must be specified using the
+    `-o/--output` option.
 
 -s, \--standalone
 :   Produce output with an appropriate header and footer (e.g. a
     standalone HTML, LaTeX, or RTF file, not a fragment).
 
 -o *FILE*, \--output=*FILE*
-:   Write output to *FILE* instead of STDOUT.  If *FILE* is
-    \``-`', output will go to STDOUT.
+:   Write output to *FILE* instead of *stdout*.  If *FILE* is
+    \``-`', output will go to *stdout*.
 
 -p, \--preserve-tabs
 :   Preserve tabs instead of converting them to spaces.
@@ -166,9 +169,9 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 :   Specify *STRING* as a prefix to the HTML window title.
 
 \--dump-args
-:   Print information about command-line arguments to STDOUT, then exit.
+:   Print information about command-line arguments to *stdout*, then exit.
     The first line of output contains the name of the output file specified
-    with the `-o` option, or \``-`' (for STDOUT) if no output file was
+    with the `-o` option, or \``-`' (for *stdout*) if no output file was
     specified.  The remaining lines contain the command-line arguments,
     one per line, in the order they appear.  These do not include regular
     Pandoc options and their arguments, but do include any options appearing
@@ -194,8 +197,7 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 # SEE ALSO
 
 `hsmarkdown`(1),
-`html2markdown`(1),
-`markdown2pdf`(1).
+`html2markdown`(1).
 The *README* file distributed with Pandoc contains full documentation.
 
 The Pandoc source code and all documentation may be downloaded from

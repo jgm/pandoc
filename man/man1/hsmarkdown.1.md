@@ -15,9 +15,9 @@ hsmarkdown [*input-file*]...
 `hsmarkdown` converts markdown-formatted text to HTML. It is designed
 to be usable as a drop-in replacement for John Gruber's `Markdown.pl`.
 
-If no *input-file* is specified, input is read from STDIN.
+If no *input-file* is specified, input is read from *stdin*.
 Otherwise, the *input-files* are concatenated (with a blank
-line between each) and used as input.  Output goes to STDOUT by
+line between each) and used as input.  Output goes to *stdout* by
 default.  For output to a file, use shell redirection:
 
     hsmarkdown input.txt > output.html

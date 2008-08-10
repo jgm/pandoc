@@ -14,15 +14,15 @@ html2markdown [*pandoc-options*] [\-- *special-options*] [*input-file* or
 # DESCRIPTION
 
 `html2markdown` converts *input-file* or *URL* (or text
-from STDIN) from HTML to markdown-formatted plain text. 
+from *stdin*) from HTML to markdown-formatted plain text.
 If a URL is specified, `html2markdown` uses an available program
 (e.g. wget, w3m, lynx or curl) to fetch its contents.  Output is sent
-to STDOUT unless an output file is specified using the `-o`
+to *stdout* unless an output file is specified using the `-o`
 option.
 
 `html2markdown` uses the character encoding specified in the
 "Content-type" meta tag.  If this is not present, or if input comes
-from STDIN, UTF-8 is assumed.  A character encoding may be specified
+from *stdin*, UTF-8 is assumed.  A character encoding may be specified
 explicitly using the `-e` special option.
 
 # OPTIONS
@@ -36,7 +36,7 @@ a complete list.  The following options are most relevant:
     top of markdown output.
 
 -o *FILE*, \--output=*FILE*
-:   Write output to *FILE* instead of STDOUT. 
+:   Write output to *FILE* instead of *stdout*.
 
 \--strict
 :   Use strict markdown syntax, with no extensions or variants.
@@ -80,9 +80,9 @@ regular `pandoc` options by the delimiter \``--`', as in
     (Note: *encoding* will be passed to `iconv`; a list of
     available encodings may be obtained using `iconv -l`.)
     If this option is not specified and input is not from
-    STDIN, `html2markdown` will try to extract the character encoding
+    *stdin*, `html2markdown` will try to extract the character encoding
     from the "Content-type" meta tag.  If no character encoding is
-    specified in this way, or if input is from STDIN, UTF-8 will be
+    specified in this way, or if input is from *stdin*, UTF-8 will be
     assumed.
 
 -g *command*, \--grabber=*command*
