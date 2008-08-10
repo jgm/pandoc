@@ -54,7 +54,7 @@ saveLaTeXAsPDF destinationPDFPath sourceDirRelative latex = do
   latexPathMaybe <- findExecutable "pdflatex"
   bibtexPathMaybe <- findExecutable "bibtex"
   let latexPath = case latexPathMaybe of
-                  Nothing -> error $ "The 'pdflatex' command, which is needed to build an PDF file, was not found."
+                  Nothing -> error $ "The 'pdflatex' command, which is needed to build a PDF file, was not found."
                   Just x  -> x
   let bibtexPath = case bibtexPathMaybe of
                   Nothing -> error $ "The 'bibtex' command, which is needed to build an PDF file, was not found."

@@ -12,8 +12,8 @@ XS-Vcs-Browser: http://pandoc.googlecode.com/svn/trunk
 Package: pandoc
 Section: text
 Architecture: any
-Depends: ${shlibs:Depends}
-Suggests: texlive-latex-recommended | tetex-extra, tidy, wget | w3m
+Depends: ${shlibs:Depends}, zip, texlive-latex-recommended | tetex-extra
+Suggests: tidy, wget | w3m
 Description: general markup converter
  Pandoc is a Haskell library for converting from one markup format to
  another, and a command-line tool that uses this library. It can read
@@ -38,7 +38,7 @@ Description: general markup converter
 Package: libghc6-pandoc-dev
 Section: libdevel
 Architecture: any
-Depends: ${haskell:Depends}, libghc6-xhtml-dev, libghc6-mtl-dev, libghc6-network-dev
+Depends: ${haskell:Depends}, libghc6-xhtml-dev, libghc6-mtl-dev, libghc6-network-dev, zip, texlive-latex-recommended | tetex-extra
 Suggests: pandoc-doc
 Description: general markup converter
  Pandoc is a Haskell library for converting from one markup format to
