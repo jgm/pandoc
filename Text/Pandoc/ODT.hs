@@ -129,11 +129,11 @@ handleContent tempODT sourceDirRelative content@(Elem el) = do
                 then do
                    let pref = take 230 $ concat $ intersperse "_" $
                                 splitDirectories $ takeDirectory $ attrVal href
-                   let newLoc = "Pictures" </> pref ++ "_" ++ (takeFileName $ attrVal href)
+                   let picName = pref ++ "_" ++ (takeFileName $ attrVal href)
                    let tempDir = takeDirectory tempODT
-                   createDirectoryIfMissing False $ tempDir </> takeDirectory newLoc
-                   copyFile oldLoc $ tempDir </> newLoc
-                   let newAttrs = (href { attrVal = newLoc }) : rest
+                   createDirectoryIfMissing False $ tempDir </> "Pictures"
+                   copyFile oldLoc $ tempDir </> "Pictures" </> picName
+                   let newAttrs = (href { attrVal = "Pictures/" ++ picName }) : rest
                    return $ Elem (el { elAttribs = newAttrs })
                 else do
                    hPutStrLn stderr $ "Warning:  Unable to find image at " ++ oldLoc ++ " - ignoring."
