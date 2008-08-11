@@ -30,7 +30,7 @@ Conversion of LaTeX to 'Pandoc' document.
 module Text.Pandoc.Readers.LaTeX ( 
                                   readLaTeX,
                                   rawLaTeXInline,
-                                  rawLaTeXEnvironment
+                                  rawLaTeXEnvironment'
                                  ) where
 
 import Text.ParserCombinators.Parsec
@@ -92,13 +92,12 @@ begin name = try $ do
 end :: [Char] -> GenParser Char st [Char]
 end name = try $ do
   string $ "\\end{" ++ name ++ "}"
-  spaces
   return name
 
 -- | Returns a list of block elements containing the contents of an
 -- environment.
 environment :: [Char] -> GenParser Char ParserState [Block]
-environment name = try $ begin name >> spaces >> manyTill block (end name)
+environment name = try $ begin name >> spaces >> manyTill block (end name) >>~ spaces
 
 anyEnvironment :: GenParser Char ParserState Block
 anyEnvironment =  try $ do
@@ -109,6 +108,7 @@ anyEnvironment =  try $ do
   optional commandArgs
   spaces
   contents <- manyTill block (end (name ++ star))
+  spaces
   return $ BlockQuote contents
 
 --
@@ -377,7 +377,15 @@ specialEnvironment = do  -- these are always parsed as raw
 -- | Parse any LaTeX environment and return a Para block containing
 -- the whole literal environment as raw TeX.
 rawLaTeXEnvironment :: GenParser Char st Block
-rawLaTeXEnvironment = try $ do
+rawLaTeXEnvironment = do
+  contents <- rawLaTeXEnvironment'
+  spaces
+  return $ Para [TeX contents]
+
+-- | Parse any LaTeX environment and return a string containing
+-- the whole literal environment as raw TeX.
+rawLaTeXEnvironment' :: GenParser Char st String 
+rawLaTeXEnvironment' = try $ do
   string "\\begin{"
   name <- many1 letter
   star <- option "" (string "*") -- for starred variants
@@ -386,14 +394,11 @@ rawLaTeXEnvironment = try $ do
   args <- option [] commandArgs
   let argStr = concat args
   contents <- manyTill (choice [ (many1 (noneOf "\\")), 
-                                 (do 
-                                    (Para [TeX s]) <- rawLaTeXEnvironment
-                                    return s),
+                                 rawLaTeXEnvironment',
                                  string "\\" ]) 
                        (end name')
-  spaces
-  return $ Para [TeX $ "\\begin{" ++ name' ++ "}" ++ argStr ++ 
-                 concat contents ++ "\\end{" ++ name' ++ "}"]
+  return $ "\\begin{" ++ name' ++ "}" ++ argStr ++ 
+                 concat contents ++ "\\end{" ++ name' ++ "}"
 
 unknownEnvironment :: GenParser Char ParserState Block
 unknownEnvironment = try $ do

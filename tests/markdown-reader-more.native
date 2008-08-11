@@ -1,5 +1,8 @@
 Pandoc (Meta [] [] "")
 [ Header 1 [Str "Additional",Space,Str "markdown",Space,Str "reader",Space,Str "tests"]
 , Header 2 [Str "Blank",Space,Str "line",Space,Str "before",Space,Str "URL",Space,Str "in",Space,Str "link",Space,Str "reference"]
-, Para [Link [Str "foo"] ("/url",""),Space,Str "and",Space,Link [Str "bar"] ("/url","title")] ]
+, Para [Link [Str "foo"] ("/url",""),Space,Str "and",Space,Link [Str "bar"] ("/url","title")]
+, Header 2 [Str "Raw",Space,Str "ConTeXt",Space,Str "environments"]
+, Para [TeX "\\placeformula",Space,TeX "\\startformula\n   L_{1} = L_{2}\n   \\stopformula"]
+, Para [TeX "\\start[a2]\n\\start[a2]\n\\stop[a2]\n\\stop[a2]"] ]
 

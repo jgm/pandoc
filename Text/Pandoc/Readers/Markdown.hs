@@ -38,7 +38,7 @@ import Data.Char ( isAlphaNum, isAlpha, isLower, isDigit )
 import Data.Maybe
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
-import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment )
+import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment' )
 import Text.Pandoc.Readers.HTML ( rawHtmlBlock, anyHtmlBlockTag, 
                                   anyHtmlInlineTag, anyHtmlTag,
                                   anyHtmlEndTag, htmlEndTag, extractTagType,
@@ -272,7 +272,6 @@ block = do
                    , bulletList
                    , orderedList
                    , definitionList
-                   , rawLaTeXEnvironment
                    , para
                    , rawHtmlBlocks
                    , plain
@@ -1144,7 +1143,27 @@ inlineNote = try $ do
   return $ Note [Para contents]
 
 rawLaTeXInline' :: GenParser Char ParserState Inline
-rawLaTeXInline' = failIfStrict >> rawLaTeXInline
+rawLaTeXInline' = do
+  failIfStrict
+  (rawConTeXtEnvironment' >>= return . TeX)
+    <|> (rawLaTeXEnvironment' >>= return . TeX)
+    <|> rawLaTeXInline
+
+rawConTeXtEnvironment' :: GenParser Char st String
+rawConTeXtEnvironment' = try $ do
+  string "\\start"
+  completion <- inBrackets (letter <|> digit <|> spaceChar)
+               <|> (many1 letter)
+  contents <- manyTill (rawConTeXtEnvironment' <|> (count 1 anyChar))
+                       (try $ string "\\stop" >> string completion)
+  return $ "\\start" ++ completion ++ concat contents ++ "\\stop" ++ completion
+
+inBrackets :: (GenParser Char st Char) -> GenParser Char st String
+inBrackets parser = do
+  char '['
+  contents <- many parser
+  char ']'
+  return $ "[" ++ contents ++ "]"
 
 rawHtmlInline' :: GenParser Char ParserState Inline
 rawHtmlInline' = do
