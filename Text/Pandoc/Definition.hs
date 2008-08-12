@@ -65,8 +65,8 @@ data ListNumberDelim = DefaultDelim
                      | OneParen 
                      | TwoParens deriving (Eq, Show, Read, Typeable, Data)
 
--- | Attributes.
-type Attr = (String, [String], [(String, String)])  -- ^ Identifier, classes, key-value pairs
+-- | Attributes: identifier, classes, key-value pairs
+type Attr = (String, [String], [(String, String)])
 
 -- | Block element.
 data Block  
