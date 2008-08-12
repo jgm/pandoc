@@ -40,6 +40,8 @@ module Text.Pandoc.Biblio () where
 #endif
 
 #ifdef _CITEPROC
+-- | Process a 'Pandoc' document by adding citations formatted
+-- according to a CSL style, using 'citeproc' from citeproc-hs.
 processBiblio :: String -> [Reference] -> Pandoc -> IO Pandoc
 processBiblio cf r p
     = if null r then return p
@@ -47,16 +49,13 @@ processBiblio cf r p
         when (null cf) $ error "Missing the needed citation style file"
         csl  <- readCSLFile cf
         let groups     = queryPandoc getCite p
-            citations  = zip groups . processCitations csl r $ groups
-            Pandoc m b = processPandoc (processCite citations) p
-        return $ Pandoc m $ b ++ renderBiblio csl r p
+            result     = citeproc csl r groups
+            cits_map   = zip groups (citations result)
+            biblioList = map (read . renderPandoc') (bibliography result)
+            Pandoc m b = processPandoc (processCite cits_map) p
+        return $ Pandoc m $ b ++ biblioList
 
-renderBiblio :: Style -> [Reference] -> Pandoc -> [Block]
-renderBiblio s r p
-    = map (read . renderPandoc') $ processBibliography s refs
-      where cits = nub . map fst . concat . queryPandoc getCite $ p
-            refs = getRefs r $ zip cits (repeat "")
-
+-- | Substitute 'Cite' elements with formatted citations.
 processCite :: [([Target],[FormattedOutput])] -> Inline -> Inline
 processCite cs il
     | Cite t _ <- il = Cite t (process t)
@@ -66,11 +65,9 @@ processCite cs il
                     Just i -> read . renderPandoc $ snd (cs !! i)
                     Nothing -> [Str ("Error processing " ++ show t)]
 
+-- | Retrieve all citations from a 'Pandoc' docuument. To be used with
+-- 'queryPandoc'.
 getCite :: Inline -> [[(String,String)]]
 getCite i | Cite t _ <- i = [t]
           | otherwise     = []
-
-getRefs :: [Reference] -> [Target] -> [Reference]
-getRefs = map . getReference
-
 #endif
