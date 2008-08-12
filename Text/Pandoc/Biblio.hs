@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, CPP #-}
+{-# LANGUAGE PatternGuards #-}
 {-
 Copyright (C) 2008 Andrea Rossato <andrea.rossato@ing.unitn.it>
 
@@ -27,7 +27,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Portability : portable
 -}
 
-#ifdef _CITEPROC
 module Text.Pandoc.Biblio ( processBiblio ) where
 
 import Control.Monad ( when )
@@ -35,11 +34,6 @@ import Data.List
 import Text.CSL
 import Text.Pandoc.Definition
 
-#else
-module Text.Pandoc.Biblio () where
-#endif
-
-#ifdef _CITEPROC
 -- | Process a 'Pandoc' document by adding citations formatted
 -- according to a CSL style, using 'citeproc' from citeproc-hs.
 processBiblio :: String -> [Reference] -> Pandoc -> IO Pandoc
@@ -70,4 +64,3 @@ processCite cs il
 getCite :: Inline -> [[(String,String)]]
 getCite i | Cite t _ <- i = [t]
           | otherwise     = []
-#endif

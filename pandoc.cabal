@@ -156,12 +156,12 @@ Library
     Other-Modules: Text.Pandoc.UTF8
   if flag(citeproc)
     Build-depends: citeproc-hs
+    Exposed-Modules: Text.Pandoc.Biblio
     cpp-options:   -D_CITEPROC
   Build-Depends: parsec < 3, xhtml, mtl, network, filepath, process, directory,
                  template-haskell, bytestring
   Hs-Source-Dirs:  .
   Exposed-Modules: Text.Pandoc,
-                   Text.Pandoc.Biblio,
                    Text.Pandoc.Blocks,
                    Text.Pandoc.Definition,
                    Text.Pandoc.CharacterReferences,
