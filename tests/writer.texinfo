@@ -709,10 +709,6 @@ Ellipses@dots{}and@dots{}and@dots{}.
 \cite[22-23]{smith.1899}
 @end tex
 @item
-@tex
-\doublespacing
-@end tex
-@item
 @math{2+2=4}
 @item
 @math{x \in y}
@@ -723,7 +719,7 @@ Ellipses@dots{}and@dots{}and@dots{}.
 @item
 @math{p}-Tree
 @item
-@math{\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}}
+Here's some display math: @math{\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}}
 @item
 Here's one that has a line break in it: @math{\alpha + \omega \times x^2}.
 @end itemize

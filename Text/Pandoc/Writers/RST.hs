@@ -291,14 +291,16 @@ inlineToRST Apostrophe = return $ char '\''
 inlineToRST Ellipses = return $ text "..."
 inlineToRST (Code str) = return $ text $ "``" ++ str ++ "``"
 inlineToRST (Str str) = return $ text $ escapeString str
-inlineToRST (Math str) = do
+inlineToRST (Math t str) = do
   includes <- get >>= (return . stIncludes)
   let rawMathRole = ".. role:: math(raw)\n" ++
                     "   :format: html latex\n"
   if not (rawMathRole `elem` includes)
      then modify $ \st -> st { stIncludes = rawMathRole : includes }
      else return ()
-  return $ text $ ":math:`$" ++ str ++ "$`"
+  return $ if t == InlineMath
+              then text $ ":math:`$" ++ str ++ "$`"
+              else text $ ":math:`$$" ++ str ++ "$$`"
 inlineToRST (TeX _) = return empty
 inlineToRST (HtmlInline _) = return empty
 inlineToRST (LineBreak) = do

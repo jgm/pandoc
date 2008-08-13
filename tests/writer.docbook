@@ -977,10 +977,6 @@ Blah
       </listitem>
       <listitem>
         <para>
-        </para>
-      </listitem>
-      <listitem>
-        <para>
           2+2=4
         </para>
       </listitem>
@@ -1006,6 +1002,7 @@ Blah
       </listitem>
       <listitem>
         <para>
+          Here's some display math:
           \frac{<emphasis>d</emphasis>}{<emphasis>dx</emphasis>}<emphasis>f</emphasis>(<emphasis>x</emphasis>)=\lim<subscript><emphasis>h</emphasis> → 0</subscript>\frac{<emphasis>f</emphasis>(<emphasis>x</emphasis>+<emphasis>h</emphasis>)-<emphasis>f</emphasis>(<emphasis>x</emphasis>)}{<emphasis>h</emphasis>}
         </para>
       </listitem>

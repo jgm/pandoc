@@ -236,7 +236,7 @@ inlineToDocbook _ EmDash = text "&#8212;"
 inlineToDocbook _ EnDash = text "&#8211;" 
 inlineToDocbook _ (Code str) = 
   inTagsSimple "literal" $ text (escapeStringForXML str)
-inlineToDocbook opts (Math str) = inlinesToDocbook opts $ readTeXMath str
+inlineToDocbook opts (Math _ str) = inlinesToDocbook opts $ readTeXMath str
 inlineToDocbook _ (TeX _) = empty
 inlineToDocbook _ (HtmlInline _) = empty
 inlineToDocbook _ LineBreak = text $ "<literallayout></literallayout>" 

@@ -249,12 +249,12 @@ options =
                   (\opt -> return opt { optSmart = True }))
                  "" -- "Use smart quotes, dashes, and ellipses"
 
-    , Option "m" ["asciimathml"]
+    , Option "m" ["latexmathml", "asciimathml"]
                  (OptArg
                   (\arg opt -> return opt { optHTMLMathMethod =
-                                               ASCIIMathML arg })
+                                               LaTeXMathML arg })
                   "URL")
-                 "" -- "Use ASCIIMathML script in html output"
+                 "" -- "Use LaTeXMathML script in html output"
 
     , Option "" ["mimetex"]
                  (OptArg

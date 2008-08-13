@@ -30,7 +30,7 @@ Conversion of 'Pandoc' documents to HTML.
 -}
 module Text.Pandoc.Writers.HTML ( writeHtml , writeHtmlString ) where
 import Text.Pandoc.Definition
-import Text.Pandoc.ASCIIMathML
+import Text.Pandoc.LaTeXMathML
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
@@ -123,9 +123,9 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
                              '\n':(unlines $ S.toList cssLines)
       math         = if stMath newstate
                         then case writerHTMLMathMethod opts of
-                                   ASCIIMathML Nothing -> 
-                                      primHtml asciiMathMLScript
-                                   ASCIIMathML (Just url) ->
+                                   LaTeXMathML Nothing -> 
+                                      primHtml latexMathMLScript
+                                   LaTeXMathML (Just url) ->
                                       script ! 
                                       [src url, thetype "text/javascript"] $
                                       noHtml
@@ -268,7 +268,7 @@ inlineListToIdentifier' (x:xs) =
           Apostrophe     -> ""
           Ellipses       -> ""
           LineBreak      -> "-"
-          Math _         -> ""
+          Math _ _       -> ""
           TeX _          -> ""
           HtmlInline _   -> ""
           Link lst _     -> inlineListToIdentifier' lst
@@ -455,10 +455,13 @@ inlineToHtml opts inline =
                                               primHtmlChar "rdquo")
                         in  do contents <- inlineListToHtml opts lst
                                return $ leftQuote +++ contents +++ rightQuote
-    (Math str)       -> modify (\st -> st {stMath = True}) >> 
+    (Math t str) -> 
+                        modify (\st -> st {stMath = True}) >> 
                         (case writerHTMLMathMethod opts of
-                               ASCIIMathML _ -> 
-                                  return $ stringToHtml ("$" ++ str ++ "$")
+                               LaTeXMathML _ -> 
+                                  return $ if t == InlineMath
+                                              then primHtml ("$" ++ str ++ "$")
+                                              else primHtml ("$$" ++ str ++ "$$")
                                MimeTeX url -> 
                                   return $ image ! [src (url ++ "?" ++ str),
                                                     alt str, title str]
@@ -467,7 +470,10 @@ inlineToHtml opts inline =
                                PlainMath -> 
                                   inlineListToHtml opts (readTeXMath str) >>=
                                   return . (thespan ! [theclass "math"])) 
-    (TeX _)          -> return noHtml
+    (TeX str)        -> case writerHTMLMathMethod opts of
+                              LaTeXMathML _ -> do modify (\st -> st {stMath = True})
+                                                  return $ primHtml str
+                              _             -> return noHtml
     (HtmlInline str) -> return $ primHtml str 
     (Link [Code str] (s,_)) | "mailto:" `isPrefixOf` s ->
                         return $ obfuscateLink opts str s

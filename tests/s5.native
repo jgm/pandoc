@@ -5,5 +5,5 @@ Pandoc (Meta [Str "My",Space,Str "S5",Space,Str "Document"] ["Sam Smith","Jen Jo
   , [ Plain [Str "second",Space,Str "bullet"] ] ]
 , Header 1 [Str "Math"]
 , BulletList
-  [ [ Plain [Math "\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}"] ]
+  [ [ Plain [Math InlineMath "\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}"] ]
  ] ]

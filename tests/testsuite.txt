@@ -467,13 +467,13 @@ Ellipses...and. . .and . . . .
 # LaTeX
 
 - \cite[22-23]{smith.1899}
-- \doublespacing
 - $2+2=4$
 - $x \in y$
 - $\alpha \wedge \omega$
 - $223$ 
 - $p$-Tree
-- $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$ 
+- Here's some display math:
+  $$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$
 - Here's one that has a line break in it:  $\alpha + \omega \times
 x^2$.  
 

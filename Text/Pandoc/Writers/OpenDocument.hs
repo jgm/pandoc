@@ -379,7 +379,7 @@ inlineToOpenDocument o ils
     | SmallCaps   l <- ils = withTextStyle SmallC $ inlinesToOpenDocument o l
     | Quoted    t l <- ils = inQuotes t <$> inlinesToOpenDocument o l
     | Code        s <- ils = preformatted s
-    | Math        s <- ils = inlinesToOpenDocument o (readTeXMath s)
+    | Math      _ s <- ils = inlinesToOpenDocument o (readTeXMath s)
     | Cite      _ l <- ils = inlinesToOpenDocument o l
     | TeX         s <- ils = preformatted s
     | HtmlInline  s <- ils = preformatted s

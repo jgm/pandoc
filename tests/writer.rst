@@ -622,13 +622,13 @@ LaTeX
 
 
 - 
-- 
 -  :math:`$2+2=4$`
 -  :math:`$x \in y$`
 -  :math:`$\alpha \wedge \omega$`
 -  :math:`$223$`
 -  :math:`$p$`-Tree
--  :math:`$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$`
+-  Here's some display math:
+   :math:`$$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$`
 -  Here's one that has a line break in it:
    :math:`$\alpha + \omega \times x^2$`.
 

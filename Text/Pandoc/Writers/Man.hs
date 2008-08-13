@@ -272,7 +272,10 @@ inlineToMan _ Ellipses = return $ text "\\&..."
 inlineToMan _ (Code str) =
   return $ text $ "\\f[B]" ++ escapeCode str ++ "\\f[]"
 inlineToMan _ (Str str) = return $ text $ escapeString str
-inlineToMan opts (Math str) = inlineToMan opts (Code str)
+inlineToMan opts (Math InlineMath str) = inlineToMan opts (Code str)
+inlineToMan opts (Math DisplayMath str) = do
+  contents <- inlineToMan opts (Code str)
+  return $ text ".RS" $$ contents $$ text ".RE"
 inlineToMan _ (TeX _) = return empty
 inlineToMan _ (HtmlInline str) = return $ text $ escapeCode str 
 inlineToMan _ (LineBreak) = return $ text "\n.PD 0\n.P\n.PD\n"

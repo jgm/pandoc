@@ -310,27 +310,27 @@ For further documentation, see the `pandoc(1)` man page.
     `markdown`. It is selected automatically when the output format is
     `latex` or `context`.)
 
-`-m`*[url]* or `--asciimathml`*[=url]*
-:   causes `pandoc` to use Peter Jipsen's [ASCIIMathML] script to display
-    TeX math in HTML or S5. If a local copy of `ASCIIMathML.js` is
+`-m`*[url]* or `--latexmathml`*[=url]*
+:   causes `pandoc` to use the [LaTeXMathML] script to display
+    TeX math in HTML or S5. If a local copy of `LaTeXMathML.js` is
     available on the webserver where the page will be viewed, provide a
     *url* and a link will be inserted in the generated HTML or S5. If
     no *url* is provided, the contents of the script will be inserted
     directly; this provides portability at the price of efficiency. If
     you plan to use math on several pages, it is much better to link to
-    a copy of `ASCIIMathML.js`, which can be cached.  (See `--gladtex`
+    a copy of `LaTeXMathML.js`, which can be cached.  (See `--gladtex`
     and `--mimetex` for alternative ways of dealing with math in HTML.)
 
 `--gladtex`*[=url]*
 :   causes TeX formulas to be enclosed in `<eq>` tags in HTML or S5 output.
     This output can then be processed by [gladTeX] to produce links to
-    images with the typeset formulas.  (See `--asciimathml` and
+    images with the typeset formulas.  (See `--latexmathml` and
     `--mimetex` for alternative ways of dealing with math in HTML.)
 
 `--mimetex`*[=url]*
 :   causes TeX formulas to be replaced by `<img>` tags linking to the
     [mimeTeX] CGI script, which will produce images with the typeset
-    formulas.  (See `--asciimathml` and `--mimetex` for alternative
+    formulas.  (See `--latexmathml` and `--mimetex` for alternative
     ways of dealing with math in HTML.)
 
 `-i` or `--incremental`
@@ -386,7 +386,7 @@ For further documentation, see the `pandoc(1)` man page.
 :   prints a usage message to STDERR.
 
 [Smartypants]: http://daringfireball.net/projects/smartypants/
-[ASCIIMathML]: http://www1.chapman.edu/~jipsen/mathml/asciimath.html
+[LaTeXMathML]: http://math.etsu.edu/LaTeXMathML/
 [gladTeX]:  http://www.math.uio.no/~martingu/gladtex/index.html
 [mimeTeX]: http://www.forkosh.com/mimetex.html 
 
@@ -930,11 +930,11 @@ command-line options selected:
     are put inside a `span` with `class="math"`, so that they may be
     styled differently from the surrounding text if needed.
 
-2.  If the `--asciimathml` option is used, TeX math will be displayed
-    between $ characters, as in LaTeX, and the [ASCIIMathML] script will
+2.  If the `--latexmathml` option is used, TeX math will be displayed
+    between $ characters, as in LaTeX, and the [LaTeXMathML] script will
     be used to render it as formulas. (This trick does not work in all
     browsers, but it works in Firefox. In browsers that do not support
-    ASCIIMathML, TeX math will appear verbatim between $ characters.)
+    LaTeXMathML, TeX math will appear verbatim between $ characters.)
 
 3.  If the `--mimetex` option is used, the [mimeTeX] CGI script will
     be called to generate images for each TeX formula. This should

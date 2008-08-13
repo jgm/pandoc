@@ -153,7 +153,6 @@ block = choice [ hrule
                , header
                , list
                , blockQuote
-               , mathBlock
                , comment
                , bibliographic
                , para
@@ -217,26 +216,6 @@ codeBlock2 = try $ do
 blockQuote :: GenParser Char ParserState Block
 blockQuote = (environment "quote" <|> environment "quotation") >>~ spaces >>= 
              return . BlockQuote
-
---
--- math block
---
-
-mathBlock :: GenParser Char st Block
-mathBlock = mathBlockWith (begin "equation") (end "equation") <|> 
-            mathBlockWith (begin "displaymath") (end "displaymath") <|>
-            mathBlockWith (try $ string "\\[") (try $ string "\\]") <?> 
-            "math block"
-
-mathBlockWith :: GenParser Char st t
-              -> GenParser Char st end
-              -> GenParser Char st Block
-mathBlockWith start end' = try $ do
-  start
-  spaces
-  result <- manyTill anyChar end'
-  spaces
-  return $ BlockQuote [Para [Math result]]
 
 --
 -- list blocks
@@ -683,21 +662,31 @@ endline = try $ newline >> notFollowedBy blankline >> return Space
 
 -- math
 math :: GenParser Char st Inline
-math = math1 <|> math2 <?> "math"
+math =   (math3 >>= return . Math DisplayMath)
+     <|> (math1 >>= return . Math InlineMath)
+     <|> (math2 >>= return . Math InlineMath)
+     <|> (math4 >>= return . Math DisplayMath)
+     <|> (math5 >>= return . Math DisplayMath)
+     <|> (math6 >>= return . Math DisplayMath)
+     <?> "math"
 
-math1 :: GenParser Char st Inline
-math1 = try $ do
-  char '$'
-  result <- many (noneOf "$")
-  char '$'
-  return $ Math result
+math1 :: GenParser Char st String 
+math1 = try $ char '$' >> manyTill anyChar (char '$')
 
-math2 :: GenParser Char st Inline
-math2 = try $ do
-  string "\\("
-  result <- many (noneOf "$")
-  string "\\)"
-  return $ Math result
+math2 :: GenParser Char st String
+math2 = try $ string "\\(" >> manyTill anyChar (try $ string "\\)")
+
+math3 :: GenParser Char st String 
+math3 = try $ char '$' >> math1 >>~ char '$'
+
+math4 :: GenParser Char st String
+math4 = try $ (begin "equation") >> spaces >> manyTill anyChar (end "equation")
+
+math5 :: GenParser Char st String
+math5 = try $ (begin "displaymath") >> spaces >> manyTill anyChar (end "displaymath")
+
+math6 :: GenParser Char st String
+math6 = try $ (string "\\[") >> spaces >> manyTill anyChar (try $ string "\\]")
 
 --
 -- links and images

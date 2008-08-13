@@ -870,14 +870,21 @@ mathWord = many1 ((noneOf " \t\n\\$") <|>
                   (try (char '\\') >>~ notFollowedBy (char '$')))
 
 math :: GenParser Char ParserState Inline
-math = try $ do
+math = (mathDisplay >>= return . Math DisplayMath)
+     <|> (mathInline >>= return . Math InlineMath)
+
+mathDisplay :: GenParser Char ParserState String 
+mathDisplay = try $ char '$' >> mathInline >>~ char '$' >>~ notFollowedBy digit
+
+mathInline :: GenParser Char ParserState String
+mathInline = try $ do
   failIfStrict
   char '$'
   notFollowedBy space
   words' <- sepBy1 mathWord (many1 (spaceChar <|> (newline >>~ notFollowedBy' blankline)))
   char '$'
   notFollowedBy digit
-  return $ Math $ joinWithSep " " words'
+  return $ joinWithSep " " words'
 
 emph :: GenParser Char ParserState Inline
 emph = ((enclosed (char '*') (notFollowedBy' strong >> char '*') inline) <|>

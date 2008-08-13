@@ -423,13 +423,12 @@ Ellipses&hellip;and&hellip;and&hellip;.
 == LaTeX ==
 
 * 
-* 
 * <math>2+2=4</math>
 * <math>x \in y</math>
 * <math>\alpha \wedge \omega</math>
 * <math>223</math>
 * <math>p</math>-Tree
-* <math>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</math>
+* Here&rsquo;s some display math: <math>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</math>
 * Here&rsquo;s one that has a line break in it: <math>\alpha + \omega \times x^2</math>.
 These shouldn&rsquo;t be math:
 

@@ -547,7 +547,6 @@ Ellipses\&...and\&...and\&...\.
 .SH LaTeX
 .IP \[bu] 2
 .IP \[bu] 2
-.IP \[bu] 2
 \f[B]2+2=4\f[]
 .IP \[bu] 2
 \f[B]x\ \\in\ y\f[]
@@ -558,7 +557,10 @@ Ellipses\&...and\&...and\&...\.
 .IP \[bu] 2
 \f[B]p\f[]-Tree
 .IP \[bu] 2
+Here's some display math:
+.RS
 \f[B]\\frac{d}{dx}f(x)=\\lim_{h\\to\ 0}\\frac{f(x+h)-f(x)}{h}\f[]
+.RE
 .IP \[bu] 2
 Here's one that has a line break in it:
 \f[B]\\alpha\ +\ \\omega\ \\times\ x^2\f[]\.

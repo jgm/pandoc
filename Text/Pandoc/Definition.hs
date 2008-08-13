@@ -98,6 +98,9 @@ data QuoteType = SingleQuote | DoubleQuote deriving (Show, Eq, Read, Typeable, D
 -- | Link target (URL, title).
 type Target = (String, String)
 
+-- | Type of math element (display or inline).
+data MathType = DisplayMath | InlineMath deriving (Show, Eq, Read, Typeable, Data)
+
 -- | Inline elements.
 data Inline 
     = Str String            -- ^ Text (string)
@@ -116,7 +119,7 @@ data Inline
     | Apostrophe            -- ^ Apostrophe
     | Ellipses              -- ^ Ellipses
     | LineBreak             -- ^ Hard line break
-    | Math String           -- ^ TeX math (literal)
+    | Math MathType String  -- ^ TeX math (literal)
     | TeX String            -- ^ LaTeX code (literal)
     | HtmlInline String     -- ^ HTML code (literal)
     | Link [Inline] Target  -- ^ Hyperlink: text (list of inlines), target

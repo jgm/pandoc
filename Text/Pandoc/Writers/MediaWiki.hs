@@ -357,7 +357,7 @@ inlineToMediaWiki _ (Code str) =
 
 inlineToMediaWiki _ (Str str) = return $ escapeString str
 
-inlineToMediaWiki _ (Math str) = return $ "<math>" ++ str ++ "</math>"
+inlineToMediaWiki _ (Math _ str) = return $ "<math>" ++ str ++ "</math>"
                                  -- note:  str should NOT be escaped
 
 inlineToMediaWiki _ (TeX _) = return ""

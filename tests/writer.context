@@ -630,8 +630,6 @@ Ellipses\ldots{}and\ldots{}and\ldots{}.
 \item
   \cite[22-23]{smith.1899}
 \item
-  \doublespacing
-\item
   $2+2=4$
 \item
   $x \in y$
@@ -642,7 +640,8 @@ Ellipses\ldots{}and\ldots{}and\ldots{}.
 \item
   $p$-Tree
 \item
-  $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$
+  Here's some display math:
+  \startformula \frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h} \stopformula
 \item
   Here's one that has a line break in it:
   $\alpha + \omega \times x^2$.

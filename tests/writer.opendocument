@@ -1367,9 +1367,6 @@
           <text:p text:style-name="P50"><text:span text:style-name="Teletype">\cite[22-23]{smith.1899}</text:span></text:p>
         </text:list-item>
         <text:list-item>
-          <text:p text:style-name="P50"><text:span text:style-name="Teletype">\doublespacing</text:span></text:p>
-        </text:list-item>
-        <text:list-item>
           <text:p text:style-name="P50">2+2=4</text:p>
         </text:list-item>
         <text:list-item>
@@ -1385,7 +1382,7 @@
           <text:p text:style-name="P50"><text:span text:style-name="T60">p</text:span>-Tree</text:p>
         </text:list-item>
         <text:list-item>
-          <text:p text:style-name="P50">\frac{<text:span text:style-name="T61">d</text:span>}{<text:span text:style-name="T62">dx</text:span>}<text:span text:style-name="T63">f</text:span>(<text:span text:style-name="T64">x</text:span>)=\lim<text:span text:style-name="T65">h</text:span><text:span text:style-name="T66"> → </text:span><text:span text:style-name="T67">0</text:span>\frac{<text:span text:style-name="T68">f</text:span>(<text:span text:style-name="T69">x</text:span>+<text:span text:style-name="T70">h</text:span>)-<text:span text:style-name="T71">f</text:span>(<text:span text:style-name="T72">x</text:span>)}{<text:span text:style-name="T73">h</text:span>}</text:p>
+          <text:p text:style-name="P50">Here&#8217;s some display math: \frac{<text:span text:style-name="T61">d</text:span>}{<text:span text:style-name="T62">dx</text:span>}<text:span text:style-name="T63">f</text:span>(<text:span text:style-name="T64">x</text:span>)=\lim<text:span text:style-name="T65">h</text:span><text:span text:style-name="T66"> → </text:span><text:span text:style-name="T67">0</text:span>\frac{<text:span text:style-name="T68">f</text:span>(<text:span text:style-name="T69">x</text:span>+<text:span text:style-name="T70">h</text:span>)-<text:span text:style-name="T71">f</text:span>(<text:span text:style-name="T72">x</text:span>)}{<text:span text:style-name="T73">h</text:span>}</text:p>
         </text:list-item>
         <text:list-item>
           <text:p text:style-name="P50">Here&#8217;s one that has a line break in it: α+ω × <text:span text:style-name="T74">x</text:span><text:span text:style-name="T75">2</text:span>.</text:p>

@@ -30,6 +30,7 @@ Conversion of 'Pandoc' format into Texinfo.
 module Text.Pandoc.Writers.Texinfo ( writeTexinfo ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Pandoc.Readers.TeXMath
 import Text.Printf ( printf )
 import Data.List ( isSuffixOf )
 import Data.Char ( chr, ord )
@@ -364,7 +365,7 @@ inlineForNode EnDash = return $ text "--"
 inlineForNode Apostrophe = return $ char '\''
 inlineForNode Ellipses = return $ text "..."
 inlineForNode LineBreak = return empty
-inlineForNode (Math _) = return empty
+inlineForNode (Math _ str) = inlineListForNode $ readTeXMath str
 inlineForNode (TeX _) = return empty
 inlineForNode (HtmlInline _) = return empty
 inlineForNode (Link lst _) = inlineListForNode lst
@@ -437,7 +438,7 @@ inlineToTexinfo EmDash = return $ text "---"
 inlineToTexinfo EnDash = return $ text "--"
 inlineToTexinfo Ellipses = return $ text "@dots{}"
 inlineToTexinfo (Str str) = return $ text (stringToTexinfo str)
-inlineToTexinfo (Math str) = return $ inCmd "math" $ text str
+inlineToTexinfo (Math _ str) = return $ inCmd "math" $ text str
 inlineToTexinfo (TeX str) = return $ text "@tex" $$ text str $$ text "@end tex"
 inlineToTexinfo (HtmlInline _) = return empty
 inlineToTexinfo (LineBreak) = return $ text "@*"

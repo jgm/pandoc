@@ -51,9 +51,9 @@ Extra-Source-Files:
                  data/headers/OpenDocument.header,
                  data/headers/RTF.header,
                  data/headers/S5.header,
-                 -- data for ASCIIMathML writer
-                 data/ASCIIMathML.js.comment,
-                 data/ASCIIMathML.js.packed,
+                 -- data for LaTeXMathML writer
+                 data/LaTeXMathML.js.comment,
+                 data/LaTeXMathML.js.packed,
                  -- data for S5 writer
                  data/ui/default/slides.js.comment,
                  data/ui/default/slides.js.packed,
@@ -168,7 +168,7 @@ Library
                    Text.Pandoc.Shared,
                    Text.Pandoc.ODT,
                    Text.Pandoc.PDF,
-                   Text.Pandoc.ASCIIMathML,
+                   Text.Pandoc.LaTeXMathML,
                    Text.Pandoc.DefaultHeaders,
                    Text.Pandoc.Highlighting,
                    Text.Pandoc.Readers.HTML,
