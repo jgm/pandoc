@@ -37,7 +37,7 @@ import System.Exit
 import System.Environment ( getEnvironment )
 import Text.Pandoc.Shared ( withTempDir )
 import Prelude hiding ( writeFile, readFile, putStrLn )
-import System.IO ( stderr, openFile, IOMode (..) )
+import System.IO ( stderr, openFile, IOMode (..), hClose )
 #ifdef _UTF8STRING
 import System.IO.UTF8
 #else
@@ -102,6 +102,7 @@ runProgram cmdPath arguments workingDir env = do
    runOutput <- openFile runOutputPath WriteMode
    ph <- runProcess cmdPath arguments (Just workingDir) (Just env) Nothing (Just runOutput) (Just runOutput)
    ec <- waitForProcess ph   -- requires compilation with -threaded
+   hClose runOutput
    case ec of
          ExitSuccess -> return []
          _           -> do
