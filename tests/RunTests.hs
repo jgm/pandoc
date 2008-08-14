@@ -106,8 +106,9 @@ runTest testname opts inp norm = do
   ec <- waitForProcess ph
   result  <- if ec == ExitSuccess
                 then do
-                  outputContents <- readFile outputPath
-                  normContents <- readFile normPath
+                  -- filter \r so the tests will work on Windows machines
+                  outputContents <- readFile outputPath >>= return . filter (/='r')
+                  normContents <- readFile normPath >>= return . filter (/='r')
                   if outputContents == normContents
                      then return TestPassed
                      else return $ TestFailed $ getDiff (lines outputContents) (lines normContents)
