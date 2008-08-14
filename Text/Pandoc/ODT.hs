@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, CPP #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-
 Copyright (C) 2008 John MacFarlane <jgm@berkeley.edu>
 
@@ -44,11 +44,7 @@ import qualified Data.ByteString as B ( writeFile, pack )
 import Data.ByteString.Internal ( c2w )
 import Prelude hiding ( writeFile, readFile )
 import System.IO ( stderr )
-#ifdef _UTF8STRING
 import System.IO.UTF8
-#else
-import Text.Pandoc.UTF8
-#endif
 
 -- | Produce an ODT file from OpenDocument XML.
 saveOpenDocumentAsODT :: FilePath    -- ^ Pathname of ODT file to be produced.

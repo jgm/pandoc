@@ -24,10 +24,6 @@ GHC and the required libraries using `apt-get`:
     
     sudo apt-get install ghc6 libghc6-xhtml-dev libghc6-mtl-dev libghc6-network-dev
 
-Pandoc will use the [utf8-string] library if it is installed; otherwise, it
-will use its own internal module for UTF-8 I/O.  The utf8-string library is
-not a required dependency, but it may improve performance slightly.
-
 [GHC]: http://www.haskell.org/ghc/
 [GHC Download]: http://www.haskell.org/ghc/download.html
 [Cabal]: http://www.haskell.org/cabal/
@@ -36,7 +32,6 @@ not a required dependency, but it may improve performance slightly.
 [Fink]: http://finkproject.org
 [Ubuntu]: http://www.ubuntu.com
 [debian]: http://www.debian.org/
-[utf8-string]: http://hackage.haskell.org/cgi-bin/hackage-scripts/package/utf8-string
 
 Getting the source
 ------------------

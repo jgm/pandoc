@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-
 Copyright (C) 2008 John MacFarlane <jgm@berkeley.edu>
 
@@ -38,11 +37,7 @@ import System.Environment ( getEnvironment )
 import Text.Pandoc.Shared ( withTempDir )
 import Prelude hiding ( writeFile, readFile, putStrLn )
 import System.IO ( stderr, openFile, IOMode (..), hClose )
-#ifdef _UTF8STRING
 import System.IO.UTF8
-#else
-import Text.Pandoc.UTF8
-#endif
 
 -- | Produce an PDF file from LaTeX.
 saveLaTeXAsPDF :: FilePath    -- ^ Pathname of PDF file to be produced.

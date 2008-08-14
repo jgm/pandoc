@@ -17,7 +17,7 @@ main = defaultMainWithHooks $
 
 -- | Run test suite.
 runTestSuite _ _ _ _ = do
-  inDirectory "tests" $ runCommand "runhaskell RunTests.hs" >>= waitForProcess
+  inDirectory "tests" $ runCommand "runhaskell -i.. RunTests.hs" >>= waitForProcess
   return ()
 
 -- | If reference.odt needs rebuilding, build it.

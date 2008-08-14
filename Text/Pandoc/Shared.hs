@@ -118,11 +118,7 @@ import System.FilePath ( (</>), (<.>) )
 import System.IO.Error ( catch, ioError, isAlreadyExistsError )
 import System.Directory
 import Prelude hiding ( putStrLn, writeFile, readFile, getContents )
-#ifdef _UTF8STRING
 import System.IO.UTF8
-#else
-import Text.Pandoc.UTF8
-#endif
 
 --
 -- List processing

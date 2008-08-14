@@ -134,9 +134,6 @@ Flag executable
 Flag library
   Description:   Build the pandoc library.
   Default:       True
-Flag utf8-string
-  Description:   Use utf8-string library for UTF-8 I/O.
-  Default:       True
 Flag citeproc
   Description:   Compile in support for citeproc-hs bibliographic formatting.
   Default:       False
@@ -149,11 +146,6 @@ Library
   if flag(highlighting)
     Build-depends: highlighting-kate
     cpp-options:   -D_HIGHLIGHTING
-  if flag(utf8-string)
-    Build-depends: utf8-string
-    cpp-options:   -D_UTF8STRING
-  else
-    Other-Modules: Text.Pandoc.UTF8
   if flag(citeproc)
     Build-depends: citeproc-hs
     Exposed-Modules: Text.Pandoc.Biblio
@@ -190,12 +182,16 @@ Library
                    Text.Pandoc.Writers.S5
   Other-Modules:   Text.Pandoc.XML,
                    Text.Pandoc.TH,
+                   -- from xml package
                    Text.XML.Light,
                    Text.XML.Light.Types,
                    Text.XML.Light.Output,
                    Text.XML.Light.Input,
                    Text.XML.Light.Proc,
-                   Text.XML.Light.Cursor
+                   Text.XML.Light.Cursor,
+                   -- from utf8-string package
+                   System.IO.UTF8,
+                   Codec.Binary.UTF8.String
   Extensions:      CPP, TemplateHaskell, FlexibleInstances
   Ghc-Options:     -O2 -Wall -threaded
   Ghc-Prof-Options: -auto-all
@@ -214,11 +210,6 @@ Executable pandoc
 
   if flag(highlighting)
     cpp-options:   -D_HIGHLIGHTING
-  if flag(utf8-string)
-    Build-depends: utf8-string
-    cpp-options:   -D_UTF8STRING
-  else
-    Other-Modules: Text.Pandoc.UTF8
   if flag(citeproc)
     Build-depends: citeproc-hs
     cpp-options:   -D_CITEPROC
