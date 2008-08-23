@@ -81,6 +81,11 @@ main = do
        putStrLn $ "\n" ++ show failures ++ " tests failed."
        exitWith (ExitFailure failures)
 
+-- makes sure file is fully closed after reading
+readFile' :: FilePath -> IO String
+readFile' f = do s <- readFile f
+                 return $! (length s `seq` s)
+
 runWriterTest :: String -> IO Bool
 runWriterTest format = do
   r1 <- runTest (format ++ " writer") ["-r", "native", "-s", "-w", format] "testsuite.native" ("writer" <.> format)
@@ -107,8 +112,8 @@ runTest testname opts inp norm = do
   result  <- if ec == ExitSuccess
                 then do
                   -- filter \r so the tests will work on Windows machines
-                  outputContents <- readFile outputPath >>= return . filter (/='r')
-                  normContents <- readFile normPath >>= return . filter (/='r')
+                  outputContents <- readFile' outputPath >>= return . filter (/='\r')
+                  normContents <- readFile' normPath >>= return . filter (/='\r')
                   if outputContents == normContents
                      then return TestPassed
                      else return $ TestFailed $ getDiff (lines outputContents) (lines normContents)
