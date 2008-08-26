@@ -189,25 +189,19 @@ hrule = oneOfStrings [ "\\begin{center}\\rule{3in}{0.4pt}\\end{center}\n\n",
 --
 
 codeBlock :: GenParser Char st Block
-codeBlock = codeBlock1 <|> codeBlock2
+codeBlock = choice $ map codeBlockWith ["verbatim", "Verbatim", "code"]
+-- Note:  Verbatim is from fancyvrb.  code is used by literate Haskell.
 
-codeBlock1 :: GenParser Char st Block
-codeBlock1 = try $ do
-  string "\\begin{verbatim}"  -- don't use begin function because it 
-                              -- gobbles whitespace
+codeBlockWith :: String -> GenParser Char st Block
+codeBlockWith env = try $ do
+  string ("\\begin{" ++ env ++ "}")  -- don't use begin function because it
+                                     -- gobbles whitespace
   optional blanklines         -- we want to gobble blank lines, but not 
                               -- leading space
-  contents <- manyTill anyChar (try (string "\\end{verbatim}"))
+  contents <- manyTill anyChar (try (string $ "\\end{" ++ env ++ "}"))
   spaces
-  return $ CodeBlock ("",[],[]) (stripTrailingNewlines contents)
-
-codeBlock2 :: GenParser Char st Block
-codeBlock2 = try $ do
-  string "\\begin{Verbatim}"  -- used by fancyvrb package
-  optional blanklines
-  contents <- manyTill anyChar (try (string "\\end{Verbatim}"))
-  spaces
-  return $ CodeBlock ("",[],[]) (stripTrailingNewlines contents)
+  let classes = if env == "code" then ["haskell"] else []
+  return $ CodeBlock ("",classes,[]) (stripTrailingNewlines contents)
 
 --
 -- block quotes
