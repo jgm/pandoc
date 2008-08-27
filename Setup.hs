@@ -50,7 +50,7 @@ makeReferenceODT sources = do
 
 -- | Build man pages from markdown sources in man/man1/.
 makeManPages _ _ _ _ = do
-  mapM makeManPage ["pandoc.1", "hsmarkdown.1", "html2markdown.1"]
+  mapM makeManPage ["pandoc.1", "hsmarkdown.1", "html2markdown.1", "markdown2pdf.1"]
   return ()
 
 -- | Build a man page from markdown source in man/man1.

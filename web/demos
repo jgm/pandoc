@@ -61,11 +61,11 @@ click on the name of the output file:
 
 13. From markdown to PDF:
 
-@   pandoc @@README@@ -o @@example13.pdf@@
+@   markdown2pdf @@README@@ -o @@example13.pdf@@
 
 14. PDF with numbered sections and a custom LaTeX header:
 
-@   pandoc -N -C @@myheader.tex@@ @@README@@ -o @@example14.pdf@@
+@   markdown2pdf -N -C @@myheader.tex@@ @@README@@ -o @@example14.pdf@@
 
 [xmlto]:  http://cyberelk.net/tim/xmlto/
 

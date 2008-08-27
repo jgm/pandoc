@@ -11,7 +11,7 @@ long_description    \
     Pandoc is a command-line tool for converting from one markup format \
     to another.  It can read markdown and (subsets of) reStructuredText, \
     HTML, and LaTeX, and it can write markdown, reStructuredText, HTML, \
-    LaTeX, ConTeXt, PDF, DocBook XML, OpenDocument XML, ODT, RTF, Texinfo, \
+    LaTeX, ConTeXt, DocBook XML, OpenDocument XML, ODT, RTF, Texinfo, \
     MediaWiki markup, groff man, and S5 HTML slide shows.
 
 homepage            http://johnmacfarlane.net/pandoc/
@@ -40,7 +40,7 @@ destroot            {
   xinstall -m 755 ${worksrcpath}/unregister.sh \
     ${destroot}${prefix}/libexec/${name}-${version}
   # install shell scripts:
-  xinstall -m 755 -W ${worksrcpath} html2markdown hsmarkdown \
+  xinstall -m 755 -W ${worksrcpath} html2markdown hsmarkdown markdown2pdf \
     ${destroot}${prefix}/bin
   # install data file:
   xinstall -d ${destroot}${prefix}/share/${name}
@@ -51,7 +51,7 @@ destroot            {
   xinstall -m 644 -W ${worksrcpath} README README.html COPYRIGHT BUGS \
     ${destroot}${prefix}/share/doc/${name}
   xinstall -m 644 -W ${worksrcpath}/man/man1 pandoc.1 hsmarkdown.1 \
-    html2markdown.1 \
+    markdown2pdf.1 html2markdown.1 \
     ${destroot}${prefix}/share/man/man1
 }
 

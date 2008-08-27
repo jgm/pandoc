@@ -34,6 +34,8 @@ Pandoc features
     + Compatibility mode to turn off syntax entensions and emulate
       `Markdown.pl`.
 - Convenient wrapper scripts:
+    + `markdown2pdf` converts directly from markdown to PDF, using
+      `pdflatex`.
     + `html2markdown` makes it easy to produce a markdown version
       of any web page.
     + `hsmarkdown` is a drop-in replacement for `Markdown.pl`.
@@ -49,6 +51,7 @@ or [try pandoc on the web](/pandoc/try).
 - [Demonstrations](examples.html)
 - Man pages
     - [`pandoc(1)`](pandoc.1.html)
+    - [`markdown2pdf(1)`](markdown2pdf.1.html)
     - [`html2markdown(1)`](html2markdown.1.html)
     - [`hsmarkdown(1)`](hsmarkdown.1.html)
 - [Library documentation](doc/pandoc/index.html) (for Haskell programmers)

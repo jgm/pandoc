@@ -32,7 +32,6 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.ODT
-import Text.Pandoc.PDF
 import Text.Pandoc.Shared ( joinWithSep, HTMLMathMethod (..) )
 import Text.Pandoc.Highlighting ( languages )
 import System.Environment ( getArgs, getProgName, getEnvironment )
@@ -100,7 +99,6 @@ writers = [("native"       , (writeDoc, ""))
           ,("opendocument" , (writeOpenDocument, defaultOpenDocumentHeader))
           ,("odt"          , (writeOpenDocument, defaultOpenDocumentHeader))
           ,("latex"        , (writeLaTeX, defaultLaTeXHeader))
-          ,("pdf"          , (writeLaTeX, defaultLaTeXHeader))
           ,("context"      , (writeConTeXt, defaultConTeXtHeader))
           ,("texinfo"      , (writeTexinfo, ""))
           ,("man"          , (writeMan, ""))
@@ -111,7 +109,7 @@ writers = [("native"       , (writeDoc, ""))
           ]
 
 isNonTextOutput :: String -> Bool
-isNonTextOutput = (`elem` ["odt", "pdf"])
+isNonTextOutput = (`elem` ["odt"])
 
 -- | Writer for Pandoc native format.
 writeDoc :: WriterOptions -> Pandoc -> String
@@ -433,7 +431,6 @@ defaultWriterName x =
     ".texinfo"  -> "texinfo"
     ".db"       -> "docbook"
     ".odt"      -> "odt"
-    ".pdf"      -> "pdf"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
@@ -598,7 +595,6 @@ main = do
 
   let writeOutput = case writerName' of
                           "odt"   -> saveOpenDocumentAsODT outputFile sourceDirRelative
-                          "pdf"   -> saveLaTeXAsPDF outputFile sourceDirRelative
                           _       -> if outputFile == "-"
                                         then putStrLn
                                         else writeFile outputFile . (++ "\n")

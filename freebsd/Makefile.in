@@ -16,14 +16,14 @@ COMMENT=	A general markup converter
 BUILD_DEPENDS=	ghc>=6.6:${PORTSDIR}/lang/ghc
 
 MANCOMPRESSED=	no
-MAN1=		pandoc.1 html2markdown.1 hsmarkdown.1
+MAN1=		pandoc.1 markdown2pdf.1 html2markdown.1 hsmarkdown.1
 
 USE_GMAKE=	yes
 USE_PERL5=	yes
 
-PLIST_FILES=	bin/pandoc bin/html2markdown bin/hsmarkdown
+PLIST_FILES=	bin/pandoc bin/markdown2pdf bin/html2markdown bin/hsmarkdown
 PORTDOCS=	BUGS README README.html
-SCRIPTS=	hsmarkdown html2markdown
+SCRIPTS=	markdown2pdf hsmarkdown html2markdown
 
 do-install:
 	@${INSTALL_PROGRAM} ${WRKSRC}/dist/build/pandoc/pandoc ${PREFIX}/bin
