@@ -45,18 +45,18 @@ processBiblio cf r p
         let groups     = queryPandoc getCite p
             result     = citeproc csl r groups
             cits_map   = zip groups (citations result)
-            biblioList = map (read . renderPandoc') (bibliography result)
-            Pandoc m b = processPandoc (processCite cits_map) p
+            biblioList = map (read . renderPandoc' csl) (bibliography result)
+            Pandoc m b = processPandoc (processCite csl cits_map) p
         return $ Pandoc m $ b ++ biblioList
 
 -- | Substitute 'Cite' elements with formatted citations.
-processCite :: [([Target],[FormattedOutput])] -> Inline -> Inline
-processCite cs il
+processCite :: Style -> [([Target],[FormattedOutput])] -> Inline -> Inline
+processCite s cs il
     | Cite t _ <- il = Cite t (process t)
     | otherwise      = il
     where
       process t = case elemIndex t (map fst cs) of
-                    Just i -> read . renderPandoc $ snd (cs !! i)
+                    Just i -> read . renderPandoc s $ snd (cs !! i)
                     Nothing -> [Str ("Error processing " ++ show t)]
 
 -- | Retrieve all citations from a 'Pandoc' docuument. To be used with
