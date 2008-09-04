@@ -101,7 +101,7 @@ module Text.Pandoc.Shared (
                      WriterOptions (..),
                      defaultWriterOptions,
                      -- * File handling
-                     withTempDir
+                     inDirectory
                     ) where
 
 import Text.Pandoc.Definition
@@ -112,10 +112,7 @@ import Text.Pandoc.CharacterReferences ( characterReference )
 import Data.Char ( toLower, toUpper, ord, isLower, isUpper )
 import Data.List ( find, isPrefixOf )
 import Control.Monad ( join )
-import Control.Exception ( bracket )
 import Network.URI ( parseURI, URI (..), isAllowedInURI )
-import System.FilePath ( (</>), (<.>) )
-import System.IO.Error ( catch, ioError, isAlreadyExistsError )
 import System.Directory
 import Prelude hiding ( putStrLn, writeFile, readFile, getContents )
 import System.IO.UTF8
@@ -920,16 +917,11 @@ defaultWriterOptions =
 -- File handling
 --
 
--- | Perform a function in a temporary directory and clean up.
-withTempDir :: FilePath -> (FilePath -> IO a) -> IO a
-withTempDir baseName = bracket (createTempDir 0 baseName) (removeDirectoryRecursive)
-
--- | Create a temporary directory with a unique name.
-createTempDir :: Integer -> FilePath -> IO FilePath
-createTempDir num baseName = do
-  sysTempDir <- getTemporaryDirectory
-  let dirName = sysTempDir </> baseName <.> show num
-  catch (createDirectory dirName >> return dirName) $
-      \e -> if isAlreadyExistsError e
-               then createTempDir (num + 1) baseName
-               else ioError e
+-- | Perform an IO action in a directory, returning to starting directory.
+inDirectory :: FilePath -> IO a -> IO a
+inDirectory path action = do
+  oldDir <- getCurrentDirectory
+  setCurrentDirectory path
+  result <- action
+  setCurrentDirectory oldDir
+  return result

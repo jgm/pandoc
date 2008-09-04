@@ -87,11 +87,6 @@ Supported output formats include `markdown`, `latex`, `context`
 Texinfo), `mediawiki` (MediaWiki markup), `man` (groff man), and `s5`
 (which produces an HTML file that acts like powerpoint).
 
-For `odt` output, you must have `zip` in the path. If you
-don't have it installed, you can get the free [Info-ZIP].
-  
-[Info-ZIP]: http://www.info-zip.org/Zip.html
-
 Supported input formats include `markdown`, `html`, `latex`, and `rst`.
 Note that the `rst` reader only parses a subset of reStructuredText
 syntax. For example, it doesn't handle tables, option lists, or

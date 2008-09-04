@@ -2,7 +2,7 @@ Source: pandoc
 Section: text
 Priority: optional
 Maintainer: Recai Oktaş <roktas@debian.org>
-Build-Depends: debhelper (>= 4.0.0), haskell-devscripts (>=0.5.12), ghc6 (>= 6.8.2-1), libghc6-xhtml-dev, libghc6-mtl-dev, libghc6-network-dev, zip
+Build-Depends: debhelper (>= 4.0.0), haskell-devscripts (>=0.5.12), ghc6 (>= 6.8.2-1), libghc6-xhtml-dev, libghc6-mtl-dev, libghc6-network-dev
 Build-Depends-Indep: haddock
 Standards-Version: 3.7.3
 Homepage: http://johnmacfarlane.net/pandoc/
@@ -12,7 +12,7 @@ XS-Vcs-Browser: http://pandoc.googlecode.com/svn/trunk
 Package: pandoc
 Section: text
 Architecture: any
-Depends: ${shlibs:Depends}, zip, texlive-latex-recommended | tetex-extra
+Depends: ${shlibs:Depends}, texlive-latex-recommended | tetex-extra
 Suggests: tidy, wget | w3m
 Description: general markup converter
  Pandoc is a Haskell library for converting from one markup format to
@@ -38,7 +38,7 @@ Description: general markup converter
 Package: libghc6-pandoc-dev
 Section: libdevel
 Architecture: any
-Depends: ${haskell:Depends}, libghc6-xhtml-dev, libghc6-mtl-dev, libghc6-network-dev, zip, texlive-latex-recommended | tetex-extra
+Depends: ${haskell:Depends}, libghc6-xhtml-dev, libghc6-mtl-dev, libghc6-network-dev, texlive-latex-recommended | tetex-extra
 Suggests: pandoc-doc
 Description: general markup converter
  Pandoc is a Haskell library for converting from one markup format to

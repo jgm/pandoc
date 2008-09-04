@@ -38,12 +38,12 @@ Extra-Source-Files:
                  -- documentation
                  README, INSTALL, COPYRIGHT, COPYING, changelog,
                  -- sources for man pages
-                 man/man1/pandoc.1.md,
+                 man/man1/pandoc.1.md, man/man1/markdown2pdf.1.md,
                  man/man1/html2markdown.1.md, man/man1/hsmarkdown.1.md,
                  -- Makefile
                  Makefile,
                  -- wrappers
-                 html2markdown, hsmarkdown,
+                 markdown2pdf, html2markdown, hsmarkdown,
                  -- data for DefaultHeaders.hs
                  data/headers/ConTeXt.header,
                  data/headers/Docbook.header,
@@ -65,13 +65,11 @@ Extra-Source-Files:
                  data/ui/default/print.css,
                  -- data for ODT writer
                  odt-styles/meta.xml,
-                 odt-styles/content.xml,
                  odt-styles/settings.xml,
                  odt-styles/META-INF/manifest.xml,
                  odt-styles/Thumbnails/thumbnail.png,
                  odt-styles/styles.xml,
                  odt-styles/mimetype,
-                 odt-styles/reference.odt,
                  -- tests
                  tests/bodybg.gif,
                  tests/writer.latex,
@@ -151,7 +149,7 @@ Library
     Exposed-Modules: Text.Pandoc.Biblio
     cpp-options:   -D_CITEPROC
   Build-Depends: parsec < 3, xhtml, mtl, network, filepath, process, directory,
-                 template-haskell, bytestring
+                 template-haskell, bytestring, zip-archive, utf8-string, old-time
   Hs-Source-Dirs:  .
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Blocks,
@@ -180,17 +178,7 @@ Library
                    Text.Pandoc.Writers.RTF,
                    Text.Pandoc.Writers.S5
   Other-Modules:   Text.Pandoc.XML,
-                   Text.Pandoc.TH,
-                   -- from xml package
-                   Text.XML.Light,
-                   Text.XML.Light.Types,
-                   Text.XML.Light.Output,
-                   Text.XML.Light.Input,
-                   Text.XML.Light.Proc,
-                   Text.XML.Light.Cursor,
-                   -- from utf8-string package
-                   System.IO.UTF8,
-                   Codec.Binary.UTF8.String
+                   Text.Pandoc.TH
   Extensions:      CPP, TemplateHaskell, FlexibleInstances
   Ghc-Options:     -O2 -Wall -threaded
   Ghc-Prof-Options: -auto-all

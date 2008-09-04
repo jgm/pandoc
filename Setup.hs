@@ -12,41 +12,12 @@ import Data.Maybe ( fromJust, isNothing, catMaybes )
 
 main = defaultMainWithHooks $
        simpleUserHooks { runTests  = runTestSuite
-                       , preConf   = checkReferenceODT
                        , postBuild = makeManPages }
 
 -- | Run test suite.
 runTestSuite _ _ _ _ = do
   inDirectory "tests" $ runCommand "runhaskell -i.. RunTests.hs" >>= waitForProcess
   return ()
-
--- | If reference.odt needs rebuilding, build it.
-checkReferenceODT _ _ = inDirectory "odt-styles" $ do
-  let refodt = "reference.odt"
-  let deps   = [ "meta.xml", "content.xml", "settings.xml", "META-INF/manifest.xml",
-                 "Thumbnails/thumbnail.png", "styles.xml", "mimetype" ]
-  modifiedDeps <- modifiedDependencies refodt deps
-  if null modifiedDeps
-     then return ()
-     else makeReferenceODT modifiedDeps
-  return emptyHookedBuildInfo
-
--- | Create reference.odt by zipping up sources in odt-styles directory.
-makeReferenceODT :: [FilePath] -> IO ()
-makeReferenceODT sources = do
-  zipPathMaybe <- findExecutable "zip"
-  if isNothing zipPathMaybe
-     then error $ "The 'zip' command, which is needed to build reference.odt\n" ++
-                  "from sources in the odt-styles directory, was not found.\n" ++
-                  "Try again after installing zip (http://www.info-zip.org/Zip.html).\n" ++
-                  "Or use the pandoc source tarball, which contains a prebuilt reference.odt."
-     else do
-       putStrLn "Creating reference.odt:"
-       ec <- runProcess (fromJust zipPathMaybe) (["-9", "-r", "reference.odt"] ++ sources)
-                 Nothing Nothing Nothing Nothing (Just stderr) >>= waitForProcess
-       case ec of
-            ExitSuccess -> return ()
-            _           -> error "Error creating ODT."
 
 -- | Build man pages from markdown sources in man/man1/.
 makeManPages _ _ _ _ = do
