@@ -400,13 +400,13 @@ unknownCommand = try $ do
   notFollowedBy' $ choice $ map end ["itemize", "enumerate", "description",
                                      "document"]
   state <- getState
+  if stateParserContext state == ListItemState
+     then notFollowedBy' $ string "\\item"
+     else return ()
   if stateParseRaw state
      then do
         (name, star, args) <- command
         spaces
-        if name == "item" && stateParserContext state == ListItemState
-           then fail "should not be parsed as raw"
-           else return ""
         return $ Plain [TeX ("\\" ++ name ++ star ++ concat args)]
      else do -- skip unknown command, leaving arguments to be parsed
         char '\\'
