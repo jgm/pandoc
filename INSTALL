@@ -20,7 +20,7 @@ to to [install Cabal] separately. You can check your Cabal version using
 If you're running MacOS X, you can also install GHC using [MacPorts] or [Fink].
 
 If you're on a [debian]-based linux system (such as [Ubuntu]), you can get
-GHC and the required libraries using `apt-get`:
+GHC and some required libraries using `apt-get`:
     
     sudo apt-get install ghc6 libghc6-xhtml-dev libghc6-mtl-dev libghc6-network-dev
 
@@ -32,6 +32,31 @@ GHC and the required libraries using `apt-get`:
 [Fink]: http://finkproject.org
 [Ubuntu]: http://www.ubuntu.com
 [debian]: http://www.debian.org/
+
+Installing prerequisites
+------------------------
+
+Pandoc needs the `utf8-string` and `zip-archive` to compile.
+Check your packaging system to see if they are included.
+If not, you will need to compile them from source.
+
+On \*nix systems, the easiest way to do this is to install
+the [cabal-install] tool.  See the section [Quick Installation
+on Unix] for instructions.
+
+[cabal-install]: http://hackage.haskell.org/trac/hackage/wiki/CabalInstall
+[Quick Installation on Unix]: http://hackage.haskell.org/trac/hackage/wiki/CabalInstall#QuickInstallationonUnix
+
+Once you've got `cabal-install` installed, you can install the
+needed libraries by doing
+
+    cabal install utf8-string
+    cabal install zip-archive
+
+Alternatively, you can install these libraries using the [standard
+Cabal method], but you will have to install their dependencies manually.
+
+[standard Cabal method]: http://haskell.org/haskellwiki/Cabal/How_to_install_a_Cabal_package
 
 Getting the source
 ------------------
@@ -62,6 +87,14 @@ Installing Pandoc using Make
 
     If you get "Unknown modifier" errors, it is probably because `make`
     on your system is not [GNU `make`].  Try using `gmake` instead.
+
+    If you get a message saying that the `zip-archive` or `utf8-string`
+    libraries cannot be found, and you have installed these using
+    `cabal-install`, it is probably because by default `cabal-install`
+    installs libraries to the user's directory rather than globally.
+    Try again with
+
+        CABALOPTS=--user make
 
 3.  See if it worked (optional, but recommended): 
 
@@ -117,7 +150,8 @@ Installing pandoc using Cabal
 
 Change to the directory containing the pandoc source, and type:
 
-    runhaskell Setup.hs configure
+    runhaskell Setup.hs configure   # add --user if you have installed
+                                    # prerequisites locally with cabal-install
     runhaskell Setup.hs build
     runhaskell Setup.hs haddock  # optional, to build library documentation
     runhaskell Setup.hs install  # this one as root or sudo
