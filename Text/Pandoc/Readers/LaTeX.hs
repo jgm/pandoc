@@ -156,7 +156,6 @@ block = choice [ hrule
                , comment
                , bibliographic
                , para
-               , specialEnvironment
                , itemBlock
                , unknownEnvironment
                , ignore
@@ -346,12 +345,6 @@ itemBlock = try $ do
 --
 -- raw LaTeX 
 --
-
-specialEnvironment :: GenParser Char st Block
-specialEnvironment = do  -- these are always parsed as raw
-  lookAhead (choice (map (\name -> begin name)  ["tabular", "figure",
-              "tabbing", "eqnarry", "picture", "table", "verse", "theorem"]))
-  rawLaTeXEnvironment
 
 -- | Parse any LaTeX environment and return a Para block containing
 -- the whole literal environment as raw TeX.
