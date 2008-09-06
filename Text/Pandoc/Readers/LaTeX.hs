@@ -159,6 +159,7 @@ block = choice [ hrule
                , specialEnvironment
                , itemBlock
                , unknownEnvironment
+               , ignore
                , unknownCommand ] <?> "block"
 
 --
@@ -283,7 +284,12 @@ definitionList = try $ do
 --
 
 para :: GenParser Char ParserState Block
-para = many1 inline >>~ spaces >>= return . Para . normalizeSpaces
+para = do
+  res <- many1 inline
+  spaces
+  return $ if null (filter (`notElem` [Str "", Space]) res)
+              then Null
+              else Para $ normalizeSpaces res
 
 --
 -- title authors date
@@ -331,7 +337,7 @@ itemBlock :: GenParser Char ParserState Block
 itemBlock = try $ do
   ("item", _, args) <- command
   state <- getState
-  if (stateParserContext state == ListItemState)
+  if stateParserContext state == ListItemState
      then fail "item should be handled by list block"
      else if null args 
              then return Null
@@ -381,20 +387,33 @@ unknownEnvironment = try $ do
                else anyEnvironment      -- otherwise just the contents
   return result
 
+-- \ignore{} is used conventionally in literate haskell for definitions
+-- that are to be processed by the compiler but not printed.
+ignore :: GenParser Char ParserState Block
+ignore = try $ do
+  ("ignore", _, _) <- command
+  spaces
+  return Null
+
 unknownCommand :: GenParser Char ParserState Block
 unknownCommand = try $ do
-  notFollowedBy' $ choice $ map end ["itemize", "enumerate", "description", 
+  notFollowedBy' $ choice $ map end ["itemize", "enumerate", "description",
                                      "document"]
-  (name, star, args) <- command
-  spaces
-  let argStr = concat args
   state <- getState
-  if name == "item" && (stateParserContext state) == ListItemState
-     then fail "should not be parsed as raw"
-     else return ""
   if stateParseRaw state
-     then return $ Plain [TeX ("\\" ++ name ++ star ++ argStr)]
-     else return $ Plain [Str (joinWithSep " " args)]
+     then do
+        (name, star, args) <- command
+        spaces
+        if name == "item" && stateParserContext state == ListItemState
+           then fail "should not be parsed as raw"
+           else return ""
+        return $ Plain [TeX ("\\" ++ name ++ star ++ concat args)]
+     else do -- skip unknown command, leaving arguments to be parsed
+        char '\\'
+        letter
+        many (letter <|> digit)
+        spaces
+        return Null
 
 -- latex comment
 comment :: GenParser Char st Block
@@ -523,9 +542,9 @@ escapedChar = do
   result <- escaped (oneOf " $%&_#{}\n")
   return $ if result == Str "\n" then Str " " else result
 
--- ignore standalone, nonescaped special characters
+-- treat nonescaped special characters as spaces
 unescapedChar :: GenParser Char st Inline
-unescapedChar = oneOf "`$^&_#{}|<>" >> return (Str "")
+unescapedChar = oneOf "`$^&_#{}|<>" >> return Space
 
 specialChar :: GenParser Char st Inline
 specialChar = choice [ backslash, tilde, caret, bar, lt, gt, doubleQuote ]
@@ -727,12 +746,14 @@ footnote = try $ do
 -- | Parse any LaTeX command and return it in a raw TeX inline element.
 rawLaTeXInline :: GenParser Char ParserState Inline
 rawLaTeXInline = try $ do
-  (name, star, args) <- command
+  notFollowedBy' $ oneOfStrings ["\\begin", "\\end", "\\item", "\\ignore"]
   state <- getState
-  if ((name == "begin") || (name == "end") || (name == "item"))
-     then fail "not an inline command" 
-     else string ""
   if stateParseRaw state
-     then return $ TeX ("\\" ++ name ++ star ++ concat args)
-     else return $ Str (joinWithSep " " args)
-
+     then do
+        (name, star, args) <- command
+        return $ TeX ("\\" ++ name ++ star ++ concat args)
+     else do -- skip unknown command, leaving arguments to be parsed
+        char '\\'
+        letter
+        many (letter <|> digit)
+        return $ Str ""
