@@ -687,13 +687,20 @@ math3 :: GenParser Char st String
 math3 = try $ char '$' >> math1 >>~ char '$'
 
 math4 :: GenParser Char st String
-math4 = try $ (begin "equation") >> spaces >> manyTill anyChar (end "equation")
+math4 = try $ do
+  name <- begin "equation" <|> begin "equation*" <|> begin "displaymath" <|> begin "displaymath*"
+  spaces
+  manyTill anyChar (end name)
 
 math5 :: GenParser Char st String
-math5 = try $ (begin "displaymath") >> spaces >> manyTill anyChar (end "displaymath")
+math5 = try $ (string "\\[") >> spaces >> manyTill anyChar (try $ string "\\]")
 
 math6 :: GenParser Char st String
-math6 = try $ (string "\\[") >> spaces >> manyTill anyChar (try $ string "\\]")
+math6 = try $ do
+  name <- begin "eqnarray" <|> begin "eqnarray*"
+  spaces
+  res <- manyTill anyChar (end name)
+  return $ filter (/= '&') res  -- remove eqnarray alignment codes
 
 --
 -- links and images
