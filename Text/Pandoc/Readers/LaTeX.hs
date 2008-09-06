@@ -412,6 +412,7 @@ unknownCommand = try $ do
         char '\\'
         letter
         many (letter <|> digit)
+        optional (try $ string "{}")
         spaces
         return Null
 
@@ -542,15 +543,15 @@ escapedChar = do
   result <- escaped (oneOf " $%&_#{}\n")
   return $ if result == Str "\n" then Str " " else result
 
--- treat nonescaped special characters as spaces
+-- nonescaped special characters
 unescapedChar :: GenParser Char st Inline
-unescapedChar = oneOf "`$^&_#{}|<>" >> return Space
+unescapedChar = oneOf "`$^&_#{}|<>" >>= return . (\c -> Str [c])
 
 specialChar :: GenParser Char st Inline
 specialChar = choice [ backslash, tilde, caret, bar, lt, gt, doubleQuote ]
 
 backslash :: GenParser Char st Inline
-backslash = try (string "\\textbackslash") >> return (Str "\\")
+backslash = try (string "\\textbackslash") >> optional (try $ string "{}") >> return (Str "\\")
 
 tilde :: GenParser Char st Inline
 tilde = try (string "\\ensuremath{\\sim}") >> return (Str "~")
@@ -559,13 +560,13 @@ caret :: GenParser Char st Inline
 caret = try (string "\\^{}") >> return (Str "^")
 
 bar :: GenParser Char st Inline
-bar = try (string "\\textbar") >> return (Str "\\")
+bar = try (string "\\textbar") >> optional (try $ string "{}") >> return (Str "\\")
 
 lt :: GenParser Char st Inline
-lt = try (string "\\textless") >> return (Str "<")
+lt = try (string "\\textless") >> optional (try $ string "{}") >> return (Str "<")
 
 gt :: GenParser Char st Inline
-gt = try (string "\\textgreater") >> return (Str ">")
+gt = try (string "\\textgreater") >> optional (try $ string "{}") >> return (Str ">")
 
 doubleQuote :: GenParser Char st Inline
 doubleQuote = char '"' >> return (Str "\"")
@@ -631,7 +632,7 @@ doubleQuoteEnd :: CharParser st String
 doubleQuoteEnd = try $ string "''"
 
 ellipses :: GenParser Char st Inline
-ellipses = try $ string "\\ldots" >> optional (try (string "{}")) >>
+ellipses = try $ string "\\ldots" >> optional (try $ string "{}") >>
                  return Ellipses
 
 enDash :: GenParser Char st Inline
@@ -756,4 +757,5 @@ rawLaTeXInline = try $ do
         char '\\'
         letter
         many (letter <|> digit)
+        optional (try $ string "{}")
         return $ Str ""

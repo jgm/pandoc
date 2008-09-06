@@ -303,7 +303,7 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Para [Str "4",Space,Str "<",Space,Str "5."]
 , Para [Str "6",Space,Str ">",Space,Str "5."]
 , Para [Str "Backslash:",Space,Str "\\"]
-, Para [Str "Backtick:"]
+, Para [Str "Backtick:",Space,Str "`"]
 , Para [Str "Asterisk:",Space,Str "*"]
 , Para [Str "Underscore:",Space,Str "_"]
 , Para [Str "Left",Space,Str "brace:",Space,Str "{"]
