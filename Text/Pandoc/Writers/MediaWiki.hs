@@ -109,7 +109,7 @@ blockToMediaWiki _ (CodeBlock (_,classes,_) str) = do
                        "smalltalk", "smarty", "sql", "tcl", "", "thinbasic", "tsql", "vb", "vbnet", "vhdl", 
                        "visualfoxpro", "winbatch", "xml", "xpp", "z80"]
   let (beg, end) = if null at
-                      then ("<pre>", "</pre>")
+                      then ("<pre" ++ if null classes then ">" else " class=\"" ++ unwords classes ++ "\">", "</pre>")
                       else ("<source lang=\"" ++ head at ++ "\">", "</source>")
   return $ beg ++ escapeString str ++ end
 
