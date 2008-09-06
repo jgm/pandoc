@@ -266,30 +266,6 @@ $(tarball):
 	$(BUILDCMD) sdist
 	cp $(BUILDDIR)/$(tarball) .
 
-.PHONY: deb
-deb_name:=$(shell grep ^Package debian/control | cut -d' ' -f2 | head -n 1)
-deb_version:=$(shell head -n 1 debian/changelog | cut -f2 -d' ' | tr -d '()')
-deb_arch:=i386
-deb_main:=$(deb_name)_$(deb_version)_$(deb_arch).deb
-deb: debian
-	@[ -x /usr/bin/fakeroot ] || { \
-		echo >&2 "*** Please install fakeroot package. ***"; \
-		exit 1; \
-	}
-	@[ -x /usr/bin/dpkg-buildpackage ] || { \
-		echo >&2 "*** Please install dpkg-dev package. ***"; \
-		exit 1; \
-	}
-	mv $(BUILDVARS) $(BUILDVARS).old 2>/dev/null ||: # backup settings
-	if [ -x /usr/bin/debuild ]; then \
-		debuild -uc -us -i.svn -I.svn -i_darcs -I_darcs --lintian-opts -i; \
-	else \
-		echo >&2 "*** Please install devscripts package. ***"; \
-		echo >&2 "*** Using dpkg-buildpackage for package building. ***"; \
-		dpkg-buildpackage -rfakeroot -uc -us -i.svn -I.svn -i_darcs -I_darcs; \
-	fi
-	mv $(BUILDVARS).old $(BUILDVARS) 2>/dev/null ||: # restore
-
 .PHONY: website
 web_src:=web
 web_dest:=pandoc-website
@@ -297,7 +273,7 @@ make_page:=./$(MAIN) -s -S -B $(web_src)/header.html \
                         -A $(web_src)/footer.html \
 	                -H $(web_src)/css
 cleanup_files+=$(web_dest)
-$(web_dest) : html $(wildcard $(web_src)/*) debian/changelog \
+$(web_dest) : html $(wildcard $(web_src)/*) changelog \
     INSTALL $(MANPAGES) $(MANDIR)/man1/pandoc.1.md README
 	rm -rf $(web_dest) && { \
 		mkdir $(web_dest); \
@@ -305,7 +281,7 @@ $(web_dest) : html $(wildcard $(web_src)/*) debian/changelog \
 		cp $(web_src)/* $(web_dest)/; \
 		sed -e 's#@VERSION@#$(VERSION)#g' $(web_src)/index.txt.in > \
 			$(web_dest)/index.txt; \
-		cp debian/changelog $(web_dest)/changelog.txt ; \
+		cp changelog $(web_dest)/changelog.txt ; \
 		cp README $(web_dest)/ ; \
 		cp INSTALL $(web_dest)/ ; \
 		cp $(MANDIR)/man1/pandoc.1.md $(web_dest)/ ; \

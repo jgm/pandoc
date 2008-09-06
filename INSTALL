@@ -228,7 +228,6 @@ but are documented here for packagers and developers:
 ### Packaging
 
 * `tarball`:  Creates a source tarball for distribution.
-* `deb`:  Creates debian packages in `..` directory.
 * `macport`: Creates MacPorts Portfile in `macports` directory.
 * `freebsd`: Creates freebsd Makefile and distinfo in `freebsd` directory.
 * `win-pkg`:  Creates a Windows binary package (presupposes `pandoc.exe`,
