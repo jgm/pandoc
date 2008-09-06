@@ -259,7 +259,7 @@ vcat (x:xs) = x ++ "\n" ++ vcat xs
 
 colHeadsToMediaWiki :: WriterOptions
                     -> [[Char]]
-                    -> [Float]
+                    -> [Double]
                     -> [[Block]]
                     -> State WriterState String
 colHeadsToMediaWiki opts alignStrings widths headers = do
@@ -286,7 +286,7 @@ tableRowToMediaWiki opts aligns columns =
 tableItemToMediaWiki :: WriterOptions
                      -> [Char]
                      -> [Char]
-                     -> Float
+                     -> Double
                      -> [Block]
                      -> State WriterState String
 tableItemToMediaWiki opts tag' align' width' item = do

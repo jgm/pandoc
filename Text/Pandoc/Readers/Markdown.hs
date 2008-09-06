@@ -696,9 +696,9 @@ multilineRow indices = do
   mapM (parseFromString (many plain)) cols
 
 -- Calculate relative widths of table columns, based on indices
-widthsFromIndices :: Int     -- Number of columns on terminal
-                  -> [Int]   -- Indices
-                  -> [Float] -- Fractional relative sizes of columns
+widthsFromIndices :: Int      -- Number of columns on terminal
+                  -> [Int]    -- Indices
+                  -> [Double] -- Fractional relative sizes of columns
 widthsFromIndices _ [] = []  
 widthsFromIndices numColumns indices = 
   let lengths = zipWith (-) indices (0:indices)

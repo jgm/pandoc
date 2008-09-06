@@ -165,7 +165,7 @@ blockToDocbook opts (Table caption aligns widths headers rows) =
 
 colHeadsToDocbook :: WriterOptions 
                   -> [[Char]]
-                  -> [Float] 
+                  -> [Double]
                   -> [[Block]] 
                   -> Doc
 colHeadsToDocbook opts alignStrings widths headers =
@@ -188,7 +188,7 @@ tableRowToDocbook opts aligns cols = inTagsIndented "tr" $
 tableItemToDocbook :: WriterOptions
                    -> [Char]
                    -> [Char]
-                   -> Float
+                   -> Double
                    -> [Block]
                    -> Doc
 tableItemToDocbook opts tag align width item =

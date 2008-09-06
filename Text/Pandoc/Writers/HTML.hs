@@ -380,7 +380,7 @@ blockToHtml opts (Table capt aligns widths headers rows') = do
 
 colHeadsToHtml :: WriterOptions
                -> [[Char]]
-               -> [Float]
+               -> [Double]
                -> [[Block]]
                -> State WriterState Html
 colHeadsToHtml opts alignStrings widths headers = do
@@ -407,7 +407,7 @@ tableRowToHtml opts aligns columns =
 tableItemToHtml :: WriterOptions
                 -> (Html -> Html)
                 -> [Char]
-                -> Float
+                -> Double
                 -> [Block]
                 -> State WriterState Html
 tableItemToHtml opts tag' align' width' item = do

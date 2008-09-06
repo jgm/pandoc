@@ -34,7 +34,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.XML
 import Text.Pandoc.Readers.TeXMath
 import Text.PrettyPrint.HughesPJ hiding ( Str )
-
+import Text.Printf ( printf )
 import Control.Applicative ( (<$>) )
 import Control.Arrow ( (***), (>>>) )
 import Control.Monad.State hiding ( when )
@@ -460,7 +460,7 @@ listLevelStyle i =
                        [ ("text:space-before"   , indent ++ "in")
                        , ("text:min-label-width",       "0.25in")]
 
-tableStyle :: Int -> [(Char,Float)] -> Doc
+tableStyle :: Int -> [(Char,Double)] -> Doc
 tableStyle num wcs =
     let tableId        = "Table" ++ show (num + 1)
         table          = inTags True "style:style"
@@ -472,7 +472,7 @@ tableStyle num wcs =
                          [ ("style:name"  , tableId ++ "." ++ [c])
                          , ("style:family", "table-column"       )] $
                          selfClosingTag "style:table-column-properties"
-                         [("style:column-width", show (7 * w) ++ "in")]
+                         [("style:column-width", printf "%.2f" (7 * w) ++ "in")]
         cellStyle      = inTags True "style:style"
                          [ ("style:name"  , tableId ++ ".A1")
                          , ("style:family", "table-cell"    )] $

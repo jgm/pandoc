@@ -210,7 +210,7 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
              text "\\HL" $$ headers $$ text "\\HL" $$
              vcat rows' $$ text "\\HL\n\\stoptable"
 
-printDecimal :: Float -> String
+printDecimal :: Double  -> String
 printDecimal = printf "%.2f" 
 
 tableRowToConTeXt :: [[Block]] -> State WriterState Doc

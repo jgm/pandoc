@@ -190,7 +190,7 @@ blockToRTF indent alignment (Table caption aligns sizes headers rows) =
   concatMap (tableRowToRTF False indent aligns sizes) rows ++
   rtfPar indent 0 alignment (inlineListToRTF caption)
 
-tableRowToRTF :: Bool -> Int -> [Alignment] -> [Float] -> [[Block]] -> String 
+tableRowToRTF :: Bool -> Int -> [Alignment] -> [Double] -> [[Block]] -> String
 tableRowToRTF header indent aligns sizes cols =
   let columns = concat $ zipWith (tableItemToRTF indent) aligns cols
       totalTwips = 6 * 1440 -- 6 inches

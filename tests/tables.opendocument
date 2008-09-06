@@ -70,16 +70,16 @@
       <style:table-properties style:rel-width="100%" table:align="center" />
     </style:style>
     <style:style style:name="Table1.A" style:family="table-column">
-      <style:table-column-properties style:column-width="1.0500001in" />
+      <style:table-column-properties style:column-width="1.05in" />
     </style:style>
     <style:style style:name="Table1.B" style:family="table-column">
-      <style:table-column-properties style:column-width="0.6125in" />
+      <style:table-column-properties style:column-width="0.61in" />
     </style:style>
     <style:style style:name="Table1.C" style:family="table-column">
-      <style:table-column-properties style:column-width="1.1374999in" />
+      <style:table-column-properties style:column-width="1.14in" />
     </style:style>
     <style:style style:name="Table1.D" style:family="table-column">
-      <style:table-column-properties style:column-width="0.875in" />
+      <style:table-column-properties style:column-width="0.88in" />
     </style:style>
     <style:style style:name="Table1.A1" style:family="table-cell">
       <style:table-cell-properties fo:border="none" />
@@ -88,16 +88,16 @@
       <style:table-properties style:rel-width="100%" table:align="center" />
     </style:style>
     <style:style style:name="Table2.A" style:family="table-column">
-      <style:table-column-properties style:column-width="1.0500001in" />
+      <style:table-column-properties style:column-width="1.05in" />
     </style:style>
     <style:style style:name="Table2.B" style:family="table-column">
-      <style:table-column-properties style:column-width="0.6125in" />
+      <style:table-column-properties style:column-width="0.61in" />
     </style:style>
     <style:style style:name="Table2.C" style:family="table-column">
-      <style:table-column-properties style:column-width="1.1374999in" />
+      <style:table-column-properties style:column-width="1.14in" />
     </style:style>
     <style:style style:name="Table2.D" style:family="table-column">
-      <style:table-column-properties style:column-width="0.875in" />
+      <style:table-column-properties style:column-width="0.88in" />
     </style:style>
     <style:style style:name="Table2.A1" style:family="table-cell">
       <style:table-cell-properties fo:border="none" />
@@ -106,16 +106,16 @@
       <style:table-properties style:rel-width="100%" table:align="center" />
     </style:style>
     <style:style style:name="Table3.A" style:family="table-column">
-      <style:table-column-properties style:column-width="1.0500001in" />
+      <style:table-column-properties style:column-width="1.05in" />
     </style:style>
     <style:style style:name="Table3.B" style:family="table-column">
-      <style:table-column-properties style:column-width="0.6125in" />
+      <style:table-column-properties style:column-width="0.61in" />
     </style:style>
     <style:style style:name="Table3.C" style:family="table-column">
-      <style:table-column-properties style:column-width="1.1374999in" />
+      <style:table-column-properties style:column-width="1.14in" />
     </style:style>
     <style:style style:name="Table3.D" style:family="table-column">
-      <style:table-column-properties style:column-width="0.875in" />
+      <style:table-column-properties style:column-width="0.88in" />
     </style:style>
     <style:style style:name="Table3.A1" style:family="table-cell">
       <style:table-cell-properties fo:border="none" />
@@ -124,16 +124,16 @@
       <style:table-properties style:rel-width="100%" table:align="center" />
     </style:style>
     <style:style style:name="Table4.A" style:family="table-column">
-      <style:table-column-properties style:column-width="1.0500001in" />
+      <style:table-column-properties style:column-width="1.05in" />
     </style:style>
     <style:style style:name="Table4.B" style:family="table-column">
-      <style:table-column-properties style:column-width="0.96250004in" />
+      <style:table-column-properties style:column-width="0.96in" />
     </style:style>
     <style:style style:name="Table4.C" style:family="table-column">
-      <style:table-column-properties style:column-width="1.1374999in" />
+      <style:table-column-properties style:column-width="1.14in" />
     </style:style>
     <style:style style:name="Table4.D" style:family="table-column">
-      <style:table-column-properties style:column-width="2.3625in" />
+      <style:table-column-properties style:column-width="2.36in" />
     </style:style>
     <style:style style:name="Table4.A1" style:family="table-cell">
       <style:table-cell-properties fo:border="none" />
@@ -142,16 +142,16 @@
       <style:table-properties style:rel-width="100%" table:align="center" />
     </style:style>
     <style:style style:name="Table5.A" style:family="table-column">
-      <style:table-column-properties style:column-width="1.0500001in" />
+      <style:table-column-properties style:column-width="1.05in" />
     </style:style>
     <style:style style:name="Table5.B" style:family="table-column">
-      <style:table-column-properties style:column-width="0.96250004in" />
+      <style:table-column-properties style:column-width="0.96in" />
     </style:style>
     <style:style style:name="Table5.C" style:family="table-column">
-      <style:table-column-properties style:column-width="1.1374999in" />
+      <style:table-column-properties style:column-width="1.14in" />
     </style:style>
     <style:style style:name="Table5.D" style:family="table-column">
-      <style:table-column-properties style:column-width="2.3625in" />
+      <style:table-column-properties style:column-width="2.36in" />
     </style:style>
     <style:style style:name="Table5.A1" style:family="table-cell">
       <style:table-cell-properties fo:border="none" />

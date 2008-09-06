@@ -84,7 +84,7 @@ data Block
                             -- the term, and a block list)
     | Header Int [Inline]   -- ^ Header - level (integer) and text (inlines) 
     | HorizontalRule        -- ^ Horizontal rule
-    | Table [Inline] [Alignment] [Float] [[Block]] [[[Block]]]  -- ^ Table,
+    | Table [Inline] [Alignment] [Double] [[Block]] [[[Block]]]  -- ^ Table,
                             -- with caption, column alignments,
                             -- relative column widths, column headers
                             -- (each a list of blocks), and rows
