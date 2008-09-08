@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP, TemplateHaskell #-}
 -- | Definitions for use of LaTeXMathML in HTML.  
--- (See http://math.etsu.edu/LaTeXMathML/)
+-- (See <http://math.etsu.edu/LaTeXMathML/>)
 module Text.Pandoc.LaTeXMathML ( latexMathMLScript ) where
 import Text.Pandoc.TH ( contentsOf )
 import System.FilePath ( (</>) )
