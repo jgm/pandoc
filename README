@@ -244,7 +244,7 @@ For further documentation, see the `pandoc(1)` man page.
 :   causes tabs in the source text to be preserved, rather than converted
     to spaces (the default).
 
-`--tabstop` *tabstop*
+`--tab-stop` *tabstop*
 :   sets the number of spaces per tab to *tabstop* (defaults to 4).
 
 `--strict`
