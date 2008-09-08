@@ -120,9 +120,6 @@ Extra-Source-Files:
 Extra-Tmp-Files: man/man1/pandoc.1, man/man1/hsmarkdown.1,
                  man/man1/html2markdown.1
 
-Flag splitBase
-  Description:   Choose the new, smaller, split-up base package.
-  Default:       True
 Flag highlighting
   Description:   Compile in support for syntax highlighting of code blocks.
   Default:       False
@@ -137,10 +134,9 @@ Flag citeproc
   Default:       False
 
 Library
-  if flag(splitBase)
-    Build-Depends: base >= 3, pretty, containers
-  else
-    Build-Depends: base < 3
+  Build-Depends: base >= 3, pretty, containers, parsec < 3, xhtml, mtl, network,
+                 filepath, process, directory, template-haskell, bytestring,
+                 zip-archive, utf8-string, old-time
   if flag(highlighting)
     Build-depends: highlighting-kate
     cpp-options:   -D_HIGHLIGHTING
@@ -148,8 +144,6 @@ Library
     Build-depends: citeproc-hs
     Exposed-Modules: Text.Pandoc.Biblio
     cpp-options:   -D_CITEPROC
-  Build-Depends: parsec < 3, xhtml, mtl, network, filepath, process, directory,
-                 template-haskell, bytestring, zip-archive, utf8-string, old-time
   Hs-Source-Dirs:  .
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Blocks,

@@ -40,12 +40,13 @@ module Text.Pandoc.Writers.S5 (
                 writeS5String,
                 insertS5Structure
                 ) where
-import Text.Pandoc.Shared ( joinWithSep, WriterOptions )
+import Text.Pandoc.Shared ( WriterOptions )
 import Text.Pandoc.TH ( contentsOf )
 import Text.Pandoc.Writers.HTML ( writeHtml, writeHtmlString )
 import Text.Pandoc.Definition
 import Text.XHtml.Strict
 import System.FilePath ( (</>) )
+import Data.List ( intercalate )
 
 s5Meta :: String
 s5Meta = "<!-- configuration parameters -->\n<meta name=\"defaultView\" content=\"slideshow\" />\n<meta name=\"controlVis\" content=\"hidden\" />\n"
@@ -148,7 +149,7 @@ insertS5Structure (Pandoc (Meta title' authors date) blocks) =
     let slides     = insertSlides True blocks 
         firstSlide = if not (null title')
                         then [slideStart, (Header 1 title'), 
-                              (Header 3 [Str (joinWithSep ", " authors)]),
+                              (Header 3 [Str (intercalate ", " authors)]),
                               (Header 4 [Str date]), slideEnd]
                         else []
         newBlocks  = (layoutDiv title' date) ++ presentationStart:firstSlide ++

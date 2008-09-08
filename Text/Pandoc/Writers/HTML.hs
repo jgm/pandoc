@@ -37,7 +37,7 @@ import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Highlighting ( highlightHtml, defaultHighlightingCss )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower, isAlpha )
-import Data.List ( isPrefixOf, intersperse )
+import Data.List ( isPrefixOf, intercalate )
 import qualified Data.Set as S
 import Control.Monad.State
 import Text.XHtml.Transitional hiding ( stringToHtml )
@@ -252,7 +252,7 @@ inlineListToIdentifier' (x:xs) =
   xAsText ++ inlineListToIdentifier' xs
   where xAsText = case x of
           Str s          -> filter (\c -> c == '-' || not (isPunctuation c)) $
-                            concat $ intersperse "-" $ words $ map toLower s
+                            intercalate "-" $ words $ map toLower s
           Emph lst       -> inlineListToIdentifier' lst
           Strikeout lst  -> inlineListToIdentifier' lst
           Superscript lst -> inlineListToIdentifier' lst

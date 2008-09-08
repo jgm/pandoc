@@ -32,7 +32,7 @@ module Text.Pandoc.Readers.Markdown (
                                      readMarkdown 
                                     ) where
 
-import Data.List ( transpose, isPrefixOf, isSuffixOf, lookup, sortBy, findIndex )
+import Data.List ( transpose, isPrefixOf, isSuffixOf, lookup, sortBy, findIndex, intercalate )
 import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum, isAlpha, isLower, isDigit )
 import Data.Maybe
@@ -234,7 +234,7 @@ noteBlock = try $ do
   optional blanklines
   endPos <- getPosition
   -- parse the extracted text, which may contain various block elements:
-  contents <- parseFromString parseBlocks $ (joinWithSep "\n" raw) ++ "\n\n"
+  contents <- parseFromString parseBlocks $ (intercalate "\n" raw) ++ "\n\n"
   let newnote = (ref, contents)
   st <- getState
   let oldnotes = stateNotes st
@@ -381,7 +381,7 @@ codeBlockDelimited = try $ do
   (size, attr) <- codeBlockDelimiter Nothing
   contents <- manyTill anyLine (codeBlockDelimiter (Just size))
   blanklines
-  return $ CodeBlock attr $ joinWithSep "\n" contents
+  return $ CodeBlock attr $ intercalate "\n" contents
 
 codeBlockIndented :: GenParser Char ParserState Block
 codeBlockIndented = do
@@ -414,7 +414,7 @@ blockQuote :: GenParser Char ParserState Block
 blockQuote = do 
   raw <- emailBlockQuote
   -- parse the extracted block, which may contain various block elements:
-  contents <- parseFromString parseBlocks $ (joinWithSep "\n" raw) ++ "\n\n"
+  contents <- parseFromString parseBlocks $ (intercalate "\n" raw) ++ "\n\n"
   return $ BlockQuote contents
  
 --
@@ -757,7 +757,7 @@ multilineTableHeader = try $ do
   let rawHeadsList = transpose $ map 
                      (\ln -> tail $ splitByIndices (init indices) ln)
                      rawContent
-  let rawHeads = map (joinWithSep " ") rawHeadsList
+  let rawHeads = map (intercalate " ") rawHeadsList
   let aligns   = zipWith alignType rawHeadsList lengths
   return ((map removeLeadingTrailingSpace rawHeads), aligns, indices)
 
@@ -884,7 +884,7 @@ mathInline = try $ do
   words' <- sepBy1 mathWord (many1 (spaceChar <|> (newline >>~ notFollowedBy' blankline)))
   char '$'
   notFollowedBy digit
-  return $ joinWithSep " " words'
+  return $ intercalate " " words'
 
 emph :: GenParser Char ParserState Inline
 emph = ((enclosed (char '*') (notFollowedBy' strong >> char '*') inline) <|>

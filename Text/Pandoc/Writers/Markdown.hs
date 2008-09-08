@@ -34,7 +34,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Blocks
 import Text.ParserCombinators.Parsec ( parse, GenParser )
-import Data.List ( group, isPrefixOf, drop, find, intersperse )
+import Data.List ( group, isPrefixOf, drop, find, intersperse, intercalate )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 
@@ -119,7 +119,7 @@ titleToMarkdown opts lst = do
 authorsToMarkdown :: [String] -> State WriterState Doc
 authorsToMarkdown [] = return empty
 authorsToMarkdown lst = return $ 
-  text "% " <> text (joinWithSep ", " (map escapeString lst))
+  text "% " <> text (intercalate ", " (map escapeString lst))
 
 dateToMarkdown :: String -> State WriterState Doc
 dateToMarkdown [] = return empty

@@ -33,7 +33,6 @@ module Text.Pandoc.Shared (
                      splitBy,
                      splitByIndices,
                      substitute,
-                     joinWithSep,
                      -- * Text processing
                      backslashEscapes,
                      escapeStringUsing,
@@ -110,7 +109,7 @@ import Text.PrettyPrint.HughesPJ ( Doc, fsep, ($$), (<>), empty, isEmpty, text )
 import qualified Text.PrettyPrint.HughesPJ as PP
 import Text.Pandoc.CharacterReferences ( characterReference )
 import Data.Char ( toLower, toUpper, ord, isLower, isUpper )
-import Data.List ( find, isPrefixOf )
+import Data.List ( find, isPrefixOf, intercalate )
 import Control.Monad ( join )
 import Network.URI ( parseURI, URI (..), isAllowedInURI )
 import System.Directory
@@ -144,13 +143,6 @@ substitute target replacement lst =
     if target `isPrefixOf` lst
        then replacement ++ (substitute target replacement $ drop (length target) lst)
        else (head lst):(substitute target replacement $ tail lst)
-
--- | Joins a list of lists, separated by another list.
-joinWithSep :: [a]    -- ^ List to use as separator
-            -> [[a]]  -- ^ Lists to join
-            -> [a]
-joinWithSep _ [] = []
-joinWithSep sep lst = foldr1 (\a b -> a ++ sep ++ b) lst
 
 --
 -- Text processing
@@ -441,7 +433,7 @@ domain :: GenParser Char st [Char]
 domain = do
   first <- many1 domainChar
   dom <- many1 $ try (char '.' >> many1 domainChar )
-  return $ joinWithSep "." (first:dom)
+  return $ intercalate "." (first:dom)
 
 -- | Parses an email address; returns string.
 emailAddress :: GenParser Char st [Char]
@@ -732,7 +724,7 @@ indentBy num first str =
   let (firstLine:restLines) = lines str 
       firstLineIndent = num + first
   in  (replicate firstLineIndent ' ') ++ firstLine ++ "\n" ++ 
-      (joinWithSep "\n" $ map ((replicate num ' ') ++ ) restLines)
+      (intercalate "\n" $ map ((replicate num ' ') ++ ) restLines)
 
 -- | Prettyprint list of Pandoc blocks elements.
 prettyBlockList :: Int       -- ^ Number of spaces to indent list of blocks
@@ -740,7 +732,7 @@ prettyBlockList :: Int       -- ^ Number of spaces to indent list of blocks
                 -> String
 prettyBlockList indent [] = indentBy indent 0 "[]"
 prettyBlockList indent blocks = indentBy indent (-2) $ "[ " ++ 
-  (joinWithSep "\n, " (map prettyBlock blocks)) ++ " ]"
+  (intercalate "\n, " (map prettyBlock blocks)) ++ " ]"
 
 -- | Prettyprint Pandoc block element.
 prettyBlock :: Block -> String
@@ -748,20 +740,20 @@ prettyBlock (BlockQuote blocks) = "BlockQuote\n  " ++
                                   (prettyBlockList 2 blocks) 
 prettyBlock (OrderedList attribs blockLists) = 
   "OrderedList " ++ show attribs ++ "\n" ++ indentBy 2 0 ("[ " ++ 
-  (joinWithSep ", " $ map (\blocks -> prettyBlockList 2 blocks) 
+  (intercalate ", " $ map (\blocks -> prettyBlockList 2 blocks)
   blockLists)) ++ " ]"
 prettyBlock (BulletList blockLists) = "BulletList\n" ++ 
-  indentBy 2 0 ("[ " ++ (joinWithSep ", " 
+  indentBy 2 0 ("[ " ++ (intercalate ", "
   (map (\blocks -> prettyBlockList 2 blocks) blockLists))) ++ " ]" 
 prettyBlock (DefinitionList blockLists) = "DefinitionList\n" ++ 
-  indentBy 2 0 ("[" ++ (joinWithSep ",\n" 
+  indentBy 2 0 ("[" ++ (intercalate ",\n"
   (map (\(term, blocks) -> "  (" ++ show term ++ ",\n" ++ 
   indentBy 1 2 (prettyBlockList 2 blocks) ++ "  )") blockLists))) ++ " ]" 
 prettyBlock (Table caption aligns widths header rows) = 
   "Table " ++ show caption ++ " " ++ show aligns ++ " " ++ 
   show widths ++ "\n" ++ prettyRow header ++ " [\n" ++  
-  (joinWithSep ",\n" (map prettyRow rows)) ++ " ]"
-  where prettyRow cols = indentBy 2 0 ("[ " ++ (joinWithSep ", "
+  (intercalate ",\n" (map prettyRow rows)) ++ " ]"
+  where prettyRow cols = indentBy 2 0 ("[ " ++ (intercalate ", "
                          (map (\blocks -> prettyBlockList 2 blocks) 
                          cols))) ++ " ]"
 prettyBlock block = show block

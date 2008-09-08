@@ -31,7 +31,7 @@ module Text.Pandoc.Writers.RTF ( writeRTF ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
-import Data.List ( isSuffixOf )
+import Data.List ( isSuffixOf, intercalate )
 import Data.Char ( ord, isDigit )
 
 -- | Convert Pandoc to a string in rich text format.
@@ -82,7 +82,7 @@ stringToRTF = handleUnicode . escapeSpecial
 
 -- | Escape things as needed for code block in RTF.
 codeStringToRTF :: String -> String
-codeStringToRTF str = joinWithSep "\\line\n" $ lines (stringToRTF str)
+codeStringToRTF str = intercalate "\\line\n" $ lines (stringToRTF str)
 
 -- | Make a paragraph with first-line indent, block indent, and space after.
 rtfParSpaced :: Int       -- ^ space after (in twips)
@@ -150,7 +150,7 @@ rtfHeader headerText (Meta title authors date) =
                           "\\b \\fs36 " ++ inlineListToRTF title
       authorstext = if null authors
                        then "" 
-                       else rtfPar 0 0 AlignCenter (" " ++ (joinWithSep "\\" $
+                       else rtfPar 0 0 AlignCenter (" " ++ (intercalate "\\" $
                                                     map stringToRTF authors))
       datetext = if date == "" 
                     then ""

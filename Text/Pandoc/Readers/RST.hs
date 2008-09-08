@@ -33,7 +33,7 @@ module Text.Pandoc.Readers.RST (
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.ParserCombinators.Parsec
-import Data.List ( findIndex, delete )
+import Data.List ( findIndex, delete, intercalate )
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: ParserState -> String -> Pandoc
@@ -144,7 +144,7 @@ fieldListItem indent = try $ do
   first <- manyTill anyChar newline
   rest <- option "" $ try $ lookAhead (string indent >> oneOf " \t") >> 
                             indentedBlock
-  return (name, joinWithSep " " (first:(lines rest)))
+  return (name, intercalate " " (first:(lines rest)))
 
 fieldList :: GenParser Char ParserState Block
 fieldList = try $ do
@@ -583,7 +583,7 @@ code :: GenParser Char ParserState Inline
 code = try $ do 
   string "``"
   result <- manyTill anyChar (try (string "``"))
-  return $ Code $ removeLeadingTrailingSpace $ joinWithSep " " $ lines result
+  return $ Code $ removeLeadingTrailingSpace $ intercalate " " $ lines result
 
 emph :: GenParser Char ParserState Inline
 emph = enclosed (char '*') (char '*') inline >>= 

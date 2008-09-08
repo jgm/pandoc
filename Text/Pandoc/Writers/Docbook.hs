@@ -32,7 +32,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.XML
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
-import Data.List ( isPrefixOf, drop )
+import Data.List ( isPrefixOf, drop, intercalate )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
 -- | Convert list of authors to a docbook <author> section
@@ -50,7 +50,7 @@ authorToDocbook name = inTagsIndented "author" $
              (firstname, lastname) = case lengthname of
                0  -> ("","") 
                1  -> ("", name)
-               n  -> (joinWithSep " " (take (n-1) namewords), last namewords)
+               n  -> (intercalate " " (take (n-1) namewords), last namewords)
           in inTagsSimple "firstname" (text $ escapeStringForXML firstname) $$ 
              inTagsSimple "surname" (text $ escapeStringForXML lastname) 
 

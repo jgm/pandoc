@@ -32,7 +32,7 @@ module Text.Pandoc.Writers.Man ( writeMan) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
-import Data.List ( isPrefixOf, drop, nub, intersperse )
+import Data.List ( isPrefixOf, drop, nub, intersperse, intercalate )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 
@@ -77,8 +77,8 @@ metaToMan options (Meta title authors date) = do
              doubleQuotes (text date) <+> hsep extras
   let foot = case length authors of
                 0 -> empty
-                1 -> text ".SH AUTHOR" $$ (text $ joinWithSep ", " authors)
-                _ -> text ".SH AUTHORS" $$ (text $ joinWithSep ", " authors)
+                1 -> text ".SH AUTHOR" $$ (text $ intercalate ", " authors)
+                _ -> text ".SH AUTHORS" $$ (text $ intercalate ", " authors)
   return $ if writerStandalone options
               then (head', foot)
               else (empty, empty)
@@ -144,7 +144,7 @@ blockToMan opts (Table caption alignments widths headers rows) =
   modify (\(notes, preprocessors) -> (notes, "t":preprocessors))
   let iwidths = map (printf "w(%0.2fn)" . (70 *)) widths 
   -- 78n default width - 8n indent = 70n
-  let coldescriptions = text $ joinWithSep " " 
+  let coldescriptions = text $ intercalate " "
                         (zipWith (\align width -> aligncode align ++ width) 
                         alignments iwidths) ++ "."
   colheadings <- mapM (blockListToMan opts) headers

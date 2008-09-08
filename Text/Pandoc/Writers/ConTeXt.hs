@@ -31,7 +31,7 @@ module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
-import Data.List ( isSuffixOf )
+import Data.List ( isSuffixOf, intercalate )
 import Control.Monad.State
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
@@ -87,7 +87,7 @@ contextHeader options (Meta title authors date) = do
                        then ""
                        else if length authors == 1
                             then stringToConTeXt $ head authors
-                            else stringToConTeXt $ (joinWithSep ", " $
+                            else stringToConTeXt $ (intercalate ", " $
                                  init authors) ++ " & " ++ last authors
   let datetext   = if date == ""
                        then "" 
@@ -168,7 +168,7 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
     let specs2Items = filter (not . null) [start', delim', width'']
     let specs2 = if null specs2Items
                     then ""
-                    else "[" ++ joinWithSep "," specs2Items ++ "]"
+                    else "[" ++ intercalate "," specs2Items ++ "]"
     let style'' = case style' of
                         DefaultStyle -> orderedListStyles !! level
                         Decimal      -> "[n]" 

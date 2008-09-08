@@ -39,6 +39,7 @@ import Control.Applicative ( (<$>) )
 import Control.Arrow ( (***), (>>>) )
 import Control.Monad.State hiding ( when )
 import Data.Char (chr)
+import Data.List (intercalate)
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
@@ -171,7 +172,7 @@ authorToOpenDocument name =
              (firstname, lastname) = case lengthname of
                0  -> ("","")
                1  -> ("", name)
-               n  -> (joinWithSep " " (take (n-1) namewords), last namewords)
+               n  -> (intercalate " " (take (n-1) namewords), last namewords)
           in inParagraphTagsWithStyle "Author" $
                  (text $ escapeStringForXML firstname) <+>
                  (text $ escapeStringForXML lastname)

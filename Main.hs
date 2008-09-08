@@ -32,7 +32,7 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.ODT
-import Text.Pandoc.Shared ( joinWithSep, HTMLMathMethod (..) )
+import Text.Pandoc.Shared ( HTMLMathMethod (..) )
 import Text.Pandoc.Highlighting ( languages )
 import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
@@ -40,6 +40,7 @@ import System.FilePath ( takeExtension, takeDirectory )
 import System.Console.GetOpt
 import Data.Maybe ( fromMaybe )
 import Data.Char ( toLower )
+import Data.List ( intercalate )
 import Prelude hiding ( putStrLn, writeFile, readFile, getContents )
 import System.IO ( stdout, stderr )
 import System.IO.UTF8
@@ -188,13 +189,13 @@ options =
                  (ReqArg
                   (\arg opt -> return opt { optReader = map toLower arg })
                   "FORMAT")
-                 "" -- ("(" ++ (joinWithSep ", " $ map fst readers) ++ ")")
+                 "" -- ("(" ++ (intercalate ", " $ map fst readers) ++ ")")
 
     , Option "tw" ["to","write"]
                  (ReqArg
                   (\arg opt -> return opt { optWriter = map toLower arg })
                   "FORMAT")
-                 "" -- ("(" ++ (joinWithSep ", " $ map fst writers) ++ ")")
+                 "" -- ("(" ++ (intercalate ", " $ map fst writers) ++ ")")
 
     , Option "s" ["standalone"]
                  (NoArg
@@ -389,8 +390,8 @@ options =
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName opts = usageInfo
   (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++
-  (joinWithSep ", " $ map fst readers) ++ "\nOutput formats:  " ++
-  (joinWithSep ", " $ map fst writers) ++ "\nOptions:")
+  (intercalate ", " $ map fst readers) ++ "\nOutput formats:  " ++
+  (intercalate ", " $ map fst writers) ++ "\nOptions:")
   opts
 
 -- Determine default reader based on source file extensions
@@ -599,7 +600,7 @@ main = do
                                         then putStrLn
                                         else writeFile outputFile . (++ "\n")
 
-  fmap (reader startParserState . tabFilter tabStop . joinWithSep "\n")
+  fmap (reader startParserState . tabFilter tabStop . intercalate "\n")
        (readSources sources) >>=
 #ifdef _CITEPROC
         processBiblio cslFile refs >>=

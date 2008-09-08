@@ -31,7 +31,7 @@ module Text.Pandoc.Writers.LaTeX ( writeLaTeX ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
-import Data.List ( (\\), isSuffixOf )
+import Data.List ( (\\), isSuffixOf, intercalate )
 import Data.Char ( toLower )
 import qualified Data.Set as S
 import Control.Monad.State
@@ -92,7 +92,7 @@ latexHeader options (Meta title authors date) = do
                      then text "\\VerbatimFootnotes % allows verbatim text in footnotes"
                      else empty
   let authorstext = text $ "\\author{" ++ 
-                    joinWithSep "\\\\" (map stringToLaTeX authors) ++ "}"
+                    intercalate "\\\\" (map stringToLaTeX authors) ++ "}"
   let datetext  = if date == ""
                      then empty 
                      else text $ "\\date{" ++ stringToLaTeX date ++ "}"

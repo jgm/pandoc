@@ -46,7 +46,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Data.Maybe ( fromMaybe )
-import Data.List ( takeWhile, dropWhile, isPrefixOf, isSuffixOf )
+import Data.List ( takeWhile, dropWhile, isPrefixOf, isSuffixOf, intercalate )
 import Data.Char ( toLower, isAlphaNum )
 import Network.URI ( parseURIReference, URI (..) )
 
@@ -534,7 +534,7 @@ definitionListItem :: GenParser Char ParserState ([Inline], [Block])
 definitionListItem = try $ do
   terms <- sepEndBy1 (inlinesIn "dt") spaces
   defs <- sepEndBy1 (blocksIn "dd") spaces
-  let term = joinWithSep [LineBreak] terms
+  let term = intercalate [LineBreak] terms
   return (term, concat defs)
 
 --
@@ -580,7 +580,7 @@ code = try $ do
   -- remove internal line breaks, leading and trailing space,
   -- and decode character references
   return $ Code $ decodeCharacterReferences $ removeLeadingTrailingSpace $ 
-                  joinWithSep " " $ lines result 
+                  intercalate " " $ lines result
 
 rawHtmlInline :: GenParser Char ParserState Inline
 rawHtmlInline = do
