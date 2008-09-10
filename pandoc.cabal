@@ -134,11 +134,23 @@ Flag citeproc
   Default:       False
 
 Library
-  Build-Depends: base >= 3, pretty, containers, parsec < 3, xhtml, mtl, network,
-                 filepath, process, directory, template-haskell, bytestring,
-                 zip-archive, utf8-string, old-time
+  Build-Depends: base >= 3,
+                 pretty >= 1 && < 1.1,
+                 containers >= 0.1 && < 0.2,
+                 parsec >= 2.1 && < 2.2,
+                 xhtml >= 3000.0 && < 3000.3,
+                 mtl >= 1.1 && < 1.2,
+                 network >= 2 && < 2.3,
+                 filepath >= 1.1 && < 1.2,
+                 process >= 1 && < 1.1,
+                 directory >= 1 && < 1.1,
+                 template-haskell >= 2.2 && < 2.3,
+                 bytestring >= 0.9 && < 0.10,
+                 zip-archive >= 0.1.1 && < 0.2,
+                 utf8-string >= 0.3 && < 0.4,
+                 old-time >= 1 && < 1.1
   if flag(highlighting)
-    Build-depends: highlighting-kate
+    Build-depends: highlighting-kate >= 0.2.3 && < 0.3
     cpp-options:   -D_HIGHLIGHTING
   if flag(citeproc)
     Build-depends: citeproc-hs
