@@ -7,7 +7,7 @@ to another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX],
 and it can write [markdown], [reStructuredText], [HTML], [LaTeX], [ConTeXt],
 [PDF], [RTF], [DocBook XML], [OpenDocument XML], [ODT], [GNU Texinfo],
-[[MediaWiki markup], groff man] pages, and [S5] HTML slide shows.
+[MediaWiki markup], [groff man] pages, and [S5] HTML slide shows.
 
 Pandoc features
 
@@ -17,7 +17,9 @@ Pandoc features
   [More accurate] and [much faster] than `Markdown.pl`.
 - Also parses (subsets of) reStructuredText, LaTeX, and HTML.
 - Multiple output formats: HTML, Docbook XML, LaTeX, ConTeXt,
-  reStructuredText, Markdown, RTF, groff man pages, S5 slide shows.
+  reStructuredText, Markdown, RTF, groff man pages, OpenDocument
+  XML, ODT (Open Office document), MediaWiki, GNU Texinfo,
+  S5 slide shows.
 - Unicode support.
 - Optional "smart" quotes, dashes, and ellipses.
 - Automatically generated tables of contents.
@@ -61,11 +63,10 @@ or [try pandoc on the web](/pandoc/try).
 # Downloads
 
 For installation instructions for all architectures, see
-[INSTALL](INSTALL.html).  Note that pandoc is in the [MacPorts],
-[Debian unstable], and [FreeBSD ports] repositories.
-Abhishek Dasgupta has also contributed an [Arch linux PKGBUILD script].
-Starting with release 8.04 ("Hardy Heron"), pandoc will be included
-in [Ubuntu linux].
+[INSTALL](INSTALL.html). Pandoc is in the [MacPorts], [Debian unstable],
+[Ubuntu], and [FreeBSD ports] repositories. Abhishek Dasgupta has also
+contributed an [Arch linux PKGBUILD script]. Note that the version of
+pandoc in these repositories may not be the most recent.
 
 - [Source tarball]
 - [Windows binary package]
@@ -89,6 +90,25 @@ You may view existing bug reports and submit new ones at
 - [pandoc-discuss]:  General discussion of pandoc.
 
 # News
+
+-   Version 1.0 release (October 11, 2008).
+
+    + New writers for MediaWiki, GNU Texinfo (thanks to Peter Wang),
+      OpenDocument XML (thanks to Andrea Rossato), and ODT (OpenOffice
+      document).
+    + New [delimited code blocks](README.html#delimited-code-blocks),
+      with optional syntax highlighting.
+    + Reorganized build system:  pandoc can now be built using standard
+      Cabal tools.  It can be compiled on Windows without Cygwin.
+      The tests can also be run without perl or unix tools.
+    + LaTeXMathML replaces ASCIIMathML for rendering math in HTML.
+    + Support for "displayed" math.
+    + Common abbreviations are now handled more intelligently, with
+      a non-breaking space (and not a sentence-ending space) after
+      the period.
+    + Code is -Wall clean.
+    + Many bug fixes and small improvements.  See [changelog] for
+      full details.
 
 -   Version 0.46 released (January 8, 2008).
 
@@ -125,36 +145,9 @@ You may view existing bug reports and submit new ones at
       which version of the compiler to use, when multiple versions are
       installed.
 
--   Version 0.44 released (September 3, 2007).
-
-    + Fixed bug in HTML writer:  when `--toc` was used, anchors were put around
-      headers, which is invalid XHTML (block content within inline element).
-      Now the anchors are put inside the header tags.  Resolves Issue #23.
-    + Changed build process to compile `Setup.hs` instead of using
-      `runhaskell`, which throws an error on platforms where GHC is
-      "not built for interactive use".  Closes Debian #440668.
-
--   Version 0.43 released (September 2, 2007).
-
-    + HUGE increase in performance:  markdown is parsed five times
-      faster than with 0.42 on large benchmark files.
-    + Prettyprinting library used in LaTeX writer, so that LaTeX output
-      is wrapped and intelligently indented.
-    + Fixed bugs in LaTeX ordered lists and LaTeX command and environment
-      parsers.
-    + Blank lines are no longer required after code blocks.
-    + Fixed inline code parsing so that it uses the method of Markdown.pl:
-      the delimiters are blocks of N `` ` `` characters not followed by another
-      `` ` `` character.  For example:
-      ```` ` h ``` i ` ```` -> `<code>h ``` i</code>`.
-    + Markdown writer escapes paragraphs that begin like list items.
-    + MacPorts Portfile now installs library as well as executable.
-    + Added pandocwiki demonstration to the website.
-
 # Disclaimer
 
-This is an early, "alpha" release. It carries no warranties of any
-kind.
+Pandoc carries no warranties of any kind.
 
 [More accurate]: http://code.google.com/p/pandoc/wiki/PandocVsMarkdownPl
 [much faster]: http://code.google.com/p/pandoc/wiki/Benchmarks
@@ -182,7 +175,7 @@ kind.
 [Debian unstable]: http://packages.debian.org/unstable/text/pandoc
 [FreeBSD ports]: http://www.freshports.org/textproc/pandoc/
 [Arch linux PKGBUILD script]: http://aur.archlinux.org/packages.php?do_Details=1&ID=12751&O=0&L=0&C=0&K=pandoc&SB=n&SO=a&PP=25&do_MyPackages=0&do_Orphans=0&SeB=nd
-[Ubuntu linux]: http://www.ubuntu.com
+[Ubuntu]: http://www.ubuntu.com
 [MacPorts]: http://db.macports.org/port/show/4218
 [pandoc-announce]: http://groups.google.com/group/pandoc-announce
 [pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
