@@ -1,4 +1,4 @@
-pandoc (0.47)
+pandoc (1.0)
 
   [ Andrea Rossato ]
 
@@ -182,6 +182,15 @@ pandoc (0.47)
        # hi
        ====
     parsed by Markdown.pl as an H1 header with contents "# hi".
+
+  * Markdown reader: Treat "mixed" lists the same way as Markdown.pl does.
+    The marker on the first list item determines the type of the whole
+    list.  Thus, a list like
+       1. one
+       -  two
+       *  three
+    gets parsed as a single ordered list.  (Previous versions of pandoc
+    treated this as an ordered list with an unordered sublist.)
 
   * Markdown smart typography:
 
