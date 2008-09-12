@@ -101,15 +101,6 @@ Installing Pandoc using Make
 
         make test
 
-    Note: if you see errors like the following, they're due to differences
-    between different versions of the xhtml library, and can safely be
-    disregarded:
-
-        2c2
-        < <html xmlns="http://www.w3.org/1999/xhtml"
-        ---
-        > <html
-
 4.  Install:
 
         sudo make install
@@ -151,11 +142,12 @@ Installing pandoc using Cabal
 
 Change to the directory containing the pandoc source, and type:
 
-    runhaskell Setup.hs configure   # add --user if you have installed
-                                    # prerequisites locally with cabal-install
-    runhaskell Setup.hs build
-    runhaskell Setup.hs haddock  # optional, to build library documentation
-    runhaskell Setup.hs install  # this one as root or sudo
+    runhaskell Setup configure   # add --user if you have installed prerequisites
+                                 # locally using cabal-install
+    runhaskell Setup build
+    runhaskell Setup haddock     # optional, to build library documentation
+    runhaskell Setup test        # optional, to run test suite
+    runhaskell Setup install     # this one as root or sudo, or add --user
 
 This will install the pandoc executable and the Haskell libraries,
 but not the shell scripts, man pages, or other documentation.
@@ -164,8 +156,8 @@ You may just want the executable, or just the libraries.  This
 can be controlled with configuration flags (the `-` negates the
 flag):
 
-    runhaskell Setup.hs configure -f-library      # just the executable
-    runhaskell Setup.hs configure -f-executable   # just the libraries
+    runhaskell Setup configure -f-library      # just the executable
+    runhaskell Setup configure -f-executable   # just the libraries
 
 You can also specify the directory tree into which pandoc will be
 installed using the `--prefix=` option to `configure`.  For more details,
@@ -181,14 +173,14 @@ delimited code blocks.  This feature requires the [`highlighting-kate` library].
 If you are using Cabal to compile pandoc, specify the `highlighting` flag in
 the configure step:
 
-    runhaskell Setup.hs configure -fhighlighting
+    runhaskell Setup configure -fhighlighting
 
 If you are using the Makefile:
 
     CABALOPTS=-fhighlighting make
 
 If you have already built pandoc, you may need to do a `make clean` or
-`runhaskell Setup.hs clean` first.
+`runhaskell Setup clean` first.
 
 [`highlighting-kate` library]: http://johnmacfarlane.net/highlighting-kate
 
