@@ -42,7 +42,8 @@ If not, you will need to compile them from source.
 
 On \*nix systems, the easiest way to do this is to install
 the [cabal-install] tool.  See the section [Quick Installation
-on Unix] for instructions.
+on Unix] for instructions.  If you use [MacPorts], you can
+just install the `hs-cabal` port.
 
 [cabal-install]: http://hackage.haskell.org/trac/hackage/wiki/CabalInstall
 [Quick Installation on Unix]: http://hackage.haskell.org/trac/hackage/wiki/CabalInstall#QuickInstallationonUnix
