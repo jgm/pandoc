@@ -34,7 +34,7 @@ module Text.Pandoc.Readers.Markdown (
 
 import Data.List ( transpose, isPrefixOf, isSuffixOf, lookup, sortBy, findIndex, intercalate )
 import Data.Ord ( comparing )
-import Data.Char ( isAlphaNum, isAlpha, isLower, isDigit )
+import Data.Char ( isAlphaNum, isAlpha, isLower, isDigit, isUpper )
 import Data.Maybe
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
@@ -441,71 +441,59 @@ anyOrderedListStart = try $ do
              char '.'
              spaceChar
              return (1, DefaultStyle, DefaultDelim)
-     else anyOrderedListMarker >>~ spaceChar
+     else do (num, style, delim) <- anyOrderedListMarker
+             -- if it could be an abbreviated first name, insist on more than one space
+             if delim == Period && (style == UpperAlpha || (style == UpperRoman &&
+                num `elem` [1, 5, 10, 50, 100, 500, 1000]))
+                then char '\t' <|> (char ' ' >>~ notFollowedBy (satisfy isUpper))
+                else spaceChar
+             skipSpaces
+             return (num, style, delim)
 
-orderedListStart :: ListNumberStyle
-                 -> ListNumberDelim
-                 -> GenParser Char ParserState ()
-orderedListStart style delim = try $ do
-  optional newline -- if preceded by a Plain block in a list context
-  nonindentSpaces
-  state <- getState
-  num <- if stateStrict state
-            then do many1 digit
-                    char '.'
-                    return 1
-            else orderedListMarker style delim 
-  if delim == Period && (style == UpperAlpha || (style == UpperRoman &&
-     num `elem` [1, 5, 10, 50, 100, 500, 1000]))
-     then char '\t' <|> (spaceChar >> spaceChar)
-     else spaceChar
-  skipSpaces
+listStart :: GenParser Char ParserState ()
+listStart = bulletListStart <|> (anyOrderedListStart >> return ())
 
 -- parse a line of a list item (start = parser for beginning of list item)
-listLine :: GenParser Char ParserState ()
-         -> GenParser Char ParserState [Char]
-listLine start = try $ do
-  notFollowedBy' start
+listLine :: GenParser Char ParserState [Char]
+listLine = try $ do
+  notFollowedBy' listStart
   notFollowedBy blankline
   notFollowedBy' (do indentSpaces
                      many (spaceChar)
-                     bulletListStart <|> (anyOrderedListStart >> return ()))
+                     listStart)
   line <- manyTill anyChar newline
   return $ line ++ "\n"
 
 -- parse raw text for one list item, excluding start marker and continuations
-rawListItem :: GenParser Char ParserState () 
-            -> GenParser Char ParserState [Char]
-rawListItem start = try $ do
-  start
-  result <- many1 (listLine start)
+rawListItem :: GenParser Char ParserState [Char]
+rawListItem = try $ do
+  listStart
+  result <- many1 listLine
   blanks <- many blankline
   return $ concat result ++ blanks
 
 -- continuation of a list item - indented and separated by blankline 
 -- or (in compact lists) endline.
 -- note: nested lists are parsed as continuations
-listContinuation :: GenParser Char ParserState () -> GenParser Char ParserState [Char]
-listContinuation start = try $ do
+listContinuation :: GenParser Char ParserState [Char]
+listContinuation = try $ do
   lookAhead indentSpaces
-  result <- many1 (listContinuationLine start)
+  result <- many1 listContinuationLine
   blanks <- many blankline
   return $ concat result ++ blanks
 
-listContinuationLine :: GenParser Char ParserState ()
-                     -> GenParser Char ParserState [Char]
-listContinuationLine start = try $ do
+listContinuationLine :: GenParser Char ParserState [Char]
+listContinuationLine = try $ do
   notFollowedBy blankline
-  notFollowedBy' start
+  notFollowedBy' listStart
   optional indentSpaces
   result <- manyTill anyChar newline
   return $ result ++ "\n"
 
-listItem :: GenParser Char ParserState ()
-         -> GenParser Char ParserState [Block]
-listItem start = try $ do 
-  first <- rawListItem start
-  continuations <- many (listContinuation start)
+listItem :: GenParser Char ParserState [Block]
+listItem = try $ do 
+  first <- rawListItem
+  continuations <- many listContinuation
   -- parsing with ListItemState forces markers at beginning of lines to
   -- count as list item markers, even if not separated by blank space.
   -- see definition of "endline"
@@ -521,12 +509,13 @@ listItem start = try $ do
 orderedList :: GenParser Char ParserState Block
 orderedList = try $ do
   (start, style, delim) <- lookAhead anyOrderedListStart
-  items <- many1 (listItem (orderedListStart style delim))
+  items <- many1 listItem
   return $ OrderedList (start, style, delim) $ compactify items
 
 bulletList :: GenParser Char ParserState Block
-bulletList = many1 (listItem bulletListStart) >>= 
-             return . BulletList . compactify
+bulletList = try $ do
+  lookAhead bulletListStart
+  many1 listItem >>= return . BulletList . compactify
 
 -- definition lists
 

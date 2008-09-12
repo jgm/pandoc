@@ -525,36 +525,19 @@ roman numerals:
           ii. subtwo
          iii. subthree
 
-Note that Pandoc pays attention only to the *starting* number in a list.
+Note that Pandoc pays attention only to the *starting* marker in a list.
 So, the following yields a list numbered sequentially starting from 2:
 
     (2) Two
     (5) Three
-    (2) Four
+    1.  Four
+    *   Five
 
 If default list markers are desired, use '`#.`':
 
     #.  one
     #.  two
     #.  three
-
-If you change list style in mid-list, Pandoc will notice and assume you
-are starting a sublist. So,
-
-    1.  One
-    2.  Two
-    A.  Sub
-    B.  Sub
-    3.  Three
-
-gets treated as if it were
-
-    1.  One
-    2.  Two
-        A.  Sub
-        B.  Sub
-    3.  Three
-
 
 Definition lists
 ----------------
