@@ -251,12 +251,14 @@ Once you've installed MacPorts, you can install pandoc by typing:
 
 Since pandoc depends on GHC, the process may take a long time.
 
+Note that the version of pandoc in MacPorts may not be the most recent.
+
 Installing the Windows binary
 =============================
 
-Simply download the zip file from [pandoc's google code site].
-Extract the files from the archive, and put `pandoc.exe` somewhere
-in your PATH.
+Simply download the Windows installer [pandoc's google code site]
+and run it.  It will install `pandoc.exe` and ensure that it is
+in your system PATH.
 
 Note that the Windows binary distribution does not include the shell
 scripts `markdown2pdf`, `html2markdown`, or `hsmarkdown`.
@@ -271,6 +273,8 @@ Pandoc is now in the debian archives, and can be installed using `apt-get` (as r
     apt-get install pandoc-doc           # library documentation
 
 Thanks to Recai Oktaş for setting up the debian packages.
+
+Note that the version of pandoc in Debian may not be the most recent.
 
 Installing pandoc on FreeBSD
 ============================
