@@ -184,6 +184,32 @@ If you have already built pandoc, you may need to do a `make clean` or
 
 [`highlighting-kate` library]: http://johnmacfarlane.net/highlighting-kate
 
+Optional citeproc support
+-------------------------
+
+Pandoc can optionally be compiled with support for bibliographic citations
+using Andrea Rossato's [`citeproc-hs` library].  This allows you
+to specify citations in markdown using an intuitive syntax (for example,
+`[jones2005@p. 3; smith2006]`). These are automatically changed into
+appropriately styled citations in the output, and a bibliography is
+added.  The bibliography data and style information are taken from XML
+files that must be specified on the command line. (Note:  `citeproc-hs`
+support is experimental, and the interface may change in the future.)
+
+If you are using Cabal to compile pandoc, specify the `citeproc` flag in
+the configure step:
+
+    runhaskell Setup configure -fciteproc
+
+If you are using the Makefile:
+
+    CABALOPTS=-fciteproc make
+
+If you have already built pandoc, you may need to do a `make clean` or
+`runhaskell Setup clean` first.
+
+[`citeproc-hs` library]: http://code.haskell.org/citeproc-hs/
+
 Other targets
 -------------
 
