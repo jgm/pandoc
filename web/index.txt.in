@@ -69,7 +69,7 @@ contributed an [Arch linux PKGBUILD script]. Note that the version of
 pandoc in these repositories may not be the most recent.
 
 - [Source tarball]
-- [Windows binary package]
+- [Windows installer]
 
 # Code repository
 
@@ -91,7 +91,7 @@ You may view existing bug reports and submit new ones at
 
 # News
 
--   Version 1.0 release (October 11, 2008).
+-   Version 1.0 release (September 13, 2008).
 
     + New writers for MediaWiki, GNU Texinfo (thanks to Peter Wang),
       OpenDocument XML (thanks to Andrea Rossato), and ODT (OpenOffice
@@ -171,7 +171,7 @@ Pandoc carries no warranties of any kind.
 [GHC]:  http://www.haskell.org/ghc/
 [GPL]:  http://www.gnu.org/copyleft/gpl.html
 [Source tarball]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.tar.gz "Download source tarball from Pandoc's Google Code site"
-[Windows binary package]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.zip "Download Windows zip file from Pandoc's Google Code site"
+[Windows installer]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@-setup.exe "Download Windows installer from Pandoc's Google Code site"
 [Debian unstable]: http://packages.debian.org/unstable/text/pandoc
 [FreeBSD ports]: http://www.freshports.org/textproc/pandoc/
 [Arch linux PKGBUILD script]: http://aur.archlinux.org/packages.php?do_Details=1&ID=12751&O=0&L=0&C=0&K=pandoc&SB=n&SO=a&PP=25&do_MyPackages=0&do_Orphans=0&SeB=nd
