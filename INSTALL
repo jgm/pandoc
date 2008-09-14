@@ -270,6 +270,14 @@ Once you've installed MacPorts, you can install pandoc by typing:
 Since pandoc depends on GHC, the process may take a long time.
 
 Note that the version of pandoc in MacPorts may not be the most recent.
+To get the most recent version, you can use `cabal-install`:
+
+    sudo port install hs-cabal
+    cabal install pandoc --user  # optionally: -fciteproc -fhighlighting
+
+This will install the `pandoc` executable into `~/.cabal/bin`.  This method
+will not install the wrapper scripts or man pages; if you want those, follow
+the instructions above for compiling from source.
 
 Installing the Windows binary
 =============================
