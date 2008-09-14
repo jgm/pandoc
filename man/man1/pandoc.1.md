@@ -72,10 +72,9 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     `mediawiki` (MediaWiki markup), `texinfo` (GNU Texinfo),
     `docbook` (DocBook XML), `opendocument` (OpenDocument XML),
     `odt` (OpenOffice text document), `s5` (S5 HTML and javascript slide
-    show), `pdf` (Portable Document Format), or `rtf` (rich text
-    format). Note that for `odt` and `pdf` output, output will not be
-    directed to *stdout*; an output filename must be specified using the
-    `-o/--output` option.
+    show), or `rtf` (rich text format). Note that `odt` output will not
+    be directed to *stdout*; an output filename must be specified using
+    the `-o/--output` option.
 
 -s, \--standalone
 :   Produce output with an appropriate header and footer (e.g. a
