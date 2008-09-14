@@ -321,8 +321,11 @@ somewhat older than the most recent version.
 Installing pandoc on Arch linux
 ===============================
 
-Abhishek Dasgupta has created a binary package for `pandoc` in the
-Arch linux repository.  Arch users can install `pandoc` by typing
+There are two `pandoc` packages in the Arch AUR repositories,
+`pandoc` (contributed by Abhishek Dasgupta) and `haskell-pandoc`
+(contributed by Dons Stewart).  `haskell-pandoc` is more up-to-date,
+but does not install the man pages or wrapper scripts.
 
     pacman -Sy pandoc
+    pacman -Sy haskell-pandoc
 
