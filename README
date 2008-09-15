@@ -340,7 +340,7 @@ For further documentation, see the `pandoc(1)` man page.
 `--mimetex`*[=url]*
 :   causes TeX formulas to be replaced by `<img>` tags linking to the
     [mimeTeX] CGI script, which will produce images with the typeset
-    formulas.  (See `--latexmathml` and `--mimetex` for alternative
+    formulas.  (See `--latexmathml` and `--gladtex` for alternative
     ways of dealing with math in HTML.)
 
 `-i` or `--incremental`
