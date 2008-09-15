@@ -459,9 +459,13 @@ inlineToHtml opts inline =
                         modify (\st -> st {stMath = True}) >> 
                         (case writerHTMLMathMethod opts of
                                LaTeXMathML _ -> 
-                                  return $ if t == InlineMath
-                                              then primHtml ("$" ++ str ++ "$")
-                                              else primHtml ("$$" ++ str ++ "$$")
+                                  -- putting LaTeXMathML in container with class "LaTeX" prevents
+                                  -- non-math elements on the page from being treated as math by
+                                  -- the javascript
+                                  return $ thespan ! [theclass "LaTeX"] $
+                                             if t == InlineMath
+                                                 then primHtml ("$" ++ str ++ "$")
+                                                 else primHtml ("$$" ++ str ++ "$$")
                                MimeTeX url -> 
                                   return $ image ! [src (url ++ "?" ++ str),
                                                     alt str, title str]
