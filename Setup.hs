@@ -16,8 +16,7 @@ main = defaultMainWithHooks $
 
 -- | Run test suite.
 runTestSuite _ _ _ _ = do
-  inDirectory "tests" $ runCommand "runhaskell -i.. RunTests.hs" >>= waitForProcess
-  return ()
+  inDirectory "tests" $ runCommand "runhaskell -i.. RunTests.hs" >>= waitForProcess >>= exitWith
 
 -- | Build man pages from markdown sources in man/man1/.
 makeManPages _ _ _ _ = do
