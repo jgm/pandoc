@@ -11,7 +11,6 @@ BUILDDIR  := dist
 BUILDCONF := $(BUILDDIR)/setup-config
 BUILDVARS := vars
 CONFIGURE := configure
-ODTSTYLES := odt-styles
 
 #-------------------------------------------------------------------------------
 # Cabal constants

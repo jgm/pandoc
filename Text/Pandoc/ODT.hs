@@ -46,7 +46,7 @@ saveOpenDocumentAsODT :: FilePath    -- ^ Pathname of ODT file to be produced.
                       -> String      -- ^ OpenDocument XML contents.
                       -> IO ()
 saveOpenDocumentAsODT destinationODTPath sourceDirRelative xml = do
-  let refArchive = read $(makeZip "odt-styles")
+  let refArchive = read $(makeZip $ "data" </> "odt-styles")
   -- handle pictures
   let (newContents, pics) = 
         case runParser pPictures [] "OpenDocument XML contents" xml of
