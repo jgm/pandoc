@@ -69,14 +69,18 @@ compileInfo =
 #endif
   if null languages
      then "\n"
-     else "\nCompiled with syntax highlighting support for:\n" ++
-          (unlines $ map unwords $ chunk 5 $ map (\s -> s ++ replicate (15 - length s) ' ') languages)
+     else "\nCompiled with syntax highlighting support for:\n" ++ wrapWords 78 languages
 
--- | Splits a list into groups of at most n.
-chunk :: Int -> [a] -> [[a]]
-chunk size lst =
-  let (next, rest) = splitAt size lst
-  in  if null rest then [next] else next : chunk size rest
+-- | Converts a list of strings into a single string with the items printed as
+-- comma separated words in lines with a maximum line length.
+wrapWords :: Int -> [String] -> String
+wrapWords c = wrap' c c where
+              wrap' _    _         []     = ""
+              wrap' cols remaining (x:xs) = if remaining == cols
+                                               then x ++ wrap' cols (remaining - length x) xs
+                                               else if (length x + 1) > remaining
+                                                       then ",\n" ++ x ++ wrap' cols (cols - length x) xs
+                                                       else ", "  ++ x ++ wrap' cols (remaining - (length x + 2)) xs
 
 -- | Association list of formats and readers.
 readers :: [(String, ParserState -> String -> Pandoc)]
