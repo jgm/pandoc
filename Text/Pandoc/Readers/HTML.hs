@@ -136,16 +136,16 @@ unsanitaryAttribute (attr, val, _) = do
 -- | Returns @True@ if the specified URI is potentially a security risk.
 unsanitaryURI :: String -> Bool
 unsanitaryURI u =
-  let safeURISchemes = [ "", "http", "https", "ftp", "mailto", "file",
-             "telnet", "gopher", "aaa", "aaas", "acap", "cap", "cid",
-             "crid", "dav", "dict", "dns", "fax", "go", "h323", "im",
-             "imap", "ldap", "mid", "news", "nfs", "nntp", "pop",
-             "pres", "sip", "sips", "snmp", "tel", "urn", "wais",
-             "xmpp", "z39.50r", "z39.50s", "aim", "callto", "cvs",
-             "ed2k", "feed", "fish", "gg", "irc", "ircs", "lastfm",
-             "ldaps", "magnet", "mms", "msnim", "notes", "rsync",
-             "secondlife", "skype", "ssh", "sftp", "smb", "sms",
-             "snews", "webcal", "ymsgr"]
+  let safeURISchemes = [ "", "http:", "https:", "ftp:", "mailto:", "file:",
+             "telnet:", "gopher:", "aaa:", "aaas:", "acap:", "cap:", "cid:",
+             "crid:", "dav:", "dict:", "dns:", "fax:", "go:", "h323:", "im:",
+             "imap:", "ldap:", "mid:", "news:", "nfs:", "nntp:", "pop:",
+             "pres:", "sip:", "sips:", "snmp:", "tel:", "urn:", "wais:",
+             "xmpp:", "z39.50r:", "z39.50s:", "aim:", "callto:", "cvs:",
+             "ed2k:", "feed:", "fish:", "gg:", "irc:", "ircs:", "lastfm:",
+             "ldaps:", "magnet:", "mms:", "msnim:", "notes:", "rsync:",
+             "secondlife:", "skype:", "ssh:", "sftp:", "smb:", "sms:",
+             "snews:", "webcal:", "ymsgr:"]
   in  case parseURIReference u of
            Just p  -> (map toLower $ uriScheme p) `notElem` safeURISchemes
            Nothing -> True
