@@ -36,7 +36,7 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  only adding a reader or writer.
 Extra-Source-Files:
                  -- documentation
-                 README, INSTALL, COPYRIGHT, changelog,
+                 README, INSTALL, COPYRIGHT, BUGS, changelog,
                  -- sources for man pages
                  man/man1/pandoc.1.md, man/man1/markdown2pdf.1.md,
                  man/man1/html2markdown.1.md, man/man1/hsmarkdown.1.md,
