@@ -50,7 +50,7 @@ import Text.Pandoc.Biblio
 #endif
 
 copyrightMessage :: String
-copyrightMessage = "\nCopyright (C) 2006-7 John MacFarlane\n" ++
+copyrightMessage = "\nCopyright (C) 2006-8 John MacFarlane\n" ++
                     "Web:  http://johnmacfarlane.net/pandoc\n" ++
                     "This is free software; see the source for copying conditions.  There is no\n" ++
                     "warranty, not even for merchantability or fitness for a particular purpose."
