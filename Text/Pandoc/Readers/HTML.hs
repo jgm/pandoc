@@ -320,9 +320,21 @@ htmlBlockElement = choice [ htmlScript, htmlStyle, htmlComment, xmlDec, definiti
 
 rawHtmlBlock :: GenParser Char ParserState Block
 rawHtmlBlock = try $ do
-  body <- htmlBlockElement <|> anyHtmlBlockTag
+  body <- htmlBlockElement <|> rawVerbatimBlock <|> anyHtmlBlockTag
   state <- getState
   if stateParseRaw state then return (RawHtml body) else return Null
+
+-- This is a block whose contents should be passed through verbatim, not interpreted.
+rawVerbatimBlock :: GenParser Char ParserState [Char]
+rawVerbatimBlock = try $ do
+  start <- anyHtmlBlockTag
+  let tagtype = extractTagType start
+  if tagtype `elem` ["pre"]
+     then do
+       contents <- many (notFollowedBy' (htmlEndTag tagtype) >> anyChar)
+       end <- htmlEndTag tagtype
+       return $ start ++ contents ++ end
+     else fail "Not a verbatim block"
 
 -- We don't want to parse </body> or </html> as raw HTML, since these
 -- are handled in parseHtml.
