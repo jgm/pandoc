@@ -12,7 +12,7 @@ AppPublisher=John MacFarlane
 AppPublisherURL=http://johnmacfarlane.net/pandoc/
 AppSupportURL=http://johnmacfarlane.net/pandoc/
 AppUpdatesURL=http://johnmacfarlane.net/pandoc/
-DefaultDirName={pf}\Pandoc
+DefaultDirName={code:DefDirRoot}\Pandoc
 DefaultGroupName=Pandoc
 AllowNoIcons=yes
 LicenseFile=C:\Documents and Settings\John MacFarlane\My Documents\src\pandoc\COPYING.txt
@@ -20,9 +20,10 @@ OutputBaseFilename=setup
 Compression=lzma
 SolidCompression=yes
 ChangesEnvironment=yes
+PrivilegesRequired=none
 
 [Tasks]
-Name: modifypath; Description: Add application directory to your system path
+Name: modifypath; Description: Add application directory to your path
 
 [Code]
 function ModPathDir(): TArrayOfString;
@@ -34,6 +35,19 @@ begin
     Result := Dir;
 end;
 #include "modpath.iss"
+
+function IsRegularUser(): Boolean;
+begin
+    Result := not (IsAdminLoggedOn or IsPowerUserLoggedOn);
+end;
+
+function DefDirRoot(Param: String): String;
+begin
+if IsRegularUser then
+    Result := ExpandConstant('{localappdata}')
+else
+    Result := ExpandConstant('{pf}')
+end;
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
