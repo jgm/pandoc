@@ -375,7 +375,7 @@ blockToHtml opts (Table capt aligns widths headers rows') = do
                    else inlineListToHtml opts capt >>= return . caption
   colHeads <- colHeadsToHtml opts alignStrings 
                              widths headers
-  rows'' <- mapM (tableRowToHtml opts alignStrings) rows'
+  rows'' <- zipWithM (tableRowToHtml opts alignStrings) (cycle ["odd", "even"]) rows'
   return $ table $ captionDoc +++ colHeads +++ rows''
 
 colHeadsToHtml :: WriterOptions
@@ -387,7 +387,7 @@ colHeadsToHtml opts alignStrings widths headers = do
   heads <- sequence $ zipWith3 
            (\alignment columnwidth item -> tableItemToHtml opts th alignment columnwidth item) 
            alignStrings widths headers
-  return $ tr $ toHtmlFromList heads
+  return $ tr ! [theclass "header"] $ toHtmlFromList heads
 
 alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of
@@ -398,11 +398,12 @@ alignmentToString alignment = case alignment of
 
 tableRowToHtml :: WriterOptions
                -> [[Char]]
+               -> String
                -> [[Block]]
                -> State WriterState Html
-tableRowToHtml opts aligns columns = 
+tableRowToHtml opts aligns rowclass columns =
   (sequence $ zipWith3 (tableItemToHtml opts td) aligns (repeat 0) columns) >>=
-  return . tr . toHtmlFromList
+  return . (tr ! [theclass rowclass]) . toHtmlFromList
 
 tableItemToHtml :: WriterOptions
                 -> (Html -> Html)
