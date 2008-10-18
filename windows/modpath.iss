@@ -5,6 +5,10 @@
 // Author:          Jared Breland <jbreland@legroom.net>
 // Homepage:		http://www.legroom.net/software
 //
+// Modified 10/18/2008 by John MacFarlane to set path in HKCU instead of HKLM if
+// user does not have admin privileges.  Also correctly handle the case where
+// oldpath is empty.
+//
 // Script Function:
 //	Enable modification of system path directly from Inno Setup installers
 //
@@ -41,6 +45,8 @@ var
 	aExecArr:	TArrayOfString;
 	i, d:		Integer;
 	pathdir:	TArrayOfString;
+	reg: Integer;
+  regkey: String;
 begin
 
 	// Get array of new directories and act on each individually
@@ -50,8 +56,17 @@ begin
 		// Modify WinNT path
 		if UsingWinNT() = true then begin
 
+      // Select HKLM or HKCU depending on whether user has admin privileges
+      if (IsAdminLoggedOn or IsPowerUserLoggedOn) then begin
+          reg := HKEY_LOCAL_MACHINE;
+          regkey := 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment';
+      end else begin
+          reg := HKEY_CURRENT_USER;
+          regkey := 'Environment';
+      end;
+
 			// Get current path, split into an array
-			RegQueryStringValue(HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 'Path', oldpath);
+			RegQueryStringValue(reg, regkey, 'Path', oldpath);
 			oldpath := oldpath + ';';
 			i := 0;
 			while (Pos(';', oldpath) > 0) do begin
@@ -80,11 +95,16 @@ begin
 			end;
 
 			// Append app dir to path if not already included
-			if IsUninstaller() = false then
-				newpath := newpath + ';' + pathdir[d];
+			if IsUninstaller() = false then begin
+				if newpath = '' then begin
+					newpath := pathdir[d];
+				end else begin
+					newpath := newpath + ';' + pathdir[d];
+				end;
+			end;
 
 			// Write new path
-			RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 'Path', newpath);
+			RegWriteStringValue(reg, regkey, 'Path', newpath);
 
 		// Modify Win9x path
 		end else begin
@@ -155,3 +175,4 @@ begin
 		Result := False;
 	end;
 end;
+
