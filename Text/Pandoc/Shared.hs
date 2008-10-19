@@ -243,13 +243,22 @@ wrappedTeX includePercent listWriter sect = do
   if null rest
      then return firstpartWrapped
      else do let (note:rest') = rest
-             restWrapped <- if null rest'
-                               then return empty
-                               else wrappedTeX includePercent listWriter rest'
+             let (rest1, rest2) = break (== Space) rest'
+             -- rest1 is whatever comes between the note and a Space.
+             -- if the note is followed directly by a Space, rest1 is null.
+             -- rest1 is printed after the note but before the line break,
+             -- to avoid spurious blank space the note and immediately
+             -- following punctuation.
+             rest1Out <- if null rest1
+                            then return empty
+                            else listWriter rest1
+             rest2Wrapped <- if null rest2
+                                then return empty
+                                else wrappedTeX includePercent listWriter (tail rest2)
              noteText <- listWriter [note]
-             return $ firstpartWrapped <> 
-                      (if includePercent then PP.char '%' else empty) $$ 
-                      noteText $$ restWrapped  
+             return $ (firstpartWrapped <> if includePercent then PP.char '%' else empty) $$ 
+                      (noteText <> rest1Out) $$
+                      rest2Wrapped
 
 -- | Wrap inlines if the text wrap option is selected, specialized 
 -- for LaTeX and ConTeXt.
