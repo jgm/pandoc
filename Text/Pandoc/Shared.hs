@@ -824,22 +824,21 @@ compactify [] = []
 compactify items =
     let final  = last items
         others = init items
-    in  case final of
-          [Para a]  -> if any containsPara others
-                          then items
-                          else others ++ [[Plain a]]
-          _         -> items
+    in  case last final of
+          Para a  -> if all endsWithPlain others && not (null final)
+                        then others ++ [init final ++ [Plain a]]
+                        else items
+          _       -> items
 
-containsPara :: [Block] -> Bool
-containsPara [] = False
-containsPara ((Para _):_) = True
-containsPara ((BulletList items):rest) =  any containsPara items ||
-                                          containsPara rest
-containsPara ((OrderedList _ items):rest) = any containsPara items ||
-                                            containsPara rest
-containsPara ((DefinitionList items):rest) = any containsPara (map snd items) ||
-                                             containsPara rest
-containsPara (_:rest) = containsPara rest
+endsWithPlain :: [Block] -> Bool
+endsWithPlain [] = False
+endsWithPlain blocks =
+  case last blocks of
+       Plain _                  -> True
+       (BulletList (x:xs))      -> endsWithPlain $ last (x:xs)
+       (OrderedList _ (x:xs))   -> endsWithPlain $ last (x:xs)
+       (DefinitionList (x:xs))  -> endsWithPlain $ last $ map snd (x:xs)
+       _                        -> False
 
 -- | Data structure for defining hierarchical Pandoc documents
 data Element = Blk Block 
