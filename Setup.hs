@@ -1,6 +1,7 @@
 import Distribution.Simple
 import Distribution.PackageDescription ( emptyHookedBuildInfo )
 import Control.Exception ( bracket_ )
+import Control.Monad ( unless )
 import System.Process ( runCommand, runProcess, waitForProcess )
 import System.FilePath ( (</>), (<.>) )
 import System.Directory
@@ -10,9 +11,10 @@ import System.Time
 import System.IO.Error ( isDoesNotExistError )
 import Data.Maybe ( fromJust, isNothing, catMaybes )
 
-main = defaultMainWithHooks $
-       simpleUserHooks { runTests  = runTestSuite
-                       , postBuild = makeManPages }
+main = do
+  defaultMainWithHooks $ simpleUserHooks { runTests  = runTestSuite
+                                         , postBuild = makeManPages }
+  exitWith ExitSuccess
 
 -- | Run test suite.
 runTestSuite _ _ _ _ = do
@@ -20,8 +22,7 @@ runTestSuite _ _ _ _ = do
 
 -- | Build man pages from markdown sources in man/man1/.
 makeManPages _ _ _ _ = do
-  mapM makeManPage ["pandoc.1", "hsmarkdown.1", "html2markdown.1", "markdown2pdf.1"]
-  return ()
+  mapM_ makeManPage ["pandoc.1", "hsmarkdown.1", "html2markdown.1", "markdown2pdf.1"]
 
 -- | Build a man page from markdown source in man/man1.
 makeManPage manpage = do
@@ -30,14 +31,13 @@ makeManPage manpage = do
   let page = manDir </> manpage
   let source = manDir </> manpage <.> "md"
   modifiedDeps <- modifiedDependencies page [source]
-  if null modifiedDeps
-     then return ()
-     else do
-       ec <- runProcess pandoc ["-s", "-S", "-r", "markdown", "-w", "man", "-o", page, source]
-                   Nothing Nothing Nothing Nothing (Just stderr) >>= waitForProcess
-       case ec of
-            ExitSuccess -> putStrLn $ "Created " ++ manDir </> manpage
-            _           -> error $ "Error creating " ++ manDir </> manpage
+  unless (null modifiedDeps) $ do
+    ec <- runProcess pandoc ["-s", "-S", "-r", "markdown", "-w", "man", "-o", page, source]
+                Nothing Nothing Nothing Nothing (Just stderr) >>= waitForProcess
+    case ec of
+         ExitSuccess -> putStrLn $ "Created " ++ manDir </> manpage
+         _           -> do putStrLn $ "Error creating " ++ manDir </> manpage
+                           exitWith ec
 
 -- | Returns a list of 'dependencies' that have been modified after 'file'.
 modifiedDependencies :: FilePath -> [FilePath] -> IO [FilePath]
