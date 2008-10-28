@@ -257,6 +257,12 @@ options =
                   "URL")
                  "" -- "Use mimetex for HTML math"
 
+    , Option "" ["jsmath"]
+                 (OptArg
+                  (\arg opt -> return opt { optHTMLMathMethod = JsMath arg})
+                  "URL")
+                 "" -- "Use jsMath for HTML math"
+
     , Option "" ["gladtex"]
                  (NoArg
                   (\opt -> return opt { optHTMLMathMethod = GladTeX }))

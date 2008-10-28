@@ -870,6 +870,7 @@ isHeaderBlock _ = False
 
 data HTMLMathMethod = PlainMath 
                     | LaTeXMathML (Maybe String)  -- url of LaTeXMathML.js
+                    | JsMath (Maybe String)       -- url of jsMath load script
                     | GladTeX
                     | MimeTeX String              -- url of mimetex.cgi 
                     deriving (Show, Read, Eq)

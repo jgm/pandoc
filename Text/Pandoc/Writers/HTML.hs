@@ -129,6 +129,10 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
                                       script ! 
                                       [src url, thetype "text/javascript"] $
                                       noHtml
+                                   JsMath (Just url) ->
+                                      script !
+                                      [src url, thetype "text/javascript"] $
+                                      noHtml
                                    _ -> noHtml
                         else noHtml
       head'        = header $ metadata +++ math +++ css +++ 
@@ -467,6 +471,10 @@ inlineToHtml opts inline =
                                              if t == InlineMath
                                                  then primHtml ("$" ++ str ++ "$")
                                                  else primHtml ("$$" ++ str ++ "$$")
+                               JsMath _ ->
+                                  return $ if t == InlineMath
+                                              then thespan ! [theclass "math"] $ primHtml str
+                                              else thediv ! [theclass "math"]  $ primHtml str
                                MimeTeX url -> 
                                   return $ image ! [src (url ++ "?" ++ str),
                                                     alt str, title str]

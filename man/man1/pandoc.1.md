@@ -112,6 +112,11 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     provide a *URL*. If no *URL* is provided, the contents of the
     script will be inserted directly into the HTML header.
 
+\--jsmath=*URL*
+:   Use jsMath to display embedded TeX math in HTML output.
+    The *URL* should point to the jsMath load script; if provided,
+    it will be linked to in the header of standalone HTML documents.
+
 \--gladtex
 :   Enclose TeX math in `<eq>` tags in HTML output.  These can then
     be processed by gladTeX to produce links to images of the typeset
