@@ -111,4 +111,4 @@ import Text.Pandoc.Shared
 
 -- | Version number of pandoc library.
 pandocVersion :: String
-pandocVersion = "1.0.0.2"
+pandocVersion = "1.1"
