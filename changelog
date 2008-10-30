@@ -1,3 +1,80 @@
+pandoc (1.1)
+
+  [ John MacFarlane ]
+
+  * Updated INSTALL instructions for Arch packages and OS X install using
+    cabal-install.
+
+  * Removed the (now unneeded) debian directory.
+    Removed empty Codec and System directories.
+
+  * Moved odt-styles/ to data/.  Removed unneeded variable in Makefile.
+
+  * Modified Setup.hs so that the "test" target returns an error status
+    when tests fail, and "build" returns a success status if
+    the build succeeds.  Resolves Issue #100.
+
+  * Added BUGS to files in tarball.
+
+  * Main.hs:
+
+    + Changed date on copyright message in Main.hs.
+
+    + Have the '-v' option print syntax highlighting languages
+      separated by commas, and wrapped in lines, instead of in five
+      columns as before.
+
+  * Added --jsmath option.  Resolves Issue #68.
+
+    + Added --jsmath option to Main.hs
+    + Added JsMath to HTMLMathMethod in Text.Pandoc.Shared.
+    + Handle math appropriately in HTML writer when JsMath selected.
+    + Documented the option in README and man page.
+
+  * Text.Pandoc.Shared:  Changed compactify to use a better heuristic.
+    Final Para is changed to Plain if all other list items *end* with
+    a Plain block.  Addresses Issue #99.
+
+  * HTML reader:
+
+    + Added colons to protocols in unsanitaryURI. Closes Issue #88.
+
+    + HTML reader: Don't interpret contents of <pre> blocks as markdown.
+      Added rawVerbatimBlock parser.  Resolves Issue #94.
+
+  * Markdown reader: Ignore blank line after ~~~~~~~~ in delimited code blocks.
+    Rationale:  these are useful for literate haskell, but lhs requires
+    a blank line before the haskell code, and we don't want spurious
+    blank lines in the output.
+
+  * HTML writer:
+
+    + Include classes on tr elements in HTML output:
+      "header", "odd", "even".  This allows tables to be styled with
+      lines in alternating colors.  Resolves Issue #91.
+
+    + Enclose all LaTeXMathML bits in <span class="LaTeX">.
+      This prevents parts of the document that are not math from being
+      interpreted as math by LaTeXMathML.js.
+
+  * Text.Pandoc.Shared:  Modified wrappedTeX to eliminate the line break
+    between a footnote and immediately following nonspace characters in
+    LaTeX and ConTeXt output. (This gets interpreted as a space, which
+    is not desired in cases like "text^[note]---".)  Resolves Issue #93.
+
+  * Windows installer: Don't require admin privileges to run
+    installer.  Modified pandoc-setup.iss, and changed modpath.iss to
+    modify HKCU path if user lacks admin privileges.  Also fixed case
+    where oldpath is empty (previously this led to the new path
+    beginning with a semicolon).
+
+
+pandoc (1.0.0.1)
+
+  [ John MacFarlane ]
+
+  * Removed spurious reference to pdf output format from pandoc(1) man page.
+
 pandoc (1.0)
 
   [ Andrea Rossato ]
