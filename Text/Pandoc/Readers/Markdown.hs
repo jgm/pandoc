@@ -32,6 +32,7 @@ module Text.Pandoc.Readers.Markdown (
                                      readMarkdown 
                                     ) where
 
+import Control.Applicative ( (<$>) )
 import Data.List ( transpose, isPrefixOf, isSuffixOf, lookup, sortBy, findIndex, intercalate )
 import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum, isAlpha, isLower, isDigit, isUpper )
@@ -188,8 +189,11 @@ referenceKey = try $ do
   lab <- reference
   char ':'
   skipSpaces >> optional newline >> skipSpaces >> notFollowedBy (char '[')
-  src <- (char '<' >> many (noneOf "> \n\t") >>~ char '>')
-        <|> many (noneOf " \n\t")
+  let sourceURL excludes = concat <$>
+                           (many $ do optional (char '\\')
+                                      count 1 (noneOf $ ' ':excludes)
+                                       <|> (notFollowedBy' referenceTitle >> char ' ' >> return "%20"))
+  src <- try (char '<' >> sourceURL ">\t\n" >>~ char '>') <|> sourceURL "\t\n"
   tit <- option "" referenceTitle
   blanklines
   endPos <- getPosition
@@ -1062,10 +1066,11 @@ source =
 source' :: GenParser Char st (String, [Char])
 source' = do
   skipSpaces
-  src <- try (char '<' >>
-              many (optional (char '\\') >> noneOf "> \t\n") >>~
-              char '>')
-         <|> many (optional (char '\\') >> noneOf " \t\n")
+  let sourceURL excludes = concat <$>
+                           (many $ do optional (char '\\')
+                                      count 1 (noneOf $ ' ':excludes)
+                                       <|> (notFollowedBy' linkTitle >> char ' ' >> return "%20"))
+  src <- try (char '<' >> sourceURL ">\t\n" >>~ char '>') <|> sourceURL "\t\n"
   tit <- option "" linkTitle
   skipSpaces
   eof
