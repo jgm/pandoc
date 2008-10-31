@@ -42,10 +42,14 @@ pandoc (1.1)
     + HTML reader: Don't interpret contents of <pre> blocks as markdown.
       Added rawVerbatimBlock parser.  Resolves Issue #94.
 
-  * Markdown reader: Ignore blank line after ~~~~~~~~ in delimited code blocks.
-    Rationale:  these are useful for literate haskell, but lhs requires
-    a blank line before the haskell code, and we don't want spurious
-    blank lines in the output.
+  * Markdown reader:
+  
+    + Ignore blank line after ~~~~~~~~ in delimited code blocks.
+      Rationale:  these are useful for literate haskell, but lhs requires
+      a blank line before the haskell code, and we don't want spurious
+      blank lines in the output.
+
+    + Allow URLs with spaces in them in links and references.
 
   * HTML writer:
 
