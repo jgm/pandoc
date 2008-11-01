@@ -50,7 +50,9 @@ pandoc (1.1)
       blank lines in the output.
 
     + Allow URLs with spaces in them in links and references, but escape
-	  them as "%20".
+      them as "%20".
+
+    + Allow blank space at the end of horizontal rules.
 
   * HTML writer:
 

@@ -314,7 +314,7 @@ hrule = try $ do
   skipSpaces
   start <- oneOf hruleChars
   count 2 (skipSpaces >> char start)
-  skipMany (skipSpaces >> char start)
+  skipMany (oneOf spaceChars <|> char start)
   newline
   optional blanklines
   return HorizontalRule

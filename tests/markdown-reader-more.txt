@@ -35,3 +35,9 @@
 [bam]:  /foo fee   
 [bork]:  /foo/zee zob   (title)
 
+## Horizontal rules with spaces at end
+
+* * * * *  
+
+-- - -- -- -  
+
