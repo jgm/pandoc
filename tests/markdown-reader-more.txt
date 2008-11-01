@@ -22,3 +22,16 @@
 \stop[a2]
 \stop[a2]
 
+## URLs with spaces
+
+[foo](/bar and baz)
+[foo](/bar and baz )
+[foo]( /bar  and  baz  )
+[foo](bar baz  "title" )
+
+[baz][] [bam][] [bork][]
+
+[baz]: /foo foo
+[bam]:  /foo fee   
+[bork]:  /foo/zee zob   (title)
+

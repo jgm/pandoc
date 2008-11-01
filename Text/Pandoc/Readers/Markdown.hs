@@ -32,7 +32,6 @@ module Text.Pandoc.Readers.Markdown (
                                      readMarkdown 
                                     ) where
 
-import Control.Applicative ( (<$>) )
 import Data.List ( transpose, isPrefixOf, isSuffixOf, lookup, sortBy, findIndex, intercalate )
 import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum, isAlpha, isLower, isDigit, isUpper )
@@ -189,15 +188,13 @@ referenceKey = try $ do
   lab <- reference
   char ':'
   skipSpaces >> optional newline >> skipSpaces >> notFollowedBy (char '[')
-  let sourceURL excludes = concat <$>
-                           (many $ do optional (char '\\')
-                                      count 1 (noneOf $ ' ':excludes)
-                                       <|> (notFollowedBy' referenceTitle >> char ' ' >> return "%20"))
+  let sourceURL excludes = many $
+        optional (char '\\') >> (noneOf (' ':excludes) <|> (notFollowedBy' referenceTitle >> char ' '))
   src <- try (char '<' >> sourceURL ">\t\n" >>~ char '>') <|> sourceURL "\t\n"
   tit <- option "" referenceTitle
   blanklines
   endPos <- getPosition
-  let newkey = (lab, (removeTrailingSpace src,  tit))
+  let newkey = (lab, (intercalate "%20" $ words $ removeTrailingSpace src,  tit))
   st <- getState
   let oldkeys = stateKeys st
   updateState $ \s -> s { stateKeys = newkey : oldkeys }
@@ -1066,15 +1063,13 @@ source =
 source' :: GenParser Char st (String, [Char])
 source' = do
   skipSpaces
-  let sourceURL excludes = concat <$>
-                           (many $ do optional (char '\\')
-                                      count 1 (noneOf $ ' ':excludes)
-                                       <|> (notFollowedBy' linkTitle >> char ' ' >> return "%20"))
+  let sourceURL excludes = many $
+        optional (char '\\') >> (noneOf (' ':excludes) <|> (notFollowedBy' linkTitle >> char ' '))
   src <- try (char '<' >> sourceURL ">\t\n" >>~ char '>') <|> sourceURL "\t\n"
   tit <- option "" linkTitle
   skipSpaces
   eof
-  return (removeTrailingSpace src, tit)
+  return (intercalate "%20" $ words $ removeTrailingSpace src, tit)
 
 linkTitle :: GenParser Char st String
 linkTitle = try $ do 

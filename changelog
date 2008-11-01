@@ -49,7 +49,8 @@ pandoc (1.1)
       a blank line before the haskell code, and we don't want spurious
       blank lines in the output.
 
-    + Allow URLs with spaces in them in links and references.
+    + Allow URLs with spaces in them in links and references, but escape
+	  them as "%20".
 
   * HTML writer:
 
