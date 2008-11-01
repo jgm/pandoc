@@ -875,6 +875,7 @@
       <text:p text:style-name="Text_20_body">This is a set of tests for
                                              pandoc. Most of them are adapted from John
                                              Gruber&#8217;s markdown test suite.</text:p>
+      <text:p text:style-name="Horizontal_20_Line" />
       <text:h text:style-name="Heading_20_1" text:outline-level="1">Headers</text:h>
       <text:h text:style-name="Heading_20_2" text:outline-level="2">Level
                                                                     2 with an
@@ -897,6 +898,7 @@
       <text:h text:style-name="Heading_20_2" text:outline-level="2">Level
                                                                     2</text:h>
       <text:p text:style-name="Text_20_body">with no blank line</text:p>
+      <text:p text:style-name="Horizontal_20_Line" />
       <text:h text:style-name="Heading_20_1" text:outline-level="1">Paragraphs</text:h>
       <text:p text:style-name="Text_20_body">Here&#8217;s a regular
                                              paragraph.</text:p>
@@ -908,6 +910,7 @@
                                              bullet. * criminey.</text:p>
       <text:p text:style-name="Text_20_body">There should be a hard line
                                              break<text:line-break />here.</text:p>
+      <text:p text:style-name="Horizontal_20_Line" />
       <text:h text:style-name="Heading_20_1" text:outline-level="1">Block
                                                                     Quotes</text:h>
       <text:p text:style-name="Text_20_body">E-mail style:</text:p>
@@ -932,6 +935,7 @@
                                              quote: 2 &gt; 1.</text:p>
       <text:p text:style-name="Text_20_body">And a following
                                              paragraph.</text:p>
+      <text:p text:style-name="Horizontal_20_Line" />
       <text:h text:style-name="Heading_20_1" text:outline-level="1">Code
                                                                     Blocks</text:h>
       <text:p text:style-name="Text_20_body">Code:</text:p>
@@ -946,6 +950,7 @@
       <text:p text:style-name="P16"><text:s text:c="4" />this code block is indented by two tabs</text:p>
       <text:p text:style-name="P17"></text:p>
       <text:p text:style-name="P18">These should not be escaped: <text:s text:c="1" />\$ \\ \&gt; \[ \{</text:p>
+      <text:p text:style-name="Horizontal_20_Line" />
       <text:h text:style-name="Heading_20_1" text:outline-level="1">Lists</text:h>
       <text:h text:style-name="Heading_20_2" text:outline-level="2">Unordered</text:h>
       <text:p text:style-name="Text_20_body">Asterisks tight:</text:p>
@@ -1231,6 +1236,7 @@
                                              item:</text:p>
       <text:p text:style-name="Text_20_body">M.A.&#160;2007</text:p>
       <text:p text:style-name="Text_20_body">B. Williams</text:p>
+      <text:p text:style-name="Horizontal_20_Line" />
       <text:h text:style-name="Heading_20_1" text:outline-level="1">Definition
                                                                     Lists</text:h>
       <text:p text:style-name="Text_20_body">Tight using spaces:</text:p>
@@ -1300,6 +1306,7 @@
       <text:p text:style-name="Text_20_body">Code:</text:p>
       <text:p text:style-name="P49">&lt;hr /&gt;</text:p>
       <text:p text:style-name="Text_20_body">Hr&#8217;s:</text:p>
+      <text:p text:style-name="Horizontal_20_Line" />
       <text:h text:style-name="Heading_20_1" text:outline-level="1">Inline
                                                                     Markup</text:h>
       <text:p text:style-name="Text_20_body">This is
@@ -1338,6 +1345,7 @@
       <text:p text:style-name="Text_20_body">These should not be
                                              superscripts or subscripts, because of the unescaped
                                              spaces: a^b c^d, a~b c~d.</text:p>
+      <text:p text:style-name="Horizontal_20_Line" />
       <text:h text:style-name="Heading_20_1" text:outline-level="1">Smart
                                                                     quotes, ellipses,
                                                                     dashes</text:h>
@@ -1361,6 +1369,7 @@
       <text:p text:style-name="Text_20_body">Dashes between numbers:
                                              5&#8211;7, 255&#8211;66, 1987&#8211;1999.</text:p>
       <text:p text:style-name="Text_20_body">Ellipses&#8230;and&#8230;and&#8230;.</text:p>
+      <text:p text:style-name="Horizontal_20_Line" />
       <text:h text:style-name="Heading_20_1" text:outline-level="1">LaTeX</text:h>
       <text:list text:style-name="L25">
         <text:list-item>
@@ -1411,6 +1420,7 @@ Animal &amp; Number \\ \hline
 Dog <text:s text:c="3" />&amp; 2 <text:s text:c="5" />\\
 Cat <text:s text:c="3" />&amp; 1 <text:s text:c="5" />\\ \hline
 \end{tabular}</text:span></text:p>
+      <text:p text:style-name="Horizontal_20_Line" />
       <text:h text:style-name="Heading_20_1" text:outline-level="1">Special
                                                                     Characters</text:h>
       <text:p text:style-name="Text_20_body">Here is some
@@ -1455,6 +1465,7 @@ Cat <text:s text:c="3" />&amp; 1 <text:s text:c="5" />\\ \hline
       <text:p text:style-name="Text_20_body">Bang: !</text:p>
       <text:p text:style-name="Text_20_body">Plus: +</text:p>
       <text:p text:style-name="Text_20_body">Minus: -</text:p>
+      <text:p text:style-name="Horizontal_20_Line" />
       <text:h text:style-name="Heading_20_1" text:outline-level="1">Links</text:h>
       <text:h text:style-name="Heading_20_2" text:outline-level="2">Explicit</text:h>
       <text:p text:style-name="Text_20_body">Just a
@@ -1523,6 +1534,7 @@ Cat <text:s text:c="3" />&amp; 1 <text:s text:c="5" />\\ \hline
                                              here:
                                              <text:span text:style-name="Teletype">&lt;http://example.com/&gt;</text:span></text:p>
       <text:p text:style-name="P56">or here: &lt;http://example.com/&gt;</text:p>
+      <text:p text:style-name="Horizontal_20_Line" />
       <text:h text:style-name="Heading_20_1" text:outline-level="1">Images</text:h>
       <text:p text:style-name="Text_20_body">From
                                              &#8220;Voyage dans la Lune&#8221; by Georges Melies
@@ -1531,6 +1543,7 @@ Cat <text:s text:c="3" />&amp; 1 <text:s text:c="5" />\\ \hline
       <text:p text:style-name="Text_20_body">Here is a movie
                                              <draw:frame><draw:image xlink:href="movie.jpg" xlink:type="simple"  xlink:show="embed" xlink:actuate="onLoad" /></draw:frame>
                                              icon.</text:p>
+      <text:p text:style-name="Horizontal_20_Line" />
       <text:h text:style-name="Heading_20_1" text:outline-level="1">Footnotes</text:h>
       <text:p text:style-name="Text_20_body">Here is a footnote
                                              reference,<text:note text:id="ftn0" text:note-class="footnote"><text:note-citation>1</text:note-citation>

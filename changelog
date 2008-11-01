@@ -62,6 +62,9 @@ pandoc (1.1)
       This prevents parts of the document that are not math from being
       interpreted as math by LaTeXMathML.js.
 
+  * OpenDocument and ODT writers:  Added support for HorizontalRule elements,
+    which were formerly ignored.  Resolves Issue #95.
+
   * Text.Pandoc.Shared:  Modified wrappedTeX to eliminate the line break
     between a footnote and immediately following nonspace characters in
     LaTeX and ConTeXt output. (This gets interpreted as a space, which

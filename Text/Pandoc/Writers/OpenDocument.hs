@@ -298,7 +298,7 @@ blockToOpenDocument o bs
     | OrderedList  a b <- bs = orderedList a b
     | Table  c a w h r <- bs = table c a w h r
     | Null             <- bs = return empty
-    | HorizontalRule   <- bs = return empty
+    | HorizontalRule   <- bs = return $ selfClosingTag "text:p" [ ("text:style-name", "Horizontal_20_Line") ]
     | otherwise              = return empty
     where
       defList       b = do setInDefinitionList True
