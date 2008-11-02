@@ -380,8 +380,6 @@ keyValAttr = try $ do
 codeBlockDelimited :: GenParser Char st Block
 codeBlockDelimited = try $ do
   (size, attr) <- codeBlockDelimiter Nothing
-  optional blankline   -- this helps make literate haskell possible; it requires
-                       -- a blank line between comment and code
   contents <- manyTill anyLine (codeBlockDelimiter (Just size))
   blanklines
   return $ CodeBlock attr $ intercalate "\n" contents
