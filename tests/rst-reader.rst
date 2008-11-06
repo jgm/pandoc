@@ -402,3 +402,29 @@ From "Voyage dans la Lune" by Georges Melies (1902):
 Here is a movie |movie| icon.
 
 .. |movie| image:: movie.jpg
+
+Comments
+========
+
+First paragraph
+
+.. comment
+
+..
+    Comment block, should not appear in output
+    as defined by reStructuredText
+
+Another paragraph
+
+..
+    Another comment block.
+
+    This one spans several
+    text elements.
+
+    It doesn't end until
+    indentation is restored to the
+    preceding level.
+
+A third paragraph
+

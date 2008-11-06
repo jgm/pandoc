@@ -367,6 +367,8 @@ list = choice [ bulletList, orderedList, definitionList ] <?> "list"
 
 definitionListItem :: GenParser Char ParserState ([Inline], [Block])
 definitionListItem = try $ do
+  -- avoid capturing a directive or comment
+  notFollowedBy (try $ char '.' >> char '.')
   term <- many1Till inline endline
   raw <- indentedBlock
   -- parse the extracted block, which may contain various block elements:
@@ -464,11 +466,10 @@ bulletList = many1 (listItem bulletListStart) >>=
 
 unknownDirective :: GenParser Char st Block
 unknownDirective = try $ do
-  string ".. "
+  string ".."
+  notFollowedBy (noneOf " \t\n")
   manyTill anyChar newline
-  many (string "   :" >> many1 (noneOf "\n:") >> char ':' >>
-        many1 (noneOf "\n") >> newline)
-  optional blanklines
+  many $ blanklines <|> (oneOf " \t" >> manyTill anyChar newline)
   return Null
 
 -- 

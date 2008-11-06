@@ -230,5 +230,9 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
 , Para [Str "From",Space,Str "\"Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune\"",Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(1902)",Str ":"]
 , Plain [Image [Str "image"] ("lalune.jpg","")]
 , Plain [Image [Str "Voyage dans la Lune"] ("lalune.jpg","Voyage dans la Lune")]
-, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "movie"] ("movie.jpg",""),Space,Str "icon."] ]
+, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "movie"] ("movie.jpg",""),Space,Str "icon."]
+, Header 1 [Str "Comments"]
+, Para [Str "First",Space,Str "paragraph"]
+, Para [Str "Another",Space,Str "paragraph"]
+, Para [Str "A",Space,Str "third",Space,Str "paragraph"] ]
 
