@@ -71,6 +71,10 @@ pandoc in these repositories may not be the most recent.
 - [Source tarball]
 - [Windows installer]
 
+# Extras
+
+- [vim syntax file for pandoc], courtesy of tao_zhyn
+
 # Code repository
 
 Pandoc has a publicly accesible subversion repository at Google
@@ -90,6 +94,13 @@ You may view existing bug reports and submit new ones at
 - [pandoc-discuss]:  General discussion of pandoc.
 
 # News
+
+-   Version 1.1 release (November 6, 2008).
+
+    + New --jsmath option supporting use of pandoc with [jsMath].
+    + Classes on HTML table output for better CSS styling.
+    + Windows installer no longer requires admin privileges.
+    + Many bugs fixed.  See [changelog] for details.
 
 -   Version 1.0 release (September 13, 2008).
 
@@ -180,4 +191,6 @@ Pandoc carries no warranties of any kind.
 [pandoc-announce]: http://groups.google.com/group/pandoc-announce
 [pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
 [changelog]: changelog.txt
+[vim syntax file for pandoc]: http://www.vim.org/scripts/script.php?script_id=2389
+[jsMath]: http://www.math.union.edu/~dpvc/jsMath/
 
