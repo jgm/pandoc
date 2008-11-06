@@ -32,6 +32,10 @@ pandoc (1.1)
       them as "%20".
     + Allow blank space at the end of horizontal rules.
 
+  * RST reader: Modified 'unknownDirective' parser to handle comment
+    blocks correctly, and added tests for comment blocks. Resolves Issue
+    #86. Closes Debian Bug #500662.
+
   * HTML writer:
 
     + Include classes on tr elements in HTML output:
