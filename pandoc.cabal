@@ -64,12 +64,12 @@ Extra-Source-Files:
                  data/ui/default/outline.css,
                  data/ui/default/print.css,
                  -- data for ODT writer
-                 odt-styles/meta.xml,
-                 odt-styles/settings.xml,
-                 odt-styles/META-INF/manifest.xml,
-                 odt-styles/Thumbnails/thumbnail.png,
-                 odt-styles/styles.xml,
-                 odt-styles/mimetype,
+                 data/odt-styles/meta.xml,
+                 data/odt-styles/settings.xml,
+                 data/odt-styles/META-INF/manifest.xml,
+                 data/odt-styles/Thumbnails/thumbnail.png,
+                 data/odt-styles/styles.xml,
+                 data/odt-styles/mimetype,
                  -- tests
                  tests/bodybg.gif,
                  tests/writer.latex,
