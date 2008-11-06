@@ -20,7 +20,6 @@ while (<IN>) {
         print STDERR "$commandExec";
         system "$commandExec";
         $line = $command;
-        $line =~ s/-/\-/;
         $line =~ s/@@([^@]*)@@/<a href="$1">$1<\/a>/g;
         $line =~ s/-/\\-/g;   # to prevent smart dashes!
         $line =~ s/^(.*)$/    <pre><code>$1<\/code><\/pre>/g;        
