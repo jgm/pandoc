@@ -15,6 +15,9 @@ examples.txt : mkdemos.pl config.xsl S5DEMO README demos math.text
 		do highlight -k monospace -u utf-8 --style emacs $$file > $$file.html; \
 	done
 
+examples.html : examples.txt
+	$(PANDOC_PATH)/pandoc -s -H css -A footer.html $< > $@
+
 index.html : index.txt css
 	$(MAKEPAGE) --toc $< > $@
 

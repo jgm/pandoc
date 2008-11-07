@@ -21,7 +21,6 @@ while (<IN>) {
         system "$commandExec";
         $line = $command;
         $line =~ s/@@([^@]*)@@/<a href="$1">$1<\/a>/g;
-        $line =~ s/-/\\-/g;   # to prevent smart dashes!
         $line =~ s/^(.*)$/    <pre><code>$1<\/code><\/pre>/g;        
         if ( $line =~ /(example\d+\.html)<\/a><\/code>/m ) {
             $line .= "\n    (View [`$1` as a web page]($1).)\n";
