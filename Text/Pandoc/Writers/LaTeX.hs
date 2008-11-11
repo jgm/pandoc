@@ -224,7 +224,7 @@ blockListToLaTeX lst = mapM blockToLaTeX lst >>= return . vcat
 tableRowToLaTeX :: [[Block]] -> State WriterState Doc
 tableRowToLaTeX cols = mapM blockListToLaTeX cols >>= 
   return . ($$ text "\\\\") . foldl (\row item -> row $$
-  (if isEmpty row then empty else text " & ") <> item) empty
+  (if isEmpty row then text "" else text " & ") <> item) empty
 
 listItemToLaTeX :: [Block] -> State WriterState Doc
 listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
