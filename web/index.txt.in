@@ -63,10 +63,10 @@ or [try pandoc on the web](/pandoc/try).
 # Downloads
 
 For installation instructions for all architectures, see
-[INSTALL](INSTALL.html). Pandoc is in the [MacPorts], [Debian unstable],
-[Ubuntu], and [FreeBSD ports] repositories. Abhishek Dasgupta has also
-contributed an [Arch linux PKGBUILD script]. Note that the version of
-pandoc in these repositories may not be the most recent.
+[INSTALL](INSTALL.html). Pandoc is in the [MacPorts], [Debian],
+[Ubuntu], [Slackware], [Arch], and [FreeBSD ports] repositories.
+Note that the version of pandoc in these repositories may not be the
+most recent.
 
 - [Source tarball]
 - [Windows installer]
@@ -183,9 +183,10 @@ Pandoc carries no warranties of any kind.
 [GPL]:  http://www.gnu.org/copyleft/gpl.html
 [Source tarball]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@.tar.gz "Download source tarball from Pandoc's Google Code site"
 [Windows installer]: http://code.google.com/p/pandoc/downloads/detail?name=pandoc-@VERSION@-setup.exe "Download Windows installer from Pandoc's Google Code site"
-[Debian unstable]: http://packages.debian.org/unstable/text/pandoc
+[Debian]: http://packages.debian.org/lenny/pandoc
+[Slackware]: http://www.linuxpackages.net/search_view.php?by=name&name=pandoc&ver=
+[Arch]: http://aur.archlinux.org/packages.php?ID=19804
 [FreeBSD ports]: http://www.freshports.org/textproc/pandoc/
-[Arch linux PKGBUILD script]: http://aur.archlinux.org/packages.php?do_Details=1&ID=12751&O=0&L=0&C=0&K=pandoc&SB=n&SO=a&PP=25&do_MyPackages=0&do_Orphans=0&SeB=nd
 [Ubuntu]: http://www.ubuntu.com
 [MacPorts]: http://db.macports.org/port/show/4218
 [pandoc-announce]: http://groups.google.com/group/pandoc-announce
