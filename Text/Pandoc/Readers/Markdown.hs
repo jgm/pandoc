@@ -864,7 +864,10 @@ math = (mathDisplay >>= return . Math DisplayMath)
      <|> (mathInline >>= return . Math InlineMath)
 
 mathDisplay :: GenParser Char ParserState String 
-mathDisplay = try $ char '$' >> mathInline >>~ char '$' >>~ notFollowedBy digit
+mathDisplay = try $ do
+  failIfStrict
+  string "$$"
+  many1Till (noneOf "\n" <|> (newline >>~ notFollowedBy' blankline)) (try $ string "$$")
 
 mathInline :: GenParser Char ParserState String
 mathInline = try $ do
