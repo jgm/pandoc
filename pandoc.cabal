@@ -9,7 +9,6 @@ Author:          John MacFarlane <jgm@berkeley.edu>
 Maintainer:      John MacFarlane <jgm@berkeley.edu>
 Stability:       alpha
 Homepage:        http://johnmacfarlane.net/pandoc
-Package-URL:     http://pandoc.googlecode.com/files/pandoc-0.47.tar.gz
 Category:        Text
 Tested-With:     GHC
 Synopsis:        Conversion between markup formats
