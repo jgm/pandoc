@@ -71,6 +71,7 @@ module Text.Pandoc.Shared (
                      withHorizDisplacement,
                      nullBlock,
                      failIfStrict,
+                     failUnlessLHS,
                      escaped,
                      anyOrderedListMarker,
                      orderedListMarker,
@@ -488,6 +489,12 @@ failIfStrict :: GenParser Char ParserState ()
 failIfStrict = do
   state <- getState
   if stateStrict state then fail "strict mode" else return ()
+
+-- | Fail unless we're in literate haskell mode.
+failUnlessLHS :: GenParser tok ParserState ()
+failUnlessLHS = do
+  state <- getState
+  if stateLiterateHaskell state then return () else fail "Literate haskell feature"
 
 -- | Parses backslash, then applies character parser.
 escaped :: GenParser Char st Char  -- ^ Parser for character to escape

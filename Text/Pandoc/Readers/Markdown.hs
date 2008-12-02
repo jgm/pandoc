@@ -103,12 +103,6 @@ failUnlessSmart = do
   state <- getState
   if stateSmart state then return () else fail "Smart typography feature"
 
--- | Fail unless we're in literate haskell mode.
-failUnlessLHS :: GenParser tok ParserState ()
-failUnlessLHS = do
-  state <- getState
-  if stateLiterateHaskell state then return () else fail "Literate haskell feature"
-
 -- | Parse a sequence of inline elements between square brackets,
 -- including inlines between balanced pairs of square brackets.
 inlinesInBalancedBrackets :: GenParser Char ParserState Inline
