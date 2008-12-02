@@ -45,6 +45,7 @@ import Text.Pandoc.Readers.HTML ( rawHtmlBlock, anyHtmlBlockTag,
                                   htmlBlockElement, unsanitaryURI )
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.ParserCombinators.Parsec
+import Control.Monad (when)
 
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: ParserState -> String -> Pandoc
@@ -101,6 +102,12 @@ failUnlessSmart :: GenParser tok ParserState ()
 failUnlessSmart = do
   state <- getState
   if stateSmart state then return () else fail "Smart typography feature"
+
+-- | Fail unless we're in literate haskell mode.
+failUnlessLHS :: GenParser tok ParserState ()
+failUnlessLHS = do
+  state <- getState
+  if stateLiterateHaskell state then return () else fail "Literate haskell feature"
 
 -- | Parse a sequence of inline elements between square brackets,
 -- including inlines between balanced pairs of square brackets.
@@ -268,6 +275,7 @@ block = do
                    , header 
                    , table
                    , codeBlockIndented
+                   , lhsCodeBlock
                    , blockQuote
                    , hrule
                    , bulletList
@@ -392,6 +400,25 @@ codeBlockIndented = do
                              return $ b ++ l))
   optional blanklines
   return $ CodeBlock ("",[],[]) $ stripTrailingNewlines $ concat contents
+
+lhsCodeBlock :: GenParser Char ParserState Block
+lhsCodeBlock = do
+  failUnlessLHS
+  pos <- getPosition
+  when (sourceColumn pos /= 1) $ fail "Not in first column"
+  lns <- many1 birdTrackLine
+  -- if (as is normal) there is always a space after >, drop it
+  let lns' = if all (\ln -> null ln || take 1 ln == " ") lns
+                then map (drop 1) lns
+                else lns
+  blanklines
+  return $ CodeBlock ("",["haskell"],[]) $ intercalate "\n" lns'
+
+birdTrackLine :: GenParser Char st [Char]
+birdTrackLine = do
+  char '>'
+  manyTill anyChar newline
+
 
 --
 -- block quotes

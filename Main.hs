@@ -146,6 +146,7 @@ data Opt = Opt
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optWrapText          :: Bool    -- ^ Wrap text
     , optSanitizeHTML      :: Bool    -- ^ Sanitize HTML
+    , optLHSIn             :: Bool    -- ^ Treat input as literate haskell
 #ifdef _CITEPROC
     , optModsFile          :: String
     , optCslFile           :: String
@@ -179,6 +180,7 @@ defaultOpts = Opt
     , optReferenceLinks    = False
     , optWrapText          = True
     , optSanitizeHTML      = False
+    , optLHSIn             = False
 #ifdef _CITEPROC
     , optModsFile          = []
     , optCslFile           = []
@@ -287,6 +289,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optSanitizeHTML = True }))
                  "" -- "Sanitize HTML"
+
+    , Option "" ["lhs-in"]
+                 (NoArg
+                  (\opt -> return opt { optLHSIn = True }))
+                 "" -- "Treat input as literate haskell"
 
     , Option "" ["toc", "table-of-contents"]
                 (NoArg
@@ -419,6 +426,11 @@ defaultReaderName (x:xs) =
     ".native"   -> "native"
     _           -> defaultReaderName xs
 
+-- Returns True if extension of first source is .lhs
+lhsExtension :: [FilePath] -> Bool
+lhsExtension (x:_) = takeExtension x == ".lhs"
+lhsExtension _ = False
+
 -- Determine default writer based on output file extension
 defaultWriterName :: FilePath -> String
 defaultWriterName "-" = "html" -- no output file
@@ -498,6 +510,7 @@ main = do
               , optReferenceLinks    = referenceLinks
               , optWrapText          = wrap
               , optSanitizeHTML      = sanitize
+              , optLHSIn             = lhsIn
 #ifdef _CITEPROC
              , optModsFile           = modsFile
              , optCslFile            = cslFile
@@ -556,17 +569,19 @@ main = do
 #endif
 
   let startParserState =
-         defaultParserState { stateParseRaw     = parseRaw,
-                              stateTabStop      = tabStop,
-                              stateSanitizeHTML = sanitize,
-                              stateStandalone   = standalone',
+         defaultParserState { stateParseRaw        = parseRaw,
+                              stateTabStop         = tabStop,
+                              stateSanitizeHTML    = sanitize,
+                              stateLiterateHaskell = lhsIn ||
+                                                     lhsExtension sources,
+                              stateStandalone      = standalone',
 #ifdef _CITEPROC
-                              stateCitations    = map citeKey refs,
+                              stateCitations       = map citeKey refs,
 #endif
-                              stateSmart        = smart || writerName' `elem`
-                                                           ["latex", "context"],
-                              stateColumns      = columns,
-                              stateStrict       = strict }
+                              stateSmart           = smart || writerName' `elem`
+                                                              ["latex", "context"],
+                              stateColumns         = columns,
+                              stateStrict          = strict }
   let csslink = if null css
                    then ""
                    else concatMap

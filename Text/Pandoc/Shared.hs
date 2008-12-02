@@ -635,6 +635,7 @@ data ParserState = ParserState
       stateDate            :: String,        -- ^ Date of document
       stateStrict          :: Bool,          -- ^ Use strict markdown syntax?
       stateSmart           :: Bool,          -- ^ Use smart typography?
+      stateLiterateHaskell :: Bool,          -- ^ Treat input as literate haskell
       stateColumns         :: Int,           -- ^ Number of columns in terminal
       stateHeaderTable     :: [HeaderType]   -- ^ Ordered list of header types used
     }
@@ -658,6 +659,7 @@ defaultParserState =
                   stateDate            = [],
                   stateStrict          = False,
                   stateSmart           = False,
+                  stateLiterateHaskell = False,
                   stateColumns         = 80,
                   stateHeaderTable     = [] }
 
