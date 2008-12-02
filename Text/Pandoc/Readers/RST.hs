@@ -33,6 +33,7 @@ module Text.Pandoc.Readers.RST (
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.ParserCombinators.Parsec
+import Control.Monad ( when )
 import Data.List ( findIndex, delete, intercalate )
 
 -- | Parse reStructuredText string and return Pandoc document.
@@ -126,6 +127,7 @@ block = choice [ codeBlock
                , hrule
                , list
                , lineBlock
+               , lhsCodeBlock
                , para
                , plain
                , nullBlock ] <?> "block"
@@ -327,6 +329,24 @@ codeBlock = try $ do
   codeBlockStart
   result <- indentedBlock
   return $ CodeBlock ("",[],[]) $ stripTrailingNewlines result
+
+lhsCodeBlock :: GenParser Char ParserState Block
+lhsCodeBlock = try $ do
+  failUnlessLHS
+  pos <- getPosition
+  when (sourceColumn pos /= 1) $ fail "Not in first column"
+  lns <- many1 birdTrackLine
+  -- if (as is normal) there is always a space after >, drop it
+  let lns' = if all (\ln -> null ln || take 1 ln == " ") lns
+                then map (drop 1) lns
+                else lns
+  blanklines
+  return $ CodeBlock ("", ["sourceCode", "haskell"], []) $ intercalate "\n" lns'
+
+birdTrackLine :: GenParser Char st [Char]
+birdTrackLine = do
+  char '>'
+  manyTill anyChar newline
 
 --
 -- raw html
