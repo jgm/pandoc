@@ -191,8 +191,13 @@ blockToMarkdown opts (CodeBlock (_,classes,_) str) | "haskell" `elem` classes &&
 blockToMarkdown opts (CodeBlock _ str) = return $
   (nest (writerTabStop opts) $ vcat $ map text (lines str)) <> text "\n"
 blockToMarkdown opts (BlockQuote blocks) = do
+  -- if we're writing literate haskell, put a space before the bird tracks
+  -- so they won't be interpreted as lhs...
+  let leader = if writerLiterateHaskell opts
+                  then text . (" > " ++)
+                  else text . ("> " ++)
   contents <- blockListToMarkdown opts blocks
-  return $ (vcat $ map (text . ("> " ++)) $ lines $ render contents) <> 
+  return $ (vcat $ map leader $ lines $ render contents) <> 
            text "\n"
 blockToMarkdown opts (Table caption aligns widths headers rows) =  do
   caption' <- inlineListToMarkdown opts caption
