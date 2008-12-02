@@ -184,7 +184,16 @@ blockToMarkdown _ (RawHtml str) = return $ text str
 blockToMarkdown _ HorizontalRule = return $ text "\n* * * * *\n"
 blockToMarkdown opts (Header level inlines) = do
   contents <- inlineListToMarkdown opts inlines
-  return $ text ((replicate level '#') ++ " ") <> contents <> text "\n"
+  -- use setext style headers if in literate haskell mode.
+  -- ghc interprets '#' characters in column 1 as line number specifiers.
+  if writerLiterateHaskell opts
+     then let len = length $ render contents
+          in  return $ contents <> text "\n" <>
+                       case level of
+                            1  -> text $ replicate len '=' ++ "\n"
+                            2  -> text $ replicate len '-' ++ "\n"
+                            _  -> empty
+     else return $ text ((replicate level '#') ++ " ") <> contents <> text "\n"
 blockToMarkdown opts (CodeBlock (_,classes,_) str) | "haskell" `elem` classes &&
                                                      writerLiterateHaskell opts =
   return $ (vcat $ map (text "> " <>) $ map text (lines str)) <> text "\n"
