@@ -147,6 +147,7 @@ data Opt = Opt
     , optWrapText          :: Bool    -- ^ Wrap text
     , optSanitizeHTML      :: Bool    -- ^ Sanitize HTML
     , optLHSIn             :: Bool    -- ^ Treat input as literate haskell
+    , optLHSOut            :: Bool    -- ^ Write output as literate haskell
 #ifdef _CITEPROC
     , optModsFile          :: String
     , optCslFile           :: String
@@ -181,6 +182,7 @@ defaultOpts = Opt
     , optWrapText          = True
     , optSanitizeHTML      = False
     , optLHSIn             = False
+    , optLHSOut            = False
 #ifdef _CITEPROC
     , optModsFile          = []
     , optCslFile           = []
@@ -294,6 +296,17 @@ options =
                  (NoArg
                   (\opt -> return opt { optLHSIn = True }))
                  "" -- "Treat input as literate haskell"
+
+    , Option "" ["lhs-out"]
+                 (NoArg
+                  (\opt -> return opt { optLHSOut = True }))
+                 "" -- "Write output as literate haskell"
+
+    , Option "" ["lhs"]
+                 (NoArg
+                  (\opt -> return opt { optLHSIn  = True,
+                                        optLHSOut = True }))
+                 "" -- "Equivalent to --lhs-in --lhs-out"
 
     , Option "" ["toc", "table-of-contents"]
                 (NoArg
@@ -511,6 +524,7 @@ main = do
               , optWrapText          = wrap
               , optSanitizeHTML      = sanitize
               , optLHSIn             = lhsIn
+              , optLHSOut            = lhsOut
 #ifdef _CITEPROC
              , optModsFile           = modsFile
              , optCslFile            = cslFile
@@ -591,23 +605,25 @@ main = do
   let header = (if (customHeader == "DEFAULT")
                    then defaultHeader
                    else customHeader) ++ csslink ++ includeHeader
-  let writerOptions = WriterOptions { writerStandalone     = standalone',
-                                      writerHeader         = header,
-                                      writerTitlePrefix    = titlePrefix,
-                                      writerTabStop        = tabStop,
+  let writerOptions = WriterOptions { writerStandalone      = standalone',
+                                      writerHeader          = header,
+                                      writerTitlePrefix     = titlePrefix,
+                                      writerTabStop         = tabStop,
                                       writerTableOfContents = toc &&
                                                               (not strict) &&
                                                               writerName' /= "s5",
-                                      writerHTMLMathMethod = mathMethod,
-                                      writerS5             = (writerName' == "s5"),
-                                      writerIgnoreNotes    = False,
-                                      writerIncremental    = incremental,
-                                      writerNumberSections = numberSections,
-                                      writerIncludeBefore  = includeBefore,
-                                      writerIncludeAfter   = includeAfter,
-                                      writerStrictMarkdown = strict,
-                                      writerReferenceLinks = referenceLinks,
-                                      writerWrapText       = wrap }
+                                      writerHTMLMathMethod  = mathMethod,
+                                      writerS5              = (writerName' == "s5"),
+                                      writerIgnoreNotes     = False,
+                                      writerIncremental     = incremental,
+                                      writerNumberSections  = numberSections,
+                                      writerIncludeBefore   = includeBefore,
+                                      writerIncludeAfter    = includeAfter,
+                                      writerStrictMarkdown  = strict,
+                                      writerReferenceLinks  = referenceLinks,
+                                      writerWrapText        = wrap,
+                                      writerLiterateHaskell = lhsOut ||
+                                                              lhsExtension [outputFile] }
 
   if isNonTextOutput writerName' && outputFile == "-"
      then do hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++

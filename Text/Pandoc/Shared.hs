@@ -901,6 +901,7 @@ data WriterOptions = WriterOptions
   , writerStrictMarkdown  :: Bool   -- ^ Use strict markdown syntax
   , writerReferenceLinks  :: Bool   -- ^ Use reference links in writing markdown, rst
   , writerWrapText        :: Bool   -- ^ Wrap text to line length
+  , writerLiterateHaskell :: Bool   -- ^ Write as literate haskell
   } deriving Show
 
 -- | Default writer options.
@@ -921,6 +922,7 @@ defaultWriterOptions =
                 , writerStrictMarkdown  = False
                 , writerReferenceLinks  = False
                 , writerWrapText        = True
+                , writerLiterateHaskell = False
                 }
 
 --
