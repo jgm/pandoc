@@ -570,8 +570,8 @@ gt = try (string "\\textgreater") >> optional (try $ string "{}") >> return (Str
 doubleQuote :: GenParser Char st Inline
 doubleQuote = char '"' >> return (Str "\"")
 
-code :: GenParser Char st Inline
-code = code1 <|> code2
+code :: GenParser Char ParserState Inline
+code = code1 <|> code2 <|> lhsInlineCode
 
 code1 :: GenParser Char st Inline
 code1 = try $ do 
@@ -584,6 +584,13 @@ code2 :: GenParser Char st Inline
 code2 = try $ do
   string "\\texttt{"
   result <- manyTill (noneOf "\\\n~$%^&{}") (char '}')
+  return $ Code result
+
+lhsInlineCode :: GenParser Char ParserState Inline
+lhsInlineCode = try $ do
+  failUnlessLHS
+  char '|'
+  result <- manyTill (noneOf "|\n") (char '|')
   return $ Code result
 
 emph :: GenParser Char ParserState Inline
