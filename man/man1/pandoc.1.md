@@ -64,6 +64,8 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 :   Specify input format.  *FORMAT* can be
     `native` (native Haskell), `markdown` (markdown or plain text),
     `rst` (reStructuredText), `html` (HTML), or `latex` (LaTeX).
+    If `+lhs` is appended to `markdown`, `rst`, or `latex`, the input
+    will be treated as literate Haskell source.
 
 -t *FORMAT*, -w *FORMAT*, \--to=*FORMAT*, \--write=*FORMAT*
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
@@ -74,7 +76,9 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     `odt` (OpenOffice text document), `s5` (S5 HTML and javascript slide
     show), or `rtf` (rich text format). Note that `odt` output will not
     be directed to *stdout*; an output filename must be specified using
-    the `-o/--output` option.
+    the `-o/--output` option. If `+lhs` is appended to `markdown`,
+    `rst`, `latex`, or `html`, the output will be rendered as literate
+    Haskell source.
 
 -s, \--standalone
 :   Produce output with an appropriate header and footer (e.g. a
@@ -141,20 +145,6 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     Unsafe tags are replaced by HTML comments; unsafe attributes
     are omitted.  URIs in links and images are also checked against a
     whitelist of URI schemes.
-
-\--lhs-in
-:   Treat input as literate Haskell.  In markdown input, "bird track"
-    sections will be treated as Haskell source code.  In LaTeX input,
-    `code` environments will be treated as Haskell source code.
-
-\--lhs-out
-:   Write output as literate Haskell.  In markdown output, Haskell
-    source code will be printed with "bird tracks."  In LaTeX output,
-    it will be put in `code` environments. In HTML output, it will
-    be put inside `<pre>` tags, with "bird tracks."
-
-\--lhs
-:   Equivalent to `--lhs-in --lhs-out`.
 
 \--toc, \--table-of-contents
 :   Include an automatically generated table of contents (HTML, markdown,

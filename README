@@ -222,13 +222,17 @@ For further documentation, see the `pandoc(1)` man page.
 `-f`, `--from`, `-r`, or `--read` *format*
 :   specifies the input format (the format Pandoc will be converting
     *from*). *format* can be `native`, `markdown`, `rst`, `html`, or
-    `latex`.
+    `latex`.  (`+lhs` can be appended to indicate that the input should
+    be treated as literate Haskell source.  See
+    [Literate Haskell support](#literate-haskell-support), below.)
 
 `-t`, `--to`, `-w`, or `--write` *format*
 :   specifies the output format -- the format Pandoc will
     be converting *to*. *format* can be `native`, `html`, `s5`,
     `docbook`, `opendocument`, `latex`, `context`, `markdown`, `man`,
-    `rst`, and `rtf`.
+    `rst`, and `rtf`. (`+lhs` can be appended to indicate that the
+    output should be treated as literate Haskell source. See
+    [Literate Haskell support](#literate-haskell-support), below.)
 
 `-s` or `--standalone`
 :   indicates that a standalone document is to be produced (with
@@ -370,20 +374,6 @@ For further documentation, see the `pandoc(1)` man page.
     Unsafe tags are replaced by HTML comments; unsafe attributes
     are omitted. URIs in links and images are also checked against a
     whitelist of URI schemes.
-
-`--lhs-in`
-:   treat input as literate Haskell.  In markdown input, "bird track"
-    sections will be treated as Haskell source code.  In LaTeX input,
-    `code` environments will be treated as Haskell source code.
-
-`--lhs-out`
-:   write output as literate Haskell.  In markdown output, Haskell
-    source code will be printed with "bird tracks."  In LaTeX output,
-    it will be put in `code` environments. In HTML output, it will
-    be put inside `<pre>` tags, with "bird tracks."
-
-`--lhs`
-:   equivalent to `--lhs-in --lhs-out`.
 
 `--dump-args`
 :   is intended to make it easier to create wrapper scripts that use
@@ -1072,4 +1062,49 @@ can then be inserted into an HTML template that links to the javascript
 and CSS files required by S5. (See the instructions on the S5 website.)
 Alternatively, you may use `-s` together with the `-H/--custom-header`
 option.
+
+Literate Haskell support
+========================
+
+If you append `+lhs` to an appropriate input or output format (`markdown`,
+`rst`, or `latex` for input or output; `html` for output only), pandoc
+will treat the document as literate Haskell source. This means that
+
+  - In markdown input, "bird track" sections will be parsed as Haskell
+    code rather than block quotations.  Text between `\begin{code}`
+    and `\end{code}` will also be treated as Haskell code.
+
+  - In markdown output, code blocks with class `haskell` will be
+    rendered using bird tracks, and block quotations will be
+    indented one space, so they will not be treated as Haskell code.
+    In addition, headers will be rendered setext-style (with underlines)
+    rather than atx-style (with '#' characters). (This is because ghc
+    treats '#' characters in column 1 as introducing line numbers.)
+
+  - In restructured text input, "bird track" sections will be parsed
+    as Haskell code.
+
+  - In restructured text output, code blocks with class `haskell` will
+    be rendered using bird tracks.
+
+  - In LaTeX input, text in `code` environments will be parsed as
+    Haskell code.
+
+  - In LaTeX output, code blocks with class `haskell` will be rendered
+    inside `code` environments.
+
+  - In HTML output, code blocks with class `haskell` will be rendered
+    with class `literatehaskell` and bird tracks.
+
+Examples:
+
+    pandoc -f markdown+lhs -t html
+
+reads literate Haskell source formatted with markdown conventions and writes
+ordinary HTML (without bird tracks).
+
+    pandoc -f markdown+lhs -t html+lhs
+
+writes HTML with the Haskell code in bird tracks, so it can be copied
+and pasted as literate Haskell source.
 
