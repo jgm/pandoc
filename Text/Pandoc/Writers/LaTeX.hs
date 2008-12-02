@@ -147,12 +147,14 @@ blockToLaTeX (Para lst) = do
 blockToLaTeX (BlockQuote lst) = do
   contents <- blockListToLaTeX lst
   return $ text "\\begin{quote}" $$ contents $$ text "\\end{quote}"
-blockToLaTeX (CodeBlock _ str) = do
+blockToLaTeX (CodeBlock (_,classes,_) str) = do
   st <- get
-  env <- if stInNote st
-            then do addToHeader "\\usepackage{fancyvrb}"
-                    return "Verbatim"
-            else return "verbatim"
+  env <- if writerLiterateHaskell (stOptions st) && "haskell" `elem` classes
+            then return "code"
+            else if stInNote st
+                    then do addToHeader "\\usepackage{fancyvrb}"
+                            return "Verbatim"
+                    else return "verbatim"
   return $ text ("\\begin{" ++ env ++ "}\n") <> text str <> 
            text ("\n\\end{" ++ env ++ "}")
 blockToLaTeX (RawHtml _) = return empty

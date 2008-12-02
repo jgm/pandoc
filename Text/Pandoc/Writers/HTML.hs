@@ -297,6 +297,10 @@ blockToHtml opts (Plain lst) = inlineListToHtml opts lst
 blockToHtml opts (Para lst) = inlineListToHtml opts lst >>= (return . paragraph)
 blockToHtml _ (RawHtml str) = return $ primHtml str
 blockToHtml _ (HorizontalRule) = return $ hr
+blockToHtml opts (CodeBlock (_,classes,_) rawCode) | "haskell" `elem` classes &&
+                                                          writerLiterateHaskell opts =
+  let classes' = map (\c -> if c == "haskell" then "literatehaskell" else c) classes
+  in  blockToHtml opts $ CodeBlock ("",classes',[]) $ intercalate "\n" $ map ("> " ++) $ lines rawCode
 blockToHtml _ (CodeBlock attr@(_,classes,_) rawCode) = do
   case highlightHtml attr rawCode of
          Left _  -> -- change leading newlines into <br /> tags, because some

@@ -142,6 +142,20 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     are omitted.  URIs in links and images are also checked against a
     whitelist of URI schemes.
 
+\--lhs-in
+:   Treat input as literate Haskell.  In markdown input, "bird track"
+    sections will be treated as Haskell source code.  In LaTeX input,
+    `code` environments will be treated as Haskell source code.
+
+\--lhs-out
+:   Write output as literate Haskell.  In markdown output, Haskell
+    source code will be printed with "bird tracks."  In LaTeX output,
+    it will be put in `code` environments. In HTML output, it will
+    be put inside `<pre>` tags, with "bird tracks."
+
+\--lhs
+:   Equivalent to `--lhs-in --lhs-out`.
+
 \--toc, \--table-of-contents
 :   Include an automatically generated table of contents (HTML, markdown,
     RTF) or an instruction to create one (LaTeX, reStructuredText).

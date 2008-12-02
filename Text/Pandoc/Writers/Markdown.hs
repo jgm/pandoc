@@ -185,6 +185,9 @@ blockToMarkdown _ HorizontalRule = return $ text "\n* * * * *\n"
 blockToMarkdown opts (Header level inlines) = do
   contents <- inlineListToMarkdown opts inlines
   return $ text ((replicate level '#') ++ " ") <> contents <> text "\n"
+blockToMarkdown opts (CodeBlock (_,classes,_) str) | "haskell" `elem` classes &&
+                                                     writerLiterateHaskell opts =
+  return $ (vcat $ map (text "> " <>) $ map text (lines str)) <> text "\n"
 blockToMarkdown opts (CodeBlock _ str) = return $
   (nest (writerTabStop opts) $ vcat $ map text (lines str)) <> text "\n"
 blockToMarkdown opts (BlockQuote blocks) = do
