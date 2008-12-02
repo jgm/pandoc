@@ -398,6 +398,19 @@ codeBlockIndented = do
 lhsCodeBlock :: GenParser Char ParserState Block
 lhsCodeBlock = do
   failUnlessLHS
+  contents <- lhsCodeBlockBird <|> lhsCodeBlockLaTeX
+  return $ CodeBlock ("",["haskell"],[]) contents
+
+lhsCodeBlockLaTeX :: GenParser Char ParserState String
+lhsCodeBlockLaTeX = try $ do
+  string "\\begin{code}"
+  manyTill spaceChar newline
+  contents <- many1Till anyChar (try $ string "\\end{code}")
+  blanklines
+  return $ stripTrailingNewlines contents
+
+lhsCodeBlockBird :: GenParser Char ParserState String
+lhsCodeBlockBird = try $ do
   pos <- getPosition
   when (sourceColumn pos /= 1) $ fail "Not in first column"
   lns <- many1 birdTrackLine
@@ -406,7 +419,7 @@ lhsCodeBlock = do
                 then map (drop 1) lns
                 else lns
   blanklines
-  return $ CodeBlock ("",["haskell"],[]) $ intercalate "\n" lns'
+  return $ intercalate "\n" lns'
 
 birdTrackLine :: GenParser Char st [Char]
 birdTrackLine = do
