@@ -188,9 +188,9 @@ hrule = oneOfStrings [ "\\begin{center}\\rule{3in}{0.4pt}\\end{center}\n\n",
 -- code blocks
 --
 
-codeBlock :: GenParser Char st Block
-codeBlock = choice $ map codeBlockWith ["verbatim", "Verbatim", "code"]
--- Note:  Verbatim is from fancyvrb.  code is used by literate Haskell.
+codeBlock :: GenParser Char ParserState Block
+codeBlock = codeBlockWith "verbatim" <|> codeBlockWith "Verbatim" <|> lhsCodeBlock
+-- Note:  Verbatim is from fancyvrb.
 
 codeBlockWith :: String -> GenParser Char st Block
 codeBlockWith env = try $ do
@@ -202,6 +202,12 @@ codeBlockWith env = try $ do
   spaces
   let classes = if env == "code" then ["haskell"] else []
   return $ CodeBlock ("",classes,[]) (stripTrailingNewlines contents)
+
+lhsCodeBlock :: GenParser Char ParserState Block
+lhsCodeBlock = do
+  failUnlessLHS
+  (CodeBlock (_,_,_) cont) <- codeBlockWith "code"
+  return $ CodeBlock ("", ["haskell"], []) cont
 
 --
 -- block quotes
