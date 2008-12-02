@@ -36,6 +36,7 @@ import Text.Pandoc.Blocks
 import Data.List ( isPrefixOf, isSuffixOf, drop, intersperse )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
+import Control.Applicative ( (<$>) )
 
 data WriterState = 
   WriterState { stNotes     :: [[Block]]
@@ -176,10 +177,13 @@ blockToRST (Header level inlines) = do
   let headerChar = if level > 5 then ' ' else "=-~^'" !! (level - 1)
   let border = text $ replicate headerLength headerChar
   return $ contents $+$ border <> text "\n"
-blockToRST (CodeBlock _ str) = do
-  tabstop <- get >>= (return . writerTabStop . stOptions)
-  return $ (text "::\n") $+$ 
-            (nest tabstop $ vcat $ map text (lines str)) <> text "\n"
+blockToRST (CodeBlock (_,classes,_) str) = do
+  opts <- stOptions <$> get
+  let tabstop = writerTabStop opts
+  if "haskell" `elem` classes && writerLiterateHaskell opts
+     then return $ (vcat $ map (text "> " <>) $ map text (lines str)) <> text "\n"
+     else return $ (text "::\n") $+$
+                   (nest tabstop $ vcat $ map text (lines str)) <> text "\n"
 blockToRST (BlockQuote blocks) = do
   tabstop <- get >>= (return . writerTabStop . stOptions)
   contents <- blockListToRST blocks 
