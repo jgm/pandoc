@@ -40,7 +40,7 @@ import System.FilePath ( takeExtension, takeDirectory )
 import System.Console.GetOpt
 import Data.Maybe ( fromMaybe )
 import Data.Char ( toLower )
-import Data.List ( intercalate )
+import Data.List ( intercalate, isSuffixOf )
 import Prelude hiding ( putStrLn, writeFile, readFile, getContents )
 import System.IO ( stdout, stderr )
 import System.IO.UTF8
@@ -84,11 +84,14 @@ wrapWords c = wrap' c c where
 
 -- | Association list of formats and readers.
 readers :: [(String, ParserState -> String -> Pandoc)]
-readers = [("native"   , readPandoc)
-          ,("markdown" , readMarkdown)
-          ,("rst"      , readRST)
-          ,("html"     , readHtml)
-          ,("latex"    , readLaTeX)
+readers = [("native"       , readPandoc)
+          ,("markdown"     , readMarkdown)
+          ,("markdown+lhs" , readMarkdown)
+          ,("rst"          , readRST)
+          ,("rst+lhs"      , readRST)
+          ,("html"         , readHtml)
+          ,("latex"        , readLaTeX)
+          ,("latex+lhs"    , readLaTeX)
           ]
 
 -- | Reader for native Pandoc format.
@@ -99,16 +102,20 @@ readPandoc _ input = read input
 writers :: [ ( String, ( WriterOptions -> Pandoc -> String, String ) ) ]
 writers = [("native"       , (writeDoc, ""))
           ,("html"         , (writeHtmlString, ""))
+          ,("html+lhs"     , (writeHtmlString, ""))
           ,("s5"           , (writeS5String, defaultS5Header))
           ,("docbook"      , (writeDocbook, defaultDocbookHeader))
           ,("opendocument" , (writeOpenDocument, defaultOpenDocumentHeader))
           ,("odt"          , (writeOpenDocument, defaultOpenDocumentHeader))
           ,("latex"        , (writeLaTeX, defaultLaTeXHeader))
+          ,("latex+lhs"    , (writeLaTeX, defaultLaTeXHeader))
           ,("context"      , (writeConTeXt, defaultConTeXtHeader))
           ,("texinfo"      , (writeTexinfo, ""))
           ,("man"          , (writeMan, ""))
           ,("markdown"     , (writeMarkdown, ""))
+          ,("markdown+lhs" , (writeMarkdown, ""))
           ,("rst"          , (writeRST, ""))
+          ,("rst+lhs"      , (writeRST, ""))
           ,("mediawiki"    , (writeMediaWiki, ""))
           ,("rtf"          , (writeRTF, defaultRTFHeader))
           ]
@@ -146,8 +153,6 @@ data Opt = Opt
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optWrapText          :: Bool    -- ^ Wrap text
     , optSanitizeHTML      :: Bool    -- ^ Sanitize HTML
-    , optLHSIn             :: Bool    -- ^ Treat input as literate haskell
-    , optLHSOut            :: Bool    -- ^ Write output as literate haskell
 #ifdef _CITEPROC
     , optModsFile          :: String
     , optCslFile           :: String
@@ -181,8 +186,6 @@ defaultOpts = Opt
     , optReferenceLinks    = False
     , optWrapText          = True
     , optSanitizeHTML      = False
-    , optLHSIn             = False
-    , optLHSOut            = False
 #ifdef _CITEPROC
     , optModsFile          = []
     , optCslFile           = []
@@ -291,22 +294,6 @@ options =
                  (NoArg
                   (\opt -> return opt { optSanitizeHTML = True }))
                  "" -- "Sanitize HTML"
-
-    , Option "" ["lhs-in"]
-                 (NoArg
-                  (\opt -> return opt { optLHSIn = True }))
-                 "" -- "Treat input as literate haskell"
-
-    , Option "" ["lhs-out"]
-                 (NoArg
-                  (\opt -> return opt { optLHSOut = True }))
-                 "" -- "Write output as literate haskell"
-
-    , Option "" ["lhs"]
-                 (NoArg
-                  (\opt -> return opt { optLHSIn  = True,
-                                        optLHSOut = True }))
-                 "" -- "Equivalent to --lhs-in --lhs-out"
 
     , Option "" ["toc", "table-of-contents"]
                 (NoArg
@@ -436,6 +423,7 @@ defaultReaderName (x:xs) =
     ".latex"    -> "latex"
     ".ltx"      -> "latex"
     ".rst"      -> "rst"
+    ".lhs"      -> "markdown+lhs"
     ".native"   -> "native"
     _           -> defaultReaderName xs
 
@@ -463,6 +451,7 @@ defaultWriterName x =
     ".text"     -> "markdown"
     ".md"       -> "markdown"
     ".markdown" -> "markdown"
+    ".lhs"      -> "markdown+lhs"
     ".texi"     -> "texinfo"
     ".texinfo"  -> "texinfo"
     ".db"       -> "docbook"
@@ -523,8 +512,6 @@ main = do
               , optReferenceLinks    = referenceLinks
               , optWrapText          = wrap
               , optSanitizeHTML      = sanitize
-              , optLHSIn             = lhsIn
-              , optLHSOut            = lhsOut
 #ifdef _CITEPROC
              , optModsFile           = modsFile
              , optCslFile            = cslFile
@@ -543,7 +530,7 @@ main = do
   -- assign reader and writer based on options and filenames
   let readerName' = if null readerName
                       then defaultReaderName sources
-                      else readerName
+                      else readerName 
 
   let writerName' = if null writerName
                       then defaultWriterName outputFile
@@ -586,7 +573,7 @@ main = do
          defaultParserState { stateParseRaw        = parseRaw,
                               stateTabStop         = tabStop,
                               stateSanitizeHTML    = sanitize,
-                              stateLiterateHaskell = lhsIn ||
+                              stateLiterateHaskell = "+lhs" `isSuffixOf` readerName' ||
                                                      lhsExtension sources,
                               stateStandalone      = standalone',
 #ifdef _CITEPROC
@@ -622,7 +609,7 @@ main = do
                                       writerStrictMarkdown  = strict,
                                       writerReferenceLinks  = referenceLinks,
                                       writerWrapText        = wrap,
-                                      writerLiterateHaskell = lhsOut ||
+                                      writerLiterateHaskell = "+lhs" `isSuffixOf` writerName' ||
                                                               lhsExtension [outputFile] }
 
   if isNonTextOutput writerName' && outputFile == "-"
