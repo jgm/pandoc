@@ -74,6 +74,8 @@ most recent.
 # Extras
 
 - [vim syntax file for pandoc], courtesy of tao_zhyn
+- [WordPress EasyFilter], by Yang Zhang, makes it easy to use pandoc
+  with WordPress blogs.
 
 # Code repository
 
@@ -194,4 +196,5 @@ Pandoc carries no warranties of any kind.
 [changelog]: changelog.txt
 [vim syntax file for pandoc]: http://www.vim.org/scripts/script.php?script_id=2389
 [jsMath]: http://www.math.union.edu/~dpvc/jsMath/
+[WordPress EasyFilter]: http://assorted.sourceforge.net/wp-easy-filter/
 
