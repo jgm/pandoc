@@ -700,8 +700,10 @@ indented.
     [links](http://google.com) and `]` verbatim characters, as well as
     [bracketed text].
 
-[^4]: In quote.
+[^4]:
+    In quote.
 
-[^5]: In list.
+[^5]:
+    In list.
 
 

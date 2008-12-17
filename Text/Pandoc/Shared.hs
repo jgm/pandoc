@@ -87,7 +87,8 @@ module Text.Pandoc.Shared (
                      KeyTable,
                      lookupKeySrc,
                      refsMatch,
-                     -- * Native format prettyprinting
+                     -- * Prettyprinting
+                     hang',
                      prettyPandoc,
                      -- * Pandoc block and inline list processing
                      orderedListMarkers,
@@ -106,7 +107,7 @@ module Text.Pandoc.Shared (
 
 import Text.Pandoc.Definition
 import Text.ParserCombinators.Parsec
-import Text.PrettyPrint.HughesPJ ( Doc, fsep, ($$), (<>), empty, isEmpty, text )
+import Text.PrettyPrint.HughesPJ ( Doc, fsep, ($$), (<>), empty, isEmpty, text, nest )
 import qualified Text.PrettyPrint.HughesPJ as PP
 import Text.Pandoc.CharacterReferences ( characterReference )
 import Data.Char ( toLower, toUpper, ord, isLower, isUpper )
@@ -729,9 +730,13 @@ refsMatch [] x = null x
 refsMatch x [] = null x
 
 --
--- Native format prettyprinting
+-- Prettyprinting
 --
- 
+
+-- | A version of hang that works like the version in pretty-1.0.0.0
+hang' :: Doc -> Int -> Doc -> Doc
+hang' d1 n d2 = d1 $$ (nest n d2)
+
 -- | Indent string as a block.
 indentBy :: Int    -- ^ Number of spaces to indent the block 
          -> Int    -- ^ Number of spaces (rel to block) to indent first line

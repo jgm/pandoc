@@ -95,7 +95,7 @@ noteToMarkdown :: WriterOptions -> Int -> [Block] -> State WriterState Doc
 noteToMarkdown opts num blocks = do
   contents  <- blockListToMarkdown opts blocks
   let marker = text "[^" <> text (show num) <> text "]:"
-  return $ hang marker (writerTabStop opts) contents 
+  return $ hang' marker (writerTabStop opts) contents 
 
 -- | Escape special characters for Markdown.
 escapeString :: String -> String
@@ -257,7 +257,7 @@ blockToMarkdown opts (DefinitionList items) = do
 bulletListItemToMarkdown :: WriterOptions -> [Block] -> State WriterState Doc
 bulletListItemToMarkdown opts items = do
   contents <- blockListToMarkdown opts items
-  return $ hang (text "-  ") (writerTabStop opts) contents
+  return $ hang' (text "-  ") (writerTabStop opts) contents
 
 -- | Convert ordered list item (a list of blocks) to markdown.
 orderedListItemToMarkdown :: WriterOptions -- ^ options

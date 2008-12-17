@@ -100,8 +100,8 @@ notesToRST notes =
 noteToRST :: Int -> [Block] -> State WriterState Doc
 noteToRST num note = do
   contents <- blockListToRST note
-  let marker = text ".. [" <> text (show num) <> text "] "
-  return $ hang marker 3 contents 
+  let marker = text ".. [" <> text (show num) <> text "]"
+  return $ marker $$ nest 3 contents
 
 -- | Return RST representation of picture reference table.
 pictTableToRST :: KeyTable -> State WriterState Doc
@@ -169,7 +169,7 @@ blockToRST (Para inlines) = do
   return $ contents <> text "\n"
 blockToRST (RawHtml str) = 
   let str' = if "\n" `isSuffixOf` str then str ++ "\n" else str ++ "\n\n" in
-  return $ hang (text "\n.. raw:: html\n") 3 $ vcat $ map text (lines str')
+  return $ (text "\n.. raw:: html\n") $$ (nest 3 $ vcat $ map text (lines str'))
 blockToRST HorizontalRule = return $ text "--------------\n"
 blockToRST (Header level inlines) = do
   contents <- inlineListToRST inlines
@@ -236,7 +236,7 @@ blockToRST (DefinitionList items) = do
 bulletListItemToRST :: [Block] -> State WriterState Doc
 bulletListItemToRST items = do
   contents <- blockListToRST items
-  return $ hang (text "- ") 3 contents
+  return $ (text "-  ") <> contents
 
 -- | Convert ordered list item (a list of blocks) to RST.
 orderedListItemToRST :: String   -- ^ marker for list item
@@ -244,7 +244,7 @@ orderedListItemToRST :: String   -- ^ marker for list item
                      -> State WriterState Doc
 orderedListItemToRST marker items = do
   contents <- blockListToRST items
-  return $ hang (text marker) (length marker + 1) contents 
+  return $ (text marker <> char ' ') <> contents 
 
 -- | Convert defintion list item (label, list of blocks) to RST.
 definitionListItemToRST :: ([Inline], [Block]) -> State WriterState Doc

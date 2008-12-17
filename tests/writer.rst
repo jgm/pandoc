@@ -621,7 +621,7 @@ LaTeX
 =====
 
 
-- 
+-  
 -  :math:`$2+2=4$`
 -  :math:`$x \in y$`
 -  :math:`$\alpha \wedge \omega$`
@@ -819,11 +819,11 @@ note] Here is an inline note. [3]_
 This paragraph should not be part of the note, as it is not
 indented.
 
-.. [1] 
+.. [1]
    Here is the footnote. It can go anywhere after the footnote
    reference. It need not be placed at the end of the document.
 
-.. [2] 
+.. [2]
    Here's the long note. This one contains multiple blocks.
 
    Subsequent blocks are indented to show that they belong to the
@@ -836,14 +836,16 @@ indented.
    If you want, you can indent every line, but you can also be lazy
    and just indent the first line of each block.
 
-.. [3] 
+.. [3]
    This is *easier* to type. Inline notes may contain
    `links <http://google.com>`_ and ``]`` verbatim characters, as well
    as [bracketed text].
 
-.. [4]  In quote.
+.. [4]
+   In quote.
 
-.. [5]  In list.
+.. [5]
+   In list.
 
 
 .. |lalune| image:: lalune.jpg
