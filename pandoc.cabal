@@ -199,7 +199,7 @@ Executable pandoc
   if flag(highlighting)
     cpp-options:   -D_HIGHLIGHTING
   if flag(citeproc)
-    Build-depends: citeproc-hs
+    Build-depends: citeproc-hs >= 0.2
     cpp-options:   -D_CITEPROC
   if flag(executable)
     Buildable:      True

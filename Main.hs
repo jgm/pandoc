@@ -154,7 +154,8 @@ data Opt = Opt
     , optWrapText          :: Bool    -- ^ Wrap text
     , optSanitizeHTML      :: Bool    -- ^ Sanitize HTML
 #ifdef _CITEPROC
-    , optModsFile          :: String
+    , optBiblioFile        :: String
+    , optBiblioFormat      :: String
     , optCslFile           :: String
 #endif
     }
@@ -187,7 +188,8 @@ defaultOpts = Opt
     , optWrapText          = True
     , optSanitizeHTML      = False
 #ifdef _CITEPROC
-    , optModsFile          = []
+    , optBiblioFile        = []
+    , optBiblioFormat      = []
     , optCslFile           = []
 #endif
     }
@@ -364,10 +366,15 @@ options =
                   "FORMAT")
                  "" -- "Print default header for FORMAT"
 #ifdef _CITEPROC
-    , Option "" ["mods"]
+    , Option "" ["biblio"]
                  (ReqArg
-                  (\arg opt -> return opt { optModsFile = arg} )
+                  (\arg opt -> return opt { optBiblioFile = arg} )
                   "FILENAME")
+                 ""
+    , Option "" ["biblio-format"]
+                 (ReqArg
+                  (\arg opt -> return opt { optBiblioFormat = arg} )
+                  "STRING")
                  ""
     , Option "" ["csl"]
                  (ReqArg
@@ -513,7 +520,8 @@ main = do
               , optWrapText          = wrap
               , optSanitizeHTML      = sanitize
 #ifdef _CITEPROC
-             , optModsFile           = modsFile
+             , optBiblioFile         = biblioFile
+             , optBiblioFormat       = biblioFormat
              , optCslFile            = cslFile
 #endif
              } = opts
@@ -566,7 +574,7 @@ main = do
   let standalone' = (standalone && not strict) || isNonTextOutput writerName'
 
 #ifdef _CITEPROC
-  refs <- if null modsFile then return [] else readModsColletionFile modsFile
+  refs <- if null biblioFile then return [] else readBiblioFile biblioFile biblioFormat
 #endif
 
   let startParserState =
