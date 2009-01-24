@@ -65,5 +65,5 @@ evaluatePlugin modsrc = do
     throwError $ UnknownError $ "The plugin module must define a function 'transform'."
   transformType <- typeOf "transform"
   if "-> IO" `isInfixOf` transformType
-     then interpret "processInM transform" (as :: Pandoc -> IO Pandoc)
-     else interpret "return . (processIn transform)" (as :: Pandoc -> IO Pandoc)
+     then interpret "processWithM transform" (as :: Pandoc -> IO Pandoc)
+     else interpret "return . (processWith transform)" (as :: Pandoc -> IO Pandoc)

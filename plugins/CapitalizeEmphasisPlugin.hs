@@ -5,7 +5,7 @@ import Data.Char (toUpper)
 -- This plugin changes emphasized text into CAPITALIZED TEXT.
 
 transform :: [Inline] -> [Inline]
-transform (Emph x : ys) = processIn capStr x ++ transform ys
+transform (Emph x : ys) = processWith capStr x ++ transform ys
 transform (x : ys)      = x : transform ys
 transform []            = []
 

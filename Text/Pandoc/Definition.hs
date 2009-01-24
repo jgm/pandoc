@@ -129,22 +129,22 @@ data Inline
     deriving (Show, Eq, Read, Typeable, Data)
 
 -- | Applies a transformation on @a@s to matching elements in a @b@.
-processIn :: (Data a, Data b) => (a -> a) -> b -> b
-processIn f = everywhere (mkT f)
+processWith :: (Data a, Data b) => (a -> a) -> b -> b
+processWith f = everywhere (mkT f)
 
--- | Like 'processIn', but with monadic transformations.
-processInM :: (Monad m, Data a, Data b) => (a -> m a) -> b -> m b
-processInM f = everywhereM (mkM f)
+-- | Like 'processWith', but with monadic transformations.
+processWithM :: (Monad m, Data a, Data b) => (a -> m a) -> b -> m b
+processWithM f = everywhereM (mkM f)
 
 -- | Runs a query on matching @a@ elements in a @c@.
-queryIn :: (Data a, Data c) => (a -> [b]) -> c -> [b]
-queryIn f = everything (++) ([] `mkQ` f)
+queryWith :: (Data a, Data c) => (a -> [b]) -> c -> [b]
+queryWith f = everything (++) ([] `mkQ` f)
 
-{-# DEPRECATED processPandoc "Use processIn instead" #-}
+{-# DEPRECATED processPandoc "Use processWith instead" #-}
 processPandoc :: Data a => (a -> a) -> Pandoc -> Pandoc
-processPandoc = processIn
+processPandoc = processWith
 
-{-# DEPRECATED queryPandoc "Use queryIn instead" #-}
+{-# DEPRECATED queryPandoc "Use queryWith instead" #-}
 queryPandoc :: Data a => (a -> [b]) -> Pandoc -> [b]
-queryPandoc = queryIn
+queryPandoc = queryWith
 

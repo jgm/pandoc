@@ -1242,7 +1242,7 @@ import Text.Pandoc
 import Data.Char (toUpper)
 
 transform :: [Inline] -> [Inline]
-transform (Emph xs : ys) = processIn capStr xs ++ transform ys
+transform (Emph xs : ys) = processWith capStr xs ++ transform ys
 transform (x : ys)       = x : transform ys
 transform []             = []
 
@@ -1255,19 +1255,19 @@ Here `transform` converts a whole list of `Inline` elements to another
 such list.  The key clause is
 
 ~~~ {.haskell}
-transform (Emph xs : ys) = processIn capStr xs ++ transform ys
+transform (Emph xs : ys) = processWith capStr xs ++ transform ys
 ~~~
 
 This applies the `capStr` function recursively to all inlines in the
 list of emphasized inlines and puts the transformed list in place
 of the original.  `capStr` is a simple `Inline` transformation that
 capitalizes `Str` elements and leaves everything else alone.  The
-function `processIn`, defined in `Text.Pandoc.Definition`, uses some
+function `processWith`, defined in `Text.Pandoc.Definition`, uses some
 `Data.Generics` magic to apply its argument (here `capStr`) to every
 `Inline` element in a list, including elements that are deeply buried in
 other elements. Thus
 
-    processIn captStr [Str "one", Strong [Str "two", Space]] ==>
+    processWith captStr [Str "one", Strong [Str "two", Space]] ==>
     [Str "ONE", Strong [Str "TWO", Space]]
 
 There are other sample plugins in the `plugins` subdirectory of the
