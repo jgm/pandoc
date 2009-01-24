@@ -6,7 +6,7 @@ import Text.Pandoc
 
 transform :: Pandoc -> IO Pandoc
 transform p = do
-  let urls = queryIn findURLs p
+  let urls = queryWith findURLs p
   putStrLn $ unlines urls
   return $ Pandoc (Meta [] [] []) []
 
