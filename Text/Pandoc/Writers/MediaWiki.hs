@@ -295,7 +295,7 @@ tableItemToMediaWiki opts tag' align' width' item = do
                if width' /= 0
                   then " style=\"width: " ++ (show  (truncate (100 * width') :: Integer)) ++ "%;\""
                   else "" 
-  return $ "<" ++ tag' ++ attrib ++ ">" ++ contents ++ "<" ++ tag' ++ ">"
+  return $ "<" ++ tag' ++ attrib ++ ">" ++ contents ++ "</" ++ tag' ++ ">"
 
 -- | Convert list of Pandoc block elements to MediaWiki.
 blockListToMediaWiki :: WriterOptions -- ^ Options
