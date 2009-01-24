@@ -146,6 +146,14 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     are omitted.  URIs in links and images are also checked against a
     whitelist of URI schemes.
 
+\--email-obfuscation=*none|javascript|references*
+:   Specify a method for obfuscating `mailto:` links in HTML documents.
+    *none* leaves `mailto:` links as they are.  *javascript* obfuscates
+    them using javascript. *references* obfuscates them by printing their
+    letters as decimal or hexadecimal character references.
+    If `--strict` is specified, *references* is used regardless of the
+    presence of this option.
+
 \--toc, \--table-of-contents
 :   Include an automatically generated table of contents (HTML, markdown,
     RTF) or an instruction to create one (LaTeX, reStructuredText).

@@ -193,10 +193,13 @@ parseMailto ('m':'a':'i':'l':'t':'o':':':addr) =
   in  Just (name', domain)
 parseMailto _ = Nothing 
 
--- | Obfuscate a "mailto:" link using Javascript.
+-- | Obfuscate a "mailto:" link.
 obfuscateLink :: WriterOptions -> String -> String -> Html
+obfuscateLink opts txt s | writerEmailObfuscation opts == NoObfuscation =
+  anchor ! [href s] << txt
 obfuscateLink opts txt s =
-  let s' = map toLower s 
+  let meth = writerEmailObfuscation opts
+      s' = map toLower s 
   in  case parseMailto s' of
         (Just (name', domain)) ->
           let domain'  = substitute "." " dot " domain
@@ -206,17 +209,20 @@ obfuscateLink opts txt s =
                     then ("'<code>'+e+'</code>'", name' ++ " at " ++ domain')
                     else ("'" ++ txt ++ "'", txt ++ " (" ++ name' ++ " at " ++ 
                           domain' ++ ")")
-          in  if writerStrictMarkdown opts
-                then -- need to use primHtml or &'s are escaped to &amp; in URL
+          in  case meth of
+                ReferenceObfuscation ->
+                     -- need to use primHtml or &'s are escaped to &amp; in URL
                      primHtml $ "<a href=\"" ++ (obfuscateString s')
                      ++ "\">" ++ (obfuscateString txt) ++ "</a>"
-                else (script ! [thetype "text/javascript"] $
+                JavascriptObfuscation ->
+                     (script ! [thetype "text/javascript"] $
                      primHtml ("\n<!--\nh='" ++ 
                      obfuscateString domain ++ "';a='" ++ at' ++ "';n='" ++ 
                      obfuscateString name' ++ "';e=n+a+h;\n" ++
                      "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\">'+" ++ 
                      linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) +++  
                      noscript (primHtml $ obfuscateString altText)
+                _ -> error $ "Unknown obfuscation method: " ++ show meth
         _ -> anchor ! [href s] $ primHtml txt  -- malformed email
 
 -- | Obfuscate character as entity.

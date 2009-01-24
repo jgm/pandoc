@@ -383,6 +383,14 @@ For further documentation, see the `pandoc(1)` man page.
     are omitted. URIs in links and images are also checked against a
     whitelist of URI schemes.
 
+`--email-obfuscation`*=none|javascript|references*
+:   specifies a method for obfuscating `mailto:` links in HTML documents.
+    *none* leaves `mailto:` links as they are.  *javascript* obfuscates
+    them using javascript. *references* obfuscates them by printing their
+    letters as decimal or hexadecimal character references.  If `--strict`
+    is specified, *references* is used regardless of the presence
+    of this option.
+
 `--dump-args`
 :   is intended to make it easier to create wrapper scripts that use
     Pandoc. It causes Pandoc to dump information about the arguments

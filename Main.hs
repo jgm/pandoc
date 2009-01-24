@@ -32,7 +32,7 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.ODT
-import Text.Pandoc.Shared ( HTMLMathMethod (..), splitBy )
+import Text.Pandoc.Shared ( HTMLMathMethod (..), splitBy, ObfuscationMethod (..) )
 import Text.Pandoc.Highlighting ( languages )
 import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
@@ -156,6 +156,7 @@ data Opt = Opt
     , optWrapText          :: Bool    -- ^ Wrap text
     , optSanitizeHTML      :: Bool    -- ^ Sanitize HTML
     , optPlugins           :: [Pandoc -> IO Pandoc] -- ^ Plugins to apply
+    , optEmailObfuscation  :: ObfuscationMethod
 #ifdef _CITEPROC
     , optBiblioFile        :: String
     , optBiblioFormat      :: String
@@ -191,6 +192,7 @@ defaultOpts = Opt
     , optWrapText          = True
     , optSanitizeHTML      = False
     , optPlugins           = []
+    , optEmailObfuscation  = JavascriptObfuscation
 #ifdef _CITEPROC
     , optBiblioFile        = []
     , optBiblioFormat      = []
@@ -300,6 +302,19 @@ options =
                  (NoArg
                   (\opt -> return opt { optSanitizeHTML = True }))
                  "" -- "Sanitize HTML"
+
+    , Option "" ["email-obfuscation"]
+                 (ReqArg
+                  (\arg opt -> do
+                     method <- case arg of
+                            "references" -> return ReferenceObfuscation
+                            "javascript" -> return JavascriptObfuscation
+                            "none"       -> return NoObfuscation
+                            _            -> hPutStrLn stderr ("Error: Unknown obfuscation method: " ++ arg) >>
+                                            exitWith (ExitFailure 6)
+                     return opt { optEmailObfuscation = method })
+                  "none|javascript|references")
+                 "" -- "Method for obfuscating email in HTML"
 
     , Option "" ["toc", "table-of-contents"]
                 (NoArg
@@ -533,10 +548,11 @@ main = do
               , optWrapText          = wrap
               , optSanitizeHTML      = sanitize
               , optPlugins           = plugins
+              , optEmailObfuscation  = obfuscationMethod
 #ifdef _CITEPROC
-             , optBiblioFile         = biblioFile
-             , optBiblioFormat       = biblioFormat
-             , optCslFile            = cslFile
+              , optBiblioFile         = biblioFile
+              , optBiblioFormat       = biblioFormat
+              , optCslFile            = cslFile
 #endif
              } = opts
 
@@ -614,25 +630,28 @@ main = do
   let header = (if (customHeader == "DEFAULT")
                    then defaultHeader
                    else customHeader) ++ csslink ++ includeHeader
-  let writerOptions = WriterOptions { writerStandalone      = standalone',
-                                      writerHeader          = header,
-                                      writerTitlePrefix     = titlePrefix,
-                                      writerTabStop         = tabStop,
-                                      writerTableOfContents = toc &&
-                                                              (not strict) &&
-                                                              writerName' /= "s5",
-                                      writerHTMLMathMethod  = mathMethod,
-                                      writerS5              = (writerName' == "s5"),
-                                      writerIgnoreNotes     = False,
-                                      writerIncremental     = incremental,
-                                      writerNumberSections  = numberSections,
-                                      writerIncludeBefore   = includeBefore,
-                                      writerIncludeAfter    = includeAfter,
-                                      writerStrictMarkdown  = strict,
-                                      writerReferenceLinks  = referenceLinks,
-                                      writerWrapText        = wrap,
-                                      writerLiterateHaskell = "+lhs" `isSuffixOf` writerName' ||
-                                                              lhsExtension [outputFile] }
+  let writerOptions = WriterOptions { writerStandalone       = standalone',
+                                      writerHeader           = header,
+                                      writerTitlePrefix      = titlePrefix,
+                                      writerTabStop          = tabStop,
+                                      writerTableOfContents  = toc &&
+                                                               (not strict) &&
+                                                               writerName' /= "s5",
+                                      writerHTMLMathMethod   = mathMethod,
+                                      writerS5               = (writerName' == "s5"),
+                                      writerIgnoreNotes      = False,
+                                      writerIncremental      = incremental,
+                                      writerNumberSections   = numberSections,
+                                      writerIncludeBefore    = includeBefore,
+                                      writerIncludeAfter     = includeAfter,
+                                      writerStrictMarkdown   = strict,
+                                      writerReferenceLinks   = referenceLinks,
+                                      writerWrapText         = wrap,
+                                      writerLiterateHaskell  = "+lhs" `isSuffixOf` writerName' ||
+                                                               lhsExtension [outputFile],
+                                      writerEmailObfuscation = if strict
+                                                                  then ReferenceObfuscation
+                                                                  else obfuscationMethod }
 
   if isNonTextOutput writerName' && outputFile == "-"
      then do hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++

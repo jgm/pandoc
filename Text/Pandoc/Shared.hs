@@ -99,6 +99,7 @@ module Text.Pandoc.Shared (
                      isHeaderBlock,
                      -- * Writer options
                      HTMLMathMethod (..),
+                     ObfuscationMethod (..),
                      WriterOptions (..),
                      defaultWriterOptions,
                      -- * File handling
@@ -889,45 +890,53 @@ data HTMLMathMethod = PlainMath
                     | MimeTeX String              -- url of mimetex.cgi 
                     deriving (Show, Read, Eq)
 
+-- | Methods for obfuscating email addresses in HTML.
+data ObfuscationMethod = NoObfuscation
+                       | ReferenceObfuscation
+                       | JavascriptObfuscation
+                       deriving (Show, Read, Eq)
+
 -- | Options for writers
 data WriterOptions = WriterOptions
-  { writerStandalone      :: Bool   -- ^ Include header and footer
-  , writerHeader          :: String -- ^ Header for the document
-  , writerTitlePrefix     :: String -- ^ Prefix for HTML titles
-  , writerTabStop         :: Int    -- ^ Tabstop for conversion btw spaces and tabs
-  , writerTableOfContents :: Bool   -- ^ Include table of contents
-  , writerS5              :: Bool   -- ^ We're writing S5 
-  , writerHTMLMathMethod  :: HTMLMathMethod  -- ^ How to print math in HTML
-  , writerIgnoreNotes     :: Bool   -- ^ Ignore footnotes (used in making toc)
-  , writerIncremental     :: Bool   -- ^ Incremental S5 lists
-  , writerNumberSections  :: Bool   -- ^ Number sections in LaTeX
-  , writerIncludeBefore   :: String -- ^ String to include before the body
-  , writerIncludeAfter    :: String -- ^ String to include after the body
-  , writerStrictMarkdown  :: Bool   -- ^ Use strict markdown syntax
-  , writerReferenceLinks  :: Bool   -- ^ Use reference links in writing markdown, rst
-  , writerWrapText        :: Bool   -- ^ Wrap text to line length
-  , writerLiterateHaskell :: Bool   -- ^ Write as literate haskell
+  { writerStandalone       :: Bool   -- ^ Include header and footer
+  , writerHeader           :: String -- ^ Header for the document
+  , writerTitlePrefix      :: String -- ^ Prefix for HTML titles
+  , writerTabStop          :: Int    -- ^ Tabstop for conversion btw spaces and tabs
+  , writerTableOfContents  :: Bool   -- ^ Include table of contents
+  , writerS5               :: Bool   -- ^ We're writing S5 
+  , writerHTMLMathMethod   :: HTMLMathMethod  -- ^ How to print math in HTML
+  , writerIgnoreNotes      :: Bool   -- ^ Ignore footnotes (used in making toc)
+  , writerIncremental      :: Bool   -- ^ Incremental S5 lists
+  , writerNumberSections   :: Bool   -- ^ Number sections in LaTeX
+  , writerIncludeBefore    :: String -- ^ String to include before the body
+  , writerIncludeAfter     :: String -- ^ String to include after the body
+  , writerStrictMarkdown   :: Bool   -- ^ Use strict markdown syntax
+  , writerReferenceLinks   :: Bool   -- ^ Use reference links in writing markdown, rst
+  , writerWrapText         :: Bool   -- ^ Wrap text to line length
+  , writerLiterateHaskell  :: Bool   -- ^ Write as literate haskell
+  , writerEmailObfuscation :: ObfuscationMethod -- ^ How to obfuscate emails
   } deriving Show
 
 -- | Default writer options.
 defaultWriterOptions :: WriterOptions
 defaultWriterOptions = 
-  WriterOptions { writerStandalone      = False
-                , writerHeader          = ""
-                , writerTitlePrefix     = ""
-                , writerTabStop         = 4
-                , writerTableOfContents = False
-                , writerS5              = False
-                , writerHTMLMathMethod  = PlainMath
-                , writerIgnoreNotes     = False
-                , writerIncremental     = False
-                , writerNumberSections  = False
-                , writerIncludeBefore   = ""
-                , writerIncludeAfter    = ""
-                , writerStrictMarkdown  = False
-                , writerReferenceLinks  = False
-                , writerWrapText        = True
-                , writerLiterateHaskell = False
+  WriterOptions { writerStandalone       = False
+                , writerHeader           = ""
+                , writerTitlePrefix      = ""
+                , writerTabStop          = 4
+                , writerTableOfContents  = False
+                , writerS5               = False
+                , writerHTMLMathMethod   = PlainMath
+                , writerIgnoreNotes      = False
+                , writerIncremental      = False
+                , writerNumberSections   = False
+                , writerIncludeBefore    = ""
+                , writerIncludeAfter     = ""
+                , writerStrictMarkdown   = False
+                , writerReferenceLinks   = False
+                , writerWrapText         = True
+                , writerLiterateHaskell  = False
+                , writerEmailObfuscation = JavascriptObfuscation
                 }
 
 --
