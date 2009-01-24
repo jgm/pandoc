@@ -49,7 +49,7 @@ import Text.CSL
 import Text.Pandoc.Biblio
 #endif
 import Text.Pandoc.Plugins (getPlugin)
-import Control.Monad (foldM)
+import Control.Monad (foldM, when, unless)
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-8 John MacFarlane\n" ++
@@ -98,7 +98,7 @@ readers = [("native"       , readPandoc)
 
 -- | Reader for native Pandoc format.
 readPandoc :: ParserState -> String -> Pandoc
-readPandoc _ input = read input
+readPandoc _ = read
 
 -- | Association list of formats and pairs of writers and default headers.
 writers :: [ ( String, ( WriterOptions -> Pandoc -> String, String ) ) ]
@@ -440,11 +440,10 @@ options =
 
 -- Returns usage message
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
-usageMessage programName opts = usageInfo
+usageMessage programName = usageInfo
   (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++
   (intercalate ", " $ map fst readers) ++ "\nOutput formats:  " ++
   (intercalate ", " $ map fst writers) ++ "\nOptions:")
-  opts
 
 -- Determine default reader based on source file extensions
 defaultReaderName :: [FilePath] -> String
@@ -505,14 +504,11 @@ main = do
                                   then ([], rawArgs, [])
                                   else getOpt Permute options rawArgs
 
-  if (not (null errors))
-    then do
-      name <- getProgName
-      mapM (\e -> hPutStrLn stderr e) errors
-      hPutStr stderr (usageMessage name options)
-      exitWith $ ExitFailure 2
-    else
-      return ()
+  unless (null errors) $
+    do name <- getProgName
+       mapM_ (\e -> hPutStrLn stderr e) errors
+       hPutStr stderr (usageMessage name options)
+       exitWith $ ExitFailure 2
 
   let defaultOpts' = if compatMode
                        then defaultOpts { optReader = "markdown"
@@ -556,12 +552,10 @@ main = do
 #endif
              } = opts
 
-  if dumpArgs
-    then do
-        hPutStrLn stdout outputFile
-        mapM (\arg -> hPutStrLn stdout arg) args
-        exitWith $ ExitSuccess
-    else return ()
+  when dumpArgs $
+    do hPutStrLn stdout outputFile
+       mapM_ (\arg -> hPutStrLn stdout arg) args
+       exitWith ExitSuccess
 
   let sources = if ignoreArgs then [] else args
 
@@ -588,18 +582,18 @@ main = do
                  Nothing   -> stateColumns defaultParserState
 
   let tabFilter _ [] = ""
-      tabFilter _ ('\n':xs) = '\n':(tabFilter tabStop xs)
+      tabFilter _ ('\n':xs) = '\n' : tabFilter tabStop xs
                                       -- remove DOS line endings
-      tabFilter _ ('\r':'\n':xs) = '\n':(tabFilter tabStop xs)
-      tabFilter _ ('\r':xs) = '\n':(tabFilter tabStop xs)
+      tabFilter _ ('\r':'\n':xs) = '\n' : tabFilter tabStop xs
+      tabFilter _ ('\r':xs) = '\n' : tabFilter tabStop xs
       tabFilter spsToNextStop ('\t':xs) =
         if preserveTabs
-           then '\t':(tabFilter tabStop xs)
+           then '\t' : tabFilter tabStop xs
            else replicate spsToNextStop ' ' ++ tabFilter tabStop xs
       tabFilter 1 (x:xs) =
-        x:(tabFilter tabStop xs)
+        x : tabFilter tabStop xs
       tabFilter spsToNextStop (x:xs) =
-        x:(tabFilter (spsToNextStop - 1) xs)
+        x : tabFilter (spsToNextStop - 1) xs
 
   let standalone' = (standalone && not strict) || isNonTextOutput writerName'
 
@@ -627,7 +621,7 @@ main = do
                         (\f -> "<link rel=\"stylesheet\" href=\"" ++
                                f ++ "\" type=\"text/css\" media=\"all\" />\n")
                         css
-  let header = (if (customHeader == "DEFAULT")
+  let header = (if customHeader == "DEFAULT"
                    then defaultHeader
                    else customHeader) ++ csslink ++ includeHeader
   let writerOptions = WriterOptions { writerStandalone       = standalone',
@@ -635,7 +629,7 @@ main = do
                                       writerTitlePrefix      = titlePrefix,
                                       writerTabStop          = tabStop,
                                       writerTableOfContents  = toc &&
-                                                               (not strict) &&
+                                                               not strict &&
                                                                writerName' /= "s5",
                                       writerHTMLMathMethod   = mathMethod,
                                       writerS5               = (writerName' == "s5"),
@@ -653,11 +647,10 @@ main = do
                                                                   then ReferenceObfuscation
                                                                   else obfuscationMethod }
 
-  if isNonTextOutput writerName' && outputFile == "-"
-     then do hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++
+  when (isNonTextOutput writerName' && outputFile == "-") $
+    do hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++
                                "Specify an output file using the -o option.")
-             exitWith $ ExitFailure 5
-     else return ()
+       exitWith $ ExitFailure 5
 
   let sourceDirRelative = if null sources
                              then ""
