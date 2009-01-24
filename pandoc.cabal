@@ -34,16 +34,23 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  which convert this native representation into a target
                  format. Thus, adding an input or output format requires
                  only adding a reader or writer.
-Extra-Source-Files:
+Data-Files:
                  -- documentation
                  README, INSTALL, COPYRIGHT, BUGS, changelog,
+                 -- wrappers
+                 markdown2pdf, html2markdown, hsmarkdown,
+                 -- sample plugins
+                 plugins/WordPressPlugin.hs,
+                 plugins/CapitalizeEmphasisPlugin.hs,
+                 plugins/IncludeFilePlugin.hs,
+                 plugins/DotPlugin.hs,
+                 plugins/ListLinksPlugin.hs
+Extra-Source-Files:
                  -- sources for man pages
                  man/man1/pandoc.1.md, man/man1/markdown2pdf.1.md,
                  man/man1/html2markdown.1.md, man/man1/hsmarkdown.1.md,
                  -- Makefile
                  Makefile,
-                 -- wrappers
-                 markdown2pdf, html2markdown, hsmarkdown,
                  -- data for DefaultHeaders.hs
                  data/headers/ConTeXt.header,
                  data/headers/Docbook.header,
@@ -70,12 +77,6 @@ Extra-Source-Files:
                  data/odt-styles/Thumbnails/thumbnail.png,
                  data/odt-styles/styles.xml,
                  data/odt-styles/mimetype,
-                 -- sample plugins
-                 plugins/WordPressPlugin.hs,
-                 plugins/CapitalizeEmphasisPlugin.hs,
-                 plugins/IncludeFilePlugin.hs,
-                 plugins/DotPlugin.hs,
-                 plugins/ListLinksPlugin.hs,
                  -- tests
                  tests/bodybg.gif,
                  tests/writer.latex,
