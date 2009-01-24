@@ -70,6 +70,12 @@ Extra-Source-Files:
                  data/odt-styles/Thumbnails/thumbnail.png,
                  data/odt-styles/styles.xml,
                  data/odt-styles/mimetype,
+                 -- sample plugins
+                 plugins/WordPressPlugin.hs,
+                 plugins/CapitalizeEmphasisPlugin.hs,
+                 plugins/IncludeFilePlugin.hs,
+                 plugins/DotPlugin.hs,
+                 plugins/ListLinksPlugin.hs,
                  -- tests
                  tests/bodybg.gif,
                  tests/writer.latex,
@@ -139,7 +145,7 @@ Library
                  mtl >= 1.1, network >= 2, filepath >= 1.1,
                  process >= 1, directory >= 1, template-haskell >= 2.2,
                  bytestring >= 0.9, zip-archive >= 0.1.1,
-                 utf8-string >= 0.3, old-time >= 1
+                 utf8-string >= 0.3, old-time >= 1, hint >= 0.3.0.0
   if impl(ghc >= 6.10)
     Build-depends: base >= 4, syb
   else
@@ -158,6 +164,7 @@ Library
                    Text.Pandoc.CharacterReferences,
                    Text.Pandoc.Shared,
                    Text.Pandoc.ODT,
+                   Text.Pandoc.Plugins,
                    Text.Pandoc.LaTeXMathML,
                    Text.Pandoc.DefaultHeaders,
                    Text.Pandoc.Highlighting,

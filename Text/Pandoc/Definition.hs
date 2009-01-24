@@ -128,10 +128,23 @@ data Inline
     | Note [Block]          -- ^ Footnote or endnote 
     deriving (Show, Eq, Read, Typeable, Data)
 
--- | Applies a transformation to matching elements in a Pandoc document.
-processPandoc :: Typeable a => (a -> a) -> Pandoc -> Pandoc
-processPandoc f = everywhere (mkT f)
+-- | Applies a transformation on @a@s to matching elements in a @b@.
+processIn :: (Data a, Data b) => (a -> a) -> b -> b
+processIn f = everywhere (mkT f)
 
--- | Runs a query on matching elements in a Pandoc document. 
-queryPandoc :: Typeable a => (a -> [b]) -> Pandoc -> [b]
-queryPandoc f = everything (++) ([] `mkQ` f)
+-- | Like 'processIn', but with monadic transformations.
+processInM :: (Monad m, Data a, Data b) => (a -> m a) -> b -> m b
+processInM f = everywhereM (mkM f)
+
+-- | Runs a query on matching @a@ elements in a @c@.
+queryIn :: (Data a, Data c) => (a -> [b]) -> c -> [b]
+queryIn f = everything (++) ([] `mkQ` f)
+
+{-# DEPRECATED processPandoc "Use processIn instead" #-}
+processPandoc :: Data a => (a -> a) -> Pandoc -> Pandoc
+processPandoc = processIn
+
+{-# DEPRECATED queryPandoc "Use queryIn instead" #-}
+queryPandoc :: Data a => (a -> [b]) -> Pandoc -> [b]
+queryPandoc = queryIn
+

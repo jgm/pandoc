@@ -32,22 +32,24 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.ODT
-import Text.Pandoc.Shared ( HTMLMathMethod (..) )
+import Text.Pandoc.Shared ( HTMLMathMethod (..), splitBy )
 import Text.Pandoc.Highlighting ( languages )
 import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
-import System.FilePath ( takeExtension, takeDirectory )
+import System.FilePath
 import System.Console.GetOpt
 import Data.Maybe ( fromMaybe )
 import Data.Char ( toLower )
 import Data.List ( intercalate, isSuffixOf )
-import Prelude hiding ( putStrLn, writeFile, readFile, getContents )
+import Prelude hiding ( putStr, putStrLn, writeFile, readFile, getContents )
 import System.IO ( stdout, stderr )
 import System.IO.UTF8
 #ifdef _CITEPROC
 import Text.CSL
 import Text.Pandoc.Biblio
 #endif
+import Text.Pandoc.Plugins (getPlugin)
+import Control.Monad (foldM)
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-8 John MacFarlane\n" ++
@@ -153,6 +155,7 @@ data Opt = Opt
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optWrapText          :: Bool    -- ^ Wrap text
     , optSanitizeHTML      :: Bool    -- ^ Sanitize HTML
+    , optPlugins           :: [Pandoc -> IO Pandoc] -- ^ Plugins to apply
 #ifdef _CITEPROC
     , optBiblioFile        :: String
     , optBiblioFormat      :: String
@@ -187,6 +190,7 @@ defaultOpts = Opt
     , optReferenceLinks    = False
     , optWrapText          = True
     , optSanitizeHTML      = False
+    , optPlugins           = []
 #ifdef _CITEPROC
     , optBiblioFile        = []
     , optBiblioFormat      = []
@@ -347,6 +351,15 @@ options =
                                   optStandalone = True })
                   "FILENAME")
                  "" -- "File to use for custom header (implies -s)"
+
+    , Option "P" ["plugins"]
+                 (ReqArg
+                  (\arg opt -> do
+                     let pluginModules = splitBy ',' arg
+                     plugins <- mapM getPlugin pluginModules
+                     return opt { optPlugins = plugins })
+                  "MODULE[,MODULE...]")
+                 "" -- "Haskell modules"
 
     , Option "T" ["title-prefix"]
                  (ReqArg
@@ -519,6 +532,7 @@ main = do
               , optReferenceLinks    = referenceLinks
               , optWrapText          = wrap
               , optSanitizeHTML      = sanitize
+              , optPlugins           = plugins
 #ifdef _CITEPROC
              , optBiblioFile         = biblioFile
              , optBiblioFormat       = biblioFormat
@@ -630,21 +644,26 @@ main = do
                              then ""
                              else takeDirectory (head sources)
 
-  let writeOutput = case writerName' of
-                          "odt"   -> saveOpenDocumentAsODT outputFile sourceDirRelative
-                          _       -> if outputFile == "-"
-                                        then putStrLn
-                                        else writeFile outputFile . (++ "\n")
+  let readSources [] = mapM readSource ["-"]
+      readSources srcs = mapM readSource srcs
+      readSource "-" = getContents
+      readSource src = readFile src
 
-  fmap (reader startParserState . tabFilter tabStop . intercalate "\n")
-       (readSources sources) >>=
+  doc <- fmap (reader startParserState . tabFilter tabStop . intercalate "\n") (readSources sources)
+
+  doc' <- do
 #ifdef _CITEPROC
-        processBiblio cslFile refs >>=
+          processBiblio cslFile refs doc
+#else
+          return doc
 #endif
-        writeOutput . writer writerOptions
 
-  where
-    readSources [] = mapM readSource ["-"]
-    readSources sources = mapM readSource sources
-    readSource "-" = getContents
-    readSource source = readFile source
+  doc'' <- foldM (flip ($)) doc' plugins
+
+  let writerOutput = writer writerOptions doc'' ++ "\n"
+
+  case writerName' of
+       "odt"   -> saveOpenDocumentAsODT outputFile sourceDirRelative writerOutput
+       _       -> if outputFile == "-"
+                     then putStr writerOutput
+                     else writeFile outputFile writerOutput
