@@ -635,7 +635,7 @@ doubleQuoteStart :: CharParser st String
 doubleQuoteStart = string "``"
 
 doubleQuoteEnd :: CharParser st String
-doubleQuoteEnd = try $ string "''"
+doubleQuoteEnd = string "\"" <|> try (string "''")
 
 ellipses :: GenParser Char st Inline
 ellipses = try $ string "\\ldots" >> optional (try $ string "{}") >>
