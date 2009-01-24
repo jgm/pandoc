@@ -158,7 +158,7 @@ Library
     Build-depends: citeproc-hs
     Exposed-Modules: Text.Pandoc.Biblio
     cpp-options:   -D_CITEPROC
-  Hs-Source-Dirs:  .
+  Hs-Source-Dirs:  src
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Blocks,
                    Text.Pandoc.Definition,
@@ -198,7 +198,7 @@ Library
     Buildable:      False
 
 Executable pandoc
-  Hs-Source-Dirs:     .
+  Hs-Source-Dirs:     src
   Main-Is:            Main.hs
   Ghc-Options:        -O2 -Wall -threaded
   Ghc-Prof-Options:   -auto-all
