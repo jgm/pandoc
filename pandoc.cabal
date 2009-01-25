@@ -189,7 +189,7 @@ Library
   Other-Modules:   Text.Pandoc.XML,
                    Text.Pandoc.TH
   Extensions:      CPP, TemplateHaskell, FlexibleInstances
-  Ghc-Options:     -O2 -Wall -threaded
+  Ghc-Options:     -O2 -Wall
   Ghc-Prof-Options: -auto-all
 
   if flag(library)
@@ -202,7 +202,7 @@ Executable pandoc
   Main-Is:            Main.hs
   Ghc-Options:        -O2 -Wall -threaded
   Ghc-Prof-Options:   -auto-all
-  Extensions:         CPP
+  Extensions:         CPP, TemplateHaskell
 
   if flag(highlighting)
     cpp-options:   -D_HIGHLIGHTING
