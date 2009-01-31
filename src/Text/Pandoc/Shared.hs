@@ -49,6 +49,7 @@ module Text.Pandoc.Shared (
                      wrapTeXIfNeeded,
                      BlockWrapper (..),
                      wrappedBlocksToDoc,
+                     tabFilter,
                      -- * Parsing
                      (>>~),
                      anyLine,
@@ -284,6 +285,26 @@ wrappedBlocksToDoc = foldr addBlock empty
      where addBlock (Pad d) accum | isEmpty accum = d
            addBlock (Pad d) accum = d $$ text "" $$ accum
            addBlock (Reg d) accum = d $$ accum
+
+-- | Convert tabs to spaces and filter out DOS line endings.
+-- Tabs will be preserved if tab stop is set to 0.
+tabFilter :: Int       -- ^ Tab stop
+          -> String    -- ^ Input
+          -> String
+tabFilter tabStop =
+  let go _ [] = ""
+      go _ ('\n':xs) = '\n' : go tabStop xs
+      go _ ('\r':'\n':xs) = '\n' : go tabStop xs
+      go _ ('\r':xs) = '\n' : go tabStop xs
+      go spsToNextStop ('\t':xs) =
+        if tabStop == 0
+           then '\t' : go tabStop xs
+           else replicate spsToNextStop ' ' ++ go tabStop xs
+      go 1 (x:xs) =
+        x : go tabStop xs
+      go spsToNextStop (x:xs) =
+        x : go (spsToNextStop - 1) xs
+  in  go tabStop
 
 --
 -- Parsing

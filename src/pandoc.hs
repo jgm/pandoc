@@ -32,7 +32,7 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.ODT
-import Text.Pandoc.Shared ( HTMLMathMethod (..), splitBy, ObfuscationMethod (..) )
+import Text.Pandoc.Shared ( HTMLMathMethod (..), splitBy, tabFilter, ObfuscationMethod (..) )
 import Text.Pandoc.Highlighting ( languages )
 import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
@@ -131,8 +131,7 @@ writeDoc _ = prettyPandoc
 
 -- | Data structure for command line options.
 data Opt = Opt
-    { optPreserveTabs      :: Bool    -- ^ Convert tabs to spaces
-    , optTabStop           :: Int     -- ^ Number of spaces per tab
+    { optTabStop           :: Int     -- ^ Number of spaces per tab
     , optStandalone        :: Bool    -- ^ Include header, footer
     , optReader            :: String  -- ^ Reader format
     , optWriter            :: String  -- ^ Writer format
@@ -167,8 +166,7 @@ data Opt = Opt
 -- | Defaults for command-line options.
 defaultOpts :: Opt
 defaultOpts = Opt
-    { optPreserveTabs      = False
-    , optTabStop           = 4
+    { optTabStop           = 4
     , optStandalone        = False
     , optReader            = ""    -- null for default reader
     , optWriter            = ""    -- null for default writer
@@ -229,7 +227,7 @@ options =
 
     , Option "p" ["preserve-tabs"]
                  (NoArg
-                  (\opt -> return opt { optPreserveTabs = True }))
+                  (\opt -> return opt { optTabStop = 0 }))
                  "" -- "Preserve tabs instead of converting to spaces"
 
     , Option "" ["tab-stop"]
@@ -519,8 +517,7 @@ main = do
   -- thread option data structure through all supplied option actions
   opts <- foldl (>>=) (return defaultOpts') actions
 
-  let Opt    { optPreserveTabs       = preserveTabs
-              , optTabStop           = tabStop
+  let Opt    { optTabStop           = tabStop
               , optStandalone        = standalone
               , optReader            = readerName
               , optWriter            = writerName
@@ -580,20 +577,6 @@ main = do
   let columns = case lookup "COLUMNS" environment of
                  Just cols -> read cols
                  Nothing   -> stateColumns defaultParserState
-
-  let tabFilter _ [] = ""
-      tabFilter _ ('\n':xs) = '\n' : tabFilter tabStop xs
-                                      -- remove DOS line endings
-      tabFilter _ ('\r':'\n':xs) = '\n' : tabFilter tabStop xs
-      tabFilter _ ('\r':xs) = '\n' : tabFilter tabStop xs
-      tabFilter spsToNextStop ('\t':xs) =
-        if preserveTabs
-           then '\t' : tabFilter tabStop xs
-           else replicate spsToNextStop ' ' ++ tabFilter tabStop xs
-      tabFilter 1 (x:xs) =
-        x : tabFilter tabStop xs
-      tabFilter spsToNextStop (x:xs) =
-        x : tabFilter (spsToNextStop - 1) xs
 
   let standalone' = (standalone && not strict) || isNonTextOutput writerName'
 
