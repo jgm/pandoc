@@ -133,6 +133,9 @@ Flag highlighting
 Flag executable
   Description:   Build the pandoc executable.
   Default:       True
+Flag wrappers
+  Description:   Build the wrappers (hsmarkdown, html2markdown, markdown2pdf).
+  Default:       True
 Flag library
   Description:   Build the pandoc library.
   Default:       True
@@ -210,6 +213,17 @@ Executable pandoc
     Build-depends: citeproc-hs >= 0.2
     cpp-options:   -D_CITEPROC
   if flag(executable)
+    Buildable:      True
+  else
+    Buildable:      False
+
+Executable hsmarkdown
+  Hs-Source-Dirs:     src
+  Main-Is:            hsmarkdown.hs
+  Ghc-Options:        -Wall -threaded
+  Ghc-Prof-Options:   -auto-all
+  Extensions:         CPP, TemplateHaskell
+  if flag(wrappers)
     Buildable:      True
   else
     Buildable:      False
