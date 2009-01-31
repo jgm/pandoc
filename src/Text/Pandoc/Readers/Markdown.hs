@@ -612,7 +612,7 @@ para = try $ do
   return $ Para $ normalizeSpaces result
 
 plain :: GenParser Char ParserState Block
-plain = many1 inline >>= return . Plain . normalizeSpaces 
+plain = many1 inline >>~ spaces >>= return . Plain . normalizeSpaces
 
 -- 
 -- raw html
