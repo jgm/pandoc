@@ -199,7 +199,7 @@ Library
 
 Executable pandoc
   Hs-Source-Dirs:     src
-  Main-Is:            Main.hs
+  Main-Is:            pandoc.hs
   Ghc-Options:        -O2 -Wall -threaded
   Ghc-Prof-Options:   -auto-all
   Extensions:         CPP, TemplateHaskell
