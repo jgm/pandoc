@@ -4,7 +4,7 @@
 # Constant names and commands in source tree
 #-------------------------------------------------------------------------------
 CABAL     := pandoc.cabal
-SRCDIR    := .
+SRCDIR    := src
 MANDIR    := man
 TESTDIR   := tests
 BUILDDIR  := dist
