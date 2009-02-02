@@ -1,3 +1,94 @@
+pandoc (1.2)
+
+  [ John MacFarlane ]
+
+  * Added support for literate Haskell. lhs support is triggered by
+    '+lhs' suffixes in formats. For example, 'latex+lhs' is literate
+    Haskell LaTeX. '.lhs' files are treated by default as literate
+    markdown.
+
+    + Added stateLiterateHaskell to parser state.
+    + Added parser for lhsCodeBlock to Markdown, RST, LaTeX readers.
+    + Added parser for |inline lhs| to LaTeX reader.
+    + Added writerLiterateHaskell to WriterOptions.
+    + Added lhs support to Markdown, RST, LaTeX, HTML writers.
+    + Added definition of code environment to LaTeX header.
+    + Documented lhs features in man page and README.
+
+  * Added a plugin system, based on hint.  This allows users to
+    write small interpreted Haskell programs that transform the
+	AST between the reader and the writer.
+
+    + In Text.Pandoc.Definition, added processWith, processWithM,
+      and queryWith, and deprecated processPandoc and queryPandoc
+      for these more general functions, which are useful in writing
+      plugins.
+    + Added module Text.Pandoc.Plugins.
+    + Added a --plugins option to pandoc, and code to run the parsed
+      document through all the plugins.
+    + Provided five sample plugin files in the plugins/ directory.
+    + Documented --plugin in the pandoc man page and README.
+
+  * Fixed bug in mediawiki writer:  improper closing tags in tables.
+    Thanks to Benct Philip Jonsson for reporting the bug.
+
+  * Added --email-obfuscation option.
+
+    + Added writer option for email obfuscation.
+    + Implemented email obfuscation options in HTML writer.
+    + Added option to option parser.
+    + Documented in README and pandoc man page.
+    + Resolves Issue #97.
+
+  * LaTeX writer: fixed bug with empty table cells.
+    Resolves Issue #107.  Thanks to rodja.trappe for the patch.
+
+  * Markdown reader: Relax spacing rules for $$ in display math. Now
+    space and newlines are allowed after the opening $$ and before the
+    closing $$. However, the display math cannot contain an entirely
+    blank line. Resolves Issue #105.
+
+  * Markdown reader: Gobble space after Plain blocks containing only
+    raw html inline. Otherwise following header blocks are not parsed
+    correctly, since the parser sees blank space before them. Resolves
+    Issue #124.
+
+  * Markdown reader: Allow " as well as '' to end a latex double-quote.
+
+  * Conditionally depend on syb and base >= 4 if ghc >= 6.10.
+    Resolves Issue #109.
+
+  * Fixed problems in RST and markdown output due to bug in pretty-1.0.1.0
+
+    + Added hang' function to Text.Pandoc.Shared; this will be used instead
+      of hang, which doesn't work properly in pretty-1.0.1.0.  When pretty
+      is upgraded, we can go back to hang.
+      See  http://article.gmane.org/gmane.comp.lang.haskell.general/16687
+    + Use hang' (and some different techniques) in RST and markdown writers.
+      Some output is now a bit different.
+
+  * Brought citeproc support up to date for citeproc-hs-0.2.
+    (Patch by Andrea Rossato.)
+
+  * Moved all haskell source to src subdirectory.  Renamed Main.hs to
+    pandoc.hs.
+
+  * Rewrote hsmarkdown in Haskell for portability (src/hsmarkdown.hs).
+    For now, keeping the old shell script too.
+
+  * Added TemplateHaskell to Extensions for executable, removed
+    -threaded for library. Thanks to duncan.coutts for the bug report.
+    Resolves Issue #121.
+
+  * Moved some Extra-Source-Files to Data-Files.
+
+  * Moved tabFilter to Shared.
+
+  * In pandoc.hs, removed optPreserveTabs; instead, tabstop of 0 means
+    preserve tabs.
+
+  * Minor code cleanup based on hlint suggestions.
+
 pandoc (1.1)
 
   [ John MacFarlane ]
