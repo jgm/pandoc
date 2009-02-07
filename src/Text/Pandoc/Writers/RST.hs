@@ -59,12 +59,14 @@ pandocToRST :: Pandoc -> State WriterState Doc
 pandocToRST (Pandoc meta blocks) = do
   opts <- get >>= (return . stOptions)
   let before  = writerIncludeBefore opts
-  let after   = writerIncludeAfter opts
+      after   = writerIncludeAfter opts
+      header  = writerHeader opts
       before' = if null before then empty else text before
       after'  = if null after then empty else text after
+      header' = if null header then empty else text header
   metaBlock <- metaToRST opts meta
   let head' = if (writerStandalone opts)
-                 then metaBlock $+$ text (writerHeader opts)
+                 then metaBlock $+$ header'
                  else empty
   body <- blockListToRST blocks
   includes <- get >>= (return . concat . stIncludes)
@@ -129,6 +131,7 @@ escapeString = escapeStringUsing (backslashEscapes "`\\|*_")
 
 -- | Convert bibliographic information into RST header.
 metaToRST :: WriterOptions -> Meta -> State WriterState Doc
+metaToRST _ (Meta [] [] []) = return empty
 metaToRST opts (Meta title authors date) = do
   title'   <- titleToRST title
   authors' <- authorsToRST authors
@@ -136,7 +139,7 @@ metaToRST opts (Meta title authors date) = do
   let toc  =  if writerTableOfContents opts
                  then text "" $+$ text ".. contents::"
                  else empty
-  return $ title' $+$ authors' $+$ date' $+$ toc
+  return $ title' $+$ authors' $+$ date' $+$ toc $+$ text ""
 
 titleToRST :: [Inline] -> State WriterState Doc
 titleToRST [] = return empty

@@ -52,11 +52,13 @@ pandocToMarkdown :: WriterOptions -> Pandoc -> State WriterState Doc
 pandocToMarkdown opts (Pandoc meta blocks) = do
   let before  = writerIncludeBefore opts
   let after   = writerIncludeAfter opts
+  let header  = writerHeader opts
   let before' = if null before then empty else text before
   let after'  = if null after then empty else text after
+  let header' = if null header then empty else text header
   metaBlock <- metaToMarkdown opts meta
   let head' = if writerStandalone opts
-                then metaBlock $+$ text (writerHeader opts)
+                then metaBlock $+$ header'
                 else empty
   let headerBlocks = filter isHeaderBlock blocks
   let toc = if writerTableOfContents opts 
@@ -104,11 +106,12 @@ escapeString = escapeStringUsing markdownEscapes
 
 -- | Convert bibliographic information into Markdown header.
 metaToMarkdown :: WriterOptions -> Meta -> State WriterState Doc
+metaToMarkdown _ (Meta [] [] []) = return empty
 metaToMarkdown opts (Meta title authors date) = do
   title'   <- titleToMarkdown opts title
   authors' <- authorsToMarkdown authors
   date'    <- dateToMarkdown date
-  return $ title' $+$ authors' $+$ date'
+  return $ title' $+$ authors' $+$ date' $+$ text ""
 
 titleToMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
 titleToMarkdown _    []  = return empty
