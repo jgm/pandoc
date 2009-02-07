@@ -49,6 +49,17 @@ writerFormats = [ "native"
                 , "rtf"
                 ]
 
+lhsWriterFormats :: [String]
+lhsWriterFormats = [ "markdown"
+                   , "markdown+lhs"
+                   , "rst"
+                   , "rst+lhs"
+                   , "latex"
+                   , "latex+lhs"
+                   , "html"
+                   , "html+lhs"
+                   ]
+
 main :: IO ()
 main = do
   r1s <- mapM runWriterTest writerFormats
@@ -71,7 +82,8 @@ main = do
              "latex-reader.latex" "latex-reader.native"
   r11 <- runTest "native reader" ["-r", "native", "-w", "native", "-s"]
              "testsuite.native" "testsuite.native"
-  let results = r1s ++ [r2, r3, r4, r5, r6, r7, r7a, r8, r9, r10, r11]
+  r12s <- mapM runLhsWriterTest lhsWriterFormats
+  let results = r1s ++ [r2, r3, r4, r5, r6, r7, r7a, r8, r9, r10, r11] ++ r12s
   if all id results
      then do
        putStrLn "\nAll tests passed."
@@ -85,6 +97,10 @@ main = do
 readFile' :: FilePath -> IO String
 readFile' f = do s <- readFile f
                  return $! (length s `seq` s)
+
+runLhsWriterTest :: String -> IO Bool
+runLhsWriterTest format =
+  runTest ("(lhs) " ++ format ++ " writer") ["-r", "native", "-s", "-w", format] "lhs-test.native" ("lhs-test" <.> format)
 
 runWriterTest :: String -> IO Bool
 runWriterTest format = do

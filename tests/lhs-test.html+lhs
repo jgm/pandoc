@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    ></title
+    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="generator" content="pandoc"
+     /><style type="text/css"
+    >
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode, table.sourceCode pre 
+   { margin: 0; padding: 0; border: 0; vertical-align: baseline; border: none; }
+td.lineNumbers { border-right: 1px solid #AAAAAA; text-align: right; color: #AAAAAA; padding-right: 5px; padding-left: 5px; }
+td.sourceCode { padding-left: 5px; }
+pre.sourceCode { }
+pre.sourceCode span.Normal { }
+pre.sourceCode span.Keyword { color: #007020; font-weight: bold; } 
+pre.sourceCode span.DataType { color: #902000; }
+pre.sourceCode span.DecVal { color: #40a070; }
+pre.sourceCode span.BaseN { color: #40a070; }
+pre.sourceCode span.Float { color: #40a070; }
+pre.sourceCode span.Char { color: #4070a0; }
+pre.sourceCode span.String { color: #4070a0; }
+pre.sourceCode span.Comment { color: #60a0b0; font-style: italic; }
+pre.sourceCode span.Others { color: #007020; }
+pre.sourceCode span.Alert { color: red; font-weight: bold; }
+pre.sourceCode span.Function { color: #06287e; }
+pre.sourceCode span.RegionMarker { }
+pre.sourceCode span.Error { color: red; font-weight: bold; }
+</style
+    ></head
+  ><body
+  ><h1 id="lhs-test"
+    >lhs test</h1
+    ><p
+    ><code
+      >unsplit</code
+      > is an arrow that takes a pair of values and combines them to return a single value:</p
+    ><pre class="sourceCode literatehaskell"
+    ><code
+      ><span class="Char Special"
+	>&gt;</span
+	><span class="Function FunctionDefinition"
+	> unsplit ::</span
+	><span class="Normal NormalText"
+	> (Arrow a) =&gt; (b -&gt; c -&gt; d) -&gt; a (b, c) d</span
+	><br
+	 /><span class="Char Special"
+	>&gt;</span
+	><span class="Normal NormalText"
+	> unsplit = arr . </span
+	><span class="Function"
+	>uncurry</span
+	><span class="Normal NormalText"
+	>       </span
+	><br
+	 /><span class="Char Special"
+	>&gt;</span
+	><span class="Normal NormalText"
+	>           </span
+	><span class="Comment"
+	>-- arr (\op (x,y) -&gt; x `op` y) </span
+	><br
+	 /></code
+      ></pre
+    ><p
+    ><code
+      >(***)</code
+      > combines two arrows into a new arrow by running the two arrows on a pair of values (one arrow on the first item of the pair and one arrow on the second item of the pair).</p
+    ><pre
+    ><code
+      >f *** g = first f &gt;&gt;&gt; second g
+</code
+      ></pre
+    ><blockquote
+    ><p
+      >Here is a block quote section.</p
+      ></blockquote
+    ></body
+  ></html
+>
+
