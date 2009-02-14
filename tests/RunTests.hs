@@ -99,10 +99,10 @@ main = do
              "testsuite.native" "testsuite.native"
   r12s <- if runLhsTests
              then mapM runLhsWriterTest lhsWriterFormats
-             else return []
+             else putStrLn "Skipping lhs writer tests because they presuppose highlighting support" >> return []
   r13s <- if runLhsTests
              then mapM runLhsReaderTest lhsReaderFormats
-             else return []
+             else putStrLn "Skipping lhs reader tests because they presuppose highlighting support" >> return []
   let results = r1s ++ [r2, r3, r4, r5, r6, r7, r7a, r8, r9, r10, r11] ++ r12s ++ r13s
   if all id results
      then do

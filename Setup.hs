@@ -1,4 +1,6 @@
 import Distribution.Simple
+import Distribution.Package ( pkgName )
+import Distribution.Simple.LocalBuildInfo ( packageDeps )
 import Distribution.PackageDescription ( emptyHookedBuildInfo )
 import Control.Exception ( bracket_ )
 import Control.Monad ( unless )
@@ -17,8 +19,11 @@ main = do
   exitWith ExitSuccess
 
 -- | Run test suite.
-runTestSuite _ _ _ _ = do
-  inDirectory "tests" $ runCommand "runhaskell -i.. RunTests.hs" >>= waitForProcess >>= exitWith
+runTestSuite _ _ _ local = do
+  let highlightingSupport = (PackageName "highlighting-kate") `elem` (map pkgName $ packageDeps local)
+  let testArgs = if highlightingSupport then ["lhs"] else []
+  let testCmd  = "runhaskell -i.. RunTests.hs " ++ unwords testArgs
+  inDirectory "tests" $ runCommand testCmd >>= waitForProcess >>= exitWith
 
 -- | Build man pages from markdown sources in man/man1/.
 makeManPages _ _ _ _ = do
