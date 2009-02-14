@@ -2,6 +2,12 @@
 -- RunTests.hs - run test suite for pandoc
 -- This script is designed to be run from the tests directory.
 -- It assumes the pandoc executable is in dist/build/pandoc.
+--
+-- runhaskell -i.. RunTests.hs [lhs]
+--
+-- If the lhs argument is provided, tests for lhs support will be
+-- run.  These presuppose that pandoc has been compiled with the
+-- -fhighlighting flag, so these tests are not run by default.
 
 module Main where
 import System.Exit
@@ -11,6 +17,7 @@ import Prelude hiding ( putStrLn, putStr, readFile )
 import System.Process ( runProcess, waitForProcess )
 import System.FilePath ( (</>), (<.>) )
 import System.Directory
+import System.Environment
 import System.Exit
 import Text.Printf
 import Diff
@@ -68,6 +75,8 @@ lhsReaderFormats = [ "markdown+lhs"
 
 main :: IO ()
 main = do
+  args <- getArgs
+  let runLhsTests = "lhs" `elem` args
   r1s <- mapM runWriterTest writerFormats
   r2 <- runS5WriterTest "basic" ["-s"] "s5"
   r3 <- runS5WriterTest "fancy" ["-s","-m","-i"] "s5"
@@ -88,8 +97,12 @@ main = do
              "latex-reader.latex" "latex-reader.native"
   r11 <- runTest "native reader" ["-r", "native", "-w", "native", "-s"]
              "testsuite.native" "testsuite.native"
-  r12s <- mapM runLhsWriterTest lhsWriterFormats
-  r13s <- mapM runLhsReaderTest lhsReaderFormats
+  r12s <- if runLhsTests
+             then mapM runLhsWriterTest lhsWriterFormats
+             else return []
+  r13s <- if runLhsTests
+             then mapM runLhsReaderTest lhsReaderFormats
+             else return []
   let results = r1s ++ [r2, r3, r4, r5, r6, r7, r7a, r8, r9, r10, r11] ++ r12s ++ r13s
   if all id results
      then do
