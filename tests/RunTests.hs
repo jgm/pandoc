@@ -60,6 +60,12 @@ lhsWriterFormats = [ "markdown"
                    , "html+lhs"
                    ]
 
+lhsReaderFormats :: [String]
+lhsReaderFormats = [ "markdown+lhs"
+                   , "rst+lhs"
+                   , "latex+lhs"
+                   ]
+
 main :: IO ()
 main = do
   r1s <- mapM runWriterTest writerFormats
@@ -83,7 +89,8 @@ main = do
   r11 <- runTest "native reader" ["-r", "native", "-w", "native", "-s"]
              "testsuite.native" "testsuite.native"
   r12s <- mapM runLhsWriterTest lhsWriterFormats
-  let results = r1s ++ [r2, r3, r4, r5, r6, r7, r7a, r8, r9, r10, r11] ++ r12s
+  r13s <- mapM runLhsReaderTest lhsReaderFormats
+  let results = r1s ++ [r2, r3, r4, r5, r6, r7, r7a, r8, r9, r10, r11] ++ r12s ++ r13s
   if all id results
      then do
        putStrLn "\nAll tests passed."
@@ -101,6 +108,10 @@ readFile' f = do s <- readFile f
 runLhsWriterTest :: String -> IO Bool
 runLhsWriterTest format =
   runTest ("(lhs) " ++ format ++ " writer") ["-r", "native", "-s", "-w", format] "lhs-test.native" ("lhs-test" <.> format)
+
+runLhsReaderTest :: String -> IO Bool
+runLhsReaderTest format =
+  runTest ("(lhs) " ++ format ++ " reader") ["-r", format, "-w", "html+lhs"] ("lhs-test" <.> format) "lhs-test.fragment.html+lhs"
 
 runWriterTest :: String -> IO Bool
 runWriterTest format = do
