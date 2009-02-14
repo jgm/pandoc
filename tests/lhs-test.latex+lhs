@@ -29,8 +29,10 @@ pair and one arrow on the second item of the pair).
 \begin{verbatim}
 f *** g = first f >>> second g
 \end{verbatim}
+Block quote:
+
 \begin{quote}
-Here is a block quote section.
+foo bar
 
 \end{quote}
 \end{document}

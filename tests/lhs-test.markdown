@@ -13,7 +13,9 @@ and one arrow on the second item of the pair).
 
     f *** g = first f >>> second g
 
-> Here is a block quote section.
+Block quote:
+
+> foo bar
 
 
 
