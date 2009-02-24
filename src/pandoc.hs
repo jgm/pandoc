@@ -32,7 +32,7 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.ODT
-import Text.Pandoc.Shared ( HTMLMathMethod (..), splitBy, tabFilter, ObfuscationMethod (..) )
+import Text.Pandoc.Shared ( HTMLMathMethod (..), tabFilter, ObfuscationMethod (..) )
 import Text.Pandoc.Highlighting ( languages )
 import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
@@ -48,8 +48,7 @@ import System.IO.UTF8
 import Text.CSL
 import Text.Pandoc.Biblio
 #endif
-import Text.Pandoc.Plugins (getPlugin)
-import Control.Monad (foldM, when, unless)
+import Control.Monad (when, unless)
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-8 John MacFarlane\n" ++
@@ -365,15 +364,6 @@ options =
                   "FILENAME")
                  "" -- "File to use for custom header (implies -s)"
 
-    , Option "P" ["plugins"]
-                 (ReqArg
-                  (\arg opt -> do
-                     let pluginModules = splitBy ',' arg
-                     plugins <- mapM getPlugin pluginModules
-                     return opt { optPlugins = plugins })
-                  "MODULE[,MODULE...]")
-                 "" -- "Haskell modules"
-
     , Option "T" ["title-prefix"]
                  (ReqArg
                   (\arg opt -> return opt { optTitlePrefix = arg,
@@ -540,7 +530,6 @@ main = do
               , optReferenceLinks    = referenceLinks
               , optWrapText          = wrap
               , optSanitizeHTML      = sanitize
-              , optPlugins           = plugins
               , optEmailObfuscation  = obfuscationMethod
 #ifdef _CITEPROC
               , optBiblioFile         = biblioFile
@@ -653,9 +642,7 @@ main = do
           return doc
 #endif
 
-  doc'' <- foldM (flip ($)) doc' plugins
-
-  let writerOutput = writer writerOptions doc'' ++ "\n"
+  let writerOutput = writer writerOptions doc' ++ "\n"
 
   case writerName' of
        "odt"   -> saveOpenDocumentAsODT outputFile sourceDirRelative writerOutput

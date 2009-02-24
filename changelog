@@ -16,19 +16,9 @@ pandoc (1.2)
     + Added tests (run only if highlighting support compiled in).
     + Documented lhs features in man page and README.
 
-  * Added a plugin system, based on hint.  This allows users to
-    write small interpreted Haskell programs that transform the
-	AST between the reader and the writer.
-
-    + In Text.Pandoc.Definition, added processWith, processWithM,
-      and queryWith, and deprecated processPandoc and queryPandoc
-      for these more general functions, which are useful in writing
-      plugins.
-    + Added module Text.Pandoc.Plugins.
-    + Added a --plugins option to pandoc, and code to run the parsed
-      document through all the plugins.
-    + Provided five sample plugin files in the plugins/ directory.
-    + Documented --plugin in the pandoc man page and README.
+  * In Text.Pandoc.Definition, added processWith, processWithM,
+    and queryWith, and deprecated processPandoc and queryPandoc
+    for these more general functions.
 
   * Fixed bug in mediawiki writer:  improper closing tags in tables.
     Thanks to Benct Philip Jonsson for reporting the bug.

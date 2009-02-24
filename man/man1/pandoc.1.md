@@ -181,14 +181,6 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     `context`, `docbook`, `man`, `markdown`, `opendocument`,
     `rst`, `rtf`).
 
--P *MODULE[,MODULE...]*, \--plugins=*MODULE[,MODULE...]*
-:   Specify plugins to load, by module name or source file pathname.
-    Plugins should export a function `transform` of type `a -> a`
-    or `a -> IO a`, where `a` is `Inline`, `Block`, `Pandoc`,
-    `[Inline]`, or `[Block]`.  This function will be used to transform
-    the pandoc document after it is parsed by the reader and before it
-    is written out by the writer.
-
 -T *STRING*, \--title-prefix=*STRING*
 :   Specify *STRING* as a prefix to the HTML window title.
 
