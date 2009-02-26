@@ -412,17 +412,17 @@ options =
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     hPutStrLn stderr (prg ++ " " ++ pandocVersion ++ compileInfo ++
+                     hPutStrLn stdout (prg ++ " " ++ pandocVersion ++ compileInfo ++
                                        copyrightMessage)
-                     exitWith $ ExitFailure 4))
+                     exitWith ExitSuccess ))
                  "" -- "Print version"
 
     , Option "h" ["help"]
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     hPutStr stderr (usageMessage prg options)
-                     exitWith $ ExitFailure 2))
+                     hPutStr stdout (usageMessage prg options)
+                     exitWith ExitSuccess ))
                  "" -- "Show help"
     ]
 
