@@ -1,10 +1,7 @@
 import Distribution.Simple
-import Distribution.Package ( pkgName )
-import Distribution.Simple.LocalBuildInfo ( packageDeps )
-import Distribution.PackageDescription ( emptyHookedBuildInfo )
 import Control.Exception ( bracket_ )
 import Control.Monad ( unless )
-import System.Process ( runCommand, runProcess, waitForProcess )
+import System.Process ( runCommand, runProcess, waitForProcess, readProcess )
 import System.FilePath ( (</>), (<.>) )
 import System.Directory
 import System.IO ( stderr )
@@ -12,6 +9,7 @@ import System.Exit
 import System.Time
 import System.IO.Error ( isDoesNotExistError )
 import Data.Maybe ( fromJust, isNothing, catMaybes )
+import Data.List ( isInfixOf )
 
 main = do
   defaultMainWithHooks $ simpleUserHooks { runTests  = runTestSuite
@@ -19,8 +17,9 @@ main = do
   exitWith ExitSuccess
 
 -- | Run test suite.
-runTestSuite _ _ _ local = do
-  let highlightingSupport = (PackageName "highlighting-kate") `elem` (map pkgName $ packageDeps local)
+runTestSuite _ _ _ _ = do
+  vers <- readProcess ("dist" </> "build" </> "pandoc" </> "pandoc") ["--version"] ""
+  let highlightingSupport = "+highlighting" `isInfixOf` vers
   let testArgs = if highlightingSupport then ["lhs"] else []
   let testCmd  = "runhaskell -i.. RunTests.hs " ++ unwords testArgs
   inDirectory "tests" $ runCommand testCmd >>= waitForProcess >>= exitWith
