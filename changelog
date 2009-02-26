@@ -83,8 +83,6 @@ pandoc (1.2)
   * In pandoc.hs, removed optPreserveTabs; instead, tabstop of 0 means
     preserve tabs.
 
-  * Require Cabal >= 1.6.
-
   * Minor code cleanup based on hlint suggestions.
 
 pandoc (1.1)
