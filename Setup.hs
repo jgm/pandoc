@@ -1,10 +1,10 @@
 import Distribution.Simple
 import Control.Exception ( bracket_ )
 import Control.Monad ( unless )
-import System.Process ( runCommand, runProcess, waitForProcess, readProcess )
+import System.Process ( runCommand, runProcess, waitForProcess )
 import System.FilePath ( (</>), (<.>) )
 import System.Directory
-import System.IO ( stderr )
+import System.IO ( stderr, openTempFile )
 import System.Exit
 import System.Time
 import System.IO.Error ( isDoesNotExistError )
@@ -18,8 +18,11 @@ main = do
 
 -- | Run test suite.
 runTestSuite _ _ _ _ = do
-  vers <- readProcess ("dist" </> "build" </> "pandoc" </> "pandoc") ["--version"] ""
-  let highlightingSupport = "+highlighting" `isInfixOf` vers
+  tempPath <- catch getTemporaryDirectory (\_ -> return ".")
+  (outputPath, hOut) <- openTempFile tempPath "out"
+  runProcess "pandoc" ["--version"] Nothing Nothing Nothing (Just hOut) Nothing >>= waitForProcess
+  output <- readFile outputPath
+  let highlightingSupport = "+highlighting" `isInfixOf` output
   let testArgs = if highlightingSupport then ["lhs"] else []
   let testCmd  = "runhaskell -i.. RunTests.hs " ++ unwords testArgs
   inDirectory "tests" $ runCommand testCmd >>= waitForProcess >>= exitWith
