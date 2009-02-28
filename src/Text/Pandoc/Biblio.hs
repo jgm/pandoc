@@ -42,11 +42,11 @@ processBiblio cf r p
       else do
         when (null cf) $ error "Missing the needed citation style file"
         csl  <- readCSLFile cf
-        let groups     = queryPandoc getCite p
+        let groups     = queryWith getCite p
             result     = citeproc csl r groups
             cits_map   = zip groups (citations result)
             biblioList = map (read . renderPandoc' csl) (bibliography result)
-            Pandoc m b = processPandoc (processCite csl cits_map) p
+            Pandoc m b = processWith (processCite csl cits_map) p
         return $ Pandoc m $ b ++ biblioList
 
 -- | Substitute 'Cite' elements with formatted citations.
@@ -60,7 +60,7 @@ processCite s cs il
                     Nothing -> [Str ("Error processing " ++ show t)]
 
 -- | Retrieve all citations from a 'Pandoc' docuument. To be used with
--- 'queryPandoc'.
+-- 'queryWith'.
 getCite :: Inline -> [[(String,String)]]
 getCite i | Cite t _ <- i = [t]
           | otherwise     = []
