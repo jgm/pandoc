@@ -11,8 +11,8 @@ _ Generate tarball (make tarball)
 _ Generate Windows package and copy to directory
 
 _ Upload to Google Code
-    googlecode-upload.py -s "Source tarball" -p pandoc -u fiddlosopher --labels=Featured,Type-Source,OpSys-All  pandoc-x.yy.tar.gz
-    googlecode-upload.py -s "Windows binary package" -p pandoc -u fiddlosopher --labels=Featured,Type-Archive,OpSys-Windows  pandoc-x.yy.zip
+   googlecode_upload.py -s "Source tarball" -p pandoc -u fiddlosopher --labels=Featured,Type-Source,OpSys-All  dist/pandoc-1.2.tar.gz
+   googlecode_upload.py -s "Windows installer" -p pandoc -u fiddlosopher --labels=Featured,Type-Installer,OpSys-Windows  pandoc-1.2-setup.exe
 
 _ Go to Google code and deprecate the old versions
 
