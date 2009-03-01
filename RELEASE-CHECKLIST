@@ -1,7 +1,7 @@
-_ Test: make build-all, make install-all, make uninstall-all, 
-        make deb, run website demos, test on windows, test on mac
+_ Test, on linux, windows, mac
+  (inc. website demos)
 
-_ Finalize debian changelog
+_ Finalize changelog
 
 _ Tag release
     svn copy https://pandoc.googlecode.com/svn/trunk https://pandoc.googlecode.com/svn/tags/pandoc-x.yy
@@ -17,22 +17,6 @@ _ Upload to Google Code
 _ Go to Google code and deprecate the old versions
 
 _ Upload to HackageDB
-
-_ email roktas to upload to debian
-
-_ make macport, test on a mac
-
-_ submit change request to MacPorts launchpad
-    http://trac.macports.org/
-    http://guide.macports.org/#project.update-policies
-
-_ make FreeBSD port, test on FreeBSD
-
-_ submit change request to FreeBSD 
-    make makesum
-    diff -ruN pandoc.bak pandoc
-    http://www.freebsd.org/doc/en_US.ISO8859-1/books/porters-handbook/port-upgrading.html
-    http://www.freebsd.org/send-pr.html
 
 _ Update website, including short description of changes
 
