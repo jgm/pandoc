@@ -97,6 +97,16 @@ You may view existing bug reports and submit new ones at
 
 # News
 
+-   Version 1.2 release (March 1, 2009).
+
+    + Added support for literate Haskell. lhs support is triggered by
+      '+lhs' suffixes in formats. For example, 'latex+lhs' is literate
+      Haskell LaTeX. '.lhs' files are treated by default as literate
+      markdown.
+    + Added --email-obfuscation option.
+    + Brought citeproc support up to date for citeproc-hs-0.2.
+    + Many bugs fixed. See [changelog] for details.
+
 -   Version 1.1 release (November 6, 2008).
 
     + New --jsmath option supporting use of pandoc with [jsMath].
