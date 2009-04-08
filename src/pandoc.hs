@@ -131,6 +131,7 @@ writeDoc _ = prettyPandoc
 -- | Data structure for command line options.
 data Opt = Opt
     { optTabStop           :: Int     -- ^ Number of spaces per tab
+    , optPreserveTabs      :: Bool    -- ^ Preserve tabs instead of converting to spaces
     , optStandalone        :: Bool    -- ^ Include header, footer
     , optReader            :: String  -- ^ Reader format
     , optWriter            :: String  -- ^ Writer format
@@ -166,6 +167,7 @@ data Opt = Opt
 defaultOpts :: Opt
 defaultOpts = Opt
     { optTabStop           = 4
+    , optPreserveTabs      = False
     , optStandalone        = False
     , optReader            = ""    -- null for default reader
     , optWriter            = ""    -- null for default writer
@@ -226,7 +228,7 @@ options =
 
     , Option "p" ["preserve-tabs"]
                  (NoArg
-                  (\opt -> return opt { optTabStop = 0 }))
+                  (\opt -> return opt { optPreserveTabs = True }))
                  "" -- "Preserve tabs instead of converting to spaces"
 
     , Option "" ["tab-stop"]
@@ -507,7 +509,8 @@ main = do
   -- thread option data structure through all supplied option actions
   opts <- foldl (>>=) (return defaultOpts') actions
 
-  let Opt    { optTabStop           = tabStop
+  let Opt    {  optTabStop           = tabStop
+              , optPreserveTabs      = preserveTabs
               , optStandalone        = standalone
               , optReader            = readerName
               , optWriter            = writerName
@@ -633,7 +636,9 @@ main = do
       readSource "-" = getContents
       readSource src = readFile src
 
-  doc <- fmap (reader startParserState . tabFilter tabStop . intercalate "\n") (readSources sources)
+  let convertTabs = tabFilter (if preserveTabs then 0 else tabStop)
+
+  doc <- fmap (reader startParserState . convertTabs . intercalate "\n") (readSources sources)
 
   doc' <- do
 #ifdef _CITEPROC
