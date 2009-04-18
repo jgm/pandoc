@@ -108,7 +108,9 @@ import Text.Pandoc.Writers.RTF
 import Text.Pandoc.Writers.MediaWiki
 import Text.Pandoc.DefaultHeaders
 import Text.Pandoc.Shared
+import Data.Version (showVersion)
+import Paths_pandoc (version)
 
 -- | Version number of pandoc library.
 pandocVersion :: String
-pandocVersion = "1.2"
+pandocVersion = showVersion version
