@@ -64,7 +64,7 @@ or [try pandoc on the web](/pandoc/try).
 
 For installation instructions for all architectures, see
 [INSTALL](INSTALL.html). Pandoc is in the [MacPorts], [Debian],
-[Ubuntu], [Slackware], [Arch], and [FreeBSD ports] repositories.
+[Ubuntu], [Slackware], [Arch], [NetBSD], and [FreeBSD ports] repositories.
 Note that the version of pandoc in these repositories may not be the
 most recent.
 
@@ -198,6 +198,7 @@ Pandoc carries no warranties of any kind.
 [Debian]: http://packages.debian.org/lenny/pandoc
 [Slackware]: http://www.linuxpackages.net/search_view.php?by=name&name=pandoc&ver=
 [Arch]: http://aur.archlinux.org/packages.php?ID=19804
+[NetBSD]: http://pkgsrc.se/wip/pandoc
 [FreeBSD ports]: http://www.freshports.org/textproc/pandoc/
 [Ubuntu]: http://www.ubuntu.com
 [MacPorts]: http://db.macports.org/port/show/4218
