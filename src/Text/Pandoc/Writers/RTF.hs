@@ -59,7 +59,7 @@ tableOfContents headers =
 
 elementToListItem :: Element -> [Block]
 elementToListItem (Blk _) = []
-elementToListItem (Sec sectext subsecs) = [Plain sectext] ++
+elementToListItem (Sec _ _ sectext subsecs) = [Plain sectext] ++
   if null subsecs
      then []
      else [BulletList (map elementToListItem subsecs)]

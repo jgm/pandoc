@@ -138,7 +138,7 @@ tableOfContents opts headers =
 -- | Converts an Element to a list item for a table of contents,
 elementToListItem :: Element -> [Block]
 elementToListItem (Blk _) = []
-elementToListItem (Sec headerText subsecs) = [Plain headerText] ++ 
+elementToListItem (Sec _ _ headerText subsecs) = [Plain headerText] ++ 
   if null subsecs
      then []
      else [BulletList $ map elementToListItem subsecs]

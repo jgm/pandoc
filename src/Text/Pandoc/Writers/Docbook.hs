@@ -80,7 +80,7 @@ writeDocbook opts (Pandoc (Meta title authors date) blocks) =
 -- | Convert an Element to Docbook.
 elementToDocbook :: WriterOptions -> Element -> Doc
 elementToDocbook opts (Blk block) = blockToDocbook opts block 
-elementToDocbook opts (Sec title elements) =
+elementToDocbook opts (Sec _ _ title elements) =
   -- Docbook doesn't allow sections with no content, so insert some if needed
   let elements' = if null elements
                     then [Blk (Para [])]

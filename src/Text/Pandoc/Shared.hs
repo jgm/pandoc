@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, DeriveDataTypeable #-}
 {-
 Copyright (C) 2006-8 John MacFarlane <jgm@berkeley.edu>
 
@@ -112,13 +112,16 @@ import Text.ParserCombinators.Parsec
 import Text.PrettyPrint.HughesPJ ( Doc, fsep, ($$), (<>), empty, isEmpty, text, nest )
 import qualified Text.PrettyPrint.HughesPJ as PP
 import Text.Pandoc.CharacterReferences ( characterReference )
-import Data.Char ( toLower, toUpper, ord, isLower, isUpper )
+import Data.Char ( toLower, toUpper, ord, isLower, isUpper, isAlpha,
+                   isPunctuation )
 import Data.List ( find, isPrefixOf, intercalate )
-import Control.Monad ( join )
 import Network.URI ( parseURI, URI (..), isAllowedInURI )
 import System.Directory
 import Prelude hiding ( putStrLn, writeFile, readFile, getContents )
 import System.IO.UTF8
+import Data.Generics
+import qualified Control.Monad.State as S
+import Control.Monad (join)
 
 --
 -- List processing
@@ -878,22 +881,74 @@ endsWithPlain blocks =
 
 -- | Data structure for defining hierarchical Pandoc documents
 data Element = Blk Block 
-             | Sec [Inline] [Element] deriving (Eq, Read, Show)
+             | Sec Int String [Inline] [Element]
+             --    lvl  ident  label    contents
+             deriving (Eq, Read, Show, Typeable, Data)
 
--- | Returns @True@ on Header block with at least the specified level
-headerAtLeast :: Int -> Block -> Bool
-headerAtLeast level (Header x _) = x <= level
-headerAtLeast _ _ = False
+-- | Convert Pandoc inline list to plain text identifier.
+inlineListToIdentifier :: [Inline] -> String
+inlineListToIdentifier = dropWhile (not . isAlpha) . inlineListToIdentifier'
+
+inlineListToIdentifier' :: [Inline] -> [Char]
+inlineListToIdentifier' [] = ""
+inlineListToIdentifier' (x:xs) =
+  xAsText ++ inlineListToIdentifier' xs
+  where xAsText = case x of
+          Str s          -> filter (\c -> c == '-' || not (isPunctuation c)) $
+                            intercalate "-" $ words $ map toLower s
+          Emph lst       -> inlineListToIdentifier' lst
+          Strikeout lst  -> inlineListToIdentifier' lst
+          Superscript lst -> inlineListToIdentifier' lst
+          SmallCaps   lst -> inlineListToIdentifier' lst
+          Subscript lst  -> inlineListToIdentifier' lst
+          Strong lst     -> inlineListToIdentifier' lst
+          Quoted _ lst   -> inlineListToIdentifier' lst
+          Cite   _ lst   -> inlineListToIdentifier' lst
+          Code s         -> s
+          Space          -> "-"
+          EmDash         -> "-"
+          EnDash         -> "-"
+          Apostrophe     -> ""
+          Ellipses       -> ""
+          LineBreak      -> "-"
+          Math _ _       -> ""
+          TeX _          -> ""
+          HtmlInline _   -> ""
+          Link lst _     -> inlineListToIdentifier' lst
+          Image lst _    -> inlineListToIdentifier' lst
+          Note _         -> ""
 
 -- | Convert list of Pandoc blocks into (hierarchical) list of Elements
 hierarchicalize :: [Block] -> [Element]
-hierarchicalize [] = []
-hierarchicalize (block:rest) = 
-  case block of
-    (Header level title) -> 
-         let (thisSection, rest') = break (headerAtLeast level) rest
-         in  (Sec title (hierarchicalize thisSection)):(hierarchicalize rest') 
-    x -> (Blk x):(hierarchicalize rest)
+hierarchicalize blocks = S.evalState (hierarchicalizeWithIds blocks) []
+
+hierarchicalizeWithIds :: [Block] -> S.State [String] [Element]
+hierarchicalizeWithIds [] = return []
+hierarchicalizeWithIds ((Header level title'):xs) = do
+  usedIdents <- S.get
+  let ident = uniqueIdent title' usedIdents
+  S.modify (ident :)
+  let (sectionContents, rest) = break (headerLtEq level) xs
+  sectionContents' <- hierarchicalizeWithIds sectionContents
+  rest' <- hierarchicalizeWithIds rest
+  return $ Sec level ident title' sectionContents' : rest'
+hierarchicalizeWithIds (x:rest) = do
+  rest' <- hierarchicalizeWithIds rest
+  return $ (Blk x) : rest'
+
+headerLtEq :: Int -> Block -> Bool
+headerLtEq level (Header l _) = l <= level
+headerLtEq _ _ = False
+
+uniqueIdent :: [Inline] -> [String] -> String
+uniqueIdent title' usedIdents =
+  let baseIdent = inlineListToIdentifier title'
+      numIdent n = baseIdent ++ "-" ++ show n
+  in  if baseIdent `elem` usedIdents
+        then case find (\x -> numIdent x `notElem` usedIdents) ([1..60000] :: [Int]) of
+                  Just x  -> numIdent x
+                  Nothing -> baseIdent   -- if we have more than 60,000, allow repeats
+        else baseIdent
 
 -- | True if block is a Header block.
 isHeaderBlock :: Block -> Bool

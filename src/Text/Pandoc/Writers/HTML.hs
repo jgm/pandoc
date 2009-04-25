@@ -36,22 +36,21 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Highlighting ( highlightHtml, defaultHighlightingCss )
 import Numeric ( showHex )
-import Data.Char ( ord, toLower, isAlpha )
+import Data.Char ( ord, toLower )
 import Data.List ( isPrefixOf, intercalate )
+import Data.Maybe ( catMaybes )
 import qualified Data.Set as S
 import Control.Monad.State
 import Text.XHtml.Transitional hiding ( stringToHtml )
 
 data WriterState = WriterState
     { stNotes            :: [Html]       -- ^ List of notes
-    , stIds              :: [String]     -- ^ List of header identifiers
     , stMath             :: Bool         -- ^ Math is used in document
     , stCSS              :: S.Set String -- ^ CSS to include in header
     } deriving Show
 
 defaultWriterState :: WriterState
-defaultWriterState = WriterState {stNotes= [], stIds = [], 
-                                  stMath = False, stCSS = S.empty}
+defaultWriterState = WriterState {stNotes= [], stMath = False, stCSS = S.empty}
 
 -- Helpers to render HTML with the appropriate function.
 
@@ -107,15 +106,13 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
                     not (writerS5 opts)
                         then h1 ! [theclass "title"] $ topTitle
                         else noHtml
-      headerBlocks = filter isHeaderBlock blocks
-      ids          = uniqueIdentifiers $ 
-                     map (\(Header _ lst) -> lst) headerBlocks
+      sects        = hierarchicalize blocks
       toc          = if writerTableOfContents opts 
-                        then tableOfContents opts headerBlocks ids
+                        then evalState (tableOfContents opts sects) defaultWriterState
                         else noHtml
-      (blocks', newstate) = 
-                     runState (blockListToHtml opts blocks)
-                     (defaultWriterState {stIds = ids})
+      (blocks', newstate) = runState 
+                            (mapM (elementToHtml opts) sects >>= return . toHtmlFromList)
+                            defaultWriterState
       cssLines     = stCSS newstate
       css          = if S.null cssLines
                         then noHtml
@@ -146,35 +143,36 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
          then head' +++ body thebody
          else thebody
 
--- | Construct table of contents from list of header blocks and identifiers.
--- Assumes there are as many identifiers as header blocks.
-tableOfContents :: WriterOptions -> [Block] -> [String] -> Html
-tableOfContents _ [] _ = noHtml
-tableOfContents opts headers ids =
+-- | Construct table of contents from list of elements.
+tableOfContents :: WriterOptions -> [Element] -> State WriterState Html
+tableOfContents _ [] = return noHtml
+tableOfContents opts sects = do
   let opts'        = opts { writerIgnoreNotes = True }
-      contentsTree = hierarchicalize headers
-      contents     = evalState (mapM (elementToListItem opts') contentsTree) 
-                     (defaultWriterState {stIds = ids})
-  in  thediv ! [identifier "toc"] $ unordList contents
+  contents  <- mapM (elementToListItem opts') sects
+  return $ thediv ! [identifier "TOC"] $ unordList $ catMaybes contents
 
 -- | Converts an Element to a list item for a table of contents,
 -- retrieving the appropriate identifier from state.
-elementToListItem :: WriterOptions -> Element -> State WriterState Html
-elementToListItem _ (Blk _) = return noHtml
-elementToListItem opts (Sec headerText subsecs) = do
-  st <- get
-  let ids = stIds st
-  let (id', rest) = if null ids
-                      then ("", [])
-                      else (head ids, tail ids)
-  put $ st {stIds = rest}
+elementToListItem :: WriterOptions -> Element -> State WriterState (Maybe Html)
+elementToListItem _ (Blk _) = return Nothing
+elementToListItem opts (Sec _ id' headerText subsecs) = do
   txt <- inlineListToHtml opts headerText
-  subHeads <- mapM (elementToListItem opts) subsecs
+  subHeads <- mapM (elementToListItem opts) subsecs >>= return . catMaybes
   let subList = if null subHeads
                    then noHtml
-                   else unordList subHeads 
-  return $ (anchor ! [href ("#" ++ id'), identifier ("TOC-" ++ id')] $ txt) +++ 
-           subList
+                   else unordList subHeads
+  return $ Just $ (anchor ! [href ("#" ++ id')] $ txt) +++ subList
+
+-- | Convert an Element to Html.
+elementToHtml :: WriterOptions -> Element -> State WriterState Html
+elementToHtml opts (Blk block) = blockToHtml opts block 
+elementToHtml opts (Sec level id' title' elements) = do
+  innerContents <- mapM (elementToHtml opts) elements
+  header' <- blockToHtml opts (Header level title')
+  return $ if writerS5 opts || (writerStrictMarkdown opts && not (writerTableOfContents opts))
+              -- S5 gets confused by the extra divs around sections
+              then toHtmlFromList (header' : innerContents)
+              else thediv ! [identifier id'] << (header' : innerContents)
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
@@ -236,65 +234,12 @@ obfuscateChar char =
 obfuscateString :: String -> String
 obfuscateString = concatMap obfuscateChar . decodeCharacterReferences
 
--- | True if character is a punctuation character (unicode).
-isPunctuation :: Char -> Bool
-isPunctuation c =
-  let c' = ord c
-  in  if c `elem` "!\"'()*,-./:;<>?[\\]`{|}~" || c' >= 0x2000 && c' <= 0x206F ||
-         c' >= 0xE000 && c' <= 0xE0FF
-         then True
-         else False
-
 -- | Add CSS for document header.
 addToCSS :: String -> State WriterState ()
 addToCSS item = do
   st <- get
   let current = stCSS st
   put $ st {stCSS = S.insert item current}
-
--- | Convert Pandoc inline list to plain text identifier.
-inlineListToIdentifier :: [Inline] -> String
-inlineListToIdentifier = dropWhile (not . isAlpha) . inlineListToIdentifier'
-
-inlineListToIdentifier' :: [Inline] -> [Char]
-inlineListToIdentifier' [] = ""
-inlineListToIdentifier' (x:xs) = 
-  xAsText ++ inlineListToIdentifier' xs
-  where xAsText = case x of
-          Str s          -> filter (\c -> c == '-' || not (isPunctuation c)) $
-                            intercalate "-" $ words $ map toLower s
-          Emph lst       -> inlineListToIdentifier' lst
-          Strikeout lst  -> inlineListToIdentifier' lst
-          Superscript lst -> inlineListToIdentifier' lst
-          SmallCaps   lst -> inlineListToIdentifier' lst
-          Subscript lst  -> inlineListToIdentifier' lst
-          Strong lst     -> inlineListToIdentifier' lst
-          Quoted _ lst   -> inlineListToIdentifier' lst
-          Cite   _ lst   -> inlineListToIdentifier' lst
-          Code s         -> s
-          Space          -> "-"
-          EmDash         -> "-"
-          EnDash         -> "-"
-          Apostrophe     -> ""
-          Ellipses       -> ""
-          LineBreak      -> "-"
-          Math _ _       -> ""
-          TeX _          -> ""
-          HtmlInline _   -> ""
-          Link lst _     -> inlineListToIdentifier' lst
-          Image lst _    -> inlineListToIdentifier' lst
-          Note _         -> ""
-
--- | Return unique identifiers for list of inline lists.
-uniqueIdentifiers :: [[Inline]] -> [String]
-uniqueIdentifiers ls =
-  let addIdentifier (nonuniqueIds, uniqueIds) l =
-        let new = inlineListToIdentifier l
-            matches = length $ filter (== new) nonuniqueIds
-            new' = (if null new then "section" else new) ++ 
-                   if matches > 0 then ("-" ++ show matches) else ""
-        in  (new:nonuniqueIds, new':uniqueIds)
-  in  reverse $ snd $ foldl addIdentifier ([],[]) ls
 
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: WriterOptions -> Block -> State WriterState Html
@@ -335,26 +280,17 @@ blockToHtml opts (BlockQuote blocks) =
      else blockListToHtml opts blocks >>= (return . blockquote)
 blockToHtml opts (Header level lst) = do 
   contents <- inlineListToHtml opts lst
-  st <- get
-  let ids = stIds st
-  let (id', rest) = if null ids
-                      then ("", [])
-                      else (head ids, tail ids)
-  put $ st {stIds = rest}
-  let attribs = if writerStrictMarkdown opts && not (writerTableOfContents opts)
-                   then []
-                   else [identifier id']
   let contents'  = if writerTableOfContents opts
-                      then anchor ! [href ("#TOC-" ++ id')] $ contents
+                      then anchor ! [href "#TOC"] $ contents
                       else contents
   return $ case level of
-              1 -> h1 contents' ! attribs
-              2 -> h2 contents' ! attribs
-              3 -> h3 contents' ! attribs
-              4 -> h4 contents' ! attribs
-              5 -> h5 contents' ! attribs
-              6 -> h6 contents' ! attribs
-              _ -> paragraph contents' ! attribs
+              1 -> h1 contents'
+              2 -> h2 contents'
+              3 -> h3 contents'
+              4 -> h4 contents'
+              5 -> h5 contents'
+              6 -> h6 contents'
+              _ -> paragraph contents'
 blockToHtml opts (BulletList lst) = do
   contents <- mapM (blockListToHtml opts) lst
   let attribs = if writerIncremental opts
@@ -492,7 +428,7 @@ inlineToHtml opts inline =
                                   return $ primHtml $ "<EQ>" ++ str ++ "</EQ>"
                                PlainMath -> 
                                   inlineListToHtml opts (readTeXMath str) >>=
-                                  return . (thespan ! [theclass "math"])) 
+                                  return . (thespan ! [theclass "math"]) ) 
     (TeX str)        -> case writerHTMLMathMethod opts of
                               LaTeXMathML _ -> do modify (\st -> st {stMath = True})
                                                   return $ primHtml str
