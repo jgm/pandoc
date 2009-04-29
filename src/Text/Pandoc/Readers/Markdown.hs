@@ -79,8 +79,8 @@ indentSpaces :: GenParser Char ParserState [Char]
 indentSpaces = try $ do
   state <- getState
   let tabStop = stateTabStop state
-  try (count tabStop (char ' ')) <|> 
-    (many (char ' ') >> string "\t") <?> "indentation"
+  count tabStop (char ' ') <|>
+    string "\t" <?> "indentation"
 
 nonindentSpaces :: GenParser Char ParserState [Char]
 nonindentSpaces = do
