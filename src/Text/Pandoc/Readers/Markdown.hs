@@ -55,9 +55,6 @@ readMarkdown state s = (readWith parseMarkdown) state (s ++ "\n\n")
 -- Constants and data structure definitions
 --
 
-spaceChars :: [Char]
-spaceChars = " \t"
-
 bulletListMarkers :: [Char]
 bulletListMarkers = "*+-"
 
@@ -325,7 +322,7 @@ hrule = try $ do
   skipSpaces
   start <- oneOf hruleChars
   count 2 (skipSpaces >> char start)
-  skipMany (oneOf spaceChars <|> char start)
+  skipMany (spaceChar <|> char start)
   newline
   optional blanklines
   return HorizontalRule
@@ -634,7 +631,7 @@ htmlBlock :: GenParser Char ParserState Block
 htmlBlock = try $ do
     failUnlessBeginningOfLine
     first <- htmlElement
-    finalSpace <- many (oneOf spaceChars)
+    finalSpace <- many spaceChar
     finalNewlines <- many newline
     return $ RawHtml $ first ++ finalSpace ++ finalNewlines
 
@@ -939,12 +936,12 @@ strikeout = failIfStrict >> enclosed (string "~~") (try $ string "~~") inline >>
 
 superscript :: GenParser Char ParserState Inline
 superscript = failIfStrict >> enclosed (char '^') (char '^') 
-              (notFollowedBy' whitespace >> inline) >>= -- may not contain Space
+              (notFollowedBy spaceChar >> inline) >>= -- may not contain Space
               return . Superscript
 
 subscript :: GenParser Char ParserState Inline
 subscript = failIfStrict >> enclosed (char '~') (char '~')
-            (notFollowedBy' whitespace >> inline) >>=  -- may not contain Space
+            (notFollowedBy spaceChar >> inline) >>=  -- may not contain Space
             return . Subscript 
 
 abbrev :: GenParser Char ParserState Inline
@@ -1053,17 +1050,15 @@ emDash :: GenParser Char st Inline
 emDash = oneOfStrings ["---", "--"] >> return EmDash
 
 whitespace :: GenParser Char ParserState Inline
-whitespace = do
-  sps <- many1 (oneOf spaceChars)
-  if length sps >= 2
-     then option Space (endline >> return LineBreak)
-     else return Space <?> "whitespace"
+whitespace = spaceChar >>
+  (   (spaceChar >> skipMany spaceChar >> option Space (endline >> return LineBreak))
+  <|> (skipMany spaceChar >> return Space) ) <?> "whitespace"
 
 nonEndline :: GenParser Char st Char
 nonEndline = satisfy (/='\n')
 
 strChar :: GenParser Char st Char
-strChar = noneOf (specialChars ++ spaceChars ++ "\n")
+strChar = noneOf (specialChars ++ " \t\n")
 
 str :: GenParser Char st Inline
 str = many1 strChar >>= return . Str
