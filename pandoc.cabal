@@ -197,7 +197,7 @@ Library
                    Paths_pandoc
   Extensions:      CPP, TemplateHaskell, FlexibleInstances
   Ghc-Options:     -O2 -Wall
-  Ghc-Prof-Options: -auto-all
+  Ghc-Prof-Options: -auto-all -caf-all
 
   if flag(library)
     Buildable:      True
@@ -225,7 +225,7 @@ Executable hsmarkdown
   Hs-Source-Dirs:     src
   Main-Is:            hsmarkdown.hs
   Ghc-Options:        -Wall -threaded
-  Ghc-Prof-Options:   -auto-all -caf-all
+  Ghc-Prof-Options:   -auto-all
   Extensions:         CPP, TemplateHaskell
   if flag(wrappers)
     Buildable:      True
