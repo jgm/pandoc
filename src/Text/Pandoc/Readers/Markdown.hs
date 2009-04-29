@@ -91,6 +91,15 @@ nonindentSpaces = do
      then return sps
      else unexpected "indented line"
 
+skipNonindentSpaces :: GenParser Char ParserState ()
+skipNonindentSpaces = do
+  state <- getState
+  atMostSpaces (stateTabStop state - 1)
+
+atMostSpaces :: Int -> GenParser Char ParserState ()
+atMostSpaces 0 = notFollowedBy (char ' ')
+atMostSpaces n = (char ' ' >> atMostSpaces (n-1)) <|> return ()
+
 -- | Fail unless we're at beginning of a line.
 failUnlessBeginningOfLine :: GenParser tok st () 
 failUnlessBeginningOfLine = do
@@ -185,7 +194,7 @@ parseMarkdown = do
 referenceKey :: GenParser Char ParserState [Char]
 referenceKey = try $ do
   startPos <- getPosition
-  nonindentSpaces
+  skipNonindentSpaces
   lab <- reference
   char ':'
   skipSpaces >> optional newline >> skipSpaces >> notFollowedBy (char '[')
@@ -432,7 +441,7 @@ birdTrackLine = do
 --
 
 emailBlockQuoteStart :: GenParser Char ParserState Char
-emailBlockQuoteStart = try $ nonindentSpaces >> char '>' >>~ optional (char ' ')
+emailBlockQuoteStart = try $ skipNonindentSpaces >> char '>' >>~ optional (char ' ')
 
 emailBlockQuote :: GenParser Char ParserState [[Char]]
 emailBlockQuote = try $ do
@@ -459,7 +468,7 @@ blockQuote = do
 bulletListStart :: GenParser Char ParserState ()
 bulletListStart = try $ do
   optional newline -- if preceded by a Plain block in a list context
-  nonindentSpaces
+  skipNonindentSpaces
   notFollowedBy' hrule     -- because hrules start out just like lists
   oneOf bulletListMarkers
   spaceChar
@@ -468,7 +477,7 @@ bulletListStart = try $ do
 anyOrderedListStart :: GenParser Char ParserState (Int, ListNumberStyle, ListNumberDelim) 
 anyOrderedListStart = try $ do
   optional newline -- if preceded by a Plain block in a list context
-  nonindentSpaces
+  skipNonindentSpaces
   notFollowedBy $ string "p." >> spaceChar >> digit  -- page number
   state <- getState
   if stateStrict state
@@ -690,11 +699,11 @@ simpleTableHeader = try $ do
 
 -- Parse a table footer - dashed lines followed by blank line.
 tableFooter :: GenParser Char ParserState [Char]
-tableFooter = try $ nonindentSpaces >> many1 (dashedLine '-') >> blanklines
+tableFooter = try $ skipNonindentSpaces >> many1 (dashedLine '-') >> blanklines
 
 -- Parse a table separator - dashed line.
 tableSep :: GenParser Char ParserState String
-tableSep = try $ nonindentSpaces >> many1 (dashedLine '-') >> string "\n"
+tableSep = try $ skipNonindentSpaces >> many1 (dashedLine '-') >> string "\n"
 
 -- Parse a raw line and split it into chunks by indices.
 rawTableLine :: [Int]
@@ -737,7 +746,7 @@ widthsFromIndices numColumns indices =
 -- and followed by blank lines.
 tableCaption :: GenParser Char ParserState [Inline]
 tableCaption = try $ do
-  nonindentSpaces
+  skipNonindentSpaces
   string "Table:"
   result <- many1 inline
   blanklines
