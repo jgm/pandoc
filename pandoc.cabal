@@ -208,7 +208,7 @@ Executable pandoc
   Hs-Source-Dirs:     src
   Main-Is:            pandoc.hs
   Ghc-Options:        -O2 -Wall -threaded
-  Ghc-Prof-Options:   -auto-all
+  Ghc-Prof-Options:   -auto-all -caf-all
   Extensions:         CPP, TemplateHaskell
 
   if flag(highlighting)
@@ -225,7 +225,7 @@ Executable hsmarkdown
   Hs-Source-Dirs:     src
   Main-Is:            hsmarkdown.hs
   Ghc-Options:        -Wall -threaded
-  Ghc-Prof-Options:   -auto-all
+  Ghc-Prof-Options:   -auto-all -caf-all
   Extensions:         CPP, TemplateHaskell
   if flag(wrappers)
     Buildable:      True
