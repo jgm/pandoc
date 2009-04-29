@@ -346,7 +346,9 @@ rawHtmlBlock' = do notFollowedBy' (htmlTag "/body" <|> htmlTag "/html")
 htmlComment :: GenParser Char st [Char]
 htmlComment = try $ do
   string "<!--"
-  comment <- manyTill anyChar (try (string "-->"))
+  comment <- many (   (satisfy (/='-'))
+                  <|> (char '-' >>~ notFollowedBy (try $ char '-' >> char '>')))
+  string "-->"
   return $ "<!--" ++ comment ++ "-->"
 
 --
