@@ -50,7 +50,7 @@ numRef = do
   return $ chr $ num 
 
 hexNum :: GenParser Char st Int 
-hexNum = oneOf "Xx" >> many1 hexDigit >>= return . read . ("0x" ++)
+hexNum = oneOf "Xx" >> many1 hexDigit >>= return . read . (\xs -> '0':'x':xs)
 
 decNum :: GenParser Char st Int 
 decNum = many1 digit >>= return . read
