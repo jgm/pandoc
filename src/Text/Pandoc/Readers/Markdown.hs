@@ -34,7 +34,7 @@ module Text.Pandoc.Readers.Markdown (
 
 import Data.List ( transpose, isPrefixOf, isSuffixOf, lookup, sortBy, findIndex, intercalate )
 import Data.Ord ( comparing )
-import Data.Char ( isAlphaNum, isAlpha, isLower, isDigit, isUpper )
+import Data.Char ( isAlphaNum, isUpper )
 import Data.Maybe
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
@@ -820,8 +820,7 @@ inline :: GenParser Char ParserState Inline
 inline = choice inlineParsers <?> "inline"
 
 inlineParsers :: [GenParser Char ParserState Inline]
-inlineParsers = [ abbrev
-                , str
+inlineParsers = [ str
                 , smartPunctuation
                 , whitespace
                 , endline
@@ -944,30 +943,6 @@ subscript = failIfStrict >> enclosed (char '~') (char '~')
             (notFollowedBy spaceChar >> inline) >>=  -- may not contain Space
             return . Subscript 
 
-abbrev :: GenParser Char ParserState Inline
-abbrev = failUnlessSmart >>
-         (assumedAbbrev <|> knownAbbrev) >>= return . Str . (++ ".\160")
-
--- an string of letters followed by a period that does not end a sentence
--- is assumed to be an abbreviation.  It is assumed that sentences don't
--- start with lowercase letters or numerals.
-assumedAbbrev :: GenParser Char ParserState [Char]
-assumedAbbrev = try $ do
-  result <- many1 $ satisfy isAlpha
-  string ". "
-  lookAhead $ satisfy (\x -> isLower x || isDigit x)
-  return result
-
--- these strings are treated as abbreviations even if they are followed
--- by a capital letter (such as a name).
-knownAbbrev :: GenParser Char ParserState [Char]
-knownAbbrev = try $ do
-  result <- oneOfStrings [ "Mr", "Mrs", "Ms", "Capt", "Dr", "Prof", "Gen",
-                           "Gov", "e.g", "i.e", "Sgt", "St", "vol", "vs",
-                           "Sen", "Rep", "Pres", "Hon", "Rev" ]
-  string ". "
-  return result
-
 smartPunctuation :: GenParser Char ParserState Inline
 smartPunctuation = failUnlessSmart >> 
                    choice [ quoted, apostrophe, dash, ellipses ]
@@ -1060,8 +1035,30 @@ nonEndline = satisfy (/='\n')
 strChar :: GenParser Char st Char
 strChar = noneOf (specialChars ++ " \t\n")
 
-str :: GenParser Char st Inline
-str = many1 strChar >>= return . Str
+str :: GenParser Char ParserState Inline
+str = do
+  result <- many1 strChar
+  state <- getState
+  if stateSmart state
+     then case likelyAbbrev result of
+               []        -> return $ Str result
+               xs        -> choice (map (\x ->
+                               try (string x >> char ' ' >>
+                                    notFollowedBy spaceChar >>
+                                    return (Str $ result ++ x ++ "\160"))) xs)
+                           <|> (return $ Str result)
+     else return $ Str result
+
+-- | if the string matches the beginning of an abbreviation (before
+-- the first period, return strings that would finish the abbreviation.
+likelyAbbrev :: String -> [String]
+likelyAbbrev x =
+  let abbrevs = [ "Mr.", "Mrs.", "Ms.", "Capt.", "Dr.", "Prof.",
+                  "Gen.", "Gov.", "e.g.", "i.e.", "Sgt.", "St.",
+                  "vol.", "vs.", "Sen.", "Rep.", "Pres.", "Hon.",
+                  "Rev.", "Ph.D.", "M.D.", "M.A." ]
+      abbrPairs = map (break (=='.')) abbrevs
+  in  map snd $ filter (\(y,_) -> y == x) abbrPairs
 
 -- an endline character that can be treated as a space, not a structural break
 endline :: GenParser Char ParserState Inline
