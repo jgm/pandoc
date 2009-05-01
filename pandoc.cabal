@@ -232,3 +232,14 @@ Executable hsmarkdown
   else
     Buildable:      False
 
+Executable markdown2pdf
+  Hs-Source-Dirs:     src
+  Main-Is:            markdown2pdf.hs
+  Ghc-Options:        -Wall -threaded
+  Ghc-Prof-Options:   -auto-all
+  Extensions:         CPP, TemplateHaskell
+  if flag(wrappers)
+    Buildable:      True
+  else
+    Buildable:      False
+

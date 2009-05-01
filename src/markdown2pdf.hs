@@ -1,6 +1,6 @@
 module Main where
 
-import Data.List (isInfixOf, intercalate, intersect)
+import Data.List (isInfixOf, intercalate, (\\))
 import Data.Maybe (isNothing)
 
 import Control.Monad (when, unless, guard)
@@ -153,23 +153,24 @@ main = bracket
     paths <- mapM findExecutable execs
     let miss = map snd $ filter (isNothing . fst) $ zip paths execs
     unless (null miss) $ exit $! "Could not find " ++ intercalate ", " miss
-    -- parse arguments
     args <- getArgs
-    let badopts = ["-t","-w","--to","--write","-s","--standalone",
-                   "--reference-links","-m","--latexmathml",
-                   "--asciimathml","--mimetex","--jsmath","--gladtex",
-                   "-i","--incremental","--no-wrap", "--sanitize-html",
-                   "--email-obfuscation","-c","--css","-T","--title-prefix",
-                   "-D","--print-default-header","--dump-args",
-                   "--ignore-args","-h","--help","-v","--version"]
-    let badoptsLong = filter (\o -> length o > 2) badopts
-    unless (null (args `intersect` badopts)) $ do
+    -- check for invalid arguments and print help message if needed
+    let goodopts = ["-f","-r","--from","--read","--strict","-N",
+                   "-p","--preserve-tabs","--tab-stop","-R","--parse-raw",
+                   "--toc","--table-of-contents",
+                   "--number-sections","-H","--include-in-header",
+                   "-B","--include-before-body","-A","--include-after-body",
+                   "-C","--custom-header","-o","--output"]
+    let goodoptsLong = filter (\op -> length op > 2) goodopts
+    let isOpt ('-':_) = True
+        isOpt _       = False
+    unless (null (filter isOpt args \\ goodopts)) $ do
       (code, out, _err) <- readProcessWithExitCode "pandoc" ["--help"] ""
-      putStrLn "markdown2pdf [OPTIONS] [FILES]"
-      putStrLn $ unlines $ drop 3 $
-                 filter (\l -> not . any (`isInfixOf` l) $ badoptsLong) $
-                 lines out
+      putStrLn "markdown2pdf [OPTIONS] [FILES]\nOptions:"
+      putStr $ unlines $
+               filter (\l -> any (`isInfixOf` l) goodoptsLong) $ lines out
       exitWith code
+    -- parse arguments
     pandocArgs <- parsePandocArgs args
     (inputs, output) <- case pandocArgs of
       Nothing     -> exit "Could not parse arguments"
