@@ -570,7 +570,7 @@ main = do
                  Just cols -> read cols
                  Nothing   -> stateColumns defaultParserState
 
-  let standalone' = (standalone && not strict) || isNonTextOutput writerName'
+  let standalone' = standalone || isNonTextOutput writerName'
 
 #ifdef _CITEPROC
   refs <- if null biblioFile then return [] else readBiblioFile biblioFile biblioFormat
@@ -604,7 +604,6 @@ main = do
                                       writerTitlePrefix      = titlePrefix,
                                       writerTabStop          = tabStop,
                                       writerTableOfContents  = toc &&
-                                                               not strict &&
                                                                writerName' /= "s5",
                                       writerHTMLMathMethod   = mathMethod,
                                       writerS5               = (writerName' == "s5"),
