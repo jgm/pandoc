@@ -1039,13 +1039,14 @@ str :: GenParser Char ParserState Inline
 str = do
   result <- many1 strChar
   state <- getState
+  let spacesToNbr = map (\c -> if c == ' ' then '\160' else c)
   if stateSmart state
      then case likelyAbbrev result of
                []        -> return $ Str result
                xs        -> choice (map (\x ->
                                try (string x >> char ' ' >>
                                     notFollowedBy spaceChar >>
-                                    return (Str $ result ++ x ++ "\160"))) xs)
+                                    return (Str $ result ++ spacesToNbr x ++ "\160"))) xs)
                            <|> (return $ Str result)
      else return $ Str result
 
