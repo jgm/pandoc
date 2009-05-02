@@ -33,7 +33,9 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.ODT
 import Text.Pandoc.Shared ( HTMLMathMethod (..), tabFilter, ObfuscationMethod (..) )
+#ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
+#endif
 import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
@@ -59,18 +61,13 @@ copyrightMessage = "\nCopyright (C) 2006-8 John MacFarlane\n" ++
 compileInfo :: String
 compileInfo =
 #ifdef _CITEPROC
-  " +citeproc" ++
-#else
-  " -citeproc" ++
+  "\nCompiled with citeproc support." ++
 #endif
 #ifdef _HIGHLIGHTING
-  " +highlighting" ++
-#else
-  " -highlighting" ++
+   "\nCompiled with syntax highlighting support for:\n" ++
+       wrapWords 78 languages ++
 #endif
-  if null languages
-     then "\n"
-     else "\nCompiled with syntax highlighting support for:\n" ++ wrapWords 78 languages
+   ""
 
 -- | Converts a list of strings into a single string with the items printed as
 -- comma separated words in lines with a maximum line length.
