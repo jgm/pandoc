@@ -82,6 +82,7 @@ module Text.Pandoc
                , prettyPandoc
                -- * Writer options used in writers 
                , WriterOptions (..)
+               , HTMLMathMethod (..)
                , defaultWriterOptions
                -- * Default headers for various output formats
                , module Text.Pandoc.DefaultHeaders
