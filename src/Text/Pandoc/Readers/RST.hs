@@ -659,7 +659,7 @@ explicitLink = try $ do
   notFollowedBy (char '`') -- `` marks start of inline code
   label' <- manyTill (notFollowedBy (char '`') >> inline) 
                     (try (spaces >> char '<'))
-  src <- manyTill (noneOf ">\n ") (char '>')
+  src <- manyTill (noneOf ">\n") (char '>')
   skipSpaces
   string "`_"
   return $ Link (normalizeSpaces label') (removeLeadingTrailingSpace src, "")
