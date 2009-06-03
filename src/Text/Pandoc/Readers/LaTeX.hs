@@ -701,7 +701,9 @@ math3 = try $ char '$' >> math1 >>~ char '$'
 
 math4 :: GenParser Char st String
 math4 = try $ do
-  name <- begin "equation" <|> begin "equation*" <|> begin "displaymath" <|> begin "displaymath*"
+  name <- begin "displaymath" <|> begin "equation" <|> begin "equation*" <|>
+           begin "gather" <|> begin "gather*" <|> begin "gathered" <|>
+             begin "multline" <|> begin "multline*"
   spaces
   manyTill anyChar (end name)
 
@@ -710,10 +712,12 @@ math5 = try $ (string "\\[") >> spaces >> manyTill anyChar (try $ string "\\]")
 
 math6 :: GenParser Char st String
 math6 = try $ do
-  name <- begin "eqnarray" <|> begin "eqnarray*"
+  name <- begin "eqnarray" <|> begin "eqnarray*" <|> begin "align" <|>
+           begin "align*" <|> begin "alignat" <|> begin "alignat*" <|>
+             begin "split" <|> begin "aligned" <|> begin "alignedat"
   spaces
   res <- manyTill anyChar (end name)
-  return $ filter (/= '&') res  -- remove eqnarray alignment codes
+  return $ filter (/= '&') res  -- remove alignment codes
 
 --
 -- links and images
