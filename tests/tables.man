@@ -1,7 +1,7 @@
 .PP
 Simple table with caption:
 .PP
-Demonstration of simple table syntax\.
+Demonstration of simple table syntax.
 .TS
 tab(@);
 rw(10.50n) lw(6.13n) cw(11.38n) lw(8.75n).
@@ -90,7 +90,7 @@ T}
 .PP
 Simple table indented two spaces:
 .PP
-Demonstration of simple table syntax\.
+Demonstration of simple table syntax.
 .TS
 tab(@);
 rw(10.50n) lw(6.13n) cw(11.38n) lw(8.75n).
@@ -135,7 +135,7 @@ T}
 .PP
 Multiline table with caption:
 .PP
-Here\[aq]s the caption\. It may span multiple lines\.
+Here\[aq]s the caption. It may span multiple lines.
 .TS
 tab(@);
 cw(10.50n) lw(9.63n) rw(11.38n) lw(23.63n).
@@ -154,18 +154,19 @@ First
 T}@T{
 row
 T}@T{
-12\.0
+12.0
 T}@T{
-Example of a row that spans multiple lines\.
+Example of a row that spans multiple lines.
 T}
 T{
 Second
 T}@T{
 row
 T}@T{
-5\.0
+5.0
 T}@T{
-Here\[aq]s another one\. Note the blank line between rows\.
+Here\[aq]s another one.
+Note the blank line between rows.
 T}
 .TE
 .PP
@@ -189,17 +190,18 @@ First
 T}@T{
 row
 T}@T{
-12\.0
+12.0
 T}@T{
-Example of a row that spans multiple lines\.
+Example of a row that spans multiple lines.
 T}
 T{
 Second
 T}@T{
 row
 T}@T{
-5\.0
+5.0
 T}@T{
-Here\[aq]s another one\. Note the blank line between rows\.
+Here\[aq]s another one.
+Note the blank line between rows.
 T}
 .TE

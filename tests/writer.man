@@ -1,7 +1,7 @@
 .TH Pandoc "" "July 17, 2006" "Test Suite"
 .PP
-This is a set of tests for pandoc\. Most of them are adapted from
-John Gruber's markdown test suite\.
+This is a set of tests for pandoc.
+Most of them are adapted from John Gruber's markdown test suite.
 .PP
    *   *   *   *   *
 .SH Headers
@@ -21,19 +21,22 @@ with no blank line
    *   *   *   *   *
 .SH Paragraphs
 .PP
-Here's a regular paragraph\.
+Here's a regular paragraph.
 .PP
-In Markdown 1\.0\.0 and earlier\. Version 8\. This line turns into
-a list item\. Because a hard-wrapped line in the middle of a
-paragraph looked like a list item\.
+In Markdown 1.0.0 and earlier.
+Version 8.
+This line turns into a list item.
+Because a hard-wrapped line in the middle of a paragraph looked
+like a list item.
 .PP
-Here's one with a bullet\. * criminey\.
+Here's one with a bullet.
+* criminey.
 .PP
 There should be a hard line break
 .PD 0
 .P
 .PD
-here\.
+here.
 .PP
    *   *   *   *   *
 .SH Block Quotes
@@ -41,7 +44,8 @@ here\.
 E-mail style:
 .RS
 .PP
-This is a block quote\. It is pretty short\.
+This is a block quote.
+It is pretty short.
 .RE
 .RS
 .PP
@@ -70,9 +74,9 @@ nested
 .RE
 .RE
 .PP
-This should not be a block quote: 2 > 1\.
+This should not be a block quote: 2 > 1.
 .PP
-And a following paragraph\.
+And a following paragraph.
 .PP
    *   *   *   *   *
 .SH Code Blocks
@@ -184,16 +188,17 @@ Three
 .PP
 Multiple paragraphs:
 .IP "1." 3
-Item 1, graf one\.
+Item 1, graf one.
 .RS 4
 .PP
-Item 1\. graf two\. The quick brown fox jumped over the lazy dog's
-back\.
+Item 1.
+graf two.
+The quick brown fox jumped over the lazy dog's back.
 .RE
 .IP "2." 3
-Item 2\.
+Item 2.
 .IP "3." 3
-Item 3\.
+Item 3.
 .SS Nested
 .IP \[bu] 2
 Tab
@@ -273,7 +278,7 @@ Nesting:
 Upper Alpha
 .RS 4
 .IP "I." 3
-Upper Roman\.
+Upper Roman.
 .RS 4
 .IP "(6)" 4
 Decimal start with 6
@@ -286,19 +291,20 @@ Lower alpha with paren
 .PP
 Autonumbering:
 .IP "1." 3
-Autonumber\.
+Autonumber.
 .IP "2." 3
-More\.
+More.
 .RS 4
 .IP "1." 3
-Nested\.
+Nested.
 .RE
 .PP
 Should not be a list item:
 .PP
-M\.A\.\ 2007
+M.A.\ 2007
 .PP
-B\. Williams
+B.
+Williams
 .PP
    *   *   *   *   *
 .SH Definition Lists
@@ -497,51 +503,53 @@ Hr's:
    *   *   *   *   *
 .SH Inline Markup
 .PP
-This is \f[I]emphasized\f[], and so \f[I]is this\f[]\.
+This is \f[I]emphasized\f[], and so \f[I]is this\f[].
 .PP
-This is \f[B]strong\f[], and so \f[B]is this\f[]\.
+This is \f[B]strong\f[], and so \f[B]is this\f[].
 .PP
-An \f[I]emphasized link (/url)\f[]\.
+An \f[I]emphasized link (/url)\f[].
 .PP
-\f[B]\f[I]This is strong and em\.\f[]\f[]
+\f[B]\f[I]This is strong and em.\f[]\f[]
 .PP
-So is \f[B]\f[I]this\f[]\f[] word\.
+So is \f[B]\f[I]this\f[]\f[] word.
 .PP
-\f[B]\f[I]This is strong and em\.\f[]\f[]
+\f[B]\f[I]This is strong and em.\f[]\f[]
 .PP
-So is \f[B]\f[I]this\f[]\f[] word\.
+So is \f[B]\f[I]this\f[]\f[] word.
 .PP
 This is code: \f[B]>\f[], \f[B]$\f[], \f[B]\\\f[], \f[B]\\$\f[],
-\f[B]<html>\f[]\.
+\f[B]<html>\f[].
 .PP
-[STRIKEOUT:This is \f[I]strikeout\f[]\.]
+[STRIKEOUT:This is \f[I]strikeout\f[].]
 .PP
-Superscripts: a^bc^d a^\f[I]hello\f[]^ a^hello\ there^\.
+Superscripts: a^bc^d a^\f[I]hello\f[]^ a^hello\ there^.
 .PP
-Subscripts: H~2~O, H~23~O, H~many\ of\ them~O\.
+Subscripts: H~2~O, H~23~O, H~many\ of\ them~O.
 .PP
 These should not be superscripts or subscripts, because of the
-unescaped spaces: a^b c^d, a~b c~d\.
+unescaped spaces: a^b c^d, a~b c~d.
 .PP
    *   *   *   *   *
 .SH Smart quotes, ellipses, dashes
 .PP
-\[lq]Hello,\[rq] said the spider\. \[lq]`Shelob' is my name\.\[rq]
+\[lq]Hello,\[rq] said the spider.
+\[lq]`Shelob' is my name.\[rq]
 .PP
-`A', `B', and `C' are letters\.
+`A', `B', and `C' are letters.
 .PP
-`Oak,' `elm,' and `beech' are names of trees\. So is `pine\.'
+`Oak,' `elm,' and `beech' are names of trees.
+So is `pine.'
 .PP
-`He said, \[lq]I want to go\.\[rq]' Were you alive in the 70's?
+`He said, \[lq]I want to go.\[rq]' Were you alive in the 70's?
 .PP
 Here is some quoted `\f[B]code\f[]' and a
-\[lq]quoted link (http://example.com/?foo=1&bar=2)\[rq]\.
+\[lq]quoted link (http://example.com/?foo=1&bar=2)\[rq].
 .PP
-Some dashes: one\[em]two \[em] three\[em]four \[em] five\.
+Some dashes: one\[em]two \[em] three\[em]four \[em] five.
 .PP
-Dashes between numbers: 5\[en]7, 255\[en]66, 1987\[en]1999\.
+Dashes between numbers: 5\[en]7, 255\[en]66, 1987\[en]1999.
 .PP
-Ellipses\&...and\&...and\&...\.
+Ellipses\&...and\&...and\&....
 .PP
    *   *   *   *   *
 .SH LaTeX
@@ -563,18 +571,19 @@ Here's some display math:
 .RE
 .IP \[bu] 2
 Here's one that has a line break in it:
-\f[B]\\alpha\ +\ \\omega\ \\times\ x^2\f[]\.
+\f[B]\\alpha\ +\ \\omega\ \\times\ x^2\f[].
 .PP
 These shouldn't be math:
 .IP \[bu] 2
-To get the famous equation, write \f[B]$e\ =\ mc^2$\f[]\.
+To get the famous equation, write \f[B]$e\ =\ mc^2$\f[].
 .IP \[bu] 2
-$22,000 is a \f[I]lot\f[] of money\. So is $34,000\. (It worked if
-\[lq]lot\[rq] is emphasized\.)
+$22,000 is a \f[I]lot\f[] of money.
+So is $34,000.
+(It worked if \[lq]lot\[rq] is emphasized.)
 .IP \[bu] 2
-Shoes ($20) and socks ($5)\.
+Shoes ($20) and socks ($5).
 .IP \[bu] 2
-Escaped \f[B]$\f[]: $73 \f[I]this should be emphasized\f[] 23$\.
+Escaped \f[B]$\f[]: $73 \f[I]this should be emphasized\f[] 23$.
 .PP
 Here's a LaTeX table:
 .PP
@@ -594,15 +603,15 @@ set membership: ∈
 .IP \[bu] 2
 copyright: ©
 .PP
-AT&T has an ampersand in their name\.
+AT&T has an ampersand in their name.
 .PP
-AT&T is another way to write it\.
+AT&T is another way to write it.
 .PP
-This & that\.
+This & that.
 .PP
-4 < 5\.
+4 < 5.
 .PP
-6 > 5\.
+6 > 5.
 .PP
 Backslash: \\
 .PP
@@ -628,7 +637,7 @@ Greater-than: >
 .PP
 Hash: #
 .PP
-Period: \.
+Period: \&.
 .PP
 Bang: !
 .PP
@@ -640,13 +649,13 @@ Minus: -
 .SH Links
 .SS Explicit
 .PP
-Just a URL (/url/)\.
+Just a URL (/url/).
 .PP
-URL and title (/url/)\.
+URL and title (/url/).
 .PP
-URL and title (/url/)\.
+URL and title (/url/).
 .PP
-URL and title (/url/)\.
+URL and title (/url/).
 .PP
 URL and title (/url/)
 .PP
@@ -656,45 +665,45 @@ with_underscore (/url/with_underscore)
 .PP
 Email link (mailto:nobody@nowhere.net)
 .PP
-Empty ()\.
+Empty ().
 .SS Reference
 .PP
-Foo bar (/url/)\.
+Foo bar (/url/).
 .PP
-Foo bar (/url/)\.
+Foo bar (/url/).
 .PP
-Foo bar (/url/)\.
+Foo bar (/url/).
 .PP
-With embedded [brackets] (/url/)\.
+With embedded [brackets] (/url/).
 .PP
-b (/url/) by itself should be a link\.
+b (/url/) by itself should be a link.
 .PP
-Indented once (/url)\.
+Indented once (/url).
 .PP
-Indented twice (/url)\.
+Indented twice (/url).
 .PP
-Indented thrice (/url)\.
+Indented thrice (/url).
 .PP
-This should [not][] be a link\.
+This should [not][] be a link.
 .PP
 \f[CR]
       [not]:\ /url
 \f[]
 .PP
-Foo bar (/url/)\.
+Foo bar (/url/).
 .PP
-Foo biz (/url/)\.
+Foo biz (/url/).
 .SS With ampersands
 .PP
 Here's a
-link with an ampersand in the URL (http://example.com/?foo=1&bar=2)\.
+link with an ampersand in the URL (http://example.com/?foo=1&bar=2).
 .PP
 Here's a link with an amersand in the link text:
-AT&T (http://att.com/)\.
+AT&T (http://att.com/).
 .PP
-Here's an inline link (/script?foo=1&bar=2)\.
+Here's an inline link (/script?foo=1&bar=2).
 .PP
-Here's an inline link in pointy braces (/script?foo=1&bar=2)\.
+Here's an inline link in pointy braces (/script?foo=1&bar=2).
 .SS Autolinks
 .PP
 With an ampersand: <http://example.com/?foo=1&bar=2>
@@ -703,7 +712,7 @@ In a list?
 .IP \[bu] 2
 <http://example.com/>
 .IP \[bu] 2
-It should\.
+It should.
 .PP
 An e-mail address: <nobody@nowhere.net>
 .RS
@@ -711,10 +720,10 @@ An e-mail address: <nobody@nowhere.net>
 Blockquoted: <http://example.com/>
 .RE
 .PP
-Auto-links should not occur here: \f[B]<http://example\.com/>\f[]
+Auto-links should not occur here: \f[B]<http://example.com/>\f[]
 .PP
 \f[CR]
-      or\ here:\ <http://example\.com/>
+      or\ here:\ <http://example.com/>
 \f[]
 .PP
    *   *   *   *   *
@@ -724,56 +733,58 @@ From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
 .PP
 [IMAGE: lalune (lalune.jpg)]
 .PP
-Here is a movie [IMAGE: movie (movie.jpg)] icon\.
+Here is a movie [IMAGE: movie (movie.jpg)] icon.
 .PP
    *   *   *   *   *
 .SH Footnotes
 .PP
-Here is a footnote reference,[1] and another\.[2] This should
+Here is a footnote reference,[1] and another.[2] This should
 \f[I]not\f[] be a footnote reference, because it contains a
-space\.[^my note] Here is an inline note\.[3]
+space.[^my note] Here is an inline note.[3]
 .RS
 .PP
-Notes can go in quotes\.[4]
+Notes can go in quotes.[4]
 .RE
 .IP "1." 3
-And in list items\.[5]
+And in list items.[5]
 .PP
 This paragraph should not be part of the note, as it is not
-indented\.
+indented.
 .SH NOTES
 
 .SS [1]
 .PP
-Here is the footnote\. It can go anywhere after the footnote
-reference\. It need not be placed at the end of the document\.
+Here is the footnote.
+It can go anywhere after the footnote reference.
+It need not be placed at the end of the document.
 
 .SS [2]
 .PP
-Here's the long note\. This one contains multiple blocks\.
+Here's the long note.
+This one contains multiple blocks.
 .PP
 Subsequent blocks are indented to show that they belong to the
-footnote (as with list items)\.
+footnote (as with list items).
 .PP
 \f[CR]
       \ \ {\ <code>\ }
 \f[]
 .PP
 If you want, you can indent every line, but you can also be lazy
-and just indent the first line of each block\.
+and just indent the first line of each block.
 
 .SS [3]
 .PP
-This is \f[I]easier\f[] to type\. Inline notes may contain
-links (http://google.com) and \f[B]]\f[] verbatim characters, as
-well as [bracketed text]\.
+This is \f[I]easier\f[] to type.
+Inline notes may contain links (http://google.com) and \f[B]]\f[]
+verbatim characters, as well as [bracketed text].
 
 .SS [4]
 .PP
-In quote\.
+In quote.
 
 .SS [5]
 .PP
-In list\.
+In list.
 .SH AUTHORS
 John MacFarlane, Anonymous

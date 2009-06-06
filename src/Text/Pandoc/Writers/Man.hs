@@ -35,6 +35,7 @@ import Text.Printf ( printf )
 import Data.List ( isPrefixOf, drop, nub, intersperse, intercalate )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
+import Control.Monad ( liftM )
 
 type Notes = [[Block]]
 type Preprocessors = [String] -- e.g. "t" for tbl
@@ -100,7 +101,7 @@ noteToMan opts num note = do
 
 -- | Association list of characters to escape.
 manEscapes :: [(Char, String)]
-manEscapes = [('\160', "\\ "), ('\'', "\\[aq]")] ++ backslashEscapes ".@\\"
+manEscapes = [('\160', "\\ "), ('\'', "\\[aq]")] ++ backslashEscapes "@\\"
 
 -- | Escape special characters for Man.
 escapeString :: String -> String
@@ -110,15 +111,43 @@ escapeString = escapeStringUsing manEscapes
 escapeCode :: String -> String
 escapeCode = escapeStringUsing (manEscapes ++ backslashEscapes "\t ")
 
+-- We split inline lists into sentences, and print one sentence per
+-- line.  groff/troff treats the line-ending period differently.
+-- See http://code.google.com/p/pandoc/issues/detail?id=148.
+
+-- | Returns the first sentence in a list of inlines, and the rest.
+breakSentence :: [Inline] -> ([Inline], [Inline])
+breakSentence [] = ([],[])
+breakSentence xs =
+  let isSentenceEndInline (Str ".") = True
+      isSentenceEndInline (Str "?") = True
+      isSentenceEndInline _         = False
+      (as, bs) = break isSentenceEndInline xs
+  in  case bs of
+           []             -> (as, [])
+           [c]            -> (as ++ [c], [])
+           (c:Space:cs)   -> (as ++ [c], cs)
+           (Str ".":Str ")":cs) -> (as ++ [Str ".", Str ")"], cs)
+           (c:cs)         -> (as ++ [c] ++ ds, es)
+              where (ds, es) = breakSentence cs
+
+-- | Split a list of inlines into sentences.
+splitSentences :: [Inline] -> [[Inline]]
+splitSentences xs =
+  let (sent, rest) = breakSentence xs
+  in  if null rest then [sent] else sent : splitSentences rest
+
 -- | Convert Pandoc block element to man.
 blockToMan :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
                 -> State WriterState Doc 
 blockToMan _ Null = return empty
 blockToMan opts (Plain inlines) = 
-  wrapIfNeeded opts (inlineListToMan opts) inlines
+  liftM vcat $ mapM (wrapIfNeeded opts (inlineListToMan opts)) $
+    splitSentences inlines
 blockToMan opts (Para inlines) = do
-  contents <- wrapIfNeeded opts (inlineListToMan opts) inlines
+  contents <- liftM vcat $ mapM (wrapIfNeeded opts (inlineListToMan opts)) $
+    splitSentences inlines
   return $ text ".PP" $$ contents 
 blockToMan _ (RawHtml str) = return $ text str
 blockToMan _ HorizontalRule = return $ text $ ".PP\n   *   *   *   *   *"
@@ -237,6 +266,10 @@ blockListToMan opts blocks =
 
 -- | Convert list of Pandoc inline elements to man.
 inlineListToMan :: WriterOptions -> [Inline] -> State WriterState Doc
+-- if list starts with ., insert a zero-width character \& so it
+-- won't be interpreted as markup if it falls at the beginning of a line.
+inlineListToMan opts lst@(Str "." : _) = mapM (inlineToMan opts) lst >>=
+  (return . (text "\\&" <>)  . hcat)
 inlineListToMan opts lst = mapM (inlineToMan opts) lst >>= (return . hcat)
 
 -- | Convert Pandoc inline element to man.
