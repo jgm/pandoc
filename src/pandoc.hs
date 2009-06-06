@@ -584,7 +584,7 @@ main = do
                               stateCitations       = map citeKey refs,
 #endif
                               stateSmart           = smart || writerName' `elem`
-                                                              ["latex", "context"],
+                                                              ["latex", "context", "man"],
                               stateColumns         = columns,
                               stateStrict          = strict }
   let csslink = if null css
