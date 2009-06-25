@@ -238,9 +238,8 @@ Executable markdown2pdf
   Ghc-Options:        -Wall -threaded
   Ghc-Prof-Options:   -auto-all
   Extensions:         CPP, TemplateHaskell
-  Buildable:      False
---  if flag(wrappers)
---    Buildable:      True
---  else
---    Buildable:      False
+  if flag(wrappers)
+    Buildable:      True
+  else
+    Buildable:      False
 

@@ -171,17 +171,19 @@ main = bracket
                filter (\l -> any (`isInfixOf` l) goodoptsLong) $ lines out
       exitWith code
     -- parse arguments
+    -- if no input given, use 'stdin'
     pandocArgs <- parsePandocArgs args
-    (inputs, output) <- case pandocArgs of
-      Nothing     -> exit "Could not parse arguments"
+    (input, output) <- case pandocArgs of
+      Nothing      -> exit "Could not parse arguments"
       Just ([],out) -> do
         stdinFile <- saveStdin (replaceDirectory (takeBaseName out) tmp)
         case stdinFile of
           Left err  -> exit err
           Right f   -> return ([f], out)
-      Just (fs,out) -> return (fs, out)
+      -- no need because we'll pass all arguments to pandoc
+      Just (_ ,out) -> return ([], out)
     -- run pandoc
-    pandocRes <- runPandoc (args ++ inputs) $ replaceDirectory output tmp
+    pandocRes <- runPandoc (input ++ args) $ replaceDirectory output tmp
     case pandocRes of
       Left err -> exit err
       Right texFile  -> do
