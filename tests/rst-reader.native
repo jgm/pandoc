@@ -234,5 +234,8 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
 , Header 1 [Str "Comments"]
 , Para [Str "First",Space,Str "paragraph"]
 , Para [Str "Another",Space,Str "paragraph"]
-, Para [Str "A",Space,Str "third",Space,Str "paragraph"] ]
+, Para [Str "A",Space,Str "third",Space,Str "paragraph"]
+, Header 1 [Str "Line",Space,Str "blocks"]
+, Para [Str "But",Space,Str "can",Space,Str "a",Space,Str "bee",Space,Str "be",Space,Str "said",Space,Str "to",Space,Str "be",LineBreak,Str "    ",Str "or",Space,Str "not",Space,Str "to",Space,Str "be",Space,Str "an",Space,Str "entire",Space,Str "bee,",LineBreak,Str "        ",Str "when",Space,Str "half",Space,Str "the",Space,Str "bee",Space,Str "is",Space,Str "not",Space,Str "a",Space,Str "bee,",LineBreak,Str "            ",Str "due",Space,Str "to",Space,Str "some",Space,Str "ancient",Space,Str "injury?"]
+, Para [Str "Continuation",Space,Str "line",LineBreak,Str "  ",Str "and",Space,Str "another"] ]
 

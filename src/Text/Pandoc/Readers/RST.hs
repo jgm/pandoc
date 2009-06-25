@@ -125,8 +125,8 @@ block = choice [ codeBlock
                , unknownDirective
                , header
                , hrule
+               , lineBlock     -- must go before definitionList
                , list
-               , lineBlock
                , lhsCodeBlock
                , para
                , plain
@@ -183,14 +183,15 @@ lineBlockLine :: GenParser Char ParserState [Inline]
 lineBlockLine = try $ do
   string "| "
   white <- many (oneOf " \t")
-  line <- manyTill inline newline
-  return $ (if null white then [] else [Str white]) ++ line ++ [LineBreak]
+  line <- many $ (notFollowedBy newline >> inline) <|> (try $ endline >>~ char ' ')
+  optional endline
+  return $ normalizeSpaces $ (if null white then [] else [Str white]) ++ line
 
 lineBlock :: GenParser Char ParserState Block
 lineBlock = try $ do
   lines' <- many1 lineBlockLine
   blanklines
-  return $ Para (concat lines')
+  return $ Para (intercalate [LineBreak] lines')
 
 --
 -- paragraph block

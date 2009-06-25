@@ -428,3 +428,16 @@ Another paragraph
 
 A third paragraph
 
+Line blocks
+===========
+
+| But can a bee be said to be
+|     or not to be an entire bee,
+|         when half the bee is not a bee,
+|             due to some ancient injury?
+
+| Continuation
+ line
+|   and
+       another
+
