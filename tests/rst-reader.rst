@@ -242,6 +242,11 @@ Autonumbering:
     
     #. Nested.
 
+Autonumbering with explicit start:
+
+(d)  item 1
+(#)  item 2
+
 Definition
 ----------
 

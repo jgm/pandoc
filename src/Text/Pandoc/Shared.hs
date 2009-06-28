@@ -612,8 +612,9 @@ orderedListMarker :: ListNumberStyle
                   -> ListNumberDelim 
                   -> GenParser Char st Int
 orderedListMarker style delim = do
-  let num = case style of
-               DefaultStyle -> decimal <|> defaultNum
+  let num = defaultNum <|>  -- # can continue any kind of list
+            case style of
+               DefaultStyle -> decimal
                Decimal      -> decimal
                UpperRoman   -> upperRoman
                LowerRoman   -> lowerRoman

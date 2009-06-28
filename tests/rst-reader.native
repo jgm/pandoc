@@ -146,6 +146,10 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
     , OrderedList (1,DefaultStyle,DefaultDelim)
       [ [ Plain [Str "Nested."] ]
      ] ] ]
+, Para [Str "Autonumbering",Space,Str "with",Space,Str "explicit",Space,Str "start",Str ":"]
+, OrderedList (4,LowerAlpha,TwoParens)
+  [ [ Plain [Str "item",Space,Str "1"] ]
+  , [ Plain [Str "item",Space,Str "2"] ] ]
 , Header 2 [Str "Definition"]
 , DefinitionList
   [  ([Str "term",Space,Str "1"],
