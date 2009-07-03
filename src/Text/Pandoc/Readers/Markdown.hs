@@ -362,7 +362,7 @@ attribute = identifierAttr <|> classAttr <|> keyValAttr
 identifier :: GenParser Char st [Char]
 identifier = do
   first <- letter
-  rest <- many alphaNum
+  rest <- many $ alphaNum <|> oneOf "-_:."
   return (first:rest)
 
 identifierAttr :: GenParser Char st ([Char], [a], [a1])
