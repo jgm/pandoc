@@ -22,7 +22,7 @@ runTestSuite _ _ _ _ = do
   (outputPath, hOut) <- openTempFile tempPath "out"
   runProcess "pandoc" ["--version"] Nothing Nothing Nothing (Just hOut) Nothing >>= waitForProcess
   output <- readFile outputPath
-  let highlightingSupport = "+highlighting" `isInfixOf` output
+  let highlightingSupport = "with syntax highlighting" `isInfixOf` output
   let testArgs = if highlightingSupport then ["lhs"] else []
   let testCmd  = "runhaskell -i.. RunTests.hs " ++ unwords testArgs
   inDirectory "tests" $ runCommand testCmd >>= waitForProcess >>= exitWith
