@@ -33,7 +33,9 @@ import Text.Pandoc.XML
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
 import Data.List ( isPrefixOf, drop, intercalate )
+import Data.Char ( toLower )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
+import Text.Pandoc.Highlighting (languages, languagesByExtension)
 
 -- | Convert list of authors to a docbook <author> section
 authorToDocbook :: [Char] -> Doc
@@ -129,8 +131,18 @@ blockToDocbook opts (Plain lst) = wrap opts lst
 blockToDocbook opts (Para lst) = inTagsIndented "para" $ wrap opts lst
 blockToDocbook opts (BlockQuote blocks) =
   inTagsIndented "blockquote" $ blocksToDocbook opts blocks
-blockToDocbook _ (CodeBlock _ str) = 
-  text "<screen>\n" <> text (escapeStringForXML str) <> text "\n</screen>"
+blockToDocbook _ (CodeBlock (_,classes,_) str) = 
+  text ("<screen" ++ lang ++ ">\n") <>
+     text (escapeStringForXML str) <> text "\n</screen>"
+    where lang  = if null langs
+                     then ""
+                     else " language=\"" ++ escapeStringForXML (head langs) ++
+                          "\""
+          isLang l    = map toLower l `elem` map (map toLower) languages
+          langsFrom s = if isLang s
+                           then [s]
+                           else languagesByExtension . map toLower $ s
+          langs       = concatMap langsFrom classes
 blockToDocbook opts (BulletList lst) = 
   inTagsIndented "itemizedlist" $ listItemsToDocbook opts lst 
 blockToDocbook _ (OrderedList _ []) = empty 
