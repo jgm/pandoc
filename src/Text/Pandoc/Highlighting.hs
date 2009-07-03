@@ -29,11 +29,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Exports functions for syntax highlighting.
 -}
 
-module Text.Pandoc.Highlighting ( languages, highlightHtml, defaultHighlightingCss ) where
+module Text.Pandoc.Highlighting ( languages, highlightHtml, defaultHighlightingCss, languagesByExtension ) where
 import Text.XHtml
 import Text.Pandoc.Definition
 #ifdef _HIGHLIGHTING
-import Text.Highlighting.Kate ( languages, highlightAs, formatAsXHtml, FormatOption (..), defaultHighlightingCss )
+import Text.Highlighting.Kate ( languages, highlightAs, formatAsXHtml, FormatOption (..), defaultHighlightingCss, languagesByExtension )
 import Data.List (find, lookup)
 import Data.Maybe (fromMaybe)
 import Data.Char (toLower)
@@ -58,6 +58,9 @@ defaultHighlightingCss = ""
 
 languages :: [String]
 languages = []
+
+languagesByExtension :: String -> [String]
+languagesByExtension _ = []
 
 highlightHtml :: Attr -> String -> Either String Html
 highlightHtml _ _ = Left "Pandoc was not compiled with support for highlighting"
