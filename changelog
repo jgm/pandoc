@@ -1,3 +1,91 @@
+pandoc (1.2.1)
+
+  [ John MacFarlane ]
+
+  * Fixed regression with --preserveTabs. Brought back optPreserveTabs.
+    The trick of setting tabStop to 0 to mean "preserve tabs" had a bad
+    side effect: strings of 0 spaces were interpreted as indentation.
+    So, with --preserve-tabs, unindented paragraphs were treated as
+    code. Resolves Issue #138.
+
+  * HTML writer:  wrap sections in divs.  Resolves Issue #70.
+
+    + hierarchicalize has been rationalized; it builds a hierarchical
+      representation of the document from the headers, and simultaneously
+      gives each section a unique identifier based on the heading title.
+    + Identifiers are now attached to the divs rather than
+      to the headers themselves.
+    + Table of content backlinks go to the beginning of the table, rather
+      than to the section reference that was clicked.
+    + Code for constructing identifiers has been moved to Text.Pandoc.Shared
+      from the HTML writer, since it is now consumed only by
+      hierarchicalize.
+    + In --strict mode, pandoc just prints bare headings, as before
+      (unless --toc has been specified).
+    + In s5 output, it does not wrap sections in divs, as that seems to
+      confuse the s5 javascript.
+
+  * Man writer: break lines at end of each sentence. groff expects this
+    and treats '.' and '?' differently when followed by line ending as
+    opposed to ordinary space. Also, don't escape periods. Instead, use
+    zero-width character \& to avoid unwanted interpretation of periods
+    at start of line. Resolves Issue #148.
+
+  * Make --smart the default for man output format. Otherwise we have
+    trouble dividing lists of endlines into sentences.
+
+  * DocBook writer: Use language attribute to indicate source language
+    in code blocks.
+
+  * RST reader:
+
+    + Allow # to continue list, even if the list was started with an
+      explicit marker. For example:
+
+        A. my list
+		#. continued
+
+      Resolves Issue #140.
+    + Allow continuation lines in line blocks. Also added test cases for
+      line blocks for RST reader. Resolves Issue #149.
+    + Allow explicit links with spaces in URL: `link <to this>`_
+
+  * Improved LaTeX reader's coverage of math modes. Remove displaymath*
+    (which is not in LaTeX) and recognize all the amsmath environments
+    that are alternatives to eqnarray, namely equation, equation*,
+    gather, gather*, gathered, multline, multline*, align, align*,
+    alignat, alignat*, aligned, alignedat, split. Resolves Issue #103.
+    Thanks to shreevatsa.public for the patch.
+
+  * Markdown reader:
+
+    + Allow -, _, :, . in markdown attribute names. These are legal in
+      XML attribute names.
+    + Use non-breaking spaces in abbreviations.
+    + Markdown reader: improved efficiency of abbreviation parsing.
+      Instead of a separate abbrev parser, we just check for
+      abbreviations each time we parse a string. This gives a huge
+      performance boost with -S. Resolves Issue #141.
+
+  * Improved efficiency of shared parsers:  hexNum, htmlComment,
+    whitespace, indentSpaces.
+
+  * Export HTMLMathMethod in Text.Pandoc.
+
+  * Export languagesByExtension in Text.Pandoc.Highlighting.
+
+  * Added new Haskell version of markdown2pdf, due to
+    Paulo Tanimoto.  This should be more portable than the old
+	shell script.
+
+  * Made 'pandoc -v' more explicit about compiler options.
+    Resolves Issue #139.
+
+  * pandoc.hs:  Made --strict compatible with --standalone, --toc.
+
+  * Use Paths_pandoc to get version number, instead of hard-coding it
+    into Text/Pandoc.hs.
+
 pandoc (1.2)
 
   [ John MacFarlane ]
@@ -114,7 +202,7 @@ pandoc (1.1)
       Added rawVerbatimBlock parser.  Resolves Issue #94.
 
   * Markdown reader:
-  
+
     + Allow URLs with spaces in them in links and references, but escape
       them as "%20".
     + Allow blank space at the end of horizontal rules.
