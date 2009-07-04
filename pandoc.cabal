@@ -155,7 +155,7 @@ Library
                  bytestring >= 0.9, zip-archive >= 0.1.1,
                  utf8-string >= 0.3, old-time >= 1
   if impl(ghc >= 6.10)
-    Build-depends: base >= 4, syb
+    Build-depends: base >= 4 && < 5, syb
   else
     Build-depends: base >= 3 && < 4
   if flag(highlighting)
