@@ -274,7 +274,7 @@ For further documentation, see the `pandoc(1)` man page.
 `-C` or `--custom-header` *filename*
 :   can be used to specify a custom document header. To see the headers
     used by default, use the `-D` option: for example, `pandoc -D html`
-    prints the default HTML header.
+    prints the default HTML header.  Implies `--standalone`.
 
 `--toc` or `--table-of-contents`
 :   includes an automatically generated table of contents (or, in the
@@ -286,13 +286,14 @@ For further documentation, see the `pandoc(1)` man page.
 :   allows the user to specify a custom stylesheet that will be linked to
     in HTML and S5 output.  This option can be used repeatedly to include
     multiple stylesheets. They will be included in the order specified.
+    Implies `--standalone`.
 
 `-H` or `--include-in-header` *filename*
 :   includes the contents of *filename* (verbatim) at the end of the
     document header. This can be used, for example, to include special
     CSS or javascript in HTML documents.  This option can be used
     repeatedly to include multiple files in the header.  They will be
-    included in the order specified.
+    included in the order specified.  Implies `--standalone`.
 
 `-B` or `--include-before-body` *filename*
 :   includes the contents of *filename* (verbatim) at the beginning of
@@ -313,7 +314,7 @@ For further documentation, see the `pandoc(1)` man page.
 :   includes *string* as a prefix at the beginning of the title that
     appears in the HTML header (but not in the title as it appears at
     the beginning of the HTML body). (See below on
-    [Title Blocks](#title-blocks).)
+    [Title Blocks](#title-blocks).)  Implies `--standalone`.
 
 `-S` or `--smart`
 :   causes `pandoc` to produce typographically correct output, along the
