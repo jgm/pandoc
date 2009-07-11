@@ -1068,7 +1068,7 @@ that they may be cached. The best approach in this case is to use pandoc
 without the `-s` option to produce the body of the S5 document, which
 can then be inserted into an HTML template that links to the javascript
 and CSS files required by S5. (See the instructions on the S5 website.)
-Alternatively, you may use `-s` together with the `-H/--custom-header`
+Alternatively, you may use `-s` together with the `-C/--custom-header`
 option.
 
 Literate Haskell support
