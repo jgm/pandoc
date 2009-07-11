@@ -1011,7 +1011,7 @@ default headers used for html and latex, use the following commands:
 If you want to use a different header, just create a file containing
 it and specify it on the command line as follows:
 
-	pandoc --header=MyHeaderFile
+	pandoc --custom-header=MyHeaderFile
 
 Producing S5 with Pandoc
 ========================
