@@ -75,14 +75,12 @@ promoteHeaders _   [] = []
 -- promote all the other headers. 
 titleTransform :: [Block]              -- ^ list of blocks
                -> ([Block], [Inline])  -- ^ modified list of blocks, title
-titleTransform ((Header 1 head1):(Header 2 head2):rest) =  -- title subtitle
-    if (any (isHeader 1) rest) || (any (isHeader 2) rest)
-       then ((Header 1 head1):(Header 2 head2):rest, [])
-       else ((promoteHeaders 2 rest), head1 ++ [Str ":", Space] ++ head2)
-titleTransform ((Header 1 head1):rest) =       -- title, no subtitle
-    if (any (isHeader 1) rest)
-       then ((Header 1 head1):rest, [])
-       else ((promoteHeaders 1 rest), head1)
+titleTransform ((Header 1 head1):(Header 2 head2):rest) |
+   not (any (isHeader 1) rest || any (isHeader 2) rest) =  -- both title & subtitle
+   (promoteHeaders 2 rest, head1 ++ [Str ":", Space] ++ head2)
+titleTransform ((Header 1 head1):rest) |
+   not (any (isHeader 1) rest) =  -- title, no subtitle
+   (promoteHeaders 1 rest, head1)
 titleTransform blocks = (blocks, [])
 
 parseRST :: GenParser Char ParserState Pandoc
