@@ -734,6 +734,9 @@ is treated as code.  No indentation is necessary:
     {code here}
     ~~~~~~~
 
+Like regular code blocks, delimited code blocks must be separated
+from surrounding text by blank lines.
+
 If the code itself contains a row of tildes, just use a longer
 row of tildes at the start and end:
 
