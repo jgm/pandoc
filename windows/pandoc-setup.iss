@@ -7,7 +7,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{3CEE7B38-B19D-4980-9CAD-DF53600BD4CA}
 AppName=Pandoc
-AppVerName=Pandoc 1.1
+AppVerName=Pandoc 1.2.1
 AppPublisher=John MacFarlane
 AppPublisherURL=http://johnmacfarlane.net/pandoc/
 AppSupportURL=http://johnmacfarlane.net/pandoc/
@@ -15,7 +15,7 @@ AppUpdatesURL=http://johnmacfarlane.net/pandoc/
 DefaultDirName={code:DefDirRoot}\Pandoc
 DefaultGroupName=Pandoc
 AllowNoIcons=yes
-LicenseFile=C:\Documents and Settings\John MacFarlane\My Documents\src\pandoc\COPYING.txt
+LicenseFile="..\COPYING.txt"
 OutputBaseFilename=setup
 Compression=lzma
 SolidCompression=yes
