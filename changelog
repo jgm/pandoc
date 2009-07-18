@@ -31,6 +31,10 @@ pandoc (1.2.1)
     zero-width character \& to avoid unwanted interpretation of periods
     at start of line. Resolves Issue #148.
 
+  * Markdown writer:  Added '#' and '>' to list of characters to be
+    escaped in markdown output.  Removed '<', as it is not an officially
+    escapable character. This partially resolves Issue #96.
+
   * Make --smart the default for man output format. Otherwise we have
     trouble dividing lists of endlines into sentences.
 
