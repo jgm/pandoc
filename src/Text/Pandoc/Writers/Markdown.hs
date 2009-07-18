@@ -102,7 +102,7 @@ noteToMarkdown opts num blocks = do
 -- | Escape special characters for Markdown.
 escapeString :: String -> String
 escapeString = escapeStringUsing markdownEscapes
-  where markdownEscapes = backslashEscapes "`<\\*_^~"
+  where markdownEscapes = backslashEscapes "\\`*_>#~^"
 
 -- | Convert bibliographic information into Markdown header.
 metaToMarkdown :: WriterOptions -> Meta -> State WriterState Doc

@@ -72,7 +72,7 @@ E-mail style:
 > 
 > > nested
 
-This should not be a block quote: 2 > 1.
+This should not be a block quote: 2 \> 1.
 
 And a following paragraph.
 
@@ -537,9 +537,9 @@ AT&T is another way to write it.
 
 This & that.
 
-4 \< 5.
+4 < 5.
 
-6 > 5.
+6 \> 5.
 
 Backslash: \\
 
@@ -561,9 +561,9 @@ Left paren: (
 
 Right paren: )
 
-Greater-than: >
+Greater-than: \>
 
-Hash: #
+Hash: \#
 
 Period: .
 
