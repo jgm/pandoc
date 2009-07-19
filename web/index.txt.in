@@ -50,7 +50,6 @@ or [try pandoc on the web](/pandoc/try).
 # Documentation
 
 - [User's Guide](README.html)
-- [Demonstrations](examples.html)
 - Man pages
     - [`pandoc(1)`](pandoc.1.html)
     - [`markdown2pdf(1)`](markdown2pdf.1.html)
@@ -59,6 +58,11 @@ or [try pandoc on the web](/pandoc/try).
 - [Library documentation](doc/pandoc/index.html) (for Haskell programmers)
 - [Installation instructions](INSTALL.html)
 - [Changelog](changelog.txt)
+
+# Demonstrations
+
+- [Examples](examples.html)
+- [Try pandoc online](http://johnmacfarlane.net/pandoc/try)
 
 # Downloads
 
@@ -76,6 +80,9 @@ most recent.
 - [vim syntax file for pandoc], courtesy of tao_zhyn
 - [WordPress EasyFilter], by Yang Zhang, makes it easy to use pandoc
   with WordPress blogs.
+- [a build configuration for Pandoc that produces a standalone C-callable
+  system library](http://github.com/toyvo/libpandoc/tree/master),
+  by Anton Tayanovskyy.
 
 # Code repository
 
@@ -96,6 +103,20 @@ You may view existing bug reports and submit new ones at
 - [pandoc-discuss]:  General discussion of pandoc.
 
 # News
+
+-   Version 1.2.1 release (July 18, 2009).
+
+    + Improved the efficiency of the markdown reader's
+      abbreviation parsing (should give a big performance
+      boost with --smart).
+    + HTML writer now wraps sections in divs with unique
+      identifiers, for easier manipulation.
+    + Improved LaTeX reader's coverage of math modes.
+    + Added a portable Haskell version of markdown2pdf (thanks
+      to Paolo Tanimoto).
+    + Made --strict compatible with --standalone and --toc.
+    + Many other small improvements and bug fixes.
+      See [changelog] for details.
 
 -   Version 1.2 release (March 1, 2009).
 
