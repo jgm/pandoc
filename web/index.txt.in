@@ -64,16 +64,28 @@ or [try pandoc on the web](/pandoc/try).
 - [Examples](examples.html)
 - [Try pandoc online](http://johnmacfarlane.net/pandoc/try)
 
-# Downloads
+# Installing pandoc
 
-For installation instructions for all architectures, see
-[INSTALL](INSTALL.html). Pandoc is in the [MacPorts], [Debian],
-[Ubuntu], [Slackware], [Arch], [NetBSD], and [FreeBSD ports] repositories.
-Note that the version of pandoc in these repositories may not be the
-most recent.
+Pandoc is in the [MacPorts], [Debian], [Ubuntu], [Slackware], [Arch],
+[NetBSD], and [FreeBSD ports] repositories. Note that the version of
+pandoc in these repositories may not be the most recent.  There
+is also a [Windows installer].
 
-- [Source tarball]
-- [Windows installer]
+If an up-to-date package is not available for your system, an
+excellent way to install the latest release of pandoc is to
+install the [Haskell platform] on your system, then use the `cabal`
+tool:
+
+    cabal install pandoc
+
+This will download and compile pandoc and all of its dependencies. If
+you want syntax highlighting support, add the flag `-fhighlighting`
+(this requires that the [pcre](http://www.pcre.org/) library be
+installed). If you want to install the wrapper scripts `hsmarkdown` and
+`markdown2pdf`, add `-fwrappers`.
+
+Alternatively, you can download the [source tarball] and
+follow the instructions in [INSTALL](INSTALL.html).
 
 # Extras
 
@@ -229,4 +241,5 @@ Pandoc carries no warranties of any kind.
 [vim syntax file for pandoc]: http://www.vim.org/scripts/script.php?script_id=2389
 [jsMath]: http://www.math.union.edu/~dpvc/jsMath/
 [WordPress EasyFilter]: http://assorted.sourceforge.net/wp-easy-filter/
+[Haskell platform]: http://hackage.haskell.org/platform/
 
