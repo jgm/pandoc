@@ -1,6 +1,6 @@
 module Main where
 
-import Data.List (isInfixOf, intercalate, (\\))
+import Data.List (isInfixOf, intercalate, isPrefixOf)
 import Data.Maybe (isNothing)
 
 import Control.Monad (when, unless, guard)
@@ -155,21 +155,26 @@ main = bracket
     unless (null miss) $ exit $! "Could not find " ++ intercalate ", " miss
     args <- getArgs
     -- check for invalid arguments and print help message if needed
-    let goodopts = ["-f","-r","--from","--read","--strict","-N",
-                   "-p","--preserve-tabs","--tab-stop","-R","--parse-raw",
+    let goodopts = ["-f","-r","-N", "-p","-R","-H","-B","-A", "-C","-o"]
+    let goodoptslong = ["--from","--read","--strict",
+                   "--preserve-tabs","--tab-stop","--parse-raw",
                    "--toc","--table-of-contents",
-                   "--number-sections","-H","--include-in-header",
-                   "-B","--include-before-body","-A","--include-after-body",
-                   "-C","--custom-header","-o","--output"]
-    let goodoptsLong = filter (\op -> length op > 2) goodopts
+                   "--number-sections","--include-in-header",
+                   "--include-before-body","--include-after-body",
+                   "--custom-header","--output"]
     let isOpt ('-':_) = True
         isOpt _       = False
-    unless (null (filter isOpt args \\ goodopts)) $ do
+    let opts = filter isOpt args
+    -- note that a long option can come in this form: --opt=val
+    let isGoodopt x = x `elem` (goodopts ++ goodoptslong) ||
+                      any (\o -> (o ++ "=") `isPrefixOf` x) goodoptslong
+    unless (all isGoodopt opts) $ do
       (code, out, _err) <- readProcessWithExitCode "pandoc" ["--help"] ""
       putStrLn "markdown2pdf [OPTIONS] [FILES]\nOptions:"
       putStr $ unlines $
-               filter (\l -> any (`isInfixOf` l) goodoptsLong) $ lines out
+               filter (\l -> any (`isInfixOf` l) goodoptslong) $ lines out
       exitWith code
+
     -- parse arguments
     -- if no input given, use 'stdin'
     pandocArgs <- parsePandocArgs args
