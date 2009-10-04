@@ -42,7 +42,7 @@ import Data.List ( isPrefixOf, isSuffixOf )
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ParserState   -- ^ Parser state, including options for parser
-          -> String        -- ^ String to parse
+          -> String        -- ^ String to parse (assumes @'\n'@ line endings)
           -> Pandoc
 readLaTeX = readWith parseLaTeX
 

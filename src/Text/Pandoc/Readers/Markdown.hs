@@ -48,7 +48,9 @@ import Text.ParserCombinators.Parsec
 import Control.Monad (when)
 
 -- | Read markdown from an input string and return a Pandoc document.
-readMarkdown :: ParserState -> String -> Pandoc
+readMarkdown :: ParserState -- ^ Parser state, including options for parser
+             -> String      -- ^ String to parse (assuming @'\n'@ line endings)
+             -> Pandoc
 readMarkdown state s = (readWith parseMarkdown) state (s ++ "\n\n")
 
 --

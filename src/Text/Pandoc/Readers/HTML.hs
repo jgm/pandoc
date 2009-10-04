@@ -52,7 +52,7 @@ import Network.URI ( parseURIReference, URI (..) )
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: ParserState   -- ^ Parser state
-         -> String        -- ^ String to parse
+         -> String        -- ^ String to parse (assumes @'\n'@ line endings)
          -> Pandoc
 readHtml = readWith parseHtml
 

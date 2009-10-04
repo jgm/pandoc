@@ -35,7 +35,8 @@ import Text.ParserCombinators.Parsec
 import Text.Pandoc.Definition
 
 -- | Converts a string of raw TeX math to a list of 'Pandoc' inlines. 
-readTeXMath :: String -> [Inline]
+readTeXMath :: String    -- ^ String to parse (assumes @'\n'@ line endings)
+            -> [Inline]
 readTeXMath inp = case parse teXMath ("formula: " ++ inp) inp of
    Left _    -> [Str inp]  -- if unparseable, just include original
    Right res -> res

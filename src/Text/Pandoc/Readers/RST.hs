@@ -37,7 +37,9 @@ import Control.Monad ( when )
 import Data.List ( findIndex, delete, intercalate )
 
 -- | Parse reStructuredText string and return Pandoc document.
-readRST :: ParserState -> String -> Pandoc
+readRST :: ParserState -- ^ Parser state, including options for parser
+        -> String      -- ^ String to parse (assuming @'\n'@ line endings)
+        -> Pandoc
 readRST state s = (readWith parseRST) state (s ++ "\n\n")
 
 --
