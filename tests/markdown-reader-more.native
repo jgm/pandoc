@@ -13,5 +13,7 @@ Pandoc (Meta [] [] "")
 , HorizontalRule
 , Header 2 [Str "Raw",Space,Str "HTML",Space,Str "before",Space,Str "header"]
 , Plain [HtmlInline "<a>",HtmlInline "</a>"]
-, Header 3 [Str "my",Space,Str "header"] ]
+, Header 3 [Str "my",Space,Str "header"]
+, Header 2 [Str "$",Space,Str "in",Space,Str "math"]
+, Para [Math InlineMath "\\$2 + \\$3"] ]
 

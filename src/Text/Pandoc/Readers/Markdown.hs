@@ -45,7 +45,7 @@ import Text.Pandoc.Readers.HTML ( rawHtmlBlock, anyHtmlBlockTag,
                                   htmlBlockElement, unsanitaryURI )
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.ParserCombinators.Parsec
-import Control.Monad (when)
+import Control.Monad (when, liftM)
 
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: ParserState -- ^ Parser state, including options for parser
@@ -897,8 +897,13 @@ code = try $ do
   return $ Code $ removeLeadingTrailingSpace $ concat result
 
 mathWord :: GenParser Char st [Char]
-mathWord = many1 ((noneOf " \t\n\\$") <|>
-                  (try (char '\\') >>~ notFollowedBy (char '$')))
+mathWord = liftM concat $ many1 mathChunk
+
+mathChunk :: GenParser Char st [Char]
+mathChunk = do char '\\'
+               c <- anyChar
+               return ['\\',c]
+        <|> many1 (noneOf " \t\n\\$")
 
 math :: GenParser Char ParserState Inline
 math = (mathDisplay >>= return . Math DisplayMath)
