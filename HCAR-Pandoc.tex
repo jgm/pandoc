@@ -1,8 +1,8 @@
 \begin{hcarentry}[updated]{Pandoc}
 \label{pandoc}
-\report{John MacFarlane}%05/09
+\report{John MacFarlane}%11/09
 \status{active development}
-\participants{Recai Okta\c{s}, Andrea Rossato, Peter Wang}
+\participants{Andrea Rossato, Peter Wang, Paulo Tanimoto}
 \makeheader
 
 Pandoc aspires to be the swiss army knife of text markup formats: it
@@ -12,14 +12,16 @@ DocBook XML, OpenDocument XML, ODT, RTF, groff man, MediaWiki markup,
 GNU Texinfo, LaTeX, ConTeXt, and S5.  Pandoc's markdown syntax includes
 extensions for LaTeX math, tables, definition lists, footnotes, and more.
 
-Since the last report, there have been two releases of pandoc (1.1 and 1.2),
-including many bug fixes and the following new features:
+Since the last report, there has been one release (1.2.1).
 \begin{itemize}
-  \item Support for literate Haskell.
-  \item New \texttt{--jsmath} and \texttt{--email-obfuscation} options.
-  \item Better CSS styling in HTML tables.
-  \item Windows installer no longer requires admin privileges.
-  \item Support for citeproc-hs-0.2.
+  \item Users may notice a significant speedup in reading markdown in
+    \verb!--smart! mode; the abbreviations parser has been made much more
+    efficient.
+  \item Default HTML output now wraps sections in divs with unique
+    identifiers.  This should aid manipulation using javascript and
+    other tools.
+  \item We have made some progress in replacing the old POSIX shell
+    script wrappers with more portable Haskell wrappers.
 \end{itemize}
 
 \FurtherReading
