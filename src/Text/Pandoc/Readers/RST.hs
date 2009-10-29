@@ -50,7 +50,7 @@ bulletListMarkers :: [Char]
 bulletListMarkers = "*+-"
 
 underlineChars :: [Char]
-underlineChars = "!\"#$&'()*+,-./:;<=>?@[\\]^_`{|}~"
+underlineChars = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
