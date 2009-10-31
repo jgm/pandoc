@@ -101,7 +101,7 @@ configure: $(BUILDCONF)
 $(BUILDCMD): Setup.hs
 	$(GHC) -package Cabal Setup.hs -o $(BUILDCMD)
 $(BUILDCONF): $(CABAL) $(CABAL_BACKUP) $(BUILDCMD) $(templates)
-	$(BUILDCMD) configure --prefix=$(PREFIX) --with-compiler=$(GHC) $(hc_pkg) $(CABALOPTS)
+	$(BUILDCMD) configure --prefix=$(PREFIX) --with-compiler=$(GHC) $(hc_pkg) $(CABALOPTS) -f-wrappers
 	@# Make configuration time settings persistent (definitely a hack).
 	@echo "PREFIX?=$(PREFIX)" >$(BUILDVARS)
 	@echo "DESTDIR?=$(DESTDIR)" >>$(BUILDVARS)
