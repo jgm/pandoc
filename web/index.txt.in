@@ -89,6 +89,7 @@ follow the instructions in [INSTALL](INSTALL.html).
 
 # Extras
 
+- [pandoc-mode for emacs], by Joost Kremers
 - [vim syntax file for pandoc], courtesy of tao_zhyn
 - [WordPress EasyFilter], by Yang Zhang, makes it easy to use pandoc
   with WordPress blogs.
@@ -242,4 +243,4 @@ Pandoc carries no warranties of any kind.
 [jsMath]: http://www.math.union.edu/~dpvc/jsMath/
 [WordPress EasyFilter]: http://assorted.sourceforge.net/wp-easy-filter/
 [Haskell platform]: http://hackage.haskell.org/platform/
-
+[pandoc-mode for emacs]:  http://joostkremers.fastmail.fm/pandoc-mode.html
