@@ -104,8 +104,10 @@ texinfoHeader options (Meta title authors date) = do
                      then empty 
                      else text $ stringToTexinfo date
 
-  let baseHeader = text $ writerHeader options
-  let header     = baseHeader $$ extras
+  let baseHeader = case writerHeader options of
+                         ""  -> empty
+                         x   -> text x
+  let header     = text "@documentencoding utf-8" $$ baseHeader $$ extras
   return $ text "\\input texinfo" $$
            header $$
 	   text "@ifnottex" $$
