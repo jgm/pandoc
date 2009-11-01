@@ -856,29 +856,25 @@ normalizeSpaces list =
                                 else lst
     in  removeLeading $ removeTrailing $ removeDoubles list
 
--- | Change final list item from @Para@ to @Plain@ if the list should 
--- be compact.
+-- | Change final list item from @Para@ to @Plain@ if the list contains
+-- no other @Para@ blocks.
 compactify :: [[Block]]  -- ^ List of list items (each a list of blocks)
            -> [[Block]]
 compactify [] = []
 compactify items =
-    let final  = last items
-        others = init items
-    in  case last final of
-          Para a  -> if all endsWithPlain others && not (null final)
-                        then others ++ [init final ++ [Plain a]]
-                        else items
-          _       -> items
+  case (init items, last items) of
+       (_,[])          -> items
+       (others, final) ->
+            case last final of
+                 Para a -> case (filter isPara $ concat items) of
+                                -- if this is only Para, change to Plain
+                                [_] -> others ++ [init final ++ [Plain a]]
+                                _   -> items
+                 _      -> items
 
-endsWithPlain :: [Block] -> Bool
-endsWithPlain [] = False
-endsWithPlain blocks =
-  case last blocks of
-       Plain _                  -> True
-       (BulletList (x:xs))      -> endsWithPlain $ last (x:xs)
-       (OrderedList _ (x:xs))   -> endsWithPlain $ last (x:xs)
-       (DefinitionList (x:xs))  -> endsWithPlain $ last $ map snd (x:xs)
-       _                        -> False
+isPara :: Block -> Bool
+isPara (Para _) = True
+isPara _        = False
 
 -- | Data structure for defining hierarchical Pandoc documents
 data Element = Blk Block 
