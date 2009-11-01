@@ -38,6 +38,7 @@ module Text.Pandoc.Readers.HTML (
                                  htmlEndTag,
                                  extractTagType,
                                  htmlBlockElement,
+                                 htmlComment,
                                  unsanitaryURI
                                 ) where
 

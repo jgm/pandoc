@@ -15,5 +15,9 @@ Pandoc (Meta [] [] "")
 , Plain [HtmlInline "<a>",HtmlInline "</a>"]
 , Header 3 [Str "my",Space,Str "header"]
 , Header 2 [Str "$",Space,Str "in",Space,Str "math"]
-, Para [Math InlineMath "\\$2 + \\$3"] ]
+, Para [Math InlineMath "\\$2 + \\$3"]
+, Header 2 [Str "Commented",Str "-",Str "out",Space,Str "list",Space,Str "item"]
+, BulletList
+  [ [ Plain [Str "one"]
+    , RawHtml "<!--\n- two\n-->" ], [ Plain [Str "three"] ] ] ]
 

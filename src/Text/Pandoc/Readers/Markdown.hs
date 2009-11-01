@@ -42,7 +42,7 @@ import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment' )
 import Text.Pandoc.Readers.HTML ( rawHtmlBlock, anyHtmlBlockTag, 
                                   anyHtmlInlineTag, anyHtmlTag,
                                   anyHtmlEndTag, htmlEndTag, extractTagType,
-                                  htmlBlockElement, unsanitaryURI )
+                                  htmlBlockElement, htmlComment, unsanitaryURI )
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.ParserCombinators.Parsec
 import Control.Monad (when, liftM)
@@ -504,8 +504,8 @@ listLine = try $ do
   notFollowedBy' (do indentSpaces
                      many (spaceChar)
                      listStart)
-  line <- manyTill anyChar newline
-  return $ line ++ "\n"
+  chunks <- manyTill (htmlComment <|> count 1 anyChar) newline
+  return $ concat chunks ++ "\n"
 
 -- parse raw text for one list item, excluding start marker and continuations
 rawListItem :: GenParser Char ParserState [Char]
