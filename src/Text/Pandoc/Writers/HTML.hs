@@ -249,7 +249,8 @@ blockToHtml opts (Para lst) = inlineListToHtml opts lst >>= (return . paragraph)
 blockToHtml _ (RawHtml str) = return $ primHtml str
 blockToHtml _ (HorizontalRule) = return $ hr
 blockToHtml opts (CodeBlock (_,classes,_) rawCode) | "haskell" `elem` classes &&
-                                                          writerLiterateHaskell opts =
+                                                     "literate" `elem` classes &&
+                                                     writerLiterateHaskell opts =
   let classes' = map (\c -> if c == "haskell" then "literatehaskell" else c) classes
   in  blockToHtml opts $ CodeBlock ("",classes',[]) $ intercalate "\n" $ map ("> " ++) $ lines rawCode
 blockToHtml _ (CodeBlock attr@(_,classes,_) rawCode) = do

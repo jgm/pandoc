@@ -407,7 +407,7 @@ lhsCodeBlock :: GenParser Char ParserState Block
 lhsCodeBlock = do
   failUnlessLHS
   contents <- lhsCodeBlockBird <|> lhsCodeBlockLaTeX
-  return $ CodeBlock ("",["sourceCode","haskell"],[]) contents
+  return $ CodeBlock ("",["sourceCode","literate","haskell"],[]) contents
 
 lhsCodeBlockLaTeX :: GenParser Char ParserState String
 lhsCodeBlockLaTeX = try $ do

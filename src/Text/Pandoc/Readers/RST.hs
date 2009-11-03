@@ -342,7 +342,7 @@ lhsCodeBlock = try $ do
                 then map (drop 1) lns
                 else lns
   blanklines
-  return $ CodeBlock ("", ["sourceCode", "haskell"], []) $ intercalate "\n" lns'
+  return $ CodeBlock ("", ["sourceCode", "literate", "haskell"], []) $ intercalate "\n" lns'
 
 birdTrackLine :: GenParser Char st [Char]
 birdTrackLine = do

@@ -207,7 +207,7 @@ lhsCodeBlock :: GenParser Char ParserState Block
 lhsCodeBlock = do
   failUnlessLHS
   (CodeBlock (_,_,_) cont) <- codeBlockWith "code"
-  return $ CodeBlock ("", ["sourceCode","haskell"], []) cont
+  return $ CodeBlock ("", ["sourceCode","literate","haskell"], []) cont
 
 --
 -- block quotes

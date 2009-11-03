@@ -198,6 +198,7 @@ blockToMarkdown opts (Header level inlines) = do
                             _  -> empty
      else return $ text ((replicate level '#') ++ " ") <> contents <> text "\n"
 blockToMarkdown opts (CodeBlock (_,classes,_) str) | "haskell" `elem` classes &&
+                                                     "literate" `elem` classes &&
                                                      writerLiterateHaskell opts =
   return $ (vcat $ map (text "> " <>) $ map text (lines str)) <> text "\n"
 blockToMarkdown opts (CodeBlock _ str) = return $

@@ -149,7 +149,8 @@ blockToLaTeX (BlockQuote lst) = do
   return $ text "\\begin{quote}" $$ contents $$ text "\\end{quote}"
 blockToLaTeX (CodeBlock (_,classes,_) str) = do
   st <- get
-  env <- if writerLiterateHaskell (stOptions st) && "haskell" `elem` classes
+  env <- if writerLiterateHaskell (stOptions st) && "haskell" `elem` classes &&
+                    "literate" `elem` classes
             then return "code"
             else if stInNote st
                     then do addToHeader "\\usepackage{fancyvrb}"

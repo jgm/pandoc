@@ -183,7 +183,8 @@ blockToRST (Header level inlines) = do
 blockToRST (CodeBlock (_,classes,_) str) = do
   opts <- stOptions <$> get
   let tabstop = writerTabStop opts
-  if "haskell" `elem` classes && writerLiterateHaskell opts
+  if "haskell" `elem` classes && "literate" `elem` classes &&
+                  writerLiterateHaskell opts
      then return $ (vcat $ map (text "> " <>) $ map text (lines str)) <> text "\n"
      else return $ (text "::\n") $+$
                    (nest tabstop $ vcat $ map text (lines str)) <> text "\n"
