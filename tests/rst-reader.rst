@@ -101,6 +101,13 @@ And::
 
         These should not be escaped:  \$ \\ \> \[ \{
 
+And:
+
+.. code-block:: python
+
+   def my_function(x):
+       return x + 1
+
 Lists
 =====
 

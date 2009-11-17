@@ -122,6 +122,7 @@ block = choice [ codeBlock
                , fieldList
                , blockQuote
                , imageBlock
+               , customCodeBlock
                , unknownDirective
                , header
                , hrule
@@ -330,6 +331,16 @@ codeBlock = try $ do
   codeBlockStart
   result <- indentedBlock
   return $ CodeBlock ("",[],[]) $ stripTrailingNewlines result
+
+-- | The 'code-block' directive (from Sphinx) that allows a language to be
+-- specified.
+customCodeBlock :: GenParser Char st Block
+customCodeBlock = try $ do
+  string ".. code-block:: "
+  language <- manyTill anyChar newline
+  blanklines
+  result <- indentedBlock
+  return $ CodeBlock ("", ["sourceCode", language], []) $ stripTrailingNewlines result
 
 lhsCodeBlock :: GenParser Char ParserState Block
 lhsCodeBlock = try $ do
