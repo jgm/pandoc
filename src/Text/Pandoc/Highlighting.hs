@@ -45,12 +45,16 @@ highlightHtml (_, classes, keyvals) rawCode =
                 case find (`elem` ["number","numberLines","number-lines"]) classes of
                   Nothing   -> []
                   Just _    -> [OptNumberLines]
+      addBirdTracks = "literate" `elem` classes
       lcLanguages = map (map toLower) languages
   in  case find (\c -> (map toLower c) `elem` lcLanguages) classes of
             Nothing        -> Left "Unknown or unsupported language"
             Just language  -> case highlightAs language rawCode of
                                    Left err -> Left err
-                                   Right hl -> Right $ formatAsXHtml fmtOpts language hl
+                                   Right hl -> Right $ formatAsXHtml fmtOpts language $
+                                                       if addBirdTracks
+                                                          then map ((["Special"],"> "):) hl
+                                                          else hl
 
 #else
 defaultHighlightingCss :: String

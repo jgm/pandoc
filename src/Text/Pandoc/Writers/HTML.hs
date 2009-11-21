@@ -37,7 +37,7 @@ import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Highlighting ( highlightHtml, defaultHighlightingCss )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
-import Data.List ( isPrefixOf, intercalate )
+import Data.List ( isPrefixOf )
 import Data.Maybe ( catMaybes )
 import qualified Data.Set as S
 import Control.Monad.State
@@ -248,21 +248,20 @@ blockToHtml opts (Plain lst) = inlineListToHtml opts lst
 blockToHtml opts (Para lst) = inlineListToHtml opts lst >>= (return . paragraph)
 blockToHtml _ (RawHtml str) = return $ primHtml str
 blockToHtml _ (HorizontalRule) = return $ hr
-blockToHtml opts (CodeBlock (_,classes,_) rawCode) | "haskell" `elem` classes &&
-                                                     "literate" `elem` classes &&
-                                                     writerLiterateHaskell opts =
-  let classes' = map (\c -> if c == "haskell" then "literatehaskell" else c) classes
-  in  blockToHtml opts $ CodeBlock ("",classes',[]) $ intercalate "\n" $ map ("> " ++) $ lines rawCode
-blockToHtml _ (CodeBlock attr@(_,classes,_) rawCode) = do
-  case highlightHtml attr rawCode of
+blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
+  let classes' = if writerLiterateHaskell opts
+                    then classes
+                    else filter (/= "literate") classes
+  case highlightHtml (id',classes',keyvals) rawCode of
          Left _  -> -- change leading newlines into <br /> tags, because some
                     -- browsers ignore leading newlines in pre blocks
                     let (leadingBreaks, rawCode') = span (=='\n') rawCode
-                    in  return $ pre ! (if null classes
-                                           then []
-                                           else [theclass $ unwords classes]) $ thecode <<
-                                                (replicate (length leadingBreaks) br +++
-                                                [stringToHtml $ rawCode' ++ "\n"])
+                        attrs = [theclass (unwords classes') | not (null classes')] ++
+                                [identifier id' | not (null id')] ++
+                                map (\(x,y) -> strAttr x y) keyvals
+                    in  return $ pre ! attrs $ thecode <<
+                                 (replicate (length leadingBreaks) br +++
+                                 [stringToHtml $ rawCode' ++ "\n"])
          Right h -> addToCSS defaultHighlightingCss >> return h
 blockToHtml opts (BlockQuote blocks) =
   -- in S5, treat list in blockquote specially

@@ -36,28 +36,28 @@ pre.sourceCode span.Error { color: red; font-weight: bold; }
       ><code
 	>unsplit</code
 	> is an arrow that takes a pair of values and combines them to return a single value:</p
-      ><pre class="sourceCode literatehaskell"
+      ><pre class="sourceCode haskell"
       ><code
-	><span class="Char Special"
-	  >&gt;</span
+	><span class="Special"
+	  >&gt; </span
 	  ><span class="Function FunctionDefinition"
-	  > unsplit ::</span
+	  >unsplit ::</span
 	  ><span class="Normal NormalText"
 	  > (Arrow a) =&gt; (b -&gt; c -&gt; d) -&gt; a (b, c) d</span
 	  ><br
-	   /><span class="Char Special"
-	  >&gt;</span
+	   /><span class="Special"
+	  >&gt; </span
 	  ><span class="Normal NormalText"
-	  > unsplit = arr . </span
+	  >unsplit = arr . </span
 	  ><span class="Function"
 	  >uncurry</span
 	  ><span class="Normal NormalText"
 	  >       </span
 	  ><br
-	   /><span class="Char Special"
-	  >&gt;</span
+	   /><span class="Special"
+	  >&gt; </span
 	  ><span class="Normal NormalText"
-	  >           </span
+	  >          </span
 	  ><span class="Comment"
 	  >-- arr (\op (x,y) -&gt; x `op` y) </span
 	  ><br
