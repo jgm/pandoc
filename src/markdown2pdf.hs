@@ -6,13 +6,15 @@ import Data.Maybe (isNothing)
 import Control.Monad (when, unless, guard)
 import Control.Exception (tryJust, bracket)
 
-import System.IO (stderr, hPutStrLn)
+import System.IO (stderr)
 import System.IO.Error (isDoesNotExistError)
+import System.Environment ( getArgs, getProgName )
+import Prelude hiding ( putStr, putStrLn, writeFile, readFile, getContents )
+import System.IO.UTF8
 import System.Exit (ExitCode (..), exitWith)
 import System.FilePath
 import System.Directory
 import System.Process (readProcessWithExitCode)
-import System.Environment (getArgs, getProgName)
 
 
 run :: FilePath -> [String] -> IO (Either String String)
