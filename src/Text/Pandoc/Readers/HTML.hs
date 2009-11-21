@@ -348,7 +348,7 @@ htmlComment :: GenParser Char st [Char]
 htmlComment = try $ do
   string "<!--"
   comment <- many $ noneOf "-"
-                 <|> try (char '-' >>~ notFollowedBy (char '-' >> char '>'))
+               <|> try (char '-' >>~ notFollowedBy (try (char '-' >> char '>')))
   string "-->"
   return $ "<!--" ++ comment ++ "-->"
 
