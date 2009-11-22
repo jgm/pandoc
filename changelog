@@ -1,3 +1,71 @@
+pandoc (1.2.1.1)
+
+  [ John MacFarlane ]
+
+  * Use System.IO.UTF8 in markdown2pdf.hs.
+
+  * Modified markdown2pdf.hs and markdown2pdf so that they no longer
+    create a backup when overwriting a PDF. (Resolves Issue #166.)
+
+  * Fixed markdown2pdf.hs to accept --longopt=val options.
+
+  * Added man/man1/markdown2pdf.1 to extra-tmp-files in cabal, so that
+    it is properly cleaned.
+
+  * Fixed htmlComment parser, adding a needed 'try'.
+
+  * Specially mark code blocks that were "literate" in the input.
+    They can then be treated differently in the writers.  This allows
+    authors to distinguish bits of the literate program they are writing
+    from source code examples, even if the examples are marked as
+    Haskell for highlighting.  Resolves Issue #174.
+
+  * Modified html+lhs output to use "haskell" highlighter instead
+    of "literateHaskell". The highlighting module now adds bird tracks
+	after highlighting (for HTML output), if the code block has the
+	"literate" class.  This gives better results, because kate's
+    haskell highlighter is much better than the literateHaskell
+    highlighter.
+
+  * Support for "..code-block" directive in RST reader. Not core
+    RST, but used in Sphinx for code blocks annotated with syntax
+    information. Thanks to Luke Plant for the patch.
+
+  * Set utf-8 encoding in texinfo headers.
+
+  * Properly handle commented-out list items in markdown.
+    Resolves Issue #142.  Example:
+
+    - a
+    <!--
+    - b
+    -->
+    - c
+
+  * Changed heuristic in compactify. compactify has to decide whether a
+    Para that ends a list is a Para intentionally, or just because of
+    the blank lines at the end of every list. In the latter case the
+    Para is turned to a Plain. The old heuristic was: change final Para
+    to Plain iff the other items all end in Plain. This produces bad
+    results when, for example, an item contains just a Plain and an HTML
+    comment, as it does in the list above. The new heuristic: change
+    final Para to Plain iff the other items don't contain a Para.
+
+  * Added % as an rst underline character.  Resolves Issue #173.
+
+  * Fix inline math parser so that \$ is allowed in math.
+    Resolves Issue #169.
+
+  * Added haddock comments warning that readers assume \n line endings.
+
+  * Updated COPYRIGHT file.
+
+  * Makefile: Changed EXECSBASE so it doesn't pull in hsmarkdown &
+    markdown2pdf. Otherwise strip tries to strip shell scripts when you
+    install using 'make'.
+
+  * Changed Makefile so it doesn't build Haskell wrappers.
+
 pandoc (1.2.1)
 
   [ John MacFarlane ]
