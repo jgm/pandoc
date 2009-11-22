@@ -129,7 +129,7 @@ Extra-Source-Files:
                  tests/Diff.hs,
                  tests/RunTests.hs
 Extra-Tmp-Files: man/man1/pandoc.1, man/man1/hsmarkdown.1,
-                 man/man1/html2markdown.1
+                 man/man1/html2markdown.1, man/man1/markdown2pdf.1
 
 Flag highlighting
   Description:   Compile in support for syntax highlighting of code blocks.
