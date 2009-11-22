@@ -3,7 +3,7 @@ module Main where
 import Data.List (isInfixOf, intercalate, isPrefixOf)
 import Data.Maybe (isNothing)
 
-import Control.Monad (when, unless, guard)
+import Control.Monad (unless, guard)
 import Control.Exception (tryJust, bracket)
 
 import System.IO (stderr)
@@ -129,13 +129,8 @@ saveStdin file = do
 
 saveOutput :: FilePath -> FilePath -> IO ()
 saveOutput input output = do
-  outputExist <- doesFileExist output
-  when outputExist $ do
-    let output' = output ++ "~"
-    renameFile output output'
-    putStrLn $! "Created backup file " ++ output'
   copyFile input output
-  putStrLn $! "Created " ++ output
+  hPutStrLn stderr $! "Created " ++ output
 
 main :: IO ()
 main = bracket

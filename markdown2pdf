@@ -125,16 +125,6 @@ fi
     done
 ) || exit $?
 
-is_target_exists=
-if [ -f "$destname" ]; then
-    is_target_exists=1
-    mv "$destname" "$destname~" 
-fi
-
 mv -f $THIS_TEMPDIR/$texname.pdf "$destname"
 
-errn "Created $destname"
-[ -z "$is_target_exists" ] || {
-    errn " (previous file has been backed up as $destname~)"
-}
-err .
+err "Created $destname"
