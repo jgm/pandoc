@@ -713,7 +713,7 @@ data QuoteContext
     | NoQuote         -- ^ Used when not parsing inside quotes
     deriving (Eq, Show)
 
-type NoteTable = [(String, [Block])]
+type NoteTable = [(String, String)]
 
 type KeyTable = [([Inline], Target)]
 

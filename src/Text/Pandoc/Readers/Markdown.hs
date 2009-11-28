@@ -164,23 +164,18 @@ parseMarkdown = do
   -- markdown allows raw HTML
   updateState (\state -> state { stateParseRaw = True })
   startPos <- getPosition
-  -- go through once just to get list of reference keys
-  -- docMinusKeys is the raw document with blanks where the keys were...
-  docMinusKeys <- manyTill (referenceKey <|> lineClump) eof >>= 
-                  return . concat
+  -- go through once just to get list of reference keys and notes
+  -- docMinusKeys is the raw document with blanks where the keys/notes were...
+  st <- getState
+  let firstPassParser = referenceKey
+                     <|> (if stateStrict st then pzero else noteBlock)
+                     <|> lineClump
+  docMinusKeys <- liftM concat $ manyTill firstPassParser eof
   setInput docMinusKeys
   setPosition startPos
-  st <- getState
-  -- go through again for notes unless strict...
-  if stateStrict st
-     then return ()
-     else do docMinusNotes <- manyTill (noteBlock <|> lineClump) eof >>= 
-                              return . concat
-             st' <- getState
-             let reversedNotes = stateNotes st'
-             updateState $ \s -> s { stateNotes = reverse reversedNotes }
-             setInput docMinusNotes
-             setPosition startPos
+  st' <- getState
+  let reversedNotes = stateNotes st'
+  updateState $ \s -> s { stateNotes = reverse reversedNotes }
   -- now parse it for real...
   (title, author, date) <- option ([],[],"") titleBlock
   blocks <- parseBlocks
@@ -243,9 +238,7 @@ noteBlock = try $ do
   raw <- sepBy rawLines (try (blankline >> indentSpaces))
   optional blanklines
   endPos <- getPosition
-  -- parse the extracted text, which may contain various block elements:
-  contents <- parseFromString parseBlocks $ (intercalate "\n" raw) ++ "\n\n"
-  let newnote = (ref, contents)
+  let newnote = (ref, (intercalate "\n" raw) ++ "\n\n")
   st <- getState
   let oldnotes = stateNotes st
   updateState $ \s -> s { stateNotes = newnote : oldnotes }
@@ -1174,8 +1167,8 @@ note = try $ do
   state <- getState
   let notes = stateNotes state
   case lookup ref notes of
-    Nothing       -> fail "note not found"
-    Just contents -> return $ Note contents
+    Nothing   -> fail "note not found"
+    Just raw  -> liftM Note $ parseFromString parseBlocks raw
 
 inlineNote :: GenParser Char ParserState Inline
 inlineNote = try $ do
