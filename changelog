@@ -2,6 +2,15 @@ pandoc (1.2.2)
 
   [ John MacFarlane ]
 
+  * Better looking simple tables.  Resolves Issue #180.
+    + Markdown reader: simple tables are now given column widths of 0.
+    + Column width of 0 is interpreted as meaning: use default column width.
+    + Writers now include explicit column width information only
+      for multiline tables.  (Exception:  RTF writer, which requires
+      column widths.  In this case, columns are given equal widths,
+      adding up to the text width.)
+    + Simple tables should now look better in most output formats.
+
   * Improved performance of markdown reader by ~10% by
     eliminating the need for a separate parsing pass for notes.
     Raw notes are now stored on the first pass (which parses
