@@ -171,7 +171,9 @@ blockToMan opts (Table caption alignments widths headers rows) =
   in do
   caption' <- inlineListToMan opts caption
   modify (\(notes, preprocessors) -> (notes, "t":preprocessors))
-  let iwidths = map (printf "w(%0.2fn)" . (70 *)) widths 
+  let iwidths = if all (== 0) widths
+                   then repeat ""
+                   else map (printf "w(%0.2fn)" . (70 *)) widths
   -- 78n default width - 8n indent = 70n
   let coldescriptions = text $ intercalate " "
                         (zipWith (\align width -> aligncode align ++ width) 

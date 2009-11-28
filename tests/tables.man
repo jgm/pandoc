@@ -4,7 +4,7 @@ Simple table with caption:
 Demonstration of simple table syntax.
 .TS
 tab(@);
-rw(10.50n) lw(6.13n) cw(11.38n) lw(8.75n).
+r l c l.
 T{
 Right
 T}@T{
@@ -48,7 +48,7 @@ Simple table without caption:
 .PP
 .TS
 tab(@);
-rw(10.50n) lw(6.13n) cw(11.38n) lw(8.75n).
+r l c l.
 T{
 Right
 T}@T{
@@ -93,7 +93,7 @@ Simple table indented two spaces:
 Demonstration of simple table syntax.
 .TS
 tab(@);
-rw(10.50n) lw(6.13n) cw(11.38n) lw(8.75n).
+r l c l.
 T{
 Right
 T}@T{

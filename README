@@ -664,11 +664,11 @@ a fixed-width font, such as Courier.
 
 Simple tables look like this:
 
-      Right     Left     Center     Default   
-    -------     ------ ----------   -------   
-         12     12        12            12    
-        123     123       123          123    
-          1     1          1             1    
+      Right     Left     Center     Default
+    -------     ------ ----------   -------
+         12     12        12            12
+        123     123       123          123
+          1     1          1             1
 
     Table:  Demonstration of simple table syntax.
 
@@ -692,11 +692,6 @@ The table must end with a blank line.  Optionally, a caption may be
 provided (as illustrated in the example above).  A caption is a paragraph
 beginning with the string `Table:`, which will be stripped off.
 
-The table parser pays attention to the widths of the columns, and
-the writers try to reproduce these relative widths in the output.
-So, if you find that one of the columns is too narrow in the output,
-try widening it in the markdown source.
-
 Multiline tables allow headers and table rows to span multiple lines
 of text.  Here is an example:
 
@@ -706,12 +701,12 @@ of text.  Here is an example:
     ----------- ------- --------------- -------------------------
        First    row                12.0 Example of a row that
                                         spans multiple lines.
-    
+
       Second    row                 5.0 Here's another one. Note
                                         the blank line between
                                         rows.
     -------------------------------------------------------------
-    
+
     Table: Here's the caption. It, too, may span
     multiple lines.
 
@@ -719,7 +714,12 @@ These work like simple tables, but with the following differences:
 
   - They must begin with a row of dashes, before the header text.
   - They must end with a row of dashes, then a blank line.
-  - The rows must be separated by blank lines. 
+  - The rows must be separated by blank lines.
+
+In multiline tables, the table parser pays attention to the widths of
+the columns, and the writers try to reproduce these relative widths in
+the output. So, if you find that one of the columns is too narrow in the
+output, try widening it in the markdown source.
 
 Delimited Code blocks
 ---------------------

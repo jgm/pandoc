@@ -4,7 +4,7 @@
 Simple table with caption:
 
 @float
-@multitable @columnfractions 0.15 0.09 0.16 0.13 
+@multitable {Right} {Left} {Center} {Default} 
 @headitem 
 Right
  @tab Left
@@ -30,7 +30,7 @@ Right
 @end float
 Simple table without caption:
 
-@multitable @columnfractions 0.15 0.09 0.16 0.13 
+@multitable {Right} {Left} {Center} {Default} 
 @headitem 
 Right
  @tab Left
@@ -56,7 +56,7 @@ Right
 Simple table indented two spaces:
 
 @float
-@multitable @columnfractions 0.15 0.09 0.16 0.13 
+@multitable {Right} {Left} {Center} {Default} 
 @headitem 
 Right
  @tab Left

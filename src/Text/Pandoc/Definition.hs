@@ -86,9 +86,9 @@ data Block
     | HorizontalRule        -- ^ Horizontal rule
     | Table [Inline] [Alignment] [Double] [[Block]] [[[Block]]]  -- ^ Table,
                             -- with caption, column alignments,
-                            -- relative column widths, column headers
-                            -- (each a list of blocks), and rows
-                            -- (each a list of lists of blocks)
+                            -- relative column widths (0 = default),
+                            -- column headers (each a list of blocks), and
+                            -- rows (each a list of lists of blocks)
     | Null                  -- ^ Nothing
     deriving (Eq, Read, Show, Typeable, Data)
 

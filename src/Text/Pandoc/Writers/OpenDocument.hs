@@ -467,13 +467,15 @@ tableStyle num wcs =
         table          = inTags True "style:style"
                          [("style:name", tableId)] $
                          selfClosingTag "style:table-properties"
-                         [ ("style:rel-width", "100%"  )
-                         , ("table:align"    , "center")]
+                         [("table:align"    , "center")]
+        colStyle (c,0) = selfClosingTag "style:style"
+                         [ ("style:name"  , tableId ++ "." ++ [c])
+                         , ("style:family", "table-column"       )]
         colStyle (c,w) = inTags True "style:style"
                          [ ("style:name"  , tableId ++ "." ++ [c])
                          , ("style:family", "table-column"       )] $
                          selfClosingTag "style:table-column-properties"
-                         [("style:column-width", printf "%.2f" (7 * w) ++ "in")]
+                         [("style:rel-column-width", printf "%d*" $ (floor $ w * 65535 :: Integer))]
         cellStyle      = inTags True "style:style"
                          [ ("style:name"  , tableId ++ ".A1")
                          , ("style:family", "table-cell"    )] $

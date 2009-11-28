@@ -192,15 +192,16 @@ blockToConTeXt (Header level lst) = do
                          text base <> char '{' <> contents <> char '}'
                     else contents
 blockToConTeXt (Table caption aligns widths heads rows) = do
-    let colWidths = map printDecimal widths
     let colDescriptor colWidth alignment = (case alignment of
                                                AlignLeft    -> 'l' 
                                                AlignRight   -> 'r'
                                                AlignCenter  -> 'c'
                                                AlignDefault -> 'l'):
-                                           "p(" ++ colWidth ++ "\\textwidth)|"
+           if colWidth == 0
+              then "|"
+              else ("p(" ++ printf "%.2f" colWidth ++ "\\textwidth)|")
     let colDescriptors = "|" ++ (concat $ 
-                                 zipWith colDescriptor colWidths aligns)
+                                 zipWith colDescriptor widths aligns)
     headers <- tableRowToConTeXt heads 
     captionText <- inlineListToConTeXt caption 
     let captionText' = if null caption then text "none" else captionText
@@ -209,9 +210,6 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
              text "\\starttable[" <> text colDescriptors <> char ']' $$
              text "\\HL" $$ headers $$ text "\\HL" $$
              vcat rows' $$ text "\\HL\n\\stoptable"
-
-printDecimal :: Double  -> String
-printDecimal = printf "%.2f" 
 
 tableRowToConTeXt :: [[Block]] -> State WriterState Doc
 tableRowToConTeXt cols = do

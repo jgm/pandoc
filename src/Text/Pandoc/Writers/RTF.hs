@@ -191,9 +191,12 @@ blockToRTF indent alignment (Table caption aligns sizes headers rows) =
   rtfPar indent 0 alignment (inlineListToRTF caption)
 
 tableRowToRTF :: Bool -> Int -> [Alignment] -> [Double] -> [[Block]] -> String
-tableRowToRTF header indent aligns sizes cols =
-  let columns = concat $ zipWith (tableItemToRTF indent) aligns cols
-      totalTwips = 6 * 1440 -- 6 inches
+tableRowToRTF header indent aligns sizes' cols =
+  let totalTwips = 6 * 1440 -- 6 inches
+      sizes = if all (== 0) sizes'
+                 then take (length cols) $ repeat (1.0 / fromIntegral (length cols))
+                 else sizes'
+      columns = concat $ zipWith (tableItemToRTF indent) aligns cols
       rightEdges = tail $ scanl (\sofar new -> sofar + floor (new * totalTwips))
                                 (0 :: Integer) sizes
       cellDefs = map (\edge -> (if header

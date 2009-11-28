@@ -1,28 +1,28 @@
 Simple table with caption:
 
-        Right Left      Center    Default
-  ----------- ------ ------------ ---------
-           12 12          12      12
-          123 123        123      123
-            1 1           1       1
+    Right Left    Center  Default
+  ------- ------ -------- ---------
+       12 12        12    12
+      123 123      123    123
+        1 1         1     1
   
   Table: Demonstration of simple table syntax.
 
 Simple table without caption:
 
-        Right Left      Center    Default
-  ----------- ------ ------------ ---------
-           12 12          12      12
-          123 123        123      123
-            1 1           1       1
+    Right Left    Center  Default
+  ------- ------ -------- ---------
+       12 12        12    12
+      123 123      123    123
+        1 1         1     1
 
 Simple table indented two spaces:
 
-        Right Left      Center    Default
-  ----------- ------ ------------ ---------
-           12 12          12      12
-          123 123        123      123
-            1 1           1       1
+    Right Left    Center  Default
+  ------- ------ -------- ---------
+       12 12        12    12
+      123 123      123    123
+        1 1         1     1
   
   Table: Demonstration of simple table syntax.
 

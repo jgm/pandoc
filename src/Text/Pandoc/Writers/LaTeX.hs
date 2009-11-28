@@ -197,17 +197,7 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
   headers <- tableRowToLaTeX heads
   captionText <- inlineListToLaTeX caption
   rows' <- mapM tableRowToLaTeX rows
-  let colWidths = map (printf "%.2f") widths
-  let colDescriptors = concat $ zipWith
-                                (\width align -> ">{\\PBS" ++ 
-                                (case align of 
-                                       AlignLeft -> "\\raggedright"
-                                       AlignRight -> "\\raggedleft"
-                                       AlignCenter -> "\\centering"
-                                       AlignDefault -> "\\raggedright") ++
-                                "\\hspace{0pt}}p{" ++ width ++ 
-                                "\\columnwidth}")
-                                colWidths aligns
+  let colDescriptors = concat $ zipWith toColDescriptor widths aligns
   let tableBody = text ("\\begin{tabular}{" ++ colDescriptors ++ "}") $$
                   headers $$ text "\\hline" $$ vcat rows' $$ 
                   text "\\end{tabular}" 
@@ -220,6 +210,22 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
               then centered tableBody <> char '\n'
               else text "\\begin{table}[h]" $$ centered tableBody $$ 
                    inCmd "caption" captionText $$ text "\\end{table}\n" 
+
+toColDescriptor :: Double -> Alignment -> String
+toColDescriptor 0 align =
+  case align of
+         AlignLeft    -> "l"
+         AlignRight   -> "r"
+         AlignCenter  -> "c"
+         AlignDefault -> "l"
+toColDescriptor width align = ">{\\PBS" ++
+  (case align of
+         AlignLeft -> "\\raggedright"
+         AlignRight -> "\\raggedleft"
+         AlignCenter -> "\\centering"
+         AlignDefault -> "\\raggedright") ++
+  "\\hspace{0pt}}p{" ++ printf "%.2f" width ++
+  "\\columnwidth}"
 
 blockListToLaTeX :: [Block] -> State WriterState Doc
 blockListToLaTeX lst = mapM blockToLaTeX lst >>= return . vcat

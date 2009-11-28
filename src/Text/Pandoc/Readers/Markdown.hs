@@ -761,7 +761,10 @@ tableWith headerParser lineParser footerParser = try $ do
 
 -- Parse a simple table with '---' header and one line per row.
 simpleTable :: GenParser Char ParserState Block
-simpleTable = tableWith simpleTableHeader tableLine blanklines
+simpleTable = do
+  Table c a _w h l <- tableWith simpleTableHeader tableLine blanklines
+  -- Simple tables get 0s for relative column widths (i.e., use default)
+  return $ Table c a (replicate (length a) 0) h l
 
 -- Parse a multiline table:  starts with row of '-' on top, then header
 -- (which may be multiline), then the rows,

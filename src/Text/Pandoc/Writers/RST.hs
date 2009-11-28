@@ -33,7 +33,7 @@ module Text.Pandoc.Writers.RST ( writeRST) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Blocks
-import Data.List ( isPrefixOf, isSuffixOf, drop, intersperse )
+import Data.List ( isPrefixOf, isSuffixOf, drop, intersperse, transpose )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 import Control.Applicative ( (<$>) )
@@ -198,7 +198,13 @@ blockToRST (Table caption _ widths headers rows) =  do
                      then empty
                      else text "" $+$ (text "Table: " <> caption')
   headers' <- mapM blockListToRST headers
-  let widthsInChars = map (floor . (78 *)) widths
+  rawRows <- mapM (mapM blockListToRST) rows
+  let isSimple = all (==0) widths && all (all (\bs -> length bs == 1)) rows
+  let numChars = maximum . map (length . render)
+  let widthsInChars =
+       if isSimple
+          then map ((+2) . numChars) $ transpose (headers' : rawRows)
+          else map (floor . (78 *)) widths
   let hpipeBlocks blocks = hcatBlocks [beg, middle, end] 
         where height = maximum (map heightOfBlock blocks)
               sep'   = TextBlock 3 height (replicate height " | ")

@@ -32,7 +32,8 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
 import Text.Printf ( printf )
-import Data.List ( isSuffixOf )
+import Data.List ( isSuffixOf, transpose, maximumBy )
+import Data.Ord ( comparing )
 import Data.Char ( chr, ord )
 import qualified Data.Set as S
 import Control.Monad.State
@@ -225,9 +226,14 @@ blockToTexinfo (Table caption aligns widths heads rows) = do
   headers <- tableHeadToTexinfo aligns heads
   captionText <- inlineListToTexinfo caption
   rowsText <- mapM (tableRowToTexinfo aligns) rows
-  let colWidths = map (printf "%.2f ") widths
-  let colDescriptors = concat colWidths
-  let tableBody = text ("@multitable @columnfractions " ++ colDescriptors) $$
+  colDescriptors <-
+    if all (== 0) widths
+       then do -- use longest entry instead of column widths
+            cols <- mapM (mapM (liftM (render . hcat) . mapM blockToTexinfo)) $
+                       transpose $ heads : rows
+            return $ concatMap ((\x -> "{"++x++"} ") .  maximumBy (comparing length)) cols
+       else return $ "@columnfractions " ++ concatMap (printf "%.2f ") widths
+  let tableBody = text ("@multitable " ++ colDescriptors) $$
                   headers $$
                   vcat rowsText $$ 
                   text "@end multitable" 

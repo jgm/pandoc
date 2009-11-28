@@ -1,7 +1,7 @@
 Simple table with caption:
 
 \placetable[here]{Demonstration of simple table syntax.}
-\starttable[|rp(0.15\textwidth)|lp(0.09\textwidth)|cp(0.16\textwidth)|lp(0.13\textwidth)|]
+\starttable[|r|l|c|l|]
 \HL
 \NC Right
 \NC Left
@@ -30,7 +30,7 @@ Simple table with caption:
 Simple table without caption:
 
 \placetable[here]{none}
-\starttable[|rp(0.15\textwidth)|lp(0.09\textwidth)|cp(0.16\textwidth)|lp(0.13\textwidth)|]
+\starttable[|r|l|c|l|]
 \HL
 \NC Right
 \NC Left
@@ -59,7 +59,7 @@ Simple table without caption:
 Simple table indented two spaces:
 
 \placetable[here]{Demonstration of simple table syntax.}
-\starttable[|rp(0.15\textwidth)|lp(0.09\textwidth)|cp(0.16\textwidth)|lp(0.13\textwidth)|]
+\starttable[|r|l|c|l|]
 \HL
 \NC Right
 \NC Left

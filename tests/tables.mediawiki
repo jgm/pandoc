@@ -2,10 +2,10 @@ Simple table with caption:
 
 <table>
 <caption>Demonstration of simple table syntax.</caption><tr>
-<th align="right" style="width: 15%;">Right</th>
-<th align="left" style="width: 8%;">Left</th>
-<th align="center" style="width: 16%;">Center</th>
-<th align="left" style="width: 12%;">Default</th>
+<th align="right">Right</th>
+<th align="left">Left</th>
+<th align="center">Center</th>
+<th align="left">Default</th>
 </tr><tr>
 <td align="right">12</td>
 <td align="left">12</td>
@@ -29,10 +29,10 @@ Simple table without caption:
 
 <table>
 <tr>
-<th align="right" style="width: 15%;">Right</th>
-<th align="left" style="width: 8%;">Left</th>
-<th align="center" style="width: 16%;">Center</th>
-<th align="left" style="width: 12%;">Default</th>
+<th align="right">Right</th>
+<th align="left">Left</th>
+<th align="center">Center</th>
+<th align="left">Default</th>
 </tr><tr>
 <td align="right">12</td>
 <td align="left">12</td>
@@ -56,10 +56,10 @@ Simple table indented two spaces:
 
 <table>
 <caption>Demonstration of simple table syntax.</caption><tr>
-<th align="right" style="width: 15%;">Right</th>
-<th align="left" style="width: 8%;">Left</th>
-<th align="center" style="width: 16%;">Center</th>
-<th align="left" style="width: 12%;">Default</th>
+<th align="right">Right</th>
+<th align="left">Left</th>
+<th align="center">Center</th>
+<th align="left">Default</th>
 </tr><tr>
 <td align="right">12</td>
 <td align="left">12</td>

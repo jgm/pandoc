@@ -34,7 +34,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Blocks
 import Text.ParserCombinators.Parsec ( parse, GenParser )
-import Data.List ( group, isPrefixOf, drop, find, intersperse, intercalate )
+import Data.List ( group, isPrefixOf, drop, find, intersperse, intercalate, transpose )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 
@@ -218,25 +218,29 @@ blockToMarkdown opts (Table caption aligns widths headers rows) =  do
                      then empty
                      else text "" $+$ (text "Table: " <> caption')
   headers' <- mapM (blockListToMarkdown opts) headers
-  let widthsInChars = map (floor . (78 *)) widths
   let alignHeader alignment = case alignment of
                                 AlignLeft    -> leftAlignBlock
                                 AlignCenter  -> centerAlignBlock
                                 AlignRight   -> rightAlignBlock
                                 AlignDefault -> leftAlignBlock  
+  rawRows <- mapM (mapM (blockListToMarkdown opts)) rows
+  let isSimple = all (==0) widths
+  let numChars = maximum . map (length . render)
+  let widthsInChars =
+       if isSimple
+          then map ((+2) . numChars) $ transpose (headers' : rawRows)
+          else map (floor . (78 *)) widths
   let makeRow = hsepBlocks . (zipWith alignHeader aligns) . 
                 (zipWith docToBlock widthsInChars)
   let head' = makeRow headers'
-  rows' <- mapM (\row -> do cols <- mapM (blockListToMarkdown opts) row
-                            return $ makeRow cols) rows
+  let rows' = map makeRow rawRows
   let maxRowHeight = maximum $ map heightOfBlock (head':rows')
-  let isMultilineTable = maxRowHeight > 1
   let underline = hsep $ 
                   map (\width -> text $ replicate width '-') widthsInChars
-  let border = if isMultilineTable
+  let border = if maxRowHeight > 1
                   then text $ replicate (sum widthsInChars + (length widthsInChars - 1)) '-'
                   else empty
-  let spacer = if isMultilineTable
+  let spacer = if maxRowHeight > 1
                   then text ""
                   else empty
   let body = vcat $ intersperse spacer $ map blockToDoc rows'
