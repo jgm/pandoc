@@ -1,16 +1,13 @@
-pandoc (1.2.1.1)
+pandoc (1.2.2)
 
   [ John MacFarlane ]
 
-  * Use System.IO.UTF8 in markdown2pdf.hs.
-
-  * Modified markdown2pdf.hs and markdown2pdf so that they no longer
-    create a backup when overwriting a PDF. (Resolves Issue #166.)
-
-  * Fixed markdown2pdf.hs to accept --longopt=val options.
-
-  * Added man/man1/markdown2pdf.1 to extra-tmp-files in cabal, so that
-    it is properly cleaned.
+  * Improved performance of markdown reader by ~10% by
+    eliminating the need for a separate parsing pass for notes.
+    Raw notes are now stored on the first pass (which parses
+    references), then parsed when the note is inserted into
+    the AST. The stateNotes field in ParserState is now a
+    list of [(String, String)] pairs instead of [(String, [Block])].
 
   * Fixed htmlComment parser, adding a needed 'try'.
 
@@ -56,6 +53,19 @@ pandoc (1.2.1.1)
   * Fix inline math parser so that \$ is allowed in math.
     Resolves Issue #169.
 
+  * Translate \int (integral) into unicode when using unicode math
+    method. Resolves Issue #177.
+
+  * Use System.IO.UTF8 in markdown2pdf.hs.
+
+  * Modified markdown2pdf.hs and markdown2pdf so that they no longer
+    create a backup when overwriting a PDF. (Resolves Issue #166.)
+
+  * Fixed markdown2pdf.hs to accept --longopt=val options.
+
+  * Added man/man1/markdown2pdf.1 to extra-tmp-files in cabal, so that
+    it is properly cleaned.
+
   * Added haddock comments warning that readers assume \n line endings.
 
   * Updated COPYRIGHT file.
@@ -65,6 +75,8 @@ pandoc (1.2.1.1)
     install using 'make'.
 
   * Changed Makefile so it doesn't build Haskell wrappers.
+
+  * Fixed Makefile so it doesn't try to build man pages in build-doc.
 
 pandoc (1.2.1)
 
