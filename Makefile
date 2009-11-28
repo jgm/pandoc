@@ -120,8 +120,8 @@ $(EXECS): build
 	done
 
 .PHONY: build-doc
-cleanup_files+=README.html $(MANPAGES)
-build-doc: $(DOCS) $(MANPAGES)
+cleanup_files+=README.html
+build-doc: $(DOCS)
 
 .PHONY: build-program
 build-program: build-exec build-doc
