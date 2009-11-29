@@ -198,7 +198,7 @@ referenceKey = try $ do
   tit <- option "" referenceTitle
   blanklines
   endPos <- getPosition
-  let newkey = (lab, (intercalate "%20" $ words $ removeTrailingSpace src,  tit))
+  let newkey = (lab, (intercalate "+" $ words $ removeTrailingSpace src,  tit))
   st <- getState
   let oldkeys = stateKeys st
   updateState $ \s -> s { stateKeys = newkey : oldkeys }
@@ -1109,7 +1109,7 @@ source' = do
   tit <- option "" linkTitle
   skipSpaces
   eof
-  return (intercalate "%20" $ words $ removeTrailingSpace src, tit)
+  return (intercalate "+" $ words $ removeTrailingSpace src, tit)
 
 linkTitle :: GenParser Char st String
 linkTitle = try $ do 
