@@ -891,7 +891,7 @@ inlineListToIdentifier' [] = ""
 inlineListToIdentifier' (x:xs) =
   xAsText ++ inlineListToIdentifier' xs
   where xAsText = case x of
-          Str s          -> filter (\c -> c == '-' || not (isPunctuation c)) $
+          Str s          -> filter (\c -> c `elem` "_-" || not (isPunctuation c)) $
                             intercalate "-" $ words $ map toLower s
           Emph lst       -> inlineListToIdentifier' lst
           Strikeout lst  -> inlineListToIdentifier' lst
