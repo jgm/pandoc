@@ -824,6 +824,7 @@ inlineParsers = [ str
                 , endline
                 , code
                 , charRef
+                , (fourOrMore '*' <|> fourOrMore '_')
                 , strong
                 , emph
                 , note
@@ -920,6 +921,12 @@ mathInline = try $ do
   char '$'
   notFollowedBy digit
   return $ intercalate " " words'
+
+-- to avoid performance problems, treat 4 or more _ or * in a row as a literal
+-- rather than attempting to parse for emph/strong
+fourOrMore :: Char -> GenParser Char st Inline
+fourOrMore c = try $ count 4 (char c) >> many (char c) >>= \s ->
+                       return (Str $ replicate 4 c ++ s)
 
 emph :: GenParser Char ParserState Inline
 emph = ((enclosed (char '*') (notFollowedBy' strong >> char '*') inline) <|>
