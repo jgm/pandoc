@@ -154,6 +154,11 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     If `--strict` is specified, *references* is used regardless of the
     presence of this option.
 
+\--default-code-classes*=classes*
+:   Specify classes to use for indented code blocks--for example,
+    `perl,numberLines` or `haskell`. Multiple classes may be separated
+    by spaces or commas.
+
 \--toc, \--table-of-contents
 :   Include an automatically generated table of contents (HTML, markdown,
     RTF) or an instruction to create one (LaTeX, reStructuredText).

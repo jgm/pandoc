@@ -671,7 +671,8 @@ data ParserState = ParserState
       stateSmart           :: Bool,          -- ^ Use smart typography?
       stateLiterateHaskell :: Bool,          -- ^ Treat input as literate haskell
       stateColumns         :: Int,           -- ^ Number of columns in terminal
-      stateHeaderTable     :: [HeaderType]   -- ^ Ordered list of header types used
+      stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
+      stateDefaultCodeClasses :: [String]    -- ^ Classes to use for indented code blocks
     }
     deriving Show
 
@@ -695,7 +696,8 @@ defaultParserState =
                   stateSmart           = False,
                   stateLiterateHaskell = False,
                   stateColumns         = 80,
-                  stateHeaderTable     = [] }
+                  stateHeaderTable     = [],
+                  stateDefaultCodeClasses = [] }
 
 data HeaderType 
     = SingleHeader Char  -- ^ Single line of characters underneath
