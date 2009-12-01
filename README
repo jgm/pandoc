@@ -870,7 +870,8 @@ identifier. This identifier is based on the text of the header. To
 derive the identifier from the header text,
 
   - Remove all formatting, links, etc.
-  - Remove all punctuation, except underscores and hyphens.
+  - Remove all punctuation, except underscores, hyphens, periods,
+    and tildes.
   - Replace all spaces and newlines with hyphens.
   - Convert all alphabetic characters to lowercase.
   - Remove everything up to the first letter (identifiers may
