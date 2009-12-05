@@ -19,16 +19,16 @@
     This is a set of tests for pandoc. Most of them are adapted from
     John Gruber's markdown test suite.
   </para>
-  <section>
+  <section id="headers">
     <title>Headers</title>
-    <section>
+    <section id="level-2-with-an-embedded-link">
       <title>Level 2 with an
              <ulink url="/url">embedded link</ulink></title>
-      <section>
+      <section id="level-3-with-emphasis">
         <title>Level 3 with <emphasis>emphasis</emphasis></title>
-        <section>
+        <section id="level-4">
           <title>Level 4</title>
-          <section>
+          <section id="level-5">
             <title>Level 5</title>
             <para>
             </para>
@@ -37,25 +37,25 @@
       </section>
     </section>
   </section>
-  <section>
+  <section id="level-1">
     <title>Level 1</title>
-    <section>
+    <section id="level-2-with-emphasis">
       <title>Level 2 with <emphasis>emphasis</emphasis></title>
-      <section>
+      <section id="level-3">
         <title>Level 3</title>
         <para>
           with no blank line
         </para>
       </section>
     </section>
-    <section>
+    <section id="level-2">
       <title>Level 2</title>
       <para>
         with no blank line
       </para>
     </section>
   </section>
-  <section>
+  <section id="paragraphs">
     <title>Paragraphs</title>
     <para>
       Here's a regular paragraph.
@@ -73,7 +73,7 @@
       break<literallayout></literallayout>here.
     </para>
   </section>
-  <section>
+  <section id="block-quotes">
     <title>Block Quotes</title>
     <para>
       E-mail style:
@@ -128,7 +128,7 @@ sub status {
       And a following paragraph.
     </para>
   </section>
-  <section>
+  <section id="code-blocks">
     <title>Code Blocks</title>
     <para>
       Code:
@@ -151,9 +151,9 @@ this code block is indented by one tab
 These should not be escaped:  \$ \\ \&gt; \[ \{
 </screen>
   </section>
-  <section>
+  <section id="lists">
     <title>Lists</title>
-    <section>
+    <section id="unordered">
       <title>Unordered</title>
       <para>
         Asterisks tight:
@@ -276,7 +276,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         </listitem>
       </itemizedlist>
     </section>
-    <section>
+    <section id="ordered">
       <title>Ordered</title>
       <para>
         Tight:
@@ -383,7 +383,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         </listitem>
       </orderedlist>
     </section>
-    <section>
+    <section id="nested">
       <title>Nested</title>
       <itemizedlist>
         <listitem>
@@ -481,7 +481,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         </listitem>
       </orderedlist>
     </section>
-    <section>
+    <section id="tabs-and-spaces">
       <title>Tabs and spaces</title>
       <itemizedlist>
         <listitem>
@@ -508,7 +508,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         </listitem>
       </itemizedlist>
     </section>
-    <section>
+    <section id="fancy-list-markers">
       <title>Fancy list markers</title>
       <orderedlist numeration="arabic">
         <listitem override="2">
@@ -613,7 +613,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </para>
     </section>
   </section>
-  <section>
+  <section id="definition-lists">
     <title>Definition Lists</title>
     <para>
       Tight using spaces:
@@ -757,7 +757,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </varlistentry>
     </variablelist>
   </section>
-  <section>
+  <section id="html-blocks">
     <title>HTML Blocks</title>
     <para>
       Simple block on one line:
@@ -886,7 +886,7 @@ Blah
 <hr class="foo" id="bar">
 
   </section>
-  <section>
+  <section id="inline-markup">
     <title>Inline Markup</title>
     <para>
       This is <emphasis>emphasized</emphasis>, and so
@@ -936,7 +936,7 @@ Blah
       unescaped spaces: a^b c^d, a~b c~d.
     </para>
   </section>
-  <section>
+  <section id="smart-quotes-ellipses-dashes">
     <title>Smart quotes, ellipses, dashes</title>
     <para>
       <quote>Hello,</quote> said the spider.
@@ -968,7 +968,7 @@ Blah
       Ellipses&#8230;and&#8230;and&#8230;.
     </para>
   </section>
-  <section>
+  <section id="latex">
     <title>LaTeX</title>
     <itemizedlist>
       <listitem>
@@ -1046,7 +1046,7 @@ Blah
     <para>
     </para>
   </section>
-  <section>
+  <section id="special-characters">
     <title>Special Characters</title>
     <para>
       Here is some unicode:
@@ -1142,9 +1142,9 @@ Blah
       Minus: -
     </para>
   </section>
-  <section>
+  <section id="links">
     <title>Links</title>
-    <section>
+    <section id="explicit">
       <title>Explicit</title>
       <para>
         Just a <ulink url="/url/">URL</ulink>.
@@ -1174,7 +1174,7 @@ Blah
         <ulink url="">Empty</ulink>.
       </para>
     </section>
-    <section>
+    <section id="reference">
       <title>Reference</title>
       <para>
         Foo <ulink url="/url/">bar</ulink>.
@@ -1213,7 +1213,7 @@ Blah
         Foo <ulink url="/url/">biz</ulink>.
       </para>
     </section>
-    <section>
+    <section id="with-ampersands">
       <title>With ampersands</title>
       <para>
         Here's a
@@ -1231,7 +1231,7 @@ Blah
         <ulink url="/script?foo=1&amp;bar=2">inline link in pointy braces</ulink>.
       </para>
     </section>
-    <section>
+    <section id="autolinks">
       <title>Autolinks</title>
       <para>
         With an ampersand:
@@ -1272,7 +1272,7 @@ or here: &lt;http://example.com/&gt;
 </screen>
     </section>
   </section>
-  <section>
+  <section id="images">
     <title>Images</title>
     <para>
       From <quote>Voyage dans la Lune</quote> by Georges Melies (1902):
@@ -1299,7 +1299,7 @@ or here: &lt;http://example.com/&gt;
       icon.
     </para>
   </section>
-  <section>
+  <section id="footnotes">
     <title>Footnotes</title>
     <para>
       Here is a footnote

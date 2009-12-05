@@ -82,12 +82,12 @@ writeDocbook opts (Pandoc (Meta title authors date) blocks) =
 -- | Convert an Element to Docbook.
 elementToDocbook :: WriterOptions -> Element -> Doc
 elementToDocbook opts (Blk block) = blockToDocbook opts block 
-elementToDocbook opts (Sec _ _ title elements) =
+elementToDocbook opts (Sec _ id' title elements) =
   -- Docbook doesn't allow sections with no content, so insert some if needed
   let elements' = if null elements
                     then [Blk (Para [])]
                     else elements
-  in  inTagsIndented "section" $
+  in  inTags True "section" [("id",id')] $
       inTagsSimple "title" (wrap opts title) $$
       vcat (map (elementToDocbook opts) elements') 
 
@@ -262,7 +262,10 @@ inlineToDocbook opts (Link txt (src, _)) =
                  then emailLink
                  else inlinesToDocbook opts txt <+> char '(' <> emailLink <> 
                       char ')'
-     else inTags False "ulink" [("url", src)] $ inlinesToDocbook opts txt
+     else (if isPrefixOf "#" src
+              then inTags False "link" [("linkend", drop 1 src)]
+              else inTags False "ulink" [("url", src)]) $
+          inlinesToDocbook opts txt
 inlineToDocbook _ (Image _ (src, tit)) = 
   let titleDoc = if null tit
                    then empty
