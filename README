@@ -384,6 +384,11 @@ For further documentation, see the `pandoc(1)` man page.
     is specified, *references* is used regardless of the presence
     of this option.
 
+`--id-prefix`*=string*
+:   specifies a prefix to be added to all automatically generated identifiers
+    in HTML output.  This is useful for preventing duplicate identifiers
+    when generating fragments to be included in other pages.
+
 `--indented-code-classes`*=classes*
 :   specifies classes to use for indented code blocks--for example,
     `perl,numberLines` or `haskell`. Multiple classes may be separated

@@ -144,13 +144,17 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
          then head' +++ body thebody
          else thebody
 
+-- | Like Text.XHtml's identifier, but adds the writerIdentifierPrefix
+prefixedId :: WriterOptions -> String -> HtmlAttr
+prefixedId opts s = identifier $ writerIdentifierPrefix opts ++ s
+
 -- | Construct table of contents from list of elements.
 tableOfContents :: WriterOptions -> [Element] -> State WriterState Html
 tableOfContents _ [] = return noHtml
 tableOfContents opts sects = do
   let opts'        = opts { writerIgnoreNotes = True }
   contents  <- mapM (elementToListItem opts') sects
-  return $ thediv ! [identifier "TOC"] $ unordList $ catMaybes contents
+  return $ thediv ! [prefixedId opts' "TOC"] $ unordList $ catMaybes contents
 
 -- | Converts an Element to a list item for a table of contents,
 -- retrieving the appropriate identifier from state.
@@ -162,7 +166,7 @@ elementToListItem opts (Sec _ id' headerText subsecs) = do
   let subList = if null subHeads
                    then noHtml
                    else unordList subHeads
-  return $ Just $ (anchor ! [href ("#" ++ id')] $ txt) +++ subList
+  return $ Just $ (anchor ! [href ("#" ++ writerIdentifierPrefix opts ++ id')] $ txt) +++ subList
 
 -- | Convert an Element to Html.
 elementToHtml :: WriterOptions -> Element -> State WriterState Html
@@ -173,7 +177,7 @@ elementToHtml opts (Sec level id' title' elements) = do
   return $ if writerS5 opts || (writerStrictMarkdown opts && not (writerTableOfContents opts))
               -- S5 gets confused by the extra divs around sections
               then toHtmlFromList (header' : innerContents)
-              else thediv ! [identifier id'] << (header' : innerContents)
+              else thediv ! [prefixedId opts id'] << (header' : innerContents)
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
@@ -258,7 +262,7 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
                     -- browsers ignore leading newlines in pre blocks
                     let (leadingBreaks, rawCode') = span (=='\n') rawCode
                         attrs = [theclass (unwords classes') | not (null classes')] ++
-                                [identifier id' | not (null id')] ++
+                                [prefixedId opts id' | not (null id')] ++
                                 map (\(x,y) -> strAttr x y) keyvals
                     in  return $ pre ! attrs $ thecode <<
                                  (replicate (length leadingBreaks) br +++
@@ -282,7 +286,7 @@ blockToHtml opts (BlockQuote blocks) =
 blockToHtml opts (Header level lst) = do 
   contents <- inlineListToHtml opts lst
   let contents'  = if writerTableOfContents opts
-                      then anchor ! [href "#TOC"] $ contents
+                      then anchor ! [href $ "#" ++ writerIdentifierPrefix opts ++ "TOC"] $ contents
                       else contents
   return $ case level of
               1 -> h1 contents'
@@ -465,9 +469,9 @@ inlineToHtml opts inline =
                         htmlContents <- blockListToNote opts ref contents 
                         -- push contents onto front of notes
                         put $ st {stNotes = (htmlContents:notes)} 
-                        return $ anchor ! [href ("#fn" ++ ref),
+                        return $ anchor ! [href ("#" ++ writerIdentifierPrefix opts ++ "fn" ++ ref),
                                           theclass "footnoteRef",
-                                          identifier ("fnref" ++ ref)] << 
+                                          prefixedId opts ("fnref" ++ ref)] << 
                                           sup << ref
     (Cite _ il)  -> inlineListToHtml opts il
 
@@ -475,7 +479,7 @@ blockListToNote :: WriterOptions -> String -> [Block] -> State WriterState Html
 blockListToNote opts ref blocks =
   -- If last block is Para or Plain, include the backlink at the end of
   -- that block. Otherwise, insert a new Plain block with the backlink.
-  let backlink = [HtmlInline $ " <a href=\"#fnref" ++ ref ++ 
+  let backlink = [HtmlInline $ " <a href=\"#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref ++ 
                  "\" class=\"footnoteBackLink\"" ++
                  " title=\"Jump back to footnote " ++ ref ++ "\">&#8617;</a>"]
       blocks'  = if null blocks
@@ -490,5 +494,5 @@ blockListToNote opts ref blocks =
                                   _           -> otherBlocks ++ [lastBlock,
                                                  Plain backlink]
   in  do contents <- blockListToHtml opts blocks'
-         return $ li ! [identifier ("fn" ++ ref)] $ contents
+         return $ li ! [prefixedId opts ("fn" ++ ref)] $ contents
 

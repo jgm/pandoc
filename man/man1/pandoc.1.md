@@ -154,6 +154,11 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     If `--strict` is specified, *references* is used regardless of the
     presence of this option.
 
+\--id-prefix*=string*
+:   Specify a prefix to be added to all automatically generated identifiers
+    in HTML output.  This is useful for preventing duplicate identifiers
+    when generating fragments to be included in other pages.
+
 \--indented-code-classes*=classes*
 :   Specify classes to use for indented code blocks--for example,
     `perl,numberLines` or `haskell`. Multiple classes may be separated

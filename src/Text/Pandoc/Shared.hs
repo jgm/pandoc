@@ -990,6 +990,7 @@ data WriterOptions = WriterOptions
   , writerWrapText         :: Bool   -- ^ Wrap text to line length
   , writerLiterateHaskell  :: Bool   -- ^ Write as literate haskell
   , writerEmailObfuscation :: ObfuscationMethod -- ^ How to obfuscate emails
+  , writerIdentifierPrefix :: String -- ^ Prefix for section & note ids in HTML
   } deriving Show
 
 -- | Default writer options.
@@ -1012,6 +1013,7 @@ defaultWriterOptions =
                 , writerWrapText         = True
                 , writerLiterateHaskell  = False
                 , writerEmailObfuscation = JavascriptObfuscation
+                , writerIdentifierPrefix = ""
                 }
 
 --

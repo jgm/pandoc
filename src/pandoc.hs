@@ -153,6 +153,7 @@ data Opt = Opt
     , optSanitizeHTML      :: Bool    -- ^ Sanitize HTML
     , optPlugins           :: [Pandoc -> IO Pandoc] -- ^ Plugins to apply
     , optEmailObfuscation  :: ObfuscationMethod
+    , optIdentifierPrefix  :: String
     , optIndentedCodeClasses :: [String] -- ^ Default classes for indented code blocks
 #ifdef _CITEPROC
     , optBiblioFile        :: String
@@ -190,6 +191,7 @@ defaultOpts = Opt
     , optSanitizeHTML      = False
     , optPlugins           = []
     , optEmailObfuscation  = JavascriptObfuscation
+    , optIdentifierPrefix  = ""
     , optIndentedCodeClasses = []
 #ifdef _CITEPROC
     , optBiblioFile        = []
@@ -313,6 +315,12 @@ options =
                      return opt { optEmailObfuscation = method })
                   "none|javascript|references")
                  "" -- "Method for obfuscating email in HTML"
+
+     , Option "" ["id-prefix"]
+                  (ReqArg
+                   (\arg opt -> return opt { optIdentifierPrefix = arg })
+                   "STRING")
+                  "" -- "Prefix to add to automatically generated HTML identifiers"
 
      , Option "" ["indented-code-classes"]
                   (ReqArg
@@ -540,6 +548,7 @@ main = do
               , optWrapText          = wrap
               , optSanitizeHTML      = sanitize
               , optEmailObfuscation  = obfuscationMethod
+              , optIdentifierPrefix  = idPrefix
               , optIndentedCodeClasses = codeBlockClasses
 #ifdef _CITEPROC
               , optBiblioFile         = biblioFile
@@ -627,7 +636,8 @@ main = do
                                                                lhsExtension [outputFile],
                                       writerEmailObfuscation = if strict
                                                                   then ReferenceObfuscation
-                                                                  else obfuscationMethod }
+                                                                  else obfuscationMethod,
+                                      writerIdentifierPrefix = idPrefix }
 
   when (isNonTextOutput writerName' && outputFile == "-") $
     do hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++
