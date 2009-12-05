@@ -19,5 +19,7 @@ Pandoc (Meta [] [] "")
 , Header 2 [Str "Commented",Str "-",Str "out",Space,Str "list",Space,Str "item"]
 , BulletList
   [ [ Plain [Str "one"]
-    , RawHtml "<!--\n- two\n-->" ], [ Plain [Str "three"] ] ] ]
+    , RawHtml "<!--\n- two\n-->" ], [ Plain [Str "three"] ] ]
+, Header 2 [Str "Backslash",Space,Str "newline"]
+, Para [Str "hi",LineBreak,Str "there"] ]
 

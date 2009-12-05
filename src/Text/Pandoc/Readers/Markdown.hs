@@ -863,10 +863,10 @@ escapedChar = do
   result <- option '\\' $ if stateStrict state 
                              then oneOf "\\`*_{}[]()>#+-.!~"
                              else satisfy (not . isAlphaNum)
-  let result' = if result == ' '
-                   then '\160'  -- '\ ' is a nonbreaking space
-                   else result
-  return $ Str [result']
+  return $ case result of
+                ' '   -> Str "\160" -- "\ " is a nonbreaking space
+                '\n'  -> LineBreak  -- "\[newline]" is a linebreak
+                _     -> Str [result]
 
 ltSign :: GenParser Char ParserState Inline
 ltSign = do

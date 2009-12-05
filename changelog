@@ -15,6 +15,11 @@ pandoc (1.3)
     to use for indented code blocks.  (Thanks to buttock for the
 	patch; resolves Issue #87.)
 
+  * Treat a backslash followed by a newline as a hard line break
+    in markdown.  Resolves Issue #154.  This is a nice alternative
+	to markdown's "invisible" way of indicating hardline breaks
+	using lines that end with two spaces.
+
   * Improved performance of markdown reader by ~10% by
     eliminating the need for a separate parsing pass for notes.
     Raw notes are now stored on the first pass (which parses
