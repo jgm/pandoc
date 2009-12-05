@@ -35,6 +35,7 @@ import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Highlighting ( highlightHtml, defaultHighlightingCss )
+import Text.Pandoc.XML (stripTags)
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
 import Data.List ( isPrefixOf )
@@ -87,13 +88,13 @@ writeHtmlString opts =
 writeHtml :: WriterOptions -> Pandoc -> Html
 writeHtml opts (Pandoc (Meta tit authors date) blocks) = 
   let titlePrefix = writerTitlePrefix opts
-      topTitle    = evalState (inlineListToHtml opts tit) defaultWriterState
-      topTitle'   = if null titlePrefix
-                       then topTitle
-                       else if null tit 
-                               then stringToHtml titlePrefix
-                               else titlePrefix +++ " - " +++ topTitle
-      metadata    = thetitle topTitle' +++ 
+      (topTitle,st) = runState (inlineListToHtml opts tit) defaultWriterState
+      topTitle''  = stripTags $ showHtmlFragment topTitle
+      topTitle'   = titlePrefix ++
+                    (if null topTitle'' || null titlePrefix
+                        then ""
+                        else " - ") ++ topTitle''
+      metadata    = thetitle << topTitle' +++
                     meta ! [httpequiv "Content-Type", 
                             content "text/html; charset=UTF-8"] +++
                     meta ! [name "generator", content "pandoc"] +++
@@ -108,17 +109,17 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
                         else noHtml
       sects        = hierarchicalize blocks
       toc          = if writerTableOfContents opts 
-                        then evalState (tableOfContents opts sects) defaultWriterState
+                        then evalState (tableOfContents opts sects) st
                         else noHtml
-      (blocks', newstate) = runState 
-                            (mapM (elementToHtml opts) sects >>= return . toHtmlFromList)
-                            defaultWriterState
-      cssLines     = stCSS newstate
+      (blocks', st') = runState
+                       (mapM (elementToHtml opts) sects >>= return . toHtmlFromList)
+                       st
+      cssLines     = stCSS st'
       css          = if S.null cssLines
                         then noHtml
                         else style ! [thetype "text/css"] $ primHtml $
                              '\n':(unlines $ S.toList cssLines)
-      math         = if stMath newstate
+      math         = if stMath st'
                         then case writerHTMLMathMethod opts of
                                    LaTeXMathML Nothing -> 
                                       primHtml latexMathMLScript
@@ -134,7 +135,7 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
                         else noHtml
       head'        = header $ metadata +++ math +++ css +++ 
                               primHtml (writerHeader opts)
-      notes        = reverse (stNotes newstate)
+      notes        = reverse (stNotes st')
       before       = primHtml $ writerIncludeBefore opts
       after        = primHtml $ writerIncludeAfter opts
       thebody      = before +++ titleHeader +++ toc +++ blocks' +++

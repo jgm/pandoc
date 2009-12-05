@@ -188,10 +188,21 @@ blockToLaTeX (DefinitionList lst) = do
 blockToLaTeX HorizontalRule = return $ text $
     "\\begin{center}\\rule{3in}{0.4pt}\\end{center}\n"
 blockToLaTeX (Header level lst) = do
-  txt <- inlineListToLaTeX (deVerb lst)
+  let lst' = deVerb lst
+  txt <- inlineListToLaTeX lst'
+  let noNote (Note _) = Str ""
+      noNote x        = x
+  let lstNoNotes = processWith noNote lst'
+  -- footnotes in sections don't work unless you specify an optional
+  -- argument:  \section[mysec]{mysec\footnote{blah}}
+  optional <- if lstNoNotes == lst'
+                 then return empty
+                 else do
+                   res <- inlineListToLaTeX lstNoNotes
+                   return $ char '[' <> res <> char ']'
   return $ if (level > 0) && (level <= 3)
               then text ("\\" ++ (concat (replicate (level - 1) "sub")) ++ 
-                   "section{") <> txt <> text "}\n"
+                   "section") <> optional <> char '{' <> txt <> text "}\n"
               else txt <> char '\n'
 blockToLaTeX (Table caption aligns widths heads rows) = do
   headers <- tableRowToLaTeX heads
