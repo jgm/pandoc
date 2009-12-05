@@ -49,6 +49,9 @@ pandoc (1.3)
     RST, but used in Sphinx for code blocks annotated with syntax
     information. Thanks to Luke Plant for the patch.
 
+  * Added "head" to list of block-level HTML tags. Resolves
+    Issue #108.
+
   * Set utf-8 encoding in texinfo headers.
 
   * Properly handle commented-out list items in markdown.

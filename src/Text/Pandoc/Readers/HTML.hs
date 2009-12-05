@@ -77,7 +77,7 @@ inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big",
 blockHtmlTags :: [[Char]]
 blockHtmlTags = ["address", "blockquote", "body", "center", "dir", "div",
                  "dl", "fieldset", "form", "h1", "h2", "h3", "h4",
-                 "h5", "h6", "hr", "html", "isindex", "menu", "noframes",
+                 "h5", "h6", "head", "hr", "html", "isindex", "menu", "noframes",
                  "noscript", "ol", "p", "pre", "table", "ul", "dd",
                  "dt", "frameset", "li", "tbody", "td", "tfoot",
                  "th", "thead", "tr", "script"] ++ eitherBlockOrInline
