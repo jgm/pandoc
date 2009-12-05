@@ -728,7 +728,17 @@ widthsFromIndices :: Int      -- Number of columns on terminal
                   -> [Double] -- Fractional relative sizes of columns
 widthsFromIndices _ [] = []  
 widthsFromIndices numColumns indices = 
-  let lengths = zipWith (-) indices (0:indices)
+  let lengths' = zipWith (-) indices (0:indices)
+      lengths  = reverse $
+                 case reverse lengths' of
+                      []       -> []
+                      [x]      -> [x]
+                      -- compensate for the fact that intercolumn
+                      -- spaces are counted in widths of all columns
+                      -- but the last...
+                      (x:y:zs) -> if x < y && y - x <= 2
+                                     then y:y:zs
+                                     else x:y:zs
       totLength = sum lengths
       quotient = if totLength > numColumns
                    then fromIntegral totLength
