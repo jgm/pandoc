@@ -11,6 +11,10 @@ pandoc (1.3)
       adding up to the text width.)
     + Simple tables should now look better in most output formats.
 
+  * Added --indented-code-classes option.  This specifies classes
+    to use for indented code blocks.  (Thanks to buttock for the
+	patch; resolves Issue #87.)
+
   * Improved performance of markdown reader by ~10% by
     eliminating the need for a separate parsing pass for notes.
     Raw notes are now stored on the first pass (which parses
@@ -18,7 +22,15 @@ pandoc (1.3)
     the AST. The stateNotes field in ParserState is now a
     list of [(String, String)] pairs instead of [(String, [Block])].
 
+  * In markdown reader, treat 4 or more * or _ in a row as literal
+    text.  (Trying to parse long strings of * or _ as strong or emph
+	leads to exponential performance problems.)
+
+  * Markdown reader: Use + rather than %20 for spaces in URLs.
+
   * Fixed htmlComment parser, adding a needed 'try'.
+
+  * Allow . _ and ~ in header identifiers.
 
   * Specially mark code blocks that were "literate" in the input.
     They can then be treated differently in the writers.  This allows
@@ -86,6 +98,9 @@ pandoc (1.3)
   * Changed Makefile so it doesn't build Haskell wrappers.
 
   * Fixed Makefile so it doesn't try to build man pages in build-doc.
+
+  * Install pcre3.dll in Windows install script; this allows us to
+    package a version of pandoc with highlighting support.
 
 pandoc (1.2.1)
 
