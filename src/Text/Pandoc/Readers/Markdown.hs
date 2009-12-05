@@ -45,7 +45,7 @@ import Text.Pandoc.Readers.HTML ( rawHtmlBlock, anyHtmlBlockTag,
                                   htmlBlockElement, htmlComment, unsanitaryURI )
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.ParserCombinators.Parsec
-import Control.Monad (when, liftM)
+import Control.Monad (when, liftM, unless)
 
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: ParserState -- ^ Parser state, including options for parser
@@ -109,7 +109,7 @@ failUnlessBeginningOfLine = do
 failUnlessSmart :: GenParser tok ParserState ()
 failUnlessSmart = do
   state <- getState
-  if stateSmart state then return () else fail "Smart typography feature"
+  if stateSmart state then return () else pzero
 
 -- | Parse a sequence of inline elements between square brackets,
 -- including inlines between balanced pairs of square brackets.
@@ -118,9 +118,7 @@ inlinesInBalancedBrackets :: GenParser Char ParserState Inline
 inlinesInBalancedBrackets parser = try $ do
   char '['
   result <- manyTill ( (do lookAhead $ try $ do (Str res) <- parser
-                                                if res == "["
-                                                   then return ()
-                                                   else pzero
+                                                unless (res == "[") pzero
                            bal <- inlinesInBalancedBrackets parser
                            return $ [Str "["] ++ bal ++ [Str "]"])
                        <|> (count 1 parser))
@@ -678,26 +676,36 @@ dashedLine ch = do
   return $ (length dashes, length $ dashes ++ sp)
 
 -- Parse a table header with dashed lines of '-' preceded by 
--- one line of text.
-simpleTableHeader :: GenParser Char ParserState ([[Char]], [Alignment], [Int])
-simpleTableHeader = try $ do
-  rawContent  <- anyLine
+-- one (or zero) line of text.
+simpleTableHeader :: Bool  -- ^ Headerless table 
+                  -> GenParser Char ParserState ([[Char]], [Alignment], [Int])
+simpleTableHeader headless = try $ do
+  rawContent  <- if headless
+                    then return ""
+                    else anyLine
   initSp      <- nonindentSpaces
   dashes      <- many1 (dashedLine '-')
   newline
   let (lengths, lines') = unzip dashes
   let indices  = scanl (+) (length initSp) lines'
-  let rawHeads = tail $ splitByIndices (init indices) rawContent
+  -- If no header, calculate alignment on basis of first row of text
+  rawHeads <- liftM (tail . splitByIndices (init indices)) $
+              if headless
+                 then lookAhead anyLine 
+                 else return rawContent
   let aligns   = zipWith alignType (map (\a -> [a]) rawHeads) lengths
-  return (rawHeads, aligns, indices)
+  let rawHeads' = if headless
+                     then replicate (length dashes) ""
+                     else rawHeads 
+  return (rawHeads', aligns, indices)
 
 -- Parse a table footer - dashed lines followed by blank line.
 tableFooter :: GenParser Char ParserState [Char]
 tableFooter = try $ skipNonindentSpaces >> many1 (dashedLine '-') >> blanklines
 
 -- Parse a table separator - dashed line.
-tableSep :: GenParser Char ParserState String
-tableSep = try $ skipNonindentSpaces >> many1 (dashedLine '-') >> string "\n"
+tableSep :: GenParser Char ParserState Char
+tableSep = try $ skipNonindentSpaces >> many1 (dashedLine '-') >> char '\n'
 
 -- Parse a raw line and split it into chunks by indices.
 rawTableLine :: [Int]
@@ -772,9 +780,11 @@ tableWith headerParser lineParser footerParser = try $ do
     return $ Table caption aligns widths heads lines'
 
 -- Parse a simple table with '---' header and one line per row.
-simpleTable :: GenParser Char ParserState Block
-simpleTable = do
-  Table c a _w h l <- tableWith simpleTableHeader tableLine blanklines
+simpleTable :: Bool  -- ^ Headerless table
+            -> GenParser Char ParserState Block
+simpleTable headless = do
+  Table c a _w h l <- tableWith (simpleTableHeader headless) tableLine
+               (if headless then tableFooter else tableFooter <|> blanklines)
   -- Simple tables get 0s for relative column widths (i.e., use default)
   return $ Table c a (replicate (length a) 0) h l
 
@@ -782,23 +792,36 @@ simpleTable = do
 -- (which may be multiline), then the rows,
 -- which may be multiline, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-multilineTable :: GenParser Char ParserState Block
-multilineTable = tableWith multilineTableHeader multilineRow tableFooter
+multilineTable :: Bool -- ^ Headerless table
+               -> GenParser Char ParserState Block
+multilineTable headless =
+  tableWith (multilineTableHeader headless) multilineRow tableFooter
 
-multilineTableHeader :: GenParser Char ParserState ([String], [Alignment], [Int])
-multilineTableHeader = try $ do
-  tableSep 
-  rawContent  <- many1 (notFollowedBy' tableSep >> many1Till anyChar newline)
+multilineTableHeader :: Bool -- ^ Headerless table
+                     -> GenParser Char ParserState ([String], [Alignment], [Int])
+multilineTableHeader headless = try $ do
+  if headless
+     then return '\n'
+     else tableSep
+  rawContent  <- if headless
+                    then return $ repeat "" 
+                    else many1
+                         (notFollowedBy tableSep >> many1Till anyChar newline)
   initSp      <- nonindentSpaces
   dashes      <- many1 (dashedLine '-')
   newline
   let (lengths, lines') = unzip dashes
   let indices  = scanl (+) (length initSp) lines'
-  let rawHeadsList = transpose $ map 
-                     (\ln -> tail $ splitByIndices (init indices) ln)
-                     rawContent
-  let rawHeads = map (intercalate " ") rawHeadsList
+  rawHeadsList <- if headless
+                     then liftM (map (:[]) . tail .
+                              splitByIndices (init indices)) $ lookAhead anyLine
+                     else return $ transpose $ map 
+                           (\ln -> tail $ splitByIndices (init indices) ln)
+                           rawContent
   let aligns   = zipWith alignType rawHeadsList lengths
+  let rawHeads = if headless
+                    then replicate (length dashes) ""
+                    else map (intercalate " ") rawHeadsList
   return ((map removeLeadingTrailingSpace rawHeads), aligns, indices)
 
 -- Returns an alignment type for a table, based on a list of strings
@@ -820,7 +843,8 @@ alignType strLst len =
         (False, False)   -> AlignDefault
 
 table :: GenParser Char ParserState Block
-table = simpleTable <|> multilineTable <?> "table"
+table = multilineTable False <|> simpleTable True <|>
+        simpleTable False <|> multilineTable True <?> "table"
 
 -- 
 -- inline

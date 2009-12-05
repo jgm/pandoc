@@ -705,9 +705,23 @@ to the dashed line below it:[^3]
 [^3]:  This scheme is due to Michel Fortin, who proposed it on the
        [Markdown discussion list](http://six.pairlist.net/pipermail/markdown-discuss/2005-March/001097.html).
 
-The table must end with a blank line.  Optionally, a caption may be
-provided (as illustrated in the example above).  A caption is a paragraph
-beginning with the string `Table:`, which will be stripped off.
+The table must end with a blank line, or a line of dashes followed by
+a blank line. A caption may optionally be provided (as illustrated in
+the example above). A caption is a paragraph beginning with the string
+`Table:`, which will be stripped off.
+
+The column headers may be omitted, provided a dashed line is used
+to end the table. For example:
+
+    -------     ------ ----------   -------
+         12     12        12             12
+        123     123       123           123
+          1     1          1              1
+    -------     ------ ----------   -------
+
+When headers are omitted, column alignments are determined on the basis
+of the first line of the table body. So, in the tables above, the columns
+would be right, left, center, and right aligned, respectively.
 
 Multiline tables allow headers and table rows to span multiple lines
 of text.  Here is an example:
@@ -729,7 +743,8 @@ of text.  Here is an example:
 
 These work like simple tables, but with the following differences:
 
-  - They must begin with a row of dashes, before the header text.
+  - They must begin with a row of dashes, before the header text
+    (unless the headers are omitted).
   - They must end with a row of dashes, then a blank line.
   - The rows must be separated by blank lines.
 
@@ -737,6 +752,23 @@ In multiline tables, the table parser pays attention to the widths of
 the columns, and the writers try to reproduce these relative widths in
 the output. So, if you find that one of the columns is too narrow in the
 output, try widening it in the markdown source.
+
+Headers may be omitted in multiline tables as well as simple tables:
+
+    ----------- ------- --------------- -------------------------
+       First    row                12.0 Example of a row that
+                                        spans multiple lines.
+
+      Second    row                 5.0 Here's another one. Note
+                                        the blank line between
+                                        rows.
+    -------------------------------------------------------------
+
+    Table: Here's a multiline table without headers.
+
+It is possible for a multiline table to have just one row, but the row
+should be followed by a blank line (and then the row of dashes that ends
+the table), or the table may be interpreted as a simple table.
 
 Delimited Code blocks
 ---------------------
