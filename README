@@ -384,7 +384,7 @@ For further documentation, see the `pandoc(1)` man page.
     is specified, *references* is used regardless of the presence
     of this option.
 
-`--default-code-classes`*=classes*
+`--indented-code-classes`*=classes*
 :   specifies classes to use for indented code blocks--for example,
     `perl,numberLines` or `haskell`. Multiple classes may be separated
     by spaces or commas.

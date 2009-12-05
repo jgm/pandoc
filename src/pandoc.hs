@@ -153,7 +153,7 @@ data Opt = Opt
     , optSanitizeHTML      :: Bool    -- ^ Sanitize HTML
     , optPlugins           :: [Pandoc -> IO Pandoc] -- ^ Plugins to apply
     , optEmailObfuscation  :: ObfuscationMethod
-    , optDefaultCodeClasses :: [String] -- ^ Default classes for indented code blocks
+    , optIndentedCodeClasses :: [String] -- ^ Default classes for indented code blocks
 #ifdef _CITEPROC
     , optBiblioFile        :: String
     , optBiblioFormat      :: String
@@ -190,7 +190,7 @@ defaultOpts = Opt
     , optSanitizeHTML      = False
     , optPlugins           = []
     , optEmailObfuscation  = JavascriptObfuscation
-    , optDefaultCodeClasses = []
+    , optIndentedCodeClasses = []
 #ifdef _CITEPROC
     , optBiblioFile        = []
     , optBiblioFormat      = []
@@ -314,9 +314,9 @@ options =
                   "none|javascript|references")
                  "" -- "Method for obfuscating email in HTML"
 
-     , Option "" ["default-code-classes"]
+     , Option "" ["indented-code-classes"]
                   (ReqArg
-                   (\arg opt -> return opt { optDefaultCodeClasses = words $
+                   (\arg opt -> return opt { optIndentedCodeClasses = words $
                                              map (\c -> if c == ',' then ' ' else c) arg })
                    "STRING")
                   "" -- "Classes (whitespace- or comma-separated) to use for indented code-blocks"
@@ -540,7 +540,7 @@ main = do
               , optWrapText          = wrap
               , optSanitizeHTML      = sanitize
               , optEmailObfuscation  = obfuscationMethod
-              , optDefaultCodeClasses = codeBlockClasses
+              , optIndentedCodeClasses = codeBlockClasses
 #ifdef _CITEPROC
               , optBiblioFile         = biblioFile
               , optBiblioFormat       = biblioFormat
@@ -597,7 +597,7 @@ main = do
                                                               ["latex", "context", "man"],
                               stateColumns         = columns,
                               stateStrict          = strict,
-                              stateDefaultCodeClasses = codeBlockClasses }
+                              stateIndentedCodeClasses = codeBlockClasses }
   let csslink = if null css
                    then ""
                    else concatMap

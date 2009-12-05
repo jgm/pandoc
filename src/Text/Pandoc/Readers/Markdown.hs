@@ -395,7 +395,8 @@ codeBlockIndented = do
                              return $ b ++ l))
   optional blanklines
   st <- getState
-  return $ CodeBlock ("", stateDefaultCodeClasses st, []) $ stripTrailingNewlines $ concat contents
+  return $ CodeBlock ("", stateIndentedCodeClasses st, []) $
+           stripTrailingNewlines $ concat contents
 
 lhsCodeBlock :: GenParser Char ParserState Block
 lhsCodeBlock = do
