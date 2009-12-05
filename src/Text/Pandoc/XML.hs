@@ -27,13 +27,24 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Functions for escaping and formatting XML.
 -}
-module Text.Pandoc.XML ( escapeCharForXML,
+module Text.Pandoc.XML ( stripTags,
+                         escapeCharForXML,
                          escapeStringForXML,
                          inTags,
                          selfClosingTag,
                          inTagsSimple,
                          inTagsIndented  ) where
 import Text.PrettyPrint.HughesPJ
+
+-- | Remove everything between <...>
+stripTags :: String -> String
+stripTags ('<':xs) =
+  let (_,rest) = break (=='>') xs
+  in  if null rest
+         then ""
+         else stripTags (tail rest) -- leave off >
+stripTags (x:xs) = x : stripTags xs
+stripTags [] = []
 
 -- | Escape one character as needed for XML.
 escapeCharForXML :: Char -> String
