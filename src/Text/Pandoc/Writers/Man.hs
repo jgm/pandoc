@@ -149,7 +149,7 @@ blockToMan opts (Para inlines) = do
   contents <- liftM vcat $ mapM (wrapIfNeeded opts (inlineListToMan opts)) $
     splitSentences inlines
   return $ text ".PP" $$ contents 
-blockToMan _ (RawHtml str) = return $ text str
+blockToMan _ (RawHtml _) = return empty
 blockToMan _ HorizontalRule = return $ text $ ".PP\n   *   *   *   *   *"
 blockToMan opts (Header level inlines) = do
   contents <- inlineListToMan opts inlines
@@ -312,7 +312,7 @@ inlineToMan opts (Math DisplayMath str) = do
   contents <- inlineToMan opts (Code str)
   return $ text ".RS" $$ contents $$ text ".RE"
 inlineToMan _ (TeX _) = return empty
-inlineToMan _ (HtmlInline str) = return $ text $ escapeCode str 
+inlineToMan _ (HtmlInline _) = return empty
 inlineToMan _ (LineBreak) = return $ text "\n.PD 0\n.P\n.PD\n"
 inlineToMan _ Space = return $ char ' '
 inlineToMan opts (Link txt (src, _)) = do

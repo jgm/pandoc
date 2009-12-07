@@ -439,45 +439,18 @@ sublist
 .SH HTML Blocks
 .PP
 Simple block on one line:
-<div>
 foo
-</div>
-
 .PP
 And nested without indentation:
-<div>
-<div>
-<div>
 foo
-</div>
-</div>
-<div>
 bar
-</div>
-</div>
-
 .PP
 Interpreted markdown in a table:
-<table>
-<tr>
-<td>
 This is \f[I]emphasized\f[]
-</td>
-<td>
 And this is \f[B]strong\f[]
-</td>
-</tr>
-</table>
-
-<script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
-
 .PP
 Here's a simple block:
-<div>
-    
 foo
-</div>
-
 .PP
 This should be a code block, though:
 .PP
@@ -494,30 +467,11 @@ As should this:
 \f[]
 .PP
 Now, nested:
-<div>
-    <div>
-        <div>
-            
 foo
-</div>
-    </div>
-</div>
-
 .PP
 This should just be an HTML comment:
-<!-- Comment -->
-
 .PP
 Multiline:
-<!--
-Blah
-Blah
--->
-
-<!--
-    This is another comment.
--->
-
 .PP
 Code block:
 .PP
@@ -526,8 +480,6 @@ Code block:
 \f[]
 .PP
 Just plain comment, with trailing spaces on the line:
-<!-- foo -->   
-
 .PP
 Code:
 .PP
@@ -536,24 +488,6 @@ Code:
 \f[]
 .PP
 Hr's:
-<hr>
-
-<hr />
-
-<hr />
-
-<hr>   
-
-<hr />  
-
-<hr /> 
-
-<hr class="foo" id="bar" />
-
-<hr class="foo" id="bar" />
-
-<hr class="foo" id="bar">
-
 .PP
    *   *   *   *   *
 .SH Inline Markup
