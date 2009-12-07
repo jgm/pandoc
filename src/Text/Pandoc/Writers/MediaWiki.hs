@@ -141,7 +141,7 @@ blockToMediaWiki opts x@(BulletList items) = do
         modify $ \s -> s { stListLevel = stListLevel s ++ "*" }
         contents <- mapM (listItemToMediaWiki opts) items
         modify $ \s -> s { stListLevel = init (stListLevel s) }
-        return $ vcat contents
+        return $ vcat contents ++ "\n"
 
 blockToMediaWiki opts x@(OrderedList attribs items) = do
   oldUseTags <- get >>= return . stUseTags
@@ -156,7 +156,7 @@ blockToMediaWiki opts x@(OrderedList attribs items) = do
         modify $ \s -> s { stListLevel = stListLevel s ++ "#" }
         contents <- mapM (listItemToMediaWiki opts) items
         modify $ \s -> s { stListLevel = init (stListLevel s) }
-        return $ vcat contents
+        return $ vcat contents ++ "\n"
 
 blockToMediaWiki opts x@(DefinitionList items) = do
   oldUseTags <- get >>= return . stUseTags
@@ -171,7 +171,7 @@ blockToMediaWiki opts x@(DefinitionList items) = do
         modify $ \s -> s { stListLevel = stListLevel s ++ ";" }
         contents <- mapM (definitionListItemToMediaWiki opts) items
         modify $ \s -> s { stListLevel = init (stListLevel s) }
-        return $ vcat contents
+        return $ vcat contents ++ "\n"
 
 -- Auxiliary functions for lists:
 
@@ -251,9 +251,7 @@ tr x =  "<tr>\n" ++ x ++ "\n</tr>"
 
 -- | Concatenates strings with line breaks between them.
 vcat :: [String] -> String
-vcat []     = ""
-vcat [x]    = x
-vcat (x:xs) = x ++ "\n" ++ vcat xs
+vcat = intercalate "\n"
 
 -- Auxiliary functions for tables:
 
