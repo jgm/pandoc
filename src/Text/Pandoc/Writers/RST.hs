@@ -257,10 +257,10 @@ orderedListItemToRST marker items = do
   return $ (text marker <> char ' ') <> contents 
 
 -- | Convert defintion list item (label, list of blocks) to RST.
-definitionListItemToRST :: ([Inline], [Block]) -> State WriterState Doc
-definitionListItemToRST (label, items) = do
+definitionListItemToRST :: ([Inline], [[Block]]) -> State WriterState Doc
+definitionListItemToRST (label, defs) = do
   label' <- inlineListToRST label
-  contents <- blockListToRST items
+  contents <- liftM vcat $ mapM blockListToRST defs
   tabstop <- get >>= (return . writerTabStop . stOptions)
   return $ label' $+$ nest tabstop contents
 

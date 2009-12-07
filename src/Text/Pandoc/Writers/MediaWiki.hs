@@ -33,7 +33,7 @@ module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.XML ( escapeStringForXML )
-import Data.List ( intersect )
+import Data.List ( intersect, intercalate )
 import Network.URI ( isURI )
 import Control.Monad.State
 
@@ -199,17 +199,19 @@ listItemToMediaWiki opts items = do
 
 -- | Convert definition list item (label, list of blocks) to MediaWiki.
 definitionListItemToMediaWiki :: WriterOptions
-                             -> ([Inline],[Block]) 
+                             -> ([Inline],[[Block]]) 
                              -> State WriterState String
 definitionListItemToMediaWiki opts (label, items) = do
   labelText <- inlineListToMediaWiki opts label
-  contents <- blockListToMediaWiki opts items
+  contents <- mapM (blockListToMediaWiki opts) items
   useTags <- get >>= return . stUseTags
   if useTags
-     then return $ "<dt>" ++ labelText ++ "</dt>\n<dd>" ++ contents ++ "</dd>"
+     then return $ "<dt>" ++ labelText ++ "</dt>\n" ++
+           (intercalate "\n" $ map (\d -> "<dd>" ++ d ++ "</dd>") contents)
      else do
        marker <- get >>= return . stListLevel
-       return $ marker ++ " " ++ labelText ++ "\n" ++ (init marker ++ ": ") ++  contents
+       return $ marker ++ " " ++ labelText ++ "\n" ++
+           (intercalate "\n" $ map (\d -> init marker ++ ": " ++ d) contents)
 
 -- | True if the list can be handled by simple wiki markup, False if HTML tags will be needed.
 isSimpleList :: Block -> Bool
@@ -218,7 +220,7 @@ isSimpleList x =
        BulletList items                 -> all isSimpleListItem items
        OrderedList (num, sty, _) items  -> all isSimpleListItem items &&
                                             num == 1 && sty `elem` [DefaultStyle, Decimal]
-       DefinitionList items             -> all isSimpleListItem $ map snd items 
+       DefinitionList items             -> all isSimpleListItem $ concatMap snd items 
        _                                -> False
 
 -- | True if list item can be handled with the simple wiki syntax.  False if

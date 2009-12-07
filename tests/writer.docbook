@@ -756,6 +756,108 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         </listitem>
       </varlistentry>
     </variablelist>
+    <para>
+      Multiple definitions, tight:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>
+          apple
+        </term>
+        <listitem>
+          <para>
+            red fruit
+          </para>
+          <para>
+            computer
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          orange
+        </term>
+        <listitem>
+          <para>
+            orange fruit
+          </para>
+          <para>
+            bank
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      Multiple definitions, loose:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>
+          apple
+        </term>
+        <listitem>
+          <para>
+            red fruit
+          </para>
+          <para>
+            computer
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          orange
+        </term>
+        <listitem>
+          <para>
+            orange fruit
+          </para>
+          <para>
+            bank
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      Blank line after term, indented marker, alternate markers:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>
+          apple
+        </term>
+        <listitem>
+          <para>
+            red fruit
+          </para>
+          <para>
+            computer
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          orange
+        </term>
+        <listitem>
+          <para>
+            orange fruit
+          </para>
+          <orderedlist numeration="arabic">
+            <listitem>
+              <para>
+                sublist
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                sublist
+              </para>
+            </listitem>
+          </orderedlist>
+        </listitem>
+      </varlistentry>
+    </variablelist>
   </section>
   <section id="html-blocks">
     <title>HTML Blocks</title>

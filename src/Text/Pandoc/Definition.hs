@@ -79,9 +79,10 @@ data Block
                             -- and a list of items, each a list of blocks)
     | BulletList [[Block]]  -- ^ Bullet list (list of items, each
                             -- a list of blocks)
-    | DefinitionList [([Inline],[Block])]  -- ^ Definition list 
-                            -- (list of items, each a pair of an inline list,
-                            -- the term, and a block list)
+    | DefinitionList [([Inline],[[Block]])]  -- ^ Definition list 
+                            -- Each list item is a pair consisting of a
+                            -- term (a list of inlines) and one or more
+                            -- definitions (each a list of blocks)
     | Header Int [Inline]   -- ^ Header - level (integer) and text (inlines) 
     | HorizontalRule        -- ^ Horizontal rule
     | Table [Inline] [Alignment] [Double] [[Block]] [[[Block]]]  -- ^ Table,

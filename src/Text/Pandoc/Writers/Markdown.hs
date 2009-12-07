@@ -279,15 +279,14 @@ orderedListItemToMarkdown opts marker items = do
 
 -- | Convert definition list item (label, list of blocks) to markdown.
 definitionListItemToMarkdown :: WriterOptions
-                             -> ([Inline],[Block]) 
+                             -> ([Inline],[[Block]]) 
                              -> State WriterState Doc
-definitionListItemToMarkdown opts (label, items) = do
+definitionListItemToMarkdown opts (label, defs) = do
   labelText <- inlineListToMarkdown opts label
   let tabStop = writerTabStop opts
   let leader  = char ':'
-  contents <- mapM (\item -> blockToMarkdown opts item >>= 
-                   (\txt -> return (leader $$ nest tabStop txt)))
-                   items >>= return . vcat
+  contents <- liftM vcat $
+    mapM (liftM ((leader $$) . nest tabStop . vcat) . mapM (blockToMarkdown opts))           defs
   return $ labelText $+$ contents
 
 -- | Convert list of Pandoc block elements to markdown.

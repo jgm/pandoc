@@ -31,8 +31,9 @@ module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
-import Data.List ( isSuffixOf, intercalate )
+import Data.List ( isSuffixOf, intercalate, intersperse )
 import Control.Monad.State
+import Control.Monad (liftM)
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
 data WriterState = 
@@ -221,10 +222,10 @@ listItemToConTeXt :: [Block] -> State WriterState Doc
 listItemToConTeXt list = blockListToConTeXt list >>=
   return . (text "\\item" $$) . (nest 2)
 
-defListItemToConTeXt :: ([Inline], [Block]) -> State WriterState BlockWrapper
-defListItemToConTeXt (term, def) = do
+defListItemToConTeXt :: ([Inline], [[Block]]) -> State WriterState BlockWrapper
+defListItemToConTeXt (term, defs) = do
   term' <- inlineListToConTeXt term
-  def'  <- blockListToConTeXt def
+  def'  <- liftM (vcat . intersperse (text "")) $ mapM blockListToConTeXt defs
   return $ Pad $ text "\\startdescr{" <> term' <> char '}' $$ def' $$ text "\\stopdescr"
 
 -- | Convert list of block elements to ConTeXt.

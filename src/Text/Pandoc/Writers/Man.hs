@@ -242,19 +242,19 @@ orderedListItemToMan opts num indent (first:rest) = do
 
 -- | Convert definition list item (label, list of blocks) to man.
 definitionListItemToMan :: WriterOptions
-                             -> ([Inline],[Block]) 
+                             -> ([Inline],[[Block]]) 
                              -> State WriterState Doc
-definitionListItemToMan opts (label, items) = do
+definitionListItemToMan opts (label, defs) = do
   labelText <- inlineListToMan opts label
-  contents <- if null items
+  contents <- if null defs 
                  then return empty
-                 else do 
-                        let (first, rest) = case items of
+                 else liftM vcat $ forM defs $ \blocks -> do 
+                        let (first, rest) = case blocks of
                               ((Para x):y) -> (Plain x,y)
                               (x:y)        -> (x,y)
-                              []           -> error "items is null"
-                        rest' <- mapM (\item -> blockToMan opts item)
-                                 rest >>= (return . vcat)
+                              []           -> error "blocks is null"
+                        rest' <- liftM vcat $
+                                  mapM (\item -> blockToMan opts item) rest
                         first' <- blockToMan opts first
                         return $ first' $$ text ".RS" $$ rest' $$ text ".RE"
   return $ text ".TP\n.B " <> labelText $+$ contents

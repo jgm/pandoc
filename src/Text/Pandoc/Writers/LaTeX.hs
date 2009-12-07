@@ -31,10 +31,11 @@ module Text.Pandoc.Writers.LaTeX ( writeLaTeX ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
-import Data.List ( (\\), isSuffixOf, intercalate )
+import Data.List ( (\\), isSuffixOf, intercalate, intersperse )
 import Data.Char ( toLower )
 import qualified Data.Set as S
 import Control.Monad.State
+import Control.Monad (liftM)
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
 data WriterState = 
@@ -250,10 +251,10 @@ listItemToLaTeX :: [Block] -> State WriterState Doc
 listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
                       (nest 2)
 
-defListItemToLaTeX :: ([Inline], [Block]) -> State WriterState Doc
-defListItemToLaTeX (term, def) = do
+defListItemToLaTeX :: ([Inline], [[Block]]) -> State WriterState Doc
+defListItemToLaTeX (term, defs) = do
     term' <- inlineListToLaTeX $ deVerb term
-    def'  <- blockListToLaTeX def
+    def'  <- liftM (vcat . intersperse (text "")) $ mapM blockListToLaTeX defs
     return $ text "\\item[" <> term' <> text "]" $$ def'
 
 -- | Convert list of inline elements to LaTeX.

@@ -313,14 +313,50 @@ Multiple blocks with italics:
 *apple*
 :   red fruit
 
-:   contains seeds, crisp, pleasant to taste
+    contains seeds, crisp, pleasant to taste
 
 *orange*
 :   orange fruit
 
-:       { orange code block }
+        { orange code block }
 
-:   > orange block quote
+    > orange block quote
+
+
+Multiple definitions, tight:
+
+apple
+:   red fruit
+:   computer
+orange
+:   orange fruit
+:   bank
+
+Multiple definitions, loose:
+
+apple
+:   red fruit
+
+:   computer
+
+orange
+:   orange fruit
+
+:   bank
+
+
+Blank line after term, indented marker, alternate markers:
+
+apple
+:   red fruit
+
+:   computer
+
+orange
+:   orange fruit
+
+    1.  sublist
+    2.  sublist
 
 
 # HTML Blocks

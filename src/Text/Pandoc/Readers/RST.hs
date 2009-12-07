@@ -174,7 +174,7 @@ fieldList = try $ do
               else do terms <- mapM (return . (:[]) . Str . fst) remaining
                       defs  <- mapM (parseFromString (many block) . snd) 
                                     remaining
-                      return $ DefinitionList $ zip terms defs
+                      return $ DefinitionList $ zip terms $ map (:[]) defs
 
 --
 -- line block
@@ -397,7 +397,7 @@ blockQuote = do
 list :: GenParser Char ParserState Block
 list = choice [ bulletList, orderedList, definitionList ] <?> "list"
 
-definitionListItem :: GenParser Char ParserState ([Inline], [Block])
+definitionListItem :: GenParser Char ParserState ([Inline], [[Block]])
 definitionListItem = try $ do
   -- avoid capturing a directive or comment
   notFollowedBy (try $ char '.' >> char '.')
@@ -405,7 +405,7 @@ definitionListItem = try $ do
   raw <- indentedBlock
   -- parse the extracted block, which may contain various block elements:
   contents <- parseFromString parseBlocks $ raw ++ "\n\n"
-  return (normalizeSpaces term, contents)
+  return (normalizeSpaces term, [contents])
 
 definitionList :: GenParser Char ParserState Block
 definitionList = many1 definitionListItem >>= return . DefinitionList

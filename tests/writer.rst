@@ -386,6 +386,43 @@ Multiple blocks with italics:
 
 
 
+Multiple definitions, tight:
+
+apple
+    red fruit
+    computer
+orange
+    orange fruit
+    bank
+
+Multiple definitions, loose:
+
+apple
+    red fruit
+
+    computer
+
+orange
+    orange fruit
+
+    bank
+
+
+Blank line after term, indented marker, alternate markers:
+
+apple
+    red fruit
+
+    computer
+
+orange
+    orange fruit
+
+    
+    1. sublist
+    2. sublist
+
+
 HTML Blocks
 ===========
 

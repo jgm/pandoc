@@ -586,6 +586,58 @@ orange block quote
 @end quotation
 @end table
 
+Multiple definitions@comma{} tight:
+
+@table @asis
+@item apple
+
+red fruit
+computer
+@item orange
+
+orange fruit
+bank
+@end table
+
+Multiple definitions@comma{} loose:
+
+@table @asis
+@item apple
+
+red fruit
+
+computer
+
+@item orange
+
+orange fruit
+
+bank
+
+@end table
+
+Blank line after term@comma{} indented marker@comma{} alternate markers:
+
+@table @asis
+@item apple
+
+red fruit
+
+computer
+
+@item orange
+
+orange fruit
+
+@enumerate 
+@item
+sublist
+@item
+sublist
+@end enumerate
+
+@end table
+
 
 @node HTML Blocks
 @chapter HTML Blocks

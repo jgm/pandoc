@@ -282,7 +282,7 @@ definitionList = try $ do
   items <- many listItem
   end "description"
   spaces
-  return (DefinitionList items)
+  return $ DefinitionList $ map (\(t,d) -> (t,[d])) items
 
 --
 -- paragraph block

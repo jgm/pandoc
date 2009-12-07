@@ -1,8 +1,8 @@
 Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str "Subtitle"] ["John MacFarlane","Anonymous"] "July 17, 2006")
 [ DefinitionList
-  [  ([Str "Revision"],
-     [ Plain [Str "3"] ]
-    ) ]
+  [ ([Str "Revision"],
+     [ [ Plain [Str "3"] ]
+     ]) ]
 , Header 1 [Str "Level",Space,Str "one",Space,Str "header"]
 , Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc.",Space,Str "Most",Space,Str "of",Space,Str "them",Space,Str "are",Space,Str "adapted",Space,Str "from",Space,Str "John",Space,Str "Gruber's",Space,Str "markdown",Space,Str "test",Space,Str "suite."]
 , Header 2 [Str "Level",Space,Str "two",Space,Str "header"]
@@ -154,36 +154,36 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
   , [ Plain [Str "item",Space,Str "2"] ] ]
 , Header 2 [Str "Definition"]
 , DefinitionList
-  [  ([Str "term",Space,Str "1"],
-     [ Para [Str "Definition",Space,Str "1."] ]
-    ),
-    ([Str "term",Space,Str "2"],
-     [ Para [Str "Definition",Space,Str "2,",Space,Str "paragraph",Space,Str "1."]
-     , Para [Str "Definition",Space,Str "2,",Space,Str "paragraph",Space,Str "2."] ]  ),
-    ([Str "term",Space,Str "with",Space,Emph [Str "emphasis"]],
-     [ Para [Str "Definition",Space,Str "3."] ]
-    ) ]
+  [ ([Str "term",Space,Str "1"],
+     [ [ Para [Str "Definition",Space,Str "1."] ]
+     ])
+  , ([Str "term",Space,Str "2"],
+     [ [ Para [Str "Definition",Space,Str "2,",Space,Str "paragraph",Space,Str "1."]
+       , Para [Str "Definition",Space,Str "2,",Space,Str "paragraph",Space,Str "2."] ]])
+  , ([Str "term",Space,Str "with",Space,Emph [Str "emphasis"]],
+     [ [ Para [Str "Definition",Space,Str "3."] ]
+     ]) ]
 , Header 1 [Str "Field",Space,Str "Lists"]
 , DefinitionList
-  [  ([Str "address"],
-     [ Plain [Str "61",Space,Str "Main",Space,Str "St."] ]
-    ),
-    ([Str "city"],
-     [ Plain [Emph [Str "Nowhere"],Str ",",Space,Str "MA,",Space,Str "USA"] ]
-    ),
-    ([Str "phone"],
-     [ Plain [Str "123",Str "-",Str "4567"] ]
-    ) ]
+  [ ([Str "address"],
+     [ [ Plain [Str "61",Space,Str "Main",Space,Str "St."] ]
+     ])
+  , ([Str "city"],
+     [ [ Plain [Emph [Str "Nowhere"],Str ",",Space,Str "MA,",Space,Str "USA"] ]
+     ])
+  , ([Str "phone"],
+     [ [ Plain [Str "123",Str "-",Str "4567"] ]
+     ]) ]
 , DefinitionList
-  [  ([Str "address"],
-     [ Plain [Str "61",Space,Str "Main",Space,Str "St."] ]
-    ),
-    ([Str "city"],
-     [ Plain [Emph [Str "Nowhere"],Str ",",Space,Str "MA,",Space,Str "USA"] ]
-    ),
-    ([Str "phone"],
-     [ Plain [Str "123",Str "-",Str "4567"] ]
-    ) ]
+  [ ([Str "address"],
+     [ [ Plain [Str "61",Space,Str "Main",Space,Str "St."] ]
+     ])
+  , ([Str "city"],
+     [ [ Plain [Emph [Str "Nowhere"],Str ",",Space,Str "MA,",Space,Str "USA"] ]
+     ])
+  , ([Str "phone"],
+     [ [ Plain [Str "123",Str "-",Str "4567"] ]
+     ]) ]
 , Header 1 [Str "HTML",Space,Str "Blocks"]
 , Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line",Str ":"]
 , RawHtml "<div>foo</div>\n"

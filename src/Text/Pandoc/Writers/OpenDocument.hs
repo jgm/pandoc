@@ -260,14 +260,14 @@ listItemsToOpenDocument :: String -> WriterOptions -> [[Block]] -> State WriterS
 listItemsToOpenDocument s o is =
     vcat . map (inTagsIndented "text:list-item") <$> mapM (withParagraphStyle o s . map plainToPara) is
 
-deflistItemToOpenDocument :: WriterOptions -> ([Inline],[Block]) -> State WriterState Doc
+deflistItemToOpenDocument :: WriterOptions -> ([Inline],[[Block]]) -> State WriterState Doc
 deflistItemToOpenDocument o (t,d) = do
-  let ts = if isTightList [d]
+  let ts = if isTightList d
            then "Definition_20_Term_20_Tight"       else "Definition_20_Term"
-      ds = if isTightList [d]
+      ds = if isTightList d
            then "Definition_20_Definition_20_Tight" else "Definition_20_Definition"
   t' <- withParagraphStyle o ts [Para t]
-  d' <- withParagraphStyle o ds (map plainToPara d)
+  d' <- liftM vcat $ mapM (withParagraphStyle o ds . (map plainToPara)) d
   return $ t' $$ d'
 
 inBlockQuote :: WriterOptions -> Int -> [Block] -> State WriterState Doc

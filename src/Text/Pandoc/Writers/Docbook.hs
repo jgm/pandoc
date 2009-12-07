@@ -102,14 +102,14 @@ plainToPara x         = x
 
 -- | Convert a list of pairs of terms and definitions into a list of 
 -- Docbook varlistentrys.
-deflistItemsToDocbook :: WriterOptions -> [([Inline],[Block])] -> Doc
+deflistItemsToDocbook :: WriterOptions -> [([Inline],[[Block]])] -> Doc
 deflistItemsToDocbook opts items = 
-  vcat $ map (\(term, def) -> deflistItemToDocbook opts term def) items
+  vcat $ map (\(term, defs) -> deflistItemToDocbook opts term defs) items
 
 -- | Convert a term and a list of blocks into a Docbook varlistentry.
-deflistItemToDocbook :: WriterOptions -> [Inline] -> [Block] -> Doc
-deflistItemToDocbook opts term def =
-  let def' = map plainToPara def
+deflistItemToDocbook :: WriterOptions -> [Inline] -> [[Block]] -> Doc
+deflistItemToDocbook opts term defs =
+  let def' = concatMap (map plainToPara) defs
   in  inTagsIndented "varlistentry" $
       inTagsIndented "term" (inlinesToDocbook opts term) $$
       inTagsIndented "listitem" (blocksToDocbook opts def')

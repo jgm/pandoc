@@ -171,48 +171,79 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] ["John MacFarlane
 , Header 1 [Str "Definition",Space,Str "Lists"]
 , Para [Str "Tight",Space,Str "using",Space,Str "spaces:"]
 , DefinitionList
-  [  ([Str "apple"],
-     [ Plain [Str "red",Space,Str "fruit"] ]
-    ),
-    ([Str "orange"],
-     [ Plain [Str "orange",Space,Str "fruit"] ]
-    ),
-    ([Str "banana"],
-     [ Plain [Str "yellow",Space,Str "fruit"] ]
-    ) ]
+  [ ([Str "apple"],
+     [ [ Plain [Str "red",Space,Str "fruit"] ]
+     ])
+  , ([Str "orange"],
+     [ [ Plain [Str "orange",Space,Str "fruit"] ]
+     ])
+  , ([Str "banana"],
+     [ [ Plain [Str "yellow",Space,Str "fruit"] ]
+     ]) ]
 , Para [Str "Tight",Space,Str "using",Space,Str "tabs:"]
 , DefinitionList
-  [  ([Str "apple"],
-     [ Plain [Str "red",Space,Str "fruit"] ]
-    ),
-    ([Str "orange"],
-     [ Plain [Str "orange",Space,Str "fruit"] ]
-    ),
-    ([Str "banana"],
-     [ Plain [Str "yellow",Space,Str "fruit"] ]
-    ) ]
+  [ ([Str "apple"],
+     [ [ Plain [Str "red",Space,Str "fruit"] ]
+     ])
+  , ([Str "orange"],
+     [ [ Plain [Str "orange",Space,Str "fruit"] ]
+     ])
+  , ([Str "banana"],
+     [ [ Plain [Str "yellow",Space,Str "fruit"] ]
+     ]) ]
 , Para [Str "Loose:"]
 , DefinitionList
-  [  ([Str "apple"],
-     [ Para [Str "red",Space,Str "fruit"] ]
-    ),
-    ([Str "orange"],
-     [ Para [Str "orange",Space,Str "fruit"] ]
-    ),
-    ([Str "banana"],
-     [ Para [Str "yellow",Space,Str "fruit"] ]
-    ) ]
+  [ ([Str "apple"],
+     [ [ Para [Str "red",Space,Str "fruit"] ]
+     ])
+  , ([Str "orange"],
+     [ [ Para [Str "orange",Space,Str "fruit"] ]
+     ])
+  , ([Str "banana"],
+     [ [ Para [Str "yellow",Space,Str "fruit"] ]
+     ]) ]
 , Para [Str "Multiple",Space,Str "blocks",Space,Str "with",Space,Str "italics:"]
 , DefinitionList
-  [  ([Emph [Str "apple"]],
-     [ Para [Str "red",Space,Str "fruit"]
-     , Para [Str "contains",Space,Str "seeds,",Space,Str "crisp,",Space,Str "pleasant",Space,Str "to",Space,Str "taste"] ]  ),
-    ([Emph [Str "orange"]],
-     [ Para [Str "orange",Space,Str "fruit"]
-     , CodeBlock ("",[],[]) "{ orange code block }"
-     , BlockQuote
-       [ Para [Str "orange",Space,Str "block",Space,Str "quote"] ]
-      ]  ) ]
+  [ ([Emph [Str "apple"]],
+     [ [ Para [Str "red",Space,Str "fruit"]
+       , Para [Str "contains",Space,Str "seeds,",Space,Str "crisp,",Space,Str "pleasant",Space,Str "to",Space,Str "taste"] ]])
+  , ([Emph [Str "orange"]],
+     [ [ Para [Str "orange",Space,Str "fruit"]
+       , CodeBlock ("",[],[]) "{ orange code block }"
+       , BlockQuote
+         [ Para [Str "orange",Space,Str "block",Space,Str "quote"] ]
+        ]]) ]
+, Para [Str "Multiple",Space,Str "definitions,",Space,Str "tight:"]
+, DefinitionList
+  [ ([Str "apple"],
+     [ [ Plain [Str "red",Space,Str "fruit"] ]
+     , [ Plain [Str "computer"] ]
+     ])
+  , ([Str "orange"],
+     [ [ Plain [Str "orange",Space,Str "fruit"] ]
+     , [ Plain [Str "bank"] ]
+     ]) ]
+, Para [Str "Multiple",Space,Str "definitions,",Space,Str "loose:"]
+, DefinitionList
+  [ ([Str "apple"],
+     [ [ Para [Str "red",Space,Str "fruit"] ]
+     , [ Para [Str "computer"] ]
+     ])
+  , ([Str "orange"],
+     [ [ Para [Str "orange",Space,Str "fruit"] ]
+     , [ Para [Str "bank"] ]
+     ]) ]
+, Para [Str "Blank",Space,Str "line",Space,Str "after",Space,Str "term,",Space,Str "indented",Space,Str "marker,",Space,Str "alternate",Space,Str "markers:"]
+, DefinitionList
+  [ ([Str "apple"],
+     [ [ Para [Str "red",Space,Str "fruit"] ]
+     , [ Para [Str "computer"] ]
+     ])
+  , ([Str "orange"],
+     [ [ Para [Str "orange",Space,Str "fruit"]
+       , OrderedList (1,Decimal,Period)
+         [ [ Plain [Str "sublist"] ]
+         , [ Plain [Str "sublist"] ] ] ]]) ]
 , Header 1 [Str "HTML",Space,Str "Blocks"]
 , Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line:"]
 , RawHtml "<div>"

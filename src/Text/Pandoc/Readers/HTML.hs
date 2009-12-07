@@ -545,12 +545,12 @@ definitionList = try $ do
   htmlEndTag "dl"
   return $ DefinitionList items
 
-definitionListItem :: GenParser Char ParserState ([Inline], [Block])
+definitionListItem :: GenParser Char ParserState ([Inline], [[Block]])
 definitionListItem = try $ do
   terms <- sepEndBy1 (inlinesIn "dt") spaces
   defs <- sepEndBy1 (blocksIn "dd") spaces
   let term = intercalate [LineBreak] terms
-  return (term, concat defs)
+  return (term, defs)
 
 --
 -- paragraph block

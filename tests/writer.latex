@@ -456,6 +456,53 @@ orange block quote
 
 \end{quote}
 \end{description}
+Multiple definitions, tight:
+
+\begin{description}
+\item[apple]
+red fruit
+
+computer
+\item[orange]
+orange fruit
+
+bank
+\end{description}
+Multiple definitions, loose:
+
+\begin{description}
+\item[apple]
+red fruit
+
+
+computer
+
+\item[orange]
+orange fruit
+
+
+bank
+
+\end{description}
+Blank line after term, indented marker, alternate markers:
+
+\begin{description}
+\item[apple]
+red fruit
+
+
+computer
+
+\item[orange]
+orange fruit
+
+\begin{enumerate}[1.]
+\item
+  sublist
+\item
+  sublist
+\end{enumerate}
+\end{description}
 \section{HTML Blocks}
 
 Simple block on one line:

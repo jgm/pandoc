@@ -57,6 +57,7 @@ A list:
 
 # item one
 # item two
+
 Nested block quotes:
 
 <blockquote>nested
@@ -98,31 +99,37 @@ Asterisks tight:
 * asterisk 1
 * asterisk 2
 * asterisk 3
+
 Asterisks loose:
 
 * asterisk 1
 * asterisk 2
 * asterisk 3
+
 Pluses tight:
 
 * Plus 1
 * Plus 2
 * Plus 3
+
 Pluses loose:
 
 * Plus 1
 * Plus 2
 * Plus 3
+
 Minuses tight:
 
 * Minus 1
 * Minus 2
 * Minus 3
+
 Minuses loose:
 
 * Minus 1
 * Minus 2
 * Minus 3
+
 === Ordered ===
 
 Tight:
@@ -130,21 +137,25 @@ Tight:
 # First
 # Second
 # Third
+
 and:
 
 # One
 # Two
 # Three
+
 Loose using tabs:
 
 # First
 # Second
 # Third
+
 and using spaces:
 
 # One
 # Two
 # Three
+
 Multiple paragraphs:
 
 <ol style="list-style-type: decimal;">
@@ -158,6 +169,9 @@ Multiple paragraphs:
 * Tab
 ** Tab
 *** Tab
+
+
+
 Here&rsquo;s another:
 
 # First
@@ -165,7 +179,9 @@ Here&rsquo;s another:
 #* Fee
 #* Fie
 #* Foe
+
 # Third
+
 Same thing but with paragraphs:
 
 # First
@@ -173,13 +189,17 @@ Same thing but with paragraphs:
 #* Fee
 #* Fie
 #* Foe
+
 # Third
+
 === Tabs and spaces ===
 
 * this is a list item indented with tabs
 * this is a list item indented with spaces
 ** this is an example list item indented with tabs
 ** this is an example list item indented with spaces
+
+
 === Fancy list markers ===
 
 <ol start="2" style="list-style-type: decimal;">
@@ -214,6 +234,8 @@ Autonumbering:
 # Autonumber.
 # More.
 ## Nested.
+
+
 Should not be a list item:
 
 M.A.&#160;2007
@@ -233,6 +255,7 @@ Tight using spaces:
 : orange fruit
 ; banana
 : yellow fruit
+
 Tight using tabs:
 
 ; apple
@@ -241,6 +264,7 @@ Tight using tabs:
 : orange fruit
 ; banana
 : yellow fruit
+
 Loose:
 
 ; apple
@@ -249,6 +273,7 @@ Loose:
 : orange fruit
 ; banana
 : yellow fruit
+
 Multiple blocks with italics:
 
 <dl>
@@ -259,6 +284,35 @@ Multiple blocks with italics:
 <dd><p>orange fruit</p>
 <pre>{ orange code block }</pre>
 <blockquote><p>orange block quote</p></blockquote></dd></dl>
+
+Multiple definitions, tight:
+
+; apple
+: red fruit
+: computer
+; orange
+: orange fruit
+: bank
+
+Multiple definitions, loose:
+
+; apple
+: red fruit
+: computer
+; orange
+: orange fruit
+: bank
+
+Blank line after term, indented marker, alternate markers:
+
+; apple
+: red fruit
+: computer
+; orange
+: orange fruit
+;# sublist
+;# sublist
+
 
 == HTML Blocks ==
 
@@ -430,12 +484,14 @@ Ellipses&hellip;and&hellip;and&hellip;.
 * <math>p</math>-Tree
 * Here&rsquo;s some display math: <math>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</math>
 * Here&rsquo;s one that has a line break in it: <math>\alpha + \omega \times x^2</math>.
+
 These shouldn&rsquo;t be math:
 
 * To get the famous equation, write <tt>$e = mc^2$</tt>.
 * $22,000 is a ''lot'' of money. So is $34,000. (It worked if &ldquo;lot&rdquo; is emphasized.)
 * Shoes ($20) and socks ($5).
 * Escaped <tt>$</tt>: $73 ''this should be emphasized'' 23$.
+
 Here&rsquo;s a LaTeX table:
 
 
@@ -452,6 +508,7 @@ Here is some unicode:
 * section: §
 * set membership: ∈
 * copyright: ©
+
 AT&amp;T has an ampersand in their name.
 
 AT&amp;T is another way to write it.
@@ -561,6 +618,7 @@ With an ampersand: http://example.com/?foo=1&bar=2
 * In a list?
 * http://example.com/
 * It should.
+
 An e-mail address: [mailto:nobody@nowhere.net <tt>nobody@nowhere.net</tt>]
 
 <blockquote>Blockquoted: http://example.com/
@@ -598,6 +656,7 @@ If you want, you can indent every line, but you can also be lazy and just indent
 </ref>
 </blockquote>
 # And in list items.<ref>In list.</ref>
+
 This paragraph should not be part of the note, as it is not indented.
 
 == Notes ==

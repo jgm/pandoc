@@ -247,11 +247,12 @@ listItemToRTF alignment indent marker list =
 -- | Convert definition list item (label, list of blocks) to RTF.
 definitionListItemToRTF :: Alignment          -- ^ alignment
                         -> Int                -- ^ indent level
-                        -> ([Inline],[Block]) -- ^ list item (list of blocks)
+                        -> ([Inline],[[Block]]) -- ^ list item (list of blocks)
                         -> [Char]
-definitionListItemToRTF alignment indent (label, items) =
+definitionListItemToRTF alignment indent (label, defs) =
   let labelText = blockToRTF indent alignment (Plain label)
-      itemsText = concatMap (blockToRTF (indent + listIncrement) alignment) items
+      itemsText = concatMap (blockToRTF (indent + listIncrement) alignment) $
+                    concat defs
   in  labelText ++ itemsText 
 
 -- | Convert list of inline items to RTF.

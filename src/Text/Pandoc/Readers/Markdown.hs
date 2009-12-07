@@ -555,38 +555,61 @@ bulletList = try $ do
 
 -- definition lists
 
-definitionListItem :: GenParser Char ParserState ([Inline], [Block])
+defListMarker :: GenParser Char ParserState ()
+defListMarker = do
+  sps <- nonindentSpaces
+  char ':' <|> char '~'
+  st <- getState
+  let tabStop = stateTabStop st
+  let remaining = tabStop - (length sps + 1)
+  if remaining > 0
+     then count remaining (char ' ') <|> string "\t"
+     else pzero
+  return ()
+
+definitionListItem :: GenParser Char ParserState ([Inline], [[Block]])
 definitionListItem = try $ do
-  notFollowedBy blankline
-  notFollowedBy' indentSpaces
   -- first, see if this has any chance of being a definition list:
-  lookAhead (anyLine >> char ':')
+  lookAhead (anyLine >> optional blankline >> defListMarker)
   term <- manyTill inline newline
+  optional blankline
   raw <- many1 defRawBlock
   state <- getState
   let oldContext = stateParserContext state
   -- parse the extracted block, which may contain various block elements:
-  contents <- parseFromString parseBlocks $ concat raw
+  contents <- mapM (parseFromString parseBlocks) raw
   updateState (\st -> st {stateParserContext = oldContext})
   return ((normalizeSpaces term), contents)
 
 defRawBlock :: GenParser Char ParserState [Char]
 defRawBlock = try $ do
-  char ':'
-  state <- getState
-  let tabStop = stateTabStop state
-  try (count (tabStop - 1) (char ' ')) <|> (many (char ' ') >> string "\t")
+  defListMarker
   firstline <- anyLine
   rawlines <- many (notFollowedBy blankline >> indentSpaces >> anyLine)
   trailing <- option "" blanklines
-  return $ firstline ++ "\n" ++ unlines rawlines ++ trailing
+  cont <- liftM concat $ many $ do
+            lns <- many1 $ notFollowedBy blankline >> indentSpaces >> anyLine
+            trl <- option "" blanklines
+            return $ unlines lns ++ trl
+  return $ firstline ++ "\n" ++ unlines rawlines ++ trailing ++ cont
 
 definitionList :: GenParser Char ParserState Block
 definitionList = do
   items <- many1 definitionListItem
-  let (terms, defs) = unzip items
-  let defs' = compactify defs
-  let items' = zip terms defs'
+  -- "compactify" the definition list:
+  let defs = map snd items
+  let defBlocks = reverse $ concat $ concat defs
+  let isPara (Para _) = True
+      isPara _        = False
+  let items' = case take 1 defBlocks of
+                [Para x]   -> if not $ any isPara (drop 1 defBlocks)
+                                 then let (t,ds) = last items
+                                          lastDef = last ds
+                                          ds' = init ds ++
+                                                [init lastDef ++ [Plain x]]
+                                       in init items ++ [(t, ds')]
+                                 else items
+                _          -> items
   return $ DefinitionList items'
 
 --

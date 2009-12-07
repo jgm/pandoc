@@ -181,12 +181,13 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite"] [] "")
 , HorizontalRule
 , Header 2 [Str "Definition"]
 , DefinitionList
-  [  ([Str "Violin"],
-     [ Plain [Str "Stringed",Space,Str "musical",Space,Str "instrument."]
-     , Plain [Str "Torture",Space,Str "device."] ]  ),
-    ([Str "Cello",LineBreak,Str "Violoncello"],
-     [ Plain [Str "Low-voiced",Space,Str "stringed",Space,Str "instrument."] ]
-    ) ]
+  [ ([Str "Violin"],
+     [ [ Plain [Str "Stringed",Space,Str "musical",Space,Str "instrument."] ]
+     , [ Plain [Str "Torture",Space,Str "device."] ]
+     ])
+  , ([Str "Cello",LineBreak,Str "Violoncello"],
+     [ [ Plain [Str "Low-voiced",Space,Str "stringed",Space,Str "instrument."] ]
+     ]) ]
 , HorizontalRule
 , Header 1 [Str "HTML",Space,Str "Blocks"]
 , Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line:"]

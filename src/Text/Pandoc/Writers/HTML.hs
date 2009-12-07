@@ -316,13 +316,14 @@ blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
                    else [])
   return $ ordList ! attribs $ contents
 blockToHtml opts (DefinitionList lst) = do
-  contents <- mapM (\(term, def) -> do term' <- inlineListToHtml opts term
-                                       def' <- blockListToHtml opts def
-                                       return $ (term', def')) lst
+  contents <- mapM (\(term, defs) ->
+                  do term' <- liftM (dterm <<) $ inlineListToHtml opts term
+                     defs' <- mapM (liftM (ddef <<) . blockListToHtml opts) defs
+                     return $ term' : defs') lst
   let attribs = if writerIncremental opts
                    then [theclass "incremental"]
                    else []
-  return $ defList ! attribs $ contents
+  return $ dlist ! attribs << concat contents
 blockToHtml opts (Table capt aligns widths headers rows') = do
   let alignStrings = map alignmentToString aligns
   captionDoc <- if null capt

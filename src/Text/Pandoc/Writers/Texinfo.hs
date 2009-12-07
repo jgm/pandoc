@@ -339,11 +339,11 @@ listItemToTexinfo :: [Block]
 listItemToTexinfo lst = blockListToTexinfo lst >>=
                         return . (text "@item" $$) 
 
-defListItemToTexinfo :: ([Inline], [Block])
+defListItemToTexinfo :: ([Inline], [[Block]])
                      -> State WriterState Doc
-defListItemToTexinfo (term, def) = do
+defListItemToTexinfo (term, defs) = do
     term' <- inlineListToTexinfo term
-    def'  <- blockListToTexinfo def
+    def'  <- liftM vcat $ mapM blockListToTexinfo defs
     return $ text "@item " <> term' <> text "\n" $$ def'
 
 -- | Convert list of inline elements to Texinfo.
