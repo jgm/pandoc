@@ -64,12 +64,12 @@ runLatexRaw file = do
 runLatex :: FilePath -> IO (Either String FilePath)
 runLatex file = step 3
   where
-  step 0 = return $ Left "Limit of attempts reached"
   step n = do
     result <- runLatexRaw file
     case result of
       Left (Left err) -> return $ Left err
-      Left (Right _ ) -> step (n-1 :: Int)
+      Left (Right _) | n > 1  -> step (n-1 :: Int)
+      Left (Right msg) -> return $ Left msg
       Right pdfFile   -> return $ Right pdfFile
 
 checkLatex :: String -> (Bool, Bool, Bool, String)
