@@ -138,8 +138,8 @@ Flag executable
   Description:   Build the pandoc executable.
   Default:       True
 Flag wrappers
-  Description:   Build the wrappers (hsmarkdown, html2markdown, markdown2pdf).
-  Default:       False
+  Description:   Build the wrappers (hsmarkdown, markdown2pdf).
+  Default:       True
 Flag library
   Description:   Build the pandoc library.
   Default:       True
