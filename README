@@ -363,8 +363,8 @@ For further documentation, see the `pandoc(1)` man page.
     displayed all at once.
 
 `-N` or `--number-sections`
-:   causes sections to be numbered in LaTeX or ConTeXt output. By default,
-    sections are not numbered.
+:   causes sections to be numbered in LaTeX, ConTeXt, or HTML output.
+    By default, sections are not numbered.
 
 `--no-wrap`
 :   disables text-wrapping in output.  By default, text is wrapped

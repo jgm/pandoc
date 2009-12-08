@@ -38,7 +38,7 @@ import Text.Pandoc.Highlighting ( highlightHtml, defaultHighlightingCss )
 import Text.Pandoc.XML (stripTags)
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
-import Data.List ( isPrefixOf )
+import Data.List ( isPrefixOf, intersperse )
 import Data.Maybe ( catMaybes )
 import qualified Data.Set as S
 import Control.Monad.State
@@ -156,12 +156,19 @@ tableOfContents opts sects = do
   contents  <- mapM (elementToListItem opts') sects
   return $ thediv ! [prefixedId opts' "TOC"] $ unordList $ catMaybes contents
 
+-- | Convert section number to inline
+showSecNum :: [Int] -> Inline
+showSecNum = Str . concat . intersperse "." . map show
+
 -- | Converts an Element to a list item for a table of contents,
 -- retrieving the appropriate identifier from state.
 elementToListItem :: WriterOptions -> Element -> State WriterState (Maybe Html)
 elementToListItem _ (Blk _) = return Nothing
-elementToListItem opts (Sec _ id' headerText subsecs) = do
-  txt <- inlineListToHtml opts headerText
+elementToListItem opts (Sec _ num id' headerText subsecs) = do
+  let headerText' = if writerNumberSections opts
+                       then showSecNum num : Space : headerText
+                       else headerText
+  txt <- inlineListToHtml opts headerText'
   subHeads <- mapM (elementToListItem opts) subsecs >>= return . catMaybes
   let subList = if null subHeads
                    then noHtml
@@ -171,9 +178,12 @@ elementToListItem opts (Sec _ id' headerText subsecs) = do
 -- | Convert an Element to Html.
 elementToHtml :: WriterOptions -> Element -> State WriterState Html
 elementToHtml opts (Blk block) = blockToHtml opts block 
-elementToHtml opts (Sec level id' title' elements) = do
+elementToHtml opts (Sec level num id' title' elements) = do
   innerContents <- mapM (elementToHtml opts) elements
-  header' <- blockToHtml opts (Header level title')
+  let title'' = if writerNumberSections opts
+                   then showSecNum num : Space : title'
+                   else title'
+  header' <- blockToHtml opts (Header level title'')
   return $ if writerS5 opts || (writerStrictMarkdown opts && not (writerTableOfContents opts))
               -- S5 gets confused by the extra divs around sections
               then toHtmlFromList (header' : innerContents)

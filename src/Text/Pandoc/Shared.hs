@@ -882,8 +882,8 @@ isPara _        = False
 
 -- | Data structure for defining hierarchical Pandoc documents
 data Element = Blk Block 
-             | Sec Int String [Inline] [Element]
-             --    lvl  ident  label    contents
+             | Sec Int [Int] String [Inline] [Element]
+             --    lvl  num ident  label    contents
              deriving (Eq, Read, Show, Typeable, Data)
 
 -- | Convert Pandoc inline list to plain text identifier.
@@ -921,18 +921,22 @@ inlineListToIdentifier' (x:xs) =
 
 -- | Convert list of Pandoc blocks into (hierarchical) list of Elements
 hierarchicalize :: [Block] -> [Element]
-hierarchicalize blocks = S.evalState (hierarchicalizeWithIds blocks) []
+hierarchicalize blocks = S.evalState (hierarchicalizeWithIds blocks) ([],[])
 
-hierarchicalizeWithIds :: [Block] -> S.State [String] [Element]
+hierarchicalizeWithIds :: [Block] -> S.State ([Int],[String]) [Element]
 hierarchicalizeWithIds [] = return []
 hierarchicalizeWithIds ((Header level title'):xs) = do
-  usedIdents <- S.get
+  (lastnum, usedIdents) <- S.get
   let ident = uniqueIdent title' usedIdents
-  S.modify (ident :)
+  let lastnum' = take level lastnum
+  let newnum = if length lastnum' >= level
+                  then init lastnum' ++ [last lastnum' + 1] 
+                  else lastnum ++ replicate (level - length lastnum - 1) 0 ++ [1]
+  S.put (newnum, (ident : usedIdents))
   let (sectionContents, rest) = break (headerLtEq level) xs
   sectionContents' <- hierarchicalizeWithIds sectionContents
   rest' <- hierarchicalizeWithIds rest
-  return $ Sec level ident title' sectionContents' : rest'
+  return $ Sec level newnum ident title' sectionContents' : rest'
 hierarchicalizeWithIds (x:rest) = do
   rest' <- hierarchicalizeWithIds rest
   return $ (Blk x) : rest'

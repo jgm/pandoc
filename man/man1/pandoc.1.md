@@ -134,8 +134,8 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 :   Make list items in S5 display incrementally (one by one).
 
 -N, \--number-sections
-:   Number section headings in LaTeX output.  (Default is not to number
-    them.)
+:   Number section headings in LaTeX, ConTeXt, or HTML output.
+    (Default is not to number them.)
 
 \--no-wrap
 :   Disable text wrapping in output. (Default is to wrap text.)
