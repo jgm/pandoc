@@ -166,7 +166,9 @@ elementToListItem :: WriterOptions -> Element -> State WriterState (Maybe Html)
 elementToListItem _ (Blk _) = return Nothing
 elementToListItem opts (Sec _ num id' headerText subsecs) = do
   let headerText' = if writerNumberSections opts
-                       then showSecNum num : Space : headerText
+                       then [HtmlInline "<span class=\"toc-section-number\">",
+                             showSecNum num, HtmlInline "</span>", Space] ++
+                             headerText
                        else headerText
   txt <- inlineListToHtml opts headerText'
   subHeads <- mapM (elementToListItem opts) subsecs >>= return . catMaybes
@@ -181,7 +183,9 @@ elementToHtml opts (Blk block) = blockToHtml opts block
 elementToHtml opts (Sec level num id' title' elements) = do
   innerContents <- mapM (elementToHtml opts) elements
   let title'' = if writerNumberSections opts
-                   then showSecNum num : Space : title'
+                   then [HtmlInline "<span class=\"header-section-number\">",
+                         showSecNum num, HtmlInline "</span>", Space] ++
+                         title'
                    else title'
   header' <- blockToHtml opts (Header level title'')
   return $ if writerS5 opts || (writerStrictMarkdown opts && not (writerTableOfContents opts))
