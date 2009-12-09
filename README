@@ -1,6 +1,6 @@
 % Pandoc User's Guide
 % John MacFarlane
-% March 24, 2008
+% December 7, 2009 
 
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
@@ -37,7 +37,7 @@ or output format requires only adding a reader or writer.
 [Haskell]:  http://www.haskell.org/
 [GNU Texinfo]: http://www.gnu.org/software/texinfo/
 
-© 2006-8 John MacFarlane (jgm at berkeley dot edu). Released under the
+© 2006-9 John MacFarlane (jgm at berkeley dot edu). Released under the
 [GPL], version 2 or greater.  This software carries no warranty of
 any kind.  (See COPYRIGHT for full copyright and warranty notices.)
 Contributors:  Recai Oktaş (build system, debian package, wrapper
