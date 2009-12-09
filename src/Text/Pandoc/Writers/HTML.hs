@@ -48,10 +48,11 @@ data WriterState = WriterState
     { stNotes            :: [Html]       -- ^ List of notes
     , stMath             :: Bool         -- ^ Math is used in document
     , stCSS              :: S.Set String -- ^ CSS to include in header
+    , stSecNum           :: [Int]        -- ^ Number of current section
     } deriving Show
 
 defaultWriterState :: WriterState
-defaultWriterState = WriterState {stNotes= [], stMath = False, stCSS = S.empty}
+defaultWriterState = WriterState {stNotes= [], stMath = False, stCSS = S.empty, stSecNum = []}
 
 -- Helpers to render HTML with the appropriate function.
 
@@ -156,21 +157,20 @@ tableOfContents opts sects = do
   contents  <- mapM (elementToListItem opts') sects
   return $ thediv ! [prefixedId opts' "TOC"] $ unordList $ catMaybes contents
 
--- | Convert section number to inline
-showSecNum :: [Int] -> Inline
-showSecNum = Str . concat . intersperse "." . map show
+-- | Convert section number to string
+showSecNum :: [Int] -> String
+showSecNum = concat . intersperse "." . map show
 
 -- | Converts an Element to a list item for a table of contents,
 -- retrieving the appropriate identifier from state.
 elementToListItem :: WriterOptions -> Element -> State WriterState (Maybe Html)
 elementToListItem _ (Blk _) = return Nothing
 elementToListItem opts (Sec _ num id' headerText subsecs) = do
-  let headerText' = if writerNumberSections opts
-                       then [HtmlInline "<span class=\"toc-section-number\">",
-                             showSecNum num, HtmlInline "</span>", Space] ++
-                             headerText
-                       else headerText
-  txt <- inlineListToHtml opts headerText'
+  let sectnum = if writerNumberSections opts
+                   then (thespan ! [theclass "toc-section-number"] << showSecNum num) +++
+                         stringToHtml " "
+                   else noHtml
+  txt <- liftM (sectnum +++) $ inlineListToHtml opts headerText
   subHeads <- mapM (elementToListItem opts) subsecs >>= return . catMaybes
   let subList = if null subHeads
                    then noHtml
@@ -182,12 +182,8 @@ elementToHtml :: WriterOptions -> Element -> State WriterState Html
 elementToHtml opts (Blk block) = blockToHtml opts block 
 elementToHtml opts (Sec level num id' title' elements) = do
   innerContents <- mapM (elementToHtml opts) elements
-  let title'' = if writerNumberSections opts
-                   then [HtmlInline "<span class=\"header-section-number\">",
-                         showSecNum num, HtmlInline "</span>", Space] ++
-                         title'
-                   else title'
-  header' <- blockToHtml opts (Header level title'')
+  modify $ \st -> st{stSecNum = num}  -- update section number
+  header' <- blockToHtml opts (Header level title')
   return $ if writerS5 opts || (writerStrictMarkdown opts && not (writerTableOfContents opts))
               -- S5 gets confused by the extra divs around sections
               then toHtmlFromList (header' : innerContents)
@@ -299,17 +295,22 @@ blockToHtml opts (BlockQuote blocks) =
      else blockListToHtml opts blocks >>= (return . blockquote)
 blockToHtml opts (Header level lst) = do 
   contents <- inlineListToHtml opts lst
-  let contents'  = if writerTableOfContents opts
-                      then anchor ! [href $ "#" ++ writerIdentifierPrefix opts ++ "TOC"] $ contents
-                      else contents
+  secnum <- liftM stSecNum get
+  let contents' = if writerNumberSections opts
+                     then (thespan ! [theclass "header-section-number"] << showSecNum secnum) +++
+                            stringToHtml " " +++ contents
+                     else contents
+  let contents''  = if writerTableOfContents opts
+                       then anchor ! [href $ "#" ++ writerIdentifierPrefix opts ++ "TOC"] $ contents'
+                       else contents'
   return $ case level of
-              1 -> h1 contents'
-              2 -> h2 contents'
-              3 -> h3 contents'
-              4 -> h4 contents'
-              5 -> h5 contents'
-              6 -> h6 contents'
-              _ -> paragraph contents'
+              1 -> h1 contents''
+              2 -> h2 contents''
+              3 -> h3 contents''
+              4 -> h4 contents''
+              5 -> h5 contents''
+              6 -> h6 contents''
+              _ -> paragraph contents''
 blockToHtml opts (BulletList lst) = do
   contents <- mapM (blockListToHtml opts) lst
   let attribs = if writerIncremental opts
