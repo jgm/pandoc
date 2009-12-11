@@ -117,7 +117,7 @@ You may view existing bug reports and submit new ones at
 
 # News
 
--   Version 1.3 release (??? ??, 2009).
+-   Version 1.3 release (December 10, 2009).
 
     + Added --id-prefix option to help prevent duplicate
       identifiers when you're generating HTML fragments.
