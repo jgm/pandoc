@@ -117,6 +117,25 @@ You may view existing bug reports and submit new ones at
 
 # News
 
+-   Version 1.3 release (??? ??, 2009).
+
+    + Added --id-prefix option to help prevent duplicate
+      identifiers when you're generating HTML fragments.
+    + Added --indented-code-classes option, which specifies
+      default highlighting syntax for indented code blocks.
+    + --number-sections now affects HTML output.
+    + Improved syntax for markdown definition lists.
+    + Better looking simple tables.
+    + Markdown tables without headers are now possible.
+    + New hard line break syntax:  backslash followed by newline.
+    + Improved performance of markdown reader by ~10% by eliminating the
+      need for a separate parsing pass for notes. Raw notes are now stored
+    + Improved syntax highlighting for literate Haskell.
+    + Support for "..code-block" directive in RST reader.
+    + Windows binary now includes highlighting support.
+    + Many bug fixes and small improvements. See [changelog]
+      for details.
+
 -   Version 1.2.1 release (July 18, 2009).
 
     + Improved the efficiency of the markdown reader's
