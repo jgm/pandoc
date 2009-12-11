@@ -129,7 +129,7 @@ You may view existing bug reports and submit new ones at
     + Markdown tables without headers are now possible.
     + New hard line break syntax:  backslash followed by newline.
     + Improved performance of markdown reader by ~10% by eliminating the
-      need for a separate parsing pass for notes. Raw notes are now stored
+      need for a separate parsing pass for notes.
     + Improved syntax highlighting for literate Haskell.
     + Support for "..code-block" directive in RST reader.
     + Windows binary now includes highlighting support.
