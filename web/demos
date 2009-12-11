@@ -69,10 +69,10 @@ click on the name of the output file:
 
 [xmlto]:  http://cyberelk.net/tim/xmlto/
 
-15. A simple wiki program using [HAppS](http://happs.org) and pandoc: 
-    [pandocwiki](http://pandocwiki.googlecode.com/svn/trunk/)
+15. A wiki program using [Happstack](http://happstack.com) and pandoc:
+    [gitit](http://gitit.net)
 
-16. A web application that converts web pages to any of eight different
+16. A web application that uses pandoc to convert web pages to any of eight different
     formats:  [html2x](html2x.html).
 
 17. TeX math in HTML:
