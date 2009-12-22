@@ -345,6 +345,7 @@ customCodeBlock = try $ do
 lhsCodeBlock :: GenParser Char ParserState Block
 lhsCodeBlock = try $ do
   failUnlessLHS
+  optional codeBlockStart
   pos <- getPosition
   when (sourceColumn pos /= 1) $ fail "Not in first column"
   lns <- many1 birdTrackLine
