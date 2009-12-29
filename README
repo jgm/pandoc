@@ -602,7 +602,7 @@ a blank line, and must be followed by one or more definitions.
 A definition begins with a colon or tilde, which may be indented one
 or two spaces. A term may have multiple definitions, and each definition
 may consist of one or more block elements (paragraph, code block, list,
-etc.), each indented one tab stop.
+etc.), each indented four spaces or one tab stop.
 
 If you leave space after the definition (as in the example above),
 the blocks of the definitions will be considered paragraphs. In some
