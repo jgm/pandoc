@@ -583,41 +583,43 @@ Definition lists
 ----------------
 
 Pandoc supports definition lists, using a syntax inspired by
-[PHP Markdown Extra] and [reStructuredText]:
-
-  [PHP Markdown Extra]: http://www.michelf.com/projects/php-markdown/extra/
+[PHP Markdown Extra] and [reStructuredText]:[^3]
 
     Term 1
+
     :   Definition 1
 
-    Term 2
+    Term 2 with *inline markup*
+
     :   Definition 2
 
-    :   Second paragraph of definition 2.
+            { some code, part of Definition 2 }
 
-Each term must fit on one line. The definition must begin on the line
-after the term. The definition consists of one or more block elements
-(paragraph, code block, list, etc.), each beginning with a colon and
-(aside from the colon) indented one tab stop.
+        Third paragraph of definition 2.
 
-    Term *with inline markup*
-    :   Here is the definition.  It may contain multiple blocks.
-        Here is some code:
+Each term must fit on one line, which may optionally be followed by
+a blank line, and must be followed by one or more definitions.
+A definition begins with a colon or tilde, which may be indented one
+or two spaces. A term may have multiple definitions, and each definition
+may consist of one or more block elements (paragraph, code block, list,
+etc.), each indented one tab stop.
 
-    :       {* my code *} 
-
-    :   Here is the third paragraph of this definition.
-
-If you leave space after the definition (as in the first example above),
-the definitions will be considered paragraphs. In some output formats,
-this will mean greater spacing between term/definition pairs. For a
-compact definition list, do not leave space between the definition and
-the next term:
+If you leave space after the definition (as in the example above),
+the blocks of the definitions will be considered paragraphs. In some
+output formats, this will mean greater spacing between term/definition
+pairs. For a compact definition list, do not leave space between the
+definition and the next term:
 
     Term 1
-    :   Definition 1
+      ~ Definition 1
     Term 2
-    :   Definition 2
+      ~ Definition 2a
+      ~ Definition 2b
+
+[^3]:  I have also been influenced by the suggestions of [David Wheeler]
+(http://www.justatheory.com/computers/markup/modest-markdown-proposal.html).
+
+[PHP Markdown Extra]: http://www.michelf.com/projects/php-markdown/extra/
 
 Reference links
 ---------------
@@ -691,7 +693,7 @@ Simple tables look like this:
 
 The headers and table rows must each fit on one line.  Column
 alignments are determined by the position of the header text relative
-to the dashed line below it:[^3]
+to the dashed line below it:[^4]
 
   - If the dashed line is flush with the header text on the right side
     but extends beyond it on the left, the column is right-aligned.
@@ -702,7 +704,7 @@ to the dashed line below it:[^3]
   - If the dashed line is flush with the header text on both sides,
     the default alignment is used (in most cases, this will be left).
 
-[^3]:  This scheme is due to Michel Fortin, who proposed it on the
+[^4]:  This scheme is due to Michel Fortin, who proposed it on the
        [Markdown discussion list](http://six.pairlist.net/pipermail/markdown-discuss/2005-March/001097.html).
 
 The table must end with a blank line, or a line of dashes followed by
