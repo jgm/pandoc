@@ -32,6 +32,7 @@ module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.XML
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Readers.TeXMath
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Text.Printf ( printf )
@@ -39,7 +40,6 @@ import Control.Applicative ( (<$>) )
 import Control.Arrow ( (***), (>>>) )
 import Control.Monad.State hiding ( when )
 import Data.Char (chr)
-import Data.List (intercalate)
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
@@ -156,53 +156,37 @@ handleSpaces s
         rm (   x:xs) = char  x  <> rm xs
         rm        [] = empty
 
--- | Convert list of authors to a docbook <author> section
-authorToOpenDocument :: [Char] -> Doc
-authorToOpenDocument name =
-  if ',' `elem` name
-    then -- last name first
-         let (lastname, rest) = break (==',') name
-             firstname = removeLeadingSpace rest
-         in  inParagraphTagsWithStyle "Author" $
-                 (text $ escapeStringForXML firstname) <+>
-                 (text $ escapeStringForXML lastname)
-    else -- last name last
-         let namewords = words name
-             lengthname = length namewords
-             (firstname, lastname) = case lengthname of
-               0  -> ("","")
-               1  -> ("", name)
-               n  -> (intercalate " " (take (n-1) namewords), last namewords)
-          in inParagraphTagsWithStyle "Author" $
-                 (text $ escapeStringForXML firstname) <+>
-                 (text $ escapeStringForXML lastname)
-
 -- | Convert Pandoc document to string in OpenDocument format.
 writeOpenDocument :: WriterOptions -> Pandoc -> String
 writeOpenDocument opts (Pandoc (Meta title authors date) blocks) =
-  "" -- TODO
---  let root     = inTags True "office:document-content" openDocumentNameSpaces
---      header   = when (writerStandalone opts) $ text (writerHeader opts)
---      title'   = case runState (wrap opts title) defaultWriterState of
---                   (t,_) -> if isEmpty t then empty else inHeaderTags 1 t
---      authors' = when (authors /= []) $ vcat (map authorToOpenDocument authors)
---      date'    = when (date    /= []) $
---                 inParagraphTagsWithStyle "Date" (text $ escapeStringForXML date)
---      meta     = when (writerStandalone opts) $ title' $$ authors' $$ date'
---      before   = writerIncludeBefore opts
---      after    = writerIncludeAfter opts
---      (doc, s) = runState (blocksToOpenDocument opts blocks) defaultWriterState
---      body     = (if null before then empty else text before) $$
---                 doc $$
---                 (if null after then empty else text after)
---      body'    = if writerStandalone opts
---                   then inTagsIndented "office:body" $
---                        inTagsIndented "office:text" (meta $$ body)
---                   else body
---      styles   = stTableStyles s ++ stParaStyles s ++ stTextStyles s
---      listStyle (n,l) = inTags True "text:list-style" [("style:name", "L" ++ show n)] (vcat l)
---      listStyles  = map listStyle (stListStyles s)
---  in  render $ header $$ root (generateStyles (styles ++ listStyles) $$ body' $$ text "")
+  let ((doc, title', authors', date'),s) = flip runState
+        defaultWriterState $ do
+           title'' <- inlinesToOpenDocument opts title 
+           authors'' <- mapM (inlinesToOpenDocument opts) authors
+           date'' <- inlinesToOpenDocument opts date
+           doc'' <- blocksToOpenDocument opts blocks
+           return (doc'', title'', authors'', date'')
+      before   = writerIncludeBefore opts
+      after    = writerIncludeAfter opts
+      body     = (if null before then empty else text before) $$
+                 doc $$
+                 (if null after then empty else text after)
+      body'    = render body
+      styles   = stTableStyles s ++ stParaStyles s ++ stTextStyles s
+      listStyle (n,l) = inTags True "text:list-style"
+                          [("style:name", "L" ++ show n)] (vcat l)
+      listStyles  = map listStyle (stListStyles s)
+      automaticStyles = inTagsIndented "office:automatic-styles" $ vcat $
+                          reverse $ styles ++ listStyles
+      context = writerVariables opts ++
+                [ ("body", body')
+                , ("automatic-styles", render automaticStyles)
+                , ("title", render title')
+                , ("date", render date') ] ++
+                [ ("author", render a) | a <- authors' ]
+  in  if writerStandalone opts
+         then renderTemplate context $ writerTemplate opts
+         else body'
 
 withParagraphStyle :: WriterOptions -> String -> [Block] -> State WriterState Doc
 withParagraphStyle  o s (b:bs)
@@ -405,16 +389,6 @@ inlineToOpenDocument o ils
         addNote nn
         return nn
 
-generateStyles :: [Doc] -> Doc
-generateStyles acc =
-    let scripts = selfClosingTag "office:scripts" []
-        fonts   = inTagsIndented "office:font-face-decls"
-                  (vcat $ map font ["Lucida Sans Unicode", "Tahoma", "Times New Roman"])
-        font fn = selfClosingTag "style:font-face"
-                  [ ("style:name"     , "&apos;" ++ fn ++ "&apos;")
-                  , ("svg:font-family", fn                        )]
-    in  scripts $$ fonts $$ inTagsIndented "office:automatic-styles" (vcat $ reverse acc)
-
 bulletListStyle :: Int -> State WriterState (Int,(Int,[Doc]))
 bulletListStyle l =
     let doStyles  i = inTags True "text:list-level-style-bullet"
@@ -536,30 +510,3 @@ textStyleAttr s
     | SmallC <- s = [("fo:font-variant"              ,"small-caps")]
     | otherwise   = []
 
-openDocumentNameSpaces :: [(String, String)]
-openDocumentNameSpaces =
-    [ ("xmlns:office"  , "urn:oasis:names:tc:opendocument:xmlns:office:1.0"           )
-    , ("xmlns:style"   , "urn:oasis:names:tc:opendocument:xmlns:style:1.0"            )
-    , ("xmlns:text"    , "urn:oasis:names:tc:opendocument:xmlns:text:1.0"             )
-    , ("xmlns:table"   , "urn:oasis:names:tc:opendocument:xmlns:table:1.0"            )
-    , ("xmlns:draw"    , "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"          )
-    , ("xmlns:fo"      , "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0")
-    , ("xmlns:xlink"   , "http://www.w3.org/1999/xlink"                               )
-    , ("xmlns:dc"      , "http://purl.org/dc/elements/1.1/"                           )
-    , ("xmlns:meta"    , "urn:oasis:names:tc:opendocument:xmlns:meta:1.0"             )
-    , ("xmlns:number"  , "urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0"        )
-    , ("xmlns:svg"     , "urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"   )
-    , ("xmlns:chart"   , "urn:oasis:names:tc:opendocument:xmlns:chart:1.0"            )
-    , ("xmlns:dr3d"    , "urn:oasis:names:tc:opendocument:xmlns:dr3d:1.0"             )
-    , ("xmlns:math"    , "http://www.w3.org/1998/Math/MathML"                         )
-    , ("xmlns:form"    , "urn:oasis:names:tc:opendocument:xmlns:form:1.0"             )
-    , ("xmlns:script"  , "urn:oasis:names:tc:opendocument:xmlns:script:1.0"           )
-    , ("xmlns:ooo"     , "http://openoffice.org/2004/office"                          )
-    , ("xmlns:ooow"    , "http://openoffice.org/2004/writer"                          )
-    , ("xmlns:oooc"    , "http://openoffice.org/2004/calc"                            )
-    , ("xmlns:dom"     , "http://www.w3.org/2001/xml-events"                          )
-    , ("xmlns:xforms"  , "http://www.w3.org/2002/xforms"                              )
-    , ("xmlns:xsd"     , "http://www.w3.org/2001/XMLSchema"                           )
-    , ("xmlns:xsi"     , "http://www.w3.org/2001/XMLSchema-instance"                  )
-    , ("office:version", "1.0"                                                        )
-    ]

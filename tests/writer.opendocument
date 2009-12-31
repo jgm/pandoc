@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-
 <office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" xmlns:number="urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0" xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" xmlns:chart="urn:oasis:names:tc:opendocument:xmlns:chart:1.0" xmlns:dr3d="urn:oasis:names:tc:opendocument:xmlns:dr3d:1.0" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="urn:oasis:names:tc:opendocument:xmlns:form:1.0" xmlns:script="urn:oasis:names:tc:opendocument:xmlns:script:1.0" xmlns:ooo="http://openoffice.org/2004/office" xmlns:ooow="http://openoffice.org/2004/writer" xmlns:oooc="http://openoffice.org/2004/calc" xmlns:dom="http://www.w3.org/2001/xml-events" xmlns:xforms="http://www.w3.org/2002/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" office:version="1.0">
-  <office:scripts />
-  <office:font-face-decls>
-    <style:font-face style:name="&amp;apos;Lucida Sans Unicode&amp;apos;" svg:font-family="Lucida Sans Unicode" />
-    <style:font-face style:name="&amp;apos;Tahoma&amp;apos;" svg:font-family="Tahoma" />
-    <style:font-face style:name="&amp;apos;Times New Roman&amp;apos;" svg:font-family="Times New Roman" />
-  </office:font-face-decls>
   <office:automatic-styles>
     <text:list-style style:name="L1">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
@@ -873,743 +866,603 @@
       <style:paragraph-properties fo:margin-left="0.0in" fo:margin-right="0in" fo:text-indent="0in" style:auto-text-indent="false" fo:margin-top="0in" fo:margin-bottom="0in" />
     </style:style>
   </office:automatic-styles>
-  <office:body>
-    <office:text>
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">Pandoc
-                                                                    Test Suite</text:h>
-      <text:p text:style-name="Author">John MacFarlane</text:p>
-      <text:p text:style-name="Author"> Anonymous</text:p>
-      <text:p text:style-name="Date">July 17, 2006</text:p>
-      <text:p text:style-name="Text_20_body">This is a set of tests for
-                                             pandoc. Most of them are adapted from John
-                                             Gruber&#8217;s markdown test suite.</text:p>
-      <text:p text:style-name="Horizontal_20_Line" />
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">Headers</text:h>
-      <text:h text:style-name="Heading_20_2" text:outline-level="2">Level
-                                                                    2 with an
-                                                                    <text:a xlink:type="simple" xlink:href="/url" office:name=""><text:span text:style-name="Definition">embedded link</text:span></text:a></text:h>
-      <text:h text:style-name="Heading_20_3" text:outline-level="3">Level
-                                                                    3 with
-                                                                    <text:span text:style-name="T1">emphasis</text:span></text:h>
-      <text:h text:style-name="Heading_20_4" text:outline-level="4">Level
-                                                                    4</text:h>
-      <text:h text:style-name="Heading_20_5" text:outline-level="5">Level
-                                                                    5</text:h>
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">Level
-                                                                    1</text:h>
-      <text:h text:style-name="Heading_20_2" text:outline-level="2">Level
-                                                                    2 with
-                                                                    <text:span text:style-name="T2">emphasis</text:span></text:h>
-      <text:h text:style-name="Heading_20_3" text:outline-level="3">Level
-                                                                    3</text:h>
-      <text:p text:style-name="Text_20_body">with no blank line</text:p>
-      <text:h text:style-name="Heading_20_2" text:outline-level="2">Level
-                                                                    2</text:h>
-      <text:p text:style-name="Text_20_body">with no blank line</text:p>
-      <text:p text:style-name="Horizontal_20_Line" />
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">Paragraphs</text:h>
-      <text:p text:style-name="Text_20_body">Here&#8217;s a regular
-                                             paragraph.</text:p>
-      <text:p text:style-name="Text_20_body">In Markdown 1.0.0 and
-                                             earlier. Version 8. This line turns into a list item.
-                                             Because a hard-wrapped line in the middle of a
-                                             paragraph looked like a list item.</text:p>
-      <text:p text:style-name="Text_20_body">Here&#8217;s one with a
-                                             bullet. * criminey.</text:p>
-      <text:p text:style-name="Text_20_body">There should be a hard line
-                                             break<text:line-break />here.</text:p>
-      <text:p text:style-name="Horizontal_20_Line" />
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">Block
-                                                                    Quotes</text:h>
-      <text:p text:style-name="Text_20_body">E-mail style:</text:p>
-      <text:p text:style-name="P1">This is a block quote. It is pretty short.</text:p>
-      <text:p text:style-name="P2">Code in a block quote:</text:p>
-      <text:p text:style-name="P3">sub status {</text:p>
-      <text:p text:style-name="P4"><text:s text:c="4" />print &quot;working&quot;;</text:p>
-      <text:p text:style-name="P5">}</text:p>
-      <text:p text:style-name="P2">A list:</text:p>
-      <text:list text:style-name="L1">
-        <text:list-item>
-          <text:p text:style-name="P6">item one</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P6">item two</text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="P2">Nested block quotes:</text:p>
-      <text:p text:style-name="P7">nested</text:p>
-      <text:p text:style-name="P8">nested</text:p>
-      <text:p text:style-name="Text_20_body">This should not be a block
-                                             quote: 2 &gt; 1.</text:p>
-      <text:p text:style-name="Text_20_body">And a following
-                                             paragraph.</text:p>
-      <text:p text:style-name="Horizontal_20_Line" />
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">Code
-                                                                    Blocks</text:h>
-      <text:p text:style-name="Text_20_body">Code:</text:p>
-      <text:p text:style-name="P9">---- (should be four hyphens)</text:p>
-      <text:p text:style-name="P10"></text:p>
-      <text:p text:style-name="P11">sub status {</text:p>
-      <text:p text:style-name="P12"><text:s text:c="4" />print &quot;working&quot;;</text:p>
-      <text:p text:style-name="P13">}</text:p>
-      <text:p text:style-name="P14"></text:p>
-      <text:p text:style-name="P15">this code block is indented by one tab</text:p>
-      <text:p text:style-name="Text_20_body">And:</text:p>
-      <text:p text:style-name="P16"><text:s text:c="4" />this code block is indented by two tabs</text:p>
-      <text:p text:style-name="P17"></text:p>
-      <text:p text:style-name="P18">These should not be escaped: <text:s text:c="1" />\$ \\ \&gt; \[ \{</text:p>
-      <text:p text:style-name="Horizontal_20_Line" />
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">Lists</text:h>
-      <text:h text:style-name="Heading_20_2" text:outline-level="2">Unordered</text:h>
-      <text:p text:style-name="Text_20_body">Asterisks tight:</text:p>
-      <text:list text:style-name="L2">
-        <text:list-item>
-          <text:p text:style-name="P19">asterisk 1</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P19">asterisk 2</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P19">asterisk 3</text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">Asterisks loose:</text:p>
-      <text:list text:style-name="L3">
-        <text:list-item>
-          <text:p text:style-name="P20">asterisk 1</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P20">asterisk 2</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P20">asterisk 3</text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">Pluses tight:</text:p>
-      <text:list text:style-name="L4">
-        <text:list-item>
-          <text:p text:style-name="P21">Plus 1</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P21">Plus 2</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P21">Plus 3</text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">Pluses loose:</text:p>
-      <text:list text:style-name="L5">
-        <text:list-item>
-          <text:p text:style-name="P22">Plus 1</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P22">Plus 2</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P22">Plus 3</text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">Minuses tight:</text:p>
-      <text:list text:style-name="L6">
-        <text:list-item>
-          <text:p text:style-name="P23">Minus 1</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P23">Minus 2</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P23">Minus 3</text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">Minuses loose:</text:p>
-      <text:list text:style-name="L7">
-        <text:list-item>
-          <text:p text:style-name="P24">Minus 1</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P24">Minus 2</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P24">Minus 3</text:p>
-        </text:list-item>
-      </text:list>
-      <text:h text:style-name="Heading_20_2" text:outline-level="2">Ordered</text:h>
-      <text:p text:style-name="Text_20_body">Tight:</text:p>
-      <text:list text:style-name="L8">
-        <text:list-item>
-          <text:p text:style-name="P25">First</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P25">Second</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P25">Third</text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">and:</text:p>
-      <text:list text:style-name="L9">
-        <text:list-item>
-          <text:p text:style-name="P26">One</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P26">Two</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P26">Three</text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">Loose using tabs:</text:p>
-      <text:list text:style-name="L10">
-        <text:list-item>
-          <text:p text:style-name="P27">First</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P27">Second</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P27">Third</text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">and using spaces:</text:p>
-      <text:list text:style-name="L11">
-        <text:list-item>
-          <text:p text:style-name="P28">One</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P28">Two</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P28">Three</text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">Multiple
-                                             paragraphs:</text:p>
-      <text:list text:style-name="L12">
-        <text:list-item>
-          <text:p text:style-name="P29">Item 1, graf one.</text:p>
-          <text:p text:style-name="P29">Item 1. graf two. The quick brown fox jumped over the lazy dog&#8217;s back.</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P29">Item 2.</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P29">Item 3.</text:p>
-        </text:list-item>
-      </text:list>
-      <text:h text:style-name="Heading_20_2" text:outline-level="2">Nested</text:h>
-      <text:list text:style-name="L13">
-        <text:list-item>
-          <text:p text:style-name="P30">Tab</text:p>
-          <text:list text:style-name="L14">
-            <text:list-item>
-              <text:p text:style-name="P31">Tab</text:p>
-              <text:list text:style-name="L15">
-                <text:list-item>
-                  <text:p text:style-name="P32">Tab</text:p>
-                </text:list-item>
-              </text:list>
-            </text:list-item>
-          </text:list>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">Here&#8217;s
-                                             another:</text:p>
-      <text:list text:style-name="L16">
-        <text:list-item>
-          <text:p text:style-name="P33">First</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P33">Second:</text:p>
-          <text:list text:style-name="L17">
-            <text:list-item>
-              <text:p text:style-name="P34">Fee</text:p>
-            </text:list-item>
-            <text:list-item>
-              <text:p text:style-name="P34">Fie</text:p>
-            </text:list-item>
-            <text:list-item>
-              <text:p text:style-name="P34">Foe</text:p>
-            </text:list-item>
-          </text:list>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P33">Third</text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">Same thing but with
-                                             paragraphs:</text:p>
-      <text:list text:style-name="L18">
-        <text:list-item>
-          <text:p text:style-name="P35">First</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P35">Second:</text:p>
-          <text:list text:style-name="L19">
-            <text:list-item>
-              <text:p text:style-name="P36">Fee</text:p>
-            </text:list-item>
-            <text:list-item>
-              <text:p text:style-name="P36">Fie</text:p>
-            </text:list-item>
-            <text:list-item>
-              <text:p text:style-name="P36">Foe</text:p>
-            </text:list-item>
-          </text:list>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P35">Third</text:p>
-        </text:list-item>
-      </text:list>
-      <text:h text:style-name="Heading_20_2" text:outline-level="2">Tabs
-                                                                    and spaces</text:h>
-      <text:list text:style-name="L20">
-        <text:list-item>
-          <text:p text:style-name="P37">this is a list item indented with tabs</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P37">this is a list item indented with spaces</text:p>
-          <text:list text:style-name="L21">
-            <text:list-item>
-              <text:p text:style-name="P38">this is an example list item indented with tabs</text:p>
-            </text:list-item>
-            <text:list-item>
-              <text:p text:style-name="P38">this is an example list item indented with spaces</text:p>
-            </text:list-item>
-          </text:list>
-        </text:list-item>
-      </text:list>
-      <text:h text:style-name="Heading_20_2" text:outline-level="2">Fancy
-                                                                    list markers</text:h>
-      <text:list text:style-name="L22">
-        <text:list-item>
-          <text:p text:style-name="P39">begins with 2</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P39">and now 3</text:p>
-          <text:p text:style-name="P39">with a continuation</text:p>
-          <text:list>
-            <text:list-item>
-              <text:p text:style-name="P39">sublist with roman numerals, starting with 4</text:p>
-            </text:list-item>
-            <text:list-item>
-              <text:p text:style-name="P39">more items</text:p>
-              <text:list>
-                <text:list-item>
-                  <text:p text:style-name="P39">a subsublist</text:p>
-                </text:list-item>
-                <text:list-item>
-                  <text:p text:style-name="P39">a subsublist</text:p>
-                </text:list-item>
-              </text:list>
-            </text:list-item>
-          </text:list>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">Nesting:</text:p>
-      <text:list text:style-name="L23">
-        <text:list-item>
-          <text:p text:style-name="P40">Upper Alpha</text:p>
-          <text:list>
-            <text:list-item>
-              <text:p text:style-name="P40">Upper Roman.</text:p>
-              <text:list>
-                <text:list-item>
-                  <text:p text:style-name="P40">Decimal start with 6</text:p>
-                  <text:list>
-                    <text:list-item>
-                      <text:p text:style-name="P40">Lower alpha with paren</text:p>
-                    </text:list-item>
-                  </text:list>
-                </text:list-item>
-              </text:list>
-            </text:list-item>
-          </text:list>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">Autonumbering:</text:p>
-      <text:list text:style-name="L24">
-        <text:list-item>
-          <text:p text:style-name="P41">Autonumber.</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P41">More.</text:p>
-          <text:list>
-            <text:list-item>
-              <text:p text:style-name="P41">Nested.</text:p>
-            </text:list-item>
-          </text:list>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">Should not be a list
-                                             item:</text:p>
-      <text:p text:style-name="Text_20_body">M.A.&#160;2007</text:p>
-      <text:p text:style-name="Text_20_body">B. Williams</text:p>
-      <text:p text:style-name="Horizontal_20_Line" />
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">Definition
-                                                                    Lists</text:h>
-      <text:p text:style-name="Text_20_body">Tight using spaces:</text:p>
-      <text:p text:style-name="Definition_20_Term_20_Tight">apple</text:p>
-      <text:p text:style-name="Definition_20_Definition_20_Tight">red fruit</text:p>
-      <text:p text:style-name="Definition_20_Term_20_Tight">orange</text:p>
-      <text:p text:style-name="Definition_20_Definition_20_Tight">orange fruit</text:p>
-      <text:p text:style-name="Definition_20_Term_20_Tight">banana</text:p>
-      <text:p text:style-name="Definition_20_Definition_20_Tight">yellow fruit</text:p>
-      <text:p text:style-name="Text_20_body">Tight using tabs:</text:p>
-      <text:p text:style-name="Definition_20_Term_20_Tight">apple</text:p>
-      <text:p text:style-name="Definition_20_Definition_20_Tight">red fruit</text:p>
-      <text:p text:style-name="Definition_20_Term_20_Tight">orange</text:p>
-      <text:p text:style-name="Definition_20_Definition_20_Tight">orange fruit</text:p>
-      <text:p text:style-name="Definition_20_Term_20_Tight">banana</text:p>
-      <text:p text:style-name="Definition_20_Definition_20_Tight">yellow fruit</text:p>
-      <text:p text:style-name="Text_20_body">Loose:</text:p>
-      <text:p text:style-name="Definition_20_Term">apple</text:p>
-      <text:p text:style-name="Definition_20_Definition">red fruit</text:p>
-      <text:p text:style-name="Definition_20_Term">orange</text:p>
-      <text:p text:style-name="Definition_20_Definition">orange fruit</text:p>
-      <text:p text:style-name="Definition_20_Term">banana</text:p>
-      <text:p text:style-name="Definition_20_Definition">yellow fruit</text:p>
-      <text:p text:style-name="Text_20_body">Multiple blocks with
-                                             italics:</text:p>
-      <text:p text:style-name="Definition_20_Term"><text:span text:style-name="T3">apple</text:span></text:p>
-      <text:p text:style-name="Definition_20_Definition">red fruit</text:p>
-      <text:p text:style-name="Definition_20_Definition">contains seeds, crisp, pleasant to taste</text:p>
-      <text:p text:style-name="Definition_20_Term"><text:span text:style-name="T4">orange</text:span></text:p>
-      <text:p text:style-name="Definition_20_Definition">orange fruit</text:p>
-      <text:p text:style-name="P42">{ orange code block }</text:p>
-      <text:p text:style-name="P43">orange block quote</text:p>
-      <text:p text:style-name="Text_20_body">Multiple definitions,
-                                             tight:</text:p>
-      <text:p text:style-name="Definition_20_Term_20_Tight">apple</text:p>
-      <text:p text:style-name="Definition_20_Definition_20_Tight">red fruit</text:p>
-      <text:p text:style-name="Definition_20_Definition_20_Tight">computer</text:p>
-      <text:p text:style-name="Definition_20_Term_20_Tight">orange</text:p>
-      <text:p text:style-name="Definition_20_Definition_20_Tight">orange fruit</text:p>
-      <text:p text:style-name="Definition_20_Definition_20_Tight">bank</text:p>
-      <text:p text:style-name="Text_20_body">Multiple definitions,
-                                             loose:</text:p>
-      <text:p text:style-name="Definition_20_Term">apple</text:p>
-      <text:p text:style-name="Definition_20_Definition">red fruit</text:p>
-      <text:p text:style-name="Definition_20_Definition">computer</text:p>
-      <text:p text:style-name="Definition_20_Term">orange</text:p>
-      <text:p text:style-name="Definition_20_Definition">orange fruit</text:p>
-      <text:p text:style-name="Definition_20_Definition">bank</text:p>
-      <text:p text:style-name="Text_20_body">Blank line after term,
-                                             indented marker, alternate markers:</text:p>
-      <text:p text:style-name="Definition_20_Term">apple</text:p>
-      <text:p text:style-name="Definition_20_Definition">red fruit</text:p>
-      <text:p text:style-name="Definition_20_Definition">computer</text:p>
-      <text:p text:style-name="Definition_20_Term">orange</text:p>
-      <text:p text:style-name="Definition_20_Definition">orange fruit</text:p>
-      <text:list text:style-name="L25">
-        <text:list-item>
-          <text:p text:style-name="P44">sublist</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P44">sublist</text:p>
-        </text:list-item>
-      </text:list>
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">HTML
-                                                                    Blocks</text:h>
-      <text:p text:style-name="Text_20_body">Simple block on one
-                                             line:</text:p>
-      <text:p text:style-name="Text_20_body">foo</text:p>
-      <text:p text:style-name="Text_20_body">And nested without
-                                             indentation:</text:p>
-      <text:p text:style-name="Text_20_body">foo</text:p>
-      <text:p text:style-name="Text_20_body">bar</text:p>
-      <text:p text:style-name="Text_20_body">Interpreted markdown in a
-                                             table:</text:p>
-      <text:p text:style-name="Text_20_body">This is
-                                             <text:span text:style-name="T5">emphasized</text:span></text:p>
-      <text:p text:style-name="Text_20_body">And this is
-                                             <text:span text:style-name="T6">strong</text:span></text:p>
-      <text:p text:style-name="Text_20_body">Here&#8217;s a simple
-                                             block:</text:p>
-      <text:p text:style-name="Text_20_body">foo</text:p>
-      <text:p text:style-name="Text_20_body">This should be a code block,
-                                             though:</text:p>
-      <text:p text:style-name="P45">&lt;div&gt;</text:p>
-      <text:p text:style-name="P46"><text:s text:c="4" />foo</text:p>
-      <text:p text:style-name="P47">&lt;/div&gt;</text:p>
-      <text:p text:style-name="Text_20_body">As should this:</text:p>
-      <text:p text:style-name="P48">&lt;div&gt;foo&lt;/div&gt;</text:p>
-      <text:p text:style-name="Text_20_body">Now, nested:</text:p>
-      <text:p text:style-name="Text_20_body">foo</text:p>
-      <text:p text:style-name="Text_20_body">This should just be an HTML
-                                             comment:</text:p>
-      <text:p text:style-name="Text_20_body">Multiline:</text:p>
-      <text:p text:style-name="Text_20_body">Code block:</text:p>
-      <text:p text:style-name="P49">&lt;!-- Comment --&gt;</text:p>
-      <text:p text:style-name="Text_20_body">Just plain comment, with
-                                             trailing spaces on the line:</text:p>
-      <text:p text:style-name="Text_20_body">Code:</text:p>
-      <text:p text:style-name="P50">&lt;hr /&gt;</text:p>
-      <text:p text:style-name="Text_20_body">Hr&#8217;s:</text:p>
-      <text:p text:style-name="Horizontal_20_Line" />
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">Inline
-                                                                    Markup</text:h>
-      <text:p text:style-name="Text_20_body">This is
-                                             <text:span text:style-name="T7">emphasized</text:span>,
-                                             and so
-                                             <text:span text:style-name="T8">is</text:span><text:span text:style-name="T9"> </text:span><text:span text:style-name="T10">this</text:span>.</text:p>
-      <text:p text:style-name="Text_20_body">This is
-                                             <text:span text:style-name="T11">strong</text:span>,
-                                             and so
-                                             <text:span text:style-name="T12">is</text:span><text:span text:style-name="T13"> </text:span><text:span text:style-name="T14">this</text:span>.</text:p>
-      <text:p text:style-name="Text_20_body">An
-                                             <text:a xlink:type="simple" xlink:href="/url" office:name=""><text:span text:style-name="Definition"><text:span text:style-name="T15">emphasized</text:span><text:span text:style-name="T16"> </text:span><text:span text:style-name="T17">link</text:span></text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body"><text:span text:style-name="T18">This</text:span><text:span text:style-name="T19"> </text:span><text:span text:style-name="T20">is</text:span><text:span text:style-name="T21"> </text:span><text:span text:style-name="T22">strong</text:span><text:span text:style-name="T23"> </text:span><text:span text:style-name="T24">and</text:span><text:span text:style-name="T25"> </text:span><text:span text:style-name="T26">em</text:span><text:span text:style-name="T27">.</text:span></text:p>
-      <text:p text:style-name="Text_20_body">So is
-                                             <text:span text:style-name="T28">this</text:span>
-                                             word.</text:p>
-      <text:p text:style-name="Text_20_body"><text:span text:style-name="T29">This</text:span><text:span text:style-name="T30"> </text:span><text:span text:style-name="T31">is</text:span><text:span text:style-name="T32"> </text:span><text:span text:style-name="T33">strong</text:span><text:span text:style-name="T34"> </text:span><text:span text:style-name="T35">and</text:span><text:span text:style-name="T36"> </text:span><text:span text:style-name="T37">em</text:span><text:span text:style-name="T38">.</text:span></text:p>
-      <text:p text:style-name="Text_20_body">So is
-                                             <text:span text:style-name="T39">this</text:span>
-                                             word.</text:p>
-      <text:p text:style-name="Text_20_body">This is code:
-                                             <text:span text:style-name="Teletype">&gt;</text:span>,
-                                             <text:span text:style-name="Teletype">$</text:span>,
-                                             <text:span text:style-name="Teletype">\</text:span>,
-                                             <text:span text:style-name="Teletype">\$</text:span>,
-                                             <text:span text:style-name="Teletype">&lt;html&gt;</text:span>.</text:p>
-      <text:p text:style-name="Text_20_body"><text:span text:style-name="T40">This</text:span><text:span text:style-name="T41"> </text:span><text:span text:style-name="T42">is</text:span><text:span text:style-name="T43"> </text:span><text:span text:style-name="T44">strikeout</text:span><text:span text:style-name="T45">.</text:span></text:p>
-      <text:p text:style-name="Text_20_body">Superscripts:
-                                             a<text:span text:style-name="T46">bc</text:span>d
-                                             a<text:span text:style-name="T47">hello</text:span>
-                                             a<text:span text:style-name="T48">hello</text:span><text:span text:style-name="T49">&#160;</text:span><text:span text:style-name="T50">there</text:span>.</text:p>
-      <text:p text:style-name="Text_20_body">Subscripts:
-                                             H<text:span text:style-name="T51">2</text:span>O,
-                                             H<text:span text:style-name="T52">23</text:span>O,
-                                             H<text:span text:style-name="T53">many</text:span><text:span text:style-name="T54">&#160;</text:span><text:span text:style-name="T55">of</text:span><text:span text:style-name="T56">&#160;</text:span><text:span text:style-name="T57">them</text:span>O.</text:p>
-      <text:p text:style-name="Text_20_body">These should not be
-                                             superscripts or subscripts, because of the unescaped
-                                             spaces: a^b c^d, a~b c~d.</text:p>
-      <text:p text:style-name="Horizontal_20_Line" />
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">Smart
-                                                                    quotes, ellipses,
-                                                                    dashes</text:h>
-      <text:p text:style-name="Text_20_body">&#8220;Hello,&#8221; said
-                                             the spider.
-                                             &#8220;&#8216;Shelob&#8217; is my name.&#8221;</text:p>
-      <text:p text:style-name="Text_20_body">&#8216;A&#8217;,
-                                             &#8216;B&#8217;, and &#8216;C&#8217; are
-                                             letters.</text:p>
-      <text:p text:style-name="Text_20_body">&#8216;Oak,&#8217;
-                                             &#8216;elm,&#8217; and &#8216;beech&#8217; are names of
-                                             trees. So is &#8216;pine.&#8217;</text:p>
-      <text:p text:style-name="Text_20_body">&#8216;He said, &#8220;I want to go.&#8221;&#8217;
-                                             Were you alive in the 70&#8217;s?</text:p>
-      <text:p text:style-name="Text_20_body">Here is some quoted
-                                             &#8216;<text:span text:style-name="Teletype">code</text:span>&#8217;
-                                             and a
-                                             &#8220;<text:a xlink:type="simple" xlink:href="http://example.com/?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">quoted link</text:span></text:a>&#8221;.</text:p>
-      <text:p text:style-name="Text_20_body">Some dashes: one&#8212;two
-                                             &#8212; three&#8212;four &#8212; five.</text:p>
-      <text:p text:style-name="Text_20_body">Dashes between numbers:
-                                             5&#8211;7, 255&#8211;66, 1987&#8211;1999.</text:p>
-      <text:p text:style-name="Text_20_body">Ellipses&#8230;and&#8230;and&#8230;.</text:p>
-      <text:p text:style-name="Horizontal_20_Line" />
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">LaTeX</text:h>
-      <text:list text:style-name="L26">
-        <text:list-item>
-          <text:p text:style-name="P51"><text:span text:style-name="Teletype">\cite[22-23]{smith.1899}</text:span></text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P51">2+2=4</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P51"><text:span text:style-name="T58">x</text:span> ∈ <text:span text:style-name="T59">y</text:span></text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P51">α ∧ ω</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P51">223</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P51"><text:span text:style-name="T60">p</text:span>-Tree</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P51">Here&#8217;s some display math: \frac{<text:span text:style-name="T61">d</text:span>}{<text:span text:style-name="T62">dx</text:span>}<text:span text:style-name="T63">f</text:span>(<text:span text:style-name="T64">x</text:span>)=\lim<text:span text:style-name="T65">h</text:span><text:span text:style-name="T66"> → </text:span><text:span text:style-name="T67">0</text:span>\frac{<text:span text:style-name="T68">f</text:span>(<text:span text:style-name="T69">x</text:span>+<text:span text:style-name="T70">h</text:span>)-<text:span text:style-name="T71">f</text:span>(<text:span text:style-name="T72">x</text:span>)}{<text:span text:style-name="T73">h</text:span>}</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P51">Here&#8217;s one that has a line break in it: α+ω × <text:span text:style-name="T74">x</text:span><text:span text:style-name="T75">2</text:span>.</text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">These shouldn&#8217;t be
-                                             math:</text:p>
-      <text:list text:style-name="L27">
-        <text:list-item>
-          <text:p text:style-name="P52">To get the famous equation, write <text:span text:style-name="Teletype">$e = mc^2$</text:span>.</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P52">$22,000 is a <text:span text:style-name="T76">lot</text:span> of money. So is $34,000. (It worked if &#8220;lot&#8221; is emphasized.)</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P52">Shoes ($20) and socks ($5).</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P52">Escaped <text:span text:style-name="Teletype">$</text:span>: $73 <text:span text:style-name="T77">this</text:span><text:span text:style-name="T78"> </text:span><text:span text:style-name="T79">should</text:span><text:span text:style-name="T80"> </text:span><text:span text:style-name="T81">be</text:span><text:span text:style-name="T82"> </text:span><text:span text:style-name="T83">emphasized</text:span> 23$.</text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">Here&#8217;s a LaTeX
-                                             table:</text:p>
-      <text:p text:style-name="Text_20_body"><text:span text:style-name="Teletype">\begin{tabular}{|l|l|}\hline
+<office:body>
+<office:text>
+<text:h text:style-name="Heading_20_1" text:outline-level="1">Pandoc Test Suite</text:h>
+<text:p text:style-name="Author">John MacFarlane</text:p>
+<text:p text:style-name="Author">Anonymous</text:p>
+<text:p text:style-name="Date">July 17, 2006</text:p>
+<text:p text:style-name="Text_20_body">This is a set of tests for pandoc. Most of them are adapted from John Gruber&#8217;s markdown test suite.</text:p>
+<text:p text:style-name="Horizontal_20_Line" />
+<text:h text:style-name="Heading_20_1" text:outline-level="1">Headers</text:h>
+<text:h text:style-name="Heading_20_2" text:outline-level="2">Level 2 with an <text:a xlink:type="simple" xlink:href="/url" office:name=""><text:span text:style-name="Definition">embedded link</text:span></text:a></text:h>
+<text:h text:style-name="Heading_20_3" text:outline-level="3">Level 3 with <text:span text:style-name="T1">emphasis</text:span></text:h>
+<text:h text:style-name="Heading_20_4" text:outline-level="4">Level 4</text:h>
+<text:h text:style-name="Heading_20_5" text:outline-level="5">Level 5</text:h>
+<text:h text:style-name="Heading_20_1" text:outline-level="1">Level 1</text:h>
+<text:h text:style-name="Heading_20_2" text:outline-level="2">Level 2 with <text:span text:style-name="T2">emphasis</text:span></text:h>
+<text:h text:style-name="Heading_20_3" text:outline-level="3">Level 3</text:h>
+<text:p text:style-name="Text_20_body">with no blank line</text:p>
+<text:h text:style-name="Heading_20_2" text:outline-level="2">Level 2</text:h>
+<text:p text:style-name="Text_20_body">with no blank line</text:p>
+<text:p text:style-name="Horizontal_20_Line" />
+<text:h text:style-name="Heading_20_1" text:outline-level="1">Paragraphs</text:h>
+<text:p text:style-name="Text_20_body">Here&#8217;s a regular paragraph.</text:p>
+<text:p text:style-name="Text_20_body">In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.</text:p>
+<text:p text:style-name="Text_20_body">Here&#8217;s one with a bullet. * criminey.</text:p>
+<text:p text:style-name="Text_20_body">There should be a hard line break<text:line-break />here.</text:p>
+<text:p text:style-name="Horizontal_20_Line" />
+<text:h text:style-name="Heading_20_1" text:outline-level="1">Block Quotes</text:h>
+<text:p text:style-name="Text_20_body">E-mail style:</text:p>
+<text:p text:style-name="P1">This is a block quote. It is pretty short.</text:p>
+<text:p text:style-name="P2">Code in a block quote:</text:p>
+<text:p text:style-name="P3">sub status {</text:p>
+<text:p text:style-name="P4"><text:s text:c="4" />print &quot;working&quot;;</text:p>
+<text:p text:style-name="P5">}</text:p>
+<text:p text:style-name="P2">A list:</text:p>
+<text:list text:style-name="L1">
+  <text:list-item>
+    <text:p text:style-name="P6">item one</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P6">item two</text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="P2">Nested block quotes:</text:p>
+<text:p text:style-name="P7">nested</text:p>
+<text:p text:style-name="P8">nested</text:p>
+<text:p text:style-name="Text_20_body">This should not be a block quote: 2 &gt; 1.</text:p>
+<text:p text:style-name="Text_20_body">And a following paragraph.</text:p>
+<text:p text:style-name="Horizontal_20_Line" />
+<text:h text:style-name="Heading_20_1" text:outline-level="1">Code Blocks</text:h>
+<text:p text:style-name="Text_20_body">Code:</text:p>
+<text:p text:style-name="P9">---- (should be four hyphens)</text:p>
+<text:p text:style-name="P10"></text:p>
+<text:p text:style-name="P11">sub status {</text:p>
+<text:p text:style-name="P12"><text:s text:c="4" />print &quot;working&quot;;</text:p>
+<text:p text:style-name="P13">}</text:p>
+<text:p text:style-name="P14"></text:p>
+<text:p text:style-name="P15">this code block is indented by one tab</text:p>
+<text:p text:style-name="Text_20_body">And:</text:p>
+<text:p text:style-name="P16"><text:s text:c="4" />this code block is indented by two tabs</text:p>
+<text:p text:style-name="P17"></text:p>
+<text:p text:style-name="P18">These should not be escaped: <text:s text:c="1" />\$ \\ \&gt; \[ \{</text:p>
+<text:p text:style-name="Horizontal_20_Line" />
+<text:h text:style-name="Heading_20_1" text:outline-level="1">Lists</text:h>
+<text:h text:style-name="Heading_20_2" text:outline-level="2">Unordered</text:h>
+<text:p text:style-name="Text_20_body">Asterisks tight:</text:p>
+<text:list text:style-name="L2">
+  <text:list-item>
+    <text:p text:style-name="P19">asterisk 1</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P19">asterisk 2</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P19">asterisk 3</text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">Asterisks loose:</text:p>
+<text:list text:style-name="L3">
+  <text:list-item>
+    <text:p text:style-name="P20">asterisk 1</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P20">asterisk 2</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P20">asterisk 3</text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">Pluses tight:</text:p>
+<text:list text:style-name="L4">
+  <text:list-item>
+    <text:p text:style-name="P21">Plus 1</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P21">Plus 2</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P21">Plus 3</text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">Pluses loose:</text:p>
+<text:list text:style-name="L5">
+  <text:list-item>
+    <text:p text:style-name="P22">Plus 1</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P22">Plus 2</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P22">Plus 3</text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">Minuses tight:</text:p>
+<text:list text:style-name="L6">
+  <text:list-item>
+    <text:p text:style-name="P23">Minus 1</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P23">Minus 2</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P23">Minus 3</text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">Minuses loose:</text:p>
+<text:list text:style-name="L7">
+  <text:list-item>
+    <text:p text:style-name="P24">Minus 1</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P24">Minus 2</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P24">Minus 3</text:p>
+  </text:list-item>
+</text:list>
+<text:h text:style-name="Heading_20_2" text:outline-level="2">Ordered</text:h>
+<text:p text:style-name="Text_20_body">Tight:</text:p>
+<text:list text:style-name="L8">
+  <text:list-item>
+    <text:p text:style-name="P25">First</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P25">Second</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P25">Third</text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">and:</text:p>
+<text:list text:style-name="L9">
+  <text:list-item>
+    <text:p text:style-name="P26">One</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P26">Two</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P26">Three</text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">Loose using tabs:</text:p>
+<text:list text:style-name="L10">
+  <text:list-item>
+    <text:p text:style-name="P27">First</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P27">Second</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P27">Third</text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">and using spaces:</text:p>
+<text:list text:style-name="L11">
+  <text:list-item>
+    <text:p text:style-name="P28">One</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P28">Two</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P28">Three</text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">Multiple paragraphs:</text:p>
+<text:list text:style-name="L12">
+  <text:list-item>
+    <text:p text:style-name="P29">Item 1, graf one.</text:p>
+    <text:p text:style-name="P29">Item 1. graf two. The quick brown fox jumped over the lazy dog&#8217;s back.</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P29">Item 2.</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P29">Item 3.</text:p>
+  </text:list-item>
+</text:list>
+<text:h text:style-name="Heading_20_2" text:outline-level="2">Nested</text:h>
+<text:list text:style-name="L13">
+  <text:list-item>
+    <text:p text:style-name="P30">Tab</text:p><text:list text:style-name="L14">
+                                                <text:list-item>
+                                                  <text:p text:style-name="P31">Tab</text:p><text:list text:style-name="L15">
+                                                                                              <text:list-item>
+                                                                                                <text:p text:style-name="P32">Tab</text:p>
+                                                                                              </text:list-item>
+                                                                                            </text:list>
+                                                </text:list-item>
+                                              </text:list>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">Here&#8217;s another:</text:p>
+<text:list text:style-name="L16">
+  <text:list-item>
+    <text:p text:style-name="P33">First</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P33">Second:</text:p>
+    <text:list text:style-name="L17">
+      <text:list-item>
+        <text:p text:style-name="P34">Fee</text:p>
+      </text:list-item>
+      <text:list-item>
+        <text:p text:style-name="P34">Fie</text:p>
+      </text:list-item>
+      <text:list-item>
+        <text:p text:style-name="P34">Foe</text:p>
+      </text:list-item>
+    </text:list>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P33">Third</text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">Same thing but with paragraphs:</text:p>
+<text:list text:style-name="L18">
+  <text:list-item>
+    <text:p text:style-name="P35">First</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P35">Second:</text:p>
+    <text:list text:style-name="L19">
+      <text:list-item>
+        <text:p text:style-name="P36">Fee</text:p>
+      </text:list-item>
+      <text:list-item>
+        <text:p text:style-name="P36">Fie</text:p>
+      </text:list-item>
+      <text:list-item>
+        <text:p text:style-name="P36">Foe</text:p>
+      </text:list-item>
+    </text:list>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P35">Third</text:p>
+  </text:list-item>
+</text:list>
+<text:h text:style-name="Heading_20_2" text:outline-level="2">Tabs and spaces</text:h>
+<text:list text:style-name="L20">
+  <text:list-item>
+    <text:p text:style-name="P37">this is a list item indented with tabs</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P37">this is a list item indented with spaces</text:p><text:list text:style-name="L21">
+                                                                                     <text:list-item>
+                                                                                       <text:p text:style-name="P38">this is an example list item indented with tabs</text:p>
+                                                                                     </text:list-item>
+                                                                                     <text:list-item>
+                                                                                       <text:p text:style-name="P38">this is an example list item indented with spaces</text:p>
+                                                                                     </text:list-item>
+                                                                                   </text:list>
+  </text:list-item>
+</text:list>
+<text:h text:style-name="Heading_20_2" text:outline-level="2">Fancy list markers</text:h>
+<text:list text:style-name="L22">
+  <text:list-item>
+    <text:p text:style-name="P39">begins with 2</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P39">and now 3</text:p>
+    <text:p text:style-name="P39">with a continuation</text:p>
+    <text:list>
+      <text:list-item>
+        <text:p text:style-name="P39">sublist with roman numerals, starting with 4</text:p>
+      </text:list-item>
+      <text:list-item>
+        <text:p text:style-name="P39">more items</text:p>
+        <text:list>
+          <text:list-item>
+            <text:p text:style-name="P39">a subsublist</text:p>
+          </text:list-item>
+          <text:list-item>
+            <text:p text:style-name="P39">a subsublist</text:p>
+          </text:list-item>
+        </text:list>
+      </text:list-item>
+    </text:list>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">Nesting:</text:p>
+<text:list text:style-name="L23">
+  <text:list-item>
+    <text:p text:style-name="P40">Upper Alpha</text:p>
+    <text:list>
+      <text:list-item>
+        <text:p text:style-name="P40">Upper Roman.</text:p>
+        <text:list>
+          <text:list-item>
+            <text:p text:style-name="P40">Decimal start with 6</text:p>
+            <text:list>
+              <text:list-item>
+                <text:p text:style-name="P40">Lower alpha with paren</text:p>
+              </text:list-item>
+            </text:list>
+          </text:list-item>
+        </text:list>
+      </text:list-item>
+    </text:list>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">Autonumbering:</text:p>
+<text:list text:style-name="L24">
+  <text:list-item>
+    <text:p text:style-name="P41">Autonumber.</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P41">More.</text:p>
+    <text:list>
+      <text:list-item>
+        <text:p text:style-name="P41">Nested.</text:p>
+      </text:list-item>
+    </text:list>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">Should not be a list item:</text:p>
+<text:p text:style-name="Text_20_body">M.A.&#160;2007</text:p>
+<text:p text:style-name="Text_20_body">B. Williams</text:p>
+<text:p text:style-name="Horizontal_20_Line" />
+<text:h text:style-name="Heading_20_1" text:outline-level="1">Definition Lists</text:h>
+<text:p text:style-name="Text_20_body">Tight using spaces:</text:p>
+<text:p text:style-name="Definition_20_Term_20_Tight">apple</text:p>
+<text:p text:style-name="Definition_20_Definition_20_Tight">red fruit</text:p>
+<text:p text:style-name="Definition_20_Term_20_Tight">orange</text:p>
+<text:p text:style-name="Definition_20_Definition_20_Tight">orange fruit</text:p>
+<text:p text:style-name="Definition_20_Term_20_Tight">banana</text:p>
+<text:p text:style-name="Definition_20_Definition_20_Tight">yellow fruit</text:p>
+<text:p text:style-name="Text_20_body">Tight using tabs:</text:p>
+<text:p text:style-name="Definition_20_Term_20_Tight">apple</text:p>
+<text:p text:style-name="Definition_20_Definition_20_Tight">red fruit</text:p>
+<text:p text:style-name="Definition_20_Term_20_Tight">orange</text:p>
+<text:p text:style-name="Definition_20_Definition_20_Tight">orange fruit</text:p>
+<text:p text:style-name="Definition_20_Term_20_Tight">banana</text:p>
+<text:p text:style-name="Definition_20_Definition_20_Tight">yellow fruit</text:p>
+<text:p text:style-name="Text_20_body">Loose:</text:p>
+<text:p text:style-name="Definition_20_Term">apple</text:p>
+<text:p text:style-name="Definition_20_Definition">red fruit</text:p>
+<text:p text:style-name="Definition_20_Term">orange</text:p>
+<text:p text:style-name="Definition_20_Definition">orange fruit</text:p>
+<text:p text:style-name="Definition_20_Term">banana</text:p>
+<text:p text:style-name="Definition_20_Definition">yellow fruit</text:p>
+<text:p text:style-name="Text_20_body">Multiple blocks with italics:</text:p>
+<text:p text:style-name="Definition_20_Term"><text:span text:style-name="T3">apple</text:span></text:p>
+<text:p text:style-name="Definition_20_Definition">red fruit</text:p><text:p text:style-name="Definition_20_Definition">contains seeds, crisp, pleasant to taste</text:p>
+<text:p text:style-name="Definition_20_Term"><text:span text:style-name="T4">orange</text:span></text:p>
+<text:p text:style-name="Definition_20_Definition">orange fruit</text:p><text:p text:style-name="P42">{ orange code block }</text:p><text:p text:style-name="P43">orange block quote</text:p>
+<text:p text:style-name="Text_20_body">Multiple definitions, tight:</text:p>
+<text:p text:style-name="Definition_20_Term_20_Tight">apple</text:p>
+<text:p text:style-name="Definition_20_Definition_20_Tight">red fruit</text:p>
+<text:p text:style-name="Definition_20_Definition_20_Tight">computer</text:p>
+<text:p text:style-name="Definition_20_Term_20_Tight">orange</text:p>
+<text:p text:style-name="Definition_20_Definition_20_Tight">orange fruit</text:p>
+<text:p text:style-name="Definition_20_Definition_20_Tight">bank</text:p>
+<text:p text:style-name="Text_20_body">Multiple definitions, loose:</text:p>
+<text:p text:style-name="Definition_20_Term">apple</text:p>
+<text:p text:style-name="Definition_20_Definition">red fruit</text:p>
+<text:p text:style-name="Definition_20_Definition">computer</text:p>
+<text:p text:style-name="Definition_20_Term">orange</text:p>
+<text:p text:style-name="Definition_20_Definition">orange fruit</text:p>
+<text:p text:style-name="Definition_20_Definition">bank</text:p>
+<text:p text:style-name="Text_20_body">Blank line after term, indented marker, alternate markers:</text:p>
+<text:p text:style-name="Definition_20_Term">apple</text:p>
+<text:p text:style-name="Definition_20_Definition">red fruit</text:p>
+<text:p text:style-name="Definition_20_Definition">computer</text:p>
+<text:p text:style-name="Definition_20_Term">orange</text:p>
+<text:p text:style-name="Definition_20_Definition">orange fruit</text:p><text:list text:style-name="L25">
+                                                                          <text:list-item>
+                                                                            <text:p text:style-name="P44">sublist</text:p>
+                                                                          </text:list-item>
+                                                                          <text:list-item>
+                                                                            <text:p text:style-name="P44">sublist</text:p>
+                                                                          </text:list-item>
+                                                                        </text:list>
+<text:h text:style-name="Heading_20_1" text:outline-level="1">HTML Blocks</text:h>
+<text:p text:style-name="Text_20_body">Simple block on one line:</text:p>
+<text:p text:style-name="Text_20_body">foo</text:p>
+<text:p text:style-name="Text_20_body">And nested without indentation:</text:p>
+<text:p text:style-name="Text_20_body">foo</text:p>
+<text:p text:style-name="Text_20_body">bar</text:p>
+<text:p text:style-name="Text_20_body">Interpreted markdown in a table:</text:p>
+<text:p text:style-name="Text_20_body">This is <text:span text:style-name="T5">emphasized</text:span></text:p>
+<text:p text:style-name="Text_20_body">And this is <text:span text:style-name="T6">strong</text:span></text:p>
+<text:p text:style-name="Text_20_body">Here&#8217;s a simple block:</text:p>
+<text:p text:style-name="Text_20_body">foo</text:p>
+<text:p text:style-name="Text_20_body">This should be a code block, though:</text:p>
+<text:p text:style-name="P45">&lt;div&gt;</text:p>
+<text:p text:style-name="P46"><text:s text:c="4" />foo</text:p>
+<text:p text:style-name="P47">&lt;/div&gt;</text:p>
+<text:p text:style-name="Text_20_body">As should this:</text:p>
+<text:p text:style-name="P48">&lt;div&gt;foo&lt;/div&gt;</text:p>
+<text:p text:style-name="Text_20_body">Now, nested:</text:p>
+<text:p text:style-name="Text_20_body">foo</text:p>
+<text:p text:style-name="Text_20_body">This should just be an HTML comment:</text:p>
+<text:p text:style-name="Text_20_body">Multiline:</text:p>
+<text:p text:style-name="Text_20_body">Code block:</text:p>
+<text:p text:style-name="P49">&lt;!-- Comment --&gt;</text:p>
+<text:p text:style-name="Text_20_body">Just plain comment, with trailing spaces on the line:</text:p>
+<text:p text:style-name="Text_20_body">Code:</text:p>
+<text:p text:style-name="P50">&lt;hr /&gt;</text:p>
+<text:p text:style-name="Text_20_body">Hr&#8217;s:</text:p>
+<text:p text:style-name="Horizontal_20_Line" />
+<text:h text:style-name="Heading_20_1" text:outline-level="1">Inline Markup</text:h>
+<text:p text:style-name="Text_20_body">This is <text:span text:style-name="T7">emphasized</text:span>, and so <text:span text:style-name="T8">is</text:span><text:span text:style-name="T9"> </text:span><text:span text:style-name="T10">this</text:span>.</text:p>
+<text:p text:style-name="Text_20_body">This is <text:span text:style-name="T11">strong</text:span>, and so <text:span text:style-name="T12">is</text:span><text:span text:style-name="T13"> </text:span><text:span text:style-name="T14">this</text:span>.</text:p>
+<text:p text:style-name="Text_20_body">An <text:a xlink:type="simple" xlink:href="/url" office:name=""><text:span text:style-name="Definition"><text:span text:style-name="T15">emphasized</text:span><text:span text:style-name="T16"> </text:span><text:span text:style-name="T17">link</text:span></text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body"><text:span text:style-name="T18">This</text:span><text:span text:style-name="T19"> </text:span><text:span text:style-name="T20">is</text:span><text:span text:style-name="T21"> </text:span><text:span text:style-name="T22">strong</text:span><text:span text:style-name="T23"> </text:span><text:span text:style-name="T24">and</text:span><text:span text:style-name="T25"> </text:span><text:span text:style-name="T26">em</text:span><text:span text:style-name="T27">.</text:span></text:p>
+<text:p text:style-name="Text_20_body">So is <text:span text:style-name="T28">this</text:span> word.</text:p>
+<text:p text:style-name="Text_20_body"><text:span text:style-name="T29">This</text:span><text:span text:style-name="T30"> </text:span><text:span text:style-name="T31">is</text:span><text:span text:style-name="T32"> </text:span><text:span text:style-name="T33">strong</text:span><text:span text:style-name="T34"> </text:span><text:span text:style-name="T35">and</text:span><text:span text:style-name="T36"> </text:span><text:span text:style-name="T37">em</text:span><text:span text:style-name="T38">.</text:span></text:p>
+<text:p text:style-name="Text_20_body">So is <text:span text:style-name="T39">this</text:span> word.</text:p>
+<text:p text:style-name="Text_20_body">This is code: <text:span text:style-name="Teletype">&gt;</text:span>, <text:span text:style-name="Teletype">$</text:span>, <text:span text:style-name="Teletype">\</text:span>, <text:span text:style-name="Teletype">\$</text:span>, <text:span text:style-name="Teletype">&lt;html&gt;</text:span>.</text:p>
+<text:p text:style-name="Text_20_body"><text:span text:style-name="T40">This</text:span><text:span text:style-name="T41"> </text:span><text:span text:style-name="T42">is</text:span><text:span text:style-name="T43"> </text:span><text:span text:style-name="T44">strikeout</text:span><text:span text:style-name="T45">.</text:span></text:p>
+<text:p text:style-name="Text_20_body">Superscripts: a<text:span text:style-name="T46">bc</text:span>d a<text:span text:style-name="T47">hello</text:span> a<text:span text:style-name="T48">hello</text:span><text:span text:style-name="T49">&#160;</text:span><text:span text:style-name="T50">there</text:span>.</text:p>
+<text:p text:style-name="Text_20_body">Subscripts: H<text:span text:style-name="T51">2</text:span>O, H<text:span text:style-name="T52">23</text:span>O, H<text:span text:style-name="T53">many</text:span><text:span text:style-name="T54">&#160;</text:span><text:span text:style-name="T55">of</text:span><text:span text:style-name="T56">&#160;</text:span><text:span text:style-name="T57">them</text:span>O.</text:p>
+<text:p text:style-name="Text_20_body">These should not be superscripts or subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.</text:p>
+<text:p text:style-name="Horizontal_20_Line" />
+<text:h text:style-name="Heading_20_1" text:outline-level="1">Smart quotes, ellipses, dashes</text:h>
+<text:p text:style-name="Text_20_body">&#8220;Hello,&#8221; said the spider. &#8220;&#8216;Shelob&#8217; is my name.&#8221;</text:p>
+<text:p text:style-name="Text_20_body">&#8216;A&#8217;, &#8216;B&#8217;, and &#8216;C&#8217; are letters.</text:p>
+<text:p text:style-name="Text_20_body">&#8216;Oak,&#8217; &#8216;elm,&#8217; and &#8216;beech&#8217; are names of trees. So is &#8216;pine.&#8217;</text:p>
+<text:p text:style-name="Text_20_body">&#8216;He said, &#8220;I want to go.&#8221;&#8217; Were you alive in the 70&#8217;s?</text:p>
+<text:p text:style-name="Text_20_body">Here is some quoted &#8216;<text:span text:style-name="Teletype">code</text:span>&#8217; and a &#8220;<text:a xlink:type="simple" xlink:href="http://example.com/?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">quoted link</text:span></text:a>&#8221;.</text:p>
+<text:p text:style-name="Text_20_body">Some dashes: one&#8212;two &#8212; three&#8212;four &#8212; five.</text:p>
+<text:p text:style-name="Text_20_body">Dashes between numbers: 5&#8211;7, 255&#8211;66, 1987&#8211;1999.</text:p>
+<text:p text:style-name="Text_20_body">Ellipses&#8230;and&#8230;and&#8230;.</text:p>
+<text:p text:style-name="Horizontal_20_Line" />
+<text:h text:style-name="Heading_20_1" text:outline-level="1">LaTeX</text:h>
+<text:list text:style-name="L26">
+  <text:list-item>
+    <text:p text:style-name="P51"><text:span text:style-name="Teletype">\cite[22-23]{smith.1899}</text:span></text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P51">2+2=4</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P51"><text:span text:style-name="T58">x</text:span> ∈ <text:span text:style-name="T59">y</text:span></text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P51">α ∧ ω</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P51">223</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P51"><text:span text:style-name="T60">p</text:span>-Tree</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P51">Here&#8217;s some display math: \frac{<text:span text:style-name="T61">d</text:span>}{<text:span text:style-name="T62">dx</text:span>}<text:span text:style-name="T63">f</text:span>(<text:span text:style-name="T64">x</text:span>)=\lim<text:span text:style-name="T65">h</text:span><text:span text:style-name="T66"> → </text:span><text:span text:style-name="T67">0</text:span>\frac{<text:span text:style-name="T68">f</text:span>(<text:span text:style-name="T69">x</text:span>+<text:span text:style-name="T70">h</text:span>)-<text:span text:style-name="T71">f</text:span>(<text:span text:style-name="T72">x</text:span>)}{<text:span text:style-name="T73">h</text:span>}</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P51">Here&#8217;s one that has a line break in it: α+ω × <text:span text:style-name="T74">x</text:span><text:span text:style-name="T75">2</text:span>.</text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">These shouldn&#8217;t be math:</text:p>
+<text:list text:style-name="L27">
+  <text:list-item>
+    <text:p text:style-name="P52">To get the famous equation, write <text:span text:style-name="Teletype">$e = mc^2$</text:span>.</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P52">$22,000 is a <text:span text:style-name="T76">lot</text:span> of money. So is $34,000. (It worked if &#8220;lot&#8221; is emphasized.)</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P52">Shoes ($20) and socks ($5).</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P52">Escaped <text:span text:style-name="Teletype">$</text:span>: $73 <text:span text:style-name="T77">this</text:span><text:span text:style-name="T78"> </text:span><text:span text:style-name="T79">should</text:span><text:span text:style-name="T80"> </text:span><text:span text:style-name="T81">be</text:span><text:span text:style-name="T82"> </text:span><text:span text:style-name="T83">emphasized</text:span> 23$.</text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">Here&#8217;s a LaTeX table:</text:p>
+<text:p text:style-name="Text_20_body"><text:span text:style-name="Teletype">\begin{tabular}{|l|l|}\hline
 Animal &amp; Number \\ \hline
 Dog <text:s text:c="3" />&amp; 2 <text:s text:c="5" />\\
 Cat <text:s text:c="3" />&amp; 1 <text:s text:c="5" />\\ \hline
 \end{tabular}</text:span></text:p>
-      <text:p text:style-name="Horizontal_20_Line" />
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">Special
-                                                                    Characters</text:h>
-      <text:p text:style-name="Text_20_body">Here is some
-                                             unicode:</text:p>
-      <text:list text:style-name="L28">
-        <text:list-item>
-          <text:p text:style-name="P53">I hat: Î</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P53">o umlaut: ö</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P53">section: §</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P53">set membership: ∈</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P53">copyright: ©</text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">AT&amp;T has an ampersand in
-                                             their name.</text:p>
-      <text:p text:style-name="Text_20_body">AT&amp;T is another way to
-                                             write it.</text:p>
-      <text:p text:style-name="Text_20_body">This &amp; that.</text:p>
-      <text:p text:style-name="Text_20_body">4 &lt; 5.</text:p>
-      <text:p text:style-name="Text_20_body">6 &gt; 5.</text:p>
-      <text:p text:style-name="Text_20_body">Backslash: \</text:p>
-      <text:p text:style-name="Text_20_body">Backtick: `</text:p>
-      <text:p text:style-name="Text_20_body">Asterisk: *</text:p>
-      <text:p text:style-name="Text_20_body">Underscore: _</text:p>
-      <text:p text:style-name="Text_20_body">Left brace: {</text:p>
-      <text:p text:style-name="Text_20_body">Right brace: }</text:p>
-      <text:p text:style-name="Text_20_body">Left bracket: [</text:p>
-      <text:p text:style-name="Text_20_body">Right bracket: ]</text:p>
-      <text:p text:style-name="Text_20_body">Left paren: (</text:p>
-      <text:p text:style-name="Text_20_body">Right paren: )</text:p>
-      <text:p text:style-name="Text_20_body">Greater-than: &gt;</text:p>
-      <text:p text:style-name="Text_20_body">Hash: #</text:p>
-      <text:p text:style-name="Text_20_body">Period: .</text:p>
-      <text:p text:style-name="Text_20_body">Bang: !</text:p>
-      <text:p text:style-name="Text_20_body">Plus: +</text:p>
-      <text:p text:style-name="Text_20_body">Minus: -</text:p>
-      <text:p text:style-name="Horizontal_20_Line" />
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">Links</text:h>
-      <text:h text:style-name="Heading_20_2" text:outline-level="2">Explicit</text:h>
-      <text:p text:style-name="Text_20_body">Just a
-                                             <text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">URL</text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="/url/" office:name="title"><text:span text:style-name="Definition">URL and title</text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="/url/" office:name="title preceded by two spaces"><text:span text:style-name="Definition">URL and title</text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="/url/" office:name="title preceded by a tab"><text:span text:style-name="Definition">URL and title</text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="/url/" office:name="title with &quot;quotes&quot; in it"><text:span text:style-name="Definition">URL and title</text:span></text:a></text:p>
-      <text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="/url/" office:name="title with single quotes"><text:span text:style-name="Definition">URL and title</text:span></text:a></text:p>
-      <text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="/url/with_underscore" office:name=""><text:span text:style-name="Definition">with_underscore</text:span></text:a></text:p>
-      <text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="mailto:nobody@nowhere.net" office:name=""><text:span text:style-name="Definition">Email link</text:span></text:a></text:p>
-      <text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="" office:name=""><text:span text:style-name="Definition">Empty</text:span></text:a>.</text:p>
-      <text:h text:style-name="Heading_20_2" text:outline-level="2">Reference</text:h>
-      <text:p text:style-name="Text_20_body">Foo
-                                             <text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">bar</text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body">Foo
-                                             <text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">bar</text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body">Foo
-                                             <text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">bar</text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body">With
-                                             <text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">embedded [brackets]</text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">b</text:span></text:a>
-                                             by itself should be a link.</text:p>
-      <text:p text:style-name="Text_20_body">Indented
-                                             <text:a xlink:type="simple" xlink:href="/url" office:name=""><text:span text:style-name="Definition">once</text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body">Indented
-                                             <text:a xlink:type="simple" xlink:href="/url" office:name=""><text:span text:style-name="Definition">twice</text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body">Indented
-                                             <text:a xlink:type="simple" xlink:href="/url" office:name=""><text:span text:style-name="Definition">thrice</text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body">This should [not][] be a
-                                             link.</text:p>
-      <text:p text:style-name="P54">[not]: /url</text:p>
-      <text:p text:style-name="Text_20_body">Foo
-                                             <text:a xlink:type="simple" xlink:href="/url/" office:name="Title with &quot;quotes&quot; inside"><text:span text:style-name="Definition">bar</text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body">Foo
-                                             <text:a xlink:type="simple" xlink:href="/url/" office:name="Title with &quot;quote&quot; inside"><text:span text:style-name="Definition">biz</text:span></text:a>.</text:p>
-      <text:h text:style-name="Heading_20_2" text:outline-level="2">With
-                                                                    ampersands</text:h>
-      <text:p text:style-name="Text_20_body">Here&#8217;s a
-                                             <text:a xlink:type="simple" xlink:href="http://example.com/?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">link with an ampersand in the URL</text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body">Here&#8217;s a link with an
-                                             amersand in the link text:
-                                             <text:a xlink:type="simple" xlink:href="http://att.com/" office:name="AT&amp;T"><text:span text:style-name="Definition">AT&amp;T</text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body">Here&#8217;s an
-                                             <text:a xlink:type="simple" xlink:href="/script?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">inline link</text:span></text:a>.</text:p>
-      <text:p text:style-name="Text_20_body">Here&#8217;s an
-                                             <text:a xlink:type="simple" xlink:href="/script?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">inline link in pointy braces</text:span></text:a>.</text:p>
-      <text:h text:style-name="Heading_20_2" text:outline-level="2">Autolinks</text:h>
-      <text:p text:style-name="Text_20_body">With an ampersand:
-                                             <text:a xlink:type="simple" xlink:href="http://example.com/?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition"><text:span text:style-name="Teletype">http://example.com/?foo=1&amp;bar=2</text:span></text:span></text:a></text:p>
-      <text:list text:style-name="L29">
-        <text:list-item>
-          <text:p text:style-name="P55">In a list?</text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P55"><text:a xlink:type="simple" xlink:href="http://example.com/" office:name=""><text:span text:style-name="Definition"><text:span text:style-name="Teletype">http://example.com/</text:span></text:span></text:a></text:p>
-        </text:list-item>
-        <text:list-item>
-          <text:p text:style-name="P55">It should.</text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">An e-mail address:
-                                             <text:a xlink:type="simple" xlink:href="mailto:nobody@nowhere.net" office:name=""><text:span text:style-name="Definition"><text:span text:style-name="Teletype">nobody@nowhere.net</text:span></text:span></text:a></text:p>
-      <text:p text:style-name="P56">Blockquoted: <text:a xlink:type="simple" xlink:href="http://example.com/" office:name=""><text:span text:style-name="Definition"><text:span text:style-name="Teletype">http://example.com/</text:span></text:span></text:a></text:p>
-      <text:p text:style-name="Text_20_body">Auto-links should not occur
-                                             here:
-                                             <text:span text:style-name="Teletype">&lt;http://example.com/&gt;</text:span></text:p>
-      <text:p text:style-name="P57">or here: &lt;http://example.com/&gt;</text:p>
-      <text:p text:style-name="Horizontal_20_Line" />
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">Images</text:h>
-      <text:p text:style-name="Text_20_body">From
-                                             &#8220;Voyage dans la Lune&#8221; by Georges Melies
-                                             (1902):</text:p>
-      <text:p text:style-name="Text_20_body"><draw:frame><draw:image xlink:href="lalune.jpg" xlink:type="simple"  xlink:show="embed" xlink:actuate="onLoad" /></draw:frame></text:p>
-      <text:p text:style-name="Text_20_body">Here is a movie
-                                             <draw:frame><draw:image xlink:href="movie.jpg" xlink:type="simple"  xlink:show="embed" xlink:actuate="onLoad" /></draw:frame>
-                                             icon.</text:p>
-      <text:p text:style-name="Horizontal_20_Line" />
-      <text:h text:style-name="Heading_20_1" text:outline-level="1">Footnotes</text:h>
-      <text:p text:style-name="Text_20_body">Here is a footnote
-                                             reference,<text:note text:id="ftn0" text:note-class="footnote"><text:note-citation>1</text:note-citation>
-                                                                                                            <text:note-body><text:p text:style-name="Footnote">Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.</text:p></text:note-body></text:note>
-                                             and
-                                             another.<text:note text:id="ftn1" text:note-class="footnote"><text:note-citation>2</text:note-citation>
-                                                                                                          <text:note-body><text:p text:style-name="Footnote">Here&#8217;s the long note. This one contains multiple blocks.</text:p>
-                                                                                                                          <text:p text:style-name="Footnote">Subsequent blocks are indented to show that they belong to the footnote (as with list items).</text:p>
-                                                                                                                          <text:p text:style-name="P58"><text:s text:c="2" />{ &lt;code&gt; }</text:p>
-                                                                                                                          <text:p text:style-name="Footnote">If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.</text:p></text:note-body></text:note>
-                                             This should
-                                             <text:span text:style-name="T84">not</text:span> be a
-                                             footnote reference, because it contains a space.[^my
-                                             note] Here is an inline
-                                             note.<text:note text:id="ftn2" text:note-class="footnote"><text:note-citation>3</text:note-citation>
-                                                                                                       <text:note-body><text:p text:style-name="Footnote">This is <text:span text:style-name="T85">easier</text:span> to type. Inline notes may contain <text:a xlink:type="simple" xlink:href="http://google.com" office:name=""><text:span text:style-name="Definition">links</text:span></text:a> and <text:span text:style-name="Teletype">]</text:span> verbatim characters, as well as [bracketed text].</text:p></text:note-body></text:note></text:p>
-      <text:p text:style-name="P59">Notes can go in quotes.<text:note text:id="ftn3" text:note-class="footnote"><text:note-citation>4</text:note-citation>
-                                                                                                                <text:note-body><text:p text:style-name="Footnote">In quote.</text:p></text:note-body></text:note></text:p>
-      <text:list text:style-name="L30">
-        <text:list-item>
-          <text:p text:style-name="P60">And in list items.<text:note text:id="ftn4" text:note-class="footnote"><text:note-citation>5</text:note-citation>
-                                                                                                               <text:note-body><text:p text:style-name="Footnote">In list.</text:p></text:note-body></text:note></text:p>
-        </text:list-item>
-      </text:list>
-      <text:p text:style-name="Text_20_body">This paragraph should not be
-                                             part of the note, as it is not indented.</text:p>
-    </office:text>
-  </office:body>
-  
+<text:p text:style-name="Horizontal_20_Line" />
+<text:h text:style-name="Heading_20_1" text:outline-level="1">Special Characters</text:h>
+<text:p text:style-name="Text_20_body">Here is some unicode:</text:p>
+<text:list text:style-name="L28">
+  <text:list-item>
+    <text:p text:style-name="P53">I hat: Î</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P53">o umlaut: ö</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P53">section: §</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P53">set membership: ∈</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P53">copyright: ©</text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">AT&amp;T has an ampersand in their name.</text:p>
+<text:p text:style-name="Text_20_body">AT&amp;T is another way to write it.</text:p>
+<text:p text:style-name="Text_20_body">This &amp; that.</text:p>
+<text:p text:style-name="Text_20_body">4 &lt; 5.</text:p>
+<text:p text:style-name="Text_20_body">6 &gt; 5.</text:p>
+<text:p text:style-name="Text_20_body">Backslash: \</text:p>
+<text:p text:style-name="Text_20_body">Backtick: `</text:p>
+<text:p text:style-name="Text_20_body">Asterisk: *</text:p>
+<text:p text:style-name="Text_20_body">Underscore: _</text:p>
+<text:p text:style-name="Text_20_body">Left brace: {</text:p>
+<text:p text:style-name="Text_20_body">Right brace: }</text:p>
+<text:p text:style-name="Text_20_body">Left bracket: [</text:p>
+<text:p text:style-name="Text_20_body">Right bracket: ]</text:p>
+<text:p text:style-name="Text_20_body">Left paren: (</text:p>
+<text:p text:style-name="Text_20_body">Right paren: )</text:p>
+<text:p text:style-name="Text_20_body">Greater-than: &gt;</text:p>
+<text:p text:style-name="Text_20_body">Hash: #</text:p>
+<text:p text:style-name="Text_20_body">Period: .</text:p>
+<text:p text:style-name="Text_20_body">Bang: !</text:p>
+<text:p text:style-name="Text_20_body">Plus: +</text:p>
+<text:p text:style-name="Text_20_body">Minus: -</text:p>
+<text:p text:style-name="Horizontal_20_Line" />
+<text:h text:style-name="Heading_20_1" text:outline-level="1">Links</text:h>
+<text:h text:style-name="Heading_20_2" text:outline-level="2">Explicit</text:h>
+<text:p text:style-name="Text_20_body">Just a <text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">URL</text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="/url/" office:name="title"><text:span text:style-name="Definition">URL and title</text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="/url/" office:name="title preceded by two spaces"><text:span text:style-name="Definition">URL and title</text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="/url/" office:name="title preceded by a tab"><text:span text:style-name="Definition">URL and title</text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="/url/" office:name="title with &quot;quotes&quot; in it"><text:span text:style-name="Definition">URL and title</text:span></text:a></text:p>
+<text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="/url/" office:name="title with single quotes"><text:span text:style-name="Definition">URL and title</text:span></text:a></text:p>
+<text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="/url/with_underscore" office:name=""><text:span text:style-name="Definition">with_underscore</text:span></text:a></text:p>
+<text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="mailto:nobody@nowhere.net" office:name=""><text:span text:style-name="Definition">Email link</text:span></text:a></text:p>
+<text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="" office:name=""><text:span text:style-name="Definition">Empty</text:span></text:a>.</text:p>
+<text:h text:style-name="Heading_20_2" text:outline-level="2">Reference</text:h>
+<text:p text:style-name="Text_20_body">Foo <text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">bar</text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body">Foo <text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">bar</text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body">Foo <text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">bar</text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body">With <text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">embedded [brackets]</text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body"><text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">b</text:span></text:a> by itself should be a link.</text:p>
+<text:p text:style-name="Text_20_body">Indented <text:a xlink:type="simple" xlink:href="/url" office:name=""><text:span text:style-name="Definition">once</text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body">Indented <text:a xlink:type="simple" xlink:href="/url" office:name=""><text:span text:style-name="Definition">twice</text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body">Indented <text:a xlink:type="simple" xlink:href="/url" office:name=""><text:span text:style-name="Definition">thrice</text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body">This should [not][] be a link.</text:p>
+<text:p text:style-name="P54">[not]: /url</text:p>
+<text:p text:style-name="Text_20_body">Foo <text:a xlink:type="simple" xlink:href="/url/" office:name="Title with &quot;quotes&quot; inside"><text:span text:style-name="Definition">bar</text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body">Foo <text:a xlink:type="simple" xlink:href="/url/" office:name="Title with &quot;quote&quot; inside"><text:span text:style-name="Definition">biz</text:span></text:a>.</text:p>
+<text:h text:style-name="Heading_20_2" text:outline-level="2">With ampersands</text:h>
+<text:p text:style-name="Text_20_body">Here&#8217;s a <text:a xlink:type="simple" xlink:href="http://example.com/?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">link with an ampersand in the URL</text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body">Here&#8217;s a link with an amersand in the link text: <text:a xlink:type="simple" xlink:href="http://att.com/" office:name="AT&amp;T"><text:span text:style-name="Definition">AT&amp;T</text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body">Here&#8217;s an <text:a xlink:type="simple" xlink:href="/script?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">inline link</text:span></text:a>.</text:p>
+<text:p text:style-name="Text_20_body">Here&#8217;s an <text:a xlink:type="simple" xlink:href="/script?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">inline link in pointy braces</text:span></text:a>.</text:p>
+<text:h text:style-name="Heading_20_2" text:outline-level="2">Autolinks</text:h>
+<text:p text:style-name="Text_20_body">With an ampersand: <text:a xlink:type="simple" xlink:href="http://example.com/?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition"><text:span text:style-name="Teletype">http://example.com/?foo=1&amp;bar=2</text:span></text:span></text:a></text:p>
+<text:list text:style-name="L29">
+  <text:list-item>
+    <text:p text:style-name="P55">In a list?</text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P55"><text:a xlink:type="simple" xlink:href="http://example.com/" office:name=""><text:span text:style-name="Definition"><text:span text:style-name="Teletype">http://example.com/</text:span></text:span></text:a></text:p>
+  </text:list-item>
+  <text:list-item>
+    <text:p text:style-name="P55">It should.</text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">An e-mail address: <text:a xlink:type="simple" xlink:href="mailto:nobody@nowhere.net" office:name=""><text:span text:style-name="Definition"><text:span text:style-name="Teletype">nobody@nowhere.net</text:span></text:span></text:a></text:p>
+<text:p text:style-name="P56">Blockquoted: <text:a xlink:type="simple" xlink:href="http://example.com/" office:name=""><text:span text:style-name="Definition"><text:span text:style-name="Teletype">http://example.com/</text:span></text:span></text:a></text:p>
+<text:p text:style-name="Text_20_body">Auto-links should not occur here: <text:span text:style-name="Teletype">&lt;http://example.com/&gt;</text:span></text:p>
+<text:p text:style-name="P57">or here: &lt;http://example.com/&gt;</text:p>
+<text:p text:style-name="Horizontal_20_Line" />
+<text:h text:style-name="Heading_20_1" text:outline-level="1">Images</text:h>
+<text:p text:style-name="Text_20_body">From &#8220;Voyage dans la Lune&#8221; by Georges Melies (1902):</text:p>
+<text:p text:style-name="Text_20_body"><draw:frame><draw:image xlink:href="lalune.jpg" xlink:type="simple"  xlink:show="embed" xlink:actuate="onLoad" /></draw:frame></text:p>
+<text:p text:style-name="Text_20_body">Here is a movie <draw:frame><draw:image xlink:href="movie.jpg" xlink:type="simple"  xlink:show="embed" xlink:actuate="onLoad" /></draw:frame> icon.</text:p>
+<text:p text:style-name="Horizontal_20_Line" />
+<text:h text:style-name="Heading_20_1" text:outline-level="1">Footnotes</text:h>
+<text:p text:style-name="Text_20_body">Here is a footnote reference,<text:note text:id="ftn0" text:note-class="footnote"><text:note-citation>1</text:note-citation><text:note-body><text:p text:style-name="Footnote">Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.</text:p></text:note-body></text:note> and another.<text:note text:id="ftn1" text:note-class="footnote"><text:note-citation>2</text:note-citation><text:note-body><text:p text:style-name="Footnote">Here&#8217;s the long note. This one contains multiple blocks.</text:p><text:p text:style-name="Footnote">Subsequent blocks are indented to show that they belong to the footnote (as with list items).</text:p><text:p text:style-name="P58"><text:s text:c="2" />{ &lt;code&gt; }</text:p><text:p text:style-name="Footnote">If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.</text:p></text:note-body></text:note> This should <text:span text:style-name="T84">not</text:span> be a footnote reference, because it contains a space.[^my note] Here is an inline note.<text:note text:id="ftn2" text:note-class="footnote"><text:note-citation>3</text:note-citation><text:note-body><text:p text:style-name="Footnote">This is <text:span text:style-name="T85">easier</text:span> to type. Inline notes may contain <text:a xlink:type="simple" xlink:href="http://google.com" office:name=""><text:span text:style-name="Definition">links</text:span></text:a> and <text:span text:style-name="Teletype">]</text:span> verbatim characters, as well as [bracketed text].</text:p></text:note-body></text:note></text:p>
+<text:p text:style-name="P59">Notes can go in quotes.<text:note text:id="ftn3" text:note-class="footnote"><text:note-citation>4</text:note-citation><text:note-body><text:p text:style-name="Footnote">In quote.</text:p></text:note-body></text:note></text:p>
+<text:list text:style-name="L30">
+  <text:list-item>
+    <text:p text:style-name="P60">And in list items.<text:note text:id="ftn4" text:note-class="footnote"><text:note-citation>5</text:note-citation><text:note-body><text:p text:style-name="Footnote">In list.</text:p></text:note-body></text:note></text:p>
+  </text:list-item>
+</text:list>
+<text:p text:style-name="Text_20_body">This paragraph should not be part of the note, as it is not indented.</text:p>
+</office:text>
+</office:body>
 </office:document-content>
+
