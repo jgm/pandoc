@@ -1,5 +1,7 @@
 $if(titleblock)$
-$titleblock$
+% $title$
+% $authors$
+% $date$
 
 $endif$
 $if(header-includes)$

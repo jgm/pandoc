@@ -50,11 +50,12 @@ writeMarkdown opts document =
 
 -- | Return markdown representation of document.
 pandocToMarkdown :: WriterOptions -> Pandoc -> State WriterState String
-pandocToMarkdown opts (Pandoc meta blocks) = do
-  metaBlock <- metaToMarkdown opts meta
-  let head' = if writerStandalone opts
-                then metaBlock
-                else empty
+pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
+  title' <- inlineListToMarkdown opts title
+  authors' <- liftM (hcat . intersperse (text "; ")) $
+                mapM (inlineListToMarkdown opts) authors
+  date' <- inlineListToMarkdown opts date
+  let titleblock = not $ null title && null authors && null date
   let headerBlocks = filter isHeaderBlock blocks
   let toc = if writerTableOfContents opts 
                then tableOfContents opts headerBlocks
@@ -74,8 +75,11 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   let context  = writerVariables opts ++
                  [ ("toc", render toc)
                  , ("body", main)
-                 , ("titleblock", render head')
-                 ]
+                 , ("title", render title')
+                 , ("authors", render authors')
+                 , ("date", render date')
+                 ] ++
+                 [ ("titleblock", "yes") | titleblock ]
   if writerStandalone opts
      then return $ renderTemplate context $ writerTemplate opts
      else return main
@@ -111,33 +115,6 @@ noteToMarkdown opts num blocks = do
 escapeString :: String -> String
 escapeString = escapeStringUsing markdownEscapes
   where markdownEscapes = backslashEscapes "\\`*_>#~^"
-
--- | Convert bibliographic information into Markdown header.
-metaToMarkdown :: WriterOptions -> Meta -> State WriterState Doc
-metaToMarkdown _ (Meta [] [] []) = return empty
-metaToMarkdown opts (Meta title authors date) = do
-  title'   <- titleToMarkdown opts title
-  authors' <- authorsToMarkdown opts authors
-  date'    <- dateToMarkdown opts date
-  return $ title' $+$ authors' $+$ date' $+$ text ""
-
-titleToMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
-titleToMarkdown _    []  = return empty
-titleToMarkdown opts lst = do
-  contents <- inlineListToMarkdown opts lst
-  return $ text "% " <> contents 
-
-authorsToMarkdown :: WriterOptions -> [[Inline]] -> State WriterState Doc
-authorsToMarkdown _ [] = return empty
-authorsToMarkdown opts lst = do
-  authors <- mapM (inlineListToMarkdown opts) lst 
-  return $ text "% " <> (hcat $ intersperse (text ", ") authors)
-
-dateToMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
-dateToMarkdown _ [] = return empty
-dateToMarkdown opts str = do
-  date <- inlineListToMarkdown opts str
-  return $ text "% " <> date
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: WriterOptions -> [Block] -> Doc 
