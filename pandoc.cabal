@@ -194,7 +194,10 @@ Library
   Other-Modules:   Text.Pandoc.XML,
                    Paths_pandoc
   Extensions:      CPP
-  Ghc-Options:     -O2 -Wall -fno-warn-unused-do-bind
+  if impl(ghc >= 6.12)
+    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
+  else
+    Ghc-Options:     -O2 -Wall
   Ghc-Prof-Options: -auto-all -caf-all
 
   if flag(library)
@@ -205,7 +208,10 @@ Library
 Executable pandoc
   Hs-Source-Dirs:     src
   Main-Is:            pandoc.hs
-  Ghc-Options:        -O2 -Wall -fno-warn-unused-do-bind -threaded
+  if impl(ghc >= 6.12)
+    Ghc-Options:   -O2 -Wall -threaded -fno-warn-unused-do-bind
+  else
+    Ghc-Options:     -O2 -Wall -threaded
   Ghc-Prof-Options:   -auto-all -caf-all
   Extensions:         CPP
 
