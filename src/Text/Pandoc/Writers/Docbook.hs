@@ -31,6 +31,7 @@ module Text.Pandoc.Writers.Docbook ( writeDocbook) where
 import Text.Pandoc.Definition
 import Text.Pandoc.XML
 import Text.Pandoc.Shared
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Readers.TeXMath
 import Data.List ( isPrefixOf, drop, intercalate )
 import Data.Char ( toLower )
@@ -38,47 +39,46 @@ import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Text.Pandoc.Highlighting (languages, languagesByExtension)
 
 -- | Convert list of authors to a docbook <author> section
-authorToDocbook :: [Char] -> Doc
-authorToDocbook name = inTagsIndented "author" $ 
-  if ',' `elem` name
-    then -- last name first
-         let (lastname, rest) = break (==',') name 
-             firstname = removeLeadingSpace rest in
-         inTagsSimple "firstname" (text $ escapeStringForXML firstname) <> 
-         inTagsSimple "surname" (text $ escapeStringForXML lastname) 
-    else -- last name last
-         let namewords = words name
-             lengthname = length namewords 
-             (firstname, lastname) = case lengthname of
-               0  -> ("","") 
-               1  -> ("", name)
-               n  -> (intercalate " " (take (n-1) namewords), last namewords)
-          in inTagsSimple "firstname" (text $ escapeStringForXML firstname) $$ 
-             inTagsSimple "surname" (text $ escapeStringForXML lastname) 
+authorToDocbook :: WriterOptions -> [Inline] -> Doc
+authorToDocbook opts name' =
+  let name = render $ inlinesToDocbook opts name'
+  in  if ',' `elem` name
+         then -- last name first
+              let (lastname, rest) = break (==',') name 
+                  firstname = removeLeadingSpace rest in
+              inTagsSimple "firstname" (text $ escapeStringForXML firstname) <> 
+              inTagsSimple "surname" (text $ escapeStringForXML lastname) 
+         else -- last name last
+              let namewords = words name
+                  lengthname = length namewords 
+                  (firstname, lastname) = case lengthname of
+                    0  -> ("","") 
+                    1  -> ("", name)
+                    n  -> (intercalate " " (take (n-1) namewords), last namewords)
+               in inTagsSimple "firstname" (text $ escapeStringForXML firstname) $$ 
+                  inTagsSimple "surname" (text $ escapeStringForXML lastname) 
 
 -- | Convert Pandoc document to string in Docbook format.
 writeDocbook :: WriterOptions -> Pandoc -> String
-writeDocbook opts (Pandoc (Meta title authors date) blocks) = 
-  "" -- TODO 
---  let head'    = if writerStandalone opts
---                    then text (writerHeader opts)
---                    else empty
---      meta     = if writerStandalone opts
---                    then inTagsIndented "articleinfo" $
---                         (inTagsSimple "title" (wrap opts title)) $$ 
---                         (vcat (map authorToDocbook authors)) $$ 
---                         (inTagsSimple "date" (text $ escapeStringForXML date)) 
---                    else empty
---      elements = hierarchicalize blocks
---      before   = writerIncludeBefore opts
---      after    = writerIncludeAfter opts
---      body     = (if null before then empty else text before) $$
---                 vcat (map (elementToDocbook opts) elements) $$
---                 (if null after then empty else text after)
---      body'    = if writerStandalone opts
---                   then inTagsIndented "article" (meta $$ body)
---                   else body 
---  in  render $ head' $$ body' $$ text ""
+writeDocbook opts (Pandoc (Meta tit auths dat) blocks) = 
+  let title = wrap opts tit
+      authors = map (authorToDocbook opts) auths
+      date = inlinesToDocbook opts dat
+      elements = hierarchicalize blocks
+      before   = writerIncludeBefore opts
+      after    = writerIncludeAfter opts
+      main     = render $
+                 (if null before then empty else text before) $$
+                 vcat (map (elementToDocbook opts) elements) $$
+                 (if null after then empty else text after)
+      context = writerVariables opts ++
+                [ ("body", main)
+                , ("title", render title)
+                , ("date", render date) ] ++
+                [ ("author", render a) | a <- authors ]
+  in  if writerStandalone opts
+         then renderTemplate context $ writerTemplate opts
+         else main
 
 -- | Convert an Element to Docbook.
 elementToDocbook :: WriterOptions -> Element -> Doc
