@@ -70,12 +70,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                                      text "" $+$ refs')
                  , ("titleblock", render head')
                  ]
-  let templ = if writerStandalone opts
-                 then writerTemplate opts
-                 else "$if(toc)$$toc$\n$endif$" ++
-                      "$if(before)$$before$\n$endif$" ++
-                      "$body$$if(after)$$after$\n$endif$"
-  return $ renderTemplate context templ
+  return $ renderTemplate context $ writerTemplate opts
 
 -- | Return markdown representation of reference key table.
 keyTableToMarkdown :: WriterOptions -> KeyTable -> State WriterState Doc

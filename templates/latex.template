@@ -1,3 +1,4 @@
+$if(standalone)$
 $if(legacy-header)$
 $legacy-header$
 $else$
@@ -48,6 +49,7 @@ $endif$
 \begin{document}
 \maketitle
 
+$endif$
 $if(toc)$
 \tableofcontents
 $endif$
@@ -58,4 +60,6 @@ $body$
 $if(after)$
 $after$
 $endif$
+$if(standalone)$
 \end{document}
+$endif$

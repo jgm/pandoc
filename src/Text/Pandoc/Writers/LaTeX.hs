@@ -62,12 +62,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  , ("title", titletext)
                  , ("authors", intercalate "\\\\" $ map stringToLaTeX authors)
                  , ("date", stringToLaTeX date) ]
-  let templ = if writerStandalone options
-                 then writerTemplate options
-                 else "$if(toc)$\\tableofcontents\n$endif$" ++
-                      "$if(before)$$before$\n$endif$" ++
-                      "$body$$if(after)$$after$\n$endif$"
-  return $ renderTemplate context templ
+  return $ renderTemplate context $ writerTemplate options
 
 -- escape things as needed for LaTeX
 

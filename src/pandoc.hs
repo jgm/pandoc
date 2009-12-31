@@ -212,7 +212,10 @@ options =
 
     , Option "s" ["standalone"]
                  (NoArg
-                  (\opt -> return opt { optStandalone = True }))
+                  (\opt -> do
+                      let newvars = ("standalone", "yes") : optVariables opt
+                      return opt { optStandalone = True,
+                                   optVariables = newvars }))
                  "" -- "Include needed header and footer on output"
 
     , Option "o" ["output"]
