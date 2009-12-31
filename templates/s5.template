@@ -271,7 +271,7 @@ window.onload=startup;window.onresize=function(){setTimeout('fontScale()',50);}
 $header-includes$
 </head
   ><body
-  >$before$
+  >
 <div class="layout">
 <div id="controls"></div>
 <div id="currentSlide"></div>
@@ -343,7 +343,7 @@ $header-includes$
 	  > <a href="#fnref1" class="footnoteBackLink" title="Jump back to footnote 1">&#8617;</a></li
 	></ol
       ></div
-    >$after$
+    >
 </body
   ></html
 >

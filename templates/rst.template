@@ -9,8 +9,6 @@
 
 $header-includes$
 
-$before$
-
 .. role:: math(raw)
    :format: html latex
 
@@ -38,7 +36,4 @@ footnote [1]_
    ::
 
        code
-
-
-$after$
 

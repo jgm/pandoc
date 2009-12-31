@@ -78,8 +78,6 @@ $header-includes$
 
 \placecontent
 
-$before$
-
 \subject{section oen}
 
 \startitemize[n][stopper=.]
@@ -106,7 +104,6 @@ footnote
 code
 \stoptyping
 }
-$after$
 
 \stoptext
 

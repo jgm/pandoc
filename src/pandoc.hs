@@ -138,6 +138,8 @@ data Opt = Opt
     , optTableOfContents   :: Bool    -- ^ Include table of contents
     , optTemplate          :: String  -- ^ Custom template
     , optVariables         :: [(String,String)] -- ^ Template variables to set
+    , optBefore            :: [String] -- ^ Texts to include before body
+    , optAfter             :: [String] -- ^ Texts to include after body
     , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optIncremental       :: Bool    -- ^ Use incremental lists in S5
@@ -172,6 +174,8 @@ defaultOpts = Opt
     , optTableOfContents   = False
     , optTemplate          = ""
     , optVariables         = []
+    , optBefore            = []
+    , optAfter             = []
     , optOutputFile        = "-"    -- "-" means stdout
     , optNumberSections    = False
     , optIncremental       = False
@@ -383,13 +387,8 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      text <- readFile arg
-                     let oldvars = optVariables opt
-                     let newvars = case lookup "before" oldvars of
-                                        Nothing -> ("before", text) : oldvars
-                                        Just b  -> ("before", b ++ text) :
-                                                    filter ((/= "before") . fst)
-                                                     oldvars
-                     return opt { optVariables = newvars })
+                     let oldBefore = optBefore opt
+                     return opt { optBefore = text : oldBefore })
                   "FILENAME")
                  "" -- "File to include before document body"
 
@@ -397,13 +396,8 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      text <- readFile arg
-                     let oldvars = optVariables opt
-                     let newvars = case lookup "after" oldvars of
-                                        Nothing -> ("after", text) : oldvars
-                                        Just a  -> ("after", a ++ text) :
-                                                    filter ((/= "after") . fst)
-                                                     oldvars
-                     return opt { optVariables = newvars })
+                     let oldAfter = optAfter opt
+                     return opt { optAfter = text : oldAfter })
                   "FILENAME")
                  "" -- "File to include after document body"
 
@@ -572,6 +566,8 @@ main = do
               , optWriter            = writerName
               , optParseRaw          = parseRaw
               , optVariables         = variables
+              , optBefore            = befores
+              , optAfter             = afters
               , optTableOfContents   = toc
               , optTemplate          = template
               , optOutputFile        = outputFile
@@ -665,6 +661,8 @@ main = do
                                                                   then defaultTemplate
                                                                   else template,
                                       writerVariables        = variables',
+                                      writerIncludeBefore    = concat befores,
+                                      writerIncludeAfter     = concat afters,
                                       writerTabStop          = tabStop,
                                       writerTableOfContents  = toc &&
                                                                writerName' /= "s5",

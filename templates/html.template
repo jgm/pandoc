@@ -10,7 +10,7 @@
      />$header-includes$
 </head
   ><body
-  >$before$
+  >
 <h1 class="title"
     ><span class="math"
       ><em
@@ -68,7 +68,7 @@
 	  > <a href="#fnref1" class="footnoteBackLink" title="Jump back to footnote 1">&#8617;</a></li
 	></ol
       ></div
-    >$after$
+    >
 </body
   ></html
 >
