@@ -133,11 +133,9 @@ data Opt = Opt
     , optReader            :: String  -- ^ Reader format
     , optWriter            :: String  -- ^ Writer format
     , optParseRaw          :: Bool    -- ^ Parse unconvertable HTML and TeX
-    , optCSS               :: [String] -- ^ CSS file to link to
     , optTableOfContents   :: Bool    -- ^ Include table of contents
     , optTemplate          :: String  -- ^ Custom template
     , optVariables         :: [(String,String)] -- ^ Template variables to set
-    , optIncludeInHeader   :: String  -- ^ File to include in header
     , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optIncremental       :: Bool    -- ^ Use incremental lists in S5
@@ -169,11 +167,9 @@ defaultOpts = Opt
     , optReader            = ""    -- null for default reader
     , optWriter            = ""    -- null for default writer
     , optParseRaw          = False
-    , optCSS               = []
     , optTableOfContents   = False
     , optTemplate          = ""
     , optVariables         = []
-    , optIncludeInHeader   = ""
     , optOutputFile        = "-"    -- "-" means stdout
     , optNumberSections    = False
     , optIncremental       = False
@@ -355,8 +351,15 @@ options =
     , Option "c" ["css"]
                  (ReqArg
                   (\arg opt -> do
-                     let old = optCSS opt
-                     return opt { optCSS = old ++ [arg],
+                     let text' = "<link rel=\"stylesheet\" href=\"" ++ arg ++
+                                  "\" type=\"text/css\" />\n"
+                     let oldvars = optVariables opt
+                     let newvars = case lookup "css" oldvars of
+                                        Nothing -> ("css", text') : oldvars
+                                        Just b  -> ("css", b ++ text') :
+                                                    filter ((/= "css") . fst)
+                                                     oldvars
+                     return opt { optVariables = newvars,
                                   optStandalone = True })
                   "URL")
                  "" -- "Link to CSS style sheet"
@@ -364,9 +367,9 @@ options =
     , Option "H" ["include-in-header"]
                  (ReqArg
                   (\arg opt -> do
-                     let old = optIncludeInHeader opt
                      text <- readFile arg
-                     return opt { optIncludeInHeader = old ++ text,
+                     let newvars = ("header-includes",text) : optVariables opt
+                     return opt { optVariables = newvars,
                                   optStandalone = True })
                   "FILENAME")
                  "" -- "File to include at end of header (implies -s)"
@@ -563,11 +566,9 @@ main = do
               , optReader            = readerName
               , optWriter            = writerName
               , optParseRaw          = parseRaw
-              , optCSS               = css
               , optVariables         = variables
               , optTableOfContents   = toc
               , optTemplate          = template
-              , optIncludeInHeader   = includeHeader
               , optOutputFile        = outputFile
               , optNumberSections    = numberSections
               , optIncremental       = incremental
@@ -639,20 +640,11 @@ main = do
                               stateColumns         = columns,
                               stateStrict          = strict,
                               stateIndentedCodeClasses = codeBlockClasses }
-  let csslink = if null css
-                   then ""
-                   else concatMap
-                        (\f -> "<link rel=\"stylesheet\" href=\"" ++
-                               f ++ "\" type=\"text/css\" media=\"all\" />\n")
-                        css
-  let variables' = [("css", csslink) | not (null css)] ++
-                   [("header-includes", includeHeader)] ++
-                   variables
   let writerOptions = WriterOptions { writerStandalone       = standalone',
                                       writerTemplate         = if null template
                                                                   then defaultTemplate
                                                                   else template,
-                                      writerVariables        = variables',
+                                      writerVariables        = variables,
                                       writerTabStop          = tabStop,
                                       writerTableOfContents  = toc &&
                                                                writerName' /= "s5",
