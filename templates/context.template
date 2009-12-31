@@ -1,3 +1,6 @@
+$if(legacy-header)$
+$legacy-header$
+$else$
 \enableregime[utf]  % use UTF-8
 
 \setupcolors[state=start]
@@ -67,43 +70,26 @@ after={\blank[medium]},
 ]
 
 \protect
-	
+$endif$	
 $header-includes$
 
+$if(title)$
 \doctitle{$title$}
-\author{\$authors\$}
-\date{\$date\$}
+$endif$
+$if(authors)$
+\author{$authors$}
+$endif$
+$if(date)$
+\date{$date$}
+$endif$
 \starttext
 \maketitle
 
+$if(toc)$
 \placecontent
+$endif$
 
-\subject{section oen}
-
-\startitemize[n][stopper=.]
-\item
-  one
-  \startitemize[a][stopper=.]
-  \item
-    two
-    \startitemize[r][start=3,stopper=.,width=2.5em]
-    \item
-      three
-    \stopitemize
-  \stopitemize
-\stopitemize
-
-\starttyping
-hi
-\stoptyping
-
-footnote
-\footnote{with code
-
-\starttyping
-code
-\stoptyping
-}
+$body$
 
 \stoptext
 

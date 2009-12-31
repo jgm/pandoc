@@ -35,6 +35,7 @@ import Data.List ( isSuffixOf, intercalate, intersperse )
 import Control.Monad.State
 import Control.Monad (liftM)
 import Text.PrettyPrint.HughesPJ hiding ( Str )
+import Text.Pandoc.Templates ( renderTemplate )
 
 data WriterState = 
   WriterState { stNextRef          :: Int  -- number of next URL reference
@@ -52,54 +53,34 @@ writeConTeXt options document =
                                        , stOrderedListLevel = 0
                                        , stOptions = options
                                        } 
-  in  render $ 
-  evalState (pandocToConTeXt options document) defaultWriterState 
+  in evalState (pandocToConTeXt options document) defaultWriterState 
 
-pandocToConTeXt :: WriterOptions -> Pandoc -> State WriterState Doc
-pandocToConTeXt options (Pandoc meta blocks) = do
-  return empty -- TODO
---  main    <- blockListToConTeXt blocks 
---  let before = if null (writerIncludeBefore options)
---                  then empty
---                  else text $ writerIncludeBefore options
---  let after  = if null (writerIncludeAfter options)
---                  then empty
---                  else text $ writerIncludeAfter options
---  let body = before $$ main $$ after
---  head'    <- if writerStandalone options
---                 then contextHeader options meta
---                 else return empty
---  let toc  = if writerTableOfContents options
---                then text "\\placecontent\n"
---                else empty 
---  let foot = if writerStandalone options
---                then text "\\stoptext\n"
---                else empty 
---  return $ head' $$ toc $$ body $$ foot
-
--- | Insert bibliographic information into ConTeXt header.
-contextHeader :: WriterOptions -- ^ Options, including ConTeXt header
-              -> Meta          -- ^ Meta with bibliographic information
-              -> State WriterState Doc
-contextHeader options (Meta title authors date) = do
-  return empty -- TODO
---  titletext    <- if null title
---                     then return empty 
---                     else inlineListToConTeXt title
---  let authorstext = if null authors
---                       then ""
---                       else if length authors == 1
---                            then stringToConTeXt $ head authors
---                            else stringToConTeXt $ (intercalate ", " $
---                                 init authors) ++ " & " ++ last authors
---  let datetext   = if date == ""
---                       then "" 
---                       else stringToConTeXt date
---  let titleblock = text "\\doctitle{" <> titletext <> char '}' $$
---                   text ("\\author{" ++ authorstext ++ "}") $$
---                   text ("\\date{" ++ datetext ++ "}")
---  let header     = text $ writerHeader options
---  return $ header $$ titleblock $$ text "\\starttext\n\\maketitle\n"
+pandocToConTeXt :: WriterOptions -> Pandoc -> State WriterState String
+pandocToConTeXt options (Pandoc (Meta title authors date) blocks) = do
+  body <- blockListToConTeXt blocks 
+  let before = if null (writerIncludeBefore options)
+                  then empty
+                  else text $ writerIncludeBefore options
+  let after  = if null (writerIncludeAfter options)
+                  then empty
+                  else text $ writerIncludeAfter options
+  let main = render $ before $$ body $$ after
+  titletext <- if null title
+                  then return ""
+                  else liftM render $ inlineListToConTeXt title
+  authorstext <- mapM (liftM render . inlineListToConTeXt) authors
+  datetext <-  if null date
+                  then return ""
+                  else liftM render $ inlineListToConTeXt date
+  let context  = writerVariables options ++
+                 [ ("toc", if writerTableOfContents options then "yes" else "")
+                 , ("body", main)
+                 , ("title", titletext)
+                 , ("authors", intercalate "\\\\" authorstext)
+                 , ("date", datetext) ]
+  return $ if writerStandalone options
+              then renderTemplate context $ writerTemplate options
+              else main
 
 -- escape things as needed for ConTeXt
 
