@@ -358,14 +358,7 @@ options =
     , Option "c" ["css"]
                  (ReqArg
                   (\arg opt -> do
-                     let text' = "<link rel=\"stylesheet\" href=\"" ++ arg ++
-                                  "\" type=\"text/css\" />\n"
-                     let oldvars = optVariables opt
-                     let newvars = case lookup "css" oldvars of
-                                        Nothing -> ("css", text') : oldvars
-                                        Just b  -> ("css", b ++ text') :
-                                                    filter ((/= "css") . fst)
-                                                     oldvars
+                     let newvars = ("css",arg) : optVariables opt
                      return opt { optVariables = newvars,
                                   optStandalone = True })
                   "URL")

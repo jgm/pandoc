@@ -38,7 +38,7 @@ import Text.Pandoc.Highlighting ( highlightHtml )
 import Text.Pandoc.XML (stripTags)
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
-import Data.List ( isPrefixOf, intersperse, intercalate )
+import Data.List ( isPrefixOf, intersperse )
 import Data.Maybe ( catMaybes )
 import Control.Monad.State
 import Text.XHtml.Transitional hiding ( stringToHtml )
@@ -155,8 +155,8 @@ inTemplate opts tit auths date toc body' newvars =
                     , ("pagetitle", topTitle')
                     , ("toc", renderHtmlFragment toc)
                     , ("title", renderHtmlFragment tit)
-                    , ("authors", intercalate "; " authors)
-                    , ("date", date') ]
+                    , ("date", date') ] ++
+                    [ ("author", a) | a <- authors ]
   in  renderTemplate context $ writerTemplate opts
 
 -- | Like Text.XHtml's identifier, but adds the writerIdentifierPrefix
