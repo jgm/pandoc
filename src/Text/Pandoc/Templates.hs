@@ -37,10 +37,16 @@ by dollar signs.  To include a literal @$@ in your template, use
 @$$@.  Variable names must begin with a letter and can contain letters,
 numbers, @_@, and @-@.
 
+The value of a variable will be indented to the same level as the
+variable.
+
 A conditional begins with @$if(variable_name)$@ and ends with @$endif$@.
 It may optionally contain an @$else$@ section.  The if section is
 used if @variable_name@ has a non-null value, otherwise the else section
 is used.
+
+Conditional keywords should not be indented, or unexpected spacing
+problems may occur.
 -}
 
 module Text.Pandoc.Templates (renderTemplate, getDefaultTemplate) where
@@ -98,13 +104,13 @@ escapedDollar = try $ string "$$" >> return "$"
 
 conditional :: GenParser Char TemplateState String
 conditional = try $ do
+  let skipEndline = try $ skipMany (oneOf " \t") >> newline
   TemplateState pos vars <- getState
   string "$if("
   id' <- ident
   string ")$"
   -- if newline after the "if", then a newline after "endif" will be swallowed
-  multiline <- option False $ try $
-                   newline >> count pos (char ' ') >> return True
+  multiline <- option False $ try $ skipEndline >> return True
   let conditionSatisfied = case lookup id' vars of
                                 Nothing -> False
                                 Just "" -> False
@@ -115,10 +121,10 @@ conditional = try $ do
                    parseTemplate  -- skip if part, then reset position
                    setState $ TemplateState pos vars
                    option "" $ do try (string "$else$")
-                                  optional newline
+                                  when multiline $ optional skipEndline
                                   liftM concat parseTemplate
   string "$endif$"
-  when multiline $ optional $ newline
+  when multiline $ optional skipEndline
   return contents
 
 ident :: GenParser Char TemplateState String
