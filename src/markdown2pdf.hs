@@ -79,7 +79,7 @@ checkLatex txt = (err , bib, ref, unlines $! msgs ++ tips)
   xs `oneOf` x = any (flip isInfixOf x) xs
   msgs = filter (oneOf ["Error:", "Warning:"]) (lines txt)
   tips = checkPackages msgs
-  err = any (oneOf ["LaTeX Error:", "Latex Error:"]) msgs
+  err = any (oneOf ["!", "LaTeX Error:", "Latex Error:"]) msgs
   bib = any (oneOf ["Warning: Citation"
                    ,"Warning: There were undefined citations"]) msgs
   ref = any (oneOf ["Warning: Reference"
