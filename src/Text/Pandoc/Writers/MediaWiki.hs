@@ -32,6 +32,7 @@ MediaWiki:  <http://www.mediawiki.org/wiki/MediaWiki>
 module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.XML ( escapeStringForXML )
 import Data.List ( intersect, intercalate )
 import Network.URI ( isURI )
@@ -52,21 +53,20 @@ writeMediaWiki opts document =
 -- | Return MediaWiki representation of document.
 pandocToMediaWiki :: WriterOptions -> Pandoc -> State WriterState String
 pandocToMediaWiki opts (Pandoc _ blocks) = do
-  return "" -- TODO
---  let before  = writerIncludeBefore opts
---  let after   = writerIncludeAfter opts
---  let head' = if writerStandalone opts
---                then writerHeader opts
---                else ""
---  let toc = if writerTableOfContents opts 
---               then "__TOC__\n"
---               else ""
---  body <- blockListToMediaWiki opts blocks
---  notesExist <- get >>= return . stNotes
---  let notes = if notesExist
---                 then "\n== Notes ==\n<references />"
---                 else "" 
---  return $ head' ++ before ++ toc ++ body ++ after ++ notes
+  let before  = writerIncludeBefore opts
+  let after   = writerIncludeAfter opts
+  body <- blockListToMediaWiki opts blocks
+  notesExist <- get >>= return . stNotes
+  let notes = if notesExist
+                 then "\n== Notes ==\n<references />"
+                 else "" 
+  let main = before ++ body ++ after ++ notes
+  let context = writerVariables opts ++
+                [ ("body", main) ] ++
+                [ ("toc", "yes") | writerTableOfContents opts ]
+  if writerStandalone opts
+     then return $ renderTemplate context $ writerTemplate opts
+     else return main
 
 -- | Escape special characters for MediaWiki.
 escapeString :: String -> String
