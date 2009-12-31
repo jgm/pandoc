@@ -208,7 +208,7 @@ withParagraphStyle :: WriterOptions -> String -> [Block] -> State WriterState Do
 withParagraphStyle  o s (b:bs)
     | Para l <- b = go =<< inParagraphTagsWithStyle s <$> inlinesToOpenDocument o l
     | otherwise   = go =<< blockToOpenDocument o b
-    where go i = ($$) i <$>  withParagraphStyle o s bs
+    where go i = (<>) i <$>  withParagraphStyle o s bs
 withParagraphStyle _ _ [] = return empty
 
 inPreformattedTags :: String -> State WriterState Doc
@@ -288,9 +288,9 @@ blocksToOpenDocument o b = vcat <$> mapM (blockToOpenDocument o) b
 -- | Convert a Pandoc block element to OpenDocument.
 blockToOpenDocument :: WriterOptions -> Block -> State WriterState Doc
 blockToOpenDocument o bs
-    | Plain          b <- bs = inParagraphTags <$> wrap o b
-    | Para           b <- bs = inParagraphTags <$> wrap o b
-    | Header       i b <- bs = inHeaderTags  i <$> wrap o b
+    | Plain          b <- bs = inParagraphTags <$> inlinesToOpenDocument o b
+    | Para           b <- bs = inParagraphTags <$> inlinesToOpenDocument o b
+    | Header       i b <- bs = inHeaderTags  i <$> inlinesToOpenDocument o b
     | BlockQuote     b <- bs = mkBlockQuote b
     | CodeBlock    _ s <- bs = preformatted s
     | RawHtml        _ <- bs = return empty
@@ -353,12 +353,6 @@ tableItemToOpenDocument o tn (n,i) =
   in  inTags True "table:table-cell" a <$>
       withParagraphStyle o n (map plainToPara i)
 
--- | Take list of inline elements and return wrapped doc.
-wrap :: WriterOptions -> [Inline] -> State WriterState Doc
-wrap o l = if writerWrapText o
-                then fsep <$> mapM (inlinesToOpenDocument o) (splitBy Space l)
-                else inlinesToOpenDocument o l
-
 -- | Convert a list of inline elements to OpenDocument.
 inlinesToOpenDocument :: WriterOptions -> [Inline] -> State WriterState Doc
 inlinesToOpenDocument o l = hcat <$> mapM (inlineToOpenDocument o) l
@@ -405,7 +399,7 @@ inlineToOpenDocument o ils
         let footNote t = inTags False "text:note"
                          [ ("text:id"        , "ftn" ++ show n)
                          , ("text:note-class", "footnote"     )] $
-                         inTagsSimple "text:note-citation" (text . show $ n + 1) $$
+                         inTagsSimple "text:note-citation" (text . show $ n + 1) <> 
                          inTagsSimple "text:note-body" t
         nn <- footNote <$> withParagraphStyle o "Footnote" l
         addNote nn
