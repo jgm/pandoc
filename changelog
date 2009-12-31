@@ -1,3 +1,101 @@
+pandoc (1.4)
+
+  [ John MacFarlane ]
+
+  * Pandoc will now compile with either GHC 6.10 or 6.12.
+    + Don't use System.IO.UTF8 when compiling with 6.12
+    + Use -fno-warn-unused-do-bind option when compiling with 6.12
+
+  * Replaced old headers with templates.  Now users have much more
+    control over the way documents appear in --standalone mode,
+    and writer code is simplified.  Resolves Issues #59, 147.
+    Every effort has been made to retain backwards compatibilty.
+    So, the --custom-header option should still work as before.
+
+    + Added Text.Pandoc.Templates.  This provides functions for
+      retrieving default templates and for rendering templates.
+    + System templates (in the pandoc data directory) can be
+      overridden by user templates in $HOME/.pandoc/templates.
+    + Removed Text.Pandoc.DefaultHeaders.
+    + Removed data/headers directory.
+    + Added templates directory.
+    + Added writerTemplate and writerVariables fields to WriterOptions.
+    + Removed writerTitlePrefix, writerHeader fields from WriterOptions.
+    + Changed --print-default-header to --print-default-template.
+    + Added --template option.
+    + Added -V/--variable option to set custom template variables.
+
+  * Pandoc no longer requires Template Haskell.  Resolves Issue #186.
+
+    + Removed need for TH in ODT module. Instead get reference zip file
+      directly from data files at run time.
+    + Removed TH dependency from S5 module. S5 module now exports
+      s5HeaderIncludes, which pandoc.hs includes if writer is s5 and
+      standalone.
+    + Refactored LaTeXMathML not to use TH.
+
+  * Meta is now Meta [Inline] [[Inline]] [Inline] rather than
+    Meta [Inline] [String] String. Authors and date in Meta are now lists
+    of Inline elements rather than raw strings. This means that they can
+    be formatted and can include footnotes. NOTE: This may be a breaking
+    change for those using pandoc as a library.
+
+  * Added readDataFile to Text.Pandoc.Shared.  This retrieves
+    a data file from the user pandoc data directory (~/.pandoc
+    on unix), or, if not found there, from the system data
+    directory ($CABALDIR/shared/pandoc-VERSION/). All data
+    files, including templates, LaTeXMathML.js, and ODT components,
+    can be overridden by the user.
+
+  * Use unicode instead of entities in HTML output.  Resolves
+    Issue #163.
+
+  * Prettier HTML footnote references:  put anchor inside sup,
+    instead of other way.  Resolves Issue #191. Thanks to
+    infinity0x.
+
+  * Added --xetex option to pandoc and markdown2pdf.
+    If --xetex is specified, pandoc produces latex suitable for
+    processing by xelatex, and markdown2pdf uses xelatex to create
+    the PDF. Resolves Issue #185.
+
+  * RTF writer: multiple authors now occupy multiple paragraphs rather
+    than using a line break.
+
+  * Man writer: now the "--after-body" will come after the "AUTHORS"
+    section, whereas before it would come before it.  This is a
+    slight break from backwards compatibility.
+
+  * ODT writer:
+    + Indented and line-broke styles.xml so it can be modified more easily.
+    + Omitted some unnecessary style declarations.
+    + Don't wrap text in OpenDocument writer.  The tags are too long, making
+      wrapping ugly and pointless.
+
+  * LaTeX reader: use \\ to separate multiple authors.
+
+  * Markdown reader: use ; as separator between authors.
+    This allows you to use ',' within author names: e.g. "John Jones, Jr."
+
+  * S5 writer: use linebreak to separate authors in title page.
+
+  * RST reader: Allow :: before lhs code block. The RST spec requires the
+    :: before verbatim blocks. This :: should not be treated as literal
+    colons. Resolves Issue #189.
+
+  * Documented pandoc 1.3's new definition list syntax in README.
+    (An oversight in the last release.)
+
+  * markdown2pdf.hs: interpret ! in a log as an error line.
+
+  * Changes in RunTests.hs:
+    + Use the Diff library rather than a local copy of Diff.hs.
+      (This vastly increases performance.) This change means that 'cabal
+      test' presupposes that the Diff library is installed.
+    + Removed tests/Diff.hs from cabal file.
+    + Changed RunTests to use local environment. We need at least HOME, so
+      pandoc can find its data directory.
+
 pandoc (1.3)
 
   [ John MacFarlane ]
