@@ -1,51 +1,60 @@
+$if(legacy-header)$
+$legacy-header$
+$else$
 \input texinfo
 @documentencoding utf-8
+$endif$
+$for(header-includes)$
 $header-includes$
+$endfor$
 
+$if(strikeout)$
+@macro textstrikeout{text}
+~~\text\~~
+@end macro
 
+$endif$
+$if(subscript)$
+@macro textsubscript{text}
+@iftex
+@textsubscript{\text\}
+@end iftex
+@ifnottex
+_@{\text\@}
+@end ifnottex
+@end macro
+
+$endif$
+$if(superscript)$
+@macro textsuperscript{text}
+@iftex
+@textsuperscript{\text\}
+@end iftex
+@ifnottex
+^@{\text\@}
+@end ifnottex
+@end macro
+
+$endif$
 @ifnottex
 @paragraphindent 0
 @end ifnottex
+$if(titlepage)$
 @titlepage
-@title @math{title}
-@author $authors$
+@title $title$
+$for(author)$
+@author $author$
+$endfor$
+$if(date)$
 $date$
+$endif$
 @end titlepage
+
+$endif$
+$if(toc)$
 @contents
 
-@node Top
-@top @math{title}
-
-@menu
-* section oen::
-@end menu
-
-@node section oen
-@chapter section oen
-@enumerate 
-@item
-one
-@enumerate a
-@item
-two
-@enumerate 3
-@item
-three
-@end enumerate
-
-@end enumerate
-
-@end enumerate
-
-@verbatim
-hi
-@end verbatim
-
-footnote@footnote{with code
-@verbatim
-code
-@end verbatim
-}
-
+$endif$
+$body$
 
 @bye

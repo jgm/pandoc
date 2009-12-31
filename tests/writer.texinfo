@@ -1,5 +1,6 @@
 \input texinfo
 @documentencoding utf-8
+
 @macro textstrikeout{text}
 ~~\text\~~
 @end macro
@@ -22,7 +23,6 @@ _@{\text\@}
 @end ifnottex
 @end macro
 
-
 @ifnottex
 @paragraphindent 0
 @end ifnottex
@@ -32,6 +32,7 @@ _@{\text\@}
 @author Anonymous
 July 17@comma{} 2006
 @end titlepage
+
 @node Top
 @top Pandoc Test Suite
 
@@ -1010,3 +1011,4 @@ And in list items.@footnote{In list.}
 This paragraph should not be part of the note@comma{} as it is not indented.
 
 @bye
+

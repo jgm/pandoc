@@ -30,17 +30,19 @@ Conversion of 'Pandoc' format into Texinfo.
 module Text.Pandoc.Writers.Texinfo ( writeTexinfo ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Readers.TeXMath
 import Text.Printf ( printf )
 import Data.List ( isSuffixOf, transpose, maximumBy )
 import Data.Ord ( comparing )
 import Data.Char ( chr, ord )
-import qualified Data.Set as S
 import Control.Monad.State
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
 data WriterState = 
-  WriterState { stIncludes :: S.Set String  -- strings to include in header
+  WriterState { stStrikeout   :: Bool  -- document contains strikeout
+              , stSuperscript :: Bool -- document contains superscript
+              , stSubscript   :: Bool -- document contains subscript
               }
 
 {- TODO:
@@ -48,81 +50,45 @@ data WriterState =
  - generated .texi files don't work when run through texi2dvi
  -}
 
--- | Add line to header.
-addToHeader :: String -> State WriterState ()
-addToHeader str = do
-  st <- get
-  let includes = stIncludes st
-  put st {stIncludes = S.insert str includes}
-
 -- | Convert Pandoc to Texinfo.
 writeTexinfo :: WriterOptions -> Pandoc -> String
 writeTexinfo options document = 
-  render $ evalState (pandocToTexinfo options $ wrapTop document) $ 
-  WriterState { stIncludes = S.empty } 
+  evalState (pandocToTexinfo options $ wrapTop document) $ 
+  WriterState { stStrikeout = False, stSuperscript = False, stSubscript = False }
 
 -- | Add a "Top" node around the document, needed by Texinfo.
 wrapTop :: Pandoc -> Pandoc
 wrapTop (Pandoc (Meta title authors date) blocks) =
   Pandoc (Meta title authors date) (Header 0 title : blocks)
 
-pandocToTexinfo :: WriterOptions -> Pandoc -> State WriterState Doc
-pandocToTexinfo options (Pandoc meta blocks) = do
-  return empty -- TODO
---  main     <- blockListToTexinfo blocks
---  head'    <- if writerStandalone options
---                 then texinfoHeader options meta
---                 else return empty
---  let before = if null (writerIncludeBefore options)
---                  then empty
---                  else text (writerIncludeBefore options)
---  let after  = if null (writerIncludeAfter options)
---                  then empty
---                  else text (writerIncludeAfter options)
---  let body = before $$ main $$ after
---  -- XXX toc untested
---  let toc  =  if writerTableOfContents options
---                 then text "@contents"
---                 else empty 
---  let foot = if writerStandalone options
---                then text "@bye"
---                else empty 
---  return $ head' $$ toc $$ body $$ foot
-
--- | Insert bibliographic information into Texinfo header.
-texinfoHeader :: WriterOptions -- ^ Options, including Texinfo header
-              -> Meta          -- ^ Meta with bibliographic information
-              -> State WriterState Doc
-texinfoHeader options (Meta title authors date) = do
-  return empty -- TODO
---  titletext <- if null title
---                  then return empty
---                  else do
---                    t <- inlineListToTexinfo title
---                    return $ text "@title " <> t
---  headerIncludes <- get >>= return . S.toList . stIncludes
---  let extras = text $ unlines headerIncludes
---  let authorstext = map makeAuthor authors
---  let datetext  = if date == ""
---                     then empty 
---                     else text $ stringToTexinfo date
---
---  let baseHeader = case writerHeader options of
---                         ""  -> empty
---                         x   -> text x
---  let header     = text "@documentencoding utf-8" $$ baseHeader $$ extras
---  return $ text "\\input texinfo" $$
---           header $$
---	   text "@ifnottex" $$
---	   text "@paragraphindent 0" $$
---	   text "@end ifnottex" $$
---           text "@titlepage" $$
---           titletext $$ vcat authorstext $$
---           datetext $$
---           text "@end titlepage"
-
-makeAuthor :: String -> Doc
-makeAuthor author = text $ "@author " ++ (stringToTexinfo author)
+pandocToTexinfo :: WriterOptions -> Pandoc -> State WriterState String
+pandocToTexinfo options (Pandoc (Meta title authors date) blocks) = do
+  titleText <- inlineListToTexinfo title
+  authorsText <- mapM inlineListToTexinfo authors
+  dateText <- inlineListToTexinfo date
+  let titlePage = not $ all null $ title : date : authors
+  main <- blockListToTexinfo blocks
+  st <- get
+  let before = if null (writerIncludeBefore options)
+                  then empty
+                  else text (writerIncludeBefore options)
+  let after  = if null (writerIncludeAfter options)
+                  then empty
+                  else text (writerIncludeAfter options)
+  let body = render $ before $$ main $$ after
+  let context = writerVariables options ++
+                [ ("body", body)
+                , ("title", render titleText)
+                , ("date", render dateText) ] ++
+                [ ("toc", "yes") | writerTableOfContents options ] ++
+                [ ("titlepage", "yes") | titlePage ] ++
+                [ ("subscript", "yes") | stSubscript st ] ++
+                [ ("superscript", "yes") | stSuperscript st ] ++
+                [ ("strikeout", "yes") | stStrikeout st ] ++
+                [ ("author", render a) | a <- authorsText ]
+  if writerStandalone options
+     then return $ renderTemplate context $ writerTemplate options
+     else return body
 
 -- | Escape things as needed for Texinfo.
 stringToTexinfo :: String -> String
@@ -397,33 +363,17 @@ inlineToTexinfo (Strong lst) =
   inlineListToTexinfo lst >>= return . inCmd "strong" 
 
 inlineToTexinfo (Strikeout lst) = do
-  addToHeader $ "@macro textstrikeout{text}\n" ++
-                "~~\\text\\~~\n" ++
-                "@end macro\n"
+  modify $ \st -> st{ stStrikeout = True }
   contents <- inlineListToTexinfo lst
   return $ text "@textstrikeout{" <> contents <> text "}"
 
 inlineToTexinfo (Superscript lst) = do
-  addToHeader $ "@macro textsuperscript{text}\n" ++
-                "@iftex\n" ++
-                "@textsuperscript{\\text\\}\n" ++
-                "@end iftex\n" ++
-                "@ifnottex\n" ++
-                "^@{\\text\\@}\n" ++
-                "@end ifnottex\n" ++
-                "@end macro\n"
+  modify $ \st -> st{ stSuperscript = True }
   contents <- inlineListToTexinfo lst
   return $ text "@textsuperscript{" <> contents <> char '}'
 
 inlineToTexinfo (Subscript lst) = do
-  addToHeader $ "@macro textsubscript{text}\n" ++
-                "@iftex\n" ++
-                "@textsubscript{\\text\\}\n" ++
-                "@end iftex\n" ++
-                "@ifnottex\n" ++
-                "_@{\\text\\@}\n" ++
-                "@end ifnottex\n" ++
-                "@end macro\n"
+  modify $ \st -> st{ stSubscript = True }
   contents <- inlineListToTexinfo lst
   return $ text "@textsubscript{" <> contents <> char '}'
 
