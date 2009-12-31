@@ -1,14 +1,12 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title>
-    $if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$
-  </title>
+  <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="author" content="$authors$" />
   <meta name="date" content="$date$" />
-  $if(highlighting)$
+$if(highlighting)$
   <style type="text/css">
     table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode, table.sourceCode pre { margin: 0; padding: 0; border: 0; vertical-align: baseline; border: none; }
     td.lineNumbers { border-right: 1px solid #AAAAAA; text-align: right; color: #AAAAAA; padding-right: 5px; padding-left: 5px; }
@@ -29,21 +27,21 @@
     pre.sourceCode span.RegionMarker { }
     pre.sourceCode span.Error { color: red; font-weight: bold; }
   </style>
-  $endif$
-  $if(header-includes)$
-    $header-includes$
-  $endif$
-  $if(latexmathml-script)$
-    $latexmathml-script$
-  $endif$
+$endif$
+$if(header-includes)$
+  $header-includes$
+$endif$
+$if(latexmathml-script)$
+  $latexmathml-script$
+$endif$
 </head>
 <body>
-  $if(title)$
-  <h1 class="title">$title$</h1>
-  $endif$
-  $if(toc)$
-  $toc$
-  $endif$
-  $body$
+$if(title)$
+<h1 class="title">$title$</h1>
+$endif$
+$if(toc)$
+$toc$
+$endif$
+$body$
 </body>
 </html>

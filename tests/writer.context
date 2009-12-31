@@ -926,5 +926,6 @@ Notes can go in quotes.
 
 This paragraph should not be part of the note, as it is not
 indented.
+
 \stoptext
 

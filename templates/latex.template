@@ -52,4 +52,5 @@ $if(toc)$
 \tableofcontents
 $endif$
 $body$
+
 \end{document}

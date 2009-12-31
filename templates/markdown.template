@@ -1,10 +1,12 @@
 $if(titleblock)$
 $titleblock$
+
 $endif$
 $if(header-includes)$
 $header-includes$
 $endif$
 $if(toc)$
 $toc$
+
 $endif$
 $body$

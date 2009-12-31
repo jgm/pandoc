@@ -70,7 +70,7 @@ after={\blank[medium]},
 ]
 
 \protect
-$endif$	
+$endif$
 $if(header-includes)$
 $header-includes$
 $endif$
@@ -91,4 +91,5 @@ $if(toc)$
 $endif$
 
 $body$
+
 \stoptext
