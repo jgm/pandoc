@@ -1,29 +1,20 @@
 \documentclass{article}
-\usepackage{ifpdf,ifxetex}
-\ifxetex
-  \usepackage{fontspec,xltxtra,xunicode}
-\else
-  \usepackage[utf8x]{inputenc}
-  \usepackage[mathletters]{ucs}
-\fi
 \usepackage{amsmath}
+\usepackage[mathletters]{ucs}
+\usepackage[utf8x]{inputenc}
 \usepackage{listings}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 \usepackage{fancyvrb}
 \usepackage{enumerate}
-\usepackage{array}
-% This is needed because raggedright in table elements redefines \\:
-\newcommand{\PreserveBackslash}[1]{\let\temp=\\#1\let\\=\temp}
-\let\PBS=\PreserveBackslash
 \usepackage[normalem]{ulem}
 \newcommand{\textsubscr}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
 \usepackage[breaklinks=true]{hyperref}
 \usepackage{url}
 \usepackage{graphicx}
-\VerbatimFootnotes % allows verbatim text in footnotes
 \setcounter{secnumdepth}{0}
+\VerbatimFootnotes % allows verbatim text in footnotes
 
 \title{Pandoc Test Suite}
 \author{John MacFarlane\\Anonymous}
