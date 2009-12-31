@@ -76,8 +76,8 @@ pandocToConTeXt options (Pandoc (Meta title authors date) blocks) = do
                  [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
                  , ("title", titletext)
-                 , ("authors", intercalate "\\\\" authorstext)
-                 , ("date", datetext) ]
+                 , ("date", datetext) ] ++
+                 [ ("author", a) | a <- authorstext ]
   return $ if writerStandalone options
               then renderTemplate context $ writerTemplate options
               else main

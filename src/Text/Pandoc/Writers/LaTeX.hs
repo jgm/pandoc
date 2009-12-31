@@ -32,7 +32,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
-import Data.List ( (\\), isSuffixOf, intercalate, intersperse )
+import Data.List ( (\\), isSuffixOf, intersperse )
 import Data.Char ( toLower )
 import Control.Monad.State
 import Control.Monad (liftM)
@@ -67,8 +67,8 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
                  , ("title", titletext)
-                 , ("authors", intercalate "\\\\" authorsText)
-                 , ("date", dateText) ]
+                 , ("date", dateText) ] ++
+                 [ ("author", a) | a <- authorsText ]
   return $ if writerStandalone options
               then renderTemplate context $ writerTemplate options
               else main

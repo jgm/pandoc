@@ -52,8 +52,7 @@ writeMarkdown opts document =
 pandocToMarkdown :: WriterOptions -> Pandoc -> State WriterState String
 pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
   title' <- inlineListToMarkdown opts title
-  authors' <- liftM (hcat . intersperse (text "; ")) $
-                mapM (inlineListToMarkdown opts) authors
+  authors' <- mapM (inlineListToMarkdown opts) authors
   date' <- inlineListToMarkdown opts date
   let titleblock = not $ null title && null authors && null date
   let headerBlocks = filter isHeaderBlock blocks
@@ -76,10 +75,10 @@ pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
                  [ ("toc", render toc)
                  , ("body", main)
                  , ("title", render title')
-                 , ("authors", render authors')
                  , ("date", render date')
                  ] ++
-                 [ ("titleblock", "yes") | titleblock ]
+                 [ ("titleblock", "yes") | titleblock ] ++
+                 [ ("author", render a) | a <- authors' ]
   if writerStandalone opts
      then return $ renderTemplate context $ writerTemplate opts
      else return main

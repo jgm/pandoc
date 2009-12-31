@@ -38,9 +38,7 @@ $endfor$
 $if(title)$
 \title{$title$}
 $endif$
-$if(authors)$
-\author{$authors$}
-$endif$
+\author{$for(author)$$author$$sep$\\$endfor$}
 $if(date)$
 \date{$date$}
 $endif$

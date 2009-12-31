@@ -1,6 +1,6 @@
 $if(titleblock)$
 % $title$
-% $authors$
+% $for(author)$$author$$sep$; $endfor$
 % $date$
 
 $endif$
