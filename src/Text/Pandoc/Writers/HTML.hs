@@ -492,10 +492,10 @@ inlineToHtml opts inline =
                         htmlContents <- blockListToNote opts ref contents 
                         -- push contents onto front of notes
                         put $ st {stNotes = (htmlContents:notes)} 
-                        return $ anchor ! [href ("#" ++ writerIdentifierPrefix opts ++ "fn" ++ ref),
-                                          theclass "footnoteRef",
-                                          prefixedId opts ("fnref" ++ ref)] << 
-                                          sup << ref
+                        return $ sup <<
+                                 anchor ! [href ("#" ++ writerIdentifierPrefix opts ++ "fn" ++ ref),
+                                           theclass "footnoteRef",
+                                           prefixedId opts ("fnref" ++ ref)] << ref
     (Cite _ il)  -> inlineListToHtml opts il
 
 blockListToNote :: WriterOptions -> String -> [Block] -> State WriterState Html
