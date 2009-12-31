@@ -1,7 +1,12 @@
 \documentclass{article}
+\usepackage{ifpdf,ifxetex}
+\ifxetex
+  \usepackage{fontspec,xltxtra,xunicode}
+\else
+  \usepackage[utf8x]{inputenc}
+  \usepackage[mathletters]{ucs}
+\fi
 \usepackage{amsmath}
-\usepackage[mathletters]{ucs}
-\usepackage[utf8x]{inputenc}
 \usepackage{listings}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
 \usepackage{fancyvrb}
@@ -23,6 +28,7 @@ $if(numbersections)$
 $else$
 \setcounter{secnumdepth}{0}
 $endif$
+$header-includes$
 
 $if(title)$
 \title{$title$}
