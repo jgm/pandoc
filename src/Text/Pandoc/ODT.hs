@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-
 Copyright (C) 2008 John MacFarlane <jgm@berkeley.edu>
 
@@ -29,7 +28,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Functions for producing an ODT file from OpenDocument XML.
 -}
 module Text.Pandoc.ODT ( saveOpenDocumentAsODT ) where
-import Text.Pandoc.TH ( makeZip )
 import Data.List ( find )
 import System.FilePath ( (</>), takeFileName )
 import qualified Data.ByteString.Lazy as B
@@ -39,6 +37,8 @@ import Codec.Archive.Zip
 import Control.Applicative ( (<$>) )
 import Text.ParserCombinators.Parsec
 import System.Time
+import Text.Pandoc.Shared ( inDirectory )
+import Paths_pandoc ( getDataFileName )
 
 -- | Produce an ODT file from OpenDocument XML.
 saveOpenDocumentAsODT :: FilePath    -- ^ Pathname of ODT file to be produced.
@@ -46,7 +46,9 @@ saveOpenDocumentAsODT :: FilePath    -- ^ Pathname of ODT file to be produced.
                       -> String      -- ^ OpenDocument XML contents.
                       -> IO ()
 saveOpenDocumentAsODT destinationODTPath sourceDirRelative xml = do
-  let refArchive = read $(makeZip $ "data" </> "odt-styles")
+  refArchivePath <- getDataFileName $ "data" </> "odt-styles"
+  refArchive <- inDirectory refArchivePath $
+                  addFilesToArchive [OptRecursive] emptyArchive ["."]
   -- handle pictures
   let (newContents, pics) = 
         case runParser pPictures [] "OpenDocument XML contents" xml of

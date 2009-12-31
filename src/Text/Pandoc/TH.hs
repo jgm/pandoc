@@ -30,8 +30,7 @@ Template haskell functions used by Pandoc modules.
 -}
 module Text.Pandoc.TH (
                         contentsOf,
-                        binaryContentsOf,
-                        makeZip
+                        binaryContentsOf
                       ) where
 
 import Language.Haskell.TH
@@ -40,8 +39,6 @@ import qualified Data.ByteString as B
 import Data.ByteString.Internal ( w2c )
 import Prelude hiding ( readFile )
 import System.IO.UTF8
-import Codec.Archive.Zip
-import Text.Pandoc.Shared ( inDirectory )
 
 -- | Insert contents of text file into a template.
 contentsOf :: FilePath -> ExpQ
@@ -54,12 +51,3 @@ binaryContentsOf p = lift =<< (runIO $ B.readFile p)
 
 instance Lift B.ByteString where
   lift x = return (LitE (StringL $ map w2c $ B.unpack x))
-
-instance Lift Archive where
-  lift x = return (LitE (StringL $ show x ))
-
--- | Construct zip file from files in a directory, and
--- insert into a template.
-makeZip :: FilePath -> ExpQ
-makeZip path = lift =<< (runIO $ inDirectory path $ addFilesToArchive [OptRecursive] emptyArchive  ["."])
-
