@@ -34,29 +34,21 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  which convert this native representation into a target
                  format. Thus, adding an input or output format requires
                  only adding a reader or writer.
-Data-Files:      templates/html.template, templates/docbook.template,
+Data-Files:      
+                 -- templates
+                 templates/html.template, templates/docbook.template,
                  templates/opendocument.template, templates/latex.template,
                  templates/context.template, templates/texinfo.template,
                  templates/man.template, templates/markdown.template,
                  templates/rst.template, templates/s5.template,
-                 templates/mediawiki.template, templates/rtf.template
-                 -- documentation
-                 README, INSTALL, COPYRIGHT, BUGS, changelog,
-                 -- wrappers
-                 markdown2pdf, html2markdown, hsmarkdown
-Extra-Source-Files:
-                 -- sources for man pages
-                 man/man1/pandoc.1.md, man/man1/markdown2pdf.1.md,
-                 man/man1/html2markdown.1.md, man/man1/hsmarkdown.1.md,
-                 -- Makefile
-                 Makefile,
-                 -- data for DefaultTemplates.hs
-                 data/templates/ConTeXt.template,
-                 data/templates/Docbook.template,
-                 data/templates/LaTeX.template,
-                 data/templates/OpenDocument.template,
-                 data/templates/RTF.template,
-                 data/templates/S5.template,
+                 templates/mediawiki.template, templates/rtf.template,
+                 -- data for ODT writer
+                 data/odt-styles/meta.xml,
+                 data/odt-styles/settings.xml,
+                 data/odt-styles/META-INF/manifest.xml,
+                 data/odt-styles/Thumbnails/thumbnail.png,
+                 data/odt-styles/styles.xml,
+                 data/odt-styles/mimetype,
                  -- data for LaTeXMathML writer
                  data/LaTeXMathML.js.comment,
                  data/LaTeXMathML.js.packed,
@@ -69,13 +61,16 @@ Extra-Source-Files:
                  data/ui/default/opera.css,
                  data/ui/default/outline.css,
                  data/ui/default/print.css,
-                 -- data for ODT writer
-                 data/odt-styles/meta.xml,
-                 data/odt-styles/settings.xml,
-                 data/odt-styles/META-INF/manifest.xml,
-                 data/odt-styles/Thumbnails/thumbnail.png,
-                 data/odt-styles/styles.xml,
-                 data/odt-styles/mimetype,
+                 -- documentation
+                 README, INSTALL, COPYRIGHT, BUGS, changelog,
+                 -- wrappers
+                 markdown2pdf, html2markdown, hsmarkdown
+Extra-Source-Files:
+                 -- sources for man pages
+                 man/man1/pandoc.1.md, man/man1/markdown2pdf.1.md,
+                 man/man1/html2markdown.1.md, man/man1/hsmarkdown.1.md,
+                 -- Makefile
+                 Makefile,
                  -- tests
                  tests/bodybg.gif,
                  tests/writer.latex,
@@ -177,7 +172,6 @@ Library
                    Text.Pandoc.Shared,
                    Text.Pandoc.ODT,
                    Text.Pandoc.LaTeXMathML,
-                   Text.Pandoc.DefaultTemplates,
                    Text.Pandoc.Highlighting,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,

@@ -32,6 +32,7 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.ODT
+import Text.Pandoc.Writers.S5 (s5HeaderIncludes)
 import Text.Pandoc.Templates (getDefaultTemplate)
 import Text.Pandoc.Shared ( HTMLMathMethod (..), tabFilter, ObfuscationMethod (..) )
 #ifdef _HIGHLIGHTING
@@ -631,6 +632,16 @@ main = do
   refs <- if null biblioFile then return [] else readBiblioFile biblioFile biblioFormat
 #endif
 
+  variables' <- if writerName' == "s5" && standalone'
+                   then do
+                     inc <- s5HeaderIncludes
+                     return $ case lookup "header-includes" variables of
+                               Nothing -> ("header-includes", inc) : variables
+                               Just a  -> ("header-includes", a ++ inc) :
+                                          filter ((/= "header-includes") . fst)
+                                          variables
+                   else return variables
+
   let startParserState =
          defaultParserState { stateParseRaw        = parseRaw,
                               stateTabStop         = tabStop,
@@ -650,7 +661,7 @@ main = do
                                       writerTemplate         = if null template
                                                                   then defaultTemplate
                                                                   else template,
-                                      writerVariables        = variables,
+                                      writerVariables        = variables',
                                       writerTabStop          = tabStop,
                                       writerTableOfContents  = toc &&
                                                                writerName' /= "s5",

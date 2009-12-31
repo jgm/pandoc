@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP, TemplateHaskell #-}
 {-
 Copyright (C) 2006-7 John MacFarlane <jgm@berkeley.edu>
 
@@ -30,10 +29,8 @@ Definitions for creation of S5 powerpoint-like HTML.
 (See <http://meyerweb.com/eric/tools/s5/>.)
 -}
 module Text.Pandoc.Writers.S5 (
-                -- * Strings
-                s5Meta,
-                s5Javascript,
-                s5CSS,
+                -- * Header includes
+                s5HeaderIncludes,
                 s5Links,
                 -- * Functions
                 writeS5,
@@ -41,55 +38,43 @@ module Text.Pandoc.Writers.S5 (
                 insertS5Structure
                 ) where
 import Text.Pandoc.Shared ( WriterOptions )
-import Text.Pandoc.TH ( contentsOf )
 import Text.Pandoc.Writers.HTML ( writeHtml, writeHtmlString )
 import Text.Pandoc.Definition
 import Text.XHtml.Strict
 import System.FilePath ( (</>) )
 import Data.List ( intercalate )
+import Prelude hiding (readFile)
+import System.IO.UTF8 (readFile)
+import Paths_pandoc (getDataFileName)
+
+readDataFile :: FilePath -> IO String
+readDataFile fname = getDataFileName fname >>= readFile
+
+s5HeaderIncludes :: IO String
+s5HeaderIncludes = do
+  c <- s5CSS
+  j <- s5Javascript
+  return $ s5Meta ++ c ++ j
 
 s5Meta :: String
 s5Meta = "<!-- configuration parameters -->\n<meta name=\"defaultView\" content=\"slideshow\" />\n<meta name=\"controlVis\" content=\"hidden\" />\n"
 
-s5Javascript :: String
-#ifndef __HADDOCK__
-s5Javascript = "<script type=\"text/javascript\">\n" ++
-               $(contentsOf $ "data" </> "ui" </> "default" </> "slides.js.comment") ++
-               $(contentsOf $ "data" </> "ui" </> "default" </> "slides.js.packed") ++ "</script>\n" 
-#endif
+s5Javascript :: IO String
+s5Javascript = do
+  jsCom <- readDataFile $ "data" </> "ui" </> "default" </> "slides.js.comment"
+  jsPacked <- readDataFile $ "data" </> "ui" </> "default" </> "slides.js.packed"
+  return $ "<script type=\"text/javascript\">\n" ++ jsCom ++ jsPacked ++
+           "</script>\n"
 
-s5CoreCSS :: String
-#ifndef __HADDOCK__
-s5CoreCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "s5-core.css")
-#endif
-
-s5FramingCSS :: String
-#ifndef __HADDOCK__
-s5FramingCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "framing.css")
-#endif
-
-s5PrettyCSS :: String
-#ifndef __HADDOCK__
-s5PrettyCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "pretty.css")
-#endif
-
-s5OperaCSS :: String
-#ifndef __HADDOCK__
-s5OperaCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "opera.css")
-#endif
-
-s5OutlineCSS :: String
-#ifndef __HADDOCK__
-s5OutlineCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "outline.css")
-#endif
-
-s5PrintCSS :: String
-#ifndef __HADDOCK__
-s5PrintCSS = $(contentsOf $ "data" </> "ui" </> "default" </> "print.css")
-#endif
-
-s5CSS :: String
-s5CSS = "<style type=\"text/css\" media=\"projection\" id=\"slideProj\">\n" ++ s5CoreCSS ++ "\n" ++ s5FramingCSS ++ "\n" ++ s5PrettyCSS ++ "\n</style>\n<style type=\"text/css\" media=\"projection\" id=\"operaFix\">\n" ++ s5OperaCSS ++ "\n</style>\n<style type=\"text/css\" media=\"screen\" id=\"outlineStyle\">\n" ++ s5OutlineCSS ++ "\n</style>\n<style type=\"text/css\" media=\"print\" id=\"slidePrint\">\n" ++ s5PrintCSS ++ "\n</style>\n"
+s5CSS :: IO String
+s5CSS = do
+  s5CoreCSS <- readDataFile $ "data" </> "ui" </> "default" </> "s5-core.css"
+  s5FramingCSS <- readDataFile $ "data" </> "ui" </> "default" </> "framing.css"
+  s5PrettyCSS <- readDataFile $ "data" </> "ui" </> "default" </> "pretty.css"
+  s5OperaCSS <- readDataFile $ "data" </> "ui" </> "default" </> "opera.css"
+  s5OutlineCSS <- readDataFile $ "data" </> "ui" </> "default" </> "outline.css"
+  s5PrintCSS <- readDataFile $ "data" </> "ui" </> "default" </> "print.css"
+  return $ "<style type=\"text/css\" media=\"projection\" id=\"slideProj\">\n" ++ s5CoreCSS ++ "\n" ++ s5FramingCSS ++ "\n" ++ s5PrettyCSS ++ "\n</style>\n<style type=\"text/css\" media=\"projection\" id=\"operaFix\">\n" ++ s5OperaCSS ++ "\n</style>\n<style type=\"text/css\" media=\"screen\" id=\"outlineStyle\">\n" ++ s5OutlineCSS ++ "\n</style>\n<style type=\"text/css\" media=\"print\" id=\"slidePrint\">\n" ++ s5PrintCSS ++ "\n</style>\n"
 
 s5Links :: String
 s5Links = "<!-- style sheet links -->\n<link rel=\"stylesheet\" href=\"ui/default/slides.css\" type=\"text/css\" media=\"projection\" id=\"slideProj\" />\n<link rel=\"stylesheet\" href=\"ui/default/outline.css\" type=\"text/css\" media=\"screen\" id=\"outlineStyle\" />\n<link rel=\"stylesheet\" href=\"ui/default/print.css\" type=\"text/css\" media=\"print\" id=\"slidePrint\" />\n<link rel=\"stylesheet\" href=\"ui/default/opera.css\" type=\"text/css\" media=\"projection\" id=\"operaFix\" />\n<!-- S5 JS -->\n<script src=\"ui/default/slides.js\" type=\"text/javascript\"></script>\n"
