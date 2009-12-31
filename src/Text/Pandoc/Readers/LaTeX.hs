@@ -317,11 +317,11 @@ title = try $ do
 authors :: GenParser Char ParserState Block
 authors = try $ do
   string "\\author{"
-  authors' <- sepBy (many1 (notFollowedBy (oneOf "};,") >> inline)) (oneOf ",;")
+  raw <- many1 (notFollowedBy (char '}') >> inline)
+  let authors' = map normalizeSpaces $ splitBy LineBreak raw
   char '}'
   spaces
-  let authors'' = map normalizeSpaces authors'
-  updateState (\s -> s { stateAuthors = authors'' })
+  updateState (\s -> s { stateAuthors = authors' })
   return Null
 
 date :: GenParser Char ParserState Block
