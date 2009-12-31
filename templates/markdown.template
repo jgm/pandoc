@@ -1,1 +1,16 @@
-TODO
+$if(titleblock)$
+$titleblock$
+$endif$
+$if(header-includes)$
+$header-includes$
+$endif$
+$if(before)$
+$before$
+$endif$
+$if(toc)$
+$toc$
+$endif$
+$body$
+$if(after)$
+$after$
+$endif$
