@@ -1,9 +1,16 @@
 \documentclass{article}
+\usepackage{ifpdf,ifxetex}
+\ifxetex
+  \usepackage{fontspec,xltxtra,xunicode}
+\else
+  \usepackage[utf8x]{inputenc}
+  \usepackage[mathletters]{ucs}
+\fi
 \usepackage{amsmath}
-\usepackage[mathletters]{ucs}
-\usepackage[utf8x]{inputenc}
 \usepackage{listings}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
 \usepackage{fancyvrb}
 \usepackage{enumerate}
 \usepackage{array}
@@ -16,8 +23,6 @@
 \usepackage{url}
 \usepackage{graphicx}
 
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{6pt plus 2pt minus 1pt}
 \VerbatimFootnotes % allows verbatim text in footnotes
 \setcounter{secnumdepth}{0}
 
