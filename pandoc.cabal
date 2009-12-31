@@ -45,13 +45,13 @@ Extra-Source-Files:
                  man/man1/html2markdown.1.md, man/man1/hsmarkdown.1.md,
                  -- Makefile
                  Makefile,
-                 -- data for DefaultHeaders.hs
-                 data/headers/ConTeXt.header,
-                 data/headers/Docbook.header,
-                 data/headers/LaTeX.header,
-                 data/headers/OpenDocument.header,
-                 data/headers/RTF.header,
-                 data/headers/S5.header,
+                 -- data for DefaultTemplates.hs
+                 data/templates/ConTeXt.template,
+                 data/templates/Docbook.template,
+                 data/templates/LaTeX.template,
+                 data/templates/OpenDocument.template,
+                 data/templates/RTF.template,
+                 data/templates/S5.template,
                  -- data for LaTeXMathML writer
                  data/LaTeXMathML.js.comment,
                  data/LaTeXMathML.js.packed,
@@ -172,7 +172,7 @@ Library
                    Text.Pandoc.Shared,
                    Text.Pandoc.ODT,
                    Text.Pandoc.LaTeXMathML,
-                   Text.Pandoc.DefaultHeaders,
+                   Text.Pandoc.DefaultTemplates,
                    Text.Pandoc.Highlighting,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,

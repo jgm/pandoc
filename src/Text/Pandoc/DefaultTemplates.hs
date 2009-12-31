@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.DefaultHeaders
+   Module      : Text.Pandoc.DefaultTemplates
    Copyright   : Copyright (C) 2006-7 John MacFarlane
    License     : GNU GPL, version 2 or above 
 
@@ -26,45 +26,44 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Default headers for Pandoc writers.
+Default templates for Pandoc writers.
 -}
-module Text.Pandoc.DefaultHeaders (
-                                    defaultLaTeXHeader,
-                                    defaultConTeXtHeader,
-                                    defaultDocbookHeader,
-                                    defaultOpenDocumentHeader,
-                                    defaultS5Header,
-                                    defaultRTFHeader
-                                  ) where
+module Text.Pandoc.DefaultTemplates ( defaultLaTeXTemplate,
+                                      defaultConTeXtTemplate,
+                                      defaultDocbookTemplate,
+                                      defaultOpenDocumentTemplate,
+                                      defaultS5Template,
+                                      defaultRTFTemplate
+                                    ) where
 import Text.Pandoc.Writers.S5
 import Text.Pandoc.Shared
 import System.FilePath ( (</>) )
 import Text.Pandoc.TH ( contentsOf )
 
-defaultLaTeXHeader :: String
+defaultLaTeXTemplate :: String
 #ifndef __HADDOCK__
-defaultLaTeXHeader = $(contentsOf $  "data" </> "headers" </> "LaTeX.header")
+defaultLaTeXTemplate = $(contentsOf $  "data" </> "templates" </> "LaTeX.template")
 #endif
 
-defaultConTeXtHeader :: String
+defaultConTeXtTemplate :: String
 #ifndef __HADDOCK__
-defaultConTeXtHeader = $(contentsOf $  "data" </> "headers" </> "ConTeXt.header")
+defaultConTeXtTemplate = $(contentsOf $  "data" </> "templates" </> "ConTeXt.template")
 #endif
 
-defaultDocbookHeader :: String
+defaultDocbookTemplate :: String
 #ifndef __HADDOCK__
-defaultDocbookHeader = $(contentsOf $  "data" </> "headers" </> "Docbook.header")
+defaultDocbookTemplate = $(contentsOf $  "data" </> "templates" </> "Docbook.template")
 #endif
 
-defaultOpenDocumentHeader :: String
+defaultOpenDocumentTemplate :: String
 #ifndef __HADDOCK__
-defaultOpenDocumentHeader = $(contentsOf $  "data" </> "headers" </> "OpenDocument.header")
+defaultOpenDocumentTemplate = $(contentsOf $  "data" </> "templates" </> "OpenDocument.template")
 #endif
 
-defaultS5Header :: String
-defaultS5Header = substitute "$" "$$" $ s5Meta ++ s5CSS ++ s5Javascript
+defaultS5Template :: String
+defaultS5Template = substitute "$" "$$" $ s5Meta ++ s5CSS ++ s5Javascript
 
-defaultRTFHeader :: String
+defaultRTFTemplate :: String
 #ifndef __HADDOCK__
-defaultRTFHeader = $(contentsOf $ "data" </> "headers" </> "RTF.header")
+defaultRTFTemplate = $(contentsOf $ "data" </> "templates" </> "RTF.template")
 #endif
