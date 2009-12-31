@@ -135,6 +135,7 @@ data Opt = Opt
     , optParseRaw          :: Bool    -- ^ Parse unconvertable HTML and TeX
     , optCSS               :: [String] -- ^ CSS file to link to
     , optTableOfContents   :: Bool    -- ^ Include table of contents
+    , optTemplate          :: String  -- ^ Custom template
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optIncludeInHeader   :: String  -- ^ File to include in header
     , optIncludeBeforeBody :: String  -- ^ File to include at top of body
@@ -173,6 +174,7 @@ defaultOpts = Opt
     , optParseRaw          = False
     , optCSS               = []
     , optTableOfContents   = False
+    , optTemplate          = ""
     , optVariables         = []
     , optIncludeInHeader   = ""
     , optIncludeBeforeBody = ""
@@ -334,13 +336,22 @@ options =
                  (\opt -> return opt { optTableOfContents = True }))
                "" -- "Include table of contents"
 
+    , Option "" ["template"]
+                 (ReqArg
+                  (\arg opt -> do
+                     text <- readFile arg
+                     return opt{ optTemplate = text,
+                                 optStandalone = True })
+                  "FILENAME")
+                 "" -- "Use custom template"
+
     , Option "c" ["css"]
                  (ReqArg
                   (\arg opt -> do
                      let old = optCSS opt
                      return opt { optCSS = old ++ [arg],
                                   optStandalone = True })
-                  "CSS")
+                  "URL")
                  "" -- "Link to CSS style sheet"
 
     , Option "H" ["include-in-header"]
@@ -536,6 +547,7 @@ main = do
               , optCSS               = css
               , optVariables         = variables
               , optTableOfContents   = toc
+              , optTemplate          = template
               , optIncludeInHeader   = includeHeader
               , optIncludeBeforeBody = includeBefore
               , optIncludeAfterBody  = includeAfter
@@ -623,7 +635,9 @@ main = do
   let writerOptions = WriterOptions { writerStandalone       = standalone',
                                       writerTemplate         = defaultTemplate,
                                       writerVariables        = variables',
-                                      writerHeader           = defaultTemplate, -- TODO remove
+                                      writerHeader           = if null template
+                                                                  then defaultTemplate
+                                                                  else template,
                                       writerTitlePrefix      = titlePrefix,
                                       writerTabStop          = tabStop,
                                       writerTableOfContents  = toc &&

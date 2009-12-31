@@ -49,6 +49,11 @@ The following options are most relevant:
 -N, \--number-sections
 :   Number section headings in LaTeX output.  (Default is not to number them.)
 
+\--template=*FILE*
+:   Use *FILE* as a custom template for the generated document. Implies
+    `-s`. See the section TEMPLATES in `pandoc`(1) for information about
+    template syntax.
+
 -H *FILE*, \--include-in-header=*FILE*
 :   Include (LaTeX) contents of *FILE* at the end of the header.  Implies
     `-s`.

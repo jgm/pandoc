@@ -169,6 +169,12 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     RTF) or an instruction to create one (LaTeX, reStructuredText).
     This option has no effect on man, DocBook, or S5 output.
 
+\--template=*FILE*
+:   Use *FILE* as a custom template for the generated document. Implies
+    `-s`. See TEMPLATES below for a description of template syntax. If
+    this option is not used, a default template appropriate for the
+    output format will be used. See also `-D/--print-default-template`.
+
 -c *CSS*, \--css=*CSS*
 :   Link to a CSS style sheet.  *CSS* is the pathname of the style sheet.
 
@@ -184,7 +190,8 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 -C *FILE*, \--custom-header=*FILE*
 :   Use contents of *FILE* as the document header (overriding the
     default header, which can be printed by using the `-D` option).
-    Implies `-s`.
+    Implies `-s`. Note: This option is deprecated. Users should
+    transition to using `--template` instead.
 
 -D *FORMAT*, \--print-default-template=*FORMAT*
 :   Print the default template for an output *FORMAT*. (See `-t`
@@ -218,6 +225,69 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 
 -h, \--help
 :   Show usage message.
+
+# TEMPLATES
+
+When the `-s/--standalone` option is used, pandoc uses a template to
+add header and footer material that is needed for a self-standing
+document.  To see the default template that is used, just type
+
+    pandoc --print-default-template=FORMAT
+
+where `FORMAT` is the name of the output format. A custom template
+can be specified using the `--template` option.
+
+Templates may contain *variables*.  Variable names are sequences of
+alphanumerics, `-`, and `_`, starting with a letter.  A variable name
+surrounded by `$` signs will be replaced by its value.  For example,
+the string `$title$` in
+
+    <title>$title$</title>
+
+will be replaced by the document title.
+
+Some variables are set automatically by pandoc.  These vary somewhat
+depending on the output format, but include:
+
+`before`
+:   contents specified by `-B/--include-before-body` 
+`after`
+:   contents specified by `-A/--include-after-body` 
+`legacy-header`
+:   contents specified by `-C/--custom-header`
+`header-includes`
+:   contents specified by `-H/--include-in-header`
+`toc`
+:   non-null value if `--toc/--table-of-contents` was specified
+`body`
+:   body of document
+`title`
+:   title of document, as specified in title block
+`authors`
+:   authors of document, as specified in title block
+`date`
+:   date of document, as specified in title block
+`css`
+:   links to CSS files, as specified using `-c/--css`
+
+Variables may be set at the command line using the
+`--set` option.  This allows users to include custom variables in
+their templates.
+
+Templates may contain conditionals.  The syntax is as follows:
+
+    $if(variable)$
+    X 
+    $else$
+    Y
+    $endif$
+
+This will include `X` in the template if `variable` has a non-null
+value; otherwise it will include `Y`. `X` and `Y` are placeholders for
+any valid template text, and may include interpolated variables or other
+conditionals. The `$else$` section may be omitted.
+
+To write a literal `$` in a template, use `$$`.
 
 # SEE ALSO
 
