@@ -37,24 +37,27 @@ import Codec.Archive.Zip
 import Control.Applicative ( (<$>) )
 import Text.ParserCombinators.Parsec
 import System.Time
-import Text.Pandoc.Shared ( inDirectory )
 import Paths_pandoc ( getDataFileName )
 import System.Directory
+import Control.Monad (liftM)
 
 -- | Produce an ODT file from OpenDocument XML.
-saveOpenDocumentAsODT :: FilePath    -- ^ Pathname of ODT file to be produced.
-                      -> FilePath    -- ^ Relative directory of source file.
-                      -> String      -- ^ OpenDocument XML contents.
+saveOpenDocumentAsODT :: FilePath      -- ^ Pathname of ODT file to be produced.
+                      -> FilePath      -- ^ Relative directory of source file.
+                      -> Maybe FilePath -- ^ Path specified by --reference-odt
+                      -> String        -- ^ OpenDocument XML contents.
                       -> IO ()
-saveOpenDocumentAsODT destinationODTPath sourceDirRelative xml = do
-  userDir <- getAppUserDataDirectory "pandoc"
-  userOdtExists <- doesFileExist $
-                      userDir </> "data" </> "odt" </> "styles.xml"
-  refArchivePath <- if userOdtExists
-                       then return $ userDir </> "data" </> "odt"
-                       else getDataFileName $ "data" </> "odt"
-  refArchive <- inDirectory refArchivePath $
-                  addFilesToArchive [OptRecursive] emptyArchive ["."]
+saveOpenDocumentAsODT destinationODTPath sourceDirRelative mbRefOdt xml = do
+  refArchive <- liftM toArchive $
+       case mbRefOdt of
+             Just f -> B.readFile f
+             Nothing -> do
+               userDataDir <- getAppUserDataDirectory "pandoc" 
+               let userRefOdt = userDataDir </> "reference.odt"
+               userRefOdtExists <- doesFileExist userRefOdt
+               if userRefOdtExists
+                  then B.readFile userRefOdt
+                  else getDataFileName "reference.odt" >>= B.readFile
   -- handle pictures
   let (newContents, pics) = 
         case runParser pPictures [] "OpenDocument XML contents" xml of

@@ -203,6 +203,17 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     Implies `-s`. Note: This option is deprecated. Users should
     transition to using `--template` instead.
 
+\--reference-odt=*filename*
+:   Use the specified file as a style reference in producing an ODT.
+    For best results, the reference ODT should be a modified version
+    of an ODT produced using pandoc.  The contents of the reference ODT
+    are ignored, but its stylesheets are used in the new ODT. If no
+    reference ODT is specified on the command line, pandoc will look
+    for `$HOME/.pandoc/reference.odt` (on unix) or
+    `C:\Documents And Settings\USERNAME\Application Data\pandoc\reference.odt`
+    (on Windows). If this is not found either, sensible defaults will be
+    used.
+
 -D *FORMAT*, \--print-default-template=*FORMAT*
 :   Print the default template for an output *FORMAT*. (See `-t`
     for a list of possible *FORMAT*s.)

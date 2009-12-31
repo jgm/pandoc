@@ -151,6 +151,7 @@ data Opt = Opt
     , optXeTeX             :: Bool    -- ^ Format latex for xetex
     , optSmart             :: Bool    -- ^ Use smart typography
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
+    , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optStrict            :: Bool    -- ^ Use strict markdown syntax
@@ -188,6 +189,7 @@ defaultOpts = Opt
     , optXeTeX             = False
     , optSmart             = False
     , optHTMLMathMethod    = PlainMath
+    , optReferenceODT      = Nothing
     , optDumpArgs          = False
     , optIgnoreArgs        = False
     , optStrict            = False
@@ -429,6 +431,13 @@ options =
                   "STRING")
                  "" -- "String to prefix to HTML window title"
 
+    , Option "" ["reference-odt"]
+                 (ReqArg
+                  (\arg opt -> do
+                    return opt { optReferenceODT = Just arg })
+                  "FILENAME")
+                 "" -- "Path of custom reference.odt"
+
     , Option "D" ["print-default-template"]
                  (ReqArg
                   (\arg _ -> do
@@ -582,6 +591,7 @@ main = do
               , optXeTeX             = xetex
               , optSmart             = smart
               , optHTMLMathMethod    = mathMethod
+              , optReferenceODT      = referenceODT
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
               , optStrict            = strict
@@ -717,9 +727,9 @@ main = do
 #endif
 
   let writerOutput = writer writerOptions doc' ++ "\n"
-
+ 
   case writerName' of
-       "odt"   -> saveOpenDocumentAsODT outputFile sourceDirRelative writerOutput
+       "odt"   -> saveOpenDocumentAsODT outputFile sourceDirRelative referenceODT writerOutput
        _       -> if outputFile == "-"
                      then putStr writerOutput
                      else writeFile outputFile writerOutput
