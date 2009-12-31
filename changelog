@@ -27,8 +27,8 @@ pandoc (1.4)
 
   * Pandoc no longer requires Template Haskell.  Resolves Issue #186.
 
-    + Removed need for TH in ODT module. Instead get reference zip file
-      directly from data files at run time.
+    + Removed need for TH in ODT module. Instead get reference.odt from
+	  data file at run time.
     + Removed TH dependency from S5 module. S5 module now exports
       s5HeaderIncludes, which pandoc.hs includes if writer is s5 and
       standalone.
@@ -44,7 +44,7 @@ pandoc (1.4)
     a data file from the user pandoc data directory (~/.pandoc
     on unix), or, if not found there, from the system data
     directory ($CABALDIR/shared/pandoc-VERSION/). All data
-    files, including templates, LaTeXMathML.js, and ODT components,
+    files, including templates, LaTeXMathML.js, and reference.odt,
     can be overridden by the user.
 
   * Use unicode instead of entities in HTML output.  Resolves
@@ -65,6 +65,10 @@ pandoc (1.4)
   * Man writer: now the "--after-body" will come after the "AUTHORS"
     section, whereas before it would come before it.  This is a
     slight break from backwards compatibility.
+
+  * Added --reference-odt option, so users may customize the styles
+    used in pandoc-generated ODT files.  Users may also place a
+	default reference.odt in the ~\.pandoc directory.
 
   * ODT writer:
     + Indented and line-broke styles.xml so it can be modified more easily.
