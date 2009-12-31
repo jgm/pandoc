@@ -43,10 +43,36 @@ used if @variable_name@ has a non-null value, otherwise the else section
 is used.
 -}
 
-module Text.Pandoc.Templates (renderTemplate) where
+module Text.Pandoc.Templates (renderTemplate, getDefaultTemplate) where
 
 import Text.ParserCombinators.Parsec
 import Control.Monad (liftM)
+import qualified Control.Exception as E (try, IOException)
+import System.FilePath
+import System.Directory
+import Prelude hiding (readFile)
+import System.IO.UTF8 (readFile)
+import Paths_pandoc
+
+-- | Get the default template, either from the application's user data
+-- directory (~/.pandoc on unix) or from the cabal data directory.
+getDefaultTemplate :: String -> IO (Either E.IOException String)
+getDefaultTemplate format = do
+  ut <- getTemplateFromUserDataDirectory format
+  case ut of
+       Right t -> return $ Right t
+       Left _  -> getTemplateFromCabalDataDirectory format
+ 
+getTemplateFromUserDataDirectory :: String -> IO (Either E.IOException String)
+getTemplateFromUserDataDirectory format = E.try $ do
+  userDir <- getAppUserDataDirectory "pandoc"
+  let templatePath = userDir </> "templates" </> format <.> "template"
+  readFile templatePath
+
+getTemplateFromCabalDataDirectory :: String -> IO (Either E.IOException String)
+getTemplateFromCabalDataDirectory format = E.try $ do 
+  templatePath <- getDataFileName $ "templates" </> format <.> "template"
+  readFile templatePath
 
 -- | Renders a template 
 renderTemplate :: [(String,String)]  -- ^ Assoc. list of values for variables
