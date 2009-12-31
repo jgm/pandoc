@@ -57,6 +57,13 @@ writeConTeXt options document =
 
 pandocToConTeXt :: WriterOptions -> Pandoc -> State WriterState String
 pandocToConTeXt options (Pandoc (Meta title authors date) blocks) = do
+  titletext <- if null title
+                  then return ""
+                  else liftM render $ inlineListToConTeXt title
+  authorstext <- mapM (liftM render . inlineListToConTeXt) authors
+  datetext <-  if null date
+                  then return ""
+                  else liftM render $ inlineListToConTeXt date
   body <- blockListToConTeXt blocks 
   let before = if null (writerIncludeBefore options)
                   then empty
@@ -65,13 +72,6 @@ pandocToConTeXt options (Pandoc (Meta title authors date) blocks) = do
                   then empty
                   else text $ writerIncludeAfter options
   let main = render $ before $$ body $$ after
-  titletext <- if null title
-                  then return ""
-                  else liftM render $ inlineListToConTeXt title
-  authorstext <- mapM (liftM render . inlineListToConTeXt) authors
-  datetext <-  if null date
-                  then return ""
-                  else liftM render $ inlineListToConTeXt date
   let context  = writerVariables options ++
                  [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)

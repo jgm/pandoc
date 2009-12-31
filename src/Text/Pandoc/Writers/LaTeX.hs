@@ -52,6 +52,9 @@ writeLaTeX options document =
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
+  titletext <- liftM render $ inlineListToLaTeX title
+  authorsText <- mapM (liftM render . inlineListToLaTeX) authors
+  dateText <- liftM render $ inlineListToLaTeX date
   body <- blockListToLaTeX blocks
   let before = if null (writerIncludeBefore options)
                  then empty
@@ -60,9 +63,6 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  then empty
                  else text $ writerIncludeAfter options
   let main = render $ before $$ body $$ after
-  titletext <- liftM render $ inlineListToLaTeX title
-  authorsText <- mapM (liftM render . inlineListToLaTeX) authors
-  dateText <- liftM render $ inlineListToLaTeX date
   let context  = writerVariables options ++
                  [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
