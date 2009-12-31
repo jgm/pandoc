@@ -12,11 +12,11 @@ import System.Environment ( getArgs, getProgName )
 -- Note: ghc >= 6.12 (base >=4.2) supports unicode through iconv
 -- So we use System.IO.UTF8 only if we have an earlier version
 #if MIN_VERSION_base(4,2,0)
+import System.IO (hPutStrLn)
 #else
 import Prelude hiding ( putStr, putStrLn, writeFile, readFile, getContents )
 import System.IO.UTF8
 #endif
-import System.IO (hPutStrLn)
 import System.Exit (ExitCode (..), exitWith)
 import System.FilePath
 import System.Directory

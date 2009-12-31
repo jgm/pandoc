@@ -44,10 +44,11 @@ import System.Console.GetOpt
 import Data.Maybe ( fromMaybe )
 import Data.Char ( toLower )
 import Data.List ( intercalate, isSuffixOf )
-import System.IO ( stdout, stderr, hPutStrLn, hPutStr )
+import System.IO ( stdout, stderr )
 -- Note: ghc >= 6.12 (base >=4.2) supports unicode through iconv
 -- So we use System.IO.UTF8 only if we have an earlier version
 #if MIN_VERSION_base(4,2,0)
+import System.IO ( hPutStr, hPutStrLn )
 #else
 import Prelude hiding ( putStr, putStrLn, writeFile, readFile, getContents )
 import System.IO.UTF8
