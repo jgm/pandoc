@@ -475,12 +475,6 @@ will be replaced by the document title.
 Some variables are set automatically by pandoc.  These vary somewhat
 depending on the output format, but include:
 
-`standalone`
-:   "yes" if the `-s/--standalone` option was specified
-`before`
-:   contents specified by `-B/--include-before-body` 
-`after`
-:   contents specified by `-A/--include-after-body` 
 `legacy-header`
 :   contents specified by `-C/--custom-header`
 `header-includes`
