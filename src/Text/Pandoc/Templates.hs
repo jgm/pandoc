@@ -149,21 +149,21 @@ conditional = try $ do
   string ")$"
   -- if newline after the "if", then a newline after "endif" will be swallowed
   multiline <- option False $ try $ skipEndline >> return True
+  ifContents <- liftM concat parseTemplate
+  -- reset state for else block
+  setState $ TemplateState pos vars
+  elseContents <- option "" $ do try (string "$else$")
+                                 when multiline $ optional skipEndline
+                                 liftM concat parseTemplate
+  string "$endif$"
+  when multiline $ optional skipEndline
   let conditionSatisfied = case lookup id' vars of
                                 Nothing -> False
                                 Just "" -> False
                                 Just _  -> True
-  contents <- if conditionSatisfied
-                 then liftM concat parseTemplate
-                 else do
-                   parseTemplate  -- skip if part, then reset position
-                   setState $ TemplateState pos vars
-                   option "" $ do try (string "$else$")
-                                  when multiline $ optional skipEndline
-                                  liftM concat parseTemplate
-  string "$endif$"
-  when multiline $ optional skipEndline
-  return contents
+  return $ if conditionSatisfied
+              then ifContents
+              else elseContents
 
 for :: GenParser Char TemplateState String
 for = try $ do
