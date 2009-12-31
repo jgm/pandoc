@@ -109,8 +109,8 @@ metaToMarkdown :: WriterOptions -> Meta -> State WriterState Doc
 metaToMarkdown _ (Meta [] [] []) = return empty
 metaToMarkdown opts (Meta title authors date) = do
   title'   <- titleToMarkdown opts title
-  authors' <- authorsToMarkdown authors
-  date'    <- dateToMarkdown date
+  authors' <- authorsToMarkdown opts authors
+  date'    <- dateToMarkdown opts date
   return $ title' $+$ authors' $+$ date' $+$ text ""
 
 titleToMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
@@ -119,14 +119,17 @@ titleToMarkdown opts lst = do
   contents <- inlineListToMarkdown opts lst
   return $ text "% " <> contents 
 
-authorsToMarkdown :: [String] -> State WriterState Doc
-authorsToMarkdown [] = return empty
-authorsToMarkdown lst = return $ 
-  text "% " <> text (intercalate ", " (map escapeString lst))
+authorsToMarkdown :: WriterOptions -> [[Inline]] -> State WriterState Doc
+authorsToMarkdown opts [] = return empty
+authorsToMarkdown opts lst = do
+  authors <- mapM (inlineListToMarkdown opts) lst 
+  return $ text "% " <> (hcat $ intersperse (text ", ") authors)
 
-dateToMarkdown :: String -> State WriterState Doc
-dateToMarkdown [] = return empty
-dateToMarkdown str = return $ text "% " <> text (escapeString str)
+dateToMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
+dateToMarkdown opts [] = return empty
+dateToMarkdown opts str = do
+  date <- inlineListToMarkdown opts str
+  return $ text "% " <> date
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: WriterOptions -> [Block] -> Doc 

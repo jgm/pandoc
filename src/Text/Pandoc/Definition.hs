@@ -37,9 +37,9 @@ data Pandoc = Pandoc Meta [Block] deriving (Eq, Read, Show, Typeable, Data)
 
 -- | Bibliographic information for the document:  title (list of 'Inline'),
 -- authors (list of strings), date (string).
-data Meta = Meta [Inline] -- title
-                 [String] -- authors
-                 String   -- date
+data Meta = Meta [Inline]   -- title
+                 [[Inline]] -- authors
+                 [Inline]   -- date
             deriving (Eq, Show, Read, Typeable, Data)
 
 -- | Alignment of a table column.

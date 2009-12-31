@@ -53,15 +53,15 @@ writeLaTeX options document =
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
   main <- liftM render $ blockListToLaTeX blocks
-  titletext <- if null title
-                  then return ""
-                  else liftM render $ inlineListToLaTeX title
+  titletext <- liftM render $ inlineListToLaTeX title
+  authorsText <- mapM (liftM render . inlineListToLaTeX) authors
+  dateText <- liftM render $ inlineListToLaTeX date
   let context  = writerVariables options ++
                  [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
                  , ("title", titletext)
-                 , ("authors", intercalate "\\\\" $ map stringToLaTeX authors)
-                 , ("date", stringToLaTeX date) ]
+                 , ("authors", intercalate "\\\\" authorsText)
+                 , ("date", dateText) ]
   return $ renderTemplate context $ writerTemplate options
 
 -- escape things as needed for LaTeX

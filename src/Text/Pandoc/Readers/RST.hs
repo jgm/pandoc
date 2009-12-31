@@ -33,7 +33,7 @@ module Text.Pandoc.Readers.RST (
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.ParserCombinators.Parsec
-import Control.Monad ( when )
+import Control.Monad ( when, unless )
 import Data.List ( findIndex, delete, intercalate )
 
 -- | Parse reStructuredText string and return Pandoc document.
@@ -157,11 +157,13 @@ fieldList = try $ do
   let authors = case lookup "Authors" items of
                   Just auth -> [auth]
                   Nothing  -> map snd (filter (\(x,_) -> x == "Author") items)
-  if null authors 
-     then return () 
-     else updateState $ \st -> st {stateAuthors = authors}
+  unless (null authors) $ do
+    authors' <- mapM (parseFromString (many inline)) authors
+    updateState $ \st -> st {stateAuthors = map normalizeSpaces authors'}
   case (lookup "Date" items) of
-           Just dat -> updateState $ \st -> st {stateDate = dat}
+           Just dat -> do
+                  dat' <- parseFromString (many inline) dat
+                  updateState $ \st -> st{ stateDate = normalizeSpaces dat' }
            Nothing  -> return ()
   case (lookup "Title" items) of
            Just tit -> parseFromString (many inline) tit >>=

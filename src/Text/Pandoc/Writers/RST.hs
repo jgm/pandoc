@@ -150,15 +150,18 @@ titleToRST lst = do
   let border = text (replicate titleLength '=')
   return $ border $+$ contents $+$ border <> text "\n"
 
-authorsToRST :: [String] -> State WriterState Doc
+authorsToRST :: [[Inline]] -> State WriterState Doc
 authorsToRST [] = return empty
 authorsToRST (first:rest) = do
   rest' <- authorsToRST rest
-  return $ (text ":Author: " <> text first) $+$ rest'
+  first' <- inlineListToRST first
+  return $ (text ":Author: " <> first') $+$ rest'
 
-dateToRST :: String -> State WriterState Doc
+dateToRST :: [Inline] -> State WriterState Doc
 dateToRST [] = return empty
-dateToRST str = return $ text ":Date: " <> text (escapeString str)
+dateToRST str = do
+  date <- inlineListToRST str
+  return $ text ":Date: " <> date
 
 -- | Convert Pandoc block element to RST. 
 blockToRST :: Block         -- ^ Block element

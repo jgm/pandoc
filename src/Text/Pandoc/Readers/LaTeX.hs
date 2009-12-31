@@ -317,19 +317,19 @@ title = try $ do
 authors :: GenParser Char ParserState Block
 authors = try $ do
   string "\\author{"
-  authors' <- manyTill anyChar (char '}')
+  authors' <- sepBy (many1 (notFollowedBy (oneOf "};,") >> inline)) (oneOf ",;")
+  char '}'
   spaces
-  let authors'' = map removeLeadingTrailingSpace $ lines $
-                  substitute "\\\\" "\n" authors'
+  let authors'' = map normalizeSpaces authors'
   updateState (\s -> s { stateAuthors = authors'' })
   return Null
 
 date :: GenParser Char ParserState Block
 date = try $ do
   string "\\date{"
-  date' <- manyTill anyChar (char '}')
+  date' <- manyTill inline (char '}')
   spaces
-  updateState (\state -> state { stateDate = date' })
+  updateState (\state -> state { stateDate = normalizeSpaces date' })
   return Null
 
 --

@@ -68,6 +68,8 @@ metaToMan :: WriterOptions -- ^ Options, including Man header
           -> State WriterState (Doc, Doc)
 metaToMan options (Meta title authors date) = do
   titleText <- inlineListToMan options title
+  authorsText <- mapM (inlineListToMan options) authors
+  dateText <- inlineListToMan options date 
   let (cmdName, rest) = break (== ' ') $ render titleText
   let (title', section) = case reverse cmdName of
                             (')':d:'(':xs) | d `elem` ['0'..'9'] -> 
@@ -76,11 +78,11 @@ metaToMan options (Meta title authors date) = do
   let extras = map (doubleQuotes . text . removeLeadingTrailingSpace) $
                splitBy '|' rest
   let head' = (text ".TH") <+> title' <+> section <+> 
-             doubleQuotes (text date) <+> hsep extras
-  let foot = case length authors of
+             doubleQuotes dateText <+> hsep extras
+  let foot = case length authorsText of
                 0 -> empty
-                1 -> text ".SH AUTHOR" $$ (text $ intercalate ", " authors)
-                _ -> text ".SH AUTHORS" $$ (text $ intercalate ", " authors)
+                1 -> text ".SH AUTHOR" $$ (hcat $ intersperse (text ", ") authorsText)
+                _ -> text ".SH AUTHORS" $$ (hcat $ intersperse (text ", ") authorsText)
   return $ if writerStandalone options
               then (head', foot)
               else (empty, empty)

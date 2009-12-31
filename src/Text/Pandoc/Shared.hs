@@ -667,8 +667,8 @@ data ParserState = ParserState
       stateTabStop         :: Int,           -- ^ Tab stop
       stateStandalone      :: Bool,          -- ^ Parse bibliographic info?
       stateTitle           :: [Inline],      -- ^ Title of document
-      stateAuthors         :: [String],      -- ^ Authors of document
-      stateDate            :: String,        -- ^ Date of document
+      stateAuthors         :: [[Inline]],    -- ^ Authors of document
+      stateDate            :: [Inline],      -- ^ Date of document
       stateStrict          :: Bool,          -- ^ Use strict markdown syntax?
       stateSmart           :: Bool,          -- ^ Use smart typography?
       stateLiterateHaskell :: Bool,          -- ^ Treat input as literate haskell

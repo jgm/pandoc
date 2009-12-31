@@ -382,7 +382,7 @@ parseTitle = try $ do
   return contents
 
 -- parse header and return meta-information (for now, just title)
-parseHead :: GenParser Char ParserState ([Inline], [a], [Char])
+parseHead :: GenParser Char ParserState Meta
 parseHead = try $ do
   htmlTag "head"
   spaces
@@ -390,7 +390,7 @@ parseHead = try $ do
   contents <- option [] parseTitle
   skipMany nonTitleNonHead
   htmlEndTag "head"
-  return (contents, [], "")
+  return $ Meta contents [] []
 
 skipHtmlTag :: String -> GenParser Char ParserState ()
 skipHtmlTag tag = optional (htmlTag tag)
@@ -409,7 +409,7 @@ parseHtml = do
   sepEndBy (choice [xmlDec, definition, htmlComment]) spaces
   skipHtmlTag "html"
   spaces
-  (title, authors, date) <- option ([], [], "") parseHead 
+  meta <- option (Meta [] [] []) parseHead
   spaces
   skipHtmlTag "body"
   spaces
@@ -420,7 +420,7 @@ parseHtml = do
   spaces
   optional (htmlEndTag "html" >> many anyChar) -- ignore anything after </html>
   eof
-  return $ Pandoc (Meta title authors date) blocks
+  return $ Pandoc meta blocks
 
 --
 -- parsing blocks

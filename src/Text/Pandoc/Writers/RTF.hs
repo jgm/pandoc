@@ -152,10 +152,10 @@ rtfHeader headerText (Meta title authors date) =
       authorstext = if null authors
                        then "" 
                        else rtfPar 0 0 AlignCenter (" " ++ (intercalate "\\" $
-                                                    map stringToRTF authors))
-      datetext = if date == "" 
+                                                    map inlineListToRTF authors))
+      datetext = if null date
                     then ""
-                    else rtfPar 0 0 AlignCenter (" " ++ stringToRTF date) in
+                    else rtfPar 0 0 AlignCenter (" " ++ inlineListToRTF date) in
   let spacer = if null (titletext ++ authorstext ++ datetext)
                   then ""
                   else rtfPar 0 0 AlignDefault "" in

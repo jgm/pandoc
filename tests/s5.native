@@ -1,4 +1,4 @@
-Pandoc (Meta [Str "My",Space,Str "S5",Space,Str "Document"] ["Sam Smith","Jen Jones"] "July 15, 2006")
+Pandoc (Meta [Str "My",Space,Str "S5",Space,Str "Document"] [[Str "Sam",Space,Str "Smith"],[Str "Jen",Space,Str "Jones"]] [Str "July",Space,Str "15,",Space,Str "2006"])
 [ Header 1 [Str "First",Space,Str "slide"]
 , BulletList
   [ [ Plain [Str "first",Space,Str "bullet"] ]

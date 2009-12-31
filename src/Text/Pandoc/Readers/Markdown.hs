@@ -132,28 +132,27 @@ inlinesInBalancedBrackets parser = try $ do
 titleLine :: GenParser Char ParserState [Inline]
 titleLine = try $ char '%' >> skipSpaces >> manyTill inline newline
 
-authorsLine :: GenParser Char st [String]
+authorsLine :: GenParser Char ParserState [[Inline]]
 authorsLine = try $ do 
   char '%'
   skipSpaces
-  authors <- sepEndBy (many1 (noneOf ",;\n")) (oneOf ",;")
+  authors <- sepEndBy (many1 (notFollowedBy (oneOf ",;\n") >> inline)) (oneOf ",;")
   newline
-  return $ map (decodeCharacterReferences . removeLeadingTrailingSpace) authors
+  return $ map normalizeSpaces authors
 
-dateLine :: GenParser Char st String
+dateLine :: GenParser Char ParserState [Inline]
 dateLine = try $ do
   char '%'
   skipSpaces
-  date <- many (noneOf "\n")
-  newline
-  return $ decodeCharacterReferences $ removeTrailingSpace date
+  date <- manyTill inline newline
+  return $ normalizeSpaces date
 
-titleBlock :: GenParser Char ParserState ([Inline], [String], [Char])
+titleBlock :: GenParser Char ParserState ([Inline], [[Inline]], [Inline])
 titleBlock = try $ do
   failIfStrict
   title <- option [] titleLine
   author <- option [] authorsLine
-  date <- option "" dateLine
+  date <- option [] dateLine
   optional blanklines
   return (title, author, date)
 
@@ -175,7 +174,7 @@ parseMarkdown = do
   let reversedNotes = stateNotes st'
   updateState $ \s -> s { stateNotes = reverse reversedNotes }
   -- now parse it for real...
-  (title, author, date) <- option ([],[],"") titleBlock
+  (title, author, date) <- option ([],[],[]) titleBlock
   blocks <- parseBlocks
   return $ Pandoc (Meta title author date) $ filter (/= Null) blocks
 
