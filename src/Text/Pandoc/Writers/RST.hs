@@ -33,16 +33,18 @@ module Text.Pandoc.Writers.RST ( writeRST) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Blocks
+import Text.Pandoc.Templates (renderTemplate)
 import Data.List ( isPrefixOf, isSuffixOf, drop, intersperse, transpose )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 import Control.Applicative ( (<$>) )
+import Control.Monad (liftM)
 
 data WriterState = 
   WriterState { stNotes     :: [[Block]]
               , stLinks     :: KeyTable
               , stImages    :: KeyTable
-              , stIncludes  :: [String]
+              , stHasMath   :: Bool
               , stOptions   :: WriterOptions
               }
 
@@ -50,34 +52,38 @@ data WriterState =
 writeRST :: WriterOptions -> Pandoc -> String
 writeRST opts document = 
   let st = WriterState { stNotes = [], stLinks = [],
-                         stImages = [], stIncludes = [],
+                         stImages = [], stHasMath = False,
                          stOptions = opts }
-  in render $ evalState (pandocToRST document) st
+  in evalState (pandocToRST document) st
 
 -- | Return RST representation of document.
-pandocToRST :: Pandoc -> State WriterState Doc
+pandocToRST :: Pandoc -> State WriterState String
 pandocToRST (Pandoc meta blocks) = do
-  return empty -- TODO
---  opts <- get >>= (return . stOptions)
---  let before  = writerIncludeBefore opts
---      after   = writerIncludeAfter opts
---      header  = writerHeader opts
---      before' = if null before then empty else text before
---      after'  = if null after then empty else text after
---      header' = if null header then empty else text header
---  metaBlock <- metaToRST opts meta
---  let head' = if (writerStandalone opts)
---                 then metaBlock $+$ header'
---                 else empty
---  body <- blockListToRST blocks
---  includes <- get >>= (return . concat . stIncludes)
---  let includes' = if null includes then empty else text includes
---  notes <- get >>= (notesToRST . reverse . stNotes)
---  -- note that the notes may contain refs, so we do them first
---  refs <- get >>= (keyTableToRST . reverse . stLinks)
---  pics <- get >>= (pictTableToRST . reverse . stImages)
---  return $ head' $+$ before' $+$ includes' $+$ body $+$ notes $+$ text "" $+$
---           refs $+$ pics $+$ after'
+  opts <- liftM stOptions get
+  let before  = writerIncludeBefore opts
+      after   = writerIncludeAfter opts
+      before' = if null before then empty else text before
+      after'  = if null after then empty else text after
+  metaBlock <- metaToRST opts meta
+  let head' = if writerStandalone opts
+                 then render metaBlock
+                 else ""
+  body <- blockListToRST blocks
+  notes <- liftM (reverse . stNotes) get >>= notesToRST
+  -- note that the notes may contain refs, so we do them first
+  refs <- liftM (reverse . stLinks) get >>= keyTableToRST
+  pics <- liftM (reverse . stImages) get >>= pictTableToRST
+  hasMath <- liftM stHasMath get
+  let main = render $ before' $+$ body $+$ notes $+$
+                      text "" $+$ refs $+$ pics $+$ after'
+  let context = writerVariables opts ++
+                [ ("body", main)
+                , ("titleblock", head')
+                ] ++
+                [ ("math", "yes") | hasMath ] 
+  if writerStandalone opts
+     then return $ renderTemplate context $ writerTemplate opts
+     else return main
 
 -- | Return RST representation of reference key table.
 keyTableToRST :: KeyTable -> State WriterState Doc
@@ -310,12 +316,7 @@ inlineToRST Ellipses = return $ text "..."
 inlineToRST (Code str) = return $ text $ "``" ++ str ++ "``"
 inlineToRST (Str str) = return $ text $ escapeString str
 inlineToRST (Math t str) = do
-  includes <- get >>= (return . stIncludes)
-  let rawMathRole = ".. role:: math(raw)\n" ++
-                    "   :format: html latex\n"
-  if not (rawMathRole `elem` includes)
-     then modify $ \st -> st { stIncludes = rawMathRole : includes }
-     else return ()
+  modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath
               then text $ ":math:`$" ++ str ++ "$`"
               else text $ ":math:`$$" ++ str ++ "$$`"

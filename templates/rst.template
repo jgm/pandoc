@@ -1,39 +1,14 @@
-===============
-:math:`$title$`
-===============
+$if(titleblock)$
+$titleblock$
 
-:Author: $authors$
-:Date: $date$
-
-.. contents::
-
-$header-includes$
-
+$endif$
+$if(math)$
 .. role:: math(raw)
    :format: html latex
 
-section oen
-===========
+$endif$
+$if(header-includes)$
+$header-includes$
 
-
-1. one
-   
-   a. two
-      
-      iii. three
-
-
-
-::
-
-    hi
-
-footnote [1]_
-
-.. [1]
-   with code
-
-   ::
-
-       code
-
+$endif$
+$body$

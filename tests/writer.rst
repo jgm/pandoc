@@ -887,3 +887,4 @@ indented.
 
 .. |lalune| image:: lalune.jpg
 .. |movie| image:: movie.jpg
+
