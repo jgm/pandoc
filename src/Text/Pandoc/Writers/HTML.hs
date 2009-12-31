@@ -33,6 +33,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.LaTeXMathML
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.Pandoc.Shared
+import Text.Pandoc.Templates
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Highlighting ( highlightHtml, defaultHighlightingCss )
 import Text.Pandoc.XML (stripTags)
@@ -135,7 +136,7 @@ writeHtml opts (Pandoc (Meta tit authors date) blocks) =
                                    _ -> noHtml
                         else noHtml
       head'        = header $ metadata +++ math +++ css +++ 
-                              primHtml (writerHeader opts)
+                              primHtml (renderTemplate [] $ writerHeader opts)
       notes        = reverse (stNotes st')
       before       = primHtml $ writerIncludeBefore opts
       after        = primHtml $ writerIncludeAfter opts

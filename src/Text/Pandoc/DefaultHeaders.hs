@@ -37,6 +37,7 @@ module Text.Pandoc.DefaultHeaders (
                                     defaultRTFHeader
                                   ) where
 import Text.Pandoc.Writers.S5
+import Text.Pandoc.Shared
 import System.FilePath ( (</>) )
 import Text.Pandoc.TH ( contentsOf )
 
@@ -61,7 +62,7 @@ defaultOpenDocumentHeader = $(contentsOf $  "data" </> "headers" </> "OpenDocume
 #endif
 
 defaultS5Header :: String
-defaultS5Header = s5Meta ++ s5CSS ++ s5Javascript
+defaultS5Header = substitute "$" "$$" $ s5Meta ++ s5CSS ++ s5Javascript
 
 defaultRTFHeader :: String
 #ifndef __HADDOCK__
