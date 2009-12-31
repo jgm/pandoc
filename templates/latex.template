@@ -1,0 +1,61 @@
+$if(legacy-header)$
+$legacy-header$
+$else$
+\documentclass{article}
+\usepackage{ifpdf,ifxetex}
+\ifxetex
+  \usepackage{fontspec,xltxtra,xunicode}
+\else
+  \usepackage[utf8x]{inputenc}
+  \usepackage[mathletters]{ucs}
+\fi
+\usepackage{amsmath}
+\usepackage{listings}
+\lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+$endif$
+\usepackage{fancyvrb}
+\usepackage{enumerate}
+\usepackage{array}
+% This is needed because raggedright in table elements redefines \\:
+\newcommand{\PreserveBackslash}[1]{\let\temp=\\#1\let\\=\temp}
+\let\PBS=\PreserveBackslash
+\usepackage[normalem]{ulem}
+\newcommand{\textsubscr}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
+\usepackage[breaklinks=true]{hyperref}
+\usepackage{url}
+\usepackage{graphicx}
+
+\VerbatimFootnotes % allows verbatim text in footnotes
+
+$if(numbersections)$
+$else$
+\setcounter{secnumdepth}{0}
+$endif$
+$header-includes$
+
+$if(title)$
+\title{$title$}
+$endif$
+$if(authors)$
+\author{$authors$}
+$endif$
+$if(date)$
+\date{$date$}
+$endif$
+
+\begin{document}
+\maketitle
+
+$if(toc)$
+\tableofcontents
+$endif$
+$if(before)$
+$before$
+$endif$
+$body$
+$if(after)$
+$after$
+$endif$
+\end{document}

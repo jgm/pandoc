@@ -34,7 +34,12 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  which convert this native representation into a target
                  format. Thus, adding an input or output format requires
                  only adding a reader or writer.
-Data-Files:
+Data-Files:      templates/html.template, templates/docbook.template,
+                 templates/opendocument.template, templates/latex.template,
+                 templates/context.template, templates/texinfo.template,
+                 templates/man.template, templates/markdown.template,
+                 templates/rst.template, templates/s5.template,
+                 templates/mediawiki.template, templates/rtf.template
                  -- documentation
                  README, INSTALL, COPYRIGHT, BUGS, changelog,
                  -- wrappers
