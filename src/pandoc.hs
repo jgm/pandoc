@@ -339,6 +339,19 @@ options =
                   "FILENAME")
                  "" -- "Use custom template"
 
+    , Option "V" ["variable"]
+                 (ReqArg
+                  (\arg opt ->
+                     case break (`elem` ":=") arg of
+                          (k,_:v) -> do
+                            let newvars = (k, v) : optVariables opt
+                            return opt{ optVariables = newvars }
+                          _  -> do
+                            hPutStrLn stderr $ "Could not parse `" ++ arg ++ "' as a key/value pair (k=v or k:v)"
+                            exitWith $ ExitFailure 17)
+                  "FILENAME")
+                 "" -- "Use custom template"
+
     , Option "c" ["css"]
                  (ReqArg
                   (\arg opt -> do

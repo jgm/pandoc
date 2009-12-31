@@ -54,6 +54,13 @@ The following options are most relevant:
     `-s`. See the section TEMPLATES in `pandoc`(1) for information about
     template syntax.
 
+-V KEY=VAL, \--variable=*KEY:VAL*
+:   Set the template variable KEY to the value VAL when rendering the
+    document in standalone mode. This is only useful when the
+    `--template` option is used to specify a custom template, since
+    pandoc automatically sets the variables used in the default
+    templates.
+
 -H *FILE*, \--include-in-header=*FILE*
 :   Include (LaTeX) contents of *FILE* at the end of the header.  Implies
     `-s`.

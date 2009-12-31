@@ -289,6 +289,13 @@ For further documentation, see the `pandoc(1)` man page.
     template appropriate for the output format will be used. See also
     `-D/--print-default-template`.
 
+`-V` *key=val*, `--variable=`*key:val*
+:   sets the template variable *key* to the value *val* when rendering the
+    document in standalone mode. This is only useful when the
+    `--template` option is used to specify a custom template, since
+    pandoc automatically sets the variables used in the default
+    templates.
+
 `-c` or `--css` *filename*
 :   allows the user to specify a custom stylesheet that will be linked to
     in HTML and S5 output.  This option can be used repeatedly to include
@@ -489,9 +496,9 @@ depending on the output format, but include:
 `css`
 :   links to CSS files, as specified using `-c/--css`
 
-Variables may be set at the command line using the
-`--set` option.  This allows users to include custom variables in
-their templates.
+Variables may be set at the command line using the `-V/--variable`
+option. This allows users to include custom variables in their
+templates.
 
 Templates may contain conditionals.  The syntax is as follows:
 

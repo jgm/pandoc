@@ -175,6 +175,13 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     this option is not used, a default template appropriate for the
     output format will be used. See also `-D/--print-default-template`.
 
+-V KEY=VAL, \--variable=*KEY:VAL*
+:   Set the template variable KEY to the value VAL when rendering the
+    document in standalone mode. This is only useful when the
+    `--template` option is used to specify a custom template, since
+    pandoc automatically sets the variables used in the default
+    templates.
+
 -c *CSS*, \--css=*CSS*
 :   Link to a CSS style sheet.  *CSS* is the pathname of the style sheet.
 
@@ -270,9 +277,9 @@ depending on the output format, but include:
 `css`
 :   links to CSS files, as specified using `-c/--css`
 
-Variables may be set at the command line using the
-`--set` option.  This allows users to include custom variables in
-their templates.
+Variables may be set at the command line using the `-V/--variable`
+option. This allows users to include custom variables in their
+templates.
 
 Templates may contain conditionals.  The syntax is as follows:
 

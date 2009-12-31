@@ -152,13 +152,14 @@ main = bracket
     unless (null miss) $ exit $! "Could not find " ++ intercalate ", " miss
     args <- getArgs
     -- check for invalid arguments and print help message if needed
-    let goodopts = ["-f","-r","-N", "-p","-R","-H","-B","-A", "-C","-o"]
+    let goodopts = ["-f","-r","-N", "-p","-R","-H","-B","-A", "-C","-o","-V"]
     let goodoptslong = ["--from","--read","--strict",
                    "--preserve-tabs","--tab-stop","--parse-raw",
                    "--toc","--table-of-contents",
                    "--number-sections","--include-in-header",
                    "--include-before-body","--include-after-body",
-                   "--custom-header","--output"]
+                   "--custom-header","--output",
+                   "--template", "--variable"]
     let isOpt ('-':_) = True
         isOpt _       = False
     let opts = filter isOpt args
