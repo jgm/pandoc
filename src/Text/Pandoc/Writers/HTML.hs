@@ -70,9 +70,7 @@ stringToHtml = primHtml . concatMap fixChar
       fixChar '>' = "&gt;"
       fixChar '&' = "&amp;"
       fixChar '"' = "&quot;"
-      fixChar '\160' = "&nbsp;"
-      fixChar c | ord c < 0xff = [c]
-      fixChar c = "&#" ++ show (ord c) ++ ";"
+      fixChar c   = [c]
 
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
