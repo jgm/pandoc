@@ -1,1 +1,24 @@
-TODO
+{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+$header-includes$
+{\pard \qc \f0 \sa180 \li0 \fi0 \b \fs36 {\i title}\par}
+{\pard \qc \f0 \sa180 \li0 \fi0  $authors$\par}
+{\pard \qc \f0 \sa180 \li0 \fi0  $date$\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Contents\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab section oen\sa180\par}
+$before$
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 section oen\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab one\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 a.\tx360\tab two\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 iii.\tx360\tab three\sa180\sa180\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 hi\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 footnote{\super\chftn}{\*\footnote\chftn\~\plain\pard {\pard \ql \f0 \sa180 \li0 \fi0 with code\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 code\par}
+}\par}
+$after$
+
+}
+

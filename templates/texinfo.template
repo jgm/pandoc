@@ -1,1 +1,53 @@
-TODO
+\input texinfo
+@documentencoding utf-8
+$header-includes$
+
+
+@ifnottex
+@paragraphindent 0
+@end ifnottex
+@titlepage
+@title @math{title}
+@author $authors$
+$date$
+@end titlepage
+@contents
+$before$
+
+@node Top
+@top @math{title}
+
+@menu
+* section oen::
+@end menu
+
+@node section oen
+@chapter section oen
+@enumerate 
+@item
+one
+@enumerate a
+@item
+two
+@enumerate 3
+@item
+three
+@end enumerate
+
+@end enumerate
+
+@end enumerate
+
+@verbatim
+hi
+@end verbatim
+
+footnote@footnote{with code
+@verbatim
+code
+@end verbatim
+}
+
+$after$
+
+@bye

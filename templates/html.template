@@ -2,19 +2,74 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
 ><head
   ><title
-    >$if(title-prefix)$$title-prefix$ - $endif$$title$</title
+    >title</title
     ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
      /><meta name="generator" content="pandoc"
-     /><meta name="author" content="John MacFarlane"
-     /><meta name="author" content="Anonymous"
-     /><meta name="date" content="July 17, 2006"
-     /></head
+     /><meta name="author" content="$authors$"
+     /><meta name="date" content="$date$"
+     />$header-includes$
+</head
   ><body
-  ><h1 class="title"
-    >$title$</h1
-    >
-$body$
-    </body
+  >$before$
+<h1 class="title"
+    ><span class="math"
+      ><em
+	>title</em
+	></span
+      ></h1
+    ><div id="TOC"
+    ><ul
+      ><li
+	><a href="#section-oen"
+	  >section oen</a
+	  ></li
+	></ul
+      ></div
+    ><div id="section-oen"
+    ><h1
+      ><a href="#TOC"
+	>section oen</a
+	></h1
+      ><ol style="list-style-type: decimal;"
+      ><li
+	>one<ol style="list-style-type: lower-alpha;"
+	  ><li
+	    >two<ol start="3" style="list-style-type: lower-roman;"
+	      ><li
+		>three</li
+		></ol
+	      ></li
+	    ></ol
+	  ></li
+	></ol
+      ><pre class="haskell"
+      ><code
+	>hi
+</code
+	></pre
+      ><p
+      >footnote<a href="#fn1" class="footnoteRef" id="fnref1"
+	><sup
+	  >1</sup
+	  ></a
+	></p
+      ></div
+    ><div class="footnotes"
+    ><hr
+       /><ol
+      ><li id="fn1"
+	><p
+	  >with code</p
+	  ><pre
+	  ><code
+	    >code
+</code
+	    ></pre
+	  > <a href="#fnref1" class="footnoteBackLink" title="Jump back to footnote 1">&#8617;</a></li
+	></ol
+      ></div
+    >$after$
+</body
   ></html
 >
 

@@ -1,1 +1,44 @@
-TODO
+===============
+:math:`$title$`
+===============
+
+:Author: $authors$
+:Date: $date$
+
+.. contents::
+
+$header-includes$
+
+$before$
+
+.. role:: math(raw)
+   :format: html latex
+
+section oen
+===========
+
+
+1. one
+   
+   a. two
+      
+      iii. three
+
+
+
+::
+
+    hi
+
+footnote [1]_
+
+.. [1]
+   with code
+
+   ::
+
+       code
+
+
+$after$
+
