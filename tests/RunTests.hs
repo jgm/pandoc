@@ -13,7 +13,6 @@
 -- cabal install Diff
 
 module Main where
-import System.Exit
 import System.IO.UTF8
 import System.IO ( openTempFile, stderr, stdout, hFlush )
 import Prelude hiding ( putStrLn, putStr, readFile )
