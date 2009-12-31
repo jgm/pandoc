@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeSynonymInstances #-}
 {-
 Copyright (C) 2009 John MacFarlane <jgm@berkeley.edu>
 
@@ -49,7 +50,9 @@ Conditional keywords should not be indented, or unexpected spacing
 problems may occur.
 -}
 
-module Text.Pandoc.Templates (renderTemplate, getDefaultTemplate) where
+module Text.Pandoc.Templates ( renderTemplate
+                             , TemplateTarget
+                             , getDefaultTemplate) where
 
 import Text.ParserCombinators.Parsec
 import Control.Monad (liftM, when)
@@ -57,6 +60,9 @@ import qualified Control.Exception as E (try, IOException)
 import System.FilePath
 import Text.Pandoc.Shared (readDataFile)
 import Data.List (intercalate)
+import Text.PrettyPrint (text, Doc)
+import Text.XHtml (primHtml, Html)
+import Data.ByteString.Lazy.UTF8 (ByteString, fromString)
 
 -- | Get the default template, either from the application's user data
 -- directory (~/.pandoc on unix) or from the cabal data directory.
@@ -79,14 +85,30 @@ adjustPosition str = do
        else TemplateState (length lastline) x
   return str
 
+class TemplateTarget a where
+  toTarget :: String -> a 
+
+instance TemplateTarget String where
+  toTarget = id
+
+instance TemplateTarget ByteString where 
+  toTarget = fromString
+
+instance TemplateTarget Html where
+  toTarget = primHtml
+
+instance TemplateTarget Doc where
+  toTarget = text
+
 -- | Renders a template 
-renderTemplate :: [(String,String)]  -- ^ Assoc. list of values for variables
+renderTemplate :: TemplateTarget a
+               => [(String,String)]  -- ^ Assoc. list of values for variables
                -> String             -- ^ Template
-               -> String
+               -> a
 renderTemplate vals templ =
   case runParser (do x <- parseTemplate; eof; return x) (TemplateState 0 vals) "template" templ of
        Left e        -> error $ show e
-       Right r       -> concat r
+       Right r       -> toTarget $ concat r
 
 reservedWords :: [String]
 reservedWords = ["else","endif"]

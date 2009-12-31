@@ -89,7 +89,7 @@ writeHtml opts d =
   let (tit, auths, date, toc, body', newvars) = evalState (pandocToHtml opts d)
                                                  defaultWriterState
   in  if writerStandalone opts
-         then primHtml $ inTemplate opts tit auths date toc body' newvars
+         then inTemplate opts tit auths date toc body' newvars
          else body'
 
 -- result is (title, authors, date, toc, body, new variables)
@@ -135,14 +135,15 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                 [("math", renderHtmlFragment math) | stMath st] 
   return (tit, auths, date, toc, thebody, newvars)
 
-inTemplate :: WriterOptions
+inTemplate :: TemplateTarget a
+           => WriterOptions
            -> Html
            -> [Html]
            -> Html
            -> Html
            -> Html
            -> [(String,String)]
-           -> String
+           -> a
 inTemplate opts tit auths date toc body' newvars =
   let renderedTit = showHtmlFragment tit
       topTitle'   = stripTags renderedTit
