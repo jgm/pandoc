@@ -135,10 +135,10 @@ data Opt = Opt
     , optParseRaw          :: Bool    -- ^ Parse unconvertable HTML and TeX
     , optCSS               :: [String] -- ^ CSS file to link to
     , optTableOfContents   :: Bool    -- ^ Include table of contents
+    , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optIncludeInHeader   :: String  -- ^ File to include in header
     , optIncludeBeforeBody :: String  -- ^ File to include at top of body
     , optIncludeAfterBody  :: String  -- ^ File to include at end of body
-    , optCustomHeader      :: String  -- ^ Custom header to use, or "DEFAULT"
     , optTitlePrefix       :: String  -- ^ Optional prefix for HTML title
     , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
@@ -173,10 +173,10 @@ defaultOpts = Opt
     , optParseRaw          = False
     , optCSS               = []
     , optTableOfContents   = False
+    , optVariables         = []
     , optIncludeInHeader   = ""
     , optIncludeBeforeBody = ""
     , optIncludeAfterBody  = ""
-    , optCustomHeader      = "DEFAULT"
     , optTitlePrefix       = ""
     , optOutputFile        = "-"    -- "-" means stdout
     , optNumberSections    = False
@@ -374,9 +374,13 @@ options =
     , Option "C" ["custom-header"]
                  (ReqArg
                   (\arg opt -> do
+                     hPutStrLn stderr $
+                       "Warning: The -C/--custom-header is deprecated.\n" ++
+                       "Please transition to using --template instead."
                      text <- readFile arg
-                     return opt { optCustomHeader = text,
-                                  optStandalone = True })
+                     let newVars = ("legacy-header", text) : optVariables opt
+                     return opt { optVariables = newVars
+                                , optStandalone = True })
                   "FILENAME")
                  "" -- "File to use for custom header (implies -s)"
 
@@ -530,11 +534,11 @@ main = do
               , optWriter            = writerName
               , optParseRaw          = parseRaw
               , optCSS               = css
+              , optVariables         = variables
               , optTableOfContents   = toc
               , optIncludeInHeader   = includeHeader
               , optIncludeBeforeBody = includeBefore
               , optIncludeAfterBody  = includeAfter
-              , optCustomHeader      = customHeader
               , optTitlePrefix       = titlePrefix
               , optOutputFile        = outputFile
               , optNumberSections    = numberSections
@@ -577,7 +581,7 @@ main = do
      Just r  -> return r
      Nothing -> error ("Unknown reader: " ++ readerName')
 
-  (writer, defaultHeader) <- case (lookup writerName' writers) of
+  (writer, defaultTemplate) <- case (lookup writerName' writers) of
      Just (w,h) -> return (w, h)
      Nothing    -> error ("Unknown writer: " ++ writerName')
 
@@ -613,13 +617,13 @@ main = do
                         (\f -> "<link rel=\"stylesheet\" href=\"" ++
                                f ++ "\" type=\"text/css\" media=\"all\" />\n")
                         css
-  let header = (if customHeader == "DEFAULT"
-                   then defaultHeader
-                   else customHeader) ++ csslink ++ includeHeader
+  let variables' = [("css", csslink) | not (null css)] ++
+                   [("header-includes", includeHeader)] ++
+                   variables
   let writerOptions = WriterOptions { writerStandalone       = standalone',
-                                      writerTemplate         = "", -- TODO
-                                      writerVariables        = [], -- TODO
-                                      writerHeader           = header,
+                                      writerTemplate         = defaultTemplate,
+                                      writerVariables        = variables',
+                                      writerHeader           = defaultTemplate, -- TODO remove
                                       writerTitlePrefix      = titlePrefix,
                                       writerTabStop          = tabStop,
                                       writerTableOfContents  = toc &&
