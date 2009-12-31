@@ -39,7 +39,8 @@ makeManPage manpage = do
   let source = manDir </> manpage <.> "md"
   modifiedDeps <- modifiedDependencies page [source]
   unless (null modifiedDeps) $ do
-    ec <- runProcess pandoc ["-s", "-S", "-r", "markdown", "-w", "man", "-o", page, source]
+    ec <- runProcess pandoc ["-s", "-S", "-r", "markdown", "-w", "man",
+                "--template=templates/man.template", "-o", page, source]
                 Nothing Nothing Nothing Nothing (Just stderr) >>= waitForProcess
     case ec of
          ExitSuccess -> putStrLn $ "Created " ++ manDir </> manpage
