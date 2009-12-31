@@ -58,16 +58,15 @@ writeRST opts document =
 
 -- | Return RST representation of document.
 pandocToRST :: Pandoc -> State WriterState String
-pandocToRST (Pandoc meta blocks) = do
+pandocToRST (Pandoc (Meta tit auth dat) blocks) = do
   opts <- liftM stOptions get
   let before  = writerIncludeBefore opts
       after   = writerIncludeAfter opts
       before' = if null before then empty else text before
       after'  = if null after then empty else text after
-  metaBlock <- metaToRST opts meta
-  let head' = if writerStandalone opts
-                 then render metaBlock
-                 else ""
+  title <- titleToRST tit
+  authors <- mapM inlineListToRST auth
+  date <- inlineListToRST dat
   body <- blockListToRST blocks
   notes <- liftM (reverse . stNotes) get >>= notesToRST
   -- note that the notes may contain refs, so we do them first
@@ -78,9 +77,10 @@ pandocToRST (Pandoc meta blocks) = do
                       text "" $+$ refs $+$ pics $+$ after'
   let context = writerVariables opts ++
                 [ ("body", main)
-                , ("titleblock", head')
-                ] ++
-                [ ("math", "yes") | hasMath ] 
+                , ("title", render title)
+                , ("date", render date) ] ++
+                [ ("math", "yes") | hasMath ] ++
+                [ ("author", render a) | a <- authors ]
   if writerStandalone opts
      then return $ renderTemplate context $ writerTemplate opts
      else return main
@@ -136,38 +136,13 @@ wrappedRST opts inlines = do
 escapeString :: String -> String
 escapeString = escapeStringUsing (backslashEscapes "`\\|*_")
 
--- | Convert bibliographic information into RST header.
-metaToRST :: WriterOptions -> Meta -> State WriterState Doc
-metaToRST _ (Meta [] [] []) = return empty
-metaToRST opts (Meta title authors date) = do
-  title'   <- titleToRST title
-  authors' <- authorsToRST authors
-  date'    <- dateToRST date
-  let toc  =  if writerTableOfContents opts
-                 then text "" $+$ text ".. contents::"
-                 else empty
-  return $ title' $+$ authors' $+$ date' $+$ toc $+$ text ""
-
 titleToRST :: [Inline] -> State WriterState Doc
 titleToRST [] = return empty
 titleToRST lst = do
   contents <- inlineListToRST lst
   let titleLength = length $ render contents
   let border = text (replicate titleLength '=')
-  return $ border $+$ contents $+$ border <> text "\n"
-
-authorsToRST :: [[Inline]] -> State WriterState Doc
-authorsToRST [] = return empty
-authorsToRST (first:rest) = do
-  rest' <- authorsToRST rest
-  first' <- inlineListToRST first
-  return $ (text ":Author: " <> first') $+$ rest'
-
-dateToRST :: [Inline] -> State WriterState Doc
-dateToRST [] = return empty
-dateToRST str = do
-  date <- inlineListToRST str
-  return $ text ":Date: " <> date
+  return $ border $+$ contents $+$ border
 
 -- | Convert Pandoc block element to RST. 
 blockToRST :: Block         -- ^ Block element

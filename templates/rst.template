@@ -1,15 +1,19 @@
-$if(titleblock)$
 $if(title)$
 $title$
 
 $endif$
-$if(authors)$
-$authors$
-$endif$
+$for(author)$
+:Author: $author$
+$endfor$
 $if(date)$
-Date: $date$
+:Date:   $date$
 $endif$
+$if(author)$
 
+$else$
+$if(date)$
+
+$endif$
 $endif$
 $if(math)$
 .. role:: math(raw)
