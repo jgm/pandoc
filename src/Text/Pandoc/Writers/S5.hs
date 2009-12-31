@@ -43,8 +43,6 @@ import Text.Pandoc.Definition
 import Text.XHtml.Strict
 import System.FilePath ( (</>) )
 import Data.List ( intercalate )
-import Prelude hiding (readFile)
-import System.IO.UTF8 (readFile)
 
 s5HeaderIncludes :: IO String
 s5HeaderIncludes = do
@@ -130,7 +128,7 @@ insertS5Structure (Pandoc (Meta title' authors date) blocks) =
     let slides     = insertSlides True blocks 
         firstSlide = if not (null title')
                         then [slideStart, (Header 1 title'), 
-                              (Header 3 (intercalate [Str ",", Space] authors)),
+                              (Header 3 (intercalate [LineBreak] authors)),
                               (Header 4 date), slideEnd]
                         else []
         newBlocks  = (layoutDiv title' date) ++ presentationStart:firstSlide ++

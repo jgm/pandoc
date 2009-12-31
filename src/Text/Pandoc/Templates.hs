@@ -55,6 +55,7 @@ import Text.Pandoc.Shared (readDataFile)
 -- directory (~/.pandoc on unix) or from the cabal data directory.
 getDefaultTemplate :: String -> IO (Either E.IOException String)
 getDefaultTemplate "native" = return $ Right ""
+getDefaultTemplate "s5" = getDefaultTemplate "html"
 getDefaultTemplate "odt" = getDefaultTemplate "opendocument"
 getDefaultTemplate format = do
   let format' = takeWhile (/='+') format  -- strip off "+lhs" if present
