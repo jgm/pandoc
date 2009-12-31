@@ -57,15 +57,13 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                   then return ""
                   else liftM render $ inlineListToLaTeX title
   let context  = writerVariables options ++
-                 [ ("before", writerIncludeBefore options)
-                 , ("after", writerIncludeAfter options)
-                 , ("toc", if writerTableOfContents options then "yes" else "")
+                 [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
                  , ("title", titletext)
                  , ("authors", intercalate "\\\\" $ map stringToLaTeX authors)
                  , ("date", stringToLaTeX date) ]
   let templ = if writerStandalone options
-                 then writerHeader options
+                 then writerTemplate options
                  else "$if(toc)$\\tableofcontents\n$endif$" ++
                       "$if(before)$$before$\n$endif$" ++
                       "$body$$if(after)$$after$\n$endif$"

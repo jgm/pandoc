@@ -48,18 +48,19 @@ writeMan opts document = render $ evalState (pandocToMan opts document) ([],[])
 -- | Return groff man representation of document.
 pandocToMan :: WriterOptions -> Pandoc -> State WriterState Doc
 pandocToMan opts (Pandoc meta blocks) = do
-  let before  = writerIncludeBefore opts
-  let after   = writerIncludeAfter opts
-  let before' = if null before then empty else text before
-  let after'  = if null after then empty else text after
-  (head', foot) <- metaToMan opts meta
-  body <- blockListToMan opts blocks
-  (notes, preprocessors) <- get
-  let preamble = if null preprocessors || not (writerStandalone opts)
-                    then empty
-                    else text $ ".\\\" " ++ concat (nub preprocessors)
-  notes' <- notesToMan opts (reverse notes)
-  return $ preamble $$ head' $$ before' $$ body $$ notes' $$ foot $$ after'
+  return empty -- TODO
+--  let before  = writerIncludeBefore opts
+--  let after   = writerIncludeAfter opts
+--  let before' = if null before then empty else text before
+--  let after'  = if null after then empty else text after
+--  (head', foot) <- metaToMan opts meta
+--  body <- blockListToMan opts blocks
+--  (notes, preprocessors) <- get
+--  let preamble = if null preprocessors || not (writerStandalone opts)
+--                    then empty
+--                    else text $ ".\\\" " ++ concat (nub preprocessors)
+--  notes' <- notesToMan opts (reverse notes)
+--  return $ preamble $$ head' $$ before' $$ body $$ notes' $$ foot $$ after'
 
 -- | Insert bibliographic information into Man header and footer.
 metaToMan :: WriterOptions -- ^ Options, including Man header

@@ -982,8 +982,6 @@ data WriterOptions = WriterOptions
   { writerStandalone       :: Bool   -- ^ Include header and footer
   , writerTemplate         :: String -- ^ Template to use in standalone mode
   , writerVariables        :: [(String, String)] -- ^ Variables to set in template
-  , writerHeader           :: String -- ^ Header for the document
-  , writerTitlePrefix      :: String -- ^ Prefix for HTML titles
   , writerTabStop          :: Int    -- ^ Tabstop for conversion btw spaces and tabs
   , writerTableOfContents  :: Bool   -- ^ Include table of contents
   , writerS5               :: Bool   -- ^ We're writing S5 
@@ -991,8 +989,6 @@ data WriterOptions = WriterOptions
   , writerIgnoreNotes      :: Bool   -- ^ Ignore footnotes (used in making toc)
   , writerIncremental      :: Bool   -- ^ Incremental S5 lists
   , writerNumberSections   :: Bool   -- ^ Number sections in LaTeX
-  , writerIncludeBefore    :: String -- ^ String to include before the body
-  , writerIncludeAfter     :: String -- ^ String to include after the body
   , writerStrictMarkdown   :: Bool   -- ^ Use strict markdown syntax
   , writerReferenceLinks   :: Bool   -- ^ Use reference links in writing markdown, rst
   , writerWrapText         :: Bool   -- ^ Wrap text to line length
@@ -1007,8 +1003,6 @@ defaultWriterOptions =
   WriterOptions { writerStandalone       = False
                 , writerTemplate         = ""
                 , writerVariables        = []
-                , writerHeader           = ""
-                , writerTitlePrefix      = ""
                 , writerTabStop          = 4
                 , writerTableOfContents  = False
                 , writerS5               = False
@@ -1016,8 +1010,6 @@ defaultWriterOptions =
                 , writerIgnoreNotes      = False
                 , writerIncremental      = False
                 , writerNumberSections   = False
-                , writerIncludeBefore    = ""
-                , writerIncludeAfter     = ""
                 , writerStrictMarkdown   = False
                 , writerReferenceLinks   = False
                 , writerWrapText         = True

@@ -59,25 +59,26 @@ authorToDocbook name = inTagsIndented "author" $
 -- | Convert Pandoc document to string in Docbook format.
 writeDocbook :: WriterOptions -> Pandoc -> String
 writeDocbook opts (Pandoc (Meta title authors date) blocks) = 
-  let head'    = if writerStandalone opts
-                    then text (writerHeader opts)
-                    else empty
-      meta     = if writerStandalone opts
-                    then inTagsIndented "articleinfo" $
-                         (inTagsSimple "title" (wrap opts title)) $$ 
-                         (vcat (map authorToDocbook authors)) $$ 
-                         (inTagsSimple "date" (text $ escapeStringForXML date)) 
-                    else empty
-      elements = hierarchicalize blocks
-      before   = writerIncludeBefore opts
-      after    = writerIncludeAfter opts
-      body     = (if null before then empty else text before) $$
-                 vcat (map (elementToDocbook opts) elements) $$
-                 (if null after then empty else text after)
-      body'    = if writerStandalone opts
-                   then inTagsIndented "article" (meta $$ body)
-                   else body 
-  in  render $ head' $$ body' $$ text ""
+  "" -- TODO 
+--  let head'    = if writerStandalone opts
+--                    then text (writerHeader opts)
+--                    else empty
+--      meta     = if writerStandalone opts
+--                    then inTagsIndented "articleinfo" $
+--                         (inTagsSimple "title" (wrap opts title)) $$ 
+--                         (vcat (map authorToDocbook authors)) $$ 
+--                         (inTagsSimple "date" (text $ escapeStringForXML date)) 
+--                    else empty
+--      elements = hierarchicalize blocks
+--      before   = writerIncludeBefore opts
+--      after    = writerIncludeAfter opts
+--      body     = (if null before then empty else text before) $$
+--                 vcat (map (elementToDocbook opts) elements) $$
+--                 (if null after then empty else text after)
+--      body'    = if writerStandalone opts
+--                   then inTagsIndented "article" (meta $$ body)
+--                   else body 
+--  in  render $ head' $$ body' $$ text ""
 
 -- | Convert an Element to Docbook.
 elementToDocbook :: WriterOptions -> Element -> Doc

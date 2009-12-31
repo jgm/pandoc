@@ -57,47 +57,49 @@ writeConTeXt options document =
 
 pandocToConTeXt :: WriterOptions -> Pandoc -> State WriterState Doc
 pandocToConTeXt options (Pandoc meta blocks) = do
-  main    <- blockListToConTeXt blocks 
-  let before = if null (writerIncludeBefore options)
-                  then empty
-                  else text $ writerIncludeBefore options
-  let after  = if null (writerIncludeAfter options)
-                  then empty
-                  else text $ writerIncludeAfter options
-  let body = before $$ main $$ after
-  head'    <- if writerStandalone options
-                 then contextHeader options meta
-                 else return empty
-  let toc  = if writerTableOfContents options
-                then text "\\placecontent\n"
-                else empty 
-  let foot = if writerStandalone options
-                then text "\\stoptext\n"
-                else empty 
-  return $ head' $$ toc $$ body $$ foot
+  return empty -- TODO
+--  main    <- blockListToConTeXt blocks 
+--  let before = if null (writerIncludeBefore options)
+--                  then empty
+--                  else text $ writerIncludeBefore options
+--  let after  = if null (writerIncludeAfter options)
+--                  then empty
+--                  else text $ writerIncludeAfter options
+--  let body = before $$ main $$ after
+--  head'    <- if writerStandalone options
+--                 then contextHeader options meta
+--                 else return empty
+--  let toc  = if writerTableOfContents options
+--                then text "\\placecontent\n"
+--                else empty 
+--  let foot = if writerStandalone options
+--                then text "\\stoptext\n"
+--                else empty 
+--  return $ head' $$ toc $$ body $$ foot
 
 -- | Insert bibliographic information into ConTeXt header.
 contextHeader :: WriterOptions -- ^ Options, including ConTeXt header
               -> Meta          -- ^ Meta with bibliographic information
               -> State WriterState Doc
 contextHeader options (Meta title authors date) = do
-  titletext    <- if null title
-                     then return empty 
-                     else inlineListToConTeXt title
-  let authorstext = if null authors
-                       then ""
-                       else if length authors == 1
-                            then stringToConTeXt $ head authors
-                            else stringToConTeXt $ (intercalate ", " $
-                                 init authors) ++ " & " ++ last authors
-  let datetext   = if date == ""
-                       then "" 
-                       else stringToConTeXt date
-  let titleblock = text "\\doctitle{" <> titletext <> char '}' $$
-                   text ("\\author{" ++ authorstext ++ "}") $$
-                   text ("\\date{" ++ datetext ++ "}")
-  let header     = text $ writerHeader options
-  return $ header $$ titleblock $$ text "\\starttext\n\\maketitle\n"
+  return empty -- TODO
+--  titletext    <- if null title
+--                     then return empty 
+--                     else inlineListToConTeXt title
+--  let authorstext = if null authors
+--                       then ""
+--                       else if length authors == 1
+--                            then stringToConTeXt $ head authors
+--                            else stringToConTeXt $ (intercalate ", " $
+--                                 init authors) ++ " & " ++ last authors
+--  let datetext   = if date == ""
+--                       then "" 
+--                       else stringToConTeXt date
+--  let titleblock = text "\\doctitle{" <> titletext <> char '}' $$
+--                   text ("\\author{" ++ authorstext ++ "}") $$
+--                   text ("\\date{" ++ datetext ++ "}")
+--  let header     = text $ writerHeader options
+--  return $ header $$ titleblock $$ text "\\starttext\n\\maketitle\n"
 
 -- escape things as needed for ConTeXt
 

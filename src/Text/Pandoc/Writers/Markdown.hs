@@ -50,27 +50,28 @@ writeMarkdown opts document =
 -- | Return markdown representation of document.
 pandocToMarkdown :: WriterOptions -> Pandoc -> State WriterState Doc
 pandocToMarkdown opts (Pandoc meta blocks) = do
-  let before  = writerIncludeBefore opts
-  let after   = writerIncludeAfter opts
-  let header  = writerHeader opts
-  let before' = if null before then empty else text before
-  let after'  = if null after then empty else text after
-  let header' = if null header then empty else text header
-  metaBlock <- metaToMarkdown opts meta
-  let head' = if writerStandalone opts
-                then metaBlock $+$ header'
-                else empty
-  let headerBlocks = filter isHeaderBlock blocks
-  let toc = if writerTableOfContents opts 
-               then tableOfContents opts headerBlocks
-               else empty
-  body <- blockListToMarkdown opts blocks
-  (notes, _) <- get
-  notes' <- notesToMarkdown opts (reverse notes)
-  (_, refs) <- get  -- note that the notes may contain refs
-  refs' <- keyTableToMarkdown opts (reverse refs)
-  return $ head' $+$ before' $+$ toc $+$ body $+$ text "" $+$ 
-           notes' $+$ text "" $+$ refs' $+$ after'
+  return empty -- TODO
+--  let before  = writerIncludeBefore opts
+--  let after   = writerIncludeAfter opts
+--  let header  = writerHeader opts
+--  let before' = if null before then empty else text before
+--  let after'  = if null after then empty else text after
+--  let header' = if null header then empty else text header
+--  metaBlock <- metaToMarkdown opts meta
+--  let head' = if writerStandalone opts
+--                then metaBlock $+$ header'
+--                else empty
+--  let headerBlocks = filter isHeaderBlock blocks
+--  let toc = if writerTableOfContents opts 
+--               then tableOfContents opts headerBlocks
+--               else empty
+--  body <- blockListToMarkdown opts blocks
+--  (notes, _) <- get
+--  notes' <- notesToMarkdown opts (reverse notes)
+--  (_, refs) <- get  -- note that the notes may contain refs
+--  refs' <- keyTableToMarkdown opts (reverse refs)
+--  return $ head' $+$ before' $+$ toc $+$ body $+$ text "" $+$ 
+--           notes' $+$ text "" $+$ refs' $+$ after'
 
 -- | Return markdown representation of reference key table.
 keyTableToMarkdown :: WriterOptions -> KeyTable -> State WriterState Doc

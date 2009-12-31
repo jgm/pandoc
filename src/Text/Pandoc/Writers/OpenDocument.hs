@@ -180,28 +180,29 @@ authorToOpenDocument name =
 -- | Convert Pandoc document to string in OpenDocument format.
 writeOpenDocument :: WriterOptions -> Pandoc -> String
 writeOpenDocument opts (Pandoc (Meta title authors date) blocks) =
-  let root     = inTags True "office:document-content" openDocumentNameSpaces
-      header   = when (writerStandalone opts) $ text (writerHeader opts)
-      title'   = case runState (wrap opts title) defaultWriterState of
-                   (t,_) -> if isEmpty t then empty else inHeaderTags 1 t
-      authors' = when (authors /= []) $ vcat (map authorToOpenDocument authors)
-      date'    = when (date    /= []) $
-                 inParagraphTagsWithStyle "Date" (text $ escapeStringForXML date)
-      meta     = when (writerStandalone opts) $ title' $$ authors' $$ date'
-      before   = writerIncludeBefore opts
-      after    = writerIncludeAfter opts
-      (doc, s) = runState (blocksToOpenDocument opts blocks) defaultWriterState
-      body     = (if null before then empty else text before) $$
-                 doc $$
-                 (if null after then empty else text after)
-      body'    = if writerStandalone opts
-                   then inTagsIndented "office:body" $
-                        inTagsIndented "office:text" (meta $$ body)
-                   else body
-      styles   = stTableStyles s ++ stParaStyles s ++ stTextStyles s
-      listStyle (n,l) = inTags True "text:list-style" [("style:name", "L" ++ show n)] (vcat l)
-      listStyles  = map listStyle (stListStyles s)
-  in  render $ header $$ root (generateStyles (styles ++ listStyles) $$ body' $$ text "")
+  "" -- TODO
+--  let root     = inTags True "office:document-content" openDocumentNameSpaces
+--      header   = when (writerStandalone opts) $ text (writerHeader opts)
+--      title'   = case runState (wrap opts title) defaultWriterState of
+--                   (t,_) -> if isEmpty t then empty else inHeaderTags 1 t
+--      authors' = when (authors /= []) $ vcat (map authorToOpenDocument authors)
+--      date'    = when (date    /= []) $
+--                 inParagraphTagsWithStyle "Date" (text $ escapeStringForXML date)
+--      meta     = when (writerStandalone opts) $ title' $$ authors' $$ date'
+--      before   = writerIncludeBefore opts
+--      after    = writerIncludeAfter opts
+--      (doc, s) = runState (blocksToOpenDocument opts blocks) defaultWriterState
+--      body     = (if null before then empty else text before) $$
+--                 doc $$
+--                 (if null after then empty else text after)
+--      body'    = if writerStandalone opts
+--                   then inTagsIndented "office:body" $
+--                        inTagsIndented "office:text" (meta $$ body)
+--                   else body
+--      styles   = stTableStyles s ++ stParaStyles s ++ stTextStyles s
+--      listStyle (n,l) = inTags True "text:list-style" [("style:name", "L" ++ show n)] (vcat l)
+--      listStyles  = map listStyle (stListStyles s)
+--  in  render $ header $$ root (generateStyles (styles ++ listStyles) $$ body' $$ text "")
 
 withParagraphStyle :: WriterOptions -> String -> [Block] -> State WriterState Doc
 withParagraphStyle  o s (b:bs)

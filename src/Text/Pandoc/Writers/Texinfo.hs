@@ -68,56 +68,58 @@ wrapTop (Pandoc (Meta title authors date) blocks) =
 
 pandocToTexinfo :: WriterOptions -> Pandoc -> State WriterState Doc
 pandocToTexinfo options (Pandoc meta blocks) = do
-  main     <- blockListToTexinfo blocks
-  head'    <- if writerStandalone options
-                 then texinfoHeader options meta
-                 else return empty
-  let before = if null (writerIncludeBefore options)
-                  then empty
-                  else text (writerIncludeBefore options)
-  let after  = if null (writerIncludeAfter options)
-                  then empty
-                  else text (writerIncludeAfter options)
-  let body = before $$ main $$ after
-  -- XXX toc untested
-  let toc  =  if writerTableOfContents options
-                 then text "@contents"
-                 else empty 
-  let foot = if writerStandalone options
-                then text "@bye"
-                else empty 
-  return $ head' $$ toc $$ body $$ foot
+  return empty -- TODO
+--  main     <- blockListToTexinfo blocks
+--  head'    <- if writerStandalone options
+--                 then texinfoHeader options meta
+--                 else return empty
+--  let before = if null (writerIncludeBefore options)
+--                  then empty
+--                  else text (writerIncludeBefore options)
+--  let after  = if null (writerIncludeAfter options)
+--                  then empty
+--                  else text (writerIncludeAfter options)
+--  let body = before $$ main $$ after
+--  -- XXX toc untested
+--  let toc  =  if writerTableOfContents options
+--                 then text "@contents"
+--                 else empty 
+--  let foot = if writerStandalone options
+--                then text "@bye"
+--                else empty 
+--  return $ head' $$ toc $$ body $$ foot
 
 -- | Insert bibliographic information into Texinfo header.
 texinfoHeader :: WriterOptions -- ^ Options, including Texinfo header
               -> Meta          -- ^ Meta with bibliographic information
               -> State WriterState Doc
 texinfoHeader options (Meta title authors date) = do
-  titletext <- if null title
-                  then return empty
-                  else do
-                    t <- inlineListToTexinfo title
-                    return $ text "@title " <> t
-  headerIncludes <- get >>= return . S.toList . stIncludes
-  let extras = text $ unlines headerIncludes
-  let authorstext = map makeAuthor authors
-  let datetext  = if date == ""
-                     then empty 
-                     else text $ stringToTexinfo date
-
-  let baseHeader = case writerHeader options of
-                         ""  -> empty
-                         x   -> text x
-  let header     = text "@documentencoding utf-8" $$ baseHeader $$ extras
-  return $ text "\\input texinfo" $$
-           header $$
-	   text "@ifnottex" $$
-	   text "@paragraphindent 0" $$
-	   text "@end ifnottex" $$
-           text "@titlepage" $$
-           titletext $$ vcat authorstext $$
-           datetext $$
-           text "@end titlepage"
+  return empty -- TODO
+--  titletext <- if null title
+--                  then return empty
+--                  else do
+--                    t <- inlineListToTexinfo title
+--                    return $ text "@title " <> t
+--  headerIncludes <- get >>= return . S.toList . stIncludes
+--  let extras = text $ unlines headerIncludes
+--  let authorstext = map makeAuthor authors
+--  let datetext  = if date == ""
+--                     then empty 
+--                     else text $ stringToTexinfo date
+--
+--  let baseHeader = case writerHeader options of
+--                         ""  -> empty
+--                         x   -> text x
+--  let header     = text "@documentencoding utf-8" $$ baseHeader $$ extras
+--  return $ text "\\input texinfo" $$
+--           header $$
+--	   text "@ifnottex" $$
+--	   text "@paragraphindent 0" $$
+--	   text "@end ifnottex" $$
+--           text "@titlepage" $$
+--           titletext $$ vcat authorstext $$
+--           datetext $$
+--           text "@end titlepage"
 
 makeAuthor :: String -> Doc
 makeAuthor author = text $ "@author " ++ (stringToTexinfo author)

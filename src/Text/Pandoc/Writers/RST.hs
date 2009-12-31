@@ -57,26 +57,27 @@ writeRST opts document =
 -- | Return RST representation of document.
 pandocToRST :: Pandoc -> State WriterState Doc
 pandocToRST (Pandoc meta blocks) = do
-  opts <- get >>= (return . stOptions)
-  let before  = writerIncludeBefore opts
-      after   = writerIncludeAfter opts
-      header  = writerHeader opts
-      before' = if null before then empty else text before
-      after'  = if null after then empty else text after
-      header' = if null header then empty else text header
-  metaBlock <- metaToRST opts meta
-  let head' = if (writerStandalone opts)
-                 then metaBlock $+$ header'
-                 else empty
-  body <- blockListToRST blocks
-  includes <- get >>= (return . concat . stIncludes)
-  let includes' = if null includes then empty else text includes
-  notes <- get >>= (notesToRST . reverse . stNotes)
-  -- note that the notes may contain refs, so we do them first
-  refs <- get >>= (keyTableToRST . reverse . stLinks)
-  pics <- get >>= (pictTableToRST . reverse . stImages)
-  return $ head' $+$ before' $+$ includes' $+$ body $+$ notes $+$ text "" $+$
-           refs $+$ pics $+$ after'
+  return empty -- TODO
+--  opts <- get >>= (return . stOptions)
+--  let before  = writerIncludeBefore opts
+--      after   = writerIncludeAfter opts
+--      header  = writerHeader opts
+--      before' = if null before then empty else text before
+--      after'  = if null after then empty else text after
+--      header' = if null header then empty else text header
+--  metaBlock <- metaToRST opts meta
+--  let head' = if (writerStandalone opts)
+--                 then metaBlock $+$ header'
+--                 else empty
+--  body <- blockListToRST blocks
+--  includes <- get >>= (return . concat . stIncludes)
+--  let includes' = if null includes then empty else text includes
+--  notes <- get >>= (notesToRST . reverse . stNotes)
+--  -- note that the notes may contain refs, so we do them first
+--  refs <- get >>= (keyTableToRST . reverse . stLinks)
+--  pics <- get >>= (pictTableToRST . reverse . stImages)
+--  return $ head' $+$ before' $+$ includes' $+$ body $+$ notes $+$ text "" $+$
+--           refs $+$ pics $+$ after'
 
 -- | Return RST representation of reference key table.
 keyTableToRST :: KeyTable -> State WriterState Doc

@@ -37,17 +37,18 @@ import Data.Char ( ord, isDigit )
 -- | Convert Pandoc to a string in rich text format.
 writeRTF :: WriterOptions -> Pandoc -> String
 writeRTF options (Pandoc meta blocks) = 
-  let head' = if writerStandalone options
-                 then rtfHeader (writerHeader options) meta 
-                 else ""
-      toc  = if writerTableOfContents options
-                then tableOfContents $ filter isHeaderBlock blocks
-                else "" 
-      foot = if writerStandalone options then "\n}\n" else "" 
-      body = writerIncludeBefore options ++ 
-             concatMap (blockToRTF 0 AlignDefault) blocks ++ 
-             writerIncludeAfter options
-  in  head' ++ toc ++ body ++ foot
+  "" -- TODO
+--  let head' = if writerStandalone options
+--                 then rtfHeader (writerHeader options) meta 
+--                 else ""
+--      toc  = if writerTableOfContents options
+--                then tableOfContents $ filter isHeaderBlock blocks
+--                else "" 
+--      foot = if writerStandalone options then "\n}\n" else "" 
+--      body = writerIncludeBefore options ++ 
+--             concatMap (blockToRTF 0 AlignDefault) blocks ++ 
+--             writerIncludeAfter options
+--  in  head' ++ toc ++ body ++ foot
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: [Block] -> String 

@@ -52,20 +52,21 @@ writeMediaWiki opts document =
 -- | Return MediaWiki representation of document.
 pandocToMediaWiki :: WriterOptions -> Pandoc -> State WriterState String
 pandocToMediaWiki opts (Pandoc _ blocks) = do
-  let before  = writerIncludeBefore opts
-  let after   = writerIncludeAfter opts
-  let head' = if writerStandalone opts
-                then writerHeader opts
-                else ""
-  let toc = if writerTableOfContents opts 
-               then "__TOC__\n"
-               else ""
-  body <- blockListToMediaWiki opts blocks
-  notesExist <- get >>= return . stNotes
-  let notes = if notesExist
-                 then "\n== Notes ==\n<references />"
-                 else "" 
-  return $ head' ++ before ++ toc ++ body ++ after ++ notes
+  return "" -- TODO
+--  let before  = writerIncludeBefore opts
+--  let after   = writerIncludeAfter opts
+--  let head' = if writerStandalone opts
+--                then writerHeader opts
+--                else ""
+--  let toc = if writerTableOfContents opts 
+--               then "__TOC__\n"
+--               else ""
+--  body <- blockListToMediaWiki opts blocks
+--  notesExist <- get >>= return . stNotes
+--  let notes = if notesExist
+--                 then "\n== Notes ==\n<references />"
+--                 else "" 
+--  return $ head' ++ before ++ toc ++ body ++ after ++ notes
 
 -- | Escape special characters for MediaWiki.
 escapeString :: String -> String

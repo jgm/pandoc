@@ -138,9 +138,6 @@ data Opt = Opt
     , optTemplate          :: String  -- ^ Custom template
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optIncludeInHeader   :: String  -- ^ File to include in header
-    , optIncludeBeforeBody :: String  -- ^ File to include at top of body
-    , optIncludeAfterBody  :: String  -- ^ File to include at end of body
-    , optTitlePrefix       :: String  -- ^ Optional prefix for HTML title
     , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optIncremental       :: Bool    -- ^ Use incremental lists in S5
@@ -177,9 +174,6 @@ defaultOpts = Opt
     , optTemplate          = ""
     , optVariables         = []
     , optIncludeInHeader   = ""
-    , optIncludeBeforeBody = ""
-    , optIncludeAfterBody  = ""
-    , optTitlePrefix       = ""
     , optOutputFile        = "-"    -- "-" means stdout
     , optNumberSections    = False
     , optIncremental       = False
@@ -367,18 +361,28 @@ options =
     , Option "B" ["include-before-body"]
                  (ReqArg
                   (\arg opt -> do
-                     let old = optIncludeBeforeBody opt
                      text <- readFile arg
-                     return opt { optIncludeBeforeBody = old ++ text })
+                     let oldvars = optVariables opt
+                     let newvars = case lookup "before" oldvars of
+                                        Nothing -> ("before", text) : oldvars
+                                        Just b  -> ("before", b ++ text) :
+                                                    filter ((/= "before") . fst)
+                                                     oldvars
+                     return opt { optVariables = newvars })
                   "FILENAME")
                  "" -- "File to include before document body"
 
     , Option "A" ["include-after-body"]
                  (ReqArg
                   (\arg opt -> do
-                     let old = optIncludeAfterBody opt
                      text <- readFile arg
-                     return opt { optIncludeAfterBody = old ++ text })
+                     let oldvars = optVariables opt
+                     let newvars = case lookup "after" oldvars of
+                                        Nothing -> ("after", text) : oldvars
+                                        Just a  -> ("after", a ++ text) :
+                                                    filter ((/= "after") . fst)
+                                                     oldvars
+                     return opt { optVariables = newvars })
                   "FILENAME")
                  "" -- "File to include after document body"
 
@@ -397,8 +401,10 @@ options =
 
     , Option "T" ["title-prefix"]
                  (ReqArg
-                  (\arg opt -> return opt { optTitlePrefix = arg,
-                                            optStandalone = True })
+                  (\arg opt -> do
+                    let newvars = ("title-prefix", arg) : optVariables opt
+                    return opt { optVariables = newvars,
+                                 optStandalone = True })
                   "STRING")
                  "" -- "String to prefix to HTML window title"
 
@@ -549,9 +555,6 @@ main = do
               , optTableOfContents   = toc
               , optTemplate          = template
               , optIncludeInHeader   = includeHeader
-              , optIncludeBeforeBody = includeBefore
-              , optIncludeAfterBody  = includeAfter
-              , optTitlePrefix       = titlePrefix
               , optOutputFile        = outputFile
               , optNumberSections    = numberSections
               , optIncremental       = incremental
@@ -633,12 +636,10 @@ main = do
                    [("header-includes", includeHeader)] ++
                    variables
   let writerOptions = WriterOptions { writerStandalone       = standalone',
-                                      writerTemplate         = defaultTemplate,
-                                      writerVariables        = variables',
-                                      writerHeader           = if null template
+                                      writerTemplate         = if null template
                                                                   then defaultTemplate
                                                                   else template,
-                                      writerTitlePrefix      = titlePrefix,
+                                      writerVariables        = variables',
                                       writerTabStop          = tabStop,
                                       writerTableOfContents  = toc &&
                                                                writerName' /= "s5",
@@ -647,8 +648,6 @@ main = do
                                       writerIgnoreNotes      = False,
                                       writerIncremental      = incremental,
                                       writerNumberSections   = numberSections,
-                                      writerIncludeBefore    = includeBefore,
-                                      writerIncludeAfter     = includeAfter,
                                       writerStrictMarkdown   = strict,
                                       writerReferenceLinks   = referenceLinks,
                                       writerWrapText         = wrap,

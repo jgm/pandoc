@@ -88,63 +88,64 @@ writeHtmlString opts =
 
 -- | Convert Pandoc document to Html structure.
 writeHtml :: WriterOptions -> Pandoc -> Html
-writeHtml opts (Pandoc (Meta tit authors date) blocks) = 
-  let titlePrefix = writerTitlePrefix opts
-      (topTitle,st) = runState (inlineListToHtml opts tit) defaultWriterState
-      topTitle''  = stripTags $ showHtmlFragment topTitle
-      topTitle'   = titlePrefix ++
-                    (if null topTitle'' || null titlePrefix
-                        then ""
-                        else " - ") ++ topTitle''
-      metadata    = thetitle << topTitle' +++
-                    meta ! [httpequiv "Content-Type", 
-                            content "text/html; charset=UTF-8"] +++
-                    meta ! [name "generator", content "pandoc"] +++
-                    (toHtmlFromList $ 
-                    map (\a -> meta ! [name "author", content a]) authors) +++
-                    (if null date
-                       then noHtml
-                       else meta ! [name "date", content date])
-      titleHeader = if writerStandalone opts && not (null tit) && 
-                    not (writerS5 opts)
-                        then h1 ! [theclass "title"] $ topTitle
-                        else noHtml
-      sects        = hierarchicalize blocks
-      toc          = if writerTableOfContents opts 
-                        then evalState (tableOfContents opts sects) st
-                        else noHtml
-      (blocks', st') = runState
-                       (mapM (elementToHtml opts) sects >>= return . toHtmlFromList)
-                       st
-      cssLines     = stCSS st'
-      css          = if S.null cssLines
-                        then noHtml
-                        else style ! [thetype "text/css"] $ primHtml $
-                             '\n':(unlines $ S.toList cssLines)
-      math         = if stMath st'
-                        then case writerHTMLMathMethod opts of
-                                   LaTeXMathML Nothing -> 
-                                      primHtml latexMathMLScript
-                                   LaTeXMathML (Just url) ->
-                                      script ! 
-                                      [src url, thetype "text/javascript"] $
-                                      noHtml
-                                   JsMath (Just url) ->
-                                      script !
-                                      [src url, thetype "text/javascript"] $
-                                      noHtml
-                                   _ -> noHtml
-                        else noHtml
-      head'        = header $ metadata +++ math +++ css +++ 
-                              primHtml (renderTemplate [] $ writerHeader opts)
-      notes        = reverse (stNotes st')
-      before       = primHtml $ writerIncludeBefore opts
-      after        = primHtml $ writerIncludeAfter opts
-      thebody      = before +++ titleHeader +++ toc +++ blocks' +++
-                     footnoteSection notes +++ after
-  in  if writerStandalone opts
-         then head' +++ body thebody
-         else thebody
+writeHtml opts (Pandoc (Meta tit authors date) blocks) =
+  noHtml -- TODO
+--  let titlePrefix = writerTitlePrefix opts
+--      (topTitle,st) = runState (inlineListToHtml opts tit) defaultWriterState
+--      topTitle''  = stripTags $ showHtmlFragment topTitle
+--      topTitle'   = titlePrefix ++
+--                    (if null topTitle'' || null titlePrefix
+--                        then ""
+--                        else " - ") ++ topTitle''
+--      metadata    = thetitle << topTitle' +++
+--                    meta ! [httpequiv "Content-Type", 
+--                            content "text/html; charset=UTF-8"] +++
+--                    meta ! [name "generator", content "pandoc"] +++
+--                    (toHtmlFromList $ 
+--                    map (\a -> meta ! [name "author", content a]) authors) +++
+--                    (if null date
+--                       then noHtml
+--                       else meta ! [name "date", content date])
+--      titleHeader = if writerStandalone opts && not (null tit) && 
+--                    not (writerS5 opts)
+--                        then h1 ! [theclass "title"] $ topTitle
+--                        else noHtml
+--      sects        = hierarchicalize blocks
+--      toc          = if writerTableOfContents opts 
+--                        then evalState (tableOfContents opts sects) st
+--                        else noHtml
+--      (blocks', st') = runState
+--                       (mapM (elementToHtml opts) sects >>= return . toHtmlFromList)
+--                       st
+--      cssLines     = stCSS st'
+--      css          = if S.null cssLines
+--                        then noHtml
+--                        else style ! [thetype "text/css"] $ primHtml $
+--                             '\n':(unlines $ S.toList cssLines)
+--      math         = if stMath st'
+--                        then case writerHTMLMathMethod opts of
+--                                   LaTeXMathML Nothing -> 
+--                                      primHtml latexMathMLScript
+--                                   LaTeXMathML (Just url) ->
+--                                      script ! 
+--                                      [src url, thetype "text/javascript"] $
+--                                      noHtml
+--                                   JsMath (Just url) ->
+--                                      script !
+--                                      [src url, thetype "text/javascript"] $
+--                                      noHtml
+--                                   _ -> noHtml
+--                        else noHtml
+--      head'        = header $ metadata +++ math +++ css +++ 
+--                              primHtml (renderTemplate [] $ writerHeader opts)
+--      notes        = reverse (stNotes st')
+--      before       = primHtml $ writerIncludeBefore opts
+--      after        = primHtml $ writerIncludeAfter opts
+--      thebody      = before +++ titleHeader +++ toc +++ blocks' +++
+--                     footnoteSection notes +++ after
+--  in  if writerStandalone opts
+--         then head' +++ body thebody
+--         else thebody
 
 -- | Like Text.XHtml's identifier, but adds the writerIdentifierPrefix
 prefixedId :: WriterOptions -> String -> HtmlAttr
