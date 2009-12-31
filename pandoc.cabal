@@ -193,8 +193,8 @@ Library
                    Text.Pandoc.Templates
   Other-Modules:   Text.Pandoc.XML,
                    Paths_pandoc
-  Extensions:      CPP, TemplateHaskell, FlexibleInstances
-  Ghc-Options:     -O2 -Wall
+  Extensions:      CPP
+  Ghc-Options:     -O2 -Wall -fno-warn-unused-do-bind
   Ghc-Prof-Options: -auto-all -caf-all
 
   if flag(library)
@@ -205,9 +205,9 @@ Library
 Executable pandoc
   Hs-Source-Dirs:     src
   Main-Is:            pandoc.hs
-  Ghc-Options:        -O2 -Wall -threaded
+  Ghc-Options:        -O2 -Wall -fno-warn-unused-do-bind -threaded
   Ghc-Prof-Options:   -auto-all -caf-all
-  Extensions:         CPP, TemplateHaskell
+  Extensions:         CPP
 
   if flag(highlighting)
     cpp-options:   -D_HIGHLIGHTING
@@ -224,7 +224,7 @@ Executable hsmarkdown
   Main-Is:            hsmarkdown.hs
   Ghc-Options:        -Wall -threaded
   Ghc-Prof-Options:   -auto-all
-  Extensions:         CPP, TemplateHaskell
+  Extensions:         CPP
   if flag(wrappers)
     Buildable:      True
   else
@@ -235,7 +235,7 @@ Executable markdown2pdf
   Main-Is:            markdown2pdf.hs
   Ghc-Options:        -Wall -threaded
   Ghc-Prof-Options:   -auto-all
-  Extensions:         CPP, TemplateHaskell
+  Extensions:         CPP
   if flag(wrappers)
     Buildable:      True
   else
