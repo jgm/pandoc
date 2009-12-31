@@ -35,7 +35,7 @@ import Text.Pandoc.Templates
 import Text.Pandoc.Shared 
 import Text.Pandoc.Blocks
 import Text.ParserCombinators.Parsec ( parse, GenParser )
-import Data.List ( group, isPrefixOf, drop, find, intersperse, intercalate, transpose )
+import Data.List ( group, isPrefixOf, drop, find, intersperse, transpose )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 
@@ -128,13 +128,13 @@ titleToMarkdown opts lst = do
   return $ text "% " <> contents 
 
 authorsToMarkdown :: WriterOptions -> [[Inline]] -> State WriterState Doc
-authorsToMarkdown opts [] = return empty
+authorsToMarkdown _ [] = return empty
 authorsToMarkdown opts lst = do
   authors <- mapM (inlineListToMarkdown opts) lst 
   return $ text "% " <> (hcat $ intersperse (text ", ") authors)
 
 dateToMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
-dateToMarkdown opts [] = return empty
+dateToMarkdown _ [] = return empty
 dateToMarkdown opts str = do
   date <- inlineListToMarkdown opts str
   return $ text "% " <> date
