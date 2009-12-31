@@ -35,7 +35,6 @@ import Text.Printf ( printf )
 import Data.List ( (\\), isSuffixOf, intersperse )
 import Data.Char ( toLower )
 import Control.Monad.State
-import Control.Monad (liftM)
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
 data WriterState = 

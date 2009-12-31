@@ -32,9 +32,8 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.ODT
 import Text.Pandoc.Writers.S5 (s5HeaderIncludes)
-import Text.Pandoc.Templates (getDefaultTemplate)
 import Text.Pandoc.LaTeXMathML (latexMathMLScript)
-import Text.Pandoc.Shared ( HTMLMathMethod (..), tabFilter, ObfuscationMethod (..) )
+import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..) )
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
 #endif

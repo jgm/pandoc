@@ -47,7 +47,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Data.Maybe ( fromMaybe )
-import Data.List ( takeWhile, dropWhile, isPrefixOf, isSuffixOf, intercalate )
+import Data.List ( isPrefixOf, isSuffixOf, intercalate )
 import Data.Char ( toLower, isAlphaNum )
 import Network.URI ( parseURIReference, URI (..) )
 

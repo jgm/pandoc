@@ -35,7 +35,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Shared 
 import Text.Pandoc.Blocks
 import Text.ParserCombinators.Parsec ( parse, GenParser )
-import Data.List ( group, isPrefixOf, drop, find, intersperse, transpose )
+import Data.List ( group, isPrefixOf, find, intersperse, transpose )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 

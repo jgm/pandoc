@@ -31,7 +31,7 @@ module Text.Pandoc.Readers.Markdown (
                                      readMarkdown 
                                     ) where
 
-import Data.List ( transpose, isPrefixOf, isSuffixOf, lookup, sortBy, findIndex, intercalate )
+import Data.List ( transpose, isPrefixOf, isSuffixOf, sortBy, findIndex, intercalate )
 import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum, isUpper )
 import Data.Maybe

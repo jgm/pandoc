@@ -33,7 +33,6 @@ import Text.Pandoc.Shared
 import Text.Printf ( printf )
 import Data.List ( isSuffixOf, intercalate, intersperse )
 import Control.Monad.State
-import Control.Monad (liftM)
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Text.Pandoc.Templates ( renderTemplate )
 

@@ -34,11 +34,10 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Blocks
 import Text.Pandoc.Templates (renderTemplate)
-import Data.List ( isPrefixOf, isSuffixOf, drop, intersperse, transpose )
+import Data.List ( isPrefixOf, isSuffixOf, intersperse, transpose )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 import Control.Applicative ( (<$>) )
-import Control.Monad (liftM)
 
 data WriterState = 
   WriterState { stNotes     :: [[Block]]

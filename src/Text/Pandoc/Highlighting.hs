@@ -33,7 +33,7 @@ import Text.XHtml
 import Text.Pandoc.Definition
 #ifdef _HIGHLIGHTING
 import Text.Highlighting.Kate ( languages, highlightAs, formatAsXHtml, FormatOption (..), defaultHighlightingCss, languagesByExtension )
-import Data.List (find, lookup)
+import Data.List (find)
 import Data.Maybe (fromMaybe)
 import Data.Char (toLower)
 

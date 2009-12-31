@@ -33,7 +33,7 @@ import Text.Pandoc.XML
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Readers.TeXMath
-import Data.List ( isPrefixOf, drop, intercalate )
+import Data.List ( isPrefixOf, intercalate )
 import Data.Char ( toLower )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Text.Pandoc.Highlighting (languages, languagesByExtension)

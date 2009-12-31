@@ -118,7 +118,7 @@ import Data.Char ( toLower, toUpper, ord, isLower, isUpper, isAlpha,
 import Data.List ( find, isPrefixOf, intercalate )
 import Network.URI ( parseURI, URI (..), isAllowedInURI )
 import System.Directory
-import System.FilePath ( FilePath, (</>) )
+import System.FilePath ( (</>) )
 -- Note: ghc >= 6.12 (base >=4.2) supports unicode through iconv
 -- So we use System.IO.UTF8 only if we have an earlier version
 #if MIN_VERSION_base(4,2,0)
