@@ -26,7 +26,6 @@ $endif$
 \usepackage[breaklinks=true]{hyperref}
 \usepackage{url}
 \usepackage{graphicx}
-
 \VerbatimFootnotes % allows verbatim text in footnotes
 
 $if(numbersections)$
