@@ -347,7 +347,7 @@ options =
                   (\arg opt ->
                      case break (`elem` ":=") arg of
                           (k,_:v) -> do
-                            let newvars = (k, v) : optVariables opt
+                            let newvars = optVariables opt ++ [(k,v)]
                             return opt{ optVariables = newvars }
                           _  -> do
                             hPutStrLn stderr $ "Could not parse `" ++ arg ++ "' as a key/value pair (k=v or k:v)"
@@ -358,7 +358,8 @@ options =
     , Option "c" ["css"]
                  (ReqArg
                   (\arg opt -> do
-                     let newvars = ("css",arg) : optVariables opt
+                     -- add new link to end, so it is included in proper order
+                     let newvars = optVariables opt ++ [("css",arg)]
                      return opt { optVariables = newvars,
                                   optStandalone = True })
                   "URL")
@@ -368,7 +369,8 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      text <- readFile arg
-                     let newvars = ("header-includes",text) : optVariables opt
+                     -- add new ones to end, so they're included in order specified
+                     let newvars = optVariables opt ++ [("header-includes",text)]
                      return opt { optVariables = newvars,
                                   optStandalone = True })
                   "FILENAME")
@@ -379,7 +381,8 @@ options =
                   (\arg opt -> do
                      text <- readFile arg
                      let oldBefore = optBefore opt
-                     return opt { optBefore = text : oldBefore })
+                     -- add new text to end, so it is included in proper order
+                     return opt { optBefore =  oldBefore ++ [text] })
                   "FILENAME")
                  "" -- "File to include before document body"
 
@@ -388,7 +391,8 @@ options =
                   (\arg opt -> do
                      text <- readFile arg
                      let oldAfter = optAfter opt
-                     return opt { optAfter = text : oldAfter })
+                     -- add new text to end, so it is included in proper order
+                     return opt { optAfter = oldAfter ++ [text]})
                   "FILENAME")
                  "" -- "File to include after document body"
 
@@ -625,11 +629,7 @@ main = do
   variables' <- if writerName' == "s5" && standalone'
                    then do
                      inc <- s5HeaderIncludes
-                     return $ case lookup "header-includes" variables of
-                               Nothing -> ("header-includes", inc) : variables
-                               Just a  -> ("header-includes", a ++ inc) :
-                                          filter ((/= "header-includes") . fst)
-                                          variables
+                     return $ ("header-includes", inc) : variables
                    else return variables
 
   variables'' <- case mathMethod of

@@ -71,9 +71,9 @@ after={\blank[medium]},
 
 \protect
 $endif$
-$if(header-includes)$
+$for(header-includes)$
 $header-includes$
-$endif$
+$endfor$
 
 $if(title)$
 \doctitle{$title$}

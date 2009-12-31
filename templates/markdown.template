@@ -4,10 +4,10 @@ $if(titleblock)$
 % $date$
 
 $endif$
-$if(header-includes)$
+$for(header-includes)$
 $header-includes$
 
-$endif$
+$endfor$
 $if(toc)$
 $toc$
 

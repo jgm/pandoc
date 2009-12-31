@@ -31,9 +31,9 @@ $if(numbersections)$
 $else$
 \setcounter{secnumdepth}{0}
 $endif$
-$if(header-includes)$
+$for(header-includes)$
 $header-includes$
-$endif$
+$endfor$
 
 $if(title)$
 \title{$title$}

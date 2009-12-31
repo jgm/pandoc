@@ -1,5 +1,14 @@
 $if(titleblock)$
-$titleblock$
+$if(title)$
+$title$
+
+$endif$
+$if(authors)$
+$authors$
+$endif$
+$if(date)$
+Date: $date$
+$endif$
 
 $endif$
 $if(math)$
@@ -7,8 +16,12 @@ $if(math)$
    :format: html latex
 
 $endif$
-$if(header-includes)$
-$header-includes$
+$if(toc)$
+.. contents::
 
 $endif$
+$for(header-includes)$
+$header-includes$
+
+$endfor$
 $body$
