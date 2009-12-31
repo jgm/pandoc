@@ -68,7 +68,7 @@ setextHChars = "=-"
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
-specialChars = "\\[]*_~`<>$!^-.&'\"\8216\8217\8220\8221"
+specialChars = "\\[]*_~`<>$!^-.&'\"\8216\8217\8220\8221;"
 
 --
 -- auxiliary functions
@@ -136,7 +136,7 @@ authorsLine :: GenParser Char ParserState [[Inline]]
 authorsLine = try $ do 
   char '%'
   skipSpaces
-  authors <- sepEndBy (many1 (notFollowedBy (oneOf ",;\n") >> inline)) (oneOf ",;")
+  authors <- sepEndBy (many1 (notFollowedBy (oneOf ";\n") >> inline)) (oneOf ";")
   newline
   return $ map normalizeSpaces authors
 
