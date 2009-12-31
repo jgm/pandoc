@@ -56,7 +56,8 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
   titletext <- if null title
                   then return ""
                   else liftM render $ inlineListToLaTeX title
-  let context  = [ ("before", writerIncludeBefore options)
+  let context  = writerVariables options ++
+                 [ ("before", writerIncludeBefore options)
                  , ("after", writerIncludeAfter options)
                  , ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
