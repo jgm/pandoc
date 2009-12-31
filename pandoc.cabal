@@ -126,7 +126,6 @@ Extra-Source-Files:
                  tests/lhs-test.html,
                  tests/lhs-test.html+lhs,
                  tests/lhs-test.fragment.html+lhs,
-                 tests/Diff.hs,
                  tests/RunTests.hs
 Extra-Tmp-Files: man/man1/pandoc.1, man/man1/hsmarkdown.1,
                  man/man1/html2markdown.1, man/man1/markdown2pdf.1
