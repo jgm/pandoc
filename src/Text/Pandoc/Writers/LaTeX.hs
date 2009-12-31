@@ -30,81 +30,45 @@ Conversion of 'Pandoc' format into LaTeX.
 module Text.Pandoc.Writers.LaTeX ( writeLaTeX ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Pandoc.Templates
 import Text.Printf ( printf )
 import Data.List ( (\\), isSuffixOf, intercalate, intersperse )
 import Data.Char ( toLower )
-import qualified Data.Set as S
 import Control.Monad.State
 import Control.Monad (liftM)
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
 data WriterState = 
-  WriterState { stIncludes :: S.Set String  -- strings to include in header
-              , stInNote   :: Bool          -- @True@ if we're in a note
+  WriterState { stInNote   :: Bool          -- @True@ if we're in a note
               , stOLLevel  :: Int           -- level of ordered list nesting
               , stOptions  :: WriterOptions -- writer options, so they don't have to be parameter 
               }
 
--- | Add line to header.
-addToHeader :: String -> State WriterState ()
-addToHeader str = do
-  st <- get
-  let includes = stIncludes st
-  put st {stIncludes = S.insert str includes}
-
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: WriterOptions -> Pandoc -> String
 writeLaTeX options document = 
-  render $ evalState (pandocToLaTeX options document) $ 
-  WriterState { stIncludes = S.empty, stInNote = False, stOLLevel = 1, stOptions = options } 
+  evalState (pandocToLaTeX options document) $ 
+  WriterState { stInNote = False, stOLLevel = 1, stOptions = options } 
 
-pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState Doc
-pandocToLaTeX options (Pandoc meta blocks) = do
-  main     <- blockListToLaTeX blocks
-  head'    <- if writerStandalone options
-                 then latexHeader options meta
-                 else return empty
-  let before = if null (writerIncludeBefore options)
-                  then empty
-                  else text (writerIncludeBefore options)
-  let after  = if null (writerIncludeAfter options)
-                  then empty
-                  else text (writerIncludeAfter options)
-  let body = before $$ main $$ after
-  let toc  =  if writerTableOfContents options
-                 then text "\\tableofcontents\n"
-                 else empty 
-  let foot = if writerStandalone options
-                then text "\\end{document}"
-                else empty 
-  return $ head' $$ toc $$ body $$ foot
-
--- | Insert bibliographic information into LaTeX header.
-latexHeader :: WriterOptions -- ^ Options, including LaTeX header
-            -> Meta          -- ^ Meta with bibliographic information
-            -> State WriterState Doc
-latexHeader options (Meta title authors date) = do
+pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
+pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
+  main <- liftM render $ blockListToLaTeX blocks
   titletext <- if null title
-                  then return empty
-                  else inlineListToLaTeX title >>= return . inCmd "title"
-  headerIncludes <- get >>= return . S.toList . stIncludes
-  let extras = text $ unlines headerIncludes
-  let verbatim  = if "\\usepackage{fancyvrb}" `elem` headerIncludes
-                     then text "\\VerbatimFootnotes % allows verbatim text in footnotes"
-                     else empty
-  let authorstext = text $ "\\author{" ++ 
-                    intercalate "\\\\" (map stringToLaTeX authors) ++ "}"
-  let datetext  = if date == ""
-                     then empty 
-                     else text $ "\\date{" ++ stringToLaTeX date ++ "}"
-  let maketitle = if null title then empty else text "\\maketitle"
-  let secnumline = if (writerNumberSections options)
-                      then empty 
-                      else text "\\setcounter{secnumdepth}{0}"
-  let baseHeader = text $ writerHeader options
-  let header     = baseHeader $$ extras
-  return $ header $$ secnumline $$ verbatim $$ titletext $$ authorstext $$
-           datetext $$ text "\\begin{document}" $$ maketitle $$ text ""
+                  then return ""
+                  else liftM render $ inlineListToLaTeX title
+  let context  = [ ("before", writerIncludeBefore options)
+                 , ("after", writerIncludeAfter options)
+                 , ("toc", if writerTableOfContents options then "yes" else "")
+                 , ("body", main)
+                 , ("title", titletext)
+                 , ("authors", intercalate "\\\\" $ map stringToLaTeX authors)
+                 , ("date", stringToLaTeX date) ]
+  let templ = if writerStandalone options
+                 then writerHeader options
+                 else "$if(toc)$\\tableofcontents\n$endif$" ++
+                      "$if(before)$$before$\n$endif$" ++
+                      "$body$$if(after)$$after$\n$endif$"
+  return $ renderTemplate context templ
 
 -- escape things as needed for LaTeX
 
@@ -150,13 +114,12 @@ blockToLaTeX (BlockQuote lst) = do
   return $ text "\\begin{quote}" $$ contents $$ text "\\end{quote}"
 blockToLaTeX (CodeBlock (_,classes,_) str) = do
   st <- get
-  env <- if writerLiterateHaskell (stOptions st) && "haskell" `elem` classes &&
+  let env = if writerLiterateHaskell (stOptions st) && "haskell" `elem` classes &&
                     "literate" `elem` classes
-            then return "code"
-            else if stInNote st
-                    then do addToHeader "\\usepackage{fancyvrb}"
-                            return "Verbatim"
-                    else return "verbatim"
+               then "code"
+               else if stInNote st
+                       then "Verbatim"
+                       else "verbatim"
   return $ text ("\\begin{" ++ env ++ "}\n") <> text str <> 
            text ("\n\\end{" ++ env ++ "}")
 blockToLaTeX (RawHtml _) = return empty
@@ -169,12 +132,11 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   put $ st {stOLLevel = oldlevel + 1}
   items <- mapM listItemToLaTeX lst
   modify (\s -> s {stOLLevel = oldlevel})
-  exemplar <- if numstyle /= DefaultStyle || numdelim /= DefaultDelim
-                 then do addToHeader "\\usepackage{enumerate}"
-                         return $ char '[' <> 
-                                  text (head (orderedListMarkers (1, numstyle,
-                                  numdelim))) <> char ']'
-                 else return empty
+  let exemplar = if numstyle /= DefaultStyle || numdelim /= DefaultDelim
+                    then char '[' <> 
+                          text (head (orderedListMarkers (1, numstyle,
+                               numdelim))) <> char ']'
+                    else empty
   let resetcounter = if start /= 1 && oldlevel <= 4
                         then text $ "\\setcounter{enum" ++ 
                              map toLower (toRomanNumeral oldlevel) ++
@@ -214,10 +176,6 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
                   headers $$ text "\\hline" $$ vcat rows' $$ 
                   text "\\end{tabular}" 
   let centered txt = text "\\begin{center}" $$ txt $$ text "\\end{center}"
-  addToHeader $ "\\usepackage{array}\n" ++
-    "% This is needed because raggedright in table elements redefines \\\\:\n" ++
-    "\\newcommand{\\PreserveBackslash}[1]{\\let\\temp=\\\\#1\\let\\\\=\\temp}\n" ++
-    "\\let\\PBS=\\PreserveBackslash"
   return $ if isEmpty captionText
               then centered tableBody <> char '\n'
               else text "\\begin{table}[h]" $$ centered tableBody $$ 
@@ -276,7 +234,6 @@ inlineToLaTeX (Strong lst) =
   inlineListToLaTeX (deVerb lst) >>= return . inCmd "textbf" 
 inlineToLaTeX (Strikeout lst) = do
   contents <- inlineListToLaTeX $ deVerb lst
-  addToHeader "\\usepackage[normalem]{ulem}"
   return $ inCmd "sout" contents
 inlineToLaTeX (Superscript lst) = 
   inlineListToLaTeX (deVerb lst) >>= return . inCmd "textsuperscript"
@@ -284,17 +241,12 @@ inlineToLaTeX (Subscript lst) = do
   contents <- inlineListToLaTeX $ deVerb lst
   -- oddly, latex includes \textsuperscript but not \textsubscript
   -- so we have to define it (using a different name so as not to conflict with memoir class):
-  addToHeader "\\newcommand{\\textsubscr}[1]{\\ensuremath{_{\\scriptsize\\textrm{#1}}}}"
   return $ inCmd "textsubscr" contents
 inlineToLaTeX (SmallCaps lst) =
   inlineListToLaTeX (deVerb lst) >>= return . inCmd "textsc"
 inlineToLaTeX (Cite _ lst) =
   inlineListToLaTeX lst
 inlineToLaTeX (Code str) = do
-  st <- get
-  if stInNote st
-     then do addToHeader "\\usepackage{fancyvrb}"
-     else return ()
   let chr = ((enumFromTo '!' '~') \\ str) !! 0
   return $ text $ "\\verb" ++ [chr] ++ str ++ [chr]
 inlineToLaTeX (Quoted SingleQuote lst) = do
@@ -327,16 +279,13 @@ inlineToLaTeX (HtmlInline _) = return empty
 inlineToLaTeX (LineBreak) = return $ text "\\\\" 
 inlineToLaTeX Space = return $ char ' '
 inlineToLaTeX (Link txt (src, _)) = do
-  addToHeader "\\usepackage[breaklinks=true]{hyperref}"
   case txt of
         [Code x] | x == src ->  -- autolink
-             do addToHeader "\\usepackage{url}" 
-                return $ text $ "\\url{" ++ x ++ "}"
+             do return $ text $ "\\url{" ++ x ++ "}"
         _ -> do contents <- inlineListToLaTeX $ deVerb txt
                 return $ text ("\\href{" ++ src ++ "}{") <> contents <> 
                          char '}'
-inlineToLaTeX (Image _ (source, _)) = do
-  addToHeader "\\usepackage{graphicx}"
+inlineToLaTeX (Image _ (source, _)) =
   return $ text $ "\\includegraphics{" ++ source ++ "}" 
 inlineToLaTeX (Note contents) = do
   st <- get

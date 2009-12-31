@@ -4,22 +4,27 @@
 \usepackage[utf8x]{inputenc}
 \usepackage{listings}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{6pt plus 2pt minus 1pt}
-
+\usepackage{fancyvrb}
+\usepackage{enumerate}
+\usepackage{array}
+% This is needed because raggedright in table elements redefines \\:
+\newcommand{\PreserveBackslash}[1]{\let\temp=\\#1\let\\=\temp}
+\let\PBS=\PreserveBackslash
+\usepackage[normalem]{ulem}
 \newcommand{\textsubscr}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
 \usepackage[breaklinks=true]{hyperref}
-\usepackage[normalem]{ulem}
-\usepackage{enumerate}
-\usepackage{fancyvrb}
-\usepackage{graphicx}
 \usepackage{url}
+\usepackage{graphicx}
 
-\setcounter{secnumdepth}{0}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
 \VerbatimFootnotes % allows verbatim text in footnotes
+\setcounter{secnumdepth}{0}
+
 \title{Pandoc Test Suite}
 \author{John MacFarlane\\Anonymous}
 \date{July 17, 2006}
+
 \begin{document}
 \maketitle
 
@@ -847,3 +852,4 @@ This paragraph should not be part of the note, as it is not
 indented.
 
 \end{document}
+
