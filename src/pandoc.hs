@@ -617,6 +617,8 @@ main = do
                    then defaultHeader
                    else customHeader) ++ csslink ++ includeHeader
   let writerOptions = WriterOptions { writerStandalone       = standalone',
+                                      writerTemplate         = "", -- TODO
+                                      writerVariables        = [], -- TODO
                                       writerHeader           = header,
                                       writerTitlePrefix      = titlePrefix,
                                       writerTabStop          = tabStop,

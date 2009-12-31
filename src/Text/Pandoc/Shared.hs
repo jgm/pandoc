@@ -980,6 +980,8 @@ data ObfuscationMethod = NoObfuscation
 -- | Options for writers
 data WriterOptions = WriterOptions
   { writerStandalone       :: Bool   -- ^ Include header and footer
+  , writerTemplate         :: String -- ^ Template to use in standalone mode
+  , writerVariables        :: [(String, String)] -- ^ Variables to set in template
   , writerHeader           :: String -- ^ Header for the document
   , writerTitlePrefix      :: String -- ^ Prefix for HTML titles
   , writerTabStop          :: Int    -- ^ Tabstop for conversion btw spaces and tabs
@@ -1003,6 +1005,8 @@ data WriterOptions = WriterOptions
 defaultWriterOptions :: WriterOptions
 defaultWriterOptions = 
   WriterOptions { writerStandalone       = False
+                , writerTemplate         = ""
+                , writerVariables        = []
                 , writerHeader           = ""
                 , writerTitlePrefix      = ""
                 , writerTabStop          = 4
