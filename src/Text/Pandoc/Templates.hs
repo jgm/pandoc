@@ -52,6 +52,7 @@ import System.FilePath
 import System.Directory
 import Prelude hiding (readFile)
 import System.IO.UTF8 (readFile)
+import Text.Pandoc.Shared (readDataFile)
 import Paths_pandoc
 
 -- | Get the default template, either from the application's user data
@@ -73,9 +74,8 @@ getTemplateFromUserDataDirectory format = E.try $ do
   readFile templatePath
 
 getTemplateFromCabalDataDirectory :: String -> IO (Either E.IOException String)
-getTemplateFromCabalDataDirectory format = E.try $ do 
-  templatePath <- getDataFileName $ "templates" </> format <.> "template"
-  readFile templatePath
+getTemplateFromCabalDataDirectory format = E.try $
+  readDataFile $ "templates" </> format <.> "template"
 
 -- | Renders a template 
 renderTemplate :: [(String,String)]  -- ^ Assoc. list of values for variables

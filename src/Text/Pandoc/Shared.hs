@@ -104,7 +104,8 @@ module Text.Pandoc.Shared (
                      WriterOptions (..),
                      defaultWriterOptions,
                      -- * File handling
-                     inDirectory
+                     inDirectory,
+                     readDataFile
                     ) where
 
 import Text.Pandoc.Definition
@@ -122,6 +123,7 @@ import System.IO.UTF8
 import Data.Generics
 import qualified Control.Monad.State as S
 import Control.Monad (join)
+import Paths_pandoc (getDataFileName)
 
 --
 -- List processing
@@ -1030,3 +1032,7 @@ inDirectory path action = do
   result <- action
   setCurrentDirectory oldDir
   return result
+
+-- | Read file from the Cabal data directory.
+readDataFile :: FilePath -> IO String
+readDataFile fname = getDataFileName fname >>= readFile

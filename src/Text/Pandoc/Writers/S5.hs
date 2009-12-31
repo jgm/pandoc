@@ -37,7 +37,7 @@ module Text.Pandoc.Writers.S5 (
                 writeS5String,
                 insertS5Structure
                 ) where
-import Text.Pandoc.Shared ( WriterOptions )
+import Text.Pandoc.Shared ( WriterOptions, readDataFile )
 import Text.Pandoc.Writers.HTML ( writeHtml, writeHtmlString )
 import Text.Pandoc.Definition
 import Text.XHtml.Strict
@@ -45,10 +45,6 @@ import System.FilePath ( (</>) )
 import Data.List ( intercalate )
 import Prelude hiding (readFile)
 import System.IO.UTF8 (readFile)
-import Paths_pandoc (getDataFileName)
-
-readDataFile :: FilePath -> IO String
-readDataFile fname = getDataFileName fname >>= readFile
 
 s5HeaderIncludes :: IO String
 s5HeaderIncludes = do
