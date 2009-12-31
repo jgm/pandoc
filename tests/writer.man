@@ -776,4 +776,5 @@ In quote.
 .PP
 In list.
 .SH AUTHORS
-John MacFarlane, Anonymous
+John MacFarlane; Anonymous.
+

@@ -30,62 +30,56 @@ Conversion of 'Pandoc' documents to groff man page format.
 -}
 module Text.Pandoc.Writers.Man ( writeMan) where
 import Text.Pandoc.Definition
+import Text.Pandoc.Templates
 import Text.Pandoc.Shared
 import Text.Printf ( printf )
-import Data.List ( isPrefixOf, drop, nub, intersperse, intercalate )
+import Data.List ( isPrefixOf, drop, intersperse, intercalate )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 import Control.Monad ( liftM )
 
 type Notes = [[Block]]
-type Preprocessors = [String] -- e.g. "t" for tbl
-type WriterState = (Notes, Preprocessors)
+data WriterState = WriterState { stNotes  :: Notes
+                               , stHasTables :: Bool }
 
 -- | Convert Pandoc to Man.
 writeMan :: WriterOptions -> Pandoc -> String
-writeMan opts document = render $ evalState (pandocToMan opts document) ([],[]) 
+writeMan opts document = evalState (pandocToMan opts document) (WriterState [] False) 
 
 -- | Return groff man representation of document.
-pandocToMan :: WriterOptions -> Pandoc -> State WriterState Doc
-pandocToMan opts (Pandoc meta blocks) = do
-  return empty -- TODO
---  let before  = writerIncludeBefore opts
---  let after   = writerIncludeAfter opts
---  let before' = if null before then empty else text before
---  let after'  = if null after then empty else text after
---  (head', foot) <- metaToMan opts meta
---  body <- blockListToMan opts blocks
---  (notes, preprocessors) <- get
---  let preamble = if null preprocessors || not (writerStandalone opts)
---                    then empty
---                    else text $ ".\\\" " ++ concat (nub preprocessors)
---  notes' <- notesToMan opts (reverse notes)
---  return $ preamble $$ head' $$ before' $$ body $$ notes' $$ foot $$ after'
-
--- | Insert bibliographic information into Man header and footer.
-metaToMan :: WriterOptions -- ^ Options, including Man header
-          -> Meta          -- ^ Meta with bibliographic information
-          -> State WriterState (Doc, Doc)
-metaToMan options (Meta title authors date) = do
-  titleText <- inlineListToMan options title
-  authorsText <- mapM (inlineListToMan options) authors
-  dateText <- inlineListToMan options date 
+pandocToMan :: WriterOptions -> Pandoc -> State WriterState String
+pandocToMan opts (Pandoc (Meta title authors date) blocks) = do
+  let before  = writerIncludeBefore opts
+  let after   = writerIncludeAfter opts
+  let before' = if null before then empty else text before
+  let after'  = if null after then empty else text after
+  titleText <- inlineListToMan opts title
+  authors' <- mapM (inlineListToMan opts) authors
+  date' <- inlineListToMan opts date 
   let (cmdName, rest) = break (== ' ') $ render titleText
   let (title', section) = case reverse cmdName of
                             (')':d:'(':xs) | d `elem` ['0'..'9'] -> 
                                   (text (reverse xs), char d)
                             xs -> (text (reverse xs), doubleQuotes empty)                    
-  let extras = map (doubleQuotes . text . removeLeadingTrailingSpace) $
-               splitBy '|' rest
-  let head' = (text ".TH") <+> title' <+> section <+> 
-             doubleQuotes dateText <+> hsep extras
-  let foot = case length authorsText of
-                0 -> empty
-                1 -> text ".SH AUTHOR" $$ (hcat $ intersperse (text ", ") authorsText)
-                _ -> text ".SH AUTHORS" $$ (hcat $ intersperse (text ", ") authorsText)
-  return $ if writerStandalone options
-              then (head', foot)
-              else (empty, empty)
+  let description = hsep $
+                    map (doubleQuotes . text . removeLeadingTrailingSpace) $
+                    splitBy '|' rest
+  body <- blockListToMan opts blocks
+  notes <- liftM stNotes get
+  notes' <- notesToMan opts (reverse notes)
+  let main = render $ before' $$ body $$ notes' $$ after'
+  hasTables <- liftM stHasTables get
+  let context  = writerVariables opts ++
+                 [ ("body", main)
+                 , ("title", render title')
+                 , ("section", render section)
+                 , ("date", render date')
+                 , ("description", render description) ] ++
+                 [ ("has-tables", "yes") | hasTables ] ++
+                 [ ("author", render a) | a <- authors' ]
+  if writerStandalone opts
+     then return $ renderTemplate context $ writerTemplate opts
+     else return main
 
 -- | Return man representation of notes.
 notesToMan :: WriterOptions -> [[Block]] -> State WriterState Doc
@@ -173,7 +167,7 @@ blockToMan opts (Table caption alignments widths headers rows) =
       aligncode AlignDefault = "l"
   in do
   caption' <- inlineListToMan opts caption
-  modify (\(notes, preprocessors) -> (notes, "t":preprocessors))
+  modify $ \st -> st{ stHasTables = True }
   let iwidths = if all (== 0) widths
                    then repeat ""
                    else map (printf "w(%0.2fn)" . (70 *)) widths
@@ -332,8 +326,9 @@ inlineToMan opts (Image alternate (source, tit)) = do
   linkPart <- inlineToMan opts (Link txt (source, tit)) 
   return $ char '[' <> text "IMAGE: " <> linkPart <> char ']'
 inlineToMan _ (Note contents) = do 
-  modify (\(notes, prep) -> (contents:notes, prep)) -- add to notes in state
-  (notes, _) <- get
+  -- add to notes in state
+  modify $ \st -> st{ stNotes = contents : stNotes st }
+  notes <- liftM stNotes get
   let ref = show $ (length notes)
   return $ char '[' <> text ref <> char ']'
 
