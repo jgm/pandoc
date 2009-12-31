@@ -193,6 +193,7 @@ Library
                    Text.Pandoc.Writers.S5
   Other-Modules:   Text.Pandoc.XML,
                    Text.Pandoc.TH,
+                   Text.Pandoc.Templates
                    Paths_pandoc
   Extensions:      CPP, TemplateHaskell, FlexibleInstances
   Ghc-Options:     -O2 -Wall
