@@ -310,6 +310,10 @@ For further documentation, see the `pandoc(1)` man page.
     repeatedly to include multiple files. They will be included in the
     order specified.
 
+`-D` or `--print-default-template` *format*
+:   prints the default template for an output *format*. (See `-t`
+    for a list of possible *format*s.)
+
 `-T` or `--title-prefix` *string*
 :   includes *string* as a prefix at the beginning of the title that
     appears in the HTML header (but not in the title as it appears at

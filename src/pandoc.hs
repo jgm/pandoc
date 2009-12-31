@@ -387,16 +387,16 @@ options =
                   "STRING")
                  "" -- "String to prefix to HTML window title"
 
-    , Option "D" ["print-default-header"]
+    , Option "D" ["print-default-template"]
                  (ReqArg
                   (\arg _ -> do
-                     let header = case (lookup arg writers) of
+                     let template = case (lookup arg writers) of
                            Just (_, h) -> h
                            Nothing     -> error ("Unknown reader: " ++ arg)
-                     hPutStr stdout header
+                     hPutStr stdout template
                      exitWith ExitSuccess)
                   "FORMAT")
-                 "" -- "Print default header for FORMAT"
+                 "" -- "Print default template for FORMAT"
 #ifdef _CITEPROC
     , Option "" ["biblio"]
                  (ReqArg

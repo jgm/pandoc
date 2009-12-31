@@ -186,10 +186,9 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     default header, which can be printed by using the `-D` option).
     Implies `-s`.
 
--D *FORMAT*, \--print-default-header=*FORMAT*
-:   Print the default header for *FORMAT* (`html`, `s5`, `latex`,
-    `context`, `docbook`, `man`, `markdown`, `opendocument`,
-    `rst`, `rtf`).
+-D *FORMAT*, \--print-default-template=*FORMAT*
+:   Print the default template for an output *FORMAT*. (See `-t`
+    for a list of possible *FORMAT*s.)
 
 -T *STRING*, \--title-prefix=*STRING*
 :   Specify *STRING* as a prefix to the HTML window title.
