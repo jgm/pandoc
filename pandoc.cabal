@@ -43,12 +43,12 @@ Data-Files:
                  templates/rst.template, templates/s5.template,
                  templates/mediawiki.template, templates/rtf.template,
                  -- data for ODT writer
-                 data/odt-styles/meta.xml,
-                 data/odt-styles/settings.xml,
-                 data/odt-styles/META-INF/manifest.xml,
-                 data/odt-styles/Thumbnails/thumbnail.png,
-                 data/odt-styles/styles.xml,
-                 data/odt-styles/mimetype,
+                 data/odt/meta.xml,
+                 data/odt/settings.xml,
+                 data/odt/META-INF/manifest.xml,
+                 data/odt/Thumbnails/thumbnail.png,
+                 data/odt/styles.xml,
+                 data/odt/mimetype,
                  -- data for LaTeXMathML writer
                  data/LaTeXMathML.js.comment,
                  data/LaTeXMathML.js.packed,

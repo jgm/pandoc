@@ -39,6 +39,7 @@ import Text.ParserCombinators.Parsec
 import System.Time
 import Text.Pandoc.Shared ( inDirectory )
 import Paths_pandoc ( getDataFileName )
+import System.Directory
 
 -- | Produce an ODT file from OpenDocument XML.
 saveOpenDocumentAsODT :: FilePath    -- ^ Pathname of ODT file to be produced.
@@ -46,7 +47,12 @@ saveOpenDocumentAsODT :: FilePath    -- ^ Pathname of ODT file to be produced.
                       -> String      -- ^ OpenDocument XML contents.
                       -> IO ()
 saveOpenDocumentAsODT destinationODTPath sourceDirRelative xml = do
-  refArchivePath <- getDataFileName $ "data" </> "odt-styles"
+  userDir <- getAppUserDataDirectory "pandoc"
+  userOdtExists <- doesFileExist $
+                      userDir </> "data" </> "odt" </> "styles.xml"
+  refArchivePath <- if userOdtExists
+                       then return $ userDir </> "data" </> "odt"
+                       else getDataFileName $ "data" </> "odt"
   refArchive <- inDirectory refArchivePath $
                   addFilesToArchive [OptRecursive] emptyArchive ["."]
   -- handle pictures
