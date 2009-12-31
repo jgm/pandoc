@@ -29,9 +29,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 A simple templating system with variable substitution and conditionals.
 Example:
 
-> > renderTemplate [("name","Sam"),("salary","50,000")] $
->   "Hi, $name$.  $if(salary)$You make $$$salary$.$else$No salary data.$endif$" 
-> > "Hi, John.  You make $50,000."
+> renderTemplate [("name","Sam"),("salary","50,000")] $
+>    "Hi, $name$.  $if(salary)$You make $$$salary$.$else$No salary data.$endif$" 
+> "Hi, John.  You make $50,000."
 
 A slot for an interpolated variable is a variable name surrounded
 by dollar signs.  To include a literal @$@ in your template, use
@@ -48,6 +48,20 @@ is used.
 
 Conditional keywords should not be indented, or unexpected spacing
 problems may occur.
+
+If a variable name is associated with multiple values in the association
+list passed to 'renderTemplate', you may use the @$for$@ keyword to
+iterate over them:
+
+> renderTemplate [("name","Sam"),("name","Joe")] $
+>   "$for(name)$\nHi, $name$.\n$endfor$"
+> "Hi, Sam.\nHi, Joe."
+
+You may optionally specify separators using @$sep$@:
+
+> renderTemplate [("name","Sam"),("name","Joe"),("name","Lynn")] $
+>   "Hi, $for(name)$$name$$sep$, $endfor$"
+> "Hi, Sam, Joe, Lynn."
 -}
 
 module Text.Pandoc.Templates ( renderTemplate
@@ -55,11 +69,11 @@ module Text.Pandoc.Templates ( renderTemplate
                              , getDefaultTemplate) where
 
 import Text.ParserCombinators.Parsec
-import Control.Monad (liftM, when)
+import Control.Monad (liftM, when, forM)
 import qualified Control.Exception as E (try, IOException)
 import System.FilePath
 import Text.Pandoc.Shared (readDataFile)
-import Data.List (intercalate)
+import Data.List (intercalate, intersperse)
 import Text.PrettyPrint (text, Doc)
 import Text.XHtml (primHtml, Html)
 import Data.ByteString.Lazy.UTF8 (ByteString, fromString)
@@ -111,11 +125,11 @@ renderTemplate vals templ =
        Right r       -> toTarget $ concat r
 
 reservedWords :: [String]
-reservedWords = ["else","endif"]
+reservedWords = ["else","endif","for","endfor","sep"]
 
 parseTemplate :: GenParser Char TemplateState [String]
 parseTemplate =
-  many $ (plaintext <|> escapedDollar <|> conditional <|> variable)
+  many $ (plaintext <|> escapedDollar <|> conditional <|> for <|> variable)
            >>= adjustPosition
 
 plaintext :: GenParser Char TemplateState String
@@ -124,9 +138,11 @@ plaintext = many1 $ noneOf "$"
 escapedDollar :: GenParser Char TemplateState String
 escapedDollar = try $ string "$$" >> return "$"
 
+skipEndline :: GenParser Char st ()
+skipEndline = try $ skipMany (oneOf " \t") >> newline >> return ()
+
 conditional :: GenParser Char TemplateState String
 conditional = try $ do
-  let skipEndline = try $ skipMany (oneOf " \t") >> newline
   TemplateState pos vars <- getState
   string "$if("
   id' <- ident
@@ -148,6 +164,29 @@ conditional = try $ do
   string "$endif$"
   when multiline $ optional skipEndline
   return contents
+
+for :: GenParser Char TemplateState String
+for = try $ do
+  TemplateState pos vars <- getState
+  string "$for("
+  id' <- ident
+  string ")$"
+  -- if newline after the "if", then a newline after "endif" will be swallowed
+  multiline <- option False $ try $ skipEndline >> return True
+  let matches = filter (\(k,_) -> k == id') vars 
+  let indent = replicate pos ' '
+  contents <- forM matches $ \m -> do
+                      updateState $ \(TemplateState p v) -> TemplateState p (m:v)
+                      raw <- liftM concat $ lookAhead parseTemplate
+                      return $ intercalate ('\n':indent) $ lines $ raw ++ "\n"
+  parseTemplate
+  sep <- option "" $ do try (string "$sep$")  
+                        when multiline $ optional skipEndline
+                        liftM concat parseTemplate
+  string "$endfor$"
+  when multiline $ optional skipEndline
+  setState $ TemplateState pos vars
+  return $ concat $ intersperse sep contents
 
 ident :: GenParser Char TemplateState String
 ident = do

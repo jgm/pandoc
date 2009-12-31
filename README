@@ -472,6 +472,8 @@ the string `$title$` in
 
 will be replaced by the document title.
 
+To write a literal `$` in a template, use `$$`.
+
 Some variables are set automatically by pandoc.  These vary somewhat
 depending on the output format, but include:
 
@@ -485,12 +487,10 @@ depending on the output format, but include:
 :   body of document
 `title`
 :   title of document, as specified in title block
-`authors`
-:   authors of document, as specified in title block
+`author`
+:   author of document, as specified in title block
 `date`
 :   date of document, as specified in title block
-`css`
-:   links to CSS files, as specified using `-c/--css`
 
 Variables may be set at the command line using the `-V/--variable`
 option. This allows users to include custom variables in their
@@ -509,7 +509,17 @@ value; otherwise it will include `Y`. `X` and `Y` are placeholders for
 any valid template text, and may include interpolated variables or other
 conditionals. The `$else$` section may be omitted.
 
-To write a literal `$` in a template, use `$$`.
+When variables can have multiple values (for example, `author` in
+a multi-author document), you can use the `$for$` keyword:
+
+    $for(author)$
+    <meta name="author" content="$author$" />
+    $endfor$
+
+You can optionally specify a separator to be used between
+consecutive items:
+
+    $for(author)$$author$$sep$, $endfor$
 
 Pandoc's markdown vs. standard markdown
 =======================================
