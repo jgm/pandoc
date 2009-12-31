@@ -14,21 +14,39 @@ $endif$
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 $endif$
+$if(verbatim-in-note)$
 \usepackage{fancyvrb}
+$endif$
+$if(fancy-enums)$
 \usepackage{enumerate}
+$endif$
+$if(tables)$
 \usepackage{array}
 % This is needed because raggedright in table elements redefines \\:
 \newcommand{\PreserveBackslash}[1]{\let\temp=\\#1\let\\=\temp}
 \let\PBS=\PreserveBackslash
+$endif$
+$if(strikeout)$
 \usepackage[normalem]{ulem}
+$endif$
+$if(subscript)$
 \newcommand{\textsubscr}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
+$endif$
+$if(links)$
 \usepackage[breaklinks=true]{hyperref}
+$endif$
+$if(url)$
 \usepackage{url}
+$endif$
+$if(graphics)$
 \usepackage{graphicx}
-\VerbatimFootnotes % allows verbatim text in footnotes
+$endif$
 $if(numbersections)$
 $else$
 \setcounter{secnumdepth}{0}
+$endif$
+$if(verbatim-in-note)$
+\VerbatimFootnotes % allows verbatim text in footnotes
 $endif$
 $for(header-includes)$
 $header-includes$
@@ -43,7 +61,9 @@ $if(date)$
 $endif$
 
 \begin{document}
+$if(title)$
 \maketitle
+$endif$
 
 $if(toc)$
 \tableofcontents

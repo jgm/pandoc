@@ -39,16 +39,27 @@ import Control.Monad (liftM)
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 
 data WriterState = 
-  WriterState { stInNote   :: Bool          -- @True@ if we're in a note
-              , stOLLevel  :: Int           -- level of ordered list nesting
-              , stOptions  :: WriterOptions -- writer options, so they don't have to be parameter 
+  WriterState { stInNote     :: Bool          -- @True@ if we're in a note
+              , stOLLevel    :: Int           -- level of ordered list nesting
+              , stOptions    :: WriterOptions -- writer options, so they don't have to be parameter 
+              , stVerbInNote :: Bool          -- true if document has verbatim text in note
+              , stEnumerate  :: Bool          -- true if document needs fancy enumerated lists
+              , stTable      :: Bool          -- true if document has a table
+              , stStrikeout  :: Bool          -- true if document has strikeout
+              , stSubscript  :: Bool          -- true if document has subscript
+              , stLink       :: Bool          -- true if document has links
+              , stUrl        :: Bool          -- true if document has visible URL link
+              , stGraphics   :: Bool          -- true if document contains images
               }
 
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: WriterOptions -> Pandoc -> String
 writeLaTeX options document = 
   evalState (pandocToLaTeX options document) $ 
-  WriterState { stInNote = False, stOLLevel = 1, stOptions = options } 
+  WriterState { stInNote = False, stOLLevel = 1, stOptions = options,
+                stVerbInNote = False, stEnumerate = False,
+                stTable = False, stStrikeout = False, stSubscript = False,
+                stLink = False, stUrl = False, stGraphics = False } 
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
@@ -63,12 +74,22 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  then empty
                  else text $ writerIncludeAfter options
   let main = render $ before $$ body $$ after
+  st <- get
   let context  = writerVariables options ++
                  [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
                  , ("title", titletext)
                  , ("date", dateText) ] ++
-                 [ ("author", a) | a <- authorsText ]
+                 [ ("author", a) | a <- authorsText ] ++
+                 [ ("xetex", "yes") | writerXeTeX options ] ++
+                 [ ("verbatim-in-note", "yes") | stVerbInNote st ] ++
+                 [ ("fancy-enums", "yes") | stEnumerate st ] ++
+                 [ ("tables", "yes") | stTable st ] ++
+                 [ ("strikeout", "yes") | stStrikeout st ] ++
+                 [ ("subscript", "yes") | stSubscript st ] ++
+                 [ ("links", "yes") | stLink st ] ++
+                 [ ("url", "yes") | stUrl st ] ++
+                 [ ("graphics", "yes") | stGraphics st ]
   return $ if writerStandalone options
               then renderTemplate context $ writerTemplate options
               else main
@@ -117,12 +138,14 @@ blockToLaTeX (BlockQuote lst) = do
   return $ text "\\begin{quote}" $$ contents $$ text "\\end{quote}"
 blockToLaTeX (CodeBlock (_,classes,_) str) = do
   st <- get
-  let env = if writerLiterateHaskell (stOptions st) && "haskell" `elem` classes &&
+  env <- if writerLiterateHaskell (stOptions st) && "haskell" `elem` classes &&
                     "literate" `elem` classes
-               then "code"
-               else if stInNote st
-                       then "Verbatim"
-                       else "verbatim"
+            then return "code"
+            else if stInNote st
+                    then do
+                      modify $ \s -> s{ stVerbInNote = True }
+                      return "Verbatim"
+                    else return "verbatim"
   return $ text ("\\begin{" ++ env ++ "}\n") <> text str <> 
            text ("\n\\end{" ++ env ++ "}")
 blockToLaTeX (RawHtml _) = return empty
@@ -135,11 +158,13 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   put $ st {stOLLevel = oldlevel + 1}
   items <- mapM listItemToLaTeX lst
   modify (\s -> s {stOLLevel = oldlevel})
-  let exemplar = if numstyle /= DefaultStyle || numdelim /= DefaultDelim
-                    then char '[' <> 
-                          text (head (orderedListMarkers (1, numstyle,
-                               numdelim))) <> char ']'
-                    else empty
+  exemplar <- if numstyle /= DefaultStyle || numdelim /= DefaultDelim
+                 then do
+                   modify $ \s -> s{ stEnumerate = True }
+                   return $ char '[' <> 
+                       text (head (orderedListMarkers (1, numstyle,
+                            numdelim))) <> char ']'
+                 else return empty
   let resetcounter = if start /= 1 && oldlevel <= 4
                         then text $ "\\setcounter{enum" ++ 
                              map toLower (toRomanNumeral oldlevel) ++
@@ -179,6 +204,7 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
                   headers $$ text "\\hline" $$ vcat rows' $$ 
                   text "\\end{tabular}" 
   let centered txt = text "\\begin{center}" $$ txt $$ text "\\end{center}"
+  modify $ \s -> s{ stTable = True }
   return $ if isEmpty captionText
               then centered tableBody <> char '\n'
               else text "\\begin{table}[h]" $$ centered tableBody $$ 
@@ -237,10 +263,12 @@ inlineToLaTeX (Strong lst) =
   inlineListToLaTeX (deVerb lst) >>= return . inCmd "textbf" 
 inlineToLaTeX (Strikeout lst) = do
   contents <- inlineListToLaTeX $ deVerb lst
+  modify $ \s -> s{ stStrikeout = True }
   return $ inCmd "sout" contents
-inlineToLaTeX (Superscript lst) = 
+inlineToLaTeX (Superscript lst) =
   inlineListToLaTeX (deVerb lst) >>= return . inCmd "textsuperscript"
 inlineToLaTeX (Subscript lst) = do
+  modify $ \s -> s{ stSubscript = True }
   contents <- inlineListToLaTeX $ deVerb lst
   -- oddly, latex includes \textsuperscript but not \textsubscript
   -- so we have to define it (using a different name so as not to conflict with memoir class):
@@ -250,6 +278,8 @@ inlineToLaTeX (SmallCaps lst) =
 inlineToLaTeX (Cite _ lst) =
   inlineListToLaTeX lst
 inlineToLaTeX (Code str) = do
+  st <- get
+  when (stInNote st) $ modify $ \s -> s{ stVerbInNote = True }
   let chr = ((enumFromTo '!' '~') \\ str) !! 0
   return $ text $ "\\verb" ++ [chr] ++ str ++ [chr]
 inlineToLaTeX (Quoted SingleQuote lst) = do
@@ -282,13 +312,16 @@ inlineToLaTeX (HtmlInline _) = return empty
 inlineToLaTeX (LineBreak) = return $ text "\\\\" 
 inlineToLaTeX Space = return $ char ' '
 inlineToLaTeX (Link txt (src, _)) = do
+  modify $ \s -> s{ stLink = True }
   case txt of
         [Code x] | x == src ->  -- autolink
-             do return $ text $ "\\url{" ++ x ++ "}"
+             do modify $ \s -> s{ stUrl = True }
+                return $ text $ "\\url{" ++ x ++ "}"
         _ -> do contents <- inlineListToLaTeX $ deVerb txt
                 return $ text ("\\href{" ++ src ++ "}{") <> contents <> 
                          char '}'
-inlineToLaTeX (Image _ (source, _)) =
+inlineToLaTeX (Image _ (source, _)) = do
+  modify $ \s -> s{ stGraphics = True }
   return $ text $ "\\includegraphics{" ++ source ++ "}" 
 inlineToLaTeX (Note contents) = do
   st <- get
