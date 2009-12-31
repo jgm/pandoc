@@ -49,6 +49,7 @@ data WriterState =
               , stLink       :: Bool          -- true if document has links
               , stUrl        :: Bool          -- true if document has visible URL link
               , stGraphics   :: Bool          -- true if document contains images
+              , stLHS        :: Bool          -- true if document has literate haskell code
               }
 
 -- | Convert Pandoc to LaTeX.
@@ -58,7 +59,8 @@ writeLaTeX options document =
   WriterState { stInNote = False, stOLLevel = 1, stOptions = options,
                 stVerbInNote = False, stEnumerate = False,
                 stTable = False, stStrikeout = False, stSubscript = False,
-                stLink = False, stUrl = False, stGraphics = False } 
+                stLink = False, stUrl = False, stGraphics = False,
+                stLHS = False } 
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
@@ -88,6 +90,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("subscript", "yes") | stSubscript st ] ++
                  [ ("links", "yes") | stLink st ] ++
                  [ ("url", "yes") | stUrl st ] ++
+                 [ ("lhs", "yes") | stLHS st ] ++
                  [ ("graphics", "yes") | stGraphics st ]
   return $ if writerStandalone options
               then renderTemplate context $ writerTemplate options
@@ -139,7 +142,9 @@ blockToLaTeX (CodeBlock (_,classes,_) str) = do
   st <- get
   env <- if writerLiterateHaskell (stOptions st) && "haskell" `elem` classes &&
                     "literate" `elem` classes
-            then return "code"
+            then do
+              modify $ \s -> s{ stLHS = True }
+              return "code"
             else if stInNote st
                     then do
                       modify $ \s -> s{ stVerbInNote = True }

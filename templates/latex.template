@@ -9,8 +9,10 @@ $else$
 \usepackage[mathletters]{ucs}
 \usepackage[utf8x]{inputenc}
 $endif$
+$if(lhs)$
 \usepackage{listings}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
+$endif$
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 $endif$
