@@ -66,7 +66,7 @@ renderTemplate :: [(String,String)]  -- ^ Assoc. list of values for variables
                -> String
 renderTemplate vals templ =
   case runParser (do x <- parseTemplate; eof; return x) vals "template" templ of
-       Left e        -> show e
+       Left e        -> error $ show e
        Right r       -> concat r
 
 reservedWords :: [String]

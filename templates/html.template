@@ -1,81 +1,47 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"
-><head
-  ><title
-    >title</title
-    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
-     /><meta name="generator" content="pandoc"
-     /><meta name="author" content="$authors$"
-     /><meta name="date" content="$date$"
-     />
-     $if(latexmathml-script)$
-     $latexmathml-script$
-     $endif$
-     $if(header-includes)$
-     $header-includes$
-     $endif$
-</head
-  ><body
-  >
-<h1 class="title"
-    ><span class="math"
-      ><em
-	>title</em
-	></span
-      ></h1
-    ><div id="TOC"
-    ><ul
-      ><li
-	><a href="#section-oen"
-	  >section oen</a
-	  ></li
-	></ul
-      ></div
-    ><div id="section-oen"
-    ><h1
-      ><a href="#TOC"
-	>section oen</a
-	></h1
-      ><ol style="list-style-type: decimal;"
-      ><li
-	>one<ol style="list-style-type: lower-alpha;"
-	  ><li
-	    >two<ol start="3" style="list-style-type: lower-roman;"
-	      ><li
-		>three</li
-		></ol
-	      ></li
-	    ></ol
-	  ></li
-	></ol
-      ><pre class="haskell"
-      ><code
-	>hi
-</code
-	></pre
-      ><p
-      >footnote<a href="#fn1" class="footnoteRef" id="fnref1"
-	><sup
-	  >1</sup
-	  ></a
-	></p
-      ></div
-    ><div class="footnotes"
-    ><hr
-       /><ol
-      ><li id="fn1"
-	><p
-	  >with code</p
-	  ><pre
-	  ><code
-	    >code
-</code
-	    ></pre
-	  > <a href="#fnref1" class="footnoteBackLink" title="Jump back to footnote 1">&#8617;</a></li
-	></ol
-      ></div
-    >
-</body
-  ></html
->
-
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="$authors$" />
+  <meta name="date" content="$date$" />
+  $if(highlighting)$
+  <style type="text/css">
+  table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode, table.sourceCode pre { margin: 0; padding: 0; border: 0; vertical-align: baseline; border: none; }
+  td.lineNumbers { border-right: 1px solid #AAAAAA; text-align: right; color: #AAAAAA; padding-right: 5px; padding-left: 5px; }
+  td.sourceCode { padding-left: 5px; }
+  pre.sourceCode { }
+  pre.sourceCode span.Normal { }
+  pre.sourceCode span.Keyword { color: #007020; font-weight: bold; } 
+  pre.sourceCode span.DataType { color: #902000; }
+  pre.sourceCode span.DecVal { color: #40a070; }
+  pre.sourceCode span.BaseN { color: #40a070; }
+  pre.sourceCode span.Float { color: #40a070; }
+  pre.sourceCode span.Char { color: #4070a0; }
+  pre.sourceCode span.String { color: #4070a0; }
+  pre.sourceCode span.Comment { color: #60a0b0; font-style: italic; }
+  pre.sourceCode span.Others { color: #007020; }
+  pre.sourceCode span.Alert { color: red; font-weight: bold; }
+  pre.sourceCode span.Function { color: #06287e; }
+  pre.sourceCode span.RegionMarker { }
+  pre.sourceCode span.Error { color: red; font-weight: bold; }
+  </style>
+  $endif$
+  $if(header-includes)$
+  $header-includes$
+  $endif$
+  $if(latexmathml-script)$
+  $latexmathml-script$
+  $endif$
+</head>
+<body>
+$if(title)$
+  <h1 class="title">$title$</h1>
+$endif$
+$if(toc)$
+$toc$
+$endif$
+$body$
+</body>
+</html>

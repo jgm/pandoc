@@ -30,35 +30,30 @@ Conversion of 'Pandoc' documents to HTML.
 -}
 module Text.Pandoc.Writers.HTML ( writeHtml , writeHtmlString ) where
 import Text.Pandoc.Definition
-import Text.Pandoc.LaTeXMathML
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Pandoc.Readers.TeXMath
-import Text.Pandoc.Highlighting ( highlightHtml, defaultHighlightingCss )
+import Text.Pandoc.Highlighting ( highlightHtml )
 import Text.Pandoc.XML (stripTags)
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
-import Data.List ( isPrefixOf, intersperse )
+import Data.List ( isPrefixOf, intersperse, intercalate )
 import Data.Maybe ( catMaybes )
-import qualified Data.Set as S
 import Control.Monad.State
 import Text.XHtml.Transitional hiding ( stringToHtml )
 
 data WriterState = WriterState
-    { stNotes            :: [Html]       -- ^ List of notes
-    , stMath             :: Bool         -- ^ Math is used in document
-    , stCSS              :: S.Set String -- ^ CSS to include in header
-    , stSecNum           :: [Int]        -- ^ Number of current section
+    { stNotes            :: [Html]  -- ^ List of notes
+    , stMath             :: Bool    -- ^ Math is used in document
+    , stHighlighting     :: Bool    -- ^ Syntax highlighting is used
+    , stSecNum           :: [Int]   -- ^ Number of current section
     } deriving Show
 
 defaultWriterState :: WriterState
-defaultWriterState = WriterState {stNotes= [], stMath = False, stCSS = S.empty, stSecNum = []}
+defaultWriterState = WriterState {stNotes= [], stMath = False, stHighlighting = False, stSecNum = []}
 
 -- Helpers to render HTML with the appropriate function.
-
-render :: (HTML html) => WriterOptions -> html -> String
-render opts = if writerWrapText opts then renderHtml else showHtml
 
 renderFragment :: (HTML html) => WriterOptions -> html -> String
 renderFragment opts = if writerWrapText opts
@@ -81,71 +76,87 @@ stringToHtml = primHtml . concatMap fixChar
 
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
-writeHtmlString opts = 
-  if writerStandalone opts
-     then render opts . writeHtml opts
-     else renderFragment opts . writeHtml opts
+writeHtmlString opts d =
+  let (tit, auths, date, toc, body', newvars) = evalState (pandocToHtml opts d)
+                                                 defaultWriterState
+  in  if writerStandalone opts
+         then inTemplate opts tit auths date toc body' newvars
+         else renderFragment opts body'
 
 -- | Convert Pandoc document to Html structure.
 writeHtml :: WriterOptions -> Pandoc -> Html
-writeHtml opts (Pandoc (Meta tit authors date) blocks) =
-  noHtml -- TODO
---  let titlePrefix = writerTitlePrefix opts
---      (topTitle,st) = runState (inlineListToHtml opts tit) defaultWriterState
---      topTitle''  = stripTags $ showHtmlFragment topTitle
---      topTitle'   = titlePrefix ++
---                    (if null topTitle'' || null titlePrefix
---                        then ""
---                        else " - ") ++ topTitle''
---      metadata    = thetitle << topTitle' +++
---                    meta ! [httpequiv "Content-Type", 
---                            content "text/html; charset=UTF-8"] +++
---                    meta ! [name "generator", content "pandoc"] +++
---                    (toHtmlFromList $ 
---                    map (\a -> meta ! [name "author", content a]) authors) +++
---                    (if null date
---                       then noHtml
---                       else meta ! [name "date", content date])
---      titleHeader = if writerStandalone opts && not (null tit) && 
---                    not (writerS5 opts)
---                        then h1 ! [theclass "title"] $ topTitle
---                        else noHtml
---      sects        = hierarchicalize blocks
---      toc          = if writerTableOfContents opts 
---                        then evalState (tableOfContents opts sects) st
---                        else noHtml
---      (blocks', st') = runState
---                       (mapM (elementToHtml opts) sects >>= return . toHtmlFromList)
---                       st
---      cssLines     = stCSS st'
---      css          = if S.null cssLines
---                        then noHtml
---                        else style ! [thetype "text/css"] $ primHtml $
---                             '\n':(unlines $ S.toList cssLines)
---      math         = if stMath st'
---                        then case writerHTMLMathMethod opts of
---                                   LaTeXMathML Nothing -> 
---                                      primHtml latexMathMLScript
---                                   LaTeXMathML (Just url) ->
---                                      script ! 
---                                      [src url, thetype "text/javascript"] $
---                                      noHtml
---                                   JsMath (Just url) ->
---                                      script !
---                                      [src url, thetype "text/javascript"] $
---                                      noHtml
---                                   _ -> noHtml
---                        else noHtml
---      head'        = header $ metadata +++ math +++ css +++ 
---                              primHtml (renderTemplate [] $ writerHeader opts)
---      notes        = reverse (stNotes st')
---      before       = primHtml $ writerIncludeBefore opts
---      after        = primHtml $ writerIncludeAfter opts
---      thebody      = before +++ titleHeader +++ toc +++ blocks' +++
---                     footnoteSection notes +++ after
---  in  if writerStandalone opts
---         then head' +++ body thebody
---         else thebody
+writeHtml opts d =
+  let (tit, auths, date, toc, body', newvars) = evalState (pandocToHtml opts d)
+                                                 defaultWriterState
+  in  if writerStandalone opts
+         then primHtml $ inTemplate opts tit auths date toc body' newvars
+         else body'
+
+-- result is (title, authors, date, toc, body, new variables)
+pandocToHtml :: WriterOptions
+             -> Pandoc
+             -> State WriterState (Html, [Html], Html, Html, Html, [(String,String)])
+pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
+  let standalone = writerStandalone opts
+  tit <- if standalone
+            then inlineListToHtml opts title'
+            else return noHtml
+  auths <- if standalone
+              then mapM (inlineListToHtml opts) authors'
+              else return [] 
+  date <- if standalone
+             then inlineListToHtml opts date'
+             else return noHtml 
+  let sects = hierarchicalize blocks
+  toc <- if writerTableOfContents opts 
+            then tableOfContents opts sects
+            else return noHtml
+  blocks' <- liftM toHtmlFromList $ mapM (elementToHtml opts) sects
+  st <- get
+  let notes = reverse (stNotes st)
+  let before = primHtml $ writerIncludeBefore opts
+  let after = primHtml $ writerIncludeAfter opts
+  let thebody = before +++ blocks' +++ footnoteSection notes +++ after
+  let  math = if stMath st
+                then case writerHTMLMathMethod opts of
+                           LaTeXMathML (Just url) ->
+                              script ! 
+                              [src url, thetype "text/javascript"] $ noHtml
+                           JsMath (Just url) ->
+                              script !
+                              [src url, thetype "text/javascript"] $ noHtml
+                           _ -> case lookup "latexmathml-script" (writerVariables opts) of
+                                      Just s -> 
+                                        script ! [thetype "text/javascript"] <<
+                                           primHtml s
+                                      Nothing -> noHtml
+                else noHtml
+  let newvars = [("highlighting","yes") | stHighlighting st] ++
+                [("math", renderHtmlFragment math) | stMath st] 
+  return (tit, auths, date, toc, thebody, newvars)
+
+inTemplate :: WriterOptions
+           -> Html
+           -> [Html]
+           -> Html
+           -> Html
+           -> Html
+           -> [(String,String)]
+           -> String
+inTemplate opts tit auths date toc body' newvars =
+  let renderedTit = showHtmlFragment tit
+      topTitle'   = stripTags renderedTit
+      authors     = map (stripTags . showHtmlFragment) auths
+      date'       = stripTags $ showHtmlFragment date
+      variables   = writerVariables opts ++ newvars
+      context     = variables ++
+                    [ ("body", renderHtmlFragment body')
+                    , ("pagetitle", topTitle')
+                    , ("toc", renderHtmlFragment toc)
+                    , ("title", renderHtmlFragment tit)
+                    , ("authors", intercalate "; " authors)
+                    , ("date", date') ]
+  in  renderTemplate context $ writerTemplate opts
 
 -- | Like Text.XHtml's identifier, but adds the writerIdentifierPrefix
 prefixedId :: WriterOptions -> String -> HtmlAttr
@@ -251,13 +262,6 @@ obfuscateChar char =
 obfuscateString :: String -> String
 obfuscateString = concatMap obfuscateChar . decodeCharacterReferences
 
--- | Add CSS for document header.
-addToCSS :: String -> State WriterState ()
-addToCSS item = do
-  st <- get
-  let current = stCSS st
-  put $ st {stCSS = S.insert item current}
-
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: WriterOptions -> Block -> State WriterState Html
 blockToHtml _ Null = return $ noHtml 
@@ -279,7 +283,7 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
                     in  return $ pre ! attrs $ thecode <<
                                  (replicate (length leadingBreaks) br +++
                                  [stringToHtml $ rawCode' ++ "\n"])
-         Right h -> addToCSS defaultHighlightingCss >> return h
+         Right h -> modify (\st -> st{ stHighlighting = True }) >> return h
 blockToHtml opts (BlockQuote blocks) =
   -- in S5, treat list in blockquote specially
   -- if default is incremental, make it nonincremental; 

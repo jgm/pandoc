@@ -643,7 +643,7 @@ main = do
                    else return variables
 
   variables'' <- case mathMethod of
-                      LaTeXMathML (Just _) -> do
+                      LaTeXMathML Nothing -> do
                          s <- latexMathMLScript
                          return $ ("latexmathml-script", s) : variables'
                       _ -> return variables'
