@@ -34,6 +34,7 @@ import Text.Pandoc
 import Text.Pandoc.ODT
 import Text.Pandoc.Writers.S5 (s5HeaderIncludes)
 import Text.Pandoc.Templates (getDefaultTemplate)
+import Text.Pandoc.LaTeXMathML (latexMathMLScript)
 import Text.Pandoc.Shared ( HTMLMathMethod (..), tabFilter, ObfuscationMethod (..) )
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
@@ -261,8 +262,8 @@ options =
 
     , Option "m" ["latexmathml", "asciimathml"]
                  (OptArg
-                  (\arg opt -> return opt { optHTMLMathMethod =
-                                               LaTeXMathML arg })
+                  (\arg opt ->
+                      return opt { optHTMLMathMethod = LaTeXMathML arg })
                   "URL")
                  "" -- "Use LaTeXMathML script in html output"
 
@@ -641,6 +642,12 @@ main = do
                                           variables
                    else return variables
 
+  variables'' <- case mathMethod of
+                      LaTeXMathML (Just _) -> do
+                         s <- latexMathMLScript
+                         return $ ("latexmathml-script", s) : variables'
+                      _ -> return variables'
+
   let startParserState =
          defaultParserState { stateParseRaw        = parseRaw,
                               stateTabStop         = tabStop,
@@ -660,7 +667,7 @@ main = do
                                       writerTemplate         = if null template
                                                                   then defaultTemplate
                                                                   else template,
-                                      writerVariables        = variables',
+                                      writerVariables        = variables'',
                                       writerIncludeBefore    = concat befores,
                                       writerIncludeAfter     = concat afters,
                                       writerTabStop          = tabStop,

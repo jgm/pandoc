@@ -6,11 +6,8 @@ import Text.Pandoc.Shared (readDataFile)
 
 -- | String containing LaTeXMathML javascript.
 latexMathMLScript :: IO String
-latexMathMLScript = undefined
-{-
 latexMathMLScript = do
  jsCom <- readDataFile $ "data" </> "LaTeXMathML.js.comment"
  jsPacked <- readDataFile $ "data" </> "LaTeXMathML.js.packed"
  return $ "<script type=\"text/javascript\">\n" ++ jsCom ++ jsPacked ++
           "</script>\n"
--}
