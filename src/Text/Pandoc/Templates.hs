@@ -46,10 +46,11 @@ is used.
 module Text.Pandoc.Templates (renderTemplate, getDefaultTemplate) where
 
 import Text.ParserCombinators.Parsec
-import Control.Monad (liftM)
+import Control.Monad (liftM, when)
 import qualified Control.Exception as E (try, IOException)
 import System.FilePath
 import Text.Pandoc.Shared (readDataFile)
+import Data.List (intercalate)
 
 -- | Get the default template, either from the application's user data
 -- directory (~/.pandoc on unix) or from the cabal data directory.
@@ -60,51 +61,67 @@ getDefaultTemplate "odt" = getDefaultTemplate "opendocument"
 getDefaultTemplate format = do
   let format' = takeWhile (/='+') format  -- strip off "+lhs" if present
   E.try $ readDataFile $ "templates" </> format' <.> "template"
- 
+
+data TemplateState = TemplateState Int [(String,String)]
+
+adjustPosition :: String -> GenParser Char TemplateState String
+adjustPosition str = do
+  let lastline = takeWhile (/= '\n') $ reverse str
+  updateState $ \(TemplateState pos x) ->
+    if str == lastline
+       then TemplateState (pos + length lastline) x
+       else TemplateState (length lastline) x
+  return str
+
 -- | Renders a template 
 renderTemplate :: [(String,String)]  -- ^ Assoc. list of values for variables
                -> String             -- ^ Template
                -> String
 renderTemplate vals templ =
-  case runParser (do x <- parseTemplate; eof; return x) vals "template" templ of
+  case runParser (do x <- parseTemplate; eof; return x) (TemplateState 0 vals) "template" templ of
        Left e        -> error $ show e
        Right r       -> concat r
 
 reservedWords :: [String]
 reservedWords = ["else","endif"]
 
-parseTemplate :: GenParser Char [(String,String)] [String]
+parseTemplate :: GenParser Char TemplateState [String]
 parseTemplate =
-  many $ plaintext <|> escapedDollar <|> conditional <|> variable
+  many $ (plaintext <|> escapedDollar <|> conditional <|> variable)
+           >>= adjustPosition
 
-plaintext :: GenParser Char [(String,String)] String
-plaintext = many1 $ satisfy (/='$')
+plaintext :: GenParser Char TemplateState String
+plaintext = many1 $ noneOf "$"
 
-escapedDollar :: GenParser Char [(String,String)] String
+escapedDollar :: GenParser Char TemplateState String
 escapedDollar = try $ string "$$" >> return "$"
 
-conditional :: GenParser Char [(String,String)] String
+conditional :: GenParser Char TemplateState String
 conditional = try $ do
+  TemplateState pos vars <- getState
   string "$if("
   id' <- ident
   string ")$"
-  skipMany (oneOf " \t")
-  optional newline
-  ifContents <- liftM concat parseTemplate
-  elseContents <- option "" $ do try (string "$else$")
-                                 skipMany (oneOf " \t")
-                                 optional newline
-                                 liftM concat parseTemplate
+  -- if newline after the "if", then a newline after "endif" will be swallowed
+  multiline <- option False $ try $
+                   newline >> count pos (char ' ') >> return True
+  let conditionSatisfied = case lookup id' vars of
+                                Nothing -> False
+                                Just "" -> False
+                                Just _  -> True
+  contents <- if conditionSatisfied
+                 then liftM concat parseTemplate
+                 else do
+                   parseTemplate  -- skip if part, then reset position
+                   setState $ TemplateState pos vars
+                   option "" $ do try (string "$else$")
+                                  optional newline
+                                  liftM concat parseTemplate
   string "$endif$"
-  skipMany (oneOf " \t")
-  optional newline
-  st <- getState
-  return $ case lookup id' st of
-             Just ""  -> elseContents
-             Just _   -> ifContents
-             Nothing  -> elseContents
+  when multiline $ optional $ newline
+  return contents
 
-ident :: GenParser Char [(String,String)] String
+ident :: GenParser Char TemplateState String
 ident = do
   first <- letter
   rest <- many (alphaNum <|> oneOf "_-")
@@ -113,12 +130,13 @@ ident = do
      then pzero
      else return id'
 
-variable :: GenParser Char [(String,String)] String
+variable :: GenParser Char TemplateState String
 variable = try $ do
   char '$'
   id' <- ident
   char '$'
-  st <- getState
-  return $ case lookup id' st of
-           Just val  -> val
-           Nothing   -> ""
+  TemplateState pos vars <- getState
+  let indent = replicate pos ' '
+  return $ case lookup id' vars of
+             Just val  -> intercalate ('\n' : indent) $ lines val
+             Nothing   -> ""
