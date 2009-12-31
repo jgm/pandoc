@@ -27,7 +27,6 @@ $endif$
 \usepackage{url}
 \usepackage{graphicx}
 \VerbatimFootnotes % allows verbatim text in footnotes
-
 $if(numbersections)$
 $else$
 \setcounter{secnumdepth}{0}

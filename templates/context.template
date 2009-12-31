@@ -71,7 +71,9 @@ after={\blank[medium]},
 
 \protect
 $endif$	
+$if(header-includes)$
 $header-includes$
+$endif$
 
 $if(title)$
 \doctitle{$title$}
@@ -84,12 +86,9 @@ $if(date)$
 $endif$
 \starttext
 \maketitle
-
 $if(toc)$
 \placecontent
 $endif$
 
 $body$
-
 \stoptext
-

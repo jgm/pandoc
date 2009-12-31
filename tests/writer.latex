@@ -22,7 +22,6 @@
 \usepackage[breaklinks=true]{hyperref}
 \usepackage{url}
 \usepackage{graphicx}
-
 \VerbatimFootnotes % allows verbatim text in footnotes
 \setcounter{secnumdepth}{0}
 

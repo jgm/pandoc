@@ -67,10 +67,9 @@ after={\blank[medium]},
 ]
 
 \protect
-	
 
 \doctitle{Pandoc Test Suite}
-\author{John MacFarlane \& Anonymous}
+\author{John MacFarlane\\Anonymous}
 \date{July 17, 2006}
 \starttext
 \maketitle
