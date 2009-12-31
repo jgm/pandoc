@@ -49,11 +49,7 @@ import Text.ParserCombinators.Parsec
 import Control.Monad (liftM)
 import qualified Control.Exception as E (try, IOException)
 import System.FilePath
-import System.Directory
-import Prelude hiding (readFile)
-import System.IO.UTF8 (readFile)
 import Text.Pandoc.Shared (readDataFile)
-import Paths_pandoc
 
 -- | Get the default template, either from the application's user data
 -- directory (~/.pandoc on unix) or from the cabal data directory.
@@ -62,21 +58,8 @@ getDefaultTemplate "native" = return $ Right ""
 getDefaultTemplate "odt" = getDefaultTemplate "opendocument"
 getDefaultTemplate format = do
   let format' = takeWhile (/='+') format  -- strip off "+lhs" if present
-  ut <- getTemplateFromUserDataDirectory format'
-  case ut of
-       Right t -> return $ Right t
-       Left _  -> getTemplateFromCabalDataDirectory format'
+  E.try $ readDataFile $ "templates" </> format' <.> "template"
  
-getTemplateFromUserDataDirectory :: String -> IO (Either E.IOException String)
-getTemplateFromUserDataDirectory format = E.try $ do
-  userDir <- getAppUserDataDirectory "pandoc"
-  let templatePath = userDir </> "templates" </> format <.> "template"
-  readFile templatePath
-
-getTemplateFromCabalDataDirectory :: String -> IO (Either E.IOException String)
-getTemplateFromCabalDataDirectory format = E.try $
-  readDataFile $ "templates" </> format <.> "template"
-
 -- | Renders a template 
 renderTemplate :: [(String,String)]  -- ^ Assoc. list of values for variables
                -> String             -- ^ Template

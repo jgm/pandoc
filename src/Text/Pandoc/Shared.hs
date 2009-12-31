@@ -118,13 +118,13 @@ import Data.Char ( toLower, toUpper, ord, isLower, isUpper, isAlpha,
 import Data.List ( find, isPrefixOf, intercalate )
 import Network.URI ( parseURI, URI (..), isAllowedInURI )
 import System.Directory
+import System.FilePath ( FilePath, (</>) )
 import Prelude hiding ( putStrLn, writeFile, readFile, getContents )
 import System.IO.UTF8
 import Data.Generics
 import qualified Control.Monad.State as S
 import Control.Monad (join)
 import Paths_pandoc (getDataFileName)
-
 --
 -- List processing
 --
@@ -1033,6 +1033,9 @@ inDirectory path action = do
   setCurrentDirectory oldDir
   return result
 
--- | Read file from the Cabal data directory.
+-- | Read file from user data directory or, if not found there, from
+-- Cabal data directory.  On unix the user data directory is @$HOME/.pandoc@.
 readDataFile :: FilePath -> IO String
-readDataFile fname = getDataFileName fname >>= readFile
+readDataFile fname = do
+  userDir <- getAppUserDataDirectory "pandoc"
+  catch (readFile $ userDir </> fname) (\_ -> getDataFileName fname >>= readFile) 
