@@ -119,8 +119,13 @@ import Data.List ( find, isPrefixOf, intercalate )
 import Network.URI ( parseURI, URI (..), isAllowedInURI )
 import System.Directory
 import System.FilePath ( FilePath, (</>) )
-import Prelude hiding ( putStrLn, writeFile, readFile, getContents )
+-- Note: ghc >= 6.12 (base >=4.2) supports unicode through iconv
+-- So we use System.IO.UTF8 only if we have an earlier version
+#if MIN_VERSION_base(4,2,0)
+#else
+import Prelude hiding ( putStr, putStrLn, writeFile, readFile, getContents )
 import System.IO.UTF8
+#endif
 import Data.Generics
 import qualified Control.Monad.State as S
 import Control.Monad (join)

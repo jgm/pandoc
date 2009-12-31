@@ -29,8 +29,13 @@ Wrapper around pandoc that emulates Markdown.pl as closely as possible.
 module Main where
 import System.Process
 import System.Environment ( getArgs )
+-- Note: ghc >= 6.12 (base >=4.2) supports unicode through iconv
+-- So we use System.IO.UTF8 only if we have an earlier version
+#if MIN_VERSION_base(4,2,0)
+#else
 import Prelude hiding ( putStr, putStrLn, writeFile, readFile, getContents )
 import System.IO.UTF8
+#endif
 import Control.Monad (forM_)
 
 main :: IO ()

@@ -36,14 +36,16 @@ inline links:
 
 > module Main where
 > import Text.Pandoc
-> import qualified System.IO.UTF8 as U
+> -- include the following two lines only if you're using ghc < 6.12:
+> import Prelude hiding (getContents, putStrLn)
+> import System.IO.UTF8
 >
 > markdownToRST :: String -> String
 > markdownToRST =
 >   (writeRST defaultWriterOptions {writerReferenceLinks = True}) .
 >   readMarkdown defaultParserState
 > 
-> main = U.getContents >>= U.putStrLn . markdownToRST
+> main = getContents >>= putStrLn . markdownToRST
 
 Note:  all of the readers assume that the input text has @'\n'@
 line endings.  So if you get your input text from a web form,
