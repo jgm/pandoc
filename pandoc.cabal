@@ -11,7 +11,7 @@ Bug-Reports:     http://code.google.com/p/pandoc/issues/list
 Stability:       alpha
 Homepage:        http://johnmacfarlane.net/pandoc
 Category:        Text
-Tested-With:     GHC >= 6.8 && <= 6.12.1
+Tested-With:     GHC == 6.10.4, GHC == 6.12.1
 Synopsis:        Conversion between markup formats
 Description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
