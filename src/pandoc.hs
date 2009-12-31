@@ -144,6 +144,7 @@ data Opt = Opt
     , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optIncremental       :: Bool    -- ^ Use incremental lists in S5
+    , optXeTeX             :: Bool    -- ^ Format latex for xetex
     , optSmart             :: Bool    -- ^ Use smart typography
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
@@ -180,6 +181,7 @@ defaultOpts = Opt
     , optOutputFile        = "-"    -- "-" means stdout
     , optNumberSections    = False
     , optIncremental       = False
+    , optXeTeX             = False
     , optSmart             = False
     , optHTMLMathMethod    = PlainMath
     , optDumpArgs          = False
@@ -286,6 +288,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optIncremental = True }))
                  "" -- "Make list items display incrementally in S5"
+
+    , Option "" ["xetex"]
+                 (NoArg
+                  (\opt -> return opt { optXeTeX = True }))
+                 "" -- "Format latex for processing by XeTeX"
 
     , Option "N" ["number-sections"]
                  (NoArg
@@ -568,6 +575,7 @@ main = do
               , optOutputFile        = outputFile
               , optNumberSections    = numberSections
               , optIncremental       = incremental
+              , optXeTeX             = xetex
               , optSmart             = smart
               , optHTMLMathMethod    = mathMethod
               , optDumpArgs          = dumpArgs
@@ -665,6 +673,7 @@ main = do
                                                                writerName' /= "s5",
                                       writerHTMLMathMethod   = mathMethod,
                                       writerS5               = (writerName' == "s5"),
+                                      writerXeTeX            = xetex,
                                       writerIgnoreNotes      = False,
                                       writerIncremental      = incremental,
                                       writerNumberSections   = numberSections,

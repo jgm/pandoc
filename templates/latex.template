@@ -2,14 +2,13 @@ $if(legacy-header)$
 $legacy-header$
 $else$
 \documentclass{article}
-\usepackage{ifpdf,ifxetex}
-\ifxetex
-  \usepackage{fontspec,xltxtra,xunicode}
-\else
-  \usepackage[utf8x]{inputenc}
-  \usepackage[mathletters]{ucs}
-\fi
 \usepackage{amsmath}
+$if(xetex)$
+\usepackage{fontspec,xltxtra,xunicode}
+$else$
+\usepackage[mathletters]{ucs}
+\usepackage[utf8x]{inputenc}
+$endif$
 \usepackage{listings}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
 \setlength{\parindent}{0pt}

@@ -1,6 +1,11 @@
 #!/bin/sh -e
 
-REQUIRED="pdflatex"
+latexprogram=pdflatex
+if (echo "$@" | grep -q xetex); then
+   latexprogram=xelatex
+fi
+
+REQUIRED=$latexprogram
 SYNOPSIS="converts markdown-formatted text to PDF, using pdflatex."
 
 THIS=${0##*/}
@@ -46,7 +51,6 @@ CONF=$(pandoc --dump-args "$@" 2>&1) || {
 OUTPUT=$(echo "$CONF" | sed -ne '1p')
 ARGS=$(echo "$CONF" | sed -e '1d')
 
-
 # As a security measure refuse to proceed if mktemp is not available.
 pathfind mktemp || { err "Couldn't find 'mktemp'; aborting."; exit 1;  }
 
@@ -87,9 +91,9 @@ fi
     finished=no
     runs=0
     while [ $finished = "no" ]; do
-      pdflatex -interaction=batchmode $texname.tex >/dev/null || {
+      $latexprogram -interaction=batchmode $texname.tex >/dev/null || {
         errcode=$?
-        err "${THIS}: pdfLaTeX failed with error code $errcode"
+        err "${THIS}: $latexprogram failed with error code $errcode"
         [ -f $texname.log ] && {
           err "${THIS}: error context:"
           sed -ne '/^!/,/^[[:space:]]*$/p' \

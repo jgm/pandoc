@@ -44,10 +44,10 @@ runPandoc inputs output = do
     ++ inputs ++ ["-o", texFile]
   return $ either Left (const $ Right texFile) result
 
-runLatexRaw :: FilePath -> IO (Either (Either String String) FilePath)
-runLatexRaw file = do
+runLatexRaw :: String -> FilePath -> IO (Either (Either String String) FilePath)
+runLatexRaw latexProgram file = do
   -- we ignore the ExitCode because pdflatex always fails the first time
-  run "pdflatex" ["-interaction=batchmode", "-output-directory",
+  run latexProgram ["-interaction=batchmode", "-output-directory",
     takeDirectory file, dropExtension file] >> return ()
   let pdfFile = replaceExtension file "pdf"
   let logFile = replaceExtension file "log"
@@ -61,11 +61,11 @@ runLatexRaw file = do
     (False, _    , True, msg) -> return $ Left $ Right msg  -- references
     (False, False, False, _ ) -> return $ Right pdfFile     -- success
 
-runLatex :: FilePath -> IO (Either String FilePath)
-runLatex file = step 3
+runLatex :: String -> FilePath -> IO (Either String FilePath)
+runLatex latexProgram file = step 3
   where
   step n = do
-    result <- runLatexRaw file
+    result <- runLatexRaw latexProgram file
     case result of
       Left (Left err) -> return $ Left err
       Left (Right _) | n > 1  -> step (n-1 :: Int)
@@ -145,17 +145,12 @@ main = bracket
 
   -- run computation
   $ \tmp -> do
-    -- check for executable files
-    let execs = ["pandoc", "pdflatex", "bibtex"]
-    paths <- mapM findExecutable execs
-    let miss = map snd $ filter (isNothing . fst) $ zip paths execs
-    unless (null miss) $ exit $! "Could not find " ++ intercalate ", " miss
     args <- getArgs
     -- check for invalid arguments and print help message if needed
     let goodopts = ["-f","-r","-N", "-p","-R","-H","-B","-A", "-C","-o","-V"]
     let goodoptslong = ["--from","--read","--strict",
                    "--preserve-tabs","--tab-stop","--parse-raw",
-                   "--toc","--table-of-contents",
+                   "--toc","--table-of-contents", "--xetex",
                    "--number-sections","--include-in-header",
                    "--include-before-body","--include-after-body",
                    "--custom-header","--output",
@@ -172,6 +167,15 @@ main = bracket
       putStr $ unlines $
                filter (\l -> any (`isInfixOf` l) goodoptslong) $ lines out
       exitWith code
+
+    -- check for executable files
+    let latexProgram = if "--xetex" `elem` opts
+                          then "xelatex"
+                          else "pdflatex"
+    let execs = ["pandoc", latexProgram, "bibtex"]
+    paths <- mapM findExecutable execs
+    let miss = map snd $ filter (isNothing . fst) $ zip paths execs
+    unless (null miss) $ exit $! "Could not find " ++ intercalate ", " miss
 
     -- parse arguments
     -- if no input given, use 'stdin'
@@ -191,7 +195,7 @@ main = bracket
       Left err -> exit err
       Right texFile  -> do
         -- run pdflatex
-        latexRes <- runLatex texFile
+        latexRes <- runLatex latexProgram texFile
         case latexRes of
           Left err      -> exit err
           Right pdfFile -> do

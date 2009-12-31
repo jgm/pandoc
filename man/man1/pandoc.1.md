@@ -133,6 +133,9 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 -i, \--incremental
 :   Make list items in S5 display incrementally (one by one).
 
+\--xetex
+:   Create LaTeX outut suitable for processing by XeTeX.
+
 -N, \--number-sections
 :   Number section headings in LaTeX, ConTeXt, or HTML output.
     (Default is not to number them.)

@@ -380,6 +380,9 @@ For further documentation, see the `pandoc(1)` man page.
     default (one item at a time). The normal default is for lists to be
     displayed all at once.
 
+`--xetex`
+:   creates LaTeX outut suitable for processing by XeTeX.
+
 `-N` or `--number-sections`
 :   causes sections to be numbered in LaTeX, ConTeXt, or HTML output.
     By default, sections are not numbered.

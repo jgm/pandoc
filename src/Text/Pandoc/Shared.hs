@@ -989,6 +989,7 @@ data WriterOptions = WriterOptions
   , writerTabStop          :: Int    -- ^ Tabstop for conversion btw spaces and tabs
   , writerTableOfContents  :: Bool   -- ^ Include table of contents
   , writerS5               :: Bool   -- ^ We're writing S5 
+  , writerXeTeX            :: Bool   -- ^ Create latex suitable for use by xetex
   , writerHTMLMathMethod   :: HTMLMathMethod  -- ^ How to print math in HTML
   , writerIgnoreNotes      :: Bool   -- ^ Ignore footnotes (used in making toc)
   , writerIncremental      :: Bool   -- ^ Incremental S5 lists
@@ -1012,6 +1013,7 @@ defaultWriterOptions =
                 , writerTabStop          = 4
                 , writerTableOfContents  = False
                 , writerS5               = False
+                , writerXeTeX            = True
                 , writerHTMLMathMethod   = PlainMath
                 , writerIgnoreNotes      = False
                 , writerIncremental      = False

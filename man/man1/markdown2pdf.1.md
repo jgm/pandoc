@@ -46,6 +46,9 @@ The following options are most relevant:
 \--strict
 :   Use strict markdown syntax, with no extensions or variants.
 
+\--xetex
+:   Use xelatex instead of pdflatex to create the PDF.
+
 -N, \--number-sections
 :   Number section headings in LaTeX output.  (Default is not to number them.)
 
