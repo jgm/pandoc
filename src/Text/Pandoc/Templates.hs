@@ -57,11 +57,14 @@ import Paths_pandoc
 -- | Get the default template, either from the application's user data
 -- directory (~/.pandoc on unix) or from the cabal data directory.
 getDefaultTemplate :: String -> IO (Either E.IOException String)
+getDefaultTemplate "native" = return $ Right ""
+getDefaultTemplate "odt" = getDefaultTemplate "opendocument"
 getDefaultTemplate format = do
-  ut <- getTemplateFromUserDataDirectory format
+  let format' = takeWhile (/='+') format  -- strip off "+lhs" if present
+  ut <- getTemplateFromUserDataDirectory format'
   case ut of
        Right t -> return $ Right t
-       Left _  -> getTemplateFromCabalDataDirectory format
+       Left _  -> getTemplateFromCabalDataDirectory format'
  
 getTemplateFromUserDataDirectory :: String -> IO (Either E.IOException String)
 getTemplateFromUserDataDirectory format = E.try $ do

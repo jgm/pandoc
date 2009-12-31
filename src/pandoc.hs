@@ -32,6 +32,7 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.ODT
+import Text.Pandoc.Templates (getDefaultTemplate)
 import Text.Pandoc.Shared ( HTMLMathMethod (..), tabFilter, ObfuscationMethod (..) )
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
@@ -96,26 +97,26 @@ readers = [("native"       , readPandoc)
 readPandoc :: ParserState -> String -> Pandoc
 readPandoc _ = read
 
--- | Association list of formats and pairs of writers and default headers.
-writers :: [ ( String, ( WriterOptions -> Pandoc -> String, String ) ) ]
-writers = [("native"       , (writeDoc, ""))
-          ,("html"         , (writeHtmlString, ""))
-          ,("html+lhs"     , (writeHtmlString, ""))
-          ,("s5"           , (writeS5String, defaultS5Template))
-          ,("docbook"      , (writeDocbook, defaultDocbookTemplate))
-          ,("opendocument" , (writeOpenDocument, defaultOpenDocumentTemplate))
-          ,("odt"          , (writeOpenDocument, defaultOpenDocumentTemplate))
-          ,("latex"        , (writeLaTeX, defaultLaTeXTemplate))
-          ,("latex+lhs"    , (writeLaTeX, defaultLaTeXTemplate))
-          ,("context"      , (writeConTeXt, defaultConTeXtTemplate))
-          ,("texinfo"      , (writeTexinfo, ""))
-          ,("man"          , (writeMan, ""))
-          ,("markdown"     , (writeMarkdown, ""))
-          ,("markdown+lhs" , (writeMarkdown, ""))
-          ,("rst"          , (writeRST, ""))
-          ,("rst+lhs"      , (writeRST, ""))
-          ,("mediawiki"    , (writeMediaWiki, ""))
-          ,("rtf"          , (writeRTF, defaultRTFTemplate))
+-- | Association list of formats and writers.
+writers :: [ ( String, WriterOptions -> Pandoc -> String ) ]
+writers = [("native"       , writeDoc)
+          ,("html"         , writeHtmlString)
+          ,("html+lhs"     , writeHtmlString)
+          ,("s5"           , writeS5String)
+          ,("docbook"      , writeDocbook)
+          ,("opendocument" , writeOpenDocument)
+          ,("odt"          , writeOpenDocument)
+          ,("latex"        , writeLaTeX)
+          ,("latex+lhs"    , writeLaTeX)
+          ,("context"      , writeConTeXt)
+          ,("texinfo"      , writeTexinfo)
+          ,("man"          , writeMan)
+          ,("markdown"     , writeMarkdown)
+          ,("markdown+lhs" , writeMarkdown)
+          ,("rst"          , writeRST)
+          ,("rst+lhs"      , writeRST)
+          ,("mediawiki"    , writeMediaWiki)
+          ,("rtf"          , writeRTF)
           ]
 
 isNonTextOutput :: String -> Bool
@@ -427,10 +428,10 @@ options =
     , Option "D" ["print-default-template"]
                  (ReqArg
                   (\arg _ -> do
-                     let template = case (lookup arg writers) of
-                           Just (_, h) -> h
-                           Nothing     -> error ("Unknown reader: " ++ arg)
-                     hPutStr stdout template
+                     templ <- getDefaultTemplate arg
+                     case templ of
+                          Right t -> hPutStr stdout t
+                          Left e  -> error $ show e
                      exitWith ExitSuccess)
                   "FORMAT")
                  "" -- "Print default template for FORMAT"
@@ -610,9 +611,14 @@ main = do
      Just r  -> return r
      Nothing -> error ("Unknown reader: " ++ readerName')
 
-  (writer, defaultTemplate) <- case (lookup writerName' writers) of
-     Just (w,h) -> return (w, h)
-     Nothing    -> error ("Unknown writer: " ++ writerName')
+  writer <- case (lookup writerName' writers) of
+     Just r  -> return r
+     Nothing -> error ("Unknown writer: " ++ writerName')
+
+  templ <- getDefaultTemplate writerName'
+  let defaultTemplate = case templ of
+                             Right t -> t
+                             Left  e -> error (show e)
 
   environment <- getEnvironment
   let columns = case lookup "COLUMNS" environment of
