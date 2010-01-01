@@ -49,7 +49,7 @@ pandoc (1.4)
 
   * s5 files moved from data/ui/default to s5/default.
 
-  * Use unicode instead of entities in HTML output.  Resolves
+  * Use unicode instead of entities in HTML and XML output.  Resolves
     Issue #163.
 
   * Prettier HTML footnote references:  put anchor inside sup,
