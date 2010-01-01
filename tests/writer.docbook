@@ -605,7 +605,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       Should not be a list item:
     </para>
     <para>
-      M.A.&#160;2007
+      M.A. 2007
     </para>
     <para>
       B. Williams
@@ -1025,12 +1025,11 @@ Blah
   <para>
     Superscripts: a<superscript>bc</superscript>d
     a<superscript><emphasis>hello</emphasis></superscript>
-    a<superscript>hello&#160;there</superscript>.
+    a<superscript>hello there</superscript>.
   </para>
   <para>
     Subscripts: H<subscript>2</subscript>O,
-    H<subscript>23</subscript>O,
-    H<subscript>many&#160;of&#160;them</subscript>O.
+    H<subscript>23</subscript>O, H<subscript>many of them</subscript>O.
   </para>
   <para>
     These should not be superscripts or subscripts, because of the
@@ -1060,13 +1059,13 @@ Blah
     <quote><ulink url="http://example.com/?foo=1&amp;bar=2">quoted link</ulink></quote>.
   </para>
   <para>
-    Some dashes: one&#8212;two &#8212; three&#8212;four &#8212; five.
+    Some dashes: one—two — three—four — five.
   </para>
   <para>
-    Dashes between numbers: 5&#8211;7, 255&#8211;66, 1987&#8211;1999.
+    Dashes between numbers: 5–7, 255–66, 1987–1999.
   </para>
   <para>
-    Ellipses&#8230;and&#8230;and&#8230;.
+    Ellipses…and…and….
   </para>
 </section>
 <section id="latex">

@@ -244,9 +244,9 @@ inlineToDocbook opts (Quoted _ lst) =
 inlineToDocbook opts (Cite _ lst) =
   inlinesToDocbook opts lst 
 inlineToDocbook _ Apostrophe = char '\''
-inlineToDocbook _ Ellipses = text "&#8230;"
-inlineToDocbook _ EmDash = text "&#8212;" 
-inlineToDocbook _ EnDash = text "&#8211;" 
+inlineToDocbook _ Ellipses = text "…"
+inlineToDocbook _ EmDash = text "—"
+inlineToDocbook _ EnDash = text "–"
 inlineToDocbook _ (Code str) = 
   inTagsSimple "literal" $ text (escapeStringForXML str)
 inlineToDocbook opts (Math _ str) = inlinesToDocbook opts $ readTeXMath str
