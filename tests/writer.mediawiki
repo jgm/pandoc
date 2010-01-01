@@ -238,7 +238,7 @@ Autonumbering:
 
 Should not be a list item:
 
-M.A.&#160;2007
+M.A. 2007
 
 B. Williams
 
@@ -444,9 +444,9 @@ This is code: <tt>&gt;</tt>, <tt>$</tt>, <tt>\</tt>, <tt>\$</tt>, <tt>&lt;html&g
 
 <s>This is ''strikeout''.</s>
 
-Superscripts: a<sup>bc</sup>d a<sup>''hello''</sup> a<sup>hello&#160;there</sup>.
+Superscripts: a<sup>bc</sup>d a<sup>''hello''</sup> a<sup>hello there</sup>.
 
-Subscripts: H<sub>2</sub>O, H<sub>23</sub>O, H<sub>many&#160;of&#160;them</sub>O.
+Subscripts: H<sub>2</sub>O, H<sub>23</sub>O, H<sub>many of them</sub>O.
 
 These should not be superscripts or subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.
 
