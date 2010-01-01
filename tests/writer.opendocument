@@ -1202,7 +1202,7 @@
   </text:list-item>
 </text:list>
 <text:p text:style-name="Text_20_body">Should not be a list item:</text:p>
-<text:p text:style-name="Text_20_body">M.A.&#160;2007</text:p>
+<text:p text:style-name="Text_20_body">M.A. 2007</text:p>
 <text:p text:style-name="Text_20_body">B. Williams</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
 <text:h text:style-name="Heading_20_1" text:outline-level="1">Definition Lists</text:h>
@@ -1297,8 +1297,8 @@
 <text:p text:style-name="Text_20_body">So is <text:span text:style-name="T39">this</text:span> word.</text:p>
 <text:p text:style-name="Text_20_body">This is code: <text:span text:style-name="Teletype">&gt;</text:span>, <text:span text:style-name="Teletype">$</text:span>, <text:span text:style-name="Teletype">\</text:span>, <text:span text:style-name="Teletype">\$</text:span>, <text:span text:style-name="Teletype">&lt;html&gt;</text:span>.</text:p>
 <text:p text:style-name="Text_20_body"><text:span text:style-name="T40">This</text:span><text:span text:style-name="T41"> </text:span><text:span text:style-name="T42">is</text:span><text:span text:style-name="T43"> </text:span><text:span text:style-name="T44">strikeout</text:span><text:span text:style-name="T45">.</text:span></text:p>
-<text:p text:style-name="Text_20_body">Superscripts: a<text:span text:style-name="T46">bc</text:span>d a<text:span text:style-name="T47">hello</text:span> a<text:span text:style-name="T48">hello</text:span><text:span text:style-name="T49">&#160;</text:span><text:span text:style-name="T50">there</text:span>.</text:p>
-<text:p text:style-name="Text_20_body">Subscripts: H<text:span text:style-name="T51">2</text:span>O, H<text:span text:style-name="T52">23</text:span>O, H<text:span text:style-name="T53">many</text:span><text:span text:style-name="T54">&#160;</text:span><text:span text:style-name="T55">of</text:span><text:span text:style-name="T56">&#160;</text:span><text:span text:style-name="T57">them</text:span>O.</text:p>
+<text:p text:style-name="Text_20_body">Superscripts: a<text:span text:style-name="T46">bc</text:span>d a<text:span text:style-name="T47">hello</text:span> a<text:span text:style-name="T48">hello</text:span><text:span text:style-name="T49"> </text:span><text:span text:style-name="T50">there</text:span>.</text:p>
+<text:p text:style-name="Text_20_body">Subscripts: H<text:span text:style-name="T51">2</text:span>O, H<text:span text:style-name="T52">23</text:span>O, H<text:span text:style-name="T53">many</text:span><text:span text:style-name="T54"> </text:span><text:span text:style-name="T55">of</text:span><text:span text:style-name="T56"> </text:span><text:span text:style-name="T57">them</text:span>O.</text:p>
 <text:p text:style-name="Text_20_body">These should not be superscripts or subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
 <text:h text:style-name="Heading_20_1" text:outline-level="1">Smart quotes, ellipses, dashes</text:h>
