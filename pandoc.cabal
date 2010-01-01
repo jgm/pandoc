@@ -48,14 +48,14 @@ Data-Files:
                  data/LaTeXMathML.js.comment,
                  data/LaTeXMathML.js.packed,
                  -- data for S5 writer
-                 data/ui/default/slides.js.comment,
-                 data/ui/default/slides.js.packed,
-                 data/ui/default/s5-core.css,
-                 data/ui/default/framing.css,
-                 data/ui/default/pretty.css,
-                 data/ui/default/opera.css,
-                 data/ui/default/outline.css,
-                 data/ui/default/print.css,
+                 s5/default/slides.js.comment,
+                 s5/default/slides.js.packed,
+                 s5/default/s5-core.css,
+                 s5/default/framing.css,
+                 s5/default/pretty.css,
+                 s5/default/opera.css,
+                 s5/default/outline.css,
+                 s5/default/print.css,
                  -- documentation
                  README, INSTALL, COPYRIGHT, BUGS, changelog,
                  -- wrappers

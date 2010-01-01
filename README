@@ -1232,8 +1232,16 @@ that they may be cached. The best approach in this case is to use pandoc
 without the `-s` option to produce the body of the S5 document, which
 can then be inserted into an HTML template that links to the javascript
 and CSS files required by S5. (See the instructions on the S5 website.)
-Alternatively, you may use `-s` together with the `-C/--custom-header`
-option.
+Alternatively, you may use `-s` together with the `--template`
+option to specify a custom template.
+
+You can change the style of the slides by putting customized CSS files
+in `$HOME/.pandoc/s5/default` (on unix) or
+`C:\Documents And Settings\USERNAME\Application Data\pandoc\reference.odt`
+(on Windows).  The originals may be found in pandoc's system
+data directory (generally `$CABALDIR/pandoc-VERSION/s5/default`).
+Pandoc will look there for any files it does not find in the user's
+pandoc data directory.
 
 Literate Haskell support
 ========================
