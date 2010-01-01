@@ -53,12 +53,11 @@ escapeCharForXML x = case x of
                        '<'    -> "&lt;"
                        '>'    -> "&gt;"
                        '"'    -> "&quot;"
-                       '\160' -> "&#160;"
                        c      -> [c]
 
 -- | True if the character needs to be escaped.
 needsEscaping :: Char -> Bool
-needsEscaping c = c `elem` "&<>\"\160"
+needsEscaping c = c `elem` "&<>\""
 
 -- | Escape string as needed for XML.  Entity references are not preserved.
 escapeStringForXML :: String -> String
