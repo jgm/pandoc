@@ -60,9 +60,8 @@ renderFragment opts = if writerWrapText opts
                          then renderHtmlFragment
                          else showHtmlFragment
 
--- | Slightly modified version of Text.XHtml's stringToHtml.
--- Only uses numerical entities for 0xff and greater.
--- Adds &nbsp;.
+-- | Modified version of Text.XHtml's stringToHtml.
+-- Use unicode characters wherever possible.
 stringToHtml :: String -> Html
 stringToHtml = primHtml . concatMap fixChar
     where
@@ -248,7 +247,7 @@ obfuscateLink opts txt s =
                      linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) +++  
                      noscript (primHtml $ obfuscateString altText)
                 _ -> error $ "Unknown obfuscation method: " ++ show meth
-        _ -> anchor ! [href s] $ primHtml txt  -- malformed email
+        _ -> anchor ! [href s] $ stringToHtml txt  -- malformed email
 
 -- | Obfuscate character as entity.
 obfuscateChar :: Char -> String
@@ -410,11 +409,11 @@ inlineToHtml opts inline =
   case inline of  
     (Str str)        -> return $ stringToHtml str
     (Space)          -> return $ stringToHtml " "
-    (LineBreak)      -> return $ br
-    (EmDash)         -> return $ primHtmlChar "mdash"
-    (EnDash)         -> return $ primHtmlChar "ndash"
-    (Ellipses)       -> return $ primHtmlChar "hellip"
-    (Apostrophe)     -> return $ primHtmlChar "rsquo"
+    (LineBreak)      -> return br
+    (EmDash)         -> return $ stringToHtml "—"
+    (EnDash)         -> return $ stringToHtml "–"
+    (Ellipses)       -> return $ stringToHtml "…"
+    (Apostrophe)     -> return $ stringToHtml "’"
     (Emph lst)       -> inlineListToHtml opts lst >>= return . emphasize
     (Strong lst)     -> inlineListToHtml opts lst >>= return . strong
     (Code str)       -> return $ thecode << str
@@ -426,10 +425,10 @@ inlineToHtml opts inline =
     (Subscript lst)   -> inlineListToHtml opts lst >>= return . sub
     (Quoted quoteType lst) ->
                         let (leftQuote, rightQuote) = case quoteType of
-                              SingleQuote -> (primHtmlChar "lsquo", 
-                                              primHtmlChar "rsquo")
-                              DoubleQuote -> (primHtmlChar "ldquo", 
-                                              primHtmlChar "rdquo")
+                              SingleQuote -> (stringToHtml "‘",
+                                              stringToHtml "’")
+                              DoubleQuote -> (stringToHtml "“",
+                                              stringToHtml "”")
                         in  do contents <- inlineListToHtml opts lst
                                return $ leftQuote +++ contents +++ rightQuote
     (Math t str) -> 
@@ -502,7 +501,7 @@ blockListToNote opts ref blocks =
   -- that block. Otherwise, insert a new Plain block with the backlink.
   let backlink = [HtmlInline $ " <a href=\"#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref ++ 
                  "\" class=\"footnoteBackLink\"" ++
-                 " title=\"Jump back to footnote " ++ ref ++ "\">&#8617;</a>"]
+                 " title=\"Jump back to footnote " ++ ref ++ "\">↩</a>"]
       blocks'  = if null blocks
                     then []
                     else let lastBlock   = last blocks
