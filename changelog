@@ -44,8 +44,10 @@ pandoc (1.4)
     a data file from the user pandoc data directory (~/.pandoc
     on unix), or, if not found there, from the system data
     directory ($CABALDIR/shared/pandoc-VERSION/). All data
-    files, including templates, LaTeXMathML.js, and reference.odt,
-    can be overridden by the user.
+    files, including templates, LaTeXMathML.js, s5 styles,
+	and reference.odt, can be overridden by the user.
+
+  * s5 files moved from data/ui/default to s5/default.
 
   * Use unicode instead of entities in HTML output.  Resolves
     Issue #163.
@@ -99,6 +101,8 @@ pandoc (1.4)
     + Removed tests/Diff.hs from cabal file.
     + Changed RunTests to use local environment. We need at least HOME, so
       pandoc can find its data directory.
+
+  * Updated windows installer to install data files in the app directory.
 
 pandoc (1.3)
 
