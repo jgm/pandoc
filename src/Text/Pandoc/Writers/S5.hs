@@ -55,19 +55,19 @@ s5Meta = "<!-- configuration parameters -->\n<meta name=\"defaultView\" content=
 
 s5Javascript :: IO String
 s5Javascript = do
-  jsCom <- readDataFile $ "data" </> "ui" </> "default" </> "slides.js.comment"
-  jsPacked <- readDataFile $ "data" </> "ui" </> "default" </> "slides.js.packed"
+  jsCom <- readDataFile $ "s5" </> "default" </> "slides.js.comment"
+  jsPacked <- readDataFile $ "s5" </> "default" </> "slides.js.packed"
   return $ "<script type=\"text/javascript\">\n" ++ jsCom ++ jsPacked ++
            "</script>\n"
 
 s5CSS :: IO String
 s5CSS = do
-  s5CoreCSS <- readDataFile $ "data" </> "ui" </> "default" </> "s5-core.css"
-  s5FramingCSS <- readDataFile $ "data" </> "ui" </> "default" </> "framing.css"
-  s5PrettyCSS <- readDataFile $ "data" </> "ui" </> "default" </> "pretty.css"
-  s5OperaCSS <- readDataFile $ "data" </> "ui" </> "default" </> "opera.css"
-  s5OutlineCSS <- readDataFile $ "data" </> "ui" </> "default" </> "outline.css"
-  s5PrintCSS <- readDataFile $ "data" </> "ui" </> "default" </> "print.css"
+  s5CoreCSS <- readDataFile $ "s5" </> "default" </> "s5-core.css"
+  s5FramingCSS <- readDataFile $ "s5" </> "default" </> "framing.css"
+  s5PrettyCSS <- readDataFile $ "s5" </> "default" </> "pretty.css"
+  s5OperaCSS <- readDataFile $ "s5" </> "default" </> "opera.css"
+  s5OutlineCSS <- readDataFile $ "s5" </> "default" </> "outline.css"
+  s5PrintCSS <- readDataFile $ "s5" </> "default" </> "print.css"
   return $ "<style type=\"text/css\" media=\"projection\" id=\"slideProj\">\n" ++ s5CoreCSS ++ "\n" ++ s5FramingCSS ++ "\n" ++ s5PrettyCSS ++ "\n</style>\n<style type=\"text/css\" media=\"projection\" id=\"operaFix\">\n" ++ s5OperaCSS ++ "\n</style>\n<style type=\"text/css\" media=\"screen\" id=\"outlineStyle\">\n" ++ s5OutlineCSS ++ "\n</style>\n<style type=\"text/css\" media=\"print\" id=\"slidePrint\">\n" ++ s5PrintCSS ++ "\n</style>\n"
 
 s5Links :: String
