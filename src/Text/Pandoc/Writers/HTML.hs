@@ -35,7 +35,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Highlighting ( highlightHtml )
-import Text.Pandoc.XML (stripTags)
+import Text.Pandoc.XML (stripTags, escapeStringForXML)
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
 import Data.List ( isPrefixOf, intersperse )
@@ -63,13 +63,7 @@ renderFragment opts = if writerWrapText opts
 -- | Modified version of Text.XHtml's stringToHtml.
 -- Use unicode characters wherever possible.
 stringToHtml :: String -> Html
-stringToHtml = primHtml . concatMap fixChar
-    where
-      fixChar '<' = "&lt;"
-      fixChar '>' = "&gt;"
-      fixChar '&' = "&amp;"
-      fixChar '"' = "&quot;"
-      fixChar c   = [c]
+stringToHtml = primHtml . escapeStringForXML
 
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
