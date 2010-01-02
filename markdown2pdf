@@ -18,7 +18,8 @@ errn () { printf "$*" | fold -s -w ${COLUMNS:-110} >&2; }
 
 usage () {
     err "$1 - $2" # short description
-    err "See the $1(1) man page for usage."
+    err "Options:"
+    pandoc -h | sed -ne '/--strict\|--preserve-tabs\|--tab-stop\|--parse-raw\|--toc\|--xetex\|--number-sections\|--include-in-header\|--include-before-body\|--include-after-body\|--custom-header\|--output\|--template\|--variable\|--help\|--version/p' >&2
 }
 
 # Portable which(1).
@@ -41,13 +42,12 @@ for p in pandoc $REQUIRED; do
     }
 done
 
-CONF=$(pandoc --dump-args "$@" 2>&1) || {
-    errcode=$?
-    echo "$CONF" | sed -e '/^pandoc \[OPTIONS\] \[FILES\]/,$d' >&2
-    [ $errcode -eq 2 ] && usage "$THIS" "$SYNOPSIS"
-    exit $errcode
-}
+if (echo "$@" | grep -q -- "--help\|-h"); then
+    usage "$THIS" "$SYNOPSIS"
+    exit 0
+fi
 
+CONF=$(pandoc --dump-args "$@") || exit $?
 OUTPUT=$(echo "$CONF" | sed -ne '1p')
 ARGS=$(echo "$CONF" | sed -e '1d')
 
@@ -111,7 +111,7 @@ fi
         exit $errcode
       }
       if [ $runs -lt 3 ] && 
-      ((grep -q "LaTeX Warning: There were undefined references." $texname.log) ||
+      ((grep -q "Warning: There were undefined references." $texname.log) ||
        (echo "$@" | grep -q -- "--toc\|--table-of-contents")); then
         runs=$(($runs + 1))
         if grep -q "LaTeX Warning:.*[Cc]itation" $texname.log; then
