@@ -104,6 +104,9 @@ pandoc (1.4)
 
   * Updated windows installer to install data files in the app directory.
 
+  * Windows installer now installs portable wrappers hsmarkdown and
+    markdown2pdf.
+
 pandoc (1.3)
 
   [ John MacFarlane ]
