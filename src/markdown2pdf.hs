@@ -3,7 +3,7 @@ module Main where
 import Data.List (isInfixOf, intercalate, isPrefixOf)
 import Data.Maybe (isNothing)
 
-import Control.Monad (unless, guard)
+import Control.Monad (unless, guard, when)
 import Control.Exception (tryJust, bracket)
 
 import System.IO (stderr)
@@ -91,7 +91,7 @@ checkLatex txt = (err , bib, ref, unlines $! msgs ++ tips)
   ref = any (oneOf ["Warning: Reference"
                    ,"Warning: Label"
                    ,"Warning: There were undefined references"
-                   ,"--toc", "--table-of-contents"]) msgs
+                   ]) msgs
 
 checkPackages :: [String] -> [String]
 checkPackages = concatMap chks
@@ -201,6 +201,8 @@ main = bracket
       Left err -> exit err
       Right texFile  -> do
         -- run pdflatex
+        when ("--toc" `elem` opts || "--table-of-contents" `elem` opts) $
+          runLatex latexProgram texFile >> return () -- toc requires extra run
         latexRes <- runLatex latexProgram texFile
         case latexRes of
           Left err      -> exit err
