@@ -117,6 +117,31 @@ You may view existing bug reports and submit new ones at
 
 # News
 
+-   Version 1.4 release (January 2, 2010).
+
+    + New template system replaces old headers, giving users much
+      more control over pandoc's output in `--standalone` mode.
+      Added `--template` and `--variable` options.  The `--print-default-header`
+      option is now `--print-default-template`.  See README under
+      "Templates" for details.
+    + The old `--custom-header` option should still work, but it has
+      been deprecated.
+    + New `--reference-odt` option allows users to customize styles
+      in ODT output.
+    + Users may now put custom templates, s5 styles, and a reference
+      ODT in the `~/.pandoc` directory, where they will override system
+      defaults. See README for details.
+    + Unicode is now used whenever possible in HTML and XML output. Entities
+      are used only where necessary (`&gt;`, `&lt;`, `&quot;`, `&amp;`).
+    + Authors and dates may now include formatting and notes.
+    + Added `--xetex` option for `pandoc` and `markdown2pdf`.
+    + Windows installer now includes highlighting support and
+      `markdown2pdf` and `hsmarkdown` wrappers.
+    + Pandoc no longer requires Template Haskell, which should make
+      it more portable.
+    + Pandoc can now be built on GHC 6.12, as well as earlier versions.
+    + See README for other small improvements and bug fixes.
+
 -   Version 1.3 release (December 10, 2009).
 
     + Added --id-prefix option to help prevent duplicate
