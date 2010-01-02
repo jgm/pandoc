@@ -1,6 +1,6 @@
 % Pandoc User's Guide
 % John MacFarlane
-% December 7, 2009 
+% December 7, 2009
 
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
@@ -123,17 +123,18 @@ will convert `source.txt` from the local encoding to UTF-8, then
 convert it to HTML, then convert back to the local encoding,
 putting the output in `output.html`.
 
-The shell scripts (described below) automatically convert the input 
+The wrapper scripts (described below) automatically convert the input
 from the local encoding to UTF-8 before running them through `pandoc`,
 then convert the output back to the local encoding.
 
-Shell scripts
-=============
+Wrappers
+========
 
-Three shell scripts, `markdown2pdf`, `html2markdown`, and `hsmarkdown`,
-are included in the standard Pandoc installation. (They are not included
-in the Windows binary package, as they require a POSIX shell, but they
-may be used in Windows under Cygwin.)
+Three wrapper scripts, `markdown2pdf`, `html2markdown`, and
+`hsmarkdown`, are included in the standard Pandoc installation. (The
+Windows binary package does not include `html2markdown`, which is
+a POSIX shell script. It does include portable Haskell versions of
+`markdown2pdf` and `hsmarkdown`.)
 
 1.  `markdown2pdf` produces a PDF file from markdown-formatted
     text, using `pandoc` and `pdflatex`.  The default
@@ -198,7 +199,7 @@ may be used in Windows under Cygwin.)
     options are allowed.  (In fact, options will be interpreted as
     filenames.)
 
-    As an alternative to using the `hsmarkdown` shell script, the
+    As an alternative to using the `hsmarkdown` script, the
     user may create a symbolic link to `pandoc` called `hsmarkdown`.
     When invoked under the name `hsmarkdown`, `pandoc` will behave
     as if the `--strict` flag had been selected, and no command-line
@@ -330,8 +331,14 @@ For further documentation, see the `pandoc(1)` man page.
     of an ODT produced using pandoc.  The contents of the reference ODT
     are ignored, but its stylesheets are used in the new ODT. If no
     reference ODT is specified on the command line, pandoc will look
-    for `$HOME/.pandoc/reference.odt` (on unix) or
-    `C:\Documents And Settings\USERNAME\Application Data\pandoc\reference.odt`
+    for a file `reference.odt` in
+
+        $HOME/.pandoc
+
+    (on unix) or
+
+        C:\Documents And Settings\USERNAME\Application Data\pandoc
+
     (on Windows). If this is not found either, sensible defaults will be
     used.
 
@@ -477,9 +484,14 @@ document.  To see the default template that is used, just type
 where `FORMAT` is the name of the output format. A custom template
 can be specified using the `--template` option.  You can also override
 the system default templates for a given output format `FORMAT`
-by putting a file `FORMAT.template` in `$HOME/.pandoc/templates`
+by putting a file `FORMAT.template` in
+
+    $HOME/.pandoc/templates
+
 (on unix) or
-`C:\Documents And Settings\USERNAME\Application Data\pandoc\templates`
+
+    C:\Documents And Settings\USERNAME\Application Data\pandoc\templates
+
 (on Windows).
 
 Templates may contain *variables*.  Variable names are sequences of
@@ -1236,8 +1248,14 @@ Alternatively, you may use `-s` together with the `--template`
 option to specify a custom template.
 
 You can change the style of the slides by putting customized CSS files
-in `$HOME/.pandoc/s5/default` (on unix) or
-`C:\Documents And Settings\USERNAME\Application Data\pandoc\reference.odt`
+in
+
+    $HOME/.pandoc/s5/default
+
+(on unix) or
+
+    C:\Documents And Settings\USERNAME\Application Data\pandoc\reference.odt
+
 (on Windows).  The originals may be found in pandoc's system
 data directory (generally `$CABALDIR/pandoc-VERSION/s5/default`).
 Pandoc will look there for any files it does not find in the user's
