@@ -54,6 +54,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 Source: "..\dist\build\pandoc\pandoc.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist\build\hsmarkdown\hsmarkdown.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist\build\markdown2pdf\markdown2pdf.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\README.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\COPYRIGHT.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\COPYING.txt"; DestDir: "{app}"; Flags: ignoreversion
