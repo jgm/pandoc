@@ -65,7 +65,7 @@ click on the name of the output file:
 
 14. PDF with numbered sections and a custom LaTeX header:
 
-@   markdown2pdf -N -C @@myheader.tex@@ @@README@@ -o @@example14.pdf@@
+@   markdown2pdf -N --template=@@mytemplate.tex@@ --variable version=1.4 @@README@@ --xetex --toc -o @@example14.pdf@@
 
 [xmlto]:  http://cyberelk.net/tim/xmlto/
 
