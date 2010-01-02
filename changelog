@@ -92,7 +92,9 @@ pandoc (1.4)
   * Documented pandoc 1.3's new definition list syntax in README.
     (An oversight in the last release.)
 
-  * markdown2pdf.hs: interpret ! in a log as an error line.
+  * markdown2pdf.hs:
+    + interpret ! in a log as an error line.
+    + --toc now works properly.
 
   * Changes in RunTests.hs:
     + Use the Diff library rather than a local copy of Diff.hs.
