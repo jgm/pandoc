@@ -4,7 +4,14 @@ $else$
 \documentclass{article}
 \usepackage{amsmath}
 $if(xetex)$
-\usepackage{fontspec,xltxtra,xunicode}
+\usepackage{ifxetex}
+\ifxetex
+  \usepackage{fontspec,xltxtra,xunicode}
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+\else
+  \usepackage[mathletters]{ucs}
+  \usepackage[utf8x]{inputenc}
+\fi
 $else$
 \usepackage[mathletters]{ucs}
 \usepackage[utf8x]{inputenc}
@@ -69,6 +76,7 @@ $endif$
 
 $if(toc)$
 \tableofcontents
+
 $endif$
 $body$
 
