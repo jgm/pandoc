@@ -412,9 +412,6 @@ options =
     , Option "C" ["custom-header"]
                  (ReqArg
                   (\arg opt -> do
-                     hPutStrLn stderr $
-                       "Warning: The -C/--custom-header is deprecated.\n" ++
-                       "Please transition to using --template instead."
                      text <- readFile arg
                      let newVars = ("legacy-header", text) : optVariables opt
                      return opt { optVariables = newVars
@@ -561,8 +558,8 @@ main = do
 
   unless (null errors) $
     do name <- getProgName
-       mapM_ (\e -> hPutStrLn stderr e) errors
-       hPutStr stderr (usageMessage name options)
+       mapM_ (\e -> hPutStr stderr (name ++ ": ") >> hPutStr stderr e) errors
+       hPutStrLn stderr $ "Try " ++ name ++ " --help for more information."
        exitWith $ ExitFailure 2
 
   let defaultOpts' = if compatMode
@@ -612,6 +609,13 @@ main = do
     do hPutStrLn stdout outputFile
        mapM_ (\arg -> hPutStrLn stdout arg) args
        exitWith ExitSuccess
+
+  -- warn about deprecated options
+  case lookup "legacy-header" variables of
+     Just _  -> hPutStrLn stderr $
+       "Warning: The -C/--custom-header is deprecated.\n" ++
+       "Please transition to using --template instead."
+     Nothing -> return ()
 
   let sources = if ignoreArgs then [] else args
 
