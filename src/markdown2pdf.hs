@@ -34,7 +34,7 @@ run file opts = do
 parsePandocArgs :: [String] -> IO (Maybe ([String], String))
 parsePandocArgs args = do
   result <- run "pandoc" $ ["--dump-args"] ++ args
-  return $ either (const Nothing) (parse . map trim . lines) result
+  return $ either error (parse . map trim . lines) result
   where parse []         = Nothing
         parse ("-":[])   = Just ([], "stdin") -- no output or input
         parse ("-":x:xs) = Just (x:xs, dropExtension x) -- no output
@@ -43,11 +43,11 @@ parsePandocArgs args = do
         trim = takeWhile (/='\r') . dropWhile (=='\r')
 
 runPandoc :: [String] -> FilePath -> IO (Either String FilePath)
-runPandoc inputs output = do
+runPandoc inputsAndArgs output = do
   let texFile = replaceExtension output "tex"
   result <- run "pandoc" $
     ["-s", "--no-wrap", "-r", "markdown", "-w", "latex"]
-    ++ inputs ++ ["-o", texFile]
+    ++ inputsAndArgs ++ ["-o", texFile]
   return $ either Left (const $ Right texFile) result
 
 runLatexRaw :: String -> FilePath -> IO (Either (Either String String) FilePath)
