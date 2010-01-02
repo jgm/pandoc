@@ -37,4 +37,5 @@ INSTALL.html : INSTALL css
 	$(MAKEPAGE) $< > $@
 
 upload : 
-	make -C .. upload
+	rsync -avz --exclude-from=excludes --delete --copy-links -e "ssh -p 24816"  . website:html/pandoc/
+	
