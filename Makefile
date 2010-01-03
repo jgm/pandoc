@@ -79,13 +79,13 @@ all: build-program
 
 # Document process rules.
 %.html: % $(MAIN)
-	./$(MAIN) -s -S --toc $< >$@ || rm -f $@
+	./$(MAIN) -s --template templates/html.template -S --toc $< >$@ || rm -f $@
 %.tex: % $(MAIN)
-	./$(MAIN) -s -w latex $< >$@ || rm -f $@
+	./$(MAIN) -s --template templates/latex.template -w latex $< >$@ || rm -f $@
 %.rtf: % $(MAIN)
-	./$(MAIN) -s -w rtf $< >$@ || rm -f $@
+	./$(MAIN) -s --template templates/rtf.template -w rtf $< >$@ || rm -f $@
 %.pdf: % $(MAIN) markdown2pdf
-	sh ./markdown2pdf $< || rm -f $@
+	sh ./markdown2pdf --template templates/latex.template $< || rm -f $@
 %.txt: %
 	perl -p -e 's/\n/\r\n/' $< > $@ || rm -f $@ # convert to DOS line endings
 
@@ -268,7 +268,8 @@ $(tarball):
 .PHONY: website
 web_src:=web
 web_dest:=pandoc-website
-make_page:=./$(MAIN) -s -S -B $(web_src)/header.html \
+make_page:=./$(MAIN) -s --template templates/html.template \
+                        -S -B $(web_src)/header.html \
                         -A $(web_src)/footer.html \
 	                -H $(web_src)/css
 cleanup_files+=$(web_dest)
