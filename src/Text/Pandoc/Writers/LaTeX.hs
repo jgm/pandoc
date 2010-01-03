@@ -32,7 +32,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
-import Data.List ( (\\), isSuffixOf, intersperse )
+import Data.List ( (\\), isSuffixOf, isPrefixOf, intersperse )
 import Data.Char ( toLower )
 import Control.Monad.State
 import Text.PrettyPrint.HughesPJ hiding ( Str )
@@ -50,6 +50,7 @@ data WriterState =
               , stUrl        :: Bool          -- true if document has visible URL link
               , stGraphics   :: Bool          -- true if document contains images
               , stLHS        :: Bool          -- true if document has literate haskell code
+              , stBook       :: Bool          -- true if document uses book or memoir class
               }
 
 -- | Convert Pandoc to LaTeX.
@@ -60,10 +61,16 @@ writeLaTeX options document =
                 stVerbInNote = False, stEnumerate = False,
                 stTable = False, stStrikeout = False, stSubscript = False,
                 stLink = False, stUrl = False, stGraphics = False,
-                stLHS = False } 
+                stLHS = False, stBook = False } 
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
+  let template = writerTemplate options
+  let usesBookClass x = "\\documentclass" `isPrefixOf` x &&
+         ("{memoir}" `isSuffixOf` x || "{book}" `isSuffixOf` x ||
+          "{report}" `isSuffixOf` x)
+  when (any usesBookClass (lines template)) $
+    modify $ \s -> s{stBook = True}
   titletext <- liftM render $ inlineListToLaTeX title
   authorsText <- mapM (liftM render . inlineListToLaTeX) authors
   dateText <- liftM render $ inlineListToLaTeX date
@@ -93,7 +100,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("lhs", "yes") | stLHS st ] ++
                  [ ("graphics", "yes") | stGraphics st ]
   return $ if writerStandalone options
-              then renderTemplate context $ writerTemplate options
+              then renderTemplate context template
               else main
 
 -- escape things as needed for LaTeX
@@ -195,10 +202,17 @@ blockToLaTeX (Header level lst) = do
                  else do
                    res <- inlineListToLaTeX lstNoNotes
                    return $ char '[' <> res <> char ']'
-  return $ if (level > 0) && (level <= 3)
-              then text ("\\" ++ (concat (replicate (level - 1) "sub")) ++ 
-                   "section") <> optional <> char '{' <> txt <> text "}\n"
-              else txt <> char '\n'
+  let stuffing = optional <> char '{' <> txt <> char '}'
+  book <- liftM stBook get
+  return $ case (book, level) of
+                (True, 1)    -> text "\\chapter" <> stuffing <> char '\n'
+                (True, 2)    -> text "\\section" <> stuffing <> char '\n'
+                (True, 3)    -> text "\\subsection" <> stuffing <> char '\n'
+                (True, 4)    -> text "\\subsubsection" <> stuffing <> char '\n'
+                (False, 1)   -> text "\\section" <> stuffing <> char '\n'
+                (False, 2)   -> text "\\subsection" <> stuffing <> char '\n'
+                (False, 3)   -> text "\\subsubsection" <> stuffing <> char '\n'
+                _            -> txt <> char '\n' 
 blockToLaTeX (Table caption aligns widths heads rows) = do
   headers <- tableRowToLaTeX heads
   captionText <- inlineListToLaTeX caption
