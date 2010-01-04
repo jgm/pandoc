@@ -35,10 +35,9 @@ import Data.Generics
 
 data Pandoc = Pandoc Meta [Block] deriving (Eq, Read, Show, Typeable, Data)
 
--- | Bibliographic information for the document:  title (list of 'Inline'),
--- authors (list of strings), date (string).
+-- | Bibliographic information for the document:  title, authors, date.
 data Meta = Meta [Inline]   -- title
-                 [[Inline]] -- authors
+                 [[Inline]] -- list of authors
                  [Inline]   -- date
             deriving (Eq, Show, Read, Typeable, Data)
 
