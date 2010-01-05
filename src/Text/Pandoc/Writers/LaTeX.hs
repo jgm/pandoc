@@ -46,7 +46,6 @@ data WriterState =
               , stTable      :: Bool          -- true if document has a table
               , stStrikeout  :: Bool          -- true if document has strikeout
               , stSubscript  :: Bool          -- true if document has subscript
-              , stLink       :: Bool          -- true if document has links
               , stUrl        :: Bool          -- true if document has visible URL link
               , stGraphics   :: Bool          -- true if document contains images
               , stLHS        :: Bool          -- true if document has literate haskell code
@@ -60,7 +59,7 @@ writeLaTeX options document =
   WriterState { stInNote = False, stOLLevel = 1, stOptions = options,
                 stVerbInNote = False, stEnumerate = False,
                 stTable = False, stStrikeout = False, stSubscript = False,
-                stLink = False, stUrl = False, stGraphics = False,
+                stUrl = False, stGraphics = False,
                 stLHS = False, stBook = False } 
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
@@ -95,7 +94,6 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("tables", "yes") | stTable st ] ++
                  [ ("strikeout", "yes") | stStrikeout st ] ++
                  [ ("subscript", "yes") | stSubscript st ] ++
-                 [ ("links", "yes") | stLink st ] ++
                  [ ("url", "yes") | stUrl st ] ++
                  [ ("lhs", "yes") | stLHS st ] ++
                  [ ("graphics", "yes") | stGraphics st ]
@@ -329,8 +327,7 @@ inlineToLaTeX (TeX str) = return $ text str
 inlineToLaTeX (HtmlInline _) = return empty
 inlineToLaTeX (LineBreak) = return $ text "\\\\" 
 inlineToLaTeX Space = return $ char ' '
-inlineToLaTeX (Link txt (src, _)) = do
-  modify $ \s -> s{ stLink = True }
+inlineToLaTeX (Link txt (src, _)) =
   case txt of
         [Code x] | x == src ->  -- autolink
              do modify $ \s -> s{ stUrl = True }
