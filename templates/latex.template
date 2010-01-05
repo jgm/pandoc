@@ -20,8 +20,6 @@ $if(lhs)$
 \usepackage{listings}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
 $endif$
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{6pt plus 2pt minus 1pt}
 $endif$
 $if(verbatim-in-note)$
 \usepackage{fancyvrb}
@@ -41,15 +39,15 @@ $endif$
 $if(subscript)$
 \newcommand{\textsubscr}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
 $endif$
-$if(links)$
-\usepackage[breaklinks=true]{hyperref}
-$endif$
 $if(url)$
 \usepackage{url}
 $endif$
 $if(graphics)$
 \usepackage{graphicx}
 $endif$
+\usepackage[breaklinks=true,unicode=true]{hyperref}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
 $if(numbersections)$
 $else$
 \setcounter{secnumdepth}{0}

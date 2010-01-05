@@ -4,6 +4,7 @@
 \usepackage[utf8x]{inputenc}
 \usepackage{listings}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
+\usepackage[breaklinks=true,unicode=true]{hyperref}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 \setcounter{secnumdepth}{0}
