@@ -3,7 +3,7 @@ module Main where
 import Data.List (isInfixOf, intercalate, isPrefixOf)
 import Data.Maybe (isNothing)
 
-import Control.Monad (unless, guard, when)
+import Control.Monad (unless, guard)
 import Control.Exception (tryJust, bracket)
 
 import System.IO (stderr)
@@ -75,6 +75,7 @@ runLatex latexProgram file = step 3
     case result of
       Left (Left err) -> return $ Left err
       Left (Right _) | n > 1  -> step (n-1 :: Int)
+      Right _ | n > 2 -> step (n-1 :: Int)
       Left (Right msg) -> return $ Left msg
       Right pdfFile   -> return $ Right pdfFile
 
@@ -201,8 +202,6 @@ main = bracket
       Left err -> exit err
       Right texFile  -> do
         -- run pdflatex
-        when ("--toc" `elem` opts || "--table-of-contents" `elem` opts) $
-          runLatex latexProgram texFile >> return () -- toc requires extra run
         latexRes <- runLatex latexProgram texFile
         case latexRes of
           Left err      -> exit err

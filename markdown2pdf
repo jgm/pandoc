@@ -123,8 +123,10 @@ fi
             fi
           fi
         fi
-      else
+      elif [ $runs -gt 1 ]; then   # always run at least twice for pdf bookmarks
         finished=yes
+      else
+        runs=$(($runs + 1))
       fi
     done
 ) || exit $?
