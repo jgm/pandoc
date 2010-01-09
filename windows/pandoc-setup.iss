@@ -31,7 +31,7 @@ var
     Dir: TArrayOfString;
 begin
     setArrayLength(Dir, 1)
-    Dir[0] := ExpandConstant('{app}');
+    Dir[0] := ExpandConstant('{app}\bin');
     Result := Dir;
 end;
 #include "modpath.iss"
@@ -53,34 +53,16 @@ end;
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "..\dist\build\pandoc\pandoc.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\dist\build\hsmarkdown\hsmarkdown.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\dist\build\markdown2pdf\markdown2pdf.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist\build\pandoc\pandoc.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "..\dist\build\hsmarkdown\hsmarkdown.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "..\dist\build\markdown2pdf\markdown2pdf.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "..\README.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\COPYRIGHT.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\COPYING.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\reference.odt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\templates\html.template"; DestDir: "{app}\templates"; Flags: ignoreversion
-Source: "..\templates\docbook.template"; DestDir: "{app}\templates"; Flags: ignoreversion
-Source: "..\templates\opendocument.template"; DestDir: "{app}\templates"; Flags: ignoreversion
-Source: "..\templates\latex.template"; DestDir: "{app}\templates"; Flags: ignoreversion
-Source: "..\templates\context.template"; DestDir: "{app}\templates"; Flags: ignoreversion
-Source: "..\templates\texinfo.template"; DestDir: "{app}\templates"; Flags: ignoreversion
-Source: "..\templates\man.template"; DestDir: "{app}\templates"; Flags: ignoreversion
-Source: "..\templates\markdown.template"; DestDir: "{app}\templates"; Flags: ignoreversion
-Source: "..\templates\rst.template"; DestDir: "{app}\templates"; Flags: ignoreversion
-Source: "..\templates\mediawiki.template"; DestDir: "{app}\templates"; Flags: ignoreversion
-Source: "..\templates\rtf.template"; DestDir: "{app}\templates"; Flags: ignoreversion
-Source: "..\data\LaTeXMathML.js.comment"; DestDir: "{app}\data"; Flags: ignoreversion
-Source: "..\data\LaTeXMathML.js.packed"; DestDir: "{app}\data"; Flags: ignoreversion
-Source: "..\s5\default\slides.js.comment"; DestDir: "{app}\s5\default"; Flags: ignoreversion
-Source: "..\s5\default\slides.js.packed"; DestDir: "{app}\s5\default"; Flags: ignoreversion
-Source: "..\s5\default\s5-core.css"; DestDir: "{app}\s5\default"; Flags: ignoreversion
-Source: "..\s5\default\framing.css"; DestDir: "{app}\s5\default"; Flags: ignoreversion
-Source: "..\s5\default\pretty.css"; DestDir: "{app}\s5\default"; Flags: ignoreversion
-Source: "..\s5\default\opera.css"; DestDir: "{app}\s5\default"; Flags: ignoreversion
-Source: "..\s5\default\outline.css"; DestDir: "{app}\s5\default"; Flags: ignoreversion
-Source: "..\s5\default\print.css"; DestDir: "{app}\s5\default"; Flags: ignoreversion
+Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion
+Source: "..\data\*"; DestDir: "{app}\data"; Flags: ignoreversion
+Source: "..\s5\default\*"; DestDir: "{app}\s5\default"; Flags: ignoreversion
 Source: "pcre-license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "pcre3.dll"; DestDir: "{sys}"; Flags: onlyifdoesntexist sharedfile
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
