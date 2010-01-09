@@ -160,7 +160,11 @@ tableOfContents _ [] = return noHtml
 tableOfContents opts sects = do
   let opts'        = opts { writerIgnoreNotes = True }
   contents  <- mapM (elementToListItem opts') sects
-  return $ thediv ! [prefixedId opts' "TOC"] $ unordList $ catMaybes contents
+  let tocList = catMaybes contents
+  return $ thediv ! [prefixedId opts' "TOC"] $
+            if null tocList
+               then noHtml
+               else unordList tocList
 
 -- | Convert section number to string
 showSecNum :: [Int] -> String
