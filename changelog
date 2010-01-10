@@ -1,3 +1,42 @@
+pandoc (1.4.1)
+
+  [ John MacFarlane ]
+
+  * Changed default of writerXeTeX to False.
+
+  * HTML writer: don't include empty UL if --toc but no sections.
+    Resolves Issue #199.
+
+  * Updated haddocks for changes in Meta type.
+
+  * LaTeX writer:
+	  + if book, report, or memoir documentclass, use \chapter{}
+      for first-level headers. Otherwise use \section{}.
+    + removed stLink, link template variable. Reason: we now always
+      include hyperref in the template.
+
+  * Latex template:
+	  + only show \author if there are some.
+    + always include hyperref package. It is used not just for links but
+      for toc, section heading bookmarks, footnotes, etc. Also added
+      unicode=true on hyperref options.
+
+  * markdown2pdf: always do at least two runs. hyperref bookmarks
+    require this.
+
+  * Makefile:  specify --template explicitly when using pandoc.
+    Reason:  pandoc may not yet have been installed, so the
+    templates may not be in the cabal data directory.
+    Resolves Issue #192.
+
+  * cabal file: Removed unneeded dependency on template-haskell.
+
+  * Windows installer - fixed bug in data file locations.
+    Resolves Issue #197.
+
+  * Deprecated --custom-header in documentation.
+    Removed old "Custom Headers" section in README.
+
 pandoc (1.4)
 
   [ John MacFarlane ]
