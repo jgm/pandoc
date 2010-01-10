@@ -273,9 +273,8 @@ For further documentation, see the `pandoc(1)` man page.
     LaTeX *commands*, even if `-R` is not specified.)
 
 `-C` or `--custom-header` *filename*
-:   can be used to specify a custom document header. To see the headers
-    used by default, use the `-D` option: for example, `pandoc -D html`
-    prints the default HTML header.  Implies `--standalone`.
+:   can be used to specify a custom document header. Implies `--standalone`.
+    *Note: this option is deprecated. Use of `--template` is preferred.*
 
 `--toc` or `--table-of-contents`
 :   includes an automatically generated table of contents (or, in the
@@ -479,7 +478,7 @@ When the `-s/--standalone` option is used, pandoc uses a template to
 add header and footer material that is needed for a self-standing
 document.  To see the default template that is used, just type
 
-    pandoc --print-default-template=FORMAT
+    pandoc -D FORMAT
 
 where `FORMAT` is the name of the output format. A custom template
 can be specified using the `--template` option.  You can also override
@@ -532,7 +531,7 @@ templates.
 Templates may contain conditionals.  The syntax is as follows:
 
     $if(variable)$
-    X 
+    X
     $else$
     Y
     $endif$
@@ -1172,22 +1171,6 @@ LaTeX, not as markdown.
 
 Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
 and ConTeXt.
-
-Custom headers
-==============
-
-When run with the "standalone" option (`-s`), `pandoc` creates a
-standalone file, complete with an appropriate header.  To see the
-default headers used for html and latex, use the following commands:
-
-	pandoc -D html
-
-	pandoc -D latex 
-
-If you want to use a different header, just create a file containing
-it and specify it on the command line as follows:
-
-	pandoc --custom-header=MyHeaderFile
 
 Producing S5 with Pandoc
 ========================

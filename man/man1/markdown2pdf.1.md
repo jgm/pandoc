@@ -55,7 +55,8 @@ The following options are most relevant:
 \--template=*FILE*
 :   Use *FILE* as a custom template for the generated document. Implies
     `-s`. See the section TEMPLATES in `pandoc`(1) for information about
-    template syntax.
+    template syntax.  Use `pandoc -D latex` to print the default LaTeX
+    template.
 
 -V KEY=VAL, \--variable=*KEY:VAL*
 :   Set the template variable KEY to the value VAL when rendering the
@@ -75,9 +76,8 @@ The following options are most relevant:
 :   Include (LaTeX) contents of *FILE* at the end of the document body.
 
 -C *FILE*, \--custom-header=*FILE*
-:   Use contents of *FILE*
-    as the LaTeX document header (overriding the default header, which can be
-    printed using `pandoc -D latex`).  Implies `-s`.
+:   Use contents of *FILE* as the document header. *Note: This option is
+    deprecated. Users should transition to using `--template` instead.*
 
 # SEE ALSO
 

@@ -198,10 +198,8 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 :   Include contents of *FILE* at the end of the document body.
 
 -C *FILE*, \--custom-header=*FILE*
-:   Use contents of *FILE* as the document header (overriding the
-    default header, which can be printed by using the `-D` option).
-    Implies `-s`. Note: This option is deprecated. Users should
-    transition to using `--template` instead.
+:   Use contents of *FILE* as the document header. *Note: This option is
+    deprecated. Users should transition to using `--template` instead.*
 
 \--reference-odt=*filename*
 :   Use the specified file as a style reference in producing an ODT.
