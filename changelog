@@ -2,6 +2,10 @@ pandoc (1.4.1)
 
   [ John MacFarlane ]
 
+  * Text.Pandoc.Templates now exports getTemplate, which differs from
+    getDefaultTemplate in allowing the caller to select
+    whether to allow user overrides from the ~/.pandoc directory.
+
   * Changed default of writerXeTeX to False.
 
   * HTML writer: don't include empty UL if --toc but no sections.
