@@ -1,4 +1,12 @@
 import Distribution.Simple
+import Distribution.Simple.Setup
+    (copyDest, copyVerbosity, fromFlag, installVerbosity)
+import Distribution.PackageDescription ( PackageDescription )
+import Distribution.Simple.LocalBuildInfo
+         ( LocalBuildInfo(..), absoluteInstallDirs )
+import Distribution.Verbosity ( Verbosity )
+import Distribution.Simple.InstallDirs (mandir, CopyDest (NoCopyDest))
+import Distribution.Simple.Utils (copyFiles)
 import Control.Exception ( bracket_ )
 import Control.Monad ( unless )
 import System.Process ( runCommand, runProcess, waitForProcess )
@@ -12,8 +20,15 @@ import Data.Maybe ( fromJust, isNothing, catMaybes )
 import Data.List ( isInfixOf )
 
 main = do
-  defaultMainWithHooks $ simpleUserHooks { runTests  = runTestSuite
-                                         , postBuild = makeManPages }
+  defaultMainWithHooks $ simpleUserHooks {
+      runTests  = runTestSuite
+    , postBuild = makeManPages
+    , postCopy = \ _ flags pkg lbi -> installManpages pkg lbi
+                    (fromFlag $ copyVerbosity flags)
+                    (fromFlag $ copyDest flags)
+    , postInst = \ _ flags pkg lbi -> installManpages pkg lbi
+                    (fromFlag $ installVerbosity flags) NoCopyDest
+    }
   exitWith ExitSuccess
 
 -- | Run test suite.
@@ -29,11 +44,16 @@ runTestSuite _ _ _ _ = do
 
 -- | Build man pages from markdown sources in man/man1/.
 makeManPages _ _ _ _ = do
-  mapM_ makeManPage ["pandoc.1", "hsmarkdown.1", "html2markdown.1", "markdown2pdf.1"]
+  mapM_ makeManPage manpages
+
+manpages :: [FilePath]
+manpages = ["pandoc.1", "hsmarkdown.1", "html2markdown.1", "markdown2pdf.1"]
+
+manDir :: FilePath
+manDir = "man" </> "man1"
 
 -- | Build a man page from markdown source in man/man1.
 makeManPage manpage = do
-  let manDir = "man" </> "man1"
   let pandoc = "dist" </> "build" </> "pandoc" </> "pandoc"
   let page = manDir </> manpage
   let source = manDir </> manpage <.> "md"
@@ -46,6 +66,15 @@ makeManPage manpage = do
          ExitSuccess -> putStrLn $ "Created " ++ manDir </> manpage
          _           -> do putStrLn $ "Error creating " ++ manDir </> manpage
                            exitWith ec
+
+installManpages pkg lbi verbosity copy =
+  mapM_ (installManpage pkg lbi verbosity copy) manpages
+
+installManpage :: PackageDescription -> LocalBuildInfo
+                  -> Verbosity -> CopyDest -> FilePath -> IO ()
+installManpage pkg lbi verbosity copy manpage =
+  copyFiles verbosity (mandir (absoluteInstallDirs pkg lbi copy) </> "man1")
+             (zip (repeat manDir) manpages)
 
 -- | Returns a list of 'dependencies' that have been modified after 'file'.
 modifiedDependencies :: FilePath -> [FilePath] -> IO [FilePath]
