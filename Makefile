@@ -226,14 +226,6 @@ $(portfile) : $(portfile_template) tarball
 	sed -e 's/@TARBALLMD5SUM@/$(word 2, $(shell openssl md5 $(tarball)))/' > \
 	$(portfile)
 
-.PHONY: win-pkg
-win_pkg_name:=$(PKGID).zip
-win_docs:=COPYING.txt COPYRIGHT.txt BUGS.txt README.txt README.html
-cleanup_files+=$(win_pkg_name) $(win_docs)
-win-pkg: $(win_pkg_name)
-$(win_pkg_name): $(PKG).exe $(win_docs)
-	zip -r $(win_pkg_name) $(PKG).exe $(win_docs)
-
 .PHONY: test test-markdown
 test: $(MAIN)
 	$(BUILDCMD) test
