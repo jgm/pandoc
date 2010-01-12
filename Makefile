@@ -284,9 +284,6 @@ website: $(MAIN) $(web_dest)
 
 .PHONY: distclean clean
 distclean: clean
-	if [ -d debian ]; then \
-		chmod +x debian/rules; fakeroot debian/rules clean; \
-	fi
 
 clean:
 	-if [ -f $(BUILDCONF) ]; then $(BUILDCMD) clean; fi
