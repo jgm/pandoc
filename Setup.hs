@@ -1,11 +1,12 @@
 import Distribution.Simple
 import Distribution.Simple.Setup
     (copyDest, copyVerbosity, fromFlag, installVerbosity)
-import Distribution.PackageDescription ( PackageDescription )
+import Distribution.PackageDescription
+    ( PackageDescription(..), Executable(..), BuildInfo(..) )
 import Distribution.Simple.LocalBuildInfo
          ( LocalBuildInfo(..), absoluteInstallDirs )
 import Distribution.Verbosity ( Verbosity )
-import Distribution.Simple.InstallDirs (mandir, CopyDest (NoCopyDest))
+import Distribution.Simple.InstallDirs (mandir, bindir, CopyDest (NoCopyDest))
 import Distribution.Simple.Utils (copyFiles)
 import Control.Exception ( bracket_ )
 import Control.Monad ( unless )
@@ -17,17 +18,20 @@ import System.Exit
 import System.Time
 import System.IO.Error ( isDoesNotExistError )
 import Data.Maybe ( fromJust, isNothing, catMaybes )
-import Data.List ( isInfixOf )
+import Data.List ( isInfixOf, (\\) )
 
 main = do
   defaultMainWithHooks $ simpleUserHooks {
       runTests  = runTestSuite
     , postBuild = makeManPages
-    , postCopy = \ _ flags pkg lbi -> installManpages pkg lbi
-                    (fromFlag $ copyVerbosity flags)
-                    (fromFlag $ copyDest flags)
-    , postInst = \ _ flags pkg lbi -> installManpages pkg lbi
-                    (fromFlag $ installVerbosity flags) NoCopyDest
+    , postCopy = \ _ flags pkg lbi -> do
+         installManpages pkg lbi (fromFlag $ copyVerbosity flags)
+              (fromFlag $ copyDest flags)
+         installScripts pkg lbi (fromFlag $ copyVerbosity flags)
+              (fromFlag $ copyDest flags)
+    , postInst = \ _ flags pkg lbi -> do
+         installManpages pkg lbi (fromFlag $ installVerbosity flags) NoCopyDest
+         installScripts pkg lbi (fromFlag $ installVerbosity flags) NoCopyDest
     }
   exitWith ExitSuccess
 
@@ -67,12 +71,18 @@ makeManPage manpage = do
          _           -> do putStrLn $ "Error creating " ++ manDir </> manpage
                            exitWith ec
 
-installManpages pkg lbi verbosity copy =
-  mapM_ (installManpage pkg lbi verbosity copy) manpages
+installScripts :: PackageDescription -> LocalBuildInfo
+               -> Verbosity -> CopyDest -> IO ()
+installScripts pkg lbi verbosity copy =
+  copyFiles verbosity (bindir (absoluteInstallDirs pkg lbi copy))
+      (zip (repeat ".") (wrappers \\ exes))
+    where exes = map exeName $ filter isBuildable $ executables pkg
+          isBuildable = buildable . buildInfo
+          wrappers = ["html2markdown", "hsmarkdown", "markdown2pdf"]
 
-installManpage :: PackageDescription -> LocalBuildInfo
-                  -> Verbosity -> CopyDest -> FilePath -> IO ()
-installManpage pkg lbi verbosity copy manpage =
+installManpages :: PackageDescription -> LocalBuildInfo
+                -> Verbosity -> CopyDest -> IO ()
+installManpages pkg lbi verbosity copy =
   copyFiles verbosity (mandir (absoluteInstallDirs pkg lbi copy) </> "man1")
              (zip (repeat manDir) manpages)
 
