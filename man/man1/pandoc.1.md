@@ -207,9 +207,8 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
     of an ODT produced using pandoc.  The contents of the reference ODT
     are ignored, but its stylesheets are used in the new ODT. If no
     reference ODT is specified on the command line, pandoc will look
-    for `$HOME/.pandoc/reference.odt` (on unix) or
-    `C:\Documents And Settings\USERNAME\Application Data\pandoc\reference.odt`
-    (on Windows). If this is not found either, sensible defaults will be
+    for a file `reference.odt` in the user data directory (see
+    `--data-dir`). If this is not found either, sensible defaults will be
     used.
 
 -D *FORMAT*, \--print-default-template=*FORMAT*
@@ -218,6 +217,20 @@ to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
 
 -T *STRING*, \--title-prefix=*STRING*
 :   Specify *STRING* as a prefix to the HTML window title.
+
+\--data-dir*=DIRECTORY*
+:   Specify the user data directory to search for pandoc data files.
+    If this option is not specified, the default user data directory
+    will be used:
+
+        $HOME/.pandoc
+
+    in unix and
+
+        C:\Documents And Settings\USERNAME\Application Data\pandoc
+
+    in Windows. A reference ODT, `templates` directory, `s5` directory
+    placed in this directory will override pandoc's normal defaults.
 
 \--dump-args
 :   Print information about command-line arguments to *stdout*, then exit.
@@ -256,10 +269,8 @@ document.  To see the default template that is used, just type
 where `FORMAT` is the name of the output format. A custom template
 can be specified using the `--template` option.  You can also override
 the system default templates for a given output format `FORMAT`
-by putting a file `FORMAT.template` in `$HOME/.pandoc/templates`
-(on unix) or
-`C:\Documents And Settings\USERNAME\Application Data\pandoc\templates`
-(on Windows).
+by putting a file `templates/FORMAT.template` in the user data
+directory (see `--data-dir`, below).
 
 Templates may contain *variables*.  Variable names are sequences of
 alphanumerics, `-`, and `_`, starting with a letter.  A variable name

@@ -5,9 +5,9 @@ import System.FilePath ( (</>) )
 import Text.Pandoc.Shared (readDataFile)
 
 -- | String containing LaTeXMathML javascript.
-latexMathMLScript :: IO String
-latexMathMLScript = do
- jsCom <- readDataFile $ "data" </> "LaTeXMathML.js.comment"
- jsPacked <- readDataFile $ "data" </> "LaTeXMathML.js.packed"
+latexMathMLScript :: FilePath -> IO String
+latexMathMLScript datadir = do
+ jsCom <- readDataFile datadir $ "data" </> "LaTeXMathML.js.comment"
+ jsPacked <- readDataFile datadir $ "data" </> "LaTeXMathML.js.packed"
  return $ "<script type=\"text/javascript\">\n" ++ jsCom ++ jsPacked ++
           "</script>\n"

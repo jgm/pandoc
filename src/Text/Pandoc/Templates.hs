@@ -66,8 +66,7 @@ You may optionally specify separators using @$sep$@:
 
 module Text.Pandoc.Templates ( renderTemplate
                              , TemplateTarget
-                             , getTemplate
-                             , getDefaultTemplate) where
+                             , getTemplate ) where
 
 import Text.ParserCombinators.Parsec
 import Control.Monad (liftM, when, forM)
@@ -77,7 +76,7 @@ import Data.List (intercalate, intersperse)
 import Text.PrettyPrint (text, Doc)
 import Text.XHtml (primHtml, Html)
 import Data.ByteString.Lazy.UTF8 (ByteString, fromString)
-import System.Directory
+import Text.Pandoc.Shared (readDataFile)
 -- Note: ghc >= 6.12 (base >=4.2) supports unicode through iconv
 -- So we use System.IO.UTF8 only if we have an earlier version
 #if MIN_VERSION_base(4,2,0)
@@ -88,25 +87,18 @@ import System.IO.UTF8 ( readFile )
 import Paths_pandoc (getDataFileName)
 
 -- | Get a template for the specified writer.
-getTemplate :: Bool   -- ^ Allow override from user's application data directory?
-            -> String -- ^ Name of writer 
+getTemplate :: (Maybe FilePath) -- ^ User data directory to search first 
+            -> String           -- ^ Name of writer 
             -> IO (Either E.IOException String)
 getTemplate _ "native" = return $ Right ""
 getTemplate user "s5" = getTemplate user "html"
 getTemplate user "odt" = getTemplate user "opendocument"
 getTemplate user writer = do
   let format = takeWhile (/='+') writer  -- strip off "+lhs" if present
-  userDir <- getAppUserDataDirectory "pandoc"
   let fname = "templates" </> format  <.> "template"
-  hasUserTemplate <- doesFileExist (userDir </> fname)
-  E.try $ if user && hasUserTemplate
-             then readFile $ userDir </> fname
-             else getDataFileName fname >>= readFile
-
--- | Get the default template, either from the application's user data
--- directory (~/.pandoc on unix) or from the cabal data directory.
-getDefaultTemplate :: String -> IO (Either E.IOException String)
-getDefaultTemplate = getTemplate True
+  E.try $ case user of
+               Just d  -> readDataFile d fname
+               Nothing -> getDataFileName fname >>= readFile
 
 data TemplateState = TemplateState Int [(String,String)]
 

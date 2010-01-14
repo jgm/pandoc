@@ -44,30 +44,30 @@ import Text.XHtml.Strict
 import System.FilePath ( (</>) )
 import Data.List ( intercalate )
 
-s5HeaderIncludes :: IO String
-s5HeaderIncludes = do
-  c <- s5CSS
-  j <- s5Javascript
+s5HeaderIncludes :: FilePath -> IO String
+s5HeaderIncludes datadir = do
+  c <- s5CSS datadir
+  j <- s5Javascript datadir
   return $ s5Meta ++ c ++ j
 
 s5Meta :: String
 s5Meta = "<!-- configuration parameters -->\n<meta name=\"defaultView\" content=\"slideshow\" />\n<meta name=\"controlVis\" content=\"hidden\" />\n"
 
-s5Javascript :: IO String
-s5Javascript = do
-  jsCom <- readDataFile $ "s5" </> "default" </> "slides.js.comment"
-  jsPacked <- readDataFile $ "s5" </> "default" </> "slides.js.packed"
+s5Javascript :: FilePath -> IO String
+s5Javascript datadir = do
+  jsCom <- readDataFile datadir $ "s5" </> "default" </> "slides.js.comment"
+  jsPacked <- readDataFile datadir $ "s5" </> "default" </> "slides.js.packed"
   return $ "<script type=\"text/javascript\">\n" ++ jsCom ++ jsPacked ++
            "</script>\n"
 
-s5CSS :: IO String
-s5CSS = do
-  s5CoreCSS <- readDataFile $ "s5" </> "default" </> "s5-core.css"
-  s5FramingCSS <- readDataFile $ "s5" </> "default" </> "framing.css"
-  s5PrettyCSS <- readDataFile $ "s5" </> "default" </> "pretty.css"
-  s5OperaCSS <- readDataFile $ "s5" </> "default" </> "opera.css"
-  s5OutlineCSS <- readDataFile $ "s5" </> "default" </> "outline.css"
-  s5PrintCSS <- readDataFile $ "s5" </> "default" </> "print.css"
+s5CSS :: FilePath -> IO String
+s5CSS datadir = do
+  s5CoreCSS <- readDataFile datadir $ "s5" </> "default" </> "s5-core.css"
+  s5FramingCSS <- readDataFile datadir $ "s5" </> "default" </> "framing.css"
+  s5PrettyCSS <- readDataFile datadir $ "s5" </> "default" </> "pretty.css"
+  s5OperaCSS <- readDataFile datadir $ "s5" </> "default" </> "opera.css"
+  s5OutlineCSS <- readDataFile datadir $ "s5" </> "default" </> "outline.css"
+  s5PrintCSS <- readDataFile datadir $ "s5" </> "default" </> "print.css"
   return $ "<style type=\"text/css\" media=\"projection\" id=\"slideProj\">\n" ++ s5CoreCSS ++ "\n" ++ s5FramingCSS ++ "\n" ++ s5PrettyCSS ++ "\n</style>\n<style type=\"text/css\" media=\"projection\" id=\"operaFix\">\n" ++ s5OperaCSS ++ "\n</style>\n<style type=\"text/css\" media=\"screen\" id=\"outlineStyle\">\n" ++ s5OutlineCSS ++ "\n</style>\n<style type=\"text/css\" media=\"print\" id=\"slidePrint\">\n" ++ s5PrintCSS ++ "\n</style>\n"
 
 s5Links :: String

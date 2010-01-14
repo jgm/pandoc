@@ -44,6 +44,7 @@ import System.Console.GetOpt
 import Data.Maybe ( fromMaybe )
 import Data.Char ( toLower )
 import Data.List ( intercalate, isSuffixOf )
+import System.Directory ( getAppUserDataDirectory )
 import System.IO ( stdout, stderr )
 -- Note: ghc >= 6.12 (base >=4.2) supports unicode through iconv
 -- So we use System.IO.UTF8 only if we have an earlier version
@@ -162,6 +163,7 @@ data Opt = Opt
     , optEmailObfuscation  :: ObfuscationMethod
     , optIdentifierPrefix  :: String
     , optIndentedCodeClasses :: [String] -- ^ Default classes for indented code blocks
+    , optDataDir           :: Maybe FilePath
 #ifdef _CITEPROC
     , optBiblioFile        :: String
     , optBiblioFormat      :: String
@@ -200,6 +202,7 @@ defaultOpts = Opt
     , optEmailObfuscation  = JavascriptObfuscation
     , optIdentifierPrefix  = ""
     , optIndentedCodeClasses = []
+    , optDataDir           = Nothing
 #ifdef _CITEPROC
     , optBiblioFile        = []
     , optBiblioFormat      = []
@@ -438,7 +441,7 @@ options =
     , Option "D" ["print-default-template"]
                  (ReqArg
                   (\arg _ -> do
-                     templ <- getDefaultTemplate arg
+                     templ <- getTemplate Nothing arg
                      case templ of
                           Right t -> hPutStr stdout t
                           Left e  -> error $ show e
@@ -462,6 +465,12 @@ options =
                   "FILENAME")
                  ""
 #endif
+    , Option "" ["data-dir"]
+                 (ReqArg
+                  (\arg opt -> return opt { optDataDir = Just arg })
+                 "DIRECTORY") -- "Directory containing pandoc data files."
+                ""
+
     , Option "" ["dump-args"]
                  (NoArg
                   (\opt -> return opt { optDumpArgs = True }))
@@ -598,6 +607,7 @@ main = do
               , optEmailObfuscation  = obfuscationMethod
               , optIdentifierPrefix  = idPrefix
               , optIndentedCodeClasses = codeBlockClasses
+              , optDataDir           = mbDataDir
 #ifdef _CITEPROC
               , optBiblioFile         = biblioFile
               , optBiblioFormat       = biblioFormat
@@ -619,6 +629,10 @@ main = do
 
   let sources = if ignoreArgs then [] else args
 
+  datadir <- case mbDataDir of
+                  Just d    -> return d
+                  Nothing   -> getAppUserDataDirectory "pandoc"
+
   -- assign reader and writer based on options and filenames
   let readerName' = if null readerName
                       then defaultReaderName sources
@@ -636,7 +650,7 @@ main = do
      Just r  -> return r
      Nothing -> error ("Unknown writer: " ++ writerName')
 
-  templ <- getDefaultTemplate writerName'
+  templ <- getTemplate (Just datadir) writerName'
   let defaultTemplate = case templ of
                              Right t -> t
                              Left  e -> error (show e)
@@ -654,13 +668,13 @@ main = do
 
   variables' <- if writerName' == "s5" && standalone'
                    then do
-                     inc <- s5HeaderIncludes
+                     inc <- s5HeaderIncludes datadir
                      return $ ("header-includes", inc) : variables
                    else return variables
 
   variables'' <- case mathMethod of
                       LaTeXMathML Nothing -> do
-                         s <- latexMathMLScript
+                         s <- latexMathMLScript datadir
                          return $ ("latexmathml-script", s) : variables'
                       _ -> return variables'
 
@@ -731,9 +745,9 @@ main = do
 #endif
 
   let writerOutput = writer writerOptions doc' ++ "\n"
- 
+
   case writerName' of
-       "odt"   -> saveOpenDocumentAsODT outputFile sourceDirRelative referenceODT writerOutput
+       "odt"   -> saveOpenDocumentAsODT datadir outputFile sourceDirRelative referenceODT writerOutput
        _       -> if outputFile == "-"
                      then putStr writerOutput
                      else writeFile outputFile writerOutput

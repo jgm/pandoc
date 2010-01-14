@@ -42,18 +42,18 @@ import System.Directory
 import Control.Monad (liftM)
 
 -- | Produce an ODT file from OpenDocument XML.
-saveOpenDocumentAsODT :: FilePath      -- ^ Pathname of ODT file to be produced.
+saveOpenDocumentAsODT :: FilePath      -- ^ Path of user data directory
+                      -> FilePath      -- ^ Pathname of ODT file to be produced.
                       -> FilePath      -- ^ Relative directory of source file.
                       -> Maybe FilePath -- ^ Path specified by --reference-odt
                       -> String        -- ^ OpenDocument XML contents.
                       -> IO ()
-saveOpenDocumentAsODT destinationODTPath sourceDirRelative mbRefOdt xml = do
+saveOpenDocumentAsODT datadir destinationODTPath sourceDirRelative mbRefOdt xml = do
   refArchive <- liftM toArchive $
        case mbRefOdt of
              Just f -> B.readFile f
              Nothing -> do
-               userDataDir <- getAppUserDataDirectory "pandoc" 
-               let userRefOdt = userDataDir </> "reference.odt"
+               let userRefOdt = datadir </> "reference.odt"
                userRefOdtExists <- doesFileExist userRefOdt
                if userRefOdtExists
                   then B.readFile userRefOdt

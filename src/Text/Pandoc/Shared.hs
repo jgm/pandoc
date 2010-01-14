@@ -1044,9 +1044,9 @@ inDirectory path action = do
   setCurrentDirectory oldDir
   return result
 
--- | Read file from user data directory or, if not found there, from
--- Cabal data directory.  On unix the user data directory is @$HOME/.pandoc@.
-readDataFile :: FilePath -> IO String
-readDataFile fname = do
-  userDir <- getAppUserDataDirectory "pandoc"
-  catch (readFile $ userDir </> fname) (\_ -> getDataFileName fname >>= readFile) 
+-- | Read file from specified user data directory or, if not found there, from
+-- Cabal data directory.
+readDataFile :: FilePath -> FilePath -> IO String
+readDataFile userDir fname = catch
+  (readFile $ userDir </> fname)
+  (\_ -> getDataFileName fname >>= readFile)
