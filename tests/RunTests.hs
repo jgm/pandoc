@@ -152,7 +152,7 @@ runTest testname opts inp norm = do
   hFlush stdout
   env <- getEnvironment  -- we need at least HOME so pandoc can find data files
   -- Note: COLUMNS must be set for markdown table reader
-  ph <- runProcess pandocPath (opts ++ [inpPath]) Nothing (Just (("COLUMNS", "80"):env)) Nothing (Just hOut) (Just stderr)
+  ph <- runProcess pandocPath (opts ++ [inpPath] ++ ["--data-dir", ".."]) Nothing (Just (("COLUMNS", "80"):env)) Nothing (Just hOut) (Just stderr)
   ec <- waitForProcess ph
   result  <- if ec == ExitSuccess
                 then do
