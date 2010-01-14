@@ -36,12 +36,10 @@ main = do
   exitWith ExitSuccess
 
 -- | Run test suite.
-runTestSuite _ _ _ _ = do
-  tempPath <- catch getTemporaryDirectory (\_ -> return ".")
-  (outputPath, hOut) <- openTempFile tempPath "out"
-  runProcess "pandoc" ["--version"] Nothing Nothing Nothing (Just hOut) Nothing >>= waitForProcess
-  output <- readFile outputPath
-  let highlightingSupport = "with syntax highlighting" `isInfixOf` output
+runTestSuite _ _ pkg _ = do
+  let isHighlightingKate (Dependency (PackageName "highlighting-kate") _) = True
+      isHighlightingKate _ = False
+  let highlightingSupport = any isHighlightingKate $ buildDepends pkg
   let testArgs = if highlightingSupport then ["lhs"] else []
   let testCmd  = "runhaskell -i.. RunTests.hs " ++ unwords testArgs
   inDirectory "tests" $ runCommand testCmd >>= waitForProcess >>= exitWith
