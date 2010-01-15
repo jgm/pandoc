@@ -7,4 +7,6 @@ man/man?/*.1
 man/man?/*.html
 *.diff
 pandoc.cabal.orig
+*.o
+*.hi
 
