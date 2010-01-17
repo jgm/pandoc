@@ -64,8 +64,6 @@ Extra-Source-Files:
                  -- sources for man pages
                  man/man1/pandoc.1.md, man/man1/markdown2pdf.1.md,
                  man/man1/html2markdown.1.md, man/man1/hsmarkdown.1.md,
-                 -- Makefile
-                 Makefile,
                  -- tests
                  tests/bodybg.gif,
                  tests/writer.latex,
