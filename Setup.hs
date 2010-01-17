@@ -5,7 +5,7 @@ import Distribution.PackageDescription
          (PackageDescription(..), Executable(..), BuildInfo(..))
 import Distribution.Simple.LocalBuildInfo
          (LocalBuildInfo(..), absoluteInstallDirs)
-import Distribution.Verbosity ( Verbosity )
+import Distribution.Verbosity ( Verbosity, silent )
 import Distribution.Simple.InstallDirs (mandir, bindir, CopyDest (NoCopyDest))
 import Distribution.Simple.Utils (copyFiles)
 import Control.Exception ( bracket_ )
@@ -48,7 +48,7 @@ runTestSuite _ _ pkg _ = do
 
 -- | Build man pages from markdown sources in man/man1/.
 makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
-makeManPages _ _ _ _ = mapM_ makeManPage manpages
+makeManPages _ flags _ _ = mapM_ (makeManPage (fromFlag $ buildVerbosity flags)) manpages
 
 manpages :: [FilePath]
 manpages = ["pandoc.1", "hsmarkdown.1", "html2markdown.1", "markdown2pdf.1"]
@@ -57,8 +57,8 @@ manDir :: FilePath
 manDir = "man" </> "man1"
 
 -- | Build a man page from markdown source in man/man1.
-makeManPage :: FilePath -> IO ()
-makeManPage manpage = do
+makeManPage :: Verbosity -> FilePath -> IO ()
+makeManPage verbosity manpage = do
   let pandoc = "dist" </> "build" </> "pandoc" </> "pandoc"
   let page = manDir </> manpage
   let source = manDir </> manpage <.> "md"
@@ -68,7 +68,8 @@ makeManPage manpage = do
                 "--template=templates/man.template", "-o", page, source]
                 Nothing Nothing Nothing Nothing (Just stderr) >>= waitForProcess
     case ec of
-         ExitSuccess -> putStrLn $ "Created " ++ manDir </> manpage
+         ExitSuccess -> unless (verbosity == silent) $
+                           putStrLn $ "Created " ++ manDir </> manpage
          _           -> do putStrLn $ "Error creating " ++ manDir </> manpage
                            exitWith ec
 
