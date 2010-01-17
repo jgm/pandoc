@@ -1,10 +1,10 @@
 import Distribution.Simple
 import Distribution.Simple.Setup
-    (copyDest, copyVerbosity, fromFlag, installVerbosity)
+         (copyDest, copyVerbosity, fromFlag, installVerbosity, BuildFlags(..))
 import Distribution.PackageDescription
-    ( PackageDescription(..), Executable(..), BuildInfo(..) )
+         (PackageDescription(..), Executable(..), BuildInfo(..))
 import Distribution.Simple.LocalBuildInfo
-         ( LocalBuildInfo(..), absoluteInstallDirs )
+         (LocalBuildInfo(..), absoluteInstallDirs)
 import Distribution.Verbosity ( Verbosity )
 import Distribution.Simple.InstallDirs (mandir, bindir, CopyDest (NoCopyDest))
 import Distribution.Simple.Utils (copyFiles)
@@ -13,17 +13,18 @@ import Control.Monad ( unless )
 import System.Process ( runCommand, runProcess, waitForProcess )
 import System.FilePath ( (</>), (<.>) )
 import System.Directory
-import System.IO ( stderr, openTempFile )
+import System.IO ( stderr )
 import System.Exit
 import System.Time
 import System.IO.Error ( isDoesNotExistError )
-import Data.Maybe ( fromJust, isNothing, catMaybes )
-import Data.List ( isInfixOf, (\\) )
+import Data.Maybe ( catMaybes )
+import Data.List ( (\\) )
 
+main :: IO ()
 main = do
   defaultMainWithHooks $ simpleUserHooks {
       runTests  = runTestSuite
-    , postBuild = makeManPages
+    , postBuild = makeManPages 
     , postCopy = \ _ flags pkg lbi -> do
          installManpages pkg lbi (fromFlag $ copyVerbosity flags)
               (fromFlag $ copyDest flags)
@@ -36,17 +37,18 @@ main = do
   exitWith ExitSuccess
 
 -- | Run test suite.
+runTestSuite :: Args -> Bool -> PackageDescription -> LocalBuildInfo -> IO a
 runTestSuite _ _ pkg _ = do
   let isHighlightingKate (Dependency (PackageName "highlighting-kate") _) = True
       isHighlightingKate _ = False
   let highlightingSupport = any isHighlightingKate $ buildDepends pkg
-  let testArgs = if highlightingSupport then ["lhs"] else []
+  let testArgs = ["lhs" | highlightingSupport]
   let testCmd  = "runhaskell -i.. RunTests.hs " ++ unwords testArgs
   inDirectory "tests" $ runCommand testCmd >>= waitForProcess >>= exitWith
 
 -- | Build man pages from markdown sources in man/man1/.
-makeManPages _ _ _ _ = do
-  mapM_ makeManPage manpages
+makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
+makeManPages _ _ _ _ = mapM_ makeManPage manpages
 
 manpages :: [FilePath]
 manpages = ["pandoc.1", "hsmarkdown.1", "html2markdown.1", "markdown2pdf.1"]
@@ -55,6 +57,7 @@ manDir :: FilePath
 manDir = "man" </> "man1"
 
 -- | Build a man page from markdown source in man/man1.
+makeManPage :: FilePath -> IO ()
 makeManPage manpage = do
   let pandoc = "dist" </> "build" </> "pandoc" </> "pandoc"
   let page = manDir </> manpage
