@@ -747,7 +747,7 @@ main = do
   let writerOutput = writer writerOptions doc' ++ "\n"
 
   case writerName' of
-       "odt"   -> saveOpenDocumentAsODT datadir outputFile sourceDirRelative referenceODT writerOutput
+       "odt"   -> saveOpenDocumentAsODT (Just datadir) outputFile sourceDirRelative referenceODT writerOutput
        _       -> if outputFile == "-"
                      then putStr writerOutput
                      else writeFile outputFile writerOutput

@@ -42,22 +42,25 @@ import System.Directory
 import Control.Monad (liftM)
 
 -- | Produce an ODT file from OpenDocument XML.
-saveOpenDocumentAsODT :: FilePath      -- ^ Path of user data directory
-                      -> FilePath      -- ^ Pathname of ODT file to be produced.
-                      -> FilePath      -- ^ Relative directory of source file.
+saveOpenDocumentAsODT :: Maybe FilePath -- ^ Path of user data directory
+                      -> FilePath       -- ^ Pathname of ODT file to be produced
+                      -> FilePath       -- ^ Relative directory of source file
                       -> Maybe FilePath -- ^ Path specified by --reference-odt
-                      -> String        -- ^ OpenDocument XML contents.
+                      -> String         -- ^ OpenDocument XML contents
                       -> IO ()
 saveOpenDocumentAsODT datadir destinationODTPath sourceDirRelative mbRefOdt xml = do
   refArchive <- liftM toArchive $
        case mbRefOdt of
              Just f -> B.readFile f
              Nothing -> do
-               let userRefOdt = datadir </> "reference.odt"
-               userRefOdtExists <- doesFileExist userRefOdt
-               if userRefOdtExists
-                  then B.readFile userRefOdt
-                  else getDataFileName "reference.odt" >>= B.readFile
+               let defaultODT = getDataFileName "reference.odt" >>= B.readFile
+               case datadir of
+                     Nothing  -> defaultODT
+                     Just d   -> do
+                        exists <- doesFileExist (d </> "reference.odt")
+                        if exists
+                           then B.readFile (d </> "reference.odt")
+                           else defaultODT
   -- handle pictures
   let (newContents, pics) = 
         case runParser pPictures [] "OpenDocument XML contents" xml of
