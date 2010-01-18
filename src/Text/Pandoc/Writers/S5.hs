@@ -44,7 +44,7 @@ import Text.XHtml.Strict
 import System.FilePath ( (</>) )
 import Data.List ( intercalate )
 
-s5HeaderIncludes :: FilePath -> IO String
+s5HeaderIncludes :: Maybe FilePath -> IO String
 s5HeaderIncludes datadir = do
   c <- s5CSS datadir
   j <- s5Javascript datadir
@@ -53,14 +53,14 @@ s5HeaderIncludes datadir = do
 s5Meta :: String
 s5Meta = "<!-- configuration parameters -->\n<meta name=\"defaultView\" content=\"slideshow\" />\n<meta name=\"controlVis\" content=\"hidden\" />\n"
 
-s5Javascript :: FilePath -> IO String
+s5Javascript :: Maybe FilePath -> IO String
 s5Javascript datadir = do
   jsCom <- readDataFile datadir $ "s5" </> "default" </> "slides.js.comment"
   jsPacked <- readDataFile datadir $ "s5" </> "default" </> "slides.js.packed"
   return $ "<script type=\"text/javascript\">\n" ++ jsCom ++ jsPacked ++
            "</script>\n"
 
-s5CSS :: FilePath -> IO String
+s5CSS :: Maybe FilePath -> IO String
 s5CSS datadir = do
   s5CoreCSS <- readDataFile datadir $ "s5" </> "default" </> "s5-core.css"
   s5FramingCSS <- readDataFile datadir $ "s5" </> "default" </> "framing.css"

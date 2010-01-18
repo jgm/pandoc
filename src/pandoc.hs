@@ -668,13 +668,13 @@ main = do
 
   variables' <- if writerName' == "s5" && standalone'
                    then do
-                     inc <- s5HeaderIncludes datadir
+                     inc <- s5HeaderIncludes (Just datadir)
                      return $ ("header-includes", inc) : variables
                    else return variables
 
   variables'' <- case mathMethod of
                       LaTeXMathML Nothing -> do
-                         s <- latexMathMLScript datadir
+                         s <- latexMathMLScript (Just datadir)
                          return $ ("latexmathml-script", s) : variables'
                       _ -> return variables'
 

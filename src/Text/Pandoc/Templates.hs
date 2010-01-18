@@ -84,7 +84,6 @@ import Text.Pandoc.Shared (readDataFile)
 import Prelude hiding ( readFile )
 import System.IO.UTF8 ( readFile )
 #endif
-import Paths_pandoc (getDataFileName)
 
 -- | Get default template for the specified writer.
 getDefaultTemplate :: (Maybe FilePath) -- ^ User data directory to search first 
@@ -96,9 +95,7 @@ getDefaultTemplate user "odt" = getDefaultTemplate user "opendocument"
 getDefaultTemplate user writer = do
   let format = takeWhile (/='+') writer  -- strip off "+lhs" if present
   let fname = "templates" </> format  <.> "template"
-  E.try $ case user of
-               Just d  -> readDataFile d fname
-               Nothing -> getDataFileName fname >>= readFile
+  E.try $ readDataFile user fname
 
 data TemplateState = TemplateState Int [(String,String)]
 

@@ -1046,7 +1046,9 @@ inDirectory path action = do
 
 -- | Read file from specified user data directory or, if not found there, from
 -- Cabal data directory.
-readDataFile :: FilePath -> FilePath -> IO String
-readDataFile userDir fname = catch
-  (readFile $ userDir </> fname)
-  (\_ -> getDataFileName fname >>= readFile)
+readDataFile :: Maybe FilePath -> FilePath -> IO String
+readDataFile userDir fname =
+  case userDir of
+       Nothing  -> getDataFileName fname >>= readFile
+       Just u   -> catch (readFile $ u </> fname)
+                   (\_ -> getDataFileName fname >>= readFile)
