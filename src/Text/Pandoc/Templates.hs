@@ -66,7 +66,7 @@ You may optionally specify separators using @$sep$@:
 
 module Text.Pandoc.Templates ( renderTemplate
                              , TemplateTarget
-                             , getTemplate ) where
+                             , getDefaultTemplate ) where
 
 import Text.ParserCombinators.Parsec
 import Control.Monad (liftM, when, forM)
@@ -86,14 +86,14 @@ import System.IO.UTF8 ( readFile )
 #endif
 import Paths_pandoc (getDataFileName)
 
--- | Get a template for the specified writer.
-getTemplate :: (Maybe FilePath) -- ^ User data directory to search first 
-            -> String           -- ^ Name of writer 
-            -> IO (Either E.IOException String)
-getTemplate _ "native" = return $ Right ""
-getTemplate user "s5" = getTemplate user "html"
-getTemplate user "odt" = getTemplate user "opendocument"
-getTemplate user writer = do
+-- | Get default template for the specified writer.
+getDefaultTemplate :: (Maybe FilePath) -- ^ User data directory to search first 
+                   -> String           -- ^ Name of writer 
+                   -> IO (Either E.IOException String)
+getDefaultTemplate _ "native" = return $ Right ""
+getDefaultTemplate user "s5" = getDefaultTemplate user "html"
+getDefaultTemplate user "odt" = getDefaultTemplate user "opendocument"
+getDefaultTemplate user writer = do
   let format = takeWhile (/='+') writer  -- strip off "+lhs" if present
   let fname = "templates" </> format  <.> "template"
   E.try $ case user of

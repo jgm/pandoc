@@ -441,7 +441,7 @@ options =
     , Option "D" ["print-default-template"]
                  (ReqArg
                   (\arg _ -> do
-                     templ <- getTemplate Nothing arg
+                     templ <- getDefaultTemplate Nothing arg
                      case templ of
                           Right t -> hPutStr stdout t
                           Left e  -> error $ show e
@@ -650,7 +650,7 @@ main = do
      Just r  -> return r
      Nothing -> error ("Unknown writer: " ++ writerName')
 
-  templ <- getTemplate (Just datadir) writerName'
+  templ <- getDefaultTemplate (Just datadir) writerName'
   let defaultTemplate = case templ of
                              Right t -> t
                              Left  e -> error (show e)
