@@ -95,6 +95,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("strikeout", "yes") | stStrikeout st ] ++
                  [ ("subscript", "yes") | stSubscript st ] ++
                  [ ("url", "yes") | stUrl st ] ++
+                 [ ("numbersections", "yes") | writerNumberSections options ] ++
                  [ ("lhs", "yes") | stLHS st ] ++
                  [ ("graphics", "yes") | stGraphics st ]
   return $ if writerStandalone options
