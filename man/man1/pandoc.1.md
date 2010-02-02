@@ -26,6 +26,11 @@ format).  For output to a file, use the `-o` option:
 
     pandoc -o output.html input.txt
 
+Instead of a file, an absolute URI may be given.  In this case
+pandoc will fetch the content using HTTP:
+
+    pandoc -f html -t markdown http://www.fsf.org
+
 The input and output formats may be specified using command-line options
 (see **OPTIONS**, below, for details).  If these formats are not
 specified explicitly, Pandoc will attempt to determine them
@@ -48,9 +53,10 @@ markdown: the differences are described in the *README* file in
 the user documentation.  If standard markdown syntax is desired, the
 `--strict` option may be used.
 
-Pandoc uses the UTF-8 character encoding for both input and output.
-If your local character encoding is not UTF-8, you should pipe input
-and output through `iconv`:
+Pandoc uses the UTF-8 character encoding for both input and output
+(unless compiled with GHC 6.12 or higher, in which case it uses
+the local encoding). If your local character encoding is not UTF-8, you
+should pipe input and output through `iconv`:
 
     iconv -t utf-8 input.txt | pandoc | iconv -f utf-8
 

@@ -62,11 +62,16 @@ Note that you can specify multiple input files on the command line.
 `pandoc` will concatenate them all (with blank lines between them)
 before parsing:
 
-	pandoc -s ch1.txt ch2.txt refs.txt > book.html
+    pandoc -s ch1.txt ch2.txt refs.txt > book.html
 
 (The `-s` option here tells `pandoc` to produce a standalone HTML file,
 with a proper header, rather than a fragment.  For more details on this
 and many other command-line options, see below.)
+
+Instead of a filename, you can specify an absolute URI. In this
+case pandoc will attempt to download the content via HTTP:
+
+    pandoc -f html -t markdown http://www.fsf.org
 
 The format of the input and output can be specified explicitly using
 command-line options.  The input format can be specified using the
@@ -113,7 +118,9 @@ Character encodings
 -------------------
 
 All input is assumed to be in the UTF-8 encoding, and all output
-is in UTF-8. If your local character encoding is not UTF-8 and you use
+is in UTF-8 (unless your version of pandoc was compiled using
+GHC 6.12 or higher, in which case the local encoding will be used).
+If your local character encoding is not UTF-8 and you use
 accented or foreign characters, you should pipe the input and output
 through [`iconv`]. For example,
 

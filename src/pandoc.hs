@@ -59,6 +59,9 @@ import Text.CSL
 import Text.Pandoc.Biblio
 #endif
 import Control.Monad (when, unless)
+import Network.HTTP
+import Network.URI (parseURI)
+import Data.ByteString.Lazy.UTF8 (toString)
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-8 John MacFarlane\n" ++
@@ -731,7 +734,11 @@ main = do
   let readSources [] = mapM readSource ["-"]
       readSources srcs = mapM readSource srcs
       readSource "-" = getContents
-      readSource src = readFile src
+      readSource src = case parseURI src of
+                            Just u  -> readURI u
+                            Nothing -> readFile src
+      readURI uri = simpleHTTP (mkRequest GET uri) >>= getResponseBody >>=
+                      return . toString  -- treat all as UTF8
 
   let convertTabs = tabFilter (if preserveTabs then 0 else tabStop)
 
