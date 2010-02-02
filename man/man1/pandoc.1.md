@@ -60,10 +60,6 @@ should pipe input and output through `iconv`:
 
     iconv -t utf-8 input.txt | pandoc | iconv -f utf-8
 
-Pandoc's HTML parser is not very forgiving.  If your input is
-HTML, consider running it through `tidy`(1) before passing it
-to Pandoc.  Or use `html2markdown`(1), a wrapper around `pandoc`.
-
 # OPTIONS
 
 -f *FORMAT*, -r *FORMAT*, \--from=*FORMAT*, \--read=*FORMAT*
