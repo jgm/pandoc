@@ -33,7 +33,7 @@ module Text.Pandoc.Readers.Markdown (
 
 import Data.List ( transpose, isPrefixOf, isSuffixOf, sortBy, findIndex, intercalate )
 import Data.Ord ( comparing )
-import Data.Char ( isAlphaNum, isUpper )
+import Data.Char ( isAlphaNum )
 import Data.Maybe
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
@@ -479,7 +479,7 @@ anyOrderedListStart = try $ do
              -- if it could be an abbreviated first name, insist on more than one space
              if delim == Period && (style == UpperAlpha || (style == UpperRoman &&
                 num `elem` [1, 5, 10, 50, 100, 500, 1000]))
-                then char '\t' <|> (char ' ' >>~ notFollowedBy (satisfy isUpper))
+                then char '\t' <|> (try $ char ' ' >> spaceChar)
                 else spaceChar
              skipSpaces
              return (num, style, delim)
