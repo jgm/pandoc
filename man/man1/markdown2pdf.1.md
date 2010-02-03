@@ -13,14 +13,15 @@ markdown2pdf [*options*] [*input-file*]...
 # DESCRIPTION
 
 `markdown2pdf` converts *input-file* (or text from standard 
-input) from markdown-formatted plain text to PDF, using `pdflatex`.
-If no output filename is specified (using the `-o` option),
-the name of the output file is derived from the input file; thus, for
-example, if the input file is *hello.txt*, the output file will be
-*hello.pdf*.  If the input is read from STDIN and no output filename
-is specified, the output file will be named *stdin.pdf*.  If multiple
-input files are specified, they will be concatenated before conversion,
-and the name of the output file will be derived from the first input file.
+input) from markdown-formatted plain text to PDF, using `pandoc`
+and `pdflatex`. If no output filename is specified (using the `-o`
+option), the name of the output file is derived from the input file;
+thus, for example, if the input file is *hello.txt*, the output file
+will be *hello.pdf*. If the input is read from STDIN and no output
+filename is specified, the output file will be named *stdin.pdf*. If
+multiple input files are specified, they will be concatenated before
+conversion, and the name of the output file will be derived from the
+first input file.
 
 Input is assumed to be in the UTF-8 character encoding.  If your
 local character encoding is not UTF-8, you should pipe input
@@ -34,11 +35,6 @@ packages are not included in your latex setup, they can be obtained from
 <http://ctan.org>.
 
 # OPTIONS
-
-`markdown2pdf` is a wrapper around `pandoc`, so all of
-`pandoc`'s options can be used with `markdown2pdf` as well.
-See `pandoc`(1) for a complete list.
-The following options are most relevant:
 
 -o *FILE*, \--output=*FILE*
 :   Write output to *FILE*.
