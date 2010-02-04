@@ -20,6 +20,14 @@ the [cabal-install] build tool.
 
         cabal install -fhighlighting pandoc
 
+    This procedure will install the released version of pandoc,
+    which will be downloaded automatically from HackageDB.
+    If you want to install a modified or development version
+    of pandoc instead, switch to the source directory and do
+    as above, but without the 'pandoc':
+
+        cabal install
+
 3.  Make sure the `$CABALDIR/bin` directory is in your path.  You should
 now be able to run `pandoc`:
 
