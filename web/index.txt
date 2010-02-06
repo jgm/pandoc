@@ -35,12 +35,8 @@ Pandoc features
     + Delimited (unindented) code blocks with syntax highlighting.
     + Compatibility mode to turn off syntax entensions and emulate
       `Markdown.pl`.
-- Convenient wrapper scripts:
-    + `markdown2pdf` converts directly from markdown to PDF, using
-      `pdflatex`.
-    + `html2markdown` makes it easy to produce a markdown version
-      of any web page.
-    + `hsmarkdown` is a drop-in replacement for `Markdown.pl`.
+- Convenient `markdown2pdf` wrapper script that converts directly
+  from markdown to PDF, using `pdflatex`.
 - Multi-platform:  runs on Windows, MacOS X, Linux, Unix.
 - Free software, released under the [GPL].
 
@@ -81,8 +77,9 @@ tool:
 This will download and compile pandoc and all of its dependencies. If
 you want syntax highlighting support, add the flag `-fhighlighting`
 (this requires that the [pcre](http://www.pcre.org/) library be
-installed). If you want to install the wrapper scripts `hsmarkdown` and
-`markdown2pdf`, add `-fwrappers`.
+installed). If you do not want to install the wrapper script
+`markdown2pdf`, add `-f-wrappers`. If you do not want to install
+the Haskell library, add `-f-library`.
 
 Alternatively, you can download the [source tarball] and
 follow the instructions in [INSTALL](INSTALL.html).
