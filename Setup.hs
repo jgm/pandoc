@@ -51,7 +51,7 @@ makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO
 makeManPages _ flags _ _ = mapM_ (makeManPage (fromFlag $ buildVerbosity flags)) manpages
 
 manpages :: [FilePath]
-manpages = ["pandoc.1", "hsmarkdown.1", "html2markdown.1", "markdown2pdf.1"]
+manpages = ["pandoc.1", "markdown2pdf.1"]
 
 manDir :: FilePath
 manDir = "man" </> "man1"
@@ -80,7 +80,7 @@ installScripts pkg lbi verbosity copy =
       (zip (repeat ".") (wrappers \\ exes))
     where exes = map exeName $ filter isBuildable $ executables pkg
           isBuildable = buildable . buildInfo
-          wrappers = ["html2markdown", "hsmarkdown", "markdown2pdf"]
+          wrappers = ["markdown2pdf"]
 
 installManpages :: PackageDescription -> LocalBuildInfo
                 -> Verbosity -> CopyDest -> IO ()

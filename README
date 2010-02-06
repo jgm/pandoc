@@ -127,92 +127,49 @@ will convert `source.txt` from the local encoding to UTF-8, then
 convert it to HTML, then convert back to the local encoding,
 putting the output in `output.html`.
 
-The wrapper scripts (described below) automatically convert the input
-from the local encoding to UTF-8 before running them through `pandoc`,
-then convert the output back to the local encoding.
-
 Wrappers
 ========
 
-Three wrapper scripts, `markdown2pdf`, `html2markdown`, and
-`hsmarkdown`, are included in the standard Pandoc installation. (The
-Windows binary package does not include `html2markdown`, which is
-a POSIX shell script. It does include portable Haskell versions of
-`markdown2pdf` and `hsmarkdown`.)
+`markdown2pdf`
+--------------
 
-1.  `markdown2pdf` produces a PDF file from markdown-formatted
-    text, using `pandoc` and `pdflatex`.  The default
-    behavior of `markdown2pdf` is to create a file with the same
-    base name as the first argument and the extension `pdf`; thus,
-    for example,
+The standard Pandoc installation includes `markdown2pdf`, a wrapper
+around `pandoc` and `pdflatex` that produces PDFs directly from markdown
+sources. The default behavior of `markdown2pdf` is to create a file with
+the same base name as the first argument and the extension `pdf`; thus,
+for example,
 
-           markdown2pdf sample.txt endnotes.txt
+   markdown2pdf sample.txt endnotes.txt
 
-    will produce `sample.pdf`.  (If `sample.pdf` exists already,
-    it will be backed up before being overwritten.)  An output file
-    name can be specified explicitly using the `-o` option:
+will produce `sample.pdf`.  (If `sample.pdf` exists already,
+it will be backed up before being overwritten.)  An output file
+name can be specified explicitly using the `-o` option:
 
-           markdown2pdf -o book.pdf chap1 chap2
+   markdown2pdf -o book.pdf chap1 chap2
 
-    If no input file is specified, input will be taken from stdin.
-    All of `pandoc`'s options will work with `markdown2pdf` as well.
+If no input file is specified, input will be taken from stdin.
+All of `pandoc`'s options will work with `markdown2pdf` as well.
 
-    `markdown2pdf` assumes that `pdflatex` is in the path.  It also
-    assumes that the following LaTeX packages are available:
-    `unicode`, `fancyhdr` (if you have verbatim text in footnotes),
-    `graphicx` (if you use images), `array` (if you use tables),
-    and `ulem` (if you use strikeout text).  If they are not already
-    included in your LaTeX distribution, you can get them from
-    [CTAN]. A full [TeX Live] or [MacTeX] distribution will have all of
-    these packages.
+`markdown2pdf` assumes that `pdflatex` is in the path.  It also
+assumes that the following LaTeX packages are available:
+`unicode`, `fancyhdr` (if you have verbatim text in footnotes),
+`graphicx` (if you use images), `array` (if you use tables),
+and `ulem` (if you use strikeout text).  If they are not already
+included in your LaTeX distribution, you can get them from
+[CTAN]. A full [TeX Live] or [MacTeX] distribution will have all of
+these packages.
 
-2.  `html2markdown` grabs a web page from a file or URL and converts
-    it to markdown-formatted text, using `tidy` and `pandoc`.
+`hsmarkdown`
+------------
 
-    All of `pandoc`'s options will work with `html2markdown` as well.
-    In addition, the following special options may be used.
-    The special options must be separated from the `html2markdown`
-    command and any regular Pandoc options by the delimiter `--`:
-
-        html2markdown -o out.txt -- -e latin1 -g curl google.com 
-
-    The `-e` or `--encoding` option specifies the character encoding
-    of the HTML input.  If this option is not specified, and input
-    is not from stdin, `html2markdown` will attempt to determine the
-    page's character encoding from the "Content-type" meta tag.
-    If this is not present, UTF-8 is assumed.
-
-    The `-g` or `--grabber` option specifies the command to be used to
-    fetch the contents of a URL:
-
-        html2markdown -g 'curl --user foo:bar' www.mysite.com
-
-    If this option is not specified, `html2markdown` searches for an
-    available program (`wget`, `curl`, or a text-mode browser) to fetch
-    the contents of a URL.
-
-    `html2markdown` requires [HTML Tidy], which must be in the path.
-    It uses [`iconv`] for character encoding conversions; if `iconv`
-    is absent, it will still work, but it will treat everything as UTF-8.
-
-3.  `hsmarkdown` is designed to be used as a drop-in replacement for
-    `Markdown.pl`.  It forces `pandoc` to convert from markdown to
-    HTML, and to use the `--strict` flag for maximal compliance with
-    official markdown syntax.  (All of Pandoc's syntax extensions and
-    variants, described below, are disabled.)  No other command-line
-    options are allowed.  (In fact, options will be interpreted as
-    filenames.)
-
-    As an alternative to using the `hsmarkdown` script, the
-    user may create a symbolic link to `pandoc` called `hsmarkdown`.
-    When invoked under the name `hsmarkdown`, `pandoc` will behave
-    as if the `--strict` flag had been selected, and no command-line
-    options will be recognized.  However, this approach does not work
-    under Cygwin, due to problems with its simulation of symbolic
-    links.
+A user who wants a drop-in replacement for `Markdown.pl` may create
+a symbolic link to the `pandoc` executable called `hsmarkdown`. When
+invoked under the name `hsmarkdown`, `pandoc` will behave as if the
+`--strict` flag had been selected, and no command-line options will be
+recognized. However, this approach does not work under Cygwin, due to
+problems with its simulation of symbolic links.
 
 [Cygwin]:  http://www.cygwin.com/ 
-[HTML Tidy]:  http://tidy.sourceforge.net/
 [`iconv`]: http://www.gnu.org/software/libiconv/
 [CTAN]: http://www.ctan.org "Comprehensive TeX Archive Network"
 [TeX Live]: http://www.tug.org/texlive/
@@ -562,8 +519,7 @@ Pandoc's markdown vs. standard markdown
 
 In parsing markdown, Pandoc departs from and extends [standard markdown]
 in a few respects.  Except where noted, these differences can
-be suppressed by specifying the `--strict` command-line option or by
-using the `hsmarkdown` wrapper.
+be suppressed by specifying the `--strict` command-line option.
 
 [standard markdown]:  http://daringfireball.net/projects/markdown/syntax
   "Markdown syntax description"

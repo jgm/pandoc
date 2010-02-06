@@ -59,11 +59,10 @@ Data-Files:
                  -- documentation
                  README, INSTALL, COPYRIGHT, BUGS, changelog,
                  -- wrappers
-                 markdown2pdf, html2markdown, hsmarkdown
+                 markdown2pdf
 Extra-Source-Files:
                  -- sources for man pages
                  man/man1/pandoc.1.md, man/man1/markdown2pdf.1.md,
-                 man/man1/html2markdown.1.md, man/man1/hsmarkdown.1.md,
                  -- tests
                  tests/bodybg.gif,
                  tests/writer.latex,
@@ -120,8 +119,7 @@ Extra-Source-Files:
                  tests/lhs-test.html+lhs,
                  tests/lhs-test.fragment.html+lhs,
                  tests/RunTests.hs
-Extra-Tmp-Files: man/man1/pandoc.1, man/man1/hsmarkdown.1,
-                 man/man1/html2markdown.1, man/man1/markdown2pdf.1
+Extra-Tmp-Files: man/man1/pandoc.1, man/man1/markdown2pdf.1
 
 Flag highlighting
   Description:   Compile in support for syntax highlighting of code blocks.
@@ -130,7 +128,7 @@ Flag executable
   Description:   Build the pandoc executable.
   Default:       True
 Flag wrappers
-  Description:   Build the wrappers (hsmarkdown, markdown2pdf).
+  Description:   Build the wrappers (markdown2pdf).
   Default:       True
 Flag library
   Description:   Build the pandoc library.
@@ -215,17 +213,6 @@ Executable pandoc
     Build-depends: citeproc-hs >= 0.2
     cpp-options:   -D_CITEPROC
   if flag(executable)
-    Buildable:      True
-  else
-    Buildable:      False
-
-Executable hsmarkdown
-  Hs-Source-Dirs:     src
-  Main-Is:            hsmarkdown.hs
-  Ghc-Options:        -Wall -threaded
-  Ghc-Prof-Options:   -auto-all
-  Extensions:         CPP
-  if flag(wrappers)
     Buildable:      True
   else
     Buildable:      False
