@@ -169,12 +169,12 @@ header :: GenParser Char ParserState Block
 header = try $ do
   char '\\'
   subs <- many (try (string "sub"))
-  string "section"
+  base <- try (string "section" >> return 1) <|> (string "paragraph" >> return 4)
   optional (char '*')
   char '{'
   title' <- manyTill inline (char '}')
   spaces
-  return $ Header (length subs + 1) (normalizeSpaces title')
+  return $ Header (length subs + base) (normalizeSpaces title')
 
 --
 -- hrule block
