@@ -600,7 +600,9 @@ orderedList = try $ do
                                           _              -> DefaultStyle
                               return (read sta, sty')
   spaces
-  items <- sepEndBy1 (blocksIn "li") spaces
+  -- note: if they have an <ol> or <ul> not in scope of a <li>,
+  -- treat it as a list item, though it's not valid xhtml...
+  items <- sepEndBy1 (blocksIn "li" <|> liftM (:[]) list) spaces
   htmlEndTag "ol"
   return $ OrderedList (start, style, DefaultDelim) items
 
@@ -608,7 +610,9 @@ bulletList :: GenParser Char ParserState Block
 bulletList = try $ do
   htmlTag "ul"
   spaces
-  items <- sepEndBy1 (blocksIn "li") spaces
+  -- note: if they have an <ol> or <ul> not in scope of a <li>,
+  -- treat it as a list item, though it's not valid xhtml...
+  items <- sepEndBy1 (blocksIn "li" <|> liftM (:[]) list) spaces
   htmlEndTag "ul"
   return $ BulletList items
 
