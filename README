@@ -906,7 +906,7 @@ Title blocks
 If the file begins with a title block
 
 	% title
-	% author(s) (separated by commas)
+	% author(s) (separated by semicolons)
 	% date
 
 it will be parsed as bibliographic information, not regular text.  (It
