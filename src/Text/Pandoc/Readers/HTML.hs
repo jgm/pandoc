@@ -486,6 +486,7 @@ endOfDoc = try $ do
 parseHtml :: GenParser Char ParserState Pandoc
 parseHtml = do
   sepEndBy (choice [xmlDec, definition, htmlComment]) spaces
+  spaces
   skipHtmlTag "html"
   spaces
   meta <- option (Meta [] [] []) parseHead
