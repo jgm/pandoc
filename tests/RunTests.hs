@@ -93,6 +93,8 @@ main = do
              "markdown-reader-more.txt" "markdown-reader-more.native"
   r8 <- runTest "rst reader" ["-r", "rst", "-w", "native", "-s", "-S"]
              "rst-reader.rst" "rst-reader.native"
+  r8a <- runTest "rst reader (tables)" ["-r", "rst", "-w", "native"]
+             "tables.rst" "tables-rstsubset.native"
   r9 <- runTest "html reader" ["-r", "html", "-w", "native", "-s"]
              "html-reader.html" "html-reader.native"
   r10 <- runTest "latex reader" ["-r", "latex", "-w", "native", "-s", "-R"]
@@ -105,7 +107,7 @@ main = do
   r13s <- if runLhsTests
              then mapM runLhsReaderTest lhsReaderFormats
              else putStrLn "Skipping lhs reader tests because they presuppose highlighting support" >> return []
-  let results = r1s ++ [r2, r3, r4, r5, r6, r7, r7a, r8, r9, r10, r11] ++ r12s ++ r13s
+  let results = r1s ++ [r2, r3, r4, r5, r6, r7, r7a, r8, r8a, r9, r10, r11] ++ r12s ++ r13s
   if all id results
      then do
        putStrLn "\nAll tests passed."

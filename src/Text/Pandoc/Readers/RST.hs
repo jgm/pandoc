@@ -34,7 +34,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.ParserCombinators.Parsec
 import Control.Monad ( when, unless )
-import Data.List ( findIndex, delete, intercalate )
+import Data.List ( findIndex, delete, intercalate, transpose )
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: ParserState -- ^ Parser state, including options for parser
@@ -127,6 +127,7 @@ block = choice [ codeBlock
                , header
                , hrule
                , lineBlock     -- must go before definitionList
+               , table
                , list
                , lhsCodeBlock
                , para
@@ -580,6 +581,197 @@ regularKey = try $ do
   src <- targetURI
   return (normalizeSpaces ref, (removeLeadingTrailingSpace src, ""))
 
+--
+-- tables
+--
+
+-- General tables TODO:
+--  - figure out if leading spaces are acceptable and if so, add
+--    support for them
+--
+-- Simple tables TODO:
+--  - column spans
+--  - multiline support
+--  - ensure that rightmost column span does not need to reach end 
+--  - require at least 2 columns
+--
+-- Grid tables TODO:
+--  - column spans
+
+dashedLine :: Char -> Char
+           -> GenParser Char st (Int, Int)
+dashedLine ch sch = do
+  dashes <- many1 (char ch)
+  sp     <- many (char sch)
+  return (length dashes, length $ dashes ++ sp)
+
+simpleDashedLines :: Char -> GenParser Char st [(Int,Int)]
+simpleDashedLines ch = try $ many1 (dashedLine ch sch)
+ where
+  sch = ' '
+
+gridDashedLines :: Char -> GenParser Char st [(Int,Int)]
+gridDashedLines ch = try $ char sch >> many1 (dashedLine ch sch)
+ where
+  sch = '+'
+
+-- Parse a table row separator
+simpleTableSep :: Char -> GenParser Char ParserState Char
+simpleTableSep ch = try $ simpleDashedLines ch >> newline
+
+gridTableSep :: Char -> GenParser Char ParserState Char
+gridTableSep ch = try $ gridDashedLines ch >> newline
+
+-- Parse a table footer
+simpleTableFooter :: GenParser Char ParserState [Char]
+simpleTableFooter = try $ simpleTableSep '=' >> blanklines
+
+gridTableFooter :: GenParser Char ParserState [Char]
+gridTableFooter = blanklines
+
+-- Parse a raw line and split it into chunks by indices.
+simpleTableRawLine :: [Int] -> GenParser Char ParserState [String]
+simpleTableRawLine indices = do
+  line <- many1Till anyChar newline
+  return (simpleTableSplitLine indices line)
+
+gridTableRawLine :: [Int] -> GenParser Char ParserState [String]
+gridTableRawLine indices = do
+  char '|'
+  line <- many1Till anyChar newline
+  return (gridTableSplitLine indices line)
+
+-- Parse a table row and return a list of blocks (columns).
+simpleTableRow :: [Int] -> GenParser Char ParserState [[Block]]
+simpleTableRow indices = do
+  notFollowedBy' simpleTableFooter
+  firstLine <- simpleTableRawLine indices
+  colLines  <- return [] -- TODO
+  let cols = map unlines . transpose $ firstLine : colLines
+  mapM (parseFromString (many plain)) cols
+
+gridTableRow :: [Int]
+             -> GenParser Char ParserState [[Block]]
+gridTableRow indices = do
+  colLines <- many1 (gridTableRawLine indices)
+  let cols = map unlines $ transpose colLines
+  mapM (parseFromString (many plain)) cols
+
+simpleTableSplitLine :: [Int] -> String -> [String]
+simpleTableSplitLine indices line =
+  map removeLeadingTrailingSpace
+  $ tail $ splitByIndices (init indices) line
+
+gridTableSplitLine :: [Int] -> String -> [String]
+gridTableSplitLine indices line =
+  map removeLeadingTrailingSpace
+  $ map (takeWhile (/= '|')) -- strip trailing '|' off each column
+  $ tail $ splitByIndices (init indices) line
+
+-- Calculate relative widths of table columns, based on indices
+widthsFromIndices :: Int      -- Number of columns on terminal
+                  -> [Int]    -- Indices
+                  -> [Double] -- Fractional relative sizes of columns
+widthsFromIndices _ [] = []
+widthsFromIndices numColumns indices =
+  let lengths' = zipWith (-) indices (0:indices)
+      lengths  = reverse $
+                 case reverse lengths' of
+                      []       -> []
+                      [x]      -> [x]
+                      -- compensate for the fact that intercolumn
+                      -- spaces are counted in widths of all columns
+                      -- but the last...
+                      (x:y:zs) -> if x < y && y - x <= 2
+                                     then y:y:zs
+                                     else x:y:zs
+      totLength = sum lengths
+      quotient = if totLength > numColumns
+                   then fromIntegral totLength
+                   else fromIntegral numColumns
+      fracs = map (\l -> (fromIntegral l) / quotient) lengths in
+  tail fracs
+
+simpleTableHeader :: Bool  -- ^ Headerless table 
+                  -> GenParser Char ParserState ([[Char]], [Alignment], [Int])
+simpleTableHeader headless = try $ do
+  optional blanklines
+  rawContent  <- if headless
+                    then return ""
+                    else simpleTableSep '=' >> anyLine
+  dashes      <- simpleDashedLines '='
+  newline
+  let lines'   = map snd dashes
+  let indices  = scanl (+) 0 lines'
+  let aligns   = replicate (length lines') AlignDefault
+  let rawHeads = if headless
+                    then replicate (length dashes) ""
+                    else simpleTableSplitLine indices rawContent
+  return (rawHeads, aligns, indices)
+
+gridTableHeader :: Bool -- ^ Headerless table
+                     -> GenParser Char ParserState ([String], [Alignment], [Int])
+gridTableHeader headless = try $ do
+  optional blanklines
+  dashes <- gridDashedLines '-'
+  newline
+  rawContent  <- if headless
+                    then return $ repeat "" 
+                    else many1
+                         (notFollowedBy (gridTableSep '=') >> char '|' >> many1Till anyChar newline)
+  if headless
+     then return ()
+     else gridTableSep '=' >> return ()
+  let lines'   = map snd dashes
+  let indices  = scanl (+) 0 lines'
+  let aligns   = replicate (length lines') AlignDefault -- RST does not have a notion of alignments
+  let rawHeads = if headless
+                    then replicate (length dashes) ""
+                    else map (intercalate " ") $ transpose
+                       $ map (gridTableSplitLine indices) rawContent
+  return (rawHeads, aligns, indices)
+
+-- Parse a table using 'headerParser', 'lineParser', and 'footerParser'.
+tableWith :: GenParser Char ParserState ([[Char]], [Alignment], [Int])
+          -> ([Int] -> GenParser Char ParserState [[Block]])
+          -> GenParser Char ParserState sep
+          -> GenParser Char ParserState end
+          -> GenParser Char ParserState Block
+tableWith headerParser rowParser lineParser footerParser = try $ do
+    (rawHeads, aligns, indices) <- headerParser
+    lines' <- rowParser indices `sepEndBy` lineParser
+    footerParser
+    heads <- mapM (parseFromString (many plain)) rawHeads
+    state <- getState
+    let captions = [] -- no notion of captions in RST
+    let numColumns = stateColumns state
+    let widths = widthsFromIndices numColumns indices
+    return $ Table captions aligns widths heads lines'
+
+-- Parse a simple table with '---' header and one line per row.
+simpleTable :: Bool  -- ^ Headerless table
+            -> GenParser Char ParserState Block
+simpleTable headless = do
+  Table c a _w h l <- tableWith (simpleTableHeader headless) simpleTableRow sep simpleTableFooter
+  -- Simple tables get 0s for relative column widths (i.e., use default)
+  return $ Table c a (replicate (length a) 0) h l
+ where
+  sep = return () -- optional (simpleTableSep '-')
+
+-- Parse a grid table:  starts with row of '-' on top, then header
+-- (which may be grid), then the rows,
+-- which may be grid, separated by blank lines, and
+-- ending with a footer (dashed line followed by blank line).
+gridTable :: Bool -- ^ Headerless table
+               -> GenParser Char ParserState Block
+gridTable headless =
+  tableWith (gridTableHeader headless) gridTableRow (gridTableSep '-') gridTableFooter
+
+table :: GenParser Char ParserState Block
+table = gridTable False <|> simpleTable False <|>
+        gridTable True  <|> simpleTable True <?> "table"
+
+
  -- 
  -- inline
  --
@@ -719,4 +911,3 @@ image = try $ do
            Nothing     -> fail "no corresponding key"
            Just target -> return target
   return $ Image (normalizeSpaces ref) src
-

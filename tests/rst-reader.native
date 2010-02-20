@@ -243,5 +243,49 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
 , Para [Str "A",Space,Str "third",Space,Str "paragraph"]
 , Header 1 [Str "Line",Space,Str "blocks"]
 , Para [Str "But",Space,Str "can",Space,Str "a",Space,Str "bee",Space,Str "be",Space,Str "said",Space,Str "to",Space,Str "be",LineBreak,Str "    ",Str "or",Space,Str "not",Space,Str "to",Space,Str "be",Space,Str "an",Space,Str "entire",Space,Str "bee,",LineBreak,Str "        ",Str "when",Space,Str "half",Space,Str "the",Space,Str "bee",Space,Str "is",Space,Str "not",Space,Str "a",Space,Str "bee,",LineBreak,Str "            ",Str "due",Space,Str "to",Space,Str "some",Space,Str "ancient",Space,Str "injury?"]
-, Para [Str "Continuation",Space,Str "line",LineBreak,Str "  ",Str "and",Space,Str "another"] ]
+, Para [Str "Continuation",Space,Str "line",LineBreak,Str "  ",Str "and",Space,Str "another"]
+, Header 1 [Str "Simple",Space,Str "Tables"]
+, Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
+  [ [ Plain [Str "col",Space,Str "1"] ]
+  , [ Plain [Str "col",Space,Str "2"] ]
+  , [ Plain [Str "col",Space,Str "3"] ] ] [
+  [ [ Plain [Str "r1",Space,Str "a"] ]
+  , [ Plain [Str "b"] ]
+  , [ Plain [Str "c"] ] ],
+  [ [ Plain [Str "r2",Space,Str "d"] ]
+  , [ Plain [Str "e"] ]
+  , [ Plain [Str "f"] ] ] ]
+, Para [Str "Headless"]
+, Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
+  [   []
+  ,   []
+  ,   [] ] [
+  [ [ Plain [Str "r1",Space,Str "a"] ]
+  , [ Plain [Str "b"] ]
+  , [ Plain [Str "c"] ] ],
+  [ [ Plain [Str "r2",Space,Str "d"] ]
+  , [ Plain [Str "e"] ]
+  , [ Plain [Str "f"] ] ] ]
+, Header 1 [Str "Grid",Space,Str "Tables"]
+, Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2375,0.15,0.1625]
+  [ [ Plain [Str "col",Space,Str "1"] ]
+  , [ Plain [Str "col",Space,Str "2"] ]
+  , [ Plain [Str "col",Space,Str "3"] ] ] [
+  [ [ Plain [Str "r1",Space,Str "a",Space,Str "r1",Space,Str "bis"] ]
+  , [ Plain [Str "b",Space,Str "b",Space,Str "2"] ]
+  , [ Plain [Str "c",Space,Str "c",Space,Str "2"] ] ],
+  [ [ Plain [Str "r2",Space,Str "d"] ]
+  , [ Plain [Str "e"] ]
+  , [ Plain [Str "f"] ] ] ]
+, Para [Str "Headless"]
+, Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2375,0.15,0.1625]
+  [   []
+  ,   []
+  ,   [] ] [
+  [ [ Plain [Str "r1",Space,Str "a",Space,Str "r1",Space,Str "bis"] ]
+  , [ Plain [Str "b",Space,Str "b",Space,Str "2"] ]
+  , [ Plain [Str "c",Space,Str "c",Space,Str "2"] ] ],
+  [ [ Plain [Str "r2",Space,Str "d"] ]
+  , [ Plain [Str "e"] ]
+  , [ Plain [Str "f"] ] ] ] ]
 
