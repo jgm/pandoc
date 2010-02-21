@@ -58,7 +58,7 @@ import System.IO.UTF8
 import Text.CSL
 import Text.Pandoc.Biblio
 #endif
-import Control.Monad (when, unless)
+import Control.Monad (when, unless, liftM)
 import Network.HTTP
 import Network.URI (parseURI)
 import Data.ByteString.Lazy.UTF8 (toString)
@@ -633,8 +633,10 @@ main = do
   let sources = if ignoreArgs then [] else args
 
   datadir <- case mbDataDir of
-                  Just d    -> return d
-                  Nothing   -> getAppUserDataDirectory "pandoc"
+                  Nothing   -> catch
+                                 (liftM Just $ getAppUserDataDirectory "pandoc")
+                                 (const $ return Nothing)
+                  Just _    -> return mbDataDir
 
   -- assign reader and writer based on options and filenames
   let readerName' = if null readerName
@@ -653,7 +655,7 @@ main = do
      Just r  -> return r
      Nothing -> error ("Unknown writer: " ++ writerName')
 
-  templ <- getDefaultTemplate (Just datadir) writerName'
+  templ <- getDefaultTemplate datadir writerName'
   let defaultTemplate = case templ of
                              Right t -> t
                              Left  e -> error (show e)
@@ -671,13 +673,13 @@ main = do
 
   variables' <- if writerName' == "s5" && standalone'
                    then do
-                     inc <- s5HeaderIncludes (Just datadir)
+                     inc <- s5HeaderIncludes datadir
                      return $ ("header-includes", inc) : variables
                    else return variables
 
   variables'' <- case mathMethod of
                       LaTeXMathML Nothing -> do
-                         s <- latexMathMLScript (Just datadir)
+                         s <- latexMathMLScript datadir
                          return $ ("latexmathml-script", s) : variables'
                       _ -> return variables'
 
@@ -754,7 +756,7 @@ main = do
   let writerOutput = writer writerOptions doc' ++ "\n"
 
   case writerName' of
-       "odt"   -> saveOpenDocumentAsODT (Just datadir) outputFile sourceDirRelative referenceODT writerOutput
+       "odt"   -> saveOpenDocumentAsODT datadir outputFile sourceDirRelative referenceODT writerOutput
        _       -> if outputFile == "-"
                      then putStr writerOutput
                      else writeFile outputFile writerOutput
