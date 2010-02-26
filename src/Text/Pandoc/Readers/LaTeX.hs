@@ -539,7 +539,7 @@ sect = try (string "\\S") >> return (Str [chr 167])
 
 escapedChar :: GenParser Char st Inline
 escapedChar = do
-  result <- escaped (oneOf " $%&_#{}\n")
+  result <- escaped (oneOf specialChars)
   return $ if result == Str "\n" then Str " " else result
 
 -- nonescaped special characters
