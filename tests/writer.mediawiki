@@ -3,32 +3,32 @@ This is a set of tests for pandoc. Most of them are adapted from John Gruber&rsq
 
 -----
 
-== Headers ==
+= Headers =
 
-=== Level 2 with an [http://{{SERVERNAME}}/url embedded link] ===
+== Level 2 with an [http://{{SERVERNAME}}/url embedded link] ==
 
-==== Level 3 with ''emphasis'' ====
+=== Level 3 with ''emphasis'' ===
 
-===== Level 4 =====
+==== Level 4 ====
 
-====== Level 5 ======
+===== Level 5 =====
 
-== Level 1 ==
+= Level 1 =
 
-=== Level 2 with ''emphasis'' ===
+== Level 2 with ''emphasis'' ==
 
-==== Level 3 ====
+=== Level 3 ===
 
 with no blank line
 
-=== Level 2 ===
+== Level 2 ==
 
 with no blank line
 
 
 -----
 
-== Paragraphs ==
+= Paragraphs =
 
 Here&rsquo;s a regular paragraph.
 
@@ -42,7 +42,7 @@ here.
 
 -----
 
-== Block Quotes ==
+= Block Quotes =
 
 E-mail style:
 
@@ -71,7 +71,7 @@ And a following paragraph.
 
 -----
 
-== Code Blocks ==
+= Code Blocks =
 
 Code:
 
@@ -90,9 +90,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</pre>
 
 -----
 
-== Lists ==
+= Lists =
 
-=== Unordered ===
+== Unordered ==
 
 Asterisks tight:
 
@@ -130,7 +130,7 @@ Minuses loose:
 * Minus 2
 * Minus 3
 
-=== Ordered ===
+== Ordered ==
 
 Tight:
 
@@ -164,7 +164,7 @@ Multiple paragraphs:
 <li><p>Item 2.</p></li>
 <li><p>Item 3.</p></li></ol>
 
-=== Nested ===
+== Nested ==
 
 * Tab
 ** Tab
@@ -192,7 +192,7 @@ Same thing but with paragraphs:
 
 # Third
 
-=== Tabs and spaces ===
+== Tabs and spaces ==
 
 * this is a list item indented with tabs
 * this is a list item indented with spaces
@@ -200,7 +200,7 @@ Same thing but with paragraphs:
 ** this is an example list item indented with spaces
 
 
-=== Fancy list markers ===
+== Fancy list markers ==
 
 <ol start="2" style="list-style-type: decimal;">
 <li>begins with 2</li>
@@ -245,7 +245,7 @@ B. Williams
 
 -----
 
-== Definition Lists ==
+= Definition Lists =
 
 Tight using spaces:
 
@@ -314,7 +314,7 @@ Blank line after term, indented marker, alternate markers:
 ;# sublist
 
 
-== HTML Blocks ==
+= HTML Blocks =
 
 Simple block on one line:
 
@@ -424,7 +424,7 @@ Hr&rsquo;s:
 
 -----
 
-== Inline Markup ==
+= Inline Markup =
 
 This is ''emphasized'', and so ''is this''.
 
@@ -453,7 +453,7 @@ These should not be superscripts or subscripts, because of the unescaped spaces:
 
 -----
 
-== Smart quotes, ellipses, dashes ==
+= Smart quotes, ellipses, dashes =
 
 &ldquo;Hello,&rdquo; said the spider. &ldquo;&lsquo;Shelob&rsquo; is my name.&rdquo;
 
@@ -474,7 +474,7 @@ Ellipses&hellip;and&hellip;and&hellip;.
 
 -----
 
-== LaTeX ==
+= LaTeX =
 
 * 
 * <math>2+2=4</math>
@@ -499,7 +499,7 @@ Here&rsquo;s a LaTeX table:
 
 -----
 
-== Special Characters ==
+= Special Characters =
 
 Here is some unicode:
 
@@ -554,9 +554,9 @@ Minus: -
 
 -----
 
-== Links ==
+= Links =
 
-=== Explicit ===
+== Explicit ==
 
 Just a [http://{{SERVERNAME}}/url/ URL].
 
@@ -576,7 +576,7 @@ Just a [http://{{SERVERNAME}}/url/ URL].
 
 [http://{{SERVERNAME}}/ Empty].
 
-=== Reference ===
+== Reference ==
 
 Foo [http://{{SERVERNAME}}/url/ bar].
 
@@ -601,7 +601,7 @@ Foo [http://{{SERVERNAME}}/url/ bar].
 
 Foo [http://{{SERVERNAME}}/url/ biz].
 
-=== With ampersands ===
+== With ampersands ==
 
 Here&rsquo;s a [http://example.com/?foo=1&bar=2 link with an ampersand in the URL].
 
@@ -611,7 +611,7 @@ Here&rsquo;s an [http://{{SERVERNAME}}/script?foo=1&bar=2 inline link].
 
 Here&rsquo;s an [http://{{SERVERNAME}}/script?foo=1&bar=2 inline link in pointy braces].
 
-=== Autolinks ===
+== Autolinks ==
 
 With an ampersand: http://example.com/?foo=1&bar=2
 
@@ -629,7 +629,7 @@ Auto-links should not occur here: <tt>&lt;http://example.com/&gt;</tt>
 
 -----
 
-== Images ==
+= Images =
 
 From &ldquo;Voyage dans la Lune&rdquo; by Georges Melies (1902):
 
@@ -640,7 +640,7 @@ Here is a movie [[Image:movie.jpg|movie]] icon.
 
 -----
 
-== Footnotes ==
+= Footnotes =
 
 Here is a footnote reference,<ref>Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.
 </ref> and another.<ref>Here&rsquo;s the long note. This one contains multiple blocks.

@@ -96,7 +96,7 @@ blockToMediaWiki _ HorizontalRule = return "\n-----\n"
 
 blockToMediaWiki opts (Header level inlines) = do
   contents <- inlineListToMediaWiki opts inlines
-  let eqs = replicate (level + 1) '='
+  let eqs = replicate level '='
   return $ eqs ++ " " ++ contents ++ " " ++ eqs ++ "\n"
 
 blockToMediaWiki _ (CodeBlock (_,classes,_) str) = do
