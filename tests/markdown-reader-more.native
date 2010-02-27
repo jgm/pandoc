@@ -6,8 +6,8 @@ Pandoc (Meta [] [] [])
 , Para [TeX "\\placeformula",Space,TeX "\\startformula\n   L_{1} = L_{2}\n   \\stopformula"]
 , Para [TeX "\\start[a2]\n\\start[a2]\n\\stop[a2]\n\\stop[a2]"]
 , Header 2 [Str "URLs",Space,Str "with",Space,Str "spaces"]
-, Para [Link [Str "foo"] ("/bar+and+baz",""),Space,Link [Str "foo"] ("/bar+and+baz",""),Space,Link [Str "foo"] ("/bar+and+baz",""),Space,Link [Str "foo"] ("bar+baz","title")]
-, Para [Link [Str "baz"] ("/foo+foo",""),Space,Link [Str "bam"] ("/foo+fee",""),Space,Link [Str "bork"] ("/foo/zee+zob","title")]
+, Para [Link [Str "foo"] ("/bar%20and%20baz",""),Space,Link [Str "foo"] ("/bar%20and%20baz",""),Space,Link [Str "foo"] ("/bar%20%20and%20%20baz",""),Space,Link [Str "foo"] ("bar%20baz","title")]
+, Para [Link [Str "baz"] ("/foo%20foo",""),Space,Link [Str "bam"] ("/foo%20fee",""),Space,Link [Str "bork"] ("/foo/zee%20zob","title")]
 , Header 2 [Str "Horizontal",Space,Str "rules",Space,Str "with",Space,Str "spaces",Space,Str "at",Space,Str "end"]
 , HorizontalRule
 , HorizontalRule
