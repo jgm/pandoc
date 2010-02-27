@@ -659,6 +659,5 @@ If you want, you can indent every line, but you can also be lazy and just indent
 
 This paragraph should not be part of the note, as it is not indented.
 
-== Notes ==
 <references />
 

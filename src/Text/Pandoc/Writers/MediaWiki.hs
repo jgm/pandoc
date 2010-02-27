@@ -58,7 +58,7 @@ pandocToMediaWiki opts (Pandoc _ blocks) = do
   body <- blockListToMediaWiki opts blocks
   notesExist <- get >>= return . stNotes
   let notes = if notesExist
-                 then "\n== Notes ==\n<references />"
+                 then "\n<references />"
                  else "" 
   let main = before ++ body ++ after ++ notes
   let context = writerVariables opts ++
