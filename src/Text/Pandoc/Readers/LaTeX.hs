@@ -429,7 +429,6 @@ inline =  choice [ str
                  , whitespace
                  , quoted
                  , apostrophe
-                 , spacer
                  , strong
                  , math
                  , ellipses
@@ -547,7 +546,15 @@ unescapedChar :: GenParser Char st Inline
 unescapedChar = oneOf "`$^&_#{}|<>" >>= return . (\c -> Str [c])
 
 specialChar :: GenParser Char st Inline
-specialChar = choice [ backslash, tilde, caret, bar, lt, gt, doubleQuote ]
+specialChar = choice [ spacer, interwordSpace,
+                       backslash, tilde, caret,
+                       bar, lt, gt, doubleQuote ]
+
+spacer :: GenParser Char st Inline
+spacer = try (string "\\,") >> return (Str "")
+
+interwordSpace :: GenParser Char st Inline
+interwordSpace = try (string "\\ ") >> return (Str "\160")
 
 backslash :: GenParser Char st Inline
 backslash = try (string "\\textbackslash") >> optional (try $ string "{}") >> return (Str "\\")
@@ -669,9 +676,6 @@ whitespace = many1 (oneOf "~ \t") >> return Space
 -- hard line break
 linebreak :: GenParser Char st Inline
 linebreak = try (string "\\\\") >> return LineBreak
-
-spacer :: GenParser Char st Inline
-spacer = try (string "\\,") >> return (Str "")
 
 str :: GenParser Char st Inline
 str = many1 (noneOf specialChars) >>= return . Str
