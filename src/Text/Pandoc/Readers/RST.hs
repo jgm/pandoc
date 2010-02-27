@@ -33,7 +33,7 @@ module Text.Pandoc.Readers.RST (
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.ParserCombinators.Parsec
-import Control.Monad ( when, unless )
+import Control.Monad ( when, unless, liftM )
 import Data.List ( findIndex, delete, intercalate, transpose )
 
 -- | Parse reStructuredText string and return Pandoc document.
@@ -598,29 +598,30 @@ regularKey = try $ do
 -- Grid tables TODO:
 --  - column spans
 
-dashedLine :: Char -> Char
-           -> GenParser Char st (Int, Int)
-dashedLine ch sch = do
+dashedLine :: Char -> GenParser Char st (Int, Int)
+dashedLine ch = do
   dashes <- many1 (char ch)
-  sp     <- many (char sch)
+  sp     <- many (char ' ')
   return (length dashes, length $ dashes ++ sp)
 
 simpleDashedLines :: Char -> GenParser Char st [(Int,Int)]
-simpleDashedLines ch = try $ many1 (dashedLine ch sch)
- where
-  sch = ' '
+simpleDashedLines ch = try $ many1 (dashedLine ch)
+
+gridPart :: Char -> GenParser Char st (Int, Int)
+gridPart ch = do
+  dashes <- many1 (char ch)
+  char '+'
+  return (length dashes, length dashes + 1)
 
 gridDashedLines :: Char -> GenParser Char st [(Int,Int)]
-gridDashedLines ch = try $ char sch >> many1 (dashedLine ch sch)
- where
-  sch = '+'
+gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) >>~ blankline
 
 -- Parse a table row separator
 simpleTableSep :: Char -> GenParser Char ParserState Char
 simpleTableSep ch = try $ simpleDashedLines ch >> newline
 
 gridTableSep :: Char -> GenParser Char ParserState Char
-gridTableSep ch = try $ gridDashedLines ch >> newline
+gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- Parse a table footer
 simpleTableFooter :: GenParser Char ParserState [Char]
@@ -639,7 +640,7 @@ gridTableRawLine :: [Int] -> GenParser Char ParserState [String]
 gridTableRawLine indices = do
   char '|'
   line <- many1Till anyChar newline
-  return (gridTableSplitLine indices line)
+  return (gridTableSplitLine indices $ removeTrailingSpace line)
 
 -- Parse a table row and return a list of blocks (columns).
 simpleTableRow :: [Int] -> GenParser Char ParserState [[Block]]
@@ -654,8 +655,12 @@ gridTableRow :: [Int]
              -> GenParser Char ParserState [[Block]]
 gridTableRow indices = do
   colLines <- many1 (gridTableRawLine indices)
-  let cols = map unlines $ transpose colLines
-  mapM (parseFromString (many plain)) cols
+  let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
+               transpose colLines
+  mapM (liftM compactifyCell . parseFromString (many block)) cols
+
+compactifyCell :: [Block] -> [Block]
+compactifyCell bs = head $ compactify [bs]
 
 simpleTableSplitLine :: [Int] -> String -> [String]
 simpleTableSplitLine indices line =
@@ -664,9 +669,19 @@ simpleTableSplitLine indices line =
 
 gridTableSplitLine :: [Int] -> String -> [String]
 gridTableSplitLine indices line =
-  map removeLeadingTrailingSpace
-  $ map (takeWhile (/= '|')) -- strip trailing '|' off each column
-  $ tail $ splitByIndices (init indices) line
+  map removeFinalBar $ tail $ splitByIndices (init indices) line
+
+removeFinalBar :: String -> String
+removeFinalBar = reverse . dropWhile (=='|') .  dropWhile (`elem` " \t") .
+                 reverse
+
+removeOneLeadingSpace :: [String] -> [String]
+removeOneLeadingSpace xs =
+  if all startsWithSpace xs
+     then map (drop 1) xs
+     else xs
+   where startsWithSpace ""     = True
+         startsWithSpace (y:_) = y == ' '
 
 -- Calculate relative widths of table columns, based on indices
 widthsFromIndices :: Int      -- Number of columns on terminal
@@ -710,11 +725,10 @@ simpleTableHeader headless = try $ do
   return (rawHeads, aligns, indices)
 
 gridTableHeader :: Bool -- ^ Headerless table
-                     -> GenParser Char ParserState ([String], [Alignment], [Int])
+                -> GenParser Char ParserState ([String], [Alignment], [Int])
 gridTableHeader headless = try $ do
   optional blanklines
   dashes <- gridDashedLines '-'
-  newline
   rawContent  <- if headless
                     then return $ repeat "" 
                     else many1

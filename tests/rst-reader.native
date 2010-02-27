@@ -287,5 +287,26 @@ Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str 
   , [ Plain [Str "c",Space,Str "c",Space,Str "2"] ] ],
   [ [ Plain [Str "r2",Space,Str "d"] ]
   , [ Plain [Str "e"] ]
-  , [ Plain [Str "f"] ] ] ] ]
+  , [ Plain [Str "f"] ] ] ]
+, Para [Str "Spaces",Space,Str "at",Space,Str "ends",Space,Str "of",Space,Str "lines"]
+, Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2375,0.15,0.1625]
+  [   []
+  ,   []
+  ,   [] ] [
+  [ [ Plain [Str "r1",Space,Str "a",Space,Str "r1",Space,Str "bis"] ]
+  , [ Plain [Str "b",Space,Str "b",Space,Str "2"] ]
+  , [ Plain [Str "c",Space,Str "c",Space,Str "2"] ] ],
+  [ [ Plain [Str "r2",Space,Str "d"] ]
+  , [ Plain [Str "e"] ]
+  , [ Plain [Str "f"] ] ] ]
+, Para [Str "Multiple",Space,Str "blocks",Space,Str "in",Space,Str "a",Space,Str "cell"]
+, Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2375,0.15,0.1625]
+  [   []
+  ,   []
+  ,   [] ] [
+  [ [ Para [Str "r1",Space,Str "a"]
+    , Para [Str "r1",Space,Str "bis"] ], [ BulletList
+      [ [ Plain [Str "b"] ]
+      , [ Plain [Str "b",Space,Str "2"] ]
+      , [ Plain [Str "b",Space,Str "2"] ] ] ], [ Plain [Str "c",Space,Str "c",Space,Str "2",Space,Str "c",Space,Str "2"] ] ] ] ]
 
