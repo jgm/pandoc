@@ -45,7 +45,6 @@ import Text.Pandoc.Readers.HTML ( rawHtmlBlock, anyHtmlBlockTag,
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.ParserCombinators.Parsec
 import Control.Monad (when, liftM, unless)
-import Network.URI ( unEscapeString, escapeURIString, isUnescapedInURI )
 
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: ParserState -- ^ Parser state, including options for parser
@@ -74,12 +73,9 @@ specialChars = "\\[]*_~`<>$!^-.&'\"\8216\8217\8220\8221;"
 -- auxiliary functions
 --
 
--- | Escape a URI in a markdown-appropriate way.  First,
--- we unescape the string, since we don't want to screw things
--- up if they've entered a properly encoded URI.  Then, we
--- escape the result.
-escapeURI :: String -> String
-escapeURI = escapeURIString isUnescapedInURI . unEscapeString
+-- | Replace spaces with %20
+uriEscapeSpaces :: String -> String
+uriEscapeSpaces = substitute " " "%20"
 
 indentSpaces :: GenParser Char ParserState [Char]
 indentSpaces = try $ do
@@ -202,7 +198,7 @@ referenceKey = try $ do
   tit <- option "" referenceTitle
   blanklines
   endPos <- getPosition
-  let newkey = (lab, (escapeURI $ removeTrailingSpace src,  tit))
+  let newkey = (lab, (uriEscapeSpaces $ removeTrailingSpace src,  tit))
   st <- getState
   let oldkeys = stateKeys st
   updateState $ \s -> s { stateKeys = newkey : oldkeys }
@@ -1181,7 +1177,7 @@ source' = do
   tit <- option "" linkTitle
   skipSpaces
   eof
-  return (escapeURI $ removeTrailingSpace src, tit)
+  return (uriEscapeSpaces $ removeTrailingSpace src, tit)
 
 linkTitle :: GenParser Char st String
 linkTitle = try $ do 
