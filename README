@@ -79,11 +79,11 @@ command-line options.  The input format can be specified using the
 `-w/--write` or `-t/--to` options.  Thus, to convert `hello.txt` from
 markdown to LaTeX, you could type:
 
-	pandoc -f markdown -t latex hello.txt
+    pandoc -f markdown -t latex hello.txt
 
 To convert `hello.html` from html to markdown:
 
-	pandoc -f html -t markdown hello.html
+    pandoc -f html -t markdown hello.html
 
 Supported output formats include `markdown`, `latex`, `context`
 (ConTeXt), `html`, `rtf` (rich text format), `rst`
@@ -102,7 +102,7 @@ If you don't specify a reader or writer explicitly, `pandoc` will
 try to determine the input and output format from the extensions of
 the input and output filenames.  Thus, for example, 
 
-	pandoc -o hello.tex hello.txt
+    pandoc -o hello.tex hello.txt
 
 will convert `hello.txt` from markdown to LaTeX.  If no output file
 is specified (so that output goes to stdout), or if the output file's
@@ -121,7 +121,7 @@ If your local character encoding is not UTF-8 and you use
 accented or foreign characters, you should pipe the input and output
 through [`iconv`]. For example,
 
-	iconv -t utf-8 source.txt | pandoc | iconv -f utf-8 > output.html
+    iconv -t utf-8 source.txt | pandoc | iconv -f utf-8 > output.html
 
 will convert `source.txt` from the local encoding to UTF-8, then
 convert it to HTML, then convert back to the local encoding,
@@ -585,13 +585,13 @@ Nested Lists
 Pandoc behaves differently from standard markdown on some "edge
 cases" involving lists.  Consider this source: 
 
-	1.  First
-	2.  Second:
-		-   Fee
-		-   Fie
-		-   Foe
+    1.  First
+    2.  Second:
+    	-   Fee
+    	-   Fie
+    	-   Foe
 
-	3.  Third
+    3.  Third
 
 Pandoc transforms this into a "compact list" (with no `<p>` tags around
 "First", "Second", or "Third"), while markdown puts `<p>` tags around
@@ -705,10 +705,10 @@ Reference links
 Pandoc allows implicit reference links with just a single set of
 brackets.  So, the following links are equivalent:
 
-	1. Here's my [link]
-	2. Here's my [link][]
+    1. Here's my [link]
+    2. Here's my [link][]
 
-	[link]: linky.com
+    [link]: linky.com
 
 (Note:  Pandoc works this way even if `--strict` is specified, because
 `Markdown.pl` 1.0.2b7 allows single-bracket links.)
@@ -718,20 +718,20 @@ Footnotes
 
 Pandoc's markdown allows footnotes, using the following syntax:
 
-	Here is a footnote reference,[^1] and another.[^longnote]
+    Here is a footnote reference,[^1] and another.[^longnote]
 
-	[^1]: Here is the footnote.
+    [^1]: Here is the footnote.
 
-	[^longnote]: Here's one with multiple blocks.
+    [^longnote]: Here's one with multiple blocks.
 
         Subsequent paragraphs are indented to show that they 
     belong to the previous footnote.
 
             { some.code }
 
-	    The whole paragraph can be indented, or just the first
+        The whole paragraph can be indented, or just the first
         line.  In this way, multi-paragraph footnotes work like
-	    multi-paragraph list items.
+        multi-paragraph list items.
 
     This paragraph won't be part of the note, because it isn't indented.
 
@@ -984,21 +984,21 @@ While standard markdown leaves HTML blocks exactly as they are, Pandoc
 treats text between HTML tags as markdown. Thus, for example, Pandoc
 will turn
 
-	<table>
-		<tr>
-			<td>*one*</td>
-			<td>[a link](http://google.com)</td>
-		</tr>
-	</table>
+    <table>
+    	<tr>
+    		<td>*one*</td>
+    		<td>[a link](http://google.com)</td>
+    	</tr>
+    </table>
 
 into
 
-	<table>
-		<tr>
-			<td><em>one</em></td>
-			<td><a href="http://google.com">a link</a></td>
-		</tr>
-	</table>
+    <table>
+    	<tr>
+    		<td><em>one</em></td>
+    		<td><a href="http://google.com">a link</a></td>
+    	</tr>
+    </table>
 
 whereas `Markdown.pl` will preserve it as is.
 
@@ -1138,16 +1138,16 @@ Inline TeX commands will be preserved and passed unchanged to the
 LaTeX and ConTeXt writers. Thus, for example, you can use LaTeX to
 include BibTeX citations:
 
-	This result was proved in \cite{jones.1967}.
+    This result was proved in \cite{jones.1967}.
 
 Note that in LaTeX environments, like
 
-	\begin{tabular}{|l|l|}\hline
-	Age & Frequency \\ \hline
-	18--25  & 15 \\
-	26--35  & 33 \\ 
-	36--45  & 22 \\ \hline
-	\end{tabular}
+    \begin{tabular}{|l|l|}\hline
+    Age & Frequency \\ \hline
+    18--25  & 15 \\
+    26--35  & 33 \\ 
+    36--45  & 22 \\ \hline
+    \end{tabular}
 
 the material between the begin and end tags will be interpreted as raw
 LaTeX, not as markdown.
@@ -1166,23 +1166,23 @@ S5 is not smart enough to produce multiple pages.)
 
 Here's the markdown source for a simple slide show, `eating.txt`:
 
-	% Eating Habits
-	% John Doe
-	% March 22, 2005
+    % Eating Habits
+    % John Doe
+    % March 22, 2005
 
-	# In the morning
+    # In the morning
 
-	- Eat eggs
-	- Drink coffee
+    - Eat eggs
+    - Drink coffee
 
-	# In the evening
+    # In the evening
 
-	- Eat spaghetti
-	- Drink wine
+    - Eat spaghetti
+    - Drink wine
 
 To produce the slide show, simply type
 
-	pandoc -w s5 -s eating.txt > eating.html
+    pandoc -w s5 -s eating.txt > eating.html
 
 and open up `eating.html` in a browser.
 
@@ -1193,8 +1193,8 @@ particular list to depart from the default (that is, to display
 incrementally without the `-i` option and all at once with the
 `-i` option), put it in a block quote:
 
-	> - Eat spaghetti
-	> - Drink wine
+    > - Eat spaghetti
+    > - Drink wine
 
 In this way incremental and nonincremental lists can be mixed in
 a single document.
