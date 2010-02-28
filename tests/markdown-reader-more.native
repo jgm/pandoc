@@ -1,4 +1,4 @@
-Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
+Pandoc (Meta {docTitle = [Str "Title",Space,Str "spanning",Space,Str "multiple",Space,Str "lines"], docAuthors = [[Str "Author",Space,Str "One"],[Str "Author",Space,Str "Two"],[Str "Author",Space,Str "Three"],[Str "Author",Space,Str "Four"]], docDate = []})
 [ Header 1 [Str "Additional",Space,Str "markdown",Space,Str "reader",Space,Str "tests"]
 , Header 2 [Str "Blank",Space,Str "line",Space,Str "before",Space,Str "URL",Space,Str "in",Space,Str "link",Space,Str "reference"]
 , Para [Link [Str "foo"] ("/url",""),Space,Str "and",Space,Link [Str "bar"] ("/url","title")]

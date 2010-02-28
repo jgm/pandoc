@@ -905,32 +905,56 @@ Title blocks
 
 If the file begins with a title block
 
-	% title
-	% author(s) (separated by semicolons)
-	% date
+    % title
+    % author(s) (separated by semicolons)
+    % date
 
 it will be parsed as bibliographic information, not regular text.  (It
 will be used, for example, in the title of standalone LaTeX or HTML
 output.)  The block may contain just a title, a title and an author,
-or all three lines.  Each must begin with a % and fit on one line.
-The title may contain standard inline formatting.  If you want to
-include an author but no title, or a title and a date but no author,
-you need a blank line:
+or all three elements. If you want to include an author but no
+title, or a title and a date but no author, you need a blank line:
 
-	% My title
-	% 
-	% June 15, 2006
+    %
+    % Author
 
-Titles will be written only when the `--standalone` (`-s`) option is
-chosen.  In HTML output, titles will appear twice: once in the
-document head -- this is the title that will appear at the top of the
-window in a browser -- and once at the beginning of the document body.
-The title in the document head can have an optional prefix attached
-(`--title-prefix` or `-T` option).  The title in the body appears as
-an H1 element with class "title", so it can be suppressed or
-reformatted with CSS. If a title prefix is specified with `-T` and no
-title block appears in the document, the title prefix will be used by
-itself as the HTML title.
+    % My title
+    %
+    % June 15, 2006
+
+The title may occupy multiple lines, but continuation lines must
+begin with leading space, thus:
+
+    % My title
+      on multiple lines
+
+If a document has multiple authors, the authors may be put on
+separate lines with leading space, or separated by semicolons, or
+both.  So, all of the following are equivalent:
+
+    % Author One
+      Author Two
+
+    % Author One; Author Two
+
+    % Author One;
+      Author Two
+
+The date must fit on one line.
+
+All three metadata fields may contain standard inline formatting
+(italics, links, footnotes, etc.).
+
+Title blocks will always be parsed, but they will affect the output only
+when the `--standalone` (`-s`) option is chosen. In HTML output, titles
+will appear twice: once in the document head -- this is the title that
+will appear at the top of the window in a browser -- and once at the
+beginning of the document body. The title in the document head can have
+an optional prefix attached (`--title-prefix` or `-T` option). The title
+in the body appears as an H1 element with class "title", so it can be
+suppressed or reformatted with CSS. If a title prefix is specified with
+`-T` and no title block appears in the document, the title prefix will
+be used by itself as the HTML title.
 
 The man page writer extracts a title, man page section number, and
 other header and footer information from the title line. The title

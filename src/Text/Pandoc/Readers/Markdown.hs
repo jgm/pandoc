@@ -133,15 +133,23 @@ inlinesInBalancedBrackets parser = try $ do
 --
 
 titleLine :: GenParser Char ParserState [Inline]
-titleLine = try $ char '%' >> skipSpaces >> manyTill inline newline
+titleLine = try $ do
+  char '%'
+  skipSpaces
+  res <- many $ (notFollowedBy newline >> inline)
+             <|> try (endline >> whitespace)
+  newline
+  return $ normalizeSpaces res
 
 authorsLine :: GenParser Char ParserState [[Inline]]
 authorsLine = try $ do 
   char '%'
   skipSpaces
-  authors <- sepEndBy (many1 (notFollowedBy (oneOf ";\n") >> inline)) (oneOf ";")
+  authors <- sepEndBy (many (notFollowedBy (oneOf ";\n") >> inline))
+                       (char ';' <|>
+                        try (newline >> notFollowedBy blankline >> spaceChar))
   newline
-  return $ map normalizeSpaces authors
+  return $ filter (not . null) $ map normalizeSpaces authors
 
 dateLine :: GenParser Char ParserState [Inline]
 dateLine = try $ do

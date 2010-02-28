@@ -1,3 +1,9 @@
+% Title
+  spanning multiple lines
+% Author One
+  Author Two; Author Three;
+  Author Four
+ 
 # Additional markdown reader tests
 
 ## Blank line before URL in link reference
