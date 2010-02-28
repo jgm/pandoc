@@ -36,9 +36,9 @@ import Data.Generics
 data Pandoc = Pandoc Meta [Block] deriving (Eq, Read, Show, Typeable, Data)
 
 -- | Bibliographic information for the document:  title, authors, date.
-data Meta = Meta [Inline]   -- title
-                 [[Inline]] -- list of authors
-                 [Inline]   -- date
+data Meta = Meta { docTitle   :: [Inline]
+                 , docAuthors :: [[Inline]]
+                 , docDate    :: [Inline] }
             deriving (Eq, Show, Read, Typeable, Data)
 
 -- | Alignment of a table column.

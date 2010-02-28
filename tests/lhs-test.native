@@ -1,4 +1,4 @@
-Pandoc (Meta [] [] [])
+Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 [ Header 1 [Str "lhs",Space,Str "test"]
 , Para [Code "unsplit",Space,Str "is",Space,Str "an",Space,Str "arrow",Space,Str "that",Space,Str "takes",Space,Str "a",Space,Str "pair",Space,Str "of",Space,Str "values",Space,Str "and",Space,Str "combines",Space,Str "them",Space,Str "to",Space,Str "return",Space,Str "a",Space,Str "single",Space,Str "value:"]
 , CodeBlock ("",["sourceCode","literate","haskell"],[]) "unsplit :: (Arrow a) => (b -> c -> d) -> a (b, c) d\nunsplit = arr . uncurry       \n          -- arr (\\op (x,y) -> x `op` y) "

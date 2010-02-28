@@ -1,4 +1,4 @@
-Pandoc (Meta [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str "Subtitle"] [[Str "John",Space,Str "MacFarlane"],[Str "Anonymous"]] [Str "July",Space,Str "17,",Space,Str "2006"])
+Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str "Subtitle"], docAuthors = [[Str "John",Space,Str "MacFarlane"],[Str "Anonymous"]], docDate = [Str "July",Space,Str "17,",Space,Str "2006"]})
 [ DefinitionList
   [ ([Str "Revision"],
      [ [ Plain [Str "3"] ]

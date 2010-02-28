@@ -1,4 +1,4 @@
-Pandoc (Meta [] [] [])
+Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 [ Para [Str "Simple",Space,Str "table",Space,Str "with",Space,Str "caption",Str ":"]
 , Table [] [AlignDefault,AlignDefault,AlignDefault,AlignDefault] [0.125,0.1125,0.1375,0.15]
   [ [ Plain [Str "Right"] ]
