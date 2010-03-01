@@ -346,8 +346,7 @@ blockToHtml opts (Table capt aligns widths headers rows') = do
   captionDoc <- if null capt
                    then return noHtml
                    else inlineListToHtml opts capt >>= return . caption
-  colHeads <- colHeadsToHtml opts alignStrings 
-                             widths headers
+  colHeads <- colHeadsToHtml opts alignStrings widths headers
   rows'' <- zipWithM (tableRowToHtml opts alignStrings) (cycle ["odd", "even"]) rows'
   return $ table $ captionDoc +++ colHeads +++ rows''
 
@@ -356,6 +355,7 @@ colHeadsToHtml :: WriterOptions
                -> [Double]
                -> [[Block]]
                -> State WriterState Html
+colHeadsToHtml _ _ _ headers | all null headers = return noHtml
 colHeadsToHtml opts alignStrings widths headers = do
   heads <- sequence $ zipWith3 
            (\alignment columnwidth item -> tableItemToHtml opts th alignment columnwidth item) 

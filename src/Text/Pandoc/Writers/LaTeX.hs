@@ -213,13 +213,14 @@ blockToLaTeX (Header level lst) = do
                 (False, 3)   -> text "\\subsubsection" <> stuffing <> char '\n'
                 _            -> txt <> char '\n' 
 blockToLaTeX (Table caption aligns widths heads rows) = do
-  headers <- tableRowToLaTeX heads
+  headers <- if all null heads
+                then return empty
+                else liftM ($$ text "\\hline") $ tableRowToLaTeX heads
   captionText <- inlineListToLaTeX caption
   rows' <- mapM tableRowToLaTeX rows
   let colDescriptors = concat $ zipWith toColDescriptor widths aligns
   let tableBody = text ("\\begin{tabular}{" ++ colDescriptors ++ "}") $$
-                  headers $$ text "\\hline" $$ vcat rows' $$ 
-                  text "\\end{tabular}" 
+                  headers $$ vcat rows' $$ text "\\end{tabular}" 
   let centered txt = text "\\begin{center}" $$ txt $$ text "\\end{center}"
   modify $ \s -> s{ stTable = True }
   return $ if isEmpty captionText
