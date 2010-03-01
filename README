@@ -1128,8 +1128,8 @@ command-line options selected:
     procedure is:
 
         pandoc -s --gladtex myfile.txt -o myfile.htex
-        gladtex -d myfile-images myfile.htex  # produces myfile.html
-                                              # and images in myfile-images
+        gladtex -d myfile-images myfile.htex
+        # produces myfile.html and images in myfile-images
 
 Inline TeX
 ----------
