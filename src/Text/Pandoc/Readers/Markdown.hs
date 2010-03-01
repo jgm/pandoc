@@ -222,8 +222,8 @@ referenceTitle = try $ do
                                       notFollowedBy (noneOf ")\n")))
   return $ decodeCharacterReferences tit
 
-noteMarker :: GenParser Char st [Char]
-noteMarker = string "[^" >> manyTill (noneOf " \t\n") (char ']')
+noteMarker :: GenParser Char ParserState [Char]
+noteMarker = skipNonindentSpaces >> string "[^" >> manyTill (noneOf " \t\n") (char ']')
 
 rawLine :: GenParser Char ParserState [Char]
 rawLine = do
