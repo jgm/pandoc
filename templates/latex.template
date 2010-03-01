@@ -25,6 +25,12 @@ $if(verbatim-in-note)$
 \usepackage{fancyvrb}
 $endif$
 $if(fancy-enums)$
+% Redefine labelwidth for lists; otherwise, the enumerate package will cause
+% markers to extend beyond the left margin.
+\makeatletter\AtBeginDocument{%
+  \renewcommand{\@listi}
+    {\setlength{\labelwidth}{4em}}
+}\makeatother
 \usepackage{enumerate}
 $endif$
 $if(tables)$
