@@ -21,5 +21,11 @@ Pandoc (Meta {docTitle = [Str "Title",Space,Str "spanning",Space,Str "multiple",
   [ [ Plain [Str "one"]
     , RawHtml "<!--\n- two\n-->" ], [ Plain [Str "three"] ] ]
 , Header 2 [Str "Backslash",Space,Str "newline"]
-, Para [Str "hi",LineBreak,Str "there"] ]
+, Para [Str "hi",LineBreak,Str "there"]
+, Header 2 [Str "Code",Space,Str "spans"]
+, Para [Code "hi\\"]
+, Para [Code "hi there"]
+, Para [Code "hi````there"]
+, Para [Str "`",Str "hi"]
+, Para [Str "there",Str "`"] ]
 

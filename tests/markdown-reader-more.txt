@@ -70,3 +70,16 @@ $\$2 + \$3$
 hi\
 there
 
+## Code spans
+
+`hi\`
+
+`hi
+there`
+
+`` hi````there ``
+
+`hi
+
+there`
+

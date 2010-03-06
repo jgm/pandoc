@@ -957,7 +957,7 @@ code = try $ do
   starts <- many1 (char '`')
   skipSpaces
   result <- many1Till (many1 (noneOf "`\n") <|> many1 (char '`') <|>
-                       (char '\n' >> return " ")) 
+                       (char '\n' >> notFollowedBy' blankline >> return " "))
                       (try (skipSpaces >> count (length starts) (char '`') >> 
                       notFollowedBy (char '`')))
   return $ Code $ removeLeadingTrailingSpace $ concat result
