@@ -1136,7 +1136,8 @@ likelyAbbrev x =
   let abbrevs = [ "Mr.", "Mrs.", "Ms.", "Capt.", "Dr.", "Prof.",
                   "Gen.", "Gov.", "e.g.", "i.e.", "Sgt.", "St.",
                   "vol.", "vs.", "Sen.", "Rep.", "Pres.", "Hon.",
-                  "Rev.", "Ph.D.", "M.D.", "M.A." ]
+                  "Rev.", "Ph.D.", "M.D.", "M.A.", "p.", "pp.",
+                  "ch.", "sec." ]
       abbrPairs = map (break (=='.')) abbrevs
   in  map snd $ filter (\(y,_) -> y == x) abbrPairs
 
