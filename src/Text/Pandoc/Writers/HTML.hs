@@ -346,21 +346,28 @@ blockToHtml opts (Table capt aligns widths headers rows') = do
   captionDoc <- if null capt
                    then return noHtml
                    else inlineListToHtml opts capt >>= return . caption
-  colHeads <- colHeadsToHtml opts alignStrings widths headers
-  rows'' <- zipWithM (tableRowToHtml opts alignStrings) (cycle ["odd", "even"]) rows'
-  return $ table $ captionDoc +++ colHeads +++ rows''
+  let zeros = replicate (length headers) (0.0 :: Double)
+  let (rownums, rows'') = if all null headers
+                             then ([1..], rows')
+                             else ([0..], (headers : rows'))
+  body' <- mapM (tableRowToHtml opts alignStrings) $
+             zip3 rownums (widths : repeat zeros) rows''
+  return $ table $ captionDoc +++ body'
 
-colHeadsToHtml :: WriterOptions
-               -> [[Char]]
-               -> [Double]
-               -> [[Block]]
+tableRowToHtml :: WriterOptions
+               -> [String]
+               -> (Int, [Double], [[Block]])
                -> State WriterState Html
-colHeadsToHtml _ _ _ headers | all null headers = return noHtml
-colHeadsToHtml opts alignStrings widths headers = do
-  heads <- sequence $ zipWith3 
-           (\alignment columnwidth item -> tableItemToHtml opts th alignment columnwidth item) 
-           alignStrings widths headers
-  return $ tr ! [theclass "header"] $ toHtmlFromList heads
+tableRowToHtml opts alignStrings (rownum, widths, cols') = do
+  let mkcell = if rownum == 0 then th else td
+  let rowclass = case rownum of
+                      0                  -> "header"
+                      x | x `rem` 2 == 1 -> "odd"
+                      _                  -> "even"
+  cols'' <- sequence $ zipWith3 
+            (\alignment columnwidth item -> tableItemToHtml opts mkcell alignment columnwidth item) 
+            alignStrings widths cols'
+  return $ tr ! [theclass rowclass] $ toHtmlFromList cols''
 
 alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of
@@ -368,15 +375,6 @@ alignmentToString alignment = case alignment of
                                  AlignRight   -> "right"
                                  AlignCenter  -> "center"
                                  AlignDefault -> "left"
-
-tableRowToHtml :: WriterOptions
-               -> [[Char]]
-               -> String
-               -> [[Block]]
-               -> State WriterState Html
-tableRowToHtml opts aligns rowclass columns =
-  (sequence $ zipWith3 (tableItemToHtml opts td) aligns (repeat 0) columns) >>=
-  return . (tr ! [theclass rowclass]) . toHtmlFromList
 
 tableItemToHtml :: WriterOptions
                 -> (Html -> Html)
