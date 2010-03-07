@@ -137,3 +137,25 @@ Second
 \end{tabular}
 \end{center}
 
+Table without column headers:
+
+\begin{center}
+\begin{tabular}{rlcr}
+12
+ & 12
+ & 12
+ & 12
+\\
+123
+ & 123
+ & 123
+ & 123
+\\
+1
+ & 1
+ & 1
+ & 1
+\\
+\end{tabular}
+\end{center}
+

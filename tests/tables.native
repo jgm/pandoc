@@ -80,5 +80,23 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
   [ [ Plain [Str "Second"] ]
   , [ Plain [Str "row"] ]
   , [ Plain [Str "5",Str ".",Str "0"] ]
-  , [ Plain [Str "Here",Str "'",Str "s",Space,Str "another",Space,Str "one",Str ".",Space,Str "Note",Space,Str "the",Space,Str "blank",Space,Str "line",Space,Str "between",Space,Str "rows",Str "."] ] ] ] ]
+  , [ Plain [Str "Here",Str "'",Str "s",Space,Str "another",Space,Str "one",Str ".",Space,Str "Note",Space,Str "the",Space,Str "blank",Space,Str "line",Space,Str "between",Space,Str "rows",Str "."] ] ] ]
+, Para [Str "Table",Space,Str "without",Space,Str "column",Space,Str "headers:"]
+, Table [] [AlignRight,AlignLeft,AlignCenter,AlignRight] [0.0,0.0,0.0,0.0]
+  [   []
+  ,   []
+  ,   []
+  ,   [] ] [
+  [ [ Plain [Str "12"] ]
+  , [ Plain [Str "12"] ]
+  , [ Plain [Str "12"] ]
+  , [ Plain [Str "12"] ] ],
+  [ [ Plain [Str "123"] ]
+  , [ Plain [Str "123"] ]
+  , [ Plain [Str "123"] ]
+  , [ Plain [Str "123"] ] ],
+  [ [ Plain [Str "1"] ]
+  , [ Plain [Str "1"] ]
+  , [ Plain [Str "1"] ]
+  , [ Plain [Str "1"] ] ] ] ]
 

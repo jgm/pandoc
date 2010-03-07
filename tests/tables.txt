@@ -55,3 +55,11 @@ Multiline table without caption:
                                     the blank line between rows.
 ---------------------------------------------------------------
 
+Table without column headers:
+
+-------     ------ ----------   -------
+     12     12        12             12
+    123     123       123           123
+      1     1          1              1
+-------     ------ ----------   -------
+
