@@ -159,3 +159,20 @@ Table without column headers:
 \end{tabular}
 \end{center}
 
+Multiline table without column headers:
+
+\begin{center}
+\begin{tabular}{>{\PBS\centering\hspace{0pt}}p{0.15\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.14\columnwidth}>{\PBS\raggedleft\hspace{0pt}}p{0.16\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.34\columnwidth}}
+First
+ & row
+ & 12.0
+ & Example of a row that spans multiple lines.
+\\
+Second
+ & row
+ & 5.0
+ & Here's another one. Note the blank line between rows.
+\\
+\end{tabular}
+\end{center}
+
