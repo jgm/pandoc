@@ -17,24 +17,6 @@ $else$
 \setuphead[subsection][style=\tfb]
 \setuphead[subsubsection][style=\bf]
 
-% define title block commands
-\unprotect
-\def\doctitle#1{\gdef\@title{#1}}
-\def\author#1{\gdef\@author{#1}}
-\def\date#1{\gdef\@date{#1}}
-\date{\currentdate}  % Default to today unless specified otherwise.
-\def\maketitle{%
-  \startalignment[center]
-    \blank[2*big]
-      {\tfd \@title}
-    \blank[3*medium]
-      {\tfa \@author}
-    \blank[2*medium]
-      {\tfa \@date}
-    \blank[3*medium]
-  \stopalignment}
-\protect
-
 % define descr (for definition lists)
 \definedescription[descr][
   headstyle=bold,style=normal,align=left,location=hanging,
@@ -75,15 +57,22 @@ $for(header-includes)$
 $header-includes$
 $endfor$
 
-$if(title)$
-\doctitle{$title$}
-$endif$
-\author{$for(author)$$author$$sep$\\$endfor$}
-$if(date)$
-\date{$date$}
-$endif$
 \starttext
-\maketitle
+$if(title)$
+\startalignment[center]
+  \blank[2*big]
+  {\tfd $title$}
+$if(author)$
+  \blank[3*medium]
+  {\tfa $for(author)$$author$$sep$\crlf $endfor$}
+$endif$
+$if(date)$
+  \blank[2*medium]
+  {\tfa $date$}
+$endif$
+  \blank[3*medium]
+\stopalignment
+$endif$
 $if(toc)$
 \placecontent
 $endif$
