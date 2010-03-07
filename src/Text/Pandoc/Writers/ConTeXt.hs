@@ -185,13 +185,15 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
               else ("p(" ++ printf "%.2f" colWidth ++ "\\textwidth)|")
     let colDescriptors = "|" ++ (concat $ 
                                  zipWith colDescriptor widths aligns)
-    headers <- tableRowToConTeXt heads 
+    headers <- if all null heads
+                  then return empty
+                  else liftM ($$ text "\\HL") $ tableRowToConTeXt heads 
     captionText <- inlineListToConTeXt caption 
     let captionText' = if null caption then text "none" else captionText
     rows' <- mapM tableRowToConTeXt rows 
     return $ Pad $ text "\\placetable[here]{" <> captionText' <> char '}' $$
              text "\\starttable[" <> text colDescriptors <> char ']' $$
-             text "\\HL" $$ headers $$ text "\\HL" $$
+             text "\\HL" $$ headers $$
              vcat rows' $$ text "\\HL\n\\stoptable"
 
 tableRowToConTeXt :: [[Block]] -> State WriterState Doc
