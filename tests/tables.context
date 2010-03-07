@@ -132,3 +132,44 @@ Multiline table without caption:
 \NC\AR
 \HL
 \stoptable
+
+Table without column headers:
+
+\placetable[here]{none}
+\starttable[|r|l|c|r|]
+\HL
+\NC 12
+\NC 12
+\NC 12
+\NC 12
+\NC\AR
+\NC 123
+\NC 123
+\NC 123
+\NC 123
+\NC\AR
+\NC 1
+\NC 1
+\NC 1
+\NC 1
+\NC\AR
+\HL
+\stoptable
+
+Multiline table without column headers:
+
+\placetable[here]{none}
+\starttable[|cp(0.15\textwidth)|lp(0.14\textwidth)|rp(0.16\textwidth)|lp(0.34\textwidth)|]
+\HL
+\NC First
+\NC row
+\NC 12.0
+\NC Example of a row that spans multiple lines.
+\NC\AR
+\NC Second
+\NC row
+\NC 5.0
+\NC Here's another one. Note the blank line between rows.
+\NC\AR
+\HL
+\stoptable
