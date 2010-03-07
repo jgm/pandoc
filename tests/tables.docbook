@@ -284,3 +284,50 @@
     </td>
   </tr>
 </informaltable>
+<para>
+  Table without column headers:
+</para>
+<informaltable>
+  <tr>
+    <td align="right">
+      12
+    </td>
+    <td align="left">
+      12
+    </td>
+    <td align="center">
+      12
+    </td>
+    <td align="right">
+      12
+    </td>
+  </tr>
+  <tr>
+    <td align="right">
+      123
+    </td>
+    <td align="left">
+      123
+    </td>
+    <td align="center">
+      123
+    </td>
+    <td align="right">
+      123
+    </td>
+  </tr>
+  <tr>
+    <td align="right">
+      1
+    </td>
+    <td align="left">
+      1
+    </td>
+    <td align="center">
+      1
+    </td>
+    <td align="right">
+      1
+    </td>
+  </tr>
+</informaltable>

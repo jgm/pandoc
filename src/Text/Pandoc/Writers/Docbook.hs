@@ -181,6 +181,7 @@ colHeadsToDocbook :: WriterOptions
                   -> [Double]
                   -> [[Block]] 
                   -> Doc
+colHeadsToDocbook _ _ _ hs | all null hs = empty
 colHeadsToDocbook opts alignStrings widths headers =
   let heads = zipWith3 (\align width item -> 
               tableItemToDocbook opts "th" align width item) 
