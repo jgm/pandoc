@@ -98,5 +98,19 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
   [ [ Plain [Str "1"] ]
   , [ Plain [Str "1"] ]
   , [ Plain [Str "1"] ]
-  , [ Plain [Str "1"] ] ] ] ]
+  , [ Plain [Str "1"] ] ] ]
+, Para [Str "Multiline",Space,Str "table",Space,Str "without",Space,Str "column",Space,Str "headers:"]
+, Table [] [AlignCenter,AlignLeft,AlignRight,AlignDefault] [0.15,0.1375,0.1625,0.3375]
+  [   []
+  ,   []
+  ,   []
+  ,   [] ] [
+  [ [ Plain [Str "First"] ]
+  , [ Plain [Str "row"] ]
+  , [ Plain [Str "12",Str ".",Str "0"] ]
+  , [ Plain [Str "Example",Space,Str "of",Space,Str "a",Space,Str "row",Space,Str "that",Space,Str "spans",Space,Str "multiple",Space,Str "lines",Str "."] ] ],
+  [ [ Plain [Str "Second"] ]
+  , [ Plain [Str "row"] ]
+  , [ Plain [Str "5",Str ".",Str "0"] ]
+  , [ Plain [Str "Here",Str "'",Str "s",Space,Str "another",Space,Str "one",Str ".",Space,Str "Note",Space,Str "the",Space,Str "blank",Space,Str "line",Space,Str "between",Space,Str "rows",Str "."] ] ] ] ]
 
