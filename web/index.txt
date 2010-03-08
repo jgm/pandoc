@@ -49,8 +49,6 @@ or [try pandoc on the web](/pandoc/try).
 - Man pages
     - [`pandoc(1)`](pandoc.1.html)
     - [`markdown2pdf(1)`](markdown2pdf.1.html)
-    - [`html2markdown(1)`](html2markdown.1.html)
-    - [`hsmarkdown(1)`](hsmarkdown.1.html)
 - [Library documentation](doc/pandoc/index.html) (for Haskell programmers)
 - [Installation instructions](INSTALL.html)
 - [Changelog](changelog.txt)
