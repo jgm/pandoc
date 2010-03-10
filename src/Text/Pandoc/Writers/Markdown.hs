@@ -219,20 +219,28 @@ blockToMarkdown opts (Table caption aligns widths headers rows) =  do
           else map (floor . (78 *)) widths
   let makeRow = hsepBlocks . (zipWith alignHeader aligns) . 
                 (zipWith docToBlock widthsInChars)
-  let head' = makeRow headers'
   let rows' = map makeRow rawRows
+  let head' = makeRow headers'
   let maxRowHeight = maximum $ map heightOfBlock (head':rows')
   let underline = hsep $ 
                   map (\width -> text $ replicate width '-') widthsInChars
   let border = if maxRowHeight > 1
                   then text $ replicate (sum widthsInChars + (length widthsInChars - 1)) '-'
-                  else empty
+                  else if all null headers
+                          then underline
+                          else empty
+  let head'' = if all null headers
+                  then empty
+                  else border $+$ blockToDoc head'
   let spacer = if maxRowHeight > 1
                   then text ""
                   else empty
   let body = vcat $ intersperse spacer $ map blockToDoc rows'
-  return $ (nest 2 $ border $+$ (blockToDoc head') $+$ underline $+$ body $+$ 
-                     border $+$ caption'') <> text "\n"
+  let bottom = if all null headers
+                  then underline
+                  else border
+  return $ (nest 2 $ head'' $+$ underline $+$ body $+$ 
+                     bottom $+$ caption'') <> text "\n"
 blockToMarkdown opts (BulletList items) = do
   contents <- mapM (bulletListItemToMarkdown opts) items
   return $ (vcat contents) <> text "\n"
