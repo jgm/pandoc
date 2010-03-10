@@ -346,27 +346,32 @@ blockToHtml opts (Table capt aligns widths headers rows') = do
   captionDoc <- if null capt
                    then return noHtml
                    else inlineListToHtml opts capt >>= return . caption
-  let zeros = replicate (length headers) (0.0 :: Double)
-  let (rownums, rows'') = if all null headers
-                             then ([1..], rows')
-                             else ([0..], (headers : rows'))
-  body' <- mapM (tableRowToHtml opts alignStrings) $
-             zip3 rownums (widths : repeat zeros) rows''
-  return $ table $ captionDoc +++ body'
+  let percent w = show (truncate (100*w) :: Integer) ++ "%"
+  let coltags = if all (== 0.0) widths
+                   then noHtml
+                   else concatHtml $ map
+                         (\w -> col ! [width $ percent w] $ noHtml) widths
+  head' <- if all null headers
+              then return noHtml
+              else liftM (thead <<) $ tableRowToHtml opts alignStrings 0 headers
+  body' <- liftM (tbody <<) $
+               zipWithM (tableRowToHtml opts alignStrings) [1..] rows'
+  return $ table $ captionDoc +++ coltags +++ head' +++ body'
 
 tableRowToHtml :: WriterOptions
                -> [String]
-               -> (Int, [Double], [[Block]])
+               -> Int
+               -> [[Block]]
                -> State WriterState Html
-tableRowToHtml opts alignStrings (rownum, widths, cols') = do
+tableRowToHtml opts alignStrings rownum cols' = do
   let mkcell = if rownum == 0 then th else td
   let rowclass = case rownum of
                       0                  -> "header"
                       x | x `rem` 2 == 1 -> "odd"
                       _                  -> "even"
-  cols'' <- sequence $ zipWith3 
-            (\alignment columnwidth item -> tableItemToHtml opts mkcell alignment columnwidth item) 
-            alignStrings widths cols'
+  cols'' <- sequence $ zipWith 
+            (\alignment item -> tableItemToHtml opts mkcell alignment item) 
+            alignStrings cols'
   return $ tr ! [theclass rowclass] $ toHtmlFromList cols''
 
 alignmentToString :: Alignment -> [Char]
@@ -379,16 +384,11 @@ alignmentToString alignment = case alignment of
 tableItemToHtml :: WriterOptions
                 -> (Html -> Html)
                 -> [Char]
-                -> Double
                 -> [Block]
                 -> State WriterState Html
-tableItemToHtml opts tag' align' width' item = do
+tableItemToHtml opts tag' align' item = do
   contents <- blockListToHtml opts item
-  let attrib = [align align'] ++ 
-               if width' /= 0
-                  then [thestyle ("width: " ++ (show  (truncate (100 * width') :: Integer)) ++ "%;")]
-                  else [] 
-  return $ tag' ! attrib $ contents
+  return $ tag' ! [align align'] $ contents
 
 blockListToHtml :: WriterOptions -> [Block] -> State WriterState Html
 blockListToHtml opts lst = 
