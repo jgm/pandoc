@@ -173,7 +173,9 @@ blockToRTF indent _ HorizontalRule =
 blockToRTF indent alignment (Header level lst) = rtfPar indent 0 alignment $
   "\\b \\fs" ++ (show (40 - (level * 4))) ++ " " ++ inlineListToRTF lst
 blockToRTF indent alignment (Table caption aligns sizes headers rows) = 
-  tableRowToRTF True indent aligns sizes headers ++ 
+  (if all null headers
+      then ""
+      else tableRowToRTF True indent aligns sizes headers) ++ 
   concatMap (tableRowToRTF False indent aligns sizes) rows ++
   rtfPar indent 0 alignment (inlineListToRTF caption)
 
