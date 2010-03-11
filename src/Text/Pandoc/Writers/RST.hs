@@ -204,8 +204,10 @@ blockToRST (Table caption _ widths headers rows) =  do
                           map (\l -> text $ replicate l ch) widthsInChars) <>
                   char ch <> char '+'
   let body = vcat $ intersperse (border '-') $ map blockToDoc rows'
-  return $ border '-' $+$ blockToDoc head' $+$ border '=' $+$ body $+$ 
-           border '-' $$ caption'' $$ text ""
+  let head'' = if all null headers
+                  then empty
+                  else blockToDoc head' $+$ border '='
+  return $ border '-' $+$ head'' $+$ body $+$ border '-' $$ caption'' $$ text ""
 blockToRST (BulletList items) = do
   contents <- mapM bulletListItemToRST items
   -- ensure that sublists have preceding blank line
