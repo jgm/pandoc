@@ -118,17 +118,27 @@ blockToMediaWiki opts (BlockQuote blocks) = do
   contents <- blockListToMediaWiki opts blocks
   return $ "<blockquote>" ++ contents ++ "</blockquote>" 
 
-blockToMediaWiki opts (Table caption aligns widths headers rows) =  do
+blockToMediaWiki opts (Table capt aligns widths headers rows') = do
   let alignStrings = map alignmentToString aligns
-  captionDoc <- if null caption
+  captionDoc <- if null capt
                    then return ""
                    else do
-                     c <- inlineListToMediaWiki opts caption
-                     return $ "<caption>" ++ c ++ "</caption>"
-  colHeads <- colHeadsToMediaWiki opts alignStrings widths headers
-  rows' <- mapM (tableRowToMediaWiki opts alignStrings) rows
-  return $  "<table>\n" ++ captionDoc ++ colHeads ++ vcat rows' ++ "\n</table>"
- 
+                      c <- inlineListToMediaWiki opts capt
+                      return $ "<caption>" ++ c ++ "</caption>\n"
+  let percent w = show (truncate (100*w) :: Integer) ++ "%"
+  let coltags = if all (== 0.0) widths
+                   then ""
+                   else unlines $ map
+                         (\w -> "<col width=\"" ++ percent w ++ "\" />") widths
+  head' <- if all null headers
+              then return ""
+              else do
+                 hs <- tableRowToMediaWiki opts alignStrings 0 headers
+                 return $ "<thead>\n" ++ hs ++ "\n</thead>\n"
+  body' <- zipWithM (tableRowToMediaWiki opts alignStrings) [1..] rows'
+  return $ "<table>\n" ++ captionDoc ++ coltags ++ head' ++
+            "<tbody>\n" ++ unlines body' ++ "</tbody>\n</table>\n"
+
 blockToMediaWiki opts x@(BulletList items) = do
   oldUseTags <- get >>= return . stUseTags
   let useTags = oldUseTags || not (isSimpleList x)
@@ -249,25 +259,27 @@ isPlainOrPara (Plain _) = True
 isPlainOrPara (Para  _) = True
 isPlainOrPara _         = False
 
-tr :: String -> String 
-tr x =  "<tr>\n" ++ x ++ "\n</tr>"
-
 -- | Concatenates strings with line breaks between them.
 vcat :: [String] -> String
 vcat = intercalate "\n"
 
 -- Auxiliary functions for tables:
 
-colHeadsToMediaWiki :: WriterOptions
-                    -> [[Char]]
-                    -> [Double]
+tableRowToMediaWiki :: WriterOptions
+                    -> [String]
+                    -> Int
                     -> [[Block]]
                     -> State WriterState String
-colHeadsToMediaWiki opts alignStrings widths headers = do
-  heads <- sequence $ zipWith3 
-           (\alignment columnwidth item -> tableItemToMediaWiki opts "th" alignment columnwidth item) 
-           alignStrings widths headers
-  return $ tr $ vcat heads
+tableRowToMediaWiki opts alignStrings rownum cols' = do
+  let celltype = if rownum == 0 then "th" else "td"
+  let rowclass = case rownum of
+                      0                  -> "header"
+                      x | x `rem` 2 == 1 -> "odd"
+                      _                  -> "even"
+  cols'' <- sequence $ zipWith 
+            (\alignment item -> tableItemToMediaWiki opts celltype alignment item) 
+            alignStrings cols'
+  return $ "<tr class=\"" ++ rowclass ++ "\">\n" ++ unlines cols'' ++ "</tr>"
 
 alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of
@@ -276,27 +288,16 @@ alignmentToString alignment = case alignment of
                                  AlignCenter  -> "center"
                                  AlignDefault -> "left"
 
-tableRowToMediaWiki :: WriterOptions
-                    -> [[Char]]
-                    -> [[Block]]
-                    -> State WriterState String
-tableRowToMediaWiki opts aligns columns = 
-  (sequence $ zipWith3 (tableItemToMediaWiki opts "td") aligns (repeat 0) columns) >>=
-     return . tr . vcat
-
 tableItemToMediaWiki :: WriterOptions
-                     -> [Char]
-                     -> [Char]
-                     -> Double
+                     -> String
+                     -> String
                      -> [Block]
                      -> State WriterState String
-tableItemToMediaWiki opts tag' align' width' item = do
+tableItemToMediaWiki opts celltype align' item = do
+  let mkcell x = "<" ++ celltype ++ " align=\"" ++ align' ++ "\">" ++
+                    x ++ "</" ++ celltype ++ ">"
   contents <- blockListToMediaWiki opts item
-  let attrib = " align=\"" ++ align' ++ "\"" ++
-               if width' /= 0
-                  then " style=\"width: " ++ (show  (truncate (100 * width') :: Integer)) ++ "%;\""
-                  else "" 
-  return $ "<" ++ tag' ++ attrib ++ ">" ++ contents ++ "</" ++ tag' ++ ">"
+  return $ mkcell contents
 
 -- | Convert list of Pandoc block elements to MediaWiki.
 blockListToMediaWiki :: WriterOptions -- ^ Options
