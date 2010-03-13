@@ -205,3 +205,63 @@ Here\[aq]s another one.
 Note the blank line between rows.
 T}
 .TE
+.PP
+Table without column headers:
+.PP
+.TS
+tab(@);
+r l c r.
+T{
+12
+T}@T{
+12
+T}@T{
+12
+T}@T{
+12
+T}
+T{
+123
+T}@T{
+123
+T}@T{
+123
+T}@T{
+123
+T}
+T{
+1
+T}@T{
+1
+T}@T{
+1
+T}@T{
+1
+T}
+.TE
+.PP
+Multiline table without column headers:
+.PP
+.TS
+tab(@);
+cw(10.50n) lw(9.63n) rw(11.38n) lw(23.63n).
+T{
+First
+T}@T{
+row
+T}@T{
+12.0
+T}@T{
+Example of a row that spans multiple lines.
+T}
+T{
+Second
+T}@T{
+row
+T}@T{
+5.0
+T}@T{
+Here\[aq]s another one.
+Note the blank line between rows.
+T}
+.TE

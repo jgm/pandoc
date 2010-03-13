@@ -178,13 +178,15 @@ blockToMan opts (Table caption alignments widths headers rows) =
   let makeRow cols = text "T{" $$ 
                      (vcat $ intersperse (text "T}@T{") cols) $$ 
                      text "T}"
-  let colheadings' = makeRow colheadings
+  let colheadings' = if all null headers
+                        then empty
+                        else makeRow colheadings $$ char '_'
   body <- mapM (\row -> do 
                          cols <- mapM (blockListToMan opts) row
                          return $ makeRow cols) rows
   return $ text ".PP" $$ caption' $$ 
            text ".TS" $$ text "tab(@);" $$ coldescriptions $$ 
-           colheadings' $$ char '_' $$ vcat body $$ text ".TE"
+           colheadings' $$ vcat body $$ text ".TE"
 
 blockToMan opts (BulletList items) = do
   contents <- mapM (bulletListItemToMan opts) items
