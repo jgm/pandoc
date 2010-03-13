@@ -122,3 +122,38 @@ Second
  @tab Here's another one. Note the blank line between rows.
 @end multitable
 
+Table without column headers:
+
+@multitable {123} {123} {123} {123} 
+@item 
+12
+ @tab 12
+ @tab 12
+ @tab 12
+@item 
+123
+ @tab 123
+ @tab 123
+ @tab 123
+@item 
+1
+ @tab 1
+ @tab 1
+ @tab 1
+@end multitable
+
+Multiline table without column headers:
+
+@multitable @columnfractions 0.15 0.14 0.16 0.34 
+@item 
+First
+ @tab row
+ @tab 12.0
+ @tab Example of a row that spans multiple lines.
+@item 
+Second
+ @tab row
+ @tab 5.0
+ @tab Here's another one. Note the blank line between rows.
+@end multitable
+

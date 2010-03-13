@@ -191,7 +191,9 @@ blockToTexinfo (Header level lst) = do
     seccmd _ = error "illegal seccmd level"
 
 blockToTexinfo (Table caption aligns widths heads rows) = do
-  headers <- tableHeadToTexinfo aligns heads
+  headers <- if all null heads
+                then return empty
+                else tableHeadToTexinfo aligns heads
   captionText <- inlineListToTexinfo caption
   rowsText <- mapM (tableRowToTexinfo aligns) rows
   colDescriptors <-
