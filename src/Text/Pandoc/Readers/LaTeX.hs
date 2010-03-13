@@ -448,6 +448,7 @@ inline =  choice [ str
                  , footnote
                  , linebreak
                  , accentedChar
+                 , nonbreakingSpace
                  , specialChar
                  , rawLaTeXInline
                  , escapedChar
@@ -671,7 +672,10 @@ strong = try (string "\\textbf{") >> manyTill inline (char '}') >>=
          return . Strong
 
 whitespace :: GenParser Char st Inline
-whitespace = many1 (oneOf "~ \t") >> return Space
+whitespace = many1 (oneOf " \t") >> return Space
+
+nonbreakingSpace :: GenParser Char st Inline
+nonbreakingSpace = char '~' >> return (Str "\160")
 
 -- hard line break
 linebreak :: GenParser Char st Inline
