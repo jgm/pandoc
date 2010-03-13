@@ -166,12 +166,7 @@ writeOpenDocument opts (Pandoc (Meta title authors date) blocks) =
            date'' <- inlinesToOpenDocument opts date
            doc'' <- blocksToOpenDocument opts blocks
            return (doc'', title'', authors'', date'')
-      before   = writerIncludeBefore opts
-      after    = writerIncludeAfter opts
-      body     = (if null before then empty else text before) $$
-                 doc $$
-                 (if null after then empty else text after)
-      body'    = render body
+      body'    = render doc
       styles   = stTableStyles s ++ stParaStyles s ++ stTextStyles s
       listStyle (n,l) = inTags True "text:list-style"
                           [("style:name", "L" ++ show n)] (vcat l)

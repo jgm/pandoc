@@ -42,9 +42,7 @@ writeRTF options (Pandoc (Meta title authors date) blocks) =
       authorstext = map inlineListToRTF authors
       datetext = inlineListToRTF date
       spacer = not $ all null $ titletext : datetext : authorstext
-      body = writerIncludeBefore options ++ 
-             concatMap (blockToRTF 0 AlignDefault) blocks ++ 
-             writerIncludeAfter options
+      body = concatMap (blockToRTF 0 AlignDefault) blocks
       context = writerVariables options ++
                 [ ("body", body)
                 , ("title", titletext)

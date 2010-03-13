@@ -399,9 +399,10 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      text <- readFile arg
-                     let oldBefore = optBefore opt
-                     -- add new text to end, so it is included in proper order
-                     return opt { optBefore =  oldBefore ++ [text] })
+                     -- add new ones to end, so they're included in order specified
+                     let newvars = optVariables opt ++ [("include-before",text)]
+                     return opt { optVariables = newvars,
+                                  optStandalone = True })
                   "FILENAME")
                  "" -- "File to include before document body"
 
@@ -409,9 +410,10 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      text <- readFile arg
-                     let oldAfter = optAfter opt
-                     -- add new text to end, so it is included in proper order
-                     return opt { optAfter = oldAfter ++ [text]})
+                     -- add new ones to end, so they're included in order specified
+                     let newvars = optVariables opt ++ [("include-after",text)]
+                     return opt { optVariables = newvars,
+                                  optStandalone = True })
                   "FILENAME")
                  "" -- "File to include after document body"
 

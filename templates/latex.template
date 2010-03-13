@@ -80,10 +80,18 @@ $if(title)$
 \maketitle
 $endif$
 
+$for(include-before)$
+$include-before$
+
+$endfor$
 $if(toc)$
 \tableofcontents
 
 $endif$
 $body$
+$for(include-after)$
+
+$include-after$
+$endfor$
 
 \end{document}

@@ -276,14 +276,14 @@ For further documentation, see the `pandoc(1)` man page.
     `\begin{document}` command in LaTeX). This can be used to include
     navigation bars or banners in HTML documents. This option can be
     used repeatedly to include multiple files. They will be included in
-    the order specified.
+    the order specified.  Implies `--standalone`.
 
 `-A` or `--include-after-body` *filename*
 :   includes the contents of *filename* (verbatim) at the end of
     the document body (before the `</body>` tag in HTML, or the
     `\end{document}` command in LaTeX). This option can be be used
     repeatedly to include multiple files. They will be included in the
-    order specified.
+    order specified.  Implies `--standalone`.
 
 `--reference-odt` *filename*
 :   uses the specified file as a style reference in producing an ODT.
@@ -475,6 +475,12 @@ depending on the output format, but include:
     values)
 `toc`
 :   non-null value if `--toc/--table-of-contents` was specified
+`include-before`
+:   contents specified by `-B/--include-before-body` (may have
+    multiple values)
+`include-after`
+:   contents specified by `-A/--include-after-body` (may have
+    multiple values)
 `body`
 :   body of document
 `title`

@@ -53,14 +53,12 @@ writeMediaWiki opts document =
 -- | Return MediaWiki representation of document.
 pandocToMediaWiki :: WriterOptions -> Pandoc -> State WriterState String
 pandocToMediaWiki opts (Pandoc _ blocks) = do
-  let before  = writerIncludeBefore opts
-  let after   = writerIncludeAfter opts
   body <- blockListToMediaWiki opts blocks
   notesExist <- get >>= return . stNotes
   let notes = if notesExist
                  then "\n<references />"
                  else "" 
-  let main = before ++ body ++ after ++ notes
+  let main = body ++ notes
   let context = writerVariables opts ++
                 [ ("body", main) ] ++
                 [ ("toc", "yes") | writerTableOfContents opts ]

@@ -59,10 +59,6 @@ writeRST opts document =
 pandocToRST :: Pandoc -> State WriterState String
 pandocToRST (Pandoc (Meta tit auth dat) blocks) = do
   opts <- liftM stOptions get
-  let before  = writerIncludeBefore opts
-      after   = writerIncludeAfter opts
-      before' = if null before then empty else text before
-      after'  = if null after then empty else text after
   title <- titleToRST tit
   authors <- mapM inlineListToRST auth
   date <- inlineListToRST dat
@@ -72,8 +68,7 @@ pandocToRST (Pandoc (Meta tit auth dat) blocks) = do
   refs <- liftM (reverse . stLinks) get >>= keyTableToRST
   pics <- liftM (reverse . stImages) get >>= pictTableToRST
   hasMath <- liftM stHasMath get
-  let main = render $ before' $+$ body $+$ notes $+$
-                      text "" $+$ refs $+$ pics $+$ after'
+  let main = render $ body $+$ notes $+$ text "" $+$ refs $+$ pics
   let context = writerVariables opts ++
                 [ ("body", main)
                 , ("title", render title)

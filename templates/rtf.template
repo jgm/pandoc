@@ -21,5 +21,11 @@ $endif$
 $if(spacer)$
 {\pard \ql \f0 \sa180 \li0 \fi0 \par}
 $endif$
+$for(include-before)$
+$include-before$
+$endfor$
 $body$
+$for(include-after)$
+$include-after$
+$endfor$
 }

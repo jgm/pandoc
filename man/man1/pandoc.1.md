@@ -195,9 +195,11 @@ should pipe input and output through `iconv`:
 
 -B *FILE*, \--include-before-body=*FILE*
 :   Include contents of *FILE* at the beginning of the document body.
+    Implies `-s`.
 
 -A *FILE*, \--include-after-body=*FILE*
 :   Include contents of *FILE* at the end of the document body.
+    Implies `-s`.
 
 -C *FILE*, \--custom-header=*FILE*
 :   Use contents of *FILE* as the document header. *Note: This option is
@@ -295,6 +297,12 @@ depending on the output format, but include:
     values)
 `toc`
 :   non-null value if `--toc/--table-of-contents` was specified
+`include-before`
+:   contents specified by `-B/--include-before-body` (may have
+    multiple values)
+`include-after`
+:   contents specified by `-A/--include-after-body` (may have
+    multiple values)
 `body`
 :   body of document
 `title`

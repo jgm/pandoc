@@ -48,10 +48,6 @@ writeMan opts document = evalState (pandocToMan opts document) (WriterState [] F
 -- | Return groff man representation of document.
 pandocToMan :: WriterOptions -> Pandoc -> State WriterState String
 pandocToMan opts (Pandoc (Meta title authors date) blocks) = do
-  let before  = writerIncludeBefore opts
-  let after   = writerIncludeAfter opts
-  let before' = if null before then empty else text before
-  let after'  = if null after then empty else text after
   titleText <- inlineListToMan opts title
   authors' <- mapM (inlineListToMan opts) authors
   date' <- inlineListToMan opts date 
@@ -66,7 +62,7 @@ pandocToMan opts (Pandoc (Meta title authors date) blocks) = do
   body <- blockListToMan opts blocks
   notes <- liftM stNotes get
   notes' <- notesToMan opts (reverse notes)
-  let main = render $ before' $$ body $$ notes' $$ after'
+  let main = render $ body $$ notes'
   hasTables <- liftM stHasTables get
   let context  = writerVariables opts ++
                  [ ("body", main)

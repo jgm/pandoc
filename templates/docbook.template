@@ -17,6 +17,12 @@ $if(date)$
     <date>$date$</date>
 $endif$
   </articleinfo>
+$for(include-before)$
+$include-before$
+$endfor$
 $body$
+$for(include-after)$
+$include-after$
+$endfor$
 </article>
 

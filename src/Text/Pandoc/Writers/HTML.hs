@@ -105,9 +105,7 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   blocks' <- liftM toHtmlFromList $ mapM (elementToHtml opts) sects
   st <- get
   let notes = reverse (stNotes st)
-  let before = primHtml $ writerIncludeBefore opts
-  let after = primHtml $ writerIncludeAfter opts
-  let thebody = before +++ blocks' +++ footnoteSection notes +++ after
+  let thebody = blocks' +++ footnoteSection notes
   let  math = if stMath st
                 then case writerHTMLMathMethod opts of
                            LaTeXMathML (Just url) ->

@@ -69,13 +69,7 @@ pandocToTexinfo options (Pandoc (Meta title authors date) blocks) = do
   let titlePage = not $ all null $ title : date : authors
   main <- blockListToTexinfo blocks
   st <- get
-  let before = if null (writerIncludeBefore options)
-                  then empty
-                  else text (writerIncludeBefore options)
-  let after  = if null (writerIncludeAfter options)
-                  then empty
-                  else text (writerIncludeAfter options)
-  let body = render $ before $$ main $$ after
+  let body = render main
   let context = writerVariables options ++
                 [ ("body", body)
                 , ("title", render titleText)

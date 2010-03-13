@@ -20,6 +20,10 @@ $if(math)$
    :format: html latex
 
 $endif$
+$for(include-before)$
+$include-before$
+
+$endfor$
 $if(toc)$
 .. contents::
 
@@ -29,3 +33,7 @@ $header-includes$
 
 $endfor$
 $body$
+$for(include-after)$
+
+$include-after$
+$endfor$

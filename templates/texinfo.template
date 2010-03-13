@@ -51,10 +51,18 @@ $endif$
 @end titlepage
 
 $endif$
+$for(include-before)$
+$include-before$
+
+$endfor$
 $if(toc)$
 @contents
 
 $endif$
 $body$
+$for(include-after)$
+
+$include-after$
+$endfor$
 
 @bye

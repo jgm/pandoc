@@ -15,7 +15,13 @@ $endfor$
 $if(date)$
 <text:p text:style-name="Date">$date$</text:p>
 $endif$
+$for(include-before)$
+$include-before$
+$endfor$
 $body$
+$for(include-after)$
+$include-after$
+$endfor$
 </office:text>
 </office:body>
 </office:document-content>

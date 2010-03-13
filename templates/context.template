@@ -73,10 +73,16 @@ $endif$
   \blank[3*medium]
 \stopalignment
 $endif$
+$for(include-before)$
+$include-before$
+$endfor$
 $if(toc)$
 \placecontent
 $endif$
 
 $body$
 
+$for(include-after)$
+$include-after$
+$endfor$
 \stoptext

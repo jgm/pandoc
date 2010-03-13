@@ -60,17 +60,11 @@ pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
                then tableOfContents opts headerBlocks
                else empty
   body <- blockListToMarkdown opts blocks
-  let before = if null (writerIncludeBefore opts)
-                  then empty
-                  else text $ writerIncludeBefore opts
-  let after = if null (writerIncludeAfter opts)
-                  then empty
-                  else text $ writerIncludeAfter opts
   (notes, _) <- get
   notes' <- notesToMarkdown opts (reverse notes)
   (_, refs) <- get  -- note that the notes may contain refs
   refs' <- keyTableToMarkdown opts (reverse refs)
-  let main = render $ before $+$ body $+$ text "" $+$ notes' $+$ text "" $+$ refs' $+$ after
+  let main = render $ body $+$ text "" $+$ notes' $+$ text "" $+$ refs'
   let context  = writerVariables opts ++
                  [ ("toc", render toc)
                  , ("body", main)

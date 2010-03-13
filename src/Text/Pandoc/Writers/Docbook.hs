@@ -65,12 +65,7 @@ writeDocbook opts (Pandoc (Meta tit auths dat) blocks) =
       authors = map (authorToDocbook opts) auths
       date = inlinesToDocbook opts dat
       elements = hierarchicalize blocks
-      before   = writerIncludeBefore opts
-      after    = writerIncludeAfter opts
-      main     = render $
-                 (if null before then empty else text before) $$
-                 vcat (map (elementToDocbook opts) elements) $$
-                 (if null after then empty else text after)
+      main     = render $ vcat (map (elementToDocbook opts) elements)
       context = writerVariables opts ++
                 [ ("body", main)
                 , ("title", render title)

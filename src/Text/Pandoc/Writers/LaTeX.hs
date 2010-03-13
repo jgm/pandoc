@@ -74,13 +74,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
   authorsText <- mapM (liftM render . inlineListToLaTeX) authors
   dateText <- liftM render $ inlineListToLaTeX date
   body <- blockListToLaTeX blocks
-  let before = if null (writerIncludeBefore options)
-                 then empty
-                 else text $ writerIncludeBefore options
-  let after = if null (writerIncludeAfter options)
-                 then empty
-                 else text $ writerIncludeAfter options
-  let main = render $ before $$ body $$ after
+  let main = render body
   st <- get
   let context  = writerVariables options ++
                  [ ("toc", if writerTableOfContents options then "yes" else "")
