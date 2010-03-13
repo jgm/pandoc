@@ -772,7 +772,8 @@ footnote = try $ do
 -- | Parse any LaTeX command and return it in a raw TeX inline element.
 rawLaTeXInline :: GenParser Char ParserState Inline
 rawLaTeXInline = try $ do
-  notFollowedBy' $ oneOfStrings ["\\begin", "\\end", "\\item", "\\ignore"]
+  notFollowedBy' $ oneOfStrings ["\\begin", "\\end", "\\item", "\\ignore",
+                                 "\\section"]
   state <- getState
   if stateParseRaw state
      then do
