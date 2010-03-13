@@ -298,3 +298,87 @@
     </table:table-cell>
   </table:table-row>
 </table:table>
+<text:p text:style-name="Text_20_body">Table without column headers:</text:p>
+<table:table table:name="Table6" table:style-name="Table6">
+  <table:table-column table:style-name="Table6.A" />
+  <table:table-column table:style-name="Table6.B" />
+  <table:table-column table:style-name="Table6.C" />
+  <table:table-column table:style-name="Table6.D" />
+  <table:table-row>
+    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+      <text:p text:style-name="P24">12</text:p>
+    </table:table-cell>
+    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+      <text:p text:style-name="Table_20_Contents">12</text:p>
+    </table:table-cell>
+    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+      <text:p text:style-name="P25">12</text:p>
+    </table:table-cell>
+    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+      <text:p text:style-name="P26">12</text:p>
+    </table:table-cell>
+  </table:table-row>
+  <table:table-row>
+    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+      <text:p text:style-name="P24">123</text:p>
+    </table:table-cell>
+    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+      <text:p text:style-name="Table_20_Contents">123</text:p>
+    </table:table-cell>
+    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+      <text:p text:style-name="P25">123</text:p>
+    </table:table-cell>
+    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+      <text:p text:style-name="P26">123</text:p>
+    </table:table-cell>
+  </table:table-row>
+  <table:table-row>
+    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+      <text:p text:style-name="P24">1</text:p>
+    </table:table-cell>
+    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+      <text:p text:style-name="Table_20_Contents">1</text:p>
+    </table:table-cell>
+    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+      <text:p text:style-name="P25">1</text:p>
+    </table:table-cell>
+    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+      <text:p text:style-name="P26">1</text:p>
+    </table:table-cell>
+  </table:table-row>
+</table:table>
+<text:p text:style-name="Text_20_body">Multiline table without column headers:</text:p>
+<table:table table:name="Table7" table:style-name="Table7">
+  <table:table-column table:style-name="Table7.A" />
+  <table:table-column table:style-name="Table7.B" />
+  <table:table-column table:style-name="Table7.C" />
+  <table:table-column table:style-name="Table7.D" />
+  <table:table-row>
+    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+      <text:p text:style-name="P29">First</text:p>
+    </table:table-cell>
+    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+      <text:p text:style-name="Table_20_Contents">row</text:p>
+    </table:table-cell>
+    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+      <text:p text:style-name="P30">12.0</text:p>
+    </table:table-cell>
+    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+      <text:p text:style-name="Table_20_Contents">Example of a row that spans multiple lines.</text:p>
+    </table:table-cell>
+  </table:table-row>
+  <table:table-row>
+    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+      <text:p text:style-name="P29">Second</text:p>
+    </table:table-cell>
+    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+      <text:p text:style-name="Table_20_Contents">row</text:p>
+    </table:table-cell>
+    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+      <text:p text:style-name="P30">5.0</text:p>
+    </table:table-cell>
+    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+      <text:p text:style-name="Table_20_Contents">Here's another one. Note the blank line between rows.</text:p>
+    </table:table-cell>
+  </table:table-row>
+</table:table>

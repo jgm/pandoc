@@ -313,7 +313,9 @@ blockToOpenDocument o bs
         captionDoc <- if null c
                       then return empty
                       else withParagraphStyle o "Caption" [Para c]
-        th <- colHeadsToOpenDocument       o name (map fst paraHStyles) h
+        th <- if all null h
+                 then return empty
+                 else colHeadsToOpenDocument o name (map fst paraHStyles) h
         tr <- mapM (tableRowToOpenDocument o name (map fst paraStyles)) r
         return $ inTags True "table:table" [ ("table:name"      , name)
                                            , ("table:style-name", name)
