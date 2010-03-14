@@ -409,8 +409,10 @@ codeBlockIndented = do
 lhsCodeBlock :: GenParser Char ParserState Block
 lhsCodeBlock = do
   failUnlessLHS
-  contents <- lhsCodeBlockBird <|> lhsCodeBlockLaTeX
-  return $ CodeBlock ("",["sourceCode","literate","haskell"],[]) contents
+  liftM (CodeBlock ("",["sourceCode","literate","haskell"],[]))
+          (lhsCodeBlockBird <|> lhsCodeBlockLaTeX)
+    <|> liftM (CodeBlock ("",["sourceCode","haskell"],[]))
+          lhsCodeBlockInverseBird
 
 lhsCodeBlockLaTeX :: GenParser Char ParserState String
 lhsCodeBlockLaTeX = try $ do
@@ -421,10 +423,16 @@ lhsCodeBlockLaTeX = try $ do
   return $ stripTrailingNewlines contents
 
 lhsCodeBlockBird :: GenParser Char ParserState String
-lhsCodeBlockBird = try $ do
+lhsCodeBlockBird = lhsCodeBlockBirdWith '>'
+
+lhsCodeBlockInverseBird :: GenParser Char ParserState String
+lhsCodeBlockInverseBird = lhsCodeBlockBirdWith '<'
+
+lhsCodeBlockBirdWith :: Char -> GenParser Char ParserState String
+lhsCodeBlockBirdWith c = try $ do
   pos <- getPosition
   when (sourceColumn pos /= 1) $ fail "Not in first column"
-  lns <- many1 birdTrackLine
+  lns <- many1 $ birdTrackLine c
   -- if (as is normal) there is always a space after >, drop it
   let lns' = if all (\ln -> null ln || take 1 ln == " ") lns
                 then map (drop 1) lns
@@ -432,9 +440,9 @@ lhsCodeBlockBird = try $ do
   blanklines
   return $ intercalate "\n" lns'
 
-birdTrackLine :: GenParser Char st [Char]
-birdTrackLine = do
-  char '>'
+birdTrackLine :: Char -> GenParser Char st [Char]
+birdTrackLine c = do
+  char c
   manyTill anyChar newline
 
 
