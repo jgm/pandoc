@@ -42,7 +42,7 @@ import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
 import Data.Maybe ( fromMaybe )
-import Data.Char ( toLower )
+import Data.Char ( toLower, isDigit )
 import Data.List ( intercalate, isSuffixOf )
 import System.Directory ( getAppUserDataDirectory )
 import System.IO ( stdout, stderr )
@@ -59,7 +59,7 @@ import Text.CSL
 import Text.Pandoc.Biblio
 #endif
 import Control.Monad (when, unless, liftM)
-import Network.HTTP
+import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI)
 import Data.ByteString.Lazy.UTF8 (toString)
 
@@ -145,6 +145,7 @@ data Opt = Opt
     , optWriter            :: String  -- ^ Writer format
     , optParseRaw          :: Bool    -- ^ Parse unconvertable HTML and TeX
     , optTableOfContents   :: Bool    -- ^ Include table of contents
+    , optHeaderShift       :: Int     -- ^ Headers base level
     , optTemplate          :: String  -- ^ Custom template
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optBefore            :: [String] -- ^ Texts to include before body
@@ -184,6 +185,7 @@ defaultOpts = Opt
     , optWriter            = ""    -- null for default writer
     , optParseRaw          = False
     , optTableOfContents   = False
+    , optHeaderShift       = 1
     , optTemplate          = ""
     , optVariables         = []
     , optBefore            = []
@@ -351,6 +353,17 @@ options =
                 (NoArg
                  (\opt -> return opt { optTableOfContents = True }))
                "" -- "Include table of contents"
+
+    , Option "" ["base-header-level"]
+                 (ReqArg
+                  (\arg opt -> do
+                     if all isDigit arg && (read arg :: Int) >= 1
+                        then return opt { optHeaderShift = read arg - 1 }
+                        else do
+                           hPutStrLn stderr $ "base-header-level must be a number >= 1"
+                           exitWith $ ExitFailure 19)
+                  "LEVEL")
+                 "" -- "Headers base level"
 
     , Option "" ["template"]
                  (ReqArg
@@ -559,6 +572,10 @@ defaultWriterName x =
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
+shiftHeaderLevels :: Int -> Block -> Block
+shiftHeaderLevels shift (Header level inner) = Header (level + shift) inner
+shiftHeaderLevels _     x                    = x
+
 main :: IO ()
 main = do
 
@@ -595,6 +612,7 @@ main = do
               , optBefore            = befores
               , optAfter             = afters
               , optTableOfContents   = toc
+              , optHeaderShift       = headerShift 
               , optTemplate          = template
               , optOutputFile        = outputFile
               , optNumberSections    = numberSections
@@ -748,14 +766,18 @@ main = do
 
   doc <- fmap (reader startParserState . convertTabs . intercalate "\n") (readSources sources)
 
-  doc' <- do
+  let doc' = if headerShift > 1
+                then processWith (shiftHeaderLevels headerShift) doc
+                else doc
+
+  doc'' <- do
 #ifdef _CITEPROC
-          processBiblio cslFile refs doc
+          processBiblio cslFile refs doc'
 #else
-          return doc
+          return doc'
 #endif
 
-  let writerOutput = writer writerOptions doc' ++ "\n"
+  let writerOutput = writer writerOptions doc'' ++ "\n"
 
   case writerName' of
        "odt"   -> saveOpenDocumentAsODT datadir outputFile sourceDirRelative referenceODT writerOutput

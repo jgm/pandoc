@@ -174,6 +174,9 @@ should pipe input and output through `iconv`:
     RTF) or an instruction to create one (LaTeX, reStructuredText).
     This option has no effect on man, DocBook, or S5 output.
 
+\--base-header-level=*LEVEL*
+:   Specify the base level for headers (defaults to 1).
+
 \--template=*FILE*
 :   Use *FILE* as a custom template for the generated document. Implies
     `-s`. See TEMPLATES below for a description of template syntax. If

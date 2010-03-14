@@ -243,6 +243,9 @@ For further documentation, see the `pandoc(1)` man page.
     one) in the output document. This option has no effect with `man`,
     `docbook`, or `s5` output formats.
 
+`--base-header-level` *level*
+:   specifies the base level for headers (defaults to 1).
+
 `--template=`*file*
 :   uses *file* as a custom template for the generated document. Implies
     `-s`. See [Templates](#templates) below for a description
