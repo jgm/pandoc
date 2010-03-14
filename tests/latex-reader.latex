@@ -35,7 +35,7 @@ Level 4
 
 Level 5
 
-\section{Level 1}
+\section[alt title ignored]{Level 1}
 
 \subsection{Level 2 with \emph{emphasis}}
 

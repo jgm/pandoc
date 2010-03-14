@@ -171,6 +171,7 @@ header = try $ do
   subs <- many (try (string "sub"))
   base <- try (string "section" >> return 1) <|> (string "paragraph" >> return 4)
   optional (char '*')
+  optional $ bracketedText '[' ']' -- alt title
   char '{'
   title' <- manyTill inline (char '}')
   spaces
