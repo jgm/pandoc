@@ -39,6 +39,7 @@ import Text.Pandoc.Shared
 import Data.Maybe ( fromMaybe )
 import Data.Char ( chr )
 import Data.List ( isPrefixOf, isSuffixOf )
+import Control.Monad ( when )
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ParserState   -- ^ Parser state, including options for parser
@@ -400,21 +401,22 @@ unknownCommand = try $ do
   notFollowedBy' $ choice $ map end ["itemize", "enumerate", "description",
                                      "document"]
   state <- getState
-  if stateParserContext state == ListItemState
-     then notFollowedBy' $ string "\\item"
-     else return ()
+  when (stateParserContext state == ListItemState) $
+     notFollowedBy' (string "\\item")
   if stateParseRaw state
      then do
         (name, star, args) <- command
         spaces
         return $ Plain [TeX ("\\" ++ name ++ star ++ concat args)]
-     else do -- skip unknown command, leaving arguments to be parsed
-        char '\\'
-        letter
-        many (letter <|> digit)
-        optional (try $ string "{}")
+     else do
+        (name, _, args) <- command
         spaces
-        return Null
+        if name `elem` commandsToIgnore
+           then return Null
+           else return $ Plain [Str $ concat args]
+
+commandsToIgnore :: [String]
+commandsToIgnore = ["special","pdfannot","pdfstringdef"]
 
 -- latex comment
 comment :: GenParser Char st Block
@@ -780,9 +782,9 @@ rawLaTeXInline = try $ do
      then do
         (name, star, args) <- command
         return $ TeX ("\\" ++ name ++ star ++ concat args)
-     else do -- skip unknown command, leaving arguments to be parsed
-        char '\\'
-        letter
-        many (letter <|> digit)
-        optional (try $ string "{}")
-        return $ Str ""
+     else do
+        (name, _, args) <- command
+        spaces
+        if name `elem` commandsToIgnore
+           then return $ Str ""
+           else return $ Str (concat args)
