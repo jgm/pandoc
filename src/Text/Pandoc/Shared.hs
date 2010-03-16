@@ -97,6 +97,7 @@ module Text.Pandoc.Shared (
                      compactify,
                      Element (..),
                      hierarchicalize,
+                     uniqueIdent,
                      isHeaderBlock,
                      -- * Writer options
                      HTMLMathMethod (..),
@@ -902,7 +903,7 @@ inlineListToIdentifier' [] = ""
 inlineListToIdentifier' (x:xs) =
   xAsText ++ inlineListToIdentifier' xs
   where xAsText = case x of
-          Str s          -> filter (\c -> c `elem` "_-.~" || not (isPunctuation c)) $
+          Str s          -> filter (\c -> c `elem` "_-." || not (isPunctuation c)) $
                             intercalate "-" $ words $ map toLower s
           Emph lst       -> inlineListToIdentifier' lst
           Strikeout lst  -> inlineListToIdentifier' lst
@@ -952,6 +953,8 @@ headerLtEq :: Int -> Block -> Bool
 headerLtEq level (Header l _) = l <= level
 headerLtEq _ _ = False
 
+-- | Generate a unique identifier from a list of inlines.
+-- Second argument is a list of already used identifiers.
 uniqueIdent :: [Inline] -> [String] -> String
 uniqueIdent title' usedIdents =
   let baseIdent = inlineListToIdentifier title'
