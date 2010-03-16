@@ -260,6 +260,11 @@ obfuscateString = concatMap obfuscateChar . decodeCharacterReferences
 blockToHtml :: WriterOptions -> Block -> State WriterState Html
 blockToHtml _ Null = return $ noHtml 
 blockToHtml opts (Plain lst) = inlineListToHtml opts lst
+blockToHtml opts (Para [Image txt (s,tit)]) = do
+  img <- inlineToHtml opts (Image txt (s,tit))
+  capt <- inlineListToHtml opts txt
+  return $ thediv ! [theclass "figure"] <<
+             [img, thediv ! [theclass "caption"] << capt]
 blockToHtml opts (Para lst) = inlineListToHtml opts lst >>= (return . paragraph)
 blockToHtml _ (RawHtml str) = return $ primHtml str
 blockToHtml _ (HorizontalRule) = return $ hr
