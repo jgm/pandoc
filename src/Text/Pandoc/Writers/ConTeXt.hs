@@ -109,6 +109,10 @@ blockToConTeXt (Plain lst) = do
   let options = stOptions st
   contents <- wrapTeXIfNeeded options False inlineListToConTeXt lst 
   return $ Reg contents
+blockToConTeXt (Para [Image txt (src,_)]) = do
+  capt <- inlineListToConTeXt txt
+  return $ Pad $ text "\\placefigure[here,nonumber]{" <> capt <>
+                 text "}{\\externalfigure[" <> text src <> text "]}" 
 blockToConTeXt (Para lst) = do 
   st <- get
   let options = stOptions st
@@ -265,10 +269,8 @@ inlineToConTeXt (Link txt (src, _)) = do
   label <- inlineListToConTeXt txt
   return $ text "\\useURL[" <> text ref <> text "][" <> text src <>
            text "][][" <> label <> text "]\\from[" <> text ref <> char ']'
-inlineToConTeXt (Image alternate (src, tit)) = do
-  alt <- inlineListToConTeXt alternate
-  return $ text "\\placefigure\n[]\n[fig:" <> alt <> text "]\n{" <> 
-           text tit <> text "}\n{\\externalfigure[" <> text src <> text "]}" 
+inlineToConTeXt (Image _ (src, _)) = do
+  return $ text "{\\externalfigure[" <> text src <> text "]}"
 inlineToConTeXt (Note contents) = do
   contents' <- blockListToConTeXt contents
   let rawnote = stripTrailingNewlines $ render contents'

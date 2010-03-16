@@ -862,18 +862,9 @@ or here: <http://example.com/>
 
 From \quotation{Voyage dans la Lune} by Georges Melies (1902):
 
-\placefigure
-[]
-[fig:lalune]
-{Voyage dans la Lune}
-{\externalfigure[lalune.jpg]}
+\placefigure[here,nonumber]{lalune}{\externalfigure[lalune.jpg]}
 
-Here is a movie
-\placefigure
-[]
-[fig:movie]
-{}
-{\externalfigure[movie.jpg]} icon.
+Here is a movie {\externalfigure[movie.jpg]} icon.
 
 \thinrule
 
