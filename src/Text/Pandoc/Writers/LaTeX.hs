@@ -40,6 +40,7 @@ import Text.PrettyPrint.HughesPJ hiding ( Str )
 data WriterState = 
   WriterState { stInNote     :: Bool          -- @True@ if we're in a note
               , stOLLevel    :: Int           -- level of ordered list nesting
+              , stUsedIdents :: [String]      -- identifiers used already
               , stOptions    :: WriterOptions -- writer options, so they don't have to be parameter 
               , stVerbInNote :: Bool          -- true if document has verbatim text in note
               , stEnumerate  :: Bool          -- true if document needs fancy enumerated lists
@@ -56,8 +57,8 @@ data WriterState =
 writeLaTeX :: WriterOptions -> Pandoc -> String
 writeLaTeX options document = 
   evalState (pandocToLaTeX options document) $ 
-  WriterState { stInNote = False, stOLLevel = 1, stOptions = options,
-                stVerbInNote = False, stEnumerate = False,
+  WriterState { stInNote = False, stOLLevel = 1, stUsedIdents = [],
+                stOptions = options, stVerbInNote = False, stEnumerate = False,
                 stTable = False, stStrikeout = False, stSubscript = False,
                 stUrl = False, stGraphics = False,
                 stLHS = False, stBook = False } 
@@ -133,8 +134,14 @@ blockToLaTeX (Plain lst) = do
 blockToLaTeX (Para [Image txt (src,tit)]) = do
   capt <- inlineListToLaTeX txt
   img <- inlineToLaTeX (Image txt (src,tit))
-  return $ text "\\begin{figure}[htb]" $$ text "\\centering" $$ img $$
-           (text "\\caption{" <> capt <> char '}') $$ text "\\end{figure}\n"
+  st <- get
+  let usedIdents = stUsedIdents st
+  let lab = uniqueIdent txt usedIdents
+  put $ st{ stUsedIdents = lab : usedIdents }
+  return $ text "\\begin{figure}[htb]" $$
+           text "\\centering" $$ img $$
+           (text "\\caption{" <> capt <> text ("}\\label{" ++ lab ++ "}")) $$
+           text "\\end{figure}\n"
 blockToLaTeX (Para lst) = do
   st <- get
   let opts = stOptions st
