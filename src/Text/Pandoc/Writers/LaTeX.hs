@@ -130,6 +130,11 @@ blockToLaTeX (Plain lst) = do
   st <- get
   let opts = stOptions st
   wrapTeXIfNeeded opts True inlineListToLaTeX lst
+blockToLaTeX (Para [Image txt (src,tit)]) = do
+  capt <- inlineListToLaTeX txt
+  img <- inlineToLaTeX (Image txt (src,tit))
+  return $ text "\\begin{figure}[htb]" $$ text "\\centering" $$ img $$
+           (text "\\caption{" <> capt <> char '}') $$ text "\\end{figure}\n"
 blockToLaTeX (Para lst) = do
   st <- get
   let opts = stOptions st
