@@ -1377,18 +1377,15 @@ or here: &lt;http://example.com/&gt;
   <para>
     From <quote>Voyage dans la Lune</quote> by Georges Melies (1902):
   </para>
-  <para>
-    <inlinemediaobject>
+  <figure>
+    <title>lalune</title>
+    <mediaobject>
       <imageobject>
-        <objectinfo>
-          <title>
-            Voyage dans la Lune
-          </title>
-        </objectinfo>
         <imagedata fileref="lalune.jpg" />
       </imageobject>
-    </inlinemediaobject>
-  </para>
+      <textobject><phrase>lalune</phrase></textobject>
+    </mediaobject>
+  </figure>
   <para>
     Here is a movie
     <inlinemediaobject>

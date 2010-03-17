@@ -124,6 +124,14 @@ blockToDocbook :: WriterOptions -> Block -> Doc
 blockToDocbook _ Null = empty
 blockToDocbook _ (Header _ _) = empty -- should not occur after hierarchicalize
 blockToDocbook opts (Plain lst) = wrap opts lst
+blockToDocbook opts (Para [Image txt (src,_)]) =
+  let capt = inlinesToDocbook opts txt
+  in  inTagsIndented "figure" $
+        inTagsSimple "title" capt $$
+        (inTagsIndented "mediaobject" $
+           (inTagsIndented "imageobject"
+             (selfClosingTag "imagedata" [("fileref",src)])) $$
+           inTagsSimple "textobject" (inTagsSimple "phrase" capt))
 blockToDocbook opts (Para lst) = inTagsIndented "para" $ wrap opts lst
 blockToDocbook opts (BlockQuote blocks) =
   inTagsIndented "blockquote" $ blocksToDocbook opts blocks
