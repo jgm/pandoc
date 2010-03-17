@@ -812,7 +812,7 @@ From ``Voyage dans la Lune'' by Georges Melies (1902):
 \begin{figure}[htb]
 \centering
 \includegraphics{lalune.jpg}
-\caption{lalune}\label{lalune}
+\caption{lalune}
 \end{figure}
 
 Here is a movie \includegraphics{movie.jpg} icon.
