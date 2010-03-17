@@ -633,7 +633,7 @@ Auto-links should not occur here: <tt>&lt;http://example.com/&gt;</tt>
 
 From &ldquo;Voyage dans la Lune&rdquo; by Georges Melies (1902):
 
-[[Image:lalune.jpg|Voyage dans la Lune]]
+[[Image:lalune.jpg|frame|none|alt=Voyage dans la Lune|caption lalune]]
 
 Here is a movie [[Image:movie.jpg|movie]] icon.
 

@@ -80,6 +80,14 @@ blockToMediaWiki _ Null = return ""
 blockToMediaWiki opts (Plain inlines) = 
   inlineListToMediaWiki opts inlines
 
+blockToMediaWiki opts (Para [Image txt (src,tit)]) = do
+  capt <- inlineListToMediaWiki opts txt 
+  let opt = if null txt
+               then ""
+               else "|alt=" ++ if null tit then capt else tit ++
+                    "|caption " ++ capt
+  return $ "[[Image:" ++ src ++ "|frame|none" ++ opt ++ "]]\n"
+
 blockToMediaWiki opts (Para inlines) = do
   useTags <- get >>= return . stUseTags
   listLevel <- get >>= return . stListLevel
