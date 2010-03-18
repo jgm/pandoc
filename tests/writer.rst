@@ -834,7 +834,11 @@ Images
 
 From "Voyage dans la Lune" by Georges Melies (1902):
 
-|lalune|
+.. figure:: lalune.jpg
+   :align: center
+   :alt: Voyage dans la Lune
+   
+   lalune
 
 Here is a movie |movie| icon.
 
@@ -885,6 +889,5 @@ indented.
    In list.
 
 
-.. |lalune| image:: lalune.jpg
 .. |movie| image:: movie.jpg
 

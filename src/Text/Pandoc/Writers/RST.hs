@@ -145,6 +145,12 @@ blockToRST Null = return empty
 blockToRST (Plain inlines) = do
   opts <- get >>= (return . stOptions)
   wrappedRST opts inlines
+blockToRST (Para [Image txt (src,tit)]) = do
+  capt <- inlineListToRST txt
+  let fig = text "figure:: " <> text src
+  let align = text ":align: center"
+  let alt = text ":alt: " <> if null tit then capt else text tit
+  return $ (text ".. " <> (fig $$ align $$ alt $$ text "" $$ capt)) $$ text ""
 blockToRST (Para inlines) = do
   opts <- get >>= (return . stOptions)
   contents <- wrappedRST opts inlines
