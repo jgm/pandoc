@@ -915,7 +915,7 @@ Images with captions
 An image occurring by itself in a paragraph will be rendered as
 a figure with a caption.  (In LaTeX, a figure environment will be
 used; in HTML, the image will be placed in a `div` with class
-`figure`, together with a caption in a `div` with class `caption`.)
+`figure`, together with a caption in a `p` with class `caption`.)
 The image's alt text will be used as the caption.
 
     ![This is the caption](/url/of/image.png)

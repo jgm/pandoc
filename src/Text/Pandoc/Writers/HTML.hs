@@ -264,7 +264,7 @@ blockToHtml opts (Para [Image txt (s,tit)]) = do
   img <- inlineToHtml opts (Image txt (s,tit))
   capt <- inlineListToHtml opts txt
   return $ thediv ! [theclass "figure"] <<
-             [img, thediv ! [theclass "caption"] << capt]
+             [img, paragraph ! [theclass "caption"] << capt]
 blockToHtml opts (Para lst) = inlineListToHtml opts lst >>= (return . paragraph)
 blockToHtml _ (RawHtml str) = return $ primHtml str
 blockToHtml _ (HorizontalRule) = return $ hr
