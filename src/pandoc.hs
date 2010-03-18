@@ -60,7 +60,7 @@ import Text.Pandoc.Biblio
 #endif
 import Control.Monad (when, unless, liftM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
-import Network.URI (parseURI)
+import Network.URI (parseURI, isURI)
 import Data.ByteString.Lazy.UTF8 (toString)
 
 copyrightMessage :: String
@@ -536,9 +536,9 @@ usageMessage programName = usageInfo
   (intercalate ", " $ map fst writers) ++ "\nOptions:")
 
 -- Determine default reader based on source file extensions
-defaultReaderName :: [FilePath] -> String
-defaultReaderName [] = "markdown"
-defaultReaderName (x:xs) =
+defaultReaderName :: String -> [FilePath] -> String
+defaultReaderName fallback [] = fallback
+defaultReaderName fallback (x:xs) =
   case takeExtension (map toLower x) of
     ".xhtml"    -> "html"
     ".html"     -> "html"
@@ -549,7 +549,7 @@ defaultReaderName (x:xs) =
     ".rst"      -> "rst"
     ".lhs"      -> "markdown+lhs"
     ".native"   -> "native"
-    _           -> defaultReaderName xs
+    _           -> defaultReaderName fallback xs
 
 -- Returns True if extension of first source is .lhs
 lhsExtension :: [FilePath] -> Bool
@@ -667,7 +667,10 @@ main = do
 
   -- assign reader and writer based on options and filenames
   let readerName' = if null readerName
-                      then defaultReaderName sources
+                      then let fallback = if any isURI sources
+                                             then "html"
+                                             else "markdown"
+                           in  defaultReaderName fallback sources
                       else readerName 
 
   let writerName' = if null writerName
