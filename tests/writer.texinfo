@@ -977,7 +977,10 @@ or here: <http://example.com/>
 @chapter Images
 From ``Voyage dans la Lune'' by Georges Melies (1902):
 
+@float
 @image{lalune,,,lalune,jpg}
+@caption{lalune}
+@end float
 
 Here is a movie @image{movie,,,movie,jpg} icon.
 

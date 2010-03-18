@@ -107,6 +107,12 @@ blockToTexinfo Null = return empty
 blockToTexinfo (Plain lst) =
   inlineListToTexinfo lst
 
+blockToTexinfo (Para [Image txt (src,tit)]) = do
+  capt <- inlineListToTexinfo txt
+  img  <- inlineToTexinfo (Image txt (src,tit))
+  return $ text "@float" $$ img $$ (text "@caption{" <> capt <> char '}') $$
+           text "@end float"
+
 blockToTexinfo (Para lst) =
   inlineListToTexinfo lst    -- this is handled differently from Plain in blockListToTexinfo
 
