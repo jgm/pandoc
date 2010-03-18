@@ -70,15 +70,19 @@ module Text.Pandoc.Templates ( renderTemplate
 
 import Text.ParserCombinators.Parsec
 import Control.Monad (liftM, when, forM)
-import qualified Control.Exception as E (try, IOException)
 import System.FilePath
 import Data.List (intercalate, intersperse)
 import Text.PrettyPrint (text, Doc)
 import Text.XHtml (primHtml, Html)
 import Data.ByteString.Lazy.UTF8 (ByteString, fromString)
 import Text.Pandoc.Shared (readDataFile)
--- Note: ghc >= 6.12 (base >=4.2) supports unicode through iconv
--- So we use System.IO.UTF8 only if we have an earlier version
+-- Note: it would be simpler just to use Control.Exception.Extensible
+-- for all versions of base, but extensible-exceptions is not in debian.
+#if MIN_VERSION_base(4,0,0)
+import qualified Control.Exception as E (try, IOException)
+#else
+import qualified Control.Exception.Extensible as E (try, IOException)
+#endif
 
 -- | Get default template for the specified writer.
 getDefaultTemplate :: (Maybe FilePath) -- ^ User data directory to search first 
