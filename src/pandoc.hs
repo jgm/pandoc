@@ -136,6 +136,12 @@ isNonTextOutput = (`elem` ["odt"])
 writeDoc :: WriterOptions -> Pandoc -> String
 writeDoc _ = prettyPandoc
 
+headerShift :: Int -> Pandoc -> Pandoc
+headerShift n = processWith shift
+  where shift :: Block -> Block
+        shift (Header level inner) = Header (level + n) inner
+        shift x                    = x
+
 -- | Data structure for command line options.
 data Opt = Opt
     { optTabStop           :: Int     -- ^ Number of spaces per tab
@@ -145,7 +151,7 @@ data Opt = Opt
     , optWriter            :: String  -- ^ Writer format
     , optParseRaw          :: Bool    -- ^ Parse unconvertable HTML and TeX
     , optTableOfContents   :: Bool    -- ^ Include table of contents
-    , optHeaderShift       :: Int     -- ^ Headers base level
+    , optTransforms        :: [Pandoc -> Pandoc]  -- ^ Doc transforms to apply
     , optTemplate          :: String  -- ^ Custom template
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optBefore            :: [String] -- ^ Texts to include before body
@@ -185,7 +191,7 @@ defaultOpts = Opt
     , optWriter            = ""    -- null for default writer
     , optParseRaw          = False
     , optTableOfContents   = False
-    , optHeaderShift       = 1
+    , optTransforms        = []
     , optTemplate          = ""
     , optVariables         = []
     , optBefore            = []
@@ -358,7 +364,11 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      if all isDigit arg && (read arg :: Int) >= 1
-                        then return opt { optHeaderShift = read arg - 1 }
+                        then do
+                           let oldTransforms = optTransforms opt
+                           let shift = read arg - 1
+                           return opt{ optTransforms =
+                                         headerShift shift : oldTransforms }
                         else do
                            hPutStrLn stderr $ "base-header-level must be a number >= 1"
                            exitWith $ ExitFailure 19)
@@ -572,10 +582,6 @@ defaultWriterName x =
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
-shiftHeaderLevels :: Int -> Block -> Block
-shiftHeaderLevels shift (Header level inner) = Header (level + shift) inner
-shiftHeaderLevels _     x                    = x
-
 main :: IO ()
 main = do
 
@@ -612,7 +618,7 @@ main = do
               , optBefore            = befores
               , optAfter             = afters
               , optTableOfContents   = toc
-              , optHeaderShift       = headerShift 
+              , optTransforms        = transforms
               , optTemplate          = template
               , optOutputFile        = outputFile
               , optNumberSections    = numberSections
@@ -766,9 +772,7 @@ main = do
 
   doc <- fmap (reader startParserState . convertTabs . intercalate "\n") (readSources sources)
 
-  let doc' = if headerShift > 1
-                then processWith (shiftHeaderLevels headerShift) doc
-                else doc
+  let doc' = foldr ($) doc transforms
 
   doc'' <- do
 #ifdef _CITEPROC
