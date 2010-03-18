@@ -5,7 +5,7 @@ This is a set of tests for pandoc. Most of them are adapted from John Gruber&rsq
 
 = Headers =
 
-== Level 2 with an [http://{{SERVERNAME}}/url embedded link] ==
+== Level 2 with an [[url|embedded link]] ==
 
 === Level 3 with ''emphasis'' ===
 
@@ -430,7 +430,7 @@ This is ''emphasized'', and so ''is this''.
 
 This is '''strong''', and so '''is this'''.
 
-An ''[http://{{SERVERNAME}}/url emphasized link]''.
+An ''[[url|emphasized link]]''.
 
 '''''This is strong and em.'''''
 
@@ -558,48 +558,48 @@ Minus: -
 
 == Explicit ==
 
-Just a [http://{{SERVERNAME}}/url/ URL].
+Just a [[url/|URL]].
 
-[http://{{SERVERNAME}}/url/ URL and title].
+[[url/|URL and title]].
 
-[http://{{SERVERNAME}}/url/ URL and title].
+[[url/|URL and title]].
 
-[http://{{SERVERNAME}}/url/ URL and title].
+[[url/|URL and title]].
 
-[http://{{SERVERNAME}}/url/ URL and title]
+[[url/|URL and title]]
 
-[http://{{SERVERNAME}}/url/ URL and title]
+[[url/|URL and title]]
 
-[http://{{SERVERNAME}}/url/with_underscore with_underscore]
+[[url/with_underscore|with_underscore]]
 
 [mailto:nobody@nowhere.net Email link]
 
-[http://{{SERVERNAME}}/ Empty].
+[[|Empty]].
 
 == Reference ==
 
-Foo [http://{{SERVERNAME}}/url/ bar].
+Foo [[url/|bar]].
 
-Foo [http://{{SERVERNAME}}/url/ bar].
+Foo [[url/|bar]].
 
-Foo [http://{{SERVERNAME}}/url/ bar].
+Foo [[url/|bar]].
 
-With [http://{{SERVERNAME}}/url/ embedded [brackets]].
+With [[url/|embedded [brackets]]].
 
-[http://{{SERVERNAME}}/url/ b] by itself should be a link.
+[[url/|b]] by itself should be a link.
 
-Indented [http://{{SERVERNAME}}/url once].
+Indented [[url|once]].
 
-Indented [http://{{SERVERNAME}}/url twice].
+Indented [[url|twice]].
 
-Indented [http://{{SERVERNAME}}/url thrice].
+Indented [[url|thrice]].
 
 This should [not][] be a link.
 
 <pre>[not]: /url</pre>
-Foo [http://{{SERVERNAME}}/url/ bar].
+Foo [[url/|bar]].
 
-Foo [http://{{SERVERNAME}}/url/ biz].
+Foo [[url/|biz]].
 
 == With ampersands ==
 
@@ -607,9 +607,9 @@ Here&rsquo;s a [http://example.com/?foo=1&bar=2 link with an ampersand in the UR
 
 Here&rsquo;s a link with an amersand in the link text: [http://att.com/ AT&amp;T].
 
-Here&rsquo;s an [http://{{SERVERNAME}}/script?foo=1&bar=2 inline link].
+Here&rsquo;s an [[script?foo=1&bar=2|inline link]].
 
-Here&rsquo;s an [http://{{SERVERNAME}}/script?foo=1&bar=2 inline link in pointy braces].
+Here&rsquo;s an [[script?foo=1&bar=2|inline link in pointy braces]].
 
 == Autolinks ==
 

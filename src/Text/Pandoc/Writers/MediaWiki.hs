@@ -377,17 +377,15 @@ inlineToMediaWiki _ (LineBreak) = return "<br />\n"
 inlineToMediaWiki _ Space = return " "
 
 inlineToMediaWiki opts (Link txt (src, _)) = do
-  link <- inlineListToMediaWiki opts txt
-  let useAuto = txt == [Code src]
-  let src' = if isURI src
-                then src
-                else if take 1 src == "/"
-                         then "http://{{SERVERNAME}}" ++ src
-                         else "http://{{SERVERNAME}}/" ++ src
-  return $ if useAuto
-              then src'
-              else "[" ++ src' ++ " " ++ link ++ "]"
-
+  label <- inlineListToMediaWiki opts txt
+  if txt == [Code src] -- autolink
+     then return src
+     else if isURI src
+             then return $ "[" ++ src ++ " " ++ label ++ "]"
+             else return $ "[[" ++ src' ++ "|" ++ label ++ "]]"
+                   where src' = case src of
+                                     '/':xs -> xs  -- with leading / it's a
+                                     _      -> src -- link to a help page
 inlineToMediaWiki opts (Image alt (source, tit)) = do
   alt' <- inlineListToMediaWiki opts alt
   let txt = if (null tit)
