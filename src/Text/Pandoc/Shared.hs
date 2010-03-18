@@ -979,6 +979,7 @@ data HTMLMathMethod = PlainMath
                     | JsMath (Maybe String)       -- url of jsMath load script
                     | GladTeX
                     | MimeTeX String              -- url of mimetex.cgi 
+                    | MathML (Maybe String)       -- url of MathMLinHTML.js
                     deriving (Show, Read, Eq)
 
 -- | Methods for obfuscating email addresses in HTML.

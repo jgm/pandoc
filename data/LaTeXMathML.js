@@ -1,4 +1,11 @@
-
+/*
+LaTeXMathML.js from http://math.etsu.edu/LaTeXMathML/
+Adapted by Jeff Knisely and Douglas Woodall from ASCIIMathML.js v. 1.4.7,
+(c) 2005 Peter Jipsen http://www.chapman.edu/~jipsen.
+Released under the GNU General Public License version 2 or later.
+See the GNU General Public License (at http://www.gnu.org/copyleft/gpl.html)
+for more details.
+*/
 var checkForMathML=true;var notifyIfNoMathML=true;var alertIfNoMathML=false;var mathcolor="";var mathfontfamily="";var showasciiformulaonhover=true;var isIE=document.createElementNS==null;if(document.getElementById==null)
 alert("This webpage requires a recent browser such as \nMozilla/Netscape 7+ or Internet Explorer 6+MathPlayer")
 function AMcreateElementXHTML(t){if(isIE)return document.createElement(t);else return document.createElementNS("http://www.w3.org/1999/xhtml",t);}

@@ -42,6 +42,8 @@ import Data.List ( isPrefixOf, intersperse )
 import Data.Maybe ( catMaybes )
 import Control.Monad.State
 import Text.XHtml.Transitional hiding ( stringToHtml )
+import Text.TeXMath
+import Text.XML.Light.Output
 
 data WriterState = WriterState
     { stNotes            :: [Html]  -- ^ List of notes
@@ -111,17 +113,20 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                            LaTeXMathML (Just url) ->
                               script ! 
                               [src url, thetype "text/javascript"] $ noHtml
+                           MathML (Just url) ->
+                              script ! 
+                              [src url, thetype "text/javascript"] $ noHtml
                            JsMath (Just url) ->
                               script !
                               [src url, thetype "text/javascript"] $ noHtml
-                           _ -> case lookup "latexmathml-script" (writerVariables opts) of
+                           _ -> case lookup "mathml-script" (writerVariables opts) of
                                       Just s -> 
                                         script ! [thetype "text/javascript"] <<
                                            primHtml s
                                       Nothing -> noHtml
                 else noHtml
   let newvars = [("highlighting","yes") | stHighlighting st] ++
-                [("math", renderHtmlFragment math) | stMath st] 
+                [("math", renderHtmlFragment math) | stMath st]
   return (tit, auths, date, toc, thebody, newvars)
 
 inTemplate :: TemplateTarget a
@@ -450,6 +455,17 @@ inlineToHtml opts inline =
                                                     alt str, title str]
                                GladTeX ->
                                   return $ primHtml $ "<EQ>" ++ str ++ "</EQ>"
+                               MathML _ -> do
+                                  let dt = if t == InlineMath
+                                              then DisplayInline
+                                              else DisplayBlock
+                                  let conf = useShortEmptyTags (const False)
+                                               defaultConfigPP
+                                  case texMathToMathML dt str of
+                                        Right r -> return $ primHtml $
+                                                    ppcElement conf r
+                                        Left  _ -> inlineToHtml opts
+                                                     (Math t str)
                                PlainMath -> 
                                   inlineListToHtml opts (readTeXMath str) >>=
                                   return . (thespan ! [theclass "math"]) ) 

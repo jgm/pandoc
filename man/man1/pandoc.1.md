@@ -118,6 +118,10 @@ should pipe input and output through `iconv`:
     provide a *URL*. If no *URL* is provided, the contents of the
     script will be inserted directly into the HTML header.
 
+\--mathml
+:   Convert TeX math to MathML.  In standalone mode, a small javascript
+    will be inserted that allows the MathML to be viewed on some browsers.
+
 \--jsmath=*URL*
 :   Use jsMath to display embedded TeX math in HTML output.
     The *URL* should point to the jsMath load script; if provided,

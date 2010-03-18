@@ -32,8 +32,7 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.ODT
 import Text.Pandoc.Writers.S5 (s5HeaderIncludes)
-import Text.Pandoc.LaTeXMathML (latexMathMLScript)
-import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..) )
+import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile )
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
 #endif
@@ -286,6 +285,13 @@ options =
                       return opt { optHTMLMathMethod = LaTeXMathML arg })
                   "URL")
                  "" -- "Use LaTeXMathML script in html output"
+
+    , Option "" ["mathml"]
+                 (OptArg
+                  (\arg opt ->
+                      return opt { optHTMLMathMethod = MathML arg })
+                   "URL")
+                 "" -- "Use mathml for HTML math"
 
     , Option "" ["mimetex"]
                  (OptArg
@@ -709,8 +715,11 @@ main = do
 
   variables'' <- case mathMethod of
                       LaTeXMathML Nothing -> do
-                         s <- latexMathMLScript datadir
-                         return $ ("latexmathml-script", s) : variables'
+                         s <- readDataFile datadir $ "data" </> "LaTeXMathML.js"
+                         return $ ("mathml-script", s) : variables'
+                      MathML Nothing -> do
+                         s <- readDataFile datadir $ "data"</>"MathMLinHTML.js"
+                         return $ ("mathml-script", s) : variables'
                       _ -> return variables'
 
   let startParserState =
