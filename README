@@ -413,22 +413,22 @@ For further documentation, see the `pandoc(1)` man page.
     include the names of input files and any special options passed
     after ` -- ` on the command line. So, for example,
 
-:       pandoc --dump-args -o foo.html -s foo.txt \
+        pandoc --dump-args -o foo.html -s foo.txt \
           appendix.txt -- -e latin1
 
-:   will cause the following to be printed to stdout:
+    will cause the following to be printed to stdout:
 
-:       foo.html foo.txt appendix.txt -e latin1
+        foo.html foo.txt appendix.txt -e latin1
 
 `--ignore-args`
 :   causes Pandoc to ignore all command-line arguments.
     Regular Pandoc options are not ignored.  Thus, for example,
 
-:       pandoc --ignore-args -o foo.html -s foo.txt -- -e latin1
+        pandoc --ignore-args -o foo.html -s foo.txt -- -e latin1
 
-:   is equivalent to
+    is equivalent to
 
-:       pandoc -o foo.html -s   
+        pandoc -o foo.html -s
 
 `-v` or `--version`
 :   prints the version number to STDERR.
