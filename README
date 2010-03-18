@@ -5,8 +5,8 @@
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX]; and
-it can write [markdown], [reStructuredText], [HTML], [LaTeX], [ConTeXt],
-[RTF], [DocBook XML], [OpenDocument XML], [ODT], [GNU Texinfo],
+it can write plain text, [markdown], [reStructuredText], [HTML], [LaTeX],
+[ConTeXt], [RTF], [DocBook XML], [OpenDocument XML], [ODT], [GNU Texinfo],
 [MediaWiki markup], [groff man] pages, and [S5] HTML slide shows.
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, delimited code blocks,
@@ -192,8 +192,8 @@ For further documentation, see the `pandoc(1)` man page.
 :   specifies the output format -- the format Pandoc will
     be converting *to*. *format* can be `native`, `html`, `s5`,
     `docbook`, `opendocument`, `latex`, `context`, `markdown`, `man`,
-    `rst`, and `rtf`. (`+lhs` can be appended to indicate that the
-    output should be treated as literate Haskell source. See
+    `plain`, `rst`, and `rtf`. (`+lhs` can be appended to indicate that
+    the output should be treated as literate Haskell source. See
     [Literate Haskell support](#literate-haskell-support), below.)
 
 `-s` or `--standalone`

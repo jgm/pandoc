@@ -14,9 +14,9 @@ pandoc [*options*] [*input-file*]...
 
 Pandoc converts files from one markup format to another. It can
 read markdown and (subsets of) reStructuredText, HTML, and LaTeX, and
-it can write markdown, reStructuredText, HTML, LaTeX, ConTeXt, Texinfo,
-groff man, MediaWiki markup, RTF, OpenDocument XML, ODT, DocBook XML,
-and S5 HTML slide shows.
+it can write plain text, markdown, reStructuredText, HTML, LaTeX,
+ConTeXt, Texinfo, groff man, MediaWiki markup, RTF, OpenDocument XML,
+ODT, DocBook XML, and S5 HTML slide shows.
 
 If no *input-file* is specified, input is read from *stdin*.
 Otherwise, the *input-files* are concatenated (with a blank
@@ -71,7 +71,7 @@ should pipe input and output through `iconv`:
 
 -t *FORMAT*, -w *FORMAT*, \--to=*FORMAT*, \--write=*FORMAT*
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
-    `markdown` (markdown or plain text), `rst` (reStructuredText),
+    `plain` (plain text), `markdown` (markdown), `rst` (reStructuredText),
     `html` (HTML), `latex` (LaTeX), `context` (ConTeXt), `man` (groff man), 
     `mediawiki` (MediaWiki markup), `texinfo` (GNU Texinfo),
     `docbook` (DocBook XML), `opendocument` (OpenDocument XML),

@@ -29,7 +29,7 @@ Conversion of 'Pandoc' documents to markdown-formatted plain text.
 
 Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
-module Text.Pandoc.Writers.Markdown ( writeMarkdown) where
+module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Shared 
@@ -41,12 +41,43 @@ import Control.Monad.State
 
 type Notes = [[Block]]
 type Refs = KeyTable
-type WriterState = (Notes, Refs)
+data WriterState = WriterState { stNotes :: Notes
+                               , stRefs :: Refs
+                               , stPlain :: Bool }
 
 -- | Convert Pandoc to Markdown.
 writeMarkdown :: WriterOptions -> Pandoc -> String
 writeMarkdown opts document = 
-  evalState (pandocToMarkdown opts document) ([],[]) 
+  evalState (pandocToMarkdown opts document) WriterState{ stNotes = []
+                                                        , stRefs  = []
+                                                        , stPlain = False }
+
+-- | Convert Pandoc to plain text (like markdown, but without links,
+-- pictures, or inline formatting).
+writePlain :: WriterOptions -> Pandoc -> String
+writePlain opts document =
+  evalState (pandocToMarkdown opts document') WriterState{ stNotes = []
+                                                         , stRefs  = []
+                                                         , stPlain = True }
+    where document' = plainify document
+
+plainify :: Pandoc -> Pandoc
+plainify = processWith go
+  where go :: [Inline] -> [Inline]
+        go (Emph xs : ys) = go xs ++ go ys
+        go (Strong xs : ys) = go xs ++ go ys
+        go (Strikeout xs : ys) = go xs ++ go ys
+        go (Superscript xs : ys) = go xs ++ go ys
+        go (Subscript xs : ys) = go xs ++ go ys
+        go (SmallCaps xs : ys) = go xs ++ go ys
+        go (Code s : ys) = Str s : go ys
+        go (Math _ s : ys) = Str s : go ys
+        go (TeX _ : ys) = Str "" : go ys
+        go (HtmlInline _ : ys) = Str "" : go ys
+        go (Link xs _ : ys) = go xs ++ go ys
+        go (Image _ _ : ys) = go ys
+        go (x : ys) = x : go ys
+        go [] = []
 
 -- | Return markdown representation of document.
 pandocToMarkdown :: WriterOptions -> Pandoc -> State WriterState String
@@ -60,10 +91,10 @@ pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
                then tableOfContents opts headerBlocks
                else empty
   body <- blockListToMarkdown opts blocks
-  (notes, _) <- get
-  notes' <- notesToMarkdown opts (reverse notes)
-  (_, refs) <- get  -- note that the notes may contain refs
-  refs' <- keyTableToMarkdown opts (reverse refs)
+  st <- get
+  notes' <- notesToMarkdown opts (reverse $ stNotes st)
+  st' <- get  -- note that the notes may contain refs
+  refs' <- keyTableToMarkdown opts (reverse $ stRefs st')
   let main = render $ body $+$ text "" $+$ notes' $+$ text "" $+$ refs'
   let context  = writerVariables opts ++
                  [ ("toc", render toc)
@@ -114,7 +145,9 @@ tableOfContents :: WriterOptions -> [Block] -> Doc
 tableOfContents opts headers =
   let opts' = opts { writerIgnoreNotes = True }
       contents = BulletList $ map elementToListItem $ hierarchicalize headers
-  in  evalState (blockToMarkdown opts' contents) ([],[])
+  in  evalState (blockToMarkdown opts' contents) WriterState{ stNotes = []
+                                                            , stRefs  = []
+                                                            , stPlain = False }
 
 -- | Converts an Element to a list item for a table of contents,
 elementToListItem :: Element -> [Block]
@@ -164,13 +197,18 @@ blockToMarkdown opts (Para inlines) = do
                then char '\\'
                else empty 
   return $ esc <> contents <> text "\n"
-blockToMarkdown _ (RawHtml str) = return $ text str
+blockToMarkdown _ (RawHtml str) = do
+  st <- get
+  if stPlain st
+     then return empty
+     else return $ text str
 blockToMarkdown _ HorizontalRule = return $ text "\n* * * * *\n"
 blockToMarkdown opts (Header level inlines) = do
   contents <- inlineListToMarkdown opts inlines
+  st <- get
   -- use setext style headers if in literate haskell mode.
   -- ghc interprets '#' characters in column 1 as line number specifiers.
-  if writerLiterateHaskell opts
+  if writerLiterateHaskell opts || stPlain st
      then let len = length $ render contents
           in  return $ contents <> text "\n" <>
                        case level of
@@ -185,11 +223,14 @@ blockToMarkdown opts (CodeBlock (_,classes,_) str) | "haskell" `elem` classes &&
 blockToMarkdown opts (CodeBlock _ str) = return $
   (nest (writerTabStop opts) $ vcat $ map text (lines str)) <> text "\n"
 blockToMarkdown opts (BlockQuote blocks) = do
+  st <- get
   -- if we're writing literate haskell, put a space before the bird tracks
   -- so they won't be interpreted as lhs...
   let leader = if writerLiterateHaskell opts
                   then text . (" > " ++)
-                  else text . ("> " ++)
+                  else if stPlain st
+                          then text . ("  " ++)
+                          else text . ("> " ++)
   contents <- blockListToMarkdown opts blocks
   return $ (vcat $ map leader $ lines $ render contents) <> 
            text "\n"
@@ -273,7 +314,8 @@ definitionListItemToMarkdown :: WriterOptions
 definitionListItemToMarkdown opts (label, defs) = do
   labelText <- inlineListToMarkdown opts label
   let tabStop = writerTabStop opts
-  let leader  = char ':'
+  st <- get
+  let leader  = if stPlain st then empty else text "  ~"
   contents <- liftM vcat $
     mapM (liftM ((leader $$) . nest tabStop . vcat) . mapM (blockToMarkdown opts))           defs
   return $ labelText $+$ contents
@@ -289,18 +331,18 @@ blockListToMarkdown opts blocks =
 --   Prefer label if possible; otherwise, generate a unique key.
 getReference :: [Inline] -> Target -> State WriterState [Inline]
 getReference label (src, tit) = do
-  (_,refs) <- get
-  case find ((== (src, tit)) . snd) refs of
+  st <- get
+  case find ((== (src, tit)) . snd) (stRefs st) of
     Just (ref, _) -> return ref
     Nothing       -> do
-      let label' = case find ((== label) . fst) refs of
+      let label' = case find ((== label) . fst) (stRefs st) of
                       Just _ -> -- label is used; generate numerical label
                                  case find (\n -> not (any (== [Str (show n)])
-                                           (map fst refs))) [1..(10000 :: Integer)] of
+                                           (map fst (stRefs st)))) [1..(10000 :: Integer)] of
                                       Just x  -> [Str (show x)]
                                       Nothing -> error "no unique label"
                       Nothing -> label
-      modify (\(notes, refs') -> (notes, (label', (src,tit)):refs'))
+      modify (\s -> s{ stRefs = (label', (src,tit)) : stRefs st })
       return label'
 
 -- | Convert list of Pandoc inline elements to markdown.
@@ -346,7 +388,11 @@ inlineToMarkdown _ (Code str) =
       marker     = replicate (longest + 1) '`' 
       spacer     = if (longest == 0) then "" else " " in
   return $ text (marker ++ spacer ++ str ++ spacer ++ marker)
-inlineToMarkdown _ (Str str) = return $ text $ escapeString str
+inlineToMarkdown _ (Str str) = do
+  st <- get
+  if stPlain st
+     then return $ text str
+     else return $ text $ escapeString str
 inlineToMarkdown _ (Math InlineMath str) = return $ char '$' <> text str <> char '$'
 inlineToMarkdown _ (Math DisplayMath str) = return $ text "$$" <> text str <> text "$$"
 inlineToMarkdown _ (TeX str) = return $ text str
@@ -380,7 +426,7 @@ inlineToMarkdown opts (Image alternate (source, tit)) = do
   linkPart <- inlineToMarkdown opts (Link txt (source, tit)) 
   return $ char '!' <> linkPart
 inlineToMarkdown _ (Note contents) = do 
-  modify (\(notes, refs) -> (contents:notes, refs)) -- add to notes in state
-  (notes, _) <- get
-  let ref = show $ (length notes)
+  modify (\st -> st{ stNotes = contents : stNotes st })
+  st <- get
+  let ref = show $ (length $ stNotes st)
   return $ text "[^" <> text ref <> char ']'

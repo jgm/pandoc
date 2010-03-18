@@ -1,6 +1,6 @@
-% Pandoc Test Suite
-% John MacFarlane; Anonymous
-% July 17, 2006
+Pandoc Test Suite
+John MacFarlane; Anonymous
+July 17, 2006
 
 This is a set of tests for pandoc. Most of them are adapted from
 John Gruber's markdown test suite.
@@ -8,32 +8,38 @@ John Gruber's markdown test suite.
 
 * * * * *
 
-# Headers
+Headers
+=======
 
-## Level 2 with an [embedded link](/url)
+Level 2 with an embedded link
+-----------------------------
 
-### Level 3 with *emphasis*
+Level 3 with emphasis
 
-#### Level 4
+Level 4
 
-##### Level 5
+Level 5
 
-# Level 1
+Level 1
+=======
 
-## Level 2 with *emphasis*
+Level 2 with emphasis
+---------------------
 
-### Level 3
+Level 3
 
 with no blank line
 
-## Level 2
+Level 2
+-------
 
 with no blank line
 
 
 * * * * *
 
-# Paragraphs
+Paragraphs
+==========
 
 Here's a regular paragraph.
 
@@ -41,7 +47,7 @@ In Markdown 1.0.0 and earlier. Version 8. This line turns into a
 list item. Because a hard-wrapped line in the middle of a paragraph
 looked like a list item.
 
-Here's one with a bullet. \* criminey.
+Here's one with a bullet. * criminey.
 
 There should be a hard line break  
 here.
@@ -49,37 +55,39 @@ here.
 
 * * * * *
 
-# Block Quotes
+Block Quotes
+============
 
 E-mail style:
 
-> This is a block quote. It is pretty short.
+  This is a block quote. It is pretty short.
 
-> Code in a block quote:
-> 
->     sub status {
->         print "working";
->     }
-> 
-> A list:
-> 
-> 1.  item one
-> 2.  item two
-> 
-> Nested block quotes:
-> 
-> > nested
-> 
-> > nested
+  Code in a block quote:
+  
+      sub status {
+          print "working";
+      }
+  
+  A list:
+  
+  1.  item one
+  2.  item two
+  
+  Nested block quotes:
+  
+    nested
+  
+    nested
 
-This should not be a block quote: 2 \> 1.
+This should not be a block quote: 2 > 1.
 
 And a following paragraph.
 
 
 * * * * *
 
-# Code Blocks
+Code Blocks
+===========
 
 Code:
 
@@ -100,9 +108,11 @@ And:
 
 * * * * *
 
-# Lists
+Lists
+=====
 
-## Unordered
+Unordered
+---------
 
 Asterisks tight:
 
@@ -149,7 +159,8 @@ Minuses loose:
 -   Minus 3
 
 
-## Ordered
+Ordered
+-------
 
 Tight:
 
@@ -193,7 +204,8 @@ Multiple paragraphs:
 3.  Item 3.
 
 
-## Nested
+Nested
+------
 
 -   Tab
     -   Tab
@@ -224,7 +236,8 @@ Same thing but with paragraphs:
 3.  Third
 
 
-## Tabs and spaces
+Tabs and spaces
+---------------
 
 -   this is a list item indented with tabs
 
@@ -236,7 +249,8 @@ Same thing but with paragraphs:
 
 
 
-## Fancy list markers
+Fancy list markers
+------------------
 
 (2) begins with 2
 (3) and now 3
@@ -276,132 +290,107 @@ B. Williams
 
 * * * * *
 
-# Definition Lists
+Definition Lists
+================
 
 Tight using spaces:
 
 apple
-  ~ red fruit
+    red fruit
 orange
-  ~ orange fruit
+    orange fruit
 banana
-  ~ yellow fruit
+    yellow fruit
 
 Tight using tabs:
 
 apple
-  ~ red fruit
+    red fruit
 orange
-  ~ orange fruit
+    orange fruit
 banana
-  ~ yellow fruit
+    yellow fruit
 
 Loose:
 
 apple
-  ~ red fruit
+    red fruit
 
 orange
-  ~ orange fruit
+    orange fruit
 
 banana
-  ~ yellow fruit
+    yellow fruit
 
 
 Multiple blocks with italics:
 
-*apple*
-  ~ red fruit
+apple
+    red fruit
 
     contains seeds, crisp, pleasant to taste
 
-*orange*
-  ~ orange fruit
+orange
+    orange fruit
 
         { orange code block }
 
-    > orange block quote
+      orange block quote
 
 
 Multiple definitions, tight:
 
 apple
-  ~ red fruit
-  ~ computer
+    red fruit
+    computer
 orange
-  ~ orange fruit
-  ~ bank
+    orange fruit
+    bank
 
 Multiple definitions, loose:
 
 apple
-  ~ red fruit
+    red fruit
 
-  ~ computer
+    computer
 
 orange
-  ~ orange fruit
+    orange fruit
 
-  ~ bank
+    bank
 
 
 Blank line after term, indented marker, alternate markers:
 
 apple
-  ~ red fruit
+    red fruit
 
-  ~ computer
+    computer
 
 orange
-  ~ orange fruit
+    orange fruit
 
     1.  sublist
     2.  sublist
 
 
-# HTML Blocks
+HTML Blocks
+===========
 
 Simple block on one line:
 
-<div>
 foo
-</div>
-
 And nested without indentation:
 
-<div>
-<div>
-<div>
 foo
-</div>
-</div>
-<div>
 bar
-</div>
-</div>
-
 Interpreted markdown in a table:
 
-<table>
-<tr>
-<td>
-This is *emphasized*
-</td>
-<td>
-And this is **strong**
-</td>
-</tr>
-</table>
-
-<script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
-
+This is emphasized
+And this is strong
 Here's a simple block:
 
-<div>
-    
 foo
-</div>
-
 This should be a code block, though:
 
     <div>
@@ -414,29 +403,10 @@ As should this:
 
 Now, nested:
 
-<div>
-    <div>
-        <div>
-            
 foo
-</div>
-    </div>
-</div>
-
 This should just be an HTML comment:
 
-<!-- Comment -->
-
 Multiline:
-
-<!--
-Blah
-Blah
--->
-
-<!--
-    This is another comment.
--->
 
 Code block:
 
@@ -444,66 +414,48 @@ Code block:
 
 Just plain comment, with trailing spaces on the line:
 
-<!-- foo -->   
-
 Code:
 
     <hr />
 
 Hr's:
 
-<hr>
-
-<hr />
-
-<hr />
-
-<hr>   
-
-<hr />  
-
-<hr /> 
-
-<hr class="foo" id="bar" />
-
-<hr class="foo" id="bar" />
-
-<hr class="foo" id="bar">
-
 
 * * * * *
 
-# Inline Markup
+Inline Markup
+=============
 
-This is *emphasized*, and so *is this*.
+This is emphasized, and so is this.
 
-This is **strong**, and so **is this**.
+This is strong, and so is this.
 
-An *[emphasized link](/url)*.
+An emphasized link.
 
-***This is strong and em.***
+This is strong and em.
 
-So is ***this*** word.
+So is this word.
 
-***This is strong and em.***
+This is strong and em.
 
-So is ***this*** word.
+So is this word.
 
-This is code: `>`, `$`, `\`, `\$`, `<html>`.
+This is code: >, $, \, \$, <html>.
 
-~~This is *strikeout*.~~
+This is strikeout.
 
-Superscripts: a^bc^d a^*hello*^ a^hello there^.
+Superscripts: abcd ahello ahello there.
 
-Subscripts: H~2~O, H~23~O, H~many of them~O.
+Subscripts: H2O, H23O, Hmany of themO.
 
 These should not be superscripts or subscripts, because of the
-unescaped spaces: a\^b c\^d, a\~b c\~d.
+unescaped spaces: a^b c^d, a~b c~d.
 
 
 * * * * *
 
-# Smart quotes, ellipses, dashes
+Smart quotes, ellipses, dashes
+==============================
 
 "Hello," said the spider. "'Shelob' is my name."
 
@@ -513,8 +465,7 @@ unescaped spaces: a\^b c\^d, a\~b c\~d.
 
 'He said, "I want to go."' Were you alive in the 70's?
 
-Here is some quoted '`code`' and a
-"[quoted link](http://example.com/?foo=1&bar=2)".
+Here is some quoted 'code' and a "quoted link".
 
 Some dashes: one--two -- three--four -- five.
 
@@ -525,39 +476,37 @@ Ellipses...and...and....
 
 * * * * *
 
-# LaTeX
+LaTeX
+=====
 
--   \cite[22-23]{smith.1899}
--   $2+2=4$
--   $x \in y$
--   $\alpha \wedge \omega$
--   $223$
--   $p$-Tree
+-   
+-   2+2=4
+-   x \in y
+-   \alpha \wedge \omega
+-   223
+-   p-Tree
 -   Here's some display math:
-    $$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$
+    \frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}
 -   Here's one that has a line break in it:
-    $\alpha + \omega \times x^2$.
+    \alpha + \omega \times x^2.
 
 These shouldn't be math:
 
--   To get the famous equation, write `$e = mc^2$`.
--   $22,000 is a *lot* of money. So is $34,000. (It worked if "lot"
+-   To get the famous equation, write $e = mc^2$.
+-   $22,000 is a lot of money. So is $34,000. (It worked if "lot"
     is emphasized.)
 -   Shoes ($20) and socks ($5).
--   Escaped `$`: $73 *this should be emphasized* 23$.
+-   Escaped $: $73 this should be emphasized 23$.
 
 Here's a LaTeX table:
 
-\begin{tabular}{|l|l|}\hline
-Animal & Number \\ \hline
-Dog    & 2      \\
-Cat    & 1      \\ \hline
-\end{tabular}
+
 
 
 * * * * *
 
-# Special Characters
+Special Characters
+==================
 
 Here is some unicode:
 
@@ -575,15 +524,15 @@ This & that.
 
 4 < 5.
 
-6 \> 5.
+6 > 5.
 
-Backslash: \\
+Backslash: \
 
-Backtick: \`
+Backtick: `
 
-Asterisk: \*
+Asterisk: *
 
-Underscore: \_
+Underscore: _
 
 Left brace: {
 
@@ -597,9 +546,9 @@ Left paren: (
 
 Right paren: )
 
-Greater-than: \>
+Greater-than: >
 
-Hash: \#
+Hash: #
 
 Period: .
 
@@ -612,103 +561,108 @@ Minus: -
 
 * * * * *
 
-# Links
+Links
+=====
 
-## Explicit
+Explicit
+--------
 
-Just a [URL](/url/).
+Just a URL.
 
-[URL and title](/url/ "title").
+URL and title.
 
-[URL and title](/url/ "title preceded by two spaces").
+URL and title.
 
-[URL and title](/url/ "title preceded by a tab").
+URL and title.
 
-[URL and title](/url/ "title with "quotes" in it")
+URL and title
 
-[URL and title](/url/ "title with single quotes")
+URL and title
 
-[with\_underscore](/url/with_underscore)
+with_underscore
 
-[Email link](mailto:nobody@nowhere.net)
+Email link
 
-[Empty]().
+Empty.
 
-## Reference
+Reference
+---------
 
-Foo [bar](/url/).
+Foo bar.
 
-Foo [bar](/url/).
+Foo bar.
 
-Foo [bar](/url/).
+Foo bar.
 
-With [embedded [brackets]](/url/).
+With embedded [brackets].
 
-[b](/url/) by itself should be a link.
+b by itself should be a link.
 
-Indented [once](/url).
+Indented once.
 
-Indented [twice](/url).
+Indented twice.
 
-Indented [thrice](/url).
+Indented thrice.
 
 This should [not][] be a link.
 
     [not]: /url
 
-Foo [bar](/url/ "Title with "quotes" inside").
+Foo bar.
 
-Foo [biz](/url/ "Title with "quote" inside").
+Foo biz.
 
-## With ampersands
+With ampersands
+---------------
 
-Here's a
-[link with an ampersand in the URL](http://example.com/?foo=1&bar=2).
+Here's a link with an ampersand in the URL.
 
-Here's a link with an amersand in the link text:
-[AT&T](http://att.com/ "AT&T").
+Here's a link with an amersand in the link text: AT&T.
 
-Here's an [inline link](/script?foo=1&bar=2).
+Here's an inline link.
 
-Here's an [inline link in pointy braces](/script?foo=1&bar=2).
+Here's an inline link in pointy braces.
 
-## Autolinks
+Autolinks
+---------
 
-With an ampersand: <http://example.com/?foo=1&bar=2>
+With an ampersand: http://example.com/?foo=1&bar=2
 
 -   In a list?
--   <http://example.com/>
+-   http://example.com/
 -   It should.
 
-An e-mail address: <nobody@nowhere.net>
+An e-mail address: nobody@nowhere.net
 
-> Blockquoted: <http://example.com/>
+  Blockquoted: http://example.com/
 
-Auto-links should not occur here: `<http://example.com/>`
+Auto-links should not occur here: <http://example.com/>
 
     or here: <http://example.com/>
 
 
 * * * * *
 
-# Images
+Images
+======
 
 From "Voyage dans la Lune" by Georges Melies (1902):
 
-![lalune](lalune.jpg "Voyage dans la Lune")
 
-Here is a movie ![movie](movie.jpg) icon.
+
+Here is a movie icon.
 
 
 * * * * *
 
-# Footnotes
+Footnotes
+=========
 
-Here is a footnote reference,[^1] and another.[^2] This should
-*not* be a footnote reference, because it contains a space.[\^my
-note] Here is an inline note.[^3]
+Here is a footnote reference,[^1] and another.[^2] This should not
+be a footnote reference, because it contains a space.[^my note]
+Here is an inline note.[^3]
 
-> Notes can go in quotes.[^4]
+  Notes can go in quotes.[^4]
 
 1.  And in list items.[^5]
 
@@ -732,9 +686,8 @@ indented.
     and just indent the first line of each block.
 
 [^3]:
-    This is *easier* to type. Inline notes may contain
-    [links](http://google.com) and `]` verbatim characters, as well as
-    [bracketed text].
+    This is easier to type. Inline notes may contain links and ]
+    verbatim characters, as well as [bracketed text].
 
 [^4]:
     In quote.

@@ -72,6 +72,7 @@ module Text.Pandoc
                , HeaderType (..)
                -- * Writers: converting /from/ Pandoc format
                , writeMarkdown
+               , writePlain
                , writeRST
                , writeLaTeX
                , writeConTeXt

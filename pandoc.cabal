@@ -40,7 +40,7 @@ Data-Files:
                  templates/opendocument.template, templates/latex.template,
                  templates/context.template, templates/texinfo.template,
                  templates/man.template, templates/markdown.template,
-                 templates/rst.template,
+                 templates/rst.template, templates/plain.template,
                  templates/mediawiki.template, templates/rtf.template,
                  -- data for ODT writer
                  reference.odt,
