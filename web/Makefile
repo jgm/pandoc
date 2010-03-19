@@ -1,4 +1,4 @@
-ALL := index.html README.html INSTALL.html examples.html pandoc.1.html markdown2pdf.1.html html2x.html
+ALL := index.html README.html INSTALL.html examples.html pandoc.1.html markdown2pdf.1.html html2x.html changelog.txt
 PANDOC_PATH ?= $(dir $(shell which pandoc))
 PANDOC_SRC ?= ${HOME}/src/pandoc
 MAKEPAGE = $(PANDOC_PATH)/pandoc -s -S -H css -A footer.html
@@ -9,6 +9,9 @@ all : $(ALL)
 clean:
 	for file in $(ALL); do rm $$file; done; \
 	rm -r example*;
+
+changelog.txt : changelog
+	cp $< $@
 
 # 'make update' pulls in source files from the pandoc source directory
 sources := $(PANDOC_SRC)/dist/doc/html $(PANDOC_SRC)/changelog \
