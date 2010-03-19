@@ -113,6 +113,48 @@ You may view existing bug reports and submit new ones at
 
 # News
 
+-   Version 1.5 release (March 20, 2010).
+
+    + New --mathml option, for display of TeX math as MathML.
+    + New --data-dir option, allowing users to specify a data
+      directory other than `~/.pandoc`.  Files placed in this directory
+      will be used instead of system defaults.
+    + New --base-header-level option. For example, --base-header-level=2
+      changes level 1 headers to level 2, level 2 to level 3, etc.
+    + New 'plain' output format: plain text without pictures, hyperlinks,
+      inline formatting, or anything else that looks even vaguely
+      markupish.
+    + Titles and authors in title blocks can now span multiple lines,
+      as long as the continuation lines begin with a space character.
+    + When given an absolute URI as a parameter, pandoc will fetch
+      the content via HTTP.
+    + The HTML reader has been made much more forgiving. It no
+      longer requires well-formed xhtml as input.
+    + `html2markdown` has been removed; it is no longer necessary, given
+      the last two changes. `pandoc` can be used by itself to convert
+      web pages to markdown or other formats.
+    + `hsmarkdown` has also been removed.  Use `pandoc --strict` instead.
+      Or symlink pandoc's executable to `hsmarkdown`; `pandoc` will then
+      behave like `hsmarkdown` used to.
+    + An image in a paragraph by itself is now rendered as a figure
+      in most writers, with the alt text as the caption.
+    + Incomplete support for reST tables (simple and grid). Thanks to
+      Eric Kow. Colspans and rowspans not yet supported.
+    + In mediawiki, links with relative URLs are now formatted as wikilinks.
+      Also, headers have been promoted: '= head =' is now level 1 instead of
+      level 2.
+    + The markdown reader now handles "inverse bird tracks" when parsing
+      literate haskell.  These are used for haskell example code that
+      is not part of the literate program.
+    + The -B and -A options now imply -s and no longer work in fragment mode.
+    + Headerless tables are now printed properly in all writers.
+      In addition, tbody, thead, and cols are used in HTML and Docbook
+      tables.
+    + Improved build system; removed obsolete Makefile.
+    + In LaTeX writer, \chapter is now used instead of \section
+      when the documentclass is book, report, or memoir.
+    + Many small bug fixes. See [changelog] for details.
+
 -   Version 1.4 release (January 2, 2010).
 
     + New template system replaces old headers, giving users much
