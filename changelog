@@ -13,18 +13,17 @@ pandoc (1.5)
       single combined file, LaTeXMathML.js.
 
   * Added --data-dir option.
-    + This specifies a user data directory. If not specified, will default
-      to ~/.pandoc on unix or Application Data\pandoc on Windows.
-      Files placed in the user data directory will override system default
-      data files.
-    + Updated documentation.
+    This specifies a user data directory. If not specified, will default
+    to ~/.pandoc on unix or Application Data\pandoc on Windows.
+    Files placed in the user data directory will override system default
+    data files.
 
   * Added Maybe datadir parameter to readDataFile, saveOpenDocumentAsODT,
     latexMathMLScript, s5HeaderIncludes, and getDefaultTemplate. If
 	  Nothing, no user directory is searched for an override.
 
   * Added 'plain' output format. This is similar to markdown, but
-    removes links pictures, inline formatting, and most anything that
+    removes links, pictures, inline formatting, and most anything that
     looks even vaguely markupish. The function writePlain is exported by
     Text.Pandoc.Writers.Markdown, with which it shares most of its code.
 
@@ -220,11 +219,6 @@ pandoc (1.5)
 
   * markdown2pdf: always do at least two runs. hyperref bookmarks
     require this.
-
-  * Makefile:  specify --template explicitly when using pandoc.
-    Reason:  pandoc may not yet have been installed, so the
-    templates may not be in the cabal data directory.
-    Resolves Issue #192.
 
   * cabal file: Removed unneeded dependency on template-haskell.
 
