@@ -1,27 +1,220 @@
-pandoc (1.4.1)
+pandoc (1.5)
 
   [ John MacFarlane ]
 
-  * Text.Pandoc.Templates now exports getTemplate, which differs from
-    getDefaultTemplate in allowing the caller to select
-    whether to allow user overrides from the ~/.pandoc directory.
+  * Added --mathml option.  When this is selected, pandoc will convert
+    TeX math into MathML.
+    + Added data/MathMLinHTML.js, which is included when no URL is
+      provided for --mathml.  This allows MathML to be displayed (in
+      better browsers) as text/html.
+    + Removed Text.Pandoc.LaTeXMathML.  The module was no longer
+      necessary; it was replaced by two lines in pandoc.hs.
+    + Replaced LaTeXMathML.js.commend and LaTeXMathML.js.packed with a
+      single combined file, LaTeXMathML.js.
+
+  * Added --data-dir option.
+    + This specifies a user data directory. If not specified, will default
+      to ~/.pandoc on unix or Application Data\pandoc on Windows.
+      Files placed in the user data directory will override system default
+      data files.
+    + Updated documentation.
+
+  * Added Maybe datadir parameter to readDataFile, saveOpenDocumentAsODT,
+    latexMathMLScript, s5HeaderIncludes, and getDefaultTemplate. If
+	  Nothing, no user directory is searched for an override.
+
+  * Added 'plain' output format. This is similar to markdown, but
+    removes links pictures, inline formatting, and most anything that
+    looks even vaguely markupish. The function writePlain is exported by
+    Text.Pandoc.Writers.Markdown, with which it shares most of its code.
+
+  * Allow multi-line titles and authors in meta block.
+    Titles may span multiple lines, provided continuation lines
+    begin with a space character.  Separate authors may be put on
+    multiple lines, provided each line after the first begins with
+    a space character.  Each author must fit on one line. Multiple
+    authors on a single line may still be separated by a semicolon.
+    Based on a patch by Justin Bogner.
+
+  * When given an absolute URI as parameter, pandoc will try to fetch
+    the content via HTTP.  So you can do:
+    'pandoc -r html -w markdown http://www.fsf.org'
+    Adds dependency on HTTP.
+
+  * Made HTML reader much more forgiving.
+    + Incorporated idea (from HXT) that an element can be closed
+      by an open tag for another element.
+    + Javascript is partially parsed to make sure that a <script>
+      section is not closed by a </script> in a comment or string.
+    + More lenient non-quoted attribute values.
+      Now we accept anything but a space character, quote, or <>.
+      This helps in parsing e.g. www.google.com!
+    + Bare & signs are now parsed as a string.  This is a common
+      HTML mistake.
+    + Skip a bare < in malformed HTML.
+
+  * Removed html2markdown and hsmarkdown.
+    + html2markdown is no longer needed, since you can now pass URI
+      arguments to pandoc and directly convert web pages. (Note,
+      however, that pandoc assumes the pages are UTF8. html2markdown
+      made an attempt to guess the encoding and convert them.)
+    + hsmarkdown is pointless -- a large executable that could be
+      replaced by 'pandoc --strict'.
+
+  * In most writers, an image in a paragraph by itself is now rendered
+    as a figure, with the alt text as the caption. (Texinfo, HTML, RST,
+    MediaWiki, Docbook, LaTeX, ConTeXt, HTML.) Other images are
+    rendered inline.
+
+  * Depend on extensible-exceptions.  This allows pandoc to be compiled
+    on GHC 6.8.
+
+  * Added --base-header-level option.  For example, --base-header-level=2
+    will change level 1 headers to level 2, level 2 to level 3, etc.
+    Closes Debian #563416.
+
+  * Incomplete support for RST tables (simple and grid).
+    Thanks to Eric Kow. Colspans and rowspans not yet supported.
+
+  * Added accessors (docTitle, docAuthors, docDate) to Meta type.
+
+  * MediaWiki writer:  format links with relative URLs as wikilinks.
+    The new rule:  If the link target is an absolute URL, an external
+    link is created. Otherwise, a wikilink is created.
+
+  * Text.Pandoc.Shared: Export uniqueIdent, and don't allow tilde in
+    identifier.  Note:  This may break links to sections that involve
+    tildes.
+
+  * Markdown(+lhs) reader:  handle "inverse bird tracks."
+    Inverse bird tracks (<) are used for haskell example code that is not
+    part of the literate Haskell program.  Resolves Issue #211.
+
+  * LaTeX reader:
+    + Recognize '\ ' (interword space).
+    + Recognize nonbreaking space '~'.
+    + Ignore \section, \pdfannot, \pdfstringdef.  Ignore alt title in
+      section headers.  Don't treat \section as inline LaTeX.
+      Resolves Issue #202.
+    + LaTeX reader:  allow any special character to be escaped.
+      Resolves Issue #221.
+    + LaTeX reader: treat \paragraph and \subparagraph as level 4, 5
+      headers.  Resolves Issue #207.
+
+  * Use template variables for include-before/after.
+    + These options now imply -s; previously they worked also in fragment
+      mode.
+    + Users can now adjust position of include-before and include-after
+      text in the templates.
+    + Default position of include-before moved back (as it was before 1.4)
+      before table of contents.
+    + Resolves Issue #217.
+
+  * Don't print an empty table header: (all writers).
+    Resolves Issue #210.
+
+  * HTML, Docbook writer: Use tbody, thead, and cols in tables.
+
+  * Markdown writer:  Fixed citations.
+    Previously the markdown writer printed raw citation codes, e.g.
+    [geach1970], rather than the expanded citations provided by
+    citeproc, e.g. (Geach 1970). Now it prints the expanded citations.
+    This means that the document produced can be processed as a markdown
+    document without citeproc. Thanks to dsanson for reporting, and
+    Andrea Rossato for the patch.
+
+  * Improved and simplified title block in context template.
+    Previously it caused an error if there was no title.
+    This method should also be easier for users to customize.
+
+  * Markdown reader:
+    + Treat p., pp., sec., ch., as abbreviations in smart mode.
+    + Disallow blank lines in inline code span.
+    + Allow footnotes to be indented < 4 spaces.
+      This fixes a regression.  A test case has been added.
+    + Escape spaces in URLs as %20. Previously they were incorrectly
+		  escaped as +, which is appropriate only for the query part of
+			a URL. Resolves Issue #220.
+    + Require two spaces after capital letter + period for list item.
+      Otherwise "E. coli" starts a list. This might change the semantics
+      of some existing documents, since previously the two-space
+      requirement was only enforced when the second word started
+      with a capital letter. But it is consistent with the existing
+      documentation and follows the principle of least surprise.
+      Resolves Issue #212.
+
+  * LaTeX template: redefine labelwidth when using enumerate package.
+    Otherwise the list labels (numbers) often extend past the left
+    margin, which looks bad.
+
+  * Mediawiki writer: Don't print a "== Notes ==" header before
+    references.  This is too English-centric. Writers can provide their
+    own header at the end of the document.
+
+  * Promoted mediawiki headers.  '= head =' is now level 1, '== head =='
+    level 2, etc.  This seems to be correct; it's only by convention
+    that wikipedia articles have level 2 headers at most.
+    Patch due to Eric Kow.
+
+  * RunTests.hs: Set LANG to a UTF-8 locale. Use 'pandoc --data-dir=' so
+    data files don't need to have been installed. This removes the need to
+    set HOME.
+
+  * HTML reader:
+    + Handle spaces before <html>.  Resolves Issue #216.
+    + Be forgiving in parsing a bare list within a list.
+      The following is not valid xhtml, but the intent is clear:
+      <ol>
+      <li>one</li>
+      <ol><li>sub</li></ol>
+      <li>two</li>
+      </ol>
+      We'll treat the <ol> as if it's in a <li>.  Resolves Issue #215.
+
+  * Updated INSTALL instructions.  cabal method is now promoted.
+
+  * Updated markdown2pdf man page. It no longer says all pandoc options
+    are accepted.
+
+  * README/man pages: Removed advice to pipe through tidy before HTML
+    reader.  This is obsolete, now that we have a forgiving HTML parser.
+
+  * LaTeX writer: set numbersections template variable, so
+    the section numbering options work again.
+
+  * Removed obsolete Makefile.
+
+  * Website: renamed index.txt.in -> index.txt.
+
+  * New batch file to make-windows-installer.
+    + Removed old Makefile.windows
+    + Added make-windows-installer.bat
+    + Modified default installer name in pandoc-setup.iss
+
+  * Removed freebsd and macports directories.
+    They are no longer up to date.
+
+  * Setup.hs:
+    + Made man page building sensitive to build verbosity.
+    + Improved detection of highlighting support in test hook.
+    + Install wrapper scripts into cabal bin directory.
+    + Also simplified installManpages.
+    + Setup.hs: install manpages to mandir.  Code borrowed from darcs.
 
   * Changed default of writerXeTeX to False.
 
   * HTML writer: don't include empty UL if --toc but no sections.
     Resolves Issue #199.
 
-  * Updated haddocks for changes in Meta type.
-
   * LaTeX writer:
-	  + if book, report, or memoir documentclass, use \chapter{}
+	  + If book, report, or memoir documentclass, use \chapter{}
       for first-level headers. Otherwise use \section{}.
-    + removed stLink, link template variable. Reason: we now always
+    + Removed stLink, link template variable. Reason: we now always
       include hyperref in the template.
 
   * Latex template:
-	  + only show \author if there are some.
-    + always include hyperref package. It is used not just for links but
+	  + Only show \author if there are some.
+    + Always include hyperref package. It is used not just for links but
       for toc, section heading bookmarks, footnotes, etc. Also added
       unicode=true on hyperref options.
 
