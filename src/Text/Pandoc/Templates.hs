@@ -76,13 +76,7 @@ import Text.PrettyPrint (text, Doc)
 import Text.XHtml (primHtml, Html)
 import Data.ByteString.Lazy.UTF8 (ByteString, fromString)
 import Text.Pandoc.Shared (readDataFile)
--- Note: it would be simpler just to use Control.Exception.Extensible
--- for all versions of base, but extensible-exceptions is not in debian.
-#if MIN_VERSION_base(4,0,0)
-import qualified Control.Exception as E (try, IOException)
-#else
 import qualified Control.Exception.Extensible as E (try, IOException)
-#endif
 
 -- | Get default template for the specified writer.
 getDefaultTemplate :: (Maybe FilePath) -- ^ User data directory to search first 
