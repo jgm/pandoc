@@ -63,7 +63,7 @@ import Network.URI (parseURI, isURI)
 import Data.ByteString.Lazy.UTF8 (toString)
 
 copyrightMessage :: String
-copyrightMessage = "\nCopyright (C) 2006-8 John MacFarlane\n" ++
+copyrightMessage = "\nCopyright (C) 2006-2010 John MacFarlane\n" ++
                     "Web:  http://johnmacfarlane.net/pandoc\n" ++
                     "This is free software; see the source for copying conditions.  There is no\n" ++
                     "warranty, not even for merchantability or fitness for a particular purpose."
