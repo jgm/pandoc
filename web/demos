@@ -78,7 +78,8 @@ click on the name of the output file:
 17. TeX math in HTML:
 
 @   pandoc @@math.text@@ -s -o @@mathDefault.html@@
-@   pandoc @@math.text@@ -s -m -o @@mathAsciimathml.html@@
+@   pandoc @@math.text@@ -s --mathml -o @@mathMathML.html@@
+@   pandoc @@math.text@@ -s -m -o @@mathLaTeXMathML.html@@
 @   pandoc @@math.text@@ -s --mimetex=/cgi-bin/mimetex.cgi -o @@mathMimetex.html@@
 @   pandoc @@math.text@@ -s --gladtex -o mathGladtex.htex
 @   gladtex @@mathGladtex.htex@@   # produces @@mathGladtex.html@@
