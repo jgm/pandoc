@@ -100,7 +100,7 @@ and `html` readers are also limited in what they can do.
 
 If you don't specify a reader or writer explicitly, `pandoc` will
 try to determine the input and output format from the extensions of
-the input and output filenames.  Thus, for example, 
+the input and output filenames.  Thus, for example,
 
     pandoc -o hello.tex hello.txt
 
@@ -139,13 +139,13 @@ sources. The default behavior of `markdown2pdf` is to create a file with
 the same base name as the first argument and the extension `pdf`; thus,
 for example,
 
-   markdown2pdf sample.txt endnotes.txt
+    markdown2pdf sample.txt endnotes.txt
 
 will produce `sample.pdf`.  (If `sample.pdf` exists already,
 it will be backed up before being overwritten.)  An output file
 name can be specified explicitly using the `-o` option:
 
-   markdown2pdf -o book.pdf chap1 chap2
+    markdown2pdf -o book.pdf chap1 chap2
 
 If no input file is specified, input will be taken from stdin.
 All of `pandoc`'s options will work with `markdown2pdf` as well.
