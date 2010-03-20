@@ -3,8 +3,7 @@ _ Test, on linux, windows, mac
 
 _ Finalize changelog
 
-_ Tag release
-    svn copy https://pandoc.googlecode.com/svn/trunk https://pandoc.googlecode.com/svn/tags/pandoc-x.yy
+_ Tag release in git
 
 _ Generate tarball (make tarball)
 
