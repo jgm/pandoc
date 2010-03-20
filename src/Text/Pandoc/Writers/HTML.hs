@@ -88,7 +88,7 @@ writeHtml opts d =
 -- result is (title, authors, date, toc, body, new variables)
 pandocToHtml :: WriterOptions
              -> Pandoc
-             -> State WriterState (Html, [Html], Html, Html, Html, [(String,String)])
+             -> State WriterState (Html, [Html], Html, Maybe Html, Html, [(String,String)])
 pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   let standalone = writerStandalone opts
   tit <- if standalone
@@ -103,7 +103,7 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   let sects = hierarchicalize blocks
   toc <- if writerTableOfContents opts 
             then tableOfContents opts sects
-            else return noHtml
+            else return Nothing
   blocks' <- liftM toHtmlFromList $ mapM (elementToHtml opts) sects
   st <- get
   let notes = reverse (stNotes st)
@@ -134,7 +134,7 @@ inTemplate :: TemplateTarget a
            -> Html
            -> [Html]
            -> Html
-           -> Html
+           -> Maybe Html
            -> Html
            -> [(String,String)]
            -> a
@@ -147,9 +147,11 @@ inTemplate opts tit auths date toc body' newvars =
       context     = variables ++
                     [ ("body", renderHtmlFragment body')
                     , ("pagetitle", topTitle')
-                    , ("toc", renderHtmlFragment toc)
                     , ("title", renderHtmlFragment tit)
                     , ("date", date') ] ++
+                    (case toc of
+                         Just t  -> [ ("toc", renderHtmlFragment t)]
+                         Nothing -> [])  ++
                     [ ("author", a) | a <- authors ]
   in  renderTemplate context $ writerTemplate opts
 
@@ -158,16 +160,15 @@ prefixedId :: WriterOptions -> String -> HtmlAttr
 prefixedId opts s = identifier $ writerIdentifierPrefix opts ++ s
 
 -- | Construct table of contents from list of elements.
-tableOfContents :: WriterOptions -> [Element] -> State WriterState Html
-tableOfContents _ [] = return noHtml
+tableOfContents :: WriterOptions -> [Element] -> State WriterState (Maybe Html)
+tableOfContents _ [] = return Nothing
 tableOfContents opts sects = do
   let opts'        = opts { writerIgnoreNotes = True }
   contents  <- mapM (elementToListItem opts') sects
   let tocList = catMaybes contents
-  return $ thediv ! [prefixedId opts' "TOC"] $
-            if null tocList
-               then noHtml
-               else unordList tocList
+  return $ if null tocList
+              then Nothing
+              else Just $ thediv ! [prefixedId opts' "TOC"] $ unordList tocList
 
 -- | Convert section number to string
 showSecNum :: [Int] -> String
