@@ -114,6 +114,8 @@ pandoc (1.5)
 
   * HTML, Docbook writer: Use tbody, thead, and cols in tables.
 
+  * HTML writer: Don't include TOC div if table of contents is empty.
+
   * Markdown writer:  Fixed citations.
     Previously the markdown writer printed raw citation codes, e.g.
     [geach1970], rather than the expanded citations provided by
