@@ -37,11 +37,12 @@ or output format requires only adding a reader or writer.
 [Haskell]:  http://www.haskell.org/
 [GNU Texinfo]: http://www.gnu.org/software/texinfo/
 
-© 2006-9 John MacFarlane (jgm at berkeley dot edu). Released under the
+© 2006-2010 John MacFarlane (jgm at berkeley dot edu). Released under the
 [GPL], version 2 or greater.  This software carries no warranty of
 any kind.  (See COPYRIGHT for full copyright and warranty notices.)
-Contributors:  Recai Oktaş (build system, debian package, wrapper
-scripts), Peter Wang (Texinfo writer), Andrea Rossato (OpenDocument writer).
+Other contributors include Recai Oktaş, Paulo Tanimoto, Peter Wang,
+Andrea Rossato, Eric Kow, infinity0x, Luke Plant, shreevatsa.public,
+rodja.trappe, Bradley Kuhn, thsutton.
 
 [GPL]: http://www.gnu.org/copyleft/gpl.html "GNU General Public License"
 
