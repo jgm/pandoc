@@ -465,9 +465,11 @@ inlineToHtml opts inline =
                                   case texMathToMathML dt str of
                                         Right r -> return $ primHtml $
                                                     ppcElement conf r
-                                        Left  _ -> inlineToHtml opts
-                                                     (Math t str)
-                               PlainMath -> 
+                                        Left  _ -> inlineListToHtml opts
+                                                    (readTeXMath str) >>=
+                                                      return . (thespan !
+                                                      [theclass "math"])
+                               PlainMath ->
                                   inlineListToHtml opts (readTeXMath str) >>=
                                   return . (thespan ! [theclass "math"]) ) 
     (TeX str)        -> case writerHTMLMathMethod opts of
