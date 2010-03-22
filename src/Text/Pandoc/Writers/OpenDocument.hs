@@ -40,6 +40,7 @@ import Control.Applicative ( (<$>) )
 import Control.Arrow ( (***), (>>>) )
 import Control.Monad.State hiding ( when )
 import Data.Char (chr)
+import qualified Data.Map as Map
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
@@ -56,7 +57,7 @@ data WriterState =
                 , stParaStyles    :: [Doc]
                 , stListStyles    :: [(Int, [Doc])]
                 , stTextStyles    :: [Doc]
-                , stTextStyleAttr :: [(TextStyle,[(String,String)])]
+                , stTextStyleAttr :: Map.Map TextStyle [(String,String)]
                 , stIndentPara    :: Int
                 , stInDefinition  :: Bool
                 , stTight         :: Bool
@@ -69,7 +70,7 @@ defaultWriterState =
                 , stParaStyles    = []
                 , stListStyles    = []
                 , stTextStyles    = []
-                , stTextStyleAttr = []
+                , stTextStyleAttr = Map.empty
                 , stIndentPara    = 0
                 , stInDefinition  = False
                 , stTight         = False
@@ -91,11 +92,10 @@ addTextStyle :: Doc -> State WriterState ()
 addTextStyle i = modify $ \s -> s { stTextStyles = i : stTextStyles s }
 
 addTextStyleAttr :: (TextStyle, [(String,String)]) -> State WriterState ()
-addTextStyleAttr i = modify $ \s -> s { stTextStyleAttr = i : stTextStyleAttr s }
+addTextStyleAttr (ts, xs) = modify $ \s -> s { stTextStyleAttr = Map.insert ts xs (stTextStyleAttr s) }
 
-rmTextStyleAttr :: State WriterState ()
-rmTextStyleAttr = modify $ \s -> s { stTextStyleAttr = rmHead (stTextStyleAttr s) }
-    where rmHead l = if l /= [] then tail l else []
+rmTextStyleAttr :: TextStyle -> State WriterState ()
+rmTextStyleAttr ts = modify $ \s -> s { stTextStyleAttr = Map.delete ts (stTextStyleAttr s) }
 
 increaseIndent :: State WriterState ()
 increaseIndent = modify $ \s -> s { stIndentPara = 1 + stIndentPara s }
@@ -121,18 +121,18 @@ inSpanTags s = inTags False "text:span" [("text:style-name",s)]
 
 withTextStyle :: TextStyle -> State WriterState a -> State WriterState a
 withTextStyle s f = addTextStyleAttr (s,textStyleAttr s) >>
-                    f >>= \r -> rmTextStyleAttr >> return r
+                    f >>= \r -> rmTextStyleAttr s >> return r
 
 inTextStyle :: Doc -> State WriterState Doc
 inTextStyle d = do
   at <- gets stTextStyleAttr
-  if at == []
+  if Map.null at
      then return d
      else do
        tn <- (+) 1 . length  <$> gets stTextStyles
        addTextStyle $ inTags False "style:style" [("style:name"  , "T" ++ show tn)
                                                  ,("style:family", "text"        )]
-                    $ selfClosingTag "style:text-properties" (concatMap snd at)
+                    $ selfClosingTag "style:text-properties" (concatMap snd $ Map.toList at)
        return $ inTags False "text:span" [("text:style-name","T" ++ show tn)] d
 
 inHeaderTags :: Int -> Doc -> Doc
@@ -491,7 +491,7 @@ paraTableStyles t s (a:xs)
                      [ ("fo:text-align", x)
                      , ("style:justify-single-word", "false")]
 
-data TextStyle = Italic | Bold | Strike | Sub | Sup | SmallC deriving ( Eq )
+data TextStyle = Italic | Bold | Strike | Sub | Sup | SmallC deriving ( Eq,Ord )
 
 textStyleAttr :: TextStyle -> [(String,String)]
 textStyleAttr s
