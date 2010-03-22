@@ -1,3 +1,10 @@
+pandoc (1.5.0.1)
+
+  [ John MacFarlane ]
+
+	* HTML writer: Fixed error in math writer (with MathML option)
+	  that caused an infinite loop for unparsable MathML.
+
 pandoc (1.5)
 
   [ John MacFarlane ]
