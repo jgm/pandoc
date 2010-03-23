@@ -48,7 +48,9 @@ runTestSuite _ _ pkg _ = do
 
 -- | Build man pages from markdown sources in man/man1/.
 makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
-makeManPages _ flags _ _ = mapM_ (makeManPage (fromFlag $ buildVerbosity flags)) manpages
+makeManPages _ flags _ buildInfo =
+  mapM_ (makeManPage pandocPath (fromFlag $ buildVerbosity flags)) manpages
+    where pandocPath = (buildDir buildInfo) </> "pandoc" </> "pandoc"
 
 manpages :: [FilePath]
 manpages = ["pandoc.1", "markdown2pdf.1"]
@@ -57,21 +59,20 @@ manDir :: FilePath
 manDir = "man" </> "man1"
 
 -- | Build a man page from markdown source in man/man1.
-makeManPage :: Verbosity -> FilePath -> IO ()
-makeManPage verbosity manpage = do
-  let pandoc = "dist" </> "build" </> "pandoc" </> "pandoc"
+makeManPage :: FilePath -> Verbosity -> FilePath -> IO ()
+makeManPage pandoc verbosity manpage = do
   let page = manDir </> manpage
-  let source = manDir </> manpage <.> "md"
+  let source = page <.> "md"
   modifiedDeps <- modifiedDependencies page [source]
   unless (null modifiedDeps) $ do
     ec <- runProcess pandoc ["-s", "-S", "-r", "markdown", "-w", "man",
                 "--template=templates/man.template", "-o", page, source]
                 Nothing Nothing Nothing Nothing (Just stderr) >>= waitForProcess
     case ec of
-         ExitSuccess -> unless (verbosity == silent) $
-                           putStrLn $ "Created " ++ manDir </> manpage
-         _           -> do putStrLn $ "Error creating " ++ manDir </> manpage
-                           exitWith ec
+         ExitSuccess   -> unless (verbosity == silent) $
+                             putStrLn $ "Created " ++ page
+         ExitFailure n -> putStrLn ("Error creating " ++ page ++
+                             ". Exit code = " ++ show n) >> exitWith ec
 
 installScripts :: PackageDescription -> LocalBuildInfo
                -> Verbosity -> CopyDest -> IO ()
