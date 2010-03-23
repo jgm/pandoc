@@ -182,7 +182,7 @@ unsanitaryURI u =
              "ldaps:", "magnet:", "mms:", "msnim:", "notes:", "rsync:",
              "secondlife:", "skype:", "ssh:", "sftp:", "smb:", "sms:",
              "snews:", "webcal:", "ymsgr:"]
-  in  case parseURIReference u of
+  in  case parseURIReference (stringToURI u) of
            Just p  -> (map toLower $ uriScheme p) `notElem` safeURISchemes
            Nothing -> True
 
