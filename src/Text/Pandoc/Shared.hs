@@ -44,6 +44,7 @@ module Text.Pandoc.Shared (
                      camelCaseToHyphenated,
                      toRomanNumeral,
                      escapeURI,
+                     unescapeURI,
                      wrapped,
                      wrapIfNeeded,
                      wrappedTeX,
@@ -118,8 +119,8 @@ import Text.Pandoc.CharacterReferences ( characterReference )
 import Data.Char ( toLower, toUpper, ord, isLower, isUpper, isAlpha, isAscii,
                    isPunctuation )
 import Data.List ( find, isPrefixOf, intercalate )
-import Network.URI ( parseURI, URI (..), isAllowedInURI, escapeURIString )
-import Codec.Binary.UTF8.String ( encodeString )
+import Network.URI ( parseURI, URI (..), isAllowedInURI, escapeURIString, unEscapeString )
+import Codec.Binary.UTF8.String ( encodeString, decodeString )
 import System.Directory
 import System.FilePath ( (</>) )
 -- Note: ghc >= 6.12 (base >=4.2) supports unicode through iconv
@@ -235,6 +236,12 @@ toRomanNumeral x =
 -- already valid in a URI, including % and ?, are left alone.
 escapeURI :: String -> String
 escapeURI = escapeURIString isAllowedInURI . encodeString
+
+-- | Unescape unicode and some special characters in a URI, but
+-- without introducing spaces.
+unescapeURI :: String -> String
+unescapeURI = escapeURIString (\c -> isAllowedInURI c || not (isAscii c)) .
+               decodeString . unEscapeString
 
 -- | Wrap inlines to line length.
 wrapped :: Monad m => ([Inline] -> m Doc) -> [Inline] -> m Doc
