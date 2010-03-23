@@ -31,7 +31,7 @@ module Text.Pandoc.Readers.Markdown (
                                      readMarkdown 
                                     ) where
 
-import Data.List ( transpose, isPrefixOf, isSuffixOf, sortBy, findIndex, intercalate )
+import Data.List ( transpose, isSuffixOf, sortBy, findIndex, intercalate )
 import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum )
 import Data.Maybe
@@ -72,10 +72,6 @@ specialChars = "\\[]*_~`<>$!^-.&'\"\8216\8217\8220\8221;"
 --
 -- auxiliary functions
 --
-
--- | Replace spaces with %20
-uriEscapeSpaces :: String -> String
-uriEscapeSpaces = substitute " " "%20"
 
 indentSpaces :: GenParser Char ParserState [Char]
 indentSpaces = try $ do
@@ -206,7 +202,7 @@ referenceKey = try $ do
   tit <- option "" referenceTitle
   blanklines
   endPos <- getPosition
-  let newkey = (lab, (uriEscapeSpaces $ removeTrailingSpace src,  tit))
+  let newkey = (lab, (escapeURI $ removeTrailingSpace src,  tit))
   st <- getState
   let oldkeys = stateKeys st
   updateState $ \s -> s { stateKeys = newkey : oldkeys }
@@ -1194,7 +1190,7 @@ source' = do
   tit <- option "" linkTitle
   skipSpaces
   eof
-  return (uriEscapeSpaces $ removeTrailingSpace src, tit)
+  return (escapeURI $ removeTrailingSpace src, tit)
 
 linkTitle :: GenParser Char st String
 linkTitle = try $ do 
@@ -1208,11 +1204,11 @@ linkTitle = try $ do
 link :: GenParser Char ParserState Inline
 link = try $ do
   lab <- reference
-  src <- source <|> referenceLink lab
+  (src, tit) <- source <|> referenceLink lab
   sanitize <- getState >>= return . stateSanitizeHTML
-  if sanitize && unsanitaryURI (fst src)
+  if sanitize && unsanitaryURI src
      then fail "Unsanitary URI"
-     else return $ Link lab src
+     else return $ Link lab (src, tit)
 
 -- a link like [this][ref] or [this][] or [this]
 referenceLink :: [Inline]
@@ -1229,18 +1225,15 @@ referenceLink lab = do
 autoLink :: GenParser Char ParserState Inline
 autoLink = try $ do
   char '<'
-  src <- uri <|> (emailAddress >>= (return . ("mailto:" ++)))
+  (orig, src) <- uri <|> emailAddress
   char '>'
-  let src' = if "mailto:" `isPrefixOf` src
-                then drop 7 src
-                else src 
   st <- getState
   let sanitize = stateSanitizeHTML st
   if sanitize && unsanitaryURI src
      then fail "Unsanitary URI"
      else return $ if stateStrict st
-                      then Link [Str src'] (src, "")
-                      else Link [Code src'] (src, "")
+                      then Link [Str orig] (src, "")
+                      else Link [Code orig] (src, "")
 
 image :: GenParser Char ParserState Inline
 image = try $ do

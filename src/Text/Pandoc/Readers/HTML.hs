@@ -182,7 +182,7 @@ unsanitaryURI u =
              "ldaps:", "magnet:", "mms:", "msnim:", "notes:", "rsync:",
              "secondlife:", "skype:", "ssh:", "sftp:", "smb:", "sms:",
              "snews:", "webcal:", "ymsgr:"]
-  in  case parseURIReference (stringToURI u) of
+  in  case parseURIReference (escapeURI u) of
            Just p  -> (map toLower $ uriScheme p) `notElem` safeURISchemes
            Nothing -> True
 
@@ -746,7 +746,7 @@ link = try $ do
            Nothing  -> fail "no href"
   let title = fromMaybe "" $ extractAttribute "title" attributes
   lab <- inlinesTilEnd "a"
-  return $ Link (normalizeSpaces lab) (url, title)
+  return $ Link (normalizeSpaces lab) (escapeURI url, title)
 
 image :: GenParser Char ParserState Inline
 image = try $ do
@@ -756,5 +756,5 @@ image = try $ do
            Nothing  -> fail "no src"
   let title = fromMaybe "" $ extractAttribute "title" attributes
   let alt = fromMaybe "" (extractAttribute "alt" attributes)
-  return $ Image [Str alt] (url, title)
+  return $ Image [Str alt] (escapeURI url, title)
 

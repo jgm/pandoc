@@ -738,7 +738,7 @@ url :: GenParser Char ParserState Inline
 url = try $ do
   string "\\url"
   url' <- charsInBalanced '{' '}'
-  return $ Link [Code url'] (url', "")
+  return $ Link [Code url'] (escapeURI url', "")
 
 link :: GenParser Char ParserState Inline
 link = try $ do
@@ -746,17 +746,16 @@ link = try $ do
   url' <- manyTill anyChar (char '}')
   char '{'
   label' <- manyTill inline (char '}') 
-  return $ Link (normalizeSpaces label') (url', "")
+  return $ Link (normalizeSpaces label') (escapeURI url', "")
 
 image :: GenParser Char ParserState Inline
 image = try $ do
   ("includegraphics", _, args) <- command
   let args' = filter isArg args -- filter out options
-  let src = if null args' then
-              ("", "")
-            else
-              (stripFirstAndLast (head args'), "")
-  return $ Image [Str "image"] src
+  let (src,tit) = case args' of
+                       []    -> ("", "")
+                       (x:_) -> (stripFirstAndLast x, "")
+  return $ Image [Str "image"] (escapeURI src, tit)
 
 footnote :: GenParser Char ParserState Inline
 footnote = try $ do

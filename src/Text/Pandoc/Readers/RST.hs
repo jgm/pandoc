@@ -556,7 +556,7 @@ targetURI = do
   contents <- many1 (try (many spaceChar >> newline >> 
                           many1 spaceChar >> noneOf " \t\n") <|> noneOf "\n")
   blanklines
-  return contents
+  return $ escapeURI $ removeLeadingTrailingSpace $ contents
 
 imageKey :: GenParser Char ParserState ([Inline], (String, [Char]))
 imageKey = try $ do
@@ -565,13 +565,13 @@ imageKey = try $ do
   skipSpaces
   string "image::"
   src <- targetURI
-  return (normalizeSpaces ref, (removeLeadingTrailingSpace src, ""))
+  return (normalizeSpaces ref, (src, ""))
 
 anonymousKey :: GenParser Char st ([Inline], (String, [Char]))
 anonymousKey = try $ do
   oneOfStrings [".. __:", "__"]
   src <- targetURI
-  return ([Str "_"], (removeLeadingTrailingSpace src, ""))
+  return ([Str "_"], (src, ""))
 
 regularKey :: GenParser Char ParserState ([Inline], (String, [Char]))
 regularKey = try $ do
@@ -579,7 +579,7 @@ regularKey = try $ do
   ref <- referenceName
   char ':'
   src <- targetURI
-  return (normalizeSpaces ref, (removeLeadingTrailingSpace src, ""))
+  return (normalizeSpaces ref, (src, ""))
 
 --
 -- tables
@@ -883,7 +883,8 @@ explicitLink = try $ do
   src <- manyTill (noneOf ">\n") (char '>')
   skipSpaces
   string "`_"
-  return $ Link (normalizeSpaces label') (removeLeadingTrailingSpace src, "")
+  return $ Link (normalizeSpaces label')
+            (escapeURI $ removeLeadingTrailingSpace src, "")
 
 referenceLink :: GenParser Char ParserState Inline
 referenceLink = try $ do
@@ -891,25 +892,25 @@ referenceLink = try $ do
   key <- option label' (do{char '_'; return [Str "_"]}) -- anonymous link
   state <- getState
   let keyTable = stateKeys state
-  src <- case lookupKeySrc keyTable key of
-           Nothing     -> fail "no corresponding key"
-           Just target -> return target
+  (src,tit) <- case lookupKeySrc keyTable key of
+                    Nothing     -> fail "no corresponding key"
+                    Just target -> return target
   -- if anonymous link, remove first anon key so it won't be used again
   let keyTable' = if (key == [Str "_"]) -- anonymous link? 
-                    then delete ([Str "_"], src) keyTable -- remove first anon key 
+                    then delete ([Str "_"], (src,tit)) keyTable -- remove first anon key 
                     else keyTable                    
   setState $ state { stateKeys = keyTable' }
-  return $ Link (normalizeSpaces label') src 
+  return $ Link (normalizeSpaces label') (src, tit) 
 
 autoURI :: GenParser Char ParserState Inline
 autoURI = do
-  src <- uri
-  return $ Link [Str src] (src, "")
+  (orig, src) <- uri
+  return $ Link [Str orig] (src, "")
 
 autoEmail :: GenParser Char ParserState Inline
 autoEmail = do
-  src <- emailAddress
-  return $ Link [Str src] ("mailto:" ++ src, "")
+  (orig, src) <- emailAddress
+  return $ Link [Str orig] (src, "")
 
 autoLink :: GenParser Char ParserState Inline
 autoLink = autoURI <|> autoEmail
@@ -921,7 +922,7 @@ image = try $ do
   ref <- manyTill inline (char '|')
   state <- getState
   let keyTable = stateKeys state
-  src <- case lookupKeySrc keyTable ref of
-           Nothing     -> fail "no corresponding key"
-           Just target -> return target
-  return $ Image (normalizeSpaces ref) src
+  (src,tit) <- case lookupKeySrc keyTable ref of
+                     Nothing     -> fail "no corresponding key"
+                     Just target -> return target
+  return $ Image (normalizeSpaces ref) (src, tit)
