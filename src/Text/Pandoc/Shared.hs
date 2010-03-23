@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Utility functions and definitions used by the various Pandoc modules.
 -}
-module Text.Pandoc.Shared ( 
+module Text.Pandoc.Shared (
                      -- * List processing
                      splitBy,
                      splitByIndices,
@@ -43,7 +43,7 @@ module Text.Pandoc.Shared (
                      stripFirstAndLast,
                      camelCaseToHyphenated,
                      toRomanNumeral,
-                     stringToURI,
+                     escapeURI,
                      wrapped,
                      wrapIfNeeded,
                      wrappedTeX,
@@ -233,8 +233,8 @@ toRomanNumeral x =
 
 -- | Escape unicode characters in a URI.  Characters that are
 -- already valid in a URI, including % and ?, are left alone.
-stringToURI :: String -> String
-stringToURI = escapeURIString isAllowedInURI . encodeString
+escapeURI :: String -> String
+escapeURI = escapeURIString isAllowedInURI . encodeString
 
 -- | Wrap inlines to line length.
 wrapped :: Monad m => ([Inline] -> m Doc) -> [Inline] -> m Doc
