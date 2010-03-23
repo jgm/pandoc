@@ -67,14 +67,6 @@ renderFragment opts = if writerWrapText opts
 stringToHtml :: String -> Html
 stringToHtml = primHtml . escapeStringForXML
 
--- Note: href and src, unmodified, incorrectly escape high
--- characters in URIs using entities.  So we use these replacements:
-href' :: String -> HtmlAttr
-href' = href . stringToURI
-
-src' :: String -> HtmlAttr
-src' = src . stringToURI
-
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
 writeHtmlString opts d =
@@ -120,13 +112,13 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                 then case writerHTMLMathMethod opts of
                            LaTeXMathML (Just url) ->
                               script ! 
-                              [src' url, thetype "text/javascript"] $ noHtml
+                              [src url, thetype "text/javascript"] $ noHtml
                            MathML (Just url) ->
                               script ! 
-                              [src' url, thetype "text/javascript"] $ noHtml
+                              [src url, thetype "text/javascript"] $ noHtml
                            JsMath (Just url) ->
                               script !
-                              [src' url, thetype "text/javascript"] $ noHtml
+                              [src url, thetype "text/javascript"] $ noHtml
                            _ -> case lookup "mathml-script" (writerVariables opts) of
                                       Just s -> 
                                         script ! [thetype "text/javascript"] <<
@@ -196,7 +188,7 @@ elementToListItem opts (Sec _ num id' headerText subsecs) = do
   let subList = if null subHeads
                    then noHtml
                    else unordList subHeads
-  return $ Just $ (anchor ! [href' ("#" ++ writerIdentifierPrefix opts ++ id')] $ txt) +++ subList
+  return $ Just $ (anchor ! [href ("#" ++ writerIdentifierPrefix opts ++ id')] $ txt) +++ subList
 
 -- | Convert an Element to Html.
 elementToHtml :: WriterOptions -> Element -> State WriterState Html
@@ -230,7 +222,7 @@ parseMailto _ = Nothing
 -- | Obfuscate a "mailto:" link.
 obfuscateLink :: WriterOptions -> String -> String -> Html
 obfuscateLink opts txt s | writerEmailObfuscation opts == NoObfuscation =
-  anchor ! [href' s] << txt
+  anchor ! [href s] << txt
 obfuscateLink opts txt s =
   let meth = writerEmailObfuscation opts
       s' = map toLower s 
@@ -257,7 +249,7 @@ obfuscateLink opts txt s =
                      linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) +++  
                      noscript (primHtml $ obfuscateString altText)
                 _ -> error $ "Unknown obfuscation method: " ++ show meth
-        _ -> anchor ! [href' s] $ stringToHtml txt  -- malformed email
+        _ -> anchor ! [href s] $ stringToHtml txt  -- malformed email
 
 -- | Obfuscate character as entity.
 obfuscateChar :: Char -> String
@@ -320,7 +312,7 @@ blockToHtml opts (Header level lst) = do
                             stringToHtml " " +++ contents
                      else contents
   let contents''  = if writerTableOfContents opts
-                       then anchor ! [href' $ "#" ++ writerIdentifierPrefix opts ++ "TOC"] $ contents'
+                       then anchor ! [href $ "#" ++ writerIdentifierPrefix opts ++ "TOC"] $ contents'
                        else contents'
   return $ case level of
               1 -> h1 contents''
@@ -460,7 +452,7 @@ inlineToHtml opts inline =
                                               then thespan ! [theclass "math"] $ primHtml str
                                               else thediv ! [theclass "math"]  $ primHtml str
                                MimeTeX url -> 
-                                  return $ image ! [src' (url ++ "?" ++ str),
+                                  return $ image ! [src (url ++ "?" ++ str),
                                                     alt str, title str]
                                GladTeX ->
                                   return $ primHtml $ "<EQ>" ++ str ++ "</EQ>"
@@ -492,13 +484,13 @@ inlineToHtml opts inline =
                         return $ obfuscateLink opts (show linkText) s
     (Link txt (s,tit)) -> do
                         linkText <- inlineListToHtml opts txt
-                        return $ anchor ! ([href' s] ++ 
+                        return $ anchor ! ([href s] ++ 
                                  if null tit then [] else [title tit]) $ 
                                  linkText
     (Image txt (s,tit)) -> do
                         alternate <- inlineListToHtml opts txt
                         let alternate' = renderFragment opts alternate
-                        let attributes = [src' s] ++
+                        let attributes = [src s] ++
                                          (if null tit 
                                             then [] 
                                             else [title tit]) ++ 
@@ -516,7 +508,7 @@ inlineToHtml opts inline =
                         -- push contents onto front of notes
                         put $ st {stNotes = (htmlContents:notes)} 
                         return $ sup <<
-                                 anchor ! [href' ("#" ++ writerIdentifierPrefix opts ++ "fn" ++ ref),
+                                 anchor ! [href ("#" ++ writerIdentifierPrefix opts ++ "fn" ++ ref),
                                            theclass "footnoteRef",
                                            prefixedId opts ("fnref" ++ ref)] << ref
     (Cite _ il)  -> inlineListToHtml opts il
@@ -525,7 +517,7 @@ blockListToNote :: WriterOptions -> String -> [Block] -> State WriterState Html
 blockListToNote opts ref blocks =
   -- If last block is Para or Plain, include the backlink at the end of
   -- that block. Otherwise, insert a new Plain block with the backlink.
-  let backlink = [HtmlInline $ " <a href=\"#" ++ stringToURI (writerIdentifierPrefix opts ++ "fnref" ++ ref) ++ 
+  let backlink = [HtmlInline $ " <a href=\"#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref ++ 
                  "\" class=\"footnoteBackLink\"" ++
                  " title=\"Jump back to footnote " ++ ref ++ "\">↩</a>"]
       blocks'  = if null blocks
