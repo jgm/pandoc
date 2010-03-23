@@ -351,8 +351,6 @@ consecutive items:
 
 # SEE ALSO
 
-`hsmarkdown`(1),
-`html2markdown`(1),
 `markdown2pdf` (1).
 The *README* file distributed with Pandoc contains full documentation.
 
