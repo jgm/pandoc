@@ -3,17 +3,23 @@ pandoc (1.5.1)
   [ John MacFarlane ]
 
   * Fixed treatment of unicode characters in URIs.
-    + Export stringToURI from Shared.  This is used in the HTML
-      writer for all URIs.  It properly URI-encodes high
-      characters (> 127), leaving everything else (including
-      symbols and spaces) the same.
-    + Modified unsanitaryURI to allow UTF8 characters in a URI.
+    + Shared now exports escapeURI and unescapeURI. These handle
+      UTF8 encoding and decoding as well as URI escaping/unescaping.
+    + Shared: uri and emailAddress now return a pair of the original
+      parsed text and the escaped URI (in the latter case, with
+      the mailto: prefix).
+    + HTML reader: unsanitaryURI has been modified to allow unicode
+		  high characters in a URI.
+    + Readers:  All link and image URIs are now escaped using
+		  escapeURI.
+    + Markdown and RST writers:  unescapeURI is used so that URIs
+      in these formats are human-readable.
 
-  * Setup.hs: Don't assume that the build directory is "dist."
+  * Setup.hs: Don't assume that the build directory is "dist".
     Instead, get it from localBuildInfo.
 
   * OpenDocument writer: Use a Map for stTextStyleAttr.
-    This avoids duplicates (and invalid xml).
+    This avoids duplicates (and invalid xml). Resolves Issue #222.
 
 pandoc (1.5.0.1)
 
