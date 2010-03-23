@@ -115,7 +115,7 @@ import Text.ParserCombinators.Parsec
 import Text.PrettyPrint.HughesPJ ( Doc, fsep, ($$), (<>), empty, isEmpty, text, nest )
 import qualified Text.PrettyPrint.HughesPJ as PP
 import Text.Pandoc.CharacterReferences ( characterReference )
-import Data.Char ( toLower, toUpper, ord, isLower, isUpper, isAlpha,
+import Data.Char ( toLower, toUpper, ord, isLower, isUpper, isAlpha, isAscii,
                    isPunctuation )
 import Data.List ( find, isPrefixOf, intercalate )
 import Network.URI ( parseURI, URI (..), isAllowedInURI, escapeURIString )
@@ -487,25 +487,30 @@ domain = do
   dom <- many1 $ try (char '.' >> many1 domainChar )
   return $ intercalate "." (first:dom)
 
--- | Parses an email address; returns string.
-emailAddress :: GenParser Char st [Char]
+-- | Parses an email address; returns original and corresponding
+-- escaped mailto: URI.
+emailAddress :: GenParser Char st (String, String)
 emailAddress = try $ do
   firstLetter <- alphaNum
   restAddr <- many emailChar
   let addr = firstLetter:restAddr
   char '@'
   dom <- domain
-  return $ addr ++ '@':dom
+  let full = addr ++ '@':dom
+  return (full, escapeURI $ "mailto:" ++ full)
 
--- | Parses a URI.
-uri :: GenParser Char st String
+-- | Parses a URI. Returns pair of original and URI-escaped version.
+uri :: GenParser Char st (String, String)
 uri = try $ do
-  str <- many1 $ satisfy isAllowedInURI
-  case parseURI str of
-       Just uri' -> if uriScheme uri' `elem` [ "http:", "https:", "ftp:",
-                                               "file:", "mailto:",
-                                               "news:", "telnet:" ]
-                       then return $ show uri'
+  let protocols = [ "http:", "https:", "ftp:", "file:", "mailto:",
+                    "news:", "telnet:" ]
+  lookAhead $ oneOfStrings protocols
+  -- scan non-ascii characters and ascii characters allowed in a URI
+  str <- many1 $ satisfy (\c -> not (isAscii c) || isAllowedInURI c)
+  -- now see if they amount to an absolute URI
+  case parseURI (escapeURI str) of
+       Just uri' -> if uriScheme uri' `elem` protocols
+                       then return (str, show uri')
                        else fail "not a URI"
        Nothing   -> fail "not a URI"
 
