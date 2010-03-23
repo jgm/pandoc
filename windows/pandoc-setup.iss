@@ -7,7 +7,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{3CEE7B38-B19D-4980-9CAD-DF53600BD4CA}
 AppName=Pandoc
-AppVerName=Pandoc 1.5.0.1
+AppVerName=Pandoc 1.5.1
 AppPublisher=John MacFarlane
 AppPublisherURL=http://johnmacfarlane.net/pandoc/
 AppSupportURL=http://johnmacfarlane.net/pandoc/
