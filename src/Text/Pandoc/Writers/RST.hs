@@ -305,8 +305,9 @@ inlineToRST Space = return $ char ' '
 inlineToRST (Link [Code str] (src, _)) | src == str ||
                                          src == "mailto:" ++ str = do
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
-  return $ text srcSuffix
-inlineToRST (Link txt (src, tit)) = do
+  return $ text $ unescapeURI srcSuffix
+inlineToRST (Link txt (src', tit)) = do
+  let src = unescapeURI src'
   useReferenceLinks <- get >>= (return . writerReferenceLinks . stOptions)
   linktext <- inlineListToRST $ normalizeSpaces txt
   if useReferenceLinks
@@ -317,7 +318,8 @@ inlineToRST (Link txt (src, tit)) = do
             modify $ \st -> st { stLinks = refs' }
             return $ char '`' <> linktext <> text "`_"
     else return $ char '`' <> linktext <> text " <" <> text src <> text ">`_"
-inlineToRST (Image alternate (source, tit)) = do
+inlineToRST (Image alternate (source', tit)) = do
+  let source = unescapeURI source'
   pics <- get >>= (return . stImages)
   let labelsUsed = map fst pics 
   let txt = if null alternate || alternate == [Str ""] || 

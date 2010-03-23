@@ -400,9 +400,10 @@ inlineToMarkdown _ (HtmlInline str) = return $ text str
 inlineToMarkdown _ (LineBreak) = return $ text "  \n"
 inlineToMarkdown _ Space = return $ char ' '
 inlineToMarkdown opts (Cite _ cits) = inlineListToMarkdown opts cits
-inlineToMarkdown opts (Link txt (src, tit)) = do
+inlineToMarkdown opts (Link txt (src', tit)) = do
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if null tit then empty else text $ " \"" ++ tit ++ "\""
+  let src = unescapeURI src'
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
   let useRefLinks = writerReferenceLinks opts
   let useAuto = null tit && txt == [Code srcSuffix]
@@ -423,7 +424,7 @@ inlineToMarkdown opts (Image alternate (source, tit)) = do
                (alternate == [Str source]) -- to prevent autolinks
                then [Str "image"]
                else alternate
-  linkPart <- inlineToMarkdown opts (Link txt (source, tit)) 
+  linkPart <- inlineToMarkdown opts (Link txt (unescapeURI source, tit)) 
   return $ char '!' <> linkPart
 inlineToMarkdown _ (Note contents) = do 
   modify (\st -> st{ stNotes = contents : stNotes st })
