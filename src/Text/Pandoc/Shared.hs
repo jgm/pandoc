@@ -115,10 +115,11 @@ import Text.ParserCombinators.Parsec
 import Text.PrettyPrint.HughesPJ ( Doc, fsep, ($$), (<>), empty, isEmpty, text, nest )
 import qualified Text.PrettyPrint.HughesPJ as PP
 import Text.Pandoc.CharacterReferences ( characterReference )
-import Data.Char ( toLower, toUpper, ord, chr, isLower, isUpper, isAlpha,
+import Data.Char ( toLower, toUpper, ord, isLower, isUpper, isAlpha,
                    isPunctuation )
 import Data.List ( find, isPrefixOf, intercalate )
-import Network.URI ( parseURI, URI (..), isAllowedInURI )
+import Network.URI ( parseURI, URI (..), isAllowedInURI, escapeURIString )
+import Codec.Binary.UTF8.String ( encodeString )
 import System.Directory
 import System.FilePath ( (</>) )
 -- Note: ghc >= 6.12 (base >=4.2) supports unicode through iconv
@@ -131,10 +132,6 @@ import System.IO.UTF8
 import Data.Generics
 import qualified Control.Monad.State as S
 import Control.Monad (join)
-import Data.ByteString (unpack)
-import Data.Word (Word8)
-import Data.ByteString.UTF8 (fromString)
-import Text.Printf (printf)
 import Paths_pandoc (getDataFileName)
 
 --
@@ -234,15 +231,10 @@ toRomanNumeral x =
               _ | x >= 1    -> "I" ++ toRomanNumeral (x - 1)
               _             -> ""
 
--- | Escape unicode characters in a URI.  This means converting
--- them to UTF-8, then URI-encoding the octets.  We leave everything
--- else the same, assuming that the user has already escaped
--- special characters like & and %.
+-- | Escape unicode characters in a URI.  Characters that are
+-- already valid in a URI, including % and ?, are left alone.
 stringToURI :: String -> String
-stringToURI = concatMap encodeOctet . unpack . fromString
-  where encodeOctet :: Word8 -> String
-        encodeOctet x | x > 127 = printf "%%%2x" x
-        encodeOctet x = [chr (fromIntegral x)]
+stringToURI = escapeURIString isAllowedInURI . encodeString
 
 -- | Wrap inlines to line length.
 wrapped :: Monad m => ([Inline] -> m Doc) -> [Inline] -> m Doc
