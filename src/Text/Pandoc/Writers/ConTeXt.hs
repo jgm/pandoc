@@ -153,6 +153,7 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
     let style'' = case style' of
                         DefaultStyle -> orderedListStyles !! level
                         Decimal      -> "[n]" 
+                        Example      -> "[n]" 
                         LowerRoman   -> "[r]"
                         UpperRoman   -> "[R]"
                         LowerAlpha   -> "[a]"

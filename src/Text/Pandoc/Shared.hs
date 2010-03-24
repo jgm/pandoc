@@ -576,6 +576,23 @@ decimal = do
   num <- many1 digit
   return (Decimal, read num)
 
+-- | Parses a '@' and optional label and
+-- returns (DefaultStyle, [next example number]).  The next
+-- example number is incremented in parser state, and the label
+-- (if present) is added to the label table.
+exampleNum :: GenParser Char ParserState (ListNumberStyle, Int)
+exampleNum = do
+  char '@'
+  lab <- many (alphaNum <|> oneOf "_-")
+  st <- getState
+  let num = stateNextExample st
+  let newlabels = if null lab
+                     then stateExamples st
+                     else M.insert lab num $ stateExamples st
+  updateState $ \s -> s{ stateNextExample = num + 1
+                       , stateExamples    = newlabels }
+  return (Example, num)
+
 -- | Parses a '#' returns (DefaultStyle, 1).
 defaultNum :: GenParser Char st (ListNumberStyle, Int)
 defaultNum = do
@@ -600,10 +617,10 @@ romanOne = (char 'i' >> return (LowerRoman, 1)) <|>
            (char 'I' >> return (UpperRoman, 1))
 
 -- | Parses an ordered list marker and returns list attributes.
-anyOrderedListMarker :: GenParser Char st ListAttributes 
+anyOrderedListMarker :: GenParser Char ParserState ListAttributes 
 anyOrderedListMarker = choice $ 
   [delimParser numParser | delimParser <- [inPeriod, inOneParen, inTwoParens],
-                           numParser <- [decimal, defaultNum, romanOne,
+                           numParser <- [decimal, exampleNum, defaultNum, romanOne,
                            lowerAlpha, lowerRoman, upperAlpha, upperRoman]]
 
 -- | Parses a list number (num) followed by a period, returns list attributes.
@@ -638,11 +655,12 @@ inTwoParens num = try $ do
 -- returns number.
 orderedListMarker :: ListNumberStyle 
                   -> ListNumberDelim 
-                  -> GenParser Char st Int
+                  -> GenParser Char ParserState Int
 orderedListMarker style delim = do
   let num = defaultNum <|>  -- # can continue any kind of list
             case style of
                DefaultStyle -> decimal
+               Example      -> exampleNum
                Decimal      -> decimal
                UpperRoman   -> upperRoman
                LowerRoman   -> lowerRoman
@@ -700,7 +718,9 @@ data ParserState = ParserState
       stateLiterateHaskell :: Bool,          -- ^ Treat input as literate haskell
       stateColumns         :: Int,           -- ^ Number of columns in terminal
       stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
-      stateIndentedCodeClasses :: [String]   -- ^ Classes to use for indented code blocks
+      stateIndentedCodeClasses :: [String],  -- ^ Classes to use for indented code blocks
+      stateNextExample     :: Int,           -- ^ Number of next example
+      stateExamples        :: M.Map String Int -- ^ Map from example labels to numbers 
     }
     deriving Show
 
@@ -725,7 +745,9 @@ defaultParserState =
                   stateLiterateHaskell = False,
                   stateColumns         = 80,
                   stateHeaderTable     = [],
-                  stateIndentedCodeClasses = [] }
+                  stateIndentedCodeClasses = [],
+                  stateNextExample     = 1,
+                  stateExamples        = M.empty }
 
 data HeaderType 
     = SingleHeader Char  -- ^ Single line of characters underneath
@@ -855,6 +877,7 @@ orderedListMarkers (start, numstyle, numdelim) =
   let singleton c = [c]
       nums = case numstyle of
                      DefaultStyle -> map show [start..]
+                     Example      -> map show [start..] 
                      Decimal      -> map show [start..]
                      UpperAlpha   -> drop (start - 1) $ cycle $ 
                                      map singleton ['A'..'Z']

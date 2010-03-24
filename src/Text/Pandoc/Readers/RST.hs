@@ -425,7 +425,7 @@ bulletListStart = try $ do
 -- parses ordered list start and returns its length (inc following whitespace)
 orderedListStart :: ListNumberStyle
                  -> ListNumberDelim
-                 -> GenParser Char st Int
+                 -> GenParser Char ParserState Int
 orderedListStart style delim = try $ do
   (_, markerLen) <- withHorizDisplacement (orderedListMarker style delim)
   white <- many1 spaceChar

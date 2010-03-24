@@ -34,7 +34,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Shared 
 import Text.Pandoc.Blocks
-import Text.ParserCombinators.Parsec ( parse, GenParser )
+import Text.ParserCombinators.Parsec ( runParser, GenParser )
 import Data.List ( group, isPrefixOf, find, intersperse, transpose )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
@@ -158,7 +158,7 @@ elementToListItem (Sec _ _ _ headerText subsecs) = [Plain headerText] ++
      else [BulletList $ map elementToListItem subsecs]
 
 -- | Ordered list start parser for use in Para below.
-olMarker :: GenParser Char st Char
+olMarker :: GenParser Char ParserState Char
 olMarker = do (start, style', delim) <- anyOrderedListMarker
               if delim == Period && 
                           (style' == UpperAlpha || (style' == UpperRoman &&
@@ -169,7 +169,7 @@ olMarker = do (start, style', delim) <- anyOrderedListMarker
 -- | True if string begins with an ordered list marker
 beginsWithOrderedListMarker :: String -> Bool
 beginsWithOrderedListMarker str = 
-  case parse olMarker "para start" str of
+  case runParser olMarker defaultParserState "para start" str of
          Left  _  -> False 
          Right _  -> True
 

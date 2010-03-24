@@ -35,6 +35,7 @@ import Data.List ( transpose, isSuffixOf, sortBy, findIndex, intercalate )
 import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum )
 import Data.Maybe
+import qualified Data.Map as M
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment' )
@@ -67,7 +68,7 @@ setextHChars = "=-"
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
-specialChars = "\\[]*_~`<>$!^-.&'\"\8216\8217\8220\8221;"
+specialChars = "\\[]*_~`<>$!^-.&@'\"\8216\8217\8220\8221;"
 
 --
 -- auxiliary functions
@@ -915,6 +916,7 @@ inlineParsers = [ str
                 , rawHtmlInline'
                 , rawLaTeXInline'
                 , escapedChar
+                , exampleRef
                 , symbol
                 , ltSign ]
 
@@ -949,6 +951,15 @@ ltSign = do
 
 specialCharsMinusLt :: [Char]
 specialCharsMinusLt = filter (/= '<') specialChars
+
+exampleRef :: GenParser Char ParserState Inline
+exampleRef = try $ do
+  char '@'
+  lab <- many1 (alphaNum <|> oneOf "-_")
+  examples <- liftM stateExamples getState
+  case M.lookup lab examples of
+       Just num  -> return (Str $ show num)
+       Nothing   -> pzero
 
 symbol :: GenParser Char ParserState Inline
 symbol = do 

@@ -667,11 +667,37 @@ So, the following yields a list numbered sequentially starting from 2:
     1.  Four
     *   Five
 
-If default list markers are desired, use '`#.`':
+If default list markers are desired, use `#.`:
 
     #.  one
     #.  two
     #.  three
+
+Numbered examples
+-----------------
+
+The special list marker `@` can be used for sequentially numbered
+examples. The first list item with a `@` marker will be numbered '1',
+the next '2', and so on, throughout the document. The numbered examples
+need not occur in a single list; each new list using `@` will take up
+where the last stopped. So, for example:
+
+    (@)  My first example will be numbered (1).
+    (@)  My second example will be numbered (2).
+
+    Explanation of examples.
+
+    (@)  My third example will be numbered (3).
+
+Numbered examples can be labeled and referred to later in the
+document:
+
+    (@good)  This is a good example.
+
+    As (@good) illustrates, ...
+
+The label can be any string of alphanumeric characters, underscores,
+or hyphens.  The example must occur before the reference.
 
 Definition lists
 ----------------
