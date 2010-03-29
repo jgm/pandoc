@@ -1,3 +1,10 @@
+pandoc (1.5.1.1)
+
+  [ John MacFarlane ]
+
+ * Fixed uniqueIdent in Shared so that header identifiers work as
+   advertized in the README and are are valid XHTML names.
+
 pandoc (1.5.1)
 
   [ John MacFarlane ]
