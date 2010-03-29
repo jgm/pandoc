@@ -117,7 +117,7 @@ import Text.PrettyPrint.HughesPJ ( Doc, fsep, ($$), (<>), empty, isEmpty, text, 
 import qualified Text.PrettyPrint.HughesPJ as PP
 import Text.Pandoc.CharacterReferences ( characterReference )
 import Data.Char ( toLower, toUpper, ord, isLower, isUpper, isAlpha, isAscii,
-                   isPunctuation )
+                   isLetter, isDigit )
 import Data.List ( find, isPrefixOf, intercalate )
 import Network.URI ( parseURI, URI (..), isAllowedInURI, escapeURIString, unEscapeString )
 import Codec.Binary.UTF8.String ( encodeString, decodeString )
@@ -914,38 +914,37 @@ data Element = Blk Block
              --    lvl  num ident  label    contents
              deriving (Eq, Read, Show, Typeable, Data)
 
--- | Convert Pandoc inline list to plain text identifier.
+-- | Convert Pandoc inline list to plain text identifier.  HTML
+-- identifiers must start with a letter, and may contain only
+-- letters, digits, and the characters _-:.
 inlineListToIdentifier :: [Inline] -> String
-inlineListToIdentifier = dropWhile (not . isAlpha) . inlineListToIdentifier'
-
-inlineListToIdentifier' :: [Inline] -> [Char]
-inlineListToIdentifier' [] = ""
-inlineListToIdentifier' (x:xs) =
-  xAsText ++ inlineListToIdentifier' xs
-  where xAsText = case x of
-          Str s          -> filter (\c -> c `elem` "_-." || not (isPunctuation c)) $
-                            intercalate "-" $ words $ map toLower s
-          Emph lst       -> inlineListToIdentifier' lst
-          Strikeout lst  -> inlineListToIdentifier' lst
-          Superscript lst -> inlineListToIdentifier' lst
-          SmallCaps   lst -> inlineListToIdentifier' lst
-          Subscript lst  -> inlineListToIdentifier' lst
-          Strong lst     -> inlineListToIdentifier' lst
-          Quoted _ lst   -> inlineListToIdentifier' lst
-          Cite   _ lst   -> inlineListToIdentifier' lst
-          Code s         -> s
-          Space          -> "-"
-          EmDash         -> "-"
-          EnDash         -> "-"
-          Apostrophe     -> ""
-          Ellipses       -> ""
-          LineBreak      -> "-"
-          Math _ _       -> ""
-          TeX _          -> ""
-          HtmlInline _   -> ""
-          Link lst _     -> inlineListToIdentifier' lst
-          Image lst _    -> inlineListToIdentifier' lst
-          Note _         -> ""
+inlineListToIdentifier =
+  dropWhile (not . isAlpha) . intercalate "-" . words . map toLower .
+  filter (\c -> isLetter c || isDigit c || c `elem` "_-:. ") .
+  concatMap extractText
+    where extractText x = case x of
+              Str s           -> s
+              Emph lst        -> concatMap extractText lst
+              Strikeout lst   -> concatMap extractText lst
+              Superscript lst -> concatMap extractText lst
+              SmallCaps   lst -> concatMap extractText lst
+              Subscript lst   -> concatMap extractText lst
+              Strong lst      -> concatMap extractText lst
+              Quoted _ lst    -> concatMap extractText lst
+              Cite   _ lst    -> concatMap extractText lst
+              Code s          -> s
+              Space           -> " "
+              EmDash          -> "---"
+              EnDash          -> "--"
+              Apostrophe      -> ""
+              Ellipses        -> "..."
+              LineBreak       -> " "
+              Math _ s        -> s
+              TeX _           -> ""
+              HtmlInline _    -> ""
+              Link lst _      -> concatMap extractText lst
+              Image lst _     -> concatMap extractText lst
+              Note _          -> ""
 
 -- | Convert list of Pandoc blocks into (hierarchical) list of Elements
 hierarchicalize :: [Block] -> [Element]
@@ -977,7 +976,9 @@ headerLtEq _ _ = False
 -- Second argument is a list of already used identifiers.
 uniqueIdent :: [Inline] -> [String] -> String
 uniqueIdent title' usedIdents =
-  let baseIdent = inlineListToIdentifier title'
+  let baseIdent = case inlineListToIdentifier title' of
+                        ""   -> "section"
+                        x    -> x
       numIdent n = baseIdent ++ "-" ++ show n
   in  if baseIdent `elem` usedIdents
         then case find (\x -> numIdent x `notElem` usedIdents) ([1..60000] :: [Int]) of
