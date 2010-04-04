@@ -338,7 +338,7 @@ inlineToLaTeX (Link txt (src, _)) =
                          char '}'
 inlineToLaTeX (Image _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True }
-  return $ text $ "\\includegraphics{" ++ source ++ "}" 
+  return $ text $ "\\includegraphics{" ++ source ++ "}"
 inlineToLaTeX (Note contents) = do
   st <- get
   put (st {stInNote = True})
