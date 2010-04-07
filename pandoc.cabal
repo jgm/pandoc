@@ -57,9 +57,7 @@ Data-Files:
                  s5/default/outline.css,
                  s5/default/print.css,
                  -- documentation
-                 README, INSTALL, COPYRIGHT, BUGS, changelog,
-                 -- wrappers
-                 markdown2pdf
+                 README, INSTALL, COPYRIGHT, BUGS, changelog
 Extra-Source-Files:
                  -- sources for man pages
                  man/man1/pandoc.1.md, man/man1/markdown2pdf.1.md,
