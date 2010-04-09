@@ -2,7 +2,8 @@
 \label{pandoc}
 \report{John MacFarlane}%11/09
 \status{active development}
-\participants{Andrea Rossato, Peter Wang, Paulo Tanimoto}
+\participants{John MacFarlane, Andrea Rossato, Peter Wang, Paulo Tanimoto, Eric Kow,
+Luke Plant, Justin Bogner}
 \makeheader
 
 Pandoc aspires to be the swiss army knife of text markup formats: it
@@ -12,17 +13,20 @@ DocBook XML, OpenDocument XML, ODT, RTF, groff man, MediaWiki markup,
 GNU Texinfo, LaTeX, ConTeXt, and S5.  Pandoc's markdown syntax includes
 extensions for LaTeX math, tables, definition lists, footnotes, and more.
 
-Since the last report, there has been one release (1.2.1).
-\begin{itemize}
-  \item Users may notice a significant speedup in reading markdown in
-    \verb!--smart! mode; the abbreviations parser has been made much more
-    efficient.
-  \item Default HTML output now wraps sections in divs with unique
-    identifiers.  This should aid manipulation using javascript and
-    other tools.
-  \item We have made some progress in replacing the old POSIX shell
-    script wrappers with more portable Haskell wrappers.
-\end{itemize}
+There have been several releases since the last report, with many
+bug fixes and small improvements. There are two big architectural
+changes. First, pandoc no longer requires Template Haskell, which should
+make it more portable. Second, a new, flexible template system has been
+added, allowing users much more control over document headers and footers.
+Other major changes include support for xetex, support for reST tables,
+support for tables without header rows, support for formatting
+math as MathML, a new ``plain text'' output format, and a much
+more permissive HTML parser. The old \verb!hsmarkdown! and
+\verb!html2markdown! scripts have been removed; \verb!pandoc! itself can
+now do the work of \verb!html2markdown!. Summaries of the new features
+in each release are available on the (newly redesigned) website, along
+with full documentation and a new tutorial on using the pandoc
+library for structured text manipulation.
 
 \FurtherReading
     \url{http://johnmacfarlane.net/pandoc/}
