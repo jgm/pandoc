@@ -68,19 +68,19 @@ you will need [zip-archive] and (if you want syntax highlighting)
     preceded by a `-` (to force the flag to `false`), and separated
     by spaces.  Pandoc's flags include:
 
-    - `library`:  build the library (default yes)
     - `executable`: build the pandoc executable (default yes)
-    - `wrappers`: build the wrappers `markdown2pdf` and `hsmarkdown`
-      (default yes)
+    - `wrappers`: build the wrapper `markdown2pdf` (default yes)
     - `highlighting`: compile with syntax highlighting support (increases
       the size of the executable) (default no)
+    - `citeproc`: compile with bibliographic support using `citeproc-hs`
+      (default no)
 
     So, for example,
 
-        --flags="-library highlighting"
+        --flags="-executable -wrappers highlighting"
 
-    tells Cabal to build the executable but not the library, and to
-    compile with syntax highlighting support.
+    tells Cabal to build the library but not the executables,
+    and to compile with syntax highlighting support.
 
 3.  Build:
 

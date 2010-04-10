@@ -131,9 +131,6 @@ Flag executable
 Flag wrappers
   Description:   Build the wrappers (markdown2pdf).
   Default:       True
-Flag library
-  Description:   Build the pandoc library.
-  Default:       True
 Flag citeproc
   Description:   Compile in support for citeproc-hs bibliographic formatting.
   Default:       False
@@ -192,11 +189,7 @@ Library
   else
     Ghc-Options:     -O2 -Wall
   Ghc-Prof-Options: -auto-all -caf-all
-
-  if flag(library)
-    Buildable:      True
-  else
-    Buildable:      False
+  Buildable:      True
 
 Executable pandoc
   Hs-Source-Dirs:     src
