@@ -67,7 +67,7 @@ setextHChars = "=-"
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
-specialChars = "\\[]*_~`<>$!^-.&'\"\8216\8217\8220\8221;"
+specialChars = "\\[]*_~`<>$!^-.&'\";"
 
 --
 -- auxiliary functions
@@ -1070,30 +1070,28 @@ failIfInQuoteContext context = do
 singleQuoteStart :: GenParser Char ParserState Char
 singleQuoteStart = do 
   failIfInQuoteContext InSingleQuote
-  char '\8216' <|> 
-     (try $ do char '\''  
-               notFollowedBy (oneOf ")!],.;:-? \t\n")
-               notFollowedBy (try (oneOfStrings ["s","t","m","ve","ll","re"] >>
-                                   satisfy (not . isAlphaNum))) 
-                                   -- possess/contraction
-               return '\'')
+  try $ do char '\''  
+           notFollowedBy (oneOf ")!],.;:-? \t\n")
+           notFollowedBy (try (oneOfStrings ["s","t","m","ve","ll","re"] >>
+                               satisfy (not . isAlphaNum))) 
+                               -- possess/contraction
+           return '\''
 
 singleQuoteEnd :: GenParser Char st Char
 singleQuoteEnd = try $ do
-  char '\8217' <|> char '\''
+  char '\''
   notFollowedBy alphaNum
   return '\''
 
 doubleQuoteStart :: GenParser Char ParserState Char
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
-  char '\8220' <|>
-     (try $ do char '"'
-               notFollowedBy (oneOf " \t\n")
-               return '"')
+  try $ do char '"'
+           notFollowedBy (oneOf " \t\n")
+           return '"'
 
 doubleQuoteEnd :: GenParser Char st Char
-doubleQuoteEnd = char '\8221' <|> char '"'
+doubleQuoteEnd = char '"'
 
 ellipses :: GenParser Char st Inline
 ellipses = oneOfStrings ["...", " . . . ", ". . .", " . . ."] >> return Ellipses
