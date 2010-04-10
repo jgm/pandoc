@@ -18,7 +18,7 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  this library. It can read markdown and (subsets of)
                  reStructuredText, HTML, and LaTeX, and it can write
                  markdown, reStructuredText, HTML, LaTeX, ConTeXt, Docbook,
-                 OpenDocument, ODT, RTF, MediaWiki, groff man pages, and
+                 OpenDocument, ODT, RTF, MediaWiki, Textile, groff man pages, and
                  S5 HTML slide shows.
                  .
                  Pandoc extends standard markdown syntax with footnotes,
@@ -42,6 +42,7 @@ Data-Files:
                  templates/man.template, templates/markdown.template,
                  templates/rst.template, templates/plain.template,
                  templates/mediawiki.template, templates/rtf.template,
+                 templates/textile.template
                  -- data for ODT writer
                  reference.odt,
                  -- data for LaTeXMathML writer
@@ -87,6 +88,7 @@ Extra-Source-Files:
                  tests/tables.plain,
                  tests/tables.markdown,
                  tests/tables.mediawiki,
+                 tests/tables.textile,
                  tests/tables.native,
                  tests/tables.opendocument,
                  tests/tables.texinfo,
@@ -104,6 +106,7 @@ Extra-Source-Files:
                  tests/writer.markdown,
                  tests/writer.plain,
                  tests/writer.mediawiki,
+                 tests/writer.textile,
                  tests/writer.native,
                  tests/writer.opendocument,
                  tests/writer.rst,
@@ -180,6 +183,7 @@ Library
                    Text.Pandoc.Writers.Man,
                    Text.Pandoc.Writers.Markdown,
                    Text.Pandoc.Writers.RST,
+                   Text.Pandoc.Writers.Textile,
                    Text.Pandoc.Writers.MediaWiki,
                    Text.Pandoc.Writers.RTF,
                    Text.Pandoc.Writers.S5,

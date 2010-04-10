@@ -7,7 +7,7 @@ another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX]; and
 it can write plain text, [markdown], [reStructuredText], [HTML], [LaTeX],
 [ConTeXt], [RTF], [DocBook XML], [OpenDocument XML], [ODT], [GNU Texinfo],
-[MediaWiki markup], [groff man] pages, and [S5] HTML slide shows.
+[MediaWiki markup], [Textile], [groff man] pages, and [S5] HTML slide shows.
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, delimited code blocks,
 superscript, subscript, strikeout, title blocks, automatic tables of
@@ -22,6 +22,7 @@ representation of the document, and a set of writers, which convert
 this native representation into a target format. Thus, adding an input
 or output format requires only adding a reader or writer.
 
+[Textile]: http://thresholdstate.com/articles/4312/the-textile-reference-manual
 [markdown]: http://daringfireball.net/projects/markdown/
 [reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html
 [S5]: http://meyerweb.com/eric/tools/s5/
@@ -90,8 +91,9 @@ Supported output formats include `markdown`, `latex`, `context`
 (ConTeXt), `html`, `rtf` (rich text format), `rst`
 (reStructuredText), `docbook` (DocBook XML), `opendocument`
 (OpenDocument XML), `odt` (OpenOffice text document), `texinfo`, (GNU
-Texinfo), `mediawiki` (MediaWiki markup), `man` (groff man), and `s5`
-(which produces an HTML file that acts like powerpoint).
+Texinfo), `mediawiki` (MediaWiki markup), `textile` (Textile), `man`
+(groff man), and `s5` (which produces an HTML file that acts like
+powerpoint).
 
 Supported input formats include `markdown`, `html`, `latex`, and `rst`.
 Note that the `rst` reader only parses a subset of reStructuredText
@@ -1121,6 +1123,8 @@ In Texinfo output, it will be rendered inside a `@math` command.
 In groff man output, it will be rendered verbatim without $'s.
 
 In MediaWiki output, it will be rendered inside `<math>` tags.
+
+In Textile output, it will be rendered inside `<span class="math">` tags.
 
 In RTF, Docbook, and OpenDocument output, it will be rendered, as far as
 possible, using unicode characters, and will otherwise appear verbatim.
