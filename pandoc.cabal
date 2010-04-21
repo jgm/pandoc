@@ -122,6 +122,9 @@ Extra-Source-Files:
                  tests/RunTests.hs
 Extra-Tmp-Files: man/man1/pandoc.1, man/man1/markdown2pdf.1
 
+Flag threaded
+  Description:   Compile markdown2pdf with -threaded option.
+  Default:       True
 Flag highlighting
   Description:   Compile in support for syntax highlighting of code blocks.
   Default:       False
@@ -195,9 +198,9 @@ Executable pandoc
   Hs-Source-Dirs:     src
   Main-Is:            pandoc.hs
   if impl(ghc >= 6.12)
-    Ghc-Options:   -O2 -Wall -threaded -fno-warn-unused-do-bind
+    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
   else
-    Ghc-Options:     -O2 -Wall -threaded
+    Ghc-Options:     -O2 -Wall
   Ghc-Prof-Options:   -auto-all -caf-all
   Extensions:         CPP
 
@@ -214,7 +217,10 @@ Executable pandoc
 Executable markdown2pdf
   Hs-Source-Dirs:     src
   Main-Is:            markdown2pdf.hs
-  Ghc-Options:        -Wall -threaded
+  if flag(threaded)
+    Ghc-Options:        -Wall -threaded
+  else
+    Ghc-Options:        -Wall
   Ghc-Prof-Options:   -auto-all
   Extensions:         CPP
   if flag(wrappers)
