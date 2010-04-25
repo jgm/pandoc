@@ -13,9 +13,7 @@
 -- cabal install Diff
 
 module Main where
-import System.IO.UTF8
 import System.IO ( openTempFile, stderr, stdout, hFlush )
-import Prelude hiding ( putStrLn, putStr, readFile )
 import System.Process ( runProcess, waitForProcess )
 import System.FilePath ( (</>), (<.>) )
 import System.Directory
@@ -23,6 +21,12 @@ import System.Environment
 import System.Exit
 import Text.Printf
 import Data.Algorithm.Diff
+import Prelude hiding ( readFile )
+import qualified Data.ByteString.Lazy as B
+import Data.ByteString.Lazy.UTF8 (toString, fromString)
+
+readFileUTF8 :: FilePath -> IO String
+readFileUTF8 f = B.readFile f >>= return . toString
 
 pandocPath :: FilePath
 pandocPath = ".." </> "dist" </> "build" </> "pandoc" </> "pandoc"
@@ -127,7 +131,7 @@ main = do
 
 -- makes sure file is fully closed after reading
 readFile' :: FilePath -> IO String
-readFile' f = do s <- readFile f
+readFile' f = do s <- readFileUTF8 f
                  return $! (length s `seq` s)
 
 runLhsWriterTest :: String -> IO Bool
@@ -174,5 +178,5 @@ runTest testname opts inp norm = do
                      else return $ TestFailed $ getDiff (lines outputContents) (lines normContents)
                 else return $ TestError ec
   removeFile outputPath
-  putStrLn (show result)
+  B.putStrLn (fromString $ show result)
   return (result == TestPassed)
