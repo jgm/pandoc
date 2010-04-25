@@ -1077,17 +1077,17 @@ Blah
     </listitem>
     <listitem>
       <para>
-        2+2=4
+        2 + 2 = 4
       </para>
     </listitem>
     <listitem>
       <para>
-        <emphasis>x</emphasis> ∈ <emphasis>y</emphasis>
+        <emphasis>x</emphasis> ∈ <emphasis>y</emphasis>
       </para>
     </listitem>
     <listitem>
       <para>
-        α ∧ ω
+        α ∧ ω
       </para>
     </listitem>
     <listitem>
@@ -1103,13 +1103,13 @@ Blah
     <listitem>
       <para>
         Here's some display math:
-        \frac{<emphasis>d</emphasis>}{<emphasis>dx</emphasis>}<emphasis>f</emphasis>(<emphasis>x</emphasis>)=\lim<subscript><emphasis>h</emphasis> → 0</subscript>\frac{<emphasis>f</emphasis>(<emphasis>x</emphasis>+<emphasis>h</emphasis>)-<emphasis>f</emphasis>(<emphasis>x</emphasis>)}{<emphasis>h</emphasis>}
+        $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$
       </para>
     </listitem>
     <listitem>
       <para>
         Here's one that has a line break in it:
-        α+ω × <emphasis>x</emphasis><superscript>2</superscript>.
+        α + ω × <emphasis>x</emphasis><superscript>2</superscript>.
       </para>
     </listitem>
   </itemizedlist>
