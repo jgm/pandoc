@@ -544,23 +544,22 @@ Ellipses\&...and\&...and\&....
 .SH LaTeX
 .IP \[bu] 2
 .IP \[bu] 2
-\f[B]2+2=4\f[]
+2 + 2 = 4
 .IP \[bu] 2
-\f[B]x\ \\in\ y\f[]
+\f[I]x\f[] ∈ \f[I]y\f[]
 .IP \[bu] 2
-\f[B]\\alpha\ \\wedge\ \\omega\f[]
+α ∧ ω
 .IP \[bu] 2
-\f[B]223\f[]
+223
 .IP \[bu] 2
-\f[B]p\f[]-Tree
+\f[I]p\f[]-Tree
 .IP \[bu] 2
 Here's some display math:
 .RS
-\f[B]\\frac{d}{dx}f(x)=\\lim_{h\\to\ 0}\\frac{f(x+h)-f(x)}{h}\f[]
+$\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}$
 .RE
 .IP \[bu] 2
-Here's one that has a line break in it:
-\f[B]\\alpha\ +\ \\omega\ \\times\ x^2\f[].
+Here's one that has a line break in it: α + ω × \f[I]x\f[]^2^.
 .PP
 These shouldn't be math:
 .IP \[bu] 2

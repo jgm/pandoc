@@ -32,6 +32,7 @@ module Text.Pandoc.Writers.Man ( writeMan) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Templates
 import Text.Pandoc.Shared
+import Text.Pandoc.Readers.TeXMath
 import Text.Printf ( printf )
 import Data.List ( isPrefixOf, intersperse, intercalate )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
@@ -301,9 +302,9 @@ inlineToMan _ Ellipses = return $ text "\\&..."
 inlineToMan _ (Code str) =
   return $ text $ "\\f[B]" ++ escapeCode str ++ "\\f[]"
 inlineToMan _ (Str str) = return $ text $ escapeString str
-inlineToMan opts (Math InlineMath str) = inlineToMan opts (Code str)
+inlineToMan opts (Math InlineMath str) = inlineListToMan opts $ readTeXMath str
 inlineToMan opts (Math DisplayMath str) = do
-  contents <- inlineToMan opts (Code str)
+  contents <- inlineListToMan opts $ readTeXMath str
   return $ text ".RS" $$ contents $$ text ".RE"
 inlineToMan _ (TeX _) = return empty
 inlineToMan _ (HtmlInline _) = return empty
