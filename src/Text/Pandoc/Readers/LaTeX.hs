@@ -453,7 +453,7 @@ inline =  choice [ str
                  , accentedChar
                  , nonbreakingSpace
                  , specialChar
-                 , rawLaTeXInline
+                 , rawLaTeXInline'
                  , escapedChar
                  , unescapedChar
                  ] <?> "inline"
@@ -771,11 +771,16 @@ footnote = try $ do
   setInput rest
   return $ Note blocks
 
+-- | Parse any LaTeX inline command and return it in a raw TeX inline element.
+rawLaTeXInline' :: GenParser Char ParserState Inline
+rawLaTeXInline' = do
+  notFollowedBy' $ oneOfStrings ["\\begin", "\\end", "\\item", "\\ignore",
+                                 "\\section"]
+  rawLaTeXInline
+
 -- | Parse any LaTeX command and return it in a raw TeX inline element.
 rawLaTeXInline :: GenParser Char ParserState Inline
 rawLaTeXInline = try $ do
-  notFollowedBy' $ oneOfStrings ["\\begin", "\\end", "\\item", "\\ignore",
-                                 "\\section"]
   state <- getState
   if stateParseRaw state
      then do
