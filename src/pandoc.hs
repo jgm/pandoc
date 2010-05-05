@@ -61,6 +61,7 @@ import Control.Monad (when, unless, liftM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI)
 import Data.ByteString.Lazy.UTF8 (toString)
+import Codec.Binary.UTF8.String (decodeString)
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2010 John MacFarlane\n" ++
@@ -592,7 +593,7 @@ defaultWriterName x =
 main :: IO ()
 main = do
 
-  rawArgs <- getArgs
+  rawArgs <- liftM (map decodeString) getArgs
   prg <- getProgName
   let compatMode = (prg == "hsmarkdown")
 
