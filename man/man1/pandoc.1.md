@@ -53,9 +53,8 @@ markdown: the differences are described in the *README* file in
 the user documentation.  If standard markdown syntax is desired, the
 `--strict` option may be used.
 
-Pandoc uses the UTF-8 character encoding for both input and output
-(unless compiled with GHC 6.12 or higher, in which case it uses
-the local encoding). If your local character encoding is not UTF-8, you
+Pandoc uses the UTF-8 character encoding for both input and output.
+If your local character encoding is not UTF-8, you
 should pipe input and output through `iconv`:
 
     iconv -t utf-8 input.txt | pandoc | iconv -f utf-8

@@ -116,9 +116,7 @@ Character encodings
 -------------------
 
 All input is assumed to be in the UTF-8 encoding, and all output
-is in UTF-8 (unless your version of pandoc was compiled using
-GHC 6.12 or higher, in which case the local encoding will be used).
-If your local character encoding is not UTF-8 and you use
+is in UTF-8. If your local character encoding is not UTF-8 and you use
 accented or foreign characters, you should pipe the input and output
 through [`iconv`]. For example,
 
