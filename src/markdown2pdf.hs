@@ -9,14 +9,7 @@ import Control.Exception (tryJust, bracket)
 import System.IO (stderr)
 import System.IO.Error (isDoesNotExistError)
 import System.Environment ( getArgs, getProgName )
--- Note: ghc >= 6.12 (base >=4.2) supports unicode through iconv
--- So we use System.IO.UTF8 only if we have an earlier version
-#if MIN_VERSION_base(4,2,0)
-import System.IO (hPutStrLn)
-#else
-import Prelude hiding ( putStr, putStrLn, writeFile, readFile, getContents )
-import System.IO.UTF8
-#endif
+import qualified Text.Pandoc.UTF8 as UTF8
 import System.Exit (ExitCode (..), exitWith)
 import System.FilePath
 import System.Directory
@@ -57,7 +50,7 @@ runLatexRaw latexProgram file = do
     takeDirectory file, dropExtension file] >> return ()
   let pdfFile = replaceExtension file "pdf"
   let logFile = replaceExtension file "log"
-  txt <- tryJust (guard . isDoesNotExistError) (readFile logFile)
+  txt <- tryJust (guard . isDoesNotExistError) (UTF8.readFile logFile)
   let  checks = checkLatex $ either (const "") id txt
   case checks of
   -- err  , bib , ref , msg
@@ -122,13 +115,13 @@ runBibtex file = do
 exit :: String -> IO a
 exit x = do
   progName <- getProgName
-  hPutStrLn stderr $ progName ++ ": " ++ x
+  UTF8.hPutStrLn stderr $ progName ++ ": " ++ x
   exitWith $ ExitFailure 1
 
 saveStdin :: FilePath -> IO (Either String FilePath)
 saveStdin file = do
-  text <- getContents
-  writeFile file text
+  text <- UTF8.getContents
+  UTF8.writeFile file text
   fileExist <- doesFileExist file
   case fileExist of
     False -> return $ Left $! "Could not create " ++ file
@@ -137,7 +130,7 @@ saveStdin file = do
 saveOutput :: FilePath -> FilePath -> IO ()
 saveOutput input output = do
   copyFile input output
-  hPutStrLn stderr $! "Created " ++ output
+  UTF8.hPutStrLn stderr $! "Created " ++ output
 
 main :: IO ()
 main = bracket
@@ -170,8 +163,8 @@ main = bracket
                       any (\o -> (o ++ "=") `isPrefixOf` x) goodoptslong
     unless (all isGoodopt opts) $ do
       (code, out, _err) <- readProcessWithExitCode "pandoc" ["--help"] ""
-      putStrLn "markdown2pdf [OPTIONS] [FILES]\nOptions:"
-      putStr $ unlines $
+      UTF8.putStrLn "markdown2pdf [OPTIONS] [FILES]\nOptions:"
+      UTF8.putStr $ unlines $
                filter (\l -> any (`isInfixOf` l) goodoptslong) $ lines out
       exitWith code
 

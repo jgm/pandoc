@@ -45,14 +45,7 @@ import Data.Char ( toLower, isDigit )
 import Data.List ( intercalate, isSuffixOf )
 import System.Directory ( getAppUserDataDirectory )
 import System.IO ( stdout, stderr )
--- Note: ghc >= 6.12 (base >=4.2) supports unicode through iconv
--- So we use System.IO.UTF8 only if we have an earlier version
-#if MIN_VERSION_base(4,2,0)
-import System.IO ( hPutStr, hPutStrLn )
-#else
-import Prelude hiding ( putStr, putStrLn, writeFile, readFile, getContents )
-import System.IO.UTF8
-#endif
+import qualified Text.Pandoc.UTF8 as UTF8
 #ifdef _CITEPROC
 import Text.CSL
 import Text.Pandoc.Biblio
@@ -344,7 +337,7 @@ options =
                             "references" -> return ReferenceObfuscation
                             "javascript" -> return JavascriptObfuscation
                             "none"       -> return NoObfuscation
-                            _            -> hPutStrLn stderr ("Error: Unknown obfuscation method: " ++ arg) >>
+                            _            -> UTF8.hPutStrLn stderr ("Error: Unknown obfuscation method: " ++ arg) >>
                                             exitWith (ExitFailure 6)
                      return opt { optEmailObfuscation = method })
                   "none|javascript|references")
@@ -378,7 +371,7 @@ options =
                            return opt{ optTransforms =
                                          headerShift shift : oldTransforms }
                         else do
-                           hPutStrLn stderr $ "base-header-level must be a number >= 1"
+                           UTF8.hPutStrLn stderr $ "base-header-level must be a number >= 1"
                            exitWith $ ExitFailure 19)
                   "LEVEL")
                  "" -- "Headers base level"
@@ -386,7 +379,7 @@ options =
     , Option "" ["template"]
                  (ReqArg
                   (\arg opt -> do
-                     text <- readFile arg
+                     text <- UTF8.readFile arg
                      return opt{ optTemplate = text,
                                  optStandalone = True })
                   "FILENAME")
@@ -400,7 +393,7 @@ options =
                             let newvars = optVariables opt ++ [(k,v)]
                             return opt{ optVariables = newvars }
                           _  -> do
-                            hPutStrLn stderr $ "Could not parse `" ++ arg ++ "' as a key/value pair (k=v or k:v)"
+                            UTF8.hPutStrLn stderr $ "Could not parse `" ++ arg ++ "' as a key/value pair (k=v or k:v)"
                             exitWith $ ExitFailure 17)
                   "FILENAME")
                  "" -- "Use custom template"
@@ -418,7 +411,7 @@ options =
     , Option "H" ["include-in-header"]
                  (ReqArg
                   (\arg opt -> do
-                     text <- readFile arg
+                     text <- UTF8.readFile arg
                      -- add new ones to end, so they're included in order specified
                      let newvars = optVariables opt ++ [("header-includes",text)]
                      return opt { optVariables = newvars,
@@ -429,7 +422,7 @@ options =
     , Option "B" ["include-before-body"]
                  (ReqArg
                   (\arg opt -> do
-                     text <- readFile arg
+                     text <- UTF8.readFile arg
                      -- add new ones to end, so they're included in order specified
                      let newvars = optVariables opt ++ [("include-before",text)]
                      return opt { optVariables = newvars,
@@ -440,7 +433,7 @@ options =
     , Option "A" ["include-after-body"]
                  (ReqArg
                   (\arg opt -> do
-                     text <- readFile arg
+                     text <- UTF8.readFile arg
                      -- add new ones to end, so they're included in order specified
                      let newvars = optVariables opt ++ [("include-after",text)]
                      return opt { optVariables = newvars,
@@ -451,7 +444,7 @@ options =
     , Option "C" ["custom-header"]
                  (ReqArg
                   (\arg opt -> do
-                     text <- readFile arg
+                     text <- UTF8.readFile arg
                      let newVars = ("legacy-header", text) : optVariables opt
                      return opt { optVariables = newVars
                                 , optStandalone = True })
@@ -479,7 +472,7 @@ options =
                   (\arg _ -> do
                      templ <- getDefaultTemplate Nothing arg
                      case templ of
-                          Right t -> hPutStr stdout t
+                          Right t -> UTF8.hPutStr stdout t
                           Left e  -> error $ show e
                      exitWith ExitSuccess)
                   "FORMAT")
@@ -521,7 +514,7 @@ options =
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     hPutStrLn stdout (prg ++ " " ++ pandocVersion ++ compileInfo ++
+                     UTF8.hPutStrLn stdout (prg ++ " " ++ pandocVersion ++ compileInfo ++
                                        copyrightMessage)
                      exitWith ExitSuccess ))
                  "" -- "Print version"
@@ -530,7 +523,7 @@ options =
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     hPutStr stdout (usageMessage prg options)
+                     UTF8.hPutStr stdout (usageMessage prg options)
                      exitWith ExitSuccess ))
                  "" -- "Show help"
     ]
@@ -603,8 +596,8 @@ main = do
 
   unless (null errors) $
     do name <- getProgName
-       mapM_ (\e -> hPutStr stderr (name ++ ": ") >> hPutStr stderr e) errors
-       hPutStrLn stderr $ "Try " ++ name ++ " --help for more information."
+       mapM_ (\e -> UTF8.hPutStr stderr (name ++ ": ") >> UTF8.hPutStr stderr e) errors
+       UTF8.hPutStrLn stderr $ "Try " ++ name ++ " --help for more information."
        exitWith $ ExitFailure 2
 
   let defaultOpts' = if compatMode
@@ -653,13 +646,13 @@ main = do
              } = opts
 
   when dumpArgs $
-    do hPutStrLn stdout outputFile
-       mapM_ (\arg -> hPutStrLn stdout arg) args
+    do UTF8.hPutStrLn stdout outputFile
+       mapM_ (\arg -> UTF8.hPutStrLn stdout arg) args
        exitWith ExitSuccess
 
   -- warn about deprecated options
   case lookup "legacy-header" variables of
-     Just _  -> hPutStrLn stderr $
+     Just _  -> UTF8.hPutStrLn stderr $
        "Warning: The -C/--custom-header is deprecated.\n" ++
        "Please transition to using --template instead."
      Nothing -> return ()
@@ -765,7 +758,7 @@ main = do
                                       writerIdentifierPrefix = idPrefix }
 
   when (isNonTextOutput writerName' && outputFile == "-") $
-    do hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++
+    do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++
                                "Specify an output file using the -o option.")
        exitWith $ ExitFailure 5
 
@@ -775,10 +768,10 @@ main = do
 
   let readSources [] = mapM readSource ["-"]
       readSources srcs = mapM readSource srcs
-      readSource "-" = getContents
+      readSource "-" = UTF8.getContents
       readSource src = case parseURI src of
                             Just u  -> readURI u
-                            Nothing -> readFile src
+                            Nothing -> UTF8.readFile src
       readURI uri = simpleHTTP (mkRequest GET uri) >>= getResponseBody >>=
                       return . toString  -- treat all as UTF8
 
@@ -800,5 +793,5 @@ main = do
   case writerName' of
        "odt"   -> saveOpenDocumentAsODT datadir outputFile sourceDirRelative referenceODT writerOutput
        _       -> if outputFile == "-"
-                     then putStr writerOutput
-                     else writeFile outputFile writerOutput
+                     then UTF8.putStr writerOutput
+                     else UTF8.writeFile outputFile writerOutput

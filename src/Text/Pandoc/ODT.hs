@@ -32,7 +32,6 @@ import Data.List ( find )
 import System.FilePath ( (</>), takeFileName )
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 ( fromString )
-import Prelude hiding ( writeFile, readFile )
 import Codec.Archive.Zip
 import Control.Applicative ( (<$>) )
 import Text.ParserCombinators.Parsec

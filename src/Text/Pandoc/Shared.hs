@@ -112,6 +112,7 @@ module Text.Pandoc.Shared (
                     ) where
 
 import Text.Pandoc.Definition
+import qualified Text.Pandoc.UTF8 as UTF8 (readFile, putStrLn)
 import Text.ParserCombinators.Parsec
 import Text.PrettyPrint.HughesPJ ( Doc, fsep, ($$), (<>), empty, isEmpty, text, nest )
 import qualified Text.PrettyPrint.HughesPJ as PP
@@ -123,13 +124,6 @@ import Network.URI ( parseURI, URI (..), isAllowedInURI, escapeURIString, unEsca
 import Codec.Binary.UTF8.String ( encodeString, decodeString )
 import System.Directory
 import System.FilePath ( (</>) )
--- Note: ghc >= 6.12 (base >=4.2) supports unicode through iconv
--- So we use System.IO.UTF8 only if we have an earlier version
-#if MIN_VERSION_base(4,2,0)
-#else
-import Prelude hiding ( putStr, putStrLn, writeFile, readFile, getContents )
-import System.IO.UTF8
-#endif
 import Data.Generics
 import qualified Control.Monad.State as S
 import Control.Monad (join)
@@ -676,7 +670,7 @@ readWith parser state input =
 testStringWith :: (Show a) => GenParser Char ParserState a
                -> String
                -> IO ()
-testStringWith parser str = putStrLn $ show $
+testStringWith parser str = UTF8.putStrLn $ show $
                             readWith parser defaultParserState str
 
 -- | Parsing options.
@@ -1074,6 +1068,6 @@ inDirectory path action = do
 readDataFile :: Maybe FilePath -> FilePath -> IO String
 readDataFile userDir fname =
   case userDir of
-       Nothing  -> getDataFileName fname >>= readFile
-       Just u   -> catch (readFile $ u </> fname)
-                   (\_ -> getDataFileName fname >>= readFile)
+       Nothing  -> getDataFileName fname >>= UTF8.readFile
+       Just u   -> catch (UTF8.readFile $ u </> fname)
+                   (\_ -> getDataFileName fname >>= UTF8.readFile)
