@@ -124,7 +124,7 @@ import Network.URI ( parseURI, URI (..), isAllowedInURI, escapeURIString, unEsca
 import Codec.Binary.UTF8.String ( encodeString, decodeString )
 import System.Directory
 import System.FilePath ( (</>) )
-import Data.Generics
+import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import Control.Monad (join)
 import Paths_pandoc (getDataFileName)
