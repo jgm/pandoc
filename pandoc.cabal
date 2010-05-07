@@ -185,6 +185,7 @@ Library
                    Text.Pandoc.Writers.S5,
                    Text.Pandoc.Templates
   Other-Modules:   Text.Pandoc.XML,
+                   Text.Pandoc.UTF8,
                    Paths_pandoc
   Extensions:      CPP
   if impl(ghc >= 6.12)
