@@ -43,14 +43,21 @@ import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn)
 import System.IO (Handle)
 import Control.Monad (liftM)
 
+bom :: B.ByteString
+bom = B.pack [0xEF, 0xBB, 0xBF]
+
+stripBOM :: B.ByteString -> B.ByteString
+stripBOM s | bom `B.isPrefixOf` s = B.drop 3 s
+stripBOM s = s
+
 readFile :: FilePath -> IO String
-readFile = liftM toString . B.readFile
+readFile = liftM (toString . stripBOM) . B.readFile
 
 writeFile :: FilePath -> String -> IO ()
 writeFile f = B.writeFile f . fromString
 
 getContents :: IO String
-getContents = liftM toString B.getContents
+getContents = liftM (toString . stripBOM) B.getContents
 
 putStr :: String -> IO ()
 putStr = B.putStr . fromString
