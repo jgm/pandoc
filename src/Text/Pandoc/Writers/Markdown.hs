@@ -40,7 +40,7 @@ import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 
 type Notes = [[Block]]
-type Refs = KeyTable
+type Refs = [([Inline], Target)]
 data WriterState = WriterState { stNotes :: Notes
                                , stRefs :: Refs
                                , stPlain :: Bool }
@@ -94,7 +94,7 @@ pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
   st <- get
   notes' <- notesToMarkdown opts (reverse $ stNotes st)
   st' <- get  -- note that the notes may contain refs
-  refs' <- keyTableToMarkdown opts (reverse $ stRefs st')
+  refs' <- refsToMarkdown opts (reverse $ stRefs st')
   let main = render $ body $+$ text "" $+$ notes' $+$ text "" $+$ refs'
   let context  = writerVariables opts ++
                  [ ("toc", render toc)
@@ -109,8 +109,8 @@ pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
      else return main
 
 -- | Return markdown representation of reference key table.
-keyTableToMarkdown :: WriterOptions -> KeyTable -> State WriterState Doc
-keyTableToMarkdown opts refs = mapM (keyToMarkdown opts) refs >>= return . vcat
+refsToMarkdown :: WriterOptions -> Refs -> State WriterState Doc
+refsToMarkdown opts refs = mapM (keyToMarkdown opts) refs >>= return . vcat
  
 -- | Return markdown representation of a reference key. 
 keyToMarkdown :: WriterOptions 

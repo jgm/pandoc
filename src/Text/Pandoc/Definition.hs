@@ -33,19 +33,19 @@ module Text.Pandoc.Definition where
 
 import Data.Generics
 
-data Pandoc = Pandoc Meta [Block] deriving (Eq, Read, Show, Typeable, Data)
+data Pandoc = Pandoc Meta [Block] deriving (Eq, Ord, Read, Show, Typeable, Data)
 
 -- | Bibliographic information for the document:  title, authors, date.
 data Meta = Meta { docTitle   :: [Inline]
                  , docAuthors :: [[Inline]]
                  , docDate    :: [Inline] }
-            deriving (Eq, Show, Read, Typeable, Data)
+            deriving (Eq, Ord, Show, Read, Typeable, Data)
 
 -- | Alignment of a table column.
 data Alignment = AlignLeft 
                | AlignRight 
                | AlignCenter 
-               | AlignDefault deriving (Eq, Show, Read, Typeable, Data)
+               | AlignDefault deriving (Eq, Ord, Show, Read, Typeable, Data)
 
 -- | List attributes.
 type ListAttributes = (Int, ListNumberStyle, ListNumberDelim)
@@ -56,13 +56,13 @@ data ListNumberStyle = DefaultStyle
                      | LowerRoman 
                      | UpperRoman
                      | LowerAlpha 
-                     | UpperAlpha deriving (Eq, Show, Read, Typeable, Data)
+                     | UpperAlpha deriving (Eq, Ord, Show, Read, Typeable, Data)
 
 -- | Delimiter of list numbers.
 data ListNumberDelim = DefaultDelim
                      | Period
                      | OneParen 
-                     | TwoParens deriving (Eq, Show, Read, Typeable, Data)
+                     | TwoParens deriving (Eq, Ord, Show, Read, Typeable, Data)
 
 -- | Attributes: identifier, classes, key-value pairs
 type Attr = (String, [String], [(String, String)])
@@ -90,16 +90,16 @@ data Block
                             -- column headers (each a list of blocks), and
                             -- rows (each a list of lists of blocks)
     | Null                  -- ^ Nothing
-    deriving (Eq, Read, Show, Typeable, Data)
+    deriving (Eq, Ord, Read, Show, Typeable, Data)
 
 -- | Type of quotation marks to use in Quoted inline.
-data QuoteType = SingleQuote | DoubleQuote deriving (Show, Eq, Read, Typeable, Data)
+data QuoteType = SingleQuote | DoubleQuote deriving (Show, Eq, Ord, Read, Typeable, Data)
 
 -- | Link target (URL, title).
 type Target = (String, String)
 
 -- | Type of math element (display or inline).
-data MathType = DisplayMath | InlineMath deriving (Show, Eq, Read, Typeable, Data)
+data MathType = DisplayMath | InlineMath deriving (Show, Eq, Ord, Read, Typeable, Data)
 
 -- | Inline elements.
 data Inline 
@@ -126,7 +126,7 @@ data Inline
     | Image [Inline] Target -- ^ Image:  alt text (list of inlines), target
                             -- and target
     | Note [Block]          -- ^ Footnote or endnote 
-    deriving (Show, Eq, Read, Typeable, Data)
+    deriving (Show, Eq, Ord, Read, Typeable, Data)
 
 -- | Applies a transformation on @a@s to matching elements in a @b@.
 processWith :: (Data a, Data b) => (a -> a) -> b -> b

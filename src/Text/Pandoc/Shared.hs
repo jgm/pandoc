@@ -88,6 +88,7 @@ module Text.Pandoc.Shared (
                      QuoteContext (..),
                      NoteTable,
                      KeyTable,
+                     Key (..),
                      lookupKeySrc,
                      refsMatch,
                      -- * Prettyprinting
@@ -127,6 +128,7 @@ import System.FilePath ( (</>) )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import Control.Monad (join)
+import qualified Data.Map as M
 import Paths_pandoc (getDataFileName)
 
 --
@@ -704,7 +706,7 @@ defaultParserState =
                   stateParserContext   = NullState,
                   stateQuoteContext    = NoQuote,
                   stateSanitizeHTML    = False,
-                  stateKeys            = [],
+                  stateKeys            = M.empty,
 #ifdef _CITEPROC
                   stateCitations       = [],
 #endif
@@ -739,15 +741,23 @@ data QuoteContext
 
 type NoteTable = [(String, String)]
 
-type KeyTable = [([Inline], Target)]
+newtype Key = Key [Inline] deriving (Show, Read)
+
+instance Eq Key where
+  Key a == Key b = refsMatch a b
+
+instance Ord Key where
+  compare (Key a) (Key b) = if a == b then EQ else compare a b
+
+type KeyTable = M.Map Key Target
 
 -- | Look up key in key table and return target object.
 lookupKeySrc :: KeyTable  -- ^ Key table
-             -> [Inline]  -- ^ Key
+             -> Key       -- ^ Key
              -> Maybe Target
-lookupKeySrc table key = case find (refsMatch key . fst) table of
-                           Nothing       -> Nothing
-                           Just (_, src) -> Just src
+lookupKeySrc table key = case M.lookup key table of
+                           Nothing  -> Nothing
+                           Just src -> Just src
 
 -- | Returns @True@ if keys match (case insensitive).
 refsMatch :: [Inline] -> [Inline] -> Bool

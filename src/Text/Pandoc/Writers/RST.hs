@@ -39,10 +39,12 @@ import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 import Control.Applicative ( (<$>) )
 
+type Refs = [([Inline], Target)]
+
 data WriterState = 
   WriterState { stNotes     :: [[Block]]
-              , stLinks     :: KeyTable
-              , stImages    :: KeyTable
+              , stLinks     :: Refs
+              , stImages    :: Refs
               , stHasMath   :: Bool
               , stOptions   :: WriterOptions
               }
@@ -65,8 +67,8 @@ pandocToRST (Pandoc (Meta tit auth dat) blocks) = do
   body <- blockListToRST blocks
   notes <- liftM (reverse . stNotes) get >>= notesToRST
   -- note that the notes may contain refs, so we do them first
-  refs <- liftM (reverse . stLinks) get >>= keyTableToRST
-  pics <- liftM (reverse . stImages) get >>= pictTableToRST
+  refs <- liftM (reverse . stLinks) get >>= refsToRST
+  pics <- liftM (reverse . stImages) get >>= pictRefsToRST
   hasMath <- liftM stHasMath get
   let main = render $ body $+$ notes $+$ text "" $+$ refs $+$ pics
   let context = writerVariables opts ++
@@ -80,8 +82,8 @@ pandocToRST (Pandoc (Meta tit auth dat) blocks) = do
      else return main
 
 -- | Return RST representation of reference key table.
-keyTableToRST :: KeyTable -> State WriterState Doc
-keyTableToRST refs = mapM keyToRST refs >>= return . vcat
+refsToRST :: Refs -> State WriterState Doc
+refsToRST refs = mapM keyToRST refs >>= return . vcat
  
 -- | Return RST representation of a reference key. 
 keyToRST :: ([Inline], (String, String)) 
@@ -107,8 +109,8 @@ noteToRST num note = do
   return $ marker $$ nest 3 contents
 
 -- | Return RST representation of picture reference table.
-pictTableToRST :: KeyTable -> State WriterState Doc
-pictTableToRST refs = mapM pictToRST refs >>= return . vcat
+pictRefsToRST :: Refs -> State WriterState Doc
+pictRefsToRST refs = mapM pictToRST refs >>= return . vcat
  
 -- | Return RST representation of a picture substitution reference. 
 pictToRST :: ([Inline], (String, String)) 

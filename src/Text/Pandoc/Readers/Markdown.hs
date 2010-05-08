@@ -32,6 +32,7 @@ module Text.Pandoc.Readers.Markdown (
                                     ) where
 
 import Data.List ( transpose, isSuffixOf, sortBy, findIndex, intercalate )
+import qualified Data.Map as M
 import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum )
 import Data.Maybe
@@ -202,10 +203,10 @@ referenceKey = try $ do
   tit <- option "" referenceTitle
   blanklines
   endPos <- getPosition
-  let newkey = (lab, (escapeURI $ removeTrailingSpace src,  tit))
+  let target = (escapeURI $ removeTrailingSpace src,  tit)
   st <- getState
   let oldkeys = stateKeys st
-  updateState $ \s -> s { stateKeys = newkey : oldkeys }
+  updateState $ \s -> s { stateKeys = M.insert (Key lab) target oldkeys }
   -- return blanks so line count isn't affected
   return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
@@ -1216,7 +1217,7 @@ referenceLink lab = do
                          optional (newline >> skipSpaces) >> reference))
   let ref' = if null ref then lab else ref
   state <- getState
-  case lookupKeySrc (stateKeys state) ref' of
+  case lookupKeySrc (stateKeys state) (Key ref') of
      Nothing     -> fail "no corresponding key" 
      Just target -> return target 
 
@@ -1301,7 +1302,7 @@ inlineCitation = try $ do
 chkCit :: Target -> GenParser Char ParserState (Maybe Target)
 chkCit t = do
   st <- getState
-  case lookupKeySrc (stateKeys st) [Str $ fst t] of
+  case lookupKeySrc (stateKeys st) (Key [Str $ fst t]) of
      Just  _ -> fail "This is a link"
      Nothing -> if elem (fst t) $ stateCitations st
                    then return $ Just t

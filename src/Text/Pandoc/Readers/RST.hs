@@ -34,7 +34,9 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.ParserCombinators.Parsec
 import Control.Monad ( when, unless, liftM )
-import Data.List ( findIndex, delete, intercalate, transpose )
+import Data.List ( findIndex, intercalate, transpose, sort )
+import qualified Data.Map as M
+import Text.Printf ( printf )
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: ParserState -- ^ Parser state, including options for parser
@@ -93,9 +95,6 @@ parseRST = do
   docMinusKeys <- manyTill (referenceKey <|> lineClump) eof >>= return . concat
   setInput docMinusKeys
   setPosition startPos
-  st <- getState
-  let reversedKeys = stateKeys st
-  updateState $ \s -> s { stateKeys = reverse reversedKeys }
   -- now parse it for real...
   blocks <- parseBlocks 
   let blocks' = filter (/= Null) blocks
@@ -540,10 +539,10 @@ referenceName = quotedReferenceName <|>
 referenceKey :: GenParser Char ParserState [Char]
 referenceKey = do
   startPos <- getPosition
-  key <- choice [imageKey, anonymousKey, regularKey]
+  (key, target) <- choice [imageKey, anonymousKey, regularKey]
   st <- getState
   let oldkeys = stateKeys st
-  updateState $ \s -> s { stateKeys = key : oldkeys }
+  updateState $ \s -> s { stateKeys = M.insert key target oldkeys }
   optional blanklines
   endPos <- getPosition
   -- return enough blanks to replace key
@@ -558,28 +557,29 @@ targetURI = do
   blanklines
   return $ escapeURI $ removeLeadingTrailingSpace $ contents
 
-imageKey :: GenParser Char ParserState ([Inline], (String, [Char]))
+imageKey :: GenParser Char ParserState (Key, Target)
 imageKey = try $ do
   string ".. |"
   ref <- manyTill inline (char '|')
   skipSpaces
   string "image::"
   src <- targetURI
-  return (normalizeSpaces ref, (src, ""))
+  return (Key (normalizeSpaces ref), (src, ""))
 
-anonymousKey :: GenParser Char st ([Inline], (String, [Char]))
+anonymousKey :: GenParser Char st (Key, Target)
 anonymousKey = try $ do
   oneOfStrings [".. __:", "__"]
   src <- targetURI
-  return ([Str "_"], (src, ""))
+  pos <- getPosition
+  return (Key [Str $ "_" ++ printf "%09d" (sourceLine pos)], (src, ""))
 
-regularKey :: GenParser Char ParserState ([Inline], (String, [Char]))
+regularKey :: GenParser Char ParserState (Key, Target)
 regularKey = try $ do
   string ".. _"
   ref <- referenceName
   char ':'
   src <- targetURI
-  return (normalizeSpaces ref, (src, ""))
+  return (Key (normalizeSpaces ref), (src, ""))
 
 --
 -- tables
@@ -889,17 +889,21 @@ explicitLink = try $ do
 referenceLink :: GenParser Char ParserState Inline
 referenceLink = try $ do
   label' <- (quotedReferenceName <|> simpleReferenceName) >>~ char '_'
-  key <- option label' (do{char '_'; return [Str "_"]}) -- anonymous link
   state <- getState
   let keyTable = stateKeys state
+  let isAnonKey (Key [Str ('_':_)]) = True
+      isAnonKey _ = False
+  key <- option (Key label') $
+                do char '_'
+                   let anonKeys = sort $ filter isAnonKey $ M.keys keyTable
+                   if null anonKeys
+                      then pzero
+                      else return (head anonKeys)
   (src,tit) <- case lookupKeySrc keyTable key of
                     Nothing     -> fail "no corresponding key"
                     Just target -> return target
-  -- if anonymous link, remove first anon key so it won't be used again
-  let keyTable' = if (key == [Str "_"]) -- anonymous link? 
-                    then delete ([Str "_"], (src,tit)) keyTable -- remove first anon key 
-                    else keyTable                    
-  setState $ state { stateKeys = keyTable' }
+  -- if anonymous link, remove key so it won't be used again
+  when (isAnonKey key) $ updateState $ \s -> s{ stateKeys = M.delete key keyTable }
   return $ Link (normalizeSpaces label') (src, tit) 
 
 autoURI :: GenParser Char ParserState Inline
@@ -922,7 +926,7 @@ image = try $ do
   ref <- manyTill inline (char '|')
   state <- getState
   let keyTable = stateKeys state
-  (src,tit) <- case lookupKeySrc keyTable ref of
+  (src,tit) <- case lookupKeySrc keyTable (Key ref) of
                      Nothing     -> fail "no corresponding key"
                      Just target -> return target
   return $ Image (normalizeSpaces ref) (src, tit)
