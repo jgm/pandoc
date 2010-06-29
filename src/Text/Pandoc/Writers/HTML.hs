@@ -285,9 +285,12 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
                         attrs = [theclass (unwords classes') | not (null classes')] ++
                                 [prefixedId opts id' | not (null id')] ++
                                 map (\(x,y) -> strAttr x y) keyvals
+                        addBird = if "literate" `elem` classes
+                                     then unlines . map ("> " ++) . lines
+                                     else unlines . lines
                     in  return $ pre ! attrs $ thecode <<
                                  (replicate (length leadingBreaks) br +++
-                                 [stringToHtml $ rawCode' ++ "\n"])
+                                 [stringToHtml $ addBird rawCode'])
          Right h -> modify (\st -> st{ stHighlighting = True }) >> return h
 blockToHtml opts (BlockQuote blocks) =
   -- in S5, treat list in blockquote specially
