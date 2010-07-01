@@ -282,16 +282,16 @@ inlineToRST (Subscript lst) = do
 inlineToRST (SmallCaps lst) = inlineListToRST lst
 inlineToRST (Quoted SingleQuote lst) = do
   contents <- inlineListToRST lst
-  return $ char '\'' <> contents <> char '\''
+  return $ char '‘' <> contents <> char '’'
 inlineToRST (Quoted DoubleQuote lst) = do
   contents <- inlineListToRST lst
-  return $ char '"' <> contents <> char '"'
+  return $ char '“' <> contents <> char '”'
 inlineToRST (Cite _  lst) =
   inlineListToRST lst
-inlineToRST EmDash = return $ text "--"
-inlineToRST EnDash = return $ char '-'
-inlineToRST Apostrophe = return $ char '\''
-inlineToRST Ellipses = return $ text "..."
+inlineToRST EmDash = return $ char '\8212'
+inlineToRST EnDash = return $ char '\8211'
+inlineToRST Apostrophe = return $ char '\8217'
+inlineToRST Ellipses = return $ char '\8230'
 inlineToRST (Code str) = return $ text $ "``" ++ str ++ "``"
 inlineToRST (Str str) = return $ text $ escapeString str
 inlineToRST (Math t str) = do

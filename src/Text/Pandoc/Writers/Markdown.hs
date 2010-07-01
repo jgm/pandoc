@@ -372,14 +372,14 @@ inlineToMarkdown opts (Subscript lst) = do
 inlineToMarkdown opts (SmallCaps lst) = inlineListToMarkdown opts lst
 inlineToMarkdown opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
-  return $ char '\'' <> contents <> char '\''
+  return $ char '‘' <> contents <> char '’'
 inlineToMarkdown opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
-  return $ char '"' <> contents <> char '"'
-inlineToMarkdown _ EmDash = return $ text "--"
-inlineToMarkdown _ EnDash = return $ char '-'
-inlineToMarkdown _ Apostrophe = return $ char '\''
-inlineToMarkdown _ Ellipses = return $ text "..."
+  return $ char '“' <> contents <> char '”'
+inlineToMarkdown _ EmDash = return $ char '\8212'
+inlineToMarkdown _ EnDash = return $ char '\8211'
+inlineToMarkdown _ Apostrophe = return $ char '\8217'
+inlineToMarkdown _ Ellipses = return $ char '\8230'
 inlineToMarkdown _ (Code str) =
   let tickGroups = filter (\s -> '`' `elem` s) $ group str 
       longest    = if null tickGroups
