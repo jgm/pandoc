@@ -154,7 +154,8 @@ main = bracket
                    "--number-sections","--include-in-header",
                    "--include-before-body","--include-after-body",
                    "--custom-header","--output",
-                   "--template", "--variable"]
+                   "--template", "--variable",
+                   "--csl", "--biblio", "--biblio-format"]
     let isOpt ('-':_) = True
         isOpt _       = False
     let opts = filter isOpt args
