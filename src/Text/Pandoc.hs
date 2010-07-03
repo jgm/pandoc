@@ -87,6 +87,7 @@ module Text.Pandoc
                , writeMediaWiki
                , writeRTF
                , writeODT
+               , writeEPUB
                , prettyPandoc
                -- * Writer options used in writers 
                , WriterOptions (..)
@@ -111,6 +112,7 @@ import Text.Pandoc.Writers.Texinfo
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.S5
 import Text.Pandoc.Writers.ODT
+import Text.Pandoc.Writers.EPUB
 import Text.Pandoc.Writers.Docbook
 import Text.Pandoc.Writers.OpenDocument
 import Text.Pandoc.Writers.Man

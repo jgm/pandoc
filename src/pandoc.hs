@@ -109,6 +109,7 @@ writers = [("native"       , writeDoc)
           ,("docbook"      , writeDocbook)
           ,("opendocument" , writeOpenDocument)
           ,("odt"          , \_ _ -> "")
+          ,("epub"         , \_ _ -> "")
           ,("latex"        , writeLaTeX)
           ,("latex+lhs"    , writeLaTeX)
           ,("context"      , writeConTeXt)
@@ -124,7 +125,7 @@ writers = [("native"       , writeDoc)
           ]
 
 isNonTextOutput :: String -> Bool
-isNonTextOutput = (`elem` ["odt"])
+isNonTextOutput = (`elem` ["odt","epub"])
 
 -- | Writer for Pandoc native format.
 writeDoc :: WriterOptions -> Pandoc -> String
@@ -157,6 +158,7 @@ data Opt = Opt
     , optSmart             :: Bool    -- ^ Use smart typography
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
+    , optEPUBStylesheet    :: Maybe String   -- ^ EPUB stylesheet
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optStrict            :: Bool    -- ^ Use strict markdown syntax
@@ -197,6 +199,7 @@ defaultOpts = Opt
     , optSmart             = False
     , optHTMLMathMethod    = PlainMath
     , optReferenceODT      = Nothing
+    , optEPUBStylesheet    = Nothing
     , optDumpArgs          = False
     , optIgnoreArgs        = False
     , optStrict            = False
@@ -467,6 +470,14 @@ options =
                   "FILENAME")
                  "" -- "Path of custom reference.odt"
 
+    , Option "" ["epub-stylesheet"]
+                 (ReqArg
+                  (\arg opt -> do
+                     text <- UTF8.readFile arg
+                     return opt { optEPUBStylesheet = Just text })
+                  "FILENAME")
+                 "" -- "Path of epub.css"
+
     , Option "D" ["print-default-template"]
                  (ReqArg
                   (\arg _ -> do
@@ -580,6 +591,7 @@ defaultWriterName x =
     ".texinfo"  -> "texinfo"
     ".db"       -> "docbook"
     ".odt"      -> "odt"
+    ".epub"     -> "epub"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
@@ -628,6 +640,7 @@ main = do
               , optSmart             = smart
               , optHTMLMathMethod    = mathMethod
               , optReferenceODT      = referenceODT
+              , optEPUBStylesheet    = epubStylesheet
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
               , optStrict            = strict
@@ -686,6 +699,11 @@ main = do
      Nothing -> error ("Unknown reader: " ++ readerName')
 
   writer <- case (lookup writerName' writers) of
+     Just _ | writerName' == "epub" -> do
+          epubstyle <- case epubStylesheet of
+                            Just s  -> return s
+                            Nothing -> readDataFile datadir "epub.css"
+          return (writeEPUB sourceDirRelative epubstyle)
      Just _ | writerName' == "odt"  -> return
           (writeODT datadir sourceDirRelative referenceODT)
      Just r                         -> return $ \o d ->
