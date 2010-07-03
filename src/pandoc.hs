@@ -30,7 +30,6 @@ writers.
 -}
 module Main where
 import Text.Pandoc
-import Text.Pandoc.ODT
 import Text.Pandoc.Writers.S5 (s5HeaderIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile )
 #ifdef _HIGHLIGHTING
@@ -53,7 +52,8 @@ import Text.Pandoc.Biblio
 import Control.Monad (when, unless, liftM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI)
-import Data.ByteString.Lazy.UTF8 (toString)
+import qualified Data.ByteString.Lazy as B
+import Data.ByteString.Lazy.UTF8 (toString, fromString)
 import Codec.Binary.UTF8.String (decodeString)
 
 copyrightMessage :: String
@@ -108,7 +108,7 @@ writers = [("native"       , writeDoc)
           ,("s5"           , writeS5String)
           ,("docbook"      , writeDocbook)
           ,("opendocument" , writeOpenDocument)
-          ,("odt"          , writeOpenDocument)
+          ,("odt"          , \_ _ -> "")
           ,("latex"        , writeLaTeX)
           ,("latex+lhs"    , writeLaTeX)
           ,("context"      , writeConTeXt)
@@ -658,6 +658,10 @@ main = do
      Nothing -> return ()
 
   let sources = if ignoreArgs then [] else args
+  
+  let sourceDirRelative = if null sources
+                             then ""
+                             else takeDirectory (head sources)
 
   datadir <- case mbDataDir of
                   Nothing   -> catch
@@ -682,8 +686,11 @@ main = do
      Nothing -> error ("Unknown reader: " ++ readerName')
 
   writer <- case (lookup writerName' writers) of
-     Just r  -> return r
-     Nothing -> error ("Unknown writer: " ++ writerName')
+     Just _ | writerName' == "odt"  -> return
+          (writeODT datadir sourceDirRelative referenceODT)
+     Just r                         -> return $ \o d ->
+                                          return $ fromString (r o d)
+     Nothing                        -> error ("Unknown writer: " ++ writerName')
 
   templ <- getDefaultTemplate datadir writerName'
   let defaultTemplate = case templ of
@@ -762,10 +769,6 @@ main = do
                                "Specify an output file using the -o option.")
        exitWith $ ExitFailure 5
 
-  let sourceDirRelative = if null sources
-                             then ""
-                             else takeDirectory (head sources)
-
   let readSources [] = mapM readSource ["-"]
       readSources srcs = mapM readSource srcs
       readSource "-" = UTF8.getContents
@@ -788,10 +791,8 @@ main = do
           return doc'
 #endif
 
-  let writerOutput = writer writerOptions doc'' ++ "\n"
+  writerOutput <- writer writerOptions doc''
 
-  case writerName' of
-       "odt"   -> saveOpenDocumentAsODT datadir outputFile sourceDirRelative referenceODT writerOutput
-       _       -> if outputFile == "-"
-                     then UTF8.putStr writerOutput
-                     else UTF8.writeFile outputFile writerOutput
+  if outputFile == "-"
+     then B.putStrLn writerOutput
+     else B.writeFile outputFile writerOutput

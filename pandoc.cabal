@@ -164,7 +164,6 @@ Library
                    Text.Pandoc.Definition,
                    Text.Pandoc.CharacterReferences,
                    Text.Pandoc.Shared,
-                   Text.Pandoc.ODT,
                    Text.Pandoc.Highlighting,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,
@@ -183,6 +182,7 @@ Library
                    Text.Pandoc.Writers.MediaWiki,
                    Text.Pandoc.Writers.RTF,
                    Text.Pandoc.Writers.S5,
+                   Text.Pandoc.Writers.ODT,
                    Text.Pandoc.Templates
   Other-Modules:   Text.Pandoc.XML,
                    Text.Pandoc.UTF8,
