@@ -32,7 +32,8 @@ Markdown:  <http://daringfireball.net/projects/markdown/>
 module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Templates (renderTemplate)
-import Text.Pandoc.Shared 
+import Text.Pandoc.Shared
+import Text.Pandoc.Parsing
 import Text.Pandoc.Blocks
 import Text.ParserCombinators.Parsec ( parse, GenParser )
 import Data.List ( group, isPrefixOf, find, intersperse, transpose )

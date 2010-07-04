@@ -31,7 +31,8 @@ module Text.Pandoc.Readers.RST (
                                 readRST
                                ) where
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared 
+import Text.Pandoc.Shared
+import Text.Pandoc.Parsing
 import Text.ParserCombinators.Parsec
 import Control.Monad ( when, unless, liftM )
 import Data.List ( findIndex, intercalate, transpose, sort )

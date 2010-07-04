@@ -119,6 +119,7 @@ import Text.Pandoc.Writers.Man
 import Text.Pandoc.Writers.RTF 
 import Text.Pandoc.Writers.MediaWiki
 import Text.Pandoc.Templates
+import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
 import Data.Version (showVersion)
 import Paths_pandoc (version)

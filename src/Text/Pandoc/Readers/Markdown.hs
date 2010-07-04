@@ -37,7 +37,8 @@ import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum )
 import Data.Maybe
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared 
+import Text.Pandoc.Shared
+import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment' )
 import Text.Pandoc.Readers.HTML ( rawHtmlBlock, anyHtmlBlockTag, 
                                   anyHtmlInlineTag, anyHtmlTag,

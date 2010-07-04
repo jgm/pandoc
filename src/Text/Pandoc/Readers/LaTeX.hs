@@ -35,7 +35,8 @@ module Text.Pandoc.Readers.LaTeX (
 
 import Text.ParserCombinators.Parsec
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared 
+import Text.Pandoc.Shared
+import Text.Pandoc.Parsing
 import Data.Maybe ( fromMaybe )
 import Data.Char ( chr )
 import Data.List ( isPrefixOf, isSuffixOf )

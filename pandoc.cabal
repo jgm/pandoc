@@ -166,6 +166,7 @@ Library
                    Text.Pandoc.Definition,
                    Text.Pandoc.CharacterReferences,
                    Text.Pandoc.Shared,
+                   Text.Pandoc.Parsing,
                    Text.Pandoc.Highlighting,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,

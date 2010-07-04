@@ -44,7 +44,8 @@ module Text.Pandoc.Readers.HTML (
 
 import Text.ParserCombinators.Parsec
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared 
+import Text.Pandoc.Shared
+import Text.Pandoc.Parsing
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Data.Maybe ( fromMaybe )
 import Data.List ( isPrefixOf, isSuffixOf, intercalate )
