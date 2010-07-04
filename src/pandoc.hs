@@ -153,6 +153,7 @@ data Opt = Opt
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
     , optEPUBStylesheet    :: Maybe String   -- ^ EPUB stylesheet
+    , optEPUBMetadata      :: String  -- ^ EPUB metadata
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optStrict            :: Bool    -- ^ Use strict markdown syntax
@@ -192,6 +193,7 @@ defaultOpts = Opt
     , optHTMLMathMethod    = PlainMath
     , optReferenceODT      = Nothing
     , optEPUBStylesheet    = Nothing
+    , optEPUBMetadata      = ""
     , optDumpArgs          = False
     , optIgnoreArgs        = False
     , optStrict            = False
@@ -470,6 +472,14 @@ options =
                   "FILENAME")
                  "" -- "Path of epub.css"
 
+    , Option "" ["epub-metadata"]
+                 (ReqArg
+                  (\arg opt -> do
+                     text <- UTF8.readFile arg
+                     return opt { optEPUBMetadata = text })
+                  "FILENAME")
+                 "" -- "Path of epub metadata file"
+
     , Option "D" ["print-default-template"]
                  (ReqArg
                   (\arg _ -> do
@@ -631,6 +641,7 @@ main = do
               , optHTMLMathMethod    = mathMethod
               , optReferenceODT      = referenceODT
               , optEPUBStylesheet    = epubStylesheet
+              , optEPUBMetadata      = epubMetadata
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
               , optStrict            = strict
@@ -751,6 +762,7 @@ main = do
                                                                   then defaultTemplate
                                                                   else template,
                                       writerVariables        = variables'',
+                                      writerEPUBMetadata     = epubMetadata,
                                       writerTabStop          = tabStop,
                                       writerTableOfContents  = toc &&
                                                                writerName' /= "s5",
