@@ -145,8 +145,6 @@ data Opt = Opt
     , optTransforms        :: [Pandoc -> Pandoc]  -- ^ Doc transforms to apply
     , optTemplate          :: String  -- ^ Custom template
     , optVariables         :: [(String,String)] -- ^ Template variables to set
-    , optBefore            :: [String] -- ^ Texts to include before body
-    , optAfter             :: [String] -- ^ Texts to include after body
     , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optIncremental       :: Bool    -- ^ Use incremental lists in S5
@@ -186,8 +184,6 @@ defaultOpts = Opt
     , optTransforms        = []
     , optTemplate          = ""
     , optVariables         = []
-    , optBefore            = []
-    , optAfter             = []
     , optOutputFile        = "-"    -- "-" means stdout
     , optNumberSections    = False
     , optIncremental       = False
@@ -624,8 +620,6 @@ main = do
               , optWriter            = writerName
               , optParseRaw          = parseRaw
               , optVariables         = variables
-              , optBefore            = befores
-              , optAfter             = afters
               , optTableOfContents   = toc
               , optTransforms        = transforms
               , optTemplate          = template
@@ -757,8 +751,6 @@ main = do
                                                                   then defaultTemplate
                                                                   else template,
                                       writerVariables        = variables'',
-                                      writerIncludeBefore    = concat befores,
-                                      writerIncludeAfter     = concat afters,
                                       writerTabStop          = tabStop,
                                       writerTableOfContents  = toc &&
                                                                writerName' /= "s5",

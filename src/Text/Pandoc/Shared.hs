@@ -462,8 +462,6 @@ data WriterOptions = WriterOptions
   { writerStandalone       :: Bool   -- ^ Include header and footer
   , writerTemplate         :: String -- ^ Template to use in standalone mode
   , writerVariables        :: [(String, String)] -- ^ Variables to set in template
-  , writerIncludeBefore    :: String -- ^ Text to include before the body
-  , writerIncludeAfter     :: String -- ^ Text to include after the body
   , writerTabStop          :: Int    -- ^ Tabstop for conversion btw spaces and tabs
   , writerTableOfContents  :: Bool   -- ^ Include table of contents
   , writerS5               :: Bool   -- ^ We're writing S5 
@@ -486,8 +484,6 @@ defaultWriterOptions =
   WriterOptions { writerStandalone       = False
                 , writerTemplate         = ""
                 , writerVariables        = []
-                , writerIncludeBefore    = ""
-                , writerIncludeAfter     = ""
                 , writerTabStop          = 4
                 , writerTableOfContents  = False
                 , writerS5               = False
