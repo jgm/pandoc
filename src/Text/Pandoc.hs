@@ -71,6 +71,7 @@ module Text.Pandoc
                , NoteTable
                , HeaderType (..)
                -- * Writers: converting /from/ Pandoc format
+               , writeNative
                , writeMarkdown
                , writePlain
                , writeRST
@@ -88,7 +89,6 @@ module Text.Pandoc
                , writeRTF
                , writeODT
                , writeEPUB
-               , prettyPandoc
                -- * Writer options used in writers 
                , WriterOptions (..)
                , HTMLMathMethod (..)
@@ -104,6 +104,7 @@ import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.RST
 import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.HTML
+import Text.Pandoc.Writers.Native
 import Text.Pandoc.Writers.Markdown
 import Text.Pandoc.Writers.RST 
 import Text.Pandoc.Writers.LaTeX

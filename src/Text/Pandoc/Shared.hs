@@ -54,7 +54,6 @@ module Text.Pandoc.Shared (
                      tabFilter,
                      -- * Prettyprinting
                      hang',
-                     prettyPandoc,
                      -- * Pandoc block and inline list processing
                      orderedListMarkers,
                      normalizeSpaces,
@@ -292,57 +291,6 @@ tabFilter tabStop =
 -- | A version of hang that works like the version in pretty-1.0.0.0
 hang' :: Doc -> Int -> Doc -> Doc
 hang' d1 n d2 = d1 $$ (nest n d2)
-
--- | Indent string as a block.
-indentBy :: Int    -- ^ Number of spaces to indent the block 
-         -> Int    -- ^ Number of spaces (rel to block) to indent first line
-         -> String -- ^ Contents of block to indent
-         -> String
-indentBy _ _ [] = ""
-indentBy num first str = 
-  let (firstLine:restLines) = lines str 
-      firstLineIndent = num + first
-  in  (replicate firstLineIndent ' ') ++ firstLine ++ "\n" ++ 
-      (intercalate "\n" $ map ((replicate num ' ') ++ ) restLines)
-
--- | Prettyprint list of Pandoc blocks elements.
-prettyBlockList :: Int       -- ^ Number of spaces to indent list of blocks
-                -> [Block]   -- ^ List of blocks
-                -> String
-prettyBlockList indent [] = indentBy indent 0 "[]"
-prettyBlockList indent blocks = indentBy indent (-2) $ "[ " ++ 
-  (intercalate "\n, " (map prettyBlock blocks)) ++ " ]"
-
--- | Prettyprint Pandoc block element.
-prettyBlock :: Block -> String
-prettyBlock (BlockQuote blocks) = "BlockQuote\n  " ++ 
-                                  (prettyBlockList 2 blocks) 
-prettyBlock (OrderedList attribs blockLists) = 
-  "OrderedList " ++ show attribs ++ "\n" ++ indentBy 2 0 ("[ " ++ 
-  (intercalate ", " $ map (\blocks -> prettyBlockList 2 blocks)
-  blockLists)) ++ " ]"
-prettyBlock (BulletList blockLists) = "BulletList\n" ++ 
-  indentBy 2 0 ("[ " ++ (intercalate ", "
-  (map (\blocks -> prettyBlockList 2 blocks) blockLists))) ++ " ]" 
-prettyBlock (DefinitionList items) = "DefinitionList\n" ++ 
-  indentBy 2 0 ("[ " ++ (intercalate "\n, "
-  (map (\(term, defs) -> "(" ++ show term ++ ",\n" ++ 
-  indentBy 3 0 ("[ " ++ (intercalate ", "
-  (map (\blocks -> prettyBlockList 2 blocks) defs)) ++ "]") ++
-   ")") items))) ++ " ]" 
-prettyBlock (Table caption aligns widths header rows) = 
-  "Table " ++ show caption ++ " " ++ show aligns ++ " " ++ 
-  show widths ++ "\n" ++ prettyRow header ++ " [\n" ++  
-  (intercalate ",\n" (map prettyRow rows)) ++ " ]"
-  where prettyRow cols = indentBy 2 0 ("[ " ++ (intercalate ", "
-                         (map (\blocks -> prettyBlockList 2 blocks) 
-                         cols))) ++ " ]"
-prettyBlock block = show block
-
--- | Prettyprint Pandoc document.
-prettyPandoc :: Pandoc -> String
-prettyPandoc (Pandoc meta blocks) = "Pandoc " ++ "(" ++ show meta ++ 
-  ")\n" ++ (prettyBlockList 0 blocks) ++ "\n"
 
 --
 -- Pandoc block and inline list processing

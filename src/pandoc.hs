@@ -102,7 +102,7 @@ readPandoc _ = read
 
 -- | Association list of formats and writers.
 writers :: [ ( String, WriterOptions -> Pandoc -> String ) ]
-writers = [("native"       , writeDoc)
+writers = [("native"       , writeNative)
           ,("html"         , writeHtmlString)
           ,("html+lhs"     , writeHtmlString)
           ,("s5"           , writeS5String)
@@ -126,10 +126,6 @@ writers = [("native"       , writeDoc)
 
 isNonTextOutput :: String -> Bool
 isNonTextOutput = (`elem` ["odt","epub"])
-
--- | Writer for Pandoc native format.
-writeDoc :: WriterOptions -> Pandoc -> String
-writeDoc _ = prettyPandoc
 
 headerShift :: Int -> Pandoc -> Pandoc
 headerShift n = processWith shift
