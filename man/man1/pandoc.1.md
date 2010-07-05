@@ -16,13 +16,13 @@ Pandoc converts files from one markup format to another. It can
 read markdown and (subsets of) reStructuredText, HTML, and LaTeX, and
 it can write plain text, markdown, reStructuredText, HTML, LaTeX,
 ConTeXt, Texinfo, groff man, MediaWiki markup, RTF, OpenDocument XML,
-ODT, DocBook XML, and S5 HTML slide shows.
+ODT, DocBook XML, EPUB, and S5 HTML slide shows.
 
 If no *input-file* is specified, input is read from *stdin*.
 Otherwise, the *input-files* are concatenated (with a blank
 line between each) and used as input.  Output goes to *stdout* by
-default (though output to *stdout* is disabled for the `odt` output
-format).  For output to a file, use the `-o` option:
+default (though output to *stdout* is disabled for the `odt` and
+`epub` output formats).  For output to a file, use the `-o` option:
 
     pandoc -o output.html input.txt
 
@@ -74,12 +74,12 @@ should pipe input and output through `iconv`:
     `html` (HTML), `latex` (LaTeX), `context` (ConTeXt), `man` (groff man), 
     `mediawiki` (MediaWiki markup), `texinfo` (GNU Texinfo),
     `docbook` (DocBook XML), `opendocument` (OpenDocument XML),
-    `odt` (OpenOffice text document), `s5` (S5 HTML and javascript slide
-    show), or `rtf` (rich text format). Note that `odt` output will not
-    be directed to *stdout*; an output filename must be specified using
-    the `-o/--output` option. If `+lhs` is appended to `markdown`,
-    `rst`, `latex`, or `html`, the output will be rendered as literate
-    Haskell source.
+    `odt` (OpenOffice text document), `epub` (EPUB book),
+    `s5` (S5 HTML and javascript slide show), or `rtf` (rich text
+    format). Note that `odt` and `epub` output will not be directed to
+    *stdout*; an output filename must be specified using the `-o/--output`
+    option.  If `+lhs` is appended to `markdown`, `rst`, `latex`, or `html`,
+    the output will be rendered as literate Haskell source.
 
 -s, \--standalone
 :   Produce output with an appropriate header and footer (e.g. a
@@ -220,6 +220,26 @@ should pipe input and output through `iconv`:
     for a file `reference.odt` in the user data directory (see
     `--data-dir`). If this is not found either, sensible defaults will be
     used.
+
+\--epub-stylesheet=*filename*
+:   Use the specified CSS file to style the EPUB.  If no stylesheet
+    is specified, pandoc will look for a file `epub.css` in the
+    user data directory (see `--data-dir`, below).  If it is not
+    found there, sensible defaults will be used.
+
+\--epub-metadata=*filename*
+:   Look in the specified XML file for metadata for the EPUB.
+    The file should contain a series of Dublin Core elements
+    (http://dublincore.org/documents/dces/), for example:
+
+         <dc:rights>Creative Commons</dc:rights>
+         <dc:language>es-AR</dc:language>
+
+    By default, pandoc will include the following metadata elements:
+    `<dc:title>` (from the document title), `<dc:creator>` (from the
+    document authors), `<dc:language>` (from the locale), and
+    `<dc:identifier id="BookId">` (a randomly generated UUID). Any of
+    these may be overridden by elements in the metadata file.
 
 -D *FORMAT*, \--print-default-template=*FORMAT*
 :   Print the default template for an output *FORMAT*. (See `-t`

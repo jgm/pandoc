@@ -7,7 +7,7 @@ another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX]; and
 it can write plain text, [markdown], [reStructuredText], [HTML], [LaTeX],
 [ConTeXt], [RTF], [DocBook XML], [OpenDocument XML], [ODT], [GNU Texinfo],
-[MediaWiki markup], [groff man] pages, and [S5] HTML slide shows.
+[MediaWiki markup], [EPUB], [groff man] pages, and [S5] HTML slide shows.
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, delimited code blocks,
 superscript, subscript, strikeout, title blocks, automatic tables of
@@ -36,6 +36,7 @@ or output format requires only adding a reader or writer.
 [groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
 [Haskell]:  http://www.haskell.org/
 [GNU Texinfo]: http://www.gnu.org/software/texinfo/
+[EPUB]: http://www.idpf.org/
 
 © 2006-2010 John MacFarlane (jgm at berkeley dot edu). Released under the
 [GPL], version 2 or greater.  This software carries no warranty of
@@ -56,8 +57,8 @@ If you want to write to a file, use the `-o` option:
 
     pandoc -o hello.html hello.txt
 
-[^1]:  The exception is for `odt`.  Since this is a binary output format,
-       an output file must be specified explicitly.
+[^1]:  The exceptions are for `odt` and `epub`.  Since these are
+       a binary output formats, an output file must be specified explicitly.
 
 Note that you can specify multiple input files on the command line.
 `pandoc` will concatenate them all (with blank lines between them)
@@ -90,7 +91,8 @@ Supported output formats include `markdown`, `latex`, `context`
 (ConTeXt), `html`, `rtf` (rich text format), `rst`
 (reStructuredText), `docbook` (DocBook XML), `opendocument`
 (OpenDocument XML), `odt` (OpenOffice text document), `texinfo`, (GNU
-Texinfo), `mediawiki` (MediaWiki markup), `man` (groff man), and `s5`
+Texinfo), `mediawiki` (MediaWiki markup), `epub` (EPUB ebook),
+`man` (groff man), and `s5`
 (which produces an HTML file that acts like powerpoint).
 
 Supported input formats include `markdown`, `html`, `latex`, and `rst`.
@@ -202,8 +204,8 @@ For further documentation, see the `pandoc(1)` man page.
 `-o` or `--output` *filename*
 :   sends output to *filename*. If this option is not specified,
     or if its argument is `-`, output will be sent to stdout.
-    (Exception: if the output format is `odt`, output to stdout
-    is disabled.)
+    (Exception: if the output format is `odt` or `epub`, output to
+    stdout is disabled.)
 
 `-p` or `--preserve-tabs`
 :   causes tabs in the source text to be preserved, rather than converted
@@ -296,6 +298,26 @@ For further documentation, see the `pandoc(1)` man page.
     for a file `reference.odt` in the user data directory (see
     `--data-dir`, below). If it is not found there, sensible defaults
     will be used.
+
+`--epub-stylesheet` *filename*
+:   uses the specified CSS file to style the EPUB.  If no stylesheet
+    is specified, pandoc will look for a file `epub.css` in the
+    user data directory (see `--data-dir`, below).  If it is not
+    found there, sensible defaults will be used.
+
+`--epub-metadata` *filename*
+:   looks in the specified XML file for metadata for the EPUB.
+    The file should contain a series of [Dublin Core elements],
+    for example:
+
+         <dc:rights>Creative Commons</dc:rights>
+         <dc:language>es-AR</dc:language>
+
+    By default, pandoc will include the following metadata elements:
+    `<dc:title>` (from the document title), `<dc:creator>` (from the
+    document authors), `<dc:language>` (from the locale), and
+    `<dc:identifier id="BookId">` (a randomly generated UUID). Any of
+    these may be overridden by elements in the metadata file.
 
 `-D` or `--print-default-template` *format*
 :   prints the default template for an output *format*. (See `-t`
@@ -445,6 +467,7 @@ For further documentation, see the `pandoc(1)` man page.
 [jsMath]:  http://www.math.union.edu/~dpvc/jsmath/
 [gladTeX]:  http://www.math.uio.no/~martingu/gladtex/index.html
 [mimeTeX]: http://www.forkosh.com/mimetex.html 
+[Dublin Core elements]: http://dublincore.org/documents/dces/
 
 Templates
 =========
