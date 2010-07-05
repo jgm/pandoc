@@ -173,7 +173,7 @@ for = try $ do
   string "$for("
   id' <- ident
   string ")$"
-  -- if newline after the "if", then a newline after "endif" will be swallowed
+  -- if newline after the "for", then a newline after "endfor" will be swallowed
   multiline <- option False $ try $ skipEndline >> return True
   let matches = filter (\(k,_) -> k == id') vars 
   let indent = replicate pos ' '
