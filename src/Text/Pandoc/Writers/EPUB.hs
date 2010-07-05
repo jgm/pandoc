@@ -119,13 +119,8 @@ writeEPUB sourceDir stylesheet opts doc = do
         unode "package" ! [("version","2.0")
                           ,("xmlns","http://www.idpf.org/2007/opf")
                           ,("unique-identifier","BookId")] $
-          [ unode "metadata" ! [("xmlns:dc","http://purl.org/dc/elements/1.1/")
-                               ,("xmlns:opf","http://www.idpf.org/2007/opf")] $
-             [ unode "dc:title" plainTitle
-             , unode "dc:language" lang
-             , unode "dc:identifier" ! [("id","BookId")] $ show uuid
-             ] ++
-             map (unode "dc:creator" ! [("opf:role","aut")]) plainAuthors
+          [ metadataElement (writerEPUBMetadata opts')
+              uuid lang plainTitle plainAuthors
           , unode "manifest" $
              [ unode "item" ! [("id","ncx"), ("href","toc.ncx")
                               ,("media-type","application/x-dtbncx+xml")] $ ()
@@ -171,6 +166,25 @@ writeEPUB sourceDir stylesheet opts doc = do
                  (mimetypeEntry : containerEntry : stylesheetEntry : tpEntry :
                   contentsEntry : tocEntry : (picEntries ++ chapterEntries) )
   return $ fromArchive archive
+
+metadataElement :: String -> UUID -> String -> String -> [String] -> Element
+metadataElement metadataXML uuid lang title authors =
+  let userNodes = parseXML metadataXML
+      elt = unode "metadata" ! [("xmlns:dc","http://purl.org/dc/elements/1.1/")
+                               ,("xmlns:opf","http://www.idpf.org/2007/opf")] $
+            filter isDublinCoreElement $ onlyElems userNodes
+      dublinElements = ["contributor","coverage","creator","date",
+            "description","format","identifier","language","publisher",
+            "relation","rights","source","subject","title","type"]
+      isDublinCoreElement e = qPrefix (elName e) == Just "dc" &&
+                              qName (elName e) `elem` dublinElements
+      contains e n = not (null (findElements (QName n Nothing (Just "dc")) e))
+      newNodes = [ unode "dc:title" title | not (elt `contains` "title") ] ++
+           [ unode "dc:language" lang | not (elt `contains` "language") ] ++
+           [ unode "dc:identifier" ! [("id","BookId")] $ show uuid |
+               not (elt `contains` "identifier") ] ++
+           [ unode "dc:creator" ! [("opf:role","aut")] $ a | a <- authors ]
+  in  elt{ elContent = elContent elt ++ map Elem newNodes }
 
 transformInline :: HTMLMathMethod
                 -> FilePath
