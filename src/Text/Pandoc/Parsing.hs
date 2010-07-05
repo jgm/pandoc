@@ -53,6 +53,10 @@ module Text.Pandoc.Parsing ( (>>~),
                              anyOrderedListMarker,
                              orderedListMarker,
                              charRef,
+                             gridTableHeader,
+                             gridTableRow,
+                             gridTableSep,
+                             gridTableFooter,
                              readWith,
                              testStringWith,
                              ParserState (..),
@@ -72,10 +76,10 @@ import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.ParserCombinators.Parsec
 import Text.Pandoc.CharacterReferences ( characterReference )
 import Data.Char ( toLower, toUpper, ord, isAscii )
-import Data.List ( intercalate )
+import Data.List ( intercalate, transpose )
 import Network.URI ( parseURI, URI (..), isAllowedInURI )
-import Control.Monad (join)
-import Text.Pandoc.Shared (escapeURI)
+import Control.Monad ( join, liftM )
+import Text.Pandoc.Shared
 import qualified Data.Map as M
 
 -- | Like >>, but returns the operation on the left.
@@ -403,6 +407,84 @@ charRef :: GenParser Char st Inline
 charRef = do
   c <- characterReference
   return $ Str [c]
+
+-- grid tables, common to RST and Markdown:
+
+gridTableSplitLine :: [Int] -> String -> [String]
+gridTableSplitLine indices line =
+  map removeFinalBar $ tail $ splitByIndices (init indices) line
+
+gridPart :: Char -> GenParser Char st (Int, Int)
+gridPart ch = do
+  dashes <- many1 (char ch)
+  char '+'
+  return (length dashes, length dashes + 1)
+
+gridDashedLines :: Char -> GenParser Char st [(Int,Int)]
+gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) >>~ blankline
+
+removeFinalBar :: String -> String
+removeFinalBar = reverse . dropWhile (=='|') .  dropWhile (`elem` " \t") .
+                 reverse
+
+-- | Separator between rows of grid table.
+gridTableSep :: Char -> GenParser Char ParserState Char
+gridTableSep ch = try $ gridDashedLines ch >> return '\n'
+
+-- | Parse header for a grid table.
+gridTableHeader :: Bool -- ^ Headerless table
+                -> GenParser Char ParserState ([String], [Alignment], [Int])
+gridTableHeader headless = try $ do
+  optional blanklines
+  dashes <- gridDashedLines '-'
+  rawContent  <- if headless
+                    then return $ repeat "" 
+                    else many1
+                         (notFollowedBy (gridTableSep '=') >> char '|' >> many1Till anyChar newline)
+  if headless
+     then return ()
+     else gridTableSep '=' >> return ()
+  let lines'   = map snd dashes
+  let indices  = scanl (+) 0 lines'
+  let aligns   = replicate (length lines') AlignDefault -- RST does not have a notion of alignments
+  let rawHeads = if headless
+                    then replicate (length dashes) ""
+                    else map (intercalate " ") $ transpose
+                       $ map (gridTableSplitLine indices) rawContent
+  return (rawHeads, aligns, indices)
+
+gridTableRawLine :: [Int] -> GenParser Char ParserState [String]
+gridTableRawLine indices = do
+  char '|'
+  line <- many1Till anyChar newline
+  return (gridTableSplitLine indices $ removeTrailingSpace line)
+
+-- | Parse row of grid table.
+gridTableRow :: GenParser Char ParserState Block
+             -> [Int]
+             -> GenParser Char ParserState [[Block]]
+gridTableRow block indices = do
+  colLines <- many1 (gridTableRawLine indices)
+  let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
+               transpose colLines
+  mapM (liftM compactifyCell . parseFromString (many block)) cols
+
+removeOneLeadingSpace :: [String] -> [String]
+removeOneLeadingSpace xs =
+  if all startsWithSpace xs
+     then map (drop 1) xs
+     else xs
+   where startsWithSpace ""     = True
+         startsWithSpace (y:_) = y == ' '
+
+compactifyCell :: [Block] -> [Block]
+compactifyCell bs = head $ compactify [bs]
+
+-- | Parse footer for a grid table.
+gridTableFooter :: GenParser Char ParserState [Char]
+gridTableFooter = blanklines
+
+---
 
 -- | Parse a string with a given parser and state.
 readWith :: GenParser Char ParserState a      -- ^ parser

@@ -34,7 +34,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.ParserCombinators.Parsec
-import Control.Monad ( when, unless, liftM )
+import Control.Monad ( when, unless )
 import Data.List ( findIndex, intercalate, transpose, sort )
 import qualified Data.Map as M
 import Text.Printf ( printf )
@@ -608,40 +608,19 @@ dashedLine ch = do
 simpleDashedLines :: Char -> GenParser Char st [(Int,Int)]
 simpleDashedLines ch = try $ many1 (dashedLine ch)
 
-gridPart :: Char -> GenParser Char st (Int, Int)
-gridPart ch = do
-  dashes <- many1 (char ch)
-  char '+'
-  return (length dashes, length dashes + 1)
-
-gridDashedLines :: Char -> GenParser Char st [(Int,Int)]
-gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) >>~ blankline
-
 -- Parse a table row separator
 simpleTableSep :: Char -> GenParser Char ParserState Char
 simpleTableSep ch = try $ simpleDashedLines ch >> newline
 
-gridTableSep :: Char -> GenParser Char ParserState Char
-gridTableSep ch = try $ gridDashedLines ch >> return '\n'
-
 -- Parse a table footer
 simpleTableFooter :: GenParser Char ParserState [Char]
 simpleTableFooter = try $ simpleTableSep '=' >> blanklines
-
-gridTableFooter :: GenParser Char ParserState [Char]
-gridTableFooter = blanklines
 
 -- Parse a raw line and split it into chunks by indices.
 simpleTableRawLine :: [Int] -> GenParser Char ParserState [String]
 simpleTableRawLine indices = do
   line <- many1Till anyChar newline
   return (simpleTableSplitLine indices line)
-
-gridTableRawLine :: [Int] -> GenParser Char ParserState [String]
-gridTableRawLine indices = do
-  char '|'
-  line <- many1Till anyChar newline
-  return (gridTableSplitLine indices $ removeTrailingSpace line)
 
 -- Parse a table row and return a list of blocks (columns).
 simpleTableRow :: [Int] -> GenParser Char ParserState [[Block]]
@@ -652,37 +631,10 @@ simpleTableRow indices = do
   let cols = map unlines . transpose $ firstLine : colLines
   mapM (parseFromString (many plain)) cols
 
-gridTableRow :: [Int]
-             -> GenParser Char ParserState [[Block]]
-gridTableRow indices = do
-  colLines <- many1 (gridTableRawLine indices)
-  let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
-               transpose colLines
-  mapM (liftM compactifyCell . parseFromString (many block)) cols
-
-compactifyCell :: [Block] -> [Block]
-compactifyCell bs = head $ compactify [bs]
-
 simpleTableSplitLine :: [Int] -> String -> [String]
 simpleTableSplitLine indices line =
   map removeLeadingTrailingSpace
   $ tail $ splitByIndices (init indices) line
-
-gridTableSplitLine :: [Int] -> String -> [String]
-gridTableSplitLine indices line =
-  map removeFinalBar $ tail $ splitByIndices (init indices) line
-
-removeFinalBar :: String -> String
-removeFinalBar = reverse . dropWhile (=='|') .  dropWhile (`elem` " \t") .
-                 reverse
-
-removeOneLeadingSpace :: [String] -> [String]
-removeOneLeadingSpace xs =
-  if all startsWithSpace xs
-     then map (drop 1) xs
-     else xs
-   where startsWithSpace ""     = True
-         startsWithSpace (y:_) = y == ' '
 
 -- Calculate relative widths of table columns, based on indices
 widthsFromIndices :: Int      -- Number of columns on terminal
@@ -725,30 +677,10 @@ simpleTableHeader headless = try $ do
                     else simpleTableSplitLine indices rawContent
   return (rawHeads, aligns, indices)
 
-gridTableHeader :: Bool -- ^ Headerless table
-                -> GenParser Char ParserState ([String], [Alignment], [Int])
-gridTableHeader headless = try $ do
-  optional blanklines
-  dashes <- gridDashedLines '-'
-  rawContent  <- if headless
-                    then return $ repeat "" 
-                    else many1
-                         (notFollowedBy (gridTableSep '=') >> char '|' >> many1Till anyChar newline)
-  if headless
-     then return ()
-     else gridTableSep '=' >> return ()
-  let lines'   = map snd dashes
-  let indices  = scanl (+) 0 lines'
-  let aligns   = replicate (length lines') AlignDefault -- RST does not have a notion of alignments
-  let rawHeads = if headless
-                    then replicate (length dashes) ""
-                    else map (intercalate " ") $ transpose
-                       $ map (gridTableSplitLine indices) rawContent
-  return (rawHeads, aligns, indices)
-
 -- Parse a table using 'headerParser', 'lineParser', and 'footerParser'.
 tableWith :: GenParser Char ParserState ([[Char]], [Alignment], [Int])
-          -> ([Int] -> GenParser Char ParserState [[Block]])
+          -> ([Int]
+          -> GenParser Char ParserState [[Block]])
           -> GenParser Char ParserState sep
           -> GenParser Char ParserState end
           -> GenParser Char ParserState Block
@@ -778,9 +710,10 @@ simpleTable headless = do
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
 gridTable :: Bool -- ^ Headerless table
-               -> GenParser Char ParserState Block
+          -> GenParser Char ParserState Block
 gridTable headless =
-  tableWith (gridTableHeader headless) gridTableRow (gridTableSep '-') gridTableFooter
+  tableWith (gridTableHeader headless) (gridTableRow block) (gridTableSep '-') gridTableFooter
+
 
 table :: GenParser Char ParserState Block
 table = gridTable False <|> simpleTable False <|>
