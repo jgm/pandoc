@@ -79,7 +79,7 @@ writeEPUB sourceDir stylesheet opts doc = do
   -- handle pictures
   picEntriesRef <- newIORef ([] :: [Entry])
   Pandoc meta blocks <- liftM (processWith transformBlock) $
-     processWithM (transformInline (writerHTMLMathMethod opts)
+     processWithM (transformInlines (writerHTMLMathMethod opts)
                      sourceDir picEntriesRef) doc
   picEntries <- readIORef picEntriesRef
   -- body pages
@@ -186,21 +186,21 @@ metadataElement metadataXML uuid lang title authors =
            [ unode "dc:creator" ! [("opf:role","aut")] $ a | a <- authors ]
   in  elt{ elContent = elContent elt ++ map Elem newNodes }
 
-transformInline :: HTMLMathMethod
-                -> FilePath
-                -> IORef [Entry]
-                -> Inline
-                -> IO Inline
-transformInline _ _ _ (Image lab (src,_)) | isNothing (imageTypeOf src) =
-  return (Emph lab) 
-transformInline _ sourceDir picsRef (Image lab (src,tit)) = do
+transformInlines :: HTMLMathMethod
+                 -> FilePath
+                 -> IORef [Entry]
+                 -> [Inline]
+                 -> IO [Inline]
+transformInlines _ _ _ (Image lab (src,_) : xs) | isNothing (imageTypeOf src) =
+  return $ Emph lab : xs
+transformInlines _ sourceDir picsRef (Image lab (src,tit) : xs) = do
   entries <- readIORef picsRef
   let newsrc = "images/img" ++ show (length entries) ++ takeExtension src
   catch (readEntry [] (sourceDir </> src) >>= \entry ->
            modifyIORef picsRef (entry{ eRelativePath = newsrc } :) >>
-           return (Image lab (newsrc, tit)))
-        (\_ -> return (Emph lab))
-transformInline (MathML _) _ _ x@(Math _ _) = do
+           return (Image lab (newsrc, tit) : xs))
+        (\_ -> return (Emph lab : xs))
+transformInlines (MathML _) _ _ (x@(Math _ _) : xs) = do
   let writeHtmlInline opts z = removeTrailingSpace $
          writeHtmlString opts $ Pandoc (Meta [] [] []) [Plain [z]]
       mathml = writeHtmlInline defaultWriterOptions{
@@ -211,9 +211,11 @@ transformInline (MathML _) _ _ x@(Math _ _) = do
        "<ops:case required-namespace=\"http://www.w3.org/1998/Math/MathML\">" ++
        mathml ++ "</ops:case><ops:default>" ++ fallback ++ "</ops:default>" ++
        "</ops:switch>"
-  return $ HtmlInline $ if "<math" `isPrefixOf` mathml then inOps else mathml
-transformInline _ _ _ (HtmlInline _) = return $ Str ""
-transformInline _ _ _ x = return x
+      result = if "<math" `isPrefixOf` mathml then inOps else mathml
+  return $ HtmlInline result : xs
+transformInlines _ _ _ (HtmlInline _ : xs) = return $ Str "" : xs
+transformInlines _ _ _ (Link lab (_,_) : xs) = return $ lab ++ xs
+transformInlines mathmethod sourceDir picsRef xs = return xs
 
 transformBlock :: Block -> Block
 transformBlock (RawHtml _) = Null
