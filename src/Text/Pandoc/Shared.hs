@@ -364,11 +364,11 @@ data Element = Blk Block
 
 -- | Convert Pandoc inline list to plain text identifier.  HTML
 -- identifiers must start with a letter, and may contain only
--- letters, digits, and the characters _-:.
+-- letters, digits, and the characters _-.
 inlineListToIdentifier :: [Inline] -> String
 inlineListToIdentifier =
   dropWhile (not . isAlpha) . intercalate "-" . words . map toLower .
-  filter (\c -> isLetter c || isDigit c || c `elem` "_-:. ") .
+  filter (\c -> isLetter c || isDigit c || c `elem` "_-. ") .
   concatMap extractText
     where extractText x = case x of
               Str s           -> s
