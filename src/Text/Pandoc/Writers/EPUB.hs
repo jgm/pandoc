@@ -215,7 +215,7 @@ transformInlines (MathML _) _ _ (x@(Math _ _) : xs) = do
   return $ HtmlInline result : xs
 transformInlines _ _ _ (HtmlInline _ : xs) = return $ Str "" : xs
 transformInlines _ _ _ (Link lab (_,_) : xs) = return $ lab ++ xs
-transformInlines mathmethod sourceDir picsRef xs = return xs
+transformInlines _ _ _ xs = return xs
 
 transformBlock :: Block -> Block
 transformBlock (RawHtml _) = Null
