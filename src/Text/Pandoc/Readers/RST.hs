@@ -636,32 +636,8 @@ simpleTableSplitLine indices line =
   map removeLeadingTrailingSpace
   $ tail $ splitByIndices (init indices) line
 
--- Calculate relative widths of table columns, based on indices
-widthsFromIndices :: Int      -- Number of columns on terminal
-                  -> [Int]    -- Indices
-                  -> [Double] -- Fractional relative sizes of columns
-widthsFromIndices _ [] = []
-widthsFromIndices numColumns indices =
-  let lengths' = zipWith (-) indices (0:indices)
-      lengths  = reverse $
-                 case reverse lengths' of
-                      []       -> []
-                      [x]      -> [x]
-                      -- compensate for the fact that intercolumn
-                      -- spaces are counted in widths of all columns
-                      -- but the last...
-                      (x:y:zs) -> if x < y && y - x <= 2
-                                     then y:y:zs
-                                     else x:y:zs
-      totLength = sum lengths
-      quotient = if totLength > numColumns
-                   then fromIntegral totLength
-                   else fromIntegral numColumns
-      fracs = map (\l -> (fromIntegral l) / quotient) lengths in
-  tail fracs
-
 simpleTableHeader :: Bool  -- ^ Headerless table 
-                  -> GenParser Char ParserState ([[Char]], [Alignment], [Int])
+                  -> GenParser Char ParserState ([[Block]], [Alignment], [Int])
 simpleTableHeader headless = try $ do
   optional blanklines
   rawContent  <- if headless
@@ -675,45 +651,23 @@ simpleTableHeader headless = try $ do
   let rawHeads = if headless
                     then replicate (length dashes) ""
                     else simpleTableSplitLine indices rawContent
-  return (rawHeads, aligns, indices)
-
--- Parse a table using 'headerParser', 'lineParser', and 'footerParser'.
-tableWith :: GenParser Char ParserState ([[Char]], [Alignment], [Int])
-          -> ([Int]
-          -> GenParser Char ParserState [[Block]])
-          -> GenParser Char ParserState sep
-          -> GenParser Char ParserState end
-          -> GenParser Char ParserState Block
-tableWith headerParser rowParser lineParser footerParser = try $ do
-    (rawHeads, aligns, indices) <- headerParser
-    lines' <- rowParser indices `sepEndBy` lineParser
-    footerParser
-    heads <- mapM (parseFromString (many plain)) rawHeads
-    state <- getState
-    let captions = [] -- no notion of captions in RST
-    let numColumns = stateColumns state
-    let widths = widthsFromIndices numColumns indices
-    return $ Table captions aligns widths heads lines'
+  heads <- mapM (parseFromString (many plain)) $
+             map removeLeadingTrailingSpace rawHeads
+  return (heads, aligns, indices)
 
 -- Parse a simple table with '---' header and one line per row.
 simpleTable :: Bool  -- ^ Headerless table
             -> GenParser Char ParserState Block
 simpleTable headless = do
-  Table c a _w h l <- tableWith (simpleTableHeader headless) simpleTableRow sep simpleTableFooter
+  Table c a _w h l <- tableWith (simpleTableHeader headless) simpleTableRow sep simpleTableFooter (return [])
   -- Simple tables get 0s for relative column widths (i.e., use default)
   return $ Table c a (replicate (length a) 0) h l
  where
   sep = return () -- optional (simpleTableSep '-')
 
--- Parse a grid table:  starts with row of '-' on top, then header
--- (which may be grid), then the rows,
--- which may be grid, separated by blank lines, and
--- ending with a footer (dashed line followed by blank line).
 gridTable :: Bool -- ^ Headerless table
           -> GenParser Char ParserState Block
-gridTable headless =
-  tableWith (gridTableHeader headless) (gridTableRow block) (gridTableSep '-') gridTableFooter
-
+gridTable = gridTableWith block (return [])
 
 table :: GenParser Char ParserState Block
 table = gridTable False <|> simpleTable False <|>

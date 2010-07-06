@@ -717,7 +717,7 @@ dashedLine ch = do
 -- Parse a table header with dashed lines of '-' preceded by 
 -- one (or zero) line of text.
 simpleTableHeader :: Bool  -- ^ Headerless table 
-                  -> GenParser Char ParserState ([[Char]], [Alignment], [Int])
+                  -> GenParser Char ParserState ([[Block]], [Alignment], [Int])
 simpleTableHeader headless = try $ do
   rawContent  <- if headless
                     then return ""
@@ -736,7 +736,9 @@ simpleTableHeader headless = try $ do
   let rawHeads' = if headless
                      then replicate (length dashes) ""
                      else rawHeads 
-  return (rawHeads', aligns, indices)
+  heads <- mapM (parseFromString (many plain)) $
+             map removeLeadingTrailingSpace rawHeads'
+  return (heads, aligns, indices)
 
 -- Parse a table footer - dashed lines followed by blank line.
 tableFooter :: GenParser Char ParserState [Char]
@@ -765,33 +767,8 @@ multilineRow :: [Int]
              -> GenParser Char ParserState [[Block]]
 multilineRow indices = do
   colLines <- many1 (rawTableLine indices)
-  optional blanklines
   let cols = map unlines $ transpose colLines
   mapM (parseFromString (many plain)) cols
-
--- Calculate relative widths of table columns, based on indices
-widthsFromIndices :: Int      -- Number of columns on terminal
-                  -> [Int]    -- Indices
-                  -> [Double] -- Fractional relative sizes of columns
-widthsFromIndices _ [] = []  
-widthsFromIndices numColumns indices = 
-  let lengths' = zipWith (-) indices (0:indices)
-      lengths  = reverse $
-                 case reverse lengths' of
-                      []       -> []
-                      [x]      -> [x]
-                      -- compensate for the fact that intercolumn
-                      -- spaces are counted in widths of all columns
-                      -- but the last...
-                      (x:y:zs) -> if x < y && y - x <= 2
-                                     then y:y:zs
-                                     else x:y:zs
-      totLength = sum lengths
-      quotient = if totLength > numColumns
-                   then fromIntegral totLength
-                   else fromIntegral numColumns
-      fracs = map (\l -> (fromIntegral l) / quotient) lengths in
-  tail fracs
 
 -- Parses a table caption:  inlines beginning with 'Table:'
 -- and followed by blank lines.
@@ -803,27 +780,14 @@ tableCaption = try $ do
   blanklines
   return $ normalizeSpaces result
 
--- Parse a table using 'headerParser', 'lineParser', and 'footerParser'.
-tableWith :: GenParser Char ParserState ([[Char]], [Alignment], [Int])
-          -> ([Int] -> GenParser Char ParserState [[Block]])
-          -> GenParser Char ParserState end
-          -> GenParser Char ParserState Block
-tableWith headerParser lineParser footerParser = try $ do
-    (rawHeads, aligns, indices) <- headerParser
-    lines' <- many1Till (lineParser indices) footerParser
-    caption <- option [] tableCaption
-    heads <- mapM (parseFromString (many plain)) rawHeads
-    state <- getState
-    let numColumns = stateColumns state
-    let widths = widthsFromIndices numColumns indices
-    return $ Table caption aligns widths heads lines'
-
 -- Parse a simple table with '---' header and one line per row.
 simpleTable :: Bool  -- ^ Headerless table
             -> GenParser Char ParserState Block
 simpleTable headless = do
   Table c a _w h l <- tableWith (simpleTableHeader headless) tableLine
-               (if headless then tableFooter else tableFooter <|> blanklines)
+              (return ())
+              (if headless then tableFooter else tableFooter <|> blanklines)
+              tableCaption
   -- Simple tables get 0s for relative column widths (i.e., use default)
   return $ Table c a (replicate (length a) 0) h l
 
@@ -834,10 +798,10 @@ simpleTable headless = do
 multilineTable :: Bool -- ^ Headerless table
                -> GenParser Char ParserState Block
 multilineTable headless =
-  tableWith (multilineTableHeader headless) multilineRow tableFooter
+  tableWith (multilineTableHeader headless) multilineRow blanklines tableFooter tableCaption
 
 multilineTableHeader :: Bool -- ^ Headerless table
-                     -> GenParser Char ParserState ([String], [Alignment], [Int])
+                     -> GenParser Char ParserState ([[Block]], [Alignment], [Int])
 multilineTableHeader headless = try $ do
   if headless
      then return '\n'
@@ -861,7 +825,9 @@ multilineTableHeader headless = try $ do
   let rawHeads = if headless
                     then replicate (length dashes) ""
                     else map (intercalate " ") rawHeadsList
-  return ((map removeLeadingTrailingSpace rawHeads), aligns, indices)
+  heads <- mapM (parseFromString (many plain)) $
+             map removeLeadingTrailingSpace rawHeads
+  return (heads, aligns, indices)
 
 -- Returns an alignment type for a table, based on a list of strings
 -- (the rows of the column header) and a number (the length of the
@@ -881,9 +847,15 @@ alignType strLst len =
         (True,  True)    -> AlignCenter
         (False, False)   -> AlignDefault
 
+gridTable :: Bool -- ^ Headerless table
+          -> GenParser Char ParserState Block
+gridTable = gridTableWith block tableCaption
+
+-- TODO - add grid tables here...add tests for markdown grid tables...document markdown grid tables.
 table :: GenParser Char ParserState Block
 table = multilineTable False <|> simpleTable True <|>
-        simpleTable False <|> multilineTable True <?> "table"
+        simpleTable False <|> multilineTable True <|>
+        gridTable False <|> gridTable True <?> "table"
 
 -- 
 -- inline

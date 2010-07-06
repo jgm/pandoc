@@ -53,10 +53,8 @@ module Text.Pandoc.Parsing ( (>>~),
                              anyOrderedListMarker,
                              orderedListMarker,
                              charRef,
-                             gridTableHeader,
-                             gridTableRow,
-                             gridTableSep,
-                             gridTableFooter,
+                             tableWith,
+                             gridTableWith,
                              readWith,
                              testStringWith,
                              ParserState (..),
@@ -408,7 +406,58 @@ charRef = do
   c <- characterReference
   return $ Str [c]
 
--- grid tables, common to RST and Markdown:
+-- | Parse a table using 'headerParser', 'rowParser',
+-- 'lineParser', and 'footerParser'.
+tableWith :: GenParser Char ParserState ([[Block]], [Alignment], [Int])
+          -> ([Int] -> GenParser Char ParserState [[Block]])
+          -> GenParser Char ParserState sep
+          -> GenParser Char ParserState end
+          -> GenParser Char ParserState [Inline]
+          -> GenParser Char ParserState Block
+tableWith headerParser rowParser lineParser footerParser captionParser = try $ do
+    (heads, aligns, indices) <- headerParser
+    lines' <- rowParser indices `sepEndBy` lineParser
+    footerParser
+    caption <- option [] captionParser
+    state <- getState
+    let numColumns = stateColumns state
+    let widths = widthsFromIndices numColumns indices
+    return $ Table caption aligns widths heads lines'
+
+-- Calculate relative widths of table columns, based on indices
+widthsFromIndices :: Int      -- Number of columns on terminal
+                  -> [Int]    -- Indices
+                  -> [Double] -- Fractional relative sizes of columns
+widthsFromIndices _ [] = []  
+widthsFromIndices numColumns indices = 
+  let lengths' = zipWith (-) indices (0:indices)
+      lengths  = reverse $
+                 case reverse lengths' of
+                      []       -> []
+                      [x]      -> [x]
+                      -- compensate for the fact that intercolumn
+                      -- spaces are counted in widths of all columns
+                      -- but the last...
+                      (x:y:zs) -> if x < y && y - x <= 2
+                                     then y:y:zs
+                                     else x:y:zs
+      totLength = sum lengths
+      quotient = if totLength > numColumns
+                   then fromIntegral totLength
+                   else fromIntegral numColumns
+      fracs = map (\l -> (fromIntegral l) / quotient) lengths in
+  tail fracs
+
+-- Parse a grid table:  starts with row of '-' on top, then header
+-- (which may be grid), then the rows,
+-- which may be grid, separated by blank lines, and
+-- ending with a footer (dashed line followed by blank line).
+gridTableWith :: GenParser Char ParserState Block    -- ^ Block parser
+              -> GenParser Char ParserState [Inline] -- ^ Caption parser
+              -> Bool                                -- ^ Headerless table
+              -> GenParser Char ParserState Block
+gridTableWith block tableCaption headless =
+  tableWith (gridTableHeader headless block) (gridTableRow block) (gridTableSep '-') gridTableFooter tableCaption
 
 gridTableSplitLine :: [Int] -> String -> [String]
 gridTableSplitLine indices line =
@@ -433,8 +482,9 @@ gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- | Parse header for a grid table.
 gridTableHeader :: Bool -- ^ Headerless table
-                -> GenParser Char ParserState ([String], [Alignment], [Int])
-gridTableHeader headless = try $ do
+                -> GenParser Char ParserState Block
+                -> GenParser Char ParserState ([[Block]], [Alignment], [Int])
+gridTableHeader headless block = try $ do
   optional blanklines
   dashes <- gridDashedLines '-'
   rawContent  <- if headless
@@ -453,7 +503,9 @@ gridTableHeader headless = try $ do
                     then replicate (length dashes) ""
                     else map (intercalate " ") $ transpose
                        $ map (gridTableSplitLine indices) rawContent
-  return (rawHeads, aligns, indices)
+  heads <- mapM (parseFromString $ many block) $
+               map removeLeadingTrailingSpace rawHeads
+  return (heads, aligns, indices)
 
 gridTableRawLine :: [Int] -> GenParser Char ParserState [String]
 gridTableRawLine indices = do
