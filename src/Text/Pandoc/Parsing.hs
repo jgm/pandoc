@@ -440,13 +440,15 @@ gridTableHeader headless = try $ do
   rawContent  <- if headless
                     then return $ repeat "" 
                     else many1
-                         (notFollowedBy (gridTableSep '=') >> char '|' >> many1Till anyChar newline)
+                         (notFollowedBy (gridTableSep '=') >> char '|' >>
+                           many1Till anyChar newline)
   if headless
      then return ()
      else gridTableSep '=' >> return ()
   let lines'   = map snd dashes
   let indices  = scanl (+) 0 lines'
-  let aligns   = replicate (length lines') AlignDefault -- RST does not have a notion of alignments
+  let aligns   = replicate (length lines') AlignDefault
+  -- RST does not have a notion of alignments
   let rawHeads = if headless
                     then replicate (length dashes) ""
                     else map (intercalate " ") $ transpose
