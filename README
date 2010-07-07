@@ -824,7 +824,8 @@ to the dashed line below it:[^4]
 The table must end with a blank line, or a line of dashes followed by
 a blank line. A caption may optionally be provided (as illustrated in
 the example above). A caption is a paragraph beginning with the string
-`Table:`, which will be stripped off.
+`Table:` (or just `:`), which will be stripped off. It may appear either
+before or after the table.
 
 The column headers may be omitted, provided a dashed line is used
 to end the table. For example:
@@ -880,7 +881,7 @@ Headers may be omitted in multiline tables as well as simple tables:
                                         rows.
     -------------------------------------------------------------
 
-    Table: Here's a multiline table without headers.
+    : Here's a multiline table without headers.
 
 It is possible for a multiline table to have just one row, but the row
 should be followed by a blank line (and then the row of dashes that ends

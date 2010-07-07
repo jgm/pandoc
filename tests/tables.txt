@@ -24,9 +24,12 @@ Simple table indented two spaces:
       123     123       123          123    
         1     1          1             1    
 
-  Table:  Demonstration of simple table syntax.
+  :  Demonstration of simple table syntax.
 
 Multiline table with caption:
+
+:  Here's the caption.
+It may span multiple lines.
 
 ---------------------------------------------------------------
  Centered   Left             Right
@@ -38,9 +41,6 @@ Multiline table with caption:
    Second   row                5.0  Here's another one.  Note
                                     the blank line between rows.
 ---------------------------------------------------------------
-
-Table:  Here's the caption.
-It may span multiple lines.
 
 Multiline table without caption:
 

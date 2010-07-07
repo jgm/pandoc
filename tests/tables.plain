@@ -6,7 +6,7 @@ Simple table with caption:
       123 123      123    123
         1 1         1     1
   
-  Table: Demonstration of simple table syntax.
+  : Demonstration of simple table syntax.
 
 Simple table without caption:
 
@@ -24,7 +24,7 @@ Simple table indented two spaces:
       123 123      123    123
         1 1         1     1
   
-  Table: Demonstration of simple table syntax.
+  : Demonstration of simple table syntax.
 
 Multiline table with caption:
 
@@ -40,7 +40,7 @@ Multiline table with caption:
                                       rows.
   --------------------------------------------------------------
   
-  Table: Here's the caption. It may span multiple lines.
+  : Here's the caption. It may span multiple lines.
 
 Multiline table without caption:
 

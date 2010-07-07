@@ -239,7 +239,7 @@ blockToMarkdown opts (Table caption aligns widths headers rows) =  do
   caption' <- inlineListToMarkdown opts caption
   let caption'' = if null caption
                      then empty
-                     else text "" $+$ (text "Table: " <> caption')
+                     else text "" $+$ (text ": " <> caption')
   headers' <- mapM (blockListToMarkdown opts) headers
   let alignHeader alignment = case alignment of
                                 AlignLeft    -> leftAlignBlock

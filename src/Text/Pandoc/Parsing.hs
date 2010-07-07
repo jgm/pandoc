@@ -415,10 +415,13 @@ tableWith :: GenParser Char ParserState ([[Block]], [Alignment], [Int])
           -> GenParser Char ParserState [Inline]
           -> GenParser Char ParserState Block
 tableWith headerParser rowParser lineParser footerParser captionParser = try $ do
+    caption' <- option [] captionParser
     (heads, aligns, indices) <- headerParser
     lines' <- rowParser indices `sepEndBy` lineParser
     footerParser
-    caption <- option [] captionParser
+    caption <- if null caption'
+                  then option [] captionParser
+                  else return caption'
     state <- getState
     let numColumns = stateColumns state
     let widths = widthsFromIndices numColumns indices

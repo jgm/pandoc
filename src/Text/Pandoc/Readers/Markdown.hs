@@ -775,7 +775,7 @@ multilineRow indices = do
 tableCaption :: GenParser Char ParserState [Inline]
 tableCaption = try $ do
   skipNonindentSpaces
-  string "Table:"
+  string ":" <|> string "Table:"
   result <- many1 inline
   blanklines
   return $ normalizeSpaces result
