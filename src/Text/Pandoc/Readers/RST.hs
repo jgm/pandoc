@@ -655,7 +655,7 @@ simpleTableHeader headless = try $ do
              map removeLeadingTrailingSpace rawHeads
   return (heads, aligns, indices)
 
--- Parse a simple table with '---' header and one line per row.
+-- Parse a simple table.
 simpleTable :: Bool  -- ^ Headerless table
             -> GenParser Char ParserState Block
 simpleTable headless = do

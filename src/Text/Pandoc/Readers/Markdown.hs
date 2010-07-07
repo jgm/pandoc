@@ -851,7 +851,6 @@ gridTable :: Bool -- ^ Headerless table
           -> GenParser Char ParserState Block
 gridTable = gridTableWith block tableCaption
 
--- TODO - add grid tables here...add tests for markdown grid tables...document markdown grid tables.
 table :: GenParser Char ParserState Block
 table = multilineTable False <|> simpleTable True <|>
         simpleTable False <|> multilineTable True <|>
