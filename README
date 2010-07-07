@@ -792,10 +792,10 @@ Inline and regular footnotes may be mixed freely.
 Tables
 ------
 
-Two kinds of tables may be used.  Both kinds presuppose the use of
+Three kinds of tables may be used. All three kinds presuppose the use of
 a fixed-width font, such as Courier.
 
-Simple tables look like this:
+**Simple tables** look like this:
 
       Right     Left     Center     Default
     -------     ------ ----------   -------
@@ -840,7 +840,7 @@ When headers are omitted, column alignments are determined on the basis
 of the first line of the table body. So, in the tables above, the columns
 would be right, left, center, and right aligned, respectively.
 
-Multiline tables allow headers and table rows to span multiple lines
+**Multiline tables** allow headers and table rows to span multiple lines
 of text.  Here is an example:
 
     -------------------------------------------------------------
@@ -886,6 +886,28 @@ Headers may be omitted in multiline tables as well as simple tables:
 It is possible for a multiline table to have just one row, but the row
 should be followed by a blank line (and then the row of dashes that ends
 the table), or the table may be interpreted as a simple table.
+
+**Grid tables** look like this:
+
+    : Sample grid table.
+    
+    +---------------+---------------+--------------------+
+    | Fruit         | Price         | Advantages         |
+    +===============+===============+====================+
+    | Bananas       | $1.34         | - built-in wrapper |
+    |               |               | - bright color     |
+    +---------------+---------------+--------------------+
+    | Oranges       | $2.10         | - cures scurvy     |
+    |               |               | - tasty            |
+    +---------------+---------------+--------------------+
+
+The row of `=`s separates the header from the table body, and can be
+omitted for a headerless table. The cells of grid tables may contain
+arbitrary block elements (multiple paragraphs, code blocks, lists,
+etc.). Alignments are not supported, nor are multi-column or multi-row
+cells. Grid tables can be created easily using [Emacs table mode].
+
+  [Emacs table mode]: http://table.sourceforge.net/
 
 Delimited Code blocks
 ---------------------
