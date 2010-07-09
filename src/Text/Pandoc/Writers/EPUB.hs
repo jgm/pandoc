@@ -47,11 +47,14 @@ import Text.Pandoc.Writers.Markdown ( writePlain )
 import Data.Char ( toLower )
 
 -- | Produce an EPUB file from a Pandoc document.
-writeEPUB :: String         -- ^ EPUB stylesheet
+writeEPUB :: Maybe String   -- ^ EPUB stylesheet specified at command line
           -> WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO B.ByteString
-writeEPUB stylesheet opts doc = do
+writeEPUB mbStylesheet opts doc = do
+  stylesheet <- case mbStylesheet of
+                   Just s  -> return s
+                   Nothing -> readDataFile (writerUserDataDir opts) "epub.css"
   (TOD epochtime _) <- getClockTime
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerStandalone = True

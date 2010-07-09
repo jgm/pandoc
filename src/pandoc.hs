@@ -695,16 +695,13 @@ main = do
      Just r  -> return r
      Nothing -> error ("Unknown reader: " ++ readerName')
 
-  writer <- case (lookup writerName' writers) of
-     Just _ | writerName' == "epub" -> do
-          epubstyle <- case epubStylesheet of
-                            Just s  -> return s
-                            Nothing -> readDataFile datadir "epub.css"
-          return (writeEPUB epubstyle)
-     Just _ | writerName' == "odt"  -> return (writeODT referenceODT)
-     Just r                         -> return $ \o d ->
-                                          return $ fromString (r o d)
-     Nothing                        -> error ("Unknown writer: " ++ writerName')
+  let writer = case lookup writerName' writers of
+                Just _ | writerName' == "epub" -> writeEPUB epubStylesheet
+                Just _ | writerName' == "odt"  -> writeODT referenceODT
+                Just r                         -> \o ->
+                                                     return . fromString . r o
+                Nothing                        -> error $ "Unknown writer: " ++
+                                                     writerName'
 
   templ <- getDefaultTemplate datadir writerName'
   let defaultTemplate = case templ of
