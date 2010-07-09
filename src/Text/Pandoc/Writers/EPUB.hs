@@ -80,11 +80,14 @@ writeEPUB mbStylesheet opts doc = do
                                ,writerVariables = ("titlepage","yes"):vars} doc
   let tpEntry = toEntry "title_page.xhtml" epochtime tpContent
   -- handle pictures
-  picEntriesRef <- newIORef ([] :: [Entry])
+  picsRef <- newIORef []
   Pandoc meta blocks <- liftM (processWith transformBlock) $
      processWithM (transformInlines (writerHTMLMathMethod opts)
-                     sourceDir picEntriesRef) doc
-  picEntries <- readIORef picEntriesRef
+                     sourceDir picsRef) doc
+  pics <- readIORef picsRef
+  let readPicEntry (oldsrc, newsrc) = readEntry [] oldsrc >>= \e ->
+                                          return e{ eRelativePath = newsrc }
+  picEntries <- mapM readPicEntry pics
   -- body pages
   let isH1 (Header 1 _) = True
       isH1 _            = False
@@ -191,18 +194,22 @@ metadataElement metadataXML uuid lang title authors =
 
 transformInlines :: HTMLMathMethod
                  -> FilePath
-                 -> IORef [Entry]
+                 -> IORef [(FilePath, FilePath)] -- ^ (oldpath, newpath) images
                  -> [Inline]
                  -> IO [Inline]
 transformInlines _ _ _ (Image lab (src,_) : xs) | isNothing (imageTypeOf src) =
   return $ Emph lab : xs
 transformInlines _ sourceDir picsRef (Image lab (src,tit) : xs) = do
-  entries <- readIORef picsRef
-  let newsrc = "images/img" ++ show (length entries) ++ takeExtension src
-  catch (readEntry [] (sourceDir </> src) >>= \entry ->
-           modifyIORef picsRef (entry{ eRelativePath = newsrc } :) >>
-           return (Image lab (newsrc, tit) : xs))
-        (\_ -> return (Emph lab : xs))
+  pics <- readIORef picsRef
+  let oldsrc = sourceDir </> src
+  let ext = takeExtension src
+  newsrc <- case lookup oldsrc pics of
+                  Just n  -> return n
+                  Nothing -> do
+                        let new = "images/img" ++ show (length pics) ++ ext
+                        modifyIORef picsRef ( (oldsrc, new): )
+                        return new
+  return $ Image lab (newsrc, tit) : xs
 transformInlines (MathML _) _ _ (x@(Math _ _) : xs) = do
   let writeHtmlInline opts z = removeTrailingSpace $
          writeHtmlString opts $ Pandoc (Meta [] [] []) [Plain [z]]
