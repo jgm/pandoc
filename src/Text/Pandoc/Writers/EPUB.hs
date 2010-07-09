@@ -51,57 +51,49 @@ writeEPUB :: Maybe String   -- ^ EPUB stylesheet specified at command line
           -> WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO B.ByteString
-writeEPUB mbStylesheet opts doc = do
-  stylesheet <- case mbStylesheet of
-                   Just s  -> return s
-                   Nothing -> readDataFile (writerUserDataDir opts) "epub.css"
+writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
   (TOD epochtime _) <- getClockTime
+  let mkEntry path content = toEntry path epochtime content
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerStandalone = True
                   , writerWrapText = False }
   let sourceDir = writerSourceDirectory opts'
-  -- mimetype
-  let mimetypeEntry = toEntry "mimetype" epochtime $ fromString "application/epub+zip"
-  -- container.xml
-  let containerData = fromString $ ppTopElement $
-       unode "container" ! [("version","1.0")
-              ,("xmlns","urn:oasis:names:tc:opendocument:xmlns:container")] $
-         unode "rootfiles" $
-           unode "rootfile" ! [("full-path","content.opf")
-               ,("media-type","application/oebps-package+xml")] $ ()
-  let containerEntry = toEntry "META-INF/container.xml" epochtime containerData
-  -- stylesheet
-  let stylesheetEntry = toEntry "stylesheet.css" epochtime $
-                             fromString stylesheet
+
   -- title page
   let vars = writerVariables opts'
-  let tpContent = fromString $
-          writeHtmlString opts'{writerTemplate = pageTemplate
-                               ,writerVariables = ("titlepage","yes"):vars} doc
-  let tpEntry = toEntry "title_page.xhtml" epochtime tpContent
+  let tpContent = fromString $ writeHtmlString
+                     opts'{writerTemplate = pageTemplate
+                          ,writerVariables = ("titlepage","yes"):vars}
+                     (Pandoc meta [])
+  let tpEntry = mkEntry "title_page.xhtml" tpContent
+
   -- handle pictures
   picsRef <- newIORef []
-  Pandoc meta blocks <- liftM (processWith transformBlock) $
-     processWithM (transformInlines (writerHTMLMathMethod opts)
-                     sourceDir picsRef) doc
+  Pandoc _ blocks <- liftM (processWith transformBlock) $ processWithM
+       (transformInlines (writerHTMLMathMethod opts) sourceDir picsRef) doc
   pics <- readIORef picsRef
   let readPicEntry (oldsrc, newsrc) = readEntry [] oldsrc >>= \e ->
                                           return e{ eRelativePath = newsrc }
   picEntries <- mapM readPicEntry pics
+
   -- body pages
   let isH1 (Header 1 _) = True
       isH1 _            = False
-  let chunks = splitByIndices (dropWhile (==0) $ findIndices isH1 blocks) blocks
+  let h1Indices = dropWhile (== 0) $ findIndices isH1 blocks
+  let chunks = splitByIndices h1Indices blocks
   let titleize (Header 1 xs : ys) = Pandoc meta{docTitle = xs} ys
       titleize xs                 = Pandoc meta xs
   let chapToHtml = writeHtmlString opts'{ writerTemplate = pageTemplate
-                                        , writerHTMLMathMethod = PlainMath}
+                                        , writerHTMLMathMethod = PlainMath }
   let chapters = map titleize chunks
   let chapterToEntry :: Int -> Pandoc -> Entry
-      chapterToEntry num chap = toEntry ("ch" ++ show num ++ ".xhtml")
-                                   epochtime $ fromString $ chapToHtml chap
+      chapterToEntry num chap = mkEntry ("ch" ++ show num ++ ".xhtml") $
+                                   fromString $ chapToHtml chap
   let chapterEntries = zipWith chapterToEntry [1..] chapters
+
   -- contents.opf
+  lang <- catch (liftM (takeWhile (/='.')) $ getEnv "lang")
+                (\_ -> return "en-US")
   uuid <- getRandomUUID
   let chapterNode ent = unode "item" !
                            [("id", takeBaseName $ eRelativePath ent),
@@ -115,12 +107,10 @@ writeEPUB mbStylesheet opts doc = do
                             ("media-type", fromMaybe "application/octet-stream"
                                $ imageTypeOf $ eRelativePath ent)] $ ()
   let plainify t = removeTrailingSpace $
-                   writePlain opts'{ writerStandalone = False } $
+                    writePlain opts'{ writerStandalone = False } $
                     Pandoc meta [Plain t]
   let plainTitle = plainify $ docTitle meta
   let plainAuthors = map plainify $ docAuthors meta
-  lang <- catch (liftM (takeWhile (/='.')) $ getEnv "lang")
-                (\_ -> return "en-US")
   let contentsData = fromString $ ppTopElement $
         unode "package" ! [("version","2.0")
                           ,("xmlns","http://www.idpf.org/2007/opf")
@@ -138,7 +128,8 @@ writeEPUB mbStylesheet opts doc = do
           , unode "spine" ! [("toc","ncx")] $
               map chapterRefNode (tpEntry : chapterEntries)
           ]
-  let contentsEntry = toEntry "content.opf" epochtime contentsData
+  let contentsEntry = mkEntry "content.opf" contentsData
+
   -- toc.ncx
   let navPointNode ent n tit = unode "navPoint" !
                                 [("id", "navPoint-" ++ show n)
@@ -166,7 +157,26 @@ writeEPUB mbStylesheet opts doc = do
                                 ("Title Page" : map (\(Pandoc m _) ->
                                    plainify $ docTitle m) chapters)
           ]
-  let tocEntry = toEntry "toc.ncx" epochtime tocData
+  let tocEntry = mkEntry "toc.ncx" tocData
+
+  -- mimetype
+  let mimetypeEntry = mkEntry "mimetype" $ fromString "application/epub+zip"
+
+  -- container.xml
+  let containerData = fromString $ ppTopElement $
+       unode "container" ! [("version","1.0")
+              ,("xmlns","urn:oasis:names:tc:opendocument:xmlns:container")] $
+         unode "rootfiles" $
+           unode "rootfile" ! [("full-path","content.opf")
+               ,("media-type","application/oebps-package+xml")] $ ()
+  let containerEntry = mkEntry "META-INF/container.xml" containerData
+
+  -- stylesheet
+  stylesheet <- case mbStylesheet of
+                   Just s  -> return s
+                   Nothing -> readDataFile (writerUserDataDir opts) "epub.css"
+  let stylesheetEntry = mkEntry "stylesheet.css" $ fromString stylesheet
+
   -- construct archive
   let archive = foldr addEntryToArchive emptyArchive
                  (mimetypeEntry : containerEntry : stylesheetEntry : tpEntry :
