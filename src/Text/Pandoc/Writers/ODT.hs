@@ -35,7 +35,7 @@ import Data.ByteString.Lazy.UTF8 ( fromString )
 import Codec.Archive.Zip
 import System.Time
 import Paths_pandoc ( getDataFileName )
-import Text.Pandoc.Shared ( WriterOptions )
+import Text.Pandoc.Shared ( WriterOptions(..) )
 import Text.Pandoc.Definition
 import Text.Pandoc.Writers.OpenDocument ( writeOpenDocument )
 import System.Directory
@@ -43,12 +43,11 @@ import Control.Monad (liftM)
 
 -- | Produce an ODT file from a Pandoc document.
 writeODT :: Maybe FilePath -- ^ Path of user data directory
-         -> FilePath       -- ^ Relative directory of source file
          -> Maybe FilePath -- ^ Path specified by --reference-odt
          -> WriterOptions  -- ^ Writer options
          -> Pandoc         -- ^ Document to convert
          -> IO B.ByteString
-writeODT datadir sourceDirRelative mbRefOdt opts doc = do
+writeODT datadir mbRefOdt opts doc = do
   refArchive <- liftM toArchive $
        case mbRefOdt of
              Just f -> B.readFile f
@@ -63,7 +62,8 @@ writeODT datadir sourceDirRelative mbRefOdt opts doc = do
                            else defaultODT
   -- handle pictures
   picEntriesRef <- newIORef ([] :: [Entry])
-  doc' <- processWithM (transformPic sourceDirRelative picEntriesRef) doc
+  let sourceDir = writerSourceDirectory opts
+  doc' <- processWithM (transformPic sourceDir picEntriesRef) doc
   let newContents = writeOpenDocument opts doc'
   (TOD epochtime _) <- getClockTime
   let contentEntry = toEntry "content.xml" epochtime $ fromString newContents
@@ -72,10 +72,10 @@ writeODT datadir sourceDirRelative mbRefOdt opts doc = do
   return $ fromArchive archive
 
 transformPic :: FilePath -> IORef [Entry] -> Inline -> IO Inline
-transformPic sourceDirRelative entriesRef (Image lab (src,tit)) = do
+transformPic sourceDir entriesRef (Image lab (src,tit)) = do
   entries <- readIORef entriesRef
   let newsrc = "Pictures/" ++ show (length entries) ++ takeExtension src
-  catch (readEntry [] (sourceDirRelative </> src) >>= \entry ->
+  catch (readEntry [] (sourceDir </> src) >>= \entry ->
            modifyIORef entriesRef (entry{ eRelativePath = newsrc } :) >>
            return (Image lab (newsrc, tit)))
         (\_ -> return (Emph lab))

@@ -672,10 +672,6 @@ main = do
      Nothing -> return ()
 
   let sources = if ignoreArgs then [] else args
-  
-  let sourceDirRelative = if null sources
-                             then ""
-                             else takeDirectory (head sources)
 
   datadir <- case mbDataDir of
                   Nothing   -> catch
@@ -704,9 +700,9 @@ main = do
           epubstyle <- case epubStylesheet of
                             Just s  -> return s
                             Nothing -> readDataFile datadir "epub.css"
-          return (writeEPUB sourceDirRelative epubstyle)
+          return (writeEPUB epubstyle)
      Just _ | writerName' == "odt"  -> return
-          (writeODT datadir sourceDirRelative referenceODT)
+          (writeODT datadir referenceODT)
      Just r                         -> return $ \o d ->
                                           return $ fromString (r o d)
      Nothing                        -> error ("Unknown writer: " ++ writerName')
@@ -742,6 +738,10 @@ main = do
                          return $ ("mathml-script", s) : variables'
                       _ -> return variables'
 
+  let sourceDir = if null sources
+                     then "."
+                     else takeDirectory (head sources)
+
   let startParserState =
          defaultParserState { stateParseRaw        = parseRaw,
                               stateTabStop         = tabStop,
@@ -757,6 +757,7 @@ main = do
                               stateColumns         = columns,
                               stateStrict          = strict,
                               stateIndentedCodeClasses = codeBlockClasses }
+
   let writerOptions = WriterOptions { writerStandalone       = standalone',
                                       writerTemplate         = if null template
                                                                   then defaultTemplate
@@ -780,7 +781,8 @@ main = do
                                       writerEmailObfuscation = if strict
                                                                   then ReferenceObfuscation
                                                                   else obfuscationMethod,
-                                      writerIdentifierPrefix = idPrefix }
+                                      writerIdentifierPrefix = idPrefix,
+                                      writerSourceDirectory  = sourceDir }
 
   when (isNonTextOutput writerName' && outputFile == "-") $
     do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++
