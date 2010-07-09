@@ -7,24 +7,5 @@ h3 { text-align: center; }
 h4 { text-align: center; }
 h5 { text-align: center; }
 h6 { text-align: center; }
-
-/* for syntax highlighting produced by highlighting-kate */
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode, table.sourceCode pre 
-   { margin: 0; padding: 0; border: 0; vertical-align: baseline; border: none; }
-td.lineNumbers { text-align: right; background-color: #EBEBEB; color: black; padding-right: 5px; padding-left: 5px; } 
-td.sourceCode { padding-left: 5px; }
-pre.sourceCode { }
-pre.sourceCode span.Normal { }
-pre.sourceCode span.Keyword { font-weight: bold; } 
-pre.sourceCode span.DataType { color: #800000; }
-pre.sourceCode span.DecVal { color: #0000FF; }
-pre.sourceCode span.BaseN { color: #0000FF; }
-pre.sourceCode span.Float { color: #800080; }
-pre.sourceCode span.Char { color: #FF00FF; }
-pre.sourceCode span.String { color: #DD0000; }
-pre.sourceCode span.Comment { color: #808080; font-style: italic; }
-pre.sourceCode span.Others { }
-pre.sourceCode span.Alert { color: green; font-weight: bold; }
-pre.sourceCode span.Function { color: #000080; }
-pre.sourceCode span.RegionMarker { }
-pre.sourceCode span.Error { color: red; font-weight: bold; }
+h1.title { }
+h2.author { }
