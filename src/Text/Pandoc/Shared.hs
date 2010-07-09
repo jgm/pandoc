@@ -478,6 +478,7 @@ data WriterOptions = WriterOptions
   , writerEmailObfuscation :: ObfuscationMethod -- ^ How to obfuscate emails
   , writerIdentifierPrefix :: String -- ^ Prefix for section & note ids in HTML
   , writerSourceDirectory  :: FilePath -- ^ Directory path of 1st source file
+  , writerUserDataDir      :: Maybe FilePath -- ^ Path of user data directory
   } deriving Show
 
 -- | Default writer options.
@@ -502,6 +503,7 @@ defaultWriterOptions =
                 , writerEmailObfuscation = JavascriptObfuscation
                 , writerIdentifierPrefix = ""
                 , writerSourceDirectory  = "."
+                , writerUserDataDir      = Nothing
                 }
 
 --

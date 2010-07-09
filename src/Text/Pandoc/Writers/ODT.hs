@@ -42,12 +42,12 @@ import System.Directory
 import Control.Monad (liftM)
 
 -- | Produce an ODT file from a Pandoc document.
-writeODT :: Maybe FilePath -- ^ Path of user data directory
-         -> Maybe FilePath -- ^ Path specified by --reference-odt
+writeODT :: Maybe FilePath -- ^ Path specified by --reference-odt
          -> WriterOptions  -- ^ Writer options
          -> Pandoc         -- ^ Document to convert
          -> IO B.ByteString
-writeODT datadir mbRefOdt opts doc = do
+writeODT mbRefOdt opts doc = do
+  let datadir = writerUserDataDir opts
   refArchive <- liftM toArchive $
        case mbRefOdt of
              Just f -> B.readFile f

@@ -701,8 +701,7 @@ main = do
                             Just s  -> return s
                             Nothing -> readDataFile datadir "epub.css"
           return (writeEPUB epubstyle)
-     Just _ | writerName' == "odt"  -> return
-          (writeODT datadir referenceODT)
+     Just _ | writerName' == "odt"  -> return (writeODT referenceODT)
      Just r                         -> return $ \o d ->
                                           return $ fromString (r o d)
      Nothing                        -> error ("Unknown writer: " ++ writerName')
@@ -782,7 +781,8 @@ main = do
                                                                   then ReferenceObfuscation
                                                                   else obfuscationMethod,
                                       writerIdentifierPrefix = idPrefix,
-                                      writerSourceDirectory  = sourceDir }
+                                      writerSourceDirectory  = sourceDir,
+                                      writerUserDataDir      = datadir }
 
   when (isNonTextOutput writerName' && outputFile == "-") $
     do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++
