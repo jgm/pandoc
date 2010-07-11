@@ -109,11 +109,11 @@ splitByIndices (x:xs) lst =
 -- | Replace each occurrence of one sublist in a list with another.
 substitute :: (Eq a) => [a] -> [a] -> [a] -> [a]
 substitute _ _ [] = []
-substitute [] _ lst = lst
-substitute target replacement lst = 
+substitute [] _ xs = xs
+substitute target replacement lst@(x:xs) =
     if target `isPrefixOf` lst
-       then replacement ++ (substitute target replacement $ drop (length target) lst)
-       else (head lst):(substitute target replacement $ tail lst)
+       then replacement ++ substitute target replacement (drop (length target) lst)
+       else x : substitute target replacement xs
 
 --
 -- Text processing
