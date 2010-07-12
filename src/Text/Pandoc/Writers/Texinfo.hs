@@ -144,6 +144,7 @@ blockToTexinfo (OrderedList (start, numstyle, _) lst) = do
     exemplar = case numstyle of
                 DefaultStyle -> decimal
                 Decimal      -> decimal
+                Example      -> decimal
                 UpperRoman   -> decimal   -- Roman numerals not supported
                 LowerRoman   -> decimal
                 UpperAlpha   -> upperAlpha

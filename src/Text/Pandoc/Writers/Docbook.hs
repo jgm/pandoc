@@ -154,6 +154,7 @@ blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) =
   let attribs  = case numstyle of
                        DefaultStyle -> []
                        Decimal      -> [("numeration", "arabic")]
+                       Example      -> [("numeration", "arabic")]
                        UpperAlpha   -> [("numeration", "upperalpha")]
                        LowerAlpha   -> [("numeration", "loweralpha")]
                        UpperRoman   -> [("numeration", "upperroman")]

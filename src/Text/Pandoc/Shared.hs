@@ -304,6 +304,7 @@ orderedListMarkers (start, numstyle, numdelim) =
   let singleton c = [c]
       nums = case numstyle of
                      DefaultStyle -> map show [start..]
+                     Example      -> map show [start..]
                      Decimal      -> map show [start..]
                      UpperAlpha   -> drop (start - 1) $ cycle $ 
                                      map singleton ['A'..'Z']

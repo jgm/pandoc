@@ -52,6 +52,7 @@ type ListAttributes = (Int, ListNumberStyle, ListNumberDelim)
 
 -- | Style of list numbers.
 data ListNumberStyle = DefaultStyle
+                     | Example
                      | Decimal 
                      | LowerRoman 
                      | UpperRoman

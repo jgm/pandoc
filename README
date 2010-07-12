@@ -583,12 +583,12 @@ which allows only the following characters to be backslash-escaped:
     \`*_{}[]()>#+-.!
 
 A backslash-escaped space is parsed as a nonbreaking space.  It will
-appear in TeX output as '`~`' and in HTML and XML as '`\&#160;`' or
-'`\&nbsp;`'.
+appear in TeX output as `~` and in HTML and XML as `\&#160;` or
+`\&nbsp;`.
 
 A backslash-escaped newline (i.e. a backslash occurring at the end of
 a line) is parsed as a hard line break.  It will appear in TeX output as
-'`\\`' and in HTML as '`<br />`'.  This is a nice alternative to
+`\\` and in HTML as `<br />`.  This is a nice alternative to
 markdown's "invisible" way of indicating hard line breaks using
 two trailing spaces on a line.
 
@@ -666,7 +666,7 @@ capital letter with a period, by at least two spaces.[^2]
     escape can be used:
 
         (C\) 2007 Joe Smith
-    
+
 Pandoc also pays attention to the type of list marker used, and to the
 starting number, and both of these are preserved where possible in the
 output format. Thus, the following yields a list with numbers followed
@@ -688,11 +688,37 @@ So, the following yields a list numbered sequentially starting from 2:
     1.  Four
     *   Five
 
-If default list markers are desired, use '`#.`':
+If default list markers are desired, use `#.`:
 
     #.  one
     #.  two
     #.  three
+
+Numbered examples
+-----------------
+
+The special list marker `@` can be used for sequentially numbered
+examples. The first list item with a `@` marker will be numbered '1',
+the next '2', and so on, throughout the document. The numbered examples
+need not occur in a single list; each new list using `@` will take up
+where the last stopped. So, for example:
+
+    (@)  My first example will be numbered (1).
+    (@)  My second example will be numbered (2).
+
+    Explanation of examples.
+
+    (@)  My third example will be numbered (3).
+
+Numbered examples can be labeled and referred to later in the
+document:
+
+    (@good)  This is a good example.
+
+    As (@good) illustrates, ...
+
+The label can be any string of alphanumeric characters, underscores,
+or hyphens.  The example must occur before the reference.
 
 Definition lists
 ----------------

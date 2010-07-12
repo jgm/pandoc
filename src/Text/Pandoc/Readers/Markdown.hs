@@ -69,7 +69,7 @@ setextHChars = "=-"
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
-specialChars = "\\[]*_~`<>$!^-.&'\";"
+specialChars = "\\[]*_~`<>$!^-.&@'\";"
 
 --
 -- auxiliary functions
@@ -888,6 +888,7 @@ inlineParsers = [ str
                 , rawHtmlInline'
                 , rawLaTeXInline'
                 , escapedChar
+                , exampleRef
                 , symbol
                 , ltSign ]
 
@@ -922,6 +923,15 @@ ltSign = do
 
 specialCharsMinusLt :: [Char]
 specialCharsMinusLt = filter (/= '<') specialChars
+
+exampleRef :: GenParser Char ParserState Inline
+exampleRef = try $ do
+  char '@'
+  lab <- many1 (alphaNum <|> oneOf "-_")
+  examples <- liftM stateExamples getState
+  case M.lookup lab examples of
+       Just num  -> return (Str $ show num)
+       Nothing   -> pzero
 
 symbol :: GenParser Char ParserState Inline
 symbol = do 
