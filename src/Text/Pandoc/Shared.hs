@@ -62,6 +62,7 @@ module Text.Pandoc.Shared (
                      hierarchicalize,
                      uniqueIdent,
                      isHeaderBlock,
+                     headerShift,
                      -- * Writer options
                      HTMLMathMethod (..),
                      ObfuscationMethod (..),
@@ -438,6 +439,13 @@ uniqueIdent title' usedIdents =
 isHeaderBlock :: Block -> Bool
 isHeaderBlock (Header _ _) = True
 isHeaderBlock _ = False
+
+-- | Shift header levels up or down.
+headerShift :: Int -> Pandoc -> Pandoc
+headerShift n = processWith shift
+  where shift :: Block -> Block
+        shift (Header level inner) = Header (level + n) inner
+        shift x                    = x
 
 --
 -- Writer options

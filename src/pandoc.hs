@@ -31,7 +31,8 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.Writers.S5 (s5HeaderIncludes)
-import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile )
+import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
+                            headerShift )
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
 #endif
@@ -126,12 +127,6 @@ writers = [("native"       , writeNative)
 
 isNonTextOutput :: String -> Bool
 isNonTextOutput = (`elem` ["odt","epub"])
-
-headerShift :: Int -> Pandoc -> Pandoc
-headerShift n = processWith shift
-  where shift :: Block -> Block
-        shift (Header level inner) = Header (level + n) inner
-        shift x                    = x
 
 -- | Data structure for command line options.
 data Opt = Opt
