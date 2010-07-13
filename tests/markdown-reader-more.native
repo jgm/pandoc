@@ -31,5 +31,13 @@ Pandoc (Meta {docTitle = [Str "Title",Space,Str "spanning",Space,Str "multiple",
 , Header 2 [Str "Multilingual",Space,Str "URLs"]
 , Para [Link [Code "http://\27979.com?\27979=\27979"] ("http://%E6%B5%8B.com?%E6%B5%8B=%E6%B5%8B","")]
 , Para [Link [Str "foo"] ("/bar/%E6%B5%8B?x=%E6%B5%8B","title")]
-, Para [Link [Code "\27979@foo.\27979.baz"] ("mailto:%E6%B5%8B@foo.%E6%B5%8B.baz","")] ]
+, Para [Link [Code "\27979@foo.\27979.baz"] ("mailto:%E6%B5%8B@foo.%E6%B5%8B.baz","")]
+, Header 2 [Str "Numbered",Space,Str "examples"]
+, OrderedList (1,Example,TwoParens)
+  [ [ Plain [Str "First",Space,Str "example",Str "."] ]
+  , [ Plain [Str "Second",Space,Str "example",Str "."] ] ]
+, Para [Str "Explanation",Space,Str "of",Space,Str "examples",Space,Str "(",Str "2",Str ")",Space,Str "and",Space,Str "(",Str "3",Str ")",Str "."]
+, OrderedList (3,Example,TwoParens)
+  [ [ Plain [Str "Third",Space,Str "example",Str "."] ]
+ ] ]
 

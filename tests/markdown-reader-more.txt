@@ -91,3 +91,12 @@ there`
 
 <测@foo.测.baz>
 
+## Numbered examples
+
+(@) First example.
+(@foo) Second example.
+
+Explanation of examples (@foo) and (@bar).
+
+(@bar) Third example.
+
