@@ -185,7 +185,18 @@ parseMarkdown = do
   -- now parse it for real...
   (title, author, date) <- option ([],[],[]) titleBlock
   blocks <- parseBlocks
-  return $ Pandoc (Meta title author date) $ filter (/= Null) blocks
+  let doc = Pandoc (Meta title author date) $ filter (/= Null) blocks
+  -- if there are labeled examples, change references into numbers
+  examples <- liftM stateExamples getState
+  let handleExampleRef :: Inline -> Inline
+      handleExampleRef z@(Str ('@':xs)) =
+        case M.lookup xs examples of
+              Just n     -> Str (show n)
+              Nothing    -> z
+      handleExampleRef z = z
+  if M.null examples
+     then return doc
+     else return $ processWith handleExampleRef doc
 
 -- 
 -- initial pass for references and notes
@@ -928,10 +939,9 @@ exampleRef :: GenParser Char ParserState Inline
 exampleRef = try $ do
   char '@'
   lab <- many1 (alphaNum <|> oneOf "-_")
-  examples <- liftM stateExamples getState
-  case M.lookup lab examples of
-       Just num  -> return (Str $ show num)
-       Nothing   -> pzero
+  -- We just return a Str. These are replaced with numbers
+  -- later. See the end of parseMarkdown.
+  return $ Str $ '@' : lab
 
 symbol :: GenParser Char ParserState Inline
 symbol = do 

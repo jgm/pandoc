@@ -710,7 +710,7 @@ where the last stopped. So, for example:
 
     (@)  My third example will be numbered (3).
 
-Numbered examples can be labeled and referred to later in the
+Numbered examples can be labeled and referred to elsewhere in the
 document:
 
     (@good)  This is a good example.
@@ -718,7 +718,7 @@ document:
     As (@good) illustrates, ...
 
 The label can be any string of alphanumeric characters, underscores,
-or hyphens.  The example must occur before the reference.
+or hyphens.
 
 Definition lists
 ----------------
