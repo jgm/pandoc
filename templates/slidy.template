@@ -9,7 +9,9 @@
 $for(author)$
   <meta name="author" content="$author$" />
 $endfor$
+$if(date)$
   <meta name="date" content="$date$" />
+$endif$
 $if(highlighting)$
   <style type="text/css">
     table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode, table.sourceCode pre { margin: 0; padding: 0; border: 0; vertical-align: baseline; border: none; }
@@ -53,9 +55,12 @@ $endfor$
 $if(title)$
 <div class="slide cover title">
   <h1 class="title">$title$</h1>
-$for(author)$
-  <p class="author">$author$</p>
-$endfor$
+  <h3 class="author">
+$for(author)$$author$$sep$<br/>$endfor$
+  </h3>
+$if(date)$
+  <h4 class="date">$date$</h4> 
+$endif$
 </div>
 $endif$
 $body$
