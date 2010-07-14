@@ -277,11 +277,11 @@ should pipe input and output through `iconv`:
 :   Ignore command-line arguments (for use in wrapper scripts).
     Regular Pandoc options are not ignored.  Thus, for example,
 
-:       pandoc --ignore-args -o foo.html -s foo.txt -- -e latin1
+        pandoc --ignore-args -o foo.html -s foo.txt -- -e latin1
 
-:   is equivalent to
+    is equivalent to
 
-:       pandoc -o foo.html -s
+        pandoc -o foo.html -s
 
 -v, \--version
 :   Print version.
