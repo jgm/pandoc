@@ -107,19 +107,11 @@ isH1 _ = False
 -- | Insert HTML around sections to make individual slides.
 insertSlides :: Bool -> [Block] -> [Block]
 insertSlides beginning blocks = 
-    let (beforeHead, rest) = break isH1 blocks in
-    if (null rest) then 
-        if beginning then
-            beforeHead 
-        else
-            beforeHead ++ [slideEnd]
-    else
-        if beginning then
-            beforeHead ++ 
-            slideStart:(head rest):(insertSlides False (tail rest))
-        else
-            beforeHead ++ 
-            slideEnd:slideStart:(head rest):(insertSlides False (tail rest)) 
+    let (beforeHead, rest) = break isH1 blocks
+    in  case rest of
+         []     -> beforeHead ++ [slideEnd | not beginning]
+         (h:t)  -> beforeHead ++ [slideEnd | not beginning] ++
+                    (slideStart : h : insertSlides False t)
 
 -- | Insert blocks into 'Pandoc' for slide structure.
 insertS5Structure :: Pandoc -> Pandoc
