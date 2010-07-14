@@ -190,8 +190,11 @@ section = try $ do
 
 headerWithLevel :: Int -> GenParser Char ParserState Block
 headerWithLevel lev = try $ do
+  spaces
   optional (char '*')
+  spaces
   optional $ bracketedText '[' ']' -- alt title
+  spaces
   char '{'
   title' <- manyTill inline (char '}')
   spaces
