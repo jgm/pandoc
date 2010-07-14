@@ -32,7 +32,7 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.Writers.S5 (s5HeaderIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
-                            headerShift )
+                            headerShift, HTMLSlideVariant(..) )
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
 #endif
@@ -107,6 +107,7 @@ writers = [("native"       , writeNative)
           ,("html"         , writeHtmlString)
           ,("html+lhs"     , writeHtmlString)
           ,("s5"           , writeS5String)
+          ,("slidy"        , writeHtmlString)
           ,("docbook"      , writeDocbook)
           ,("opendocument" , writeOpenDocument)
           ,("odt"          , \_ _ -> "")
@@ -142,7 +143,7 @@ data Opt = Opt
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
-    , optIncremental       :: Bool    -- ^ Use incremental lists in S5
+    , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/S5
     , optXeTeX             :: Bool    -- ^ Format latex for xetex
     , optSmart             :: Bool    -- ^ Use smart typography
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
@@ -300,7 +301,7 @@ options =
     , Option "i" ["incremental"]
                  (NoArg
                   (\opt -> return opt { optIncremental = True }))
-                 "" -- "Make list items display incrementally in S5"
+                 "" -- "Make list items display incrementally in Slidy/S5"
 
     , Option "" ["xetex"]
                  (NoArg
@@ -733,6 +734,11 @@ main = do
                      then "."
                      else takeDirectory (head sources)
 
+  let slideVariant = case writerName' of
+                           "s5"    -> S5Slides
+                           "slidy" -> SlidySlides
+                           _       -> NoSlides
+
   let startParserState =
          defaultParserState { stateParseRaw        = parseRaw,
                               stateTabStop         = tabStop,
@@ -759,10 +765,10 @@ main = do
                                       writerTableOfContents  = toc &&
                                                                writerName' /= "s5",
                                       writerHTMLMathMethod   = mathMethod,
-                                      writerS5               = (writerName' == "s5"),
+                                      writerSlideVariant     = slideVariant,
+                                      writerIncremental      = incremental,
                                       writerXeTeX            = xetex,
                                       writerIgnoreNotes      = False,
-                                      writerIncremental      = incremental,
                                       writerNumberSections   = numberSections,
                                       writerStrictMarkdown   = strict,
                                       writerReferenceLinks   = referenceLinks,

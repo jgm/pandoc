@@ -7,7 +7,9 @@ another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX]; and
 it can write plain text, [markdown], [reStructuredText], [HTML], [LaTeX],
 [ConTeXt], [RTF], [DocBook XML], [OpenDocument XML], [ODT], [GNU Texinfo],
-[MediaWiki markup], [EPUB], [groff man] pages, and [S5] HTML slide shows.
+[MediaWiki markup], [EPUB], [groff man] pages, and [Slidy] or [S5]
+HTML slide shows.
+
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, delimited code blocks,
 superscript, subscript, strikeout, title blocks, automatic tables of
@@ -25,6 +27,7 @@ or output format requires only adding a reader or writer.
 [markdown]: http://daringfireball.net/projects/markdown/
 [reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html
 [S5]: http://meyerweb.com/eric/tools/s5/
+[Slidy]: http://www.w3.org/Talks/Tools/Slidy/
 [HTML]:  http://www.w3.org/TR/html40/
 [LaTeX]: http://www.latex-project.org/
 [ConTeXt]: http://www.pragma-ade.nl/ 
@@ -92,8 +95,8 @@ Supported output formats include `markdown`, `latex`, `context`
 (reStructuredText), `docbook` (DocBook XML), `opendocument`
 (OpenDocument XML), `odt` (OpenOffice text document), `texinfo`, (GNU
 Texinfo), `mediawiki` (MediaWiki markup), `epub` (EPUB ebook),
-`man` (groff man), and `s5`
-(which produces an HTML file that acts like powerpoint).
+`man` (groff man), `slidy` (slidy HTML and javascript slide show), or
+`s5` (S5 HTML and javascript slide show).
 
 Supported input formats include `markdown`, `html`, `latex`, and `rst`.
 Note that the `rst` reader only parses a subset of reStructuredText
@@ -191,7 +194,7 @@ For further documentation, see the `pandoc(1)` man page.
 
 `-t`, `--to`, `-w`, or `--write` *format*
 :   specifies the output format -- the format Pandoc will
-    be converting *to*. *format* can be `native`, `html`, `s5`,
+    be converting *to*. *format* can be `native`, `html`, `slidy`, `s5`,
     `docbook`, `opendocument`, `latex`, `context`, `markdown`, `man`,
     `plain`, `rst`, and `rtf`. (`+lhs` can be appended to indicate that
     the output should be treated as literate Haskell source. See
@@ -228,11 +231,12 @@ For further documentation, see the `pandoc(1)` man page.
 `-R` or `--parse-raw`
 :   causes the HTML and LaTeX readers to parse HTML codes and LaTeX
     environments that it can't translate as raw HTML or LaTeX. Raw HTML can
-    be printed in markdown, reStructuredText, HTML, and S5 output; raw LaTeX
-    can be printed in markdown, reStructuredText, LaTeX, and ConTeXt output.
-    The default is for the readers to omit untranslatable HTML codes and
-    LaTeX environments. (The LaTeX reader does pass through untranslatable
-    LaTeX *commands*, even if `-R` is not specified.)
+    be printed in markdown, reStructuredText, HTML, Slidy, and S5
+    output; raw LaTeX can be printed in markdown, reStructuredText,
+    LaTeX, and ConTeXt output. The default is for the readers to omit
+    untranslatable HTML codes and LaTeX environments. (The LaTeX reader
+    does pass through untranslatable LaTeX *commands*, even if `-R` is
+    not specified.)
 
 `-C` or `--custom-header` *filename*
 :   can be used to specify a custom document header. Implies `--standalone`.
@@ -242,7 +246,7 @@ For further documentation, see the `pandoc(1)` man page.
 :   includes an automatically generated table of contents (or, in the
     case of `latex`, `context`, and `rst`, an instruction to create
     one) in the output document. This option has no effect with `man`,
-    `docbook`, or `s5` output formats.
+    `docbook`, `slidy`, or `s5` output formats.
 
 `--base-header-level` *level*
 :   specifies the base level for headers (defaults to 1).
@@ -263,9 +267,9 @@ For further documentation, see the `pandoc(1)` man page.
 
 `-c` or `--css` *filename*
 :   allows the user to specify a custom stylesheet that will be linked to
-    in HTML and S5 output.  This option can be used repeatedly to include
-    multiple stylesheets. They will be included in the order specified.
-    Implies `--standalone`.
+    in HTML, Slidy, and S5 output. This option can be used repeatedly
+    to include multiple stylesheets. They will be included in the order
+    specified. Implies `--standalone`.
 
 `-H` or `--include-in-header` *filename*
 :   includes the contents of *filename* (verbatim) at the end of the
@@ -340,13 +344,13 @@ For further documentation, see the `pandoc(1)` man page.
 
 `-m`*[url]* or `--latexmathml`*[=url]*
 :   causes `pandoc` to use the [LaTeXMathML] script to display
-    TeX math in HTML or S5. If a local copy of `LaTeXMathML.js` is
-    available on the webserver where the page will be viewed, provide a
-    *url* and a link will be inserted in the generated HTML or S5. If
+    TeX math in HTML, Slidy, or S5. If a local copy of `LaTeXMathML.js`
+    is available on the webserver where the page will be viewed, provide
+    a *url* and a link will be inserted in the generated HTML. If
     no *url* is provided, the contents of the script will be inserted
     directly; this provides portability at the price of efficiency. If
     you plan to use math on several pages, it is much better to link to
-    a copy of `LaTeXMathML.js`, which can be cached.  (See `--jsmath`,
+    a copy of `LaTeXMathML.js`, which can be cached. (See `--jsmath`,
     `--gladtex`, and `--mimetex` for alternative ways of dealing with
     math in HTML.)
 
@@ -357,17 +361,18 @@ For further documentation, see the `pandoc(1)` man page.
 
 `--jsmath`*=[url]*
 :   causes `pandoc` to use the [jsMath] script to display
-    TeX math in HTML or S5. The *url* should point to the jsMath load
-    script (e.g. `jsMath/easy/load.js`). If it is provided, a link to it
-    will be included in the header of standalone HTML documents.
+    TeX math in HTML, Slidy, or S5. The *url* should point to the jsMath
+    load script (e.g. `jsMath/easy/load.js`). If it is provided, a link
+    to it will be included in the header of standalone HTML documents.
     (See `--latexmathml`, `--mimetex`, and `--gladtex` for alternative
     ways of dealing with math in HTML.)
 
 `--gladtex`*[=url]*
-:   causes TeX formulas to be enclosed in `<eq>` tags in HTML or S5 output.
-    This output can then be processed by [gladTeX] to produce links to
-    images with the typeset formulas.  (See `--latexmathml`, `--jsmath`, and
-    `--mimetex` for alternative ways of dealing with math in HTML.)
+:   causes TeX formulas to be enclosed in `<eq>` tags in HTML, Slidy, or
+    S5 output. This output can then be processed by [gladTeX] to produce
+    links to images with the typeset formulas. (See `--latexmathml`,
+    `--jsmath`, and `--mimetex` for alternative ways of dealing with
+    math in HTML.)
 
 `--mimetex`*[=url]*
 :   causes TeX formulas to be replaced by `<img>` tags linking to the
@@ -376,7 +381,7 @@ For further documentation, see the `pandoc(1)` man page.
     ways of dealing with math in HTML.)
 
 `-i` or `--incremental`
-:   causes all lists in S5 output to be displayed incrementally by
+:   causes all lists in Slidy or S5 output to be displayed incrementally by
     default (one item at a time). The normal default is for lists to be
     displayed all at once.
 
@@ -1200,7 +1205,7 @@ Unknown commands and symbols, and commands that cannot be dealt with
 this way (like `\frac`), will be rendered verbatim. So the results may
 be a mix of raw TeX code and properly rendered unicode math.
 
-In HTML and S5 output, the way math is rendered will depend on the
+In HTML, Slidy, and S5 output, the way math is rendered will depend on the
 command-line options selected:
 
 1.  The default is to render TeX math as far as possible using unicode
@@ -1260,14 +1265,14 @@ LaTeX, not as markdown.
 Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
 and ConTeXt.
 
-Producing S5 with Pandoc
-========================
+Producing HTML slide shows with Pandoc
+======================================
 
-Producing an [S5] web-based slide show with Pandoc is easy.  A title
-page is constructed automatically from the document's title block (see
-above).  Each section (with a level-one header) produces a single slide.
-(Note that if the section is too big, the slide will not fit on the page;
-S5 is not smart enough to produce multiple pages.)
+Producing a [Slidy] or [S5] web-based slide show with Pandoc is easy. A
+title page is constructed automatically from the document's title block
+(see above). Each section (with a level-one header) produces a single
+slide. (Note that if the section is too big, the slide will not fit on
+the page; S5 is not smart enough to produce multiple pages.)
 
 Here's the markdown source for a simple slide show, `eating.txt`:
 
@@ -1287,11 +1292,17 @@ Here's the markdown source for a simple slide show, `eating.txt`:
 
 To produce the slide show, simply type
 
+    pandoc -w slidy -s eating.txt > eating.html
+
+for Slidy, or
+
     pandoc -w s5 -s eating.txt > eating.html
+
+for S5.
 
 and open up `eating.html` in a browser.
 
-Note that by default, the S5 writer produces lists that display
+Note that by default, these writers produces lists that display
 "all at once."  If you want your lists to display incrementally
 (one item at a time), use the `-i` option.  If you want a
 particular list to depart from the default (that is, to display
@@ -1304,26 +1315,28 @@ incrementally without the `-i` option and all at once with the
 In this way incremental and nonincremental lists can be mixed in
 a single document.
 
-Note: the S5 file produced by pandoc with the `-s/--standalone` option
-embeds the javascript and CSS required to show the slides. Thus it
-does not depend on any additional files: you can send the HTML file to
-others, and they will be able to view the slide show just by opening
-it. However, if you intend to produce several S5 slide shows, and you
-are displaying them on your own website, it is better to keep the S5
-javascript and CSS files separate from the slide shows themselves, so
-that they may be cached. The best approach in this case is to use pandoc
-without the `-s` option to produce the body of the S5 document, which
-can then be inserted into an HTML template that links to the javascript
-and CSS files required by S5. (See the instructions on the S5 website.)
-Alternatively, you may use `-s` together with the `--template`
-option to specify a custom template.
+Notes on S5:
 
-You can change the style of the slides by putting customized CSS files
-in `$DATADIR/s5/default`, where `$DATADIR` is the user data directory
-(see `--data-dir`, above). The originals may be found in pandoc's system
-data directory (generally `$CABALDIR/pandoc-VERSION/s5/default`). Pandoc
-will look there for any files it does not find in the user data
-directory.
+- The S5 file produced by pandoc with the `-s/--standalone`
+  option embeds the javascript and CSS required to show the slides. Thus
+  it does not depend on any additional files: you can send the HTML file
+  to others, and they will be able to view the slide show just by opening
+  it. However, if you intend to produce several S5 slide shows, and you
+  are displaying them on your own website, it is better to keep the S5
+  javascript and CSS files separate from the slide shows themselves, so
+  that they may be cached. The best approach in this case is to use pandoc
+  without the `-s` option to produce the body of the S5 document, which
+  can then be inserted into an HTML template that links to the javascript
+  and CSS files required by S5. (See the instructions on the S5 website.)
+  Alternatively, you may use `-s` together with the `--template` option to
+  specify a custom template.
+
+- You can change the style of the slides by putting customized CSS files
+  in `$DATADIR/s5/default`, where `$DATADIR` is the user data directory
+  (see `--data-dir`, above). The originals may be found in pandoc's system
+  data directory (generally `$CABALDIR/pandoc-VERSION/s5/default`). Pandoc
+  will look there for any files it does not find in the user data
+  directory.
 
 Literate Haskell support
 ========================

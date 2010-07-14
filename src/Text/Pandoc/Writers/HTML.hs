@@ -197,10 +197,16 @@ elementToHtml opts (Sec level num id' title' elements) = do
   innerContents <- mapM (elementToHtml opts) elements
   modify $ \st -> st{stSecNum = num}  -- update section number
   header' <- blockToHtml opts (Header level title')
-  return $ if writerS5 opts || (writerStrictMarkdown opts && not (writerTableOfContents opts))
-              -- S5 gets confused by the extra divs around sections
-              then toHtmlFromList (header' : innerContents)
-              else thediv ! [prefixedId opts id'] << (header' : innerContents)
+  let stuff = header' : innerContents
+  return $ case writerSlideVariant opts of
+                  SlidySlides | level == 1 ->
+                      thediv ! [prefixedId opts id', theclass "slide"] << stuff
+                  S5Slides -> toHtmlFromList stuff
+                  -- S5 gets confused by the extra divs around sections
+                  _ | (writerStrictMarkdown opts &&
+                        not (writerTableOfContents opts)) ->
+                                toHtmlFromList stuff
+                  _ -> thediv ! [prefixedId opts id'] << stuff
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
@@ -296,7 +302,7 @@ blockToHtml opts (BlockQuote blocks) =
   -- in S5, treat list in blockquote specially
   -- if default is incremental, make it nonincremental; 
   -- otherwise incremental
-  if writerS5 opts
+  if writerSlideVariant opts /= NoSlides
      then let inc = not (writerIncremental opts) in
           case blocks of 
              [BulletList lst]  -> blockToHtml (opts {writerIncremental = inc})

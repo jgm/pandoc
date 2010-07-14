@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"> 
+<head>
+  <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="generator" content="pandoc" />
+$for(author)$
+  <meta name="author" content="$author$" />
+$endfor$
+  <meta name="date" content="$date$" />
+$if(highlighting)$
+  <style type="text/css">
+    table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode, table.sourceCode pre { margin: 0; padding: 0; border: 0; vertical-align: baseline; border: none; }
+    td.lineNumbers { border-right: 1px solid #AAAAAA; text-align: right; color: #AAAAAA; padding-right: 5px; padding-left: 5px; }
+    td.sourceCode { padding-left: 5px; }
+    pre.sourceCode { }
+    pre.sourceCode span.Normal { }
+    pre.sourceCode span.Keyword { color: #007020; font-weight: bold; } 
+    pre.sourceCode span.DataType { color: #902000; }
+    pre.sourceCode span.DecVal { color: #40a070; }
+    pre.sourceCode span.BaseN { color: #40a070; }
+    pre.sourceCode span.Float { color: #40a070; }
+    pre.sourceCode span.Char { color: #4070a0; }
+    pre.sourceCode span.String { color: #4070a0; }
+    pre.sourceCode span.Comment { color: #60a0b0; font-style: italic; }
+    pre.sourceCode span.Others { color: #007020; }
+    pre.sourceCode span.Alert { color: red; font-weight: bold; }
+    pre.sourceCode span.Function { color: #06287e; }
+    pre.sourceCode span.RegionMarker { }
+    pre.sourceCode span.Error { color: red; font-weight: bold; }
+  </style>
+$endif$
+$for(css)$
+  <link rel="stylesheet" href="$css$" type="text/css" />
+$endfor$
+  <link rel="stylesheet" type="text/css" media="screen, projection, print" 
+   href="http://www.w3.org/Talks/Tools/Slidy/slidy.css" /> 
+$if(math)$
+  $math$
+$endif$
+$for(header-includes)$
+  $header-includes$
+$endfor$
+  <script src="http://www.w3.org/Talks/Tools/Slidy/slidy.js"
+   charset="utf-8" type="text/javascript"></script> 
+</head>
+<body>
+$for(include-before)$
+$include-before$
+$endfor$
+$if(title)$
+<div class="slide cover title">
+  <h1 class="title">$title$</h1>
+$for(author)$
+  <p class="author">$author$</p>
+$endfor$
+</div>
+$endif$
+$body$
+$for(include-after)$
+$include-after$
+$endfor$
+</body>
+</html>

@@ -16,7 +16,7 @@ Pandoc converts files from one markup format to another. It can
 read markdown and (subsets of) reStructuredText, HTML, and LaTeX, and
 it can write plain text, markdown, reStructuredText, HTML, LaTeX,
 ConTeXt, Texinfo, groff man, MediaWiki markup, RTF, OpenDocument XML,
-ODT, DocBook XML, EPUB, and S5 HTML slide shows.
+ODT, DocBook XML, EPUB, and Slidy or S5 HTML slide shows.
 
 If no *input-file* is specified, input is read from *stdin*.
 Otherwise, the *input-files* are concatenated (with a blank
@@ -75,6 +75,7 @@ should pipe input and output through `iconv`:
     `mediawiki` (MediaWiki markup), `texinfo` (GNU Texinfo),
     `docbook` (DocBook XML), `opendocument` (OpenDocument XML),
     `odt` (OpenOffice text document), `epub` (EPUB book),
+    `slidy` (Slidy HTML and javascript slide show),
     `s5` (S5 HTML and javascript slide show), or `rtf` (rich text
     format). Note that `odt` and `epub` output will not be directed to
     *stdout*; an output filename must be specified using the `-o/--output`
@@ -136,7 +137,7 @@ should pipe input and output through `iconv`:
     it is assumed that the script is at `/cgi-bin/mimetex.cgi`.
 
 -i, \--incremental
-:   Make list items in S5 display incrementally (one by one).
+:   Make list items in Slidy or S5 display incrementally (one by one).
 
 \--xetex
 :   Create LaTeX outut suitable for processing by XeTeX.
@@ -175,7 +176,7 @@ should pipe input and output through `iconv`:
 \--toc, \--table-of-contents
 :   Include an automatically generated table of contents (HTML, markdown,
     RTF) or an instruction to create one (LaTeX, reStructuredText).
-    This option has no effect on man, DocBook, or S5 output.
+    This option has no effect on man, DocBook, Slidy, or S5 output.
 
 \--base-header-level=*LEVEL*
 :   Specify the base level for headers (defaults to 1).

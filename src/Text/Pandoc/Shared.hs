@@ -66,6 +66,7 @@ module Text.Pandoc.Shared (
                      -- * Writer options
                      HTMLMathMethod (..),
                      ObfuscationMethod (..),
+                     HTMLSlideVariant (..),
                      WriterOptions (..),
                      defaultWriterOptions,
                      -- * File handling
@@ -466,6 +467,12 @@ data ObfuscationMethod = NoObfuscation
                        | JavascriptObfuscation
                        deriving (Show, Read, Eq)
 
+-- | Varieties of HTML slide shows.
+data HTMLSlideVariant = S5Slides
+                      | SlidySlides
+                      | NoSlides
+                      deriving (Show, Read, Eq)
+
 -- | Options for writers
 data WriterOptions = WriterOptions
   { writerStandalone       :: Bool   -- ^ Include header and footer
@@ -474,11 +481,11 @@ data WriterOptions = WriterOptions
   , writerEPUBMetadata     :: String -- ^ Metadata to include in EPUB
   , writerTabStop          :: Int    -- ^ Tabstop for conversion btw spaces and tabs
   , writerTableOfContents  :: Bool   -- ^ Include table of contents
-  , writerS5               :: Bool   -- ^ We're writing S5 
+  , writerSlideVariant     :: HTMLSlideVariant -- ^ Are we writing S5 or Slidy?
+  , writerIncremental      :: Bool   -- ^ True if lists should be incremental
   , writerXeTeX            :: Bool   -- ^ Create latex suitable for use by xetex
   , writerHTMLMathMethod   :: HTMLMathMethod  -- ^ How to print math in HTML
   , writerIgnoreNotes      :: Bool   -- ^ Ignore footnotes (used in making toc)
-  , writerIncremental      :: Bool   -- ^ Incremental S5 lists
   , writerNumberSections   :: Bool   -- ^ Number sections in LaTeX
   , writerStrictMarkdown   :: Bool   -- ^ Use strict markdown syntax
   , writerReferenceLinks   :: Bool   -- ^ Use reference links in writing markdown, rst
@@ -499,11 +506,11 @@ defaultWriterOptions =
                 , writerEPUBMetadata     = ""
                 , writerTabStop          = 4
                 , writerTableOfContents  = False
-                , writerS5               = False
+                , writerSlideVariant     = NoSlides
+                , writerIncremental      = False
                 , writerXeTeX            = False
                 , writerHTMLMathMethod   = PlainMath
                 , writerIgnoreNotes      = False
-                , writerIncremental      = False
                 , writerNumberSections   = False
                 , writerStrictMarkdown   = False
                 , writerReferenceLinks   = False
