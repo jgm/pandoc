@@ -7,7 +7,9 @@
 $for(author)$
   <meta name="author" content="$author$" />
 $endfor$
+$if(date)$
   <meta name="date" content="$date$" />
+$endif$
 $if(highlighting)$
   <style type="text/css">
     table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode, table.sourceCode pre { margin: 0; padding: 0; border: 0; vertical-align: baseline; border: none; }
