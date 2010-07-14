@@ -601,7 +601,8 @@ data ParserState = ParserState
       stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
       stateIndentedCodeClasses :: [String],  -- ^ Classes to use for indented code blocks
       stateNextExample     :: Int,           -- ^ Number of next example
-      stateExamples        :: M.Map String Int -- ^ Map from example labels to numbers 
+      stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers 
+      stateHasChapters     :: Bool           -- ^ True if \chapter encountered
     }
     deriving Show
 
@@ -628,7 +629,8 @@ defaultParserState =
                   stateHeaderTable     = [],
                   stateIndentedCodeClasses = [],
                   stateNextExample     = 1,
-                  stateExamples        = M.empty }
+                  stateExamples        = M.empty,
+                  stateHasChapters     = False }
 
 data HeaderType 
     = SingleHeader Char  -- ^ Single line of characters underneath

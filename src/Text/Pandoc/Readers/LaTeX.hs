@@ -168,16 +168,34 @@ block = choice [ hrule
 --
 
 header :: GenParser Char ParserState Block
-header = try $ do
+header = section <|> chapter
+
+chapter :: GenParser Char ParserState Block
+chapter = try $ do
+  string "\\chapter"
+  result <- headerWithLevel 1
+  updateState $ \s -> s{ stateHasChapters = True }
+  return result
+
+section :: GenParser Char ParserState Block
+section = try $ do
   char '\\'
   subs <- many (try (string "sub"))
   base <- try (string "section" >> return 1) <|> (string "paragraph" >> return 4)
+  st <- getState
+  let lev = if stateHasChapters st
+               then length subs + base + 1
+               else length subs + base
+  headerWithLevel lev
+
+headerWithLevel :: Int -> GenParser Char ParserState Block
+headerWithLevel lev = try $ do
   optional (char '*')
   optional $ bracketedText '[' ']' -- alt title
   char '{'
   title' <- manyTill inline (char '}')
   spaces
-  return $ Header (length subs + base) (normalizeSpaces title')
+  return $ Header lev (normalizeSpaces title')
 
 --
 -- hrule block
