@@ -1268,11 +1268,12 @@ and ConTeXt.
 Producing HTML slide shows with Pandoc
 ======================================
 
-Producing a [Slidy] or [S5] web-based slide show with Pandoc is easy. A
-title page is constructed automatically from the document's title block
-(see above). Each section (with a level-one header) produces a single
-slide. (Note that if the section is too big, the slide will not fit on
-the page; S5 is not smart enough to produce multiple pages.)
+You can use Pandoc to produce an HTML + javascript slide presentation
+that can be viewed via a web browser.  There are two ways to do this,
+using [S5] or [Slidy].
+
+Using S5
+--------
 
 Here's the markdown source for a simple slide show, `eating.txt`:
 
@@ -1292,15 +1293,69 @@ Here's the markdown source for a simple slide show, `eating.txt`:
 
 To produce the slide show, simply type
 
-    pandoc -w slidy -s eating.txt > eating.html
-
-for Slidy, or
-
     pandoc -w s5 -s eating.txt > eating.html
 
-for S5.
+A title page is constructed automatically from the document's title
+block. Each section (with a level-one header) produces a single slide.
+(Note that if the section is too big, the slide will not fit on the
+page; S5 is not smart enough to produce multiple pages.)
 
-and open up `eating.html` in a browser.
+The S5 file produced by pandoc with the `-s/--standalone`
+option embeds the javascript and CSS required to show the slides. Thus
+it does not depend on any additional files: you can send the HTML file
+to others, and they will be able to view the slide show just by opening
+it. However, if you intend to produce several S5 slide shows, and you
+are displaying them on your own website, it is better to keep the S5
+javascript and CSS files separate from the slide shows themselves, so
+that they may be cached. The best approach in this case is to use pandoc
+without the `-s` option to produce the body of the S5 document, which
+can then be inserted into an HTML template that links to the javascript
+and CSS files required by S5. (See the instructions on the S5 website.)
+Alternatively, you may use `-s` together with the `--template` option to
+specify a custom template.
+
+You can change the style of the slides by putting customized CSS files
+in `$DATADIR/s5/default`, where `$DATADIR` is the user data directory
+(see `--data-dir`, above). The originals may be found in pandoc's system
+data directory (generally `$CABALDIR/pandoc-VERSION/s5/default`). Pandoc
+will look there for any files it does not find in the user data
+directory.
+
+Using Slidy
+-----------
+
+If you use Slidy, things work a bit differently.  Instead of
+automatically chopping the document into sections on the level-1
+headers, you can choose how to segment the document into slides
+yourself. Just insert a horizontal rule at each slide boundary.
+For example:
+
+    % Eating Habits
+    % John Doe
+    % March 22, 2005
+
+    # In the morning
+
+    - Eat eggs
+    - Drink coffee
+
+    -----------------------------------------
+
+    # In the evening
+
+    - Eat spaghetti
+    - Drink wine
+
+    ------------------------------------------
+
+    The end!
+
+To produce the slide show, simply type
+
+    pandoc -w slidy -s eating.txt > eating.html
+
+Incremental lists
+-----------------
 
 Note that by default, these writers produces lists that display
 "all at once."  If you want your lists to display incrementally
@@ -1314,29 +1369,6 @@ incrementally without the `-i` option and all at once with the
 
 In this way incremental and nonincremental lists can be mixed in
 a single document.
-
-Notes on S5:
-
-- The S5 file produced by pandoc with the `-s/--standalone`
-  option embeds the javascript and CSS required to show the slides. Thus
-  it does not depend on any additional files: you can send the HTML file
-  to others, and they will be able to view the slide show just by opening
-  it. However, if you intend to produce several S5 slide shows, and you
-  are displaying them on your own website, it is better to keep the S5
-  javascript and CSS files separate from the slide shows themselves, so
-  that they may be cached. The best approach in this case is to use pandoc
-  without the `-s` option to produce the body of the S5 document, which
-  can then be inserted into an HTML template that links to the javascript
-  and CSS files required by S5. (See the instructions on the S5 website.)
-  Alternatively, you may use `-s` together with the `--template` option to
-  specify a custom template.
-
-- You can change the style of the slides by putting customized CSS files
-  in `$DATADIR/s5/default`, where `$DATADIR` is the user data directory
-  (see `--data-dir`, above). The originals may be found in pandoc's system
-  data directory (generally `$CABALDIR/pandoc-VERSION/s5/default`). Pandoc
-  will look there for any files it does not find in the user data
-  directory.
 
 Literate Haskell support
 ========================

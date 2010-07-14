@@ -104,7 +104,17 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   toc <- if writerTableOfContents opts 
             then tableOfContents opts sects
             else return Nothing
-  blocks' <- liftM toHtmlFromList $ mapM (elementToHtml opts) sects
+  let cutUp (HorizontalRule : xs) = RawHtml "</div>\n<div class=\"slide\">\n" :
+                                    cutUp xs
+      cutUp (x:xs)                = x : cutUp xs
+      cutUp []                    = [] 
+  blocks' <- liftM toHtmlFromList $
+              case writerSlideVariant opts of
+                   SlidySlides  -> mapM (blockToHtml opts) $
+                                      RawHtml "<div class=\"slide\">\n" :
+                                      cutUp blocks ++
+                                      [RawHtml "</div>"]
+                   _            -> mapM (elementToHtml opts) sects
   st <- get
   let notes = reverse (stNotes st)
   let thebody = blocks' +++ footnoteSection notes
@@ -199,8 +209,7 @@ elementToHtml opts (Sec level num id' title' elements) = do
   header' <- blockToHtml opts (Header level title')
   let stuff = header' : innerContents
   return $ case writerSlideVariant opts of
-                  SlidySlides | level == 1 ->
-                      thediv ! [prefixedId opts id', theclass "slide"] << stuff
+                  SlidySlides -> toHtmlFromList stuff
                   S5Slides -> toHtmlFromList stuff
                   -- S5 gets confused by the extra divs around sections
                   _ | (writerStrictMarkdown opts &&
