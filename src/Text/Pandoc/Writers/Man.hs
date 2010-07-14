@@ -151,8 +151,12 @@ blockToMan opts (Header level inlines) = do
                   _ -> ".SS "
   return $ text heading <> contents 
 blockToMan _ (CodeBlock _ str) = return $
-  text ".PP" $$ text "\\f[CR]" $$ 
-  text ((unlines . map ("      " ++) . lines) (escapeCode str)) <> text "\\f[]"
+  text ".IP" $$
+  text ".nf" $$
+  text "\\f[C]" $$
+  text (escapeCode str) $$
+  text "\\f[]" $$
+  text ".fi"
 blockToMan opts (BlockQuote blocks) = do  
   contents <- blockListToMan opts blocks
   return $ text ".RS" $$ contents $$ text ".RE"
@@ -300,7 +304,7 @@ inlineToMan _ EnDash = return $ text "\\[en]"
 inlineToMan _ Apostrophe = return $ char '\''
 inlineToMan _ Ellipses = return $ text "\\&..."
 inlineToMan _ (Code str) =
-  return $ text $ "\\f[B]" ++ escapeCode str ++ "\\f[]"
+  return $ text $ "\\f[C]" ++ escapeCode str ++ "\\f[]"
 inlineToMan _ (Str str) = return $ text $ escapeString str
 inlineToMan opts (Math InlineMath str) = inlineListToMan opts $ readTeXMath str
 inlineToMan opts (Math DisplayMath str) = do
