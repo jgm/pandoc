@@ -41,12 +41,12 @@ $for(header-includes)$
 $endfor$
 </head>
 <body>
-$if(title)$
-<h1 class="title">$title$</h1>
-$endif$
 $for(include-before)$
 $include-before$
 $endfor$
+$if(title)$
+<h1 class="title">$title$</h1>
+$endif$
 $if(toc)$
 $toc$
 $endif$
