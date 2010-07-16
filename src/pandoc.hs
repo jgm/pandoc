@@ -40,7 +40,6 @@ import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
-import Data.Maybe ( fromMaybe )
 import Data.Char ( toLower, isDigit )
 import Data.List ( intercalate, isSuffixOf )
 import System.Directory ( getAppUserDataDirectory )
@@ -282,10 +281,23 @@ options =
 
     , Option "" ["mimetex"]
                  (OptArg
-                  (\arg opt -> return opt { optHTMLMathMethod = MimeTeX
-                                  (fromMaybe "/cgi-bin/mimetex.cgi" arg)})
+                  (\arg opt -> do
+                      let url = case arg of
+                                      Just u   -> u ++ "?"
+                                      Nothing  -> "/cgi-bin/mimetex.cgi?"
+                      return opt { optHTMLMathMethod = WebTeX url })
                   "URL")
                  "" -- "Use mimetex for HTML math"
+
+    , Option "" ["webtex"]
+                 (OptArg
+                  (\arg opt -> do
+                      let url = case arg of
+                                      Just u   -> u
+                                      Nothing  -> "http://chart.apis.google.com/chart?cht=tx&chl="
+                      return opt { optHTMLMathMethod = WebTeX url })
+                  "URL")
+                 "" -- "Use web service for HTML math"
 
     , Option "" ["jsmath"]
                  (OptArg

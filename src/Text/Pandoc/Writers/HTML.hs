@@ -36,6 +36,7 @@ import Text.Pandoc.Templates
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Highlighting ( highlightHtml )
 import Text.Pandoc.XML (stripTags, escapeStringForXML)
+import Network.HTTP ( urlEncode )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
 import Data.List ( isPrefixOf, intersperse )
@@ -462,16 +463,20 @@ inlineToHtml opts inline =
                                   -- non-math elements on the page from being treated as math by
                                   -- the javascript
                                   return $ thespan ! [theclass "LaTeX"] $
-                                             if t == InlineMath
-                                                 then primHtml ("$" ++ str ++ "$")
-                                                 else primHtml ("$$" ++ str ++ "$$")
-                               JsMath _ ->
-                                  return $ if t == InlineMath
-                                              then thespan ! [theclass "math"] $ primHtml str
-                                              else thediv ! [theclass "math"]  $ primHtml str
-                               MimeTeX url -> 
-                                  return $ image ! [src (url ++ "?" ++ str),
-                                                    alt str, title str]
+                                         case t of
+                                           InlineMath  -> primHtml ("$" ++ str ++ "$")
+                                           DisplayMath -> primHtml ("$$" ++ str ++ "$$")
+                               JsMath _ -> do
+                                  let m = primHtml str
+                                  return $ case t of
+                                           InlineMath -> thespan ! [theclass "math"] $ m
+                                           DisplayMath -> thediv ! [theclass "math"] $ m
+                               WebTeX url -> do
+                                  let m = image ! [src (url ++ urlEncode str),
+                                                         alt str, title str]
+                                  return $ case t of
+                                            InlineMath  -> m
+                                            DisplayMath -> br +++ m +++ br
                                GladTeX ->
                                   return $ primHtml $ "<EQ>" ++ str ++ "</EQ>"
                                MathML _ -> do
@@ -484,12 +489,14 @@ inlineToHtml opts inline =
                                         Right r -> return $ primHtml $
                                                     ppcElement conf r
                                         Left  _ -> inlineListToHtml opts
-                                                    (readTeXMath str) >>=
-                                                      return . (thespan !
-                                                      [theclass "math"])
-                               PlainMath ->
-                                  inlineListToHtml opts (readTeXMath str) >>=
-                                  return . (thespan ! [theclass "math"]) ) 
+                                                   (readTeXMath str) >>= return .
+                                                     (thespan !  [theclass "math"])
+                               PlainMath -> do
+                                  x <- inlineListToHtml opts (readTeXMath str)
+                                  let m = thespan ! [theclass "math"] $ x
+                                  return  $ case t of
+                                             InlineMath  -> m
+                                             DisplayMath -> br +++ m +++ br )
     (TeX str)        -> case writerHTMLMathMethod opts of
                               LaTeXMathML _ -> do modify (\st -> st {stMath = True})
                                                   return $ primHtml str

@@ -136,6 +136,11 @@ should pipe input and output through `iconv`:
 :   Render TeX math using the mimeTeX CGI script.  If *URL* is not specified,
     it is assumed that the script is at `/cgi-bin/mimetex.cgi`.
 
+\--webtex=*URL*
+:   Render TeX math using an external script. The formula will be
+    concatenated with the URL provided. If *URL* is not specified, the
+    Google Chart API will be used.
+
 -i, \--incremental
 :   Make list items in Slidy or S5 display incrementally (one by one).
 

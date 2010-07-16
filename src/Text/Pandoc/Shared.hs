@@ -457,7 +457,7 @@ data HTMLMathMethod = PlainMath
                     | LaTeXMathML (Maybe String)  -- url of LaTeXMathML.js
                     | JsMath (Maybe String)       -- url of jsMath load script
                     | GladTeX
-                    | MimeTeX String              -- url of mimetex.cgi 
+                    | WebTeX String               -- url of TeX->image script.
                     | MathML (Maybe String)       -- url of MathMLinHTML.js
                     deriving (Show, Read, Eq)
 

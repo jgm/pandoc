@@ -351,8 +351,8 @@ For further documentation, see the `pandoc(1)` man page.
     directly; this provides portability at the price of efficiency. If
     you plan to use math on several pages, it is much better to link to
     a copy of `LaTeXMathML.js`, which can be cached. (See `--jsmath`,
-    `--gladtex`, and `--mimetex` for alternative ways of dealing with
-    math in HTML.)
+    `--gladtex`, `--webtex`, and `--mimetex` for alternative ways of
+    dealing with math in HTML.)
 
 `--mathml`
 :   causes `pandoc` to convert all TeX math to MathML.
@@ -364,21 +364,29 @@ For further documentation, see the `pandoc(1)` man page.
     TeX math in HTML, Slidy, or S5. The *url* should point to the jsMath
     load script (e.g. `jsMath/easy/load.js`). If it is provided, a link
     to it will be included in the header of standalone HTML documents.
-    (See `--latexmathml`, `--mimetex`, and `--gladtex` for alternative
-    ways of dealing with math in HTML.)
+    (See `--latexmathml`, `--mimetex`, `--webtex`, and `--gladtex` for
+    alternative ways of dealing with math in HTML.)
 
 `--gladtex`*[=url]*
 :   causes TeX formulas to be enclosed in `<eq>` tags in HTML, Slidy, or
     S5 output. This output can then be processed by [gladTeX] to produce
     links to images with the typeset formulas. (See `--latexmathml`,
-    `--jsmath`, and `--mimetex` for alternative ways of dealing with
-    math in HTML.)
+    `--jsmath`, `--webtex`, and `--mimetex` for alternative ways of
+    dealing with math in HTML.)
 
 `--mimetex`*[=url]*
 :   causes TeX formulas to be replaced by `<img>` tags linking to the
     [mimeTeX] CGI script, which will produce images with the typeset
-    formulas.  (See `--latexmathml`, `--jsmath`, and `--gladtex` for alternative
-    ways of dealing with math in HTML.)
+    formulas. (See `--latexmathml`, `--jsmath`, `--webtex`, and
+    `--gladtex` for alternative ways of dealing with math in HTML.)
+
+`--webtex`*[=url]*
+:   causes TeX formulas to be replaced by `<img>` tags linking to an
+    external service that converts TeX formulas to images. The formula
+    will be concatenated with the URL provided. If no URL
+    is specified, the Google Chart API is used. (See `--latexmathml`,
+    `--jsmath`, `--mimetex`, and `--gladtex` for alternative ways of
+    dealing with math in HTML.)
 
 `-i` or `--incremental`
 :   causes all lists in Slidy or S5 output to be displayed incrementally by
@@ -1240,6 +1248,12 @@ command-line options selected:
         pandoc -s --gladtex myfile.txt -o myfile.htex
         gladtex -d myfile-images myfile.htex
         # produces myfile.html and images in myfile-images
+
+6.  If the `--webtex` option is used, TeX formulas will be converted
+    to `<img>` tags that link to an external script that converts
+    formulas to images. The formula will be URL-encoded and concatenated
+    with the URL provided. If no URL is specified, the Google Chart
+    API will be used (`http://chart.apis.google.com/chart?cht=tx&chl=`).
 
 Inline TeX
 ----------
