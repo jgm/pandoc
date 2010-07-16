@@ -142,6 +142,7 @@ data Opt = Opt
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
+    , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
     , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/S5
     , optXeTeX             :: Bool    -- ^ Format latex for xetex
     , optSmart             :: Bool    -- ^ Use smart typography
@@ -182,6 +183,7 @@ defaultOpts = Opt
     , optVariables         = []
     , optOutputFile        = "-"    -- "-" means stdout
     , optNumberSections    = False
+    , optSectionDivs       = False
     , optIncremental       = False
     , optXeTeX             = False
     , optSmart             = False
@@ -324,6 +326,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optNumberSections = True }))
                  "" -- "Number sections in LaTeX"
+
+    , Option "" ["section-divs"]
+                 (NoArg
+                  (\opt -> return opt { optSectionDivs = True }))
+                 "" -- "Put sections in div tags in HTML"
 
     , Option "" ["no-wrap"]
                  (NoArg
@@ -643,6 +650,7 @@ main = do
               , optTemplate          = template
               , optOutputFile        = outputFile
               , optNumberSections    = numberSections
+              , optSectionDivs       = sectionDivs
               , optIncremental       = incremental
               , optXeTeX             = xetex
               , optSmart             = smart
@@ -782,6 +790,7 @@ main = do
                                       writerXeTeX            = xetex,
                                       writerIgnoreNotes      = False,
                                       writerNumberSections   = numberSections,
+                                      writerSectionDivs      = sectionDivs,
                                       writerStrictMarkdown   = strict,
                                       writerReferenceLinks   = referenceLinks,
                                       writerWrapText         = wrap,

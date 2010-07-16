@@ -151,6 +151,10 @@ should pipe input and output through `iconv`:
 :   Number section headings in LaTeX, ConTeXt, or HTML output.
     (Default is not to number them.)
 
+\--section-divs
+:   Wrap sections in `<div>` tags, and attach identifiers to the
+    enclosing `<div>` rather than the header itself.
+
 \--no-wrap
 :   Disable text wrapping in output. (Default is to wrap text.)
 

@@ -208,15 +208,16 @@ elementToHtml opts (Sec level num id' title' elements) = do
   innerContents <- mapM (elementToHtml opts) elements
   modify $ \st -> st{stSecNum = num}  -- update section number
   header' <- blockToHtml opts (Header level title')
-  let stuff = header' : innerContents
-  return $ case writerSlideVariant opts of
-                  SlidySlides -> toHtmlFromList stuff
-                  S5Slides -> toHtmlFromList stuff
-                  -- S5 gets confused by the extra divs around sections
-                  _ | (writerStrictMarkdown opts &&
-                        not (writerTableOfContents opts)) ->
-                                toHtmlFromList stuff
-                  _ -> thediv ! [prefixedId opts id'] << stuff
+  let slides = writerSlideVariant opts `elem` [SlidySlides, S5Slides]
+  let header'' = header' !  [prefixedId opts id' |
+                             not (writerStrictMarkdown opts ||
+                                  writerSectionDivs opts || slides)]
+  let stuff = header'' : innerContents
+  return $ if slides   -- S5 gets confused by the extra divs around sections
+              then toHtmlFromList stuff
+              else if writerSectionDivs opts
+                      then thediv ! [prefixedId opts id'] << stuff
+                      else toHtmlFromList stuff
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.

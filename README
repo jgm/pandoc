@@ -400,6 +400,11 @@ For further documentation, see the `pandoc(1)` man page.
 :   causes sections to be numbered in LaTeX, ConTeXt, or HTML output.
     By default, sections are not numbered.
 
+`--section-divs`
+:   causes sections to be wrapped in `<div>` tags. In this case,
+    [section identifiers](#header-identifiers-in-html)
+    are attached to the enclosing `<div>` rather than the header itself.
+
 `--no-wrap`
 :   disables text-wrapping in output.  By default, text is wrapped
     appropriately for the output format.
@@ -1169,6 +1174,12 @@ another. A link to this section, for example, might look like this:
 
 Note, however, that this method of providing links to sections works
 only in HTML.
+
+If the `--section-divs` option is specified, then each section will
+be wrapped in a `div`, and the identifier will be attached to the
+enclosing `<div>` tag rather than the header itself. This allows entire
+sections to be manipulated using javascript or treated differently in
+CSS.
 
 Blank lines before headers and blockquotes
 ------------------------------------------

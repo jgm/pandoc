@@ -487,6 +487,7 @@ data WriterOptions = WriterOptions
   , writerHTMLMathMethod   :: HTMLMathMethod  -- ^ How to print math in HTML
   , writerIgnoreNotes      :: Bool   -- ^ Ignore footnotes (used in making toc)
   , writerNumberSections   :: Bool   -- ^ Number sections in LaTeX
+  , writerSectionDivs      :: Bool   -- ^ Put sections in div tags in HTML
   , writerStrictMarkdown   :: Bool   -- ^ Use strict markdown syntax
   , writerReferenceLinks   :: Bool   -- ^ Use reference links in writing markdown, rst
   , writerWrapText         :: Bool   -- ^ Wrap text to line length
@@ -512,6 +513,7 @@ defaultWriterOptions =
                 , writerHTMLMathMethod   = PlainMath
                 , writerIgnoreNotes      = False
                 , writerNumberSections   = False
+                , writerSectionDivs      = True
                 , writerStrictMarkdown   = False
                 , writerReferenceLinks   = False
                 , writerWrapText         = True
