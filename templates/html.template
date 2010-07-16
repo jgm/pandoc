@@ -10,26 +10,9 @@ $endfor$
 $if(date)$
   <meta name="date" content="$date$" />
 $endif$
-$if(highlighting)$
+$if(highlighting-css)$
   <style type="text/css">
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode, table.sourceCode pre 
-   { margin: 0; padding: 0; border: 0; vertical-align: baseline; border: none; }
-td.lineNumbers { text-align: right; background-color: #EBEBEB; color: black; padding-right: 5px; padding-left: 5px; } 
-td.sourceCode { padding-left: 5px; }
-pre.sourceCode { }
-pre.sourceCode span.kw { font-weight: bold; } 
-pre.sourceCode span.dt { color: #800000; }
-pre.sourceCode span.dv { color: #0000FF; }
-pre.sourceCode span.bn { color: #0000FF; }
-pre.sourceCode span.fl { color: #800080; }
-pre.sourceCode span.ch { color: #FF00FF; }
-pre.sourceCode span.st { color: #DD0000; }
-pre.sourceCode span.co { color: #808080; font-style: italic; }
-pre.sourceCode span.ot { }
-pre.sourceCode span.al { color: green; font-weight: bold; }
-pre.sourceCode span.fu { color: #000080; }
-pre.sourceCode span.re { }
-pre.sourceCode span.er { color: red; font-weight: bold; }
+$highlighting-css$
   </style>
 $endif$
 $for(css)$

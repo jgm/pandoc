@@ -34,7 +34,7 @@ import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Pandoc.Readers.TeXMath
-import Text.Pandoc.Highlighting ( highlightHtml )
+import Text.Pandoc.Highlighting ( highlightHtml, defaultHighlightingCss )
 import Text.Pandoc.XML (stripTags, escapeStringForXML)
 import Network.HTTP ( urlEncode )
 import Numeric ( showHex )
@@ -136,7 +136,8 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                                            primHtml s
                                       Nothing -> noHtml
                 else noHtml
-  let newvars = [("highlighting","yes") | stHighlighting st] ++
+  let newvars = [("highlighting-css", defaultHighlightingCss) |
+                   stHighlighting st] ++
                 [("math", renderHtmlFragment math) | stMath st]
   return (tit, auths, date, toc, thebody, newvars)
 
