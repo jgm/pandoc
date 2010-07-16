@@ -155,7 +155,7 @@ Library
   else
     Build-depends: base >= 3 && < 4
   if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.2.3
+    Build-depends: highlighting-kate >= 0.2.7
     cpp-options:   -D_HIGHLIGHTING
   if flag(citeproc)
     Build-depends: citeproc-hs
