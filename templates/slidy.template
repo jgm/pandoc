@@ -28,7 +28,7 @@ $endif$
 $for(header-includes)$
   $header-includes$
 $endfor$
-  <script src="http://www.w3.org/Talks/Tools/Slidy/slidy.js"
+  <script src="http://www.w3.org/Talks/Tools/Slidy/slidy.js.gz"
    charset="utf-8" type="text/javascript"></script> 
 </head>
 <body>
@@ -38,11 +38,11 @@ $endfor$
 $if(title)$
 <div class="slide cover title">
   <h1 class="title">$title$</h1>
-  <h3 class="author">
+  <p class="author">
 $for(author)$$author$$sep$<br/>$endfor$
-  </h3>
+  </p>
 $if(date)$
-  <h4 class="date">$date$</h4> 
+  <p class="date">$date$</p> 
 $endif$
 </div>
 $endif$
