@@ -1349,11 +1349,9 @@ directory.
 Using Slidy
 -----------
 
-If you use Slidy, things work a bit differently.  Instead of
-automatically chopping the document into sections on the level-1
-headers, you can choose how to segment the document into slides
-yourself. Just insert a horizontal rule at each slide boundary.
-For example:
+If you use Slidy, things work a bit differently. As with S5, a new slide
+will be created at every level 1 header.  But you can also force a new
+slide by inserting a horizontal rule. For example:
 
     % Eating Habits
     % John Doe

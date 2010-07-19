@@ -105,8 +105,11 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   toc <- if writerTableOfContents opts 
             then tableOfContents opts sects
             else return Nothing
-  let cutUp (HorizontalRule : xs) = RawHtml "</div>\n<div class=\"slide\">\n" :
+  let cutUp (HorizontalRule : Header 1 ys : xs) = cutUp (Header 1 ys : xs)
+      cutUp (HorizontalRule : xs) = RawHtml "</div>\n<div class=\"slide\">\n" :
                                     cutUp xs
+      cutUp (Header 1 ys : xs)    = RawHtml ("</div>\n<div class=\"slide title\">\n") :
+                                    Header 1 ys : cutUp xs
       cutUp (x:xs)                = x : cutUp xs
       cutUp []                    = [] 
   blocks' <- liftM toHtmlFromList $
