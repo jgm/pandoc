@@ -70,7 +70,7 @@ pandocToRST (Pandoc (Meta tit auth dat) blocks) = do
   refs <- liftM (reverse . stLinks) get >>= refsToRST
   pics <- liftM (reverse . stImages) get >>= pictRefsToRST
   hasMath <- liftM stHasMath get
-  let main = render $ body $+$ notes $+$ text "" $+$ refs $+$ pics
+  let main = render $ foldl ($+$) empty $ [body, notes, refs, pics]
   let context = writerVariables opts ++
                 [ ("body", main)
                 , ("title", render title)

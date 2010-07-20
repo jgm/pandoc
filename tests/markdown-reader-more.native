@@ -40,4 +40,3 @@ Pandoc (Meta {docTitle = [Str "Title",Space,Str "spanning",Space,Str "multiple",
 , OrderedList (3,Example,TwoParens)
   [ [ Plain [Str "Third",Space,Str "example",Str "."] ]
  ] ]
-

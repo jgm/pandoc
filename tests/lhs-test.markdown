@@ -16,6 +16,3 @@ and one arrow on the second item of the pair).
 Block quote:
 
 > foo bar
-
-
-

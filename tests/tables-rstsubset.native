@@ -116,4 +116,3 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
   , [ Plain [Str "row"] ]
   , [ Plain [Str "5.0"] ]
   , [ Plain [Str "Here's",Space,Str "another",Space,Str "one.",Space,Str "Note",Space,Str "the",Space,Str "blank",Space,Str "line",Space,Str "between",Space,Str "rows."] ] ] ] ]
-

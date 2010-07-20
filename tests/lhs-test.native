@@ -8,4 +8,3 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 , BlockQuote
   [ Para [Str "foo",Space,Str "bar"] ]
  ]
-

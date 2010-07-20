@@ -309,4 +309,3 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":
       [ [ Plain [Str "b"] ]
       , [ Plain [Str "b",Space,Str "2"] ]
       , [ Plain [Str "b",Space,Str "2"] ] ] ], [ Plain [Str "c",Space,Str "c",Space,Str "2",Space,Str "c",Space,Str "2"] ] ] ] ]
-

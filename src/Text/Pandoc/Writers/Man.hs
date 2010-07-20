@@ -63,7 +63,7 @@ pandocToMan opts (Pandoc (Meta title authors date) blocks) = do
   body <- blockListToMan opts blocks
   notes <- liftM stNotes get
   notes' <- notesToMan opts (reverse notes)
-  let main = render $ body $$ notes'
+  let main = render $ body $$ notes' $$ text ""
   hasTables <- liftM stHasTables get
   let context  = writerVariables opts ++
                  [ ("body", main)

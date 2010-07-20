@@ -96,7 +96,7 @@ pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
   notes' <- notesToMarkdown opts (reverse $ stNotes st)
   st' <- get  -- note that the notes may contain refs
   refs' <- refsToMarkdown opts (reverse $ stRefs st')
-  let main = render $ body $+$ text "" $+$ notes' $+$ text "" $+$ refs'
+  let main = render $ foldl ($+$) empty $ [body, notes', refs']
   let context  = writerVariables opts ++
                  [ ("toc", render toc)
                  , ("body", main)

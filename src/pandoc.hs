@@ -833,5 +833,5 @@ main = do
   writerOutput <- writer writerOptions doc''
 
   if outputFile == "-"
-     then B.putStrLn writerOutput
+     then B.putStr writerOutput
      else B.writeFile outputFile writerOutput

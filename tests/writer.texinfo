@@ -1014,4 +1014,3 @@ And in list items.@footnote{In list.}
 This paragraph should not be part of the note@comma{} as it is not indented.
 
 @bye
-

@@ -22,5 +22,3 @@ Block quote:
 
     foo bar
 
-
-

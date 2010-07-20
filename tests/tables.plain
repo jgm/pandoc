@@ -74,6 +74,3 @@ Multiline table without column headers:
                                       the blank line between
                                       rows.
   ----------- ---------- ------------ --------------------------
-
-
-

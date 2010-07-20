@@ -715,7 +715,6 @@ note] Here is an inline note.[^3]
 This paragraph should not be part of the note, as it is not
 indented.
 
-
 [^1]:
     Here is the footnote. It can go anywhere after the footnote
     reference. It need not be placed at the end of the document.
@@ -741,5 +740,3 @@ indented.
 
 [^5]:
     In list.
-
-

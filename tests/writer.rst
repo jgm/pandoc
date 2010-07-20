@@ -888,6 +888,4 @@ indented.
 .. [5]
    In list.
 
-
 .. |movie| image:: movie.jpg
-

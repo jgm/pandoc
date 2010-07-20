@@ -156,4 +156,3 @@ Second
  @tab 5.0
  @tab Here's another one. Note the blank line between rows.
 @end multitable
-

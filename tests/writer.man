@@ -798,4 +798,3 @@ In quote.
 In list.
 .SH AUTHORS
 John MacFarlane; Anonymous.
-

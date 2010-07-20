@@ -64,7 +64,7 @@ pandocToConTeXt options (Pandoc (Meta title authors date) blocks) = do
                   then return ""
                   else liftM render $ inlineListToConTeXt date
   body <- blockListToConTeXt blocks 
-  let main = render body
+  let main = render $ body $$ text ""
   let context  = writerVariables options ++
                  [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
