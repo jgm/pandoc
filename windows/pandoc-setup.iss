@@ -7,7 +7,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{3CEE7B38-B19D-4980-9CAD-DF53600BD4CA}
 AppName=Pandoc
-AppVerName=Pandoc 1.5.1.1
+AppVerName=Pandoc 1.6
 AppPublisher=John MacFarlane
 AppPublisherURL=http://johnmacfarlane.net/pandoc/
 AppSupportURL=http://johnmacfarlane.net/pandoc/
@@ -59,6 +59,7 @@ Source: "..\README.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\COPYRIGHT.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\COPYING.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\reference.odt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\epub.css"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion
 Source: "..\data\*"; DestDir: "{app}\data"; Flags: ignoreversion
 Source: "..\s5\default\*"; DestDir: "{app}\s5\default"; Flags: ignoreversion
