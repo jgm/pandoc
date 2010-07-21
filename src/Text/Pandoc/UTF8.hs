@@ -37,8 +37,8 @@ module Text.Pandoc.UTF8 ( readFile
                         )
 
 where
-import qualified Data.ByteString.Lazy as B
-import Data.ByteString.Lazy.UTF8 (toString, fromString)
+import qualified Data.ByteString as B
+import Data.ByteString.UTF8 (toString, fromString)
 import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn)
 import System.IO (Handle)
 import Control.Monad (liftM)
