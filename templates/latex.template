@@ -2,7 +2,7 @@ $if(legacy-header)$
 $legacy-header$
 $else$
 \documentclass{article}
-\usepackage{amsmath}
+\usepackage{amssymb,amsmath}
 $if(xetex)$
 \usepackage{ifxetex}
 \ifxetex

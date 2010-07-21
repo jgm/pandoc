@@ -1,5 +1,5 @@
 \documentclass{article}
-\usepackage{amsmath}
+\usepackage{amssymb,amsmath}
 \usepackage[mathletters]{ucs}
 \usepackage[utf8x]{inputenc}
 \usepackage[breaklinks=true,unicode=true]{hyperref}
