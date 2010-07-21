@@ -171,8 +171,6 @@ pandoc (1.6)
     + Removed '-threaded' from pandoc's ghc-options.  '-threaded'
       is only needed for markdown2pdf, due to its use of readProcess.
 
-  * Removed 'library' Cabal flag.
-
 pandoc (1.5.1.1)
 
   [ John MacFarlane ]

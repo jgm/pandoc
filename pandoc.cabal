@@ -11,7 +11,7 @@ Bug-Reports:     http://code.google.com/p/pandoc/issues/list
 Stability:       alpha
 Homepage:        http://johnmacfarlane.net/pandoc
 Category:        Text
-Tested-With:     GHC == 6.10.4, GHC == 6.12.1
+Tested-With:     GHC == 6.12.1
 Synopsis:        Conversion between markup formats
 Description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
@@ -19,7 +19,7 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  reStructuredText, HTML, and LaTeX, and it can write
                  markdown, reStructuredText, HTML, LaTeX, ConTeXt, Docbook,
                  OpenDocument, ODT, RTF, MediaWiki, groff man pages, EPUB,
-                 and S5 HTML slide shows.
+                 and S5 and Slidy HTML slide shows.
                  .
                  Pandoc extends standard markdown syntax with footnotes,
                  embedded LaTeX, definition lists, tables, and other
@@ -134,6 +134,9 @@ Flag highlighting
 Flag executable
   Description:   Build the pandoc executable.
   Default:       True
+Flag library
+  Description:   Build the pandoc library.
+  Default:       True
 Flag wrappers
   Description:   Build the wrappers (markdown2pdf).
   Default:       True
@@ -142,6 +145,9 @@ Flag citeproc
   Default:       False
 
 Library
+  -- Note: the following material must be in both Library and Executable stanzas.
+  -- It needs to be duplicated because of the library & executable flags.
+  -- BEGIN DUPLICATED SECTION
   Build-Depends: pretty >= 1, containers >= 0.1,
                  parsec >= 2.1, xhtml >= 3000.0,
                  mtl >= 1.1, network >= 2, filepath >= 1.1,
@@ -155,13 +161,20 @@ Library
   else
     Build-depends: base >= 3 && < 4
   if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.2.7
+    Build-depends: highlighting-kate >= 0.2.7.1
     cpp-options:   -D_HIGHLIGHTING
   if flag(citeproc)
-    Build-depends: citeproc-hs
-    Exposed-Modules: Text.Pandoc.Biblio
+    Build-depends: citeproc-hs >= 0.2
     cpp-options:   -D_CITEPROC
+  if impl(ghc >= 6.12)
+    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
+  else
+    Ghc-Options:     -O2 -Wall
+    Ghc-Prof-Options: -auto-all -caf-all
+  Extensions:         CPP
   Hs-Source-Dirs:  src
+  -- END DUPLICATED SECTION
+
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Blocks,
                    Text.Pandoc.Definition,
@@ -194,30 +207,47 @@ Library
                    Text.Pandoc.UTF8,
                    Text.Pandoc.UUID,
                    Paths_pandoc
-  Extensions:      CPP
-  if impl(ghc >= 6.12)
-    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
+
+  if flag(citeproc)
+    Exposed-Modules: Text.Pandoc.Biblio
+  if flag(library)
+    Buildable:      True
   else
-    Ghc-Options:     -O2 -Wall
-  Ghc-Prof-Options: -auto-all -caf-all
-  Buildable:      True
+    Buildable:      False
 
 Executable pandoc
-  Hs-Source-Dirs:     src
-  Main-Is:            pandoc.hs
-  if impl(ghc >= 6.12)
-    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
+  -- Note: the following material must be in both Library and Executable stanzas.
+  -- It needs to be duplicated because of the library & executable flags.
+  -- BEGIN DUPLICATED SECTION
+  Build-Depends: pretty >= 1, containers >= 0.1,
+                 parsec >= 2.1, xhtml >= 3000.0,
+                 mtl >= 1.1, network >= 2, filepath >= 1.1,
+                 process >= 1, directory >= 1,
+                 bytestring >= 0.9, zip-archive >= 0.1.1.4,
+                 utf8-string >= 0.3, old-time >= 1,
+                 HTTP >= 4000.0.5, texmath, xml >= 1.3.5 && < 1.4,
+                 random, extensible-exceptions
+  if impl(ghc >= 6.10)
+    Build-depends: base >= 4 && < 5, syb
   else
-    Ghc-Options:     -O2 -Wall
-  Ghc-Prof-Options:   -auto-all -caf-all
-  Extensions:         CPP
-
+    Build-depends: base >= 3 && < 4
   if flag(highlighting)
+    Build-depends: highlighting-kate >= 0.2.7.1
     cpp-options:   -D_HIGHLIGHTING
   if flag(citeproc)
     Build-depends: citeproc-hs >= 0.2
     cpp-options:   -D_CITEPROC
-  if flag(executable)
+  if impl(ghc >= 6.12)
+    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
+  else
+    Ghc-Options:     -O2 -Wall
+    Ghc-Prof-Options: -auto-all -caf-all
+  Extensions:         CPP
+  Hs-Source-Dirs:  src
+  -- END DUPLICATED SECTION
+
+  Main-Is:            pandoc.hs
+  if flag(executable) || flag(wrappers)
     Buildable:      True
   else
     Buildable:      False

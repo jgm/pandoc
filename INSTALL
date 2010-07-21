@@ -69,6 +69,7 @@ you will need [zip-archive] and (if you want syntax highlighting)
     by spaces.  Pandoc's flags include:
 
     - `executable`: build the pandoc executable (default yes)
+    - `library`: build the pandoc library (default yes)
     - `wrappers`: build the wrapper `markdown2pdf` (default yes)
     - `highlighting`: compile with syntax highlighting support (increases
       the size of the executable) (default no)
