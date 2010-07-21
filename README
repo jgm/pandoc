@@ -444,8 +444,9 @@ For further documentation, see the `pandoc(1)` man page.
 
         C:\Documents And Settings\USERNAME\Application Data\pandoc
 
-    in Windows. A reference ODT, `templates` directory, `s5` directory
-    placed in this directory will override pandoc's normal defaults.
+    in Windows. A `reference.odt`, `epub.css`, `templates` directory,
+    or `s5` directory placed in this directory will override pandoc's
+    normal defaults.
 
 `--dump-args`
 :   is intended to make it easier to create wrapper scripts that use

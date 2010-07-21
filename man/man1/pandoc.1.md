@@ -269,8 +269,9 @@ should pipe input and output through `iconv`:
 
         C:\Documents And Settings\USERNAME\Application Data\pandoc
 
-    in Windows. A reference ODT, `templates` directory, `s5` directory
-    placed in this directory will override pandoc's normal defaults.
+    in Windows. A `reference.odt`, `epub.css`, `templates` directory,
+    or `s5` directory placed in this directory will override pandoc's
+    normal defaults.
 
 \--dump-args
 :   Print information about command-line arguments to *stdout*, then exit.
