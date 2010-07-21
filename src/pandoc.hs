@@ -284,20 +284,20 @@ options =
     , Option "" ["mimetex"]
                  (OptArg
                   (\arg opt -> do
-                      let url = case arg of
+                      let url' = case arg of
                                       Just u   -> u ++ "?"
                                       Nothing  -> "/cgi-bin/mimetex.cgi?"
-                      return opt { optHTMLMathMethod = WebTeX url })
+                      return opt { optHTMLMathMethod = WebTeX url' })
                   "URL")
                  "" -- "Use mimetex for HTML math"
 
     , Option "" ["webtex"]
                  (OptArg
                   (\arg opt -> do
-                      let url = case arg of
+                      let url' = case arg of
                                       Just u   -> u
                                       Nothing  -> "http://chart.apis.google.com/chart?cht=tx&chl="
-                      return opt { optHTMLMathMethod = WebTeX url })
+                      return opt { optHTMLMathMethod = WebTeX url' })
                   "URL")
                  "" -- "Use web service for HTML math"
 
