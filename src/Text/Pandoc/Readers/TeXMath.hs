@@ -86,6 +86,9 @@ expToInlines (ESubsup x y z) = do
   y' <- expToInlines y
   z' <- expToInlines z
   return $ x' ++ [Subscript y'] ++ [Superscript z']
+expToInlines (EDown x y) = expToInlines (ESub x y)
+expToInlines (EUp x y) = expToInlines (ESuper x y)
+expToInlines (EDownup x y z) = expToInlines (ESubsup x y z)
 expToInlines (EText _ x) = Just [Emph [Str x]]
 expToInlines _ = Nothing
 
