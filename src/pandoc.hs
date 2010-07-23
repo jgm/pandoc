@@ -32,7 +32,7 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.Writers.S5 (s5HeaderIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
-                            headerShift, HTMLSlideVariant(..) )
+                            headerShift )
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
 #endif

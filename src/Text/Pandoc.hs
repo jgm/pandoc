@@ -91,6 +91,7 @@ module Text.Pandoc
                , writeEPUB
                -- * Writer options used in writers 
                , WriterOptions (..)
+               , HTMLSlideVariant (..)
                , HTMLMathMethod (..)
                , defaultWriterOptions
                -- * Rendering templates and default templates
