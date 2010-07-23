@@ -42,7 +42,7 @@ Data-Files:
                  templates/man.template, templates/markdown.template,
                  templates/rst.template, templates/plain.template,
                  templates/mediawiki.template, templates/rtf.template,
-                 templates/slidy.template,
+                 templates/s5.template, templates/slidy.template,
                  -- data for ODT writer
                  reference.odt,
                  -- stylesheet for EPUB writer

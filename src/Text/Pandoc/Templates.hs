@@ -83,7 +83,6 @@ getDefaultTemplate :: (Maybe FilePath) -- ^ User data directory to search first
                    -> String           -- ^ Name of writer 
                    -> IO (Either E.IOException String)
 getDefaultTemplate _ "native" = return $ Right ""
-getDefaultTemplate user "s5" = getDefaultTemplate user "html"
 getDefaultTemplate user "odt" = getDefaultTemplate user "opendocument"
 getDefaultTemplate user writer = do
   let format = takeWhile (/='+') writer  -- strip off "+lhs" if present

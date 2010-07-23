@@ -117,12 +117,10 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                    (Header 1 _ : _)     -> []
                    _                    -> [RawHtml "<div class=\"slide\">\n"]
   blocks' <- liftM toHtmlFromList $
-              case writerSlideVariant opts of
-                   SlidySlides  -> mapM (blockToHtml opts) $
-                                      preamble ++
-                                      cutUp blocks ++
-                                      [RawHtml "</div>"]
-                   _            -> mapM (elementToHtml opts) sects
+              if writerSlideVariant opts `elem` [SlidySlides, S5Slides]
+                 then mapM (blockToHtml opts) $ preamble ++
+                                      cutUp blocks ++ [RawHtml "</div>"]
+                 else mapM (elementToHtml opts) sects
   st <- get
   let notes = reverse (stNotes st)
   let thebody = blocks' +++ footnoteSection notes

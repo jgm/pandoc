@@ -80,8 +80,6 @@ module Text.Pandoc
                , writeTexinfo
                , writeHtml
                , writeHtmlString
-               , writeS5
-               , writeS5String
                , writeDocbook
                , writeOpenDocument
                , writeMan

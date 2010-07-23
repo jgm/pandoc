@@ -30,7 +30,7 @@ writers.
 -}
 module Main where
 import Text.Pandoc
-import Text.Pandoc.Writers.S5 (s5HeaderIncludes, s5Links, s5Meta)
+import Text.Pandoc.Writers.S5 (s5HeaderIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
                             headerShift )
 #ifdef _HIGHLIGHTING
@@ -105,7 +105,7 @@ writers :: [ ( String, WriterOptions -> Pandoc -> String ) ]
 writers = [("native"       , writeNative)
           ,("html"         , writeHtmlString)
           ,("html+lhs"     , writeHtmlString)
-          ,("s5"           , writeS5String)
+          ,("s5"           , writeHtmlString)
           ,("slidy"        , writeHtmlString)
           ,("docbook"      , writeDocbook)
           ,("opendocument" , writeOpenDocument)
@@ -746,10 +746,7 @@ main = do
   variables' <- case (writerName', standalone', offline) of
                       ("s5", True, True) -> do
                         inc <- s5HeaderIncludes datadir
-                        return $ ("header-includes", inc) : variables
-                      ("s5", True, False) ->
-                        return $ ("header-includes", s5Meta ++ s5Links) :
-                                   variables
+                        return $ ("s5includes", inc) : variables
                       ("slidy", True, True) -> do
                         slidyJs <- readDataFile datadir $
                                       "slidy" </> "slidy.min.js"
