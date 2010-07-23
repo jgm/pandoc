@@ -43,7 +43,6 @@ $endfor$
 $for(include-before)$
 $include-before$
 $endfor$
-<h1 class="title">$title$</h1>
 <div class="layout">
 <div id="controls"></div>
 <div id="currentSlide"></div>
