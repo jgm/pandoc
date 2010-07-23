@@ -112,10 +112,14 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                                     Header 1 ys : cutUp xs
       cutUp (x:xs)                = x : cutUp xs
       cutUp []                    = [] 
+  let preamble = case blocks of
+                   (HorizontalRule : _) -> []
+                   (Header 1 _ : _)     -> []
+                   _                    -> [RawHtml "<div class=\"slide\">\n"]
   blocks' <- liftM toHtmlFromList $
               case writerSlideVariant opts of
                    SlidySlides  -> mapM (blockToHtml opts) $
-                                      RawHtml "<div class=\"slide\">\n" :
+                                      preamble ++
                                       cutUp blocks ++
                                       [RawHtml "</div>"]
                    _            -> mapM (elementToHtml opts) sects
