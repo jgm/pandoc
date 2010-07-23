@@ -20,16 +20,28 @@ $endif$
 $for(css)$
   <link rel="stylesheet" href="$css$" type="text/css" />
 $endfor$
+$if(slidy-css)$
+  <style type="text/css">
+$slidy-css$
+  </style>
+$else$
   <link rel="stylesheet" type="text/css" media="screen, projection, print" 
-   href="http://www.w3.org/Talks/Tools/Slidy/slidy.css" /> 
+    href="http://www.w3.org/Talks/Tools/Slidy/slidy.css" /> 
+$endif$
 $if(math)$
   $math$
 $endif$
 $for(header-includes)$
   $header-includes$
 $endfor$
+$if(slidy-js)$
+  <script type="text/javascript" charset="utf-8">
+$slidy-js$
+  </script>
+$else$
   <script src="http://www.w3.org/Talks/Tools/Slidy/slidy.js.gz"
-   charset="utf-8" type="text/javascript"></script> 
+    charset="utf-8" type="text/javascript"></script>
+$endif$
 </head>
 <body>
 $for(include-before)$

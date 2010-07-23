@@ -393,6 +393,11 @@ For further documentation, see the `pandoc(1)` man page.
     default (one item at a time). The normal default is for lists to be
     displayed all at once.
 
+`--offline`
+:   causes all the CSS and javascript needed for a Slidy or S5 slide show
+    to be included in the output, so that the slide show will work even
+    when no internet connection is available.
+
 `--xetex`
 :   creates LaTeX outut suitable for processing by XeTeX.
 
@@ -1327,18 +1332,11 @@ block. Each section (with a level-one header) produces a single slide.
 page; S5 is not smart enough to produce multiple pages.)
 
 The S5 file produced by pandoc with the `-s/--standalone`
-option embeds the javascript and CSS required to show the slides. Thus
-it does not depend on any additional files: you can send the HTML file
-to others, and they will be able to view the slide show just by opening
-it. However, if you intend to produce several S5 slide shows, and you
-are displaying them on your own website, it is better to keep the S5
-javascript and CSS files separate from the slide shows themselves, so
-that they may be cached. The best approach in this case is to use pandoc
-without the `-s` option to produce the body of the S5 document, which
-can then be inserted into an HTML template that links to the javascript
-and CSS files required by S5. (See the instructions on the S5 website.)
-Alternatively, you may use `-s` together with the `--template` option to
-specify a custom template.
+option embeds a link to javascripts and CSS files, which are
+assumed to be available at the relative path `ui/default`.
+If the `--offline` option is specified, the scripts and CSS
+will be included directly in the generated file, so that it
+may be used offline.
 
 You can change the style of the slides by putting customized CSS files
 in `$DATADIR/s5/default`, where `$DATADIR` is the user data directory
@@ -1377,6 +1375,11 @@ slide by inserting a horizontal rule. For example:
 To produce the slide show, simply type
 
     pandoc -w slidy -s eating.txt > eating.html
+
+As before, you may use the `--offline` option to include all
+necessary scripts and stylesheets in the generated HTML file.
+By default, links to the scripts and stylesheets at
+`w3.org` will be inserted.
 
 Incremental lists
 -----------------

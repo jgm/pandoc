@@ -144,6 +144,7 @@ data Opt = Opt
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
     , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/S5
+    , optOffline           :: Bool    -- ^ Make slideshow accessible offline
     , optXeTeX             :: Bool    -- ^ Format latex for xetex
     , optSmart             :: Bool    -- ^ Use smart typography
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
@@ -185,6 +186,7 @@ defaultOpts = Opt
     , optNumberSections    = False
     , optSectionDivs       = False
     , optIncremental       = False
+    , optOffline           = False
     , optXeTeX             = False
     , optSmart             = False
     , optHTMLMathMethod    = PlainMath
@@ -316,6 +318,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optIncremental = True }))
                  "" -- "Make list items display incrementally in Slidy/S5"
+
+    , Option "" ["offline"]
+                 (NoArg
+                  (\opt -> return opt { optOffline = True }))
+                 "" -- "Make slide shows include all the needed js and css"
 
     , Option "" ["xetex"]
                  (NoArg
@@ -652,6 +659,7 @@ main = do
               , optNumberSections    = numberSections
               , optSectionDivs       = sectionDivs
               , optIncremental       = incremental
+              , optOffline           = offline
               , optXeTeX             = xetex
               , optSmart             = smart
               , optHTMLMathMethod    = mathMethod
@@ -735,11 +743,18 @@ main = do
   refs <- if null biblioFile then return [] else readBiblioFile biblioFile biblioFormat
 #endif
 
-  variables' <- if writerName' == "s5" && standalone'
-                   then do
-                     inc <- s5HeaderIncludes datadir
-                     return $ ("header-includes", inc) : variables
-                   else return variables
+  variables' <- case (writerName', standalone', offline) of
+                      ("s5", True, True) -> do
+                        inc <- s5HeaderIncludes datadir
+                        return $ ("header-includes", inc) : variables
+                      ("slidy", True, True) -> do
+                        slidyJs <- readDataFile datadir $
+                                      "slidy" </> "slidy.min.js"
+                        slidyCss <- readDataFile datadir $
+                                      "slidy" </> "slidy.min.css"
+                        return $ ("slidy-js", slidyJs) :
+                            ("slidy-css", slidyCss) : variables
+                      _ -> return variables
 
   variables'' <- case mathMethod of
                       LaTeXMathML Nothing -> do

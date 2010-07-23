@@ -59,6 +59,9 @@ Data-Files:
                  s5/default/opera.css,
                  s5/default/outline.css,
                  s5/default/print.css,
+                 -- data for slidy writer
+                 slidy/slidy.min.css,
+                 slidy/slidy.min.js,
                  -- documentation
                  README, INSTALL, COPYRIGHT, BUGS, changelog
 Extra-Source-Files:

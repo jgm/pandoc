@@ -144,6 +144,11 @@ should pipe input and output through `iconv`:
 -i, \--incremental
 :   Make list items in Slidy or S5 display incrementally (one by one).
 
+\--offline
+:   Include all the CSS and javascript needed for a Slidy or S5 slide
+    show in the output, so that the slide show will work even when no
+    internet connection is available.
+
 \--xetex
 :   Create LaTeX outut suitable for processing by XeTeX.
 
