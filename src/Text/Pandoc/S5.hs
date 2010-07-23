@@ -17,7 +17,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Writers.S5
+   Module      : Text.Pandoc.S5
    Copyright   : Copyright (C) 2006-2010 John MacFarlane
    License     : GNU GPL, version 2 or above 
 
@@ -28,24 +28,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Definitions for creation of S5 powerpoint-like HTML.
 (See <http://meyerweb.com/eric/tools/s5/>.)
 -}
-module Text.Pandoc.Writers.S5 (
-                -- * Header includes
-                s5HeaderIncludes
-                ) where
-import Text.Pandoc.Shared ( WriterOptions, readDataFile )
-import Text.Pandoc.Writers.HTML ( writeHtml, writeHtmlString )
-import Text.Pandoc.Definition
-import Text.XHtml.Strict
+module Text.Pandoc.S5 ( s5HeaderIncludes) where
+import Text.Pandoc.Shared ( readDataFile )
 import System.FilePath ( (</>) )
 
 s5HeaderIncludes :: Maybe FilePath -> IO String
 s5HeaderIncludes datadir = do
   c <- s5CSS datadir
   j <- s5Javascript datadir
-  return $ s5Meta ++ c ++ j
-
-s5Meta :: String
-s5Meta = "<!-- configuration parameters -->\n<meta name=\"defaultView\" content=\"slideshow\" />\n<meta name=\"controlVis\" content=\"hidden\" />\n"
+  return $ c ++ j
 
 s5Javascript :: Maybe FilePath -> IO String
 s5Javascript datadir = do

@@ -110,7 +110,6 @@ import Text.Pandoc.Writers.LaTeX
 import Text.Pandoc.Writers.ConTeXt
 import Text.Pandoc.Writers.Texinfo
 import Text.Pandoc.Writers.HTML
-import Text.Pandoc.Writers.S5
 import Text.Pandoc.Writers.ODT
 import Text.Pandoc.Writers.EPUB
 import Text.Pandoc.Writers.Docbook

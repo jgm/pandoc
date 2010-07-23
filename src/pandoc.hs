@@ -30,7 +30,7 @@ writers.
 -}
 module Main where
 import Text.Pandoc
-import Text.Pandoc.Writers.S5 (s5HeaderIncludes)
+import Text.Pandoc.S5 (s5HeaderIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
                             headerShift )
 #ifdef _HIGHLIGHTING
