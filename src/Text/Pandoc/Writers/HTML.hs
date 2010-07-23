@@ -105,21 +105,23 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   toc <- if writerTableOfContents opts 
             then tableOfContents opts sects
             else return Nothing
+  let startSlide = RawHtml "<div class=\"slide\">\n"
+      endSlide   = RawHtml "</div>\n"
   let cutUp (HorizontalRule : Header 1 ys : xs) = cutUp (Header 1 ys : xs)
-      cutUp (HorizontalRule : xs) = RawHtml "</div>\n<div class=\"slide\">\n" :
-                                    cutUp xs
-      cutUp (Header 1 ys : xs)    = RawHtml ("</div>\n<div class=\"slide title\">\n") :
-                                    Header 1 ys : cutUp xs
+      cutUp (HorizontalRule : xs) = [endSlide, startSlide] ++ cutUp xs
+      cutUp (Header 1 ys : xs)    = [endSlide, startSlide] ++
+                                    (Header 1 ys : cutUp xs)
       cutUp (x:xs)                = x : cutUp xs
       cutUp []                    = [] 
-  let preamble = case blocks of
-                   (HorizontalRule : _) -> []
-                   (Header 1 _ : _)     -> []
-                   _                    -> [RawHtml "<div class=\"slide\">\n"]
+  let slides = case blocks of
+                (HorizontalRule : xs) -> [startSlide] ++ cutUp xs ++ [endSlide]
+                (Header 1 ys : xs)    -> [startSlide, Header 1 ys] ++
+                                           cutUp xs ++ [endSlide]
+                _                     -> [startSlide] ++ cutUp blocks ++
+                                           [endSlide]
   blocks' <- liftM toHtmlFromList $
               if writerSlideVariant opts `elem` [SlidySlides, S5Slides]
-                 then mapM (blockToHtml opts) $ preamble ++
-                                      cutUp blocks ++ [RawHtml "</div>"]
+                 then mapM (blockToHtml opts) slides
                  else mapM (elementToHtml opts) sects
   st <- get
   let notes = reverse (stNotes st)
