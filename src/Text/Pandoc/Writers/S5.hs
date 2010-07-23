@@ -31,6 +31,7 @@ Definitions for creation of S5 powerpoint-like HTML.
 module Text.Pandoc.Writers.S5 (
                 -- * Header includes
                 s5HeaderIncludes,
+                s5Meta,
                 s5Links,
                 -- * Functions
                 writeS5,

@@ -30,7 +30,7 @@ writers.
 -}
 module Main where
 import Text.Pandoc
-import Text.Pandoc.Writers.S5 (s5HeaderIncludes)
+import Text.Pandoc.Writers.S5 (s5HeaderIncludes, s5Links, s5Meta)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
                             headerShift )
 #ifdef _HIGHLIGHTING
@@ -747,6 +747,9 @@ main = do
                       ("s5", True, True) -> do
                         inc <- s5HeaderIncludes datadir
                         return $ ("header-includes", inc) : variables
+                      ("s5", True, False) ->
+                        return $ ("header-includes", s5Meta ++ s5Links) :
+                                   variables
                       ("slidy", True, True) -> do
                         slidyJs <- readDataFile datadir $
                                       "slidy" </> "slidy.min.js"
