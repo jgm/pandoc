@@ -1,0 +1,270 @@
+I'm pleased to announce the release of pandoc 1.6.
+
+As usual, a source tarball and Windows installer are available
+at <http://code.google.com/p/pandoc/downloads/list>.  You can
+also use 'cabal install' to get the latest version from HackageDB:
+
+    cabal update
+    cabal install pandoc
+
+Here is a summary of the major changes in this version.
+
+New writers
+-----------
+
+Two new output formats are supported: [EPUB] and [Slidy].
+
+EPUB is a standard ebook format, used in Apple's iBooks for the iPad
+and iPhone, Barnes and Noble's nook reader, the Sony reader, and many
+other devices, and by online ebook readers like [bookworm]. (Amazon's
+Kindle uses a different format, MobiPocket, but EPUB books can easily be
+converted to Kindle format.) Now you can write your book in markdown and
+produce an ebook with a single command!
+
+Slidy, like S5, is a system for producing HTML+javascript slide shows.
+
+[EPUB]: http://en.wikipedia.org/wiki/EPUB
+[Slidy]: http://www.w3.org/Talks/Tools/Slidy
+[bookworm]: http://bookworm.oreilly.com/
+
+New Command-line Options
+------------------------
+
+For EPUB output:
+
+  * `--epub-stylesheet` allows you to specify a CSS file that will
+    be used to style your ebook.
+
+  * `--epub-metadata` allows you to specify a file containing metadata
+    besides the title and authors, which are automatically included.
+
+For Slidy and S5 output:
+
+  * `--offline` causes the javascript and stylesheets needed for
+    S5 or Slidy slide shows to be included directly in the generated
+    HTML.  (By default, only links are included.)
+
+Note that this option goes with a change in the default behavior of the
+S5 writer, which used to include the javascript and stylesheets whenever
+`--standalone` was specified. If you are relying on pandoc to produce a
+self-contained slide show, you should specify `--offline`.
+
+For HTML output:
+
+  * `--webtex` causes TeX math to be converted to images using the Google
+    Charts API (unless a different URL is specified). (Thanks to
+    lpeterse.)
+
+  * Added `--section-divs` option. Causes div tags to be added around
+    each section in an HTML document.
+
+This last change requires a bit of explanation. Before version 1.2,
+pandoc would put section identifiers directly on headers:
+
+    <h1 id="my-section">My Section</h1>
+    ...blah blah...
+
+Someone wanted to be able to manipulate whole sections in javascript,
+so, starting with 1.2, I changed pandoc to put sections inside divs,
+with the identifiers on the divs:
+
+    <div id="my-section">
+      <h1>My Section</h1>
+      ...blah blah...
+    </div>
+
+Recently several people have pointed out to me that the divs can
+produce bad interaction effects when combined with raw HTML.
+http://code.google.com/p/pandoc/issues/detail?id=230
+
+So in 1.6, I have reverted to the old behavior (no divs, identifiers
+directly on section headers) as a default, adding a `--section-divs`
+option that will select the 1.2-1.5 behavior, with divs around sections
+and identifiers on the divs.
+
+Markdown extensions
+-------------------
+
+You can now use "grid tables" in markdown. (Most of the code
+is from Eric Kowey's grid tables patch to the RST reader, from
+the last release.)
+
+Table captions need no longer begin with the English word
+`Table:`, a bare colon is sufficient. Also, captions may appear
+above a table instead of below it.
+
+A new type of list marker, `@`, has been added.  A list with items
+numbered `@` is sequentially numbered, like a list with items numbered
+`#`. The difference is that with `@`, the number sequence continues
+across a list boundary. `@` list items may also be labeled and referred
+to elsewhere in the document. An example will illustrate their use:
+
+    Here is my first list:
+
+    (@) first example, numbered 1
+    (@) second example, numeber 2
+
+    Some commentary here.
+
+    (@) third example, numbered 3
+    (@special) fourth example, numbered 4
+    (@) fifth example, numbered 5
+
+    Some commentary about (@special) (will appear as 4).
+
+This feature allows easy construction of a running list of
+sequentially numbered examples. For documentation, see README under
+"Numbered examples."
+
+API Changes
+-----------
+
+There are quite a few API changes in this release.  If you use pandoc
+as a library, please review these carefully.
+
+  * Text.Pandoc.Shared:
+    + HTMLMathMethod:  Added WebTeX, removed MimeTeX. (WebTeX is
+      generic enough to subsume MimeTeX.)
+    + WriterOptions: Added writerUserDataDir, writerSourceDirectory,
+      writerEPUBMetadata fields. Removed unused fields
+      writerIncludeBefore, writerIncludeAfter.
+    + Moved all the parsing-related functions and definitions
+      to a new module, Text.Pandoc.Parsing.
+    + Moved headerShift from pandoc.hs.
+
+  * New module, Text.Pandoc.Parsing, for shared parsing functions
+    and ParserState.
+    + Added HTMLSlideVariant.
+    + Made KeyTable a map instead of an association list.
+      This affects the RST and Markdown readers.
+    + The type for stateKeys in ParserState has changed.
+
+  * Text.Pandoc.Definition:
+    + Pandoc, Meta, Inline, and Block have been given Ord instances.
+    + Reference keys now have a type of their own (Key), with its
+      own Ord instance for case-insensitive comparison.
+
+  * New module, Text.Pandoc.Writers.EPUB.
+
+  * New utility module, Text.Pandoc.UUID, for generating random UUIDs for
+    EPUBs.
+
+  * Removed Text.Pandoc.ODT, added Text.Pandoc.Writers.ODT.
+    Instead of saveOpenDocumentAsODT, we now have writeODT, which takes
+    a Pandoc document and produces a bytestring. saveOpenDocumentAsODT
+    has been removed.
+
+  * Added Text.Pandoc.Writers.Native. This contains the prettyprinting
+    code from Text.Pandoc.Shared.  prettyPandoc has been removed;
+    use the new writeNative instead.
+
+  * Added Text.Pandoc.UTF8 for portable UTF8 string IO.
+
+  * Removed Text.Pandoc.Writers.S5 and writeS5 function.
+    Moved s5Includes to new module, Text.Pandoc.S5.
+    (Now S5 is handled in more or less the same way as slidy;
+    to write s5, you use writeHtml with writerSlideVariant set
+    to S5Slides or SlidySlides.)
+
+Template Changes
+----------------
+
+There have been some changes to the default templates; please update
+your templates.
+
+  * HTML template: avoid empty meta tag if no date.
+
+  * Added S5 and Slidy templates.
+
+  * Added amssymb to the preamble in the default latex template.
+
+  * Use default highlighting CSS rather than embedding CSS in templates.
+    Note: if you use an older template, you'll have the wrong CSS for
+    recent versions of highlighting-kate.
+
+Other Changes
+-------------
+
+  * All input is assumed to be UTF-8, and all output is UTF-8. Pandoc no
+    longer respects locale, even when compiled by GHC 6.12.
+
+  * Made spacing at end of output more consistent. Previously some
+    of the writers added spurious whitespace. This has been removed.
+    Note: If your application combines pandoc's output with other
+    text, for example in a template, you may need to add spacing.
+    For example, a pandoc-generated markdown file will not have
+    a blank line after the final block element.  If you are inserting
+    it into another markdown file, you will need to make sure there
+    is a blank line between it and the next block element.
+
+  * In S5 (and Slidy), horizontal rules now cause a "slide break,"
+    so you are no longer limited to one slide per level-one
+    section.
+
+  * Improved handling of code in man writer.
+    + Inline code is now in monoscpace, not bold.
+    + Code blocks now use .nf (no fill) and .IP (indented paragraph).
+
+  * HTML reader: parse <tt> as Code.
+
+  * HTML writer: Put insert-before text before the title h1 in HTML.
+    This is the documented behavior; the insert-before text
+    comes after the <body> tag.
+
+  * Add bird tracks to lhs in HTML when compiled wo -fhighlighting.
+    Previously the bird tracks would be stripped off when pandoc was
+    not compiled with highlighting support, even if -t html+lhs was
+    specified. Thanks to Nicholas Wu for pointing out the problem.
+
+  * Don't allow colon in autogenerated XML/HTML identifiers.
+    They have a special meaning in XML (e.g. in EPUB).
+
+  * LaTeX reader:
+    + Made latex \section, \chapter parsers more forgiving of whitespace.
+    + Added stateHasChapters to ParserState.
+    + Parse \chapter{} in latex. If a \chapter command is encountered,
+      this is set to True and subsequent \section commands (etc.) will
+      be bumped up one level.
+    + Changed rawLaTeXInline to accept '\section', '\begin', etc.
+    + Use new rawLaTeXInline' in LaTeX reader, and export rawLaTeXInline
+      for use in markdown reader.
+    + Fixes bug wherein '\section{foo}' was not recognized as raw TeX
+      in markdown document.
+
+  * LaTeX writer: Give images a maximum width using the prelude only.
+
+  * Plain, markdown, RST writers: Use unicode for smart punctuation.
+
+  * Man writer: convert math to unicode when possible, as in other
+    writers.
+
+  * Allow markdown2pdf to recognize citeproc options.
+
+  * Convert command-line arguments to UTF8.
+
+  * Use texmath's parser in TexMath module. This replaces a lot of
+    custom parser code, and expands the tex -> unicode conversion. The
+    behavior has also changed: if the whole formula can't be converted,
+    the whole formula is left in raw TeX. Previously, pandoc converted
+    parts of the formula to unicode and left other parts in raw TeX.
+
+  * In parsing smart quotes, leave unicode curly quotes alone.
+
+  * Removed obsolete markdown2pdf script.
+
+  * Removed parsec < 3 restriction.
+
+  * ODT: Handle the case where the image is remote (or not found) by
+    converting the Image element into an Emph with the label.
+
+  * Added 'threaded' cabal flag.
+    + GHC lacks a threaded runtime on some architectures.
+      Provide a 'threaded' flag that can be disabled for compiling
+      on these architectures.
+    + Removed '-threaded' from pandoc's ghc-options.  '-threaded'
+      is only needed for markdown2pdf, due to its use of readProcess.
+
+  * Modified readFile and getContents to strip BOM if present.
+
+  * Updated pandoc to use highlighting-kate 0.2.7.
+
