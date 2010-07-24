@@ -71,6 +71,8 @@ pandoc (1.6)
       '--offline'.
     + Added slidy/slidy.min.{css,js}.
 
+  * Cause horizontal rules to start a new slide in s5 and slidy.
+
   * Added grid tables for markdown.
     + Moved generic grid table functions from RST reader -> Parsing.
       Here they can be used by the Markdown reader as well.
@@ -91,7 +93,7 @@ pandoc (1.6)
     + Removed writerIncludeBefore & writerIncludeAfter (no
       longer used with the new templating system).
 
-  * Added HTMLSlideVariant (Text.Pandoc.Shared).
+  * Added HTMLSlideVariant (Text.Pandoc.Parsing).
 
   * Made KeyTable a map instead of an association list.
     + This affects the RST and Markdown readers.
