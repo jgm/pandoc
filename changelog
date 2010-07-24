@@ -58,6 +58,19 @@ pandoc (1.6)
     + Use new UTF8 module in Shared, ODT, and the executables.
     + Modified readFile and getContents to strip BOM if present.
 
+  * Removed Text.Pandoc.Writers.S5 and writeS5 function.
+    Moved s5Includes to new module, Text.Pandoc.S5.
+    (Now s5 is handled in more or less the same way as slidy;
+    to write S5, you use writeHtml with writerSlideVariant set
+    to S5Slides or SlidySlides.)
+
+  * Added new --offline option for slidy and S5.
+    + The default for both is now to include links, rather than a full
+      copy of scripts and stylesheets. If you are relying on pandoc
+      to produce a self-contained slide show, you should specify
+      '--offline'.
+    + Added slidy/slidy.min.{css,js}.
+
   * Added grid tables for markdown.
     + Moved generic grid table functions from RST reader -> Parsing.
       Here they can be used by the Markdown reader as well.
@@ -77,6 +90,8 @@ pandoc (1.6)
     + Added writerSourceDirectory.
     + Removed writerIncludeBefore & writerIncludeAfter (no
       longer used with the new templating system).
+
+  * Added HTMLSlideVariant (Text.Pandoc.Shared).
 
   * Made KeyTable a map instead of an association list.
     + This affects the RST and Markdown readers.
@@ -157,12 +172,18 @@ pandoc (1.6)
     + Added (but not yet exported) readTeXMath', which returns a Maybe.
     + Updated tests
 
+  * Changed to using strict bytestrings in UTF8 module. This avoids a
+    problem on Windows reading from stdin. Previously we'd get an error
+    from hGetBufNonBlocking.
+
   * In parsing smart quotes, leave unicode curly quotes alone.
     Resolves Issue #143.
 
   * Removed obsolete markdown2pdf script.
 
   * Removed parsec < 3 restriction.
+
+  * Require texmath >= 0.3, highlighting-kate >= 0.2.7.1.
 
   * Added 'threaded' cabal flag.
     + GHC lacks a threaded runtime on some architectures.
