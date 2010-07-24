@@ -172,10 +172,6 @@ pandoc (1.6)
     + Added (but not yet exported) readTeXMath', which returns a Maybe.
     + Updated tests
 
-  * Changed to using strict bytestrings in UTF8 module. This avoids a
-    problem on Windows reading from stdin. Previously we'd get an error
-    from hGetBufNonBlocking.
-
   * In parsing smart quotes, leave unicode curly quotes alone.
     Resolves Issue #143.
 
