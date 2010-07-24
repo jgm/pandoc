@@ -63,6 +63,7 @@ Source: "..\epub.css"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion
 Source: "..\data\*"; DestDir: "{app}\data"; Flags: ignoreversion
 Source: "..\s5\default\*"; DestDir: "{app}\s5\default"; Flags: ignoreversion
+Source: "..\slidy\*"; DestDir: "{app}\slidy"; Flags: ignoreversion
 Source: "pcre-license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "pcre3.dll"; DestDir: "{sys}"; Flags: onlyifdoesntexist sharedfile
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
