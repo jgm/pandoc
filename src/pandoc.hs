@@ -321,7 +321,8 @@ options =
 
     , Option "" ["offline"]
                  (NoArg
-                  (\opt -> return opt { optOffline = True }))
+                  (\opt -> return opt { optOffline = True,
+                                        optStandalone = True }))
                  "" -- "Make slide shows include all the needed js and css"
 
     , Option "" ["xetex"]
