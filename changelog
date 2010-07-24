@@ -402,13 +402,14 @@ pandoc (1.5)
     Resolves Issue #199.
 
   * LaTeX writer:
-	  + If book, report, or memoir documentclass, use \chapter{}
+
+    + If book, report, or memoir documentclass, use \chapter{}
       for first-level headers. Otherwise use \section{}.
     + Removed stLink, link template variable. Reason: we now always
       include hyperref in the template.
 
   * Latex template:
-	  + Only show \author if there are some.
+    + Only show \author if there are some.
     + Always include hyperref package. It is used not just for links but
       for toc, section heading bookmarks, footnotes, etc. Also added
       unicode=true on hyperref options.
