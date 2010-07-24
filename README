@@ -24,31 +24,12 @@ representation of the document, and a set of writers, which convert
 this native representation into a target format. Thus, adding an input
 or output format requires only adding a reader or writer.
 
-[markdown]: http://daringfireball.net/projects/markdown/
-[reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html
-[S5]: http://meyerweb.com/eric/tools/s5/
-[Slidy]: http://www.w3.org/Talks/Tools/Slidy/
-[HTML]:  http://www.w3.org/TR/html40/
-[LaTeX]: http://www.latex-project.org/
-[ConTeXt]: http://www.pragma-ade.nl/ 
-[RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
-[DocBook XML]:  http://www.docbook.org/
-[OpenDocument XML]: http://opendocument.xml.org/ 
-[ODT]: http://en.wikipedia.org/wiki/OpenDocument
-[MediaWiki markup]: http://www.mediawiki.org/wiki/Help:Formatting
-[groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
-[Haskell]:  http://www.haskell.org/
-[GNU Texinfo]: http://www.gnu.org/software/texinfo/
-[EPUB]: http://www.idpf.org/
-
 © 2006-2010 John MacFarlane (jgm at berkeley dot edu). Released under the
 [GPL], version 2 or greater.  This software carries no warranty of
 any kind.  (See COPYRIGHT for full copyright and warranty notices.)
 Other contributors include Recai Oktaş, Paulo Tanimoto, Peter Wang,
 Andrea Rossato, Eric Kow, infinity0x, Luke Plant, shreevatsa.public,
 rodja.trappe, Bradley Kuhn, thsutton, Justin Bogner.
-
-[GPL]: http://www.gnu.org/copyleft/gpl.html "GNU General Public License"
 
 Using Pandoc
 ============
@@ -1409,4 +1390,23 @@ ordinary HTML (without bird tracks).
 
 writes HTML with the Haskell code in bird tracks, so it can be copied
 and pasted as literate Haskell source.
+
+
+[markdown]: http://daringfireball.net/projects/markdown/
+[reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html
+[S5]: http://meyerweb.com/eric/tools/s5/
+[Slidy]: http://www.w3.org/Talks/Tools/Slidy/
+[HTML]:  http://www.w3.org/TR/html40/
+[LaTeX]: http://www.latex-project.org/
+[ConTeXt]: http://www.pragma-ade.nl/ 
+[RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
+[DocBook XML]:  http://www.docbook.org/
+[OpenDocument XML]: http://opendocument.xml.org/ 
+[ODT]: http://en.wikipedia.org/wiki/OpenDocument
+[MediaWiki markup]: http://www.mediawiki.org/wiki/Help:Formatting
+[groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
+[Haskell]:  http://www.haskell.org/
+[GNU Texinfo]: http://www.gnu.org/software/texinfo/
+[EPUB]: http://www.idpf.org/
+[GPL]: http://www.gnu.org/copyleft/gpl.html "GNU General Public License"
 
