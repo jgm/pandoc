@@ -1303,9 +1303,6 @@ You can use Pandoc to produce an HTML + javascript slide presentation
 that can be viewed via a web browser.  There are two ways to do this,
 using [S5] or [Slidy].
 
-Using S5
---------
-
 Here's the markdown source for a simple slide show, `eating.txt`:
 
     % Eating Habits
@@ -1322,74 +1319,45 @@ Here's the markdown source for a simple slide show, `eating.txt`:
     - Eat spaghetti
     - Drink wine
 
+    --------------------------
+
+    ![picture of spaghetti](images/spaghetti.jpg)
+
 To produce the slide show, simply type
 
     pandoc -w s5 -s eating.txt > eating.html
 
-A title page is constructed automatically from the document's title
-block. Each section (with a level-one header) produces a single slide.
-(Note that if the section is too big, the slide will not fit on the
-page; S5 is not smart enough to produce multiple pages.)
-
-The S5 file produced by pandoc with the `-s/--standalone`
-option embeds a link to javascripts and CSS files, which are
-assumed to be available at the relative path `ui/default`.
-If the `--offline` option is specified, the scripts and CSS
-will be included directly in the generated file, so that it
-may be used offline.
-
-You can change the style of the slides by putting customized CSS files
-in `$DATADIR/s5/default`, where `$DATADIR` is the user data directory
-(see `--data-dir`, above). The originals may be found in pandoc's system
-data directory (generally `$CABALDIR/pandoc-VERSION/s5/default`). Pandoc
-will look there for any files it does not find in the user data
-directory.
-
-Using Slidy
------------
-
-If you use Slidy, things work a bit differently. As with S5, a new slide
-will be created at every level 1 header.  But you can also force a new
-slide by inserting a horizontal rule. For example:
-
-    % Eating Habits
-    % John Doe
-    % March 22, 2005
-
-    # In the morning
-
-    - Eat eggs
-    - Drink coffee
-
-    -----------------------------------------
-
-    # In the evening
-
-    - Eat spaghetti
-    - Drink wine
-
-    ------------------------------------------
-
-    The end!
-
-To produce the slide show, simply type
+for S5, or
 
     pandoc -w slidy -s eating.txt > eating.html
 
-As before, you may use the `--offline` option to include all
-necessary scripts and stylesheets in the generated HTML file.
-By default, links to the scripts and stylesheets at
-`w3.org` will be inserted.
+for Slidy.
+
+A title page is constructed automatically from the document's title
+block. Each level-one header and horizontal rule begins a new slide.
+
+The file produced by pandoc with the `-s/--standalone` option embeds a
+link to javascripts and CSS files, which are assumed to be available at
+the relative path `ui/default` (for S5) or at the Slidy website at
+`w3.org` (for Slidy). If the `--offline` option is specified, the
+scripts and CSS will be included directly in the generated file, so that
+it may be used offline.
+
+You can change the style of the slides by putting customized CSS files
+in `$DATADIR/s5/default` (for S5) or `$DATADIR/slidy` (for Slidy),
+where `$DATADIR` is the user data directory (see `--data-dir`, above).
+The originals may be found in pandoc's system data directory (generally
+`$CABALDIR/pandoc-VERSION/s5/default`). Pandoc will look there for any
+files it does not find in the user data directory.
 
 Incremental lists
 -----------------
 
-Note that by default, these writers produces lists that display
-"all at once."  If you want your lists to display incrementally
-(one item at a time), use the `-i` option.  If you want a
-particular list to depart from the default (that is, to display
-incrementally without the `-i` option and all at once with the
-`-i` option), put it in a block quote:
+By default, these writers produces lists that display "all at once."
+If you want your lists to display incrementally (one item at a time),
+use the `-i` option. If you want a particular list to depart from the
+default (that is, to display incrementally without the `-i` option and
+all at once with the `-i` option), put it in a block quote:
 
     > - Eat spaghetti
     > - Drink wine
