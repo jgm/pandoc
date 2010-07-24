@@ -2,193 +2,158 @@ pandoc (1.6)
 
   [ John MacFarlane ]
 
-  * Added a slidy writer.  Resolves Issue #122.
+  * New EPUB and HTML Slidy writers. (Issue #122)
 
-  * Made a proper ODT writer.
-    + Transformed the old Text.Pandoc.ODT module into a proper
-      writer module, Text.Pandoc.Writers.ODT.
-    + Instead of saveOpenDocumentAsODT, we now have writeODT, which
-      takes a Pandoc document and produces a bytestring.
-      saveOpenDocumentAsODT has been removed.
-    + To extract the images and insert them into the ODT, we now use
-      processPandocM on the Pandoc document rather than a custom XML parser.
-    + Handle the case where the image is remote (or not found) by
-      converting the Image element into an Emph with the label.
-    + Plumbing in pandoc.hs changed slightly to accomodate this, and to
-      allow other writers that live in the IO monad.
+      - EPUB is a standard ebook format, used in Apple's iBooks for
+        the iPad and iPhone, Barnes and Noble's nook reader, the Sony
+        reader, and many other devices.
+      - Slidy, like S5, is a system for producing HTML+javascript slide
+        shows.
 
-  * Added an EPUB writer.
-    + New writer module Text.Pandoc.Writers.EPUB
-    + Stylesheet in epub.css
-    + --epub-stylesheet command-line option.
-    + New utility module Text.Pandoc.UUID to generate
-      random UUIDs for EPUBs.
-    + Added writerEPUBMetadata field and --epub-metadata option.
+  * All input is assumed to be UTF-8, no matter what the locale and ghc
+    version, and all output is UTF-8. This reverts to pre-1.5 behavior.
+    Also, a BOM, if present, is stripped from the input.
 
-  * Moved Pandoc prettyprinting code from Shared to new Native writer.
-    + Text.Pandoc.Writers.Native
-    + The function prettyPandoc is now gone.  Use writeNative instead.
+  * Markdown now supports grid tables, whose cells can contain
+    arbitrary block elements. (Issue #43)
 
-  * Added --section-divs option. Header identifiers now get attached to
-    the headers, unless --section-divs is specified, in which case they
-    are added to enclosing divs. By default, the divs are not added.
-    Resolves Issue #230, #239.
+  * Sequentially numbered example lists in markdown with `@` marker.
 
-  * Added --webtex option for HTML math.
-    + Added --webtex command-line option, with optional parameter.
-      (Defaults to using google charts API.)
-    + Added WebTeX HTMLMathMethod.
-    + Removed MimeTeX HTMLMathMethod.  (WebTeX is generic and subsumes it.)
-    + Modified --mimetex option to use WebTeX.
-    + Thanks to lpeterse for the idea and some of the code.
+  * Markdown table captions can begin with a bare colon and no longer need
+    to include the English word "table." Also, a caption can now occur
+    either before or after the table. (Issue #227)
 
-  * Made spacing at end of output more consistent. Previously some
-    of the writers added spurious whitespace. This has been removed,
-    resolving Issue #232.
+  * New command-line options:
 
-    NOTE: If your application combines pandoc's output with other
-    text, for example in a template, you may need to add spacing.
-    For example, a pandoc-generated markdown file will not have
-    a blank line after the final block element.  If you are inserting
-    it into another markdown file, you will need to make sure there
-    is a blank line between it and the next block element.
+      - `--epub-stylesheet` allows you to specify a CSS file that will
+        be used to style your ebook.
+      - `--epub-metadata` allows you to specify metadata for the ebook.
+      - `--offline` causes the generated HTML slideshow to include all
+        needed scripts and stylesheets.
+      - `--webtex` causes TeX math to be converted to images using the
+        Google Charts API (unless a different URL is specified).
+      - `--section-divs` causes div tags to be added around each section
+        in an HTML document. (Issue #230, 239)
 
-  * Added Text.Pandoc.UTF8 for portable UTF8 string IO.
-    + Pandoc no longer respects locale, even when compiled by GHC 6.12.
-    + Use new UTF8 module in Shared, ODT, and the executables.
-    + Modified readFile and getContents to strip BOM if present.
+  * Default behavior of S5 writer in standalone mode has changed:
+    previously, it would include all needed scripts and stylesheets
+    in the generated HTML; now, only links are included unless
+    the `--offline` option is used.
 
-  * Removed Text.Pandoc.Writers.S5 and writeS5 function.
-    Moved s5Includes to new module, Text.Pandoc.S5.
-    (Now s5 is handled in more or less the same way as slidy;
-    to write S5, you use writeHtml with writerSlideVariant set
-    to S5Slides or SlidySlides.)
+  * Default behavior of HTML writer has changed. Between 1.2 and 1.5,
+    pandoc would enclose sections in div tags with identifiers on the
+    div tags, so that the sections can be manipulated in javascript.
+    This caused undesirable interactions with raw HTML div tags. So,
+    starting with 1.6, the default is to put the identifiers directly
+    on the header tags, and not to include the divs.  The `--section-divs`
+    option selects the 1.2-1.5 behavior.
 
-  * Added new --offline option for slidy and S5.
-    + The default for both is now to include links, rather than a full
-      copy of scripts and stylesheets. If you are relying on pandoc
-      to produce a self-contained slide show, you should specify
-      '--offline'.
-    + Added slidy/slidy.min.{css,js}.
+  * API changes:
 
-  * Cause horizontal rules to start a new slide in s5 and slidy.
+      - `HTMLMathMethod`: Added `WebTeX`, removed `MimeTeX`.
+      - `WriterOptions`: Added `writerUserDataDir`, `writerSourceDirectory`,
+        `writerEPUBMetadata` fields. Removed `writerIncludeBefore`,
+        `writerIncludeAfter`.
+      - Added `headerShift` to `Text.Pandoc.Shared`.
+      - Moved parsing code and `ParserState` from `Text.Pandoc.Shared`
+        to a new module, `Text.Pandoc.Parsing`.
+      - Added `stateHasChapters` to `ParserState`.
+      - Added `HTMLSlideVariant`.
+      - Made `KeyTable` a map instead of an association list.
+      - Added accessors for `Meta` fields (`docTitle`, `docAuthors`,
+        `docDate`).
+      - `Pandoc`, `Meta`, `Inline`, and `Block` have been given `Ord`
+        instances.
+      - Reference keys now have a type of their own (`Key`), with its
+        own `Ord` instance for case-insensitive comparison.
+      - Added `Text.Pandoc.Writers.EPUB`.
+      - Added `Text.Pandoc.UUID`.
+      - Removed `Text.Pandoc.ODT`, added `Text.Pandoc.Writers.ODT`.
+        Removed `saveOpenDocumentAsODT`, added `writeODT`.
+      - Added `Text.Pandoc.Writers.Native` and `writeNative`.
+        Removed `prettyPandoc`.
+      - Added `Text.Pandoc.UTF8` for portable UTF8 string IO.
+      - Removed `Text.Pandoc.Writers.S5` and the `writeS5` function.
+        Moved `s5Includes` to a new module, `Text.Pandoc.S5`.
+        To write S5, you now use `writeHtml` with `writerSlideVariant`
+        set to `S5Slides` or `SlidySlides`.
 
-  * Added grid tables for markdown.
-    + Moved generic grid table functions from RST reader -> Parsing.
-      Here they can be used by the Markdown reader as well.
-    + Resolves Issue #43.
+  * Template changes.  If you use custom templates, please update them,
+    particularly if you use syntax highlighting with pandoc. The old HTML
+    templates hardcoded highlighting CSS that will no longer work with
+    the most recent version of highlighting-kate.
 
-  * Allow language-neutral table captions.
-    + Captions may now begin simply with ':', instead of 'Table:'
-    + Captions may now appear either above or below the table.
-    + Resolves Issue #227.
+      - HTML template: avoid empty meta tag if no date.
+      - HTML template: Use default highlighting CSS from highlighting-kate
+        instead of hard-coding the CSS into the template.
+      - HTML template: insert-before text goes before the title, and
+        immediately after the <body> tag, as documented. (Issue #241)
+      - Added slidy and s5 templates.
+      - Added amssymb to preamble of latex template. (github Issue 1)
 
-  * Added sequentially numbered example lists in markdown, using
-    (@) list markers.  These are documented in README under
-    "Numbered examples."
+  * Removed excess newlines at the end of output. Note: because output
+    will not contain an extra newline, you may need to make adjustments
+    if you are inserting pandoc's output into a template.
 
-  * Changes to WriterOptions:
-    + Added writerUserDataDir.
-    + Added writerSourceDirectory.
-    + Removed writerIncludeBefore & writerIncludeAfter (no
-      longer used with the new templating system).
+  * In S5 and slidy, horizontal rules now cause a new slide, so you
+    are no longer limited to one slide per section.
 
-  * Added HTMLSlideVariant (Text.Pandoc.Parsing).
+  * Improved handling of code in man writer. Inline code is now monospace,
+    not bold, and code blocks now use .nf (no fill) and .IP (indented para).
 
-  * Made KeyTable a map instead of an association list.
-    + This affects the RST and Markdown readers.
-    + The type for stateKeys in ParserState has also changed.
-    + Pandoc, Meta, Inline, and Block have been given Ord instances.
-    + Reference keys now have a type of their own (Key), with its
-      own Ord instance for case-insensitive comparison.
+  * HTML reader parses `<tt>` as Code. (Issue #247)
 
-  * Moved headerShift from pandoc.hs to Text.Pandoc.Shared.
+  * html+lhs output now contains bird tracks, even when compiled without
+    highlighting support. (Issue #242)
 
-  * Moved parsing functions from Text.Pandoc.Shared to new module,
-    Text.Pandoc.Parsing.
+  * Colons are now no longer allowed in autogenerated XML/HTML identifiers,
+    since they have a special meaning in XML.
 
-  * Added amssymb to default latex template.
-    Resolves github Issue 1.
+  * Code improvements in ODT writer.  Remote images are now replaced with
+    their alt text rather than a broken link.
 
-  * Use default highlighting CSS rather than embedding CSS in templates.
+  * LaTeX reader improvements:
 
-  * Updated pandoc to use highlighting-kate 0.2.7.
-    NOTE: Update any custom CSS or templates accordingly.
+      - Made latex `\section`, `\chapter` parsers more forgiving of
+        whitespace.
+      - Parse `\chapter{}` in latex.
+      - Changed `rawLaTeXInline` to accept `\section`, `\begin`, etc.
+      - Use new `rawLaTeXInline'` in LaTeX reader, and export `rawLaTeXInline`
+        for use in markdown reader.
+      - Fixes bug wherein `\section{foo}` was not recognized as raw TeX
+        in markdown document.
 
-  * Improved handling of code in man writer.
-    + Inline code is now in monoscpace, not bold.
-    + Code blocks now use .nf (no fill) and .IP (indented paragraph).
-    + Resolves Issue #247.
+  * LaTeX writer:  images are automatically shrunk if they would extend
+    beyond the page margin.
 
-  * HTML reader: parse <tt> as Code.  Partially resolves Issue #247.
+  * Plain, markdown, RST writers now use unicode for smart punctuation.
 
-  * HTML writer:
-    + Made inclusion of date meta tag conditional.
-    + Put insert-before text before the title h1 in HTML.
-      This is the documented behavior; the insert-before text
-      comes after the <body> tag.  Resolves Issue #241.
+  * Man writer converts math to unicode when possible, as in other writers.
 
-  * Add bird tracks to lhs in HTML when compiled wo -fhighlighting.
-    Resolves Issue #242. Previously the bird tracks would be stripped
-    off when pandoc was not compiled with highlighting support, even if
-    -t html+lhs was specified. Thanks to Nicholas Wu for pointing out
-    the problem.
+  * `markdown2pdf` can now recognize citeproc options.
 
-  * Don't allow colon in autogenerated XML/HTML identifiers.
-    They have a special meaning in XML (e.g. in EPUB).
+  * Command-line arguments are converted to UTF-8. (Issue #234)
 
-  * LaTeX reader:
-    + Made latex \section, \chapter parsers more forgiving of whitespace.
-    + Added stateHasChapters to ParserState.
-    + Parse \chapter{} in latex. If a \chapter command is encountered,
-      this is set to True and subsequent \section commands (etc.) will
-      be bumped up one level.
-    + Changed rawLaTeXInline to accept '\section', '\begin', etc.
-    + Use new rawLaTeXInline' in LaTeX reader, and export rawLaTeXInline
-      for use in markdown reader.
-    + Fixes bug wherein '\section{foo}' was not recognized as raw TeX
-      in markdown document.
+  * `Text.Pandoc.TeXMath` has been rewritten to use texmath's parser.
+    This allows it to handle a wider range of formulas. Also, if a formula
+    cannot be converted, it is left in raw TeX; formulas are no longer
+    partially converted.
 
-  * LaTeX writer: Give images a maximum width using the prelude only.
+  * Unicode curly quotes are left alone when parsing smart quotes. (Issue
+    #143)
 
-  * Plain, markdown, RST writers: Use unicode for smart punctuation.
+  * Cabal file changes:
 
-  * Man writer: convert math to unicode when possible, as in other
-    writers.
+      - Removed parsec < 3 restriction.
+      - Added 'threaded' flag for architectures where GHC lacks a threaded
+        runtime.
+      - Use 'threaded' only for markdown2pdf; it is not needed for pandoc.
+      - Require highlighting-kate 0.2.7.
 
-  * Allow markdown2pdf to recognize citeproc options.
+  * Use explicit imports from `Data.Generics`. Otherwise we have a
+    conflict with the 'empty' symbol, introduced in syb >= 0.2. (Issue #237)
 
-  * Use explicit imports from Data.Generics. Otherwise we have a
-    conflict with the 'empty' symbol, introduced in syb >= 0.2. Thanks
-    to ddssff for pointing out the problem. Resolves Issue #237.
-
-  * Convert command-line arguments to UTF8.  Resolves Issue #234.
-
-  * Use texmath's parser in TexMath module.
-    + This replaces a lot of custom parser code, and expands
-      the tex -> unicode conversion.
-    + The behavior has also changed: if the whole formula can't
-      be converted, the whole formula is left in raw TeX.
-    + Previously, pandoc converted parts of the formula to unicode
-      and left other parts in raw TeX.
-    + Added (but not yet exported) readTeXMath', which returns a Maybe.
-    + Updated tests
-
-  * In parsing smart quotes, leave unicode curly quotes alone.
-    Resolves Issue #143.
-
-  * Removed obsolete markdown2pdf script.
-
-  * Removed parsec < 3 restriction.
-
-  * Require texmath >= 0.3, highlighting-kate >= 0.2.7.1.
-
-  * Added 'threaded' cabal flag.
-    + GHC lacks a threaded runtime on some architectures.
-      Provide a 'threaded' flag that can be disabled for compiling
-      on these architectures.
-    + Removed '-threaded' from pandoc's ghc-options.  '-threaded'
-      is only needed for markdown2pdf, due to its use of readProcess.
+  * New data files:  slidy/slidy.min.js, slidy/slidy.min.css, epub.css.
 
 pandoc (1.5.1.1)
 
@@ -208,9 +173,9 @@ pandoc (1.5.1)
       parsed text and the escaped URI (in the latter case, with
       the mailto: prefix).
     + HTML reader: unsanitaryURI has been modified to allow unicode
-		  high characters in a URI.
+      high characters in a URI.
     + Readers:  All link and image URIs are now escaped using
-		  escapeURI.
+      escapeURI.
     + Markdown and RST writers:  unescapeURI is used so that URIs
       in these formats are human-readable.
 
