@@ -487,7 +487,9 @@ inlineToHtml opts inline =
                                             InlineMath  -> m
                                             DisplayMath -> br +++ m +++ br
                                GladTeX ->
-                                  return $ primHtml $ "<EQ>" ++ str ++ "</EQ>"
+                                  return $ case t of
+                                             InlineMath -> primHtml $ "<EQ ENV=\"math\">" ++ str ++ "</EQ>"
+                                             DisplayMath -> primHtml $ "<EQ ENV=\"displaymath\">" ++ str ++ "</EQ>"
                                MathML _ -> do
                                   let dt = if t == InlineMath
                                               then DisplayInline
