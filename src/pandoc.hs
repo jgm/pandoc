@@ -54,7 +54,7 @@ import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI)
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString, fromString)
-import Codec.Binary.UTF8.String (decodeString)
+import Codec.Binary.UTF8.String (decodeString, encodeString)
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2010 John MacFarlane\n" ++
@@ -850,4 +850,4 @@ main = do
 
   if outputFile == "-"
      then B.putStr writerOutput
-     else B.writeFile outputFile writerOutput
+     else B.writeFile (encodeString outputFile) writerOutput

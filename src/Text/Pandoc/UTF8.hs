@@ -38,6 +38,7 @@ module Text.Pandoc.UTF8 ( readFile
 
 where
 import qualified Data.ByteString as B
+import Codec.Binary.UTF8.String (encodeString)
 import Data.ByteString.UTF8 (toString, fromString)
 import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn)
 import System.IO (Handle)
@@ -51,10 +52,10 @@ stripBOM s | bom `B.isPrefixOf` s = B.drop 3 s
 stripBOM s = s
 
 readFile :: FilePath -> IO String
-readFile = liftM (toString . stripBOM) . B.readFile
+readFile = liftM (toString . stripBOM) . B.readFile . encodeString
 
 writeFile :: FilePath -> String -> IO ()
-writeFile f = B.writeFile f . fromString
+writeFile f = B.writeFile (encodeString f) . fromString
 
 getContents :: IO String
 getContents = liftM (toString . stripBOM) B.getContents
