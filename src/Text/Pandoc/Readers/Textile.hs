@@ -45,6 +45,7 @@ module Text.Pandoc.Readers.Textile (
                                ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
+import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlEndTag )
 import Text.ParserCombinators.Parsec
 import Data.Char ( digitToInt )
@@ -91,7 +92,7 @@ block = choice blockParsers <?> "block"
 -- | Code Blocks in Textile are between <pre> and </pre>
 codeBlock :: GenParser Char ParserState Block
 codeBlock = try $ do
-  htmlTag "pre"
+  htmlTag False "pre"
   content <- manyTill anyChar (try $ htmlEndTag "pre" >> blockBreak)
   return $ CodeBlock ("",[],[]) content
 
