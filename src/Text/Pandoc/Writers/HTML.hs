@@ -454,6 +454,8 @@ inlineToHtml opts inline =
     (Code str)       -> return $ thecode << str
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . (thespan ! [thestyle "text-decoration: line-through;"])
+    (Inserted lst)   -> inlineListToHtml opts lst >>=
+                        return . (thespan ! [thestyle "text-decoration: underline;"])
     (SmallCaps lst)   -> inlineListToHtml opts lst >>=
                          return . (thespan ! [thestyle "font-variant: small-caps;"])
     (Superscript lst) -> inlineListToHtml opts lst >>= return . sup

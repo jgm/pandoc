@@ -377,6 +377,7 @@ inlineListToIdentifier =
               Str s           -> s
               Emph lst        -> concatMap extractText lst
               Strikeout lst   -> concatMap extractText lst
+              Inserted lst    -> concatMap extractText lst
               Superscript lst -> concatMap extractText lst
               SmallCaps   lst -> concatMap extractText lst
               Subscript lst   -> concatMap extractText lst

@@ -90,6 +90,7 @@ readers = [("native"       , readPandoc)
           ,("markdown"     , readMarkdown)
           ,("markdown+lhs" , readMarkdown)
           ,("rst"          , readRST)
+          ,("textile"      , readTextile) -- TODO : textile+lhs 
           ,("rst+lhs"      , readRST)
           ,("html"         , readHtml)
           ,("latex"        , readLaTeX)

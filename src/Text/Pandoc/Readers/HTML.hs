@@ -30,7 +30,8 @@ Conversion of HTML to 'Pandoc' document.
 module Text.Pandoc.Readers.HTML ( 
                                  readHtml, 
                                  rawHtmlInline, 
-                                 rawHtmlBlock, 
+                                 rawHtmlBlock,
+                                 htmlTag,
                                  anyHtmlBlockTag, 
                                  anyHtmlInlineTag,  
                                  anyHtmlTag,
