@@ -177,28 +177,14 @@ para = try $ do
 
 -- Tables
   
--- TODO : DOC and factorizing cellInlines
-
+-- | A table cell spans until a pipe |
 tableCell :: GenParser Char ParserState TableCell
-tableCell = many1 cellInline >>= return . (:[]) . Plain . normalizeSpaces
-  where cellInline = choice [ str
-                            , whitespace
-                            , code
-                            , simpleInline (string "??") (Cite [])
-                            , simpleInline (char '*') Strong
-                            , simpleInline (char '_') Emph
-                            , simpleInline (string "**") Strong
-                            , simpleInline (string "__") Emph
-                            , simpleInline (char '-') Strikeout
-                            , simpleInline (char '+') Inserted
-                            , simpleInline (char '^') Superscript
-                            , simpleInline (char '~') Subscript
-                              -- , link
-                              -- , image
-                              -- , math
-                              -- , autoLink
-                            ]
+tableCell = do
+  c <- many1 (noneOf "|\n")
+  content <- parseFromString (many1 inline) c
+  return $ [ Plain $ normalizeSpaces content ]
 
+-- | A table row is made of many table cells
 tableRow :: GenParser Char ParserState [TableCell]
 tableRow = try $ do
   char '|'
@@ -206,9 +192,11 @@ tableRow = try $ do
   newline
   return cells
 
+-- | Many table rows
 tableRows :: GenParser Char ParserState [[TableCell]]
 tableRows = many1 tableRow
 
+-- | Table headers are made of cells separated by a tag "|_."
 tableHeaders :: GenParser Char ParserState [TableCell]
 tableHeaders = try $ do
   let separator = (try $ string "|_.")
@@ -218,6 +206,7 @@ tableHeaders = try $ do
   newline
   return headers
   
+-- | A table with an optional header
 table :: GenParser Char ParserState Block
 table = try $ do
   headers <- option [] tableHeaders
@@ -251,10 +240,10 @@ inlineParsers = [ str
                 , endline
                 , code
                 , simpleInline (string "??") (Cite [])
-                , simpleInline (char '*') Strong
-                , simpleInline (char '_') Emph
                 , simpleInline (string "**") Strong
                 , simpleInline (string "__") Emph
+                , simpleInline (char '*') Strong
+                , simpleInline (char '_') Emph
                 , simpleInline (char '-') Strikeout
                 , simpleInline (char '+') Inserted
                 , simpleInline (char '^') Superscript
@@ -311,7 +300,6 @@ simpleInline border construct = surrounded border inline >>=
 --  - Pandoc Meta Information
 --  - footnotes
 --  - hyperlink "label":target
---  - tables
---  - doc
+--  - tables alignments
 --  - tests
 --  - Inserted inline handling in writers
