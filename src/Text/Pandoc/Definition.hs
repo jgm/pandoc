@@ -47,6 +47,9 @@ data Alignment = AlignLeft
                | AlignCenter 
                | AlignDefault deriving (Eq, Ord, Show, Read, Typeable, Data)
 
+-- | Table cells are list of Blocks
+type TableCell = [Block]
+
 -- | List attributes.
 type ListAttributes = (Int, ListNumberStyle, ListNumberDelim)
 
@@ -85,7 +88,7 @@ data Block
                             -- definitions (each a list of blocks)
     | Header Int [Inline]   -- ^ Header - level (integer) and text (inlines) 
     | HorizontalRule        -- ^ Horizontal rule
-    | Table [Inline] [Alignment] [Double] [[Block]] [[[Block]]]  -- ^ Table,
+    | Table [Inline] [Alignment] [Double] [TableCell] [[TableCell]]  -- ^ Table,
                             -- with caption, column alignments,
                             -- relative column widths (0 = default),
                             -- column headers (each a list of blocks), and

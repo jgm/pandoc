@@ -63,7 +63,7 @@ readTextile state s = (readWith parseTextile) state (s ++ "\n\n")
 
 -- | Special chars border strings parsing
 specialChars :: [Char]
-specialChars = "\\[]*#_@~<>!?-+^&'\";:"
+specialChars = "\\[]*#_@~<>!?-+^&'\";:|"
 
 -- | Generate a Pandoc ADT from a textile document
 parseTextile :: GenParser Char ParserState Pandoc
@@ -82,6 +82,7 @@ blockParsers = [ codeBlock
                , header
                , blockQuote
                , anyList
+               , table
                , para
                , nullBlock ]
 
@@ -173,6 +174,68 @@ para = try $ do
   content <- manyTill inline blockBreak
   return $ Para $ normalizeSpaces content
   
+
+-- Tables
+  
+-- TODO : DOC and factorizing cellInlines
+
+tableCell :: GenParser Char ParserState TableCell
+tableCell = many1 cellInline >>= return . (:[]) . Plain . normalizeSpaces
+  where cellInline = choice [ str
+                            , whitespace
+                            , code
+                            , simpleInline (string "??") (Cite [])
+                            , simpleInline (char '*') Strong
+                            , simpleInline (char '_') Emph
+                            , simpleInline (string "**") Strong
+                            , simpleInline (string "__") Emph
+                            , simpleInline (char '-') Strikeout
+                            , simpleInline (char '+') Inserted
+                            , simpleInline (char '^') Superscript
+                            , simpleInline (char '~') Subscript
+                              -- , link
+                              -- , image
+                              -- , math
+                              -- , autoLink
+                            ]
+
+tableRow :: GenParser Char ParserState [TableCell]
+tableRow = try $ do
+  char '|'
+  cells <- endBy1 tableCell (char '|')
+  newline
+  return cells
+
+tableRows :: GenParser Char ParserState [[TableCell]]
+tableRows = many1 tableRow
+
+tableHeaders :: GenParser Char ParserState [TableCell]
+tableHeaders = try $ do
+  let separator = (try $ string "|_.")
+  separator
+  headers <- sepBy1 tableCell separator
+  char '|'
+  newline
+  return headers
+  
+table :: GenParser Char ParserState Block
+table = try $ do
+  headers <- option [] tableHeaders
+  rows <- tableRows
+  return $ Table [] 
+    (replicate (length headers) AlignDefault)
+    (replicate (length headers) 0.0)
+    headers
+    rows
+  
+
+----------
+-- Inlines
+----------
+
+
+
+
 -- | Any inline element
 inline :: GenParser Char ParserState Inline
 inline = choice inlineParsers <?> "inline"
