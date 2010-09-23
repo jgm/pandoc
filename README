@@ -872,7 +872,8 @@ of the first line of the table body. So, in the tables above, the columns
 would be right, left, center, and right aligned, respectively.
 
 **Multiline tables** allow headers and table rows to span multiple lines
-of text.  Here is an example:
+of text (but cells that span multiple columns or rows of the table are
+not supported).  Here is an example:
 
     -------------------------------------------------------------
      Centered   Default           Right Left
