@@ -935,8 +935,8 @@ the table), or the table may be interpreted as a simple table.
 The row of `=`s separates the header from the table body, and can be
 omitted for a headerless table. The cells of grid tables may contain
 arbitrary block elements (multiple paragraphs, code blocks, lists,
-etc.). Alignments are not supported, nor are multi-column or multi-row
-cells. Grid tables can be created easily using [Emacs table mode].
+etc.). Alignments are not supported, nor are cells that span multiple
+columns or rows. Grid tables can be created easily using [Emacs table mode].
 
   [Emacs table mode]: http://table.sourceforge.net/
 
