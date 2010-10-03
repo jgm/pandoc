@@ -25,15 +25,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Conversion from Textile to 'Pandoc' document.
+Conversion from Textile to 'Pandoc' document, based on the spec
+available at http://redcloth.org/hobix.com/textile/
 
 Implemented :
  - Paragraphs
  - Code blocks
  - Lists
  - blockquote
- - Inlines : strong, emph, cite, code, deleted, inserted, superscript, subscript
-  
+ - Inlines : strong, emph, cite, code, deleted, inserted, superscript,
+   subscript, links
 
 Not implemented :
  - HTML-specific and CSS-specific inlines
@@ -189,6 +190,7 @@ tableRow :: GenParser Char ParserState [TableCell]
 tableRow = try $ do
   char '|'
   cells <- endBy1 tableCell (char '|')
+  -- TODO : don't eat the last newline
   newline
   return cells
 
@@ -206,23 +208,25 @@ tableHeaders = try $ do
   newline
   return headers
   
--- | A table with an optional header
+-- | A table with an optional header. Current implementation can
+-- handle tables with and without header, but will parse cells
+-- alignment attributes as content.
 table :: GenParser Char ParserState Block
 table = try $ do
   headers <- option [] tableHeaders
   rows <- tableRows
+  let nbOfCols = max (length headers) (length $ head rows)
   return $ Table [] 
-    (replicate (length headers) AlignDefault)
-    (replicate (length headers) 0.0)
+    (replicate nbOfCols AlignDefault)
+    (replicate nbOfCols 0.0)
     headers
     rows
   
 
+
 ----------
 -- Inlines
 ----------
-
-
 
 
 -- | Any inline element
@@ -248,10 +252,10 @@ inlineParsers = [ str
                 , simpleInline (char '+') Inserted
                 , simpleInline (char '^') Superscript
                 , simpleInline (char '~') Subscript
-                -- , link
-                -- , image
-                -- , math
-                -- , autoLink
+                , link
+                , autoLink
+                , image
+                , image
                 , symbol
                 ]
 
@@ -269,6 +273,29 @@ endline :: GenParser Char ParserState Inline
 endline = try $ do
   newline >> notFollowedBy blankline
   return Space
+
+link :: GenParser Char ParserState Inline
+link = try $ do
+  name <- surrounded (char '"') inline
+  char ':'
+  url <- manyTill (anyChar) (lookAhead $ (space <|> try (oneOf ".;," >> (space <|> newline))))
+  return $ Link name (url, "")
+  
+-- | Detect plain links to http or email.
+autoLink :: GenParser Char ParserState Inline
+autoLink = do
+  (orig, src) <- uri -- (try uri <|> try emailAddress)
+  return $ Link [Str orig] (src, "")
+
+-- | image embedding
+image :: GenParser Char ParserState Inline
+image = try $ do
+  char '!' >> notFollowedBy space
+  src <- manyTill anyChar (lookAhead $ oneOf "!(")
+  alt <- option "" (try $ (char '(' >> manyTill anyChar (char ')')))
+  char '!'
+  return $ Image [Str alt] (src, alt)
+  
 
 -- | Any special symbol defined in specialChars
 symbol :: GenParser Char ParserState Inline
@@ -297,9 +324,9 @@ simpleInline border construct = surrounded border inline >>=
 
 -- TODO
 -- 
---  - Pandoc Meta Information
+--  - Pandoc Meta Information (title, author, date)
 --  - footnotes
---  - hyperlink "label":target
---  - tables alignments
---  - tests
+--  - autolink is not called
+--  - should autolink be shared through Parsing.hs ?
 --  - Inserted inline handling in writers
+--  - table parser is a bit too greedy and require a double newline after tables

@@ -1,0 +1,156 @@
+This is a set of tests for pandoc. Most of them are adapted from John
+Gruber's markdown test suite.
+
+-----
+
+h1. Headers
+
+h2. Level 2 with an "embeded link":http://www.example.com
+
+h3. Level 3 with *emphasis*
+
+h4. Level 4
+
+h5. Level 5
+
+h6. Level 6
+
+
+h1. Paragraphs
+
+Here's a regular paragraph.
+
+Line break are not paragraph break in textile, so you can wrap your
+very long paragraph with your favourite text editor, it will be
+rendered as a single one.
+
+Here's one with a bullet.
+
+* criminey.
+
+There should be a hard line break  
+
+here.
+
+h1. Block Quotes
+
+bq. This is a famous quote from somebody. He had a lot of things to
+say, so the text is really really long and spans on multiple lines.
+
+And a following paragraph.
+
+h1. Code Blocks
+
+Code:
+
+<pre>
+    ---- (should be four hyphens)
+
+    sub status {
+        print "working";
+    }
+
+	this code block is indented by one tab
+</pre>
+
+And:
+
+<pre>
+		this code block is indented by two tabs
+
+    These should not be escaped:  \$ \\ \> \[ \{
+</pre>
+
+
+h1. Lists
+
+h2. Unordered
+
+Asterisks tight:
+
+* asterisk 1
+* asterisk 2
+* asterisk 3
+
+h2. Ordered
+
+Tight:
+
+# First
+# Second
+# Third
+
+h2. Nested
+
+* ui 1
+** ui 1.1
+### oi 1.1.1
+### oi 1.1.2
+** ui 1.2
+* ui 2
+## oi 2.1
+*** ui 2.1.1
+*** ui 2.1.2
+
+
+h1. Inline Markup
+
+This is _emphasized_, and so __is this__.
+
+This is *strong*, and so **is this**.
+
+A "*strong link*":http://www.foobar.com.
+
+_*This is strong and em.*_
+
+So is *_this_* word and __**that one**__.
+
+-This is strikeout and *strong*-
+
+Superscripts:  a^bc^d a^*hello*^ a^hello there^.
+
+Subscripts: H~2~O, H~23~O, H~many of them~O.
+
+
+h1. Links
+
+h2. Explicit
+
+Just a "url":http://www.url.com
+
+"Email link":mailto:nobody@nowhere.net
+
+Automatic linking to http://www.example.com and foobar@example.com.
+
+h1. Tables
+
+Textile allows tables with and without headers :
+
+h2. Without headers
+
+| name   | age | sex |
+| joan   | 24  | f   |
+| archie | 29  | m   |
+| bella  | 45  | f   |
+
+And some text ...
+
+| name  | age | sex |
+| joan  | 24  | f   |
+| archie| 29  | m   |
+| bella | 45  | f   |
+
+
+h2. With headers
+
+|_. name |_. age |_. sex |
+| joan   | 24    | f     |
+| archie | 29    | m     |
+| bella  | 45    | f     |
+
+
+h1. Images
+
+Textile inline image syntax, like 
+here !this_is_an_image.png(this is the alt text)!
+and here !this_is_an_image.png!.
