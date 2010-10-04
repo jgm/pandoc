@@ -33,7 +33,7 @@ Implemented :
  - Code blocks
  - Lists
  - blockquote
- - Inlines : strong, emph, cite, code, deleted, inserted, superscript,
+ - Inlines : strong, emph, cite, code, deleted, superscript,
    subscript, links
 
 Not implemented :
@@ -250,7 +250,6 @@ inlineParsers = [ autoLink
                 , simpleInline (char '*') Strong
                 , simpleInline (char '_') Emph
                 , simpleInline (char '-') Strikeout
-                , simpleInline (char '+') Inserted
                 , simpleInline (char '^') Superscript
                 , simpleInline (char '~') Subscript
                 , link
@@ -286,7 +285,6 @@ autoLink = do
   (orig, src) <- (try uri <|> try emailAddress)
   return $ Link [Str orig] (src, "")
 
-
 -- | image embedding
 image :: GenParser Char ParserState Inline
 image = try $ do
@@ -295,7 +293,6 @@ image = try $ do
   alt <- option "" (try $ (char '(' >> manyTill anyChar (char ')')))
   char '!'
   return $ Image [Str alt] (src, alt)
-  
 
 -- | Any special symbol defined in specialChars
 symbol :: GenParser Char ParserState Inline
@@ -327,4 +324,3 @@ simpleInline border construct = surrounded border inline >>=
 --  - Pandoc Meta Information (title, author, date)
 --  - footnotes
 --  - should autolink be shared through Parsing.hs ?
---  - Inserted inline handling in writers
