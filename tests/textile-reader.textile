@@ -133,13 +133,7 @@ h2. Without headers
 | archie | 29  | m   |
 | bella  | 45  | f   |
 
-And some text ...
-
-| name  | age | sex |
-| joan  | 24  | f   |
-| archie| 29  | m   |
-| bella | 45  | f   |
-
+and some text following ...
 
 h2. With headers
 
@@ -147,6 +141,7 @@ h2. With headers
 | joan   | 24    | f     |
 | archie | 29    | m     |
 | bella  | 45    | f     |
+
 
 
 h1. Images

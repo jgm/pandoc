@@ -190,7 +190,6 @@ tableRow :: GenParser Char ParserState [TableCell]
 tableRow = try $ do
   char '|'
   cells <- endBy1 tableCell (char '|')
-  -- TODO : don't eat the last newline
   newline
   return cells
 
@@ -215,6 +214,7 @@ table :: GenParser Char ParserState Block
 table = try $ do
   headers <- option [] tableHeaders
   rows <- tableRows
+  blanklines
   let nbOfCols = max (length headers) (length $ head rows)
   return $ Table [] 
     (replicate nbOfCols AlignDefault)
@@ -239,7 +239,8 @@ inlines = manyTill inline newline
 
 -- | Inline parsers tried in order
 inlineParsers :: [GenParser Char ParserState Inline]
-inlineParsers = [ str
+inlineParsers = [ autoLink
+                , str
                 , whitespace
                 , endline
                 , code
@@ -253,8 +254,6 @@ inlineParsers = [ str
                 , simpleInline (char '^') Superscript
                 , simpleInline (char '~') Subscript
                 , link
-                , autoLink
-                , image
                 , image
                 , symbol
                 ]
@@ -284,8 +283,9 @@ link = try $ do
 -- | Detect plain links to http or email.
 autoLink :: GenParser Char ParserState Inline
 autoLink = do
-  (orig, src) <- uri -- (try uri <|> try emailAddress)
+  (orig, src) <- (try uri <|> try emailAddress)
   return $ Link [Str orig] (src, "")
+
 
 -- | image embedding
 image :: GenParser Char ParserState Inline
@@ -326,7 +326,5 @@ simpleInline border construct = surrounded border inline >>=
 -- 
 --  - Pandoc Meta Information (title, author, date)
 --  - footnotes
---  - autolink is not called
 --  - should autolink be shared through Parsing.hs ?
 --  - Inserted inline handling in writers
---  - table parser is a bit too greedy and require a double newline after tables

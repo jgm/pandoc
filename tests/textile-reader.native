@@ -65,7 +65,7 @@ Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
 , Header 2 [Str "Explicit"]
 , Para [Str "Just",Space,Str "a",Space,Link [Str "url"] ("http://www.url.com","")]
 , Para [Link [Str "Email",Space,Str "link"] ("mailto:nobody@nowhere.net","")]
-, Para [Str "Automatic",Space,Str "linking",Space,Str "to",Space,Str "http",Str ":",Str "//www.example.com",Space,Str "and",Space,Str "foobar",Str "@",Str "example.com."]
+, Para [Str "Automatic",Space,Str "linking",Space,Str "to",Space,Link [Str "http://www.example.com"] ("http://www.example.com",""),Space,Str "and",Space,Link [Str "foobar@example.com"] ("mailto:foobar@example.com",""),Str "."]
 , Header 1 [Str "Tables"]
 , Para [Str "Textile",Space,Str "allows",Space,Str "tables",Space,Str "with",Space,Str "and",Space,Str "without",Space,Str "headers",Space,Str ":"]
 , Header 2 [Str "Without",Space,Str "headers"]
@@ -84,23 +84,7 @@ Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
   [ [ Plain [Str "bella"] ]
   , [ Plain [Str "45"] ]
   , [ Plain [Str "f"] ] ] ]
-, Para [Str "And",Space,Str "some",Space,Str "text",Space,Str "..."]
-, Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
-  [ 
- ] [
-  [ [ Plain [Str "name"] ]
-  , [ Plain [Str "age"] ]
-  , [ Plain [Str "sex"] ] ],
-  [ [ Plain [Str "joan"] ]
-  , [ Plain [Str "24"] ]
-  , [ Plain [Str "f"] ] ],
-  [ [ Plain [Str "archie"] ]
-  , [ Plain [Str "29"] ]
-  , [ Plain [Str "m"] ] ],
-  [ [ Plain [Str "bella"] ]
-  , [ Plain [Str "45"] ]
-  , [ Plain [Str "f"] ] ] ]
-, Para []
+, Para [Str "and",Space,Str "some",Space,Str "text",Space,Str "following",Space,Str "..."]
 , Header 2 [Str "With",Space,Str "headers"]
 , Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
   [ [ Plain [Str "name"] ]
@@ -115,6 +99,5 @@ Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
   [ [ Plain [Str "bella"] ]
   , [ Plain [Str "45"] ]
   , [ Plain [Str "f"] ] ] ]
-, Para []
 , Header 1 [Str "Images"]
 , Para [Str "Textile",Space,Str "inline",Space,Str "image",Space,Str "syntax,",Space,Str "like",Space,Str "here",Space,Image [Str "this is the alt text"] ("this_is_an_image.png","this is the alt text"),Space,Str "and",Space,Str "here",Space,Image [Str ""] ("this_is_an_image.png",""),Str "."] ]
