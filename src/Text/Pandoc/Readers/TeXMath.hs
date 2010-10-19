@@ -89,6 +89,10 @@ expToInlines (ESubsup x y z) = do
 expToInlines (EDown x y) = expToInlines (ESub x y)
 expToInlines (EUp x y) = expToInlines (ESuper x y)
 expToInlines (EDownup x y z) = expToInlines (ESubsup x y z)
-expToInlines (EText _ x) = Just [Emph [Str x]]
+expToInlines (EText "normal" x) = Just [Str x]
+expToInlines (EText "bold" x) = Just [Strong [Str x]]
+expToInlines (EText "monospace" x) = Just [Code x]
+expToInlines (EText "italic" x) = Just [Emph [Str x]]
+expToInlines (EText _ x) = Just [Str x]
 expToInlines _ = Nothing
 
