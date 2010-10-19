@@ -94,5 +94,20 @@ expToInlines (EText "bold" x) = Just [Strong [Str x]]
 expToInlines (EText "monospace" x) = Just [Code x]
 expToInlines (EText "italic" x) = Just [Emph [Str x]]
 expToInlines (EText _ x) = Just [Str x]
+expToInlines (EOver (EGrouped [EIdentifier [c]]) (ESymbol Accent [accent])) =
+    case accent of
+         '\x203E' -> Just [Emph [Str [c,'\x0304']]]  -- bar
+         '\x00B4' -> Just [Emph [Str [c,'\x0301']]]  -- acute
+         '\x0060' -> Just [Emph [Str [c,'\x0300']]]  -- grave
+         '\x02D8' -> Just [Emph [Str [c,'\x0306']]]  -- breve
+         '\x02C7' -> Just [Emph [Str [c,'\x030C']]]  -- check
+         '.'      -> Just [Emph [Str [c,'\x0307']]]  -- dot
+         '\x00B0' -> Just [Emph [Str [c,'\x030A']]]  -- ring
+         '\x20D7' -> Just [Emph [Str [c,'\x20D7']]]  -- arrow right
+         '\x20D6' -> Just [Emph [Str [c,'\x20D6']]]  -- arrow left
+         '\x005E' -> Just [Emph [Str [c,'\x0302']]]  -- hat
+         '\x0302' -> Just [Emph [Str [c,'\x0302']]]  -- hat
+         '~'      -> Just [Emph [Str [c,'\x0303']]]  -- tilde
+         _        -> Nothing
 expToInlines _ = Nothing
 
