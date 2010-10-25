@@ -415,7 +415,7 @@ options =
                           _  -> do
                             UTF8.hPutStrLn stderr $ "Could not parse `" ++ arg ++ "' as a key/value pair (k=v or k:v)"
                             exitWith $ ExitFailure 17)
-                  "FILENAME")
+                  "KEY:VALUE")
                  "" -- "Use custom template"
 
     , Option "c" ["css"]
