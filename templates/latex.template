@@ -1,7 +1,7 @@
 $if(legacy-header)$
 $legacy-header$
 $else$
-\documentclass{article}
+\documentclass$if(fontsize)$[$fontsize$]$endif${article}
 \usepackage{amssymb,amsmath}
 $if(xetex)$
 \usepackage{ifxetex}
