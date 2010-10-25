@@ -704,9 +704,9 @@ Left brace: \{
 
 Right brace: \}
 
-Left bracket: [
+Left bracket: {[}
 
-Right bracket: ]
+Right bracket: {]}
 
 Left paren: (
 
@@ -756,7 +756,7 @@ Foo \href{/url/}{bar}.
 
 Foo \href{/url/}{bar}.
 
-With \href{/url/}{embedded [brackets]}.
+With \href{/url/}{embedded {[}brackets{]}}.
 
 \href{/url/}{b} by itself should be a link.
 
@@ -766,7 +766,7 @@ Indented \href{/url}{twice}.
 
 Indented \href{/url}{thrice}.
 
-This should [not][] be a link.
+This should {[}not{]}{[}{]} be a link.
 
 \begin{verbatim}
 [not]: /url
@@ -845,10 +845,10 @@ footnote (as with list items).
 If you want, you can indent every line, but you can also be lazy
 and just indent the first line of each block.}
 This should \emph{not} be a footnote reference, because it contains
-a space.[\^{}my note] Here is an inline note.%
+a space.{[}\^{}my note{]} Here is an inline note.%
 \footnote{This is \emph{easier} to type. Inline notes may contain
 \href{http://google.com}{links} and \verb!]! verbatim characters,
-as well as [bracketed text].}
+as well as {[}bracketed text{]}.}
 
 \begin{quote}
 Notes can go in quotes.%

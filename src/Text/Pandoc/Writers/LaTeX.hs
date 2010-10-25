@@ -107,6 +107,8 @@ stringToLaTeX = escapeStringUsing latexEscapes
                        , ('|', "\\textbar{}")
                        , ('<', "\\textless{}")
                        , ('>', "\\textgreater{}")
+                       , ('[', "{[}")  -- to avoid interpretation as
+                       , (']', "{]}")  -- optional arguments
                        , ('\160', "~")
                        ]
 

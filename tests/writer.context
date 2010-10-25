@@ -743,9 +743,9 @@ Left brace: \letteropenbrace{}
 
 Right brace: \letterclosebrace{}
 
-Left bracket: [
+Left bracket: {[}
 
-Right bracket: ]
+Right bracket: {]}
 
 Left paren: (
 
@@ -795,7 +795,7 @@ Foo \useURL[14][/url/][][bar]\from[14].
 
 Foo \useURL[15][/url/][][bar]\from[15].
 
-With \useURL[16][/url/][][embedded [brackets]]\from[16].
+With \useURL[16][/url/][][embedded {[}brackets{]}]\from[16].
 
 \useURL[17][/url/][][b]\from[17] by itself should be a link.
 
@@ -805,7 +805,7 @@ Indented \useURL[19][/url][][twice]\from[19].
 
 Indented \useURL[20][/url][][thrice]\from[20].
 
-This should [not][] be a link.
+This should {[}not{]}{[}{]} be a link.
 
 \starttyping
 [not]: /url
@@ -886,10 +886,10 @@ footnote (as with list items).
 If you want, you can indent every line, but you can also be lazy
 and just indent the first line of each block.}
 This should {\em not} be a footnote reference, because it contains
-a space.[\letterhat{}my note] Here is an inline note.
+a space.{[}\letterhat{}my note{]} Here is an inline note.
 \footnote{This is {\em easier} to type. Inline notes may contain
 \useURL[31][http://google.com][][links]\from[31] and \type{]}
-verbatim characters, as well as [bracketed text].}
+verbatim characters, as well as {[}bracketed text{]}.}
 
 \startblockquote
 Notes can go in quotes.

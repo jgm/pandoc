@@ -92,6 +92,8 @@ escapeCharForConTeXt ch =
     '#'    -> "\\#"
     '<'    -> "\\letterless{}"
     '>'    -> "\\lettermore{}"
+    '['    -> "{[}"
+    ']'    -> "{]}"
     '_'    -> "\\letterunderscore{}"
     '\160' -> "~"
     x      -> [x]
