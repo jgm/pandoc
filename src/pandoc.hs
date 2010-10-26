@@ -786,10 +786,11 @@ main = do
                               stateCitations       = map citeKey refs,
 #endif
                               stateSmart           = smart || writerName' `elem`
-                                                              ["latex", "context", "man"],
+                                                              ["latex", "context", "latex+lhs", "man"],
                               stateColumns         = columns,
                               stateStrict          = strict,
-                              stateIndentedCodeClasses = codeBlockClasses }
+                              stateIndentedCodeClasses = codeBlockClasses,
+                              stateApplyMacros     = writerName' `notElem` ["latex", "latex+lhs"] }
 
   let writerOptions = WriterOptions { writerStandalone       = standalone',
                                       writerTemplate         = if null template

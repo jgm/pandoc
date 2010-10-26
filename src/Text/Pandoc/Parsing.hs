@@ -79,6 +79,7 @@ import Network.URI ( parseURI, URI (..), isAllowedInURI )
 import Control.Monad ( join, liftM )
 import Text.Pandoc.Shared
 import qualified Data.Map as M
+import Text.TeXMath.Macros (Macro)
 
 -- | Like >>, but returns the operation on the left.
 -- (Suggested by Tillmann Rendel on Haskell-cafe list.)
@@ -602,7 +603,9 @@ data ParserState = ParserState
       stateIndentedCodeClasses :: [String],  -- ^ Classes to use for indented code blocks
       stateNextExample     :: Int,           -- ^ Number of next example
       stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers 
-      stateHasChapters     :: Bool           -- ^ True if \chapter encountered
+      stateHasChapters     :: Bool,          -- ^ True if \chapter encountered
+      stateApplyMacros     :: Bool,          -- ^ Apply LaTeX macros?
+      stateMacros          :: [Macro]        -- ^ List of macros defined so far
     }
     deriving Show
 
@@ -630,7 +633,9 @@ defaultParserState =
                   stateIndentedCodeClasses = [],
                   stateNextExample     = 1,
                   stateExamples        = M.empty,
-                  stateHasChapters     = False }
+                  stateHasChapters     = False,
+                  stateApplyMacros     = True,
+                  stateMacros          = []}
 
 data HeaderType 
     = SingleHeader Char  -- ^ Single line of characters underneath

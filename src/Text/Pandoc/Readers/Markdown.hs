@@ -46,7 +46,8 @@ import Text.Pandoc.Readers.HTML ( rawHtmlBlock, anyHtmlBlockTag,
                                   htmlBlockElement, htmlComment, unsanitaryURI )
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.ParserCombinators.Parsec
-import Control.Monad (when, liftM, unless)
+import Control.Monad (when, liftM, unless, guard)
+import Text.TeXMath.Macros (applyMacros, Macro, pMacroDefinition)
 
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: ParserState -- ^ Parser state, including options for parser
@@ -284,6 +285,7 @@ block = do
                    , plain
                    , nullBlock ]
               else [ codeBlockDelimited
+                   , macro
                    , header 
                    , table
                    , codeBlockIndented
@@ -867,6 +869,29 @@ table = multilineTable False <|> simpleTable True <|>
         simpleTable False <|> multilineTable True <|>
         gridTable False <|> gridTable True <?> "table"
 
+--
+-- Macros
+--
+
+-- | Parse a \newcommand or \renewcommand macro definition.
+macro :: GenParser Char ParserState Block
+macro = getState >>= guard . stateApplyMacros >>
+        pMacroDefinition >>= addMacro >> return Null
+
+-- | Add a macro to the list of macros in state.
+addMacro :: Macro -> GenParser Char ParserState ()
+addMacro m = do
+  updateState $ \st -> st{ stateMacros = m : stateMacros st }
+
+-- | Apply current macros to string.
+applyMacros' :: String -> GenParser Char ParserState String
+applyMacros' target = do
+  apply <- liftM stateApplyMacros getState
+  if apply
+     then do macros <- liftM stateMacros getState
+             return $ applyMacros macros target
+     else return target
+
 -- 
 -- inline
 --
@@ -969,8 +994,8 @@ mathChunk = do char '\\'
         <|> many1 (noneOf " \t\n\\$")
 
 math :: GenParser Char ParserState Inline
-math = (mathDisplay >>= return . Math DisplayMath)
-     <|> (mathInline >>= return . Math InlineMath)
+math =  (mathDisplay >>= applyMacros' >>= return . Math DisplayMath)
+     <|> (mathInline >>= applyMacros' >>= return . Math InlineMath)
 
 mathDisplay :: GenParser Char ParserState String 
 mathDisplay = try $ do
