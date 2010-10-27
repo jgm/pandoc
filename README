@@ -1254,6 +1254,18 @@ command-line options selected:
     with the URL provided. If no URL is specified, the Google Chart
     API will be used (`http://chart.apis.google.com/chart?cht=tx&chl=`).
 
+LaTeX Macros
+------------
+
+For output formats other than LaTeX, pandoc will parse LaTeX `\newcommand` and
+`\renewcommand` definitions and apply the resulting macros to all LaTeX
+math.  So, for example, the following will work in all output formats,
+not just LaTeX:
+
+    \newcommand{\tuple}[1]{\langle #1 \rangle}
+
+    $\tuple{a, b, c}$
+
 Inline TeX
 ----------
 
