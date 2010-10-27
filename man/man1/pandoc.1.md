@@ -127,6 +127,10 @@ should pipe input and output through `iconv`:
     The *URL* should point to the jsMath load script; if provided,
     it will be linked to in the header of standalone HTML documents.
 
+\--mathjax=*URL*
+:   Use MathJax to display embedded TeX math in HTML output.
+    The *URL* should point to the `MathJax.js` load script.
+
 \--gladtex
 :   Enclose TeX math in `<eq>` tags in HTML output.  These can then
     be processed by gladTeX to produce links to images of the typeset

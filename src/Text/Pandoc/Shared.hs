@@ -459,6 +459,7 @@ data HTMLMathMethod = PlainMath
                     | GladTeX
                     | WebTeX String               -- url of TeX->image script.
                     | MathML (Maybe String)       -- url of MathMLinHTML.js
+                    | MathJax String              -- url of MathJax.js
                     deriving (Show, Read, Eq)
 
 -- | Methods for obfuscating email addresses in HTML.

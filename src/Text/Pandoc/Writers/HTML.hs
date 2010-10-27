@@ -134,6 +134,8 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                            MathML (Just url) ->
                               script ! 
                               [src url, thetype "text/javascript"] $ noHtml
+                           MathJax url ->
+                              script ! [src url, thetype "text/javascript"] $ noHtml
                            JsMath (Just url) ->
                               script !
                               [src url, thetype "text/javascript"] $ noHtml
@@ -464,8 +466,7 @@ inlineToHtml opts inline =
                                               stringToHtml "”")
                         in  do contents <- inlineListToHtml opts lst
                                return $ leftQuote +++ contents +++ rightQuote
-    (Math t str) -> 
-                        modify (\st -> st {stMath = True}) >> 
+    (Math t str) ->     modify (\st -> st {stMath = True}) >> 
                         (case writerHTMLMathMethod opts of
                                LaTeXMathML _ -> 
                                   -- putting LaTeXMathML in container with class "LaTeX" prevents
@@ -491,6 +492,18 @@ inlineToHtml opts inline =
                                              InlineMath -> primHtml $ "<EQ ENV=\"math\">" ++ str ++ "</EQ>"
                                              DisplayMath -> primHtml $ "<EQ ENV=\"displaymath\">" ++ str ++ "</EQ>"
                                MathML _ -> do
+                                  let dt = if t == InlineMath
+                                              then DisplayInline
+                                              else DisplayBlock
+                                  let conf = useShortEmptyTags (const False)
+                                               defaultConfigPP
+                                  case texMathToMathML dt str of
+                                        Right r -> return $ primHtml $
+                                                    ppcElement conf r
+                                        Left  _ -> inlineListToHtml opts
+                                                   (readTeXMath str) >>= return .
+                                                     (thespan !  [theclass "math"])
+                               MathJax _ -> do
                                   let dt = if t == InlineMath
                                               then DisplayInline
                                               else DisplayBlock

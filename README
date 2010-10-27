@@ -331,9 +331,7 @@ For further documentation, see the `pandoc(1)` man page.
     no *url* is provided, the contents of the script will be inserted
     directly; this provides portability at the price of efficiency. If
     you plan to use math on several pages, it is much better to link to
-    a copy of `LaTeXMathML.js`, which can be cached. (See `--jsmath`,
-    `--gladtex`, `--webtex`, and `--mimetex` for alternative ways of
-    dealing with math in HTML.)
+    a copy of `LaTeXMathML.js`, which can be cached.
 
 `--mathml`
 :   causes `pandoc` to convert all TeX math to MathML.
@@ -345,29 +343,31 @@ For further documentation, see the `pandoc(1)` man page.
     TeX math in HTML, Slidy, or S5. The *url* should point to the jsMath
     load script (e.g. `jsMath/easy/load.js`). If it is provided, a link
     to it will be included in the header of standalone HTML documents.
-    (See `--latexmathml`, `--mimetex`, `--webtex`, and `--gladtex` for
-    alternative ways of dealing with math in HTML.)
+
+\--mathjax=*URL*
+:   causes `pandoc` to use [MathJax] to display embedded TeX math in HTML
+    output. The *URL* should point to the `MathJax.js` load script.
+    Pandoc will use MathML with MathJax, so your `config/MathJax.js`
+    file should contain the following settings:
+
+        extensions: ["mml2jax.js"],
+        jax: ["input/MathML", "output/HTML-CSS"],
 
 `--gladtex`*[=url]*
 :   causes TeX formulas to be enclosed in `<eq>` tags in HTML, Slidy, or
     S5 output. This output can then be processed by [gladTeX] to produce
-    links to images with the typeset formulas. (See `--latexmathml`,
-    `--jsmath`, `--webtex`, and `--mimetex` for alternative ways of
-    dealing with math in HTML.)
+    links to images with the typeset formulas.
 
 `--mimetex`*[=url]*
 :   causes TeX formulas to be replaced by `<img>` tags linking to the
     [mimeTeX] CGI script, which will produce images with the typeset
-    formulas. (See `--latexmathml`, `--jsmath`, `--webtex`, and
-    `--gladtex` for alternative ways of dealing with math in HTML.)
+    formulas.
 
 `--webtex`*[=url]*
 :   causes TeX formulas to be replaced by `<img>` tags linking to an
     external service that converts TeX formulas to images. The formula
     will be concatenated with the URL provided. If no URL
-    is specified, the Google Chart API is used. (See `--latexmathml`,
-    `--jsmath`, `--mimetex`, and `--gladtex` for alternative ways of
-    dealing with math in HTML.)
+    is specified, the Google Chart API is used.
 
 `-i` or `--incremental`
 :   causes all lists in Slidy or S5 output to be displayed incrementally by
@@ -470,6 +470,7 @@ For further documentation, see the `pandoc(1)` man page.
 [Smartypants]: http://daringfireball.net/projects/smartypants/
 [LaTeXMathML]: http://math.etsu.edu/LaTeXMathML/
 [jsMath]:  http://www.math.union.edu/~dpvc/jsmath/
+[MathJax]: http://www.mathjax.org/
 [gladTeX]:  http://www.math.uio.no/~martingu/gladtex/index.html
 [mimeTeX]: http://www.forkosh.com/mimetex.html 
 [Dublin Core elements]: http://dublincore.org/documents/dces/

@@ -309,6 +309,12 @@ options =
                   "URL")
                  "" -- "Use jsMath for HTML math"
 
+    , Option "" ["mathjax"]
+                 (ReqArg
+                  (\arg opt -> return opt { optHTMLMathMethod = MathJax arg})
+                  "URL")
+                 "" -- "Use MathJax for HTML math"
+
     , Option "" ["gladtex"]
                  (NoArg
                   (\opt -> return opt { optHTMLMathMethod = GladTeX }))
