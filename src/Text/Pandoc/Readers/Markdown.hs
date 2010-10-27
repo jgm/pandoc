@@ -876,7 +876,7 @@ table = multilineTable False <|> simpleTable True <|>
 -- | Parse a \newcommand or \renewcommand macro definition.
 macro :: GenParser Char ParserState Block
 macro = getState >>= guard . stateApplyMacros >>
-        pMacroDefinition >>= addMacro >> return Null
+        pMacroDefinition >>= addMacro >> blanklines >> return Null
 
 -- | Add a macro to the list of macros in state.
 addMacro :: Macro -> GenParser Char ParserState ()
