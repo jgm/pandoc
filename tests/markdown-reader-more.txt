@@ -100,3 +100,9 @@ Explanation of examples (@foo) and (@bar).
 
 (@bar) Third example.
 
+## Macros
+
+\newcommand{\tuple}[1]{\langle #1 \rangle}
+
+$\tuple{x,y}$
+

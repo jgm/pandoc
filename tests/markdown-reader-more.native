@@ -39,4 +39,6 @@ Pandoc (Meta {docTitle = [Str "Title",Space,Str "spanning",Space,Str "multiple",
 , Para [Str "Explanation",Space,Str "of",Space,Str "examples",Space,Str "(",Str "2",Str ")",Space,Str "and",Space,Str "(",Str "3",Str ")",Str "."]
 , OrderedList (3,Example,TwoParens)
   [ [ Plain [Str "Third",Space,Str "example",Str "."] ]
- ] ]
+ ]
+, Header 2 [Str "Macros"]
+, Para [Math InlineMath "\\langle x,y \\rangle"] ]
