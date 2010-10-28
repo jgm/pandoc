@@ -789,7 +789,7 @@ main = do
                                                      lhsExtension sources,
                               stateStandalone      = standalone',
 #ifdef _CITEPROC
-                              stateCitations       = map citeKey refs,
+                              stateCitations       = map refId refs,
 #endif
                               stateSmart           = smart || writerName' `elem`
                                                               ["latex", "context", "latex+lhs", "man"],

@@ -1316,27 +1316,35 @@ inlineCitation = try $ do
      then return $ Cite citations []
      else fail "no citation found"
 
-chkCit :: Target -> GenParser Char ParserState (Maybe Target)
+chkCit :: Citation -> GenParser Char ParserState (Maybe Citation)
 chkCit t = do
   st <- getState
-  case lookupKeySrc (stateKeys st) (Key [Str $ fst t]) of
+  case lookupKeySrc (stateKeys st) (Key [Str $ citationId t]) of
      Just  _ -> fail "This is a link"
-     Nothing -> if elem (fst t) $ stateCitations st
+     Nothing -> if elem (citationId t) $ stateCitations st
                    then return $ Just t
                    else return $ Nothing
 
 citeMarker :: GenParser Char ParserState String
 citeMarker = char '[' >> manyTill ( noneOf "\n" <|> (newline >>~ notFollowedBy blankline) ) (char ']')
 
-parseCitation :: GenParser Char ParserState [(String,String)]
-parseCitation = try $ sepBy (parseLabel) (oneOf ";")
+parseCitation :: GenParser Char ParserState [Citation]
+parseCitation = try $ sepBy (parseLabel) (skipMany1 $ char ';')
 
-parseLabel :: GenParser Char ParserState (String,String)
+parseLabel :: GenParser Char ParserState Citation
 parseLabel = try $ do
-  res <- sepBy (skipSpaces >> optional newline >> skipSpaces >> many1 (noneOf "@;")) (oneOf "@")
-  case res of
-    [lab,loc] -> return (lab, loc)
-    [lab]     -> return (lab, "" )
-    _         -> return ("" , "" )
-
+  r <- many (noneOf ";")
+  let t' s = if s /= [] then tail s else []
+      trim = unwords . words
+      pref =      takeWhile (/= '@') r
+      rest = t' $ dropWhile (/= '@') r
+      cit  =      takeWhile (/= ',') rest
+      loc  = t' $ dropWhile (/= ',') rest
+      (p,na) = if pref /= [] && last pref == '-'
+               then (init pref, True )
+               else (pref     , False)
+      (p',o) = if p /= [] && last p == '+'
+               then (init p   , True )
+               else (p        , False)
+  return $ Citation cit (trim p') (trim loc) 0 o na 0
 #endif
