@@ -347,11 +347,6 @@ For further documentation, see the `pandoc(1)` man page.
 \--mathjax=*URL*
 :   causes `pandoc` to use [MathJax] to display embedded TeX math in HTML
     output. The *URL* should point to the `MathJax.js` load script.
-    Pandoc will use MathML with MathJax, so your `config/MathJax.js`
-    file should contain the following settings:
-
-        extensions: ["mml2jax.js"],
-        jax: ["input/MathML", "output/HTML-CSS"],
 
 `--gladtex`*[=url]*
 :   causes TeX formulas to be enclosed in `<eq>` tags in HTML, Slidy, or
