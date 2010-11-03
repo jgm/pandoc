@@ -107,26 +107,35 @@ procInlines f b
 mvCiteInNote :: [Inline] -> Block -> Block
 mvCiteInNote is = procInlines mvCite
     where
-      elem_ x xs = case x of Cite cs _ -> (Cite cs []) `elem` xs; _ -> False
       mvCite :: [Inline] -> [Inline]
       mvCite inls
+          | x:i:xs <- inls, startWPt xs
+          , x == Space,   i `elem_` is = split i xs ++ mvCite (tailInline xs)
           | x:i:xs <- inls
-          , x == Space,   i `elem_` is = mvInNote i : mvCite xs
-          | i:xs <- inls, i `elem_` is = mvInNote i : mvCite xs
-          | i:xs <- inls, Note _ <- i  = checkNt  i : mvCite xs
-          | i:xs <- inls               = i          : mvCite xs
+          , x == Space,   i `elem_` is = mvInNote i :  mvCite xs
+          | i:xs <- inls, i `elem_` is
+          , startWPt xs                = split i xs ++ mvCite (tailInline xs)
+          | i:xs <- inls, Note _ <- i  = checkNt  i :  mvCite xs
+          | i:xs <- inls               = i          :  mvCite xs
           | otherwise                  = []
+      elem_ x xs = case x of Cite cs _ -> (Cite cs []) `elem` xs; _ -> False
+      split i xs = Str (headInline xs) : mvInNote i : []
       mvInNote i
-          | Cite t o <- i = Note [Para [Cite t $ toCapital o]]
-          | otherwise     = Note [Para [i                   ]]
+          | Cite t o <- i = Note [Para [Cite t $ sanitize o]]
+          | otherwise     = Note [Para [i                  ]]
+      sanitize i
+          | endWPt  i = toCapital i
+          | otherwise = toCapital (i ++ [Str "."])
+
       checkPt i
           | Cite c o : xs <- i
           , headInline xs == lastInline o
-          , isPunct o = Cite c (initInline o) : checkPt xs
+          , endWPt  o = Cite c (initInline o) : checkPt xs
           | x:xs <- i = x : checkPt xs
           | otherwise = []
-      isPunct   = and . map isPunctuation . lastInline
-      checkNt   = processWith $ procInlines checkPt
+      endWPt   = and . map isPunctuation . lastInline
+      startWPt = and . map isPunctuation . headInline
+      checkNt  = processWith $ procInlines checkPt
 
 headInline :: [Inline] -> String
 headInline [] = []
@@ -163,6 +172,11 @@ initInline (i:[])
     where
       init' s = if s /= [] then init s else []
 initInline (i:xs) = i : initInline xs
+
+tailInline :: [Inline] -> [Inline]
+tailInline = mapHeadInline tail'
+    where
+      tail' s = if s /= [] then tail s else []
 
 toCapital :: [Inline] -> [Inline]
 toCapital = mapHeadInline toCap
