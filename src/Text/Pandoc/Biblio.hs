@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 module Text.Pandoc.Biblio ( processBiblio ) where
 
 import Control.Monad ( when )
+import Data.Char ( toUpper, isPunctuation )
 import Data.List
 import Data.Unique
 import Text.CSL hiding ( Cite(..), Citation(..) )
@@ -44,17 +45,18 @@ processBiblio cf r p
       else do
         when (null cf) $ error "Missing the needed citation style file"
         csl  <- readCSLFile cf
-        p'   <- if styleClass csl == "note"
-                then processNote p
-                else processWithM setHash p
-        let groups     = if styleClass csl /= "note"
-                         then queryWith getCitation p'
-                         else getNoteCitations p'
-            result     = citeproc' csl r (setNearNote csl $ map (map toCslCite) groups)
-            cits_map   = zip groups (citations result)
+        p'   <- processWithM setHash p
+        let (nts,grps) = if styleClass csl /= "note"
+                         then (,) [] $ queryWith getCitation p'
+                         else let cits   = queryWith getCite p'
+                                  ncits  = map (queryWith getCite) $ queryWith getNote p'
+                                  needNt = cits \\ concat ncits
+                              in (,) needNt $ getNoteCitations needNt p'
+            result     = citeproc' csl r (setNearNote csl $ map (map toCslCite) grps)
+            cits_map   = zip grps (citations result)
             biblioList = map (read . renderPandoc' csl) (bibliography result)
             Pandoc m b = processWith (processCite csl cits_map) p'
-        return $ Pandoc m $ b ++ biblioList
+        return . generateNotes nts . Pandoc m $ b ++ biblioList
 
 -- | Substitute 'Cite' elements with formatted citations.
 processCite :: Style -> [([Citation],[FormattedOutput])] -> Inline -> Inline
@@ -70,7 +72,7 @@ processCite s cs il
 -- 'queryWith'.
 getCitation :: Inline -> [[Citation]]
 getCitation i | Cite t _ <- i = [t]
-          | otherwise         = []
+              | otherwise     = []
 
 getNote :: Inline -> [Inline]
 getNote i | Note _ <- i = [i]
@@ -80,26 +82,118 @@ getCite :: Inline -> [Inline]
 getCite i | Cite _ _ <- i = [i]
           | otherwise     = []
 
-getNoteCitations :: Pandoc -> [[Citation]]
-getNoteCitations
-    = let cits = concat . flip (zipWith $ setCiteNoteNum) [1..] .
-                 map (queryWith getCite) . queryWith getNote
-      in  queryWith getCitation . cits
+getNoteCitations :: [Inline] -> Pandoc -> [[Citation]]
+getNoteCitations needNote
+    = let mvCite i = if i `elem` needNote then Note [Para [i]] else i
+          setNote  = processWith mvCite
+          getCits  = concat . flip (zipWith $ setCiteNoteNum) [1..] .
+                     map (queryWith getCite) . queryWith getNote . setNote
+      in  queryWith getCitation . getCits
 
 setHash :: Citation -> IO Citation
 setHash (Citation i p l nn ao na _)
     = hashUnique `fmap` newUnique >>= return . Citation i p l nn ao na
 
-processNote :: Pandoc  -> IO Pandoc
-processNote p = do
-  p' <- processWithM setHash p
-  let cits     = queryWith getCite p'
-      ncits    = map (queryWith getCite) $ queryWith getNote p'
-      needNote = cits \\ concat ncits
-  return $ processWith (mvCiteInNote needNote) p'
+generateNotes :: [Inline] -> Pandoc -> Pandoc
+generateNotes needNote = processWith (mvCiteInNote needNote)
 
-mvCiteInNote :: [Inline] -> Inline -> Inline
-mvCiteInNote is i = if i `elem` is then Note [Para [i]] else i
+procInlines :: ([Inline] -> [Inline]) -> Block -> Block
+procInlines f b
+    | Plain    inls <- b = Plain    $ f inls
+    | Para     inls <- b = Para     $ f inls
+    | Header i inls <- b = Header i $ f inls
+    | otherwise          = b
+
+mvCiteInNote :: [Inline] -> Block -> Block
+mvCiteInNote is = procInlines mvCite
+    where
+      elem_ x xs = case x of Cite cs _ -> (Cite cs []) `elem` xs; _ -> False
+      mvCite :: [Inline] -> [Inline]
+      mvCite inls
+          | x:i:xs <- inls
+          , x == Space,   i `elem_` is = mvInNote i : mvCite xs
+          | i:xs <- inls, i `elem_` is = mvInNote i : mvCite xs
+          | i:xs <- inls, Note _ <- i  = checkNt  i : mvCite xs
+          | i:xs <- inls               = i          : mvCite xs
+          | otherwise                  = []
+      mvInNote i
+          | Cite t o <- i = Note [Para [Cite t $ toCapital o]]
+          | otherwise     = Note [Para [i                   ]]
+      checkPt i
+          | Cite c o : xs <- i
+          , headInline xs == lastInline o
+          , isPunct o = Cite c (initInline o) : checkPt xs
+          | x:xs <- i = x : checkPt xs
+          | otherwise = []
+      isPunct   = and . map isPunctuation . lastInline
+      checkNt   = processWith $ procInlines checkPt
+
+headInline :: [Inline] -> String
+headInline [] = []
+headInline (i:_)
+    | Str s <- i = head' s
+    | Space <- i = " "
+    | otherwise  = headInline $ getInline i
+    where
+      head' s = if s /= [] then [head s] else []
+
+lastInline :: [Inline] -> String
+lastInline [] = []
+lastInline (i:[])
+    | Str s <- i = last' s
+    | Space <- i = " "
+    | otherwise  = lastInline $ getInline i
+    where
+      last' s = if s /= [] then [last s] else []
+lastInline (_:xs) = lastInline xs
+
+initInline :: [Inline] -> [Inline]
+initInline [] = []
+initInline (i:[])
+    | Str          s <- i = return $ Str         (init'       s)
+    | Emph        is <- i = return $ Emph        (initInline is)
+    | Strong      is <- i = return $ Strong      (initInline is)
+    | Strikeout   is <- i = return $ Strikeout   (initInline is)
+    | Superscript is <- i = return $ Superscript (initInline is)
+    | Subscript   is <- i = return $ Subscript   (initInline is)
+    | Quoted q    is <- i = return $ Quoted q    (initInline is)
+    | SmallCaps   is <- i = return $ SmallCaps   (initInline is)
+    | Link      is t <- i = return $ Link        (initInline is) t
+    | otherwise           = []
+    where
+      init' s = if s /= [] then init s else []
+initInline (i:xs) = i : initInline xs
+
+toCapital :: [Inline] -> [Inline]
+toCapital = mapHeadInline toCap
+    where
+      toCap s = if s /= [] then toUpper (head s) : tail s else []
+
+mapHeadInline :: (String -> String) -> [Inline] -> [Inline]
+mapHeadInline _ [] = []
+mapHeadInline f (i:xs)
+    | Str          s <- i = Str         (f                s)   : xs
+    | Emph        is <- i = Emph        (mapHeadInline f is)   : xs
+    | Strong      is <- i = Strong      (mapHeadInline f is)   : xs
+    | Strikeout   is <- i = Strikeout   (mapHeadInline f is)   : xs
+    | Superscript is <- i = Superscript (mapHeadInline f is)   : xs
+    | Subscript   is <- i = Subscript   (mapHeadInline f is)   : xs
+    | Quoted q    is <- i = Quoted q    (mapHeadInline f is)   : xs
+    | SmallCaps   is <- i = SmallCaps   (mapHeadInline f is)   : xs
+    | Link      is t <- i = Link        (mapHeadInline f is) t : xs
+    | otherwise           = []
+
+getInline :: Inline -> [Inline]
+getInline i
+    | Emph        is <- i = is
+    | Strong      is <- i = is
+    | Strikeout   is <- i = is
+    | Superscript is <- i = is
+    | Subscript   is <- i = is
+    | Quoted _    is <- i = is
+    | SmallCaps   is <- i = is
+    | Link      is _ <- i = is
+    | otherwise           = []
 
 setCiteNoteNum :: [Inline] -> Int -> [Inline]
 setCiteNoteNum ((Cite cs o):xs) n = Cite (setCitationNoteNum n cs) o : setCiteNoteNum xs n
