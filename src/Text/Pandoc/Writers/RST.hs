@@ -286,7 +286,7 @@ inlineToRST (Quoted SingleQuote lst) = do
 inlineToRST (Quoted DoubleQuote lst) = do
   contents <- inlineListToRST lst
   return $ char '“' <> contents <> char '”'
-inlineToRST (Cite _  lst) =
+inlineToRST (Cite _ _ lst) =
   inlineListToRST lst
 inlineToRST EmDash = return $ char '\8212'
 inlineToRST EnDash = return $ char '\8211'

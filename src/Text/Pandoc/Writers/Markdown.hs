@@ -400,7 +400,7 @@ inlineToMarkdown _ (TeX str) = return $ text str
 inlineToMarkdown _ (HtmlInline str) = return $ text str 
 inlineToMarkdown _ (LineBreak) = return $ text "  \n"
 inlineToMarkdown _ Space = return $ char ' '
-inlineToMarkdown opts (Cite _ cits) = inlineListToMarkdown opts cits
+inlineToMarkdown opts (Cite _ _ cits) = inlineListToMarkdown opts cits
 inlineToMarkdown opts (Link txt (src', tit)) = do
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if null tit then empty else text $ " \"" ++ tit ++ "\""

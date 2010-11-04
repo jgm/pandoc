@@ -1310,10 +1310,14 @@ inlineCitation :: GenParser Char ParserState Inline
 inlineCitation = try $ do
   failIfStrict
   cit <- citeMarker
-  let citations = readWith parseCitation defaultParserState cit
+  let (cit', var) = case head cit of
+                         '+' -> (tail cit, AuthorOnlyCitation)
+                         '-' -> (tail cit, NoAuthorCitation)
+                         _   -> (cit, NormalCitation)
+      citations = readWith parseCitation defaultParserState cit'
   mr <- mapM chkCit citations
   if catMaybes mr /= []
-     then return $ Cite citations []
+     then return $ Cite (CiteOptions 0 var) citations []
      else fail "no citation found"
 
 chkCit :: Citation -> GenParser Char ParserState (Maybe Citation)
@@ -1326,7 +1330,7 @@ chkCit t = do
                    else return $ Nothing
 
 citeMarker :: GenParser Char ParserState String
-citeMarker = char '[' >> manyTill ( noneOf "\n" <|> (newline >>~ notFollowedBy blankline) ) (char ']')
+citeMarker = char '[' >> many1Till ( noneOf "\n" <|> (newline >>~ notFollowedBy blankline) ) (char ']')
 
 parseCitation :: GenParser Char ParserState [Citation]
 parseCitation = try $ sepBy (parseLabel) (skipMany1 $ char ';')
@@ -1340,11 +1344,5 @@ parseLabel = try $ do
       rest = t' $ dropWhile (/= '@') r
       cit  =      takeWhile (/= ',') rest
       loc  = t' $ dropWhile (/= ',') rest
-      (p,na) = if pref /= [] && last pref == '-'
-               then (init pref, True )
-               else (pref     , False)
-      (p',o) = if p /= [] && last p == '+'
-               then (init p   , True )
-               else (p        , False)
-  return $ Citation cit (trim p') (trim loc) 0 o na 0
+  return $ Citation cit (trim pref) (trim loc) 0
 #endif

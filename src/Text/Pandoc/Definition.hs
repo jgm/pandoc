@@ -112,7 +112,7 @@ data Inline
     | Subscript [Inline]    -- ^ Subscripted text (list of inlines)
     | SmallCaps [Inline]    -- ^ Small caps text (list of inlines)
     | Quoted QuoteType [Inline] -- ^ Quoted text (list of inlines)
-    | Cite [Citation]  [Inline] -- ^ Citation (list of inlines)
+    | Cite CiteOptions [Citation] [Inline] -- ^ Citation (list of inlines)
     | Code String           -- ^ Inline code (literal)
     | Space                 -- ^ Inter-word space
     | EmDash                -- ^ Em dash
@@ -132,16 +132,24 @@ data Inline
 data Citation = Citation { citationId      :: String
                          , citationPrefix  :: String
                          , citationLocator :: String
-                         , citationNoteNum :: Int
-                         , citationAutOnly :: Bool
-                         , citationNoAut   :: Bool
                          , citationHash    :: Int
                          }
                 deriving (Show, Ord, Read, Typeable, Data)
 
+data CiteOptions = CiteOptions { citationNoteNum :: Int
+                               , citationVariant :: CitationVariant
+                               }
+                   deriving (Show, Ord, Read, Typeable, Data)
+
+instance Eq CiteOptions where
+     (==) a b = citationVariant a == citationVariant b
+
+data CitationVariant = AuthorOnlyCitation | NoAuthorCitation | NormalCitation
+                     deriving (Show, Ord, Read, Typeable, Data, Eq)
+
 instance Eq Citation where
-    (==) (Citation _ _ _ _ _ _ ha)
-         (Citation _ _ _ _ _ _ hb) = ha == hb
+    (==) (Citation _ _ _ ha)
+         (Citation _ _ _ hb) = ha == hb
 
 -- | Applies a transformation on @a@s to matching elements in a @b@.
 processWith :: (Data a, Data b) => (a -> a) -> b -> b

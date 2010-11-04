@@ -47,52 +47,46 @@ processBiblio cf r p
         csl  <- readCSLFile cf
         p'   <- processWithM setHash p
         let (nts,grps) = if styleClass csl /= "note"
-                         then (,) [] $ queryWith getCitation p'
+                         then (,) [] $ queryWith getCite p'
                          else let cits   = queryWith getCite p'
                                   ncits  = map (queryWith getCite) $ queryWith getNote p'
                                   needNt = cits \\ concat ncits
                               in (,) needNt $ getNoteCitations needNt p'
-            result     = citeproc' csl r (setNearNote csl $ map (map toCslCite) grps)
+            result     = citeproc' csl r (setNearNote csl $ map toCslCites grps)
             cits_map   = zip grps (citations result)
             biblioList = map (read . renderPandoc' csl) (bibliography result)
             Pandoc m b = processWith (processCite csl cits_map) p'
         return . generateNotes nts . Pandoc m $ b ++ biblioList
 
 -- | Substitute 'Cite' elements with formatted citations.
-processCite :: Style -> [([Citation],[FormattedOutput])] -> Inline -> Inline
+processCite :: Style -> [(Inline,[FormattedOutput])] -> Inline -> Inline
 processCite s cs il
-    | Cite t _ <- il = Cite t (process t)
-    | otherwise      = il
+    | Cite o t _ <- il = Cite o t process 
+    | otherwise        = il
     where
-      process t = case lookup t cs of
+      process = case lookup il cs of
                     Just  i -> read $ renderPandoc s i
-                    Nothing -> [Str ("Error processing " ++ show t)]
-
--- | Retrieve all citations from a 'Pandoc' docuument. To be used with
--- 'queryWith'.
-getCitation :: Inline -> [[Citation]]
-getCitation i | Cite t _ <- i = [t]
-              | otherwise     = []
+                    Nothing -> [Str ("Error processing " ++ show il ++ " not found in " ++ show cs)]
 
 getNote :: Inline -> [Inline]
 getNote i | Note _ <- i = [i]
           | otherwise   = []
 
 getCite :: Inline -> [Inline]
-getCite i | Cite _ _ <- i = [i]
+getCite i | Cite _ _ _ <- i = [i]
           | otherwise     = []
 
-getNoteCitations :: [Inline] -> Pandoc -> [[Citation]]
+getNoteCitations :: [Inline] -> Pandoc -> [Inline]
 getNoteCitations needNote
     = let mvCite i = if i `elem` needNote then Note [Para [i]] else i
           setNote  = processWith mvCite
           getCits  = concat . flip (zipWith $ setCiteNoteNum) [1..] .
                      map (queryWith getCite) . queryWith getNote . setNote
-      in  queryWith getCitation . getCits
+      in  queryWith getCite . getCits
 
 setHash :: Citation -> IO Citation
-setHash (Citation i p l nn ao na _)
-    = hashUnique `fmap` newUnique >>= return . Citation i p l nn ao na
+setHash (Citation i p l _)
+    = hashUnique `fmap` newUnique >>= return . Citation i p l 
 
 generateNotes :: [Inline] -> Pandoc -> Pandoc
 generateNotes needNote = processWith (mvCiteInNote needNote)
@@ -107,7 +101,7 @@ procInlines f b
 mvCiteInNote :: [Inline] -> Block -> Block
 mvCiteInNote is = procInlines mvCite
     where
-      elem_ x xs = case x of Cite cs _ -> (Cite cs []) `elem` xs; _ -> False
+      elem_ x xs = case x of Cite o cs _ -> (Cite o cs []) `elem` xs; _ -> False
       mvCite :: [Inline] -> [Inline]
       mvCite inls
           | x:i:xs <- inls
@@ -117,12 +111,12 @@ mvCiteInNote is = procInlines mvCite
           | i:xs <- inls               = i          : mvCite xs
           | otherwise                  = []
       mvInNote i
-          | Cite t o <- i = Note [Para [Cite t $ toCapital o]]
-          | otherwise     = Note [Para [i                   ]]
+          | Cite op t o <- i = Note [Para [Cite op t $ toCapital o]]
+          | otherwise       = Note [Para [i                   ]]
       checkPt i
-          | Cite c o : xs <- i
+          | Cite op c o : xs <- i
           , headInline xs == lastInline o
-          , isPunct o = Cite c (initInline o) : checkPt xs
+          , isPunct o = Cite op c (initInline o) : checkPt xs
           | x:xs <- i = x : checkPt xs
           | otherwise = []
       isPunct   = and . map isPunctuation . lastInline
@@ -196,20 +190,21 @@ getInline i
     | otherwise           = []
 
 setCiteNoteNum :: [Inline] -> Int -> [Inline]
-setCiteNoteNum ((Cite cs o):xs) n = Cite (setCitationNoteNum n cs) o : setCiteNoteNum xs n
+setCiteNoteNum ((Cite op cs o):xs) n = Cite op { citationNoteNum = n } cs o : setCiteNoteNum xs n
 setCiteNoteNum               _  _ = []
 
-setCitationNoteNum :: Int -> [Citation] -> [Citation]
-setCitationNoteNum i = map $ \c -> c { citationNoteNum = i}
+toCslCites :: Inline -> [CSL.Cite]
+toCslCites (Cite op t _) = map (toCslCite op) t
+toCslCites _ = []
 
-toCslCite :: Citation -> CSL.Cite
-toCslCite (Citation i p l nn ao na _)
+toCslCite :: CiteOptions -> Citation -> CSL.Cite
+toCslCite op (Citation i p l _)
     = let (la,lo) = parseLocator l
       in   emptyCite { CSL.citeId         = i
                      , CSL.citePrefix     = p
                      , CSL.citeLabel      = la
                      , CSL.citeLocator    = lo
-                     , CSL.citeNoteNumber = show nn
-                     , CSL.authorOnly     = ao
-                     , CSL.suppressAuthor = na
+                     , CSL.citeNoteNumber = show $ citationNoteNum op
+                     , CSL.authorOnly     = citationVariant op == AuthorOnlyCitation
+                     , CSL.suppressAuthor = citationVariant op == NoAuthorCitation 
                      }

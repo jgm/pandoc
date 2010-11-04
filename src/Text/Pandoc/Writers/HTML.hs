@@ -560,7 +560,7 @@ inlineToHtml opts inline =
                                  anchor ! [href ("#" ++ writerIdentifierPrefix opts ++ "fn" ++ ref),
                                            theclass "footnoteRef",
                                            prefixedId opts ("fnref" ++ ref)] << ref
-    (Cite _ il)  -> inlineListToHtml opts il
+    (Cite _ _ il)  -> inlineListToHtml opts il
 
 blockListToNote :: WriterOptions -> String -> [Block] -> State WriterState Html
 blockListToNote opts ref blocks =

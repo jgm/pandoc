@@ -382,7 +382,7 @@ inlineListToIdentifier =
               Subscript lst   -> concatMap extractText lst
               Strong lst      -> concatMap extractText lst
               Quoted _ lst    -> concatMap extractText lst
-              Cite   _ lst    -> concatMap extractText lst
+              Cite   _ _ lst    -> concatMap extractText lst
               Code s          -> s
               Space           -> " "
               EmDash          -> "---"
