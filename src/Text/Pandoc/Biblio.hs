@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 module Text.Pandoc.Biblio ( processBiblio ) where
 
 import Control.Monad ( when )
-import Data.Char ( toUpper, isPunctuation )
+import Data.Char ( toUpper )
 import Data.List
 import Data.Unique
 import Text.CSL hiding ( Cite(..), Citation(..) )
@@ -129,12 +129,12 @@ mvCiteInNote is = procInlines mvCite
 
       checkPt i
           | Cite c o : xs <- i
-          , headInline xs == lastInline o
+          , endWPt o, startWPt xs
           , endWPt  o = Cite c (initInline o) : checkPt xs
           | x:xs <- i = x : checkPt xs
           | otherwise = []
-      endWPt   = and . map isPunctuation . lastInline
-      startWPt = and . map isPunctuation . headInline
+      endWPt   = and . map (`elem` ".,;:!?") . lastInline
+      startWPt = and . map (`elem` ".,;:!?") . headInline
       checkNt  = processWith $ procInlines checkPt
 
 headInline :: [Inline] -> String
