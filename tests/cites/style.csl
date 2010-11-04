@@ -1,0 +1,49 @@
+<style 
+      xmlns="http://purl.org/net/xbiblio/csl"
+      class="note"
+      version="1.0">
+  <info>
+    <id />
+    <title />
+    <updated>2009-08-10T04:49:00+09:00</updated>
+  </info>
+  <citation near-note-distance="1">
+    <layout delimiter="; ">
+      <choose>
+        <if position="subsequent">
+          <names variable="author">
+            <name form="short" and="symbol"/>
+          </names>
+	  <date prefix=" (" suffix=")" variable="issued">
+	    <date-part name="year" />
+	  </date>
+          <text prefix=", " suffix=" " value="supra note" />
+          <text variable="first-reference-note-number" />
+	  <choose>
+	    <if position="near-note">
+	      <text value="Note is near" prefix=" (" suffix=")"/>
+	    </if>
+	    <else>
+	      <text value="Note is not near" prefix=" (" suffix=")"/>
+	    </else>
+	  </choose>
+          <group>
+            <text value="at" prefix=", " suffix=" "/>
+            <text variable="locator"/>
+          </group>
+        </if>
+        <else>
+          <group delimiter=" ">
+            <names variable="author">
+              <name form="short" />
+            </names>
+            <text quotes="true" variable="title" />
+            <date prefix="(" suffix=")" variable="issued">
+              <date-part name="year" />
+            </date>
+          </group>
+        </else>
+      </choose>
+    </layout>
+  </citation>
+</style>
