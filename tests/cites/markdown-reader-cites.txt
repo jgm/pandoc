@@ -1,0 +1,17 @@
+# Try Pandoc with Citeproc-hs
+
+And now some citation. In a note [^1]. Then a citation group: [See
+@item1, p. 34-35; also @item3, chap. 3]. Another one: [See
+@item1, p. 34-35]. And another one.[^2]
+
+Now some modifiers.[^3]
+
+[^1]:
+     A citation without locators: [@item3].
+
+[^2]:
+     Some citations: [See @item2, chap. 3; @item3; @item1].
+
+[^3]:
+     Like a citation without author: [-@item1], and now Doe with a
+     locator [-@item2, p. 44]. And now Author-only: [+@item3].

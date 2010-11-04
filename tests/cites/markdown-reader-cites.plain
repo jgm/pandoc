@@ -1,0 +1,26 @@
+Try Pandoc with Citeproc-hs
+===========================
+
+And now some citation. In a note [^1]. Then a citation group:.[^2]
+Another one:.[^3] And another one.[^4]
+
+Now some modifiers.[^5]
+
+[^1]:
+    A citation without locators: Doe, Roe “Third Book” (2007).
+
+[^2]:
+    See Doe “First Book” (2005); also Doe & Roe (2007), supra note 1 (Note is near), at 3.
+
+[^3]:
+    See Doe (2005), supra note 2 (Note is near), at 34-35.
+
+[^4]:
+    Some citations:
+    See Doe “Second Book” (2006); Doe & Roe (2007), supra note 1 (Note is not near); Doe (2005), supra note 2 (Note is near).
+
+[^5]:
+    Like a citation without author:
+     (2005), supra note 2 (Note is near), and now Doe with a locator
+     (2006), supra note 4 (Note is near), at 44. And now Author-only:
+    Doe & Roe.

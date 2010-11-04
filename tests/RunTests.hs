@@ -112,6 +112,11 @@ main = do
   r13s <- if runLhsTests
              then mapM runLhsReaderTest lhsReaderFormats
              else putStrLn "Skipping lhs reader tests because they presuppose highlighting support" >> return []
+  let citesopts = ["-r", "markdown", "--biblio", "cites" </> "biblio.bib", "--csl", "cites" </> "style.csl"]
+  r14 <- runTest "render cites" (citesopts ++ ["-w", "plain"]) ("cites" </> "markdown-reader-cites.txt") ("cites" </> "markdown-reader-cites.plain")
+  r14a <- runTest "markdown reader cites" (citesopts ++ ["-w", "native"]) ("cites" </> "markdown-reader-cites.txt") ("cites" </> "markdown-reader-cites.native")
+
+             
   let results = r1s ++
                 [ r2, r3, r4, r5 -- S5
                 , r6, r7, r7a    -- markdown reader
@@ -119,6 +124,7 @@ main = do
                 , r9             -- html
                 , r10            -- latex
                 , r11            -- native
+                , r14, r14a      -- cites
                 ] ++ r12s ++ r13s
   if all id results
      then do
