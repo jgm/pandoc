@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 module Text.Pandoc.Biblio ( processBiblio ) where
 
 import Control.Monad ( when )
-import Data.Char ( toUpper, isPunctuation )
+import Data.Char ( toUpper )
 import Data.List
 import Data.Unique
 import Text.CSL hiding ( Cite(..), Citation(..) )
@@ -101,26 +101,35 @@ procInlines f b
 mvCiteInNote :: [Inline] -> Block -> Block
 mvCiteInNote is = procInlines mvCite
     where
-      elem_ x xs = case x of Cite o cs _ -> (Cite o cs []) `elem` xs; _ -> False
       mvCite :: [Inline] -> [Inline]
       mvCite inls
+          | x:i:xs <- inls, startWPt xs
+          , x == Space,   i `elem_` is = split i xs ++ mvCite (tailInline xs)
           | x:i:xs <- inls
-          , x == Space,   i `elem_` is = mvInNote i : mvCite xs
-          | i:xs <- inls, i `elem_` is = mvInNote i : mvCite xs
-          | i:xs <- inls, Note _ <- i  = checkNt  i : mvCite xs
-          | i:xs <- inls               = i          : mvCite xs
+          , x == Space,   i `elem_` is = mvInNote i :  mvCite xs
+          | i:xs <- inls, i `elem_` is
+          , startWPt xs                = split i xs ++ mvCite (tailInline xs)
+          | i:xs <- inls, Note _ <- i  = checkNt  i :  mvCite xs
+          | i:xs <- inls               = i          :  mvCite xs
           | otherwise                  = []
+      elem_ x xs = case x of Cite op cs _ -> (Cite op cs []) `elem` xs; _ -> False
+      split i xs = Str (headInline xs) : mvInNote i : []
       mvInNote i
-          | Cite op t o <- i = Note [Para [Cite op t $ toCapital o]]
-          | otherwise       = Note [Para [i                   ]]
+          | Cite op t o <- i = Note [Para [Cite op t $ sanitize o]]
+          | otherwise     = Note [Para [i                  ]]
+      sanitize i
+          | endWPt  i = toCapital i
+          | otherwise = toCapital (i ++ [Str "."])
+
       checkPt i
           | Cite op c o : xs <- i
-          , headInline xs == lastInline o
-          , isPunct o = Cite op c (initInline o) : checkPt xs
+          , endWPt o, startWPt xs
+          , endWPt  o = Cite op c (initInline o) : checkPt xs
           | x:xs <- i = x : checkPt xs
           | otherwise = []
-      isPunct   = and . map isPunctuation . lastInline
-      checkNt   = processWith $ procInlines checkPt
+      endWPt   = and . map (`elem` ".,;:!?") . lastInline
+      startWPt = and . map (`elem` ".,;:!?") . headInline
+      checkNt  = processWith $ procInlines checkPt
 
 headInline :: [Inline] -> String
 headInline [] = []
@@ -157,6 +166,11 @@ initInline (i:[])
     where
       init' s = if s /= [] then init s else []
 initInline (i:xs) = i : initInline xs
+
+tailInline :: [Inline] -> [Inline]
+tailInline = mapHeadInline tail'
+    where
+      tail' s = if s /= [] then tail s else []
 
 toCapital :: [Inline] -> [Inline]
 toCapital = mapHeadInline toCap
