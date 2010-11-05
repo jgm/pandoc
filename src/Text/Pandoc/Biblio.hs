@@ -208,17 +208,21 @@ setCiteNoteNum ((Cite op cs o):xs) n = Cite op { citationNoteNum = n } cs o : se
 setCiteNoteNum               _  _ = []
 
 toCslCites :: Inline -> [CSL.Cite]
-toCslCites (Cite op t _) = map (toCslCite op) t
+toCslCites (Cite op (t:ts) _) 
+           = convert first t : map (convert other) ts
+             where
+                first    = case citationVariant op of
+                                AuthorOnlyCitation      -> emptyCite { CSL.authorOnly = True }
+                                OmitFirstAuthorCitation -> emptyCite { CSL.suppressAuthor = True }
+                                NormalCitation          -> emptyCite
+                other    = first { CSL.suppressAuthor = False }
+                convert c (Citation i p l _) 
+                         = let (la, lo) = parseLocator l in
+                               c { CSL.citeId = i
+                                 , CSL.citePrefix = p
+                                 , CSL.citeLabel = la
+                                 , CSL.citeLocator = lo
+                                 , CSL.citeNoteNumber = show $ citationNoteNum op
+                                 }
 toCslCites _ = []
 
-toCslCite :: CiteOptions -> Citation -> CSL.Cite
-toCslCite op (Citation i p l _)
-    = let (la,lo) = parseLocator l
-      in   emptyCite { CSL.citeId         = i
-                     , CSL.citePrefix     = p
-                     , CSL.citeLabel      = la
-                     , CSL.citeLocator    = lo
-                     , CSL.citeNoteNumber = show $ citationNoteNum op
-                     , CSL.authorOnly     = citationVariant op == AuthorOnlyCitation
-                     , CSL.suppressAuthor = citationVariant op == NoAuthorCitation 
-                     }

@@ -1312,7 +1312,7 @@ inlineCitation = try $ do
   cit <- citeMarker
   let (cit', var) = case head cit of
                          '+' -> (tail cit, AuthorOnlyCitation)
-                         '-' -> (tail cit, NoAuthorCitation)
+                         '-' -> (tail cit, OmitFirstAuthorCitation)
                          _   -> (cit, NormalCitation)
       citations = readWith parseCitation defaultParserState cit'
   mr <- mapM chkCit citations

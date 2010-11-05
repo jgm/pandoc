@@ -144,7 +144,7 @@ data CiteOptions = CiteOptions { citationNoteNum :: Int
 instance Eq CiteOptions where
      (==) a b = citationVariant a == citationVariant b
 
-data CitationVariant = AuthorOnlyCitation | NoAuthorCitation | NormalCitation
+data CitationVariant = AuthorOnlyCitation | OmitFirstAuthorCitation | NormalCitation
                      deriving (Show, Ord, Read, Typeable, Data, Eq)
 
 instance Eq Citation where
