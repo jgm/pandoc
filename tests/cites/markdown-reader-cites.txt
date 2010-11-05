@@ -2,9 +2,11 @@
 
 And now some citation. In a note [^1]. Then a citation group: [See
 @item1, p. 34-35; also @item3, chap. 3]. Another one: [See
-@item1, p. 34-35]. And another one.[^2]
+@item1, p. 34-35]. And another one.[^2]. And a textual citation, as 
+argued by Doe [-@item1, p. 10; but also @item2, p. 98].
 
 Now some modifiers.[^3]
+And some more.[^4]
 
 [^1]:
      A citation without locators: [@item3].
@@ -15,3 +17,6 @@ Now some modifiers.[^3]
 [^3]:
      Like a citation without author: [-@item1], and now Doe with a
      locator [-@item2, p. 44]. And now Author-only: [+@item3].
+
+[^4]:
+     As argued by Doe [-@item1, p. 10; but see also @item2, p. 12-14].
