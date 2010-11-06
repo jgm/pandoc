@@ -912,9 +912,7 @@ inlineParsers = [ str
                 , note
                 , inlineNote
                 , link
-#ifdef _CITEPROC
                 , inlineCitation
-#endif
                 , image
                 , math
                 , strikeout
@@ -1305,7 +1303,6 @@ rawHtmlInline' = do
                else anyHtmlInlineTag
   return $ HtmlInline result
 
-#ifdef _CITEPROC
 inlineCitation :: GenParser Char ParserState Inline
 inlineCitation = try $ do
   failIfStrict
@@ -1351,4 +1348,3 @@ parseLabel = try $ do
                (False,True ) -> AuthorOnly
                _             -> NormalCitation
   return $ Citation cit (trim p') (trim loc) mode 0 0
-#endif
