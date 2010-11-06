@@ -1340,11 +1340,9 @@ parseLabel = try $ do
       rest = t' $ dropWhile (/= '@') r
       cit  =      takeWhile (/= ',') rest
       loc  = t' $ dropWhile (/= ',') rest
-      (p,na) = if pref /= [] && last pref == '-'
-               then (init pref, True )
-               else (pref     , False)
-      (p',o) = if p /= [] && last p == '+'
-               then (init p   , True )
-               else (p        , False)
-  return $ Citation cit (trim p') (trim loc) 0 o na 0
+      (var, pref')  = case pref of
+                  (_:_) | last pref == '+' -> (AuthorOnlyCitation, init pref)
+                        | last pref == '-' -> (SuppressAuthorCitation, init pref)
+                  _                        -> (ParentheticalCitation, pref)
+  return $ Citation cit (trim pref') (trim loc) 0 var 0
 #endif

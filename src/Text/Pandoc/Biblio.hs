@@ -91,8 +91,8 @@ getNoteCitations needNote
       in  queryWith getCitation . getCits
 
 setHash :: Citation -> IO Citation
-setHash (Citation i p l nn ao na _)
-    = hashUnique `fmap` newUnique >>= return . Citation i p l nn ao na
+setHash (Citation i p l nn va _)
+    = hashUnique `fmap` newUnique >>= return . Citation i p l nn va
 
 generateNotes :: [Inline] -> Pandoc -> Pandoc
 generateNotes needNote = processWith (mvCiteInNote needNote)
@@ -217,13 +217,13 @@ setCitationNoteNum :: Int -> [Citation] -> [Citation]
 setCitationNoteNum i = map $ \c -> c { citationNoteNum = i}
 
 toCslCite :: Citation -> CSL.Cite
-toCslCite (Citation i p l nn ao na _)
+toCslCite (Citation i p l nn va _)
     = let (la,lo) = parseLocator l
       in   emptyCite { CSL.citeId         = i
                      , CSL.citePrefix     = p
                      , CSL.citeLabel      = la
                      , CSL.citeLocator    = lo
                      , CSL.citeNoteNumber = show nn
-                     , CSL.authorOnly     = ao
-                     , CSL.suppressAuthor = na
+                     , CSL.authorOnly     = va == AuthorOnlyCitation
+                     , CSL.suppressAuthor = va == SuppressAuthorCitation
                      }
