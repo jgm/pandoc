@@ -168,7 +168,7 @@ Library
     Build-depends: highlighting-kate >= 0.2.7.1
     cpp-options:   -D_HIGHLIGHTING
   if flag(citeproc)
-    Build-depends: citeproc-hs >= 0.2
+    Build-depends: citeproc-hs >= 0.3 && < 0.4
     cpp-options:   -D_CITEPROC
   if impl(ghc >= 6.12)
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind

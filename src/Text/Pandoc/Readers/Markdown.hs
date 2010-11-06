@@ -1346,5 +1346,9 @@ parseLabel = try $ do
       (p',o) = if p /= [] && last p == '+'
                then (init p   , True )
                else (p        , False)
-  return $ Citation cit (trim p') (trim loc) 0 o na 0
+      mode = case (na,o) of
+               (True, False) -> SuppressAuthor
+               (False,True ) -> AuthorOnly
+               _             -> NormalCitation
+  return $ Citation cit (trim p') (trim loc) mode 0 0
 #endif
