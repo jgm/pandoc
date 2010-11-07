@@ -26,9 +26,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Portability : portable
 
 Conversion from Textile to 'Pandoc' document, based on the spec
-available at http://redcloth.org/hobix.com/textile/
+available at ahttp://redcloth.org/hobix.com/textile/
 
-Implemented :
+Implemented and parsed :
  - Paragraphs
  - Code blocks
  - Lists
@@ -36,8 +36,8 @@ Implemented :
  - Inlines : strong, emph, cite, code, deleted, superscript,
    subscript, links
 
-Not implemented :
- - HTML-specific and CSS-specific inlines
+Implemented but discarded :
+ - HTML-specific and CSS-specific attributes
 -}
 
 
@@ -83,8 +83,8 @@ blockParsers = [ codeBlock
                , header
                , blockQuote
                , anyList
-               , table
-               , para
+               , maybeExplicitBlock "table" table
+               , maybeExplicitBlock "p" para
                , nullBlock ]
 
 -- | Any block in the order of definition of blockParsers
@@ -103,6 +103,7 @@ header :: GenParser Char ParserState Block
 header = try $ do
   char 'h'
   level <- oneOf "123456" >>= return . digitToInt
+  optional attributes
   char '.'
   whitespace
   name <- manyTill inline blockBreak
@@ -111,7 +112,9 @@ header = try $ do
 -- | Blockquote of the form "bq. content"
 blockQuote :: GenParser Char ParserState Block
 blockQuote = try $ do
-  string "bq."
+  string "bq"
+  optional attributes
+  char '.'
   whitespace
   para >>= return . BlockQuote . (:[])
 
@@ -143,6 +146,7 @@ bulletListAtDepth depth = try $ do
 bulletListItemAtDepth :: Int -> GenParser Char ParserState [Block]
 bulletListItemAtDepth depth = try $ do
   count depth (char '*')
+  optional attributes
   whitespace
   p <- inlines >>= return . Plain
   sublist <- option [] (anyListAtDepth (depth + 1) >>= return . (:[]))
@@ -160,6 +164,7 @@ orderedListAtDepth depth = try $ do
 orderedListItemAtDepth :: Int -> GenParser Char ParserState [Block]
 orderedListItemAtDepth depth = try $ do
   count depth (char '#')
+  optional attributes
   whitespace
   p <- inlines >>= return . Plain
   sublist <- option [] (anyListAtDepth (depth + 1) >>= return . (:[]))
@@ -168,6 +173,7 @@ orderedListItemAtDepth depth = try $ do
 -- | This terminates a block such as a paragraph.
 blockBreak :: GenParser Char ParserState ()
 blockBreak = try $ newline >> blanklines >> return ()
+
 
 -- | In textile, paragraphs are separated by blank lines.
 para :: GenParser Char ParserState Block
@@ -222,6 +228,17 @@ table = try $ do
     headers
     rows
   
+
+-- | Blocks like 'p' and 'table' do not need explicit block tag.
+-- However, they can be used to set HTML/CSS attributes when needed.
+maybeExplicitBlock :: String  -- ^ block tag name
+                      -> GenParser Char ParserState Block -- ^ implicit block
+                      -> GenParser Char ParserState Block
+maybeExplicitBlock name blk = try $ do
+  optional $ string name >> optional attributes >> char '.' >> 
+    ((try whitespace) <|> endline)
+  blk
+
 
 
 ----------
@@ -305,6 +322,13 @@ code :: GenParser Char ParserState Inline
 code = surrounded (char '@') anyChar >>= 
        return . Code
 
+
+-- | Html / CSS attributes
+attributes :: GenParser Char ParserState String
+attributes = choice [ enclosed (char '(') (char ')') anyChar,
+                      enclosed (char '{') (char '}') anyChar,
+                      enclosed (char '[') (char ']') anyChar]
+
 -- | Parses material surrounded by a parser.
 surrounded :: GenParser Char st t   -- ^ surrounding parser
 	    -> GenParser Char st a    -- ^ content parser (to be used repeatedly)
@@ -315,8 +339,9 @@ surrounded border = enclosed border border
 simpleInline :: GenParser Char ParserState t           -- ^ surrounding parser
                 -> ([Inline] -> Inline)       -- ^ Inline constructor
                 -> GenParser Char ParserState Inline   -- ^ content parser (to be used repeatedly)
-simpleInline border construct = surrounded border inline >>=
+simpleInline border construct = surrounded border (inlineWithAttribute) >>=
                                 return . construct . normalizeSpaces
+  where inlineWithAttribute = (try $ optional attributes) >> inline
 
 
 -- TODO
@@ -324,3 +349,4 @@ simpleInline border construct = surrounded border inline >>=
 --  - Pandoc Meta Information (title, author, date)
 --  - footnotes
 --  - should autolink be shared through Parsing.hs ?
+--  - embeded HTML, both inlines and blocks

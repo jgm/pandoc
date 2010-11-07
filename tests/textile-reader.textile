@@ -149,3 +149,15 @@ h1. Images
 Textile inline image syntax, like 
 here !this_is_an_image.png(this is the alt text)!
 and here !this_is_an_image.png!.
+
+h1. Attributes
+
+h2{color:red}. HTML and CSS attributes are ignored
+
+as well as *(foo)inline attributes*
+
+p{color:green}. and paragraph attributes, and table attributes.
+
+table{foo:bar}.
+| name   | age | sex |
+| joan   | 24  | f   |

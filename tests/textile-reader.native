@@ -100,4 +100,17 @@ Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
   , [ Plain [Str "45"] ]
   , [ Plain [Str "f"] ] ] ]
 , Header 1 [Str "Images"]
-, Para [Str "Textile",Space,Str "inline",Space,Str "image",Space,Str "syntax,",Space,Str "like",Space,Str "here",Space,Image [Str "this is the alt text"] ("this_is_an_image.png","this is the alt text"),Space,Str "and",Space,Str "here",Space,Image [Str ""] ("this_is_an_image.png",""),Str "."] ]
+, Para [Str "Textile",Space,Str "inline",Space,Str "image",Space,Str "syntax,",Space,Str "like",Space,Str "here",Space,Image [Str "this is the alt text"] ("this_is_an_image.png","this is the alt text"),Space,Str "and",Space,Str "here",Space,Image [Str ""] ("this_is_an_image.png",""),Str "."]
+, Header 1 [Str "Attributes"]
+, Header 2 [Str "HTML",Space,Str "and",Space,Str "CSS",Space,Str "attributes",Space,Str "are",Space,Str "ignored"]
+, Para [Str "as",Space,Str "well",Space,Str "as",Space,Strong [Str "inline",Space,Str "attributes"]]
+, Para [Str "and",Space,Str "paragraph",Space,Str "attributes,",Space,Str "and",Space,Str "table",Space,Str "attributes."]
+, Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
+  [ 
+ ] [
+  [ [ Plain [Str "name"] ]
+  , [ Plain [Str "age"] ]
+  , [ Plain [Str "sex"] ] ],
+  [ [ Plain [Str "joan"] ]
+  , [ Plain [Str "24"] ]
+  , [ Plain [Str "f"] ] ] ] ]
