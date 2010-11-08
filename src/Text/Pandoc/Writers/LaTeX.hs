@@ -32,7 +32,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
-import Data.List ( (\\), isSuffixOf, isPrefixOf, intersperse )
+import Data.List ( (\\), isSuffixOf, isPrefixOf, intersperse, intercalate )
 import Data.Char ( toLower )
 import Control.Monad.State
 import Text.PrettyPrint.HughesPJ hiding ( Str )
@@ -76,7 +76,12 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
   body <- blockListToLaTeX blocks
   let main = render body
   st <- get
-  let context  = writerVariables options ++
+  let citecontext = case writerCiteMethod options of
+                         Natbib -> [ ("biblio", takeWhile ((/=) '.') $  writerBiblioFile options)
+                                   , ("natbib", "yes")
+                                   ]
+                         _      -> []
+      context  = writerVariables options ++
                  [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
                  , ("title", titletext)
@@ -91,7 +96,8 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("url", "yes") | stUrl st ] ++
                  [ ("numbersections", "yes") | writerNumberSections options ] ++
                  [ ("lhs", "yes") | stLHS st ] ++
-                 [ ("graphics", "yes") | stGraphics st ]
+                 [ ("graphics", "yes") | stGraphics st ] ++
+                 citecontext
   return $ if writerStandalone options
               then renderTemplate context template
               else main
@@ -294,8 +300,12 @@ inlineToLaTeX (Subscript lst) = do
   return $ inCmd "textsubscr" contents
 inlineToLaTeX (SmallCaps lst) =
   inlineListToLaTeX (deVerb lst) >>= return . inCmd "textsc"
-inlineToLaTeX (Cite _ lst) =
-  inlineListToLaTeX lst
+inlineToLaTeX (Cite cits lst) = do
+  st <- get
+  let opts = stOptions st
+  if writerCiteMethod opts == Natbib
+     then citationsToNatbib cits 
+     else inlineListToLaTeX lst
 inlineToLaTeX (Code str) = do
   st <- get
   when (stInNote st) $ modify $ \s -> s{ stVerbInNote = True }
@@ -351,3 +361,42 @@ inlineToLaTeX (Note contents) = do
   let optNewline = "\\end{Verbatim}" `isSuffixOf` rawnote
   return $ text "\\footnote{" <> 
            text rawnote <> (if optNewline then char '\n' else empty) <> char '}'
+
+
+citationsToNatbib :: [Citation] -> State WriterState Doc
+citationsToNatbib (cit:[])
+  = return $ text $ natbibCommand c p l k
+  where
+    Citation {citationId = k, citationPrefix = p, citationLocator = l, citationMode = m} = cit
+    c = case m of
+             AuthorOnly     -> "citeauthor"
+             SuppressAuthor  -> "citeyearpar"
+             NormalCitation -> "citep"
+
+citationsToNatbib cits 
+  | noPrefix (tail cits) && noLocator (init cits) && ismode NormalCitation cits
+  = return $ text $ natbibCommand "citep" p l ks
+  where
+     noPrefix  = and . map (((==) "") . citationPrefix)
+     noLocator = and . map (((==) "") . citationLocator)
+     ismode m  = and . map (((==) m)  . citationMode)
+     p         = citationPrefix  $ head $ cits
+     l         = citationLocator $ last $ cits
+     ks        = intercalate ", " $ map citationId cits
+
+citationsToNatbib cits 
+  = return $ text $ "\\citetext{" ++ (intercalate "; " $ map convertOne cits) ++ "}"
+  where
+    convertOne Citation {citationId = k, citationPrefix = p, citationLocator = l, citationMode = m}
+        = case m of
+               AuthorOnly     -> natbibCommand "citeauthor" p l k
+               SuppressAuthor -> p ++ " " ++ natbibCommand "citeyear" "" "" k ++ " " ++ l
+               NormalCitation -> natbibCommand "citealp" p l k
+
+natbibCommand :: String -> String -> String -> String -> String
+natbibCommand c p l k = "\\" ++ c ++ optargs ++ "{" ++ k ++ "}"
+              where
+                optargs = case (p , l ) of
+                               ("", "") -> ""
+                               ("", _ ) -> "[" ++ l ++ "]"
+                               (_ , _ ) -> "[" ++ p ++ "][" ++ l ++ "]"

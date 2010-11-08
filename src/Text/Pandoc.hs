@@ -91,6 +91,7 @@ module Text.Pandoc
                , WriterOptions (..)
                , HTMLSlideVariant (..)
                , HTMLMathMethod (..)
+               , CiteMethod (..)
                , defaultWriterOptions
                -- * Rendering templates and default templates
                , module Text.Pandoc.Templates

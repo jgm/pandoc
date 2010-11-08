@@ -65,6 +65,7 @@ module Text.Pandoc.Shared (
                      headerShift,
                      -- * Writer options
                      HTMLMathMethod (..),
+                     CiteMethod (..),
                      ObfuscationMethod (..),
                      HTMLSlideVariant (..),
                      WriterOptions (..),
@@ -462,6 +463,10 @@ data HTMLMathMethod = PlainMath
                     | MathJax String              -- url of MathJax.js
                     deriving (Show, Read, Eq)
 
+data CiteMethod = Citeproc                        -- use citeproc to render them
+                  | Natbib                        -- output natbib cite commands
+                deriving (Show, Read, Eq)
+
 -- | Methods for obfuscating email addresses in HTML.
 data ObfuscationMethod = NoObfuscation
                        | ReferenceObfuscation
@@ -497,6 +502,8 @@ data WriterOptions = WriterOptions
   , writerIdentifierPrefix :: String -- ^ Prefix for section & note ids in HTML
   , writerSourceDirectory  :: FilePath -- ^ Directory path of 1st source file
   , writerUserDataDir      :: Maybe FilePath -- ^ Path of user data directory
+  , writerCiteMethod       :: CiteMethod -- ^ How to print cites
+  , writerBiblioFile       :: String     -- ^ Biblio file to use for citations
   } deriving Show
 
 -- | Default writer options.
@@ -523,6 +530,8 @@ defaultWriterOptions =
                 , writerIdentifierPrefix = ""
                 , writerSourceDirectory  = "."
                 , writerUserDataDir      = Nothing
+                , writerCiteMethod       = Citeproc 
+                , writerBiblioFile       = ""
                 }
 
 --

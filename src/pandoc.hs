@@ -162,11 +162,10 @@ data Opt = Opt
     , optIdentifierPrefix  :: String
     , optIndentedCodeClasses :: [String] -- ^ Default classes for indented code blocks
     , optDataDir           :: Maybe FilePath
-#ifdef _CITEPROC
+    , optCiteMethod        :: CiteMethod -- ^ Method to output cites
     , optBiblioFile        :: String
     , optBiblioFormat      :: String
     , optCslFile           :: String
-#endif
     }
 
 -- | Defaults for command-line options.
@@ -204,11 +203,10 @@ defaultOpts = Opt
     , optIdentifierPrefix  = ""
     , optIndentedCodeClasses = []
     , optDataDir           = Nothing
-#ifdef _CITEPROC
+    , optCiteMethod        = Citeproc
     , optBiblioFile        = []
     , optBiblioFormat      = []
     , optCslFile           = []
-#endif
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -535,6 +533,12 @@ options =
                   (\arg opt -> return opt { optCslFile = arg} )
                   "FILENAME")
                  ""
+
+    , Option "" ["natbib"]
+                 (NoArg
+                  (\opt -> return opt { optCiteMethod = Natbib }))
+                 "" -- "Use natbib cite commands in LaTeX output"
+
 #endif
     , Option "" ["data-dir"]
                  (ReqArg
@@ -684,10 +688,11 @@ main = do
               , optIndentedCodeClasses = codeBlockClasses
               , optDataDir           = mbDataDir
 #ifdef _CITEPROC
-              , optBiblioFile         = biblioFile
               , optBiblioFormat       = biblioFormat
               , optCslFile            = cslFile
 #endif
+              , optCiteMethod         = citeMethod
+              , optBiblioFile         = biblioFile
              } = opts
 
   when dumpArgs $
@@ -811,6 +816,8 @@ main = do
                                       writerSlideVariant     = slideVariant,
                                       writerIncremental      = incremental,
                                       writerXeTeX            = xetex,
+                                      writerCiteMethod       = citeMethod,
+                                      writerBiblioFile       = biblioFile,
                                       writerIgnoreNotes      = False,
                                       writerNumberSections   = numberSections,
                                       writerSectionDivs      = sectionDivs,
@@ -848,7 +855,9 @@ main = do
 
   doc'' <- do
 #ifdef _CITEPROC
-          processBiblio cslFile refs doc'
+          if citeMethod == Citeproc
+             then processBiblio cslFile refs doc'
+             else return doc'
 #else
           return doc'
 #endif
