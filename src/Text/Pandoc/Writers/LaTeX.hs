@@ -76,10 +76,14 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
   body <- blockListToLaTeX blocks
   let main = render body
   st <- get
-  let citecontext = case writerCiteMethod options of
-                         Natbib -> [ ("biblio", takeWhile ((/=) '.') $  writerBiblioFile options)
-                                   , ("natbib", "yes")
-                                   ]
+  let biblio      = takeWhile ((/=) '.') $  writerBiblioFile options
+      citecontext = case writerCiteMethod options of
+                         Natbib   -> [ ("biblio", biblio)
+                                     , ("natbib", "yes")
+                                     ]
+                         Biblatex -> [ ("biblio", biblio)
+                                     , ("biblatex", "yes")
+                                     ]
                          _      -> []
       context  = writerVariables options ++
                  [ ("toc", if writerTableOfContents options then "yes" else "")
@@ -303,9 +307,11 @@ inlineToLaTeX (SmallCaps lst) =
 inlineToLaTeX (Cite cits lst) = do
   st <- get
   let opts = stOptions st
-  if writerCiteMethod opts == Natbib
-     then citationsToNatbib cits 
-     else inlineListToLaTeX lst
+  case writerCiteMethod opts of
+     Natbib   -> citationsToNatbib cits 
+     Biblatex -> citationsToBiblatex cits
+     _        -> inlineListToLaTeX lst
+
 inlineToLaTeX (Code str) = do
   st <- get
   when (stInNote st) $ modify $ \s -> s{ stVerbInNote = True }
@@ -364,10 +370,15 @@ inlineToLaTeX (Note contents) = do
 
 
 citationsToNatbib :: [Citation] -> State WriterState Doc
-citationsToNatbib (cit:[])
-  = return $ text $ natbibCommand c p l k
+citationsToNatbib (one:[])
+  = return $ text $ citeCommand c p l k
   where
-    Citation {citationId = k, citationPrefix = p, citationLocator = l, citationMode = m} = cit
+    Citation { citationId = k
+             , citationPrefix = p
+             , citationLocator = l
+             , citationMode = m
+             } 
+      = one
     c = case m of
              AuthorOnly     -> "citeauthor"
              SuppressAuthor  -> "citeyearpar"
@@ -375,7 +386,7 @@ citationsToNatbib (cit:[])
 
 citationsToNatbib cits 
   | noPrefix (tail cits) && noLocator (init cits) && ismode NormalCitation cits
-  = return $ text $ natbibCommand "citep" p l ks
+  = return $ text $ citeCommand "citep" p l ks
   where
      noPrefix  = and . map (((==) "") . citationPrefix)
      noLocator = and . map (((==) "") . citationLocator)
@@ -387,16 +398,46 @@ citationsToNatbib cits
 citationsToNatbib cits 
   = return $ text $ "\\citetext{" ++ (intercalate "; " $ map convertOne cits) ++ "}"
   where
-    convertOne Citation {citationId = k, citationPrefix = p, citationLocator = l, citationMode = m}
+    convertOne Citation { citationId = k
+                        , citationPrefix = p
+                        , citationLocator = l
+                        , citationMode = m
+                        }
         = case m of
-               AuthorOnly     -> natbibCommand "citeauthor" p l k
-               SuppressAuthor -> p ++ " " ++ natbibCommand "citeyear" "" "" k ++ " " ++ l
-               NormalCitation -> natbibCommand "citealp" p l k
+               AuthorOnly     -> citeCommand "citeauthor" p l k
+               SuppressAuthor -> p ++ " " ++ citeCommand "citeyear" "" "" k ++ " " ++ l
+               NormalCitation -> citeCommand "citealp" p l k
 
-natbibCommand :: String -> String -> String -> String -> String
-natbibCommand c p l k = "\\" ++ c ++ optargs ++ "{" ++ k ++ "}"
+citeCommand :: String -> String -> String -> String -> String
+citeCommand c p l k = "\\" ++ c ++ citeArguments p l k
+
+citeArguments :: String -> String -> String -> String
+citeArguments p l k =  optargs ++ "{" ++ k ++ "}"
               where
                 optargs = case (p , l ) of
                                ("", "") -> ""
                                ("", _ ) -> "[" ++ l ++ "]"
                                (_ , _ ) -> "[" ++ p ++ "][" ++ l ++ "]"
+
+citationsToBiblatex :: [Citation] -> State WriterState Doc
+citationsToBiblatex (one:[])
+  = return $ text $ citeCommand cmd p l k
+    where
+       Citation { citationId = k
+                , citationPrefix = p
+                , citationLocator = l
+                , citationMode = m
+                } = one
+       cmd = case m of
+                  SuppressAuthor -> "autocite*"
+                  AuthorOnly     -> "citeauthor"
+                  NormalCitation -> "autocite"
+
+citationsToBiblatex cits
+  = return $ text $ "\\autocites" ++ (concat $ map convertOne cits)
+    where
+       convertOne Citation { citationId = k
+                           , citationPrefix = p
+                           , citationLocator = l
+                           }
+              = citeArguments p l k

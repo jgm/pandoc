@@ -20,6 +20,9 @@ $if(natbib)$
 \usepackage{natbib}
 \bibliographystyle{plainnat}
 $endif$
+$if(biblatex)$
+\usepackage{biblatex}
+$endif$
 $if(lhs)$
 \usepackage{listings}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}

@@ -465,6 +465,7 @@ data HTMLMathMethod = PlainMath
 
 data CiteMethod = Citeproc                        -- use citeproc to render them
                   | Natbib                        -- output natbib cite commands
+                  | Biblatex                      -- output biblatex cite commands
                 deriving (Show, Read, Eq)
 
 -- | Methods for obfuscating email addresses in HTML.

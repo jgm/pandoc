@@ -539,6 +539,10 @@ options =
                   (\opt -> return opt { optCiteMethod = Natbib }))
                  "" -- "Use natbib cite commands in LaTeX output"
 
+    , Option "" ["biblatex"]
+                 (NoArg
+                  (\opt -> return opt { optCiteMethod = Biblatex }))
+                 "" -- "Use biblatex cite commands in LaTeX output"
 #endif
     , Option "" ["data-dir"]
                  (ReqArg
