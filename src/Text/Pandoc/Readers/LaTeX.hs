@@ -38,7 +38,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Data.Maybe ( fromMaybe )
-import Data.Char ( chr )
+import Data.Char ( chr, toUpper )
 import Data.List ( isPrefixOf, isSuffixOf )
 import Control.Monad ( when )
 
@@ -474,6 +474,7 @@ inline =  choice [ str
                  , linebreak
                  , accentedChar
                  , nonbreakingSpace
+                 , cite
                  , specialChar
                  , rawLaTeXInline'
                  , escapedChar
@@ -792,6 +793,69 @@ footnote = try $ do
   blocks <- parseBlocks
   setInput rest
   return $ Note blocks
+
+-- | citations
+cite :: GenParser Char ParserState Inline
+cite = simpleCites <|> complexNatbibCites
+
+simpleCites :: GenParser Char ParserState Inline
+simpleCites = try $ do
+  char '\\'
+  let addUpper xs = xs ++ map (\(c:cs) -> toUpper c : cs) xs
+      n   = ["cite" ++ a ++ b | a <- ["al", ""], b <- ["t", "t*", "p", "p*", ""]]
+              ++ ["autocite"]
+      nc  = try $ oneOfStrings (addUpper n) >> return NormalCitation
+      sa  = ["citeyearpar", "citeyear", "autocite*"]
+      sac = try $ oneOfStrings (addUpper sa) >> return SuppressAuthor
+      ao  = ["citeauthor"]
+      aoc = try $ oneOfStrings (addUpper ao) >> return AuthorOnly
+  mode <- sac <|> aoc <|> nc
+  first  <- optionMaybe $ charsInBalanced' '[' ']'
+  second <- optionMaybe $ charsInBalanced' '[' ']'
+  char '{'
+  keys <- many1Till citationLabel (char '}')
+  let (p, l) = case (first, second) of
+                    (Just s , Nothing) -> ("", s )
+                    (Just s , Just t ) -> (s , t )
+                    _                  -> ("", "")
+      convertOne k  = Citation { citationId      = k
+                               , citationPrefix  = ""
+                               , citationLocator = ""
+                               , citationMode    = mode
+                               , citationHash    = 0
+                               , citationNoteNum = 0
+                               }
+      convert       = addPrefix p . addLocator l . map convertOne
+  return $ Cite (convert keys)  []
+
+complexNatbibCites :: GenParser Char ParserState Inline
+complexNatbibCites = try $ do
+  string "\\citetext{"
+  cits <- many1Till complexNatbibCitation (char '}')
+  return $ Cite (concat cits) []
+
+complexNatbibCitation :: GenParser Char ParserState [Citation]
+complexNatbibCitation = do
+  pref              <- many (noneOf "\\}")
+  (Cite cmdcites _) <- simpleCites
+  loc               <- many (noneOf "\\};")
+  optional $ char ';'
+  return $ addPrefix (removeLeadingSpace pref) $ addLocator (removeTrailingSpace loc) cmdcites
+
+addPrefix :: String -> [Citation] -> [Citation]
+addPrefix p (k:ks)   = k {citationPrefix = p ++ citationPrefix k} : ks
+addPrefix _ _ = []
+
+addLocator :: String -> [Citation] -> [Citation]
+addLocator l ks@(_:_) = let k = last ks
+                        in init ks ++ [k {citationLocator = citationLocator k ++ l}]
+addLocator _ _ = []
+
+citationLabel :: GenParser Char ParserState String
+citationLabel  = do
+  res <- many1 $ noneOf ",}"
+  optional $ char ','
+  return $ removeLeadingTrailingSpace res
 
 -- | Parse any LaTeX inline command and return it in a raw TeX inline element.
 rawLaTeXInline' :: GenParser Char ParserState Inline
