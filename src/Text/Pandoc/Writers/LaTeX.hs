@@ -308,8 +308,8 @@ inlineToLaTeX (Cite cits lst) = do
   st <- get
   let opts = stOptions st
   case writerCiteMethod opts of
-     Natbib   -> citationsToNatbib cits 
-     Biblatex -> citationsToBiblatex cits
+     Natbib   -> return $ text $ citationsToNatbib cits 
+     Biblatex -> return $ text $ citationsToBiblatex cits
      _        -> inlineListToLaTeX lst
 
 inlineToLaTeX (Code str) = do
@@ -369,9 +369,9 @@ inlineToLaTeX (Note contents) = do
            text rawnote <> (if optNewline then char '\n' else empty) <> char '}'
 
 
-citationsToNatbib :: [Citation] -> State WriterState Doc
+citationsToNatbib :: [Citation] -> String
 citationsToNatbib (one:[])
-  = return $ text $ citeCommand c p l k
+  = citeCommand c p l k
   where
     Citation { citationId = k
              , citationPrefix = p
@@ -386,7 +386,7 @@ citationsToNatbib (one:[])
 
 citationsToNatbib cits 
   | noPrefix (tail cits) && noLocator (init cits) && ismode NormalCitation cits
-  = return $ text $ citeCommand "citep" p l ks
+  = citeCommand "citep" p l ks
   where
      noPrefix  = and . map (((==) "") . citationPrefix)
      noLocator = and . map (((==) "") . citationLocator)
@@ -396,7 +396,7 @@ citationsToNatbib cits
      ks        = intercalate ", " $ map citationId cits
 
 citationsToNatbib cits 
-  = return $ text $ "\\citetext{" ++ (intercalate "; " $ map convertOne cits) ++ "}"
+  = "\\citetext{" ++ (intercalate "; " $ map convertOne cits) ++ "}"
   where
     convertOne Citation { citationId = k
                         , citationPrefix = p
@@ -419,9 +419,9 @@ citeArguments p l k =  optargs ++ "{" ++ k ++ "}"
                                ("", _ ) -> "[" ++ l ++ "]"
                                (_ , _ ) -> "[" ++ p ++ "][" ++ l ++ "]"
 
-citationsToBiblatex :: [Citation] -> State WriterState Doc
+citationsToBiblatex :: [Citation] -> String
 citationsToBiblatex (one:[])
-  = return $ text $ citeCommand cmd p l k
+  = citeCommand cmd p l k
     where
        Citation { citationId = k
                 , citationPrefix = p
@@ -434,7 +434,7 @@ citationsToBiblatex (one:[])
                   NormalCitation -> "autocite"
 
 citationsToBiblatex cits
-  = return $ text $ "\\autocites" ++ (concat $ map convertOne cits)
+  = "\\autocites" ++ (concat $ map convertOne cits)
     where
        convertOne Citation { citationId = k
                            , citationPrefix = p
