@@ -36,7 +36,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Blocks
 import Text.ParserCombinators.Parsec ( runParser, GenParser )
-import Data.List ( group, isPrefixOf, find, intersperse, transpose )
+import Data.List ( group, isPrefixOf, find, intersperse, transpose, intercalate )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 
@@ -77,6 +77,7 @@ plainify = processWith go
         go (HtmlInline _ : ys) = Str "" : go ys
         go (Link xs _ : ys) = go xs ++ go ys
         go (Image _ _ : ys) = go ys
+        go (Cite _ cits : ys) = go cits ++ go ys
         go (x : ys) = x : go ys
         go [] = []
 
@@ -400,7 +401,21 @@ inlineToMarkdown _ (TeX str) = return $ text str
 inlineToMarkdown _ (HtmlInline str) = return $ text str 
 inlineToMarkdown _ (LineBreak) = return $ text "  \n"
 inlineToMarkdown _ Space = return $ char ' '
-inlineToMarkdown opts (Cite _ cits) = inlineListToMarkdown opts cits
+inlineToMarkdown _ (Cite cits _) =
+  return $ text $ "[" ++ (intercalate "; " $ map convertOne cits) ++ "]"
+    where
+        convertOne Citation { citationId      = k
+                            , citationPrefix  = p      
+                            , citationLocator = l
+                            , citationMode    = m }
+                               = leaveEmpty p " " ++ modekey m ++ "@" ++ k ++ leaveEmpty ", " l
+        leaveEmpty "" _  = ""
+        leaveEmpty _  "" = ""
+        leaveEmpty a  b  = a ++ b
+        modekey AuthorOnly     = "+"
+        modekey SuppressAuthor = "-"
+        modekey NormalCitation = ""
+
 inlineToMarkdown opts (Link txt (src', tit)) = do
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if null tit then empty else text $ " \"" ++ tit ++ "\""
