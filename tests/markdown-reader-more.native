@@ -18,8 +18,8 @@ Pandoc (Meta {docTitle = [Str "Title",Space,Str "spanning",Space,Str "multiple",
 , Para [Math InlineMath "\\$2 + \\$3"]
 , Header 2 [Str "Commented",Str "-",Str "out",Space,Str "list",Space,Str "item"]
 , BulletList
-  [ [ Plain [Str "one"]
-    , RawHtml "<!--\n- two\n-->" ], [ Plain [Str "three"] ] ]
+  [ [ Plain [Str "one",Space,HtmlInline "<!--\n- two\n-->"] ]
+  , [ Plain [Str "three"] ] ]
 , Header 2 [Str "Backslash",Space,Str "newline"]
 , Para [Str "hi",LineBreak,Str "there"]
 , Header 2 [Str "Code",Space,Str "spans"]
