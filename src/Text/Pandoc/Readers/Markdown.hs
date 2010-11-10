@@ -1302,7 +1302,7 @@ rawHtmlInline' = do
   st <- getState
   result <- if stateStrict st
                then choice [htmlBlockElement, anyHtmlTag, anyHtmlEndTag] 
-               else anyHtmlInlineTag
+               else choice [htmlComment, anyHtmlInlineTag]
   return $ HtmlInline result
 
 #ifdef _CITEPROC
