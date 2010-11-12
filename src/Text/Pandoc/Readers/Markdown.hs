@@ -1345,6 +1345,6 @@ parseLabel = try $ do
                else (p        , False)
       mode = case (na,o) of
                (True, False) -> SuppressAuthor
-               (False,True ) -> AuthorOnly
+               (False,True ) -> AuthorInText
                _             -> NormalCitation
   return $ Citation cit (trim p') (trim loc) mode 0 0
