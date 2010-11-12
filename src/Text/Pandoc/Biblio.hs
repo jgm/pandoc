@@ -32,6 +32,7 @@ module Text.Pandoc.Biblio ( processBiblio ) where
 import Control.Monad ( when )
 import Data.List
 import Data.Unique
+import qualified Data.Map as M
 import Text.CSL hiding ( Cite(..), Citation(..) )
 import qualified Text.CSL as CSL ( Cite(..) )
 import Text.Pandoc.Definition
@@ -52,19 +53,19 @@ processBiblio cf r p
                                   needNt = cits \\ concat ncits
                               in (,) needNt $ getNoteCitations needNt p'
             result     = citeproc csl r (setNearNote csl $ map (map toCslCite) grps)
-            cits_map   = zip grps (citations result)
+            cits_map   = M.fromList $ zip grps (citations result)
             biblioList = map (renderPandoc' csl) (bibliography result)
             Pandoc m b = processWith (procInlines $ processCite csl cits_map) p'
         return . generateNotes nts . Pandoc m $ b ++ biblioList
 
 -- | Substitute 'Cite' elements with formatted citations.
-processCite :: Style -> [([Citation],[FormattedOutput])] -> [Inline] -> [Inline]
+processCite :: Style -> M.Map [Citation] [FormattedOutput] -> [Inline] -> [Inline]
 processCite _ _ [] = []
 processCite s cs (i:is)
     | Cite t _ <- i = process t ++ processCite s cs is
     | otherwise     = i          : processCite s cs is
     where
-      process t = case lookup t cs of
+      process t = case M.lookup t cs of
                     Just  x -> if isTextualCitation t && x /= []
                                then renderPandoc s [head x] ++ [Space] ++
                                     [Cite t $ renderPandoc s $ tail x]
