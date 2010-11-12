@@ -802,13 +802,13 @@ simpleCites :: GenParser Char ParserState Inline
 simpleCites = try $ do
   char '\\'
   let addUpper xs = xs ++ map (\(c:cs) -> toUpper c : cs) xs
-      n   = ["cite" ++ a ++ b | a <- ["al", ""], b <- ["t", "t*", "p", "p*", ""]]
+      n   = ["cite" ++ a ++ b | a <- ["al", ""], b <- ["p", "p*", ""]]
               ++ ["autocite"]
       nc  = try $ oneOfStrings (addUpper n) >> return NormalCitation
       sa  = ["citeyearpar", "citeyear", "autocite*"]
       sac = try $ oneOfStrings (addUpper sa) >> return SuppressAuthor
-      ao  = ["citeauthor"]
-      aoc = try $ oneOfStrings (addUpper ao) >> return AuthorOnly
+      ao  = ["textcite"] ++ ["cite" ++ a ++ b | a <- ["al", ""], b <- ["t", "t*"]]
+      aoc = try $ oneOfStrings (addUpper ao) >> return AuthorInText
   mode <- sac <|> aoc <|> nc
   first  <- optionMaybe $ charsInBalanced' '[' ']'
   second <- optionMaybe $ charsInBalanced' '[' ']'

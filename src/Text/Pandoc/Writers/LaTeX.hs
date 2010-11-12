@@ -380,7 +380,7 @@ citationsToNatbib (one:[])
              } 
       = one
     c = case m of
-             AuthorOnly     -> "citeauthor"
+             AuthorInText     -> "citet"
              SuppressAuthor  -> "citeyearpar"
              NormalCitation -> "citep"
 
@@ -404,7 +404,7 @@ citationsToNatbib cits
                         , citationMode = m
                         }
         = case m of
-               AuthorOnly     -> citeCommand "citeauthor" p l k
+               AuthorInText   -> citeCommand "citealt" p l k
                SuppressAuthor -> p ++ " " ++ citeCommand "citeyear" "" "" k ++ " " ++ l
                NormalCitation -> citeCommand "citealp" p l k
 
@@ -430,7 +430,7 @@ citationsToBiblatex (one:[])
                 } = one
        cmd = case m of
                   SuppressAuthor -> "autocite*"
-                  AuthorOnly     -> "citeauthor"
+                  AuthorInText   -> "textcite"
                   NormalCitation -> "autocite"
 
 citationsToBiblatex cits

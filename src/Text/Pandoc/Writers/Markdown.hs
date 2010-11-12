@@ -401,9 +401,13 @@ inlineToMarkdown _ (TeX str) = return $ text str
 inlineToMarkdown _ (HtmlInline str) = return $ text str 
 inlineToMarkdown _ (LineBreak) = return $ text "  \n"
 inlineToMarkdown _ Space = return $ char ' '
-inlineToMarkdown _ (Cite cits _) =
-  return $ text $ "[" ++ (intercalate "; " $ map convertOne cits) ++ "]"
-    where
+inlineToMarkdown _ (Cite (c:cs) _)
+  | citationMode c == AuthorInText
+  = return $ text $ "@" ++ (citationId c) ++ " " ++ "[" ++ citationLocator c ++ "; " ++ convertAll cs ++ "]"
+  | otherwise
+  = return $ text $ "[" ++ convertAll (c:cs) ++ "]"
+  where
+        convertAll = intercalate "; " . (map convertOne)
         convertOne Citation { citationId      = k
                             , citationPrefix  = p      
                             , citationLocator = l
@@ -412,10 +416,9 @@ inlineToMarkdown _ (Cite cits _) =
         leaveEmpty "" _  = ""
         leaveEmpty _  "" = ""
         leaveEmpty a  b  = a ++ b
-        modekey AuthorOnly     = "+"
         modekey SuppressAuthor = "-"
-        modekey NormalCitation = ""
-
+        modekey _              = ""
+inlineToMarkdown _ (Cite _ _) = return $ text ""
 inlineToMarkdown opts (Link txt (src', tit)) = do
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if null tit then empty else text $ " \"" ++ tit ++ "\""
