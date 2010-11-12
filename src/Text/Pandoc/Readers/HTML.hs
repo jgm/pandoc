@@ -686,8 +686,8 @@ inline = choice [ charRef
 
 code :: GenParser Char ParserState Inline
 code = try $ do 
-  result <- (htmlOpenTag "code" >> manyTill anyChar (htmlEndTag "code"))
-        <|> (htmlOpenTag "tt"   >> manyTill anyChar (htmlEndTag "tt"))
+  result <- (htmlOpenTag "code" >> manyTill (noneOf "<>") (htmlEndTag "code"))
+        <|> (htmlOpenTag "tt"   >> manyTill (noneOf "<>") (htmlEndTag "tt"))
   -- remove internal line breaks, leading and trailing space,
   -- and decode character references
   return $ Code $ decodeCharacterReferences $ removeLeadingTrailingSpace $ 

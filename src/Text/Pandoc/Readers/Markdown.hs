@@ -373,6 +373,7 @@ attributes = try $ do
 attribute :: GenParser Char st ([Char], [[Char]], [([Char], [Char])])
 attribute = identifierAttr <|> classAttr <|> keyValAttr
 
+
 identifier :: GenParser Char st [Char]
 identifier = do
   first <- letter
@@ -912,7 +913,7 @@ inlineParsers = [ str
                 , note
                 , inlineNote
                 , link
-                , inlineCitation
+                , cite
                 , image
                 , math
                 , strikeout
@@ -1300,51 +1301,102 @@ rawHtmlInline' = do
   st <- getState
   result <- if stateStrict st
                then choice [htmlBlockElement, anyHtmlTag, anyHtmlEndTag] 
-               else anyHtmlInlineTag
+               else choice [htmlComment, anyHtmlInlineTag]
   return $ HtmlInline result
 
-inlineCitation :: GenParser Char ParserState Inline
-inlineCitation = try $ do
+-- Citations
+
+cite :: GenParser Char ParserState Inline
+cite = do
   failIfStrict
-  cit <- citeMarker
-  let citations = readWith parseCitation defaultParserState cit
-  mr <- mapM chkCit citations
-  if catMaybes mr /= []
-     then return $ Cite citations []
-     else fail "no citation found"
+  textualCite <|> normalCite
 
-chkCit :: Citation -> GenParser Char ParserState (Maybe Citation)
-chkCit t = do
+spnl :: GenParser Char st ()
+spnl = try $ skipSpaces >> optional newline >> skipSpaces >>
+             notFollowedBy (char '\n')
+
+textualCite :: GenParser Char ParserState Inline
+textualCite = try $ do
+  key <- citeKey
   st <- getState
-  case lookupKeySrc (stateKeys st) (Key [Str $ citationId t]) of
-     Just  _ -> fail "This is a link"
-     Nothing -> if elem (citationId t) $ stateCitations st
-                   then return $ Just t
-                   else return $ Nothing
+  unless (key `elem` stateCitations st) $
+    fail "not a citation"
+  let first = Citation{ citationId      = key
+                      , citationPrefix  = ""
+                      , citationLocator = ""
+                      , citationMode    = AuthorInText
+                      , citationNoteNum = 0
+                      , citationHash    = 0
+                      }
+  option (Cite [first] []) $ try $ do
+    spnl
+    char '['
+    spnl
+    bareloc <- option "" locator
+    rest <- many $ try $ do
+                   char ';'
+                   spnl
+                   citation
+    spnl
+    char ']'
+    let first' = if null bareloc
+                   then first
+                   else first{ citationLocator = bareloc
+                             , citationMode = AuthorInText }
+    return $ Cite (first' : rest) []
 
-citeMarker :: GenParser Char ParserState String
-citeMarker = char '[' >> manyTill ( noneOf "\n" <|> (newline >>~ notFollowedBy blankline) ) (char ']')
+normalCite :: GenParser Char ParserState Inline
+normalCite = try $ do
+  cites <- citeList
+  return $ Cite cites []
 
-parseCitation :: GenParser Char ParserState [Citation]
-parseCitation = try $ sepBy (parseLabel) (skipMany1 $ char ';')
+citeKey :: GenParser Char st String
+citeKey = try $ do
+  char '@'
+  first <- letter
+  rest <- many $ noneOf ",;]@ \t\n"
+  return (first:rest)
 
-parseLabel :: GenParser Char ParserState Citation
-parseLabel = try $ do
-  r <- many (noneOf ";")
-  let t' s = if s /= [] then tail s else []
-      trim = unwords . words
-      pref =      takeWhile (/= '@') r
-      rest = t' $ dropWhile (/= '@') r
-      cit  =      takeWhile (/= ',') rest
-      loc  = t' $ dropWhile (/= ',') rest
-      (p,na) = if pref /= [] && last pref == '-'
-               then (init pref, True )
-               else (pref     , False)
-      (p',o) = if p /= [] && last p == '+'
-               then (init p   , True )
-               else (p        , False)
-      mode = case (na,o) of
-               (True, False) -> SuppressAuthor
-               (False,True ) -> AuthorOnly
-               _             -> NormalCitation
-  return $ Citation cit (trim p') (trim loc) mode 0 0
+locator :: GenParser Char st String
+locator = try $ do
+  optional $ char ','
+  spnl
+  -- TODO should eventually be list of inlines
+  many1 $ (char '\\' >> oneOf "];\n") <|> noneOf "];\n" <|>
+             (char '\n' >> notFollowedBy blankline >> return ' ')
+
+prefix :: GenParser Char st String
+prefix = try $ liftM removeLeadingTrailingSpace $
+  many $ (char '\\' >> anyChar) <|> noneOf "@]\n" <|>
+            (char '-' >> notFollowedBy (char '@') >> return '-') <|>
+            (char '\n' >> notFollowedBy blankline >> return ' ')
+
+citeList :: GenParser Char st [Citation]
+citeList = try $ do
+  char '['
+  spnl
+  first <- citation
+  spnl
+  rest <- many $ try $ do
+                 char ';'
+                 spnl
+                 citation
+  spnl
+  char ']'
+  return (first:rest)
+
+citation :: GenParser Char st Citation
+citation = try $ do
+  suppress_auth <- option False (char '-' >> return True)
+  pref <- prefix
+  key <- citeKey
+  loc <- locator
+  return $ Citation{ citationId        = key
+                     , citationPrefix  = pref
+                     , citationLocator = loc
+                     , citationMode    = if suppress_auth
+                                            then SuppressAuthor
+                                            else NormalCitation
+                     , citationNoteNum = 0
+                     , citationHash    = 0
+                     }

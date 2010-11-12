@@ -503,18 +503,10 @@ inlineToHtml opts inline =
                                         Left  _ -> inlineListToHtml opts
                                                    (readTeXMath str) >>= return .
                                                      (thespan !  [theclass "math"])
-                               MathJax _ -> do
-                                  let dt = if t == InlineMath
-                                              then DisplayInline
-                                              else DisplayBlock
-                                  let conf = useShortEmptyTags (const False)
-                                               defaultConfigPP
-                                  case texMathToMathML dt str of
-                                        Right r -> return $ primHtml $
-                                                    ppcElement conf r
-                                        Left  _ -> inlineListToHtml opts
-                                                   (readTeXMath str) >>= return .
-                                                     (thespan !  [theclass "math"])
+                               MathJax _ -> return $ primHtml $
+                                  case t of
+                                    InlineMath  -> "\\(" ++ str ++ "\\)"
+                                    DisplayMath -> "\\[" ++ str ++ "\\]"
                                PlainMath -> do
                                   x <- inlineListToHtml opts (readTeXMath str)
                                   let m = thespan ! [theclass "math"] $ x

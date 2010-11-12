@@ -32,6 +32,7 @@ module Text.Pandoc.Biblio ( processBiblio ) where
 import Control.Monad ( when )
 import Data.List
 import Data.Unique
+import qualified Data.Map as M
 import Text.CSL hiding ( Cite(..), Citation(..) )
 import qualified Text.CSL as CSL ( Cite(..) )
 import Text.Pandoc.Definition
@@ -52,20 +53,28 @@ processBiblio cf r p
                                   needNt = cits \\ concat ncits
                               in (,) needNt $ getNoteCitations needNt p'
             result     = citeproc csl r (setNearNote csl $ map (map toCslCite) grps)
-            cits_map   = zip grps (citations result)
+            cits_map   = M.fromList $ zip grps (citations result)
             biblioList = map (renderPandoc' csl) (bibliography result)
-            Pandoc m b = processWith (processCite csl cits_map) p'
+            Pandoc m b = processWith (procInlines $ processCite csl cits_map) p'
         return . generateNotes nts . Pandoc m $ b ++ biblioList
 
 -- | Substitute 'Cite' elements with formatted citations.
-processCite :: Style -> [([Citation],[FormattedOutput])] -> Inline -> Inline
-processCite s cs il
-    | Cite t _ <- il = Cite t (process t)
-    | otherwise      = il
+processCite :: Style -> M.Map [Citation] [FormattedOutput] -> [Inline] -> [Inline]
+processCite _ _ [] = []
+processCite s cs (i:is)
+    | Cite t _ <- i = process t ++ processCite s cs is
+    | otherwise     = i          : processCite s cs is
     where
-      process t = case lookup t cs of
-                    Just  i -> renderPandoc s i
+      process t = case M.lookup t cs of
+                    Just  x -> if isTextualCitation t && x /= []
+                               then renderPandoc s [head x] ++ [Space] ++
+                                    [Cite t $ renderPandoc s $ tail x]
+                               else [Cite t $ renderPandoc s        x]
                     Nothing -> [Str ("Error processing " ++ show t)]
+
+isTextualCitation :: [Citation] -> Bool
+isTextualCitation (c:_) = citationMode c == AuthorInText
+isTextualCitation _     = False
 
 -- | Retrieve all citations from a 'Pandoc' docuument. To be used with
 -- 'queryWith'.
@@ -109,22 +118,22 @@ mvCiteInNote is = procInlines mvCite
       mvCite :: [Inline] -> [Inline]
       mvCite inls
           | x:i:xs <- inls, startWithPunct xs
-          , x == Space,   i `elem_` is = split i xs ++ mvCite (tailFirstInlineStr xs)
+          , x == Space,   i `elem_` is = switch i xs ++ mvCite (tailFirstInlineStr xs)
           | x:i:xs <- inls
-          , x == Space,   i `elem_` is = mvInNote i :  mvCite xs
+          , x == Space,   i `elem_` is = mvInNote i :   mvCite xs
           | i:xs <- inls, i `elem_` is
-          , startWithPunct xs          = split i xs ++ mvCite (tailFirstInlineStr xs)
-          | i:xs <- inls, Note _ <- i  = checkNt  i :  mvCite xs
-          | i:xs <- inls               = i          :  mvCite xs
+          , startWithPunct xs          = switch i xs ++ mvCite (tailFirstInlineStr xs)
+          | i:xs <- inls, Note _ <- i  = checkNt  i :   mvCite xs
+          | i:xs <- inls               = i          :   mvCite xs
           | otherwise                  = []
-      elem_ x xs = case x of Cite cs _ -> (Cite cs []) `elem` xs; _ -> False
-      split i xs = Str (headInline xs) : mvInNote i : []
+      elem_  x xs = case x of Cite cs _ -> (Cite cs []) `elem` xs; _ -> False
+      switch i xs = Str (headInline xs) : mvInNote i : []
       mvInNote i
           | Cite t o <- i = Note [Para [Cite t $ sanitize o]]
           | otherwise     = Note [Para [i                  ]]
       sanitize i
-          | endWithPunct i = toCapital i
-          | otherwise      = toCapital (i ++ [Str "."])
+          | endWithPunct   i = toCapital i
+          | otherwise        = toCapital (i ++ [Str "."])
 
       checkPt i
           | Cite c o : xs <- i
@@ -142,10 +151,10 @@ setCitationNoteNum :: Int -> [Citation] -> [Citation]
 setCitationNoteNum i = map $ \c -> c { citationNoteNum = i}
 
 toCslCite :: Citation -> CSL.Cite
-toCslCite (Citation i p l cm nn _)
+toCslCite (Citation i p l cm nn h)
     = let (la,lo) = parseLocator l
           citMode = case cm of
-                      AuthorOnly     -> (True, False)
+                      AuthorInText   -> (True, False)
                       SuppressAuthor -> (False,True )
                       NormalCitation -> (False,False)
       in   emptyCite { CSL.citeId         = i
@@ -153,6 +162,7 @@ toCslCite (Citation i p l cm nn _)
                      , CSL.citeLabel      = la
                      , CSL.citeLocator    = lo
                      , CSL.citeNoteNumber = show nn
-                     , CSL.authorOnly     = fst citMode
+                     , CSL.authorInText   = fst citMode
                      , CSL.suppressAuthor = snd citMode
+                     , CSL.citeHash       = h
                      }

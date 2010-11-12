@@ -106,6 +106,7 @@ main = do
              "latex-reader.latex" "latex-reader.native"
   r11 <- runTest "native reader" ["-r", "native", "-w", "native", "-s"]
              "testsuite.native" "testsuite.native"
+  r14 <- runTest "markdown reader (citations)" ["-r", "markdown", "-w", "plain", "--biblio", "biblio.bib", "--csl", "chicago-author-date.csl"] "markdown-citations.txt" "markdown-citations.plain"
   r12s <- if runLhsTests
              then mapM runLhsWriterTest lhsWriterFormats
              else putStrLn "Skipping lhs writer tests because they presuppose highlighting support" >> return []
@@ -119,6 +120,7 @@ main = do
                 , r9             -- html
                 , r10            -- latex
                 , r11            -- native
+                , r14            -- citations
                 ] ++ r12s ++ r13s
   if all id results
      then do
