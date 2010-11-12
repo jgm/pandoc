@@ -1,0 +1,38 @@
+\documentclass{article}
+\usepackage{amssymb,amsmath}
+\usepackage[mathletters]{ucs}
+\usepackage[utf8x]{inputenc}
+\usepackage{biblatex}
+\bibliography{biblio}
+\usepackage[breaklinks=true,unicode=true]{hyperref}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setcounter{secnumdepth}{0}
+
+
+\begin{document}
+
+\section{Pandoc with citeproc-hs}
+
+{[}@nonexistent{]}
+
+@nonexistent
+
+\textcite{item1} says blah. \textcite[p. 30]{item1} says blah.
+\textcites[p.~30]{item1}{item2}[see also][]{item3} says blah.
+
+In a note.%
+\footnote{A citation without locators \autocite{item3}.}
+A citation group
+\autocites[see][p. 34-35]{item1}[also][chap. 3]{item3}. Another one
+\autocite[see][p. 34-35]{item1}. And another one in a note.%
+\footnote{Some citations \autocites[see][chap. 3]{item2}{item3}{item1}.}
+
+Now some modifiers.%
+\footnote{Like a citation without author: \autocite*{item1}, and now
+Doe with a locator \autocite*[p. 44]{item2}.}
+
+\section{References}
+\printbibliography
+
+\end{document}
