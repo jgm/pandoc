@@ -22,6 +22,9 @@ $if(natbib)$
 $endif$
 $if(biblatex)$
 \usepackage{biblatex}
+$if(biblio)$
+\bibliography{$biblio$}
+$endif$
 $endif$
 $if(lhs)$
 \usepackage{listings}
@@ -106,7 +109,12 @@ $if(toc)$
 $endif$
 $body$
 $if(biblio)$
+$if(natbib)$
 \bibliography{$biblio$}
+$endif$
+$endif$
+$if(biblatex)$
+\printbibliography
 $endif$
 $for(include-after)$
 
