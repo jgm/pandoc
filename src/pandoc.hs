@@ -521,7 +521,11 @@ options =
     , Option "" ["bibliography"]
                  (ReqArg
                   (\arg opt -> do
-                     refs <- readBiblioFile arg ""
+                     refs <- catch (readBiblioFile arg "") $ \e -> do
+                               UTF8.hPutStrLn stderr $
+                                 "Error reading bibliography `" ++ arg ++ "'"
+                               UTF8.hPutStrLn stderr $ show e
+                               exitWith (ExitFailure 23)
                      return opt { optBibliography =
                                    optBibliography opt ++ refs } )
                   "FILENAME")
