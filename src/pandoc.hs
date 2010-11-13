@@ -51,7 +51,7 @@ import Text.Pandoc.Biblio
 #endif
 import Control.Monad (when, unless, liftM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
-import Network.URI (parseURI, isURI)
+import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString, fromString)
 import Codec.Binary.UTF8.String (decodeString, encodeString)
@@ -846,8 +846,9 @@ main = do
       readSources srcs = mapM readSource srcs
       readSource "-" = UTF8.getContents
       readSource src = case parseURI src of
-                            Just u  -> readURI u
-                            Nothing -> UTF8.readFile src
+                            Just u | uriScheme u `elem` ["http:","https:"] ->
+                                       readURI u
+                            _       -> UTF8.readFile src
       readURI uri = simpleHTTP (mkRequest GET uri) >>= getResponseBody >>=
                       return . toString  -- treat all as UTF8
 

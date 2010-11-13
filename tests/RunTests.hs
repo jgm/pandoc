@@ -120,6 +120,7 @@ main = do
              then mapM runLhsReaderTest lhsReaderFormats
              else putStrLn "Skipping lhs reader tests because they presuppose highlighting support" >> return []
   let results = r1s ++
+
                 [ r2, r3, r4, r5 -- S5
                 , r6, r7, r7a    -- markdown reader
                 , r8, r8a        -- rst
@@ -185,7 +186,8 @@ runTest testname opts inp norm = do
   let normPath = norm
   hFlush stdout
   -- Note: COLUMNS must be set for markdown table reader
-  ph <- runProcess pandocPath (opts ++ [inpPath] ++ ["--data-dir", ".."]) Nothing (Just [("COLUMNS", "80")]) Nothing (Just hOut) (Just stderr)
+  ph <- runProcess pandocPath (opts ++ [inpPath] ++ ["--data-dir", ".."]) Nothing
+        (Just [("LANG","en_US.UTF-8"),("COLUMNS", "80")]) Nothing (Just hOut) (Just stderr)
   ec <- waitForProcess ph
   result  <- if ec == ExitSuccess
                 then do
