@@ -1332,9 +1332,9 @@ textualCite = try $ do
     spnl
     char '['
     spnl
-    bareloc <- option "" locator
+    bareloc <- option "" $ notFollowedBy (oneOf "-@") >> locator
     rest <- many $ try $ do
-                   char ';'
+                   optional $ char ';'
                    spnl
                    citation
     spnl
@@ -1366,10 +1366,10 @@ locator = try $ do
              (char '\n' >> notFollowedBy blankline >> return ' ')
 
 prefix :: GenParser Char st String
-prefix = try $ liftM removeLeadingTrailingSpace $
-  many $ (char '\\' >> anyChar) <|> noneOf "@]\n" <|>
-            (char '-' >> notFollowedBy (char '@') >> return '-') <|>
-            (char '\n' >> notFollowedBy blankline >> return ' ')
+prefix = liftM removeLeadingTrailingSpace $
+  many $ (char '\\' >> anyChar) <|> noneOf "-@]\n" <|>
+            (try $ char '-' >> notFollowedBy (char '@') >> return '-') <|>
+            (try $ char '\n' >> notFollowedBy blankline >> return ' ')
 
 citeList :: GenParser Char st [Citation]
 citeList = try $ do
@@ -1387,10 +1387,10 @@ citeList = try $ do
 
 citation :: GenParser Char st Citation
 citation = try $ do
-  suppress_auth <- option False (char '-' >> return True)
   pref <- prefix
+  suppress_auth <- option False (char '-' >> return True)
   key <- citeKey
-  loc <- locator
+  loc <- option "" locator
   return $ Citation{ citationId        = key
                      , citationPrefix  = pref
                      , citationLocator = loc
