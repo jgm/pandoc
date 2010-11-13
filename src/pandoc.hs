@@ -163,8 +163,7 @@ data Opt = Opt
     , optIndentedCodeClasses :: [String] -- ^ Default classes for indented code blocks
     , optDataDir           :: Maybe FilePath
 #ifdef _CITEPROC
-    , optBiblioFile        :: String
-    , optBiblioFormat      :: String
+    , optBibliography      :: [Reference]
     , optCslFile           :: String
 #endif
     }
@@ -205,8 +204,7 @@ defaultOpts = Opt
     , optIndentedCodeClasses = []
     , optDataDir           = Nothing
 #ifdef _CITEPROC
-    , optBiblioFile        = []
-    , optBiblioFormat      = []
+    , optBibliography      = []
     , optCslFile           = []
 #endif
     }
@@ -520,15 +518,13 @@ options =
                   "FORMAT")
                  "" -- "Print default template for FORMAT"
 #ifdef _CITEPROC
-    , Option "" ["biblio"]
+    , Option "" ["bibliography"]
                  (ReqArg
-                  (\arg opt -> return opt { optBiblioFile = arg} )
+                  (\arg opt -> do
+                     refs <- readBiblioFile arg ""
+                     return opt { optBibliography =
+                                   optBibliography opt ++ refs } )
                   "FILENAME")
-                 ""
-    , Option "" ["biblio-format"]
-                 (ReqArg
-                  (\arg opt -> return opt { optBiblioFormat = arg} )
-                  "STRING")
                  ""
     , Option "" ["csl"]
                  (ReqArg
@@ -684,9 +680,8 @@ main = do
               , optIndentedCodeClasses = codeBlockClasses
               , optDataDir           = mbDataDir
 #ifdef _CITEPROC
-              , optBiblioFile         = biblioFile
-              , optBiblioFormat       = biblioFormat
-              , optCslFile            = cslFile
+              , optBibliography      = refs
+              , optCslFile           = cslFile
 #endif
              } = opts
 
@@ -745,10 +740,6 @@ main = do
                  Nothing   -> stateColumns defaultParserState
 
   let standalone' = standalone || isNonTextOutput writerName'
-
-#ifdef _CITEPROC
-  refs <- if null biblioFile then return [] else readBiblioFile biblioFile biblioFormat
-#endif
 
   variables' <- case (writerName', standalone', offline) of
                       ("s5", True, True) -> do
