@@ -163,8 +163,7 @@ data Opt = Opt
     , optIndentedCodeClasses :: [String] -- ^ Default classes for indented code blocks
     , optDataDir           :: Maybe FilePath
     , optCiteMethod        :: CiteMethod -- ^ Method to output cites
-    , optBiblioFile        :: String
-    , optBiblioFormat      :: String
+    , optBibliography      :: [String]
     , optCslFile           :: String
     }
 
@@ -204,8 +203,7 @@ defaultOpts = Opt
     , optIndentedCodeClasses = []
     , optDataDir           = Nothing
     , optCiteMethod        = Citeproc
-    , optBiblioFile        = []
-    , optBiblioFormat      = []
+    , optBibliography      = []
     , optCslFile           = []
     }
 
@@ -518,15 +516,10 @@ options =
                   "FORMAT")
                  "" -- "Print default template for FORMAT"
 #ifdef _CITEPROC
-    , Option "" ["biblio"]
+    , Option "" ["bibliography"]
                  (ReqArg
-                  (\arg opt -> return opt { optBiblioFile = arg} )
+                  (\arg opt -> return opt { optBibliography = (optBibliography opt) ++ [arg] })
                   "FILENAME")
-                 ""
-    , Option "" ["biblio-format"]
-                 (ReqArg
-                  (\arg opt -> return opt { optBiblioFormat = arg} )
-                  "STRING")
                  ""
     , Option "" ["csl"]
                  (ReqArg
@@ -691,12 +684,9 @@ main = do
               , optIdentifierPrefix  = idPrefix
               , optIndentedCodeClasses = codeBlockClasses
               , optDataDir           = mbDataDir
-#ifdef _CITEPROC
-              , optBiblioFormat       = biblioFormat
-              , optCslFile            = cslFile
-#endif
+              , optBibliography      = reffiles
+              , optCslFile           = cslFile
               , optCiteMethod         = citeMethod
-              , optBiblioFile         = biblioFile
              } = opts
 
   when dumpArgs $
@@ -755,10 +745,6 @@ main = do
 
   let standalone' = standalone || isNonTextOutput writerName'
 
-#ifdef _CITEPROC
-  refs <- if null biblioFile then return [] else readBiblioFile biblioFile biblioFormat
-#endif
-
   variables' <- case (writerName', standalone', offline) of
                       ("s5", True, True) -> do
                         inc <- s5HeaderIncludes datadir
@@ -780,6 +766,11 @@ main = do
                          s <- readDataFile datadir $ "data"</>"MathMLinHTML.js"
                          return $ ("mathml-script", s) : variables'
                       _ -> return variables'
+  
+  refs <- mapM (\f -> catch (readBiblioFile f "") $ \e -> do
+         UTF8.hPutStrLn stderr $ "Error reading bibliography `" ++ f ++ "'"
+         UTF8.hPutStrLn stderr $ show e 
+         exitWith (ExitFailure 23)) reffiles >>= \rs -> return $ concat rs
 
   let sourceDir = if null sources
                      then "."
@@ -821,7 +812,7 @@ main = do
                                       writerIncremental      = incremental,
                                       writerXeTeX            = xetex,
                                       writerCiteMethod       = citeMethod,
-                                      writerBiblioFile       = biblioFile,
+                                      writerBiblioFile       = head reffiles,
                                       writerIgnoreNotes      = False,
                                       writerNumberSections   = numberSections,
                                       writerSectionDivs      = sectionDivs,
