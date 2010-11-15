@@ -767,10 +767,14 @@ main = do
                          return $ ("mathml-script", s) : variables'
                       _ -> return variables'
   
+#ifdef _CITEPROC
   refs <- mapM (\f -> catch (readBiblioFile f "") $ \e -> do
          UTF8.hPutStrLn stderr $ "Error reading bibliography `" ++ f ++ "'"
          UTF8.hPutStrLn stderr $ show e 
          exitWith (ExitFailure 23)) reffiles >>= \rs -> return $ concat rs
+#else
+  let refs = []
+#endif
 
   let sourceDir = if null sources
                      then "."
