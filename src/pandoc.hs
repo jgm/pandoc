@@ -855,7 +855,8 @@ main = do
 
   doc'' <- do
 #ifdef _CITEPROC
-          if citeMethod == Citeproc
+          -- this needs to be cleaned up, writer should know if it needs to add a processBiblio
+          if citeMethod == Citeproc && writerName' /= "markdown" && writerName' /= "markdown+lhs"
              then processBiblio cslFile refs doc'
              else return doc'
 #else
