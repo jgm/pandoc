@@ -4,7 +4,7 @@
 \usepackage[utf8x]{inputenc}
 \usepackage{biblatex}
 \bibliography{biblio}
-\usepackage[breaklinks=true,unicode=true]{hyperref}
+\usepackage[breaklinks=true,unicode=true,pdfborder={0 0 0}]{hyperref}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 \setcounter{secnumdepth}{0}
