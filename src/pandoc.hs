@@ -521,7 +521,7 @@ options =
     , Option "" ["bibliography"]
                  (ReqArg
                   (\arg opt -> do
-                     refs <- catch (readBiblioFile arg "") $ \e -> do
+                     refs <- catch (readBiblioFile arg) $ \e -> do
                                UTF8.hPutStrLn stderr $
                                  "Error reading bibliography `" ++ arg ++ "'"
                                UTF8.hPutStrLn stderr $ show e
