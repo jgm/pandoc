@@ -5,12 +5,12 @@ Pandoc with citeproc-hs
 
 @nonexistent
 
-Doe (2005) says blah. Doe (2005, 30) says blah. Doe
-(2005; 2006, 30; see also Doe and Roe 2007) says blah.
+Doe (2005) says blah. Doe (2005, 30) says blah. Doe (2005; 2006,
+30; see also Doe and Roe 2007) says blah.
 
-In a note.[^1] A citation group
-(see Doe 2005, 34-35; also Doe and Roe 2007, chap. 3). Another one
-(see Doe 2005, 34-35). And another one in a note.[^2]
+In a note.[^1] A citation group (see Doe 2005, 34-35; also Doe and
+Roe 2007, chap. 3). Another one (see Doe 2005, 34-35). And another
+one in a note.[^2]
 
 Now some modifiers.[^3]
 
@@ -29,8 +29,8 @@ ed. Sam Smith. Oxford: Oxford University Press.
     A citation without locators (Doe and Roe 2007).
 
 [^2]:
-    Some citations
-    (see Doe 2006, chap. 3; Doe and Roe 2007; Doe 2005).
+    Some citations (see Doe 2006, chap. 3; Doe and Roe 2007; Doe
+    2005).
 
 [^3]:
     Like a citation without author: (2005), and now Doe with a locator
