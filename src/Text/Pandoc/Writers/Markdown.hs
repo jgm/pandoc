@@ -403,11 +403,14 @@ inlineToMarkdown _ (LineBreak) = return $ text "  \n"
 inlineToMarkdown _ Space = return $ char ' '
 inlineToMarkdown _ (Cite (c:cs) _)
   | citationMode c == AuthorInText
-  = return $ text $ "@" ++ (citationId c) ++ " " ++ "[" ++ citationLocator c ++ "; " ++ convertAll cs ++ "]"
+  = return $ text $ "@" ++ (citationId c) ++ authorbrackets
   | otherwise
   = return $ text $ "[" ++ convertAll (c:cs) ++ "]"
   where
-        convertAll = intercalate "; " . (map convertOne)
+        authorbrackets  = if not (null inbracket) then " [" ++ inbracket ++ "]" else ""
+        inbracket       = intercalate "; " $ filter (not . null) 
+                                           $ citationLocator c : map convertOne cs
+        convertAll = intercalate "; " . map convertOne
         convertOne Citation { citationId      = k
                             , citationPrefix  = p      
                             , citationLocator = l
