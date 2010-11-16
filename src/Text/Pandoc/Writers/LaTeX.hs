@@ -438,9 +438,12 @@ citationsToBiblatex (one:[])
                   AuthorInText   -> "textcite"
                   NormalCitation -> "autocite"
 
-citationsToBiblatex cits
-  = "\\autocites" ++ (concat $ map convertOne cits)
+citationsToBiblatex (c:cs)
+  = cmd  ++ (concat $ map convertOne (c:cs))
     where
+       cmd = case citationMode c of
+                  AuthorInText -> "\\textcites"
+                  _            -> "\\autocites"
        convertOne Citation { citationId = k
                            , citationPrefix = p
                            , citationLocator = l
