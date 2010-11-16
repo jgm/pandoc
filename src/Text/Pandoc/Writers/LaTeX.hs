@@ -395,6 +395,11 @@ citationsToNatbib cits
      l         = citationLocator $ last $ cits
      ks        = intercalate ", " $ map citationId cits
 
+citationsToNatbib (c:cs)
+  | citationMode c == AuthorInText
+  = citeCommand "citeauthor" "" "" (citationId c) 
+    ++ " " ++ citationsToNatbib (c { citationMode = SuppressAuthor } : cs)
+
 citationsToNatbib cits 
   = "\\citetext{" ++ (intercalate "; " $ map convertOne cits) ++ "}"
   where
@@ -405,7 +410,7 @@ citationsToNatbib cits
                         }
         = case m of
                AuthorInText   -> citeCommand "citealt" p l k
-               SuppressAuthor -> p ++ " " ++ citeCommand "citeyear" "" "" k ++ " " ++ l
+               SuppressAuthor -> citeCommand "citeyear" p l k
                NormalCitation -> citeCommand "citealp" p l k
 
 citeCommand :: String -> String -> String -> String -> String
