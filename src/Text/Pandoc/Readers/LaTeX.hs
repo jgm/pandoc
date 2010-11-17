@@ -438,7 +438,7 @@ unknownCommand = try $ do
            else return $ Plain [Str $ concat args]
 
 commandsToIgnore :: [String]
-commandsToIgnore = ["special","pdfannot","pdfstringdef"]
+commandsToIgnore = ["special","pdfannot","pdfstringdef","bibliography"]
 
 commentBlock :: GenParser Char st Block
 commentBlock = comment >> return Null
