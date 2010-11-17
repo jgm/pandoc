@@ -99,8 +99,8 @@ getNoteCitations needNote
       in  queryWith getCitation . getCits
 
 setHash :: Citation -> IO Citation
-setHash (Citation i p l cm nn _)
-    = hashUnique `fmap` newUnique >>= return . Citation i p l cm nn
+setHash (Citation i p s l cm nn _)
+    = hashUnique `fmap` newUnique >>= return . Citation i p s l cm nn
 
 generateNotes :: [Inline] -> Pandoc -> Pandoc
 generateNotes needNote = processWith (mvCiteInNote needNote)
@@ -150,19 +150,30 @@ setCiteNoteNum               _  _ = []
 setCitationNoteNum :: Int -> [Citation] -> [Citation]
 setCitationNoteNum i = map $ \c -> c { citationNoteNum = i}
 
+-- a temporary function to tide us over until citeproc is
+-- changed to use Inline lists for prefixes and suffixes...
+stringify :: [Inline] -> String
+stringify = queryWith go
+  where go :: Inline -> [Char]
+        go Space = " "
+        go (Str x) = x
+        go (Code x) = x
+        go _ = ""
+
 toCslCite :: Citation -> CSL.Cite
-toCslCite (Citation i p l cm nn h)
-    = let (la,lo) = parseLocator l
-          citMode = case cm of
+toCslCite c
+    = let (la,lo) = parseLocator $ citationLocator c
+          citMode = case citationMode c of
                       AuthorInText   -> (True, False)
                       SuppressAuthor -> (False,True )
                       NormalCitation -> (False,False)
-      in   emptyCite { CSL.citeId         = i
-                     , CSL.citePrefix     = p
+      in   emptyCite { CSL.citeId         = citationId c
+                     , CSL.citePrefix     = stringify $ citationPrefix c
+                     , CSL.citeSuffix     = stringify $ citationSuffix c
                      , CSL.citeLabel      = la
                      , CSL.citeLocator    = lo
-                     , CSL.citeNoteNumber = show nn
+                     , CSL.citeNoteNumber = show $ citationNoteNum c
                      , CSL.authorInText   = fst citMode
                      , CSL.suppressAuthor = snd citMode
-                     , CSL.citeHash       = h
+                     , CSL.citeHash       = citationHash c
                      }
