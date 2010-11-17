@@ -834,18 +834,31 @@ simpleCites = try $ do
   return $ Cite (convert keys)  []
 
 complexNatbibCites :: GenParser Char ParserState Inline
-complexNatbibCites = try $ do
-  string "\\citetext{"
-  cits <- many1Till complexNatbibCitation (char '}')
-  return $ Cite (concat cits) []
+complexNatbibCites = complexNatbibTextual <|> complexNatbibParenthetical
 
-complexNatbibCitation :: GenParser Char ParserState [Citation]
-complexNatbibCitation = do
-  pref              <- many (noneOf "\\}")
-  (Cite cmdcites _) <- simpleCites
-  loc               <- many (noneOf "\\};")
-  optional $ char ';'
-  return $ addPrefix (removeLeadingSpace pref) $ addLocator (removeTrailingSpace loc) cmdcites
+complexNatbibTextual :: GenParser Char ParserState Inline
+complexNatbibTextual = try $ do
+  string "\\citeauthor{"
+  manyTill (noneOf "}") (char '}')
+  skipSpaces
+  Cite (c:cs) _ <- complexNatbibParenthetical
+  return $ Cite (c {citationMode = AuthorInText} : cs) []
+  
+
+complexNatbibParenthetical :: GenParser Char ParserState Inline
+complexNatbibParenthetical = try $ do
+  string "\\citetext{"
+  cits <- many1Till parseOne (char '}')
+  return $ Cite (concat cits) []
+  where
+    parseOne = do
+                 pref              <- many (noneOf "\\}")
+                 (Cite cmdcites _) <- simpleCites
+                 loc               <- many (noneOf "\\};")
+                 optional $ char ';'
+                 return $ addPrefix (removeLeadingSpace pref) 
+                        $ addLocator (removeTrailingSpace loc) 
+                        $ cmdcites
 
 addPrefix :: String -> [Citation] -> [Citation]
 addPrefix p (k:ks)   = k {citationPrefix = p ++ citationPrefix k} : ks

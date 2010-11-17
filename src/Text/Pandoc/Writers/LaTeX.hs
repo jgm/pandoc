@@ -449,3 +449,5 @@ citationsToBiblatex (c:cs)
                            , citationLocator = l
                            }
               = citeArguments p l k
+
+citationsToBiblatex _ = "" 
