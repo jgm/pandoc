@@ -120,7 +120,7 @@ anyEnvironment =  try $ do
 -- | Process LaTeX preamble, extracting metadata.
 processLaTeXPreamble :: GenParser Char ParserState ()
 processLaTeXPreamble = try $ manyTill 
-  (choice [bibliographic, comment, unknownCommand, nullBlock]) 
+  (choice [bibliographic, commentBlock, unknownCommand, nullBlock]) 
   (try (string "\\begin{document}")) >> 
   spaces
 
@@ -155,7 +155,7 @@ block = choice [ hrule
                , header
                , list
                , blockQuote
-               , comment
+               , commentBlock
                , bibliographic
                , para
                , itemBlock
@@ -440,9 +440,8 @@ unknownCommand = try $ do
 commandsToIgnore :: [String]
 commandsToIgnore = ["special","pdfannot","pdfstringdef"]
 
--- latex comment
-comment :: GenParser Char st Block
-comment = try $ char '%' >> manyTill anyChar newline >> spaces >> return Null
+commentBlock :: GenParser Char st Block
+commentBlock = comment >> return Null
 
 -- 
 -- inline
@@ -479,7 +478,13 @@ inline =  choice [ str
                  , rawLaTeXInline'
                  , escapedChar
                  , unescapedChar
+                 , comment
                  ] <?> "inline"
+
+
+-- latex comment
+comment :: GenParser Char st Inline
+comment = try $ char '%' >> manyTill anyChar newline >> spaces >> return (Str "")
 
 accentedChar :: GenParser Char st Inline
 accentedChar = normalAccentedChar <|> specialAccentedChar
