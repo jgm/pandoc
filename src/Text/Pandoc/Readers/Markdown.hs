@@ -1322,7 +1322,8 @@ textualCite = try $ do
   unless (key `elem` stateCitations st) $
     fail "not a citation"
   let first = Citation{ citationId      = key
-                      , citationPrefix  = ""
+                      , citationPrefix  = []
+                      , citationSuffix  = []
                       , citationLocator = ""
                       , citationMode    = AuthorInText
                       , citationNoteNum = 0
@@ -1361,7 +1362,6 @@ locator :: GenParser Char st String
 locator = try $ do
   optional $ char ','
   spnl
-  -- TODO should eventually be list of inlines
   many1 $ (char '\\' >> oneOf "];\n") <|> noneOf "];\n" <|>
              (char '\n' >> notFollowedBy blankline >> return ' ')
 
@@ -1392,7 +1392,8 @@ citation = try $ do
   key <- citeKey
   loc <- option "" locator
   return $ Citation{ citationId        = key
-                     , citationPrefix  = pref
+                     , citationPrefix  = [Str pref]
+                     , citationSuffix  = []
                      , citationLocator = loc
                      , citationMode    = if suppress_auth
                                             then SuppressAuthor
