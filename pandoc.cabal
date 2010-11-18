@@ -62,6 +62,8 @@ Data-Files:
                  -- data for slidy writer
                  slidy/slidy.min.css,
                  slidy/slidy.min.js,
+                 -- data for citeproc
+                 default.csl,
                  -- documentation
                  README, INSTALL, COPYRIGHT, BUGS, changelog
 Extra-Source-Files:
