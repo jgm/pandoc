@@ -42,7 +42,7 @@ import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower, isDigit )
 import Data.List ( intercalate, isSuffixOf )
-import System.Directory ( getAppUserDataDirectory )
+import System.Directory ( getAppUserDataDirectory, doesFileExist )
 import System.IO ( stdout, stderr )
 import qualified Text.Pandoc.UTF8 as UTF8
 #ifdef _CITEPROC
@@ -55,6 +55,7 @@ import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString, fromString)
 import Codec.Binary.UTF8.String (decodeString, encodeString)
+import Paths_pandoc (getDataFileName)
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2010 John MacFarlane\n" ++
@@ -164,7 +165,7 @@ data Opt = Opt
     , optDataDir           :: Maybe FilePath
 #ifdef _CITEPROC
     , optBibliography      :: [Reference]
-    , optCslFile           :: String
+    , optCslFile           :: FilePath
 #endif
     }
 
@@ -205,7 +206,7 @@ defaultOpts = Opt
     , optDataDir           = Nothing
 #ifdef _CITEPROC
     , optBibliography      = []
-    , optCslFile           = []
+    , optCslFile           = ""
 #endif
     }
 
@@ -532,7 +533,7 @@ options =
                  ""
     , Option "" ["csl"]
                  (ReqArg
-                  (\arg opt -> return opt { optCslFile = arg} )
+                  (\arg opt -> return opt { optCslFile = arg })
                   "FILENAME")
                  ""
 #endif
@@ -685,7 +686,7 @@ main = do
               , optDataDir           = mbDataDir
 #ifdef _CITEPROC
               , optBibliography      = refs
-              , optCslFile           = cslFile
+              , optCslFile           = cslfile
 #endif
              } = opts
 
@@ -838,13 +839,29 @@ main = do
 
   let convertTabs = tabFilter (if preserveTabs then 0 else tabStop)
 
+#ifdef _CITEPROC
+  cslfile' <- if null cslfile
+                 then do
+                   let defaultcsl = "default.csl"
+                   csldatafile <- getDataFileName defaultcsl
+                   case datadir of
+                        Nothing  -> return csldatafile
+                        Just u   -> do
+                          ex <- doesFileExist $ u </> defaultcsl
+                          if ex
+                             then return $ u </> defaultcsl
+                             else return csldatafile
+                 else return cslfile
+  csl <- readCSLFile cslfile'
+#endif
+
   doc <- fmap (reader startParserState . convertTabs . intercalate "\n") (readSources sources)
 
   let doc' = foldr ($) doc transforms
 
   doc'' <- do
 #ifdef _CITEPROC
-          processBiblio cslFile refs doc'
+          processBiblio csl refs doc'
 #else
           return doc'
 #endif

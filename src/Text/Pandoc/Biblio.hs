@@ -29,7 +29,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 module Text.Pandoc.Biblio ( processBiblio ) where
 
-import Control.Monad ( when )
 import Data.List
 import Data.Unique
 import qualified Data.Map as M
@@ -39,12 +38,10 @@ import Text.Pandoc.Definition
 
 -- | Process a 'Pandoc' document by adding citations formatted
 -- according to a CSL style, using 'citeproc' from citeproc-hs.
-processBiblio :: String -> [Reference] -> Pandoc -> IO Pandoc
-processBiblio cf r p
+processBiblio :: Style -> [Reference] -> Pandoc -> IO Pandoc
+processBiblio csl r p
     = if null r then return p
       else do
-        when (null cf) $ error "Missing the needed citation style file"
-        csl  <- readCSLFile cf
         p'   <- processWithM setHash p
         let (nts,grps) = if styleClass csl /= "note"
                          then (,) [] $ queryWith getCitation p'
