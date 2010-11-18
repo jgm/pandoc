@@ -6,11 +6,11 @@
 
 @item1 says blah.
 @item1 [p. 30] says blah.
-@item1 [-@item2, p. 30; see also @item3] says blah.
+@item1 [-@item2 p. 30; see also @item3] says blah.
 
 In a note.[^1] A citation group [see
-@item1, p. 34-35; also @item3, chap. 3]. Another one [see
-@item1, p. 34-35]. And another one in a note.[^2]
+@item1 p. 34-35; also @item3 chap. 3]. Another one [see
+@item1 p. 34-35]. And another one in a note.[^2]
 
 Now some modifiers.[^3]
 
@@ -18,11 +18,11 @@ Now some modifiers.[^3]
      A citation without locators [@item3].
 
 [^2]:
-     Some citations [see @item2, chap. 3; @item3; @item1].
+     Some citations [see @item2 chap. 3; @item3; @item1].
 
 [^3]:
      Like a citation without author: [-@item1], and now Doe with a
-     locator [-@item2, p. 44].
+     locator [-@item2 p. 44].
 
 # References
 
