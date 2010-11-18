@@ -1348,13 +1348,12 @@ bareloc :: Citation -> GenParser Char ParserState [Citation]
 bareloc c = try $ do
   spnl
   char '['
-  spnl
   loc <- locator
-  spnl
+  suff <- suffix
   rest <- option [] $ try $ char ';' >> citeList
   spnl
   char ']'
-  return $ c{ citationLocator = loc } : rest
+  return $ c{ citationLocator = loc, citationSuffix = suff } : rest
 
 normalCite :: GenParser Char ParserState [Citation]
 normalCite = try $ do
@@ -1376,28 +1375,31 @@ citeKey = try $ do
 locator :: GenParser Char st String
 locator = try $ do
   spnl
-  w  <- many1 (noneOf " \t\n;]")
-  spnl
-  ws <- many locatorWord
+  w  <- many1 (noneOf " \t\n;,]")
+  ws <- many (locatorWord <|> locatorComma)
   return $ unwords $ w:ws
 
 locatorWord :: GenParser Char st String
 locatorWord = try $ do
-  wd <- many1 $ (try $ char '\\' >> oneOf "]; \t\n") <|> noneOf "]; \t\n"
   spnl
-  if any isDigit wd
-     then return wd
-     else pzero
+  wd <- many1 $ (try $ char '\\' >> oneOf "];, \t\n") <|> noneOf "];, \t\n"
+  guard $ any isDigit wd
+  return wd
+
+locatorComma :: GenParser Char st String
+locatorComma = try $ do
+  char ','
+  lookAhead $ locatorWord
+  return ","
 
 suffix :: GenParser Char ParserState [Inline]
 suffix = try $ do
-  char ','
   spnl
   liftM normalizeSpaces $ many $ notFollowedBy (oneOf ";]") >> inline
 
 prefix :: GenParser Char ParserState [Inline]
 prefix = liftM normalizeSpaces $
-  manyTill inline (lookAhead citeKey)
+  manyTill inline (char ']' <|> liftM (const ']') (lookAhead citeKey))
 
 citeList :: GenParser Char ParserState [Citation]
 citeList = sepBy1 citation (try $ char ';' >> spnl)
@@ -1407,7 +1409,7 @@ citation = try $ do
   pref <- prefix
   (suppress_author, key) <- citeKey
   loc <- option "" $ try $ blankSpace >> locator
-  suff <- option [] suffix
+  suff <- suffix
   return $ Citation{ citationId        = key
                      , citationPrefix  = pref
                      , citationSuffix  = suff
