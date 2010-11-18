@@ -1325,6 +1325,10 @@ blankSpace = try $ do
   guard $ length res > 0
   guard $ length (filter (=='\n') res) <= 1
 
+noneOfUnlessEscaped :: [Char] -> GenParser Char st Char
+noneOfUnlessEscaped cs =
+  try (char '\\' >> oneOf cs) <|> noneOf cs
+
 textualCite :: GenParser Char ParserState [Citation]
 textualCite = try $ do
   (_, key) <- citeKey
@@ -1382,7 +1386,7 @@ locator = try $ do
 locatorWord :: GenParser Char st String
 locatorWord = try $ do
   spnl
-  wd <- many1 $ (try $ char '\\' >> oneOf "];, \t\n") <|> noneOf "];, \t\n"
+  wd <- many1 $ noneOfUnlessEscaped "];, \t\n"
   guard $ any isDigit wd
   return wd
 
