@@ -150,16 +150,6 @@ setCiteNoteNum               _  _ = []
 setCitationNoteNum :: Int -> [Citation] -> [Citation]
 setCitationNoteNum i = map $ \c -> c { citationNoteNum = i}
 
--- a temporary function to tide us over until citeproc is
--- changed to use Inline lists for prefixes and suffixes...
-stringify :: [Inline] -> String
-stringify = queryWith go
-  where go :: Inline -> [Char]
-        go Space = " "
-        go (Str x) = x
-        go (Code x) = x
-        go _ = ""
-
 toCslCite :: Citation -> CSL.Cite
 toCslCite c
     = let (la,lo) = parseLocator $ citationLocator c
@@ -168,8 +158,8 @@ toCslCite c
                       SuppressAuthor -> (False,True )
                       NormalCitation -> (False,False)
       in   emptyCite { CSL.citeId         = citationId c
-                     , CSL.citePrefix     = stringify $ citationPrefix c
-                     , CSL.citeSuffix     = stringify $ citationSuffix c
+                     , CSL.citePrefix     = PandocText $ citationPrefix c
+                     , CSL.citeSuffix     = PandocText $ citationSuffix c
                      , CSL.citeLabel      = la
                      , CSL.citeLocator    = lo
                      , CSL.citeNoteNumber = show $ citationNoteNum c

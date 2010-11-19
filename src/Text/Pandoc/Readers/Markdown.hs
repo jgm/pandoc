@@ -1392,7 +1392,7 @@ citation = try $ do
   key <- citeKey
   loc <- option "" locator
   return $ Citation{ citationId        = key
-                     , citationPrefix  = [Str pref]
+                     , citationPrefix  = if pref /= [] then [Str pref] else []
                      , citationSuffix  = []
                      , citationLocator = loc
                      , citationMode    = if suppress_auth
