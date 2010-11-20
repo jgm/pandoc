@@ -32,7 +32,7 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.S5 (s5HeaderIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
-                            headerShift )
+                            headerShift, findDataFile, findFirstFile )
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
 #endif
@@ -42,7 +42,7 @@ import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower, isDigit )
 import Data.List ( intercalate, isSuffixOf )
-import System.Directory ( getAppUserDataDirectory, doesFileExist )
+import System.Directory ( getAppUserDataDirectory )
 import System.IO ( stdout, stderr )
 import qualified Text.Pandoc.UTF8 as UTF8
 #ifdef _CITEPROC
@@ -55,7 +55,6 @@ import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString, fromString)
 import Codec.Binary.UTF8.String (decodeString, encodeString)
-import Paths_pandoc (getDataFileName)
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2010 John MacFarlane\n" ++
@@ -768,6 +767,25 @@ main = do
                          return $ ("mathml-script", s) : variables'
                       _ -> return variables'
 
+#ifdef _CITEPROC
+  cslfile' <- if null cslfile
+                 then findDataFile datadir "default.csl"
+                 else return cslfile
+  csl <- readCSLFile cslfile'
+  refs' <- if null refs
+              then do
+                f <- findFirstFile datadir
+                       ["biblio.xml","biblio.json","biblio.bib"]
+                case f of
+                     Just x  -> catch (readBiblioFile x) $ \e -> do
+                                 UTF8.hPutStrLn stderr $
+                                  "Error reading bibliography `" ++ x ++ "'"
+                                 UTF8.hPutStrLn stderr $ show e
+                                 exitWith (ExitFailure 23) >> return []
+                     Nothing -> return []
+              else return refs
+#endif
+
   let sourceDir = if null sources
                      then "."
                      else takeDirectory (head sources)
@@ -785,7 +803,7 @@ main = do
                                                      lhsExtension sources,
                               stateStandalone      = standalone',
 #ifdef _CITEPROC
-                              stateCitations       = map refId refs,
+                              stateCitations       = map refId refs',
 #endif
                               stateSmart           = smart || writerName' `elem`
                                                               ["latex", "context", "latex+lhs", "man"],
@@ -839,29 +857,13 @@ main = do
 
   let convertTabs = tabFilter (if preserveTabs then 0 else tabStop)
 
-#ifdef _CITEPROC
-  cslfile' <- if null cslfile
-                 then do
-                   let defaultcsl = "default.csl"
-                   csldatafile <- getDataFileName defaultcsl
-                   case datadir of
-                        Nothing  -> return csldatafile
-                        Just u   -> do
-                          ex <- doesFileExist $ u </> defaultcsl
-                          if ex
-                             then return $ u </> defaultcsl
-                             else return csldatafile
-                 else return cslfile
-  csl <- readCSLFile cslfile'
-#endif
-
   doc <- fmap (reader startParserState . convertTabs . intercalate "\n") (readSources sources)
 
   let doc' = foldr ($) doc transforms
 
   doc'' <- do
 #ifdef _CITEPROC
-          processBiblio csl refs doc'
+          processBiblio csl refs' doc'
 #else
           return doc'
 #endif
