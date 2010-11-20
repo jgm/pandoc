@@ -308,8 +308,8 @@ inlineToLaTeX (Cite cits lst) = do
   st <- get
   let opts = stOptions st
   case writerCiteMethod opts of
-     Natbib   -> return $ text $ citationsToNatbib cits 
-     Biblatex -> return $ text $ citationsToBiblatex cits
+     Natbib   -> citationsToNatbib cits 
+     Biblatex -> citationsToBiblatex cits
      _        -> inlineListToLaTeX lst
 
 inlineToLaTeX (Code str) = do
@@ -369,13 +369,14 @@ inlineToLaTeX (Note contents) = do
            text rawnote <> (if optNewline then char '\n' else empty) <> char '}'
 
 
-citationsToNatbib :: [Citation] -> String
+citationsToNatbib :: [Citation] -> State WriterState Doc
 citationsToNatbib (one:[])
-  = citeCommand c p l k
+  = citeCommand c p l s k
   where
     Citation { citationId = k
              , citationPrefix = p
              , citationLocator = l
+             , citationSuffix = s
              , citationMode = m
              } 
       = one
@@ -385,52 +386,65 @@ citationsToNatbib (one:[])
              NormalCitation -> "citep"
 
 citationsToNatbib cits 
-  | noPrefix (tail cits) && noLocator (init cits) && ismode NormalCitation cits
-  = citeCommand "citep" p l ks
+  | noPrefix (tail cits) && noSuffix (init cits) && noLocator (init cits) && ismode NormalCitation cits
+  = citeCommand "citep" p l s ks
   where
-     noPrefix  = and . map (((==) "") . citationPrefix)
-     noLocator = and . map (((==) "") . citationLocator)
+     noPrefix  = and . map (null . citationPrefix)
+     noSuffix  = and . map (null . citationSuffix)
+     noLocator = and . map (null . citationLocator)
      ismode m  = and . map (((==) m)  . citationMode)
      p         = citationPrefix  $ head $ cits
      l         = citationLocator $ last $ cits
+     s         = citationSuffix  $ last $ cits
      ks        = intercalate ", " $ map citationId cits
 
-citationsToNatbib (c:cs)
-  | citationMode c == AuthorInText
-  = citeCommand "citeauthor" "" "" (citationId c) 
-    ++ " " ++ citationsToNatbib (c { citationMode = SuppressAuthor } : cs)
+citationsToNatbib (c:cs) | citationMode c == AuthorInText = do
+     author <- citeCommand "citeauthor" [] "" [] (citationId c) 
+     cits   <- citationsToNatbib (c { citationMode = SuppressAuthor } : cs)
+     return $ author <+> cits
 
-citationsToNatbib cits 
-  = "\\citetext{" ++ (intercalate "; " $ map convertOne cits) ++ "}"
+citationsToNatbib cits = do
+  cits' <- mapM convertOne cits 
+  return $ text "\\citetext{" <> foldl combineTwo empty cits' <> text "}"
   where
+    combineTwo a b | isEmpty a = b
+                   | otherwise = a <> text "; " <> b
     convertOne Citation { citationId = k
                         , citationPrefix = p
                         , citationLocator = l
+                        , citationSuffix = s
                         , citationMode = m
                         }
         = case m of
-               AuthorInText   -> citeCommand "citealt" p l k
-               SuppressAuthor -> citeCommand "citeyear" p l k
-               NormalCitation -> citeCommand "citealp" p l k
+               AuthorInText   -> citeCommand "citealt" p l s k
+               SuppressAuthor -> citeCommand "citeyear" p l s k
+               NormalCitation -> citeCommand "citealp" p l s k
 
-citeCommand :: String -> String -> String -> String -> String
-citeCommand c p l k = "\\" ++ c ++ citeArguments p l k
+citeCommand :: String -> [Inline] -> String -> [Inline] -> String -> State WriterState Doc
+citeCommand c p l s k = do
+  args <- citeArguments p l s k
+  return $ text ("\\" ++ c) <> args
 
-citeArguments :: String -> String -> String -> String
-citeArguments p l k =  optargs ++ "{" ++ k ++ "}"
-              where
-                optargs = case (p , l ) of
-                               ("", "") -> ""
-                               ("", _ ) -> "[" ++ l ++ "]"
-                               (_ , _ ) -> "[" ++ p ++ "][" ++ l ++ "]"
+citeArguments :: [Inline] -> String -> [Inline] -> String -> State WriterState Doc
+citeArguments p l s k = do
+  p' <- inlineListToLaTeX p
+  s' <- inlineListToLaTeX s
+  let s'' = if not (null l) then (text l <> s') else s'
+      --s'' = text l <> s'
+      optargs = case (isEmpty p', isEmpty s'') of
+                     (True, True ) -> empty
+                     (True, False) -> brackets s''
+                     (_   , _    ) -> brackets p' <> brackets s''
+  return $ optargs <> braces (text k)
 
-citationsToBiblatex :: [Citation] -> String
+citationsToBiblatex :: [Citation] -> State WriterState Doc
 citationsToBiblatex (one:[])
-  = citeCommand cmd p l k
+  = citeCommand cmd p l s k
     where
        Citation { citationId = k
                 , citationPrefix = p
                 , citationLocator = l
+                , citationSuffix = s
                 , citationMode = m
                 } = one
        cmd = case m of
@@ -438,8 +452,9 @@ citationsToBiblatex (one:[])
                   AuthorInText   -> "textcite"
                   NormalCitation -> "autocite"
 
-citationsToBiblatex (c:cs)
-  = cmd  ++ (concat $ map convertOne (c:cs))
+citationsToBiblatex (c:cs) = do
+  args <- mapM convertOne (c:cs)
+  return $ text cmd <> foldl (<>) empty args
     where
        cmd = case citationMode c of
                   AuthorInText -> "\\textcites"
@@ -447,7 +462,8 @@ citationsToBiblatex (c:cs)
        convertOne Citation { citationId = k
                            , citationPrefix = p
                            , citationLocator = l
+                           , citationSuffix = s
                            }
-              = citeArguments p l k
+              = citeArguments p l s k
 
-citationsToBiblatex _ = "" 
+citationsToBiblatex _ = return empty

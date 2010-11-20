@@ -50,7 +50,7 @@ readLaTeX = readWith parseLaTeX
 
 -- characters with special meaning
 specialChars :: [Char]
-specialChars = "\\`$%^&_~#{}\n \t|<>'\"-"
+specialChars = "\\`$%^&_~#{}[]\n \t|<>'\"-"
 
 --
 -- utility functions
@@ -575,7 +575,7 @@ escapedChar = do
 
 -- nonescaped special characters
 unescapedChar :: GenParser Char st Inline
-unescapedChar = oneOf "`$^&_#{}|<>" >>= return . (\c -> Str [c])
+unescapedChar = oneOf "`$^&_#{}[]|<>" >>= return . (\c -> Str [c])
 
 specialChar :: GenParser Char st Inline
 specialChar = choice [ spacer, interwordSpace,
@@ -801,10 +801,10 @@ footnote = try $ do
 
 -- | citations
 cite :: GenParser Char ParserState Inline
-cite = simpleCites <|> complexNatbibCites
+cite = simpleCite <|> complexNatbibCites
 
-simpleCites :: GenParser Char ParserState Inline
-simpleCites = try $ do
+simpleCite :: GenParser Char ParserState Inline
+simpleCite = try $ do
   char '\\'
   let addUpper xs = xs ++ map (\(c:cs) -> toUpper c : cs) xs
       n   = ["cite" ++ a ++ b | a <- ["al", ""], b <- ["p", "p*", ""]]
@@ -815,22 +815,23 @@ simpleCites = try $ do
       ao  = ["textcite"] ++ ["cite" ++ a ++ b | a <- ["al", ""], b <- ["t", "t*"]]
       aoc = try $ oneOfStrings (addUpper ao) >> return AuthorInText
   mode <- sac <|> aoc <|> nc
-  first  <- optionMaybe $ charsInBalanced' '[' ']'
-  second <- optionMaybe $ charsInBalanced' '[' ']'
+  first  <- optionMaybe $ (char '[') >> manyTill inline (char ']')
+  second <- optionMaybe $ (char '[') >> manyTill inline (char ']') 
   char '{'
   keys <- many1Till citationLabel (char '}')
   let (p, l) = case (first, second) of
-                    (Just s , Nothing) -> ("", s )
+                    (Just s , Nothing) -> ([], s )
                     (Just s , Just t ) -> (s , t )
-                    _                  -> ("", "")
+                    _                  -> ([], [])
       convertOne k  = Citation { citationId      = k
-                               , citationPrefix  = ""
+                               , citationPrefix  = [] 
+                               , citationSuffix  = []
                                , citationLocator = ""
                                , citationMode    = mode
                                , citationHash    = 0
                                , citationNoteNum = 0
                                }
-      convert       = addPrefix p . addLocator l . map convertOne
+      convert       = addPrefix p . addSuffix l . map convertOne
   return $ Cite (convert keys)  []
 
 complexNatbibCites :: GenParser Char ParserState Inline
@@ -852,22 +853,23 @@ complexNatbibParenthetical = try $ do
   return $ Cite (concat cits) []
   where
     parseOne = do
-                 pref              <- many (noneOf "\\}")
-                 (Cite cmdcites _) <- simpleCites
-                 loc               <- many (noneOf "\\};")
+                 skipSpaces
+                 pref           <- many (notFollowedBy (oneOf "\\}") >> inline)
+                 (Cite cites _) <- simpleCite
+                 suff           <- many (notFollowedBy (oneOf "\\};") >> inline)
+                 skipSpaces
                  optional $ char ';'
-                 return $ addPrefix (removeLeadingSpace pref) 
-                        $ addLocator (removeTrailingSpace loc) 
-                        $ cmdcites
+                 return $ addPrefix pref $ addSuffix suff $ cites
+--}
 
-addPrefix :: String -> [Citation] -> [Citation]
+addPrefix :: [Inline] -> [Citation] -> [Citation]
 addPrefix p (k:ks)   = k {citationPrefix = p ++ citationPrefix k} : ks
 addPrefix _ _ = []
 
-addLocator :: String -> [Citation] -> [Citation]
-addLocator l ks@(_:_) = let k = last ks
-                        in init ks ++ [k {citationLocator = citationLocator k ++ l}]
-addLocator _ _ = []
+addSuffix :: [Inline] -> [Citation] -> [Citation]
+addSuffix s ks@(_:_) = let k = last ks
+                        in init ks ++ [k {citationSuffix = citationSuffix k ++ s}]
+addSuffix _ _ = []
 
 citationLabel :: GenParser Char ParserState String
 citationLabel  = do

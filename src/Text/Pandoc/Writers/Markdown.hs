@@ -36,7 +36,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Blocks
 import Text.ParserCombinators.Parsec ( runParser, GenParser )
-import Data.List ( group, isPrefixOf, find, intersperse, transpose, intercalate )
+import Data.List ( group, isPrefixOf, find, intersperse, transpose )
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import Control.Monad.State
 
@@ -401,24 +401,32 @@ inlineToMarkdown _ (TeX str) = return $ text str
 inlineToMarkdown _ (HtmlInline str) = return $ text str 
 inlineToMarkdown _ (LineBreak) = return $ text "  \n"
 inlineToMarkdown _ Space = return $ char ' '
-inlineToMarkdown _ (Cite (c:cs) _)
-  | citationMode c == AuthorInText
-  = return $ text $ "@" ++ (citationId c) ++ authorbrackets
-  | otherwise
-  = return $ text $ "[" ++ convertAll (c:cs) ++ "]"
+inlineToMarkdown opt (Cite (c:cs) _) | citationMode c == AuthorInText = do
+  suffs <- mapM (inlineToMarkdown opt) $ citationSuffix c
+  rest <- mapM convertOne cs
+  let s = hcat suffs <+> joincits rest
+      l = citationLocator c
+      s' = if null l then s else text l <+> s
+      withbrackets = if isEmpty s' then s' else brackets s'
+  return $ text ("@" ++ citationId c) <+> withbrackets
+                                     | otherwise = do
+  cits <- mapM convertOne (c:cs)
+  return $ text "[" <> joincits cits <> text "]"
   where
-        authorbrackets  = if not (null inbracket) then " [" ++ inbracket ++ "]" else ""
-        inbracket       = intercalate "; " $ filter (not . null) 
-                                           $ citationLocator c : map convertOne cs
-        convertAll = intercalate "; " . map convertOne
+        joincits = hcat . punctuate (text "; ") . filter (not . isEmpty)
         convertOne Citation { citationId      = k
-                            , citationPrefix  = p      
+                            , citationPrefix  = pinlines
+                            , citationSuffix  = sinlines
                             , citationLocator = l
                             , citationMode    = m }
-                               = leaveEmpty p " " ++ modekey m ++ "@" ++ k ++ leaveEmpty ", " l
-        leaveEmpty "" _  = ""
-        leaveEmpty _  "" = ""
-        leaveEmpty a  b  = a ++ b
+                               = do
+           pdocs <- mapM (inlineToMarkdown opt) pinlines
+           sdocs <- mapM (inlineToMarkdown opt) sinlines
+           let s   = hcat sdocs
+               s'  = case (null l, isEmpty s) of
+                          (True, True) -> empty
+                          (_   , _   ) -> text (", " ++ l) <> s
+           return $ hcat pdocs <+> text (modekey m ++ "@" ++ k) <> s'
         modekey SuppressAuthor = "-"
         modekey _              = ""
 inlineToMarkdown _ (Cite _ _) = return $ text ""
