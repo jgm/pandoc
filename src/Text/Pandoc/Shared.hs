@@ -71,6 +71,8 @@ module Text.Pandoc.Shared (
                      defaultWriterOptions,
                      -- * File handling
                      inDirectory,
+                     findFirstFile,
+                     findDataFile,
                      readDataFile
                     ) where
 
@@ -538,11 +540,28 @@ inDirectory path action = do
   setCurrentDirectory oldDir
   return result
 
+-- | Get full file path for the first of a list of files found in the
+-- specified directory.
+findFirstFile :: (Maybe FilePath) -> [FilePath] -> IO (Maybe FilePath)
+findFirstFile Nothing _     = return Nothing
+findFirstFile (Just _) []   = return Nothing
+findFirstFile (Just dir) (f:fs) = do
+  ex <- doesFileExist (dir </> f)
+  if ex
+     then return $ Just (dir </> f)
+     else findFirstFile (Just dir) fs
+
+-- | Get file path for data file, either from specified user data directory,
+-- or, if not found there, from Cabal data directory.
+findDataFile :: Maybe FilePath -> FilePath -> IO FilePath
+findDataFile Nothing f = getDataFileName f
+findDataFile (Just u) f = do
+  ex <- doesFileExist (u </> f)
+  if ex
+     then return (u </> f)
+     else getDataFileName f
+
 -- | Read file from specified user data directory or, if not found there, from
 -- Cabal data directory.
 readDataFile :: Maybe FilePath -> FilePath -> IO String
-readDataFile userDir fname =
-  case userDir of
-       Nothing  -> getDataFileName fname >>= UTF8.readFile
-       Just u   -> catch (UTF8.readFile $ u </> fname)
-                   (\_ -> getDataFileName fname >>= UTF8.readFile)
+readDataFile userDir fname = findDataFile userDir fname >>= UTF8.readFile
