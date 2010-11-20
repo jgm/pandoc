@@ -32,7 +32,7 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.S5 (s5HeaderIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
-                            headerShift, findDataFile, findFirstFile )
+                            headerShift, findDataFile )
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
 #endif
@@ -767,25 +767,6 @@ main = do
                          return $ ("mathml-script", s) : variables'
                       _ -> return variables'
 
-#ifdef _CITEPROC
-  cslfile' <- if null cslfile
-                 then findDataFile datadir "default.csl"
-                 else return cslfile
-  csl <- readCSLFile cslfile'
-  refs' <- if null refs
-              then do
-                f <- findFirstFile datadir
-                       ["biblio.xml","biblio.json","biblio.bib"]
-                case f of
-                     Just x  -> catch (readBiblioFile x) $ \e -> do
-                                 UTF8.hPutStrLn stderr $
-                                  "Error reading bibliography `" ++ x ++ "'"
-                                 UTF8.hPutStrLn stderr $ show e
-                                 exitWith (ExitFailure 23) >> return []
-                     Nothing -> return []
-              else return refs
-#endif
-
   let sourceDir = if null sources
                      then "."
                      else takeDirectory (head sources)
@@ -803,7 +784,7 @@ main = do
                                                      lhsExtension sources,
                               stateStandalone      = standalone',
 #ifdef _CITEPROC
-                              stateCitations       = map refId refs',
+                              stateCitations       = map refId refs,
 #endif
                               stateSmart           = smart || writerName' `elem`
                                                               ["latex", "context", "latex+lhs", "man"],
@@ -863,7 +844,13 @@ main = do
 
   doc'' <- do
 #ifdef _CITEPROC
-          processBiblio csl refs' doc'
+          if null refs
+             then return doc'
+             else do
+                cslfile' <- if null cslfile
+                               then findDataFile datadir "default.csl"
+                               else return cslfile
+                processBiblio cslfile' refs doc'
 #else
           return doc'
 #endif

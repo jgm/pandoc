@@ -38,10 +38,11 @@ import Text.Pandoc.Definition
 
 -- | Process a 'Pandoc' document by adding citations formatted
 -- according to a CSL style, using 'citeproc' from citeproc-hs.
-processBiblio :: Style -> [Reference] -> Pandoc -> IO Pandoc
-processBiblio csl r p
+processBiblio :: FilePath -> [Reference] -> Pandoc -> IO Pandoc
+processBiblio cslfile r p
     = if null r then return p
       else do
+        csl <- readCSLFile cslfile
         p'   <- processWithM setHash p
         let (nts,grps) = if styleClass csl /= "note"
                          then (,) [] $ queryWith getCitation p'

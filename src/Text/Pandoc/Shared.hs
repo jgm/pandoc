@@ -71,7 +71,6 @@ module Text.Pandoc.Shared (
                      defaultWriterOptions,
                      -- * File handling
                      inDirectory,
-                     findFirstFile,
                      findDataFile,
                      readDataFile
                     ) where
@@ -539,17 +538,6 @@ inDirectory path action = do
   result <- action
   setCurrentDirectory oldDir
   return result
-
--- | Get full file path for the first of a list of files found in the
--- specified directory.
-findFirstFile :: (Maybe FilePath) -> [FilePath] -> IO (Maybe FilePath)
-findFirstFile Nothing _     = return Nothing
-findFirstFile (Just _) []   = return Nothing
-findFirstFile (Just dir) (f:fs) = do
-  ex <- doesFileExist (dir </> f)
-  if ex
-     then return $ Just (dir </> f)
-     else findFirstFile (Just dir) fs
 
 -- | Get file path for data file, either from specified user data directory,
 -- or, if not found there, from Cabal data directory.
