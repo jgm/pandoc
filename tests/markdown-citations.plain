@@ -5,8 +5,9 @@ Pandoc with citeproc-hs
 
 @nonexistent
 
-Doe (2005) says blah. Doe (2005, 30) says blah. Doe (2005, 30, suffix)
-says blah. Doe (2005; 2006, 30; see also Doe and Roe 2007) says blah.
+Doe (2005) says blah. Doe (2005, 30) says blah. Doe
+(2005, 30, with suffix) says blah. Doe
+(2005; 2006, 30; see also Doe and Roe 2007) says blah.
 
 In a note.[^1] A citation group
 (see Doe 2005, 34-35; also Doe and Roe 2007, chap. 3). Another one
