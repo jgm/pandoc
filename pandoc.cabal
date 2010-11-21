@@ -147,7 +147,7 @@ Flag wrappers
   Default:       True
 Flag citeproc
   Description:   Compile in support for citeproc-hs bibliographic formatting.
-  Default:       False
+  Default:       True
 
 Library
   -- Note: the following material must be in both Library and Executable stanzas.
