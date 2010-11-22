@@ -32,7 +32,7 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.S5 (s5HeaderIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
-                            headerShift )
+                            headerShift, findDataFile )
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
 #endif
@@ -42,7 +42,7 @@ import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower, isDigit )
 import Data.List ( intercalate, isSuffixOf )
-import System.Directory ( getAppUserDataDirectory, doesFileExist )
+import System.Directory ( getAppUserDataDirectory )
 import System.IO ( stdout, stderr )
 import qualified Text.Pandoc.UTF8 as UTF8
 #ifdef _CITEPROC
@@ -55,7 +55,6 @@ import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString, fromString)
 import Codec.Binary.UTF8.String (decodeString, encodeString)
-import Paths_pandoc (getDataFileName)
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2010 John MacFarlane\n" ++
@@ -850,22 +849,6 @@ main = do
 
   let convertTabs = tabFilter (if preserveTabs then 0 else tabStop)
 
-#ifdef _CITEPROC
-  cslfile' <- if null cslfile
-                 then do
-                   let defaultcsl = "default.csl"
-                   csldatafile <- getDataFileName defaultcsl
-                   case datadir of
-                        Nothing  -> return csldatafile
-                        Just u   -> do
-                          ex <- doesFileExist $ u </> defaultcsl
-                          if ex
-                             then return $ u </> defaultcsl
-                             else return csldatafile
-                 else return cslfile
-  csl <- readCSLFile cslfile'
-#endif
-
   doc <- fmap (reader startParserState . convertTabs . intercalate "\n") (readSources sources)
 
   let doc' = foldr ($) doc transforms
@@ -873,8 +856,12 @@ main = do
   doc'' <- do
 #ifdef _CITEPROC
           -- this needs to be cleaned up, writer should know if it needs to add a processBiblio
-          if citeMethod == Citeproc && writerName' /= "markdown" && writerName' /= "markdown+lhs"
-             then processBiblio csl refs doc'
+          if citeMethod == Citeproc && writerName' /= "markdown" && writerName' /= "markdown+lhs" && not (null refs)
+             then do
+                cslfile' <- if null cslfile
+                               then findDataFile datadir "default.csl"
+                               else return cslfile
+                processBiblio cslfile' refs doc'
              else return doc'
 #else
           return doc'
