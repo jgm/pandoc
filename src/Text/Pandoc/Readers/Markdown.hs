@@ -34,7 +34,7 @@ module Text.Pandoc.Readers.Markdown (
 import Data.List ( transpose, isSuffixOf, sortBy, findIndex, intercalate )
 import qualified Data.Map as M
 import Data.Ord ( comparing )
-import Data.Char ( isAlphaNum )
+import Data.Char ( isAlphaNum, isDigit )
 import Data.Maybe
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
@@ -1309,15 +1309,29 @@ rawHtmlInline' = do
 cite :: GenParser Char ParserState Inline
 cite = do
   failIfStrict
-  textualCite <|> normalCite
+  citations <- textualCite <|> normalCite
+  return $ Cite citations []
 
 spnl :: GenParser Char st ()
-spnl = try $ skipSpaces >> optional newline >> skipSpaces >>
-             notFollowedBy (char '\n')
+spnl = try $ do
+  skipSpaces
+  optional newline
+  skipSpaces
+  notFollowedBy (char '\n')
 
-textualCite :: GenParser Char ParserState Inline
+blankSpace :: GenParser Char st ()
+blankSpace = try $ do
+  res <- many1 $ oneOf " \t\n"
+  guard $ length res > 0
+  guard $ length (filter (=='\n') res) <= 1
+
+noneOfUnlessEscaped :: [Char] -> GenParser Char st Char
+noneOfUnlessEscaped cs =
+  try (char '\\' >> oneOf cs) <|> noneOf cs
+
+textualCite :: GenParser Char ParserState [Citation]
 textualCite = try $ do
-  key <- citeKey
+  (_, key) <- citeKey
   st <- getState
   unless (key `elem` stateCitations st) $
     fail "not a citation"
@@ -1329,73 +1343,82 @@ textualCite = try $ do
                       , citationNoteNum = 0
                       , citationHash    = 0
                       }
-  option (Cite [first] []) $ try $ do
-    spnl
-    char '['
-    spnl
-    bareloc <- option "" $ notFollowedBy (oneOf "-@") >> locator
-    rest <- many $ try $ do
-                   optional $ char ';'
-                   spnl
-                   citation
-    spnl
-    char ']'
-    let first' = if null bareloc
-                   then first
-                   else first{ citationLocator = bareloc
-                             , citationMode = AuthorInText }
-    return $ Cite (first' : rest) []
+  rest <- option [] $ try $ spnl >> normalCite
+  if null rest
+     then option [first] $ bareloc first
+     else return $ first : rest
 
-normalCite :: GenParser Char ParserState Inline
+bareloc :: Citation -> GenParser Char ParserState [Citation]
+bareloc c = try $ do
+  spnl
+  char '['
+  loc <- locator
+  suff <- suffix
+  rest <- option [] $ try $ char ';' >> citeList
+  spnl
+  char ']'
+  return $ c{ citationLocator = loc, citationSuffix = suff } : rest
+
+normalCite :: GenParser Char ParserState [Citation]
 normalCite = try $ do
-  cites <- citeList
-  return $ Cite cites []
+  char '['
+  spnl
+  citations <- citeList
+  spnl
+  char ']'
+  return citations
 
-citeKey :: GenParser Char st String
+citeKey :: GenParser Char st (Bool, String)
 citeKey = try $ do
+  suppress_author <- option False (char '-' >> return True)
   char '@'
   first <- letter
-  rest <- many $ noneOf ",;]@ \t\n"
-  return (first:rest)
+  rest <- many $ (noneOf ",;]@ \t\n")
+  return (suppress_author, first:rest)
 
 locator :: GenParser Char st String
 locator = try $ do
-  optional $ char ','
   spnl
-  many1 $ (char '\\' >> oneOf "];\n") <|> noneOf "];\n" <|>
-             (char '\n' >> notFollowedBy blankline >> return ' ')
+  w  <- many1 (noneOf " \t\n;,]")
+  ws <- many (locatorWord <|> locatorComma)
+  return $ unwords $ w:ws
 
-prefix :: GenParser Char st String
-prefix = liftM removeLeadingTrailingSpace $
-  many $ (char '\\' >> anyChar) <|> noneOf "-@]\n" <|>
-            (try $ char '-' >> notFollowedBy (char '@') >> return '-') <|>
-            (try $ char '\n' >> notFollowedBy blankline >> return ' ')
+locatorWord :: GenParser Char st String
+locatorWord = try $ do
+  spnl
+  wd <- many1 $ noneOfUnlessEscaped "];, \t\n"
+  guard $ any isDigit wd
+  return wd
 
-citeList :: GenParser Char st [Citation]
-citeList = try $ do
-  char '['
-  spnl
-  first <- citation
-  spnl
-  rest <- many $ try $ do
-                 char ';'
-                 spnl
-                 citation
-  spnl
-  char ']'
-  return (first:rest)
+locatorComma :: GenParser Char st String
+locatorComma = try $ do
+  char ','
+  lookAhead $ locatorWord
+  return ","
 
-citation :: GenParser Char st Citation
+suffix :: GenParser Char ParserState [Inline]
+suffix = try $ do
+  spnl
+  liftM normalizeSpaces $ many $ notFollowedBy (oneOf ";]") >> inline
+
+prefix :: GenParser Char ParserState [Inline]
+prefix = liftM normalizeSpaces $
+  manyTill inline (char ']' <|> liftM (const ']') (lookAhead citeKey))
+
+citeList :: GenParser Char ParserState [Citation]
+citeList = sepBy1 citation (try $ char ';' >> spnl)
+
+citation :: GenParser Char ParserState Citation
 citation = try $ do
   pref <- prefix
-  suppress_auth <- option False (char '-' >> return True)
-  key <- citeKey
-  loc <- option "" locator
+  (suppress_author, key) <- citeKey
+  loc <- option "" $ try $ blankSpace >> locator
+  suff <- suffix
   return $ Citation{ citationId        = key
-                     , citationPrefix  = if pref /= [] then [Str pref] else []
-                     , citationSuffix  = []
+                     , citationPrefix  = pref
+                     , citationSuffix  = suff
                      , citationLocator = loc
-                     , citationMode    = if suppress_auth
+                     , citationMode    = if suppress_author
                                             then SuppressAuthor
                                             else NormalCitation
                      , citationNoteNum = 0
