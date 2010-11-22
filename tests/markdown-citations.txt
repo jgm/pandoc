@@ -27,4 +27,4 @@ Now some modifiers.[^3]
 
 [^3]:
     Like a citation without author: [-@item1], and now Doe with a
-    locator [-@item2, p. 44].
+    locator [-@item2 p. 44].
