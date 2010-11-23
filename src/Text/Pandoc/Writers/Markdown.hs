@@ -401,17 +401,17 @@ inlineToMarkdown _ (TeX str) = return $ text str
 inlineToMarkdown _ (HtmlInline str) = return $ text str 
 inlineToMarkdown _ (LineBreak) = return $ text "  \n"
 inlineToMarkdown _ Space = return $ char ' '
-inlineToMarkdown opt (Cite (c:cs) _) | citationMode c == AuthorInText = do
-  suffs <- mapM (inlineToMarkdown opt) $ citationSuffix c
-  rest <- mapM convertOne cs
-  let s = hcat suffs <+> joincits rest
-      l = citationLocator c
-      s' = if null l then s else text l <+> s
-      withbrackets = if isEmpty s' then s' else brackets s'
-  return $ text ("@" ++ citationId c) <+> withbrackets
-                                     | otherwise = do
-  cits <- mapM convertOne (c:cs)
-  return $ text "[" <> joincits cits <> text "]"
+inlineToMarkdown opt (Cite (c:cs) _) 
+  | citationMode c == AuthorInText = do
+    suffs <- inlineListToMarkdown opt $ citationSuffix c
+    rest <- mapM convertOne cs
+    let br = case (citationLocator c, suffs <+> joincits rest) of
+                  ("", s') | isEmpty s' -> empty
+                  (l , s')              -> brackets $ text l <> s'
+    return $ text ("@" ++ citationId c) <+> br
+  | otherwise = do
+    cits <- mapM convertOne (c:cs)
+    return $ text "[" <> joincits cits <> text "]"
   where
         joincits = hcat . punctuate (text "; ") . filter (not . isEmpty)
         convertOne Citation { citationId      = k
@@ -420,13 +420,10 @@ inlineToMarkdown opt (Cite (c:cs) _) | citationMode c == AuthorInText = do
                             , citationLocator = l
                             , citationMode    = m }
                                = do
-           pdocs <- mapM (inlineToMarkdown opt) pinlines
-           sdocs <- mapM (inlineToMarkdown opt) sinlines
-           let s   = hcat sdocs
-               s'  = case (null l, isEmpty s) of
-                          (True, True) -> empty
-                          (_   , _   ) -> text (", " ++ l) <> s
-           return $ hcat pdocs <+> text (modekey m ++ "@" ++ k) <> s'
+           pdoc <- inlineListToMarkdown opt pinlines
+           sdoc <- inlineListToMarkdown opt sinlines
+           let ld  = if null l then empty else text l
+           return $ pdoc <+> text (modekey m ++ "@" ++ k) <+> ld <> sdoc
         modekey SuppressAuthor = "-"
         modekey _              = ""
 inlineToMarkdown _ (Cite _ _) = return $ text ""
