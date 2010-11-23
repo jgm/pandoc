@@ -19,6 +19,7 @@
 @nonexistent
 
 \textcite{item1} says blah. \textcite[p. 30]{item1} says blah.
+\textcite[p. 30, with suffix]{item1} says blah.
 \textcites{item1}[p. 30]{item2}[see also][]{item3} says blah.
 
 In a note.%
@@ -27,6 +28,9 @@ A citation group
 \autocites[see][p. 34-35]{item1}[also][chap. 3]{item3}. Another one
 \autocite[see][p. 34-35]{item1}. And another one in a note.%
 \footnote{Some citations \autocites[see][chap. 3]{item2}{item3}{item1}.}
+Citation with a suffix and locator
+\autocite[pp. 33, 35-37, and nowhere else]{item1}. Citation with
+suffix only \autocite[, and nowhere else]{item1}.
 
 Now some modifiers.%
 \footnote{Like a citation without author: \autocite*{item1}, and now Doe with
