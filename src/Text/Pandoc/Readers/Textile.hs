@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion from Textile to 'Pandoc' document, based on the spec
 available at ahttp://redcloth.org/hobix.com/textile/
 
-Implemented and parsed :
+Implemented and parsed:
  - Paragraphs
  - Code blocks
  - Lists
@@ -36,8 +36,14 @@ Implemented and parsed :
  - Inlines : strong, emph, cite, code, deleted, superscript,
    subscript, links
 
-Implemented but discarded :
+Implemented but discarded:
  - HTML-specific and CSS-specific attributes
+
+Left to be implemented:
+ - Pandoc Meta Information (title, author, date)
+ - footnotes
+ - should autolink be shared through Parsing.hs ?
+
 -}
 
 
@@ -47,7 +53,8 @@ module Text.Pandoc.Readers.Textile (
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Parsing
-import Text.Pandoc.Readers.HTML ( htmlTag, htmlEndTag )
+import Text.Pandoc.Readers.HTML ( htmlTag, htmlEndTag, -- find code blocks
+                                  rawHtmlBlock, rawHtmlInline )
 import Text.ParserCombinators.Parsec
 import Data.Char ( digitToInt )
 
@@ -83,6 +90,7 @@ blockParsers = [ codeBlock
                , header
                , blockQuote
                , anyList
+               , rawHtmlBlock'
                , maybeExplicitBlock "table" table
                , maybeExplicitBlock "p" para
                , nullBlock ]
@@ -170,17 +178,26 @@ orderedListItemAtDepth depth = try $ do
   sublist <- option [] (anyListAtDepth (depth + 1) >>= return . (:[]))
   return (p:sublist)
 
--- | This terminates a block such as a paragraph.
+-- | This terminates a block such as a paragraph. Because of raw html
+-- blocks support, we have to lookAhead for a rawHtmlBlock.
 blockBreak :: GenParser Char ParserState ()
-blockBreak = try $ newline >> blanklines >> return ()
+blockBreak = try $ choice 
+             [newline >> blanklines >> return (),
+              lookAhead rawHtmlBlock' >> return ()]
 
+-- | A raw Html Block, optionally followed by blanklines
+rawHtmlBlock' :: GenParser Char ParserState Block
+rawHtmlBlock' = try $ do
+  b <- rawHtmlBlock
+  optional blanklines
+  return b
 
 -- | In textile, paragraphs are separated by blank lines.
 para :: GenParser Char ParserState Block
 para = try $ do
   content <- manyTill inline blockBreak
   return $ Para $ normalizeSpaces content
-  
+
 
 -- Tables
   
@@ -260,6 +277,7 @@ inlineParsers = [ autoLink
                 , str
                 , whitespace
                 , endline
+                , rawHtmlInline
                 , code
                 , simpleInline (string "??") (Cite [])
                 , simpleInline (string "**") Strong
@@ -313,7 +331,7 @@ image = try $ do
 
 -- | Any special symbol defined in specialChars
 symbol :: GenParser Char ParserState Inline
-symbol = do 
+symbol = do
   result <- oneOf specialChars
   return $ Str [result]
 
@@ -321,7 +339,6 @@ symbol = do
 code :: GenParser Char ParserState Inline
 code = surrounded (char '@') anyChar >>= 
        return . Code
-
 
 -- | Html / CSS attributes
 attributes :: GenParser Char ParserState String
@@ -342,11 +359,3 @@ simpleInline :: GenParser Char ParserState t           -- ^ surrounding parser
 simpleInline border construct = surrounded border (inlineWithAttribute) >>=
                                 return . construct . normalizeSpaces
   where inlineWithAttribute = (try $ optional attributes) >> inline
-
-
--- TODO
--- 
---  - Pandoc Meta Information (title, author, date)
---  - footnotes
---  - should autolink be shared through Parsing.hs ?
---  - embeded HTML, both inlines and blocks

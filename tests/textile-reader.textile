@@ -161,3 +161,18 @@ p{color:green}. and paragraph attributes, and table attributes.
 table{foo:bar}.
 | name   | age | sex |
 | joan   | 24  | f   |
+
+h1. Raw HTML
+
+However, <strong> raw HTML inlines </strong> are accepted, as well as :
+
+<div class="foobar">
+  any *Raw HTML Block* with bold
+</div>
+
+Html blocks can be <div>inlined</div> as well. 
+
+* this <div> won't produce raw html blocks </div>
+* but this <strong> will produce inline html </strong>
+
+Can you prove that 2 < 3 ?

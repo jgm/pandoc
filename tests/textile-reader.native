@@ -113,4 +113,18 @@ Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
   , [ Plain [Str "sex"] ] ],
   [ [ Plain [Str "joan"] ]
   , [ Plain [Str "24"] ]
-  , [ Plain [Str "f"] ] ] ] ]
+  , [ Plain [Str "f"] ] ] ]
+, Header 1 [Str "Raw",Space,Str "HTML"]
+, Para [Str "However,",Space,HtmlInline "<strong>",Space,Str "raw",Space,Str "HTML",Space,Str "inlines",Space,HtmlInline "</strong>",Space,Str "are",Space,Str "accepted,",Space,Str "as",Space,Str "well",Space,Str "as",Space,Str ":"]
+, RawHtml "<div class=\"foobar\">"
+, Para [Str "any",Space,Strong [Str "Raw",Space,Str "HTML",Space,Str "Block"],Space,Str "with",Space,Str "bold"]
+, RawHtml "</div>"
+, Para [Str "Html",Space,Str "blocks",Space,Str "can",Space,Str "be"]
+, RawHtml "<div>"
+, Para [Str "inlined"]
+, RawHtml "</div>"
+, Para [Str "as",Space,Str "well."]
+, BulletList
+  [ [ Plain [Str "this",Space,Str "<",Str "div",Str ">",Space,Str "won",Str "'",Str "t",Space,Str "produce",Space,Str "raw",Space,Str "html",Space,Str "blocks",Space,Str "<",Str "/div",Str ">"] ]
+  , [ Plain [Str "but",Space,Str "this",Space,HtmlInline "<strong>",Space,Str "will",Space,Str "produce",Space,Str "inline",Space,Str "html",Space,HtmlInline "</strong>"] ] ]
+, Para [Str "Can",Space,Str "you",Space,Str "prove",Space,Str "that",Space,Str "2",Space,Str "<",Space,Str "3",Space,Str "?"] ]
