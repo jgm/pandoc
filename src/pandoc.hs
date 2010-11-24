@@ -42,7 +42,7 @@ import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower, isDigit )
 import Data.List ( intercalate, isSuffixOf )
-import System.Directory ( getAppUserDataDirectory )
+import System.Directory ( getAppUserDataDirectory, doesFileExist )
 import System.IO ( stdout, stderr )
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.CSL
@@ -832,9 +832,17 @@ main = do
           if null refs
              then return doc'
              else do
+                csldir <- getAppUserDataDirectory "csl"
                 cslfile' <- if null cslfile
                                then findDataFile datadir "default.csl"
-                               else return cslfile
+                               else do
+                                  ex <- doesFileExist cslfile
+                                  if ex
+                                     then return cslfile
+                                     else findDataFile datadir $
+                                            replaceDirectory
+                                            (replaceExtension cslfile "csl")
+                                            csldir
                 processBiblio cslfile' refs doc'
 
   writerOutput <- writer writerOptions doc''
