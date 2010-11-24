@@ -1332,9 +1332,6 @@ noneOfUnlessEscaped cs =
 textualCite :: GenParser Char ParserState [Citation]
 textualCite = try $ do
   (_, key) <- citeKey
-  st <- getState
-  unless (key `elem` stateCitations st) $
-    fail "not a citation"
   let first = Citation{ citationId      = key
                       , citationPrefix  = []
                       , citationSuffix  = []
@@ -1368,13 +1365,16 @@ normalCite = try $ do
   char ']'
   return citations
 
-citeKey :: GenParser Char st (Bool, String)
+citeKey :: GenParser Char ParserState (Bool, String)
 citeKey = try $ do
   suppress_author <- option False (char '-' >> return True)
   char '@'
   first <- letter
   rest <- many $ (noneOf ",;]@ \t\n")
-  return (suppress_author, first:rest)
+  let key = first:rest
+  st <- getState
+  guard $ key `elem` stateCitations st
+  return (suppress_author, key)
 
 locator :: GenParser Char st String
 locator = try $ do
