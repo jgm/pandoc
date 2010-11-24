@@ -45,10 +45,8 @@ import Data.List ( intercalate, isSuffixOf )
 import System.Directory ( getAppUserDataDirectory )
 import System.IO ( stdout, stderr )
 import qualified Text.Pandoc.UTF8 as UTF8
-#ifdef _CITEPROC
 import Text.CSL
 import Text.Pandoc.Biblio
-#endif
 import Control.Monad (when, unless, liftM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
@@ -64,9 +62,7 @@ copyrightMessage = "\nCopyright (C) 2006-2010 John MacFarlane\n" ++
 
 compileInfo :: String
 compileInfo =
-#ifdef _CITEPROC
   "\nCompiled with citeproc support." ++
-#endif
 #ifdef _HIGHLIGHTING
    "\nCompiled with syntax highlighting support for:\n" ++
        wrapWords 78 languages ++
@@ -162,10 +158,8 @@ data Opt = Opt
     , optIdentifierPrefix  :: String
     , optIndentedCodeClasses :: [String] -- ^ Default classes for indented code blocks
     , optDataDir           :: Maybe FilePath
-#ifdef _CITEPROC
     , optBibliography      :: [Reference]
     , optCslFile           :: FilePath
-#endif
     }
 
 -- | Defaults for command-line options.
@@ -203,10 +197,8 @@ defaultOpts = Opt
     , optIdentifierPrefix  = ""
     , optIndentedCodeClasses = []
     , optDataDir           = Nothing
-#ifdef _CITEPROC
     , optBibliography      = []
     , optCslFile           = ""
-#endif
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -517,7 +509,6 @@ options =
                      exitWith ExitSuccess)
                   "FORMAT")
                  "" -- "Print default template for FORMAT"
-#ifdef _CITEPROC
     , Option "" ["bibliography"]
                  (ReqArg
                   (\arg opt -> do
@@ -535,7 +526,6 @@ options =
                   (\arg opt -> return opt { optCslFile = arg })
                   "FILENAME")
                  ""
-#endif
     , Option "" ["data-dir"]
                  (ReqArg
                   (\arg opt -> return opt { optDataDir = Just arg })
@@ -683,10 +673,8 @@ main = do
               , optIdentifierPrefix  = idPrefix
               , optIndentedCodeClasses = codeBlockClasses
               , optDataDir           = mbDataDir
-#ifdef _CITEPROC
               , optBibliography      = refs
               , optCslFile           = cslfile
-#endif
              } = opts
 
   when dumpArgs $
@@ -783,9 +771,7 @@ main = do
                               stateLiterateHaskell = "+lhs" `isSuffixOf` readerName' ||
                                                      lhsExtension sources,
                               stateStandalone      = standalone',
-#ifdef _CITEPROC
                               stateCitations       = map refId refs,
-#endif
                               stateSmart           = smart || writerName' `elem`
                                                               ["latex", "context", "latex+lhs", "man"],
                               stateColumns         = columns,
@@ -843,7 +829,6 @@ main = do
   let doc' = foldr ($) doc transforms
 
   doc'' <- do
-#ifdef _CITEPROC
           if null refs
              then return doc'
              else do
@@ -851,9 +836,6 @@ main = do
                                then findDataFile datadir "default.csl"
                                else return cslfile
                 processBiblio cslfile' refs doc'
-#else
-          return doc'
-#endif
 
   writerOutput <- writer writerOptions doc''
 
