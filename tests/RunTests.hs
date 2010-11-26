@@ -168,7 +168,7 @@ runTest testname opts inp norm = do
   hFlush stdout
   -- Note: COLUMNS must be set for markdown table reader
   ph <- runProcess pandocPath (opts ++ [inpPath] ++ ["--data-dir", ".."]) Nothing
-        (Just [("LANG","en_US.UTF-8"),("COLUMNS", "80")]) Nothing (Just hOut) (Just stderr)
+        (Just [("LANG","en_US.UTF-8"),("COLUMNS", "80"),("HOME", "./")]) Nothing (Just hOut) (Just stderr)
   ec <- waitForProcess ph
   result  <- if ec == ExitSuccess
                 then do
