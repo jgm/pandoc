@@ -31,6 +31,7 @@ module Text.Pandoc.Biblio ( processBiblio ) where
 
 import Data.List
 import Data.Unique
+import Data.Char ( isDigit )
 import qualified Data.Map as M
 import Text.CSL hiding ( Cite(..), Citation(..) )
 import qualified Text.CSL as CSL ( Cite(..) )
@@ -97,8 +98,8 @@ getNoteCitations needNote
       in  queryWith getCitation . getCits
 
 setHash :: Citation -> IO Citation
-setHash (Citation i p s l cm nn _)
-    = hashUnique `fmap` newUnique >>= return . Citation i p s l cm nn
+setHash (Citation i p s cm nn _)
+    = hashUnique `fmap` newUnique >>= return . Citation i p s cm nn
 
 generateNotes :: [Inline] -> Pandoc -> Pandoc
 generateNotes needNote = processWith (mvCiteInNote needNote)
@@ -150,14 +151,15 @@ setCitationNoteNum i = map $ \c -> c { citationNoteNum = i}
 
 toCslCite :: Citation -> CSL.Cite
 toCslCite c
-    = let (la,lo) = parseLocator $ citationLocator c
+    = let (l, s)  = locatorWords $ citationSuffix c
+          (la,lo) = parseLocator $ unwords l
           citMode = case citationMode c of
                       AuthorInText   -> (True, False)
                       SuppressAuthor -> (False,True )
                       NormalCitation -> (False,False)
       in   emptyCite { CSL.citeId         = citationId c
                      , CSL.citePrefix     = PandocText $ citationPrefix c
-                     , CSL.citeSuffix     = PandocText $ citationSuffix c
+                     , CSL.citeSuffix     = PandocText $ s
                      , CSL.citeLabel      = la
                      , CSL.citeLocator    = lo
                      , CSL.citeNoteNumber = show $ citationNoteNum c
@@ -165,3 +167,31 @@ toCslCite c
                      , CSL.suppressAuthor = snd citMode
                      , CSL.citeHash       = citationHash c
                      }
+
+locatorWords :: [Inline] -> ([String], [Inline])
+locatorWords (Space : t) = locatorWords t
+locatorWords (Str "" : t) = locatorWords t
+locatorWords a@(Str (',' : s) : t)
+    = if ws /= [] then (ws, t') else ([], a)
+    where
+        (ws, t') = locatorWords (Str s:t)
+locatorWords i
+    = if any isDigit w then (w':ws, s'') else ([], i)
+    where
+        (w, s')   = locatorWord i
+        (ws, s'') = locatorWords s'
+        w'        = if ws == [] then w else w ++ ","
+
+locatorWord :: [Inline] -> (String, [Inline])
+locatorWord (Space : r) = (" " ++ ts, r')
+    where
+        (ts, r') = locatorWord r
+locatorWord (Str t : r)
+    | t' /= ""  = (w      , Str t' : r)
+    | otherwise = (t ++ ts, r'        )
+    where
+        w  = takeWhile (/= ',') t
+        t' = dropWhile (/= ',') t
+        (ts, r') = locatorWord r
+locatorWord i = ("", i)
+
