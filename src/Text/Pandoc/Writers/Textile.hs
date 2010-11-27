@@ -344,13 +344,13 @@ inlineToTextile opts (Superscript lst) = do
   contents <- inlineListToTextile opts lst
   return $ if '^' `elem` contents
               then "<sup>" ++ contents ++ "</sup>"
-              else "^" ++ contents ++ "^"
+              else "[^" ++ contents ++ "^]"
 
 inlineToTextile opts (Subscript lst) = do
   contents <- inlineListToTextile opts lst
   return $ if '~' `elem` contents
               then "<sub>" ++ contents ++ "</sub>"
-              else "~" ++ contents ++ "~"
+              else "[~" ++ contents ++ "~]"
 
 inlineToTextile opts (SmallCaps lst) = inlineListToTextile opts lst
 

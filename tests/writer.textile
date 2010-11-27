@@ -450,9 +450,9 @@ This is code: @&gt;@, @$@, @\@, @\$@, @&lt;html&gt;@.
 
 -This is _strikeout_.-
 
-Superscripts: a^bc^d a^_hello_^ a^hello there^.
+Superscripts: a[^bc^]d a[^_hello_^] a[^hello there^].
 
-Subscripts: H~2~O, H~23~O, H~many of them~O.
+Subscripts: H[~2~]O, H[~23~]O, H[~many of them~]O.
 
 These should not be superscripts or subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.
 
