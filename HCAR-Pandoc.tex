@@ -1,8 +1,9 @@
+% Pandoc-JP.tex
 \begin{hcarentry}[updated]{Pandoc}
 \label{pandoc}
-\report{John MacFarlane}%11/09
+\report{John MacFarlane}%11/10
 \status{active development}
-\participants{John MacFarlane, Andrea Rossato, Peter Wang, Paulo Tanimoto, Eric Kow,
+\participants{Andrea Rossato, Peter Wang, Paulo Tanimoto, Eric Kow,
 Luke Plant, Justin Bogner}
 \makeheader
 
@@ -10,23 +11,14 @@ Pandoc aspires to be the swiss army knife of text markup formats: it
 can read markdown and (with some limitations) HTML, LaTeX, and
 reStructuredText, and it can write markdown, reStructuredText, HTML,
 DocBook XML, OpenDocument XML, ODT, RTF, groff man, MediaWiki markup,
-GNU Texinfo, LaTeX, ConTeXt, and S5.  Pandoc's markdown syntax includes
+GNU Texinfo, LaTeX, ConTeXt, EPUB, Slidy, and S5.  Pandoc's markdown syntax includes
 extensions for LaTeX math, tables, definition lists, footnotes, and more.
 
-There have been several releases since the last report, with many
-bug fixes and small improvements. There are two big architectural
-changes. First, pandoc no longer requires Template Haskell, which should
-make it more portable. Second, a new, flexible template system has been
-added, allowing users much more control over document headers and footers.
-Other major changes include support for xetex, support for reST tables,
-support for tables without header rows, support for formatting
-math as MathML, a new ``plain text'' output format, and a much
-more permissive HTML parser. The old \verb!hsmarkdown! and
-\verb!html2markdown! scripts have been removed; \verb!pandoc! itself can
-now do the work of \verb!html2markdown!. Summaries of the new features
-in each release are available on the (newly redesigned) website, along
-with full documentation and a new tutorial on using the pandoc
-library for structured text manipulation.
+Since the last report, two new output formats have been added:
+EPUB and Slidy HTML slide shows.  Now it is possible to write
+a book in markdown and produce an ebook with a single command!
+New markdown extensions include grid tables and example lists that are
+sequentially numbered throughout a document.
 
 \FurtherReading
     \url{http://johnmacfarlane.net/pandoc/}
