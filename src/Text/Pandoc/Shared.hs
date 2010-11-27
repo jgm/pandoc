@@ -57,6 +57,7 @@ module Text.Pandoc.Shared (
                      -- * Pandoc block and inline list processing
                      orderedListMarkers,
                      normalizeSpaces,
+                     stringify,
                      compactify,
                      Element (..),
                      hierarchicalize,
@@ -339,6 +340,15 @@ normalizeSpaces list =
                                 then init lst
                                 else lst
     in  removeLeading $ removeTrailing $ removeDoubles list
+
+-- | Convert list of inlines to a string with formatting removed.
+stringify :: [Inline] -> String
+stringify = queryWith go
+  where go :: Inline -> [Char]
+        go Space = " "
+        go (Str x) = x
+        go (Code x) = x
+        go _ = ""
 
 -- | Change final list item from @Para@ to @Plain@ if the list contains
 -- no other @Para@ blocks.
