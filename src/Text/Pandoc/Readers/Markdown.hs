@@ -34,7 +34,7 @@ module Text.Pandoc.Readers.Markdown (
 import Data.List ( transpose, isSuffixOf, sortBy, findIndex, intercalate )
 import qualified Data.Map as M
 import Data.Ord ( comparing )
-import Data.Char ( isAlphaNum )
+import Data.Char ( isAlphaNum, isPunctuation )
 import Data.Maybe
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
@@ -1367,7 +1367,12 @@ citeKey = try $ do
 suffix :: GenParser Char ParserState [Inline]
 suffix = try $ do
   spnl
-  liftM normalizeSpaces $ many $ notFollowedBy (oneOf ";]") >> inline
+  res <- many $ notFollowedBy (oneOf ";]") >> inline
+  return $ case res of
+            []       -> []
+            (Str (y:_) : _) | isPunctuation y
+                     -> res
+            _        -> Str "," : Space : res
 
 prefix :: GenParser Char ParserState [Inline]
 prefix = liftM normalizeSpaces $
