@@ -60,6 +60,7 @@ writerFormats = [ "native"
                 , "markdown"
                 , "rst"
                 , "mediawiki"
+                , "textile"
                 , "rtf"
                 ]
 

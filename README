@@ -7,8 +7,8 @@ another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX]; and
 it can write plain text, [markdown], [reStructuredText], [HTML], [LaTeX],
 [ConTeXt], [RTF], [DocBook XML], [OpenDocument XML], [ODT], [GNU Texinfo],
-[MediaWiki markup], [EPUB], [groff man] pages, and [Slidy] or [S5]
-HTML slide shows.
+[MediaWiki markup], [EPUB], [Textile], [groff man] pages, and [Slidy]
+or [S5] HTML slide shows.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, delimited code blocks,
@@ -75,9 +75,9 @@ Supported output formats include `markdown`, `latex`, `context`
 (ConTeXt), `html`, `rtf` (rich text format), `rst`
 (reStructuredText), `docbook` (DocBook XML), `opendocument`
 (OpenDocument XML), `odt` (OpenOffice text document), `texinfo`, (GNU
-Texinfo), `mediawiki` (MediaWiki markup), `epub` (EPUB ebook),
-`man` (groff man), `slidy` (slidy HTML and javascript slide show), or
-`s5` (S5 HTML and javascript slide show).
+Texinfo), `mediawiki` (MediaWiki markup), `textile` (Textile),
+`epub` (EPUB ebook), `man` (groff man), `slidy` (slidy HTML and
+javascript slide show), or `s5` (S5 HTML and javascript slide show).
 
 Supported input formats include `markdown`, `html`, `latex`, and `rst`.
 Note that the `rst` reader only parses a subset of reStructuredText
@@ -1202,6 +1202,8 @@ In groff man output, it will be rendered verbatim without $'s.
 
 In MediaWiki output, it will be rendered inside `<math>` tags.
 
+In Textile output, it will be rendered inside `<span class="math">` tags.
+
 In RTF, Docbook, and OpenDocument output, it will be rendered, as far as
 possible, using unicode characters, and will otherwise appear verbatim.
 Unknown commands and symbols, and commands that cannot be dealt with
@@ -1412,6 +1414,7 @@ and pasted as literate Haskell source.
 [DocBook XML]:  http://www.docbook.org/
 [OpenDocument XML]: http://opendocument.xml.org/ 
 [ODT]: http://en.wikipedia.org/wiki/OpenDocument
+[Textile]: http://redcloth.org/textile
 [MediaWiki markup]: http://www.mediawiki.org/wiki/Help:Formatting
 [groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
 [Haskell]:  http://www.haskell.org/
