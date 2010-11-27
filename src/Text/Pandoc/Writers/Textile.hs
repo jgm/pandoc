@@ -176,9 +176,10 @@ blockToTextile opts x@(BulletList items) = do
         return $ " <ul>\n" ++ vcat contents ++ " </ul>\n"
      else do
         modify $ \s -> s { stListLevel = stListLevel s ++ "*" }
+        level <- get >>= return . length . stListLevel
         contents <- mapM (listItemToTextile opts) items
         modify $ \s -> s { stListLevel = init (stListLevel s) }
-        return $ vcat contents ++ "\n"
+        return $ vcat contents ++ (if level > 1 then "" else "\n")
 
 blockToTextile opts x@(OrderedList attribs items) = do
   oldUseTags <- liftM stUseTags get
@@ -190,9 +191,10 @@ blockToTextile opts x@(OrderedList attribs items) = do
                    " </ol>\n"
      else do
         modify $ \s -> s { stListLevel = stListLevel s ++ "#" }
+        level <- get >>= return . length . stListLevel
         contents <- mapM (listItemToTextile opts) items
         modify $ \s -> s { stListLevel = init (stListLevel s) }
-        return $ vcat contents ++ "\n"
+        return $ vcat contents ++ (if level > 1 then "" else "\n")
 
 blockToTextile opts (DefinitionList items) = do
   contents <- withUseTags $ mapM (definitionListItemToTextile opts) items

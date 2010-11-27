@@ -172,8 +172,6 @@ h2. Nested
 ** Tab
 *** Tab
 
-
-
 Here's another:
 
 # First
@@ -181,7 +179,6 @@ Here's another:
 #* Fee
 #* Fie
 #* Foe
-
 # Third
 
 Same thing but with paragraphs:
@@ -191,7 +188,6 @@ Same thing but with paragraphs:
 #* Fee
 #* Fie
 #* Foe
-
 # Third
 
 h2. Tabs and spaces
@@ -200,7 +196,6 @@ h2. Tabs and spaces
 * this is a list item indented with spaces
 ** this is an example list item indented with tabs
 ** this is an example list item indented with spaces
-
 
 h2. Fancy list markers
 
@@ -236,7 +231,6 @@ Autonumbering:
 # Autonumber.
 # More.
 ## Nested.
-
 
 Should not be a list item:
 
