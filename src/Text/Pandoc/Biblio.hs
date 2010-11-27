@@ -54,7 +54,8 @@ processBiblio cslfile r p
                                   needNt = cits \\ concat ncits
                               in (,) needNt $ getNoteCitations needNt p'
                          else (,) [] $ queryWith getCitation p'
-            result     = citeproc csl r (setNearNote csl $ map (map toCslCite) grps)
+            result     = citeproc procOpts csl r (setNearNote csl $
+                            map (map toCslCite) grps)
             cits_map   = M.fromList $ zip grps (citations result)
             biblioList = map (renderPandoc' csl) (bibliography result)
             Pandoc m b = processWith (procInlines $ processCite csl cits_map) p'
