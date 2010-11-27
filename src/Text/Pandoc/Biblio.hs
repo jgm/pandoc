@@ -174,9 +174,17 @@ toCslCite c
 
 locatorWords :: [Inline] -> (String, [Inline])
 locatorWords inp =
-  case parse (liftM2 (,) pLocator getInput) "suffix" inp of
+  case parse pLocatorWords "suffix" inp of
        Right r   -> r
        Left _    -> ("",inp)
+
+pLocatorWords :: GenParser Inline st (String, [Inline])
+pLocatorWords = do
+  l <- pLocator
+  s <- getInput -- rest is suffix
+  if length l > 0 && last l == ','
+     then return (init l, Str "," : s)
+     else return (l, s)
 
 pMatch :: (Inline -> Bool) -> GenParser Inline st Inline
 pMatch condition = try $ do
