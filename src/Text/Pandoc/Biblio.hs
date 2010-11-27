@@ -31,10 +31,14 @@ module Text.Pandoc.Biblio ( processBiblio ) where
 
 import Data.List
 import Data.Unique
+import Data.Char ( isDigit )
 import qualified Data.Map as M
 import Text.CSL hiding ( Cite(..), Citation(..) )
 import qualified Text.CSL as CSL ( Cite(..) )
 import Text.Pandoc.Definition
+import Text.Pandoc.Shared (stringify)
+import Text.ParserCombinators.Parsec
+import Control.Monad
 
 -- | Process a 'Pandoc' document by adding citations formatted
 -- according to a CSL style, using 'citeproc' from citeproc-hs.
@@ -97,8 +101,8 @@ getNoteCitations needNote
       in  queryWith getCitation . getCits
 
 setHash :: Citation -> IO Citation
-setHash (Citation i p s l cm nn _)
-    = hashUnique `fmap` newUnique >>= return . Citation i p s l cm nn
+setHash (Citation i p s cm nn _)
+    = hashUnique `fmap` newUnique >>= return . Citation i p s cm nn
 
 generateNotes :: [Inline] -> Pandoc -> Pandoc
 generateNotes needNote = processWith (mvCiteInNote needNote)
@@ -150,14 +154,15 @@ setCitationNoteNum i = map $ \c -> c { citationNoteNum = i}
 
 toCslCite :: Citation -> CSL.Cite
 toCslCite c
-    = let (la,lo) = parseLocator $ citationLocator c
+    = let (l, s)  = locatorWords $ citationSuffix c
+          (la,lo) = parseLocator l
           citMode = case citationMode c of
                       AuthorInText   -> (True, False)
                       SuppressAuthor -> (False,True )
                       NormalCitation -> (False,False)
       in   emptyCite { CSL.citeId         = citationId c
                      , CSL.citePrefix     = PandocText $ citationPrefix c
-                     , CSL.citeSuffix     = PandocText $ citationSuffix c
+                     , CSL.citeSuffix     = PandocText $ s
                      , CSL.citeLabel      = la
                      , CSL.citeLocator    = lo
                      , CSL.citeNoteNumber = show $ citationNoteNum c
@@ -165,3 +170,35 @@ toCslCite c
                      , CSL.suppressAuthor = snd citMode
                      , CSL.citeHash       = citationHash c
                      }
+
+locatorWords :: [Inline] -> (String, [Inline])
+locatorWords inp =
+  case parse (liftM2 (,) pLocator getInput) "suffix" inp of
+       Right r   -> r
+       Left _    -> ("",inp)
+
+pMatch :: (Inline -> Bool) -> GenParser Inline st Inline
+pMatch condition = try $ do
+  t <- anyToken
+  guard $ condition t
+  return t
+
+pSpace :: GenParser Inline st Inline
+pSpace = pMatch (== Space)
+
+pLocator :: GenParser Inline st String
+pLocator = try $ do
+  optional $ pMatch (== Str ",")
+  optional pSpace
+  f  <- many1 (notFollowedBy pSpace >> anyToken)
+  gs <- many1 pWordWithDigits
+  return $ stringify f ++ (' ' : unwords gs)
+
+pWordWithDigits :: GenParser Inline st String
+pWordWithDigits = try $ do
+  pSpace
+  r <- many1 (notFollowedBy pSpace >> anyToken)
+  let s = stringify r
+  guard $ any isDigit s
+  return s
+

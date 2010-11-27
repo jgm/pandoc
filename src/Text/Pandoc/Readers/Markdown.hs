@@ -34,7 +34,7 @@ module Text.Pandoc.Readers.Markdown (
 import Data.List ( transpose, isSuffixOf, sortBy, findIndex, intercalate )
 import qualified Data.Map as M
 import Data.Ord ( comparing )
-import Data.Char ( isAlphaNum, isDigit )
+import Data.Char ( isAlphaNum, isPunctuation )
 import Data.Maybe
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
@@ -1319,23 +1319,12 @@ spnl = try $ do
   skipSpaces
   notFollowedBy (char '\n')
 
-blankSpace :: GenParser Char st ()
-blankSpace = try $ do
-  res <- many1 $ oneOf " \t\n"
-  guard $ length res > 0
-  guard $ length (filter (=='\n') res) <= 1
-
-noneOfUnlessEscaped :: [Char] -> GenParser Char st Char
-noneOfUnlessEscaped cs =
-  try (char '\\' >> oneOf cs) <|> noneOf cs
-
 textualCite :: GenParser Char ParserState [Citation]
 textualCite = try $ do
   (_, key) <- citeKey
   let first = Citation{ citationId      = key
                       , citationPrefix  = []
                       , citationSuffix  = []
-                      , citationLocator = ""
                       , citationMode    = AuthorInText
                       , citationNoteNum = 0
                       , citationHash    = 0
@@ -1349,12 +1338,11 @@ bareloc :: Citation -> GenParser Char ParserState [Citation]
 bareloc c = try $ do
   spnl
   char '['
-  loc <- locator
   suff <- suffix
   rest <- option [] $ try $ char ';' >> citeList
   spnl
   char ']'
-  return $ c{ citationLocator = loc, citationSuffix = suff } : rest
+  return $ c{ citationSuffix = suff } : rest
 
 normalCite :: GenParser Char ParserState [Citation]
 normalCite = try $ do
@@ -1376,30 +1364,15 @@ citeKey = try $ do
   guard $ key `elem` stateCitations st
   return (suppress_author, key)
 
-locator :: GenParser Char st String
-locator = try $ do
-  spnl
-  w  <- many1 (noneOf " \t\n;,]")
-  ws <- many (locatorWord <|> locatorComma)
-  return $ unwords $ w:ws
-
-locatorWord :: GenParser Char st String
-locatorWord = try $ do
-  spnl
-  wd <- many1 $ noneOfUnlessEscaped "];, \t\n"
-  guard $ any isDigit wd
-  return wd
-
-locatorComma :: GenParser Char st String
-locatorComma = try $ do
-  char ','
-  lookAhead $ locatorWord
-  return ","
-
 suffix :: GenParser Char ParserState [Inline]
 suffix = try $ do
   spnl
-  liftM normalizeSpaces $ many $ notFollowedBy (oneOf ";]") >> inline
+  res <- many $ notFollowedBy (oneOf ";]") >> inline
+  return $ case res of
+            []       -> []
+            (Str (y:_) : _) | isPunctuation y
+                     -> res
+            _        -> Str "," : Space : res
 
 prefix :: GenParser Char ParserState [Inline]
 prefix = liftM normalizeSpaces $
@@ -1412,12 +1385,10 @@ citation :: GenParser Char ParserState Citation
 citation = try $ do
   pref <- prefix
   (suppress_author, key) <- citeKey
-  loc <- option "" $ try $ blankSpace >> locator
   suff <- suffix
   return $ Citation{ citationId        = key
                      , citationPrefix  = pref
                      , citationSuffix  = suff
-                     , citationLocator = loc
                      , citationMode    = if suppress_author
                                             then SuppressAuthor
                                             else NormalCitation
