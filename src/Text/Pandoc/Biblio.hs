@@ -36,6 +36,9 @@ import qualified Data.Map as M
 import Text.CSL hiding ( Cite(..), Citation(..) )
 import qualified Text.CSL as CSL ( Cite(..) )
 import Text.Pandoc.Definition
+import Text.Pandoc.Shared (stringify)
+import Text.ParserCombinators.Parsec
+import Control.Monad
 
 -- | Process a 'Pandoc' document by adding citations formatted
 -- according to a CSL style, using 'citeproc' from citeproc-hs.
@@ -152,7 +155,7 @@ setCitationNoteNum i = map $ \c -> c { citationNoteNum = i}
 toCslCite :: Citation -> CSL.Cite
 toCslCite c
     = let (l, s)  = locatorWords $ citationSuffix c
-          (la,lo) = parseLocator $ unwords l
+          (la,lo) = parseLocator l
           citMode = case citationMode c of
                       AuthorInText   -> (True, False)
                       SuppressAuthor -> (False,True )
@@ -168,30 +171,34 @@ toCslCite c
                      , CSL.citeHash       = citationHash c
                      }
 
-locatorWords :: [Inline] -> ([String], [Inline])
-locatorWords (Space : t) = locatorWords t
-locatorWords (Str "" : t) = locatorWords t
-locatorWords a@(Str (',' : s) : t)
-    = if ws /= [] then (ws, t') else ([], a)
-    where
-        (ws, t') = locatorWords (Str s:t)
-locatorWords i
-    = if any isDigit w then (w':ws, s'') else ([], i)
-    where
-        (w, s')   = locatorWord i
-        (ws, s'') = locatorWords s'
-        w'        = if ws == [] then w else w ++ ","
+locatorWords :: [Inline] -> (String, [Inline])
+locatorWords inp =
+  case parse (liftM2 (,) pLocator getInput) "suffix" inp of
+       Right r   -> r
+       Left _    -> ("",inp)
 
-locatorWord :: [Inline] -> (String, [Inline])
-locatorWord (Space : r) = (" " ++ ts, r')
-    where
-        (ts, r') = locatorWord r
-locatorWord (Str t : r)
-    | t' /= ""  = (w      , Str t' : r)
-    | otherwise = (t ++ ts, r'        )
-    where
-        w  = takeWhile (/= ',') t
-        t' = dropWhile (/= ',') t
-        (ts, r') = locatorWord r
-locatorWord i = ("", i)
+pMatch :: (Inline -> Bool) -> GenParser Inline st Inline
+pMatch condition = try $ do
+  t <- anyToken
+  guard $ condition t
+  return t
+
+pSpace :: GenParser Inline st Inline
+pSpace = pMatch (== Space)
+
+pLocator :: GenParser Inline st String
+pLocator = try $ do
+  optional $ pMatch (== Str ",")
+  optional pSpace
+  f  <- many1 (notFollowedBy pSpace >> anyToken)
+  gs <- many1 pWordWithDigits
+  return $ stringify f ++ (' ' : unwords gs)
+
+pWordWithDigits :: GenParser Inline st String
+pWordWithDigits = try $ do
+  pSpace
+  r <- many1 (notFollowedBy pSpace >> anyToken)
+  let s = stringify r
+  guard $ any isDigit s
+  return s
 
