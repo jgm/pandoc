@@ -110,6 +110,10 @@ stringToLaTeX = escapeStringUsing latexEscapes
                        , ('[', "{[}")  -- to avoid interpretation as
                        , (']', "{]}")  -- optional arguments
                        , ('\160', "~")
+                       , ('\x2018', "`")
+                       , ('\x2019', "'")
+                       , ('\x201C', "``")
+                       , ('\x201D', "''")
                        ]
 
 -- | Puts contents into LaTeX command.
