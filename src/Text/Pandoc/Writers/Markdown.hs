@@ -405,9 +405,8 @@ inlineToMarkdown opt (Cite (c:cs) _)
   | citationMode c == AuthorInText = do
     suffs <- inlineListToMarkdown opt $ citationSuffix c
     rest <- mapM convertOne cs
-    let br = case (citationLocator c, suffs <+> joincits rest) of
-                  ("", s') | isEmpty s' -> empty
-                  (l , s')              -> brackets $ text l <> s'
+    let inbr = suffs <+> joincits rest
+        br   = if isEmpty inbr then empty else brackets inbr
     return $ text ("@" ++ citationId c) <+> br
   | otherwise = do
     cits <- mapM convertOne (c:cs)
@@ -417,13 +416,11 @@ inlineToMarkdown opt (Cite (c:cs) _)
         convertOne Citation { citationId      = k
                             , citationPrefix  = pinlines
                             , citationSuffix  = sinlines
-                            , citationLocator = l
                             , citationMode    = m }
                                = do
            pdoc <- inlineListToMarkdown opt pinlines
            sdoc <- inlineListToMarkdown opt sinlines
-           let ld  = if null l then empty else text l
-           return $ pdoc <+> text (modekey m ++ "@" ++ k) <+> ld <> sdoc
+           return $ pdoc <+> text (modekey m ++ "@" ++ k) <+> sdoc
         modekey SuppressAuthor = "-"
         modekey _              = ""
 inlineToMarkdown _ (Cite _ _) = return $ text ""

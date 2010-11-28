@@ -371,11 +371,10 @@ inlineToLaTeX (Note contents) = do
 
 citationsToNatbib :: [Citation] -> State WriterState Doc
 citationsToNatbib (one:[])
-  = citeCommand c p l s k
+  = citeCommand c p s k
   where
     Citation { citationId = k
              , citationPrefix = p
-             , citationLocator = l
              , citationSuffix = s
              , citationMode = m
              } 
@@ -386,20 +385,18 @@ citationsToNatbib (one:[])
              NormalCitation -> "citep"
 
 citationsToNatbib cits 
-  | noPrefix (tail cits) && noSuffix (init cits) && noLocator (init cits) && ismode NormalCitation cits
-  = citeCommand "citep" p l s ks
+  | noPrefix (tail cits) && noSuffix (init cits) && ismode NormalCitation cits
+  = citeCommand "citep" p s ks
   where
      noPrefix  = and . map (null . citationPrefix)
      noSuffix  = and . map (null . citationSuffix)
-     noLocator = and . map (null . citationLocator)
      ismode m  = and . map (((==) m)  . citationMode)
      p         = citationPrefix  $ head $ cits
-     l         = citationLocator $ last $ cits
      s         = citationSuffix  $ last $ cits
      ks        = intercalate ", " $ map citationId cits
 
 citationsToNatbib (c:cs) | citationMode c == AuthorInText = do
-     author <- citeCommand "citeauthor" [] "" [] (citationId c) 
+     author <- citeCommand "citeauthor" [] [] (citationId c) 
      cits   <- citationsToNatbib (c { citationMode = SuppressAuthor } : cs)
      return $ author <+> cits
 
@@ -411,39 +408,35 @@ citationsToNatbib cits = do
                    | otherwise = a <> text "; " <> b
     convertOne Citation { citationId = k
                         , citationPrefix = p
-                        , citationLocator = l
                         , citationSuffix = s
                         , citationMode = m
                         }
         = case m of
-               AuthorInText   -> citeCommand "citealt" p l s k
-               SuppressAuthor -> citeCommand "citeyear" p l s k
-               NormalCitation -> citeCommand "citealp" p l s k
+               AuthorInText   -> citeCommand "citealt"  p s k
+               SuppressAuthor -> citeCommand "citeyear" p s k
+               NormalCitation -> citeCommand "citealp"  p s k
 
-citeCommand :: String -> [Inline] -> String -> [Inline] -> String -> State WriterState Doc
-citeCommand c p l s k = do
-  args <- citeArguments p l s k
+citeCommand :: String -> [Inline] -> [Inline] -> String -> State WriterState Doc
+citeCommand c p s k = do
+  args <- citeArguments p s k
   return $ text ("\\" ++ c) <> args
 
-citeArguments :: [Inline] -> String -> [Inline] -> String -> State WriterState Doc
-citeArguments p l s k = do
-  p' <- inlineListToLaTeX p
-  s' <- inlineListToLaTeX s
-  let s'' = if not (null l) then (text l <> s') else s'
-      --s'' = text l <> s'
-      optargs = case (isEmpty p', isEmpty s'') of
+citeArguments :: [Inline] -> [Inline] -> String -> State WriterState Doc
+citeArguments p s k = do
+  pdoc <- inlineListToLaTeX p
+  sdoc <- inlineListToLaTeX s
+  let optargs = case (isEmpty pdoc, isEmpty sdoc) of
                      (True, True ) -> empty
-                     (True, False) -> brackets s''
-                     (_   , _    ) -> brackets p' <> brackets s''
+                     (True, False) -> brackets sdoc
+                     (_   , _    ) -> brackets pdoc <> brackets sdoc
   return $ optargs <> braces (text k)
 
 citationsToBiblatex :: [Citation] -> State WriterState Doc
 citationsToBiblatex (one:[])
-  = citeCommand cmd p l s k
+  = citeCommand cmd p s k
     where
        Citation { citationId = k
                 , citationPrefix = p
-                , citationLocator = l
                 , citationSuffix = s
                 , citationMode = m
                 } = one
@@ -461,9 +454,8 @@ citationsToBiblatex (c:cs) = do
                   _            -> "\\autocites"
        convertOne Citation { citationId = k
                            , citationPrefix = p
-                           , citationLocator = l
                            , citationSuffix = s
                            }
-              = citeArguments p l s k
+              = citeArguments p s k
 
 citationsToBiblatex _ = return empty

@@ -826,7 +826,6 @@ simpleCite = try $ do
       convertOne k  = Citation { citationId      = k
                                , citationPrefix  = [] 
                                , citationSuffix  = []
-                               , citationLocator = ""
                                , citationMode    = mode
                                , citationHash    = 0
                                , citationNoteNum = 0
