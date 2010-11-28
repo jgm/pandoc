@@ -16,6 +16,8 @@ Citation with suffix only [@item1, and nowhere else].
 
 Now some modifiers.[^3]
 
+Now with some markup [*see* @item1 p. **32**].
+
 # References
 
 [^1]:

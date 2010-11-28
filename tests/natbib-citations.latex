@@ -39,6 +39,8 @@ Now some modifiers.%
 \footnote{Like a citation without author: \citeyearpar{item1}, and now Doe
 with a locator \citeyearpar[p.~44]{item2}.}
 
+Now with some markup \citep[\emph{see}][p.~\textbf{32}]{item1}.
+
 \section{References}
 \bibliography{biblio}
 
