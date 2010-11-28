@@ -420,7 +420,11 @@ inlineToMarkdown opt (Cite (c:cs) _)
                                = do
            pdoc <- inlineListToMarkdown opt pinlines
            sdoc <- inlineListToMarkdown opt sinlines
-           return $ pdoc <+> text (modekey m ++ "@" ++ k) <+> sdoc
+           let k' = text (modekey m ++ "@" ++ k)
+               r = case sinlines of
+                        Str (y:_):_ | y `elem` ",;]@" -> k' <> sdoc
+                        _                             -> k' <+> sdoc
+           return $ pdoc <+> r
         modekey SuppressAuthor = "-"
         modekey _              = ""
 inlineToMarkdown _ (Cite _ _) = return $ text ""
