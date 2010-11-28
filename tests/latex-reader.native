@@ -272,7 +272,7 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 , HorizontalRule
 , Header 1 [Str "LaTeX"]
 , BulletList
-  [ [ Para [Cite [Citation {citationId = "smith.1899", citationPrefix = [], citationSuffix = [Str "22",Str "-",Str "23"], citationLocator = "", citationMode = NormalCitation, citationNoteNum = 0, citationHash = 0}] []] ]
+  [ [ Para [Cite [Citation {citationId = "smith.1899", citationPrefix = [], citationSuffix = [Str "22",Str "-",Str "23"], citationMode = NormalCitation, citationNoteNum = 0, citationHash = 0}] []] ]
   , [ Para [TeX "\\doublespacing"] ]
   , [ Para [Math InlineMath "2+2=4"] ]
   , [ Para [Math InlineMath "x \\in y"] ]
