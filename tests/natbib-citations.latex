@@ -18,26 +18,26 @@
 
 @nonexistent
 
-\citet{item1} says blah. \citet[p. 30]{item1} says blah.
-\citet[p. 30, with suffix]{item1} says blah.
-\citeauthor{item1} \citetext{\citeyear{item1}; \citeyear[p. 30]{item2}; \citealp[see also][]{item3}}
+\citet{item1} says blah. \citet[p.~30]{item1} says blah.
+\citet[p.~30, with suffix]{item1} says blah.
+\citeauthor{item1} \citetext{\citeyear{item1}; \citeyear[p.~30]{item2}; \citealp[see also][]{item3}}
 says blah.
 
 In a note.%
 \footnote{A citation without locators \citep{item3}.}
 A citation group
-\citetext{\citealp[see][p. 34-35]{item1}; \citealp[also][chap. 3]{item3}}.
-Another one \citep[see][p. 34-35]{item1}. And another one in a
+\citetext{\citealp[see][p.~34--35]{item1}; \citealp[also][chap. 3]{item3}}.
+Another one \citep[see][p.~34--35]{item1}. And another one in a
 note.%
 \footnote{Some citations
 \citetext{\citealp[see][chap. 3]{item2}; \citealp{item3}; \citealp{item1}}.}
 Citation with a suffix and locator
-\citep[pp. 33, 35-37, and nowhere else]{item1}. Citation with
+\citep[pp.~33, 35--37, and nowhere else]{item1}. Citation with
 suffix only \citep[, and nowhere else]{item1}.
 
 Now some modifiers.%
 \footnote{Like a citation without author: \citeyearpar{item1}, and now Doe
-with a locator \citeyearpar[p. 44]{item2}.}
+with a locator \citeyearpar[p.~44]{item2}.}
 
 \section{References}
 \bibliography{biblio}
