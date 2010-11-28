@@ -15,8 +15,9 @@ pandoc [*options*] [*input-file*]...
 Pandoc converts files from one markup format to another. It can
 read markdown and (subsets of) reStructuredText, HTML, and LaTeX, and
 it can write plain text, markdown, reStructuredText, HTML, LaTeX,
-ConTeXt, Texinfo, groff man, MediaWiki markup, RTF, OpenDocument XML,
-ODT, DocBook XML, EPUB, and Slidy or S5 HTML slide shows.
+ConTeXt, Texinfo, groff man, MediaWiki markup, Textile, RTF,
+OpenDocument XML, ODT, DocBook XML, EPUB, and Slidy or S5 HTML slide
+shows.
 
 If no *input-file* is specified, input is read from *stdin*.
 Otherwise, the *input-files* are concatenated (with a blank
@@ -72,10 +73,10 @@ should pipe input and output through `iconv`:
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
     `plain` (plain text), `markdown` (markdown), `rst` (reStructuredText),
     `html` (HTML), `latex` (LaTeX), `context` (ConTeXt), `man` (groff man), 
-    `mediawiki` (MediaWiki markup), `texinfo` (GNU Texinfo),
-    `docbook` (DocBook XML), `opendocument` (OpenDocument XML),
-    `odt` (OpenOffice text document), `epub` (EPUB book),
-    `slidy` (Slidy HTML and javascript slide show),
+    `mediawiki` (MediaWiki markup), `textile` (Textile),
+    `texinfo` (GNU Texinfo), `docbook` (DocBook XML),
+    `opendocument` (OpenDocument XML), `odt` (OpenOffice text document),
+    `epub` (EPUB book), `slidy` (Slidy HTML and javascript slide show),
     `s5` (S5 HTML and javascript slide show), or `rtf` (rich text
     format). Note that `odt` and `epub` output will not be directed to
     *stdout*; an output filename must be specified using the `-o/--output`

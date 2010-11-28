@@ -112,7 +112,9 @@ setInDefinitionList :: Bool -> State WriterState ()
 setInDefinitionList b = modify $  \s -> s { stInDefinition = b }
 
 inParagraphTags :: Doc -> Doc
-inParagraphTags = inTags False "text:p" [("text:style-name", "Text_20_body")]
+inParagraphTags d | isEmpty d = empty
+inParagraphTags d =
+  inTags False "text:p" [("text:style-name", "Text_20_body")] d
 
 inParagraphTagsWithStyle :: String -> Doc -> Doc
 inParagraphTagsWithStyle sty = inTags False "text:p" [("text:style-name", sty)]
@@ -359,7 +361,7 @@ inlineToOpenDocument o ils
     | Code        s <- ils = preformatted s
     | Math      _ s <- ils = inlinesToOpenDocument o (readTeXMath s)
     | Cite      _ l <- ils = inlinesToOpenDocument o l
-    | TeX         s <- ils = preformatted s
+    | TeX         _ <- ils = return empty
     | HtmlInline  s <- ils = preformatted s
     | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
     | Image _ (s,_) <- ils = return $ mkImg  s

@@ -118,6 +118,7 @@ writers = [("native"       , writeNative)
           ,("rst"          , writeRST)
           ,("rst+lhs"      , writeRST)
           ,("mediawiki"    , writeMediaWiki)
+          ,("textile"      , writeTextile)
           ,("rtf"          , writeRTF)
           ]
 

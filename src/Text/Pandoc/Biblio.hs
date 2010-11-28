@@ -54,7 +54,8 @@ processBiblio cslfile r p
                                   needNt = cits \\ concat ncits
                               in (,) needNt $ getNoteCitations needNt p'
                          else (,) [] $ queryWith getCitation p'
-            result     = citeproc csl r (setNearNote csl $ map (map toCslCite) grps)
+            result     = citeproc procOpts csl r (setNearNote csl $
+                            map (map toCslCite) grps)
             cits_map   = M.fromList $ zip grps (citations result)
             biblioList = map (renderPandoc' csl) (bibliography result)
             Pandoc m b = processWith (procInlines $ processCite csl cits_map) p'
@@ -173,9 +174,17 @@ toCslCite c
 
 locatorWords :: [Inline] -> (String, [Inline])
 locatorWords inp =
-  case parse (liftM2 (,) pLocator getInput) "suffix" inp of
+  case parse pLocatorWords "suffix" inp of
        Right r   -> r
        Left _    -> ("",inp)
+
+pLocatorWords :: GenParser Inline st (String, [Inline])
+pLocatorWords = do
+  l <- pLocator
+  s <- getInput -- rest is suffix
+  if length l > 0 && last l == ','
+     then return (init l, Str "," : s)
+     else return (l, s)
 
 pMatch :: (Inline -> Bool) -> GenParser Inline st Inline
 pMatch condition = try $ do

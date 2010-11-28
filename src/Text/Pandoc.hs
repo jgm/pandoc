@@ -84,6 +84,7 @@ module Text.Pandoc
                , writeOpenDocument
                , writeMan
                , writeMediaWiki
+               , writeTextile
                , writeRTF
                , writeODT
                , writeEPUB
@@ -118,6 +119,7 @@ import Text.Pandoc.Writers.OpenDocument
 import Text.Pandoc.Writers.Man
 import Text.Pandoc.Writers.RTF 
 import Text.Pandoc.Writers.MediaWiki
+import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Templates
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared

@@ -1301,7 +1301,7 @@
 <text:h text:style-name="Heading_20_1" text:outline-level="1">LaTeX</text:h>
 <text:list text:style-name="L26">
   <text:list-item>
-    <text:p text:style-name="P51"><text:span text:style-name="Teletype">\cite[22-23]{smith.1899}</text:span></text:p>
+    <text:p text:style-name="P51"></text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P51">2 + 2 = 4</text:p>
@@ -1341,11 +1341,6 @@
   </text:list-item>
 </text:list>
 <text:p text:style-name="Text_20_body">Here&#8217;s a LaTeX table:</text:p>
-<text:p text:style-name="Text_20_body"><text:span text:style-name="Teletype">\begin{tabular}{|l|l|}\hline
-Animal &amp; Number \\ \hline
-Dog <text:s text:c="3" />&amp; 2 <text:s text:c="5" />\\
-Cat <text:s text:c="3" />&amp; 1 <text:s text:c="5" />\\ \hline
-\end{tabular}</text:span></text:p>
 <text:p text:style-name="Horizontal_20_Line" />
 <text:h text:style-name="Heading_20_1" text:outline-level="1">Special Characters</text:h>
 <text:p text:style-name="Text_20_body">Here is some unicode:</text:p>
