@@ -320,6 +320,9 @@ atxClosing = try $ skipMany (char '#') >> blanklines
 
 setextHeader :: GenParser Char ParserState Block
 setextHeader = try $ do
+  -- This lookahead prevents us from wasting time parsing Inlines
+  -- unless necessary -- it gives a significant performance boost.
+  lookAhead $ anyLine >> many1 (oneOf setextHChars) >> blankline
   text <- many1Till inline newline
   underlineChar <- oneOf setextHChars
   many (char underlineChar)
