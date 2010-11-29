@@ -803,35 +803,54 @@ footnote = try $ do
 cite :: GenParser Char ParserState Inline
 cite = simpleCite <|> complexNatbibCites
 
+simpleCiteArgs :: GenParser Char ParserState [Citation]
+simpleCiteArgs = try $ do
+  first  <- optionMaybe $ (char '[') >> manyTill inline (char ']')
+  second <- optionMaybe $ (char '[') >> manyTill inline (char ']')
+  char '{'
+  keys <- many1Till citationLabel (char '}')
+  let (pre, suf) = case (first  , second ) of
+        (Just s , Nothing) -> ([], s )
+        (Just s , Just t ) -> (s , t )
+        _                  -> ([], [])
+      conv k = Citation { citationId      = k
+                        , citationPrefix  = []
+                        , citationSuffix  = []
+                        , citationMode    = NormalCitation
+                        , citationHash    = 0
+                        , citationNoteNum = 0
+                        }
+  return $ addPrefix pre $ addSuffix suf $ map conv keys
+
+
 simpleCite :: GenParser Char ParserState Inline
 simpleCite = try $ do
   char '\\'
-  let addUpper xs = xs ++ map (\(c:cs) -> toUpper c : cs) xs
-      n   = ["cite" ++ a ++ b | a <- ["al", ""], b <- ["p", "p*", ""]]
-              ++ ["autocite"]
-      nc  = try $ oneOfStrings (addUpper n) >> return NormalCitation
-      sa  = ["citeyearpar", "citeyear", "autocite*"]
-      sac = try $ oneOfStrings (addUpper sa) >> return SuppressAuthor
-      ao  = ["textcite"] ++ ["cite" ++ a ++ b | a <- ["al", ""], b <- ["t", "t*"]]
-      aoc = try $ oneOfStrings (addUpper ao) >> return AuthorInText
-  mode <- sac <|> aoc <|> nc
-  first  <- optionMaybe $ (char '[') >> manyTill inline (char ']')
-  second <- optionMaybe $ (char '[') >> manyTill inline (char ']') 
-  char '{'
-  keys <- many1Till citationLabel (char '}')
-  let (p, l) = case (first, second) of
-                    (Just s , Nothing) -> ([], s )
-                    (Just s , Just t ) -> (s , t )
-                    _                  -> ([], [])
-      convertOne k  = Citation { citationId      = k
-                               , citationPrefix  = [] 
-                               , citationSuffix  = []
-                               , citationMode    = mode
-                               , citationHash    = 0
-                               , citationNoteNum = 0
-                               }
-      convert       = addPrefix p . addSuffix l . map convertOne
-  return $ Cite (convert keys)  []
+  let biblatex     = [a ++ "cite" | a <- ["auto", "foot", "paren", "super", ""]]
+                     ++ ["footcitetext"]
+      normal       = ["cite" ++ a ++ b | a <- ["al", ""], b <- ["p", "p*", ""]]
+                     ++ biblatex
+      supress      = ["citeyearpar", "citeyear", "autocite*", "cite*", "parencite*"]
+      intext       = ["textcite"] ++ ["cite" ++ a ++ b | a <- ["al", ""], b <- ["t", "t*"]]
+      mintext      = ["textcites"]
+      mnormal      = map (++ "s") biblatex
+      cmdend       = notFollowedBy (letter <|> char '*')
+      addUpper xs  = xs ++ map (\(c:cs) -> toUpper c : cs) xs
+      toparser l t = try $ oneOfStrings (addUpper l) >> cmdend >> return t
+  (mode, multi) <-  toparser normal  (NormalCitation, False)
+                <|> toparser supress (SuppressAuthor, False)
+                <|> toparser intext  (AuthorInText  , False)
+                <|> toparser mnormal (NormalCitation, True )
+                <|> toparser mintext (AuthorInText  , True )
+  cits <- if multi then
+            many1 simpleCiteArgs
+          else
+            simpleCiteArgs >>= \c -> return [c]
+  let (c:cs) = concat cits
+      cits'  = case mode of
+        AuthorInText   -> c {citationMode = mode} : cs
+        _              -> map (\a -> a {citationMode = mode}) (c:cs)
+  return $ Cite cits' []
 
 complexNatbibCites :: GenParser Char ParserState Inline
 complexNatbibCites = complexNatbibTextual <|> complexNatbibParenthetical
@@ -843,7 +862,7 @@ complexNatbibTextual = try $ do
   skipSpaces
   Cite (c:cs) _ <- complexNatbibParenthetical
   return $ Cite (c {citationMode = AuthorInText} : cs) []
-  
+
 
 complexNatbibParenthetical :: GenParser Char ParserState Inline
 complexNatbibParenthetical = try $ do
@@ -859,7 +878,6 @@ complexNatbibParenthetical = try $ do
                  skipSpaces
                  optional $ char ';'
                  return $ addPrefix pref $ addSuffix suff $ cites
---}
 
 addPrefix :: [Inline] -> [Citation] -> [Citation]
 addPrefix p (k:ks)   = k {citationPrefix = p ++ citationPrefix k} : ks
