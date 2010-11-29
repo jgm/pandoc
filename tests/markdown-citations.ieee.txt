@@ -13,6 +13,7 @@
 -   Citation with a suffix and locator [1].
 -   Citation with suffix only [1].
 -   Now some modifiers.[^3]
+-   With some markup [1].
 
 # References
 

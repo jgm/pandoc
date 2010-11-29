@@ -13,6 +13,7 @@
 -   Citation with a suffix and locator (Doe 2005, 33, 35–37, and nowhere else).
 -   Citation with suffix only (Doe 2005, and nowhere else).
 -   Now some modifiers.[^3]
+-   With some markup (*see* Doe 2005, 32).
 
 # References
 
