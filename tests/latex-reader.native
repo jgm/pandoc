@@ -29,8 +29,8 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
   , CodeBlock ("",[],[]) "sub status {\n    print \"working\";\n}"
   , Para [Str "A",Space,Str "list:"]
   , OrderedList (1,Decimal,Period)
-    [ [ Para [Str "item",Space,Str "one"] ]
-    , [ Para [Str "item",Space,Str "two"] ] ]
+    [ [ Plain [Str "item",Space,Str "one"] ]
+    , [ Plain [Str "item",Space,Str "two"] ] ]
   , Para [Str "Nested",Space,Str "block",Space,Str "quotes:"]
   , BlockQuote
     [ Para [Str "nested"] ]
@@ -45,8 +45,8 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
   , CodeBlock ("",[],[]) "sub status {\n    print \"working\";\n}" ]
 , BlockQuote
   [ OrderedList (1,Decimal,Period)
-    [ [ Para [Str "do",Space,Str "laundry"] ]
-    , [ Para [Str "take",Space,Str "out",Space,Str "the",Space,Str "trash"] ] ] ]
+    [ [ Plain [Str "do",Space,Str "laundry"] ]
+    , [ Plain [Str "take",Space,Str "out",Space,Str "the",Space,Str "trash"] ] ] ]
 , Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "nested",Space,Str "one:"]
 , BlockQuote
   [ Para [Str "Joe",Space,Str "said:"]
@@ -65,118 +65,118 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 , Header 2 [Str "Unordered"]
 , Para [Str "Asterisks",Space,Str "tight:"]
 , BulletList
-  [ [ Para [Str "asterisk",Space,Str "1"] ]
-  , [ Para [Str "asterisk",Space,Str "2"] ]
-  , [ Para [Str "asterisk",Space,Str "3"] ] ]
+  [ [ Plain [Str "asterisk",Space,Str "1"] ]
+  , [ Plain [Str "asterisk",Space,Str "2"] ]
+  , [ Plain [Str "asterisk",Space,Str "3"] ] ]
 , Para [Str "Asterisks",Space,Str "loose:"]
 , BulletList
-  [ [ Para [Str "asterisk",Space,Str "1"] ]
-  , [ Para [Str "asterisk",Space,Str "2"] ]
-  , [ Para [Str "asterisk",Space,Str "3"] ] ]
+  [ [ Plain [Str "asterisk",Space,Str "1"] ]
+  , [ Plain [Str "asterisk",Space,Str "2"] ]
+  , [ Plain [Str "asterisk",Space,Str "3"] ] ]
 , Para [Str "Pluses",Space,Str "tight:"]
 , BulletList
-  [ [ Para [Str "Plus",Space,Str "1"] ]
-  , [ Para [Str "Plus",Space,Str "2"] ]
-  , [ Para [Str "Plus",Space,Str "3"] ] ]
+  [ [ Plain [Str "Plus",Space,Str "1"] ]
+  , [ Plain [Str "Plus",Space,Str "2"] ]
+  , [ Plain [Str "Plus",Space,Str "3"] ] ]
 , Para [Str "Pluses",Space,Str "loose:"]
 , BulletList
-  [ [ Para [Str "Plus",Space,Str "1"] ]
-  , [ Para [Str "Plus",Space,Str "2"] ]
-  , [ Para [Str "Plus",Space,Str "3"] ] ]
+  [ [ Plain [Str "Plus",Space,Str "1"] ]
+  , [ Plain [Str "Plus",Space,Str "2"] ]
+  , [ Plain [Str "Plus",Space,Str "3"] ] ]
 , Para [Str "Minuses",Space,Str "tight:"]
 , BulletList
-  [ [ Para [Str "Minus",Space,Str "1"] ]
-  , [ Para [Str "Minus",Space,Str "2"] ]
-  , [ Para [Str "Minus",Space,Str "3"] ] ]
+  [ [ Plain [Str "Minus",Space,Str "1"] ]
+  , [ Plain [Str "Minus",Space,Str "2"] ]
+  , [ Plain [Str "Minus",Space,Str "3"] ] ]
 , Para [Str "Minuses",Space,Str "loose:"]
 , BulletList
-  [ [ Para [Str "Minus",Space,Str "1"] ]
-  , [ Para [Str "Minus",Space,Str "2"] ]
-  , [ Para [Str "Minus",Space,Str "3"] ] ]
+  [ [ Plain [Str "Minus",Space,Str "1"] ]
+  , [ Plain [Str "Minus",Space,Str "2"] ]
+  , [ Plain [Str "Minus",Space,Str "3"] ] ]
 , Header 2 [Str "Ordered"]
 , Para [Str "Tight:"]
 , OrderedList (1,Decimal,Period)
-  [ [ Para [Str "First"] ]
-  , [ Para [Str "Second"] ]
-  , [ Para [Str "Third"] ] ]
+  [ [ Plain [Str "First"] ]
+  , [ Plain [Str "Second"] ]
+  , [ Plain [Str "Third"] ] ]
 , Para [Str "and:"]
 , OrderedList (1,Decimal,Period)
-  [ [ Para [Str "One"] ]
-  , [ Para [Str "Two"] ]
-  , [ Para [Str "Three"] ] ]
+  [ [ Plain [Str "One"] ]
+  , [ Plain [Str "Two"] ]
+  , [ Plain [Str "Three"] ] ]
 , Para [Str "Loose",Space,Str "using",Space,Str "tabs:"]
 , OrderedList (1,Decimal,Period)
-  [ [ Para [Str "First"] ]
-  , [ Para [Str "Second"] ]
-  , [ Para [Str "Third"] ] ]
+  [ [ Plain [Str "First"] ]
+  , [ Plain [Str "Second"] ]
+  , [ Plain [Str "Third"] ] ]
 , Para [Str "and",Space,Str "using",Space,Str "spaces:"]
 , OrderedList (1,Decimal,Period)
-  [ [ Para [Str "One"] ]
-  , [ Para [Str "Two"] ]
-  , [ Para [Str "Three"] ] ]
+  [ [ Plain [Str "One"] ]
+  , [ Plain [Str "Two"] ]
+  , [ Plain [Str "Three"] ] ]
 , Para [Str "Multiple",Space,Str "paragraphs:"]
 , OrderedList (1,Decimal,Period)
-  [ [ Para [Str "Item",Space,Str "1,",Space,Str "graf",Space,Str "one."]
-    , Para [Str "Item",Space,Str "1.",Space,Str "graf",Space,Str "two.",Space,Str "The",Space,Str "quick",Space,Str "brown",Space,Str "fox",Space,Str "jumped",Space,Str "over",Space,Str "the",Space,Str "lazy",Space,Str "dog",Apostrophe,Str "s",Space,Str "back."] ], [ Para [Str "Item",Space,Str "2."] ]
-  , [ Para [Str "Item",Space,Str "3."] ] ]
+  [ [ Plain [Str "Item",Space,Str "1,",Space,Str "graf",Space,Str "one."]
+    , Para [Str "Item",Space,Str "1.",Space,Str "graf",Space,Str "two.",Space,Str "The",Space,Str "quick",Space,Str "brown",Space,Str "fox",Space,Str "jumped",Space,Str "over",Space,Str "the",Space,Str "lazy",Space,Str "dog",Apostrophe,Str "s",Space,Str "back."] ], [ Plain [Str "Item",Space,Str "2."] ]
+  , [ Plain [Str "Item",Space,Str "3."] ] ]
 , Header 2 [Str "Nested"]
 , BulletList
-  [ [ Para [Str "Tab"]
+  [ [ Plain [Str "Tab"]
     , BulletList
-      [ [ Para [Str "Tab"]
+      [ [ Plain [Str "Tab"]
         , BulletList
-          [ [ Para [Str "Tab"] ]
+          [ [ Plain [Str "Tab"] ]
          ] ] ] ] ]
 , Para [Str "Here",Apostrophe,Str "s",Space,Str "another:"]
 , OrderedList (1,Decimal,Period)
-  [ [ Para [Str "First"] ]
-  , [ Para [Str "Second:"]
+  [ [ Plain [Str "First"] ]
+  , [ Plain [Str "Second:"]
     , BulletList
-      [ [ Para [Str "Fee"] ]
-      , [ Para [Str "Fie"] ]
-      , [ Para [Str "Foe"] ] ] ], [ Para [Str "Third"] ] ]
+      [ [ Plain [Str "Fee"] ]
+      , [ Plain [Str "Fie"] ]
+      , [ Plain [Str "Foe"] ] ] ], [ Plain [Str "Third"] ] ]
 , Para [Str "Same",Space,Str "thing",Space,Str "but",Space,Str "with",Space,Str "paragraphs:"]
 , OrderedList (1,Decimal,Period)
-  [ [ Para [Str "First"] ]
-  , [ Para [Str "Second:"]
+  [ [ Plain [Str "First"] ]
+  , [ Plain [Str "Second:"]
     , BulletList
-      [ [ Para [Str "Fee"] ]
-      , [ Para [Str "Fie"] ]
-      , [ Para [Str "Foe"] ] ] ], [ Para [Str "Third"] ] ]
+      [ [ Plain [Str "Fee"] ]
+      , [ Plain [Str "Fie"] ]
+      , [ Plain [Str "Foe"] ] ] ], [ Plain [Str "Third"] ] ]
 , Header 2 [Str "Tabs",Space,Str "and",Space,Str "spaces"]
 , BulletList
-  [ [ Para [Str "this",Space,Str "is",Space,Str "a",Space,Str "list",Space,Str "item",Space,Str "indented",Space,Str "with",Space,Str "tabs"] ]
-  , [ Para [Str "this",Space,Str "is",Space,Str "a",Space,Str "list",Space,Str "item",Space,Str "indented",Space,Str "with",Space,Str "spaces"]
+  [ [ Plain [Str "this",Space,Str "is",Space,Str "a",Space,Str "list",Space,Str "item",Space,Str "indented",Space,Str "with",Space,Str "tabs"] ]
+  , [ Plain [Str "this",Space,Str "is",Space,Str "a",Space,Str "list",Space,Str "item",Space,Str "indented",Space,Str "with",Space,Str "spaces"]
     , BulletList
-      [ [ Para [Str "this",Space,Str "is",Space,Str "an",Space,Str "example",Space,Str "list",Space,Str "item",Space,Str "indented",Space,Str "with",Space,Str "tabs"] ]
-      , [ Para [Str "this",Space,Str "is",Space,Str "an",Space,Str "example",Space,Str "list",Space,Str "item",Space,Str "indented",Space,Str "with",Space,Str "spaces"] ] ] ] ]
+      [ [ Plain [Str "this",Space,Str "is",Space,Str "an",Space,Str "example",Space,Str "list",Space,Str "item",Space,Str "indented",Space,Str "with",Space,Str "tabs"] ]
+      , [ Plain [Str "this",Space,Str "is",Space,Str "an",Space,Str "example",Space,Str "list",Space,Str "item",Space,Str "indented",Space,Str "with",Space,Str "spaces"] ] ] ] ]
 , Header 2 [Str "Fancy",Space,Str "list",Space,Str "markers"]
 , OrderedList (2,Decimal,TwoParens)
-  [ [ Para [Str "begins",Space,Str "with",Space,Str "2"] ]
-  , [ Para [Str "and",Space,Str "now",Space,Str "3"]
+  [ [ Plain [Str "begins",Space,Str "with",Space,Str "2"] ]
+  , [ Plain [Str "and",Space,Str "now",Space,Str "3"]
     , Para [Str "with",Space,Str "a",Space,Str "continuation"]
     , OrderedList (4,LowerRoman,Period)
-      [ [ Para [Str "sublist",Space,Str "with",Space,Str "roman",Space,Str "numerals,",Space,Str "starting",Space,Str "with",Space,Str "4"] ]
-      , [ Para [Str "more",Space,Str "items"]
+      [ [ Plain [Str "sublist",Space,Str "with",Space,Str "roman",Space,Str "numerals,",Space,Str "starting",Space,Str "with",Space,Str "4"] ]
+      , [ Plain [Str "more",Space,Str "items"]
         , OrderedList (1,UpperAlpha,TwoParens)
-          [ [ Para [Str "a",Space,Str "subsublist"] ]
-          , [ Para [Str "a",Space,Str "subsublist"] ] ] ] ] ] ]
+          [ [ Plain [Str "a",Space,Str "subsublist"] ]
+          , [ Plain [Str "a",Space,Str "subsublist"] ] ] ] ] ] ]
 , Para [Str "Nesting:"]
 , OrderedList (1,UpperAlpha,Period)
-  [ [ Para [Str "Upper",Space,Str "Alpha"]
+  [ [ Plain [Str "Upper",Space,Str "Alpha"]
     , OrderedList (1,UpperRoman,Period)
-      [ [ Para [Str "Upper",Space,Str "Roman."]
+      [ [ Plain [Str "Upper",Space,Str "Roman."]
         , OrderedList (6,Decimal,TwoParens)
-          [ [ Para [Str "Decimal",Space,Str "start",Space,Str "with",Space,Str "6"]
+          [ [ Plain [Str "Decimal",Space,Str "start",Space,Str "with",Space,Str "6"]
             , OrderedList (3,LowerAlpha,OneParen)
-              [ [ Para [Str "Lower",Space,Str "alpha",Space,Str "with",Space,Str "paren"] ]
+              [ [ Plain [Str "Lower",Space,Str "alpha",Space,Str "with",Space,Str "paren"] ]
              ] ] ] ] ] ] ]
 , Para [Str "Autonumbering:"]
 , OrderedList (1,DefaultStyle,DefaultDelim)
-  [ [ Para [Str "Autonumber."] ]
-  , [ Para [Str "More."]
+  [ [ Plain [Str "Autonumber."] ]
+  , [ Plain [Str "More."]
     , OrderedList (1,DefaultStyle,DefaultDelim)
-      [ [ Para [Str "Nested."] ]
+      [ [ Plain [Str "Nested."] ]
      ] ] ]
 , Para [Str "Should",Space,Str "not",Space,Str "be",Space,Str "a",Space,Str "list",Space,Str "item:"]
 , Para [Str "M.A.",Space,Str "2007"]
@@ -186,43 +186,43 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 , Para [Str "Tight",Space,Str "using",Space,Str "spaces:"]
 , DefinitionList
   [ ([Str "apple"],
-     [ [ Para [Str "red",Space,Str "fruit"] ]
+     [ [ Plain [Str "red",Space,Str "fruit"] ]
      ])
   , ([Str "orange"],
-     [ [ Para [Str "orange",Space,Str "fruit"] ]
+     [ [ Plain [Str "orange",Space,Str "fruit"] ]
      ])
   , ([Str "banana"],
-     [ [ Para [Str "yellow",Space,Str "fruit"] ]
+     [ [ Plain [Str "yellow",Space,Str "fruit"] ]
      ]) ]
 , Para [Str "Tight",Space,Str "using",Space,Str "tabs:"]
 , DefinitionList
   [ ([Str "apple"],
-     [ [ Para [Str "red",Space,Str "fruit"] ]
+     [ [ Plain [Str "red",Space,Str "fruit"] ]
      ])
   , ([Str "orange"],
-     [ [ Para [Str "orange",Space,Str "fruit"] ]
+     [ [ Plain [Str "orange",Space,Str "fruit"] ]
      ])
   , ([Str "banana"],
-     [ [ Para [Str "yellow",Space,Str "fruit"] ]
+     [ [ Plain [Str "yellow",Space,Str "fruit"] ]
      ]) ]
 , Para [Str "Loose:"]
 , DefinitionList
   [ ([Str "apple"],
-     [ [ Para [Str "red",Space,Str "fruit"] ]
+     [ [ Plain [Str "red",Space,Str "fruit"] ]
      ])
   , ([Str "orange"],
-     [ [ Para [Str "orange",Space,Str "fruit"] ]
+     [ [ Plain [Str "orange",Space,Str "fruit"] ]
      ])
   , ([Str "banana"],
-     [ [ Para [Str "yellow",Space,Str "fruit"] ]
+     [ [ Plain [Str "yellow",Space,Str "fruit"] ]
      ]) ]
 , Para [Str "Multiple",Space,Str "blocks",Space,Str "with",Space,Str "italics:"]
 , DefinitionList
   [ ([Emph [Str "apple"]],
-     [ [ Para [Str "red",Space,Str "fruit"]
+     [ [ Plain [Str "red",Space,Str "fruit"]
        , Para [Str "contains",Space,Str "seeds,",Space,Str "crisp,",Space,Str "pleasant",Space,Str "to",Space,Str "taste"] ]])
   , ([Emph [Str "orange"]],
-     [ [ Para [Str "orange",Space,Str "fruit"]
+     [ [ Plain [Str "orange",Space,Str "fruit"]
        , CodeBlock ("",[],[]) "{ orange code block }"
        , BlockQuote
          [ Para [Str "orange",Space,Str "block",Space,Str "quote"] ]
@@ -272,31 +272,31 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 , HorizontalRule
 , Header 1 [Str "LaTeX"]
 , BulletList
-  [ [ Para [Cite [Citation {citationId = "smith.1899", citationPrefix = [], citationSuffix = [Str "22",Str "-",Str "23"], citationMode = NormalCitation, citationNoteNum = 0, citationHash = 0}] []] ]
-  , [ Para [TeX "\\doublespacing"] ]
-  , [ Para [Math InlineMath "2+2=4"] ]
-  , [ Para [Math InlineMath "x \\in y"] ]
-  , [ Para [Math InlineMath "\\alpha \\wedge \\omega"] ]
-  , [ Para [Math InlineMath "223"] ]
-  , [ Para [Math InlineMath "p",Str "-",Str "Tree"] ]
-  , [ Para [Math InlineMath "\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}"] ]
-  , [ Para [Str "Here",Apostrophe,Str "s",Space,Str "one",Space,Str "that",Space,Str "has",Space,Str "a",Space,Str "line",Space,Str "break",Space,Str "in",Space,Str "it:",Space,Math InlineMath "\\alpha + \\omega \\times x^2",Str "."] ] ]
+  [ [ Plain [Cite [Citation {citationId = "smith.1899", citationPrefix = [], citationSuffix = [Str "22",Str "-",Str "23"], citationMode = NormalCitation, citationNoteNum = 0, citationHash = 0}] []] ]
+  , [ Plain [TeX "\\doublespacing"] ]
+  , [ Plain [Math InlineMath "2+2=4"] ]
+  , [ Plain [Math InlineMath "x \\in y"] ]
+  , [ Plain [Math InlineMath "\\alpha \\wedge \\omega"] ]
+  , [ Plain [Math InlineMath "223"] ]
+  , [ Plain [Math InlineMath "p",Str "-",Str "Tree"] ]
+  , [ Plain [Math InlineMath "\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}"] ]
+  , [ Plain [Str "Here",Apostrophe,Str "s",Space,Str "one",Space,Str "that",Space,Str "has",Space,Str "a",Space,Str "line",Space,Str "break",Space,Str "in",Space,Str "it:",Space,Math InlineMath "\\alpha + \\omega \\times x^2",Str "."] ] ]
 , Para [Str "These",Space,Str "shouldn",Apostrophe,Str "t",Space,Str "be",Space,Str "math:"]
 , BulletList
-  [ [ Para [Str "To",Space,Str "get",Space,Str "the",Space,Str "famous",Space,Str "equation,",Space,Str "write",Space,Code "$e = mc^2$",Str "."] ]
-  , [ Para [Str "$",Str "22,000",Space,Str "is",Space,Str "a",Space,Emph [Str "lot"],Space,Str "of",Space,Str "money.",Space,Str "So",Space,Str "is",Space,Str "$",Str "34,000.",Space,Str "(It",Space,Str "worked",Space,Str "if",Space,Quoted DoubleQuote [Str "lot"],Space,Str "is",Space,Str "emphasized.)"] ]
-  , [ Para [Str "Escaped",Space,Code "$",Str ":",Space,Str "$",Str "73",Space,Emph [Str "this",Space,Str "should",Space,Str "be",Space,Str "emphasized"],Space,Str "23",Str "$",Str "."] ] ]
+  [ [ Plain [Str "To",Space,Str "get",Space,Str "the",Space,Str "famous",Space,Str "equation,",Space,Str "write",Space,Code "$e = mc^2$",Str "."] ]
+  , [ Plain [Str "$",Str "22,000",Space,Str "is",Space,Str "a",Space,Emph [Str "lot"],Space,Str "of",Space,Str "money.",Space,Str "So",Space,Str "is",Space,Str "$",Str "34,000.",Space,Str "(It",Space,Str "worked",Space,Str "if",Space,Quoted DoubleQuote [Str "lot"],Space,Str "is",Space,Str "emphasized.)"] ]
+  , [ Plain [Str "Escaped",Space,Code "$",Str ":",Space,Str "$",Str "73",Space,Emph [Str "this",Space,Str "should",Space,Str "be",Space,Str "emphasized"],Space,Str "23",Str "$",Str "."] ] ]
 , Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "LaTeX",Space,Str "table:"]
 , Para [TeX "\\begin{tabular}{|l|l|}\\hline\nAnimal & Number \\\\ \\hline\nDog    & 2      \\\\\nCat    & 1      \\\\ \\hline\n\\end{tabular}"]
 , HorizontalRule
 , Header 1 [Str "Special",Space,Str "Characters"]
 , Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "unicode:"]
 , BulletList
-  [ [ Para [Str "I",Space,Str "hat:",Space,Str "\206"] ]
-  , [ Para [Str "o",Space,Str "umlaut:",Space,Str "\246"] ]
-  , [ Para [Str "section:",Space,Str "\167"] ]
-  , [ Para [Str "set",Space,Str "membership:",Space,Str "\8712"] ]
-  , [ Para [Str "copyright:",Space,Str "\169"] ] ]
+  [ [ Plain [Str "I",Space,Str "hat:",Space,Str "\206"] ]
+  , [ Plain [Str "o",Space,Str "umlaut:",Space,Str "\246"] ]
+  , [ Plain [Str "section:",Space,Str "\167"] ]
+  , [ Plain [Str "set",Space,Str "membership:",Space,Str "\8712"] ]
+  , [ Plain [Str "copyright:",Space,Str "\169"] ] ]
 , Para [Str "AT",Str "&",Str "T",Space,Str "has",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "their",Space,Str "name."]
 , Para [Str "AT",Str "&",Str "T",Space,Str "is",Space,Str "another",Space,Str "way",Space,Str "to",Space,Str "write",Space,Str "it."]
 , Para [Str "This",Space,Str "&",Space,Str "that."]
@@ -351,9 +351,9 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 , Header 2 [Str "Autolinks"]
 , Para [Str "With",Space,Str "an",Space,Str "ampersand:",Space,Link [Code "http://example.com/?foo=1&bar=2"] ("http://example.com/?foo=1&bar=2","")]
 , BulletList
-  [ [ Para [Str "In",Space,Str "a",Space,Str "list?"] ]
-  , [ Para [Link [Code "http://example.com/"] ("http://example.com/","")] ]
-  , [ Para [Str "It",Space,Str "should."] ] ]
+  [ [ Plain [Str "In",Space,Str "a",Space,Str "list?"] ]
+  , [ Plain [Link [Code "http://example.com/"] ("http://example.com/","")] ]
+  , [ Plain [Str "It",Space,Str "should."] ] ]
 , Para [Str "An",Space,Str "e",Str "-",Str "mail",Space,Str "address:",Space,Link [Code "nobody@nowhere.net"] ("mailto:nobody@nowhere.net","")]
 , BlockQuote
   [ Para [Str "Blockquoted:",Space,Link [Code "http://example.com/"] ("http://example.com/","")] ]
@@ -372,6 +372,6 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
   [ Para [Str "Notes",Space,Str "can",Space,Str "go",Space,Str "in",Space,Str "quotes.",Note [Para [Str "In",Space,Str "quote."]]] ]
 
 , OrderedList (1,Decimal,Period)
-  [ [ Para [Str "And",Space,Str "in",Space,Str "list",Space,Str "items.",Note [Para [Str "In",Space,Str "list."]]] ]
+  [ [ Plain [Str "And",Space,Str "in",Space,Str "list",Space,Str "items.",Note [Para [Str "In",Space,Str "list."]]] ]
  ]
 , Para [Str "This",Space,Str "paragraph",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "part",Space,Str "of",Space,Str "the",Space,Str "note,",Space,Str "as",Space,Str "it",Space,Str "is",Space,Str "not",Space,Str "indented."] ]

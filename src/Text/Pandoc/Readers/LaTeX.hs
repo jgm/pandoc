@@ -261,7 +261,10 @@ listItem = try $ do
            ([x]) | "[" `isPrefixOf` x && "]" `isSuffixOf` x -> 
                        parseFromString (many inline) $ tail $ init x
            _        -> return []
-  return (opt, blocks)
+  let blocks' = case blocks of
+        (Para lst : bs) -> Plain lst : bs
+        _               -> blocks
+  return (opt, blocks')
 
 orderedList :: GenParser Char ParserState Block
 orderedList = try $ do
