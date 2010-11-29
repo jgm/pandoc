@@ -108,7 +108,7 @@ main = do
              "latex-reader.latex" "latex-reader.native"
   r11 <- runTest "native reader" ["-r", "native", "-w", "native", "-s"]
              "testsuite.native" "testsuite.native"
-  r14s <- mapM (\style -> runTest ("markdown reader (citations) (" ++ style ++ ")") ["-r", "markdown", "-w", "html", "--bibliography", "biblio.bib", "--csl", style ++ ".csl"] "markdown-citations.txt" ("markdown-citations." ++ style ++ ".html")) ["chicago-author-date","ieee","mhra"]
+  r14s <- mapM (\style -> runTest ("markdown reader (citations) (" ++ style ++ ")") ["-r", "markdown", "-w", "markdown", "--bibliography", "biblio.bib", "--csl", style ++ ".csl", "--no-wrap"] "markdown-citations.txt" ("markdown-citations." ++ style ++ ".txt")) ["chicago-author-date","ieee","mhra"]
   let citopts = ["--bibliography", "biblio.bib", "--csl", "chicago-author-date.csl"]
   r15 <- runTest "markdown writer (citations)" (["-r", "markdown", "-w", "markdown"]    ++ citopts)
              "markdown-citations.txt" "markdown-citations.txt"

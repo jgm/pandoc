@@ -71,7 +71,10 @@ processCite s cs (i:is)
       addNt t x = if null x then [] else [Cite t $ renderPandoc s x]
       process t = case M.lookup t cs of
                     Just  x -> if isTextualCitation t && x /= []
-                               then renderPandoc s [head x] ++ [Space] ++ addNt t (tail x)
+                               then renderPandoc s [head x] ++
+                                    if tail x /= []
+                                    then Space : addNt t (tail x)
+                                    else []
                                else [Cite t $ renderPandoc s x]
                     Nothing -> [Str ("Error processing " ++ show t)]
 
