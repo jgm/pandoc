@@ -401,9 +401,10 @@ inlineToMarkdown _ (TeX str) = return $ text str
 inlineToMarkdown _ (HtmlInline str) = return $ text str 
 inlineToMarkdown _ (LineBreak) = return $ text "  \n"
 inlineToMarkdown _ Space = return $ char ' '
-inlineToMarkdown opt (Cite (c:cs) _) 
+inlineToMarkdown opts (Cite (c:cs) lst) 
+  | writerCiteMethod opts == Citeproc = inlineListToMarkdown opts lst
   | citationMode c == AuthorInText = do
-    suffs <- inlineListToMarkdown opt $ citationSuffix c
+    suffs <- inlineListToMarkdown opts $ citationSuffix c
     rest <- mapM convertOne cs
     let inbr = suffs <+> joincits rest
         br   = if isEmpty inbr then empty else brackets inbr
@@ -418,8 +419,8 @@ inlineToMarkdown opt (Cite (c:cs) _)
                             , citationSuffix  = sinlines
                             , citationMode    = m }
                                = do
-           pdoc <- inlineListToMarkdown opt pinlines
-           sdoc <- inlineListToMarkdown opt sinlines
+           pdoc <- inlineListToMarkdown opts pinlines
+           sdoc <- inlineListToMarkdown opts sinlines
            let k' = text (modekey m ++ "@" ++ k)
                r = case sinlines of
                         Str (y:_):_ | y `elem` ",;]@" -> k' <> sdoc

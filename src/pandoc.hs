@@ -522,7 +522,7 @@ options =
                   (\arg opt -> return opt { optCslFile = arg })
                   "FILENAME")
                  ""
-    , Option "" ["natbib"]
+    , Option "" ["natbib", "no-citeproc"]
                  (NoArg
                   (\opt -> return opt { optCiteMethod = Natbib }))
                  "" -- "Use natbib cite commands in LaTeX output"
@@ -842,7 +842,7 @@ main = do
 
   doc'' <- do
           -- this needs to be cleaned up, writer should know if it needs to add a processBiblio
-          if citeMethod == Citeproc && writerName' /= "markdown" && writerName' /= "markdown+lhs" && not (null refs)
+          if citeMethod == Citeproc && not (null refs)
              then do
                 csldir <- getAppUserDataDirectory "csl"
                 cslfile' <- if null cslfile
