@@ -75,6 +75,46 @@ packages are not included in your latex setup, they can be obtained from
 :   Use contents of *FILE* as the document header. *Note: This option is
     deprecated. Users should transition to using `--template` instead.*
 
+\--bibliography=*FILE*
+:   Specify bibliography database to be used in resolving
+    citations. The database type will be determined from the
+    extension of *FILE*, which may be `.xml` (MODS format),
+    `.bib` (BibTeX format), or `.json` (citeproc JSON).
+
+\--csl=*FILE*
+:   Specify [CSL] style to be used in formatting citations and
+    the bibliography. If *FILE* is not found, pandoc will look
+    for it in
+
+        $HOME/.csl
+
+    in unix and
+
+        C:\Documents And Settings\USERNAME\Applicaiton Data\csl
+
+    in Windows. If the `--csl` option is not specified, pandoc
+    will use a default style:  either `default.csl` in the
+    user data directory (see `--data-dir`), or, if that is
+    not present, the Chicago author-date style.
+
+\--data-dir*=DIRECTORY*
+:   Specify the user data directory to search for pandoc data files.
+    If this option is not specified, the default user data directory
+    will be used:
+
+        $HOME/.pandoc
+
+    in unix and
+
+        C:\Documents And Settings\USERNAME\Application Data\pandoc
+
+    in Windows. A `reference.odt`, `epub.css`, `templates` directory,
+    or `s5` directory placed in this directory will override pandoc's
+    normal defaults.
+
 # SEE ALSO
 
 `pandoc`(1), `pdflatex`(1)
+
+[CSL]: CitationStyles.org
+
