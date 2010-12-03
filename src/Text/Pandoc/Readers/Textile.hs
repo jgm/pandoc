@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Portability : portable
 
 Conversion from Textile to 'Pandoc' document, based on the spec
-available at ahttp://redcloth.org/hobix.com/textile/
+available at http://redcloth.org/textile.
 
 Implemented and parsed:
  - Paragraphs
@@ -34,7 +34,7 @@ Implemented and parsed:
  - Lists
  - blockquote
  - Inlines : strong, emph, cite, code, deleted, superscript,
-   subscript, links
+   subscript, links, smart punctuation
 
 Implemented but discarded:
  - HTML-specific and CSS-specific attributes
@@ -42,7 +42,20 @@ Implemented but discarded:
 Left to be implemented:
  - Pandoc Meta Information (title, author, date)
  - footnotes
- - should autolink be shared through Parsing.hs ?
+ - dimension sign
+ - registered, trademark, and copyright symbols
+ - acronyms
+ - uppercase
+ - definition lists
+ - continued blocks (ex bq..)
+ - 
+
+
+
+TODO : refactor common patterns across readers :
+ - autolink
+ - smartPunctuation
+ - more ...
 
 -}
 
@@ -55,6 +68,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlEndTag, -- find code blocks
                                   rawHtmlBlock, rawHtmlInline )
+import Text.Pandoc.Readers.Markdown (smartPunctuation)
 import Text.ParserCombinators.Parsec
 import Data.Char ( digitToInt )
 
@@ -71,7 +85,7 @@ readTextile state s = (readWith parseTextile) state (s ++ "\n\n")
 
 -- | Special chars border strings parsing
 specialChars :: [Char]
-specialChars = "\\[]*#_@~<>!?-+^&'\";:|"
+specialChars = "\\[]<>*#_@~-+^&,.;:!?|\"'%"
 
 -- | Generate a Pandoc ADT from a textile document
 parseTextile :: GenParser Char ParserState Pandoc
@@ -275,6 +289,8 @@ inlines = manyTill inline newline
 inlineParsers :: [GenParser Char ParserState Inline]
 inlineParsers = [ autoLink
                 , str
+                , htmlSpan
+                , smartPunctuation -- from markdown reader
                 , whitespace
                 , endline
                 , rawHtmlInline
@@ -296,17 +312,25 @@ inlineParsers = [ autoLink
 str :: GenParser Char ParserState Inline
 str = many1 (noneOf (specialChars ++ "\t\n ")) >>= return . Str
 
+-- | Textile allows HTML span infos, we discard them
+htmlSpan :: GenParser Char ParserState Inline
+htmlSpan = try $ do
+  char '%'
+  _ <- attributes
+  content <- manyTill anyChar (char '%')
+  return $ Str content
+
 -- | Some number of space chars
 whitespace :: GenParser Char ParserState Inline
 whitespace = many1 spaceChar >> return Space <?> "whitespace"
 
--- | In Textile, an endline character that can be treated as a space,
--- not a structural break
+-- | In Textile, an isolated endline character is a line break
 endline :: GenParser Char ParserState Inline
 endline = try $ do
   newline >> notFollowedBy blankline
-  return Space
+  return LineBreak
 
+-- | Textile standard link syntax is label:"target"
 link :: GenParser Char ParserState Inline
 link = try $ do
   name <- surrounded (char '"') inline

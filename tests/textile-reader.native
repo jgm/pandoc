@@ -1,5 +1,5 @@
 Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
-[ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc.",Space,Str "Most",Space,Str "of",Space,Str "them",Space,Str "are",Space,Str "adapted",Space,Str "from",Space,Str "John",Space,Str "Gruber",Str "'",Str "s",Space,Str "markdown",Space,Str "test",Space,Str "suite."]
+[ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc",Space,Str "Textile",Space,Str "Reader",Str ".",Space,Str "Part",Space,Str "of",Space,Str "it",Space,Str "comes",LineBreak,Str "from",Space,Str "John",Space,Str "Gruber",Str "'",Str "s",Space,Str "markdown",Space,Str "test",Space,Str "suite",Str "."]
 , Para [Strikeout [Str "-"],Str "-",Str "-"]
 , Header 1 [Str "Headers"]
 , Header 2 [Str "Level",Space,Str "2",Space,Str "with",Space,Str "an",Space,Link [Str "embeded",Space,Str "link"] ("http://www.example.com","")]
@@ -8,19 +8,19 @@ Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
 , Header 5 [Str "Level",Space,Str "5"]
 , Header 6 [Str "Level",Space,Str "6"]
 , Header 1 [Str "Paragraphs"]
-, Para [Str "Here",Str "'",Str "s",Space,Str "a",Space,Str "regular",Space,Str "paragraph."]
-, Para [Str "Line",Space,Str "break",Space,Str "are",Space,Str "not",Space,Str "paragraph",Space,Str "break",Space,Str "in",Space,Str "textile,",Space,Str "so",Space,Str "you",Space,Str "can",Space,Str "wrap",Space,Str "your",Space,Str "very",Space,Str "long",Space,Str "paragraph",Space,Str "with",Space,Str "your",Space,Str "favourite",Space,Str "text",Space,Str "editor,",Space,Str "it",Space,Str "will",Space,Str "be",Space,Str "rendered",Space,Str "as",Space,Str "a",Space,Str "single",Space,Str "one."]
-, Para [Str "Here",Str "'",Str "s",Space,Str "one",Space,Str "with",Space,Str "a",Space,Str "bullet."]
+, Para [Str "Here",Str "'",Str "s",Space,Str "a",Space,Str "regular",Space,Str "paragraph",Str "."]
+, Para [Str "Line",Space,Str "breaks",Space,Str "are",Space,Str "preserved",Space,Str "in",Space,Str "textile",Str ",",Space,Str "so",Space,Str "you",Space,Str "can",Space,Str "not",Space,Str "wrap",Space,Str "your",Space,Str "very",LineBreak,Str "long",Space,Str "paragraph",Space,Str "with",Space,Str "your",Space,Str "favourite",Space,Str "text",Space,Str "editor",Space,Str "and",Space,Str "have",Space,Str "it",Space,Str "rendered",LineBreak,Str "with",Space,Str "no",Space,Str "break",Str "."]
+, Para [Str "Here",Str "'",Str "s",Space,Str "one",Space,Str "with",Space,Str "a",Space,Str "bullet",Str "."]
 , BulletList
-  [ [ Plain [Str "criminey."] ]
+  [ [ Plain [Str "criminey",Str "."] ]
  ]
-, Para [Str "There",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "hard",Space,Str "line",Space,Str "break"]
-, Para [Str "here."]
+, Para [Str "There",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "paragraph",Space,Str "break",Space,Str "between",Space,Str "here"]
+, Para [Str "and",Space,Str "here",Str "."]
 , Header 1 [Str "Block",Space,Str "Quotes"]
 , BlockQuote
-  [ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "famous",Space,Str "quote",Space,Str "from",Space,Str "somebody.",Space,Str "He",Space,Str "had",Space,Str "a",Space,Str "lot",Space,Str "of",Space,Str "things",Space,Str "to",Space,Str "say,",Space,Str "so",Space,Str "the",Space,Str "text",Space,Str "is",Space,Str "really",Space,Str "really",Space,Str "long",Space,Str "and",Space,Str "spans",Space,Str "on",Space,Str "multiple",Space,Str "lines."] ]
+  [ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "famous",Space,Str "quote",Space,Str "from",Space,Str "somebody",Str ".",Space,Str "He",Space,Str "had",Space,Str "a",Space,Str "lot",Space,Str "of",Space,Str "things",Space,Str "to",LineBreak,Str "say",Str ",",Space,Str "so",Space,Str "the",Space,Str "text",Space,Str "is",Space,Str "really",Space,Str "really",Space,Str "long",Space,Str "and",Space,Str "spans",Space,Str "on",Space,Str "multiple",Space,Str "lines",Str "."] ]
 
-, Para [Str "And",Space,Str "a",Space,Str "following",Space,Str "paragraph."]
+, Para [Str "And",Space,Str "a",Space,Str "following",Space,Str "paragraph",Str "."]
 , Header 1 [Str "Code",Space,Str "Blocks"]
 , Para [Str "Code",Str ":"]
 , CodeBlock ("",[],[]) "\n    ---- (should be four hyphens)\n\n    sub status {\n        print \"working\";\n    }\n\n    this code block is indented by one tab\n"
@@ -43,24 +43,22 @@ Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
 , BulletList
   [ [ Plain [Str "ui",Space,Str "1"]
     , BulletList
-      [ [ Plain [Str "ui",Space,Str "1.1"]
+      [ [ Plain [Str "ui",Space,Str "1",Str ".",Str "1"]
         , OrderedList (1,DefaultStyle,DefaultDelim)
-          [ [ Plain [Str "oi",Space,Str "1.1.1"] ]
-          , [ Plain [Str "oi",Space,Str "1.1.2"] ] ] ], [ Plain [Str "ui",Space,Str "1.2"] ] ] ], [ Plain [Str "ui",Space,Str "2"]
+          [ [ Plain [Str "oi",Space,Str "1",Str ".",Str "1",Str ".",Str "1"] ]
+          , [ Plain [Str "oi",Space,Str "1",Str ".",Str "1",Str ".",Str "2"] ] ] ], [ Plain [Str "ui",Space,Str "1",Str ".",Str "2"] ] ] ], [ Plain [Str "ui",Space,Str "2"]
     , OrderedList (1,DefaultStyle,DefaultDelim)
-      [ [ Plain [Str "oi",Space,Str "2.1"]
+      [ [ Plain [Str "oi",Space,Str "2",Str ".",Str "1"]
         , BulletList
-          [ [ Plain [Str "ui",Space,Str "2.1.1"] ]
-          , [ Plain [Str "ui",Space,Str "2.1.2"] ] ] ] ] ] ]
+          [ [ Plain [Str "ui",Space,Str "2",Str ".",Str "1",Str ".",Str "1"] ]
+          , [ Plain [Str "ui",Space,Str "2",Str ".",Str "1",Str ".",Str "2"] ] ] ] ] ] ]
 , Header 1 [Str "Inline",Space,Str "Markup"]
-, Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str "."]
-, Para [Str "This",Space,Str "is",Space,Strong [Str "strong"],Str ",",Space,Str "and",Space,Str "so",Space,Strong [Str "is",Space,Str "this"],Str "."]
-, Para [Str "A",Space,Link [Strong [Str "strong",Space,Str "link"]] ("http://www.foobar.com",""),Str "."]
-, Para [Emph [Strong [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em."]]]
-, Para [Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word",Space,Str "and",Space,Emph [Strong [Str "that",Space,Str "one"]],Str "."]
-, Para [Strikeout [Str "This",Space,Str "is",Space,Str "strikeout",Space,Str "and",Space,Strong [Str "strong"]]]
-, Para [Str "Superscripts",Str ":",Space,Str "a",Superscript [Str "bc"],Str "d",Space,Str "a",Superscript [Strong [Str "hello"]],Space,Str "a",Superscript [Str "hello",Space,Str "there"],Str "."]
-, Para [Str "Subscripts",Str ":",Space,Str "H",Subscript [Str "2"],Str "O,",Space,Str "H",Subscript [Str "23"],Str "O,",Space,Str "H",Subscript [Str "many",Space,Str "of",Space,Str "them"],Str "O."]
+, Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str ".",LineBreak,Str "This",Space,Str "is",Space,Strong [Str "strong"],Str ",",Space,Str "and",Space,Str "so",Space,Strong [Str "is",Space,Str "this"],Str ".",LineBreak,Str "A",Space,Link [Strong [Str "strong",Space,Str "link"]] ("http://www.foobar.com",""),Str "."]
+, Para [Emph [Strong [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em",Str "."]],LineBreak,Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word",Space,Str "and",Space,Emph [Strong [Str "that",Space,Str "one"]],Str ".",LineBreak,Strikeout [Str "This",Space,Str "is",Space,Str "strikeout",Space,Str "and",Space,Strong [Str "strong"]]]
+, Para [Str "Superscripts",Str ":",Space,Str "a",Superscript [Str "bc"],Str "d",Space,Str "a",Superscript [Strong [Str "hello"]],Space,Str "a",Superscript [Str "hello",Space,Str "there"],Str ".",LineBreak,Str "Subscripts",Str ":",Space,Str "H",Subscript [Str "2"],Str "O",Str ",",Space,Str "H",Subscript [Str "23"],Str "O",Str ",",Space,Str "H",Subscript [Str "many",Space,Str "of",Space,Str "them"],Str "O",Str "."]
+, Para [Str "Dashes",Space,Str ":",Space,Str "How",Space,Str "cool",Space,Str "-",Str "-",Space,Str "automatic",Space,Str "dashes",Str "."]
+, Para [Str "Elipses",Space,Str ":",Space,Str "He",Space,Str "thought",Space,Str "and",Space,Str "thought",Space,Str ".",Str ".",Str ".",Space,Str "and",Space,Str "then",Space,Str "thought",Space,Str "some",Space,Str "more",Str "."]
+, Para [Str "Quotes",Space,Str "and",Space,Str "apostrophes",Space,Str ":",Space,Str "\"",Str "I",Str "'",Str "d",Space,Str "like",Space,Str "to",Space,Str "thank",Space,Str "you",Str "\"",Space,Str "for",Space,Str "example",Str "."]
 , Header 1 [Str "Links"]
 , Header 2 [Str "Explicit"]
 , Para [Str "Just",Space,Str "a",Space,Link [Str "url"] ("http://www.url.com","")]
@@ -84,7 +82,7 @@ Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
   [ [ Plain [Str "bella"] ]
   , [ Plain [Str "45"] ]
   , [ Plain [Str "f"] ] ] ]
-, Para [Str "and",Space,Str "some",Space,Str "text",Space,Str "following",Space,Str "..."]
+, Para [Str "and",Space,Str "some",Space,Str "text",Space,Str "following",Space,Str ".",Str ".",Str "."]
 , Header 2 [Str "With",Space,Str "headers"]
 , Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
   [ [ Plain [Str "name"] ]
@@ -100,11 +98,11 @@ Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
   , [ Plain [Str "45"] ]
   , [ Plain [Str "f"] ] ] ]
 , Header 1 [Str "Images"]
-, Para [Str "Textile",Space,Str "inline",Space,Str "image",Space,Str "syntax,",Space,Str "like",Space,Str "here",Space,Image [Str "this is the alt text"] ("this_is_an_image.png","this is the alt text"),Space,Str "and",Space,Str "here",Space,Image [Str ""] ("this_is_an_image.png",""),Str "."]
+, Para [Str "Textile",Space,Str "inline",Space,Str "image",Space,Str "syntax",Str ",",Space,Str "like",Space,LineBreak,Str "here",Space,Image [Str "this is the alt text"] ("this_is_an_image.png","this is the alt text"),LineBreak,Str "and",Space,Str "here",Space,Image [Str ""] ("this_is_an_image.png",""),Str "."]
 , Header 1 [Str "Attributes"]
 , Header 2 [Str "HTML",Space,Str "and",Space,Str "CSS",Space,Str "attributes",Space,Str "are",Space,Str "ignored"]
-, Para [Str "as",Space,Str "well",Space,Str "as",Space,Strong [Str "inline",Space,Str "attributes"]]
-, Para [Str "and",Space,Str "paragraph",Space,Str "attributes,",Space,Str "and",Space,Str "table",Space,Str "attributes."]
+, Para [Str "as",Space,Str "well",Space,Str "as",Space,Strong [Str "inline",Space,Str "attributes"],Space,Str "of",Space,Str " all kind"]
+, Para [Str "and",Space,Str "paragraph",Space,Str "attributes",Str ",",Space,Str "and",Space,Str "table",Space,Str "attributes",Str "."]
 , Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
   [ 
  ] [
@@ -115,16 +113,16 @@ Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
   , [ Plain [Str "24"] ]
   , [ Plain [Str "f"] ] ] ]
 , Header 1 [Str "Raw",Space,Str "HTML"]
-, Para [Str "However,",Space,HtmlInline "<strong>",Space,Str "raw",Space,Str "HTML",Space,Str "inlines",Space,HtmlInline "</strong>",Space,Str "are",Space,Str "accepted,",Space,Str "as",Space,Str "well",Space,Str "as",Space,Str ":"]
-, RawHtml "<div class=\"foobar\">"
-, Para [Str "any",Space,Strong [Str "Raw",Space,Str "HTML",Space,Str "Block"],Space,Str "with",Space,Str "bold"]
-, RawHtml "</div>"
+, Para [Str "However",Str ",",Space,Str "raw",Space,Str "HTML",Space,Str "inlines",Space,Str "are",Space,Str "accepted",Str ",",Space,Str "as",Space,Str "well",Space,Str "as",Space,Str ":"]
+, Null
+, Para [Str "any",Space,Strong [Str "Raw",Space,Str "HTML",Space,Str "Block"],Space,Str "with",Space,Str "bold",LineBreak]
+, Null
 , Para [Str "Html",Space,Str "blocks",Space,Str "can",Space,Str "be"]
-, RawHtml "<div>"
+, Null
 , Para [Str "inlined"]
-, RawHtml "</div>"
-, Para [Str "as",Space,Str "well."]
+, Null
+, Para [Str "as",Space,Str "well",Str "."]
 , BulletList
   [ [ Plain [Str "this",Space,Str "<",Str "div",Str ">",Space,Str "won",Str "'",Str "t",Space,Str "produce",Space,Str "raw",Space,Str "html",Space,Str "blocks",Space,Str "<",Str "/div",Str ">"] ]
-  , [ Plain [Str "but",Space,Str "this",Space,HtmlInline "<strong>",Space,Str "will",Space,Str "produce",Space,Str "inline",Space,Str "html",Space,HtmlInline "</strong>"] ] ]
+  , [ Plain [Str "but",Space,Str "this",Space,Str "",Space,Str "will",Space,Str "produce",Space,Str "inline",Space,Str "html",Space,Str ""] ] ]
 , Para [Str "Can",Space,Str "you",Space,Str "prove",Space,Str "that",Space,Str "2",Space,Str "<",Space,Str "3",Space,Str "?"] ]

@@ -28,7 +28,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of markdown-formatted plain text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Markdown ( 
-                                     readMarkdown 
+                                     readMarkdown,
+                                     smartPunctuation
                                     ) where
 
 import Data.List ( transpose, isSuffixOf, sortBy, findIndex, intercalate )

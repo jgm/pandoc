@@ -1,5 +1,5 @@
-This is a set of tests for pandoc. Most of them are adapted from John
-Gruber's markdown test suite.
+This is a set of tests for pandoc Textile Reader. Part of it comes
+from John Gruber's markdown test suite.
 
 -----
 
@@ -20,17 +20,18 @@ h1. Paragraphs
 
 Here's a regular paragraph.
 
-Line break are not paragraph break in textile, so you can wrap your
-very long paragraph with your favourite text editor, it will be
-rendered as a single one.
+Line breaks are preserved in textile, so you can not wrap your very
+long paragraph with your favourite text editor and have it rendered
+with no break.
+
 
 Here's one with a bullet.
 
 * criminey.
 
-There should be a hard line break  
+There should be a paragraph break between here
 
-here.
+and here.
 
 h1. Block Quotes
 
@@ -96,20 +97,21 @@ h2. Nested
 h1. Inline Markup
 
 This is _emphasized_, and so __is this__.
-
 This is *strong*, and so **is this**.
-
 A "*strong link*":http://www.foobar.com.
 
 _*This is strong and em.*_
-
 So is *_this_* word and __**that one**__.
-
 -This is strikeout and *strong*-
 
 Superscripts:  a^bc^d a^*hello*^ a^hello there^.
-
 Subscripts: H~2~O, H~23~O, H~many of them~O.
+
+Dashes : How cool -- automatic dashes.
+
+Elipses : He thought and thought ... and then thought some more.
+
+Quotes and apostrophes : "I'd like to thank you" for example.
 
 
 h1. Links
@@ -154,7 +156,7 @@ h1. Attributes
 
 h2{color:red}. HTML and CSS attributes are ignored
 
-as well as *(foo)inline attributes*
+as well as *(foo)inline attributes* of %{color:red} all kind%
 
 p{color:green}. and paragraph attributes, and table attributes.
 
