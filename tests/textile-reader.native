@@ -1,6 +1,6 @@
 Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
 [ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc",Space,Str "Textile",Space,Str "Reader",Str ".",Space,Str "Part",Space,Str "of",Space,Str "it",Space,Str "comes",LineBreak,Str "from",Space,Str "John",Space,Str "Gruber",Str "'",Str "s",Space,Str "markdown",Space,Str "test",Space,Str "suite",Str "."]
-, Para [Strikeout [Str "-"],Str "-",Str "-"]
+, HorizontalRule
 , Header 1 [Str "Headers"]
 , Header 2 [Str "Level",Space,Str "2",Space,Str "with",Space,Str "an",Space,Link [Str "embeded",Space,Str "link"] ("http://www.example.com","")]
 , Header 3 [Str "Level",Space,Str "3",Space,Str "with",Space,Strong [Str "emphasis"]]

@@ -106,6 +106,7 @@ blockParsers :: [GenParser Char ParserState Block]
 blockParsers = [ codeBlock
                , header
                , blockQuote
+               , hrule
                , anyList
                , rawHtmlBlock'
                , maybeExplicitBlock "table" table
@@ -150,6 +151,18 @@ blockQuote = try $ do
   char '.'
   whitespace
   para >>= return . BlockQuote . (:[])
+
+-- Horizontal rule
+
+hrule :: GenParser Char st Block
+hrule = try $ do
+  skipSpaces
+  start <- oneOf "-*"
+  count 2 (skipSpaces >> char start)
+  skipMany (spaceChar <|> char start)
+  newline
+  optional blanklines
+  return HorizontalRule
 
 -- Lists handling
 
