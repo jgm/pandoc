@@ -105,7 +105,7 @@ main = do
              "html-reader.html" "html-reader.native"
   r10 <- runTest "latex reader" ["-r", "latex", "-w", "native", "-s", "-R"]
              "latex-reader.latex" "latex-reader.native"
-  rTextile1 <- runTest "textile reader" ["-r", "textile", "-w", "native", "-s", "-R"]
+  rTextile1 <- runTest "textile reader" ["-r", "textile", "-w", "native", "-s"]
              "textile-reader.textile" "textile-reader.native"
   r11 <- runTest "native reader" ["-r", "native", "-w", "native", "-s"]
              "testsuite.native" "testsuite.native"

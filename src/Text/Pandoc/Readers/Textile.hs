@@ -90,6 +90,8 @@ specialChars = "\\[]<>*#_@~-+^&,.;:!?|\"'%"
 -- | Generate a Pandoc ADT from a textile document
 parseTextile :: GenParser Char ParserState Pandoc
 parseTextile = do
+  -- textile allows raw HTML
+  updateState (\state -> state { stateParseRaw = True })
   many blankline
   blocks <- parseBlocks 
   return $ Pandoc (Meta [Str ""] [[Str ""]] [Str ""]) blocks -- FIXME
