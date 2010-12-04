@@ -202,6 +202,7 @@ Library
                    Text.Pandoc.Writers.Man,
                    Text.Pandoc.Writers.Markdown,
                    Text.Pandoc.Writers.RST,
+                   Text.Pandoc.Writers.Org,
                    Text.Pandoc.Writers.Textile,
                    Text.Pandoc.Writers.MediaWiki,
                    Text.Pandoc.Writers.RTF,
