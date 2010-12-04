@@ -70,7 +70,8 @@ import Text.Pandoc.Readers.HTML ( htmlTag, htmlEndTag, -- find code blocks
                                   rawHtmlBlock, rawHtmlInline )
 import Text.Pandoc.Readers.Markdown (smartPunctuation)
 import Text.ParserCombinators.Parsec
-import Data.Char ( digitToInt )
+import Data.Char ( digitToInt, isLetter )
+import Control.Monad ( guard )
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: ParserState -- ^ Parser state, including options for parser
@@ -312,7 +313,19 @@ inlineParsers = [ autoLink
 
 -- | Any string
 str :: GenParser Char ParserState Inline
-str = many1 (noneOf (specialChars ++ "\t\n ")) >>= return . Str
+str = do
+  xs <- many1 (noneOf (specialChars ++ "\t\n "))
+  optional $ charsInBalanced '(' ')' -- drop acronym explanation
+                                     -- e.g. PBS(Public Broadcasting Service)
+  -- parse a following hyphen if followed by a letter
+  -- (this prevents unwanted interpretation as starting a strikeout section)
+  result <- option xs $ try $ do
+              guard $ not . null $ xs
+              char '-'
+              next <- lookAhead letter
+              guard $ isLetter (last xs) || isLetter next
+              return $ xs ++ "-"
+  return $ Str result
 
 -- | Textile allows HTML span infos, we discard them
 htmlSpan :: GenParser Char ParserState Inline
