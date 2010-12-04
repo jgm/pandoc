@@ -4,11 +4,11 @@
 
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
-[markdown] and (subsets of) [reStructuredText], [HTML], and [LaTeX]; and
-it can write plain text, [markdown], [reStructuredText], [HTML], [LaTeX],
-[ConTeXt], [RTF], [DocBook XML], [OpenDocument XML], [ODT], [GNU Texinfo],
-[MediaWiki markup], [EPUB], [Textile], [groff man] pages, and [Slidy]
-or [S5] HTML slide shows.
+[markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
+and [LaTeX]; and it can write plain text, [markdown], [reStructuredText],
+[HTML], [LaTeX], [ConTeXt], [RTF], [DocBook XML], [OpenDocument XML], [ODT],
+[GNU Texinfo], [MediaWiki markup], [EPUB], [Textile], [groff man] pages,
+and [Slidy] or [S5] HTML slide shows.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, delimited code blocks,
@@ -79,11 +79,12 @@ Texinfo), `mediawiki` (MediaWiki markup), `textile` (Textile),
 `epub` (EPUB ebook), `man` (groff man), `slidy` (slidy HTML and
 javascript slide show), or `s5` (S5 HTML and javascript slide show).
 
-Supported input formats include `markdown`, `html`, `latex`, and `rst`.
-Note that the `rst` reader only parses a subset of reStructuredText
-syntax. For example, it doesn't handle tables, option lists, or
-footnotes. But for simple documents it should be adequate. The `latex`
-and `html` readers are also limited in what they can do.
+Supported input formats include `markdown`, `textile`, `html`,
+`latex`, and `rst`.  Note that the `rst` reader only parses a subset of
+reStructuredText syntax. For example, it doesn't handle tables, option
+lists, or footnotes. But for simple documents it should be adequate.
+The `textile`, `latex`, and `html` readers are also limited in what they
+can do.
 
 If you don't specify a reader or writer explicitly, `pandoc` will
 try to determine the input and output format from the extensions of
@@ -168,8 +169,8 @@ For further documentation, see the `pandoc(1)` man page.
 
 `-f`, `--from`, `-r`, or `--read` *format*
 :   specifies the input format (the format Pandoc will be converting
-    *from*). *format* can be `native`, `markdown`, `rst`, `html`, or
-    `latex`.  (`+lhs` can be appended to indicate that the input should
+    *from*). *format* can be `native`, `markdown`, `textile`, `rst`, `html`,
+    or `latex`.  (`+lhs` can be appended to indicate that the input should
     be treated as literate Haskell source.  See
     [Literate Haskell support](#literate-haskell-support), below.)
 
@@ -1314,7 +1315,7 @@ and ConTeXt.
 Citations
 ---------
 
-
+TODO
 
 Producing HTML slide shows with Pandoc
 ======================================
