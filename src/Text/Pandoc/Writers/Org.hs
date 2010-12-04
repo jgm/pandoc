@@ -107,7 +107,7 @@ titleToOrg [] = return empty
 titleToOrg lst = do
   contents <- inlineListToOrg lst
   let titleName = text "#+TITLE: "
-  return $ titleName $+$ contents 
+  return $ titleName <> contents 
 
 -- | Convert Pandoc block element to Org. 
 blockToOrg :: Block         -- ^ Block element
