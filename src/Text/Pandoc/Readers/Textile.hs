@@ -120,8 +120,16 @@ block = choice blockParsers <?> "block"
 codeBlock :: GenParser Char ParserState Block
 codeBlock = try $ do
   htmlTag False "pre"
-  content <- manyTill anyChar (try $ htmlEndTag "pre" >> blockBreak)
-  return $ CodeBlock ("",[],[]) content
+  result' <- manyTill anyChar (try $ htmlEndTag "pre" >> blockBreak)
+  -- drop leading newline if any
+  let result'' = case result' of
+                      '\n':xs -> xs
+                      _       -> result'
+  -- drop trailing newline if any
+  let result''' = case reverse result'' of
+                       '\n':_ -> init result''
+                       _      -> result''
+  return $ CodeBlock ("",[],[]) result'''
 
 -- | Header of the form "hN. content" with N in 1..6
 header :: GenParser Char ParserState Block

@@ -23,9 +23,9 @@ Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
 , Para [Str "And",Space,Str "a",Space,Str "following",Space,Str "paragraph",Str "."]
 , Header 1 [Str "Code",Space,Str "Blocks"]
 , Para [Str "Code",Str ":"]
-, CodeBlock ("",[],[]) "\n    ---- (should be four hyphens)\n\n    sub status {\n        print \"working\";\n    }\n\n    this code block is indented by one tab\n"
+, CodeBlock ("",[],[]) "    ---- (should be four hyphens)\n\n    sub status {\n        print \"working\";\n    }\n\n    this code block is indented by one tab"
 , Para [Str "And",Str ":"]
-, CodeBlock ("",[],[]) "\n        this code block is indented by two tabs\n\n    These should not be escaped:  \\$ \\\\ \\> \\[ \\{\n"
+, CodeBlock ("",[],[]) "        this code block is indented by two tabs\n\n    These should not be escaped:  \\$ \\\\ \\> \\[ \\{"
 , Header 1 [Str "Lists"]
 , Header 2 [Str "Unordered"]
 , Para [Str "Asterisks",Space,Str "tight",Str ":"]
