@@ -57,6 +57,7 @@ module Text.Pandoc.Shared (
                      -- * Pandoc block and inline list processing
                      orderedListMarkers,
                      normalizeSpaces,
+                     stringify,
                      compactify,
                      Element (..),
                      hierarchicalize,
@@ -71,6 +72,7 @@ module Text.Pandoc.Shared (
                      defaultWriterOptions,
                      -- * File handling
                      inDirectory,
+                     findDataFile,
                      readDataFile
                     ) where
 
@@ -339,6 +341,15 @@ normalizeSpaces list =
                                 else lst
     in  removeLeading $ removeTrailing $ removeDoubles list
 
+-- | Convert list of inlines to a string with formatting removed.
+stringify :: [Inline] -> String
+stringify = queryWith go
+  where go :: Inline -> [Char]
+        go Space = " "
+        go (Str x) = x
+        go (Code x) = x
+        go _ = ""
+
 -- | Change final list item from @Para@ to @Plain@ if the list contains
 -- no other @Para@ blocks.
 compactify :: [[Block]]  -- ^ List of list items (each a list of blocks)
@@ -538,11 +549,17 @@ inDirectory path action = do
   setCurrentDirectory oldDir
   return result
 
+-- | Get file path for data file, either from specified user data directory,
+-- or, if not found there, from Cabal data directory.
+findDataFile :: Maybe FilePath -> FilePath -> IO FilePath
+findDataFile Nothing f = getDataFileName f
+findDataFile (Just u) f = do
+  ex <- doesFileExist (u </> f)
+  if ex
+     then return (u </> f)
+     else getDataFileName f
+
 -- | Read file from specified user data directory or, if not found there, from
 -- Cabal data directory.
 readDataFile :: Maybe FilePath -> FilePath -> IO String
-readDataFile userDir fname =
-  case userDir of
-       Nothing  -> getDataFileName fname >>= UTF8.readFile
-       Just u   -> catch (UTF8.readFile $ u </> fname)
-                   (\_ -> getDataFileName fname >>= UTF8.readFile)
+readDataFile userDir fname = findDataFile userDir fname >>= UTF8.readFile

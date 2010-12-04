@@ -35,7 +35,7 @@ module Text.Pandoc.Readers.Markdown (
 import Data.List ( transpose, isSuffixOf, sortBy, findIndex, intercalate )
 import qualified Data.Map as M
 import Data.Ord ( comparing )
-import Data.Char ( isAlphaNum )
+import Data.Char ( isAlphaNum, isPunctuation )
 import Data.Maybe
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
@@ -376,6 +376,7 @@ attributes = try $ do
 
 attribute :: GenParser Char st ([Char], [[Char]], [([Char], [Char])])
 attribute = identifierAttr <|> classAttr <|> keyValAttr
+
 
 identifier :: GenParser Char st [Char]
 identifier = do
@@ -916,9 +917,7 @@ inlineParsers = [ str
                 , note
                 , inlineNote
                 , link
-#ifdef _CITEPROC
-                , inlineCitation
-#endif
+                , cite
                 , image
                 , math
                 , strikeout
@@ -1309,38 +1308,94 @@ rawHtmlInline' = do
                else choice [htmlComment, anyHtmlInlineTag]
   return $ HtmlInline result
 
-#ifdef _CITEPROC
-inlineCitation :: GenParser Char ParserState Inline
-inlineCitation = try $ do
+-- Citations
+
+cite :: GenParser Char ParserState Inline
+cite = do
   failIfStrict
-  cit <- citeMarker
-  let citations = readWith parseCitation defaultParserState cit
-  mr <- mapM chkCit citations
-  if catMaybes mr /= []
-     then return $ Cite citations []
-     else fail "no citation found"
+  citations <- textualCite <|> normalCite
+  return $ Cite citations []
 
-chkCit :: Target -> GenParser Char ParserState (Maybe Target)
-chkCit t = do
+spnl :: GenParser Char st ()
+spnl = try $ do
+  skipSpaces
+  optional newline
+  skipSpaces
+  notFollowedBy (char '\n')
+
+textualCite :: GenParser Char ParserState [Citation]
+textualCite = try $ do
+  (_, key) <- citeKey
+  let first = Citation{ citationId      = key
+                      , citationPrefix  = []
+                      , citationSuffix  = []
+                      , citationMode    = AuthorInText
+                      , citationNoteNum = 0
+                      , citationHash    = 0
+                      }
+  rest <- option [] $ try $ spnl >> normalCite
+  if null rest
+     then option [first] $ bareloc first
+     else return $ first : rest
+
+bareloc :: Citation -> GenParser Char ParserState [Citation]
+bareloc c = try $ do
+  spnl
+  char '['
+  suff <- suffix
+  rest <- option [] $ try $ char ';' >> citeList
+  spnl
+  char ']'
+  return $ c{ citationSuffix = suff } : rest
+
+normalCite :: GenParser Char ParserState [Citation]
+normalCite = try $ do
+  char '['
+  spnl
+  citations <- citeList
+  spnl
+  char ']'
+  return citations
+
+citeKey :: GenParser Char ParserState (Bool, String)
+citeKey = try $ do
+  suppress_author <- option False (char '-' >> return True)
+  char '@'
+  first <- letter
+  rest <- many $ (noneOf ",;]@ \t\n")
+  let key = first:rest
   st <- getState
-  case lookupKeySrc (stateKeys st) (Key [Str $ fst t]) of
-     Just  _ -> fail "This is a link"
-     Nothing -> if elem (fst t) $ stateCitations st
-                   then return $ Just t
-                   else return $ Nothing
+  guard $ key `elem` stateCitations st
+  return (suppress_author, key)
 
-citeMarker :: GenParser Char ParserState String
-citeMarker = char '[' >> manyTill ( noneOf "\n" <|> (newline >>~ notFollowedBy blankline) ) (char ']')
+suffix :: GenParser Char ParserState [Inline]
+suffix = try $ do
+  spnl
+  res <- many $ notFollowedBy (oneOf ";]") >> inline
+  return $ case res of
+            []       -> []
+            (Str (y:_) : _) | isPunctuation y
+                     -> res
+            _        -> Str "," : Space : res
 
-parseCitation :: GenParser Char ParserState [(String,String)]
-parseCitation = try $ sepBy (parseLabel) (oneOf ";")
+prefix :: GenParser Char ParserState [Inline]
+prefix = liftM normalizeSpaces $
+  manyTill inline (char ']' <|> liftM (const ']') (lookAhead citeKey))
 
-parseLabel :: GenParser Char ParserState (String,String)
-parseLabel = try $ do
-  res <- sepBy (skipSpaces >> optional newline >> skipSpaces >> many1 (noneOf "@;")) (oneOf "@")
-  case res of
-    [lab,loc] -> return (lab, loc)
-    [lab]     -> return (lab, "" )
-    _         -> return ("" , "" )
+citeList :: GenParser Char ParserState [Citation]
+citeList = sepBy1 citation (try $ char ';' >> spnl)
 
-#endif
+citation :: GenParser Char ParserState Citation
+citation = try $ do
+  pref <- prefix
+  (suppress_author, key) <- citeKey
+  suff <- suffix
+  return $ Citation{ citationId        = key
+                     , citationPrefix  = pref
+                     , citationSuffix  = suff
+                     , citationMode    = if suppress_author
+                                            then SuppressAuthor
+                                            else NormalCitation
+                     , citationNoteNum = 0
+                     , citationHash    = 0
+                     }

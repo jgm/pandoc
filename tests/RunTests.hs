@@ -109,6 +109,7 @@ main = do
              "textile-reader.textile" "textile-reader.native"
   r11 <- runTest "native reader" ["-r", "native", "-w", "native", "-s"]
              "testsuite.native" "testsuite.native"
+  r14s <- mapM (\style -> runTest ("markdown reader (citations) (" ++ style ++ ")") ["-r", "markdown", "-w", "markdown", "--bibliography", "biblio.bib", "--csl", style ++ ".csl", "--no-wrap"] "markdown-citations.txt" ("markdown-citations." ++ style ++ ".txt")) ["chicago-author-date","ieee","mhra"]
   r12s <- if runLhsTests
              then mapM runLhsWriterTest lhsWriterFormats
              else putStrLn "Skipping lhs writer tests because they presuppose highlighting support" >> return []
@@ -116,6 +117,7 @@ main = do
              then mapM runLhsReaderTest lhsReaderFormats
              else putStrLn "Skipping lhs reader tests because they presuppose highlighting support" >> return []
   let results = r1s ++
+
                 [ r2, r3, r4, r5 -- S5
                 , r6, r7, r7a    -- markdown reader
                 , r8, r8a        -- rst
@@ -123,7 +125,7 @@ main = do
                 , r10            -- latex
                 , rTextile1      -- textile
                 , r11            -- native
-                ] ++ r12s ++ r13s
+                ] ++ r12s ++ r13s ++ r14s
   if all id results
      then do
        putStrLn "\nAll tests passed."
@@ -169,7 +171,8 @@ runTest testname opts inp norm = do
   let normPath = norm
   hFlush stdout
   -- Note: COLUMNS must be set for markdown table reader
-  ph <- runProcess pandocPath (opts ++ [inpPath] ++ ["--data-dir", ".."]) Nothing (Just [("COLUMNS", "80")]) Nothing (Just hOut) (Just stderr)
+  ph <- runProcess pandocPath (opts ++ [inpPath] ++ ["--data-dir", ".."]) Nothing
+        (Just [("LANG","en_US.UTF-8"),("COLUMNS", "80"),("HOME", "./")]) Nothing (Just hOut) (Just stderr)
   ec <- waitForProcess ph
   result  <- if ec == ExitSuccess
                 then do

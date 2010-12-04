@@ -73,8 +73,6 @@ you will need [zip-archive] and (if you want syntax highlighting)
     - `wrappers`: build the wrapper `markdown2pdf` (default yes)
     - `highlighting`: compile with syntax highlighting support (increases
       the size of the executable) (default no)
-    - `citeproc`: compile with bibliographic support using `citeproc-hs`
-      (default no)
 
     So, for example,
 
@@ -108,23 +106,4 @@ you will need [zip-archive] and (if you want syntax highlighting)
 [zip-archive]: http://hackage.haskell.org/package/zip-archive
 [highlighting-kate]: http://hackage.haskell.org/package/highlighting-kate
 [Cabal User's Guide]: http://www.haskell.org/cabal/release/latest/doc/users-guide/builders.html#setup-configure-paths
-
-Optional citeproc support
--------------------------
-
-Pandoc can optionally be compiled with support for bibliographic citations
-using Andrea Rossato's [`citeproc-hs` library].  This allows you
-to specify citations in markdown using an intuitive syntax (for example,
-`[jones2005@p. 3; smith2006]`). These are automatically changed into
-appropriately styled citations in the output, and a bibliography is
-added.  The bibliography data and style information are taken from XML
-files that must be specified on the command line. (Note:  `citeproc-hs`
-support is experimental, and the interface may change in the future.)
-
-If you are using Cabal to compile pandoc, specify the `citeproc` flag in
-the configure step:
-
-    runhaskell Setup configure --flags="citeproc"
-
-[`citeproc-hs` library]: http://code.haskell.org/citeproc-hs/
 

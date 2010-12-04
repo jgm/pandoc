@@ -32,7 +32,7 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.S5 (s5HeaderIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
-                            headerShift )
+                            headerShift, findDataFile )
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
 #endif
@@ -42,13 +42,11 @@ import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower, isDigit )
 import Data.List ( intercalate, isSuffixOf )
-import System.Directory ( getAppUserDataDirectory )
+import System.Directory ( getAppUserDataDirectory, doesFileExist )
 import System.IO ( stdout, stderr )
 import qualified Text.Pandoc.UTF8 as UTF8
-#ifdef _CITEPROC
 import Text.CSL
 import Text.Pandoc.Biblio
-#endif
 import Control.Monad (when, unless, liftM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
@@ -64,9 +62,7 @@ copyrightMessage = "\nCopyright (C) 2006-2010 John MacFarlane\n" ++
 
 compileInfo :: String
 compileInfo =
-#ifdef _CITEPROC
   "\nCompiled with citeproc support." ++
-#endif
 #ifdef _HIGHLIGHTING
    "\nCompiled with syntax highlighting support for:\n" ++
        wrapWords 78 languages ++
@@ -164,11 +160,8 @@ data Opt = Opt
     , optIdentifierPrefix  :: String
     , optIndentedCodeClasses :: [String] -- ^ Default classes for indented code blocks
     , optDataDir           :: Maybe FilePath
-#ifdef _CITEPROC
-    , optBiblioFile        :: String
-    , optBiblioFormat      :: String
-    , optCslFile           :: String
-#endif
+    , optBibliography      :: [Reference]
+    , optCslFile           :: FilePath
     }
 
 -- | Defaults for command-line options.
@@ -206,11 +199,8 @@ defaultOpts = Opt
     , optIdentifierPrefix  = ""
     , optIndentedCodeClasses = []
     , optDataDir           = Nothing
-#ifdef _CITEPROC
-    , optBiblioFile        = []
-    , optBiblioFormat      = []
-    , optCslFile           = []
-#endif
+    , optBibliography      = []
+    , optCslFile           = ""
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -521,23 +511,23 @@ options =
                      exitWith ExitSuccess)
                   "FORMAT")
                  "" -- "Print default template for FORMAT"
-#ifdef _CITEPROC
-    , Option "" ["biblio"]
+    , Option "" ["bibliography"]
                  (ReqArg
-                  (\arg opt -> return opt { optBiblioFile = arg} )
+                  (\arg opt -> do
+                     refs <- catch (readBiblioFile arg) $ \e -> do
+                               UTF8.hPutStrLn stderr $
+                                 "Error reading bibliography `" ++ arg ++ "'"
+                               UTF8.hPutStrLn stderr $ show e
+                               exitWith (ExitFailure 23)
+                     return opt { optBibliography =
+                                   optBibliography opt ++ refs } )
                   "FILENAME")
-                 ""
-    , Option "" ["biblio-format"]
-                 (ReqArg
-                  (\arg opt -> return opt { optBiblioFormat = arg} )
-                  "STRING")
                  ""
     , Option "" ["csl"]
                  (ReqArg
-                  (\arg opt -> return opt { optCslFile = arg} )
+                  (\arg opt -> return opt { optCslFile = arg })
                   "FILENAME")
                  ""
-#endif
     , Option "" ["data-dir"]
                  (ReqArg
                   (\arg opt -> return opt { optDataDir = Just arg })
@@ -686,11 +676,8 @@ main = do
               , optIdentifierPrefix  = idPrefix
               , optIndentedCodeClasses = codeBlockClasses
               , optDataDir           = mbDataDir
-#ifdef _CITEPROC
-              , optBiblioFile         = biblioFile
-              , optBiblioFormat       = biblioFormat
-              , optCslFile            = cslFile
-#endif
+              , optBibliography      = refs
+              , optCslFile           = cslfile
              } = opts
 
   when dumpArgs $
@@ -749,10 +736,6 @@ main = do
 
   let standalone' = standalone || isNonTextOutput writerName'
 
-#ifdef _CITEPROC
-  refs <- if null biblioFile then return [] else readBiblioFile biblioFile biblioFormat
-#endif
-
   variables' <- case (writerName', standalone', offline) of
                       ("s5", True, True) -> do
                         inc <- s5HeaderIncludes datadir
@@ -791,9 +774,7 @@ main = do
                               stateLiterateHaskell = "+lhs" `isSuffixOf` readerName' ||
                                                      lhsExtension sources,
                               stateStandalone      = standalone',
-#ifdef _CITEPROC
-                              stateCitations       = map citeKey refs,
-#endif
+                              stateCitations       = map refId refs,
                               stateSmart           = smart || writerName' `elem`
                                                               ["latex", "context", "latex+lhs", "man"],
                               stateColumns         = columns,
@@ -851,11 +832,21 @@ main = do
   let doc' = foldr ($) doc transforms
 
   doc'' <- do
-#ifdef _CITEPROC
-          processBiblio cslFile refs doc'
-#else
-          return doc'
-#endif
+          if null refs
+             then return doc'
+             else do
+                csldir <- getAppUserDataDirectory "csl"
+                cslfile' <- if null cslfile
+                               then findDataFile datadir "default.csl"
+                               else do
+                                  ex <- doesFileExist cslfile
+                                  if ex
+                                     then return cslfile
+                                     else findDataFile datadir $
+                                            replaceDirectory
+                                            (replaceExtension cslfile "csl")
+                                            csldir
+                processBiblio cslfile' refs doc'
 
   writerOutput <- writer writerOptions doc''
 

@@ -414,6 +414,28 @@ For further documentation, see the `pandoc(1)` man page.
     `perl,numberLines` or `haskell`. Multiple classes may be separated
     by spaces or commas.
 
+`--bibliography`*=FILE*
+:   specifies bibliography database to be used in resolving
+    citations. The database type will be determined from the
+    extension of *FILE*, which may be `.xml` (MODS format),
+    `.bib` (BibTeX format), or `.json` (citeproc JSON).
+
+`--csl`*=FILE*
+:   specifies [CSL] style to be used in formatting citations and
+    the bibliography. If *FILE* is not found, pandoc will look
+    for it in
+
+        $HOME/.csl
+
+    in unix and
+
+        C:\Documents And Settings\USERNAME\Application Data\csl
+
+    in Windows. If the `--csl` option is not specified, pandoc
+    will use a default style:  either `default.csl` in the
+    user data directory (see `--data-dir`), or, if that is
+    not present, the Chicago author-date style.
+
 `--data-dir`*=directory*
 :   specifies the user data directory to search for pandoc data files.
     If this option is not specified, the default user data directory
@@ -469,6 +491,7 @@ For further documentation, see the `pandoc(1)` man page.
 [gladTeX]:  http://www.math.uio.no/~martingu/gladtex/index.html
 [mimeTeX]: http://www.forkosh.com/mimetex.html 
 [Dublin Core elements]: http://dublincore.org/documents/dces/
+[CSL]: http://CitationStyles.org
 
 Templates
 =========
@@ -1287,6 +1310,11 @@ LaTeX, not as markdown.
 
 Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
 and ConTeXt.
+
+Citations
+---------
+
+
 
 Producing HTML slide shows with Pandoc
 ======================================

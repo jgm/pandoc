@@ -586,9 +586,7 @@ data ParserState = ParserState
       stateQuoteContext    :: QuoteContext,  -- ^ Inside quoted environment?
       stateSanitizeHTML    :: Bool,          -- ^ Sanitize HTML?
       stateKeys            :: KeyTable,      -- ^ List of reference keys
-#ifdef _CITEPROC
       stateCitations       :: [String],      -- ^ List of available citations
-#endif
       stateNotes           :: NoteTable,     -- ^ List of notes
       stateTabStop         :: Int,           -- ^ Tab stop
       stateStandalone      :: Bool,          -- ^ Parse bibliographic info?
@@ -616,9 +614,7 @@ defaultParserState =
                   stateQuoteContext    = NoQuote,
                   stateSanitizeHTML    = False,
                   stateKeys            = M.empty,
-#ifdef _CITEPROC
                   stateCitations       = [],
-#endif
                   stateNotes           = [],
                   stateTabStop         = 4,
                   stateStandalone      = False,
