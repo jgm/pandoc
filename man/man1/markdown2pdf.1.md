@@ -90,7 +90,7 @@ packages are not included in your latex setup, they can be obtained from
 
     in unix and
 
-        C:\Documents And Settings\USERNAME\Applicaiton Data\csl
+        C:\Documents And Settings\USERNAME\Application Data\csl
 
     in Windows. If the `--csl` option is not specified, pandoc
     will use a default style:  either `default.csl` in the
