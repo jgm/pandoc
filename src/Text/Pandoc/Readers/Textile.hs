@@ -68,7 +68,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlEndTag, -- find code blocks
                                   rawHtmlBlock, rawHtmlInline )
-import Text.Pandoc.Readers.Markdown (smartPunctuation)
+-- import Text.Pandoc.Readers.Markdown (smartPunctuation)
 import Text.ParserCombinators.Parsec
 import Data.Char ( digitToInt, isLetter )
 import Control.Monad ( guard )
@@ -314,7 +314,7 @@ inlineParsers :: [GenParser Char ParserState Inline]
 inlineParsers = [ autoLink
                 , str
                 , htmlSpan
-                , smartPunctuation -- from markdown reader
+--                , smartPunctuation -- from markdown reader
                 , whitespace
                 , endline
                 , rawHtmlInline
