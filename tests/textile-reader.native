@@ -113,16 +113,16 @@ Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
   , [ Plain [Str "24"] ]
   , [ Plain [Str "f"] ] ] ]
 , Header 1 [Str "Raw",Space,Str "HTML"]
-, Para [Str "However",Str ",",Space,Str "raw",Space,Str "HTML",Space,Str "inlines",Space,Str "are",Space,Str "accepted",Str ",",Space,Str "as",Space,Str "well",Space,Str "as",Space,Str ":"]
-, Null
+, Para [Str "However",Str ",",Space,HtmlInline "<strong>",Space,Str "raw",Space,Str "HTML",Space,Str "inlines",Space,HtmlInline "</strong>",Space,Str "are",Space,Str "accepted",Str ",",Space,Str "as",Space,Str "well",Space,Str "as",Space,Str ":"]
+, RawHtml "<div class=\"foobar\">"
 , Para [Str "any",Space,Strong [Str "Raw",Space,Str "HTML",Space,Str "Block"],Space,Str "with",Space,Str "bold",LineBreak]
-, Null
+, RawHtml "</div>"
 , Para [Str "Html",Space,Str "blocks",Space,Str "can",Space,Str "be"]
-, Null
+, RawHtml "<div>"
 , Para [Str "inlined"]
-, Null
+, RawHtml "</div>"
 , Para [Str "as",Space,Str "well",Str "."]
 , BulletList
   [ [ Plain [Str "this",Space,Str "<",Str "div",Str ">",Space,Str "won",Str "'",Str "t",Space,Str "produce",Space,Str "raw",Space,Str "html",Space,Str "blocks",Space,Str "<",Str "/div",Str ">"] ]
-  , [ Plain [Str "but",Space,Str "this",Space,Str "",Space,Str "will",Space,Str "produce",Space,Str "inline",Space,Str "html",Space,Str ""] ] ]
+  , [ Plain [Str "but",Space,Str "this",Space,HtmlInline "<strong>",Space,Str "will",Space,Str "produce",Space,Str "inline",Space,Str "html",Space,HtmlInline "</strong>"] ] ]
 , Para [Str "Can",Space,Str "you",Space,Str "prove",Space,Str "that",Space,Str "2",Space,Str "<",Space,Str "3",Space,Str "?"] ]
