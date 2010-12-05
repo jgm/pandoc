@@ -62,6 +62,7 @@ writerFormats = [ "native"
                 , "mediawiki"
                 , "textile"
                 , "rtf"
+                , "org"
                 ]
 
 lhsWriterFormats :: [String]

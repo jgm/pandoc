@@ -43,7 +43,7 @@ Data-Files:
                  templates/rst.template, templates/plain.template,
                  templates/mediawiki.template, templates/rtf.template,
                  templates/s5.template, templates/slidy.template,
-                 templates/textile.template
+                 templates/textile.template, templates/org.template
                  -- data for ODT writer
                  reference.odt,
                  -- stylesheet for EPUB writer
@@ -202,6 +202,7 @@ Library
                    Text.Pandoc.Writers.Man,
                    Text.Pandoc.Writers.Markdown,
                    Text.Pandoc.Writers.RST,
+                   Text.Pandoc.Writers.Org,
                    Text.Pandoc.Writers.Textile,
                    Text.Pandoc.Writers.MediaWiki,
                    Text.Pandoc.Writers.RTF,

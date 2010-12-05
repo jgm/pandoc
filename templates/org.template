@@ -1,0 +1,22 @@
+$if(title)$
+$title$
+
+$endif$
+#+AUTHOR: $for(author)$$author$$sep$; $endfor$
+$if(date)$
+#+DATE: $date$
+
+$endif$
+$for(header-includes)$
+$header-includes$
+
+$endfor$
+$for(include-before)$
+$include-before$
+
+$endfor$
+$body$
+$for(include-after)$
+
+$include-after$
+$endfor$

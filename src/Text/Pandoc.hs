@@ -89,6 +89,7 @@ module Text.Pandoc
                , writeRTF
                , writeODT
                , writeEPUB
+               , writeOrg
                -- * Writer options used in writers 
                , WriterOptions (..)
                , HTMLSlideVariant (..)
@@ -121,6 +122,7 @@ import Text.Pandoc.Writers.Man
 import Text.Pandoc.Writers.RTF 
 import Text.Pandoc.Writers.MediaWiki
 import Text.Pandoc.Writers.Textile
+import Text.Pandoc.Writers.Org
 import Text.Pandoc.Templates
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared

@@ -121,6 +121,7 @@ writers = [("native"       , writeNative)
           ,("mediawiki"    , writeMediaWiki)
           ,("textile"      , writeTextile)
           ,("rtf"          , writeRTF)
+          ,("org"          , writeOrg)
           ]
 
 isNonTextOutput :: String -> Bool
@@ -616,6 +617,7 @@ defaultWriterName x =
     ".db"       -> "docbook"
     ".odt"      -> "odt"
     ".epub"     -> "epub"
+    ".org"      -> "org"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
