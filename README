@@ -1325,9 +1325,9 @@ and ConTeXt.
 Citations
 ---------
 
-Pandoc can automatically generate citations and a bibliography in
-a number of styles.  In order to use this feature, you will need
-a bibliographic database in one of the following formats:
+Pandoc can automatically generate citations and a bibliography in a number of
+styles (using Andrea Rossato's `hs-citeproc`). In order to use this feature,
+you will need a bibliographic database in one of the following formats:
 
   Format          File extension
   ------------    --------------
@@ -1342,12 +1342,48 @@ a bibliographic database in one of the following formats:
   Copac           .copac
   JSON citeproc   .json
 
-- also CSL - tho default -
+You will need to specify the bibliography file using the `--bibliography`
+command-line option (which may be repeated if you have several
+bibliographies).
 
-- how to write citations - citation syntax -
+By default, pandoc will use a Chicago author-date format for citations
+and references.  To use another style, you will need to use the
+`--csl` option to specify a [CSL] 1.0 style file.  A primer on
+creating and modifying CSL styles can be found at
+<http://citationstyles.org/downloads/primer.html>.
 
-- where the biblio will be placed -
+Citations go inside square brackets and are separated by semicolons.
+Each citation must have a key, composed of '@' + the citation
+identifier from the database, and may optionally have a prefix,
+a locator, and a suffix.  Here are some examples:
 
+    Blah blah [see @doe99, pp. 33-35; also @smith04, ch. 1].
+
+    Blah blah [@doe99, pp. 33-35, 38-39 and *passim*].
+
+    Blah blah [@smith04; @doe99].
+
+A minus sign (`-`) before the `@` will suppress mention of
+the author in the citation.  This can be useful when the
+author is already mentioned in the text:
+
+    Smith says blah [-@smith04].
+
+You can also write an in-text citation, as follows:
+
+    @smith04 says blah.
+
+    @smith04 [p. 33] says blah.
+
+If the style calls for a list of works cited, it will be placed
+at the end of the document.  Normally, you will want to end your
+document with an appropriate header:
+
+    last paragraph...
+
+    # References
+
+The bibliography will be inserted after this header.
 
 Producing HTML slide shows with Pandoc
 ======================================
