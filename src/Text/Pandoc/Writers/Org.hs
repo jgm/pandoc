@@ -18,16 +18,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Org
-   Copyright   : Copyright (C) 2006-2010 Puneeth Chaganti
+   Copyright   : Copyright (C) 2010 Puneeth Chaganti
    License     : GNU GPL, version 2 or above 
 
    Maintainer  : Puneeth Chaganti <punchagan@gmail.com>
    Stability   : alpha
    Portability : portable
 
-Conversion of 'Pandoc' documents to reStructuredText.
+Conversion of 'Pandoc' documents to Emacs Org-Mode.
 
-reStructuredText:  <http://docutils.sourceforge.net/rst.html>
+Org-Mode:  <http://orgmode.org>
 -}
 module Text.Pandoc.Writers.Org ( writeOrg) where
 import Text.Pandoc.Definition
