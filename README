@@ -8,7 +8,7 @@ another, and a command-line tool that uses this library. It can read
 and [LaTeX]; and it can write plain text, [markdown], [reStructuredText],
 [HTML], [LaTeX], [ConTeXt], [RTF], [DocBook XML], [OpenDocument XML], [ODT],
 [GNU Texinfo], [MediaWiki markup], [EPUB], [Textile], [groff man] pages,
-and [Slidy] or [S5] HTML slide shows.
+[Emacs Org-Mode], and [Slidy] or [S5] HTML slide shows.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, delimited code blocks,
@@ -76,8 +76,9 @@ Supported output formats include `markdown`, `latex`, `context`
 (reStructuredText), `docbook` (DocBook XML), `opendocument`
 (OpenDocument XML), `odt` (OpenOffice text document), `texinfo`, (GNU
 Texinfo), `mediawiki` (MediaWiki markup), `textile` (Textile),
-`epub` (EPUB ebook), `man` (groff man), `slidy` (slidy HTML and
-javascript slide show), or `s5` (S5 HTML and javascript slide show).
+`epub` (EPUB ebook), `man` (groff man), `org` (Emacs Org-Mode),
+`slidy` (slidy HTML and javascript slide show), or `s5`
+(S5 HTML and javascript slide show).
 
 Supported input formats include `markdown`, `textile`, `html`,
 `latex`, and `rst`.  Note that the `rst` reader only parses a subset of
@@ -170,15 +171,18 @@ For further documentation, see the `pandoc(1)` man page.
 `-f`, `--from`, `-r`, or `--read` *format*
 :   specifies the input format (the format Pandoc will be converting
     *from*). *format* can be `native`, `markdown`, `textile`, `rst`, `html`,
-    or `latex`.  (`+lhs` can be appended to indicate that the input should
-    be treated as literate Haskell source.  See
-    [Literate Haskell support](#literate-haskell-support), below.)
+    or `latex`.  (`+lhs` can be appended to `html`, `markdown`, `latex`,
+    or `rst` to indicate that the input should be treated as literate Haskell
+    source.  See [Literate Haskell support](#literate-haskell-support),
+    below.)
 
 `-t`, `--to`, `-w`, or `--write` *format*
 :   specifies the output format -- the format Pandoc will
     be converting *to*. *format* can be `native`, `html`, `slidy`, `s5`,
-    `docbook`, `opendocument`, `latex`, `context`, `markdown`, `man`,
-    `plain`, `rst`, and `rtf`. (`+lhs` can be appended to indicate that
+    `docbook`, `opendocument`, `odt`, `epub`, `latex`, `context`,
+    `markdown`, `man`, `plain`, `mediawiki`, `texinfo`, `textile`, `org`,
+    `plain`, `rst`, and `rtf`. (`+lhs` can be appended to `html`,
+    `markdown`, `rst`, or `latex` to indicate that
     the output should be treated as literate Haskell source. See
     [Literate Haskell support](#literate-haskell-support), below.)
 
@@ -1217,8 +1221,8 @@ you need to enclose text in literal $ characters, backslash-escape
 them and they won't be treated as math delimiters.
 
 TeX math will be printed in all output formats. In Markdown,
-reStructuredText, LaTeX, and ConTeXt output, it will appear verbatim
-between $ characters.
+reStructuredText, LaTeX, Org-Mode, and ConTeXt output, it will appear
+verbatim between $ characters.
 
 In reStructuredText output, it will be rendered using an interpreted
 text role `:math:`, as described
@@ -1474,6 +1478,7 @@ and pasted as literate Haskell source.
 [groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
 [Haskell]:  http://www.haskell.org/
 [GNU Texinfo]: http://www.gnu.org/software/texinfo/
+[Emacs Org-Mode]: http://org-mode.org
 [EPUB]: http://www.idpf.org/
 [GPL]: http://www.gnu.org/copyleft/gpl.html "GNU General Public License"
 
