@@ -271,8 +271,12 @@ should pipe input and output through `iconv`:
 \--bibliography=*FILE*
 :   Specify bibliography database to be used in resolving
     citations. The database type will be determined from the
-    extension of *FILE*, which may be `.xml` (MODS format),
-    `.bib` (BibTeX format), or `.json` (citeproc JSON).
+    extension of *FILE*, which may be `.mods` (MODS format),
+    `.bib` (BibTeX format), `.bbx` (BibLaTeX format),
+    `.ris` (RIS format), `.enl` (EndNote format),
+    `.xml` (EndNote XML format), `.wos` (ISI format),
+    `.medline` (MEDLINE format), `.copac` (Copac format),
+    or `.json` (citeproc JSON).
 
 \--csl=*FILE*
 :   Specify [CSL] style to be used in formatting citations and

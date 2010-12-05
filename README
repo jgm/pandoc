@@ -418,8 +418,12 @@ For further documentation, see the `pandoc(1)` man page.
 `--bibliography`*=FILE*
 :   specifies bibliography database to be used in resolving
     citations. The database type will be determined from the
-    extension of *FILE*, which may be `.xml` (MODS format),
-    `.bib` (BibTeX format), or `.json` (citeproc JSON).
+    extension of *FILE*, which may be `.mods` (MODS format),
+    `.bib` (BibTeX format), `.bbx` (BibLaTeX format),
+    `.ris` (RIS format), `.enl` (EndNote format),
+    `.xml` (EndNote XML format), `.wos` (ISI format),
+    `.medline` (MEDLINE format), `.copac` (Copac format),
+    or `.json` (citeproc JSON).
 
 `--csl`*=FILE*
 :   specifies [CSL] style to be used in formatting citations and
@@ -1315,7 +1319,29 @@ and ConTeXt.
 Citations
 ---------
 
-TODO
+Pandoc can automatically generate citations and a bibliography in
+a number of styles.  In order to use this feature, you will need
+a bibliographic database in one of the following formats:
+
+  Format          File extension
+  ------------    --------------
+  MODS            .mods
+  BibTeX          .bib
+  BibLaTeX        .bbx
+  RIS             .ris
+  EndNote         .enl
+  EndNote XML     .xml
+  ISI             .wos
+  MEDLINE         .medline
+  Copac           .copac
+  JSON citeproc   .json
+
+- also CSL - tho default -
+
+- how to write citations - citation syntax -
+
+- where the biblio will be placed -
+
 
 Producing HTML slide shows with Pandoc
 ======================================
