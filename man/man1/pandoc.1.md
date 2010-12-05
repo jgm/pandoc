@@ -276,7 +276,8 @@ should pipe input and output through `iconv`:
     `.ris` (RIS format), `.enl` (EndNote format),
     `.xml` (EndNote XML format), `.wos` (ISI format),
     `.medline` (MEDLINE format), `.copac` (Copac format),
-    or `.json` (citeproc JSON).
+    or `.json` (citeproc JSON).  If you want to use multiple
+    bibliographies, just use this option repeatedly.
 
 \--csl=*FILE*
 :   Specify [CSL] style to be used in formatting citations and
