@@ -220,7 +220,7 @@ referenceKey = try $ do
   let target = (escapeURI $ removeTrailingSpace src,  tit)
   st <- getState
   let oldkeys = stateKeys st
-  updateState $ \s -> s { stateKeys = M.insert (Key lab) target oldkeys }
+  updateState $ \s -> s { stateKeys = M.insert (toKey lab) target oldkeys }
   -- return blanks so line count isn't affected
   return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
@@ -1237,7 +1237,7 @@ referenceLink lab = do
                          optional (newline >> skipSpaces) >> reference))
   let ref' = if null ref then lab else ref
   state <- getState
-  case lookupKeySrc (stateKeys state) (Key ref') of
+  case lookupKeySrc (stateKeys state) (toKey ref') of
      Nothing     -> fail "no corresponding key" 
      Just target -> return target 
 

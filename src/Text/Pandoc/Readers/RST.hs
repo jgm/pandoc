@@ -565,14 +565,14 @@ imageKey = try $ do
   skipSpaces
   string "image::"
   src <- targetURI
-  return (Key (normalizeSpaces ref), (src, ""))
+  return (toKey (normalizeSpaces ref), (src, ""))
 
 anonymousKey :: GenParser Char st (Key, Target)
 anonymousKey = try $ do
   oneOfStrings [".. __:", "__"]
   src <- targetURI
   pos <- getPosition
-  return (Key [Str $ "_" ++ printf "%09d" (sourceLine pos)], (src, ""))
+  return (toKey [Str $ "_" ++ printf "%09d" (sourceLine pos)], (src, ""))
 
 regularKey :: GenParser Char ParserState (Key, Target)
 regularKey = try $ do
@@ -580,7 +580,7 @@ regularKey = try $ do
   ref <- referenceName
   char ':'
   src <- targetURI
-  return (Key (normalizeSpaces ref), (src, ""))
+  return (toKey (normalizeSpaces ref), (src, ""))
 
 --
 -- tables
@@ -779,9 +779,10 @@ referenceLink = try $ do
   label' <- (quotedReferenceName <|> simpleReferenceName) >>~ char '_'
   state <- getState
   let keyTable = stateKeys state
-  let isAnonKey (Key [Str ('_':_)]) = True
-      isAnonKey _ = False
-  key <- option (Key label') $
+  let isAnonKey x = case fromKey x of
+                         [Str ('_':_)] -> True
+                         _             -> False
+  key <- option (toKey label') $
                 do char '_'
                    let anonKeys = sort $ filter isAnonKey $ M.keys keyTable
                    if null anonKeys
@@ -814,7 +815,7 @@ image = try $ do
   ref <- manyTill inline (char '|')
   state <- getState
   let keyTable = stateKeys state
-  (src,tit) <- case lookupKeySrc keyTable (Key ref) of
+  (src,tit) <- case lookupKeySrc keyTable (toKey ref) of
                      Nothing     -> fail "no corresponding key"
                      Just target -> return target
   return $ Image (normalizeSpaces ref) (src, tit)

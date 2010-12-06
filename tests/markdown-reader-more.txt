@@ -106,3 +106,13 @@ Explanation of examples (@foo) and (@bar).
 
 $\tuple{x,y}$
 
+## Case-insensitive references
+
+[Fum]
+
+[FUM]
+
+[bat]
+
+[fum]: /fum
+[BAT]: /bat

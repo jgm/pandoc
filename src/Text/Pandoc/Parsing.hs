@@ -64,9 +64,10 @@ module Text.Pandoc.Parsing ( (>>~),
                              QuoteContext (..),
                              NoteTable,
                              KeyTable,
-                             Key (..),
-                             lookupKeySrc,
-                             refsMatch )
+                             Key,
+                             toKey,
+                             fromKey,
+                             lookupKeySrc )
 where
 
 import Text.Pandoc.Definition
@@ -651,13 +652,21 @@ data QuoteContext
 
 type NoteTable = [(String, String)]
 
-newtype Key = Key [Inline] deriving (Show, Read)
+newtype Key = Key [Inline] deriving (Show, Read, Eq, Ord)
 
-instance Eq Key where
-  Key a == Key b = refsMatch a b
+toKey :: [Inline] -> Key
+toKey = Key . processWith lowercase
+  where lowercase :: Inline -> Inline
+        lowercase (Str xs)        = Str (map toLower xs)
+        lowercase (Math t xs)     = Math t (map toLower xs)
+        lowercase (Code xs)       = Code (map toLower xs)
+        lowercase (TeX xs)        = TeX (map toLower xs)
+        lowercase (HtmlInline xs) = HtmlInline (map toLower xs)
+        lowercase LineBreak       = Space
+        lowercase x               = x
 
-instance Ord Key where
-  compare (Key a) (Key b) = if a == b then EQ else compare a b
+fromKey :: Key -> [Inline]
+fromKey (Key xs) = xs
 
 type KeyTable = M.Map Key Target
 
@@ -668,34 +677,4 @@ lookupKeySrc :: KeyTable  -- ^ Key table
 lookupKeySrc table key = case M.lookup key table of
                            Nothing  -> Nothing
                            Just src -> Just src
-
--- | Returns @True@ if keys match (case insensitive).
-refsMatch :: [Inline] -> [Inline] -> Bool
-refsMatch ((Str x):restx) ((Str y):resty) = 
-    ((map toLower x) == (map toLower y)) && refsMatch restx resty
-refsMatch ((Emph x):restx) ((Emph y):resty) = 
-    refsMatch x y && refsMatch restx resty
-refsMatch ((Strong x):restx) ((Strong y):resty) = 
-    refsMatch x y && refsMatch restx resty
-refsMatch ((Strikeout x):restx) ((Strikeout y):resty) = 
-    refsMatch x y && refsMatch restx resty
-refsMatch ((Superscript x):restx) ((Superscript y):resty) = 
-    refsMatch x y && refsMatch restx resty
-refsMatch ((Subscript x):restx) ((Subscript y):resty) = 
-    refsMatch x y && refsMatch restx resty
-refsMatch ((SmallCaps x):restx) ((SmallCaps y):resty) = 
-    refsMatch x y && refsMatch restx resty
-refsMatch ((Quoted t x):restx) ((Quoted u y):resty) = 
-    t == u && refsMatch x y && refsMatch restx resty
-refsMatch ((Code x):restx) ((Code y):resty) = 
-    ((map toLower x) == (map toLower y)) && refsMatch restx resty
-refsMatch ((Math t x):restx) ((Math u y):resty) = 
-    ((map toLower x) == (map toLower y)) && t == u && refsMatch restx resty
-refsMatch ((TeX x):restx) ((TeX y):resty) = 
-    ((map toLower x) == (map toLower y)) && refsMatch restx resty
-refsMatch ((HtmlInline x):restx) ((HtmlInline y):resty) = 
-    ((map toLower x) == (map toLower y)) && refsMatch restx resty
-refsMatch (x:restx) (y:resty) = (x == y) && refsMatch restx resty
-refsMatch [] x = null x
-refsMatch x [] = null x
 
