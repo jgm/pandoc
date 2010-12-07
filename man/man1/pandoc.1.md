@@ -62,14 +62,16 @@ should pipe input and output through `iconv`:
 
 # OPTIONS
 
--f *FORMAT*, -r *FORMAT*, \--from=*FORMAT*, \--read=*FORMAT*
+`-f` *FORMAT*, `-r` *FORMAT*, `--from=`*FORMAT*, `--read=`*FORMAT*
 :   Specify input format.  *FORMAT* can be
     `native` (native Haskell), `markdown` (markdown or plain text),
     `textile` (Textile), `rst` (reStructuredText), `html` (HTML),
     or `latex` (LaTeX).  If `+lhs` is appended to `markdown`, `rst`,
-    or `latex`, the input will be treated as literate Haskell source.
+    or `latex`, the input will be treated as literate Haskell source:
+    see [Literate Haskell support](#literate-haskell-support),
+    below.
 
--t *FORMAT*, -w *FORMAT*, \--to=*FORMAT*, \--write=*FORMAT*
+`-t` *FORMAT*, `-w` *FORMAT*, `--to=`*FORMAT*, `--write=`*FORMAT*
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
     `plain` (plain text), `markdown` (markdown), `rst` (reStructuredText),
     `html` (HTML), `latex` (LaTeX), `context` (ConTeXt), `man` (groff man), 
@@ -81,100 +83,122 @@ should pipe input and output through `iconv`:
     format). Note that `odt` and `epub` output will not be directed to
     *stdout*; an output filename must be specified using the `-o/--output`
     option.  If `+lhs` is appended to `markdown`, `rst`, `latex`, or `html`,
-    the output will be rendered as literate Haskell source.
+    the output will be rendered as literate Haskell source:
+    see [Literate Haskell support](#literate-haskell-support),
+    below.
 
--s, \--standalone
+`-s`, `--standalone`
 :   Produce output with an appropriate header and footer (e.g. a
     standalone HTML, LaTeX, or RTF file, not a fragment).
 
--o *FILE*, \--output=*FILE*
+`-o` *FILE*, `--output=`*FILE*
 :   Write output to *FILE* instead of *stdout*.  If *FILE* is
-    \``-`', output will go to *stdout*.
+    `-`, output will go to *stdout*.  (Exception: if the output
+    format is `odt` or `epub`, output to stdout is disabled.)
 
--p, \--preserve-tabs
-:   Preserve tabs instead of converting them to spaces.
+`-p`, `--preserve-tabs`
+:   Preserve tabs instead of converting them to spaces (the default).
 
-\--tab-stop=*TABSTOP*
-:   Specify tab stop (default is 4).
+`--tab-stop=`*TABSTOP*
+:   Specify the number of spaces per tab (default is 4).
 
-\--strict
-:   Use strict markdown syntax, with no extensions or variants.
+`--strict`
+:   Use strict markdown syntax, with no pandoc extensions or variants.
+    When the input format is HTML, this means that constructs that have no
+    equivalents in standard markdown (e.g. definition lists or strikeout
+    text) will be parsed as raw HTML.
 
-\--reference-links
+`--reference-links`
 :   Use reference-style links, rather than inline links, in writing markdown
-    or reStructuredText.
+    or reStructuredText.  By default inline links are used.
 
--R, \--parse-raw
+`-R`, `--parse-raw`
 :   Parse untranslatable HTML codes and LaTeX environments as raw HTML
-    or LaTeX, instead of ignoring them.
+    or LaTeX, instead of ignoring them.  Affects only HTML and LaTeX
+    input. Raw HTML can be printed in markdown, reStructuredText, HTML, Slidy,
+    and S5 output; raw LaTeX can be printed in markdown, reStructuredText,
+    LaTeX, and ConTeXt output. The default is for the readers to omit
+    untranslatable HTML codes and LaTeX environments. (The LaTeX reader
+    does pass through untranslatable LaTeX *commands*, even if `-R` is not
+    specified.)
 
--S, \--smart
-:   Use smart quotes, dashes, and ellipses.  (This option is significant
-    only when the input format is `markdown`.  It is selected automatically
-    when the output format is `latex` or `context`.)
+`-S`, `--smart`
+:   Produce typographically correct output, converting straight quotes
+    to curly quotes, `---` and `--` to dashes, ande `...` to ellipses.
+    Nonbreaking spaces are inserted after certain abbreviations, such
+    as "Mr." (Note: This option is significant only when the input format is
+    `markdown` or `textile`.  It is selected automatically when the input
+    format is `textile` or the output format is `latex` or `context`.)
 
--m*URL*, \--latexmathml=*URL*
-:   Use LaTeXMathML to display embedded TeX math in HTML output.
+`-m` *URL*, `--latexmathml=`*URL*
+:   Use the [LaTeXMathML] script to display embedded TeX math in HTML output.
     To insert a link to a local copy of the `LaTeXMathML.js` script,
     provide a *URL*. If no *URL* is provided, the contents of the
-    script will be inserted directly into the HTML header.
+    script will be inserted directly into the HTML header, preserving
+    portability at the price of efficiency. If you plan to use math on
+    several pages, it is much better to link to a copy of the script,
+    so it can be cached.
 
-\--mathml
+`--mathml`
 :   Convert TeX math to MathML.  In standalone mode, a small javascript
     will be inserted that allows the MathML to be viewed on some browsers.
 
-\--jsmath=*URL*
-:   Use jsMath to display embedded TeX math in HTML output.
-    The *URL* should point to the jsMath load script; if provided,
-    it will be linked to in the header of standalone HTML documents.
+`--jsmath=`*URL*
+:   Use [jsMath] to display embedded TeX math in HTML output.
+    The *URL* should point to the jsMath load script (e.g.
+    `jsMath/easy/load.js`); if provided, it will be linked to in
+    the header of standalone HTML documents.
 
-\--mathjax=*URL*
-:   Use MathJax to display embedded TeX math in HTML output.
+`--mathjax=`*URL*
+:   Use [MathJax] to display embedded TeX math in HTML output.
     The *URL* should point to the `MathJax.js` load script.
 
-\--gladtex
+`--gladtex`
 :   Enclose TeX math in `<eq>` tags in HTML output.  These can then
-    be processed by gladTeX to produce links to images of the typeset
+    be processed by [gladTeX] to produce links to images of the typeset
     formulas. 
 
-\--mimetex=*URL*
-:   Render TeX math using the mimeTeX CGI script.  If *URL* is not specified,
-    it is assumed that the script is at `/cgi-bin/mimetex.cgi`.
+`--mimetex=`*URL*
+:   Render TeX math using the [mimeTeX] CGI script.  If *URL* is not
+    specified, it is assumed that the script is at `/cgi-bin/mimetex.cgi`.
 
-\--webtex=*URL*
-:   Render TeX math using an external script. The formula will be
-    concatenated with the URL provided. If *URL* is not specified, the
-    Google Chart API will be used.
+`--webtex=`*URL*
+:   Render TeX formulas using an external script that converts TeX
+    formulas to images. The formula will be concatenated with the URL
+    provided. If *URL* is not specified, the Google Chart API will be used.
 
--i, \--incremental
+`-i`, `--incremental`
 :   Make list items in Slidy or S5 display incrementally (one by one).
+    The default is for lists to be displayed all at once.
 
-\--offline
+`--offline`
 :   Include all the CSS and javascript needed for a Slidy or S5 slide
     show in the output, so that the slide show will work even when no
     internet connection is available.
 
-\--xetex
+`--xetex`
 :   Create LaTeX outut suitable for processing by XeTeX.
 
--N, \--number-sections
+`-N`, `--number-sections`
 :   Number section headings in LaTeX, ConTeXt, or HTML output.
-    (Default is not to number them.)
+    By default, sections are not numbered.
 
-\--section-divs
+`--section-divs`
 :   Wrap sections in `<div>` tags, and attach identifiers to the
     enclosing `<div>` rather than the header itself.
+    See [Section identifiers](#header-identifiers-in-html), below.
 
-\--no-wrap
-:   Disable text wrapping in output. (Default is to wrap text.)
+`--no-wrap`
+:   Disable text wrapping in output. By default, text is wrapped
+    appropriately for the output format.
 
-\--sanitize-html
+`--sanitize-html`
 :   Sanitizes HTML (in markdown or HTML input) using a whitelist.
     Unsafe tags are replaced by HTML comments; unsafe attributes
     are omitted.  URIs in links and images are also checked against a
     whitelist of URI schemes.
 
-\--email-obfuscation=*none|javascript|references*
+`--email-obfuscation=`*none|javascript|references*
 :   Specify a method for obfuscating `mailto:` links in HTML documents.
     *none* leaves `mailto:` links as they are.  *javascript* obfuscates
     them using javascript. *references* obfuscates them by printing their
@@ -182,56 +206,70 @@ should pipe input and output through `iconv`:
     If `--strict` is specified, *references* is used regardless of the
     presence of this option.
 
-\--id-prefix*=string*
+`--id-prefix`=*STRING*
 :   Specify a prefix to be added to all automatically generated identifiers
     in HTML output.  This is useful for preventing duplicate identifiers
     when generating fragments to be included in other pages.
 
-\--indented-code-classes*=classes*
+`--indented-code-classes=`*CLASSES*
 :   Specify classes to use for indented code blocks--for example,
     `perl,numberLines` or `haskell`. Multiple classes may be separated
     by spaces or commas.
 
-\--toc, \--table-of-contents
-:   Include an automatically generated table of contents (HTML, markdown,
-    RTF) or an instruction to create one (LaTeX, reStructuredText).
-    This option has no effect on man, DocBook, Slidy, or S5 output.
+`--toc`, `--table-of-contents`
+:   Include an automatically generated table of contents (or, in
+    the case of `latex`, `context`, and `rst`, an instruction to create
+    one) in the output document. This option has no effect on `man`,
+    `docbook`, `slidy`, or `s5` output.
 
-\--base-header-level=*LEVEL*
+`--base-header-level=`*LEVEL*
 :   Specify the base level for headers (defaults to 1).
 
-\--template=*FILE*
+`--template=`*FILE*
 :   Use *FILE* as a custom template for the generated document. Implies
-    `-s`. See TEMPLATES below for a description of template syntax. If
-    this option is not used, a default template appropriate for the
-    output format will be used. See also `-D/--print-default-template`.
+    `--standalone`. See [Templates](#templates) below for a description
+    of template syntax. If this option is not used, a default
+    template appropriate for the output format will be used. See also
+    `-D/--print-default-template`.
 
--V KEY=VAL, \--variable=*KEY:VAL*
-:   Set the template variable KEY to the value VAL when rendering the
+`-V` *KEY=VAL*, `--variable=`*KEY:VAL*
+:   Set the template variable *KEY* to the value *VAL* when rendering the
     document in standalone mode. This is only useful when the
     `--template` option is used to specify a custom template, since
     pandoc automatically sets the variables used in the default
     templates.
 
--c *CSS*, \--css=*CSS*
-:   Link to a CSS style sheet.  *CSS* is the pathname of the style sheet.
+`-c` *URL*, `--css=`*URL*
+:   Link to a CSS style sheet.
 
--H *FILE*, \--include-in-header=*FILE*
-:   Include contents of *FILE* at the end of the header.  Implies `-s`.
+`-H` *FILE*, `--include-in-header=`*FILE*
+:   Include contents of *FILE*, verbatim, at the end of the header.
+    This can be used, for example, to include special
+    CSS or javascript in HTML documents.  This option can be used
+    repeatedly to include multiple files in the header.  They will be
+    included in the order specified.  Implies `--standalone`.
 
--B *FILE*, \--include-before-body=*FILE*
-:   Include contents of *FILE* at the beginning of the document body.
-    Implies `-s`.
+`-B` *FILE*, `--include-before-body=`*FILE*
+:   Include contents of *FILE*, verbatim, at the beginning of the
+    document body (e.g. after the `<body>` tag in HTML, or the
+    `\begin{document}` command in LaTeX). This can be used to include
+    navigation bars or banners in HTML documents. This option can be
+    used repeatedly to include multiple files. They will be included in
+    the order specified.  Implies `--standalone`.
 
--A *FILE*, \--include-after-body=*FILE*
-:   Include contents of *FILE* at the end of the document body.
-    Implies `-s`.
+`-A` *FILE*, `--include-after-body=`*FILE*
+:   Include contents of *FILE*, verbatim, at the end of the document
+    body (before the `</body>` tag in HTML, or the
+    `\end{document}` command in LaTeX). This option can be be used
+    repeatedly to include multiple files. They will be included in the
+    order specified.  Implies `--standalone`.
 
--C *FILE*, \--custom-header=*FILE*
-:   Use contents of *FILE* as the document header. *Note: This option is
-    deprecated. Users should transition to using `--template` instead.*
+`-C` *FILE*, `--custom-header=`*FILE*
+:   Use contents of *FILE* as the document header. Implies `--standalone`.
+    *Note: This option is deprecated. Users should transition to using
+    `--template` instead.*
 
-\--reference-odt=*filename*
+`--reference-odt=`*FILE*
 :   Use the specified file as a style reference in producing an ODT.
     For best results, the reference ODT should be a modified version
     of an ODT produced using pandoc.  The contents of the reference ODT
@@ -241,16 +279,17 @@ should pipe input and output through `iconv`:
     `--data-dir`). If this is not found either, sensible defaults will be
     used.
 
-\--epub-stylesheet=*filename*
+`--epub-stylesheet=`*FILE*
 :   Use the specified CSS file to style the EPUB.  If no stylesheet
     is specified, pandoc will look for a file `epub.css` in the
     user data directory (see `--data-dir`, below).  If it is not
     found there, sensible defaults will be used.
 
-\--epub-metadata=*filename*
+`--epub-metadata=`*FILE*
 :   Look in the specified XML file for metadata for the EPUB.
-    The file should contain a series of Dublin Core elements
-    (http://dublincore.org/documents/dces/), for example:
+    The file should contain a series of Dublin Core elements,
+    as documented at <http://dublincore.org/documents/dces/>.
+    For example:
 
          <dc:rights>Creative Commons</dc:rights>
          <dc:language>es-AR</dc:language>
@@ -261,14 +300,17 @@ should pipe input and output through `iconv`:
     `<dc:identifier id="BookId">` (a randomly generated UUID). Any of
     these may be overridden by elements in the metadata file.
 
--D *FORMAT*, \--print-default-template=*FORMAT*
+`-D` *FORMAT*, `--print-default-template=`*FORMAT*
 :   Print the default template for an output *FORMAT*. (See `-t`
     for a list of possible *FORMAT*s.)
 
--T *STRING*, \--title-prefix=*STRING*
-:   Specify *STRING* as a prefix to the HTML window title.
+`-T` *STRING*, `--title-prefix=*STRING*
+:   Specify *STRING* as a prefix at the beginning of the title
+    that appears in the HTML header (but not in the title as it
+    appears at the beginning of the HTML body).  Implies
+    `--standalone`.
 
-\--bibliography=*FILE*
+`--bibliography=`*FILE*
 :   Specify bibliography database to be used in resolving
     citations. The database type will be determined from the
     extension of *FILE*, which may be `.mods` (MODS format),
@@ -279,7 +321,7 @@ should pipe input and output through `iconv`:
     or `.json` (citeproc JSON).  If you want to use multiple
     bibliographies, just use this option repeatedly.
 
-\--csl=*FILE*
+`--csl=`*FILE*
 :   Specify [CSL] style to be used in formatting citations and
     the bibliography. If *FILE* is not found, pandoc will look
     for it in
@@ -295,7 +337,7 @@ should pipe input and output through `iconv`:
     user data directory (see `--data-dir`), or, if that is
     not present, the Chicago author-date style.
 
-\--data-dir*=DIRECTORY*
+`--data-dir=`*DIRECTORY*
 :   Specify the user data directory to search for pandoc data files.
     If this option is not specified, the default user data directory
     will be used:
@@ -310,17 +352,17 @@ should pipe input and output through `iconv`:
     or `s5` directory placed in this directory will override pandoc's
     normal defaults.
 
-\--dump-args
+`--dump-args`
 :   Print information about command-line arguments to *stdout*, then exit.
+    This option is intended primarily for use in wrapper scripts.
     The first line of output contains the name of the output file specified
-    with the `-o` option, or \``-`' (for *stdout*) if no output file was
+    with the `-o` option, or `-` (for *stdout*) if no output file was
     specified.  The remaining lines contain the command-line arguments,
     one per line, in the order they appear.  These do not include regular
     Pandoc options and their arguments, but do include any options appearing
-    after a \``--`' separator at the end of the line.
-    This option is intended primarily for use in wrapper scripts.
+    after a `--` separator at the end of the line.
 
-\--ignore-args
+`--ignore-args`
 :   Ignore command-line arguments (for use in wrapper scripts).
     Regular Pandoc options are not ignored.  Thus, for example,
 
@@ -330,11 +372,18 @@ should pipe input and output through `iconv`:
 
         pandoc -o foo.html -s
 
--v, \--version
+`-v`, `--version`
 :   Print version.
 
--h, \--help
+`-h`, `--help`
 :   Show usage message.
+
+[LaTeXMathML]: http://math.etsu.edu/LaTeXMathML/
+[jsMath]:  http://www.math.union.edu/~dpvc/jsmath/
+[MathJax]: http://www.mathjax.org/
+[gladTeX]:  http://www.math.uio.no/~martingu/gladtex/index.html
+[mimeTeX]: http://www.forkosh.com/mimetex.html 
+[CSL]: http://CitationStyles.org
 
 # TEMPLATES
 
