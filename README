@@ -2,6 +2,14 @@
 % John MacFarlane
 % March 20, 2010
 
+Synopsis
+========
+
+pandoc [*options*] [*input-file*]...
+
+Description
+===========
+
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
@@ -13,9 +21,10 @@ and [LaTeX]; and it can write plain text, [markdown], [reStructuredText],
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, delimited code blocks,
 superscript, subscript, strikeout, title blocks, automatic tables of
-contents, embedded LaTeX math, and markdown inside HTML block elements.
-(These enhancements can be disabled if a drop-in replacement for
-`Markdown.pl` is desired.)
+contents, embedded LaTeX math, citations, and markdown inside HTML block
+elements. (These enhancements, described below under [Pandoc's markdown
+vs. standard markdown](#pandocs-markdown-vs-standard-markdown),
+can be disabled using the `--strict` option.)
 
 In contrast to most existing tools for converting markdown to HTML, which
 use regex substitutions, Pandoc has a modular design: it consists of a
@@ -24,41 +33,24 @@ representation of the document, and a set of writers, which convert
 this native representation into a target format. Thus, adding an input
 or output format requires only adding a reader or writer.
 
-© 2006-2010 John MacFarlane (jgm at berkeley dot edu). Released under the
-[GPL], version 2 or greater.  This software carries no warranty of
-any kind.  (See COPYRIGHT for full copyright and warranty notices.)
-Other contributors include Recai Oktaş, Paulo Tanimoto, Peter Wang,
-Andrea Rossato, Eric Kow, infinity0x, Luke Plant, shreevatsa.public,
-Puneeth Chaganti, Paul Rivier, rodja.trappe, Bradley Kuhn, thsutton,
-Nathan Gass, Jonathan Daugherty, Jérémy Bobbio, Justin Bogner.
-
 Using Pandoc
-============
+------------
 
-If you run `pandoc` without arguments, it will accept input from
-stdin.  If you run it with file names as arguments, it will take input
-from those files.  By default, `pandoc` writes its output to stdout.[^1]
-If you want to write to a file, use the `-o` option:
+If no *input-file* is specified, input is read from *stdin*.
+Otherwise, the *input-files* are concatenated (with a blank
+line between each) and used as input.  Output goes to *stdout* by
+default (though output to *stdout* is disabled for the `odt` and
+`epub` output formats).  For output to a file, use the `-o` option:
 
-    pandoc -o hello.html hello.txt
+    pandoc -o output.html input.txt
 
-[^1]:  The exceptions are for `odt` and `epub`.  Since these are
-       a binary output formats, an output file must be specified explicitly.
-
-Note that you can specify multiple input files on the command line.
-`pandoc` will concatenate them all (with blank lines between them)
-before parsing:
-
-    pandoc -s ch1.txt ch2.txt refs.txt > book.html
-
-(The `-s` option here tells `pandoc` to produce a standalone HTML file,
-with a proper header, rather than a fragment.  For more details on this
-and many other command-line options, see below.)
-
-Instead of a filename, you can specify an absolute URI. In this
-case pandoc will attempt to download the content via HTTP:
+Instead of a file, an absolute URI may be given.  In this case
+pandoc will fetch the content using HTTP:
 
     pandoc -f html -t markdown http://www.fsf.org
+
+If multiple input files are given, `pandoc` will concatenate them all (with
+blank lines between them) before parsing.
 
 The format of the input and output can be specified explicitly using
 command-line options.  The input format can be specified using the
@@ -72,48 +64,31 @@ To convert `hello.html` from html to markdown:
 
     pandoc -f html -t markdown hello.html
 
-Supported output formats include `markdown`, `latex`, `context`
-(ConTeXt), `html`, `rtf` (rich text format), `rst`
-(reStructuredText), `docbook` (DocBook XML), `opendocument`
-(OpenDocument XML), `odt` (OpenOffice text document), `texinfo`, (GNU
-Texinfo), `mediawiki` (MediaWiki markup), `textile` (Textile),
-`epub` (EPUB ebook), `man` (groff man), `org` (Emacs Org-Mode),
-`slidy` (slidy HTML and javascript slide show), or `s5`
-(S5 HTML and javascript slide show).
+Supported output formats are listed below under the `-t/--to` option.
+Supported input formats are listed below under the `-f/--from` option. Note
+that the `rst` reader only parses a subset of reStructuredText syntax. For
+example, it doesn't handle tables, option lists, or footnotes. But for simple
+documents it should be adequate. The `textile`, `latex`, and `html` readers
+are also limited in what they can do.
 
-Supported input formats include `markdown`, `textile`, `html`,
-`latex`, and `rst`.  Note that the `rst` reader only parses a subset of
-reStructuredText syntax. For example, it doesn't handle tables, option
-lists, or footnotes. But for simple documents it should be adequate.
-The `textile`, `latex`, and `html` readers are also limited in what they
-can do.
-
-If you don't specify a reader or writer explicitly, `pandoc` will
-try to determine the input and output format from the extensions of
+If the input or output format is not specified explicitly, `pandoc`
+will attempt to guess it from the extensions of
 the input and output filenames.  Thus, for example,
 
     pandoc -o hello.tex hello.txt
 
 will convert `hello.txt` from markdown to LaTeX.  If no output file
-is specified (so that output goes to stdout), or if the output file's
+is specified (so that output goes to *stdout*), or if the output file's
 extension is unknown, the output format will default to HTML.
-If no input file is specified (so that input comes from stdin), or
+If no input file is specified (so that input comes from *stdin*), or
 if the input files' extensions are unknown, the input format will
 be assumed to be markdown unless explicitly specified.
 
-Character encodings
--------------------
+Pandoc uses the UTF-8 character encoding for both input and output.
+If your local character encoding is not UTF-8, you
+should pipe input and output through `iconv`:
 
-All input is assumed to be in the UTF-8 encoding, and all output
-is in UTF-8. If your local character encoding is not UTF-8 and you use
-accented or foreign characters, you should pipe the input and output
-through [`iconv`]. For example,
-
-    iconv -t utf-8 source.txt | pandoc | iconv -f utf-8 > output.html
-
-will convert `source.txt` from the local encoding to UTF-8, then
-convert it to HTML, then convert back to the local encoding,
-putting the output in `output.html`.
+    iconv -t utf-8 input.txt | pandoc | iconv -f utf-8
 
 Wrappers
 ========
@@ -135,7 +110,7 @@ name can be specified explicitly using the `-o` option:
 
     markdown2pdf -o book.pdf chap1 chap2
 
-If no input file is specified, input will be taken from stdin.
+If no input file is specified, input will be taken from *stdin*.
 All of `pandoc`'s options will work with `markdown2pdf` as well.
 
 `markdown2pdf` assumes that `pdflatex` is in the path.  It also
@@ -163,8 +138,8 @@ problems with its simulation of symbolic links.
 [TeX Live]: http://www.tug.org/texlive/
 [MacTeX]:   http://www.tug.org/mactex/
 
-Command-line options
-====================
+Options
+=======
 
 `-f` *FORMAT*, `-r` *FORMAT*, `--from=`*FORMAT*, `--read=`*FORMAT*
 :   Specify input format.  *FORMAT* can be
@@ -408,7 +383,7 @@ Command-line options
 :   Print the default template for an output *FORMAT*. (See `-t`
     for a list of possible *FORMAT*s.)
 
-`-T` *STRING*, `--title-prefix=*STRING*
+`-T` *STRING*, `--title-prefix=`*STRING*
 :   Specify *STRING* as a prefix at the beginning of the title
     that appears in the HTML header (but not in the title as it
     appears at the beginning of the HTML body).  Implies
@@ -1194,8 +1169,8 @@ it is all too easy for a `>` or `#` to end up at the beginning of a
 line by accident (perhaps through line wrapping).  Consider, for
 example:
 
-    I like several of their flavors of ice cream:  #22, for example, and
-    #5.
+    I like several of their flavors of ice cream:
+    #22, for example, and #5.
 
 Math
 ----
@@ -1484,6 +1459,16 @@ ordinary HTML (without bird tracks).
 writes HTML with the Haskell code in bird tracks, so it can be copied
 and pasted as literate Haskell source.
 
+Authors
+=======
+
+© 2006-2010 John MacFarlane (jgm at berkeley dot edu). Released under the
+[GPL], version 2 or greater.  This software carries no warranty of
+any kind.  (See COPYRIGHT for full copyright and warranty notices.)
+Other contributors include Recai Oktaş, Paulo Tanimoto, Peter Wang,
+Andrea Rossato, Eric Kow, infinity0x, Luke Plant, shreevatsa.public,
+Puneeth Chaganti, Paul Rivier, rodja.trappe, Bradley Kuhn, thsutton,
+Nathan Gass, Jonathan Daugherty, Jérémy Bobbio, Justin Bogner.
 
 [markdown]: http://daringfireball.net/projects/markdown/
 [reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html

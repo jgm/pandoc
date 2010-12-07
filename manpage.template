@@ -1,0 +1,13 @@
+$if(has-tables)$
+.\"t
+$endif$
+.TH PANDOC 1 "$date$" "$title$"
+.SH NAME
+pandoc - general markup converter
+$body$
+.SH SEE ALSO
+.PP
+\f[C]markdown2pdf\f[] (1).
+.PP
+The Pandoc source code and all documentation may be downloaded
+from <http://johnmacfarlane.net/pandoc/>.

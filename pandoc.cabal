@@ -70,7 +70,10 @@ Data-Files:
                  README, INSTALL, COPYRIGHT, BUGS, changelog
 Extra-Source-Files:
                  -- sources for man pages
-                 man/man1/pandoc.1.md, man/man1/markdown2pdf.1.md,
+                 man/man1/markdown2pdf.1.md,
+                 -- code to create pandoc.1 man page
+                 MakeManPage.hs,
+                 manpage.template,
                  -- tests
                  tests/bodybg.gif,
                  tests/html-reader.html,

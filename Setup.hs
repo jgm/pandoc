@@ -48,9 +48,11 @@ runTestSuite _ _ pkg _ = do
 
 -- | Build man pages from markdown sources in man/man1/.
 makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
-makeManPages _ flags _ buildInfo =
-  mapM_ (makeManPage pandocPath (fromFlag $ buildVerbosity flags)) manpages
-    where pandocPath = (buildDir buildInfo) </> "pandoc" </> "pandoc"
+makeManPages _ flags _ buildInfo = do
+  let pandocPath = (buildDir buildInfo) </> "pandoc" </> "pandoc"
+  makeManPage pandocPath (fromFlag $ buildVerbosity flags) "markdown2pdf.1"
+  let testCmd  = "runghc -package-conf=dist/package.conf.inplace MakeManPage.hs" -- makes pandoc.1 from README
+  runCommand testCmd >>= waitForProcess >>= exitWith
 
 manpages :: [FilePath]
 manpages = ["pandoc.1", "markdown2pdf.1"]
