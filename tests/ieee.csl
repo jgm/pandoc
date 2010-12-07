@@ -49,7 +49,7 @@
       </choose>
    </macro>
    <macro name="publisher">
-      <text variable="publisher-place" suffix=": " prefix=" "/>
+      <text variable="publisher-place" suffix=": "/>
       <text variable="publisher" suffix=", "/>
       <date variable="issued">
          <date-part name="year"/>
@@ -115,7 +115,7 @@
                <group delimiter=", ">
                   <text macro="title"/>
                   <text variable="container-title" font-style="italic"/>
-                  <text variable="volume" prefix=" vol. "/>
+                  <text variable="volume" prefix="vol. "/>
                   <date variable="issued">
                      <date-part name="month" form="short" suffix=". " strip-periods="true"/>
                      <date-part name="year"/>
