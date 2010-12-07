@@ -18,9 +18,9 @@
 
 [1] J. Doe, *First Book*, Cambridge: Cambridge University Press, 2005.
 
-[2] J. Doe, “Article”, *Journal of Generic Studies*, vol. 6, 2006, pp. 33-34.
+[2] J. Doe, “Article,” *Journal of Generic Studies*, vol. 6, 2006, pp. 33-34.
 
-[3] J. Doe and J. Roe, “Why Water Is Wet”, *Third Book*, Smith, S., Ed., Oxford: Oxford University Press, 2007.
+[3] J. Doe and J. Roe, “Why Water Is Wet,” *Third Book*, Smith, S., Ed., Oxford: Oxford University Press, 2007.
 
 [^1]:
     A citation without locators [3].
