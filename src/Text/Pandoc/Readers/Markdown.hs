@@ -47,7 +47,7 @@ import Text.Pandoc.Readers.HTML ( rawHtmlBlock, anyHtmlBlockTag,
                                   htmlBlockElement, htmlComment, unsanitaryURI )
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.ParserCombinators.Parsec
-import Control.Monad (when, liftM, unless, guard)
+import Control.Monad (when, liftM, guard)
 import Text.TeXMath.Macros (applyMacros, Macro, pMacroDefinition)
 
 -- | Read markdown from an input string and return a Pandoc document.
@@ -121,7 +121,7 @@ inlinesInBalancedBrackets :: GenParser Char ParserState Inline
 inlinesInBalancedBrackets parser = try $ do
   char '['
   result <- manyTill ( (do lookAhead $ try $ do (Str res) <- parser
-                                                unless (res == "[") pzero
+                                                guard (res == "[")
                            bal <- inlinesInBalancedBrackets parser
                            return $ [Str "["] ++ bal ++ [Str "]"])
                        <|> (count 1 parser))
@@ -1138,7 +1138,9 @@ strChar = noneOf (specialChars ++ " \t\n")
 
 str :: GenParser Char ParserState Inline
 str = do
-  result <- many1 strChar
+  a <- strChar
+  as <- many (strChar <|> (try $ char '_' >>~ lookAhead strChar))
+  let result = a:as
   state <- getState
   let spacesToNbr = map (\c -> if c == ' ' then '\160' else c)
   if stateSmart state
