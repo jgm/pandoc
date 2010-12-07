@@ -45,4 +45,7 @@ Pandoc (Meta {docTitle = [Str "Title",Space,Str "spanning",Space,Str "multiple",
 , Header 2 [Str "Case",Str "-",Str "insensitive",Space,Str "references"]
 , Para [Link [Str "Fum"] ("/fum","")]
 , Para [Link [Str "FUM"] ("/fum","")]
-, Para [Link [Str "bat"] ("/bat","")] ]
+, Para [Link [Str "bat"] ("/bat","")]
+, Header 2 [Str "Curly",Space,Str "smart",Space,Str "quotes"]
+, Para [Quoted DoubleQuote [Str "Hi"]]
+, Para [Quoted SingleQuote [Str "Hi"]] ]

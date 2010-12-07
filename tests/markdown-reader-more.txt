@@ -116,3 +116,9 @@ $\tuple{x,y}$
 
 [fum]: /fum
 [BAT]: /bat
+
+## Curly smart quotes
+
+“Hi”
+
+‘Hi’

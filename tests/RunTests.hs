@@ -96,7 +96,7 @@ main = do
              "testsuite.txt" "testsuite.native"
   r7 <- runTest "markdown reader (tables)" ["-r", "markdown", "-w", "native"]
              "tables.txt" "tables.native"
-  r7a <- runTest "markdown reader (more)" ["-r", "markdown", "-w", "native"]
+  r7a <- runTest "markdown reader (more)" ["-r", "markdown", "-w", "native", "-S"]
              "markdown-reader-more.txt" "markdown-reader-more.native"
   r8 <- runTest "rst reader" ["-r", "rst", "-w", "native", "-s", "-S"]
              "rst-reader.rst" "rst-reader.native"
