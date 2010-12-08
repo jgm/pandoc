@@ -125,4 +125,10 @@ Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
 , BulletList
   [ [ Plain [Str "this",Space,Str "<",Str "div",Str ">",Space,Str "won",Str "'",Str "t",Space,Str "produce",Space,Str "raw",Space,Str "html",Space,Str "blocks",Space,Str "<",Str "/div",Str ">"] ]
   , [ Plain [Str "but",Space,Str "this",Space,HtmlInline "<strong>",Space,Str "will",Space,Str "produce",Space,Str "inline",Space,Str "html",Space,HtmlInline "</strong>"] ] ]
-, Para [Str "Can",Space,Str "you",Space,Str "prove",Space,Str "that",Space,Str "2",Space,Str "<",Space,Str "3",Space,Str "?"] ]
+, Para [Str "Can",Space,Str "you",Space,Str "prove",Space,Str "that",Space,Str "2",Space,Str "<",Space,Str "3",Space,Str "?"]
+, Header 1 [Str "Acronyms",Space,Str "and",Space,Str "marks"]
+, Para [Str "PBS"]
+, Para [Str "Hi",Str "\8482"]
+, Para [Str "Hi",Space,Str "\8482"]
+, Para [Str "\174",Space,Str "Hi",Str "\174"]
+, Para [Str "Hi",Str "\169",Str "2008",Space,Str "\169",Space,Str "2008"] ]

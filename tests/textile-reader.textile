@@ -178,3 +178,15 @@ Html blocks can be <div>inlined</div> as well.
 * but this <strong> will produce inline html </strong>
 
 Can you prove that 2 < 3 ?
+
+h1. Acronyms and marks
+
+PBS(Public Broadcasting System)
+
+Hi(tm)
+
+Hi (TM)
+
+(r) Hi(r)
+
+Hi(c)2008 (C) 2008

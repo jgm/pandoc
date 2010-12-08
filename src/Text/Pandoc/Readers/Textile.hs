@@ -43,8 +43,6 @@ Left to be implemented:
  - Pandoc Meta Information (title, author, date)
  - footnotes
  - dimension sign
- - registered, trademark, and copyright symbols
- - acronyms
  - uppercase
  - definition lists
  - continued blocks (ex bq..)
@@ -86,7 +84,7 @@ readTextile state s = (readWith parseTextile) state (s ++ "\n\n")
 
 -- | Special chars border strings parsing
 specialChars :: [Char]
-specialChars = "\\[]<>*#_@~-+^&,.;:!?|\"'%"
+specialChars = "\\[]<>*#_@~-+^&,.;:!?|\"'%()"
 
 -- | Generate a Pandoc ADT from a textile document
 parseTextile :: GenParser Char ParserState Pandoc
@@ -312,6 +310,7 @@ inlines = manyTill inline newline
 -- | Inline parsers tried in order
 inlineParsers :: [GenParser Char ParserState Inline]
 inlineParsers = [ autoLink
+                , mark
                 , str
                 , htmlSpan
 --                , smartPunctuation -- from markdown reader
@@ -332,16 +331,40 @@ inlineParsers = [ autoLink
                 , symbol
                 ]
 
+-- | Trademark, registered, copyright
+mark :: GenParser Char st Inline
+mark = try $ char '(' >> (try tm <|> try reg <|> copy)
+
+reg :: GenParser Char st Inline
+reg = do
+  oneOf "Rr"
+  char ')'
+  return $ Str "\174"
+
+tm :: GenParser Char st Inline
+tm = do
+  oneOf "Tt"
+  oneOf "Mm"
+  char ')'
+  return $ Str "\8482"
+
+copy :: GenParser Char st Inline
+copy = do
+  oneOf "Cc"
+  char ')'
+  return $ Str "\169"
+
 -- | Any string
 str :: GenParser Char ParserState Inline
 str = do
   xs <- many1 (noneOf (specialChars ++ "\t\n "))
-  optional $ charsInBalanced '(' ')' -- drop acronym explanation
-                                     -- e.g. PBS(Public Broadcasting Service)
+  optional $ try $ do
+    lookAhead (char '(')
+    notFollowedBy' mark
+    charsInBalanced '(' ')' -- drop acronym explanation
   -- parse a following hyphen if followed by a letter
   -- (this prevents unwanted interpretation as starting a strikeout section)
   result <- option xs $ try $ do
-              guard $ not . null $ xs
               char '-'
               next <- lookAhead letter
               guard $ isLetter (last xs) || isLetter next
