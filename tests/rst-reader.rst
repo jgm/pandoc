@@ -508,3 +508,31 @@ Multiple blocks in a cell
 |                  | - b 2     | c 2        | 
 | r1 bis           | - b 2     | c 2        | 
 +------------------+-----------+------------+
+
+Footnotes
+=========
+
+[1]_
+
+[#]_
+
+[#]_
+
+[*]_
+
+.. [1] Note with one line.
+
+.. [#] Note with
+  continuation line.
+
+.. [#] Note with
+
+  continuation block.
+
+.. [*] Note with
+   continuation line
+
+   and a second para.
+
+Not in note.
+

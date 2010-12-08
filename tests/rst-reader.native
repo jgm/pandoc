@@ -308,4 +308,10 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":
     , Para [Str "r1",Space,Str "bis"] ], [ BulletList
       [ [ Plain [Str "b"] ]
       , [ Plain [Str "b",Space,Str "2"] ]
-      , [ Plain [Str "b",Space,Str "2"] ] ] ], [ Plain [Str "c",Space,Str "c",Space,Str "2",Space,Str "c",Space,Str "2"] ] ] ] ]
+      , [ Plain [Str "b",Space,Str "2"] ] ] ], [ Plain [Str "c",Space,Str "c",Space,Str "2",Space,Str "c",Space,Str "2"] ] ] ]
+, Header 1 [Str "Footnotes"]
+, Para [Note [Para [Str "Note",Space,Str "with",Space,Str "one",Space,Str "line",Str "."]]]
+, Para [Note [Para [Str "Note",Space,Str "with",Space,Str "continuation",Space,Str "line",Str "."]]]
+, Para [Note [Para [Str "Note",Space,Str "with"],Para [Str "continuation",Space,Str "block",Str "."]]]
+, Para [Note [Para [Str "Note",Space,Str "with",Space,Str "continuation",Space,Str "line"],Para [Str "and",Space,Str "a",Space,Str "second",Space,Str "para",Str "."]]]
+, Para [Str "Not",Space,Str "in",Space,Str "note",Str "."] ]

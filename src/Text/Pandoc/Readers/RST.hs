@@ -35,7 +35,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.ParserCombinators.Parsec
 import Control.Monad ( when, unless )
-import Data.List ( findIndex, intercalate, transpose, sort )
+import Data.List ( findIndex, intercalate, transpose, sort, deleteFirstsBy )
 import qualified Data.Map as M
 import Text.Printf ( printf )
 
@@ -91,11 +91,15 @@ titleTransform blocks = (blocks, [])
 parseRST :: GenParser Char ParserState Pandoc
 parseRST = do
   startPos <- getPosition
-  -- go through once just to get list of reference keys
+  -- go through once just to get list of reference keys and notes
   -- docMinusKeys is the raw document with blanks where the keys were...
-  docMinusKeys <- manyTill (referenceKey <|> lineClump) eof >>= return . concat
+  docMinusKeys <- manyTill (referenceKey <|> noteBlock <|> lineClump) eof >>=
+                   return . concat
   setInput docMinusKeys
   setPosition startPos
+  st' <- getState
+  let reversedNotes = stateNotes st'
+  updateState $ \s -> s { stateNotes = reverse reversedNotes }
   -- now parse it for real...
   blocks <- parseBlocks 
   let blocks' = filter (/= Null) blocks
@@ -508,6 +512,32 @@ unknownDirective = try $ do
   many $ blanklines <|> (oneOf " \t" >> manyTill anyChar newline)
   return Null
 
+---
+--- note block
+---
+
+noteBlock :: GenParser Char ParserState [Char]
+noteBlock = try $ do
+  startPos <- getPosition
+  string ".."
+  spaceChar >> skipMany spaceChar
+  ref <- noteMarker
+  spaceChar >> skipMany spaceChar
+  first <- anyLine
+  blanks <- option "" blanklines
+  rest <- option "" indentedBlock
+  endPos <- getPosition
+  let raw = first ++ "\n" ++ blanks ++ rest ++ "\n"
+  let newnote = (ref, raw)
+  st <- getState
+  let oldnotes = stateNotes st
+  updateState $ \s -> s { stateNotes = newnote : oldnotes }
+  -- return blanks so line count isn't affected
+  return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
+
+noteMarker :: GenParser Char ParserState [Char]
+noteMarker = char '[' >> (many1 digit <|> count 1 (oneOf "#*")) >>~ char ']'
+
 -- 
 -- reference key
 --
@@ -692,6 +722,7 @@ inline = choice [ smartPunctuation inline
                 , superscript
                 , subscript
                 , escapedChar
+                , note
                 , symbol ] <?> "inline"
 
 hyphens :: GenParser Char ParserState Inline
@@ -820,3 +851,20 @@ image = try $ do
                      Nothing     -> fail "no corresponding key"
                      Just target -> return target
   return $ Image (normalizeSpaces ref) (src, tit)
+
+note :: GenParser Char ParserState Inline
+note = try $ do
+  ref <- noteMarker
+  char '_'
+  state <- getState
+  let notes = stateNotes state
+  case lookup ref notes of
+    Nothing   -> fail "note not found"
+    Just raw  -> do
+      contents <- parseFromString parseBlocks raw
+      when (ref == "*" || ref == "#") $ do -- auto-numbered
+        -- delete the note so the next auto-numbered note
+        -- doesn't get the same contents:
+        let newnotes = deleteFirstsBy (==) notes [(ref,raw)]
+        updateState $ \st -> st{ stateNotes = newnotes }
+      return $ Note contents
