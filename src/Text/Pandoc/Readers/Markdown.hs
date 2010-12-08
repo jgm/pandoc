@@ -225,12 +225,12 @@ referenceTitle = try $ do
   return $ decodeCharacterReferences tit
 
 noteMarker :: GenParser Char ParserState [Char]
-noteMarker = skipNonindentSpaces >> string "[^" >> manyTill (noneOf " \t\n") (char ']')
+noteMarker = string "[^" >> many1Till (noneOf " \t\n") (char ']')
 
 rawLine :: GenParser Char ParserState [Char]
 rawLine = do
   notFollowedBy blankline
-  notFollowedBy' noteMarker
+  notFollowedBy' $ try $ skipNonindentSpaces >> noteMarker
   contents <- many1 nonEndline
   end <- option "" (newline >> optional indentSpaces >> return "\n") 
   return $ contents ++ end
@@ -241,6 +241,7 @@ rawLines = many1 rawLine >>= return . concat
 noteBlock :: GenParser Char ParserState [Char]
 noteBlock = try $ do
   startPos <- getPosition
+  skipNonindentSpaces
   ref <- noteMarker
   char ':'
   optional blankline
