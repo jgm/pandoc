@@ -897,7 +897,6 @@ inline = choice inlineParsers <?> "inline"
 
 inlineParsers :: [GenParser Char ParserState Inline]
 inlineParsers = [ str
-                , smartPunctuation inline
                 , whitespace
                 , endline
                 , code
@@ -919,6 +918,7 @@ inlineParsers = [ str
                 , rawLaTeXInline'
                 , escapedChar
                 , exampleRef
+                , smartPunctuation inline
                 , symbol
                 , ltSign ]
 
