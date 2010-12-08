@@ -496,7 +496,7 @@ Some dashes:  one---two --- three--four -- five.
 
 Dashes between numbers: 5-7, 255-66, 1987-1999. 
 
-Ellipses...and. . .and . . . .
+Ellipses...and...and....
 
 -----
 

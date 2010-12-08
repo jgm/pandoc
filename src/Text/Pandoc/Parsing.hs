@@ -755,7 +755,7 @@ doubleQuoteEnd :: GenParser Char st ()
 doubleQuoteEnd = oneOf "\"\8221" >> return ()
 
 ellipses :: GenParser Char st Inline
-ellipses = oneOfStrings ["...", " . . . ", ". . .", " . . ."] >> return Ellipses
+ellipses = try $ string "..." >> return Ellipses
 
 dash :: GenParser Char st Inline
 dash = enDash <|> emDash
