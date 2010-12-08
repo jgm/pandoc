@@ -57,7 +57,7 @@ underlineChars = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
-specialChars = "\\`|*_<>$:[-"
+specialChars = "\\`|*_<>$:[-.\"'"
 
 --
 -- parsing documents
@@ -679,7 +679,8 @@ table = gridTable False <|> simpleTable False <|>
  --
 
 inline :: GenParser Char ParserState Inline
-inline = choice [ link
+inline = choice [ smartPunctuation inline
+                , link
                 , str
                 , whitespace
                 , endline
