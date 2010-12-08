@@ -326,20 +326,17 @@ orderedListMarkers (start, numstyle, numdelim) =
 -- @Space@ elements, collapse double @Space@s into singles, and
 -- remove empty Str elements.
 normalizeSpaces :: [Inline] -> [Inline]
-normalizeSpaces [] = []
-normalizeSpaces list = 
-    let removeDoubles [] = []
-        removeDoubles (Space:Space:rest) = removeDoubles (Space:rest)
-        removeDoubles (Space:(Str ""):Space:rest) = removeDoubles (Space:rest)
-        removeDoubles ((Str ""):rest) = removeDoubles rest 
-        removeDoubles (x:rest) = x:(removeDoubles rest)
-        removeLeading (Space:xs) = removeLeading xs
-        removeLeading x = x
-        removeTrailing [] = []
-        removeTrailing lst = if (last lst == Space)
-                                then init lst
-                                else lst
-    in  removeLeading $ removeTrailing $ removeDoubles list
+normalizeSpaces = cleanup . dropWhile isSpaceOrEmpty
+  where isSpaceOrEmpty Space = True
+        isSpaceOrEmpty (Str "") = True
+        isSpaceOrEmpty _ = False
+        cleanup [] = []
+        cleanup (Space:rest) = let rest' = dropWhile isSpaceOrEmpty rest
+                               in  case rest' of
+                                   []            -> []
+                                   _             -> Space : cleanup rest'
+        cleanup ((Str ""):rest) = cleanup rest
+        cleanup (x:rest) = x : cleanup rest
 
 -- | Convert list of inlines to a string with formatting removed.
 stringify :: [Inline] -> String
