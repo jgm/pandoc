@@ -1,4 +1,4 @@
-Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
+Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 [ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc",Space,Str "Textile",Space,Str "Reader",Str ".",Space,Str "Part",Space,Str "of",Space,Str "it",Space,Str "comes",LineBreak,Str "from",Space,Str "John",Space,Str "Gruber",Apostrophe,Str "s",Space,Str "markdown",Space,Str "test",Space,Str "suite",Str "."]
 , HorizontalRule
 , Header 1 [Str "Headers"]
@@ -131,4 +131,6 @@ Pandoc (Meta {docTitle = [Str ""], docAuthors = [[Str ""]], docDate = [Str ""]})
 , Para [Str "Hi",Str "\8482"]
 , Para [Str "Hi",Space,Str "\8482"]
 , Para [Str "\174",Space,Str "Hi",Str "\174"]
-, Para [Str "Hi",Str "\169",Str "2008",Space,Str "\169",Space,Str "2008"] ]
+, Para [Str "Hi",Str "\169",Str "2008",Space,Str "\169",Space,Str "2008"]
+, Header 1 [Str "Footnotes"]
+, Para [Str "A",Space,Str "note",Str ".",Note [Para [Str "The",Space,Str "note",LineBreak,Str "is",Space,Str "here",Str "!"]]] ]

@@ -35,12 +35,12 @@ Implemented and parsed:
  - blockquote
  - Inlines : strong, emph, cite, code, deleted, superscript,
    subscript, links
+ - footnotes
 
 Implemented but discarded:
  - HTML-specific and CSS-specific attributes
 
 Left to be implemented:
- - footnotes
  - dimension sign
  - all caps
  - definition lists
@@ -64,7 +64,7 @@ import Text.Pandoc.Readers.HTML ( htmlTag, htmlEndTag, -- find code blocks
 -- import Text.Pandoc.Readers.Markdown (smartPunctuation)
 import Text.ParserCombinators.Parsec
 import Data.Char ( digitToInt, isLetter )
-import Control.Monad ( guard )
+import Control.Monad ( guard, liftM )
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: ParserState -- ^ Parser state, including options for parser
@@ -87,8 +87,35 @@ parseTextile = do
   -- textile allows raw HTML and does smart punctuation by default
   updateState (\state -> state { stateParseRaw = True, stateSmart = True })
   many blankline
-  blocks <- parseBlocks 
-  return $ Pandoc (Meta [Str ""] [[Str ""]] [Str ""]) blocks -- FIXME
+  startPos <- getPosition
+  -- go through once just to get list of reference keys and notes
+  -- docMinusKeys is the raw document with blanks where the keys/notes were...
+  let firstPassParser = noteBlock <|> lineClump
+  manyTill firstPassParser eof >>= setInput . concat
+  setPosition startPos
+  st' <- getState
+  let reversedNotes = stateNotes st'
+  updateState $ \s -> s { stateNotes = reverse reversedNotes }
+  -- now parse it for real...
+  blocks <- parseBlocks
+  return $ Pandoc (Meta [] [] []) blocks -- FIXME
+
+noteMarker :: GenParser Char ParserState [Char]
+noteMarker = skipMany spaceChar >> string "fn" >> manyTill digit (char '.')
+
+noteBlock :: GenParser Char ParserState [Char]
+noteBlock = try $ do
+  startPos <- getPosition
+  ref <- noteMarker
+  optional blankline
+  contents <- liftM unlines $ many1Till anyLine (blanklines <|> noteBlock)
+  endPos <- getPosition
+  let newnote = (ref, contents ++ "\n")
+  st <- getState
+  let oldnotes = stateNotes st
+  updateState $ \s -> s { stateNotes = newnote : oldnotes }
+  -- return blanks so line count isn't affected
+  return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
 -- | Parse document blocks
 parseBlocks :: GenParser Char ParserState [Block]
@@ -306,6 +333,7 @@ inlines = manyTill inline newline
 inlineParsers :: [GenParser Char ParserState Inline]
 inlineParsers = [ autoLink
                 , mark
+                , note
                 , str
                 , htmlSpan
                 , whitespace
@@ -348,6 +376,17 @@ copy = do
   oneOf "Cc"
   char ')'
   return $ Str "\169"
+
+note :: GenParser Char ParserState Inline
+note = try $ do
+  char '['
+  ref <- many1 digit
+  char ']'
+  state <- getState
+  let notes = stateNotes state
+  case lookup ref notes of
+    Nothing   -> fail "note not found"
+    Just raw  -> liftM Note $ parseFromString parseBlocks raw
 
 -- | Any string
 str :: GenParser Char ParserState Inline

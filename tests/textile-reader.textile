@@ -190,3 +190,10 @@ Hi (TM)
 (r) Hi(r)
 
 Hi(c)2008 (C) 2008
+
+h1. Footnotes
+
+A note.[1]
+
+fn1. The note
+is here!
