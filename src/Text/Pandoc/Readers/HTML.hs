@@ -668,7 +668,8 @@ plain = many1 inline >>= return . Plain . normalizeSpaces
 --
 
 inline :: GenParser Char ParserState Inline
-inline = choice [ charRef
+inline = choice [ smartPunctuation inline
+                , str
                 , strong
                 , emph
                 , superscript
@@ -676,11 +677,11 @@ inline = choice [ charRef
                 , strikeout
                 , spanStrikeout
                 , code
-                , str
                 , linebreak
                 , whitespace
                 , link
                 , image
+                , charRef
                 , rawHtmlInline
                 , char '&' >> return (Str "&") -- common HTML error
                 ] <?> "inline"
