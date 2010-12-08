@@ -730,10 +730,16 @@ failIfInQuoteContext context = do
      then fail "already inside quotes"
      else return ()
 
+charOrRef :: [Char] -> GenParser Char st Char
+charOrRef cs =
+  oneOf cs <|> try (do c <- characterReference
+                       guard (c `elem` cs)
+                       return c)
+
 singleQuoteStart :: GenParser Char ParserState ()
 singleQuoteStart = do 
   failIfInQuoteContext InSingleQuote
-  try $ do oneOf "'\8216"
+  try $ do charOrRef "'\8216"
            notFollowedBy (oneOf ")!],.;:-? \t\n")
            notFollowedBy (try (oneOfStrings ["s","t","m","ve","ll","re"] >>
                                satisfy (not . isAlphaNum))) 
@@ -742,28 +748,36 @@ singleQuoteStart = do
 
 singleQuoteEnd :: GenParser Char st ()
 singleQuoteEnd = try $ do
-  oneOf "'\8217"
+  charOrRef "'\8217"
   notFollowedBy alphaNum
 
 doubleQuoteStart :: GenParser Char ParserState ()
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
-  try $ do oneOf "\"\8220"
+  try $ do charOrRef "\"\8220"
            notFollowedBy (oneOf " \t\n")
 
 doubleQuoteEnd :: GenParser Char st ()
-doubleQuoteEnd = oneOf "\"\8221" >> return ()
+doubleQuoteEnd = do
+  charOrRef "\"\8221"
+  return ()
 
 ellipses :: GenParser Char st Inline
-ellipses = try $ string "..." >> return Ellipses
+ellipses = do
+  try (charOrRef "…") <|> try (string "..." >> return '…')
+  return Ellipses
 
 dash :: GenParser Char st Inline
 dash = enDash <|> emDash
 
 enDash :: GenParser Char st Inline
-enDash = try $ char '-' >> notFollowedBy (noneOf "0123456789") >> return EnDash
+enDash = do
+  try (charOrRef "–") <|>
+    try (char '-' >> notFollowedBy (noneOf "0123456789") >> return '–')
+  return EnDash
 
 emDash :: GenParser Char st Inline
-emDash = oneOfStrings ["---", "--"] >> return EmDash
-
+emDash = do
+  try (charOrRef "—") <|> (oneOfStrings ["---", "--"] >> return '—')
+  return EmDash
 

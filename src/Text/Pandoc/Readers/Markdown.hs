@@ -900,7 +900,6 @@ inlineParsers = [ str
                 , whitespace
                 , endline
                 , code
-                , charRef
                 , (fourOrMore '*' <|> fourOrMore '_')
                 , strong
                 , emph
@@ -919,6 +918,7 @@ inlineParsers = [ str
                 , escapedChar
                 , exampleRef
                 , smartPunctuation inline
+                , charRef
                 , symbol
                 , ltSign ]
 
