@@ -67,17 +67,18 @@ module Text.Pandoc.Parsing ( (>>~),
                              Key,
                              toKey,
                              fromKey,
-                             lookupKeySrc )
+                             lookupKeySrc,
+                             smartPunctuation )
 where
 
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.ParserCombinators.Parsec
 import Text.Pandoc.CharacterReferences ( characterReference )
-import Data.Char ( toLower, toUpper, ord, isAscii )
+import Data.Char ( toLower, toUpper, ord, isAscii, isAlphaNum )
 import Data.List ( intercalate, transpose )
 import Network.URI ( parseURI, URI (..), isAllowedInURI )
-import Control.Monad ( join, liftM )
+import Control.Monad ( join, liftM, guard )
 import Text.Pandoc.Shared
 import qualified Data.Map as M
 import Text.TeXMath.Macros (Macro)
@@ -677,4 +678,92 @@ lookupKeySrc :: KeyTable  -- ^ Key table
 lookupKeySrc table key = case M.lookup key table of
                            Nothing  -> Nothing
                            Just src -> Just src
+
+-- | Fail unless we're in "smart typography" mode.
+failUnlessSmart :: GenParser tok ParserState ()
+failUnlessSmart = getState >>= guard . stateSmart
+
+smartPunctuation :: GenParser Char ParserState Inline
+                 -> GenParser Char ParserState Inline
+smartPunctuation inlineParser = do
+  failUnlessSmart
+  choice [ quoted inlineParser, apostrophe, dash, ellipses ]
+
+apostrophe :: GenParser Char ParserState Inline
+apostrophe = (char '\'' <|> char '\8217') >> return Apostrophe
+
+quoted :: GenParser Char ParserState Inline
+       -> GenParser Char ParserState Inline
+quoted inlineParser = doubleQuoted inlineParser <|> singleQuoted inlineParser
+
+withQuoteContext :: QuoteContext
+                 -> (GenParser Char ParserState Inline)
+                 -> GenParser Char ParserState Inline
+withQuoteContext context parser = do
+  oldState <- getState
+  let oldQuoteContext = stateQuoteContext oldState
+  setState oldState { stateQuoteContext = context }
+  result <- parser
+  newState <- getState
+  setState newState { stateQuoteContext = oldQuoteContext }
+  return result
+
+singleQuoted :: GenParser Char ParserState Inline
+             -> GenParser Char ParserState Inline
+singleQuoted inlineParser = try $ do
+  singleQuoteStart
+  withQuoteContext InSingleQuote $ many1Till inlineParser singleQuoteEnd >>=
+    return . Quoted SingleQuote . normalizeSpaces
+
+doubleQuoted :: GenParser Char ParserState Inline
+             -> GenParser Char ParserState Inline
+doubleQuoted inlineParser = try $ do
+  doubleQuoteStart
+  withQuoteContext InDoubleQuote $ do
+    contents <- manyTill inlineParser doubleQuoteEnd
+    return . Quoted DoubleQuote . normalizeSpaces $ contents
+
+failIfInQuoteContext :: QuoteContext -> GenParser tok ParserState ()
+failIfInQuoteContext context = do
+  st <- getState
+  if stateQuoteContext st == context
+     then fail "already inside quotes"
+     else return ()
+
+singleQuoteStart :: GenParser Char ParserState ()
+singleQuoteStart = do 
+  failIfInQuoteContext InSingleQuote
+  try $ do oneOf "'\8216"
+           notFollowedBy (oneOf ")!],.;:-? \t\n")
+           notFollowedBy (try (oneOfStrings ["s","t","m","ve","ll","re"] >>
+                               satisfy (not . isAlphaNum))) 
+                               -- possess/contraction
+           return ()
+
+singleQuoteEnd :: GenParser Char st ()
+singleQuoteEnd = try $ do
+  oneOf "'\8217"
+  notFollowedBy alphaNum
+
+doubleQuoteStart :: GenParser Char ParserState ()
+doubleQuoteStart = do
+  failIfInQuoteContext InDoubleQuote
+  try $ do oneOf "\"\8220"
+           notFollowedBy (oneOf " \t\n")
+
+doubleQuoteEnd :: GenParser Char st ()
+doubleQuoteEnd = oneOf "\"\8221" >> return ()
+
+ellipses :: GenParser Char st Inline
+ellipses = oneOfStrings ["...", " . . . ", ". . .", " . . ."] >> return Ellipses
+
+dash :: GenParser Char st Inline
+dash = enDash <|> emDash
+
+enDash :: GenParser Char st Inline
+enDash = try $ char '-' >> notFollowedBy (noneOf "0123456789") >> return EnDash
+
+emDash :: GenParser Char st Inline
+emDash = oneOfStrings ["---", "--"] >> return EmDash
+
 

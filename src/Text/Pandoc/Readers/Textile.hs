@@ -34,21 +34,17 @@ Implemented and parsed:
  - Lists
  - blockquote
  - Inlines : strong, emph, cite, code, deleted, superscript,
-   subscript, links, smart punctuation
+   subscript, links
 
 Implemented but discarded:
  - HTML-specific and CSS-specific attributes
 
 Left to be implemented:
- - Pandoc Meta Information (title, author, date)
  - footnotes
  - dimension sign
- - uppercase
+ - all caps
  - definition lists
  - continued blocks (ex bq..)
- - 
-
-
 
 TODO : refactor common patterns across readers :
  - autolink
@@ -58,9 +54,8 @@ TODO : refactor common patterns across readers :
 -}
 
 
-module Text.Pandoc.Readers.Textile ( 
-                                readTextile
-                               ) where
+module Text.Pandoc.Readers.Textile ( readTextile) where
+
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Parsing
@@ -313,7 +308,6 @@ inlineParsers = [ autoLink
                 , mark
                 , str
                 , htmlSpan
---                , smartPunctuation -- from markdown reader
                 , whitespace
                 , endline
                 , rawHtmlInline
@@ -328,6 +322,7 @@ inlineParsers = [ autoLink
                 , simpleInline (char '~') Subscript
                 , link
                 , image
+                , smartPunctuation inline
                 , symbol
                 ]
 

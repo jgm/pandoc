@@ -27,10 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of markdown-formatted plain text to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.Markdown ( 
-                                     readMarkdown,
-                                     smartPunctuation
-                                    ) where
+module Text.Pandoc.Readers.Markdown ( readMarkdown ) where
 
 import Data.List ( transpose, isSuffixOf, sortBy, findIndex, intercalate )
 import qualified Data.Map as M
@@ -107,12 +104,6 @@ failUnlessBeginningOfLine :: GenParser tok st ()
 failUnlessBeginningOfLine = do
   pos <- getPosition
   if sourceColumn pos == 1 then return () else fail "not beginning of line"
-
--- | Fail unless we're in "smart typography" mode.
-failUnlessSmart :: GenParser tok ParserState ()
-failUnlessSmart = do
-  state <- getState
-  if stateSmart state then return () else pzero
 
 -- | Parse a sequence of inline elements between square brackets,
 -- including inlines between balanced pairs of square brackets.
@@ -906,7 +897,7 @@ inline = choice inlineParsers <?> "inline"
 
 inlineParsers :: [GenParser Char ParserState Inline]
 inlineParsers = [ str
-                , smartPunctuation
+                , smartPunctuation inline
                 , whitespace
                 , endline
                 , code
@@ -1046,84 +1037,6 @@ subscript :: GenParser Char ParserState Inline
 subscript = failIfStrict >> enclosed (char '~') (char '~')
             (notFollowedBy spaceChar >> inline) >>=  -- may not contain Space
             return . Subscript 
-
-smartPunctuation :: GenParser Char ParserState Inline
-smartPunctuation = failUnlessSmart >> 
-                   choice [ quoted, apostrophe, dash, ellipses ]
-
-apostrophe :: GenParser Char ParserState Inline
-apostrophe = (char '\'' <|> char '\8217') >> return Apostrophe
-
-quoted :: GenParser Char ParserState Inline
-quoted = doubleQuoted <|> singleQuoted 
-
-withQuoteContext :: QuoteContext
-                 -> (GenParser Char ParserState Inline)
-                 -> GenParser Char ParserState Inline
-withQuoteContext context parser = do
-  oldState <- getState
-  let oldQuoteContext = stateQuoteContext oldState
-  setState oldState { stateQuoteContext = context }
-  result <- parser
-  newState <- getState
-  setState newState { stateQuoteContext = oldQuoteContext }
-  return result
-
-singleQuoted :: GenParser Char ParserState Inline
-singleQuoted = try $ do
-  singleQuoteStart
-  withQuoteContext InSingleQuote $ many1Till inline singleQuoteEnd >>=
-    return . Quoted SingleQuote . normalizeSpaces
-
-doubleQuoted :: GenParser Char ParserState Inline
-doubleQuoted = try $ do
-  doubleQuoteStart
-  withQuoteContext InDoubleQuote $ do
-    contents <- manyTill inline doubleQuoteEnd
-    return . Quoted DoubleQuote . normalizeSpaces $ contents
-
-failIfInQuoteContext :: QuoteContext -> GenParser tok ParserState ()
-failIfInQuoteContext context = do
-  st <- getState
-  if stateQuoteContext st == context
-     then fail "already inside quotes"
-     else return ()
-
-singleQuoteStart :: GenParser Char ParserState ()
-singleQuoteStart = do 
-  failIfInQuoteContext InSingleQuote
-  try $ do oneOf "'\8216"
-           notFollowedBy (oneOf ")!],.;:-? \t\n")
-           notFollowedBy (try (oneOfStrings ["s","t","m","ve","ll","re"] >>
-                               satisfy (not . isAlphaNum))) 
-                               -- possess/contraction
-           return ()
-
-singleQuoteEnd :: GenParser Char st ()
-singleQuoteEnd = try $ do
-  oneOf "'\8217"
-  notFollowedBy alphaNum
-
-doubleQuoteStart :: GenParser Char ParserState ()
-doubleQuoteStart = do
-  failIfInQuoteContext InDoubleQuote
-  try $ do oneOf "\"\8220"
-           notFollowedBy (oneOf " \t\n")
-
-doubleQuoteEnd :: GenParser Char st ()
-doubleQuoteEnd = oneOf "\"\8221" >> return ()
-
-ellipses :: GenParser Char st Inline
-ellipses = oneOfStrings ["...", " . . . ", ". . .", " . . ."] >> return Ellipses
-
-dash :: GenParser Char st Inline
-dash = enDash <|> emDash
-
-enDash :: GenParser Char st Inline
-enDash = try $ char '-' >> notFollowedBy (noneOf "0123456789") >> return EnDash
-
-emDash :: GenParser Char st Inline
-emDash = oneOfStrings ["---", "--"] >> return EmDash
 
 whitespace :: GenParser Char ParserState Inline
 whitespace = spaceChar >>
