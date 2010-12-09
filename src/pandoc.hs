@@ -29,6 +29,7 @@ Parses command-line options and calls the appropriate readers and
 writers.
 -}
 module Main where
+import Text.JSON.Generic (encodeJSON, decodeJSON)
 import Text.Pandoc
 import Text.Pandoc.S5 (s5HeaderIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
@@ -83,6 +84,7 @@ wrapWords c = wrap' c c where
 -- | Association list of formats and readers.
 readers :: [(String, ParserState -> String -> Pandoc)]
 readers = [("native"       , readPandoc)
+          ,("json"         , readJSON)
           ,("markdown"     , readMarkdown)
           ,("markdown+lhs" , readMarkdown)
           ,("rst"          , readRST)
@@ -97,9 +99,18 @@ readers = [("native"       , readPandoc)
 readPandoc :: ParserState -> String -> Pandoc
 readPandoc _ = read
 
+-- | Reader for JSON version of Pandoc AST.
+readJSON :: ParserState -> String -> Pandoc
+readJSON _ = decodeJSON
+
+-- | Writer for JSON version of Pandoc AST.
+writeJSON :: WriterOptions -> Pandoc -> String
+writeJSON _ = encodeJSON
+
 -- | Association list of formats and writers.
 writers :: [ ( String, WriterOptions -> Pandoc -> String ) ]
 writers = [("native"       , writeNative)
+          ,("json"         , writeJSON)
           ,("html"         , writeHtmlString)
           ,("html+lhs"     , writeHtmlString)
           ,("s5"           , writeHtmlString)
