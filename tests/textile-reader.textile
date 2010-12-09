@@ -93,6 +93,16 @@ h2. Nested
 *** ui 2.1.1
 *** ui 2.1.2
 
+h2. Definition List
+
+- coffee := Hot and black
+- tea := Also hot, but a little less black
+- milk :=
+Nourishing beverage for baby cows.
+
+Cold drink that goes great with cookies.=:
+- beer := fresh and bitter
+
 
 h1. Inline Markup
 

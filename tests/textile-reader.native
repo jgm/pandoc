@@ -52,6 +52,20 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
         , BulletList
           [ [ Plain [Str "ui",Space,Str "2",Str ".",Str "1",Str ".",Str "1"] ]
           , [ Plain [Str "ui",Space,Str "2",Str ".",Str "1",Str ".",Str "2"] ] ] ] ] ] ]
+, Header 2 [Str "Definition",Space,Str "List"]
+, DefinitionList
+  [ ([Str "coffee"],
+     [ [ Plain [Str "Hot",Space,Str "and",Space,Str "black"] ]
+     ])
+  , ([Str "tea"],
+     [ [ Plain [Str "Also",Space,Str "hot",Str ",",Space,Str "but",Space,Str "a",Space,Str "little",Space,Str "less",Space,Str "black"] ]
+     ])
+  , ([Str "milk"],
+     [ [ Para [Str "Nourishing",Space,Str "beverage",Space,Str "for",Space,Str "baby",Space,Str "cows",Str "."]
+       , Para [Str "Cold",Space,Str "drink",Space,Str "that",Space,Str "goes",Space,Str "great",Space,Str "with",Space,Str "cookies",Str "."] ]])
+  , ([Str "beer"],
+     [ [ Plain [Str "fresh",Space,Str "and",Space,Str "bitter"] ]
+     ]) ]
 , Header 1 [Str "Inline",Space,Str "Markup"]
 , Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str ".",LineBreak,Str "This",Space,Str "is",Space,Strong [Str "strong"],Str ",",Space,Str "and",Space,Str "so",Space,Strong [Str "is",Space,Str "this"],Str ".",LineBreak,Str "A",Space,Link [Strong [Str "strong",Space,Str "link"]] ("http://www.foobar.com",""),Str "."]
 , Para [Emph [Strong [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em",Str "."]],LineBreak,Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word",Space,Str "and",Space,Emph [Strong [Str "that",Space,Str "one"]],Str ".",LineBreak,Strikeout [Str "This",Space,Str "is",Space,Str "strikeout",Space,Str "and",Space,Strong [Str "strong"]]]

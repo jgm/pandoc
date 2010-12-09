@@ -43,7 +43,6 @@ Implemented but discarded:
 Left to be implemented:
  - dimension sign
  - all caps
- - definition lists
  - continued blocks (ex bq..)
 
 TODO : refactor common patterns across readers :
@@ -199,7 +198,8 @@ anyList = try $ do
 -- provided correct nesting
 anyListAtDepth :: Int -> GenParser Char ParserState Block
 anyListAtDepth depth = choice [ bulletListAtDepth depth,
-                                orderedListAtDepth depth ]
+                                orderedListAtDepth depth,
+                                definitionList ]
 
 -- | Bullet List of given depth, depth being the number of leading '*'
 bulletListAtDepth :: Int -> GenParser Char ParserState Block
@@ -236,6 +236,33 @@ orderedListItemAtDepth depth = try $ do
   sublist <- option [] (anyListAtDepth (depth + 1) >>= return . (:[]))
   return (p:sublist)
 
+-- | A definition list is a set of consecutive definition items
+definitionList :: GenParser Char ParserState Block  
+definitionList = try $ do
+  items <- many1 definitionListItem
+  return $ DefinitionList items
+  
+-- | A definition list item in textile begins with '- ', followed by
+-- the term defined, then spaces and ":=". The definition follows, on
+-- the same single line, or spaned on multiple line, after a line
+-- break.
+definitionListItem :: GenParser Char ParserState ([Inline], [[Block]])
+definitionListItem = try $ do
+  string "- "
+  term <- many1Till inline (try (whitespace >> string ":="))
+  def <- inlineDef <|> multilineDef
+  return (term, def)
+  where inlineDef :: GenParser Char ParserState [[Block]]
+        inlineDef = liftM (\d -> [[Plain d]]) $ try (whitespace >> inlines)
+        multilineDef :: GenParser Char ParserState [[Block]]
+        multilineDef = try $ do
+          optional whitespace >> newline
+          s <- many1Till anyChar (try (string "=:" >> newline))
+          -- this ++ "\n\n" does not look very good
+          ds <- parseFromString parseBlocks (s ++ "\n\n")
+          return [ds]
+  
+  
 -- | This terminates a block such as a paragraph. Because of raw html
 -- blocks support, we have to lookAhead for a rawHtmlBlock.
 blockBreak :: GenParser Char ParserState ()
