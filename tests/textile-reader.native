@@ -127,7 +127,7 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
   , [ Plain [Str "but",Space,Str "this",Space,HtmlInline "<strong>",Space,Str "will",Space,Str "produce",Space,Str "inline",Space,Str "html",Space,HtmlInline "</strong>"] ] ]
 , Para [Str "Can",Space,Str "you",Space,Str "prove",Space,Str "that",Space,Str "2",Space,Str "<",Space,Str "3",Space,Str "?"]
 , Header 1 [Str "Acronyms",Space,Str "and",Space,Str "marks"]
-, Para [Str "PBS"]
+, Para [Str "PBS",Space,Str "(",Str "Public",Space,Str "Broadcasting",Space,Str "System",Str ")"]
 , Para [Str "Hi",Str "\8482"]
 , Para [Str "Hi",Space,Str "\8482"]
 , Para [Str "\174",Space,Str "Hi",Str "\174"]

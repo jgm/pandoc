@@ -395,7 +395,7 @@ str = do
   optional $ try $ do
     lookAhead (char '(')
     notFollowedBy' mark
-    charsInBalanced '(' ')' -- drop acronym explanation
+    getInput >>= setInput . (' ':) -- add space before acronym explanation
   -- parse a following hyphen if followed by a letter
   -- (this prevents unwanted interpretation as starting a strikeout section)
   result <- option xs $ try $ do
