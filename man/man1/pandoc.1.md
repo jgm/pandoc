@@ -268,6 +268,28 @@ should pipe input and output through `iconv`:
 -T *STRING*, \--title-prefix=*STRING*
 :   Specify *STRING* as a prefix to the HTML window title.
 
+\--bibliography=*FILE*
+:   Specify bibliography database to be used in resolving
+    citations. The database type will be determined from the
+    extension of *FILE*, which may be `.xml` (MODS format),
+    `.bib` (BibTeX format), or `.json` (citeproc JSON).
+
+\--csl=*FILE*
+:   Specify [CSL] style to be used in formatting citations and
+    the bibliography. If *FILE* is not found, pandoc will look
+    for it in
+
+        $HOME/.csl
+
+    in unix and
+
+        C:\Documents And Settings\USERNAME\Application Data\csl
+
+    in Windows. If the `--csl` option is not specified, pandoc
+    will use a default style:  either `default.csl` in the
+    user data directory (see `--data-dir`), or, if that is
+    not present, the Chicago author-date style.
+
 \--data-dir*=DIRECTORY*
 :   Specify the user data directory to search for pandoc data files.
     If this option is not specified, the default user data directory
@@ -396,4 +418,6 @@ The *README* file distributed with Pandoc contains full documentation.
 
 The Pandoc source code and all documentation may be downloaded from
 <http://johnmacfarlane.net/pandoc/>.
+
+[CSL]: CitationStyles.org
 
