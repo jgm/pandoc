@@ -41,7 +41,7 @@ import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment' )
 import Text.Pandoc.Readers.HTML ( rawHtmlBlock, anyHtmlBlockTag, 
                                   anyHtmlInlineTag, anyHtmlTag,
                                   anyHtmlEndTag, htmlEndTag, extractTagType,
-                                  htmlBlockElement, htmlComment, unsanitaryURI )
+                                  htmlBlockElement, htmlComment )
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.ParserCombinators.Parsec
 import Control.Monad (when, liftM, guard)
@@ -1152,10 +1152,7 @@ link :: GenParser Char ParserState Inline
 link = try $ do
   lab <- reference
   (src, tit) <- source <|> referenceLink lab
-  sanitize <- getState >>= return . stateSanitizeHTML
-  if sanitize && unsanitaryURI src
-     then fail "Unsanitary URI"
-     else return $ Link lab (src, tit)
+  return $ Link lab (src, tit)
 
 -- a link like [this][ref] or [this][] or [this]
 referenceLink :: [Inline]
@@ -1175,12 +1172,9 @@ autoLink = try $ do
   (orig, src) <- uri <|> emailAddress
   char '>'
   st <- getState
-  let sanitize = stateSanitizeHTML st
-  if sanitize && unsanitaryURI src
-     then fail "Unsanitary URI"
-     else return $ if stateStrict st
-                      then Link [Str orig] (src, "")
-                      else Link [Code orig] (src, "")
+  return $ if stateStrict st
+              then Link [Str orig] (src, "")
+              else Link [Code orig] (src, "")
 
 image :: GenParser Char ParserState Inline
 image = try $ do

@@ -155,7 +155,6 @@ data Opt = Opt
     , optStrict            :: Bool    -- ^ Use strict markdown syntax
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optWrapText          :: Bool    -- ^ Wrap text
-    , optSanitizeHTML      :: Bool    -- ^ Sanitize HTML
     , optPlugins           :: [Pandoc -> IO Pandoc] -- ^ Plugins to apply
     , optEmailObfuscation  :: ObfuscationMethod
     , optIdentifierPrefix  :: String
@@ -194,7 +193,6 @@ defaultOpts = Opt
     , optStrict            = False
     , optReferenceLinks    = False
     , optWrapText          = True
-    , optSanitizeHTML      = False
     , optPlugins           = []
     , optEmailObfuscation  = JavascriptObfuscation
     , optIdentifierPrefix  = ""
@@ -343,11 +341,6 @@ options =
                  (NoArg
                   (\opt -> return opt { optWrapText = False }))
                  "" -- "Do not wrap text in output"
-
-    , Option "" ["sanitize-html"]
-                 (NoArg
-                  (\opt -> return opt { optSanitizeHTML = True }))
-                 "" -- "Sanitize HTML"
 
     , Option "" ["email-obfuscation"]
                  (ReqArg
@@ -673,7 +666,6 @@ main = do
               , optStrict            = strict
               , optReferenceLinks    = referenceLinks
               , optWrapText          = wrap
-              , optSanitizeHTML      = sanitize
               , optEmailObfuscation  = obfuscationMethod
               , optIdentifierPrefix  = idPrefix
               , optIndentedCodeClasses = codeBlockClasses
@@ -772,7 +764,6 @@ main = do
   let startParserState =
          defaultParserState { stateParseRaw        = parseRaw,
                               stateTabStop         = tabStop,
-                              stateSanitizeHTML    = sanitize,
                               stateLiterateHaskell = "+lhs" `isSuffixOf` readerName' ||
                                                      lhsExtension sources,
                               stateStandalone      = standalone',

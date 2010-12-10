@@ -269,12 +269,6 @@ Options
 :   Disable text wrapping in output. By default, text is wrapped
     appropriately for the output format.
 
-`--sanitize-html`
-:   Sanitizes HTML (in markdown or HTML input) using a whitelist.
-    Unsafe tags are replaced by HTML comments; unsafe attributes
-    are omitted.  URIs in links and images are also checked against a
-    whitelist of URI schemes.
-
 `--email-obfuscation=`*none|javascript|references*
 :   Specify a method for obfuscating `mailto:` links in HTML documents.
     *none* leaves `mailto:` links as they are.  *javascript* obfuscates

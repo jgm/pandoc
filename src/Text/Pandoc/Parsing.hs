@@ -586,7 +586,6 @@ data ParserState = ParserState
     { stateParseRaw        :: Bool,          -- ^ Parse raw HTML and LaTeX?
       stateParserContext   :: ParserContext, -- ^ Inside list?
       stateQuoteContext    :: QuoteContext,  -- ^ Inside quoted environment?
-      stateSanitizeHTML    :: Bool,          -- ^ Sanitize HTML?
       stateKeys            :: KeyTable,      -- ^ List of reference keys
       stateCitations       :: [String],      -- ^ List of available citations
       stateNotes           :: NoteTable,     -- ^ List of notes
@@ -614,7 +613,6 @@ defaultParserState =
     ParserState { stateParseRaw        = False,
                   stateParserContext   = NullState,
                   stateQuoteContext    = NoQuote,
-                  stateSanitizeHTML    = False,
                   stateKeys            = M.empty,
                   stateCitations       = [],
                   stateNotes           = [],

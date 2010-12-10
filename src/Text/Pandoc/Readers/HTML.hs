@@ -40,7 +40,6 @@ module Text.Pandoc.Readers.HTML (
                                  extractTagType,
                                  htmlBlockElement,
                                  htmlComment,
-                                 unsanitaryURI
                                 ) where
 
 import Text.ParserCombinators.Parsec
@@ -51,7 +50,6 @@ import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Data.Maybe ( fromMaybe )
 import Data.List ( isPrefixOf, isSuffixOf, intercalate )
 import Data.Char ( toLower, isAlphaNum )
-import Network.URI ( parseURIReference, URI (..) )
 import Control.Monad ( liftM, when )
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
@@ -84,36 +82,6 @@ blockHtmlTags = ["address", "blockquote", "body", "center", "dir", "div",
                  "noscript", "ol", "p", "pre", "table", "ul", "dd",
                  "dt", "frameset", "li", "tbody", "td", "tfoot",
                  "th", "thead", "tr", "script", "style"]
-
-sanitaryTags :: [[Char]]
-sanitaryTags = ["a", "abbr", "acronym", "address", "area", "b", "big",
-                "blockquote", "br", "button", "caption", "center",
-                "cite", "code", "col", "colgroup", "dd", "del", "dfn",
-                "dir", "div", "dl", "dt", "em", "fieldset", "font",
-                "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr",
-                "i", "img", "input", "ins", "kbd", "label", "legend",
-                "li", "map", "menu", "ol", "optgroup", "option", "p",
-                "pre", "q", "s", "samp", "select", "small", "span",
-                "strike", "strong", "sub", "sup", "table", "tbody",
-                "td", "textarea", "tfoot", "th", "thead", "tr", "tt",
-                "u", "ul", "var"]
-
-sanitaryAttributes :: [[Char]]
-sanitaryAttributes = ["abbr", "accept", "accept-charset",
-                      "accesskey", "action", "align", "alt", "axis",
-                      "border", "cellpadding", "cellspacing", "char",
-                      "charoff", "charset", "checked", "cite", "class",
-                      "clear", "cols", "colspan", "color", "compact",
-                      "coords", "datetime", "dir", "disabled",
-                      "enctype", "for", "frame", "headers", "height",
-                      "href", "hreflang", "hspace", "id", "ismap",
-                      "label", "lang", "longdesc", "maxlength", "media",
-                      "method", "multiple", "name", "nohref", "noshade",
-                      "nowrap", "prompt", "readonly", "rel", "rev",
-                      "rows", "rowspan", "rules", "scope", "selected",
-                      "shape", "size", "span", "src", "start",
-                      "summary", "tabindex", "target", "title", "type",
-                      "usemap", "valign", "value", "vspace", "width"]
 
 -- taken from HXT and extended
 
@@ -152,41 +120,6 @@ _ `closes` _ = False
 --
 -- HTML utility functions
 --
-
--- | Returns @True@ if sanitization is specified and the specified tag is 
---  not on the sanitized tag list.
-unsanitaryTag :: [Char]
-              -> GenParser tok ParserState Bool
-unsanitaryTag tag = do
-  st <- getState
-  return $ stateSanitizeHTML st && tag `notElem` sanitaryTags
-
--- | returns @True@ if sanitization is specified and the specified attribute
---  is not on the sanitized attribute list.
-unsanitaryAttribute :: ([Char], String, t)
-                    -> GenParser tok ParserState Bool
-unsanitaryAttribute (attr, val, _) = do
-  st <- getState
-  return $ stateSanitizeHTML st &&
-           (attr `notElem` sanitaryAttributes ||
-             (attr `elem` ["href","src"] && unsanitaryURI val))
-
--- | Returns @True@ if the specified URI is potentially a security risk.
-unsanitaryURI :: String -> Bool
-unsanitaryURI u =
-  let safeURISchemes = [ "", "http:", "https:", "ftp:", "mailto:", "file:",
-             "telnet:", "gopher:", "aaa:", "aaas:", "acap:", "cap:", "cid:",
-             "crid:", "dav:", "dict:", "dns:", "fax:", "go:", "h323:", "im:",
-             "imap:", "ldap:", "mid:", "news:", "nfs:", "nntp:", "pop:",
-             "pres:", "sip:", "sips:", "snmp:", "tel:", "urn:", "wais:",
-             "xmpp:", "z39.50r:", "z39.50s:", "aim:", "callto:", "cvs:",
-             "ed2k:", "feed:", "fish:", "gg:", "irc:", "ircs:", "lastfm:",
-             "ldaps:", "magnet:", "mms:", "msnim:", "notes:", "rsync:",
-             "secondlife:", "skype:", "ssh:", "sftp:", "smb:", "sms:",
-             "snews:", "webcal:", "ymsgr:"]
-  in  case parseURIReference (escapeURI u) of
-           Just p  -> (map toLower $ uriScheme p) `notElem` safeURISchemes
-           Nothing -> True
 
 -- | Read blocks until end tag.
 blocksTilEnd :: String -> GenParser Char ParserState [Block]
@@ -240,10 +173,7 @@ anyHtmlTag = try $ do
   char '>'
   let result = "<" ++ tag ++ 
                concatMap (\(_, _, raw) -> (' ':raw)) attribs ++ ender' ++ ">"
-  unsanitary <- unsanitaryTag tag
-  if unsanitary
-     then return $ "<!-- unsafe HTML removed -->"
-     else return result
+  return result
 
 anyHtmlEndTag :: GenParser Char ParserState [Char]
 anyHtmlEndTag = try $ do
@@ -255,10 +185,7 @@ anyHtmlEndTag = try $ do
   spaces
   char '>'
   let result = "</" ++ tag ++ ">"
-  unsanitary <- unsanitaryTag tag
-  if unsanitary
-     then return $ "<!-- unsafe HTML removed -->"
-     else return result 
+  return result 
 
 htmlTag :: Bool
         -> String
@@ -294,16 +221,10 @@ quoted quoteChar = do
                     (many (noneOf [quoteChar]))
   return (result, [quoteChar])
 
-nullAttribute :: ([Char], [Char], [Char])
-nullAttribute = ("", "", "") 
-
 htmlAttribute :: GenParser Char ParserState ([Char], [Char], [Char])
 htmlAttribute = do
   attr <- htmlRegularAttribute <|> htmlMinimizedAttribute
-  unsanitary <- unsanitaryAttribute attr
-  if unsanitary
-     then return nullAttribute
-     else return attr
+  return attr
 
 -- minimized boolean attribute
 htmlMinimizedAttribute :: GenParser Char st ([Char], [Char], [Char])
@@ -364,10 +285,7 @@ htmlScript = try $ do
   lookAhead $ htmlOpenTag "script"
   open <- anyHtmlTag
   rest <- liftM concat $ manyTill scriptChunk (htmlEndTag "script")
-  st <- getState
-  if stateSanitizeHTML st && not ("script" `elem` sanitaryTags)
-     then return "<!-- unsafe HTML removed -->"
-     else return $ open ++ rest ++ "</script>"
+  return $ open ++ rest ++ "</script>"
 
 scriptChunk :: GenParser Char ParserState [Char]
 scriptChunk = jsComment <|> jsString <|> jsChars
@@ -399,10 +317,7 @@ htmlStyle = try $ do
   lookAhead $ htmlOpenTag "style"
   open <- anyHtmlTag
   rest <- manyTill anyChar (htmlEndTag "style")
-  st <- getState
-  if stateSanitizeHTML st && not ("style" `elem` sanitaryTags)
-     then return "<!-- unsafe HTML removed -->"
-     else return $ open ++ rest ++ "</style>"
+  return $ open ++ rest ++ "</style>"
 
 htmlBlockElement :: GenParser Char ParserState [Char]
 htmlBlockElement = choice [ htmlScript, htmlStyle, htmlComment, xmlDec, definition ]
