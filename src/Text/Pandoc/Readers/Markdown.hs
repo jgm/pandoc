@@ -202,9 +202,17 @@ referenceKey = try $ do
   lab <- reference
   char ':'
   skipSpaces >> optional newline >> skipSpaces >> notFollowedBy (char '[')
-  let sourceURL excludes = many $
-        optional (char '\\') >> (noneOf (' ':excludes) <|> (notFollowedBy' referenceTitle >> char ' '))
-  src <- try (char '<' >> sourceURL ">\t\n" >>~ char '>') <|> sourceURL "\t\n"
+  let nl = char '\n' >> notFollowedBy blankline >> return ' '
+  let sourceURL = liftM unwords $ many $ try $ do
+                    notFollowedBy' referenceTitle
+                    skipMany (oneOf " \t")
+                    optional nl
+                    notFollowedBy' reference
+                    skipMany (oneOf " \t")
+                    many1 (noneOf " \t\n")
+  let betweenAngles = try $ char '<' >>
+                            manyTill (noneOf ">\n" <|> nl) (char '>')
+  src <- try betweenAngles <|> sourceURL
   tit <- option "" referenceTitle
   blanklines
   endPos <- getPosition
@@ -1116,9 +1124,16 @@ source =
 source' :: GenParser Char st (String, [Char])
 source' = do
   skipSpaces
-  let sourceURL excludes = many $
-        optional (char '\\') >> (noneOf (' ':excludes) <|> (notFollowedBy' linkTitle >> char ' '))
-  src <- try (char '<' >> sourceURL ">\t\n" >>~ char '>') <|> sourceURL "\t\n"
+  let nl = char '\n' >>~ notFollowedBy blankline
+  let sourceURL = liftM unwords $ many $ try $ do
+                    notFollowedBy' linkTitle
+                    skipMany (oneOf " \t")
+                    optional nl
+                    skipMany (oneOf " \t")
+                    many1 (noneOf " \t\n")
+  let betweenAngles = try $ char '<' >>
+                            manyTill (noneOf ">\n" <|> nl) (char '>')
+  src <- try betweenAngles <|> sourceURL
   tit <- option "" linkTitle
   skipSpaces
   eof

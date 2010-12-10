@@ -31,7 +31,8 @@
 ## URLs with spaces
 
 [foo](/bar and baz)
-[foo](/bar and baz )
+[foo](/bar
+ and baz )
 [foo]( /bar  and  baz  )
 [foo](bar baz  "title" )
 
