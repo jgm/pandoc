@@ -650,16 +650,14 @@ isHtmlOrBlank _              = False
 
 para :: GenParser Char ParserState Block
 para = try $ do 
-  result <- many1 inline
-  if all isHtmlOrBlank result
-     then fail "treat as raw HTML"
-     else return ()
-  newline
-  blanklines <|> do st <- getState
-                    if stateStrict st
-                       then lookAhead (blockQuote <|> header) >> return ""
-                       else pzero
-  return $ Para $ normalizeSpaces result
+  result <- liftM normalizeSpaces $ many1 inline
+  guard $ not . all isHtmlOrBlank $ result
+  option (Plain result) $ try $ do
+              newline
+              blanklines <|>
+                (getState >>= guard . stateStrict >>
+                 lookAhead (blockQuote <|> header) >> return "")
+              return $ Para result
 
 plain :: GenParser Char ParserState Block
 plain = many1 inline >>~ spaces >>= return . Plain . normalizeSpaces
