@@ -1091,15 +1091,13 @@ endline = try $ do
   newline
   notFollowedBy blankline
   st <- getState
-  if stateStrict st 
-    then do notFollowedBy emailBlockQuoteStart
-            notFollowedBy (char '#')  -- atx header
-    else return () 
+  when (stateStrict st) $ do
+    notFollowedBy emailBlockQuoteStart
+    notFollowedBy (char '#')  -- atx header
   -- parse potential list-starts differently if in a list:
-  if stateParserContext st == ListItemState
-     then notFollowedBy' (bulletListStart <|> 
-                          (anyOrderedListStart >> return ()))
-     else return ()
+  when (stateParserContext st == ListItemState) $ do
+     notFollowedBy' bulletListStart
+     notFollowedBy' anyOrderedListStart
   return Space
 
 --
