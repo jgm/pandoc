@@ -74,6 +74,8 @@ Extra-Source-Files:
                  -- code to create pandoc.1 man page
                  MakeManPage.hs,
                  manpage.template,
+                 -- benchmarking
+                 Benchmark.hs,
                  -- tests
                  tests/bodybg.gif,
                  tests/html-reader.html,
