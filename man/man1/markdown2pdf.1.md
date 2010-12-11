@@ -71,10 +71,6 @@ packages are not included in your latex setup, they can be obtained from
 -A *FILE*, \--include-after-body=*FILE*
 :   Include (LaTeX) contents of *FILE* at the end of the document body.
 
--C *FILE*, \--custom-header=*FILE*
-:   Use contents of *FILE* as the document header. *Note: This option is
-    deprecated. Users should transition to using `--template` instead.*
-
 \--bibliography=*FILE*
 :   Specify bibliography database to be used in resolving
     citations. The database type will be determined from the

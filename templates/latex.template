@@ -1,6 +1,3 @@
-$if(legacy-header)$
-$legacy-header$
-$else$
 \documentclass$if(fontsize)$[$fontsize$]$endif${article}
 \usepackage{amssymb,amsmath}
 $if(xetex)$
@@ -19,7 +16,6 @@ $endif$
 $if(lhs)$
 \usepackage{listings}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
-$endif$
 $endif$
 $if(verbatim-in-note)$
 \usepackage{fancyvrb}

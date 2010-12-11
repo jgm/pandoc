@@ -1,6 +1,3 @@
-$if(legacy-header)$
-$legacy-header$
-$else$
 \enableregime[utf]  % use UTF-8
 
 \setupcolors[state=start]
@@ -52,7 +49,6 @@ after={\blank[medium]},
 ]
 
 \protect
-$endif$
 $for(header-includes)$
 $header-includes$
 $endfor$

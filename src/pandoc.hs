@@ -409,16 +409,6 @@ options =
                   "FILENAME")
                  "" -- "File to include after document body"
 
-    , Option "C" ["custom-header"]
-                 (ReqArg
-                  (\arg opt -> do
-                     text <- UTF8.readFile arg
-                     let newVars = ("legacy-header", text) : optVariables opt
-                     return opt { optVariables = newVars
-                                , optStandalone = True })
-                  "FILENAME")
-                 "" -- "File to use for custom header (implies -s)"
-
     , Option "T" ["title-prefix"]
                  (ReqArg
                   (\arg opt -> do
@@ -634,13 +624,6 @@ main = do
     do UTF8.hPutStrLn stdout outputFile
        mapM_ (\arg -> UTF8.hPutStrLn stdout arg) args
        exitWith ExitSuccess
-
-  -- warn about deprecated options
-  case lookup "legacy-header" variables of
-     Just _  -> UTF8.hPutStrLn stderr $
-       "Warning: The -C/--custom-header is deprecated.\n" ++
-       "Please transition to using --template instead."
-     Nothing -> return ()
 
   let sources = if ignoreArgs then [] else args
 

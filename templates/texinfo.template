@@ -1,9 +1,5 @@
-$if(legacy-header)$
-$legacy-header$
-$else$
 \input texinfo
 @documentencoding utf-8
-$endif$
 $for(header-includes)$
 $header-includes$
 $endfor$

@@ -336,11 +336,6 @@ Options
     repeatedly to include multiple files. They will be included in the
     order specified.  Implies `--standalone`.
 
-`-C` *FILE*, `--custom-header=`*FILE*
-:   Use contents of *FILE* as the document header. Implies `--standalone`.
-    *Note: This option is deprecated. Users should transition to using
-    `--template` instead.*
-
 `--reference-odt=`*FILE*
 :   Use the specified file as a style reference in producing an ODT.
     For best results, the reference ODT should be a modified version
@@ -486,8 +481,6 @@ To write a literal `$` in a template, use `$$`.
 Some variables are set automatically by pandoc.  These vary somewhat
 depending on the output format, but include:
 
-`legacy-header`
-:   contents specified by `-C/--custom-header`
 `header-includes`
 :   contents specified by `-H/--include-in-header` (may have multiple
     values)

@@ -1,6 +1,3 @@
-$if(legacy-header)$
-$legacy-header$
-$endif$
 $for(include-before)$
 $include-before$
 
