@@ -130,6 +130,7 @@ import Text.Pandoc.Templates
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
 import Data.Version (showVersion)
+import Text.JSON.Generic
 import Paths_pandoc (version)
 
 -- | Version number of pandoc library.
@@ -139,6 +140,7 @@ pandocVersion = showVersion version
 -- | Association list of formats and readers.
 readers :: [(String, ParserState -> String -> Pandoc)]
 readers = [("native"       , \_ -> read)
+          ,("json"         , \_ -> decodeJSON)
           ,("markdown"     , readMarkdown)
           ,("markdown+lhs" , readMarkdown)
           ,("rst"          , readRST)
@@ -153,6 +155,7 @@ readers = [("native"       , \_ -> read)
 -- binary writers, odt and epub).
 writers :: [ ( String, WriterOptions -> Pandoc -> String ) ]
 writers = [("native"       , writeNative)
+          ,("json"         , \_ -> encodeJSON)
           ,("html"         , writeHtmlString)
           ,("html+lhs"     , writeHtmlString)
           ,("s5"           , writeHtmlString)

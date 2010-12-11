@@ -140,8 +140,8 @@ Options
 =======
 
 `-f` *FORMAT*, `-r` *FORMAT*, `--from=`*FORMAT*, `--read=`*FORMAT*
-:   Specify input format.  *FORMAT* can be
-    `native` (native Haskell), `markdown` (markdown or plain text),
+:   Specify input format.  *FORMAT* can be `native` (native Haskell),
+    `json` (JSON version of native AST), `markdown` (markdown),
     `textile` (Textile), `rst` (reStructuredText), `html` (HTML),
     or `latex` (LaTeX).  If `+lhs` is appended to `markdown`, `rst`,
     or `latex`, the input will be treated as literate Haskell source:
@@ -150,7 +150,8 @@ Options
 
 `-t` *FORMAT*, `-w` *FORMAT*, `--to=`*FORMAT*, `--write=`*FORMAT*
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
-    `plain` (plain text), `markdown` (markdown), `rst` (reStructuredText),
+    `json` (JSON version of native AST), `plain` (plain text),
+    `markdown` (markdown), `rst` (reStructuredText),
     `html` (HTML), `latex` (LaTeX), `context` (ConTeXt), `man` (groff man), 
     `mediawiki` (MediaWiki markup), `textile` (Textile), `org` (Emacs
     Org-Mode), `texinfo` (GNU Texinfo), `docbook` (DocBook XML),
