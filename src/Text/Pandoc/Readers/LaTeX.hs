@@ -119,20 +119,15 @@ anyEnvironment =  try $ do
 
 -- | Process LaTeX preamble, extracting metadata.
 processLaTeXPreamble :: GenParser Char ParserState ()
-processLaTeXPreamble = try $ manyTill 
-  (choice [bibliographic, comment, unknownCommand, nullBlock]) 
-  (try (string "\\begin{document}")) >> 
-  spaces
+processLaTeXPreamble =
+  skipMany $ notFollowedBy' anyEnvironment >> block
 
 -- | Parse LaTeX and return 'Pandoc'.
 parseLaTeX :: GenParser Char ParserState Pandoc
 parseLaTeX = do
-  optional processLaTeXPreamble -- preamble might not be present (fragment)
   spaces
-  blocks <- parseBlocks
-  spaces
-  optional $ try (string "\\end{document}" >> many anyChar) 
-  -- might not be present (fragment)
+  blocks <- try (processLaTeXPreamble >> spaces >> environment "document")
+        <|> many block
   spaces
   eof
   state <- getState
@@ -420,8 +415,8 @@ ignore = try $ do
 
 unknownCommand :: GenParser Char ParserState Block
 unknownCommand = try $ do
-  notFollowedBy' $ choice $ map end ["itemize", "enumerate", "description",
-                                     "document"]
+  spaces
+  notFollowedBy' $ oneOfStrings ["\\begin","\\end","\\item"]
   state <- getState
   when (stateParserContext state == ListItemState) $
      notFollowedBy' (string "\\item")
