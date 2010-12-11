@@ -57,6 +57,9 @@ module Text.Pandoc
                ( 
                -- * Definitions
                module Text.Pandoc.Definition
+               -- * Lists of readers and writers
+               , readers
+               , writers
                -- * Readers: converting /to/ Pandoc format
                , readMarkdown
                , readRST
@@ -132,3 +135,42 @@ import Paths_pandoc (version)
 -- | Version number of pandoc library.
 pandocVersion :: String
 pandocVersion = showVersion version
+
+-- | Association list of formats and readers.
+readers :: [(String, ParserState -> String -> Pandoc)]
+readers = [("native"       , \_ -> read)
+          ,("markdown"     , readMarkdown)
+          ,("markdown+lhs" , readMarkdown)
+          ,("rst"          , readRST)
+          ,("textile"      , readTextile) -- TODO : textile+lhs 
+          ,("rst+lhs"      , readRST)
+          ,("html"         , readHtml)
+          ,("latex"        , readLaTeX)
+          ,("latex+lhs"    , readLaTeX)
+          ]
+
+-- | Association list of formats and writers (omitting the
+-- binary writers, odt and epub).
+writers :: [ ( String, WriterOptions -> Pandoc -> String ) ]
+writers = [("native"       , writeNative)
+          ,("html"         , writeHtmlString)
+          ,("html+lhs"     , writeHtmlString)
+          ,("s5"           , writeHtmlString)
+          ,("slidy"        , writeHtmlString)
+          ,("docbook"      , writeDocbook)
+          ,("opendocument" , writeOpenDocument)
+          ,("latex"        , writeLaTeX)
+          ,("latex+lhs"    , writeLaTeX)
+          ,("context"      , writeConTeXt)
+          ,("texinfo"      , writeTexinfo)
+          ,("man"          , writeMan)
+          ,("markdown"     , writeMarkdown)
+          ,("markdown+lhs" , writeMarkdown)
+          ,("plain"        , writePlain)
+          ,("rst"          , writeRST)
+          ,("rst+lhs"      , writeRST)
+          ,("mediawiki"    , writeMediaWiki)
+          ,("textile"      , writeTextile)
+          ,("rtf"          , writeRTF)
+          ,("org"          , writeOrg)
+          ]

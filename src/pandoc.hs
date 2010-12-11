@@ -80,50 +80,6 @@ wrapWords c = wrap' c c where
                                                        then ",\n" ++ x ++ wrap' cols (cols - length x) xs
                                                        else ", "  ++ x ++ wrap' cols (remaining - (length x + 2)) xs
 
--- | Association list of formats and readers.
-readers :: [(String, ParserState -> String -> Pandoc)]
-readers = [("native"       , readPandoc)
-          ,("markdown"     , readMarkdown)
-          ,("markdown+lhs" , readMarkdown)
-          ,("rst"          , readRST)
-          ,("textile"      , readTextile) -- TODO : textile+lhs 
-          ,("rst+lhs"      , readRST)
-          ,("html"         , readHtml)
-          ,("latex"        , readLaTeX)
-          ,("latex+lhs"    , readLaTeX)
-          ]
-
--- | Reader for native Pandoc format.
-readPandoc :: ParserState -> String -> Pandoc
-readPandoc _ = read
-
--- | Association list of formats and writers.
-writers :: [ ( String, WriterOptions -> Pandoc -> String ) ]
-writers = [("native"       , writeNative)
-          ,("html"         , writeHtmlString)
-          ,("html+lhs"     , writeHtmlString)
-          ,("s5"           , writeHtmlString)
-          ,("slidy"        , writeHtmlString)
-          ,("docbook"      , writeDocbook)
-          ,("opendocument" , writeOpenDocument)
-          ,("odt"          , \_ _ -> "")
-          ,("epub"         , \_ _ -> "")
-          ,("latex"        , writeLaTeX)
-          ,("latex+lhs"    , writeLaTeX)
-          ,("context"      , writeConTeXt)
-          ,("texinfo"      , writeTexinfo)
-          ,("man"          , writeMan)
-          ,("markdown"     , writeMarkdown)
-          ,("markdown+lhs" , writeMarkdown)
-          ,("plain"        , writePlain)
-          ,("rst"          , writeRST)
-          ,("rst+lhs"      , writeRST)
-          ,("mediawiki"    , writeMediaWiki)
-          ,("textile"      , writeTextile)
-          ,("rtf"          , writeRTF)
-          ,("org"          , writeOrg)
-          ]
-
 isNonTextOutput :: String -> Bool
 isNonTextOutput = (`elem` ["odt","epub"])
 
@@ -210,13 +166,13 @@ options =
                  (ReqArg
                   (\arg opt -> return opt { optReader = map toLower arg })
                   "FORMAT")
-                 "" -- ("(" ++ (intercalate ", " $ map fst readers) ++ ")")
+                 ""
 
     , Option "tw" ["to","write"]
                  (ReqArg
                   (\arg opt -> return opt { optWriter = map toLower arg })
                   "FORMAT")
-                 "" -- ("(" ++ (intercalate ", " $ map fst writers) ++ ")")
+                 ""
 
     , Option "s" ["standalone"]
                  (NoArg
@@ -561,7 +517,7 @@ usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName = usageInfo
   (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++
   (intercalate ", " $ map fst readers) ++ "\nOutput formats:  " ++
-  (intercalate ", " $ map fst writers) ++ "\nOptions:")
+  (intercalate ", " $ map fst writers ++ ["odt","epub"]) ++ "\nOptions:")
 
 -- Determine default reader based on source file extensions
 defaultReaderName :: String -> [FilePath] -> String
@@ -711,8 +667,8 @@ main = do
      Nothing -> error ("Unknown reader: " ++ readerName')
 
   let writer = case lookup writerName' writers of
-                Just _ | writerName' == "epub" -> writeEPUB epubStylesheet
-                Just _ | writerName' == "odt"  -> writeODT referenceODT
+                Nothing | writerName' == "epub" -> writeEPUB epubStylesheet
+                Nothing | writerName' == "odt"  -> writeODT referenceODT
                 Just r                         -> \o ->
                                                      return . fromString . r o
                 Nothing                        -> error $ "Unknown writer: " ++
