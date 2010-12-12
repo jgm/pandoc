@@ -120,7 +120,7 @@ anyEnvironment =  try $ do
 -- | Process LaTeX preamble, extracting metadata.
 processLaTeXPreamble :: GenParser Char ParserState ()
 processLaTeXPreamble = try $ manyTill 
-  (choice [bibliographic, commentBlock, unknownCommand, nullBlock]) 
+  (choice [bibliographic, commentBlock, unknownCommand, nullBlock])
   (try (string "\\begin{document}")) >> 
   spaces
 

@@ -759,10 +759,10 @@ main = do
                          s <- readDataFile datadir $ "data"</>"MathMLinHTML.js"
                          return $ ("mathml-script", s) : variables'
                       _ -> return variables'
-  
+
   refs <- mapM (\f -> catch (readBiblioFile f) $ \e -> do
          UTF8.hPutStrLn stderr $ "Error reading bibliography `" ++ f ++ "'"
-         UTF8.hPutStrLn stderr $ show e 
+         UTF8.hPutStrLn stderr $ show e
          exitWith (ExitFailure 23)) reffiles >>= \rs -> return $ concat rs
 
   let sourceDir = if null sources

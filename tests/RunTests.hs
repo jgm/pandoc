@@ -154,7 +154,7 @@ runLhsReaderTest format =
 
 
 runLatexCitationTests :: [String] -> String -> IO [Bool]
-runLatexCitationTests o n 
+runLatexCitationTests o n
   = sequence [ rt ("latex reader (" ++ n ++ " citations)") (["-r", "latex", "-w", "markdown", "-s"] ++ o')
                f "markdown-citations.txt"
              , rt ("latex writer (" ++ n ++ " citations)") (["-r", "markdown", "-w", "latex", "-s"] ++ o')

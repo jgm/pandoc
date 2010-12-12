@@ -401,7 +401,7 @@ inlineToMarkdown _ (TeX str) = return $ text str
 inlineToMarkdown _ (HtmlInline str) = return $ text str 
 inlineToMarkdown _ (LineBreak) = return $ text "  \n"
 inlineToMarkdown _ Space = return $ char ' '
-inlineToMarkdown opts (Cite (c:cs) lst) 
+inlineToMarkdown opts (Cite (c:cs) lst)
   | writerCiteMethod opts == Citeproc = inlineListToMarkdown opts lst
   | citationMode c == AuthorInText = do
     suffs <- inlineListToMarkdown opts $ citationSuffix c

@@ -542,7 +542,7 @@ defaultWriterOptions =
                 , writerIdentifierPrefix = ""
                 , writerSourceDirectory  = "."
                 , writerUserDataDir      = Nothing
-                , writerCiteMethod       = Citeproc 
+                , writerCiteMethod       = Citeproc
                 , writerBiblioFile       = ""
                 }
 

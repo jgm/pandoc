@@ -312,7 +312,7 @@ inlineToLaTeX (Cite cits lst) = do
   st <- get
   let opts = stOptions st
   case writerCiteMethod opts of
-     Natbib   -> citationsToNatbib cits 
+     Natbib   -> citationsToNatbib cits
      Biblatex -> citationsToBiblatex cits
      _        -> inlineListToLaTeX lst
 
@@ -381,14 +381,14 @@ citationsToNatbib (one:[])
              , citationPrefix = p
              , citationSuffix = s
              , citationMode = m
-             } 
+             }
       = one
     c = case m of
              AuthorInText     -> "citet"
              SuppressAuthor  -> "citeyearpar"
              NormalCitation -> "citep"
 
-citationsToNatbib cits 
+citationsToNatbib cits
   | noPrefix (tail cits) && noSuffix (init cits) && ismode NormalCitation cits
   = citeCommand "citep" p s ks
   where
@@ -400,12 +400,12 @@ citationsToNatbib cits
      ks        = intercalate ", " $ map citationId cits
 
 citationsToNatbib (c:cs) | citationMode c == AuthorInText = do
-     author <- citeCommand "citeauthor" [] [] (citationId c) 
+     author <- citeCommand "citeauthor" [] [] (citationId c)
      cits   <- citationsToNatbib (c { citationMode = SuppressAuthor } : cs)
      return $ author <+> cits
 
 citationsToNatbib cits = do
-  cits' <- mapM convertOne cits 
+  cits' <- mapM convertOne cits
   return $ text "\\citetext{" <> foldl combineTwo empty cits' <> text "}"
   where
     combineTwo a b | isEmpty a = b
