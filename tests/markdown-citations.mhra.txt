@@ -1,19 +1,33 @@
 # Pandoc with citeproc-hs
 
 -   [@nonexistent]
+
 -   @nonexistent
+
 -   John Doe[^1] says blah.
+
 -   Doe[^2] says blah.
+
 -   Doe[^3] says blah.
+
 -   Doe[^4] says blah.
+
 -   In a note.[^5]
+
 -   A citation group.[^6]
+
 -   Another one.[^7]
+
 -   And another one in a note.[^8]
+
 -   Citation with a suffix and locator.[^9]
+
 -   Citation with suffix only.[^10]
+
 -   Now some modifiers.[^11]
+
 -   With some markup.[^12]
+
 
 # References
 
