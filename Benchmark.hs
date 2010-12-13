@@ -20,9 +20,9 @@ readerBench doc (name, reader) =
                                       "+lhs" `isSuffixOf` name }) inp
 
 writerBench :: Pandoc
-            -> (String, WriterOptions -> Pandoc -> a)
+            -> (String, WriterOptions -> Pandoc -> String)
             -> Benchmark
-writerBench doc (name, writer) = bench (name ++ " writer") $ whnf
+writerBench doc (name, writer) = bench (name ++ " writer") $ nf
     (writer defaultWriterOptions{
                    writerWrapText = True
                   , writerLiterateHaskell = "+lhs" `isSuffixOf` name }) doc
