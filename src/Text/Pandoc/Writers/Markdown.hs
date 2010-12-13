@@ -77,6 +77,7 @@ plainify = processWith go
         go (HtmlInline _ : ys) = Str "" : go ys
         go (Link xs _ : ys) = go xs ++ go ys
         go (Image _ _ : ys) = go ys
+        go (Cite _ cits : ys) = go cits ++ go ys
         go (x : ys) = x : go ys
         go [] = []
 
@@ -400,7 +401,34 @@ inlineToMarkdown _ (TeX str) = return $ text str
 inlineToMarkdown _ (HtmlInline str) = return $ text str 
 inlineToMarkdown _ (LineBreak) = return $ text "  \n"
 inlineToMarkdown _ Space = return $ char ' '
-inlineToMarkdown opts (Cite _ cits) = inlineListToMarkdown opts cits
+inlineToMarkdown opts (Cite (c:cs) lst)
+  | writerCiteMethod opts == Citeproc = inlineListToMarkdown opts lst
+  | citationMode c == AuthorInText = do
+    suffs <- inlineListToMarkdown opts $ citationSuffix c
+    rest <- mapM convertOne cs
+    let inbr = suffs <+> joincits rest
+        br   = if isEmpty inbr then empty else brackets inbr
+    return $ text ("@" ++ citationId c) <+> br
+  | otherwise = do
+    cits <- mapM convertOne (c:cs)
+    return $ text "[" <> joincits cits <> text "]"
+  where
+        joincits = hcat . punctuate (text "; ") . filter (not . isEmpty)
+        convertOne Citation { citationId      = k
+                            , citationPrefix  = pinlines
+                            , citationSuffix  = sinlines
+                            , citationMode    = m }
+                               = do
+           pdoc <- inlineListToMarkdown opts pinlines
+           sdoc <- inlineListToMarkdown opts sinlines
+           let k' = text (modekey m ++ "@" ++ k)
+               r = case sinlines of
+                        Str (y:_):_ | y `elem` ",;]@" -> k' <> sdoc
+                        _                             -> k' <+> sdoc
+           return $ pdoc <+> r
+        modekey SuppressAuthor = "-"
+        modekey _              = ""
+inlineToMarkdown _ (Cite _ _) = return $ text ""
 inlineToMarkdown opts (Link txt (src', tit)) = do
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if null tit then empty else text $ " \"" ++ tit ++ "\""

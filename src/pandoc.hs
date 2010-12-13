@@ -463,7 +463,7 @@ options =
                   (\arg opt -> return opt { optCslFile = arg })
                   "FILENAME")
                  ""
-    , Option "" ["natbib"]
+    , Option "" ["natbib", "no-citeproc"]
                  (NoArg
                   (\opt -> return opt { optCiteMethod = Natbib }))
                  "" -- "Use natbib cite commands in LaTeX output"
