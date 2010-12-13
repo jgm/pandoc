@@ -631,7 +631,6 @@ Indented [thrice][].
 This should [not][] be a link.
 
  [once]: /url
-
   [twice]: /url
 
    [thrice]: /url

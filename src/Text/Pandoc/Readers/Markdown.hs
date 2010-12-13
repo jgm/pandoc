@@ -207,6 +207,7 @@ referenceKey = try $ do
                     notFollowedBy' referenceTitle
                     skipMany (oneOf " \t")
                     optional nl
+                    optional nonindentSpaces
                     notFollowedBy' reference
                     skipMany (oneOf " \t")
                     many1 (noneOf " \t\n")
