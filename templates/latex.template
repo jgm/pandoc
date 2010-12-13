@@ -13,6 +13,16 @@ $else$
 \usepackage[mathletters]{ucs}
 \usepackage[utf8x]{inputenc}
 $endif$
+$if(natbib)$
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+$endif$
+$if(biblatex)$
+\usepackage{biblatex}
+$if(biblio)$
+\bibliography{$biblio$}
+$endif$
+$endif$
 $if(lhs)$
 \usepackage{listings}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
@@ -94,6 +104,14 @@ $if(toc)$
 
 $endif$
 $body$
+$if(biblio)$
+$if(natbib)$
+\bibliography{$biblio$}
+$endif$
+$endif$
+$if(biblatex)$
+\printbibliography
+$endif$
 $for(include-after)$
 
 $include-after$

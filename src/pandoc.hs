@@ -116,7 +116,8 @@ data Opt = Opt
     , optIdentifierPrefix  :: String
     , optIndentedCodeClasses :: [String] -- ^ Default classes for indented code blocks
     , optDataDir           :: Maybe FilePath
-    , optBibliography      :: [Reference]
+    , optCiteMethod        :: CiteMethod -- ^ Method to output cites
+    , optBibliography      :: [String]
     , optCslFile           :: FilePath
     }
 
@@ -154,6 +155,7 @@ defaultOpts = Opt
     , optIdentifierPrefix  = ""
     , optIndentedCodeClasses = []
     , optDataDir           = Nothing
+    , optCiteMethod        = Citeproc
     , optBibliography      = []
     , optCslFile           = ""
     }
@@ -453,14 +455,7 @@ options =
                  "" -- "Print default template for FORMAT"
     , Option "" ["bibliography"]
                  (ReqArg
-                  (\arg opt -> do
-                     refs <- catch (readBiblioFile arg) $ \e -> do
-                               UTF8.hPutStrLn stderr $
-                                 "Error reading bibliography `" ++ arg ++ "'"
-                               UTF8.hPutStrLn stderr $ show e
-                               exitWith (ExitFailure 23)
-                     return opt { optBibliography =
-                                   optBibliography opt ++ refs } )
+                  (\arg opt -> return opt { optBibliography = (optBibliography opt) ++ [arg] })
                   "FILENAME")
                  ""
     , Option "" ["csl"]
@@ -468,6 +463,14 @@ options =
                   (\arg opt -> return opt { optCslFile = arg })
                   "FILENAME")
                  ""
+    , Option "" ["natbib"]
+                 (NoArg
+                  (\opt -> return opt { optCiteMethod = Natbib }))
+                 "" -- "Use natbib cite commands in LaTeX output"
+    , Option "" ["biblatex"]
+                 (NoArg
+                  (\opt -> return opt { optCiteMethod = Biblatex }))
+                 "" -- "Use biblatex cite commands in LaTeX output"
     , Option "" ["data-dir"]
                  (ReqArg
                   (\arg opt -> return opt { optDataDir = Just arg })
@@ -618,8 +621,9 @@ main = do
               , optIdentifierPrefix  = idPrefix
               , optIndentedCodeClasses = codeBlockClasses
               , optDataDir           = mbDataDir
-              , optBibliography      = refs
+              , optBibliography      = reffiles
               , optCslFile           = cslfile
+              , optCiteMethod        = citeMethod
              } = opts
 
   when dumpArgs $
@@ -693,6 +697,11 @@ main = do
                          return $ ("mathml-script", s) : variables'
                       _ -> return variables'
 
+  refs <- mapM (\f -> catch (readBiblioFile f) $ \e -> do
+         UTF8.hPutStrLn stderr $ "Error reading bibliography `" ++ f ++ "'"
+         UTF8.hPutStrLn stderr $ show e
+         exitWith (ExitFailure 23)) reffiles >>= \rs -> return $ concat rs
+
   let sourceDir = if null sources
                      then "."
                      else takeDirectory (head sources)
@@ -729,6 +738,8 @@ main = do
                                       writerSlideVariant     = slideVariant,
                                       writerIncremental      = incremental,
                                       writerXeTeX            = xetex,
+                                      writerCiteMethod       = citeMethod,
+                                      writerBiblioFile       = head reffiles,
                                       writerIgnoreNotes      = False,
                                       writerNumberSections   = numberSections,
                                       writerSectionDivs      = sectionDivs,
@@ -766,9 +777,8 @@ main = do
   let doc' = foldr ($) doc transforms
 
   doc'' <- do
-          if null refs
-             then return doc'
-             else do
+          if citeMethod == Citeproc && not (null refs)
+             then do
                 csldir <- getAppUserDataDirectory "csl"
                 cslfile' <- if null cslfile
                                then findDataFile datadir "default.csl"
@@ -781,6 +791,7 @@ main = do
                                             (replaceExtension cslfile "csl")
                                             csldir
                 processBiblio cslfile' refs doc'
+             else return doc'
 
   writerOutput <- writer writerOptions doc''
 

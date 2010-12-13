@@ -32,7 +32,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
-import Data.List ( (\\), isSuffixOf, isPrefixOf, intersperse )
+import Data.List ( (\\), isSuffixOf, isPrefixOf, intersperse, intercalate )
 import Data.Char ( toLower )
 import Control.Monad.State
 import Text.PrettyPrint.HughesPJ hiding ( Str )
@@ -76,7 +76,16 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
   body <- blockListToLaTeX blocks
   let main = render body
   st <- get
-  let context  = writerVariables options ++
+  let biblio      = takeWhile ((/=) '.') $  writerBiblioFile options
+      citecontext = case writerCiteMethod options of
+                         Natbib   -> [ ("biblio", biblio)
+                                     , ("natbib", "yes")
+                                     ]
+                         Biblatex -> [ ("biblio", biblio)
+                                     , ("biblatex", "yes")
+                                     ]
+                         _      -> []
+      context  = writerVariables options ++
                  [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
                  , ("title", titletext)
@@ -91,7 +100,8 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("url", "yes") | stUrl st ] ++
                  [ ("numbersections", "yes") | writerNumberSections options ] ++
                  [ ("lhs", "yes") | stLHS st ] ++
-                 [ ("graphics", "yes") | stGraphics st ]
+                 [ ("graphics", "yes") | stGraphics st ] ++
+                 citecontext
   return $ if writerStandalone options
               then renderTemplate context template
               else main
@@ -298,8 +308,14 @@ inlineToLaTeX (Subscript lst) = do
   return $ inCmd "textsubscr" contents
 inlineToLaTeX (SmallCaps lst) =
   inlineListToLaTeX (deVerb lst) >>= return . inCmd "textsc"
-inlineToLaTeX (Cite _ lst) =
-  inlineListToLaTeX lst
+inlineToLaTeX (Cite cits lst) = do
+  st <- get
+  let opts = stOptions st
+  case writerCiteMethod opts of
+     Natbib   -> citationsToNatbib cits
+     Biblatex -> citationsToBiblatex cits
+     _        -> inlineListToLaTeX lst
+
 inlineToLaTeX (Code str) = do
   st <- get
   when (stInNote st) $ modify $ \s -> s{ stVerbInNote = True }
@@ -355,3 +371,95 @@ inlineToLaTeX (Note contents) = do
   let optNewline = "\\end{Verbatim}" `isSuffixOf` rawnote
   return $ text "\\footnote{" <> 
            text rawnote <> (if optNewline then char '\n' else empty) <> char '}'
+
+
+citationsToNatbib :: [Citation] -> State WriterState Doc
+citationsToNatbib (one:[])
+  = citeCommand c p s k
+  where
+    Citation { citationId = k
+             , citationPrefix = p
+             , citationSuffix = s
+             , citationMode = m
+             }
+      = one
+    c = case m of
+             AuthorInText     -> "citet"
+             SuppressAuthor  -> "citeyearpar"
+             NormalCitation -> "citep"
+
+citationsToNatbib cits
+  | noPrefix (tail cits) && noSuffix (init cits) && ismode NormalCitation cits
+  = citeCommand "citep" p s ks
+  where
+     noPrefix  = and . map (null . citationPrefix)
+     noSuffix  = and . map (null . citationSuffix)
+     ismode m  = and . map (((==) m)  . citationMode)
+     p         = citationPrefix  $ head $ cits
+     s         = citationSuffix  $ last $ cits
+     ks        = intercalate ", " $ map citationId cits
+
+citationsToNatbib (c:cs) | citationMode c == AuthorInText = do
+     author <- citeCommand "citeauthor" [] [] (citationId c)
+     cits   <- citationsToNatbib (c { citationMode = SuppressAuthor } : cs)
+     return $ author <+> cits
+
+citationsToNatbib cits = do
+  cits' <- mapM convertOne cits
+  return $ text "\\citetext{" <> foldl combineTwo empty cits' <> text "}"
+  where
+    combineTwo a b | isEmpty a = b
+                   | otherwise = a <> text "; " <> b
+    convertOne Citation { citationId = k
+                        , citationPrefix = p
+                        , citationSuffix = s
+                        , citationMode = m
+                        }
+        = case m of
+               AuthorInText   -> citeCommand "citealt"  p s k
+               SuppressAuthor -> citeCommand "citeyear" p s k
+               NormalCitation -> citeCommand "citealp"  p s k
+
+citeCommand :: String -> [Inline] -> [Inline] -> String -> State WriterState Doc
+citeCommand c p s k = do
+  args <- citeArguments p s k
+  return $ text ("\\" ++ c) <> args
+
+citeArguments :: [Inline] -> [Inline] -> String -> State WriterState Doc
+citeArguments p s k = do
+  pdoc <- inlineListToLaTeX p
+  sdoc <- inlineListToLaTeX s
+  let optargs = case (isEmpty pdoc, isEmpty sdoc) of
+                     (True, True ) -> empty
+                     (True, False) -> brackets sdoc
+                     (_   , _    ) -> brackets pdoc <> brackets sdoc
+  return $ optargs <> braces (text k)
+
+citationsToBiblatex :: [Citation] -> State WriterState Doc
+citationsToBiblatex (one:[])
+  = citeCommand cmd p s k
+    where
+       Citation { citationId = k
+                , citationPrefix = p
+                , citationSuffix = s
+                , citationMode = m
+                } = one
+       cmd = case m of
+                  SuppressAuthor -> "autocite*"
+                  AuthorInText   -> "textcite"
+                  NormalCitation -> "autocite"
+
+citationsToBiblatex (c:cs) = do
+  args <- mapM convertOne (c:cs)
+  return $ text cmd <> foldl (<>) empty args
+    where
+       cmd = case citationMode c of
+                  AuthorInText -> "\\textcites"
+                  _            -> "\\autocites"
+       convertOne Citation { citationId = k
+                           , citationPrefix = p
+                           , citationSuffix = s
+                           }
+              = citeArguments p s k
+
+citationsToBiblatex _ = return empty
