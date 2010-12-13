@@ -66,7 +66,7 @@ $if(graphics)$
 \let\Oldincludegraphics\includegraphics
 \renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=\maxwidth]{#1}}
 $endif$
-\usepackage[breaklinks=true,unicode=true]{hyperref}
+\usepackage[breaklinks=true,unicode=true,pdfborder={0 0 0}]{hyperref}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 $if(numbersections)$
