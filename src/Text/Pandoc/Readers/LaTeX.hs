@@ -38,7 +38,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Data.Maybe ( fromMaybe )
-import Data.Char ( chr )
+import Data.Char ( chr, toUpper )
 import Data.List ( isPrefixOf, isSuffixOf )
 import Control.Monad ( when )
 
@@ -50,7 +50,7 @@ readLaTeX = readWith parseLaTeX
 
 -- characters with special meaning
 specialChars :: [Char]
-specialChars = "\\`$%^&_~#{}\n \t|<>'\"-"
+specialChars = "\\`$%^&_~#{}[]\n \t|<>'\"-"
 
 --
 -- utility functions
@@ -150,7 +150,7 @@ block = choice [ hrule
                , header
                , list
                , blockQuote
-               , comment
+               , commentBlock
                , bibliographic
                , para
                , itemBlock
@@ -433,11 +433,10 @@ unknownCommand = try $ do
            else return $ Plain [Str $ concat args]
 
 commandsToIgnore :: [String]
-commandsToIgnore = ["special","pdfannot","pdfstringdef"]
+commandsToIgnore = ["special","pdfannot","pdfstringdef","bibliography"]
 
--- latex comment
-comment :: GenParser Char st Block
-comment = try $ char '%' >> manyTill anyChar newline >> spaces >> return Null
+commentBlock :: GenParser Char st Block
+commentBlock = comment >> return Null
 
 -- 
 -- inline
@@ -469,11 +468,18 @@ inline =  choice [ str
                  , linebreak
                  , accentedChar
                  , nonbreakingSpace
+                 , cite
                  , specialChar
                  , rawLaTeXInline'
                  , escapedChar
                  , unescapedChar
+                 , comment
                  ] <?> "inline"
+
+
+-- latex comment
+comment :: GenParser Char st Inline
+comment = try $ char '%' >> manyTill anyChar newline >> spaces >> return (Str "")
 
 accentedChar :: GenParser Char st Inline
 accentedChar = normalAccentedChar <|> specialAccentedChar
@@ -564,7 +570,7 @@ escapedChar = do
 
 -- nonescaped special characters
 unescapedChar :: GenParser Char st Inline
-unescapedChar = oneOf "`$^&_#{}|<>" >>= return . (\c -> Str [c])
+unescapedChar = oneOf "`$^&_#{}[]|<>" >>= return . (\c -> Str [c])
 
 specialChar :: GenParser Char st Inline
 specialChar = choice [ spacer, interwordSpace,
@@ -787,6 +793,101 @@ footnote = try $ do
   blocks <- parseBlocks
   setInput rest
   return $ Note blocks
+
+-- | citations
+cite :: GenParser Char ParserState Inline
+cite = simpleCite <|> complexNatbibCites
+
+simpleCiteArgs :: GenParser Char ParserState [Citation]
+simpleCiteArgs = try $ do
+  first  <- optionMaybe $ (char '[') >> manyTill inline (char ']')
+  second <- optionMaybe $ (char '[') >> manyTill inline (char ']')
+  char '{'
+  keys <- many1Till citationLabel (char '}')
+  let (pre, suf) = case (first  , second ) of
+        (Just s , Nothing) -> ([], s )
+        (Just s , Just t ) -> (s , t )
+        _                  -> ([], [])
+      conv k = Citation { citationId      = k
+                        , citationPrefix  = []
+                        , citationSuffix  = []
+                        , citationMode    = NormalCitation
+                        , citationHash    = 0
+                        , citationNoteNum = 0
+                        }
+  return $ addPrefix pre $ addSuffix suf $ map conv keys
+
+
+simpleCite :: GenParser Char ParserState Inline
+simpleCite = try $ do
+  char '\\'
+  let biblatex     = [a ++ "cite" | a <- ["auto", "foot", "paren", "super", ""]]
+                     ++ ["footcitetext"]
+      normal       = ["cite" ++ a ++ b | a <- ["al", ""], b <- ["p", "p*", ""]]
+                     ++ biblatex
+      supress      = ["citeyearpar", "citeyear", "autocite*", "cite*", "parencite*"]
+      intext       = ["textcite"] ++ ["cite" ++ a ++ b | a <- ["al", ""], b <- ["t", "t*"]]
+      mintext      = ["textcites"]
+      mnormal      = map (++ "s") biblatex
+      cmdend       = notFollowedBy (letter <|> char '*')
+      addUpper xs  = xs ++ map (\(c:cs) -> toUpper c : cs) xs
+      toparser l t = try $ oneOfStrings (addUpper l) >> cmdend >> return t
+  (mode, multi) <-  toparser normal  (NormalCitation, False)
+                <|> toparser supress (SuppressAuthor, False)
+                <|> toparser intext  (AuthorInText  , False)
+                <|> toparser mnormal (NormalCitation, True )
+                <|> toparser mintext (AuthorInText  , True )
+  cits <- if multi then
+            many1 simpleCiteArgs
+          else
+            simpleCiteArgs >>= \c -> return [c]
+  let (c:cs) = concat cits
+      cits'  = case mode of
+        AuthorInText   -> c {citationMode = mode} : cs
+        _              -> map (\a -> a {citationMode = mode}) (c:cs)
+  return $ Cite cits' []
+
+complexNatbibCites :: GenParser Char ParserState Inline
+complexNatbibCites = complexNatbibTextual <|> complexNatbibParenthetical
+
+complexNatbibTextual :: GenParser Char ParserState Inline
+complexNatbibTextual = try $ do
+  string "\\citeauthor{"
+  manyTill (noneOf "}") (char '}')
+  skipSpaces
+  Cite (c:cs) _ <- complexNatbibParenthetical
+  return $ Cite (c {citationMode = AuthorInText} : cs) []
+
+
+complexNatbibParenthetical :: GenParser Char ParserState Inline
+complexNatbibParenthetical = try $ do
+  string "\\citetext{"
+  cits <- many1Till parseOne (char '}')
+  return $ Cite (concat cits) []
+  where
+    parseOne = do
+                 skipSpaces
+                 pref           <- many (notFollowedBy (oneOf "\\}") >> inline)
+                 (Cite cites _) <- simpleCite
+                 suff           <- many (notFollowedBy (oneOf "\\};") >> inline)
+                 skipSpaces
+                 optional $ char ';'
+                 return $ addPrefix pref $ addSuffix suff $ cites
+
+addPrefix :: [Inline] -> [Citation] -> [Citation]
+addPrefix p (k:ks)   = k {citationPrefix = p ++ citationPrefix k} : ks
+addPrefix _ _ = []
+
+addSuffix :: [Inline] -> [Citation] -> [Citation]
+addSuffix s ks@(_:_) = let k = last ks
+                        in init ks ++ [k {citationSuffix = citationSuffix k ++ s}]
+addSuffix _ _ = []
+
+citationLabel :: GenParser Char ParserState String
+citationLabel  = do
+  res <- many1 $ noneOf ",}"
+  optional $ char ','
+  return $ removeLeadingTrailingSpace res
 
 -- | Parse any LaTeX inline command and return it in a raw TeX inline element.
 rawLaTeXInline' :: GenParser Char ParserState Inline
