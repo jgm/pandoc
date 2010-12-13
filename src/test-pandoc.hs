@@ -113,7 +113,7 @@ main = do
              "testsuite.native" "testsuite.native"
   r14s <- mapM (\style -> runTest ("markdown reader (citations) (" ++ style ++ ")") ["-r", "markdown", "-w", "markdown", "--bibliography", "biblio.bib", "--csl", style ++ ".csl", "--no-wrap"] "markdown-citations.txt" ("markdown-citations." ++ style ++ ".txt")) ["chicago-author-date","ieee","mhra"]
   let citopts = ["--bibliography", "biblio.bib", "--csl", "chicago-author-date.csl", "--no-citeproc"]
-  r15 <- runTest "markdown writer (citations)" (["-r", "markdown", "-w", "markdown"]    ++ citopts)
+  r15 <- runTest "markdown writer (citations)" (["-r", "markdown", "-w", "markdown", "--no-wrap"]    ++ citopts)
              "markdown-citations.txt" "markdown-citations.txt"
   r16s <- runLatexCitationTests citopts "biblatex"
   r17s <- runLatexCitationTests citopts "natbib"
@@ -159,9 +159,9 @@ runLhsReaderTest format =
 
 runLatexCitationTests :: [String] -> String -> IO [Bool]
 runLatexCitationTests o n
-  = sequence [ rt ("latex reader (" ++ n ++ " citations)") (["-r", "latex", "-w", "markdown", "-s"] ++ o')
+  = sequence [ rt ("latex reader (" ++ n ++ " citations)") (["-r", "latex", "-w", "markdown", "-s", "--no-wrap"] ++ o')
                f "markdown-citations.txt"
-             , rt ("latex writer (" ++ n ++ " citations)") (["-r", "markdown", "-w", "latex", "-s"] ++ o')
+             , rt ("latex writer (" ++ n ++ " citations)") (["-r", "markdown", "-w", "latex", "-s", "--no-wrap"] ++ o')
                "markdown-citations.txt" f
              ]
     where
@@ -172,8 +172,8 @@ runLatexCitationTests o n
 
 runWriterTest :: String -> IO Bool
 runWriterTest format = do
-  r1 <- runTest (format ++ " writer") ["-r", "native", "-s", "-w", format] "testsuite.native" ("writer" <.> format)
-  r2 <- runTest (format ++ " writer (tables)") ["-r", "native", "-w", format] "tables.native" ("tables" <.> format)
+  r1 <- runTest (format ++ " writer") ["-r", "native", "-s", "-w", format, "--columns=78"] "testsuite.native" ("writer" <.> format)
+  r2 <- runTest (format ++ " writer (tables)") ["-r", "native", "-w", format, "--columns=78"] "tables.native" ("tables" <.> format)
   return (r1 && r2)
 
 runS5WriterTest :: String -> [String] -> String -> IO Bool
@@ -202,9 +202,8 @@ runTestWithNormalize normalize testname opts inp norm = do
   let inpPath = inp
   let normPath = norm
   hFlush stdout
-  -- Note: COLUMNS must be set for markdown table reader
-  ph <- runProcess pandocPath (opts ++ [inpPath] ++ ["--data-dir", ".."]) Nothing
-        (Just [("LANG","en_US.UTF-8"),("COLUMNS", "80"),("HOME", "./")]) Nothing (Just hOut) (Just stderr)
+  ph <- runProcess pandocPath (["--columns=80"] ++ [inpPath] ++ ["--data-dir", ".."] ++ opts) Nothing
+        (Just [("LANG","en_US.UTF-8"),("HOME", "./")]) Nothing (Just hOut) (Just stderr)
   ec <- waitForProcess ph
   result  <- if ec == ExitSuccess
                 then do

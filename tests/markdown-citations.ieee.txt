@@ -28,7 +28,6 @@
 
 -   With some markup [1].
 
-
 # References
 
 [1] J. Doe, *First Book*, Cambridge: Cambridge University Press, 2005.
@@ -37,11 +36,8 @@
 
 [3] J. Doe and J. Roe, “Why Water Is Wet,” *Third Book*, Smith, S., Ed., Oxford: Oxford University Press, 2007.
 
-[^1]:
-    A citation without locators [3].
+[^1]: A citation without locators [3].
 
-[^2]:
-    Some citations [1]-[3].
+[^2]: Some citations [1]-[3].
 
-[^3]:
-    Like a citation without author: [1], and now Doe with a locator [2].
+[^3]: Like a citation without author: [1], and now Doe with a locator [2].

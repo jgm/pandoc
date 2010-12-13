@@ -34,8 +34,7 @@
   \textcites{item1}[p.~30]{item2}[see also][]{item3} says blah.
 
 \item
-  In a note.%
-  \footnote{A citation without locators \autocite{item3}.}
+  In a note.\footnote{A citation without locators \autocite{item3}.}
 
 \item
   A citation group
@@ -45,8 +44,7 @@
   Another one \autocite[see][p.~34--35]{item1}.
 
 \item
-  And another one in a note.%
-  \footnote{Some citations \autocites[see][chap. 3]{item2}{item3}{item1}.}
+  And another one in a note.\footnote{Some citations \autocites[see][chap. 3]{item2}{item3}{item1}.}
 
 \item
   Citation with a suffix and locator
@@ -56,9 +54,7 @@
   Citation with suffix only \autocite[and nowhere else]{item1}.
 
 \item
-  Now some modifiers.%
-  \footnote{Like a citation without author: \autocite*{item1}, and now Doe with
-a locator \autocite*[p.~44]{item2}.}
+  Now some modifiers.\footnote{Like a citation without author: \autocite*{item1}, and now Doe with a locator \autocite*[p.~44]{item2}.}
 
 \item
   With some markup \autocite[\emph{see}][p. \textbf{32}]{item1}.

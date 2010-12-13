@@ -453,8 +453,9 @@ widthsFromIndices :: Int      -- Number of columns on terminal
                   -> [Int]    -- Indices
                   -> [Double] -- Fractional relative sizes of columns
 widthsFromIndices _ [] = []  
-widthsFromIndices numColumns indices = 
-  let lengths' = zipWith (-) indices (0:indices)
+widthsFromIndices numColumns' indices = 
+  let numColumns = max numColumns' (if null indices then 0 else last indices)
+      lengths' = zipWith (-) indices (0:indices)
       lengths  = reverse $
                  case reverse lengths' of
                       []       -> []

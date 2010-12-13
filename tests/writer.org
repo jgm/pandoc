@@ -3,8 +3,8 @@
 #+AUTHOR: John MacFarlane; Anonymous
 #+DATE: July 17, 2006
 
-This is a set of tests for pandoc. Most of them are adapted from
-John Gruber's markdown test suite.
+This is a set of tests for pandoc. Most of them are adapted from John Gruber's
+markdown test suite.
 
 --------------
 
@@ -36,9 +36,9 @@ with no blank line
 
 Here's a regular paragraph.
 
-In Markdown 1.0.0 and earlier. Version 8. This line turns into a
-list item. Because a hard-wrapped line in the middle of a paragraph
-looked like a list item.
+In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
+Because a hard-wrapped line in the middle of a paragraph looked like a list
+item.
 
 Here's one with a bullet. * criminey.
 
@@ -51,17 +51,11 @@ here.
 
 E-mail style:
 
-
 #+BEGIN_QUOTE
-
   This is a block quote. It is pretty short.
-
-
 #+END_QUOTE
 
-
 #+BEGIN_QUOTE
-
   Code in a block quote:
 
   #+BEGIN_EXAMPLE
@@ -69,31 +63,21 @@ E-mail style:
           print "working";
       }
   #+END_EXAMPLE
+
   A list:
 
-  
   1. item one
   2. item two
 
   Nested block quotes:
 
-  
-#+BEGIN_QUOTE
-
+  #+BEGIN_QUOTE
     nested
+  #+END_QUOTE
 
-  
-#+END_QUOTE
-
-  
-#+BEGIN_QUOTE
-
+  #+BEGIN_QUOTE
     nested
-
-  
-#+END_QUOTE
-
-
+  #+END_QUOTE
 #+END_QUOTE
 
 This should not be a block quote: 2 > 1.
@@ -108,20 +92,22 @@ Code:
 
 #+BEGIN_EXAMPLE
     ---- (should be four hyphens)
-    
+
     sub status {
         print "working";
     }
-    
+
     this code block is indented by one tab
 #+END_EXAMPLE
+
 And:
 
 #+BEGIN_EXAMPLE
         this code block is indented by two tabs
-    
+
     These should not be escaped:  \$ \\ \> \[ \{
 #+END_EXAMPLE
+
 --------------
 
 * Lists
@@ -130,23 +116,19 @@ And:
 
 Asterisks tight:
 
-
 -  asterisk 1
 -  asterisk 2
 -  asterisk 3
 
 Asterisks loose:
 
-
 -  asterisk 1
 
 -  asterisk 2
 
 -  asterisk 3
 
-
 Pluses tight:
-
 
 -  Plus 1
 -  Plus 2
@@ -154,16 +136,13 @@ Pluses tight:
 
 Pluses loose:
 
-
 -  Plus 1
 
 -  Plus 2
 
 -  Plus 3
 
-
 Minuses tight:
-
 
 -  Minus 1
 -  Minus 2
@@ -171,18 +150,15 @@ Minuses tight:
 
 Minuses loose:
 
-
 -  Minus 1
 
 -  Minus 2
 
 -  Minus 3
 
-
 ** Ordered
 
 Tight:
-
 
 1. First
 2. Second
@@ -190,13 +166,11 @@ Tight:
 
 and:
 
-
 1. One
 2. Two
 3. Three
 
 Loose using tabs:
-
 
 1. First
 
@@ -204,9 +178,7 @@ Loose using tabs:
 
 3. Third
 
-
 and using spaces:
-
 
 1. One
 
@@ -214,37 +186,29 @@ and using spaces:
 
 3. Three
 
-
 Multiple paragraphs:
-
 
 1. Item 1, graf one.
 
-   Item 1. graf two. The quick brown fox jumped over the lazy dog's
-   back.
+   Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
 
 2. Item 2.
 
 3. Item 3.
 
-
 ** Nested
 
-
 -  Tab
-   
+
    -  Tab
-      
+
       -  Tab
-
-
 
 Here's another:
 
-
 1. First
 2. Second:
-   
+
    -  Fee
    -  Fie
    -  Foe
@@ -253,72 +217,55 @@ Here's another:
 
 Same thing but with paragraphs:
 
-
 1. First
 
 2. Second:
 
-   
    -  Fee
    -  Fie
    -  Foe
 
 3. Third
 
-
 ** Tabs and spaces
-
 
 -  this is a list item indented with tabs
 
 -  this is a list item indented with spaces
 
-   
    -  this is an example list item indented with tabs
 
    -  this is an example list item indented with spaces
 
-
-
 ** Fancy list markers
 
+2) begins with 2
+3) and now 3
 
-(2) begins with 2
-(3) and now 3
+   with a continuation
 
-    with a continuation
+   4. sublist with roman numerals, starting with 4
+   5. more items
 
-    
-    iv. sublist with roman numerals, starting with 4
-    v.  more items
-        
-        (A) a subsublist
-        (B) a subsublist
-
-
+      1) a subsublist
+      2) a subsublist
 
 Nesting:
 
+1. Upper Alpha
 
-A. Upper Alpha
-   
-   I. Upper Roman.
-      
-      (6) Decimal start with 6
-          
-          c) Lower alpha with paren
+   1. Upper Roman.
 
+      6) Decimal start with 6
 
-
+         3) Lower alpha with paren
 
 Autonumbering:
 
-
 1. Autonumber.
 2. More.
-   
-   1. Nested.
 
+   1. Nested.
 
 Should not be a list item:
 
@@ -350,155 +297,123 @@ Loose:
 
 -  banana :: yellow fruit
 
-
 Multiple blocks with italics:
 
 -  /apple/ :: red fruit
 
-              contains seeds, crisp, pleasant to taste
+   contains seeds, crisp, pleasant to taste
 
 -  /orange/ :: orange fruit
 
-               #+BEGIN_EXAMPLE
-                   { orange code block }
-               #+END_EXAMPLE
-               
-#+BEGIN_QUOTE
+   #+BEGIN_EXAMPLE
+       { orange code block }
+   #+END_EXAMPLE
 
-                 orange block quote
-
-               
-#+END_QUOTE
-
+   #+BEGIN_QUOTE
+     orange block quote
+   #+END_QUOTE
 
 Multiple definitions, tight:
 
 -  apple :: red fruit
-            computer
+   computer
 -  orange :: orange fruit
-             bank
+   bank
 
 Multiple definitions, loose:
 
 -  apple :: red fruit
 
-            computer
+   computer
 
 -  orange :: orange fruit
 
-             bank
-
+   bank
 
 Blank line after term, indented marker, alternate markers:
 
 -  apple :: red fruit
 
-            computer
+   computer
 
 -  orange :: orange fruit
 
-             
-             1. sublist
-             2. sublist
-
+   1. sublist
+   2. sublist
 
 * HTML Blocks
 
 Simple block on one line:
 
-
 #+BEGIN_HTML
-
   <div>
-
 #+END_HTML
 
 foo
 
 #+BEGIN_HTML
-
   </div>
-
 #+END_HTML
 
 And nested without indentation:
 
-
 #+BEGIN_HTML
-
   <div>
   <div>
   <div>
-
 #+END_HTML
 
 foo
 
 #+BEGIN_HTML
-
   </div>
   </div>
   <div>
-
 #+END_HTML
 
 bar
 
 #+BEGIN_HTML
-
   </div>
   </div>
-
 #+END_HTML
 
 Interpreted markdown in a table:
 
-
 #+BEGIN_HTML
-
   <table>
   <tr>
   <td>
-
 #+END_HTML
 
 This is /emphasized/
 
 #+BEGIN_HTML
-
   </td>
   <td>
-
 #+END_HTML
 
 And this is *strong*
 
 #+BEGIN_HTML
-
   </td>
   </tr>
   </table>
-  
-  <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
 
+  <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
 #+END_HTML
 
 Here's a simple block:
 
-
 #+BEGIN_HTML
-
   <div>
       
-
 #+END_HTML
 
 foo
 
 #+BEGIN_HTML
-
   </div>
-
 #+END_HTML
 
 This should be a code block, though:
@@ -508,56 +423,47 @@ This should be a code block, though:
         foo
     </div>
 #+END_EXAMPLE
+
 As should this:
 
 #+BEGIN_EXAMPLE
     <div>foo</div>
 #+END_EXAMPLE
+
 Now, nested:
 
-
 #+BEGIN_HTML
-
   <div>
       <div>
           <div>
               
-
 #+END_HTML
 
 foo
 
 #+BEGIN_HTML
-
   </div>
       </div>
   </div>
-
 #+END_HTML
 
 This should just be an HTML comment:
 
-
 #+BEGIN_HTML
-
   <!-- Comment -->
-
 #+END_HTML
 
 Multiline:
 
-
 #+BEGIN_HTML
-
   <!--
   Blah
   Blah
   -->
-  
+
   <!--
       This is another comment.
   -->
-
 #+END_HTML
 
 Code block:
@@ -565,13 +471,11 @@ Code block:
 #+BEGIN_EXAMPLE
     <!-- Comment -->
 #+END_EXAMPLE
+
 Just plain comment, with trailing spaces on the line:
 
-
 #+BEGIN_HTML
-
   <!-- foo -->   
-
 #+END_HTML
 
 Code:
@@ -579,29 +483,27 @@ Code:
 #+BEGIN_EXAMPLE
     <hr />
 #+END_EXAMPLE
+
 Hr's:
 
-
 #+BEGIN_HTML
-
   <hr>
-  
-  <hr />
-  
-  <hr />
-  
-  <hr>   
-  
-  <hr />  
-  
-  <hr /> 
-  
-  <hr class="foo" id="bar" />
-  
-  <hr class="foo" id="bar" />
-  
-  <hr class="foo" id="bar">
 
+  <hr />
+
+  <hr />
+
+  <hr>   
+
+  <hr />  
+
+  <hr /> 
+
+  <hr class="foo" id="bar" />
+
+  <hr class="foo" id="bar" />
+
+  <hr class="foo" id="bar">
 #+END_HTML
 
 --------------
@@ -630,8 +532,8 @@ Superscripts: a^{bc}d a^{/hello/} a^{hello there}.
 
 Subscripts: H_{2}O, H_{23}O, H_{many of them}O.
 
-These should not be superscripts or subscripts, because of the
-unescaped spaces: a\^b c\^d, a~b c~d.
+These should not be superscripts or subscripts, because of the unescaped
+spaces: a\^b c\^d, a~b c~d.
 
 --------------
 
@@ -645,8 +547,8 @@ unescaped spaces: a\^b c\^d, a~b c~d.
 
 'He said, "I want to go."' Were you alive in the 70's?
 
-Here is some quoted '=code=' and a
-"[[http://example.com/?foo=1&bar=2][quoted link]]".
+Here is some quoted '=code=' and a "[[http://example.com/?foo=1&bar=2][quoted
+link]]".
 
 Some dashes: one---two --- three---four --- five.
 
@@ -658,7 +560,6 @@ Ellipses...and...and....
 
 * LaTeX
 
-
 -  \cite[22-23]{smith.1899}
 -  $2+2=4$
 -  $x \in y$
@@ -667,15 +568,13 @@ Ellipses...and...and....
 -  $p$-Tree
 -  Here's some display math:
    $$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$
--  Here's one that has a line break in it:
-   $\alpha + \omega \times x^2$.
+-  Here's one that has a line break in it: $\alpha + \omega \times x^2$.
 
 These shouldn't be math:
 
-
 -  To get the famous equation, write =$e = mc^2$=.
--  $22,000 is a /lot/ of money. So is $34,000. (It worked if "lot"
-   is emphasized.)
+-  $22,000 is a /lot/ of money. So is $34,000. (It worked if "lot" is
+   emphasized.)
 -  Shoes ($20) and socks ($5).
 -  Escaped =$=: $73 /this should be emphasized/ 23$.
 
@@ -692,7 +591,6 @@ Cat    & 1      \\ \hline
 * Special Characters
 
 Here is some unicode:
-
 
 -  I hat: Î
 -  o umlaut: ö
@@ -789,17 +687,17 @@ This should [not][] be a link.
 #+BEGIN_EXAMPLE
     [not]: /url
 #+END_EXAMPLE
+
 Foo [[/url/][bar]].
 
 Foo [[/url/][biz]].
 
 ** With ampersands
 
-Here's a
-[[http://example.com/?foo=1&bar=2][link with an ampersand in the URL]].
+Here's a [[http://example.com/?foo=1&bar=2][link with an ampersand in the
+URL]].
 
-Here's a link with an amersand in the link text:
-[[http://att.com/][AT&T]].
+Here's a link with an amersand in the link text: [[http://att.com/][AT&T]].
 
 Here's an [[/script?foo=1&bar=2][inline link]].
 
@@ -809,20 +707,14 @@ Here's an [[/script?foo=1&bar=2][inline link in pointy braces]].
 
 With an ampersand: [[http://example.com/?foo=1&bar=2]]
 
-
 -  In a list?
 -  [[http://example.com/]]
 -  It should.
 
-An e-mail address:
-[[mailto:nobody@nowhere.net][=nobody@nowhere.net=]]
-
+An e-mail address: [[mailto:nobody@nowhere.net][=nobody@nowhere.net=]]
 
 #+BEGIN_QUOTE
-
   Blockquoted: [[http://example.com/]]
-
-
 #+END_QUOTE
 
 Auto-links should not occur here: =<http://example.com/>=
@@ -830,6 +722,7 @@ Auto-links should not occur here: =<http://example.com/>=
 #+BEGIN_EXAMPLE
     or here: <http://example.com/>
 #+END_EXAMPLE
+
 --------------
 
 * Images
@@ -845,41 +738,36 @@ Here is a movie [[movie.jpg]] icon.
 
 * Footnotes
 
-Here is a footnote reference, [1] and another. [2] This should
-/not/ be a footnote reference, because it contains a space.[\^my
-note] Here is an inline note. [3]
-
+Here is a footnote reference, [1] and another. [2] This should /not/ be a
+footnote reference, because it contains a space.[\^my note] Here is an inline
+note. [3]
 
 #+BEGIN_QUOTE
-
   Notes can go in quotes. [4]
-
-
 #+END_QUOTE
-
 
 1. And in list items. [5]
 
-This paragraph should not be part of the note, as it is not
-indented.
+This paragraph should not be part of the note, as it is not indented.
 
-[1] Here is the footnote. It can go anywhere after the footnote
-    reference. It need not be placed at the end of the document.
+[1] Here is the footnote. It can go anywhere after the footnote reference. It
+    need not be placed at the end of the document.
 
 [2] Here's the long note. This one contains multiple blocks.
 
-    Subsequent blocks are indented to show that they belong to the
-    footnote (as with list items).
+    Subsequent blocks are indented to show that they belong to the footnote
+    (as with list items).
 
     #+BEGIN_EXAMPLE
           { <code> }
     #+END_EXAMPLE
-    If you want, you can indent every line, but you can also be lazy
-    and just indent the first line of each block.
+
+    If you want, you can indent every line, but you can also be lazy and just
+    indent the first line of each block.
 
 [3] This is /easier/ to type. Inline notes may contain
-    [[http://google.com][links]] and =]= verbatim characters, as well
-    as [bracketed text].
+    [[http://google.com][links]] and =]= verbatim characters, as well as
+    [bracketed text].
 
 [4] In quote.
 

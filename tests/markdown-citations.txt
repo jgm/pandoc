@@ -20,8 +20,7 @@
 
 -   And another one in a note.[^2]
 
--   Citation with a suffix and locator
-    [@item1 pp. 33, 35-37, and nowhere else].
+-   Citation with a suffix and locator [@item1 pp. 33, 35-37, and nowhere else].
 
 -   Citation with suffix only [@item1 and nowhere else].
 
@@ -32,12 +31,9 @@
 
 # References
 
-[^1]:
-    A citation without locators [@item3].
+[^1]: A citation without locators [@item3].
 
-[^2]:
-    Some citations [see @item2 chap. 3; @item3; @item1].
+[^2]: Some citations [see @item2 chap. 3; @item3; @item1].
 
-[^3]:
-    Like a citation without author: [-@item1], and now Doe with a
-    locator [-@item2 p. 44].
+[^3]: Like a citation without author: [-@item1], and now Doe with a locator [-@item2 p. 44].
+

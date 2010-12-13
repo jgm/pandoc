@@ -177,7 +177,7 @@ Options
 `-p`, `--preserve-tabs`
 :   Preserve tabs instead of converting them to spaces (the default).
 
-`--tab-stop=`*TABSTOP*
+`--tab-stop=`*NUMBER*
 :   Specify the number of spaces per tab (default is 4).
 
 `--strict`
@@ -270,6 +270,9 @@ Options
 :   Disable text wrapping in output. By default, text is wrapped
     appropriately for the output format.
 
+`--columns`=*NUMBER*
+:   Specify length of lines in characters (for text wrapping).
+
 `--email-obfuscation=`*none|javascript|references*
 :   Specify a method for obfuscating `mailto:` links in HTML documents.
     *none* leaves `mailto:` links as they are.  *javascript* obfuscates
@@ -294,7 +297,7 @@ Options
     one) in the output document. This option has no effect on `man`,
     `docbook`, `slidy`, or `s5` output.
 
-`--base-header-level=`*LEVEL*
+`--base-header-level=`*NUMBER*
 :   Specify the base level for headers (defaults to 1).
 
 `--template=`*FILE*

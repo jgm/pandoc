@@ -87,7 +87,7 @@ Extra-Source-Files:
                  tests/latex-reader.native,
                  tests/markdown-reader-more.txt,
                  tests/markdown-reader-more.native,
-		 tests/textile-reader.textile,
+                 tests/textile-reader.textile,
                  tests/rst-reader.native,
                  tests/rst-reader.rst,
                  tests/s5.basic.html,
@@ -175,7 +175,8 @@ Library
                  random, extensible-exceptions,
                  citeproc-hs >= 0.3 && < 0.4,
                  pandoc-types == 1.7.*,
-                 json >= 0.4 && < 0.5
+                 json >= 0.4 && < 0.5,
+                 dlist >= 0.4 && < 0.6
   if impl(ghc >= 6.10)
     Build-depends: base >= 4 && < 5, syb
   else
@@ -193,7 +194,7 @@ Library
   -- END DUPLICATED SECTION
 
   Exposed-Modules: Text.Pandoc,
-                   Text.Pandoc.Blocks,
+                   Text.Pandoc.Pretty,
                    Text.Pandoc.CharacterReferences,
                    Text.Pandoc.Shared,
                    Text.Pandoc.Parsing,
@@ -247,7 +248,8 @@ Executable pandoc
                  random, extensible-exceptions,
                  citeproc-hs >= 0.3 && < 0.4,
                  pandoc-types == 1.7.*,
-                 json >= 0.4 && < 0.5
+                 json >= 0.4 && < 0.5,
+                 dlist >= 0.4 && < 0.6
   if impl(ghc >= 6.10)
     Build-depends: base >= 4 && < 5, syb
   else

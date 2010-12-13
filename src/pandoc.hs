@@ -36,11 +36,11 @@ import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
 #endif
-import System.Environment ( getArgs, getProgName, getEnvironment )
+import System.Environment ( getArgs, getProgName )
 import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
-import Data.Char ( toLower, isDigit )
+import Data.Char ( toLower )
 import Data.List ( intercalate, isSuffixOf )
 import System.Directory ( getAppUserDataDirectory, doesFileExist )
 import System.IO ( stdout, stderr )
@@ -111,6 +111,7 @@ data Opt = Opt
     , optStrict            :: Bool    -- ^ Use strict markdown syntax
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optWrapText          :: Bool    -- ^ Wrap text
+    , optColumns           :: Int     -- ^ Line length in characters
     , optPlugins           :: [Pandoc -> IO Pandoc] -- ^ Plugins to apply
     , optEmailObfuscation  :: ObfuscationMethod
     , optIdentifierPrefix  :: String
@@ -150,6 +151,7 @@ defaultOpts = Opt
     , optStrict            = False
     , optReferenceLinks    = False
     , optWrapText          = True
+    , optColumns           = 72
     , optPlugins           = []
     , optEmailObfuscation  = JavascriptObfuscation
     , optIdentifierPrefix  = ""
@@ -194,8 +196,14 @@ options =
 
     , Option "" ["tab-stop"]
                  (ReqArg
-                  (\arg opt -> return opt { optTabStop = (read arg) } )
-                  "TABSTOP")
+                  (\arg opt ->
+                      case reads arg of
+                           [(t,"")] | t > 0 -> return opt { optTabStop = t }
+                           _          -> do
+                               UTF8.hPutStrLn stderr $
+                                   "tab-stop must be a number greater than 0"
+                               exitWith $ ExitFailure 31)
+                  "NUMBER")
                  "" -- "Tab stop (default 4)"
 
     , Option "" ["strict"]
@@ -300,6 +308,18 @@ options =
                   (\opt -> return opt { optWrapText = False }))
                  "" -- "Do not wrap text in output"
 
+    , Option "" ["columns"]
+                 (ReqArg
+                  (\arg opt ->
+                      case reads arg of
+                           [(t,"")] | t > 0 -> return opt { optColumns = t }
+                           _          -> do
+                               UTF8.hPutStrLn stderr $
+                                   "columns must be a number greater than 0"
+                               exitWith $ ExitFailure 33)
+                 "NUMBER")
+                 "" -- "Length of line in characters"
+
     , Option "" ["email-obfuscation"]
                  (ReqArg
                   (\arg opt -> do
@@ -333,17 +353,18 @@ options =
 
     , Option "" ["base-header-level"]
                  (ReqArg
-                  (\arg opt -> do
-                     if all isDigit arg && (read arg :: Int) >= 1
-                        then do
-                           let oldTransforms = optTransforms opt
-                           let shift = read arg - 1
-                           return opt{ optTransforms =
-                                         headerShift shift : oldTransforms }
-                        else do
-                           UTF8.hPutStrLn stderr $ "base-header-level must be a number >= 1"
-                           exitWith $ ExitFailure 19)
-                  "LEVEL")
+                  (\arg opt ->
+                      case reads arg of
+                           [(t,"")] | t > 0 -> do
+                               let oldTransforms = optTransforms opt
+                               let shift = t - 1
+                               return opt{ optTransforms =
+                                           headerShift shift : oldTransforms }
+                           _          -> do
+                               UTF8.hPutStrLn stderr $
+                                   "base-header-level must be a number > 0"
+                               exitWith $ ExitFailure 19)
+                  "NUMBER")
                  "" -- "Headers base level"
 
     , Option "" ["template"]
@@ -617,6 +638,7 @@ main = do
               , optStrict            = strict
               , optReferenceLinks    = referenceLinks
               , optWrapText          = wrap
+              , optColumns           = columns
               , optEmailObfuscation  = obfuscationMethod
               , optIdentifierPrefix  = idPrefix
               , optIndentedCodeClasses = codeBlockClasses
@@ -667,11 +689,6 @@ main = do
   let defaultTemplate = case templ of
                              Right t -> t
                              Left  e -> error (show e)
-
-  environment <- getEnvironment
-  let columns = case lookup "COLUMNS" environment of
-                 Just cols -> read cols
-                 Nothing   -> stateColumns defaultParserState
 
   let standalone' = standalone || isNonTextOutput writerName'
 
@@ -746,6 +763,7 @@ main = do
                                       writerStrictMarkdown   = strict,
                                       writerReferenceLinks   = referenceLinks,
                                       writerWrapText         = wrap,
+                                      writerColumns          = columns,
                                       writerLiterateHaskell  = "+lhs" `isSuffixOf` writerName' ||
                                                                lhsExtension [outputFile],
                                       writerEmailObfuscation = if strict

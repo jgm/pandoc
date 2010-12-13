@@ -398,6 +398,7 @@ stringify = queryWith go
         go Space = " "
         go (Str x) = x
         go (Code x) = x
+        go (Math _ x) = x
         go _ = ""
 
 -- | Change final list item from @Para@ to @Plain@ if the list contains
@@ -560,6 +561,7 @@ data WriterOptions = WriterOptions
   , writerStrictMarkdown   :: Bool   -- ^ Use strict markdown syntax
   , writerReferenceLinks   :: Bool   -- ^ Use reference links in writing markdown, rst
   , writerWrapText         :: Bool   -- ^ Wrap text to line length
+  , writerColumns          :: Int    -- ^ Characters in a line (for text wrapping)
   , writerLiterateHaskell  :: Bool   -- ^ Write as literate haskell
   , writerEmailObfuscation :: ObfuscationMethod -- ^ How to obfuscate emails
   , writerIdentifierPrefix :: String -- ^ Prefix for section & note ids in HTML
@@ -588,6 +590,7 @@ defaultWriterOptions =
                 , writerStrictMarkdown   = False
                 , writerReferenceLinks   = False
                 , writerWrapText         = True
+                , writerColumns          = 72
                 , writerLiterateHaskell  = False
                 , writerEmailObfuscation = JavascriptObfuscation
                 , writerIdentifierPrefix = ""

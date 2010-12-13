@@ -2,9 +2,8 @@
 % John MacFarlane; Anonymous
 % July 17, 2006
 
-This is a set of tests for pandoc. Most of them are adapted from
-John Gruber’s markdown test suite.
-
+This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
+markdown test suite.
 
 * * * * *
 
@@ -30,22 +29,20 @@ with no blank line
 
 with no blank line
 
-
 * * * * *
 
 # Paragraphs
 
 Here’s a regular paragraph.
 
-In Markdown 1.0.0 and earlier. Version 8. This line turns into a
-list item. Because a hard-wrapped line in the middle of a paragraph
-looked like a list item.
+In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
+Because a hard-wrapped line in the middle of a paragraph looked like a list
+item.
 
 Here’s one with a bullet. \* criminey.
 
 There should be a hard line break  
 here.
-
 
 * * * * *
 
@@ -56,26 +53,25 @@ E-mail style:
 > This is a block quote. It is pretty short.
 
 > Code in a block quote:
-> 
+>
 >     sub status {
 >         print "working";
 >     }
-> 
+>
 > A list:
-> 
+>
 > 1.  item one
 > 2.  item two
-> 
+>
 > Nested block quotes:
-> 
+>
 > > nested
-> 
+>
 > > nested
 
 This should not be a block quote: 2 \> 1.
 
 And a following paragraph.
-
 
 * * * * *
 
@@ -84,19 +80,18 @@ And a following paragraph.
 Code:
 
     ---- (should be four hyphens)
-    
+
     sub status {
         print "working";
     }
-    
+
     this code block is indented by one tab
 
 And:
 
         this code block is indented by two tabs
-    
-    These should not be escaped:  \$ \\ \> \[ \{
 
+    These should not be escaped:  \$ \\ \> \[ \{
 
 * * * * *
 
@@ -118,7 +113,6 @@ Asterisks loose:
 
 -   asterisk 3
 
-
 Pluses tight:
 
 -   Plus 1
@@ -133,7 +127,6 @@ Pluses loose:
 
 -   Plus 3
 
-
 Minuses tight:
 
 -   Minus 1
@@ -147,7 +140,6 @@ Minuses loose:
 -   Minus 2
 
 -   Minus 3
-
 
 ## Ordered
 
@@ -171,7 +163,6 @@ Loose using tabs:
 
 3.  Third
 
-
 and using spaces:
 
 1.  One
@@ -180,26 +171,21 @@ and using spaces:
 
 3.  Three
 
-
 Multiple paragraphs:
 
 1.  Item 1, graf one.
 
-    Item 1. graf two. The quick brown fox jumped over the lazy dog’s
-    back.
+    Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
 
 2.  Item 2.
 
 3.  Item 3.
-
 
 ## Nested
 
 -   Tab
     -   Tab
         -   Tab
-
-
 
 Here’s another:
 
@@ -223,7 +209,6 @@ Same thing but with paragraphs:
 
 3.  Third
 
-
 ## Tabs and spaces
 
 -   this is a list item indented with tabs
@@ -233,8 +218,6 @@ Same thing but with paragraphs:
     -   this is an example list item indented with tabs
 
     -   this is an example list item indented with spaces
-
-
 
 ## Fancy list markers
 
@@ -248,8 +231,6 @@ Same thing but with paragraphs:
         (A) a subsublist
         (B) a subsublist
 
-
-
 Nesting:
 
 A.  Upper Alpha
@@ -257,22 +238,17 @@ A.  Upper Alpha
         (6) Decimal start with 6
             c)  Lower alpha with paren
 
-
-
-
 Autonumbering:
 
 1.  Autonumber.
 2.  More.
     1.  Nested.
 
-
 Should not be a list item:
 
 M.A. 2007
 
 B. Williams
-
 
 * * * * *
 
@@ -307,7 +283,6 @@ orange
 banana
   ~ yellow fruit
 
-
 Multiple blocks with italics:
 
 *apple*
@@ -321,7 +296,6 @@ Multiple blocks with italics:
         { orange code block }
 
     > orange block quote
-
 
 Multiple definitions, tight:
 
@@ -344,7 +318,6 @@ orange
 
   ~ bank
 
-
 Blank line after term, indented marker, alternate markers:
 
 apple
@@ -357,7 +330,6 @@ orange
 
     1.  sublist
     2.  sublist
-
 
 # HTML Blocks
 
@@ -470,7 +442,6 @@ Hr’s:
 
 <hr class="foo" id="bar">
 
-
 * * * * *
 
 # Inline Markup
@@ -497,9 +468,8 @@ Superscripts: a^bc^d a^*hello*^ a^hello there^.
 
 Subscripts: H~2~O, H~23~O, H~many of them~O.
 
-These should not be superscripts or subscripts, because of the
-unescaped spaces: a\^b c\^d, a\~b c\~d.
-
+These should not be superscripts or subscripts, because of the unescaped
+spaces: a\^b c\^d, a\~b c\~d.
 
 * * * * *
 
@@ -513,15 +483,14 @@ unescaped spaces: a\^b c\^d, a\~b c\~d.
 
 ‘He said, “I want to go.”’ Were you alive in the 70’s?
 
-Here is some quoted ‘`code`’ and a
-“[quoted link](http://example.com/?foo=1&bar=2)”.
+Here is some quoted ‘`code`’ and a “[quoted
+link](http://example.com/?foo=1&bar=2)”.
 
 Some dashes: one—two — three—four — five.
 
 Dashes between numbers: 5–7, 255–66, 1987–1999.
 
 Ellipses…and…and….
-
 
 * * * * *
 
@@ -535,14 +504,13 @@ Ellipses…and…and….
 -   $p$-Tree
 -   Here’s some display math:
     $$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$
--   Here’s one that has a line break in it:
-    $\alpha + \omega \times x^2$.
+-   Here’s one that has a line break in it: $\alpha + \omega \times x^2$.
 
 These shouldn’t be math:
 
 -   To get the famous equation, write `$e = mc^2$`.
--   $22,000 is a *lot* of money. So is $34,000. (It worked if “lot”
-    is emphasized.)
+-   $22,000 is a *lot* of money. So is $34,000. (It worked if “lot” is
+    emphasized.)
 -   Shoes ($20) and socks ($5).
 -   Escaped `$`: $73 *this should be emphasized* 23$.
 
@@ -553,7 +521,6 @@ Animal & Number \\ \hline
 Dog    & 2      \\
 Cat    & 1      \\ \hline
 \end{tabular}
-
 
 * * * * *
 
@@ -609,7 +576,6 @@ Plus: +
 
 Minus: -
 
-
 * * * * *
 
 # Links
@@ -662,8 +628,7 @@ Foo [biz](/url/ "Title with "quote" inside").
 
 ## With ampersands
 
-Here’s a
-[link with an ampersand in the URL](http://example.com/?foo=1&bar=2).
+Here’s a [link with an ampersand in the URL](http://example.com/?foo=1&bar=2).
 
 Here’s a link with an amersand in the link text:
 [AT&T](http://att.com/ "AT&T").
@@ -688,7 +653,6 @@ Auto-links should not occur here: `<http://example.com/>`
 
     or here: <http://example.com/>
 
-
 * * * * *
 
 # Images
@@ -699,44 +663,37 @@ From “Voyage dans la Lune” by Georges Melies (1902):
 
 Here is a movie ![movie](movie.jpg) icon.
 
-
 * * * * *
 
 # Footnotes
 
-Here is a footnote reference,[^1] and another.[^2] This should
-*not* be a footnote reference, because it contains a space.[\^my
-note] Here is an inline note.[^3]
+Here is a footnote reference,[^1] and another.[^2] This should *not* be a
+footnote reference, because it contains a space.[\^my note] Here is an inline
+note.[^3]
 
 > Notes can go in quotes.[^4]
 
 1.  And in list items.[^5]
 
-This paragraph should not be part of the note, as it is not
-indented.
+This paragraph should not be part of the note, as it is not indented.
 
-[^1]:
-    Here is the footnote. It can go anywhere after the footnote
-    reference. It need not be placed at the end of the document.
+[^1]: Here is the footnote. It can go anywhere after the footnote reference.
+    It need not be placed at the end of the document.
 
-[^2]:
-    Here’s the long note. This one contains multiple blocks.
+[^2]: Here’s the long note. This one contains multiple blocks.
 
-    Subsequent blocks are indented to show that they belong to the
-    footnote (as with list items).
+    Subsequent blocks are indented to show that they belong to the footnote
+    (as with list items).
 
           { <code> }
 
-    If you want, you can indent every line, but you can also be lazy
-    and just indent the first line of each block.
+    If you want, you can indent every line, but you can also be lazy and just
+    indent the first line of each block.
 
-[^3]:
-    This is *easier* to type. Inline notes may contain
+[^3]: This is *easier* to type. Inline notes may contain
     [links](http://google.com) and `]` verbatim characters, as well as
     [bracketed text].
 
-[^4]:
-    In quote.
+[^4]: In quote.
 
-[^5]:
-    In list.
+[^5]: In list.
