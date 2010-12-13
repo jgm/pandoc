@@ -911,7 +911,6 @@ inlineParsers = [ str
                 , strong
                 , emph
                 , note
-                , inlineNote
                 , link
                 , cite
                 , image
@@ -919,6 +918,7 @@ inlineParsers = [ str
                 , strikeout
                 , superscript
                 , subscript
+                , inlineNote  -- after superscript because of ^[link](/foo)^
                 , autoLink
                 , rawHtmlInline'
                 , rawLaTeXInline'
