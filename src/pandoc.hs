@@ -524,6 +524,7 @@ defaultReaderName fallback (x:xs) =
     ".lhs"      -> "markdown+lhs"
     ".textile"  -> "textile"
     ".native"   -> "native"
+    ".json"     -> "json"
     _           -> defaultReaderName fallback xs
 
 -- Returns True if extension of first source is .lhs
@@ -546,6 +547,7 @@ defaultWriterName x =
     ".rst"      -> "rst"
     ".s5"       -> "s5"
     ".native"   -> "native"
+    ".json"     -> "json"
     ".txt"      -> "markdown"
     ".text"     -> "markdown"
     ".md"       -> "markdown"
