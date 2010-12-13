@@ -31,7 +31,7 @@ module Text.Pandoc.Biblio ( processBiblio ) where
 
 import Data.List
 import Data.Unique
-import Data.Char ( isDigit )
+import Data.Char ( isDigit, isPunctuation )
 import qualified Data.Map as M
 import Text.CSL hiding ( Cite(..), Citation(..) )
 import qualified Text.CSL as CSL ( Cite(..) )
@@ -164,9 +164,13 @@ toCslCite c
                       AuthorInText   -> (True, False)
                       SuppressAuthor -> (False,True )
                       NormalCitation -> (False,False)
+          s'      = case s of
+                         []                                -> []
+                         (Str (y:_) : _) | isPunctuation y -> s
+                         _                                 -> Str "," : Space : s
       in   emptyCite { CSL.citeId         = citationId c
                      , CSL.citePrefix     = PandocText $ citationPrefix c
-                     , CSL.citeSuffix     = PandocText $ s
+                     , CSL.citeSuffix     = PandocText $ s'
                      , CSL.citeLabel      = la
                      , CSL.citeLocator    = lo
                      , CSL.citeNoteNumber = show $ citationNoteNum c
