@@ -23,7 +23,7 @@ tables, flexible ordered lists, definition lists, delimited code blocks,
 superscript, subscript, strikeout, title blocks, automatic tables of
 contents, embedded LaTeX math, citations, and markdown inside HTML block
 elements. (These enhancements, described below under [Pandoc's markdown
-vs. standard markdown](#pandocs-markdown-vs-standard-markdown),
+vs. standard markdown](#pandocs-markdown-vs.-standard-markdown),
 can be disabled using the `--strict` option.)
 
 In contrast to most existing tools for converting markdown to HTML, which
