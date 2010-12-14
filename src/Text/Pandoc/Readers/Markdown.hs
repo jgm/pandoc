@@ -1067,8 +1067,8 @@ str = do
      then case likelyAbbrev result of
                []        -> return $ Str result
                xs        -> choice (map (\x ->
-                               try (string x >> char ' ' >>
-                                    notFollowedBy spaceChar >>
+                               try (string x >> oneOf " \n" >>
+                                    lookAhead letter >>
                                     return (Str $ result ++ spacesToNbr x ++ "\160"))) xs)
                            <|> (return $ Str result)
      else return $ Str result
