@@ -1068,7 +1068,7 @@ str = do
                []        -> return $ Str result
                xs        -> choice (map (\x ->
                                try (string x >> oneOf " \n" >>
-                                    lookAhead letter >>
+                                    lookAhead alphaNum >>
                                     return (Str $ result ++ spacesToNbr x ++ "\160"))) xs)
                            <|> (return $ Str result)
      else return $ Str result
