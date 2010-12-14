@@ -207,9 +207,8 @@ referenceKey = try $ do
                     notFollowedBy' referenceTitle
                     skipMany (oneOf " \t")
                     optional nl
-                    optional nonindentSpaces
-                    notFollowedBy' reference
                     skipMany (oneOf " \t")
+                    notFollowedBy' reference
                     many1 (noneOf " \t\n")
   let betweenAngles = try $ char '<' >>
                             manyTill (noneOf ">\n" <|> nl) (char '>')
