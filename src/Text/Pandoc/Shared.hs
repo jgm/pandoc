@@ -382,7 +382,7 @@ inlineListToIdentifier =
   filter (\c -> isLetter c || isDigit c || c `elem` "_-. ") .
   concatMap extractText
     where extractText x = case x of
-              Str s           -> s
+              Str s           -> map nbspToSp s
               Emph lst        -> concatMap extractText lst
               Strikeout lst   -> concatMap extractText lst
               Superscript lst -> concatMap extractText lst
@@ -404,6 +404,8 @@ inlineListToIdentifier =
               Link lst _      -> concatMap extractText lst
               Image lst _     -> concatMap extractText lst
               Note _          -> ""
+          nbspToSp '\160'     =  ' '
+          nbspToSp x          =  x
 
 -- | Convert list of Pandoc blocks into (hierarchical) list of Elements
 hierarchicalize :: [Block] -> [Element]
