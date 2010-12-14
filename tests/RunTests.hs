@@ -111,6 +111,11 @@ main = do
   r11 <- runTest "native reader" ["-r", "native", "-w", "native", "-s"]
              "testsuite.native" "testsuite.native"
   r14s <- mapM (\style -> runTest ("markdown reader (citations) (" ++ style ++ ")") ["-r", "markdown", "-w", "markdown", "--bibliography", "biblio.bib", "--csl", style ++ ".csl", "--no-wrap"] "markdown-citations.txt" ("markdown-citations." ++ style ++ ".txt")) ["chicago-author-date","ieee","mhra"]
+  let citopts = ["--bibliography", "biblio.bib", "--csl", "chicago-author-date.csl", "--no-citeproc"]
+  r15 <- runTest "markdown writer (citations)" (["-r", "markdown", "-w", "markdown"]    ++ citopts)
+             "markdown-citations.txt" "markdown-citations.txt"
+  r16s <- runLatexCitationTests citopts "biblatex"
+  r17s <- runLatexCitationTests citopts "natbib"
   r12s <- if runLhsTests
              then mapM runLhsWriterTest lhsWriterFormats
              else putStrLn "Skipping lhs writer tests because they presuppose highlighting support" >> return []
@@ -126,7 +131,8 @@ main = do
                 , r10            -- latex
                 , rTextile1      -- textile
                 , r11            -- native
-                ] ++ r12s ++ r13s ++ r14s
+                , r15            -- markdown citations
+                ] ++ r12s ++ r13s ++ r14s ++ r16s ++ r17s
   if all id results
      then do
        putStrLn "\nAll tests passed."
@@ -148,6 +154,19 @@ runLhsWriterTest format =
 runLhsReaderTest :: String -> IO Bool
 runLhsReaderTest format =
   runTest ("(lhs) " ++ format ++ " reader") ["-r", format, "-w", "html+lhs"] ("lhs-test" <.> format) "lhs-test.fragment.html+lhs"
+
+
+runLatexCitationTests :: [String] -> String -> IO [Bool]
+runLatexCitationTests o n
+  = sequence [ rt ("latex reader (" ++ n ++ " citations)") (["-r", "latex", "-w", "markdown", "-s"] ++ o')
+               f "markdown-citations.txt"
+             , rt ("latex writer (" ++ n ++ " citations)") (["-r", "markdown", "-w", "latex", "-s"] ++ o')
+               "markdown-citations.txt" f
+             ]
+    where
+        o' = o ++ ["--" ++ n]
+        f  = n ++ "-citations.latex"
+        rt        = runTest
 
 runWriterTest :: String -> IO Bool
 runWriterTest format = do

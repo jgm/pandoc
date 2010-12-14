@@ -1,18 +1,33 @@
 # Pandoc with citeproc-hs
 
 -   [@nonexistent]
+
 -   @nonexistent
+
 -   Reference [1] says blah.
+
 -   Reference [1] says blah.
+
 -   Reference [1] says blah.
+
 -   Reference [1] says blah.
+
 -   In a note.[^1]
+
 -   A citation group [1],[3].
+
 -   Another one [1].
+
 -   And another one in a note.[^2]
+
 -   Citation with a suffix and locator [1].
+
 -   Citation with suffix only [1].
+
 -   Now some modifiers.[^3]
+
+-   With some markup [1].
+
 
 # References
 
