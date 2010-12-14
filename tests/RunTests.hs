@@ -21,6 +21,7 @@ import System.Environment
 import System.Exit
 import Text.Printf
 import Data.Algorithm.Diff
+import Data.String.Utils ( replace )
 import Prelude hiding ( readFile )
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString, fromString)
@@ -166,7 +167,8 @@ runLatexCitationTests o n
     where
         o' = o ++ ["--" ++ n]
         f  = n ++ "-citations.latex"
-        rt        = runTest
+        normalize = replace "\160" " " . replace "\8211" "-"
+        rt        = runTestWithNormalize normalize
 
 runWriterTest :: String -> IO Bool
 runWriterTest format = do
@@ -178,13 +180,23 @@ runS5WriterTest :: String -> [String] -> String -> IO Bool
 runS5WriterTest modifier opts format = runTest (format ++ " writer (" ++ modifier ++ ")")
                      (["-r", "native", "-w", format] ++ opts) "s5.native"  ("s5." ++ modifier <.> "html")
 
--- | Run a test, return True if test passed.
-runTest  :: String                      -- ^ Title of test
-         -> [String]                    -- ^ Options to pass to pandoc
-         -> String                      -- ^ Input filepath
-         -> FilePath                    -- ^ Norm (for test results) filepath
-         -> IO Bool
-runTest testname opts inp norm = do
+
+-- | Run a test without normalize function, return True if test passed.
+runTest :: String    -- ^ Title of test
+        -> [String]  -- ^ Options to pass to pandoc
+        -> String    -- ^ Input filepath
+        -> FilePath  -- ^ Norm (for test results) filepath
+        -> IO Bool
+runTest = runTestWithNormalize id
+
+-- | Run a test with normalize function, return True if test passed.
+runTestWithNormalize  :: (String -> String) -- ^ Normalize function for output
+                      -> String    -- ^ Title of test
+                      -> [String]  -- ^ Options to pass to pandoc
+                      -> String    -- ^ Input filepath
+                      -> FilePath  -- ^ Norm (for test results) filepath
+                      -> IO Bool
+runTestWithNormalize normalize testname opts inp norm = do
   putStr $ printf "%-28s ---> " testname
   (outputPath, hOut) <- openTempFile "" "pandoc-test"
   let inpPath = inp
@@ -197,7 +209,7 @@ runTest testname opts inp norm = do
   result  <- if ec == ExitSuccess
                 then do
                   -- filter \r so the tests will work on Windows machines
-                  outputContents <- readFile' outputPath >>= return . filter (/='\r')
+                  outputContents <- readFile' outputPath >>= return . filter (/='\r') . normalize
                   normContents <- readFile' normPath >>= return . filter (/='\r')
                   if outputContents == normContents
                      then return TestPassed
