@@ -19,8 +19,8 @@ $if(natbib)$
 $endif$
 $if(biblatex)$
 \usepackage{biblatex}
-$if(biblio)$
-\bibliography{$biblio$}
+$if(biblio-files)$
+\bibliography{$biblio-files$}
 $endif$
 $endif$
 $if(lhs)$
@@ -104,13 +104,20 @@ $if(toc)$
 
 $endif$
 $body$
-$if(biblio)$
+$if(biblio-files)$
 $if(natbib)$
-\bibliography{$biblio$}
+$if(biblio-title)$
+$if(book-class)$
+\renewcommand\bibname{$biblio-title$}
+$else$
+\renewcommand\refname{$biblio-title$}
+$endif$
+$endif$
+\bibliography{$biblio-files$}
 $endif$
 $endif$
 $if(biblatex)$
-\printbibliography
+\printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$
 $endif$
 $for(include-after)$
 

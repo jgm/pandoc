@@ -64,7 +64,6 @@ a locator \autocite*[p.~44]{item2}.}
   With some markup \autocite[\emph{see}][p. \textbf{32}]{item1}.
 
 \end{itemize}
-\section{References}
-\printbibliography
+\printbibliography[title=References]
 
 \end{document}

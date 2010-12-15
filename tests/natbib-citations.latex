@@ -66,7 +66,7 @@ with a locator \citeyearpar[p.~44]{item2}.}
   With some markup \citep[\emph{see}][p. \textbf{32}]{item1}.
 
 \end{itemize}
-\section{References}
+\renewcommand\refname{References}
 \bibliography{biblio}
 
 \end{document}

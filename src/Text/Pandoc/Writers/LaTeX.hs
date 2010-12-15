@@ -74,15 +74,23 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
   titletext <- liftM render $ inlineListToLaTeX title
   authorsText <- mapM (liftM render . inlineListToLaTeX) authors
   dateText <- liftM render $ inlineListToLaTeX date
-  body <- blockListToLaTeX blocks
+  let (blocks', lastHeader) = if writerCiteMethod options == Citeproc then
+                                (blocks, [])
+                              else case last blocks of
+                                Header 1 il -> (init blocks, il)
+                                _           -> (blocks, [])
+  body <- blockListToLaTeX blocks'
+  biblioTitle <- liftM render $ inlineListToLaTeX lastHeader
   let main = render body
   st <- get
-  let biblio      = intercalate "," $ map dropExtension $  writerBiblioFiles options
+  let biblioFiles = intercalate "," $ map dropExtension $  writerBiblioFiles options
       citecontext = case writerCiteMethod options of
-                         Natbib   -> [ ("biblio", biblio)
+                         Natbib   -> [ ("biblio-files", biblioFiles)
+                                     , ("biblio-title", biblioTitle)
                                      , ("natbib", "yes")
                                      ]
-                         Biblatex -> [ ("biblio", biblio)
+                         Biblatex -> [ ("biblio-files", biblioFiles)
+                                     , ("biblio-title", biblioTitle)
                                      , ("biblatex", "yes")
                                      ]
                          _      -> []
@@ -102,6 +110,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("numbersections", "yes") | writerNumberSections options ] ++
                  [ ("lhs", "yes") | stLHS st ] ++
                  [ ("graphics", "yes") | stGraphics st ] ++
+                 [ ("book-class", "yes") | stBook st] ++
                  citecontext
   return $ if writerStandalone options
               then renderTemplate context template
