@@ -566,7 +566,7 @@ data WriterOptions = WriterOptions
   , writerSourceDirectory  :: FilePath -- ^ Directory path of 1st source file
   , writerUserDataDir      :: Maybe FilePath -- ^ Path of user data directory
   , writerCiteMethod       :: CiteMethod -- ^ How to print cites
-  , writerBiblioFile       :: String     -- ^ Biblio file to use for citations
+  , writerBiblioFiles      :: [FilePath] -- ^ Biblio files to use for citations
   } deriving Show
 
 -- | Default writer options.
@@ -594,7 +594,7 @@ defaultWriterOptions =
                 , writerSourceDirectory  = "."
                 , writerUserDataDir      = Nothing
                 , writerCiteMethod       = Citeproc
-                , writerBiblioFile       = ""
+                , writerBiblioFiles      = []
                 }
 
 --

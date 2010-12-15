@@ -36,6 +36,7 @@ import Data.List ( (\\), isSuffixOf, isPrefixOf, intersperse, intercalate )
 import Data.Char ( toLower )
 import Control.Monad.State
 import Text.PrettyPrint.HughesPJ hiding ( Str )
+import System.FilePath (dropExtension)
 
 data WriterState = 
   WriterState { stInNote     :: Bool          -- @True@ if we're in a note
@@ -76,7 +77,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
   body <- blockListToLaTeX blocks
   let main = render body
   st <- get
-  let biblio      = takeWhile ((/=) '.') $  writerBiblioFile options
+  let biblio      = intercalate "," $ map dropExtension $  writerBiblioFiles options
       citecontext = case writerCiteMethod options of
                          Natbib   -> [ ("biblio", biblio)
                                      , ("natbib", "yes")
