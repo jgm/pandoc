@@ -1059,7 +1059,7 @@ strChar = noneOf (specialChars ++ " \t\n")
 str :: GenParser Char ParserState Inline
 str = do
   a <- strChar
-  as <- many (strChar <|> (try $ char '_' >>~ lookAhead strChar))
+  as <- many (strChar <|> (try $ char '_' >>~ lookAhead alphaNum))
   let result = a:as
   state <- getState
   let spacesToNbr = map (\c -> if c == ' ' then '\160' else c)
