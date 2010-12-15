@@ -57,6 +57,7 @@ module Text.Pandoc.Shared (
                      -- * Pandoc block and inline list processing
                      orderedListMarkers,
                      normalizeSpaces,
+                     normalize,
                      stringify,
                      compactify,
                      Element (..),
@@ -88,7 +89,7 @@ import Network.URI ( isAllowedInURI, escapeURIString, unEscapeString )
 import Codec.Binary.UTF8.String ( encodeString, decodeString )
 import System.Directory
 import System.FilePath ( (</>) )
-import Data.Generics (Typeable, Data)
+import Data.Generics (Typeable, Data, everywhere', mkT)
 import qualified Control.Monad.State as S
 import Paths_pandoc (getDataFileName)
 
@@ -338,6 +339,57 @@ normalizeSpaces = cleanup . dropWhile isSpaceOrEmpty
                                    _             -> Space : cleanup rest'
         cleanup ((Str ""):rest) = cleanup rest
         cleanup (x:rest) = x : cleanup rest
+
+-- | Normalize @Pandoc@ document, consolidating doubled 'Space's,
+-- combining adjacent 'Str's and 'Emph's, remove 'Null's and
+-- empty elements, etc.
+normalize :: Pandoc -> Pandoc
+normalize = everywhere' (mkT normalizeInlines) .
+            everywhere' (mkT normalizeBlocks)
+
+normalizeBlocks :: [Block] -> [Block]
+normalizeBlocks (Null : xs) = normalizeBlocks xs
+normalizeBlocks (RawHtml x : RawHtml y : zs) = normalizeBlocks $
+  RawHtml (x++y) : zs
+normalizeBlocks (x:xs) = x : normalizeBlocks xs
+normalizeBlocks [] = []
+
+normalizeInlines :: [Inline] -> [Inline]
+normalizeInlines (Str x : ys) =
+  case concat (x : map fromStr strs) of
+        ""     -> normalizeInlines rest
+        n      -> Str n : normalizeInlines rest
+   where
+     (strs, rest)  = span isStr ys
+     isStr (Str _) = True
+     isStr _       = False
+     fromStr (Str z) = z
+     fromStr _       = error "normalizeInlines - fromStr - not a Str"
+normalizeInlines (Space : ys) =
+  if null rest
+     then []
+     else Space : rest
+   where isSpace Space = True
+         isSpace _     = False
+         rest          = normalizeInlines $ dropWhile isSpace ys
+normalizeInlines (Emph xs : Emph ys : zs) = normalizeInlines $
+  Emph (xs ++ ys) : zs
+normalizeInlines (Strong xs : Strong ys : zs) = normalizeInlines $
+  Strong (xs ++ ys) : zs
+normalizeInlines (Subscript xs : Subscript ys : zs) = normalizeInlines $
+  Subscript (xs ++ ys) : zs
+normalizeInlines (Superscript xs : Superscript ys : zs) = normalizeInlines $
+  Superscript (xs ++ ys) : zs
+normalizeInlines (SmallCaps xs : SmallCaps ys : zs) = normalizeInlines $
+  SmallCaps (xs ++ ys) : zs
+normalizeInlines (Strikeout xs : Strikeout ys : zs) = normalizeInlines $
+  Strikeout (xs ++ ys) : zs
+normalizeInlines (TeX x : TeX y : zs) = normalizeInlines $
+  TeX (x ++ y) : zs
+normalizeInlines (HtmlInline x : HtmlInline y : zs) = normalizeInlines $
+  HtmlInline (x ++ y) : zs
+normalizeInlines (x : xs) = x : normalizeInlines xs
+normalizeInlines [] = []
 
 -- | Convert list of inlines to a string with formatting removed.
 stringify :: [Inline] -> String
