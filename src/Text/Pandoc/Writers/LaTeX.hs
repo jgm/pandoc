@@ -33,7 +33,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
 import Data.List ( (\\), isSuffixOf, isPrefixOf, intersperse, intercalate )
-import Data.Char ( toLower )
+import Data.Char ( toLower, isPunctuation )
 import Control.Monad.State
 import Text.PrettyPrint.HughesPJ hiding ( Str )
 import System.FilePath (dropExtension)
@@ -428,8 +428,12 @@ citeCommand c p s k = do
 
 citeArguments :: [Inline] -> [Inline] -> String -> State WriterState Doc
 citeArguments p s k = do
+  let s' = case s of
+        (Str (x:[]) : r) | isPunctuation x -> dropWhile (== Space) r
+        (Str (x:xs) : r) | isPunctuation x -> Str xs : r
+        _                                  -> s
   pdoc <- inlineListToLaTeX p
-  sdoc <- inlineListToLaTeX s
+  sdoc <- inlineListToLaTeX s'
   let optargs = case (isEmpty pdoc, isEmpty sdoc) of
                      (True, True ) -> empty
                      (True, False) -> brackets sdoc

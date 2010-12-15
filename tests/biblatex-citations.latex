@@ -39,7 +39,7 @@
 
 \item
   A citation group
-  \autocites[see][, p.~34--35]{item1}[also][chap. 3]{item3}.
+  \autocites[see][p.~34--35]{item1}[also][chap. 3]{item3}.
 
 \item
   Another one \autocite[see][p.~34--35]{item1}.
@@ -50,10 +50,10 @@
 
 \item
   Citation with a suffix and locator
-  \autocite[, pp.~33, 35--37, and nowhere else]{item1}.
+  \autocite[pp.~33, 35--37, and nowhere else]{item1}.
 
 \item
-  Citation with suffix only \autocite[, and nowhere else]{item1}.
+  Citation with suffix only \autocite[and nowhere else]{item1}.
 
 \item
   Now some modifiers.%

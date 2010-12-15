@@ -14,16 +14,16 @@
 
 -   In a note.[^1]
 
--   A citation group [see @item1, p. 34-35; also @item3 chap. 3].
+-   A citation group [see @item1 p. 34-35; also @item3 chap. 3].
 
 -   Another one [see @item1 p. 34-35].
 
 -   And another one in a note.[^2]
 
 -   Citation with a suffix and locator
-    [@item1, pp. 33, 35-37, and nowhere else].
+    [@item1 pp. 33, 35-37, and nowhere else].
 
--   Citation with suffix only [@item1, and nowhere else].
+-   Citation with suffix only [@item1 and nowhere else].
 
 -   Now some modifiers.[^3]
 

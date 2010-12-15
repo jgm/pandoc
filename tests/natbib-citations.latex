@@ -40,7 +40,7 @@
 
 \item
   A citation group
-  \citetext{\citealp[see][, p.~34--35]{item1}; \citealp[also][chap. 3]{item3}}.
+  \citetext{\citealp[see][p.~34--35]{item1}; \citealp[also][chap. 3]{item3}}.
 
 \item
   Another one \citep[see][p.~34--35]{item1}.
@@ -52,10 +52,10 @@
 
 \item
   Citation with a suffix and locator
-  \citep[, pp.~33, 35--37, and nowhere else]{item1}.
+  \citep[pp.~33, 35--37, and nowhere else]{item1}.
 
 \item
-  Citation with suffix only \citep[, and nowhere else]{item1}.
+  Citation with suffix only \citep[and nowhere else]{item1}.
 
 \item
   Now some modifiers.%
