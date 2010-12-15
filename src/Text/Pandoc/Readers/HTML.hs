@@ -164,7 +164,9 @@ anyHtmlTag :: GenParser Char ParserState [Char]
 anyHtmlTag = try $ do
   char '<'
   spaces
-  tag <- many1 alphaNum
+  first <- letter
+  rest <- many (alphaNum <|> char ':')
+  let tag = first : rest
   attribs <- many htmlAttribute
   spaces
   ender <- option "" (string "/")
@@ -181,7 +183,9 @@ anyHtmlEndTag = try $ do
   spaces
   char '/'
   spaces
-  tag <- many1 alphaNum
+  first <- letter
+  rest <- many (alphaNum <|> char ':')
+  let tag = first : rest
   spaces
   char '>'
   let result = "</" ++ tag ++ ">"
