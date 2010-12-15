@@ -120,7 +120,8 @@ anyEnvironment =  try $ do
 -- | Process LaTeX preamble, extracting metadata.
 processLaTeXPreamble :: GenParser Char ParserState ()
 processLaTeXPreamble =
-  skipMany $ notFollowedBy' anyEnvironment >> block
+  skipMany $ choice [ bibliographic, unknownCommand,
+                      commentBlock, skipToken ]
 
 -- | Parse LaTeX and return 'Pandoc'.
 parseLaTeX :: GenParser Char ParserState Pandoc
@@ -156,7 +157,9 @@ block = choice [ hrule
                , itemBlock
                , unknownEnvironment
                , ignore
-               , unknownCommand ] <?> "block"
+               , unknownCommand
+               , skipToken
+               ] <?> "block"
 
 --
 -- header blocks
@@ -434,6 +437,9 @@ unknownCommand = try $ do
 
 commandsToIgnore :: [String]
 commandsToIgnore = ["special","pdfannot","pdfstringdef","bibliography"]
+
+skipToken :: GenParser Char ParserState Block
+skipToken = satisfy (/='\\') >> spaces >> return Null
 
 commentBlock :: GenParser Char st Block
 commentBlock = comment >> return Null
