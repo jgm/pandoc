@@ -9,8 +9,8 @@ import Distribution.Verbosity ( Verbosity, silent )
 import Distribution.Simple.InstallDirs (mandir, bindir, CopyDest (NoCopyDest))
 import Distribution.Simple.Utils (copyFiles)
 import Control.Exception ( bracket_ )
-import Control.Monad ( unless )
-import System.Process ( runCommand, runProcess, waitForProcess )
+import Control.Monad ( unless, when )
+import System.Process ( rawSystem, runCommand, runProcess, waitForProcess )
 import System.FilePath ( (</>), (<.>) )
 import System.Directory
 import System.IO ( stderr )
@@ -38,13 +38,20 @@ main = do
 
 -- | Run test suite.
 runTestSuite :: Args -> Bool -> PackageDescription -> LocalBuildInfo -> IO a
-runTestSuite _ _ pkg _ = do
-  let isHighlightingKate (Dependency (PackageName "highlighting-kate") _) = True
-      isHighlightingKate _ = False
-  let highlightingSupport = any isHighlightingKate $ buildDepends pkg
-  let testArgs = ["lhs" | highlightingSupport]
-  let testCmd  = "runhaskell -i.. RunTests.hs " ++ unwords testArgs
-  inDirectory "tests" $ runCommand testCmd >>= waitForProcess >>= exitWith
+runTestSuite _ _ pkg lbi = do
+  let testDir = buildDir lbi </> "test-pandoc"
+  testDir' <- canonicalizePath testDir
+  if any id [buildable (buildInfo exe) | exe <- executables pkg, exeName exe == "test-pandoc"]
+     then do
+         let isHighlightingKate (Dependency (PackageName "highlighting-kate") _) = True
+             isHighlightingKate _ = False
+         let highlightingSupport = any isHighlightingKate $ buildDepends pkg
+         let testArgs = ["lhs" | highlightingSupport]
+         inDirectory "tests" $ rawSystem (testDir' </> "test-pandoc")
+                                 testArgs >>= exitWith
+     else do
+         putStrLn "Build pandoc with the 'tests' flag to run tests"
+         exitWith $ ExitFailure 3
 
 -- | Build man pages from markdown sources in man/man1/.
 makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()

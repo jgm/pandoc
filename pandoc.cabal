@@ -74,7 +74,7 @@ Extra-Source-Files:
                  -- code to create pandoc.1 man page
                  MakeManPage.hs,
                  manpage.template,
-                 -- benchmarking
+                 -- benchmarks
                  Benchmark.hs,
                  -- tests
                  tests/bodybg.gif,
@@ -136,8 +136,7 @@ Extra-Source-Files:
                  tests/lhs-test.latex+lhs,
                  tests/lhs-test.html,
                  tests/lhs-test.html+lhs,
-                 tests/lhs-test.fragment.html+lhs,
-                 tests/RunTests.hs
+                 tests/lhs-test.fragment.html+lhs
 Extra-Tmp-Files: man/man1/pandoc.1, man/man1/markdown2pdf.1
 
 Flag threaded
@@ -155,6 +154,12 @@ Flag library
 Flag wrappers
   Description:   Build the wrappers (markdown2pdf).
   Default:       True
+Flag tests
+  Description:   Build test-pandoc.
+  Default:       False
+Flag benchmarks
+  Description:   Build benchmark-pandoc.
+  Default:       False
 
 Library
   -- Note: the following material must be in both Library and Executable stanzas.
@@ -261,9 +266,9 @@ Executable pandoc
 
   Main-Is:            pandoc.hs
   if flag(executable) || flag(wrappers)
-    Buildable:      True
+    Buildable:        True
   else
-    Buildable:      False
+    Buildable:        False
 
 Executable markdown2pdf
   Hs-Source-Dirs:     src
@@ -275,7 +280,16 @@ Executable markdown2pdf
   Ghc-Prof-Options:   -auto-all
   Extensions:         CPP
   if flag(wrappers)
-    Buildable:      True
+    Buildable:        True
   else
-    Buildable:      False
+    Buildable:        False
+
+Executable test-pandoc
+  Hs-Source-Dirs:     src
+  Main-Is:            test-pandoc.hs
+  if !flag(tests)
+    Buildable:        False
+  else
+    Ghc-Options:      -Wall
+    Build-Depends:    base >= 4 && < 5, Diff, MissingH
 
