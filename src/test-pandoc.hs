@@ -21,7 +21,7 @@ import System.Environment
 import System.Exit
 import Text.Printf
 import Data.Algorithm.Diff
-import Data.String.Utils ( replace )
+import Text.Pandoc.Shared ( substitute )
 import Prelude hiding ( readFile )
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString, fromString)
@@ -167,7 +167,7 @@ runLatexCitationTests o n
     where
         o' = o ++ ["--" ++ n]
         f  = n ++ "-citations.latex"
-        normalize = replace "\160" " " . replace "\8211" "-"
+        normalize = substitute "\160" " " . substitute "\8211" "-"
         rt        = runTestWithNormalize normalize
 
 runWriterTest :: String -> IO Bool
