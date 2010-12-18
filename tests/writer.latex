@@ -47,9 +47,9 @@ John Gruber's markdown test suite.
 
 \subsubsection{Level 3 with \emph{emphasis}}
 
-Level 4
+\paragraph{Level 4}
 
-Level 5
+\subparagraph{Level 5}
 
 \section{Level 1}
 

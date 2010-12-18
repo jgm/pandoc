@@ -228,15 +228,16 @@ blockToLaTeX (Header level lst) = do
                    return $ char '[' <> res <> char ']'
   let stuffing = optional <> char '{' <> txt <> char '}'
   book <- liftM stBook get
-  return $ case (book, level) of
-                (True, 1)    -> text "\\chapter" <> stuffing <> char '\n'
-                (True, 2)    -> text "\\section" <> stuffing <> char '\n'
-                (True, 3)    -> text "\\subsection" <> stuffing <> char '\n'
-                (True, 4)    -> text "\\subsubsection" <> stuffing <> char '\n'
-                (False, 1)   -> text "\\section" <> stuffing <> char '\n'
-                (False, 2)   -> text "\\subsection" <> stuffing <> char '\n'
-                (False, 3)   -> text "\\subsubsection" <> stuffing <> char '\n'
-                _            -> txt <> char '\n' 
+  let level' = if book then level - 1 else level
+  let headerWith x y = text x <> y <> char '\n'
+  return $ case level' of
+                0  -> headerWith "\\chapter" stuffing
+                1  -> headerWith "\\section" stuffing
+                2  -> headerWith "\\subsection" stuffing
+                3  -> headerWith "\\subsubsection" stuffing
+                4  -> headerWith "\\paragraph" stuffing
+                5  -> headerWith "\\subparagraph" stuffing
+                _            -> txt <> char '\n'
 blockToLaTeX (Table caption aligns widths heads rows) = do
   headers <- if all null heads
                 then return empty
