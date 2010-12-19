@@ -161,14 +161,14 @@ blockToLaTeX (Plain lst) = inlineListToLaTeX lst
 blockToLaTeX (Para [Image txt (src,tit)]) = do
   capt <- inlineListToLaTeX txt
   img <- inlineToLaTeX (Image txt (src,tit))
-  return $ text "\\begin{figure}[htb]" $$ text "\\centering" $$ img $$
-           (text "\\caption{" <> capt <> char '}') $$ text "\\end{figure}" $$ blankline
+  return $ "\\begin{figure}[htb]" $$ "\\centering" $$ img $$
+           ("\\caption{" <> capt <> char '}') $$ "\\end{figure}" $$ blankline
 blockToLaTeX (Para lst) = do
   result <- inlineListToLaTeX lst
   return $ result <> blankline
 blockToLaTeX (BlockQuote lst) = do
   contents <- blockListToLaTeX lst
-  return $ text "\\begin{quote}" $$ contents $$ text "\\end{quote}"
+  return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
 blockToLaTeX (CodeBlock (_,classes,_) str) = do
   st <- get
   env <- if writerLiterateHaskell (stOptions st) && "haskell" `elem` classes &&
@@ -186,7 +186,7 @@ blockToLaTeX (CodeBlock (_,classes,_) str) = do
 blockToLaTeX (RawHtml _) = return empty
 blockToLaTeX (BulletList lst) = do
   items <- mapM listItemToLaTeX lst
-  return $ text "\\begin{itemize}" $$ vcat items $$ text "\\end{itemize}"
+  return $ "\\begin{itemize}" $$ vcat items $$ "\\end{itemize}"
 blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   st <- get
   let oldlevel = stOLLevel st
@@ -205,12 +205,11 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
                              map toLower (toRomanNumeral oldlevel) ++
                              "}{" ++ show (start - 1) ++ "}"
                         else empty 
-  return $ text "\\begin{enumerate}" <> exemplar $$ resetcounter $$
-           vcat items $$ text "\\end{enumerate}"
+  return $ "\\begin{enumerate}" <> exemplar $$ resetcounter $$
+           vcat items $$ "\\end{enumerate}"
 blockToLaTeX (DefinitionList lst) = do
   items <- mapM defListItemToLaTeX lst
-  return $ text "\\begin{description}" $$ vcat items $$
-           text "\\end{description}"
+  return $ "\\begin{description}" $$ vcat items $$ "\\end{description}"
 blockToLaTeX HorizontalRule = return $
   "\\begin{center}\\rule{3in}{0.4pt}\\end{center}" $$ blankline
 blockToLaTeX (Header level lst) = do
@@ -241,18 +240,18 @@ blockToLaTeX (Header level lst) = do
 blockToLaTeX (Table caption aligns widths heads rows) = do
   headers <- if all null heads
                 then return empty
-                else liftM ($$ text "\\hline") $ tableRowToLaTeX heads
+                else liftM ($$ "\\hline") $ tableRowToLaTeX heads
   captionText <- inlineListToLaTeX caption
   rows' <- mapM tableRowToLaTeX rows
   let colDescriptors = concat $ zipWith toColDescriptor widths aligns
   let tableBody = text ("\\begin{tabular}{" ++ colDescriptors ++ "}") $$
-                  headers $$ vcat rows' $$ text "\\end{tabular}"
-  let centered txt = text "\\begin{center}" $$ txt $$ text "\\end{center}"
+                  headers $$ vcat rows' $$ "\\end{tabular}"
+  let centered txt = "\\begin{center}" $$ txt $$ "\\end{center}"
   modify $ \s -> s{ stTable = True }
   return $ if isEmpty captionText
               then centered tableBody $$ blankline
-              else text "\\begin{table}[h]" $$ centered tableBody $$
-                   inCmd "caption" captionText $$ text "\\end{table}" $$ blankline
+              else "\\begin{table}[h]" $$ centered tableBody $$
+                   inCmd "caption" captionText $$ "\\end{table}" $$ blankline
 
 toColDescriptor :: Double -> Alignment -> String
 toColDescriptor 0 align =
@@ -286,7 +285,7 @@ defListItemToLaTeX :: ([Inline], [[Block]]) -> State WriterState Doc
 defListItemToLaTeX (term, defs) = do
     term' <- inlineListToLaTeX $ deVerb term
     def'  <- liftM vsep $ mapM blockListToLaTeX defs
-    return $ text "\\item[" <> term' <> text "]" $$ def'
+    return $ "\\item" <> brackets term' $$ def'
 
 -- | Convert list of inline elements to LaTeX.
 inlineListToLaTeX :: [Inline]  -- ^ Inlines to convert
@@ -335,31 +334,31 @@ inlineToLaTeX (Code str) = do
 inlineToLaTeX (Quoted SingleQuote lst) = do
   contents <- inlineListToLaTeX lst
   let s1 = if (not (null lst)) && (isQuoted (head lst))
-              then text "\\,"
-              else empty 
+              then "\\,"
+              else empty
   let s2 = if (not (null lst)) && (isQuoted (last lst))
-              then text "\\,"
+              then "\\,"
               else empty
   return $ char '`' <> s1 <> contents <> s2 <> char '\''
 inlineToLaTeX (Quoted DoubleQuote lst) = do
   contents <- inlineListToLaTeX lst
   let s1 = if (not (null lst)) && (isQuoted (head lst))
-              then text "\\,"
-              else empty 
-  let s2 = if (not (null lst)) && (isQuoted (last lst))
-              then text "\\,"
+              then "\\,"
               else empty
-  return $ text "``" <> s1 <> contents <> s2 <> text "''"
+  let s2 = if (not (null lst)) && (isQuoted (last lst))
+              then "\\,"
+              else empty
+  return $ "``" <> s1 <> contents <> s2 <> "''"
 inlineToLaTeX Apostrophe = return $ char '\''
-inlineToLaTeX EmDash = return $ text "---"
-inlineToLaTeX EnDash = return $ text "--"
-inlineToLaTeX Ellipses = return $ text "\\ldots{}"
+inlineToLaTeX EmDash = return "---"
+inlineToLaTeX EnDash = return "--"
+inlineToLaTeX Ellipses = return "\\ldots{}"
 inlineToLaTeX (Str str) = return $ text $ stringToLaTeX str
 inlineToLaTeX (Math InlineMath str) = return $ char '$' <> text str <> char '$'
-inlineToLaTeX (Math DisplayMath str) = return $ text "\\[" <> text str <> text "\\]"
+inlineToLaTeX (Math DisplayMath str) = return $ "\\[" <> text str <> "\\]"
 inlineToLaTeX (TeX str) = return $ text str
 inlineToLaTeX (HtmlInline _) = return empty
-inlineToLaTeX (LineBreak) = return $ text "\\\\" 
+inlineToLaTeX (LineBreak) = return "\\\\"
 inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt (src, _)) =
   case txt of
@@ -367,17 +366,17 @@ inlineToLaTeX (Link txt (src, _)) =
              do modify $ \s -> s{ stUrl = True }
                 return $ text $ "\\url{" ++ x ++ "}"
         _ -> do contents <- inlineListToLaTeX $ deVerb txt
-                return $ text ("\\href{" ++ src ++ "}{") <> contents <> 
+                return $ text ("\\href{" ++ src ++ "}{") <> contents <>
                          char '}'
 inlineToLaTeX (Image _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True }
-  return $ text $ "\\includegraphics{" ++ source ++ "}"
+  return $ "\\includegraphics" <> braces (text source)
 inlineToLaTeX (Note contents) = do
   modify (\s -> s{stInNote = True})
   contents' <- blockListToLaTeX contents
   modify (\s -> s {stInNote = False})
   -- note: a \n before } is needed when note ends with a Verbatim environment
-  return $ text "\\footnote{" <> nest 2 contents' <> char '}'
+  return $ "\\footnote" <> braces (nest 2 contents')
 
 
 citationsToNatbib :: [Citation] -> State WriterState Doc
