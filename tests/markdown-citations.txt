@@ -28,7 +28,6 @@
 
 -   With some markup [*see* @item1 p. **32**].
 
-
 # References
 
 [^1]: A citation without locators [@item3].
@@ -36,4 +35,3 @@
 [^2]: Some citations [see @item2 chap. 3; @item3; @item1].
 
 [^3]: Like a citation without author: [-@item1], and now Doe with a locator [-@item2 p. 44].
-
