@@ -59,8 +59,10 @@ module Text.Pandoc.Pretty (
      , hsep
      , vcat
      , vsep
+     , enclosed
      , braces
      , brackets
+     , parens
      )
 
 where
@@ -395,10 +397,19 @@ chop n cs = case break (=='\n') cs of
                                      else take n xs : chop n (drop n xs ++ ys)
                                    where len = length xs
 
+-- | Encloses a 'Doc' inside a start and end 'Doc'.
+enclosed :: Doc -> Doc -> Doc -> Doc
+enclosed start end contents =
+  start <> contents <> end
+
 -- | Puts a 'Doc' in curly braces.
 braces :: Doc -> Doc
-braces d = char '{' <> d <> char '}'
+braces = enclosed (char '{') (char '}')
 
 -- | Puts a 'Doc' in square brackets.
 brackets :: Doc -> Doc
-brackets d = char '[' <> d <> char ']'
+brackets = enclosed (char '[') (char ']')
+
+-- | Puts a 'Doc' in parentheses.
+parens :: Doc -> Doc
+parens = enclosed (char '[') (char ']')
