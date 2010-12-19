@@ -399,6 +399,11 @@ stringify = queryWith go
         go (Str x) = x
         go (Code x) = x
         go (Math _ x) = x
+        go EmDash = "--"
+        go EnDash = "-"
+        go Apostrophe = "'"
+        go Ellipses = "..."
+        go LineBreak = " "
         go _ = ""
 
 -- | Change final list item from @Para@ to @Plain@ if the list contains
@@ -432,34 +437,12 @@ data Element = Blk Block
 -- letters, digits, and the characters _-.
 inlineListToIdentifier :: [Inline] -> String
 inlineListToIdentifier =
-  dropWhile (not . isAlpha) . intercalate "-" . words . map toLower .
-  filter (\c -> isLetter c || isDigit c || c `elem` "_-. ") .
-  concatMap extractText
-    where extractText x = case x of
-              Str s           -> map nbspToSp s
-              Emph lst        -> concatMap extractText lst
-              Strikeout lst   -> concatMap extractText lst
-              Superscript lst -> concatMap extractText lst
-              SmallCaps   lst -> concatMap extractText lst
-              Subscript lst   -> concatMap extractText lst
-              Strong lst      -> concatMap extractText lst
-              Quoted _ lst    -> concatMap extractText lst
-              Cite   _ lst    -> concatMap extractText lst
-              Code s          -> s
-              Space           -> " "
-              EmDash          -> "---"
-              EnDash          -> "--"
-              Apostrophe      -> ""
-              Ellipses        -> "..."
-              LineBreak       -> " "
-              Math _ s        -> s
-              TeX _           -> ""
-              HtmlInline _    -> ""
-              Link lst _      -> concatMap extractText lst
-              Image lst _     -> concatMap extractText lst
-              Note _          -> ""
-          nbspToSp '\160'     =  ' '
-          nbspToSp x          =  x
+  dropWhile (not . isAlpha) . intercalate "-" . words .
+    map (nbspToSp . toLower) .
+    filter (\c -> isLetter c || isDigit c || c `elem` "_-. ") .
+    stringify
+ where nbspToSp '\160'     =  ' '
+       nbspToSp x          =  x
 
 -- | Convert list of Pandoc blocks into (hierarchical) list of Elements
 hierarchicalize :: [Block] -> [Element]
