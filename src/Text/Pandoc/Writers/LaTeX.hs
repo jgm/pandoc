@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -32,10 +33,10 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
-import Data.List ( (\\), isSuffixOf, isPrefixOf, intersperse, intercalate )
+import Data.List ( (\\), isSuffixOf, isPrefixOf, intercalate )
 import Data.Char ( toLower, isPunctuation )
 import Control.Monad.State
-import Text.PrettyPrint.HughesPJ hiding ( Str )
+import Text.Pandoc.Pretty
 import System.FilePath (dropExtension)
 
 data WriterState = 
@@ -71,17 +72,21 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
           "{report}" `isSuffixOf` x)
   when (any usesBookClass (lines template)) $
     modify $ \s -> s{stBook = True}
-  titletext <- liftM render $ inlineListToLaTeX title
-  authorsText <- mapM (liftM render . inlineListToLaTeX) authors
-  dateText <- liftM render $ inlineListToLaTeX date
+  opts <- liftM stOptions get
+  let colwidth = if writerWrapText opts
+                    then Just $ writerColumns opts
+                    else Nothing
+  titletext <- liftM (render colwidth) $ inlineListToLaTeX title
+  authorsText <- mapM (liftM (render colwidth) . inlineListToLaTeX) authors
+  dateText <- liftM (render colwidth) $ inlineListToLaTeX date
   let (blocks', lastHeader) = if writerCiteMethod options == Citeproc then
                                 (blocks, [])
                               else case last blocks of
                                 Header 1 il -> (init blocks, il)
                                 _           -> (blocks, [])
   body <- blockListToLaTeX blocks'
-  biblioTitle <- liftM render $ inlineListToLaTeX lastHeader
-  let main = render body
+  biblioTitle <- liftM (render colwidth) $ inlineListToLaTeX lastHeader
+  let main = render colwidth body
   st <- get
   let biblioFiles = intercalate "," $ map dropExtension $  writerBiblioFiles options
       citecontext = case writerCiteMethod options of
@@ -152,20 +157,15 @@ deVerb (other:rest) = other:(deVerb rest)
 blockToLaTeX :: Block     -- ^ Block to convert
              -> State WriterState Doc
 blockToLaTeX Null = return empty
-blockToLaTeX (Plain lst) = do
-  st <- get
-  let opts = stOptions st
-  wrapTeXIfNeeded opts True inlineListToLaTeX lst
+blockToLaTeX (Plain lst) = inlineListToLaTeX lst
 blockToLaTeX (Para [Image txt (src,tit)]) = do
   capt <- inlineListToLaTeX txt
   img <- inlineToLaTeX (Image txt (src,tit))
   return $ text "\\begin{figure}[htb]" $$ text "\\centering" $$ img $$
-           (text "\\caption{" <> capt <> char '}') $$ text "\\end{figure}\n"
+           (text "\\caption{" <> capt <> char '}') $$ text "\\end{figure}" $$ blankline
 blockToLaTeX (Para lst) = do
-  st <- get
-  let opts = stOptions st
-  result <- wrapTeXIfNeeded opts True inlineListToLaTeX lst
-  return $ result <> char '\n'
+  result <- inlineListToLaTeX lst
+  return $ result <> blankline
 blockToLaTeX (BlockQuote lst) = do
   contents <- blockListToLaTeX lst
   return $ text "\\begin{quote}" $$ contents $$ text "\\end{quote}"
@@ -181,8 +181,8 @@ blockToLaTeX (CodeBlock (_,classes,_) str) = do
                       modify $ \s -> s{ stVerbInNote = True }
                       return "Verbatim"
                     else return "verbatim"
-  return $ text ("\\begin{" ++ env ++ "}\n") <> text str <> 
-           text ("\n\\end{" ++ env ++ "}")
+  return $ "\\begin{" <> text env <> "}" $$ flush (text str) $$
+           "\\end{" <> text env <> "}" $$ cr   -- final cr needed because of footnotes
 blockToLaTeX (RawHtml _) = return empty
 blockToLaTeX (BulletList lst) = do
   items <- mapM listItemToLaTeX lst
@@ -211,8 +211,8 @@ blockToLaTeX (DefinitionList lst) = do
   items <- mapM defListItemToLaTeX lst
   return $ text "\\begin{description}" $$ vcat items $$
            text "\\end{description}"
-blockToLaTeX HorizontalRule = return $ text $
-    "\\begin{center}\\rule{3in}{0.4pt}\\end{center}\n"
+blockToLaTeX HorizontalRule = return $
+  "\\begin{center}\\rule{3in}{0.4pt}\\end{center}" $$ blankline
 blockToLaTeX (Header level lst) = do
   let lst' = deVerb lst
   txt <- inlineListToLaTeX lst'
@@ -229,7 +229,7 @@ blockToLaTeX (Header level lst) = do
   let stuffing = optional <> char '{' <> txt <> char '}'
   book <- liftM stBook get
   let level' = if book then level - 1 else level
-  let headerWith x y = text x <> y <> char '\n'
+  let headerWith x y = text x <> y $$ blankline
   return $ case level' of
                 0  -> headerWith "\\chapter" stuffing
                 1  -> headerWith "\\section" stuffing
@@ -237,7 +237,7 @@ blockToLaTeX (Header level lst) = do
                 3  -> headerWith "\\subsubsection" stuffing
                 4  -> headerWith "\\paragraph" stuffing
                 5  -> headerWith "\\subparagraph" stuffing
-                _            -> txt <> char '\n'
+                _            -> txt $$ blankline
 blockToLaTeX (Table caption aligns widths heads rows) = do
   headers <- if all null heads
                 then return empty
@@ -246,13 +246,13 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
   rows' <- mapM tableRowToLaTeX rows
   let colDescriptors = concat $ zipWith toColDescriptor widths aligns
   let tableBody = text ("\\begin{tabular}{" ++ colDescriptors ++ "}") $$
-                  headers $$ vcat rows' $$ text "\\end{tabular}" 
+                  headers $$ vcat rows' $$ text "\\end{tabular}"
   let centered txt = text "\\begin{center}" $$ txt $$ text "\\end{center}"
   modify $ \s -> s{ stTable = True }
   return $ if isEmpty captionText
-              then centered tableBody <> char '\n'
-              else text "\\begin{table}[h]" $$ centered tableBody $$ 
-                   inCmd "caption" captionText $$ text "\\end{table}\n" 
+              then centered tableBody $$ blankline
+              else text "\\begin{table}[h]" $$ centered tableBody $$
+                   inCmd "caption" captionText $$ text "\\end{table}" $$ blankline
 
 toColDescriptor :: Double -> Alignment -> String
 toColDescriptor 0 align =
@@ -285,7 +285,7 @@ listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
 defListItemToLaTeX :: ([Inline], [[Block]]) -> State WriterState Doc
 defListItemToLaTeX (term, defs) = do
     term' <- inlineListToLaTeX $ deVerb term
-    def'  <- liftM (vcat . intersperse (text "")) $ mapM blockListToLaTeX defs
+    def'  <- liftM vsep $ mapM blockListToLaTeX defs
     return $ text "\\item[" <> term' <> text "]" $$ def'
 
 -- | Convert list of inline elements to LaTeX.
@@ -360,7 +360,7 @@ inlineToLaTeX (Math DisplayMath str) = return $ text "\\[" <> text str <> text "
 inlineToLaTeX (TeX str) = return $ text str
 inlineToLaTeX (HtmlInline _) = return empty
 inlineToLaTeX (LineBreak) = return $ text "\\\\" 
-inlineToLaTeX Space = return $ char ' '
+inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt (src, _)) =
   case txt of
         [Code x] | x == src ->  -- autolink
@@ -373,15 +373,11 @@ inlineToLaTeX (Image _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True }
   return $ text $ "\\includegraphics{" ++ source ++ "}"
 inlineToLaTeX (Note contents) = do
-  st <- get
-  put (st {stInNote = True})
+  modify (\s -> s{stInNote = True})
   contents' <- blockListToLaTeX contents
   modify (\s -> s {stInNote = False})
-  let rawnote = stripTrailingNewlines $ render contents'
   -- note: a \n before } is needed when note ends with a Verbatim environment
-  let optNewline = "\\end{Verbatim}" `isSuffixOf` rawnote
-  return $ text "\\footnote{" <> 
-           text rawnote <> (if optNewline then char '\n' else empty) <> char '}'
+  return $ text "\\footnote{" <> nest 2 contents' <> char '}'
 
 
 citationsToNatbib :: [Citation] -> State WriterState Doc
