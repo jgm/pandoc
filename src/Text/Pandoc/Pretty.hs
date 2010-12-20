@@ -412,4 +412,4 @@ brackets = enclosed (char '[') (char ']')
 
 -- | Puts a 'Doc' in parentheses.
 parens :: Doc -> Doc
-parens = enclosed (char '[') (char ']')
+parens = enclosed (char '(') (char ')')
