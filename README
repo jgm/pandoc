@@ -1300,6 +1300,8 @@ and references.  To use another style, you will need to use the
 `--csl` option to specify a [CSL] 1.0 style file.  A primer on
 creating and modifying CSL styles can be found at
 <http://citationstyles.org/downloads/primer.html>.
+A repository of CSL styles can be found at
+<https://github.com/citation-style-language/styles>.
 
 Citations go inside square brackets and are separated by semicolons.
 Each citation must have a key, composed of '@' + the citation
