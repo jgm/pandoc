@@ -98,12 +98,12 @@ import Paths_pandoc (getDataFileName)
 --
 
 -- | Split list by groups of one or more sep.
-splitBy :: (Eq a) => a -> [a] -> [[a]]
+splitBy :: (a -> Bool) -> [a] -> [[a]]
 splitBy _ [] = []
-splitBy sep lst = 
-  let (first, rest) = break (== sep) lst
-      rest'         = dropWhile (== sep) rest
-  in  first:(splitBy sep rest')
+splitBy isSep lst =
+  let (first, rest) = break isSep lst
+      rest'         = dropWhile isSep rest
+  in  first:(splitBy isSep rest')
 
 -- | Split list into chunks divided at specified indices.
 splitByIndices :: [Int] -> [a] -> [[a]]
@@ -227,7 +227,7 @@ tabFilter tabStop =
 
 -- | Wrap inlines to line length.
 wrapped :: Monad m => ([Inline] -> m Doc) -> [Inline] -> m Doc
-wrapped listWriter sect = (mapM listWriter $ splitBy Space sect) >>= 
+wrapped listWriter sect = (mapM listWriter $ splitBy (== Space) sect) >>= 
                           return . fsep
 
 -- | Wrap inlines if the text wrap option is selected.

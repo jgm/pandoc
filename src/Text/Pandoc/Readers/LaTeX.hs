@@ -340,7 +340,7 @@ authors :: GenParser Char ParserState Block
 authors = try $ do
   string "\\author{"
   raw <- many1 (notFollowedBy (char '}') >> inline)
-  let authors' = map normalizeSpaces $ splitBy LineBreak raw
+  let authors' = map normalizeSpaces $ splitBy (== LineBreak) raw
   char '}'
   spaces
   updateState (\s -> s { stateAuthors = authors' })
