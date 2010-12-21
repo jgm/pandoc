@@ -61,8 +61,8 @@ after={\blank[medium]},
   \blank[3*medium]
 \stopalignment
 
-This is a set of tests for pandoc. Most of them are adapted from
-John Gruber's markdown test suite.
+This is a set of tests for pandoc. Most of them are adapted from John Gruber's
+markdown test suite.
 
 \thinrule
 
@@ -94,9 +94,9 @@ with no blank line
 
 Here's a regular paragraph.
 
-In Markdown 1.0.0 and earlier. Version 8. This line turns into a
-list item. Because a hard-wrapped line in the middle of a paragraph
-looked like a list item.
+In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
+Because a hard-wrapped line in the middle of a paragraph looked like a list
+item.
 
 Here's one with a bullet. * criminey.
 
@@ -293,9 +293,8 @@ Multiple paragraphs:
 \startitemize[n][stopper=.]
 \item
   Item 1, graf one.
-  
-  Item 1. graf two. The quick brown fox jumped over the lazy dog's
-  back.
+
+  Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
 \item
   Item 2.
 \item
@@ -343,7 +342,7 @@ Same thing but with paragraphs:
   First
 \item
   Second:
-  
+
   \startitemize
   \item
     Fee
@@ -363,7 +362,7 @@ Same thing but with paragraphs:
   this is a list item indented with tabs
 \item
   this is a list item indented with spaces
-  
+
   \startitemize
   \item
     this is an example list item indented with tabs
@@ -379,9 +378,9 @@ Same thing but with paragraphs:
   begins with 2
 \item
   and now 3
-  
+
   with a continuation
-  
+
   \startitemize[r][start=4,stopper=.,width=2.0em]
   \item
     sublist with roman numerals, starting with 4
@@ -441,110 +440,110 @@ B. Williams
 Tight using spaces:
 
 \startdescr{apple}
-red fruit
+  red fruit
 \stopdescr
 
 \startdescr{orange}
-orange fruit
+  orange fruit
 \stopdescr
 
 \startdescr{banana}
-yellow fruit
+  yellow fruit
 \stopdescr
 
 Tight using tabs:
 
 \startdescr{apple}
-red fruit
+  red fruit
 \stopdescr
 
 \startdescr{orange}
-orange fruit
+  orange fruit
 \stopdescr
 
 \startdescr{banana}
-yellow fruit
+  yellow fruit
 \stopdescr
 
 Loose:
 
 \startdescr{apple}
-red fruit
+  red fruit
 \stopdescr
 
 \startdescr{orange}
-orange fruit
+  orange fruit
 \stopdescr
 
 \startdescr{banana}
-yellow fruit
+  yellow fruit
 \stopdescr
 
 Multiple blocks with italics:
 
 \startdescr{{\em apple}}
-red fruit
+  red fruit
 
-contains seeds, crisp, pleasant to taste
+  contains seeds, crisp, pleasant to taste
 \stopdescr
 
 \startdescr{{\em orange}}
-orange fruit
+  orange fruit
 
-\starttyping
+  \starttyping
 { orange code block }
-\stoptyping
+  \stoptyping
 
-\startblockquote
-orange block quote
-\stopblockquote
+  \startblockquote
+  orange block quote
+  \stopblockquote
 \stopdescr
 
 Multiple definitions, tight:
 
 \startdescr{apple}
-red fruit
+  red fruit
 
-computer
+  computer
 \stopdescr
 
 \startdescr{orange}
-orange fruit
+  orange fruit
 
-bank
+  bank
 \stopdescr
 
 Multiple definitions, loose:
 
 \startdescr{apple}
-red fruit
+  red fruit
 
-computer
+  computer
 \stopdescr
 
 \startdescr{orange}
-orange fruit
+  orange fruit
 
-bank
+  bank
 \stopdescr
 
 Blank line after term, indented marker, alternate markers:
 
 \startdescr{apple}
-red fruit
+  red fruit
 
-computer
+  computer
 \stopdescr
 
 \startdescr{orange}
-orange fruit
+  orange fruit
 
-\startitemize[n][stopper=.]
-\item
-  sublist
-\item
-  sublist
-\stopitemize
+  \startitemize[n][stopper=.]
+  \item
+    sublist
+  \item
+    sublist
+  \stopitemize
 \stopdescr
 
 \subject{HTML Blocks}
@@ -618,8 +617,7 @@ So is {\bf {\em this}} word.
 
 So is {\bf {\em this}} word.
 
-This is code: \type{>}, \type{$}, \type{\}, \type{\$},
-\type{<html>}.
+This is code: \type{>}, \type{$}, \type{\}, \type{\$}, \type{<html>}.
 
 \overstrikes{This is {\em strikeout}.}
 
@@ -627,27 +625,25 @@ Superscripts: a\high{bc}d a\high{{\em hello}} a\high{hello~there}.
 
 Subscripts: H\low{2}O, H\low{23}O, H\low{many~of~them}O.
 
-These should not be superscripts or subscripts, because of the
-unescaped spaces: a\letterhat{}b c\letterhat{}d, a\lettertilde{}b
-c\lettertilde{}d.
+These should not be superscripts or subscripts, because of the unescaped
+spaces: a\letterhat{}b c\letterhat{}d, a\lettertilde{}b c\lettertilde{}d.
 
 \thinrule
 
 \subject{Smart quotes, ellipses, dashes}
 
-\quotation{Hello,} said the spider.
-\quotation{\quote{Shelob} is my name.}
+\quotation{Hello,} said the spider. \quotation{\quote{Shelob} is my name.}
 
 \quote{A}, \quote{B}, and \quote{C} are letters.
 
-\quote{Oak,} \quote{elm,} and \quote{beech} are names of trees. So
-is \quote{pine.}
+\quote{Oak,} \quote{elm,} and \quote{beech} are names of trees. So is
+\quote{pine.}
 
-\quote{He said, \quotation{I want to go.}} Were you alive in the
-70's?
+\quote{He said, \quotation{I want to go.}} Were you alive in the 70's?
 
 Here is some quoted \quote{\type{code}} and a
-\quotation{\useURL[3][http://example.com/?foo=1&bar=2][][quoted link]\from[3]}.
+\quotation{\useURL[3][http://example.com/?foo=1&bar=2][][quoted
+link]\from[3]}.
 
 Some dashes: one---two --- three---four --- five.
 
@@ -676,8 +672,7 @@ Ellipses\ldots{}and\ldots{}and\ldots{}.
   Here's some display math:
   \startformula \frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h} \stopformula
 \item
-  Here's one that has a line break in it:
-  $\alpha + \omega \times x^2$.
+  Here's one that has a line break in it: $\alpha + \omega \times x^2$.
 \stopitemize
 
 These shouldn't be math:
@@ -817,16 +812,16 @@ Foo \useURL[22][/url/][][biz]\from[22].
 
 \subsubject{With ampersands}
 
-Here's a
-\useURL[23][http://example.com/?foo=1&bar=2][][link with an ampersand in the URL]\from[23].
+Here's a \useURL[23][http://example.com/?foo=1&bar=2][][link with an ampersand
+in the URL]\from[23].
 
 Here's a link with an amersand in the link text:
 \useURL[24][http://att.com/][][AT\&T]\from[24].
 
 Here's an \useURL[25][/script?foo=1&bar=2][][inline link]\from[25].
 
-Here's an
-\useURL[26][/script?foo=1&bar=2][][inline link in pointy braces]\from[26].
+Here's an \useURL[26][/script?foo=1&bar=2][][inline link in pointy
+braces]\from[26].
 
 \subsubject{Autolinks}
 
@@ -846,8 +841,7 @@ An e-mail address:
 \useURL[29][mailto:nobody@nowhere.net][][nobody@nowhere.net]\from[29]
 
 \startblockquote
-Blockquoted:
-\useURL[30][http://example.com/][][http://example.com/]\from[30]
+Blockquoted: \useURL[30][http://example.com/][][http://example.com/]\from[30]
 \stopblockquote
 
 Auto-links should not occur here: \type{<http://example.com/>}
@@ -870,39 +864,36 @@ Here is a movie {\externalfigure[movie.jpg]} icon.
 
 \subject{Footnotes}
 
-Here is a footnote reference,
-\footnote{Here is the footnote. It can go anywhere after the footnote
-reference. It need not be placed at the end of the document.}
-and another.
-\footnote{Here's the long note. This one contains multiple blocks.
+Here is a footnote reference,\footnote{Here is the footnote. It can go
+  anywhere after the footnote reference. It need not be placed at the end of
+  the document.}
+ and another.\footnote{Here's the long note. This one contains multiple
+  blocks.
 
-Subsequent blocks are indented to show that they belong to the
-footnote (as with list items).
+  Subsequent blocks are indented to show that they belong to the footnote (as
+  with list items).
 
-\starttyping
+  \starttyping
   { <code> }
-\stoptyping
+  \stoptyping
 
-If you want, you can indent every line, but you can also be lazy
-and just indent the first line of each block.}
-This should {\em not} be a footnote reference, because it contains
-a space.{[}\letterhat{}my note{]} Here is an inline note.
-\footnote{This is {\em easier} to type. Inline notes may contain
-\useURL[31][http://google.com][][links]\from[31] and \type{]}
-verbatim characters, as well as {[}bracketed text{]}.}
+  If you want, you can indent every line, but you can also be lazy and just
+  indent the first line of each block.}
+ This should {\em not} be a footnote reference, because it contains a
+space.{[}\letterhat{}my note{]} Here is an inline note.\footnote{This is
+  {\em easier} to type. Inline notes may contain
+  \useURL[31][http://google.com][][links]\from[31] and \type{]} verbatim
+  characters, as well as {[}bracketed text{]}.}
 
 \startblockquote
-Notes can go in quotes.
-\footnote{In quote.}
+Notes can go in quotes.\footnote{In quote.}
 \stopblockquote
 
 \startitemize[n][stopper=.]
 \item
-  And in list items.
-  \footnote{In list.}
+  And in list items.\footnote{In list.}
 \stopitemize
 
-This paragraph should not be part of the note, as it is not
-indented.
+This paragraph should not be part of the note, as it is not indented.
 
 \stoptext
