@@ -59,7 +59,7 @@ module Text.Pandoc.Pretty (
      , hsep
      , vcat
      , vsep
-     , enclosed
+     , inside
      , braces
      , brackets
      , parens
@@ -334,7 +334,7 @@ blankline :: Doc
 blankline = Doc $ singleton BlankLine
 
 -- | Uses the specified string as a prefix for every line of
--- the enclosed document (except the first, if not at the beginning
+-- the inside document (except the first, if not at the beginning
 -- of the line).
 prefixed :: String -> Doc -> Doc
 prefixed pref doc = Doc $ singleton $ Prefixed pref doc
@@ -398,18 +398,18 @@ chop n cs = case break (=='\n') cs of
                                    where len = length xs
 
 -- | Encloses a 'Doc' inside a start and end 'Doc'.
-enclosed :: Doc -> Doc -> Doc -> Doc
-enclosed start end contents =
+inside :: Doc -> Doc -> Doc -> Doc
+inside start end contents =
   start <> contents <> end
 
 -- | Puts a 'Doc' in curly braces.
 braces :: Doc -> Doc
-braces = enclosed (char '{') (char '}')
+braces = inside (char '{') (char '}')
 
 -- | Puts a 'Doc' in square brackets.
 brackets :: Doc -> Doc
-brackets = enclosed (char '[') (char ']')
+brackets = inside (char '[') (char ']')
 
 -- | Puts a 'Doc' in parentheses.
 parens :: Doc -> Doc
-parens = enclosed (char '(') (char ')')
+parens = inside (char '(') (char ')')
