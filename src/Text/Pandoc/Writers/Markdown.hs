@@ -229,8 +229,27 @@ blockToMarkdown opts (CodeBlock (_,classes,_) str)
   | "haskell" `elem` classes && "literate" `elem` classes &&
     writerLiterateHaskell opts =
   return $ prefixed "> " (text str) <> blankline
-blockToMarkdown opts (CodeBlock _ str) = return $
-  nest (writerTabStop opts) (text str) <> blankline
+blockToMarkdown opts (CodeBlock attribs str) = return $
+  if writerStrictMarkdown opts || attribs == ([],[],[])
+     then nest (writerTabStop opts) (text str) <> blankline
+     else -- use delimited code block
+          flush $ tildes <> space <> attrs <> cr <> text str <>
+                  cr <> tildes <> blankline
+            where tildes  = text "~~~~"
+                  attrs = braces $ hsep [attribId, attribClasses, attribKeys]
+                  attribId = case attribs of
+                                   ([],_,_) -> empty
+                                   (i,_,_)  -> "#" <> text i
+                  attribClasses = case attribs of
+                                   (_,[],_) -> empty
+                                   (_,cs,_) -> hsep $
+                                               map (text . ('.':))
+                                               cs
+                  attribKeys = case attribs of
+                                   (_,_,[]) -> empty
+                                   (_,_,ks) -> hsep $
+                                               map (\(k,v) -> text k
+                                                 <> "=\"" <> text v <> "\"") ks
 blockToMarkdown opts (BlockQuote blocks) = do
   st <- get
   -- if we're writing literate haskell, put a space before the bird tracks
