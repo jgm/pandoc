@@ -439,7 +439,10 @@ inlineToMarkdown _ (Math DisplayMath str) =
   return $ "$$" <> text str <> "$$"
 inlineToMarkdown _ (TeX str) = return $ text str
 inlineToMarkdown _ (HtmlInline str) = return $ text str 
-inlineToMarkdown _ (LineBreak) = return $ "  " <> cr
+inlineToMarkdown opts (LineBreak) = return $
+  if writerStrictMarkdown opts
+     then "  " <> cr
+     else "\\" <> cr
 inlineToMarkdown _ Space = return space
 inlineToMarkdown opts (Cite (c:cs) lst)
   | writerCiteMethod opts == Citeproc = inlineListToMarkdown opts lst
