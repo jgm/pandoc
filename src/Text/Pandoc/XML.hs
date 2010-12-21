@@ -55,17 +55,9 @@ escapeCharForXML x = case x of
                        '"'    -> "&quot;"
                        c      -> [c]
 
--- | True if the character needs to be escaped.
-needsEscaping :: Char -> Bool
-needsEscaping c = c `elem` "&<>\""
-
 -- | Escape string as needed for XML.  Entity references are not preserved.
 escapeStringForXML :: String -> String
-escapeStringForXML ""  = ""
-escapeStringForXML str =
-  case break needsEscaping str of
-    (okay, "")     -> okay
-    (okay, (c:cs)) -> okay ++ escapeCharForXML c ++ escapeStringForXML cs
+escapeStringForXML = concatMap escapeCharForXML
 
 -- | Return a text object with a string of formatted XML attributes.
 attributeList :: [(String, String)] -> Doc
