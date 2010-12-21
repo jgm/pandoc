@@ -57,9 +57,10 @@ writeMarkdown opts document =
 -- pictures, or inline formatting).
 writePlain :: WriterOptions -> Pandoc -> String
 writePlain opts document =
-  evalState (pandocToMarkdown opts document') WriterState{ stNotes = []
-                                                         , stRefs  = []
-                                                         , stPlain = True }
+  evalState (pandocToMarkdown opts{writerStrictMarkdown = True}
+              document') WriterState{ stNotes = []
+                                    , stRefs  = []
+                                    , stPlain = True }
     where document' = plainify document
 
 plainify :: Pandoc -> Pandoc
