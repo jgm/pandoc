@@ -64,7 +64,7 @@ writeODT mbRefOdt opts doc = do
   picEntriesRef <- newIORef ([] :: [Entry])
   let sourceDir = writerSourceDirectory opts
   doc' <- processWithM (transformPic sourceDir picEntriesRef) doc
-  let newContents = writeOpenDocument opts doc'
+  let newContents = writeOpenDocument opts{writerWrapText = False} doc'
   (TOD epochtime _) <- getClockTime
   let contentEntry = toEntry "content.xml" epochtime $ fromString newContents
   picEntries <- readIORef picEntriesRef
