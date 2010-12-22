@@ -709,8 +709,7 @@ table = gridTable False <|> simpleTable False <|>
  --
 
 inline :: GenParser Char ParserState Inline
-inline = choice [ smartPunctuation inline
-                , link
+inline = choice [ link
                 , str
                 , whitespace
                 , endline
@@ -718,11 +717,12 @@ inline = choice [ smartPunctuation inline
                 , emph
                 , code
                 , image
-                , hyphens
                 , superscript
                 , subscript
-                , escapedChar
                 , note
+                , smartPunctuation inline
+                , hyphens
+                , escapedChar
                 , symbol ] <?> "inline"
 
 hyphens :: GenParser Char ParserState Inline
