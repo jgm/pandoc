@@ -34,7 +34,8 @@ module Text.Pandoc.XML ( stripTags,
                          selfClosingTag,
                          inTagsSimple,
                          inTagsIndented  ) where
-import Text.PrettyPrint.HughesPJ
+
+import Text.Pandoc.Pretty
 
 -- | Remove everything between <...>
 stripTags :: String -> String
@@ -61,9 +62,9 @@ escapeStringForXML = concatMap escapeCharForXML
 
 -- | Return a text object with a string of formatted XML attributes.
 attributeList :: [(String, String)] -> Doc
-attributeList = text .  concatMap
-  (\(a, b) -> " " ++ escapeStringForXML a ++ "=\"" ++
-  escapeStringForXML b ++ "\"")
+attributeList = hcat . map
+  (\(a, b) -> text (' ' : escapeStringForXML a ++ "=\"" ++
+  escapeStringForXML b ++ "\""))
 
 -- | Put the supplied contents between start and end tags of tagType,
 --   with specified attributes and (if specified) indentation.
