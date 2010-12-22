@@ -250,6 +250,10 @@ renderList (NewLine : xs) = do
   outp (-1) "\n"
   renderList xs
 
+renderList (BreakingSpace : CarriageReturn : xs) = renderList (CarriageReturn:xs)
+renderList (BreakingSpace : NewLine : xs) = renderList (NewLine:xs)
+renderList (BreakingSpace : BlankLine : xs) = renderList (BlankLine:xs)
+renderList (BreakingSpace : BreakingSpace : xs) = renderList (BreakingSpace:xs)
 renderList (BreakingSpace : xs) = do
   let isText (Text _ _)       = True
       isText (Block _ _)      = True
