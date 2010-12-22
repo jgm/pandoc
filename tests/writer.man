@@ -26,8 +26,8 @@ Here's a regular paragraph.
 In Markdown 1.0.0 and earlier.
 Version 8.
 This line turns into a list item.
-Because a hard-wrapped line in the middle of a paragraph looked
-like a list item.
+Because a hard-wrapped line in the middle of a paragraph looked like a list
+item.
 .PP
 Here's one with a bullet.
 * criminey.
@@ -531,8 +531,8 @@ Superscripts: a^bc^d a^\f[I]hello\f[]^ a^hello\ there^.
 .PP
 Subscripts: H~2~O, H~23~O, H~many\ of\ them~O.
 .PP
-These should not be superscripts or subscripts, because of the
-unescaped spaces: a^b c^d, a~b c~d.
+These should not be superscripts or subscripts, because of the unescaped
+spaces: a^b c^d, a~b c~d.
 .PP
    *   *   *   *   *
 .SH Smart quotes, ellipses, dashes
@@ -547,8 +547,8 @@ So is `pine.'
 .PP
 `He said, \[lq]I want to go.\[rq]' Were you alive in the 70's?
 .PP
-Here is some quoted `\f[C]code\f[]' and a
-\[lq]quoted link (http://example.com/?foo=1&bar=2)\[rq].
+Here is some quoted `\f[C]code\f[]' and a \[lq]quoted
+link (http://example.com/?foo=1&bar=2)\[rq].
 .PP
 Some dashes: one\[em]two \[em] three\[em]four \[em] five.
 .PP
@@ -641,7 +641,7 @@ Greater-than: >
 .PP
 Hash: #
 .PP
-Period: \&.
+Period: .
 .PP
 Bang: !
 .PP
@@ -701,11 +701,9 @@ Foo bar (/url/).
 Foo biz (/url/).
 .SS With ampersands
 .PP
-Here's a
-link with an ampersand in the URL (http://example.com/?foo=1&bar=2).
+Here's a link with an ampersand in the URL (http://example.com/?foo=1&bar=2).
 .PP
-Here's a link with an amersand in the link text:
-AT&T (http://att.com/).
+Here's a link with an amersand in the link text: AT&T (http://att.com/).
 .PP
 Here's an inline link (/script?foo=1&bar=2).
 .PP
@@ -746,9 +744,9 @@ Here is a movie [IMAGE: movie (movie.jpg)] icon.
    *   *   *   *   *
 .SH Footnotes
 .PP
-Here is a footnote reference,[1] and another.[2] This should
-\f[I]not\f[] be a footnote reference, because it contains a
-space.[^my note] Here is an inline note.[3]
+Here is a footnote reference,[1] and another.[2] This should \f[I]not\f[] be a
+footnote reference, because it contains a space.[^my note] Here is an inline
+note.[3]
 .RS
 .PP
 Notes can go in quotes.[4]
@@ -756,23 +754,20 @@ Notes can go in quotes.[4]
 .IP "1." 3
 And in list items.[5]
 .PP
-This paragraph should not be part of the note, as it is not
-indented.
+This paragraph should not be part of the note, as it is not indented.
 .SH NOTES
-
 .SS [1]
 .PP
 Here is the footnote.
 It can go anywhere after the footnote reference.
 It need not be placed at the end of the document.
-
 .SS [2]
 .PP
 Here's the long note.
 This one contains multiple blocks.
 .PP
-Subsequent blocks are indented to show that they belong to the
-footnote (as with list items).
+Subsequent blocks are indented to show that they belong to the footnote (as
+with list items).
 .IP
 .nf
 \f[C]
@@ -780,19 +775,16 @@ footnote (as with list items).
 \f[]
 .fi
 .PP
-If you want, you can indent every line, but you can also be lazy
-and just indent the first line of each block.
-
+If you want, you can indent every line, but you can also be lazy and just
+indent the first line of each block.
 .SS [3]
 .PP
 This is \f[I]easier\f[] to type.
-Inline notes may contain links (http://google.com) and \f[C]]\f[]
-verbatim characters, as well as [bracketed text].
-
+Inline notes may contain links (http://google.com) and \f[C]]\f[] verbatim
+characters, as well as [bracketed text].
 .SS [4]
 .PP
 In quote.
-
 .SS [5]
 .PP
 In list.

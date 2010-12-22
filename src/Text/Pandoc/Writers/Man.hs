@@ -35,7 +35,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
 import Text.Printf ( printf )
 import Data.List ( isPrefixOf, intersperse, intercalate )
-import Text.PrettyPrint.HughesPJ hiding ( Str )
+import Text.Pandoc.Pretty
 import Control.Monad.State
 
 type Notes = [[Block]]
@@ -52,27 +52,31 @@ pandocToMan opts (Pandoc (Meta title authors date) blocks) = do
   titleText <- inlineListToMan opts title
   authors' <- mapM (inlineListToMan opts) authors
   date' <- inlineListToMan opts date 
-  let (cmdName, rest) = break (== ' ') $ render titleText
+  let colwidth = if writerWrapText opts
+                    then Just $ writerColumns opts
+                    else Nothing
+  let render' = render colwidth
+  let (cmdName, rest) = break (== ' ') $ render' titleText
   let (title', section) = case reverse cmdName of
                             (')':d:'(':xs) | d `elem` ['0'..'9'] -> 
                                   (text (reverse xs), char d)
-                            xs -> (text (reverse xs), doubleQuotes empty)                    
+                            xs -> (text (reverse xs), doubleQuotes empty)
   let description = hsep $
                     map (doubleQuotes . text . removeLeadingTrailingSpace) $
                     splitBy (== '|') rest
   body <- blockListToMan opts blocks
   notes <- liftM stNotes get
   notes' <- notesToMan opts (reverse notes)
-  let main = render $ body $$ notes' $$ text ""
+  let main = render' $ body $$ notes' $$ text ""
   hasTables <- liftM stHasTables get
   let context  = writerVariables opts ++
                  [ ("body", main)
-                 , ("title", render title')
-                 , ("section", render section)
-                 , ("date", render date')
-                 , ("description", render description) ] ++
+                 , ("title", render' title')
+                 , ("section", render' section)
+                 , ("date", render' date')
+                 , ("description", render' description) ] ++
                  [ ("has-tables", "yes") | hasTables ] ++
-                 [ ("author", render a) | a <- authors' ]
+                 [ ("author", render' a) | a <- authors' ]
   if writerStandalone opts
      then return $ renderTemplate context $ writerTemplate opts
      else return main
@@ -89,7 +93,7 @@ notesToMan opts notes =
 noteToMan :: WriterOptions -> Int -> [Block] -> State WriterState Doc
 noteToMan opts num note = do
   contents <- blockListToMan opts note
-  let marker = text "\n.SS [" <> text (show num) <> char ']'
+  let marker = cr <> text ".SS " <> brackets (text (show num))
   return $ marker $$ contents 
 
 -- | Association list of characters to escape.
@@ -136,14 +140,13 @@ blockToMan :: WriterOptions -- ^ Options
                 -> State WriterState Doc 
 blockToMan _ Null = return empty
 blockToMan opts (Plain inlines) = 
-  liftM vcat $ mapM (wrapIfNeeded opts (inlineListToMan opts)) $
-    splitSentences inlines
+  liftM vcat $ mapM (inlineListToMan opts) $ splitSentences inlines
 blockToMan opts (Para inlines) = do
-  contents <- liftM vcat $ mapM (wrapIfNeeded opts (inlineListToMan opts)) $
+  contents <- liftM vcat $ mapM (inlineListToMan opts) $
     splitSentences inlines
   return $ text ".PP" $$ contents 
 blockToMan _ (RawHtml _) = return empty
-blockToMan _ HorizontalRule = return $ text $ ".PP\n   *   *   *   *   *"
+blockToMan _ HorizontalRule = return $ text ".PP" $$ text "   *   *   *   *   *"
 blockToMan opts (Header level inlines) = do
   contents <- inlineListToMan opts inlines
   let heading = case level of
@@ -256,7 +259,7 @@ definitionListItemToMan opts (label, defs) = do
                                   mapM (\item -> blockToMan opts item) rest
                         first' <- blockToMan opts first
                         return $ first' $$ text ".RS" $$ rest' $$ text ".RE"
-  return $ text ".TP\n.B " <> labelText $+$ contents
+  return $ text ".TP" $$ text ".B " <> labelText $$ contents
 
 -- | Convert list of Pandoc block elements to man.
 blockListToMan :: WriterOptions -- ^ Options
@@ -309,11 +312,12 @@ inlineToMan _ (Str str) = return $ text $ escapeString str
 inlineToMan opts (Math InlineMath str) = inlineListToMan opts $ readTeXMath str
 inlineToMan opts (Math DisplayMath str) = do
   contents <- inlineListToMan opts $ readTeXMath str
-  return $ text ".RS" $$ contents $$ text ".RE"
+  return $ cr <> text ".RS" $$ contents $$ text ".RE"
 inlineToMan _ (TeX _) = return empty
 inlineToMan _ (HtmlInline _) = return empty
-inlineToMan _ (LineBreak) = return $ text "\n.PD 0\n.P\n.PD\n"
-inlineToMan _ Space = return $ char ' '
+inlineToMan _ (LineBreak) = return $
+  cr <> text ".PD 0" $$ text ".P" $$ text ".PD" <> cr
+inlineToMan _ Space = return space
 inlineToMan opts (Link txt (src, _)) = do
   linktext <- inlineListToMan opts txt
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
