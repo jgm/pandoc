@@ -15,14 +15,13 @@
     <date>July 17, 2006</date>
   </articleinfo>
 <para>
-  This is a set of tests for pandoc. Most of them are adapted from
-  John Gruber's markdown test suite.
+  This is a set of tests for pandoc. Most of them are adapted from John
+  Gruber's markdown test suite.
 </para>
 <section id="headers">
   <title>Headers</title>
   <section id="level-2-with-an-embedded-link">
-    <title>Level 2 with an
-           <ulink url="/url">embedded link</ulink></title>
+    <title>Level 2 with an <ulink url="/url">embedded link</ulink></title>
     <section id="level-3-with-emphasis">
       <title>Level 3 with <emphasis>emphasis</emphasis></title>
       <section id="level-4">
@@ -60,16 +59,15 @@
     Here's a regular paragraph.
   </para>
   <para>
-    In Markdown 1.0.0 and earlier. Version 8. This line turns into a
-    list item. Because a hard-wrapped line in the middle of a paragraph
-    looked like a list item.
+    In Markdown 1.0.0 and earlier. Version 8. This line turns into a list
+    item. Because a hard-wrapped line in the middle of a paragraph looked like
+    a list item.
   </para>
   <para>
     Here's one with a bullet. * criminey.
   </para>
   <para>
-    There should be a hard line
-    break<literallayout></literallayout>here.
+    There should be a hard line break<literallayout></literallayout>here.
   </para>
 </section>
 <section id="block-quotes">
@@ -866,45 +864,41 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <div>
   foo
   </div>
-
   <para>
     And nested without indentation:
   </para>
   <div>
-<div>
-<div>
+  <div>
+  <div>
   foo
   </div>
-</div>
-<div>
+  </div>
+  <div>
   bar
   </div>
-</div>
-
+  </div>
   <para>
     Interpreted markdown in a table:
   </para>
   <table>
-<tr>
-<td>
+  <tr>
+  <td>
   This is <emphasis>emphasized</emphasis>
   </td>
-<td>
+  <td>
   And this is <emphasis role="strong">strong</emphasis>
   </td>
-</tr>
-</table>
+  </tr>
+  </table>
 
-<script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
-
+  <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
   <para>
     Here's a simple block:
   </para>
   <div>
-    
+      
   foo
   </div>
-
   <para>
     This should be a code block, though:
   </para>
@@ -923,31 +917,28 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     Now, nested:
   </para>
   <div>
-    <div>
-        <div>
-            
+      <div>
+          <div>
+              
   foo
   </div>
-    </div>
-</div>
-
+      </div>
+  </div>
   <para>
     This should just be an HTML comment:
   </para>
   <!-- Comment -->
-
   <para>
     Multiline:
   </para>
   <!--
-Blah
-Blah
--->
+  Blah
+  Blah
+  -->
 
-<!--
-    This is another comment.
--->
-
+  <!--
+      This is another comment.
+  -->
   <para>
     Code block:
   </para>
@@ -958,7 +949,6 @@ Blah
     Just plain comment, with trailing spaces on the line:
   </para>
   <!-- foo -->   
-
   <para>
     Code:
   </para>
@@ -970,28 +960,27 @@ Blah
   </para>
   <hr>
 
-<hr />
+  <hr />
 
-<hr />
+  <hr />
 
-<hr>   
+  <hr>   
 
-<hr />  
+  <hr />  
 
-<hr /> 
+  <hr /> 
 
-<hr class="foo" id="bar" />
+  <hr class="foo" id="bar" />
 
-<hr class="foo" id="bar" />
+  <hr class="foo" id="bar" />
 
-<hr class="foo" id="bar">
-
+  <hr class="foo" id="bar">
 </section>
 <section id="inline-markup">
   <title>Inline Markup</title>
   <para>
-    This is <emphasis>emphasized</emphasis>, and so
-    <emphasis>is this</emphasis>.
+    This is <emphasis>emphasized</emphasis>, and so <emphasis>is
+    this</emphasis>.
   </para>
   <para>
     This is <emphasis role="strong">strong</emphasis>, and so
@@ -1001,18 +990,18 @@ Blah
     An <emphasis><ulink url="/url">emphasized link</ulink></emphasis>.
   </para>
   <para>
-    <emphasis role="strong"><emphasis>This is strong and em.</emphasis></emphasis>
+    <emphasis role="strong"><emphasis>This is strong and
+    em.</emphasis></emphasis>
   </para>
   <para>
-    So is <emphasis role="strong"><emphasis>this</emphasis></emphasis>
-    word.
+    So is <emphasis role="strong"><emphasis>this</emphasis></emphasis> word.
   </para>
   <para>
-    <emphasis role="strong"><emphasis>This is strong and em.</emphasis></emphasis>
+    <emphasis role="strong"><emphasis>This is strong and
+    em.</emphasis></emphasis>
   </para>
   <para>
-    So is <emphasis role="strong"><emphasis>this</emphasis></emphasis>
-    word.
+    So is <emphasis role="strong"><emphasis>this</emphasis></emphasis> word.
   </para>
   <para>
     This is code: <literal>&gt;</literal>, <literal>$</literal>,
@@ -1020,7 +1009,8 @@ Blah
     <literal>&lt;html&gt;</literal>.
   </para>
   <para>
-    <emphasis role="strikethrough">This is <emphasis>strikeout</emphasis>.</emphasis>
+    <emphasis role="strikethrough">This is
+    <emphasis>strikeout</emphasis>.</emphasis>
   </para>
   <para>
     Superscripts: a<superscript>bc</superscript>d
@@ -1028,35 +1018,35 @@ Blah
     a<superscript>hello there</superscript>.
   </para>
   <para>
-    Subscripts: H<subscript>2</subscript>O,
-    H<subscript>23</subscript>O, H<subscript>many of them</subscript>O.
+    Subscripts: H<subscript>2</subscript>O, H<subscript>23</subscript>O,
+    H<subscript>many of them</subscript>O.
   </para>
   <para>
-    These should not be superscripts or subscripts, because of the
-    unescaped spaces: a^b c^d, a~b c~d.
+    These should not be superscripts or subscripts, because of the unescaped
+    spaces: a^b c^d, a~b c~d.
   </para>
 </section>
 <section id="smart-quotes-ellipses-dashes">
   <title>Smart quotes, ellipses, dashes</title>
   <para>
-    <quote>Hello,</quote> said the spider.
-    <quote><quote>Shelob</quote> is my name.</quote>
+    <quote>Hello,</quote> said the spider. <quote><quote>Shelob</quote> is my
+    name.</quote>
   </para>
   <para>
-    <quote>A</quote>, <quote>B</quote>, and <quote>C</quote> are
-    letters.
+    <quote>A</quote>, <quote>B</quote>, and <quote>C</quote> are letters.
   </para>
   <para>
-    <quote>Oak,</quote> <quote>elm,</quote> and <quote>beech</quote>
-    are names of trees. So is <quote>pine.</quote>
+    <quote>Oak,</quote> <quote>elm,</quote> and <quote>beech</quote> are names
+    of trees. So is <quote>pine.</quote>
   </para>
   <para>
-    <quote>He said, <quote>I want to go.</quote></quote> Were you alive
-    in the 70's?
+    <quote>He said, <quote>I want to go.</quote></quote> Were you alive in the
+    70's?
   </para>
   <para>
     Here is some quoted <quote><literal>code</literal></quote> and a
-    <quote><ulink url="http://example.com/?foo=1&amp;bar=2">quoted link</ulink></quote>.
+    <quote><ulink url="http://example.com/?foo=1&amp;bar=2">quoted
+    link</ulink></quote>.
   </para>
   <para>
     Some dashes: one—two — three—four — five.
@@ -1135,8 +1125,8 @@ Blah
     </listitem>
     <listitem>
       <para>
-        Escaped <literal>$</literal>: $73
-        <emphasis>this should be emphasized</emphasis> 23$.
+        Escaped <literal>$</literal>: $73 <emphasis>this should be
+        emphasized</emphasis> 23$.
       </para>
     </listitem>
   </itemizedlist>
@@ -1316,8 +1306,8 @@ Blah
   <section id="with-ampersands">
     <title>With ampersands</title>
     <para>
-      Here's a
-      <ulink url="http://example.com/?foo=1&amp;bar=2">link with an ampersand in the URL</ulink>.
+      Here's a <ulink url="http://example.com/?foo=1&amp;bar=2">link with an
+      ampersand in the URL</ulink>.
     </para>
     <para>
       Here's a link with an amersand in the link text:
@@ -1327,8 +1317,8 @@ Blah
       Here's an <ulink url="/script?foo=1&amp;bar=2">inline link</ulink>.
     </para>
     <para>
-      Here's an
-      <ulink url="/script?foo=1&amp;bar=2">inline link in pointy braces</ulink>.
+      Here's an <ulink url="/script?foo=1&amp;bar=2">inline link in pointy
+      braces</ulink>.
     </para>
   </section>
   <section id="autolinks">
@@ -1387,78 +1377,67 @@ or here: &lt;http://example.com/&gt;
     </mediaobject>
   </figure>
   <para>
-    Here is a movie
-    <inlinemediaobject>
+    Here is a movie <inlinemediaobject>
       <imageobject>
         <imagedata fileref="movie.jpg" />
       </imageobject>
-    </inlinemediaobject>
-    icon.
+    </inlinemediaobject> icon.
   </para>
 </section>
 <section id="footnotes">
   <title>Footnotes</title>
   <para>
-    Here is a footnote
-    reference,<footnote>
-                <para>
-                  Here is the footnote. It can go anywhere after the footnote
-                  reference. It need not be placed at the end of the document.
-                </para>
-              </footnote>
-    and
-    another.<footnote>
-              <para>
-                Here's the long note. This one contains multiple blocks.
-              </para>
-              <para>
-                Subsequent blocks are indented to show that they belong to the
-                footnote (as with list items).
-              </para>
-              <screen>
+    Here is a footnote reference,<footnote>
+      <para>
+        Here is the footnote. It can go anywhere after the footnote reference.
+        It need not be placed at the end of the document.
+      </para>
+    </footnote> and another.<footnote>
+      <para>
+        Here's the long note. This one contains multiple blocks.
+      </para>
+      <para>
+        Subsequent blocks are indented to show that they belong to the
+        footnote (as with list items).
+      </para>
+      <screen>
   { &lt;code&gt; }
 </screen>
-              <para>
-                If you want, you can indent every line, but you can also be lazy
-                and just indent the first line of each block.
-              </para>
-            </footnote>
-    This should <emphasis>not</emphasis> be a footnote reference,
-    because it contains a space.[^my note] Here is an inline
-    note.<footnote>
-           <para>
-             This is <emphasis>easier</emphasis> to type. Inline notes may
-             contain <ulink url="http://google.com">links</ulink> and
-             <literal>]</literal> verbatim characters, as well as [bracketed
-             text].
-           </para>
-         </footnote>
+      <para>
+        If you want, you can indent every line, but you can also be lazy and
+        just indent the first line of each block.
+      </para>
+    </footnote> This should <emphasis>not</emphasis> be a footnote reference,
+    because it contains a space.[^my note] Here is an inline note.<footnote>
+      <para>
+        This is <emphasis>easier</emphasis> to type. Inline notes may contain
+        <ulink url="http://google.com">links</ulink> and <literal>]</literal>
+        verbatim characters, as well as [bracketed text].
+      </para>
+    </footnote>
   </para>
   <blockquote>
     <para>
-      Notes can go in
-      quotes.<footnote>
-               <para>
-                 In quote.
-               </para>
-             </footnote>
+      Notes can go in quotes.<footnote>
+        <para>
+          In quote.
+        </para>
+      </footnote>
     </para>
   </blockquote>
   <orderedlist numeration="arabic">
     <listitem>
       <para>
-        And in list
-        items.<footnote>
-                <para>
-                  In list.
-                </para>
-              </footnote>
+        And in list items.<footnote>
+          <para>
+            In list.
+          </para>
+        </footnote>
       </para>
     </listitem>
   </orderedlist>
   <para>
-    This paragraph should not be part of the note, as it is not
-    indented.
+    This paragraph should not be part of the note, as it is not indented.
   </para>
 </section>
 </article>
