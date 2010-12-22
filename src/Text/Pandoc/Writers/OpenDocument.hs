@@ -35,7 +35,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.XML
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Readers.TeXMath
-import Text.PrettyPrint.HughesPJ hiding ( Str )
+import Text.Pandoc.Pretty
 import Text.Printf ( printf )
 import Control.Applicative ( (<$>) )
 import Control.Arrow ( (***), (>>>) )
@@ -169,7 +169,11 @@ writeOpenDocument opts (Pandoc (Meta title authors date) blocks) =
            date'' <- inlinesToOpenDocument opts date
            doc'' <- blocksToOpenDocument opts blocks
            return (doc'', title'', authors'', date'')
-      body'    = render doc
+      colwidth = if writerWrapText opts
+                    then Just $ writerColumns opts
+                    else Nothing
+      render' = render colwidth
+      body'    = render' doc
       styles   = stTableStyles s ++ stParaStyles s ++ stTextStyles s
       listStyle (n,l) = inTags True "text:list-style"
                           [("style:name", "L" ++ show n)] (vcat l)
@@ -178,10 +182,10 @@ writeOpenDocument opts (Pandoc (Meta title authors date) blocks) =
                           reverse $ styles ++ listStyles
       context = writerVariables opts ++
                 [ ("body", body')
-                , ("automatic-styles", render automaticStyles)
-                , ("title", render title')
-                , ("date", render date') ] ++
-                [ ("author", render a) | a <- authors' ]
+                , ("automatic-styles", render' automaticStyles)
+                , ("title", render' title')
+                , ("date", render' date') ] ++
+                [ ("author", render' a) | a <- authors' ]
   in  if writerStandalone opts
          then renderTemplate context $ writerTemplate opts
          else body'
@@ -288,7 +292,7 @@ blockToOpenDocument o bs
                            r <- vcat  <$> mapM (deflistItemToOpenDocument o) b
                            setInDefinitionList False
                            return r
-      preformatted  s = vcat <$> mapM (inPreformattedTags . escapeStringForXML) (lines s)
+      preformatted  s = (flush . vcat) <$> mapM (inPreformattedTags . escapeStringForXML) (lines s)
       mkBlockQuote  b = do increaseIndent
                            i <- paraStyle "Quotations" []
                            inBlockQuote o i (map plainToPara b)
@@ -348,7 +352,7 @@ inlineToOpenDocument o ils
     | EmDash        <- ils = inTextStyle $ text "&#8212;"
     | EnDash        <- ils = inTextStyle $ text "&#8211;"
     | Apostrophe    <- ils = inTextStyle $ text "&#8217;"
-    | Space         <- ils = inTextStyle $ char ' '
+    | Space         <- ils = inTextStyle space
     | LineBreak     <- ils = return $ selfClosingTag "text:line-break" []
     | Str         s <- ils = inTextStyle $ handleSpaces $ escapeStringForXML s
     | Emph        l <- ils = withTextStyle Italic $ inlinesToOpenDocument o l

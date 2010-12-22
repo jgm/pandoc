@@ -63,7 +63,8 @@
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="Caption">Demonstration of simple table syntax.</text:p>
+<text:p text:style-name="Caption">Demonstration of simple table
+syntax.</text:p>
 <text:p text:style-name="Text_20_body">Simple table without caption:</text:p>
 <table:table table:name="Table2" table:style-name="Table2">
   <table:table-column table:style-name="Table2.A" />
@@ -129,7 +130,8 @@
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="Text_20_body">Simple table indented two spaces:</text:p>
+<text:p text:style-name="Text_20_body">Simple table indented two
+spaces:</text:p>
 <table:table table:name="Table3" table:style-name="Table3">
   <table:table-column table:style-name="Table3.A" />
   <table:table-column table:style-name="Table3.B" />
@@ -194,7 +196,8 @@
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="Caption">Demonstration of simple table syntax.</text:p>
+<text:p text:style-name="Caption">Demonstration of simple table
+syntax.</text:p>
 <text:p text:style-name="Text_20_body">Multiline table with caption:</text:p>
 <table:table table:name="Table4" table:style-name="Table4">
   <table:table-column table:style-name="Table4.A" />
@@ -228,7 +231,8 @@
       <text:p text:style-name="P16">12.0</text:p>
     </table:table-cell>
     <table:table-cell table:style-name="Table4.A1" office:value-type="string">
-      <text:p text:style-name="Table_20_Contents">Example of a row that spans multiple lines.</text:p>
+      <text:p text:style-name="Table_20_Contents">Example of a row that spans
+      multiple lines.</text:p>
     </table:table-cell>
   </table:table-row>
   <table:table-row>
@@ -242,12 +246,15 @@
       <text:p text:style-name="P16">5.0</text:p>
     </table:table-cell>
     <table:table-cell table:style-name="Table4.A1" office:value-type="string">
-      <text:p text:style-name="Table_20_Contents">Here's another one. Note the blank line between rows.</text:p>
+      <text:p text:style-name="Table_20_Contents">Here's another one. Note the
+      blank line between rows.</text:p>
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="Caption">Here's the caption. It may span multiple lines.</text:p>
-<text:p text:style-name="Text_20_body">Multiline table without caption:</text:p>
+<text:p text:style-name="Caption">Here's the caption. It may span multiple
+lines.</text:p>
+<text:p text:style-name="Text_20_body">Multiline table without
+caption:</text:p>
 <table:table table:name="Table5" table:style-name="Table5">
   <table:table-column table:style-name="Table5.A" />
   <table:table-column table:style-name="Table5.B" />
@@ -280,7 +287,8 @@
       <text:p text:style-name="P20">12.0</text:p>
     </table:table-cell>
     <table:table-cell table:style-name="Table5.A1" office:value-type="string">
-      <text:p text:style-name="Table_20_Contents">Example of a row that spans multiple lines.</text:p>
+      <text:p text:style-name="Table_20_Contents">Example of a row that spans
+      multiple lines.</text:p>
     </table:table-cell>
   </table:table-row>
   <table:table-row>
@@ -294,7 +302,8 @@
       <text:p text:style-name="P20">5.0</text:p>
     </table:table-cell>
     <table:table-cell table:style-name="Table5.A1" office:value-type="string">
-      <text:p text:style-name="Table_20_Contents">Here's another one. Note the blank line between rows.</text:p>
+      <text:p text:style-name="Table_20_Contents">Here's another one. Note the
+      blank line between rows.</text:p>
     </table:table-cell>
   </table:table-row>
 </table:table>
@@ -347,7 +356,8 @@
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="Text_20_body">Multiline table without column headers:</text:p>
+<text:p text:style-name="Text_20_body">Multiline table without column
+headers:</text:p>
 <table:table table:name="Table7" table:style-name="Table7">
   <table:table-column table:style-name="Table7.A" />
   <table:table-column table:style-name="Table7.B" />
@@ -364,7 +374,8 @@
       <text:p text:style-name="P30">12.0</text:p>
     </table:table-cell>
     <table:table-cell table:style-name="Table7.A1" office:value-type="string">
-      <text:p text:style-name="Table_20_Contents">Example of a row that spans multiple lines.</text:p>
+      <text:p text:style-name="Table_20_Contents">Example of a row that spans
+      multiple lines.</text:p>
     </table:table-cell>
   </table:table-row>
   <table:table-row>
@@ -378,7 +389,8 @@
       <text:p text:style-name="P30">5.0</text:p>
     </table:table-cell>
     <table:table-cell table:style-name="Table7.A1" office:value-type="string">
-      <text:p text:style-name="Table_20_Contents">Here's another one. Note the blank line between rows.</text:p>
+      <text:p text:style-name="Table_20_Contents">Here's another one. Note the
+      blank line between rows.</text:p>
     </table:table-cell>
   </table:table-row>
 </table:table>
