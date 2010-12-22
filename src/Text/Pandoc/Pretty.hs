@@ -63,6 +63,8 @@ module Text.Pandoc.Pretty (
      , braces
      , brackets
      , parens
+     , quotes
+     , doubleQuotes
      )
 
 where
@@ -417,3 +419,11 @@ brackets = inside (char '[') (char ']')
 -- | Puts a 'Doc' in parentheses.
 parens :: Doc -> Doc
 parens = inside (char '(') (char ')')
+
+-- | Wraps a 'Doc' in single quotes.
+quotes :: Doc -> Doc
+quotes = inside (char '\'') (char '\'')
+
+-- | Wraps a 'Doc' in double quotes.
+doubleQuotes :: Doc -> Doc
+doubleQuotes = inside (char '"') (char '"')
