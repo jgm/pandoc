@@ -51,8 +51,6 @@ module Text.Pandoc.Shared (
                      wrapIfNeeded,
                      wrappedTeX,
                      wrapTeXIfNeeded,
-                     BlockWrapper (..),
-                     wrappedBlocksToDoc,
                      hang',
                      -- * Pandoc block and inline list processing
                      orderedListMarkers,
@@ -80,7 +78,7 @@ module Text.Pandoc.Shared (
 
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.UTF8 as UTF8 (readFile)
-import Text.PrettyPrint.HughesPJ ( Doc, fsep, ($$), (<>), empty, isEmpty, text, nest )
+import Text.PrettyPrint.HughesPJ ( Doc, fsep, ($$), (<>), empty, nest )
 import qualified Text.PrettyPrint.HughesPJ as PP
 import Data.Char ( toLower, isLower, isUpper, isAlpha, isAscii,
                    isLetter, isDigit )
@@ -283,16 +281,6 @@ wrapTeXIfNeeded :: Monad m
 wrapTeXIfNeeded opts includePercent = if writerWrapText opts
                                          then wrappedTeX includePercent
                                          else ($)
-
--- | Indicates whether block should be surrounded by blank lines (@Pad@) or not (@Reg@).
-data BlockWrapper = Pad Doc | Reg Doc
-
--- | Converts a list of wrapped blocks to a Doc, with appropriate spaces around blocks.
-wrappedBlocksToDoc :: [BlockWrapper] -> Doc
-wrappedBlocksToDoc = foldr addBlock empty
-     where addBlock (Pad d) accum | isEmpty accum = d
-           addBlock (Pad d) accum = d $$ text "" $$ accum
-           addBlock (Reg d) accum = d $$ accum
 
 -- | A version of hang that works like the version in pretty-1.0.0.0
 hang' :: Doc -> Int -> Doc -> Doc
