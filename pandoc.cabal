@@ -165,7 +165,7 @@ Library
   -- Note: the following material must be in both Library and Executable stanzas.
   -- It needs to be duplicated because of the library & executable flags.
   -- BEGIN DUPLICATED SECTION
-  Build-Depends: pretty >= 1, containers >= 0.1,
+  Build-Depends: containers >= 0.1,
                  parsec >= 2.1, xhtml >= 3000.0,
                  mtl >= 1.1, network >= 2, filepath >= 1.1,
                  process >= 1, directory >= 1,
@@ -238,7 +238,7 @@ Executable pandoc
   -- Note: the following material must be in both Library and Executable stanzas.
   -- It needs to be duplicated because of the library & executable flags.
   -- BEGIN DUPLICATED SECTION
-  Build-Depends: pretty >= 1, containers >= 0.1,
+  Build-Depends: containers >= 0.1,
                  parsec >= 2.1, xhtml >= 3000.0,
                  mtl >= 1.1, network >= 2, filepath >= 1.1,
                  process >= 1, directory >= 1,
