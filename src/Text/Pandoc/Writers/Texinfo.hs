@@ -31,13 +31,12 @@ module Text.Pandoc.Writers.Texinfo ( writeTexinfo ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
-import Text.Pandoc.Readers.TeXMath
 import Text.Printf ( printf )
-import Data.List ( isSuffixOf, transpose, maximumBy )
+import Data.List ( transpose, maximumBy )
 import Data.Ord ( comparing )
 import Data.Char ( chr, ord )
 import Control.Monad.State
-import Text.PrettyPrint.HughesPJ hiding ( Str )
+import Text.Pandoc.Pretty
 
 data WriterState = 
   WriterState { stStrikeout   :: Bool  -- document contains strikeout
@@ -69,17 +68,20 @@ pandocToTexinfo options (Pandoc (Meta title authors date) blocks) = do
   let titlePage = not $ all null $ title : date : authors
   main <- blockListToTexinfo blocks
   st <- get
-  let body = render main
+  let colwidth = if writerWrapText options
+                    then Just $ writerColumns options
+                    else Nothing
+  let body = render colwidth main
   let context = writerVariables options ++
                 [ ("body", body)
-                , ("title", render titleText)
-                , ("date", render dateText) ] ++
+                , ("title", render colwidth titleText)
+                , ("date", render colwidth dateText) ] ++
                 [ ("toc", "yes") | writerTableOfContents options ] ++
                 [ ("titlepage", "yes") | titlePage ] ++
                 [ ("subscript", "yes") | stSubscript st ] ++
                 [ ("superscript", "yes") | stSuperscript st ] ++
                 [ ("strikeout", "yes") | stStrikeout st ] ++
-                [ ("author", render a) | a <- authorsText ]
+                [ ("author", render colwidth a) | a <- authorsText ]
   if writerStandalone options
      then return $ renderTemplate context $ writerTemplate options
      else return body
@@ -124,8 +126,8 @@ blockToTexinfo (BlockQuote lst) = do
 
 blockToTexinfo (CodeBlock _ str) = do
   return $ text "@verbatim" $$
-           vcat (map text (lines str)) $$
-           text "@end verbatim\n"
+           flush (text str) $$
+           text "@end verbatim" <> blankline
 
 blockToTexinfo (RawHtml _) = return empty
 
@@ -133,13 +135,13 @@ blockToTexinfo (BulletList lst) = do
   items <- mapM listItemToTexinfo lst
   return $ text "@itemize" $$
            vcat items $$
-           text "@end itemize\n"
+           text "@end itemize" <> blankline
 
 blockToTexinfo (OrderedList (start, numstyle, _) lst) = do
   items <- mapM listItemToTexinfo lst
   return $ text "@enumerate " <> exemplar $$
            vcat items $$
-           text "@end enumerate\n"
+           text "@end enumerate" <> blankline
   where
     exemplar = case numstyle of
                 DefaultStyle -> decimal
@@ -159,7 +161,7 @@ blockToTexinfo (DefinitionList lst) = do
   items <- mapM defListItemToTexinfo lst
   return $ text "@table @asis" $$
            vcat items $$
-           text "@end table\n"
+           text "@end table" <> blankline
 
 blockToTexinfo HorizontalRule =
     -- XXX can't get the equivalent from LaTeX.hs to work
@@ -175,13 +177,13 @@ blockToTexinfo (Header 0 lst) = do
             then return $ text "Top"
             else inlineListToTexinfo lst
   return $ text "@node Top" $$
-           text "@top " <> txt <> char '\n'
+           text "@top " <> txt <> blankline
 
 blockToTexinfo (Header level lst) = do
   node <- inlineListForNode lst
   txt <- inlineListToTexinfo lst
   return $ if (level > 0) && (level <= 4)
-              then text "\n@node " <> node <> char '\n' <>
+              then blankline <> text "@node " <> node <> cr <>
                    text (seccmd level) <> txt
               else txt
   where
@@ -200,18 +202,18 @@ blockToTexinfo (Table caption aligns widths heads rows) = do
   colDescriptors <-
     if all (== 0) widths
        then do -- use longest entry instead of column widths
-            cols <- mapM (mapM (liftM (render . hcat) . mapM blockToTexinfo)) $
-                       transpose $ heads : rows
+            cols <- mapM (mapM (liftM (render Nothing . hcat) . mapM blockToTexinfo)) $
+                        transpose $ heads : rows
             return $ concatMap ((\x -> "{"++x++"} ") .  maximumBy (comparing length)) cols
        else return $ "@columnfractions " ++ concatMap (printf "%.2f ") widths
   let tableBody = text ("@multitable " ++ colDescriptors) $$
                   headers $$
                   vcat rowsText $$ 
-                  text "@end multitable" 
+                  text "@end multitable"
   return $ if isEmpty captionText
-              then tableBody <> char '\n'
+              then tableBody <> blankline
               else text "@float" $$
-                   tableBody $$ 
+                   tableBody $$
                    inCmd "caption" captionText $$
                    text "@end float"
 
@@ -253,7 +255,7 @@ alignedBlock _ col = blockListToTexinfo col
 -- | Convert Pandoc block elements to Texinfo.
 blockListToTexinfo :: [Block]
                    -> State WriterState Doc
-blockListToTexinfo [] = return $ empty
+blockListToTexinfo [] = return empty
 blockListToTexinfo (x:xs) = do
   x' <- blockToTexinfo x
   case x of
@@ -276,7 +278,7 @@ blockListToTexinfo (x:xs) = do
       xs' <- blockListToTexinfo xs
       case xs of
            ((CodeBlock _ _):_) -> return $ x' $$ xs'
-           _                   -> return $ x' $$ text "" $$ xs'
+           _                   -> return $ x' $+$ xs'
     _ -> do
       xs' <- blockListToTexinfo xs
       return $ x' $$ xs'
@@ -307,15 +309,23 @@ makeMenuLine _ = error "makeMenuLine called with non-Header block"
 
 listItemToTexinfo :: [Block]
                   -> State WriterState Doc
-listItemToTexinfo lst = blockListToTexinfo lst >>=
-                        return . (text "@item" $$) 
+listItemToTexinfo lst = do
+  contents <- blockListToTexinfo lst
+  let spacer = case reverse lst of
+                    (Para{}:_) -> blankline
+                    _          -> empty
+  return $ text "@item" $$ contents <> spacer
 
 defListItemToTexinfo :: ([Inline], [[Block]])
                      -> State WriterState Doc
 defListItemToTexinfo (term, defs) = do
     term' <- inlineListToTexinfo term
-    def'  <- liftM vcat $ mapM blockListToTexinfo defs
-    return $ text "@item " <> term' <> text "\n" $$ def'
+    let defToTexinfo bs = do d <- blockListToTexinfo bs
+                             case reverse bs of
+                                  (Para{}:_) -> return $ d <> blankline
+                                  _          -> return d
+    defs' <- mapM defToTexinfo defs
+    return $ text "@item " <> term' $+$ vcat defs'
 
 -- | Convert list of inline elements to Texinfo.
 inlineListToTexinfo :: [Inline]  -- ^ Inlines to convert
@@ -325,31 +335,7 @@ inlineListToTexinfo lst = mapM inlineToTexinfo lst >>= return . hcat
 -- | Convert list of inline elements to Texinfo acceptable for a node name.
 inlineListForNode :: [Inline]  -- ^ Inlines to convert
                   -> State WriterState Doc
-inlineListForNode lst = mapM inlineForNode lst >>= return . hcat
-
-inlineForNode :: Inline -> State WriterState Doc
-inlineForNode (Str str) = return $ text $ filter (not.disallowedInNode) str
-inlineForNode (Emph lst) = inlineListForNode lst
-inlineForNode (Strong lst) = inlineListForNode lst
-inlineForNode (Strikeout lst) = inlineListForNode lst
-inlineForNode (Superscript lst) = inlineListForNode lst
-inlineForNode (Subscript lst) = inlineListForNode lst
-inlineForNode (SmallCaps lst) = inlineListForNode lst
-inlineForNode (Quoted _ lst) = inlineListForNode lst
-inlineForNode (Cite _ lst) = inlineListForNode lst
-inlineForNode (Code str) = inlineForNode (Str str)
-inlineForNode Space = return $ char ' '
-inlineForNode EmDash = return $ text "---"
-inlineForNode EnDash = return $ text "--"
-inlineForNode Apostrophe = return $ char '\''
-inlineForNode Ellipses = return $ text "..."
-inlineForNode LineBreak = return empty
-inlineForNode (Math _ str) = inlineListForNode $ readTeXMath str
-inlineForNode (TeX _) = return empty
-inlineForNode (HtmlInline _) = return empty
-inlineForNode (Link lst _) = inlineListForNode lst
-inlineForNode (Image lst _) = inlineListForNode lst
-inlineForNode (Note _) = return empty
+inlineListForNode = return . text . filter (not . disallowedInNode) . stringify
 
 -- periods, commas, colons, and parentheses are disallowed in node names
 disallowedInNode :: Char -> Bool
@@ -429,9 +415,4 @@ inlineToTexinfo (Image alternate (source, _)) = do
 
 inlineToTexinfo (Note contents) = do
   contents' <- blockListToTexinfo contents
-  let rawnote = stripTrailingNewlines $ render contents'
-  let optNewline = "@end verbatim" `isSuffixOf` rawnote
-  return $ text "@footnote{" <>
-           text rawnote <>
-           (if optNewline then char '\n' else empty) <>
-           char '}'
+  return $ text "@footnote" <> braces contents'

@@ -101,7 +101,6 @@ Level 5
 @subsection Level 3
 with no blank line
 
-
 @node Level 2
 @section Level 2
 with no blank line
@@ -136,7 +135,6 @@ E-mail style:
 
 @quotation
 This is a block quote. It is pretty short.
-
 @end quotation
 @quotation
 Code in a block quote:
@@ -159,11 +157,9 @@ Nested block quotes:
 
 @quotation
 nested
-
 @end quotation
 @quotation
 nested
-
 @end quotation
 @end quotation
 This should not be a block quote: 2 > 1.
@@ -291,7 +287,6 @@ Minus 3
 
 @end itemize
 
-
 @node Ordered
 @section Ordered
 Tight:
@@ -360,7 +355,6 @@ Item 3.
 
 @end enumerate
 
-
 @node Nested
 @section Nested
 @itemize
@@ -421,7 +415,6 @@ Third
 
 @end enumerate
 
-
 @node Tabs and spaces
 @section Tabs and spaces
 @itemize
@@ -441,7 +434,6 @@ this is an example list item indented with spaces
 @end itemize
 
 @end itemize
-
 
 @node Fancy list markers
 @section Fancy list markers
@@ -583,7 +575,6 @@ orange fruit
 
 @quotation
 orange block quote
-
 @end quotation
 @end table
 
@@ -638,7 +629,6 @@ sublist
 @end enumerate
 
 @end table
-
 
 @node HTML Blocks
 @chapter HTML Blocks
@@ -902,7 +892,6 @@ Just a @uref{/url/,URL}.
 
 @uref{,Empty}.
 
-
 @node Reference
 @section Reference
 Foo @uref{/url/,bar}.
@@ -930,7 +919,6 @@ Foo @uref{/url/,bar}.
 
 Foo @uref{/url/,biz}.
 
-
 @node With ampersands
 @section With ampersands
 Here's a @uref{http://example.com/?foo=1&bar=2,link with an ampersand in the URL}.
@@ -940,7 +928,6 @@ Here's a link with an amersand in the link text: @uref{http://att.com/,AT&T}.
 Here's an @uref{/script?foo=1&bar=2,inline link}.
 
 Here's an @uref{/script?foo=1&bar=2,inline link in pointy braces}.
-
 
 @node Autolinks
 @section Autolinks
@@ -959,7 +946,6 @@ An e-mail address: @uref{mailto:nobody@@nowhere.net,@code{nobody@@nowhere.net}}
 
 @quotation
 Blockquoted: @url{http://example.com/}
-
 @end quotation
 Auto-links should not occur here: @code{<http://example.com/>}
 @verbatim
@@ -1004,7 +990,6 @@ If you want@comma{} you can indent every line@comma{} but you can also be lazy a
 
 @quotation
 Notes can go in quotes.@footnote{In quote.}
-
 @end quotation
 @enumerate 
 @item
