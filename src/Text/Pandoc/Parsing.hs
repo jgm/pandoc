@@ -287,7 +287,7 @@ nullBlock :: GenParser Char st Block
 nullBlock = anyChar >> return Null
 
 -- | Fail if reader is in strict markdown syntax mode.
-failIfStrict :: GenParser Char ParserState ()
+failIfStrict :: GenParser a ParserState ()
 failIfStrict = do
   state <- getState
   if stateStrict state then fail "strict mode" else return ()
@@ -567,9 +567,9 @@ gridTableFooter = blanklines
 ---
 
 -- | Parse a string with a given parser and state.
-readWith :: GenParser Char ParserState a      -- ^ parser
+readWith :: GenParser t ParserState a      -- ^ parser
          -> ParserState                    -- ^ initial state
-         -> String                         -- ^ input string
+         -> [t]                            -- ^ input
          -> a
 readWith parser state input = 
     case runParser parser state "source" input of

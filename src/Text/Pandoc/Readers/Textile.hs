@@ -58,10 +58,9 @@ module Text.Pandoc.Readers.Textile ( readTextile) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Parsing
-import Text.Pandoc.Readers.HTML ( htmlTag, htmlEndTag, -- find code blocks
-                                  rawHtmlBlock, rawHtmlInline )
--- import Text.Pandoc.Readers.Markdown (smartPunctuation)
+import Text.Pandoc.Readers.HTML ( htmlTag, isInlineTag, isBlockTag )
 import Text.ParserCombinators.Parsec
+import Text.HTML.TagSoup.Match
 import Data.Char ( digitToInt, isLetter )
 import Control.Monad ( guard, liftM )
 
@@ -127,7 +126,7 @@ blockParsers = [ codeBlock
                , blockQuote
                , hrule
                , anyList
-               , rawHtmlBlock'
+               , rawHtmlBlock
                , maybeExplicitBlock "table" table
                , maybeExplicitBlock "p" para
                , nullBlock ]
@@ -139,8 +138,8 @@ block = choice blockParsers <?> "block"
 -- | Code Blocks in Textile are between <pre> and </pre>
 codeBlock :: GenParser Char ParserState Block
 codeBlock = try $ do
-  htmlTag False "pre"
-  result' <- manyTill anyChar (try $ htmlEndTag "pre" >> blockBreak)
+  htmlTag (tagOpen (=="pre") null)
+  result' <- manyTill anyChar (try $ htmlTag (tagClose (=="pre")) >> blockBreak)
   -- drop leading newline if any
   let result'' = case result' of
                       '\n':xs -> xs
@@ -261,21 +260,19 @@ definitionListItem = try $ do
           -- this ++ "\n\n" does not look very good
           ds <- parseFromString parseBlocks (s ++ "\n\n")
           return [ds]
-  
-  
+
 -- | This terminates a block such as a paragraph. Because of raw html
 -- blocks support, we have to lookAhead for a rawHtmlBlock.
 blockBreak :: GenParser Char ParserState ()
-blockBreak = try $ choice 
-             [newline >> blanklines >> return (),
-              lookAhead rawHtmlBlock' >> return ()]
+blockBreak = try (newline >> blanklines >> return ()) <|>
+              (lookAhead rawHtmlBlock >> return ())
 
 -- | A raw Html Block, optionally followed by blanklines
-rawHtmlBlock' :: GenParser Char ParserState Block
-rawHtmlBlock' = try $ do
-  b <- rawHtmlBlock
+rawHtmlBlock :: GenParser Char ParserState Block
+rawHtmlBlock = try $ do
+  (_,b) <- htmlTag isBlockTag
   optional blanklines
-  return b
+  return $ RawHtml b
 
 -- | In textile, paragraphs are separated by blank lines.
 para :: GenParser Char ParserState Block
@@ -449,6 +446,9 @@ endline :: GenParser Char ParserState Inline
 endline = try $ do
   newline >> notFollowedBy blankline
   return LineBreak
+
+rawHtmlInline :: GenParser Char ParserState Inline
+rawHtmlInline = liftM (HtmlInline . snd) $ htmlTag isInlineTag
 
 -- | Textile standard link syntax is label:"target"
 link :: GenParser Char ParserState Inline

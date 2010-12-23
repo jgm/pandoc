@@ -13,8 +13,11 @@ readerBench doc (name, reader) =
       inp = writer defaultWriterOptions{ writerWrapText = True
                                        , writerLiterateHaskell =
                                           "+lhs" `isSuffixOf` name } doc
-  in  bench (name ++ " reader") $ whnf
-        (reader defaultParserState{stateSmart = True
+      -- we compute the length to force full evaluation
+      getLength (Pandoc (Meta a b c) d) =
+            length a + length b + length c + length d
+  in  bench (name ++ " reader") $ whnf (getLength .
+         reader defaultParserState{ stateSmart = True
                                   , stateStandalone = True
                                   , stateLiterateHaskell =
                                       "+lhs" `isSuffixOf` name }) inp

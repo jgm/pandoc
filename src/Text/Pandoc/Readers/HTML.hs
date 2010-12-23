@@ -27,36 +27,355 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of HTML to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.HTML ( 
-                                 readHtml, 
-                                 rawHtmlInline, 
-                                 rawHtmlBlock,
-                                 htmlTag,
-                                 anyHtmlBlockTag, 
-                                 anyHtmlInlineTag,  
-                                 anyHtmlTag,
-                                 anyHtmlEndTag,
-                                 htmlEndTag,
-                                 extractTagType,
-                                 htmlBlockElement,
-                                 htmlComment,
+module Text.Pandoc.Readers.HTML ( readHtml
+                                , htmlTag
+                                , htmlInBalanced
+                                , isInlineTag
+                                , isBlockTag
+                                , isTextTag
+                                , isCommentTag
                                 ) where
 
 import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec.Pos
+import Text.HTML.TagSoup
+import Text.HTML.TagSoup.Match
 import Text.Pandoc.Definition
+import Text.Pandoc.Builder (text, toList)
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
-import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
-import Data.Maybe ( fromMaybe )
-import Data.List ( isPrefixOf, isSuffixOf, intercalate )
-import Data.Char ( toLower, isAlphaNum )
-import Control.Monad ( liftM, when )
+import Data.Maybe ( fromMaybe, isJust )
+import Data.List ( intercalate )
+import Data.Char ( isSpace, isDigit )
+import Control.Monad ( liftM, guard )
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: ParserState   -- ^ Parser state
          -> String        -- ^ String to parse (assumes @'\n'@ line endings)
          -> Pandoc
-readHtml = readWith parseHtml
+readHtml st inp = Pandoc meta blocks
+  where blocks = readWith parseBody st body
+        tags   = canonicalizeTags $
+                  parseTagsOptions parseOptions{ optTagPosition = True } inp
+        hasHeader = any (~== TagOpen "head" []) tags
+        (meta, rest) = if hasHeader
+                          then parseHeader tags
+                          else (Meta [] [] [], tags)
+        body   = filter (\t -> not $
+                     tagOpen (`elem` ["html","head","body"]) (const True) t ||
+                     tagClose (`elem` ["html","head","body"]) t) rest
+
+type TagParser = GenParser (Tag String) ParserState
+
+parseHeader :: [Tag String] -> (Meta, [Tag String])
+parseHeader tags = (Meta{docTitle = tit'', docAuthors = [], docDate = []}, rest)
+  where (tit,r) = break (~== TagClose "title") $ drop 1 $
+                   dropWhile (\t -> not $ t ~== TagOpen "title" []) tags
+        tit' = concatMap fromTagText $ filter isTagText tit
+        tit'' = normalizeSpaces $ toList $ text tit'
+        rest  = drop 1 $ dropWhile (\t -> not $ t ~== TagClose "head") r 
+
+parseBody :: TagParser [Block]
+parseBody = liftM concat $ manyTill block eof
+
+block :: TagParser [Block]
+block = optional pLocation >>
+        choice [
+              pPara
+            , pHeader
+            , pBlockQuote
+            , pCodeBlock
+            , pList
+            , pHrule
+            , pPlain
+            , pRawHtmlBlock
+            ]
+
+renderTags' :: [Tag String] -> String
+renderTags' = renderTagsOptions
+               renderOptions{ optMinimize = (`elem` ["hr","br","img"]) }
+
+pList :: TagParser [Block]
+pList = pBulletList <|> pOrderedList <|> pDefinitionList
+
+pBulletList :: TagParser [Block]
+pBulletList = try $ do
+  pSatisfy (~== TagOpen "ul" [])
+  let nonItem = pSatisfy (\t ->
+                  not (tagOpen (`elem` ["li","ol","ul","dl"]) (const True) t) &&
+                  not (t ~== TagClose "ul"))
+  -- note: if they have an <ol> or <ul> not in scope of a <li>,
+  -- treat it as a list item, though it's not valid xhtml...
+  skipMany nonItem
+  items <- manyTill (pInTags "li" block >>~ skipMany nonItem) (pCloses "ul")
+  return [BulletList items]
+
+pOrderedList :: TagParser [Block]
+pOrderedList = try $ do
+  TagOpen _ attribs <- pSatisfy (~== TagOpen "ol" [])
+  st <- getState
+  let (start, style) =  if stateStrict st
+                           then (1, DefaultStyle) 
+                           else (sta', sty')
+                              where sta = fromMaybe "1" $
+                                          lookup "start" attribs
+                                    sta' = if all isDigit sta
+                                              then read sta
+                                              else 1
+                                    sty = fromMaybe (fromMaybe "" $
+                                          lookup "style" attribs) $
+                                          lookup "class" attribs
+                                    sty' = case sty of
+                                            "lower-roman"  -> LowerRoman
+                                            "upper-roman"  -> UpperRoman
+                                            "lower-alpha"  -> LowerAlpha
+                                            "upper-alpha"  -> UpperAlpha
+                                            "decimal"      -> Decimal
+                                            _              -> DefaultStyle
+  let nonItem = pSatisfy (\t ->
+                  not (tagOpen (`elem` ["li","ol","ul","dl"]) (const True) t) &&
+                  not (t ~== TagClose "ol"))
+  -- note: if they have an <ol> or <ul> not in scope of a <li>,
+  -- treat it as a list item, though it's not valid xhtml...
+  skipMany nonItem
+  items <- manyTill (pInTags "li" block >>~ skipMany nonItem) (pCloses "ol")
+  return [OrderedList (start, style, DefaultDelim) items]
+
+pDefinitionList :: TagParser [Block]
+pDefinitionList = try $ do
+  pSatisfy (~== TagOpen "dl" [])
+  items <- manyTill pDefListItem (pCloses "dl")
+  return [DefinitionList items]
+
+pDefListItem :: TagParser ([Inline],[[Block]])
+pDefListItem = try $ do
+  let nonItem = pSatisfy (\t -> not (t ~== TagOpen "dt" []) &&
+                  not (t ~== TagOpen "dd" []) && not (t ~== TagClose "dl"))
+  terms <- many1 (try $ skipMany nonItem >> pInTags "dt" inline)
+  defs  <- many1 (try $ skipMany nonItem >> pInTags "dd" block)
+  skipMany nonItem
+  let term = intercalate [LineBreak] terms
+  return (term, defs)
+
+pRawHtmlBlock :: TagParser [Block]
+pRawHtmlBlock = do
+  raw <- pHtmlBlock "script" <|> pHtmlBlock "style" <|>
+          liftM (renderTags' . (:[])) pAnyTag
+  state <- getState
+  if stateParseRaw state
+     then return [RawHtml raw]
+     else return []
+
+pHtmlBlock :: String -> TagParser String
+pHtmlBlock t = try $ do
+  open <- pSatisfy (~== TagOpen t [])
+  contents <- manyTill pAnyTag (pSatisfy (~== TagClose t))
+  return $ renderTags' $ [open] ++ contents ++ [TagClose t]
+
+pHeader :: TagParser [Block]
+pHeader = try $ do
+  TagOpen tagtype attr <- pSatisfy $
+                           tagOpen (`elem` ["h1","h2","h3","h4","h5","h6"])
+                           (const True)
+  let bodyTitle = TagOpen tagtype attr ~== TagOpen "h1" [("class","title")]
+  let level = read (drop 1 tagtype)
+  contents <- liftM concat $ manyTill inline (pCloses tagtype <|> eof)
+  return $ if bodyTitle
+              then []  -- skip a representation of the title in the body
+              else [Header level $ normalizeSpaces contents]
+
+pHrule :: TagParser [Block]
+pHrule = do
+  pSelfClosing (=="hr") (const True)
+  return [HorizontalRule]
+
+pBlockQuote :: TagParser [Block]
+pBlockQuote = do
+  contents <- pInTags "blockquote" block
+  return [BlockQuote contents]
+
+pPlain :: TagParser [Block]
+pPlain = do
+  contents <- liftM (normalizeSpaces . concat) $ many1 inline
+  if null contents
+     then return []
+     else return [Plain contents]
+
+pPara :: TagParser [Block]
+pPara = do
+  contents <- pInTags "p" inline
+  return [Para $ normalizeSpaces contents]
+
+pCodeBlock :: TagParser [Block]
+pCodeBlock = try $ do
+  TagOpen _ attr <- pSatisfy (~== TagOpen "pre" [])
+  contents <- manyTill pAnyTag (pCloses "pre" <|> eof)
+  let rawText = concatMap fromTagText $ filter isTagText contents
+  -- drop leading newline if any
+  let result' = case rawText of
+                     '\n':xs  -> xs
+                     _        -> rawText
+  -- drop trailing newline if any
+  let result = case reverse result' of
+                    '\n':_   -> init result'
+                    _        -> result'
+  let attribsId = fromMaybe "" $ lookup "id" attr
+  let attribsClasses = words $ fromMaybe "" $ lookup "class" attr
+  let attribsKV = filter (\(k,_) -> k /= "class" && k /= "id") attr
+  st <- getState
+  let attribs = if stateStrict st
+                   then ("",[],[])
+                   else (attribsId, attribsClasses, attribsKV)
+  return [CodeBlock attribs result]
+
+inline :: TagParser [Inline]
+inline = choice [
+             pLocation
+           , pTagText
+           , pEmph
+           , pStrong
+           , pSuperscript
+           , pSubscript
+           , pStrikeout
+           , pLineBreak
+           , pLink
+           , pImage
+           , pCode
+           , pRawHtmlInline
+           ]
+
+pLocation :: TagParser [a]
+pLocation = do
+  (TagPosition r c) <- pSatisfy isTagPosition
+  setPosition $ newPos "input" r c
+  return []
+
+pSatisfy :: (Tag String -> Bool) -> TagParser (Tag String)
+pSatisfy f = do
+  pos <- getPosition
+  token show (const pos) (\x -> if f x then Just x else Nothing) 
+
+pAnyTag :: TagParser (Tag String)
+pAnyTag = pSatisfy (const True)
+
+pSelfClosing :: (String -> Bool) -> ([Attribute String] -> Bool)
+             -> TagParser (Tag String)
+pSelfClosing f g = do
+  open <- pSatisfy (tagOpen f g)
+  optional $ try $ pLocation >> pSatisfy (tagClose f)
+  return open
+
+pEmph :: TagParser [Inline]
+pEmph = pInlinesInTags "em" Emph <|> pInlinesInTags "i" Emph
+
+pStrong :: TagParser [Inline]
+pStrong = pInlinesInTags "strong" Strong <|> pInlinesInTags "b" Strong
+
+pSuperscript :: TagParser [Inline]
+pSuperscript = failIfStrict >> pInlinesInTags "sup" Superscript
+
+pSubscript :: TagParser [Inline]
+pSubscript = failIfStrict >> pInlinesInTags "sub" Subscript
+
+pStrikeout :: TagParser [Inline]
+pStrikeout = do
+  failIfStrict
+  pInlinesInTags "s" Strikeout <|>
+    pInlinesInTags "strike" Strikeout <|>
+    pInlinesInTags "del" Strikeout <|>
+    do pSatisfy (~== TagOpen "span" [("class","strikeout")])
+       contents <- liftM concat $ manyTill inline (pCloses "span")
+       return [Strikeout contents]
+
+pLineBreak :: TagParser [Inline]
+pLineBreak = do
+  pSelfClosing (=="br") (const True)
+  return [LineBreak]
+
+pLink :: TagParser [Inline]
+pLink = do
+  tag <- pSatisfy (tagOpenLit "a" (isJust . lookup "href"))
+  let url = fromAttrib "href" tag
+  let title = fromAttrib "title" tag
+  lab <- liftM concat $ manyTill inline (pCloses "a")
+  return [Link (normalizeSpaces lab) (escapeURI url, title)]
+
+pImage :: TagParser [Inline]
+pImage = do
+  tag <- pSelfClosing (=="img") (isJust . lookup "src")
+  let url = fromAttrib "src" tag
+  let title = fromAttrib "title" tag
+  let alt = fromAttrib "alt" tag
+  return [Image (toList $ text alt) (escapeURI url, title)]
+
+pCode :: TagParser [Inline]
+pCode = do
+  (TagOpen open _) <- pSatisfy $ tagOpen (`elem` ["code","tt"]) (const True)
+  result <- manyTill pAnyTag (pCloses open)
+  return [Code $ intercalate " " $ lines $ innerText result]
+
+pRawHtmlInline :: TagParser [Inline]
+pRawHtmlInline = do
+  result <- pSatisfy (tagComment (const True)) <|> pSatisfy isInlineTag
+  state <- getState
+  if stateParseRaw state
+     then return [HtmlInline $ renderTags' [result]]
+     else return []
+
+pInlinesInTags :: String -> ([Inline] -> Inline)
+               -> TagParser [Inline]
+pInlinesInTags tagtype f = do
+  contents <- pInTags tagtype inline
+  return [f contents]
+
+pInTags :: String -> TagParser [a]
+        -> TagParser [a]
+pInTags tagtype parser = try $ do
+  pSatisfy (~== TagOpen tagtype [])
+  liftM concat $ manyTill parser (pCloses tagtype <|> eof)
+
+pCloses :: String -> TagParser ()
+pCloses tagtype = try $ do
+  optional pLocation
+  t <- lookAhead $ pSatisfy $ \tag -> isTagClose tag || isTagOpen tag
+  case t of
+       (TagClose t')  | t' == tagtype -> pAnyTag >> return ()
+       (TagOpen t' _) | t' `closes` tagtype -> return ()
+       (TagClose "ul") | tagtype == "li" -> return ()
+       (TagClose "ol") | tagtype == "li" -> return ()
+       (TagClose "dl") | tagtype == "li" -> return ()
+       _ -> pzero
+
+pTagText :: TagParser [Inline]
+pTagText = do
+  (TagText str) <- pSatisfy isTagText
+  st <- getState
+  case runParser (many pTagContents) st "text" str of
+       Left _        -> fail $ "Could not parse `" ++ str ++ "'"
+       Right result  -> return result
+
+pTagContents :: GenParser Char ParserState Inline
+pTagContents =  pStr <|> pSpace <|> smartPunctuation pTagContents <|> pSymbol
+
+pStr :: GenParser Char ParserState Inline
+pStr = many1 (satisfy (\c -> not (isSpace c) && not (isSpecial c))) >>= return . Str
+
+isSpecial :: Char -> Bool
+isSpecial '"' = True
+isSpecial '\'' = True
+isSpecial '.' = True
+isSpecial '-' = True
+isSpecial '\8216' = True
+isSpecial '\8217' = True
+isSpecial '\8220' = True
+isSpecial '\8221' = True
+isSpecial _ = False
+
+pSymbol :: GenParser Char ParserState Inline
+pSymbol = satisfy isSpecial >>= return . Str . (:[])
+
+pSpace :: GenParser Char ParserState Inline
+pSpace = many1 (satisfy isSpace) >> return Space
 
 --
 -- Constants
@@ -83,10 +402,26 @@ blockHtmlTags = ["address", "blockquote", "body", "center", "dir", "div",
                  "dt", "frameset", "li", "tbody", "td", "tfoot",
                  "th", "thead", "tr", "script", "style"]
 
+isInlineTag :: Tag String -> Bool
+isInlineTag t = tagOpen (`notElem` blockHtmlTags) (const True) t ||
+                tagClose (`notElem` blockHtmlTags) t ||
+                tagComment (const True) t
+
+isBlockTag :: Tag String -> Bool
+isBlockTag t = tagOpen (`elem` blocktags) (const True) t ||
+               tagClose (`elem` blocktags) t ||
+               tagComment (const True) t
+                 where blocktags = blockHtmlTags ++ eitherBlockOrInline
+
+isTextTag :: Tag String -> Bool
+isTextTag = tagText (const True)
+
+isCommentTag :: Tag String -> Bool
+isCommentTag = tagComment (const True)
+
 -- taken from HXT and extended
 
 closes :: String -> String -> Bool
-"EOF" `closes` _ = True
 _ `closes` "body" = False
 _ `closes` "html" = False
 "a" `closes` "a" = True
@@ -117,565 +452,27 @@ t1 `closes` t2 |
    t2 `notElem` (blockHtmlTags ++ eitherBlockOrInline) = True
 _ `closes` _ = False
 
---
--- HTML utility functions
---
-
--- | Read blocks until end tag.
-blocksTilEnd :: String -> GenParser Char ParserState [Block]
-blocksTilEnd tag = do
-  blocks <- manyTill (block >>~ spaces) (htmlEndTag tag)
-  return $ filter (/= Null) blocks
-
--- | Read inlines until end tag.
-inlinesTilEnd :: String -> GenParser Char ParserState [Inline]
-inlinesTilEnd tag = manyTill inline (htmlEndTag tag)
-
--- | Parse blocks between open and close tag.
-blocksIn :: String -> GenParser Char ParserState [Block]
-blocksIn tag = try $ htmlOpenTag tag >> spaces >> blocksTilEnd tag
-
--- | Parse inlines between open and close tag.
-inlinesIn :: String -> GenParser Char ParserState [Inline]
-inlinesIn tag = try $ htmlOpenTag tag >> spaces >> inlinesTilEnd tag
-
--- | Extract type from a tag:  e.g. @br@ from @\<br\>@
-extractTagType :: String -> String
-extractTagType ('<':rest) = 
-  let isSpaceOrSlash c = c `elem` "/ \n\t" in
-  map toLower $ takeWhile isAlphaNum $ dropWhile isSpaceOrSlash rest
-extractTagType _ = ""
-
--- Parse any HTML tag (opening or self-closing) and return tag type
-anyOpener :: GenParser Char ParserState [Char]
-anyOpener = try $ do
-  char '<'
-  spaces
-  tag <- many1 alphaNum
-  skipMany htmlAttribute
-  spaces
-  option "" (string "/")
-  spaces
-  char '>'
-  return $ map toLower tag 
-
--- | Parse any HTML tag (opening or self-closing) and return text of tag
-anyHtmlTag :: GenParser Char ParserState [Char]
-anyHtmlTag = try $ do
-  char '<'
-  spaces
-  first <- letter
-  rest <- many (alphaNum <|> char ':')
-  let tag = first : rest
-  attribs <- many htmlAttribute
-  spaces
-  ender <- option "" (string "/")
-  let ender' = if null ender then "" else " /"
-  spaces
-  char '>'
-  let result = "<" ++ tag ++ 
-               concatMap (\(_, _, raw) -> (' ':raw)) attribs ++ ender' ++ ">"
-  return result
-
-anyHtmlEndTag :: GenParser Char ParserState [Char]
-anyHtmlEndTag = try $ do
-  char '<'   
-  spaces
-  char '/'
-  spaces
-  first <- letter
-  rest <- many (alphaNum <|> char ':')
-  let tag = first : rest
-  spaces
-  char '>'
-  let result = "</" ++ tag ++ ">"
-  return result 
-
-htmlTag :: Bool
-        -> String
-        -> GenParser Char ParserState (String, [(String, String)])
-htmlTag selfClosing tag = try $ do
-  char '<'
-  spaces
-  stringAnyCase tag
-  attribs <- many htmlAttribute
-  spaces
-  -- note: we want to handle both HTML and XHTML,
-  -- so we don't require the /
-  when selfClosing $ optional $ char '/' >> spaces
-  char '>'
-  return (tag, (map (\(name, content, _) -> (name, content)) attribs))
-
-htmlOpenTag :: String
-             -> GenParser Char ParserState (String, [(String, String)])
-htmlOpenTag = htmlTag False
-
-htmlCloseTag :: String
-             -> GenParser Char ParserState (String, [(String, String)])
-htmlCloseTag = htmlTag False . ('/':)
-
-htmlSelfClosingTag :: String
-                   -> GenParser Char ParserState (String, [(String, String)])
-htmlSelfClosingTag = htmlTag True
-
--- parses a quoted html attribute value
-quoted :: Char -> GenParser Char st (String, String)
-quoted quoteChar = do
-  result <- between (char quoteChar) (char quoteChar) 
-                    (many (noneOf [quoteChar]))
-  return (result, [quoteChar])
-
-htmlAttribute :: GenParser Char ParserState ([Char], [Char], [Char])
-htmlAttribute = do
-  attr <- htmlRegularAttribute <|> htmlMinimizedAttribute
-  return attr
-
--- minimized boolean attribute
-htmlMinimizedAttribute :: GenParser Char st ([Char], [Char], [Char])
-htmlMinimizedAttribute = try $ do
-  many1 space
-  name <- many1 (choice [letter, oneOf ".-_:"])
-  return (name, name, name)
-
-htmlRegularAttribute :: GenParser Char st ([Char], [Char], [Char])
-htmlRegularAttribute = try $ do
-  many1 space
-  name <- many1 (choice [letter, oneOf ".-_:"])
-  spaces
-  char '='
-  spaces
-  (content, quoteStr) <- choice [ (quoted '\''), 
-                                  (quoted '"'), 
-                                  (do
-                                     a <- many (noneOf " \t\n\r\"'<>")
-                                     return (a,"")) ]
-  return (name, content,
-          (name ++ "=" ++ quoteStr ++ content ++ quoteStr))
-
--- | Parse an end tag of type 'tag'
-htmlEndTag :: [Char] -> GenParser Char ParserState [Char]
-htmlEndTag tag = try $ do
-  closedByNext <- lookAhead $ option False $ liftM (`closes` tag) $
-                   anyOpener <|> (eof >> return "EOF")
-  if closedByNext
-     then return ""
-     else do char '<'   
-             spaces
-             char '/'
-             spaces
-             stringAnyCase tag
-             spaces
-             char '>'
-             return $ "</" ++ tag ++ ">"
-
--- | Returns @True@ if the tag is (or can be) a block tag.
-isBlock :: String -> Bool
-isBlock tag = (extractTagType tag) `elem` (blockHtmlTags ++ eitherBlockOrInline)
-
-anyHtmlBlockTag :: GenParser Char ParserState [Char]
-anyHtmlBlockTag = try $ do
-  tag <- anyHtmlTag <|> anyHtmlEndTag
-  if isBlock tag then return tag else fail "not a block tag"
-
-anyHtmlInlineTag :: GenParser Char ParserState [Char]
-anyHtmlInlineTag = try $ do
-  tag <- anyHtmlTag <|> anyHtmlEndTag
-  if not (isBlock tag) then return tag else fail "not an inline tag"
-
--- | Parses material between script tags.
--- Scripts must be treated differently, because they can contain '<>' etc.
-htmlScript :: GenParser Char ParserState [Char]
-htmlScript = try $ do
-  lookAhead $ htmlOpenTag "script"
-  open <- anyHtmlTag
-  rest <- manyTill anyChar (htmlEndTag "script")
-  return $ open ++ rest ++ "</script>"
-
--- | Parses material between style tags.
--- Style tags must be treated differently, because they can contain CSS
-htmlStyle :: GenParser Char ParserState [Char]
-htmlStyle = try $ do
-  lookAhead $ htmlOpenTag "style"
-  open <- anyHtmlTag
-  rest <- manyTill anyChar (htmlEndTag "style")
-  return $ open ++ rest ++ "</style>"
-
-htmlBlockElement :: GenParser Char ParserState [Char]
-htmlBlockElement = choice [ htmlScript, htmlStyle, htmlComment, xmlDec, definition ]
-
-rawHtmlBlock :: GenParser Char ParserState Block
-rawHtmlBlock = try $ do
-  body <- htmlBlockElement <|> rawVerbatimBlock <|> anyHtmlBlockTag
-  state <- getState
-  if stateParseRaw state then return (RawHtml body) else return Null
-
--- This is a block whose contents should be passed through verbatim, not interpreted.
-rawVerbatimBlock :: GenParser Char ParserState [Char]
-rawVerbatimBlock = try $ do
-  start <- anyHtmlBlockTag
-  let tagtype = extractTagType start
-  if tagtype `elem` ["pre"]
-     then do
-       contents <- many (notFollowedBy' (htmlEndTag tagtype) >> anyChar)
-       end <- htmlEndTag tagtype
-       return $ start ++ contents ++ end
-     else fail "Not a verbatim block"
-
--- We don't want to parse </body> or </html> as raw HTML, since these
--- are handled in parseHtml.
-rawHtmlBlock' :: GenParser Char ParserState Block
-rawHtmlBlock' = do notFollowedBy' (htmlCloseTag "body" <|>
-                                   htmlCloseTag "html")
-                   rawHtmlBlock
-
--- | Parses an HTML comment.
-htmlComment :: GenParser Char st [Char]
-htmlComment = try $ do
-  string "<!--"
-  comment <- many $ noneOf "-"
-               <|> try (char '-' >>~ notFollowedBy (try (char '-' >> char '>')))
-  string "-->"
-  return $ "<!--" ++ comment ++ "-->"
-
---
--- parsing documents
---
-
-xmlDec :: GenParser Char st [Char]
-xmlDec = try $ do
-  string "<?"
-  rest <- manyTill anyChar (char '>')
-  return $ "<?" ++ rest ++ ">"
-
-definition :: GenParser Char st [Char]
-definition = try $ do
-  string "<!"
-  rest <- manyTill anyChar (char '>')
-  return $ "<!" ++ rest ++ ">"
-
-nonTitleNonHead :: GenParser Char ParserState Char
-nonTitleNonHead = try $ do
-  notFollowedBy $ (htmlOpenTag "title" >> return ' ') <|> 
-                  (htmlEndTag "head" >> return ' ')
-  (rawHtmlBlock >> return ' ') <|> anyChar
-
-parseTitle :: GenParser Char ParserState [Inline]
-parseTitle = try $ do
-  (tag, _) <- htmlOpenTag "title"
-  contents <- inlinesTilEnd tag
-  spaces
-  return contents
-
--- parse header and return meta-information (for now, just title)
-parseHead :: GenParser Char ParserState Meta
-parseHead = try $ do
-  htmlOpenTag "head"
-  spaces
-  skipMany nonTitleNonHead
-  contents <- option [] parseTitle
-  skipMany nonTitleNonHead
-  htmlEndTag "head"
-  return $ Meta contents [] []
-
--- h1 class="title" representation of title in body
-bodyTitle :: GenParser Char ParserState [Inline]
-bodyTitle = try $ do
-  (_, attribs) <- htmlOpenTag "h1"  
-  case (extractAttribute "class" attribs) of
-       Just "title" -> return ""
-       _            -> fail "not title"
-  inlinesTilEnd "h1"
-
-endOfDoc :: GenParser Char ParserState ()
-endOfDoc = try $ do
-  spaces
-  optional (htmlEndTag "body")
-  spaces
-  optional (htmlEndTag "html" >> many anyChar) -- ignore stuff after </html>
-  eof 
-
-parseHtml :: GenParser Char ParserState Pandoc
-parseHtml = do
-  sepEndBy (choice [xmlDec, definition, htmlComment]) spaces
-  spaces
-  optional $ htmlOpenTag "html"
-  spaces
-  meta <- option (Meta [] [] []) parseHead
-  spaces
-  optional $ htmlOpenTag "body"
-  spaces
-  optional bodyTitle  -- skip title in body, because it's represented in meta
-  blocks <- parseBlocks
-  endOfDoc
-  return $ Pandoc meta blocks
-
---
--- parsing blocks
---
-
-parseBlocks :: GenParser Char ParserState [Block]
-parseBlocks = spaces >> sepEndBy block spaces >>= (return . filter (/= Null))
-
-block :: GenParser Char ParserState Block
-block = choice [ codeBlock
-               , header
-               , hrule
-               , list
-               , blockQuote
-               , para
-               , plain
-               , rawHtmlBlock'
-               , notFollowedBy' endOfDoc >> char '<' >> return Null
-               ] <?> "block"
-
---
--- header blocks
---
-
-header :: GenParser Char ParserState Block
-header = choice (map headerLevel (enumFromTo 1 5)) <?> "header"
-
-headerLevel :: Int -> GenParser Char ParserState Block
-headerLevel n = try $ do
-    let level = "h" ++ show n
-    htmlOpenTag level
-    contents <- inlinesTilEnd level
-    return $ Header n (normalizeSpaces contents)
-
---
--- hrule block
---
-
-hrule :: GenParser Char ParserState Block
-hrule = try  $ do
-  (_, attribs) <- htmlSelfClosingTag "hr"
-  state <- getState
-  if not (null attribs) && stateParseRaw state
-     then unexpected "attributes in hr" -- parse as raw in this case
-     else return HorizontalRule
-
---
--- code blocks
---
-
--- Note:  HTML tags in code blocks (e.g. for syntax highlighting) are 
--- skipped, because they are not portable to output formats other than HTML.
-codeBlock :: GenParser Char ParserState Block
-codeBlock = try $ do
-    htmlOpenTag "pre" 
-    result <- manyTill 
-              (many1 (satisfy (/= '<')) <|> 
-               ((anyHtmlTag <|> anyHtmlEndTag) >> return ""))
-              (htmlEndTag "pre")
-    let result' = concat result
-    -- drop leading newline if any
-    let result'' = if "\n" `isPrefixOf` result'
-                      then drop 1 result'
-                      else result'
-    -- drop trailing newline if any
-    let result''' = if "\n" `isSuffixOf` result''
-                       then init result''
-                       else result''
-    return $ CodeBlock ("",[],[]) $ decodeCharacterReferences result'''
-
---
--- block quotes
---
-
-blockQuote :: GenParser Char ParserState Block
-blockQuote = try $ htmlOpenTag "blockquote" >> spaces >> 
-                   blocksTilEnd "blockquote" >>= (return . BlockQuote)
-
---
--- list blocks
---
-
-list :: GenParser Char ParserState Block
-list = choice [ bulletList, orderedList, definitionList ] <?> "list"
-
-orderedList :: GenParser Char ParserState Block
-orderedList = try $ do
-  (_, attribs) <- htmlOpenTag "ol"
-  (start, style) <- option (1, DefaultStyle) $
-                           do failIfStrict
-                              let sta = fromMaybe "1" $ 
-                                        lookup "start" attribs
-                              let sty = fromMaybe (fromMaybe "" $
-                                        lookup "style" attribs) $
-                                        lookup "class" attribs
-                              let sty' = case sty of
-                                          "lower-roman"  -> LowerRoman
-                                          "upper-roman"  -> UpperRoman
-                                          "lower-alpha"  -> LowerAlpha
-                                          "upper-alpha"  -> UpperAlpha
-                                          "decimal"      -> Decimal
-                                          _              -> DefaultStyle
-                              return (read sta, sty')
-  spaces
-  -- note: if they have an <ol> or <ul> not in scope of a <li>,
-  -- treat it as a list item, though it's not valid xhtml...
-  items <- sepEndBy1 (blocksIn "li" <|> liftM (:[]) list) spaces
-  htmlEndTag "ol"
-  return $ OrderedList (start, style, DefaultDelim) items
-
-bulletList :: GenParser Char ParserState Block
-bulletList = try $ do
-  htmlOpenTag "ul"
-  spaces
-  -- note: if they have an <ol> or <ul> not in scope of a <li>,
-  -- treat it as a list item, though it's not valid xhtml...
-  items <- sepEndBy1 (blocksIn "li" <|> liftM (:[]) list) spaces
-  htmlEndTag "ul"
-  return $ BulletList items
-
-definitionList :: GenParser Char ParserState Block
-definitionList = try $ do
-  failIfStrict  -- def lists not part of standard markdown
-  htmlOpenTag "dl"
-  spaces
-  items <- sepEndBy1 definitionListItem spaces
-  htmlEndTag "dl"
-  return $ DefinitionList items
-
-definitionListItem :: GenParser Char ParserState ([Inline], [[Block]])
-definitionListItem = try $ do
-  terms <- sepEndBy1 (inlinesIn "dt") spaces
-  defs <- sepEndBy1 (blocksIn "dd") spaces
-  let term = intercalate [LineBreak] terms
-  return (term, defs)
-
---
--- paragraph block
---
-
-para :: GenParser Char ParserState Block
-para = try $ htmlOpenTag "p" >> inlinesTilEnd "p" >>= 
-             return . Para . normalizeSpaces
-
--- 
--- plain block
---
-
-plain :: GenParser Char ParserState Block
-plain = many1 inline >>= return . Plain . normalizeSpaces
-
--- 
--- inline
---
-
-inline :: GenParser Char ParserState Inline
-inline = choice [ str
-                , strong
-                , emph
-                , superscript
-                , subscript
-                , strikeout
-                , spanStrikeout
-                , code
-                , linebreak
-                , whitespace
-                , link
-                , image
-                , smartPunctuation inline
-                , charRef
-                , rawHtmlInline
-                , symbol
-                ] <?> "inline"
-
-code :: GenParser Char ParserState Inline
-code = try $ do 
-  result <- (htmlOpenTag "code" >> manyTill (noneOf "<>") (htmlEndTag "code"))
-        <|> (htmlOpenTag "tt"   >> manyTill (noneOf "<>") (htmlEndTag "tt"))
-  -- remove internal line breaks, leading and trailing space,
-  -- and decode character references
-  return $ Code $ decodeCharacterReferences $ removeLeadingTrailingSpace $ 
-                  intercalate " " $ lines result
-
-rawHtmlInline :: GenParser Char ParserState Inline
-rawHtmlInline = do
-  result <- anyHtmlInlineTag <|> htmlComment
-  state <- getState
-  if stateParseRaw state then return (HtmlInline result) else return (Str "")
-
-symbol :: GenParser Char ParserState Inline
-symbol = do
-  notFollowedBy (char '<')
-  c <- oneOf specialChars
-  return $ Str [c]
-
-betweenTags :: [Char] -> GenParser Char ParserState [Inline]
-betweenTags tag = try $ htmlOpenTag tag >> inlinesTilEnd tag >>= 
-                        return . normalizeSpaces
-
-emph :: GenParser Char ParserState Inline
-emph = (betweenTags "em" <|> betweenTags "i") >>= return . Emph
-
-strong :: GenParser Char ParserState Inline
-strong = (betweenTags "b" <|> betweenTags "strong") >>= return . Strong
-
-superscript :: GenParser Char ParserState Inline
-superscript = failIfStrict >> betweenTags "sup" >>= return . Superscript
-
-subscript :: GenParser Char ParserState Inline
-subscript = failIfStrict >> betweenTags "sub" >>= return . Subscript
-
-strikeout :: GenParser Char ParserState Inline
-strikeout = failIfStrict >> (betweenTags "s" <|> betweenTags "strike") >>=
-            return . Strikeout
-
-spanStrikeout :: GenParser Char ParserState Inline
-spanStrikeout = try $ do
-  failIfStrict -- strict markdown has no strikeout, so treat as raw HTML
-  (_, attributes) <- htmlOpenTag "span" 
-  result <- case (extractAttribute "class" attributes) of
-              Just "strikeout" -> inlinesTilEnd "span"
-              _                -> fail "not a strikeout"
-  return $ Strikeout result
-
-whitespace :: GenParser Char st Inline
-whitespace = many1 space >> return Space
-
--- hard line break
-linebreak :: GenParser Char ParserState Inline
-linebreak = htmlSelfClosingTag "br" >> optional newline >> return LineBreak
-
-str :: GenParser Char st Inline
-str = many1 (noneOf $ specialChars ++ " \t\n") >>= return . Str
-
-specialChars :: [Char]
-specialChars = "<&-\"'.\8216\8217\8220\8221"
-
---
--- links and images
---
-
--- extract contents of attribute (attribute names are case-insensitive)
-extractAttribute :: [Char] -> [([Char], String)] -> Maybe String
-extractAttribute _    [] = Nothing
-extractAttribute name ((attrName, contents):rest) = 
-  let name'     = map toLower name 
-      attrName' = map toLower attrName
-  in  if attrName' == name'
-         then Just (decodeCharacterReferences contents)
-         else extractAttribute name rest
-
-link :: GenParser Char ParserState Inline
-link = try $ do
-  (_, attributes) <- htmlOpenTag "a"  
-  url <- case (extractAttribute "href" attributes) of
-           Just url -> return url
-           Nothing  -> fail "no href"
-  let title = fromMaybe "" $ extractAttribute "title" attributes
-  lab <- inlinesTilEnd "a"
-  return $ Link (normalizeSpaces lab) (escapeURI url, title)
-
-image :: GenParser Char ParserState Inline
-image = try $ do
-  (_, attributes) <- htmlSelfClosingTag "img"
-  url <- case (extractAttribute "src" attributes) of
-           Just url -> return url
-           Nothing  -> fail "no src"
-  let title = fromMaybe "" $ extractAttribute "title" attributes
-  let alt = fromMaybe "" (extractAttribute "alt" attributes)
-  return $ Image [Str alt] (escapeURI url, title)
-
+--- parsers for use in markdown, textile readers
+
+-- | Matches a stretch of HTML in balanced tags.
+htmlInBalanced :: (Tag String -> Bool) -> GenParser Char ParserState String
+htmlInBalanced f = try $ do
+  (TagOpen t _, tag) <- htmlTag f
+  guard $ '/' `notElem` tag      -- not a self-closing tag
+  let nonTagChunk = many1 $ satisfy (/= '<')
+  let stopper = htmlTag (~== TagClose t)
+  let anytag = liftM snd $ htmlTag (const True)
+  contents <- many $ notFollowedBy' stopper >>
+                     (nonTagChunk <|> htmlInBalanced (const True) <|> anytag)
+  endtag <- liftM snd stopper
+  return $ tag ++ concat contents ++ endtag
+
+-- | Matches a tag meeting a certain condition.
+htmlTag :: (Tag String -> Bool) -> GenParser Char ParserState (Tag String, String)
+htmlTag f = try $ do
+  lookAhead (char '<')
+  (next : _) <- getInput >>= return . canonicalizeTags . parseTags
+  guard $ f next
+  -- advance the parser
+  rendered <- manyTill anyChar (char '>')
+  return (next, rendered ++ ">")

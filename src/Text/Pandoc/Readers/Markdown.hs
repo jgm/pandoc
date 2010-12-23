@@ -29,7 +29,7 @@ Conversion of markdown-formatted plain text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Markdown ( readMarkdown ) where
 
-import Data.List ( transpose, isSuffixOf, sortBy, findIndex, intercalate )
+import Data.List ( transpose, sortBy, findIndex, intercalate )
 import qualified Data.Map as M
 import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum )
@@ -39,14 +39,14 @@ import Text.Pandoc.Generic
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment' )
-import Text.Pandoc.Readers.HTML ( rawHtmlBlock, anyHtmlBlockTag, 
-                                  anyHtmlInlineTag, anyHtmlTag,
-                                  anyHtmlEndTag, htmlEndTag, extractTagType,
-                                  htmlBlockElement, htmlComment )
+import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
+                                  isTextTag, isCommentTag )
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.ParserCombinators.Parsec
 import Control.Monad (when, liftM, guard)
 import Text.TeXMath.Macros (applyMacros, Macro, pMacroDefinition)
+import Text.HTML.TagSoup
+import Text.HTML.TagSoup.Match (tagOpen)
 
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: ParserState -- ^ Parser state, including options for parser
@@ -532,7 +532,7 @@ listLine = try $ do
   notFollowedBy' (do indentSpaces
                      many (spaceChar)
                      listStart)
-  chunks <- manyTill (htmlComment <|> count 1 anyChar) newline
+  chunks <- manyTill (liftM snd (htmlTag isCommentTag) <|> count 1 anyChar) newline
   return $ concat chunks ++ "\n"
 
 -- parse raw text for one list item, excluding start marker and continuations
@@ -676,7 +676,7 @@ plain = many1 inline >>~ spaces >>= return . Plain . normalizeSpaces
 --
 
 htmlElement :: GenParser Char ParserState [Char]
-htmlElement = strictHtmlBlock <|> htmlBlockElement <?> "html element"
+htmlElement = strictHtmlBlock <|> liftM snd (htmlTag isBlockTag)
 
 htmlBlock :: GenParser Char ParserState Block
 htmlBlock = try $ do
@@ -686,25 +686,23 @@ htmlBlock = try $ do
     finalNewlines <- many newline
     return $ RawHtml $ first ++ finalSpace ++ finalNewlines
 
--- True if tag is self-closing
-isSelfClosing :: [Char] -> Bool
-isSelfClosing tag = 
-  isSuffixOf "/>" $ filter (not . (`elem` " \n\t")) tag
-
 strictHtmlBlock :: GenParser Char ParserState [Char]
-strictHtmlBlock = try $ do
-  tag <- anyHtmlBlockTag 
-  let tag' = extractTagType tag
-  if isSelfClosing tag || tag' == "hr" 
-     then return tag
-     else do contents <- many (notFollowedBy' (htmlEndTag tag') >> 
-                               (htmlElement <|> (count 1 anyChar)))
-             end <- htmlEndTag tag'
-             return $ tag ++ concat contents ++ end
+strictHtmlBlock = do
+  failUnlessBeginningOfLine
+  htmlInBalanced (not . isInlineTag)
+
+rawVerbatimBlock :: GenParser Char ParserState String
+rawVerbatimBlock = try $ do
+  (TagOpen tag _, open) <- htmlTag (tagOpen (\t ->
+                                      t == "pre" || t == "style" || t == "script")
+                                     (const True))
+  contents <- manyTill anyChar (htmlTag (~== TagClose tag))
+  return $ open ++ contents ++ renderTags [TagClose tag]
 
 rawHtmlBlocks :: GenParser Char ParserState Block
 rawHtmlBlocks = do
-  htmlBlocks <- many1 $ do (RawHtml blk) <- rawHtmlBlock
+  htmlBlocks <- many1 $ do blk <- rawVerbatimBlock <|>
+                                   liftM snd (htmlTag isBlockTag)
                            sps <- do sp1 <- many spaceChar
                                      sp2 <- option "" (blankline >> return "\n")
                                      sp3 <- many spaceChar
@@ -921,7 +919,7 @@ inlineParsers = [ str
                 , subscript
                 , inlineNote  -- after superscript because of ^[link](/foo)^
                 , autoLink
-                , rawHtmlInline'
+                , rawHtmlInline
                 , rawLaTeXInline'
                 , escapedChar
                 , exampleRef
@@ -1221,12 +1219,12 @@ inBrackets parser = do
   char ']'
   return $ "[" ++ contents ++ "]"
 
-rawHtmlInline' :: GenParser Char ParserState Inline
-rawHtmlInline' = do
+rawHtmlInline :: GenParser Char ParserState Inline
+rawHtmlInline = do
   st <- getState
-  result <- if stateStrict st
-               then choice [htmlBlockElement, anyHtmlTag, anyHtmlEndTag] 
-               else choice [htmlComment, anyHtmlInlineTag]
+  (_,result) <- if stateStrict st
+                   then htmlTag (not . isTextTag)
+                   else htmlTag isInlineTag
   return $ HtmlInline result
 
 -- Citations
@@ -1315,3 +1313,4 @@ citation = try $ do
                      , citationNoteNum = 0
                      , citationHash    = 0
                      }
+
