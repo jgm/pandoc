@@ -288,31 +288,8 @@ htmlScript :: GenParser Char ParserState [Char]
 htmlScript = try $ do
   lookAhead $ htmlOpenTag "script"
   open <- anyHtmlTag
-  rest <- liftM concat $ manyTill scriptChunk (htmlEndTag "script")
+  rest <- manyTill anyChar (htmlEndTag "script")
   return $ open ++ rest ++ "</script>"
-
-scriptChunk :: GenParser Char ParserState [Char]
-scriptChunk = jsComment <|> jsString <|> jsChars
-  where jsComment = jsEndlineComment <|> jsMultilineComment
-        jsString  = jsSingleQuoteString <|> jsDoubleQuoteString
-        jsChars   = many1 (noneOf "<\"'*/") <|> count 1 anyChar
-        jsEndlineComment = try $ do
-           string "//"
-           res <- manyTill anyChar newline
-           return ("//" ++ res)
-        jsMultilineComment = try $ do
-           string "/*"
-           res <- manyTill anyChar (try $ string "*/")
-           return ("/*" ++ res ++ "*/")
-        jsSingleQuoteString = stringwith '\''
-        jsDoubleQuoteString = stringwith '"'
-        charWithEsc escapable = try $
-           (try $ char '\\' >> oneOf ('\\':escapable) >>= \x -> return ['\\',x])
-          <|> count 1 anyChar
-        stringwith c = try $ do
-           char c
-           res <- liftM concat $ manyTill (charWithEsc [c]) (char c)
-           return (c : (res ++ [c]))
 
 -- | Parses material between style tags.
 -- Style tags must be treated differently, because they can contain CSS
