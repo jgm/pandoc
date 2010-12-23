@@ -57,7 +57,7 @@ underlineChars = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
-specialChars = "\\`|*_<>$:[-.\"'"
+specialChars = "\\`|*_<>$:[-.\"'\8216\8217\8220\8221"
 
 --
 -- parsing documents
