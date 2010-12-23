@@ -587,8 +587,7 @@ plain = many1 inline >>= return . Plain . normalizeSpaces
 --
 
 inline :: GenParser Char ParserState Inline
-inline = choice [ smartPunctuation inline
-                , str
+inline = choice [ str
                 , strong
                 , emph
                 , superscript
@@ -600,9 +599,10 @@ inline = choice [ smartPunctuation inline
                 , whitespace
                 , link
                 , image
+                , smartPunctuation inline
                 , charRef
                 , rawHtmlInline
-                , char '&' >> return (Str "&") -- common HTML error
+                , symbol
                 ] <?> "inline"
 
 code :: GenParser Char ParserState Inline
@@ -619,6 +619,12 @@ rawHtmlInline = do
   result <- anyHtmlInlineTag <|> htmlComment
   state <- getState
   if stateParseRaw state then return (HtmlInline result) else return (Str "")
+
+symbol :: GenParser Char ParserState Inline
+symbol = do
+  notFollowedBy (char '<')
+  c <- oneOf specialChars
+  return $ Str [c]
 
 betweenTags :: [Char] -> GenParser Char ParserState [Inline]
 betweenTags tag = try $ htmlOpenTag tag >> inlinesTilEnd tag >>= 
@@ -657,7 +663,10 @@ linebreak :: GenParser Char ParserState Inline
 linebreak = htmlSelfClosingTag "br" >> optional newline >> return LineBreak
 
 str :: GenParser Char st Inline
-str = many1 (noneOf "< \t\n&") >>= return . Str
+str = many1 (noneOf $ specialChars ++ " \t\n") >>= return . Str
+
+specialChars :: [Char]
+specialChars = "<&-\"'.\8216\8217\8220\8221"
 
 --
 -- links and images
