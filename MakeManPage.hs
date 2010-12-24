@@ -14,8 +14,8 @@ main = do
   let opts = defaultWriterOptions{ writerStandalone = True
                                  , writerTemplate = manTemplate }
   let manPage = writeMan opts $
-                processWith (concatMap removeLinks) $
-                processWith capitalizeHeaders $
+                bottomUp (concatMap removeLinks) $
+                bottomUp  capitalizeHeaders $
                 Pandoc meta newBlocks
   B.writeFile ("man" </> "man1" </> "pandoc.1") $ fromString manPage
 
@@ -24,7 +24,7 @@ removeLinks (Link l _) = l
 removeLinks x = [x]
 
 capitalizeHeaders :: Block -> Block
-capitalizeHeaders (Header 1 xs) = Header 1 $ processWith capitalize xs
+capitalizeHeaders (Header 1 xs) = Header 1 $ bottomUp capitalize xs
 capitalizeHeaders x = x
 
 capitalize :: Inline -> Inline

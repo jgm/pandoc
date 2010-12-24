@@ -30,6 +30,7 @@ Conversion of 'Pandoc' format into LaTeX.
 -}
 module Text.Pandoc.Writers.LaTeX ( writeLaTeX ) where
 import Text.Pandoc.Definition
+import Text.Pandoc.Generic
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
@@ -217,7 +218,7 @@ blockToLaTeX (Header level lst) = do
   txt <- inlineListToLaTeX lst'
   let noNote (Note _) = Str ""
       noNote x        = x
-  let lstNoNotes = processWith noNote lst'
+  let lstNoNotes = bottomUp noNote lst'
   -- footnotes in sections don't work unless you specify an optional
   -- argument:  \section[mysec]{mysec\footnote{blah}}
   optional <- if lstNoNotes == lst'

@@ -57,6 +57,8 @@ module Text.Pandoc
                ( 
                -- * Definitions
                module Text.Pandoc.Definition
+               -- * Generics
+               , module Text.Pandoc.Generic
                -- * Lists of readers and writers
                , readers
                , writers
@@ -106,6 +108,7 @@ module Text.Pandoc
              ) where
 
 import Text.Pandoc.Definition
+import Text.Pandoc.Generic
 import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.RST
 import Text.Pandoc.Readers.LaTeX

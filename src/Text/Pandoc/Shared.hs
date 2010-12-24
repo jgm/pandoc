@@ -71,6 +71,7 @@ module Text.Pandoc.Shared (
                     ) where
 
 import Text.Pandoc.Definition
+import Text.Pandoc.Generic
 import qualified Text.Pandoc.UTF8 as UTF8 (readFile)
 import Data.Char ( toLower, isLower, isUpper, isAlpha, isAscii,
                    isLetter, isDigit )
@@ -79,7 +80,7 @@ import Network.URI ( isAllowedInURI, escapeURIString, unEscapeString )
 import Codec.Binary.UTF8.String ( encodeString, decodeString )
 import System.Directory
 import System.FilePath ( (</>) )
-import Data.Generics (Typeable, Data, everywhere', mkT)
+import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import Paths_pandoc (getDataFileName)
 
@@ -257,8 +258,8 @@ normalizeSpaces = cleanup . dropWhile isSpaceOrEmpty
 -- combining adjacent 'Str's and 'Emph's, remove 'Null's and
 -- empty elements, etc.
 normalize :: Pandoc -> Pandoc
-normalize = everywhere' (mkT normalizeInlines) .
-            everywhere' (mkT normalizeBlocks)
+normalize = topDown normalizeInlines .
+            topDown normalizeBlocks
 
 normalizeBlocks :: [Block] -> [Block]
 normalizeBlocks (Null : xs) = normalizeBlocks xs
@@ -404,7 +405,7 @@ isHeaderBlock _ = False
 
 -- | Shift header levels up or down.
 headerShift :: Int -> Pandoc -> Pandoc
-headerShift n = processWith shift
+headerShift n = bottomUp shift
   where shift :: Block -> Block
         shift (Header level inner) = Header (level + n) inner
         shift x                    = x

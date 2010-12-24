@@ -37,6 +37,7 @@ import System.Time
 import Paths_pandoc ( getDataFileName )
 import Text.Pandoc.Shared ( WriterOptions(..) )
 import Text.Pandoc.Definition
+import Text.Pandoc.Generic
 import Text.Pandoc.Writers.OpenDocument ( writeOpenDocument )
 import System.Directory
 import Control.Monad (liftM)
@@ -63,7 +64,7 @@ writeODT mbRefOdt opts doc = do
   -- handle pictures
   picEntriesRef <- newIORef ([] :: [Entry])
   let sourceDir = writerSourceDirectory opts
-  doc' <- processWithM (transformPic sourceDir picEntriesRef) doc
+  doc' <- bottomUpM (transformPic sourceDir picEntriesRef) doc
   let newContents = writeOpenDocument opts{writerWrapText = False} doc'
   (TOD epochtime _) <- getClockTime
   let contentEntry = toEntry "content.xml" epochtime $ fromString newContents

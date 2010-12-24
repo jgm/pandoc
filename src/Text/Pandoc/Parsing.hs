@@ -72,6 +72,7 @@ module Text.Pandoc.Parsing ( (>>~),
 where
 
 import Text.Pandoc.Definition
+import Text.Pandoc.Generic
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.ParserCombinators.Parsec
 import Text.Pandoc.CharacterReferences ( characterReference )
@@ -655,7 +656,7 @@ type NoteTable = [(String, String)]
 newtype Key = Key [Inline] deriving (Show, Read, Eq, Ord)
 
 toKey :: [Inline] -> Key
-toKey = Key . processWith lowercase
+toKey = Key . bottomUp lowercase
   where lowercase :: Inline -> Inline
         lowercase (Str xs)        = Str (map toLower xs)
         lowercase (Math t xs)     = Math t (map toLower xs)

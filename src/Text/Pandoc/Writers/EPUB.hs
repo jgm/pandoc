@@ -39,6 +39,7 @@ import Codec.Archive.Zip
 import System.Time
 import Text.Pandoc.Shared hiding ( Element )
 import Text.Pandoc.Definition
+import Text.Pandoc.Generic
 import Control.Monad (liftM)
 import Text.XML.Light hiding (ppTopElement)
 import Text.Pandoc.UUID
@@ -69,7 +70,7 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
 
   -- handle pictures
   picsRef <- newIORef []
-  Pandoc _ blocks <- liftM (processWith transformBlock) $ processWithM
+  Pandoc _ blocks <- liftM (bottomUp transformBlock) $ bottomUpM
        (transformInlines (writerHTMLMathMethod opts) sourceDir picsRef) doc
   pics <- readIORef picsRef
   let readPicEntry (oldsrc, newsrc) = readEntry [] oldsrc >>= \e ->

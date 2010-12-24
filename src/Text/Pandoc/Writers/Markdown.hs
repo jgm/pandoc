@@ -32,6 +32,7 @@ Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
 module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
 import Text.Pandoc.Definition
+import Text.Pandoc.Generic
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing hiding (blankline)
@@ -64,7 +65,7 @@ writePlain opts document =
     where document' = plainify document
 
 plainify :: Pandoc -> Pandoc
-plainify = processWith go
+plainify = bottomUp go
   where go :: Inline -> Inline
         go (Emph xs) = SmallCaps xs
         go (Strong xs) = SmallCaps xs
@@ -402,11 +403,11 @@ inlineToMarkdown opts (Strikeout lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ "~~" <> contents <> "~~"
 inlineToMarkdown opts (Superscript lst) = do
-  let lst' = processWith escapeSpaces lst
+  let lst' = bottomUp escapeSpaces lst
   contents <- inlineListToMarkdown opts lst'
   return $ "^" <> contents <> "^"
 inlineToMarkdown opts (Subscript lst) = do
-  let lst' = processWith escapeSpaces lst
+  let lst' = bottomUp escapeSpaces lst
   contents <- inlineListToMarkdown opts lst'
   return $ "~" <> contents <> "~"
 inlineToMarkdown opts (SmallCaps lst) = inlineListToMarkdown opts lst
