@@ -263,6 +263,10 @@ normalize = topDown normalizeInlines .
 
 normalizeBlocks :: [Block] -> [Block]
 normalizeBlocks (Null : xs) = normalizeBlocks xs
+normalizeBlocks (BulletList [] : xs) = normalizeBlocks xs
+normalizeBlocks (OrderedList _ [] : xs) = normalizeBlocks xs
+normalizeBlocks (DefinitionList [] : xs) = normalizeBlocks xs
+normalizeBlocks (RawHtml [] : xs) = normalizeBlocks xs
 normalizeBlocks (RawHtml x : RawHtml y : zs) = normalizeBlocks $
   RawHtml (x++y) : zs
 normalizeBlocks (x:xs) = x : normalizeBlocks xs
@@ -286,6 +290,15 @@ normalizeInlines (Space : ys) =
    where isSpace Space = True
          isSpace _     = False
          rest          = normalizeInlines $ dropWhile isSpace ys
+normalizeInlines (Emph [] : zs) = normalizeInlines zs
+normalizeInlines (Strong [] : zs) = normalizeInlines zs
+normalizeInlines (Subscript [] : zs) = normalizeInlines zs
+normalizeInlines (Superscript [] : zs) = normalizeInlines zs
+normalizeInlines (SmallCaps [] : zs) = normalizeInlines zs
+normalizeInlines (Strikeout [] : zs) = normalizeInlines zs
+normalizeInlines (TeX [] : zs) = normalizeInlines zs
+normalizeInlines (HtmlInline [] : zs) = normalizeInlines zs
+normalizeInlines (Code [] : zs) = normalizeInlines zs
 normalizeInlines (Emph xs : Emph ys : zs) = normalizeInlines $
   Emph (xs ++ ys) : zs
 normalizeInlines (Strong xs : Strong ys : zs) = normalizeInlines $
@@ -302,6 +315,8 @@ normalizeInlines (TeX x : TeX y : zs) = normalizeInlines $
   TeX (x ++ y) : zs
 normalizeInlines (HtmlInline x : HtmlInline y : zs) = normalizeInlines $
   HtmlInline (x ++ y) : zs
+normalizeInlines (Code x : Code y : zs) = normalizeInlines $
+  Code (x ++ y) : zs
 normalizeInlines (x : xs) = x : normalizeInlines xs
 normalizeInlines [] = []
 
