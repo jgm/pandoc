@@ -1,5 +1,5 @@
 import Text.Pandoc
-import Text.Pandoc.Shared (readDataFile)
+import Text.Pandoc.Shared (readDataFile, normalize)
 import Criterion.Main
 import Data.List (isSuffixOf)
 
@@ -27,10 +27,13 @@ writerBench doc (name, writer) = bench (name ++ " writer") $ nf
                    writerWrapText = True
                   , writerLiterateHaskell = "+lhs" `isSuffixOf` name }) doc
 
+normalizeBench :: Pandoc -> Benchmark
+normalizeBench doc = bench "normalize" $ whnf normalize doc
+
 main = do
   inp <- readDataFile (Just ".") "README"
   let ps = defaultParserState{ stateSmart = True }
   let doc = readMarkdown ps inp
   let readerBs = map (readerBench doc) readers
-  defaultMain $ map (writerBench doc) writers ++ readerBs
+  defaultMain $ map (writerBench doc) writers ++ readerBs ++ [normalizeBench doc]
 
