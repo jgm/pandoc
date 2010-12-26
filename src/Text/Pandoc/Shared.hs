@@ -258,67 +258,70 @@ normalizeSpaces = cleanup . dropWhile isSpaceOrEmpty
 -- combining adjacent 'Str's and 'Emph's, remove 'Null's and
 -- empty elements, etc.
 normalize :: Pandoc -> Pandoc
-normalize = topDown normalizeInlines .
-            topDown normalizeBlocks
+normalize = topDown consolidateInlines .
+            bottomUp removeEmptyInlines .
+            topDown removeEmptyBlocks
 
-normalizeBlocks :: [Block] -> [Block]
-normalizeBlocks (Null : xs) = normalizeBlocks xs
-normalizeBlocks (BulletList [] : xs) = normalizeBlocks xs
-normalizeBlocks (OrderedList _ [] : xs) = normalizeBlocks xs
-normalizeBlocks (DefinitionList [] : xs) = normalizeBlocks xs
-normalizeBlocks (RawHtml [] : xs) = normalizeBlocks xs
-normalizeBlocks (RawHtml x : RawHtml y : zs) = normalizeBlocks $
-  RawHtml (x++y) : zs
-normalizeBlocks (x:xs) = x : normalizeBlocks xs
-normalizeBlocks [] = []
+removeEmptyBlocks :: [Block] -> [Block]
+removeEmptyBlocks (Null : xs) = removeEmptyBlocks xs
+removeEmptyBlocks (BulletList [] : xs) = removeEmptyBlocks xs
+removeEmptyBlocks (OrderedList _ [] : xs) = removeEmptyBlocks xs
+removeEmptyBlocks (DefinitionList [] : xs) = removeEmptyBlocks xs
+removeEmptyBlocks (RawHtml [] : xs) = removeEmptyBlocks xs
+removeEmptyBlocks (x:xs) = x : removeEmptyBlocks xs
+removeEmptyBlocks [] = []
 
-normalizeInlines :: [Inline] -> [Inline]
-normalizeInlines (Str x : ys) =
+removeEmptyInlines :: [Inline] -> [Inline]
+removeEmptyInlines (Emph [] : zs) = removeEmptyInlines zs
+removeEmptyInlines (Strong [] : zs) = removeEmptyInlines zs
+removeEmptyInlines (Subscript [] : zs) = removeEmptyInlines zs
+removeEmptyInlines (Superscript [] : zs) = removeEmptyInlines zs
+removeEmptyInlines (SmallCaps [] : zs) = removeEmptyInlines zs
+removeEmptyInlines (Strikeout [] : zs) = removeEmptyInlines zs
+removeEmptyInlines (TeX [] : zs) = removeEmptyInlines zs
+removeEmptyInlines (HtmlInline [] : zs) = removeEmptyInlines zs
+removeEmptyInlines (Code [] : zs) = removeEmptyInlines zs
+removeEmptyInlines (x : xs) = x : removeEmptyInlines xs
+removeEmptyInlines [] = []
+
+consolidateInlines :: [Inline] -> [Inline]
+consolidateInlines (Str x : ys) =
   case concat (x : map fromStr strs) of
-        ""     -> normalizeInlines rest
-        n      -> Str n : normalizeInlines rest
+        ""     -> consolidateInlines rest
+        n      -> Str n : consolidateInlines rest
    where
      (strs, rest)  = span isStr ys
      isStr (Str _) = True
      isStr _       = False
      fromStr (Str z) = z
-     fromStr _       = error "normalizeInlines - fromStr - not a Str"
-normalizeInlines (Space : ys) =
+     fromStr _       = error "consolidateInlines - fromStr - not a Str"
+consolidateInlines (Space : ys) =
   if null rest
      then []
      else Space : rest
    where isSpace Space = True
          isSpace _     = False
-         rest          = normalizeInlines $ dropWhile isSpace ys
-normalizeInlines (Emph [] : zs) = normalizeInlines zs
-normalizeInlines (Strong [] : zs) = normalizeInlines zs
-normalizeInlines (Subscript [] : zs) = normalizeInlines zs
-normalizeInlines (Superscript [] : zs) = normalizeInlines zs
-normalizeInlines (SmallCaps [] : zs) = normalizeInlines zs
-normalizeInlines (Strikeout [] : zs) = normalizeInlines zs
-normalizeInlines (TeX [] : zs) = normalizeInlines zs
-normalizeInlines (HtmlInline [] : zs) = normalizeInlines zs
-normalizeInlines (Code [] : zs) = normalizeInlines zs
-normalizeInlines (Emph xs : Emph ys : zs) = normalizeInlines $
+         rest          = consolidateInlines $ dropWhile isSpace ys
+consolidateInlines (Emph xs : Emph ys : zs) = consolidateInlines $
   Emph (xs ++ ys) : zs
-normalizeInlines (Strong xs : Strong ys : zs) = normalizeInlines $
+consolidateInlines (Strong xs : Strong ys : zs) = consolidateInlines $
   Strong (xs ++ ys) : zs
-normalizeInlines (Subscript xs : Subscript ys : zs) = normalizeInlines $
+consolidateInlines (Subscript xs : Subscript ys : zs) = consolidateInlines $
   Subscript (xs ++ ys) : zs
-normalizeInlines (Superscript xs : Superscript ys : zs) = normalizeInlines $
+consolidateInlines (Superscript xs : Superscript ys : zs) = consolidateInlines $
   Superscript (xs ++ ys) : zs
-normalizeInlines (SmallCaps xs : SmallCaps ys : zs) = normalizeInlines $
+consolidateInlines (SmallCaps xs : SmallCaps ys : zs) = consolidateInlines $
   SmallCaps (xs ++ ys) : zs
-normalizeInlines (Strikeout xs : Strikeout ys : zs) = normalizeInlines $
+consolidateInlines (Strikeout xs : Strikeout ys : zs) = consolidateInlines $
   Strikeout (xs ++ ys) : zs
-normalizeInlines (TeX x : TeX y : zs) = normalizeInlines $
+consolidateInlines (TeX x : TeX y : zs) = consolidateInlines $
   TeX (x ++ y) : zs
-normalizeInlines (HtmlInline x : HtmlInline y : zs) = normalizeInlines $
+consolidateInlines (HtmlInline x : HtmlInline y : zs) = consolidateInlines $
   HtmlInline (x ++ y) : zs
-normalizeInlines (Code x : Code y : zs) = normalizeInlines $
+consolidateInlines (Code x : Code y : zs) = consolidateInlines $
   Code (x ++ y) : zs
-normalizeInlines (x : xs) = x : normalizeInlines xs
-normalizeInlines [] = []
+consolidateInlines (x : xs) = x : consolidateInlines xs
+consolidateInlines [] = []
 
 -- | Convert list of inlines to a string with formatting removed.
 stringify :: [Inline] -> String
