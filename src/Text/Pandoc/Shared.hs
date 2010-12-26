@@ -295,10 +295,7 @@ consolidateInlines (Str x : ys) =
      isStr _       = False
      fromStr (Str z) = z
      fromStr _       = error "consolidateInlines - fromStr - not a Str"
-consolidateInlines (Space : ys) =
-  if null rest
-     then []
-     else Space : rest
+consolidateInlines (Space : ys) = Space : rest
    where isSpace Space = True
          isSpace _     = False
          rest          = consolidateInlines $ dropWhile isSpace ys
