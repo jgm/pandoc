@@ -499,7 +499,7 @@ inlineToMarkdown opts (Image alternate (source, tit)) = do
                (alternate == [Str source]) -- to prevent autolinks
                then [Str "image"]
                else alternate
-  linkPart <- inlineToMarkdown opts (Link txt (unescapeURI source, tit)) 
+  linkPart <- inlineToMarkdown opts (Link txt (source, tit))
   return $ "!" <> linkPart
 inlineToMarkdown _ (Note contents) = do 
   modify (\st -> st{ stNotes = contents : stNotes st })
