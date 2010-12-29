@@ -211,7 +211,7 @@ hrule = oneOfStrings [ "\\begin{center}\\rule{3in}{0.4pt}\\end{center}\n\n",
 --
 
 codeBlock :: GenParser Char ParserState Block
-codeBlock = codeBlockWith "verbatim" <|> codeBlockWith "Verbatim" <|> lhsCodeBlock
+codeBlock = codeBlockWith "verbatim" <|> codeBlockWith "Verbatim" <|> codeBlockWith "lstlisting" <|> lhsCodeBlock
 -- Note:  Verbatim is from fancyvrb.
 
 codeBlockWith :: String -> GenParser Char st Block
@@ -611,7 +611,7 @@ doubleQuote :: GenParser Char st Inline
 doubleQuote = char '"' >> return (Str "\"")
 
 code :: GenParser Char ParserState Inline
-code = code1 <|> code2 <|> lhsInlineCode
+code = code1 <|> code2 <|> code3 <|> lhsInlineCode
 
 code1 :: GenParser Char st Inline
 code1 = try $ do 
@@ -625,6 +625,13 @@ code2 = try $ do
   string "\\texttt{"
   result <- manyTill (noneOf "\\\n~$%^&{}") (char '}')
   return $ Code result
+
+code3 :: GenParser Char st Inline
+code3 = try $ do 
+  string "\\lstinline"
+  marker <- anyChar
+  result <- manyTill anyChar (char marker)
+  return $ Code $ removeLeadingTrailingSpace result
 
 lhsInlineCode :: GenParser Char ParserState Inline
 lhsInlineCode = try $ do
