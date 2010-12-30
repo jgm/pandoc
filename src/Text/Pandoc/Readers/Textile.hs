@@ -356,14 +356,13 @@ inlines = manyTill inline newline
 -- | Inline parsers tried in order
 inlineParsers :: [GenParser Char ParserState Inline]
 inlineParsers = [ autoLink
-                , mark
-                , note
                 , str
-                , htmlSpan
                 , whitespace
                 , endline
+                , htmlSpan
                 , rawHtmlInline
                 , code
+                , note
                 , simpleInline (string "??") (Cite [])
                 , simpleInline (string "**") Strong
                 , simpleInline (string "__") Emph
@@ -374,6 +373,7 @@ inlineParsers = [ autoLink
                 , simpleInline (char '~') Subscript
                 , link
                 , image
+                , mark
                 , smartPunctuation inline
                 , symbol
                 ]
@@ -450,14 +450,14 @@ endline = try $ do
 rawHtmlInline :: GenParser Char ParserState Inline
 rawHtmlInline = liftM (HtmlInline . snd) $ htmlTag isInlineTag
 
--- | Textile standard link syntax is label:"target"
+-- | Textile standard link syntax is "label":target
 link :: GenParser Char ParserState Inline
 link = try $ do
   name <- surrounded (char '"') inline
   char ':'
   url <- manyTill (anyChar) (lookAhead $ (space <|> try (oneOf ".;," >> (space <|> newline))))
   return $ Link name (url, "")
-  
+
 -- | Detect plain links to http or email.
 autoLink :: GenParser Char ParserState Inline
 autoLink = do
