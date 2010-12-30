@@ -2,6 +2,7 @@ import Text.Pandoc
 import Text.Pandoc.Shared (readDataFile, normalize)
 import Criterion.Main
 import Data.List (isSuffixOf)
+import Text.JSON.Generic
 
 readerBench :: Pandoc
             -> (String, ParserState -> String -> Pandoc)
@@ -30,13 +31,15 @@ writerBench doc (name, writer) = bench (name ++ " writer") $ nf
                    writerWrapText = True
                   , writerLiterateHaskell = "+lhs" `isSuffixOf` name }) doc
 
-normalizeBench :: Pandoc -> Benchmark
-normalizeBench doc = bench "normalize" $ whnf normalize doc
+normalizeBench :: Pandoc -> [Benchmark]
+normalizeBench doc = [ bench "normalize - with" $ nf (encodeJSON . normalize) doc
+                     , bench "normalize - without" $ nf encodeJSON doc
+                     ]
 
 main = do
   inp <- readDataFile (Just ".") "README"
   let ps = defaultParserState{ stateSmart = True }
   let doc = readMarkdown ps inp
   let readerBs = map (readerBench doc) readers
-  defaultMain $ map (writerBench doc) writers ++ readerBs ++ [normalizeBench doc]
+  defaultMain $ map (writerBench doc) writers ++ readerBs ++ normalizeBench doc
 
