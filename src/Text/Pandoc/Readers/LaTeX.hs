@@ -128,9 +128,7 @@ parseLaTeX :: GenParser Char ParserState Pandoc
 parseLaTeX = do
   spaces
   blocks <- try (processLaTeXPreamble >> spaces >> environment "document")
-        <|> many block
-  spaces
-  eof
+        <|> (many block >>~ (spaces >> eof))
   state <- getState
   let blocks' = filter (/= Null) blocks
   let title' = stateTitle state
