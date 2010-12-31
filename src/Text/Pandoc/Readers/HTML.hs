@@ -54,26 +54,25 @@ readHtml :: ParserState   -- ^ Parser state
          -> String        -- ^ String to parse (assumes @'\n'@ line endings)
          -> Pandoc
 readHtml st inp = Pandoc meta blocks
-  where blocks = readWith parseBody st body
-        tags   = canonicalizeTags $
-                  parseTagsOptions parseOptions{ optTagPosition = True } inp
+  where blocks  = readWith parseBody st rest
+        tags    = canonicalizeTags $
+                   parseTagsOptions parseOptions{ optTagPosition = True } inp
         hasHeader = any (~== TagOpen "head" []) tags
         (meta, rest) = if hasHeader
                           then parseHeader tags
                           else (Meta [] [] [], tags)
-        body   = filter (\t -> not $
-                     tagOpen (`elem` ["html","head","body"]) (const True) t ||
-                     tagClose (`elem` ["html","head","body"]) t) rest
 
 type TagParser = GenParser (Tag String) ParserState
 
+-- TODO - fix this - not every header has a title tag
 parseHeader :: [Tag String] -> (Meta, [Tag String])
 parseHeader tags = (Meta{docTitle = tit'', docAuthors = [], docDate = []}, rest)
-  where (tit,r) = break (~== TagClose "title") $ drop 1 $
+  where (tit,_) = break (~== TagClose "title") $ drop 1 $
                    dropWhile (\t -> not $ t ~== TagOpen "title" []) tags
         tit' = concatMap fromTagText $ filter isTagText tit
         tit'' = normalizeSpaces $ toList $ text tit'
-        rest  = drop 1 $ dropWhile (\t -> not $ t ~== TagClose "head") r 
+        rest  = drop 1 $ dropWhile (\t -> not $ t ~== TagClose "head" ||
+                                                t ~== TagOpen "body" []) tags
 
 parseBody :: TagParser [Block]
 parseBody = liftM concat $ manyTill block eof
@@ -157,12 +156,19 @@ pDefListItem = try $ do
   let term = intercalate [LineBreak] terms
   return (term, defs)
 
+pRawTag :: TagParser String
+pRawTag = do
+  tag <- pAnyTag
+  let ignorable x = x `elem` ["html","head","body"]
+  if tagOpen ignorable (const True) tag || tagClose ignorable tag
+     then return []
+     else return $ renderTags' [tag]
+
 pRawHtmlBlock :: TagParser [Block]
 pRawHtmlBlock = do
-  raw <- pHtmlBlock "script" <|> pHtmlBlock "style" <|>
-          liftM (renderTags' . (:[])) pAnyTag
+  raw <- pHtmlBlock "script" <|> pHtmlBlock "style" <|> pRawTag
   state <- getState
-  if stateParseRaw state
+  if stateParseRaw state && not (null raw)
      then return [RawHtml raw]
      else return []
 
@@ -283,9 +289,9 @@ pStrikeout = do
   pInlinesInTags "s" Strikeout <|>
     pInlinesInTags "strike" Strikeout <|>
     pInlinesInTags "del" Strikeout <|>
-    do pSatisfy (~== TagOpen "span" [("class","strikeout")])
-       contents <- liftM concat $ manyTill inline (pCloses "span")
-       return [Strikeout contents]
+    try (do pSatisfy (~== TagOpen "span" [("class","strikeout")])
+            contents <- liftM concat $ manyTill inline (pCloses "span")
+            return [Strikeout contents])
 
 pLineBreak :: TagParser [Inline]
 pLineBreak = do
@@ -293,7 +299,7 @@ pLineBreak = do
   return [LineBreak]
 
 pLink :: TagParser [Inline]
-pLink = do
+pLink = try $ do
   tag <- pSatisfy (tagOpenLit "a" (isJust . lookup "href"))
   let url = fromAttrib "href" tag
   let title = fromAttrib "title" tag
@@ -309,7 +315,7 @@ pImage = do
   return [Image (toList $ text alt) (escapeURI url, title)]
 
 pCode :: TagParser [Inline]
-pCode = do
+pCode = try $ do
   (TagOpen open _) <- pSatisfy $ tagOpen (`elem` ["code","tt"]) (const True)
   result <- manyTill pAnyTag (pCloses open)
   return [Code $ intercalate " " $ lines $ innerText result]
@@ -347,7 +353,7 @@ pCloses tagtype = try $ do
        _ -> pzero
 
 pTagText :: TagParser [Inline]
-pTagText = do
+pTagText = try $ do
   (TagText str) <- pSatisfy isTagText
   st <- getState
   case runParser (many pTagContents) st "text" str of
@@ -358,7 +364,7 @@ pTagContents :: GenParser Char ParserState Inline
 pTagContents =  pStr <|> pSpace <|> smartPunctuation pTagContents <|> pSymbol
 
 pStr :: GenParser Char ParserState Inline
-pStr = many1 (satisfy (\c -> not (isSpace c) && not (isSpecial c))) >>= return . Str
+pStr = liftM Str $ many1 $ satisfy $ \c -> not (isSpace c) && not (isSpecial c)
 
 isSpecial :: Char -> Bool
 isSpecial '"' = True
@@ -381,7 +387,7 @@ pSpace = many1 (satisfy isSpace) >> return Space
 -- Constants
 --
 
-eitherBlockOrInline :: [[Char]]
+eitherBlockOrInline :: [String]
 eitherBlockOrInline = ["applet", "button", "del", "iframe", "ins",
                   "map", "area", "object"]
 
@@ -394,11 +400,11 @@ inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big",
                   "textarea", "tt", "u", "var"]
 -}
 
-blockHtmlTags :: [[Char]]
+blockHtmlTags :: [String]
 blockHtmlTags = ["address", "blockquote", "body", "center", "dir", "div",
                  "dl", "fieldset", "form", "h1", "h2", "h3", "h4",
-                 "h5", "h6", "head", "hr", "html", "isindex", "menu", "noframes",
-                 "noscript", "ol", "p", "pre", "table", "ul", "dd",
+                 "h5", "h6", "head", "hr", "html", "isindex", "menu",
+                 "noframes", "noscript", "ol", "p", "pre", "table", "ul", "dd",
                  "dt", "frameset", "li", "tbody", "td", "tfoot",
                  "th", "thead", "tr", "script", "style"]
 
