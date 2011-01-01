@@ -44,8 +44,20 @@ Copyright (C) 2008-2010 Andrea Rossato and John MacFarlane
 Released under the GPL.
 
 ----------------------------------------------------------------------
+src/Text/Pandoc/Writers/Org.hs
+Copyright (C) 2010 Puneeth Chaganti
+
+Released under the GPL.
+
+----------------------------------------------------------------------
+src/Text/Pandoc/Readers/Textile.hs
+Copyright (C) 2010 Paul Rivier
+
+Released under the GPL.
+
+----------------------------------------------------------------------
 src/Text/Pandoc/Biblio.hs
-Copyright (C) 2008 Andrea Rossato
+Copyright (C) 2008-2010 Andrea Rossato
 
 Released under the GPL.
 
