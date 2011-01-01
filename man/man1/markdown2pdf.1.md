@@ -56,10 +56,8 @@ packages are not included in your latex setup, they can be obtained from
 
 -V KEY=VAL, \--variable=*KEY:VAL*
 :   Set the template variable KEY to the value VAL when rendering the
-    document in standalone mode. This is only useful when the
-    `--template` option is used to specify a custom template, since
-    pandoc automatically sets the variables used in the default
-    templates.
+    document in standalone mode.  Use this to set the font size when
+    using the default LaTeX template: `-V fontsize=12pt`.
 
 -H *FILE*, \--include-in-header=*FILE*
 :   Include (LaTeX) contents of *FILE* at the end of the header.  Implies
