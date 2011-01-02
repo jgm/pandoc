@@ -970,7 +970,7 @@ exampleRef = try $ do
 
 symbol :: GenParser Char ParserState Inline
 symbol = do 
-  result <- oneOf specialCharsMinusLt
+  result <- noneOf "<\n\t "
   return $ Str [result]
 
 -- parses inline code, between n `s and n `s
@@ -1057,8 +1057,8 @@ strChar = noneOf (specialChars ++ " \t\n")
 
 str :: GenParser Char ParserState Inline
 str = do
-  a <- strChar
-  as <- many (strChar <|> (try $ char '_' >>~ lookAhead alphaNum))
+  a <- alphaNum
+  as <- many $ alphaNum <|> (try $ char '_' >>~ lookAhead alphaNum)
   let result = a:as
   state <- getState
   let spacesToNbr = map (\c -> if c == ' ' then '\160' else c)
