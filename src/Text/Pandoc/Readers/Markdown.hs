@@ -66,10 +66,6 @@ hruleChars = "*-_"
 setextHChars :: [Char]
 setextHChars = "=-"
 
--- treat these as potentially non-text when parsing inline:
-specialChars :: [Char]
-specialChars = "\\[]*_~`<>$!^-.&@'\";\8216\8217\8220\8221"
-
 --
 -- auxiliary functions
 --
@@ -296,6 +292,7 @@ block = do
                    , bulletList
                    , orderedList
                    , definitionList
+                   , rawTeXBlock
                    , para
                    , rawHtmlBlocks
                    , plain
@@ -698,6 +695,13 @@ rawVerbatimBlock = try $ do
   contents <- manyTill anyChar (htmlTag (~== TagClose tag))
   return $ open ++ contents ++ renderTags [TagClose tag]
 
+rawTeXBlock :: GenParser Char ParserState Block
+rawTeXBlock = do
+  failIfStrict
+  result <- rawLaTeXEnvironment' <|> rawConTeXtEnvironment'
+  spaces
+  return $ Para [TeX result]
+
 rawHtmlBlocks :: GenParser Char ParserState Block
 rawHtmlBlocks = do
   htmlBlocks <- many1 $ do blk <- rawVerbatimBlock <|>
@@ -933,9 +937,6 @@ ltSign = do
      else notFollowedBy' rawHtmlBlocks >> char '<' -- unless it starts html
   return $ Str ['<']
 
-specialCharsMinusLt :: [Char]
-specialCharsMinusLt = filter (/= '<') specialChars
-
 exampleRef :: GenParser Char ParserState Inline
 exampleRef = try $ do
   char '@'
@@ -1027,9 +1028,6 @@ whitespace = spaceChar >>
 
 nonEndline :: GenParser Char st Char
 nonEndline = satisfy (/='\n')
-
-strChar :: GenParser Char st Char
-strChar = noneOf (specialChars ++ " \t\n")
 
 str :: GenParser Char ParserState Inline
 str = do
