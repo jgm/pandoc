@@ -46,7 +46,7 @@ runTestSuite _ _ pkg lbi = do
          let isHighlightingKate (Dependency (PackageName "highlighting-kate") _) = True
              isHighlightingKate _ = False
          let highlightingSupport = any isHighlightingKate $ buildDepends pkg
-         let testArgs = ["lhs" | highlightingSupport]
+         let testArgs = if highlightingSupport then [] else ["-t", "!lhs"]
          inDirectory "tests" $ rawSystem (testDir' </> "test-pandoc")
                                  testArgs >>= exitWith
      else do

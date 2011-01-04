@@ -295,5 +295,5 @@ Executable test-pandoc
     Buildable:        False
   else
     Ghc-Options:      -Wall
-    Build-Depends:    base >= 4 && < 5, Diff
+    Build-Depends:    base >= 4 && < 5, Diff, test-framework, test-framework-hunit, HUnit
     Other-Modules:    Text.Pandoc.Shared
