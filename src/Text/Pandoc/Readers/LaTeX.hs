@@ -40,7 +40,7 @@ import Text.Pandoc.Parsing
 import Data.Maybe ( fromMaybe )
 import Data.Char ( chr, toUpper )
 import Data.List ( isPrefixOf, isSuffixOf )
-import Control.Monad ( when )
+import Control.Monad ( when, guard )
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ParserState   -- ^ Parser state, including options for parser
@@ -478,6 +478,7 @@ inline =  choice [ str
                  , accentedChar
                  , nonbreakingSpace
                  , cite
+                 , index
                  , specialChar
                  , rawLaTeXInline'
                  , escapedChar
@@ -813,6 +814,12 @@ footnote = try $ do
 -- | citations
 cite :: GenParser Char ParserState Inline
 cite = simpleCite <|> complexNatbibCites
+
+index :: GenParser Char ParserState Inline
+index = try $ do
+  (name, _, _) <- command
+  guard $ name == "index"
+  return $ Str ""
 
 simpleCiteArgs :: GenParser Char ParserState [Citation]
 simpleCiteArgs = try $ do
