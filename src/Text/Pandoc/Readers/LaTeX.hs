@@ -407,11 +407,6 @@ unknownEnvironment = try $ do
                else anyEnvironment      -- otherwise just the contents
   return result
 
-group :: GenParser Char ParserState Inline
-group = do
-  res <- bracketedText '{' '}'
-  return $ TeX $ "{" ++ res ++ "}"
-
 -- \ignore{} is used conventionally in literate haskell for definitions
 -- that are to be processed by the compiler but not printed.
 ignore :: GenParser Char ParserState Block
@@ -483,7 +478,6 @@ inline =  choice [ str
                  , accentedChar
                  , nonbreakingSpace
                  , cite
-                 , group
                  , specialChar
                  , rawLaTeXInline'
                  , escapedChar
