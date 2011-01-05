@@ -150,6 +150,7 @@ block = choice [ hrule
                , list
                , blockQuote
                , commentBlock
+               , macro
                , bibliographic
                , para
                , itemBlock
@@ -726,13 +727,13 @@ endline :: GenParser Char st Inline
 endline = try $ newline >> notFollowedBy blankline >> return Space
 
 -- math
-math :: GenParser Char st Inline
-math =   (math3 >>= return . Math DisplayMath)
-     <|> (math1 >>= return . Math InlineMath)
-     <|> (math2 >>= return . Math InlineMath)
-     <|> (math4 >>= return . Math DisplayMath)
-     <|> (math5 >>= return . Math DisplayMath)
-     <|> (math6 >>= return . Math DisplayMath)
+math :: GenParser Char ParserState Inline
+math =   (math3 >>= applyMacros' >>= return . Math DisplayMath)
+     <|> (math1 >>= applyMacros' >>= return . Math InlineMath)
+     <|> (math2 >>= applyMacros' >>= return . Math InlineMath)
+     <|> (math4 >>= applyMacros' >>= return . Math DisplayMath)
+     <|> (math5 >>= applyMacros' >>= return . Math DisplayMath)
+     <|> (math6 >>= applyMacros' >>= return . Math DisplayMath)
      <?> "math"
 
 math1 :: GenParser Char st String 
