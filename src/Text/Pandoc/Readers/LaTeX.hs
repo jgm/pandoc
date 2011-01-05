@@ -524,7 +524,7 @@ accentTable =
     ('u', [('`', 249), ('\'', 250), ('^', 251), ('"', 252)]) ]
 
 specialAccentedChar :: GenParser Char st Inline
-specialAccentedChar = choice [ ccedil, aring, iuml, szlig, aelig,
+specialAccentedChar = choice [ ccedil, aring, iuml, szlig, aelig, lslash,
                                oslash, pound, euro, copyright, sect ]
 
 ccedil :: GenParser Char st Inline
@@ -554,6 +554,13 @@ oslash = try $ do
   letter' <- choice [char 'o', char 'O']
   let num = if letter' == 'o' then 248 else 216
   return $ Str [chr num]
+
+lslash :: GenParser Char st Inline
+lslash = try $ do
+  cmd <- oneOfStrings ["{\\L}","{\\l}","\\L ","\\l "]
+  return $ if 'l' `elem` cmd
+              then Str "\x142"
+              else Str "\x141"
 
 aelig :: GenParser Char st Inline
 aelig = try $ do
