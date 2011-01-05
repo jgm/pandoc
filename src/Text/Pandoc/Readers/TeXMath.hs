@@ -27,12 +27,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of TeX math to a list of 'Pandoc' inline elements.
 -}
-module Text.Pandoc.Readers.TeXMath ( 
-                                     readTeXMath
-                                   ) where
+module Text.Pandoc.Readers.TeXMath ( readTeXMath ) where
 
-import Text.ParserCombinators.Parsec
 import Text.Pandoc.Definition
+import Text.TeXMath.Types
 import Text.TeXMath.Parser
 
 -- | Converts a raw TeX math formula to a list of 'Pandoc' inlines.
@@ -40,16 +38,17 @@ import Text.TeXMath.Parser
 -- can't be converted.
 readTeXMath :: String    -- ^ String to parse (assumes @'\n'@ line endings)
             -> [Inline]
-readTeXMath inp = case readTeXMath' inp of
-                        Nothing  -> [Str ("$" ++ inp ++ "$")]
-                        Just res -> res
+readTeXMath inp = case texMathToPandoc inp of
+                        Left _    -> [Str ("$" ++ inp ++ "$")]
+                        Right res -> res
 
--- | Like 'readTeXMath', but without the default.
-readTeXMath' :: String    -- ^ String to parse (assumes @'\n'@ line endings)
-            -> Maybe [Inline]
-readTeXMath' inp = case parse formula "formula" inp of
-   Left _     -> Just [Str inp]
-   Right exps -> expsToInlines exps
+texMathToPandoc :: String -> Either String [Inline]
+texMathToPandoc inp = inp `seq`
+  case parseFormula inp of
+         Left err    -> Left err
+         Right exps  -> case expsToInlines exps of
+                             Nothing  -> Left "Formula too complex for [Inline]"
+                             Just r   -> Right r
 
 expsToInlines :: [Exp] -> Maybe [Inline]
 expsToInlines xs = do
@@ -110,4 +109,5 @@ expToInlines (EOver (EGrouped [EIdentifier [c]]) (ESymbol Accent [accent])) =
          '~'      -> Just [Emph [Str [c,'\x0303']]]  -- tilde
          _        -> Nothing
 expToInlines _ = Nothing
+
 
