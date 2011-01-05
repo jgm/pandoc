@@ -478,7 +478,6 @@ inline =  choice [ str
                  , accentedChar
                  , nonbreakingSpace
                  , cite
-                 , index
                  , specialChar
                  , rawLaTeXInline'
                  , escapedChar
@@ -814,12 +813,6 @@ footnote = try $ do
 -- | citations
 cite :: GenParser Char ParserState Inline
 cite = simpleCite <|> complexNatbibCites
-
-index :: GenParser Char ParserState Inline
-index = try $ do
-  (name, _, _) <- command
-  guard $ name == "index"
-  return $ Str ""
 
 simpleCiteArgs :: GenParser Char ParserState [Citation]
 simpleCiteArgs = try $ do
