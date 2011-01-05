@@ -469,8 +469,6 @@ inline =  choice [ str
                  , strikeout
                  , superscript
                  , subscript
-                 , ref
-                 , lab
                  , code
                  , url
                  , link
@@ -708,15 +706,6 @@ emDash = try (string "---") >> return EmDash
 
 hyphen :: GenParser Char st Inline
 hyphen = char '-' >> return (Str "-")
-
-lab :: GenParser Char st Inline
-lab = try $ do
-  string "\\label{"
-  result <- manyTill anyChar (char '}')
-  return $ Str $ "(" ++ result ++ ")"
-
-ref :: GenParser Char st Inline
-ref = try (string "\\ref{") >> manyTill anyChar (char '}') >>= return . Str
 
 strong :: GenParser Char ParserState Inline
 strong = try (string "\\textbf{") >> manyTill inline (char '}') >>=
