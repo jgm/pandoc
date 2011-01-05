@@ -39,8 +39,8 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Data.Maybe ( fromMaybe )
 import Data.Char ( chr, toUpper )
-import Data.List ( isPrefixOf, isSuffixOf )
-import Control.Monad ( when, guard )
+import Data.List ( intercalate, isPrefixOf, isSuffixOf )
+import Control.Monad
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ParserState   -- ^ Parser state, including options for parser
@@ -430,9 +430,11 @@ unknownCommand = try $ do
      else do
         (name, _, args) <- command
         spaces
-        if name `elem` commandsToIgnore
-           then return Null
-           else return $ Plain [Str $ concat args]
+        unless (name `elem` commandsToIgnore) $ do
+        -- put arguments back in input to be parsed
+          inp <- getInput
+          setInput $ intercalate " " args ++ inp
+        return Null
 
 commandsToIgnore :: [String]
 commandsToIgnore = ["special","pdfannot","pdfstringdef", "index","bibliography"]
@@ -922,7 +924,7 @@ rawLaTeXInline = try $ do
         return $ TeX ("\\" ++ name ++ star ++ concat args)
      else do
         (name, _, args) <- command
-        spaces
-        if name `elem` commandsToIgnore
-           then return $ Str ""
-           else return $ Str (concat args)
+        unless (name `elem` commandsToIgnore) $ do
+          inp <- getInput
+          setInput $ intercalate " " args ++ inp
+        return $ Str ""
