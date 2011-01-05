@@ -40,7 +40,7 @@ import Text.Pandoc.Parsing
 import Data.Maybe ( fromMaybe )
 import Data.Char ( chr, toUpper )
 import Data.List ( isPrefixOf, isSuffixOf )
-import Control.Monad ( when, liftM )
+import Control.Monad ( when )
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ParserState   -- ^ Parser state, including options for parser
@@ -119,16 +119,17 @@ anyEnvironment =  try $ do
 
 -- | Process LaTeX preamble, extracting metadata.
 processLaTeXPreamble :: GenParser Char ParserState ()
-processLaTeXPreamble =
-  skipMany $ choice [ bibliographic, unknownCommand,
-                      commentBlock, skipToken ]
+processLaTeXPreamble = do
+  try $ string "\\documentclass"
+  skipMany $ bibliographic <|> macro <|> commentBlock <|> skipChar
 
 -- | Parse LaTeX and return 'Pandoc'.
 parseLaTeX :: GenParser Char ParserState Pandoc
 parseLaTeX = do
+  skipMany $ spaces >> comment
   spaces
-  blocks <- try (processLaTeXPreamble >> spaces >> environment "document")
-        <|> (many block >>~ (spaces >> eof))
+  blocks <- try (processLaTeXPreamble >> environment "document")
+           <|> (many block >>~ (spaces >> eof))
   state <- getState
   let blocks' = filter (/= Null) blocks
   let title' = stateTitle state
@@ -157,7 +158,6 @@ block = choice [ hrule
                , unknownEnvironment
                , ignore
                , unknownCommand
-               , skipToken
                ] <?> "block"
 
 --
@@ -407,6 +407,11 @@ unknownEnvironment = try $ do
                else anyEnvironment      -- otherwise just the contents
   return result
 
+group :: GenParser Char ParserState Inline
+group = do
+  res <- bracketedText '{' '}'
+  return $ TeX $ "{" ++ res ++ "}"
+
 -- \ignore{} is used conventionally in literate haskell for definitions
 -- that are to be processed by the compiler but not printed.
 ignore :: GenParser Char ParserState Block
@@ -437,8 +442,12 @@ unknownCommand = try $ do
 commandsToIgnore :: [String]
 commandsToIgnore = ["special","pdfannot","pdfstringdef","bibliography"]
 
-skipToken :: GenParser Char ParserState Block
-skipToken = satisfy (/='\\') >> spaces >> return Null
+skipChar :: GenParser Char ParserState Block
+skipChar = do
+  satisfy (/='\\') <|>
+    (notFollowedBy' (lookAhead $ string "\\begin{document}") >> anyChar)
+  spaces
+  return Null
 
 commentBlock :: GenParser Char st Block
 commentBlock = comment >> return Null
@@ -474,6 +483,7 @@ inline =  choice [ str
                  , accentedChar
                  , nonbreakingSpace
                  , cite
+                 , group
                  , specialChar
                  , rawLaTeXInline'
                  , escapedChar
@@ -906,7 +916,7 @@ rawLaTeXInline' :: GenParser Char ParserState Inline
 rawLaTeXInline' = do
   notFollowedBy' $ oneOfStrings ["\\begin", "\\end", "\\item", "\\ignore",
                                  "\\section"]
-  rawLaTeXInline <|> liftM TeX (bracketedText '{' '}')
+  rawLaTeXInline
 
 -- | Parse any LaTeX command and return it in a raw TeX inline element.
 rawLaTeXInline :: GenParser Char ParserState Inline
