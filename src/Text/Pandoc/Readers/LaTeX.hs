@@ -40,7 +40,7 @@ import Text.Pandoc.Parsing
 import Data.Maybe ( fromMaybe )
 import Data.Char ( chr, toUpper )
 import Data.List ( isPrefixOf, isSuffixOf )
-import Control.Monad ( when )
+import Control.Monad ( when, liftM )
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ParserState   -- ^ Parser state, including options for parser
@@ -906,7 +906,7 @@ rawLaTeXInline' :: GenParser Char ParserState Inline
 rawLaTeXInline' = do
   notFollowedBy' $ oneOfStrings ["\\begin", "\\end", "\\item", "\\ignore",
                                  "\\section"]
-  rawLaTeXInline
+  rawLaTeXInline <|> liftM TeX (bracketedText '{' '}')
 
 -- | Parse any LaTeX command and return it in a raw TeX inline element.
 rawLaTeXInline :: GenParser Char ParserState Inline
