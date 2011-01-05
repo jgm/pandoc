@@ -64,7 +64,7 @@ bracketedText openB closeB = do
 
 -- | Returns an option or argument of a LaTeX command.
 optOrArg :: GenParser Char st [Char]
-optOrArg = bracketedText '{' '}' <|> bracketedText '[' ']'
+optOrArg = try $ spaces >> (bracketedText '{' '}' <|> bracketedText '[' ']')
 
 -- | True if the string begins with '{'.
 isArg :: [Char] -> Bool
