@@ -44,7 +44,6 @@ import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockT
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.ParserCombinators.Parsec
 import Control.Monad (when, liftM, guard)
-import Text.TeXMath.Macros (applyMacros, Macro, pMacroDefinition)
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match (tagOpen)
 
@@ -870,29 +869,6 @@ table :: GenParser Char ParserState Block
 table = multilineTable False <|> simpleTable True <|>
         simpleTable False <|> multilineTable True <|>
         gridTable False <|> gridTable True <?> "table"
-
---
--- Macros
---
-
--- | Parse a \newcommand or \renewcommand macro definition.
-macro :: GenParser Char ParserState Block
-macro = getState >>= guard . stateApplyMacros >>
-        pMacroDefinition >>= addMacro >> blanklines >> return Null
-
--- | Add a macro to the list of macros in state.
-addMacro :: Macro -> GenParser Char ParserState ()
-addMacro m = do
-  updateState $ \st -> st{ stateMacros = m : stateMacros st }
-
--- | Apply current macros to string.
-applyMacros' :: String -> GenParser Char ParserState String
-applyMacros' target = do
-  apply <- liftM stateApplyMacros getState
-  if apply
-     then do macros <- liftM stateMacros getState
-             return $ applyMacros macros target
-     else return target
 
 -- 
 -- inline

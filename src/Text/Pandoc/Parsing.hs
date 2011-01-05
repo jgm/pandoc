@@ -68,7 +68,9 @@ module Text.Pandoc.Parsing ( (>>~),
                              toKey,
                              fromKey,
                              lookupKeySrc,
-                             smartPunctuation )
+                             smartPunctuation,
+                             macro,
+                             applyMacros' )
 where
 
 import Text.Pandoc.Definition
@@ -82,7 +84,7 @@ import Network.URI ( parseURI, URI (..), isAllowedInURI )
 import Control.Monad ( join, liftM, guard )
 import Text.Pandoc.Shared
 import qualified Data.Map as M
-import Text.TeXMath.Macros (Macro)
+import Text.TeXMath.Macros (applyMacros, Macro, pMacroDefinition)
 
 -- | Like >>, but returns the operation on the left.
 -- (Suggested by Tillmann Rendel on Haskell-cafe list.)
@@ -780,4 +782,27 @@ emDash :: GenParser Char st Inline
 emDash = do
   try (charOrRef "—") <|> (oneOfStrings ["---", "--"] >> return '—')
   return EmDash
+
+--
+-- Macros
+--
+
+-- | Parse a \newcommand or \renewcommand macro definition.
+macro :: GenParser Char ParserState Block
+macro = getState >>= guard . stateApplyMacros >>
+        pMacroDefinition >>= addMacro >> blanklines >> return Null
+
+-- | Add a macro to the list of macros in state.
+addMacro :: Macro -> GenParser Char ParserState ()
+addMacro m = do
+  updateState $ \st -> st{ stateMacros = m : stateMacros st }
+
+-- | Apply current macros to string.
+applyMacros' :: String -> GenParser Char ParserState String
+applyMacros' target = do
+  apply <- liftM stateApplyMacros getState
+  if apply
+     then do macros <- liftM stateMacros getState
+             return $ applyMacros macros target
+     else return target
 
