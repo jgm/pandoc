@@ -71,7 +71,7 @@ E-mail style:
 This is a block quote. It is pretty short.
 
 \end{quote}
-\begin{quote}
+\begin {quote}
 Code in a block quote:
 
 \begin{verbatim}

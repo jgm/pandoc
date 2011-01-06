@@ -86,14 +86,22 @@ command = do
 
 begin :: [Char] -> GenParser Char st [Char]
 begin name = try $ do
-  string $ "\\begin{" ++ name ++ "}"
+  string "\\begin"
+  spaces
+  char '{'
+  string name
+  char '}'
   optional commandArgs
   spaces
   return name
 
 end :: [Char] -> GenParser Char st [Char]
 end name = try $ do
-  string $ "\\end{" ++ name ++ "}"
+  string "\\end"
+  spaces
+  char '{'
+  string name
+  char '}'
   return name
 
 -- | Returns a list of block elements containing the contents of an
@@ -103,7 +111,9 @@ environment name = try $ begin name >> spaces >> manyTill block (end name) >>~ s
 
 anyEnvironment :: GenParser Char ParserState Block
 anyEnvironment =  try $ do
-  string "\\begin{"
+  string "\\begin"
+  spaces
+  char '{'
   name <- many letter
   star <- option "" (string "*") -- some environments have starred variants
   char '}'
@@ -215,10 +225,10 @@ codeBlock = codeBlockWith "verbatim" <|> codeBlockWith "Verbatim" <|> codeBlockW
 
 codeBlockWith :: String -> GenParser Char st Block
 codeBlockWith env = try $ do
-  string ("\\begin{" ++ env ++ "}")  -- don't use begin function because it
-                                     -- gobbles whitespace
-  optional blanklines         -- we want to gobble blank lines, but not 
-                              -- leading space
+  string "\\begin"
+  spaces                      -- don't use begin function because it
+  string $ "{" ++ env ++ "}"  -- gobbles whitespace; we want to gobble
+  optional blanklines         -- blank lines, but not leading space
   contents <- manyTill anyChar (try (string $ "\\end{" ++ env ++ "}"))
   spaces
   let classes = if env == "code" then ["haskell"] else []
@@ -262,7 +272,10 @@ listItem = try $ do
 
 orderedList :: GenParser Char ParserState Block
 orderedList = try $ do
-  string "\\begin{enumerate}"
+  string "\\begin"
+  spaces
+  string "{enumerate}"
+  spaces
   (_, style, delim) <- option (1, DefaultStyle, DefaultDelim) $
                               try $ do failIfStrict
                                        char '['
@@ -383,7 +396,9 @@ rawLaTeXEnvironment = do
 -- the whole literal environment as raw TeX.
 rawLaTeXEnvironment' :: GenParser Char st String 
 rawLaTeXEnvironment' = try $ do
-  string "\\begin{"
+  string "\\begin"
+  spaces
+  char '{'
   name <- many1 letter
   star <- option "" (string "*") -- for starred variants
   let name' = name ++ star
@@ -448,7 +463,9 @@ commandsToIgnore = ["special","pdfannot","pdfstringdef", "index","bibliography"]
 skipChar :: GenParser Char ParserState Block
 skipChar = do
   satisfy (/='\\') <|>
-    (notFollowedBy' (lookAhead $ string "\\begin{document}") >> anyChar)
+    (notFollowedBy' (try $
+                     string "\\begin" >> spaces >> string "{document}") >>
+     anyChar)
   spaces
   return Null
 
