@@ -415,6 +415,17 @@ ignore = try $ do
   spaces
   return Null
 
+demacro :: (String, String, [String]) -> GenParser Char ParserState Inline
+demacro (n,st,args) = try $ do
+  let raw = "\\" ++ n ++ st ++ concat args
+  s' <- applyMacros' raw
+  if raw == s'
+     then return $ TeX raw
+     else do
+       inp <- getInput
+       setInput $ s' ++ inp
+       return $ Str ""
+
 unknownCommand :: GenParser Char ParserState Block
 unknownCommand = try $ do
   spaces
@@ -423,10 +434,7 @@ unknownCommand = try $ do
   when (stateParserContext state == ListItemState) $
      notFollowedBy' (string "\\item")
   if stateParseRaw state
-     then do
-        (name, star, args) <- command
-        spaces
-        return $ Plain [TeX ("\\" ++ name ++ star ++ concat args)]
+     then command >>= demacro >>= return . Plain . (:[])
      else do
         (name, _, args) <- command
         spaces
@@ -479,6 +487,7 @@ inline =  choice [ str
                  , nonbreakingSpace
                  , cite
                  , specialChar
+                 , ensureMath
                  , rawLaTeXInline'
                  , escapedChar
                  , unescapedChar
@@ -767,6 +776,12 @@ math6 = try $ do
   res <- manyTill anyChar (end name)
   return $ filter (/= '&') res  -- remove alignment codes
 
+ensureMath :: GenParser Char st Inline
+ensureMath = try $ do
+  (n, _, args) <- command
+  guard $ n == "ensuremath" && not (null args)
+  return $ Math InlineMath $ tail $ init $ head args
+
 --
 -- links and images
 --
@@ -915,12 +930,11 @@ rawLaTeXInline :: GenParser Char ParserState Inline
 rawLaTeXInline = try $ do
   state <- getState
   if stateParseRaw state
-     then do
-        (name, star, args) <- command
-        return $ TeX ("\\" ++ name ++ star ++ concat args)
+     then command >>= demacro
      else do
-        (name, _, args) <- command
-        unless (name `elem` commandsToIgnore) $ do
+        (name,st,args) <- command
+        x <- demacro (name,st,args)
+        unless (x == Str "" || name `elem` commandsToIgnore) $ do
           inp <- getInput
           setInput $ intercalate " " args ++ inp
         return $ Str ""
