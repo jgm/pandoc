@@ -290,7 +290,6 @@ orderedList = try $ do
 bulletList :: GenParser Char ParserState Block
 bulletList = try $ do
   begin "itemize"
-  spaces
   items <- many listItem
   end "itemize"
   spaces
@@ -299,7 +298,6 @@ bulletList = try $ do
 definitionList :: GenParser Char ParserState Block
 definitionList = try $ do
   begin "description"
-  spaces
   items <- many listItem
   end "description"
   spaces
@@ -761,7 +759,6 @@ math4 = try $ do
   name <- begin "displaymath" <|> begin "equation" <|> begin "equation*" <|>
            begin "gather" <|> begin "gather*" <|> begin "gathered" <|>
              begin "multline" <|> begin "multline*"
-  spaces
   manyTill anyChar (end name)
 
 math5 :: GenParser Char st String
@@ -772,7 +769,6 @@ math6 = try $ do
   name <- begin "eqnarray" <|> begin "eqnarray*" <|> begin "align" <|>
            begin "align*" <|> begin "alignat" <|> begin "alignat*" <|>
              begin "split" <|> begin "aligned" <|> begin "alignedat"
-  spaces
   res <- manyTill anyChar (end name)
   return $ filter (/= '&') res  -- remove alignment codes
 
