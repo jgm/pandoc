@@ -480,5 +480,12 @@ htmlTag f = try $ do
   (next : _) <- getInput >>= return . canonicalizeTags . parseTags
   guard $ f next
   -- advance the parser
-  rendered <- manyTill anyChar (char '>')
-  return (next, rendered ++ ">")
+  case next of
+       TagComment s -> do
+          count (length s + 4) anyChar
+          skipMany (satisfy (/='>'))
+          char '>'
+          return (next, "<!--" ++ s ++ "-->") 
+       _            -> do
+          rendered <- manyTill anyChar (char '>')
+          return (next, rendered ++ ">")
