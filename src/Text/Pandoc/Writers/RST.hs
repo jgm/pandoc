@@ -150,7 +150,7 @@ blockToRST (Para inlines) = do
   return $ contents <> blankline
 blockToRST (RawHtml str) =
   return $ blankline <> ".. raw:: html" $+$
-           (nest 3 $ text str) <> blankline
+           (nest 3 $ text str) $$ blankline
 blockToRST HorizontalRule =
   return $ blankline $$ "--------------" $$ blankline
 blockToRST (Header level inlines) = do
@@ -163,12 +163,12 @@ blockToRST (CodeBlock (_,classes,_) str) = do
   let tabstop = writerTabStop opts
   if "haskell" `elem` classes && "literate" `elem` classes &&
                   writerLiterateHaskell opts
-     then return $ prefixed "> " $ text str $$ blankline
+     then return $ prefixed "> " (text str) $$ blankline
      else return $ "::" $+$ nest tabstop (text str) $$ blankline
 blockToRST (BlockQuote blocks) = do
   tabstop <- get >>= (return . writerTabStop . stOptions)
   contents <- blockListToRST blocks 
-  return $ nest tabstop contents <> blankline
+  return $ (nest tabstop contents) <> blankline
 blockToRST (Table caption _ widths headers rows) =  do
   caption' <- inlineListToRST caption
   let caption'' = if null caption
