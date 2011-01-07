@@ -234,8 +234,8 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
   if writerStrictMarkdown opts || attribs == ([],[],[])
      then nest (writerTabStop opts) (text str) <> blankline
      else -- use delimited code block
-          flush $ tildes <> space <> attrs <> cr <> text str <>
-                  cr <> tildes <> blankline
+          flush (tildes <> space <> attrs <> cr <> text str <>
+                  cr <> tildes) <> blankline
             where tildes  = text "~~~~"
                   attrs = braces $ hsep [attribId, attribClasses, attribKeys]
                   attribId = case attribs of
