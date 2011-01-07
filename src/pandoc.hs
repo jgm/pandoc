@@ -813,6 +813,10 @@ main = do
 
   writerOutput <- writer writerOptions doc''
 
+  let writerOutput' = if standalone
+                         then writerOutput
+                         else writerOutput `B.snoc` 10
+
   if outputFile == "-"
-     then B.putStr writerOutput
-     else B.writeFile (encodeString outputFile) writerOutput
+     then B.putStr writerOutput'
+     else B.writeFile (encodeString outputFile) writerOutput'
