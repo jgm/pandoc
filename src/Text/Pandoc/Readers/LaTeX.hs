@@ -160,6 +160,7 @@ block = choice [ hrule
                , header
                , list
                , blockQuote
+               , simpleTable
                , commentBlock
                , macro
                , bibliographic
@@ -214,6 +215,63 @@ headerWithLevel lev = try $ do
 hrule :: GenParser Char st Block
 hrule = oneOfStrings [ "\\begin{center}\\rule{3in}{0.4pt}\\end{center}\n\n", 
                        "\\newpage" ] >> spaces >> return HorizontalRule
+
+-- tables
+
+simpleTable :: GenParser Char ParserState Block
+simpleTable = try $ do
+  string "\\begin"
+  spaces
+  string "{tabular}"
+  spaces
+  aligns <- parseAligns
+  let cols = length aligns
+  optional hline
+  header' <- option [] $ parseTableHeader cols
+  rows <- many (parseTableRow cols >>~ optional hline)
+  spaces
+  end "tabular"
+  spaces
+  let header'' = if null header'
+                    then replicate cols []
+                    else header'
+  return $ Table [] aligns (replicate cols 0) header'' rows
+
+hline :: GenParser Char st ()
+hline = try $ spaces >> string "\\hline" >> return ()
+
+parseAligns :: GenParser Char ParserState [Alignment]
+parseAligns = try $ do
+  char '{'
+  optional $ char '|'
+  let cAlign = char 'c' >> return AlignCenter
+  let lAlign = char 'l' >> return AlignLeft
+  let rAlign = char 'r' >> return AlignRight
+  let alignChar = cAlign <|> lAlign <|> rAlign
+  aligns' <- sepEndBy alignChar (optional $ char '|')
+  char '}'
+  spaces
+  return aligns'
+
+parseTableHeader :: Int   -- ^ number of columns
+                 -> GenParser Char ParserState [TableCell]
+parseTableHeader cols = try $ do
+  cells' <- parseTableRow cols
+  hline
+  return cells'
+
+parseTableRow :: Int  -- ^ number of columns
+              -> GenParser Char ParserState [TableCell]
+parseTableRow cols = try $ do
+  let tableCellInline = notFollowedBy (char '&' <|>
+                          (try $ char '\\' >> char '\\')) >> inline
+  cells' <- sepBy (spaces >> liftM ((:[]) . Plain . normalizeSpaces)
+             (many tableCellInline)) (char '&')
+  guard $ length cells' == cols
+  spaces
+  (try $ string "\\\\" >> spaces) <|>
+    (lookAhead (end "tabular") >> return ())
+  return cells'
 
 --
 -- code blocks
