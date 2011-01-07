@@ -150,7 +150,7 @@ readFile' f = do s <- readFileUTF8 f
 
 runLhsWriterTest :: String -> IO Bool
 runLhsWriterTest format =
-  runTest ("(lhs) " ++ format ++ " writer") ["-r", "native", "-s", "-w", format] "lhs-test.native" ("lhs-test" <.> format)
+  runTest ("(lhs) " ++ format ++ " writer") ["--columns=78", "-r", "native", "-s", "-w", format] "lhs-test.native" ("lhs-test" <.> format)
 
 runLhsReaderTest :: String -> IO Bool
 runLhsReaderTest format =
