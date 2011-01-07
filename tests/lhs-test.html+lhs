@@ -33,9 +33,21 @@ pre.sourceCode span.er { color: red; font-weight: bold; }
   > is an arrow that takes a pair of values and combines them to return a single value:</p
 ><pre class="sourceCode haskell"
 ><code
-  >&gt; unsplit :: (<span class="dt"
+  >&gt; <span class="ot"
+    >unsplit </span
+    ><span class="ot"
+    >::</span
+    > (<span class="dt"
     >Arrow</span
-    > a) =&gt; (b -&gt; c -&gt; d) -&gt; a (b, c) d<br
+    > a) <span class="ot"
+    >=&gt;</span
+    > (b <span class="ot"
+    >-&gt;</span
+    > c <span class="ot"
+    >-&gt;</span
+    > d) <span class="ot"
+    >-&gt;</span
+    > a (b, c) d<br
      />&gt; unsplit <span class="fu"
     >=</span
     > arr <span class="fu"

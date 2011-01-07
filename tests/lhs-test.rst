@@ -1,8 +1,8 @@
 lhs test
 ========
 
-``unsplit`` is an arrow that takes a pair of values and combines
-them to return a single value:
+``unsplit`` is an arrow that takes a pair of values and combines them to
+return a single value:
 
 ::
 
@@ -10,9 +10,9 @@ them to return a single value:
     unsplit = arr . uncurry       
               -- arr (\op (x,y) -> x `op` y) 
 
-``(***)`` combines two arrows into a new arrow by running the two
-arrows on a pair of values (one arrow on the first item of the pair
-and one arrow on the second item of the pair).
+``(***)`` combines two arrows into a new arrow by running the two arrows on a
+pair of values (one arrow on the first item of the pair and one arrow on the
+second item of the pair).
 
 ::
 
@@ -21,4 +21,3 @@ and one arrow on the second item of the pair).
 Block quote:
 
     foo bar
-

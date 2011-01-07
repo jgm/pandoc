@@ -14,17 +14,17 @@
 
 \section{lhs test}
 
-\verb!unsplit! is an arrow that takes a pair of values and combines
-them to return a single value:
+\verb!unsplit! is an arrow that takes a pair of values and combines them to
+return a single value:
 
 \begin{code}
 unsplit :: (Arrow a) => (b -> c -> d) -> a (b, c) d
 unsplit = arr . uncurry       
           -- arr (\op (x,y) -> x `op` y) 
 \end{code}
-\verb!(***)! combines two arrows into a new arrow by running the
-two arrows on a pair of values (one arrow on the first item of the
-pair and one arrow on the second item of the pair).
+\verb!(***)! combines two arrows into a new arrow by running the two arrows on
+a pair of values (one arrow on the first item of the pair and one arrow on the
+second item of the pair).
 
 \begin{verbatim}
 f *** g = first f >>> second g
