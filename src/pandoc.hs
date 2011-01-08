@@ -813,7 +813,7 @@ main = do
 
   writerOutput <- writer writerOptions doc''
 
-  let writerOutput' = if standalone
+  let writerOutput' = if standalone'
                          then writerOutput
                          else writerOutput `B.snoc` 10
 
