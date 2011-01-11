@@ -1,16 +1,4 @@
 {-# OPTIONS_GHC -Wall #-}
--- RunTests.hs - run test suite for pandoc
--- This script is designed to be run from the tests directory.
--- It assumes the pandoc executable is in dist/build/pandoc.
---
--- runhaskell -i.. RunTests.hs [lhs]
---
--- If the lhs argument is provided, tests for lhs support will be
--- run.  These presuppose that pandoc has been compiled with the
--- -fhighlighting flag, so these tests are not run by default.
---
--- This program assumes that the Diff package has been installed:
--- cabal install Diff
 
 module Main where
 
