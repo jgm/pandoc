@@ -82,19 +82,21 @@ markdownCitationTest
 
 tests :: [Test]
 tests = [ testGroup "markdown" [ runWriterTest "" "markdown"
-                               , runTest "reader" ["-r", "markdown", "-w", "native", "-s", "-S"]
-                                 "testsuite.txt" "testsuite.native"
-                               , runTest "reader (tables)" ["-r", "markdown", "-w", "native"]
-                                 "tables.txt" "tables.native"
-                               , runTest "reader (more)" ["-r", "markdown", "-w", "native", "-S"]
-                                 "markdown-reader-more.txt" "markdown-reader-more.native"
+                               , testGroup "reader" [ runTest "basic" ["-r", "markdown", "-w", "native", "-s", "-S"]
+                                                      "testsuite.txt" "testsuite.native"
+                                                    , runTest "tables" ["-r", "markdown", "-w", "native"]
+                                                      "tables.txt" "tables.native"
+                                                    , runTest "more" ["-r", "markdown", "-w", "native", "-S"]
+                                                      "markdown-reader-more.txt" "markdown-reader-more.native"
+                                                    ]
                                , markdownCitationTest
                                ]
         , testGroup "rst"      [ runWriterTest "" "rst"
-                               , runTest "reader" ["-r", "rst", "-w", "native", "-s", "-S"]
-                                 "rst-reader.rst" "rst-reader.native"
-                               , runTest "reader (tables)" ["-r", "rst", "-w", "native"]
-                                 "tables.rst" "tables-rstsubset.native"
+                               , testGroup "reader" [ runTest "basic" ["-r", "rst", "-w", "native", "-s", "-S"]
+                                                      "rst-reader.rst" "rst-reader.native"
+                                                    , runTest "tables" ["-r", "rst", "-w", "native"]
+                                                      "tables.rst" "tables-rstsubset.native"
+                                                    ]
                                ]
         , testGroup "latex"    [ runWriterTest "" "latex"
                                , runTest "reader" ["-r", "latex", "-w", "native", "-s", "-R"]
