@@ -289,7 +289,7 @@ Executable markdown2pdf
     Buildable:        False
 
 Executable test-pandoc
-  Hs-Source-Dirs:     src
+  Hs-Source-Dirs:     tests, src
   Main-Is:            test-pandoc.hs
   if !flag(tests)
     Buildable:        False
