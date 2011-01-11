@@ -52,23 +52,6 @@ showDiff ((F, ln) : ds) = "|TEST| " ++ ln ++ "\n" ++ showDiff ds
 showDiff ((S, ln) : ds) = "|NORM| " ++ ln ++ "\n" ++ showDiff ds
 showDiff ((B, _ ) : ds) = showDiff ds
 
-lhsWriterFormats :: [String]
-lhsWriterFormats = [ "markdown"
-                   , "markdown+lhs"
-                   , "rst"
-                   , "rst+lhs"
-                   , "latex"
-                   , "latex+lhs"
-                   , "html"
-                   , "html+lhs"
-                   ]
-
-lhsReaderFormats :: [String]
-lhsReaderFormats = [ "markdown+lhs"
-                   , "rst+lhs"
-                   , "latex+lhs"
-                   ]
-
 markdownCitationTest :: Test
 markdownCitationTest
   = testGroup "citations" $ map styleToTest ["chicago-author-date","ieee","mhra"]
@@ -81,30 +64,34 @@ markdownCitationTest
 
 
 tests :: [Test]
-tests = [ testGroup "markdown" [ runWriterTest "" "markdown"
+tests = [ testGroup "markdown" [ testGroup "writer" (runWriterTests "markdown" ++ runLhsWriterTests "markdown")
                                , testGroup "reader" [ runTest "basic" ["-r", "markdown", "-w", "native", "-s", "-S"]
                                                       "testsuite.txt" "testsuite.native"
                                                     , runTest "tables" ["-r", "markdown", "-w", "native"]
                                                       "tables.txt" "tables.native"
                                                     , runTest "more" ["-r", "markdown", "-w", "native", "-S"]
                                                       "markdown-reader-more.txt" "markdown-reader-more.native"
+                                                    , runLhsReaderTest "markdown+lhs"
                                                     ]
                                , markdownCitationTest
                                ]
-        , testGroup "rst"      [ runWriterTest "" "rst"
+        , testGroup "rst"      [ testGroup "writer" (runWriterTests "rst" ++ runLhsWriterTests "rst")
                                , testGroup "reader" [ runTest "basic" ["-r", "rst", "-w", "native", "-s", "-S"]
                                                       "rst-reader.rst" "rst-reader.native"
                                                     , runTest "tables" ["-r", "rst", "-w", "native"]
                                                       "tables.rst" "tables-rstsubset.native"
+                                                    , runLhsReaderTest "rst+lhs"
                                                     ]
                                ]
-        , testGroup "latex"    [ runWriterTest "" "latex"
-                               , runTest "reader" ["-r", "latex", "-w", "native", "-s", "-R"]
-                                 "latex-reader.latex" "latex-reader.native"
+        , testGroup "latex"    [ testGroup "writer" (runWriterTests "latex" ++ runLhsWriterTests "latex")
+                               , testGroup "reader" [ runTest "basic" ["-r", "latex", "-w", "native", "-s", "-R"]
+                                                      "latex-reader.latex" "latex-reader.native"
+                                                    , runLhsReaderTest "latex+lhs"
+                                                    ]
                                , runLatexCitationTests "biblatex"
                                , runLatexCitationTests "natbib"
                                ]
-        , testGroup "html"     [ runWriterTest "" "html"
+        , testGroup "html"     [ testGroup "writer" (runWriterTests "html" ++ runLhsWriterTests "html")
                                , runTest "reader" ["-r", "html", "-w", "native", "-s"]
                                  "html-reader.html" "html-reader.native"
                                ]
@@ -114,20 +101,18 @@ tests = [ testGroup "markdown" [ runWriterTest "" "markdown"
                                , runS5WriterTest "inserts"  ["-s", "-H", "insert",
                                                              "-B", "insert", "-A", "insert", "-c", "main.css"] "html"
                                ]
-        , testGroup "textile"  [ runWriterTest "" "textile"
+        , testGroup "textile"  [ testGroup "writer" $ runWriterTests "textile"
                                , runTest "reader" ["-r", "textile", "-w", "native", "-s"]
                                  "textile-reader.textile" "textile-reader.native"
                                ]
-        , testGroup "native"   [ runWriterTest "" "native"
+        , testGroup "native"   [ testGroup "writer" $ runWriterTests "native"
                                , runTest "reader" ["-r", "native", "-w", "native", "-s"]
                                  "testsuite.native" "testsuite.native"
                                ]
-        , testGroup "other writers" $ map (\f -> runWriterTest f f) [ "docbook", "opendocument" , "context" , "texinfo"
-                                                                    , "man" , "plain" , "mediawiki", "rtf", "org"
-                                                                    ]
-        , testGroup "lhs" [ testGroup "writer" $ map runLhsWriterTest lhsWriterFormats
-                          , testGroup "reader" $ map runLhsReaderTest lhsReaderFormats
-                          ]
+        , testGroup "other writers" $ map (\f -> testGroup f $ runWriterTests f)
+          [ "docbook", "opendocument" , "context" , "texinfo"
+          , "man" , "plain" , "mediawiki", "rtf", "org"
+          ]
         ]
 
 main :: IO ()
@@ -138,13 +123,18 @@ readFile' :: FilePath -> IO String
 readFile' f = do s <- readFileUTF8 f
                  return $! (length s `seq` s)
 
-runLhsWriterTest :: String -> Test
-runLhsWriterTest format =
-  runTest format ["--columns=78", "-r", "native", "-s", "-w", format] "lhs-test.native" ("lhs-test" <.> format)
+runLhsWriterTests :: String -> [Test]
+runLhsWriterTests format
+  = [ t "lhs to normal" format
+    , t "lhs to lhs"    (format ++ "+lhs")
+    ]
+  where
+    t n f = runTest n ["--columns=78", "-r", "native", "-s", "-w", f]
+            "lhs-test.native" ("lhs-test" <.> f)
 
 runLhsReaderTest :: String -> Test
 runLhsReaderTest format =
-  runTest format ["-r", format, "-w", "html+lhs"] ("lhs-test" <.> format) "lhs-test.fragment.html+lhs"
+  runTest "lhs" ["-r", format, "-w", "html+lhs"] ("lhs-test" <.> format) "lhs-test.fragment.html+lhs"
 
 
 runLatexCitationTests :: String -> Test
@@ -161,13 +151,12 @@ runLatexCitationTests n
     normalize = substitute "\160" " " . substitute "\8211" "-"
     rt        = runTestWithNormalize normalize
 
-runWriterTest :: String -> String -> Test
-runWriterTest prefix format 
-  = testGroup name [ runTest "basic"  (opts ++ ["-s"]) "testsuite.native" ("writer" <.> format)
-                   , runTest "tables" opts             "tables.native"    ("tables" <.> format)
-                   ]
+runWriterTests :: String -> [Test]
+runWriterTests format
+  = [ runTest "basic"  (opts ++ ["-s"]) "testsuite.native" ("writer" <.> format)
+    , runTest "tables" opts             "tables.native"    ("tables" <.> format)
+    ]
   where
-    name = if (null prefix) then "writer" else prefix ++ " writer"
     opts = ["-r", "native", "-w", format, "--columns=78"]
 
 runS5WriterTest :: String -> [String] -> String -> Test
