@@ -170,6 +170,7 @@ inTemplate opts tit auths date toc body' newvars =
                     , ("pagetitle", topTitle')
                     , ("title", renderHtmlFragment tit)
                     , ("date", date') ] ++
+                    [ ("html5","true") | writerHtml5 opts ] ++
                     (case toc of
                          Just t  -> [ ("toc", renderHtmlFragment t)]
                          Nothing -> [])  ++
@@ -226,7 +227,9 @@ elementToHtml opts (Sec level num id' title' elements) = do
   return $ if slides   -- S5 gets confused by the extra divs around sections
               then toHtmlFromList stuff
               else if writerSectionDivs opts
-                      then thediv ! [prefixedId opts id'] << stuff
+                      then if writerHtml5 opts
+                              then tag "section" << stuff
+                              else thediv ! [prefixedId opts id'] << stuff
                       else toHtmlFromList stuff
 
 -- | Convert list of Note blocks to a footnote <div>.

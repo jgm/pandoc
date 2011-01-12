@@ -1,8 +1,17 @@
+$if(html5)$
+<!DOCTYPE html>
+<html$if(lang)$ lang="$lang$"$endif$>
+$else$
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml"$if(lang)$ lang="$lang$" xml:lang="$lang$"$endif$>
+$endif$
 <head>
   <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
+$if(html5)$
+  <meta charset="utf-8" />
+$else$
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+$endif$
   <meta name="generator" content="pandoc" />
 $for(author)$
   <meta name="author" content="$author$" />
@@ -16,7 +25,7 @@ $highlighting-css$
   </style>
 $endif$
 $for(css)$
-  <link rel="stylesheet" href="$css$" type="text/css" />
+  <link rel="stylesheet" href="$css$" $if(html5)$$else$type="text/css" $endif$/>
 $endfor$
 $if(math)$
   $math$
@@ -30,7 +39,13 @@ $for(include-before)$
 $include-before$
 $endfor$
 $if(title)$
+$if(html5)$
+<header>
+$endif$
 <h1 class="title">$title$</h1>
+$if(html5)$
+</header>
+$endif$
 $endif$
 $if(toc)$
 $toc$

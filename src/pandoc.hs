@@ -102,6 +102,7 @@ data Opt = Opt
     , optOffline           :: Bool    -- ^ Make slideshow accessible offline
     , optXeTeX             :: Bool    -- ^ Format latex for xetex
     , optSmart             :: Bool    -- ^ Use smart typography
+    , optHtml5             :: Bool    -- ^ Produce HTML5 in HTML
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
     , optEPUBStylesheet    :: Maybe String   -- ^ EPUB stylesheet
@@ -142,6 +143,7 @@ defaultOpts = Opt
     , optOffline           = False
     , optXeTeX             = False
     , optSmart             = False
+    , optHtml5             = False
     , optHTMLMathMethod    = PlainMath
     , optReferenceODT      = Nothing
     , optEPUBStylesheet    = Nothing
@@ -225,6 +227,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optSmart = True }))
                  "" -- "Use smart quotes, dashes, and ellipses"
+
+    , Option "5" ["html5"]
+                 (NoArg
+                  (\opt -> return opt { optHtml5 = True }))
+                 "" -- "Produce HTML5 in HTML output"
 
     , Option "m" ["latexmathml", "asciimathml"]
                  (OptArg
@@ -629,6 +636,7 @@ main = do
               , optOffline           = offline
               , optXeTeX             = xetex
               , optSmart             = smart
+              , optHtml5             = html5
               , optHTMLMathMethod    = mathMethod
               , optReferenceODT      = referenceODT
               , optEPUBStylesheet    = epubStylesheet
@@ -771,7 +779,8 @@ main = do
                                                                   else obfuscationMethod,
                                       writerIdentifierPrefix = idPrefix,
                                       writerSourceDirectory  = sourceDir,
-                                      writerUserDataDir      = datadir }
+                                      writerUserDataDir      = datadir,
+                                      writerHtml5            = html5 }
 
   when (isNonTextOutput writerName' && outputFile == "-") $
     do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++
