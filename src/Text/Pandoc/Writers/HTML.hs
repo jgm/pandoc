@@ -190,7 +190,12 @@ tableOfContents opts sects = do
   let tocList = catMaybes contents
   return $ if null tocList
               then Nothing
-              else Just $ thediv ! [prefixedId opts' "TOC"] $ unordList tocList
+              else Just $
+                   if writerHtml5 opts
+                      then tag "nav" ! [prefixedId opts' "TOC"] $
+                           unordList tocList
+                      else thediv ! [prefixedId opts' "TOC"] $
+                           unordList tocList
 
 -- | Convert section number to string
 showSecNum :: [Int] -> String
@@ -299,8 +304,11 @@ blockToHtml opts (Plain lst) = inlineListToHtml opts lst
 blockToHtml opts (Para [Image txt (s,tit)]) = do
   img <- inlineToHtml opts (Image txt (s,tit))
   capt <- inlineListToHtml opts txt
-  return $ thediv ! [theclass "figure"] <<
-             [img, paragraph ! [theclass "caption"] << capt]
+  return $ if writerHtml5 opts
+              then tag "figure" <<
+                    [img, tag "figcaption" << capt]
+              else thediv ! [theclass "figure"] <<
+                    [img, paragraph ! [theclass "caption"] << capt]
 blockToHtml opts (Para lst) = inlineListToHtml opts lst >>= (return . paragraph)
 blockToHtml _ (RawHtml str) = return $ primHtml str
 blockToHtml _ (HorizontalRule) = return $ hr
@@ -371,7 +379,17 @@ blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
                    then [start startnum]
                    else []) ++
                 (if numstyle /= DefaultStyle
-                   then [thestyle $ "list-style-type: " ++ numstyle' ++ ";"]
+                   then if writerHtml5 opts
+                           then [strAttr "type" $
+                                 case numstyle of
+                                      Decimal    -> "1"
+                                      LowerAlpha -> "a"
+                                      UpperAlpha -> "A"
+                                      LowerRoman -> "i"
+                                      UpperRoman -> "I"
+                                      _          -> "1"]
+                           else [thestyle $ "list-style-type: " ++
+                                   numstyle']
                    else [])
   return $ ordList ! attribs $ contents
 blockToHtml opts (DefinitionList lst) = do
@@ -384,28 +402,30 @@ blockToHtml opts (DefinitionList lst) = do
                    else []
   return $ dlist ! attribs << concat contents
 blockToHtml opts (Table capt aligns widths headers rows') = do
-  let alignStrings = map alignmentToString aligns
   captionDoc <- if null capt
                    then return noHtml
                    else inlineListToHtml opts capt >>= return . caption
   let percent w = show (truncate (100*w) :: Integer) ++ "%"
+  let widthAttrs w = if writerHtml5 opts
+                        then [thestyle $ "width: " ++ percent w]
+                        else [width $ percent w]
   let coltags = if all (== 0.0) widths
                    then noHtml
                    else concatHtml $ map
-                         (\w -> col ! [width $ percent w] $ noHtml) widths
+                         (\w -> col ! (widthAttrs w) $ noHtml) widths
   head' <- if all null headers
               then return noHtml
-              else liftM (thead <<) $ tableRowToHtml opts alignStrings 0 headers
+              else liftM (thead <<) $ tableRowToHtml opts aligns 0 headers
   body' <- liftM (tbody <<) $
-               zipWithM (tableRowToHtml opts alignStrings) [1..] rows'
+               zipWithM (tableRowToHtml opts aligns) [1..] rows'
   return $ table $ captionDoc +++ coltags +++ head' +++ body'
 
 tableRowToHtml :: WriterOptions
-               -> [String]
+               -> [Alignment]
                -> Int
                -> [[Block]]
                -> State WriterState Html
-tableRowToHtml opts alignStrings rownum cols' = do
+tableRowToHtml opts aligns rownum cols' = do
   let mkcell = if rownum == 0 then th else td
   let rowclass = case rownum of
                       0                  -> "header"
@@ -413,7 +433,7 @@ tableRowToHtml opts alignStrings rownum cols' = do
                       _                  -> "even"
   cols'' <- sequence $ zipWith 
             (\alignment item -> tableItemToHtml opts mkcell alignment item) 
-            alignStrings cols'
+            aligns cols'
   return $ tr ! [theclass rowclass] $ toHtmlFromList cols''
 
 alignmentToString :: Alignment -> [Char]
@@ -425,12 +445,15 @@ alignmentToString alignment = case alignment of
 
 tableItemToHtml :: WriterOptions
                 -> (Html -> Html)
-                -> [Char]
+                -> Alignment
                 -> [Block]
                 -> State WriterState Html
 tableItemToHtml opts tag' align' item = do
   contents <- blockListToHtml opts item
-  return $ tag' ! [align align'] $ contents
+  let alignAttrs = if writerHtml5 opts
+                      then [thestyle $ "align: " ++ alignmentToString align']
+                      else [align $ alignmentToString align']
+  return $ tag' ! alignAttrs $ contents
 
 blockListToHtml :: WriterOptions -> [Block] -> State WriterState Html
 blockListToHtml opts lst = 

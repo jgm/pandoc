@@ -41,7 +41,7 @@ import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower )
-import Data.List ( intercalate, isSuffixOf )
+import Data.List ( intercalate, isSuffixOf, isPrefixOf )
 import System.Directory ( getAppUserDataDirectory, doesFileExist )
 import System.IO ( stdout, stderr )
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -780,7 +780,8 @@ main = do
                                       writerIdentifierPrefix = idPrefix,
                                       writerSourceDirectory  = sourceDir,
                                       writerUserDataDir      = datadir,
-                                      writerHtml5            = html5 }
+                                      writerHtml5            = html5 &&
+                                                               "html" `isPrefixOf` writerName' }
 
   when (isNonTextOutput writerName' && outputFile == "-") $
     do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++

@@ -6,7 +6,6 @@ $else$
 <html xmlns="http://www.w3.org/1999/xhtml"$if(lang)$ lang="$lang$" xml:lang="$lang$"$endif$>
 $endif$
 <head>
-  <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
 $if(html5)$
   <meta charset="utf-8" />
 $else$
@@ -19,6 +18,12 @@ $endfor$
 $if(date)$
   <meta name="date" content="$date$" />
 $endif$
+  <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
+$if(html5)$
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+$endif$
 $if(highlighting-css)$
   <style type="text/css">
 $highlighting-css$
@@ -28,7 +33,10 @@ $for(css)$
   <link rel="stylesheet" href="$css$" $if(html5)$$else$type="text/css" $endif$/>
 $endfor$
 $if(math)$
+$if(html5)$
+$else$
   $math$
+$endif$
 $endif$
 $for(header-includes)$
   $header-includes$
