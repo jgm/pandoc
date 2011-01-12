@@ -45,7 +45,7 @@ tests :: [Test]
 tests = [ testGroup "markdown" [ testGroup "writer" (writerTests "markdown" ++ lhsWriterTests "markdown")
                                , testGroup "reader" [ test "basic" ["-r", "markdown", "-w", "native", "-s", "-S"]
                                                       "testsuite.txt" "testsuite.native"
-                                                    , test "tables" ["-r", "markdown", "-w", "native"]
+                                                    , test "tables" ["-r", "markdown", "-w", "native", "--columns=80"]
                                                       "tables.txt" "tables.native"
                                                     , test "more" ["-r", "markdown", "-w", "native", "-S"]
                                                       "markdown-reader-more.txt" "markdown-reader-more.native"
@@ -54,9 +54,9 @@ tests = [ testGroup "markdown" [ testGroup "writer" (writerTests "markdown" ++ l
                                , testGroup "citations" markdownCitationTests
                                ]
         , testGroup "rst"      [ testGroup "writer" (writerTests "rst" ++ lhsWriterTests "rst")
-                               , testGroup "reader" [ test "basic" ["-r", "rst", "-w", "native", "-s", "-S"]
+                               , testGroup "reader" [ test "basic" ["-r", "rst", "-w", "native", "-s", "-S", "--columns=80"]
                                                       "rst-reader.rst" "rst-reader.native"
-                                                    , test "tables" ["-r", "rst", "-w", "native"]
+                                                    , test "tables" ["-r", "rst", "-w", "native", "--columns=80"]
                                                       "tables.rst" "tables-rstsubset.native"
                                                     , lhsReaderTest "rst+lhs"
                                                     ]
@@ -173,7 +173,7 @@ testWithNormalize normalizer testname opts inp norm = testCase testname $ do
   (outputPath, hOut) <- openTempFile "" "pandoc-test"
   let inpPath = inp
   let normPath = norm
-  ph <- runProcess pandocPath (["--columns=80"] ++ [inpPath] ++ ["--data-dir", ".."] ++ opts) Nothing
+  ph <- runProcess pandocPath ([inpPath] ++ ["--data-dir", ".."] ++ opts) Nothing
         (Just [("LANG","en_US.UTF-8"),("HOME", "./")]) Nothing (Just hOut) (Just stderr)
   ec <- waitForProcess ph
   result  <- if ec == ExitSuccess
