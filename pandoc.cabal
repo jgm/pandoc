@@ -298,7 +298,10 @@ Executable test-pandoc
   if !flag(tests)
     Buildable:        False
   else
-    Ghc-Options:      -Wall
+    if impl(ghc >= 6.12)
+      Ghc-Options:    -O2 -Wall -fno-warn-unused-do-bind
+    else
+      Ghc-Options:    -O2 -Wall
     Extensions:       CPP
     Build-Depends:    base >= 4 && < 5, Diff, test-framework, test-framework-hunit, HUnit
     Other-Modules:    Text.Pandoc.Shared, Text.Pandoc.Highlighting, Text.Pandoc.Writers.Native
