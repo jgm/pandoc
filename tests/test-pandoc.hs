@@ -33,8 +33,8 @@ data TestResult = TestPassed
 instance Show TestResult where
   show TestPassed     = "PASSED"
   show (TestError ec) = "ERROR " ++ show ec
-  show (TestFailed cmd file d) = cmd ++ "\n--- expected (" ++ file ++ ")" ++
-                                 "\n+++ actual\n" ++ showDiff d
+  show (TestFailed cmd file d) = "\n--- " ++ file ++
+                                 "\n+++ " ++ cmd ++ "\n" ++ showDiff d
 
 showDiff :: [(DI, String)] -> String
 showDiff []             = ""
