@@ -1,4 +1,4 @@
-module Helpers where
+module Tests.Shared where
 
 import Text.Pandoc
 

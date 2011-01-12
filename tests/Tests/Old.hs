@@ -1,5 +1,5 @@
 
-module Old (tests) where
+module Tests.Old (tests) where
 
 import Test.Framework (testGroup, Test )
 import Test.Framework.Providers.HUnit

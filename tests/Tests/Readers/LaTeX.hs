@@ -1,9 +1,9 @@
-module Latex.Reader (tests) where
+module Tests.Readers.LaTeX (tests) where
 
 import Text.Pandoc.Definition
 
 import Test.Framework
-import Helpers
+import Tests.Shared
 
 tests :: [Test]
 tests = [ testGroup "basic" [ latexTest "simplest" "word"               

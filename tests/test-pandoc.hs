@@ -4,13 +4,13 @@ module Main where
 
 import Test.Framework
 
-import qualified Old
-import qualified Latex.Reader
+import qualified Tests.Old
+import qualified Tests.Readers.LaTeX
 
 tests :: [Test]
-tests = [ testGroup "Old" Old.tests
-        , testGroup "Latex" [ testGroup "Reader" Latex.Reader.tests
-                            ]
+tests = [ testGroup "Old" Tests.Old.tests
+        , testGroup "Readers" [ testGroup "LaTeX" Tests.Readers.LaTeX.tests
+                              ]
         ]
 
 main :: IO ()
