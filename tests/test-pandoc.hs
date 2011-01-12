@@ -27,18 +27,18 @@ pandocPath = ".." </> "dist" </> "build" </> "pandoc" </> "pandoc"
 
 data TestResult = TestPassed
                 | TestError ExitCode
-                | TestFailed [(DI, String)]
+                | TestFailed FilePath [(DI, String)]
      deriving (Eq)
 
 instance Show TestResult where
   show TestPassed     = "PASSED"
   show (TestError ec) = "ERROR " ++ show ec
-  show (TestFailed d) = "FAILED\n" ++ showDiff d
+  show (TestFailed f d) = f ++ "\n--- expected test result\n+++ actual test result\n" ++ showDiff d
 
 showDiff :: [(DI, String)] -> String
 showDiff []             = ""
-showDiff ((F, ln) : ds) = "|TEST| " ++ ln ++ "\n" ++ showDiff ds
-showDiff ((S, ln) : ds) = "|NORM| " ++ ln ++ "\n" ++ showDiff ds
+showDiff ((F, ln) : ds) = "- " ++ ln ++ "\n" ++ showDiff ds
+showDiff ((S, ln) : ds) = "+ " ++ ln ++ "\n" ++ showDiff ds
 showDiff ((B, _ ) : ds) = showDiff ds
 
 tests :: [Test]
@@ -183,7 +183,7 @@ testWithNormalize normalizer testname opts inp norm = testCase testname $ do
                   normContents <- readFile' normPath >>= return . filter (/='\r') . normalizer
                   if outputContents == normContents
                      then return TestPassed
-                     else return $ TestFailed $ getDiff (lines outputContents) (lines normContents)
+                     else return $ TestFailed normPath $ getDiff (lines outputContents) (lines normContents)
                 else return $ TestError ec
   removeFile outputPath
   assertBool (show result) (result == TestPassed)
