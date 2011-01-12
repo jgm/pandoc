@@ -27,13 +27,14 @@ pandocPath = ".." </> "dist" </> "build" </> "pandoc" </> "pandoc"
 
 data TestResult = TestPassed
                 | TestError ExitCode
-                | TestFailed FilePath [(DI, String)]
+                | TestFailed String FilePath [(DI, String)]
      deriving (Eq)
 
 instance Show TestResult where
   show TestPassed     = "PASSED"
   show (TestError ec) = "ERROR " ++ show ec
-  show (TestFailed f d) = f ++ "\n--- expected test result\n+++ actual test result\n" ++ showDiff d
+  show (TestFailed cmd file d) = cmd ++ "\n--- expected (" ++ file ++ ")" ++
+                                 "\n+++ actual\n" ++ showDiff d
 
 showDiff :: [(DI, String)] -> String
 showDiff []             = ""
@@ -173,7 +174,9 @@ testWithNormalize normalizer testname opts inp norm = testCase testname $ do
   (outputPath, hOut) <- openTempFile "" "pandoc-test"
   let inpPath = inp
   let normPath = norm
-  ph <- runProcess pandocPath ([inpPath] ++ ["--data-dir", ".."] ++ opts) Nothing
+  let options = ["--data-dir", ".."] ++ [inpPath] ++ opts
+  let cmd = pandocPath ++ " " ++ unwords options
+  ph <- runProcess pandocPath options Nothing
         (Just [("LANG","en_US.UTF-8"),("HOME", "./")]) Nothing (Just hOut) (Just stderr)
   ec <- waitForProcess ph
   result  <- if ec == ExitSuccess
@@ -183,7 +186,7 @@ testWithNormalize normalizer testname opts inp norm = testCase testname $ do
                   normContents <- readFile' normPath >>= return . filter (/='\r') . normalizer
                   if outputContents == normContents
                      then return TestPassed
-                     else return $ TestFailed normPath $ getDiff (lines outputContents) (lines normContents)
+                     else return $ TestFailed cmd normPath $ getDiff (lines outputContents) (lines normContents)
                 else return $ TestError ec
   removeFile outputPath
   assertBool (show result) (result == TestPassed)
