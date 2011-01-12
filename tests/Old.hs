@@ -17,6 +17,7 @@ import Text.Pandoc.Highlighting ( languages )
 import Prelude hiding ( readFile )
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString)
+import Text.Printf
 
 readFileUTF8 :: FilePath -> IO String
 readFileUTF8 f = B.readFile f >>= return . toString
@@ -33,13 +34,13 @@ instance Show TestResult where
   show TestPassed     = "PASSED"
   show (TestError ec) = "ERROR " ++ show ec
   show (TestFailed cmd file d) = "\n--- " ++ file ++
-                                 "\n+++ " ++ cmd ++ "\n" ++ showDiff d
+                                 "\n+++ " ++ cmd ++ "\n" ++ showDiff (1,1) d
 
-showDiff :: [(DI, String)] -> String
-showDiff []             = ""
-showDiff ((F, ln) : ds) = "+ " ++ ln ++ "\n" ++ showDiff ds
-showDiff ((S, ln) : ds) = "- " ++ ln ++ "\n" ++ showDiff ds
-showDiff ((B, _ ) : ds) = showDiff ds
+showDiff :: (Int,Int) -> [(DI, String)] -> String
+showDiff _ []             = ""
+showDiff (l,r) ((F, ln) : ds) = printf "%4d +" l ++ ln ++ "\n" ++ showDiff (l+1,r) ds
+showDiff (l,r) ((S, ln) : ds) = printf "%4d -" r ++ ln ++ "\n" ++ showDiff (l,r+1) ds
+showDiff (l,r) ((B, _ ) : ds) = showDiff (l+1,r+1) ds
 
 tests :: [Test]
 tests = [ testGroup "markdown" [ testGroup "writer" (writerTests "markdown" ++ lhsWriterTests "markdown")
