@@ -37,8 +37,8 @@ instance Show TestResult where
 
 showDiff :: [(DI, String)] -> String
 showDiff []             = ""
-showDiff ((F, ln) : ds) = "- " ++ ln ++ "\n" ++ showDiff ds
-showDiff ((S, ln) : ds) = "+ " ++ ln ++ "\n" ++ showDiff ds
+showDiff ((F, ln) : ds) = "+ " ++ ln ++ "\n" ++ showDiff ds
+showDiff ((S, ln) : ds) = "- " ++ ln ++ "\n" ++ showDiff ds
 showDiff ((B, _ ) : ds) = showDiff ds
 
 tests :: [Test]
