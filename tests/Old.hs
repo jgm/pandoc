@@ -38,9 +38,12 @@ instance Show TestResult where
 
 showDiff :: (Int,Int) -> [(DI, String)] -> String
 showDiff _ []             = ""
-showDiff (l,r) ((F, ln) : ds) = printf "%4d +" l ++ ln ++ "\n" ++ showDiff (l+1,r) ds
-showDiff (l,r) ((S, ln) : ds) = printf "%4d -" r ++ ln ++ "\n" ++ showDiff (l,r+1) ds
-showDiff (l,r) ((B, _ ) : ds) = showDiff (l+1,r+1) ds
+showDiff (l,r) ((F, ln) : ds) =
+  printf "+%4d " l ++ ln ++ "\n" ++ showDiff (l+1,r) ds
+showDiff (l,r) ((S, ln) : ds) =
+  printf "-%4d " r ++ ln ++ "\n" ++ showDiff (l,r+1) ds
+showDiff (l,r) ((B, _ ) : ds) =
+  showDiff (l+1,r+1) ds
 
 tests :: [Test]
 tests = [ testGroup "markdown" [ testGroup "writer" (writerTests "markdown" ++ lhsWriterTests "markdown")
