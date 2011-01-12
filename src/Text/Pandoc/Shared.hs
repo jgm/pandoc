@@ -481,6 +481,7 @@ data WriterOptions = WriterOptions
   , writerUserDataDir      :: Maybe FilePath -- ^ Path of user data directory
   , writerCiteMethod       :: CiteMethod -- ^ How to print cites
   , writerBiblioFiles      :: [FilePath] -- ^ Biblio files to use for citations
+  , writerHtml5            :: Bool       -- ^ Produce HTML5
   } deriving Show
 
 -- | Default writer options.
@@ -510,6 +511,7 @@ defaultWriterOptions =
                 , writerUserDataDir      = Nothing
                 , writerCiteMethod       = Citeproc
                 , writerBiblioFiles      = []
+                , writerHtml5            = False
                 }
 
 --

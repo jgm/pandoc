@@ -146,13 +146,15 @@ readers :: [(String, ParserState -> String -> Pandoc)]
 readers = [("native"       , \_ -> read)
           ,("json"         , \_ -> decodeJSON)
           ,("markdown"     , readMarkdown)
-          ,("markdown+lhs" , readMarkdown)
+          ,("markdown+lhs" , \st ->
+                             readMarkdown st{ stateLiterateHaskell = True})
           ,("rst"          , readRST)
           ,("textile"      , readTextile) -- TODO : textile+lhs 
           ,("rst+lhs"      , readRST)
           ,("html"         , readHtml)
           ,("latex"        , readLaTeX)
-          ,("latex+lhs"    , readLaTeX)
+          ,("latex+lhs"    , \st ->
+                             readLaTeX st{ stateLiterateHaskell = True})
           ]
 
 -- | Association list of formats and writers (omitting the
@@ -161,21 +163,25 @@ writers :: [ ( String, WriterOptions -> Pandoc -> String ) ]
 writers = [("native"       , writeNative)
           ,("json"         , \_ -> encodeJSON)
           ,("html"         , writeHtmlString)
-          ,("html+lhs"     , writeHtmlString)
+          ,("html+lhs"     , \o ->
+                             writeHtmlString o{ writerLiterateHaskell = True })
           ,("s5"           , writeHtmlString)
           ,("slidy"        , writeHtmlString)
           ,("docbook"      , writeDocbook)
           ,("opendocument" , writeOpenDocument)
           ,("latex"        , writeLaTeX)
-          ,("latex+lhs"    , writeLaTeX)
+          ,("latex+lhs"    , \o ->
+                             writeLaTeX o{ writerLiterateHaskell = True })
           ,("context"      , writeConTeXt)
           ,("texinfo"      , writeTexinfo)
           ,("man"          , writeMan)
           ,("markdown"     , writeMarkdown)
-          ,("markdown+lhs" , writeMarkdown)
+          ,("markdown+lhs" , \o ->
+                             writeMarkdown o{ writerLiterateHaskell = True })
           ,("plain"        , writePlain)
           ,("rst"          , writeRST)
-          ,("rst+lhs"      , writeRST)
+          ,("rst+lhs"      , \o ->
+                             writeRST o{ writerLiterateHaskell = True })
           ,("mediawiki"    , writeMediaWiki)
           ,("textile"      , writeTextile)
           ,("rtf"          , writeRTF)

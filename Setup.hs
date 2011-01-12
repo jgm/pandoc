@@ -9,7 +9,7 @@ import Distribution.Verbosity ( Verbosity, silent )
 import Distribution.Simple.InstallDirs (mandir, bindir, CopyDest (NoCopyDest))
 import Distribution.Simple.Utils (copyFiles)
 import Control.Exception ( bracket_ )
-import Control.Monad ( unless, when )
+import Control.Monad ( unless )
 import System.Process ( rawSystem, runCommand, runProcess, waitForProcess )
 import System.FilePath ( (</>), (<.>) )
 import System.Directory
@@ -50,8 +50,8 @@ runTestSuite args _ pkg lbi = do
 
 -- | Build man pages from markdown sources in man/man1/.
 makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
-makeManPages _ flags _ buildInfo = do
-  let pandocPath = (buildDir buildInfo) </> "pandoc" </> "pandoc"
+makeManPages _ flags _ bi = do
+  let pandocPath = (buildDir bi) </> "pandoc" </> "pandoc"
   makeManPage pandocPath (fromFlag $ buildVerbosity flags) "markdown2pdf.1"
   let testCmd  = "runghc -package-conf=dist/package.conf.inplace MakeManPage.hs" -- makes pandoc.1 from README
   runCommand testCmd >>= waitForProcess >>= exitWith
