@@ -38,17 +38,12 @@ main = do
 
 -- | Run test suite.
 runTestSuite :: Args -> Bool -> PackageDescription -> LocalBuildInfo -> IO a
-runTestSuite _ _ pkg lbi = do
+runTestSuite args _ pkg lbi = do
   let testDir = buildDir lbi </> "test-pandoc"
   testDir' <- canonicalizePath testDir
+  let testArgs = concatMap (\arg -> ["-t",arg]) args
   if any id [buildable (buildInfo exe) | exe <- executables pkg, exeName exe == "test-pandoc"]
-     then do
-         let isHighlightingKate (Dependency (PackageName "highlighting-kate") _) = True
-             isHighlightingKate _ = False
-         let highlightingSupport = any isHighlightingKate $ buildDepends pkg
-         let testArgs = if highlightingSupport then [] else ["-t", "!lhs"]
-         inDirectory "tests" $ rawSystem (testDir' </> "test-pandoc")
-                                 testArgs >>= exitWith
+     then inDirectory "tests" $ rawSystem (testDir' </> "test-pandoc") testArgs >>= exitWith
      else do
          putStrLn "Build pandoc with the 'tests' flag to run tests"
          exitWith $ ExitFailure 3

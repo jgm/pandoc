@@ -12,7 +12,9 @@ import System.FilePath ( (</>), (<.>) )
 import System.Directory
 import System.Exit
 import Data.Algorithm.Diff
-import Text.Pandoc.Shared ( substitute )
+import Text.Pandoc.Shared ( substitute, normalize, defaultWriterOptions )
+import Text.Pandoc.Writers.Native ( writeNative )
+import Text.Pandoc.Highlighting ( languages )
 import Prelude hiding ( readFile )
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString)
@@ -105,13 +107,15 @@ lhsWriterTests format
     , t "lhs to lhs"    (format ++ "+lhs")
     ]
   where
-    t n f = test n ["--columns=78", "-r", "native", "-s", "-w", f]
-            "lhs-test.native" ("lhs-test" <.> f)
+    t n f = test n ["--columns=78", "-r", "native", "-s", "-w", f] "lhs-test.native" ("lhs-test" <.> ext f)
+    ext f = if null languages && format == "html"
+               then "nohl" <.> f
+               else f
 
 lhsReaderTest :: String -> Test
 lhsReaderTest format =
-  test "lhs" ["-r", format, "-w", "html+lhs"] ("lhs-test" <.> format) "lhs-test.fragment.html+lhs"
-
+  testWithNormalize normalizer "lhs" ["-r", format, "-w", "native"] ("lhs-test" <.> format) "lhs-test.native"
+   where normalizer = writeNative defaultWriterOptions . normalize . read
 
 latexCitationTests :: String -> Test
 latexCitationTests n
@@ -124,8 +128,8 @@ latexCitationTests n
   where
     o = ["--bibliography", "biblio.bib", "--csl", "chicago-author-date.csl", "--no-citeproc", "--" ++ n]
     f  = n ++ "-citations.latex"
-    normalize = substitute "\160" " " . substitute "\8211" "-"
-    t         = testWithNormalize normalize
+    normalizer = substitute "\160" " " . substitute "\8211" "-"
+    t          = testWithNormalize normalizer
 
 writerTests :: String -> [Test]
 writerTests format
@@ -165,7 +169,7 @@ testWithNormalize  :: (String -> String) -- ^ Normalize function for output
                    -> String    -- ^ Input filepath
                    -> FilePath  -- ^ Norm (for test results) filepath
                    -> Test
-testWithNormalize normalize testname opts inp norm = testCase testname $ do
+testWithNormalize normalizer testname opts inp norm = testCase testname $ do
   (outputPath, hOut) <- openTempFile "" "pandoc-test"
   let inpPath = inp
   let normPath = norm
@@ -175,8 +179,8 @@ testWithNormalize normalize testname opts inp norm = testCase testname $ do
   result  <- if ec == ExitSuccess
                 then do
                   -- filter \r so the tests will work on Windows machines
-                  outputContents <- readFile' outputPath >>= return . filter (/='\r') . normalize
-                  normContents <- readFile' normPath >>= return . filter (/='\r')
+                  outputContents <- readFile' outputPath >>= return . filter (/='\r') . normalizer
+                  normContents <- readFile' normPath >>= return . filter (/='\r') . normalizer
                   if outputContents == normContents
                      then return TestPassed
                      else return $ TestFailed $ getDiff (lines outputContents) (lines normContents)
