@@ -1,3 +1,5 @@
+-- Utility functions for the test suite.
+
 module Tests.Helpers where
 
 import Text.Pandoc
