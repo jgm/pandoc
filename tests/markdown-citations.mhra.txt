@@ -58,6 +58,4 @@ Doe, John, and Jenny Roe, ‘Why Water Is Wet’, in *Third Book*, ed by Sam Smi
 
 [^11]: Like a citation without author: First Book, and now Doe with a locator Article, 33-34 (p. 44).
 
-[^11]: Like a citation without author: First Book, and now Doe with a locator Article, 33-34 (p. 44).
-
 [^12]: *See* Doe, First Book, p. 32.
