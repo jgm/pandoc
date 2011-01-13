@@ -3,7 +3,7 @@ module Tests.Readers.LaTeX (tests) where
 import Text.Pandoc.Definition
 
 import Test.Framework
-import Tests.Shared
+import Tests.Helpers
 
 tests :: [Test]
 tests = [ testGroup "basic" [ latexTest "simplest" "word"               
