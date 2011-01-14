@@ -303,5 +303,9 @@ Executable test-pandoc
     else
       Ghc-Options:    -Wall
     Extensions:       CPP
-    Build-Depends:    base >= 4 && < 5, Diff, test-framework, test-framework-hunit, HUnit
-    Other-Modules:    Text.Pandoc.Shared, Text.Pandoc.Highlighting, Text.Pandoc.Writers.Native
+    Build-Depends:    base >= 4 && < 5, Diff, test-framework,
+                      test-framework-hunit, HUnit, QuickCheck > 2
+    Other-Modules:    Tests.Old
+                      Tests.Helpers
+                      Tests.Arbitrary
+                      Tests.Readers.LaTeX
