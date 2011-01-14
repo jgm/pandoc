@@ -34,7 +34,7 @@ import Text.Pandoc.Generic
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
-import Data.List ( (\\), isSuffixOf, isPrefixOf, intercalate )
+import Data.List ( (\\), isSuffixOf, isPrefixOf, intercalate, intersperse )
 import Data.Char ( toLower, isPunctuation )
 import Control.Monad.State
 import Text.Pandoc.Pretty
@@ -241,9 +241,9 @@ blockToLaTeX (Header level lst) = do
 blockToLaTeX (Table caption aligns widths heads rows) = do
   headers <- if all null heads
                 then return empty
-                else liftM ($$ "\\hline") $ tableRowToLaTeX heads
+                else liftM ($$ "\\hline") $ (tableRowToLaTeX widths) heads
   captionText <- inlineListToLaTeX caption
-  rows' <- mapM tableRowToLaTeX rows
+  rows' <- mapM (tableRowToLaTeX widths) rows
   let colDescriptors = concat $ zipWith toColDescriptor widths aligns
   let tableBody = text ("\\begin{tabular}{" ++ colDescriptors ++ "}") $$
                   headers $$ vcat rows' $$ "\\end{tabular}"
@@ -267,16 +267,19 @@ toColDescriptor width align = ">{\\PBS" ++
          AlignRight -> "\\raggedleft"
          AlignCenter -> "\\centering"
          AlignDefault -> "\\raggedright") ++
-  "\\hspace{0pt}}p{" ++ printf "%.2f" width ++
-  "\\columnwidth}"
+  "\\hspace{0pt}}p{" ++ printf "%.2f" width ++ "\\columnwidth}"
 
 blockListToLaTeX :: [Block] -> State WriterState Doc
 blockListToLaTeX lst = mapM blockToLaTeX lst >>= return . vcat
 
-tableRowToLaTeX :: [[Block]] -> State WriterState Doc
-tableRowToLaTeX cols = mapM blockListToLaTeX cols >>= 
-  return . ($$ text "\\\\") . foldl (\row item -> row $$
-  (if isEmpty row then text "" else text " & ") <> item) empty
+tableRowToLaTeX :: [Double] -> [[Block]] -> State WriterState Doc
+tableRowToLaTeX widths cols = do
+  renderedCells <- mapM blockListToLaTeX cols
+  let toCell 0 c = c
+      toCell w c = "\\parbox{" <> text (printf "%.2f" w) <>
+                   "\\columnwidth}{" <> c <> cr <> "}"
+  let cells = zipWith toCell widths renderedCells
+  return $ (hcat $ intersperse (" & ") cells) <> "\\\\"
 
 listItemToLaTeX :: [Block] -> State WriterState Doc
 listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
