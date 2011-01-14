@@ -488,8 +488,8 @@ gridTableWith block tableCaption headless =
   tableWith (gridTableHeader headless block) (gridTableRow block) (gridTableSep '-') gridTableFooter tableCaption
 
 gridTableSplitLine :: [Int] -> String -> [String]
-gridTableSplitLine indices line =
-  map removeFinalBar $ tail $ splitByIndices (init indices) line
+gridTableSplitLine indices line = map removeFinalBar $ tail $
+  splitByIndices (init indices) $ removeTrailingSpace line
 
 gridPart :: Char -> GenParser Char st (Int, Int)
 gridPart ch = do
@@ -501,8 +501,8 @@ gridDashedLines :: Char -> GenParser Char st [(Int,Int)]
 gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) >>~ blankline
 
 removeFinalBar :: String -> String
-removeFinalBar = reverse . dropWhile (=='|') .  dropWhile (`elem` " \t") .
-                 reverse
+removeFinalBar =
+  reverse . dropWhile (`elem` " \t") . dropWhile (=='|') . reverse
 
 -- | Separator between rows of grid table.
 gridTableSep :: Char -> GenParser Char ParserState Char
@@ -539,7 +539,7 @@ gridTableRawLine :: [Int] -> GenParser Char ParserState [String]
 gridTableRawLine indices = do
   char '|'
   line <- many1Till anyChar newline
-  return (gridTableSplitLine indices $ removeTrailingSpace line)
+  return (gridTableSplitLine indices line)
 
 -- | Parse row of grid table.
 gridTableRow :: GenParser Char ParserState Block
