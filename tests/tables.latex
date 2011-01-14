@@ -3,27 +3,11 @@ Simple table with caption:
 \begin{table}[h]
 \begin{center}
 \begin{tabular}{rlcl}
-Right
- & Left
- & Center
- & Default
-\\
+Right & Left & Center & Default\\
 \hline
-12
- & 12
- & 12
- & 12
-\\
-123
- & 123
- & 123
- & 123
-\\
-1
- & 1
- & 1
- & 1
-\\
+12 & 12 & 12 & 12\\
+123 & 123 & 123 & 123\\
+1 & 1 & 1 & 1\\
 \end{tabular}
 \end{center}
 \caption{Demonstration of simple table syntax.}
@@ -33,27 +17,11 @@ Simple table without caption:
 
 \begin{center}
 \begin{tabular}{rlcl}
-Right
- & Left
- & Center
- & Default
-\\
+Right & Left & Center & Default\\
 \hline
-12
- & 12
- & 12
- & 12
-\\
-123
- & 123
- & 123
- & 123
-\\
-1
- & 1
- & 1
- & 1
-\\
+12 & 12 & 12 & 12\\
+123 & 123 & 123 & 123\\
+1 & 1 & 1 & 1\\
 \end{tabular}
 \end{center}
 
@@ -62,27 +30,11 @@ Simple table indented two spaces:
 \begin{table}[h]
 \begin{center}
 \begin{tabular}{rlcl}
-Right
- & Left
- & Center
- & Default
-\\
+Right & Left & Center & Default\\
 \hline
-12
- & 12
- & 12
- & 12
-\\
-123
- & 123
- & 123
- & 123
-\\
-1
- & 1
- & 1
- & 1
-\\
+12 & 12 & 12 & 12\\
+123 & 123 & 123 & 123\\
+1 & 1 & 1 & 1\\
 \end{tabular}
 \end{center}
 \caption{Demonstration of simple table syntax.}
@@ -93,22 +45,23 @@ Multiline table with caption:
 \begin{table}[h]
 \begin{center}
 \begin{tabular}{>{\PBS\centering\hspace{0pt}}p{0.15\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.14\columnwidth}>{\PBS\raggedleft\hspace{0pt}}p{0.16\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.34\columnwidth}}
-Centered Header
- & Left Aligned
- & Right Aligned
- & Default aligned
-\\
+\parbox{0.15\columnwidth}{Centered Header
+} & \parbox{0.14\columnwidth}{Left Aligned
+} & \parbox{0.16\columnwidth}{Right Aligned
+} & \parbox{0.34\columnwidth}{Default aligned
+}\\
 \hline
-First
- & row
- & 12.0
- & Example of a row that spans multiple lines.
-\\
-Second
- & row
- & 5.0
- & Here's another one. Note the blank line between rows.
-\\
+\parbox{0.15\columnwidth}{First
+} & \parbox{0.14\columnwidth}{row
+} & \parbox{0.16\columnwidth}{12.0
+} & \parbox{0.34\columnwidth}{Example of a row that spans multiple lines.
+}\\
+\parbox{0.15\columnwidth}{Second
+} & \parbox{0.14\columnwidth}{row
+} & \parbox{0.16\columnwidth}{5.0
+} & \parbox{0.34\columnwidth}{Here's another one. Note the blank line between
+rows.
+}\\
 \end{tabular}
 \end{center}
 \caption{Here's the caption. It may span multiple lines.}
@@ -118,22 +71,23 @@ Multiline table without caption:
 
 \begin{center}
 \begin{tabular}{>{\PBS\centering\hspace{0pt}}p{0.15\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.14\columnwidth}>{\PBS\raggedleft\hspace{0pt}}p{0.16\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.34\columnwidth}}
-Centered Header
- & Left Aligned
- & Right Aligned
- & Default aligned
-\\
+\parbox{0.15\columnwidth}{Centered Header
+} & \parbox{0.14\columnwidth}{Left Aligned
+} & \parbox{0.16\columnwidth}{Right Aligned
+} & \parbox{0.34\columnwidth}{Default aligned
+}\\
 \hline
-First
- & row
- & 12.0
- & Example of a row that spans multiple lines.
-\\
-Second
- & row
- & 5.0
- & Here's another one. Note the blank line between rows.
-\\
+\parbox{0.15\columnwidth}{First
+} & \parbox{0.14\columnwidth}{row
+} & \parbox{0.16\columnwidth}{12.0
+} & \parbox{0.34\columnwidth}{Example of a row that spans multiple lines.
+}\\
+\parbox{0.15\columnwidth}{Second
+} & \parbox{0.14\columnwidth}{row
+} & \parbox{0.16\columnwidth}{5.0
+} & \parbox{0.34\columnwidth}{Here's another one. Note the blank line between
+rows.
+}\\
 \end{tabular}
 \end{center}
 
@@ -141,21 +95,9 @@ Table without column headers:
 
 \begin{center}
 \begin{tabular}{rlcr}
-12
- & 12
- & 12
- & 12
-\\
-123
- & 123
- & 123
- & 123
-\\
-1
- & 1
- & 1
- & 1
-\\
+12 & 12 & 12 & 12\\
+123 & 123 & 123 & 123\\
+1 & 1 & 1 & 1\\
 \end{tabular}
 \end{center}
 
@@ -163,16 +105,17 @@ Multiline table without column headers:
 
 \begin{center}
 \begin{tabular}{>{\PBS\centering\hspace{0pt}}p{0.15\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.14\columnwidth}>{\PBS\raggedleft\hspace{0pt}}p{0.16\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.34\columnwidth}}
-First
- & row
- & 12.0
- & Example of a row that spans multiple lines.
-\\
-Second
- & row
- & 5.0
- & Here's another one. Note the blank line between rows.
-\\
+\parbox{0.15\columnwidth}{First
+} & \parbox{0.14\columnwidth}{row
+} & \parbox{0.16\columnwidth}{12.0
+} & \parbox{0.34\columnwidth}{Example of a row that spans multiple lines.
+}\\
+\parbox{0.15\columnwidth}{Second
+} & \parbox{0.14\columnwidth}{row
+} & \parbox{0.16\columnwidth}{5.0
+} & \parbox{0.34\columnwidth}{Here's another one. Note the blank line between
+rows.
+}\\
 \end{tabular}
 \end{center}
 
