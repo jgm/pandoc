@@ -150,6 +150,8 @@ Extra-Source-Files:
                  tests/lhs-test.latex+lhs,
                  tests/lhs-test.html,
                  tests/lhs-test.html+lhs,
+                 tests/lhs-test.nohl.html,
+                 tests/lhs-test.nohl.html+lhs,
                  tests/lhs-test.fragment.html+lhs
 Extra-Tmp-Files: man/man1/pandoc.1, man/man1/markdown2pdf.1
 
@@ -303,11 +305,22 @@ Executable markdown2pdf
     Buildable:        False
 
 Executable test-pandoc
-  Hs-Source-Dirs:     src
+  Hs-Source-Dirs:     tests, src
   Main-Is:            test-pandoc.hs
+  if flag(highlighting)
+    cpp-options:   -D_HIGHLIGHTING
   if !flag(tests)
     Buildable:        False
   else
-    Ghc-Options:      -Wall
-    Build-Depends:    base >= 4 && < 5, Diff
-    Other-Modules:    Text.Pandoc.Shared
+    if impl(ghc >= 6.12)
+      Ghc-Options:    -Wall -fno-warn-unused-do-bind
+    else
+      Ghc-Options:    -Wall
+    Extensions:       CPP
+    Build-Depends:    base >= 4 && < 5, Diff, test-framework >= 0.3 && < 0.4,
+                      test-framework-hunit >= 0.2 && < 0.3,
+                      HUnit >= 1.2 && < 1.3
+    Other-Modules:    Tests.Old
+                      Tests.Helpers
+                      Tests.Arbitrary
+                      Tests.Readers.LaTeX
