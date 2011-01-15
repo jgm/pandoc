@@ -181,25 +181,34 @@ Library
   -- Note: the following material must be in both Library and Executable stanzas.
   -- It needs to be duplicated because of the library & executable flags.
   -- BEGIN DUPLICATED SECTION
-  Build-Depends: containers >= 0.1,
-                 parsec >= 2.1, xhtml >= 3000.0,
-                 mtl >= 1.1, network >= 2, filepath >= 1.1,
-                 process >= 1, directory >= 1,
-                 bytestring >= 0.9, zip-archive >= 0.1.1.4,
-                 utf8-string >= 0.3, old-time >= 1,
-                 HTTP >= 4000.0.5, texmath >= 0.5, xml >= 1.3.5 && < 1.4,
-                 random, extensible-exceptions,
+  Build-Depends: containers >= 0.1 && < 0.5,
+                 parsec >= 2.1 && < 3.2,
+                 xhtml >= 3000.0 && < 3000.3,
+                 mtl >= 1.1 && < 2.1,
+                 network >= 2 && < 2.4,
+                 filepath >= 1.1 && < 1.3,
+                 process >= 1 && < 1.1,
+                 directory >= 1 && < 1.2,
+                 bytestring >= 0.9 && < 1.0,
+                 zip-archive >= 0.1.1.4 && < 0.2,
+                 utf8-string >= 0.3 && < 0.4,
+                 old-time >= 1 && < 1.1,
+                 HTTP >= 4000.0.5 && < 4000.2,
+                 texmath >= 0.5 && < 0.6,
+                 xml >= 1.3.5 && < 1.4,
+                 random >= 1 && < 1.1,
+                 extensible-exceptions >= 0.1 && < 0.2,
                  citeproc-hs >= 0.3 && < 0.4,
                  pandoc-types == 1.7.*,
                  json >= 0.4 && < 0.5,
                  dlist >= 0.4 && < 0.6,
                  tagsoup >= 0.12 && < 0.13
   if impl(ghc >= 6.10)
-    Build-depends: base >= 4 && < 5, syb
+    Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
   else
     Build-depends: base >= 3 && < 4
   if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.2.7.1
+    Build-depends: highlighting-kate >= 0.2.7.1 && < 0.2.9
     cpp-options:   -D_HIGHLIGHTING
   if impl(ghc >= 6.12)
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
@@ -255,25 +264,34 @@ Executable pandoc
   -- Note: the following material must be in both Library and Executable stanzas.
   -- It needs to be duplicated because of the library & executable flags.
   -- BEGIN DUPLICATED SECTION
-  Build-Depends: containers >= 0.1,
-                 parsec >= 2.1, xhtml >= 3000.0,
-                 mtl >= 1.1, network >= 2, filepath >= 1.1,
-                 process >= 1, directory >= 1,
-                 bytestring >= 0.9, zip-archive >= 0.1.1.4,
-                 utf8-string >= 0.3, old-time >= 1,
-                 HTTP >= 4000.0.5, texmath, xml >= 1.3.5 && < 1.4,
-                 random, extensible-exceptions,
+  Build-Depends: containers >= 0.1 && < 0.5,
+                 parsec >= 2.1 && < 3.2,
+                 xhtml >= 3000.0 && < 3000.3,
+                 mtl >= 1.1 && < 2.1,
+                 network >= 2 && < 2.4,
+                 filepath >= 1.1 && < 1.3,
+                 process >= 1 && < 1.1,
+                 directory >= 1 && < 1.2,
+                 bytestring >= 0.9 && < 1.0,
+                 zip-archive >= 0.1.1.4 && < 0.2,
+                 utf8-string >= 0.3 && < 0.4,
+                 old-time >= 1 && < 1.1,
+                 HTTP >= 4000.0.5 && < 4000.2,
+                 texmath >= 0.5 && < 0.6,
+                 xml >= 1.3.5 && < 1.4,
+                 random >= 1 && < 1.1,
+                 extensible-exceptions >= 0.1 && < 0.2,
                  citeproc-hs >= 0.3 && < 0.4,
                  pandoc-types == 1.7.*,
                  json >= 0.4 && < 0.5,
                  dlist >= 0.4 && < 0.6,
                  tagsoup >= 0.12 && < 0.13
   if impl(ghc >= 6.10)
-    Build-depends: base >= 4 && < 5, syb
+    Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
   else
     Build-depends: base >= 3 && < 4
   if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.2.7.1
+    Build-depends: highlighting-kate >= 0.2.7.1 && < 0.2.9
     cpp-options:   -D_HIGHLIGHTING
   if impl(ghc >= 6.12)
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
