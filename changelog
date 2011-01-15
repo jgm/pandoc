@@ -2,20 +2,6 @@ pandoc (1.7)
 
   [new features]
 
-  * New `textile` reader and writer.  Thanks to Paul Rivier for contributing
-    the `textile` reader, an almost complete implementation of the textile
-    syntax used by the ruby [RedCloth library](http://redcloth.org/textile).
-    Resolves Issue #51.
-
-  * New `org` writer, for Emacs Org-mode, contributed by Puneeth Chaganti.
-
-  * New `json` reader and writer, for reading and writing a JSON
-    representation of the native Pandoc AST.  These are much faster
-    than the `native` reader and writer, and should be used for
-    serializing Pandoc to text.  To convert between the JSON representation
-    and native Pandoc, use `encodeJSON` and `decodeJSON` from
-    `Text.JSON.Generic`.
-
   * Support for citations using Andrea Rossato's `citeproc-hs` 0.3.
     You can now write, for example,
 
@@ -36,6 +22,20 @@ pandoc (1.7)
     Citations are supported in the markdown reader, using a special
     syntax, and in the LaTeX reader, using natbib or biblatex syntax.
     (Thanks to Nathan Gass for the natbib and biblatex support.)
+
+  * New `textile` reader and writer.  Thanks to Paul Rivier for contributing
+    the `textile` reader, an almost complete implementation of the textile
+    syntax used by the ruby [RedCloth library](http://redcloth.org/textile).
+    Resolves Issue #51.
+
+  * New `org` writer, for Emacs Org-mode, contributed by Puneeth Chaganti.
+
+  * New `json` reader and writer, for reading and writing a JSON
+    representation of the native Pandoc AST.  These are much faster
+    than the `native` reader and writer, and should be used for
+    serializing Pandoc to text.  To convert between the JSON representation
+    and native Pandoc, use `encodeJSON` and `decodeJSON` from
+    `Text.JSON.Generic`.
 
   * A new `--mathjax` option has been added for displaying
     math in HTML using MathJax.  Resolves issue #259.
@@ -68,10 +68,14 @@ pandoc (1.7)
   * Made `--smart` work in HTML, RST, and Textile readers, as well
     as markdown.
 
+  * Added `--html5` option for HTML5 output.
+
   * Added support for listings package in LaTeX reader
     (Puneeth Chaganti).
 
   * Added support for simple tables in the LaTeX reader.
+
+  * Added support for simple tables in the HTML reader.
 
   * Significant performance improvements in many readers and writers.
 
@@ -109,6 +113,9 @@ pandoc (1.7)
     resulting HTML using `xss-sanitize`, which is based on pandoc's
     sanitization, but improved.
 
+  * Added support for `lang` in `html` tag in the HTML template,
+    so you can do `pandoc -s -V lang=es`, for example.
+
   * Added `Text.Pandoc.Pretty`. This is better suited for pandoc than the
     `pretty` package.  Changed all writers that used
     `Text.PrettyPrint.HughesPJ` to use `Text.Pandoc.Pretty` instead.
@@ -118,7 +125,7 @@ pandoc (1.7)
 
   * `Text.Pandoc.Shared`:
 
-    + Added `writerColumns` to `WriterOptions`.
+    + Added `writerColumns` and `writerHtml5` to `WriterOptions`.
     + Added `normalize`.
     + Removed unneeded prettyprinting functions:
       `wrapped`, `wrapIfNeeded`, `wrappedTeX`, `wrapTeXIfNeeded`, `hang'`,
@@ -186,9 +193,15 @@ pandoc (1.7)
   [Under-the-hood improvements]
 
   * Completely rewrote HTML reader using tagsoup as a lexer. The
-    new reader is faster and more accurate.
+    new reader is faster and more accurate.  Unlike the
+    old reader, it does not get bogged down on some input
+    (Issues #277, 255). And it handles namespaces in tags
+    (Issue #274).
 
   * Replaced `escapeStringAsXML` with a faster version.
+
+  * Simplified Text.Pandoc.CharacterReferences by using
+    entity lookup functions from TagSoup.
 
   * Remove duplications in documentation by generating the
     pandoc man page from README, using `MakeManPage.hs`.
@@ -218,6 +231,10 @@ pandoc (1.7)
     Now they are parsed as `Quoted` inlines, if `--smart` is specified.
     Resolves Issue #270.
 
+  * Text.Pandoc.Parsing: Fixed bug in grid table parser.
+    Spaces at end of line were not being stripped properly,
+    resulting in unintended LineBreaks.
+
   * Markdown reader:
 
     + Allow HTML comments as inline elements in markdown.
@@ -238,6 +255,11 @@ pandoc (1.7)
       contained `\begin{document}` in, say, a verbatim block.
     + Allow spaces between '\begin' or '\end' and '{'.
     + Support \L and \l.
+
+  * LaTeX writer:
+
+    + Escape strings in \href{..}.
+    + In nonsimple tables, put cells in \parbox.
 
   * OpenDocument writer:  don't print raw TeX.
 
@@ -658,7 +680,8 @@ pandoc (1.5)
     + Removed stLink, link template variable. Reason: we now always
       include hyperref in the template.
 
-  * Latex template:
+  * LaTeX template:
+
     + Only show \author if there are some.
     + Always include hyperref package. It is used not just for links but
       for toc, section heading bookmarks, footnotes, etc. Also added
