@@ -149,8 +149,9 @@ readers = [("native"       , \_ -> read)
           ,("markdown+lhs" , \st ->
                              readMarkdown st{ stateLiterateHaskell = True})
           ,("rst"          , readRST)
+          ,("rst+lhs"      , \st ->
+                             readRST st{ stateLiterateHaskell = True})
           ,("textile"      , readTextile) -- TODO : textile+lhs 
-          ,("rst+lhs"      , readRST)
           ,("html"         , readHtml)
           ,("latex"        , readLaTeX)
           ,("latex+lhs"    , \st ->
