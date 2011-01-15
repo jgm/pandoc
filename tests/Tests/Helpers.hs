@@ -20,9 +20,15 @@ assertPandoc (Block   e) (Pandoc _ [g]       ) = e @=? g
 assertPandoc (Blocks  e) (Pandoc _ g         ) = e @=? g
 assertPandoc _ _ = assertFailure "Wrong structure of Pandoc document."
 
-latexTest :: String-> String -> Expect -> Test
+latexTest :: String -> String -> Expect -> Test
 latexTest = readerTestWithState defaultParserState readLaTeX
 
-readerTestWithState :: ParserState -> (ParserState -> String -> Pandoc) -> String -> String -> Expect -> Test
-readerTestWithState state reader name string exp = testCase name $ exp `assertPandoc` reader state string 
+readerTestWithState :: ParserState
+                     -> (ParserState -> String -> Pandoc)
+                     -> String
+                     -> String
+                     -> Expect
+                     -> Test
+readerTestWithState state reader name string e =
+  testCase name $ e `assertPandoc` reader state string 
 
