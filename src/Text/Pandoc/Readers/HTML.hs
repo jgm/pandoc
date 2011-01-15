@@ -85,6 +85,7 @@ block = choice
             , pCodeBlock
             , pList
             , pHrule
+            , pSimpleTable
             , pPlain
             , pRawHtmlBlock
             ]
@@ -193,6 +194,27 @@ pHrule :: TagParser [Block]
 pHrule = do
   pSelfClosing (=="hr") (const True)
   return [HorizontalRule]
+
+pSimpleTable :: TagParser [Block]
+pSimpleTable = try $ do
+  TagOpen _ _ <- pSatisfy (~== TagOpen "table" [])
+  skipMany pBlank
+  head' <- option [] $ pInTags "th" pTd
+  rows <- many1 $ try $
+           skipMany pBlank >> pInTags "tr" pTd
+  skipMany pBlank
+  TagClose _ <- pSatisfy (~== TagClose "table") 
+  let cols = maximum $ map length rows
+  let aligns = replicate cols AlignLeft
+  let widths = replicate cols 0
+  return [Table [] aligns widths head' rows]
+
+pTd :: TagParser [TableCell]
+pTd = try $ do
+  skipMany pBlank
+  res <- pInTags "td" pPlain
+  skipMany pBlank
+  return [res]
 
 pBlockQuote :: TagParser [Block]
 pBlockQuote = do
@@ -437,10 +459,8 @@ _ `closes` "html" = False
 "a" `closes` "a" = True
 "li" `closes` "li" = True
 "th" `closes` t | t `elem` ["th","td"] = True
-"td" `closes` t | t `elem` ["th","td"] = True
 "tr" `closes` t | t `elem` ["th","td","tr"] = True
 "dt" `closes` t | t `elem` ["dt","dd"] = True
-"dd" `closes` t | t `elem` ["dt","dd"] = True
 "hr" `closes` "p" = True
 "p" `closes` "p" = True
 "meta" `closes` "meta" = True
