@@ -581,7 +581,7 @@ spaces: a\^{}b c\^{}d, a\ensuremath{\sim}b c\ensuremath{\sim}d.
 `He said, ``I want to go.''\,' Were you alive in the 70's?
 
 Here is some quoted `\verb!code!' and a
-``\href{http://example.com/?foo=1&bar=2}{quoted link}''.
+``\href{http://example.com/?foo=1\&bar=2}{quoted link}''.
 
 Some dashes: one---two --- three---four --- five.
 
@@ -711,7 +711,7 @@ Just a \href{/url/}{URL}.
 
 \href{/url/}{URL and title}
 
-\href{/url/with_underscore}{with\_underscore}
+\href{/url/with\_underscore}{with\_underscore}
 
 \href{mailto:nobody@nowhere.net}{Email link}
 
@@ -746,15 +746,15 @@ Foo \href{/url/}{biz}.
 
 \subsection{With ampersands}
 
-Here's a \href{http://example.com/?foo=1&bar=2}{link with an ampersand in the
+Here's a \href{http://example.com/?foo=1\&bar=2}{link with an ampersand in the
 URL}.
 
 Here's a link with an amersand in the link text:
 \href{http://att.com/}{AT\&T}.
 
-Here's an \href{/script?foo=1&bar=2}{inline link}.
+Here's an \href{/script?foo=1\&bar=2}{inline link}.
 
-Here's an \href{/script?foo=1&bar=2}{inline link in pointy braces}.
+Here's an \href{/script?foo=1\&bar=2}{inline link in pointy braces}.
 
 \subsection{Autolinks}
 

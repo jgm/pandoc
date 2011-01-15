@@ -370,8 +370,8 @@ inlineToLaTeX (Link txt (src, _)) =
              do modify $ \s -> s{ stUrl = True }
                 return $ text $ "\\url{" ++ x ++ "}"
         _ -> do contents <- inlineListToLaTeX $ deVerb txt
-                return $ text ("\\href{" ++ src ++ "}{") <> contents <>
-                         char '}'
+                return $ text ("\\href{" ++ stringToLaTeX src ++ "}{") <>
+                         contents <> char '}'
 inlineToLaTeX (Image _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True }
   return $ "\\includegraphics" <> braces (text source)
