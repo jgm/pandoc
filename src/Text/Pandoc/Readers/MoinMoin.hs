@@ -558,11 +558,8 @@ code = try $ do
                       notFollowedBy (char '`')))
   return $ Code $ removeLeadingTrailingSpace $ concat result
 
-
+emph :: GenParser Char ParserState Inline
 emph = (enclosed (string "''") (string "''") inline) >>= return . Emph . normalizeSpaces
-
-
-underline = (enclosed (string "__") (string "__") inline) >>= return . Underline . normalizeSpaces
 
 strong :: GenParser Char ParserState Inline
 strong = enclosed (string "'''") (string "'''") inline >>= return . Strong . normalizeSpaces
@@ -707,7 +704,6 @@ moin16BracketLink = try $ do
                                     -- ,localPageInQuotes
                                     -- ,localPageWithColonLabel
                                     -- ,localPageCamelCase
-				    ,pageOutline
                                     ]
   return $ Link [Str label] (target, "")
 
@@ -756,12 +752,6 @@ localPageCamelCase = try $ do
   w <- initialCapWord
   ws <- many1 initialCapWord
   let p = concat $ [w]++ws
-  return (p,p)
-
-pageOutline :: GenParser Char ParserState (String,String)
-pageOutline = try $ do
-  string "PageOutline"
-  let p = "" -- FIXME: This should produce an outline of links, an index of sorts.
   return (p,p)
 
 initialCapWord :: GenParser Char ParserState String
