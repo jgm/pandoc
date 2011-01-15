@@ -78,9 +78,8 @@ parseBody :: TagParser [Block]
 parseBody = liftM concat $ manyTill block eof
 
 block :: TagParser [Block]
-block = optional pLocation >>
-        choice [
-              pPara
+block = choice
+            [ pPara
             , pHeader
             , pBlockQuote
             , pCodeBlock
@@ -235,9 +234,8 @@ pCodeBlock = try $ do
   return [CodeBlock attribs result]
 
 inline :: TagParser [Inline]
-inline = choice [
-             pLocation
-           , pTagText
+inline = choice
+           [ pTagText
            , pEmph
            , pStrong
            , pSuperscript
@@ -250,16 +248,18 @@ inline = choice [
            , pRawHtmlInline
            ]
 
-pLocation :: TagParser [a]
+pLocation :: TagParser ()
 pLocation = do
-  (TagPosition r c) <- pSatisfy isTagPosition
+  (TagPosition r c) <- pSat isTagPosition
   setPosition $ newPos "input" r c
-  return []
 
-pSatisfy :: (Tag String -> Bool) -> TagParser (Tag String)
-pSatisfy f = do
+pSat :: (Tag String -> Bool) -> TagParser (Tag String)
+pSat f = do
   pos <- getPosition
   token show (const pos) (\x -> if f x then Just x else Nothing) 
+
+pSatisfy :: (Tag String -> Bool) -> TagParser (Tag String)
+pSatisfy f = try $ optional pLocation >> pSat f
 
 pAnyTag :: TagParser (Tag String)
 pAnyTag = pSatisfy (const True)
@@ -268,7 +268,7 @@ pSelfClosing :: (String -> Bool) -> ([Attribute String] -> Bool)
              -> TagParser (Tag String)
 pSelfClosing f g = do
   open <- pSatisfy (tagOpen f g)
-  optional $ try $ pLocation >> pSatisfy (tagClose f)
+  optional $ pSatisfy (tagClose f)
   return open
 
 pEmph :: TagParser [Inline]
@@ -342,7 +342,6 @@ pInTags tagtype parser = try $ do
 
 pCloses :: String -> TagParser ()
 pCloses tagtype = try $ do
-  optional pLocation
   t <- lookAhead $ pSatisfy $ \tag -> isTagClose tag || isTagOpen tag
   case t of
        (TagClose t')  | t' == tagtype -> pAnyTag >> return ()
@@ -359,6 +358,11 @@ pTagText = try $ do
   case runParser (many pTagContents) st "text" str of
        Left _        -> fail $ "Could not parse `" ++ str ++ "'"
        Right result  -> return result
+
+pBlank :: TagParser ()
+pBlank = try $ do
+  (TagText str) <- pSatisfy isTagText
+  guard $ all isSpace str
 
 pTagContents :: GenParser Char ParserState Inline
 pTagContents =  pStr <|> pSpace <|> smartPunctuation pTagContents <|> pSymbol
