@@ -52,9 +52,20 @@ runTestSuite args _ pkg lbi = do
 makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
 makeManPages _ flags _ bi = do
   let pandocPath = (buildDir bi) </> "pandoc" </> "pandoc"
-  makeManPage pandocPath (fromFlag $ buildVerbosity flags) "markdown2pdf.1"
-  let testCmd  = "runghc -package-conf=dist/package.conf.inplace MakeManPage.hs" -- makes pandoc.1 from README
-  runCommand testCmd >>= waitForProcess >>= exitWith
+  let verbosity = fromFlag $ buildVerbosity flags
+  -- make markdown2pdf.1 from markdown2pdf.1.md
+  makeManPage pandocPath verbosity "markdown2pdf.1"
+  -- make pandoc.1 from README
+  let pandocpage = manDir </> "pandoc.1"
+  modifiedDeps <- modifiedDependencies pandocpage ["README"]
+  unless (null modifiedDeps) $ do
+    let cmd  = "runghc -package-conf=dist/package.conf.inplace MakeManPage.hs"
+    ec <- runCommand cmd >>= waitForProcess
+    case ec of
+         ExitSuccess   -> unless (verbosity == silent) $
+                            putStrLn $ "Created " ++ pandocpage
+         ExitFailure n -> putStrLn ("Error creating " ++ pandocpage ++
+                               ". Exit code = " ++ show n) >> exitWith ec
 
 manpages :: [FilePath]
 manpages = ["pandoc.1", "markdown2pdf.1"]
