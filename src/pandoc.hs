@@ -488,24 +488,29 @@ options =
                      exitWith ExitSuccess)
                   "FORMAT")
                  "" -- "Print default template for FORMAT"
+
     , Option "" ["bibliography"]
                  (ReqArg
                   (\arg opt -> return opt { optBibliography = (optBibliography opt) ++ [arg] })
                   "FILENAME")
                  ""
+
     , Option "" ["csl"]
                  (ReqArg
                   (\arg opt -> return opt { optCslFile = arg })
                   "FILENAME")
                  ""
+
     , Option "" ["natbib", "no-citeproc"]
                  (NoArg
                   (\opt -> return opt { optCiteMethod = Natbib }))
                  "" -- "Use natbib cite commands in LaTeX output"
+
     , Option "" ["biblatex"]
                  (NoArg
                   (\opt -> return opt { optCiteMethod = Biblatex }))
                  "" -- "Use biblatex cite commands in LaTeX output"
+
     , Option "" ["data-dir"]
                  (ReqArg
                   (\arg opt -> return opt { optDataDir = Just arg })
