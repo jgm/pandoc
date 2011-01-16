@@ -261,6 +261,10 @@ Options
 `--xetex`
 :   Create LaTeX outut suitable for processing by XeTeX.
 
+`--chapters`
+:   Treat top-level headers as chapters in LaTeX, ConTeXt, and DocBook
+    output.
+
 `-N`, `--number-sections`
 :   Number section headings in LaTeX, ConTeXt, or HTML output.
     By default, sections are not numbered.
