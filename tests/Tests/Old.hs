@@ -142,7 +142,7 @@ latexCitationTests n
     ]
   where
     o = ["--bibliography", "biblio.bib", "--csl", "chicago-author-date.csl",
-         "--no-citeproc", "--" ++ n]
+         "--natbib", "--" ++ n]
     f  = n ++ "-citations.latex"
     normalizer = substitute "\160" " " . substitute "\8211" "-"
     t          = testWithNormalize normalizer
@@ -164,12 +164,12 @@ s5WriterTest modifier opts format
 markdownCitationTests :: [Test]
 markdownCitationTests
   =  map styleToTest ["chicago-author-date","ieee","mhra"] 
-     ++ [test "no-citeproc" wopts "markdown-citations.txt"
+     ++ [test "natbib" wopts "markdown-citations.txt"
          "markdown-citations.txt"]
   where
     ropts             = ["-r", "markdown", "-w", "markdown", "--bibliography",
                          "biblio.bib", "--no-wrap"]
-    wopts             = ropts ++ ["--no-citeproc"]
+    wopts             = ropts ++ ["--natbib"]
     styleToTest style = test style (ropts ++ ["--csl", style ++ ".csl"])
                         "markdown-citations.txt"
                         ("markdown-citations." ++ style ++ ".txt")
