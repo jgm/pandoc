@@ -501,7 +501,7 @@ options =
                   "FILENAME")
                  ""
 
-    , Option "" ["natbib", "no-citeproc"]
+    , Option "" ["natbib"]
                  (NoArg
                   (\opt -> return opt { optCiteMethod = Natbib }))
                  "" -- "Use natbib cite commands in LaTeX output"
