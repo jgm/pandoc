@@ -169,10 +169,13 @@ blockToConTeXt (Header level lst) = do
   st <- get
   let opts = stOptions st
   let base = if writerNumberSections opts then "section" else "subject"
-  return $ if level >= 1 && level <= 5
-               then char '\\' <> text (concat (replicate (level - 1) "sub")) <>
+  let level' = if writerChapters opts then level - 1 else level
+  return $ if level' >= 1 && level' <= 5
+               then char '\\' <> text (concat (replicate (level' - 1) "sub")) <>
                          text base <> char '{' <> contents <> char '}' <> blankline
-               else contents <> blankline
+               else if level' == 0
+                       then "\\chapter{" <> contents <> "}"
+                       else contents <> blankline
 blockToConTeXt (Table caption aligns widths heads rows) = do
     let colDescriptor colWidth alignment = (case alignment of
                                                AlignLeft    -> 'l' 
