@@ -63,7 +63,7 @@ writeLaTeX options document =
                 stVerbInNote = False, stEnumerate = False,
                 stTable = False, stStrikeout = False, stSubscript = False,
                 stUrl = False, stGraphics = False,
-                stLHS = False, stBook = False } 
+                stLHS = False, stBook = writerChapters options }
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do

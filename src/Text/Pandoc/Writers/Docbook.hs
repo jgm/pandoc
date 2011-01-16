@@ -87,9 +87,12 @@ elementToDocbook opts (Sec _ _num id' title elements) =
   let elements' = if null elements
                     then [Blk (Para [])]
                     else elements
-  in  inTags True "section" [("id",id')] $
+      tag = if writerChapters opts
+               then "chapter"
+               else "section"
+  in  inTags True tag [("id",id')] $
       inTagsSimple "title" (inlinesToDocbook opts title) $$
-      vcat (map (elementToDocbook opts) elements') 
+      vcat (map (elementToDocbook opts{ writerChapters = False }) elements') 
 
 -- | Convert a list of Pandoc blocks to Docbook.
 blocksToDocbook :: WriterOptions -> [Block] -> Doc

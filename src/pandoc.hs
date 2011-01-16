@@ -103,6 +103,7 @@ data Opt = Opt
     , optXeTeX             :: Bool    -- ^ Format latex for xetex
     , optSmart             :: Bool    -- ^ Use smart typography
     , optHtml5             :: Bool    -- ^ Produce HTML5 in HTML
+    , optChapters          :: Bool    -- ^ Use chapter for top-level sects
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
     , optEPUBStylesheet    :: Maybe String   -- ^ EPUB stylesheet
@@ -144,6 +145,7 @@ defaultOpts = Opt
     , optXeTeX             = False
     , optSmart             = False
     , optHtml5             = False
+    , optChapters          = False
     , optHTMLMathMethod    = PlainMath
     , optReferenceODT      = Nothing
     , optEPUBStylesheet    = Nothing
@@ -232,6 +234,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optHtml5 = True }))
                  "" -- "Produce HTML5 in HTML output"
+
+    , Option "" ["chapters"]
+                 (NoArg
+                  (\opt -> return opt { optChapters = True }))
+                 "" -- "Use chapter for top-level sections in LaTeX, DocBook"
 
     , Option "m" ["latexmathml", "asciimathml"]
                  (OptArg
@@ -637,6 +644,7 @@ main = do
               , optXeTeX             = xetex
               , optSmart             = smart
               , optHtml5             = html5
+              , optChapters          = chapters
               , optHTMLMathMethod    = mathMethod
               , optReferenceODT      = referenceODT
               , optEPUBStylesheet    = epubStylesheet
@@ -781,7 +789,8 @@ main = do
                                       writerSourceDirectory  = sourceDir,
                                       writerUserDataDir      = datadir,
                                       writerHtml5            = html5 &&
-                                                               "html" `isPrefixOf` writerName' }
+                                                               "html" `isPrefixOf` writerName',
+                                      writerChapters         = chapters }
 
   when (isNonTextOutput writerName' && outputFile == "-") $
     do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++

@@ -482,6 +482,7 @@ data WriterOptions = WriterOptions
   , writerCiteMethod       :: CiteMethod -- ^ How to print cites
   , writerBiblioFiles      :: [FilePath] -- ^ Biblio files to use for citations
   , writerHtml5            :: Bool       -- ^ Produce HTML5
+  , writerChapters         :: Bool       -- ^ Use "chapter" for top-level sects
   } deriving Show
 
 -- | Default writer options.
@@ -512,6 +513,7 @@ defaultWriterOptions =
                 , writerCiteMethod       = Citeproc
                 , writerBiblioFiles      = []
                 , writerHtml5            = False
+                , writerChapters         = False
                 }
 
 --
