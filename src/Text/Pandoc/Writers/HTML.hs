@@ -233,7 +233,8 @@ elementToHtml opts (Sec level num id' title' elements) = do
               then toHtmlFromList stuff
               else if writerSectionDivs opts
                       then if writerHtml5 opts
-                              then tag "section" << stuff
+                              then tag "section" ! [prefixedId opts id']
+                                     << stuff
                               else thediv ! [prefixedId opts id'] << stuff
                       else toHtmlFromList stuff
 
