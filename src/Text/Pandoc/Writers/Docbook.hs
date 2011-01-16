@@ -33,7 +33,7 @@ import Text.Pandoc.XML
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Readers.TeXMath
-import Data.List ( isPrefixOf, intercalate )
+import Data.List ( isPrefixOf, intercalate, isSuffixOf )
 import Data.Char ( toLower )
 import Text.Pandoc.Highlighting (languages, languagesByExtension)
 import Text.Pandoc.Pretty
@@ -69,7 +69,11 @@ writeDocbook opts (Pandoc (Meta tit auths dat) blocks) =
                     then Just $ writerColumns opts
                     else Nothing
       render' = render colwidth
-      main     = render' $ vcat (map (elementToDocbook opts) elements)
+      opts' = if "</book>" `isSuffixOf`
+                      (removeTrailingSpace $ writerTemplate opts)
+                 then opts{ writerChapters = True }
+                 else opts
+      main     = render' $ vcat (map (elementToDocbook opts') elements)
       context = writerVariables opts ++
                 [ ("body", main)
                 , ("title", render' title)
