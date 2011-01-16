@@ -235,11 +235,6 @@ options =
                   (\opt -> return opt { optHtml5 = True }))
                  "" -- "Produce HTML5 in HTML output"
 
-    , Option "" ["chapters"]
-                 (NoArg
-                  (\opt -> return opt { optChapters = True }))
-                 "" -- "Use chapter for top-level sections in LaTeX, DocBook"
-
     , Option "m" ["latexmathml", "asciimathml"]
                  (OptArg
                   (\arg opt ->
@@ -306,6 +301,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optXeTeX = True }))
                  "" -- "Format latex for processing by XeTeX"
+
+    , Option "" ["chapters"]
+                 (NoArg
+                  (\opt -> return opt { optChapters = True }))
+                 "" -- "Use chapter for top-level sections in LaTeX, DocBook"
 
     , Option "N" ["number-sections"]
                  (NoArg
