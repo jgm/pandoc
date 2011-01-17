@@ -117,6 +117,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("lhs", "yes") | stLHS st ] ++
                  [ ("graphics", "yes") | stGraphics st ] ++
                  [ ("book-class", "yes") | stBook st] ++
+                 [ ("listings", "yes") | writerListings options ] ++
                  citecontext
   return $ if writerStandalone options
               then renderTemplate context template
@@ -170,19 +171,47 @@ blockToLaTeX (Para lst) = do
 blockToLaTeX (BlockQuote lst) = do
   contents <- blockListToLaTeX lst
   return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
-blockToLaTeX (CodeBlock (_,classes,_) str) = do
+blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
   st <- get
   env <- if writerLiterateHaskell (stOptions st) && "haskell" `elem` classes &&
                     "literate" `elem` classes
             then do
               modify $ \s -> s{ stLHS = True }
               return "code"
-            else if stInNote st
-                    then do
-                      modify $ \s -> s{ stVerbInNote = True }
-                      return "Verbatim"
-                    else return "verbatim"
-  return $ "\\begin{" <> text env <> "}" $$ flush (text str) $$
+            else if writerListings (stOptions st)
+                    then return "lstlisting"
+                    else if stInNote st
+                            then do
+                              modify $ \s -> s{ stVerbInNote = True }
+                              return "Verbatim"
+                            else return "verbatim"
+  let params = if writerListings (stOptions st)
+               then take 1
+                    [ "language=" ++ lang | lang <- classes
+                    , lang `elem` ["ABAP","IDL","Plasm","ACSL","inform"
+                                  ,"POV","Ada","Java","Prolog","Algol"
+                                  ,"JVMIS","Promela","Ant","ksh","Python"
+                                  ,"Assembler","Lisp","R","Awk","Logo"
+                                  ,"Reduce","bash","make","Rexx","Basic"
+                                  ,"Mathematica","RSL","C","Matlab","Ruby"
+                                  ,"C++","Mercury","S","Caml","MetaPost"
+                                  ,"SAS","Clean","Miranda","Scilab","Cobol"
+                                  ,"Mizar","sh","Comal","ML","SHELXL","csh"
+                                  ,"Modula-2","Simula","Delphi","MuPAD"
+                                  ,"SQL","Eiffel","NASTRAN","tcl","Elan"
+                                  ,"Oberon-2","TeX","erlang","OCL"
+                                  ,"VBScript","Euphoria","Octave","Verilog"
+                                  ,"Fortran","Oz","VHDL","GCL","Pascal"
+                                  ,"VRML","Gnuplot","Perl","XML","Haskell"
+	                          ,"PHP","XSLT","HTML","PL/I"]
+                    ] ++ 
+                    [ key ++ "=" ++ attr | (key,attr) <- keyvalAttr ]
+               else []
+      printParams 
+          | null params = empty
+          | otherwise   = "[" <> hsep (intersperse "," (map text params)) <>
+                          "]"
+  return $ "\\begin{" <> text env <> "}" <> printParams $$ flush (text str) $$
            "\\end{" <> text env <> "}" $$ cr   -- final cr needed because of footnotes
 blockToLaTeX (RawHtml _) = return empty
 blockToLaTeX (BulletList lst) = do
@@ -334,7 +363,9 @@ inlineToLaTeX (Code str) = do
   st <- get
   when (stInNote st) $ modify $ \s -> s{ stVerbInNote = True }
   let chr = ((enumFromTo '!' '~') \\ str) !! 0
-  return $ text $ "\\verb" ++ [chr] ++ str ++ [chr]
+  if writerListings (stOptions st)
+    then return $ text $ "\\lstinline" ++ [chr] ++ str ++ [chr]
+    else return $ text $ "\\verb" ++ [chr] ++ str ++ [chr]
 inlineToLaTeX (Quoted SingleQuote lst) = do
   contents <- inlineListToLaTeX lst
   let s1 = if (not (null lst)) && (isQuoted (head lst))

@@ -269,6 +269,9 @@ Options
 :   Number section headings in LaTeX, ConTeXt, or HTML output.
     By default, sections are not numbered.
 
+`--listings`
+:   Use listings package for LaTeX code blocks
+
 `--section-divs`
 :   Wrap sections in `<div>` tags (or `<section>` tags in HTML5),
     and attach identifiers to the enclosing `<div>` (or `<section>`)

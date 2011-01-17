@@ -483,6 +483,7 @@ data WriterOptions = WriterOptions
   , writerBiblioFiles      :: [FilePath] -- ^ Biblio files to use for citations
   , writerHtml5            :: Bool       -- ^ Produce HTML5
   , writerChapters         :: Bool       -- ^ Use "chapter" for top-level sects
+  , writerListings         :: Bool       -- ^ Use listings package for code
   } deriving Show
 
 -- | Default writer options.
@@ -514,6 +515,7 @@ defaultWriterOptions =
                 , writerBiblioFiles      = []
                 , writerHtml5            = False
                 , writerChapters         = False
+                , writerListings         = False
                 }
 
 --
