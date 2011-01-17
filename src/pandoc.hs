@@ -122,6 +122,7 @@ data Opt = Opt
     , optCiteMethod        :: CiteMethod -- ^ Method to output cites
     , optBibliography      :: [String]
     , optCslFile           :: FilePath
+    , optListings          :: Bool       -- ^ Use listings package for code blocks
     }
 
 -- | Defaults for command-line options.
@@ -164,6 +165,7 @@ defaultOpts = Opt
     , optCiteMethod        = Citeproc
     , optBibliography      = []
     , optCslFile           = ""
+    , optListings          = False
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -317,6 +319,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optNumberSections = True }))
                  "" -- "Number sections in LaTeX"
+
+    , Option "" ["listings"]
+                 (NoArg
+                  (\opt -> return opt { optListings = True }))
+                 "" -- "Use listings package for LaTeX code blocks"
 
     , Option "" ["section-divs"]
                  (NoArg
@@ -674,6 +681,7 @@ main = do
               , optBibliography      = reffiles
               , optCslFile           = cslfile
               , optCiteMethod        = citeMethod
+              , optListings          = listings 
              } = opts
 
   when dumpArgs $
@@ -802,7 +810,8 @@ main = do
                                       writerUserDataDir      = datadir,
                                       writerHtml5            = html5 &&
                                                                "html" `isPrefixOf` writerName',
-                                      writerChapters         = chapters }
+                                      writerChapters         = chapters, 
+                                      writerListings         = listings }
 
   when (isNonTextOutput writerName' && outputFile == "-") $
     do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++

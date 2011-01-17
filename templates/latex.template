@@ -71,6 +71,9 @@ $endif$
 \usepackage[breaklinks=true,unicode=true,pdfborder={0 0 0}]{hyperref}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
+$if(listings)$
+\usepackage{listings}
+$endif$
 $if(numbersections)$
 $else$
 \setcounter{secnumdepth}{0}
