@@ -57,11 +57,17 @@ readMarkdown state s = (readWith parseMarkdown) state (s ++ "\n\n")
 -- Constants and data structure definitions
 --
 
-bulletListMarkers :: [Char]
-bulletListMarkers = "*+-"
+isBulletListMarker :: Char -> Bool
+isBulletListMarker '*' = True
+isBulletListMarker '+' = True
+isBulletListMarker '-' = True
+isBulletListMarker _   = False
 
-hruleChars :: [Char]
-hruleChars = "*-_"
+isHruleChar :: Char -> Bool
+isHruleChar '*' = True
+isHruleChar '-' = True
+isHruleChar '_' = True
+isHruleChar _   = False
 
 setextHChars :: [Char]
 setextHChars = "=-"
@@ -132,7 +138,8 @@ authorsLine :: GenParser Char ParserState [[Inline]]
 authorsLine = try $ do 
   char '%'
   skipSpaces
-  authors <- sepEndBy (many (notFollowedBy (oneOf ";\n") >> inline))
+  authors <- sepEndBy (many (notFollowedBy (satisfy $ \c ->
+                                c == ';' || c == '\n') >> inline))
                        (char ';' <|>
                         try (newline >> notFollowedBy blankline >> spaceChar))
   newline
@@ -201,9 +208,9 @@ referenceKey = try $ do
   let nl = char '\n' >> notFollowedBy blankline >> return ' '
   let sourceURL = liftM unwords $ many $ try $ do
                     notFollowedBy' referenceTitle
-                    skipMany (oneOf " \t")
+                    skipMany spaceChar
                     optional nl
-                    skipMany (oneOf " \t")
+                    skipMany spaceChar
                     notFollowedBy' reference
                     many1 (noneOf " \t\n")
   let betweenAngles = try $ char '<' >>
@@ -335,7 +342,7 @@ setextHeader = try $ do
 hrule :: GenParser Char st Block
 hrule = try $ do
   skipSpaces
-  start <- oneOf hruleChars
+  start <- satisfy isHruleChar
   count 2 (skipSpaces >> char start)
   skipMany (spaceChar <|> char start)
   newline
@@ -493,7 +500,7 @@ bulletListStart = try $ do
   optional newline -- if preceded by a Plain block in a list context
   skipNonindentSpaces
   notFollowedBy' hrule     -- because hrules start out just like lists
-  oneOf bulletListMarkers
+  satisfy isBulletListMarker
   spaceChar
   skipSpaces
 
@@ -1098,9 +1105,9 @@ source' = do
   let nl = char '\n' >>~ notFollowedBy blankline
   let sourceURL = liftM unwords $ many $ try $ do
                     notFollowedBy' linkTitle
-                    skipMany (oneOf " \t")
+                    skipMany spaceChar
                     optional nl
-                    skipMany (oneOf " \t")
+                    skipMany spaceChar
                     many1 (noneOf " \t\n")
   let betweenAngles = try $ char '<' >>
                             manyTill (noneOf ">\n" <|> nl) (char '>')
