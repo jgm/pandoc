@@ -150,13 +150,13 @@ fieldListItem indent = try $ do
   string ": "
   skipSpaces
   first <- manyTill anyChar newline
-  rest <- option "" $ try $ lookAhead (string indent >> oneOf " \t") >> 
+  rest <- option "" $ try $ lookAhead (string indent >> spaceChar) >> 
                             indentedBlock
   return (name, intercalate " " (first:(lines rest)))
 
 fieldList :: GenParser Char ParserState Block
 fieldList = try $ do
-  indent <- lookAhead $ many (oneOf " \t")
+  indent <- lookAhead $ many spaceChar
   items <- many1 $ fieldListItem indent
   blanklines
   let authors = case lookup "Authors" items of
@@ -190,7 +190,7 @@ fieldList = try $ do
 lineBlockLine :: GenParser Char ParserState [Inline]
 lineBlockLine = try $ do
   string "| "
-  white <- many (oneOf " \t")
+  white <- many spaceChar
   line <- many $ (notFollowedBy newline >> inline) <|> (try $ endline >>~ char ' ')
   optional endline
   return $ normalizeSpaces $ (if null white then [] else [Str white]) ++ line
@@ -325,7 +325,7 @@ indentedLine indents = try $ do
 -- any amount of indentation will work.
 indentedBlock :: GenParser Char st [Char]
 indentedBlock = do 
-  indents <- lookAhead $ many1 (oneOf " \t")
+  indents <- lookAhead $ many1 spaceChar
   lns <- many $ choice $ [ indentedLine indents,
                            try $ do b <- blanklines
                                     l <- indentedLine indents
@@ -509,7 +509,7 @@ unknownDirective = try $ do
   string ".."
   notFollowedBy (noneOf " \t\n")
   manyTill anyChar newline
-  many $ blanklines <|> (oneOf " \t" >> manyTill anyChar newline)
+  many $ blanklines <|> (spaceChar >> manyTill anyChar newline)
   return Null
 
 ---
