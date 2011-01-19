@@ -72,6 +72,12 @@ isHruleChar _   = False
 setextHChars :: [Char]
 setextHChars = "=-"
 
+isBlank :: Char -> Bool
+isBlank ' '  = True
+isBlank '\t' = True
+isBlank '\n' = True
+isBlank _    = False
+
 --
 -- auxiliary functions
 --
@@ -212,7 +218,7 @@ referenceKey = try $ do
                     optional nl
                     skipMany spaceChar
                     notFollowedBy' reference
-                    many1 (noneOf " \t\n")
+                    many1 (satisfy $ not . isBlank)
   let betweenAngles = try $ char '<' >>
                             manyTill (noneOf ">\n" <|> nl) (char '>')
   src <- try betweenAngles <|> sourceURL
@@ -236,7 +242,7 @@ referenceTitle = try $ do
   return $ decodeCharacterReferences tit
 
 noteMarker :: GenParser Char ParserState [Char]
-noteMarker = string "[^" >> many1Till (noneOf " \t\n") (char ']')
+noteMarker = string "[^" >> many1Till (satisfy $ not . isBlank) (char ']')
 
 rawLine :: GenParser Char ParserState [Char]
 rawLine = do
@@ -405,7 +411,7 @@ keyValAttr = try $ do
   key <- identifier
   char '='
   char '"'
-  val <- manyTill (noneOf "\n") (char '"')
+  val <- manyTill (satisfy (/='\n')) (char '"')
   return ("",[],[(key,val)])
 
 codeBlockDelimited :: GenParser Char st Block
@@ -975,7 +981,7 @@ mathChunk :: GenParser Char st [Char]
 mathChunk = do char '\\'
                c <- anyChar
                return ['\\',c]
-        <|> many1 (noneOf " \t\n\\$")
+        <|> many1 (satisfy $ \c -> not (isBlank c || c == '\\' || c == '$'))
 
 math :: GenParser Char ParserState Inline
 math =  (mathDisplay >>= applyMacros' >>= return . Math DisplayMath)
@@ -1108,7 +1114,7 @@ source' = do
                     skipMany spaceChar
                     optional nl
                     skipMany spaceChar
-                    many1 (noneOf " \t\n")
+                    many1 (satisfy $ not . isBlank)
   let betweenAngles = try $ char '<' >>
                             manyTill (noneOf ">\n" <|> nl) (char '>')
   src <- try betweenAngles <|> sourceURL
