@@ -11,7 +11,7 @@ import Test.HUnit hiding (Test)
 
 -- in Helpers
 class Expect a where
-  (=?>) :: Pandoc -> a -> Assertion
+  (=?>) :: (String, Pandoc) -> a -> Assertion
 
 infix 8 =?>
 
@@ -21,12 +21,12 @@ infix 8 =?>
 infix 6 =:
 
 instance Expect Inlines where
-  (Pandoc _ [Para ils]) =?> e = assertEqual " " (toList e) ils
-  g                     =?> e = assertEqual " " (doc $ para e) g
+  (s, Pandoc _ [Para ils]) =?> e = assertEqual s (toList e) ils
+  (s, g)                   =?> e = assertEqual s (doc $ para e) g
 
 instance Expect Blocks where
-  (Pandoc _ bls)        =?> e = assertEqual " " (toList e) bls
+  (s, Pandoc _ bls)        =?> e = assertEqual s (toList e) bls
 
 instance Expect Pandoc where
-  g =?> e = assertEqual " " e g
+  (s, g) =?> e = assertEqual s e g
 

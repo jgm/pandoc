@@ -7,8 +7,8 @@ import Text.Pandoc.Builder
 import Text.Pandoc
 import Text.Pandoc.Shared (normalize)
 
-latex :: String -> Pandoc
-latex = normalize . readLaTeX defaultParserState{stateSmart = True}
+latex :: String -> (String, Pandoc)
+latex s = (s, normalize . readLaTeX defaultParserState{stateSmart = True} $ s)
 
 tests :: [Test]
 tests = [ testGroup "basic"
