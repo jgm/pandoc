@@ -120,7 +120,7 @@ oneOfStrings listOfStrings = choice $ map (try . string) listOfStrings
 
 -- | Parses a space or tab.
 spaceChar :: CharParser st Char
-spaceChar = char ' ' <|> char '\t'
+spaceChar = satisfy $ \c -> c == ' ' || c == '\t'
 
 -- | Skips zero or more spaces or tabs.
 skipSpaces :: GenParser Char st ()
