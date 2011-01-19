@@ -9,7 +9,9 @@ import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.HUnit hiding (Test)
 
--- in Helpers
+-- In the first argument, the String is the input, and the Pandoc
+-- the output, of a pandoc reader.  The input is shown in case
+-- the test fails.
 class Expect a where
   (=?>) :: (String, Pandoc) -> a -> Assertion
 
@@ -21,12 +23,12 @@ infix 8 =?>
 infix 6 =:
 
 instance Expect Inlines where
-  (s, Pandoc _ [Para ils]) =?> e = assertEqual s (toList e) ils
-  (s, g)                   =?> e = assertEqual s (doc $ para e) g
+  (s, Pandoc _ [Para ils]) =?> e = assertEqual (show s) (toList e) ils
+  (s, g)                   =?> e = assertEqual (show s) (doc $ para e) g
 
 instance Expect Blocks where
-  (s, Pandoc _ bls)        =?> e = assertEqual s (toList e) bls
+  (s, Pandoc _ bls)        =?> e = assertEqual (show s) (toList e) bls
 
 instance Expect Pandoc where
-  (s, g) =?> e = assertEqual s e g
+  (s, g) =?> e = assertEqual (show s) e g
 
