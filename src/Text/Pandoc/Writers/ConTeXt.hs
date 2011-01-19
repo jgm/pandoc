@@ -244,8 +244,10 @@ inlineToConTeXt (Subscript lst) = do
 inlineToConTeXt (SmallCaps lst) = do
   contents <- inlineListToConTeXt lst
   return $ braces $ "\\sc " <> contents
-inlineToConTeXt (Code str) =
+inlineToConTeXt (Code str) | not ('{' `elem` str || '}' `elem` str) =
   return $ "\\type" <> braces (text str)
+inlineToConTeXt (Code str) =
+  return $ "\\mono" <> braces (text $ stringToConTeXt str)
 inlineToConTeXt (Quoted SingleQuote lst) = do
   contents <- inlineListToConTeXt lst
   return $ "\\quote" <> braces contents
