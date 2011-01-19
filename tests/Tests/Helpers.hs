@@ -1,34 +1,32 @@
+{-# LANGUAGE TypeSynonymInstances #-}
 -- Utility functions for the test suite.
 
 module Tests.Helpers where
 
 import Text.Pandoc
-
+import Text.Pandoc.Builder
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.HUnit hiding (Test)
 
-data Expect = Inline  Inline
-            | Inlines [Inline]
-            | Block   Block
-            | Blocks  [Block]
+-- in Helpers
+class Expect a where
+  (=?>) :: Pandoc -> a -> Assertion
 
-assertPandoc :: Expect -> Pandoc -> Assertion
-assertPandoc (Inline  e) (Pandoc _ [Para [g]]) = e @=? g
-assertPandoc (Inlines e) (Pandoc _ [Para g]  ) = e @=? g
-assertPandoc (Block   e) (Pandoc _ [g]       ) = e @=? g
-assertPandoc (Blocks  e) (Pandoc _ g         ) = e @=? g
-assertPandoc _ _ = assertFailure "Wrong structure of Pandoc document."
+infix 8 =?>
 
-latexTest :: String -> String -> Expect -> Test
-latexTest = readerTestWithState defaultParserState readLaTeX
+(=:) :: TestName -> Assertion -> Test
+(=:) = testCase
 
-readerTestWithState :: ParserState
-                     -> (ParserState -> String -> Pandoc)
-                     -> String
-                     -> String
-                     -> Expect
-                     -> Test
-readerTestWithState state reader name string e =
-  testCase name $ e `assertPandoc` reader state string 
+infix 6 =:
+
+instance Expect Inlines where
+  (Pandoc _ [Para ils]) =?> e = assertEqual " " (toList e) ils
+  g                     =?> e = assertEqual " " (doc $ para e) g
+
+instance Expect Blocks where
+  (Pandoc _ bls)        =?> e = assertEqual " " (toList e) bls
+
+instance Expect Pandoc where
+  g =?> e = assertEqual " " e g
 
