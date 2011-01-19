@@ -5,9 +5,10 @@ import Test.Framework
 import Tests.Helpers
 import Text.Pandoc.Builder
 import Text.Pandoc
+import Text.Pandoc.Shared (normalize)
 
 latex :: String -> Pandoc
-latex = readLaTeX defaultParserState{stateSmart = True}
+latex = normalize . readLaTeX defaultParserState{stateSmart = True}
 
 tests :: [Test]
 tests = [ testGroup "basic"
