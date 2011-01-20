@@ -114,6 +114,7 @@ import Text.Pandoc.Readers.RST
 import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.HTML
 import Text.Pandoc.Readers.Textile
+import Text.Pandoc.Readers.Native
 import Text.Pandoc.Writers.Native
 import Text.Pandoc.Writers.Markdown
 import Text.Pandoc.Writers.RST 
@@ -143,7 +144,7 @@ pandocVersion = showVersion version
 
 -- | Association list of formats and readers.
 readers :: [(String, ParserState -> String -> Pandoc)]
-readers = [("native"       , \_ -> read)
+readers = [("native"       , \_ -> readNative)
           ,("json"         , \_ -> decodeJSON)
           ,("markdown"     , readMarkdown)
           ,("markdown+lhs" , \st ->

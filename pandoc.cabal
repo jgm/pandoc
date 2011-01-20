@@ -234,6 +234,7 @@ Library
                    Text.Pandoc.Readers.RST,
                    Text.Pandoc.Readers.TeXMath,
                    Text.Pandoc.Readers.Textile,
+                   Text.Pandoc.Readers.Native,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,
                    Text.Pandoc.Writers.HTML,
