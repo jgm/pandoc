@@ -29,7 +29,7 @@ Utility functions and definitions used by the various Pandoc modules.
 -}
 module Text.Pandoc.Writers.Native ( writeNative )
 where
-import Text.Pandoc.Shared ( WriterOptions )
+import Text.Pandoc.Shared ( WriterOptions(..) )
 import Data.List ( intercalate )
 import Text.Pandoc.Definition
 
@@ -81,6 +81,9 @@ prettyBlock block = show block
 
 -- | Prettyprint Pandoc document.
 writeNative :: WriterOptions -> Pandoc -> String
-writeNative _ (Pandoc meta blocks) = "Pandoc " ++ "(" ++ show meta ++ 
-  ")\n" ++ (prettyBlockList 0 blocks) ++ "\n"
-
+writeNative opts (Pandoc meta blocks) | writerStandalone opts =
+  "Pandoc " ++ "(" ++ show meta ++ ")\n  " ++ prettyBlockList 2 blocks
+-- -- writeNative _ (Pandoc _ [Plain [x]]) = show x
+-- writeNative _ (Pandoc _ [Plain xs])  = show xs
+-- writeNative _ (Pandoc _ [x])         = prettyBlock x
+writeNative _ (Pandoc _ xs)          = prettyBlockList 0 xs
