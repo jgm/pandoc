@@ -68,6 +68,7 @@ module Text.Pandoc
                , readLaTeX
                , readHtml
                , readTextile
+               , readNative
                -- * Parser state used in readers
                , ParserState (..)
                , defaultParserState
