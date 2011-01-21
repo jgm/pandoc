@@ -18,4 +18,3 @@ second item of the pair).
 Block quote:
 
 > foo bar
-

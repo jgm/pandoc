@@ -12,6 +12,7 @@ import System.Exit
 import Data.Algorithm.Diff
 import Text.Pandoc.Shared ( substitute, normalize, defaultWriterOptions )
 import Text.Pandoc.Writers.Native ( writeNative )
+import Text.Pandoc.Readers.Native ( readNative )
 import Text.Pandoc.Highlighting ( languages )
 import Prelude hiding ( readFile )
 import qualified Data.ByteString.Lazy as B
@@ -128,7 +129,7 @@ lhsReaderTest :: String -> Test
 lhsReaderTest format =
   testWithNormalize normalizer "lhs" ["-r", format, "-w", "native"]
     ("lhs-test" <.> format) "lhs-test.native"
-   where normalizer = writeNative defaultWriterOptions . normalize . read
+   where normalizer = writeNative defaultWriterOptions . normalize . readNative
 
 latexCitationTests :: String -> Test
 latexCitationTests n
