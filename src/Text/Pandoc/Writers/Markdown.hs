@@ -102,7 +102,8 @@ pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
                     then Just $ writerColumns opts
                     else Nothing
   let main = render colwidth $ body <>
-               blankline <> notes' <> blankline <> refs'
+               (if isEmpty notes' then empty else blankline <> notes') <>
+               (if isEmpty refs' then empty else blankline <> refs')
   let context  = writerVariables opts ++
                  [ ("toc", render colwidth toc)
                  , ("body", main)
