@@ -37,7 +37,7 @@ import Text.Pandoc.Pretty
 
 prettyList :: [Doc] -> Doc
 prettyList ds =
-  "[ " <> (cat $ intersperse (cr <> ", ") $ map (nest 2) ds) <> " ]"
+  "[" <> (cat $ intersperse (cr <> ",") $ map (nest 1) ds) <> "]"
 
 -- | Prettyprint Pandoc block element.
 prettyBlock :: Block -> Doc
@@ -55,7 +55,8 @@ prettyBlock (DefinitionList items) = "DefinitionList" $$
            nest 1 (prettyList $ map (prettyList . map prettyBlock) defs) <> ")"
 prettyBlock (Table caption aligns widths header rows) = 
   "Table " <> text (show caption) <> " " <> text (show aligns) <> " " <>
-  text (show widths) $$ nest 2 (prettyRow header) <>
+  text (show widths) $$
+  prettyRow header $$
   prettyList (map prettyRow rows)
     where prettyRow cols = prettyList (map (prettyList . map prettyBlock) cols)
 prettyBlock block = text $ show block
