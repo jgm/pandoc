@@ -26,7 +26,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Utility functions and definitions used by the various Pandoc modules.
+Conversion of a 'Pandoc' document to a string representation.
+
+Note:  If @writerStandalone@ is @False@, only the document body
+is represented; otherwise, the full 'Pandoc' document, including the
+metadata.
 -}
 module Text.Pandoc.Writers.Native ( writeNative )
 where

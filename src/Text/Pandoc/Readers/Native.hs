@@ -25,7 +25,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Conversion of native 'Pandoc' formatted text to a 'Pandoc' document.
+Conversion of a string representation of a pandoc type (@Pandoc@,
+@[Block]@, @Block@, @[Inline]@, or @Inline@) to a @Pandoc@ document.
 -}
 module Text.Pandoc.Readers.Native ( readNative ) where
 
