@@ -186,6 +186,10 @@ Options
     equivalents in standard markdown (e.g. definition lists or strikeout
     text) will be parsed as raw HTML.
 
+`--normalize`
+:   Normalize the document after reading:  merge adjacent
+    `Str` or `Emph` elements, for example, and remove repeated `Space`s.
+
 `--reference-links`
 :   Use reference-style links, rather than inline links, in writing markdown
     or reStructuredText.  By default inline links are used.

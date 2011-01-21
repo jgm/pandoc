@@ -32,7 +32,7 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.S5 (s5HeaderIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
-                            headerShift, findDataFile )
+                            headerShift, findDataFile, normalize )
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
 #endif
@@ -214,6 +214,12 @@ options =
                  (NoArg
                   (\opt -> return opt { optStrict = True } ))
                  "" -- "Disable markdown syntax extensions"
+
+    , Option "" ["normalize"]
+                 (NoArg
+                  (\opt -> return opt { optTransforms =
+                                   normalize : optTransforms opt } ))
+                 "" -- "Normalize the Pandoc AST"
 
     , Option "" ["reference-links"]
                  (NoArg
