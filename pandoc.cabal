@@ -346,3 +346,4 @@ Executable test-pandoc
                       Tests.Helpers
                       Tests.Arbitrary
                       Tests.Readers.LaTeX
+                      Tests.Writers.ConTeXt
