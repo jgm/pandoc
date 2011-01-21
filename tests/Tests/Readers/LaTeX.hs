@@ -13,7 +13,7 @@ latex s = (s, normalize . readLaTeX defaultParserState{stateSmart = True} $ s)
 tests :: [Test]
 tests = [ testGroup "basic"
           [ "simple" =:
-            latex "word" =?> str "wor d"
+            latex "word" =?> str "word"
           , "space" =:
             latex "some text" =?> text "some text"
           , "emphasized" =:
@@ -29,7 +29,7 @@ tests = [ testGroup "basic"
             latex "\\subsubsection{header}" =?> header 3 (str "header")
           , "emph" =:
             latex "\\section{text \\emph{emph}}" =?>
-              header 1 (str "text2" +++ space +++ emph (str "emph"))
+              header 1 (str "text" +++ space +++ emph (str "emph"))
           , "link" =:
             latex "\\section{text \\href{/url}{link}}" =?>
               header 1 (str "text" +++ space +++ link "/url" "" (str "link"))
