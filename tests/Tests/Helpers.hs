@@ -11,8 +11,8 @@ import Test.HUnit hiding (Test)
 
 infix 8 -->
 
-(-->) :: (Eq a, Show a) => a -> a -> Assertion
-a --> e = assertEqual " " e a
+(-->) :: (Eq a, Show a, Show b) => (b, a) -> a -> Assertion
+(b,a) --> e = assertEqual (show b) e a
 
 -- In the first argument, the String is the input, and the Pandoc
 -- the output, of a pandoc reader.  The input is shown in case

@@ -7,17 +7,17 @@ import Text.Pandoc
 import Text.Pandoc.Shared (removeTrailingSpace)
 import Tests.Helpers
 
-inlines :: Inlines -> String
-inlines = removeTrailingSpace .
-          writeConTeXt defaultWriterOptions . doc . plain
+inlines :: Inlines -> (Inlines, String)
+inlines ils = (ils, removeTrailingSpace .
+                    writeConTeXt defaultWriterOptions . doc . plain $ ils)
 
-blocks :: Blocks -> String
-blocks =  writeConTeXt defaultWriterOptions . doc
+blocks :: Blocks -> (Blocks, String)
+blocks bls =  (bls, writeConTeXt defaultWriterOptions . doc $ bls)
 
 tests :: [Test]
 tests = [ testGroup "inline code"
           [ "with '}'" =:
-            inlines (code "}") --> "\\mono{\\letterclosebrace{}}"
+            inlines (code "}") --> "\\mono{\\letterclosebrace{x}}"
           , "without '}'" =:
             inlines (code "]") --> "\\type{]}"
           ]
