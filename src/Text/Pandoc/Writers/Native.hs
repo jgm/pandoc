@@ -73,6 +73,6 @@ writeNative opts (Pandoc meta blocks) =
                     else Nothing
       withHead = if writerStandalone opts
                     then \bs -> text ("Pandoc " ++ "(" ++ show meta ++ ")") $$
-                           bs <> cr
+                           bs $$ cr
                     else id
   in  render colwidth $ withHead $ prettyList $ map prettyBlock blocks
