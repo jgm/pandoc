@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 -- provides Arbitrary instance for Pandoc types
 module Tests.Arbitrary ()
 where
@@ -7,12 +8,19 @@ import Test.QuickCheck.Arbitrary
 import Control.Monad (liftM, liftM2)
 import Text.Pandoc
 import Text.Pandoc.Shared
+import Text.Pandoc.Builder
 
 realString :: Gen String
 realString = elements wordlist
 
 wordlist :: [String]
 wordlist = ["foo","Bar","baz","\\","/",":","\"","'","féé"]
+
+instance Arbitrary Inlines where
+  arbitrary = liftM fromList arbitrary
+
+instance Arbitrary Blocks where
+  arbitrary = liftM fromList arbitrary
 
 instance Arbitrary Inline where
   arbitrary = resize 3 $ arbInline 3
