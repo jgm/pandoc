@@ -1,17 +1,26 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances, TemplateHaskell #-}
 -- Utility functions for the test suite.
 
-module Tests.Helpers where
+module Tests.Helpers ( lit
+                     , test
+                     , (=?>)
+                     , property
+                     , ToString(..)
+                     , ToPandoc(..)
+                     )
+                     where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder (Inlines, Blocks, doc, plain)
 import Test.Framework
 import Test.Framework.Providers.HUnit
-import Test.HUnit hiding (Test)
+import Test.Framework.Providers.QuickCheck2
+import Test.HUnit (assertBool)
 import Text.Pandoc.Shared (normalize, defaultWriterOptions,
                            WriterOptions(..), removeTrailingSpace)
 import Text.Pandoc.Writers.Native (writeNative)
 import Language.Haskell.TH.Quote
+import qualified Test.QuickCheck.Property as QP
 
 lit :: QuasiQuoter
 lit = QuasiQuoter ((\a -> let b = rnl a in [|b|]) . filter (/= '\r')) $
@@ -36,6 +45,9 @@ test fn name (input, expected) =
            dashes "" = '\n' : replicate 72 '-'
            dashes x  = '\n' : replicate (72 - length x - 5) '-' ++ " " ++
                               x ++ " ---\n"
+
+property :: QP.Testable a => TestName -> a -> Test
+property = testProperty
 
 infix 6 =?>
 (=?>) :: a -> b -> (a,b)
