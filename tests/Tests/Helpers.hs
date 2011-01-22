@@ -1,39 +1,74 @@
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, TemplateHaskell #-}
 -- Utility functions for the test suite.
 
 module Tests.Helpers where
 
-import Text.Pandoc
-import Text.Pandoc.Builder
+import Text.Pandoc.Definition
+import Text.Pandoc.Builder (Inlines, Blocks, doc, plain)
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.HUnit hiding (Test)
+import Text.Pandoc.Shared (normalize, defaultWriterOptions,
+                           WriterOptions(..), removeTrailingSpace)
+import Text.Pandoc.Writers.Native (writeNative)
+import Language.Haskell.TH.Quote
 
-infix 8 -->
+lit :: QuasiQuoter
+lit = QuasiQuoter ((\a -> let b = rnl a in [|b|]) . filter (/= '\r')) $
+         error "Cannot use lit as a pattern"
+       where rnl ('\n':xs) = xs
+             rnl xs        = xs
 
-(-->) :: (Eq a, Show a, Show b) => (b, a) -> a -> Assertion
-(b,a) --> e = assertEqual (show b) e a
+test :: (ToString a, ToString b, ToString c)
+     => (a -> b)  -- ^ function to test
+     -> String    -- ^ name of test case
+     -> (a, c)    -- ^ (input, expected value)
+     -> Test
+test fn name (input, expected) =
+  testCase name $ assertBool msg (actual' == expected')
+     where msg = dashes "input" ++ input' ++
+                 dashes "expected" ++ expected' ++
+                 dashes "got" ++ actual' ++
+                 dashes ""
+           input'  = toString input
+           actual' = toString $ fn input
+           expected' = toString expected
+           dashes "" = '\n' : replicate 72 '-'
+           dashes x  = '\n' : replicate (72 - length x - 5) '-' ++ " " ++
+                              x ++ " ---\n"
 
--- In the first argument, the String is the input, and the Pandoc
--- the output, of a pandoc reader.  The input is shown in case
--- the test fails.
-class Expect a where
-  (=?>) :: (String, Pandoc) -> a -> Assertion
+infix 6 =?>
+(=?>) :: a -> b -> (a,b)
+x =?> y = (x, y)
 
-infix 8 =?>
+class ToString a where
+  toString :: a -> String
 
-(=:) :: TestName -> Assertion -> Test
-(=:) = testCase
+instance ToString Pandoc where
+  toString d = writeNative defaultWriterOptions{ writerStandalone = s }
+               $ toPandoc d
+   where s = case d of
+                  (Pandoc (Meta [] [] []) _) -> False
+                  _                          -> True
 
-infix 6 =:
+instance ToString Blocks where
+  toString = writeNative defaultWriterOptions . toPandoc
 
-instance Expect Inlines where
-  (s, Pandoc _ [Para ils]) =?> e = assertEqual (show s) (toList e) ils
-  (s, g)                   =?> e = assertEqual (show s) (doc $ para e) g
+instance ToString Inlines where
+  toString = removeTrailingSpace . writeNative defaultWriterOptions .
+             toPandoc
 
-instance Expect Blocks where
-  (s, Pandoc _ bls)        =?> e = assertEqual (show s) (toList e) bls
+instance ToString String where
+  toString = id
 
-instance Expect Pandoc where
-  (s, g) =?> e = assertEqual (show s) e g
+class ToPandoc a where
+  toPandoc :: a -> Pandoc
 
+instance ToPandoc Pandoc where
+  toPandoc = normalize
+
+instance ToPandoc Blocks where
+  toPandoc = normalize . doc
+
+instance ToPandoc Inlines where
+  toPandoc = normalize . doc . plain

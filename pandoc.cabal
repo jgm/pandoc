@@ -341,7 +341,8 @@ Executable test-pandoc
     Extensions:       CPP
     Build-Depends:    base >= 4 && < 5, Diff, test-framework >= 0.3 && < 0.4,
                       test-framework-hunit >= 0.2 && < 0.3,
-                      HUnit >= 1.2 && < 1.3
+                      HUnit >= 1.2 && < 1.3,
+                      template-haskell == 2.4.*
     Other-Modules:    Tests.Old
                       Tests.Helpers
                       Tests.Arbitrary

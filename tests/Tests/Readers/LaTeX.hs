@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.LaTeX (tests) where
 
 import Text.Pandoc.Definition
@@ -5,34 +6,38 @@ import Test.Framework
 import Tests.Helpers
 import Text.Pandoc.Builder
 import Text.Pandoc
-import Text.Pandoc.Shared (normalize)
 
-latex :: String -> (String, Pandoc)
-latex s = (s, normalize . readLaTeX defaultParserState{stateSmart = True} $ s)
+latex :: String -> Pandoc
+latex = readLaTeX defaultParserState
+
+infix 5 =:
+(=:) :: ToString c
+     => String -> (String, c) -> Test
+(=:) = test latex
 
 tests :: [Test]
 tests = [ testGroup "basic"
           [ "simple" =:
-            latex "word" =?> str "word"
+            "wo rd" =?> para "word"
           , "space" =:
-            latex "some text" =?> text "some text"
+            "some text" =?> para ("some text")
           , "emphasized" =:
-            latex "\\emph{emphasized}" =?> (emph $ str "emphasized")
+            "\\emph{emphasized}" =?> para (emph "emphasized")
           ]
 
         , testGroup "headers"
           [ "level 1" =:
-            latex "\\section{header}" =?> header 1 (str "header")
+            "\\section{header}" =?> header 1 "header"
           , "level 2" =:
-            latex "\\subsection{header}" =?> header 2 (str "header")
+            "\\subsection{header}" =?> header 2 "header"
           , "level 3" =:
-            latex "\\subsubsection{header}" =?> header 3 (str "header")
+            "\\subsubsection{header}" =?> header 3 "header"
           , "emph" =:
-            latex "\\section{text \\emph{emph}}" =?>
-              header 1 (str "text" +++ space +++ emph (str "emph"))
+            "\\section{text \\emph{emph}}" =?>
+             header 1 ("text" +++ space +++ emph "emph")
           , "link" =:
-            latex "\\section{text \\href{/url}{link}}" =?>
-              header 1 (str "text" +++ space +++ link "/url" "" (str "link"))
+            "\\section{text \\href{/url}{link}}" =?>
+              header 1 ("text" +++ space +++ link "/url" "" "link")
           ]
         ]
 
