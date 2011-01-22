@@ -11,7 +11,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Builder
 
 realString :: Gen String
-realString = elements wordlist
+realString = resize 8 arbitrary -- elements wordlist
 
 wordlist :: [String]
 wordlist = ["foo","Bar","baz","\\","/",":","\"","'","féé"]
