@@ -5,8 +5,6 @@
 \usepackage{natbib}
 \bibliographystyle{plainnat}
 \usepackage[breaklinks=true,unicode=true,pdfborder={0 0 0}]{hyperref}
-% avoid problems with \sout in headers with hyperref:
-\pdfstringdefDisableCommands{\renewcommand{\sout}{}}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 \setcounter{secnumdepth}{0}
