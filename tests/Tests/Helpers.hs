@@ -2,6 +2,7 @@
 -- Utility functions for the test suite.
 
 module Tests.Helpers ( lit
+                     , file
                      , test
                      , (=?>)
                      , property
@@ -20,6 +21,7 @@ import Text.Pandoc.Shared (normalize, defaultWriterOptions,
                            WriterOptions(..), removeTrailingSpace)
 import Text.Pandoc.Writers.Native (writeNative)
 import Language.Haskell.TH.Quote
+import Language.Haskell.TH.Syntax (Q, runIO)
 import qualified Test.QuickCheck.Property as QP
 
 lit :: QuasiQuoter
@@ -27,6 +29,18 @@ lit = QuasiQuoter ((\a -> let b = rnl a in [|b|]) . filter (/= '\r')) $
          error "Cannot use lit as a pattern"
        where rnl ('\n':xs) = xs
              rnl xs        = xs
+
+file :: QuasiQuoter
+file = quoteFile lit
+
+-- adapted from TH 2.5 code
+quoteFile :: QuasiQuoter -> QuasiQuoter
+quoteFile (QuasiQuoter { quoteExp = qe, quotePat = qp }) =
+  QuasiQuoter { quoteExp = get qe, quotePat = get qp }
+  where
+    get :: (String -> Q a) -> String -> Q a
+    get old_quoter file_name = do { file_cts <- runIO (readFile file_name)
+                                  ; old_quoter file_cts }
 
 test :: (ToString a, ToString b, ToString c)
      => (a -> b)  -- ^ function to test
