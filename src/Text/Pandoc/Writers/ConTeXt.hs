@@ -284,4 +284,4 @@ inlineToConTeXt (Image _ (src, _)) = do
 inlineToConTeXt (Note contents) = do
   contents' <- blockListToConTeXt contents
   return $ text "\\footnote{" <>
-           nest 2 contents' <> char '}' <> cr
+           nest 2 contents' <> char '}'
