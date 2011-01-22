@@ -11,12 +11,12 @@ import qualified Tests.Writers.Native
 
 tests :: [Test]
 tests = [ testGroup "Old" Tests.Old.tests
+        , testGroup "Writers"
+          [ testGroup "Native" Tests.Writers.Native.tests
+          , testGroup "ConTeXt" Tests.Writers.ConTeXt.tests
+          ]
         , testGroup "Readers"
           [ testGroup "LaTeX" Tests.Readers.LaTeX.tests
-          ]
-        , testGroup "Writers"
-          [ testGroup "ConTeXt" Tests.Writers.ConTeXt.tests
-          , testGroup "Native" Tests.Writers.Native.tests
           ]
         ]
 
