@@ -4,7 +4,7 @@ module Tests.Readers.LaTeX (tests) where
 import Text.Pandoc.Definition
 import Test.Framework
 import Tests.Helpers
-import Tests.Arbitrary
+import Tests.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
 
