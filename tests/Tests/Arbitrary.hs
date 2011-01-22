@@ -91,10 +91,8 @@ arbBlock n = frequency $ [ (10, liftM Plain arbitrary)
                    ]
 
 instance Arbitrary Pandoc where
-        arbitrary
-          = do x1 <- arbitrary
-               x2 <- arbitrary
-               return $ normalize (Pandoc x1 x2)
+        arbitrary = resize 8 $ liftM normalize
+                             $ liftM2 Pandoc arbitrary arbitrary
 
 {-
 instance Arbitrary CitationMode where
