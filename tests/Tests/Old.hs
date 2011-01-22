@@ -33,8 +33,11 @@ data TestResult = TestPassed
 instance Show TestResult where
   show TestPassed     = "PASSED"
   show (TestError ec) = "ERROR " ++ show ec
-  show (TestFailed cmd file d) = "\n--- " ++ file ++
-                                 "\n+++ " ++ cmd ++ "\n" ++ showDiff (1,1) d
+  show (TestFailed cmd file d) = '\n' : dash ++
+                                 "\n--- " ++ file ++
+                                 "\n+++ " ++ cmd ++ "\n" ++ showDiff (1,1) d ++
+                                 dash
+    where dash = replicate 72 '-'
 
 showDiff :: (Int,Int) -> [(DI, String)] -> String
 showDiff _ []             = ""
