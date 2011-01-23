@@ -15,6 +15,7 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
  [[Plain [Str "criminey",Str "."]]]
 ,Para [Str "There",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "paragraph",Space,Str "break",Space,Str "between",Space,Str "here"]
 ,Para [Str "and",Space,Str "here",Str "."]
+,Para [Str "pandoc",Space,Str "converts",Space,Str "textile",Str "."]
 ,Header 1 [Str "Block",Space,Str "Quotes"]
 ,BlockQuote
  [Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "famous",Space,Str "quote",Space,Str "from",Space,Str "somebody",Str ".",Space,Str "He",Space,Str "had",Space,Str "a",Space,Str "lot",Space,Str "of",Space,Str "things",Space,Str "to",LineBreak,Str "say",Str ",",Space,Str "so",Space,Str "the",Space,Str "text",Space,Str "is",Space,Str "really",Space,Str "really",Space,Str "long",Space,Str "and",Space,Str "spans",Space,Str "on",Space,Str "multiple",Space,Str "lines",Str "."]]

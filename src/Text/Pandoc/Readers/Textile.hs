@@ -340,10 +340,10 @@ table = try $ do
 -- | Blocks like 'p' and 'table' do not need explicit block tag.
 -- However, they can be used to set HTML/CSS attributes when needed.
 maybeExplicitBlock :: String  -- ^ block tag name
-                      -> GenParser Char ParserState Block -- ^ implicit block
-                      -> GenParser Char ParserState Block
+                    -> GenParser Char ParserState Block -- ^ implicit block
+                    -> GenParser Char ParserState Block
 maybeExplicitBlock name blk = try $ do
-  optional $ string name >> optional attributes >> char '.' >> 
+  optional $ try $ string name >> optional attributes >> char '.' >> 
     ((try whitespace) <|> endline)
   blk
 

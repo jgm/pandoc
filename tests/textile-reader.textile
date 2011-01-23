@@ -33,6 +33,8 @@ There should be a paragraph break between here
 
 and here.
 
+pandoc converts textile.
+
 h1. Block Quotes
 
 bq. This is a famous quote from somebody. He had a lot of things to
