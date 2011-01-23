@@ -151,7 +151,7 @@ inCmd cmd contents = char '\\' <> text cmd <> braces contents
 deVerb :: [Inline] -> [Inline]
 deVerb [] = []
 deVerb ((Code str):rest) = 
-  (TeX $ "\\texttt{" ++ stringToLaTeX str ++ "}"):(deVerb rest)
+  (RawInline "latex" $ "\\texttt{" ++ stringToLaTeX str ++ "}"):(deVerb rest)
 deVerb (other:rest) = other:(deVerb rest)
 
 -- | Convert Pandoc block element to LaTeX.
@@ -184,7 +184,8 @@ blockToLaTeX (CodeBlock (_,classes,_) str) = do
                     else return "verbatim"
   return $ "\\begin{" <> text env <> "}" $$ flush (text str) $$
            "\\end{" <> text env <> "}" $$ cr   -- final cr needed because of footnotes
-blockToLaTeX (RawHtml _) = return empty
+blockToLaTeX (RawBlock "latex" x) = return $ text x
+blockToLaTeX (RawBlock _ _) = return empty
 blockToLaTeX (BulletList lst) = do
   items <- mapM listItemToLaTeX lst
   return $ "\\begin{itemize}" $$ vcat items $$ "\\end{itemize}"
@@ -360,8 +361,8 @@ inlineToLaTeX Ellipses = return "\\ldots{}"
 inlineToLaTeX (Str str) = return $ text $ stringToLaTeX str
 inlineToLaTeX (Math InlineMath str) = return $ char '$' <> text str <> char '$'
 inlineToLaTeX (Math DisplayMath str) = return $ "\\[" <> text str <> "\\]"
-inlineToLaTeX (TeX str) = return $ text str
-inlineToLaTeX (HtmlInline _) = return empty
+inlineToLaTeX (RawInline "latex" str) = return $ text str
+inlineToLaTeX (RawInline _ _) = return empty
 inlineToLaTeX (LineBreak) = return "\\\\"
 inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt (src, _)) =

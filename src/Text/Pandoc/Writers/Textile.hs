@@ -109,7 +109,10 @@ blockToTextile opts (Para inlines) = do
               then "<p>" ++ contents ++ "</p>"
               else contents ++ if null listLevel then "\n" else ""
 
-blockToTextile _ (RawHtml str) = return str
+blockToTextile _ (RawBlock f str) =
+  if f == "html" || f == "textile"
+     then return str
+     else return ""
 
 blockToTextile _ HorizontalRule = return "<hr />\n"
 
@@ -385,9 +388,10 @@ inlineToTextile _ (Str str) = return $ escapeStringForTextile str
 inlineToTextile _ (Math _ str) =
   return $ "<span class=\"math\">" ++ escapeStringForXML str ++ "</math>"
 
-inlineToTextile _ (TeX _) = return ""
-
-inlineToTextile _ (HtmlInline str) = return str 
+inlineToTextile _ (RawInline f str) =
+  if f == "html" || f == "textile"
+     then return str
+     else return ""
 
 inlineToTextile _ (LineBreak) = return "\n"
 

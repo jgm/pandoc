@@ -233,13 +233,13 @@ transformInlines (MathML _) _ _ (x@(Math _ _) : xs) = do
        mathml ++ "</ops:case><ops:default>" ++ fallback ++ "</ops:default>" ++
        "</ops:switch>"
       result = if "<math" `isPrefixOf` mathml then inOps else mathml
-  return $ HtmlInline result : xs
-transformInlines _ _ _ (HtmlInline _ : xs) = return $ Str "" : xs
+  return $ RawInline "html" result : xs
+transformInlines _ _ _ (RawInline _ _ : xs) = return $ Str "" : xs
 transformInlines _ _ _ (Link lab (_,_) : xs) = return $ lab ++ xs
 transformInlines _ _ _ xs = return xs
 
 transformBlock :: Block -> Block
-transformBlock (RawHtml _) = Null
+transformBlock (RawBlock _ _) = Null
 transformBlock x = x
 
 (!) :: Node t => (t -> Element) -> [(String, String)] -> t -> Element

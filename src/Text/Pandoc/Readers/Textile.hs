@@ -281,7 +281,7 @@ rawHtmlBlock :: GenParser Char ParserState Block
 rawHtmlBlock = try $ do
   (_,b) <- htmlTag isBlockTag
   optional blanklines
-  return $ RawHtml b
+  return $ RawBlock "html" b
 
 -- | In textile, paragraphs are separated by blank lines.
 para :: GenParser Char ParserState Block
@@ -457,7 +457,8 @@ endline = try $ do
   return LineBreak
 
 rawHtmlInline :: GenParser Char ParserState Inline
-rawHtmlInline = liftM (HtmlInline . snd) $ htmlTag isInlineTag
+rawHtmlInline = liftM (RawInline "html" . snd)
+                $ htmlTag isInlineTag
 
 -- | Textile standard link syntax is "label":target
 link :: GenParser Char ParserState Inline

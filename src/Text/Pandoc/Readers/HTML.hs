@@ -169,7 +169,7 @@ pRawHtmlBlock = do
   raw <- pHtmlBlock "script" <|> pHtmlBlock "style" <|> pRawTag
   state <- getState
   if stateParseRaw state && not (null raw)
-     then return [RawHtml raw]
+     then return [RawBlock "html" raw]
      else return []
 
 pHtmlBlock :: String -> TagParser String
@@ -347,7 +347,7 @@ pRawHtmlInline = do
   result <- pSatisfy (tagComment (const True)) <|> pSatisfy isInlineTag
   state <- getState
   if stateParseRaw state
-     then return [HtmlInline $ renderTags' [result]]
+     then return [RawInline "html" $ renderTags' [result]]
      else return []
 
 pInlinesInTags :: String -> ([Inline] -> Inline)

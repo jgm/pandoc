@@ -159,7 +159,8 @@ blockToRTF indent alignment (BlockQuote lst) =
   concatMap (blockToRTF (indent + indentIncrement) alignment) lst 
 blockToRTF indent _ (CodeBlock _ str) =
   rtfPar indent 0 AlignLeft ("\\f1 " ++ (codeStringToRTF str))
-blockToRTF _ _ (RawHtml _) = ""
+blockToRTF _ _ (RawBlock "rtf" str) = str
+blockToRTF _ _ (RawBlock _ _) = ""
 blockToRTF indent alignment (BulletList lst) = spaceAtEnd $ 
   concatMap (listItemToRTF alignment indent (bulletMarker indent)) lst
 blockToRTF indent alignment (OrderedList attribs lst) = spaceAtEnd $ concat $ 
@@ -268,8 +269,8 @@ inlineToRTF (Code str) = "{\\f1 " ++ (codeStringToRTF str) ++ "}"
 inlineToRTF (Str str) = stringToRTF str
 inlineToRTF (Math _ str) = inlineListToRTF $ readTeXMath str
 inlineToRTF (Cite _ lst) = inlineListToRTF lst
-inlineToRTF (TeX _) = ""
-inlineToRTF (HtmlInline _) = ""
+inlineToRTF (RawInline "rtf" str) = str
+inlineToRTF (RawInline _ _) = ""
 inlineToRTF (LineBreak) = "\\line "
 inlineToRTF Space = " "
 inlineToRTF (Link text (src, _)) = 

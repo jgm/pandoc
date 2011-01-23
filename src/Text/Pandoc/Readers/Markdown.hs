@@ -661,10 +661,10 @@ definitionList = do
 --
 
 isHtmlOrBlank :: Inline -> Bool
-isHtmlOrBlank (HtmlInline _) = True
-isHtmlOrBlank (Space)        = True
-isHtmlOrBlank (LineBreak)    = True
-isHtmlOrBlank _              = False
+isHtmlOrBlank (RawInline "html" _) = True
+isHtmlOrBlank (Space)         = True
+isHtmlOrBlank (LineBreak)     = True
+isHtmlOrBlank _               = False
 
 para :: GenParser Char ParserState Block
 para = try $ do 
@@ -693,7 +693,7 @@ htmlBlock = try $ do
     first <- htmlElement
     finalSpace <- many spaceChar
     finalNewlines <- many newline
-    return $ RawHtml $ first ++ finalSpace ++ finalNewlines
+    return $ RawBlock "html" $ first ++ finalSpace ++ finalNewlines
 
 strictHtmlBlock :: GenParser Char ParserState [Char]
 strictHtmlBlock = do
@@ -713,7 +713,7 @@ rawTeXBlock = do
   failIfStrict
   result <- rawLaTeXEnvironment' <|> rawConTeXtEnvironment'
   spaces
-  return $ Para [TeX result]
+  return $ RawBlock "latex" result
 
 rawHtmlBlocks :: GenParser Char ParserState Block
 rawHtmlBlocks = do
@@ -730,7 +730,7 @@ rawHtmlBlocks = do
                            return $ blk ++ sps
   let combined = concat htmlBlocks
   let combined' = if last combined == '\n' then init combined else combined
-  return $ RawHtml combined'
+  return $ RawBlock "html" combined'
 
 --
 -- Tables
@@ -1186,8 +1186,8 @@ inlineNote = try $ do
 rawLaTeXInline' :: GenParser Char ParserState Inline
 rawLaTeXInline' = do
   failIfStrict
-  (rawConTeXtEnvironment' >>= return . TeX)
-    <|> (rawLaTeXEnvironment' >>= return . TeX)
+  (rawConTeXtEnvironment' >>= return . RawInline "latex")
+    <|> (rawLaTeXEnvironment' >>= return . RawInline "latex")
     <|> rawLaTeXInline
 
 rawConTeXtEnvironment' :: GenParser Char st String
@@ -1212,7 +1212,7 @@ rawHtmlInline = do
   (_,result) <- if stateStrict st
                    then htmlTag (not . isTextTag)
                    else htmlTag isInlineTag
-  return $ HtmlInline result
+  return $ RawInline "html" result
 
 -- Citations
 

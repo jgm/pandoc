@@ -75,8 +75,7 @@ plainify = bottomUp go
         go (SmallCaps xs) = SmallCaps xs
         go (Code s) = Str s
         go (Math _ s) = Str s
-        go (TeX _) = Str ""
-        go (HtmlInline _) = Str ""
+        go (RawInline _ _) = Str ""
         go (Link xs _) = SmallCaps xs
         go (Image xs _) = SmallCaps $ [Str "["] ++ xs ++ [Str "]"]
         go (Cite _ cits) = SmallCaps cits
@@ -206,11 +205,13 @@ blockToMarkdown opts (Para inlines) = do
                then text "\\"
                else empty
   return $ esc <> contents <> blankline
-blockToMarkdown _ (RawHtml str) = do
-  st <- get
-  if stPlain st
-     then return empty
-     else return $ text str <> text "\n"
+blockToMarkdown _ (RawBlock f str)
+  | f == "html" || f == "latex" || f == "markdown" = do
+    st <- get
+    if stPlain st
+       then return empty
+       else return $ text str <> text "\n"
+blockToMarkdown _ (RawBlock _ _) = return empty
 blockToMarkdown _ HorizontalRule =
   return $ blankline <> text "* * * * *" <> blankline
 blockToMarkdown opts (Header level inlines) = do
@@ -439,8 +440,9 @@ inlineToMarkdown _ (Math InlineMath str) =
   return $ "$" <> text str <> "$"
 inlineToMarkdown _ (Math DisplayMath str) =
   return $ "$$" <> text str <> "$$"
-inlineToMarkdown _ (TeX str) = return $ text str
-inlineToMarkdown _ (HtmlInline str) = return $ text str 
+inlineToMarkdown _ (RawInline f str)
+  | f == "html" || f == "latex" || f == "markdown" = return $ text str
+inlineToMarkdown _ (RawInline _ _) = return empty
 inlineToMarkdown opts (LineBreak) = return $
   if writerStrictMarkdown opts
      then "  " <> cr

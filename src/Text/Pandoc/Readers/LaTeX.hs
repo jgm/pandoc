@@ -448,7 +448,7 @@ rawLaTeXEnvironment :: GenParser Char st Block
 rawLaTeXEnvironment = do
   contents <- rawLaTeXEnvironment'
   spaces
-  return $ Para [TeX contents]
+  return $ RawBlock "latex" contents
 
 -- | Parse any LaTeX environment and return a string containing
 -- the whole literal environment as raw TeX.
@@ -491,7 +491,7 @@ demacro (n,st,args) = try $ do
   let raw = "\\" ++ n ++ st ++ concat args
   s' <- applyMacros' raw
   if raw == s'
-     then return $ TeX raw
+     then return $ RawInline "latex" raw
      else do
        inp <- getInput
        setInput $ s' ++ inp

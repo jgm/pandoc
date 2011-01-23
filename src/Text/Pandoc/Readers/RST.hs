@@ -373,8 +373,10 @@ birdTrackLine = do
 --
 
 rawHtmlBlock :: GenParser Char st Block
-rawHtmlBlock = try $ string ".. raw:: html" >> blanklines >>
-                     indentedBlock >>= return . RawHtml
+rawHtmlBlock = try $ do
+  string ".. raw:: html"
+  blanklines
+  indentedBlock >>= return . RawBlock "html"
 
 --
 -- raw latex
@@ -385,7 +387,7 @@ rawLaTeXBlock = try $ do
   string ".. raw:: latex"
   blanklines
   result <- indentedBlock
-  return $ Para [(TeX result)]
+  return $ RawBlock "latex" result
 
 --
 -- block quotes

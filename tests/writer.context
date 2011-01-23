@@ -696,7 +696,6 @@ Animal & Number \\ \hline
 Dog    & 2      \\
 Cat    & 1      \\ \hline
 \end{tabular}
-
 \thinrule
 
 \subject{Special Characters}

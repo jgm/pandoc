@@ -124,7 +124,10 @@ blockToConTeXt (BlockQuote lst) = do
 blockToConTeXt (CodeBlock _ str) =
   return $ "\\starttyping" <> cr <> flush (text str) <> cr <> "\\stoptyping" $$ blankline
   -- blankline because \stoptyping can't have anything after it, inc. '}'
-blockToConTeXt (RawHtml _) = return empty
+blockToConTeXt (RawBlock "context" str) = return $ text str
+-- for backwards compatibility, allow latex too:
+blockToConTeXt (RawBlock "latex" str) = return $ text str
+blockToConTeXt (RawBlock _ _ ) = return empty
 blockToConTeXt (BulletList lst) = do
   contents <- mapM listItemToConTeXt lst
   return $ "\\startitemize" $$ vcat contents $$ text "\\stopitemize" <> blankline
@@ -264,8 +267,10 @@ inlineToConTeXt (Math InlineMath str) =
   return $ char '$' <> text str <> char '$'
 inlineToConTeXt (Math DisplayMath str) =
   return $ text "\\startformula "  <> text str <> text " \\stopformula"
-inlineToConTeXt (TeX str) = return $ text str
-inlineToConTeXt (HtmlInline _) = return empty
+inlineToConTeXt (RawInline "context" str) = return $ text str
+-- backwards compatibility, allow latex too
+inlineToConTeXt (RawInline "latex" str) = return $ text str
+inlineToConTeXt (RawInline _ _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt Space = return space
 inlineToConTeXt (Link [Code str] (src, tit)) = -- since ConTeXt has its own 

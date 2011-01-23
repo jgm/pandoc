@@ -129,7 +129,10 @@ blockToTexinfo (CodeBlock _ str) = do
            flush (text str) $$
            text "@end verbatim" <> blankline
 
-blockToTexinfo (RawHtml _) = return empty
+blockToTexinfo (RawBlock "texinfo" str) = return $ text str
+blockToTexinfo (RawBlock "latex" str) =
+  return $ text "@tex" $$ text str $$ text "@end tex"
+blockToTexinfo (RawBlock _ _) = return empty
 
 blockToTexinfo (BulletList lst) = do
   items <- mapM listItemToTexinfo lst
@@ -388,8 +391,10 @@ inlineToTexinfo EnDash = return $ text "--"
 inlineToTexinfo Ellipses = return $ text "@dots{}"
 inlineToTexinfo (Str str) = return $ text (stringToTexinfo str)
 inlineToTexinfo (Math _ str) = return $ inCmd "math" $ text str
-inlineToTexinfo (TeX str) = return $ text "@tex" $$ text str $$ text "@end tex"
-inlineToTexinfo (HtmlInline _) = return empty
+inlineToTexinfo (RawInline "latex" str) =
+  return $ text "@tex" $$ text str $$ text "@end tex"
+inlineToTexinfo (RawInline "texinfo" str) = return $ text str
+inlineToTexinfo (RawInline _ _) = return empty
 inlineToTexinfo (LineBreak) = return $ text "@*"
 inlineToTexinfo Space = return $ char ' '
 

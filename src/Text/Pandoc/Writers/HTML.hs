@@ -105,8 +105,8 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   toc <- if writerTableOfContents opts 
             then tableOfContents opts sects
             else return Nothing
-  let startSlide = RawHtml "<div class=\"slide\">\n"
-      endSlide   = RawHtml "</div>\n"
+  let startSlide = RawBlock "html" "<div class=\"slide\">\n"
+      endSlide   = RawBlock "html" "</div>\n"
   let cutUp (HorizontalRule : Header 1 ys : xs) = cutUp (Header 1 ys : xs)
       cutUp (HorizontalRule : xs) = [endSlide, startSlide] ++ cutUp xs
       cutUp (Header 1 ys : xs)    = [endSlide, startSlide] ++
@@ -311,7 +311,8 @@ blockToHtml opts (Para [Image txt (s,tit)]) = do
               else thediv ! [theclass "figure"] <<
                     [img, paragraph ! [theclass "caption"] << capt]
 blockToHtml opts (Para lst) = inlineListToHtml opts lst >>= (return . paragraph)
-blockToHtml _ (RawHtml str) = return $ primHtml str
+blockToHtml _ (RawBlock "html" str) = return $ primHtml str
+blockToHtml _ (RawBlock _ _) = return noHtml
 blockToHtml _ (HorizontalRule) = return $ hr
 blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
   let classes' = if writerLiterateHaskell opts
@@ -540,11 +541,12 @@ inlineToHtml opts inline =
                                   return  $ case t of
                                              InlineMath  -> m
                                              DisplayMath -> br +++ m +++ br )
-    (TeX str)        -> case writerHTMLMathMethod opts of
-                              LaTeXMathML _ -> do modify (\st -> st {stMath = True})
-                                                  return $ primHtml str
-                              _             -> return noHtml
-    (HtmlInline str) -> return $ primHtml str 
+    (RawInline "latex" str) -> case writerHTMLMathMethod opts of
+                               LaTeXMathML _ -> do modify (\st -> st {stMath = True})
+                                                   return $ primHtml str
+                               _             -> return noHtml
+    (RawInline "html" str) -> return $ primHtml str 
+    (RawInline _ _) -> return noHtml
     (Link [Code str] (s,_)) | "mailto:" `isPrefixOf` s ->
                         return $ obfuscateLink opts str s
     (Link txt (s,_)) | "mailto:" `isPrefixOf` s -> do
@@ -585,7 +587,7 @@ blockListToNote :: WriterOptions -> String -> [Block] -> State WriterState Html
 blockListToNote opts ref blocks =
   -- If last block is Para or Plain, include the backlink at the end of
   -- that block. Otherwise, insert a new Plain block with the backlink.
-  let backlink = [HtmlInline $ " <a href=\"#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref ++ 
+  let backlink = [RawInline "html" $ " <a href=\"#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref ++ 
                  "\" class=\"footnoteBackLink\"" ++
                  " title=\"Jump back to footnote " ++ ref ++ "\">↩</a>"]
       blocks'  = if null blocks

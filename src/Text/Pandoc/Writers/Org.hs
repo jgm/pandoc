@@ -115,9 +115,12 @@ blockToOrg (Para [Image txt (src,tit)]) = do
 blockToOrg (Para inlines) = do
   contents <- inlineListToOrg inlines
   return $ contents <> blankline
-blockToOrg (RawHtml str) = 
+blockToOrg (RawBlock "html" str) = 
   return $ blankline $$ "#+BEGIN_HTML" $$
            nest 2 (text str) $$ "#+END_HTML" $$ blankline
+blockToOrg (RawBlock "latex" str) = return $ text str
+blockToOrg (RawBlock "org" str) = return $ text str
+blockToOrg (RawBlock _ _) = return empty
 blockToOrg HorizontalRule = return $ blankline $$ "--------------" $$ blankline
 blockToOrg (Header level inlines) = do
   contents <- inlineListToOrg inlines
@@ -257,8 +260,8 @@ inlineToOrg (Math t str) = do
   return $ if t == InlineMath
               then "$" <> text str <> "$"
               else "$$" <> text str <> "$$"
-inlineToOrg (TeX str) = return $ text str
-inlineToOrg (HtmlInline _) = return empty
+inlineToOrg (RawInline "latex" str) = return $ text str
+inlineToOrg (RawInline _ _) = return empty
 inlineToOrg (LineBreak) = return cr -- there's no line break in Org
 inlineToOrg Space = return space
 inlineToOrg (Link txt (src, _)) = do

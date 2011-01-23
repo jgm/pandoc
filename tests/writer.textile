@@ -533,7 +533,6 @@ These shouldn't be math:
 Here's a LaTeX table:
 
 
-
 <hr />
 
 h1. Special Characters

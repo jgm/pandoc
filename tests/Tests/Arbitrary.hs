@@ -35,6 +35,8 @@ arbInline n = frequency $ [ (60, liftM Str realString)
                           , (5,  return EnDash)
                           , (5,  return Apostrophe)
                           , (5,  return Ellipses)
+                          , (5,  elements [ RawInline "html" "<a>*&amp;*</a>"
+                                          , RawInline "latex" "\\my{command}" ])
                           ] ++ [ x | x <- nesters, n > 1]
    where nesters = [ (10,  liftM Emph $ listOf $ arbInline (n-1))
                    , (10,  liftM Strong $ listOf $ arbInline (n-1))
@@ -66,7 +68,11 @@ arbBlock :: Int -> Gen Block
 arbBlock n = frequency $ [ (10, liftM Plain arbitrary)
                          , (15, liftM Para arbitrary)
                          , (5,  liftM2 CodeBlock arbitrary realString)
-                         , (2,  liftM RawHtml realString)
+                         , (2,  elements [ RawBlock "html"
+                                            "<div>\n*&amp;*\n</div>"
+                                         , RawBlock "latex"
+                                            "\\begin[opt]{env}\nhi\n{\\end{env}"
+                                         ])
                          , (5,  do x1 <- choose (1 :: Int, 6)
                                    x2 <- arbitrary
                                    return (Header x1 x2))

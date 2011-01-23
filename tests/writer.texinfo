@@ -789,7 +789,6 @@ Dog    & 2      \\
 Cat    & 1      \\ \hline
 \end{tabular}
 @end tex
-
 @iftex
 @bigskip@hrule@bigskip
 @end iftex

@@ -662,13 +662,12 @@ newtype Key = Key [Inline] deriving (Show, Read, Eq, Ord)
 toKey :: [Inline] -> Key
 toKey = Key . bottomUp lowercase
   where lowercase :: Inline -> Inline
-        lowercase (Str xs)        = Str (map toLower xs)
-        lowercase (Math t xs)     = Math t (map toLower xs)
-        lowercase (Code xs)       = Code (map toLower xs)
-        lowercase (TeX xs)        = TeX (map toLower xs)
-        lowercase (HtmlInline xs) = HtmlInline (map toLower xs)
-        lowercase LineBreak       = Space
-        lowercase x               = x
+        lowercase (Str xs)          = Str (map toLower xs)
+        lowercase (Math t xs)       = Math t (map toLower xs)
+        lowercase (Code xs)         = Code (map toLower xs)
+        lowercase (RawInline f xs)  = RawInline f (map toLower xs)
+        lowercase LineBreak         = Space
+        lowercase x                 = x
 
 fromKey :: Key -> [Inline]
 fromKey (Key xs) = xs

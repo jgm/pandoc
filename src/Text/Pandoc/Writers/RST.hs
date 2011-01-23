@@ -148,8 +148,8 @@ blockToRST (Para [Image txt (src,tit)]) = do
 blockToRST (Para inlines) = do
   contents <- inlineListToRST inlines
   return $ contents <> blankline
-blockToRST (RawHtml str) =
-  return $ blankline <> ".. raw:: html" $+$
+blockToRST (RawBlock f str) =
+  return $ blankline <> ".. raw:: " <> text f $+$
            (nest 3 $ text str) $$ blankline
 blockToRST HorizontalRule =
   return $ blankline $$ "--------------" $$ blankline
@@ -292,8 +292,7 @@ inlineToRST (Math t str) = do
   return $ if t == InlineMath
               then ":math:`$" <> text str <> "$`"
               else ":math:`$$" <> text str <> "$$`"
-inlineToRST (TeX _) = return empty
-inlineToRST (HtmlInline _) = return empty
+inlineToRST (RawInline _ _) = return empty
 inlineToRST (LineBreak) = return cr -- there's no line break in RST
 inlineToRST Space = return space
 inlineToRST (Link [Code str] (src, _)) | src == str ||

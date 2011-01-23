@@ -228,45 +228,45 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
      ,[Plain [Str "sublist"]]]]])]
 ,Header 1 [Str "HTML",Space,Str "Blocks"]
 ,Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line",Str ":"]
-,RawHtml "<div>"
+,RawBlock "html" "<div>"
 ,Plain [Str "foo"]
-,RawHtml "</div>\n"
+,RawBlock "html" "</div>\n"
 ,Para [Str "And",Space,Str "nested",Space,Str "without",Space,Str "indentation",Str ":"]
-,RawHtml "<div>\n<div>\n<div>"
+,RawBlock "html" "<div>\n<div>\n<div>"
 ,Plain [Str "foo"]
-,RawHtml "</div>\n</div>\n<div>"
+,RawBlock "html" "</div>\n</div>\n<div>"
 ,Plain [Str "bar"]
-,RawHtml "</div>\n</div>\n"
+,RawBlock "html" "</div>\n</div>\n"
 ,Para [Str "Interpreted",Space,Str "markdown",Space,Str "in",Space,Str "a",Space,Str "table",Str ":"]
-,RawHtml "<table>\n<tr>\n<td>"
+,RawBlock "html" "<table>\n<tr>\n<td>"
 ,Plain [Str "This",Space,Str "is",Space,Emph [Str "emphasized"]]
-,RawHtml "</td>\n<td>"
+,RawBlock "html" "</td>\n<td>"
 ,Plain [Str "And",Space,Str "this",Space,Str "is",Space,Strong [Str "strong"]]
-,RawHtml "</td>\n</tr>\n</table>\n\n<script type=\"text/javascript\">document.write('This *should not* be interpreted as markdown');</script>\n"
+,RawBlock "html" "</td>\n</tr>\n</table>\n\n<script type=\"text/javascript\">document.write('This *should not* be interpreted as markdown');</script>\n"
 ,Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "simple",Space,Str "block",Str ":"]
-,RawHtml "<div>\n    "
+,RawBlock "html" "<div>\n    "
 ,Plain [Str "foo"]
-,RawHtml "</div>\n"
+,RawBlock "html" "</div>\n"
 ,Para [Str "This",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "code",Space,Str "block",Str ",",Space,Str "though",Str ":"]
 ,CodeBlock ("",[],[]) "<div>\n    foo\n</div>"
 ,Para [Str "As",Space,Str "should",Space,Str "this",Str ":"]
 ,CodeBlock ("",[],[]) "<div>foo</div>"
 ,Para [Str "Now",Str ",",Space,Str "nested",Str ":"]
-,RawHtml "<div>\n    <div>\n        <div>\n            "
+,RawBlock "html" "<div>\n    <div>\n        <div>\n            "
 ,Plain [Str "foo"]
-,RawHtml "</div>\n    </div>\n</div>\n"
+,RawBlock "html" "</div>\n    </div>\n</div>\n"
 ,Para [Str "This",Space,Str "should",Space,Str "just",Space,Str "be",Space,Str "an",Space,Str "HTML",Space,Str "comment",Str ":"]
-,RawHtml "<!-- Comment -->\n"
+,RawBlock "html" "<!-- Comment -->\n"
 ,Para [Str "Multiline",Str ":"]
-,RawHtml "<!--\nBlah\nBlah\n-->\n\n<!--\n    This is another comment.\n-->\n"
+,RawBlock "html" "<!--\nBlah\nBlah\n-->\n\n<!--\n    This is another comment.\n-->\n"
 ,Para [Str "Code",Space,Str "block",Str ":"]
 ,CodeBlock ("",[],[]) "<!-- Comment -->"
 ,Para [Str "Just",Space,Str "plain",Space,Str "comment",Str ",",Space,Str "with",Space,Str "trailing",Space,Str "spaces",Space,Str "on",Space,Str "the",Space,Str "line",Str ":"]
-,RawHtml "<!-- foo -->   \n"
+,RawBlock "html" "<!-- foo -->   \n"
 ,Para [Str "Code",Str ":"]
 ,CodeBlock ("",[],[]) "<hr />"
 ,Para [Str "Hr",Apostrophe,Str "s",Str ":"]
-,RawHtml "<hr>\n\n<hr />\n\n<hr />\n\n<hr>   \n\n<hr />  \n\n<hr /> \n\n<hr class=\"foo\" id=\"bar\" />\n\n<hr class=\"foo\" id=\"bar\" />\n\n<hr class=\"foo\" id=\"bar\">\n"
+,RawBlock "html" "<hr>\n\n<hr />\n\n<hr />\n\n<hr>   \n\n<hr />  \n\n<hr /> \n\n<hr class=\"foo\" id=\"bar\" />\n\n<hr class=\"foo\" id=\"bar\" />\n\n<hr class=\"foo\" id=\"bar\">\n"
 ,HorizontalRule
 ,Header 1 [Str "Inline",Space,Str "Markup"]
 ,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str "."]
@@ -294,7 +294,7 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 ,HorizontalRule
 ,Header 1 [Str "LaTeX"]
 ,BulletList
- [[Plain [TeX "\\cite[22-23]{smith.1899}"]]
+ [[Plain [RawInline "latex" "\\cite[22-23]{smith.1899}"]]
  ,[Plain [Math InlineMath "2+2=4"]]
  ,[Plain [Math InlineMath "x \\in y"]]
  ,[Plain [Math InlineMath "\\alpha \\wedge \\omega"]]
@@ -309,7 +309,7 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
  ,[Plain [Str "Shoes",Space,Str "(",Str "$",Str "20",Str ")",Space,Str "and",Space,Str "socks",Space,Str "(",Str "$",Str "5",Str ")",Str "."]]
  ,[Plain [Str "Escaped",Space,Code "$",Str ":",Space,Str "$",Str "73",Space,Emph [Str "this",Space,Str "should",Space,Str "be",Space,Str "emphasized"],Space,Str "23",Str "$",Str "."]]]
 ,Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "LaTeX",Space,Str "table",Str ":"]
-,Para [TeX "\\begin{tabular}{|l|l|}\\hline\nAnimal & Number \\\\ \\hline\nDog    & 2      \\\\\nCat    & 1      \\\\ \\hline\n\\end{tabular}"]
+,RawBlock "latex" "\\begin{tabular}{|l|l|}\\hline\nAnimal & Number \\\\ \\hline\nDog    & 2      \\\\\nCat    & 1      \\\\ \\hline\n\\end{tabular}"
 ,HorizontalRule
 ,Header 1 [Str "Special",Space,Str "Characters"]
 ,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "unicode",Str ":"]

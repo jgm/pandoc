@@ -1,5 +1,5 @@
 Name:            pandoc
-Version:         1.7
+Version:         1.8
 Cabal-Version:   >= 1.6
 Build-Type:      Custom
 License:         GPL
@@ -202,7 +202,7 @@ Library
                  random >= 1 && < 1.1,
                  extensible-exceptions >= 0.1 && < 0.2,
                  citeproc-hs >= 0.3 && < 0.4,
-                 pandoc-types == 1.7.*,
+                 pandoc-types == 1.8.*,
                  json >= 0.4 && < 0.5,
                  dlist >= 0.4 && < 0.6,
                  tagsoup >= 0.12 && < 0.13
@@ -286,7 +286,7 @@ Executable pandoc
                  random >= 1 && < 1.1,
                  extensible-exceptions >= 0.1 && < 0.2,
                  citeproc-hs >= 0.3 && < 0.4,
-                 pandoc-types == 1.7.*,
+                 pandoc-types == 1.8.*,
                  json >= 0.4 && < 0.5,
                  dlist >= 0.4 && < 0.6,
                  tagsoup >= 0.12 && < 0.13

@@ -591,7 +591,6 @@ Escaped \f[C]$\f[]: $73 \f[I]this should be emphasized\f[] 23$.
 .PP
 Here's a LaTeX table:
 .PP
-.PP
    *   *   *   *   *
 .SH Special Characters
 .PP

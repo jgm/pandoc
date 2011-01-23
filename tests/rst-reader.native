@@ -174,11 +174,11 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":
    [[Plain [Str "123",EnDash,Str "4567"]]])]
 ,Header 1 [Str "HTML",Space,Str "Blocks"]
 ,Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line",Str ":"]
-,RawHtml "<div>foo</div>\n"
+,RawBlock "html" "<div>foo</div>\n"
 ,Para [Str "Now,",Space,Str "nested",Str ":"]
-,RawHtml "<div>\n    <div>\n        <div>\n            foo\n        </div>\n    </div>\n</div>\n"
+,RawBlock "html" "<div>\n    <div>\n        <div>\n            foo\n        </div>\n    </div>\n</div>\n"
 ,Header 1 [Str "LaTeX",Space,Str "Block"]
-,Para [TeX "\\begin{tabular}{|l|l|}\\hline\nAnimal & Number \\\\ \\hline\nDog    & 2      \\\\\nCat    & 1      \\\\ \\hline\n\\end{tabular}\n"]
+,RawBlock "latex" "\\begin{tabular}{|l|l|}\\hline\nAnimal & Number \\\\ \\hline\nDog    & 2      \\\\\nCat    & 1      \\\\ \\hline\n\\end{tabular}\n"
 ,Header 1 [Str "Inline",Space,Str "Markup"]
 ,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ".",Space,Str "This",Space,Str "is",Space,Strong [Str "strong"],Str "."]
 ,Para [Str "This",Space,Str "is",Space,Str "code",Str ":",Space,Code ">",Str ",",Space,Code "$",Str ",",Space,Code "\\",Str ",",Space,Code "\\$",Str ",",Space,Code "<html>",Str "."]

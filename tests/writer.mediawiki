@@ -496,7 +496,6 @@ Here&rsquo;s a LaTeX table:
 
 
 
-
 -----
 
 = Special Characters =
