@@ -135,9 +135,18 @@ blockParsers = [ codeBlock
 block :: GenParser Char ParserState Block
 block = choice blockParsers <?> "block"
 
--- | Code Blocks in Textile are between <pre> and </pre>
 codeBlock :: GenParser Char ParserState Block
-codeBlock = try $ do
+codeBlock = codeBlockBc <|> codeBlockPre
+
+codeBlockBc :: GenParser Char ParserState Block
+codeBlockBc = try $ do
+  string "bc. "
+  contents <- manyTill anyLine blanklines
+  return $ CodeBlock ("",[],[]) $ unlines contents
+
+-- | Code Blocks in Textile are between <pre> and </pre>
+codeBlockPre :: GenParser Char ParserState Block
+codeBlockPre = try $ do
   htmlTag (tagOpen (=="pre") null)
   result' <- manyTill anyChar (try $ htmlTag (tagClose (=="pre")) >> blockBreak)
   -- drop leading newline if any

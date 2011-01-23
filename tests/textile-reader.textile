@@ -62,6 +62,9 @@ And:
     These should not be escaped:  \$ \\ \> \[ \{
 </pre>
 
+bc. Code block with .bc
+        continued
+    @</\
 
 h1. Lists
 

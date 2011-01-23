@@ -24,6 +24,7 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 ,CodeBlock ("",[],[]) "    ---- (should be four hyphens)\n\n    sub status {\n        print \"working\";\n    }\n\n    this code block is indented by one tab"
 ,Para [Str "And",Str ":"]
 ,CodeBlock ("",[],[]) "        this code block is indented by two tabs\n\n    These should not be escaped:  \\$ \\\\ \\> \\[ \\{"
+,CodeBlock ("",[],[]) "Code block with .bc\n        continued\n    @</\\\n"
 ,Header 1 [Str "Lists"]
 ,Header 2 [Str "Unordered"]
 ,Para [Str "Asterisks",Space,Str "tight",Str ":"]
