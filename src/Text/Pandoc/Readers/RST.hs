@@ -709,9 +709,9 @@ table = gridTable False <|> simpleTable False <|>
  --
 
 inline :: GenParser Char ParserState Inline
-inline = choice [ link
+inline = choice [ whitespace
+                , link
                 , str
-                , whitespace
                 , endline
                 , strong
                 , emph
