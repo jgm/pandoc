@@ -66,6 +66,8 @@ bc. Code block with .bc
         continued
     @</\
 
+Inline code: @<tt>@, <tt>@</tt>.
+
 h1. Lists
 
 h2. Unordered
