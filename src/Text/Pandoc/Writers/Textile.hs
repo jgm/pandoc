@@ -378,7 +378,7 @@ inlineToTextile _ Ellipses = return "..."
 inlineToTextile _ (Code str) =
   return $ if '@' `elem` str
            then "<tt>" ++ escapeStringForXML str ++ "</tt>"
-           else "@" ++ escapeStringForXML str ++ "@" 
+           else "@" ++ str ++ "@" 
 
 inlineToTextile _ (Str str) = return $ escapeStringForTextile str
 

@@ -450,7 +450,7 @@ So is *_this_* word.
 
 So is *_this_* word.
 
-This is code: @&gt;@, @$@, @\@, @\$@, @&lt;html&gt;@.
+This is code: @>@, @$@, @\@, @\$@, @<html>@.
 
 -This is _strikeout_.-
 
@@ -630,7 +630,7 @@ An e-mail address: "nobody@nowhere.net":mailto:nobody@nowhere.net
 
 bq. Blockquoted: "http://example.com/":http://example.com/
 
-Auto-links should not occur here: @&lt;http://example.com/&gt;@
+Auto-links should not occur here: @<http://example.com/>@
 
 bc. or here: &lt;http://example.com/&gt;
 

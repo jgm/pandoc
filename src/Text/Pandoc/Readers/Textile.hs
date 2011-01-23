@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Textile
-   Copyright   : Copyright (C) 2010 Paul Rivier
+   Copyright   : Copyright (C) 2010-2011 Paul Rivier and John MacFarlane
    License     : GNU GPL, version 2 or above 
 
    Maintainer  : Paul Rivier <paul*rivier#demotera*com>
