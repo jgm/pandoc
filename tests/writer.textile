@@ -76,19 +76,23 @@ h1. Code Blocks
 
 Code:
 
-bc.. ---- (should be four hyphens)
+<pre>
+---- (should be four hyphens)
 
 sub status {
     print &quot;working&quot;;
 }
 
 this code block is indented by one tab
+</pre>
 
 And:
 
-bc..     this code block is indented by two tabs
+<pre>
+    this code block is indented by two tabs
 
 These should not be escaped:  \$ \\ \&gt; \[ \{
+</pre>
 
 <hr />
 

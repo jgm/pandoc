@@ -118,15 +118,18 @@ blockToTextile opts (Header level inlines) = do
   let prefix = 'h' : (show level ++ ". ")
   return $ prefix ++ contents ++ "\n"
 
+blockToTextile _ (CodeBlock (_,classes,_) str) | any (all isSpace) (lines str) =
+  return $ "<pre"  ++ classes' ++ ">\n" ++ escapeStringForXML str ++
+           "\n</pre>\n"
+    where classes' = if null classes
+                        then ""
+                        else " class=\"" ++ unwords classes ++ "\""
+
 blockToTextile _ (CodeBlock (_,classes,_) str) =
-  return $ "bc" ++ classes' ++ dots ++ escapeStringForXML str ++ "\n"
+  return $ "bc" ++ classes' ++ ". " ++ escapeStringForXML str ++ "\n"
     where classes' = if null classes
                         then ""
                         else "(" ++ unwords classes ++ ")"
-          dots = if any isBlank (lines str)
-                    then ".. "
-                    else ". "
-          isBlank = all isSpace
 
 blockToTextile opts (BlockQuote bs@[Para _]) = do
   contents <- blockListToTextile opts bs
