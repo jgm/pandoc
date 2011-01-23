@@ -601,6 +601,7 @@ defaultWriterName x =
     ".text"     -> "markdown"
     ".md"       -> "markdown"
     ".markdown" -> "markdown"
+    ".textile"  -> "textile"
     ".lhs"      -> "markdown+lhs"
     ".texi"     -> "texinfo"
     ".texinfo"  -> "texinfo"
