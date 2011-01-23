@@ -106,6 +106,7 @@ module Text.Pandoc
                , module Text.Pandoc.Templates
                -- * Version
                , pandocVersion
+               , jsonFilter
              ) where
 
 import Text.Pandoc.Definition
@@ -190,3 +191,9 @@ writers = [("native"       , writeNative)
           ,("rtf"          , writeRTF)
           ,("org"          , writeOrg)
           ]
+
+-- | Converts a transformation on the Pandoc AST into a function
+-- that reads and writes a JSON-encoded string.  This is useful
+-- for writing small scripts.
+jsonFilter :: (Pandoc -> Pandoc) -> String -> String
+jsonFilter f = encodeJSON . f . decodeJSON
