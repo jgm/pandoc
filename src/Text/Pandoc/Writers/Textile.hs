@@ -106,7 +106,7 @@ blockToTextile opts (Para inlines) = do
   listLevel <- liftM stListLevel get
   contents <- inlineListToTextile opts inlines
   return $ if useTags
-              then " <p>" ++ contents ++ "</p>"
+              then "<p>" ++ contents ++ "</p>"
               else contents ++ if null listLevel then "\n" else ""
 
 blockToTextile _ (RawHtml str) = return str
@@ -126,14 +126,14 @@ blockToTextile _ (CodeBlock (_,classes,_) str) | any (all isSpace) (lines str) =
                         else " class=\"" ++ unwords classes ++ "\""
 
 blockToTextile _ (CodeBlock (_,classes,_) str) =
-  return $ "bc" ++ classes' ++ ". " ++ str ++ "\n"
+  return $ "bc" ++ classes' ++ ". " ++ str ++ "\n\n"
     where classes' = if null classes
                         then ""
                         else "(" ++ unwords classes ++ ")"
 
 blockToTextile opts (BlockQuote bs@[Para _]) = do
   contents <- blockListToTextile opts bs
-  return $ "bq. " ++ contents
+  return $ "bq. " ++ contents ++ "\n\n"
 
 blockToTextile opts (BlockQuote blocks) = do
   contents <- blockListToTextile opts blocks
@@ -155,20 +155,20 @@ blockToTextile opts (Table capt aligns widths headers rows') = do
                    then return ""
                    else do
                       c <- inlineListToTextile opts capt
-                      return $ " <caption>" ++ c ++ "</caption>\n"
+                      return $ "<caption>" ++ c ++ "</caption>\n"
   let percent w = show (truncate (100*w) :: Integer) ++ "%"
   let coltags = if all (== 0.0) widths
                    then ""
                    else unlines $ map
-                         (\w -> " <col width=\"" ++ percent w ++ "\" />") widths
+                         (\w -> "<col width=\"" ++ percent w ++ "\" />") widths
   head' <- if all null headers
               then return ""
               else do
                  hs <- tableRowToTextile opts alignStrings 0 headers
-                 return $ " <thead>\n" ++ hs ++ "\n </thead>\n"
+                 return $ "<thead>\n" ++ hs ++ "\n</thead>\n"
   body' <- zipWithM (tableRowToTextile opts alignStrings) [1..] rows'
-  return $ " <table>\n" ++ captionDoc ++ coltags ++ head' ++
-            " <tbody>\n" ++ unlines body' ++ " </tbody>\n </table>\n"
+  return $ "<table>\n" ++ captionDoc ++ coltags ++ head' ++
+            "<tbody>\n" ++ unlines body' ++ "</tbody>\n</table>\n"
 
 blockToTextile opts x@(BulletList items) = do
   oldUseTags <- liftM stUseTags get
@@ -176,7 +176,7 @@ blockToTextile opts x@(BulletList items) = do
   if useTags
      then do
         contents <- withUseTags $ mapM (listItemToTextile opts) items
-        return $ " <ul>\n" ++ vcat contents ++ " </ul>\n"
+        return $ "<ul>\n" ++ vcat contents ++ "\n</ul>\n"
      else do
         modify $ \s -> s { stListLevel = stListLevel s ++ "*" }
         level <- get >>= return . length . stListLevel
@@ -190,8 +190,8 @@ blockToTextile opts x@(OrderedList attribs items) = do
   if useTags
      then do
         contents <- withUseTags $ mapM (listItemToTextile opts) items
-        return $ " <ol" ++ listAttribsToString attribs ++ ">\n" ++ vcat contents ++
-                   " </ol>\n"
+        return $ "<ol" ++ listAttribsToString attribs ++ ">\n" ++ vcat contents ++
+                   "\n</ol>\n"
      else do
         modify $ \s -> s { stListLevel = stListLevel s ++ "#" }
         level <- get >>= return . length . stListLevel
@@ -201,7 +201,7 @@ blockToTextile opts x@(OrderedList attribs items) = do
 
 blockToTextile opts (DefinitionList items) = do
   contents <- withUseTags $ mapM (definitionListItemToTextile opts) items
-  return $ " <dl>\n" ++ vcat contents ++ " </dl>\n"
+  return $ "<dl>\n" ++ vcat contents ++ "\n</dl>\n"
 
 -- Auxiliary functions for lists:
 
@@ -222,7 +222,7 @@ listItemToTextile opts items = do
   contents <- blockListToTextile opts items
   useTags <- get >>= return . stUseTags
   if useTags
-     then return $ " <li>" ++ contents ++ "</li>"
+     then return $ "<li>" ++ contents ++ "</li>"
      else do
        marker <- get >>= return . stListLevel
        return $ marker ++ " " ++ contents
@@ -234,8 +234,8 @@ definitionListItemToTextile :: WriterOptions
 definitionListItemToTextile opts (label, items) = do
   labelText <- inlineListToTextile opts label
   contents <- mapM (blockListToTextile opts) items
-  return $ " <dt>" ++ labelText ++ "</dt>\n" ++
-          (intercalate "\n" $ map (\d -> " <dd>" ++ d ++ "</dd>") contents)
+  return $ "<dt>" ++ labelText ++ "</dt>\n" ++
+          (intercalate "\n" $ map (\d -> "<dd>" ++ d ++ "</dd>") contents)
 
 -- | True if the list can be handled by simple wiki markup, False if HTML tags will be needed.
 isSimpleList :: Block -> Bool
