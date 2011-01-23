@@ -19,7 +19,7 @@ infix 5 =:
 tests :: [Test]
 tests = [ testGroup "basic"
           [ "simple" =:
-            "wo rd" =?> para "word"
+            "word" =?> para "word"
           , "space" =:
             "some text" =?> para ("some text")
           , "emphasized" =:
