@@ -126,7 +126,7 @@ blockToTextile _ (CodeBlock (_,classes,_) str) | any (all isSpace) (lines str) =
                         else " class=\"" ++ unwords classes ++ "\""
 
 blockToTextile _ (CodeBlock (_,classes,_) str) =
-  return $ "bc" ++ classes' ++ ". " ++ escapeStringForXML str ++ "\n"
+  return $ "bc" ++ classes' ++ ". " ++ str ++ "\n"
     where classes' = if null classes
                         then ""
                         else "(" ++ unwords classes ++ ")"

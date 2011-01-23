@@ -50,7 +50,7 @@ bq. This is a block quote. It is pretty short.
 Code in a block quote:
 
 bc. sub status {
-    print &quot;working&quot;;
+    print "working";
 }
 
 A list:
@@ -366,13 +366,13 @@ foo
 
 This should be a code block, though:
 
-bc. &lt;div&gt;
+bc. <div>
     foo
-&lt;/div&gt;
+</div>
 
 As should this:
 
-bc. &lt;div&gt;foo&lt;/div&gt;
+bc. <div>foo</div>
 
 Now, nested:
 
@@ -402,7 +402,7 @@ Blah
 
 Code block:
 
-bc. &lt;!-- Comment --&gt;
+bc. <!-- Comment -->
 
 Just plain comment, with trailing spaces on the line:
 
@@ -410,7 +410,7 @@ Just plain comment, with trailing spaces on the line:
 
 Code:
 
-bc. &lt;hr /&gt;
+bc. <hr />
 
 Hr's:
 
@@ -632,7 +632,7 @@ bq. Blockquoted: "http://example.com/":http://example.com/
 
 Auto-links should not occur here: @<http://example.com/>@
 
-bc. or here: &lt;http://example.com/&gt;
+bc. or here: <http://example.com/>
 
 <hr />
 
@@ -665,7 +665,7 @@ fn2. Here's the long note. This one contains multiple blocks.
 
 Subsequent blocks are indented to show that they belong to the footnote (as with list items).
 
-bc.   { &lt;code&gt; }
+bc.   { <code> }
 
 If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
 
