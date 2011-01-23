@@ -895,8 +895,8 @@ inline :: GenParser Char ParserState Inline
 inline = choice inlineParsers <?> "inline"
 
 inlineParsers :: [GenParser Char ParserState Inline]
-inlineParsers = [ str
-                , whitespace
+inlineParsers = [ whitespace
+                , str
                 , endline
                 , code
                 , (fourOrMore '*' <|> fourOrMore '_')
