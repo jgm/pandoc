@@ -711,9 +711,10 @@ rawVerbatimBlock = try $ do
 rawTeXBlock :: GenParser Char ParserState Block
 rawTeXBlock = do
   failIfStrict
-  result <- rawLaTeXEnvironment' <|> rawConTeXtEnvironment'
+  result <- liftM (RawBlock "latex") rawLaTeXEnvironment'
+          <|> liftM (RawBlock "context") rawConTeXtEnvironment'
   spaces
-  return $ RawBlock "latex" result
+  return result
 
 rawHtmlBlocks :: GenParser Char ParserState Block
 rawHtmlBlocks = do
@@ -1186,7 +1187,7 @@ inlineNote = try $ do
 rawLaTeXInline' :: GenParser Char ParserState Inline
 rawLaTeXInline' = do
   failIfStrict
-  (rawConTeXtEnvironment' >>= return . RawInline "latex")
+  (rawConTeXtEnvironment' >>= return . RawInline "context")
     <|> (rawLaTeXEnvironment' >>= return . RawInline "latex")
     <|> rawLaTeXInline
 

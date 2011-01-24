@@ -184,7 +184,7 @@ blockToLaTeX (CodeBlock (_,classes,_) str) = do
                     else return "verbatim"
   return $ "\\begin{" <> text env <> "}" $$ flush (text str) $$
            "\\end{" <> text env <> "}" $$ cr   -- final cr needed because of footnotes
-blockToLaTeX (RawBlock "latex" x) = return $ text x
+blockToLaTeX (RawBlock "latex" x) = return $ text x <> blankline
 blockToLaTeX (RawBlock _ _) = return empty
 blockToLaTeX (BulletList lst) = do
   items <- mapM listItemToLaTeX lst

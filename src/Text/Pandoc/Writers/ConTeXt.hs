@@ -124,9 +124,7 @@ blockToConTeXt (BlockQuote lst) = do
 blockToConTeXt (CodeBlock _ str) =
   return $ "\\starttyping" <> cr <> flush (text str) <> cr <> "\\stoptyping" $$ blankline
   -- blankline because \stoptyping can't have anything after it, inc. '}'
-blockToConTeXt (RawBlock "context" str) = return $ text str
--- for backwards compatibility, allow latex too:
-blockToConTeXt (RawBlock "latex" str) = return $ text str
+blockToConTeXt (RawBlock "context" str) = return $ text str <> blankline
 blockToConTeXt (RawBlock _ _ ) = return empty
 blockToConTeXt (BulletList lst) = do
   contents <- mapM listItemToConTeXt lst

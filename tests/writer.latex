@@ -634,6 +634,7 @@ Animal & Number \\ \hline
 Dog    & 2      \\
 Cat    & 1      \\ \hline
 \end{tabular}
+
 \begin{center}\rule{3in}{0.4pt}\end{center}
 
 \section{Special Characters}
