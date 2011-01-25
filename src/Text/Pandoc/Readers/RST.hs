@@ -152,7 +152,9 @@ fieldListItem indent = try $ do
   first <- manyTill anyChar newline
   rest <- option "" $ try $ lookAhead (string indent >> spaceChar) >> 
                             indentedBlock
-  return (name, intercalate " " (first:(lines rest)))
+  return (name, first ++ if null rest
+                            then ""
+                            else ("\n" ++ rest))
 
 fieldList :: GenParser Char ParserState Block
 fieldList = try $ do
