@@ -118,8 +118,8 @@ blockToOrg (Para inlines) = do
 blockToOrg (RawBlock "html" str) = 
   return $ blankline $$ "#+BEGIN_HTML" $$
            nest 2 (text str) $$ "#+END_HTML" $$ blankline
-blockToOrg (RawBlock "latex" str) = return $ text str
-blockToOrg (RawBlock "org" str) = return $ text str
+blockToOrg (RawBlock f str) | f == "org" || f == "latex" || f == "tex" =
+  return $ text str
 blockToOrg (RawBlock _ _) = return empty
 blockToOrg HorizontalRule = return $ blankline $$ "--------------" $$ blankline
 blockToOrg (Header level inlines) = do
@@ -260,7 +260,7 @@ inlineToOrg (Math t str) = do
   return $ if t == InlineMath
               then "$" <> text str <> "$"
               else "$$" <> text str <> "$$"
-inlineToOrg (RawInline "latex" str) = return $ text str
+inlineToOrg (RawInline f str) | f == "tex" || f == "latex" = return $ text str
 inlineToOrg (RawInline _ _) = return empty
 inlineToOrg (LineBreak) = return cr -- there's no line break in Org
 inlineToOrg Space = return space

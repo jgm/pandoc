@@ -266,8 +266,7 @@ inlineToConTeXt (Math InlineMath str) =
 inlineToConTeXt (Math DisplayMath str) =
   return $ text "\\startformula "  <> text str <> text " \\stopformula"
 inlineToConTeXt (RawInline "context" str) = return $ text str
--- backwards compatibility, allow latex too
-inlineToConTeXt (RawInline "latex" str) = return $ text str
+inlineToConTeXt (RawInline "tex" str) = return $ text str
 inlineToConTeXt (RawInline _ _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt Space = return space

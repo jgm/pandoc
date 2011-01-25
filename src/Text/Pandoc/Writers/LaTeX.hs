@@ -362,6 +362,7 @@ inlineToLaTeX (Str str) = return $ text $ stringToLaTeX str
 inlineToLaTeX (Math InlineMath str) = return $ char '$' <> text str <> char '$'
 inlineToLaTeX (Math DisplayMath str) = return $ "\\[" <> text str <> "\\]"
 inlineToLaTeX (RawInline "latex" str) = return $ text str
+inlineToLaTeX (RawInline "tex" str) = return $ text str
 inlineToLaTeX (RawInline _ _) = return empty
 inlineToLaTeX (LineBreak) = return "\\\\"
 inlineToLaTeX Space = return space

@@ -206,7 +206,7 @@ blockToMarkdown opts (Para inlines) = do
                else empty
   return $ esc <> contents <> blankline
 blockToMarkdown _ (RawBlock f str)
-  | f == "html" || f == "latex" || f == "markdown" = do
+  | f == "html" || f == "latex" || f == "tex" || f == "markdown" = do
     st <- get
     if stPlain st
        then return empty
@@ -441,7 +441,8 @@ inlineToMarkdown _ (Math InlineMath str) =
 inlineToMarkdown _ (Math DisplayMath str) =
   return $ "$$" <> text str <> "$$"
 inlineToMarkdown _ (RawInline f str)
-  | f == "html" || f == "latex" || f == "markdown" = return $ text str
+  | f == "html" || f == "latex" || f == "tex" || f == "markdown" =
+    return $ text str
 inlineToMarkdown _ (RawInline _ _) = return empty
 inlineToMarkdown opts (LineBreak) = return $
   if writerStrictMarkdown opts

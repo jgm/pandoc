@@ -391,7 +391,7 @@ inlineToTexinfo EnDash = return $ text "--"
 inlineToTexinfo Ellipses = return $ text "@dots{}"
 inlineToTexinfo (Str str) = return $ text (stringToTexinfo str)
 inlineToTexinfo (Math _ str) = return $ inCmd "math" $ text str
-inlineToTexinfo (RawInline "latex" str) =
+inlineToTexinfo (RawInline f str) | f == "latex" || f == "tex" =
   return $ text "@tex" $$ text str $$ text "@end tex"
 inlineToTexinfo (RawInline "texinfo" str) = return $ text str
 inlineToTexinfo (RawInline _ _) = return empty
