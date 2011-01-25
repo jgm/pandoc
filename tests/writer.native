@@ -294,7 +294,7 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 ,HorizontalRule
 ,Header 1 [Str "LaTeX"]
 ,BulletList
- [[Plain [RawInline "latex" "\\cite[22-23]{smith.1899}"]]
+ [[Plain [RawInline "tex" "\\cite[22-23]{smith.1899}"]]
  ,[Plain [Math InlineMath "2+2=4"]]
  ,[Plain [Math InlineMath "x \\in y"]]
  ,[Plain [Math InlineMath "\\alpha \\wedge \\omega"]]
