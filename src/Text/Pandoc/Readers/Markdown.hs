@@ -932,12 +932,12 @@ failIfLink (Link _ _) = pzero
 failIfLink elt        = return elt
 
 escapedChar :: GenParser Char ParserState Inline
-escapedChar = do
+escapedChar = try $ do
   char '\\'
   state <- getState
-  result <- option '\\' $ if stateStrict state 
-                             then oneOf "\\`*_{}[]()>#+-.!~"
-                             else satisfy (not . isAlphaNum)
+  result <- if stateStrict state 
+               then oneOf "\\`*_{}[]()>#+-.!~"
+               else satisfy (not . isAlphaNum)
   return $ case result of
                 ' '   -> Str "\160" -- "\ " is a nonbreaking space
                 '\n'  -> LineBreak  -- "\[newline]" is a linebreak
@@ -961,7 +961,11 @@ exampleRef = try $ do
 
 symbol :: GenParser Char ParserState Inline
 symbol = do 
-  result <- noneOf "<\n\t "
+  result <- noneOf "<\\\n\t "
+         <|> try (do lookAhead $ char '\\'
+                     notFollowedBy' $ rawLaTeXEnvironment'
+                                   <|> rawConTeXtEnvironment'
+                     char '\\')
   return $ Str [result]
 
 -- parses inline code, between n `s and n `s
@@ -1185,11 +1189,13 @@ inlineNote = try $ do
   return $ Note [Para contents]
 
 rawLaTeXInline' :: GenParser Char ParserState Inline
-rawLaTeXInline' = do
+rawLaTeXInline' = try $ do
   failIfStrict
-  (rawConTeXtEnvironment' >>= return . RawInline "context")
-    <|> (rawLaTeXEnvironment' >>= return . RawInline "latex")
-    <|> rawLaTeXInline
+  lookAhead $ char '\\'
+  notFollowedBy' $ rawLaTeXEnvironment'
+                <|> rawConTeXtEnvironment'
+  RawInline _ s <- rawLaTeXInline
+  return $ RawInline "tex" s  -- "tex" because it might be context or latex
 
 rawConTeXtEnvironment' :: GenParser Char st String
 rawConTeXtEnvironment' = try $ do
