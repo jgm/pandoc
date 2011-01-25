@@ -146,7 +146,7 @@ fieldListItem :: String -> GenParser Char st ([Char], [Char])
 fieldListItem indent = try $ do
   string indent
   char ':'
-  name <- many1 alphaNum
+  name <- many1 $ alphaNum <|> spaceChar
   string ": "
   skipSpaces
   first <- manyTill anyChar newline
