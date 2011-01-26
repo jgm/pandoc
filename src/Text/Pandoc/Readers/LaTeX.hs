@@ -930,7 +930,9 @@ simpleCite = try $ do
       mintext      = ["textcites"]
       mnormal      = map (++ "s") biblatex
       cmdend       = notFollowedBy (letter <|> char '*')
-      addUpper xs  = xs ++ map (\(c:cs) -> toUpper c : cs) xs
+      capit []     = []
+      capit (x:xs) = toUpper x : xs
+      addUpper xs  = xs ++ map capit xs
       toparser l t = try $ oneOfStrings (addUpper l) >> cmdend >> return t
   (mode, multi) <-  toparser normal  (NormalCitation, False)
                 <|> toparser supress (SuppressAuthor, False)
