@@ -20,15 +20,17 @@ import Test.HUnit (assertBool)
 import Text.Pandoc.Shared (normalize, defaultWriterOptions,
                            WriterOptions(..), removeTrailingSpace)
 import Text.Pandoc.Writers.Native (writeNative)
-import Language.Haskell.TH.Quote
+import Language.Haskell.TH.Quote (QuasiQuoter(..))
 import Language.Haskell.TH.Syntax (Q, runIO)
 import qualified Test.QuickCheck.Property as QP
 import System.Console.ANSI
 import Data.Algorithm.Diff
 
 lit :: QuasiQuoter
-lit = QuasiQuoter ((\a -> let b = rnl a in [|b|]) . filter (/= '\r')) $
-         error "Cannot use lit as a pattern"
+lit = QuasiQuoter {
+           quoteExp = (\a -> let b = rnl a in [|b|]) . filter (/= '\r')
+         , quotePat = error "Cannot use lit as a pattern"
+         }
        where rnl ('\n':xs) = xs
              rnl xs        = xs
 

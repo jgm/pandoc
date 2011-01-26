@@ -52,7 +52,7 @@ tests = [ testGroup "inline code"
             bulletList [plain (text "top")
                         ,bulletList [plain (text "next")
                          ,bulletList [plain (text "bot")]]]
-              =?> [$lit|
+              =?> [_LIT|
 \startitemize
 \item
   top
