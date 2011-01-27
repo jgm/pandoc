@@ -354,6 +354,7 @@ Executable test-pandoc
                       Tests.Helpers
                       Tests.Arbitrary
                       Tests.Readers.LaTeX
+                      Tests.Readers.Markdown
                       Tests.Readers.RST
                       Tests.Writers.Native
                       Tests.Writers.ConTeXt

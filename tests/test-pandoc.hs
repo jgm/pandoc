@@ -6,6 +6,7 @@ import Test.Framework
 
 import qualified Tests.Old
 import qualified Tests.Readers.LaTeX
+import qualified Tests.Readers.Markdown
 import qualified Tests.Readers.RST
 import qualified Tests.Writers.ConTeXt
 import qualified Tests.Writers.Native
@@ -18,6 +19,7 @@ tests = [ testGroup "Old" Tests.Old.tests
           ]
         , testGroup "Readers"
           [ testGroup "LaTeX" Tests.Readers.LaTeX.tests
+          , testGroup "Markdown" Tests.Readers.Markdown.tests
           , testGroup "RST" Tests.Readers.RST.tests
           ]
         ]
