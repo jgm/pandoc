@@ -30,7 +30,7 @@ instance Arbitrary Inline where
 arbInline :: Int -> Gen Inline
 arbInline n = frequency $ [ (60, liftM Str realString)
                           , (60, return Space)
-                          , (10, liftM Code realString)
+                          , (10, liftM2 Code arbitrary realString)
                           , (5,  return EmDash)
                           , (5,  return EnDash)
                           , (5,  return Apostrophe)

@@ -150,7 +150,7 @@ inCmd cmd contents = char '\\' <> text cmd <> braces contents
 -- (because it's illegal to have verbatim inside some command arguments)
 deVerb :: [Inline] -> [Inline]
 deVerb [] = []
-deVerb ((Code str):rest) = 
+deVerb ((Code _ str):rest) = 
   (RawInline "latex" $ "\\texttt{" ++ stringToLaTeX str ++ "}"):(deVerb rest)
 deVerb (other:rest) = other:(deVerb rest)
 
@@ -331,7 +331,7 @@ inlineToLaTeX (Cite cits lst) = do
      Biblatex -> citationsToBiblatex cits
      _        -> inlineListToLaTeX lst
 
-inlineToLaTeX (Code str) = do
+inlineToLaTeX (Code _ str) = do
   st <- get
   when (stInNote st) $ modify $ \s -> s{ stVerbInNote = True }
   let chr = ((enumFromTo '!' '~') \\ str) !! 0
@@ -368,7 +368,7 @@ inlineToLaTeX (LineBreak) = return "\\\\"
 inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt (src, _)) =
   case txt of
-        [Code x] | x == src ->  -- autolink
+        [Code _ x] | x == src ->  -- autolink
              do modify $ \s -> s{ stUrl = True }
                 return $ text $ "\\url{" ++ x ++ "}"
         _ -> do contents <- inlineListToLaTeX $ deVerb txt

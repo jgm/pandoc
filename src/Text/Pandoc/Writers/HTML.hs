@@ -298,6 +298,12 @@ obfuscateChar char =
 obfuscateString :: String -> String
 obfuscateString = concatMap obfuscateChar . decodeCharacterReferences
 
+attrsToHtml :: WriterOptions -> Attr -> [HtmlAttr]
+attrsToHtml opts (id',classes',keyvals) =
+  [theclass (unwords classes') | not (null classes')] ++
+  [prefixedId opts id' | not (null id')] ++
+  map (\(x,y) -> strAttr x y) keyvals
+
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: WriterOptions -> Block -> State WriterState Html
 blockToHtml _ Null = return $ noHtml 
@@ -322,9 +328,7 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
          Left _  -> -- change leading newlines into <br /> tags, because some
                     -- browsers ignore leading newlines in pre blocks
                     let (leadingBreaks, rawCode') = span (=='\n') rawCode
-                        attrs = [theclass (unwords classes') | not (null classes')] ++
-                                [prefixedId opts id' | not (null id')] ++
-                                map (\(x,y) -> strAttr x y) keyvals
+                        attrs = attrsToHtml opts (id', classes', keyvals)
                         addBird = if "literate" `elem` classes'
                                      then unlines . map ("> " ++) . lines
                                      else unlines . lines
@@ -479,7 +483,10 @@ inlineToHtml opts inline =
     (Apostrophe)     -> return $ stringToHtml "’"
     (Emph lst)       -> inlineListToHtml opts lst >>= return . emphasize
     (Strong lst)     -> inlineListToHtml opts lst >>= return . strong
-    (Code str)       -> return $ thecode << str
+    (Code attr str)  -> return $ thecode ! (attrsToHtml opts attr) << str'
+                         where str' = case highlightHtml attr str of
+                                Left _  -> stringToHtml str
+                                Right h -> h
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . (thespan ! [thestyle "text-decoration: line-through;"])
     (SmallCaps lst)   -> inlineListToHtml opts lst >>=
@@ -547,7 +554,7 @@ inlineToHtml opts inline =
                                _             -> return noHtml
     (RawInline "html" str) -> return $ primHtml str 
     (RawInline _ _) -> return noHtml
-    (Link [Code str] (s,_)) | "mailto:" `isPrefixOf` s ->
+    (Link [Code _ str] (s,_)) | "mailto:" `isPrefixOf` s ->
                         return $ obfuscateLink opts str s
     (Link txt (s,_)) | "mailto:" `isPrefixOf` s -> do
                         linkText <- inlineListToHtml opts txt  

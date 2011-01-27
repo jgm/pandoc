@@ -362,7 +362,7 @@ inlineToOpenDocument o ils
     | Subscript   l <- ils = withTextStyle Sub    $ inlinesToOpenDocument o l
     | SmallCaps   l <- ils = withTextStyle SmallC $ inlinesToOpenDocument o l
     | Quoted    t l <- ils = inQuotes t <$> inlinesToOpenDocument o l
-    | Code        s <- ils = preformatted s
+    | Code      _ s <- ils = preformatted s
     | Math      _ s <- ils = inlinesToOpenDocument o (readTeXMath s)
     | Cite      _ l <- ils = inlinesToOpenDocument o l
     | RawInline "opendocument" s <- ils = preformatted s

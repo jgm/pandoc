@@ -378,7 +378,7 @@ inlineToTextile _ Apostrophe = return "'"
 
 inlineToTextile _ Ellipses = return "..."
 
-inlineToTextile _ (Code str) =
+inlineToTextile _ (Code _ str) =
   return $ if '@' `elem` str
            then "<tt>" ++ escapeStringForXML str ++ "</tt>"
            else "@" ++ str ++ "@" 
@@ -399,8 +399,8 @@ inlineToTextile _ Space = return " "
 
 inlineToTextile opts (Link txt (src, _)) = do
   label <- case txt of
-                [Code s]  -> return s
-                _         -> inlineListToTextile opts txt
+                [Code _ s]  -> return s
+                _           -> inlineListToTextile opts txt
   return $ "\"" ++ label ++ "\":" ++ src
 
 inlineToTextile opts (Image alt (source, tit)) = do

@@ -710,27 +710,27 @@ code1 = try $ do
   string "\\verb"
   marker <- anyChar
   result <- manyTill anyChar (char marker)
-  return $ Code $ removeLeadingTrailingSpace result
+  return $ Code nullAttr $ removeLeadingTrailingSpace result
 
 code2 :: GenParser Char st Inline
 code2 = try $ do
   string "\\texttt{"
   result <- manyTill (noneOf "\\\n~$%^&{}") (char '}')
-  return $ Code result
+  return $ Code nullAttr result
 
 code3 :: GenParser Char st Inline
 code3 = try $ do 
   string "\\lstinline"
   marker <- anyChar
   result <- manyTill anyChar (char marker)
-  return $ Code $ removeLeadingTrailingSpace result
+  return $ Code nullAttr $ removeLeadingTrailingSpace result
 
 lhsInlineCode :: GenParser Char ParserState Inline
 lhsInlineCode = try $ do
   failUnlessLHS
   char '|'
   result <- manyTill (noneOf "|\n") (char '|')
-  return $ Code result
+  return $ Code ("",["haskell"],[]) result
 
 emph :: GenParser Char ParserState Inline
 emph = try $ oneOfStrings [ "\\emph{", "\\textit{" ] >>
@@ -861,7 +861,7 @@ url :: GenParser Char ParserState Inline
 url = try $ do
   string "\\url"
   url' <- charsInBalanced '{' '}'
-  return $ Link [Code url'] (escapeURI url', "")
+  return $ Link [Code ("",["url"],[]) url'] (escapeURI url', "")
 
 link :: GenParser Char ParserState Inline
 link = try $ do

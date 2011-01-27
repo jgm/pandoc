@@ -494,13 +494,13 @@ code :: GenParser Char ParserState Inline
 code = code1 <|> code2
 
 code1 :: GenParser Char ParserState Inline
-code1 = surrounded (char '@') anyChar >>= return . Code
+code1 = surrounded (char '@') anyChar >>= return . Code nullAttr
 
 code2 :: GenParser Char ParserState Inline
 code2 = do
   htmlTag (tagOpen (=="tt") null)
   result' <- manyTill anyChar (try $ htmlTag $ tagClose (=="tt"))
-  return $ Code result'
+  return $ Code nullAttr result'
 
 -- | Html / CSS attributes
 attributes :: GenParser Char ParserState String

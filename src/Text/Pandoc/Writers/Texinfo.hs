@@ -372,7 +372,7 @@ inlineToTexinfo (Subscript lst) = do
 inlineToTexinfo (SmallCaps lst) =
   inlineListToTexinfo lst >>= return . inCmd "sc"
 
-inlineToTexinfo (Code str) = do
+inlineToTexinfo (Code _ str) = do
   return $ text $ "@code{" ++ stringToTexinfo str ++ "}"
 
 inlineToTexinfo (Quoted SingleQuote lst) = do
@@ -400,7 +400,7 @@ inlineToTexinfo Space = return $ char ' '
 
 inlineToTexinfo (Link txt (src, _)) = do
   case txt of
-        [Code x] | x == src ->  -- autolink
+        [Code _ x] | x == src ->  -- autolink
              do return $ text $ "@url{" ++ x ++ "}"
         _ -> do contents <- inlineListToTexinfo txt
                 let src1 = stringToTexinfo src

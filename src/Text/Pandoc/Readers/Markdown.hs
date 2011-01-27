@@ -977,7 +977,8 @@ code = try $ do
                        (char '\n' >> notFollowedBy' blankline >> return " "))
                       (try (skipSpaces >> count (length starts) (char '`') >> 
                       notFollowedBy (char '`')))
-  return $ Code $ removeLeadingTrailingSpace $ concat result
+  attr <- option ([],[],[]) (try $ optional whitespace >> attributes)
+  return $ Code attr $ removeLeadingTrailingSpace $ concat result
 
 mathWord :: GenParser Char st [Char]
 mathWord = liftM concat $ many1 mathChunk
@@ -1163,7 +1164,7 @@ autoLink = try $ do
   st <- getState
   return $ if stateStrict st
               then Link [Str orig] (src, "")
-              else Link [Code orig] (src, "")
+              else Link [Code ("",["url"],[]) orig] (src, "")
 
 image :: GenParser Char ParserState Inline
 image = try $ do

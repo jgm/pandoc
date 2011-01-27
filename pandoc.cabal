@@ -211,7 +211,7 @@ Library
   else
     Build-depends: base >= 3 && < 4
   if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.2.7.1 && < 0.2.9
+    Build-depends: highlighting-kate >= 0.2.8.2 && < 0.2.9
     cpp-options:   -D_HIGHLIGHTING
   if impl(ghc >= 6.12)
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
@@ -295,7 +295,7 @@ Executable pandoc
   else
     Build-depends: base >= 3 && < 4
   if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.2.7.1 && < 0.2.9
+    Build-depends: highlighting-kate >= 0.2.8.2 && < 0.2.9
     cpp-options:   -D_HIGHLIGHTING
   if impl(ghc >= 6.12)
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind

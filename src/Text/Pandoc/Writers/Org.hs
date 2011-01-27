@@ -253,7 +253,7 @@ inlineToOrg EmDash = return "---"
 inlineToOrg EnDash = return "--"
 inlineToOrg Apostrophe = return "'"
 inlineToOrg Ellipses = return "..."
-inlineToOrg (Code str) = return $ "=" <> text str <> "="
+inlineToOrg (Code _ str) = return $ "=" <> text str <> "="
 inlineToOrg (Str str) = return $ text $ escapeString str
 inlineToOrg (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
@@ -266,7 +266,7 @@ inlineToOrg (LineBreak) = return cr -- there's no line break in Org
 inlineToOrg Space = return space
 inlineToOrg (Link txt (src, _)) = do
   case txt of
-        [Code x] | x == src ->  -- autolink
+        [Code _ x] | x == src ->  -- autolink
              do modify $ \s -> s{ stLinks = True }
                 return $ "[[" <> text x <> "]]"
         _ -> do contents <- inlineListToOrg txt

@@ -307,7 +307,7 @@ inlineToMan _ EmDash = return $ text "\\[em]"
 inlineToMan _ EnDash = return $ text "\\[en]"
 inlineToMan _ Apostrophe = return $ char '\''
 inlineToMan _ Ellipses = return $ text "\\&..."
-inlineToMan _ (Code str) =
+inlineToMan _ (Code _ str) =
   return $ text $ "\\f[C]" ++ escapeCode str ++ "\\f[]"
 inlineToMan _ (Str str) = return $ text $ escapeString str
 inlineToMan opts (Math InlineMath str) = inlineListToMan opts $ readTeXMath str
@@ -322,9 +322,10 @@ inlineToMan _ Space = return space
 inlineToMan opts (Link txt (src, _)) = do
   linktext <- inlineListToMan opts txt
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
-  return $ if txt == [Code srcSuffix]
-              then char '<' <> text srcSuffix <> char '>' 
-              else linktext <> text " (" <> text src <> char ')' 
+  return $ case txt of
+           [Code _ s]
+             | s == srcSuffix -> char '<' <> text srcSuffix <> char '>' 
+           _                  -> linktext <> text " (" <> text src <> char ')'
 inlineToMan opts (Image alternate (source, tit)) = do
   let txt = if (null alternate) || (alternate == [Str ""]) || 
                (alternate == [Str source]) -- to prevent autolinks

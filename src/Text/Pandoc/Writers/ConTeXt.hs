@@ -245,9 +245,9 @@ inlineToConTeXt (Subscript lst) = do
 inlineToConTeXt (SmallCaps lst) = do
   contents <- inlineListToConTeXt lst
   return $ braces $ "\\sc " <> contents
-inlineToConTeXt (Code str) | not ('{' `elem` str || '}' `elem` str) =
+inlineToConTeXt (Code _ str) | not ('{' `elem` str || '}' `elem` str) =
   return $ "\\type" <> braces (text str)
-inlineToConTeXt (Code str) =
+inlineToConTeXt (Code _ str) =
   return $ "\\mono" <> braces (text $ stringToConTeXt str)
 inlineToConTeXt (Quoted SingleQuote lst) = do
   contents <- inlineListToConTeXt lst
@@ -270,7 +270,7 @@ inlineToConTeXt (RawInline "tex" str) = return $ text str
 inlineToConTeXt (RawInline _ _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt Space = return space
-inlineToConTeXt (Link [Code str] (src, tit)) = -- since ConTeXt has its own 
+inlineToConTeXt (Link [Code _ str] (src, tit)) = -- since ConTeXt has its own 
   inlineToConTeXt (Link [Str str] (src, tit))  -- way of printing links... 
 inlineToConTeXt (Link txt (src, _)) = do
   st <- get

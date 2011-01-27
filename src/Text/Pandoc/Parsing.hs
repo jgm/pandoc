@@ -664,7 +664,7 @@ toKey = Key . bottomUp lowercase
   where lowercase :: Inline -> Inline
         lowercase (Str xs)          = Str (map toLower xs)
         lowercase (Math t xs)       = Math t (map toLower xs)
-        lowercase (Code xs)         = Code (map toLower xs)
+        lowercase (Code attr xs)    = Code attr (map toLower xs)
         lowercase (RawInline f xs)  = RawInline f (map toLower xs)
         lowercase LineBreak         = Space
         lowercase x                 = x

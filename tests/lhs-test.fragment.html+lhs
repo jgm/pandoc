@@ -30,8 +30,7 @@
     >       <br
      />&gt;           <span class="co"
     >-- arr (\op (x,y) -&gt; x `op` y) </span
-    ><br
-     /></code
+    ></code
   ></pre
 ><p
 ><code

@@ -746,7 +746,8 @@ code :: GenParser Char ParserState Inline
 code = try $ do 
   string "``"
   result <- manyTill anyChar (try (string "``"))
-  return $ Code $ removeLeadingTrailingSpace $ intercalate " " $ lines result
+  return $ Code nullAttr
+         $ removeLeadingTrailingSpace $ intercalate " " $ lines result
 
 emph :: GenParser Char ParserState Inline
 emph = enclosed (char '*') (char '*') inline >>= 
