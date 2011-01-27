@@ -27,20 +27,20 @@ tests = [ "field list" =:
 :Authors: - Me
               - Myself
               - I
-:Indentation: Since the field marker may be quite long, the second 
-   and subsequent lines of the field body do not have to line up 
-   with the first line, but they must be indented relative to the 
-   field name marker, and they must line up with each other. 
-:Parameter i: integer 
+:Indentation: Since the field marker may be quite long, the second
+   and subsequent lines of the field body do not have to line up
+   with the first line, but they must be indented relative to the
+   field name marker, and they must line up with each other.
+:Parameter i: integer
 |]         =?> ( setAuthors ["Me","Myself","I"]
                $ setDate "2001-08-16"
                $ doc
-               $ definitionList [ (str "Hostname", [plain "media08"])
-                                , (str "IP address", [plain "10.0.0.19"])
-                                , (str "Size", [plain "3ru"])
-                                , (str "Version", [plain "1"])
-                                , (str "Indentation", [para "Since the field marker may be quite long, the second. and subsequent lines of the field body do not have to line up. with the first line, but they must be indented relative to the. field name marker, and they must line up with each other."])
-                                , (str "Parameter i", [plain "integer"])
+               $ definitionList [ (str "Hostname", [para "media08"])
+                                , (str "IP address", [para "10.0.0.19"])
+                                , (str "Size", [para "3ru"])
+                                , (str "Version", [para "1"])
+                                , (str "Indentation", [para "Since the field marker may be quite long, the second and subsequent lines of the field body do not have to line up with the first line, but they must be indented relative to the field name marker, and they must line up with each other."])
+                                , (str "Parameter i", [para "integer"])
                               ])
         ]
 

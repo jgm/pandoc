@@ -34,10 +34,11 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.ParserCombinators.Parsec
-import Control.Monad ( when, unless )
+import Control.Monad ( when )
 import Data.List ( findIndex, intercalate, transpose, sort, deleteFirstsBy )
 import qualified Data.Map as M
 import Text.Printf ( printf )
+import Data.Maybe ( catMaybes )
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: ParserState -- ^ Parser state, including options for parser
@@ -121,10 +122,9 @@ parseBlocks = manyTill block eof
 
 block :: GenParser Char ParserState Block
 block = choice [ codeBlock
-               , rawHtmlBlock
-               , rawLaTeXBlock
-               , fieldList
+               , rawBlock
                , blockQuote
+               , fieldList
                , imageBlock
                , customCodeBlock
                , unknownDirective
@@ -142,48 +142,54 @@ block = choice [ codeBlock
 -- field list
 --
 
-fieldListItem :: String -> GenParser Char st ([Char], [Char])
-fieldListItem indent = try $ do
+rawFieldListItem :: String -> GenParser Char ParserState (String, String)
+rawFieldListItem indent = try $ do
   string indent
   char ':'
   name <- many1 $ alphaNum <|> spaceChar
   string ": "
   skipSpaces
   first <- manyTill anyChar newline
-  rest <- option "" $ try $ lookAhead (string indent >> spaceChar) >> 
-                            indentedBlock
-  return (name, first ++ if null rest
-                            then ""
-                            else ("\n" ++ rest))
+  rest <- option "" $ try $ do lookAhead (string indent >> spaceChar)
+                               indentedBlock
+  let raw = first ++ "\n" ++ rest ++ "\n"
+  return (name, raw)
+
+fieldListItem :: String
+              -> GenParser Char ParserState (Maybe ([Inline], [[Block]]))
+fieldListItem indent = try $ do
+  (name, raw) <- rawFieldListItem indent
+  let term = [Str name]
+  contents <- parseFromString (many block) raw
+  case (name, contents) of
+       ("Author", x) -> do
+           updateState $ \st ->
+             st{ stateAuthors = stateAuthors st ++ [extractContents x] }
+           return Nothing
+       ("Authors", [BulletList auths]) -> do
+           updateState $ \st -> st{ stateAuthors = map extractContents auths }
+           return Nothing
+       ("Date", x) -> do
+           updateState $ \st -> st{ stateDate = extractContents x }
+           return Nothing
+       ("Title", x) -> do
+           updateState $ \st -> st{ stateTitle = extractContents x }
+           return Nothing
+       _            -> return $ Just (term, [contents])
+
+extractContents :: [Block] -> [Inline]
+extractContents [Plain auth] = auth
+extractContents [Para auth]  = auth
+extractContents _            = []
 
 fieldList :: GenParser Char ParserState Block
 fieldList = try $ do
   indent <- lookAhead $ many spaceChar
   items <- many1 $ fieldListItem indent
   blanklines
-  let authors = case lookup "Authors" items of
-                  Just auth -> [auth]
-                  Nothing  -> map snd (filter (\(x,_) -> x == "Author") items)
-  unless (null authors) $ do
-    authors' <- mapM (parseFromString (many inline)) authors
-    updateState $ \st -> st {stateAuthors = map normalizeSpaces authors'}
-  case (lookup "Date" items) of
-           Just dat -> do
-                  dat' <- parseFromString (many inline) dat
-                  updateState $ \st -> st{ stateDate = normalizeSpaces dat' }
-           Nothing  -> return ()
-  case (lookup "Title" items) of
-           Just tit -> parseFromString (many inline) tit >>=
-                       \t -> updateState $ \st -> st {stateTitle = t}
-           Nothing  -> return ()
-  let remaining = filter (\(x,_) -> (x /= "Authors") && (x /= "Author") && 
-                  (x /= "Date") && (x /= "Title")) items
-  if null remaining
-              then return Null
-              else do terms <- mapM (return . (:[]) . Str . fst) remaining
-                      defs  <- mapM (parseFromString (many block) . snd) 
-                                    remaining
-                      return $ DefinitionList $ zip terms $ map (:[]) defs
+  if null items
+     then return Null
+     else return $ DefinitionList $ catMaybes items
 
 --
 -- line block
@@ -237,15 +243,16 @@ plain = many1 inline >>= return . Plain . normalizeSpaces
 -- image block
 --
 
-imageBlock :: GenParser Char st Block
+imageBlock :: GenParser Char ParserState Block
 imageBlock = try $ do
   string ".. image:: "
   src <- manyTill anyChar newline
-  fields <- option [] $ do indent <- lookAhead $ many (oneOf " /t")
-                           many1 $ fieldListItem indent
+  fields <- try $ do indent <- lookAhead $ many (oneOf " /t")
+                     many $ rawFieldListItem indent
   optional blanklines
   case lookup "alt" fields of
-        Just alt -> return $ Plain [Image [Str alt] (src, alt)]
+        Just alt -> return $ Plain [Image [Str $ removeTrailingSpace alt]
+                             (src, "")]
         Nothing  -> return $ Plain [Image [Str "image"] (src, "")]
 --
 -- header blocks
@@ -320,20 +327,19 @@ hrule = try $ do
 indentedLine :: String -> GenParser Char st [Char]
 indentedLine indents = try $ do
   string indents
-  result <- manyTill anyChar newline
-  return $ result ++ "\n"
+  manyTill anyChar newline
 
 -- two or more indented lines, possibly separated by blank lines.
 -- any amount of indentation will work.
 indentedBlock :: GenParser Char st [Char]
-indentedBlock = do 
+indentedBlock = try $ do 
   indents <- lookAhead $ many1 spaceChar
   lns <- many $ choice $ [ indentedLine indents,
                            try $ do b <- blanklines
                                     l <- indentedLine indents
                                     return (b ++ l) ]
-  optional blanklines 
-  return $ concat lns
+  optional blanklines
+  return $ unlines lns
 
 codeBlock :: GenParser Char st Block
 codeBlock = try $ do
@@ -371,25 +377,16 @@ birdTrackLine = do
   manyTill anyChar newline
 
 --
--- raw html
+-- raw html/latex/etc
 --
 
-rawHtmlBlock :: GenParser Char st Block
-rawHtmlBlock = try $ do
-  string ".. raw:: html"
-  blanklines
-  indentedBlock >>= return . RawBlock "html"
-
---
--- raw latex
---
-
-rawLaTeXBlock :: GenParser Char st Block
-rawLaTeXBlock = try $ do
-  string ".. raw:: latex"
+rawBlock :: GenParser Char st Block
+rawBlock = try $ do
+  string ".. raw:: "
+  lang <- many1 (letter <|> digit)
   blanklines
   result <- indentedBlock
-  return $ RawBlock "latex" result
+  return $ RawBlock lang result
 
 --
 -- block quotes
@@ -416,7 +413,7 @@ definitionListItem = try $ do
   term <- many1Till inline endline
   raw <- indentedBlock
   -- parse the extracted block, which may contain various block elements:
-  contents <- parseFromString parseBlocks $ raw ++ "\n\n"
+  contents <- parseFromString parseBlocks $ raw ++ "\n"
   return (normalizeSpaces term, [contents])
 
 definitionList :: GenParser Char ParserState Block
