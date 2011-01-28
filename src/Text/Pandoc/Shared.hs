@@ -257,7 +257,7 @@ normalizeSpaces = cleanup . dropWhile isSpaceOrEmpty
 -- | Normalize @Pandoc@ document, consolidating doubled 'Space's,
 -- combining adjacent 'Str's and 'Emph's, remove 'Null's and
 -- empty elements, etc.
-normalize :: Pandoc -> Pandoc
+normalize :: Data a => a -> a
 normalize = topDown consolidateInlines .
             bottomUp removeEmptyInlines .
             topDown removeEmptyBlocks
