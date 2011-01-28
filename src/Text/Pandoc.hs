@@ -106,6 +106,8 @@ module Text.Pandoc
                , module Text.Pandoc.Templates
                -- * Version
                , pandocVersion
+               -- * Miscellaneous
+               , rtfEmbedImage
                , jsonFilter
              ) where
 

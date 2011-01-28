@@ -27,13 +27,34 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to RTF (rich text format).
 -}
-module Text.Pandoc.Writers.RTF ( writeRTF ) where
+module Text.Pandoc.Writers.RTF ( writeRTF, rtfEmbedImage ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Templates (renderTemplate)
 import Data.List ( isSuffixOf, intercalate )
-import Data.Char ( ord, isDigit )
+import Data.Char ( ord, isDigit, toLower )
+import System.FilePath ( takeExtension )
+import qualified Data.ByteString as B
+import Text.Printf ( printf )
+
+-- | Convert Image inlines into a raw RTF embedded image, read from a file.
+-- If file not found or filetype not jpeg or png, leave the inline unchanged.
+rtfEmbedImage :: Inline -> IO Inline
+rtfEmbedImage x@(Image _ (src,_))
+  | map toLower (takeExtension src) `elem` [".jpg",".jpeg",".png"] = do
+  imgdata <- catch (B.readFile src) (\_ -> return B.empty)
+  let bytes = map (printf "%02x") $ B.unpack imgdata
+  let filetype = case map toLower (takeExtension src) of
+                      ".jpg" -> "\\jpegblip"
+                      ".jpeg" -> "\\jpegblip"
+                      ".png"  -> "\\pngblip"
+                      _      -> error "Unknown file type"
+  let raw = "{\\pict" ++ filetype ++ " " ++ concat bytes ++ "}"
+  return $ if B.null imgdata
+              then x
+              else RawInline "rtf" raw
+rtfEmbedImage x = return x
 
 -- | Convert Pandoc to a string in rich text format.
 writeRTF :: WriterOptions -> Pandoc -> String

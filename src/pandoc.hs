@@ -823,9 +823,13 @@ main = do
 
   doc <- fmap (reader startParserState . convertTabs . intercalate "\n") (readSources sources)
 
-  let doc' = foldr ($) doc transforms
+  let doc0 = foldr ($) doc transforms
 
-  doc'' <- do
+  doc1 <- if writerName' == "rtf"
+             then bottomUpM rtfEmbedImage doc0
+             else return doc0
+
+  doc2 <- do
           if citeMethod == Citeproc && not (null refs)
              then do
                 csldir <- getAppUserDataDirectory "csl"
@@ -839,10 +843,10 @@ main = do
                                             replaceDirectory
                                             (replaceExtension cslfile "csl")
                                             csldir
-                processBiblio cslfile' refs doc'
-             else return doc'
+                processBiblio cslfile' refs doc1
+             else return doc1
 
-  writerOutput <- writer writerOptions doc''
+  writerOutput <- writer writerOptions doc2
 
   let writerOutput' = if standalone'
                          then writerOutput
