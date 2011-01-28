@@ -91,6 +91,7 @@ titleTransform blocks = (blocks, [])
 
 parseRST :: GenParser Char ParserState Pandoc
 parseRST = do
+  spaces -- skip blanks at beginning of file
   startPos <- getPosition
   -- go through once just to get list of reference keys and notes
   -- docMinusKeys is the raw document with blanks where the keys were...
