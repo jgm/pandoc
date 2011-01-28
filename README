@@ -22,9 +22,9 @@ Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, delimited code blocks,
 superscript, subscript, strikeout, title blocks, automatic tables of
 contents, embedded LaTeX math, citations, and markdown inside HTML block
-elements. (These enhancements, described below under [Pandoc's markdown
-vs. standard markdown](#pandocs-markdown-vs.-standard-markdown),
-can be disabled using the `--strict` option.)
+elements. (These enhancements, described below under
+[Pandoc's markdown](#pandocs-markdown), can be disabled using the `--strict`
+option.)
 
 In contrast to most existing tools for converting markdown to HTML, which
 use regex substitutions, Pandoc has a modular design: it consists of a
@@ -549,15 +549,14 @@ consecutive items:
 
     $for(author)$$author$$sep$, $endfor$
 
-Pandoc's markdown vs. standard markdown
-=======================================
+Pandoc's markdown
+=================
 
-In parsing markdown, Pandoc departs from and extends [standard markdown]
-in a few respects.  Except where noted, these differences can
-be suppressed by specifying the `--strict` command-line option.
-
-[standard markdown]:  http://daringfireball.net/projects/markdown/syntax
-  "Markdown syntax description"
+Pandoc understands an extended and slightly revised version of
+John Gruber's [markdown] syntax.  This document explains the syntax,
+noting differences from standard markdown. Except where noted, these
+differences can be suppressed by specifying the `--strict` command-line
+option.
 
 Backslash escapes
 -----------------

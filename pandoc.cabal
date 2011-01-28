@@ -74,9 +74,11 @@ Extra-Source-Files:
                  -- code to create pandoc.1 man page
                  MakeManPage.hs,
                  man/man1/pandoc.1.template,
+                 man/man5/pandoc_markdown.5.template,
                  -- generated man pages (produced post-build)
                  man/man1/markdown2pdf.1,
                  man/man1/pandoc.1,
+                 man/man5/pandoc_markdown.5,
                  -- benchmarks
                  Benchmark.hs,
                  -- tests
@@ -156,7 +158,9 @@ Extra-Source-Files:
                  tests/lhs-test.nohl.html,
                  tests/lhs-test.nohl.html+lhs,
                  tests/lhs-test.fragment.html+lhs
-Extra-Tmp-Files: man/man1/pandoc.1, man/man1/markdown2pdf.1
+Extra-Tmp-Files: man/man1/pandoc.1,
+                 man/man1/markdown2pdf.1,
+                 man/man5/pandoc_markdown.5
 
 Flag threaded
   Description:   Compile markdown2pdf with -threaded option.

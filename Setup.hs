@@ -9,11 +9,9 @@ import Distribution.Verbosity ( Verbosity, silent )
 import Distribution.Simple.InstallDirs (mandir, bindir, CopyDest (NoCopyDest))
 import Distribution.Simple.Utils (copyFiles)
 import Control.Exception ( bracket_ )
-import Control.Monad ( unless )
-import System.Process ( rawSystem, runCommand, runProcess, waitForProcess )
-import System.FilePath ( (</>), (<.>) )
+import System.Process ( rawSystem, runCommand, waitForProcess )
+import System.FilePath ( (</>) )
 import System.Directory
-import System.IO ( stderr )
 import System.Exit
 import System.Time
 import System.IO.Error ( isDoesNotExistError )
@@ -48,46 +46,23 @@ runTestSuite args _ pkg lbi = do
          putStrLn "Build pandoc with the 'tests' flag to run tests"
          exitWith $ ExitFailure 3
 
--- | Build man pages from markdown sources in man/man1/.
+-- | Build man pages from markdown sources in man/
 makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
-makeManPages _ flags _ bi = do
-  let pandocPath = (buildDir bi) </> "pandoc" </> "pandoc"
+makeManPages _ flags _ _ = do
   let verbosity = fromFlag $ buildVerbosity flags
-  -- make markdown2pdf.1 from markdown2pdf.1.md
-  makeManPage pandocPath verbosity "markdown2pdf.1"
-  -- make pandoc.1 from README
-  let pandocpage = manDir </> "pandoc.1"
-  modifiedDeps <- modifiedDependencies pandocpage ["README"]
-  unless (null modifiedDeps) $ do
-    let cmd  = "runghc -package-conf=dist/package.conf.inplace MakeManPage.hs"
-    ec <- runCommand cmd >>= waitForProcess
-    case ec of
-         ExitSuccess   -> unless (verbosity == silent) $
-                            putStrLn $ "Created " ++ pandocpage
-         ExitFailure n -> putStrLn ("Error creating " ++ pandocpage ++
-                               ". Exit code = " ++ show n) >> exitWith ec
+  let cmd  = "runghc -package-conf=dist/package.conf.inplace MakeManPage.hs"
+  let cmd' = if verbosity == silent
+                then cmd
+                else cmd ++ " --verbose"
+  runCommand cmd' >>= waitForProcess >>= exitWith
 
 manpages :: [FilePath]
-manpages = ["pandoc.1", "markdown2pdf.1"]
+manpages = ["man1" </> "pandoc.1"
+           ,"man1" </> "markdown2pdf.1"
+           ,"man5" </> "pandoc_markdown.5"]
 
 manDir :: FilePath
-manDir = "man" </> "man1"
-
--- | Build a man page from markdown source in man/man1.
-makeManPage :: FilePath -> Verbosity -> FilePath -> IO ()
-makeManPage pandoc verbosity manpage = do
-  let page = manDir </> manpage
-  let source = page <.> "md"
-  modifiedDeps <- modifiedDependencies page [source]
-  unless (null modifiedDeps) $ do
-    ec <- runProcess pandoc ["-s", "-S", "-r", "markdown", "-w", "man",
-                "--template=templates/man.template", "-o", page, source]
-                Nothing Nothing Nothing Nothing (Just stderr) >>= waitForProcess
-    case ec of
-         ExitSuccess   -> unless (verbosity == silent) $
-                             putStrLn $ "Created " ++ page
-         ExitFailure n -> putStrLn ("Error creating " ++ page ++
-                             ". Exit code = " ++ show n) >> exitWith ec
+manDir = "man"
 
 installScripts :: PackageDescription -> LocalBuildInfo
                -> Verbosity -> CopyDest -> IO ()
@@ -101,7 +76,7 @@ installScripts pkg lbi verbosity copy =
 installManpages :: PackageDescription -> LocalBuildInfo
                 -> Verbosity -> CopyDest -> IO ()
 installManpages pkg lbi verbosity copy =
-  copyFiles verbosity (mandir (absoluteInstallDirs pkg lbi copy) </> "man1")
+  copyFiles verbosity (mandir (absoluteInstallDirs pkg lbi copy))
              (zip (repeat manDir) manpages)
 
 -- | Returns a list of 'dependencies' that have been modified after 'file'.
