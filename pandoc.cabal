@@ -73,7 +73,7 @@ Extra-Source-Files:
                  man/man1/markdown2pdf.1.md,
                  -- code to create pandoc.1 man page
                  MakeManPage.hs,
-                 manpage.template,
+                 man/man1/pandoc.1.template,
                  -- generated man pages (produced post-build)
                  man/man1/markdown2pdf.1,
                  man/man1/pandoc.1,

@@ -10,7 +10,8 @@ main = do
   rmContents <- liftM toString $ B.readFile "README"
   let (Pandoc meta blocks) = readMarkdown defaultParserState rmContents
   let newBlocks = removeWrapperSect blocks
-  manTemplate <- liftM toString $ B.readFile "manpage.template"
+  manTemplate <- liftM toString $ B.readFile
+                 $ "man" </> "man1" </> "pandoc.1.template"
   let opts = defaultWriterOptions{ writerStandalone = True
                                  , writerTemplate = manTemplate }
   let manPage = writeMan opts $
