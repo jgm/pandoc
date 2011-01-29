@@ -564,7 +564,7 @@ option.
 Philosophy
 ----------
 
-Gruber designed markdown to be easy to write, and, even more importantly,
+Markdown is designed to be easy to write, and, even more importantly,
 easy to read:
 
 > A Markdown-formatted document should be publishable as-is, as plain
@@ -1325,6 +1325,8 @@ a line) is parsed as a hard line break.  It will appear in TeX output as
 markdown's "invisible" way of indicating hard line breaks using
 two trailing spaces on a line.
 
+Backslash escapes do not work in verbatim contexts.
+
 Smart punctuation
 -----------------
 
@@ -1338,9 +1340,26 @@ Inline formatting
 
 ### Emphasis ###
 
-TODO
+To *emphasize* some text, surround it with `*`s or `_`, like this:
 
-inc strong
+    This text is _emphasized with underscores_, and this
+    is *emphasized with asterisks*.
+
+Double `*` or `_` produces **strong emphasis**:
+
+    This is **strong emphasis** and __with underscores__.
+
+A `*` or `_` character surrounded by spaces, or backslash-escaped,
+will not trigger emphasis:
+
+    This is * not emphasized *, and \*neither is this\*.
+
+Because `_` is sometimes used inside words and identifiers,
+pandoc does not interpret a `_` surrounded by alphanumeric
+characters as an emphasis marker.  If you want to emphasize
+just part of a word, use `*`:
+
+    feas*ible*, not feas*able*.
 
 
 ### Strikeout ###
@@ -1372,8 +1391,26 @@ Thus, if you want the letter P with 'a cat' in subscripts, use
 
 ### Verbatim ###
 
-TODO
-(w/ attrs)
+To make a short span of text verbatim, put it inside backticks:
+
+    What is the difference between `>>=` and `>>`?
+
+If the verbatim text includes a backtick, use double backticks:
+
+    Here is a literal backtick `` ` ``.
+
+(The spaces after the opening backticks and before the closing
+backticks will be ignored.)
+
+The general rule is that a verbatim span starts with a string
+of consecutive backticks (optionally followed by a space)
+and ends with a string of the same number of backticks (optionally
+preceded by a space).
+
+Note that backslash-escapes (and other markdown constructs) do not
+work in verbatim contexts:
+
+    This is a backslash followed by an asterisk: `\*`.
 
 
 Math
@@ -1458,53 +1495,27 @@ HTML, Slidy, S5, EPUB
         API will be used (`http://chart.apis.google.com/chart?cht=tx&chl=`).
 
 
-Raw TeX
--------
-
-TODO
-
-(raw tex is extension)
-
-Inline TeX commands will be preserved and passed unchanged to the
-LaTeX and ConTeXt writers. Thus, for example, you can use LaTeX to
-include BibTeX citations:
-
-    This result was proved in \cite{jones.1967}.
-
-Note that in LaTeX environments, like
-
-    \begin{tabular}{|l|l|}\hline
-    Age & Frequency \\ \hline
-    18--25  & 15 \\
-    26--35  & 33 \\ 
-    36--45  & 22 \\ \hline
-    \end{tabular}
-
-the material between the begin and end tags will be interpreted as raw
-LaTeX, not as markdown.
-
-Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
-and ConTeXt.
-
-
-For output formats other than LaTeX, pandoc will parse LaTeX `\newcommand` and
-`\renewcommand` definitions and apply the resulting macros to all LaTeX
-math.  So, for example, the following will work in all output formats,
-not just LaTeX:
-
-    \newcommand{\tuple}[1]{\langle #1 \rangle}
-
-    $\tuple{a, b, c}$
-
 Raw HTML
 --------
 
-TODO
+Markdown allows you to insert raw HTML anywhere in a document
+(except verbatim contexts, where `<`, `>`, and `&` are interpreted
+literally).
 
+The raw HTML is passed through unchanged in HTML, S5, Slidy, EPUB,
+Markdown, and Textile output, and suppressed in other formats.
 
-While standard markdown leaves HTML blocks exactly as they are, Pandoc
-treats text between HTML tags as markdown. Thus, for example, Pandoc
-will turn
+*Pandoc extension*.
+
+Standard markdown allows you to include HTML "blocks":  blocks
+of HTML between balanced tags that are separated from the surrounding text
+with blank lines, and start and end at the left margin.  Within
+these blocks, everything is interpreted as HTML, not markdown;
+so (for example), `*` does not signify emphasis.
+
+Pandoc behaves this way when `--strict` is specified; but by default,
+pandoc interprets material between HTML block tags as markdown.
+Thus, for example, Pandoc will turn
 
     <table>
     	<tr>
@@ -1525,7 +1536,7 @@ into
 whereas `Markdown.pl` will preserve it as is.
 
 There is one exception to this rule:  text between `<script>` and
-`</script>` tags is not interpreted as markdown.
+`<style>` tags is not interpreted as markdown.
 
 This departure from standard markdown should make it easier to mix
 markdown with HTML block elements.  For example, one can surround
@@ -1533,21 +1544,116 @@ a block of markdown text with `<div>` tags without preventing it
 from being interpreted as markdown.
 
 
+Raw TeX
+-------
+
+*Pandoc extension*.
+
+In addition to raw HTML, pandoc allows raw LaTeX, TeX, and ConTeXt to be
+included in a document. Inline TeX commands will be preserved and passed
+unchanged to the LaTeX and ConTeXt writers. Thus, for example, you can use
+LaTeX to include BibTeX citations:
+
+    This result was proved in \cite{jones.1967}.
+
+Note that in LaTeX environments, like
+
+    \begin{tabular}{|l|l|}\hline
+    Age & Frequency \\ \hline
+    18--25  & 15 \\
+    26--35  & 33 \\ 
+    36--45  & 22 \\ \hline
+    \end{tabular}
+
+the material between the begin and end tags will be interpreted as raw
+LaTeX, not as markdown.
+
+Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
+and ConTeXt.
+
+### Macros ###
+
+For output formats other than LaTeX, pandoc will parse LaTeX `\newcommand` and
+`\renewcommand` definitions and apply the resulting macros to all LaTeX
+math.  So, for example, the following will work in all output formats,
+not just LaTeX:
+
+    \newcommand{\tuple}[1]{\langle #1 \rangle}
+
+    $\tuple{a, b, c}$
+
+In LaTeX output, the `\newcommand` definition will simply be passed
+unchanged to the output.
+
+
 Links
 -----
 
-TODO
+Markdown allows links to be specified in several ways.
 
-Pandoc allows implicit reference links with just a single set of
-brackets.  So, the following links are equivalent:
+### Automatic links ###
 
-    1. Here's my [link]
-    2. Here's my [link][]
+If you enclose a URL or email address in pointy brackets, it
+will become a link:
 
-    [link]: linky.com
+    <http://google.com>
+    <sam@green.eggs.ham>
 
-(Note:  Pandoc works this way even if `--strict` is specified, because
-`Markdown.pl` 1.0.2b7 allows single-bracket links.)
+
+### Inline links ###
+
+An inline link consists of the link text in square brackets,
+followed by the URL in parentheses. (Optionally, the URL can
+be followed by a link title, in quotes.)
+
+    This is an [inline link](/url), and here's [one with
+    a title](http://fsf.org "click here for a good time!").
+
+There can be no space between the bracketed part and the parenthesized part.
+The link text can contain formatting (such as emphasis), but the title cannot.
+
+
+### Reference links ###
+
+An *explicit* reference link has two parts, the link itself and the link
+definition, which may occur elsewhere in the document (either
+before or after the link).
+
+The link consists of link text in square brackets, followed by a label in
+square brackets. (There can be space between the two.) The link definition
+must begin at the left margin or indented no more than three spaces. It
+consists of the bracketed label, followed by a colon and a space, followed by
+the URL, and optionally (after a space) a link title either in quotes or in
+parentheses.
+
+Here are some examples:
+
+    [my label 1]: /foo/bar.html  "My title, optional"
+    [my label 2]: /foo
+    [my label 3]: http://fsf.org (The free software foundation)
+    [my label 4]: /bar#special  'A title in single quotes'
+
+The URL may optionally be surrounded by angle brackets:
+
+    [my label 5]: <http://foo.bar.baz>
+
+The title may go on the next line:
+
+    [my label 3]: http://fsf.org
+      "The free software foundation"
+
+Note that link labels are not case sensitive.  So, this will work:
+
+    Here is [my link][FOO]
+
+    [Foo]: /bar/baz
+
+In an *implicit* reference link, the second pair of brackets is
+empty, or omitted entirely:
+
+    See [my website][], or [my website].
+
+    [my website]: http://foo.bar.baz
 
 
 Images
@@ -1561,6 +1667,8 @@ The link text will be used as the image's alt text:
     ![movie reel]
 
     [movie reel]: movie.gif
+
+### Pictures with captions ###
 
 *Pandoc extension*.
 
