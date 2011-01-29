@@ -329,7 +329,7 @@ Executable markdown2pdf
     Buildable:        False
 
 Executable test-pandoc
-  Hs-Source-Dirs:     tests, src
+  Hs-Source-Dirs:     src
   Main-Is:            test-pandoc.hs
   if flag(highlighting)
     cpp-options:      -D_HIGHLIGHTING
