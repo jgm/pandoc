@@ -1,6 +1,6 @@
 % MARKDOWN2PDF(1) Pandoc User Manuals
 % John MacFarlane, Paulo Tanimoto, and Recai Oktas
-% January 8, 2008
+% January 29, 2011
 
 # NAME
 
