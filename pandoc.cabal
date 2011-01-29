@@ -355,6 +355,7 @@ Executable test-pandoc
     Other-Modules:    Tests.Old
                       Tests.Helpers
                       Tests.Arbitrary
+                      Tests.Shared
                       Tests.Readers.LaTeX
                       Tests.Readers.Markdown
                       Tests.Readers.RST

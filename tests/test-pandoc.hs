@@ -10,9 +10,11 @@ import qualified Tests.Readers.Markdown
 import qualified Tests.Readers.RST
 import qualified Tests.Writers.ConTeXt
 import qualified Tests.Writers.Native
+import qualified Tests.Shared
 
 tests :: [Test]
 tests = [ testGroup "Old" Tests.Old.tests
+        , testGroup "Shared" Tests.Shared.tests
         , testGroup "Writers"
           [ testGroup "Native" Tests.Writers.Native.tests
           , testGroup "ConTeXt" Tests.Writers.ConTeXt.tests
