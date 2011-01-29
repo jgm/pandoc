@@ -81,7 +81,6 @@ tests = [ testGroup "markdown"
             , lhsReaderTest "latex+lhs"
             ]
           , latexCitationTests "biblatex"
-          , latexCitationTests "natbib"
           ]
         , testGroup "html"
           [ testGroup "writer" (writerTests "html" ++ lhsWriterTests "html")
