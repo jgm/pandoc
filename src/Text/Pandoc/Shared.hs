@@ -257,10 +257,10 @@ normalizeSpaces = cleanup . dropWhile isSpaceOrEmpty
 -- | Normalize @Pandoc@ document, consolidating doubled 'Space's,
 -- combining adjacent 'Str's and 'Emph's, remove 'Null's and
 -- empty elements, etc.
-normalize :: Data a => a -> a
-normalize = topDown consolidateInlines .
-            bottomUp removeEmptyInlines .
-            topDown removeEmptyBlocks
+normalize :: (Eq a, Data a) => a -> a
+normalize = topDown removeEmptyBlocks .
+            topDown consolidateInlines .
+            bottomUp removeEmptyInlines
 
 removeEmptyBlocks :: [Block] -> [Block]
 removeEmptyBlocks (Null : xs) = removeEmptyBlocks xs
@@ -280,6 +280,7 @@ removeEmptyInlines (SmallCaps [] : zs) = removeEmptyInlines zs
 removeEmptyInlines (Strikeout [] : zs) = removeEmptyInlines zs
 removeEmptyInlines (RawInline _ [] : zs) = removeEmptyInlines zs
 removeEmptyInlines (Code _ [] : zs) = removeEmptyInlines zs
+removeEmptyInlines (Str "" : zs) = removeEmptyInlines zs
 removeEmptyInlines (x : xs) = x : removeEmptyInlines xs
 removeEmptyInlines [] = []
 
