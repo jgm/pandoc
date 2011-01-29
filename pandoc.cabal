@@ -94,7 +94,6 @@ Extra-Source-Files:
                  tests/mhra.csl,
                  tests/latex-reader.latex,
                  tests/latex-reader.native,
-                 tests/biblatex-citations.latex,
                  tests/textile-reader.textile,
                  tests/textile-reader.native,
                  tests/markdown-reader-more.txt,

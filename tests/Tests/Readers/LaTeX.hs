@@ -104,6 +104,49 @@ natbibCitations = testGroup "natbib"
 
 biblatexCitations :: Test
 biblatexCitations = testGroup "biblatex"
-  [ 
+  [ "textcite" =: "\\textcite{item1}"
+    =?> para (cite [baseCitation] empty)
+  , "suffix" =: "\\textcite[p.~30]{item1}"
+    =?> para
+        (cite [baseCitation{ citationSuffix = toList $ text "p.\160\&30" }] empty)
+  , "suffix long" =: "\\textcite[p.~30, with suffix]{item1}"
+    =?> para (cite [baseCitation{ citationSuffix =
+                       toList $ text "p.\160\&30, with suffix" }] empty)
+  , "multiple" =: "\\textcites{item1}[p.~30]{item2}[see also][]{item3}"
+    =?> para (cite [baseCitation{ citationMode = AuthorInText }
+                   ,baseCitation{ citationMode = NormalCitation
+                                , citationSuffix = [Str "p.\160\&30"]
+                                , citationId = "item2" }
+                   ,baseCitation{ citationId = "item3"
+                                , citationPrefix = [Str "see",Space,Str "also"]
+                                , citationMode = NormalCitation }
+                   ] empty)
+  , "group" =: "\\autocites[see][p.~34--35]{item1}[also][chap. 3]{item3}"
+    =?> para (cite [baseCitation{ citationMode = NormalCitation
+                                , citationPrefix = [Str "see"]
+                                , citationSuffix = [Str "p.\160\&34",EnDash,Str "35"] }
+                   ,baseCitation{ citationMode = NormalCitation
+                                , citationId = "item3"
+                                , citationPrefix = [Str "also"]
+                                , citationSuffix = [Str "chap.",Space,Str "3"] }
+                   ] empty)
+  , "suffix and locator" =: "\\autocite[pp.~33, 35--37, and nowhere else]{item1}"
+    =?> para (cite [baseCitation{ citationMode = NormalCitation
+                                , citationSuffix = [Str "pp.\160\&33,",Space,Str "35",EnDash,Str "37,",Space,Str "and",Space,Str "nowhere",Space, Str "else"] }] empty)
+  , "suffix only" =: "\\autocite[and nowhere else]{item1}"
+    =?> para (cite [baseCitation{ citationMode = NormalCitation
+                                , citationSuffix = toList $ text "and nowhere else" }] empty)
+  , "no author" =: "\\autocite*{item1}, and now Doe with a locator \\autocite*[p.~44]{item2}"
+    =?> para (cite [baseCitation{ citationMode = SuppressAuthor }] empty +++
+              text ", and now Doe with a locator " +++
+              cite [baseCitation{ citationMode = SuppressAuthor
+                                , citationSuffix = [Str "p.\160\&44"]
+                                , citationId = "item2" }] empty)
+  , "markup" =: "\\autocite[\\emph{see}][p. \\textbf{32}]{item1}"
+    =?> para (cite [baseCitation{ citationMode = NormalCitation
+                                , citationPrefix = [Emph [Str "see"]]
+                                , citationSuffix = [Str "p.",Space,
+                                    Strong [Str "32"]] }] empty)
+  , "parencite" =: "\\parencite{item1}"
+    =?> para (cite [baseCitation{ citationMode = NormalCitation }] empty)
   ]
-
