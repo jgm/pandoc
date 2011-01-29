@@ -79,17 +79,19 @@ capitalize x = x
 
 removeSect :: [Inline] -> [Block] -> [Block]
 removeSect ils (Header 1 x:xs) | normalize x == normalize ils =
-  dropWhile notLevelOneHeader xs
-    where notLevelOneHeader (Header 1 _) = False
-          notLevelOneHeader _ = True
+  dropWhile (not . isHeader1) xs
 removeSect ils (x:xs) = x : removeSect ils xs
 removeSect _ [] = []
 
 extractSect :: [Inline] -> [Block] -> [Block]
-extractSect ils (Header 1 x:xs) | normalize x == normalize ils =
-  bottomUp promoteHeader xs
+extractSect ils (Header 1 z:xs) | normalize z == normalize ils =
+  bottomUp promoteHeader $ takeWhile (not . isHeader1) xs
     where promoteHeader (Header n x) = Header (n-1) x
           promoteHeader x            = x
 extractSect ils (x:xs) = extractSect ils xs
 extractSect _ [] = []
+
+isHeader1 :: Block -> Bool
+isHeader1 (Header 1 _) = True
+isHeader1 _            = False
 
