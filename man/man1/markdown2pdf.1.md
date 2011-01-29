@@ -48,6 +48,9 @@ packages are not included in your latex setup, they can be obtained from
 -N, \--number-sections
 :   Number section headings in LaTeX output.  (Default is not to number them.)
 
+\--listings
+:   Use listings package for LaTeX code blocks
+
 \--template=*FILE*
 :   Use *FILE* as a custom template for the generated document. Implies
     `-s`. See the section TEMPLATES in `pandoc`(1) for information about

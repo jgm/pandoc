@@ -155,7 +155,7 @@ main = bracket
                    "--include-before-body","--include-after-body",
                    "--custom-header","--output",
                    "--template", "--variable",
-                   "--csl", "--bibliography", "--data-dir"]
+                   "--csl", "--bibliography", "--data-dir", "--listings"]
     let isOpt ('-':_) = True
         isOpt _       = False
     let opts = filter isOpt args
