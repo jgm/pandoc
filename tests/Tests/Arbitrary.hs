@@ -13,8 +13,10 @@ import Text.Pandoc.Builder
 realString :: Gen String
 realString = resize 8 arbitrary -- elements wordlist
 
+{-
 wordlist :: [String]
 wordlist = ["foo","Bar","baz","\\","/",":","\"","'","féé"]
+-}
 
 instance Arbitrary Inlines where
   arbitrary = liftM fromList arbitrary
@@ -80,9 +82,9 @@ arbBlock n = frequency $ [ (10, liftM Plain arbitrary)
                          ] ++ [x | x <- nesters, n > 0]
    where nesters = [ (5,  liftM BlockQuote $ listOf $ arbBlock (n-1))
                    , (5,  liftM2 OrderedList arbitrary
-                          $ (listOf $ listOf $ arbBlock (n-1)))
-                   , (5,  liftM BulletList $ (listOf $ listOf $ arbBlock (n-1)))
-                   , (5,  do x1 <- listOf $ listOf $ listOf $ arbBlock (n-1)
+                          $ (listOf1 $ listOf1 $ arbBlock (n-1)))
+                   , (5,  liftM BulletList $ (listOf1 $ listOf1 $ arbBlock (n-1)))
+                   , (5,  do x1 <- listOf $ listOf1 $ listOf1 $ arbBlock (n-1)
                              x2 <- arbitrary
                              return (DefinitionList $ zip x2 x1))
                    , (2, do rs <- choose (1 :: Int, 4)
