@@ -806,18 +806,93 @@ Lists
 
 ### Bullet lists ###
 
-TODO
+A bullet list is a list of bulleted list items.  A bulleted list
+item begins with a bullet (`*`, `+`, or `-`).  Here is a simple
+example:
 
-TODO - rules for tight and loose
+    * one
+    * two
+    * three
+
+This will produce a "compact" list. If you want a "loose" list, in which
+each item is formatted as a paragraph, put spaces between the items:
+
+    * one
+
+    * two
+
+    * three
+
+The bullets need not be flush with the left margin; they may be
+indented one, two, or three spaces. The bullet must be followed
+by whitespace.
+
+A list item may contain multiple paragraphs and other block-level
+content.  Subsequent paragraphs must be preceded by a blank line
+and indented four spaces or a tab.  The list will look better if
+the first paragraph is aligned with the rest:
+
+      * First paragraph.
+
+        Continued.
+
+      * Second paragraph. With a code block, which must be indented
+        eight spaces:
+
+            { code }
+
+List items may include other lists.  In this case the preceding blank
+line is optional.  The nested list must be indented four spaces or
+one tab:
+
+    * fruits
+        + apples
+            - macintosh
+            - red delicious
+        + pears
+        + peaches
+    * vegetables
+        + brocolli
+        + chard
+
+Markdown allows you to write list items "lazily," instead of
+indenting continuation lines.  However, if there are multiple paragraphs
+or other blocks in a list item, the first line of each must be indented.
+
+    + A lazy, lazy, list
+    item.
+
+    + Another one; this looks
+    bad but is legal.
+
+        Second paragraph of second
+    list item.
+
 
 ### Ordered lists ###
 
-TODO - basic description
+Ordered lists work just like bulleted lists, except that the items
+begin with enumerators rather than bullets.
+
+In standard markdown, enumerators are decimal numbers followed
+by a period and a space.  The numbers themselves are ignored, so
+there is no difference between this list:
+
+    1.  one
+    2.  two
+    3.  three
+
+and this one:
+
+    5.  one
+    7.  two
+    1.  three
+
+*Pandoc extension*.
 
 Unlike standard markdown, Pandoc allows ordered list items to be marked
 with uppercase and lowercase letters and roman numerals, in addition to
-arabic numerals. (This behavior can be turned off using the `--strict`
-option.) List markers may be enclosed in parentheses or followed by a
+arabic numerals. List markers may be enclosed in parentheses or followed by a
 single right-parentheses or period. They must be separated from the
 text that follows by at least one space, and, if the list marker is a
 capital letter with a period, by at least two spaces.[^2]
@@ -937,18 +1012,18 @@ The label can be any string of alphanumeric characters, underscores,
 or hyphens.
 
 
-### Nested lists ###
+### Compact and loose lists ###
 
-Pandoc behaves differently from standard markdown on some "edge
+Pandoc behaves differently from `Markdown.pl` on some "edge
 cases" involving lists.  Consider this source: 
 
-    1.  First
-    2.  Second:
+    +   First
+    +   Second:
     	-   Fee
     	-   Fie
     	-   Foe
 
-    3.  Third
+    +   Third
 
 Pandoc transforms this into a "compact list" (with no `<p>` tags around
 "First", "Second", or "Third"), while markdown puts `<p>` tags around
@@ -960,6 +1035,44 @@ fact that the list is followed by a blank line is irrelevant. (Note:
 Pandoc works this way even when the `--strict` option is specified. This
 behavior is consistent with the official markdown syntax description,
 even though it is different from that of `Markdown.pl`.)
+
+
+### Ending a list ###
+
+What if you want to put an indented code block after a list?
+
+    -   item one
+    -   item two
+
+        { my code block }
+
+Trouble! Here pandoc (like other markdown implementations) will treat
+`{ my code block }` as the second paragraph of item two, and not as
+a code block.
+
+To "cut off" the list after item two, you can insert some non-indented
+content, like an HTML comment, which won't produce visible output in
+any format:
+
+    -   item one
+    -   item two
+
+    <!-- end of list -->
+
+        { my code block }
+
+You can use the same trick if you want two consecutive lists instead
+of one big list:
+
+    1.  one
+    2.  two
+    3.  three
+
+    <!-- -->
+
+    a.  uno
+    b.  dos
+    c.  très
 
 
 Horizontal rules
