@@ -558,88 +558,235 @@ noting differences from standard markdown. Except where noted, these
 differences can be suppressed by specifying the `--strict` command-line
 option.
 
-Backslash escapes
------------------
+Gruber designed markdown to be easy to write, and, even more importantly,
+easy to read:
 
-Except inside a code block or inline code, any punctuation or space
-character preceded by a backslash will be treated literally, even if it
-would normally indicate formatting.  Thus, for example, if one writes
+> A Markdown-formatted document should be publishable as-is, as plain
+> text, without looking like it's been marked up with tags or formatting
+> instructions.
+> -- [John Gruber](http://daringfireball.net/projects/markdown/syntax#philosophy)
 
-    *\*hello\**
+This principle has guided pandoc's decisions in finding syntax for
+tables, footnotes, and other extensions.
 
-one will get
+There is, however, one respect in which pandoc's aims are different
+from the original aims of markdown.  Whereas markdown was originally
+designed with HTML generation in mind, pandoc is designed for multiple
+output formats.  Thus, while pandoc allows the embedding of raw HTML,
+it discourages it, and provides other, non-HTMLish ways of representing
+important document elements like definition lists, tables, mathematics, and
+footnotes.
 
-    <em>*hello*</em>
+Paragraphs
+----------
 
-instead of
+A paragraph is one or more lines of text followed by one or more blank line.
+Newlines are treated as spaces, so you can reflow your paragraphs as you like.
+If you need a hard line break, put two or more spaces at the end of a line,
+or or type a backslash followed by a newline.
 
-    <strong>hello</strong>
+Headers
+-------
 
-This rule is easier to remember than standard markdown's rule,
-which allows only the following characters to be backslash-escaped:
+There are two kinds of headers, Setext and atx.
 
-    \`*_{}[]()>#+-.!
+### Setext-style headers ###
 
-A backslash-escaped space is parsed as a nonbreaking space.  It will
-appear in TeX output as `~` and in HTML and XML as `\&#160;` or
-`\&nbsp;`.
+A setext-style header is a line of text "underlined" with a row of `=` signs
+(for a level one header) of `-` signs (for a level two header):
 
-A backslash-escaped newline (i.e. a backslash occurring at the end of
-a line) is parsed as a hard line break.  It will appear in TeX output as
-`\\` and in HTML as `<br />`.  This is a nice alternative to
-markdown's "invisible" way of indicating hard line breaks using
-two trailing spaces on a line.
+    A level-one header
+    ==================
 
-Subscripts and superscripts
----------------------------
+    A level-two header
+    ------------------
 
-Superscripts may be written by surrounding the superscripted text by `^`
-characters; subscripts may be written by surrounding the subscripted
-text by `~` characters.  Thus, for example,
+The header text can contain inline formatting, such as emphasis (see
+[Inline formatting](#inline-formatting), below).
 
-    H~2~O is a liquid.  2^10^ is 1024.
 
-If the superscripted or subscripted text contains spaces, these spaces
-must be escaped with backslashes.  (This is to prevent accidental
-superscripting and subscripting through the ordinary use of `~` and `^`.)
-Thus, if you want the letter P with 'a cat' in subscripts, use
-`P~a\ cat~`, not `P~a cat~`.
+### Atx-style headers ###
 
-Strikeout
----------
+An Atx-style header consists of one to six `#` signs and a line of
+text, optionally followed by any number of `#` signs.  The number of
+`#` signs at the beginning of the line is the header level:
 
-To strikeout a section of text with a horizontal line, begin and end it
-with `~~`. Thus, for example,
+    ## A level-two header
 
-    This ~~is deleted text.~~
+    ### A level-three header ###
 
-Nested Lists
-------------
+As with setext-style headers, the header text can contain formatting:
 
-Pandoc behaves differently from standard markdown on some "edge
-cases" involving lists.  Consider this source: 
+    # A level-one header with a [link](/url) and *emphasis*
 
-    1.  First
-    2.  Second:
-    	-   Fee
-    	-   Fie
-    	-   Foe
 
-    3.  Third
+### Header identifiers in HTML ###
 
-Pandoc transforms this into a "compact list" (with no `<p>` tags around
-"First", "Second", or "Third"), while markdown puts `<p>` tags around
-"Second" and "Third" (but not "First"), because of the blank space
-around "Third". Pandoc follows a simple rule: if the text is followed by
-a blank line, it is treated as a paragraph. Since "Second" is followed
-by a list, and not a blank line, it isn't treated as a paragraph. The
-fact that the list is followed by a blank line is irrelevant. (Note:
-Pandoc works this way even when the `--strict` option is specified. This
-behavior is consistent with the official markdown syntax description,
-even though it is different from that of `Markdown.pl`.)
+*Pandoc extension*.
 
-Ordered Lists
--------------
+Each header element in pandoc's HTML output is given a unique
+identifier. This identifier is based on the text of the header. To
+derive the identifier from the header text,
+
+  - Remove all formatting, links, etc.
+  - Remove all punctuation, except underscores, hyphens, and periods.
+  - Replace all spaces and newlines with hyphens.
+  - Convert all alphabetic characters to lowercase.
+  - Remove everything up to the first letter (identifiers may
+    not begin with a number or punctuation mark).
+  - If nothing is left after this, use the identifier `section`.
+
+Thus, for example,
+
+  Header                            Identifier
+  -------------------------------   ----------------------------
+  Header identifiers in HTML        `header-identifiers-in-html`
+  *Dogs*?--in *my* house?           `dogs--in-my-house`
+  [HTML], [S5], or [RTF]?           `html-s5-or-rtf`
+  3. Applications                   `applications`
+  33                                `section`
+
+These rules should, in most cases, allow one to determine the identifier
+from the header text. The exception is when several headers have the
+same text; in this case, the first will get an identifier as described
+above; the second will get the same identifier with `-1` appended; the
+third with `-2`; and so on.
+
+These identifiers are used to provide link targets in the table of
+contents generated by the `--toc|--table-of-contents` option. They
+also make it easy to provide links from one section of a document to
+another. A link to this section, for example, might look like this:
+
+    See the section on [header identifiers](#header-identifiers-in-html). 
+
+Note, however, that this method of providing links to sections works
+only in HTML.
+
+If the `--section-divs` option is specified, then each section will
+be wrapped in a `div` (or a `section`, if `--html5` was specified),
+and the identifier will be attached to the enclosing `<div>`
+(or `<section>`) tag rather than the header itself. This allows entire
+sections to be manipulated using javascript or treated differently in
+CSS.
+
+
+Block quotations
+----------------
+
+Markdown uses email conventions for quoting blocks of text.
+A block quotation is one or more paragraphs or other block elements
+(such as lists or headers), with each line preceded by a `>` character
+and a space. (The `>` need not start at the left margin, but it should
+not be indented more than three spaces.)
+
+    > This is a block quote. This
+    > paragraph has two lines.
+    >
+    > 1. This is a list inside a block quote.
+    > 2. Second item.
+
+A "lazy" form, which requires the `>` character only on the first
+line of each block, is also allowed:
+
+    > This is a block quote. This
+    paragraph has two lines.
+
+    > 1. This is a list inside a block quote.
+    2. Second item.
+
+Among the block elements that can be contained in a block quote are
+other block quotes. That is, block quotes can be nested:
+
+    > This is a block quote.
+    >
+    > > A block quote within a block quote.
+
+
+*** TODO: decide whether pandoc should require a blank
+line btw nested ***
+
+Standard markdown syntax does not require a blank line before a header
+or blockquote.  Pandoc does require this (except, of course, at the
+beginning of the document). The reason for the requirement is that
+it is all too easy for a `>` or `#` to end up at the beginning of a
+line by accident (perhaps through line wrapping).  Consider, for
+example:
+
+    I like several of their flavors of ice cream:
+    #22, for example, and #5.
+
+
+Verbatim (code) blocks
+----------------------
+
+### Indented code blocks ###
+
+TODO
+
+
+### Delimited code blocks ###
+
+*Pandoc extension*.
+
+In addition to standard indented code blocks, Pandoc supports
+*delimited* code blocks.  These begin with a row of three or more
+tildes (`~`) and end with a row of tildes that must be at least
+as long as the starting row.  Everything between the tilde-lines
+is treated as code.  No indentation is necessary:
+
+    ~~~~~~~
+    {code here}
+    ~~~~~~~
+
+Like regular code blocks, delimited code blocks must be separated
+from surrounding text by blank lines.
+
+If the code itself contains a row of tildes, just use a longer
+row of tildes at the start and end:
+
+    ~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~
+    code including tildes
+    ~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~
+
+Optionally, you may specify the language of the code block using
+this syntax:
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell .numberLines}
+    qsort []     = []
+    qsort (x:xs) = qsort (filter (< x) xs) ++ [x] ++
+                   qsort (filter (>= x) xs) 
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some output formats can use this information to do syntax highlighting.
+Currently, the only output format that uses this information is HTML.
+
+If pandoc has been compiled with syntax highlighting support, then the
+code block above will appear highlighted, with numbered lines.  (To see
+which languages are supported, do `pandoc --version`.)
+
+If pandoc has not been compiled with syntax highlighting support, the
+code block above will appear as follows:
+
+    <pre class="haskell">
+      <code>
+      ...
+      </code>
+    </pre>
+
+
+Lists
+-----
+
+### Bullet lists ###
+
+TODO
+
+
+### Ordered lists ###
+
+TODO - basic description
 
 Unlike standard markdown, Pandoc allows ordered list items to be marked
 with uppercase and lowercase letters and roman numerals, in addition to
@@ -692,34 +839,10 @@ If default list markers are desired, use `#.`:
     #.  two
     #.  three
 
-Numbered examples
------------------
 
-The special list marker `@` can be used for sequentially numbered
-examples. The first list item with a `@` marker will be numbered '1',
-the next '2', and so on, throughout the document. The numbered examples
-need not occur in a single list; each new list using `@` will take up
-where the last stopped. So, for example:
+### Definition lists ###
 
-    (@)  My first example will be numbered (1).
-    (@)  My second example will be numbered (2).
-
-    Explanation of examples.
-
-    (@)  My third example will be numbered (3).
-
-Numbered examples can be labeled and referred to elsewhere in the
-document:
-
-    (@good)  This is a good example.
-
-    As (@good) illustrates, ...
-
-The label can be any string of alphanumeric characters, underscores,
-or hyphens.
-
-Definition lists
-----------------
+*Pandoc extension*.
 
 Pandoc supports definition lists, using a syntax inspired by
 [PHP Markdown Extra] and [reStructuredText]:[^3]
@@ -759,62 +882,70 @@ definition and the next term:
 
 [PHP Markdown Extra]: http://www.michelf.com/projects/php-markdown/extra/
 
-Reference links
----------------
 
-Pandoc allows implicit reference links with just a single set of
-brackets.  So, the following links are equivalent:
+### Numbered example lists ###
 
-    1. Here's my [link]
-    2. Here's my [link][]
+*Pandoc extension*.
 
-    [link]: linky.com
+The special list marker `@` can be used for sequentially numbered
+examples. The first list item with a `@` marker will be numbered '1',
+the next '2', and so on, throughout the document. The numbered examples
+need not occur in a single list; each new list using `@` will take up
+where the last stopped. So, for example:
 
-(Note:  Pandoc works this way even if `--strict` is specified, because
-`Markdown.pl` 1.0.2b7 allows single-bracket links.)
+    (@)  My first example will be numbered (1).
+    (@)  My second example will be numbered (2).
 
-Footnotes
----------
+    Explanation of examples.
 
-Pandoc's markdown allows footnotes, using the following syntax:
+    (@)  My third example will be numbered (3).
 
-    Here is a footnote reference,[^1] and another.[^longnote]
+Numbered examples can be labeled and referred to elsewhere in the
+document:
 
-    [^1]: Here is the footnote.
+    (@good)  This is a good example.
 
-    [^longnote]: Here's one with multiple blocks.
+    As (@good) illustrates, ...
 
-        Subsequent paragraphs are indented to show that they 
-    belong to the previous footnote.
+The label can be any string of alphanumeric characters, underscores,
+or hyphens.
 
-            { some.code }
 
-        The whole paragraph can be indented, or just the first
-        line.  In this way, multi-paragraph footnotes work like
-        multi-paragraph list items.
+### Nested lists ###
 
-    This paragraph won't be part of the note, because it isn't indented.
+Pandoc behaves differently from standard markdown on some "edge
+cases" involving lists.  Consider this source: 
 
-The identifiers in footnote references may not contain spaces, tabs,
-or newlines.  These identifiers are used only to correlate the
-footnote reference with the note itself; in the output, footnotes
-will be numbered sequentially.
+    1.  First
+    2.  Second:
+    	-   Fee
+    	-   Fie
+    	-   Foe
 
-The footnotes themselves need not be placed at the end of the
-document.  They may appear anywhere except inside other block elements
-(lists, block quotes, tables, etc.).
+    3.  Third
 
-Inline footnotes are also allowed (though, unlike regular notes,
-they cannot contain multiple paragraphs).  The syntax is as follows:
+Pandoc transforms this into a "compact list" (with no `<p>` tags around
+"First", "Second", or "Third"), while markdown puts `<p>` tags around
+"Second" and "Third" (but not "First"), because of the blank space
+around "Third". Pandoc follows a simple rule: if the text is followed by
+a blank line, it is treated as a paragraph. Since "Second" is followed
+by a list, and not a blank line, it isn't treated as a paragraph. The
+fact that the list is followed by a blank line is irrelevant. (Note:
+Pandoc works this way even when the `--strict` option is specified. This
+behavior is consistent with the official markdown syntax description,
+even though it is different from that of `Markdown.pl`.)
 
-    Here is an inline note.^[Inlines notes are easier to write, since
-    you don't have to pick an identifier and move down to type the
-    note.]
 
-Inline and regular footnotes may be mixed freely.
+Horizontal rules
+----------------
+
+TODO
+
 
 Tables
 ------
+
+*Pandoc extension*.
 
 Three kinds of tables may be used. All three kinds presuppose the use of
 a fixed-width font, such as Courier.
@@ -934,79 +1065,11 @@ columns or rows. Grid tables can be created easily using [Emacs table mode].
 
   [Emacs table mode]: http://table.sourceforge.net/
 
-Delimited Code blocks
----------------------
 
-In addition to standard indented code blocks, Pandoc supports
-*delimited* code blocks.  These begin with a row of three or more
-tildes (`~`) and end with a row of tildes that must be at least
-as long as the starting row.  Everything between the tilde-lines
-is treated as code.  No indentation is necessary:
+Title block
+-----------
 
-    ~~~~~~~
-    {code here}
-    ~~~~~~~
-
-Like regular code blocks, delimited code blocks must be separated
-from surrounding text by blank lines.
-
-If the code itself contains a row of tildes, just use a longer
-row of tildes at the start and end:
-
-    ~~~~~~~~~~~~~~~~
-    ~~~~~~~~~~
-    code including tildes
-    ~~~~~~~~~~
-    ~~~~~~~~~~~~~~~~
-
-Optionally, you may specify the language of the code block using
-this syntax:
-
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell .numberLines}
-    qsort []     = []
-    qsort (x:xs) = qsort (filter (< x) xs) ++ [x] ++
-                   qsort (filter (>= x) xs) 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Some output formats can use this information to do syntax highlighting.
-Currently, the only output format that uses this information is HTML.
-
-If pandoc has been compiled with syntax highlighting support, then the
-code block above will appear highlighted, with numbered lines.  (To see
-which languages are supported, do `pandoc --version`.)
-
-If pandoc has not been compiled with syntax highlighting support, the
-code block above will appear as follows:
-
-    <pre class="haskell">
-      <code>
-      ...
-      </code>
-    </pre>
-
-Images with captions
---------------------
-
-An image occurring by itself in a paragraph will be rendered as
-a figure with a caption.[^5] (In LaTeX, a figure environment will be
-used; in HTML, the image will be placed in a `div` with class
-`figure`, together with a caption in a `p` with class `caption`.)
-The image's alt text will be used as the caption.
-
-    ![This is the caption](/url/of/image.png)
-
-[^5]: This feature is not yet implemented for RTF, OpenDocument, or
-    ODT. In those formats, you'll just get an image in a paragraph by
-    itself, with no caption.
-
-If you just want a regular inline image, just make sure it is not
-the only thing in the paragraph. One way to do this is to insert a
-nonbreaking space after the image:
-
-    ![This image won't be a figure](/url/of/image.png)\ 
-
-Title blocks
-------------
+*Pandoc extension*.
 
 If the file begins with a title block
 
@@ -1082,113 +1145,108 @@ will also have "Pandoc User Manuals" in the footer.
 
 will also have "Version 4.0" in the header.
 
-Markdown in HTML blocks
------------------------
 
-While standard markdown leaves HTML blocks exactly as they are, Pandoc
-treats text between HTML tags as markdown. Thus, for example, Pandoc
-will turn
+Backslash escapes
+-----------------
 
-    <table>
-    	<tr>
-    		<td>*one*</td>
-    		<td>[a link](http://google.com)</td>
-    	</tr>
-    </table>
+Except inside a code block or inline code, any punctuation or space
+character preceded by a backslash will be treated literally, even if it
+would normally indicate formatting.  Thus, for example, if one writes
 
-into
+    *\*hello\**
 
-    <table>
-    	<tr>
-    		<td><em>one</em></td>
-    		<td><a href="http://google.com">a link</a></td>
-    	</tr>
-    </table>
+one will get
 
-whereas `Markdown.pl` will preserve it as is.
+    <em>*hello*</em>
 
-There is one exception to this rule:  text between `<script>` and
-`</script>` tags is not interpreted as markdown.
+instead of
 
-This departure from standard markdown should make it easier to mix
-markdown with HTML block elements.  For example, one can surround
-a block of markdown text with `<div>` tags without preventing it
-from being interpreted as markdown.
+    <strong>hello</strong>
 
-Header identifiers in HTML
---------------------------
+This rule is easier to remember than standard markdown's rule,
+which allows only the following characters to be backslash-escaped:
 
-Each header element in pandoc's HTML output is given a unique
-identifier. This identifier is based on the text of the header. To
-derive the identifier from the header text,
+    \`*_{}[]()>#+-.!
 
-  - Remove all formatting, links, etc.
-  - Remove all punctuation, except underscores, hyphens, and periods.
-  - Replace all spaces and newlines with hyphens.
-  - Convert all alphabetic characters to lowercase.
-  - Remove everything up to the first letter (identifiers may
-    not begin with a number or punctuation mark).
-  - If nothing is left after this, use the identifier `section`.
+(However, if the `--strict` option is supplied, the standard
+markdown rule will be used.)
 
-Thus, for example,
+A backslash-escaped space is parsed as a nonbreaking space.  It will
+appear in TeX output as `~` and in HTML and XML as `\&#160;` or
+`\&nbsp;`.
 
-  Header                                  Identifier
-  -------------------------------------   ----------------------------
-  Header identifiers in HTML              `header-identifiers-in-html`
-  *Dogs*?--in *my* house?                 `dogs--in-my-house`
-  [HTML], [S5], or [RTF]?                 `html-s5-or-rtf`
-  3. Applications                         `applications`
-  33                                      `section`
+A backslash-escaped newline (i.e. a backslash occurring at the end of
+a line) is parsed as a hard line break.  It will appear in TeX output as
+`\\` and in HTML as `<br />`.  This is a nice alternative to
+markdown's "invisible" way of indicating hard line breaks using
+two trailing spaces on a line.
 
-These rules should, in most cases, allow one to determine the identifier
-from the header text. The exception is when several headers have the
-same text; in this case, the first will get an identifier as described
-above; the second will get the same identifier with `-1` appended; the
-third with `-2`; and so on.
+Smart punctuation
+-----------------
 
-These identifiers are used to provide link targets in the table of
-contents generated by the `--toc|--table-of-contents` option. They
-also make it easy to provide links from one section of a document to
-another. A link to this section, for example, might look like this:
+If the `--smart` option is specified, pandoc will produce typographically
+correct output, converting straight quotes to curly quotes, `---` and `--`
+to Em-dashes, and `...` to ellipses. Nonbreaking spaces are inserted after
+certain abbreviations, such as "Mr."
 
-    See the section on [header identifiers](#header-identifiers-in-html). 
+Inline formatting
+-----------------
 
-Note, however, that this method of providing links to sections works
-only in HTML.
+### Emphasis ###
 
-If the `--section-divs` option is specified, then each section will
-be wrapped in a `div` (or a `section`, if `--html5` was specified),
-and the identifier will be attached to the enclosing `<div>`
-(or `<section>`) tag rather than the header itself. This allows entire
-sections to be manipulated using javascript or treated differently in
-CSS.
+TODO
 
-Blank lines before headers and blockquotes
-------------------------------------------
+inc strong
 
-Standard markdown syntax does not require a blank line before a header
-or blockquote.  Pandoc does require this (except, of course, at the
-beginning of the document). The reason for the requirement is that
-it is all too easy for a `>` or `#` to end up at the beginning of a
-line by accident (perhaps through line wrapping).  Consider, for
-example:
 
-    I like several of their flavors of ice cream:
-    #22, for example, and #5.
+### Strikeout ###
+
+*Pandoc extension*.
+
+To strikeout a section of text with a horizontal line, begin and end it
+with `~~`. Thus, for example,
+
+    This ~~is deleted text.~~
+
+
+### Superscripts and subscripts ###
+
+*Pandoc extension*.
+
+Superscripts may be written by surrounding the superscripted text by `^`
+characters; subscripts may be written by surrounding the subscripted
+text by `~` characters.  Thus, for example,
+
+    H~2~O is a liquid.  2^10^ is 1024.
+
+If the superscripted or subscripted text contains spaces, these spaces
+must be escaped with backslashes.  (This is to prevent accidental
+superscripting and subscripting through the ordinary use of `~` and `^`.)
+Thus, if you want the letter P with 'a cat' in subscripts, use
+`P~a\ cat~`, not `P~a cat~`.
+
+
+### Verbatim ###
+
+TODO
+(w/ attrs)
+
 
 Math
 ----
 
-Anything between two $ characters will be treated as TeX math.  The
-opening $ must have a character immediately to its right, while the
-closing $ must have a character immediately to its left.  Thus,
+*Pandoc extension*.
+
+Anything between two `$` characters will be treated as TeX math.  The
+opening `$` must have a character immediately to its right, while the
+closing `$` must have a character immediately to its left.  Thus,
 `$20,000 and $30,000` won't parse as math.  If for some reason
-you need to enclose text in literal $ characters, backslash-escape
+you need to enclose text in literal `$` characters, backslash-escape
 them and they won't be treated as math delimiters.
 
 TeX math will be printed in all output formats. In Markdown,
 reStructuredText, LaTeX, Org-Mode, and ConTeXt output, it will appear
-verbatim between $ characters.
+verbatim between `$` characters.
 
 In reStructuredText output, it will be rendered using an interpreted
 text role `:math:`, as described
@@ -1196,7 +1254,7 @@ text role `:math:`, as described
 
 In Texinfo output, it will be rendered inside a `@math` command.
 
-In groff man output, it will be rendered verbatim without $'s.
+In groff man output, it will be rendered verbatim without `$`'s.
 
 In MediaWiki output, it will be rendered inside `<math>` tags.
 
@@ -1250,20 +1308,13 @@ command-line options selected:
     with the URL provided. If no URL is specified, the Google Chart
     API will be used (`http://chart.apis.google.com/chart?cht=tx&chl=`).
 
-LaTeX Macros
-------------
 
-For output formats other than LaTeX, pandoc will parse LaTeX `\newcommand` and
-`\renewcommand` definitions and apply the resulting macros to all LaTeX
-math.  So, for example, the following will work in all output formats,
-not just LaTeX:
+Raw TeX
+-------
 
-    \newcommand{\tuple}[1]{\langle #1 \rangle}
+TODO
 
-    $\tuple{a, b, c}$
-
-Inline TeX
-----------
+(raw tex is extension)
 
 Inline TeX commands will be preserved and passed unchanged to the
 LaTeX and ConTeXt writers. Thus, for example, you can use LaTeX to
@@ -1286,8 +1337,141 @@ LaTeX, not as markdown.
 Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
 and ConTeXt.
 
+
+For output formats other than LaTeX, pandoc will parse LaTeX `\newcommand` and
+`\renewcommand` definitions and apply the resulting macros to all LaTeX
+math.  So, for example, the following will work in all output formats,
+not just LaTeX:
+
+    \newcommand{\tuple}[1]{\langle #1 \rangle}
+
+    $\tuple{a, b, c}$
+
+Raw HTML
+--------
+
+TODO
+
+
+While standard markdown leaves HTML blocks exactly as they are, Pandoc
+treats text between HTML tags as markdown. Thus, for example, Pandoc
+will turn
+
+    <table>
+    	<tr>
+    		<td>*one*</td>
+    		<td>[a link](http://google.com)</td>
+    	</tr>
+    </table>
+
+into
+
+    <table>
+    	<tr>
+    		<td><em>one</em></td>
+    		<td><a href="http://google.com">a link</a></td>
+    	</tr>
+    </table>
+
+whereas `Markdown.pl` will preserve it as is.
+
+There is one exception to this rule:  text between `<script>` and
+`</script>` tags is not interpreted as markdown.
+
+This departure from standard markdown should make it easier to mix
+markdown with HTML block elements.  For example, one can surround
+a block of markdown text with `<div>` tags without preventing it
+from being interpreted as markdown.
+
+
+Links
+-----
+
+TODO
+
+Pandoc allows implicit reference links with just a single set of
+brackets.  So, the following links are equivalent:
+
+    1. Here's my [link]
+    2. Here's my [link][]
+
+    [link]: linky.com
+
+(Note:  Pandoc works this way even if `--strict` is specified, because
+`Markdown.pl` 1.0.2b7 allows single-bracket links.)
+
+
+Images
+------
+
+TODO
+
+An image occurring by itself in a paragraph will be rendered as
+a figure with a caption.[^5] (In LaTeX, a figure environment will be
+used; in HTML, the image will be placed in a `div` with class
+`figure`, together with a caption in a `p` with class `caption`.)
+The image's alt text will be used as the caption.
+
+    ![This is the caption](/url/of/image.png)
+
+[^5]: This feature is not yet implemented for RTF, OpenDocument, or
+    ODT. In those formats, you'll just get an image in a paragraph by
+    itself, with no caption.
+
+If you just want a regular inline image, just make sure it is not
+the only thing in the paragraph. One way to do this is to insert a
+nonbreaking space after the image:
+
+    ![This image won't be a figure](/url/of/image.png)\ 
+
+
+Footnotes
+---------
+
+*Pandoc extension*.
+
+Pandoc's markdown allows footnotes, using the following syntax:
+
+    Here is a footnote reference,[^1] and another.[^longnote]
+
+    [^1]: Here is the footnote.
+
+    [^longnote]: Here's one with multiple blocks.
+
+        Subsequent paragraphs are indented to show that they 
+    belong to the previous footnote.
+
+            { some.code }
+
+        The whole paragraph can be indented, or just the first
+        line.  In this way, multi-paragraph footnotes work like
+        multi-paragraph list items.
+
+    This paragraph won't be part of the note, because it isn't indented.
+
+The identifiers in footnote references may not contain spaces, tabs,
+or newlines.  These identifiers are used only to correlate the
+footnote reference with the note itself; in the output, footnotes
+will be numbered sequentially.
+
+The footnotes themselves need not be placed at the end of the
+document.  They may appear anywhere except inside other block elements
+(lists, block quotes, tables, etc.).
+
+Inline footnotes are also allowed (though, unlike regular notes,
+they cannot contain multiple paragraphs).  The syntax is as follows:
+
+    Here is an inline note.^[Inlines notes are easier to write, since
+    you don't have to pick an identifier and move down to type the
+    note.]
+
+Inline and regular footnotes may be mixed freely.
+
+
 Citations
 ---------
+
+*Pandoc extension*.
 
 Pandoc can automatically generate citations and a bibliography in a number of
 styles (using Andrea Rossato's `hs-citeproc`). In order to use this feature,
@@ -1350,6 +1534,7 @@ document with an appropriate header:
     # References
 
 The bibliography will be inserted after this header.
+
 
 Producing HTML slide shows with Pandoc
 ======================================
