@@ -62,8 +62,8 @@ tests = [ testGroup "inline code"
     next
   \item
     \startitemize
-      \item
-       bot
+    \item
+      bot
     \stopitemize
   \stopitemize
 \stopitemize|]
