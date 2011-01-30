@@ -51,7 +51,7 @@ import Control.Monad (when, unless, liftM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
-import Data.ByteString.Lazy.UTF8 (toString, fromString)
+import Data.ByteString.Lazy.UTF8 (toString )
 import Codec.Binary.UTF8.String (decodeString, encodeString)
 
 copyrightMessage :: String
@@ -713,14 +713,6 @@ main = do
      Just r  -> return r
      Nothing -> error ("Unknown reader: " ++ readerName')
 
-  let writer = case lookup writerName' writers of
-                Nothing | writerName' == "epub" -> writeEPUB epubStylesheet
-                Nothing | writerName' == "odt"  -> writeODT referenceODT
-                Just r                         -> \o ->
-                                                     return . fromString . r o
-                Nothing                        -> error $ "Unknown writer: " ++
-                                                     writerName'
-
   templ <- getDefaultTemplate datadir writerName'
   let defaultTemplate = case templ of
                              Right t -> t
@@ -855,12 +847,16 @@ main = do
                 processBiblio cslfile' refs doc1
              else return doc1
 
-  writerOutput <- writer writerOptions doc2
-
-  let writerOutput' = if standalone'
-                         then writerOutput
-                         else writerOutput `B.snoc` 10
-
-  if outputFile == "-"
-     then B.putStr writerOutput'
-     else B.writeFile (encodeString outputFile) writerOutput'
+  case lookup writerName' writers of
+        Nothing | writerName' == "epub" ->
+           writeEPUB epubStylesheet writerOptions doc2
+           >>= B.writeFile (encodeString outputFile)
+        Nothing | writerName' == "odt"  ->
+           writeODT referenceODT writerOptions doc2
+           >>= B.writeFile (encodeString outputFile)
+        Just r  -> writerFn outputFile result
+            where writerFn "-" = UTF8.putStr
+                  writerFn f   = UTF8.writeFile f
+                  result       = r writerOptions doc2 ++
+                                 ['\n' | not standalone']
+        Nothing -> error $ "Unknown writer: " ++ writerName'
