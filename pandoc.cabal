@@ -361,3 +361,4 @@ Executable test-pandoc
                       Tests.Readers.RST
                       Tests.Writers.Native
                       Tests.Writers.ConTeXt
+                      Tests.Writers.HTML
