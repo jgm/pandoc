@@ -47,22 +47,23 @@ pandoc (1.8)
     >          where removeLink (Link xs _) = Emph xs
     >                removeLink x = x
 
-  * Attributes are now allowed in inline `Code` elements.
-    Thus, `` `x >>= y >> z`{.haskell} ``. The `Code` inline
-    has an extra argument place for attributes, just like
-    `CodeBlock`.  Inline code will be highlighted in HTML output,
-    if pandoc is compiled with highlighting support.
-    Resolves Issue #119.
+    To use this to remove links while translating markdown to LaTeX:
 
-  * URLs in autolinks now use class "url" so they can be styled.
+    pandoc -t json | runghc removelinks.lhs | pandoc -f json -t latex
+
+  * Attributes are now allowed in inline `Code` elements, for example:
+
+    > In this code, `ulist ! [theclass "special"] << elts`{.haskell} is...
+
+    The attribute syntax is the same as for delimited code blocks.
+    `Code` inline has an extra argument place for attributes, just like
+    `CodeBlock`. Inline code will be highlighted in HTML output, if pandoc
+    is compiled with highlighting support. Resolves Issue #119.
 
   * New `RawBlock` and `RawInline` elements (replacing `RawHtml`,
     `HtmlInline`, and `TeX`) provide lots of flexibility in writing
-    scripts to transform Pandoc documents. One can now control
-    exactly how each element is rendered in each output format.
-
-  * A new `--mathjax` option has been added for displaying
-    math in HTML using MathJax.  Resolves issue #259.
+    scripts to transform Pandoc documents. Scripts can now change
+    how each element is rendered in each output format.
 
   * You can now define LaTeX macros in markdown documents, and pandoc
     will apply them to TeX math.  For example,
@@ -76,9 +77,12 @@ pandoc (1.8)
   * LaTeX macros can also be used in LaTeX documents (both in math
     and in non-math contexts).
 
+  * A new `--mathjax` option has been added for displaying
+    math in HTML using MathJax.  Resolves issue #259.
+
   * Footnotes are now supported in the RST reader. (Note, however,
-    that pandoc ignores the numeral or symbol used in the note;
-    footnotes are put in an auto-numbered ordered list.)
+    that unlike docutils, pandoc ignores the numeral or symbol used in
+    the note; footnotes are put in an auto-numbered ordered list.)
     Resolves Issue #258.
 
   * A new `--normalize` option causes pandoc to normalize the AST
@@ -100,6 +104,8 @@ pandoc (1.8)
     Millon for the markdown2pdf patch.)
 
   * `markdown2pdf` now supports `--data-dir`.
+
+  * URLs in autolinks now have class "url" so they can be styled.
 
   * Improved prettyprinting in most formats.  Lines will be wrapped
     more evenly and duplicate blank lines avoided.
@@ -158,13 +164,13 @@ pandoc (1.8)
     `http(s)` scheme.  Previously pandoc would treat some
     Windows pathnames beginning with `C:/` as URIs.
 
-  * pandoc now adds a newline to the end of its output in fragment
-    mode (= not `--standalone`).
-
   * The `--sanitize-html` option and the `stateSanitize` field in
     `ParserState` have been removed. Sanitization is better done in the
     resulting HTML using `xss-sanitize`, which is based on pandoc's
     sanitization, but improved.
+
+  * pandoc now adds a newline to the end of its output in fragment
+    mode (= not `--standalone`).
 
   * Added support for `lang` in `html` tag in the HTML template,
     so you can do `pandoc -s -V lang=es`, for example.
@@ -278,10 +284,7 @@ pandoc (1.8)
   * Rewrote `spaceChar` and some other parsers in Text.Pandoc.Parsing
     for a significant performance boost.
 
-  * Improved performance of all readers by replacing some uses
-    of `oneOf` or `noneOf` with more efficient parsers, and by
-    rearranging parsers in lists (e.g. moving the RST whitespace
-    parser to the top of the list of inline parsers).
+  * Improved performance of all readers by rewriting parsers.
 
   * Simplified Text.Pandoc.CharacterReferences by using
     entity lookup functions from TagSoup.
@@ -367,6 +370,7 @@ pandoc (1.8)
       contained `\begin{document}` in, say, a verbatim block.
     + Allow spaces between '\begin' or '\end' and '{'.
     + Support \L and \l.
+    + Skip comments inside paragraphs.
 
   * LaTeX writer:
 
