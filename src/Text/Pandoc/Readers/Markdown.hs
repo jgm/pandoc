@@ -869,10 +869,11 @@ alignType :: [String]
           -> Alignment
 alignType [] _ = AlignDefault
 alignType strLst len =
-  let s          = head $ sortBy (comparing length) $ 
-                          map removeTrailingSpace strLst
-      leftSpace  = if null s then False else (s !! 0) `elem` " \t"
-      rightSpace = length s < len || (s !! (len - 1)) `elem` " \t"
+  let nonempties = filter (not . null) $ map removeTrailingSpace strLst
+      (leftSpace, rightSpace) =
+           case sortBy (comparing length) nonempties of
+                 (x:_)  -> (head x `elem` " \t", length x < len)
+                 []     -> (False, False)
   in  case (leftSpace, rightSpace) of
         (True,  False)   -> AlignRight
         (False, True)    -> AlignLeft
