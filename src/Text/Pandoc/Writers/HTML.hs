@@ -483,10 +483,11 @@ inlineToHtml opts inline =
     (Apostrophe)     -> return $ stringToHtml "’"
     (Emph lst)       -> inlineListToHtml opts lst >>= return . emphasize
     (Strong lst)     -> inlineListToHtml opts lst >>= return . strong
-    (Code attr str)  -> return $ thecode ! (attrsToHtml opts attr) << str'
-                         where str' = case highlightHtml True attr str of
-                                Left _  -> stringToHtml str
-                                Right h -> h
+    (Code attr str)  -> case highlightHtml True attr str of
+                             Left _  -> return
+                                        $ thecode ! (attrsToHtml opts attr)
+                                        $ stringToHtml str
+                             Right h -> return h
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . (thespan ! [thestyle "text-decoration: line-through;"])
     (SmallCaps lst)   -> inlineListToHtml opts lst >>=
