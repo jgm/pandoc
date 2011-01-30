@@ -169,6 +169,10 @@ pandoc (1.8)
   * Added support for `lang` in `html` tag in the HTML template,
     so you can do `pandoc -s -V lang=es`, for example.
 
+  * `highlightHtml` in `Text.Pandoc.Highlighting` now takes
+    a boolean argument that selects between "inline" and
+    "block" HTML.
+
   * `Text.Pandoc.Writers.RTF` now exports `rtfEmbedImage`.
     Images are embedded in RTF output when possible (png, jpeg).
     Resolves Issue #275.
