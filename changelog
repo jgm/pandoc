@@ -346,6 +346,7 @@ pandoc (1.8)
     + Properly handle abbreviations (like `Mr.`) at the end of a line.
     + Better handling of intraword underscores, avoiding exponential
       slowdowns in some cases.  Resolves Issue #182.
+    + Fixed bug in alignments in tables with blank rows in the header.
 
   * RST reader:
 
