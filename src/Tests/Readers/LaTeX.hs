@@ -41,6 +41,15 @@ tests = [ testGroup "basic"
               header 1 ("text" +++ space +++ link "/url" "" "link")
           ]
 
+        , testGroup "space and comments"
+          [ "blank lines + space at beginning" =:
+            "\n  \n  hi" =?> para "hi"
+          , "blank lines + space + comments" =:
+            "% my comment\n\n  \n  % another\n\nhi" =?> para "hi"
+          , "comment in paragraph" =:
+            "hi % this is a comment\nthere\n" =?> para "hi there"
+          ]
+
         , testGroup "citations"
           [ natbibCitations
           , biblatexCitations

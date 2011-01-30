@@ -136,8 +136,8 @@ processLaTeXPreamble = do
 -- | Parse LaTeX and return 'Pandoc'.
 parseLaTeX :: GenParser Char ParserState Pandoc
 parseLaTeX = do
-  skipMany $ spaces >> comment
   spaces
+  skipMany $ comment >> spaces
   blocks <- try (processLaTeXPreamble >> environment "document")
            <|> (many block >>~ (spaces >> eof))
   state <- getState
@@ -528,7 +528,7 @@ skipChar = do
   return Null
 
 commentBlock :: GenParser Char st Block
-commentBlock = comment >> return Null
+commentBlock = many1 (comment >> spaces) >> return Null
 
 -- 
 -- inline
