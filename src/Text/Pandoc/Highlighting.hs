@@ -69,6 +69,6 @@ languages = []
 languagesByExtension :: String -> [String]
 languagesByExtension _ = []
 
-highlightHtml :: Attr -> String -> Either String Html
-highlightHtml _ _ = Left "Pandoc was not compiled with support for highlighting"
+highlightHtml :: Bool -> Attr -> String -> Either String Html
+highlightHtml _ _ _ = Left "Pandoc was not compiled with support for highlighting"
 #endif
