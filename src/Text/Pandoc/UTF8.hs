@@ -39,7 +39,7 @@ module Text.Pandoc.UTF8 ( readFile
 
 where
 
-#ifdef MIN_VERSION_base(4,2,0)
+#if MIN_VERSION_base(4,2,0)
 
 import System.IO hiding (readFile, writeFile, getContents,
                           putStr, putStrLn, hPutStr, hPutStrLn, hGetContents)
