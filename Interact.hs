@@ -20,7 +20,7 @@ main = do
   let setupConfig = read $ unlines $ drop 1 $ lines setupConfig'
   let (Just (ComponentLocalBuildInfo { componentPackageDeps = deps })) = libraryConfig setupConfig
   let packageSpecs = map (toPackageSpec . snd) deps
-  let args = ["-cpp","-i../dist/build/autogen"] ++ concatMap (\p -> ["-package",p]) packageSpecs
+  let args = ["-optP-include", "-optP../dist/build/autogen/cabal_macros.h","-cpp","-I../dist/build/autogen","-i../dist/build/autogen"] ++ concatMap (\p -> ["-package",p]) packageSpecs
   print args
   ph <- runProcess "ghci" args (Just "src") Nothing Nothing Nothing Nothing
   waitForProcess ph
