@@ -289,6 +289,10 @@ pandoc (1.8)
   * Simplified Text.Pandoc.CharacterReferences by using
     entity lookup functions from TagSoup.
 
+  * `Text.Pandoc.UTF8` now uses the unicode-aware IO functions
+    from `System.IO` if base >= 4.2.  This gives support for
+    windows line endings on windows.
+
   * Remove duplications in documentation by generating the
     pandoc man page from README, using `MakeManPage.hs`.
 
