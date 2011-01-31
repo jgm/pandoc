@@ -9,6 +9,7 @@ import Distribution.Verbosity ( Verbosity, silent )
 import Distribution.Simple.InstallDirs (mandir, bindir, CopyDest (NoCopyDest))
 import Distribution.Simple.Utils (copyFiles)
 import Control.Exception ( bracket_ )
+import Control.Monad ( unless )
 import System.Process ( rawSystem, runCommand, waitForProcess )
 import System.FilePath ( (</>) )
 import System.Directory
@@ -50,11 +51,19 @@ runTestSuite args _ pkg lbi = do
 makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
 makeManPages _ flags _ _ = do
   let verbosity = fromFlag $ buildVerbosity flags
+  ds1 <- modifiedDependencies (manDir </> "man1" </> "pandoc.1")
+    ["README", manDir </> "man1" </> "pandoc.1.template"]
+  ds2 <- modifiedDependencies (manDir </> "man1" </> "markdown2pdf.1")
+    [manDir </> "man1" </> "markdown2pdf.1.md"]
+  ds3 <- modifiedDependencies (manDir </> "man5" </> "pandoc_markdown.5")
+    ["README", manDir </> "man5" </> "pandoc_markdown.5.template"]
   let cmd  = "runghc -package-conf=dist/package.conf.inplace MakeManPage.hs"
   let cmd' = if verbosity == silent
                 then cmd
                 else cmd ++ " --verbose"
-  runCommand cmd' >>= waitForProcess >>= exitWith
+  -- Don't run MakeManPage.hs unless we have to
+  unless (null ds1 && null ds2 && null ds3) $
+    runCommand cmd' >>= waitForProcess >>= exitWith
 
 manpages :: [FilePath]
 manpages = ["man1" </> "pandoc.1"
