@@ -1,3 +1,11 @@
+pando (1.8.0.1)
+
+  * Revised Interact.hs so that it works with the CPP macros
+    in the UTF8 module.
+
+  * Revised Setup.hs so that we don't call MakeManPage.hs unless
+    the man pages are out of date.
+
 pandoc (1.8)
 
   [new features]
