@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-UTF-8 aware string IO functions that will work with GHC 6.10 or 6.12.
+UTF-8 aware string IO functions that will work with GHC 6.10, 6.12, or 7.
 -}
 module Text.Pandoc.UTF8 ( readFile
                         , writeFile
@@ -34,15 +34,53 @@ module Text.Pandoc.UTF8 ( readFile
                         , putStrLn
                         , hPutStr
                         , hPutStrLn
+                        , hGetContents
                         )
 
 where
+
+#ifdef MIN_VERSION_base(4,2,0)
+
+import System.IO hiding (readFile, writeFile, getContents,
+                          putStr, putStrLn, hPutStr, hPutStrLn, hGetContents)
+import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn )
+import qualified System.IO as IO
+
+readFile :: FilePath -> IO String
+readFile f = do
+  h <- openFile f ReadMode
+  hGetContents h
+
+writeFile :: FilePath -> String -> IO ()
+writeFile f s = withFile f WriteMode $ \h -> hPutStr h s
+
+getContents :: IO String
+getContents = hGetContents stdin
+
+putStr :: String -> IO ()
+putStr s = hPutStr stdout s
+
+putStrLn :: String -> IO ()
+putStrLn s = hPutStrLn stdout s
+
+hPutStr :: Handle -> String -> IO ()
+hPutStr h s = hSetEncoding h utf8 >> IO.hPutStr h s
+
+hPutStrLn :: Handle -> String -> IO ()
+hPutStrLn h s = hSetEncoding h utf8 >> IO.hPutStrLn h s
+
+hGetContents :: Handle -> IO String
+hGetContents h = hSetEncoding h utf8_bom >> IO.hGetContents h
+
+#else
+
 import qualified Data.ByteString as B
 import Codec.Binary.UTF8.String (encodeString)
 import Data.ByteString.UTF8 (toString, fromString)
 import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn)
 import System.IO (Handle)
 import Control.Monad (liftM)
+
 
 bom :: B.ByteString
 bom = B.pack [0xEF, 0xBB, 0xBF]
@@ -60,6 +98,9 @@ writeFile f = B.writeFile (encodeString f) . fromString
 getContents :: IO String
 getContents = liftM (toString . stripBOM) B.getContents
 
+hGetContents :: Handle -> IO String
+hGetContents h = liftM (toString . stripBOM) (B.hGetContents h)
+
 putStr :: String -> IO ()
 putStr = B.putStr . fromString
 
@@ -71,3 +112,5 @@ hPutStr h = B.hPutStr h . fromString
 
 hPutStrLn :: Handle -> String -> IO ()
 hPutStrLn h s = hPutStr h (s ++ "\n")
+
+#endif
