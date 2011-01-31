@@ -41,19 +41,19 @@ pandoc (1.8)
     to write scripts that transform a JSON-encoded pandoc document.
     For example:
 
-    > -- removelinks.lhs - removes links from document
-    > import Text.Pandoc
-    > main = interact $ jsonFilter $ bottomUp removeLink
-    >          where removeLink (Link xs _) = Emph xs
-    >                removeLink x = x
+        -- removelinks.hs - removes links from document
+        import Text.Pandoc
+        main = interact $ jsonFilter $ bottomUp removeLink
+                 where removeLink (Link xs _) = Emph xs
+                       removeLink x = x
 
     To use this to remove links while translating markdown to LaTeX:
 
-    pandoc -t json | runghc removelinks.lhs | pandoc -f json -t latex
+        pandoc -t json | runghc removelinks.hs | pandoc -f json -t latex
 
   * Attributes are now allowed in inline `Code` elements, for example:
 
-    > In this code, `ulist ! [theclass "special"] << elts`{.haskell} is...
+        In this code, `ulist ! [theclass "special"] << elts`{.haskell} is...
 
     The attribute syntax is the same as for delimited code blocks.
     `Code` inline has an extra argument place for attributes, just like
@@ -243,7 +243,7 @@ pandoc (1.8)
     relative widths of columns.
 
   * Markdown writer now uses some pandoc-specific features when `--strict`
-    is not specified: \ newline is used for a hard linebreak instead of
+    is not specified: `\` newline is used for a hard linebreak instead of
     two spaces then a newline. And delimited code blocks are used when
     there are attributes.
 
@@ -268,7 +268,7 @@ pandoc (1.8)
 
   * The `COLUMNS` environment variable no longer has any effect.
 
-  [Under-the-hood improvements]
+  [under-the-hood improvements]
 
   * Pandoc now compiles with GHC 7. (This alone leads to a
     significant performance improvement, 15-20%.)
@@ -328,7 +328,7 @@ pandoc (1.8)
     install pandoc from the tarball without needing to build the man
     pages.
 
-  [Bug fixes]
+  [bug fixes]
 
   * Filenames are encoded as UTF8.  Resolves Issue #252.
 
@@ -372,14 +372,14 @@ pandoc (1.8)
     + Improved parsing of preamble.
       Previously you'd get unexpected behavior on a document that
       contained `\begin{document}` in, say, a verbatim block.
-    + Allow spaces between '\begin' or '\end' and '{'.
-    + Support \L and \l.
+    + Allow spaces between `\begin` or `\end` and `{`.
+    + Support `\L` and `\l`.
     + Skip comments inside paragraphs.
 
   * LaTeX writer:
 
-    + Escape strings in \href{..}.
-    + In nonsimple tables, put cells in \parbox.
+    + Escape strings in `\href{..}`.
+    + In nonsimple tables, put cells in `\parbox`.
 
   * OpenDocument writer:  don't print raw TeX.
 
@@ -394,8 +394,8 @@ pandoc (1.8)
 
   * ConTeXt writer: Fixed problem with inline code.  Previously
     `}` would be rendered `\type{}}`. Now we check the string for '}' and '{'.
-    If it contains neither, use \type{}; otherwise use \mono{} with an escaped
-    version of the string.
+    If it contains neither, use `\type{}`; otherwise use `\mono{}`
+    with an escaped version of the string.
 
   * `:` now allowed in HTML tags. Resolves Issue #274.
 
