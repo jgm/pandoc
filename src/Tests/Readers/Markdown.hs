@@ -27,8 +27,11 @@ tests = [ testGroup "inline code"
             =?> para (codeWith ("",["haskell","special"],[("x","7")]) "*")
           ]
         , testGroup "footnotes"
-          [ "indent followed by newline" =:
+          [ "indent followed by newline and flush-left text" =:
             "[^1]\n\n[^1]: my note\n\n     \nnot in note\n"
             =?> para (note (para "my note")) +++ para "not in note"
+          , "indent followed by newline and indented text" =:
+            "[^1]\n\n[^1]: my note\n\n     \n    in note\n"
+            =?> para (note (para "my note" +++ para "in note"))
           ]
         ]
