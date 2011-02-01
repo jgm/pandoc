@@ -264,7 +264,7 @@ noteBlock = try $ do
   optional blankline
   optional indentSpaces
   raw <- sepBy rawLines (try (blankline >> indentSpaces >> 
-                                        notFollowedBy newline))
+                                        notFollowedBy blankline))
   optional blanklines
   endPos <- getPosition
   let newnote = (ref, (intercalate "\n" raw) ++ "\n\n")
