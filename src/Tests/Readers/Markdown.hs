@@ -26,4 +26,14 @@ tests = [ testGroup "inline code"
             "`*` {.haskell .special x=\"7\"}"
             =?> para (codeWith ("",["haskell","special"],[("x","7")]) "*")
           ]
+        , testGroup "footnotes"
+          [ "indent followed by newline" =: [_LIT|
+[^1]
+
+[^1]:  my note
+
+    
+not in note
+|]          =?> para (note (para "my note")) +++ para "not in note"
+          ]
         ]

@@ -263,7 +263,8 @@ noteBlock = try $ do
   char ':'
   optional blankline
   optional indentSpaces
-  raw <- sepBy rawLines (try (blankline >> indentSpaces))
+  raw <- sepBy rawLines (try (blankline >> indentSpaces >> 
+                                        notFollowedBy newline))
   optional blanklines
   endPos <- getPosition
   let newnote = (ref, (intercalate "\n" raw) ++ "\n\n")
