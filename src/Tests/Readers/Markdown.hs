@@ -31,7 +31,7 @@ tests = [ testGroup "inline code"
             "[^1]\n\n[^1]: my note\n\n     \nnot in note\n"
             =?> para (note (para "my note")) +++ para "not in note"
           , "indent followed by newline and indented text" =:
-            "[^1]\n\n[^1]: my note\n\n     \n    in note\n"
+            "[^1]\n\n[^1]: my note\n     \n    in note\n"
             =?> para (note (para "my note" +++ para "in note"))
           ]
         ]

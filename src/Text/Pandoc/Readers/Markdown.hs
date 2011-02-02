@@ -245,15 +245,17 @@ noteMarker :: GenParser Char ParserState [Char]
 noteMarker = string "[^" >> many1Till (satisfy $ not . isBlank) (char ']')
 
 rawLine :: GenParser Char ParserState [Char]
-rawLine = do
+rawLine = try $ do
   notFollowedBy blankline
   notFollowedBy' $ try $ skipNonindentSpaces >> noteMarker
-  contents <- many1 nonEndline
-  end <- option "" (newline >> optional indentSpaces >> return "\n") 
-  return $ contents ++ end
+  optional indentSpaces
+  anyLine
 
 rawLines :: GenParser Char ParserState [Char]
-rawLines = many1 rawLine >>= return . concat
+rawLines = do
+  first <- anyLine
+  rest <- many rawLine
+  return $ unlines (first:rest)
 
 noteBlock :: GenParser Char ParserState [Char]
 noteBlock = try $ do
@@ -263,8 +265,9 @@ noteBlock = try $ do
   char ':'
   optional blankline
   optional indentSpaces
-  raw <- sepBy rawLines (try (blankline >> indentSpaces >> 
-                                        notFollowedBy blankline))
+  raw <- sepBy rawLines
+             (try (blankline >> indentSpaces >>
+                   notFollowedBy blankline))
   optional blanklines
   endPos <- getPosition
   let newnote = (ref, (intercalate "\n" raw) ++ "\n\n")
