@@ -37,7 +37,7 @@ parsePandocArgs args = do
 
 runPandoc :: [String] -> FilePath -> IO (Either String FilePath)
 runPandoc inputsAndArgs output = do
-  let texFile = replaceExtension output "tex"
+  let texFile = addExtension output "tex"
   result <- run "pandoc" $
     ["-s", "--no-wrap", "-r", "markdown", "-w", "latex"]
     ++ inputsAndArgs ++ ["-o", texFile]
