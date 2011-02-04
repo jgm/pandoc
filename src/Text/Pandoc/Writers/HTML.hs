@@ -58,15 +58,14 @@ defaultWriterState = WriterState {stNotes= [], stMath = False, stHighlighting = 
 
 -- Helpers to render HTML with the appropriate function.
 
-renderFragment :: (HTML html) => WriterOptions -> html -> String
-renderFragment opts = if writerWrapText opts
-                         then renderHtmlFragment
-                         else showHtmlFragment
-
 -- | Modified version of Text.XHtml's stringToHtml.
 -- Use unicode characters wherever possible.
 stringToHtml :: String -> Html
 stringToHtml = primHtml . escapeStringForXML
+
+-- | Hard linebreak.
+nl :: Html
+nl = primHtml "\n"
 
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
@@ -75,7 +74,7 @@ writeHtmlString opts d =
                                                  defaultWriterState
   in  if writerStandalone opts
          then inTemplate opts tit auths date toc body' newvars
-         else renderFragment opts body'
+         else showHtmlFragment body'
 
 -- | Convert Pandoc document to Html structure.
 writeHtml :: WriterOptions -> Pandoc -> Html
@@ -306,20 +305,22 @@ attrsToHtml opts (id',classes',keyvals) =
 
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: WriterOptions -> Block -> State WriterState Html
-blockToHtml _ Null = return $ noHtml 
+blockToHtml _ Null = return noHtml
 blockToHtml opts (Plain lst) = inlineListToHtml opts lst
 blockToHtml opts (Para [Image txt (s,tit)]) = do
   img <- inlineToHtml opts (Image txt (s,tit))
   capt <- inlineListToHtml opts txt
   return $ if writerHtml5 opts
               then tag "figure" <<
-                    [img, tag "figcaption" << capt]
+                    [img, tag "figcaption" << capt] +++ nl
               else thediv ! [theclass "figure"] <<
-                    [img, paragraph ! [theclass "caption"] << capt]
-blockToHtml opts (Para lst) = inlineListToHtml opts lst >>= (return . paragraph)
+                    [img, paragraph ! [theclass "caption"] << capt] +++ nl
+blockToHtml opts (Para lst) = do
+  contents <- inlineListToHtml opts lst
+  return $ paragraph contents +++ nl
 blockToHtml _ (RawBlock "html" str) = return $ primHtml str
 blockToHtml _ (RawBlock _ _) = return noHtml
-blockToHtml _ (HorizontalRule) = return $ hr
+blockToHtml _ (HorizontalRule) = return $ hr +++ nl
 blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
   let classes' = if writerLiterateHaskell opts
                     then classes
@@ -334,8 +335,9 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
                                      else unlines . lines
                     in  return $ pre ! attrs $ thecode <<
                                  (replicate (length leadingBreaks) br +++
-                                 [stringToHtml $ addBird rawCode'])
-         Right h -> modify (\st -> st{ stHighlighting = True }) >> return h
+                                 [stringToHtml $ addBird rawCode']) +++ nl
+         Right h -> modify (\st -> st{ stHighlighting = True }) >>
+                    return (h +++ nl)
 blockToHtml opts (BlockQuote blocks) =
   -- in S5, treat list in blockquote specially
   -- if default is incremental, make it nonincremental; 
@@ -350,7 +352,9 @@ blockToHtml opts (BlockQuote blocks) =
                                   (OrderedList attribs lst)
              _                 -> blockListToHtml opts blocks >>= 
                                   (return . blockquote)
-     else blockListToHtml opts blocks >>= (return . blockquote)
+     else do
+       contents <- blockListToHtml opts blocks
+       return $ blockquote contents +++ nl
 blockToHtml opts (Header level lst) = do 
   contents <- inlineListToHtml opts lst
   secnum <- liftM stSecNum get
@@ -361,20 +365,20 @@ blockToHtml opts (Header level lst) = do
   let contents''  = if writerTableOfContents opts
                        then anchor ! [href $ "#" ++ writerIdentifierPrefix opts ++ "TOC"] $ contents'
                        else contents'
-  return $ case level of
+  return $ (case level of
               1 -> h1 contents''
               2 -> h2 contents''
               3 -> h3 contents''
               4 -> h4 contents''
               5 -> h5 contents''
               6 -> h6 contents''
-              _ -> paragraph contents''
+              _ -> paragraph contents'') +++ nl
 blockToHtml opts (BulletList lst) = do
   contents <- mapM (blockListToHtml opts) lst
   let attribs = if writerIncremental opts
                    then [theclass "incremental"]
                    else []
-  return $ unordList ! attribs $ contents
+  return $ (unordList ! attribs) contents +++ nl
 blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
   contents <- mapM (blockListToHtml opts) lst
   let numstyle' = camelCaseToHyphenated $ show numstyle
@@ -397,16 +401,16 @@ blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
                            else [thestyle $ "list-style-type: " ++
                                    numstyle']
                    else [])
-  return $ ordList ! attribs $ contents
+  return $ (ordList ! attribs) contents +++ nl
 blockToHtml opts (DefinitionList lst) = do
   contents <- mapM (\(term, defs) ->
                   do term' <- liftM (dterm <<) $ inlineListToHtml opts term
                      defs' <- mapM (liftM (ddef <<) . blockListToHtml opts) defs
-                     return $ term' : defs') lst
+                     return $ nl : term' : nl : defs') lst
   let attribs = if writerIncremental opts
                    then [theclass "incremental"]
                    else []
-  return $ dlist ! attribs << concat contents
+  return $ (dlist ! attribs << concat contents) +++ nl
 blockToHtml opts (Table capt aligns widths headers rows') = do
   captionDoc <- if null capt
                    then return noHtml
@@ -424,7 +428,7 @@ blockToHtml opts (Table capt aligns widths headers rows') = do
               else liftM (thead <<) $ tableRowToHtml opts aligns 0 headers
   body' <- liftM (tbody <<) $
                zipWithM (tableRowToHtml opts aligns) [1..] rows'
-  return $ table $ captionDoc +++ coltags +++ head' +++ body'
+  return $ table $ captionDoc +++ coltags +++ head' +++ body' +++ nl
 
 tableRowToHtml :: WriterOptions
                -> [Alignment]
@@ -440,7 +444,7 @@ tableRowToHtml opts aligns rownum cols' = do
   cols'' <- sequence $ zipWith 
             (\alignment item -> tableItemToHtml opts mkcell alignment item) 
             aligns cols'
-  return $ tr ! [theclass rowclass] $ toHtmlFromList cols''
+  return $ (tr ! [theclass rowclass] $ toHtmlFromList cols'') +++ nl
 
 alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of
@@ -459,7 +463,7 @@ tableItemToHtml opts tag' align' item = do
   let alignAttrs = if writerHtml5 opts
                       then [thestyle $ "align: " ++ alignmentToString align']
                       else [align $ alignmentToString align']
-  return $ tag' ! alignAttrs $ contents
+  return $ (tag' ! alignAttrs) contents +++ nl
 
 blockListToHtml :: WriterOptions -> [Block] -> State WriterState Html
 blockListToHtml opts lst = 
@@ -567,7 +571,7 @@ inlineToHtml opts inline =
                                  linkText
     (Image txt (s,tit)) -> do
                         alternate <- inlineListToHtml opts txt
-                        let alternate' = renderFragment opts alternate
+                        let alternate' = showHtmlFragment alternate
                         let attributes = [src s] ++
                                          (if null tit 
                                             then [] 
@@ -610,5 +614,5 @@ blockListToNote opts ref blocks =
                                   _           -> otherBlocks ++ [lastBlock,
                                                  Plain backlink]
   in  do contents <- blockListToHtml opts blocks'
-         return $ li ! [prefixedId opts ("fn" ++ ref)] $ contents
+         return $ nl +++ (li ! [prefixedId opts ("fn" ++ ref)]) contents
 
