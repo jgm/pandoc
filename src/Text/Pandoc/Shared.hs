@@ -243,10 +243,7 @@ orderedListMarkers (start, numstyle, numdelim) =
 -- remove empty Str elements.
 normalizeSpaces :: [Inline] -> [Inline]
 normalizeSpaces = cleanup . dropWhile isSpaceOrEmpty
-  where isSpaceOrEmpty Space = True
-        isSpaceOrEmpty (Str "") = True
-        isSpaceOrEmpty _ = False
-        cleanup [] = []
+ where  cleanup [] = []
         cleanup (Space:rest) = let rest' = dropWhile isSpaceOrEmpty rest
                                in  case rest' of
                                    []            -> []
@@ -254,13 +251,18 @@ normalizeSpaces = cleanup . dropWhile isSpaceOrEmpty
         cleanup ((Str ""):rest) = cleanup rest
         cleanup (x:rest) = x : cleanup rest
 
+isSpaceOrEmpty :: Inline -> Bool
+isSpaceOrEmpty Space = True
+isSpaceOrEmpty (Str "") = True
+isSpaceOrEmpty _ = False
+
 -- | Normalize @Pandoc@ document, consolidating doubled 'Space's,
 -- combining adjacent 'Str's and 'Emph's, remove 'Null's and
 -- empty elements, etc.
 normalize :: (Eq a, Data a) => a -> a
 normalize = topDown removeEmptyBlocks .
             topDown consolidateInlines .
-            bottomUp removeEmptyInlines
+            bottomUp (removeEmptyInlines . removeTrailingInlineSpaces)
 
 removeEmptyBlocks :: [Block] -> [Block]
 removeEmptyBlocks (Null : xs) = removeEmptyBlocks xs
@@ -283,6 +285,9 @@ removeEmptyInlines (Code _ [] : zs) = removeEmptyInlines zs
 removeEmptyInlines (Str "" : zs) = removeEmptyInlines zs
 removeEmptyInlines (x : xs) = x : removeEmptyInlines xs
 removeEmptyInlines [] = []
+
+removeTrailingInlineSpaces :: [Inline] -> [Inline]
+removeTrailingInlineSpaces = reverse . dropWhile isSpaceOrEmpty . reverse
 
 consolidateInlines :: [Inline] -> [Inline]
 consolidateInlines (Str x : ys) =
