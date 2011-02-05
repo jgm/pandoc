@@ -216,7 +216,7 @@ Options
 :   Produce HTML5 instead of HTML4.  This option has no effect for writers
     other than `html`.
 
-`-m` *URL*, `--latexmathml=`*URL*
+`-m` [*URL*], `--latexmathml`[=*URL*]
 :   Use the [LaTeXMathML] script to display embedded TeX math in HTML output.
     To insert a link to a local copy of the `LaTeXMathML.js` script,
     provide a *URL*. If no *URL* is provided, the contents of the
@@ -225,15 +225,18 @@ Options
     several pages, it is much better to link to a copy of the script,
     so it can be cached.
 
-`--mathml`
+`--mathml`[=*URL*]
 :   Convert TeX math to MathML.  In standalone mode, a small javascript
-    will be inserted that allows the MathML to be viewed on some browsers.
+    (or a link to such a script if a *URL* is supplied) will be inserted that
+    allows the MathML to be viewed on some browsers.
 
-`--jsmath=`*URL*
+`--jsmath`[=*URL*]
 :   Use [jsMath] to display embedded TeX math in HTML output.
     The *URL* should point to the jsMath load script (e.g.
     `jsMath/easy/load.js`); if provided, it will be linked to in
-    the header of standalone HTML documents.
+    the header of standalone HTML documents. If a *URL* is not provided,
+    no link to the jsMath load script will be inserted; it is then
+    up to the author to provide such a link in the HTML template.
 
 `--mathjax=`*URL*
 :   Use [MathJax] to display embedded TeX math in HTML output.
@@ -244,11 +247,11 @@ Options
     be processed by [gladTeX] to produce links to images of the typeset
     formulas. 
 
-`--mimetex=`*URL*
+`--mimetex`[=*URL*]
 :   Render TeX math using the [mimeTeX] CGI script.  If *URL* is not
     specified, it is assumed that the script is at `/cgi-bin/mimetex.cgi`.
 
-`--webtex=`*URL*
+`--webtex`[=*URL*]
 :   Render TeX formulas using an external script that converts TeX
     formulas to images. The formula will be concatenated with the URL
     provided. If *URL* is not specified, the Google Chart API will be used.
