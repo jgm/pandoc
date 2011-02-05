@@ -245,9 +245,11 @@ elementToHtml opts (Sec level num id' title' elements) = do
               else if writerSectionDivs opts
                       then if writerHtml5 opts
                               then tag "section" ! [prefixedId opts id']
-                                     << intersperse (nl opts) stuff
+                                     << (nl opts : (intersperse (nl opts) stuff
+                                                    ++ [nl opts]))
                               else thediv ! [prefixedId opts id'] <<
-                                      intersperse (nl opts) stuff
+                                      (nl opts : (intersperse (nl opts) stuff
+                                                  ++ [nl opts]))
                       else toHtmlFromList $ intersperse (nl opts) stuff
 
 -- | Convert list of Note blocks to a footnote <div>.
