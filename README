@@ -830,10 +830,25 @@ The bullets need not be flush with the left margin; they may be
 indented one, two, or three spaces. The bullet must be followed
 by whitespace.
 
+List items look best if subsequent lines are flush with the first
+line (after the bullet):
+
+    * here is my first
+      list item.
+    * and my second.
+
+But markdown also allows a "lazy" format:
+
+    * here is my first
+    list item.
+    * and my second.
+
+### The four-space rule ###
+
 A list item may contain multiple paragraphs and other block-level
-content.  Subsequent paragraphs must be preceded by a blank line
-and indented four spaces or a tab.  The list will look better if
-the first paragraph is aligned with the rest:
+content. However, subsequent paragraphs must be preceded by a blank line
+and indented four spaces or a tab. The list will look better if the first
+paragraph is aligned with the rest:
 
       * First paragraph.
 
@@ -858,9 +873,9 @@ one tab:
         + brocolli
         + chard
 
-Markdown allows you to write list items "lazily," instead of
-indenting continuation lines.  However, if there are multiple paragraphs
-or other blocks in a list item, the first line of each must be indented.
+As noted above, markdown allows you to write list items "lazily," instead of
+indenting continuation lines. However, if there are multiple paragraphs or
+other blocks in a list item, the first line of each must be indented.
 
     + A lazy, lazy, list
     item.
@@ -871,6 +886,20 @@ or other blocks in a list item, the first line of each must be indented.
         Second paragraph of second
     list item.
 
+**Note:**  Although the four-space rule for continuation paragraphs
+comes from the official [markdown syntax guide], the reference implementation,
+`Markdown.pl`, does not follow it. So pandoc will give different results than
+`Markdown.pl` when authors have indented continuation paragraphs fewer than
+four spaces.
+
+The [markdown syntax guide] is not explicit whether the four-space
+rule applies to *all* block-level content in a list item; it only
+mentions paragraphs and code blocks.  But it implies that the rule
+applies to all block-level content (including nested lists), and
+pandoc interprets it that way.
+
+  [markdown syntax guide]:
+    http://daringfireball.net/projects/markdown/syntax#list
 
 ### Ordered lists ###
 
