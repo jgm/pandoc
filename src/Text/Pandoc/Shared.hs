@@ -287,7 +287,10 @@ removeEmptyInlines (x : xs) = x : removeEmptyInlines xs
 removeEmptyInlines [] = []
 
 removeTrailingInlineSpaces :: [Inline] -> [Inline]
-removeTrailingInlineSpaces = reverse . dropWhile isSpaceOrEmpty . reverse
+removeTrailingInlineSpaces = reverse . removeLeadingInlineSpaces . reverse
+
+removeLeadingInlineSpaces :: [Inline] -> [Inline]
+removeLeadingInlineSpaces = dropWhile isSpaceOrEmpty
 
 consolidateInlines :: [Inline] -> [Inline]
 consolidateInlines (Str x : ys) =
