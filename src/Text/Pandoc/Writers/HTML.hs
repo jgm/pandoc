@@ -602,8 +602,7 @@ inlineToHtml opts inline =
                                  if null tit then [] else [title tit]) $ 
                                  linkText
     (Image txt (s,tit)) -> do
-                        alternate <- inlineListToHtml opts txt
-                        let alternate' = showHtmlFragment alternate
+                        let alternate' = stringify txt
                         let attributes = [src s] ++
                                          (if null tit 
                                             then [] 

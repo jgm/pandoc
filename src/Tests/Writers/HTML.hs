@@ -38,4 +38,9 @@ tests = [ testGroup "inline code"
           , "nolanguage" =: codeWith ("",["nolanguage"],[]) ">>="
             =?> "<code class=\"nolanguage\">&gt;&gt;=</code>"
           ]
+        , testGroup "images"
+          [ "alt with formatting" =:
+            image "/url" "title" ("my " +++ emph "image")
+            =?> "<img src=\"/url\" title=\"title\" alt=\"my image\" />"
+          ]
         ]
