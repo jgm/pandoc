@@ -1,4 +1,34 @@
-pando (1.8.0.1)
+pandoc (1.8.0.2)
+
+  * HTML writer:
+
+    + Stringify alt text instead of converting to HTML.
+    + Break lines after block elements, not inside tags.
+      HTML output now closely resembles that of tidy. Resolves Issue #134.
+
+  * Markdown reader: Fixed bug in footnote block parser (pointed out
+    by Jesse Rosenthal).  The problem arose when the blank line
+    at the end of a footnote block contained indenting spaces.
+
+  * Shared: Improved 'normalize' function so it normalizes Spaces too.
+    In normal form, Space elements only occur to separate two non-Space
+    elements.  So, we never have [Space], or [, ..., Space].
+
+  * Tests:
+
+    + Improved Arbitrary instance.
+    + Added timeout for test instances.
+
+  * README:
+
+    + Added section on four-space rule for lists.  Resolves Issue #283.
+    + Clarified optional arguments on math options.
+
+  * markdown2pdf: Fixed bug with output file extensions.
+    Previously `markdown2pdf test.txt -o test.en.pdf` would produce
+    `test.pdf`, not `test.en.pdf`.  Thanks to Paolo Tanimoto for the fix.
+
+pandoc (1.8.0.1)
 
   * Revised Interact.hs so that it works with the CPP macros
     in the UTF8 module.
