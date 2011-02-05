@@ -317,6 +317,8 @@ attrsToHtml opts (id',classes',keyvals) =
 
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: WriterOptions -> Block -> State WriterState Html
+blockToHtml opts b@(Plain _) = blockToHtml' opts b
+blockToHtml opts b@(RawBlock _ _) = blockToHtml' opts b
 blockToHtml opts b = blockToHtml' opts b >>= return . (nl opts +++)
 
 blockToHtml' :: WriterOptions -> Block -> State WriterState Html
