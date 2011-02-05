@@ -1,5 +1,5 @@
 Name:            pandoc
-Version:         1.8.0.2
+Version:         1.8.0.3
 Cabal-Version:   >= 1.6
 Build-Type:      Custom
 License:         GPL
@@ -162,7 +162,7 @@ Extra-Tmp-Files: man/man1/pandoc.1,
 
 Source-repository head
   type:          git
-  location:      https://jgm@github.com/jgm/pandoc.git
+  location:      git://github.com/jgm/pandoc.git
 
 Flag threaded
   Description:   Compile markdown2pdf with -threaded option.

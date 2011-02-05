@@ -1,3 +1,7 @@
+pandoc (1.8.0.3)
+
+  * Fixed Source-repository stanza in cabal file.
+
 pandoc (1.8.0.2)
 
   * HTML writer:
