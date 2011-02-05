@@ -6,17 +6,20 @@ where
 import Test.QuickCheck.Gen
 import Test.QuickCheck.Arbitrary
 import Control.Monad (liftM, liftM2)
-import Text.Pandoc
-import Text.Pandoc.Shared
+import Text.Pandoc.Definition
+import Text.Pandoc.Shared (normalize, escapeURI)
 import Text.Pandoc.Builder
 
 realString :: Gen String
-realString = resize 8 arbitrary -- elements wordlist
+realString = resize 8 $ listOf $ frequency [ (9, elements [' '..'\127'])
+                                           , (1, elements ['\128'..'\9999']) ]
 
-{-
-wordlist :: [String]
-wordlist = ["foo","Bar","baz","\\","/",":","\"","'","féé"]
--}
+arbAttr :: Gen Attr
+arbAttr = do
+  id' <- elements ["","loc"]
+  classes <- elements [[],["haskell"],["c","numberLines"]]
+  keyvals <- elements [[],[("start","22")],[("a","11"),("b_2","a b c")]]
+  return (id',classes,keyvals)
 
 instance Arbitrary Inlines where
   arbitrary = liftM fromList arbitrary
@@ -27,69 +30,79 @@ instance Arbitrary Blocks where
 instance Arbitrary Inline where
   arbitrary = resize 3 $ arbInline 3
 
+arbInlines :: Int -> Gen [Inline]
+arbInlines n = listOf1 (arbInline n) `suchThat` (not . startsWithSpace)
+  where startsWithSpace (Space:_) = True
+        startsWithSpace        _  = False
+
 -- restrict to 3 levels of nesting max; otherwise we get
 -- bogged down in indefinitely large structures
 arbInline :: Int -> Gen Inline
 arbInline n = frequency $ [ (60, liftM Str realString)
                           , (60, return Space)
-                          , (10, liftM2 Code arbitrary realString)
+                          , (10, liftM2 Code arbAttr realString)
                           , (5,  return EmDash)
                           , (5,  return EnDash)
                           , (5,  return Apostrophe)
                           , (5,  return Ellipses)
-                          , (5,  elements [ RawInline "html" "<a>*&amp;*</a>"
+                          , (5,  elements [ RawInline "html" "<a id=\"eek\">"
                                           , RawInline "latex" "\\my{command}" ])
                           ] ++ [ x | x <- nesters, n > 1]
-   where nesters = [ (10,  liftM Emph $ listOf $ arbInline (n-1))
-                   , (10,  liftM Strong $ listOf $ arbInline (n-1))
-                   , (10,  liftM Strikeout $ listOf $ arbInline (n-1))
-                   , (10,  liftM Superscript $ listOf $ arbInline (n-1))
-                   , (10,  liftM Subscript $ listOf $ arbInline (n-1))
-                   , (10,  liftM SmallCaps $ listOf $ arbInline (n-1))
+   where nesters = [ (10,  liftM Emph $ arbInlines (n-1))
+                   , (10,  liftM Strong $ arbInlines (n-1))
+                   , (10,  liftM Strikeout $ arbInlines (n-1))
+                   , (10,  liftM Superscript $ arbInlines (n-1))
+                   , (10,  liftM Subscript $ arbInlines (n-1))
+--                   , (10,  liftM SmallCaps $ arbInlines (n-1))
                    , (10,  do x1 <- arbitrary
-                              x2 <- listOf $ arbInline (n-1)
+                              x2 <- arbInlines (n-1)
                               return $ Quoted x1 x2)
                    , (10,  do x1 <- arbitrary
                               x2 <- realString
                               return $ Math x1 x2)
-                   , (10,  do x1 <- listOf $ arbInline (n-1)
+                   , (10,  do x1 <- arbInlines (n-1)
                               x3 <- realString
-                              x2 <- realString
+                              x2 <- liftM escapeURI realString
                               return $ Link x1 (x2,x3))
-                   , (10,  do x1 <- listOf $ arbInline (n-1)
+                   , (10,  do x1 <- arbInlines (n-1)
                               x3 <- realString
-                              x2 <- realString
+                              x2 <- liftM escapeURI realString
                               return $ Image x1 (x2,x3))
-                   , (2,  liftM Note $ resize 3 $ listOf1 arbitrary)
+                   , (2,  liftM Note $ resize 3 $ listOf1 $ arbBlock (n-1))
                    ]
 
 instance Arbitrary Block where
   arbitrary = resize 3 $ arbBlock 3
 
 arbBlock :: Int -> Gen Block
-arbBlock n = frequency $ [ (10, liftM Plain arbitrary)
-                         , (15, liftM Para arbitrary)
-                         , (5,  liftM2 CodeBlock arbitrary realString)
+arbBlock n = frequency $ [ (10, liftM Plain $ arbInlines (n-1))
+                         , (15, liftM Para $ arbInlines (n-1))
+                         , (5,  liftM2 CodeBlock arbAttr realString)
                          , (2,  elements [ RawBlock "html"
                                             "<div>\n*&amp;*\n</div>"
                                          , RawBlock "latex"
                                             "\\begin[opt]{env}\nhi\n{\\end{env}"
                                          ])
                          , (5,  do x1 <- choose (1 :: Int, 6)
-                                   x2 <- arbitrary
+                                   x2 <- arbInlines (n-1)
                                    return (Header x1 x2))
                          , (2, return HorizontalRule)
                          ] ++ [x | x <- nesters, n > 0]
-   where nesters = [ (5,  liftM BlockQuote $ listOf $ arbBlock (n-1))
-                   , (5,  liftM2 OrderedList arbitrary
-                          $ (listOf1 $ listOf1 $ arbBlock (n-1)))
+   where nesters = [ (5,  liftM BlockQuote $ listOf1 $ arbBlock (n-1))
+                   , (5,  do x2 <- arbitrary
+                             x3 <- arbitrary
+                             x1 <- arbitrary `suchThat` (> 0)
+                             x4 <- listOf1 $ listOf1 $ arbBlock (n-1)
+                             return $ OrderedList (x1,x2,x3) x4 )
                    , (5,  liftM BulletList $ (listOf1 $ listOf1 $ arbBlock (n-1)))
-                   , (5,  do x1 <- listOf $ listOf1 $ listOf1 $ arbBlock (n-1)
-                             x2 <- arbitrary
-                             return (DefinitionList $ zip x2 x1))
+                   , (5,  do items <- listOf1 $ do
+                                        x1 <- listOf1 $ listOf1 $ arbBlock (n-1)
+                                        x2 <- arbInlines (n-1)
+                                        return (x2,x1)
+                             return $ DefinitionList items)
                    , (2, do rs <- choose (1 :: Int, 4)
                             cs <- choose (1 :: Int, 4)
-                            x1 <- arbitrary
+                            x1 <- arbInlines (n-1)
                             x2 <- vector cs
                             x3 <- vectorOf cs $ elements [0, 0.25]
                             x4 <- vectorOf cs $ listOf $ arbBlock (n-1)
