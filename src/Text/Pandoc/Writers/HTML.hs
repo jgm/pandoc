@@ -366,11 +366,12 @@ blockToHtml opts (BlockQuote blocks) =
              [OrderedList attribs lst] -> 
                                   blockToHtml (opts {writerIncremental = inc})
                                   (OrderedList attribs lst)
-             _                 -> blockListToHtml opts blocks >>= 
-                                  (return . blockquote)
+             _                 -> do contents <- blockListToHtml opts blocks
+                                     return $ blockquote (nl opts +++
+                                               contents +++ nl opts)
      else do
        contents <- blockListToHtml opts blocks
-       return $ blockquote contents
+       return $ blockquote (nl opts +++ contents +++ nl opts)
 blockToHtml opts (Header level lst) = do 
   contents <- inlineListToHtml opts lst
   secnum <- liftM stSecNum get
@@ -431,7 +432,9 @@ blockToHtml opts (DefinitionList lst) = do
 blockToHtml opts (Table capt aligns widths headers rows') = do
   captionDoc <- if null capt
                    then return noHtml
-                   else inlineListToHtml opts capt >>= return . caption
+                   else do
+                     cs <- inlineListToHtml opts capt
+                     return $ caption cs +++ nl opts
   let percent w = show (truncate (100*w) :: Integer) ++ "%"
   let widthAttrs w = if writerHtml5 opts
                         then [thestyle $ "width: " ++ percent w]
@@ -439,13 +442,17 @@ blockToHtml opts (Table capt aligns widths headers rows') = do
   let coltags = if all (== 0.0) widths
                    then noHtml
                    else concatHtml $ map
-                         (\w -> col ! (widthAttrs w) $ noHtml) widths
+                         (\w -> (col ! (widthAttrs w)) noHtml +++ nl opts)
+                         widths
   head' <- if all null headers
               then return noHtml
-              else liftM (thead <<) $ tableRowToHtml opts aligns 0 headers
-  body' <- liftM (tbody <<) $
+              else do
+                contents <- tableRowToHtml opts aligns 0 headers
+                return $ thead << (nl opts +++ contents) +++ nl opts
+  body' <- liftM (\x -> tbody << (nl opts +++ x)) $
                zipWithM (tableRowToHtml opts aligns) [1..] rows'
-  return $ table $ captionDoc +++ coltags +++ head' +++ body'
+  return $ table $ nl opts +++ captionDoc +++ coltags +++ head' +++
+                   body' +++ nl opts
 
 tableRowToHtml :: WriterOptions
                -> [Alignment]
@@ -461,7 +468,8 @@ tableRowToHtml opts aligns rownum cols' = do
   cols'' <- sequence $ zipWith 
             (\alignment item -> tableItemToHtml opts mkcell alignment item) 
             aligns cols'
-  return $ (tr ! [theclass rowclass] $ toHtmlFromList cols'') +++ nl opts
+  return $ (tr ! [theclass rowclass] $ nl opts +++ toHtmlFromList cols'')
+          +++ nl opts
 
 alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of

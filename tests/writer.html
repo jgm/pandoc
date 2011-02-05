@@ -32,8 +32,11 @@
 <hr />
 <h1 id="block-quotes">Block Quotes</h1>
 <p>E-mail style:</p>
-<blockquote><p>This is a block quote. It is pretty short.</p></blockquote>
-<blockquote><p>Code in a block quote:</p>
+<blockquote>
+<p>This is a block quote. It is pretty short.</p>
+</blockquote>
+<blockquote>
+<p>Code in a block quote:</p>
 <pre><code>sub status {
     print &quot;working&quot;;
 }
@@ -44,8 +47,13 @@
 <li>item two</li>
 </ol>
 <p>Nested block quotes:</p>
-<blockquote><p>nested</p></blockquote>
-<blockquote><p>nested</p></blockquote></blockquote>
+<blockquote>
+<p>nested</p>
+</blockquote>
+<blockquote>
+<p>nested</p>
+</blockquote>
+</blockquote>
 <p>This should not be a block quote: 2 &gt; 1.</p>
 <p>And a following paragraph.</p>
 <hr />
@@ -262,7 +270,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
 <dd><p>orange fruit</p>
 <pre><code>{ orange code block }
 </code></pre>
-<blockquote><p>orange block quote</p></blockquote>
+<blockquote>
+<p>orange block quote</p>
+</blockquote>
 </dd>
 </dl>
 <p>Multiple definitions, tight:</p>
@@ -523,7 +533,9 @@ h='&#110;&#x6f;&#x77;&#104;&#x65;&#114;&#x65;&#46;&#110;&#x65;&#116;';a='&#64;';
 document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+'<code>'+e+'</code>'+'<\/'+'a'+'>');
 // -->
 </script><noscript>&#110;&#x6f;&#98;&#x6f;&#100;&#x79;&#32;&#x61;&#116;&#32;&#110;&#x6f;&#x77;&#104;&#x65;&#114;&#x65;&#32;&#100;&#x6f;&#116;&#32;&#110;&#x65;&#116;</noscript></p>
-<blockquote><p>Blockquoted: <a href="http://example.com/"><code class="url">http://example.com/</code></a></p></blockquote>
+<blockquote>
+<p>Blockquoted: <a href="http://example.com/"><code class="url">http://example.com/</code></a></p>
+</blockquote>
 <p>Auto-links should not occur here: <code>&lt;http://example.com/&gt;</code></p>
 <pre><code>or here: &lt;http://example.com/&gt;
 </code></pre>
@@ -537,7 +549,9 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+'<code>'+e+'</code>'+'<\/'+
 <hr />
 <h1 id="footnotes">Footnotes</h1>
 <p>Here is a footnote reference,<sup><a href="#fn1" class="footnoteRef" id="fnref1">1</a></sup> and another.<sup><a href="#fn2" class="footnoteRef" id="fnref2">2</a></sup> This should <em>not</em> be a footnote reference, because it contains a space.[^my note] Here is an inline note.<sup><a href="#fn3" class="footnoteRef" id="fnref3">3</a></sup></p>
-<blockquote><p>Notes can go in quotes.<sup><a href="#fn4" class="footnoteRef" id="fnref4">4</a></sup></p></blockquote>
+<blockquote>
+<p>Notes can go in quotes.<sup><a href="#fn4" class="footnoteRef" id="fnref4">4</a></sup></p>
+</blockquote>
 <ol style="list-style-type: decimal">
 <li>And in list items.<sup><a href="#fn5" class="footnoteRef" id="fnref5">5</a></sup></li>
 </ol>
