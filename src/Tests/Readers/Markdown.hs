@@ -6,6 +6,7 @@ import Test.Framework
 import Tests.Helpers
 import Tests.Arbitrary()
 import Text.Pandoc.Builder
+-- import Text.Pandoc.Shared ( normalize )
 import Text.Pandoc
 
 markdown :: String -> Pandoc
@@ -15,6 +16,19 @@ infix 5 =:
 (=:) :: ToString c
      => String -> (String, c) -> Test
 (=:) = test markdown
+
+{-
+p_markdown_round_trip :: Block -> Bool
+p_markdown_round_trip b = matches d' d''
+  where d'  = normalize $ Pandoc (Meta [] [] []) [b]
+        d'' = normalize
+              $ readMarkdown defaultParserState{ stateSmart = True }
+              $ writeMarkdown defaultWriterOptions d'
+        matches (Pandoc _ [Plain []]) (Pandoc _ []) = True
+        matches (Pandoc _ [Para []]) (Pandoc _ []) = True
+        matches (Pandoc _ [Plain xs]) (Pandoc _ [Para xs']) = xs == xs'
+        matches x y = x == y
+-}
 
 tests :: [Test]
 tests = [ testGroup "inline code"
@@ -34,4 +48,8 @@ tests = [ testGroup "inline code"
             "[^1]\n\n[^1]: my note\n     \n    in note\n"
             =?> para (note (para "my note" +++ para "in note"))
           ]
+-- the round-trip properties frequently fail
+--        , testGroup "round trip"
+--          [ property "p_markdown_round_trip" p_markdown_round_trip
+--          ]
         ]
