@@ -638,7 +638,8 @@ blockListToNote opts ref blocks =
   -- that block. Otherwise, insert a new Plain block with the backlink.
   let backlink = [RawInline "html" $ " <a href=\"#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref ++ 
                  "\" class=\"footnoteBackLink\"" ++
-                 " title=\"Jump back to footnote " ++ ref ++ "\">↩</a>"]
+                 " title=\"Jump back to footnote " ++ ref ++ "\">" ++
+                 (if writerAscii opts then "&#8617;" else "↩") ++ "</a>"]
       blocks'  = if null blocks
                     then []
                     else let lastBlock   = last blocks
