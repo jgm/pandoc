@@ -178,6 +178,7 @@ inTemplate opts tit auths date toc body' newvars =
                     (case toc of
                          Just t  -> [ ("toc", showHtmlFragment t)]
                          Nothing -> [])  ++
+                    [ ("ascii","true") | writerAscii opts ] ++
                     [ ("author", a) | a <- authors ]
   in  renderTemplate context $ writerTemplate opts
 
