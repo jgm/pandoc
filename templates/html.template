@@ -7,17 +7,9 @@ $else$
 $endif$
 <head>
 $if(html5)$
-$if(ascii)$
-  <meta charset="us-ascii" />
-$else$
   <meta charset="utf-8" />
-$endif$
-$else$
-$if(ascii)$
-  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
 $else$
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-$endif$
 $endif$
   <meta name="generator" content="pandoc" />
 $for(author)$
