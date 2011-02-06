@@ -123,6 +123,7 @@ data Opt = Opt
     , optBibliography      :: [String]
     , optCslFile           :: FilePath
     , optListings          :: Bool       -- ^ Use listings package for code blocks
+    , optAscii             :: Bool       -- ^ Avoid using nonascii characters
     }
 
 -- | Defaults for command-line options.
@@ -166,6 +167,7 @@ defaultOpts = Opt
     , optBibliography      = []
     , optCslFile           = ""
     , optListings          = False
+    , optAscii             = False
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -346,6 +348,11 @@ options =
                                exitWith $ ExitFailure 33)
                  "NUMBER")
                  "" -- "Length of line in characters"
+
+    , Option "" ["ascii"]
+                 (NoArg
+                  (\opt -> return opt { optAscii = True }))
+                 "" -- "Avoid using non-ascii characters in output"
 
     , Option "" ["email-obfuscation"]
                  (ReqArg
@@ -681,7 +688,8 @@ main = do
               , optBibliography      = reffiles
               , optCslFile           = cslfile
               , optCiteMethod        = citeMethod
-              , optListings          = listings 
+              , optListings          = listings
+              , optAscii             = ascii
              } = opts
 
   when dumpArgs $
@@ -803,7 +811,8 @@ main = do
                                       writerHtml5            = html5 &&
                                                                "html" `isPrefixOf` writerName',
                                       writerChapters         = chapters, 
-                                      writerListings         = listings }
+                                      writerListings         = listings,
+                                      writerAscii            = ascii }
 
   when (isNonTextOutput writerName' && outputFile == "-") $
     do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++

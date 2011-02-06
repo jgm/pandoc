@@ -43,6 +43,7 @@ import Data.List ( isPrefixOf, intersperse )
 import Data.Maybe ( catMaybes )
 import Control.Monad.State
 import Text.XHtml.Transitional hiding ( stringToHtml, unordList, ordList )
+import qualified Text.XHtml.Transitional as XHtml
 import Text.TeXMath
 import Text.XML.Light.Output
 
@@ -60,8 +61,10 @@ defaultWriterState = WriterState {stNotes= [], stMath = False, stHighlighting = 
 
 -- | Modified version of Text.XHtml's stringToHtml.
 -- Use unicode characters wherever possible.
-stringToHtml :: String -> Html
-stringToHtml = primHtml . escapeStringForXML
+stringToHtml :: WriterOptions -> String -> Html
+stringToHtml opts = if writerAscii opts
+                       then XHtml.stringToHtml
+                       else primHtml . escapeStringForXML
 
 -- | Hard linebreak.
 nl :: WriterOptions -> Html
@@ -219,7 +222,7 @@ elementToListItem _ (Blk _) = return Nothing
 elementToListItem opts (Sec _ num id' headerText subsecs) = do
   let sectnum = if writerNumberSections opts
                    then (thespan ! [theclass "toc-section-number"] << showSecNum num) +++
-                         stringToHtml " "
+                         stringToHtml opts" "
                    else noHtml
   txt <- liftM (sectnum +++) $ inlineListToHtml opts headerText
   subHeads <- mapM (elementToListItem opts) subsecs >>= return . catMaybes
@@ -301,7 +304,7 @@ obfuscateLink opts txt s =
                      linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) +++  
                      noscript (primHtml $ obfuscateString altText)
                 _ -> error $ "Unknown obfuscation method: " ++ show meth
-        _ -> anchor ! [href s] $ stringToHtml txt  -- malformed email
+        _ -> anchor ! [href s] $ stringToHtml opts txt  -- malformed email
 
 -- | Obfuscate character as entity.
 obfuscateChar :: Char -> String
@@ -353,7 +356,7 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
                                      else unlines . lines
                     in  return $ pre ! attrs $ thecode <<
                                  (replicate (length leadingBreaks) br +++
-                                 [stringToHtml $ addBird rawCode'])
+                                 [stringToHtml opts $ addBird rawCode'])
          Right h -> modify (\st -> st{ stHighlighting = True }) >>
                     return h
 blockToHtml opts (BlockQuote blocks) =
@@ -379,7 +382,7 @@ blockToHtml opts (Header level lst) = do
   secnum <- liftM stSecNum get
   let contents' = if writerNumberSections opts
                      then (thespan ! [theclass "header-section-number"] << showSecNum secnum) +++
-                            stringToHtml " " +++ contents
+                            stringToHtml opts " " +++ contents
                      else contents
   let contents''  = if writerTableOfContents opts
                        then anchor ! [href $ "#" ++ writerIdentifierPrefix opts ++ "TOC"] $ contents'
@@ -512,19 +515,19 @@ inlineListToHtml opts lst =
 inlineToHtml :: WriterOptions -> Inline -> State WriterState Html
 inlineToHtml opts inline =
   case inline of  
-    (Str str)        -> return $ stringToHtml str
-    (Space)          -> return $ stringToHtml " "
+    (Str str)        -> return $ stringToHtml opts str
+    (Space)          -> return $ stringToHtml opts " "
     (LineBreak)      -> return br
-    (EmDash)         -> return $ stringToHtml "—"
-    (EnDash)         -> return $ stringToHtml "–"
-    (Ellipses)       -> return $ stringToHtml "…"
-    (Apostrophe)     -> return $ stringToHtml "’"
+    (EmDash)         -> return $ stringToHtml opts "—"
+    (EnDash)         -> return $ stringToHtml opts "–"
+    (Ellipses)       -> return $ stringToHtml opts "…"
+    (Apostrophe)     -> return $ stringToHtml opts "’"
     (Emph lst)       -> inlineListToHtml opts lst >>= return . emphasize
     (Strong lst)     -> inlineListToHtml opts lst >>= return . strong
     (Code attr str)  -> case highlightHtml True attr str of
                              Left _  -> return
                                         $ thecode ! (attrsToHtml opts attr)
-                                        $ stringToHtml str
+                                        $ stringToHtml opts str
                              Right h -> return h
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . (thespan ! [thestyle "text-decoration: line-through;"])
@@ -534,10 +537,10 @@ inlineToHtml opts inline =
     (Subscript lst)   -> inlineListToHtml opts lst >>= return . sub
     (Quoted quoteType lst) ->
                         let (leftQuote, rightQuote) = case quoteType of
-                              SingleQuote -> (stringToHtml "‘",
-                                              stringToHtml "’")
-                              DoubleQuote -> (stringToHtml "“",
-                                              stringToHtml "”")
+                              SingleQuote -> (stringToHtml opts "‘",
+                                              stringToHtml opts "’")
+                              DoubleQuote -> (stringToHtml opts "“",
+                                              stringToHtml opts "”")
                         in  do contents <- inlineListToHtml opts lst
                                return $ leftQuote +++ contents +++ rightQuote
     (Math t str) ->     modify (\st -> st {stMath = True}) >> 

@@ -292,6 +292,11 @@ Options
 `--columns`=*NUMBER*
 :   Specify length of lines in characters (for text wrapping).
 
+`--ascii`
+:   Use only ascii characters in output.  Currently supported only
+    for HTML output (which uses numerical entities instead of
+    UTF-8 when this option is selected).
+
 `--email-obfuscation=`*none|javascript|references*
 :   Specify a method for obfuscating `mailto:` links in HTML documents.
     *none* leaves `mailto:` links as they are.  *javascript* obfuscates
