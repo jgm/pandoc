@@ -44,15 +44,16 @@ where
 import System.IO hiding (readFile, writeFile, getContents,
                           putStr, putStrLn, hPutStr, hPutStrLn, hGetContents)
 import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn )
+import Codec.Binary.UTF8.String (encodeString)
 import qualified System.IO as IO
 
 readFile :: FilePath -> IO String
 readFile f = do
-  h <- openFile f ReadMode
+  h <- openFile (encodeString f) ReadMode
   hGetContents h
 
 writeFile :: FilePath -> String -> IO ()
-writeFile f s = withFile f WriteMode $ \h -> hPutStr h s
+writeFile f s = withFile (encodeString f) WriteMode $ \h -> hPutStr h s
 
 getContents :: IO String
 getContents = hGetContents stdin
