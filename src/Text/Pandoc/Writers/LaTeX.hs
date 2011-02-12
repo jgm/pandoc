@@ -163,7 +163,7 @@ blockToLaTeX (Plain lst) = inlineListToLaTeX lst
 blockToLaTeX (Para [Image txt (src,tit)]) = do
   capt <- inlineListToLaTeX txt
   img <- inlineToLaTeX (Image txt (src,tit))
-  return $ "\\begin{figure}[htb]" $$ "\\centering" $$ img $$
+  return $ "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
            ("\\caption{" <> capt <> char '}') $$ "\\end{figure}" $$ blankline
 blockToLaTeX (Para lst) = do
   result <- inlineListToLaTeX lst
