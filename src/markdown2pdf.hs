@@ -137,13 +137,13 @@ saveOutput input output = do
 main :: IO ()
 main = bracket
   -- acquire resource
-  (do dir <- return "testtmp" -- TODO -- getTemporaryDirectory
+  (do dir <- getTemporaryDirectory
       let tmp = dir </> "pandoc"
       createDirectoryIfMissing True tmp
       return tmp)
 
   -- release resource
-  ( \tmp -> return () )-- TODO -- removeDirectoryRecursive tmp)
+  ( \tmp -> removeDirectoryRecursive tmp)
 
   -- run computation
   $ \tmp -> do
