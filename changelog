@@ -1,3 +1,10 @@
+pandoc (1.8.1.1)
+
+  * `markdown2pdf`:  Removed some debugging lines accidentally included
+    in the 1.8.1 release. With those lines, the temp directory is created
+    in the working directory, and it is not deleted.  This fix restores
+    the original behavior.
+
 pandoc (1.8.1)
 
   * Added `--ascii` option.  Currently supported only in HTML writer,
