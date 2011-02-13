@@ -1,3 +1,25 @@
+pandoc (1.8.1)
+
+  * Added `--ascii` option.  Currently supported only in HTML writer,
+    which it causes to use numerical entities instead of UTF-8.
+
+  * EPUB writer: `--toc` now works to provide a table of contents
+    at the beginning of each chapter.
+
+  * LaTeX writer:  Change figure defaults to `htbp`.
+    This prevents "too many unprocessed floats."  Resolves
+    Issue #285.
+
+  * `Text.Pandoc.UTF8`:  Encode filenames even when using recent
+    base.
+
+  * `markdown2pdf`: Fixed filename encoding issues. With help from Paulo
+    Tanimoto. Resolves Issue #286.
+
+  * HTML writer: Put line breaks in section divs.
+
+  * `Text.Pandoc.Shared`: Make `writerSectionDivs` default to False.
+
 pandoc (1.8.0.3)
 
   * Fixed Source-repository stanza in cabal file.
