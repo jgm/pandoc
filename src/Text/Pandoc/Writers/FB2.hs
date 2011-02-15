@@ -51,25 +51,40 @@ writeFB2 _ (Pandoc meta blocks) = (xml_header ++) . showContent $ fb2_xml
   fb2_xml = el "FictionBook" [desc, body]
   desc = el "description"
          [ el "title-info"
-           ( el "book-title" (cMap toXml . docTitle $ meta)
-             : ( cMap author (docAuthors meta) )
-           )
+             ((booktitle meta) ++ (authors meta) ++ (docdate meta))
          , el "document-info"
            [ el "program-used" "pandoc"  -- FIXME: add version info
            ]
          ]
+  booktitle :: Meta -> [Content]
+  booktitle meta =
+      let t = cMap toXml . docTitle $ meta
+      in  if null $ t
+          then []
+          else [ el "book-title" t ]
+  authors :: Meta -> [Content]
+  authors meta = cMap author (docAuthors meta)
   author :: [Inline] -> [Content]
   author ss =
-      case words . cMap plain $ ss of
-        (nickname:[]) -> list $ el "author" [ el "nickname" nickname ]
-        (fname:lname:[]) -> list $ el "author"
-                           [ el "first-name" fname
-                           , el "last-name" lname ]
-        (fname:rest) -> list $ el "author"
-                           [ el "first-name" fname
-                           , el "middle-name" (concat . init $ rest)
-                           , el "last-name" (last rest) ]
-        ([]) -> []
+      let ws = words . cMap plain $ ss
+          email = (el "email") `fmap` (take 1 $ filter ('@' `elem`) ws)
+          ws' = filter ('@' `notElem`) ws
+          names = case ws' of
+                    (nickname:[]) -> [ el "nickname" nickname ]
+                    (fname:lname:[]) -> [ el "first-name" fname
+                                       , el "last-name" lname ]
+                    (fname:rest) -> [ el "first-name" fname
+                                   , el "middle-name" (concat . init $ rest)
+                                   , el "last-name" (last rest) ]
+                    ([]) -> []
+      in  list $ el "author" (names ++ email)
+  docdate :: Meta -> [Content]
+  docdate meta =
+      let ss = docDate meta
+          d = cMap toXml ss
+      in  if null d
+          then []
+          else [el "date" d]
   body = el "body" $ cMap blockToXml blocks
 
 -- FIXME: section nesting constraint
