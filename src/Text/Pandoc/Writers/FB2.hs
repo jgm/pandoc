@@ -45,7 +45,7 @@ import Text.Pandoc.Generic (bottomUp)
 -- | Produce an FB2 document from a 'Pandoc' document.
 writeFB2 :: WriterOptions    -- ^ conversion options
          -> Pandoc           -- ^ document to convert
-         -> String        -- ^ FictionBook2 document (not encoded yet)
+         -> String           -- ^ FictionBook2 document (not encoded yet)
 writeFB2 _ (Pandoc meta blocks) = (xml_header ++) . showContent $ fb2_xml
   where
   fb2_xml = el "FictionBook" [desc, body]
@@ -110,7 +110,10 @@ blockToXml (DefinitionList defs) =
           let def = cMap (cMap blockToXml) bss
           in  [ el "p" (wrap "strong" term), el "cite" def ]
 blockToXml (Header n ss) = [ el "p" (el "strong" (cMap toXml ss)) ] -- FIXME
-blockToXml _ = []  -- FIXME: HorizontalRule, Table, Null
+blockToXml HorizontalRule = [ el "empty-line" ()
+                            , el "p" (txt (replicate 10 '—'))
+                            , el "empty-line" () ]
+blockToXml _ = []  -- FIXME: Table, Null
 
 -- Convert a Pandoc's Inline element to FictionBook XML representation.
 toXml :: Inline -> [Content]
