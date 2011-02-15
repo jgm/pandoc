@@ -56,7 +56,8 @@ import Control.Monad (when, unless, liftM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
-import Data.ByteString.Lazy.UTF8 (toString )
+import Data.ByteString.Lazy.UTF8 (toString)
+import Codec.Binary.UTF8.String (decodeString, encodeString)
 import Text.CSL.Reference (Reference(..))
 #if MIN_VERSION_base(4,4,0)
 #else
@@ -694,8 +695,11 @@ options =
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName = usageInfo
   (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++
-  (wrapWords 16 78 $ map fst readers) ++ "\nOutput formats: " ++
-  (wrapWords 16 78 $ map fst writers ++ nonTextFormats) ++ "\nOptions:")
+  (wrapWords 16 78 $ readers'names) ++ "\nOutput formats: " ++
+  (wrapWords 16 78 $ writers'names ++ nonTextFormats) ++ "\nOptions:")
+  where
+    writers'names = map fst writers ++ map fst iowriters
+    readers'names = map fst readers
 
 -- Determine default reader based on source file extensions
 defaultReaderName :: String -> [FilePath] -> String
@@ -752,6 +756,7 @@ defaultWriterName x =
     ".org"      -> "org"
     ".asciidoc" -> "asciidoc"
     ".pdf"      -> "latex"
+    ".fb2"      -> "fb2"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
@@ -1042,8 +1047,13 @@ main = do
       writerFn "-" = UTF8.putStr
       writerFn f   = UTF8.writeFile f
 
-  case lookup writerName' writers of
-        Nothing
+  let purewriter = lookup writerName' writers
+  let iowriter = lookup writerName' iowriters
+  case (purewriter, iowriter) of
+        (Nothing, Just iow) -> do
+            d <- iow writerOptions doc2
+            writerFn outputFile d
+        (Nothing, Nothing)
           | writerName' == "epub" ->
               writeEPUB epubStylesheet epubFonts writerOptions doc2
                >>= writeBinary
@@ -1052,13 +1062,13 @@ main = do
           | writerName' == "docx"  ->
               writeDocx referenceDocx writerOptions doc2 >>= writeBinary
           | otherwise -> err 9 ("Unknown writer: " ++ writerName')
-        Just w
+        (Just w, _)
           | pdfOutput  -> do
               res <- tex2pdf latexEngine $ w writerOptions doc2
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> err 43 $ toString err'
-        Just w
+        (Just w, _)
           | htmlFormat && ascii ->
                   writerFn outputFile . toEntities =<< selfcontain result
           | otherwise ->
