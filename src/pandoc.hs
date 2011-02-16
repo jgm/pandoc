@@ -692,7 +692,6 @@ defaultReaderName fallback (x:xs) =
     ".textile"  -> "textile"
     ".native"   -> "native"
     ".json"     -> "json"
-    ".fb2"      -> "fb2"
     _           -> defaultReaderName fallback xs
 
 -- Returns True if extension of first source is .lhs
@@ -731,6 +730,7 @@ defaultWriterName x =
     ".org"      -> "org"
     ".asciidoc" -> "asciidoc"
     ".pdf"      -> "latex"
+    ".fb2"      -> "fb2"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
