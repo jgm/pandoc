@@ -156,7 +156,19 @@ blockToXml (Header _ _) = undefined  -- should never happen
 blockToXml HorizontalRule = [ el "empty-line" ()
                             , el "p" (txt (replicate 10 '—'))
                             , el "empty-line" () ]
-blockToXml _ = []  -- FIXME: Table, Null
+blockToXml (Table caption aligns _ headers rows) =
+    list . el "table" $
+       [ el "tr" (map (uncurry $ mkcell "th") (zip headers aligns)) ]
+       ++
+       map (\row -> el "tr" (map (uncurry $ mkcell "td") (zip row aligns))) rows
+    where
+      mkcell tag cell align = el tag ([align_attr align], cMap blockToXml cell)
+      align_attr a = Attr (QName "align" Nothing Nothing) (align_str a)
+      align_str AlignLeft = "left"
+      align_str AlignCenter = "center"
+      align_str AlignRight = "right"
+      align_str AlignDefault = "left"
+blockToXml Null = []
 
 -- Convert a Pandoc's Inline element to FictionBook XML representation.
 toXml :: Inline -> [Content]
