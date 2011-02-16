@@ -36,7 +36,6 @@ FictionBook is an XML-based e-book format. For more information see:
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
 import Data.Char (toUpper)
-import Data.List (break)
 import Text.XML.Light
 
 import Text.Pandoc.Definition
@@ -57,27 +56,27 @@ writeFB2 _ (Pandoc meta blocks) = (xml_head ++) . showContent $ fb2_xml
       in  [ Attr (QName "xmlns" Nothing Nothing) xmlns
           , Attr (QName "l" Nothing (Just "xmlns")) xlink ]
   desc = description meta
-  body = el "body" $ frontpage meta ++ renderSections 1 blocks
-  frontpage meta =
+  body = el "body" $ frontpage ++ renderSections 1 blocks
+  frontpage =
       [ el "title" (el "p" (cMap toXml . docTitle $ meta))
       , el "annotation" ((map (el "p" . cMap plain)
                                   (docAuthors meta ++ [docDate meta])))
       ]
-  description meta =
+  description meta' =
       el "description"
          [ el "title-info"
-             ((booktitle meta) ++ (authors meta) ++ (docdate meta))
+             ((booktitle meta') ++ (authors meta') ++ (docdate meta'))
          , el "document-info"
            [ el "program-used" "pandoc" ] -- FIXME: add version info
          ]
   booktitle :: Meta -> [Content]
-  booktitle meta =
-      let t = cMap toXml . docTitle $ meta
+  booktitle meta' =
+      let t = cMap toXml . docTitle $ meta'
       in  if null $ t
           then []
           else [ el "book-title" t ]
   authors :: Meta -> [Content]
-  authors meta = cMap author (docAuthors meta)
+  authors meta' = cMap author (docAuthors meta')
   author :: [Inline] -> [Content]
   author ss =
       let ws = words . cMap plain $ ss
@@ -93,8 +92,8 @@ writeFB2 _ (Pandoc meta blocks) = (xml_head ++) . showContent $ fb2_xml
                     ([]) -> []
       in  list $ el "author" (names ++ email)
   docdate :: Meta -> [Content]
-  docdate meta =
-      let ss = docDate meta
+  docdate meta' =
+      let ss = docDate meta'
           d = cMap toXml ss
       in  if null d
           then []
@@ -120,16 +119,16 @@ renderSection level (ttl, bs) =
 
 -- Divide the stream of block elements into sections: [(title, blocks).
 splitSections :: Int -> [Block] -> [([Inline], [Block])]
-splitSections level blocks = reverse $ revSplit level (reverse blocks)
+splitSections level blocks = reverse $ revSplit (reverse blocks)
   where
-  revSplit level blocks =
-    let (lastsec, before) = break sameLevel blocks
+  revSplit rblocks =
+    let (lastsec, before) = break sameLevel rblocks
     in case before of
-      [] -> if null lastsec
+      ((Header _ inlines):prevblocks) ->
+          (inlines, reverse lastsec) : revSplit prevblocks
+      _ -> if null lastsec
            then []
            else [([], reverse lastsec)]
-      ((Header n inlines):prevblocks) ->
-          (inlines, reverse lastsec) : revSplit level prevblocks
   sameLevel (Header n _) = n == level
   sameLevel _ = False
 
@@ -153,7 +152,7 @@ blockToXml (DefinitionList defs) =
       mkdef (term, bss) =
           let def = cMap (cMap blockToXml) bss
           in  [ el "p" (wrap "strong" term), el "cite" def ]
-blockToXml (Header n ss) = undefined  -- should never happen
+blockToXml (Header _ _) = undefined  -- should never happen
 blockToXml HorizontalRule = [ el "empty-line" ()
                             , el "p" (txt (replicate 10 '—'))
                             , el "empty-line" () ]
@@ -178,12 +177,11 @@ toXml EnDash = [txt "–"]
 toXml Apostrophe = [txt "’"]
 toXml Ellipses = [txt "…"]
 toXml LineBreak = [el "empty-line" ()]
-toXml (Math InlineMath s) = [el "code" s] -- FIXME: generate formula images
-toXml (Math DisplayMath s) = [el "p" (el "code" s)] -- FIXME: is <p> here OK?
+toXml (Math _ s) = [el "code" s] -- FIXME: generate formula images
 toXml (RawInline _ s) = [el "code" s] -- FIXME: attempt to convert to plaintext
-toXml (Link text (url,title)) = cMap toXml text -- FIXME: url in footnotes
-toXml (Image alt (url,title)) = cMap toXml alt  -- FIXME: embed images
-toXml (Note blocks) = [txt ""] -- FIXME: implement footnotes
+toXml (Link text (_,_)) = cMap toXml text -- FIXME: url in footnotes
+toXml (Image alt (_,_)) = cMap toXml alt  -- FIXME: embed images
+toXml (Note _) = [txt ""] -- FIXME: implement footnotes
 
 -- Wrap all inlines with an XML tag (given its unqualified name).
 wrap :: String -> [Inline] -> Content
@@ -202,7 +200,7 @@ plain (Strikeout ss) = concat (map plain ss)
 plain (Superscript ss) = concat (map plain ss)
 plain (Subscript ss) = concat (map plain ss)
 plain (SmallCaps ss) = concat (map plain ss)
-plain (Quoted qt ss) = concat (map plain ss)
+plain (Quoted _ ss) = concat (map plain ss)
 plain (Cite _ ss) = concat (map plain ss)  -- FIXME
 plain (Code _ s) = s
 plain Space = " "
@@ -211,11 +209,11 @@ plain EnDash = "–"
 plain Apostrophe = "’"
 plain Ellipses = "…"
 plain LineBreak = "\n"
-plain (Math mt s) = s
+plain (Math _ s) = s
 plain (RawInline _ s) = s
-plain (Link text (url,title)) = concat (map plain text ++ [" <", url, ">"])
+plain (Link text (url,_)) = concat (map plain text ++ [" <", url, ">"])
 plain (Image alt _) = concat (map plain alt)
-plain (Note blocks) = ""  -- FIXME
+plain (Note _) = ""  -- FIXME
 
 -- | Create an XML element.
 el :: (Node t)
