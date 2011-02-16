@@ -36,6 +36,7 @@ FictionBook is an XML-based e-book format. For more information see:
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
 import Data.Char (toUpper)
+import Data.List (break)
 import Text.XML.Light
 
 import Text.Pandoc.Definition
@@ -46,15 +47,28 @@ import Text.Pandoc.Generic (bottomUp)
 writeFB2 :: WriterOptions    -- ^ conversion options
          -> Pandoc           -- ^ document to convert
          -> String           -- ^ FictionBook2 document (not encoded yet)
-writeFB2 _ (Pandoc meta blocks) = (xml_header ++) . showContent $ fb2_xml
+writeFB2 _ (Pandoc meta blocks) = (xml_head ++) . showContent $ fb2_xml
   where
-  fb2_xml = el "FictionBook" [desc, body]
-  desc = el "description"
+  fb2_xml = el "FictionBook" (fb2_attrs, [desc, body])
+  xml_head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+  fb2_attrs =
+      let xmlns = "http://www.gribuser.ru/xml/fictionbook/2.0"
+          xlink = "http://www.w3.org/1999/xlink"
+      in  [ Attr (QName "xmlns" Nothing Nothing) xmlns
+          , Attr (QName "l" Nothing (Just "xmlns")) xlink ]
+  desc = description meta
+  body = el "body" $ frontpage meta ++ renderSections 1 blocks
+  frontpage meta =
+      [ el "title" (el "p" (cMap toXml . docTitle $ meta))
+      , el "annotation" ((map (el "p" . cMap plain)
+                                  (docAuthors meta ++ [docDate meta])))
+      ]
+  description meta =
+      el "description"
          [ el "title-info"
              ((booktitle meta) ++ (authors meta) ++ (docdate meta))
          , el "document-info"
-           [ el "program-used" "pandoc"  -- FIXME: add version info
-           ]
+           [ el "program-used" "pandoc" ] -- FIXME: add version info
          ]
   booktitle :: Meta -> [Content]
   booktitle meta =
@@ -85,9 +99,39 @@ writeFB2 _ (Pandoc meta blocks) = (xml_header ++) . showContent $ fb2_xml
       in  if null d
           then []
           else [el "date" d]
-  body = el "body" $ cMap blockToXml blocks
 
--- FIXME: section nesting constraint
+-- Divide the stream of blocks into sections and convert to XML representation.
+renderSections :: Int -> [Block] -> [Content]
+renderSections level blocks =
+    let secs = splitSections level blocks
+    in  map (renderSection level) secs
+
+renderSection :: Int -> ([Inline], [Block]) -> Content
+renderSection level (ttl, bs) =
+    let title = if null ttl
+                then []
+                else [el "title" (el "p" (cMap toXml ttl))]
+                -- FIXME: only <p> and <empty-line> are allowed within <title>
+        subsecs = splitSections (level + 1) bs
+        content = if length subsecs == 1  -- if no subsections
+                  then cMap blockToXml bs
+                  else renderSections (level + 1) bs
+    in  el "section" (title ++ content)
+
+-- Divide the stream of block elements into sections: [(title, blocks).
+splitSections :: Int -> [Block] -> [([Inline], [Block])]
+splitSections level blocks = reverse $ revSplit level (reverse blocks)
+  where
+  revSplit level blocks =
+    let (lastsec, before) = break sameLevel blocks
+    in case before of
+      [] -> if null lastsec
+           then []
+           else [([], reverse lastsec)]
+      ((Header n inlines):prevblocks) ->
+          (inlines, reverse lastsec) : revSplit level prevblocks
+  sameLevel (Header n _) = n == level
+  sameLevel _ = False
 
 -- Convert a block-level Pandoc's element to FictionBook XML representation.
 blockToXml :: Block -> [Content]
@@ -109,7 +153,7 @@ blockToXml (DefinitionList defs) =
       mkdef (term, bss) =
           let def = cMap (cMap blockToXml) bss
           in  [ el "p" (wrap "strong" term), el "cite" def ]
-blockToXml (Header n ss) = [ el "p" (el "strong" (cMap toXml ss)) ] -- FIXME
+blockToXml (Header n ss) = undefined  -- should never happen
 blockToXml HorizontalRule = [ el "empty-line" ()
                             , el "p" (txt (replicate 10 '—'))
                             , el "empty-line" () ]
