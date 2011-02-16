@@ -134,9 +134,9 @@ splitSections level blocks = reverse $ revSplit (reverse blocks)
 
 -- Convert a block-level Pandoc's element to FictionBook XML representation.
 blockToXml :: Block -> [Content]
-blockToXml (Plain ss) = cMap toXml ss
+blockToXml (Plain ss) = cMap toXml ss  -- FIXME: can lead to malformed FB2
 blockToXml (Para ss) = [ el "p" (cMap toXml ss) ]
-blockToXml (CodeBlock _ s) = [ el "p" (el "code" s) ]
+blockToXml (CodeBlock _ s) = map (el "p" . el "code") . lines $ s
 blockToXml (RawBlock _ s) = [ el "p" (el "code" s) ]
 blockToXml (BlockQuote bs) = [ el "cite" (cMap blockToXml bs) ]
 blockToXml (OrderedList a bss) =
