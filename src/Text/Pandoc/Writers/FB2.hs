@@ -35,6 +35,7 @@ FictionBook is an XML-based e-book format. For more information see:
 -}
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
+import Control.Monad.State
 import Data.Char (toUpper)
 import Text.XML.Light
 
@@ -42,39 +43,60 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared (WriterOptions, orderedListMarkers)
 import Text.Pandoc.Generic (bottomUp)
 
+-- | Data to be written at the end of the document: (foot)notes, URLs, references, images.
+data FBNotes = FBNotes
+    { footnotes :: [ Content ]
+    , fnNumber :: Int           -- ^ number of processed footnotes so far
+    } deriving (Show)
+
+-- | FictionBook building monad.
+type FBM = State FBNotes
+
+newFB :: FBNotes
+newFB = FBNotes { footnotes = [], fnNumber = 0 }
+
 -- | Produce an FB2 document from a 'Pandoc' document.
 writeFB2 :: WriterOptions    -- ^ conversion options
          -> Pandoc           -- ^ document to convert
          -> String           -- ^ FictionBook2 document (not encoded yet)
-writeFB2 _ (Pandoc meta blocks) = (xml_head ++) . showContent $ fb2_xml
+writeFB2 _ (Pandoc meta blocks) = flip evalState newFB $ do
+     desc <- description meta
+     fp <- frontpage meta
+     secs <- renderSections 1 blocks
+     let body = el "body" $ fp ++ secs
+     let fb2_xml = el "FictionBook" (fb2_attrs, [desc, body])
+     return $ xml_head ++ (showContent fb2_xml)
   where
-  fb2_xml = el "FictionBook" (fb2_attrs, [desc, body])
   xml_head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
   fb2_attrs =
       let xmlns = "http://www.gribuser.ru/xml/fictionbook/2.0"
           xlink = "http://www.w3.org/1999/xlink"
       in  [ Attr (QName "xmlns" Nothing Nothing) xmlns
           , Attr (QName "l" Nothing (Just "xmlns")) xlink ]
-  desc = description meta
-  body = el "body" $ frontpage ++ renderSections 1 blocks
-  frontpage =
-      [ el "title" (el "p" (cMap toXml . docTitle $ meta))
-      , el "annotation" ((map (el "p" . cMap plain)
-                                  (docAuthors meta ++ [docDate meta])))
-      ]
-  description meta' =
-      el "description"
-         [ el "title-info"
-             ((booktitle meta') ++ (authors meta') ++ (docdate meta'))
-         , el "document-info"
-           [ el "program-used" "pandoc" ] -- FIXME: add version info
+  --
+  frontpage :: Meta -> FBM [Content]
+  frontpage meta' = do
+      t <- cMapM toXml . docTitle $ meta'
+      return $
+        [ el "title" (el "p" t)
+        , el "annotation" (map (el "p" . cMap plain)
+                           (docAuthors meta' ++ [docDate meta']))
+        ]
+  description :: Meta -> FBM Content
+  description meta' = do
+      bt <- booktitle meta'
+      let as = authors meta'
+      dd <- docdate meta'
+      return $ el "description"
+         [ el "title-info" (bt ++ as ++ dd)
+         , el "document-info" [ el "program-used" "pandoc" ] -- FIXME: +version
          ]
-  booktitle :: Meta -> [Content]
-  booktitle meta' =
-      let t = cMap toXml . docTitle $ meta'
-      in  if null $ t
-          then []
-          else [ el "book-title" t ]
+  booktitle :: Meta -> FBM [Content]
+  booktitle meta' = do
+      t <- cMapM toXml . docTitle $ meta'
+      return $ if null t
+               then []
+               else [ el "book-title" t ]
   authors :: Meta -> [Content]
   authors meta' = cMap author (docAuthors meta')
   author :: [Inline] -> [Content]
@@ -91,33 +113,33 @@ writeFB2 _ (Pandoc meta blocks) = (xml_head ++) . showContent $ fb2_xml
                                    , el "last-name" (last rest) ]
                     ([]) -> []
       in  list $ el "author" (names ++ email)
-  docdate :: Meta -> [Content]
-  docdate meta' =
+  docdate :: Meta -> FBM [Content]
+  docdate meta' = do
       let ss = docDate meta'
-          d = cMap toXml ss
-      in  if null d
-          then []
-          else [el "date" d]
+      d <- cMapM toXml ss
+      return $ if null d
+               then []
+               else [el "date" d]
 
--- Divide the stream of blocks into sections and convert to XML representation.
-renderSections :: Int -> [Block] -> [Content]
-renderSections level blocks =
+-- | Divide the stream of blocks into sections and convert to XML representation.
+renderSections :: Int -> [Block] -> FBM [Content]
+renderSections level blocks = do
     let secs = splitSections level blocks
-    in  map (renderSection level) secs
+    mapM (renderSection level) secs
 
-renderSection :: Int -> ([Inline], [Block]) -> Content
-renderSection level (ttl, bs) =
-    let title = if null ttl
-                then []
-                else [el "title" (el "p" (cMap toXml ttl))]
-                -- FIXME: only <p> and <empty-line> are allowed within <title>
-        subsecs = splitSections (level + 1) bs
-        content = if length subsecs == 1  -- if no subsections
-                  then cMap blockToXml bs
-                  else renderSections (level + 1) bs
-    in  el "section" (title ++ content)
+renderSection :: Int -> ([Inline], [Block]) -> FBM Content
+renderSection level (ttl, bs) = do
+    title <- if null ttl
+            then return []
+            else (list . el "title" . el "p") `liftM` cMapM toXml ttl
+                 -- FIXME: only <p> and <empty-line> are allowed within <title>
+    let subsecs = splitSections (level + 1) bs
+    content <- if length subsecs == 1  -- if no subsections
+              then cMapM blockToXml bs
+              else renderSections (level + 1) bs
+    return $ el "section" (title ++ content)
 
--- Divide the stream of block elements into sections: [(title, blocks).
+-- Divide the stream of block elements into sections: [(title, blocks)].
 splitSections :: Int -> [Block] -> [([Inline], [Block])]
 splitSections level blocks = reverse $ revSplit (reverse blocks)
   where
@@ -132,78 +154,96 @@ splitSections level blocks = reverse $ revSplit (reverse blocks)
   sameLevel (Header n _) = n == level
   sameLevel _ = False
 
--- Convert a block-level Pandoc's element to FictionBook XML representation.
-blockToXml :: Block -> [Content]
-blockToXml (Plain ss) = cMap toXml ss  -- FIXME: can lead to malformed FB2
-blockToXml (Para ss) = [ el "p" (cMap toXml ss) ]
-blockToXml (CodeBlock _ s) = map (el "p" . el "code") . lines $ s
-blockToXml (RawBlock _ s) = [ el "p" (el "code" s) ]
-blockToXml (BlockQuote bs) = [ el "cite" (cMap blockToXml bs) ]
+-- | Convert a block-level Pandoc's element to FictionBook XML representation.
+blockToXml :: Block -> FBM [Content]
+blockToXml (Plain ss) = cMapM toXml ss  -- FIXME: can lead to malformed FB2
+blockToXml (Para ss) = liftM (list . el "p") $ cMapM toXml ss
+blockToXml (CodeBlock _ s) = return . map (el "p" . el "code") . lines $ s
+blockToXml (RawBlock _ s) = return [ el "p" (el "code" s) ]
+blockToXml (BlockQuote bs) = liftM (list . el "cite") $ cMapM blockToXml bs
 blockToXml (OrderedList a bss) =
     let markers = orderedListMarkers a
-        mkitem mrk bs = el "cite" $ [ txt mrk, txt " " ] ++ cMap blockToXml bs
-    in  map (uncurry mkitem) (zip markers bss)
+        mkitem mrk bs = do
+          itemtext <- cMapM blockToXml bs
+          return . el "cite" $ [ txt mrk, txt " " ] ++ itemtext
+    in  mapM (uncurry mkitem) (zip markers bss)
 blockToXml (BulletList bss) =
-    let mkitem bs = el "cite" $ [ txt "• " ] ++ cMap blockToXml bs
-    in  map mkitem bss
+    let mkitem bs = do
+          itemtext <- cMapM blockToXml bs
+          return $ el "cite" $ [ txt "• " ] ++ itemtext
+    in  mapM mkitem bss
 blockToXml (DefinitionList defs) =
-    cMap mkdef defs
+    cMapM mkdef defs
     where
-      mkdef (term, bss) =
-          let def = cMap (cMap blockToXml) bss
-          in  [ el "p" (wrap "strong" term), el "cite" def ]
-blockToXml (Header _ _) = undefined  -- should never happen
-blockToXml HorizontalRule = [ el "empty-line" ()
+      mkdef (term, bss) = do
+          def <- cMapM (cMapM blockToXml) bss
+          t <- wrap "strong" term
+          return [ el "p" t, el "cite" def ]
+blockToXml (Header _ _) = undefined  -- should never happen, see renderSections
+blockToXml HorizontalRule = return
+                            [ el "empty-line" ()
                             , el "p" (txt (replicate 10 '—'))
                             , el "empty-line" () ]
-blockToXml (Table caption aligns _ headers rows) =
-    list . el "table" $
-       [ el "tr" (map (uncurry $ mkcell "th") (zip headers aligns)) ]
-       ++
-       map (\row -> el "tr" (map (uncurry $ mkcell "td") (zip row aligns))) rows
+blockToXml (Table caption aligns _ headers rows) = do
+    hd <- mkrow "th" headers aligns
+    bd <- mapM (\r -> mkrow "td" r aligns) rows
+    c <- return . el "emphasis" =<< cMapM toXml caption
+    return [el "table" (hd : bd), el "p" c]
     where
-      mkcell tag cell align = el tag ([align_attr align], cMap blockToXml cell)
+      mkrow :: String -> [TableCell] -> [Alignment] -> FBM Content
+      mkrow tag cells aligns' =
+        (el "tr") `liftM` (mapM (mkcell tag) (zip cells aligns'))
+      --
+      mkcell :: String -> (TableCell, Alignment) -> FBM Content
+      mkcell tag (cell, align) = do
+        cblocks <- cMapM blockToXml cell
+        return $ el tag ([align_attr align], cblocks)
+      --
       align_attr a = Attr (QName "align" Nothing Nothing) (align_str a)
       align_str AlignLeft = "left"
       align_str AlignCenter = "center"
       align_str AlignRight = "right"
       align_str AlignDefault = "left"
-blockToXml Null = []
+blockToXml Null = return []
 
--- Convert a Pandoc's Inline element to FictionBook XML representation.
-toXml :: Inline -> [Content]
-toXml (Str s) = [txt s]
-toXml (Emph ss) = list $ wrap "emphasis" ss
-toXml (Strong ss) = list $ wrap "strong" ss
-toXml (Strikeout ss) = list $ wrap "strikethrough" ss
-toXml (Superscript ss) = list $ wrap "sup" ss
-toXml (Subscript ss) = list $ wrap "sub" ss
-toXml (SmallCaps ss) = cMap toXml $ bottomUp (map toUpper) ss
-toXml (Quoted SingleQuote ss) = [txt "‘"] ++ cMap toXml ss ++ [txt "’"]
-toXml (Quoted DoubleQuote ss) = [txt "“"] ++ cMap toXml ss ++ [txt "”"]
-toXml (Cite _ ss) = cMap toXml ss  -- FIXME: support citation styles
-toXml (Code _ s) = [el "code" s]
-toXml Space = [txt " "]
-toXml EmDash = [txt "—"]
-toXml EnDash = [txt "–"]
-toXml Apostrophe = [txt "’"]
-toXml Ellipses = [txt "…"]
-toXml LineBreak = [el "empty-line" ()]
-toXml (Math _ s) = [el "code" s] -- FIXME: generate formula images
-toXml (RawInline _ s) = [el "code" s] -- FIXME: attempt to convert to plaintext
-toXml (Link text (_,_)) = cMap toXml text -- FIXME: url in footnotes
-toXml (Image alt (_,_)) = cMap toXml alt  -- FIXME: embed images
-toXml (Note _) = [txt ""] -- FIXME: implement footnotes
+-- | Convert a Pandoc's Inline element to FictionBook XML representation.
+toXml :: Inline -> FBM [Content]
+toXml (Str s) = return [txt s]
+toXml (Emph ss) = list `liftM` wrap "emphasis" ss
+toXml (Strong ss) = list `liftM` wrap "strong" ss
+toXml (Strikeout ss) = list `liftM` wrap "strikethrough" ss
+toXml (Superscript ss) = list `liftM` wrap "sup" ss
+toXml (Subscript ss) = list `liftM` wrap "sub" ss
+toXml (SmallCaps ss) = cMapM toXml $ bottomUp (map toUpper) ss
+toXml (Quoted SingleQuote ss) = do  -- FIXME: should be language-specific
+  inner <- cMapM toXml ss
+  return $ [txt "‘"] ++ inner ++ [txt "’"]
+toXml (Quoted DoubleQuote ss) = do
+  inner <- cMapM toXml ss
+  return $ [txt "“"] ++ inner ++ [txt "”"]
+toXml (Cite _ ss) = cMapM toXml ss  -- FIXME: support citation styles
+toXml (Code _ s) = return [el "code" s]
+toXml Space = return [txt " "]
+toXml EmDash = return [txt "—"]
+toXml EnDash = return [txt "–"]
+toXml Apostrophe = return [txt "’"]
+toXml Ellipses = return [txt "…"]
+toXml LineBreak = return [el "empty-line" ()]
+toXml (Math _ s) = return [el "code" s] -- FIXME: generate formula images
+toXml (RawInline _ _) = return []  -- raw TeX and raw HTML are suppressed
+toXml (Link text (_,_)) = cMapM toXml text -- FIXME: url in footnotes
+toXml (Image alt (_,_)) = cMapM toXml alt  -- FIXME: embed images
+toXml (Note _) = return [txt ""] -- FIXME: implement footnotes
 
--- Wrap all inlines with an XML tag (given its unqualified name).
-wrap :: String -> [Inline] -> Content
-wrap tagname inlines = el tagname $ cMap toXml inlines
+-- | Wrap all inlines with an XML tag (given its unqualified name).
+wrap :: String -> [Inline] -> FBM Content
+wrap tagname inlines = el tagname `liftM` cMapM toXml inlines
 
--- Create a singleton list.
+-- " Create a singleton list.
 list :: a -> [a]
 list = (:[])
 
--- Convert an 'Inline' to plaintext.
+-- | Convert an 'Inline' to plaintext.
 plain :: Inline -> String
 plain (Str s) = s
 plain (Emph ss) = concat (map plain ss)
@@ -241,3 +281,7 @@ txt s = Text $ CData CDataText s Nothing
 -- | Abbreviation for 'concatMap'.
 cMap :: (a -> [b]) -> [a] -> [b]
 cMap = concatMap
+
+-- | Monadic equivalent of 'concatMap'.
+cMapM :: (Monad m) => (a -> m [b]) -> [a] -> m [b]
+cMapM f xs = concat `liftM` mapM f xs
