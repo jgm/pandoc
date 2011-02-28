@@ -36,35 +36,42 @@ FictionBook is an XML-based e-book format. For more information see:
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
 import Control.Monad.State
-import Data.Char (toUpper, isSpace)
+import Data.ByteString.Base64 (encode)
+import qualified Data.ByteString as B
+import Data.Char (toUpper, toLower, isSpace)
+import Network.URI (isURI)
+import System.FilePath (takeExtension)
 import Text.XML.Light
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (WriterOptions, orderedListMarkers)
 import Text.Pandoc.Generic (bottomUp)
 
--- | Data to be written at the end of the document: (foot)notes, URLs, references, images.
-data FBNotes = FBNotes
+-- | Data to be written at the end of the document:
+-- (foot)notes, URLs, references, images.
+data FbTailData = FbTailData
     { footnotes :: [ (Int, String, [Content]) ]  -- ^ #, ID, text
+    , imagesToFetch :: [ (String, String) ]  -- ^ filename, URL or path
     } deriving (Show)
 
 -- | FictionBook building monad.
-type FBM = State FBNotes
+type FBM = StateT FbTailData IO
 
-newFB :: FBNotes
-newFB = FBNotes { footnotes = [] }
+newFB :: FbTailData
+newFB = FbTailData { footnotes = [], imagesToFetch = [] }
 
 -- | Produce an FB2 document from a 'Pandoc' document.
 writeFB2 :: WriterOptions    -- ^ conversion options
          -> Pandoc           -- ^ document to convert
-         -> String           -- ^ FictionBook2 document (not encoded yet)
-writeFB2 _ (Pandoc meta blocks) = flip evalState newFB $ do
+         -> IO String        -- ^ FictionBook2 document (not encoded yet)
+writeFB2 _ (Pandoc meta blocks) = flip evalStateT newFB $ do
      desc <- description meta
      fp <- frontpage meta
      secs <- renderSections 1 blocks
      let body = el "body" $ fp ++ secs
      notes <- renderFootnotes
-     let fb2_xml = el "FictionBook" (fb2_attrs, [desc, body] ++ notes)
+     imgs <- liftM imagesToFetch get >>= \s -> liftIO (fetchImages s)
+     let fb2_xml = el "FictionBook" (fb2_attrs, [desc, body] ++ notes ++ imgs)
      return $ xml_head ++ (showContent fb2_xml)
   where
   xml_head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -167,6 +174,30 @@ renderFootnotes = do
         let fn_texts = (el "title" (el "p" (show n))) : cs
         in  el "section" ([uattr "id" idstr], fn_texts)
 
+-- | Fetch images and encode them for the FictionBook XML.
+fetchImages :: [(String,String)] -> IO [Content]
+fetchImages = mapM (uncurry fetchImage)
+
+-- | Fetch image data from disk or from network and make a <binary> XML section.
+fetchImage :: String -> String -> IO Content
+fetchImage fname link = do
+  (imgdata, imgtype) <-
+      if isURI fname
+      then undefined  -- FIXME: download remote image
+      else do
+        d <- B.readFile link
+        let t = case map toLower (takeExtension link) of
+                  ".png" -> "image/png"
+                  ".jpg" -> "image/jpeg"
+                  _ -> "image/jpeg"  -- only PNG and JPEG are supported by FB2
+        return (d,t)
+  let encdata = encode imgdata
+  let encstr = map (toEnum . fromEnum) . B.unpack $ encdata
+  return $ el "binary"
+         ( [uattr "id" fname
+           , uattr "content-type" imgtype]
+         , txt encstr )
+
 footnoteID :: Int -> String
 footnoteID i = "n" ++ (show i)
 
@@ -268,8 +299,17 @@ toXml (Link text (url,ttl)) = do
                   ( [ attr ("l","href") ('#':ln_id)
                     , uattr "type" "note" ]
                   , ln_ref) ]
-
-toXml (Image alt (_,_)) = cMapM toXml alt  -- FIXME: embed images
+toXml (Image alt (url,_)) = do
+  state <- get
+  let images = imagesToFetch state
+  let n = 1 + length images
+  let fname = "image" ++ show n
+  put state { imagesToFetch = (fname, url) : images }
+  return . list $
+         el "image"
+            [ attr ("l","href") ('#':fname)
+            , attr ("l","type") "inlineImageType"  -- FIXME: or imageType
+            , uattr "alt" (cMap plain alt) ]
 toXml (Note bs) = do
   state <- get
   let fns = footnotes state

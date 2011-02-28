@@ -55,7 +55,7 @@ import Control.Monad (when, unless, liftM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
-import Data.ByteString.Lazy.UTF8 (toString )
+import Data.ByteString.Lazy.UTF8 (toString, fromString)
 import Codec.Binary.UTF8.String (decodeString, encodeString)
 import Text.CSL.Reference (Reference(..))
 
@@ -1026,6 +1026,7 @@ main = do
               writeODT referenceODT writerOptions doc2 >>= writeBinary
           | writerName' == "docx"  ->
               writeDocx referenceDocx writerOptions doc2 >>= writeBinary
+           B.writeFile (encodeString outputFile) (fromString d)
           | otherwise -> err 9 ("Unknown writer: " ++ writerName')
         Just w
           | pdfOutput  -> do

@@ -297,6 +297,7 @@ Executable pandoc
                  process >= 1 && < 1.2,
                  directory >= 1 && < 1.2,
                  bytestring >= 0.9 && < 1.0,
+                 base64-bytestring >= 0.1 && < 0.2,
                  zip-archive >= 0.1.1.7 && < 0.2,
                  utf8-string >= 0.3 && < 0.4,
                  old-locale >= 1 && < 1.1,
