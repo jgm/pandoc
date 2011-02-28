@@ -36,7 +36,7 @@ FictionBook is an XML-based e-book format. For more information see:
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
 import Control.Monad.State
-import Data.Char (toUpper)
+import Data.Char (toUpper, isSpace)
 import Text.XML.Light
 
 import Text.Pandoc.Definition
@@ -45,7 +45,7 @@ import Text.Pandoc.Generic (bottomUp)
 
 -- | Data to be written at the end of the document: (foot)notes, URLs, references, images.
 data FBNotes = FBNotes
-    { footnotes :: [ (Int, [Content]) ]
+    { footnotes :: [ (Int, String, [Content]) ]  -- ^ #, ID, text
     } deriving (Show)
 
 -- | FictionBook building monad.
@@ -163,13 +163,15 @@ renderFootnotes = do
     else return . list $
          el "body" ([uattr "name" "notes"], map renderFN (reverse fns))
   where
-    renderFN (n, cs) =
+    renderFN (n, idstr, cs) =
         let fn_texts = (el "title" (el "p" (show n))) : cs
-        in  el "section" ([uattr "id" (footnoteID n)], fn_texts)
-
+        in  el "section" ([uattr "id" idstr], fn_texts)
 
 footnoteID :: Int -> String
-footnoteID i = "note" ++ (show i)
+footnoteID i = "n" ++ (show i)
+
+linkID :: Int -> String
+linkID i = "l" ++ (show i)
 
 -- | Convert a block-level Pandoc's element to FictionBook XML representation.
 blockToXml :: Block -> FBM [Content]
@@ -248,7 +250,25 @@ toXml Ellipses = return [txt "…"]
 toXml LineBreak = return [el "empty-line" ()]
 toXml (Math _ s) = return [el "code" s] -- FIXME: generate formula images
 toXml (RawInline _ _) = return []  -- raw TeX and raw HTML are suppressed
-toXml (Link text (_,_)) = cMapM toXml text -- FIXME: url in footnotes
+toXml (Link text (url,ttl)) = do
+  state <- get
+  let fns = footnotes state
+  let n = 1 + length fns
+  let ln_id = linkID n
+  let ln_ref = list . el "sup" . txt $ "[" ++ show n ++ "]"
+  ln_text <- cMapM toXml text
+  let ln_desc =
+          let ttl' = dropWhile isSpace ttl
+          in if null ttl'
+             then list . el "p" $ el "code" url
+             else list . el "p" $ [ txt (ttl' ++ ": "), el "code" url ]
+  put state { footnotes = (n, ln_id, ln_desc) : fns }
+  return $ ln_text ++
+         [ el "a"
+                  ( [ attr ("l","href") ('#':ln_id)
+                    , uattr "type" "note" ]
+                  , ln_ref) ]
+
 toXml (Image alt (_,_)) = cMapM toXml alt  -- FIXME: embed images
 toXml (Note bs) = do
   state <- get
@@ -256,7 +276,7 @@ toXml (Note bs) = do
   let n = 1 + length fns
   let fn_id = footnoteID n
   fn_desc <- cMapM blockToXml bs
-  put state { footnotes = (n, fn_desc) : fns }
+  put state { footnotes = (n, fn_id, fn_desc) : fns }
   let fn_ref = el "sup" . txt $ "[" ++ show n ++ "]"
   return . list $ el "a" ( [ attr ("l","href") ('#':fn_id)
                            , uattr "type" "note" ]
