@@ -63,6 +63,7 @@ module Text.Pandoc
                -- * Lists of readers and writers
                , readers
                , writers
+               , iowriters
                -- * Readers: converting /to/ Pandoc format
                , readMarkdown
                , readRST
@@ -213,6 +214,12 @@ writers = [("native"       , writeNative)
           ,("asciidoc"     , writeAsciiDoc)
           ,("fb2"          , writeFB2)
           ]
+
+-- | Association list of formats and writers which require IO to work.
+-- These writers produce text output as well as thoses in 'writers'.
+iowriters :: [ (String, WriterOptions -> Pandoc -> IO String) ]
+iowriters = [ ("fb2"       , writeFB2)
+            ]
 
 {-# DEPRECATED jsonFilter "Use toJsonFilter instead" #-}
 -- | Converts a transformation on the Pandoc AST into a function
