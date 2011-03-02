@@ -37,11 +37,13 @@ module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
 import Control.Monad.State
 import Data.ByteString.Base64 (encode)
-import qualified Data.ByteString as B
 import Data.Char (toUpper, toLower, isSpace)
-import Network.URI (isURI)
+import Network.Browser (browse, request, setAllowRedirects, setOutHandler)
+import Network.HTTP (catchIO_, getRequest, getHeaders, getResponseBody, lookupHeader, HeaderName(..))
+import Network.URI (isURI, unEscapeString)
 import System.FilePath (takeExtension)
 import Text.XML.Light
+import qualified Data.ByteString as B
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (WriterOptions, orderedListMarkers)
@@ -181,22 +183,49 @@ fetchImages = mapM (uncurry fetchImage)
 -- | Fetch image data from disk or from network and make a <binary> XML section.
 fetchImage :: String -> String -> IO Content
 fetchImage fname link = do
-  (imgdata, imgtype) <-
-      if isURI fname
-      then undefined  -- FIXME: download remote image
+  mbimg <-
+      if isURI link
+      then fetchURL link
       else do
-        d <- B.readFile link
+        d <- liftM Just $ B.readFile (unEscapeString link)
         let t = case map toLower (takeExtension link) of
-                  ".png" -> "image/png"
-                  ".jpg" -> "image/jpeg"
-                  _ -> "image/jpeg"  -- only PNG and JPEG are supported by FB2
-        return (d,t)
+                  ".png" -> Just "image/png"
+                  ".jpg" -> Just "image/jpeg"
+                  ".jpeg" -> Just "image/jpeg"
+                  ".jpe" -> Just "image/jpeg"
+                  _ -> Nothing  -- only PNG and JPEG are supported in FB2
+        return $ liftM2 (,) t d
+  -- insert a 1x1 PNG placeholder if the real image cannot be read/downloaded
+  -- FIXME: report missing images, revisit text, replace images with their ALTs
+  let png1x1 = B.pack [137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1
+                      ,0,0,0,1,1,3,0,0,0,37,219,86,202,0,0,0,1,115,82,71,66
+                      ,0,174,206,28,233,0,0,0,3,80,76,84,69,255,255,255,167
+                      ,196,27,200,0,0,0,1,98,75,71,68,0,136,5,29,72,0,0,0,9
+                      ,112,72,89,115,0,0,11,19,0,0,11,19,1,0,154,156,24,0,0
+                      ,0,7,116,73,77,69,7,219,3,2,1,8,50,88,72,69,168,0,0,0
+                      ,10,73,68,65,84,8,215,99,96,0,0,0,2,0,1,226,33,188,51
+                      ,0,0,0,0,73,69,78,68,174,66,96,130]
+  let (imgtype, imgdata) = maybe ("image/png", png1x1) id mbimg
   let encdata = encode imgdata
   let encstr = map (toEnum . fromEnum) . B.unpack $ encdata
   return $ el "binary"
-         ( [uattr "id" fname
-           , uattr "content-type" imgtype]
-         , txt encstr )
+             ( [uattr "id" fname
+               , uattr "content-type" imgtype]
+             , txt encstr )
+
+-- | Fetch URL, return its Content-Type and binary data on success.
+fetchURL :: String -> IO (Maybe (String, B.ByteString))
+fetchURL url = do
+  flip catchIO_ (return Nothing) $ do
+     r <- browse $ do
+           setOutHandler (const (return ()))
+           setAllowRedirects True
+           liftM snd . request . getRequest $ url
+     let content_type = lookupHeader HdrContentType (getHeaders r)
+     content <- liftM (Just . toBS) . getResponseBody $ Right r
+     return $ liftM2 (,) content_type content
+  where
+    toBS = B.pack . map (toEnum . fromEnum)
 
 footnoteID :: Int -> String
 footnoteID i = "n" ++ (show i)
