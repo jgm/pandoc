@@ -48,6 +48,16 @@ tests = [ testGroup "inline code"
             "[^1]\n\n[^1]: my note\n     \n    in note\n"
             =?> para (note (para "my note" +++ para "in note"))
           ]
+        , testGroup "lhs"
+          [ test (readMarkdown defaultParserState{stateLiterateHaskell = True})
+              "inverse bird tracks and html" $
+              "> a\n\n< b\n\n<div>\n"
+              =?> codeBlockWith ("",["sourceCode","literate","haskell"],[]) "a"
+                  +++
+                  codeBlockWith ("",["sourceCode","haskell"],[]) "b"
+                  +++
+                  rawBlock "html" "<div>\n\n"
+          ]
 -- the round-trip properties frequently fail
 --        , testGroup "round trip"
 --          [ property "p_markdown_round_trip" p_markdown_round_trip

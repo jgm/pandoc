@@ -471,8 +471,10 @@ lhsCodeBlockBirdWith c = try $ do
   return $ intercalate "\n" lns'
 
 birdTrackLine :: Char -> GenParser Char st [Char]
-birdTrackLine c = do
+birdTrackLine c = try $ do
   char c
+  -- allow html tags on left margin:
+  when (c == '<') $ notFollowedBy letter
   manyTill anyChar newline
 
 
