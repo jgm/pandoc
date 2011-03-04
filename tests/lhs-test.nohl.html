@@ -4,30 +4,14 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="generator" content="pandoc" />
   <title></title>
-  <style type="text/css">
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode, table.sourceCode pre 
-   { margin: 0; padding: 0; border: 0; vertical-align: baseline; border: none; }
-td.lineNumbers { border-right: 1px solid #AAAAAA; text-align: right; color: #AAAAAA; padding-right: 5px; padding-left: 5px; }
-td.sourceCode { padding-left: 5px; }
-code.sourceCode span.kw { color: #007020; font-weight: bold; } 
-code.sourceCode span.dt { color: #902000; }
-code.sourceCode span.dv { color: #40a070; }
-code.sourceCode span.bn { color: #40a070; }
-code.sourceCode span.fl { color: #40a070; }
-code.sourceCode span.ch { color: #4070a0; }
-code.sourceCode span.st { color: #4070a0; }
-code.sourceCode span.co { color: #60a0b0; font-style: italic; }
-code.sourceCode span.ot { color: #007020; }
-code.sourceCode span.al { color: red; font-weight: bold; }
-code.sourceCode span.fu { color: #06287e; }
-code.sourceCode span.re { }
-code.sourceCode span.er { color: red; font-weight: bold; }
-  </style>
 </head>
 <body>
 <h1 id="lhs-test">lhs test</h1>
 <p><code>unsplit</code> is an arrow that takes a pair of values and combines them to return a single value:</p>
-<pre class="sourceCode"><code class="sourceCode haskell"><span class="ot">unsplit </span><span class="ot">::</span> (<span class="dt">Arrow</span> a) <span class="ot">=&gt;</span> (b <span class="ot">-&gt;</span> c <span class="ot">-&gt;</span> d) <span class="ot">-&gt;</span> a (b, c) d<br />unsplit <span class="fu">=</span> arr <span class="fu">.</span> <span class="fu">uncurry</span>       <br />          <span class="co">-- arr (\op (x,y) -&gt; x `op` y) </span></code></pre>
+<pre class="sourceCode haskell"><code>unsplit :: (Arrow a) =&gt; (b -&gt; c -&gt; d) -&gt; a (b, c) d
+unsplit = arr . uncurry       
+          -- arr (\op (x,y) -&gt; x `op` y) 
+</code></pre>
 <p><code>(***)</code> combines two arrows into a new arrow by running the two arrows on a pair of values (one arrow on the first item of the pair and one arrow on the second item of the pair).</p>
 <pre><code>f *** g = first f &gt;&gt;&gt; second g
 </code></pre>
