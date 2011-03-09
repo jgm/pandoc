@@ -46,22 +46,40 @@ import Text.Pandoc.UUID
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.Markdown ( writePlain )
 import Data.Char ( toLower )
+import System.Directory ( copyFile )
 
 -- | Produce an EPUB file from a Pandoc document.
-writeEPUB :: Maybe String   -- ^ EPUB stylesheet specified at command line
+writeEPUB :: Maybe FilePath -- ^ Path of cover image
+          -> Maybe String   -- ^ EPUB stylesheet specified at command line
           -> WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO B.ByteString
-writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
+writeEPUB mbCoverImage mbStylesheet opts doc@(Pandoc meta _) = do
   (TOD epochtime _) <- getClockTime
   let mkEntry path content = toEntry path epochtime content
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerStandalone = True
                   , writerWrapText = False }
   let sourceDir = writerSourceDirectory opts'
+  let vars = writerVariables opts'
+
+  -- cover page
+  (cpgEntry, cpicEntry) <-
+                case mbCoverImage of
+                     Nothing   -> return ([],[])
+                     Just img  -> do
+                       let coverImage = "cover-image" ++ takeExtension img
+                       copyFile img coverImage
+                       let cpContent = fromString $ writeHtmlString
+                             opts'{writerTemplate = pageTemplate
+                                  ,writerVariables =
+                                    ("coverimage",coverImage):vars}
+                               (Pandoc meta [])
+                       imgContent <- B.readFile img
+                       return ( [mkEntry "cover.xhtml" cpContent]
+                              , [mkEntry coverImage imgContent] )
 
   -- title page
-  let vars = writerVariables opts'
   let tpContent = fromString $ writeHtmlString
                      opts'{writerTemplate = pageTemplate
                           ,writerVariables = ("titlepage","yes"):vars}
@@ -124,10 +142,14 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
              , unode "item" ! [("id","style"), ("href","stylesheet.css")
                               ,("media-type","text/css")] $ ()
              ] ++
-             map chapterNode (tpEntry : chapterEntries) ++
-             map pictureNode picEntries
+             map chapterNode (cpgEntry ++ (tpEntry : chapterEntries)) ++
+             map pictureNode (cpicEntry ++ picEntries)
           , unode "spine" ! [("toc","ncx")] $
-              map chapterRefNode (tpEntry : chapterEntries)
+              case mbCoverImage of
+                    Nothing -> []
+                    Just _ -> [ unode "itemref" !
+                                [("idref", "cover"),("linear","no")] $ () ]
+              ++ map chapterRefNode (tpEntry : chapterEntries)
           ]
   let contentsEntry = mkEntry "content.opf" contentsData
 
@@ -142,7 +164,7 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
   let tocData = fromString $ ppTopElement $
         unode "ncx" ! [("version","2005-1")
                        ,("xmlns","http://www.daisy.org/z3986/2005/ncx/")] $
-          [ unode "head"
+          [ unode "head" $
              [ unode "meta" ! [("name","dtb:uid")
                               ,("content", show uuid)] $ ()
              , unode "meta" ! [("name","dtb:depth")
@@ -151,7 +173,10 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
                               ,("content", "0")] $ ()
              , unode "meta" ! [("name","dtb:maxPageNumber")
                               ,("content", "0")] $ ()
-             ] 
+             ] ++ case mbCoverImage of
+                        Nothing  -> []
+                        Just _   -> [unode "meta" ! [("name","cover"),
+                                            ("content","cover-image")] $ ()]
           , unode "docTitle" $ unode "text" $ plainTitle
           , unode "navMap" $ zipWith3 navPointNode (tpEntry : chapterEntries)
                                 [1..(length chapterEntries + 1)]
@@ -181,7 +206,8 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
   -- construct archive
   let archive = foldr addEntryToArchive emptyArchive
                  (mimetypeEntry : containerEntry : stylesheetEntry : tpEntry :
-                  contentsEntry : tocEntry : (picEntries ++ chapterEntries) )
+                  contentsEntry : tocEntry :
+                  (picEntries ++ cpicEntry ++ cpgEntry ++ chapterEntries) )
   return $ fromArchive archive
 
 metadataElement :: String -> UUID -> String -> String -> [String] -> Element
@@ -266,9 +292,17 @@ pageTemplate = unlines
  , "<html xmlns=\"http://www.w3.org/1999/xhtml\">"
  , "<head>"
  , "<title>$title$</title>"
+ , "$if(coverimage)$"
+ , "<style type=\"text/css\">img{ max-width: 100%; }</style>"
+ , "$endif$"
  , "<link href=\"stylesheet.css\" type=\"text/css\" rel=\"stylesheet\" />"
  , "</head>"
  , "<body>"
+ , "$if(coverimage)$"
+ , "<div id=\"cover-image\">"
+ , "<img src=\"$coverimage$\" alt=\"$title$\" />"
+ , "</div>"
+ , "$else$"
  , "$if(titlepage)$"
  , "<h1 class=\"title\">$title$</h1>"
  , "$for(author)$"
@@ -278,6 +312,7 @@ pageTemplate = unlines
  , "<h1>$title$</h1>"
  , "$if(toc)$"
  , "$toc$"
+ , "$endif$"
  , "$endif$"
  , "$body$"
  , "$endif$"

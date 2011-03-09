@@ -379,6 +379,10 @@ Options
     user data directory (see `--data-dir`, below).  If it is not
     found there, sensible defaults will be used.
 
+`--epub-cover-image=`*FILE*
+:   Use the specified image as the EPUB cover.  It is recommended
+    that the image be less than 1000px in width and height.
+
 `--epub-metadata=`*FILE*
 :   Look in the specified XML file for metadata for the EPUB.
     The file should contain a series of Dublin Core elements,
