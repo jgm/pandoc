@@ -62,6 +62,7 @@ data WriterState =
                 , stIndentPara    :: Int
                 , stInDefinition  :: Bool
                 , stTight         :: Bool
+                , stFirstPara     :: Bool
                 }
 
 defaultWriterState :: WriterState
@@ -75,6 +76,7 @@ defaultWriterState =
                 , stIndentPara    = 0
                 , stInDefinition  = False
                 , stTight         = False
+                , stFirstPara     = False
                 }
 
 when :: Bool -> Doc -> Doc
@@ -111,10 +113,15 @@ inTightList  f = modify (\s -> s { stTight = True  }) >> f >>= \r ->
 setInDefinitionList :: Bool -> State WriterState ()
 setInDefinitionList b = modify $  \s -> s { stInDefinition = b }
 
-inParagraphTags :: Doc -> Doc
-inParagraphTags d | isEmpty d = empty
-inParagraphTags d =
-  inTags False "text:p" [("text:style-name", "Text_20_body")] d
+inParagraphTags :: Doc -> State WriterState Doc
+inParagraphTags d | isEmpty d = return empty
+inParagraphTags d = do
+  b <- gets stFirstPara
+  a <- if b
+       then do modify $ \st -> st { stFirstPara = False }
+               return $ [("text:style-name", "First_20_paragraph")]
+       else    return   [("text:style-name", "Text_20_body")]
+  return $ inTags False "text:p" a d
 
 inParagraphTagsWithStyle :: String -> Doc -> Doc
 inParagraphTagsWithStyle sty = inTags False "text:p" [("text:style-name", sty)]
@@ -138,9 +145,11 @@ inTextStyle d = do
                     $ selfClosingTag "style:text-properties" (concatMap snd $ Map.toList at)
        return $ inTags False "text:span" [("text:style-name","T" ++ show tn)] d
 
-inHeaderTags :: Int -> Doc -> Doc
-inHeaderTags i = inTags False "text:h" [ ("text:style-name", "Heading_20_" ++ show i)
-                                       , ("text:outline-level", show i)]
+inHeaderTags :: Int -> Doc -> State WriterState Doc
+inHeaderTags i d = do
+  modify $ \st -> st { stFirstPara = True }
+  return $ inTags False "text:h" [ ("text:style-name", "Heading_20_" ++ show i)
+                                 , ("text:outline-level", show i)] d
 
 inQuotes :: QuoteType -> Doc -> Doc
 inQuotes SingleQuote s = text "&#8216;" <> s <> text "&#8217;"
@@ -164,7 +173,7 @@ writeOpenDocument :: WriterOptions -> Pandoc -> String
 writeOpenDocument opts (Pandoc (Meta title authors date) blocks) =
   let ((doc, title', authors', date'),s) = flip runState
         defaultWriterState $ do
-           title'' <- inlinesToOpenDocument opts title 
+           title'' <- inlinesToOpenDocument opts title
            authors'' <- mapM (inlinesToOpenDocument opts) authors
            date'' <- inlinesToOpenDocument opts date
            doc'' <- blocksToOpenDocument opts blocks
@@ -274,9 +283,9 @@ blocksToOpenDocument o b = vcat <$> mapM (blockToOpenDocument o) b
 -- | Convert a Pandoc block element to OpenDocument.
 blockToOpenDocument :: WriterOptions -> Block -> State WriterState Doc
 blockToOpenDocument o bs
-    | Plain          b <- bs = inParagraphTags <$> inlinesToOpenDocument o b
-    | Para           b <- bs = inParagraphTags <$> inlinesToOpenDocument o b
-    | Header       i b <- bs = inHeaderTags  i <$> inlinesToOpenDocument o b
+    | Plain          b <- bs = inParagraphTags =<< inlinesToOpenDocument o b
+    | Para           b <- bs = inParagraphTags =<< inlinesToOpenDocument o b
+    | Header       i b <- bs = inHeaderTags  i =<< inlinesToOpenDocument o b
     | BlockQuote     b <- bs = mkBlockQuote b
     | CodeBlock    _ s <- bs = preformatted s
     | RawBlock _     _ <- bs = return empty
@@ -388,7 +397,7 @@ inlineToOpenDocument o ils
         let footNote t = inTags False "text:note"
                          [ ("text:id"        , "ftn" ++ show n)
                          , ("text:note-class", "footnote"     )] $
-                         inTagsSimple "text:note-citation" (text . show $ n + 1) <> 
+                         inTagsSimple "text:note-citation" (text . show $ n + 1) <>
                          inTagsSimple "text:note-body" t
         nn <- footNote <$> withParagraphStyle o "Footnote" l
         addNote nn
