@@ -162,6 +162,7 @@ fieldListItem indent = try $ do
   (name, raw) <- rawFieldListItem indent
   let term = [Str name]
   contents <- parseFromString (many block) raw
+  optional blanklines
   case (name, contents) of
        ("Author", x) -> do
            updateState $ \st ->
@@ -187,7 +188,6 @@ fieldList :: GenParser Char ParserState Block
 fieldList = try $ do
   indent <- lookAhead $ many spaceChar
   items <- many1 $ fieldListItem indent
-  blanklines
   if null items
      then return Null
      else return $ DefinitionList $ catMaybes items
@@ -330,15 +330,14 @@ indentedLine indents = try $ do
   string indents
   manyTill anyChar newline
 
--- two or more indented lines, possibly separated by blank lines.
+-- one or more indented lines, possibly separated by blank lines.
 -- any amount of indentation will work.
 indentedBlock :: GenParser Char st [Char]
-indentedBlock = try $ do 
+indentedBlock = try $ do
   indents <- lookAhead $ many1 spaceChar
-  lns <- many $ choice $ [ indentedLine indents,
-                           try $ do b <- blanklines
-                                    l <- indentedLine indents
-                                    return (b ++ l) ]
+  lns <- many1 $ try $ do b <- option "" blanklines
+                          l <- indentedLine indents
+                          return (b ++ l)
   optional blanklines
   return $ unlines lns
 

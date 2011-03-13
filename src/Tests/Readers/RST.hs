@@ -32,6 +32,8 @@ tests = [ "field list" =:
    with the first line, but they must be indented relative to the
    field name marker, and they must line up with each other.
 :Parameter i: integer
+:Final: item
+  on two lines
 |]         =?> ( setAuthors ["Me","Myself","I"]
                $ setDate "2001-08-16"
                $ doc
@@ -41,6 +43,7 @@ tests = [ "field list" =:
                                 , (str "Version", [para "1"])
                                 , (str "Indentation", [para "Since the field marker may be quite long, the second and subsequent lines of the field body do not have to line up with the first line, but they must be indented relative to the field name marker, and they must line up with each other."])
                                 , (str "Parameter i", [para "integer"])
+                                , (str "Final", [para "item on two lines"])
                               ])
         ]
 
