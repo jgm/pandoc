@@ -65,7 +65,8 @@
 </table:table>
 <text:p text:style-name="Caption">Demonstration of simple table
 syntax.</text:p>
-<text:p text:style-name="Text_20_body">Simple table without caption:</text:p>
+<text:p text:style-name="First_20_paragraph">Simple table without
+caption:</text:p>
 <table:table table:name="Table2" table:style-name="Table2">
   <table:table-column table:style-name="Table2.A" />
   <table:table-column table:style-name="Table2.B" />
@@ -130,7 +131,7 @@ syntax.</text:p>
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="Text_20_body">Simple table indented two
+<text:p text:style-name="First_20_paragraph">Simple table indented two
 spaces:</text:p>
 <table:table table:name="Table3" table:style-name="Table3">
   <table:table-column table:style-name="Table3.A" />
@@ -198,7 +199,8 @@ spaces:</text:p>
 </table:table>
 <text:p text:style-name="Caption">Demonstration of simple table
 syntax.</text:p>
-<text:p text:style-name="Text_20_body">Multiline table with caption:</text:p>
+<text:p text:style-name="First_20_paragraph">Multiline table with
+caption:</text:p>
 <table:table table:name="Table4" table:style-name="Table4">
   <table:table-column table:style-name="Table4.A" />
   <table:table-column table:style-name="Table4.B" />
@@ -253,7 +255,7 @@ syntax.</text:p>
 </table:table>
 <text:p text:style-name="Caption">Here's the caption. It may span multiple
 lines.</text:p>
-<text:p text:style-name="Text_20_body">Multiline table without
+<text:p text:style-name="First_20_paragraph">Multiline table without
 caption:</text:p>
 <table:table table:name="Table5" table:style-name="Table5">
   <table:table-column table:style-name="Table5.A" />
@@ -307,7 +309,8 @@ caption:</text:p>
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="Text_20_body">Table without column headers:</text:p>
+<text:p text:style-name="First_20_paragraph">Table without column
+headers:</text:p>
 <table:table table:name="Table6" table:style-name="Table6">
   <table:table-column table:style-name="Table6.A" />
   <table:table-column table:style-name="Table6.B" />
@@ -356,7 +359,7 @@ caption:</text:p>
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="Text_20_body">Multiline table without column
+<text:p text:style-name="First_20_paragraph">Multiline table without column
 headers:</text:p>
 <table:table table:name="Table7" table:style-name="Table7">
   <table:table-column table:style-name="Table7.A" />

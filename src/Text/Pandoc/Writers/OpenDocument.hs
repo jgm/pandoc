@@ -113,6 +113,9 @@ inTightList  f = modify (\s -> s { stTight = True  }) >> f >>= \r ->
 setInDefinitionList :: Bool -> State WriterState ()
 setInDefinitionList b = modify $  \s -> s { stInDefinition = b }
 
+setFirstPara :: State WriterState ()
+setFirstPara =  modify $  \s -> s { stFirstPara = True }
+
 inParagraphTags :: Doc -> State WriterState Doc
 inParagraphTags d | isEmpty d = return empty
 inParagraphTags d = do
@@ -146,8 +149,7 @@ inTextStyle d = do
        return $ inTags False "text:span" [("text:style-name","T" ++ show tn)] d
 
 inHeaderTags :: Int -> Doc -> State WriterState Doc
-inHeaderTags i d = do
-  modify $ \st -> st { stFirstPara = True }
+inHeaderTags i d =
   return $ inTags False "text:h" [ ("text:style-name", "Heading_20_" ++ show i)
                                  , ("text:outline-level", show i)] d
 
@@ -285,16 +287,18 @@ blockToOpenDocument :: WriterOptions -> Block -> State WriterState Doc
 blockToOpenDocument o bs
     | Plain          b <- bs = inParagraphTags =<< inlinesToOpenDocument o b
     | Para           b <- bs = inParagraphTags =<< inlinesToOpenDocument o b
-    | Header       i b <- bs = inHeaderTags  i =<< inlinesToOpenDocument o b
-    | BlockQuote     b <- bs = mkBlockQuote b
-    | CodeBlock    _ s <- bs = preformatted s
+    | Header       i b <- bs = setFirstPara >>
+                               (inHeaderTags  i =<< inlinesToOpenDocument o b)
+    | BlockQuote     b <- bs = setFirstPara >> mkBlockQuote b
+    | DefinitionList b <- bs = setFirstPara >> defList b
+    | BulletList     b <- bs = setFirstPara >> bulletListToOpenDocument o b
+    | OrderedList  a b <- bs = setFirstPara >> orderedList a b
+    | CodeBlock    _ s <- bs = setFirstPara >> preformatted s
+    | Table  c a w h r <- bs = setFirstPara >> table c a w h r
+    | HorizontalRule   <- bs = setFirstPara >> return (selfClosingTag "text:p"
+                                [ ("text:style-name", "Horizontal_20_Line") ])
     | RawBlock _     _ <- bs = return empty
-    | DefinitionList b <- bs = defList b
-    | BulletList     b <- bs = bulletListToOpenDocument o b
-    | OrderedList  a b <- bs = orderedList a b
-    | Table  c a w h r <- bs = table c a w h r
     | Null             <- bs = return empty
-    | HorizontalRule   <- bs = return $ selfClosingTag "text:p" [ ("text:style-name", "Horizontal_20_Line") ]
     | otherwise              = return empty
     where
       defList       b = do setInDefinitionList True
