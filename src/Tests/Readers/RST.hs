@@ -45,5 +45,13 @@ tests = [ "field list" =:
                                 , (str "Parameter i", [para "integer"])
                                 , (str "Final", [para "item on two lines"])
                               ])
+        , "URLs with following punctuation" =:
+          ("http://google.com, http://yahoo.com; http://foo.bar.baz.\n" ++
+           "http://foo.bar/baz_(bam) (http://foo.bar)") =?>
+          para (link "http://google.com" "" "http://google.com" +++ ", " +++
+                link "http://yahoo.com" "" "http://yahoo.com" +++ "; " +++
+                link "http://foo.bar.baz" "" "http://foo.bar.baz" +++ ". " +++
+                link "http://foo.bar/baz_(bam)" "" "http://foo.bar/baz_(bam)"
+                +++ " (" +++ link "http://foo.bar" "" "http://foo.bar" +++ ")")
         ]
 

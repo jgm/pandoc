@@ -78,7 +78,7 @@ import Text.Pandoc.Generic
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.ParserCombinators.Parsec
 import Text.Pandoc.CharacterReferences ( characterReference )
-import Data.Char ( toLower, toUpper, ord, isAscii, isAlphaNum, isDigit )
+import Data.Char ( toLower, toUpper, ord, isAscii, isAlphaNum, isDigit, isPunctuation )
 import Data.List ( intercalate, transpose )
 import Network.URI ( parseURI, URI (..), isAllowedInURI )
 import Control.Monad ( join, liftM, guard )
@@ -264,8 +264,24 @@ uri = try $ do
   let protocols = [ "http:", "https:", "ftp:", "file:", "mailto:",
                     "news:", "telnet:" ]
   lookAhead $ oneOfStrings protocols
-  -- scan non-ascii characters and ascii characters allowed in a URI
-  str <- many1 $ satisfy (\c -> not (isAscii c) || isAllowedInURI c)
+  -- Scan non-ascii characters and ascii characters allowed in a URI.
+  -- We allow punctuation except when followed by a space, since
+  -- we don't want the trailing '.' in 'http://google.com.'
+  let innerPunct = try $ satisfy isPunctuation >>~
+                         notFollowedBy (newline <|> spaceChar)
+  let uriChar = innerPunct <|>
+                satisfy (\c -> not (isPunctuation c) &&
+                            (not (isAscii c) || isAllowedInURI c))
+  -- We want to allow
+  -- http://en.wikipedia.org/wiki/State_of_emergency_(disambiguation)
+  -- as a URL, while NOT picking up the closing paren in
+  -- (http://wikipedia.org)
+  -- So we include balanced parens in the URL.
+  let inParens = try $ do char '('
+                          res <- many uriChar
+                          char ')'
+                          return $ '(' : res ++ ")"
+  str <- liftM concat $ many1 $ inParens <|> count 1 (innerPunct <|> uriChar)
   -- now see if they amount to an absolute URI
   case parseURI (escapeURI str) of
        Just uri' -> if uriScheme uri' `elem` protocols
