@@ -235,9 +235,9 @@ elementToListItem opts (Sec _ num id' headerText subsecs) = do
 elementToHtml :: WriterOptions -> Element -> State WriterState Html
 elementToHtml opts (Blk block) = blockToHtml opts block 
 elementToHtml opts (Sec level num id' title' elements) = do
-  innerContents <- mapM (elementToHtml opts) elements
   modify $ \st -> st{stSecNum = num}  -- update section number
   header' <- blockToHtml opts (Header level title')
+  innerContents <- mapM (elementToHtml opts) elements
   let slides = writerSlideVariant opts `elem` [SlidySlides, S5Slides]
   let header'' = header' !  [prefixedId opts id' |
                              not (writerStrictMarkdown opts ||
