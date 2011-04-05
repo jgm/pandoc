@@ -435,6 +435,12 @@ Options
     user data directory (see `--data-dir`), or, if that is
     not present, the Chicago author-date style.
 
+`--natbib`
+:   Use natbib for citations in LaTeX output.
+
+`--biblatex`
+:   Use biblatex for citations in LaTeX output.
+
 `--data-dir=`*DIRECTORY*
 :   Specify the user data directory to search for pandoc data files.
     If this option is not specified, the default user data directory
