@@ -17,7 +17,10 @@ infix 5 =:
 (=:) = test rst
 
 tests :: [Test]
-tests = [ "field list" =:
+tests = [ "line block with blank line" =:
+          "| a\n|\n|  b" =?> para (str "a" +++ linebreak +++
+                                   linebreak +++ str " " +++ str "b")
+        , "field list" =:
           [_LIT|
 :Hostname: media08
 :IP address: 10.0.0.19

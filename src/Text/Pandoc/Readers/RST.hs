@@ -198,11 +198,14 @@ fieldList = try $ do
 
 lineBlockLine :: GenParser Char ParserState [Inline]
 lineBlockLine = try $ do
-  string "| "
+  char '|'
+  char ' ' <|> lookAhead (char '\n')
   white <- many spaceChar
   line <- many $ (notFollowedBy newline >> inline) <|> (try $ endline >>~ char ' ')
   optional endline
-  return $ normalizeSpaces $ (if null white then [] else [Str white]) ++ line
+  return $ if null white
+              then normalizeSpaces line
+              else Str white : normalizeSpaces line
 
 lineBlock :: GenParser Char ParserState Block
 lineBlock = try $ do
