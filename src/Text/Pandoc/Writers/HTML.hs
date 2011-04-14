@@ -105,10 +105,6 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   date <- if standalone
              then inlineListToHtml opts date'
              else return noHtml 
-  let sects = hierarchicalize blocks
-  toc <- if writerTableOfContents opts 
-            then tableOfContents opts sects
-            else return Nothing
   let startSlide = RawBlock "html" "<div class=\"slide\">\n"
       endSlide   = RawBlock "html" "</div>\n"
   let cutUp (HorizontalRule : Header 1 ys : xs) = cutUp (Header 1 ys : xs)
@@ -123,10 +119,14 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                                            cutUp xs ++ [endSlide]
                 _                     -> [startSlide] ++ cutUp blocks ++
                                            [endSlide]
+  let sects = if writerSlideVariant opts `elem` [SlidySlides, S5Slides]
+                 then hierarchicalize slides
+                 else hierarchicalize blocks
+  toc <- if writerTableOfContents opts
+            then tableOfContents opts sects
+            else return Nothing
   blocks' <- liftM (toHtmlFromList . intersperse (nl opts)) $
-              if writerSlideVariant opts `elem` [SlidySlides, S5Slides]
-                 then mapM (blockToHtml opts) slides
-                 else mapM (elementToHtml opts) sects
+                 mapM (elementToHtml opts) sects
   st <- get
   let notes = reverse (stNotes st)
   let thebody = blocks' +++ footnoteSection opts notes
@@ -238,12 +238,12 @@ elementToHtml opts (Sec level num id' title' elements) = do
   modify $ \st -> st{stSecNum = num}  -- update section number
   header' <- blockToHtml opts (Header level title')
   innerContents <- mapM (elementToHtml opts) elements
-  let slides = writerSlideVariant opts `elem` [SlidySlides, S5Slides]
+  let s5 = writerSlideVariant opts == S5Slides
   let header'' = header' !  [prefixedId opts id' |
                              not (writerStrictMarkdown opts ||
-                                  writerSectionDivs opts || slides)]
+                                  writerSectionDivs opts || s5)]
   let stuff = header'' : innerContents
-  return $ if slides   -- S5 gets confused by the extra divs around sections
+  return $ if s5   -- S5 gets confused by the extra divs around sections
               then toHtmlFromList $ intersperse (nl opts) stuff
               else if writerSectionDivs opts
                       then if writerHtml5 opts
