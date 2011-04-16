@@ -105,23 +105,18 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   date <- if standalone
              then inlineListToHtml opts date'
              else return noHtml
-  let startSlide = RawBlock "html" "<div class=\"slide\">\n"
-      endSlide   = RawBlock "html" "</div>\n"
-  let cutUp (HorizontalRule : Header 1 ys : xs) = cutUp (Header 1 ys : xs)
-      cutUp (HorizontalRule : xs) = [endSlide, startSlide] ++ cutUp xs
-      cutUp (Header 1 ys : xs)    = [endSlide, startSlide] ++
-                                    (Header 1 ys : cutUp xs)
-      cutUp (x:xs)                = x : cutUp xs
-      cutUp []                    = []
-  let slides = case blocks of
-                (HorizontalRule : xs) -> [startSlide] ++ cutUp xs ++ [endSlide]
-                (Header 1 ys : xs)    -> [startSlide, Header 1 ys] ++
-                                           cutUp xs ++ [endSlide]
-                _                     -> [startSlide] ++ cutUp blocks ++
-                                           [endSlide]
-  let sects = if writerSlideVariant opts `elem` [SlidySlides, S5Slides]
-                 then hierarchicalize slides
-                 else hierarchicalize blocks
+  let sects = hierarchicalize $
+              if writerSlideVariant opts == NoSlides
+                 then blocks
+                 else case blocks of
+                           (Header 1 _ : _) -> blocks
+                           _                ->
+                                let isL1 (Header 1 _) = True
+                                    isL1 _            = False
+                                    (preBlocks, rest) = break isL1 blocks
+                                in  (RawBlock "html" "<div class=\"slide\">" :
+                                    preBlocks) ++ (RawBlock "html" "</div>" :
+                                    rest)
   toc <- if writerTableOfContents opts
             then tableOfContents opts sects
             else return Nothing
@@ -233,27 +228,29 @@ elementToListItem opts (Sec _ num id' headerText subsecs) = do
 
 -- | Convert an Element to Html.
 elementToHtml :: WriterOptions -> Element -> State WriterState Html
+elementToHtml opts (Blk HorizontalRule) | writerSlideVariant opts /= NoSlides =
+  return $ primHtml "</div>" +++ nl opts +++ primHtml "<div class=\"slide\""
 elementToHtml opts (Blk block) = blockToHtml opts block
 elementToHtml opts (Sec level num id' title' elements) = do
   modify $ \st -> st{stSecNum = num}  -- update section number
   header' <- blockToHtml opts (Header level title')
   innerContents <- mapM (elementToHtml opts) elements
-  let s5 = writerSlideVariant opts == S5Slides
   let header'' = header' !  [prefixedId opts id' |
                              not (writerStrictMarkdown opts ||
-                                  writerSectionDivs opts || s5)]
+                                  writerSectionDivs opts ||
+                                  writerSlideVariant opts == S5Slides)]
   let stuff = header'' : innerContents
-  return $ if s5   -- S5 gets confused by the extra divs around sections
-              then toHtmlFromList $ intersperse (nl opts) stuff
-              else if writerSectionDivs opts
-                      then if writerHtml5 opts
-                              then tag "section" ! [prefixedId opts id']
-                                     << (nl opts : (intersperse (nl opts) stuff
-                                                    ++ [nl opts]))
-                              else thediv ! [prefixedId opts id'] <<
-                                      (nl opts : (intersperse (nl opts) stuff
-                                                  ++ [nl opts]))
-                      else toHtmlFromList $ intersperse (nl opts) stuff
+  let slide = writerSlideVariant opts /= NoSlides && level == 1
+  let stuff' =  if slide
+                   then [thediv ! [theclass "slide"] <<
+                          (nl opts : intersperse (nl opts) stuff ++ [nl opts])]
+                   else intersperse (nl opts) stuff
+  let inNl x = nl opts : x ++ [nl opts]
+  return $ if writerSectionDivs opts
+              then if writerHtml5 opts
+                      then tag "section" ! [prefixedId opts id'] << inNl stuff'
+                      else thediv ! [prefixedId opts id'] << inNl stuff'
+              else toHtmlFromList stuff'
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
