@@ -18,9 +18,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Writers.HTML 
+   Module      : Text.Pandoc.Writers.HTML
    Copyright   : Copyright (C) 2006-2010 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
@@ -101,10 +101,10 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
             else return noHtml
   auths <- if standalone
               then mapM (inlineListToHtml opts) authors'
-              else return [] 
+              else return []
   date <- if standalone
              then inlineListToHtml opts date'
-             else return noHtml 
+             else return noHtml
   let startSlide = RawBlock "html" "<div class=\"slide\">\n"
       endSlide   = RawBlock "html" "</div>\n"
   let cutUp (HorizontalRule : Header 1 ys : xs) = cutUp (Header 1 ys : xs)
@@ -112,7 +112,7 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
       cutUp (Header 1 ys : xs)    = [endSlide, startSlide] ++
                                     (Header 1 ys : cutUp xs)
       cutUp (x:xs)                = x : cutUp xs
-      cutUp []                    = [] 
+      cutUp []                    = []
   let slides = case blocks of
                 (HorizontalRule : xs) -> [startSlide] ++ cutUp xs ++ [endSlide]
                 (Header 1 ys : xs)    -> [startSlide, Header 1 ys] ++
@@ -133,10 +133,10 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   let  math = if stMath st
                 then case writerHTMLMathMethod opts of
                            LaTeXMathML (Just url) ->
-                              script ! 
+                              script !
                               [src url, thetype "text/javascript"] $ noHtml
                            MathML (Just url) ->
-                              script ! 
+                              script !
                               [src url, thetype "text/javascript"] $ noHtml
                            MathJax url ->
                               script ! [src url, thetype "text/javascript"] $ noHtml
@@ -144,7 +144,7 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                               script !
                               [src url, thetype "text/javascript"] $ noHtml
                            _ -> case lookup "mathml-script" (writerVariables opts) of
-                                      Just s -> 
+                                      Just s ->
                                         script ! [thetype "text/javascript"] <<
                                            primHtml s
                                       Nothing -> noHtml
@@ -233,7 +233,7 @@ elementToListItem opts (Sec _ num id' headerText subsecs) = do
 
 -- | Convert an Element to Html.
 elementToHtml :: WriterOptions -> Element -> State WriterState Html
-elementToHtml opts (Blk block) = blockToHtml opts block 
+elementToHtml opts (Blk block) = blockToHtml opts block
 elementToHtml opts (Sec level num id' title' elements) = do
   modify $ \st -> st{stSecNum = num}  -- update section number
   header' <- blockToHtml opts (Header level title')
@@ -259,7 +259,7 @@ elementToHtml opts (Sec level num id' title' elements) = do
 -- Assumes notes are sorted.
 footnoteSection :: WriterOptions -> [Html] -> Html
 footnoteSection opts notes =
-  if null notes 
+  if null notes
      then noHtml
      else nl opts +++ (thediv ! [theclass "footnotes"]
           $ nl opts +++ hr +++ nl opts +++
@@ -272,7 +272,7 @@ parseMailto ('m':'a':'i':'l':'t':'o':':':addr) =
   let (name', rest) = span (/='@') addr
       domain = drop 1 rest
   in  Just (name', domain)
-parseMailto _ = Nothing 
+parseMailto _ = Nothing
 
 -- | Obfuscate a "mailto:" link.
 obfuscateLink :: WriterOptions -> String -> String -> Html
@@ -280,15 +280,15 @@ obfuscateLink opts txt s | writerEmailObfuscation opts == NoObfuscation =
   anchor ! [href s] << txt
 obfuscateLink opts txt s =
   let meth = writerEmailObfuscation opts
-      s' = map toLower s 
+      s' = map toLower s
   in  case parseMailto s' of
         (Just (name', domain)) ->
           let domain'  = substitute "." " dot " domain
               at'      = obfuscateChar '@'
-              (linkText, altText) = 
+              (linkText, altText) =
                  if txt == drop 7 s' -- autolink
                     then ("'<code>'+e+'</code>'", name' ++ " at " ++ domain')
-                    else ("'" ++ txt ++ "'", txt ++ " (" ++ name' ++ " at " ++ 
+                    else ("'" ++ txt ++ "'", txt ++ " (" ++ name' ++ " at " ++
                           domain' ++ ")")
           in  case meth of
                 ReferenceObfuscation ->
@@ -297,18 +297,18 @@ obfuscateLink opts txt s =
                      ++ "\">" ++ (obfuscateString txt) ++ "</a>"
                 JavascriptObfuscation ->
                      (script ! [thetype "text/javascript"] $
-                     primHtml ("\n<!--\nh='" ++ 
-                     obfuscateString domain ++ "';a='" ++ at' ++ "';n='" ++ 
+                     primHtml ("\n<!--\nh='" ++
+                     obfuscateString domain ++ "';a='" ++ at' ++ "';n='" ++
                      obfuscateString name' ++ "';e=n+a+h;\n" ++
-                     "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\">'+" ++ 
-                     linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) +++  
+                     "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\">'+" ++
+                     linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) +++
                      noscript (primHtml $ obfuscateString altText)
                 _ -> error $ "Unknown obfuscation method: " ++ show meth
         _ -> anchor ! [href s] $ stringToHtml opts txt  -- malformed email
 
 -- | Obfuscate character as entity.
 obfuscateChar :: Char -> String
-obfuscateChar char = 
+obfuscateChar char =
   let num    = ord char
       numstr = if even num then show num else "x" ++ showHex num ""
   in  "&#" ++ numstr ++ ";"
@@ -361,14 +361,14 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
                     return h
 blockToHtml opts (BlockQuote blocks) =
   -- in S5, treat list in blockquote specially
-  -- if default is incremental, make it nonincremental; 
+  -- if default is incremental, make it nonincremental;
   -- otherwise incremental
   if writerSlideVariant opts /= NoSlides
      then let inc = not (writerIncremental opts) in
-          case blocks of 
+          case blocks of
              [BulletList lst]  -> blockToHtml (opts {writerIncremental = inc})
                                   (BulletList lst)
-             [OrderedList attribs lst] -> 
+             [OrderedList attribs lst] ->
                                   blockToHtml (opts {writerIncremental = inc})
                                   (OrderedList attribs lst)
              _                 -> do contents <- blockListToHtml opts blocks
@@ -377,7 +377,7 @@ blockToHtml opts (BlockQuote blocks) =
      else do
        contents <- blockListToHtml opts blocks
        return $ blockquote (nl opts +++ contents +++ nl opts)
-blockToHtml opts (Header level lst) = do 
+blockToHtml opts (Header level lst) = do
   contents <- inlineListToHtml opts lst
   secnum <- liftM stSecNum get
   let contents' = if writerNumberSections opts
@@ -470,8 +470,8 @@ tableRowToHtml opts aligns rownum cols' = do
                       0                  -> "header"
                       x | x `rem` 2 == 1 -> "odd"
                       _                  -> "even"
-  cols'' <- sequence $ zipWith 
-            (\alignment item -> tableItemToHtml opts mkcell alignment item) 
+  cols'' <- sequence $ zipWith
+            (\alignment item -> tableItemToHtml opts mkcell alignment item)
             aligns cols'
   return $ (tr ! [theclass rowclass] $ nl opts +++ toHtmlFromList cols'')
           +++ nl opts
@@ -508,13 +508,13 @@ blockListToHtml opts lst =
 
 -- | Convert list of Pandoc inline elements to HTML.
 inlineListToHtml :: WriterOptions -> [Inline] -> State WriterState Html
-inlineListToHtml opts lst = 
+inlineListToHtml opts lst =
   mapM (inlineToHtml opts) lst >>= return . toHtmlFromList
 
 -- | Convert Pandoc inline element to HTML.
 inlineToHtml :: WriterOptions -> Inline -> State WriterState Html
 inlineToHtml opts inline =
-  case inline of  
+  case inline of
     (Str str)        -> return $ stringToHtml opts str
     (Space)          -> return $ stringToHtml opts " "
     (LineBreak)      -> return br
@@ -543,9 +543,9 @@ inlineToHtml opts inline =
                                               stringToHtml opts "”")
                         in  do contents <- inlineListToHtml opts lst
                                return $ leftQuote +++ contents +++ rightQuote
-    (Math t str) ->     modify (\st -> st {stMath = True}) >> 
+    (Math t str) ->     modify (\st -> st {stMath = True}) >>
                         (case writerHTMLMathMethod opts of
-                               LaTeXMathML _ -> 
+                               LaTeXMathML _ ->
                                   -- putting LaTeXMathML in container with class "LaTeX" prevents
                                   -- non-math elements on the page from being treated as math by
                                   -- the javascript
@@ -594,37 +594,37 @@ inlineToHtml opts inline =
                                LaTeXMathML _ -> do modify (\st -> st {stMath = True})
                                                    return $ primHtml str
                                _             -> return noHtml
-    (RawInline "html" str) -> return $ primHtml str 
+    (RawInline "html" str) -> return $ primHtml str
     (RawInline _ _) -> return noHtml
     (Link [Code _ str] (s,_)) | "mailto:" `isPrefixOf` s ->
                         return $ obfuscateLink opts str s
     (Link txt (s,_)) | "mailto:" `isPrefixOf` s -> do
-                        linkText <- inlineListToHtml opts txt  
+                        linkText <- inlineListToHtml opts txt
                         return $ obfuscateLink opts (show linkText) s
     (Link txt (s,tit)) -> do
                         linkText <- inlineListToHtml opts txt
-                        return $ anchor ! ([href s] ++ 
-                                 if null tit then [] else [title tit]) $ 
+                        return $ anchor ! ([href s] ++
+                                 if null tit then [] else [title tit]) $
                                  linkText
     (Image txt (s,tit)) -> do
                         let alternate' = stringify txt
                         let attributes = [src s] ++
-                                         (if null tit 
-                                            then [] 
-                                            else [title tit]) ++ 
-                                         if null txt 
-                                            then [] 
+                                         (if null tit
+                                            then []
+                                            else [title tit]) ++
+                                         if null txt
+                                            then []
                                             else [alt alternate']
-                        return $ image ! attributes 
-                        -- note:  null title included, as in Markdown.pl 
-    (Note contents)          -> do 
+                        return $ image ! attributes
+                        -- note:  null title included, as in Markdown.pl
+    (Note contents)          -> do
                         st <- get
                         let notes = stNotes st
                         let number = (length notes) + 1
                         let ref = show number
-                        htmlContents <- blockListToNote opts ref contents 
+                        htmlContents <- blockListToNote opts ref contents
                         -- push contents onto front of notes
-                        put $ st {stNotes = (htmlContents:notes)} 
+                        put $ st {stNotes = (htmlContents:notes)}
                         return $ sup <<
                                  anchor ! [href ("#" ++ writerIdentifierPrefix opts ++ "fn" ++ ref),
                                            theclass "footnoteRef",
@@ -635,7 +635,7 @@ blockListToNote :: WriterOptions -> String -> [Block] -> State WriterState Html
 blockListToNote opts ref blocks =
   -- If last block is Para or Plain, include the backlink at the end of
   -- that block. Otherwise, insert a new Plain block with the backlink.
-  let backlink = [RawInline "html" $ " <a href=\"#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref ++ 
+  let backlink = [RawInline "html" $ " <a href=\"#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref ++
                  "\" class=\"footnoteBackLink\"" ++
                  " title=\"Jump back to footnote " ++ ref ++ "\">" ++
                  (if writerAscii opts then "&#8617;" else "↩") ++ "</a>"]
@@ -652,4 +652,3 @@ blockListToNote opts ref blocks =
                                                  Plain backlink]
   in  do contents <- blockListToHtml opts blocks'
          return $ nl opts +++ (li ! [prefixedId opts ("fn" ++ ref)]) contents
-
