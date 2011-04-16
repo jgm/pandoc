@@ -107,7 +107,6 @@ data Opt = Opt
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
     , optEPUBStylesheet    :: Maybe String   -- ^ EPUB stylesheet
-    , optEPUBCoverImage    :: Maybe FilePath -- ^ Path of epub cover image
     , optEPUBMetadata      :: String  -- ^ EPUB metadata
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
@@ -152,7 +151,6 @@ defaultOpts = Opt
     , optHTMLMathMethod    = PlainMath
     , optReferenceODT      = Nothing
     , optEPUBStylesheet    = Nothing
-    , optEPUBCoverImage    = Nothing
     , optEPUBMetadata      = ""
     , optDumpArgs          = False
     , optIgnoreArgs        = False
@@ -495,7 +493,8 @@ options =
     , Option "" ["epub-cover-image"]
                  (ReqArg
                   (\arg opt ->
-                     return opt { optEPUBCoverImage = Just arg })
+                     return opt { optVariables =
+                                 ("epub-cover-image", arg) : optVariables opt })
                   "FILENAME")
                  "" -- "Path of epub cover image"
 
@@ -683,7 +682,6 @@ main = do
               , optHTMLMathMethod    = mathMethod
               , optReferenceODT      = referenceODT
               , optEPUBStylesheet    = epubStylesheet
-              , optEPUBCoverImage    = epubCoverImage
               , optEPUBMetadata      = epubMetadata
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
@@ -868,7 +866,7 @@ main = do
 
   case lookup writerName' writers of
         Nothing | writerName' == "epub" ->
-           writeEPUB epubCoverImage epubStylesheet writerOptions doc2
+           writeEPUB epubStylesheet writerOptions doc2
            >>= B.writeFile (encodeString outputFile)
         Nothing | writerName' == "odt"  ->
            writeODT referenceODT writerOptions doc2

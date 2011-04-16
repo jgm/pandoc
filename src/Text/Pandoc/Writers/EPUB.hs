@@ -49,12 +49,11 @@ import Data.Char ( toLower )
 import System.Directory ( copyFile )
 
 -- | Produce an EPUB file from a Pandoc document.
-writeEPUB :: Maybe FilePath -- ^ Path of cover image
-          -> Maybe String   -- ^ EPUB stylesheet specified at command line
+writeEPUB :: Maybe String   -- ^ EPUB stylesheet specified at command line
           -> WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO B.ByteString
-writeEPUB mbCoverImage mbStylesheet opts doc@(Pandoc meta _) = do
+writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
   (TOD epochtime _) <- getClockTime
   let mkEntry path content = toEntry path epochtime content
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
@@ -62,6 +61,7 @@ writeEPUB mbCoverImage mbStylesheet opts doc@(Pandoc meta _) = do
                   , writerWrapText = False }
   let sourceDir = writerSourceDirectory opts'
   let vars = writerVariables opts'
+  let mbCoverImage = lookup "epub-cover-image" vars
 
   -- cover page
   (cpgEntry, cpicEntry) <-
