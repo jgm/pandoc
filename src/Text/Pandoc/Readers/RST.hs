@@ -866,10 +866,16 @@ note = try $ do
   case lookup ref notes of
     Nothing   -> fail "note not found"
     Just raw  -> do
+      -- We temporarily empty the note list while parsing the note,
+      -- so that we don't get infinite loops with notes inside notes...
+      -- Note references inside other notes are allowed in reST, but
+      -- not yet in this implementation.
+      updateState $ \st -> st{ stateNotes = [] }
       contents <- parseFromString parseBlocks raw
-      when (ref == "*" || ref == "#") $ do -- auto-numbered
-        -- delete the note so the next auto-numbered note
-        -- doesn't get the same contents:
-        let newnotes = deleteFirstsBy (==) notes [(ref,raw)]
-        updateState $ \st -> st{ stateNotes = newnotes }
+      let newnotes = if (ref == "*" || ref == "#") -- auto-numbered
+                        -- delete the note so the next auto-numbered note
+                        -- doesn't get the same contents:
+                        then deleteFirstsBy (==) notes [(ref,raw)]
+                        else notes
+      updateState $ \st -> st{ stateNotes = newnotes }
       return $ Note contents

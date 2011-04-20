@@ -47,6 +47,9 @@ tests = [ testGroup "inline code"
           , "indent followed by newline and indented text" =:
             "[^1]\n\n[^1]: my note\n     \n    in note\n"
             =?> para (note (para "my note" +++ para "in note"))
+          , "recursive note" =:
+            "[^1]\n\n[^1]: See [^1]\n"
+            =?> para (note (para "See [^1]"))
           ]
         , testGroup "lhs"
           [ test (readMarkdown defaultParserState{stateLiterateHaskell = True})
