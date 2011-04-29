@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Text.Pandoc.Parsing
    Copyright   : Copyright (C) 2006-2010 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
@@ -27,7 +27,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 A utility library with parsers used in pandoc readers.
 -}
-module Text.Pandoc.Parsing ( (>>~),
+module Text.Pandoc.Parsing ( GeneralParser,
+                             PandocParser,
+                             (>>~),
                              anyLine,
                              many1Till,
                              notFollowedBy',
@@ -86,64 +88,68 @@ import Text.Pandoc.Shared
 import qualified Data.Map as M
 import Text.TeXMath.Macros (applyMacros, Macro, parseMacroDefinitions)
 
+type GeneralParser st a = GenParser Char st a
+
+type PandocParser a = GeneralParser ParserState a
+
 -- | Like >>, but returns the operation on the left.
 -- (Suggested by Tillmann Rendel on Haskell-cafe list.)
 (>>~) :: (Monad m) => m a -> m b -> m a
 a >>~ b = a >>= \x -> b >> return x
 
 -- | Parse any line of text
-anyLine :: GenParser Char st [Char]
+anyLine :: GeneralParser st String
 anyLine = manyTill anyChar newline
 
 -- | Like @manyTill@, but reads at least one item.
-many1Till :: GenParser tok st a
-          -> GenParser tok st end
-          -> GenParser tok st [a]
+many1Till :: GeneralParser st a
+          -> GeneralParser st end
+          -> GeneralParser st [a]
 many1Till p end = do
          first <- p
          rest <- manyTill p end
          return (first:rest)
 
--- | A more general form of @notFollowedBy@.  This one allows any 
+-- | A more general form of @notFollowedBy@.  This one allows any
 -- type of parser to be specified, and succeeds only if that parser fails.
 -- It does not consume any input.
-notFollowedBy' :: Show b => GenParser a st b -> GenParser a st ()
+notFollowedBy' :: Show b => GeneralParser st b -> GeneralParser st ()
 notFollowedBy' p  = try $ join $  do  a <- try p
                                       return (unexpected (show a))
                                   <|>
                                   return (return ())
 -- (This version due to Andrew Pimlott on the Haskell mailing list.)
 
--- | Parses one of a list of strings (tried in order).  
-oneOfStrings :: [String] -> GenParser Char st String
+-- | Parses one of a list of strings (tried in order).
+oneOfStrings :: [String] -> GeneralParser st String
 oneOfStrings listOfStrings = choice $ map (try . string) listOfStrings
 
 -- | Parses a space or tab.
-spaceChar :: CharParser st Char
+spaceChar :: GeneralParser st Char
 spaceChar = satisfy $ \c -> c == ' ' || c == '\t'
 
 -- | Skips zero or more spaces or tabs.
-skipSpaces :: GenParser Char st ()
+skipSpaces :: GeneralParser st ()
 skipSpaces = skipMany spaceChar
 
 -- | Skips zero or more spaces or tabs, then reads a newline.
-blankline :: GenParser Char st Char
+blankline :: GeneralParser st Char
 blankline = try $ skipSpaces >> newline
 
 -- | Parses one or more blank lines and returns a string of newlines.
-blanklines :: GenParser Char st [Char]
+blanklines :: GeneralParser st [Char]
 blanklines = many1 blankline
 
 -- | Parses material enclosed between start and end parsers.
-enclosed :: GenParser Char st t   -- ^ start parser
-         -> GenParser Char st end  -- ^ end parser
-         -> GenParser Char st a    -- ^ content parser (to be used repeatedly)
-         -> GenParser Char st [a]
-enclosed start end parser = try $ 
+enclosed :: GeneralParser st t   -- ^ start parser
+         -> GeneralParser st end  -- ^ end parser
+         -> GeneralParser st a    -- ^ content parser (to be used repeatedly)
+         -> GeneralParser st [a]
+enclosed start end parser = try $
   start >> notFollowedBy space >> many1Till parser end
 
 -- | Parse string, case insensitive.
-stringAnyCase :: [Char] -> CharParser st String
+stringAnyCase :: [Char] -> GeneralParser st String
 stringAnyCase [] = string ""
 stringAnyCase (x:xs) = do
   firstChar <- char (toUpper x) <|> char (toLower x)
@@ -151,7 +157,7 @@ stringAnyCase (x:xs) = do
   return (firstChar:rest)
 
 -- | Parse contents of 'str' using 'parser' and return result.
-parseFromString :: GenParser tok st a -> [tok] -> GenParser tok st a
+parseFromString :: GeneralParser st a -> String -> GeneralParser st a
 parseFromString parser str = do
   oldPos <- getPosition
   oldInput <- getInput
@@ -162,8 +168,8 @@ parseFromString parser str = do
   return result
 
 -- | Parse raw line block up to and including blank lines.
-lineClump :: GenParser Char st String
-lineClump = blanklines 
+lineClump :: GeneralParser st String
+lineClump = blanklines
           <|> (many1 (notFollowedBy blankline >> anyLine) >>= return . unlines)
 
 -- | Parse a string of characters between an open character
@@ -172,7 +178,7 @@ lineClump = blanklines
 -- @charsInBalanced '(' ')'@ will parse "(hello (there))"
 -- and return "hello (there)".  Stop if a blank line is
 -- encountered.
-charsInBalanced :: Char -> Char -> GenParser Char st String
+charsInBalanced :: Char -> Char -> GeneralParser st String
 charsInBalanced open close = try $ do
   char open
   raw <- many $     (many1 (satisfy $ \c ->
@@ -184,7 +190,7 @@ charsInBalanced open close = try $ do
   return $ concat raw
 
 -- | Like @charsInBalanced@, but allow blank lines in the content.
-charsInBalanced' :: Char -> Char -> GenParser Char st String
+charsInBalanced' :: Char -> Char -> GeneralParser st String
 charsInBalanced' open close = try $ do
   char open
   raw <- many $       (many1 (satisfy $ \c -> c /= open && c /= close))
@@ -203,13 +209,13 @@ uppercaseRomanDigits = map toUpper lowercaseRomanDigits
 
 -- | Parses a roman numeral (uppercase or lowercase), returns number.
 romanNumeral :: Bool                  -- ^ Uppercase if true
-             -> GenParser Char st Int
+             -> GeneralParser st Int
 romanNumeral upperCase = do
-    let romanDigits = if upperCase 
-                         then uppercaseRomanDigits 
+    let romanDigits = if upperCase
+                         then uppercaseRomanDigits
                          else lowercaseRomanDigits
     lookAhead $ oneOf romanDigits
-    let [one, five, ten, fifty, hundred, fivehundred, thousand] = 
+    let [one, five, ten, fifty, hundred, fivehundred, thousand] =
           map char romanDigits
     thousands <- many thousand >>= (return . (1000 *) . length)
     ninehundreds <- option 0 $ try $ hundred >> thousand >> return 900
@@ -233,14 +239,14 @@ romanNumeral upperCase = do
 
 -- Parsers for email addresses and URIs
 
-emailChar :: GenParser Char st Char
+emailChar :: GeneralParser st Char
 emailChar = alphaNum <|>
             satisfy (\c -> c == '-' || c == '+' || c == '_' || c == '.')
 
-domainChar :: GenParser Char st Char
+domainChar :: GeneralParser st Char
 domainChar = alphaNum <|> char '-'
 
-domain :: GenParser Char st [Char]
+domain :: GeneralParser st [Char]
 domain = do
   first <- many1 domainChar
   dom <- many1 $ try (char '.' >> many1 domainChar )
@@ -248,7 +254,7 @@ domain = do
 
 -- | Parses an email address; returns original and corresponding
 -- escaped mailto: URI.
-emailAddress :: GenParser Char st (String, String)
+emailAddress :: GeneralParser st (String, String)
 emailAddress = try $ do
   firstLetter <- alphaNum
   restAddr <- many emailChar
@@ -259,7 +265,7 @@ emailAddress = try $ do
   return (full, escapeURI $ "mailto:" ++ full)
 
 -- | Parses a URI. Returns pair of original and URI-escaped version.
-uri :: GenParser Char st (String, String)
+uri :: GeneralParser st (String, String)
 uri = try $ do
   let protocols = [ "http:", "https:", "ftp:", "file:", "mailto:",
                     "news:", "telnet:" ]
@@ -293,8 +299,8 @@ uri = try $ do
 -- displacement (the difference between the source column at the end
 -- and the source column at the beginning). Vertical displacement
 -- (source row) is ignored.
-withHorizDisplacement :: GenParser Char st a  -- ^ Parser to apply
-                      -> GenParser Char st (a, Int) -- ^ (result, displacement)
+withHorizDisplacement :: GeneralParser st a  -- ^ Parser to apply
+                      -> GeneralParser st (a, Int) -- ^ (result, displacement)
 withHorizDisplacement parser = do
   pos1 <- getPosition
   result <- parser
@@ -303,43 +309,43 @@ withHorizDisplacement parser = do
 
 -- | Parses a character and returns 'Null' (so that the parser can move on
 -- if it gets stuck).
-nullBlock :: GenParser Char st Block
+nullBlock :: GeneralParser st Block
 nullBlock = anyChar >> return Null
 
 -- | Fail if reader is in strict markdown syntax mode.
-failIfStrict :: GenParser a ParserState ()
+failIfStrict :: PandocParser ()
 failIfStrict = do
   state <- getState
   if stateStrict state then fail "strict mode" else return ()
 
 -- | Fail unless we're in literate haskell mode.
-failUnlessLHS :: GenParser tok ParserState ()
+failUnlessLHS :: PandocParser ()
 failUnlessLHS = do
   state <- getState
   if stateLiterateHaskell state then return () else fail "Literate haskell feature"
 
 -- | Parses backslash, then applies character parser.
-escaped :: GenParser Char st Char  -- ^ Parser for character to escape
-        -> GenParser Char st Inline
+escaped :: GeneralParser st Char  -- ^ Parser for character to escape
+        -> GeneralParser st Inline
 escaped parser = try $ do
   char '\\'
   result <- parser
   return (Str [result])
 
 -- | Parses an uppercase roman numeral and returns (UpperRoman, number).
-upperRoman :: GenParser Char st (ListNumberStyle, Int)
+upperRoman :: GeneralParser st (ListNumberStyle, Int)
 upperRoman = do
   num <- romanNumeral True
   return (UpperRoman, num)
 
 -- | Parses a lowercase roman numeral and returns (LowerRoman, number).
-lowerRoman :: GenParser Char st (ListNumberStyle, Int)
+lowerRoman :: GeneralParser st (ListNumberStyle, Int)
 lowerRoman = do
   num <- romanNumeral False
   return (LowerRoman, num)
 
 -- | Parses a decimal numeral and returns (Decimal, number).
-decimal :: GenParser Char st (ListNumberStyle, Int)
+decimal :: GeneralParser st (ListNumberStyle, Int)
 decimal = do
   num <- many1 digit
   return (Decimal, read num)
@@ -348,7 +354,7 @@ decimal = do
 -- returns (DefaultStyle, [next example number]).  The next
 -- example number is incremented in parser state, and the label
 -- (if present) is added to the label table.
-exampleNum :: GenParser Char ParserState (ListNumberStyle, Int)
+exampleNum :: PandocParser (ListNumberStyle, Int)
 exampleNum = do
   char '@'
   lab <- many (alphaNum <|> satisfy (\c -> c == '_' || c == '-'))
@@ -362,38 +368,38 @@ exampleNum = do
   return (Example, num)
 
 -- | Parses a '#' returns (DefaultStyle, 1).
-defaultNum :: GenParser Char st (ListNumberStyle, Int)
+defaultNum :: GeneralParser st (ListNumberStyle, Int)
 defaultNum = do
   char '#'
   return (DefaultStyle, 1)
 
 -- | Parses a lowercase letter and returns (LowerAlpha, number).
-lowerAlpha :: GenParser Char st (ListNumberStyle, Int)
+lowerAlpha :: GeneralParser st (ListNumberStyle, Int)
 lowerAlpha = do
   ch <- oneOf ['a'..'z']
   return (LowerAlpha, ord ch - ord 'a' + 1)
 
 -- | Parses an uppercase letter and returns (UpperAlpha, number).
-upperAlpha :: GenParser Char st (ListNumberStyle, Int)
+upperAlpha :: GeneralParser st (ListNumberStyle, Int)
 upperAlpha = do
   ch <- oneOf ['A'..'Z']
   return (UpperAlpha, ord ch - ord 'A' + 1)
 
 -- | Parses a roman numeral i or I
-romanOne :: GenParser Char st (ListNumberStyle, Int)
+romanOne :: GeneralParser st (ListNumberStyle, Int)
 romanOne = (char 'i' >> return (LowerRoman, 1)) <|>
            (char 'I' >> return (UpperRoman, 1))
 
 -- | Parses an ordered list marker and returns list attributes.
-anyOrderedListMarker :: GenParser Char ParserState ListAttributes 
-anyOrderedListMarker = choice $ 
+anyOrderedListMarker :: PandocParser ListAttributes
+anyOrderedListMarker = choice $
   [delimParser numParser | delimParser <- [inPeriod, inOneParen, inTwoParens],
                            numParser <- [decimal, exampleNum, defaultNum, romanOne,
                            lowerAlpha, lowerRoman, upperAlpha, upperRoman]]
 
 -- | Parses a list number (num) followed by a period, returns list attributes.
-inPeriod :: GenParser Char st (ListNumberStyle, Int)
-         -> GenParser Char st ListAttributes 
+inPeriod :: GeneralParser st (ListNumberStyle, Int)
+         -> GeneralParser st ListAttributes
 inPeriod num = try $ do
   (style, start) <- num
   char '.'
@@ -401,18 +407,18 @@ inPeriod num = try $ do
                  then DefaultDelim
                  else Period
   return (start, style, delim)
- 
+
 -- | Parses a list number (num) followed by a paren, returns list attributes.
-inOneParen :: GenParser Char st (ListNumberStyle, Int)
-           -> GenParser Char st ListAttributes 
+inOneParen :: GeneralParser st (ListNumberStyle, Int)
+           -> GeneralParser st ListAttributes
 inOneParen num = try $ do
   (style, start) <- num
   char ')'
   return (start, style, OneParen)
 
 -- | Parses a list number (num) enclosed in parens, returns list attributes.
-inTwoParens :: GenParser Char st (ListNumberStyle, Int)
-            -> GenParser Char st ListAttributes 
+inTwoParens :: GeneralParser st (ListNumberStyle, Int)
+            -> GeneralParser st ListAttributes
 inTwoParens num = try $ do
   char '('
   (style, start) <- num
@@ -421,9 +427,9 @@ inTwoParens num = try $ do
 
 -- | Parses an ordered list marker with a given style and delimiter,
 -- returns number.
-orderedListMarker :: ListNumberStyle 
-                  -> ListNumberDelim 
-                  -> GenParser Char ParserState Int
+orderedListMarker :: ListNumberStyle
+                  -> ListNumberDelim
+                  -> PandocParser Int
 orderedListMarker style delim = do
   let num = defaultNum <|>  -- # can continue any kind of list
             case style of
@@ -443,19 +449,19 @@ orderedListMarker style delim = do
   return start
 
 -- | Parses a character reference and returns a Str element.
-charRef :: GenParser Char st Inline
+charRef :: GeneralParser st Inline
 charRef = do
   c <- characterReference
   return $ Str [c]
 
 -- | Parse a table using 'headerParser', 'rowParser',
 -- 'lineParser', and 'footerParser'.
-tableWith :: GenParser Char ParserState ([[Block]], [Alignment], [Int])
-          -> ([Int] -> GenParser Char ParserState [[Block]])
-          -> GenParser Char ParserState sep
-          -> GenParser Char ParserState end
-          -> GenParser Char ParserState [Inline]
-          -> GenParser Char ParserState Block
+tableWith :: PandocParser ([[Block]], [Alignment], [Int])
+          -> ([Int] -> PandocParser [[Block]])
+          -> PandocParser sep
+          -> PandocParser end
+          -> PandocParser [Inline]
+          -> PandocParser Block
 tableWith headerParser rowParser lineParser footerParser captionParser = try $ do
     caption' <- option [] captionParser
     (heads, aligns, indices) <- headerParser
@@ -473,8 +479,8 @@ tableWith headerParser rowParser lineParser footerParser captionParser = try $ d
 widthsFromIndices :: Int      -- Number of columns on terminal
                   -> [Int]    -- Indices
                   -> [Double] -- Fractional relative sizes of columns
-widthsFromIndices _ [] = []  
-widthsFromIndices numColumns' indices = 
+widthsFromIndices _ [] = []
+widthsFromIndices numColumns' indices =
   let numColumns = max numColumns' (if null indices then 0 else last indices)
       lengths' = zipWith (-) indices (0:indices)
       lengths  = reverse $
@@ -498,10 +504,10 @@ widthsFromIndices numColumns' indices =
 -- (which may be grid), then the rows,
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-gridTableWith :: GenParser Char ParserState Block    -- ^ Block parser
-              -> GenParser Char ParserState [Inline] -- ^ Caption parser
+gridTableWith :: PandocParser Block    -- ^ Block parser
+              -> PandocParser [Inline] -- ^ Caption parser
               -> Bool                                -- ^ Headerless table
-              -> GenParser Char ParserState Block
+              -> PandocParser Block
 gridTableWith block tableCaption headless =
   tableWith (gridTableHeader headless block) (gridTableRow block) (gridTableSep '-') gridTableFooter tableCaption
 
@@ -509,13 +515,13 @@ gridTableSplitLine :: [Int] -> String -> [String]
 gridTableSplitLine indices line = map removeFinalBar $ tail $
   splitByIndices (init indices) $ removeTrailingSpace line
 
-gridPart :: Char -> GenParser Char st (Int, Int)
+gridPart :: Char -> GeneralParser st (Int, Int)
 gridPart ch = do
   dashes <- many1 (char ch)
   char '+'
   return (length dashes, length dashes + 1)
 
-gridDashedLines :: Char -> GenParser Char st [(Int,Int)]
+gridDashedLines :: Char -> GeneralParser st [(Int,Int)]
 gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) >>~ blankline
 
 removeFinalBar :: String -> String
@@ -523,18 +529,18 @@ removeFinalBar =
   reverse . dropWhile (`elem` " \t") . dropWhile (=='|') . reverse
 
 -- | Separator between rows of grid table.
-gridTableSep :: Char -> GenParser Char ParserState Char
+gridTableSep :: Char -> PandocParser Char
 gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- | Parse header for a grid table.
 gridTableHeader :: Bool -- ^ Headerless table
-                -> GenParser Char ParserState Block
-                -> GenParser Char ParserState ([[Block]], [Alignment], [Int])
+                -> PandocParser Block
+                -> PandocParser ([[Block]], [Alignment], [Int])
 gridTableHeader headless block = try $ do
   optional blanklines
   dashes <- gridDashedLines '-'
   rawContent  <- if headless
-                    then return $ repeat "" 
+                    then return $ repeat ""
                     else many1
                          (notFollowedBy (gridTableSep '=') >> char '|' >>
                            many1Till anyChar newline)
@@ -553,16 +559,16 @@ gridTableHeader headless block = try $ do
                map removeLeadingTrailingSpace rawHeads
   return (heads, aligns, indices)
 
-gridTableRawLine :: [Int] -> GenParser Char ParserState [String]
+gridTableRawLine :: [Int] -> PandocParser [String]
 gridTableRawLine indices = do
   char '|'
   line <- many1Till anyChar newline
   return (gridTableSplitLine indices line)
 
 -- | Parse row of grid table.
-gridTableRow :: GenParser Char ParserState Block
+gridTableRow :: PandocParser Block
              -> [Int]
-             -> GenParser Char ParserState [[Block]]
+             -> PandocParser [[Block]]
 gridTableRow block indices = do
   colLines <- many1 (gridTableRawLine indices)
   let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
@@ -581,23 +587,23 @@ compactifyCell :: [Block] -> [Block]
 compactifyCell bs = head $ compactify [bs]
 
 -- | Parse footer for a grid table.
-gridTableFooter :: GenParser Char ParserState [Char]
+gridTableFooter :: PandocParser [Char]
 gridTableFooter = blanklines
 
 ---
 
 -- | Parse a string with a given parser and state.
-readWith :: GenParser t ParserState a      -- ^ parser
+readWith :: PandocParser a                 -- ^ parser
          -> ParserState                    -- ^ initial state
-         -> [t]                            -- ^ input
+         -> String                         -- ^ input
          -> a
-readWith parser state input = 
+readWith parser state input =
     case runParser parser state "source" input of
       Left err     -> error $ "\nError:\n" ++ show err
       Right result -> result
 
 -- | Parse a string with @parser@ (for testing).
-testStringWith :: (Show a) => GenParser Char ParserState a
+testStringWith :: (Show a) => PandocParser a
                -> String
                -> IO ()
 testStringWith parser str = UTF8.putStrLn $ show $
@@ -623,7 +629,7 @@ data ParserState = ParserState
       stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
       stateIndentedCodeClasses :: [String],  -- ^ Classes to use for indented code blocks
       stateNextExample     :: Int,           -- ^ Number of next example
-      stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers 
+      stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers
       stateHasChapters     :: Bool,          -- ^ True if \chapter encountered
       stateApplyMacros     :: Bool,          -- ^ Apply LaTeX macros?
       stateMacros          :: [Macro]        -- ^ List of macros defined so far
@@ -631,7 +637,7 @@ data ParserState = ParserState
     deriving Show
 
 defaultParserState :: ParserState
-defaultParserState = 
+defaultParserState =
     ParserState { stateParseRaw        = False,
                   stateParserContext   = NullState,
                   stateQuoteContext    = NoQuote,
@@ -655,12 +661,12 @@ defaultParserState =
                   stateApplyMacros     = True,
                   stateMacros          = []}
 
-data HeaderType 
+data HeaderType
     = SingleHeader Char  -- ^ Single line of characters underneath
     | DoubleHeader Char  -- ^ Lines of characters above and below
     deriving (Eq, Show)
 
-data ParserContext 
+data ParserContext
     = ListItemState   -- ^ Used when running parser on list item contents
     | NullState       -- ^ Default state
     deriving (Eq, Show)
@@ -699,25 +705,25 @@ lookupKeySrc table key = case M.lookup key table of
                            Just src -> Just src
 
 -- | Fail unless we're in "smart typography" mode.
-failUnlessSmart :: GenParser tok ParserState ()
+failUnlessSmart :: PandocParser ()
 failUnlessSmart = getState >>= guard . stateSmart
 
-smartPunctuation :: GenParser Char ParserState Inline
-                 -> GenParser Char ParserState Inline
+smartPunctuation :: PandocParser Inline
+                 -> PandocParser Inline
 smartPunctuation inlineParser = do
   failUnlessSmart
   choice [ quoted inlineParser, apostrophe, dash, ellipses ]
 
-apostrophe :: GenParser Char ParserState Inline
+apostrophe :: PandocParser Inline
 apostrophe = (char '\'' <|> char '\8217') >> return Apostrophe
 
-quoted :: GenParser Char ParserState Inline
-       -> GenParser Char ParserState Inline
+quoted :: PandocParser Inline
+       -> PandocParser Inline
 quoted inlineParser = doubleQuoted inlineParser <|> singleQuoted inlineParser
 
 withQuoteContext :: QuoteContext
-                 -> (GenParser Char ParserState Inline)
-                 -> GenParser Char ParserState Inline
+                 -> (PandocParser Inline)
+                 -> PandocParser Inline
 withQuoteContext context parser = do
   oldState <- getState
   let oldQuoteContext = stateQuoteContext oldState
@@ -727,75 +733,75 @@ withQuoteContext context parser = do
   setState newState { stateQuoteContext = oldQuoteContext }
   return result
 
-singleQuoted :: GenParser Char ParserState Inline
-             -> GenParser Char ParserState Inline
+singleQuoted :: PandocParser Inline
+             -> PandocParser Inline
 singleQuoted inlineParser = try $ do
   singleQuoteStart
   withQuoteContext InSingleQuote $ many1Till inlineParser singleQuoteEnd >>=
     return . Quoted SingleQuote . normalizeSpaces
 
-doubleQuoted :: GenParser Char ParserState Inline
-             -> GenParser Char ParserState Inline
+doubleQuoted :: PandocParser Inline
+             -> PandocParser Inline
 doubleQuoted inlineParser = try $ do
   doubleQuoteStart
   withQuoteContext InDoubleQuote $ do
     contents <- manyTill inlineParser doubleQuoteEnd
     return . Quoted DoubleQuote . normalizeSpaces $ contents
 
-failIfInQuoteContext :: QuoteContext -> GenParser tok ParserState ()
+failIfInQuoteContext :: QuoteContext -> PandocParser ()
 failIfInQuoteContext context = do
   st <- getState
   if stateQuoteContext st == context
      then fail "already inside quotes"
      else return ()
 
-charOrRef :: [Char] -> GenParser Char st Char
+charOrRef :: [Char] -> GeneralParser st Char
 charOrRef cs =
   oneOf cs <|> try (do c <- characterReference
                        guard (c `elem` cs)
                        return c)
 
-singleQuoteStart :: GenParser Char ParserState ()
-singleQuoteStart = do 
+singleQuoteStart :: PandocParser ()
+singleQuoteStart = do
   failIfInQuoteContext InSingleQuote
   try $ do charOrRef "'\8216"
            notFollowedBy (oneOf ")!],.;:-? \t\n")
            notFollowedBy (try (oneOfStrings ["s","t","m","ve","ll","re"] >>
-                               satisfy (not . isAlphaNum))) 
+                               satisfy (not . isAlphaNum)))
                                -- possess/contraction
            return ()
 
-singleQuoteEnd :: GenParser Char st ()
+singleQuoteEnd :: GeneralParser st ()
 singleQuoteEnd = try $ do
   charOrRef "'\8217"
   notFollowedBy alphaNum
 
-doubleQuoteStart :: GenParser Char ParserState ()
+doubleQuoteStart :: PandocParser ()
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
   try $ do charOrRef "\"\8220"
            notFollowedBy (satisfy (\c -> c == ' ' || c == '\t' || c == '\n'))
 
-doubleQuoteEnd :: GenParser Char st ()
+doubleQuoteEnd :: GeneralParser st ()
 doubleQuoteEnd = do
   charOrRef "\"\8221"
   return ()
 
-ellipses :: GenParser Char st Inline
+ellipses :: GeneralParser st Inline
 ellipses = do
   try (charOrRef "…") <|> try (string "..." >> return '…')
   return Ellipses
 
-dash :: GenParser Char st Inline
+dash :: GeneralParser st Inline
 dash = enDash <|> emDash
 
-enDash :: GenParser Char st Inline
+enDash :: GeneralParser st Inline
 enDash = do
   try (charOrRef "–") <|>
     try (char '-' >> lookAhead (satisfy isDigit) >> return '–')
   return EnDash
 
-emDash :: GenParser Char st Inline
+emDash :: GeneralParser st Inline
 emDash = do
   try (charOrRef "—") <|> (try $ string "--" >> optional (char '-') >> return '—')
   return EmDash
@@ -805,7 +811,7 @@ emDash = do
 --
 
 -- | Parse a \newcommand or \renewcommand macro definition.
-macro :: GenParser Char ParserState Block
+macro :: PandocParser Block
 macro = do
   getState >>= guard . stateApplyMacros
   inp <- getInput
@@ -817,11 +823,10 @@ macro = do
                         return Null
 
 -- | Apply current macros to string.
-applyMacros' :: String -> GenParser Char ParserState String
+applyMacros' :: String -> PandocParser String
 applyMacros' target = do
   apply <- liftM stateApplyMacros getState
   if apply
      then do macros <- liftM stateMacros getState
              return $ applyMacros macros target
      else return target
-
