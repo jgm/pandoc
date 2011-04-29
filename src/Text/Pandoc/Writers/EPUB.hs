@@ -102,8 +102,7 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
   let chunks = splitByIndices h1Indices blocks
   let titleize (Header 1 xs : ys) = Pandoc meta{docTitle = xs} ys
       titleize xs                 = Pandoc meta xs
-  let chapToHtml = writeHtmlString opts'{ writerTemplate = pageTemplate
-                                        , writerHTMLMathMethod = PlainMath }
+  let chapToHtml = writeHtmlString opts'{ writerTemplate = pageTemplate }
   let chapters = map titleize chunks
   let chapterToEntry :: Int -> Pandoc -> Entry
       chapterToEntry num chap = mkEntry ("ch" ++ show num ++ ".xhtml") $
