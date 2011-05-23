@@ -1290,7 +1290,7 @@ citeKey = try $ do
   suppress_author <- option False (char '-' >> return True)
   char '@'
   first <- letter
-  rest <- many $ (noneOf ",;]@ \t\n")
+  rest <- many $ (noneOf ",;!?[]()@ \t\n")
   let key = first:rest
   st <- getState
   guard $ key `elem` stateCitations st
