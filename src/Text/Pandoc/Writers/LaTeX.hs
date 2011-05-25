@@ -161,7 +161,7 @@ blockToLaTeX :: Block     -- ^ Block to convert
 blockToLaTeX Null = return empty
 blockToLaTeX (Plain lst) = inlineListToLaTeX lst
 blockToLaTeX (Para [Image txt (src,tit)]) = do
-  capt <- inlineListToLaTeX txt
+  capt <- inlineListToLaTeX $ deVerb txt
   img <- inlineToLaTeX (Image txt (src,tit))
   return $ "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
            ("\\caption{" <> capt <> char '}') $$ "\\end{figure}" $$ blankline
@@ -272,7 +272,7 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
   headers <- if all null heads
                 then return empty
                 else liftM ($$ "\\hline") $ (tableRowToLaTeX widths) heads
-  captionText <- inlineListToLaTeX caption
+  captionText <- inlineListToLaTeX $ deVerb caption
   rows' <- mapM (tableRowToLaTeX widths) rows
   let colDescriptors = concat $ zipWith toColDescriptor widths aligns
   let tableBody = text ("\\begin{tabular}{" ++ colDescriptors ++ "}") $$
