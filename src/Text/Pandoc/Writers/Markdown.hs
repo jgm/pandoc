@@ -366,7 +366,19 @@ blockListToMarkdown :: WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
                     -> State WriterState Doc 
 blockListToMarkdown opts blocks =
-  mapM (blockToMarkdown opts) blocks >>= return . cat
+  mapM (blockToMarkdown opts) (fixBlocks blocks) >>= return . cat
+    -- insert comment between list and indented code block, or the
+    -- code block will be treated as a list continuation paragraph
+    where fixBlocks (b : CodeBlock attr x : rest)
+            | (writerStrictMarkdown opts || attr == nullAttr) && isListBlock b =
+               b : RawBlock "html" "<!-- -->\n" : CodeBlock attr x :
+                  fixBlocks rest
+          fixBlocks (x : xs)             = x : fixBlocks xs
+          fixBlocks []                   = []
+          isListBlock (BulletList _)     = True
+          isListBlock (OrderedList _ _)  = True
+          isListBlock (DefinitionList _) = True
+          isListBlock _                  = False
 
 -- | Get reference for target; if none exists, create unique one and return.
 --   Prefer label if possible; otherwise, generate a unique key.
