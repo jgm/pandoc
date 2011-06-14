@@ -258,7 +258,8 @@ blockToXml (DefinitionList defs) =
           def <- cMapM (cMapM blockToXml) bss
           t <- wrap "strong" term
           return [ el "p" t, el "cite" def ]
-blockToXml (Header _ _) = undefined  -- should never happen, see renderSections
+blockToXml (Header _ _) = -- should never happen, see renderSections FIXME
+                          error "unexpected header in section text"
 blockToXml HorizontalRule = return
                             [ el "empty-line" ()
                             , el "p" (txt (replicate 10 '—'))
