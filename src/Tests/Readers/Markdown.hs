@@ -40,6 +40,13 @@ tests = [ testGroup "inline code"
             "`*` {.haskell .special x=\"7\"}"
             =?> para (codeWith ("",["haskell","special"],[("x","7")]) "*")
           ]
+        , testGroup "emphasis and strong"
+          [ "mixed emph and strong" =:
+            "*xxx* ***xxx*** xxx\n*xxx* ***xxx*** xxx"
+            =?> para (emph "xxx" +++ space +++ strong (emph "xxx") +++
+                      space +++ "xxx" +++ space +++
+                      emph "xxx" +++ space +++ strong (emph "xxx"))
+          ]
         , testGroup "footnotes"
           [ "indent followed by newline and flush-left text" =:
             "[^1]\n\n[^1]: my note\n\n     \nnot in note\n"
