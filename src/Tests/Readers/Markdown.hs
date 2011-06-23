@@ -40,12 +40,16 @@ tests = [ testGroup "inline code"
             "`*` {.haskell .special x=\"7\"}"
             =?> para (codeWith ("",["haskell","special"],[("x","7")]) "*")
           ]
-        , testGroup "emphasis and strong"
-          [ "mixed emph and strong" =:
+        , testGroup "mixed emphasis and strong"
+          [ "emph and strong emph alternating" =:
             "*xxx* ***xxx*** xxx\n*xxx* ***xxx*** xxx"
             =?> para (emph "xxx" +++ space +++ strong (emph "xxx") +++
                       space +++ "xxx" +++ space +++
-                      emph "xxx" +++ space +++ strong (emph "xxx"))
+                      emph "xxx" +++ space +++ strong (emph "xxx") +++
+                      space +++ "xxx")
+          , "emph with spaced strong" =:
+            "*x **xx** x*"
+            =?> para (emph ("x" +++ space +++ strong "xx" +++ space +++ "x"))
           ]
         , testGroup "footnotes"
           [ "indent followed by newline and flush-left text" =:
