@@ -777,8 +777,12 @@ doubleQuoteEnd :: CharParser st String
 doubleQuoteEnd = try $ string "''"
 
 ellipses :: GenParser Char st Inline
-ellipses = try $ string "\\ldots" >> optional (try $ string "{}") >>
-                 return Ellipses
+ellipses = try $ do
+  char '\\'
+  optional $ char 'l'
+  string "dots"
+  optional $ try $ string "{}"
+  return Ellipses
 
 enDash :: GenParser Char st Inline
 enDash = try (string "--") >> return EnDash
