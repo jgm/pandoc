@@ -134,7 +134,7 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
                           ,("xmlns","http://www.idpf.org/2007/opf")
                           ,("unique-identifier","BookId")] $
           [ metadataElement (writerEPUBMetadata opts')
-              uuid lang plainTitle plainAuthors
+              uuid lang plainTitle plainAuthors mbCoverImage
           , unode "manifest" $
              [ unode "item" ! [("id","ncx"), ("href","toc.ncx")
                               ,("media-type","application/x-dtbncx+xml")] $ ()
@@ -209,8 +209,8 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
                   (picEntries ++ cpicEntry ++ cpgEntry ++ chapterEntries) )
   return $ fromArchive archive
 
-metadataElement :: String -> UUID -> String -> String -> [String] -> Element
-metadataElement metadataXML uuid lang title authors =
+metadataElement :: String -> UUID -> String -> String -> [String] -> Maybe a -> Element
+metadataElement metadataXML uuid lang title authors mbCoverImage =
   let userNodes = parseXML metadataXML
       elt = unode "metadata" ! [("xmlns:dc","http://purl.org/dc/elements/1.1/")
                                ,("xmlns:opf","http://www.idpf.org/2007/opf")] $
@@ -225,7 +225,9 @@ metadataElement metadataXML uuid lang title authors =
            [ unode "dc:language" lang | not (elt `contains` "language") ] ++
            [ unode "dc:identifier" ! [("id","BookId")] $ show uuid |
                not (elt `contains` "identifier") ] ++
-           [ unode "dc:creator" ! [("opf:role","aut")] $ a | a <- authors ]
+           [ unode "dc:creator" ! [("opf:role","aut")] $ a | a <- authors ] ++
+           [ unode "meta" ! [("name","cover"), ("content","cover-image")] $ () |
+               not (isNothing mbCoverImage) ]
   in  elt{ elContent = elContent elt ++ map Elem newNodes }
 
 transformInlines :: HTMLMathMethod
