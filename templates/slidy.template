@@ -52,7 +52,7 @@ $for(include-before)$
 $include-before$
 $endfor$
 $if(title)$
-<div class="slide cover title">
+<div class="slide titlepage">
   <h1 class="title">$title$</h1>
   <p class="author">
 $for(author)$$author$$sep$<br/>$endfor$
