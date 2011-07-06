@@ -229,7 +229,7 @@ elementToListItem opts (Sec _ num id' headerText subsecs) = do
 -- | Convert an Element to Html.
 elementToHtml :: WriterOptions -> Element -> State WriterState Html
 elementToHtml opts (Blk HorizontalRule) | writerSlideVariant opts /= NoSlides =
-  return $ primHtml "</div>" +++ nl opts +++ primHtml "<div class=\"slide\""
+  return $ primHtml "</div>" +++ nl opts +++ primHtml "<div class=\"slide\">"
 elementToHtml opts (Blk block) = blockToHtml opts block
 elementToHtml opts (Sec level num id' title' elements) = do
   modify $ \st -> st{stSecNum = num}  -- update section number
