@@ -271,7 +271,8 @@ blockToLaTeX (Header level lst) = do
 blockToLaTeX (Table caption aligns widths heads rows) = do
   headers <- if all null heads
                 then return empty
-                else liftM ($$ "\\hline") $ (tableRowToLaTeX widths) heads
+                else liftM ($$ "\\hline\\noalign{\\smallskip}")
+                     $ (tableRowToLaTeX widths) heads
   captionText <- inlineListToLaTeX $ deVerb caption
   rows' <- mapM (tableRowToLaTeX widths) rows
   let colDescriptors = concat $ zipWith toColDescriptor widths aligns
@@ -306,10 +307,10 @@ tableRowToLaTeX :: [Double] -> [[Block]] -> State WriterState Doc
 tableRowToLaTeX widths cols = do
   renderedCells <- mapM blockListToLaTeX cols
   let toCell 0 c = c
-      toCell w c = "\\parbox{" <> text (printf "%.2f" w) <>
+      toCell w c = "\\parbox[t]{" <> text (printf "%.2f" w) <>
                    "\\columnwidth}{" <> c <> cr <> "}"
   let cells = zipWith toCell widths renderedCells
-  return $ (hcat $ intersperse (" & ") cells) <> "\\\\"
+  return $ (hcat $ intersperse (" & ") cells) <> "\\\\\\noalign{\\medskip}"
 
 listItemToLaTeX :: [Block] -> State WriterState Doc
 listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
