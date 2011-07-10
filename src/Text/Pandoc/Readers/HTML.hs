@@ -107,7 +107,7 @@ pBulletList = try $ do
   -- treat it as a list item, though it's not valid xhtml...
   skipMany nonItem
   items <- manyTill (pInTags "li" block >>~ skipMany nonItem) (pCloses "ul")
-  return [BulletList items]
+  return [BulletList $ map fixPlains items]
 
 pOrderedList :: TagParser [Block]
 pOrderedList = try $ do
@@ -138,7 +138,7 @@ pOrderedList = try $ do
   -- treat it as a list item, though it's not valid xhtml...
   skipMany nonItem
   items <- manyTill (pInTags "li" block >>~ skipMany nonItem) (pCloses "ol")
-  return [OrderedList (start, style, DefaultDelim) items]
+  return [OrderedList (start, style, DefaultDelim) $ map fixPlains items]
 
 pDefinitionList :: TagParser [Block]
 pDefinitionList = try $ do
@@ -154,7 +154,19 @@ pDefListItem = try $ do
   defs  <- many1 (try $ skipMany nonItem >> pInTags "dd" block)
   skipMany nonItem
   let term = intercalate [LineBreak] terms
-  return (term, defs)
+  return (term, map fixPlains defs)
+
+fixPlains :: [Block] -> [Block]
+fixPlains bs = if any isParaish bs
+                  then map plainToPara bs
+                  else bs
+  where isParaish (Para _) = True
+        isParaish (CodeBlock _ _) = True
+        isParaish (Header _ _) = True
+        isParaish (BlockQuote _) = True
+        isParaish _        = False
+        plainToPara (Plain xs) = Para xs
+        plainToPara x = x
 
 pRawTag :: TagParser String
 pRawTag = do
@@ -358,7 +370,7 @@ pInlinesInTags :: String -> ([Inline] -> Inline)
                -> TagParser [Inline]
 pInlinesInTags tagtype f = do
   contents <- pInTags tagtype inline
-  return [f contents]
+  return [f $ normalizeSpaces contents]
 
 pInTags :: String -> TagParser [a]
         -> TagParser [a]
