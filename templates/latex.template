@@ -40,10 +40,8 @@ $if(fancy-enums)$
 \usepackage{enumerate}
 $endif$
 $if(tables)$
-\usepackage{array}
-% This is needed because raggedright in table elements redefines \\:
-\newcommand{\PreserveBackslash}[1]{\let\temp=\\#1\let\\=\temp}
-\let\PBS=\PreserveBackslash
+\usepackage{ctable}
+\usepackage{float} % provides the H option for float placement
 $endif$
 $if(strikeout)$
 \usepackage[normalem]{ulem}

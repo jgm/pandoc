@@ -42,6 +42,9 @@ import System.FilePath (dropExtension)
 
 data WriterState = 
   WriterState { stInNote     :: Bool          -- @True@ if we're in a note
+              , stInTable    :: Bool          -- @True@ if we're in a table
+              , stTableNotes :: [(Char, Doc)] -- List of markers, notes
+                                              -- in current table
               , stOLLevel    :: Int           -- level of ordered list nesting
               , stOptions    :: WriterOptions -- writer options, so they don't have to be parameter 
               , stVerbInNote :: Bool          -- true if document has verbatim text in note
@@ -59,7 +62,8 @@ data WriterState =
 writeLaTeX :: WriterOptions -> Pandoc -> String
 writeLaTeX options document = 
   evalState (pandocToLaTeX options document) $ 
-  WriterState { stInNote = False, stOLLevel = 1, stOptions = options,
+  WriterState { stInNote = False, stInTable = False,
+                stTableNotes = [], stOLLevel = 1, stOptions = options,
                 stVerbInNote = False, stEnumerate = False,
                 stTable = False, stStrikeout = False, stSubscript = False,
                 stUrl = False, stGraphics = False,
@@ -269,48 +273,61 @@ blockToLaTeX (Header level lst) = do
                 5  -> headerWith "\\subparagraph" stuffing
                 _            -> txt $$ blankline
 blockToLaTeX (Table caption aligns widths heads rows) = do
+  modify $ \s -> s{ stInTable = True, stTableNotes = [] }
   headers <- if all null heads
                 then return empty
-                else liftM ($$ "\\hline\\noalign{\\smallskip}")
-                     $ (tableRowToLaTeX widths) heads
+                else liftM ($$ "\\ML")
+                     $ (tableRowToLaTeX True aligns widths) heads
   captionText <- inlineListToLaTeX $ deVerb caption
-  rows' <- mapM (tableRowToLaTeX widths) rows
-  let colDescriptors = concat $ zipWith toColDescriptor widths aligns
-  let tableBody = text ("\\begin{tabular}{" ++ colDescriptors ++ "}") $$
-                  headers $$ vcat rows' $$ "\\end{tabular}"
-  let centered txt = "\\begin{center}" $$ txt $$ "\\end{center}"
-  modify $ \s -> s{ stTable = True }
-  return $ if isEmpty captionText
-              then centered tableBody $$ blankline
-              else "\\begin{table}[h]" $$ centered tableBody $$
-                   inCmd "caption" captionText $$ "\\end{table}" $$ blankline
+  let capt = if isEmpty captionText
+                then empty
+                else text "caption = " <> captionText <> "," <> space
+  rows' <- mapM (tableRowToLaTeX False aligns widths) rows
+  let rows'' = intersperse ("\\\\\\noalign{\\medskip}") rows'
+  tableNotes <- liftM (reverse . stTableNotes) get
+  let toNote (marker, x) = "\\tnote" <> brackets (char marker) <>
+                            braces (nest 2 x)
+  let notes = vcat $ map toNote tableNotes
+  let colDescriptors = text $ concat $ map toColDescriptor aligns
+  let tableBody =
+         ("\\ctable" <> brackets (capt <> text "pos = H, center, botcap"))
+         <> braces colDescriptors
+         $$ braces ("% notes" <> cr <> notes <> cr)
+         $$ braces (text "% rows" $$ "\\FL" $$
+                     vcat (headers : rows'') $$ "\\LL" <> cr)
+  modify $ \s -> s{ stTable = True, stInTable = False, stTableNotes = [] }
+  return $ tableBody $$ blankline
 
-toColDescriptor :: Double -> Alignment -> String
-toColDescriptor 0 align =
+toColDescriptor :: Alignment -> String
+toColDescriptor align =
   case align of
          AlignLeft    -> "l"
          AlignRight   -> "r"
          AlignCenter  -> "c"
          AlignDefault -> "l"
-toColDescriptor width align = ">{\\PBS" ++
-  (case align of
-         AlignLeft -> "\\raggedright"
-         AlignRight -> "\\raggedleft"
-         AlignCenter -> "\\centering"
-         AlignDefault -> "\\raggedright") ++
-  "\\hspace{0pt}}p{" ++ printf "%.2f" width ++ "\\columnwidth}"
 
 blockListToLaTeX :: [Block] -> State WriterState Doc
 blockListToLaTeX lst = mapM blockToLaTeX lst >>= return . vcat
 
-tableRowToLaTeX :: [Double] -> [[Block]] -> State WriterState Doc
-tableRowToLaTeX widths cols = do
+tableRowToLaTeX :: Bool
+                -> [Alignment]
+                -> [Double]
+                -> [[Block]]
+                -> State WriterState Doc
+tableRowToLaTeX header aligns widths cols = do
   renderedCells <- mapM blockListToLaTeX cols
-  let toCell 0 c = c
-      toCell w c = "\\parbox[t]{" <> text (printf "%.2f" w) <>
-                   "\\columnwidth}{" <> c <> cr <> "}"
-  let cells = zipWith toCell widths renderedCells
-  return $ (hcat $ intersperse (" & ") cells) <> "\\\\\\noalign{\\medskip}"
+  let valign = text $ if header then "[b]" else "[t]"
+  let halign x = case x of
+                  AlignLeft    -> "\\raggedright"
+                  AlignRight   -> "\\raggedleft"
+                  AlignCenter  -> "\\centering"
+                  AlignDefault -> "\\raggedright"
+  let toCell 0 _ c = c
+      toCell w a c = "\\parbox" <> valign <>
+                     braces (text (printf "%.2f\\columnwidth" w)) <>
+                     braces (halign a <> cr <> c <> cr)
+  let cells = zipWith3 toCell widths aligns renderedCells
+  return $ hcat $ intersperse (" & ") cells
 
 listItemToLaTeX :: [Block] -> State WriterState Doc
 listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
@@ -413,9 +430,15 @@ inlineToLaTeX (Note contents) = do
   modify (\s -> s{stInNote = True})
   contents' <- blockListToLaTeX contents
   modify (\s -> s {stInNote = False})
-  -- note: a \n before } is needed when note ends with a Verbatim environment
-  return $ "\\footnote" <> braces (nest 2 contents')
-
+  inTable <- liftM stInTable get
+  if inTable
+     then do
+       curnotes <- liftM stTableNotes get
+       let marker = cycle ['a'..'z'] !! length curnotes
+       modify $ \s -> s{ stTableNotes = (marker, contents') : curnotes }
+       return $ "\\tmark" <> brackets (char marker) <> space
+     else return $ "\\footnote" <> braces (nest 2 contents')
+     -- note: a \n before } needed when note ends with a Verbatim environment
 
 citationsToNatbib :: [Citation] -> State WriterState Doc
 citationsToNatbib (one:[])
