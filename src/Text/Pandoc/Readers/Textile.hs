@@ -465,7 +465,7 @@ link :: GenParser Char ParserState Inline
 link = try $ do
   name <- surrounded (char '"') inline
   char ':'
-  url <- manyTill (anyChar) (lookAhead $ (space <|> try (oneOf ".;," >> (space <|> newline))))
+  url <- manyTill (anyChar) (lookAhead $ (space <|> try (oneOf ".;,:" >> (space <|> newline))))
   return $ Link name (url, "")
 
 -- | Detect plain links to http or email.
