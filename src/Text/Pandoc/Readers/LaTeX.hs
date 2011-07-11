@@ -805,7 +805,11 @@ nonbreakingSpace = char '~' >> return (Str "\160")
 
 -- hard line break
 linebreak :: GenParser Char st Inline
-linebreak = try (string "\\\\") >> return LineBreak
+linebreak = try $ do
+  string "\\\\"
+  optional $ bracketedText '[' ']'  -- e.g. \\[10pt]
+  spaces
+  return LineBreak
 
 str :: GenParser Char st Inline
 str = many1 (noneOf specialChars) >>= return . Str
