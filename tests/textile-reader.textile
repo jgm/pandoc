@@ -141,6 +141,8 @@ Just a "url":http://www.url.com
 
 Automatic linking to http://www.example.com and foobar@example.com.
 
+"Example":http://www.example.com/: Example of a link followed by a colon.
+
 h1. Tables
 
 Textile allows tables with and without headers :
