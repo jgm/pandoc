@@ -1133,8 +1133,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Here's a LaTeX table:
   </para>
-  <para>
-  </para>
 </section>
 <section id="special-characters">
   <title>Special Characters</title>

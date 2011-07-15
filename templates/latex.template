@@ -40,13 +40,13 @@ $if(fancy-enums)$
 \usepackage{enumerate}
 $endif$
 $if(tables)$
-\usepackage{array}
-% This is needed because raggedright in table elements redefines \\:
-\newcommand{\PreserveBackslash}[1]{\let\temp=\\#1\let\\=\temp}
-\let\PBS=\PreserveBackslash
+\usepackage{ctable}
+\usepackage{float} % provides the H option for float placement
 $endif$
 $if(strikeout)$
 \usepackage[normalem]{ulem}
+% avoid problems with \sout in headers with hyperref:
+\pdfstringdefDisableCommands{\renewcommand{\sout}{}}
 $endif$
 $if(subscript)$
 \newcommand{\textsubscr}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
@@ -69,6 +69,9 @@ $endif$
 \usepackage[breaklinks=true,unicode=true,pdfborder={0 0 0}]{hyperref}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
+$if(listings)$
+\usepackage{listings}
+$endif$
 $if(numbersections)$
 $else$
 \setcounter{secnumdepth}{0}

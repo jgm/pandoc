@@ -78,14 +78,14 @@ parseBody :: TagParser [Block]
 parseBody = liftM concat $ manyTill block eof
 
 block :: TagParser [Block]
-block = optional pLocation >>
-        choice [
-              pPara
+block = choice
+            [ pPara
             , pHeader
             , pBlockQuote
             , pCodeBlock
             , pList
             , pHrule
+            , pSimpleTable
             , pPlain
             , pRawHtmlBlock
             ]
@@ -107,7 +107,7 @@ pBulletList = try $ do
   -- treat it as a list item, though it's not valid xhtml...
   skipMany nonItem
   items <- manyTill (pInTags "li" block >>~ skipMany nonItem) (pCloses "ul")
-  return [BulletList items]
+  return [BulletList $ map fixPlains items]
 
 pOrderedList :: TagParser [Block]
 pOrderedList = try $ do
@@ -138,7 +138,7 @@ pOrderedList = try $ do
   -- treat it as a list item, though it's not valid xhtml...
   skipMany nonItem
   items <- manyTill (pInTags "li" block >>~ skipMany nonItem) (pCloses "ol")
-  return [OrderedList (start, style, DefaultDelim) items]
+  return [OrderedList (start, style, DefaultDelim) $ map fixPlains items]
 
 pDefinitionList :: TagParser [Block]
 pDefinitionList = try $ do
@@ -154,7 +154,19 @@ pDefListItem = try $ do
   defs  <- many1 (try $ skipMany nonItem >> pInTags "dd" block)
   skipMany nonItem
   let term = intercalate [LineBreak] terms
-  return (term, defs)
+  return (term, map fixPlains defs)
+
+fixPlains :: [Block] -> [Block]
+fixPlains bs = if any isParaish bs
+                  then map plainToPara bs
+                  else bs
+  where isParaish (Para _) = True
+        isParaish (CodeBlock _ _) = True
+        isParaish (Header _ _) = True
+        isParaish (BlockQuote _) = True
+        isParaish _        = False
+        plainToPara (Plain xs) = Para xs
+        plainToPara x = x
 
 pRawTag :: TagParser String
 pRawTag = do
@@ -169,7 +181,7 @@ pRawHtmlBlock = do
   raw <- pHtmlBlock "script" <|> pHtmlBlock "style" <|> pRawTag
   state <- getState
   if stateParseRaw state && not (null raw)
-     then return [RawHtml raw]
+     then return [RawBlock "html" raw]
      else return []
 
 pHtmlBlock :: String -> TagParser String
@@ -194,6 +206,27 @@ pHrule :: TagParser [Block]
 pHrule = do
   pSelfClosing (=="hr") (const True)
   return [HorizontalRule]
+
+pSimpleTable :: TagParser [Block]
+pSimpleTable = try $ do
+  TagOpen _ _ <- pSatisfy (~== TagOpen "table" [])
+  skipMany pBlank
+  head' <- option [] $ pInTags "th" pTd
+  rows <- many1 $ try $
+           skipMany pBlank >> pInTags "tr" pTd
+  skipMany pBlank
+  TagClose _ <- pSatisfy (~== TagClose "table") 
+  let cols = maximum $ map length rows
+  let aligns = replicate cols AlignLeft
+  let widths = replicate cols 0
+  return [Table [] aligns widths head' rows]
+
+pTd :: TagParser [TableCell]
+pTd = try $ do
+  skipMany pBlank
+  res <- pInTags "td" pPlain
+  skipMany pBlank
+  return [res]
 
 pBlockQuote :: TagParser [Block]
 pBlockQuote = do
@@ -235,9 +268,8 @@ pCodeBlock = try $ do
   return [CodeBlock attribs result]
 
 inline :: TagParser [Inline]
-inline = choice [
-             pLocation
-           , pTagText
+inline = choice
+           [ pTagText
            , pEmph
            , pStrong
            , pSuperscript
@@ -250,16 +282,18 @@ inline = choice [
            , pRawHtmlInline
            ]
 
-pLocation :: TagParser [a]
+pLocation :: TagParser ()
 pLocation = do
-  (TagPosition r c) <- pSatisfy isTagPosition
+  (TagPosition r c) <- pSat isTagPosition
   setPosition $ newPos "input" r c
-  return []
 
-pSatisfy :: (Tag String -> Bool) -> TagParser (Tag String)
-pSatisfy f = do
+pSat :: (Tag String -> Bool) -> TagParser (Tag String)
+pSat f = do
   pos <- getPosition
   token show (const pos) (\x -> if f x then Just x else Nothing) 
+
+pSatisfy :: (Tag String -> Bool) -> TagParser (Tag String)
+pSatisfy f = try $ optional pLocation >> pSat f
 
 pAnyTag :: TagParser (Tag String)
 pAnyTag = pSatisfy (const True)
@@ -268,7 +302,7 @@ pSelfClosing :: (String -> Bool) -> ([Attribute String] -> Bool)
              -> TagParser (Tag String)
 pSelfClosing f g = do
   open <- pSatisfy (tagOpen f g)
-  optional $ try $ pLocation >> pSatisfy (tagClose f)
+  optional $ pSatisfy (tagClose f)
   return open
 
 pEmph :: TagParser [Inline]
@@ -316,23 +350,27 @@ pImage = do
 
 pCode :: TagParser [Inline]
 pCode = try $ do
-  (TagOpen open _) <- pSatisfy $ tagOpen (`elem` ["code","tt"]) (const True)
+  (TagOpen open attr) <- pSatisfy $ tagOpen (`elem` ["code","tt"]) (const True)
   result <- manyTill pAnyTag (pCloses open)
-  return [Code $ intercalate " " $ lines $ innerText result]
+  let ident = fromMaybe "" $ lookup "id" attr
+  let classes = words $ fromMaybe [] $ lookup "class" attr
+  let rest = filter (\(x,_) -> x /= "id" && x /= "class") attr
+  return [Code (ident,classes,rest)
+         $ intercalate " " $ lines $ innerText result]
 
 pRawHtmlInline :: TagParser [Inline]
 pRawHtmlInline = do
   result <- pSatisfy (tagComment (const True)) <|> pSatisfy isInlineTag
   state <- getState
   if stateParseRaw state
-     then return [HtmlInline $ renderTags' [result]]
+     then return [RawInline "html" $ renderTags' [result]]
      else return []
 
 pInlinesInTags :: String -> ([Inline] -> Inline)
                -> TagParser [Inline]
 pInlinesInTags tagtype f = do
   contents <- pInTags tagtype inline
-  return [f contents]
+  return [f $ normalizeSpaces contents]
 
 pInTags :: String -> TagParser [a]
         -> TagParser [a]
@@ -342,7 +380,6 @@ pInTags tagtype parser = try $ do
 
 pCloses :: String -> TagParser ()
 pCloses tagtype = try $ do
-  optional pLocation
   t <- lookAhead $ pSatisfy $ \tag -> isTagClose tag || isTagOpen tag
   case t of
        (TagClose t')  | t' == tagtype -> pAnyTag >> return ()
@@ -359,6 +396,11 @@ pTagText = try $ do
   case runParser (many pTagContents) st "text" str of
        Left _        -> fail $ "Could not parse `" ++ str ++ "'"
        Right result  -> return result
+
+pBlank :: TagParser ()
+pBlank = try $ do
+  (TagText str) <- pSatisfy isTagText
+  guard $ all isSpace str
 
 pTagContents :: GenParser Char ParserState Inline
 pTagContents =  pStr <|> pSpace <|> smartPunctuation pTagContents <|> pSymbol
@@ -433,10 +475,8 @@ _ `closes` "html" = False
 "a" `closes` "a" = True
 "li" `closes` "li" = True
 "th" `closes` t | t `elem` ["th","td"] = True
-"td" `closes` t | t `elem` ["th","td"] = True
 "tr" `closes` t | t `elem` ["th","td","tr"] = True
 "dt" `closes` t | t `elem` ["dt","dd"] = True
-"dd" `closes` t | t `elem` ["dt","dd"] = True
 "hr" `closes` "p" = True
 "p" `closes` "p" = True
 "meta" `closes` "meta" = True

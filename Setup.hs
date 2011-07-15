@@ -10,10 +10,9 @@ import Distribution.Simple.InstallDirs (mandir, bindir, CopyDest (NoCopyDest))
 import Distribution.Simple.Utils (copyFiles)
 import Control.Exception ( bracket_ )
 import Control.Monad ( unless )
-import System.Process ( rawSystem, runCommand, runProcess, waitForProcess )
-import System.FilePath ( (</>), (<.>) )
+import System.Process ( rawSystem, runCommand, waitForProcess )
+import System.FilePath ( (</>) )
 import System.Directory
-import System.IO ( stderr )
 import System.Exit
 import System.Time
 import System.IO.Error ( isDoesNotExistError )
@@ -38,50 +37,41 @@ main = do
 
 -- | Run test suite.
 runTestSuite :: Args -> Bool -> PackageDescription -> LocalBuildInfo -> IO a
-runTestSuite _ _ pkg lbi = do
+runTestSuite args _ pkg lbi = do
   let testDir = buildDir lbi </> "test-pandoc"
   testDir' <- canonicalizePath testDir
+  let testArgs = "--timeout=5" : concatMap (\arg -> ["-t",arg]) args
   if any id [buildable (buildInfo exe) | exe <- executables pkg, exeName exe == "test-pandoc"]
-     then do
-         let isHighlightingKate (Dependency (PackageName "highlighting-kate") _) = True
-             isHighlightingKate _ = False
-         let highlightingSupport = any isHighlightingKate $ buildDepends pkg
-         let testArgs = ["lhs" | highlightingSupport]
-         inDirectory "tests" $ rawSystem (testDir' </> "test-pandoc")
-                                 testArgs >>= exitWith
+     then inDirectory "tests" $ rawSystem (testDir' </> "test-pandoc") testArgs >>= exitWith
      else do
          putStrLn "Build pandoc with the 'tests' flag to run tests"
          exitWith $ ExitFailure 3
 
--- | Build man pages from markdown sources in man/man1/.
+-- | Build man pages from markdown sources in man/
 makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
-makeManPages _ flags _ bi = do
-  let pandocPath = (buildDir bi) </> "pandoc" </> "pandoc"
-  makeManPage pandocPath (fromFlag $ buildVerbosity flags) "markdown2pdf.1"
-  let testCmd  = "runghc -package-conf=dist/package.conf.inplace MakeManPage.hs" -- makes pandoc.1 from README
-  runCommand testCmd >>= waitForProcess >>= exitWith
+makeManPages _ flags _ _ = do
+  let verbosity = fromFlag $ buildVerbosity flags
+  ds1 <- modifiedDependencies (manDir </> "man1" </> "pandoc.1")
+    ["README", manDir </> "man1" </> "pandoc.1.template"]
+  ds2 <- modifiedDependencies (manDir </> "man1" </> "markdown2pdf.1")
+    [manDir </> "man1" </> "markdown2pdf.1.md"]
+  ds3 <- modifiedDependencies (manDir </> "man5" </> "pandoc_markdown.5")
+    ["README", manDir </> "man5" </> "pandoc_markdown.5.template"]
+  let cmd  = "runghc -package-conf=dist/package.conf.inplace MakeManPage.hs"
+  let cmd' = if verbosity == silent
+                then cmd
+                else cmd ++ " --verbose"
+  -- Don't run MakeManPage.hs unless we have to
+  unless (null ds1 && null ds2 && null ds3) $
+    runCommand cmd' >>= waitForProcess >>= exitWith
 
 manpages :: [FilePath]
-manpages = ["pandoc.1", "markdown2pdf.1"]
+manpages = ["man1" </> "pandoc.1"
+           ,"man1" </> "markdown2pdf.1"
+           ,"man5" </> "pandoc_markdown.5"]
 
 manDir :: FilePath
-manDir = "man" </> "man1"
-
--- | Build a man page from markdown source in man/man1.
-makeManPage :: FilePath -> Verbosity -> FilePath -> IO ()
-makeManPage pandoc verbosity manpage = do
-  let page = manDir </> manpage
-  let source = page <.> "md"
-  modifiedDeps <- modifiedDependencies page [source]
-  unless (null modifiedDeps) $ do
-    ec <- runProcess pandoc ["-s", "-S", "-r", "markdown", "-w", "man",
-                "--template=templates/man.template", "-o", page, source]
-                Nothing Nothing Nothing Nothing (Just stderr) >>= waitForProcess
-    case ec of
-         ExitSuccess   -> unless (verbosity == silent) $
-                             putStrLn $ "Created " ++ page
-         ExitFailure n -> putStrLn ("Error creating " ++ page ++
-                             ". Exit code = " ++ show n) >> exitWith ec
+manDir = "man"
 
 installScripts :: PackageDescription -> LocalBuildInfo
                -> Verbosity -> CopyDest -> IO ()
@@ -95,7 +85,7 @@ installScripts pkg lbi verbosity copy =
 installManpages :: PackageDescription -> LocalBuildInfo
                 -> Verbosity -> CopyDest -> IO ()
 installManpages pkg lbi verbosity copy =
-  copyFiles verbosity (mandir (absoluteInstallDirs pkg lbi copy) </> "man1")
+  copyFiles verbosity (mandir (absoluteInstallDirs pkg lbi copy))
              (zip (repeat manDir) manpages)
 
 -- | Returns a list of 'dependencies' that have been modified after 'file'.

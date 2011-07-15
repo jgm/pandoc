@@ -27,13 +27,34 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to RTF (rich text format).
 -}
-module Text.Pandoc.Writers.RTF ( writeRTF ) where
+module Text.Pandoc.Writers.RTF ( writeRTF, rtfEmbedImage ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Templates (renderTemplate)
 import Data.List ( isSuffixOf, intercalate )
-import Data.Char ( ord, isDigit )
+import Data.Char ( ord, isDigit, toLower )
+import System.FilePath ( takeExtension )
+import qualified Data.ByteString as B
+import Text.Printf ( printf )
+
+-- | Convert Image inlines into a raw RTF embedded image, read from a file.
+-- If file not found or filetype not jpeg or png, leave the inline unchanged.
+rtfEmbedImage :: Inline -> IO Inline
+rtfEmbedImage x@(Image _ (src,_))
+  | map toLower (takeExtension src) `elem` [".jpg",".jpeg",".png"] = do
+  imgdata <- catch (B.readFile src) (\_ -> return B.empty)
+  let bytes = map (printf "%02x") $ B.unpack imgdata
+  let filetype = case map toLower (takeExtension src) of
+                      ".jpg" -> "\\jpegblip"
+                      ".jpeg" -> "\\jpegblip"
+                      ".png"  -> "\\pngblip"
+                      _      -> error "Unknown file type"
+  let raw = "{\\pict" ++ filetype ++ " " ++ concat bytes ++ "}"
+  return $ if B.null imgdata
+              then x
+              else RawInline "rtf" raw
+rtfEmbedImage x = return x
 
 -- | Convert Pandoc to a string in rich text format.
 writeRTF :: WriterOptions -> Pandoc -> String
@@ -159,7 +180,8 @@ blockToRTF indent alignment (BlockQuote lst) =
   concatMap (blockToRTF (indent + indentIncrement) alignment) lst 
 blockToRTF indent _ (CodeBlock _ str) =
   rtfPar indent 0 AlignLeft ("\\f1 " ++ (codeStringToRTF str))
-blockToRTF _ _ (RawHtml _) = ""
+blockToRTF _ _ (RawBlock "rtf" str) = str
+blockToRTF _ _ (RawBlock _ _) = ""
 blockToRTF indent alignment (BulletList lst) = spaceAtEnd $ 
   concatMap (listItemToRTF alignment indent (bulletMarker indent)) lst
 blockToRTF indent alignment (OrderedList attribs lst) = spaceAtEnd $ concat $ 
@@ -264,12 +286,12 @@ inlineToRTF Apostrophe = "\\u8217'"
 inlineToRTF Ellipses = "\\u8230?"
 inlineToRTF EmDash = "\\u8212-"
 inlineToRTF EnDash = "\\u8211-"
-inlineToRTF (Code str) = "{\\f1 " ++ (codeStringToRTF str) ++ "}"
+inlineToRTF (Code _ str) = "{\\f1 " ++ (codeStringToRTF str) ++ "}"
 inlineToRTF (Str str) = stringToRTF str
 inlineToRTF (Math _ str) = inlineListToRTF $ readTeXMath str
 inlineToRTF (Cite _ lst) = inlineListToRTF lst
-inlineToRTF (TeX _) = ""
-inlineToRTF (HtmlInline _) = ""
+inlineToRTF (RawInline "rtf" str) = str
+inlineToRTF (RawInline _ _) = ""
 inlineToRTF (LineBreak) = "\\line "
 inlineToRTF Space = " "
 inlineToRTF (Link text (src, _)) = 

@@ -243,10 +243,7 @@ orderedListMarkers (start, numstyle, numdelim) =
 -- remove empty Str elements.
 normalizeSpaces :: [Inline] -> [Inline]
 normalizeSpaces = cleanup . dropWhile isSpaceOrEmpty
-  where isSpaceOrEmpty Space = True
-        isSpaceOrEmpty (Str "") = True
-        isSpaceOrEmpty _ = False
-        cleanup [] = []
+ where  cleanup [] = []
         cleanup (Space:rest) = let rest' = dropWhile isSpaceOrEmpty rest
                                in  case rest' of
                                    []            -> []
@@ -254,20 +251,25 @@ normalizeSpaces = cleanup . dropWhile isSpaceOrEmpty
         cleanup ((Str ""):rest) = cleanup rest
         cleanup (x:rest) = x : cleanup rest
 
+isSpaceOrEmpty :: Inline -> Bool
+isSpaceOrEmpty Space = True
+isSpaceOrEmpty (Str "") = True
+isSpaceOrEmpty _ = False
+
 -- | Normalize @Pandoc@ document, consolidating doubled 'Space's,
 -- combining adjacent 'Str's and 'Emph's, remove 'Null's and
 -- empty elements, etc.
-normalize :: Pandoc -> Pandoc
-normalize = topDown consolidateInlines .
-            bottomUp removeEmptyInlines .
-            topDown removeEmptyBlocks
+normalize :: (Eq a, Data a) => a -> a
+normalize = topDown removeEmptyBlocks .
+            topDown consolidateInlines .
+            bottomUp (removeEmptyInlines . removeTrailingInlineSpaces)
 
 removeEmptyBlocks :: [Block] -> [Block]
 removeEmptyBlocks (Null : xs) = removeEmptyBlocks xs
 removeEmptyBlocks (BulletList [] : xs) = removeEmptyBlocks xs
 removeEmptyBlocks (OrderedList _ [] : xs) = removeEmptyBlocks xs
 removeEmptyBlocks (DefinitionList [] : xs) = removeEmptyBlocks xs
-removeEmptyBlocks (RawHtml [] : xs) = removeEmptyBlocks xs
+removeEmptyBlocks (RawBlock _ [] : xs) = removeEmptyBlocks xs
 removeEmptyBlocks (x:xs) = x : removeEmptyBlocks xs
 removeEmptyBlocks [] = []
 
@@ -278,11 +280,17 @@ removeEmptyInlines (Subscript [] : zs) = removeEmptyInlines zs
 removeEmptyInlines (Superscript [] : zs) = removeEmptyInlines zs
 removeEmptyInlines (SmallCaps [] : zs) = removeEmptyInlines zs
 removeEmptyInlines (Strikeout [] : zs) = removeEmptyInlines zs
-removeEmptyInlines (TeX [] : zs) = removeEmptyInlines zs
-removeEmptyInlines (HtmlInline [] : zs) = removeEmptyInlines zs
-removeEmptyInlines (Code [] : zs) = removeEmptyInlines zs
+removeEmptyInlines (RawInline _ [] : zs) = removeEmptyInlines zs
+removeEmptyInlines (Code _ [] : zs) = removeEmptyInlines zs
+removeEmptyInlines (Str "" : zs) = removeEmptyInlines zs
 removeEmptyInlines (x : xs) = x : removeEmptyInlines xs
 removeEmptyInlines [] = []
+
+removeTrailingInlineSpaces :: [Inline] -> [Inline]
+removeTrailingInlineSpaces = reverse . removeLeadingInlineSpaces . reverse
+
+removeLeadingInlineSpaces :: [Inline] -> [Inline]
+removeLeadingInlineSpaces = dropWhile isSpaceOrEmpty
 
 consolidateInlines :: [Inline] -> [Inline]
 consolidateInlines (Str x : ys) =
@@ -311,12 +319,10 @@ consolidateInlines (SmallCaps xs : SmallCaps ys : zs) = consolidateInlines $
   SmallCaps (xs ++ ys) : zs
 consolidateInlines (Strikeout xs : Strikeout ys : zs) = consolidateInlines $
   Strikeout (xs ++ ys) : zs
-consolidateInlines (TeX x : TeX y : zs) = consolidateInlines $
-  TeX (x ++ y) : zs
-consolidateInlines (HtmlInline x : HtmlInline y : zs) = consolidateInlines $
-  HtmlInline (x ++ y) : zs
-consolidateInlines (Code x : Code y : zs) = consolidateInlines $
-  Code (x ++ y) : zs
+consolidateInlines (RawInline f x : RawInline f' y : zs) | f == f' =
+  consolidateInlines $ RawInline f (x ++ y) : zs
+consolidateInlines (Code a1 x : Code a2 y : zs) | a1 == a2 =
+  consolidateInlines $ Code a1 (x ++ y) : zs
 consolidateInlines (x : xs) = x : consolidateInlines xs
 consolidateInlines [] = []
 
@@ -326,7 +332,7 @@ stringify = queryWith go
   where go :: Inline -> [Char]
         go Space = " "
         go (Str x) = x
-        go (Code x) = x
+        go (Code _ x) = x
         go (Math _ x) = x
         go EmDash = "--"
         go EnDash = "-"
@@ -482,6 +488,9 @@ data WriterOptions = WriterOptions
   , writerCiteMethod       :: CiteMethod -- ^ How to print cites
   , writerBiblioFiles      :: [FilePath] -- ^ Biblio files to use for citations
   , writerHtml5            :: Bool       -- ^ Produce HTML5
+  , writerChapters         :: Bool       -- ^ Use "chapter" for top-level sects
+  , writerListings         :: Bool       -- ^ Use listings package for code
+  , writerAscii            :: Bool       -- ^ Avoid non-ascii characters
   } deriving Show
 
 -- | Default writer options.
@@ -499,7 +508,7 @@ defaultWriterOptions =
                 , writerHTMLMathMethod   = PlainMath
                 , writerIgnoreNotes      = False
                 , writerNumberSections   = False
-                , writerSectionDivs      = True
+                , writerSectionDivs      = False
                 , writerStrictMarkdown   = False
                 , writerReferenceLinks   = False
                 , writerWrapText         = True
@@ -512,6 +521,9 @@ defaultWriterOptions =
                 , writerCiteMethod       = Citeproc
                 , writerBiblioFiles      = []
                 , writerHtml5            = False
+                , writerChapters         = False
+                , writerListings         = False
+                , writerAscii            = False
                 }
 
 --

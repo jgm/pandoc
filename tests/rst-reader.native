@@ -1,317 +1,308 @@
 Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":",Space,Str "Subtitle"], docAuthors = [[Str "John",Space,Str "MacFarlane"],[Str "Anonymous"]], docDate = [Str "July",Space,Str "17,",Space,Str "2006"]})
-[ DefinitionList
-  [ ([Str "Revision"],
-     [ [ Plain [Str "3"] ]
-     ]) ]
-, Header 1 [Str "Level",Space,Str "one",Space,Str "header"]
-, Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc",Str ".",Space,Str "Most",Space,Str "of",Space,Str "them",Space,Str "are",Space,Str "adapted",Space,Str "from",Space,Str "John",Space,Str "Gruber",Apostrophe,Str "s",Space,Str "markdown",Space,Str "test",Space,Str "suite",Str "."]
-, Header 2 [Str "Level",Space,Str "two",Space,Str "header"]
-, Header 3 [Str "Level",Space,Str "three"]
-, Header 4 [Str "Level",Space,Str "four",Space,Str "with",Space,Emph [Str "emphasis"]]
-, Header 5 [Str "Level",Space,Str "five"]
-, Header 1 [Str "Paragraphs"]
-, Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "regular",Space,Str "paragraph",Str "."]
-, Para [Str "In",Space,Str "Markdown",Space,Str "1",Str ".",Str "0",Str ".",Str "0",Space,Str "and",Space,Str "earlier",Str ".",Space,Str "Version",Space,Str "8",Str ".",Space,Str "This",Space,Str "line",Space,Str "turns",Space,Str "into",Space,Str "a",Space,Str "list",Space,Str "item",Str ".",Space,Str "Because",Space,Str "a",Space,Str "hard",Str "-",Str "wrapped",Space,Str "line",Space,Str "in",Space,Str "the",Space,Str "middle",Space,Str "of",Space,Str "a",Space,Str "paragraph",Space,Str "looked",Space,Str "like",Space,Str "a",Space,Str "list",Space,Str "item",Str "."]
-, Para [Str "Here",Apostrophe,Str "s",Space,Str "one",Space,Str "with",Space,Str "a",Space,Str "bullet",Str ".",Space,Str "*",Space,Str "criminey",Str "."]
-, Para [Str "Horizontal",Space,Str "rule",Str ":"]
-, HorizontalRule
-, Para [Str "Another",Str ":"]
-, HorizontalRule
-, Header 1 [Str "Block",Space,Str "Quotes"]
-, Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "block",Space,Str "quote",Str ":"]
-, BlockQuote
-  [ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "block",Space,Str "quote",Str ".",Space,Str "It",Space,Str "is",Space,Str "pretty",Space,Str "short",Str "."] ]
-
-, Para [Str "Here",Apostrophe,Str "s",Space,Str "another,",Space,Str "differently",Space,Str "indented",Str ":"]
-, BlockQuote
-  [ Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "block",Space,Str "quote",Str ".",Space,Str "It",Apostrophe,Str "s",Space,Str "indented",Space,Str "with",Space,Str "a",Space,Str "tab",Str "."]
-  , Para [Str "Code",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote",Str ":"]
-  , CodeBlock ("",[],[]) "sub status {\n    print \"working\";\n}"
-  , Para [Str "List",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote",Str ":"]
-  , OrderedList (1,Decimal,Period)
-    [ [ Plain [Str "item",Space,Str "one"] ]
-    , [ Plain [Str "item",Space,Str "two"] ] ]
-  , Para [Str "Nested",Space,Str "block",Space,Str "quotes",Str ":"]
-  , BlockQuote
-    [ Para [Str "nested"]
-    , BlockQuote
-      [ Para [Str "nested"] ]
-     ] ]
-, Header 1 [Str "Code",Space,Str "Blocks"]
-, Para [Str "Code",Str ":"]
-, CodeBlock ("",[],[]) "---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}"
-, CodeBlock ("",[],[]) "this code block is indented by one tab"
-, Para [Str "And",Str ":"]
-, CodeBlock ("",[],[]) "this block is indented by two tabs\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{"
-, Para [Str "And",Str ":"]
-, CodeBlock ("",["sourceCode","python"],[]) "def my_function(x):\n    return x + 1"
-, Header 1 [Str "Lists"]
-, Header 2 [Str "Unordered"]
-, Para [Str "Asterisks",Space,Str "tight",Str ":"]
-, BulletList
-  [ [ Plain [Str "asterisk",Space,Str "1"] ]
-  , [ Plain [Str "asterisk",Space,Str "2"] ]
-  , [ Plain [Str "asterisk",Space,Str "3"] ] ]
-, Para [Str "Asterisks",Space,Str "loose",Str ":"]
-, BulletList
-  [ [ Para [Str "asterisk",Space,Str "1"] ]
-  , [ Para [Str "asterisk",Space,Str "2"] ]
-  , [ Para [Str "asterisk",Space,Str "3"] ] ]
-, Para [Str "Pluses",Space,Str "tight",Str ":"]
-, BulletList
-  [ [ Plain [Str "Plus",Space,Str "1"] ]
-  , [ Plain [Str "Plus",Space,Str "2"] ]
-  , [ Plain [Str "Plus",Space,Str "3"] ] ]
-, Para [Str "Pluses",Space,Str "loose",Str ":"]
-, BulletList
-  [ [ Para [Str "Plus",Space,Str "1"] ]
-  , [ Para [Str "Plus",Space,Str "2"] ]
-  , [ Para [Str "Plus",Space,Str "3"] ] ]
-, Para [Str "Minuses",Space,Str "tight",Str ":"]
-, BulletList
-  [ [ Plain [Str "Minus",Space,Str "1"] ]
-  , [ Plain [Str "Minus",Space,Str "2"] ]
-  , [ Plain [Str "Minus",Space,Str "3"] ] ]
-, Para [Str "Minuses",Space,Str "loose",Str ":"]
-, BulletList
-  [ [ Para [Str "Minus",Space,Str "1"] ]
-  , [ Para [Str "Minus",Space,Str "2"] ]
-  , [ Para [Str "Minus",Space,Str "3"] ] ]
-, Header 2 [Str "Ordered"]
-, Para [Str "Tight",Str ":"]
-, OrderedList (1,Decimal,Period)
-  [ [ Plain [Str "First"] ]
-  , [ Plain [Str "Second"] ]
-  , [ Plain [Str "Third"] ] ]
-, Para [Str "and",Str ":"]
-, OrderedList (1,Decimal,Period)
-  [ [ Plain [Str "One"] ]
-  , [ Plain [Str "Two"] ]
-  , [ Plain [Str "Three"] ] ]
-, Para [Str "Loose",Space,Str "using",Space,Str "tabs",Str ":"]
-, OrderedList (1,Decimal,Period)
-  [ [ Para [Str "First"] ]
-  , [ Para [Str "Second"] ]
-  , [ Para [Str "Third"] ] ]
-, Para [Str "and",Space,Str "using",Space,Str "spaces",Str ":"]
-, OrderedList (1,Decimal,Period)
-  [ [ Para [Str "One"] ]
-  , [ Para [Str "Two"] ]
-  , [ Para [Str "Three"] ] ]
-, Para [Str "Multiple",Space,Str "paragraphs",Str ":"]
-, OrderedList (1,Decimal,Period)
-  [ [ Para [Str "Item",Space,Str "1,",Space,Str "graf",Space,Str "one",Str "."]
-    , Para [Str "Item",Space,Str "1",Str ".",Space,Str "graf",Space,Str "two",Str ".",Space,Str "The",Space,Str "quick",Space,Str "brown",Space,Str "fox",Space,Str "jumped",Space,Str "over",Space,Str "the",Space,Str "lazy",Space,Str "dog",Apostrophe,Str "s",Space,Str "back",Str "."] ], [ Para [Str "Item",Space,Str "2",Str "."] ]
-  , [ Para [Str "Item",Space,Str "3",Str "."] ] ]
-, Para [Str "Nested",Str ":"]
-, BulletList
-  [ [ Para [Str "Tab"]
-    , BulletList
-      [ [ Para [Str "Tab"]
-        , BulletList
-          [ [ Plain [Str "Tab"] ]
-         ] ] ] ] ]
-, Para [Str "Here",Apostrophe,Str "s",Space,Str "another",Str ":"]
-, OrderedList (1,Decimal,Period)
-  [ [ Para [Str "First"] ]
-  , [ Para [Str "Second",Str ":"]
-    , BlockQuote
-      [ BulletList
-        [ [ Plain [Str "Fee"] ]
-        , [ Plain [Str "Fie"] ]
-        , [ Plain [Str "Foe"] ] ] ] ], [ Para [Str "Third"] ] ]
-, Header 2 [Str "Fancy",Space,Str "list",Space,Str "markers"]
-, OrderedList (2,Decimal,TwoParens)
-  [ [ Plain [Str "begins",Space,Str "with",Space,Str "2"] ]
-  , [ Para [Str "and",Space,Str "now",Space,Str "3"]
-    , Para [Str "with",Space,Str "a",Space,Str "continuation"]
-    , OrderedList (4,LowerRoman,Period)
-      [ [ Plain [Str "sublist",Space,Str "with",Space,Str "roman",Space,Str "numerals,",Space,Str "starting",Space,Str "with",Space,Str "4"] ]
-      , [ Para [Str "more",Space,Str "items"]
-        , OrderedList (1,UpperAlpha,TwoParens)
-          [ [ Plain [Str "a",Space,Str "subsublist"] ]
-          , [ Plain [Str "a",Space,Str "subsublist"] ] ] ] ] ] ]
-, Para [Str "Nesting",Str ":"]
-, OrderedList (1,UpperAlpha,Period)
-  [ [ Para [Str "Upper",Space,Str "Alpha"]
-    , OrderedList (1,UpperRoman,Period)
-      [ [ Para [Str "Upper",Space,Str "Roman",Str "."]
-        , OrderedList (6,Decimal,TwoParens)
-          [ [ Para [Str "Decimal",Space,Str "start",Space,Str "with",Space,Str "6"]
-            , OrderedList (3,LowerAlpha,OneParen)
-              [ [ Plain [Str "Lower",Space,Str "alpha",Space,Str "with",Space,Str "paren"] ]
-             ] ] ] ] ] ] ]
-, Para [Str "Autonumbering",Str ":"]
-, OrderedList (1,DefaultStyle,DefaultDelim)
-  [ [ Plain [Str "Autonumber",Str "."] ]
-  , [ Para [Str "More",Str "."]
-    , OrderedList (1,DefaultStyle,DefaultDelim)
-      [ [ Plain [Str "Nested",Str "."] ]
-     ] ] ]
-, Para [Str "Autonumbering",Space,Str "with",Space,Str "explicit",Space,Str "start",Str ":"]
-, OrderedList (4,LowerAlpha,TwoParens)
-  [ [ Plain [Str "item",Space,Str "1"] ]
-  , [ Plain [Str "item",Space,Str "2"] ] ]
-, Header 2 [Str "Definition"]
-, DefinitionList
-  [ ([Str "term",Space,Str "1"],
-     [ [ Para [Str "Definition",Space,Str "1",Str "."] ]
-     ])
-  , ([Str "term",Space,Str "2"],
-     [ [ Para [Str "Definition",Space,Str "2,",Space,Str "paragraph",Space,Str "1",Str "."]
-       , Para [Str "Definition",Space,Str "2,",Space,Str "paragraph",Space,Str "2",Str "."] ]])
-  , ([Str "term",Space,Str "with",Space,Emph [Str "emphasis"]],
-     [ [ Para [Str "Definition",Space,Str "3",Str "."] ]
-     ]) ]
-, Header 1 [Str "Field",Space,Str "Lists"]
-, DefinitionList
-  [ ([Str "address"],
-     [ [ Plain [Str "61",Space,Str "Main",Space,Str "St",Str "."] ]
-     ])
-  , ([Str "city"],
-     [ [ Plain [Emph [Str "Nowhere"],Str ",",Space,Str "MA,",Space,Str "USA"] ]
-     ])
-  , ([Str "phone"],
-     [ [ Plain [Str "123",EnDash,Str "4567"] ]
-     ]) ]
-, DefinitionList
-  [ ([Str "address"],
-     [ [ Plain [Str "61",Space,Str "Main",Space,Str "St",Str "."] ]
-     ])
-  , ([Str "city"],
-     [ [ Plain [Emph [Str "Nowhere"],Str ",",Space,Str "MA,",Space,Str "USA"] ]
-     ])
-  , ([Str "phone"],
-     [ [ Plain [Str "123",EnDash,Str "4567"] ]
-     ]) ]
-, Header 1 [Str "HTML",Space,Str "Blocks"]
-, Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line",Str ":"]
-, RawHtml "<div>foo</div>\n"
-, Para [Str "Now,",Space,Str "nested",Str ":"]
-, RawHtml "<div>\n    <div>\n        <div>\n            foo\n        </div>\n    </div>\n</div>\n"
-, Header 1 [Str "LaTeX",Space,Str "Block"]
-, Para [TeX "\\begin{tabular}{|l|l|}\\hline\nAnimal & Number \\\\ \\hline\nDog    & 2      \\\\\nCat    & 1      \\\\ \\hline\n\\end{tabular}\n"]
-, Header 1 [Str "Inline",Space,Str "Markup"]
-, Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ".",Space,Str "This",Space,Str "is",Space,Strong [Str "strong"],Str "."]
-, Para [Str "This",Space,Str "is",Space,Str "code",Str ":",Space,Code ">",Str ",",Space,Code "$",Str ",",Space,Code "\\",Str ",",Space,Code "\\$",Str ",",Space,Code "<html>",Str "."]
-, Para [Str "This",Space,Str "is",Subscript [Str "subscripted"],Space,Str "and",Space,Str "this",Space,Str "is",Space,Superscript [Str "superscripted"],Str "."]
-, Header 1 [Str "Special",Space,Str "Characters"]
-, Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "unicode",Str ":"]
-, BulletList
-  [ [ Plain [Str "I",Space,Str "hat",Str ":",Space,Str "\206"] ]
-  , [ Plain [Str "o",Space,Str "umlaut",Str ":",Space,Str "\246"] ]
-  , [ Plain [Str "section",Str ":",Space,Str "\167"] ]
-  , [ Plain [Str "set",Space,Str "membership",Str ":",Space,Str "\8712"] ]
-  , [ Plain [Str "copyright",Str ":",Space,Str "\169"] ] ]
-, Para [Str "AT&T",Space,Str "has",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "their",Space,Str "name",Str "."]
-, Para [Str "This",Space,Str "&",Space,Str "that",Str "."]
-, Para [Str "4",Space,Str "<",Space,Str "5",Str "."]
-, Para [Str "6",Space,Str ">",Space,Str "5",Str "."]
-, Para [Str "Backslash",Str ":",Space,Str "\\"]
-, Para [Str "Backtick",Str ":",Space,Str "`"]
-, Para [Str "Asterisk",Str ":",Space,Str "*"]
-, Para [Str "Underscore",Str ":",Space,Str "_"]
-, Para [Str "Left",Space,Str "brace",Str ":",Space,Str "{"]
-, Para [Str "Right",Space,Str "brace",Str ":",Space,Str "}"]
-, Para [Str "Left",Space,Str "bracket",Str ":",Space,Str "["]
-, Para [Str "Right",Space,Str "bracket",Str ":",Space,Str "]"]
-, Para [Str "Left",Space,Str "paren",Str ":",Space,Str "("]
-, Para [Str "Right",Space,Str "paren",Str ":",Space,Str ")"]
-, Para [Str "Greater",Str "-",Str "than",Str ":",Space,Str ">"]
-, Para [Str "Hash",Str ":",Space,Str "#"]
-, Para [Str "Period",Str ":",Space,Str "."]
-, Para [Str "Bang",Str ":",Space,Str "!"]
-, Para [Str "Plus",Str ":",Space,Str "+"]
-, Para [Str "Minus",Str ":",Space,Str "-"]
-, Header 1 [Str "Links"]
-, Para [Str "Explicit",Str ":",Space,Str "a",Space,Link [Str "URL"] ("/url/",""),Str "."]
-, Para [Str "Two",Space,Str "anonymous",Space,Str "links",Str ":",Space,Link [Str "the",Space,Str "first"] ("/url1/",""),Space,Str "and",Space,Link [Str "the",Space,Str "second"] ("/url2/","")]
-, Para [Str "Reference",Space,Str "links",Str ":",Space,Link [Str "link1"] ("/url1/",""),Space,Str "and",Space,Link [Str "link2"] ("/url2/",""),Space,Str "and",Space,Link [Str "link1"] ("/url1/",""),Space,Str "again",Str "."]
-, Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Link [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] ("http://example.com/?foo=1&bar=2",""),Str "."]
-, Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "amersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text",Str ":",Space,Link [Str "AT&T"] ("/url/",""),Str "."]
-, Para [Str "Autolinks",Str ":",Space,Link [Str "http://example.com/?foo=1&bar=2"] ("http://example.com/?foo=1&bar=2",""),Space,Str "and",Space,Link [Str "nobody@nowhere.net"] ("mailto:nobody@nowhere.net",""),Str "."]
-, Para [Str "But",Space,Str "not",Space,Str "here",Str ":"]
-, CodeBlock ("",[],[]) "http://example.com/"
-, Header 1 [Str "Images"]
-, Para [Str "From",Space,Quoted DoubleQuote [Str "Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune"],Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(1902)",Str ":"]
-, Plain [Image [Str "image"] ("lalune.jpg","")]
-, Plain [Image [Str "Voyage dans la Lune"] ("lalune.jpg","Voyage dans la Lune")]
-, Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "movie"] ("movie.jpg",""),Space,Str "icon",Str "."]
-, Header 1 [Str "Comments"]
-, Para [Str "First",Space,Str "paragraph"]
-, Para [Str "Another",Space,Str "paragraph"]
-, Para [Str "A",Space,Str "third",Space,Str "paragraph"]
-, Header 1 [Str "Line",Space,Str "blocks"]
-, Para [Str "But",Space,Str "can",Space,Str "a",Space,Str "bee",Space,Str "be",Space,Str "said",Space,Str "to",Space,Str "be",LineBreak,Str "    ",Str "or",Space,Str "not",Space,Str "to",Space,Str "be",Space,Str "an",Space,Str "entire",Space,Str "bee,",LineBreak,Str "        ",Str "when",Space,Str "half",Space,Str "the",Space,Str "bee",Space,Str "is",Space,Str "not",Space,Str "a",Space,Str "bee,",LineBreak,Str "            ",Str "due",Space,Str "to",Space,Str "some",Space,Str "ancient",Space,Str "injury?"]
-, Para [Str "Continuation",Space,Str "line",LineBreak,Str "  ",Str "and",Space,Str "another"]
-, Header 1 [Str "Simple",Space,Str "Tables"]
-, Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
-  [ [ Plain [Str "col",Space,Str "1"] ]
-  , [ Plain [Str "col",Space,Str "2"] ]
-  , [ Plain [Str "col",Space,Str "3"] ] ] [
-  [ [ Plain [Str "r1",Space,Str "a"] ]
-  , [ Plain [Str "b"] ]
-  , [ Plain [Str "c"] ] ],
-  [ [ Plain [Str "r2",Space,Str "d"] ]
-  , [ Plain [Str "e"] ]
-  , [ Plain [Str "f"] ] ] ]
-, Para [Str "Headless"]
-, Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
-  [   []
-  ,   []
-  ,   [] ] [
-  [ [ Plain [Str "r1",Space,Str "a"] ]
-  , [ Plain [Str "b"] ]
-  , [ Plain [Str "c"] ] ],
-  [ [ Plain [Str "r2",Space,Str "d"] ]
-  , [ Plain [Str "e"] ]
-  , [ Plain [Str "f"] ] ] ]
-, Header 1 [Str "Grid",Space,Str "Tables"]
-, Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2375,0.15,0.1625]
-  [ [ Plain [Str "col",Space,Str "1"] ]
-  , [ Plain [Str "col",Space,Str "2"] ]
-  , [ Plain [Str "col",Space,Str "3"] ] ] [
-  [ [ Plain [Str "r1",Space,Str "a",Space,Str "r1",Space,Str "bis"] ]
-  , [ Plain [Str "b",Space,Str "b",Space,Str "2"] ]
-  , [ Plain [Str "c",Space,Str "c",Space,Str "2"] ] ],
-  [ [ Plain [Str "r2",Space,Str "d"] ]
-  , [ Plain [Str "e"] ]
-  , [ Plain [Str "f"] ] ] ]
-, Para [Str "Headless"]
-, Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2375,0.15,0.1625]
-  [   []
-  ,   []
-  ,   [] ] [
-  [ [ Plain [Str "r1",Space,Str "a",Space,Str "r1",Space,Str "bis"] ]
-  , [ Plain [Str "b",Space,Str "b",Space,Str "2"] ]
-  , [ Plain [Str "c",Space,Str "c",Space,Str "2"] ] ],
-  [ [ Plain [Str "r2",Space,Str "d"] ]
-  , [ Plain [Str "e"] ]
-  , [ Plain [Str "f"] ] ] ]
-, Para [Str "Spaces",Space,Str "at",Space,Str "ends",Space,Str "of",Space,Str "lines"]
-, Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2375,0.15,0.1625]
-  [   []
-  ,   []
-  ,   [] ] [
-  [ [ Plain [Str "r1",Space,Str "a",Space,Str "r1",Space,Str "bis"] ]
-  , [ Plain [Str "b",Space,Str "b",Space,Str "2"] ]
-  , [ Plain [Str "c",Space,Str "c",Space,Str "2"] ] ],
-  [ [ Plain [Str "r2",Space,Str "d"] ]
-  , [ Plain [Str "e"] ]
-  , [ Plain [Str "f"] ] ] ]
-, Para [Str "Multiple",Space,Str "blocks",Space,Str "in",Space,Str "a",Space,Str "cell"]
-, Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2375,0.15,0.1625]
-  [   []
-  ,   []
-  ,   [] ] [
-  [ [ Para [Str "r1",Space,Str "a"]
-    , Para [Str "r1",Space,Str "bis"] ], [ BulletList
-      [ [ Plain [Str "b"] ]
-      , [ Plain [Str "b",Space,Str "2"] ]
-      , [ Plain [Str "b",Space,Str "2"] ] ] ], [ Plain [Str "c",Space,Str "c",Space,Str "2",Space,Str "c",Space,Str "2"] ] ] ]
-, Header 1 [Str "Footnotes"]
-, Para [Note [Para [Str "Note",Space,Str "with",Space,Str "one",Space,Str "line",Str "."]]]
-, Para [Note [Para [Str "Note",Space,Str "with",Space,Str "continuation",Space,Str "line",Str "."]]]
-, Para [Note [Para [Str "Note",Space,Str "with"],Para [Str "continuation",Space,Str "block",Str "."]]]
-, Para [Note [Para [Str "Note",Space,Str "with",Space,Str "continuation",Space,Str "line"],Para [Str "and",Space,Str "a",Space,Str "second",Space,Str "para",Str "."]]]
-, Para [Str "Not",Space,Str "in",Space,Str "note",Str "."] ]
+[DefinitionList
+ [([Str "Revision"],
+   [[Para [Str "3"]]])]
+,Header 1 [Str "Level",Space,Str "one",Space,Str "header"]
+,Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc",Str ".",Space,Str "Most",Space,Str "of",Space,Str "them",Space,Str "are",Space,Str "adapted",Space,Str "from",Space,Str "John",Space,Str "Gruber",Apostrophe,Str "s",Space,Str "markdown",Space,Str "test",Space,Str "suite",Str "."]
+,Header 2 [Str "Level",Space,Str "two",Space,Str "header"]
+,Header 3 [Str "Level",Space,Str "three"]
+,Header 4 [Str "Level",Space,Str "four",Space,Str "with",Space,Emph [Str "emphasis"]]
+,Header 5 [Str "Level",Space,Str "five"]
+,Header 1 [Str "Paragraphs"]
+,Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "regular",Space,Str "paragraph",Str "."]
+,Para [Str "In",Space,Str "Markdown",Space,Str "1",Str ".",Str "0",Str ".",Str "0",Space,Str "and",Space,Str "earlier",Str ".",Space,Str "Version",Space,Str "8",Str ".",Space,Str "This",Space,Str "line",Space,Str "turns",Space,Str "into",Space,Str "a",Space,Str "list",Space,Str "item",Str ".",Space,Str "Because",Space,Str "a",Space,Str "hard",Str "-",Str "wrapped",Space,Str "line",Space,Str "in",Space,Str "the",Space,Str "middle",Space,Str "of",Space,Str "a",Space,Str "paragraph",Space,Str "looked",Space,Str "like",Space,Str "a",Space,Str "list",Space,Str "item",Str "."]
+,Para [Str "Here",Apostrophe,Str "s",Space,Str "one",Space,Str "with",Space,Str "a",Space,Str "bullet",Str ".",Space,Str "*",Space,Str "criminey",Str "."]
+,Para [Str "Horizontal",Space,Str "rule",Str ":"]
+,HorizontalRule
+,Para [Str "Another",Str ":"]
+,HorizontalRule
+,Header 1 [Str "Block",Space,Str "Quotes"]
+,Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "block",Space,Str "quote",Str ":"]
+,BlockQuote
+ [Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "block",Space,Str "quote",Str ".",Space,Str "It",Space,Str "is",Space,Str "pretty",Space,Str "short",Str "."]]
+,Para [Str "Here",Apostrophe,Str "s",Space,Str "another,",Space,Str "differently",Space,Str "indented",Str ":"]
+,BlockQuote
+ [Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "block",Space,Str "quote",Str ".",Space,Str "It",Apostrophe,Str "s",Space,Str "indented",Space,Str "with",Space,Str "a",Space,Str "tab",Str "."]
+ ,Para [Str "Code",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote",Str ":"]
+ ,CodeBlock ("",[],[]) "sub status {\n    print \"working\";\n}"
+ ,Para [Str "List",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote",Str ":"]
+ ,OrderedList (1,Decimal,Period)
+  [[Plain [Str "item",Space,Str "one"]]
+  ,[Plain [Str "item",Space,Str "two"]]]
+ ,Para [Str "Nested",Space,Str "block",Space,Str "quotes",Str ":"]
+ ,BlockQuote
+  [Para [Str "nested"]
+  ,BlockQuote
+   [Para [Str "nested"]]]]
+,Header 1 [Str "Code",Space,Str "Blocks"]
+,Para [Str "Code",Str ":"]
+,CodeBlock ("",[],[]) "---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}"
+,CodeBlock ("",[],[]) "this code block is indented by one tab"
+,Para [Str "And",Str ":"]
+,CodeBlock ("",[],[]) "this block is indented by two tabs\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{"
+,Para [Str "And",Str ":"]
+,CodeBlock ("",["sourceCode","python"],[]) "def my_function(x):\n    return x + 1"
+,Header 1 [Str "Lists"]
+,Header 2 [Str "Unordered"]
+,Para [Str "Asterisks",Space,Str "tight",Str ":"]
+,BulletList
+ [[Plain [Str "asterisk",Space,Str "1"]]
+ ,[Plain [Str "asterisk",Space,Str "2"]]
+ ,[Plain [Str "asterisk",Space,Str "3"]]]
+,Para [Str "Asterisks",Space,Str "loose",Str ":"]
+,BulletList
+ [[Para [Str "asterisk",Space,Str "1"]]
+ ,[Para [Str "asterisk",Space,Str "2"]]
+ ,[Para [Str "asterisk",Space,Str "3"]]]
+,Para [Str "Pluses",Space,Str "tight",Str ":"]
+,BulletList
+ [[Plain [Str "Plus",Space,Str "1"]]
+ ,[Plain [Str "Plus",Space,Str "2"]]
+ ,[Plain [Str "Plus",Space,Str "3"]]]
+,Para [Str "Pluses",Space,Str "loose",Str ":"]
+,BulletList
+ [[Para [Str "Plus",Space,Str "1"]]
+ ,[Para [Str "Plus",Space,Str "2"]]
+ ,[Para [Str "Plus",Space,Str "3"]]]
+,Para [Str "Minuses",Space,Str "tight",Str ":"]
+,BulletList
+ [[Plain [Str "Minus",Space,Str "1"]]
+ ,[Plain [Str "Minus",Space,Str "2"]]
+ ,[Plain [Str "Minus",Space,Str "3"]]]
+,Para [Str "Minuses",Space,Str "loose",Str ":"]
+,BulletList
+ [[Para [Str "Minus",Space,Str "1"]]
+ ,[Para [Str "Minus",Space,Str "2"]]
+ ,[Para [Str "Minus",Space,Str "3"]]]
+,Header 2 [Str "Ordered"]
+,Para [Str "Tight",Str ":"]
+,OrderedList (1,Decimal,Period)
+ [[Plain [Str "First"]]
+ ,[Plain [Str "Second"]]
+ ,[Plain [Str "Third"]]]
+,Para [Str "and",Str ":"]
+,OrderedList (1,Decimal,Period)
+ [[Plain [Str "One"]]
+ ,[Plain [Str "Two"]]
+ ,[Plain [Str "Three"]]]
+,Para [Str "Loose",Space,Str "using",Space,Str "tabs",Str ":"]
+,OrderedList (1,Decimal,Period)
+ [[Para [Str "First"]]
+ ,[Para [Str "Second"]]
+ ,[Para [Str "Third"]]]
+,Para [Str "and",Space,Str "using",Space,Str "spaces",Str ":"]
+,OrderedList (1,Decimal,Period)
+ [[Para [Str "One"]]
+ ,[Para [Str "Two"]]
+ ,[Para [Str "Three"]]]
+,Para [Str "Multiple",Space,Str "paragraphs",Str ":"]
+,OrderedList (1,Decimal,Period)
+ [[Para [Str "Item",Space,Str "1,",Space,Str "graf",Space,Str "one",Str "."]
+  ,Para [Str "Item",Space,Str "1",Str ".",Space,Str "graf",Space,Str "two",Str ".",Space,Str "The",Space,Str "quick",Space,Str "brown",Space,Str "fox",Space,Str "jumped",Space,Str "over",Space,Str "the",Space,Str "lazy",Space,Str "dog",Apostrophe,Str "s",Space,Str "back",Str "."]]
+ ,[Para [Str "Item",Space,Str "2",Str "."]]
+ ,[Para [Str "Item",Space,Str "3",Str "."]]]
+,Para [Str "Nested",Str ":"]
+,BulletList
+ [[Para [Str "Tab"]
+  ,BulletList
+   [[Para [Str "Tab"]
+    ,BulletList
+     [[Plain [Str "Tab"]]]]]]]
+,Para [Str "Here",Apostrophe,Str "s",Space,Str "another",Str ":"]
+,OrderedList (1,Decimal,Period)
+ [[Para [Str "First"]]
+ ,[Para [Str "Second",Str ":"]
+  ,BlockQuote
+   [BulletList
+    [[Plain [Str "Fee"]]
+    ,[Plain [Str "Fie"]]
+    ,[Plain [Str "Foe"]]]]]
+ ,[Para [Str "Third"]]]
+,Header 2 [Str "Fancy",Space,Str "list",Space,Str "markers"]
+,OrderedList (2,Decimal,TwoParens)
+ [[Plain [Str "begins",Space,Str "with",Space,Str "2"]]
+ ,[Para [Str "and",Space,Str "now",Space,Str "3"]
+  ,Para [Str "with",Space,Str "a",Space,Str "continuation"]
+  ,OrderedList (4,LowerRoman,Period)
+   [[Plain [Str "sublist",Space,Str "with",Space,Str "roman",Space,Str "numerals,",Space,Str "starting",Space,Str "with",Space,Str "4"]]
+   ,[Para [Str "more",Space,Str "items"]
+    ,OrderedList (1,UpperAlpha,TwoParens)
+     [[Plain [Str "a",Space,Str "subsublist"]]
+     ,[Plain [Str "a",Space,Str "subsublist"]]]]]]]
+,Para [Str "Nesting",Str ":"]
+,OrderedList (1,UpperAlpha,Period)
+ [[Para [Str "Upper",Space,Str "Alpha"]
+  ,OrderedList (1,UpperRoman,Period)
+   [[Para [Str "Upper",Space,Str "Roman",Str "."]
+    ,OrderedList (6,Decimal,TwoParens)
+     [[Para [Str "Decimal",Space,Str "start",Space,Str "with",Space,Str "6"]
+      ,OrderedList (3,LowerAlpha,OneParen)
+       [[Plain [Str "Lower",Space,Str "alpha",Space,Str "with",Space,Str "paren"]]]]]]]]]
+,Para [Str "Autonumbering",Str ":"]
+,OrderedList (1,DefaultStyle,DefaultDelim)
+ [[Plain [Str "Autonumber",Str "."]]
+ ,[Para [Str "More",Str "."]
+  ,OrderedList (1,DefaultStyle,DefaultDelim)
+   [[Plain [Str "Nested",Str "."]]]]]
+,Para [Str "Autonumbering",Space,Str "with",Space,Str "explicit",Space,Str "start",Str ":"]
+,OrderedList (4,LowerAlpha,TwoParens)
+ [[Plain [Str "item",Space,Str "1"]]
+ ,[Plain [Str "item",Space,Str "2"]]]
+,Header 2 [Str "Definition"]
+,DefinitionList
+ [([Str "term",Space,Str "1"],
+   [[Para [Str "Definition",Space,Str "1",Str "."]]])
+ ,([Str "term",Space,Str "2"],
+   [[Para [Str "Definition",Space,Str "2,",Space,Str "paragraph",Space,Str "1",Str "."]
+    ,Para [Str "Definition",Space,Str "2,",Space,Str "paragraph",Space,Str "2",Str "."]]])
+ ,([Str "term",Space,Str "with",Space,Emph [Str "emphasis"]],
+   [[Para [Str "Definition",Space,Str "3",Str "."]]])]
+,Header 1 [Str "Field",Space,Str "Lists"]
+,BlockQuote
+ [DefinitionList
+  [([Str "address"],
+    [[Para [Str "61",Space,Str "Main",Space,Str "St",Str "."]]])
+  ,([Str "city"],
+    [[Para [Emph [Str "Nowhere"],Str ",",Space,Str "MA,",Space,Str "USA"]]])
+  ,([Str "phone"],
+    [[Para [Str "123",EnDash,Str "4567"]]])]]
+,DefinitionList
+ [([Str "address"],
+   [[Para [Str "61",Space,Str "Main",Space,Str "St",Str "."]]])
+ ,([Str "city"],
+   [[Para [Emph [Str "Nowhere"],Str ",",Space,Str "MA,",Space,Str "USA"]]])
+ ,([Str "phone"],
+   [[Para [Str "123",EnDash,Str "4567"]]])]
+,Header 1 [Str "HTML",Space,Str "Blocks"]
+,Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line",Str ":"]
+,RawBlock "html" "<div>foo</div>\n"
+,Para [Str "Now,",Space,Str "nested",Str ":"]
+,RawBlock "html" "<div>\n    <div>\n        <div>\n            foo\n        </div>\n    </div>\n</div>\n"
+,Header 1 [Str "LaTeX",Space,Str "Block"]
+,RawBlock "latex" "\\begin{tabular}{|l|l|}\\hline\nAnimal & Number \\\\ \\hline\nDog    & 2      \\\\\nCat    & 1      \\\\ \\hline\n\\end{tabular}\n"
+,Header 1 [Str "Inline",Space,Str "Markup"]
+,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ".",Space,Str "This",Space,Str "is",Space,Strong [Str "strong"],Str "."]
+,Para [Str "This",Space,Str "is",Space,Str "code",Str ":",Space,Code ("",[],[]) ">",Str ",",Space,Code ("",[],[]) "$",Str ",",Space,Code ("",[],[]) "\\",Str ",",Space,Code ("",[],[]) "\\$",Str ",",Space,Code ("",[],[]) "<html>",Str "."]
+,Para [Str "This",Space,Str "is",Subscript [Str "subscripted"],Space,Str "and",Space,Str "this",Space,Str "is",Space,Superscript [Str "superscripted"],Str "."]
+,Header 1 [Str "Special",Space,Str "Characters"]
+,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "unicode",Str ":"]
+,BulletList
+ [[Plain [Str "I",Space,Str "hat",Str ":",Space,Str "\206"]]
+ ,[Plain [Str "o",Space,Str "umlaut",Str ":",Space,Str "\246"]]
+ ,[Plain [Str "section",Str ":",Space,Str "\167"]]
+ ,[Plain [Str "set",Space,Str "membership",Str ":",Space,Str "\8712"]]
+ ,[Plain [Str "copyright",Str ":",Space,Str "\169"]]]
+,Para [Str "AT&T",Space,Str "has",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "their",Space,Str "name",Str "."]
+,Para [Str "This",Space,Str "&",Space,Str "that",Str "."]
+,Para [Str "4",Space,Str "<",Space,Str "5",Str "."]
+,Para [Str "6",Space,Str ">",Space,Str "5",Str "."]
+,Para [Str "Backslash",Str ":",Space,Str "\\"]
+,Para [Str "Backtick",Str ":",Space,Str "`"]
+,Para [Str "Asterisk",Str ":",Space,Str "*"]
+,Para [Str "Underscore",Str ":",Space,Str "_"]
+,Para [Str "Left",Space,Str "brace",Str ":",Space,Str "{"]
+,Para [Str "Right",Space,Str "brace",Str ":",Space,Str "}"]
+,Para [Str "Left",Space,Str "bracket",Str ":",Space,Str "["]
+,Para [Str "Right",Space,Str "bracket",Str ":",Space,Str "]"]
+,Para [Str "Left",Space,Str "paren",Str ":",Space,Str "("]
+,Para [Str "Right",Space,Str "paren",Str ":",Space,Str ")"]
+,Para [Str "Greater",Str "-",Str "than",Str ":",Space,Str ">"]
+,Para [Str "Hash",Str ":",Space,Str "#"]
+,Para [Str "Period",Str ":",Space,Str "."]
+,Para [Str "Bang",Str ":",Space,Str "!"]
+,Para [Str "Plus",Str ":",Space,Str "+"]
+,Para [Str "Minus",Str ":",Space,Str "-"]
+,Header 1 [Str "Links"]
+,Para [Str "Explicit",Str ":",Space,Str "a",Space,Link [Str "URL"] ("/url/",""),Str "."]
+,Para [Str "Two",Space,Str "anonymous",Space,Str "links",Str ":",Space,Link [Str "the",Space,Str "first"] ("/url1/",""),Space,Str "and",Space,Link [Str "the",Space,Str "second"] ("/url2/","")]
+,Para [Str "Reference",Space,Str "links",Str ":",Space,Link [Str "link1"] ("/url1/",""),Space,Str "and",Space,Link [Str "link2"] ("/url2/",""),Space,Str "and",Space,Link [Str "link1"] ("/url1/",""),Space,Str "again",Str "."]
+,Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Link [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] ("http://example.com/?foo=1&bar=2",""),Str "."]
+,Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "amersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text",Str ":",Space,Link [Str "AT&T"] ("/url/",""),Str "."]
+,Para [Str "Autolinks",Str ":",Space,Link [Str "http://example.com/?foo=1&bar=2"] ("http://example.com/?foo=1&bar=2",""),Space,Str "and",Space,Link [Str "nobody@nowhere.net"] ("mailto:nobody@nowhere.net",""),Str "."]
+,Para [Str "But",Space,Str "not",Space,Str "here",Str ":"]
+,CodeBlock ("",[],[]) "http://example.com/"
+,Header 1 [Str "Images"]
+,Para [Str "From",Space,Quoted DoubleQuote [Str "Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune"],Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(",Str "1902",Str ")",Str ":"]
+,Plain [Image [Str "image"] ("lalune.jpg","")]
+,Plain [Image [Str "Voyage dans la Lune"] ("lalune.jpg","")]
+,Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "movie"] ("movie.jpg",""),Space,Str "icon",Str "."]
+,Header 1 [Str "Comments"]
+,Para [Str "First",Space,Str "paragraph"]
+,Para [Str "Another",Space,Str "paragraph"]
+,Para [Str "A",Space,Str "third",Space,Str "paragraph"]
+,Header 1 [Str "Line",Space,Str "blocks"]
+,Para [Str "But",Space,Str "can",Space,Str "a",Space,Str "bee",Space,Str "be",Space,Str "said",Space,Str "to",Space,Str "be",LineBreak,Str "    ",Str "or",Space,Str "not",Space,Str "to",Space,Str "be",Space,Str "an",Space,Str "entire",Space,Str "bee,",LineBreak,Str "        ",Str "when",Space,Str "half",Space,Str "the",Space,Str "bee",Space,Str "is",Space,Str "not",Space,Str "a",Space,Str "bee,",LineBreak,Str "            ",Str "due",Space,Str "to",Space,Str "some",Space,Str "ancient",Space,Str "injury?"]
+,Para [Str "Continuation",Space,Str "line",LineBreak,Str "  ",Str "and",Space,Str "another"]
+,Header 1 [Str "Simple",Space,Str "Tables"]
+,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
+ [[Plain [Str "col",Space,Str "1"]]
+ ,[Plain [Str "col",Space,Str "2"]]
+ ,[Plain [Str "col",Space,Str "3"]]]
+ [[[Plain [Str "r1",Space,Str "a"]]
+  ,[Plain [Str "b"]]
+  ,[Plain [Str "c"]]]
+ ,[[Plain [Str "r2",Space,Str "d"]]
+  ,[Plain [Str "e"]]
+  ,[Plain [Str "f"]]]]
+,Para [Str "Headless"]
+,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
+ [[]
+ ,[]
+ ,[]]
+ [[[Plain [Str "r1",Space,Str "a"]]
+  ,[Plain [Str "b"]]
+  ,[Plain [Str "c"]]]
+ ,[[Plain [Str "r2",Space,Str "d"]]
+  ,[Plain [Str "e"]]
+  ,[Plain [Str "f"]]]]
+,Header 1 [Str "Grid",Space,Str "Tables"]
+,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2375,0.15,0.1625]
+ [[Plain [Str "col",Space,Str "1"]]
+ ,[Plain [Str "col",Space,Str "2"]]
+ ,[Plain [Str "col",Space,Str "3"]]]
+ [[[Plain [Str "r1",Space,Str "a",Space,Str "r1",Space,Str "bis"]]
+  ,[Plain [Str "b",Space,Str "b",Space,Str "2"]]
+  ,[Plain [Str "c",Space,Str "c",Space,Str "2"]]]
+ ,[[Plain [Str "r2",Space,Str "d"]]
+  ,[Plain [Str "e"]]
+  ,[Plain [Str "f"]]]]
+,Para [Str "Headless"]
+,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2375,0.15,0.1625]
+ [[]
+ ,[]
+ ,[]]
+ [[[Plain [Str "r1",Space,Str "a",Space,Str "r1",Space,Str "bis"]]
+  ,[Plain [Str "b",Space,Str "b",Space,Str "2"]]
+  ,[Plain [Str "c",Space,Str "c",Space,Str "2"]]]
+ ,[[Plain [Str "r2",Space,Str "d"]]
+  ,[Plain [Str "e"]]
+  ,[Plain [Str "f"]]]]
+,Para [Str "Spaces",Space,Str "at",Space,Str "ends",Space,Str "of",Space,Str "lines"]
+,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2375,0.15,0.1625]
+ [[]
+ ,[]
+ ,[]]
+ [[[Plain [Str "r1",Space,Str "a",Space,Str "r1",Space,Str "bis"]]
+  ,[Plain [Str "b",Space,Str "b",Space,Str "2"]]
+  ,[Plain [Str "c",Space,Str "c",Space,Str "2"]]]
+ ,[[Plain [Str "r2",Space,Str "d"]]
+  ,[Plain [Str "e"]]
+  ,[Plain [Str "f"]]]]
+,Para [Str "Multiple",Space,Str "blocks",Space,Str "in",Space,Str "a",Space,Str "cell"]
+,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2375,0.15,0.1625]
+ [[]
+ ,[]
+ ,[]]
+ [[[Para [Str "r1",Space,Str "a"]
+   ,Para [Str "r1",Space,Str "bis"]]
+  ,[BulletList
+    [[Plain [Str "b"]]
+    ,[Plain [Str "b",Space,Str "2"]]
+    ,[Plain [Str "b",Space,Str "2"]]]]
+  ,[Plain [Str "c",Space,Str "c",Space,Str "2",Space,Str "c",Space,Str "2"]]]]
+,Header 1 [Str "Footnotes"]
+,Para [Note [Para [Str "Note",Space,Str "with",Space,Str "one",Space,Str "line",Str "."]]]
+,Para [Note [Para [Str "Note",Space,Str "with",Space,Str "continuation",Space,Str "line",Str "."]]]
+,Para [Note [Para [Str "Note",Space,Str "with"],Para [Str "continuation",Space,Str "block",Str "."]]]
+,Para [Note [Para [Str "Note",Space,Str "with",Space,Str "continuation",Space,Str "line"],Para [Str "and",Space,Str "a",Space,Str "second",Space,Str "para",Str "."]]]
+,Para [Str "Not",Space,Str "in",Space,Str "note",Str "."]]

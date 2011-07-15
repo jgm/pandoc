@@ -62,6 +62,7 @@ data WriterState =
                 , stIndentPara    :: Int
                 , stInDefinition  :: Bool
                 , stTight         :: Bool
+                , stFirstPara     :: Bool
                 }
 
 defaultWriterState :: WriterState
@@ -75,6 +76,7 @@ defaultWriterState =
                 , stIndentPara    = 0
                 , stInDefinition  = False
                 , stTight         = False
+                , stFirstPara     = False
                 }
 
 when :: Bool -> Doc -> Doc
@@ -111,10 +113,18 @@ inTightList  f = modify (\s -> s { stTight = True  }) >> f >>= \r ->
 setInDefinitionList :: Bool -> State WriterState ()
 setInDefinitionList b = modify $  \s -> s { stInDefinition = b }
 
-inParagraphTags :: Doc -> Doc
-inParagraphTags d | isEmpty d = empty
-inParagraphTags d =
-  inTags False "text:p" [("text:style-name", "Text_20_body")] d
+setFirstPara :: State WriterState ()
+setFirstPara =  modify $  \s -> s { stFirstPara = True }
+
+inParagraphTags :: Doc -> State WriterState Doc
+inParagraphTags d | isEmpty d = return empty
+inParagraphTags d = do
+  b <- gets stFirstPara
+  a <- if b
+       then do modify $ \st -> st { stFirstPara = False }
+               return $ [("text:style-name", "First_20_paragraph")]
+       else    return   [("text:style-name", "Text_20_body")]
+  return $ inTags False "text:p" a d
 
 inParagraphTagsWithStyle :: String -> Doc -> Doc
 inParagraphTagsWithStyle sty = inTags False "text:p" [("text:style-name", sty)]
@@ -138,9 +148,10 @@ inTextStyle d = do
                     $ selfClosingTag "style:text-properties" (concatMap snd $ Map.toList at)
        return $ inTags False "text:span" [("text:style-name","T" ++ show tn)] d
 
-inHeaderTags :: Int -> Doc -> Doc
-inHeaderTags i = inTags False "text:h" [ ("text:style-name", "Heading_20_" ++ show i)
-                                       , ("text:outline-level", show i)]
+inHeaderTags :: Int -> Doc -> State WriterState Doc
+inHeaderTags i d =
+  return $ inTags False "text:h" [ ("text:style-name", "Heading_20_" ++ show i)
+                                 , ("text:outline-level", show i)] d
 
 inQuotes :: QuoteType -> Doc -> Doc
 inQuotes SingleQuote s = text "&#8216;" <> s <> text "&#8217;"
@@ -164,7 +175,7 @@ writeOpenDocument :: WriterOptions -> Pandoc -> String
 writeOpenDocument opts (Pandoc (Meta title authors date) blocks) =
   let ((doc, title', authors', date'),s) = flip runState
         defaultWriterState $ do
-           title'' <- inlinesToOpenDocument opts title 
+           title'' <- inlinesToOpenDocument opts title
            authors'' <- mapM (inlinesToOpenDocument opts) authors
            date'' <- inlinesToOpenDocument opts date
            doc'' <- blocksToOpenDocument opts blocks
@@ -274,18 +285,20 @@ blocksToOpenDocument o b = vcat <$> mapM (blockToOpenDocument o) b
 -- | Convert a Pandoc block element to OpenDocument.
 blockToOpenDocument :: WriterOptions -> Block -> State WriterState Doc
 blockToOpenDocument o bs
-    | Plain          b <- bs = inParagraphTags <$> inlinesToOpenDocument o b
-    | Para           b <- bs = inParagraphTags <$> inlinesToOpenDocument o b
-    | Header       i b <- bs = inHeaderTags  i <$> inlinesToOpenDocument o b
-    | BlockQuote     b <- bs = mkBlockQuote b
-    | CodeBlock    _ s <- bs = preformatted s
-    | RawHtml        _ <- bs = return empty
-    | DefinitionList b <- bs = defList b
-    | BulletList     b <- bs = bulletListToOpenDocument o b
-    | OrderedList  a b <- bs = orderedList a b
-    | Table  c a w h r <- bs = table c a w h r
+    | Plain          b <- bs = inParagraphTags =<< inlinesToOpenDocument o b
+    | Para           b <- bs = inParagraphTags =<< inlinesToOpenDocument o b
+    | Header       i b <- bs = setFirstPara >>
+                               (inHeaderTags  i =<< inlinesToOpenDocument o b)
+    | BlockQuote     b <- bs = setFirstPara >> mkBlockQuote b
+    | DefinitionList b <- bs = setFirstPara >> defList b
+    | BulletList     b <- bs = setFirstPara >> bulletListToOpenDocument o b
+    | OrderedList  a b <- bs = setFirstPara >> orderedList a b
+    | CodeBlock    _ s <- bs = setFirstPara >> preformatted s
+    | Table  c a w h r <- bs = setFirstPara >> table c a w h r
+    | HorizontalRule   <- bs = setFirstPara >> return (selfClosingTag "text:p"
+                                [ ("text:style-name", "Horizontal_20_Line") ])
+    | RawBlock _     _ <- bs = return empty
     | Null             <- bs = return empty
-    | HorizontalRule   <- bs = return $ selfClosingTag "text:p" [ ("text:style-name", "Horizontal_20_Line") ]
     | otherwise              = return empty
     where
       defList       b = do setInDefinitionList True
@@ -362,11 +375,12 @@ inlineToOpenDocument o ils
     | Subscript   l <- ils = withTextStyle Sub    $ inlinesToOpenDocument o l
     | SmallCaps   l <- ils = withTextStyle SmallC $ inlinesToOpenDocument o l
     | Quoted    t l <- ils = inQuotes t <$> inlinesToOpenDocument o l
-    | Code        s <- ils = preformatted s
+    | Code      _ s <- ils = preformatted s
     | Math      _ s <- ils = inlinesToOpenDocument o (readTeXMath s)
     | Cite      _ l <- ils = inlinesToOpenDocument o l
-    | TeX         _ <- ils = return empty
-    | HtmlInline  s <- ils = preformatted s
+    | RawInline "opendocument" s <- ils = preformatted s
+    | RawInline "html" s <- ils = preformatted s  -- for backwards compat.
+    | RawInline _ _ <- ils = return empty
     | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
     | Image _ (s,_) <- ils = return $ mkImg  s
     | Note        l <- ils = mkNote l
@@ -387,7 +401,7 @@ inlineToOpenDocument o ils
         let footNote t = inTags False "text:note"
                          [ ("text:id"        , "ftn" ++ show n)
                          , ("text:note-class", "footnote"     )] $
-                         inTagsSimple "text:note-citation" (text . show $ n + 1) <> 
+                         inTagsSimple "text:note-citation" (text . show $ n + 1) <>
                          inTagsSimple "text:note-body" t
         nn <- footNote <$> withParagraphStyle o "Footnote" l
         addNote nn

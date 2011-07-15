@@ -1,20 +1,77 @@
-pandoc (1.7)
+pandoc (1.8.1.1)
+
+  * `markdown2pdf`:  Removed some debugging lines accidentally included
+    in the 1.8.1 release. With those lines, the temp directory is created
+    in the working directory, and it is not deleted.  This fix restores
+    the original behavior.
+
+pandoc (1.8.1)
+
+  * Added `--ascii` option.  Currently supported only in HTML writer,
+    which it causes to use numerical entities instead of UTF-8.
+
+  * EPUB writer: `--toc` now works to provide a table of contents
+    at the beginning of each chapter.
+
+  * LaTeX writer:  Change figure defaults to `htbp`.
+    This prevents "too many unprocessed floats."  Resolves
+    Issue #285.
+
+  * `Text.Pandoc.UTF8`:  Encode filenames even when using recent
+    base.
+
+  * `markdown2pdf`: Fixed filename encoding issues. With help from Paulo
+    Tanimoto. Resolves Issue #286.
+
+  * HTML writer: Put line breaks in section divs.
+
+  * `Text.Pandoc.Shared`: Make `writerSectionDivs` default to False.
+
+pandoc (1.8.0.3)
+
+  * Fixed Source-repository stanza in cabal file.
+
+pandoc (1.8.0.2)
+
+  * HTML writer:
+
+    + Stringify alt text instead of converting to HTML.
+    + Break lines after block elements, not inside tags.
+      HTML output now closely resembles that of tidy. Resolves Issue #134.
+
+  * Markdown reader: Fixed bug in footnote block parser (pointed out
+    by Jesse Rosenthal).  The problem arose when the blank line
+    at the end of a footnote block contained indenting spaces.
+
+  * Shared: Improved 'normalize' function so it normalizes Spaces too.
+    In normal form, Space elements only occur to separate two non-Space
+    elements.  So, we never have [Space], or [, ..., Space].
+
+  * Tests:
+
+    + Improved Arbitrary instance.
+    + Added timeout for test instances.
+
+  * README:
+
+    + Added section on four-space rule for lists.  Resolves Issue #283.
+    + Clarified optional arguments on math options.
+
+  * markdown2pdf: Fixed bug with output file extensions.
+    Previously `markdown2pdf test.txt -o test.en.pdf` would produce
+    `test.pdf`, not `test.en.pdf`.  Thanks to Paolo Tanimoto for the fix.
+
+pandoc (1.8.0.1)
+
+  * Revised Interact.hs so that it works with the CPP macros
+    in the UTF8 module.
+
+  * Revised Setup.hs so that we don't call MakeManPage.hs unless
+    the man pages are out of date.
+
+pandoc (1.8)
 
   [new features]
-
-  * New `textile` reader and writer.  Thanks to Paul Rivier for contributing
-    the `textile` reader, an almost complete implementation of the textile
-    syntax used by the ruby [RedCloth library](http://redcloth.org/textile).
-    Resolves Issue #51.
-
-  * New `org` writer, for Emacs Org-mode, contributed by Puneeth Chaganti.
-
-  * New `json` reader and writer, for reading and writing a JSON
-    representation of the native Pandoc AST.  These are much faster
-    than the `native` reader and writer, and should be used for
-    serializing Pandoc to text.  To convert between the JSON representation
-    and native Pandoc, use `encodeJSON` and `decodeJSON` from
-    `Text.JSON.Generic`.
 
   * Support for citations using Andrea Rossato's `citeproc-hs` 0.3.
     You can now write, for example,
@@ -37,8 +94,47 @@ pandoc (1.7)
     syntax, and in the LaTeX reader, using natbib or biblatex syntax.
     (Thanks to Nathan Gass for the natbib and biblatex support.)
 
-  * A new `--mathjax` option has been added for displaying
-    math in HTML using MathJax.  Resolves issue #259.
+  * New `textile` reader and writer.  Thanks to Paul Rivier for contributing
+    the `textile` reader, an almost complete implementation of the textile
+    syntax used by the ruby [RedCloth library](http://redcloth.org/textile).
+    Resolves Issue #51.
+
+  * New `org` writer, for Emacs Org-mode, contributed by Puneeth Chaganti.
+
+  * New `json` reader and writer, for reading and writing a JSON
+    representation of the native Pandoc AST.  These are much faster
+    than the `native` reader and writer, and should be used for
+    serializing Pandoc to text.  To convert between the JSON representation
+    and native Pandoc, use `encodeJSON` and `decodeJSON` from
+    `Text.JSON.Generic`.
+
+  * A new `jsonFilter` function in `Text.Pandoc` makes it easy
+    to write scripts that transform a JSON-encoded pandoc document.
+    For example:
+
+        -- removelinks.hs - removes links from document
+        import Text.Pandoc
+        main = interact $ jsonFilter $ bottomUp removeLink
+                 where removeLink (Link xs _) = Emph xs
+                       removeLink x = x
+
+    To use this to remove links while translating markdown to LaTeX:
+
+        pandoc -t json | runghc removelinks.hs | pandoc -f json -t latex
+
+  * Attributes are now allowed in inline `Code` elements, for example:
+
+        In this code, `ulist ! [theclass "special"] << elts`{.haskell} is...
+
+    The attribute syntax is the same as for delimited code blocks.
+    `Code` inline has an extra argument place for attributes, just like
+    `CodeBlock`. Inline code will be highlighted in HTML output, if pandoc
+    is compiled with highlighting support. Resolves Issue #119.
+
+  * New `RawBlock` and `RawInline` elements (replacing `RawHtml`,
+    `HtmlInline`, and `TeX`) provide lots of flexibility in writing
+    scripts to transform Pandoc documents. Scripts can now change
+    how each element is rendered in each output format.
 
   * You can now define LaTeX macros in markdown documents, and pandoc
     will apply them to TeX math.  For example,
@@ -52,12 +148,35 @@ pandoc (1.7)
   * LaTeX macros can also be used in LaTeX documents (both in math
     and in non-math contexts).
 
+  * A new `--mathjax` option has been added for displaying
+    math in HTML using MathJax.  Resolves issue #259.
+
   * Footnotes are now supported in the RST reader. (Note, however,
-    that pandoc ignores the numeral or symbol used in the note;
-    footnotes are put in an auto-numbered ordered list.)
-    Resolves issue #258.
+    that unlike docutils, pandoc ignores the numeral or symbol used in
+    the note; footnotes are put in an auto-numbered ordered list.)
+    Resolves Issue #258.
+
+  * A new `--normalize` option causes pandoc to normalize the AST
+    before writing the document.  This means that, for example,
+    `*hi**there*` will be rendered as `<em>hithere</em>`
+    instead of `<em>hi</em><em>there</em>`.  This is not the default,
+    because there is a significant performance penalty.
+
+  * A new `--chapters` command-line option causes headers
+    in DocBook, LaTeX, and ConTeXt to start with "chapter" (level one).
+    Resolves Issue #265.
+
+  * In DocBook output, `<chapter>` is now used for top-level
+    headers if the template contains `<book>`. Resolves Issue #265.
+
+  * A new `--listings` option in `pandoc` and `markdown2pdf` causes
+    the LaTeX writer to use the listings package for code blocks.
+    (Thanks to Josef Svennigsson for the pandoc patch, and Etienne
+    Millon for the markdown2pdf patch.)
 
   * `markdown2pdf` now supports `--data-dir`.
+
+  * URLs in autolinks now have class "url" so they can be styled.
 
   * Improved prettyprinting in most formats.  Lines will be wrapped
     more evenly and duplicate blank lines avoided.
@@ -68,10 +187,14 @@ pandoc (1.7)
   * Made `--smart` work in HTML, RST, and Textile readers, as well
     as markdown.
 
+  * Added `--html5` option for HTML5 output.
+
   * Added support for listings package in LaTeX reader
     (Puneeth Chaganti).
 
   * Added support for simple tables in the LaTeX reader.
+
+  * Added support for simple tables in the HTML reader.
 
   * Significant performance improvements in many readers and writers.
 
@@ -82,6 +205,11 @@ pandoc (1.7)
     programs to supply output in Pandoc format, without depending on the whole
     pandoc package.
 
+  * Added `Attr` field to `Code`.
+
+  * Removed `RawHtml`, `HtmlInline`, and `TeX` elements; added generic
+    `RawBlock` and `RawInline`.
+
   * Moved generic functions to `Text.Pandoc.Generic`. Deprecated
     `processWith`, replacing it with two functions, `bottomUp` and `topDown`.
     Removed previously deprecated functions `processPandoc` and `queryPandoc`.
@@ -89,6 +217,12 @@ pandoc (1.7)
   * Added `Text.Pandoc.Builder`, for building `Pandoc` structures.
 
   * `Text.Pandoc` now exports association lists `readers` and `writers`.
+
+  * Added `Text.Pandoc.Readers.Native`, which exports `readNative`.
+    `readNative` can now read full pandoc documents, block lists, blocks,
+    inline lists, or inlines.  It will interpret `Str "hi"`
+    as if it were `Pandoc (Meta [] [] []) [Plain [Str "hi"]]`.
+    This should make testing easier.
 
   * Removed deprecated `-C/--custom-header` option.
     Use `--template` instead.
@@ -101,24 +235,41 @@ pandoc (1.7)
     `http(s)` scheme.  Previously pandoc would treat some
     Windows pathnames beginning with `C:/` as URIs.
 
-  * pandoc now adds a newline to the end of its output in fragment
-    mode (= not `--standalone`).
-
   * The `--sanitize-html` option and the `stateSanitize` field in
     `ParserState` have been removed. Sanitization is better done in the
     resulting HTML using `xss-sanitize`, which is based on pandoc's
     sanitization, but improved.
 
+  * pandoc now adds a newline to the end of its output in fragment
+    mode (= not `--standalone`).
+
+  * Added support for `lang` in `html` tag in the HTML template,
+    so you can do `pandoc -s -V lang=es`, for example.
+
+  * `highlightHtml` in `Text.Pandoc.Highlighting` now takes
+    a boolean argument that selects between "inline" and
+    "block" HTML.
+
+  * `Text.Pandoc.Writers.RTF` now exports `rtfEmbedImage`.
+    Images are embedded in RTF output when possible (png, jpeg).
+    Resolves Issue #275.
+
   * Added `Text.Pandoc.Pretty`. This is better suited for pandoc than the
     `pretty` package.  Changed all writers that used
     `Text.PrettyPrint.HughesPJ` to use `Text.Pandoc.Pretty` instead.
+
+  * Rewrote `writeNative` using the new prettyprinting module. It is
+    now much faster. The output has been made more consistent and compressed.
+    `writeNative` is also now sensitive to writerStandalone`, and will simply
+    `print a block list if writerStandalone` is False.
 
   * Removed `Text.Pandoc.Blocks`. `Text.Pandoc.Pretty` allows you to define
     blocks and concatenate them, so a separate module is no longer needed.
 
   * `Text.Pandoc.Shared`:
 
-    + Added `writerColumns` to `WriterOptions`.
+    + Added `writerColumns`, `writerChapters`, and `writerHtml5` to
+      `WriterOptions`.
     + Added `normalize`.
     + Removed unneeded prettyprinting functions:
       `wrapped`, `wrapIfNeeded`, `wrappedTeX`, `wrapTeXIfNeeded`, `hang'`,
@@ -163,7 +314,7 @@ pandoc (1.7)
     relative widths of columns.
 
   * Markdown writer now uses some pandoc-specific features when `--strict`
-    is not specified: \ newline is used for a hard linebreak instead of
+    is not specified: `\` newline is used for a hard linebreak instead of
     two spaces then a newline. And delimited code blocks are used when
     there are attributes.
 
@@ -181,22 +332,55 @@ pandoc (1.7)
     This makes it easy to set the font size using `markdown2pdf`:
     `markdown2pdf -V fontsize=12pt input.txt`.
 
+  * Fixed problem with strikeout in LaTeX headers when using
+    hyperref, by adding a command to the default LaTeX template
+    that disables `\sout` inside pdf strings. Thanks to Joost Kremers
+    for the fix.
+
   * The `COLUMNS` environment variable no longer has any effect.
 
-  [Under-the-hood improvements]
+  [under-the-hood improvements]
+
+  * Pandoc now compiles with GHC 7. (This alone leads to a
+    significant performance improvement, 15-20%.)
 
   * Completely rewrote HTML reader using tagsoup as a lexer. The
-    new reader is faster and more accurate.
+    new reader is faster and more accurate.  Unlike the
+    old reader, it does not get bogged down on some input
+    (Issues #277, 255). And it handles namespaces in tags
+    (Issue #274).
 
   * Replaced `escapeStringAsXML` with a faster version.
+
+  * Rewrote `spaceChar` and some other parsers in Text.Pandoc.Parsing
+    for a significant performance boost.
+
+  * Improved performance of all readers by rewriting parsers.
+
+  * Simplified Text.Pandoc.CharacterReferences by using
+    entity lookup functions from TagSoup.
+
+  * `Text.Pandoc.UTF8` now uses the unicode-aware IO functions
+    from `System.IO` if base >= 4.2.  This gives support for
+    windows line endings on windows.
 
   * Remove duplications in documentation by generating the
     pandoc man page from README, using `MakeManPage.hs`.
 
-  * Improvements to testing framework:  Removed old `tests/RunTests.hs`.
-    `cabal test` now runs `test-pandoc`, which is built from
-    `src/test-pandoc.hs` when the `tests` Cabal flag is set.
-    This allows the testing framework to have its own dependencies.
+  * README now includes a full description of markdown syntax,
+    including non-pandoc-specific parts.  A new `pandoc_markdown`
+    man page is extracted from this, so you can look up markdown
+    syntax by doing `man pandoc_markdown`.
+
+  * Completely revised test framework (with help from Nathan Gass).
+    The new test framework is built when the `tests` Cabal flag is set. It
+    includes the old integration tests, but also some new unit and quickcheck
+    tests. Test output has been much improved, and you can now specify a glob
+    pattern after `cabal test` to indicate which tests should be run;
+    for example `cabal test citations` will run all the citation tests.
+
+  * Added a shell script, `stripansi.sh`, for filtering ANSI control
+    sequences from test output: `cabal test | ./stripansi.sh > test.log`.
 
   * Added `Interact.hs` to make it easier to use ghci while developing.
     `Interact.hs` loads `ghci` from the `src` directory, specifying
@@ -209,7 +393,13 @@ pandoc (1.7)
   * Added `stats.sh`, to make it easier to collect and archive
     benchmark and lines-of-code stats.
 
-  [Bug fixes]
+  * Added upper bounds to all cabal dependencies.
+
+  * Include man pages in extra-source-files.  This allows users to
+    install pandoc from the tarball without needing to build the man
+    pages.
+
+  [bug fixes]
 
   * Filenames are encoded as UTF8.  Resolves Issue #252.
 
@@ -217,6 +407,10 @@ pandoc (1.7)
     were just parsed literally, leading to problems in some output formats.
     Now they are parsed as `Quoted` inlines, if `--smart` is specified.
     Resolves Issue #270.
+
+  * Text.Pandoc.Parsing: Fixed bug in grid table parser.
+    Spaces at end of line were not being stripped properly,
+    resulting in unintended LineBreaks.
 
   * Markdown reader:
 
@@ -230,21 +424,49 @@ pandoc (1.7)
     + Properly handle abbreviations (like `Mr.`) at the end of a line.
     + Better handling of intraword underscores, avoiding exponential
       slowdowns in some cases.  Resolves Issue #182.
+    + Fixed bug in alignments in tables with blank rows in the header.
+
+  * RST reader:
+
+    + Field lists now allow spaces in field names, and
+      block content in field values. (Thanks to Lachlan Musicman
+      for pointing out the bug.)
+    + Definition list items are now always `Para` instead of
+      `Plain`, matching behavior of `rst2xml.py`.
+    + In image blocks, the description is parsed properly and
+      used for the alt attribute, not also the title.
+    + Skip blank lines at beginning of file. Resolves
+      Debian #611328.
 
   * LaTeX reader:
 
     + Improved parsing of preamble.
       Previously you'd get unexpected behavior on a document that
       contained `\begin{document}` in, say, a verbatim block.
-    + Allow spaces between '\begin' or '\end' and '{'.
-    + Support \L and \l.
+    + Allow spaces between `\begin` or `\end` and `{`.
+    + Support `\L` and `\l`.
+    + Skip comments inside paragraphs.
+
+  * LaTeX writer:
+
+    + Escape strings in `\href{..}`.
+    + In nonsimple tables, put cells in `\parbox`.
 
   * OpenDocument writer:  don't print raw TeX.
 
-  * Markdown writer: Fixed bug in `Image`.  URI was getting unescaped twice!
+  * Markdown writer:
+
+    + Fixed bug in `Image`.  URI was getting unescaped twice!
+    + Avoid printing extra blank lines at the end if there are
+      no notes or references.
 
   * LaTeX and ConTeXt: Escape `[` and `]` as `{[}` and `{]}`.
     This avoids unwanted interpretation as an optional argument.
+
+  * ConTeXt writer: Fixed problem with inline code.  Previously
+    `}` would be rendered `\type{}}`. Now we check the string for '}' and '{'.
+    If it contains neither, use `\type{}`; otherwise use `\mono{}`
+    with an escaped version of the string.
 
   * `:` now allowed in HTML tags. Resolves Issue #274.
 
@@ -658,7 +880,8 @@ pandoc (1.5)
     + Removed stLink, link template variable. Reason: we now always
       include hyperref in the template.
 
-  * Latex template:
+  * LaTeX template:
+
     + Only show \author if there are some.
     + Always include hyperref package. It is used not just for links but
       for toc, section heading bookmarks, footnotes, etc. Also added

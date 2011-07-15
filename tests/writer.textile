@@ -45,13 +45,16 @@ E-mail style:
 
 bq. This is a block quote. It is pretty short.
 
+
+
 <blockquote>
 
 Code in a block quote:
 
 bc. sub status {
-    print &quot;working&quot;;
+    print "working";
 }
+
 
 A list:
 
@@ -62,7 +65,11 @@ Nested block quotes:
 
 bq. nested
 
+
+
 bq. nested
+
+
 
 </blockquote>
 
@@ -76,19 +83,23 @@ h1. Code Blocks
 
 Code:
 
-bc.. ---- (should be four hyphens)
+<pre>
+---- (should be four hyphens)
 
 sub status {
     print &quot;working&quot;;
 }
 
 this code block is indented by one tab
+</pre>
 
 And:
 
-bc..     this code block is indented by two tabs
+<pre>
+    this code block is indented by two tabs
 
 These should not be escaped:  \$ \\ \&gt; \[ \{
+</pre>
 
 <hr />
 
@@ -160,11 +171,12 @@ and using spaces:
 
 Multiple paragraphs:
 
- <ol style="list-style-type: decimal;">
- <li> <p>Item 1, graf one.</p>
- <p>Item 1. graf two. The quick brown fox jumped over the lazy dog's back.</p></li>
- <li> <p>Item 2.</p></li>
- <li> <p>Item 3.</p></li> </ol>
+<ol style="list-style-type: decimal;">
+<li><p>Item 1, graf one.</p>
+<p>Item 1. graf two. The quick brown fox jumped over the lazy dog's back.</p></li>
+<li><p>Item 2.</p></li>
+<li><p>Item 3.</p></li>
+</ol>
 
 h2. Nested
 
@@ -199,32 +211,39 @@ h2. Tabs and spaces
 
 h2. Fancy list markers
 
- <ol start="2" style="list-style-type: decimal;">
- <li>begins with 2</li>
- <li> <p>and now 3</p>
- <p>with a continuation</p>
- <ol start="4" style="list-style-type: lower-roman;">
- <li>sublist with roman numerals, starting with 4</li>
- <li>more items
- <ol style="list-style-type: upper-alpha;">
- <li>a subsublist</li>
- <li>a subsublist</li> </ol>
-</li> </ol>
-</li> </ol>
+<ol start="2" style="list-style-type: decimal;">
+<li>begins with 2</li>
+<li><p>and now 3</p>
+<p>with a continuation</p>
+<ol start="4" style="list-style-type: lower-roman;">
+<li>sublist with roman numerals, starting with 4</li>
+<li>more items
+<ol style="list-style-type: upper-alpha;">
+<li>a subsublist</li>
+<li>a subsublist</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
 
 Nesting:
 
- <ol style="list-style-type: upper-alpha;">
- <li>Upper Alpha
- <ol style="list-style-type: upper-roman;">
- <li>Upper Roman.
- <ol start="6" style="list-style-type: decimal;">
- <li>Decimal start with 6
- <ol start="3" style="list-style-type: lower-alpha;">
- <li>Lower alpha with paren</li> </ol>
-</li> </ol>
-</li> </ol>
-</li> </ol>
+<ol style="list-style-type: upper-alpha;">
+<li>Upper Alpha
+<ol style="list-style-type: upper-roman;">
+<li>Upper Roman.
+<ol start="6" style="list-style-type: decimal;">
+<li>Decimal start with 6
+<ol start="3" style="list-style-type: lower-alpha;">
+<li>Lower alpha with paren</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
 
 Autonumbering:
 
@@ -244,78 +263,89 @@ h1. Definition Lists
 
 Tight using spaces:
 
- <dl>
- <dt>apple</dt>
- <dd>red fruit</dd>
- <dt>orange</dt>
- <dd>orange fruit</dd>
- <dt>banana</dt>
- <dd>yellow fruit</dd> </dl>
+<dl>
+<dt>apple</dt>
+<dd>red fruit</dd>
+<dt>orange</dt>
+<dd>orange fruit</dd>
+<dt>banana</dt>
+<dd>yellow fruit</dd>
+</dl>
 
 Tight using tabs:
 
- <dl>
- <dt>apple</dt>
- <dd>red fruit</dd>
- <dt>orange</dt>
- <dd>orange fruit</dd>
- <dt>banana</dt>
- <dd>yellow fruit</dd> </dl>
+<dl>
+<dt>apple</dt>
+<dd>red fruit</dd>
+<dt>orange</dt>
+<dd>orange fruit</dd>
+<dt>banana</dt>
+<dd>yellow fruit</dd>
+</dl>
 
 Loose:
 
- <dl>
- <dt>apple</dt>
- <dd> <p>red fruit</p></dd>
- <dt>orange</dt>
- <dd> <p>orange fruit</p></dd>
- <dt>banana</dt>
- <dd> <p>yellow fruit</p></dd> </dl>
+<dl>
+<dt>apple</dt>
+<dd><p>red fruit</p></dd>
+<dt>orange</dt>
+<dd><p>orange fruit</p></dd>
+<dt>banana</dt>
+<dd><p>yellow fruit</p></dd>
+</dl>
 
 Multiple blocks with italics:
 
- <dl>
- <dt>_apple_</dt>
- <dd> <p>red fruit</p>
- <p>contains seeds, crisp, pleasant to taste</p></dd>
- <dt>_orange_</dt>
- <dd> <p>orange fruit</p>
+<dl>
+<dt>_apple_</dt>
+<dd><p>red fruit</p>
+<p>contains seeds, crisp, pleasant to taste</p></dd>
+<dt>_orange_</dt>
+<dd><p>orange fruit</p>
 bc. { orange code block }
 
-bq.  <p>orange block quote</p></dd> </dl>
+
+bq. <p>orange block quote</p>
+
+</dd>
+</dl>
 
 Multiple definitions, tight:
 
- <dl>
- <dt>apple</dt>
- <dd>red fruit</dd>
- <dd>computer</dd>
- <dt>orange</dt>
- <dd>orange fruit</dd>
- <dd>bank</dd> </dl>
+<dl>
+<dt>apple</dt>
+<dd>red fruit</dd>
+<dd>computer</dd>
+<dt>orange</dt>
+<dd>orange fruit</dd>
+<dd>bank</dd>
+</dl>
 
 Multiple definitions, loose:
 
- <dl>
- <dt>apple</dt>
- <dd> <p>red fruit</p></dd>
- <dd> <p>computer</p></dd>
- <dt>orange</dt>
- <dd> <p>orange fruit</p></dd>
- <dd> <p>bank</p></dd> </dl>
+<dl>
+<dt>apple</dt>
+<dd><p>red fruit</p></dd>
+<dd><p>computer</p></dd>
+<dt>orange</dt>
+<dd><p>orange fruit</p></dd>
+<dd><p>bank</p></dd>
+</dl>
 
 Blank line after term, indented marker, alternate markers:
 
- <dl>
- <dt>apple</dt>
- <dd> <p>red fruit</p></dd>
- <dd> <p>computer</p></dd>
- <dt>orange</dt>
- <dd> <p>orange fruit</p>
- <ol style="list-style-type: decimal;">
- <li>sublist</li>
- <li>sublist</li> </ol>
-</dd> </dl>
+<dl>
+<dt>apple</dt>
+<dd><p>red fruit</p></dd>
+<dd><p>computer</p></dd>
+<dt>orange</dt>
+<dd><p>orange fruit</p>
+<ol style="list-style-type: decimal;">
+<li>sublist</li>
+<li>sublist</li>
+</ol>
+</dd>
+</dl>
 
 h1. HTML Blocks
 
@@ -362,13 +392,15 @@ foo
 
 This should be a code block, though:
 
-bc. &lt;div&gt;
+bc. <div>
     foo
-&lt;/div&gt;
+</div>
+
 
 As should this:
 
-bc. &lt;div&gt;foo&lt;/div&gt;
+bc. <div>foo</div>
+
 
 Now, nested:
 
@@ -398,7 +430,8 @@ Blah
 
 Code block:
 
-bc. &lt;!-- Comment --&gt;
+bc. <!-- Comment -->
+
 
 Just plain comment, with trailing spaces on the line:
 
@@ -406,7 +439,8 @@ Just plain comment, with trailing spaces on the line:
 
 Code:
 
-bc. &lt;hr /&gt;
+bc. <hr />
+
 
 Hr's:
 
@@ -446,7 +480,7 @@ So is *_this_* word.
 
 So is *_this_* word.
 
-This is code: @&gt;@, @$@, @\@, @\$@, @&lt;html&gt;@.
+This is code: @>@, @$@, @\@, @\$@, @<html>@.
 
 -This is _strikeout_.-
 
@@ -497,7 +531,6 @@ These shouldn't be math:
 * Escaped @$@: $73 _this should be emphasized_ 23$.
 
 Here's a LaTeX table:
-
 
 
 <hr />
@@ -600,6 +633,7 @@ This should [not][] be a link.
 
 bc. [not]: /url
 
+
 Foo "bar":/url/.
 
 Foo "biz":/url/.
@@ -626,9 +660,12 @@ An e-mail address: "nobody@nowhere.net":mailto:nobody@nowhere.net
 
 bq. Blockquoted: "http://example.com/":http://example.com/
 
-Auto-links should not occur here: @&lt;http://example.com/&gt;@
 
-bc. or here: &lt;http://example.com/&gt;
+
+Auto-links should not occur here: @<http://example.com/>@
+
+bc. or here: <http://example.com/>
+
 
 <hr />
 
@@ -649,6 +686,8 @@ Here is a footnote reference,[1] and another.[2] This should _not_ be a footnote
 
 bq. Notes can go in quotes.[4]
 
+
+
 # And in list items.[5]
 
 This paragraph should not be part of the note, as it is not indented.
@@ -661,7 +700,8 @@ fn2. Here's the long note. This one contains multiple blocks.
 
 Subsequent blocks are indented to show that they belong to the footnote (as with list items).
 
-bc.   { &lt;code&gt; }
+bc.   { <code> }
+
 
 If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
 

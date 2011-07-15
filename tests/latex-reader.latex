@@ -7,6 +7,8 @@
 \newcommand{\textsubscript}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
 \usepackage[breaklinks=true,unicode=true]{hyperref}
 \usepackage[normalem]{ulem}
+% avoid problems with \sout in headers with hyperref:
+\pdfstringdefDisableCommands{\renewcommand{\sout}{}}
 \usepackage{enumerate}
 \usepackage{fancyvrb}
 \usepackage{graphicx}

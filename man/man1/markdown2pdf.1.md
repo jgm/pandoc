@@ -1,6 +1,6 @@
 % MARKDOWN2PDF(1) Pandoc User Manuals
 % John MacFarlane, Paulo Tanimoto, and Recai Oktas
-% January 8, 2008
+% January 29, 2011
 
 # NAME
 
@@ -47,6 +47,9 @@ packages are not included in your latex setup, they can be obtained from
 
 -N, \--number-sections
 :   Number section headings in LaTeX output.  (Default is not to number them.)
+
+\--listings
+:   Use listings package for LaTeX code blocks
 
 \--template=*FILE*
 :   Use *FILE* as a custom template for the generated document. Implies

@@ -33,6 +33,8 @@ There should be a paragraph break between here
 
 and here.
 
+pandoc converts textile.
+
 h1. Block Quotes
 
 bq. This is a famous quote from somebody. He had a lot of things to
@@ -62,6 +64,11 @@ And:
     These should not be escaped:  \$ \\ \> \[ \{
 </pre>
 
+bc. Code block with .bc
+        continued
+    @</\
+
+Inline code: @<tt>@, <tt>@</tt>.
 
 h1. Lists
 
@@ -133,6 +140,8 @@ Just a "url":http://www.url.com
 "Email link":mailto:nobody@nowhere.net
 
 Automatic linking to http://www.example.com and foobar@example.com.
+
+"Example":http://www.example.com/: Example of a link followed by a colon.
 
 h1. Tables
 

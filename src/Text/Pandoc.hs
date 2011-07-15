@@ -68,6 +68,7 @@ module Text.Pandoc
                , readLaTeX
                , readHtml
                , readTextile
+               , readNative
                -- * Parser state used in readers
                , ParserState (..)
                , defaultParserState
@@ -105,6 +106,9 @@ module Text.Pandoc
                , module Text.Pandoc.Templates
                -- * Version
                , pandocVersion
+               -- * Miscellaneous
+               , rtfEmbedImage
+               , jsonFilter
              ) where
 
 import Text.Pandoc.Definition
@@ -115,6 +119,7 @@ import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.HTML
 import Text.Pandoc.Readers.MoinMoin
 import Text.Pandoc.Readers.Textile
+import Text.Pandoc.Readers.Native
 import Text.Pandoc.Writers.Native
 import Text.Pandoc.Writers.Markdown
 import Text.Pandoc.Writers.RST 
@@ -144,15 +149,16 @@ pandocVersion = showVersion version
 
 -- | Association list of formats and readers.
 readers :: [(String, ParserState -> String -> Pandoc)]
-readers = [("native"       , \_ -> read)
+readers = [("native"       , \_ -> readNative)
           ,("json"         , \_ -> decodeJSON)
           ,("markdown"     , readMarkdown)
           ,("markdown+lhs" , \st ->
                              readMarkdown st{ stateLiterateHaskell = True})
           ,("moinmoin"     , readMoinMoin)
           ,("rst"          , readRST)
+          ,("rst+lhs"      , \st ->
+                             readRST st{ stateLiterateHaskell = True})
           ,("textile"      , readTextile) -- TODO : textile+lhs 
-          ,("rst+lhs"      , readRST)
           ,("html"         , readHtml)
           ,("latex"        , readLaTeX)
           ,("latex+lhs"    , \st ->
@@ -189,3 +195,9 @@ writers = [("native"       , writeNative)
           ,("rtf"          , writeRTF)
           ,("org"          , writeOrg)
           ]
+
+-- | Converts a transformation on the Pandoc AST into a function
+-- that reads and writes a JSON-encoded string.  This is useful
+-- for writing small scripts.
+jsonFilter :: (Pandoc -> Pandoc) -> String -> String
+jsonFilter f = encodeJSON . f . decodeJSON

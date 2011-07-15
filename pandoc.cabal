@@ -1,17 +1,17 @@
 Name:            pandoc
-Version:         1.7
-Cabal-Version:   >= 1.2
+Version:         1.8.1.1
+Cabal-Version:   >= 1.6
 Build-Type:      Custom
 License:         GPL
 License-File:    COPYING
-Copyright:       (c) 2006-2010 John MacFarlane
+Copyright:       (c) 2006-2011 John MacFarlane
 Author:          John MacFarlane <jgm@berkeley.edu>
 Maintainer:      John MacFarlane <jgm@berkeley.edu>
-Bug-Reports:     http://code.google.com/p/pandoc/issues/list
+Bug-Reports:     https://github.com/jgm/pandoc/issues
 Stability:       alpha
 Homepage:        http://johnmacfarlane.net/pandoc
 Category:        Text
-Tested-With:     GHC == 6.12.1
+Tested-With:     GHC == 6.10.4, GHC == 6.12.1, GHC == 6.12.3, GHC == 7.0.1
 Synopsis:        Conversion between markup formats
 Description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
@@ -73,7 +73,12 @@ Extra-Source-Files:
                  man/man1/markdown2pdf.1.md,
                  -- code to create pandoc.1 man page
                  MakeManPage.hs,
-                 manpage.template,
+                 man/man1/pandoc.1.template,
+                 man/man5/pandoc_markdown.5.template,
+                 -- generated man pages (produced post-build)
+                 man/man1/markdown2pdf.1,
+                 man/man1/pandoc.1,
+                 man/man5/pandoc_markdown.5,
                  -- benchmarks
                  Benchmark.hs,
                  -- tests
@@ -83,10 +88,20 @@ Extra-Source-Files:
                  tests/insert,
                  tests/lalune.jpg,
                  tests/movie.jpg,
+                 tests/biblio.bib,
+                 tests/chicago-author-date.csl,
+                 tests/ieee.csl,
+                 tests/mhra.csl,
                  tests/latex-reader.latex,
                  tests/latex-reader.native,
+                 tests/textile-reader.textile,
+                 tests/textile-reader.native,
                  tests/markdown-reader-more.txt,
                  tests/markdown-reader-more.native,
+                 tests/markdown-citations.txt,
+                 tests/markdown-citations.chicago-author-date.txt,
+                 tests/markdown-citations.mhra.txt,
+                 tests/markdown-citations.ieee.txt,
                  tests/textile-reader.textile,
                  tests/rst-reader.native,
                  tests/rst-reader.rst,
@@ -106,6 +121,7 @@ Extra-Source-Files:
                  tests/tables.textile,
                  tests/tables.native,
                  tests/tables.opendocument,
+                 tests/tables.org,
                  tests/tables.texinfo,
                  tests/tables.rst,
                  tests/tables.rtf,
@@ -124,6 +140,7 @@ Extra-Source-Files:
                  tests/writer.textile,
                  tests/writer.native,
                  tests/writer.opendocument,
+                 tests/writer.org,
                  tests/writer.rst,
                  tests/writer.rtf,
                  tests/writer.texinfo,
@@ -136,8 +153,16 @@ Extra-Source-Files:
                  tests/lhs-test.latex+lhs,
                  tests/lhs-test.html,
                  tests/lhs-test.html+lhs,
+                 tests/lhs-test.nohl.html,
+                 tests/lhs-test.nohl.html+lhs,
                  tests/lhs-test.fragment.html+lhs
-Extra-Tmp-Files: man/man1/pandoc.1, man/man1/markdown2pdf.1
+Extra-Tmp-Files: man/man1/pandoc.1,
+                 man/man1/markdown2pdf.1,
+                 man/man5/pandoc_markdown.5
+
+Source-repository head
+  type:          git
+  location:      git://github.com/jgm/pandoc.git
 
 Flag threaded
   Description:   Compile markdown2pdf with -threaded option.
@@ -165,25 +190,34 @@ Library
   -- Note: the following material must be in both Library and Executable stanzas.
   -- It needs to be duplicated because of the library & executable flags.
   -- BEGIN DUPLICATED SECTION
-  Build-Depends: containers >= 0.1,
-                 parsec >= 2.1, xhtml >= 3000.0,
-                 mtl >= 1.1, network >= 2, filepath >= 1.1,
-                 process >= 1, directory >= 1,
-                 bytestring >= 0.9, zip-archive >= 0.1.1.4,
-                 utf8-string >= 0.3, old-time >= 1,
-                 HTTP >= 4000.0.5, texmath >= 0.5, xml >= 1.3.5 && < 1.4,
-                 random, extensible-exceptions,
-                 citeproc-hs >= 0.3 && < 0.4,
-                 pandoc-types == 1.7.*,
+  Build-Depends: containers >= 0.1 && < 0.5,
+                 parsec >= 2.1 && < 3.2,
+                 xhtml >= 3000.0 && < 3000.3,
+                 mtl >= 1.1 && < 2.1,
+                 network >= 2 && < 2.4,
+                 filepath >= 1.1 && < 1.3,
+                 process >= 1 && < 1.1,
+                 directory >= 1 && < 1.2,
+                 bytestring >= 0.9 && < 1.0,
+                 zip-archive >= 0.1.1.7 && < 0.2,
+                 utf8-string >= 0.3 && < 0.4,
+                 old-time >= 1 && < 1.1,
+                 HTTP >= 4000.0.5 && < 4000.2,
+                 texmath >= 0.5 && < 0.6,
+                 xml >= 1.3.5 && < 1.4,
+                 random >= 1 && < 1.1,
+                 extensible-exceptions >= 0.1 && < 0.2,
+                 citeproc-hs >= 0.3.1 && < 0.4,
+                 pandoc-types == 1.8.*,
                  json >= 0.4 && < 0.5,
                  dlist >= 0.4 && < 0.6,
                  tagsoup >= 0.12 && < 0.13
   if impl(ghc >= 6.10)
-    Build-depends: base >= 4 && < 5, syb
+    Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
   else
     Build-depends: base >= 3 && < 4
   if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.2.7.1
+    Build-depends: highlighting-kate >= 0.2.9 && < 0.3
     cpp-options:   -D_HIGHLIGHTING
   if impl(ghc >= 6.12)
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
@@ -207,6 +241,7 @@ Library
                    Text.Pandoc.Readers.RST,
                    Text.Pandoc.Readers.TeXMath,
                    Text.Pandoc.Readers.Textile,
+                   Text.Pandoc.Readers.Native,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,
                    Text.Pandoc.Writers.HTML,
@@ -240,25 +275,34 @@ Executable pandoc
   -- Note: the following material must be in both Library and Executable stanzas.
   -- It needs to be duplicated because of the library & executable flags.
   -- BEGIN DUPLICATED SECTION
-  Build-Depends: containers >= 0.1,
-                 parsec >= 2.1, xhtml >= 3000.0,
-                 mtl >= 1.1, network >= 2, filepath >= 1.1,
-                 process >= 1, directory >= 1,
-                 bytestring >= 0.9, zip-archive >= 0.1.1.4,
-                 utf8-string >= 0.3, old-time >= 1,
-                 HTTP >= 4000.0.5, texmath, xml >= 1.3.5 && < 1.4,
-                 random, extensible-exceptions,
-                 citeproc-hs >= 0.3 && < 0.4,
-                 pandoc-types == 1.7.*,
+  Build-Depends: containers >= 0.1 && < 0.5,
+                 parsec >= 2.1 && < 3.2,
+                 xhtml >= 3000.0 && < 3000.3,
+                 mtl >= 1.1 && < 2.1,
+                 network >= 2 && < 2.4,
+                 filepath >= 1.1 && < 1.3,
+                 process >= 1 && < 1.1,
+                 directory >= 1 && < 1.2,
+                 bytestring >= 0.9 && < 1.0,
+                 zip-archive >= 0.1.1.7 && < 0.2,
+                 utf8-string >= 0.3 && < 0.4,
+                 old-time >= 1 && < 1.1,
+                 HTTP >= 4000.0.5 && < 4000.2,
+                 texmath >= 0.5 && < 0.6,
+                 xml >= 1.3.5 && < 1.4,
+                 random >= 1 && < 1.1,
+                 extensible-exceptions >= 0.1 && < 0.2,
+                 citeproc-hs >= 0.3.1 && < 0.4,
+                 pandoc-types == 1.8.*,
                  json >= 0.4 && < 0.5,
                  dlist >= 0.4 && < 0.6,
                  tagsoup >= 0.12 && < 0.13
   if impl(ghc >= 6.10)
-    Build-depends: base >= 4 && < 5, syb
+    Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
   else
     Build-depends: base >= 3 && < 4
   if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.2.7.1
+    Build-depends: highlighting-kate >= 0.2.9 && < 0.3
     cpp-options:   -D_HIGHLIGHTING
   if impl(ghc >= 6.12)
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
@@ -292,9 +336,34 @@ Executable markdown2pdf
 Executable test-pandoc
   Hs-Source-Dirs:     src
   Main-Is:            test-pandoc.hs
+  if flag(highlighting)
+    cpp-options:      -D_HIGHLIGHTING
+  if impl(ghc >= 7)
+    cpp-options:      -D_LIT=lit
+  else
+    cpp-options:      -D_LIT=$lit
   if !flag(tests)
     Buildable:        False
   else
-    Ghc-Options:      -Wall
-    Build-Depends:    base >= 4 && < 5, Diff
-    Other-Modules:    Text.Pandoc.Shared
+    if impl(ghc >= 6.12)
+      Ghc-Options:    -Wall -fno-warn-unused-do-bind
+    else
+      Ghc-Options:    -Wall
+    Extensions:       CPP
+    Build-Depends:    base >= 4 && < 5, Diff, test-framework >= 0.3 && < 0.4,
+                      test-framework-hunit >= 0.2 && < 0.3,
+                      test-framework-quickcheck2 >= 0.2.9 && < 0.3,
+                      QuickCheck >= 2.4 && < 2.6,
+                      HUnit >= 1.2 && < 1.3,
+                      template-haskell >= 2.4 && < 2.6,
+                      ansi-terminal == 0.5.*
+    Other-Modules:    Tests.Old
+                      Tests.Helpers
+                      Tests.Arbitrary
+                      Tests.Shared
+                      Tests.Readers.LaTeX
+                      Tests.Readers.Markdown
+                      Tests.Readers.RST
+                      Tests.Writers.Native
+                      Tests.Writers.ConTeXt
+                      Tests.Writers.HTML

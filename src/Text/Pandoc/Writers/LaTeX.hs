@@ -34,7 +34,7 @@ import Text.Pandoc.Generic
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
-import Data.List ( (\\), isSuffixOf, isPrefixOf, intercalate )
+import Data.List ( (\\), isSuffixOf, isPrefixOf, intercalate, intersperse )
 import Data.Char ( toLower, isPunctuation )
 import Control.Monad.State
 import Text.Pandoc.Pretty
@@ -42,6 +42,9 @@ import System.FilePath (dropExtension)
 
 data WriterState = 
   WriterState { stInNote     :: Bool          -- @True@ if we're in a note
+              , stInTable    :: Bool          -- @True@ if we're in a table
+              , stTableNotes :: [(Char, Doc)] -- List of markers, notes
+                                              -- in current table
               , stOLLevel    :: Int           -- level of ordered list nesting
               , stOptions    :: WriterOptions -- writer options, so they don't have to be parameter 
               , stVerbInNote :: Bool          -- true if document has verbatim text in note
@@ -59,11 +62,12 @@ data WriterState =
 writeLaTeX :: WriterOptions -> Pandoc -> String
 writeLaTeX options document = 
   evalState (pandocToLaTeX options document) $ 
-  WriterState { stInNote = False, stOLLevel = 1, stOptions = options,
+  WriterState { stInNote = False, stInTable = False,
+                stTableNotes = [], stOLLevel = 1, stOptions = options,
                 stVerbInNote = False, stEnumerate = False,
                 stTable = False, stStrikeout = False, stSubscript = False,
                 stUrl = False, stGraphics = False,
-                stLHS = False, stBook = False } 
+                stLHS = False, stBook = writerChapters options }
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
@@ -117,6 +121,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("lhs", "yes") | stLHS st ] ++
                  [ ("graphics", "yes") | stGraphics st ] ++
                  [ ("book-class", "yes") | stBook st] ++
+                 [ ("listings", "yes") | writerListings options ] ++
                  citecontext
   return $ if writerStandalone options
               then renderTemplate context template
@@ -150,8 +155,8 @@ inCmd cmd contents = char '\\' <> text cmd <> braces contents
 -- (because it's illegal to have verbatim inside some command arguments)
 deVerb :: [Inline] -> [Inline]
 deVerb [] = []
-deVerb ((Code str):rest) = 
-  (TeX $ "\\texttt{" ++ stringToLaTeX str ++ "}"):(deVerb rest)
+deVerb ((Code _ str):rest) = 
+  (RawInline "latex" $ "\\texttt{" ++ stringToLaTeX str ++ "}"):(deVerb rest)
 deVerb (other:rest) = other:(deVerb rest)
 
 -- | Convert Pandoc block element to LaTeX.
@@ -160,9 +165,9 @@ blockToLaTeX :: Block     -- ^ Block to convert
 blockToLaTeX Null = return empty
 blockToLaTeX (Plain lst) = inlineListToLaTeX lst
 blockToLaTeX (Para [Image txt (src,tit)]) = do
-  capt <- inlineListToLaTeX txt
+  capt <- inlineListToLaTeX $ deVerb txt
   img <- inlineToLaTeX (Image txt (src,tit))
-  return $ "\\begin{figure}[htb]" $$ "\\centering" $$ img $$
+  return $ "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
            ("\\caption{" <> capt <> char '}') $$ "\\end{figure}" $$ blankline
 blockToLaTeX (Para lst) = do
   result <- inlineListToLaTeX lst
@@ -170,21 +175,50 @@ blockToLaTeX (Para lst) = do
 blockToLaTeX (BlockQuote lst) = do
   contents <- blockListToLaTeX lst
   return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
-blockToLaTeX (CodeBlock (_,classes,_) str) = do
+blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
   st <- get
   env <- if writerLiterateHaskell (stOptions st) && "haskell" `elem` classes &&
                     "literate" `elem` classes
             then do
               modify $ \s -> s{ stLHS = True }
               return "code"
-            else if stInNote st
-                    then do
-                      modify $ \s -> s{ stVerbInNote = True }
-                      return "Verbatim"
-                    else return "verbatim"
-  return $ "\\begin{" <> text env <> "}" $$ flush (text str) $$
+            else if writerListings (stOptions st)
+                    then return "lstlisting"
+                    else if stInNote st
+                            then do
+                              modify $ \s -> s{ stVerbInNote = True }
+                              return "Verbatim"
+                            else return "verbatim"
+  let params = if writerListings (stOptions st)
+               then take 1
+                    [ "language=" ++ lang | lang <- classes
+                    , lang `elem` ["ABAP","IDL","Plasm","ACSL","inform"
+                                  ,"POV","Ada","Java","Prolog","Algol"
+                                  ,"JVMIS","Promela","Ant","ksh","Python"
+                                  ,"Assembler","Lisp","R","Awk","Logo"
+                                  ,"Reduce","bash","make","Rexx","Basic"
+                                  ,"Mathematica","RSL","C","Matlab","Ruby"
+                                  ,"C++","Mercury","S","Caml","MetaPost"
+                                  ,"SAS","Clean","Miranda","Scilab","Cobol"
+                                  ,"Mizar","sh","Comal","ML","SHELXL","csh"
+                                  ,"Modula-2","Simula","Delphi","MuPAD"
+                                  ,"SQL","Eiffel","NASTRAN","tcl","Elan"
+                                  ,"Oberon-2","TeX","erlang","OCL"
+                                  ,"VBScript","Euphoria","Octave","Verilog"
+                                  ,"Fortran","Oz","VHDL","GCL","Pascal"
+                                  ,"VRML","Gnuplot","Perl","XML","Haskell"
+	                          ,"PHP","XSLT","HTML","PL/I"]
+                    ] ++ 
+                    [ key ++ "=" ++ attr | (key,attr) <- keyvalAttr ]
+               else []
+      printParams 
+          | null params = empty
+          | otherwise   = "[" <> hsep (intersperse "," (map text params)) <>
+                          "]"
+  return $ "\\begin{" <> text env <> "}" <> printParams $$ flush (text str) $$
            "\\end{" <> text env <> "}" $$ cr   -- final cr needed because of footnotes
-blockToLaTeX (RawHtml _) = return empty
+blockToLaTeX (RawBlock "latex" x) = return $ text x <> blankline
+blockToLaTeX (RawBlock _ _) = return empty
 blockToLaTeX (BulletList lst) = do
   items <- mapM listItemToLaTeX lst
   return $ "\\begin{itemize}" $$ vcat items $$ "\\end{itemize}"
@@ -239,44 +273,61 @@ blockToLaTeX (Header level lst) = do
                 5  -> headerWith "\\subparagraph" stuffing
                 _            -> txt $$ blankline
 blockToLaTeX (Table caption aligns widths heads rows) = do
+  modify $ \s -> s{ stInTable = True, stTableNotes = [] }
   headers <- if all null heads
                 then return empty
-                else liftM ($$ "\\hline") $ tableRowToLaTeX heads
-  captionText <- inlineListToLaTeX caption
-  rows' <- mapM tableRowToLaTeX rows
-  let colDescriptors = concat $ zipWith toColDescriptor widths aligns
-  let tableBody = text ("\\begin{tabular}{" ++ colDescriptors ++ "}") $$
-                  headers $$ vcat rows' $$ "\\end{tabular}"
-  let centered txt = "\\begin{center}" $$ txt $$ "\\end{center}"
-  modify $ \s -> s{ stTable = True }
-  return $ if isEmpty captionText
-              then centered tableBody $$ blankline
-              else "\\begin{table}[h]" $$ centered tableBody $$
-                   inCmd "caption" captionText $$ "\\end{table}" $$ blankline
+                else liftM ($$ "\\ML")
+                     $ (tableRowToLaTeX True aligns widths) heads
+  captionText <- inlineListToLaTeX $ deVerb caption
+  let capt = if isEmpty captionText
+                then empty
+                else text "caption = " <> captionText <> "," <> space
+  rows' <- mapM (tableRowToLaTeX False aligns widths) rows
+  let rows'' = intersperse ("\\\\\\noalign{\\medskip}") rows'
+  tableNotes <- liftM (reverse . stTableNotes) get
+  let toNote (marker, x) = "\\tnote" <> brackets (char marker) <>
+                            braces (nest 2 x)
+  let notes = vcat $ map toNote tableNotes
+  let colDescriptors = text $ concat $ map toColDescriptor aligns
+  let tableBody =
+         ("\\ctable" <> brackets (capt <> text "pos = H, center, botcap"))
+         <> braces colDescriptors
+         $$ braces ("% notes" <> cr <> notes <> cr)
+         $$ braces (text "% rows" $$ "\\FL" $$
+                     vcat (headers : rows'') $$ "\\LL" <> cr)
+  modify $ \s -> s{ stTable = True, stInTable = False, stTableNotes = [] }
+  return $ tableBody $$ blankline
 
-toColDescriptor :: Double -> Alignment -> String
-toColDescriptor 0 align =
+toColDescriptor :: Alignment -> String
+toColDescriptor align =
   case align of
          AlignLeft    -> "l"
          AlignRight   -> "r"
          AlignCenter  -> "c"
          AlignDefault -> "l"
-toColDescriptor width align = ">{\\PBS" ++
-  (case align of
-         AlignLeft -> "\\raggedright"
-         AlignRight -> "\\raggedleft"
-         AlignCenter -> "\\centering"
-         AlignDefault -> "\\raggedright") ++
-  "\\hspace{0pt}}p{" ++ printf "%.2f" width ++
-  "\\columnwidth}"
 
 blockListToLaTeX :: [Block] -> State WriterState Doc
 blockListToLaTeX lst = mapM blockToLaTeX lst >>= return . vcat
 
-tableRowToLaTeX :: [[Block]] -> State WriterState Doc
-tableRowToLaTeX cols = mapM blockListToLaTeX cols >>= 
-  return . ($$ text "\\\\") . foldl (\row item -> row $$
-  (if isEmpty row then text "" else text " & ") <> item) empty
+tableRowToLaTeX :: Bool
+                -> [Alignment]
+                -> [Double]
+                -> [[Block]]
+                -> State WriterState Doc
+tableRowToLaTeX header aligns widths cols = do
+  renderedCells <- mapM blockListToLaTeX cols
+  let valign = text $ if header then "[b]" else "[t]"
+  let halign x = case x of
+                  AlignLeft    -> "\\raggedright"
+                  AlignRight   -> "\\raggedleft"
+                  AlignCenter  -> "\\centering"
+                  AlignDefault -> "\\raggedright"
+  let toCell 0 _ c = c
+      toCell w a c = "\\parbox" <> valign <>
+                     braces (text (printf "%.2f\\columnwidth" w)) <>
+                     braces (halign a <> cr <> c <> cr)
+  let cells = zipWith3 toCell widths aligns renderedCells
+  return $ hcat $ intersperse (" & ") cells
 
 listItemToLaTeX :: [Block] -> State WriterState Doc
 listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
@@ -327,11 +378,13 @@ inlineToLaTeX (Cite cits lst) = do
      Biblatex -> citationsToBiblatex cits
      _        -> inlineListToLaTeX lst
 
-inlineToLaTeX (Code str) = do
+inlineToLaTeX (Code _ str) = do
   st <- get
   when (stInNote st) $ modify $ \s -> s{ stVerbInNote = True }
   let chr = ((enumFromTo '!' '~') \\ str) !! 0
-  return $ text $ "\\verb" ++ [chr] ++ str ++ [chr]
+  if writerListings (stOptions st)
+    then return $ text $ "\\lstinline" ++ [chr] ++ str ++ [chr]
+    else return $ text $ "\\verb" ++ [chr] ++ str ++ [chr]
 inlineToLaTeX (Quoted SingleQuote lst) = do
   contents <- inlineListToLaTeX lst
   let s1 = if (not (null lst)) && (isQuoted (head lst))
@@ -357,18 +410,19 @@ inlineToLaTeX Ellipses = return "\\ldots{}"
 inlineToLaTeX (Str str) = return $ text $ stringToLaTeX str
 inlineToLaTeX (Math InlineMath str) = return $ char '$' <> text str <> char '$'
 inlineToLaTeX (Math DisplayMath str) = return $ "\\[" <> text str <> "\\]"
-inlineToLaTeX (TeX str) = return $ text str
-inlineToLaTeX (HtmlInline _) = return empty
+inlineToLaTeX (RawInline "latex" str) = return $ text str
+inlineToLaTeX (RawInline "tex" str) = return $ text str
+inlineToLaTeX (RawInline _ _) = return empty
 inlineToLaTeX (LineBreak) = return "\\\\"
 inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt (src, _)) =
   case txt of
-        [Code x] | x == src ->  -- autolink
+        [Code _ x] | x == src ->  -- autolink
              do modify $ \s -> s{ stUrl = True }
                 return $ text $ "\\url{" ++ x ++ "}"
         _ -> do contents <- inlineListToLaTeX $ deVerb txt
-                return $ text ("\\href{" ++ src ++ "}{") <> contents <>
-                         char '}'
+                return $ text ("\\href{" ++ stringToLaTeX src ++ "}{") <>
+                         contents <> char '}'
 inlineToLaTeX (Image _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True }
   return $ "\\includegraphics" <> braces (text source)
@@ -376,9 +430,15 @@ inlineToLaTeX (Note contents) = do
   modify (\s -> s{stInNote = True})
   contents' <- blockListToLaTeX contents
   modify (\s -> s {stInNote = False})
-  -- note: a \n before } is needed when note ends with a Verbatim environment
-  return $ "\\footnote" <> braces (nest 2 contents')
-
+  inTable <- liftM stInTable get
+  if inTable
+     then do
+       curnotes <- liftM stTableNotes get
+       let marker = cycle ['a'..'z'] !! length curnotes
+       modify $ \s -> s{ stTableNotes = (marker, contents') : curnotes }
+       return $ "\\tmark" <> brackets (char marker) <> space
+     else return $ "\\footnote" <> braces (nest 2 contents')
+     -- note: a \n before } needed when note ends with a Verbatim environment
 
 citationsToNatbib :: [Citation] -> State WriterState Doc
 citationsToNatbib (one:[])

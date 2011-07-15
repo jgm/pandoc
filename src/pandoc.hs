@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2011 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Main
-   Copyright   : Copyright (C) 2006-2010 John MacFarlane
+   Copyright   : Copyright (C) 2006-2011 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -32,7 +32,7 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.S5 (s5HeaderIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
-                            headerShift, findDataFile )
+                            headerShift, findDataFile, normalize )
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
 #endif
@@ -51,11 +51,11 @@ import Control.Monad (when, unless, liftM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
-import Data.ByteString.Lazy.UTF8 (toString, fromString)
+import Data.ByteString.Lazy.UTF8 (toString )
 import Codec.Binary.UTF8.String (decodeString, encodeString)
 
 copyrightMessage :: String
-copyrightMessage = "\nCopyright (C) 2006-2010 John MacFarlane\n" ++
+copyrightMessage = "\nCopyright (C) 2006-2011 John MacFarlane\n" ++
                     "Web:  http://johnmacfarlane.net/pandoc\n" ++
                     "This is free software; see the source for copying conditions.  There is no\n" ++
                     "warranty, not even for merchantability or fitness for a particular purpose."
@@ -103,6 +103,7 @@ data Opt = Opt
     , optXeTeX             :: Bool    -- ^ Format latex for xetex
     , optSmart             :: Bool    -- ^ Use smart typography
     , optHtml5             :: Bool    -- ^ Produce HTML5 in HTML
+    , optChapters          :: Bool    -- ^ Use chapter for top-level sects
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
     , optEPUBStylesheet    :: Maybe String   -- ^ EPUB stylesheet
@@ -121,6 +122,8 @@ data Opt = Opt
     , optCiteMethod        :: CiteMethod -- ^ Method to output cites
     , optBibliography      :: [String]
     , optCslFile           :: FilePath
+    , optListings          :: Bool       -- ^ Use listings package for code blocks
+    , optAscii             :: Bool       -- ^ Avoid using nonascii characters
     }
 
 -- | Defaults for command-line options.
@@ -144,6 +147,7 @@ defaultOpts = Opt
     , optXeTeX             = False
     , optSmart             = False
     , optHtml5             = False
+    , optChapters          = False
     , optHTMLMathMethod    = PlainMath
     , optReferenceODT      = Nothing
     , optEPUBStylesheet    = Nothing
@@ -162,6 +166,8 @@ defaultOpts = Opt
     , optCiteMethod        = Citeproc
     , optBibliography      = []
     , optCslFile           = ""
+    , optListings          = False
+    , optAscii             = False
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -212,6 +218,12 @@ options =
                  (NoArg
                   (\opt -> return opt { optStrict = True } ))
                  "" -- "Disable markdown syntax extensions"
+
+    , Option "" ["normalize"]
+                 (NoArg
+                  (\opt -> return opt { optTransforms =
+                                   normalize : optTransforms opt } ))
+                 "" -- "Normalize the Pandoc AST"
 
     , Option "" ["reference-links"]
                  (NoArg
@@ -300,10 +312,20 @@ options =
                   (\opt -> return opt { optXeTeX = True }))
                  "" -- "Format latex for processing by XeTeX"
 
+    , Option "" ["chapters"]
+                 (NoArg
+                  (\opt -> return opt { optChapters = True }))
+                 "" -- "Use chapter for top-level sections in LaTeX, DocBook"
+
     , Option "N" ["number-sections"]
                  (NoArg
                   (\opt -> return opt { optNumberSections = True }))
                  "" -- "Number sections in LaTeX"
+
+    , Option "" ["listings"]
+                 (NoArg
+                  (\opt -> return opt { optListings = True }))
+                 "" -- "Use listings package for LaTeX code blocks"
 
     , Option "" ["section-divs"]
                  (NoArg
@@ -326,6 +348,11 @@ options =
                                exitWith $ ExitFailure 33)
                  "NUMBER")
                  "" -- "Length of line in characters"
+
+    , Option "" ["ascii"]
+                 (NoArg
+                  (\opt -> return opt { optAscii = True }))
+                 "" -- "Avoid using non-ascii characters in output"
 
     , Option "" ["email-obfuscation"]
                  (ReqArg
@@ -463,6 +490,14 @@ options =
                   "FILENAME")
                  "" -- "Path of epub.css"
 
+    , Option "" ["epub-cover-image"]
+                 (ReqArg
+                  (\arg opt ->
+                     return opt { optVariables =
+                                 ("epub-cover-image", arg) : optVariables opt })
+                  "FILENAME")
+                 "" -- "Path of epub cover image"
+
     , Option "" ["epub-metadata"]
                  (ReqArg
                   (\arg opt -> do
@@ -481,24 +516,29 @@ options =
                      exitWith ExitSuccess)
                   "FORMAT")
                  "" -- "Print default template for FORMAT"
+
     , Option "" ["bibliography"]
                  (ReqArg
                   (\arg opt -> return opt { optBibliography = (optBibliography opt) ++ [arg] })
                   "FILENAME")
                  ""
+
     , Option "" ["csl"]
                  (ReqArg
                   (\arg opt -> return opt { optCslFile = arg })
                   "FILENAME")
                  ""
-    , Option "" ["natbib", "no-citeproc"]
+
+    , Option "" ["natbib"]
                  (NoArg
                   (\opt -> return opt { optCiteMethod = Natbib }))
                  "" -- "Use natbib cite commands in LaTeX output"
+
     , Option "" ["biblatex"]
                  (NoArg
                   (\opt -> return opt { optCiteMethod = Biblatex }))
                  "" -- "Use biblatex cite commands in LaTeX output"
+
     , Option "" ["data-dir"]
                  (ReqArg
                   (\arg opt -> return opt { optDataDir = Just arg })
@@ -583,6 +623,7 @@ defaultWriterName x =
     ".text"     -> "markdown"
     ".md"       -> "markdown"
     ".markdown" -> "markdown"
+    ".textile"  -> "textile"
     ".lhs"      -> "markdown+lhs"
     ".texi"     -> "texinfo"
     ".texinfo"  -> "texinfo"
@@ -637,6 +678,7 @@ main = do
               , optXeTeX             = xetex
               , optSmart             = smart
               , optHtml5             = html5
+              , optChapters          = chapters
               , optHTMLMathMethod    = mathMethod
               , optReferenceODT      = referenceODT
               , optEPUBStylesheet    = epubStylesheet
@@ -654,6 +696,8 @@ main = do
               , optBibliography      = reffiles
               , optCslFile           = cslfile
               , optCiteMethod        = citeMethod
+              , optListings          = listings
+              , optAscii             = ascii
              } = opts
 
   when dumpArgs $
@@ -684,14 +728,6 @@ main = do
   reader <- case (lookup readerName' readers) of
      Just r  -> return r
      Nothing -> error ("Unknown reader: " ++ readerName')
-
-  let writer = case lookup writerName' writers of
-                Nothing | writerName' == "epub" -> writeEPUB epubStylesheet
-                Nothing | writerName' == "odt"  -> writeODT referenceODT
-                Just r                         -> \o ->
-                                                     return . fromString . r o
-                Nothing                        -> error $ "Unknown writer: " ++
-                                                     writerName'
 
   templ <- getDefaultTemplate datadir writerName'
   let defaultTemplate = case templ of
@@ -781,7 +817,10 @@ main = do
                                       writerSourceDirectory  = sourceDir,
                                       writerUserDataDir      = datadir,
                                       writerHtml5            = html5 &&
-                                                               "html" `isPrefixOf` writerName' }
+                                                               "html" `isPrefixOf` writerName',
+                                      writerChapters         = chapters, 
+                                      writerListings         = listings,
+                                      writerAscii            = ascii }
 
   when (isNonTextOutput writerName' && outputFile == "-") $
     do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++
@@ -802,9 +841,13 @@ main = do
 
   doc <- fmap (reader startParserState . convertTabs . intercalate "\n") (readSources sources)
 
-  let doc' = foldr ($) doc transforms
+  let doc0 = foldr ($) doc transforms
 
-  doc'' <- do
+  doc1 <- if writerName' == "rtf"
+             then bottomUpM rtfEmbedImage doc0
+             else return doc0
+
+  doc2 <- do
           if citeMethod == Citeproc && not (null refs)
              then do
                 csldir <- getAppUserDataDirectory "csl"
@@ -818,15 +861,19 @@ main = do
                                             replaceDirectory
                                             (replaceExtension cslfile "csl")
                                             csldir
-                processBiblio cslfile' refs doc'
-             else return doc'
+                processBiblio cslfile' refs doc1
+             else return doc1
 
-  writerOutput <- writer writerOptions doc''
-
-  let writerOutput' = if standalone'
-                         then writerOutput
-                         else writerOutput `B.snoc` 10
-
-  if outputFile == "-"
-     then B.putStr writerOutput'
-     else B.writeFile (encodeString outputFile) writerOutput'
+  case lookup writerName' writers of
+        Nothing | writerName' == "epub" ->
+           writeEPUB epubStylesheet writerOptions doc2
+           >>= B.writeFile (encodeString outputFile)
+        Nothing | writerName' == "odt"  ->
+           writeODT referenceODT writerOptions doc2
+           >>= B.writeFile (encodeString outputFile)
+        Just r  -> writerFn outputFile result
+            where writerFn "-" = UTF8.putStr
+                  writerFn f   = UTF8.writeFile f
+                  result       = r writerOptions doc2 ++
+                                 ['\n' | not standalone']
+        Nothing -> error $ "Unknown writer: " ++ writerName'

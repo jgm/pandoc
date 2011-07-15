@@ -145,7 +145,8 @@ blockToMan opts (Para inlines) = do
   contents <- liftM vcat $ mapM (inlineListToMan opts) $
     splitSentences inlines
   return $ text ".PP" $$ contents 
-blockToMan _ (RawHtml _) = return empty
+blockToMan _ (RawBlock "man" str) = return $ text str
+blockToMan _ (RawBlock _ _) = return empty
 blockToMan _ HorizontalRule = return $ text ".PP" $$ text "   *   *   *   *   *"
 blockToMan opts (Header level inlines) = do
   contents <- inlineListToMan opts inlines
@@ -306,24 +307,25 @@ inlineToMan _ EmDash = return $ text "\\[em]"
 inlineToMan _ EnDash = return $ text "\\[en]"
 inlineToMan _ Apostrophe = return $ char '\''
 inlineToMan _ Ellipses = return $ text "\\&..."
-inlineToMan _ (Code str) =
+inlineToMan _ (Code _ str) =
   return $ text $ "\\f[C]" ++ escapeCode str ++ "\\f[]"
 inlineToMan _ (Str str) = return $ text $ escapeString str
 inlineToMan opts (Math InlineMath str) = inlineListToMan opts $ readTeXMath str
 inlineToMan opts (Math DisplayMath str) = do
   contents <- inlineListToMan opts $ readTeXMath str
   return $ cr <> text ".RS" $$ contents $$ text ".RE"
-inlineToMan _ (TeX _) = return empty
-inlineToMan _ (HtmlInline _) = return empty
+inlineToMan _ (RawInline "man" str) = return $ text str
+inlineToMan _ (RawInline _ _) = return empty
 inlineToMan _ (LineBreak) = return $
   cr <> text ".PD 0" $$ text ".P" $$ text ".PD" <> cr
 inlineToMan _ Space = return space
 inlineToMan opts (Link txt (src, _)) = do
   linktext <- inlineListToMan opts txt
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
-  return $ if txt == [Code srcSuffix]
-              then char '<' <> text srcSuffix <> char '>' 
-              else linktext <> text " (" <> text src <> char ')' 
+  return $ case txt of
+           [Code _ s]
+             | s == srcSuffix -> char '<' <> text srcSuffix <> char '>' 
+           _                  -> linktext <> text " (" <> text src <> char ')'
 inlineToMan opts (Image alternate (source, tit)) = do
   let txt = if (null alternate) || (alternate == [Str ""]) || 
                (alternate == [Str source]) -- to prevent autolinks

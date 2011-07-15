@@ -122,9 +122,10 @@ blockToConTeXt (BlockQuote lst) = do
   contents <- blockListToConTeXt lst
   return $ "\\startblockquote" $$ nest 0 contents $$ "\\stopblockquote" <> blankline
 blockToConTeXt (CodeBlock _ str) =
-  return $ "\\starttyping" <> cr <> flush (text str) <> cr <> "\\stoptyping" <> blankline
+  return $ "\\starttyping" <> cr <> flush (text str) <> cr <> "\\stoptyping" $$ blankline
   -- blankline because \stoptyping can't have anything after it, inc. '}'
-blockToConTeXt (RawHtml _) = return empty
+blockToConTeXt (RawBlock "context" str) = return $ text str <> blankline
+blockToConTeXt (RawBlock _ _ ) = return empty
 blockToConTeXt (BulletList lst) = do
   contents <- mapM listItemToConTeXt lst
   return $ "\\startitemize" $$ vcat contents $$ text "\\stopitemize" <> blankline
@@ -169,10 +170,13 @@ blockToConTeXt (Header level lst) = do
   st <- get
   let opts = stOptions st
   let base = if writerNumberSections opts then "section" else "subject"
-  return $ if level >= 1 && level <= 5
-               then char '\\' <> text (concat (replicate (level - 1) "sub")) <>
+  let level' = if writerChapters opts then level - 1 else level
+  return $ if level' >= 1 && level' <= 5
+               then char '\\' <> text (concat (replicate (level' - 1) "sub")) <>
                          text base <> char '{' <> contents <> char '}' <> blankline
-               else contents <> blankline
+               else if level' == 0
+                       then "\\chapter{" <> contents <> "}"
+                       else contents <> blankline
 blockToConTeXt (Table caption aligns widths heads rows) = do
     let colDescriptor colWidth alignment = (case alignment of
                                                AlignLeft    -> 'l' 
@@ -241,8 +245,10 @@ inlineToConTeXt (Subscript lst) = do
 inlineToConTeXt (SmallCaps lst) = do
   contents <- inlineListToConTeXt lst
   return $ braces $ "\\sc " <> contents
-inlineToConTeXt (Code str) =
+inlineToConTeXt (Code _ str) | not ('{' `elem` str || '}' `elem` str) =
   return $ "\\type" <> braces (text str)
+inlineToConTeXt (Code _ str) =
+  return $ "\\mono" <> braces (text $ stringToConTeXt str)
 inlineToConTeXt (Quoted SingleQuote lst) = do
   contents <- inlineListToConTeXt lst
   return $ "\\quote" <> braces contents
@@ -259,11 +265,12 @@ inlineToConTeXt (Math InlineMath str) =
   return $ char '$' <> text str <> char '$'
 inlineToConTeXt (Math DisplayMath str) =
   return $ text "\\startformula "  <> text str <> text " \\stopformula"
-inlineToConTeXt (TeX str) = return $ text str
-inlineToConTeXt (HtmlInline _) = return empty
+inlineToConTeXt (RawInline "context" str) = return $ text str
+inlineToConTeXt (RawInline "tex" str) = return $ text str
+inlineToConTeXt (RawInline _ _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt Space = return space
-inlineToConTeXt (Link [Code str] (src, tit)) = -- since ConTeXt has its own 
+inlineToConTeXt (Link [Code _ str] (src, tit)) = -- since ConTeXt has its own 
   inlineToConTeXt (Link [Str str] (src, tit))  -- way of printing links... 
 inlineToConTeXt (Link txt (src, _)) = do
   st <- get
@@ -279,4 +286,4 @@ inlineToConTeXt (Image _ (src, _)) = do
 inlineToConTeXt (Note contents) = do
   contents' <- blockListToConTeXt contents
   return $ text "\\footnote{" <>
-           nest 2 contents' <> char '}' <> cr
+           nest 2 contents' <> char '}'

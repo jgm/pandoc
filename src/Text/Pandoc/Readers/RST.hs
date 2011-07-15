@@ -34,10 +34,11 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.ParserCombinators.Parsec
-import Control.Monad ( when, unless )
+import Control.Monad ( when )
 import Data.List ( findIndex, intercalate, transpose, sort, deleteFirstsBy )
 import qualified Data.Map as M
 import Text.Printf ( printf )
+import Data.Maybe ( catMaybes )
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: ParserState -- ^ Parser state, including options for parser
@@ -57,7 +58,7 @@ underlineChars = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
-specialChars = "\\`|*_<>$:[-.\"'\8216\8217\8220\8221"
+specialChars = "\\`|*_<>$:[]()-.\"'\8216\8217\8220\8221"
 
 --
 -- parsing documents
@@ -90,6 +91,7 @@ titleTransform blocks = (blocks, [])
 
 parseRST :: GenParser Char ParserState Pandoc
 parseRST = do
+  optional blanklines -- skip blank lines at beginning of file
   startPos <- getPosition
   -- go through once just to get list of reference keys and notes
   -- docMinusKeys is the raw document with blanks where the keys were...
@@ -121,10 +123,9 @@ parseBlocks = manyTill block eof
 
 block :: GenParser Char ParserState Block
 block = choice [ codeBlock
-               , rawHtmlBlock
-               , rawLaTeXBlock
-               , fieldList
+               , rawBlock
                , blockQuote
+               , fieldList
                , imageBlock
                , customCodeBlock
                , unknownDirective
@@ -142,46 +143,54 @@ block = choice [ codeBlock
 -- field list
 --
 
-fieldListItem :: String -> GenParser Char st ([Char], [Char])
-fieldListItem indent = try $ do
+rawFieldListItem :: String -> GenParser Char ParserState (String, String)
+rawFieldListItem indent = try $ do
   string indent
   char ':'
-  name <- many1 alphaNum
+  name <- many1 $ alphaNum <|> spaceChar
   string ": "
   skipSpaces
   first <- manyTill anyChar newline
-  rest <- option "" $ try $ lookAhead (string indent >> oneOf " \t") >> 
-                            indentedBlock
-  return (name, intercalate " " (first:(lines rest)))
+  rest <- option "" $ try $ do lookAhead (string indent >> spaceChar)
+                               indentedBlock
+  let raw = first ++ "\n" ++ rest ++ "\n"
+  return (name, raw)
+
+fieldListItem :: String
+              -> GenParser Char ParserState (Maybe ([Inline], [[Block]]))
+fieldListItem indent = try $ do
+  (name, raw) <- rawFieldListItem indent
+  let term = [Str name]
+  contents <- parseFromString (many block) raw
+  optional blanklines
+  case (name, contents) of
+       ("Author", x) -> do
+           updateState $ \st ->
+             st{ stateAuthors = stateAuthors st ++ [extractContents x] }
+           return Nothing
+       ("Authors", [BulletList auths]) -> do
+           updateState $ \st -> st{ stateAuthors = map extractContents auths }
+           return Nothing
+       ("Date", x) -> do
+           updateState $ \st -> st{ stateDate = extractContents x }
+           return Nothing
+       ("Title", x) -> do
+           updateState $ \st -> st{ stateTitle = extractContents x }
+           return Nothing
+       _            -> return $ Just (term, [contents])
+
+extractContents :: [Block] -> [Inline]
+extractContents [Plain auth] = auth
+extractContents [Para auth]  = auth
+extractContents _            = []
 
 fieldList :: GenParser Char ParserState Block
 fieldList = try $ do
-  indent <- lookAhead $ many (oneOf " \t")
+  indent <- lookAhead $ many spaceChar
   items <- many1 $ fieldListItem indent
-  blanklines
-  let authors = case lookup "Authors" items of
-                  Just auth -> [auth]
-                  Nothing  -> map snd (filter (\(x,_) -> x == "Author") items)
-  unless (null authors) $ do
-    authors' <- mapM (parseFromString (many inline)) authors
-    updateState $ \st -> st {stateAuthors = map normalizeSpaces authors'}
-  case (lookup "Date" items) of
-           Just dat -> do
-                  dat' <- parseFromString (many inline) dat
-                  updateState $ \st -> st{ stateDate = normalizeSpaces dat' }
-           Nothing  -> return ()
-  case (lookup "Title" items) of
-           Just tit -> parseFromString (many inline) tit >>=
-                       \t -> updateState $ \st -> st {stateTitle = t}
-           Nothing  -> return ()
-  let remaining = filter (\(x,_) -> (x /= "Authors") && (x /= "Author") && 
-                  (x /= "Date") && (x /= "Title")) items
-  if null remaining
-              then return Null
-              else do terms <- mapM (return . (:[]) . Str . fst) remaining
-                      defs  <- mapM (parseFromString (many block) . snd) 
-                                    remaining
-                      return $ DefinitionList $ zip terms $ map (:[]) defs
+  if null items
+     then return Null
+     else return $ DefinitionList $ catMaybes items
 
 --
 -- line block
@@ -189,11 +198,14 @@ fieldList = try $ do
 
 lineBlockLine :: GenParser Char ParserState [Inline]
 lineBlockLine = try $ do
-  string "| "
-  white <- many (oneOf " \t")
+  char '|'
+  char ' ' <|> lookAhead (char '\n')
+  white <- many spaceChar
   line <- many $ (notFollowedBy newline >> inline) <|> (try $ endline >>~ char ' ')
   optional endline
-  return $ normalizeSpaces $ (if null white then [] else [Str white]) ++ line
+  return $ if null white
+              then normalizeSpaces line
+              else Str white : normalizeSpaces line
 
 lineBlock :: GenParser Char ParserState Block
 lineBlock = try $ do
@@ -235,15 +247,16 @@ plain = many1 inline >>= return . Plain . normalizeSpaces
 -- image block
 --
 
-imageBlock :: GenParser Char st Block
+imageBlock :: GenParser Char ParserState Block
 imageBlock = try $ do
   string ".. image:: "
   src <- manyTill anyChar newline
-  fields <- option [] $ do indent <- lookAhead $ many (oneOf " /t")
-                           many1 $ fieldListItem indent
+  fields <- try $ do indent <- lookAhead $ many (oneOf " /t")
+                     many $ rawFieldListItem indent
   optional blanklines
   case lookup "alt" fields of
-        Just alt -> return $ Plain [Image [Str alt] (src, alt)]
+        Just alt -> return $ Plain [Image [Str $ removeTrailingSpace alt]
+                             (src, "")]
         Nothing  -> return $ Plain [Image [Str "image"] (src, "")]
 --
 -- header blocks
@@ -318,20 +331,18 @@ hrule = try $ do
 indentedLine :: String -> GenParser Char st [Char]
 indentedLine indents = try $ do
   string indents
-  result <- manyTill anyChar newline
-  return $ result ++ "\n"
+  manyTill anyChar newline
 
--- two or more indented lines, possibly separated by blank lines.
+-- one or more indented lines, possibly separated by blank lines.
 -- any amount of indentation will work.
 indentedBlock :: GenParser Char st [Char]
-indentedBlock = do 
-  indents <- lookAhead $ many1 (oneOf " \t")
-  lns <- many $ choice $ [ indentedLine indents,
-                           try $ do b <- blanklines
-                                    l <- indentedLine indents
-                                    return (b ++ l) ]
-  optional blanklines 
-  return $ concat lns
+indentedBlock = try $ do
+  indents <- lookAhead $ many1 spaceChar
+  lns <- many1 $ try $ do b <- option "" blanklines
+                          l <- indentedLine indents
+                          return (b ++ l)
+  optional blanklines
+  return $ unlines lns
 
 codeBlock :: GenParser Char st Block
 codeBlock = try $ do
@@ -369,23 +380,16 @@ birdTrackLine = do
   manyTill anyChar newline
 
 --
--- raw html
+-- raw html/latex/etc
 --
 
-rawHtmlBlock :: GenParser Char st Block
-rawHtmlBlock = try $ string ".. raw:: html" >> blanklines >>
-                     indentedBlock >>= return . RawHtml
-
---
--- raw latex
---
-
-rawLaTeXBlock :: GenParser Char st Block
-rawLaTeXBlock = try $ do
-  string ".. raw:: latex"
+rawBlock :: GenParser Char st Block
+rawBlock = try $ do
+  string ".. raw:: "
+  lang <- many1 (letter <|> digit)
   blanklines
   result <- indentedBlock
-  return $ Para [(TeX result)]
+  return $ RawBlock lang result
 
 --
 -- block quotes
@@ -412,7 +416,7 @@ definitionListItem = try $ do
   term <- many1Till inline endline
   raw <- indentedBlock
   -- parse the extracted block, which may contain various block elements:
-  contents <- parseFromString parseBlocks $ raw ++ "\n\n"
+  contents <- parseFromString parseBlocks $ raw ++ "\n"
   return (normalizeSpaces term, [contents])
 
 definitionList :: GenParser Char ParserState Block
@@ -509,7 +513,7 @@ unknownDirective = try $ do
   string ".."
   notFollowedBy (noneOf " \t\n")
   manyTill anyChar newline
-  many $ blanklines <|> (oneOf " \t" >> manyTill anyChar newline)
+  many $ blanklines <|> (spaceChar >> manyTill anyChar newline)
   return Null
 
 ---
@@ -709,9 +713,9 @@ table = gridTable False <|> simpleTable False <|>
  --
 
 inline :: GenParser Char ParserState Inline
-inline = choice [ link
+inline = choice [ whitespace
+                , link
                 , str
-                , whitespace
                 , endline
                 , strong
                 , emph
@@ -745,7 +749,8 @@ code :: GenParser Char ParserState Inline
 code = try $ do 
   string "``"
   result <- manyTill anyChar (try (string "``"))
-  return $ Code $ removeLeadingTrailingSpace $ intercalate " " $ lines result
+  return $ Code nullAttr
+         $ removeLeadingTrailingSpace $ intercalate " " $ lines result
 
 emph :: GenParser Char ParserState Inline
 emph = enclosed (char '*') (char '*') inline >>= 
@@ -861,10 +866,16 @@ note = try $ do
   case lookup ref notes of
     Nothing   -> fail "note not found"
     Just raw  -> do
+      -- We temporarily empty the note list while parsing the note,
+      -- so that we don't get infinite loops with notes inside notes...
+      -- Note references inside other notes are allowed in reST, but
+      -- not yet in this implementation.
+      updateState $ \st -> st{ stateNotes = [] }
       contents <- parseFromString parseBlocks raw
-      when (ref == "*" || ref == "#") $ do -- auto-numbered
-        -- delete the note so the next auto-numbered note
-        -- doesn't get the same contents:
-        let newnotes = deleteFirstsBy (==) notes [(ref,raw)]
-        updateState $ \st -> st{ stateNotes = newnotes }
+      let newnotes = if (ref == "*" || ref == "#") -- auto-numbered
+                        -- delete the note so the next auto-numbered note
+                        -- doesn't get the same contents:
+                        then deleteFirstsBy (==) notes [(ref,raw)]
+                        else notes
+      updateState $ \st -> st{ stateNotes = newnotes }
       return $ Note contents

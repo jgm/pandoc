@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Textile
-   Copyright   : Copyright (C) 2010 Paul Rivier
+   Copyright   : Copyright (C) 2010-2011 Paul Rivier and John MacFarlane
    License     : GNU GPL, version 2 or above 
 
    Maintainer  : Paul Rivier <paul*rivier#demotera*com>
@@ -135,9 +135,18 @@ blockParsers = [ codeBlock
 block :: GenParser Char ParserState Block
 block = choice blockParsers <?> "block"
 
--- | Code Blocks in Textile are between <pre> and </pre>
 codeBlock :: GenParser Char ParserState Block
-codeBlock = try $ do
+codeBlock = codeBlockBc <|> codeBlockPre
+
+codeBlockBc :: GenParser Char ParserState Block
+codeBlockBc = try $ do
+  string "bc. "
+  contents <- manyTill anyLine blanklines
+  return $ CodeBlock ("",[],[]) $ unlines contents
+
+-- | Code Blocks in Textile are between <pre> and </pre>
+codeBlockPre :: GenParser Char ParserState Block
+codeBlockPre = try $ do
   htmlTag (tagOpen (=="pre") null)
   result' <- manyTill anyChar (try $ htmlTag (tagClose (=="pre")) >> blockBreak)
   -- drop leading newline if any
@@ -272,7 +281,7 @@ rawHtmlBlock :: GenParser Char ParserState Block
 rawHtmlBlock = try $ do
   (_,b) <- htmlTag isBlockTag
   optional blanklines
-  return $ RawHtml b
+  return $ RawBlock "html" b
 
 -- | In textile, paragraphs are separated by blank lines.
 para :: GenParser Char ParserState Block
@@ -331,10 +340,10 @@ table = try $ do
 -- | Blocks like 'p' and 'table' do not need explicit block tag.
 -- However, they can be used to set HTML/CSS attributes when needed.
 maybeExplicitBlock :: String  -- ^ block tag name
-                      -> GenParser Char ParserState Block -- ^ implicit block
-                      -> GenParser Char ParserState Block
+                    -> GenParser Char ParserState Block -- ^ implicit block
+                    -> GenParser Char ParserState Block
 maybeExplicitBlock name blk = try $ do
-  optional $ string name >> optional attributes >> char '.' >> 
+  optional $ try $ string name >> optional attributes >> char '.' >> 
     ((try whitespace) <|> endline)
   blk
 
@@ -359,9 +368,9 @@ inlineParsers = [ autoLink
                 , str
                 , whitespace
                 , endline
+                , code
                 , htmlSpan
                 , rawHtmlInline
-                , code
                 , note
                 , simpleInline (string "??") (Cite [])
                 , simpleInline (string "**") Strong
@@ -448,14 +457,15 @@ endline = try $ do
   return LineBreak
 
 rawHtmlInline :: GenParser Char ParserState Inline
-rawHtmlInline = liftM (HtmlInline . snd) $ htmlTag isInlineTag
+rawHtmlInline = liftM (RawInline "html" . snd)
+                $ htmlTag isInlineTag
 
 -- | Textile standard link syntax is "label":target
 link :: GenParser Char ParserState Inline
 link = try $ do
   name <- surrounded (char '"') inline
   char ':'
-  url <- manyTill (anyChar) (lookAhead $ (space <|> try (oneOf ".;," >> (space <|> newline))))
+  url <- manyTill (anyChar) (lookAhead $ (space <|> try (oneOf ".;,:" >> (space <|> newline))))
   return $ Link name (url, "")
 
 -- | Detect plain links to http or email.
@@ -481,8 +491,16 @@ symbol = do
 
 -- | Inline code
 code :: GenParser Char ParserState Inline
-code = surrounded (char '@') anyChar >>= 
-       return . Code
+code = code1 <|> code2
+
+code1 :: GenParser Char ParserState Inline
+code1 = surrounded (char '@') anyChar >>= return . Code nullAttr
+
+code2 :: GenParser Char ParserState Inline
+code2 = do
+  htmlTag (tagOpen (=="tt") null)
+  result' <- manyTill anyChar (try $ htmlTag $ tagClose (=="tt"))
+  return $ Code nullAttr result'
 
 -- | Html / CSS attributes
 attributes :: GenParser Char ParserState String

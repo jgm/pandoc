@@ -148,8 +148,8 @@ blockToRST (Para [Image txt (src,tit)]) = do
 blockToRST (Para inlines) = do
   contents <- inlineListToRST inlines
   return $ contents <> blankline
-blockToRST (RawHtml str) =
-  return $ blankline <> ".. raw:: html" $+$
+blockToRST (RawBlock f str) =
+  return $ blankline <> ".. raw:: " <> text f $+$
            (nest 3 $ text str) $$ blankline
 blockToRST HorizontalRule =
   return $ blankline $$ "--------------" $$ blankline
@@ -285,19 +285,18 @@ inlineToRST EmDash = return $ char '\8212'
 inlineToRST EnDash = return $ char '\8211'
 inlineToRST Apostrophe = return $ char '\8217'
 inlineToRST Ellipses = return $ char '\8230'
-inlineToRST (Code str) = return $ "``" <> text str <> "``"
+inlineToRST (Code _ str) = return $ "``" <> text str <> "``"
 inlineToRST (Str str) = return $ text $ escapeString str
 inlineToRST (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath
               then ":math:`$" <> text str <> "$`"
               else ":math:`$$" <> text str <> "$$`"
-inlineToRST (TeX _) = return empty
-inlineToRST (HtmlInline _) = return empty
+inlineToRST (RawInline _ _) = return empty
 inlineToRST (LineBreak) = return cr -- there's no line break in RST
 inlineToRST Space = return space
-inlineToRST (Link [Code str] (src, _)) | src == str ||
-                                         src == "mailto:" ++ str = do
+inlineToRST (Link [Code _ str] (src, _)) | src == str ||
+                                           src == "mailto:" ++ str = do
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
   return $ text $ unescapeURI srcSuffix
 inlineToRST (Link txt (src', tit)) = do

@@ -115,9 +115,12 @@ blockToOrg (Para [Image txt (src,tit)]) = do
 blockToOrg (Para inlines) = do
   contents <- inlineListToOrg inlines
   return $ contents <> blankline
-blockToOrg (RawHtml str) = 
+blockToOrg (RawBlock "html" str) = 
   return $ blankline $$ "#+BEGIN_HTML" $$
            nest 2 (text str) $$ "#+END_HTML" $$ blankline
+blockToOrg (RawBlock f str) | f == "org" || f == "latex" || f == "tex" =
+  return $ text str
+blockToOrg (RawBlock _ _) = return empty
 blockToOrg HorizontalRule = return $ blankline $$ "--------------" $$ blankline
 blockToOrg (Header level inlines) = do
   contents <- inlineListToOrg inlines
@@ -250,20 +253,20 @@ inlineToOrg EmDash = return "---"
 inlineToOrg EnDash = return "--"
 inlineToOrg Apostrophe = return "'"
 inlineToOrg Ellipses = return "..."
-inlineToOrg (Code str) = return $ "=" <> text str <> "="
+inlineToOrg (Code _ str) = return $ "=" <> text str <> "="
 inlineToOrg (Str str) = return $ text $ escapeString str
 inlineToOrg (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath
               then "$" <> text str <> "$"
               else "$$" <> text str <> "$$"
-inlineToOrg (TeX str) = return $ text str
-inlineToOrg (HtmlInline _) = return empty
+inlineToOrg (RawInline f str) | f == "tex" || f == "latex" = return $ text str
+inlineToOrg (RawInline _ _) = return empty
 inlineToOrg (LineBreak) = return cr -- there's no line break in Org
 inlineToOrg Space = return space
 inlineToOrg (Link txt (src, _)) = do
   case txt of
-        [Code x] | x == src ->  -- autolink
+        [Code _ x] | x == src ->  -- autolink
              do modify $ \s -> s{ stLinks = True }
                 return $ "[[" <> text x <> "]]"
         _ -> do contents <- inlineListToOrg txt

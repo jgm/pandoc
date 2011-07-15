@@ -14,11 +14,13 @@ import System.Exit (ExitCode (..), exitWith)
 import System.FilePath
 import System.Directory
 import System.Process (readProcessWithExitCode)
-
+import Codec.Binary.UTF8.String (decodeString, encodeString)
+import Control.Monad (liftM)
 
 run :: FilePath -> [String] -> IO (Either String String)
 run file opts = do
-  (code, out, err) <- readProcessWithExitCode file opts ""
+  (code, out, err) <- readProcessWithExitCode (encodeString file)
+                        (map encodeString opts) ""
   let msg = out ++ err
   case code of
     ExitFailure _ -> return $ Left  $! msg
@@ -37,7 +39,7 @@ parsePandocArgs args = do
 
 runPandoc :: [String] -> FilePath -> IO (Either String FilePath)
 runPandoc inputsAndArgs output = do
-  let texFile = replaceExtension output "tex"
+  let texFile = addExtension output "tex"
   result <- run "pandoc" $
     ["-s", "--no-wrap", "-r", "markdown", "-w", "latex"]
     ++ inputsAndArgs ++ ["-o", texFile]
@@ -122,14 +124,14 @@ saveStdin :: FilePath -> IO (Either String FilePath)
 saveStdin file = do
   text <- UTF8.getContents
   UTF8.writeFile file text
-  fileExist <- doesFileExist file
+  fileExist <- doesFileExist (encodeString file)
   case fileExist of
     False -> return $ Left $! "Could not create " ++ file
     True  -> return $ Right file
 
 saveOutput :: FilePath -> FilePath -> IO ()
 saveOutput input output = do
-  copyFile input output
+  copyFile (encodeString input) (encodeString output)
   UTF8.hPutStrLn stderr $! "Created " ++ output
 
 main :: IO ()
@@ -145,7 +147,7 @@ main = bracket
 
   -- run computation
   $ \tmp -> do
-    args <- getArgs
+    args <- liftM (map decodeString) getArgs
     -- check for invalid arguments and print help message if needed
     let goodopts = ["-f","-r","-N", "-p","-R","-H","-B","-A", "-C","-o","-V"]
     let goodoptslong = ["--from","--read","--strict",
@@ -155,7 +157,7 @@ main = bracket
                    "--include-before-body","--include-after-body",
                    "--custom-header","--output",
                    "--template", "--variable",
-                   "--csl", "--bibliography", "--data-dir"]
+                   "--csl", "--bibliography", "--data-dir", "--listings"]
     let isOpt ('-':_) = True
         isOpt _       = False
     let opts = filter isOpt args

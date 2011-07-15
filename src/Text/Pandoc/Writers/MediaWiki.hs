@@ -96,7 +96,9 @@ blockToMediaWiki opts (Para inlines) = do
               then  "<p>" ++ contents ++ "</p>"
               else contents ++ if null listLevel then "\n" else ""
 
-blockToMediaWiki _ (RawHtml str) = return str
+blockToMediaWiki _ (RawBlock "mediawiki" str) = return str
+blockToMediaWiki _ (RawBlock "html" str) = return str
+blockToMediaWiki _ (RawBlock _ _) = return ""
 
 blockToMediaWiki _ HorizontalRule = return "\n-----\n"
 
@@ -360,7 +362,7 @@ inlineToMediaWiki _ Apostrophe = return "&rsquo;"
 
 inlineToMediaWiki _ Ellipses = return "&hellip;"
 
-inlineToMediaWiki _ (Code str) =
+inlineToMediaWiki _ (Code _ str) =
   return $ "<tt>" ++ (escapeString str) ++ "</tt>"
 
 inlineToMediaWiki _ (Str str) = return $ escapeString str
@@ -368,9 +370,9 @@ inlineToMediaWiki _ (Str str) = return $ escapeString str
 inlineToMediaWiki _ (Math _ str) = return $ "<math>" ++ str ++ "</math>"
                                  -- note:  str should NOT be escaped
 
-inlineToMediaWiki _ (TeX _) = return ""
-
-inlineToMediaWiki _ (HtmlInline str) = return str 
+inlineToMediaWiki _ (RawInline "mediawiki" str) = return str 
+inlineToMediaWiki _ (RawInline "html" str) = return str 
+inlineToMediaWiki _ (RawInline _ _) = return ""
 
 inlineToMediaWiki _ (LineBreak) = return "<br />\n"
 
@@ -378,12 +380,12 @@ inlineToMediaWiki _ Space = return " "
 
 inlineToMediaWiki opts (Link txt (src, _)) = do
   label <- inlineListToMediaWiki opts txt
-  if txt == [Code src] -- autolink
-     then return src
-     else if isURI src
-             then return $ "[" ++ src ++ " " ++ label ++ "]"
-             else return $ "[[" ++ src' ++ "|" ++ label ++ "]]"
-                   where src' = case src of
+  case txt of
+     [Code _ s] | s == src -> return src
+     _  -> if isURI src
+              then return $ "[" ++ src ++ " " ++ label ++ "]"
+              else return $ "[[" ++ src' ++ "|" ++ label ++ "]]"
+                     where src' = case src of
                                      '/':xs -> xs  -- with leading / it's a
                                      _      -> src -- link to a help page
 inlineToMediaWiki opts (Image alt (source, tit)) = do

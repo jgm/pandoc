@@ -129,7 +129,10 @@ blockToTexinfo (CodeBlock _ str) = do
            flush (text str) $$
            text "@end verbatim" <> blankline
 
-blockToTexinfo (RawHtml _) = return empty
+blockToTexinfo (RawBlock "texinfo" str) = return $ text str
+blockToTexinfo (RawBlock "latex" str) =
+  return $ text "@tex" $$ text str $$ text "@end tex"
+blockToTexinfo (RawBlock _ _) = return empty
 
 blockToTexinfo (BulletList lst) = do
   items <- mapM listItemToTexinfo lst
@@ -369,7 +372,7 @@ inlineToTexinfo (Subscript lst) = do
 inlineToTexinfo (SmallCaps lst) =
   inlineListToTexinfo lst >>= return . inCmd "sc"
 
-inlineToTexinfo (Code str) = do
+inlineToTexinfo (Code _ str) = do
   return $ text $ "@code{" ++ stringToTexinfo str ++ "}"
 
 inlineToTexinfo (Quoted SingleQuote lst) = do
@@ -388,14 +391,16 @@ inlineToTexinfo EnDash = return $ text "--"
 inlineToTexinfo Ellipses = return $ text "@dots{}"
 inlineToTexinfo (Str str) = return $ text (stringToTexinfo str)
 inlineToTexinfo (Math _ str) = return $ inCmd "math" $ text str
-inlineToTexinfo (TeX str) = return $ text "@tex" $$ text str $$ text "@end tex"
-inlineToTexinfo (HtmlInline _) = return empty
+inlineToTexinfo (RawInline f str) | f == "latex" || f == "tex" =
+  return $ text "@tex" $$ text str $$ text "@end tex"
+inlineToTexinfo (RawInline "texinfo" str) = return $ text str
+inlineToTexinfo (RawInline _ _) = return empty
 inlineToTexinfo (LineBreak) = return $ text "@*"
 inlineToTexinfo Space = return $ char ' '
 
 inlineToTexinfo (Link txt (src, _)) = do
   case txt of
-        [Code x] | x == src ->  -- autolink
+        [Code _ x] | x == src ->  -- autolink
              do return $ text $ "@url{" ++ x ++ "}"
         _ -> do contents <- inlineListToTexinfo txt
                 let src1 = stringToTexinfo src

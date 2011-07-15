@@ -1,178 +1,176 @@
 Simple table with caption:
 
-\begin{table}[h]
-\begin{center}
-\begin{tabular}{rlcl}
-Right
- & Left
- & Center
- & Default
-\\
-\hline
-12
- & 12
- & 12
- & 12
-\\
-123
- & 123
- & 123
- & 123
-\\
-1
- & 1
- & 1
- & 1
-\\
-\end{tabular}
-\end{center}
-\caption{Demonstration of simple table syntax.}
-\end{table}
+\ctable[caption = Demonstration of simple table syntax.,
+pos = H, center, botcap]{rlcl}
+{% notes
+}
+{% rows
+\FL
+Right & Left & Center & Default
+\ML
+12 & 12 & 12 & 12
+\\\noalign{\medskip}
+123 & 123 & 123 & 123
+\\\noalign{\medskip}
+1 & 1 & 1 & 1
+\LL
+}
 
 Simple table without caption:
 
-\begin{center}
-\begin{tabular}{rlcl}
-Right
- & Left
- & Center
- & Default
-\\
-\hline
-12
- & 12
- & 12
- & 12
-\\
-123
- & 123
- & 123
- & 123
-\\
-1
- & 1
- & 1
- & 1
-\\
-\end{tabular}
-\end{center}
+\ctable[pos = H, center, botcap]{rlcl}
+{% notes
+}
+{% rows
+\FL
+Right & Left & Center & Default
+\ML
+12 & 12 & 12 & 12
+\\\noalign{\medskip}
+123 & 123 & 123 & 123
+\\\noalign{\medskip}
+1 & 1 & 1 & 1
+\LL
+}
 
 Simple table indented two spaces:
 
-\begin{table}[h]
-\begin{center}
-\begin{tabular}{rlcl}
-Right
- & Left
- & Center
- & Default
-\\
-\hline
-12
- & 12
- & 12
- & 12
-\\
-123
- & 123
- & 123
- & 123
-\\
-1
- & 1
- & 1
- & 1
-\\
-\end{tabular}
-\end{center}
-\caption{Demonstration of simple table syntax.}
-\end{table}
+\ctable[caption = Demonstration of simple table syntax.,
+pos = H, center, botcap]{rlcl}
+{% notes
+}
+{% rows
+\FL
+Right & Left & Center & Default
+\ML
+12 & 12 & 12 & 12
+\\\noalign{\medskip}
+123 & 123 & 123 & 123
+\\\noalign{\medskip}
+1 & 1 & 1 & 1
+\LL
+}
 
 Multiline table with caption:
 
-\begin{table}[h]
-\begin{center}
-\begin{tabular}{>{\PBS\centering\hspace{0pt}}p{0.15\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.14\columnwidth}>{\PBS\raggedleft\hspace{0pt}}p{0.16\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.34\columnwidth}}
+\ctable[caption = Here's the caption. It may span multiple lines.,
+pos = H, center, botcap]{clrl}
+{% notes
+}
+{% rows
+\FL
+\parbox[b]{0.15\columnwidth}{\centering
 Centered Header
- & Left Aligned
- & Right Aligned
- & Default aligned
-\\
-\hline
+} & \parbox[b]{0.14\columnwidth}{\raggedright
+Left Aligned
+} & \parbox[b]{0.16\columnwidth}{\raggedleft
+Right Aligned
+} & \parbox[b]{0.34\columnwidth}{\raggedright
+Default aligned
+}
+\ML
+\parbox[t]{0.15\columnwidth}{\centering
 First
- & row
- & 12.0
- & Example of a row that spans multiple lines.
-\\
+} & \parbox[t]{0.14\columnwidth}{\raggedright
+row
+} & \parbox[t]{0.16\columnwidth}{\raggedleft
+12.0
+} & \parbox[t]{0.34\columnwidth}{\raggedright
+Example of a row that spans multiple lines.
+}
+\\\noalign{\medskip}
+\parbox[t]{0.15\columnwidth}{\centering
 Second
- & row
- & 5.0
- & Here's another one. Note the blank line between rows.
-\\
-\end{tabular}
-\end{center}
-\caption{Here's the caption. It may span multiple lines.}
-\end{table}
+} & \parbox[t]{0.14\columnwidth}{\raggedright
+row
+} & \parbox[t]{0.16\columnwidth}{\raggedleft
+5.0
+} & \parbox[t]{0.34\columnwidth}{\raggedright
+Here's another one. Note the blank line between rows.
+}
+\LL
+}
 
 Multiline table without caption:
 
-\begin{center}
-\begin{tabular}{>{\PBS\centering\hspace{0pt}}p{0.15\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.14\columnwidth}>{\PBS\raggedleft\hspace{0pt}}p{0.16\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.34\columnwidth}}
+\ctable[pos = H, center, botcap]{clrl}
+{% notes
+}
+{% rows
+\FL
+\parbox[b]{0.15\columnwidth}{\centering
 Centered Header
- & Left Aligned
- & Right Aligned
- & Default aligned
-\\
-\hline
+} & \parbox[b]{0.14\columnwidth}{\raggedright
+Left Aligned
+} & \parbox[b]{0.16\columnwidth}{\raggedleft
+Right Aligned
+} & \parbox[b]{0.34\columnwidth}{\raggedright
+Default aligned
+}
+\ML
+\parbox[t]{0.15\columnwidth}{\centering
 First
- & row
- & 12.0
- & Example of a row that spans multiple lines.
-\\
+} & \parbox[t]{0.14\columnwidth}{\raggedright
+row
+} & \parbox[t]{0.16\columnwidth}{\raggedleft
+12.0
+} & \parbox[t]{0.34\columnwidth}{\raggedright
+Example of a row that spans multiple lines.
+}
+\\\noalign{\medskip}
+\parbox[t]{0.15\columnwidth}{\centering
 Second
- & row
- & 5.0
- & Here's another one. Note the blank line between rows.
-\\
-\end{tabular}
-\end{center}
+} & \parbox[t]{0.14\columnwidth}{\raggedright
+row
+} & \parbox[t]{0.16\columnwidth}{\raggedleft
+5.0
+} & \parbox[t]{0.34\columnwidth}{\raggedright
+Here's another one. Note the blank line between rows.
+}
+\LL
+}
 
 Table without column headers:
 
-\begin{center}
-\begin{tabular}{rlcr}
-12
- & 12
- & 12
- & 12
-\\
-123
- & 123
- & 123
- & 123
-\\
-1
- & 1
- & 1
- & 1
-\\
-\end{tabular}
-\end{center}
+\ctable[pos = H, center, botcap]{rlcr}
+{% notes
+}
+{% rows
+\FL
+12 & 12 & 12 & 12
+\\\noalign{\medskip}
+123 & 123 & 123 & 123
+\\\noalign{\medskip}
+1 & 1 & 1 & 1
+\LL
+}
 
 Multiline table without column headers:
 
-\begin{center}
-\begin{tabular}{>{\PBS\centering\hspace{0pt}}p{0.15\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.14\columnwidth}>{\PBS\raggedleft\hspace{0pt}}p{0.16\columnwidth}>{\PBS\raggedright\hspace{0pt}}p{0.34\columnwidth}}
+\ctable[pos = H, center, botcap]{clrl}
+{% notes
+}
+{% rows
+\FL
+\parbox[t]{0.15\columnwidth}{\centering
 First
- & row
- & 12.0
- & Example of a row that spans multiple lines.
-\\
+} & \parbox[t]{0.14\columnwidth}{\raggedright
+row
+} & \parbox[t]{0.16\columnwidth}{\raggedleft
+12.0
+} & \parbox[t]{0.34\columnwidth}{\raggedright
+Example of a row that spans multiple lines.
+}
+\\\noalign{\medskip}
+\parbox[t]{0.15\columnwidth}{\centering
 Second
- & row
- & 5.0
- & Here's another one. Note the blank line between rows.
-\\
-\end{tabular}
-\end{center}
+} & \parbox[t]{0.14\columnwidth}{\raggedright
+row
+} & \parbox[t]{0.16\columnwidth}{\raggedleft
+5.0
+} & \parbox[t]{0.34\columnwidth}{\raggedright
+Here's another one. Note the blank line between rows.
+}
+\LL
+}
 

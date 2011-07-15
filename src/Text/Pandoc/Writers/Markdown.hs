@@ -73,10 +73,9 @@ plainify = bottomUp go
         go (Superscript xs) = SmallCaps xs
         go (Subscript xs) = SmallCaps xs
         go (SmallCaps xs) = SmallCaps xs
-        go (Code s) = Str s
+        go (Code _ s) = Str s
         go (Math _ s) = Str s
-        go (TeX _) = Str ""
-        go (HtmlInline _) = Str ""
+        go (RawInline _ _) = Str ""
         go (Link xs _) = SmallCaps xs
         go (Image xs _) = SmallCaps $ [Str "["] ++ xs ++ [Str "]"]
         go (Cite _ cits) = SmallCaps cits
@@ -102,7 +101,8 @@ pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
                     then Just $ writerColumns opts
                     else Nothing
   let main = render colwidth $ body <>
-               blankline <> notes' <> blankline <> refs'
+               (if isEmpty notes' then empty else blankline <> notes') <>
+               (if isEmpty refs' then empty else blankline <> refs')
   let context  = writerVariables opts ++
                  [ ("toc", render colwidth toc)
                  , ("body", main)
@@ -171,6 +171,22 @@ elementToListItem (Sec _ _ _ headerText subsecs) = [Plain headerText] ++
      then []
      else [BulletList $ map elementToListItem subsecs]
 
+attrsToMarkdown :: Attr -> Doc
+attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
+        where attribId = case attribs of
+                                ([],_,_) -> empty
+                                (i,_,_)  -> "#" <> text i
+              attribClasses = case attribs of
+                                (_,[],_) -> empty
+                                (_,cs,_) -> hsep $
+                                            map (text . ('.':))
+                                            cs
+              attribKeys = case attribs of
+                                (_,_,[]) -> empty
+                                (_,_,ks) -> hsep $
+                                            map (\(k,v) -> text k
+                                              <> "=\"" <> text v <> "\"") ks
+
 -- | Ordered list start parser for use in Para below.
 olMarker :: GenParser Char ParserState Char
 olMarker = do (start, style', delim) <- anyOrderedListMarker
@@ -205,11 +221,13 @@ blockToMarkdown opts (Para inlines) = do
                then text "\\"
                else empty
   return $ esc <> contents <> blankline
-blockToMarkdown _ (RawHtml str) = do
-  st <- get
-  if stPlain st
-     then return empty
-     else return $ text str <> text "\n"
+blockToMarkdown _ (RawBlock f str)
+  | f == "html" || f == "latex" || f == "tex" || f == "markdown" = do
+    st <- get
+    if stPlain st
+       then return empty
+       else return $ text str <> text "\n"
+blockToMarkdown _ (RawBlock _ _) = return empty
 blockToMarkdown _ HorizontalRule =
   return $ blankline <> text "* * * * *" <> blankline
 blockToMarkdown opts (Header level inlines) = do
@@ -231,26 +249,13 @@ blockToMarkdown opts (CodeBlock (_,classes,_) str)
     writerLiterateHaskell opts =
   return $ prefixed "> " (text str) <> blankline
 blockToMarkdown opts (CodeBlock attribs str) = return $
-  if writerStrictMarkdown opts || attribs == ([],[],[])
+  if writerStrictMarkdown opts || attribs == nullAttr
      then nest (writerTabStop opts) (text str) <> blankline
      else -- use delimited code block
           flush (tildes <> space <> attrs <> cr <> text str <>
                   cr <> tildes) <> blankline
             where tildes  = text "~~~~"
-                  attrs = braces $ hsep [attribId, attribClasses, attribKeys]
-                  attribId = case attribs of
-                                   ([],_,_) -> empty
-                                   (i,_,_)  -> "#" <> text i
-                  attribClasses = case attribs of
-                                   (_,[],_) -> empty
-                                   (_,cs,_) -> hsep $
-                                               map (text . ('.':))
-                                               cs
-                  attribKeys = case attribs of
-                                   (_,_,[]) -> empty
-                                   (_,_,ks) -> hsep $
-                                               map (\(k,v) -> text k
-                                                 <> "=\"" <> text v <> "\"") ks
+                  attrs = attrsToMarkdown attribs
 blockToMarkdown opts (BlockQuote blocks) = do
   st <- get
   -- if we're writing literate haskell, put a space before the bird tracks
@@ -361,7 +366,19 @@ blockListToMarkdown :: WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
                     -> State WriterState Doc 
 blockListToMarkdown opts blocks =
-  mapM (blockToMarkdown opts) blocks >>= return . cat
+  mapM (blockToMarkdown opts) (fixBlocks blocks) >>= return . cat
+    -- insert comment between list and indented code block, or the
+    -- code block will be treated as a list continuation paragraph
+    where fixBlocks (b : CodeBlock attr x : rest)
+            | (writerStrictMarkdown opts || attr == nullAttr) && isListBlock b =
+               b : RawBlock "html" "<!-- -->\n" : CodeBlock attr x :
+                  fixBlocks rest
+          fixBlocks (x : xs)             = x : fixBlocks xs
+          fixBlocks []                   = []
+          isListBlock (BulletList _)     = True
+          isListBlock (OrderedList _ _)  = True
+          isListBlock (DefinitionList _) = True
+          isListBlock _                  = False
 
 -- | Get reference for target; if none exists, create unique one and return.
 --   Prefer label if possible; otherwise, generate a unique key.
@@ -421,14 +438,17 @@ inlineToMarkdown _ EmDash = return "\8212"
 inlineToMarkdown _ EnDash = return "\8211"
 inlineToMarkdown _ Apostrophe = return "\8217"
 inlineToMarkdown _ Ellipses = return "\8230"
-inlineToMarkdown _ (Code str) =
+inlineToMarkdown opts (Code attr str) =
   let tickGroups = filter (\s -> '`' `elem` s) $ group str 
       longest    = if null tickGroups
                      then 0
                      else maximum $ map length tickGroups 
       marker     = replicate (longest + 1) '`' 
-      spacer     = if (longest == 0) then "" else " " in
-  return $ text (marker ++ spacer ++ str ++ spacer ++ marker)
+      spacer     = if (longest == 0) then "" else " "
+      attrs      = if writerStrictMarkdown opts || attr == nullAttr
+                      then empty
+                      else attrsToMarkdown attr
+  in  return $ text (marker ++ spacer ++ str ++ spacer ++ marker) <> attrs
 inlineToMarkdown _ (Str str) = do
   st <- get
   if stPlain st
@@ -438,8 +458,10 @@ inlineToMarkdown _ (Math InlineMath str) =
   return $ "$" <> text str <> "$"
 inlineToMarkdown _ (Math DisplayMath str) =
   return $ "$$" <> text str <> "$$"
-inlineToMarkdown _ (TeX str) = return $ text str
-inlineToMarkdown _ (HtmlInline str) = return $ text str 
+inlineToMarkdown _ (RawInline f str)
+  | f == "html" || f == "latex" || f == "tex" || f == "markdown" =
+    return $ text str
+inlineToMarkdown _ (RawInline _ _) = return empty
 inlineToMarkdown opts (LineBreak) = return $
   if writerStrictMarkdown opts
      then "  " <> cr
@@ -481,7 +503,9 @@ inlineToMarkdown opts (Link txt (src', tit)) = do
   let src = unescapeURI src'
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
   let useRefLinks = writerReferenceLinks opts
-  let useAuto = null tit && txt == [Code srcSuffix]
+  let useAuto = case (tit,txt) of
+                      ("", [Code _ s]) | s == srcSuffix -> True
+                      _                                 -> False
   ref <- if useRefLinks then getReference txt (src, tit) else return []
   reftext <- inlineListToMarkdown opts ref
   return $ if useAuto

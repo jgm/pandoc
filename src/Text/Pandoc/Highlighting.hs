@@ -37,10 +37,14 @@ import Data.List (find)
 import Data.Maybe (fromMaybe)
 import Data.Char (toLower)
 
-highlightHtml :: Attr -> String -> Either String Html
-highlightHtml (_, classes, keyvals) rawCode =
+highlightHtml :: Bool   -- ^ True if inline HTML
+              -> Attr   -- ^ Attributes of the Code or CodeBlock
+              -> String -- ^ Raw contents of the Code or CodeBlock
+              -> Either String Html  -- ^ An error or the formatted Html
+highlightHtml inline (_, classes, keyvals) rawCode =
   let firstNum = read $ fromMaybe "1" $ lookup "startFrom" keyvals
       fmtOpts = [OptNumberFrom firstNum] ++
+                [OptInline | inline] ++
                 case find (`elem` ["number","numberLines","number-lines"]) classes of
                   Nothing   -> []
                   Just _    -> [OptNumberLines]
@@ -65,6 +69,6 @@ languages = []
 languagesByExtension :: String -> [String]
 languagesByExtension _ = []
 
-highlightHtml :: Attr -> String -> Either String Html
-highlightHtml _ _ = Left "Pandoc was not compiled with support for highlighting"
+highlightHtml :: Bool -> Attr -> String -> Either String Html
+highlightHtml _ _ _ = Left "Pandoc was not compiled with support for highlighting"
 #endif

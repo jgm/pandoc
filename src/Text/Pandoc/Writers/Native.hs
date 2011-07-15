@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -25,62 +26,53 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Utility functions and definitions used by the various Pandoc modules.
+Conversion of a 'Pandoc' document to a string representation.
+
+Note:  If @writerStandalone@ is @False@, only the document body
+is represented; otherwise, the full 'Pandoc' document, including the
+metadata.
 -}
 module Text.Pandoc.Writers.Native ( writeNative )
 where
-import Text.Pandoc.Shared ( WriterOptions )
-import Data.List ( intercalate )
+import Text.Pandoc.Shared ( WriterOptions(..) )
+import Data.List ( intersperse )
 import Text.Pandoc.Definition
+import Text.Pandoc.Pretty
 
--- | Indent string as a block.
-indentBy :: Int    -- ^ Number of spaces to indent the block 
-         -> Int    -- ^ Number of spaces (rel to block) to indent first line
-         -> String -- ^ Contents of block to indent
-         -> String
-indentBy _ _ [] = ""
-indentBy num first str = 
-  let (firstLine:restLines) = lines str 
-      firstLineIndent = num + first
-  in  (replicate firstLineIndent ' ') ++ firstLine ++ "\n" ++ 
-      (intercalate "\n" $ map ((replicate num ' ') ++ ) restLines)
-
--- | Prettyprint list of Pandoc blocks elements.
-prettyBlockList :: Int       -- ^ Number of spaces to indent list of blocks
-                -> [Block]   -- ^ List of blocks
-                -> String
-prettyBlockList indent [] = indentBy indent 0 "[]"
-prettyBlockList indent blocks = indentBy indent (-2) $ "[ " ++ 
-  (intercalate "\n, " (map prettyBlock blocks)) ++ " ]"
+prettyList :: [Doc] -> Doc
+prettyList ds =
+  "[" <> (cat $ intersperse (cr <> ",") $ map (nest 1) ds) <> "]"
 
 -- | Prettyprint Pandoc block element.
-prettyBlock :: Block -> String
-prettyBlock (BlockQuote blocks) = "BlockQuote\n  " ++ 
-                                  (prettyBlockList 2 blocks) 
+prettyBlock :: Block -> Doc
+prettyBlock (BlockQuote blocks) =
+  "BlockQuote" $$ prettyList (map prettyBlock blocks)
 prettyBlock (OrderedList attribs blockLists) = 
-  "OrderedList " ++ show attribs ++ "\n" ++ indentBy 2 0 ("[ " ++ 
-  (intercalate ", " $ map (\blocks -> prettyBlockList 2 blocks)
-  blockLists)) ++ " ]"
-prettyBlock (BulletList blockLists) = "BulletList\n" ++ 
-  indentBy 2 0 ("[ " ++ (intercalate ", "
-  (map (\blocks -> prettyBlockList 2 blocks) blockLists))) ++ " ]" 
-prettyBlock (DefinitionList items) = "DefinitionList\n" ++ 
-  indentBy 2 0 ("[ " ++ (intercalate "\n, "
-  (map (\(term, defs) -> "(" ++ show term ++ ",\n" ++ 
-  indentBy 3 0 ("[ " ++ (intercalate ", "
-  (map (\blocks -> prettyBlockList 2 blocks) defs)) ++ "]") ++
-   ")") items))) ++ " ]" 
+  "OrderedList" <> space <> text (show attribs) $$
+  (prettyList $ map (prettyList . map prettyBlock) blockLists)
+prettyBlock (BulletList blockLists) = 
+  "BulletList" $$
+  (prettyList $ map (prettyList . map prettyBlock) blockLists)
+prettyBlock (DefinitionList items) = "DefinitionList" $$
+  (prettyList $ map deflistitem items)
+    where deflistitem (term, defs) = "(" <> text (show term) <> "," <> cr <>
+           nest 1 (prettyList $ map (prettyList . map prettyBlock) defs) <> ")"
 prettyBlock (Table caption aligns widths header rows) = 
-  "Table " ++ show caption ++ " " ++ show aligns ++ " " ++ 
-  show widths ++ "\n" ++ prettyRow header ++ " [\n" ++  
-  (intercalate ",\n" (map prettyRow rows)) ++ " ]"
-  where prettyRow cols = indentBy 2 0 ("[ " ++ (intercalate ", "
-                         (map (\blocks -> prettyBlockList 2 blocks) 
-                         cols))) ++ " ]"
-prettyBlock block = show block
+  "Table " <> text (show caption) <> " " <> text (show aligns) <> " " <>
+  text (show widths) $$
+  prettyRow header $$
+  prettyList (map prettyRow rows)
+    where prettyRow cols = prettyList (map (prettyList . map prettyBlock) cols)
+prettyBlock block = text $ show block
 
 -- | Prettyprint Pandoc document.
 writeNative :: WriterOptions -> Pandoc -> String
-writeNative _ (Pandoc meta blocks) = "Pandoc " ++ "(" ++ show meta ++ 
-  ")\n" ++ (prettyBlockList 0 blocks) ++ "\n"
-
+writeNative opts (Pandoc meta blocks) =
+  let colwidth = if writerWrapText opts
+                    then Just $ writerColumns opts
+                    else Nothing
+      withHead = if writerStandalone opts
+                    then \bs -> text ("Pandoc " ++ "(" ++ show meta ++ ")") $$
+                           bs $$ cr
+                    else id
+  in  render colwidth $ withHead $ prettyList $ map prettyBlock blocks
