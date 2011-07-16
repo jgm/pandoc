@@ -1,3 +1,104 @@
+pandoc (1.8.1.2)
+
+  * Added `--epub-cover-image` option.
+
+  * Documented `--biblatex` and `--natbib` options.
+
+  * Allow `--section-divs` with slidy output.  Resolves Issue #296.
+
+  * Disallow notes within notes in reST and markdown.
+    These previously caused infinite looping and stack overflows.
+    For example:
+
+        [^1]
+
+        [^1]: See [^1]
+
+    Note references are allowed in reST notes, so this isn't a full
+    implementation of reST. That can come later. For now we need to
+    prevent the stack overflows.  Partially resolves Issue #297.
+
+  * EPUB writer: Allow non-plain math methods.
+
+  * Forbid ()s in citation item keys.  Resolves Issue #304: problems with
+    `(@item1; @item2)` because the final paren was being parsed as part of
+    the item key.
+
+  * Changed URI parser so it doesn't include trailing punctuation.
+    So, in RST, `http://google.com.` should be parsed as a link followed by a
+    period. The parser is smart enough to recognize balanced parentheses, as
+    often occur in wikipedia links: `http://foo.bar/baz_(bam)`.
+
+  * Markdown+lhs reader: Require space after inverse bird tracks, so that
+    HTML tags can be used freely at the left margin of a markdown+lhs document.
+    Thanks to Conal Elliot for the suggestion.
+
+  * Markdown reader: Fixed bug in footnote order (reported by CircleCode).
+
+  * RST reader:
+      + Fixed bug in in field lists with multi-line items at the
+        end of the list.
+      + Added parentheses to RST `specialChars`, so
+        `(http://google.com)` will be parsed as a link in parens.
+        Resolves Issue #291.
+      + Allow `|` followed by newline in RST line block.
+
+  * LaTeX reader:
+      + Support `\dots`.
+      + Gobble option & space after linebreak `\\[10pt]`.
+
+  * Textile reader:
+      + Make it possible to have colons after links.  (qerub)
+      + Make it possible to have colons after links.  (Christoffer Sawicki)
+
+  * HTML reader:
+      + Skip spaces after `<b>`, `<emph>`, etc.
+      + Handle tbody, thead in simple tables.  Closes #274.
+      + Implicit `Para`s instead of `Plains` in some contexts.
+
+  * OpenDocument writer:  Use special `First paragraph` style for
+    first paragraph after most non-paragraph blocks. This allows users to
+    specify e.g. that only paragraphs after the first paragraph of a block are
+    to be indented. Thanks to Andrea Rossato for the patch. Closes #20.
+
+  * LaTeX writer:  use `deVerb` on table and picture captions.
+    Otherwise LaTeX complains about `\verb` inside command argument.
+    Thanks to bbanier for reporting the bug.
+
+  * Markdown writer: Insert HTML comment btw list and indented code block.
+    This prevents the code block from being interpreted as part of the list.
+
+  * EPUB writer: Add a meta element specify the cover.
+    Some EPUB e-readers, such as the Nook, require a meta element inside the
+    OPF metadata block to ensure the cover image is properly displayed.
+    (Kelsey Hightower)
+
+  * HTML writer: Use embed tag for images with non-image extensions.
+    (e.g.  PDFs).  Closes #264.
+
+  * LaTeX writer: Improved tables.
+
+      + More space between lines, top-align cells.
+      + Use ctable package, which allows footnotes and
+        provides additional options.
+      + Made cell alignments work in multiline tables.
+      + Closes #271, #272.
+
+  * Un-URI-escape image filenames in LaTeX, ConTeXt, RTF, Texinfo.
+    Also do this when copying image files into EPUBs and ODTs.
+    Closes #263.
+
+  * Changed to github issue tracker.
+
+  * Added failing emph/strong markdown test case due to Perry Wagle.
+
+  * Slidy improvements:
+      + Updated to use Slidy2.
+      + Fixed bug, unclosed div tag.
+      + Added `duration` variable in template.
+        Setting this activates the timer.
+      + Use 'titlepage' instead of 'cover' for title div.
+
 pandoc (1.8.1.1)
 
   * `markdown2pdf`:  Removed some debugging lines accidentally included
