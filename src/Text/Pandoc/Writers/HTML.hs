@@ -46,6 +46,7 @@ import Text.XHtml.Transitional hiding ( stringToHtml, unordList, ordList )
 import qualified Text.XHtml.Transitional as XHtml
 import Text.TeXMath
 import Text.XML.Light.Output
+import System.FilePath (takeExtension)
 
 data WriterState = WriterState
     { stNotes            :: [Html]  -- ^ List of notes
@@ -319,6 +320,17 @@ attrsToHtml opts (id',classes',keyvals) =
   [theclass (unwords classes') | not (null classes')] ++
   [prefixedId opts id' | not (null id')] ++
   map (\(x,y) -> strAttr x y) keyvals
+
+imageExts :: [String]
+imageExts = [ "art", "bmp", "cdr", "cdt", "cpt", "cr2", "crw", "djvu", "erf",
+              "gif", "ico", "ief", "jng", "jpg", "jpeg", "nef", "orf", "pat", "pbm",
+              "pcx", "pgm", "png", "pnm", "ppm", "psd", "ras", "rgb", "svg", "tiff",
+              "wbmp", "xbm", "xpm", "xwd" ]
+
+treatAsImage :: FilePath -> Bool
+treatAsImage fp =
+  let ext = map toLower $ drop 1 $ takeExtension fp
+  in  null ext || ext `elem` imageExts
 
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: WriterOptions -> Block -> State WriterState Html
@@ -603,7 +615,7 @@ inlineToHtml opts inline =
                         return $ anchor ! ([href s] ++
                                  if null tit then [] else [title tit]) $
                                  linkText
-    (Image txt (s,tit)) -> do
+    (Image txt (s,tit)) | treatAsImage s -> do
                         let alternate' = stringify txt
                         let attributes = [src s] ++
                                          (if null tit
@@ -613,6 +625,13 @@ inlineToHtml opts inline =
                                             then []
                                             else [alt alternate']
                         return $ image ! attributes
+                        -- note:  null title included, as in Markdown.pl
+    (Image _ (s,tit)) -> do
+                        let attributes = [src s] ++
+                                         (if null tit
+                                            then []
+                                            else [title tit])
+                        return $ itag "embed" ! attributes
                         -- note:  null title included, as in Markdown.pl
     (Note contents)          -> do
                         st <- get
