@@ -47,7 +47,7 @@ import Text.Pandoc.Parsing
 import Data.Maybe ( fromMaybe, isJust )
 import Data.List ( intercalate )
 import Data.Char ( isSpace, isDigit )
-import Control.Monad ( liftM, guard )
+import Control.Monad ( liftM, guard, when )
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: ParserState   -- ^ Parser state
@@ -211,9 +211,9 @@ pSimpleTable :: TagParser [Block]
 pSimpleTable = try $ do
   TagOpen _ _ <- pSatisfy (~== TagOpen "table" [])
   skipMany pBlank
-  head' <- option [] $ pInTags "th" pTd
-  rows <- many1 $ try $
-           skipMany pBlank >> pInTags "tr" pTd
+  head' <- option [] $ pOptInTag "thead" $ pInTags "tr" (pCell "th")
+  rows <- pOptInTag "tbody"
+          $ many1 $ try $ skipMany pBlank >> pInTags "tr" (pCell "td")
   skipMany pBlank
   TagClose _ <- pSatisfy (~== TagClose "table") 
   let cols = maximum $ map length rows
@@ -221,10 +221,10 @@ pSimpleTable = try $ do
   let widths = replicate cols 0
   return [Table [] aligns widths head' rows]
 
-pTd :: TagParser [TableCell]
-pTd = try $ do
+pCell :: String -> TagParser [TableCell]
+pCell celltype = try $ do
   skipMany pBlank
-  res <- pInTags "td" pPlain
+  res <- pInTags celltype pPlain
   skipMany pBlank
   return [res]
 
@@ -377,6 +377,16 @@ pInTags :: String -> TagParser [a]
 pInTags tagtype parser = try $ do
   pSatisfy (~== TagOpen tagtype [])
   liftM concat $ manyTill parser (pCloses tagtype <|> eof)
+
+pOptInTag :: String -> TagParser a
+          -> TagParser a
+pOptInTag tagtype parser = try $ do
+  open <- option False (pSatisfy (~== TagOpen tagtype []) >> return True)
+  skipMany pBlank
+  x <- parser
+  skipMany pBlank
+  when open $ pCloses tagtype
+  return x
 
 pCloses :: String -> TagParser ()
 pCloses tagtype = try $ do
