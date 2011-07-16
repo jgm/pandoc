@@ -75,7 +75,7 @@ parseHeader tags = (Meta{docTitle = tit'', docAuthors = [], docDate = []}, rest)
                                                 t ~== TagOpen "body" []) tags
 
 parseBody :: TagParser [Block]
-parseBody = liftM concat $ manyTill block eof
+parseBody = liftM (fixPlains False . concat) $ manyTill block eof
 
 block :: TagParser [Block]
 block = choice
@@ -107,7 +107,7 @@ pBulletList = try $ do
   -- treat it as a list item, though it's not valid xhtml...
   skipMany nonItem
   items <- manyTill (pInTags "li" block >>~ skipMany nonItem) (pCloses "ul")
-  return [BulletList $ map fixPlains items]
+  return [BulletList $ map (fixPlains True) items]
 
 pOrderedList :: TagParser [Block]
 pOrderedList = try $ do
@@ -138,7 +138,7 @@ pOrderedList = try $ do
   -- treat it as a list item, though it's not valid xhtml...
   skipMany nonItem
   items <- manyTill (pInTags "li" block >>~ skipMany nonItem) (pCloses "ol")
-  return [OrderedList (start, style, DefaultDelim) $ map fixPlains items]
+  return [OrderedList (start, style, DefaultDelim) $ map (fixPlains True) items]
 
 pDefinitionList :: TagParser [Block]
 pDefinitionList = try $ do
@@ -154,16 +154,19 @@ pDefListItem = try $ do
   defs  <- many1 (try $ skipMany nonItem >> pInTags "dd" block)
   skipMany nonItem
   let term = intercalate [LineBreak] terms
-  return (term, map fixPlains defs)
+  return (term, map (fixPlains True) defs)
 
-fixPlains :: [Block] -> [Block]
-fixPlains bs = if any isParaish bs
-                  then map plainToPara bs
-                  else bs
+fixPlains :: Bool -> [Block] -> [Block]
+fixPlains inList bs = if any isParaish bs
+                         then map plainToPara bs
+                         else bs
   where isParaish (Para _) = True
         isParaish (CodeBlock _ _) = True
         isParaish (Header _ _) = True
         isParaish (BlockQuote _) = True
+        isParaish (BulletList _) = not inList
+        isParaish (OrderedList _ _) = not inList
+        isParaish (DefinitionList _) = not inList
         isParaish _        = False
         plainToPara (Plain xs) = Para xs
         plainToPara x = x
@@ -231,7 +234,7 @@ pCell celltype = try $ do
 pBlockQuote :: TagParser [Block]
 pBlockQuote = do
   contents <- pInTags "blockquote" block
-  return [BlockQuote contents]
+  return [BlockQuote $ fixPlains False contents]
 
 pPlain :: TagParser [Block]
 pPlain = do

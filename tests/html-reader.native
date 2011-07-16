@@ -183,39 +183,6 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
  ,([Str "Cello",LineBreak,Str "Violoncello"],
    [[Plain [Str "Low",Str "-",Str "voiced",Space,Str "stringed",Space,Str "instrument",Str "."]]])]
 ,HorizontalRule
-,Header 1 [Str "HTML",Space,Str "Blocks"]
-,Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line:"]
-,Plain [Str "foo"]
-,Para [Str "And",Space,Str "nested",Space,Str "without",Space,Str "indentation:"]
-,Plain [Str "foobar"]
-,Para [Str "Interpreted",Space,Str "markdown",Space,Str "in",Space,Str "a",Space,Str "table:"]
-,Plain [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ".",Space,Str "And",Space,Str "this",Space,Str "is",Space,Strong [Str "strong"]]
-,Para [Str "Here",Str "'",Str "s",Space,Str "a",Space,Str "simple",Space,Str "block:"]
-,Plain [Str "foo"]
-,Para [Str "This",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "code",Space,Str "block,",Space,Str "though:"]
-,CodeBlock ("",[],[]) "<div>\n    foo\n</div>"
-,Para [Str "As",Space,Str "should",Space,Str "this:"]
-,CodeBlock ("",[],[]) "<div>foo</div>"
-,Para [Str "Now,",Space,Str "nested:"]
-,Plain [Str "foo"]
-,Para [Str "This",Space,Str "should",Space,Str "just",Space,Str "be",Space,Str "an",Space,Str "HTML",Space,Str "comment:"]
-,Para [Str "Multiline:"]
-,Para [Str "Code",Space,Str "block:"]
-,CodeBlock ("",[],[]) "<!-- Comment -->"
-,Para [Str "Just",Space,Str "plain",Space,Str "comment,",Space,Str "with",Space,Str "trailing",Space,Str "spaces",Space,Str "on",Space,Str "the",Space,Str "line:"]
-,Para [Str "Code:"]
-,CodeBlock ("",[],[]) "<hr />"
-,Para [Str "Hr",Str "'",Str "s:"]
-,HorizontalRule
-,HorizontalRule
-,HorizontalRule
-,HorizontalRule
-,HorizontalRule
-,HorizontalRule
-,HorizontalRule
-,HorizontalRule
-,HorizontalRule
-,HorizontalRule
 ,Header 1 [Str "Inline",Space,Str "Markup"]
 ,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str "."]
 ,Para [Str "This",Space,Str "is",Space,Strong [Str "strong"],Str ",",Space,Str "and",Space,Str "so",Space,Strong [Str "is",Space,Str "this"],Str "."]
@@ -293,7 +260,7 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 ,Para [Link [Str "URL",Space,Str "and",Space,Str "title"] ("/url/","title preceded by a tab"),Str "."]
 ,Para [Link [Str "URL",Space,Str "and",Space,Str "title"] ("/url/","title with \"quotes\" in it")]
 ,Para [Link [Str "URL",Space,Str "and",Space,Str "title"] ("/url/","title with single quotes")]
-,Plain [Str "Email",Space,Str "link",Space,Str "(nobody",Space,Str "[at]",Space,Str "nowhere",Str ".",Str "net)"]
+,Para [Str "Email",Space,Str "link",Space,Str "(nobody",Space,Str "[at]",Space,Str "nowhere",Str ".",Str "net)"]
 ,Para [Link [Str "Empty"] ("",""),Str "."]
 ,Header 2 [Str "Reference"]
 ,Para [Str "Foo",Space,Link [Str "bar"] ("/url/",""),Str "."]
@@ -319,7 +286,7 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
  [[Plain [Str "In",Space,Str "a",Space,Str "list?"]]
  ,[Plain [Link [Str "http://example",Str ".",Str "com/"] ("http://example.com/","")]]
  ,[Plain [Str "It",Space,Str "should",Str "."]]]
-,Plain [Str "An",Space,Str "e",Str "-",Str "mail",Space,Str "address:",Space,Str "nobody",Space,Str "[at]",Space,Str "nowhere",Str ".",Str "net"]
+,Para [Str "An",Space,Str "e",Str "-",Str "mail",Space,Str "address:",Space,Str "nobody",Space,Str "[at]",Space,Str "nowhere",Str ".",Str "net"]
 ,BlockQuote
  [Para [Str "Blockquoted:",Space,Link [Str "http://example",Str ".",Str "com/"] ("http://example.com/","")]]
 ,Para [Str "Auto",Str "-",Str "links",Space,Str "should",Space,Str "not",Space,Str "occur",Space,Str "here:",Space,Code ("",[],[]) "<http://example.com/>"]
