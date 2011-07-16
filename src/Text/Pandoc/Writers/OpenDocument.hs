@@ -394,7 +394,7 @@ inlineToOpenDocument o ils
       mkImg  s     = inTags False "draw:frame" [] $
                      selfClosingTag "draw:image" [ ("xlink:href"   , s       )
                                                  , ("xlink:type"   , "simple")
-                                                 , (" xlink:show"  , "embed" )
+                                                 , ("xlink:show"   , "embed" )
                                                  , ("xlink:actuate", "onLoad")]
       mkNote     l = do
         n <- length <$> gets stNotes

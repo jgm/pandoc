@@ -47,6 +47,7 @@ import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.Markdown ( writePlain )
 import Data.Char ( toLower )
 import System.Directory ( copyFile )
+import Network.URI ( unEscapeString )
 
 -- | Produce an EPUB file from a Pandoc document.
 writeEPUB :: Maybe String   -- ^ EPUB stylesheet specified at command line
@@ -238,9 +239,10 @@ transformInlines :: HTMLMathMethod
 transformInlines _ _ _ (Image lab (src,_) : xs) | isNothing (imageTypeOf src) =
   return $ Emph lab : xs
 transformInlines _ sourceDir picsRef (Image lab (src,tit) : xs) = do
+  let src' = unEscapeString src
   pics <- readIORef picsRef
-  let oldsrc = sourceDir </> src
-  let ext = takeExtension src
+  let oldsrc = sourceDir </> src'
+  let ext = takeExtension src'
   newsrc <- case lookup oldsrc pics of
                   Just n  -> return n
                   Nothing -> do

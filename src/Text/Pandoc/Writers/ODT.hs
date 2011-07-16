@@ -41,6 +41,7 @@ import Text.Pandoc.Generic
 import Text.Pandoc.Writers.OpenDocument ( writeOpenDocument )
 import System.Directory
 import Control.Monad (liftM)
+import Network.URI ( unEscapeString )
 
 -- | Produce an ODT file from a Pandoc document.
 writeODT :: Maybe FilePath -- ^ Path specified by --reference-odt
@@ -74,9 +75,10 @@ writeODT mbRefOdt opts doc = do
 
 transformPic :: FilePath -> IORef [Entry] -> Inline -> IO Inline
 transformPic sourceDir entriesRef (Image lab (src,tit)) = do
+  let src' = unEscapeString src
   entries <- readIORef entriesRef
-  let newsrc = "Pictures/" ++ show (length entries) ++ takeExtension src
-  catch (readEntry [] (sourceDir </> src) >>= \entry ->
+  let newsrc = "Pictures/" ++ show (length entries) ++ takeExtension src'
+  catch (readEntry [] (sourceDir </> src') >>= \entry ->
            modifyIORef entriesRef (entry{ eRelativePath = newsrc } :) >>
            return (Image lab (newsrc, tit)))
         (\_ -> return (Emph lab))

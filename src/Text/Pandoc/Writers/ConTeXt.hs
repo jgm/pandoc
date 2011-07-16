@@ -36,6 +36,7 @@ import Data.List ( intercalate )
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import Text.Pandoc.Templates ( renderTemplate )
+import Network.URI ( isAbsoluteURI, unEscapeString )
 
 data WriterState = 
   WriterState { stNextRef          :: Int  -- number of next URL reference
@@ -282,7 +283,10 @@ inlineToConTeXt (Link txt (src, _)) = do
            brackets empty <> brackets label <>
            "\\from" <> brackets (text ref)
 inlineToConTeXt (Image _ (src, _)) = do
-  return $ braces $ "\\externalfigure" <> brackets (text src)
+  let src' = if isAbsoluteURI src
+                then src
+                else unEscapeString src
+  return $ braces $ "\\externalfigure" <> brackets (text src')
 inlineToConTeXt (Note contents) = do
   contents' <- blockListToConTeXt contents
   return $ text "\\footnote{" <>

@@ -37,6 +37,8 @@ import Data.Ord ( comparing )
 import Data.Char ( chr, ord )
 import Control.Monad.State
 import Text.Pandoc.Pretty
+import Network.URI ( isAbsoluteURI, unEscapeString )
+import System.FilePath
 
 data WriterState = 
   WriterState { stStrikeout   :: Bool  -- document contains strikeout
@@ -412,11 +414,11 @@ inlineToTexinfo (Image alternate (source, _)) = do
   return $ text ("@image{" ++ base ++ ",,,") <> content <> text "," <>
            text (ext ++ "}")
   where
-    (revext, revbase) = break (=='.') (reverse source)
-    ext  = reverse revext
-    base = case revbase of
-            ('.' : rest) -> reverse rest
-            _            -> reverse revbase
+    ext     = drop 1 $ takeExtension source'
+    base    = takeBaseName source'
+    source' = if isAbsoluteURI source
+                 then source
+                 else unEscapeString source
 
 inlineToTexinfo (Note contents) = do
   contents' <- blockListToTexinfo contents

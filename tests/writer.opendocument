@@ -1571,9 +1571,9 @@ link in pointy braces</text:span></text:a>.</text:p>
 <text:h text:style-name="Heading_20_1" text:outline-level="1">Images</text:h>
 <text:p text:style-name="First_20_paragraph">From &#8220;Voyage dans la
 Lune&#8221; by Georges Melies (1902):</text:p>
-<text:p text:style-name="Text_20_body"><draw:frame><draw:image xlink:href="lalune.jpg" xlink:type="simple"  xlink:show="embed" xlink:actuate="onLoad" /></draw:frame></text:p>
+<text:p text:style-name="Text_20_body"><draw:frame><draw:image xlink:href="lalune.jpg" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad" /></draw:frame></text:p>
 <text:p text:style-name="Text_20_body">Here is a movie
-<draw:frame><draw:image xlink:href="movie.jpg" xlink:type="simple"  xlink:show="embed" xlink:actuate="onLoad" /></draw:frame>
+<draw:frame><draw:image xlink:href="movie.jpg" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad" /></draw:frame>
 icon.</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
 <text:h text:style-name="Heading_20_1" text:outline-level="1">Footnotes</text:h>

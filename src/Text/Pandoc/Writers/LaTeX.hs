@@ -34,6 +34,7 @@ import Text.Pandoc.Generic
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
+import Network.URI ( isAbsoluteURI, unEscapeString )
 import Data.List ( (\\), isSuffixOf, isPrefixOf, intercalate, intersperse )
 import Data.Char ( toLower, isPunctuation )
 import Control.Monad.State
@@ -425,7 +426,10 @@ inlineToLaTeX (Link txt (src, _)) =
                          contents <> char '}'
 inlineToLaTeX (Image _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True }
-  return $ "\\includegraphics" <> braces (text source)
+  let source' = if isAbsoluteURI source
+                   then source
+                   else unEscapeString source
+  return $ "\\includegraphics" <> braces (text source')
 inlineToLaTeX (Note contents) = do
   modify (\s -> s{stInNote = True})
   contents' <- blockListToLaTeX contents

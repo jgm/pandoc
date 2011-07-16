@@ -37,23 +37,28 @@ import Data.Char ( ord, isDigit, toLower )
 import System.FilePath ( takeExtension )
 import qualified Data.ByteString as B
 import Text.Printf ( printf )
+import Network.URI ( isAbsoluteURI, unEscapeString )
 
 -- | Convert Image inlines into a raw RTF embedded image, read from a file.
 -- If file not found or filetype not jpeg or png, leave the inline unchanged.
 rtfEmbedImage :: Inline -> IO Inline
-rtfEmbedImage x@(Image _ (src,_))
-  | map toLower (takeExtension src) `elem` [".jpg",".jpeg",".png"] = do
-  imgdata <- catch (B.readFile src) (\_ -> return B.empty)
-  let bytes = map (printf "%02x") $ B.unpack imgdata
-  let filetype = case map toLower (takeExtension src) of
-                      ".jpg" -> "\\jpegblip"
-                      ".jpeg" -> "\\jpegblip"
-                      ".png"  -> "\\pngblip"
-                      _      -> error "Unknown file type"
-  let raw = "{\\pict" ++ filetype ++ " " ++ concat bytes ++ "}"
-  return $ if B.null imgdata
-              then x
-              else RawInline "rtf" raw
+rtfEmbedImage x@(Image _ (src,_)) = do
+  let ext = map toLower (takeExtension src)
+  if ext `elem` [".jpg",".jpeg",".png"] && not (isAbsoluteURI src)
+     then do
+       let src' = unEscapeString src
+       imgdata <- catch (B.readFile src') (\_ -> return B.empty)
+       let bytes = map (printf "%02x") $ B.unpack imgdata
+       let filetype = case ext of
+                           ".jpg" -> "\\jpegblip"
+                           ".jpeg" -> "\\jpegblip"
+                           ".png"  -> "\\pngblip"
+                           _      -> error "Unknown file type"
+       let raw = "{\\pict" ++ filetype ++ " " ++ concat bytes ++ "}"
+       return $ if B.null imgdata
+                   then x
+                   else RawInline "rtf" raw
+     else return x
 rtfEmbedImage x = return x
 
 -- | Convert Pandoc to a string in rich text format.
