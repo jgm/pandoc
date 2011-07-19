@@ -36,7 +36,8 @@ import Data.ByteString.Lazy.UTF8 ( fromString )
 import Codec.Archive.Zip
 import System.Time
 import Paths_pandoc ( getDataFileName )
-import Text.Pandoc.Shared ( WriterOptions(..), getMimeType )
+import Text.Pandoc.Shared ( WriterOptions(..) )
+import Text.Pandoc.MIME ( getMimeType )
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Writers.OpenDocument ( writeOpenDocument )

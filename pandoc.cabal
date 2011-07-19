@@ -262,6 +262,7 @@ Library
                    Text.Pandoc.Biblio
   Other-Modules:   Text.Pandoc.XML,
                    Text.Pandoc.UTF8,
+                   Text.Pandoc.MIME,
                    Text.Pandoc.UUID,
                    Paths_pandoc
 
