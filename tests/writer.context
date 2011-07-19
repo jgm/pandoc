@@ -490,9 +490,9 @@ Multiple blocks with italics:
 \startdescr{{\em orange}}
   orange fruit
 
-  \starttyping
+\starttyping
 { orange code block }
-  \stoptyping
+\stoptyping
 
   \startblockquote
   orange block quote
@@ -866,9 +866,9 @@ Here is a footnote reference,\footnote{Here is the footnote. It can go
   Subsequent blocks are indented to show that they belong to the footnote (as
   with list items).
 
-  \starttyping
+\starttyping
   { <code> }
-  \stoptyping
+\stoptyping
 
   If you want, you can indent every line, but you can also be lazy and just
   indent the first line of each block.} This should {\em not} be a footnote
