@@ -216,8 +216,9 @@ blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
           | null params = empty
           | otherwise   = "[" <> hsep (intersperse "," (map text params)) <>
                           "]"
-  return $ "\\begin{" <> text env <> "}" <> printParams $$ flush (text str) $$
-           "\\end{" <> text env <> "}" $$ cr   -- final cr needed because of footnotes
+  return $ flush ("\\begin{" <> text env <> "}" <> printParams $$ text str $$
+           "\\end{" <> text env <> "}") $$ cr
+           -- final cr needed because of footnotes
 blockToLaTeX (RawBlock "latex" x) = return $ text x <> blankline
 blockToLaTeX (RawBlock _ _) = return empty
 blockToLaTeX (BulletList lst) = do
