@@ -1,0 +1,3 @@
+[submodule "templates"]
+	path = templates
+	url = git@github.com:jgm/pandoc-templates.git
