@@ -570,6 +570,13 @@ consecutive items:
 
     $for(author)$$author$$sep$, $endfor$
 
+If you use custom templates, you may need to revise them as pandoc
+changes.  We recommend tracking the changes in the default templates,
+and modifying your custom templates accordingly. An easy way to do this
+is to fork the
+[pandoc-templates repository](http://github.com/jgm/pandoc-templates)
+and merge in changes after each pandoc release.
+
 Pandoc's markdown
 =================
 
