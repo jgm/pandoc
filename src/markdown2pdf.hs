@@ -48,7 +48,7 @@ runPandoc inputsAndArgs output = do
 runLatexRaw :: String -> FilePath -> IO (Either (Either String String) FilePath)
 runLatexRaw latexProgram file = do
   -- we ignore the ExitCode because pdflatex always fails the first time
-  run latexProgram ["-interaction=batchmode", "-output-directory",
+  run latexProgram ["-halt-on-error", "-output-directory",
     takeDirectory file, dropExtension file] >> return ()
   let pdfFile = replaceExtension file "pdf"
   let logFile = replaceExtension file "log"
