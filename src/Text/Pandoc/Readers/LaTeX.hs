@@ -391,7 +391,7 @@ para = do
 --
 
 bibliographic :: GenParser Char ParserState Block
-bibliographic = choice [ maketitle, title, authors, date ]
+bibliographic = choice [ maketitle, title, subtitle, authors, date ]
 
 maketitle :: GenParser Char st Block
 maketitle = try (string "\\maketitle") >> spaces >> return Null
@@ -402,6 +402,15 @@ title = try $ do
   tit <- manyTill inline (char '}')
   spaces
   updateState (\state -> state { stateTitle = tit })
+  return Null
+
+subtitle :: GenParser Char ParserState Block
+subtitle = try $ do
+  string "\\subtitle{"
+  tit <- manyTill inline (char '}')
+  spaces
+  updateState (\state -> state { stateTitle = stateTitle state ++
+                                   Str ":" : LineBreak : tit })
   return Null
 
 authors :: GenParser Char ParserState Block
