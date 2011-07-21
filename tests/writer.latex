@@ -32,7 +32,7 @@
 \VerbatimFootnotes % allows verbatim text in footnotes
 
 \title{Pandoc Test Suite}
-\author{John MacFarlane\\Anonymous}
+\author{John MacFarlane \and Anonymous}
 \date{July 17, 2006}
 
 \begin{document}

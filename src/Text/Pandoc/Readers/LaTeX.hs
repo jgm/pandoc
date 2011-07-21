@@ -407,8 +407,10 @@ title = try $ do
 authors :: GenParser Char ParserState Block
 authors = try $ do
   string "\\author{"
-  raw <- many1 (notFollowedBy (char '}') >> inline)
-  let authors' = map normalizeSpaces $ splitBy (== LineBreak) raw
+  let andsep = try $ string "\\and" >> notFollowedBy letter >>
+                     spaces >> return '&'
+  raw <- sepBy (many $ notFollowedBy (char '}' <|> andsep) >> inline) andsep
+  let authors' = map normalizeSpaces raw
   char '}'
   spaces
   updateState (\s -> s { stateAuthors = authors' })
