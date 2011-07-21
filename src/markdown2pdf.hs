@@ -2,8 +2,10 @@ module Main where
 
 import Data.List (isInfixOf, intercalate, isPrefixOf)
 import Data.Maybe (isNothing)
-
-import Control.Monad (unless, guard)
+import qualified Data.ByteString as BS
+import Codec.Binary.UTF8.String (decodeString, encodeString)
+import Data.ByteString.UTF8 (toString)
+import Control.Monad (unless, guard, liftM)
 import Control.Exception (tryJust, bracket)
 
 import System.IO (stderr)
@@ -14,8 +16,6 @@ import System.Exit (ExitCode (..), exitWith)
 import System.FilePath
 import System.Directory
 import System.Process (readProcessWithExitCode)
-import Codec.Binary.UTF8.String (decodeString, encodeString)
-import Control.Monad (liftM)
 
 run :: FilePath -> [String] -> IO (Either String String)
 run file opts = do
@@ -52,7 +52,8 @@ runLatexRaw latexProgram file = do
     takeDirectory file, dropExtension file] >> return ()
   let pdfFile = replaceExtension file "pdf"
   let logFile = replaceExtension file "log"
-  txt <- tryJust (guard . isDoesNotExistError) (UTF8.readFile logFile)
+  txt <- tryJust (guard . isDoesNotExistError)
+         (liftM toString $ BS.readFile logFile)
   let  checks = checkLatex $ either (const "") id txt
   case checks of
   -- err  , bib , ref , msg
