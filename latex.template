@@ -1,18 +1,18 @@
 \documentclass$if(fontsize)$[$fontsize$]$endif${article}
 \usepackage{amssymb,amsmath}
-$if(xetex)$
-\usepackage{ifxetex}
-\ifxetex
+\usepackage{iftex}
+\ifXeTeX
   \usepackage{fontspec,xltxtra,xunicode}
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
 \else
-  \usepackage[mathletters]{ucs}
-  \usepackage[utf8x]{inputenc}
+  \ifLuaTeX
+    \usepackage{fontspec}
+    \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \else
+    \usepackage[mathletters]{ucs}
+    \usepackage[utf8x]{inputenc}
+  \fi
 \fi
-$else$
-\usepackage[mathletters]{ucs}
-\usepackage[utf8x]{inputenc}
-$endif$
 $if(natbib)$
 \usepackage{natbib}
 \bibliographystyle{plainnat}
