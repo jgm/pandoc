@@ -5,21 +5,60 @@ import Data.Maybe (isNothing)
 import qualified Data.ByteString as BS
 import Codec.Binary.UTF8.String (decodeString, encodeString)
 import Data.ByteString.UTF8 (toString)
-import Control.Monad (unless, guard, liftM)
-import Control.Exception (tryJust, bracket)
+import Control.Monad (unless, guard, liftM, when)
+import Control.Concurrent (putMVar, takeMVar, newEmptyMVar, forkIO)
+import Control.Exception (tryJust, bracket, evaluate)
 
-import System.IO (stderr)
+import System.IO
 import System.IO.Error (isDoesNotExistError)
 import System.Environment ( getArgs, getProgName )
 import qualified Text.Pandoc.UTF8 as UTF8
 import System.Exit (ExitCode (..), exitWith)
 import System.FilePath
 import System.Directory
-import System.Process (readProcessWithExitCode)
+import System.Process
+
+-- A variant of 'readProcessWithExitCode' that does not
+-- cause an error if the output is not UTF-8. (Copied
+-- with slight variants from 'System.Process'.)
+readProcessWithExitCode'
+    :: FilePath                 -- ^ command to run
+    -> [String]                 -- ^ any arguments
+    -> String                   -- ^ standard input
+    -> IO (ExitCode,String,String) -- ^ exitcode, stdout, stderr
+readProcessWithExitCode' cmd args input = do
+    (Just inh, Just outh, Just errh, pid) <-
+        createProcess (proc cmd args){ std_in  = CreatePipe,
+                                       std_out = CreatePipe,
+                                       std_err = CreatePipe }
+
+    outMVar <- newEmptyMVar
+
+    -- fork off a thread to start consuming stdout
+    out  <- liftM toString $ BS.hGetContents outh
+    _ <- forkIO $ evaluate (length out) >> putMVar outMVar ()
+
+    -- fork off a thread to start consuming stderr
+    err  <- liftM toString $ BS.hGetContents errh
+    _ <- forkIO $ evaluate (length err) >> putMVar outMVar ()
+
+    -- now write and flush any input
+    when (not (null input)) $ do hPutStr inh input; hFlush inh
+    hClose inh -- done with stdin
+
+    -- wait on the output
+    takeMVar outMVar
+    takeMVar outMVar
+    hClose outh
+
+    -- wait on the process
+    ex <- waitForProcess pid
+
+    return (ex, out, err)
 
 run :: FilePath -> [String] -> IO (Either String String)
 run file opts = do
-  (code, out, err) <- readProcessWithExitCode (encodeString file)
+  (code, out, err) <- readProcessWithExitCode' (encodeString file)
                         (map encodeString opts) ""
   let msg = out ++ err
   case code of
@@ -123,7 +162,7 @@ exit x = do
 
 saveStdin :: FilePath -> IO (Either String FilePath)
 saveStdin file = do
-  text <- UTF8.getContents
+  text <- liftM toString $ BS.getContents
   UTF8.writeFile file text
   fileExist <- doesFileExist (encodeString file)
   case fileExist of
