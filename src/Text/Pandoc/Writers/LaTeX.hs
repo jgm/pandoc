@@ -152,21 +152,13 @@ stringToLaTeX = escapeStringUsing latexEscapes
 inCmd :: String -> Doc -> Doc
 inCmd cmd contents = char '\\' <> text cmd <> braces contents
 
--- | Remove all code elements from list of inline elements
--- (because it's illegal to have verbatim inside some command arguments)
-deVerb :: [Inline] -> [Inline]
-deVerb [] = []
-deVerb ((Code _ str):rest) = 
-  (RawInline "latex" $ "\\texttt{" ++ stringToLaTeX str ++ "}"):(deVerb rest)
-deVerb (other:rest) = other:(deVerb rest)
-
 -- | Convert Pandoc block element to LaTeX.
 blockToLaTeX :: Block     -- ^ Block to convert
              -> State WriterState Doc
 blockToLaTeX Null = return empty
 blockToLaTeX (Plain lst) = inlineListToLaTeX lst
 blockToLaTeX (Para [Image txt (src,tit)]) = do
-  capt <- inlineListToLaTeX $ deVerb txt
+  capt <- inlineListToLaTeX txt
   img <- inlineToLaTeX (Image txt (src,tit))
   return $ "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
            ("\\caption{" <> capt <> char '}') $$ "\\end{figure}" $$ blankline
@@ -250,14 +242,13 @@ blockToLaTeX (DefinitionList lst) = do
 blockToLaTeX HorizontalRule = return $
   "\\begin{center}\\rule{3in}{0.4pt}\\end{center}" $$ blankline
 blockToLaTeX (Header level lst) = do
-  let lst' = deVerb lst
-  txt <- inlineListToLaTeX lst'
+  txt <- inlineListToLaTeX lst
   let noNote (Note _) = Str ""
       noNote x        = x
-  let lstNoNotes = bottomUp noNote lst'
+  let lstNoNotes = bottomUp noNote lst
   -- footnotes in sections don't work unless you specify an optional
   -- argument:  \section[mysec]{mysec\footnote{blah}}
-  optional <- if lstNoNotes == lst'
+  optional <- if lstNoNotes == lst
                  then return empty
                  else do
                    res <- inlineListToLaTeX lstNoNotes
@@ -280,7 +271,7 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
                 then return empty
                 else liftM ($$ "\\ML")
                      $ (tableRowToLaTeX True aligns widths) heads
-  captionText <- inlineListToLaTeX $ deVerb caption
+  captionText <- inlineListToLaTeX caption
   let capt = if isEmpty captionText
                 then empty
                 else text "caption = " <> captionText <> "," <> space
@@ -337,7 +328,7 @@ listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
 
 defListItemToLaTeX :: ([Inline], [[Block]]) -> State WriterState Doc
 defListItemToLaTeX (term, defs) = do
-    term' <- inlineListToLaTeX $ deVerb term
+    term' <- inlineListToLaTeX term
     def'  <- liftM vsep $ mapM blockListToLaTeX defs
     return $ "\\item" <> brackets term' $$ def'
 
@@ -355,23 +346,23 @@ isQuoted _ = False
 inlineToLaTeX :: Inline    -- ^ Inline to convert
               -> State WriterState Doc
 inlineToLaTeX (Emph lst) =
-  inlineListToLaTeX (deVerb lst) >>= return . inCmd "emph"
+  inlineListToLaTeX lst >>= return . inCmd "emph"
 inlineToLaTeX (Strong lst) = 
-  inlineListToLaTeX (deVerb lst) >>= return . inCmd "textbf" 
+  inlineListToLaTeX lst >>= return . inCmd "textbf" 
 inlineToLaTeX (Strikeout lst) = do
-  contents <- inlineListToLaTeX $ deVerb lst
+  contents <- inlineListToLaTeX lst
   modify $ \s -> s{ stStrikeout = True }
   return $ inCmd "sout" contents
 inlineToLaTeX (Superscript lst) =
-  inlineListToLaTeX (deVerb lst) >>= return . inCmd "textsuperscript"
+  inlineListToLaTeX lst >>= return . inCmd "textsuperscript"
 inlineToLaTeX (Subscript lst) = do
   modify $ \s -> s{ stSubscript = True }
-  contents <- inlineListToLaTeX $ deVerb lst
+  contents <- inlineListToLaTeX lst
   -- oddly, latex includes \textsuperscript but not \textsubscript
   -- so we have to define it (using a different name so as not to conflict with memoir class):
   return $ inCmd "textsubscr" contents
 inlineToLaTeX (SmallCaps lst) =
-  inlineListToLaTeX (deVerb lst) >>= return . inCmd "textsc"
+  inlineListToLaTeX lst >>= return . inCmd "textsc"
 inlineToLaTeX (Cite cits lst) = do
   st <- get
   let opts = stOptions st
@@ -386,7 +377,7 @@ inlineToLaTeX (Code _ str) = do
   let chr = ((enumFromTo '!' '~') \\ str) !! 0
   if writerListings (stOptions st)
     then return $ text $ "\\lstinline" ++ [chr] ++ str ++ [chr]
-    else return $ text $ "\\verb" ++ [chr] ++ str ++ [chr]
+    else return $ text $ "\\texttt{" ++ stringToLaTeX str ++ "}"
 inlineToLaTeX (Quoted SingleQuote lst) = do
   contents <- inlineListToLaTeX lst
   let s1 = if (not (null lst)) && (isQuoted (head lst))
@@ -422,7 +413,7 @@ inlineToLaTeX (Link txt (src, _)) =
         [Code _ x] | x == src ->  -- autolink
              do modify $ \s -> s{ stUrl = True }
                 return $ text $ "\\url{" ++ x ++ "}"
-        _ -> do contents <- inlineListToLaTeX $ deVerb txt
+        _ -> do contents <- inlineListToLaTeX txt
                 return $ text ("\\href{" ++ stringToLaTeX src ++ "}{") <>
                          contents <> char '}'
 inlineToLaTeX (Image _ (source, _)) = do
