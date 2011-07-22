@@ -119,7 +119,9 @@ checkLatex ""  = (True, False, False, "Could not read log file")
 checkLatex txt = (err , bib, ref, unlines $! msgs ++ tips)
   where
   xs `oneOf` x = any (flip isInfixOf x) xs
-  msgs = filter (oneOf ["Error:", "Warning:"]) (lines txt)
+  msgs = dropWhile (not . errorline) $ lines txt
+  errorline ('!':_) = True
+  errorline _ = False
   tips = checkPackages msgs
   err = any (oneOf ["!", "LaTeX Error:", "Latex Error:"]) msgs
   bib = any (oneOf ["Warning: Citation"
