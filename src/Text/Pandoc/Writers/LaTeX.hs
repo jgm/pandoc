@@ -111,7 +111,6 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  , ("title", titletext)
                  , ("date", dateText) ] ++
                  [ ("author", a) | a <- authorsText ] ++
-                 [ ("xetex", "yes") | writerXeTeX options ] ++
                  [ ("verbatim-in-note", "yes") | stVerbInNote st ] ++
                  [ ("fancy-enums", "yes") | stEnumerate st ] ++
                  [ ("tables", "yes") | stTable st ] ++

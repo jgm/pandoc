@@ -42,9 +42,6 @@ packages are not included in your latex setup, they can be obtained from
 \--strict
 :   Use strict markdown syntax, with no extensions or variants.
 
-\--xetex
-:   Use xelatex instead of pdflatex to create the PDF.
-
 -N, \--number-sections
 :   Number section headings in LaTeX output.  (Default is not to number them.)
 
@@ -108,6 +105,9 @@ packages are not included in your latex setup, they can be obtained from
     in Windows. A `reference.odt`, `epub.css`, `templates` directory,
     or `s5` directory placed in this directory will override pandoc's
     normal defaults.
+
+\--xetex
+:   Use xelatex instead of pdflatex to create the PDF.
 
 # SEE ALSO
 

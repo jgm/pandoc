@@ -309,7 +309,10 @@ options =
 
     , Option "" ["xetex"]
                  (NoArg
-                  (\opt -> return opt { optXeTeX = True }))
+                  (\opt -> do
+                     UTF8.hPutStrLn stderr $ "pandoc: --xetex is deprecated. "
+                       ++ "It is no longer needed for use with XeTeX."
+                     return opt { optXeTeX = True }))
                  "" -- "Format latex for processing by XeTeX"
 
     , Option "" ["chapters"]
@@ -675,7 +678,6 @@ main = do
               , optSectionDivs       = sectionDivs
               , optIncremental       = incremental
               , optOffline           = offline
-              , optXeTeX             = xetex
               , optSmart             = smart
               , optHtml5             = html5
               , optChapters          = chapters
@@ -786,7 +788,8 @@ main = do
                               stateIndentedCodeClasses = codeBlockClasses,
                               stateApplyMacros     = writerName' `notElem` ["latex", "latex+lhs"] }
 
-  let writerOptions = WriterOptions { writerStandalone       = standalone',
+  let writerOptions = defaultWriterOptions
+                                    { writerStandalone       = standalone',
                                       writerTemplate         = if null template
                                                                   then defaultTemplate
                                                                   else template,
@@ -798,7 +801,6 @@ main = do
                                       writerHTMLMathMethod   = mathMethod,
                                       writerSlideVariant     = slideVariant,
                                       writerIncremental      = incremental,
-                                      writerXeTeX            = xetex,
                                       writerCiteMethod       = citeMethod,
                                       writerBiblioFiles      = reffiles,
                                       writerIgnoreNotes      = False,

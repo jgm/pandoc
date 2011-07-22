@@ -265,9 +265,6 @@ Options
     show in the output, so that the slide show will work even when no
     internet connection is available.
 
-`--xetex`
-:   Create LaTeX outut suitable for processing by XeTeX.
-
 `--chapters`
 :   Treat top-level headers as chapters in LaTeX, ConTeXt, and DocBook
     output.

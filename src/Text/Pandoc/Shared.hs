@@ -493,6 +493,7 @@ data WriterOptions = WriterOptions
   , writerAscii            :: Bool       -- ^ Avoid non-ascii characters
   } deriving Show
 
+{-# DEPRECATED writerXeTeX "writerXeTeX no longer does anything" #-}
 -- | Default writer options.
 defaultWriterOptions :: WriterOptions
 defaultWriterOptions = 

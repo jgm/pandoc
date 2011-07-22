@@ -210,8 +210,11 @@ main = bracket
       (code, out, _err) <- readProcessWithExitCode "pandoc" ["--help"] ""
       UTF8.putStrLn "markdown2pdf [OPTIONS] [FILES]\nOptions:"
       UTF8.putStr $ unlines $
-               filter (\l -> any (`isInfixOf` l) goodoptslong) $ lines out
+                 filter (\l -> any (`isInfixOf` l) goodoptslong) (lines out)
+                 ++ [replicate 24 ' ' ++ "--xetex"]
       exitWith code
+
+    let args' = filter (/= "--xetex") args
 
     -- check for executable files
     let latexProgram = if "--xetex" `elem` opts
@@ -224,7 +227,7 @@ main = bracket
 
     -- parse arguments
     -- if no input given, use 'stdin'
-    pandocArgs <- parsePandocArgs args
+    pandocArgs <- parsePandocArgs args'
     (input, output) <- case pandocArgs of
       Nothing      -> exit "Could not parse arguments"
       Just ([],out) -> do
@@ -235,7 +238,7 @@ main = bracket
       -- no need because we'll pass all arguments to pandoc
       Just (_ ,out) -> return ([], out)
     -- run pandoc
-    pandocRes <- runPandoc (input ++ args) $ replaceDirectory output tmp
+    pandocRes <- runPandoc (input ++ args') $ replaceDirectory output tmp
     case pandocRes of
       Left err -> exit err
       Right texFile  -> do
