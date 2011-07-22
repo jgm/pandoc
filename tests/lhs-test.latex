@@ -1,11 +1,22 @@
 \documentclass{article}
 \usepackage{amssymb,amsmath}
-\usepackage[mathletters]{ucs}
-\usepackage[utf8x]{inputenc}
+\usepackage{iftex}
+\ifXeTeX
+  \usepackage{fontspec,xltxtra,xunicode}
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+\else
+  \ifLuaTeX
+    \usepackage{fontspec}
+    \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \else
+    \usepackage[mathletters]{ucs}
+    \usepackage[utf8x]{inputenc}
+  \fi
+\fi
 \usepackage[breaklinks=true,unicode=true,pdfborder={0 0 0}]{hyperref}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
-\setlength{\emergencystretch}{3em}  -- prevent overfull lines
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
 \setcounter{secnumdepth}{0}
 
 
