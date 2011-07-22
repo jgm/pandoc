@@ -109,6 +109,9 @@ packages are not included in your latex setup, they can be obtained from
 \--xetex
 :   Use xelatex instead of pdflatex to create the PDF.
 
+\--luatex
+:   Use lualatex instead of pdflatex to create the PDF.
+
 # SEE ALSO
 
 `pandoc`(1), `pdflatex`(1)

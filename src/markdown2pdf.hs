@@ -194,7 +194,7 @@ main = bracket
     let goodopts = ["-f","-r","-N", "-p","-R","-H","-B","-A", "-C","-o","-V"]
     let goodoptslong = ["--from","--read","--strict",
                    "--preserve-tabs","--tab-stop","--parse-raw",
-                   "--toc","--table-of-contents", "--xetex",
+                   "--toc","--table-of-contents", "--xetex", "--luatex",
                    "--number-sections","--include-in-header",
                    "--include-before-body","--include-after-body",
                    "--custom-header","--output",
@@ -206,20 +206,23 @@ main = bracket
     -- note that a long option can come in this form: --opt=val
     let isGoodopt x = x `elem` (goodopts ++ goodoptslong) ||
                       any (\o -> (o ++ "=") `isPrefixOf` x) goodoptslong
+    let markdown2pdfOpts = ["--xetex","--luatex"]
     unless (all isGoodopt opts) $ do
       (code, out, _err) <- readProcessWithExitCode "pandoc" ["--help"] ""
       UTF8.putStrLn "markdown2pdf [OPTIONS] [FILES]\nOptions:"
       UTF8.putStr $ unlines $
                  filter (\l -> any (`isInfixOf` l) goodoptslong) (lines out)
-                 ++ [replicate 24 ' ' ++ "--xetex"]
+                 ++ map (replicate 24 ' ' ++) markdown2pdfOpts
       exitWith code
 
-    let args' = filter (/= "--xetex") args
+    let args' = filter (`notElem` markdown2pdfOpts) args
 
     -- check for executable files
     let latexProgram = if "--xetex" `elem` opts
                           then "xelatex"
-                          else "pdflatex"
+                          else if "--luatex" `elem` opts
+                                  then "lualatex"
+                                  else "pdflatex"
     let execs = ["pandoc", latexProgram, "bibtex"]
     paths <- mapM findExecutable execs
     let miss = map snd $ filter (isNothing . fst) $ zip paths execs
