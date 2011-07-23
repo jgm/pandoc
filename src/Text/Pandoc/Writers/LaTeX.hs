@@ -372,10 +372,11 @@ inlineToLaTeX (Cite cits lst) = do
 
 inlineToLaTeX (Code _ str) = do
   st <- get
-  when (stInNote st) $ modify $ \s -> s{ stVerbInNote = True }
-  let chr = ((enumFromTo '!' '~') \\ str) !! 0
   if writerListings (stOptions st)
-    then return $ text $ "\\lstinline" ++ [chr] ++ str ++ [chr]
+    then do
+      when (stInNote st) $ modify $ \s -> s{ stVerbInNote = True }
+      let chr = ((enumFromTo '!' '~') \\ str) !! 0
+      return $ text $ "\\lstinline" ++ [chr] ++ str ++ [chr]
     else return $ text $ "\\texttt{" ++ stringToLaTeX str ++ "}"
 inlineToLaTeX (Quoted SingleQuote lst) = do
   contents <- inlineListToLaTeX lst
