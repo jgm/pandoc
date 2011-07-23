@@ -1823,6 +1823,7 @@ creating and modifying CSL styles can be found at
 <http://citationstyles.org/downloads/primer.html>.
 A repository of CSL styles can be found at
 <https://github.com/citation-style-language/styles>.
+See also <http://zotero.org/styles> for easy browsing.
 
 Citations go inside square brackets and are separated by semicolons.
 Each citation must have a key, composed of '@' + the citation
