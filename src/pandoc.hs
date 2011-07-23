@@ -44,6 +44,8 @@ import Data.Char ( toLower )
 import Data.List ( intercalate, isSuffixOf, isPrefixOf )
 import System.Directory ( getAppUserDataDirectory, doesFileExist )
 import System.IO ( stdout, stderr )
+import System.IO.Error ( isDoesNotExistError )
+import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.CSL
 import Text.Pandoc.Biblio
@@ -93,7 +95,7 @@ data Opt = Opt
     , optParseRaw          :: Bool    -- ^ Parse unconvertable HTML and TeX
     , optTableOfContents   :: Bool    -- ^ Include table of contents
     , optTransforms        :: [Pandoc -> Pandoc]  -- ^ Doc transforms to apply
-    , optTemplate          :: String  -- ^ Custom template
+    , optTemplate          :: Maybe FilePath  -- ^ Custom template
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
@@ -137,7 +139,7 @@ defaultOpts = Opt
     , optParseRaw          = False
     , optTableOfContents   = False
     , optTransforms        = []
-    , optTemplate          = ""
+    , optTemplate          = Nothing
     , optVariables         = []
     , optOutputFile        = "-"    -- "-" means stdout
     , optNumberSections    = False
@@ -407,8 +409,7 @@ options =
     , Option "" ["template"]
                  (ReqArg
                   (\arg opt -> do
-                     text <- UTF8.readFile arg
-                     return opt{ optTemplate = text,
+                     return opt{ optTemplate = Just arg,
                                  optStandalone = True })
                   "FILENAME")
                  "" -- "Use custom template"
@@ -672,7 +673,7 @@ main = do
               , optVariables         = variables
               , optTableOfContents   = toc
               , optTransforms        = transforms
-              , optTemplate          = template
+              , optTemplate          = templatePath
               , optOutputFile        = outputFile
               , optNumberSections    = numberSections
               , optSectionDivs       = sectionDivs
@@ -731,10 +732,18 @@ main = do
      Just r  -> return r
      Nothing -> error ("Unknown reader: " ++ readerName')
 
-  templ <- getDefaultTemplate datadir writerName'
-  let defaultTemplate = case templ of
-                             Right t -> t
-                             Left  e -> error (show e)
+  templ <- case templatePath of
+                Nothing -> do
+                           deftemp <- getDefaultTemplate datadir writerName'
+                           case deftemp of
+                                 Left e   -> throwIO e
+                                 Right t  -> return t
+                Just tp -> catch (UTF8.readFile tp)
+                             (\e -> if isDoesNotExistError e
+                                       then catch
+                                             (readDataFile datadir tp)
+                                             (\_ -> throwIO e)
+                                       else throwIO e)
 
   let standalone' = standalone || isNonTextOutput writerName'
 
@@ -790,9 +799,7 @@ main = do
 
   let writerOptions = defaultWriterOptions
                                     { writerStandalone       = standalone',
-                                      writerTemplate         = if null template
-                                                                  then defaultTemplate
-                                                                  else template,
+                                      writerTemplate         = templ,
                                       writerVariables        = variables'',
                                       writerEPUBMetadata     = epubMetadata,
                                       writerTabStop          = tabStop,
