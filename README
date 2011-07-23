@@ -1390,6 +1390,9 @@ correct output, converting straight quotes to curly quotes, `---` and `--`
 to Em-dashes, and `...` to ellipses. Nonbreaking spaces are inserted after
 certain abbreviations, such as "Mr."
 
+Note:  if your LaTeX template uses the `csquotes` package, pandoc will
+detect automatically this and use `\enquote{...}` for quoted text.
+
 Inline formatting
 -----------------
 

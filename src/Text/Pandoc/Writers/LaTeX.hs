@@ -35,7 +35,8 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
 import Network.URI ( isAbsoluteURI, unEscapeString )
-import Data.List ( (\\), isSuffixOf, isPrefixOf, intercalate, intersperse )
+import Data.List ( (\\), isSuffixOf, isInfixOf,
+                   isPrefixOf, intercalate, intersperse )
 import Data.Char ( toLower, isPunctuation )
 import Control.Monad.State
 import Text.Pandoc.Pretty
@@ -57,6 +58,7 @@ data WriterState =
               , stGraphics   :: Bool          -- true if document contains images
               , stLHS        :: Bool          -- true if document has literate haskell code
               , stBook       :: Bool          -- true if document uses book or memoir class
+              , stCsquotes   :: Bool          -- true if document uses csquotes
               }
 
 -- | Convert Pandoc to LaTeX.
@@ -68,7 +70,8 @@ writeLaTeX options document =
                 stVerbInNote = False, stEnumerate = False,
                 stTable = False, stStrikeout = False, stSubscript = False,
                 stUrl = False, stGraphics = False,
-                stLHS = False, stBook = writerChapters options }
+                stLHS = False, stBook = writerChapters options,
+                stCsquotes = False }
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
@@ -78,6 +81,10 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
           "{report}" `isSuffixOf` x)
   when (any usesBookClass (lines template)) $
     modify $ \s -> s{stBook = True}
+  -- check for \usepackage...{csquotes}; if present, we'll use
+  -- \enquote{...} for smart quotes:
+  when ("{csquotes}" `isInfixOf` template) $
+    modify $ \s -> s{stCsquotes = True}
   opts <- liftM stOptions get
   let colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
@@ -380,22 +387,30 @@ inlineToLaTeX (Code _ str) = do
     else return $ text $ "\\texttt{" ++ stringToLaTeX str ++ "}"
 inlineToLaTeX (Quoted SingleQuote lst) = do
   contents <- inlineListToLaTeX lst
-  let s1 = if (not (null lst)) && (isQuoted (head lst))
-              then "\\,"
-              else empty
-  let s2 = if (not (null lst)) && (isQuoted (last lst))
-              then "\\,"
-              else empty
-  return $ char '`' <> s1 <> contents <> s2 <> char '\''
+  csquotes <- liftM stCsquotes get
+  if csquotes
+     then return $ "\\enquote" <> braces contents
+     else do
+       let s1 = if (not (null lst)) && (isQuoted (head lst))
+                   then "\\,"
+                   else empty
+       let s2 = if (not (null lst)) && (isQuoted (last lst))
+                   then "\\,"
+                   else empty
+       return $ char '`' <> s1 <> contents <> s2 <> char '\''
 inlineToLaTeX (Quoted DoubleQuote lst) = do
   contents <- inlineListToLaTeX lst
-  let s1 = if (not (null lst)) && (isQuoted (head lst))
-              then "\\,"
-              else empty
-  let s2 = if (not (null lst)) && (isQuoted (last lst))
-              then "\\,"
-              else empty
-  return $ "``" <> s1 <> contents <> s2 <> "''"
+  csquotes <- liftM stCsquotes get
+  if csquotes
+     then return $ "\\enquote" <> braces contents
+     else do
+       let s1 = if (not (null lst)) && (isQuoted (head lst))
+                   then "\\,"
+                   else empty
+       let s2 = if (not (null lst)) && (isQuoted (last lst))
+                   then "\\,"
+                   else empty
+       return $ "``" <> s1 <> contents <> s2 <> "''"
 inlineToLaTeX Apostrophe = return $ char '\''
 inlineToLaTeX EmDash = return "---"
 inlineToLaTeX EnDash = return "--"
