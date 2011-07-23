@@ -758,7 +758,7 @@ charOrRef cs =
 singleQuoteStart :: GenParser Char ParserState ()
 singleQuoteStart = do 
   failIfInQuoteContext InSingleQuote
-  try $ do charOrRef "'\8216"
+  try $ do charOrRef "'\8216\145"
            notFollowedBy (oneOf ")!],.;:-? \t\n")
            notFollowedBy (try (oneOfStrings ["s","t","m","ve","ll","re"] >>
                                satisfy (not . isAlphaNum))) 
@@ -767,23 +767,23 @@ singleQuoteStart = do
 
 singleQuoteEnd :: GenParser Char st ()
 singleQuoteEnd = try $ do
-  charOrRef "'\8217"
+  charOrRef "'\8217\146"
   notFollowedBy alphaNum
 
 doubleQuoteStart :: GenParser Char ParserState ()
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
-  try $ do charOrRef "\"\8220"
+  try $ do charOrRef "\"\8220\147"
            notFollowedBy (satisfy (\c -> c == ' ' || c == '\t' || c == '\n'))
 
 doubleQuoteEnd :: GenParser Char st ()
 doubleQuoteEnd = do
-  charOrRef "\"\8221"
+  charOrRef "\"\8221\148"
   return ()
 
 ellipses :: GenParser Char st Inline
 ellipses = do
-  try (charOrRef "…") <|> try (string "..." >> return '…')
+  try (charOrRef "…\133") <|> try (string "..." >> return '…')
   return Ellipses
 
 dash :: GenParser Char st Inline
@@ -791,13 +791,13 @@ dash = enDash <|> emDash
 
 enDash :: GenParser Char st Inline
 enDash = do
-  try (charOrRef "–") <|>
+  try (charOrRef "–\150") <|>
     try (char '-' >> lookAhead (satisfy isDigit) >> return '–')
   return EnDash
 
 emDash :: GenParser Char st Inline
 emDash = do
-  try (charOrRef "—") <|> (try $ string "--" >> optional (char '-') >> return '—')
+  try (charOrRef "—\151") <|> (try $ string "--" >> optional (char '-') >> return '—')
   return EmDash
 
 --

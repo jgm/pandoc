@@ -416,10 +416,12 @@ pBlank = try $ do
   guard $ all isSpace str
 
 pTagContents :: GenParser Char ParserState Inline
-pTagContents =  pStr <|> pSpace <|> smartPunctuation pTagContents <|> pSymbol
+pTagContents =
+  pStr <|> pSpace <|> smartPunctuation pTagContents <|> pSymbol <|> pBad
 
 pStr :: GenParser Char ParserState Inline
-pStr = liftM Str $ many1 $ satisfy $ \c -> not (isSpace c) && not (isSpecial c)
+pStr = liftM Str $ many1 $ satisfy $ \c ->
+           not (isSpace c) && not (isSpecial c) && not (isBad c)
 
 isSpecial :: Char -> Bool
 isSpecial '"' = True
@@ -434,6 +436,43 @@ isSpecial _ = False
 
 pSymbol :: GenParser Char ParserState Inline
 pSymbol = satisfy isSpecial >>= return . Str . (:[])
+
+isBad :: Char -> Bool
+isBad c = c >= '\128' && c <= '\159' -- not allowed in HTML
+
+pBad :: GenParser Char ParserState Inline
+pBad = do
+  c <- satisfy isBad
+  let c' = case c of
+                '\128' -> '\8364'
+                '\130' -> '\8218'
+                '\131' -> '\402'
+                '\132' -> '\8222'
+                '\133' -> '\8230'
+                '\134' -> '\8224'
+                '\135' -> '\8225'
+                '\136' -> '\710'
+                '\137' -> '\8240'
+                '\138' -> '\352'
+                '\139' -> '\8249'
+                '\140' -> '\338'
+                '\142' -> '\381'
+                '\145' -> '\8216'
+                '\146' -> '\8217'
+                '\147' -> '\8220'
+                '\148' -> '\8221'
+                '\149' -> '\8226'
+                '\150' -> '\8211'
+                '\151' -> '\8212'
+                '\152' -> '\732'
+                '\153' -> '\8482'
+                '\154' -> '\353'
+                '\155' -> '\8250'
+                '\156' -> '\339'
+                '\158' -> '\382'
+                '\159' -> '\376'
+                _      -> '?'
+  return $ Str [c']
 
 pSpace :: GenParser Char ParserState Inline
 pSpace = many1 (satisfy isSpace) >> return Space
