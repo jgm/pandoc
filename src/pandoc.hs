@@ -288,8 +288,12 @@ options =
                  "" -- "Use jsMath for HTML math"
 
     , Option "" ["mathjax"]
-                 (ReqArg
-                  (\arg opt -> return opt { optHTMLMathMethod = MathJax arg})
+                 (OptArg
+                  (\arg opt -> do
+                      let url' = case arg of
+                                      Just u   -> u
+                                      Nothing  -> "https://d3eoax9i5htok0.cloudfront.net/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+                      return opt { optHTMLMathMethod = MathJax url'})
                   "URL")
                  "" -- "Use MathJax for HTML math"
 

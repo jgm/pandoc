@@ -238,9 +238,11 @@ Options
     no link to the jsMath load script will be inserted; it is then
     up to the author to provide such a link in the HTML template.
 
-`--mathjax=`*URL*
+`--mathjax`[=*URL*]
 :   Use [MathJax] to display embedded TeX math in HTML output.
     The *URL* should point to the `MathJax.js` load script.
+    If a *URL* is not provided, a link to the MathJax CDN will
+    be inserted.
 
 `--gladtex`
 :   Enclose TeX math in `<eq>` tags in HTML output.  These can then
