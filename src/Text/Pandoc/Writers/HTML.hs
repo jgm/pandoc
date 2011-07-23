@@ -169,7 +169,9 @@ inTemplate opts tit auths date toc body' newvars =
                     [ ("body", dropWhile (=='\n') $ showHtmlFragment body')
                     , ("pagetitle", topTitle')
                     , ("title", dropWhile (=='\n') $ showHtmlFragment tit)
-                    , ("date", date') ] ++
+                    , ("date", date')
+                    , ("idprefix", writerIdentifierPrefix opts)
+                    ] ++
                     [ ("html5","true") | writerHtml5 opts ] ++
                     (case toc of
                          Just t  -> [ ("toc", showHtmlFragment t)]
@@ -198,14 +200,7 @@ tableOfContents opts sects = do
   let tocList = catMaybes contents
   return $ if null tocList
               then Nothing
-              else Just $
-                   if writerHtml5 opts
-                      then (tag "nav" ! [prefixedId opts' "TOC"] $
-                            nl opts +++ unordList opts tocList +++ nl opts)
-                            +++ nl opts
-                      else (thediv ! [prefixedId opts' "TOC"] $
-                            nl opts +++ unordList opts tocList +++ nl opts)
-                            +++ nl opts
+              else Just $ unordList opts tocList
 
 -- | Convert section number to string
 showSecNum :: [Int] -> String
