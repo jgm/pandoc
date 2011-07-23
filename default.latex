@@ -9,8 +9,12 @@
     \usepackage{fontspec}
     \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
   \else
+$if(biblatex)$
+    \usepackage[utf8]{inputenc}
+$else$
     \usepackage[mathletters]{ucs}
     \usepackage[utf8x]{inputenc}
+$endif$
   \fi
 \fi
 $if(natbib)$
