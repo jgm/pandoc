@@ -324,13 +324,17 @@ Options
 `--template=`*FILE*
 :   Use *FILE* as a custom template for the generated document. Implies
     `--standalone`. See [Templates](#templates) below for a description
-    of template syntax. If this option is not used, a default
-    template appropriate for the output format will be used. See also
-    `-D/--print-default-template`.
+    of template syntax. If no extension is specified, an extension
+    corresponding to the writer will be added, so that `--template=special`
+    looks for `special.html` for HTML output.  If the template is not
+    found, pandoc will search for it in the user data directory
+    (see `--data-dir`). If this option is not used, a default
+    template appropriate for the output format will be used (see
+    `-D/--print-default-template`).
 
 `-V` *KEY=VAL*, `--variable=`*KEY:VAL*
 :   Set the template variable *KEY* to the value *VAL* when rendering the
-    document in standalone mode. This is only useful when the
+    document in standalone mode. This is generally only useful when the
     `--template` option is used to specify a custom template, since
     pandoc automatically sets the variables used in the default
     templates.
@@ -498,7 +502,7 @@ document.  To see the default template that is used, just type
 where `FORMAT` is the name of the output format. A custom template
 can be specified using the `--template` option.  You can also override
 the system default templates for a given output format `FORMAT`
-by putting a file `templates/FORMAT.template` in the user data
+by putting a file `templates/default.FORMAT` in the user data
 directory (see `--data-dir`, above).
 
 Templates may contain *variables*.  Variable names are sequences of

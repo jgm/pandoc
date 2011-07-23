@@ -738,10 +738,17 @@ main = do
                            case deftemp of
                                  Left e   -> throwIO e
                                  Right t  -> return t
-                Just tp -> catch (UTF8.readFile tp)
+                Just tp -> do
+                           -- strip off "+lhs" if present
+                           let format = takeWhile (/='+') writerName'
+                           let tp' = case takeExtension tp of
+                                          ""   -> tp <.> format
+                                          _    -> tp
+                           catch (UTF8.readFile tp')
                              (\e -> if isDoesNotExistError e
                                        then catch
-                                             (readDataFile datadir tp)
+                                             (readDataFile datadir $
+                                               "templates" </> tp')
                                              (\_ -> throwIO e)
                                        else throwIO e)
 

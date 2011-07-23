@@ -85,7 +85,7 @@ getDefaultTemplate _ "native" = return $ Right ""
 getDefaultTemplate user "odt" = getDefaultTemplate user "opendocument"
 getDefaultTemplate user writer = do
   let format = takeWhile (/='+') writer  -- strip off "+lhs" if present
-  let fname = "templates" </> format  <.> "template"
+  let fname = "templates" </> "default" <.> format
   E.try $ readDataFile user fname
 
 data TemplateState = TemplateState Int [(String,String)]

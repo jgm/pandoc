@@ -37,14 +37,14 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  only adding a reader or writer.
 Data-Files:
                  -- templates
-                 templates/html.template, templates/docbook.template,
-                 templates/opendocument.template, templates/latex.template,
-                 templates/context.template, templates/texinfo.template,
-                 templates/man.template, templates/markdown.template,
-                 templates/rst.template, templates/plain.template,
-                 templates/mediawiki.template, templates/rtf.template,
-                 templates/s5.template, templates/slidy.template,
-                 templates/textile.template, templates/org.template
+                 templates/default.html, templates/default.docbook,
+                 templates/default.opendocument, templates/default.latex,
+                 templates/default.context, templates/default.texinfo,
+                 templates/default.man, templates/default.markdown,
+                 templates/default.rst, templates/default.plain,
+                 templates/default.mediawiki, templates/default.rtf,
+                 templates/default.s5, templates/default.slidy,
+                 templates/default.textile, templates/default.org
                  -- data for ODT writer
                  reference.odt,
                  -- stylesheet for EPUB writer
