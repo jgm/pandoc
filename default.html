@@ -50,7 +50,7 @@ $if(title)$
 $if(html5)$
 <header>
 $else$
-<div id="header">
+<div id="$idprefix$header">
 $endif$
 <h1 class="title">$title$</h1>
 $for(author)$
@@ -66,7 +66,15 @@ $else$
 $endif$
 $endif$
 $if(toc)$
+$if(html5)$
+<nav id="$idprefix$TOC">
 $toc$
+</nav>
+$else$
+<div id="$idprefix$TOC">
+$toc$
+</div>
+$endif$
 $endif$
 $body$
 $for(include-after)$
