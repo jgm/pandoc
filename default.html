@@ -49,10 +49,20 @@ $endfor$
 $if(title)$
 $if(html5)$
 <header>
+$else$
+<div id="header">
 $endif$
 <h1 class="title">$title$</h1>
+$for(author)$
+<h3 class="author">$author$</h3>
+$endfor$
+$if(date)$
+<h4 class="date">$date$</h4>
+$endif$
 $if(html5)$
 </header>
+$else$
+</div>
 $endif$
 $endif$
 $if(toc)$
