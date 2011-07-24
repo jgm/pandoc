@@ -142,7 +142,8 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                            _ -> case lookup "mathml-script" (writerVariables opts) of
                                       Just s ->
                                         script ! [thetype "text/javascript"] <<
-                                           primHtml s
+                                           primHtml ("/*<![CDATA[*/\n" ++ s ++
+                                                     "/*]]>*/\n")
                                       Nothing -> noHtml
                 else noHtml
   let newvars = [("highlighting-css", defaultHighlightingCss) |
