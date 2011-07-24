@@ -54,5 +54,11 @@ s5CSS datadir = do
   s5OperaCSS <- readDataFile datadir $ "s5" </> "default" </> "opera.css"
   s5OutlineCSS <- readDataFile datadir $ "s5" </> "default" </> "outline.css"
   s5PrintCSS <- readDataFile datadir $ "s5" </> "default" </> "print.css"
-  return $ "<style type=\"text/css\" media=\"projection\" id=\"slideProj\">\n" ++ inCDATA (s5CoreCSS ++ "\n" ++ s5FramingCSS ++ "\n" ++ s5PrettyCSS) ++ "</style>\n<style type=\"text/css\" media=\"projection\" id=\"operaFix\">\n" ++ inCDATA s5OperaCSS ++ "</style>\n<style type=\"text/css\" media=\"screen\" id=\"outlineStyle\">\n" ++ inCDATA s5OutlineCSS ++ "</style>\n<style type=\"text/css\" media=\"print\" id=\"slidePrint\">\n" ++ inCDATA s5PrintCSS ++ "</style>\n"
-
+  return $ "<style type=\"text/css\" media=\"projection\" id=\"slideProj\">\n" ++
+          inCDATA (s5CoreCSS ++ "\n" ++ s5FramingCSS ++ "\n" ++ s5PrettyCSS) ++
+          "</style>\n<style type=\"text/css\" media=\"screen\" id=\"outlineStyle\">\n" ++
+          inCDATA s5OutlineCSS ++
+          "</style>\n<style type=\"text/css\" media=\"print\" id=\"slidePrint\">\n" ++
+          inCDATA s5PrintCSS ++
+          "</style>\n<style type=\"text/css\" media=\"projection\" id=\"operaFix\">\n" ++
+          inCDATA s5OperaCSS ++ "</style>\n"
