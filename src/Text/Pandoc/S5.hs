@@ -43,10 +43,8 @@ inCDATA s = "/*<![CDATA[*/\n" ++ s ++ "\n/*]]>*/\n"
 
 s5Javascript :: Maybe FilePath -> IO String
 s5Javascript datadir = do
-  jsCom <- readDataFile datadir $ "s5" </> "default" </> "slides.js.comment"
-  jsPacked <- readDataFile datadir $ "s5" </> "default" </> "slides.js.packed"
-  return $ "<script type=\"text/javascript\">\n" ++
-           inCDATA (jsCom ++ jsPacked) ++ "</script>\n"
+  js <- readDataFile datadir $ "s5" </> "default" </> "slides.min.js"
+  return $ "<script type=\"text/javascript\">\n" ++ inCDATA js ++ "</script>\n"
 
 s5CSS :: Maybe FilePath -> IO String
 s5CSS datadir = do

@@ -53,8 +53,7 @@ Data-Files:
                  data/LaTeXMathML.js,
                  data/MathMLinHTML.js,
                  -- data for S5 writer
-                 s5/default/slides.js.comment,
-                 s5/default/slides.js.packed,
+                 s5/default/slides.min.js,
                  s5/default/s5-core.css,
                  s5/default/framing.css,
                  s5/default/pretty.css,
