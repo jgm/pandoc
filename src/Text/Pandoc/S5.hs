@@ -38,12 +38,15 @@ s5HeaderIncludes datadir = do
   j <- s5Javascript datadir
   return $ c ++ j
 
+inCDATA :: String -> String
+inCDATA s = "/*<![CDATA[*/\n" ++ s ++ "\n/*]]>*/\n"
+
 s5Javascript :: Maybe FilePath -> IO String
 s5Javascript datadir = do
   jsCom <- readDataFile datadir $ "s5" </> "default" </> "slides.js.comment"
   jsPacked <- readDataFile datadir $ "s5" </> "default" </> "slides.js.packed"
-  return $ "<script type=\"text/javascript\">\n" ++ jsCom ++ jsPacked ++
-           "</script>\n"
+  return $ "<script type=\"text/javascript\">\n" ++
+           inCDATA (jsCom ++ jsPacked) ++ "</script>\n"
 
 s5CSS :: Maybe FilePath -> IO String
 s5CSS datadir = do
@@ -53,5 +56,5 @@ s5CSS datadir = do
   s5OperaCSS <- readDataFile datadir $ "s5" </> "default" </> "opera.css"
   s5OutlineCSS <- readDataFile datadir $ "s5" </> "default" </> "outline.css"
   s5PrintCSS <- readDataFile datadir $ "s5" </> "default" </> "print.css"
-  return $ "<style type=\"text/css\" media=\"projection\" id=\"slideProj\">\n" ++ s5CoreCSS ++ "\n" ++ s5FramingCSS ++ "\n" ++ s5PrettyCSS ++ "\n</style>\n<style type=\"text/css\" media=\"projection\" id=\"operaFix\">\n" ++ s5OperaCSS ++ "\n</style>\n<style type=\"text/css\" media=\"screen\" id=\"outlineStyle\">\n" ++ s5OutlineCSS ++ "\n</style>\n<style type=\"text/css\" media=\"print\" id=\"slidePrint\">\n" ++ s5PrintCSS ++ "\n</style>\n"
+  return $ "<style type=\"text/css\" media=\"projection\" id=\"slideProj\">\n" ++ inCDATA (s5CoreCSS ++ "\n" ++ s5FramingCSS ++ "\n" ++ s5PrettyCSS) ++ "</style>\n<style type=\"text/css\" media=\"projection\" id=\"operaFix\">\n" ++ inCDATA s5OperaCSS ++ "</style>\n<style type=\"text/css\" media=\"screen\" id=\"outlineStyle\">\n" ++ inCDATA s5OutlineCSS ++ "</style>\n<style type=\"text/css\" media=\"print\" id=\"slidePrint\">\n" ++ inCDATA s5PrintCSS ++ "</style>\n"
 
