@@ -14,12 +14,16 @@ $endif$
 $if(highlighting-css)$
   <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
   <style type="text/css">
+/*<![CDATA[*/
 $highlighting-css$
+/*]]>*/
   </style>
 $endif$
 $if(slidy-css)$
   <style type="text/css">
+/*<![CDATA[*/
 $slidy-css$
+/*]]>*/
   </style>
 $else$
   <link rel="stylesheet" type="text/css" media="screen, projection, print"
@@ -36,9 +40,11 @@ $for(header-includes)$
   $header-includes$
 $endfor$
 $if(slidy-js)$
-  <script type="text/javascript" charset="utf-8">
+<script type="text/javascript" charset="utf-8">
+/*<![CDATA[*/
 $slidy-js$
-  </script>
+/*]]>*/
+</script>
 $else$
   <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js.gz"
     charset="utf-8" type="text/javascript"></script>
