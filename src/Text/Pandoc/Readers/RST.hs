@@ -34,7 +34,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.ParserCombinators.Parsec
-import Control.Monad ( when )
+import Control.Monad ( when, liftM )
 import Data.List ( findIndex, intercalate, transpose, sort, deleteFirstsBy )
 import qualified Data.Map as M
 import Text.Printf ( printf )
@@ -540,9 +540,15 @@ noteBlock = try $ do
   return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
 noteMarker :: GenParser Char ParserState [Char]
-noteMarker = char '[' >> (many1 digit <|> count 1 (oneOf "#*")) >>~ char ']'
+noteMarker = do
+  char '['
+  res <- many1 digit
+      <|> (try $ char '#' >> liftM ('#':) simpleReferenceName')
+      <|> count 1 (oneOf "#*")
+  char ']'
+  return res
 
--- 
+--
 -- reference key
 --
 
@@ -557,13 +563,20 @@ unquotedReferenceName = try $ do
   label' <- many1Till inline (lookAhead $ char ':')
   return label'
 
-isolated :: Char -> GenParser Char st Char
-isolated ch = try $ char ch >>~ notFollowedBy (char ch)
+-- Simple reference names are single words consisting of alphanumerics
+-- plus isolated (no two adjacent) internal hyphens, underscores,
+-- periods, colons and plus signs; no whitespace or other characters
+-- are allowed.
+simpleReferenceName' :: GenParser Char st String
+simpleReferenceName' = do
+  x <- alphaNum
+  xs <- many $  alphaNum
+            <|> (try $ oneOf "-_:+." >> lookAhead alphaNum)
+  return (x:xs)
 
 simpleReferenceName :: GenParser Char st [Inline]
 simpleReferenceName = do
-  raw <- many1 (alphaNum <|> isolated '-' <|> isolated '.' <|>
-                (try $ char '_' >>~ lookAhead alphaNum))
+  raw <- simpleReferenceName'
   return [Str raw]
 
 referenceName :: GenParser Char ParserState [Inline]
