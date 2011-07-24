@@ -766,7 +766,7 @@ main = do
                         slidyJs <- readDataFile datadir $
                                       "slidy" </> "slidy.min.js"
                         slidyCss <- readDataFile datadir $
-                                      "slidy" </> "slidy.min.css"
+                                      "slidy" </> "slidy.css"
                         return $ ("slidy-js", slidyJs) :
                             ("slidy-css", slidyCss) : variables
                       _ -> return variables

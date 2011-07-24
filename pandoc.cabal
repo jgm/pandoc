@@ -62,7 +62,7 @@ Data-Files:
                  s5/default/outline.css,
                  s5/default/print.css,
                  -- data for slidy writer
-                 slidy/slidy.min.css,
+                 slidy/slidy.css,
                  slidy/slidy.min.js,
                  -- data for citeproc
                  default.csl,
