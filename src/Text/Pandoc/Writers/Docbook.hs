@@ -185,24 +185,24 @@ blockToDocbook _ (RawBlock "html" str) = text str -- raw XML block
 blockToDocbook _ (RawBlock _ _) = empty
 blockToDocbook _ HorizontalRule = empty -- not semantic
 blockToDocbook opts (Table caption aligns widths headers rows) =
-  let alignStrings = map alignmentToString aligns
-      captionDoc   = if null caption
+  let captionDoc   = if null caption
                         then empty
-                        else inTagsIndented "caption" 
+                        else inTagsIndented "title"
                               (inlinesToDocbook opts caption)
       tableType    = if isEmpty captionDoc then "informaltable" else "table"
-      percent w    = show (truncate (100*w) :: Integer) ++ "%"
-      coltags = if all (== 0.0) widths
-                   then empty
-                   else vcat $ map (\w ->
-                          selfClosingTag "col" [("width", percent w)]) widths
+      percent w    = show (truncate (100*w) :: Integer) ++ "*"
+      coltags = vcat $ zipWith (\w al -> selfClosingTag "colspec"
+                       ([("colwidth", percent w) | w > 0] ++
+                        [("align", alignmentToString al)])) widths aligns
       head' = if all null headers
                  then empty
                  else inTagsIndented "thead" $
-                         tableRowToDocbook opts alignStrings "th" headers
+                         tableRowToDocbook opts headers
       body' = inTagsIndented "tbody" $
-              vcat $ map (tableRowToDocbook opts alignStrings "td") rows
-  in  inTagsIndented tableType $ captionDoc $$ coltags $$ head' $$ body'
+              vcat $ map (tableRowToDocbook opts) rows
+  in  inTagsIndented tableType $ captionDoc $$
+        (inTags True "tgroup" [("cols", show (length headers))] $
+         coltags $$ head' $$ body')
 
 alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of
@@ -212,22 +212,16 @@ alignmentToString alignment = case alignment of
                                  AlignDefault -> "left"
 
 tableRowToDocbook :: WriterOptions
-                  -> [String]
-                  -> String
                   -> [[Block]]
                   -> Doc
-tableRowToDocbook opts aligns celltype cols =
-  inTagsIndented "tr" $ vcat $
-     zipWith (tableItemToDocbook opts celltype) aligns cols
+tableRowToDocbook opts cols =
+  inTagsIndented "row" $ vcat $ map (tableItemToDocbook opts) cols
 
 tableItemToDocbook :: WriterOptions
-                   -> [Char]
-                   -> [Char]
                    -> [Block]
                    -> Doc
-tableItemToDocbook opts tag align item =
-  let attrib = [("align", align)]
-  in  inTags True tag attrib $ vcat $ map (blockToDocbook opts) item
+tableItemToDocbook opts item =
+  inTags True "entry" [] $ vcat $ map (blockToDocbook opts) item
 
 -- | Convert a list of inline elements to Docbook.
 inlinesToDocbook :: WriterOptions -> [Inline] -> Doc

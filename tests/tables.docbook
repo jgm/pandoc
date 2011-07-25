@@ -2,401 +2,431 @@
   Simple table with caption:
 </para>
 <table>
-  <caption>
+  <title>
     Demonstration of simple table syntax.
-  </caption>
-  <thead>
-    <tr>
-      <th align="right">
-        Right
-      </th>
-      <th align="left">
-        Left
-      </th>
-      <th align="center">
-        Center
-      </th>
-      <th align="left">
-        Default
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="right">
-        12
-      </td>
-      <td align="left">
-        12
-      </td>
-      <td align="center">
-        12
-      </td>
-      <td align="left">
-        12
-      </td>
-    </tr>
-    <tr>
-      <td align="right">
-        123
-      </td>
-      <td align="left">
-        123
-      </td>
-      <td align="center">
-        123
-      </td>
-      <td align="left">
-        123
-      </td>
-    </tr>
-    <tr>
-      <td align="right">
-        1
-      </td>
-      <td align="left">
-        1
-      </td>
-      <td align="center">
-        1
-      </td>
-      <td align="left">
-        1
-      </td>
-    </tr>
-  </tbody>
+  </title>
+  <tgroup cols="4">
+    <colspec align="right" />
+    <colspec align="left" />
+    <colspec align="center" />
+    <colspec align="left" />
+    <thead>
+      <row>
+        <entry>
+          Right
+        </entry>
+        <entry>
+          Left
+        </entry>
+        <entry>
+          Center
+        </entry>
+        <entry>
+          Default
+        </entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>
+          12
+        </entry>
+        <entry>
+          12
+        </entry>
+        <entry>
+          12
+        </entry>
+        <entry>
+          12
+        </entry>
+      </row>
+      <row>
+        <entry>
+          123
+        </entry>
+        <entry>
+          123
+        </entry>
+        <entry>
+          123
+        </entry>
+        <entry>
+          123
+        </entry>
+      </row>
+      <row>
+        <entry>
+          1
+        </entry>
+        <entry>
+          1
+        </entry>
+        <entry>
+          1
+        </entry>
+        <entry>
+          1
+        </entry>
+      </row>
+    </tbody>
+  </tgroup>
 </table>
 <para>
   Simple table without caption:
 </para>
 <informaltable>
-  <thead>
-    <tr>
-      <th align="right">
-        Right
-      </th>
-      <th align="left">
-        Left
-      </th>
-      <th align="center">
-        Center
-      </th>
-      <th align="left">
-        Default
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="right">
-        12
-      </td>
-      <td align="left">
-        12
-      </td>
-      <td align="center">
-        12
-      </td>
-      <td align="left">
-        12
-      </td>
-    </tr>
-    <tr>
-      <td align="right">
-        123
-      </td>
-      <td align="left">
-        123
-      </td>
-      <td align="center">
-        123
-      </td>
-      <td align="left">
-        123
-      </td>
-    </tr>
-    <tr>
-      <td align="right">
-        1
-      </td>
-      <td align="left">
-        1
-      </td>
-      <td align="center">
-        1
-      </td>
-      <td align="left">
-        1
-      </td>
-    </tr>
-  </tbody>
+  <tgroup cols="4">
+    <colspec align="right" />
+    <colspec align="left" />
+    <colspec align="center" />
+    <colspec align="left" />
+    <thead>
+      <row>
+        <entry>
+          Right
+        </entry>
+        <entry>
+          Left
+        </entry>
+        <entry>
+          Center
+        </entry>
+        <entry>
+          Default
+        </entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>
+          12
+        </entry>
+        <entry>
+          12
+        </entry>
+        <entry>
+          12
+        </entry>
+        <entry>
+          12
+        </entry>
+      </row>
+      <row>
+        <entry>
+          123
+        </entry>
+        <entry>
+          123
+        </entry>
+        <entry>
+          123
+        </entry>
+        <entry>
+          123
+        </entry>
+      </row>
+      <row>
+        <entry>
+          1
+        </entry>
+        <entry>
+          1
+        </entry>
+        <entry>
+          1
+        </entry>
+        <entry>
+          1
+        </entry>
+      </row>
+    </tbody>
+  </tgroup>
 </informaltable>
 <para>
   Simple table indented two spaces:
 </para>
 <table>
-  <caption>
+  <title>
     Demonstration of simple table syntax.
-  </caption>
-  <thead>
-    <tr>
-      <th align="right">
-        Right
-      </th>
-      <th align="left">
-        Left
-      </th>
-      <th align="center">
-        Center
-      </th>
-      <th align="left">
-        Default
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="right">
-        12
-      </td>
-      <td align="left">
-        12
-      </td>
-      <td align="center">
-        12
-      </td>
-      <td align="left">
-        12
-      </td>
-    </tr>
-    <tr>
-      <td align="right">
-        123
-      </td>
-      <td align="left">
-        123
-      </td>
-      <td align="center">
-        123
-      </td>
-      <td align="left">
-        123
-      </td>
-    </tr>
-    <tr>
-      <td align="right">
-        1
-      </td>
-      <td align="left">
-        1
-      </td>
-      <td align="center">
-        1
-      </td>
-      <td align="left">
-        1
-      </td>
-    </tr>
-  </tbody>
+  </title>
+  <tgroup cols="4">
+    <colspec align="right" />
+    <colspec align="left" />
+    <colspec align="center" />
+    <colspec align="left" />
+    <thead>
+      <row>
+        <entry>
+          Right
+        </entry>
+        <entry>
+          Left
+        </entry>
+        <entry>
+          Center
+        </entry>
+        <entry>
+          Default
+        </entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>
+          12
+        </entry>
+        <entry>
+          12
+        </entry>
+        <entry>
+          12
+        </entry>
+        <entry>
+          12
+        </entry>
+      </row>
+      <row>
+        <entry>
+          123
+        </entry>
+        <entry>
+          123
+        </entry>
+        <entry>
+          123
+        </entry>
+        <entry>
+          123
+        </entry>
+      </row>
+      <row>
+        <entry>
+          1
+        </entry>
+        <entry>
+          1
+        </entry>
+        <entry>
+          1
+        </entry>
+        <entry>
+          1
+        </entry>
+      </row>
+    </tbody>
+  </tgroup>
 </table>
 <para>
   Multiline table with caption:
 </para>
 <table>
-  <caption>
+  <title>
     Here's the caption. It may span multiple lines.
-  </caption>
-  <col width="15%" />
-  <col width="13%" />
-  <col width="16%" />
-  <col width="33%" />
-  <thead>
-    <tr>
-      <th align="center">
-        Centered Header
-      </th>
-      <th align="left">
-        Left Aligned
-      </th>
-      <th align="right">
-        Right Aligned
-      </th>
-      <th align="left">
-        Default aligned
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="center">
-        First
-      </td>
-      <td align="left">
-        row
-      </td>
-      <td align="right">
-        12.0
-      </td>
-      <td align="left">
-        Example of a row that spans multiple lines.
-      </td>
-    </tr>
-    <tr>
-      <td align="center">
-        Second
-      </td>
-      <td align="left">
-        row
-      </td>
-      <td align="right">
-        5.0
-      </td>
-      <td align="left">
-        Here's another one. Note the blank line between rows.
-      </td>
-    </tr>
-  </tbody>
+  </title>
+  <tgroup cols="4">
+    <colspec colwidth="15*" align="center" />
+    <colspec colwidth="13*" align="left" />
+    <colspec colwidth="16*" align="right" />
+    <colspec colwidth="33*" align="left" />
+    <thead>
+      <row>
+        <entry>
+          Centered Header
+        </entry>
+        <entry>
+          Left Aligned
+        </entry>
+        <entry>
+          Right Aligned
+        </entry>
+        <entry>
+          Default aligned
+        </entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>
+          First
+        </entry>
+        <entry>
+          row
+        </entry>
+        <entry>
+          12.0
+        </entry>
+        <entry>
+          Example of a row that spans multiple lines.
+        </entry>
+      </row>
+      <row>
+        <entry>
+          Second
+        </entry>
+        <entry>
+          row
+        </entry>
+        <entry>
+          5.0
+        </entry>
+        <entry>
+          Here's another one. Note the blank line between rows.
+        </entry>
+      </row>
+    </tbody>
+  </tgroup>
 </table>
 <para>
   Multiline table without caption:
 </para>
 <informaltable>
-  <col width="15%" />
-  <col width="13%" />
-  <col width="16%" />
-  <col width="33%" />
-  <thead>
-    <tr>
-      <th align="center">
-        Centered Header
-      </th>
-      <th align="left">
-        Left Aligned
-      </th>
-      <th align="right">
-        Right Aligned
-      </th>
-      <th align="left">
-        Default aligned
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="center">
-        First
-      </td>
-      <td align="left">
-        row
-      </td>
-      <td align="right">
-        12.0
-      </td>
-      <td align="left">
-        Example of a row that spans multiple lines.
-      </td>
-    </tr>
-    <tr>
-      <td align="center">
-        Second
-      </td>
-      <td align="left">
-        row
-      </td>
-      <td align="right">
-        5.0
-      </td>
-      <td align="left">
-        Here's another one. Note the blank line between rows.
-      </td>
-    </tr>
-  </tbody>
+  <tgroup cols="4">
+    <colspec colwidth="15*" align="center" />
+    <colspec colwidth="13*" align="left" />
+    <colspec colwidth="16*" align="right" />
+    <colspec colwidth="33*" align="left" />
+    <thead>
+      <row>
+        <entry>
+          Centered Header
+        </entry>
+        <entry>
+          Left Aligned
+        </entry>
+        <entry>
+          Right Aligned
+        </entry>
+        <entry>
+          Default aligned
+        </entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>
+          First
+        </entry>
+        <entry>
+          row
+        </entry>
+        <entry>
+          12.0
+        </entry>
+        <entry>
+          Example of a row that spans multiple lines.
+        </entry>
+      </row>
+      <row>
+        <entry>
+          Second
+        </entry>
+        <entry>
+          row
+        </entry>
+        <entry>
+          5.0
+        </entry>
+        <entry>
+          Here's another one. Note the blank line between rows.
+        </entry>
+      </row>
+    </tbody>
+  </tgroup>
 </informaltable>
 <para>
   Table without column headers:
 </para>
 <informaltable>
-  <tbody>
-    <tr>
-      <td align="right">
-        12
-      </td>
-      <td align="left">
-        12
-      </td>
-      <td align="center">
-        12
-      </td>
-      <td align="right">
-        12
-      </td>
-    </tr>
-    <tr>
-      <td align="right">
-        123
-      </td>
-      <td align="left">
-        123
-      </td>
-      <td align="center">
-        123
-      </td>
-      <td align="right">
-        123
-      </td>
-    </tr>
-    <tr>
-      <td align="right">
-        1
-      </td>
-      <td align="left">
-        1
-      </td>
-      <td align="center">
-        1
-      </td>
-      <td align="right">
-        1
-      </td>
-    </tr>
-  </tbody>
+  <tgroup cols="4">
+    <colspec align="right" />
+    <colspec align="left" />
+    <colspec align="center" />
+    <colspec align="right" />
+    <tbody>
+      <row>
+        <entry>
+          12
+        </entry>
+        <entry>
+          12
+        </entry>
+        <entry>
+          12
+        </entry>
+        <entry>
+          12
+        </entry>
+      </row>
+      <row>
+        <entry>
+          123
+        </entry>
+        <entry>
+          123
+        </entry>
+        <entry>
+          123
+        </entry>
+        <entry>
+          123
+        </entry>
+      </row>
+      <row>
+        <entry>
+          1
+        </entry>
+        <entry>
+          1
+        </entry>
+        <entry>
+          1
+        </entry>
+        <entry>
+          1
+        </entry>
+      </row>
+    </tbody>
+  </tgroup>
 </informaltable>
 <para>
   Multiline table without column headers:
 </para>
 <informaltable>
-  <col width="15%" />
-  <col width="13%" />
-  <col width="16%" />
-  <col width="33%" />
-  <tbody>
-    <tr>
-      <td align="center">
-        First
-      </td>
-      <td align="left">
-        row
-      </td>
-      <td align="right">
-        12.0
-      </td>
-      <td align="left">
-        Example of a row that spans multiple lines.
-      </td>
-    </tr>
-    <tr>
-      <td align="center">
-        Second
-      </td>
-      <td align="left">
-        row
-      </td>
-      <td align="right">
-        5.0
-      </td>
-      <td align="left">
-        Here's another one. Note the blank line between rows.
-      </td>
-    </tr>
-  </tbody>
+  <tgroup cols="4">
+    <colspec colwidth="15*" align="center" />
+    <colspec colwidth="13*" align="left" />
+    <colspec colwidth="16*" align="right" />
+    <colspec colwidth="33*" align="left" />
+    <tbody>
+      <row>
+        <entry>
+          First
+        </entry>
+        <entry>
+          row
+        </entry>
+        <entry>
+          12.0
+        </entry>
+        <entry>
+          Example of a row that spans multiple lines.
+        </entry>
+      </row>
+      <row>
+        <entry>
+          Second
+        </entry>
+        <entry>
+          row
+        </entry>
+        <entry>
+          5.0
+        </entry>
+        <entry>
+          Here's another one. Note the blank line between rows.
+        </entry>
+      </row>
+    </tbody>
+  </tgroup>
 </informaltable>
