@@ -84,11 +84,11 @@
     <para>
       Code in a block quote:
     </para>
-    <screen>
+    <programlisting>
 sub status {
     print &quot;working&quot;;
 }
-</screen>
+</programlisting>
     <para>
       A list:
     </para>
@@ -130,7 +130,7 @@ sub status {
   <para>
     Code:
   </para>
-  <screen>
+  <programlisting>
 ---- (should be four hyphens)
 
 sub status {
@@ -138,15 +138,15 @@ sub status {
 }
 
 this code block is indented by one tab
-</screen>
+</programlisting>
   <para>
     And:
   </para>
-  <screen>
+  <programlisting>
     this code block is indented by two tabs
 
 These should not be escaped:  \$ \\ \&gt; \[ \{
-</screen>
+</programlisting>
 </section>
 <section id="lists">
   <title>Lists</title>
@@ -742,9 +742,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         <para>
           orange fruit
         </para>
-        <screen>
+        <programlisting>
 { orange code block }
-</screen>
+</programlisting>
         <blockquote>
           <para>
             orange block quote
@@ -902,17 +902,17 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     This should be a code block, though:
   </para>
-  <screen>
+  <programlisting>
 &lt;div&gt;
     foo
 &lt;/div&gt;
-</screen>
+</programlisting>
   <para>
     As should this:
   </para>
-  <screen>
+  <programlisting>
 &lt;div&gt;foo&lt;/div&gt;
-</screen>
+</programlisting>
   <para>
     Now, nested:
   </para>
@@ -942,9 +942,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Code block:
   </para>
-  <screen>
+  <programlisting>
 &lt;!-- Comment --&gt;
-</screen>
+</programlisting>
   <para>
     Just plain comment, with trailing spaces on the line:
   </para>
@@ -952,9 +952,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Code:
   </para>
-  <screen>
+  <programlisting>
 &lt;hr /&gt;
-</screen>
+</programlisting>
   <para>
     Hr's:
   </para>
@@ -1291,9 +1291,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <para>
       This should [not][] be a link.
     </para>
-    <screen>
+    <programlisting>
 [not]: /url
-</screen>
+</programlisting>
     <para>
       Foo <ulink url="/url/">bar</ulink>.
     </para>
@@ -1355,9 +1355,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       Auto-links should not occur here:
       <literal>&lt;http://example.com/&gt;</literal>
     </para>
-    <screen>
+    <programlisting>
 or here: &lt;http://example.com/&gt;
-</screen>
+</programlisting>
   </section>
 </section>
 <section id="images">
@@ -1398,9 +1398,9 @@ or here: &lt;http://example.com/&gt;
         Subsequent blocks are indented to show that they belong to the
         footnote (as with list items).
       </para>
-      <screen>
+      <programlisting>
   { &lt;code&gt; }
-</screen>
+</programlisting>
       <para>
         If you want, you can indent every line, but you can also be lazy and
         just indent the first line of each block.

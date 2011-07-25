@@ -147,9 +147,9 @@ blockToDocbook opts (Para lst) =
   inTagsIndented "para" $ inlinesToDocbook opts lst
 blockToDocbook opts (BlockQuote blocks) =
   inTagsIndented "blockquote" $ blocksToDocbook opts blocks
-blockToDocbook _ (CodeBlock (_,classes,_) str) = 
-  text ("<screen" ++ lang ++ ">") <> cr <>
-     flush (text (escapeStringForXML str) <> cr <> text "</screen>")
+blockToDocbook _ (CodeBlock (_,classes,_) str) =
+  text ("<programlisting" ++ lang ++ ">") <> cr <>
+     flush (text (escapeStringForXML str) <> cr <> text "</programlisting>")
     where lang  = if null langs
                      then ""
                      else " language=\"" ++ escapeStringForXML (head langs) ++
