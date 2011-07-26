@@ -759,7 +759,8 @@ singleQuoteStart :: GenParser Char ParserState ()
 singleQuoteStart = do 
   failIfInQuoteContext InSingleQuote
   try $ do charOrRef "'\8216\145"
-           notFollowedBy (oneOf ")!],.;:-? \t\n")
+           notFollowedBy (oneOf ")!],;:-? \t\n")
+           notFollowedBy (char '.') <|> lookAhead (string "..." >> return ())
            notFollowedBy (try (oneOfStrings ["s","t","m","ve","ll","re"] >>
                                satisfy (not . isAlphaNum))) 
                                -- possess/contraction

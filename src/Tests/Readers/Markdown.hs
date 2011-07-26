@@ -8,9 +8,13 @@ import Tests.Arbitrary()
 import Text.Pandoc.Builder
 -- import Text.Pandoc.Shared ( normalize )
 import Text.Pandoc
+import Data.Sequence (singleton)
 
 markdown :: String -> Pandoc
 markdown = readMarkdown defaultParserState{ stateStandalone = True }
+
+markdownSmart :: String -> Pandoc
+markdownSmart = readMarkdown defaultParserState{ stateSmart = True }
 
 infix 5 =:
 (=:) :: ToString c
@@ -39,6 +43,11 @@ tests = [ testGroup "inline code"
           , "with attribute space" =:
             "`*` {.haskell .special x=\"7\"}"
             =?> para (codeWith ("",["haskell","special"],[("x","7")]) "*")
+          ]
+        , testGroup "smart punctuation"
+          [ test markdownSmart "quote before ellipses"
+            ("'...hi'"
+            =?> para (singleQuoted (singleton Ellipses +++ "hi")))
           ]
         , testGroup "mixed emphasis and strong"
           [ "emph and strong emph alternating" =:
