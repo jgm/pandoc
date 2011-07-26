@@ -28,7 +28,7 @@ main = do
   modDeps <- modifiedDependencies markdown2pdfpage [markdown2pdfpage <.> "md"]
   unless (null modDeps) $ do
     mpdfContents <- liftM toString $ B.readFile $ markdown2pdfpage <.> "md"
-    templ <- liftM toString $ B.readFile $ "templates" </> "man.template"
+    templ <- liftM toString $ B.readFile $ "templates" </> "default.man"
     let doc = readMarkdown defaultParserState{ stateStandalone = True }
                                              mpdfContents
     writeManPage markdown2pdfpage templ doc
