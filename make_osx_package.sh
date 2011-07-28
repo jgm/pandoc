@@ -37,7 +37,9 @@ cat > "$DIST/Info.plist" <<EOF
 EOF
 
 echo Building pandoc...
-cabal install --prefix=$PREFIX -fexecutable -f-library -fhighlighting
+runghc Setup.hs configure --user --prefix=/usr/local --flags="executable -library highlighting"
+runghc Setup.hs build
+runghc Setup.hs copy --destdir=$ROOT
 
 cp COPYING $RESOURCES/License.txt
 
