@@ -3,15 +3,13 @@
 DIST=`pwd`/osx
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 RESOURCES=$DIST/Resources
-SCRIPTS=$DIST/Scripts
 ROOT=$DIST/Package_Root
 BASE=pandoc-$VERSION
-PREFIX=$ROOT/usr/local/$BASE
+PREFIX=$ROOT/usr/local
 
 echo Removing old files...
 rm -rf $DIST
 mkdir -p $RESOURCES
-mkdir -p $SCRIPTS
 
 echo Creating Info.plist...
 
@@ -43,24 +41,6 @@ cabal install --prefix=$PREFIX -fexecutable -f-library -fhighlighting
 
 cp COPYING $RESOURCES/License.txt
 
-echo Creating postflight script...
-
-PKG=/usr/local/$BASE
-LOCAL=/usr/local
-
-cat >$SCRIPTS/postflight <<EOF
-#!/bin/sh -e
-
-# Create symlinks
-mkdir -p $LOCAL/bin
-mkdir -p $LOCAL/share/man{1,5}
-ln -f -s $PKG/bin/{pandoc,markdown2pdf} $LOCAL/bin
-ln -f -s $PKG/share/man/man1/{pandoc.1,markdown2pdf.1} $LOCAL/share/man/man1
-ln -f -s $PKG/share/man/man5/pandoc_markdown.5 $LOCAL/share/man/man5
-EOF
-
-chmod a+rx $SCRIPTS/postflight
-
 PACKAGEMAKER=/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker
 
 echo Creating OSX package...
@@ -70,7 +50,6 @@ $PACKAGEMAKER \
     --info "$DIST/Info.plist" \
     --root "$ROOT" \
     --resources "$RESOURCES" \
-    --scripts "$SCRIPTS" \
     --target "10.5" \
     --version "$VERSION" \
     --no-relocate \
