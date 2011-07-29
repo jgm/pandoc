@@ -1,3 +1,123 @@
+pandoc (1.8.2)
+
+  * Added script to produce OS X package.
+
+  * Made `templates` directory a git submodule.  This should make it
+    easier for people to revise their custom templates when the default
+    templates change.
+
+  * Changed template naming scheme: `FORMAT.template` -> `default.FORMAT`.
+    **Note:** If you have existing templates in `~/.pandoc/templates`, you
+    must rename them to conform to the new scheme!
+
+  * Fixed smart quotes bug, now handling `'...hi'` properly.
+
+  * RST reader:
+
+    + Partial support for labeled footnotes.
+    + Improved accuracy of `simpleReferenceName` parser.
+
+  * HTML reader:
+
+    + Substitute correct unicode characters for
+      characters in the 128..159 range, which are often found even in
+      HTML that purports to be UTF-8.
+
+  * LaTeX reader:  Handle `\subtitle` command (a subtitle is added
+    to the title, after a colon and linebreak). Closes #280.
+
+  * Leaner `reference.odt`.
+
+  * Added unexported module `Text.Pandoc.MIME` for use in
+    the ODT writer.
+
+  * ODT writer:  Construct `manifest.xml` based on archive contents.
+    This fixes a bug in ODTs containing images. Recent versions of
+    LibreOffice would reject these as corrupt, because `manifest.xml`
+    did not contain a reference to the image files.
+
+  * LaTeX writer:
+
+    + Make verbatim environments flush to avoid spurious
+      blank lines.  Closes #277.
+    + Use `\texttt` and escapes insntead of `\verb!...!`, which
+      is too fragile (doesn't work in command arguments).
+    + Use `\enquote{}` for quotes if the template includes
+      the `csquotes` package. This provides better support for
+      local quoting styles. (Thanks to Andreas Wagner for the idea.)
+
+  * ConTeXt writer:  Make `\starttyping`/`\stoptyping` flush with
+    margin, preventing spurious blank lines.
+
+  * Slidy writer:
+
+    + Use non-minimized version of `slidy.css` with `--offline`
+      option, so users can more easily edit it.
+    + Also fixed a bug in the CSS that prevented proper centering
+      of title (now reported and fixed upstream).
+
+  * S5 writer:
+
+    + Replaced `s5/default/slides.js.{comment,packed}` with
+      new compressed `s5/default/slides.min.js`.
+    + Use `data:` protocol to embed S5 CSS in `<link>` tags,
+      when `--offline` is specified. Using inline CSS didn't
+      work with Chrome or Safari.  This fixes offline
+      S5 on those browsers.
+
+  * HTML writer:  Removed English title on footnote backlinks.
+    This is incongrous in non-English documents.
+
+  * Docbook writer:
+
+    + Use CALS tables.  (Some older docbook software does not work
+      well with XHTML tables.)  Closes #77.
+    + Use `programlisting` tags (instead of `screen`) for code blocks.
+
+  * `markdown2pdf`:
+
+    + Calls latex with `-halt-on-error` instead of
+      `-interaction=batchmode`, which essentially just ignored errors,
+      leading to bad results. Better to know when something is wrong.
+    + Fixed issues with non-UTF-8 output of `pdflatex`.
+    + Better error reporting.
+
+  * `--mathjax` now takes an optional URL argument. If it is not
+    provided, pandoc links directly to the (secure) mathjax CDN,
+    as now recommended (thanks to dsanson).
+
+  * Deprecated `--xetex` option in `pandoc`.  It is no longer needed,
+    since the LaTeX writer now produces a file that can be processed by
+    `latex`, `pdflatex`, `lualatex`, or `xelatex`.  (This introduces a new
+    dependency of the `iftex` package.)
+
+  * Introduced `--luatex` option to `markdown2pdf`. This causes `lualatex`
+    to be used to create the PDF.
+
+  * If a template specified with `--template` is not found, look for it
+    in `datadir`.  Also, if no extension is provided, supply one based
+    on the writer.  So now you can put your `special.latex` template in
+    `~/.pandoc/templates`, and use it from any directory via
+    `pandoc -t latex --template special`.
+
+  * Default template improvements:
+
+    + HTML:  Display author and date after title.
+    + HTML:  Made table of contents more customizable.  The container
+      for the TOC is now in the template, so users can insert a header
+      or other styling. (Thanks to Bruce D'Arcus for the suggestion.)
+    + HTML, Slidy, S5:  Enclose scripts in CDATA tags.
+    + Slidy, S5: Added `s5-url` and `slidy-url` variables, instead of
+      hard-coding.  If you want to put your slidy files in the slidy
+      subdirectory, for example, you can do
+      `pandoc -t slidy -V slidy-url=slidy -s`.
+    + LaTeX: Use `\and` to separate authors in LaTeX documents (reader
+      & writer).  Closes #279.
+    + LaTeX: Use different `hyperref` options for `xetex`, fixing
+      problems with unicode bookmarks (thanks to CircleCode).
+    + LaTeX: Don't use `ucs` if using `biblatex`; they are incompatible
+      (thanks to Joseph Reagle).
+
 pandoc (1.8.1.2)
 
   * Added `--epub-cover-image` option.
