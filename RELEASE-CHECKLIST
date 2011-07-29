@@ -1,5 +1,4 @@
-_ Test, on linux, windows, mac
-  (inc. website demos)
+_ Test, on linux, windows, mac (inc. website demos)
 
 _ Finalize changelog
 
@@ -11,9 +10,12 @@ _ Generate Windows package and copy to directory. (First, do
   a cabal install and test, and then switch to windows directory
   and run the batch file there.)
 
+_ Generate Mac OSX package.
+
 _ Upload to Google Code
    googlecode_upload.py -s "Source tarball" -p pandoc -u fiddlosopher --labels=Featured,Type-Source,OpSys-All  dist/pandoc-1.2.tar.gz
    googlecode_upload.py -s "Windows installer" -p pandoc -u fiddlosopher --labels=Featured,Type-Installer,OpSys-Windows  pandoc-1.2-setup.exe
+   googlecode_upload.py -s "Mac OS X installer" -p pandoc -u fiddlosopher --labels=Featured,Type-Installer,OpSys-OSX  pandoc-1.2.dmg
    To get password: http://code.google.com/hosting/settings
 
 _ Go to Google code and deprecate the old versions
@@ -27,3 +29,6 @@ _ Announce on pandoc-announce, pandoc-discuss
 _ Update freshmeat page
 
 _ recompile trypandoc
+
+_ recompile gitit
+
