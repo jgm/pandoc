@@ -25,12 +25,12 @@ $if(s5includes)$
 $s5includes$
 $else$
   <!-- style sheet links -->
-  <link rel="stylesheet" href="ui/default/slides.css" type="text/css" media="projection" id="slideProj" />
-  <link rel="stylesheet" href="ui/default/outline.css" type="text/css" media="screen" id="outlineStyle" />
-  <link rel="stylesheet" href="ui/default/print.css" type="text/css" media="print" id="slidePrint" />
-  <link rel="stylesheet" href="ui/default/opera.css" type="text/css" media="projection" id="operaFix" />
+  <link rel="stylesheet" href="$s5-url$/slides.css" type="text/css" media="projection" id="slideProj" />
+  <link rel="stylesheet" href="$s5-url$/outline.css" type="text/css" media="screen" id="outlineStyle" />
+  <link rel="stylesheet" href="$s5-url$/print.css" type="text/css" media="print" id="slidePrint" />
+  <link rel="stylesheet" href="$s5-url$/opera.css" type="text/css" media="projection" id="operaFix" />
   <!-- S5 JS -->
-  <script src="ui/default/slides.js" type="text/javascript"></script>
+  <script src="$s5-url$/slides.js" type="text/javascript"></script>
 $endif$
 $if(math)$
   $math$
