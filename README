@@ -543,6 +543,11 @@ depending on the output format, but include:
 :   date of document, as specified in title block
 `lang`
 :   language code for HTML documents
+`slidy-url`
+:   base URL for Slidy documents (defaults to
+    `http://www.w3.org/Talks/Tools/Slidy2`)
+`s5-url`
+:   base URL for S5 documents (defaults to `ui/default`)
 
 Variables may be set at the command line using the `-V/--variable`
 option. This allows users to include custom variables in their
@@ -1907,7 +1912,9 @@ block. Each level-one header and horizontal rule begins a new slide.
 The file produced by pandoc with the `-s/--standalone` option embeds a
 link to javascripts and CSS files, which are assumed to be available at
 the relative path `ui/default` (for S5) or at the Slidy website at
-`w3.org` (for Slidy). If the `--offline` option is specified, the
+`w3.org` (for Slidy).  (These paths can be changed by setting the
+`slidy-url` or `s5-url` variables; see `--variable`, above.)
+If the `--offline` option is specified, the
 scripts and CSS will be included directly in the generated file, so that
 it may be used offline.
 
