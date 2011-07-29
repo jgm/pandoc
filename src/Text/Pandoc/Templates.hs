@@ -83,6 +83,7 @@ getDefaultTemplate :: (Maybe FilePath) -- ^ User data directory to search first
                    -> IO (Either E.IOException String)
 getDefaultTemplate _ "native" = return $ Right ""
 getDefaultTemplate user "odt" = getDefaultTemplate user "opendocument"
+getDefaultTemplate user "epub" = getDefaultTemplate user "html"
 getDefaultTemplate user writer = do
   let format = takeWhile (/='+') writer  -- strip off "+lhs" if present
   let fname = "templates" </> "default" <.> format
