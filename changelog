@@ -88,8 +88,7 @@ pandoc (1.8.2)
 
   * Deprecated `--xetex` option in `pandoc`.  It is no longer needed,
     since the LaTeX writer now produces a file that can be processed by
-    `latex`, `pdflatex`, `lualatex`, or `xelatex`.  (This introduces a new
-    dependency of the `iftex` package.)
+    `latex`, `pdflatex`, `lualatex`, or `xelatex`.
 
   * Introduced `--luatex` option to `markdown2pdf`. This causes `lualatex`
     to be used to create the PDF.
