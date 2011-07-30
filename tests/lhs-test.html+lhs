@@ -5,6 +5,7 @@
   <meta name="generator" content="pandoc" />
   <title></title>
   <style type="text/css">
+/*<![CDATA[*/
 table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode, table.sourceCode pre 
    { margin: 0; padding: 0; border: 0; vertical-align: baseline; border: none; }
 td.lineNumbers { border-right: 1px solid #AAAAAA; text-align: right; color: #AAAAAA; padding-right: 5px; padding-left: 5px; }
@@ -22,6 +23,7 @@ code.sourceCode span.al { color: red; font-weight: bold; }
 code.sourceCode span.fu { color: #06287e; }
 code.sourceCode span.re { }
 code.sourceCode span.er { color: red; font-weight: bold; }
+/*]]>*/
   </style>
 </head>
 <body>
