@@ -1,11 +1,12 @@
 \documentclass$if(fontsize)$[$fontsize$]$endif${article}
 \usepackage{amssymb,amsmath}
-\usepackage{iftex}
-\ifXeTeX
+\usepackage{ifxetex}
+\usepackage{ifluatex}
+\ifxetex
   \usepackage{fontspec,xltxtra,xunicode}
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
 \else
-  \ifLuaTeX
+  \ifluatex
     \usepackage{fontspec}
     \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
   \else
@@ -62,7 +63,7 @@ $if(graphics)$
 \let\Oldincludegraphics\includegraphics
 \renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=\maxwidth]{#1}}
 $endif$
-\ifXeTeX
+\ifxetex
   \usepackage[setpagesize=false, % page size defined by xetex
               unicode=false, % unicode breaks when used with xetex
               xetex]{hyperref}
