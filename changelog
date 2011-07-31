@@ -154,7 +154,10 @@ pandoc (1.8.1.2)
     HTML tags can be used freely at the left margin of a markdown+lhs document.
     Thanks to Conal Elliot for the suggestion.
 
-  * Markdown reader: Fixed bug in footnote order (reported by CircleCode).
+  * Markdown reader:
+
+    + Improved emph/strong parsing; fixes bug found by Perry Wagle.
+    + Fixed bug in footnote order (reported by CircleCode).
 
   * RST reader:
       + Fixed bug in in field lists with multi-line items at the
@@ -512,6 +515,8 @@ pandoc (1.8)
   * Moved `smartPunctuation` from `Text.Pandoc.Readers.Markdown`
     to `Text.Pandoc.Readers.Parsing`, and parameterized it with
     an inline parser.
+
+  * Added `nonspaceChar` to `Text.Pandoc.Parsing`.
 
   * Ellipses are no longer allowed to contain spaces.
     Previously we allowed '. . .', ' . . . ', etc.  This caused
