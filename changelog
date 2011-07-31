@@ -76,8 +76,8 @@ pandoc (1.8.2)
 
   * `markdown2pdf`:
 
-    + Calls latex with `-halt-on-error` instead of
-      `-interaction=batchmode`, which essentially just ignored errors,
+    + Calls latex with `-halt-on-error -interaction nonstopmode` instead
+      of `-interaction=batchmode`, which essentially just ignored errors,
       leading to bad results. Better to know when something is wrong.
     + Fixed issues with non-UTF-8 output of `pdflatex`.
     + Better error reporting.
@@ -114,8 +114,10 @@ pandoc (1.8.2)
       & writer).  Closes #279.
     + LaTeX: Use different `hyperref` options for `xetex`, fixing
       problems with unicode bookmarks (thanks to CircleCode).
-    + LaTeX: Don't use `ucs` if using `biblatex`; they are incompatible
-      (thanks to Joseph Reagle).
+    + LaTeX: Removed `ucs` package, use `utf8` rather than `utf8x`
+      with `inputenc`.  This covers fewer characters but is more
+      robust with other packages, and `ucs` is unmaintained.  Users
+      who need better unicode support should use xelatex or lualatex.
 
 pandoc (1.8.1.2)
 
