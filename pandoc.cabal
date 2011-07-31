@@ -368,3 +368,4 @@ Executable test-pandoc
                       Tests.Writers.Native
                       Tests.Writers.ConTeXt
                       Tests.Writers.HTML
+                      Tests.Writers.Markdown
