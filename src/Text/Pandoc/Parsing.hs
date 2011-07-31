@@ -33,6 +33,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              notFollowedBy',
                              oneOfStrings,
                              spaceChar,
+                             nonspaceChar,
                              skipSpaces,
                              blankline,
                              blanklines,
@@ -121,6 +122,10 @@ oneOfStrings listOfStrings = choice $ map (try . string) listOfStrings
 -- | Parses a space or tab.
 spaceChar :: CharParser st Char
 spaceChar = satisfy $ \c -> c == ' ' || c == '\t'
+
+-- | Parses a nonspace, nonnewline character.
+nonspaceChar :: CharParser st Char
+nonspaceChar = satisfy $ \x -> x /= '\t' && x /= '\n' && x /= ' ' && x /= '\r'
 
 -- | Skips zero or more spaces or tabs.
 skipSpaces :: GenParser Char st ()
