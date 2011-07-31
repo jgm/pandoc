@@ -44,6 +44,7 @@ import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockT
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.ParserCombinators.Parsec
 import Control.Monad (when, liftM, guard)
+import Control.Applicative ((<$>), (*>), (<*))
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match (tagOpen)
 
@@ -907,7 +908,7 @@ inlineParsers = [ whitespace
                 , str
                 , endline
                 , code
-                , (fourOrMore '*' <|> fourOrMore '_')
+                , fours
                 , strong
                 , emph
                 , note
@@ -1018,24 +1019,44 @@ mathInline = try $ do
 
 -- to avoid performance problems, treat 4 or more _ or * in a row as a literal
 -- rather than attempting to parse for emph/strong
-fourOrMore :: Char -> GenParser Char st Inline
-fourOrMore c = try $ count 4 (char c) >> many (char c) >>= \s ->
-                       return (Str $ replicate 4 c ++ s)
+fours :: GenParser Char st Inline
+fours = try $ do
+  x <- char '*' <|> char '_'
+  count 2 $ satisfy (==x)
+  rest <- many1 (satisfy (==x))
+  return $ Str (x:x:x:rest)
+
+-- | Parses a list of inlines between start and end delimiters.
+inlinesBetween :: (Show b)
+               => GenParser Char ParserState a
+               -> GenParser Char ParserState b
+               -> GenParser Char ParserState [Inline]
+inlinesBetween start end =
+  normalizeSpaces <$> try (start *> many1Till inner end)
+    where inner      = innerSpace <|> (notFollowedBy' whitespace *> inline)
+          innerSpace = try $ whitespace <* notFollowedBy' end
 
 emph :: GenParser Char ParserState Inline
-emph = ((enclosed (char '*') (notFollowedBy' strong >> char '*') inline) <|>
-        (enclosed (char '_') (notFollowedBy' strong >> char '_' >> 
-                              notFollowedBy alphaNum) inline)) >>= 
-        return . Emph . normalizeSpaces
+emph = Emph <$>
+  (inlinesBetween starStart starEnd <|> inlinesBetween ulStart ulEnd)
+    where starStart = char '*' *> lookAhead nonspaceChar
+          starEnd   = notFollowedBy' strong *> char '*'
+          ulStart   = char '_' *> lookAhead nonspaceChar
+          ulEnd     = notFollowedBy' strong *> char '_'
 
 strong :: GenParser Char ParserState Inline
-strong = ((enclosed (string "**") (try $ string "**") inline) <|> 
-          (enclosed (string "__") (try $ string "__") inline)) >>=
-         return . Strong . normalizeSpaces
+strong = Strong <$>
+  (inlinesBetween starStart starEnd <|> inlinesBetween ulStart ulEnd)
+    where starStart = string "**" *> lookAhead nonspaceChar
+          starEnd   = try $ string "**"
+          ulStart   = string "__" *> lookAhead nonspaceChar
+          ulEnd     = try $ string "__"
 
 strikeout :: GenParser Char ParserState Inline
-strikeout = failIfStrict >> enclosed (string "~~") (try $ string "~~") inline >>=
-            return . Strikeout . normalizeSpaces
+strikeout = Strikeout <$> (failIfStrict >> inlinesBetween strikeStart strikeEnd)
+  where strikeStart = string "~~" *> lookAhead nonspaceChar
+                      *> notFollowedBy (char '~')
+        strikeEnd   = try $ string "~~"
 
 superscript :: GenParser Char ParserState Inline
 superscript = failIfStrict >> enclosed (char '^') (char '^') 
