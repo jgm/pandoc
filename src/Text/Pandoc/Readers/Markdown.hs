@@ -44,7 +44,6 @@ import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockT
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.ParserCombinators.Parsec
 import Control.Monad (when, liftM, guard)
-import Control.Applicative ((<$>), (*>), (<*))
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match (tagOpen)
 
@@ -1032,31 +1031,32 @@ inlinesBetween :: (Show b)
                -> GenParser Char ParserState b
                -> GenParser Char ParserState [Inline]
 inlinesBetween start end =
-  normalizeSpaces <$> try (start *> many1Till inner end)
-    where inner      = innerSpace <|> (notFollowedBy' whitespace *> inline)
-          innerSpace = try $ whitespace <* notFollowedBy' end
+  normalizeSpaces `liftM` try (start >> many1Till inner end)
+    where inner      = innerSpace <|> (notFollowedBy' whitespace >> inline)
+          innerSpace = try $ whitespace >>~ notFollowedBy' end
 
 emph :: GenParser Char ParserState Inline
-emph = Emph <$>
+emph = Emph `liftM`
   (inlinesBetween starStart starEnd <|> inlinesBetween ulStart ulEnd)
-    where starStart = char '*' *> lookAhead nonspaceChar
-          starEnd   = notFollowedBy' strong *> char '*'
-          ulStart   = char '_' *> lookAhead nonspaceChar
-          ulEnd     = notFollowedBy' strong *> char '_'
+    where starStart = char '*' >> lookAhead nonspaceChar
+          starEnd   = notFollowedBy' strong >> char '*'
+          ulStart   = char '_' >> lookAhead nonspaceChar
+          ulEnd     = notFollowedBy' strong >> char '_'
 
 strong :: GenParser Char ParserState Inline
-strong = Strong <$>
+strong = Strong `liftM`
   (inlinesBetween starStart starEnd <|> inlinesBetween ulStart ulEnd)
-    where starStart = string "**" *> lookAhead nonspaceChar
+    where starStart = string "**" >> lookAhead nonspaceChar
           starEnd   = try $ string "**"
-          ulStart   = string "__" *> lookAhead nonspaceChar
+          ulStart   = string "__" >> lookAhead nonspaceChar
           ulEnd     = try $ string "__"
 
 strikeout :: GenParser Char ParserState Inline
-strikeout = Strikeout <$> (failIfStrict >> inlinesBetween strikeStart strikeEnd)
-  where strikeStart = string "~~" *> lookAhead nonspaceChar
-                      *> notFollowedBy (char '~')
-        strikeEnd   = try $ string "~~"
+strikeout = Strikeout `liftM`
+ (failIfStrict >> inlinesBetween strikeStart strikeEnd)
+    where strikeStart = string "~~" >> lookAhead nonspaceChar
+                        >> notFollowedBy (char '~')
+          strikeEnd   = try $ string "~~"
 
 superscript :: GenParser Char ParserState Inline
 superscript = failIfStrict >> enclosed (char '^') (char '^') 
