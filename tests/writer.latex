@@ -1,16 +1,15 @@
 \documentclass{article}
 \usepackage{amssymb,amsmath}
-\usepackage{iftex}
-\ifXeTeX
+\usepackage{ifxetex,ifluatex}
+\ifxetex
   \usepackage{fontspec,xltxtra,xunicode}
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
 \else
-  \ifLuaTeX
+  \ifluatex
     \usepackage{fontspec}
     \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
   \else
-    \usepackage[mathletters]{ucs}
-    \usepackage[utf8x]{inputenc}
+    \usepackage[utf8]{inputenc}
   \fi
 \fi
 \usepackage{fancyvrb}
@@ -32,7 +31,7 @@
 \makeatother
 \let\Oldincludegraphics\includegraphics
 \renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=\maxwidth]{#1}}
-\ifXeTeX
+\ifxetex
   \usepackage[setpagesize=false, % page size defined by xetex
               unicode=false, % unicode breaks when used with xetex
               xetex]{hyperref}
