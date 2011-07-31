@@ -28,7 +28,7 @@ instance Arbitrary Blocks where
   arbitrary = liftM fromList arbitrary
 
 instance Arbitrary Inline where
-  arbitrary = resize 3 $ arbInline 3
+  arbitrary = resize 3 $ arbInline 2
 
 arbInlines :: Int -> Gen [Inline]
 arbInlines n = listOf1 (arbInline n) `suchThat` (not . startsWithSpace)
@@ -72,7 +72,7 @@ arbInline n = frequency $ [ (60, liftM Str realString)
                    ]
 
 instance Arbitrary Block where
-  arbitrary = resize 3 $ arbBlock 3
+  arbitrary = resize 3 $ arbBlock 2
 
 arbBlock :: Int -> Gen Block
 arbBlock n = frequency $ [ (10, liftM Plain $ arbInlines (n-1))
