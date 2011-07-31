@@ -1,7 +1,6 @@
 \documentclass$if(fontsize)$[$fontsize$]$endif${article}
 \usepackage{amssymb,amsmath}
-\usepackage{ifxetex}
-\usepackage{ifluatex}
+\usepackage{ifxetex,ifluatex}
 \ifxetex
   \usepackage{fontspec,xltxtra,xunicode}
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
@@ -115,8 +114,9 @@ $if(toc)$
 
 $endif$
 $body$
-$if(biblio-files)$
+
 $if(natbib)$
+$if(biblio-files)$
 $if(biblio-title)$
 $if(book-class)$
 \renewcommand\bibname{$biblio-title$}
@@ -125,14 +125,15 @@ $else$
 $endif$
 $endif$
 \bibliography{$biblio-files$}
+
 $endif$
 $endif$
 $if(biblatex)$
 \printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$
+
 $endif$
 $for(include-after)$
-
 $include-after$
-$endfor$
 
+$endfor$
 \end{document}
