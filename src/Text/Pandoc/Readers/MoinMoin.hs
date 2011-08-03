@@ -174,7 +174,7 @@ codeInline :: GenParser Char st Inline
 codeInline = try $ do
   codeBlockStart'
   contents <- manyTill anyChar codeBlockEnd'
-  return $ Code contents
+  return $ Code nullAttr contents
       where
         codeBlockStart' = string "{{{" >> return ()
         codeBlockEnd' = try $ string "}}}" >> return ()
@@ -556,7 +556,7 @@ code = try $ do
                        (char '\n' >> return " ")) 
                       (try (skipSpaces >> count (length starts) (char '`') >> 
                       notFollowedBy (char '`')))
-  return $ Code $ removeLeadingTrailingSpace $ concat result
+  return $ Code nullAttr $ removeLeadingTrailingSpace $ concat result
 
 emph :: GenParser Char ParserState Inline
 emph = (enclosed (string "''") (string "''") inline) >>= return . Emph . normalizeSpaces
@@ -673,7 +673,7 @@ link = choice [uriLink
 uriLink :: GenParser Char ParserState Inline
 uriLink = try $ do
   (u, uri_escaped) <- uri
-  return $ Link [Code u] (uri_escaped, "")
+  return $ Link [Code nullAttr u] (uri_escaped, "")
 
 emailAddressLink :: GenParser Char ParserState Inline
 emailAddressLink = try $ do
