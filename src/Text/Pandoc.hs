@@ -115,6 +115,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.RST
+import Text.Pandoc.Readers.MoinMoin
 import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.HTML
 import Text.Pandoc.Readers.Textile
@@ -157,6 +158,7 @@ readers = [("native"       , \_ -> readNative)
           ,("rst+lhs"      , \st ->
                              readRST st{ stateLiterateHaskell = True})
           ,("textile"      , readTextile) -- TODO : textile+lhs 
+          ,("moinmoin"     , readMoinMoin)
           ,("html"         , readHtml)
           ,("latex"        , readLaTeX)
           ,("latex+lhs"    , \st ->

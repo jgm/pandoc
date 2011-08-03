@@ -238,6 +238,7 @@ Library
                    Text.Pandoc.Readers.LaTeX,
                    Text.Pandoc.Readers.Markdown,
                    Text.Pandoc.Readers.RST,
+                   Text.Pandoc.Readers.MoinMoin,
                    Text.Pandoc.Readers.TeXMath,
                    Text.Pandoc.Readers.Textile,
                    Text.Pandoc.Readers.Native,

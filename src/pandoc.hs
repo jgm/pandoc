@@ -600,6 +600,7 @@ defaultReaderName fallback (x:xs) =
     ".latex"    -> "latex"
     ".ltx"      -> "latex"
     ".rst"      -> "rst"
+    ".moinmoin" -> "moinmoin"
     ".lhs"      -> "markdown+lhs"
     ".textile"  -> "textile"
     ".native"   -> "native"
