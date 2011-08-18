@@ -279,7 +279,8 @@ inlineToConTeXt (Link txt (src, _)) = do
   put $ st {stNextRef = next + 1}
   let ref = show next
   label <- inlineListToConTeXt txt
-  return $ "\\useURL" <> brackets (text ref) <> brackets (text src) <>
+  return $ "\\useURL" <> brackets (text ref) <>
+           brackets (text $ escapeStringUsing [('#',"\\#")] src) <>
            brackets empty <> brackets label <>
            "\\from" <> brackets (text ref)
 inlineToConTeXt (Image _ (src, _)) = do
