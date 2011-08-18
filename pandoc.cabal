@@ -219,10 +219,13 @@ Library
   if flag(highlighting)
     Build-depends: highlighting-kate >= 0.2.9 && < 0.3
     cpp-options:   -D_HIGHLIGHTING
-  if impl(ghc >= 6.12)
-    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
+  if impl(ghc == 7.0.3) && os(macosx)
+    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind -optl-Wl,-no_pie
   else
-    Ghc-Options:     -O2 -Wall
+    if impl(ghc >= 6.12)
+      Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
+    else
+      Ghc-Options:     -O2 -Wall
   Ghc-Prof-Options: -auto-all -caf-all
   Extensions:         CPP
   Hs-Source-Dirs:  src
@@ -305,10 +308,13 @@ Executable pandoc
   if flag(highlighting)
     Build-depends: highlighting-kate >= 0.2.9 && < 0.3
     cpp-options:   -D_HIGHLIGHTING
-  if impl(ghc >= 6.12)
-    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
+  if impl(ghc == 7.0.3) && os(macosx)
+    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind -optl-Wl,-no_pie
   else
-    Ghc-Options:     -O2 -Wall
+    if impl(ghc >= 6.12)
+      Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
+    else
+      Ghc-Options:     -O2 -Wall
   Ghc-Prof-Options: -auto-all -caf-all
   Extensions:         CPP
   Hs-Source-Dirs:  src
