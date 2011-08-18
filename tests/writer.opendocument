@@ -855,7 +855,7 @@
   </office:automatic-styles>
 <office:body>
 <office:text>
-<text:h text:style-name="Heading_20_1" text:outline-level="1">Pandoc Test Suite</text:h>
+<text:h text:style-name="Title">Pandoc Test Suite</text:h>
 <text:p text:style-name="Author">John MacFarlane</text:p>
 <text:p text:style-name="Author">Anonymous</text:p>
 <text:p text:style-name="Date">July 17, 2006</text:p>
