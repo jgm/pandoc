@@ -31,6 +31,7 @@ Conversion of 'Pandoc' format into ConTeXt.
 module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Pandoc.Generic (queryWith)
 import Text.Printf ( printf )
 import Data.List ( intercalate )
 import Control.Monad.State
@@ -290,5 +291,10 @@ inlineToConTeXt (Image _ (src, _)) = do
   return $ braces $ "\\externalfigure" <> brackets (text src')
 inlineToConTeXt (Note contents) = do
   contents' <- blockListToConTeXt contents
-  return $ text "\\footnote{" <>
-           nest 2 contents' <> char '}'
+  let codeBlock x@(CodeBlock _ _) = [x]
+      codeBlock _ = []
+  let codeBlocks = queryWith codeBlock contents
+  return $ if null codeBlocks
+              then text "\\footnote{" <> nest 2 contents' <> char '}'
+              else text "\\startbuffer " <> nest 2 contents' <>
+                   text "\\stopbuffer\\footnote{\\getbuffer}"
