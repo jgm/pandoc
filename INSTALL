@@ -28,6 +28,15 @@ the [cabal-install] build tool.
 
         cabal install
 
+    If you are on OSX, you may encounter an error installing highlighting-kate,
+
+        ld: scattered reloc r_address too large
+
+    The workaround is this:
+
+        cabal install highlighting-kate --disable-library-for-ghci
+        cabal install pandoc -fhighlighting -f-wrappers
+
 3.  Make sure the `$CABALDIR/bin` directory is in your path.  You should
 now be able to run `pandoc`:
 
