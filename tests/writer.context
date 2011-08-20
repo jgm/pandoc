@@ -14,10 +14,9 @@
 \setuphead[subsection][style=\tfb]
 \setuphead[subsubsection][style=\bf]
 
-% define descr (for definition lists)
-\definedescription[descr][
-  headstyle=bold,style=normal,align=left,location=hanging,
-  width=broad,margin=1cm]
+% define description (for definition lists)
+\definedescription[description][
+  headstyle=bold,style=normal,location=hanging,width=broad,margin=1cm]
 
 % prevent orphaned list intros
 \setupitemize[autointro]
@@ -439,55 +438,55 @@ B. Williams
 
 Tight using spaces:
 
-\startdescr{apple}
+\startdescription{apple}
   red fruit
-\stopdescr
+\stopdescription
 
-\startdescr{orange}
+\startdescription{orange}
   orange fruit
-\stopdescr
+\stopdescription
 
-\startdescr{banana}
+\startdescription{banana}
   yellow fruit
-\stopdescr
+\stopdescription
 
 Tight using tabs:
 
-\startdescr{apple}
+\startdescription{apple}
   red fruit
-\stopdescr
+\stopdescription
 
-\startdescr{orange}
+\startdescription{orange}
   orange fruit
-\stopdescr
+\stopdescription
 
-\startdescr{banana}
+\startdescription{banana}
   yellow fruit
-\stopdescr
+\stopdescription
 
 Loose:
 
-\startdescr{apple}
+\startdescription{apple}
   red fruit
-\stopdescr
+\stopdescription
 
-\startdescr{orange}
+\startdescription{orange}
   orange fruit
-\stopdescr
+\stopdescription
 
-\startdescr{banana}
+\startdescription{banana}
   yellow fruit
-\stopdescr
+\stopdescription
 
 Multiple blocks with italics:
 
-\startdescr{{\em apple}}
+\startdescription{{\em apple}}
   red fruit
 
   contains seeds, crisp, pleasant to taste
-\stopdescr
+\stopdescription
 
-\startdescr{{\em orange}}
+\startdescription{{\em orange}}
   orange fruit
 
 \starttyping
@@ -497,45 +496,45 @@ Multiple blocks with italics:
   \startblockquote
   orange block quote
   \stopblockquote
-\stopdescr
+\stopdescription
 
 Multiple definitions, tight:
 
-\startdescr{apple}
+\startdescription{apple}
   red fruit
 
   computer
-\stopdescr
+\stopdescription
 
-\startdescr{orange}
+\startdescription{orange}
   orange fruit
 
   bank
-\stopdescr
+\stopdescription
 
 Multiple definitions, loose:
 
-\startdescr{apple}
+\startdescription{apple}
   red fruit
 
   computer
-\stopdescr
+\stopdescription
 
-\startdescr{orange}
+\startdescription{orange}
   orange fruit
 
   bank
-\stopdescr
+\stopdescription
 
 Blank line after term, indented marker, alternate markers:
 
-\startdescr{apple}
+\startdescription{apple}
   red fruit
 
   computer
-\stopdescr
+\stopdescription
 
-\startdescr{orange}
+\startdescription{orange}
   orange fruit
 
   \startitemize[n][stopper=.]
@@ -544,7 +543,7 @@ Blank line after term, indented marker, alternate markers:
   \item
     sublist
   \stopitemize
-\stopdescr
+\stopdescription
 
 \subject{HTML Blocks}
 

@@ -214,8 +214,8 @@ defListItemToConTeXt :: ([Inline], [[Block]]) -> State WriterState Doc
 defListItemToConTeXt (term, defs) = do
   term' <- inlineListToConTeXt term
   def'  <- liftM vsep $ mapM blockListToConTeXt defs
-  return $ "\\startdescr" <> braces term' $$ nest 2 def' $$
-           "\\stopdescr" <> blankline
+  return $ "\\startdescription" <> braces term' $$ nest 2 def' $$
+           "\\stopdescription" <> blankline
 
 -- | Convert list of block elements to ConTeXt.
 blockListToConTeXt :: [Block] -> State WriterState Doc
