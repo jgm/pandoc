@@ -14,10 +14,9 @@
 \setuphead[subsection][style=\tfb]
 \setuphead[subsubsection][style=\bf]
 
-% define descr (for definition lists)
-\definedescription[descr][
-  headstyle=bold,style=normal,align=left,location=hanging,
-  width=broad,margin=1cm]
+% define description (for definition lists)
+\definedescription[description][
+  headstyle=bold,style=normal,location=hanging,width=broad,margin=1cm]
 
 % prevent orphaned list intros
 \setupitemize[autointro]
