@@ -8,7 +8,7 @@
 
 \setuppapersize [letter][letter]  
 \setuplayout    [width=middle,  backspace=1.5in, cutspace=1.5in,
-                 height=middle, header=0.75in,   footer=0.75in]
+                 height=middle, topspace=0.75in, bottomspace=0.75in]
 
 \setuppagenumbering[location={footer,center}]
 
