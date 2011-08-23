@@ -272,14 +272,27 @@ inlineToConTeXt (RawInline "tex" str) = return $ text str
 inlineToConTeXt (RawInline _ _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt Space = return space
-inlineToConTeXt (Link [Code _ str] (src, tit)) = -- since ConTeXt has its own 
-  inlineToConTeXt (Link [Str str] (src, tit))  -- way of printing links... 
-inlineToConTeXt (Link txt (src, _)) = do
+-- ConTeXT has its own way of printing links
+inlineToConTeXt (Link [Code _ str] (src, tit))    = inlineToConTeXt (Link [Str str] (src, tit))
+-- Attempt to hyphenate URLs in the simplest Str case
+inlineToConTeXt (Link [Str str]    (src, _))    = do
   st <- get
   let next = stNextRef st
   put $ st {stNextRef = next + 1}
-  let ref = show next
-  label <- inlineListToConTeXt txt
+  let ref = "urlref" ++ (show next)
+  let label = if isAbsoluteURI str then ("\\hyphenatedurl" <> braces (text str)) else (text . stringToConTeXt) str
+  return $ "\\useURL" <> brackets (text ref) <>
+           brackets (text $ escapeStringUsing [('#',"\\#")] src) <>
+           brackets empty <> brackets label <>
+           "\\from" <> brackets (text ref)
+-- Can't hyphenate URLs in the complicated case because the label is escaped, isAbsoluteURI fails to
+-- parse it (FIXME?)
+inlineToConTeXt (Link txt          (src, _))      = do
+  st <- get
+  let next = stNextRef st
+  put $ st {stNextRef = next + 1}
+  let ref ="urlref" ++ (show next)
+  label <-  inlineListToConTeXt txt
   return $ "\\useURL" <> brackets (text ref) <>
            brackets (text $ escapeStringUsing [('#',"\\#")] src) <>
            brackets empty <> brackets label <>
