@@ -29,25 +29,13 @@
 
 \setupthinrules[width=15em] % width of horizontal rules
 
-% for block quotations
-\unprotect
-
-\startvariables all
-blockquote: blockquote
-\stopvariables
-
-\definedelimitedtext
-  [\v!blockquote][\v!quotation]
-
 \setupdelimitedtext
-  [\v!blockquote]
-  [\c!left=,
-  \c!right=,
-  \c!before={\blank[medium]},
-  \c!after={\blank[medium]},
+  [blockquote]
+  [before={\blank[medium]},
+   after={\blank[medium]},
+   indentnext=no,
   ]
 
-\protect
 $for(header-includes)$
 $header-includes$
 $endfor$
