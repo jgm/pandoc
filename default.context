@@ -22,7 +22,7 @@
 
 \definedescription
   [description]
-  [headstyle=bold,style=normal,location=hanging,width=broad,margin=1cm]
+  [headstyle=bold, style=normal, location=hanging, width=broad, margin=1cm]
 
 % prevent orphaned list intros
 \setupitemize[autointro]
