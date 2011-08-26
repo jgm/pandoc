@@ -1,53 +1,41 @@
-\enableregime[utf]  % use UTF-8
+\startmode[*mkii]
+  \enableregime[utf-8]  
+  \setupcolors[state=start]
+\stopmode
 
-\setupcolors[state=start]
-\setupinteraction[state=start, color=middleblue] % needed for hyperlinks
+% Enable hyperlinks
+\setupinteraction[state=start, color=middleblue]
 
-\setuppapersize[letter][letter]  % use letter paper
-\setuplayout[width=middle, backspace=1.5in, cutspace=1.5in,
-             height=middle, header=0.75in, footer=0.75in] % page layout
-\setuppagenumbering[location={footer,center}]  % number pages
-\setupbodyfont[11pt]  % 11pt font
-\setupwhitespace[medium]  % inter-paragraph spacing
+\setuppapersize [letter][letter]  
+\setuplayout    [width=middle,  backspace=1.5in, cutspace=1.5in,
+                 height=middle, topspace=0.75in, bottomspace=0.75in]
 
-\setuphead[section][style=\tfc]
-\setuphead[subsection][style=\tfb]
+\setuppagenumbering[location={footer,center}]
+
+\setupbodyfont[11pt]
+
+\setupwhitespace[medium]
+
+\setuphead[section]      [style=\tfc]
+\setuphead[subsection]   [style=\tfb]
 \setuphead[subsubsection][style=\bf]
 
-% define description (for definition lists)
-\definedescription[description][
-  headstyle=bold,style=normal,location=hanging,width=broad,margin=1cm]
+\definedescription
+  [description]
+  [headstyle=bold, style=normal, location=hanging, width=broad, margin=1cm]
 
-% prevent orphaned list intros
-\setupitemize[autointro]
+\setupitemize[autointro]    % prevent orphan list intro
+\setupitemize[indentnext=no]
 
-% define defaults for bulleted lists 
-\setupitemize[1][symbol=1][indentnext=no]
-\setupitemize[2][symbol=2][indentnext=no]
-\setupitemize[3][symbol=3][indentnext=no]
-\setupitemize[4][symbol=4][indentnext=no]
-
-\setupthinrules[width=15em]  % width of horizontal rules
-
-% for block quotations
-\unprotect
-
-\startvariables all
-blockquote: blockquote
-\stopvariables
-
-\definedelimitedtext
-[\v!blockquote][\v!quotation]
+\setupthinrules[width=15em] % width of horizontal rules
 
 \setupdelimitedtext
-[\v!blockquote]
-[\c!left=,
-\c!right=,
-before={\blank[medium]},
-after={\blank[medium]},
-]
+  [blockquote]
+  [before={\blank[medium]},
+   after={\blank[medium]},
+   indentnext=no,
+  ]
 
-\protect
 
 \starttext
 \startalignment[center]
