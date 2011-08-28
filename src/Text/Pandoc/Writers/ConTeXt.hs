@@ -64,12 +64,12 @@ pandocToConTeXt options (Pandoc (Meta title authors date) blocks) = do
                     else Nothing
   titletext <- if null title
                   then return ""
-                  else liftM (render colwidth) $ inlineListToConTeXt title
-  authorstext <- mapM (liftM (render colwidth) . inlineListToConTeXt) authors
+                  else liftM (render colwidth) $ inlineListToConTeXt stringToConTeXt title
+  authorstext <- mapM (liftM (render colwidth) . (inlineListToConTeXt stringToConTeXt)) authors
   datetext <-  if null date
                   then return ""
-                  else liftM (render colwidth) $ inlineListToConTeXt date
-  body <- blockListToConTeXt blocks
+                  else liftM (render colwidth) $ inlineListToConTeXt stringToConTeXt date
+  body <- blockListToConTeXt stringToConTeXt blocks
   let main = render colwidth $ body
   let context  = writerVariables options ++
                  [ ("toc", if writerTableOfContents options then "yes" else "")
@@ -108,34 +108,39 @@ escapeCharForConTeXt ch =
 stringToConTeXt :: String -> String
 stringToConTeXt = concatMap escapeCharForConTeXt
 
+-- | Hyphenate URLs, if the string is an absolute URL, otherwise, escape the string for ConTeXt
+urlHyphenate :: String -> String
+urlHyphenate s = if isAbsoluteURI s then "\\hyphenatedurl{" ++ s ++ "}" else stringToConTeXt s
+
 -- | Convert Pandoc block element to ConTeXt.
-blockToConTeXt :: Block 
+blockToConTeXt :: (String -> String)
+               ->Block
                -> State WriterState Doc
-blockToConTeXt Null = return empty
-blockToConTeXt (Plain lst) = inlineListToConTeXt lst
-blockToConTeXt (Para [Image txt (src,_)]) = do
-  capt <- inlineListToConTeXt txt
+blockToConTeXt _ Null = return empty
+blockToConTeXt strXform (Plain lst) = inlineListToConTeXt strXform lst
+blockToConTeXt strXform (Para [Image txt (src,_)]) = do
+  capt <- inlineListToConTeXt strXform txt
   return $ blankline $$ "\\placefigure[here,nonumber]" <> braces capt <>
            braces ("\\externalfigure" <> brackets (text src)) <> blankline
-blockToConTeXt (Para lst) = do 
-  contents <- inlineListToConTeXt lst
+blockToConTeXt strXform (Para lst) = do 
+  contents <- inlineListToConTeXt strXform lst
   return $ contents <> blankline
-blockToConTeXt (BlockQuote lst) = do
-  contents <- blockListToConTeXt lst
+blockToConTeXt strXform (BlockQuote lst) = do
+  contents <- blockListToConTeXt strXform lst
   return $ "\\startblockquote" $$ nest 0 contents $$ "\\stopblockquote" <> blankline
-blockToConTeXt (CodeBlock _ str) =
+blockToConTeXt _ (CodeBlock _ str) =
   return $ flush ("\\starttyping" <> cr <> text str <> cr <> "\\stoptyping") $$ blankline
   -- blankline because \stoptyping can't have anything after it, inc. '}'
-blockToConTeXt (RawBlock "context" str) = return $ text str <> blankline
-blockToConTeXt (RawBlock _ _ ) = return empty
-blockToConTeXt (BulletList lst) = do
-  contents <- mapM listItemToConTeXt lst
+blockToConTeXt _ (RawBlock "context" str) = return $ text str <> blankline
+blockToConTeXt _ (RawBlock _ _ ) = return empty
+blockToConTeXt strXform (BulletList lst) = do
+  contents <- mapM (listItemToConTeXt strXform) lst
   return $ "\\startitemize" $$ vcat contents $$ text "\\stopitemize" <> blankline
-blockToConTeXt (OrderedList (start, style', delim) lst) = do
+blockToConTeXt strXform (OrderedList (start, style', delim) lst) = do
     st <- get
     let level = stOrderedListLevel st
     put $ st {stOrderedListLevel = level + 1}
-    contents <- mapM listItemToConTeXt lst
+    contents <- mapM (listItemToConTeXt strXform) lst
     put $ st {stOrderedListLevel = level} 
     let start' = if start == 1 then "" else "start=" ++ show start
     let delim' = case delim of
@@ -164,11 +169,11 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
     let specs = style'' ++ specs2
     return $ "\\startitemize" <> text specs $$ vcat contents $$
              "\\stopitemize" <> blankline
-blockToConTeXt (DefinitionList lst) =
-  liftM vcat $ mapM defListItemToConTeXt lst
-blockToConTeXt HorizontalRule = return $ "\\thinrule" <> blankline
-blockToConTeXt (Header level lst) = do
-  contents <- inlineListToConTeXt lst
+blockToConTeXt strXform (DefinitionList lst) =
+  liftM vcat $ mapM (defListItemToConTeXt strXform) lst
+blockToConTeXt _ HorizontalRule = return $ "\\thinrule" <> blankline
+blockToConTeXt strXform (Header level lst) = do
+  contents <- inlineListToConTeXt strXform lst
   st <- get
   let opts = stOptions st
   let base = if writerNumberSections opts then "section" else "subject"
@@ -179,7 +184,7 @@ blockToConTeXt (Header level lst) = do
                else if level' == 0
                        then "\\chapter{" <> contents <> "}"
                        else contents <> blankline
-blockToConTeXt (Table caption aligns widths heads rows) = do
+blockToConTeXt strXform (Table caption aligns widths heads rows) = do
     let colDescriptor colWidth alignment = (case alignment of
                                                AlignLeft    -> 'l' 
                                                AlignRight   -> 'r'
@@ -192,105 +197,108 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
                                  zipWith colDescriptor widths aligns)
     headers <- if all null heads
                   then return empty
-                  else liftM ($$ "\\HL") $ tableRowToConTeXt heads 
-    captionText <- inlineListToConTeXt caption 
+                  else liftM ($$ "\\HL") $ tableRowToConTeXt strXform heads 
+    captionText <- inlineListToConTeXt strXform caption 
     let captionText' = if null caption then text "none" else captionText
-    rows' <- mapM tableRowToConTeXt rows 
+    rows' <- mapM (tableRowToConTeXt strXform) rows 
     return $ "\\placetable[here]" <> braces captionText' $$
              "\\starttable" <> brackets (text colDescriptors) $$
              "\\HL" $$ headers $$
              vcat rows' $$ "\\HL" $$ "\\stoptable" <> blankline
 
-tableRowToConTeXt :: [[Block]] -> State WriterState Doc
-tableRowToConTeXt cols = do
-  cols' <- mapM blockListToConTeXt cols
+tableRowToConTeXt :: (String -> String) -> [[Block]] -> State WriterState Doc
+tableRowToConTeXt strXform cols = do
+  cols' <- mapM (blockListToConTeXt strXform) cols
   return $ (vcat (map ("\\NC " <>) cols')) $$ "\\NC\\AR"
 
-listItemToConTeXt :: [Block] -> State WriterState Doc
-listItemToConTeXt list = blockListToConTeXt list >>=
+listItemToConTeXt :: (String -> String) -> [Block] -> State WriterState Doc
+listItemToConTeXt strXform list = blockListToConTeXt strXform list >>=
   return . ("\\item" $$) . (nest 2)
 
-defListItemToConTeXt :: ([Inline], [[Block]]) -> State WriterState Doc
-defListItemToConTeXt (term, defs) = do
-  term' <- inlineListToConTeXt term
-  def'  <- liftM vsep $ mapM blockListToConTeXt defs
+defListItemToConTeXt :: (String -> String) -> ([Inline], [[Block]]) -> State WriterState Doc
+defListItemToConTeXt strXform (term, defs) = do
+  term' <- inlineListToConTeXt strXform term
+  def'  <- liftM vsep $ mapM (blockListToConTeXt strXform) defs
   return $ "\\startdescription" <> braces term' $$ nest 2 def' $$
            "\\stopdescription" <> blankline
 
 -- | Convert list of block elements to ConTeXt.
-blockListToConTeXt :: [Block] -> State WriterState Doc
-blockListToConTeXt lst = liftM vcat $ mapM blockToConTeXt lst
+blockListToConTeXt :: (String -> String) -> [Block] -> State WriterState Doc
+blockListToConTeXt strXform lst = liftM vcat $ mapM (blockToConTeXt strXform) lst
 
 -- | Convert list of inline elements to ConTeXt.
-inlineListToConTeXt :: [Inline]  -- ^ Inlines to convert
+inlineListToConTeXt :: (String -> String)       -- ^ String transformer
+                    -> [Inline]                 -- ^ Inlines to convert
                     -> State WriterState Doc
-inlineListToConTeXt lst = liftM hcat $ mapM inlineToConTeXt lst
+inlineListToConTeXt strXform lst = liftM hcat $ mapM (inlineToConTeXt strXform) lst
 
 -- | Convert inline element to ConTeXt
-inlineToConTeXt :: Inline    -- ^ Inline to convert
+inlineToConTeXt :: (String -> String)           -- ^ String transformer
+                -> Inline                       -- ^ Inline to convert
                 -> State WriterState Doc
-inlineToConTeXt (Emph lst) = do 
-  contents <- inlineListToConTeXt lst
+inlineToConTeXt strXform (Emph lst) = do
+  contents <- inlineListToConTeXt strXform lst
   return $ braces $ "\\em " <> contents
-inlineToConTeXt (Strong lst) = do
-  contents <- inlineListToConTeXt lst
+inlineToConTeXt strXform (Strong lst) = do
+  contents <- inlineListToConTeXt strXform lst
   return $ braces $ "\\bf " <> contents
-inlineToConTeXt (Strikeout lst) = do
-  contents <- inlineListToConTeXt lst
+inlineToConTeXt strXform (Strikeout lst) = do
+  contents <- inlineListToConTeXt strXform lst
   return $ "\\overstrikes" <> braces contents
-inlineToConTeXt (Superscript lst) = do
-  contents <- inlineListToConTeXt lst
+inlineToConTeXt strXform (Superscript lst) = do
+  contents <- inlineListToConTeXt strXform lst
   return $ "\\high" <> braces contents
-inlineToConTeXt (Subscript lst) = do
-  contents <- inlineListToConTeXt lst
+inlineToConTeXt strXform (Subscript lst) = do
+  contents <- inlineListToConTeXt  strXform lst
   return $ "\\low" <> braces contents
-inlineToConTeXt (SmallCaps lst) = do
-  contents <- inlineListToConTeXt lst
+inlineToConTeXt strXform (SmallCaps lst) = do
+  contents <- inlineListToConTeXt strXform lst
   return $ braces $ "\\sc " <> contents
-inlineToConTeXt (Code _ str) | not ('{' `elem` str || '}' `elem` str) =
+inlineToConTeXt _ (Code _ str) | not ('{' `elem` str || '}' `elem` str) =
   return $ "\\type" <> braces (text str)
-inlineToConTeXt (Code _ str) =
-  return $ "\\mono" <> braces (text $ stringToConTeXt str)
-inlineToConTeXt (Quoted SingleQuote lst) = do
-  contents <- inlineListToConTeXt lst
+inlineToConTeXt strXform (Code _ str) =
+  return $ "\\mono" <> braces (text $ strXform str)
+inlineToConTeXt strXform (Quoted SingleQuote lst) = do
+  contents <- inlineListToConTeXt strXform lst
   return $ "\\quote" <> braces contents
-inlineToConTeXt (Quoted DoubleQuote lst) = do
-  contents <- inlineListToConTeXt lst
+inlineToConTeXt strXform (Quoted DoubleQuote lst) = do
+  contents <- inlineListToConTeXt strXform lst
   return $ "\\quotation" <> braces contents
-inlineToConTeXt (Cite _ lst) = inlineListToConTeXt lst
-inlineToConTeXt Apostrophe = return $ char '\''
-inlineToConTeXt EmDash = return "---"
-inlineToConTeXt EnDash = return "--"
-inlineToConTeXt Ellipses = return "\\ldots{}"
-inlineToConTeXt (Str str) = return $ text $ stringToConTeXt str
-inlineToConTeXt (Math InlineMath str) =
+inlineToConTeXt strXform (Cite _ lst) = inlineListToConTeXt strXform lst
+inlineToConTeXt _ Apostrophe = return $ char '\''
+inlineToConTeXt _ EmDash = return "---"
+inlineToConTeXt _ EnDash = return "--"
+inlineToConTeXt _ Ellipses = return "\\ldots{}"
+inlineToConTeXt strXform (Str str) = return $ text $ strXform str
+inlineToConTeXt _ (Math InlineMath str) =
   return $ char '$' <> text str <> char '$'
-inlineToConTeXt (Math DisplayMath str) =
+inlineToConTeXt _ (Math DisplayMath str) =
   return $ text "\\startformula "  <> text str <> text " \\stopformula"
-inlineToConTeXt (RawInline "context" str) = return $ text str
-inlineToConTeXt (RawInline "tex" str) = return $ text str
-inlineToConTeXt (RawInline _ _) = return empty
-inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
-inlineToConTeXt Space = return space
-inlineToConTeXt (Link [Code _ str] (src, tit)) = -- since ConTeXt has its own 
-  inlineToConTeXt (Link [Str str] (src, tit))  -- way of printing links... 
-inlineToConTeXt (Link txt (src, _)) = do
+inlineToConTeXt _ (RawInline "context" str) = return $ text str
+inlineToConTeXt _ (RawInline "tex" str) = return $ text str
+inlineToConTeXt _ (RawInline _ _) = return empty
+inlineToConTeXt _ (LineBreak) = return $ text "\\crlf" <> cr
+inlineToConTeXt _ Space = return space
+-- ConTeXT has its own way of printing links
+inlineToConTeXt strXform (Link [Code _ str] (src, tit))    = inlineToConTeXt strXform (Link [Str str] (src, tit))
+-- Convert link's text, hyphenating URLs when they're seen (does deep list inspection)
+inlineToConTeXt _ (Link txt          (src, _))      = do
   st <- get
   let next = stNextRef st
   put $ st {stNextRef = next + 1}
-  let ref = show next
-  label <- inlineListToConTeXt txt
+  let ref ="urlref" ++ (show next)
+  label <-  inlineListToConTeXt urlHyphenate txt
   return $ "\\useURL" <> brackets (text ref) <>
            brackets (text $ escapeStringUsing [('#',"\\#")] src) <>
            brackets empty <> brackets label <>
            "\\from" <> brackets (text ref)
-inlineToConTeXt (Image _ (src, _)) = do
+inlineToConTeXt _ (Image _ (src, _)) = do
   let src' = if isAbsoluteURI src
                 then src
                 else unEscapeString src
   return $ braces $ "\\externalfigure" <> brackets (text src')
-inlineToConTeXt (Note contents) = do
-  contents' <- blockListToConTeXt contents
+inlineToConTeXt strXform (Note contents) = do
+  contents' <- blockListToConTeXt strXform contents
   let codeBlock x@(CodeBlock _ _) = [x]
       codeBlock _ = []
   let codeBlocks = queryWith codeBlock contents
