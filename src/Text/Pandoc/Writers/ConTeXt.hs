@@ -31,7 +31,7 @@ Conversion of 'Pandoc' format into ConTeXt.
 module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
-import Text.Pandoc.Generic (queryWith)
+import Text.Pandoc.Generic (queryWith, bottomUp)
 import Text.Printf ( printf )
 import Data.List ( intercalate )
 import Control.Monad.State
@@ -272,14 +272,21 @@ inlineToConTeXt (RawInline "tex" str) = return $ text str
 inlineToConTeXt (RawInline _ _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt Space = return space
-inlineToConTeXt (Link [Code _ str] (src, tit)) = -- since ConTeXt has its own 
-  inlineToConTeXt (Link [Str str] (src, tit))  -- way of printing links... 
-inlineToConTeXt (Link txt (src, _)) = do
+-- ConTeXT has its own way of printing links
+inlineToConTeXt (Link [Code _ str] (src, tit))    = inlineToConTeXt (Link [Str str] (src, tit))
+-- Convert link's text, hyphenating URLs when they're seen (does deep list inspection)
+inlineToConTeXt (Link txt          (src, _))      = do
   st <- get
   let next = stNextRef st
   put $ st {stNextRef = next + 1}
-  let ref = show next
-  label <- inlineListToConTeXt txt
+  let ref ="urlref" ++ (show next)
+  let hyphenateURL x =
+        case x of
+          (Str str)  -> if isAbsoluteURI str
+                        then (RawInline "context" ("\\hyphenatedurl{" ++ str ++ "}"))
+                        else x
+          _otherwise -> x
+  label <-  inlineListToConTeXt (bottomUp hyphenateURL txt)
   return $ "\\useURL" <> brackets (text ref) <>
            brackets (text $ escapeStringUsing [('#',"\\#")] src) <>
            brackets empty <> brackets label <>
