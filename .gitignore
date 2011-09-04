@@ -4,6 +4,7 @@ README.*
 INSTALL.*
 .configure-stamp
 man/man?/*.1
+man/man?/*.5
 man/man?/*.html
 *.diff
 pandoc.cabal.orig
