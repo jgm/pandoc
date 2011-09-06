@@ -526,8 +526,8 @@ noteBlock = try $ do
   string ".."
   spaceChar >> skipMany spaceChar
   ref <- noteMarker
-  spaceChar >> skipMany spaceChar
-  first <- anyLine
+  first <- (spaceChar >> skipMany spaceChar >> anyLine)
+        <|> (newline >> return "")
   blanks <- option "" blanklines
   rest <- option "" indentedBlock
   endPos <- getPosition

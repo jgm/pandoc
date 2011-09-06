@@ -176,7 +176,7 @@ blockToRST (Table caption _ widths headers rows) =  do
                      else blankline <> text "Table: " <> caption'
   headers' <- mapM blockListToRST headers
   rawRows <- mapM (mapM blockListToRST) rows
-  let isSimple = all (==0) widths && all (all (\bs -> length bs == 1)) rows
+  let isSimple = all (==0) widths && all (all (\bs -> length bs <= 1)) rows
   let numChars = maximum . map offset
   opts <- get >>= return . stOptions
   let widthsInChars =
