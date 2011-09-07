@@ -76,25 +76,25 @@ nl opts = if writerWrapText opts
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
 writeHtmlString opts d =
-  let (tit, auths, date, toc, body', newvars) = evalState (pandocToHtml opts d)
-                                                 defaultWriterState
+  let (tit, auths, authsMeta, date, toc, body', newvars) = evalState (pandocToHtml opts d)
+                                                           defaultWriterState
   in  if writerStandalone opts
-         then inTemplate opts tit auths date toc body' newvars
+         then inTemplate opts tit auths authsMeta date toc body' newvars
          else dropWhile (=='\n') $ showHtmlFragment body'
 
 -- | Convert Pandoc document to Html structure.
 writeHtml :: WriterOptions -> Pandoc -> Html
 writeHtml opts d =
-  let (tit, auths, date, toc, body', newvars) = evalState (pandocToHtml opts d)
-                                                 defaultWriterState
+  let (tit, auths, authsMeta, date, toc, body', newvars) = evalState (pandocToHtml opts d)
+                                                           defaultWriterState
   in  if writerStandalone opts
-         then inTemplate opts tit auths date toc body' newvars
+         then inTemplate opts tit auths authsMeta date toc body' newvars
          else body'
 
 -- result is (title, authors, date, toc, body, new variables)
 pandocToHtml :: WriterOptions
              -> Pandoc
-             -> State WriterState (Html, [Html], Html, Maybe Html, Html, [(String,String)])
+             -> State WriterState (Html, [Html], [String], Html, Maybe Html, Html, [(String,String)])
 pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   let standalone = writerStandalone opts
   tit <- if standalone
@@ -103,6 +103,9 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   auths <- if standalone
               then mapM (inlineListToHtml opts) authors'
               else return []
+  authsMeta <- if standalone
+               then foldAuthorsMeta authors'
+               else return []
   date <- if standalone
              then inlineListToHtml opts date'
              else return noHtml
@@ -149,21 +152,21 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   let newvars = [("highlighting-css", defaultHighlightingCss) |
                    stHighlighting st] ++
                 [("math", showHtmlFragment math) | stMath st]
-  return (tit, auths, date, toc, thebody, newvars)
+  return (tit, auths, authsMeta, date, toc, thebody, newvars)
 
 inTemplate :: TemplateTarget a
            => WriterOptions
            -> Html
            -> [Html]
+           -> [String]
            -> Html
            -> Maybe Html
            -> Html
            -> [(String,String)]
            -> a
-inTemplate opts tit auths date toc body' newvars =
+inTemplate opts tit auths authsMeta date toc body' newvars =
   let renderedTit = showHtmlFragment tit
       topTitle'   = stripTags renderedTit
-      authors     = map (stripTags . showHtmlFragment) auths
       date'       = stripTags $ showHtmlFragment date
       variables   = writerVariables opts ++ newvars
       context     = variables ++
@@ -178,7 +181,8 @@ inTemplate opts tit auths date toc body' newvars =
                     (case toc of
                          Just t  -> [ ("toc", showHtmlFragment t)]
                          Nothing -> [])  ++
-                    [ ("author", a) | a <- authors ]
+                    [ ("author", (showHtmlFragment a)) | a <- auths ] ++
+                    [ ("authorMeta", a) | a <- authsMeta ]
   in  renderTemplate context $ writerTemplate opts
 
 -- | Like Text.XHtml's identifier, but adds the writerIdentifierPrefix
@@ -664,3 +668,28 @@ blockListToNote opts ref blocks =
                                                  Plain backlink]
   in  do contents <- blockListToHtml opts blocks'
          return $ nl opts +++ (li ! [prefixedId opts ("fn" ++ ref)]) contents
+
+-- | Fold author data into a [String] suitable for the HTML meta tag. The primary
+-- utility is when the "authors" are institutions and the actual authors are given
+-- as a footnote.
+foldAuthorsMeta :: [[Inline]]
+                -> State WriterState [String]
+foldAuthorsMeta authors = return $ [ metaInlineList a | a <- (normalize authors) ]
+  where
+    metaInlineList lst = concat $ map metaInline lst
+    metaBlockList lst = concat $ map metaBlock lst
+    -- Selectively grab Inline data and convert to String
+    metaInline :: Inline -> String
+    metaInline (Str str)    = str
+    metaInline (Space)      = " "
+    metaInline (EmDash)     = "--"
+    metaInline (EnDash)     = "-"
+    metaInline (Apostrophe) = "'"
+    metaInline (Quoted SingleQuote contents) = "'" ++ (metaInlineList contents) ++ "'"
+    metaInline (Quoted DoubleQuote contents) = "\"" ++ (metaInlineList contents) ++ "\""
+    metaInline (Note contents) = " [" ++ (metaBlockList contents) ++ "]"
+    metaInline _            = ""
+    -- Selectively include Block components:
+    metaBlock (Plain stuff) = metaInlineList stuff
+    metaBlock (Para  stuff) = metaInlineList stuff
+    metaBlock _ = ""
