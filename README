@@ -669,7 +669,7 @@ wrapping). Consider, for example:
     #22, for example, and #5.
 
 
-### Header identifiers in HTML and ConTeXt ###
+### Header identifiers in HTML, LaTeX and ConTeXt ###
 
 *Pandoc extension*.
 
@@ -710,7 +710,7 @@ another. A link to this section, for example, might look like this:
     [header identifiers][#header-identifiers-in-html].
 
 Note, however, that this method of providing links to sections works
-only in HTML and ConTeXt formats.
+only in HTML, LaTeX and ConTeXt formats.
 
 If the `--section-divs` option is specified, then each section will
 be wrapped in a `div` (or a `section`, if `--html5` was specified),
