@@ -623,7 +623,7 @@ Paragraphs
 A paragraph is one or more lines of text followed by one or more blank line.
 Newlines are treated as spaces, so you can reflow your paragraphs as you like.
 If you need a hard line break, put two or more spaces at the end of a line,
-or or type a backslash followed by a newline.
+or type a backslash followed by a newline.
 
 Headers
 -------
