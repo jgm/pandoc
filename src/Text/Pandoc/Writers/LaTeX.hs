@@ -142,6 +142,7 @@ stringToLaTeX = escapeStringUsing latexEscapes
                        [ ('^', "\\^{}")
                        , ('\\', "\\textbackslash{}")
                        , ('~', "\\ensuremath{\\sim}")
+                       , ('€', "\\euro{}")
                        , ('|', "\\textbar{}")
                        , ('<', "\\textless{}")
                        , ('>', "\\textgreater{}")
