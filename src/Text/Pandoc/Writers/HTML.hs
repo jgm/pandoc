@@ -106,18 +106,17 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   date <- if standalone
              then inlineListToHtml opts date'
              else return noHtml
+  let splitHrule (HorizontalRule : Header 1 xs : ys)
+                                       = Header 1 xs : splitHrule ys
+      splitHrule (HorizontalRule : xs) = Header 1 [] : splitHrule xs
+      splitHrule (x : xs)              = x : splitHrule xs
+      splitHrule []                    = []
+  let ensureStartWithH1 bs@(Header 1 _:_) = bs
+      ensureStartWithH1 bs                = Header 1 [] : bs
   let sects = hierarchicalize $
               if writerSlideVariant opts == NoSlides
                  then blocks
-                 else case blocks of
-                           (Header 1 _ : _) -> blocks
-                           _                ->
-                                let isL1 (Header 1 _) = True
-                                    isL1 _            = False
-                                    (preBlocks, rest) = break isL1 blocks
-                                in  (RawBlock "html" "<div class=\"slide\">" :
-                                    preBlocks) ++ (RawBlock "html" "</div>" :
-                                    rest)
+                 else ensureStartWithH1 $ splitHrule blocks
   toc <- if writerTableOfContents opts
             then tableOfContents opts sects
             else return Nothing
@@ -226,13 +225,6 @@ elementToListItem opts (Sec _ num id' headerText subsecs) = do
 
 -- | Convert an Element to Html.
 elementToHtml :: WriterOptions -> Element -> State WriterState Html
-elementToHtml opts (Blk HorizontalRule)
-  | writerSlideVariant opts == S5Slides ||
-    writerSlideVariant opts == SlidySlides =
-  return $ primHtml "</div>" +++ nl opts +++ primHtml "<div class=\"slide\">"
-elementToHtml opts (Blk HorizontalRule)
-  | writerSlideVariant opts == DZSlides =
-  return $ primHtml "</section>" +++ nl opts +++ primHtml "<section>"
 elementToHtml opts (Blk block) = blockToHtml opts block
 elementToHtml opts (Sec level num id' title' elements) = do
   modify $ \st -> st{stSecNum = num}  -- update section number
@@ -244,17 +236,17 @@ elementToHtml opts (Sec level num id' title' elements) = do
                                   writerSlideVariant opts == S5Slides)]
   let stuff = header'' : innerContents
   let slide = writerSlideVariant opts /= NoSlides && level == 1
-  let stuff' =  if (writerSlideVariant opts == S5Slides ||
-                    writerSlideVariant opts == SlidySlides) && level == 1
-                   then [thediv ! [theclass "slide"] <<
-                          (nl opts : intersperse (nl opts) stuff ++ [nl opts])]
-                   else intersperse (nl opts) stuff
-  let inNl x = nl opts : x ++ [nl opts]
-  return $ if writerSectionDivs opts || writerSlideVariant opts == DZSlides
+  let titleSlide = slide && null elements
+  let classes = [theclass "titleslide" | titleSlide] ++
+                [theclass "slide" | slide]
+  let inNl x = nl opts : intersperse (nl opts) x ++ [nl opts]
+  return $ if writerSectionDivs opts || slide
               then if writerHtml5 opts
-                      then tag "section" ! [prefixedId opts id'] << inNl stuff'
-                      else thediv ! [prefixedId opts id'] << inNl stuff'
-              else toHtmlFromList stuff'
+                      then tag "section" ! (prefixedId opts id' : classes)
+                                << inNl stuff
+                      else thediv ! (prefixedId opts id' : classes)
+                                << inNl stuff
+              else toHtmlFromList $ intersperse (nl opts) stuff
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
