@@ -15,27 +15,11 @@ $highlighting-css$
 /*]]>*/
   </style>
 $endif$
-<title>$title$</title>
-</head>
-<body>
-$if(title)$
-<section>
-  <h1>$title$</h1>
-</section>
-$endif$
-$for(include-before)$
-$include-before$
+$if(css)$
+$for(css)$
+  <link rel="stylesheet" href="$css$" $if(html5)$$else$type="text/css" $endif$/>
 $endfor$
-$body$
-$for(include-after)$
-$include-after$
-$endfor$
-<!-- Your Style -->
-<!-- Define the style of you presentation -->
-
-<!-- Maybe a font from http://www.google.com/webfonts ? -->
-<link href='http://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
-
+$else$
 <style>
   html { background-color: black; }
   body { background-color: white; }
@@ -88,8 +72,28 @@ $endfor$
   .incremental > img[aria-selected] { box-shadow: 0 0 10px #000 }
 
 </style>
-
-
+$endif$
+$if(math)$
+  $math$
+$endif$
+$for(header-includes)$
+  $header-includes$
+$endfor$
+<title>$title$</title>
+</head>
+<body>
+$if(title)$
+<section>
+  <h1>$title$</h1>
+</section>
+$endif$
+$for(include-before)$
+$include-before$
+$endfor$
+$body$
+$for(include-after)$
+$include-after$
+$endfor$
 <!-- {{{{ *****************  DZSlides CORE 2.0b1 *************************** -->
 <!-- *********************************************************************** -->
 <!-- *********************************************************************** -->
