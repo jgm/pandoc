@@ -16,7 +16,7 @@ another, and a command-line tool that uses this library. It can read
 and [LaTeX]; and it can write plain text, [markdown], [reStructuredText],
 [HTML], [LaTeX], [ConTeXt], [RTF], [DocBook XML], [OpenDocument XML], [ODT],
 [GNU Texinfo], [MediaWiki markup], [EPUB], [Textile], [groff man] pages,
-[Emacs Org-Mode], and [Slidy] or [S5] HTML slide shows.
+[Emacs Org-Mode], and [Slidy], [DZSlides], or [S5] HTML slide shows.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, delimited code blocks,
@@ -157,6 +157,7 @@ Options
     Org-Mode), `texinfo` (GNU Texinfo), `docbook` (DocBook XML),
     `opendocument` (OpenDocument XML), `odt` (OpenOffice text document),
     `epub` (EPUB book), `slidy` (Slidy HTML and javascript slide show),
+    `dzslides` (HTML5 + javascript slide show),
     `s5` (S5 HTML and javascript slide show), or `rtf` (rich text
     format). Note that `odt` and `epub` output will not be directed to
     *stdout*; an output filename must be specified using the `-o/--output`
@@ -198,11 +199,11 @@ Options
 :   Parse untranslatable HTML codes and LaTeX environments as raw HTML
     or LaTeX, instead of ignoring them.  Affects only HTML and LaTeX
     input. Raw HTML can be printed in markdown, reStructuredText, HTML, Slidy,
-    and S5 output; raw LaTeX can be printed in markdown, reStructuredText,
-    LaTeX, and ConTeXt output. The default is for the readers to omit
-    untranslatable HTML codes and LaTeX environments. (The LaTeX reader
-    does pass through untranslatable LaTeX *commands*, even if `-R` is not
-    specified.)
+    DZSlides, and S5 output; raw LaTeX can be printed in markdown,
+    reStructuredText, LaTeX, and ConTeXt output. The default is for the
+    readers to omit untranslatable HTML codes and LaTeX environments.
+    (The LaTeX reader does pass through untranslatable LaTeX *commands*,
+    even if `-R` is not specified.)
 
 `-S`, `--smart`
 :   Produce typographically correct output, converting straight quotes
@@ -259,7 +260,7 @@ Options
     provided. If *URL* is not specified, the Google Chart API will be used.
 
 `-i`, `--incremental`
-:   Make list items in Slidy or S5 display incrementally (one by one).
+:   Make list items in Slidy, DZSlides or S5 display incrementally (one by one).
     The default is for lists to be displayed all at once.
 
 `--offline`
@@ -1517,7 +1518,7 @@ RTF, Docbook, OpenDocument, ODT
   ~ It will be rendered, if possible, using unicode characters,
     and will otherwise appear verbatim.
 
-HTML, Slidy, S5, EPUB
+HTML, Slidy, DZSlides, S5, EPUB
   ~ The way math is rendered in HTML will depend on the
     command-line options selected:
 
@@ -1568,7 +1569,7 @@ Markdown allows you to insert raw HTML anywhere in a document
 (except verbatim contexts, where `<`, `>`, and `&` are interpreted
 literally).
 
-The raw HTML is passed through unchanged in HTML, S5, Slidy, EPUB,
+The raw HTML is passed through unchanged in HTML, S5, Slidy, DZSlides, EPUB,
 Markdown, and Textile output, and suppressed in other formats.
 
 *Pandoc extension*.
@@ -1874,8 +1875,8 @@ Producing HTML slide shows with Pandoc
 ======================================
 
 You can use Pandoc to produce an HTML + javascript slide presentation
-that can be viewed via a web browser.  There are two ways to do this,
-using [S5] or [Slidy].
+that can be viewed via a web browser.  There are three ways to do this,
+using [S5], [DZSlides], or [Slidy].
 
 Here's the markdown source for a simple slide show, `eating.txt`:
 
@@ -1905,19 +1906,24 @@ for S5, or
 
     pandoc -w slidy -s eating.txt > eating.html
 
-for Slidy.
+for Slidy, or
+
+    pandoc -w dzslides -s eating.txt > eating.html
+
+for DZSlides.
 
 A title page is constructed automatically from the document's title
 block. Each level-one header and horizontal rule begins a new slide.
 
-The file produced by pandoc with the `-s/--standalone` option embeds a
-link to javascripts and CSS files, which are assumed to be available at
-the relative path `ui/default` (for S5) or at the Slidy website at
-`w3.org` (for Slidy).  (These paths can be changed by setting the
-`slidy-url` or `s5-url` variables; see `--variable`, above.)
-If the `--offline` option is specified, the
-scripts and CSS will be included directly in the generated file, so that
-it may be used offline.
+For Slidy and S5, the file produced by pandoc with the `-s/--standalone`
+option embeds a link to javascripts and CSS files, which are assumed to
+be available at the relative path `ui/default` (for S5) or at the Slidy
+website at `w3.org` (for Slidy). (These paths can be changed by setting
+the `slidy-url` or `s5-url` variables; see `--variable`, above.) If the
+`--offline` option is specified, the scripts and CSS will be included directly
+in the generated file, so that it may be used offline.  For DZSlides,
+the (relatively short) javascript and css are included in the file
+by default.
 
 You can change the style of the slides by putting customized CSS files
 in `$DATADIR/s5/default` (for S5) or `$DATADIR/slidy` (for Slidy),
@@ -2017,4 +2023,5 @@ Christopher Sawicki, Kelsey Hightower.
 [Emacs Org-Mode]: http://orgmode.org
 [EPUB]: http://www.idpf.org/
 [GPL]: http://www.gnu.org/copyleft/gpl.html "GNU General Public License"
+[DZSlides]: http://paulrouget.com/dzslides/
 

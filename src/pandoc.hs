@@ -737,6 +737,7 @@ main = do
      Nothing -> error ("Unknown reader: " ++ readerName')
 
   templ <- case templatePath of
+                _ | not standalone -> return ""
                 Nothing -> do
                            deftemp <- getDefaultTemplate datadir writerName'
                            case deftemp of
@@ -790,9 +791,10 @@ main = do
                      else takeDirectory (head sources)
 
   let slideVariant = case writerName' of
-                           "s5"    -> S5Slides
-                           "slidy" -> SlidySlides
-                           _       -> NoSlides
+                           "s5"       -> S5Slides
+                           "slidy"    -> SlidySlides
+                           "dzslides" -> DZSlides
+                           _          -> NoSlides
 
   let startParserState =
          defaultParserState { stateParseRaw        = parseRaw,
@@ -836,8 +838,8 @@ main = do
                                       writerIdentifierPrefix = idPrefix,
                                       writerSourceDirectory  = sourceDir,
                                       writerUserDataDir      = datadir,
-                                      writerHtml5            = html5 &&
-                                                               "html" `isPrefixOf` writerName',
+                                      writerHtml5            = html5 ||
+                                           slideVariant == DZSlides,
                                       writerChapters         = chapters, 
                                       writerListings         = listings,
                                       writerAscii            = ascii }

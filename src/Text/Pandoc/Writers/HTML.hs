@@ -226,8 +226,13 @@ elementToListItem opts (Sec _ num id' headerText subsecs) = do
 
 -- | Convert an Element to Html.
 elementToHtml :: WriterOptions -> Element -> State WriterState Html
-elementToHtml opts (Blk HorizontalRule) | writerSlideVariant opts /= NoSlides =
+elementToHtml opts (Blk HorizontalRule)
+  | writerSlideVariant opts == S5Slides ||
+    writerSlideVariant opts == SlidySlides =
   return $ primHtml "</div>" +++ nl opts +++ primHtml "<div class=\"slide\">"
+elementToHtml opts (Blk HorizontalRule)
+  | writerSlideVariant opts == DZSlides =
+  return $ primHtml "</section>" +++ nl opts +++ primHtml "<section>"
 elementToHtml opts (Blk block) = blockToHtml opts block
 elementToHtml opts (Sec level num id' title' elements) = do
   modify $ \st -> st{stSecNum = num}  -- update section number
@@ -239,12 +244,13 @@ elementToHtml opts (Sec level num id' title' elements) = do
                                   writerSlideVariant opts == S5Slides)]
   let stuff = header'' : innerContents
   let slide = writerSlideVariant opts /= NoSlides && level == 1
-  let stuff' =  if slide
+  let stuff' =  if (writerSlideVariant opts == S5Slides ||
+                    writerSlideVariant opts == SlidySlides) && level == 1
                    then [thediv ! [theclass "slide"] <<
                           (nl opts : intersperse (nl opts) stuff ++ [nl opts])]
                    else intersperse (nl opts) stuff
   let inNl x = nl opts : x ++ [nl opts]
-  return $ if writerSectionDivs opts
+  return $ if writerSectionDivs opts || writerSlideVariant opts == DZSlides
               then if writerHtml5 opts
                       then tag "section" ! [prefixedId opts id'] << inNl stuff'
                       else thediv ! [prefixedId opts id'] << inNl stuff'
