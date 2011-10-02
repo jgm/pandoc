@@ -11,8 +11,8 @@ $endfor$
 $if(date)$
   <meta name="date" content="$date$" />
 $endif$
-$if(highlighting-css)$
   <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
+$if(highlighting-css)$
   <style type="text/css">
 /*<![CDATA[*/
 $highlighting-css$
