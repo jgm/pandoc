@@ -25,21 +25,31 @@ $else$
   body { background-color: white; }
   /* A section is a slide. Its size is 800x600, and this will never change */
   section {
-      /* The font from Google */
-      font-family: 'Oswald', arial, serif;
-      font-size: 2em;
-      padding-left: 1em;
-  }
+      font-family: Arial, serif;
+      font-size: 20pt;
+      line-height: 24pt;
+      padding: 16pt;
+    }
+  section > * { margin-bottom: 1em; }
+  section.titleslide h1 { margin-top: 200px; }
   h1, h2, h3 {
       margin-top: 50px;
       text-align: center;
-  }
-  ul {
+    }
+  h1 { font-size: 180%: }
+  h2 { font-size: 120%; }
+  h3 { font-size: 100%; }
+  ul, ol {
       margin-left: 40px;
   }
   a { color: #FF0066; } a:hover { text-decoration: underline; }
   footer { position: absolute; bottom: 50px; right: 50px; }
-
+  blockquote { font-style: italic }
+  pre {
+   font-size: 80%;
+   font-weight: bold;
+   padding: 0.2em 1em 0.2em 1em;
+  }
   .images {
     margin: 20px;
     text-align: center;
@@ -66,7 +76,7 @@ $else$
 
   /* Increment with lists */
   .incremental > * { opacity: 1; }
-  .incremental > *[aria-selected] { color: red; opacity: 1; }
+  .incremental > *[aria-selected] { opacity: 1; }
   .incremental > *[aria-selected] ~ * { opacity: 0.2; }
   /* Increment with images */
   .incremental > img[aria-selected] { box-shadow: 0 0 10px #000 }
@@ -84,7 +94,11 @@ $endfor$
 <body>
 $if(title)$
 <section>
-  <h1>$title$</h1>
+  <h1 class="title">$title$</h1>
+  $for(author)$
+  <h2 class="author">$author$</h2>
+  $endfor$
+  <h3 class="date">$date$</h3>
 </section>
 $endif$
 $for(include-before)$
