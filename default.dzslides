@@ -89,7 +89,6 @@ $endif$
 $for(header-includes)$
   $header-includes$
 $endfor$
-<title>$title$</title>
 </head>
 <body>
 $if(title)$
