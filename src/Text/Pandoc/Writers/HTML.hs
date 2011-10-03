@@ -237,15 +237,14 @@ elementToHtml opts (Sec level num id' title' elements) = do
   let stuff = header'' : innerContents
   let slide = writerSlideVariant opts /= NoSlides && level == 1
   let titleSlide = slide && null elements
-  let classes = [theclass "titleslide" | titleSlide] ++
-                [theclass "slide" | slide]
+  let attrs = [prefixedId opts id' | writerSectionDivs opts] ++
+              [theclass "titleslide" | titleSlide] ++
+              [theclass "slide" | slide]
   let inNl x = nl opts : intersperse (nl opts) x ++ [nl opts]
   return $ if writerSectionDivs opts || slide
               then if writerHtml5 opts
-                      then tag "section" ! (prefixedId opts id' : classes)
-                                << inNl stuff
-                      else thediv ! (prefixedId opts id' : classes)
-                                << inNl stuff
+                      then tag "section" ! attrs << inNl stuff
+                      else thediv ! attrs << inNl stuff
               else toHtmlFromList $ intersperse (nl opts) stuff
 
 -- | Convert list of Note blocks to a footnote <div>.
