@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Readers.Markdown
+   Module      : Text.Pandoc.Readers.MultiMarkdown
    Copyright   : Copyright (C) 2006-2010 John MacFarlane
    License     : GNU GPL, version 2 or above 
 
@@ -26,9 +26,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Conversion of markdown-formatted plain text to 'Pandoc' document.
+Conversion of multimarkdown-formatted plain text to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.Markdown ( readMarkdown ) where
+module Text.Pandoc.Readers.MultiMarkdown ( readMultiMarkdown ) where
 
 import Data.List ( transpose, sortBy, findIndex, intercalate )
 import qualified Data.Map as M
@@ -50,10 +50,10 @@ import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match (tagOpen)
 
 -- | Read markdown from an input string and return a Pandoc document.
-readMarkdown :: ParserState -- ^ Parser state, including options for parser
+readMultiMarkdown :: ParserState -- ^ Parser state, including options for parser
              -> String      -- ^ String to parse (assuming @'\n'@ line endings)
              -> Pandoc
-readMarkdown state s = (readWith parseMarkdown) state (s ++ "\n\n")
+readMultiMarkdown state s = (readWith parseMultiMarkdown) state (s ++ "\n\n")
 
 --
 -- Constants and data structure definitions
@@ -133,47 +133,9 @@ inlinesInBalancedBrackets parser = try $ do
 -- document structure
 --
 
-mmdTitleLine :: GenParser Char ParserState [Inline]
-mmdTitleLine = try $ do
-  stringAnyCase "title:"
-  skipSpaces
-  res <- many $ (notFollowedBy newline >> inline)
-             <|> try (endline >> whitespace)
-  newline
-  return $ normalizeSpaces res
-
-mmdAuthorsLine :: GenParser Char ParserState [[Inline]]
-mmdAuthorsLine = try $ do 
-  stringAnyCase "authors:"
-  skipSpaces
-  authors <- sepEndBy (many (notFollowedBy (satisfy $ \c ->
-                                c == ';' || c == '\n') >> inline))
-                       (char ';' <|>
-                        try (newline >> notFollowedBy blankline >> spaceChar))
-  newline
-  return $ filter (not . null) $ map normalizeSpaces authors
-
-mmdDateLine :: GenParser Char ParserState [Inline]
-mmdDateLine = try $ do
-  stringAnyCase "date:"
-  skipSpaces
-  date <- manyTill inline newline
-  return $ normalizeSpaces date
-  
-mmdTitleBlock :: GenParser Char ParserState ([Inline], [[Inline]], [Inline])
-mmdTitleBlock = try $ do
-  failIfStrict
-  (title, author, date) <- permute (f <$$> mmdTitleLine
-                                    <||> mmdAuthorsLine
-                                    <||> mmdDateLine)
-  optional blanklines
-  return (title, author, date)
-  where
-    f title authors date = (title, authors, date)
-
 titleLine :: GenParser Char ParserState [Inline]
 titleLine = try $ do
-  char '%'
+  stringAnyCase "title:"
   skipSpaces
   res <- many $ (notFollowedBy newline >> inline)
              <|> try (endline >> whitespace)
@@ -182,7 +144,7 @@ titleLine = try $ do
 
 authorsLine :: GenParser Char ParserState [[Inline]]
 authorsLine = try $ do 
-  char '%'
+  stringAnyCase "authors:"
   skipSpaces
   authors <- sepEndBy (many (notFollowedBy (satisfy $ \c ->
                                 c == ';' || c == '\n') >> inline))
@@ -193,22 +155,30 @@ authorsLine = try $ do
 
 dateLine :: GenParser Char ParserState [Inline]
 dateLine = try $ do
-  char '%'
+  stringAnyCase "date:"
   skipSpaces
   date <- manyTill inline newline
   return $ normalizeSpaces date
+  
+perm0 :: GenParser Char ParserState ([Inline],[[Inline]],[Inline])
+perm0 = permute (f <$$> titleLine
+                   <||> authorsLine
+                   <||> dateLine)
+  where
+    f title authors date = (title, authors, date)
 
 titleBlock :: GenParser Char ParserState ([Inline], [[Inline]], [Inline])
 titleBlock = try $ do
   failIfStrict
-  title <- option [] titleLine
-  author <- option [] authorsLine
-  date <- option [] dateLine
+  (title, author, date) <- perm0
+  -- title <- option [] titleLine
+  -- author <- option [] authorsLine
+  -- date <- option [] dateLine
   optional blanklines
   return (title, author, date)
 
-parseMarkdown :: GenParser Char ParserState Pandoc 
-parseMarkdown = do
+parseMultiMarkdown :: GenParser Char ParserState Pandoc 
+parseMultiMarkdown = do
   -- markdown allows raw HTML
   updateState (\state -> state { stateParseRaw = True })
   startPos <- getPosition
@@ -225,7 +195,7 @@ parseMarkdown = do
   let reversedNotes = stateNotes st'
   updateState $ \s -> s { stateNotes = reverse reversedNotes }
   -- now parse it for real...
-  (title, author, date) <- option ([],[],[]) (mmdTitleBlock <|> titleBlock)
+  (title, author, date) <- option ([],[],[]) titleBlock
   blocks <- parseBlocks
   let doc = Pandoc (Meta title author date) $ filter (/= Null) blocks
   -- if there are labeled examples, change references into numbers
@@ -1003,7 +973,7 @@ exampleRef = try $ do
   char '@'
   lab <- many1 (alphaNum <|> oneOf "-_")
   -- We just return a Str. These are replaced with numbers
-  -- later. See the end of parseMarkdown.
+  -- later. See the end of parseMultiMarkdown.
   return $ Str $ '@' : lab
 
 symbol :: GenParser Char ParserState Inline
