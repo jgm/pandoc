@@ -12,9 +12,10 @@ rm -rf $DIST
 mkdir -p $RESOURCES
 
 echo Building pandoc...
-runghc Setup.hs configure --user --prefix=/usr/local --flags="executable -library highlighting"
-runghc Setup.hs build
-runghc Setup.hs copy --destdir=$ROOT
+cabal-dev install --disable-library-for-ghci highlighting-kate
+cabal-dev install --flags="embed_data_files" citeproc-hs
+cabal-dev install --flags="executable -library highlighting"
+cabal-dev copy --destdir=$ROOT
 
 echo Copying license...
 cp COPYING $RESOURCES/License.txt
