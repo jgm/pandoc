@@ -75,7 +75,7 @@ Extra-Source-Files:
                  MakeManPage.hs,
                  man/man1/pandoc.1.template,
                  man/man5/pandoc_markdown.5.template,
-                 -- generated man pages
+                 -- generated man pages (produced post-build)
                  man/man1/markdown2pdf.1,
                  man/man1/pandoc.1,
                  man/man5/pandoc_markdown.5,
