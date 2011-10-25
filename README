@@ -1514,7 +1514,7 @@ MediaWiki
 Textile
   ~ It will be rendered inside `<span class="math">` tags.
 
-RTF, Docbook, OpenDocument, ODT
+RTF, DocBook, OpenDocument, ODT
   ~ It will be rendered, if possible, using unicode characters,
     and will otherwise appear verbatim.
 
@@ -1523,7 +1523,7 @@ HTML, Slidy, DZSlides, S5, EPUB
     command-line options selected:
 
     1.  The default is to render TeX math as far as possible using unicode
-        characters, as with RTF, Docbook, and OpenDocument output. Formulas
+        characters, as with RTF, DocBook, and OpenDocument output. Formulas
         are put inside a `span` with `class="math"`, so that they may be
         styled differently from the surrounding text if needed.
 
@@ -1565,7 +1565,7 @@ HTML, Slidy, DZSlides, S5, EPUB
 Raw HTML
 --------
 
-Markdown allows you to insert raw HTML anywhere in a document
+Markdown allows you to insert raw HTML (or DocBook) anywhere in a document
 (except verbatim contexts, where `<`, `>`, and `&` are interpreted
 literally).
 
@@ -1609,7 +1609,6 @@ This departure from standard markdown should make it easier to mix
 markdown with HTML block elements.  For example, one can surround
 a block of markdown text with `<div>` tags without preventing it
 from being interpreted as markdown.
-
 
 Raw TeX
 -------
