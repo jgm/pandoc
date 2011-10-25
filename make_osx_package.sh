@@ -5,16 +5,16 @@ VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 RESOURCES=$DIST/Resources
 ROOT=$DIST/pandoc
 BASE=pandoc-$VERSION
-PREFIX=$ROOT/usr/local
 
 echo Removing old files...
 rm -rf $DIST
 mkdir -p $RESOURCES
 
 echo Building pandoc...
-cabal-dev install --disable-library-for-ghci highlighting-kate
-cabal-dev install --flags="embed_data_files" citeproc-hs
-cabal-dev install --flags="executable -library highlighting"
+cabal-dev install-deps
+cabal-dev install --reinstall --disable-library-for-ghci highlighting-kate
+cabal-dev install --reinstall --flags="embed_data_files" citeproc-hs
+cabal-dev install --prefix=/usr/local --datasubdir=$BASE --docdir=/usr/local/doc/$BASE --flags="executable -library highlighting"
 cabal-dev copy --destdir=$ROOT
 
 echo Copying license...
