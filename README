@@ -207,7 +207,7 @@ Options
 
 `-S`, `--smart`
 :   Produce typographically correct output, converting straight quotes
-    to curly quotes, `---` and `--` to dashes, ande `...` to ellipses.
+    to curly quotes, `---` and `--` to dashes, and `...` to ellipses.
     Nonbreaking spaces are inserted after certain abbreviations, such
     as "Mr." (Note: This option is significant only when the input format is
     `markdown` or `textile`.  It is selected automatically when the input
