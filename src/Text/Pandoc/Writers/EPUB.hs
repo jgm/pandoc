@@ -46,7 +46,6 @@ import Text.Pandoc.UUID
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.Markdown ( writePlain )
 import Data.Char ( toLower )
-import System.Directory ( copyFile )
 import Network.URI ( unEscapeString )
 
 -- | Produce an EPUB file from a Pandoc document.
@@ -70,7 +69,6 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
                      Nothing   -> return ([],[])
                      Just img  -> do
                        let coverImage = "cover-image" ++ takeExtension img
-                       copyFile img coverImage
                        let cpContent = fromString $ writeHtmlString
                              opts'{writerTemplate = pageTemplate
                                   ,writerVariables =
