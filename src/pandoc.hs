@@ -41,7 +41,7 @@ import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower )
-import Data.List ( intercalate, isSuffixOf, isPrefixOf )
+import Data.List ( intercalate, isSuffixOf )
 import System.Directory ( getAppUserDataDirectory, doesFileExist )
 import System.IO ( stdout, stderr )
 import System.IO.Error ( isDoesNotExistError )
