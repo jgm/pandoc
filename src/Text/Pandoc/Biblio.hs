@@ -182,9 +182,13 @@ toCslCite c
 
 locatorWords :: [Inline] -> (String, [Inline])
 locatorWords inp =
-  case parse pLocatorWords "suffix" inp of
+  case parse pLocatorWords "suffix" $ breakup inp of
        Right r   -> r
        Left _    -> ("",inp)
+   where breakup [] = []
+         breakup (Str x : xs) = map Str (splitup x) ++ breakup xs
+         breakup (x : xs) = x : breakup xs
+         splitup = groupBy (\x y -> x /= '\160' && y /= '\160')
 
 pLocatorWords :: GenParser Inline st (String, [Inline])
 pLocatorWords = do
@@ -201,7 +205,7 @@ pMatch condition = try $ do
   return t
 
 pSpace :: GenParser Inline st Inline
-pSpace = pMatch (== Space)
+pSpace = pMatch (\t -> t == Space || t == Str "\160")
 
 pLocator :: GenParser Inline st String
 pLocator = try $ do
