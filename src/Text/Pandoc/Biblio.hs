@@ -64,13 +64,11 @@ processBiblio cslfile r p
 
 -- | Substitute 'Cite' elements with formatted citations.
 processCite :: Style -> M.Map [Citation] [FormattedOutput] -> [Inline] -> [Inline]
-processCite _ _ [] = []
-processCite s cs (i:is)
-    | Cite t _ <- i = process t ++ processCite s cs is
-    | otherwise     = i          : processCite s cs is
-    where
-      addNt t x = if null x then [] else [Cite t $ renderPandoc s x]
-      process t = case M.lookup t cs of
+processCite s cs = bottomUp (concatMap go)
+  where go (Cite t _) = process t
+        go x          = [x]
+        addNt t x = if null x then [] else [Cite t $ renderPandoc s x]
+        process t = case M.lookup t cs of
                     Just  x -> if isTextualCitation t && x /= []
                                then renderPandoc s [head x] ++
                                     if tail x /= []
