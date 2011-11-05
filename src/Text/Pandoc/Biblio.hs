@@ -163,13 +163,9 @@ toCslCite c
                       AuthorInText   -> (True, False)
                       SuppressAuthor -> (False,True )
                       NormalCitation -> (False,False)
-          s'      = case s of
-                         []                                -> []
-                         (Str (y:_) : _) | isPunctuation y -> s
-                         _                                 -> Str "," : Space : s
       in   emptyCite { CSL.citeId         = citationId c
                      , CSL.citePrefix     = PandocText $ citationPrefix c
-                     , CSL.citeSuffix     = PandocText $ s'
+                     , CSL.citeSuffix     = PandocText $ s
                      , CSL.citeLabel      = la
                      , CSL.citeLocator    = lo
                      , CSL.citeNoteNumber = show $ citationNoteNum c
