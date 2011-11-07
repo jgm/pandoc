@@ -68,9 +68,9 @@ processCite s cs (Cite t _) =
    case M.lookup t cs of
         Just  x -> if isTextualCitation t
                    then renderPandoc s (take 1 x) ++
-                        case x of
-                             (_:xs) -> [Space, Cite t $ renderPandoc s xs]
-                             _      -> []
+                        case drop 1 x of
+                             []     -> []
+                             ys     -> [Space, Cite t $ renderPandoc s ys]
                    else [Cite t $ renderPandoc s x]
         Nothing -> [Str ("Error processing " ++ show t)]
 processCite _ _ x = [x]
