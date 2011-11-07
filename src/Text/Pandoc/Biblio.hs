@@ -31,7 +31,7 @@ module Text.Pandoc.Biblio ( processBiblio ) where
 
 import Data.List
 import Data.Unique
-import Data.Char ( isDigit, isPunctuation )
+import Data.Char ( isDigit )
 import qualified Data.Map as M
 import Text.CSL hiding ( Cite(..), Citation(..) )
 import qualified Text.CSL as CSL ( Cite(..) )
@@ -59,23 +59,21 @@ processBiblio cslfile r p
                             map (map toCslCite) grps)
             cits_map   = M.fromList $ zip grps (citations result)
             biblioList = map (renderPandoc' csl) (bibliography result)
-            Pandoc m b = bottomUp (procInlines $ processCite csl cits_map) p'
+            Pandoc m b = bottomUp (concatMap $ processCite csl cits_map) p'
         return . generateNotes nts . Pandoc m $ b ++ biblioList
 
 -- | Substitute 'Cite' elements with formatted citations.
-processCite :: Style -> M.Map [Citation] [FormattedOutput] -> [Inline] -> [Inline]
-processCite s cs = bottomUp (concatMap go)
-  where go (Cite t _) = process t
-        go x          = [x]
-        addNt t x = if null x then [] else [Cite t $ renderPandoc s x]
-        process t = case M.lookup t cs of
-                    Just  x -> if isTextualCitation t && x /= []
-                               then renderPandoc s [head x] ++
-                                    if tail x /= []
-                                    then Space : addNt t (tail x)
-                                    else []
-                               else [Cite t $ renderPandoc s x]
-                    Nothing -> [Str ("Error processing " ++ show t)]
+processCite :: Style -> M.Map [Citation] [FormattedOutput] -> Inline -> [Inline]
+processCite s cs (Cite t _) =
+   case M.lookup t cs of
+        Just  x -> if isTextualCitation t
+                   then renderPandoc s (take 1 x) ++
+                        case x of
+                             (_:xs) -> [Space, Cite t $ renderPandoc s xs]
+                             _      -> []
+                   else [Cite t $ renderPandoc s x]
+        Nothing -> [Str ("Error processing " ++ show t)]
+processCite _ _ x = [x]
 
 isTextualCitation :: [Citation] -> Bool
 isTextualCitation (c:_) = citationMode c == AuthorInText
@@ -110,15 +108,8 @@ setHash (Citation i p s cm nn _)
 generateNotes :: [Inline] -> Pandoc -> Pandoc
 generateNotes needNote = bottomUp (mvCiteInNote needNote)
 
-procInlines :: ([Inline] -> [Inline]) -> Block -> Block
-procInlines f b
-    | Plain    inls <- b = Plain    $ f inls
-    | Para     inls <- b = Para     $ f inls
-    | Header i inls <- b = Header i $ f inls
-    | otherwise          = b
-
 mvCiteInNote :: [Inline] -> Block -> Block
-mvCiteInNote is = procInlines mvCite
+mvCiteInNote is = bottomUp mvCite
     where
       mvCite :: [Inline] -> [Inline]
       mvCite inls
@@ -146,7 +137,7 @@ mvCiteInNote is = procInlines mvCite
           , endWithPunct o = Cite c (initInline o) : checkPt xs
           | x:xs <- i      = x : checkPt xs
           | otherwise      = []
-      checkNt  = bottomUp $ procInlines checkPt
+      checkNt  = bottomUp checkPt
 
 setCiteNoteNum :: [Inline] -> Int -> [Inline]
 setCiteNoteNum ((Cite cs o):xs) n = Cite (setCitationNoteNum n cs) o : setCiteNoteNum xs n
