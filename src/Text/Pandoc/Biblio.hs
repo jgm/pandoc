@@ -133,9 +133,8 @@ mvCiteInNote is = bottomUp mvCite
           | otherwise        = toCapital (i ++ [Str "."])
 
       checkPt i
-          | Cite c o : xs <- i
-          , endWithPunct o, startWithPunct xs
-          , endWithPunct o = Cite c (initInline o) : checkPt xs
+          | Cite c o : xs <- i , endWithPunct o, startWithPunct xs
+                           = Cite c (initInline o) : checkPt xs
           | x:xs <- i      = x : checkPt xs
           | otherwise      = []
       checkNt  = bottomUp checkPt
