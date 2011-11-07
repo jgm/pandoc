@@ -59,22 +59,31 @@ processBiblio cslfile r p
                             map (map toCslCite) grps)
             cits_map   = M.fromList $ zip grps (citations result)
             biblioList = map (renderPandoc' csl) (bibliography result)
-            Pandoc m b = bottomUp (concatMap $ processCite csl cits_map) p'
+            Pandoc m b = bottomUp (procInlines $ processCite csl cits_map) p'
         return . generateNotes nts . Pandoc m $ b ++ biblioList
 
 -- | Substitute 'Cite' elements with formatted citations.
-processCite :: Style -> M.Map [Citation] [FormattedOutput] -> Inline -> [Inline]
-processCite s cs (Cite t _) =
+processCite :: Style -> M.Map [Citation] [FormattedOutput] -> [Inline] -> [Inline]
+processCite s cs (Cite t _ : rest) =
    case M.lookup t cs of
         Just (x:xs) ->
                    if isTextualCitation t
-                   then [Cite t $ renderPandoc s [x] ++
+                   then renderPandoc s [x] ++
                          if null xs
-                         then []
-                         else Space : renderPandoc s xs]
-                   else [Cite t $ renderPandoc s (x:xs)]
-        _ -> [Str ("Error processing " ++ show t)]
-processCite _ _ x = [x]
+                         then processCite s cs rest
+                         else [Space,  Cite t (renderPandoc s xs)]
+                            ++ processCite s cs rest
+                   else Cite t (renderPandoc s (x:xs)) : processCite s cs rest
+        _ -> Str ("Error processing " ++ show t) : processCite s cs rest
+processCite s cs (x:xs) = x : processCite s cs xs
+processCite _ _ [] = []
+
+procInlines :: ([Inline] -> [Inline]) -> Block -> Block
+procInlines f b
+    | Plain    inls <- b = Plain    $ f inls
+    | Para     inls <- b = Para     $ f inls
+    | Header i inls <- b = Header i $ f inls
+    | otherwise          = b
 
 isTextualCitation :: [Citation] -> Bool
 isTextualCitation (c:_) = citationMode c == AuthorInText
@@ -110,7 +119,7 @@ generateNotes :: [Inline] -> Pandoc -> Pandoc
 generateNotes needNote = bottomUp (mvCiteInNote needNote)
 
 mvCiteInNote :: [Inline] -> Block -> Block
-mvCiteInNote is = bottomUp mvCite
+mvCiteInNote is = procInlines mvCite
     where
       mvCite :: [Inline] -> [Inline]
       mvCite inls
@@ -137,7 +146,7 @@ mvCiteInNote is = bottomUp mvCite
                            = Cite c (initInline o) : checkPt xs
           | x:xs <- i      = x : checkPt xs
           | otherwise      = []
-      checkNt  = bottomUp checkPt
+      checkNt  = bottomUp $ procInlines checkPt
 
 setCiteNoteNum :: [Inline] -> Int -> [Inline]
 setCiteNoteNum ((Cite cs o):xs) n = Cite (setCitationNoteNum n cs) o : setCiteNoteNum xs n
