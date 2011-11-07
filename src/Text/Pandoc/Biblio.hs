@@ -71,7 +71,7 @@ processCite s cs (Cite t _) =
                    then [Cite t $ renderPandoc s [x] ++
                          if null xs
                          then []
-                         else [Space, Cite t $ renderPandoc s xs]]
+                         else Space : renderPandoc s xs]
                    else [Cite t $ renderPandoc s (x:xs)]
         _ -> [Str ("Error processing " ++ show t)]
 processCite _ _ x = [x]
