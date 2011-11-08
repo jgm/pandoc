@@ -27,9 +27,8 @@ $else$
   section {
       font-family: Arial, serif;
       font-size: 20pt;
-      line-height: 24pt;
-      padding: 16pt;
     }
+  address, blockquote, dl, fieldset, form, h1, h2, h3, h4, h5, h6, hr, ol, p, pre, table, ul, dl { padding: 10px 20px 10px 20px; }
   h1, h2, h3 {
     text-align: center;
     margin: 10pt 10pt 20pt 10pt;
