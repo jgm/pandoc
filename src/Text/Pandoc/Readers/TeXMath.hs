@@ -70,7 +70,13 @@ expToInlines (ESymbol t s) = Just $ addSpace t (Str s)
         widespace = Str "\x2004"
 expToInlines (EStretchy x) = expToInlines x
 expToInlines (EGrouped xs) = expsToInlines xs
-expToInlines (ESpace _) = Just [Str " "]  -- variable widths not supported
+expToInlines (ESpace "0.167em") = Just [Str "\x2009"]
+expToInlines (ESpace "0.222em") = Just [Str "\x2005"]
+expToInlines (ESpace "0.278em") = Just [Str "\x2004"]
+expToInlines (ESpace "0.333em") = Just [Str "\x2004"]
+expToInlines (ESpace "1em")     = Just [Str "\x2001"]
+expToInlines (ESpace "2em")     = Just [Str "\x2001\x2001"]
+expToInlines (ESpace _)         = Just [Str " "]
 expToInlines (EBinary _ _ _) = Nothing
 expToInlines (ESub x y) = do
   x' <- expToInlines x
