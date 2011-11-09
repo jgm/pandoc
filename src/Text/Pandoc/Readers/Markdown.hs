@@ -1321,8 +1321,12 @@ citeKey = try $ do
 
 suffix :: GenParser Char ParserState [Inline]
 suffix = try $ do
+  hasSpace <- option False (notFollowedBy nonspaceChar >> return True)
   spnl
-  liftM normalizeSpaces $ many $ notFollowedBy (oneOf ";]") >> inline
+  rest <- liftM normalizeSpaces $ many $ notFollowedBy (oneOf ";]") >> inline
+  return $ if hasSpace
+              then Space : rest
+              else rest
 
 prefix :: GenParser Char ParserState [Inline]
 prefix = liftM normalizeSpaces $
