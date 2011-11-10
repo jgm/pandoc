@@ -31,7 +31,7 @@ module Text.Pandoc.Biblio ( processBiblio ) where
 
 import Data.List
 import Data.Unique
-import Data.Char ( isDigit, isPunctuation )
+import Data.Char ( isDigit )
 import qualified Data.Map as M
 import Text.CSL hiding ( Cite(..), Citation(..) )
 import qualified Text.CSL as CSL ( Cite(..) )
@@ -64,18 +64,26 @@ processBiblio cslfile r p
 
 -- | Substitute 'Cite' elements with formatted citations.
 processCite :: Style -> M.Map [Citation] [FormattedOutput] -> [Inline] -> [Inline]
-processCite s cs = bottomUp (concatMap go)
-  where go (Cite t _) = process t
-        go x          = [x]
-        addNt t x = if null x then [] else [Cite t $ renderPandoc s x]
-        process t = case M.lookup t cs of
-                    Just  x -> if isTextualCitation t && x /= []
-                               then renderPandoc s [head x] ++
-                                    if tail x /= []
-                                    then Space : addNt t (tail x)
-                                    else []
-                               else [Cite t $ renderPandoc s x]
-                    Nothing -> [Str ("Error processing " ++ show t)]
+processCite s cs (Cite t _ : rest) =
+   case M.lookup t cs of
+        Just (x:xs) ->
+                   if isTextualCitation t
+                   then renderPandoc s [x] ++
+                         if null xs
+                         then processCite s cs rest
+                         else [Space,  Cite t (renderPandoc s xs)]
+                            ++ processCite s cs rest
+                   else Cite t (renderPandoc s (x:xs)) : processCite s cs rest
+        _ -> Str ("Error processing " ++ show t) : processCite s cs rest
+processCite s cs (x:xs) = x : processCite s cs xs
+processCite _ _ [] = []
+
+procInlines :: ([Inline] -> [Inline]) -> Block -> Block
+procInlines f b
+    | Plain    inls <- b = Plain    $ f inls
+    | Para     inls <- b = Para     $ f inls
+    | Header i inls <- b = Header i $ f inls
+    | otherwise          = b
 
 isTextualCitation :: [Citation] -> Bool
 isTextualCitation (c:_) = citationMode c == AuthorInText
@@ -110,13 +118,6 @@ setHash (Citation i p s cm nn _)
 generateNotes :: [Inline] -> Pandoc -> Pandoc
 generateNotes needNote = bottomUp (mvCiteInNote needNote)
 
-procInlines :: ([Inline] -> [Inline]) -> Block -> Block
-procInlines f b
-    | Plain    inls <- b = Plain    $ f inls
-    | Para     inls <- b = Para     $ f inls
-    | Header i inls <- b = Header i $ f inls
-    | otherwise          = b
-
 mvCiteInNote :: [Inline] -> Block -> Block
 mvCiteInNote is = procInlines mvCite
     where
@@ -141,9 +142,8 @@ mvCiteInNote is = procInlines mvCite
           | otherwise        = toCapital (i ++ [Str "."])
 
       checkPt i
-          | Cite c o : xs <- i
-          , endWithPunct o, startWithPunct xs
-          , endWithPunct o = Cite c (initInline o) : checkPt xs
+          | Cite c o : xs <- i , endWithPunct o, startWithPunct xs
+                           = Cite c (initInline o) : checkPt xs
           | x:xs <- i      = x : checkPt xs
           | otherwise      = []
       checkNt  = bottomUp $ procInlines checkPt
@@ -163,13 +163,9 @@ toCslCite c
                       AuthorInText   -> (True, False)
                       SuppressAuthor -> (False,True )
                       NormalCitation -> (False,False)
-          s'      = case s of
-                         []                                -> []
-                         (Str (y:_) : _) | isPunctuation y -> s
-                         _                                 -> Str "," : Space : s
       in   emptyCite { CSL.citeId         = citationId c
                      , CSL.citePrefix     = PandocText $ citationPrefix c
-                     , CSL.citeSuffix     = PandocText $ s'
+                     , CSL.citeSuffix     = PandocText $ s
                      , CSL.citeLabel      = la
                      , CSL.citeLocator    = lo
                      , CSL.citeNoteNumber = show $ citationNoteNum c

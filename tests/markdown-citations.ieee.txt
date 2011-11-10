@@ -38,6 +38,6 @@
 
 [^1]: A citation without locators [3].
 
-[^2]: Some citations [1]-[3].
+[^2]: Some citations [1]–[3].
 
 [^3]: Like a citation without author: [1], and now Doe with a locator [2].

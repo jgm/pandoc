@@ -253,10 +253,12 @@ footnoteSection :: WriterOptions -> [Html] -> Html
 footnoteSection opts notes =
   if null notes
      then noHtml
-     else nl opts +++ (thediv ! [theclass "footnotes"]
+     else nl opts +++ (container
           $ nl opts +++ hr +++ nl opts +++
             (olist << (notes ++ [nl opts])) +++ nl opts)
-
+   where container = if writerHtml5 opts
+                        then tag "section" ! [theclass "footnotes"]
+                        else thediv ! [theclass "footnotes"]
 
 -- | Parse a mailto link; return Just (name, domain) or Nothing.
 parseMailto :: String -> Maybe (String, String)

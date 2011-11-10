@@ -1312,7 +1312,8 @@ citeKey = try $ do
   suppress_author <- option False (char '-' >> return True)
   char '@'
   first <- letter
-  rest <- many $ (noneOf ",;!?[]()@ \t\n")
+  let internal p = try $ p >>~ lookAhead (letter <|> digit)
+  rest <- many $ letter <|> digit <|> internal (oneOf ":.#$%&-_?<>~")
   let key = first:rest
   st <- getState
   guard $ key `elem` stateCitations st
@@ -1320,8 +1321,12 @@ citeKey = try $ do
 
 suffix :: GenParser Char ParserState [Inline]
 suffix = try $ do
+  hasSpace <- option False (notFollowedBy nonspaceChar >> return True)
   spnl
-  liftM normalizeSpaces $ many $ notFollowedBy (oneOf ";]") >> inline
+  rest <- liftM normalizeSpaces $ many $ notFollowedBy (oneOf ";]") >> inline
+  return $ if hasSpace
+              then Space : rest
+              else rest
 
 prefix :: GenParser Char ParserState [Inline]
 prefix = liftM normalizeSpaces $
