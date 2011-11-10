@@ -257,7 +257,7 @@ main = withTempDir "pandoc"
         case latexRes of
           Left err      -> exit err
           Right pdfFile -> do
-            -- save the output creating a backup if necessary
+            -- save the output
             saveOutput pdfFile $
               replaceDirectory pdfFile (takeDirectory output)
 
