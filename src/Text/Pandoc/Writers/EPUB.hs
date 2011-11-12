@@ -311,6 +311,7 @@ pageTemplate = unlines
  , "$for(author)$"
  , "<h2 class=\"author\">$author$</h2>"
  , "$endfor$"
+ , "<h4 class=\"date\">$date$</h4>"
  , "$else$"
  , "<h1>$title$</h1>"
  , "$if(toc)$"
