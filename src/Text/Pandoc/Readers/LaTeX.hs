@@ -574,6 +574,7 @@ inline =  choice [ str
                  , ensureMath
                  , rawLaTeXInline'
                  , escapedChar
+                 , emptyGroup
                  , unescapedChar
                  , comment
                  ] <?> "inline"
@@ -676,6 +677,13 @@ escapedChar :: GenParser Char st Inline
 escapedChar = do
   result <- escaped (oneOf specialChars)
   return $ if result == Str "\n" then Str " " else result
+
+emptyGroup :: GenParser Char st Inline
+emptyGroup = try $ do
+  char '{'
+  spaces
+  char '}'
+  return $ Str ""
 
 -- nonescaped special characters
 unescapedChar :: GenParser Char st Inline
