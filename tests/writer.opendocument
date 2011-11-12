@@ -689,17 +689,21 @@
     <style:style style:name="T59" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T60" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T61" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T62" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
+    <style:style style:name="T62" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T63" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T64" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T65" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T66" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T66" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
     <style:style style:name="T67" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T68" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T69" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T70" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T71" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T72" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T73" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T74" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T75" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T76" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="P1" style:family="paragraph" style:parent-style-name="Quotations">
       <style:paragraph-properties fo:margin-left="0.5in" fo:margin-right="0in" fo:text-indent="0in" style:auto-text-indent="false" />
     </style:style>
@@ -1400,13 +1404,13 @@ three&#8212;four &#8212; five.</text:p>
     <text:p text:style-name="P51"><text:span text:style-name="T58">x</text:span> ∈ <text:span text:style-name="T59">y</text:span></text:p>
   </text:list-item>
   <text:list-item>
-    <text:p text:style-name="P51">α ∧ ω</text:p>
+    <text:p text:style-name="P51"><text:span text:style-name="T60">α</text:span> ∧ <text:span text:style-name="T61">ω</text:span></text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P51">223</text:p>
   </text:list-item>
   <text:list-item>
-    <text:p text:style-name="P51"><text:span text:style-name="T60">p</text:span>-Tree</text:p>
+    <text:p text:style-name="P51"><text:span text:style-name="T62">p</text:span>-Tree</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P51">Here&#8217;s some display math:
@@ -1415,7 +1419,7 @@ three&#8212;four &#8212; five.</text:p>
   <text:list-item>
     <text:p text:style-name="P51">Here&#8217;s one that has a line break in
     it:
-    α + ω × <text:span text:style-name="T61">x</text:span><text:span text:style-name="T62">2</text:span>.</text:p>
+    <text:span text:style-name="T63">α</text:span> + <text:span text:style-name="T64">ω</text:span> × <text:span text:style-name="T65">x</text:span><text:span text:style-name="T66">2</text:span>.</text:p>
   </text:list-item>
 </text:list>
 <text:p text:style-name="First_20_paragraph">These shouldn&#8217;t be
@@ -1427,7 +1431,7 @@ math:</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P52">$22,000 is a
-    <text:span text:style-name="T63">lot</text:span> of money. So is $34,000.
+    <text:span text:style-name="T67">lot</text:span> of money. So is $34,000.
     (It worked if &#8220;lot&#8221; is emphasized.)</text:p>
   </text:list-item>
   <text:list-item>
@@ -1436,10 +1440,10 @@ math:</text:p>
   <text:list-item>
     <text:p text:style-name="P52">Escaped
     <text:span text:style-name="Teletype">$</text:span>: $73
-    <text:span text:style-name="T64">this</text:span><text:span text:style-name="T65">
-    </text:span><text:span text:style-name="T66">should</text:span><text:span text:style-name="T67">
-    </text:span><text:span text:style-name="T68">be</text:span><text:span text:style-name="T69">
-    </text:span><text:span text:style-name="T70">emphasized</text:span>
+    <text:span text:style-name="T68">this</text:span><text:span text:style-name="T69">
+    </text:span><text:span text:style-name="T70">should</text:span><text:span text:style-name="T71">
+    </text:span><text:span text:style-name="T72">be</text:span><text:span text:style-name="T73">
+    </text:span><text:span text:style-name="T74">emphasized</text:span>
     23$.</text:p>
   </text:list-item>
 </text:list>
@@ -1589,10 +1593,10 @@ indented to show that they belong to the footnote (as with list
 items).</text:p><text:p text:style-name="P58"><text:s text:c="2" />{ &lt;code&gt; }</text:p><text:p text:style-name="Footnote">If
 you want, you can indent every line, but you can also be lazy and just indent
 the first line of each block.</text:p></text:note-body></text:note> This
-should <text:span text:style-name="T71">not</text:span> be a footnote
+should <text:span text:style-name="T75">not</text:span> be a footnote
 reference, because it contains a space.[^my note] Here is an inline
 note.<text:note text:id="ftn2" text:note-class="footnote"><text:note-citation>3</text:note-citation><text:note-body><text:p text:style-name="Footnote">This
-is <text:span text:style-name="T72">easier</text:span> to type. Inline notes
+is <text:span text:style-name="T76">easier</text:span> to type. Inline notes
 may contain
 <text:a xlink:type="simple" xlink:href="http://google.com" office:name=""><text:span text:style-name="Definition">links</text:span></text:a>
 and <text:span text:style-name="Teletype">]</text:span> verbatim characters,

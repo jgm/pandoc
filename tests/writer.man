@@ -564,7 +564,7 @@ Ellipses\&...and\&...and\&....
 .IP \[bu] 2
 \f[I]x\f[] ∈ \f[I]y\f[]
 .IP \[bu] 2
-α ∧ ω
+\f[I]α\f[] ∧ \f[I]ω\f[]
 .IP \[bu] 2
 223
 .IP \[bu] 2
@@ -575,7 +575,8 @@ Here's some display math:
 $\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}$
 .RE
 .IP \[bu] 2
-Here's one that has a line break in it: α + ω × \f[I]x\f[]^2^.
+Here's one that has a line break in it:
+\f[I]α\f[] + \f[I]ω\f[] × \f[I]x\f[]^2^.
 .PP
 These shouldn't be math:
 .IP \[bu] 2
