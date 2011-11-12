@@ -511,7 +511,8 @@ demacro (n,st,args) = try $ do
 unknownCommand :: GenParser Char ParserState Block
 unknownCommand = try $ do
   spaces
-  notFollowedBy' $ oneOfStrings ["\\begin","\\end","\\item"]
+  notFollowedBy' $ oneOfStrings ["\\begin","\\end","\\item"] >>
+                   notFollowedBy letter
   state <- getState
   when (stateParserContext state == ListItemState) $
      notFollowedBy' (string "\\item")
