@@ -128,12 +128,13 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
                     Pandoc meta [Plain t]
   let plainTitle = plainify $ docTitle meta
   let plainAuthors = map plainify $ docAuthors meta
+  let plainDate = plainify $ docDate meta
   let contentsData = fromString $ ppTopElement $
         unode "package" ! [("version","2.0")
                           ,("xmlns","http://www.idpf.org/2007/opf")
                           ,("unique-identifier","BookId")] $
           [ metadataElement (writerEPUBMetadata opts')
-              uuid lang plainTitle plainAuthors mbCoverImage
+              uuid lang plainTitle plainAuthors plainDate mbCoverImage
           , unode "manifest" $
              [ unode "item" ! [("id","ncx"), ("href","toc.ncx")
                               ,("media-type","application/x-dtbncx+xml")] $ ()
@@ -208,8 +209,8 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
                   (picEntries ++ cpicEntry ++ cpgEntry ++ chapterEntries) )
   return $ fromArchive archive
 
-metadataElement :: String -> UUID -> String -> String -> [String] -> Maybe a -> Element
-metadataElement metadataXML uuid lang title authors mbCoverImage =
+metadataElement :: String -> UUID -> String -> String -> [String] -> String -> Maybe a -> Element
+metadataElement metadataXML uuid lang title authors date mbCoverImage =
   let userNodes = parseXML metadataXML
       elt = unode "metadata" ! [("xmlns:dc","http://purl.org/dc/elements/1.1/")
                                ,("xmlns:opf","http://www.idpf.org/2007/opf")] $
@@ -225,6 +226,7 @@ metadataElement metadataXML uuid lang title authors mbCoverImage =
            [ unode "dc:identifier" ! [("id","BookId")] $ show uuid |
                not (elt `contains` "identifier") ] ++
            [ unode "dc:creator" ! [("opf:role","aut")] $ a | a <- authors ] ++
+           [ unode "dc:date" date | not (elt `contains` "date") ] ++
            [ unode "meta" ! [("name","cover"), ("content","cover-image")] $ () |
                not (isNothing mbCoverImage) ]
   in  elt{ elContent = elContent elt ++ map Elem newNodes }
@@ -309,6 +311,9 @@ pageTemplate = unlines
  , "$for(author)$"
  , "<h2 class=\"author\">$author$</h2>"
  , "$endfor$"
+ , "$if(date)$"
+ , "<h3 class=\"date\">$date$</h3>"
+ , "$endif$"
  , "$else$"
  , "<h1>$title$</h1>"
  , "$if(toc)$"
