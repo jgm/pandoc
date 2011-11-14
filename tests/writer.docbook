@@ -1077,7 +1077,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     </listitem>
     <listitem>
       <para>
-        α ∧ ω
+        <emphasis>α</emphasis> ∧ <emphasis>ω</emphasis>
       </para>
     </listitem>
     <listitem>
@@ -1099,7 +1099,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <listitem>
       <para>
         Here's one that has a line break in it:
-        α + ω × <emphasis>x</emphasis><superscript>2</superscript>.
+        <emphasis>α</emphasis> + <emphasis>ω</emphasis> × <emphasis>x</emphasis><superscript>2</superscript>.
       </para>
     </listitem>
   </itemizedlist>

@@ -102,8 +102,7 @@ for example,
 
     markdown2pdf sample.txt endnotes.txt
 
-will produce `sample.pdf`.  (If `sample.pdf` exists already,
-it will be backed up before being overwritten.)  An output file
+will produce `sample.pdf`.  An output file
 name can be specified explicitly using the `-o` option:
 
     markdown2pdf -o book.pdf chap1 chap2
@@ -439,6 +438,22 @@ Options
     will use a default style:  either `default.csl` in the
     user data directory (see `--data-dir`), or, if that is
     not present, the Chicago author-date style.
+
+`--citation-abbreviations=`*FILE*
+:   Specify a file containing abbreviations for journal titles and
+    other bibliographic fields (indicated by setting `form="short"`
+    in the CSL node for the field).  The format is described at
+    <http://citationstylist.org/2011/10/19/abbreviations-for-zotero-test-release/>.
+    Here is a short example:
+
+        { "default": {
+            "container-title": {
+                    "Lloyd's Law Reports": "Lloyd's Rep",
+                    "Estates Gazette": "EG",
+                    "Scots Law Times": "SLT"
+            }
+          }
+        }
 
 `--natbib`
 :   Use natbib for citations in LaTeX output.

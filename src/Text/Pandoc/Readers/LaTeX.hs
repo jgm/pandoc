@@ -511,7 +511,8 @@ demacro (n,st,args) = try $ do
 unknownCommand :: GenParser Char ParserState Block
 unknownCommand = try $ do
   spaces
-  notFollowedBy' $ oneOfStrings ["\\begin","\\end","\\item"]
+  notFollowedBy' $ oneOfStrings ["\\begin","\\end","\\item"] >>
+                   notFollowedBy letter
   state <- getState
   when (stateParserContext state == ListItemState) $
      notFollowedBy' (string "\\item")
@@ -574,6 +575,7 @@ inline =  choice [ str
                  , ensureMath
                  , rawLaTeXInline'
                  , escapedChar
+                 , emptyGroup
                  , unescapedChar
                  , comment
                  ] <?> "inline"
@@ -676,6 +678,13 @@ escapedChar :: GenParser Char st Inline
 escapedChar = do
   result <- escaped (oneOf specialChars)
   return $ if result == Str "\n" then Str " " else result
+
+emptyGroup :: GenParser Char st Inline
+emptyGroup = try $ do
+  char '{'
+  spaces
+  char '}'
+  return $ Str ""
 
 -- nonescaped special characters
 unescapedChar :: GenParser Char st Inline

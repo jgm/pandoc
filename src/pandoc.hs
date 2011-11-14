@@ -124,6 +124,7 @@ data Opt = Opt
     , optCiteMethod        :: CiteMethod -- ^ Method to output cites
     , optBibliography      :: [String]
     , optCslFile           :: FilePath
+    , optAbbrevsFile       :: Maybe FilePath
     , optListings          :: Bool       -- ^ Use listings package for code blocks
     , optAscii             :: Bool       -- ^ Avoid using nonascii characters
     }
@@ -168,6 +169,7 @@ defaultOpts = Opt
     , optCiteMethod        = Citeproc
     , optBibliography      = []
     , optCslFile           = ""
+    , optAbbrevsFile       = Nothing
     , optListings          = False
     , optAscii             = False
     }
@@ -537,6 +539,12 @@ options =
                   "FILENAME")
                  ""
 
+    , Option "" ["citation-abbreviations"]
+                 (ReqArg
+                  (\arg opt -> return opt { optAbbrevsFile = Just arg })
+                  "FILENAME")
+                 ""
+
     , Option "" ["natbib"]
                  (NoArg
                   (\opt -> return opt { optCiteMethod = Natbib }))
@@ -702,6 +710,7 @@ main = do
               , optDataDir           = mbDataDir
               , optBibliography      = reffiles
               , optCslFile           = cslfile
+              , optAbbrevsFile       = cslabbrevs
               , optCiteMethod        = citeMethod
               , optListings          = listings
               , optAscii             = ascii
@@ -883,7 +892,7 @@ main = do
                                             replaceDirectory
                                             (replaceExtension cslfile "csl")
                                             csldir
-                processBiblio cslfile' refs doc1
+                processBiblio cslfile' cslabbrevs refs doc1
              else return doc1
 
   case lookup writerName' writers of

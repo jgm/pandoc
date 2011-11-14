@@ -43,11 +43,15 @@ import Control.Monad
 
 -- | Process a 'Pandoc' document by adding citations formatted
 -- according to a CSL style, using 'citeproc' from citeproc-hs.
-processBiblio :: FilePath -> [Reference] -> Pandoc -> IO Pandoc
-processBiblio cslfile r p
+processBiblio :: FilePath -> Maybe FilePath -> [Reference] -> Pandoc
+              -> IO Pandoc
+processBiblio cslfile abrfile r p
     = if null r then return p
       else do
         csl <- readCSLFile cslfile
+        abbrevs <- case abrfile of
+                      Just f  -> readJsonAbbrevFile f
+                      Nothing -> return []
         p'   <- bottomUpM setHash p
         let (nts,grps) = if styleClass csl == "note"
                          then let cits   = queryWith getCite p'
@@ -55,11 +59,12 @@ processBiblio cslfile r p
                                   needNt = cits \\ concat ncits
                               in (,) needNt $ getNoteCitations needNt p'
                          else (,) [] $ queryWith getCitation p'
-            result     = citeproc procOpts csl r (setNearNote csl $
+            style      = csl { styleAbbrevs = abbrevs }
+            result     = citeproc procOpts style r (setNearNote style $
                             map (map toCslCite) grps)
             cits_map   = M.fromList $ zip grps (citations result)
-            biblioList = map (renderPandoc' csl) (bibliography result)
-            Pandoc m b = bottomUp (procInlines $ processCite csl cits_map) p'
+            biblioList = map (renderPandoc' style) (bibliography result)
+            Pandoc m b = bottomUp (procInlines $ processCite style cits_map) p'
         return . generateNotes nts . Pandoc m $ b ++ biblioList
 
 -- | Substitute 'Cite' elements with formatted citations.
