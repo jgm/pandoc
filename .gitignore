@@ -10,4 +10,6 @@ man/man?/*.html
 pandoc.cabal.orig
 *.o
 *.hi
-
+tmp/*
+t
+*~
