@@ -1,7 +1,11 @@
 $if(titleblock)$
 $title$
-$for(author)$$author$$sep$; $endfor$
-$date$
+$for(author)$
+:author: $author$
+$endfor$
+$if(date)$
+:date: $date$
+$endif$
 $if(toc)$
 :toc:
 $endif$
