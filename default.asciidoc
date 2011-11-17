@@ -1,0 +1,22 @@
+$if(titleblock)$
+$title$
+$for(author)$$author$$sep$; $endfor$
+$date$
+$if(toc)$
+:toc:
+$endif$
+
+$endif$
+$for(header-includes)$
+$header-includes$
+
+$endfor$
+$for(include-before)$
+$include-before$
+
+$endfor$
+$body$
+$for(include-after)$
+
+$include-after$
+$endfor$
