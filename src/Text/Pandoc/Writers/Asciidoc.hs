@@ -52,7 +52,7 @@ pandocToAsciidoc :: WriterOptions -> Pandoc -> State WriterState String
 pandocToAsciidoc opts (Pandoc (Meta title authors date) blocks) = do
   title' <- inlineListToAsciidoc opts title
   let title'' = title' $$ text (replicate (offset title') '=')
-  authors' <- take 1 `fmap` mapM (inlineListToAsciidoc opts) authors
+  authors' <- mapM (inlineListToAsciidoc opts) authors
   -- asciidoc only allows a singel author
   date' <- inlineListToAsciidoc opts date
   let titleblock = not $ null title && null authors && null date
