@@ -59,6 +59,7 @@ module Text.Pandoc.Pretty (
      , hsep
      , vcat
      , vsep
+     , chomp
      , inside
      , braces
      , brackets
@@ -163,6 +164,17 @@ vcat = foldr ($$) empty
 -- | List version of '$+$'.
 vsep :: [Doc] -> Doc
 vsep = foldr ($+$) empty
+
+-- | Chomps trailing blank space off of a 'Doc'.
+chomp :: Doc -> Doc
+chomp d = Doc (fromList dl')
+  where dl = toList (unDoc d)
+        dl' = reverse $ dropWhile removeable $ reverse dl
+        removeable BreakingSpace = True
+        removeable CarriageReturn = True
+        removeable NewLine = True
+        removeable BlankLine = True
+        removeable _ = False
 
 outp :: (IsString a, Monoid a)
      => Int -> String -> DocState a
@@ -427,3 +439,4 @@ quotes = inside (char '\'') (char '\'')
 -- | Wraps a 'Doc' in double quotes.
 doubleQuotes :: Doc -> Doc
 doubleQuotes = inside (char '"') (char '"')
+
