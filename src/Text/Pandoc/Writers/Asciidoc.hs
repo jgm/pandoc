@@ -28,6 +28,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to asciidoc.
 
+Note that some information may be lost in conversion, due to
+expressive limitations of asciidoc.  Footnotes and table cells with
+paragraphs (or other block items) are not possible in asciidoc.
+If pandoc encounters one of these, it will insert a message indicating
+that it has omitted the construct.
+
 Asciidoc:  <http://www.methods.co.nz/asciidoc/>
 -}
 module Text.Pandoc.Writers.Asciidoc (writeAsciidoc) where
