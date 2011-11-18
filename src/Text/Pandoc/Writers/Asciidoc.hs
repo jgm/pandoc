@@ -36,7 +36,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing hiding (blankline)
 import Text.ParserCombinators.Parsec ( runParser, GenParser )
-import Data.List ( isPrefixOf, intersperse, intercalate, transpose )
+import Data.List ( isPrefixOf, intercalate )
 import Text.Pandoc.Pretty
 import Control.Monad.State
 
@@ -142,44 +142,58 @@ blockToAsciidoc opts (Table caption aligns widths headers rows) =  do
   caption' <- inlineListToAsciidoc opts caption
   let caption'' = if null caption
                      then empty
-                     else blankline <> ": " <> caption' <> blankline
-  headers' <- mapM (blockListToAsciidoc opts) headers
-  let alignHeader alignment = case alignment of
-                                AlignLeft    -> lblock
-                                AlignCenter  -> cblock
-                                AlignRight   -> rblock
-                                AlignDefault -> lblock
-  rawRows <- mapM (mapM (blockListToAsciidoc opts)) rows
-  let isSimple = all (==0) widths
-  let numChars = maximum . map offset
-  let widthsInChars =
-       if isSimple
-          then map ((+2) . numChars) $ transpose (headers' : rawRows)
-          else map (floor . (fromIntegral (writerColumns opts) *)) widths
-  let makeRow = hcat . intersperse (lblock 1 (text " ")) .
-                   (zipWith3 alignHeader aligns widthsInChars)
-  let rows' = map makeRow rawRows
-  let head' = makeRow headers'
-  let maxRowHeight = maximum $ map height (head':rows')
-  let underline = cat $ intersperse (text " ") $
-                  map (\width -> text (replicate width '-')) widthsInChars
-  let border = if maxRowHeight > 1
-                  then text (replicate (sum widthsInChars +
-                          length widthsInChars - 1) '-')
-                  else if all null headers
-                          then underline
-                          else empty
-  let head'' = if all null headers
-                  then empty
-                  else border <> cr <> head'
-  let body = if maxRowHeight > 1
-                then vsep rows'
-                else vcat rows'
-  let bottom = if all null headers
-                  then underline
-                  else border
-  return $ nest 2 $ head'' $$ underline $$ body $$
-              bottom $$ blankline $$ caption'' $$ blankline
+                     else "." <> caption' <> cr
+  let isSimple = all (== 0) widths
+  let relativePercentWidths = if isSimple
+                                 then widths
+                                 else map (/ (sum widths)) widths
+  let widths'' :: [Integer]
+      widths'' = map (floor . (* 100)) relativePercentWidths
+  -- ensure that the widths sum to 100
+  let widths' = case widths'' of
+                     _ | isSimple -> widths''
+                     (w:ws) | sum (w:ws) < 100
+                               -> (100 - sum ws) : ws
+                     ws        -> ws
+  let totalwidth :: Integer
+      totalwidth = floor $ sum widths * 100
+  let colspec al wi = (case al of
+                         AlignLeft    -> "<"
+                         AlignCenter  -> "^"
+                         AlignRight   -> ">"
+                         AlignDefault -> "") ++
+                      if wi == 0 then "" else (show wi ++ "%")
+  let headerspec = if all null headers
+                      then empty
+                      else text "options=\"header\","
+  let widthspec = if totalwidth == 0
+                     then empty
+                     else text "width="
+                          <> doubleQuotes (text $ show totalwidth ++ "%")
+                          <> text ","
+  let tablespec = text "["
+         <> widthspec
+         <> text "cols="
+         <> doubleQuotes (text $ intercalate ","
+             $ zipWith colspec aligns widths')
+         <> text ","
+         <> headerspec <> text "]"
+  let makeCell [Plain x] = do d <- blockListToAsciidoc opts [Plain x]
+                              return $ text "|" <> chomp d
+      makeCell [Para x]  = makeCell [Plain x]
+      makeCell _         = return $ text "|" <> "[multiblock cell omitted]"
+  let makeRow cells = hsep `fmap` mapM makeCell cells
+  rows' <- mapM makeRow rows
+  head' <- makeRow headers
+  let head'' = if all null headers then empty else head'
+  let colwidth = if writerWrapText opts
+                    then writerColumns opts
+                    else 100000
+  let maxwidth = maximum $ map offset (head':rows')
+  let body = if maxwidth > colwidth then vsep rows' else vcat rows'
+  let border = text $ "|" ++ replicate ((min maxwidth colwidth) - 1) '='
+  return $
+    caption'' $$ tablespec $$ border $$ head'' $$ body $$ border $$ blankline
 blockToAsciidoc opts (BulletList items) = do
   contents <- mapM (bulletListItemToAsciidoc opts) items
   return $ cat contents <> blankline
