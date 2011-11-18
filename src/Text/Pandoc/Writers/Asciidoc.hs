@@ -40,12 +40,13 @@ import Data.List ( isPrefixOf, intersperse, intercalate, transpose )
 import Text.Pandoc.Pretty
 import Control.Monad.State
 
-data WriterState = WriterState { }
+data WriterState = WriterState { defListMarker :: String }
 
 -- | Convert Pandoc to Asciidoc.
 writeAsciidoc :: WriterOptions -> Pandoc -> String
 writeAsciidoc opts document =
-  evalState (pandocToAsciidoc opts document) WriterState{ }
+  evalState (pandocToAsciidoc opts document) WriterState{
+    defListMarker = "::" }
 
 -- | Return markdown representation of document.
 pandocToAsciidoc :: WriterOptions -> Pandoc -> State WriterState String
@@ -221,14 +222,16 @@ definitionListItemToAsciidoc :: WriterOptions
                              -> State WriterState Doc
 definitionListItemToAsciidoc opts (label, defs) = do
   labelText <- inlineListToAsciidoc opts label
-  let tabStop = writerTabStop opts
-  let leader  = "  ~"
-  let sps = case writerTabStop opts - 3 of
-                 n | n > 0   -> text $ replicate n ' '
-                 _           -> text " "
-  defs' <- mapM (mapM (blockToAsciidoc opts)) defs
-  let contents = vcat $ map (\d -> hang tabStop (leader <> sps) $ vcat d <> cr) defs'
-  return $ labelText <> cr <> contents <> cr
+  marker <- defListMarker `fmap` get
+  if marker == "::"
+     then modify (\st -> st{ defListMarker = ";;"})
+     else modify (\st -> st{ defListMarker = "::"})
+  let defsToAsciidoc :: [Block] -> State WriterState Doc
+      defsToAsciidoc ds = vcat `fmap` mapM (blockToAsciidoc opts) ds
+  defs' <- mapM defsToAsciidoc defs
+  modify (\st -> st{ defListMarker = marker })
+  let contents = nest 2 $ vsep defs'
+  return $ labelText <> text marker <> cr <> contents <> cr
 
 -- | Convert list of Pandoc block elements to markdown.
 blockListToAsciidoc :: WriterOptions -- ^ Options
