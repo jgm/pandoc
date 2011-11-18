@@ -333,4 +333,4 @@ inlineToAsciidoc opts (Note [Plain inlines]) = do
   contents  <- inlineListToAsciidoc opts inlines
   return $ text "footnote:[" <> contents <> "]"
 -- asciidoc can't handle blank lines in notes
-inlineToAsciidoc _ (Note _) = return empty
+inlineToAsciidoc _ (Note _) = return "[multiblock footnote omitted]"
