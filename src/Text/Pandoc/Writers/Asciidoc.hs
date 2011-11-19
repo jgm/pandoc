@@ -123,8 +123,6 @@ blockToAsciidoc opts (Para inlines) = do
                then text "\\"
                else empty
   return $ esc <> contents <> blankline
-blockToAsciidoc _ (RawBlock f str) | f == "html" || f == "docbook" = do
-    return $ blankline $$ "+++" $$ text str $$ "+++" <> blankline
 blockToAsciidoc _ (RawBlock _ _) = return empty
 blockToAsciidoc _ HorizontalRule =
   return $ blankline <> text "'''''" <> blankline
