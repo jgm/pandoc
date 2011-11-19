@@ -46,13 +46,19 @@ import Data.List ( isPrefixOf, intercalate )
 import Text.Pandoc.Pretty
 import Control.Monad.State
 
-data WriterState = WriterState { defListMarker :: String }
+data WriterState = WriterState { defListMarker :: String
+                               , orderedListLevel :: Int
+                               , bulletListLevel  :: Int
+                               }
 
 -- | Convert Pandoc to Asciidoc.
 writeAsciidoc :: WriterOptions -> Pandoc -> String
 writeAsciidoc opts document =
   evalState (pandocToAsciidoc opts document) WriterState{
-    defListMarker = "::" }
+      defListMarker = "::"
+    , orderedListLevel = 1
+    , bulletListLevel = 1
+    }
 
 -- | Return markdown representation of document.
 pandocToAsciidoc :: WriterOptions -> Pandoc -> State WriterState String
