@@ -209,8 +209,8 @@ blockToAsciidoc opts (Table caption aligns widths headers rows) =  do
 blockToAsciidoc opts (BulletList items) = do
   contents <- mapM (bulletListItemToAsciidoc opts) items
   return $ cat contents <> blankline
-blockToAsciidoc opts (OrderedList attribs items) = do
-  let markers  = orderedListMarkers attribs
+blockToAsciidoc opts (OrderedList (start, sty, _delim) items) = do
+  let markers  = orderedListMarkers (start, sty, Period)
   let markers' = map (\m -> if length m < 3
                                then m ++ replicate (3 - length m) ' '
                                else m) markers
@@ -223,11 +223,21 @@ blockToAsciidoc opts (DefinitionList items) = do
 
 -- | Convert bullet list item (list of blocks) to markdown.
 bulletListItemToAsciidoc :: WriterOptions -> [Block] -> State WriterState Doc
-bulletListItemToAsciidoc opts items = do
-  contents <- blockListToAsciidoc opts items
-  let sps = replicate (writerTabStop opts - 2) ' '
-  let start = text ('-' : ' ' : sps)
-  return $ hang (writerTabStop opts) start $ contents <> cr
+bulletListItemToAsciidoc opts blocks = do
+  let addBlock :: Doc -> Block -> State WriterState Doc
+      addBlock d b | isEmpty d    = chomp `fmap` blockToAsciidoc opts b
+      addBlock d b@(BulletList _) = do x <- blockToAsciidoc opts b
+                                       return $ d <> cr <> chomp x
+      addBlock d b@(OrderedList _ _) = do x <- blockToAsciidoc opts b
+                                          return $ d <> cr <> chomp x
+      addBlock d b = do x <- blockToAsciidoc opts b
+                        return $ d <> cr <> text "+" <> cr <> chomp x
+  lev <- bulletListLevel `fmap` get
+  modify $ \s -> s{ bulletListLevel = lev + 1 }
+  contents <- foldM addBlock empty blocks
+  modify $ \s -> s{ bulletListLevel = lev }
+  let marker = text (replicate lev '*')
+  return $ marker <> space <> contents <> cr
 
 -- | Convert ordered list item (a list of blocks) to markdown.
 orderedListItemToAsciidoc :: WriterOptions -- ^ options
@@ -263,20 +273,7 @@ definitionListItemToAsciidoc opts (label, defs) = do
 blockListToAsciidoc :: WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
                     -> State WriterState Doc
-blockListToAsciidoc opts blocks =
-  mapM (blockToAsciidoc opts) (fixBlocks blocks) >>= return . cat
-    -- insert comment between list and indented code block, or the
-    -- code block will be treated as a list continuation paragraph
-    where fixBlocks (b : CodeBlock attr x : rest)
-            | (attr == nullAttr) && isListBlock b =
-               b : RawBlock "html" "<!-- -->\n" : CodeBlock attr x :
-                  fixBlocks rest
-          fixBlocks (x : xs)             = x : fixBlocks xs
-          fixBlocks []                   = []
-          isListBlock (BulletList _)     = True
-          isListBlock (OrderedList _ _)  = True
-          isListBlock (DefinitionList _) = True
-          isListBlock _                  = False
+blockListToAsciidoc opts blocks = cat `fmap` mapM (blockToAsciidoc opts) blocks
 
 -- | Convert list of Pandoc inline elements to markdown.
 inlineListToAsciidoc :: WriterOptions -> [Inline] -> State WriterState Doc
