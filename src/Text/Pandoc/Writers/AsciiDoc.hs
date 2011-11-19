@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Writers.Asciidoc
+   Module      : Text.Pandoc.Writers.AsciiDoc
    Copyright   : Copyright (C) 2006-2010 John MacFarlane
    License     : GNU GPL, version 2 or above
 
@@ -34,9 +34,9 @@ paragraphs (or other block items) are not possible in asciidoc.
 If pandoc encounters one of these, it will insert a message indicating
 that it has omitted the construct.
 
-Asciidoc:  <http://www.methods.co.nz/asciidoc/>
+AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 -}
-module Text.Pandoc.Writers.Asciidoc (writeAsciidoc) where
+module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Shared
@@ -51,25 +51,25 @@ data WriterState = WriterState { defListMarker :: String
                                , bulletListLevel  :: Int
                                }
 
--- | Convert Pandoc to Asciidoc.
-writeAsciidoc :: WriterOptions -> Pandoc -> String
-writeAsciidoc opts document =
-  evalState (pandocToAsciidoc opts document) WriterState{
+-- | Convert Pandoc to AsciiDoc.
+writeAsciiDoc :: WriterOptions -> Pandoc -> String
+writeAsciiDoc opts document =
+  evalState (pandocToAsciiDoc opts document) WriterState{
       defListMarker = "::"
     , orderedListLevel = 1
     , bulletListLevel = 1
     }
 
--- | Return markdown representation of document.
-pandocToAsciidoc :: WriterOptions -> Pandoc -> State WriterState String
-pandocToAsciidoc opts (Pandoc (Meta title authors date) blocks) = do
-  title' <- inlineListToAsciidoc opts title
+-- | Return asciidoc representation of document.
+pandocToAsciiDoc :: WriterOptions -> Pandoc -> State WriterState String
+pandocToAsciiDoc opts (Pandoc (Meta title authors date) blocks) = do
+  title' <- inlineListToAsciiDoc opts title
   let title'' = title' $$ text (replicate (offset title') '=')
-  authors' <- mapM (inlineListToAsciidoc opts) authors
+  authors' <- mapM (inlineListToAsciiDoc opts) authors
   -- asciidoc only allows a singel author
-  date' <- inlineListToAsciidoc opts date
+  date' <- inlineListToAsciiDoc opts date
   let titleblock = not $ null title && null authors && null date
-  body <- blockListToAsciidoc opts blocks
+  body <- blockListToAsciiDoc opts blocks
   let colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
                     else Nothing
@@ -87,10 +87,10 @@ pandocToAsciidoc opts (Pandoc (Meta title authors date) blocks) = do
      then return $ renderTemplate context $ writerTemplate opts
      else return main
 
--- | Escape special characters for Asciidoc.
+-- | Escape special characters for AsciiDoc.
 escapeString :: String -> String
-escapeString = escapeStringUsing markdownEscapes
-  where markdownEscapes = backslashEscapes "\\`*_>#~^{+"
+escapeString = escapeStringUsing escs
+  where escs = backslashEscapes "{"
 
 -- | Ordered list start parser for use in Para below.
 olMarker :: GenParser Char ParserState Char
@@ -108,26 +108,26 @@ beginsWithOrderedListMarker str =
          Left  _  -> False
          Right _  -> True
 
--- | Convert Pandoc block element to markdown.
-blockToAsciidoc :: WriterOptions -- ^ Options
+-- | Convert Pandoc block element to asciidoc.
+blockToAsciiDoc :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
                 -> State WriterState Doc
-blockToAsciidoc _ Null = return empty
-blockToAsciidoc opts (Plain inlines) = do
-  contents <- inlineListToAsciidoc opts inlines
+blockToAsciiDoc _ Null = return empty
+blockToAsciiDoc opts (Plain inlines) = do
+  contents <- inlineListToAsciiDoc opts inlines
   return $ contents <> cr
-blockToAsciidoc opts (Para inlines) = do
-  contents <- inlineListToAsciidoc opts inlines
+blockToAsciiDoc opts (Para inlines) = do
+  contents <- inlineListToAsciiDoc opts inlines
   -- escape if para starts with ordered list marker
   let esc = if beginsWithOrderedListMarker (render Nothing contents)
                then text "\\"
                else empty
   return $ esc <> contents <> blankline
-blockToAsciidoc _ (RawBlock _ _) = return empty
-blockToAsciidoc _ HorizontalRule =
+blockToAsciiDoc _ (RawBlock _ _) = return empty
+blockToAsciiDoc _ HorizontalRule =
   return $ blankline <> text "'''''" <> blankline
-blockToAsciidoc opts (Header level inlines) = do
-  contents <- inlineListToAsciidoc opts inlines
+blockToAsciiDoc opts (Header level inlines) = do
+  contents <- inlineListToAsciiDoc opts inlines
   let len = offset contents
   return $ contents <> cr <>
          (case level of
@@ -136,15 +136,15 @@ blockToAsciidoc opts (Header level inlines) = do
                3  -> text $ replicate len '^'
                4  -> text $ replicate len '+'
                _  -> empty) <> blankline
-blockToAsciidoc _ (CodeBlock (_,classes,_) str) = return $
+blockToAsciiDoc _ (CodeBlock (_,classes,_) str) = return $
   flush (attrs <> dashes <> space <> attrs <> cr <> text str <>
            cr <> dashes) <> blankline
      where dashes  = text $ replicate (maximum $ map length $ lines str) '-'
            attrs = if null classes
                       then empty
                       else text $ intercalate "," $ "code" : classes
-blockToAsciidoc opts (BlockQuote blocks) = do
-  contents <- blockListToAsciidoc opts blocks
+blockToAsciiDoc opts (BlockQuote blocks) = do
+  contents <- blockListToAsciiDoc opts blocks
   let isBlock (BlockQuote _) = True
       isBlock _              = False
   -- if there are nested block quotes, put in an open block
@@ -154,8 +154,8 @@ blockToAsciidoc opts (BlockQuote blocks) = do
   let cols = offset contents'
   let bar = text $ replicate cols '_'
   return $ bar $$ chomp contents' $$ bar <> blankline
-blockToAsciidoc opts (Table caption aligns widths headers rows) =  do
-  caption' <- inlineListToAsciidoc opts caption
+blockToAsciiDoc opts (Table caption aligns widths headers rows) =  do
+  caption' <- inlineListToAsciiDoc opts caption
   let caption'' = if null caption
                      then empty
                      else "." <> caption' <> cr
@@ -194,7 +194,7 @@ blockToAsciidoc opts (Table caption aligns widths headers rows) =  do
              $ zipWith colspec aligns widths')
          <> text ","
          <> headerspec <> text "]"
-  let makeCell [Plain x] = do d <- blockListToAsciidoc opts [Plain x]
+  let makeCell [Plain x] = do d <- blockListToAsciiDoc opts [Plain x]
                               return $ text "|" <> chomp d
       makeCell [Para x]  = makeCell [Plain x]
       makeCell _         = return $ text "|" <> "[multiblock cell omitted]"
@@ -210,31 +210,31 @@ blockToAsciidoc opts (Table caption aligns widths headers rows) =  do
   let border = text $ "|" ++ replicate ((min maxwidth colwidth) - 1) '='
   return $
     caption'' $$ tablespec $$ border $$ head'' $$ body $$ border $$ blankline
-blockToAsciidoc opts (BulletList items) = do
-  contents <- mapM (bulletListItemToAsciidoc opts) items
+blockToAsciiDoc opts (BulletList items) = do
+  contents <- mapM (bulletListItemToAsciiDoc opts) items
   return $ cat contents <> blankline
-blockToAsciidoc opts (OrderedList (start, sty, _delim) items) = do
+blockToAsciiDoc opts (OrderedList (start, sty, _delim) items) = do
   let markers  = orderedListMarkers (start, sty, Period)
   let markers' = map (\m -> if length m < 3
                                then m ++ replicate (3 - length m) ' '
                                else m) markers
-  contents <- mapM (\(item, num) -> orderedListItemToAsciidoc opts item num) $
+  contents <- mapM (\(item, num) -> orderedListItemToAsciiDoc opts item num) $
               zip markers' items
   return $ cat contents <> blankline
-blockToAsciidoc opts (DefinitionList items) = do
-  contents <- mapM (definitionListItemToAsciidoc opts) items
+blockToAsciiDoc opts (DefinitionList items) = do
+  contents <- mapM (definitionListItemToAsciiDoc opts) items
   return $ cat contents <> blankline
 
--- | Convert bullet list item (list of blocks) to markdown.
-bulletListItemToAsciidoc :: WriterOptions -> [Block] -> State WriterState Doc
-bulletListItemToAsciidoc opts blocks = do
+-- | Convert bullet list item (list of blocks) to asciidoc.
+bulletListItemToAsciiDoc :: WriterOptions -> [Block] -> State WriterState Doc
+bulletListItemToAsciiDoc opts blocks = do
   let addBlock :: Doc -> Block -> State WriterState Doc
-      addBlock d b | isEmpty d    = chomp `fmap` blockToAsciidoc opts b
-      addBlock d b@(BulletList _) = do x <- blockToAsciidoc opts b
+      addBlock d b | isEmpty d    = chomp `fmap` blockToAsciiDoc opts b
+      addBlock d b@(BulletList _) = do x <- blockToAsciiDoc opts b
                                        return $ d <> cr <> chomp x
-      addBlock d b@(OrderedList _ _) = do x <- blockToAsciidoc opts b
+      addBlock d b@(OrderedList _ _) = do x <- blockToAsciiDoc opts b
                                           return $ d <> cr <> chomp x
-      addBlock d b = do x <- blockToAsciidoc opts b
+      addBlock d b = do x <- blockToAsciiDoc opts b
                         return $ d <> cr <> text "+" <> cr <> chomp x
   lev <- bulletListLevel `fmap` get
   modify $ \s -> s{ bulletListLevel = lev + 1 }
@@ -243,19 +243,19 @@ bulletListItemToAsciidoc opts blocks = do
   let marker = text (replicate lev '*')
   return $ marker <> space <> contents <> cr
 
--- | Convert ordered list item (a list of blocks) to markdown.
-orderedListItemToAsciidoc :: WriterOptions -- ^ options
+-- | Convert ordered list item (a list of blocks) to asciidoc.
+orderedListItemToAsciiDoc :: WriterOptions -- ^ options
                           -> String        -- ^ list item marker
                           -> [Block]       -- ^ list item (list of blocks)
                           -> State WriterState Doc
-orderedListItemToAsciidoc opts marker blocks = do
+orderedListItemToAsciiDoc opts marker blocks = do
   let addBlock :: Doc -> Block -> State WriterState Doc
-      addBlock d b | isEmpty d    = chomp `fmap` blockToAsciidoc opts b
-      addBlock d b@(BulletList _) = do x <- blockToAsciidoc opts b
+      addBlock d b | isEmpty d    = chomp `fmap` blockToAsciiDoc opts b
+      addBlock d b@(BulletList _) = do x <- blockToAsciiDoc opts b
                                        return $ d <> cr <> chomp x
-      addBlock d b@(OrderedList _ _) = do x <- blockToAsciidoc opts b
+      addBlock d b@(OrderedList _ _) = do x <- blockToAsciiDoc opts b
                                           return $ d <> cr <> chomp x
-      addBlock d b = do x <- blockToAsciidoc opts b
+      addBlock d b = do x <- blockToAsciiDoc opts b
                         return $ d <> cr <> text "+" <> cr <> chomp x
   lev <- orderedListLevel `fmap` get
   modify $ \s -> s{ orderedListLevel = lev + 1 }
@@ -263,80 +263,80 @@ orderedListItemToAsciidoc opts marker blocks = do
   modify $ \s -> s{ orderedListLevel = lev }
   return $ text marker <> space <> contents <> cr
 
--- | Convert definition list item (label, list of blocks) to markdown.
-definitionListItemToAsciidoc :: WriterOptions
+-- | Convert definition list item (label, list of blocks) to asciidoc.
+definitionListItemToAsciiDoc :: WriterOptions
                              -> ([Inline],[[Block]])
                              -> State WriterState Doc
-definitionListItemToAsciidoc opts (label, defs) = do
-  labelText <- inlineListToAsciidoc opts label
+definitionListItemToAsciiDoc opts (label, defs) = do
+  labelText <- inlineListToAsciiDoc opts label
   marker <- defListMarker `fmap` get
   if marker == "::"
      then modify (\st -> st{ defListMarker = ";;"})
      else modify (\st -> st{ defListMarker = "::"})
   let divider = cr <> text "+" <> cr
-  let defsToAsciidoc :: [Block] -> State WriterState Doc
-      defsToAsciidoc ds = (vcat . intersperse divider . map chomp)
-           `fmap` mapM (blockToAsciidoc opts) ds
-  defs' <- mapM defsToAsciidoc defs
+  let defsToAsciiDoc :: [Block] -> State WriterState Doc
+      defsToAsciiDoc ds = (vcat . intersperse divider . map chomp)
+           `fmap` mapM (blockToAsciiDoc opts) ds
+  defs' <- mapM defsToAsciiDoc defs
   modify (\st -> st{ defListMarker = marker })
   let contents = nest 2 $ vcat $ intersperse divider $ map chomp defs'
   return $ labelText <> text marker <> cr <> contents <> cr
 
--- | Convert list of Pandoc block elements to markdown.
-blockListToAsciidoc :: WriterOptions -- ^ Options
+-- | Convert list of Pandoc block elements to asciidoc.
+blockListToAsciiDoc :: WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
                     -> State WriterState Doc
-blockListToAsciidoc opts blocks = cat `fmap` mapM (blockToAsciidoc opts) blocks
+blockListToAsciiDoc opts blocks = cat `fmap` mapM (blockToAsciiDoc opts) blocks
 
--- | Convert list of Pandoc inline elements to markdown.
-inlineListToAsciidoc :: WriterOptions -> [Inline] -> State WriterState Doc
-inlineListToAsciidoc opts lst =
-  mapM (inlineToAsciidoc opts) lst >>= return . cat
+-- | Convert list of Pandoc inline elements to asciidoc.
+inlineListToAsciiDoc :: WriterOptions -> [Inline] -> State WriterState Doc
+inlineListToAsciiDoc opts lst =
+  mapM (inlineToAsciiDoc opts) lst >>= return . cat
 
--- | Convert Pandoc inline element to markdown.
-inlineToAsciidoc :: WriterOptions -> Inline -> State WriterState Doc
-inlineToAsciidoc opts (Emph lst) = do
-  contents <- inlineListToAsciidoc opts lst
+-- | Convert Pandoc inline element to asciidoc.
+inlineToAsciiDoc :: WriterOptions -> Inline -> State WriterState Doc
+inlineToAsciiDoc opts (Emph lst) = do
+  contents <- inlineListToAsciiDoc opts lst
   return $ "_" <> contents <> "_"
-inlineToAsciidoc opts (Strong lst) = do
-  contents <- inlineListToAsciidoc opts lst
+inlineToAsciiDoc opts (Strong lst) = do
+  contents <- inlineListToAsciiDoc opts lst
   return $ "*" <> contents <> "*"
-inlineToAsciidoc opts (Strikeout lst) = do
-  contents <- inlineListToAsciidoc opts lst
+inlineToAsciiDoc opts (Strikeout lst) = do
+  contents <- inlineListToAsciiDoc opts lst
   return $ "[line-through]*" <> contents <> "*"
-inlineToAsciidoc opts (Superscript lst) = do
-  contents <- inlineListToAsciidoc opts lst
+inlineToAsciiDoc opts (Superscript lst) = do
+  contents <- inlineListToAsciiDoc opts lst
   return $ "^" <> contents <> "^"
-inlineToAsciidoc opts (Subscript lst) = do
-  contents <- inlineListToAsciidoc opts lst
+inlineToAsciiDoc opts (Subscript lst) = do
+  contents <- inlineListToAsciiDoc opts lst
   return $ "~" <> contents <> "~"
-inlineToAsciidoc opts (SmallCaps lst) = inlineListToAsciidoc opts lst
-inlineToAsciidoc opts (Quoted SingleQuote lst) = do
-  contents <- inlineListToAsciidoc opts lst
+inlineToAsciiDoc opts (SmallCaps lst) = inlineListToAsciiDoc opts lst
+inlineToAsciiDoc opts (Quoted SingleQuote lst) = do
+  contents <- inlineListToAsciiDoc opts lst
   return $ "`" <> contents <> "'"
-inlineToAsciidoc opts (Quoted DoubleQuote lst) = do
-  contents <- inlineListToAsciidoc opts lst
+inlineToAsciiDoc opts (Quoted DoubleQuote lst) = do
+  contents <- inlineListToAsciiDoc opts lst
   return $ "``" <> contents <> "''"
-inlineToAsciidoc _ EmDash = return "\8212"
-inlineToAsciidoc _ EnDash = return "\8211"
-inlineToAsciidoc _ Apostrophe = return "\8217"
-inlineToAsciidoc _ Ellipses = return "\8230"
-inlineToAsciidoc _ (Code _ str) = return $
+inlineToAsciiDoc _ EmDash = return "\8212"
+inlineToAsciiDoc _ EnDash = return "\8211"
+inlineToAsciiDoc _ Apostrophe = return "\8217"
+inlineToAsciiDoc _ Ellipses = return "\8230"
+inlineToAsciiDoc _ (Code _ str) = return $
   text "`" <> text (escapeStringUsing (backslashEscapes "`") str) <> "`"
-inlineToAsciidoc _ (Str str) = return $ text $ escapeString str
-inlineToAsciidoc _ (Math InlineMath str) =
+inlineToAsciiDoc _ (Str str) = return $ text $ escapeString str
+inlineToAsciiDoc _ (Math InlineMath str) =
   return $ "latexmath:[$" <> text str <> "$]"
-inlineToAsciidoc _ (Math DisplayMath str) =
-  return $ "latexmath:[$$" <> text str <> "$$]"
-inlineToAsciidoc _ (RawInline _ _) = return empty
-inlineToAsciidoc _ (LineBreak) = return $ " +" <> cr
-inlineToAsciidoc _ Space = return space
-inlineToAsciidoc opts (Cite _ lst) = inlineListToAsciidoc opts lst
-inlineToAsciidoc opts (Link txt (src', _tit)) = do
+inlineToAsciiDoc _ (Math DisplayMath str) =
+  return $ "latexmath:[\\[" <> text str <> "\\]]"
+inlineToAsciiDoc _ (RawInline _ _) = return empty
+inlineToAsciiDoc _ (LineBreak) = return $ " +" <> cr
+inlineToAsciiDoc _ Space = return space
+inlineToAsciiDoc opts (Cite _ lst) = inlineListToAsciiDoc opts lst
+inlineToAsciiDoc opts (Link txt (src', _tit)) = do
 -- relative:  link:downloads/foo.zip[download foo.zip]
 -- abs:  http://google.cod[Google]
 -- or my@email.com[email john]
-  linktext <- inlineListToAsciidoc opts txt
+  linktext <- inlineListToAsciiDoc opts txt
   let src = unescapeURI src'
   let isRelative = ':' `notElem` src
   let prefix = if isRelative
@@ -349,21 +349,21 @@ inlineToAsciidoc opts (Link txt (src', _tit)) = do
   return $ if useAuto
               then text srcSuffix
               else prefix <> text src <> "[" <> linktext <> "]"
-inlineToAsciidoc opts (Image alternate (src', tit)) = do
+inlineToAsciiDoc opts (Image alternate (src', tit)) = do
 -- image:images/logo.png[Company logo, title="blah"]
   let txt = if (null alternate) || (alternate == [Str ""])
                then [Str "image"]
                else alternate
-  linktext <- inlineListToAsciidoc opts txt
+  linktext <- inlineListToAsciiDoc opts txt
   let linktitle = if null tit
                      then empty
                      else text $ ",title=\"" ++ tit ++ "\""
   let src = unescapeURI src'
   return $ "image:" <> text src <> "[" <> linktext <> linktitle <> "]"
-inlineToAsciidoc opts (Note [Para inlines]) =
-  inlineToAsciidoc opts (Note [Plain inlines])
-inlineToAsciidoc opts (Note [Plain inlines]) = do
-  contents  <- inlineListToAsciidoc opts inlines
+inlineToAsciiDoc opts (Note [Para inlines]) =
+  inlineToAsciiDoc opts (Note [Plain inlines])
+inlineToAsciiDoc opts (Note [Plain inlines]) = do
+  contents  <- inlineListToAsciiDoc opts inlines
   return $ text "footnote:[" <> contents <> "]"
 -- asciidoc can't handle blank lines in notes
-inlineToAsciidoc _ (Note _) = return "[multiblock footnote omitted]"
+inlineToAsciiDoc _ (Note _) = return "[multiblock footnote omitted]"
