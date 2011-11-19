@@ -244,13 +244,20 @@ orderedListItemToAsciidoc :: WriterOptions -- ^ options
                           -> String        -- ^ list item marker
                           -> [Block]       -- ^ list item (list of blocks)
                           -> State WriterState Doc
-orderedListItemToAsciidoc opts marker items = do
-  contents <- blockListToAsciidoc opts items
-  let sps = case length marker - writerTabStop opts of
-                   n | n > 0 -> text $ replicate n ' '
-                   _         -> text " "
-  let start = text marker <> sps
-  return $ hang (writerTabStop opts) start $ contents <> cr
+orderedListItemToAsciidoc opts marker blocks = do
+  let addBlock :: Doc -> Block -> State WriterState Doc
+      addBlock d b | isEmpty d    = chomp `fmap` blockToAsciidoc opts b
+      addBlock d b@(BulletList _) = do x <- blockToAsciidoc opts b
+                                       return $ d <> cr <> chomp x
+      addBlock d b@(OrderedList _ _) = do x <- blockToAsciidoc opts b
+                                          return $ d <> cr <> chomp x
+      addBlock d b = do x <- blockToAsciidoc opts b
+                        return $ d <> cr <> text "+" <> cr <> chomp x
+  lev <- orderedListLevel `fmap` get
+  modify $ \s -> s{ orderedListLevel = lev + 1 }
+  contents <- foldM addBlock empty blocks
+  modify $ \s -> s{ orderedListLevel = lev }
+  return $ text marker <> space <> contents <> cr
 
 -- | Convert definition list item (label, list of blocks) to markdown.
 definitionListItemToAsciidoc :: WriterOptions
