@@ -42,7 +42,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing hiding (blankline)
 import Text.ParserCombinators.Parsec ( runParser, GenParser )
-import Data.List ( isPrefixOf, intercalate )
+import Data.List ( isPrefixOf, intersperse, intercalate )
 import Text.Pandoc.Pretty
 import Control.Monad.State
 
@@ -147,9 +147,15 @@ blockToAsciidoc _ (CodeBlock (_,classes,_) str) = return $
                       else text $ intercalate "," $ "code" : classes
 blockToAsciidoc opts (BlockQuote blocks) = do
   contents <- blockListToAsciidoc opts blocks
-  let cols = offset contents
+  let isBlock (BlockQuote _) = True
+      isBlock _              = False
+  -- if there are nested block quotes, put in an open block
+  let contents' = if any isBlock blocks
+                     then "--" $$ contents $$ "--"
+                     else contents
+  let cols = offset contents'
   let bar = text $ replicate cols '_'
-  return $ bar $$ contents $$ bar <> blankline
+  return $ bar $$ chomp contents' $$ bar <> blankline
 blockToAsciidoc opts (Table caption aligns widths headers rows) =  do
   caption' <- inlineListToAsciidoc opts caption
   let caption'' = if null caption
@@ -269,11 +275,13 @@ definitionListItemToAsciidoc opts (label, defs) = do
   if marker == "::"
      then modify (\st -> st{ defListMarker = ";;"})
      else modify (\st -> st{ defListMarker = "::"})
+  let divider = cr <> text "+" <> cr
   let defsToAsciidoc :: [Block] -> State WriterState Doc
-      defsToAsciidoc ds = vcat `fmap` mapM (blockToAsciidoc opts) ds
+      defsToAsciidoc ds = (vcat . intersperse divider . map chomp)
+           `fmap` mapM (blockToAsciidoc opts) ds
   defs' <- mapM defsToAsciidoc defs
   modify (\st -> st{ defListMarker = marker })
-  let contents = nest 2 $ vsep defs'
+  let contents = nest 2 $ vcat $ intersperse divider $ map chomp defs'
   return $ labelText <> text marker <> cr <> contents <> cr
 
 -- | Convert list of Pandoc block elements to markdown.
