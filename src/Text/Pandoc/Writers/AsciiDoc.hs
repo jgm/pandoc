@@ -213,8 +213,12 @@ blockToAsciiDoc opts (Table caption aligns widths headers rows) =  do
 blockToAsciiDoc opts (BulletList items) = do
   contents <- mapM (bulletListItemToAsciiDoc opts) items
   return $ cat contents <> blankline
-blockToAsciiDoc opts (OrderedList (start, sty, _delim) items) = do
-  let markers  = orderedListMarkers (start, sty, Period)
+blockToAsciiDoc opts (OrderedList (_start, sty, _delim) items) = do
+  let sty' = case sty of
+                  UpperRoman -> UpperAlpha
+                  LowerRoman -> LowerAlpha
+                  x          -> x
+  let markers  = orderedListMarkers (1, sty', Period)  -- start num not used
   let markers' = map (\m -> if length m < 3
                                then m ++ replicate (3 - length m) ' '
                                else m) markers
