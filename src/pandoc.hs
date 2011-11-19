@@ -647,6 +647,7 @@ defaultWriterName x =
     ".odt"      -> "odt"
     ".epub"     -> "epub"
     ".org"      -> "org"
+    ".asciidoc" -> "asciidoc"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 

@@ -19,8 +19,8 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  reStructuredText, HTML, LaTeX and Textile, and it can write
                  markdown, reStructuredText, HTML, LaTeX, ConTeXt, Docbook,
                  OpenDocument, ODT, RTF, MediaWiki, Textile, groff man pages,
-                 plain text, Emacs Org-Mode, EPUB, and S5 and Slidy HTML
-                 slide shows.
+                 plain text, Emacs Org-Mode, Asciidoc, EPUB,
+                 and S5 and Slidy HTML slide shows.
                  .
                  Pandoc extends standard markdown syntax with footnotes,
                  embedded LaTeX, definition lists, tables, and other
@@ -44,7 +44,7 @@ Data-Files:
                  templates/default.rst, templates/default.plain,
                  templates/default.mediawiki, templates/default.rtf,
                  templates/default.s5, templates/default.slidy,
-                 templates/default.dzslides,
+                 templates/default.dzslides, templates/default.asciidoc,
                  templates/default.textile, templates/default.org
                  -- data for ODT writer
                  reference.odt,
@@ -122,6 +122,7 @@ Extra-Source-Files:
                  tests/tables.native,
                  tests/tables.opendocument,
                  tests/tables.org,
+                 tests/tables.asciidoc,
                  tests/tables.texinfo,
                  tests/tables.rst,
                  tests/tables.rtf,
@@ -141,6 +142,7 @@ Extra-Source-Files:
                  tests/writer.native,
                  tests/writer.opendocument,
                  tests/writer.org,
+                 tests/writer.asciidoc,
                  tests/writer.rst,
                  tests/writer.rtf,
                  tests/writer.texinfo,
@@ -253,6 +255,7 @@ Library
                    Text.Pandoc.Writers.Markdown,
                    Text.Pandoc.Writers.RST,
                    Text.Pandoc.Writers.Org,
+                   Text.Pandoc.Writers.Asciidoc,
                    Text.Pandoc.Writers.Textile,
                    Text.Pandoc.Writers.MediaWiki,
                    Text.Pandoc.Writers.RTF,
