@@ -262,8 +262,9 @@ Library
                    Text.Pandoc.Writers.ODT,
                    Text.Pandoc.Writers.EPUB,
                    Text.Pandoc.S5,
-                   Text.Pandoc.Templates
-                   Text.Pandoc.Biblio
+                   Text.Pandoc.Templates,
+                   Text.Pandoc.Biblio,
+                   Text.Pandoc.Offline
   Other-Modules:   Text.Pandoc.XML,
                    Text.Pandoc.UTF8,
                    Text.Pandoc.MIME,
