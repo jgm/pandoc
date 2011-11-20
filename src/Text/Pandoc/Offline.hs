@@ -57,7 +57,7 @@ openURL u = getResponseBody =<< simpleHTTP (getReq u)
                      Nothing  -> error $ "Could not parse URI: " ++ u
                      Just u'  -> mkRequest GET u'
 
-mimeTypeFor :: String -> ByteString
+mimeTypeFor :: String -> String
 mimeTypeFor s = case lookup s mimetypes of
                      Nothing -> error $ "Could not find mime type for " ++ s
                      Just x  -> x
@@ -191,46 +191,43 @@ mimeTypeFor s = case lookup s mimetypes of
 
 isOk c = isAscii c && isAlphaNum c
 
-convertTag :: Tag ByteString -> IO (Tag ByteString)
+convertTag :: Tag String -> IO (Tag String)
 convertTag t@(TagOpen "img" as) =
        case fromAttrib "src" t of
-         src | not (B.null src) -> do
+         []   -> return t
+         src  -> do
            (raw, mime) <- getRaw t src
-           let enc = "data:" `B.append` mime `B.append` ";base64," `B.append` encode raw
+           let enc = "data:" ++ mime ++ ";base64," ++ toString (encode raw)
            return $ TagOpen "img" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
-         _   -> return t
 convertTag t@(TagOpen "script" as) =
   case fromAttrib "src" t of
-       src | not (B.null src) -> do
+       []     -> return t
+       src    -> do
            (raw, mime) <- getRaw t src
-           let enc = "data:" `B.append` mime `B.append` "," `B.append`
-                       (fromString $ escapeURIString isOk $ toString raw)
+           let enc = "data:" ++ mime ++ "," ++ escapeURIString isOk (toString raw)
            return $ TagOpen "script" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"]) 
-       _    -> return t
 convertTag t@(TagOpen "link" as) =
   case fromAttrib "href" t of
-       src | not (B.null src) -> do
+       []  -> return t
+       src -> do
            (raw, mime) <- getRaw t src
-           let enc = "data:" `B.append` mime `B.append` "," `B.append`
-                       (fromString $ escapeURIString isOk $ toString raw)
+           let enc = "data:" ++ mime ++ "," ++ escapeURIString isOk (toString raw)
            return $ TagOpen "link" (("href",enc) : [(x,y) | (x,y) <- as, x /= "href"]) 
-       _    -> return t
 convertTag t = return t
 
-getRaw :: Tag ByteString -> ByteString -> IO (ByteString, ByteString)
+getRaw :: Tag String -> String -> IO (ByteString, String)
 getRaw t src = do
-  let src' = toString src
-  let ext = map toLower $ takeExtension src'
+  let ext = map toLower $ takeExtension src
   let (ext',decompress) = if ext == ".gz"
-                             then (takeExtension $ dropExtension src', B.concat . L.toChunks . Gzip.decompress . L.fromChunks . (:[]))
+                             then (takeExtension $ dropExtension src, B.concat . L.toChunks . Gzip.decompress . L.fromChunks . (:[]))
                              else (ext, id)
   let mime = case fromAttrib "type" t of
-                  x | not (B.null x) -> x
-                  _ -> mimeTypeFor ext'
-  raw <- getItem src'
+                  []  -> mimeTypeFor ext'
+                  x   -> x
+  raw <- getItem src
   return (decompress raw, mime)
 
-offline :: ByteString -> IO ByteString
+offline :: String -> IO String
 offline inp = do
   let tags = parseTags inp
   out <- mapM convertTag tags
