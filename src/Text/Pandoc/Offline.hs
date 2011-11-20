@@ -42,12 +42,24 @@ import System.FilePath (takeExtension, dropExtension, takeDirectory, (</>))
 import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
 import qualified Data.ByteString.Lazy as L
+import Text.Pandoc.Shared (findDataFile)
+import System.Directory (doesFileExist)
 
 getItem :: String -> IO ByteString
 getItem f =
   if isAbsoluteURI f
      then openURL f
-     else B.readFile f
+     else do
+       let userDataDir = "." -- TODO writeUserDataDir
+       exists <- doesFileExist f
+       if exists
+          then B.readFile f
+          else do
+            res <- findDataFile (Just userDataDir) f
+            exists' <- doesFileExist res
+            if exists'
+               then B.readFile res
+               else B.readFile f -- will throw error
 
 openURL :: String -> IO ByteString
 openURL u = getResponseBody =<< simpleHTTP (getReq u)
