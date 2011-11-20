@@ -172,7 +172,7 @@ inTemplate opts tit auths date toc body' newvars =
                     , ("date", date')
                     , ("idprefix", writerIdentifierPrefix opts)
                     , ("slidy-url", "http://www.w3.org/Talks/Tools/Slidy2")
-                    , ("s5-url", "ui/default") ] ++
+                    , ("s5-url", "s5/default") ] ++
                     [ ("html5","true") | writerHtml5 opts ] ++
                     (case toc of
                          Just t  -> [ ("toc", showHtmlFragment t)]
