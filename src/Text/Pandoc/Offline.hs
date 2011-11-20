@@ -33,14 +33,12 @@ the HTML using data URIs.
 module Text.Pandoc.Offline ( offline ) where
 import Text.HTML.TagSoup
 import Network.URI (isAbsoluteURI, parseURI, escapeURIString)
-import Network.Browser
 import Network.HTTP
 import Data.ByteString.Base64
-import System.IO
 import qualified Data.ByteString.Char8 as B
 import Data.ByteString (ByteString)
-import Data.ByteString.UTF8 (toString, fromString)
-import System.FilePath (takeExtension, dropExtension)
+import Data.ByteString.UTF8 (toString)
+import System.FilePath (takeExtension, dropExtension, takeDirectory, (</>))
 import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
 import qualified Data.ByteString.Lazy as L
@@ -53,8 +51,8 @@ getItem f =
 
 openURL :: String -> IO ByteString
 openURL u = getResponseBody =<< simpleHTTP (getReq u)
-  where getReq u = case parseURI u of
-                     Nothing  -> error $ "Could not parse URI: " ++ u
+  where getReq v = case parseURI v of
+                     Nothing  -> error $ "Could not parse URI: " ++ v
                      Just u'  -> mkRequest GET u'
 
 mimeTypeFor :: String -> String
@@ -189,6 +187,7 @@ mimeTypeFor s = case lookup s mimetypes of
                 (".xul", "text/xul")
                 ]
 
+isOk :: Char -> Bool
 isOk c = isAscii c && isAlphaNum c
 
 convertTag :: Tag String -> IO (Tag String)
@@ -215,22 +214,46 @@ convertTag t@(TagOpen "link" as) =
            return $ TagOpen "link" (("href",enc) : [(x,y) | (x,y) <- as, x /= "href"]) 
 convertTag t = return t
 
+cssImports :: FilePath -> ByteString -> IO ByteString
+cssImports d orig =
+  case B.breakSubstring "@import" orig of
+       (x,y) | B.null y  -> return orig
+             | otherwise -> do
+                  rest <- handleImport d (B.drop 7 y) >>= cssImports d
+                  return $ x `B.append` rest
+
+-- @import url("blah");
+-- @import url(blah);
+-- @import "blah";
+handleImport :: FilePath -> ByteString -> IO ByteString
+handleImport d x = fmap (`B.append` rest) (getItem $ d </> url)
+  where lparenOrQuote c = c == '(' || c == '"'
+        rparenOrQuote c = c == ')' || c == '"'
+        url = toString
+              $ B.takeWhile (not . rparenOrQuote)
+              $ B.dropWhile lparenOrQuote
+              $ B.dropWhile (not . lparenOrQuote) x
+        rest = B.drop 1 $ B.dropWhile (/= ';') x
+
 getRaw :: Tag String -> String -> IO (ByteString, String)
 getRaw t src = do
   let ext = map toLower $ takeExtension src
-  let (ext',decompress) = if ext == ".gz"
-                             then (takeExtension $ dropExtension src, B.concat . L.toChunks . Gzip.decompress . L.fromChunks . (:[]))
-                             else (ext, id)
+  let (ext',decomp) = if ext == ".gz"
+                         then (takeExtension $ dropExtension src, B.concat . L.toChunks . Gzip.decompress . L.fromChunks . (:[]))
+                         else (ext, id)
   let mime = case fromAttrib "type" t of
                   []  -> mimeTypeFor ext'
                   x   -> x
   raw <- getItem src
-  return (decompress raw, mime)
+  result <- if mime == "text/css"
+               then cssImports (takeDirectory src) $ decomp raw
+               else return $ decomp raw
+  return (result, mime)
 
 offline :: String -> IO String
 offline inp = do
   let tags = parseTags inp
-  out <- mapM convertTag tags
+  out' <- mapM convertTag tags
   return $ renderTagsOptions renderOptions{ optMinimize = (\t -> t == "br"
-                 || t == "img" || t == "meta" || t == "link" ) } out
+                 || t == "img" || t == "meta" || t == "link" ) } out'
 
