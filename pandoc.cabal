@@ -55,12 +55,15 @@ Data-Files:
                  data/MathMLinHTML.js,
                  -- data for S5 writer
                  s5/default/slides.min.js,
+                 s5/default/slides.js,
                  s5/default/s5-core.css,
                  s5/default/framing.css,
                  s5/default/pretty.css,
                  s5/default/opera.css,
                  s5/default/outline.css,
                  s5/default/print.css,
+                 s5/default/slides.css,
+                 s5/default/iepngfix.htc,
                  -- data for slidy writer
                  slidy/slidy.css,
                  slidy/slidy.min.js,
