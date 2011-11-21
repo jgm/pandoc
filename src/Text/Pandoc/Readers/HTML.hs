@@ -350,7 +350,7 @@ pImage = do
   let url = fromAttrib "src" tag
   let title = fromAttrib "title" tag
   let alt = fromAttrib "alt" tag
-  return [Image (toList $ text alt) (escapeURI url, title)]
+  return [Image (toList $ text alt) (escapeURI url, title) "100"]
 
 pCode :: TagParser [Inline]
 pCode = try $ do

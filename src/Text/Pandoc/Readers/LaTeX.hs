@@ -906,7 +906,7 @@ image = try $ do
   let (src,tit) = case args' of
                        []    -> ("", "")
                        (x:_) -> (stripFirstAndLast x, "")
-  return $ Image [Str "image"] (escapeURI src, tit)
+  return $ Image [Str "image"] (escapeURI src, tit) "100"
 
 footnote :: GenParser Char ParserState Inline
 footnote = try $ do

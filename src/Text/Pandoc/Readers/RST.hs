@@ -256,8 +256,8 @@ imageBlock = try $ do
   optional blanklines
   case lookup "alt" fields of
         Just alt -> return $ Plain [Image [Str $ removeTrailingSpace alt]
-                             (src, "")]
-        Nothing  -> return $ Plain [Image [Str "image"] (src, "")]
+                             (src, "") "100"]
+        Nothing  -> return $ Plain [Image [Str "image"] (src, "") "100"]
 --
 -- header blocks
 --
@@ -868,7 +868,7 @@ image = try $ do
   (src,tit) <- case lookupKeySrc keyTable (toKey ref) of
                      Nothing     -> fail "no corresponding key"
                      Just target -> return target
-  return $ Image (normalizeSpaces ref) (src, tit)
+  return $ Image (normalizeSpaces ref) (src, tit) "100"
 
 note :: GenParser Char ParserState Inline
 note = try $ do
