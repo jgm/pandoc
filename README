@@ -264,15 +264,15 @@ Options
     The default is for lists to be displayed all at once.
 
 `--self-contained`
-:   Produce a standalone HTML file, using `data:` URIs to incorporate
-    the contents of external scripts, images, and stylesheets that it links
-    to. The resulting file should be "self-contained," in the sense that it
-    needs no external files and no net access to be displayed properly by a
-    browser. This option works only with HTML output formats, including
-    `html`, `html+lhs`, `s5`, `slidy`, and `dzslides`.  Scripts, images,
-    and stylesheets at absolute URLs will be downloaded; those at relative
-    URLs will be sought first relative to the working directory, then
-    relative to the user data directory (see `--data-dir`), and finally
+:   Produce a standalone HTML file with no external dependencies, using
+    `data:` URIs to incorporate the contents of linked scripts, images,
+    and stylesheets. The resulting file should be "self-contained," in the
+    sense that it needs no external files and no net access to be displayed
+    properly by a browser. This option works only with HTML output formats,
+    including `html`, `html+lhs`, `s5`, `slidy`, and `dzslides`. Scripts,
+    images, and stylesheets at absolute URLs will be downloaded; those at
+    relative URLs will be sought first relative to the working directory,
+    then relative to the user data directory (see `--data-dir`), and finally
     relative to pandoc's default data directory.
 
 `--offline`
