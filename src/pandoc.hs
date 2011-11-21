@@ -30,9 +30,9 @@ writers.
 -}
 module Main where
 import Text.Pandoc
-import Text.Pandoc.S5 (s5HeaderIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
                             headerShift, findDataFile, normalize )
+import Text.Pandoc.SelfContained ( makeSelfContained )
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
 #endif
@@ -101,7 +101,7 @@ data Opt = Opt
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
     , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/S5
-    , optOffline           :: Bool    -- ^ Make slideshow accessible offline
+    , optSelfContained     :: Bool    -- ^ Make HTML accessible offline
     , optXeTeX             :: Bool    -- ^ Format latex for xetex
     , optSmart             :: Bool    -- ^ Use smart typography
     , optHtml5             :: Bool    -- ^ Produce HTML5 in HTML
@@ -146,7 +146,7 @@ defaultOpts = Opt
     , optNumberSections    = False
     , optSectionDivs       = False
     , optIncremental       = False
-    , optOffline           = False
+    , optSelfContained     = False
     , optXeTeX             = False
     , optSmart             = False
     , optHtml5             = False
@@ -311,7 +311,14 @@ options =
 
     , Option "" ["offline"]
                  (NoArg
-                  (\opt -> return opt { optOffline = True,
+                  (\opt -> return opt { optSelfContained = True,
+                                        optStandalone = True }))
+                 "" -- "Make slide shows include all the needed js and css"
+                 -- deprecated synonym for --self-contained
+
+    , Option "" ["self-contained"]
+                 (NoArg
+                  (\opt -> return opt { optSelfContained = True,
                                         optStandalone = True }))
                  "" -- "Make slide shows include all the needed js and css"
 
@@ -691,7 +698,7 @@ main = do
               , optNumberSections    = numberSections
               , optSectionDivs       = sectionDivs
               , optIncremental       = incremental
-              , optOffline           = offline
+              , optSelfContained     = selfContained
               , optSmart             = smart
               , optHtml5             = html5
               , optChapters          = chapters
@@ -769,27 +776,14 @@ main = do
 
   let standalone' = standalone || isNonTextOutput writerName'
 
-  variables' <- case (writerName', standalone', offline) of
-                      ("s5", True, True) -> do
-                        inc <- s5HeaderIncludes datadir
-                        return $ ("s5includes", inc) : variables
-                      ("slidy", True, True) -> do
-                        slidyJs <- readDataFile datadir $
-                                      "slidy" </> "slidy.min.js"
-                        slidyCss <- readDataFile datadir $
-                                      "slidy" </> "slidy.css"
-                        return $ ("slidy-js", slidyJs) :
-                            ("slidy-css", slidyCss) : variables
-                      _ -> return variables
-
-  variables'' <- case mathMethod of
+  variables' <- case mathMethod of
                       LaTeXMathML Nothing -> do
                          s <- readDataFile datadir $ "data" </> "LaTeXMathML.js"
-                         return $ ("mathml-script", s) : variables'
+                         return $ ("mathml-script", s) : variables
                       MathML Nothing -> do
                          s <- readDataFile datadir $ "data"</>"MathMLinHTML.js"
-                         return $ ("mathml-script", s) : variables'
-                      _ -> return variables'
+                         return $ ("mathml-script", s) : variables
+                      _ -> return variables
 
   refs <- mapM (\f -> catch (readBiblioFile f) $ \e -> do
          UTF8.hPutStrLn stderr $ "Error reading bibliography `" ++ f ++ "'"
@@ -823,7 +817,7 @@ main = do
   let writerOptions = defaultWriterOptions
                                     { writerStandalone       = standalone',
                                       writerTemplate         = templ,
-                                      writerVariables        = variables'',
+                                      writerVariables        = variables',
                                       writerEPUBMetadata     = epubMetadata,
                                       writerTabStop          = tabStop,
                                       writerTableOfContents  = toc &&
@@ -903,9 +897,13 @@ main = do
         Nothing | writerName' == "odt"  ->
            writeODT referenceODT writerOptions doc2
            >>= B.writeFile (encodeString outputFile)
-        Just r  -> writerFn outputFile result
+        Just r  -> writerFn outputFile =<< postProcess result
             where writerFn "-" = UTF8.putStr
                   writerFn f   = UTF8.writeFile f
-                  result       = r writerOptions doc2 ++
-                                 ['\n' | not standalone']
+                  result       = r writerOptions doc2 ++ ['\n' | not standalone']
+                  htmlFormats = ["html","html+lhs","s5","slidy","dzslides"]
+                  postProcess = if selfContained && writerName `elem` htmlFormats
+                                  then makeSelfContained datadir
+                                  else return
+
         Nothing -> error $ "Unknown writer: " ++ writerName'
