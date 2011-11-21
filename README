@@ -263,10 +263,20 @@ Options
 :   Make list items in Slidy, DZSlides or S5 display incrementally (one by one).
     The default is for lists to be displayed all at once.
 
+`--self-contained`
+:   Produce a standalone HTML file, using `data:` URIs to incorporate
+    the contents of external scripts, images, and stylesheets that it links
+    to. The resulting file should be "self-contained," in the sense that it
+    needs no external files and no net access to be displayed properly by a
+    browser. This option works only with HTML output formats, including
+    `html`, `html+lhs`, `s5`, `slidy`, and `dzslides`.  Scripts, images,
+    and stylesheets at absolute URLs will be downloaded; those at relative
+    URLs will be sought first relative to the working directory, then
+    relative to the user data directory (see `--data-dir`), and finally
+    relative to pandoc's default data directory.
+
 `--offline`
-:   Include all the CSS and javascript needed for a Slidy or S5 slide
-    show in the output, so that the slide show will work even when no
-    internet connection is available.
+:   Deprecated synonym for `--self-contained`.
 
 `--chapters`
 :   Treat top-level headers as chapters in LaTeX, ConTeXt, and DocBook
@@ -1936,13 +1946,10 @@ block. Each level-one header and horizontal rule begins a new slide.
 
 For Slidy and S5, the file produced by pandoc with the `-s/--standalone`
 option embeds a link to javascripts and CSS files, which are assumed to
-be available at the relative path `ui/default` (for S5) or at the Slidy
+be available at the relative path `s5/default` (for S5) or at the Slidy
 website at `w3.org` (for Slidy). (These paths can be changed by setting
-the `slidy-url` or `s5-url` variables; see `--variable`, above.) If the
-`--offline` option is specified, the scripts and CSS will be included directly
-in the generated file, so that it may be used offline.  For DZSlides,
-the (relatively short) javascript and css are included in the file
-by default.
+the `slidy-url` or `s5-url` variables; see `--variable`, above.) For DZSlides,
+the (relatively short) javascript and css are included in the file by default.
 
 You can change the style of the slides by putting customized CSS files
 in `$DATADIR/s5/default` (for S5) or `$DATADIR/slidy` (for Slidy),
@@ -1950,6 +1957,10 @@ where `$DATADIR` is the user data directory (see `--data-dir`, above).
 The originals may be found in pandoc's system data directory (generally
 `$CABALDIR/pandoc-VERSION/s5/default`). Pandoc will look there for any
 files it does not find in the user data directory.
+
+The `--self-contained` option can be used to produce a single file that
+contains all of the data necessary to display the slide show, including
+linked scripts, stylesheets, and images.
 
 Incremental lists
 -----------------
