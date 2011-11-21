@@ -265,7 +265,6 @@ Library
                    Text.Pandoc.Writers.RTF,
                    Text.Pandoc.Writers.ODT,
                    Text.Pandoc.Writers.EPUB,
-                   Text.Pandoc.S5,
                    Text.Pandoc.Templates,
                    Text.Pandoc.Biblio,
                    Text.Pandoc.SelfContained
