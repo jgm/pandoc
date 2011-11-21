@@ -45,17 +45,16 @@ import qualified Data.ByteString.Lazy as L
 import Text.Pandoc.Shared (findDataFile)
 import System.Directory (doesFileExist)
 
-getItem :: String -> IO ByteString
-getItem f =
+getItem :: Maybe FilePath -> String -> IO ByteString
+getItem userdata f =
   if isAbsoluteURI f
      then openURL f
      else do
-       let userDataDir = "." -- TODO writeUserDataDir
        exists <- doesFileExist f
        if exists
           then B.readFile f
           else do
-            res <- findDataFile (Just userDataDir) f
+            res <- findDataFile userdata f
             exists' <- doesFileExist res
             if exists'
                then B.readFile res
@@ -202,53 +201,55 @@ mimeTypeFor s = case lookup s mimetypes of
 isOk :: Char -> Bool
 isOk c = isAscii c && isAlphaNum c
 
-convertTag :: Tag String -> IO (Tag String)
-convertTag t@(TagOpen "img" as) =
+convertTag :: Maybe FilePath -> Tag String -> IO (Tag String)
+convertTag userdata t@(TagOpen "img" as) =
        case fromAttrib "src" t of
          []   -> return t
          src  -> do
-           (raw, mime) <- getRaw t src
+           (raw, mime) <- getRaw userdata t src
            let enc = "data:" ++ mime ++ ";base64," ++ toString (encode raw)
            return $ TagOpen "img" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
-convertTag t@(TagOpen "script" as) =
+convertTag userdata t@(TagOpen "script" as) =
   case fromAttrib "src" t of
        []     -> return t
        src    -> do
-           (raw, mime) <- getRaw t src
+           (raw, mime) <- getRaw userdata t src
            let enc = "data:" ++ mime ++ "," ++ escapeURIString isOk (toString raw)
            return $ TagOpen "script" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"]) 
-convertTag t@(TagOpen "link" as) =
+convertTag userdata t@(TagOpen "link" as) =
   case fromAttrib "href" t of
        []  -> return t
        src -> do
-           (raw, mime) <- getRaw t src
+           (raw, mime) <- getRaw userdata t src
            let enc = "data:" ++ mime ++ "," ++ escapeURIString isOk (toString raw)
            return $ TagOpen "link" (("href",enc) : [(x,y) | (x,y) <- as, x /= "href"]) 
-convertTag t = return t
+convertTag _ t = return t
 
-cssImports :: FilePath -> ByteString -> IO ByteString
-cssImports d orig =
+cssImports :: Maybe FilePath -> FilePath -> ByteString -> IO ByteString
+cssImports userdata d orig =
   case B.breakSubstring "@import" orig of
        (x,y) | B.null y  -> return orig
              | otherwise -> do
-                  rest <- handleImport d (B.drop 7 y) >>= cssImports d
+                  rest <- handleImport userdata d (B.drop 7 y)
+                           >>= cssImports userdata d
                   return $ x `B.append` rest
 
 -- @import url("blah");
 -- @import url(blah);
 -- @import "blah";
-handleImport :: FilePath -> ByteString -> IO ByteString
-handleImport d x = fmap (`B.append` rest) (getItem $ d </> url)
-  where lparenOrQuote c = c == '(' || c == '"'
-        rparenOrQuote c = c == ')' || c == '"'
-        url = toString
-              $ B.takeWhile (not . rparenOrQuote)
-              $ B.dropWhile lparenOrQuote
-              $ B.dropWhile (not . lparenOrQuote) x
-        rest = B.drop 1 $ B.dropWhile (/= ';') x
+handleImport :: Maybe FilePath -> FilePath -> ByteString -> IO ByteString
+handleImport userdata d x =
+  fmap (`B.append` rest) (getItem userdata $ d </> url)
+   where lparenOrQuote c = c == '(' || c == '"'
+         rparenOrQuote c = c == ')' || c == '"'
+         url = toString
+               $ B.takeWhile (not . rparenOrQuote)
+               $ B.dropWhile lparenOrQuote
+               $ B.dropWhile (not . lparenOrQuote) x
+         rest = B.drop 1 $ B.dropWhile (/= ';') x
 
-getRaw :: Tag String -> String -> IO (ByteString, String)
-getRaw t src = do
+getRaw :: Maybe FilePath -> Tag String -> String -> IO (ByteString, String)
+getRaw userdata t src = do
   let ext = map toLower $ takeExtension src
   let (ext',decomp) = if ext == ".gz"
                          then (takeExtension $ dropExtension src, B.concat . L.toChunks . Gzip.decompress . L.fromChunks . (:[]))
@@ -256,16 +257,16 @@ getRaw t src = do
   let mime = case fromAttrib "type" t of
                   []  -> mimeTypeFor ext'
                   x   -> x
-  raw <- getItem src
+  raw <- getItem userdata src
   result <- if mime == "text/css"
-               then cssImports (takeDirectory src) $ decomp raw
+               then cssImports userdata (takeDirectory src) $ decomp raw
                else return $ decomp raw
   return (result, mime)
 
-offline :: String -> IO String
-offline inp = do
+offline :: Maybe FilePath -> String -> IO String
+offline userdata inp = do
   let tags = parseTags inp
-  out' <- mapM convertTag tags
+  out' <- mapM (convertTag userdata) tags
   return $ renderTagsOptions renderOptions{ optMinimize = (\t -> t == "br"
                  || t == "img" || t == "meta" || t == "link" ) } out'
 
