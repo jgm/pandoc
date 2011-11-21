@@ -100,13 +100,13 @@ writeODT mbRefOdt opts doc = do
   return $ fromArchive archive'
 
 transformPic :: FilePath -> IORef [Entry] -> Inline -> IO Inline
-transformPic sourceDir entriesRef (Image lab (src,tit)) = do
+transformPic sourceDir entriesRef (Image lab (src,tit) size) = do
   let src' = unEscapeString src
   entries <- readIORef entriesRef
   let newsrc = "Pictures/" ++ show (length entries) ++ takeExtension src'
   catch (readEntry [] (sourceDir </> src') >>= \entry ->
            modifyIORef entriesRef (entry{ eRelativePath = newsrc } :) >>
-           return (Image lab (newsrc, tit)))
+           return (Image lab (newsrc, tit) size))
         (\_ -> return (Emph lab))
 transformPic _ _ x = return x
 

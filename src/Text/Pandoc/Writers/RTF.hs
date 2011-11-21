@@ -42,7 +42,7 @@ import Network.URI ( isAbsoluteURI, unEscapeString )
 -- | Convert Image inlines into a raw RTF embedded image, read from a file.
 -- If file not found or filetype not jpeg or png, leave the inline unchanged.
 rtfEmbedImage :: Inline -> IO Inline
-rtfEmbedImage x@(Image _ (src,_)) = do
+rtfEmbedImage x@(Image _ (src,_) _) = do
   let ext = map toLower (takeExtension src)
   if ext `elem` [".jpg",".jpeg",".png"] && not (isAbsoluteURI src)
      then do
@@ -302,7 +302,7 @@ inlineToRTF Space = " "
 inlineToRTF (Link text (src, _)) = 
   "{\\field{\\*\\fldinst{HYPERLINK \"" ++ (codeStringToRTF src) ++ 
   "\"}}{\\fldrslt{\\ul\n" ++ (inlineListToRTF text) ++ "\n}}}\n"
-inlineToRTF (Image _ (source, _)) = 
+inlineToRTF (Image _ (source, _) _) = 
   "{\\cf1 [image: " ++ source ++ "]\\cf0}" 
 inlineToRTF (Note contents) =
   "{\\super\\chftn}{\\*\\footnote\\chftn\\~\\plain\\pard " ++ 

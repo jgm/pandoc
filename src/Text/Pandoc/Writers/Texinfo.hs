@@ -111,9 +111,9 @@ blockToTexinfo Null = return empty
 blockToTexinfo (Plain lst) =
   inlineListToTexinfo lst
 
-blockToTexinfo (Para [Image txt (src,tit)]) = do
+blockToTexinfo (Para [Image txt (src,tit) size]) = do
   capt <- inlineListToTexinfo txt
-  img  <- inlineToTexinfo (Image txt (src,tit))
+  img  <- inlineToTexinfo (Image txt (src,tit) size)
   return $ text "@float" $$ img $$ (text "@caption{" <> capt <> char '}') $$
            text "@end float"
 
@@ -409,7 +409,7 @@ inlineToTexinfo (Link txt (src, _)) = do
                 return $ text ("@uref{" ++ src1 ++ ",") <> contents <>
                          char '}'
 
-inlineToTexinfo (Image alternate (source, _)) = do
+inlineToTexinfo (Image alternate (source, _) _) = do
   content <- inlineListToTexinfo alternate
   return $ text ("@image{" ++ base ++ ",,,") <> content <> text "," <>
            text (ext ++ "}")

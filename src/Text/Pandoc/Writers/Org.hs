@@ -108,9 +108,9 @@ blockToOrg :: Block         -- ^ Block element
            -> State WriterState Doc 
 blockToOrg Null = return empty
 blockToOrg (Plain inlines) = inlineListToOrg inlines
-blockToOrg (Para [Image txt (src,tit)]) = do
+blockToOrg (Para [Image txt (src,tit) size]) = do
   capt <- inlineListToOrg txt
-  img <- inlineToOrg (Image txt (src,tit))
+  img <- inlineToOrg (Image txt (src,tit) size)
   return $ "#+CAPTION: " <> capt <> blankline <> img
 blockToOrg (Para inlines) = do
   contents <- inlineListToOrg inlines
@@ -272,7 +272,7 @@ inlineToOrg (Link txt (src, _)) = do
         _ -> do contents <- inlineListToOrg txt
                 modify $ \s -> s{ stLinks = True }
                 return $ "[[" <> text src <> "][" <> contents <> "]]"
-inlineToOrg (Image _ (source', _)) = do
+inlineToOrg (Image _ (source', _) _) = do
   let source = unescapeURI source'
   modify $ \s -> s{ stImages = True }
   return $ "[[" <> text source <> "]]"

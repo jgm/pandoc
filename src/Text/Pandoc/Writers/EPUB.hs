@@ -236,9 +236,9 @@ transformInlines :: HTMLMathMethod
                  -> IORef [(FilePath, FilePath)] -- ^ (oldpath, newpath) images
                  -> [Inline]
                  -> IO [Inline]
-transformInlines _ _ _ (Image lab (src,_) : xs) | isNothing (imageTypeOf src) =
+transformInlines _ _ _ (Image lab (src,_) _ : xs) | isNothing (imageTypeOf src) =
   return $ Emph lab : xs
-transformInlines _ sourceDir picsRef (Image lab (src,tit) : xs) = do
+transformInlines _ sourceDir picsRef (Image lab (src,tit) size : xs) = do
   let src' = unEscapeString src
   pics <- readIORef picsRef
   let oldsrc = sourceDir </> src'
@@ -249,7 +249,7 @@ transformInlines _ sourceDir picsRef (Image lab (src,tit) : xs) = do
                         let new = "images/img" ++ show (length pics) ++ ext
                         modifyIORef picsRef ( (oldsrc, new): )
                         return new
-  return $ Image lab (newsrc, tit) : xs
+  return $ Image lab (newsrc, tit) size : xs
 transformInlines (MathML _) _ _ (x@(Math _ _) : xs) = do
   let writeHtmlInline opts z = removeTrailingSpace $
          writeHtmlString opts $ Pandoc (Meta [] [] []) [Plain [z]]

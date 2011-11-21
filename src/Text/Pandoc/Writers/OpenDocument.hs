@@ -382,7 +382,7 @@ inlineToOpenDocument o ils
     | RawInline "html" s <- ils = preformatted s  -- for backwards compat.
     | RawInline _ _ <- ils = return empty
     | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
-    | Image _ (s,_) <- ils = return $ mkImg  s
+    | Image _ (s,_) _ <- ils = return $ mkImg  s
     | Note        l <- ils = mkNote l
     | otherwise            = return empty
     where
