@@ -1199,7 +1199,8 @@ image :: GenParser Char ParserState Inline
 image = try $ do
   char '!'
   (Link lab src) <- link
-  return $ Image lab src
+  width <- option [] (try $ char '@' >> many digit)
+  return $ Image lab src (if (null width) then "100" else width)
 
 note :: GenParser Char ParserState Inline
 note = try $ do
