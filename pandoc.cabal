@@ -268,7 +268,7 @@ Library
                    Text.Pandoc.S5,
                    Text.Pandoc.Templates,
                    Text.Pandoc.Biblio,
-                   Text.Pandoc.Offline
+                   Text.Pandoc.SelfContained
   Other-Modules:   Text.Pandoc.XML,
                    Text.Pandoc.UTF8,
                    Text.Pandoc.MIME,

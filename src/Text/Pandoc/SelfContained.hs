@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Offline
+   Module      : Text.Pandoc.SelfContained
    Copyright   : Copyright (C) 2011 John MacFarlane
    License     : GNU GPL, version 2 or above
 
@@ -30,7 +30,7 @@ Functions for converting an HTML file into one that can be viewed
 offline, by incorporating linked images, CSS, and scripts into
 the HTML using data URIs.
 -}
-module Text.Pandoc.Offline ( offline ) where
+module Text.Pandoc.SelfContained ( makeSelfContained ) where
 import Text.HTML.TagSoup
 import Network.URI (isAbsoluteURI, parseURI, escapeURIString)
 import Network.HTTP
@@ -58,7 +58,7 @@ getItem userdata f =
             exists' <- doesFileExist res
             if exists'
                then B.readFile res
-               else B.readFile f -- will throw error
+               else error $ "Could not find `" ++ f ++ "'"
 
 openURL :: String -> IO ByteString
 openURL u = getResponseBody =<< simpleHTTP (getReq u)
@@ -263,8 +263,15 @@ getRaw userdata t src = do
                else return $ decomp raw
   return (result, mime)
 
-offline :: Maybe FilePath -> String -> IO String
-offline userdata inp = do
+-- | Convert HTML into self-contained HTML, incorporating images,
+-- scripts, and CSS using data: URIs.  Items specified using absolute
+-- URLs will be downloaded; those specified using relative URLs will
+-- be sought first relative to the working directory, then relative
+-- to the user data directory (if the first parameter is 'Just'
+-- a directory), and finally relative to pandoc's default data
+-- directory.
+makeSelfContained :: Maybe FilePath -> String -> IO String
+makeSelfContained userdata inp = do
   let tags = parseTags inp
   out' <- mapM (convertTag userdata) tags
   return $ renderTagsOptions renderOptions{ optMinimize = (\t -> t == "br"
