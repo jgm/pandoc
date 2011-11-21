@@ -77,7 +77,7 @@ plainify = bottomUp go
         go (Math _ s) = Str s
         go (RawInline _ _) = Str ""
         go (Link xs _) = SmallCaps xs
-        go (Image xs _) = SmallCaps $ [Str "["] ++ xs ++ [Str "]"]
+        go (Image xs _ _) = SmallCaps $ [Str "["] ++ xs ++ [Str "]@"]
         go (Cite _ cits) = SmallCaps cits
         go x = x
 
@@ -518,13 +518,14 @@ inlineToMarkdown opts (Link txt (src', tit)) = do
                            in  first <> second
                       else "[" <> linktext <> "](" <> 
                            text src <> linktitle <> ")"
-inlineToMarkdown opts (Image alternate (source, tit)) = do
+inlineToMarkdown opts (Image alternate (source, tit) size) = do
   let txt = if (null alternate) || (alternate == [Str ""]) || 
                (alternate == [Str source]) -- to prevent autolinks
                then [Str "image"]
                else alternate
   linkPart <- inlineToMarkdown opts (Link txt (source, tit))
-  return $ "!" <> linkPart
+  sizePart <- inlineToMarkdown opts (Str ("@" ++ size))
+  return $ "!" <> linkPart <> sizePart
 inlineToMarkdown _ (Note contents) = do 
   modify (\st -> st{ stNotes = contents : stNotes st })
   st <- get
