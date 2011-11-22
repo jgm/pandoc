@@ -743,7 +743,7 @@ main = do
                                              then "html"
                                              else "markdown"
                            in  defaultReaderName fallback sources
-                      else readerName 
+                      else readerName
 
   let writerName' = if null writerName
                       then defaultWriterName outputFile
@@ -753,8 +753,10 @@ main = do
      Just r  -> return r
      Nothing -> error ("Unknown reader: " ++ readerName')
 
+  let standalone' = standalone || isNonTextOutput writerName'
+
   templ <- case templatePath of
-                _ | not standalone -> return ""
+                _ | not standalone' -> return ""
                 Nothing -> do
                            deftemp <- getDefaultTemplate datadir writerName'
                            case deftemp of
@@ -773,8 +775,6 @@ main = do
                                                "templates" </> tp')
                                              (\_ -> throwIO e)
                                        else throwIO e)
-
-  let standalone' = standalone || isNonTextOutput writerName'
 
   variables' <- case mathMethod of
                       LaTeXMathML Nothing -> do
