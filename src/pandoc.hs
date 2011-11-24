@@ -849,7 +849,7 @@ main = do
                                       writerAscii            = ascii }
 
   when (isNonTextOutput writerName' && outputFile == "-") $
-    do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++
+    do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName' ++ " output to stdout.\n" ++
                                "Specify an output file using the -o option.")
        exitWith $ ExitFailure 5
 
@@ -902,7 +902,7 @@ main = do
                   writerFn f   = UTF8.writeFile f
                   result       = r writerOptions doc2 ++ ['\n' | not standalone']
                   htmlFormats = ["html","html+lhs","s5","slidy","dzslides"]
-                  postProcess = if selfContained && writerName `elem` htmlFormats
+                  postProcess = if selfContained && writerName' `elem` htmlFormats
                                   then makeSelfContained datadir
                                   else return
 
