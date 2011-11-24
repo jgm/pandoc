@@ -7,9 +7,11 @@ markdown test suite.
 
 * * * * *
 
-# Headers
+Headers
+=======
 
-## Level 2 with an [embedded link](/url)
+Level 2 with an [embedded link](/url)
+-------------------------------------
 
 ### Level 3 with *emphasis*
 
@@ -17,21 +19,25 @@ markdown test suite.
 
 ##### Level 5
 
-# Level 1
+Level 1
+=======
 
-## Level 2 with *emphasis*
+Level 2 with *emphasis*
+-----------------------
 
 ### Level 3
 
 with no blank line
 
-## Level 2
+Level 2
+-------
 
 with no blank line
 
 * * * * *
 
-# Paragraphs
+Paragraphs
+==========
 
 Here’s a regular paragraph.
 
@@ -46,7 +52,8 @@ here.
 
 * * * * *
 
-# Block Quotes
+Block Quotes
+============
 
 E-mail style:
 
@@ -75,7 +82,8 @@ And a following paragraph.
 
 * * * * *
 
-# Code Blocks
+Code Blocks
+===========
 
 Code:
 
@@ -95,9 +103,11 @@ And:
 
 * * * * *
 
-# Lists
+Lists
+=====
 
-## Unordered
+Unordered
+---------
 
 Asterisks tight:
 
@@ -141,7 +151,8 @@ Minuses loose:
 
 -   Minus 3
 
-## Ordered
+Ordered
+-------
 
 Tight:
 
@@ -181,7 +192,8 @@ Multiple paragraphs:
 
 3.  Item 3.
 
-## Nested
+Nested
+------
 
 -   Tab
     -   Tab
@@ -209,7 +221,8 @@ Same thing but with paragraphs:
 
 3.  Third
 
-## Tabs and spaces
+Tabs and spaces
+---------------
 
 -   this is a list item indented with tabs
 
@@ -219,7 +232,8 @@ Same thing but with paragraphs:
 
     -   this is an example list item indented with spaces
 
-## Fancy list markers
+Fancy list markers
+------------------
 
 (2) begins with 2
 (3) and now 3
@@ -252,7 +266,8 @@ B. Williams
 
 * * * * *
 
-# Definition Lists
+Definition Lists
+================
 
 Tight using spaces:
 
@@ -331,7 +346,8 @@ orange
     1.  sublist
     2.  sublist
 
-# HTML Blocks
+HTML Blocks
+===========
 
 Simple block on one line:
 
@@ -444,7 +460,8 @@ Hr’s:
 
 * * * * *
 
-# Inline Markup
+Inline Markup
+=============
 
 This is *emphasized*, and so *is this*.
 
@@ -473,7 +490,8 @@ spaces: a\^b c\^d, a\~b c\~d.
 
 * * * * *
 
-# Smart quotes, ellipses, dashes
+Smart quotes, ellipses, dashes
+==============================
 
 “Hello,” said the spider. “‘Shelob’ is my name.”
 
@@ -494,7 +512,8 @@ Ellipses…and…and….
 
 * * * * *
 
-# LaTeX
+LaTeX
+=====
 
 -   \cite[22-23]{smith.1899}
 -   $2+2=4$
@@ -524,7 +543,8 @@ Cat    & 1      \\ \hline
 
 * * * * *
 
-# Special Characters
+Special Characters
+==================
 
 Here is some unicode:
 
@@ -578,9 +598,11 @@ Minus: -
 
 * * * * *
 
-# Links
+Links
+=====
 
-## Explicit
+Explicit
+--------
 
 Just a [URL](/url/).
 
@@ -600,7 +622,8 @@ Just a [URL](/url/).
 
 [Empty]().
 
-## Reference
+Reference
+---------
 
 Foo [bar](/url/).
 
@@ -626,7 +649,8 @@ Foo [bar](/url/ "Title with "quotes" inside").
 
 Foo [biz](/url/ "Title with "quote" inside").
 
-## With ampersands
+With ampersands
+---------------
 
 Here’s a [link with an ampersand in the URL](http://example.com/?foo=1&bar=2).
 
@@ -637,7 +661,8 @@ Here’s an [inline link](/script?foo=1&bar=2).
 
 Here’s an [inline link in pointy braces](/script?foo=1&bar=2).
 
-## Autolinks
+Autolinks
+---------
 
 With an ampersand: <http://example.com/?foo=1&bar=2>
 
@@ -655,7 +680,8 @@ Auto-links should not occur here: `<http://example.com/>`
 
 * * * * *
 
-# Images
+Images
+======
 
 From “Voyage dans la Lune” by Georges Melies (1902):
 
@@ -665,7 +691,8 @@ Here is a movie ![movie](movie.jpg) icon.
 
 * * * * *
 
-# Footnotes
+Footnotes
+=========
 
 Here is a footnote reference,[^1] and another.[^2] This should *not* be a
 footnote reference, because it contains a space.[\^my note] Here is an inline

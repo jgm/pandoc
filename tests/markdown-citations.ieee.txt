@@ -1,4 +1,5 @@
-# Pandoc with citeproc-hs
+Pandoc with citeproc-hs
+=======================
 
 -   [@nonexistent]
 
@@ -28,7 +29,8 @@
 
 -   With some markup [1].
 
-# References
+References
+==========
 
 [1] J. Doe, *First Book*, Cambridge: Cambridge University Press, 2005.
 

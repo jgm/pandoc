@@ -1,4 +1,5 @@
-# Pandoc with citeproc-hs
+Pandoc with citeproc-hs
+=======================
 
 -   [@nonexistent]
 
@@ -28,7 +29,8 @@
 
 -   With some markup.[^12]
 
-# References
+References
+==========
 
 Doe, John, ‘Article’, *Journal of Generic Studies*, 6 (2006), 33-34.
 
