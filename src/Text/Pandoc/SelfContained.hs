@@ -209,6 +209,13 @@ convertTag userdata t@(TagOpen "img" as) =
            (raw, mime) <- getRaw userdata t src
            let enc = "data:" ++ mime ++ ";base64," ++ toString (encode raw)
            return $ TagOpen "img" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
+convertTag userdata t@(TagOpen "video" as) =
+       case fromAttrib "src" t of
+         []   -> return t
+         src  -> do
+           (raw, mime) <- getRaw userdata t src
+           let enc = "data:" ++ mime ++ ";base64," ++ toString (encode raw)
+           return $ TagOpen "video" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
 convertTag userdata t@(TagOpen "script" as) =
   case fromAttrib "src" t of
        []     -> return t

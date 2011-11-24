@@ -265,15 +265,15 @@ Options
 
 `--self-contained`
 :   Produce a standalone HTML file with no external dependencies, using
-    `data:` URIs to incorporate the contents of linked scripts, images,
-    and stylesheets. The resulting file should be "self-contained," in the
-    sense that it needs no external files and no net access to be displayed
-    properly by a browser. This option works only with HTML output formats,
-    including `html`, `html+lhs`, `s5`, `slidy`, and `dzslides`. Scripts,
-    images, and stylesheets at absolute URLs will be downloaded; those at
-    relative URLs will be sought first relative to the working directory,
-    then relative to the user data directory (see `--data-dir`), and finally
-    relative to pandoc's default data directory.
+    `data:` URIs to incorporate the contents of linked scripts, stylesheets,
+    images, and videos. The resulting file should be "self-contained,"
+    in the sense that it needs no external files and no net access to be
+    displayed properly by a browser. This option works only with HTML output
+    formats, including `html`, `html+lhs`, `s5`, `slidy`, and `dzslides`.
+    Scripts, images, and stylesheets at absolute URLs will be downloaded;
+    those at relative URLs will be sought first relative to the working
+    directory, then relative to the user data directory (see `--data-dir`),
+    and finally relative to pandoc's default data directory.
 
 `--offline`
 :   Deprecated synonym for `--self-contained`.
@@ -1960,7 +1960,7 @@ files it does not find in the user data directory.
 
 The `--self-contained` option can be used to produce a single file that
 contains all of the data necessary to display the slide show, including
-linked scripts, stylesheets, and images.
+linked scripts, stylesheets, images, and videos.
 
 Incremental lists
 -----------------
