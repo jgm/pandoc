@@ -86,6 +86,9 @@ $endif$
 $if(verbatim-in-note)$
 \VerbatimFootnotes % allows verbatim text in footnotes
 $endif$
+$if(lang)$
+\usepackage[$lang$]{babel}
+$endif$
 $for(header-includes)$
 $header-includes$
 $endfor$
