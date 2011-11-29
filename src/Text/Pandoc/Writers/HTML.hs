@@ -259,7 +259,9 @@ footnoteSection opts notes =
             (olist << (notes ++ [nl opts])) +++ nl opts)
    where container = if writerHtml5 opts
                         then tag "section" ! [theclass "footnotes"]
-                        else thediv ! [theclass "footnotes"]
+                        else if writerSlideVariant opts /= NoSlides
+                             then thediv ! [theclass "footnotes slide"]
+                             else thediv ! [theclass "footnotes"]
 
 -- | Parse a mailto link; return Just (name, domain) or Nothing.
 parseMailto :: String -> Maybe (String, String)
