@@ -160,16 +160,16 @@ inTemplate :: TemplateTarget a
            -> [(String,String)]
            -> a
 inTemplate opts tit auths date toc body' newvars =
-  let renderedTit = showHtmlFragment tit
-      topTitle'   = stripTags renderedTit
-      authors     = map (stripTags . showHtmlFragment) auths
-      date'       = stripTags $ showHtmlFragment date
+  let title'      = dropWhile (=='\n') $ showHtmlFragment tit
+      authors     = map showHtmlFragment auths
+      date'       = showHtmlFragment date
       variables   = writerVariables opts ++ newvars
       context     = variables ++
                     [ ("body", dropWhile (=='\n') $ showHtmlFragment body')
-                    , ("pagetitle", topTitle')
-                    , ("title", dropWhile (=='\n') $ showHtmlFragment tit)
+                    , ("pagetitle", stripTags title')
+                    , ("title", title')
                     , ("date", date')
+                    , ("date-meta", stripTags date')
                     , ("idprefix", writerIdentifierPrefix opts)
                     , ("slidy-url", "http://www.w3.org/Talks/Tools/Slidy2")
                     , ("s5-url", "s5/default") ] ++
@@ -177,7 +177,8 @@ inTemplate opts tit auths date toc body' newvars =
                     (case toc of
                          Just t  -> [ ("toc", showHtmlFragment t)]
                          Nothing -> [])  ++
-                    [ ("author", a) | a <- authors ]
+                    [ ("author", a) | a <- authors ] ++
+                    [ ("author-meta", stripTags a) | a <- authors ]
   in  renderTemplate context $ writerTemplate opts
 
 -- | Like Text.XHtml's identifier, but adds the writerIdentifierPrefix
