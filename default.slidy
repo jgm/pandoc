@@ -6,11 +6,11 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
-$for(author)$
-  <meta name="author" content="$author$" />
+$for(author-meta)$
+  <meta name="author" content="$author-meta$" />
 $endfor$
-$if(date)$
-  <meta name="date" content="$date$" />
+$if(date-meta)$
+  <meta name="date" content="$date-meta$" />
 $endif$
   <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
 $if(highlighting-css)$

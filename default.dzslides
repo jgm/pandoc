@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <head>
 <meta charset="utf-8">
-$for(author)$
-  <meta name="author" content="$author$" />
+$for(author-meta)$
+  <meta name="author" content="$author-meta$" />
 $endfor$
-$if(date)$
-  <meta name="date" content="$date$" />
+$if(date-meta)$
+  <meta name="date" content="$date-meta$" />
 $endif$
   <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
 $if(highlighting-css)$
