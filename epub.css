@@ -9,6 +9,7 @@ h5 { text-align: center; }
 h6 { text-align: center; }
 h1.title { }
 h2.author { }
+h3.date { }
 /* For source-code highlighting */
 table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode, table.sourceCode pre
    { margin: 0; padding: 0; border: 0; vertical-align: baseline; border: none; }
