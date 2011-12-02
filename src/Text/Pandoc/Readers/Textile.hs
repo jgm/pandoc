@@ -481,7 +481,7 @@ image = try $ do
   src <- manyTill anyChar (lookAhead $ oneOf "!(")
   alt <- option "" (try $ (char '(' >> manyTill anyChar (char ')')))
   char '!'
-  return $ Image [Str alt] (src, alt)
+  return $ Image [Str alt] (src, alt) "100"
 
 -- | Any special symbol defined in specialChars
 symbol :: GenParser Char ParserState Inline

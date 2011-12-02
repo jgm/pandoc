@@ -353,7 +353,7 @@ inlineToAsciiDoc opts (Link txt (src', _tit)) = do
   return $ if useAuto
               then text srcSuffix
               else prefix <> text src <> "[" <> linktext <> "]"
-inlineToAsciiDoc opts (Image alternate (src', tit)) = do
+inlineToAsciiDoc opts (Image alternate (src', tit) _) = do
 -- image:images/logo.png[Company logo, title="blah"]
   let txt = if (null alternate) || (alternate == [Str ""])
                then [Str "image"]

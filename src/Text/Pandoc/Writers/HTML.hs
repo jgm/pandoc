@@ -335,8 +335,8 @@ treatAsImage fp =
 blockToHtml :: WriterOptions -> Block -> State WriterState Html
 blockToHtml _ Null = return noHtml
 blockToHtml opts (Plain lst) = inlineListToHtml opts lst
-blockToHtml opts (Para [Image txt (s,tit)]) = do
-  img <- inlineToHtml opts (Image txt (s,tit))
+blockToHtml opts (Para [Image txt (s,tit) w]) = do
+  img <- inlineToHtml opts (Image txt (s,tit) w)
   capt <- inlineListToHtml opts txt
   return $ if writerHtml5 opts
               then tag "figure" <<
@@ -614,22 +614,28 @@ inlineToHtml opts inline =
                         return $ anchor ! ([href s] ++
                                  if null tit then [] else [title tit]) $
                                  linkText
-    (Image txt (s,tit)) | treatAsImage s -> do
+    (Image txt (s,tit) w) | treatAsImage s -> do
                         let alternate' = stringify txt
                         let attributes = [src s] ++
                                          (if null tit
                                             then []
                                             else [title tit]) ++
+																				 (if null w
+																				    then []
+																						else  [width (w ++ "%")]) ++
                                          if null txt
                                             then []
                                             else [alt alternate']
                         return $ image ! attributes
                         -- note:  null title included, as in Markdown.pl
-    (Image _ (s,tit)) -> do
+    (Image _ (s,tit) w) -> do
                         let attributes = [src s] ++
                                          (if null tit
                                             then []
-                                            else [title tit])
+                                            else [title tit]) ++
+																				 (if null w
+																				    then []
+																						else [width (w ++ "%")])
                         return $ itag "embed" ! attributes
                         -- note:  null title included, as in Markdown.pl
     (Note contents)          -> do

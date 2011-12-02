@@ -113,7 +113,7 @@ blockToConTeXt :: Block
                -> State WriterState Doc
 blockToConTeXt Null = return empty
 blockToConTeXt (Plain lst) = inlineListToConTeXt lst
-blockToConTeXt (Para [Image txt (src,_)]) = do
+blockToConTeXt (Para [Image txt (src,_) size]) = do
   capt <- inlineListToConTeXt txt
   return $ blankline $$ "\\placefigure[here,nonumber]" <> braces capt <>
            braces ("\\externalfigure" <> brackets (text src)) <> blankline
@@ -284,7 +284,7 @@ inlineToConTeXt (Link txt (src, _)) = do
            brackets (text $ escapeStringUsing [('#',"\\#")] src) <>
            brackets empty <> brackets label <>
            "\\from" <> brackets (text ref)
-inlineToConTeXt (Image _ (src, _)) = do
+inlineToConTeXt (Image _ (src, _) _) = do
   let src' = if isAbsoluteURI src
                 then src
                 else unEscapeString src

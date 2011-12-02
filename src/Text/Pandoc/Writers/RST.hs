@@ -139,7 +139,7 @@ blockToRST :: Block         -- ^ Block element
            -> State WriterState Doc 
 blockToRST Null = return empty
 blockToRST (Plain inlines) = inlineListToRST inlines
-blockToRST (Para [Image txt (src,tit)]) = do
+blockToRST (Para [Image txt (src,tit) size]) = do
   capt <- inlineListToRST txt
   let fig = "figure:: " <> text src
   let align = ":align: center"
@@ -311,7 +311,7 @@ inlineToRST (Link txt (src', tit)) = do
             modify $ \st -> st { stLinks = refs' }
             return $ "`" <> linktext <> "`_"
     else return $ "`" <> linktext <> " <" <> text src <> ">`_"
-inlineToRST (Image alternate (source', tit)) = do
+inlineToRST (Image alternate (source', tit) size) = do
   let source = unescapeURI source'
   pics <- get >>= return . stImages
   let labelsUsed = map fst pics 

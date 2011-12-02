@@ -168,9 +168,9 @@ blockToLaTeX :: Block     -- ^ Block to convert
              -> State WriterState Doc
 blockToLaTeX Null = return empty
 blockToLaTeX (Plain lst) = inlineListToLaTeX lst
-blockToLaTeX (Para [Image txt (src,tit)]) = do
+blockToLaTeX (Para [Image txt (src,tit) size]) = do
   capt <- inlineListToLaTeX txt
-  img <- inlineToLaTeX (Image txt (src,tit))
+  img <- inlineToLaTeX (Image txt (src,tit) size)
   return $ "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
            ("\\caption{" <> capt <> char '}') $$ "\\end{figure}" $$ blankline
 blockToLaTeX (Para lst) = do
@@ -436,12 +436,13 @@ inlineToLaTeX (Link txt (src, _)) =
         _ -> do contents <- inlineListToLaTeX txt
                 return $ text ("\\href{" ++ stringToLaTeX True src ++ "}{") <>
                          contents <> char '}'
-inlineToLaTeX (Image _ (source, _)) = do
+inlineToLaTeX (Image _ (source, _) w) = do
   modify $ \s -> s{ stGraphics = True }
   let source' = if isAbsoluteURI source
                    then source
                    else unEscapeString source
-  return $ "\\includegraphics" <> braces (text source')
+  let widthOption = text ("\\includegraphics[width=" ++ (show ((read w)/100.0::Float)) ++ "\\textwidth]")
+  return $ widthOption <> braces (text source')
 inlineToLaTeX (Note contents) = do
   modify (\s -> s{stInNote = True})
   contents' <- blockListToLaTeX contents

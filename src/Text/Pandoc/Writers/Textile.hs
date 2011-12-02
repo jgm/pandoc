@@ -96,9 +96,9 @@ blockToTextile _ Null = return ""
 blockToTextile opts (Plain inlines) = 
   inlineListToTextile opts inlines
 
-blockToTextile opts (Para [Image txt (src,tit)]) = do
+blockToTextile opts (Para [Image txt (src,tit) size]) = do
   capt <- blockToTextile opts (Para txt)
-  im <- inlineToTextile opts (Image txt (src,tit))
+  im <- inlineToTextile opts (Image txt (src,tit) size)
   return $ im ++ "\n" ++ capt
 
 blockToTextile opts (Para inlines) = do
@@ -403,7 +403,7 @@ inlineToTextile opts (Link txt (src, _)) = do
                 _           -> inlineListToTextile opts txt
   return $ "\"" ++ label ++ "\":" ++ src
 
-inlineToTextile opts (Image alt (source, tit)) = do
+inlineToTextile opts (Image alt (source, tit) size) = do
   alt' <- inlineListToTextile opts alt
   let txt = if null tit
                then if null alt'

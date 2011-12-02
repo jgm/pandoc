@@ -135,7 +135,7 @@ blockToDocbook :: WriterOptions -> Block -> Doc
 blockToDocbook _ Null = empty
 blockToDocbook _ (Header _ _) = empty -- should not occur after hierarchicalize
 blockToDocbook opts (Plain lst) = inlinesToDocbook opts lst
-blockToDocbook opts (Para [Image txt (src,_)]) =
+blockToDocbook opts (Para [Image txt (src,_) _]) =
   let capt = inlinesToDocbook opts txt
   in  inTagsIndented "figure" $
         inTagsSimple "title" capt $$
@@ -272,7 +272,7 @@ inlineToDocbook opts (Link txt (src, _)) =
               then inTags False "link" [("linkend", drop 1 src)]
               else inTags False "ulink" [("url", src)]) $
           inlinesToDocbook opts txt
-inlineToDocbook _ (Image _ (src, tit)) = 
+inlineToDocbook _ (Image _ (src, tit) _ ) = 
   let titleDoc = if null tit
                    then empty
                    else inTagsIndented "objectinfo" $

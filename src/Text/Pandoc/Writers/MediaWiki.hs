@@ -80,7 +80,7 @@ blockToMediaWiki _ Null = return ""
 blockToMediaWiki opts (Plain inlines) = 
   inlineListToMediaWiki opts inlines
 
-blockToMediaWiki opts (Para [Image txt (src,tit)]) = do
+blockToMediaWiki opts (Para [Image txt (src,tit) size]) = do
   capt <- inlineListToMediaWiki opts txt 
   let opt = if null txt
                then ""
@@ -388,7 +388,7 @@ inlineToMediaWiki opts (Link txt (src, _)) = do
                      where src' = case src of
                                      '/':xs -> xs  -- with leading / it's a
                                      _      -> src -- link to a help page
-inlineToMediaWiki opts (Image alt (source, tit)) = do
+inlineToMediaWiki opts (Image alt (source, tit) size) = do
   alt' <- inlineListToMediaWiki opts alt
   let txt = if (null tit)
                then if null alt
