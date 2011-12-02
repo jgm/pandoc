@@ -57,8 +57,8 @@ $endfor$
 $if(title)$
 <div class="slide">
   <h1>$title$</h1>
-  <h3>$for(author)$$author$$sep$<br/>$endfor$</h3>
-  <h4>$date$</h4>
+  <h2>$for(author)$$author$$sep$<br/>$endfor$</h2>
+  <h3>$date$</h3>
 </div>
 $endif$
 $body$
