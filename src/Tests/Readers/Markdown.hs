@@ -44,6 +44,11 @@ tests = [ testGroup "inline code"
             "`*` {.haskell .special x=\"7\"}"
             =?> para (codeWith ("",["haskell","special"],[("x","7")]) "*")
           ]
+        , testGroup "backslash escapes"
+          [ "in URL" =:
+            "[hi](/there\\))"
+            =?> para (link "hi" "/there)" "")
+          ]
         , testGroup "smart punctuation"
           [ test markdownSmart "quote before ellipses"
             ("'...hi'"
