@@ -611,7 +611,7 @@ inlineToHtml opts inline =
                         return $ obfuscateLink opts (show linkText) s
     (Link txt (s,tit)) -> do
                         linkText <- inlineListToHtml opts txt
-                        return $ anchor ! ([href s] ++
+                        return $ anchor ! ([href (unescapeURI s)] ++
                                  if null tit then [] else [title tit]) $
                                  linkText
     (Image txt (s,tit)) | treatAsImage s -> do
