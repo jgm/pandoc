@@ -44,7 +44,6 @@ module Text.Pandoc.Shared (
                      camelCaseToHyphenated,
                      toRomanNumeral,
                      escapeURI,
-                     unescapeURI,
                      tabFilter,
                      -- * Pandoc block and inline list processing
                      orderedListMarkers,
@@ -73,11 +72,10 @@ module Text.Pandoc.Shared (
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import qualified Text.Pandoc.UTF8 as UTF8 (readFile)
-import Data.Char ( toLower, isLower, isUpper, isAlpha, isAscii,
-                   isLetter, isDigit )
+import Data.Char ( toLower, isLower, isUpper, isAlpha,
+                   isLetter, isDigit, isSpace )
 import Data.List ( find, isPrefixOf, intercalate )
-import Network.URI ( isAllowedInURI, escapeURIString, unEscapeString )
-import Codec.Binary.UTF8.String ( encodeString, decodeString )
+import Network.URI ( escapeURIString )
 import System.Directory
 import System.FilePath ( (</>) )
 import Data.Generics (Typeable, Data)
@@ -181,16 +179,9 @@ toRomanNumeral x =
               _ | x >= 1    -> "I" ++ toRomanNumeral (x - 1)
               _             -> ""
 
--- | Escape unicode characters in a URI.  Characters that are
--- already valid in a URI, including % and ?, are left alone.
+-- | Escape whitespace in URI.
 escapeURI :: String -> String
-escapeURI = escapeURIString isAllowedInURI . encodeString
-
--- | Unescape unicode and some special characters in a URI, but
--- without introducing spaces.
-unescapeURI :: String -> String
-unescapeURI = escapeURIString (\c -> isAllowedInURI c || not (isAscii c)) .
-               decodeString . unEscapeString
+escapeURI = escapeURIString (not . isSpace)
 
 -- | Convert tabs to spaces and filter out DOS line endings.
 -- Tabs will be preserved if tab stop is set to 0.
@@ -304,9 +295,9 @@ consolidateInlines (Str x : ys) =
      fromStr (Str z) = z
      fromStr _       = error "consolidateInlines - fromStr - not a Str"
 consolidateInlines (Space : ys) = Space : rest
-   where isSpace Space = True
-         isSpace _     = False
-         rest          = consolidateInlines $ dropWhile isSpace ys
+   where isSp Space = True
+         isSp _     = False
+         rest       = consolidateInlines $ dropWhile isSp ys
 consolidateInlines (Emph xs : Emph ys : zs) = consolidateInlines $
   Emph (xs ++ ys) : zs
 consolidateInlines (Strong xs : Strong ys : zs) = consolidateInlines $

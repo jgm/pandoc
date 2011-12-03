@@ -493,12 +493,11 @@ inlineToMarkdown opts (Cite (c:cs) lst)
         modekey SuppressAuthor = "-"
         modekey _              = ""
 inlineToMarkdown _ (Cite _ _) = return $ text ""
-inlineToMarkdown opts (Link txt (src', tit)) = do
+inlineToMarkdown opts (Link txt (src, tit)) = do
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if null tit
                      then empty
                      else text $ " \"" ++ tit ++ "\""
-  let src = unescapeURI src'
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
   let useRefLinks = writerReferenceLinks opts
   let useAuto = case (tit,txt) of

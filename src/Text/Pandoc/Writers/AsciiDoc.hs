@@ -336,12 +336,11 @@ inlineToAsciiDoc _ (RawInline _ _) = return empty
 inlineToAsciiDoc _ (LineBreak) = return $ " +" <> cr
 inlineToAsciiDoc _ Space = return space
 inlineToAsciiDoc opts (Cite _ lst) = inlineListToAsciiDoc opts lst
-inlineToAsciiDoc opts (Link txt (src', _tit)) = do
+inlineToAsciiDoc opts (Link txt (src, _tit)) = do
 -- relative:  link:downloads/foo.zip[download foo.zip]
 -- abs:  http://google.cod[Google]
 -- or my@email.com[email john]
   linktext <- inlineListToAsciiDoc opts txt
-  let src = unescapeURI src'
   let isRelative = ':' `notElem` src
   let prefix = if isRelative
                   then text "link:"
@@ -353,7 +352,7 @@ inlineToAsciiDoc opts (Link txt (src', _tit)) = do
   return $ if useAuto
               then text srcSuffix
               else prefix <> text src <> "[" <> linktext <> "]"
-inlineToAsciiDoc opts (Image alternate (src', tit)) = do
+inlineToAsciiDoc opts (Image alternate (src, tit)) = do
 -- image:images/logo.png[Company logo, title="blah"]
   let txt = if (null alternate) || (alternate == [Str ""])
                then [Str "image"]
@@ -362,7 +361,6 @@ inlineToAsciiDoc opts (Image alternate (src', tit)) = do
   let linktitle = if null tit
                      then empty
                      else text $ ",title=\"" ++ tit ++ "\""
-  let src = unescapeURI src'
   return $ "image:" <> text src <> "[" <> linktext <> linktitle <> "]"
 inlineToAsciiDoc opts (Note [Para inlines]) =
   inlineToAsciiDoc opts (Note [Plain inlines])
