@@ -319,6 +319,8 @@ options =
     , Option "" ["self-contained"]
                  (NoArg
                   (\opt -> return opt { optSelfContained = True,
+                                        optVariables = ("slidy-url","slidy") :
+                                                       optVariables opt,
                                         optStandalone = True }))
                  "" -- "Make slide shows include all the needed js and css"
 
