@@ -37,7 +37,7 @@ import Network.HTTP
 import Data.ByteString.Base64
 import qualified Data.ByteString.Char8 as B
 import Data.ByteString (ByteString)
-import Data.ByteString.UTF8 (toString)
+import Data.ByteString.UTF8 (toString, fromString)
 import System.FilePath (takeExtension, dropExtension, takeDirectory, (</>))
 import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
@@ -206,67 +206,60 @@ convertTag userdata t@(TagOpen "img" as) =
        case fromAttrib "src" t of
          []   -> return t
          src  -> do
-           (raw, mime) <- getRaw userdata t src
+           (raw, mime) <- getRaw userdata (fromAttrib "type" t) src
            let enc = "data:" ++ mime ++ ";base64," ++ toString (encode raw)
            return $ TagOpen "img" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
 convertTag userdata t@(TagOpen "video" as) =
        case fromAttrib "src" t of
          []   -> return t
          src  -> do
-           (raw, mime) <- getRaw userdata t src
+           (raw, mime) <- getRaw userdata (fromAttrib "type" t) src
            let enc = "data:" ++ mime ++ ";base64," ++ toString (encode raw)
            return $ TagOpen "video" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
 convertTag userdata t@(TagOpen "script" as) =
   case fromAttrib "src" t of
        []     -> return t
        src    -> do
-           (raw, mime) <- getRaw userdata t src
+           (raw, mime) <- getRaw userdata (fromAttrib "type" t) src
            let enc = "data:" ++ mime ++ "," ++ escapeURIString isOk (toString raw)
            return $ TagOpen "script" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"]) 
 convertTag userdata t@(TagOpen "link" as) =
   case fromAttrib "href" t of
        []  -> return t
        src -> do
-           (raw, mime) <- getRaw userdata t src
+           (raw, mime) <- getRaw userdata (fromAttrib "type" t) src
            let enc = "data:" ++ mime ++ "," ++ escapeURIString isOk (toString raw)
            return $ TagOpen "link" (("href",enc) : [(x,y) | (x,y) <- as, x /= "href"]) 
 convertTag _ t = return t
 
-cssImports :: Maybe FilePath -> FilePath -> ByteString -> IO ByteString
-cssImports userdata d orig =
-  case B.breakSubstring "@import" orig of
+cssURLs :: Maybe FilePath -> FilePath -> ByteString -> IO ByteString
+cssURLs userdata d orig =
+  case B.breakSubstring "url(" orig of
        (x,y) | B.null y  -> return orig
              | otherwise -> do
-                  rest <- handleImport userdata d (B.drop 7 y)
-                           >>= cssImports userdata d
-                  return $ x `B.append` rest
+                  let (u,v) = B.breakSubstring ")" $ B.drop 4 y
+                  let url = toString
+                          $ case B.take 1 u of
+                                 "\"" -> B.takeWhile (/='"') $ B.drop 1 u
+                                 _    -> u
+                  (raw, mime) <- getRaw userdata "" (d </> url)
+                  rest <- cssURLs userdata d v
+                  let enc = "data:" `B.append` fromString mime `B.append`
+                               ";base64," `B.append` (encode raw)
+                  return $ x `B.append` "url(" `B.append` enc `B.append` rest
 
--- @import url("blah");
--- @import url(blah);
--- @import "blah";
-handleImport :: Maybe FilePath -> FilePath -> ByteString -> IO ByteString
-handleImport userdata d x =
-  fmap (`B.append` rest) (getItem userdata $ d </> url)
-   where lparenOrQuote c = c == '(' || c == '"'
-         rparenOrQuote c = c == ')' || c == '"'
-         url = toString
-               $ B.takeWhile (not . rparenOrQuote)
-               $ B.dropWhile lparenOrQuote
-               $ B.dropWhile (not . lparenOrQuote) x
-         rest = B.drop 1 $ B.dropWhile (/= ';') x
-
-getRaw :: Maybe FilePath -> Tag String -> String -> IO (ByteString, String)
-getRaw userdata t src = do
+getRaw :: Maybe FilePath -> String -> String -> IO (ByteString, String)
+getRaw userdata mimetype src = do
   let ext = map toLower $ takeExtension src
   let (ext',decomp) = if ext == ".gz"
                          then (takeExtension $ dropExtension src, B.concat . L.toChunks . Gzip.decompress . L.fromChunks . (:[]))
                          else (ext, id)
-  let mime = case fromAttrib "type" t of
+  let mime = case mimetype of
                   []  -> mimeTypeFor ext'
                   x   -> x
   raw <- getItem userdata src
   result <- if mime == "text/css"
-               then cssImports userdata (takeDirectory src) $ decomp raw
+               then cssURLs userdata (takeDirectory src) $ decomp raw
                else return $ decomp raw
   return (result, mime)
 
