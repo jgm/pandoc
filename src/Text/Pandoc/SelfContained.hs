@@ -45,31 +45,40 @@ import qualified Data.ByteString.Lazy as L
 import Text.Pandoc.Shared (findDataFile)
 import System.Directory (doesFileExist)
 
-getItem :: Maybe FilePath -> String -> IO ByteString
+getItem :: Maybe FilePath -> String -> IO (ByteString, Maybe String)
 getItem userdata f =
   if isAbsoluteURI f
      then openURL f
      else do
+       let ext = case takeExtension f of
+                      ".gz" -> takeExtension $ dropExtension f
+                      x     -> x
        exists <- doesFileExist f
        if exists
-          then B.readFile f
+          then do
+            cont <- B.readFile f
+            return (cont, mimeTypeFor ext)
           else do
             res <- findDataFile userdata f
             exists' <- doesFileExist res
             if exists'
-               then B.readFile res
+               then do
+                 cont <- B.readFile res
+                 return (cont, mimeTypeFor ext)
                else error $ "Could not find `" ++ f ++ "'"
 
-openURL :: String -> IO ByteString
-openURL u = getResponseBody =<< simpleHTTP (getReq u)
+-- TODO - have this return mime type too - then it can work for google
+-- chart API, e.g.
+openURL :: String -> IO (ByteString, Maybe String)
+openURL u = getBodyAndMimeType =<< simpleHTTP (getReq u)
   where getReq v = case parseURI v of
                      Nothing  -> error $ "Could not parse URI: " ++ v
                      Just u'  -> mkRequest GET u'
+        getBodyAndMimeType (Left err) = fail (show err)
+        getBodyAndMimeType (Right r)  = return (rspBody r, findHeader HdrContentType r)
 
-mimeTypeFor :: String -> String
-mimeTypeFor s = case lookup s mimetypes of
-                     Nothing -> error $ "Could not find mime type for " ++ s
-                     Just x  -> x
+mimeTypeFor :: String -> Maybe String
+mimeTypeFor s = lookup (map toLower s) mimetypes
   where mimetypes = [ -- taken from MissingH
                 (".a", "application/octet-stream"),
                 (".ai", "application/postscript"),
@@ -251,16 +260,19 @@ cssURLs userdata d orig =
 getRaw :: Maybe FilePath -> String -> String -> IO (ByteString, String)
 getRaw userdata mimetype src = do
   let ext = map toLower $ takeExtension src
-  let (ext',decomp) = if ext == ".gz"
-                         then (takeExtension $ dropExtension src, B.concat . L.toChunks . Gzip.decompress . L.fromChunks . (:[]))
-                         else (ext, id)
-  let mime = case mimetype of
-                  []  -> mimeTypeFor ext'
-                  x   -> x
-  raw <- getItem userdata src
+  (raw, respMime) <- getItem userdata src
+  let raw' = if ext == ".gz"
+                then B.concat $ L.toChunks $ Gzip.decompress $ L.fromChunks
+                      $ [raw]
+                else raw
+  let mime = case (mimetype, respMime) of
+                  ("",Nothing) -> error
+                         $ "Could not determine mime type for `" ++ src ++ "'"
+                  (x, Nothing) -> x
+                  (_, Just x ) -> x
   result <- if mime == "text/css"
-               then cssURLs userdata (takeDirectory src) $ decomp raw
-               else return $ decomp raw
+               then cssURLs userdata (takeDirectory src) raw'
+               else return raw'
   return (result, mime)
 
 -- | Convert HTML into self-contained HTML, incorporating images,
