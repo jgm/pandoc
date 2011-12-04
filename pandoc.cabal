@@ -221,7 +221,7 @@ Library
                  pandoc-types == 1.8.*,
                  json >= 0.4 && < 0.6,
                  dlist >= 0.4 && < 0.6,
-                 tagsoup >= 0.12 && < 0.13,
+                 tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
                  zlib >= 0.5 && <= 0.6
   if impl(ghc >= 6.10)
@@ -309,7 +309,7 @@ Executable pandoc
                  pandoc-types == 1.8.*,
                  json >= 0.4 && < 0.6,
                  dlist >= 0.4 && < 0.6,
-                 tagsoup >= 0.12 && < 0.13,
+                 tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
                  zlib >= 0.5 && <= 0.6
   if impl(ghc >= 6.10)
