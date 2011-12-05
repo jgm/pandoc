@@ -8,6 +8,7 @@ Pandoc Test Suite
 
 .. role:: math(raw)
    :format: html latex
+..
 
 This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
 markdown test suite.
