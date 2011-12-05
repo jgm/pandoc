@@ -567,7 +567,8 @@ inlineToHtml opts inline =
                                            InlineMath -> thespan ! [theclass "math"] $ m
                                            DisplayMath -> thediv ! [theclass "math"] $ m
                                WebTeX url -> do
-                                  let m = image ! [src (url ++ urlEncode str),
+                                  let m = image ! [thestyle "vertical-align:middle",
+                                                   src (url ++ urlEncode str),
                                                          alt str, title str]
                                   return $ case t of
                                             InlineMath  -> m
