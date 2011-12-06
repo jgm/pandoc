@@ -217,16 +217,15 @@ referenceKey = try $ do
   lab <- reference
   char ':'
   skipSpaces >> optional newline >> skipSpaces >> notFollowedBy (char '[')
-  let nl = char '\n' >> notFollowedBy blankline >> return ' '
   let sourceURL = liftM unwords $ many $ try $ do
                     notFollowedBy' referenceTitle
                     skipMany spaceChar
-                    optional nl
+                    optional $ newline >> notFollowedBy blankline
                     skipMany spaceChar
                     notFollowedBy' reference
-                    many1 (satisfy $ not . isBlank)
+                    many1 $ escapedChar' <|> satisfy (not . isBlank)
   let betweenAngles = try $ char '<' >>
-                            manyTill (noneOf ">\n" <|> nl) (char '>')
+                       manyTill (escapedChar' <|> litChar) (char '>')
   src <- try betweenAngles <|> sourceURL
   tit <- option "" referenceTitle
   blanklines
