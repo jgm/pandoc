@@ -1145,11 +1145,10 @@ source :: GenParser Char ParserState (String, [Char])
 source =
   (try $ charsInBalanced '(' ')' litChar >>= parseFromString source') <|>
   -- the following is needed for cases like:  [ref](/url(a).
-  (enclosed (char '(') (char ')') anyChar >>=
-   parseFromString source')
+  (enclosed (char '(') (char ')') litChar >>= parseFromString source')
 
 -- auxiliary function for source
-source' :: GenParser Char st (String, [Char])
+source' :: GenParser Char ParserState (String, [Char])
 source' = do
   skipSpaces
   let nl = char '\n' >>~ notFollowedBy blankline
@@ -1158,22 +1157,21 @@ source' = do
                     skipMany spaceChar
                     optional nl
                     skipMany spaceChar
-                    many1 (satisfy $ not . isBlank)
-  let betweenAngles = try $ char '<' >>
-                            manyTill (noneOf ">\n" <|> nl) (char '>')
+                    many1 $ escapedChar' <|> satisfy (not . isBlank)
+  let betweenAngles = try $
+         char '<' >> manyTill (escapedChar' <|> noneOf ">\n" <|> nl) (char '>')
   src <- try betweenAngles <|> sourceURL
   tit <- option "" linkTitle
   skipSpaces
   eof
   return (escapeURI $ removeTrailingSpace src, tit)
 
-linkTitle :: GenParser Char st String
-linkTitle = try $ do 
+linkTitle :: GenParser Char ParserState String
+linkTitle = try $ do
   (many1 spaceChar >> option '\n' newline) <|> newline
   skipSpaces
   delim <- oneOf "'\""
-  tit <-   manyTill (optional (char '\\') >> anyChar)
-                    (try (char delim >> skipSpaces >> eof))
+  tit <-   manyTill litChar (try (char delim >> skipSpaces >> eof))
   return $ decodeCharacterReferences tit
 
 link :: GenParser Char ParserState Inline
