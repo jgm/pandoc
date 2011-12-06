@@ -108,6 +108,11 @@ atMostSpaces :: Int -> GenParser Char ParserState ()
 atMostSpaces 0 = notFollowedBy (char ' ')
 atMostSpaces n = (char ' ' >> atMostSpaces (n-1)) <|> return ()
 
+litChar :: GenParser Char ParserState Char
+litChar = escapedChar'
+       <|> noneOf "\n"
+       <|> (newline >> notFollowedBy blankline >> return ' ')
+
 -- | Fail unless we're at beginning of a line.
 failUnlessBeginningOfLine :: GenParser tok st () 
 failUnlessBeginningOfLine = do
@@ -233,12 +238,12 @@ referenceKey = try $ do
   -- return blanks so line count isn't affected
   return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
-referenceTitle :: GenParser Char st String
-referenceTitle = try $ do 
+referenceTitle :: GenParser Char ParserState String
+referenceTitle = try $ do
   skipSpaces >> optional newline >> skipSpaces
-  tit <-    (charsInBalanced '(' ')' >>= return . unwords . words)
+  tit <-    (charsInBalanced '(' ')' litChar >>= return . unwords . words)
         <|> do delim <- char '\'' <|> char '"'
-               manyTill anyChar (try (char delim >> skipSpaces >>
+               manyTill litChar (try (char delim >> skipSpaces >>
                                       notFollowedBy (noneOf ")\n")))
   return $ decodeCharacterReferences tit
 
@@ -1136,9 +1141,9 @@ reference = do notFollowedBy' (string "[^")   -- footnote reference
                return $ normalizeSpaces result
 
 -- source for a link, with optional title
-source :: GenParser Char st (String, [Char])
+source :: GenParser Char ParserState (String, [Char])
 source =
-  (try $ charsInBalanced '(' ')' >>= parseFromString source') <|>
+  (try $ charsInBalanced '(' ')' litChar >>= parseFromString source') <|>
   -- the following is needed for cases like:  [ref](/url(a).
   (enclosed (char '(') (char ')') anyChar >>=
    parseFromString source')

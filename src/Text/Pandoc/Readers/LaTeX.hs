@@ -59,7 +59,7 @@ specialChars = "\\`$%^&_~#{}[]\n \t|<>'\"-"
 -- | Returns text between brackets and its matching pair.
 bracketedText :: Char -> Char -> GenParser Char st [Char]
 bracketedText openB closeB = do
-  result <- charsInBalanced' openB closeB
+  result <- charsInBalanced openB closeB anyChar
   return $ [openB] ++ result ++ [closeB]
 
 -- | Returns an option or argument of a LaTeX command.
@@ -888,7 +888,7 @@ ensureMath = try $ do
 url :: GenParser Char ParserState Inline
 url = try $ do
   string "\\url"
-  url' <- charsInBalanced '{' '}'
+  url' <- charsInBalanced '{' '}' anyChar
   return $ Link [Code ("",["url"],[]) url'] (escapeURI url', "")
 
 link :: GenParser Char ParserState Inline
