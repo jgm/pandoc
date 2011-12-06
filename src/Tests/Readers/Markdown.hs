@@ -47,16 +47,16 @@ tests = [ testGroup "inline code"
         , testGroup "backslash escapes"
           [ "in URL" =:
             "[hi](/there\\))"
-            =?> para (link "hi" "/there)" "")
+            =?> para (link "/there)" "" "hi")
           , "in title" =:
             "[hi](/there \"a\\\"a)"
-            =?> para (link "hi" "/there" "a\"a")
+            =?> para (link "/there" "a\"a" "hi")
           , "in reference link title" =:
             "[hi]\n\n[hi]: /there (a\\)a)"
-            =?> para (link "hi" "/there" "a)a")
+            =?> para (link "/there" "a)a" "hi")
           , "in reference link URL" =:
             "[hi]\n\n[hi]: /there\\."
-            =?> para (link "hi" "/there." "")
+            =?> para (link "/there." "" "hi")
           ]
         , testGroup "smart punctuation"
           [ test markdownSmart "quote before ellipses"
