@@ -939,13 +939,17 @@ failIfLink :: Inline -> GenParser tok st Inline
 failIfLink (Link _ _) = pzero
 failIfLink elt        = return elt
 
-escapedChar :: GenParser Char ParserState Inline
-escapedChar = try $ do
+escapedChar' :: GenParser Char ParserState Char
+escapedChar' = try $ do
   char '\\'
   state <- getState
-  result <- if stateStrict state 
-               then oneOf "\\`*_{}[]()>#+-.!~"
-               else satisfy (not . isAlphaNum)
+  if stateStrict state
+     then oneOf "\\`*_{}[]()>#+-.!~"
+     else satisfy (not . isAlphaNum)
+
+escapedChar :: GenParser Char ParserState Inline
+escapedChar = do
+  result <- escapedChar'
   return $ case result of
                 ' '   -> Str "\160" -- "\ " is a nonbreaking space
                 '\n'  -> LineBreak  -- "\[newline]" is a linebreak
