@@ -50,7 +50,13 @@ tests = [ testGroup "inline code"
             =?> para (link "hi" "/there)" "")
           , "in title" =:
             "[hi](/there \"a\\\"a)"
-            =?> para (link "hi" "/there" "a\"a") 
+            =?> para (link "hi" "/there" "a\"a")
+          , "in reference link title" =:
+            "[hi]\n\n[hi]: /there (a\\)a)"
+            =?> para (link "hi" "/there" "a)a")
+          , "in reference link URL" =:
+            "[hi]\n\n[hi]: /there\\."
+            =?> para (link "hi" "/there." "")
           ]
         , testGroup "smart punctuation"
           [ test markdownSmart "quote before ellipses"
