@@ -750,7 +750,8 @@ hyphens = do
   return $ Str result
 
 escapedChar :: GenParser Char st Inline
-escapedChar = escaped anyChar
+escapedChar = do c <- escaped anyChar
+                 return $ Str [c]
 
 symbol :: GenParser Char ParserState Inline
 symbol = do 

@@ -325,11 +325,8 @@ failUnlessLHS = do
 
 -- | Parses backslash, then applies character parser.
 escaped :: GenParser Char st Char  -- ^ Parser for character to escape
-        -> GenParser Char st Inline
-escaped parser = try $ do
-  char '\\'
-  result <- parser
-  return (Str [result])
+        -> GenParser Char st Char
+escaped parser = try $ char '\\' >> parser
 
 -- | Parses an uppercase roman numeral and returns (UpperRoman, number).
 upperRoman :: GenParser Char st (ListNumberStyle, Int)

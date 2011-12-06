@@ -677,7 +677,7 @@ sect = try (string "\\S") >> return (Str [chr 167])
 escapedChar :: GenParser Char st Inline
 escapedChar = do
   result <- escaped (oneOf specialChars)
-  return $ if result == Str "\n" then Str " " else result
+  return $ if result == '\n' then Str " " else Str [result]
 
 emptyGroup :: GenParser Char st Inline
 emptyGroup = try $ do
