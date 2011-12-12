@@ -45,7 +45,7 @@ import Text.XML.Light hiding (ppTopElement)
 import Text.Pandoc.UUID
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.Markdown ( writePlain )
-import Data.Char ( toLower )
+import Data.Char ( toLower, isDigit )
 import Network.URI ( unEscapeString )
 
 -- | Produce an EPUB file from a Pandoc document.
@@ -276,7 +276,17 @@ transformBlock x = x
 
 -- | Version of 'ppTopElement' that specifies UTF-8 encoding.
 ppTopElement :: Element -> String
-ppTopElement = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++) . ppElement
+ppTopElement = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++) . unEntity . ppElement
+  -- unEntity removes decimal entities introduced by ppElement
+  -- (kindlegen seems to choke on these).
+  where unEntity [] = ""
+        unEntity ('&':'#':d:xs) | isDigit d =
+                                let ds = takeWhile isDigit xs
+                                    c  = read $ '\'' : '\\' : d : ds ++ "'"
+                                in  if c > '\127'
+                                       then c : unEntity (drop (length ds + 2) xs)
+                                       else '&':'#':d:ds ++ unEntity (drop (length ds + 2) xs)
+        unEntity (x:xs) = x : unEntity xs
 
 imageTypeOf :: FilePath -> Maybe String
 imageTypeOf x = case drop 1 (map toLower (takeExtension x)) of
