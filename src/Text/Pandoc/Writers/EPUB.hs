@@ -45,7 +45,7 @@ import Text.XML.Light hiding (ppTopElement)
 import Text.Pandoc.UUID
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.Markdown ( writePlain )
-import Data.Char ( toLower, isDigit )
+import Data.Char ( toLower )
 import Network.URI ( unEscapeString )
 
 -- | Produce an EPUB file from a Pandoc document.
@@ -282,12 +282,9 @@ ppTopElement = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++) . unEntity . 
   where unEntity [] = ""
         unEntity ('&':'#':xs) =
                    let (ds,ys) = break (==';') xs
-                       c = if (all isDigit ds)
-                              then Just $ read $ '\'' : '\\' : ds ++ "'"
-                              else Nothing
                        rest = drop 1 ys
-                   in  case c of
-                          Just x | x > '\127' -> x : unEntity rest
+                   in  case reads ('\'':'\\':ds ++ "'") of
+                          ((x,_):_) | x > '\127' -> x : unEntity rest
                           _  -> ('&':'#':ds) ++ ";" ++ unEntity rest
         unEntity (x:xs) = x : unEntity xs
 
