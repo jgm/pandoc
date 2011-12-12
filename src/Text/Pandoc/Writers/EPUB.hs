@@ -277,15 +277,18 @@ transformBlock x = x
 -- | Version of 'ppTopElement' that specifies UTF-8 encoding.
 ppTopElement :: Element -> String
 ppTopElement = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++) . unEntity . ppElement
-  -- unEntity removes decimal entities introduced by ppElement
+  -- unEntity removes numeric  entities introduced by ppElement
   -- (kindlegen seems to choke on these).
   where unEntity [] = ""
-        unEntity ('&':'#':d:xs) | isDigit d =
-                                let ds = takeWhile isDigit xs
-                                    c  = read $ '\'' : '\\' : d : ds ++ "'"
-                                in  if c > '\127'
-                                       then c : unEntity (drop (length ds + 2) xs)
-                                       else '&':'#':d:ds ++ unEntity (drop (length ds + 2) xs)
+        unEntity ('&':'#':xs) =
+                   let (ds,ys) = break (==';') xs
+                       c = if (all isDigit ds)
+                              then Just $ read $ '\'' : '\\' : ds ++ "'"
+                              else Nothing
+                       rest = drop 1 ys
+                   in  case c of
+                          Just x | x > '\127' -> x : unEntity rest
+                          _  -> ('&':'#':ds) ++ ";" ++ unEntity rest
         unEntity (x:xs) = x : unEntity xs
 
 imageTypeOf :: FilePath -> Maybe String
