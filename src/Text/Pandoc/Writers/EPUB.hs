@@ -284,8 +284,8 @@ ppTopElement = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++) . unEntity . 
                    let (ds,ys) = break (==';') xs
                        rest = drop 1 ys
                    in  case reads ('\'':'\\':ds ++ "'") of
-                          ((x,_):_) | x > '\127' -> x : unEntity rest
-                          _  -> ('&':'#':ds) ++ ";" ++ unEntity rest
+                          ((x,_):_) -> x : unEntity rest
+                          _         -> '&':'#':unEntity xs
         unEntity (x:xs) = x : unEntity xs
 
 imageTypeOf :: FilePath -> Maybe String
