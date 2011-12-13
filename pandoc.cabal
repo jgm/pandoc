@@ -235,7 +235,7 @@ Library
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
   else
     Ghc-Options:     -O2 -Wall
-  Ghc-Prof-Options: -auto-all -caf-all
+  Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   Extensions:         CPP
   Hs-Source-Dirs:  src
   -- END DUPLICATED SECTION
@@ -323,7 +323,7 @@ Executable pandoc
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
   else
     Ghc-Options:     -O2 -Wall
-  Ghc-Prof-Options: -auto-all -caf-all
+  Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   Extensions:         CPP
   Hs-Source-Dirs:  src
   -- END DUPLICATED SECTION
@@ -341,7 +341,7 @@ Executable markdown2pdf
     Ghc-Options:        -Wall -threaded
   else
     Ghc-Options:        -Wall
-  Ghc-Prof-Options:   -auto-all
+  Ghc-Prof-Options:   -auto-all -rtsopts
   Extensions:         CPP
   if flag(wrappers)
     Buildable:        True
