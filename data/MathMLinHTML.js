@@ -12,9 +12,9 @@ function convertMath(node) {// for Gecko
         node.nodeName.toLowerCase());
     for(var i=0; i < node.attributes.length; i++)
       newnode.setAttribute(node.attributes[i].nodeName,
-        node.attributes[i].nodeValue);
+        node.attributes[i].value);
     for (var i=0; i<node.childNodes.length; i++) {
-      var st = node.childNodes[i].nodeValue;
+      var st = node.childNodes[i].value;
       if (st==null || st.slice(0,1)!=" " && st.slice(0,1)!="\n") 
         newnode.appendChild(convertMath(node.childNodes[i]));
     }
@@ -34,17 +34,17 @@ function convert() {
       node = mmlnode[i];
       while (node.nodeName!="/MATH") {
         st = node.nodeName.toLowerCase();
-        if (st=="#text") str += node.nodeValue;
+        if (st=="#text") str += node.value;
         else {
           str += (st.slice(0,1)=="/" ? "</m:"+st.slice(1) : "<m:"+st);
           if (st.slice(0,1)!="/") 
              for(var j=0; j < node.attributes.length; j++)
-               if (node.attributes[j].nodeValue!="italic" &&
-                 node.attributes[j].nodeValue!="" &&
-                 node.attributes[j].nodeValue!="inherit" &&
-                 node.attributes[j].nodeValue!=undefined)
+               if (node.attributes[j].value!="italic" &&
+                 node.attributes[j].value!="" &&
+                 node.attributes[j].value!="inherit" &&
+                 node.attributes[j].value!=undefined)
                  str += " "+node.attributes[j].nodeName+"="+
-                     "\""+node.attributes[j].nodeValue+"\"";
+                     "\""+node.attributes[j].value+"\"";
           str += ">";
         }
         node = node.nextSibling;
