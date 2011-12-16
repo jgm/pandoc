@@ -1,4 +1,4 @@
-/* 
+/*
 March 19, 2004 MathHTML (c) Peter Jipsen http://www.chapman.edu/~jipsen
 Released under the GNU General Public License version 2 or later.
 See the GNU General Public License (at http://www.gnu.org/copyleft/gpl.html)
@@ -7,15 +7,15 @@ for more details.
 
 function convertMath(node) {// for Gecko
   if (node.nodeType==1) {
-    var newnode = 
+    var newnode =
       document.createElementNS("http://www.w3.org/1998/Math/MathML",
         node.nodeName.toLowerCase());
     for(var i=0; i < node.attributes.length; i++)
       newnode.setAttribute(node.attributes[i].nodeName,
-        node.attributes[i].nodeValue);
+        node.attributes[i].value);
     for (var i=0; i<node.childNodes.length; i++) {
       var st = node.childNodes[i].nodeValue;
-      if (st==null || st.slice(0,1)!=" " && st.slice(0,1)!="\n") 
+      if (st==null || st.slice(0,1)!=" " && st.slice(0,1)!="\n")
         newnode.appendChild(convertMath(node.childNodes[i]));
     }
     return newnode;
@@ -37,14 +37,14 @@ function convert() {
         if (st=="#text") str += node.nodeValue;
         else {
           str += (st.slice(0,1)=="/" ? "</m:"+st.slice(1) : "<m:"+st);
-          if (st.slice(0,1)!="/") 
+          if (st.slice(0,1)!="/")
              for(var j=0; j < node.attributes.length; j++)
-               if (node.attributes[j].nodeValue!="italic" &&
-                 node.attributes[j].nodeValue!="" &&
-                 node.attributes[j].nodeValue!="inherit" &&
-                 node.attributes[j].nodeValue!=undefined)
+               if (node.attributes[j].value!="italic" &&
+                 node.attributes[j].value!="" &&
+                 node.attributes[j].value!="inherit" &&
+                 node.attributes[j].value!=undefined)
                  str += " "+node.attributes[j].nodeName+"="+
-                     "\""+node.attributes[j].nodeValue+"\"";
+                     "\""+node.attributes[j].value+"\"";
           str += ">";
         }
         node = node.nextSibling;
