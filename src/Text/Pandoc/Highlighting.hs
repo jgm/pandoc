@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Text.Pandoc.Highlighting
    Copyright   : Copyright (C) 2008 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
@@ -29,10 +29,10 @@ Exports functions for syntax highlighting.
 -}
 
 module Text.Pandoc.Highlighting ( languages, highlightHtml, defaultHighlightingCss, languagesByExtension ) where
-import Text.XHtml
+import Text.Blaze
 import Text.Pandoc.Definition
 #ifdef _HIGHLIGHTING
-import Text.Highlighting.Kate ( languages, highlightAs, formatAsXHtml, FormatOption (..), defaultHighlightingCss, languagesByExtension )
+import Text.Highlighting.Kate ( languages, highlightAs, formatAsHtml, FormatOption (..), defaultHighlightingCss, languagesByExtension )
 import Data.List (find)
 import Data.Maybe (fromMaybe)
 import Data.Char (toLower)
@@ -54,9 +54,9 @@ highlightHtml inline (_, classes, keyvals) rawCode =
             Nothing        -> Left "Unknown or unsupported language"
             Just language  -> case highlightAs language rawCode of
                                    Left err -> Left err
-                                   Right hl -> Right $ formatAsXHtml fmtOpts language $
+                                   Right hl -> Right $ formatAsHtml fmtOpts language $
                                                        if addBirdTracks
-                                                          then map ((["Special"],"> "):) hl
+                                                          then map (("ot","> "):) hl
                                                           else hl
 
 #else

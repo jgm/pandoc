@@ -126,7 +126,6 @@ data Opt = Opt
     , optCslFile           :: FilePath
     , optAbbrevsFile       :: Maybe FilePath
     , optListings          :: Bool       -- ^ Use listings package for code blocks
-    , optAscii             :: Bool       -- ^ Avoid using nonascii characters
     }
 
 -- | Defaults for command-line options.
@@ -171,7 +170,6 @@ defaultOpts = Opt
     , optCslFile           = ""
     , optAbbrevsFile       = Nothing
     , optListings          = False
-    , optAscii             = False
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -368,11 +366,6 @@ options =
                                exitWith $ ExitFailure 33)
                  "NUMBER")
                  "" -- "Length of line in characters"
-
-    , Option "" ["ascii"]
-                 (NoArg
-                  (\opt -> return opt { optAscii = True }))
-                 "" -- "Avoid using non-ascii characters in output"
 
     , Option "" ["email-obfuscation"]
                  (ReqArg
@@ -723,7 +716,6 @@ main = do
               , optAbbrevsFile       = cslabbrevs
               , optCiteMethod        = citeMethod
               , optListings          = listings
-              , optAscii             = ascii
              } = opts
 
   when dumpArgs $
@@ -846,9 +838,8 @@ main = do
                                       writerUserDataDir      = datadir,
                                       writerHtml5            = html5 ||
                                            slideVariant == DZSlides,
-                                      writerChapters         = chapters, 
-                                      writerListings         = listings,
-                                      writerAscii            = ascii }
+                                      writerChapters         = chapters,
+                                      writerListings         = listings }
 
   when (isNonTextOutput writerName' && outputFile == "-") $
     do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName' ++ " output to stdout.\n" ++

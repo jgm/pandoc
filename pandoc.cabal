@@ -202,7 +202,7 @@ Library
   -- BEGIN DUPLICATED SECTION
   Build-Depends: containers >= 0.1 && < 0.5,
                  parsec >= 2.1 && < 3.2,
-                 xhtml >= 3000.0 && < 3000.3,
+                 blaze-html >= 0.4 && < 0.5,
                  mtl >= 1.1 && < 2.1,
                  network >= 2 && < 2.4,
                  filepath >= 1.1 && < 1.3,
@@ -229,7 +229,7 @@ Library
   else
     Build-depends: base >= 3 && < 4
   if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.2.9 && < 0.4
+    Build-depends: highlighting-kate >= 0.4 && < 0.5
     cpp-options:   -D_HIGHLIGHTING
   if impl(ghc >= 6.12)
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
@@ -290,7 +290,7 @@ Executable pandoc
   -- BEGIN DUPLICATED SECTION
   Build-Depends: containers >= 0.1 && < 0.5,
                  parsec >= 2.1 && < 3.2,
-                 xhtml >= 3000.0 && < 3000.3,
+                 blaze-html >= 0.4 && < 0.5,
                  mtl >= 1.1 && < 2.1,
                  network >= 2 && < 2.4,
                  filepath >= 1.1 && < 1.3,
@@ -317,7 +317,7 @@ Executable pandoc
   else
     Build-depends: base >= 3 && < 4
   if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.2.9 && < 0.4
+    Build-depends: highlighting-kate >= 0.4 && < 0.5
     cpp-options:   -D_HIGHLIGHTING
   if impl(ghc >= 6.12)
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
