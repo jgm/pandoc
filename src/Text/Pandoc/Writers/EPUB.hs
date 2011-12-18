@@ -32,7 +32,7 @@ import Data.IORef
 import Data.Maybe ( fromMaybe, isNothing )
 import Data.List ( findIndices, isPrefixOf )
 import System.Environment ( getEnv )
-import System.FilePath ( (</>), takeBaseName, takeExtension )
+import System.FilePath ( (</>), (<.>), takeBaseName, takeExtension )
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 ( fromString )
 import Codec.Archive.Zip
@@ -63,6 +63,15 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
   let vars = writerVariables opts'
   let mbCoverImage = lookup "epub-cover-image" vars
 
+  titlePageTemplate <- readDataFile (writerUserDataDir opts)
+                       $ "templates" </> "epub-titlepage" <.> "html"
+
+  coverImageTemplate <- readDataFile (writerUserDataDir opts)
+                       $ "templates" </> "epub-coverimage" <.> "html"
+
+  pageTemplate <- readDataFile (writerUserDataDir opts)
+                       $ "templates" </> "epub-page" <.> "html"
+
   -- cover page
   (cpgEntry, cpicEntry) <-
                 case mbCoverImage of
@@ -70,9 +79,8 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
                      Just img  -> do
                        let coverImage = "cover-image" ++ takeExtension img
                        let cpContent = fromString $ writeHtmlString
-                             opts'{writerTemplate = pageTemplate
-                                  ,writerVariables =
-                                    ("coverimage",coverImage):vars}
+                             opts'{writerTemplate = coverImageTemplate,
+                                   writerVariables = ("coverimage",coverImage):vars}
                                (Pandoc meta [])
                        imgContent <- B.readFile img
                        return ( [mkEntry "cover.xhtml" cpContent]
@@ -80,8 +88,7 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
 
   -- title page
   let tpContent = fromString $ writeHtmlString
-                     opts'{writerTemplate = pageTemplate
-                          ,writerVariables = ("titlepage","yes"):vars}
+                     opts'{writerTemplate = titlePageTemplate}
                      (Pandoc meta [])
   let tpEntry = mkEntry "title_page.xhtml" tpContent
 
@@ -297,44 +304,4 @@ imageTypeOf x = case drop 1 (map toLower (takeExtension x)) of
                      "gif"       -> Just "image/gif"
                      "svg"       -> Just "image/svg+xml"
                      _           -> Nothing
-
-pageTemplate :: String
-pageTemplate = unlines
- [ "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
- , "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">"
- , "<html xmlns=\"http://www.w3.org/1999/xhtml\">"
- , "<head>"
- , "<title>$title$</title>"
- , "$if(coverimage)$"
- , "<style type=\"text/css\">img{ max-width: 100%; }</style>"
- , "$endif$"
- , "<link href=\"stylesheet.css\" type=\"text/css\" rel=\"stylesheet\" />"
- , "</head>"
- , "<body>"
- , "$if(coverimage)$"
- , "<div id=\"cover-image\">"
- , "<img src=\"$coverimage$\" alt=\"$title$\" />"
- , "</div>"
- , "$else$"
- , "$if(titlepage)$"
- , "<h1 class=\"title\">$title$</h1>"
- , "$for(author)$"
- , "<h2 class=\"author\">$author$</h2>"
- , "$endfor$"
- , "$if(date)$"
- , "<h3 class=\"date\">$date$</h3>"
- , "$endif$"
- , "$else$"
- , "<h1>$title$</h1>"
- , "$if(toc)$"
- , "<div id=\"$idprefix$TOC\">"
- , "$toc$"
- , "</div>"
- , "$endif$"
- , "$endif$"
- , "$body$"
- , "$endif$"
- , "</body>"
- , "</html>"
- ]
 
