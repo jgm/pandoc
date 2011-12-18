@@ -36,6 +36,7 @@ import Text.Highlighting.Kate ( languages, highlightAs, formatAsHtml, FormatOpti
 import Data.List (find)
 import Data.Maybe (fromMaybe)
 import Data.Char (toLower)
+import qualified Text.Blaze.Html5.Attributes as A
 
 highlightHtml :: Bool   -- ^ True if inline HTML
               -> Attr   -- ^ Attributes of the Code or CodeBlock
@@ -52,12 +53,14 @@ highlightHtml inline (id', classes, keyvals) rawCode =
                   Just _    -> [OptNumberLines]
       addBirdTracks = "literate" `elem` classes
       lcLanguages = map (map toLower) languages
+      addId = if null id' then id else (! A.id (toValue id'))
   in  case find (\c -> (map toLower c) `elem` lcLanguages) classes of
             Nothing        -> Left "Unknown or unsupported language"
             Just language  -> case highlightAs language rawCode of
                                    Left err -> Left err
-                                   Right hl -> Right $ formatAsHtml fmtOpts language $
-                                                       if addBirdTracks
+                                   Right hl -> Right $ addId
+                                                     $ formatAsHtml fmtOpts language
+                                                     $ if addBirdTracks
                                                           then map (("ot","> "):) hl
                                                           else hl
 
