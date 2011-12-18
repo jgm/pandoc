@@ -546,7 +546,7 @@ inlineToHtml opts inline =
                                         $ strToHtml str
                              Right h -> return h
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
-                        return . (H.span ! A.style "text-decoration: line-through;")
+                        return . H.del
     (SmallCaps lst)   -> inlineListToHtml opts lst >>=
                          return . (H.span ! A.style "font-variant: small-caps;")
     (Superscript lst) -> inlineListToHtml opts lst >>= return . H.sup
