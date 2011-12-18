@@ -40,9 +40,11 @@ import Data.Char (toLower)
 highlightHtml :: Bool   -- ^ True if inline HTML
               -> Attr   -- ^ Attributes of the Code or CodeBlock
               -> String -- ^ Raw contents of the Code or CodeBlock
-              -> Either String Html  -- ^ An error or the formatted Html
-highlightHtml inline (_, classes, keyvals) rawCode =
-  let firstNum = read $ fromMaybe "1" $ lookup "startFrom" keyvals
+              -> Either String Html   -- ^ An error or the formatted Html
+highlightHtml inline (id', classes, keyvals) rawCode =
+  let firstNum = case reads (fromMaybe "1" $ lookup "startFrom" keyvals) of
+                      ((n,_):_) -> n
+                      []        -> 1
       fmtOpts = [OptNumberFrom firstNum] ++
                 [OptInline | inline] ++
                 case find (`elem` ["number","numberLines","number-lines"]) classes of
