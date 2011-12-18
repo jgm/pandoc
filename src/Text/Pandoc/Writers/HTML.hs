@@ -36,7 +36,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Highlighting ( highlightHtml, defaultHighlightingCss )
-import Text.Pandoc.XML (stripTags)
+import Text.Pandoc.XML (stripTags, escapeStringForXML)
 import Network.HTTP ( urlEncode )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
@@ -67,7 +67,8 @@ defaultWriterState = WriterState {stNotes= [], stMath = False, stHighlighting = 
 -- Helpers to render HTML with the appropriate function.
 
 strToHtml :: String -> Html
-strToHtml = toHtml
+strToHtml = preEscapedString . escapeStringForXML
+-- strToHtml = toHtml
 
 -- | Hard linebreak.
 nl :: WriterOptions -> Html
