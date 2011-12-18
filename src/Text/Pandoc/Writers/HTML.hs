@@ -508,7 +508,7 @@ tableItemToHtml opts tag' align' item = do
   let attribs = if writerHtml5 opts
                    then A.style (toValue $ "text-align: " ++ alignStr ++ ";")
                    else A4.align (toValue alignStr)
-  return $ tag' ! attribs $ contents >> nl opts
+  return $ (tag' ! attribs $ contents) >> nl opts
 
 toListItems :: WriterOptions -> [Html] -> [Html]
 toListItems opts items = map (toListItem opts) items ++ [nl opts]
