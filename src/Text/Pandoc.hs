@@ -96,6 +96,7 @@ module Text.Pandoc
                , writeODT
                , writeEPUB
                , writeOrg
+               , writeAsciiDoc
                -- * Writer options used in writers 
                , WriterOptions (..)
                , HTMLSlideVariant (..)
@@ -135,6 +136,7 @@ import Text.Pandoc.Writers.RTF
 import Text.Pandoc.Writers.MediaWiki
 import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.Org
+import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Templates
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
@@ -173,6 +175,7 @@ writers = [("native"       , writeNative)
                              writeHtmlString o{ writerLiterateHaskell = True })
           ,("s5"           , writeHtmlString)
           ,("slidy"        , writeHtmlString)
+          ,("dzslides"     , writeHtmlString)
           ,("docbook"      , writeDocbook)
           ,("opendocument" , writeOpenDocument)
           ,("latex"        , writeLaTeX)
@@ -192,6 +195,7 @@ writers = [("native"       , writeNative)
           ,("textile"      , writeTextile)
           ,("rtf"          , writeRTF)
           ,("org"          , writeOrg)
+          ,("asciidoc"     , writeAsciiDoc)
           ]
 
 -- | Converts a transformation on the Pandoc AST into a function

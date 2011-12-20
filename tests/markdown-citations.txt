@@ -1,4 +1,5 @@
-# Pandoc with citeproc-hs
+Pandoc with citeproc-hs
+=======================
 
 -   [@nonexistent]
 
@@ -28,7 +29,8 @@
 
 -   With some markup [*see* @item1 p. **32**].
 
-# References
+References
+==========
 
 [^1]: A citation without locators [@item3].
 

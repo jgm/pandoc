@@ -1,5 +1,5 @@
 Name:            pandoc
-Version:         1.8.2.1
+Version:         1.9
 Cabal-Version:   >= 1.6
 Build-Type:      Custom
 License:         GPL
@@ -19,8 +19,8 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  reStructuredText, HTML, LaTeX and Textile, and it can write
                  markdown, reStructuredText, HTML, LaTeX, ConTeXt, Docbook,
                  OpenDocument, ODT, RTF, MediaWiki, Textile, groff man pages,
-                 plain text, Emacs Org-Mode, EPUB, and S5 and Slidy HTML
-                 slide shows.
+                 plain text, Emacs Org-Mode, AsciiDoc, EPUB,
+                 and S5 and Slidy HTML slide shows.
                  .
                  Pandoc extends standard markdown syntax with footnotes,
                  embedded LaTeX, definition lists, tables, and other
@@ -44,7 +44,10 @@ Data-Files:
                  templates/default.rst, templates/default.plain,
                  templates/default.mediawiki, templates/default.rtf,
                  templates/default.s5, templates/default.slidy,
-                 templates/default.textile, templates/default.org
+                 templates/default.dzslides, templates/default.asciidoc,
+                 templates/default.textile, templates/default.org,
+                 templates/epub-titlepage.html, templates/epub-page.html,
+                 templates/epub-coverimage.html,
                  -- data for ODT writer
                  reference.odt,
                  -- stylesheet for EPUB writer
@@ -54,15 +57,23 @@ Data-Files:
                  data/MathMLinHTML.js,
                  -- data for S5 writer
                  s5/default/slides.min.js,
+                 s5/default/slides.js,
                  s5/default/s5-core.css,
                  s5/default/framing.css,
                  s5/default/pretty.css,
                  s5/default/opera.css,
                  s5/default/outline.css,
                  s5/default/print.css,
+                 s5/default/slides.css,
+                 s5/default/iepngfix.htc,
                  -- data for slidy writer
-                 slidy/slidy.css,
-                 slidy/slidy.min.js,
+                 slidy/styles/slidy.css,
+                 slidy/scripts/slidy.js.gz,
+                 slidy/graphics/fold.gif,
+                 slidy/graphics/unfold.gif,
+                 slidy/graphics/nofold-dim.gif,
+                 slidy/graphics/unfold-dim.gif,
+                 slidy/graphics/fold-dim.gif,
                  -- data for citeproc
                  default.csl,
                  -- documentation
@@ -121,6 +132,7 @@ Extra-Source-Files:
                  tests/tables.native,
                  tests/tables.opendocument,
                  tests/tables.org,
+                 tests/tables.asciidoc,
                  tests/tables.texinfo,
                  tests/tables.rst,
                  tests/tables.rtf,
@@ -140,6 +152,7 @@ Extra-Source-Files:
                  tests/writer.native,
                  tests/writer.opendocument,
                  tests/writer.org,
+                 tests/writer.asciidoc,
                  tests/writer.rst,
                  tests/writer.rtf,
                  tests/writer.texinfo,
@@ -191,7 +204,7 @@ Library
   -- BEGIN DUPLICATED SECTION
   Build-Depends: containers >= 0.1 && < 0.5,
                  parsec >= 2.1 && < 3.2,
-                 xhtml >= 3000.0 && < 3000.3,
+                 blaze-html >= 0.4 && < 0.5,
                  mtl >= 1.1 && < 2.1,
                  network >= 2 && < 2.4,
                  filepath >= 1.1 && < 1.3,
@@ -201,29 +214,30 @@ Library
                  zip-archive >= 0.1.1.7 && < 0.2,
                  utf8-string >= 0.3 && < 0.4,
                  old-time >= 1 && < 1.1,
-                 HTTP >= 4000.0.5 && < 4000.2,
+                 HTTP >= 4000.0.5 && < 4000.3,
                  texmath >= 0.5 && < 0.6,
                  xml >= 1.3.5 && < 1.4,
                  random >= 1 && < 1.1,
                  extensible-exceptions >= 0.1 && < 0.2,
-                 citeproc-hs >= 0.3.1 && < 0.4,
-                 pandoc-types == 1.8.*,
+                 citeproc-hs >= 0.3.4 && < 0.4,
+                 pandoc-types == 1.9.*,
                  json >= 0.4 && < 0.6,
                  dlist >= 0.4 && < 0.6,
-                 tagsoup >= 0.12 && < 0.13,
-                 base64-bytestring >= 0.1 && < 0.2
+                 tagsoup >= 0.12.5 && < 0.13,
+                 base64-bytestring >= 0.1 && < 0.2,
+                 zlib >= 0.5 && <= 0.6
   if impl(ghc >= 6.10)
     Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
   else
     Build-depends: base >= 3 && < 4
   if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.2.9 && < 0.3
+    Build-depends: highlighting-kate >= 0.4 && < 0.5
     cpp-options:   -D_HIGHLIGHTING
   if impl(ghc >= 6.12)
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
   else
     Ghc-Options:     -O2 -Wall
-  Ghc-Prof-Options: -auto-all -caf-all
+  Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   Extensions:         CPP
   Hs-Source-Dirs:  src
   -- END DUPLICATED SECTION
@@ -252,14 +266,15 @@ Library
                    Text.Pandoc.Writers.Markdown,
                    Text.Pandoc.Writers.RST,
                    Text.Pandoc.Writers.Org,
+                   Text.Pandoc.Writers.AsciiDoc,
                    Text.Pandoc.Writers.Textile,
                    Text.Pandoc.Writers.MediaWiki,
                    Text.Pandoc.Writers.RTF,
                    Text.Pandoc.Writers.ODT,
                    Text.Pandoc.Writers.EPUB,
-                   Text.Pandoc.S5,
-                   Text.Pandoc.Templates
-                   Text.Pandoc.Biblio
+                   Text.Pandoc.Templates,
+                   Text.Pandoc.Biblio,
+                   Text.Pandoc.SelfContained
   Other-Modules:   Text.Pandoc.XML,
                    Text.Pandoc.UTF8,
                    Text.Pandoc.MIME,
@@ -277,7 +292,7 @@ Executable pandoc
   -- BEGIN DUPLICATED SECTION
   Build-Depends: containers >= 0.1 && < 0.5,
                  parsec >= 2.1 && < 3.2,
-                 xhtml >= 3000.0 && < 3000.3,
+                 blaze-html >= 0.4 && < 0.5,
                  mtl >= 1.1 && < 2.1,
                  network >= 2 && < 2.4,
                  filepath >= 1.1 && < 1.3,
@@ -287,29 +302,30 @@ Executable pandoc
                  zip-archive >= 0.1.1.7 && < 0.2,
                  utf8-string >= 0.3 && < 0.4,
                  old-time >= 1 && < 1.1,
-                 HTTP >= 4000.0.5 && < 4000.2,
+                 HTTP >= 4000.0.5 && < 4000.3,
                  texmath >= 0.5 && < 0.6,
                  xml >= 1.3.5 && < 1.4,
                  random >= 1 && < 1.1,
                  extensible-exceptions >= 0.1 && < 0.2,
-                 citeproc-hs >= 0.3.1 && < 0.4,
-                 pandoc-types == 1.8.*,
+                 citeproc-hs >= 0.3.4 && < 0.4,
+                 pandoc-types == 1.9.*,
                  json >= 0.4 && < 0.6,
                  dlist >= 0.4 && < 0.6,
-                 tagsoup >= 0.12 && < 0.13,
-                 base64-bytestring >= 0.1 && < 0.2
+                 tagsoup >= 0.12.5 && < 0.13,
+                 base64-bytestring >= 0.1 && < 0.2,
+                 zlib >= 0.5 && <= 0.6
   if impl(ghc >= 6.10)
     Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
   else
     Build-depends: base >= 3 && < 4
   if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.2.9 && < 0.3
+    Build-depends: highlighting-kate >= 0.4 && < 0.5
     cpp-options:   -D_HIGHLIGHTING
   if impl(ghc >= 6.12)
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
   else
     Ghc-Options:     -O2 -Wall
-  Ghc-Prof-Options: -auto-all -caf-all
+  Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   Extensions:         CPP
   Hs-Source-Dirs:  src
   -- END DUPLICATED SECTION
@@ -327,7 +343,7 @@ Executable markdown2pdf
     Ghc-Options:        -Wall -threaded
   else
     Ghc-Options:        -Wall
-  Ghc-Prof-Options:   -auto-all
+  Ghc-Prof-Options:   -auto-all -rtsopts
   Extensions:         CPP
   if flag(wrappers)
     Buildable:        True

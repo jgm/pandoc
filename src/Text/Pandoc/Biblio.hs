@@ -31,7 +31,7 @@ module Text.Pandoc.Biblio ( processBiblio ) where
 
 import Data.List
 import Data.Unique
-import Data.Char ( isDigit, isPunctuation )
+import Data.Char ( isDigit )
 import qualified Data.Map as M
 import Text.CSL hiding ( Cite(..), Citation(..) )
 import qualified Text.CSL as CSL ( Cite(..) )
@@ -43,11 +43,15 @@ import Control.Monad
 
 -- | Process a 'Pandoc' document by adding citations formatted
 -- according to a CSL style, using 'citeproc' from citeproc-hs.
-processBiblio :: FilePath -> [Reference] -> Pandoc -> IO Pandoc
-processBiblio cslfile r p
+processBiblio :: FilePath -> Maybe FilePath -> [Reference] -> Pandoc
+              -> IO Pandoc
+processBiblio cslfile abrfile r p
     = if null r then return p
       else do
         csl <- readCSLFile cslfile
+        abbrevs <- case abrfile of
+                      Just f  -> readJsonAbbrevFile f
+                      Nothing -> return []
         p'   <- bottomUpM setHash p
         let (nts,grps) = if styleClass csl == "note"
                          then let cits   = queryWith getCite p'
@@ -55,29 +59,36 @@ processBiblio cslfile r p
                                   needNt = cits \\ concat ncits
                               in (,) needNt $ getNoteCitations needNt p'
                          else (,) [] $ queryWith getCitation p'
-            result     = citeproc procOpts csl r (setNearNote csl $
+            style      = csl { styleAbbrevs = abbrevs }
+            result     = citeproc procOpts style r (setNearNote style $
                             map (map toCslCite) grps)
             cits_map   = M.fromList $ zip grps (citations result)
-            biblioList = map (renderPandoc' csl) (bibliography result)
-            Pandoc m b = bottomUp (procInlines $ processCite csl cits_map) p'
+            biblioList = map (renderPandoc' style) (bibliography result)
+            Pandoc m b = bottomUp (procInlines $ processCite style cits_map) p'
         return . generateNotes nts . Pandoc m $ b ++ biblioList
 
 -- | Substitute 'Cite' elements with formatted citations.
 processCite :: Style -> M.Map [Citation] [FormattedOutput] -> [Inline] -> [Inline]
+processCite s cs (Cite t _ : rest) =
+   case M.lookup t cs of
+        Just (x:xs) ->
+                   if isTextualCitation t
+                   then renderPandoc s [x] ++
+                         if null xs
+                         then processCite s cs rest
+                         else [Space,  Cite t (renderPandoc s xs)]
+                            ++ processCite s cs rest
+                   else Cite t (renderPandoc s (x:xs)) : processCite s cs rest
+        _ -> Str ("Error processing " ++ show t) : processCite s cs rest
+processCite s cs (x:xs) = x : processCite s cs xs
 processCite _ _ [] = []
-processCite s cs (i:is)
-    | Cite t _ <- i = process t ++ processCite s cs is
-    | otherwise     = i          : processCite s cs is
-    where
-      addNt t x = if null x then [] else [Cite t $ renderPandoc s x]
-      process t = case M.lookup t cs of
-                    Just  x -> if isTextualCitation t && x /= []
-                               then renderPandoc s [head x] ++
-                                    if tail x /= []
-                                    then Space : addNt t (tail x)
-                                    else []
-                               else [Cite t $ renderPandoc s x]
-                    Nothing -> [Str ("Error processing " ++ show t)]
+
+procInlines :: ([Inline] -> [Inline]) -> Block -> Block
+procInlines f b
+    | Plain    inls <- b = Plain    $ f inls
+    | Para     inls <- b = Para     $ f inls
+    | Header i inls <- b = Header i $ f inls
+    | otherwise          = b
 
 isTextualCitation :: [Citation] -> Bool
 isTextualCitation (c:_) = citationMode c == AuthorInText
@@ -112,13 +123,6 @@ setHash (Citation i p s cm nn _)
 generateNotes :: [Inline] -> Pandoc -> Pandoc
 generateNotes needNote = bottomUp (mvCiteInNote needNote)
 
-procInlines :: ([Inline] -> [Inline]) -> Block -> Block
-procInlines f b
-    | Plain    inls <- b = Plain    $ f inls
-    | Para     inls <- b = Para     $ f inls
-    | Header i inls <- b = Header i $ f inls
-    | otherwise          = b
-
 mvCiteInNote :: [Inline] -> Block -> Block
 mvCiteInNote is = procInlines mvCite
     where
@@ -143,9 +147,8 @@ mvCiteInNote is = procInlines mvCite
           | otherwise        = toCapital (i ++ [Str "."])
 
       checkPt i
-          | Cite c o : xs <- i
-          , endWithPunct o, startWithPunct xs
-          , endWithPunct o = Cite c (initInline o) : checkPt xs
+          | Cite c o : xs <- i , endWithPunct o, startWithPunct xs
+                           = Cite c (initInline o) : checkPt xs
           | x:xs <- i      = x : checkPt xs
           | otherwise      = []
       checkNt  = bottomUp $ procInlines checkPt
@@ -165,13 +168,9 @@ toCslCite c
                       AuthorInText   -> (True, False)
                       SuppressAuthor -> (False,True )
                       NormalCitation -> (False,False)
-          s'      = case s of
-                         []                                -> []
-                         (Str (y:_) : _) | isPunctuation y -> s
-                         _                                 -> Str "," : Space : s
       in   emptyCite { CSL.citeId         = citationId c
                      , CSL.citePrefix     = PandocText $ citationPrefix c
-                     , CSL.citeSuffix     = PandocText $ s'
+                     , CSL.citeSuffix     = PandocText $ s
                      , CSL.citeLabel      = la
                      , CSL.citeLocator    = lo
                      , CSL.citeNoteNumber = show $ citationNoteNum c
@@ -182,9 +181,13 @@ toCslCite c
 
 locatorWords :: [Inline] -> (String, [Inline])
 locatorWords inp =
-  case parse pLocatorWords "suffix" inp of
+  case parse pLocatorWords "suffix" $ breakup inp of
        Right r   -> r
        Left _    -> ("",inp)
+   where breakup [] = []
+         breakup (Str x : xs) = map Str (splitup x) ++ breakup xs
+         breakup (x : xs) = x : breakup xs
+         splitup = groupBy (\x y -> x /= '\160' && y /= '\160')
 
 pLocatorWords :: GenParser Inline st (String, [Inline])
 pLocatorWords = do
@@ -201,7 +204,7 @@ pMatch condition = try $ do
   return t
 
 pSpace :: GenParser Inline st Inline
-pSpace = pMatch (== Space)
+pSpace = pMatch (\t -> t == Space || t == Str "\160")
 
 pLocator :: GenParser Inline st String
 pLocator = try $ do

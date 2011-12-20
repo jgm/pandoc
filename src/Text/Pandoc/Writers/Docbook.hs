@@ -255,7 +255,8 @@ inlineToDocbook _ EnDash = text "–"
 inlineToDocbook _ (Code _ str) = 
   inTagsSimple "literal" $ text (escapeStringForXML str)
 inlineToDocbook opts (Math _ str) = inlinesToDocbook opts $ readTeXMath str
-inlineToDocbook _ (RawInline _ _) = empty
+inlineToDocbook _ (RawInline f x) | f == "html" || f == "docbook" = text x
+                                  | otherwise                     = empty
 inlineToDocbook _ LineBreak = inTagsSimple "literallayout" empty
 inlineToDocbook _ Space = space
 inlineToDocbook opts (Link txt (src, _)) =

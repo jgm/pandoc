@@ -29,6 +29,6 @@ infix 5 =:
 
 tests :: [Test]
 tests = [ "indented code after list"
-             =: (orderedList [ para "one" +++ para "two" ] +++ codeBlock "test")
+             =: (orderedList [ para "one" <> para "two" ] <> codeBlock "test")
              =?> "1.  one\n\n    two\n\n<!-- -->\n\n    test"
         ]

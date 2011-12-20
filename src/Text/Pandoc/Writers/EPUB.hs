@@ -32,7 +32,7 @@ import Data.IORef
 import Data.Maybe ( fromMaybe, isNothing )
 import Data.List ( findIndices, isPrefixOf )
 import System.Environment ( getEnv )
-import System.FilePath ( (</>), takeBaseName, takeExtension )
+import System.FilePath ( (</>), (<.>), takeBaseName, takeExtension )
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 ( fromString )
 import Codec.Archive.Zip
@@ -46,7 +46,6 @@ import Text.Pandoc.UUID
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.Markdown ( writePlain )
 import Data.Char ( toLower )
-import System.Directory ( copyFile )
 import Network.URI ( unEscapeString )
 
 -- | Produce an EPUB file from a Pandoc document.
@@ -64,17 +63,24 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
   let vars = writerVariables opts'
   let mbCoverImage = lookup "epub-cover-image" vars
 
+  titlePageTemplate <- readDataFile (writerUserDataDir opts)
+                       $ "templates" </> "epub-titlepage" <.> "html"
+
+  coverImageTemplate <- readDataFile (writerUserDataDir opts)
+                       $ "templates" </> "epub-coverimage" <.> "html"
+
+  pageTemplate <- readDataFile (writerUserDataDir opts)
+                       $ "templates" </> "epub-page" <.> "html"
+
   -- cover page
   (cpgEntry, cpicEntry) <-
                 case mbCoverImage of
                      Nothing   -> return ([],[])
                      Just img  -> do
                        let coverImage = "cover-image" ++ takeExtension img
-                       copyFile img coverImage
                        let cpContent = fromString $ writeHtmlString
-                             opts'{writerTemplate = pageTemplate
-                                  ,writerVariables =
-                                    ("coverimage",coverImage):vars}
+                             opts'{writerTemplate = coverImageTemplate,
+                                   writerVariables = ("coverimage",coverImage):vars}
                                (Pandoc meta [])
                        imgContent <- B.readFile img
                        return ( [mkEntry "cover.xhtml" cpContent]
@@ -82,8 +88,7 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
 
   -- title page
   let tpContent = fromString $ writeHtmlString
-                     opts'{writerTemplate = pageTemplate
-                          ,writerVariables = ("titlepage","yes"):vars}
+                     opts'{writerTemplate = titlePageTemplate}
                      (Pandoc meta [])
   let tpEntry = mkEntry "title_page.xhtml" tpContent
 
@@ -130,12 +135,13 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
                     Pandoc meta [Plain t]
   let plainTitle = plainify $ docTitle meta
   let plainAuthors = map plainify $ docAuthors meta
+  let plainDate = plainify $ docDate meta
   let contentsData = fromString $ ppTopElement $
         unode "package" ! [("version","2.0")
                           ,("xmlns","http://www.idpf.org/2007/opf")
                           ,("unique-identifier","BookId")] $
           [ metadataElement (writerEPUBMetadata opts')
-              uuid lang plainTitle plainAuthors mbCoverImage
+              uuid lang plainTitle plainAuthors plainDate mbCoverImage
           , unode "manifest" $
              [ unode "item" ! [("id","ncx"), ("href","toc.ncx")
                               ,("media-type","application/x-dtbncx+xml")] $ ()
@@ -210,8 +216,8 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
                   (picEntries ++ cpicEntry ++ cpgEntry ++ chapterEntries) )
   return $ fromArchive archive
 
-metadataElement :: String -> UUID -> String -> String -> [String] -> Maybe a -> Element
-metadataElement metadataXML uuid lang title authors mbCoverImage =
+metadataElement :: String -> UUID -> String -> String -> [String] -> String -> Maybe a -> Element
+metadataElement metadataXML uuid lang title authors date mbCoverImage =
   let userNodes = parseXML metadataXML
       elt = unode "metadata" ! [("xmlns:dc","http://purl.org/dc/elements/1.1/")
                                ,("xmlns:opf","http://www.idpf.org/2007/opf")] $
@@ -227,6 +233,7 @@ metadataElement metadataXML uuid lang title authors mbCoverImage =
            [ unode "dc:identifier" ! [("id","BookId")] $ show uuid |
                not (elt `contains` "identifier") ] ++
            [ unode "dc:creator" ! [("opf:role","aut")] $ a | a <- authors ] ++
+           [ unode "dc:date" date | not (elt `contains` "date") ] ++
            [ unode "meta" ! [("name","cover"), ("content","cover-image")] $ () |
                not (isNothing mbCoverImage) ]
   in  elt{ elContent = elContent elt ++ map Elem newNodes }
@@ -276,7 +283,17 @@ transformBlock x = x
 
 -- | Version of 'ppTopElement' that specifies UTF-8 encoding.
 ppTopElement :: Element -> String
-ppTopElement = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++) . ppElement
+ppTopElement = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++) . unEntity . ppElement
+  -- unEntity removes numeric  entities introduced by ppElement
+  -- (kindlegen seems to choke on these).
+  where unEntity [] = ""
+        unEntity ('&':'#':xs) =
+                   let (ds,ys) = break (==';') xs
+                       rest = drop 1 ys
+                   in  case reads ('\'':'\\':ds ++ "'") of
+                          ((x,_):_) -> x : unEntity rest
+                          _         -> '&':'#':unEntity xs
+        unEntity (x:xs) = x : unEntity xs
 
 imageTypeOf :: FilePath -> Maybe String
 imageTypeOf x = case drop 1 (map toLower (takeExtension x)) of
@@ -287,39 +304,4 @@ imageTypeOf x = case drop 1 (map toLower (takeExtension x)) of
                      "gif"       -> Just "image/gif"
                      "svg"       -> Just "image/svg+xml"
                      _           -> Nothing
-
-pageTemplate :: String
-pageTemplate = unlines
- [ "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
- , "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">"
- , "<html xmlns=\"http://www.w3.org/1999/xhtml\">"
- , "<head>"
- , "<title>$title$</title>"
- , "$if(coverimage)$"
- , "<style type=\"text/css\">img{ max-width: 100%; }</style>"
- , "$endif$"
- , "<link href=\"stylesheet.css\" type=\"text/css\" rel=\"stylesheet\" />"
- , "</head>"
- , "<body>"
- , "$if(coverimage)$"
- , "<div id=\"cover-image\">"
- , "<img src=\"$coverimage$\" alt=\"$title$\" />"
- , "</div>"
- , "$else$"
- , "$if(titlepage)$"
- , "<h1 class=\"title\">$title$</h1>"
- , "$for(author)$"
- , "<h2 class=\"author\">$author$</h2>"
- , "$endfor$"
- , "$else$"
- , "<h1>$title$</h1>"
- , "$if(toc)$"
- , "$toc$"
- , "$endif$"
- , "$endif$"
- , "$body$"
- , "$endif$"
- , "</body>"
- , "</html>"
- ]
 

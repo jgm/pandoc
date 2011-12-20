@@ -72,7 +72,7 @@ import Text.ParserCombinators.Parsec
 import Control.Monad (liftM, when, forM)
 import System.FilePath
 import Data.List (intercalate, intersperse)
-import Text.XHtml (primHtml, Html)
+import Text.Blaze (preEscapedString, Html)
 import Data.ByteString.Lazy.UTF8 (ByteString, fromString)
 import Text.Pandoc.Shared (readDataFile)
 import qualified Control.Exception.Extensible as E (try, IOException)
@@ -111,7 +111,7 @@ instance TemplateTarget ByteString where
   toTarget = fromString
 
 instance TemplateTarget Html where
-  toTarget = primHtml
+  toTarget = preEscapedString
 
 -- | Renders a template 
 renderTemplate :: TemplateTarget a

@@ -59,7 +59,7 @@ specialChars = "\\`$%^&_~#{}[]\n \t|<>'\"-"
 -- | Returns text between brackets and its matching pair.
 bracketedText :: Char -> Char -> GenParser Char st [Char]
 bracketedText openB closeB = do
-  result <- charsInBalanced' openB closeB
+  result <- charsInBalanced openB closeB anyChar
   return $ [openB] ++ result ++ [closeB]
 
 -- | Returns an option or argument of a LaTeX command.
@@ -511,7 +511,8 @@ demacro (n,st,args) = try $ do
 unknownCommand :: GenParser Char ParserState Block
 unknownCommand = try $ do
   spaces
-  notFollowedBy' $ oneOfStrings ["\\begin","\\end","\\item"]
+  notFollowedBy' $ oneOfStrings ["\\begin","\\end","\\item"] >>
+                   notFollowedBy letter
   state <- getState
   when (stateParserContext state == ListItemState) $
      notFollowedBy' (string "\\item")
@@ -574,6 +575,7 @@ inline =  choice [ str
                  , ensureMath
                  , rawLaTeXInline'
                  , escapedChar
+                 , emptyGroup
                  , unescapedChar
                  , comment
                  ] <?> "inline"
@@ -675,7 +677,14 @@ sect = try (string "\\S") >> return (Str [chr 167])
 escapedChar :: GenParser Char st Inline
 escapedChar = do
   result <- escaped (oneOf specialChars)
-  return $ if result == Str "\n" then Str " " else result
+  return $ if result == '\n' then Str " " else Str [result]
+
+emptyGroup :: GenParser Char st Inline
+emptyGroup = try $ do
+  char '{'
+  spaces
+  char '}'
+  return $ Str ""
 
 -- nonescaped special characters
 unescapedChar :: GenParser Char st Inline
@@ -879,7 +888,7 @@ ensureMath = try $ do
 url :: GenParser Char ParserState Inline
 url = try $ do
   string "\\url"
-  url' <- charsInBalanced '{' '}'
+  url' <- charsInBalanced '{' '}' anyChar
   return $ Link [Code ("",["url"],[]) url'] (escapeURI url', "")
 
 link :: GenParser Char ParserState Inline

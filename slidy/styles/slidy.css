@@ -160,6 +160,10 @@ div.toc-heading {
   text-align: center;
 }
 
+img {
+  image-rendering: optimize-quality;
+}
+
 pre {
  font-size: 80%;
  font-weight: bold;

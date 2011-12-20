@@ -1,0 +1,656 @@
+Pandoc Test Suite
+=================
+:author: John MacFarlane
+:author: Anonymous
+:date: July 17, 2006
+
+This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
+markdown test suite.
+
+'''''
+
+Headers
+-------
+
+Level 2 with an link:/url[embedded link]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Level 3 with _emphasis_
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Level 4
++++++++
+
+Level 5
+
+Level 1
+-------
+
+Level 2 with _emphasis_
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Level 3
+^^^^^^^
+
+with no blank line
+
+Level 2
+~~~~~~~
+
+with no blank line
+
+'''''
+
+Paragraphs
+----------
+
+Here’s a regular paragraph.
+
+In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
+Because a hard-wrapped line in the middle of a paragraph looked like a list
+item.
+
+Here’s one with a bullet. * criminey.
+
+There should be a hard line break +
+here.
+
+'''''
+
+Block Quotes
+------------
+
+E-mail style:
+
+__________________________________________
+This is a block quote. It is pretty short.
+__________________________________________
+
+______________________
+--
+Code in a block quote:
+
+--------------------
+sub status {
+    print "working";
+}
+--------------------
+
+A list:
+
+1.  item one
+2.  item two
+
+Nested block quotes:
+
+______
+nested
+______
+
+______
+nested
+______
+
+--
+______________________
+
+This should not be a block quote: 2 > 1.
+
+And a following paragraph.
+
+'''''
+
+Code Blocks
+-----------
+
+Code:
+
+--------------------------------------
+---- (should be four hyphens)
+
+sub status {
+    print "working";
+}
+
+this code block is indented by one tab
+--------------------------------------
+
+And:
+
+--------------------------------------------
+    this code block is indented by two tabs
+
+These should not be escaped:  \$ \\ \> \[ \{
+--------------------------------------------
+
+'''''
+
+Lists
+-----
+
+Unordered
+~~~~~~~~~
+
+Asterisks tight:
+
+* asterisk 1
+* asterisk 2
+* asterisk 3
+
+Asterisks loose:
+
+* asterisk 1
+* asterisk 2
+* asterisk 3
+
+Pluses tight:
+
+* Plus 1
+* Plus 2
+* Plus 3
+
+Pluses loose:
+
+* Plus 1
+* Plus 2
+* Plus 3
+
+Minuses tight:
+
+* Minus 1
+* Minus 2
+* Minus 3
+
+Minuses loose:
+
+* Minus 1
+* Minus 2
+* Minus 3
+
+Ordered
+~~~~~~~
+
+Tight:
+
+1.  First
+2.  Second
+3.  Third
+
+and:
+
+1.  One
+2.  Two
+3.  Three
+
+Loose using tabs:
+
+1.  First
+2.  Second
+3.  Third
+
+and using spaces:
+
+1.  One
+2.  Two
+3.  Three
+
+Multiple paragraphs:
+
+1.  Item 1, graf one.
++
+Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
+2.  Item 2.
+3.  Item 3.
+
+Nested
+~~~~~~
+
+* Tab
+** Tab
+*** Tab
+
+Here’s another:
+
+1.  First
+2.  Second:
+* Fee
+* Fie
+* Foe
+3.  Third
+
+Same thing but with paragraphs:
+
+1.  First
+2.  Second:
+* Fee
+* Fie
+* Foe
+3.  Third
+
+Tabs and spaces
+~~~~~~~~~~~~~~~
+
+* this is a list item indented with tabs
+* this is a list item indented with spaces
+** this is an example list item indented with tabs
+** this is an example list item indented with spaces
+
+Fancy list markers
+~~~~~~~~~~~~~~~~~~
+
+1.  begins with 2
+2.  and now 3
++
+with a continuation
+a.  sublist with roman numerals, starting with 4
+b.  more items
+A.  a subsublist
+B.  a subsublist
+
+Nesting:
+
+A.  Upper Alpha
+A.  Upper Roman.
+1.  Decimal start with 6
+a.  Lower alpha with paren
+
+Autonumbering:
+
+1.  Autonumber.
+2.  More.
+1.  Nested.
+
+Should not be a list item:
+
+M.A. 2007
+
+B. Williams
+
+'''''
+
+Definition Lists
+----------------
+
+Tight using spaces:
+
+apple::
+  red fruit
+orange::
+  orange fruit
+banana::
+  yellow fruit
+
+Tight using tabs:
+
+apple::
+  red fruit
+orange::
+  orange fruit
+banana::
+  yellow fruit
+
+Loose:
+
+apple::
+  red fruit
+orange::
+  orange fruit
+banana::
+  yellow fruit
+
+Multiple blocks with italics:
+
+_apple_::
+  red fruit
+  +
+  contains seeds, crisp, pleasant to taste
+_orange_::
+  orange fruit
+  +
+---------------------
+{ orange code block }
+---------------------
+  +
+  __________________
+  orange block quote
+  __________________
+
+Multiple definitions, tight:
+
+apple::
+  red fruit
+  +
+  computer
+orange::
+  orange fruit
+  +
+  bank
+
+Multiple definitions, loose:
+
+apple::
+  red fruit
+  +
+  computer
+orange::
+  orange fruit
+  +
+  bank
+
+Blank line after term, indented marker, alternate markers:
+
+apple::
+  red fruit
+  +
+  computer
+orange::
+  orange fruit
+  +
+  1.  sublist
+  2.  sublist
+
+HTML Blocks
+-----------
+
+Simple block on one line:
+
+foo
+And nested without indentation:
+
+foo
+bar
+Interpreted markdown in a table:
+
+This is _emphasized_
+And this is *strong*
+Here’s a simple block:
+
+foo
+This should be a code block, though:
+
+-------
+<div>
+    foo
+</div>
+-------
+
+As should this:
+
+--------------
+<div>foo</div>
+--------------
+
+Now, nested:
+
+foo
+This should just be an HTML comment:
+
+Multiline:
+
+Code block:
+
+----------------
+<!-- Comment -->
+----------------
+
+Just plain comment, with trailing spaces on the line:
+
+Code:
+
+------
+<hr />
+------
+
+Hr’s:
+
+'''''
+
+Inline Markup
+-------------
+
+This is _emphasized_, and so _is this_.
+
+This is *strong*, and so *is this*.
+
+An _link:/url[emphasized link]_.
+
+*_This is strong and em._*
+
+So is *_this_* word.
+
+*_This is strong and em._*
+
+So is *_this_* word.
+
+This is code: `>`, `$`, `\`, `\$`, `<html>`.
+
+[line-through]*This is _strikeout_.*
+
+Superscripts: a^bc^d a^_hello_^ a^hello there^.
+
+Subscripts: H~2~O, H~23~O, H~many of them~O.
+
+These should not be superscripts or subscripts, because of the unescaped
+spaces: a^b c^d, a~b c~d.
+
+'''''
+
+Smart quotes, ellipses, dashes
+------------------------------
+
+``Hello,'' said the spider. ```Shelob' is my name.''
+
+`A', `B', and `C' are letters.
+
+`Oak,' `elm,' and `beech' are names of trees. So is `pine.'
+
+`He said, ``I want to go.''' Were you alive in the 70’s?
+
+Here is some quoted ``code`' and a ``http://example.com/?foo=1&bar=2[quoted
+link]''.
+
+Some dashes: one—two — three—four — five.
+
+Dashes between numbers: 5–7, 255–66, 1987–1999.
+
+Ellipses…and…and….
+
+'''''
+
+LaTeX
+-----
+
+*
+* latexmath:[$2+2=4$]
+* latexmath:[$x \in y$]
+* latexmath:[$\alpha \wedge \omega$]
+* latexmath:[$223$]
+* latexmath:[$p$]-Tree
+* Here’s some display math:
+latexmath:[\[\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}\]]
+* Here’s one that has a line break in it:
+latexmath:[$\alpha + \omega \times x^2$].
+
+These shouldn’t be math:
+
+* To get the famous equation, write `$e = mc^2$`.
+* $22,000 is a _lot_ of money. So is $34,000. (It worked if ``lot'' is
+emphasized.)
+* Shoes ($20) and socks ($5).
+* Escaped `$`: $73 _this should be emphasized_ 23$.
+
+Here’s a LaTeX table:
+
+'''''
+
+Special Characters
+------------------
+
+Here is some unicode:
+
+* I hat: Î
+* o umlaut: ö
+* section: §
+* set membership: ∈
+* copyright: ©
+
+AT&T has an ampersand in their name.
+
+AT&T is another way to write it.
+
+This & that.
+
+4 < 5.
+
+6 > 5.
+
+Backslash: \
+
+Backtick: `
+
+Asterisk: *
+
+Underscore: _
+
+Left brace: \{
+
+Right brace: }
+
+Left bracket: [
+
+Right bracket: ]
+
+Left paren: (
+
+Right paren: )
+
+Greater-than: >
+
+Hash: #
+
+Period: .
+
+Bang: !
+
+Plus: +
+
+Minus: -
+
+'''''
+
+Links
+-----
+
+Explicit
+~~~~~~~~
+
+Just a link:/url/[URL].
+
+link:/url/[URL and title].
+
+link:/url/[URL and title].
+
+link:/url/[URL and title].
+
+link:/url/[URL and title]
+
+link:/url/[URL and title]
+
+link:/url/with_underscore[with_underscore]
+
+mailto:nobody@nowhere.net[Email link]
+
+link:[Empty].
+
+Reference
+~~~~~~~~~
+
+Foo link:/url/[bar].
+
+Foo link:/url/[bar].
+
+Foo link:/url/[bar].
+
+With link:/url/[embedded [brackets]].
+
+link:/url/[b] by itself should be a link.
+
+Indented link:/url[once].
+
+Indented link:/url[twice].
+
+Indented link:/url[thrice].
+
+This should [not][] be a link.
+
+-----------
+[not]: /url
+-----------
+
+Foo link:/url/[bar].
+
+Foo link:/url/[biz].
+
+With ampersands
+~~~~~~~~~~~~~~~
+
+Here’s a http://example.com/?foo=1&bar=2[link with an ampersand in the URL].
+
+Here’s a link with an amersand in the link text: http://att.com/[AT&T].
+
+Here’s an link:/script?foo=1&bar=2[inline link].
+
+Here’s an link:/script?foo=1&bar=2[inline link in pointy braces].
+
+Autolinks
+~~~~~~~~~
+
+With an ampersand: http://example.com/?foo=1&bar=2
+
+* In a list?
+* http://example.com/
+* It should.
+
+An e-mail address: nobody@nowhere.net
+
+________________________________
+Blockquoted: http://example.com/
+________________________________
+
+Auto-links should not occur here: `<http://example.com/>`
+
+------------------------------
+or here: <http://example.com/>
+------------------------------
+
+'''''
+
+Images
+------
+
+From ``Voyage dans la Lune'' by Georges Melies (1902):
+
+image:lalune.jpg[lalune,title="Voyage dans la Lune"]
+
+Here is a movie image:movie.jpg[movie] icon.
+
+'''''
+
+Footnotes
+---------
+
+Here is a footnote reference,footnote:[Here is the footnote. It can go
+anywhere after the footnote reference. It need not be placed at the end of the
+document.] and another.[multiblock footnote omitted] This should _not_ be a
+footnote reference, because it contains a space.[^my note] Here is an inline
+note.footnote:[This is _easier_ to type. Inline notes may contain
+http://google.com[links] and `]` verbatim characters, as well as [bracketed
+text].]
+
+___________________________________________
+Notes can go in quotes.footnote:[In quote.]
+___________________________________________
+
+1.  And in list items.footnote:[In list.]
+
+This paragraph should not be part of the note, as it is not indented.

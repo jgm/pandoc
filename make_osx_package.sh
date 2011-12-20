@@ -5,16 +5,23 @@ VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 RESOURCES=$DIST/Resources
 ROOT=$DIST/pandoc
 BASE=pandoc-$VERSION
-PREFIX=$ROOT/usr/local
+ME=jgm
 
 echo Removing old files...
 rm -rf $DIST
 mkdir -p $RESOURCES
 
 echo Building pandoc...
-runghc Setup.hs configure --user --prefix=/usr/local --flags="executable -library highlighting"
-runghc Setup.hs build
-runghc Setup.hs copy --destdir=$ROOT
+sudo cabal-dev install-deps
+sudo cabal-dev install --reinstall --flags="embed_data_files" citeproc-hs
+sudo cabal-dev install --disable-library-for-ghci highlighting-kate
+sudo cabal-dev install --prefix=/usr/local --datasubdir=$BASE --docdir=/usr/local/doc/$BASE --flags="executable -library highlighting"
+sudo cabal-dev copy --destdir=$ROOT
+sudo chown -R $ME:staff $DIST
+
+gzip $ROOT/usr/local/share/man/man?/*.*
+# cabal gives man pages the wrong permissions
+chmod +r $ROOT/usr/local/share/man/man?/*.*
 
 echo Copying license...
 cp COPYING $RESOURCES/License.txt

@@ -272,8 +272,7 @@ inlineToOrg (Link txt (src, _)) = do
         _ -> do contents <- inlineListToOrg txt
                 modify $ \s -> s{ stLinks = True }
                 return $ "[[" <> text src <> "][" <> contents <> "]]"
-inlineToOrg (Image _ (source', _)) = do
-  let source = unescapeURI source'
+inlineToOrg (Image _ (source, _)) = do
   modify $ \s -> s{ stImages = True }
   return $ "[[" <> text source <> "]]"
 inlineToOrg (Note contents) = do 

@@ -233,17 +233,15 @@ blockToMarkdown _ HorizontalRule =
 blockToMarkdown opts (Header level inlines) = do
   contents <- inlineListToMarkdown opts inlines
   st <- get
-  -- use setext style headers if in literate haskell mode.
-  -- ghc interprets '#' characters in column 1 as line number specifiers.
-  if writerLiterateHaskell opts || stPlain st
-     then let len = offset contents
-          in  return $ contents <> cr <>
-                       (case level of
-                             1  -> text $ replicate len '='
-                             2  -> text $ replicate len '-'
-                             _  -> empty) <> blankline
-     else return $
-       text ((replicate level '#') ++ " ") <> contents <> blankline
+  return $ case level of
+            1 -> contents <> cr <> text (replicate (offset contents) '=') <>
+                  blankline
+            2 -> contents <> cr <> text (replicate (offset contents) '-') <>
+                  blankline
+            -- ghc interprets '#' characters in column 1 as linenum specifiers.
+            _ | stPlain st || writerLiterateHaskell opts ->
+                contents <> blankline
+            _ -> text (replicate level '#') <> space <> contents <> blankline
 blockToMarkdown opts (CodeBlock (_,classes,_) str)
   | "haskell" `elem` classes && "literate" `elem` classes &&
     writerLiterateHaskell opts =
@@ -495,12 +493,11 @@ inlineToMarkdown opts (Cite (c:cs) lst)
         modekey SuppressAuthor = "-"
         modekey _              = ""
 inlineToMarkdown _ (Cite _ _) = return $ text ""
-inlineToMarkdown opts (Link txt (src', tit)) = do
+inlineToMarkdown opts (Link txt (src, tit)) = do
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if null tit
                      then empty
                      else text $ " \"" ++ tit ++ "\""
-  let src = unescapeURI src'
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
   let useRefLinks = writerReferenceLinks opts
   let useAuto = case (tit,txt) of

@@ -1,4 +1,5 @@
-# lhs test
+lhs test
+========
 
 `unsplit` is an arrow that takes a pair of values and combines them to return
 a single value:

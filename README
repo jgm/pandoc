@@ -16,7 +16,8 @@ another, and a command-line tool that uses this library. It can read
 and [LaTeX]; and it can write plain text, [markdown], [reStructuredText],
 [HTML], [LaTeX], [ConTeXt], [RTF], [DocBook XML], [OpenDocument XML], [ODT],
 [GNU Texinfo], [MediaWiki markup], [EPUB], [Textile], [groff man] pages,
-[Emacs Org-Mode], and [Slidy] or [S5] HTML slide shows.
+[Emacs Org-Mode], [AsciiDoc], and [Slidy], [DZSlides], or [S5] HTML
+slide shows.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, delimited code blocks,
@@ -102,8 +103,7 @@ for example,
 
     markdown2pdf sample.txt endnotes.txt
 
-will produce `sample.pdf`.  (If `sample.pdf` exists already,
-it will be backed up before being overwritten.)  An output file
+will produce `sample.pdf`.  An output file
 name can be specified explicitly using the `-o` option:
 
     markdown2pdf -o book.pdf chap1 chap2
@@ -156,7 +156,8 @@ Options
     `mediawiki` (MediaWiki markup), `textile` (Textile), `org` (Emacs
     Org-Mode), `texinfo` (GNU Texinfo), `docbook` (DocBook XML),
     `opendocument` (OpenDocument XML), `odt` (OpenOffice text document),
-    `epub` (EPUB book), `slidy` (Slidy HTML and javascript slide show),
+    `epub` (EPUB book), `asciidoc` (AsciiDoc), `slidy` (Slidy HTML and
+    javascript slide show), `dzslides` (HTML5 + javascript slide show),
     `s5` (S5 HTML and javascript slide show), or `rtf` (rich text
     format). Note that `odt` and `epub` output will not be directed to
     *stdout*; an output filename must be specified using the `-o/--output`
@@ -198,15 +199,15 @@ Options
 :   Parse untranslatable HTML codes and LaTeX environments as raw HTML
     or LaTeX, instead of ignoring them.  Affects only HTML and LaTeX
     input. Raw HTML can be printed in markdown, reStructuredText, HTML, Slidy,
-    and S5 output; raw LaTeX can be printed in markdown, reStructuredText,
-    LaTeX, and ConTeXt output. The default is for the readers to omit
-    untranslatable HTML codes and LaTeX environments. (The LaTeX reader
-    does pass through untranslatable LaTeX *commands*, even if `-R` is not
-    specified.)
+    DZSlides, and S5 output; raw LaTeX can be printed in markdown,
+    reStructuredText, LaTeX, and ConTeXt output. The default is for the
+    readers to omit untranslatable HTML codes and LaTeX environments.
+    (The LaTeX reader does pass through untranslatable LaTeX *commands*,
+    even if `-R` is not specified.)
 
 `-S`, `--smart`
 :   Produce typographically correct output, converting straight quotes
-    to curly quotes, `---` and `--` to dashes, ande `...` to ellipses.
+    to curly quotes, `---` and `--` to dashes, and `...` to ellipses.
     Nonbreaking spaces are inserted after certain abbreviations, such
     as "Mr." (Note: This option is significant only when the input format is
     `markdown` or `textile`.  It is selected automatically when the input
@@ -259,13 +260,23 @@ Options
     provided. If *URL* is not specified, the Google Chart API will be used.
 
 `-i`, `--incremental`
-:   Make list items in Slidy or S5 display incrementally (one by one).
+:   Make list items in Slidy, DZSlides or S5 display incrementally (one by one).
     The default is for lists to be displayed all at once.
 
+`--self-contained`
+:   Produce a standalone HTML file with no external dependencies, using
+    `data:` URIs to incorporate the contents of linked scripts, stylesheets,
+    images, and videos. The resulting file should be "self-contained,"
+    in the sense that it needs no external files and no net access to be
+    displayed properly by a browser. This option works only with HTML output
+    formats, including `html`, `html+lhs`, `s5`, `slidy`, and `dzslides`.
+    Scripts, images, and stylesheets at absolute URLs will be downloaded;
+    those at relative URLs will be sought first relative to the working
+    directory, then relative to the user data directory (see `--data-dir`),
+    and finally relative to pandoc's default data directory.
+
 `--offline`
-:   Include all the CSS and javascript needed for a Slidy or S5 slide
-    show in the output, so that the slide show will work even when no
-    internet connection is available.
+:   Deprecated synonym for `--self-contained`.
 
 `--chapters`
 :   Treat top-level headers as chapters in LaTeX, ConTeXt, and DocBook
@@ -291,11 +302,6 @@ Options
 
 `--columns`=*NUMBER*
 :   Specify length of lines in characters (for text wrapping).
-
-`--ascii`
-:   Use only ascii characters in output.  Currently supported only
-    for HTML output (which uses numerical entities instead of
-    UTF-8 when this option is selected).
 
 `--email-obfuscation=`*none|javascript|references*
 :   Specify a method for obfuscating `mailto:` links in HTML documents.
@@ -416,7 +422,7 @@ Options
 :   Specify bibliography database to be used in resolving
     citations. The database type will be determined from the
     extension of *FILE*, which may be `.mods` (MODS format),
-    `.bib` (BibTeX format), `.bbx` (BibLaTeX format),
+    `.bib` (BibTeX/BibLaTeX format),
     `.ris` (RIS format), `.enl` (EndNote format),
     `.xml` (EndNote XML format), `.wos` (ISI format),
     `.medline` (MEDLINE format), `.copac` (Copac format),
@@ -438,6 +444,22 @@ Options
     will use a default style:  either `default.csl` in the
     user data directory (see `--data-dir`), or, if that is
     not present, the Chicago author-date style.
+
+`--citation-abbreviations=`*FILE*
+:   Specify a file containing abbreviations for journal titles and
+    other bibliographic fields (indicated by setting `form="short"`
+    in the CSL node for the field).  The format is described at
+    <http://citationstylist.org/2011/10/19/abbreviations-for-zotero-test-release/>.
+    Here is a short example:
+
+        { "default": {
+            "container-title": {
+                    "Lloyd's Law Reports": "Lloyd's Rep",
+                    "Estates Gazette": "EG",
+                    "Scots Law Times": "SLT"
+            }
+          }
+        }
 
 `--natbib`
 :   Use natbib for citations in LaTeX output.
@@ -543,7 +565,7 @@ depending on the output format, but include:
 `date`
 :   date of document, as specified in title block
 `lang`
-:   language code for HTML documents
+:   language code for HTML or LaTeX documents
 `slidy-url`
 :   base URL for Slidy documents (defaults to
     `http://www.w3.org/Talks/Tools/Slidy2`)
@@ -623,7 +645,7 @@ Paragraphs
 A paragraph is one or more lines of text followed by one or more blank line.
 Newlines are treated as spaces, so you can reflow your paragraphs as you like.
 If you need a hard line break, put two or more spaces at the end of a line,
-or or type a backslash followed by a newline.
+or type a backslash followed by a newline.
 
 Headers
 -------
@@ -1026,9 +1048,11 @@ Pandoc supports definition lists, using a syntax inspired by
 Each term must fit on one line, which may optionally be followed by
 a blank line, and must be followed by one or more definitions.
 A definition begins with a colon or tilde, which may be indented one
-or two spaces. A term may have multiple definitions, and each definition
-may consist of one or more block elements (paragraph, code block, list,
-etc.), each indented four spaces or one tab stop.
+or two spaces. The body of the definition (including the first line,
+aside from the colon or tilde) should be indented four spaces. A term may have
+multiple definitions, and each definition may consist of one or more block
+elements (paragraph, code block, list, etc.), each indented four spaces or one
+tab stop.
 
 If you leave space after the definition (as in the example above),
 the blocks of the definitions will be considered paragraphs. In some
@@ -1501,6 +1525,9 @@ reStructuredText
   ~ It will be rendered using an interpreted text role `:math:`, as described
     [here](http://www.american.edu/econ/itex2mml/mathhack.rst).
 
+AsciiDoc
+  ~ It will be rendered as `latexmath:[...]`.
+
 Texinfo
   ~ It will be rendered inside a `@math` command.
 
@@ -1513,16 +1540,16 @@ MediaWiki
 Textile
   ~ It will be rendered inside `<span class="math">` tags.
 
-RTF, Docbook, OpenDocument, ODT
+RTF, DocBook, OpenDocument, ODT
   ~ It will be rendered, if possible, using unicode characters,
     and will otherwise appear verbatim.
 
-HTML, Slidy, S5, EPUB
+HTML, Slidy, DZSlides, S5, EPUB
   ~ The way math is rendered in HTML will depend on the
     command-line options selected:
 
     1.  The default is to render TeX math as far as possible using unicode
-        characters, as with RTF, Docbook, and OpenDocument output. Formulas
+        characters, as with RTF, DocBook, and OpenDocument output. Formulas
         are put inside a `span` with `class="math"`, so that they may be
         styled differently from the surrounding text if needed.
 
@@ -1564,11 +1591,11 @@ HTML, Slidy, S5, EPUB
 Raw HTML
 --------
 
-Markdown allows you to insert raw HTML anywhere in a document
+Markdown allows you to insert raw HTML (or DocBook) anywhere in a document
 (except verbatim contexts, where `<`, `>`, and `&` are interpreted
 literally).
 
-The raw HTML is passed through unchanged in HTML, S5, Slidy, EPUB,
+The raw HTML is passed through unchanged in HTML, S5, Slidy, DZSlides, EPUB,
 Markdown, and Textile output, and suppressed in other formats.
 
 *Pandoc extension*.
@@ -1608,7 +1635,6 @@ This departure from standard markdown should make it easier to mix
 markdown with HTML block elements.  For example, one can surround
 a block of markdown text with `<div>` tags without preventing it
 from being interpreted as markdown.
-
 
 Raw TeX
 -------
@@ -1810,18 +1836,17 @@ Pandoc can automatically generate citations and a bibliography in a number of
 styles (using Andrea Rossato's `hs-citeproc`). In order to use this feature,
 you will need a bibliographic database in one of the following formats:
 
-  Format          File extension
-  ------------    --------------
-  MODS            .mods
-  BibTeX          .bib
-  BibLaTeX        .bbx
-  RIS             .ris
-  EndNote         .enl
-  EndNote XML     .xml
-  ISI             .wos
-  MEDLINE         .medline
-  Copac           .copac
-  JSON citeproc   .json
+  Format            File extension
+  ------------      --------------
+  MODS              .mods
+  BibTeX/BibLaTeX   .bib
+  RIS               .ris
+  EndNote           .enl
+  EndNote XML       .xml
+  ISI               .wos
+  MEDLINE           .medline
+  Copac             .copac
+  JSON citeproc     .json
 
 You will need to specify the bibliography file using the `--bibliography`
 command-line option (which may be repeated if you have several
@@ -1874,8 +1899,8 @@ Producing HTML slide shows with Pandoc
 ======================================
 
 You can use Pandoc to produce an HTML + javascript slide presentation
-that can be viewed via a web browser.  There are two ways to do this,
-using [S5] or [Slidy].
+that can be viewed via a web browser.  There are three ways to do this,
+using [S5], [DZSlides], or [Slidy].
 
 Here's the markdown source for a simple slide show, `eating.txt`:
 
@@ -1905,19 +1930,21 @@ for S5, or
 
     pandoc -w slidy -s eating.txt > eating.html
 
-for Slidy.
+for Slidy, or
+
+    pandoc -w dzslides -s eating.txt > eating.html
+
+for DZSlides.
 
 A title page is constructed automatically from the document's title
 block. Each level-one header and horizontal rule begins a new slide.
 
-The file produced by pandoc with the `-s/--standalone` option embeds a
-link to javascripts and CSS files, which are assumed to be available at
-the relative path `ui/default` (for S5) or at the Slidy website at
-`w3.org` (for Slidy).  (These paths can be changed by setting the
-`slidy-url` or `s5-url` variables; see `--variable`, above.)
-If the `--offline` option is specified, the
-scripts and CSS will be included directly in the generated file, so that
-it may be used offline.
+For Slidy and S5, the file produced by pandoc with the `-s/--standalone`
+option embeds a link to javascripts and CSS files, which are assumed to
+be available at the relative path `s5/default` (for S5) or at the Slidy
+website at `w3.org` (for Slidy). (These paths can be changed by setting
+the `slidy-url` or `s5-url` variables; see `--variable`, above.) For DZSlides,
+the (relatively short) javascript and css are included in the file by default.
 
 You can change the style of the slides by putting customized CSS files
 in `$DATADIR/s5/default` (for S5) or `$DATADIR/slidy` (for Slidy),
@@ -1925,6 +1952,10 @@ where `$DATADIR` is the user data directory (see `--data-dir`, above).
 The originals may be found in pandoc's system data directory (generally
 `$CABALDIR/pandoc-VERSION/s5/default`). Pandoc will look there for any
 files it does not find in the user data directory.
+
+The `--self-contained` option can be used to produce a single file that
+contains all of the data necessary to display the slide show, including
+linked scripts, stylesheets, images, and videos.
 
 Incremental lists
 -----------------
@@ -2015,6 +2046,8 @@ Christopher Sawicki, Kelsey Hightower.
 [Haskell]:  http://www.haskell.org/
 [GNU Texinfo]: http://www.gnu.org/software/texinfo/
 [Emacs Org-Mode]: http://orgmode.org
+[AsciiDoc]: http://www.methods.co.nz/asciidoc/
 [EPUB]: http://www.idpf.org/
 [GPL]: http://www.gnu.org/copyleft/gpl.html "GNU General Public License"
+[DZSlides]: http://paulrouget.com/dzslides/
 

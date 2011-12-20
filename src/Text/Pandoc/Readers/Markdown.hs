@@ -108,6 +108,11 @@ atMostSpaces :: Int -> GenParser Char ParserState ()
 atMostSpaces 0 = notFollowedBy (char ' ')
 atMostSpaces n = (char ' ' >> atMostSpaces (n-1)) <|> return ()
 
+litChar :: GenParser Char ParserState Char
+litChar = escapedChar'
+       <|> noneOf "\n"
+       <|> (newline >> notFollowedBy blankline >> return ' ')
+
 -- | Fail unless we're at beginning of a line.
 failUnlessBeginningOfLine :: GenParser tok st () 
 failUnlessBeginningOfLine = do
@@ -212,16 +217,15 @@ referenceKey = try $ do
   lab <- reference
   char ':'
   skipSpaces >> optional newline >> skipSpaces >> notFollowedBy (char '[')
-  let nl = char '\n' >> notFollowedBy blankline >> return ' '
   let sourceURL = liftM unwords $ many $ try $ do
                     notFollowedBy' referenceTitle
                     skipMany spaceChar
-                    optional nl
+                    optional $ newline >> notFollowedBy blankline
                     skipMany spaceChar
                     notFollowedBy' reference
-                    many1 (satisfy $ not . isBlank)
+                    many1 $ escapedChar' <|> satisfy (not . isBlank)
   let betweenAngles = try $ char '<' >>
-                            manyTill (noneOf ">\n" <|> nl) (char '>')
+                       manyTill (escapedChar' <|> litChar) (char '>')
   src <- try betweenAngles <|> sourceURL
   tit <- option "" referenceTitle
   blanklines
@@ -233,12 +237,12 @@ referenceKey = try $ do
   -- return blanks so line count isn't affected
   return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
-referenceTitle :: GenParser Char st String
-referenceTitle = try $ do 
+referenceTitle :: GenParser Char ParserState String
+referenceTitle = try $ do
   skipSpaces >> optional newline >> skipSpaces
-  tit <-    (charsInBalanced '(' ')' >>= return . unwords . words)
+  tit <-    (charsInBalanced '(' ')' litChar >>= return . unwords . words)
         <|> do delim <- char '\'' <|> char '"'
-               manyTill anyChar (try (char delim >> skipSpaces >>
+               manyTill litChar (try (char delim >> skipSpaces >>
                                       notFollowedBy (noneOf ")\n")))
   return $ decodeCharacterReferences tit
 
@@ -939,13 +943,17 @@ failIfLink :: Inline -> GenParser tok st Inline
 failIfLink (Link _ _) = pzero
 failIfLink elt        = return elt
 
-escapedChar :: GenParser Char ParserState Inline
-escapedChar = try $ do
+escapedChar' :: GenParser Char ParserState Char
+escapedChar' = try $ do
   char '\\'
   state <- getState
-  result <- if stateStrict state 
-               then oneOf "\\`*_{}[]()>#+-.!~"
-               else satisfy (not . isAlphaNum)
+  if stateStrict state
+     then oneOf "\\`*_{}[]()>#+-.!~"
+     else satisfy (not . isAlphaNum)
+
+escapedChar :: GenParser Char ParserState Inline
+escapedChar = do
+  result <- escapedChar'
   return $ case result of
                 ' '   -> Str "\160" -- "\ " is a nonbreaking space
                 '\n'  -> LineBreak  -- "\[newline]" is a linebreak
@@ -1132,15 +1140,14 @@ reference = do notFollowedBy' (string "[^")   -- footnote reference
                return $ normalizeSpaces result
 
 -- source for a link, with optional title
-source :: GenParser Char st (String, [Char])
+source :: GenParser Char ParserState (String, [Char])
 source =
-  (try $ charsInBalanced '(' ')' >>= parseFromString source') <|>
+  (try $ charsInBalanced '(' ')' litChar >>= parseFromString source') <|>
   -- the following is needed for cases like:  [ref](/url(a).
-  (enclosed (char '(') (char ')') anyChar >>=
-   parseFromString source')
+  (enclosed (char '(') (char ')') litChar >>= parseFromString source')
 
 -- auxiliary function for source
-source' :: GenParser Char st (String, [Char])
+source' :: GenParser Char ParserState (String, [Char])
 source' = do
   skipSpaces
   let nl = char '\n' >>~ notFollowedBy blankline
@@ -1149,22 +1156,21 @@ source' = do
                     skipMany spaceChar
                     optional nl
                     skipMany spaceChar
-                    many1 (satisfy $ not . isBlank)
-  let betweenAngles = try $ char '<' >>
-                            manyTill (noneOf ">\n" <|> nl) (char '>')
+                    many1 $ escapedChar' <|> satisfy (not . isBlank)
+  let betweenAngles = try $
+         char '<' >> manyTill (escapedChar' <|> noneOf ">\n" <|> nl) (char '>')
   src <- try betweenAngles <|> sourceURL
   tit <- option "" linkTitle
   skipSpaces
   eof
   return (escapeURI $ removeTrailingSpace src, tit)
 
-linkTitle :: GenParser Char st String
-linkTitle = try $ do 
+linkTitle :: GenParser Char ParserState String
+linkTitle = try $ do
   (many1 spaceChar >> option '\n' newline) <|> newline
   skipSpaces
   delim <- oneOf "'\""
-  tit <-   manyTill (optional (char '\\') >> anyChar)
-                    (try (char delim >> skipSpaces >> eof))
+  tit <-   manyTill litChar (try (char delim >> skipSpaces >> eof))
   return $ decodeCharacterReferences tit
 
 link :: GenParser Char ParserState Inline
@@ -1312,7 +1318,8 @@ citeKey = try $ do
   suppress_author <- option False (char '-' >> return True)
   char '@'
   first <- letter
-  rest <- many $ (noneOf ",;!?[]()@ \t\n")
+  let internal p = try $ p >>~ lookAhead (letter <|> digit)
+  rest <- many $ letter <|> digit <|> internal (oneOf ":.#$%&-_?<>~")
   let key = first:rest
   st <- getState
   guard $ key `elem` stateCitations st
@@ -1320,8 +1327,12 @@ citeKey = try $ do
 
 suffix :: GenParser Char ParserState [Inline]
 suffix = try $ do
+  hasSpace <- option False (notFollowedBy nonspaceChar >> return True)
   spnl
-  liftM normalizeSpaces $ many $ notFollowedBy (oneOf ";]") >> inline
+  rest <- liftM normalizeSpaces $ many $ notFollowedBy (oneOf ";]") >> inline
+  return $ if hasSpace
+              then Space : rest
+              else rest
 
 prefix :: GenParser Char ParserState [Inline]
 prefix = liftM normalizeSpaces $

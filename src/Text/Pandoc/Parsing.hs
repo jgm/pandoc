@@ -42,7 +42,6 @@ module Text.Pandoc.Parsing ( (>>~),
                              parseFromString,
                              lineClump,
                              charsInBalanced,
-                             charsInBalanced',
                              romanNumeral,
                              emailAddress,
                              uri,
@@ -174,29 +173,23 @@ lineClump = blanklines
 -- | Parse a string of characters between an open character
 -- and a close character, including text between balanced
 -- pairs of open and close, which must be different. For example,
--- @charsInBalanced '(' ')'@ will parse "(hello (there))"
--- and return "hello (there)".  Stop if a blank line is
--- encountered.
-charsInBalanced :: Char -> Char -> GenParser Char st String
-charsInBalanced open close = try $ do
+-- @charsInBalanced '(' ')' anyChar@ will parse "(hello (there))"
+-- and return "hello (there)".
+charsInBalanced :: Char -> Char -> GenParser Char st Char
+                -> GenParser Char st String
+charsInBalanced open close parser = try $ do
   char open
-  raw <- many $     (many1 (satisfy $ \c ->
-                             c /= open && c /= close && c /= '\n'))
-                <|> (do res <- charsInBalanced open close
-                        return $ [open] ++ res ++ [close])
-                <|> try (string "\n" >>~ notFollowedBy' blanklines)
+  let isDelim c = c == open || c == close
+  raw <- many $  many1 (notFollowedBy (satisfy isDelim) >> parser)
+             <|> (do res <- charsInBalanced open close parser
+                     return $ [open] ++ res ++ [close])
   char close
   return $ concat raw
 
--- | Like @charsInBalanced@, but allow blank lines in the content.
-charsInBalanced' :: Char -> Char -> GenParser Char st String
-charsInBalanced' open close = try $ do
-  char open
-  raw <- many $       (many1 (satisfy $ \c -> c /= open && c /= close))
-                  <|> (do res <- charsInBalanced' open close
-                          return $ [open] ++ res ++ [close])
-  char close
-  return $ concat raw
+-- old charsInBalanced would be:
+-- charsInBalanced open close (noneOf "\n" <|> char '\n' >> notFollowedBy blankline)
+-- old charsInBalanced' would be:
+-- charsInBalanced open close anyChar
 
 -- Auxiliary functions for romanNumeral:
 
@@ -325,11 +318,8 @@ failUnlessLHS = do
 
 -- | Parses backslash, then applies character parser.
 escaped :: GenParser Char st Char  -- ^ Parser for character to escape
-        -> GenParser Char st Inline
-escaped parser = try $ do
-  char '\\'
-  result <- parser
-  return (Str [result])
+        -> GenParser Char st Char
+escaped parser = try $ char '\\' >> parser
 
 -- | Parses an uppercase roman numeral and returns (UpperRoman, number).
 upperRoman :: GenParser Char st (ListNumberStyle, Int)

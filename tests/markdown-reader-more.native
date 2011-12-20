@@ -29,9 +29,9 @@
 ,Para [Str "`",Str "hi"]
 ,Para [Str "there",Str "`"]
 ,Header 2 [Str "Multilingual",Space,Str "URLs"]
-,Para [Link [Code ("",["url"],[]) "http://\27979.com?\27979=\27979"] ("http://%E6%B5%8B.com?%E6%B5%8B=%E6%B5%8B","")]
-,Para [Link [Str "foo"] ("/bar/%E6%B5%8B?x=%E6%B5%8B","title")]
-,Para [Link [Code ("",["url"],[]) "\27979@foo.\27979.baz"] ("mailto:%E6%B5%8B@foo.%E6%B5%8B.baz","")]
+,Plain [RawInline "html" "<http://\27979.com?\27979=\27979>"]
+,Para [Link [Str "foo"] ("/bar/\27979?x=\27979","title")]
+,Para [Link [Code ("",["url"],[]) "\27979@foo.\27979.baz"] ("mailto:\27979@foo.\27979.baz","")]
 ,Header 2 [Str "Numbered",Space,Str "examples"]
 ,OrderedList (1,Example,TwoParens)
  [[Plain [Str "First",Space,Str "example",Str "."]]

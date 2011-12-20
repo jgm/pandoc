@@ -1,4 +1,5 @@
-# Pandoc with citeproc-hs
+Pandoc with citeproc-hs
+=======================
 
 -   [@nonexistent]
 
@@ -28,7 +29,8 @@
 
 -   With some markup.[^12]
 
-# References
+References
+==========
 
 Doe, John, ‘Article’, *Journal of Generic Studies*, 6 (2006), 33-34.
 
@@ -54,7 +56,7 @@ Doe, John, and Jenny Roe, ‘Why Water Is Wet’, in *Third Book*, ed by Sam Smi
 
 [^9]: Doe, First Book, pp. 33, 35-37, and nowhere else.
 
-[^10]: Doe, First Book, and nowhere else.
+[^10]: Doe, First Book and nowhere else.
 
 [^11]: Like a citation without author: First Book, and now Doe with a locator Article, 33-34 (p. 44).
 

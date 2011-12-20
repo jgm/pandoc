@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, ScopedTypeVariables #-}
 -- provides Arbitrary instance for Pandoc types
 module Tests.Arbitrary ()
 where
@@ -22,10 +22,10 @@ arbAttr = do
   return (id',classes,keyvals)
 
 instance Arbitrary Inlines where
-  arbitrary = liftM fromList arbitrary
+  arbitrary = liftM (fromList :: [Inline] -> Inlines) arbitrary
 
 instance Arbitrary Blocks where
-  arbitrary = liftM fromList arbitrary
+  arbitrary = liftM (fromList :: [Block] -> Blocks) arbitrary
 
 instance Arbitrary Inline where
   arbitrary = resize 3 $ arbInline 2

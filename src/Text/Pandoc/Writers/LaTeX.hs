@@ -136,12 +136,17 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
 
 -- escape things as needed for LaTeX
 
-stringToLaTeX :: String -> String
-stringToLaTeX = escapeStringUsing latexEscapes
-  where latexEscapes = backslashEscapes "{}$%&_#" ++ 
+stringToLaTeX :: Bool -> String -> String
+stringToLaTeX isUrl = escapeStringUsing latexEscapes
+  where latexEscapes = backslashEscapes "{}$%&_" ++
+                       if isUrl
+                          then []
+                          else [ ('~', "\\ensuremath{\\sim}")
+                               , ('#', "\\#")
+                               ] ++
                        [ ('^', "\\^{}")
                        , ('\\', "\\textbackslash{}")
-                       , ('~', "\\ensuremath{\\sim}")
+                       , ('€', "\\euro{}")
                        , ('|', "\\textbar{}")
                        , ('<', "\\textless{}")
                        , ('>', "\\textgreater{}")
@@ -369,7 +374,7 @@ inlineToLaTeX (Code _ str) = do
       when (stInNote st) $ modify $ \s -> s{ stVerbInNote = True }
       let chr = ((enumFromTo '!' '~') \\ str) !! 0
       return $ text $ "\\lstinline" ++ [chr] ++ str ++ [chr]
-    else return $ text $ "\\texttt{" ++ stringToLaTeX str ++ "}"
+    else return $ text $ "\\texttt{" ++ stringToLaTeX False str ++ "}"
 inlineToLaTeX (Quoted SingleQuote lst) = do
   contents <- inlineListToLaTeX lst
   csquotes <- liftM stCsquotes get
@@ -400,7 +405,7 @@ inlineToLaTeX Apostrophe = return $ char '\''
 inlineToLaTeX EmDash = return "---"
 inlineToLaTeX EnDash = return "--"
 inlineToLaTeX Ellipses = return "\\ldots{}"
-inlineToLaTeX (Str str) = return $ text $ stringToLaTeX str
+inlineToLaTeX (Str str) = return $ text $ stringToLaTeX False str
 inlineToLaTeX (Math InlineMath str) = return $ char '$' <> text str <> char '$'
 inlineToLaTeX (Math DisplayMath str) = return $ "\\[" <> text str <> "\\]"
 inlineToLaTeX (RawInline "latex" str) = return $ text str
@@ -413,8 +418,8 @@ inlineToLaTeX (Link txt (src, _)) =
         [Code _ x] | x == src ->  -- autolink
              do modify $ \s -> s{ stUrl = True }
                 return $ text $ "\\url{" ++ x ++ "}"
-        _ -> do contents <- inlineListToLaTeX $ bottomUp hyphenateURL (normalize txt)
-                return $ text ("\\href{" ++ stringToLaTeX src ++ "}{") <>
+        _ -> do contents <- inlineListToLaTeX txt
+                return $ text ("\\href{" ++ stringToLaTeX True src ++ "}{") <>
                          contents <> char '}'
 inlineToLaTeX (Image _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True }

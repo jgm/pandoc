@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
@@ -40,38 +41,40 @@ import Network.HTTP ( urlEncode )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
 import Data.List ( isPrefixOf, intersperse )
+import Data.String ( fromString )
 import Data.Maybe ( catMaybes )
 import Control.Monad.State
-import Text.XHtml.Transitional hiding ( stringToHtml, unordList, ordList )
-import qualified Text.XHtml.Transitional as XHtml
+import Text.Blaze
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
+import qualified Text.Blaze.Html4.Transitional.Attributes as A4
+import Text.Blaze.Renderer.String (renderHtml)
 import Text.TeXMath
 import Text.XML.Light.Output
 import System.FilePath (takeExtension)
+import Data.Monoid (mempty, mconcat)
 
 data WriterState = WriterState
     { stNotes            :: [Html]  -- ^ List of notes
     , stMath             :: Bool    -- ^ Math is used in document
     , stHighlighting     :: Bool    -- ^ Syntax highlighting is used
     , stSecNum           :: [Int]   -- ^ Number of current section
-    } deriving Show
+    }
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState {stNotes= [], stMath = False, stHighlighting = False, stSecNum = []}
 
 -- Helpers to render HTML with the appropriate function.
 
--- | Modified version of Text.XHtml's stringToHtml.
--- Use unicode characters wherever possible.
-stringToHtml :: WriterOptions -> String -> Html
-stringToHtml opts = if writerAscii opts
-                       then XHtml.stringToHtml
-                       else primHtml . escapeStringForXML
+strToHtml :: String -> Html
+strToHtml = preEscapedString . escapeStringForXML
+-- strToHtml = toHtml
 
 -- | Hard linebreak.
 nl :: WriterOptions -> Html
 nl opts = if writerWrapText opts
-             then primHtml "\n"
-             else noHtml
+             then preEscapedString "\n"
+             else mempty
 
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
@@ -79,8 +82,8 @@ writeHtmlString opts d =
   let (tit, auths, authsMeta, date, toc, body', newvars) = evalState (pandocToHtml opts d)
                                                            defaultWriterState
   in  if writerStandalone opts
-         then inTemplate opts tit auths authsMeta date toc body' newvars
-         else dropWhile (=='\n') $ showHtmlFragment body'
+         then inTemplate opts tit auths date toc body' newvars
+         else renderHtml body'
 
 -- | Convert Pandoc document to Html structure.
 writeHtml :: WriterOptions -> Pandoc -> Html
@@ -99,7 +102,7 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   let standalone = writerStandalone opts
   tit <- if standalone
             then inlineListToHtml opts title'
-            else return noHtml
+            else return mempty
   auths <- if standalone
               then mapM (inlineListToHtml opts) authors'
               else return []
@@ -108,51 +111,55 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                else return []
   date <- if standalone
              then inlineListToHtml opts date'
-             else return noHtml
+             else return mempty
+  let splitHrule (HorizontalRule : Header 1 xs : ys)
+                                       = Header 1 xs : splitHrule ys
+      splitHrule (HorizontalRule : xs) = Header 1 [] : splitHrule xs
+      splitHrule (x : xs)              = x : splitHrule xs
+      splitHrule []                    = []
+  let ensureStartWithH1 bs@(Header 1 _:_) = bs
+      ensureStartWithH1 bs                = Header 1 [] : bs
   let sects = hierarchicalize $
               if writerSlideVariant opts == NoSlides
                  then blocks
-                 else case blocks of
-                           (Header 1 _ : _) -> blocks
-                           _                ->
-                                let isL1 (Header 1 _) = True
-                                    isL1 _            = False
-                                    (preBlocks, rest) = break isL1 blocks
-                                in  (RawBlock "html" "<div class=\"slide\">" :
-                                    preBlocks) ++ (RawBlock "html" "</div>" :
-                                    rest)
+                 else ensureStartWithH1 $ splitHrule blocks
   toc <- if writerTableOfContents opts
             then tableOfContents opts sects
             else return Nothing
-  blocks' <- liftM (toHtmlFromList . intersperse (nl opts)) $
+  blocks' <- liftM (mconcat . intersperse (nl opts)) $
                  mapM (elementToHtml opts) sects
   st <- get
   let notes = reverse (stNotes st)
-  let thebody = blocks' +++ footnoteSection opts notes
+  let thebody = blocks' >> footnoteSection opts notes
   let  math = if stMath st
                 then case writerHTMLMathMethod opts of
                            LaTeXMathML (Just url) ->
-                              script !
-                              [src url, thetype "text/javascript"] $ noHtml
+                              H.script ! A.src (toValue url)
+                                       ! A.type_ "text/javascript"
+                                       $ mempty
                            MathML (Just url) ->
-                              script !
-                              [src url, thetype "text/javascript"] $ noHtml
+                              H.script ! A.src (toValue url)
+                                       ! A.type_ "text/javascript"
+                                       $ mempty
                            MathJax url ->
-                              script ! [src url, thetype "text/javascript"] $ noHtml
+                              H.script ! A.src (toValue url)
+                                       ! A.type_ "text/javascript"
+                                       $ mempty
                            JsMath (Just url) ->
-                              script !
-                              [src url, thetype "text/javascript"] $ noHtml
+                              H.script ! A.src (toValue url)
+                                       ! A.type_ "text/javascript"
+                                       $ mempty
                            _ -> case lookup "mathml-script" (writerVariables opts) of
                                       Just s ->
-                                        script ! [thetype "text/javascript"] <<
-                                           primHtml ("/*<![CDATA[*/\n" ++ s ++
-                                                     "/*]]>*/\n")
-                                      Nothing -> noHtml
-                else noHtml
+                                        H.script ! A.type_ "text/javascript"
+                                           $ preEscapedString
+                                            ("/*<![CDATA[*/\n" ++ s ++ "/*]]>*/\n")
+                                      Nothing -> mempty
+                else mempty
   let newvars = [("highlighting-css", defaultHighlightingCss) |
                    stHighlighting st] ++
-                [("math", showHtmlFragment math) | stMath st]
-  return (tit, auths, authsMeta, date, toc, thebody, newvars)
+                [("math", renderHtml math) | stMath st]
+  return (tit, auths, date, toc, thebody, newvars)
 
 inTemplate :: TemplateTarget a
            => WriterOptions
@@ -164,38 +171,39 @@ inTemplate :: TemplateTarget a
            -> Html
            -> [(String,String)]
            -> a
-inTemplate opts tit auths authsMeta date toc body' newvars =
-  let renderedTit = showHtmlFragment tit
-      topTitle'   = stripTags renderedTit
-      date'       = stripTags $ showHtmlFragment date
+inTemplate opts tit auths date toc body' newvars =
+  let title'      = renderHtml tit
+      authors     = map renderHtml auths
+      date'       = renderHtml date
       variables   = writerVariables opts ++ newvars
       context     = variables ++
-                    [ ("body", dropWhile (=='\n') $ showHtmlFragment body')
-                    , ("pagetitle", topTitle')
-                    , ("title", dropWhile (=='\n') $ showHtmlFragment tit)
+                    [ ("body", dropWhile (=='\n') $ renderHtml body')
+                    , ("pagetitle", stripTags title')
+                    , ("title", title')
                     , ("date", date')
+                    , ("date-meta", stripTags date')
                     , ("idprefix", writerIdentifierPrefix opts)
                     , ("slidy-url", "http://www.w3.org/Talks/Tools/Slidy2")
-                    , ("s5-url", "ui/default") ] ++
+                    , ("s5-url", "s5/default") ] ++
                     [ ("html5","true") | writerHtml5 opts ] ++
                     (case toc of
-                         Just t  -> [ ("toc", showHtmlFragment t)]
+                         Just t  -> [ ("toc", renderHtml t)]
                          Nothing -> [])  ++
-                    [ ("author", (showHtmlFragment a)) | a <- auths ] ++
-                    [ ("authorMeta", a) | a <- authsMeta ]
+                    [ ("author", a) | a <- authors ] ++
+                    [ ("author-meta", stripTags a) | a <- authors ]
   in  renderTemplate context $ writerTemplate opts
 
 -- | Like Text.XHtml's identifier, but adds the writerIdentifierPrefix
-prefixedId :: WriterOptions -> String -> HtmlAttr
-prefixedId opts s = identifier $ writerIdentifierPrefix opts ++ s
+prefixedId :: WriterOptions -> String -> Attribute
+prefixedId opts s = A.id $ toValue $ writerIdentifierPrefix opts ++ s
 
 -- | Replacement for Text.XHtml's unordList.
 unordList :: WriterOptions -> ([Html] -> Html)
-unordList opts items = ulist << toListItems opts items
+unordList opts items = H.ul $ mconcat $ toListItems opts items
 
 -- | Replacement for Text.XHtml's ordList.
 ordList :: WriterOptions -> ([Html] -> Html)
-ordList opts items = olist << toListItems opts items
+ordList opts items = H.ol $ mconcat $ toListItems opts items
 
 -- | Construct table of contents from list of elements.
 tableOfContents :: WriterOptions -> [Element] -> State WriterState (Maybe Html)
@@ -218,52 +226,56 @@ elementToListItem :: WriterOptions -> Element -> State WriterState (Maybe Html)
 elementToListItem _ (Blk _) = return Nothing
 elementToListItem opts (Sec _ num id' headerText subsecs) = do
   let sectnum = if writerNumberSections opts
-                   then (thespan ! [theclass "toc-section-number"] << showSecNum num) +++
-                         stringToHtml opts" "
-                   else noHtml
-  txt <- liftM (sectnum +++) $ inlineListToHtml opts headerText
+                   then (H.span ! A.class_ "toc-section-number" $ toHtml $ showSecNum num) >>
+                     preEscapedString " "
+                   else mempty
+  txt <- liftM (sectnum >>) $ inlineListToHtml opts headerText
   subHeads <- mapM (elementToListItem opts) subsecs >>= return . catMaybes
   let subList = if null subHeads
-                   then noHtml
+                   then mempty
                    else unordList opts subHeads
-  return $ Just $ (anchor ! [href ("#" ++ writerIdentifierPrefix opts ++ id')] $ txt) +++ subList
+  return $ Just $ (H.a ! A.href (toValue $ "#" ++ writerIdentifierPrefix opts ++ id')
+                       $ toHtml txt) >> subList
 
 -- | Convert an Element to Html.
 elementToHtml :: WriterOptions -> Element -> State WriterState Html
-elementToHtml opts (Blk HorizontalRule) | writerSlideVariant opts /= NoSlides =
-  return $ primHtml "</div>" +++ nl opts +++ primHtml "<div class=\"slide\">"
 elementToHtml opts (Blk block) = blockToHtml opts block
 elementToHtml opts (Sec level num id' title' elements) = do
   modify $ \st -> st{stSecNum = num}  -- update section number
   header' <- blockToHtml opts (Header level title')
   innerContents <- mapM (elementToHtml opts) elements
-  let header'' = header' !  [prefixedId opts id' |
-                             not (writerStrictMarkdown opts ||
-                                  writerSectionDivs opts ||
-                                  writerSlideVariant opts == S5Slides)]
+  let header'' = if (writerStrictMarkdown opts ||
+                     writerSectionDivs opts ||
+                     writerSlideVariant opts == S5Slides)
+                    then header'
+                    else header' ! prefixedId opts id'
   let stuff = header'' : innerContents
   let slide = writerSlideVariant opts /= NoSlides && level == 1
-  let stuff' =  if slide
-                   then [thediv ! [theclass "slide"] <<
-                          (nl opts : intersperse (nl opts) stuff ++ [nl opts])]
-                   else intersperse (nl opts) stuff
-  let inNl x = nl opts : x ++ [nl opts]
-  return $ if writerSectionDivs opts
-              then if writerHtml5 opts
-                      then tag "section" ! [prefixedId opts id'] << inNl stuff'
-                      else thediv ! [prefixedId opts id'] << inNl stuff'
-              else toHtmlFromList stuff'
+  let titleSlide = slide && null elements
+  let classes = ["titleslide" | titleSlide] ++ ["slide" | slide] ++
+                  ["level" ++ show level]
+  let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
+  let secttag  = if writerHtml5 opts
+                    then H.section ! A.class_ (toValue $ unwords classes)
+                    else H.div ! A.class_ (toValue $ unwords ("section":classes))
+  return $ if writerSectionDivs opts || slide
+              then secttag ! prefixedId opts id' $ inNl stuff
+              else mconcat $ intersperse (nl opts) stuff
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
 footnoteSection :: WriterOptions -> [Html] -> Html
 footnoteSection opts notes =
   if null notes
-     then noHtml
-     else nl opts +++ (thediv ! [theclass "footnotes"]
-          $ nl opts +++ hr +++ nl opts +++
-            (olist << (notes ++ [nl opts])) +++ nl opts)
-
+     then mempty
+     else nl opts >> (container
+          $ nl opts >> H.hr >> nl opts >>
+            H.ol (mconcat notes >> nl opts))
+   where container x = if writerHtml5 opts
+                          then H.section ! A.class_ "footnotes" $ x
+                          else if writerSlideVariant opts /= NoSlides
+                               then H.div ! A.class_ "footnotes slide" $ x
+                               else H.div ! A.class_ "footnotes" $ x
 
 -- | Parse a mailto link; return Just (name, domain) or Nothing.
 parseMailto :: String -> Maybe (String, String)
@@ -276,7 +288,7 @@ parseMailto _ = Nothing
 -- | Obfuscate a "mailto:" link.
 obfuscateLink :: WriterOptions -> String -> String -> Html
 obfuscateLink opts txt s | writerEmailObfuscation opts == NoObfuscation =
-  anchor ! [href s] << txt
+  H.a ! A.href (toValue s) $ toHtml txt
 obfuscateLink opts txt s =
   let meth = writerEmailObfuscation opts
       s' = map toLower s
@@ -291,19 +303,19 @@ obfuscateLink opts txt s =
                           domain' ++ ")")
           in  case meth of
                 ReferenceObfuscation ->
-                     -- need to use primHtml or &'s are escaped to &amp; in URL
-                     primHtml $ "<a href=\"" ++ (obfuscateString s')
+                     -- need to use preEscapedString or &'s are escaped to &amp; in URL
+                     preEscapedString $ "<a href=\"" ++ (obfuscateString s')
                      ++ "\">" ++ (obfuscateString txt) ++ "</a>"
                 JavascriptObfuscation ->
-                     (script ! [thetype "text/javascript"] $
-                     primHtml ("\n<!--\nh='" ++
+                     (H.script ! A.type_ "text/javascript" $
+                     preEscapedString ("\n<!--\nh='" ++
                      obfuscateString domain ++ "';a='" ++ at' ++ "';n='" ++
                      obfuscateString name' ++ "';e=n+a+h;\n" ++
                      "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\">'+" ++
-                     linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) +++
-                     noscript (primHtml $ obfuscateString altText)
+                     linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) >>
+                     H.noscript (preEscapedString $ obfuscateString altText)
                 _ -> error $ "Unknown obfuscation method: " ++ show meth
-        _ -> anchor ! [href s] $ stringToHtml opts txt  -- malformed email
+        _ -> H.a ! A.href (toValue s) $ toHtml txt  -- malformed email
 
 -- | Obfuscate character as entity.
 obfuscateChar :: Char -> String
@@ -316,11 +328,11 @@ obfuscateChar char =
 obfuscateString :: String -> String
 obfuscateString = concatMap obfuscateChar . decodeCharacterReferences
 
-attrsToHtml :: WriterOptions -> Attr -> [HtmlAttr]
+attrsToHtml :: WriterOptions -> Attr -> [Attribute]
 attrsToHtml opts (id',classes',keyvals) =
-  [theclass (unwords classes') | not (null classes')] ++
+  [A.class_ (toValue $ unwords classes') | not (null classes')] ++
   [prefixedId opts id' | not (null id')] ++
-  map (\(x,y) -> strAttr x y) keyvals
+  map (\(x,y) -> customAttribute (fromString x) (toValue y)) keyvals
 
 imageExts :: [String]
 imageExts = [ "art", "bmp", "cdr", "cdt", "cpt", "cr2", "crw", "djvu", "erf",
@@ -335,38 +347,34 @@ treatAsImage fp =
 
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: WriterOptions -> Block -> State WriterState Html
-blockToHtml _ Null = return noHtml
+blockToHtml _ Null = return mempty
 blockToHtml opts (Plain lst) = inlineListToHtml opts lst
 blockToHtml opts (Para [Image txt (s,tit)]) = do
   img <- inlineToHtml opts (Image txt (s,tit))
   capt <- inlineListToHtml opts txt
   return $ if writerHtml5 opts
-              then tag "figure" <<
-                    [nl opts, img, tag "figcaption" << capt, nl opts]
-              else thediv ! [theclass "figure"] <<
-                    [nl opts, img, paragraph ! [theclass "caption"] << capt,
+              then H.figure $ mconcat
+                    [nl opts, img, H.figcaption capt, nl opts]
+              else H.div ! A.class_ "figure" $ mconcat
+                    [nl opts, img, H.p ! A.class_ "caption" $ capt,
                     nl opts]
 blockToHtml opts (Para lst) = do
   contents <- inlineListToHtml opts lst
-  return $ paragraph contents
-blockToHtml _ (RawBlock "html" str) = return $ primHtml str
-blockToHtml _ (RawBlock _ _) = return noHtml
-blockToHtml _ (HorizontalRule) = return hr
+  return $ H.p contents
+blockToHtml _ (RawBlock "html" str) = return $ preEscapedString str
+blockToHtml _ (RawBlock _ _) = return mempty
+blockToHtml _ (HorizontalRule) = return H.hr
 blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
   let classes' = if writerLiterateHaskell opts
                     then classes
                     else filter (/= "literate") classes
   case highlightHtml False (id',classes',keyvals) rawCode of
-         Left _  -> -- change leading newlines into <br /> tags, because some
-                    -- browsers ignore leading newlines in pre blocks
-                    let (leadingBreaks, rawCode') = span (=='\n') rawCode
-                        attrs = attrsToHtml opts (id', classes', keyvals)
+         Left _  -> let attrs = attrsToHtml opts (id', classes', keyvals)
                         addBird = if "literate" `elem` classes'
                                      then unlines . map ("> " ++) . lines
                                      else unlines . lines
-                    in  return $ pre ! attrs $ thecode <<
-                                 (replicate (length leadingBreaks) br +++
-                                 [stringToHtml opts $ addBird rawCode'])
+                    in  return $ foldl (!) H.pre attrs $ H.code
+                                         $ toHtml $ addBird rawCode
          Right h -> modify (\st -> st{ stHighlighting = True }) >>
                     return h
 blockToHtml opts (BlockQuote blocks) =
@@ -382,47 +390,48 @@ blockToHtml opts (BlockQuote blocks) =
                                   blockToHtml (opts {writerIncremental = inc})
                                   (OrderedList attribs lst)
              _                 -> do contents <- blockListToHtml opts blocks
-                                     return $ blockquote (nl opts +++
-                                               contents +++ nl opts)
+                                     return $ H.blockquote
+                                            $ nl opts >> contents >> nl opts
      else do
        contents <- blockListToHtml opts blocks
-       return $ blockquote (nl opts +++ contents +++ nl opts)
+       return $ H.blockquote $ nl opts >> contents >> nl opts
 blockToHtml opts (Header level lst) = do
   contents <- inlineListToHtml opts lst
   secnum <- liftM stSecNum get
   let contents' = if writerNumberSections opts
-                     then (thespan ! [theclass "header-section-number"] << showSecNum secnum) +++
-                            stringToHtml opts " " +++ contents
+                     then (H.span ! A.class_ "header-section-number" $ toHtml $ showSecNum secnum) >>
+                            strToHtml " " >> contents
                      else contents
   let contents''  = if writerTableOfContents opts
-                       then anchor ! [href $ "#" ++ writerIdentifierPrefix opts ++ "TOC"] $ contents'
+                       then H.a ! A.href (toValue $ "#" ++ writerIdentifierPrefix opts ++ "TOC") $ contents'
                        else contents'
   return $ (case level of
-              1 -> h1 contents''
-              2 -> h2 contents''
-              3 -> h3 contents''
-              4 -> h4 contents''
-              5 -> h5 contents''
-              6 -> h6 contents''
-              _ -> paragraph contents'')
+              1 -> H.h1 contents''
+              2 -> H.h2 contents''
+              3 -> H.h3 contents''
+              4 -> H.h4 contents''
+              5 -> H.h5 contents''
+              6 -> H.h6 contents''
+              _ -> H.p contents'')
 blockToHtml opts (BulletList lst) = do
   contents <- mapM (blockListToHtml opts) lst
-  let attribs = if writerIncremental opts
-                   then [theclass "incremental"]
-                   else []
-  return $ (unordList opts contents) ! attribs
+  let lst' = unordList opts contents
+  let lst'' = if writerIncremental opts
+                 then lst' ! A.class_ "incremental"
+                 else lst'
+  return lst''
 blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
   contents <- mapM (blockListToHtml opts) lst
   let numstyle' = camelCaseToHyphenated $ show numstyle
   let attribs = (if writerIncremental opts
-                   then [theclass "incremental"]
+                   then [A.class_ "incremental"]
                    else []) ++
                 (if startnum /= 1
-                   then [start startnum]
+                   then [A.start $ toValue startnum]
                    else []) ++
                 (if numstyle /= DefaultStyle
                    then if writerHtml5 opts
-                           then [strAttr "type" $
+                           then [A.type_ $
                                  case numstyle of
                                       Decimal    -> "1"
                                       LowerAlpha -> "a"
@@ -430,44 +439,44 @@ blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
                                       LowerRoman -> "i"
                                       UpperRoman -> "I"
                                       _          -> "1"]
-                           else [thestyle $ "list-style-type: " ++
+                           else [A.style $ toValue $ "list-style-type: " ++
                                    numstyle']
                    else [])
-  return $ (ordList opts contents) ! attribs
+  return $ foldl (!) (ordList opts contents) attribs
 blockToHtml opts (DefinitionList lst) = do
   contents <- mapM (\(term, defs) ->
-                  do term' <- liftM (dterm <<) $ inlineListToHtml opts term
-                     defs' <- mapM ((liftM (\x -> ddef << (x +++ nl opts))) .
+                  do term' <- liftM (H.dt) $ inlineListToHtml opts term
+                     defs' <- mapM ((liftM (\x -> H.dd $ (x >> nl opts))) .
                                     blockListToHtml opts) defs
-                     return $ nl opts : term' : nl opts : defs') lst
-  let attribs = if writerIncremental opts
-                   then [theclass "incremental"]
-                   else []
-  return $ dlist ! attribs << (concat contents +++ nl opts)
+                     return $ mconcat $ nl opts : term' : nl opts : defs') lst
+  let lst' = H.dl $ mconcat contents >> nl opts
+  let lst'' = if writerIncremental opts
+                 then lst' ! A.class_ "incremental"
+                 else lst'
+  return lst''
 blockToHtml opts (Table capt aligns widths headers rows') = do
   captionDoc <- if null capt
-                   then return noHtml
+                   then return mempty
                    else do
                      cs <- inlineListToHtml opts capt
-                     return $ caption cs +++ nl opts
+                     return $ H.caption cs >> nl opts
   let percent w = show (truncate (100*w) :: Integer) ++ "%"
-  let widthAttrs w = if writerHtml5 opts
-                        then [thestyle $ "width: " ++ percent w]
-                        else [width $ percent w]
   let coltags = if all (== 0.0) widths
-                   then noHtml
-                   else concatHtml $ map
-                         (\w -> (col ! (widthAttrs w)) noHtml +++ nl opts)
-                         widths
+                   then mempty
+                   else mconcat $ map (\w ->
+                          if writerHtml5 opts
+                             then H.col ! A.style (toValue $ "width: " ++ percent w)
+                             else H.col ! A.width (toValue $ percent w) >> nl opts)
+                          widths
   head' <- if all null headers
-              then return noHtml
+              then return mempty
               else do
                 contents <- tableRowToHtml opts aligns 0 headers
-                return $ thead << (nl opts +++ contents) +++ nl opts
-  body' <- liftM (\x -> tbody << (nl opts +++ x)) $
+                return $ H.thead (nl opts >> contents) >> nl opts
+  body' <- liftM (\x -> H.tbody (nl opts >> mconcat x)) $
                zipWithM (tableRowToHtml opts aligns) [1..] rows'
-  return $ table $ nl opts +++ captionDoc +++ coltags +++ head' +++
-                   body' +++ nl opts
+  return $ H.table $ nl opts >> captionDoc >> coltags >> head' >>
+                   body' >> nl opts
 
 tableRowToHtml :: WriterOptions
                -> [Alignment]
@@ -475,7 +484,7 @@ tableRowToHtml :: WriterOptions
                -> [[Block]]
                -> State WriterState Html
 tableRowToHtml opts aligns rownum cols' = do
-  let mkcell = if rownum == 0 then th else td
+  let mkcell = if rownum == 0 then H.th else H.td
   let rowclass = case rownum of
                       0                  -> "header"
                       x | x `rem` 2 == 1 -> "odd"
@@ -483,8 +492,8 @@ tableRowToHtml opts aligns rownum cols' = do
   cols'' <- sequence $ zipWith
             (\alignment item -> tableItemToHtml opts mkcell alignment item)
             aligns cols'
-  return $ (tr ! [theclass rowclass] $ nl opts +++ toHtmlFromList cols'')
-          +++ nl opts
+  return $ (H.tr ! A.class_ rowclass $ nl opts >> mconcat cols'')
+          >> nl opts
 
 alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of
@@ -500,84 +509,87 @@ tableItemToHtml :: WriterOptions
                 -> State WriterState Html
 tableItemToHtml opts tag' align' item = do
   contents <- blockListToHtml opts item
-  let alignAttrs = if writerHtml5 opts
-                      then [thestyle $ "align: " ++ alignmentToString align']
-                      else [align $ alignmentToString align']
-  return $ (tag' ! alignAttrs) contents +++ nl opts
+  let alignStr = alignmentToString align'
+  let attribs = if writerHtml5 opts
+                   then A.style (toValue $ "text-align: " ++ alignStr ++ ";")
+                   else A4.align (toValue alignStr)
+  return $ (tag' ! attribs $ contents) >> nl opts
 
 toListItems :: WriterOptions -> [Html] -> [Html]
 toListItems opts items = map (toListItem opts) items ++ [nl opts]
 
 toListItem :: WriterOptions -> Html -> Html
-toListItem opts item = nl opts +++ li item
+toListItem opts item = nl opts >> H.li item
 
 blockListToHtml :: WriterOptions -> [Block] -> State WriterState Html
 blockListToHtml opts lst =
   mapM (blockToHtml opts) lst >>=
-  return . toHtmlFromList . intersperse (nl opts)
+  return . mconcat . intersperse (nl opts)
 
 -- | Convert list of Pandoc inline elements to HTML.
 inlineListToHtml :: WriterOptions -> [Inline] -> State WriterState Html
 inlineListToHtml opts lst =
-  mapM (inlineToHtml opts) lst >>= return . toHtmlFromList
+  mapM (inlineToHtml opts) lst >>= return . mconcat
 
 -- | Convert Pandoc inline element to HTML.
 inlineToHtml :: WriterOptions -> Inline -> State WriterState Html
 inlineToHtml opts inline =
   case inline of
-    (Str str)        -> return $ stringToHtml opts str
-    (Space)          -> return $ stringToHtml opts " "
-    (LineBreak)      -> return br
-    (EmDash)         -> return $ stringToHtml opts "—"
-    (EnDash)         -> return $ stringToHtml opts "–"
-    (Ellipses)       -> return $ stringToHtml opts "…"
-    (Apostrophe)     -> return $ stringToHtml opts "’"
-    (Emph lst)       -> inlineListToHtml opts lst >>= return . emphasize
-    (Strong lst)     -> inlineListToHtml opts lst >>= return . strong
+    (Str str)        -> return $ strToHtml str
+    (Space)          -> return $ strToHtml " "
+    (LineBreak)      -> return H.br
+    (EmDash)         -> return $ strToHtml "—"
+    (EnDash)         -> return $ strToHtml "–"
+    (Ellipses)       -> return $ strToHtml "…"
+    (Apostrophe)     -> return $ strToHtml "’"
+    (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
+    (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
     (Code attr str)  -> case highlightHtml True attr str of
                              Left _  -> return
-                                        $ thecode ! (attrsToHtml opts attr)
-                                        $ stringToHtml opts str
+                                        $ foldl (!) H.code (attrsToHtml opts attr)
+                                        $ strToHtml str
                              Right h -> return h
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
-                        return . (thespan ! [thestyle "text-decoration: line-through;"])
+                        return . H.del
     (SmallCaps lst)   -> inlineListToHtml opts lst >>=
-                         return . (thespan ! [thestyle "font-variant: small-caps;"])
-    (Superscript lst) -> inlineListToHtml opts lst >>= return . sup
-    (Subscript lst)   -> inlineListToHtml opts lst >>= return . sub
+                         return . (H.span ! A.style "font-variant: small-caps;")
+    (Superscript lst) -> inlineListToHtml opts lst >>= return . H.sup
+    (Subscript lst)   -> inlineListToHtml opts lst >>= return . H.sub
     (Quoted quoteType lst) ->
                         let (leftQuote, rightQuote) = case quoteType of
-                              SingleQuote -> (stringToHtml opts "‘",
-                                              stringToHtml opts "’")
-                              DoubleQuote -> (stringToHtml opts "“",
-                                              stringToHtml opts "”")
+                              SingleQuote -> (strToHtml "‘",
+                                              strToHtml "’")
+                              DoubleQuote -> (strToHtml "“",
+                                              strToHtml "”")
                         in  do contents <- inlineListToHtml opts lst
-                               return $ leftQuote +++ contents +++ rightQuote
+                               return $ leftQuote >> contents >> rightQuote
     (Math t str) ->     modify (\st -> st {stMath = True}) >>
                         (case writerHTMLMathMethod opts of
                                LaTeXMathML _ ->
                                   -- putting LaTeXMathML in container with class "LaTeX" prevents
                                   -- non-math elements on the page from being treated as math by
                                   -- the javascript
-                                  return $ thespan ! [theclass "LaTeX"] $
+                                  return $ H.span ! A.class_ "LaTeX" $
                                          case t of
-                                           InlineMath  -> primHtml ("$" ++ str ++ "$")
-                                           DisplayMath -> primHtml ("$$" ++ str ++ "$$")
+                                           InlineMath  -> toHtml ("$" ++ str ++ "$")
+                                           DisplayMath -> toHtml ("$$" ++ str ++ "$$")
                                JsMath _ -> do
-                                  let m = primHtml str
+                                  let m = preEscapedString str
                                   return $ case t of
-                                           InlineMath -> thespan ! [theclass "math"] $ m
-                                           DisplayMath -> thediv ! [theclass "math"] $ m
+                                           InlineMath -> H.span ! A.class_ "math" $ m
+                                           DisplayMath -> H.div ! A.class_ "math" $ m
                                WebTeX url -> do
-                                  let m = image ! [src (url ++ urlEncode str),
-                                                         alt str, title str]
+                                  let m = H.img ! A.style "vertical-align:middle"
+                                                ! A.src (toValue $ url ++ urlEncode str)
+                                                ! A.alt (toValue str)
+                                                ! A.title (toValue str)
                                   return $ case t of
                                             InlineMath  -> m
-                                            DisplayMath -> br +++ m +++ br
+                                            DisplayMath -> H.br >> m >> H.br
                                GladTeX ->
                                   return $ case t of
-                                             InlineMath -> primHtml $ "<EQ ENV=\"math\">" ++ str ++ "</EQ>"
-                                             DisplayMath -> primHtml $ "<EQ ENV=\"displaymath\">" ++ str ++ "</EQ>"
+                                             InlineMath -> preEscapedString "<EQ ENV=\"math\">" >> toHtml str >> preEscapedString "</EQ>"
+                                             DisplayMath -> preEscapedString "<EQ ENV=\"displaymath\">" >> toHtml str >> preEscapedString "</EQ>"
                                MathML _ -> do
                                   let dt = if t == InlineMath
                                               then DisplayInline
@@ -585,54 +597,55 @@ inlineToHtml opts inline =
                                   let conf = useShortEmptyTags (const False)
                                                defaultConfigPP
                                   case texMathToMathML dt str of
-                                        Right r -> return $ primHtml $
+                                        Right r -> return $ preEscapedString $
                                                     ppcElement conf r
                                         Left  _ -> inlineListToHtml opts
                                                    (readTeXMath str) >>= return .
-                                                     (thespan !  [theclass "math"])
-                               MathJax _ -> return $ primHtml $
+                                                     (H.span ! A.class_ "math")
+                               MathJax _ -> return $ toHtml $
                                   case t of
                                     InlineMath  -> "\\(" ++ str ++ "\\)"
                                     DisplayMath -> "\\[" ++ str ++ "\\]"
                                PlainMath -> do
                                   x <- inlineListToHtml opts (readTeXMath str)
-                                  let m = thespan ! [theclass "math"] $ x
+                                  let m = H.span ! A.class_ "math" $ x
                                   return  $ case t of
                                              InlineMath  -> m
-                                             DisplayMath -> br +++ m +++ br )
+                                             DisplayMath -> H.br >> m >> H.br )
     (RawInline "latex" str) -> case writerHTMLMathMethod opts of
                                LaTeXMathML _ -> do modify (\st -> st {stMath = True})
-                                                   return $ primHtml str
-                               _             -> return noHtml
-    (RawInline "html" str) -> return $ primHtml str
-    (RawInline _ _) -> return noHtml
+                                                   return $ toHtml str
+                               _             -> return mempty
+    (RawInline "html" str) -> return $ preEscapedString str
+    (RawInline _ _) -> return mempty
     (Link [Code _ str] (s,_)) | "mailto:" `isPrefixOf` s ->
                         return $ obfuscateLink opts str s
     (Link txt (s,_)) | "mailto:" `isPrefixOf` s -> do
                         linkText <- inlineListToHtml opts txt
-                        return $ obfuscateLink opts (show linkText) s
+                        return $ obfuscateLink opts (renderHtml linkText) s
     (Link txt (s,tit)) -> do
                         linkText <- inlineListToHtml opts txt
-                        return $ anchor ! ([href s] ++
-                                 if null tit then [] else [title tit]) $
-                                 linkText
+                        let link = H.a ! A.href (toValue s) $ linkText
+                        return $ if null tit
+                                    then link
+                                    else link ! A.title (toValue tit)
     (Image txt (s,tit)) | treatAsImage s -> do
                         let alternate' = stringify txt
-                        let attributes = [src s] ++
+                        let attributes = [A.src $ toValue s] ++
                                          (if null tit
                                             then []
-                                            else [title tit]) ++
+                                            else [A.title $ toValue tit]) ++
                                          if null txt
                                             then []
-                                            else [alt alternate']
-                        return $ image ! attributes
+                                            else [A.alt $ toValue alternate']
+                        return $ foldl (!) H.img attributes
                         -- note:  null title included, as in Markdown.pl
     (Image _ (s,tit)) -> do
-                        let attributes = [src s] ++
+                        let attributes = [A.src $ toValue s] ++
                                          (if null tit
                                             then []
-                                            else [title tit])
-                        return $ itag "embed" ! attributes
+                                            else [A.title $ toValue tit])
+                        return $ foldl (!) H.embed attributes
                         -- note:  null title included, as in Markdown.pl
     (Note contents)          -> do
                         st <- get
@@ -642,19 +655,20 @@ inlineToHtml opts inline =
                         htmlContents <- blockListToNote opts ref contents
                         -- push contents onto front of notes
                         put $ st {stNotes = (htmlContents:notes)}
-                        return $ sup <<
-                                 anchor ! [href ("#" ++ writerIdentifierPrefix opts ++ "fn" ++ ref),
-                                           theclass "footnoteRef",
-                                           prefixedId opts ("fnref" ++ ref)] << ref
-    (Cite _ il)  -> inlineListToHtml opts il
+                        return $ H.sup $
+                                 H.a ! A.href (toValue $ "#" ++ writerIdentifierPrefix opts ++ "fn" ++ ref)
+                                     ! A.class_ "footnoteRef"
+                                     ! prefixedId opts ("fnref" ++ ref)
+                                     $ toHtml ref
+    (Cite _ il)  -> do contents <- inlineListToHtml opts il
+                       return $ H.span ! A.class_ "citation" $ contents
 
 blockListToNote :: WriterOptions -> String -> [Block] -> State WriterState Html
 blockListToNote opts ref blocks =
   -- If last block is Para or Plain, include the backlink at the end of
   -- that block. Otherwise, insert a new Plain block with the backlink.
   let backlink = [RawInline "html" $ " <a href=\"#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref ++
-                 "\" class=\"footnoteBackLink\">" ++
-                 (if writerAscii opts then "&#8617;" else "↩") ++ "</a>"]
+                 "\" class=\"footnoteBackLink\">↩</a>"]
       blocks'  = if null blocks
                     then []
                     else let lastBlock   = last blocks
@@ -667,29 +681,4 @@ blockListToNote opts ref blocks =
                                   _           -> otherBlocks ++ [lastBlock,
                                                  Plain backlink]
   in  do contents <- blockListToHtml opts blocks'
-         return $ nl opts +++ (li ! [prefixedId opts ("fn" ++ ref)]) contents
-
--- | Fold author data into a [String] suitable for the HTML meta tag. The primary
--- utility is when the "authors" are institutions and the actual authors are given
--- as a footnote.
-foldAuthorsMeta :: [[Inline]]
-                -> State WriterState [String]
-foldAuthorsMeta authors = return $ [ metaInlineList a | a <- (normalize authors) ]
-  where
-    metaInlineList lst = concat $ map metaInline lst
-    metaBlockList lst = concat $ map metaBlock lst
-    -- Selectively grab Inline data and convert to String
-    metaInline :: Inline -> String
-    metaInline (Str str)    = str
-    metaInline (Space)      = " "
-    metaInline (EmDash)     = "--"
-    metaInline (EnDash)     = "-"
-    metaInline (Apostrophe) = "'"
-    metaInline (Quoted SingleQuote contents) = "'" ++ (metaInlineList contents) ++ "'"
-    metaInline (Quoted DoubleQuote contents) = "\"" ++ (metaInlineList contents) ++ "\""
-    metaInline (Note contents) = " [" ++ (metaBlockList contents) ++ "]"
-    metaInline _            = ""
-    -- Selectively include Block components:
-    metaBlock (Plain stuff) = metaInlineList stuff
-    metaBlock (Para  stuff) = metaInlineList stuff
-    metaBlock _ = ""
+         return $ nl opts >> (H.li ! (prefixedId opts ("fn" ++ ref)) $ contents)

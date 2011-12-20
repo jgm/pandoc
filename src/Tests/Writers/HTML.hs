@@ -40,7 +40,7 @@ tests = [ testGroup "inline code"
           ]
         , testGroup "images"
           [ "alt with formatting" =:
-            image "/url" "title" ("my " +++ emph "image")
+            image "/url" "title" ("my " <> emph "image")
             =?> "<img src=\"/url\" title=\"title\" alt=\"my image\" />"
           ]
         ]

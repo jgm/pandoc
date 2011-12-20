@@ -8,6 +8,8 @@ import Data.ByteString.UTF8 (toString)
 import Control.Monad (unless, guard, liftM, when)
 import Control.Concurrent (putMVar, takeMVar, newEmptyMVar, forkIO)
 import Control.Exception (tryJust, bracket, evaluate)
+import Control.Monad.Trans (liftIO)
+import System.IO.Error (isAlreadyExistsError)
 
 import System.IO
 import System.IO.Error (isDoesNotExistError)
@@ -176,17 +178,22 @@ saveOutput input output = do
   copyFile (encodeString input) (encodeString output)
   UTF8.hPutStrLn stderr $! "Created " ++ output
 
+-- | Perform a function in a temporary directory and clean up.
+withTempDir :: FilePath -> (FilePath -> IO a) -> IO a
+withTempDir baseName = bracket (createTempDir 0 baseName) removeDirectoryRecursive
+
+-- | Create a temporary directory with a unique name.
+createTempDir :: Integer -> FilePath -> IO FilePath
+createTempDir num baseName = do
+  sysTempDir <- getTemporaryDirectory
+  let dirName = sysTempDir </> baseName <.> show num
+  liftIO $ catch (createDirectory dirName >> return dirName) $
+      \e -> if isAlreadyExistsError e
+               then createTempDir (num + 1) baseName
+               else ioError e
+
 main :: IO ()
-main = bracket
-  -- acquire resource
-  (do dir <- getTemporaryDirectory
-      let tmp = dir </> "pandoc"
-      createDirectoryIfMissing True tmp
-      return tmp)
-
-  -- release resource
-  ( \tmp -> removeDirectoryRecursive tmp)
-
+main = withTempDir "pandoc"
   -- run computation
   $ \tmp -> do
     args <- liftM (map decodeString) getArgs
@@ -250,7 +257,7 @@ main = bracket
         case latexRes of
           Left err      -> exit err
           Right pdfFile -> do
-            -- save the output creating a backup if necessary
+            -- save the output
             saveOutput pdfFile $
               replaceDirectory pdfFile (takeDirectory output)
 

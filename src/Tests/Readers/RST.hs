@@ -18,8 +18,8 @@ infix 5 =:
 
 tests :: [Test]
 tests = [ "line block with blank line" =:
-          "| a\n|\n|  b" =?> para (str "a" +++ linebreak +++
-                                   linebreak +++ str " " +++ str "b")
+          "| a\n|\n|  b" =?> para (str "a" <> linebreak <>
+                                   linebreak <> str " " <> str "b")
         , "field list" =:
           [_LIT|
 :Hostname: media08
@@ -51,10 +51,10 @@ tests = [ "line block with blank line" =:
         , "URLs with following punctuation" =:
           ("http://google.com, http://yahoo.com; http://foo.bar.baz.\n" ++
            "http://foo.bar/baz_(bam) (http://foo.bar)") =?>
-          para (link "http://google.com" "" "http://google.com" +++ ", " +++
-                link "http://yahoo.com" "" "http://yahoo.com" +++ "; " +++
-                link "http://foo.bar.baz" "" "http://foo.bar.baz" +++ ". " +++
+          para (link "http://google.com" "" "http://google.com" <> ", " <>
+                link "http://yahoo.com" "" "http://yahoo.com" <> "; " <>
+                link "http://foo.bar.baz" "" "http://foo.bar.baz" <> ". " <>
                 link "http://foo.bar/baz_(bam)" "" "http://foo.bar/baz_(bam)"
-                +++ " (" +++ link "http://foo.bar" "" "http://foo.bar" +++ ")")
+                <> " (" <> link "http://foo.bar" "" "http://foo.bar" <> ")")
         ]
 

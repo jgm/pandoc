@@ -6,6 +6,7 @@ import Distribution.PackageDescription
 import Distribution.Simple.LocalBuildInfo
          (LocalBuildInfo(..), absoluteInstallDirs)
 import Distribution.Verbosity ( Verbosity, silent )
+import Distribution.Simple.GHC (ghcPackageDbOptions)
 import Distribution.Simple.InstallDirs (mandir, bindir, CopyDest (NoCopyDest))
 import Distribution.Simple.Utils (copyFiles)
 import Control.Exception ( bracket_ )
@@ -49,21 +50,36 @@ runTestSuite args _ pkg lbi = do
 
 -- | Build man pages from markdown sources in man/
 makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
-makeManPages _ flags _ _ = do
-  let verbosity = fromFlag $ buildVerbosity flags
+makeManPages _ flags _ lbi = do
   ds1 <- modifiedDependencies (manDir </> "man1" </> "pandoc.1")
     ["README", manDir </> "man1" </> "pandoc.1.template"]
   ds2 <- modifiedDependencies (manDir </> "man1" </> "markdown2pdf.1")
     [manDir </> "man1" </> "markdown2pdf.1.md"]
   ds3 <- modifiedDependencies (manDir </> "man5" </> "pandoc_markdown.5")
     ["README", manDir </> "man5" </> "pandoc_markdown.5.template"]
-  let cmd  = "runghc -package-conf=dist/package.conf.inplace MakeManPage.hs"
-  let cmd' = if verbosity == silent
-                then cmd
-                else cmd ++ " --verbose"
+
+  let distPref  = fromFlag (buildDistPref flags)
+      packageDB =
+          withPackageDB lbi
+           ++ [SpecificPackageDB $ distPref </> "package.conf.inplace"]
+      
+      verbosity = fromFlag $ buildVerbosity flags
+
+      args = makeGhcArgs (ghcPackageDbOptions packageDB)
+             ++ ["MakeManPage.hs"]
+      args' = if verbosity == silent
+                then args
+                else args ++ ["--verbose"]
   -- Don't run MakeManPage.hs unless we have to
-  unless (null ds1 && null ds2 && null ds3) $
-    runCommand cmd' >>= waitForProcess >>= exitWith
+  unless (null ds1 && null ds2 && null ds3) $ do
+    rawSystem "runghc" args' >>= exitWith
+
+-- format arguments to runghc that we wish to pass to ghc
+-- normally runghc gets it right, unless the argument does
+-- not begin with a '-' charecter, so we need to give clear
+-- directions.
+makeGhcArgs :: [String] -> [String]
+makeGhcArgs = map ("--ghc-arg="++)
 
 manpages :: [FilePath]
 manpages = ["man1" </> "pandoc.1"

@@ -30,9 +30,9 @@ writers.
 -}
 module Main where
 import Text.Pandoc
-import Text.Pandoc.S5 (s5HeaderIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
                             headerShift, findDataFile, normalize )
+import Text.Pandoc.SelfContained ( makeSelfContained )
 #ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
 #endif
@@ -41,7 +41,7 @@ import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower )
-import Data.List ( intercalate, isSuffixOf, isPrefixOf )
+import Data.List ( intercalate, isSuffixOf )
 import System.Directory ( getAppUserDataDirectory, doesFileExist )
 import System.IO ( stdout, stderr )
 import System.IO.Error ( isDoesNotExistError )
@@ -101,7 +101,7 @@ data Opt = Opt
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
     , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/S5
-    , optOffline           :: Bool    -- ^ Make slideshow accessible offline
+    , optSelfContained     :: Bool    -- ^ Make HTML accessible offline
     , optXeTeX             :: Bool    -- ^ Format latex for xetex
     , optSmart             :: Bool    -- ^ Use smart typography
     , optHtml5             :: Bool    -- ^ Produce HTML5 in HTML
@@ -124,8 +124,8 @@ data Opt = Opt
     , optCiteMethod        :: CiteMethod -- ^ Method to output cites
     , optBibliography      :: [String]
     , optCslFile           :: FilePath
+    , optAbbrevsFile       :: Maybe FilePath
     , optListings          :: Bool       -- ^ Use listings package for code blocks
-    , optAscii             :: Bool       -- ^ Avoid using nonascii characters
     }
 
 -- | Defaults for command-line options.
@@ -145,7 +145,7 @@ defaultOpts = Opt
     , optNumberSections    = False
     , optSectionDivs       = False
     , optIncremental       = False
-    , optOffline           = False
+    , optSelfContained     = False
     , optXeTeX             = False
     , optSmart             = False
     , optHtml5             = False
@@ -168,8 +168,8 @@ defaultOpts = Opt
     , optCiteMethod        = Citeproc
     , optBibliography      = []
     , optCslFile           = ""
+    , optAbbrevsFile       = Nothing
     , optListings          = False
-    , optAscii             = False
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -309,7 +309,16 @@ options =
 
     , Option "" ["offline"]
                  (NoArg
-                  (\opt -> return opt { optOffline = True,
+                  (\opt -> return opt { optSelfContained = True,
+                                        optStandalone = True }))
+                 "" -- "Make slide shows include all the needed js and css"
+                 -- deprecated synonym for --self-contained
+
+    , Option "" ["self-contained"]
+                 (NoArg
+                  (\opt -> return opt { optSelfContained = True,
+                                        optVariables = ("slidy-url","slidy") :
+                                                       optVariables opt,
                                         optStandalone = True }))
                  "" -- "Make slide shows include all the needed js and css"
 
@@ -357,11 +366,6 @@ options =
                                exitWith $ ExitFailure 33)
                  "NUMBER")
                  "" -- "Length of line in characters"
-
-    , Option "" ["ascii"]
-                 (NoArg
-                  (\opt -> return opt { optAscii = True }))
-                 "" -- "Avoid using non-ascii characters in output"
 
     , Option "" ["email-obfuscation"]
                  (ReqArg
@@ -537,6 +541,12 @@ options =
                   "FILENAME")
                  ""
 
+    , Option "" ["citation-abbreviations"]
+                 (ReqArg
+                  (\arg opt -> return opt { optAbbrevsFile = Just arg })
+                  "FILENAME")
+                 ""
+
     , Option "" ["natbib"]
                  (NoArg
                   (\opt -> return opt { optCiteMethod = Natbib }))
@@ -639,6 +649,7 @@ defaultWriterName x =
     ".odt"      -> "odt"
     ".epub"     -> "epub"
     ".org"      -> "org"
+    ".asciidoc" -> "asciidoc"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
@@ -682,7 +693,7 @@ main = do
               , optNumberSections    = numberSections
               , optSectionDivs       = sectionDivs
               , optIncremental       = incremental
-              , optOffline           = offline
+              , optSelfContained     = selfContained
               , optSmart             = smart
               , optHtml5             = html5
               , optChapters          = chapters
@@ -702,9 +713,9 @@ main = do
               , optDataDir           = mbDataDir
               , optBibliography      = reffiles
               , optCslFile           = cslfile
+              , optAbbrevsFile       = cslabbrevs
               , optCiteMethod        = citeMethod
               , optListings          = listings
-              , optAscii             = ascii
              } = opts
 
   when dumpArgs $
@@ -726,7 +737,7 @@ main = do
                                              then "html"
                                              else "markdown"
                            in  defaultReaderName fallback sources
-                      else readerName 
+                      else readerName
 
   let writerName' = if null writerName
                       then defaultWriterName outputFile
@@ -736,7 +747,10 @@ main = do
      Just r  -> return r
      Nothing -> error ("Unknown reader: " ++ readerName')
 
+  let standalone' = standalone || isNonTextOutput writerName'
+
   templ <- case templatePath of
+                _ | not standalone' -> return ""
                 Nothing -> do
                            deftemp <- getDefaultTemplate datadir writerName'
                            case deftemp of
@@ -756,29 +770,14 @@ main = do
                                              (\_ -> throwIO e)
                                        else throwIO e)
 
-  let standalone' = standalone || isNonTextOutput writerName'
-
-  variables' <- case (writerName', standalone', offline) of
-                      ("s5", True, True) -> do
-                        inc <- s5HeaderIncludes datadir
-                        return $ ("s5includes", inc) : variables
-                      ("slidy", True, True) -> do
-                        slidyJs <- readDataFile datadir $
-                                      "slidy" </> "slidy.min.js"
-                        slidyCss <- readDataFile datadir $
-                                      "slidy" </> "slidy.css"
-                        return $ ("slidy-js", slidyJs) :
-                            ("slidy-css", slidyCss) : variables
-                      _ -> return variables
-
-  variables'' <- case mathMethod of
+  variables' <- case mathMethod of
                       LaTeXMathML Nothing -> do
                          s <- readDataFile datadir $ "data" </> "LaTeXMathML.js"
-                         return $ ("mathml-script", s) : variables'
+                         return $ ("mathml-script", s) : variables
                       MathML Nothing -> do
                          s <- readDataFile datadir $ "data"</>"MathMLinHTML.js"
-                         return $ ("mathml-script", s) : variables'
-                      _ -> return variables'
+                         return $ ("mathml-script", s) : variables
+                      _ -> return variables
 
   refs <- mapM (\f -> catch (readBiblioFile f) $ \e -> do
          UTF8.hPutStrLn stderr $ "Error reading bibliography `" ++ f ++ "'"
@@ -790,9 +789,10 @@ main = do
                      else takeDirectory (head sources)
 
   let slideVariant = case writerName' of
-                           "s5"    -> S5Slides
-                           "slidy" -> SlidySlides
-                           _       -> NoSlides
+                           "s5"       -> S5Slides
+                           "slidy"    -> SlidySlides
+                           "dzslides" -> DZSlides
+                           _          -> NoSlides
 
   let startParserState =
          defaultParserState { stateParseRaw        = parseRaw,
@@ -811,7 +811,7 @@ main = do
   let writerOptions = defaultWriterOptions
                                     { writerStandalone       = standalone',
                                       writerTemplate         = templ,
-                                      writerVariables        = variables'',
+                                      writerVariables        = variables',
                                       writerEPUBMetadata     = epubMetadata,
                                       writerTabStop          = tabStop,
                                       writerTableOfContents  = toc &&
@@ -836,14 +836,13 @@ main = do
                                       writerIdentifierPrefix = idPrefix,
                                       writerSourceDirectory  = sourceDir,
                                       writerUserDataDir      = datadir,
-                                      writerHtml5            = html5 &&
-                                                               "html" `isPrefixOf` writerName',
-                                      writerChapters         = chapters, 
-                                      writerListings         = listings,
-                                      writerAscii            = ascii }
+                                      writerHtml5            = html5 ||
+                                           slideVariant == DZSlides,
+                                      writerChapters         = chapters,
+                                      writerListings         = listings }
 
   when (isNonTextOutput writerName' && outputFile == "-") $
-    do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName ++ " output to stdout.\n" ++
+    do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName' ++ " output to stdout.\n" ++
                                "Specify an output file using the -o option.")
        exitWith $ ExitFailure 5
 
@@ -881,7 +880,7 @@ main = do
                                             replaceDirectory
                                             (replaceExtension cslfile "csl")
                                             csldir
-                processBiblio cslfile' refs doc1
+                processBiblio cslfile' cslabbrevs refs doc1
              else return doc1
 
   case lookup writerName' writers of
@@ -891,9 +890,13 @@ main = do
         Nothing | writerName' == "odt"  ->
            writeODT referenceODT writerOptions doc2
            >>= B.writeFile (encodeString outputFile)
-        Just r  -> writerFn outputFile result
+        Just r  -> writerFn outputFile =<< postProcess result
             where writerFn "-" = UTF8.putStr
                   writerFn f   = UTF8.writeFile f
-                  result       = r writerOptions doc2 ++
-                                 ['\n' | not standalone']
+                  result       = r writerOptions doc2 ++ ['\n' | not standalone']
+                  htmlFormats = ["html","html+lhs","s5","slidy","dzslides"]
+                  postProcess = if selfContained && writerName' `elem` htmlFormats
+                                  then makeSelfContained datadir
+                                  else return
+
         Nothing -> error $ "Unknown writer: " ++ writerName'

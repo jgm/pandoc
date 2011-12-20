@@ -2,6 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
   <meta name="author" content="John MacFarlane" />
   <meta name="author" content="Anonymous" />
@@ -11,9 +12,9 @@
 <body>
 <div id="header">
 <h1 class="title">Pandoc Test Suite</h1>
-<h3 class="author">John MacFarlane</h3>
-<h3 class="author">Anonymous</h3>
-<h4 class="date">July 17, 2006</h4>
+<h2 class="author">John MacFarlane</h2>
+<h2 class="author">Anonymous</h2>
+<h3 class="date">July 17, 2006</h3>
 </div>
 <p>This is a set of tests for pandoc. Most of them are adapted from John Gruber’s markdown test suite.</p>
 <hr />
@@ -423,7 +424,7 @@ Blah
 <p><strong><em>This is strong and em.</em></strong></p>
 <p>So is <strong><em>this</em></strong> word.</p>
 <p>This is code: <code>&gt;</code>, <code>$</code>, <code>\</code>, <code>\$</code>, <code>&lt;html&gt;</code>.</p>
-<p><span style="text-decoration: line-through;">This is <em>strikeout</em>.</span></p>
+<p><del>This is <em>strikeout</em>.</del></p>
 <p>Superscripts: a<sup>bc</sup>d a<sup><em>hello</em></sup> a<sup>hello there</sup>.</p>
 <p>Subscripts: H<sub>2</sub>O, H<sub>23</sub>O, H<sub>many of them</sub>O.</p>
 <p>These should not be superscripts or subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.</p>
@@ -443,11 +444,11 @@ Blah
 <li></li>
 <li><span class="math">2 + 2 = 4</span></li>
 <li><span class="math"><em>x</em> ∈ <em>y</em></span></li>
-<li><span class="math">α ∧ ω</span></li>
+<li><span class="math"><em>α</em> ∧ <em>ω</em></span></li>
 <li><span class="math">223</span></li>
 <li><span class="math"><em>p</em></span>-Tree</li>
 <li>Here’s some display math: <br /><span class="math">$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$</span><br /></li>
-<li>Here’s one that has a line break in it: <span class="math">α + ω × <em>x</em><sup>2</sup></span>.</li>
+<li>Here’s one that has a line break in it: <span class="math"><em>α</em> + <em>ω</em> × <em>x</em><sup>2</sup></span>.</li>
 </ul>
 <p>These shouldn’t be math:</p>
 <ul>
