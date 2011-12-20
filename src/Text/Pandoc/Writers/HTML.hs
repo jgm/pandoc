@@ -266,7 +266,7 @@ footnoteSection opts notes =
      then mempty
      else nl opts >> (container
           $ nl opts >> H.hr >> nl opts >>
-            H.ol (mconcat notes >> nl opts))
+            H.ol (mconcat notes >> nl opts) >> nl opts)
    where container x = if writerHtml5 opts
                           then H5.section ! A.class_ "footnotes" $ x
                           else if writerSlideVariant opts /= NoSlides
