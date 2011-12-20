@@ -55,7 +55,7 @@ $endfor$
 </div>
 <div class="presentation">
 $if(title)$
-<div class="slide">
+<div class="titleslide slide">
   <h1>$title$</h1>
   <h2>$for(author)$$author$$sep$<br/>$endfor$</h2>
   <h3>$date$</h3>
