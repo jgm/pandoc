@@ -45,9 +45,9 @@ import Data.String ( fromString )
 import Data.Maybe ( catMaybes )
 import Control.Monad.State
 import Text.Blaze
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
-import qualified Text.Blaze.Html4.Transitional.Attributes as A4
+import qualified Text.Blaze.Html5 as H5
+import qualified Text.Blaze.XHtml1.Transitional as H
+import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
 import Text.Blaze.Renderer.String (renderHtml)
 import Text.TeXMath
 import Text.XML.Light.Output
@@ -252,7 +252,7 @@ elementToHtml opts (Sec level num id' title' elements) = do
                   ["level" ++ show level]
   let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
   let secttag  = if writerHtml5 opts
-                    then H.section ! A.class_ (toValue $ unwords classes)
+                    then H5.section ! A.class_ (toValue $ unwords classes)
                     else H.div ! A.class_ (toValue $ unwords ("section":classes))
   return $ if writerSectionDivs opts || slide
               then secttag ! prefixedId opts id' $ inNl stuff
@@ -268,7 +268,7 @@ footnoteSection opts notes =
           $ nl opts >> H.hr >> nl opts >>
             H.ol (mconcat notes >> nl opts))
    where container x = if writerHtml5 opts
-                          then H.section ! A.class_ "footnotes" $ x
+                          then H5.section ! A.class_ "footnotes" $ x
                           else if writerSlideVariant opts /= NoSlides
                                then H.div ! A.class_ "footnotes slide" $ x
                                else H.div ! A.class_ "footnotes" $ x
@@ -349,8 +349,8 @@ blockToHtml opts (Para [Image txt (s,tit)]) = do
   img <- inlineToHtml opts (Image txt (s,tit))
   capt <- inlineListToHtml opts txt
   return $ if writerHtml5 opts
-              then H.figure $ mconcat
-                    [nl opts, img, H.figcaption capt, nl opts]
+              then H5.figure $ mconcat
+                    [nl opts, img, H5.figcaption capt, nl opts]
               else H.div ! A.class_ "figure" $ mconcat
                     [nl opts, img, H.p ! A.class_ "caption" $ capt,
                     nl opts]
@@ -508,7 +508,7 @@ tableItemToHtml opts tag' align' item = do
   let alignStr = alignmentToString align'
   let attribs = if writerHtml5 opts
                    then A.style (toValue $ "text-align: " ++ alignStr ++ ";")
-                   else A4.align (toValue alignStr)
+                   else A.align (toValue alignStr)
   return $ (tag' ! attribs $ contents) >> nl opts
 
 toListItems :: WriterOptions -> [Html] -> [Html]
@@ -641,7 +641,7 @@ inlineToHtml opts inline =
                                          (if null tit
                                             then []
                                             else [A.title $ toValue tit])
-                        return $ foldl (!) H.embed attributes
+                        return $ foldl (!) H5.embed attributes
                         -- note:  null title included, as in Markdown.pl
     (Note contents)          -> do
                         st <- get
