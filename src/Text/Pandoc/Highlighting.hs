@@ -94,4 +94,7 @@ languagesByExtension _ = []
 
 highlightHtml :: Bool -> Attr -> String -> Either String Html
 highlightHtml _ _ _ = Left "Pandoc was not compiled with support for highlighting"
+
+highlightLaTeX :: Bool -> Attr -> String -> Either String String
+highlightLaTeX _ _ _ = Left "Pandoc was not compiled with support for highlighting"
 #endif
