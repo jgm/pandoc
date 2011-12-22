@@ -365,13 +365,13 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
                     then classes
                     else filter (/= "literate") classes
   case highlightHtml False (id',classes',keyvals) rawCode of
-         Left _  -> let attrs = attrsToHtml opts (id', classes', keyvals)
+         Nothing -> let attrs = attrsToHtml opts (id', classes', keyvals)
                         addBird = if "literate" `elem` classes'
                                      then unlines . map ("> " ++) . lines
                                      else unlines . lines
                     in  return $ foldl (!) H.pre attrs $ H.code
                                          $ toHtml $ addBird rawCode
-         Right h -> modify (\st -> st{ stHighlighting = True }) >>
+         Just  h -> modify (\st -> st{ stHighlighting = True }) >>
                     return h
 blockToHtml opts (BlockQuote blocks) =
   -- in S5, treat list in blockquote specially
@@ -541,10 +541,10 @@ inlineToHtml opts inline =
     (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
     (Code attr str)  -> case highlightHtml True attr str of
-                             Left _  -> return
+                             Nothing -> return
                                         $ foldl (!) H.code (attrsToHtml opts attr)
                                         $ strToHtml str
-                             Right h -> return h
+                             Just  h -> return h
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . H.del
     (SmallCaps lst)   -> inlineListToHtml opts lst >>=

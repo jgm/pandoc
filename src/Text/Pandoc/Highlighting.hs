@@ -48,7 +48,7 @@ highlight :: ([FormatOption] -> String -> [SourceLine] -> a) -- ^ Formatter
           -> Bool   -- ^ True if inline
           -> Attr   -- ^ Attributes of the Code or CodeBlock
           -> String -- ^ Raw contents of the Code or CodeBlock
-          -> Either String a  -- ^ An error or the formatted result
+          -> Maybe a  -- ^ Maybe the formatted result
 highlight formatter inline (_, classes, keyvals) rawCode =
   let firstNum = case reads (fromMaybe "1" $ lookup "startFrom" keyvals) of
                       ((n,_):_) -> n
@@ -61,25 +61,25 @@ highlight formatter inline (_, classes, keyvals) rawCode =
       addBirdTracks = "literate" `elem` classes
       lcLanguages = map (map toLower) languages
   in  case find (\c -> (map toLower c) `elem` lcLanguages) classes of
-            Nothing        -> Left "Unknown or unsupported language"
-            Just language  -> case highlightAs language rawCode of
-                                   Left err -> Left err
-                                   Right hl -> Right $ formatter fmtOpts language
-                                                     $ if addBirdTracks
-                                                          then map ((OtherTok,"> "):) hl
-                                                          else hl
+            Nothing        -> Nothing
+            Just language  -> Just
+                              $ formatter fmtOpts language .
+                              (if addBirdTracks
+                                  then map ((OtherTok,"> "):)
+                                  else id)
+                              $ highlightAs language rawCode
 
 highlightHtml :: Bool   -- ^ True if inline HTML
               -> Attr   -- ^ Attributes of the Code or CodeBlock
               -> String -- ^ Raw contents of the Code or CodeBlock
-              -> Either String Html   -- ^ An error or the formatted Html
+              -> Maybe Html   -- ^ Maybe formatted Html
 highlightHtml inline attr@(id',_,_) = fmap addId . highlight formatAsHtml inline attr
       where addId = if null id' then id else (! A.id (toValue id'))
 
 highlightLaTeX  :: Bool   -- ^ True if inline
                 -> Attr   -- ^ Attributes of the Code or CodeBlock
                 -> String -- ^ Raw contents of the Code or CodeBlock
-                -> Either String String   -- ^ An error or the formatted LaTeX string
+                -> Maybe String  -- ^ Maybe formatted LaTeX
 highlightLaTeX = highlight formatAsLaTeX
 
 #else
@@ -92,9 +92,9 @@ languages = []
 languagesByExtension :: String -> [String]
 languagesByExtension _ = []
 
-highlightHtml :: Bool -> Attr -> String -> Either String Html
+highlightHtml :: Bool -> Attr -> String -> Maybe Html
 highlightHtml _ _ _ = Left "Pandoc was not compiled with support for highlighting"
 
-highlightLaTeX :: Bool -> Attr -> String -> Either String String
+highlightLaTeX :: Bool -> Attr -> String -> Maybe String
 highlightLaTeX _ _ _ = Left "Pandoc was not compiled with support for highlighting"
 #endif
