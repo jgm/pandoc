@@ -179,9 +179,6 @@ Source-repository head
 Flag threaded
   Description:   Compile markdown2pdf with -threaded option.
   Default:       True
-Flag highlighting
-  Description:   Compile in support for syntax highlighting of code blocks.
-  Default:       False
 Flag executable
   Description:   Build the pandoc executable.
   Default:       True
@@ -225,14 +222,12 @@ Library
                  dlist >= 0.4 && < 0.6,
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
-                 zlib >= 0.5 && <= 0.6
+                 zlib >= 0.5 && <= 0.6,
+                 highlighting-kate >= 0.4 && < 0.5
   if impl(ghc >= 6.10)
     Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
   else
     Build-depends: base >= 3 && < 4
-  if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.4 && < 0.5
-    cpp-options:   -D_HIGHLIGHTING
   if impl(ghc >= 6.12)
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
   else
@@ -313,14 +308,12 @@ Executable pandoc
                  dlist >= 0.4 && < 0.6,
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
-                 zlib >= 0.5 && <= 0.6
+                 zlib >= 0.5 && <= 0.6,
+                 highlighting-kate >= 0.4 && < 0.5
   if impl(ghc >= 6.10)
     Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
   else
     Build-depends: base >= 3 && < 4
-  if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.4 && < 0.5
-    cpp-options:   -D_HIGHLIGHTING
   if impl(ghc >= 6.12)
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
   else
@@ -353,8 +346,6 @@ Executable markdown2pdf
 Executable test-pandoc
   Hs-Source-Dirs:     src
   Main-Is:            test-pandoc.hs
-  if flag(highlighting)
-    cpp-options:      -D_HIGHLIGHTING
   if impl(ghc >= 7)
     cpp-options:      -D_LIT=lit
   else

@@ -15,11 +15,6 @@ the [cabal-install] build tool.
 
         cabal install pandoc
 
-    If you want support for source code syntax highlighting, set
-    the `highlighting` flag:
-
-        cabal install -fhighlighting pandoc
-
     This procedure will install the released version of pandoc,
     which will be downloaded automatically from HackageDB.
     If you want to install a modified or development version
@@ -27,15 +22,6 @@ the [cabal-install] build tool.
     as above, but without the 'pandoc':
 
         cabal install
-
-    If you are on OSX, you may encounter an error installing highlighting-kate,
-
-        ld: scattered reloc r_address too large
-
-    The workaround is this:
-
-        cabal install highlighting-kate --disable-library-for-ghci
-        cabal install pandoc -fhighlighting -f-wrappers
 
 3.  Make sure the `$CABALDIR/bin` directory is in your path.  You should
 now be able to run `pandoc`:
@@ -60,8 +46,7 @@ quick install, but this information may be of use to packagers.
 For more details, see the [Cabal User's Guide].
 
 1.  Install dependencies:  in addition to the [Haskell platform],
-you will need [zip-archive] and (if you want syntax highlighting)
-[highlighting-kate].
+you will need [zip-archive], [blaze-html], and [highlighting-kate].
 
 2.  Configure:
 
@@ -114,5 +99,6 @@ you will need [zip-archive] and (if you want syntax highlighting)
 
 [zip-archive]: http://hackage.haskell.org/package/zip-archive
 [highlighting-kate]: http://hackage.haskell.org/package/highlighting-kate
+[blaze-html]: http://hackage.haskell.org/package/blaze-html
 [Cabal User's Guide]: http://www.haskell.org/cabal/release/latest/doc/users-guide/builders.html#setup-configure-paths
 

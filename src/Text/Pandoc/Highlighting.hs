@@ -36,7 +36,6 @@ module Text.Pandoc.Highlighting ( languages
                                 ) where
 import Text.Blaze
 import Text.Pandoc.Definition
-#ifdef _HIGHLIGHTING
 import Text.Highlighting.Kate ( SourceLine, languages, highlightAs, formatAsHtml,
         TokenType(..), formatAsLaTeX, FormatOption (..), defaultHighlightingCss, languagesByExtension )
 import Data.List (find)
@@ -82,19 +81,3 @@ highlightLaTeX  :: Bool   -- ^ True if inline
                 -> Maybe String  -- ^ Maybe formatted LaTeX
 highlightLaTeX = highlight formatAsLaTeX
 
-#else
-defaultHighlightingCss :: String
-defaultHighlightingCss = ""
-
-languages :: [String]
-languages = []
-
-languagesByExtension :: String -> [String]
-languagesByExtension _ = []
-
-highlightHtml :: Bool -> Attr -> String -> Maybe Html
-highlightHtml _ _ _ = Left "Pandoc was not compiled with support for highlighting"
-
-highlightLaTeX :: Bool -> Attr -> String -> Maybe String
-highlightLaTeX _ _ _ = Left "Pandoc was not compiled with support for highlighting"
-#endif

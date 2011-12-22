@@ -842,12 +842,9 @@ this syntax:
 
 Some output formats can use this information to do syntax highlighting.
 Currently, the only output format that uses this information is HTML.
-
-If pandoc has been compiled with syntax highlighting support, then the
+If highlighting is supported for your output format and language, then the
 code block above will appear highlighted, with numbered lines.  (To see
-which languages are supported, do `pandoc --version`.)
-
-If pandoc has not been compiled with syntax highlighting support, the
+which languages are supported, do `pandoc --version`.)  Otherwise, the
 code block above will appear as follows:
 
     <pre class="haskell">

@@ -33,9 +33,7 @@ import Text.Pandoc
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
                             headerShift, findDataFile, normalize )
 import Text.Pandoc.SelfContained ( makeSelfContained )
-#ifdef _HIGHLIGHTING
 import Text.Pandoc.Highlighting ( languages )
-#endif
 import System.Environment ( getArgs, getProgName )
 import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
@@ -65,11 +63,8 @@ copyrightMessage = "\nCopyright (C) 2006-2011 John MacFarlane\n" ++
 compileInfo :: String
 compileInfo =
   "\nCompiled with citeproc support." ++
-#ifdef _HIGHLIGHTING
    "\nCompiled with syntax highlighting support for:\n" ++
-       wrapWords 78 languages ++
-#endif
-   ""
+       wrapWords 78 languages
 
 -- | Converts a list of strings into a single string with the items printed as
 -- comma separated words in lines with a maximum line length.
