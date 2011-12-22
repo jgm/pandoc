@@ -839,7 +839,8 @@ main = do
                                       writerHtml5            = html5 ||
                                            slideVariant == DZSlides,
                                       writerChapters         = chapters,
-                                      writerListings         = listings }
+                                      writerListings         = listings,
+                                      writerHighlight        = True }
 
   when (isNonTextOutput writerName' && outputFile == "-") $
     do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName' ++ " output to stdout.\n" ++
