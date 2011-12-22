@@ -482,7 +482,6 @@ data WriterOptions = WriterOptions
   , writerHtml5            :: Bool       -- ^ Produce HTML5
   , writerChapters         :: Bool       -- ^ Use "chapter" for top-level sects
   , writerListings         :: Bool       -- ^ Use listings package for code
-  , writerAscii            :: Bool       -- ^ Avoid non-ascii characters
   } deriving Show
 
 {-# DEPRECATED writerXeTeX "writerXeTeX no longer does anything" #-}
@@ -516,7 +515,6 @@ defaultWriterOptions =
                 , writerHtml5            = False
                 , writerChapters         = False
                 , writerListings         = False
-                , writerAscii            = False
                 }
 
 --
