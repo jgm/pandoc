@@ -130,7 +130,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("lhs", "yes") | stLHS st ] ++
                  [ ("graphics", "yes") | stGraphics st ] ++
                  [ ("book-class", "yes") | stBook st] ++
-                 [ ("listings", "yes") | writerListings options ] ++
+                 [ ("listings", "yes") | writerListings options || stLHS st ] ++
                  [ ("highlighting-macros", defaultLaTeXMacros) | stHighlighting st ] ++
                  citecontext
   return $ if writerStandalone options
