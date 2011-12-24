@@ -32,12 +32,14 @@ module Text.Pandoc.Highlighting ( languages
                                 , highlightHtml
                                 , highlightLaTeX
                                 , defaultHighlightingCss
+                                , defaultLaTeXMacros
                                 , languagesByExtension
                                 ) where
 import Text.Blaze
 import Text.Pandoc.Definition
 import Text.Highlighting.Kate ( SourceLine, languages, highlightAs, formatAsHtml,
-        TokenType(..), formatAsLaTeX, FormatOption (..), defaultHighlightingCss, languagesByExtension )
+        TokenType(..), formatAsLaTeX, FormatOption (..), defaultHighlightingCss,
+        defaultLaTeXMacros, languagesByExtension )
 import Data.List (find)
 import Data.Maybe (fromMaybe)
 import Data.Char (toLower)

@@ -20,10 +20,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Text.Pandoc.Writers.LaTeX
    Copyright   : Copyright (C) 2006-2010 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
-   Stability   : alpha 
+   Stability   : alpha
    Portability : portable
 
 Conversion of 'Pandoc' format into LaTeX.
@@ -41,37 +41,39 @@ import Data.Char ( toLower, isPunctuation )
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import System.FilePath (dropExtension)
+import Text.Pandoc.Highlighting (highlightLaTeX, defaultLaTeXMacros)
 
-data WriterState = 
-  WriterState { stInNote     :: Bool          -- @True@ if we're in a note
-              , stInTable    :: Bool          -- @True@ if we're in a table
-              , stTableNotes :: [(Char, Doc)] -- List of markers, notes
-                                              -- in current table
-              , stOLLevel    :: Int           -- level of ordered list nesting
-              , stOptions    :: WriterOptions -- writer options, so they don't have to be parameter 
-              , stVerbInNote :: Bool          -- true if document has verbatim text in note
-              , stEnumerate  :: Bool          -- true if document needs fancy enumerated lists
-              , stTable      :: Bool          -- true if document has a table
-              , stStrikeout  :: Bool          -- true if document has strikeout
-              , stSubscript  :: Bool          -- true if document has subscript
-              , stUrl        :: Bool          -- true if document has visible URL link
-              , stGraphics   :: Bool          -- true if document contains images
-              , stLHS        :: Bool          -- true if document has literate haskell code
-              , stBook       :: Bool          -- true if document uses book or memoir class
-              , stCsquotes   :: Bool          -- true if document uses csquotes
+data WriterState =
+  WriterState { stInNote       :: Bool          -- true if we're in a note
+              , stInTable      :: Bool          -- true if we're in a table
+              , stTableNotes   :: [(Char, Doc)] -- List of markers, notes
+                                                -- in current table
+              , stOLLevel      :: Int           -- level of ordered list nesting
+              , stOptions      :: WriterOptions -- writer options, so they don't have to be parameter
+              , stVerbInNote   :: Bool          -- true if document has verbatim text in note
+              , stEnumerate    :: Bool          -- true if document needs fancy enumerated lists
+              , stTable        :: Bool          -- true if document has a table
+              , stStrikeout    :: Bool          -- true if document has strikeout
+              , stSubscript    :: Bool          -- true if document has subscript
+              , stUrl          :: Bool          -- true if document has visible URL link
+              , stGraphics     :: Bool          -- true if document contains images
+              , stLHS          :: Bool          -- true if document has literate haskell code
+              , stBook         :: Bool          -- true if document uses book or memoir class
+              , stCsquotes     :: Bool          -- true if document uses csquotes
+              , stHighlighting :: Bool        -- true if document has highlighted code
               }
 
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: WriterOptions -> Pandoc -> String
-writeLaTeX options document = 
-  evalState (pandocToLaTeX options document) $ 
+writeLaTeX options document =
+  evalState (pandocToLaTeX options document) $
   WriterState { stInNote = False, stInTable = False,
                 stTableNotes = [], stOLLevel = 1, stOptions = options,
                 stVerbInNote = False, stEnumerate = False,
                 stTable = False, stStrikeout = False, stSubscript = False,
                 stUrl = False, stGraphics = False,
                 stLHS = False, stBook = writerChapters options,
-                stCsquotes = False }
+                stCsquotes = False, stHighlighting = False }
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
@@ -129,6 +131,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("graphics", "yes") | stGraphics st ] ++
                  [ ("book-class", "yes") | stBook st] ++
                  [ ("listings", "yes") | writerListings options ] ++
+                 [ ("highlighting-macros", defaultLaTeXMacros) | stHighlighting st ] ++
                  citecontext
   return $ if writerStandalone options
               then renderTemplate context template
@@ -180,48 +183,58 @@ blockToLaTeX (BlockQuote lst) = do
   contents <- blockListToLaTeX lst
   return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
 blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
-  st <- get
-  env <- if writerLiterateHaskell (stOptions st) && "haskell" `elem` classes &&
-                    "literate" `elem` classes
-            then do
-              modify $ \s -> s{ stLHS = True }
-              return "code"
-            else if writerListings (stOptions st)
-                    then return "lstlisting"
-                    else if stInNote st
-                            then do
-                              modify $ \s -> s{ stVerbInNote = True }
-                              return "Verbatim"
-                            else return "verbatim"
-  let params = if writerListings (stOptions st)
-               then take 1
-                    [ "language=" ++ lang | lang <- classes
-                    , lang `elem` ["ABAP","IDL","Plasm","ACSL","inform"
-                                  ,"POV","Ada","Java","Prolog","Algol"
-                                  ,"JVMIS","Promela","Ant","ksh","Python"
-                                  ,"Assembler","Lisp","R","Awk","Logo"
-                                  ,"Reduce","bash","make","Rexx","Basic"
-                                  ,"Mathematica","RSL","C","Matlab","Ruby"
-                                  ,"C++","Mercury","S","Caml","MetaPost"
-                                  ,"SAS","Clean","Miranda","Scilab","Cobol"
-                                  ,"Mizar","sh","Comal","ML","SHELXL","csh"
-                                  ,"Modula-2","Simula","Delphi","MuPAD"
-                                  ,"SQL","Eiffel","NASTRAN","tcl","Elan"
-                                  ,"Oberon-2","TeX","erlang","OCL"
-                                  ,"VBScript","Euphoria","Octave","Verilog"
-                                  ,"Fortran","Oz","VHDL","GCL","Pascal"
-                                  ,"VRML","Gnuplot","Perl","XML","Haskell"
-	                          ,"PHP","XSLT","HTML","PL/I"]
-                    ] ++ 
-                    [ key ++ "=" ++ attr | (key,attr) <- keyvalAttr ]
-               else []
-      printParams 
-          | null params = empty
-          | otherwise   = "[" <> hsep (intersperse "," (map text params)) <>
-                          "]"
-  return $ flush ("\\begin{" <> text env <> "}" <> printParams $$ text str $$
-           "\\end{" <> text env <> "}") $$ cr
-           -- final cr needed because of footnotes
+  opts <- gets stOptions
+  case () of
+     _ | writerLiterateHaskell opts && "haskell" `elem` classes &&
+         "literate" `elem` classes                      -> lhsCodeBlock
+       | writerListings opts                            -> listingsCodeBlock
+       | writerHighlight opts && not (null classes)     -> highlightedCodeBlock
+       | otherwise                                      -> rawCodeBlock
+   where lhsCodeBlock = do
+           modify $ \s -> s{ stLHS = True }
+           return $ flush ("\\begin{code}" $$ text str $$ "\\end{code}") $$ cr
+         rawCodeBlock = do
+           st <- get
+           env <- if stInNote st
+                     then modify (\s -> s{ stVerbInNote = True }) >>
+                          return "Verbatim"
+                     else return "verbatim"
+           return $ flush (text $ "\\begin{" ++ env ++ "}") $$ text str $$
+                    text ("\\end{" ++ env ++ "}") $$ cr -- final cr because of notes
+         listingsCodeBlock = do
+           st <- get
+           let params = if writerListings (stOptions st)
+                        then take 1
+                             [ "language=" ++ lang | lang <- classes
+                             , lang `elem` ["ABAP","IDL","Plasm","ACSL","inform"
+                                           ,"POV","Ada","Java","Prolog","Algol"
+                                           ,"JVMIS","Promela","Ant","ksh","Python"
+                                           ,"Assembler","Lisp","R","Awk","Logo"
+                                           ,"Reduce","bash","make","Rexx","Basic"
+                                           ,"Mathematica","RSL","C","Matlab","Ruby"
+                                           ,"C++","Mercury","S","Caml","MetaPost"
+                                           ,"SAS","Clean","Miranda","Scilab","Cobol"
+                                           ,"Mizar","sh","Comal","ML","SHELXL","csh"
+                                           ,"Modula-2","Simula","Delphi","MuPAD"
+                                           ,"SQL","Eiffel","NASTRAN","tcl","Elan"
+                                           ,"Oberon-2","TeX","erlang","OCL"
+                                           ,"VBScript","Euphoria","Octave","Verilog"
+                                           ,"Fortran","Oz","VHDL","GCL","Pascal"
+                                           ,"VRML","Gnuplot","Perl","XML","Haskell"
+         	                          ,"PHP","XSLT","HTML","PL/I"]
+                             ] ++
+                             [ key ++ "=" ++ attr | (key,attr) <- keyvalAttr ]
+                        else []
+               printParams
+                   | null params = empty
+                   | otherwise   = brackets $ hsep (intersperse "," (map text params))
+           return $ flush ("\\begin{lstlisting}" <> printParams $$ text str $$
+                    "\\end{lstlisting}") $$ cr
+         highlightedCodeBlock =
+           case highlightLaTeX False ("",classes,keyvalAttr) str of
+                  Nothing -> rawCodeBlock
+                  Just  h -> modify (\st -> st{ stHighlighting = True }) >>
+                             return (text h)
 blockToLaTeX (RawBlock "latex" x) = return $ text x <> blankline
 blockToLaTeX (RawBlock _ _) = return empty
 blockToLaTeX (BulletList lst) = do
@@ -236,15 +249,15 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   exemplar <- if numstyle /= DefaultStyle || numdelim /= DefaultDelim
                  then do
                    modify $ \s -> s{ stEnumerate = True }
-                   return $ char '[' <> 
+                   return $ char '[' <>
                        text (head (orderedListMarkers (1, numstyle,
                             numdelim))) <> char ']'
                  else return empty
   let resetcounter = if start /= 1 && oldlevel <= 4
-                        then text $ "\\setcounter{enum" ++ 
+                        then text $ "\\setcounter{enum" ++
                              map toLower (toRomanNumeral oldlevel) ++
                              "}{" ++ show (start - 1) ++ "}"
-                        else empty 
+                        else empty
   return $ "\\begin{enumerate}" <> exemplar $$ resetcounter $$
            vcat items $$ "\\end{enumerate}"
 blockToLaTeX (DefinitionList lst) = do
@@ -358,8 +371,8 @@ inlineToLaTeX :: Inline    -- ^ Inline to convert
               -> State WriterState Doc
 inlineToLaTeX (Emph lst) =
   inlineListToLaTeX lst >>= return . inCmd "emph"
-inlineToLaTeX (Strong lst) = 
-  inlineListToLaTeX lst >>= return . inCmd "textbf" 
+inlineToLaTeX (Strong lst) =
+  inlineListToLaTeX lst >>= return . inCmd "textbf"
 inlineToLaTeX (Strikeout lst) = do
   contents <- inlineListToLaTeX lst
   modify $ \s -> s{ stStrikeout = True }
