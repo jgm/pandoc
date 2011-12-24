@@ -395,14 +395,24 @@ inlineToLaTeX (Cite cits lst) = do
      Biblatex -> citationsToBiblatex cits
      _        -> inlineListToLaTeX lst
 
-inlineToLaTeX (Code _ str) = do
-  st <- get
-  if writerListings (stOptions st)
-    then do
-      when (stInNote st) $ modify $ \s -> s{ stVerbInNote = True }
-      let chr = ((enumFromTo '!' '~') \\ str) !! 0
-      return $ text $ "\\lstinline" ++ [chr] ++ str ++ [chr]
-    else return $ text $ "\\texttt{" ++ stringToLaTeX False str ++ "}"
+inlineToLaTeX (Code (_,classes,_) str) = do
+  opts <- gets stOptions
+  case () of
+     _ | writerListings opts                         -> listingsCode
+       | writerHighlight opts && not (null classes) -> highlightCode
+       | otherwise                                   -> rawCode
+   where listingsCode = do
+           inNote <- gets stInNote
+           when inNote $ modify $ \s -> s{ stVerbInNote = True }
+           let chr = ((enumFromTo '!' '~') \\ str) !! 0
+           return $ text $ "\\lstinline" ++ [chr] ++ str ++ [chr]
+         highlightCode = do
+           case highlightLaTeX True ("",classes,[]) str of
+                  Nothing -> rawCode
+                  Just  h -> modify (\st -> st{ stHighlighting = True }) >>
+                             return (text h)
+         rawCode = return
+                 $ text $ "\\texttt{" ++ stringToLaTeX False str ++ "}" 
 inlineToLaTeX (Quoted SingleQuote lst) = do
   contents <- inlineListToLaTeX lst
   csquotes <- liftM stCsquotes get
