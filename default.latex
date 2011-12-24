@@ -22,8 +22,10 @@ $if(biblio-files)$
 \bibliography{$biblio-files$}
 $endif$
 $endif$
-$if(lhs)$
+$if(listings)$
 \usepackage{listings}
+$endif$
+$if(lhs)$
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
 $endif$
 $if(highlighting-macros)$
@@ -79,9 +81,6 @@ $endif$
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 \setlength{\emergencystretch}{3em}  % prevent overfull lines
-$if(listings)$
-\usepackage{listings}
-$endif$
 $if(numbersections)$
 $else$
 \setcounter{secnumdepth}{0}
