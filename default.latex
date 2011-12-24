@@ -26,6 +26,9 @@ $if(lhs)$
 \usepackage{listings}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
 $endif$
+$if(highlighting-macros)$
+$highlighting-macros$
+$endif$
 $if(verbatim-in-note)$
 \usepackage{fancyvrb}
 $endif$
