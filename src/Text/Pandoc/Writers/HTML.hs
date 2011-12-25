@@ -663,8 +663,7 @@ blockListToNote :: WriterOptions -> String -> [Block] -> State WriterState Html
 blockListToNote opts ref blocks =
   -- If last block is Para or Plain, include the backlink at the end of
   -- that block. Otherwise, insert a new Plain block with the backlink.
-  let backlink = [RawInline "html" $ " <a href=\"#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref ++
-                 "\" class=\"footnoteBackLink\">↩</a>"]
+  let backlink = [Link [Str "↩"] ("#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref,[])]
       blocks'  = if null blocks
                     then []
                     else let lastBlock   = last blocks
