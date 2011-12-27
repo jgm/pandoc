@@ -61,6 +61,12 @@ tests = [ testGroup "inline code"
           [ test markdownSmart "quote before ellipses"
             ("'...hi'"
             =?> para (singleQuoted (singleton Ellipses <> "hi")))
+          , test markdownSmart "apostrophe before emph"
+            ("D'oh! A l'*aide*!"
+            =?> para ("D’oh! A l’" <> emph "aide" <> "!"))
+          , test markdownSmart "apostrophe in French"
+            ("À l'arrivée de la guerre, le thème de l'«impossibilité du socialisme»"
+            =?> para ("À l’arrivée de la guerre, le thème de l’«impossibilité du socialisme»"))
           ]
         , testGroup "mixed emphasis and strong"
           [ "emph and strong emph alternating" =:
