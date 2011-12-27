@@ -771,7 +771,7 @@ subscript = try $ string "\\textsubscript{" >> manyTill inline (char '}') >>=
                   return . Subscript
 
 apostrophe :: GenParser Char ParserState Inline
-apostrophe = char '\'' >> return Apostrophe
+apostrophe = char '\'' >> return (Str "\x2019")
 
 quoted :: GenParser Char ParserState Inline
 quoted = doubleQuoted <|> singleQuoted
