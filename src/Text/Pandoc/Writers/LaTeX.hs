@@ -162,6 +162,8 @@ stringToLaTeX isUrl = escapeStringUsing latexEscapes
                        , ('\x201C', "``")
                        , ('\x201D', "''")
                        , ('\x2026', "\\ldots{}")
+                       , ('\x2014', "---")
+                       , ('\x2013', "--")
                        ]
 
 -- | Puts contents into LaTeX command.
@@ -201,8 +203,8 @@ blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
                      then modify (\s -> s{ stVerbInNote = True }) >>
                           return "Verbatim"
                      else return "verbatim"
-           return $ flush (text $ "\\begin{" ++ env ++ "}") $$ text str $$
-                    text ("\\end{" ++ env ++ "}") $$ cr -- final cr because of notes
+           return $ flush (text ("\\begin{" ++ env ++ "}") $$ text str $$
+                    text ("\\end{" ++ env ++ "}")) $$ cr -- final cr because of notes
          listingsCodeBlock = do
            st <- get
            let params = if writerListings (stOptions st)
@@ -236,7 +238,7 @@ blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
            case highlight formatLaTeXBlock ("",classes,keyvalAttr) str of
                   Nothing -> rawCodeBlock
                   Just  h -> modify (\st -> st{ stHighlighting = True }) >>
-                             return (text h)
+                             return (flush $ text h)
 blockToLaTeX (RawBlock "latex" x) = return $ text x <> blankline
 blockToLaTeX (RawBlock _ _) = return empty
 blockToLaTeX (BulletList lst) = do
@@ -365,7 +367,6 @@ inlineListToLaTeX lst = mapM inlineToLaTeX lst >>= return . hcat
 
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
-isQuoted Apostrophe = True
 isQuoted _ = False
 
 -- | Convert inline element to LaTeX
@@ -441,10 +442,6 @@ inlineToLaTeX (Quoted DoubleQuote lst) = do
                    then "\\,"
                    else empty
        return $ "``" <> s1 <> contents <> s2 <> "''"
-inlineToLaTeX Apostrophe = return $ char '\''
-inlineToLaTeX EmDash = return "---"
-inlineToLaTeX EnDash = return "--"
-inlineToLaTeX Ellipses = return "\\ldots{}"
 inlineToLaTeX (Str str) = return $ text $ stringToLaTeX False str
 inlineToLaTeX (Math InlineMath str) = return $ char '$' <> text str <> char '$'
 inlineToLaTeX (Math DisplayMath str) = return $ "\\[" <> text str <> "\\]"

@@ -325,10 +325,6 @@ stringify = queryWith go
         go (Str x) = x
         go (Code _ x) = x
         go (Math _ x) = x
-        go EmDash = "--"
-        go EnDash = "-"
-        go Apostrophe = "'"
-        go Ellipses = "..."
         go LineBreak = " "
         go _ = ""
 

@@ -540,10 +540,6 @@ inlineToHtml opts inline =
     (Str str)        -> return $ strToHtml str
     (Space)          -> return $ strToHtml " "
     (LineBreak)      -> return H.br
-    (EmDash)         -> return $ strToHtml "—"
-    (EnDash)         -> return $ strToHtml "–"
-    (Ellipses)       -> return $ strToHtml "…"
-    (Apostrophe)     -> return $ strToHtml "’"
     (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
     (Code attr str)  -> case highlight formatHtmlInline attr str of

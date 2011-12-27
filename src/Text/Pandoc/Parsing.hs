@@ -779,22 +779,22 @@ doubleQuoteEnd = do
 
 ellipses :: GenParser Char st Inline
 ellipses = do
-  try (charOrRef "…\133") <|> try (string "..." >> return '…')
-  return Ellipses
+  try (charOrRef "\8230\133") <|> try (string "..." >> return '…')
+  return (Str "\8230")
 
 dash :: GenParser Char st Inline
 dash = enDash <|> emDash
 
 enDash :: GenParser Char st Inline
 enDash = do
-  try (charOrRef "–\150") <|>
+  try (charOrRef "\8211\150") <|>
     try (char '-' >> lookAhead (satisfy isDigit) >> return '–')
-  return EnDash
+  return (Str "\8211")
 
 emDash :: GenParser Char st Inline
 emDash = do
-  try (charOrRef "—\151") <|> (try $ string "--" >> optional (char '-') >> return '—')
-  return EmDash
+  try (charOrRef "\8212\151") <|> (try $ string "--" >> optional (char '-') >> return '-')
+  return (Str "\8212")
 
 --
 -- Macros

@@ -95,7 +95,12 @@ noteToOrg num note = do
 
 -- | Escape special characters for Org.
 escapeString :: String -> String
-escapeString = escapeStringUsing (backslashEscapes "^_")
+escapeString = escapeStringUsing $
+               [ ('\x2014',"---")
+               , ('\x2013',"--")
+               , ('\x2019',"'")
+               , ('\x2026',"...")
+               ] ++ backslashEscapes "^_"
 
 titleToOrg :: [Inline] -> State WriterState Doc
 titleToOrg [] = return empty
@@ -249,10 +254,6 @@ inlineToOrg (Quoted DoubleQuote lst) = do
   contents <- inlineListToOrg lst
   return $ "\"" <> contents <> "\""
 inlineToOrg (Cite _  lst) = inlineListToOrg lst
-inlineToOrg EmDash = return "---"
-inlineToOrg EnDash = return "--"
-inlineToOrg Apostrophe = return "'"
-inlineToOrg Ellipses = return "..."
 inlineToOrg (Code _ str) = return $ "=" <> text str <> "="
 inlineToOrg (Str str) = return $ text $ escapeString str
 inlineToOrg (Math t str) = do

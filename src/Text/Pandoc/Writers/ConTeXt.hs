@@ -102,6 +102,10 @@ escapeCharForConTeXt ch =
     ']'    -> "{]}"
     '_'    -> "\\letterunderscore{}"
     '\160' -> "~"
+    '\x2014' -> "---"
+    '\x2013' -> "--"
+    '\x2019' -> "'"
+    '\x2026' -> "\\ldots{}"
     x      -> [x]
 
 -- | Escape string for ConTeXt
@@ -258,10 +262,6 @@ inlineToConTeXt (Quoted DoubleQuote lst) = do
   contents <- inlineListToConTeXt lst
   return $ "\\quotation" <> braces contents
 inlineToConTeXt (Cite _ lst) = inlineListToConTeXt lst
-inlineToConTeXt Apostrophe = return $ char '\''
-inlineToConTeXt EmDash = return "---"
-inlineToConTeXt EnDash = return "--"
-inlineToConTeXt Ellipses = return "\\ldots{}"
 inlineToConTeXt (Str str) = return $ text $ stringToConTeXt str
 inlineToConTeXt (Math InlineMath str) =
   return $ char '$' <> text str <> char '$'

@@ -281,10 +281,6 @@ inlineToRST (Quoted DoubleQuote lst) = do
   return $ "“" <> contents <> "”"
 inlineToRST (Cite _  lst) =
   inlineListToRST lst
-inlineToRST EmDash = return $ char '\8212'
-inlineToRST EnDash = return $ char '\8211'
-inlineToRST Apostrophe = return $ char '\8217'
-inlineToRST Ellipses = return $ char '\8230'
 inlineToRST (Code _ str) = return $ "``" <> text str <> "``"
 inlineToRST (Str str) = return $ text $ escapeString str
 inlineToRST (Math t str) = do

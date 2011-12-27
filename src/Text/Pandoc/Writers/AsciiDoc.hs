@@ -321,10 +321,6 @@ inlineToAsciiDoc opts (Quoted SingleQuote lst) = do
 inlineToAsciiDoc opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToAsciiDoc opts lst
   return $ "``" <> contents <> "''"
-inlineToAsciiDoc _ EmDash = return "\8212"
-inlineToAsciiDoc _ EnDash = return "\8211"
-inlineToAsciiDoc _ Apostrophe = return "\8217"
-inlineToAsciiDoc _ Ellipses = return "\8230"
 inlineToAsciiDoc _ (Code _ str) = return $
   text "`" <> text (escapeStringUsing (backslashEscapes "`") str) <> "`"
 inlineToAsciiDoc _ (Str str) = return $ text $ escapeString str

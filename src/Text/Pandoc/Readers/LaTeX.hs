@@ -802,13 +802,13 @@ ellipses = try $ do
   optional $ char 'l'
   string "dots"
   optional $ try $ string "{}"
-  return Ellipses
+  return (Str "…")
 
 enDash :: GenParser Char st Inline
-enDash = try (string "--") >> return EnDash
+enDash = try (string "--") >> return (Str "-")
 
 emDash :: GenParser Char st Inline
-emDash = try (string "---") >> return EmDash
+emDash = try (string "---") >> return (Str "—")
 
 hyphen :: GenParser Char st Inline
 hyphen = char '-' >> return (Str "-")

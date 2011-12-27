@@ -432,10 +432,6 @@ inlineToMarkdown opts (Quoted SingleQuote lst) = do
 inlineToMarkdown opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ "“" <> contents <> "”"
-inlineToMarkdown _ EmDash = return "\8212"
-inlineToMarkdown _ EnDash = return "\8211"
-inlineToMarkdown _ Apostrophe = return "\8217"
-inlineToMarkdown _ Ellipses = return "\8230"
 inlineToMarkdown opts (Code attr str) =
   let tickGroups = filter (\s -> '`' `elem` s) $ group str 
       longest    = if null tickGroups

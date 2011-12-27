@@ -96,6 +96,10 @@ stringToTexinfo = escapeStringUsing texinfoEscapes
                          , ('@', "@@")
                          , (',', "@comma{}") -- only needed in argument lists
                          , ('\160', "@ ")
+                         , ('\x2014', "---")
+                         , ('\x2013', "--")
+                         , ('\x2026', "@dots{}")
+                         , ('\x2019', "'")
                          ]
 
 -- | Puts contents into Texinfo command.
@@ -387,10 +391,6 @@ inlineToTexinfo (Quoted DoubleQuote lst) = do
 
 inlineToTexinfo (Cite _ lst) =
   inlineListToTexinfo lst
-inlineToTexinfo Apostrophe = return $ char '\''
-inlineToTexinfo EmDash = return $ text "---"
-inlineToTexinfo EnDash = return $ text "--"
-inlineToTexinfo Ellipses = return $ text "@dots{}"
 inlineToTexinfo (Str str) = return $ text (stringToTexinfo str)
 inlineToTexinfo (Math _ str) = return $ inCmd "math" $ text str
 inlineToTexinfo (RawInline f str) | f == "latex" || f == "tex" =

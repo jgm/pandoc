@@ -60,7 +60,7 @@ tests = [ testGroup "inline code"
         , testGroup "smart punctuation"
           [ test markdownSmart "quote before ellipses"
             ("'...hi'"
-            =?> para (singleQuoted (singleton Ellipses <> "hi")))
+            =?> para (singleQuoted ("…hi")))
           , test markdownSmart "apostrophe before emph"
             ("D'oh! A l'*aide*!"
             =?> para ("D’oh! A l’" <> emph "aide" <> "!"))

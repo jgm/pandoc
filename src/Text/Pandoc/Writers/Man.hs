@@ -98,7 +98,13 @@ noteToMan opts num note = do
 
 -- | Association list of characters to escape.
 manEscapes :: [(Char, String)]
-manEscapes = [('\160', "\\ "), ('\'', "\\[aq]")] ++ backslashEscapes "@\\"
+manEscapes = [ ('\160', "\\ ")
+             , ('\'', "\\[aq]")
+             , ('’', "'")
+             , ('\x2014', "\\[em]")
+             , ('\x2013', "\\[en]")
+             , ('\x2026', "\\&...")
+             ] ++ backslashEscapes "@\\"
 
 -- | Escape special characters for Man.
 escapeString :: String -> String
@@ -303,10 +309,6 @@ inlineToMan opts (Quoted DoubleQuote lst) = do
   return $ text "\\[lq]" <> contents <> text "\\[rq]"
 inlineToMan opts (Cite _ lst) =
   inlineListToMan opts lst
-inlineToMan _ EmDash = return $ text "\\[em]"
-inlineToMan _ EnDash = return $ text "\\[en]"
-inlineToMan _ Apostrophe = return $ char '\''
-inlineToMan _ Ellipses = return $ text "\\&..."
 inlineToMan _ (Code _ str) =
   return $ text $ "\\f[C]" ++ escapeCode str ++ "\\f[]"
 inlineToMan _ (Str str) = return $ text $ escapeString str

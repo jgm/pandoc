@@ -1087,20 +1087,18 @@ nonEndline = satisfy (/='\n')
 
 str :: GenParser Char ParserState Inline
 str = do
-  st <- getState
+  smart <- stateSmart `fmap` getState
   a <- alphaNum
   as <- many $ alphaNum
             <|> (try $ char '_' >>~ lookAhead alphaNum)
-            <|> if stateStrict st
-                   then mzero
-                   else (try $ satisfy (\c -> c == '\'' || c == '\x2019') >>
+            <|> if smart
+                   then (try $ satisfy (\c -> c == '\'' || c == '\x2019') >>
                          lookAhead alphaNum >> return '\x2019')
-                        -- for things like l'aide - would be better to return
-                        -- an Apostrophe, but we can't in this context
+                         -- for things like l'aide
+                   else mzero
   let result = a:as
-  state <- getState
   let spacesToNbr = map (\c -> if c == ' ' then '\160' else c)
-  if stateSmart state
+  if smart
      then case likelyAbbrev result of
                []        -> return $ Str result
                xs        -> choice (map (\x ->

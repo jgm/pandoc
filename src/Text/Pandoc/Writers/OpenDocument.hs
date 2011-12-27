@@ -154,8 +154,8 @@ inHeaderTags i d =
                                  , ("text:outline-level", show i)] d
 
 inQuotes :: QuoteType -> Doc -> Doc
-inQuotes SingleQuote s = text "&#8216;" <> s <> text "&#8217;"
-inQuotes DoubleQuote s = text "&#8220;" <> s <> text "&#8221;"
+inQuotes SingleQuote s = char '\8216' <> s <> char '\8217'
+inQuotes DoubleQuote s = char '\8220' <> s <> char '\8221'
 
 handleSpaces :: String -> Doc
 handleSpaces s
@@ -361,10 +361,6 @@ inlinesToOpenDocument o l = hcat <$> mapM (inlineToOpenDocument o) l
 -- | Convert an inline element to OpenDocument.
 inlineToOpenDocument :: WriterOptions -> Inline -> State WriterState Doc
 inlineToOpenDocument o ils
-    | Ellipses      <- ils = inTextStyle $ text "&#8230;"
-    | EmDash        <- ils = inTextStyle $ text "&#8212;"
-    | EnDash        <- ils = inTextStyle $ text "&#8211;"
-    | Apostrophe    <- ils = inTextStyle $ text "&#8217;"
     | Space         <- ils = inTextStyle space
     | LineBreak     <- ils = return $ selfClosingTag "text:line-break" []
     | Str         s <- ils = inTextStyle $ handleSpaces $ escapeStringForXML s

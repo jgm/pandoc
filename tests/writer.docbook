@@ -16,7 +16,7 @@
   </articleinfo>
 <para>
   This is a set of tests for pandoc. Most of them are adapted from John
-  Gruber's markdown test suite.
+  Gruber’s markdown test suite.
 </para>
 <section id="headers">
   <title>Headers</title>
@@ -56,7 +56,7 @@
 <section id="paragraphs">
   <title>Paragraphs</title>
   <para>
-    Here's a regular paragraph.
+    Here’s a regular paragraph.
   </para>
   <para>
     In Markdown 1.0.0 and earlier. Version 8. This line turns into a list
@@ -64,7 +64,7 @@
     a list item.
   </para>
   <para>
-    Here's one with a bullet. * criminey.
+    Here’s one with a bullet. * criminey.
   </para>
   <para>
     There should be a hard line break<literallayout></literallayout>here.
@@ -364,7 +364,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
           Item 1, graf one.
         </para>
         <para>
-          Item 1. graf two. The quick brown fox jumped over the lazy dog's
+          Item 1. graf two. The quick brown fox jumped over the lazy dog’s
           back.
         </para>
       </listitem>
@@ -404,7 +404,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
     </itemizedlist>
     <para>
-      Here's another:
+      Here’s another:
     </para>
     <orderedlist numeration="arabic">
       <listitem>
@@ -893,7 +893,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
 
   <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
   <para>
-    Here's a simple block:
+    Here’s a simple block:
   </para>
   <div>
       
@@ -956,7 +956,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
 &lt;hr /&gt;
 </programlisting>
   <para>
-    Hr's:
+    Hr’s:
   </para>
   <hr>
 
@@ -1041,7 +1041,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   </para>
   <para>
     <quote>He said, <quote>I want to go.</quote></quote> Were you alive in the
-    70's?
+    70’s?
   </para>
   <para>
     Here is some quoted <quote><literal>code</literal></quote> and a
@@ -1092,19 +1092,19 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     </listitem>
     <listitem>
       <para>
-        Here's some display math:
+        Here’s some display math:
         $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$
       </para>
     </listitem>
     <listitem>
       <para>
-        Here's one that has a line break in it:
+        Here’s one that has a line break in it:
         <emphasis>α</emphasis> + <emphasis>ω</emphasis> × <emphasis>x</emphasis><superscript>2</superscript>.
       </para>
     </listitem>
   </itemizedlist>
   <para>
-    These shouldn't be math:
+    These shouldn’t be math:
   </para>
   <itemizedlist>
     <listitem>
@@ -1131,7 +1131,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     </listitem>
   </itemizedlist>
   <para>
-    Here's a LaTeX table:
+    Here’s a LaTeX table:
   </para>
 </section>
 <section id="special-characters">
@@ -1304,18 +1304,18 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <section id="with-ampersands">
     <title>With ampersands</title>
     <para>
-      Here's a <ulink url="http://example.com/?foo=1&amp;bar=2">link with an
+      Here’s a <ulink url="http://example.com/?foo=1&amp;bar=2">link with an
       ampersand in the URL</ulink>.
     </para>
     <para>
-      Here's a link with an amersand in the link text:
+      Here’s a link with an amersand in the link text:
       <ulink url="http://att.com/">AT&amp;T</ulink>.
     </para>
     <para>
-      Here's an <ulink url="/script?foo=1&amp;bar=2">inline link</ulink>.
+      Here’s an <ulink url="/script?foo=1&amp;bar=2">inline link</ulink>.
     </para>
     <para>
-      Here's an <ulink url="/script?foo=1&amp;bar=2">inline link in pointy
+      Here’s an <ulink url="/script?foo=1&amp;bar=2">inline link in pointy
       braces</ulink>.
     </para>
   </section>
@@ -1392,7 +1392,7 @@ or here: &lt;http://example.com/&gt;
       </para>
     </footnote> and another.<footnote>
       <para>
-        Here's the long note. This one contains multiple blocks.
+        Here’s the long note. This one contains multiple blocks.
       </para>
       <para>
         Subsequent blocks are indented to show that they belong to the
