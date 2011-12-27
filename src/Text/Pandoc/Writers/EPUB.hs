@@ -46,7 +46,7 @@ import Text.Pandoc.UUID
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.Markdown ( writePlain )
 import Data.Char ( toLower )
-import Network.URI ( unEscapeString )
+import Network.URI ( unEscapeString, isRelativeReference )
 
 -- | Produce an EPUB file from a Pandoc document.
 writeEPUB :: Maybe String   -- ^ EPUB stylesheet specified at command line
@@ -271,7 +271,7 @@ transformInlines (MathML _) _ _ (x@(Math _ _) : xs) = do
       result = if "<math" `isPrefixOf` mathml then inOps else mathml
   return $ RawInline "html" result : xs
 transformInlines _ _ _ (RawInline _ _ : xs) = return $ Str "" : xs
-transformInlines _ _ _ (Link lab (_,_) : xs) = return $ lab ++ xs
+transformInlines _ _ _ (Link lab (src,_) : xs) | isRelativeReference src = return $ lab ++ xs
 transformInlines _ _ _ xs = return xs
 
 transformBlock :: Block -> Block
