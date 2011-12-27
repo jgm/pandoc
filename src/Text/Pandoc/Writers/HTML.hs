@@ -35,7 +35,8 @@ import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Pandoc.Readers.TeXMath
-import Text.Pandoc.Highlighting ( highlightHtml, defaultHighlightingCss )
+import Text.Pandoc.Highlighting ( highlight, pygments, styleToHtml,
+                                  formatHtmlInline, formatHtmlBlock )
 import Text.Pandoc.XML (stripTags, escapeStringForXML)
 import Network.HTTP ( urlEncode )
 import Numeric ( showHex )
@@ -153,7 +154,7 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                                             ("/*<![CDATA[*/\n" ++ s ++ "/*]]>*/\n")
                                       Nothing -> mempty
                 else mempty
-  let newvars = [("highlighting-css", defaultHighlightingCss) |
+  let newvars = [("highlighting-css", renderHtml $ styleToHtml pygments) |
                    stHighlighting st] ++
                 [("math", renderHtml math) | stMath st]
   return (tit, auths, date, toc, thebody, newvars)
@@ -361,16 +362,21 @@ blockToHtml _ (RawBlock "html" str) = return $ preEscapedString str
 blockToHtml _ (RawBlock _ _) = return mempty
 blockToHtml _ (HorizontalRule) = return H.hr
 blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
-  let classes' = if writerLiterateHaskell opts
-                    then classes
+  let tolhs = writerLiterateHaskell opts &&
+                any (\c -> map toLower c == "haskell") classes &&
+                any (\c -> map toLower c == "literate") classes
+      classes' = if tolhs
+                    then map (\c -> if map toLower c == "haskell"
+                                       then "literatehaskell"
+                                       else c) classes
                     else filter (/= "literate") classes
-  case highlightHtml False (id',classes',keyvals) rawCode of
+      adjCode  = if tolhs
+                    then unlines . map ("> " ++) . lines $ rawCode
+                    else rawCode
+  case highlight formatHtmlBlock (id',classes,keyvals) adjCode of
          Nothing -> let attrs = attrsToHtml opts (id', classes', keyvals)
-                        addBird = if "literate" `elem` classes'
-                                     then unlines . map ("> " ++) . lines
-                                     else unlines . lines
                     in  return $ foldl (!) H.pre attrs $ H.code
-                                         $ toHtml $ addBird rawCode
+                                         $ toHtml adjCode
          Just  h -> modify (\st -> st{ stHighlighting = True }) >>
                     return h
 blockToHtml opts (BlockQuote blocks) =
@@ -540,7 +546,7 @@ inlineToHtml opts inline =
     (Apostrophe)     -> return $ strToHtml "’"
     (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
-    (Code attr str)  -> case highlightHtml True attr str of
+    (Code attr str)  -> case highlight formatHtmlInline attr str of
                              Nothing -> return
                                         $ foldl (!) H.code (attrsToHtml opts attr)
                                         $ strToHtml str

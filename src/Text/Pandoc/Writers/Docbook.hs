@@ -35,7 +35,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Readers.TeXMath
 import Data.List ( isPrefixOf, intercalate, isSuffixOf )
 import Data.Char ( toLower )
-import Text.Pandoc.Highlighting (languages, languagesByExtension)
+import Text.Pandoc.Highlighting ( languages, languagesByExtension )
 import Text.Pandoc.Pretty
 
 -- | Convert list of authors to a docbook <author> section

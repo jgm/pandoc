@@ -41,7 +41,8 @@ import Data.Char ( toLower, isPunctuation )
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import System.FilePath (dropExtension)
-import Text.Pandoc.Highlighting (highlightLaTeX, defaultLaTeXMacros)
+import Text.Pandoc.Highlighting (highlight, pygments, styleToLaTeX,
+                                 formatLaTeXInline, formatLaTeXBlock)
 
 data WriterState =
   WriterState { stInNote       :: Bool          -- true if we're in a note
@@ -60,7 +61,7 @@ data WriterState =
               , stLHS          :: Bool          -- true if document has literate haskell code
               , stBook         :: Bool          -- true if document uses book or memoir class
               , stCsquotes     :: Bool          -- true if document uses csquotes
-              , stHighlighting :: Bool        -- true if document has highlighted code
+              , stHighlighting :: Bool          -- true if document has highlighted code
               }
 
 -- | Convert Pandoc to LaTeX.
@@ -131,7 +132,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("graphics", "yes") | stGraphics st ] ++
                  [ ("book-class", "yes") | stBook st] ++
                  [ ("listings", "yes") | writerListings options || stLHS st ] ++
-                 [ ("highlighting-macros", defaultLaTeXMacros) | stHighlighting st ] ++
+                 [ ("highlighting-macros", styleToLaTeX pygments) | stHighlighting st ] ++
                  citecontext
   return $ if writerStandalone options
               then renderTemplate context template
@@ -160,6 +161,7 @@ stringToLaTeX isUrl = escapeStringUsing latexEscapes
                        , ('\x2019', "'")
                        , ('\x201C', "``")
                        , ('\x201D', "''")
+                       , ('\x2026', "\\ldots{}")
                        ]
 
 -- | Puts contents into LaTeX command.
@@ -231,7 +233,7 @@ blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
            return $ flush ("\\begin{lstlisting}" <> printParams $$ text str $$
                     "\\end{lstlisting}") $$ cr
          highlightedCodeBlock =
-           case highlightLaTeX False ("",classes,keyvalAttr) str of
+           case highlight formatLaTeXBlock ("",classes,keyvalAttr) str of
                   Nothing -> rawCodeBlock
                   Just  h -> modify (\st -> st{ stHighlighting = True }) >>
                              return (text h)
@@ -407,7 +409,7 @@ inlineToLaTeX (Code (_,classes,_) str) = do
            let chr = ((enumFromTo '!' '~') \\ str) !! 0
            return $ text $ "\\lstinline" ++ [chr] ++ str ++ [chr]
          highlightCode = do
-           case highlightLaTeX True ("",classes,[]) str of
+           case highlight formatLaTeXInline ("",classes,[]) str of
                   Nothing -> rawCode
                   Just  h -> modify (\st -> st{ stHighlighting = True }) >>
                              return (text h)

@@ -29,57 +29,41 @@ Exports functions for syntax highlighting.
 -}
 
 module Text.Pandoc.Highlighting ( languages
-                                , highlightHtml
-                                , highlightLaTeX
-                                , defaultHighlightingCss
-                                , defaultLaTeXMacros
                                 , languagesByExtension
+                                , highlight
+                                , formatLaTeXInline
+                                , formatLaTeXBlock
+                                , styleToLaTeX
+                                , formatHtmlInline
+                                , formatHtmlBlock
+                                , styleToHtml
+                                , pygments
                                 ) where
-import Text.Blaze
 import Text.Pandoc.Definition
-import Text.Highlighting.Kate ( SourceLine, languages, highlightAs, formatAsHtml,
-        TokenType(..), formatAsLaTeX, FormatOption (..), defaultHighlightingCss,
-        defaultLaTeXMacros, languagesByExtension )
+import Text.Highlighting.Kate
 import Data.List (find)
 import Data.Maybe (fromMaybe)
 import Data.Char (toLower)
-import qualified Text.Blaze.Html5.Attributes as A
 
-highlight :: ([FormatOption] -> String -> [SourceLine] -> a) -- ^ Formatter
-          -> Bool   -- ^ True if inline
-          -> Attr   -- ^ Attributes of the Code or CodeBlock
-          -> String -- ^ Raw contents of the Code or CodeBlock
-          -> Maybe a  -- ^ Maybe the formatted result
-highlight formatter inline (_, classes, keyvals) rawCode =
+lcLanguages :: [String]
+lcLanguages = map (map toLower) languages
+
+highlight :: (FormatOptions -> [SourceLine] -> a) -- ^ Formatter
+          -> Attr   -- ^ Attributes of the CodeBlock
+          -> String -- ^ Raw contents of the CodeBlock
+          -> Maybe a -- ^ Maybe the formatted result
+highlight formatter (_, classes, keyvals) rawCode =
   let firstNum = case reads (fromMaybe "1" $ lookup "startFrom" keyvals) of
                       ((n,_):_) -> n
                       []        -> 1
-      fmtOpts = [OptNumberFrom firstNum] ++
-                [OptInline | inline] ++
-                case find (`elem` ["number","numberLines","number-lines"]) classes of
-                  Nothing   -> []
-                  Just _    -> [OptNumberLines]
-      addBirdTracks = "literate" `elem` classes
-      lcLanguages = map (map toLower) languages
-  in  case find (\c -> (map toLower c) `elem` lcLanguages) classes of
+      fmtOpts = defaultFormatOpts{
+                  startNumber = firstNum,
+                  numberLines = any (`elem`
+                        ["number","numberLines", "number-lines"]) classes }
+      lcclasses = map (map toLower) classes
+  in  case find (`elem` lcLanguages) lcclasses of
             Nothing        -> Nothing
             Just language  -> Just
-                              $ formatter fmtOpts language .
-                              (if addBirdTracks
-                                  then map ((OtherTok,"> "):)
-                                  else id)
+                              $ formatter fmtOpts
                               $ highlightAs language rawCode
-
-highlightHtml :: Bool   -- ^ True if inline HTML
-              -> Attr   -- ^ Attributes of the Code or CodeBlock
-              -> String -- ^ Raw contents of the Code or CodeBlock
-              -> Maybe Html   -- ^ Maybe formatted Html
-highlightHtml inline attr@(id',_,_) = fmap addId . highlight formatAsHtml inline attr
-      where addId = if null id' then id else (! A.id (toValue id'))
-
-highlightLaTeX  :: Bool   -- ^ True if inline
-                -> Attr   -- ^ Attributes of the Code or CodeBlock
-                -> String -- ^ Raw contents of the Code or CodeBlock
-                -> Maybe String  -- ^ Maybe formatted LaTeX
-highlightLaTeX = highlight formatAsLaTeX
 
