@@ -1093,7 +1093,8 @@ str = do
             <|> (try $ char '_' >>~ lookAhead alphaNum)
             <|> if stateStrict st
                    then mzero
-                   else (try $ char '\'' >> lookAhead alphaNum >> return '\x2019')
+                   else (try $ satisfy (\c -> c == '\'' || c == '\x2019') >>
+                         lookAhead alphaNum >> return '\x2019')
                         -- for things like l'aide - would be better to return
                         -- an Apostrophe, but we can't in this context
   let result = a:as
