@@ -704,7 +704,7 @@ smartPunctuation inlineParser = do
   choice [ quoted inlineParser, apostrophe, dash, ellipses ]
 
 apostrophe :: GenParser Char ParserState Inline
-apostrophe = (char '\'' <|> char '\8217') >> return Apostrophe
+apostrophe = (char '\'' <|> char '\8217') >> return (Str "\x2019")
 
 quoted :: GenParser Char ParserState Inline
        -> GenParser Char ParserState Inline
