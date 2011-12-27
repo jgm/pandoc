@@ -44,7 +44,7 @@ import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockT
                                   isTextTag, isCommentTag )
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.ParserCombinators.Parsec
-import Control.Monad (when, liftM, guard)
+import Control.Monad (when, liftM, guard, mzero)
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match (tagOpen)
 
@@ -1087,8 +1087,15 @@ nonEndline = satisfy (/='\n')
 
 str :: GenParser Char ParserState Inline
 str = do
+  st <- getState
   a <- alphaNum
-  as <- many $ alphaNum <|> (try $ char '_' >>~ lookAhead alphaNum)
+  as <- many $ alphaNum
+            <|> (try $ char '_' >>~ lookAhead alphaNum)
+            <|> if stateStrict st
+                   then mzero
+                   else (try $ char '\'' >> lookAhead alphaNum >> return '\x2019')
+                        -- for things like l'aide - would be better to return
+                        -- an Apostrophe, but we can't in this context
   let result = a:as
   state <- getState
   let spacesToNbr = map (\c -> if c == ' ' then '\160' else c)
