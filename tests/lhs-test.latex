@@ -12,6 +12,26 @@
     \usepackage[utf8]{inputenc}
   \fi
 \fi
+\usepackage{color}
+\usepackage{fancyvrb}
+\DefineShortVerb[commandchars=\\\{\}]{\|}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{{#1}}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{{#1}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{{#1}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{{#1}}}
+\newcommand{\RegionMarkerTok}[1]{{#1}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+\newcommand{\NormalTok}[1]{{#1}}
 \ifxetex
   \usepackage[setpagesize=false, % page size defined by xetex
               unicode=false, % unicode breaks when used with xetex
@@ -33,11 +53,13 @@
 \texttt{unsplit} is an arrow that takes a pair of values and combines them to
 return a single value:
 
-\begin{verbatim}
-unsplit :: (Arrow a) => (b -> c -> d) -> a (b, c) d
-unsplit = arr . uncurry       
-          -- arr (\op (x,y) -> x `op` y) 
-\end{verbatim}
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{unsplit ::} \NormalTok{(}\DataTypeTok{Arrow} \NormalTok{a) }\OtherTok{=>} \NormalTok{(b }\OtherTok{->} \NormalTok{c }\OtherTok{->} \NormalTok{d) }\OtherTok{->} \NormalTok{a (b, c) d}
+\NormalTok{unsplit }\FunctionTok{=} \NormalTok{arr }\FunctionTok{.} \FunctionTok{uncurry}       
+          \CommentTok{-- arr (\textbackslash{}op (x,y) -> x `op` y) }
+\end{Highlighting}
+\end{Shaded}
 \texttt{(***)} combines two arrows into a new arrow by running the two arrows
 on a pair of values (one arrow on the first item of the pair and one arrow on
 the second item of the pair).
