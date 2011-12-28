@@ -38,6 +38,12 @@ module Text.Pandoc.Highlighting ( languages
                                 , formatHtmlBlock
                                 , styleToHtml
                                 , pygments
+                                , espresso
+                                , tango
+                                , kate
+                                , monochrome
+                                , haddock
+                                , Style
                                 ) where
 import Text.Pandoc.Definition
 import Text.Highlighting.Kate

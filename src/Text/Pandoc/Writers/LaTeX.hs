@@ -41,7 +41,7 @@ import Data.Char ( toLower, isPunctuation )
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import System.FilePath (dropExtension)
-import Text.Pandoc.Highlighting (highlight, pygments, styleToLaTeX,
+import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
                                  formatLaTeXInline, formatLaTeXBlock)
 
 data WriterState =
@@ -132,7 +132,8 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("graphics", "yes") | stGraphics st ] ++
                  [ ("book-class", "yes") | stBook st] ++
                  [ ("listings", "yes") | writerListings options || stLHS st ] ++
-                 [ ("highlighting-macros", styleToLaTeX pygments) | stHighlighting st ] ++
+                 [ ("highlighting-macros", styleToLaTeX
+                       $ writerHighlightStyle opts ) | stHighlighting st ] ++
                  citecontext
   return $ if writerStandalone options
               then renderTemplate context template

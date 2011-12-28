@@ -217,6 +217,15 @@ Options
 :   Produce HTML5 instead of HTML4.  This option has no effect for writers
     other than `html`.
 
+`--no-highlight`
+:   Disables syntax highlighting for code blocks and inlines, even when
+    a language attribute is given.
+
+`--highlight-style`=*STYLE*
+:   Specifies the coloring style to be used in highlighted source code.
+    Options are `pygments` (the default), `kate`, `monochrome`,
+    `espresso`, `haddock`, and `tango`.
+
 `-m` [*URL*], `--latexmathml`[=*URL*]
 :   Use the [LaTeXMathML] script to display embedded TeX math in HTML output.
     To insert a link to a local copy of the `LaTeXMathML.js` script,
@@ -837,15 +846,15 @@ this syntax:
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell .numberLines}
     qsort []     = []
     qsort (x:xs) = qsort (filter (< x) xs) ++ [x] ++
-                   qsort (filter (>= x) xs) 
+                   qsort (filter (>= x) xs)
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Some output formats can use this information to do syntax highlighting.
-Currently, the only output format that uses this information is HTML.
-If highlighting is supported for your output format and language, then the
-code block above will appear highlighted, with numbered lines.  (To see
-which languages are supported, do `pandoc --version`.)  Otherwise, the
-code block above will appear as follows:
+Currently, the only output formats that uses this information are HTML
+and LaTeX. If highlighting is supported for your output format and language,
+then the code block above will appear highlighted, with numbered lines. (To
+see which languages are supported, do `pandoc --version`.) Otherwise, the code
+block above will appear as follows:
 
     <pre class="haskell">
       <code>
@@ -853,6 +862,8 @@ code block above will appear as follows:
       </code>
     </pre>
 
+To prevent all highlighting, use the `--no-highlight` flag.
+To set the highlighting style, use `--highlight-style`.
 
 Lists
 -----

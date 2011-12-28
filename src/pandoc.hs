@@ -33,7 +33,8 @@ import Text.Pandoc
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
                             headerShift, findDataFile, normalize )
 import Text.Pandoc.SelfContained ( makeSelfContained )
-import Text.Pandoc.Highlighting ( languages )
+import Text.Pandoc.Highlighting ( languages, Style, tango, pygments,
+         espresso, kate, haddock, monochrome )
 import System.Environment ( getArgs, getProgName )
 import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
@@ -45,7 +46,7 @@ import System.IO ( stdout, stderr )
 import System.IO.Error ( isDoesNotExistError )
 import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.CSL
+import qualified Text.CSL as CSL
 import Text.Pandoc.Biblio
 import Control.Monad (when, unless, liftM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
@@ -100,6 +101,8 @@ data Opt = Opt
     , optXeTeX             :: Bool    -- ^ Format latex for xetex
     , optSmart             :: Bool    -- ^ Use smart typography
     , optHtml5             :: Bool    -- ^ Produce HTML5 in HTML
+    , optHighlight         :: Bool    -- ^ Highlight source code
+    , optHighlightStyle    :: Style   -- ^ Style to use for highlighted code
     , optChapters          :: Bool    -- ^ Use chapter for top-level sects
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
@@ -144,6 +147,8 @@ defaultOpts = Opt
     , optXeTeX             = False
     , optSmart             = False
     , optHtml5             = False
+    , optHighlight         = True
+    , optHighlightStyle    = pygments
     , optChapters          = False
     , optHTMLMathMethod    = PlainMath
     , optReferenceODT      = Nothing
@@ -241,6 +246,28 @@ options =
                  (NoArg
                   (\opt -> return opt { optHtml5 = True }))
                  "" -- "Produce HTML5 in HTML output"
+
+    , Option "" ["no-highlight"]
+                (NoArg
+                 (\opt -> return opt { optHighlight = False }))
+                 "" -- "Don't highlight source code"
+
+    , Option "" ["highlight-style"]
+                (ReqArg
+                 (\arg opt -> do
+                   newStyle <- case map toLower arg of
+                                     "pygments"   -> return pygments
+                                     "tango"      -> return tango
+                                     "espresso"   -> return espresso
+                                     "kate"       -> return kate
+                                     "monochrome" -> return monochrome
+                                     "haddock"    -> return haddock
+                                     _            -> UTF8.hPutStrLn stderr
+                                       ("Unknown style: " ++ arg) >>
+                                       exitWith (ExitFailure 39)
+                   return opt{ optHighlightStyle = newStyle })
+                 "STYLE")
+                 "" -- "Style for highlighted code"
 
     , Option "m" ["latexmathml", "asciimathml"]
                  (OptArg
@@ -691,6 +718,8 @@ main = do
               , optSelfContained     = selfContained
               , optSmart             = smart
               , optHtml5             = html5
+              , optHighlight         = highlight
+              , optHighlightStyle    = highlightStyle
               , optChapters          = chapters
               , optHTMLMathMethod    = mathMethod
               , optReferenceODT      = referenceODT
@@ -774,7 +803,7 @@ main = do
                          return $ ("mathml-script", s) : variables
                       _ -> return variables
 
-  refs <- mapM (\f -> catch (readBiblioFile f) $ \e -> do
+  refs <- mapM (\f -> catch (CSL.readBiblioFile f) $ \e -> do
          UTF8.hPutStrLn stderr $ "Error reading bibliography `" ++ f ++ "'"
          UTF8.hPutStrLn stderr $ show e
          exitWith (ExitFailure 23)) reffiles >>= \rs -> return $ concat rs
@@ -795,7 +824,7 @@ main = do
                               stateLiterateHaskell = "+lhs" `isSuffixOf` readerName' ||
                                                      lhsExtension sources,
                               stateStandalone      = standalone',
-                              stateCitations       = map refId refs,
+                              stateCitations       = map CSL.refId refs,
                               stateSmart           = smart || writerName' `elem`
                                                               ["latex", "context", "latex+lhs", "man"],
                               stateColumns         = columns,
@@ -835,7 +864,8 @@ main = do
                                            slideVariant == DZSlides,
                                       writerChapters         = chapters,
                                       writerListings         = listings,
-                                      writerHighlight        = True }
+                                      writerHighlight        = highlight,
+                                      writerHighlightStyle   = highlightStyle }
 
   when (isNonTextOutput writerName' && outputFile == "-") $
     do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName' ++ " output to stdout.\n" ++

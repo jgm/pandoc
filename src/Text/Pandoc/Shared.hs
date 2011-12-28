@@ -81,6 +81,7 @@ import System.FilePath ( (</>) )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import Paths_pandoc (getDataFileName)
+import Text.Pandoc.Highlighting (Style, pygments)
 
 --
 -- List processing
@@ -479,6 +480,7 @@ data WriterOptions = WriterOptions
   , writerChapters         :: Bool       -- ^ Use "chapter" for top-level sects
   , writerListings         :: Bool       -- ^ Use listings package for code
   , writerHighlight        :: Bool       -- ^ Highlight source code
+  , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
   } deriving Show
 
 {-# DEPRECATED writerXeTeX "writerXeTeX no longer does anything" #-}
@@ -513,6 +515,7 @@ defaultWriterOptions =
                 , writerChapters         = False
                 , writerListings         = False
                 , writerHighlight        = False
+                , writerHighlightStyle   = pygments
                 }
 
 --

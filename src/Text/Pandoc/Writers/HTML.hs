@@ -35,7 +35,7 @@ import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Pandoc.Readers.TeXMath
-import Text.Pandoc.Highlighting ( highlight, pygments, styleToHtml,
+import Text.Pandoc.Highlighting ( highlight, styleToHtml,
                                   formatHtmlInline, formatHtmlBlock )
 import Text.Pandoc.XML (stripTags, escapeStringForXML)
 import Network.HTTP ( urlEncode )
@@ -154,7 +154,8 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                                             ("/*<![CDATA[*/\n" ++ s ++ "/*]]>*/\n")
                                       Nothing -> mempty
                 else mempty
-  let newvars = [("highlighting-css", renderHtml $ styleToHtml pygments) |
+  let newvars = [("highlighting-css", renderHtml $ styleToHtml
+                                   $ writerHighlightStyle opts) |
                    stHighlighting st] ++
                 [("math", renderHtml math) | stMath st]
   return (tit, auths, date, toc, thebody, newvars)
