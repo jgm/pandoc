@@ -206,6 +206,7 @@ main = withTempDir "pandoc"
                    "--include-before-body","--include-after-body",
                    "--custom-header","--output",
                    "--template", "--variable",
+                   "--no-highlight", "--highlight-style",
                    "--csl", "--bibliography", "--data-dir", "--listings"]
     let isOpt ('-':_) = True
         isOpt _       = False
