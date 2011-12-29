@@ -80,8 +80,8 @@ nl opts = if writerWrapText opts
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
 writeHtmlString opts d =
-  let (tit, auths, date, toc, body', newvars) = evalState (pandocToHtml opts d)
-                                                 defaultWriterState
+  let (tit, auths, authsMeta, date, toc, body', newvars) = evalState (pandocToHtml opts d)
+                                                           defaultWriterState
   in  if writerStandalone opts
          then inTemplate opts tit auths date toc body' newvars
          else renderHtml body'
@@ -89,16 +89,16 @@ writeHtmlString opts d =
 -- | Convert Pandoc document to Html structure.
 writeHtml :: WriterOptions -> Pandoc -> Html
 writeHtml opts d =
-  let (tit, auths, date, toc, body', newvars) = evalState (pandocToHtml opts d)
-                                                 defaultWriterState
+  let (tit, auths, authsMeta, date, toc, body', newvars) = evalState (pandocToHtml opts d)
+                                                           defaultWriterState
   in  if writerStandalone opts
-         then inTemplate opts tit auths date toc body' newvars
+         then inTemplate opts tit auths authsMeta date toc body' newvars
          else body'
 
 -- result is (title, authors, date, toc, body, new variables)
 pandocToHtml :: WriterOptions
              -> Pandoc
-             -> State WriterState (Html, [Html], Html, Maybe Html, Html, [(String,String)])
+             -> State WriterState (Html, [Html], [String], Html, Maybe Html, Html, [(String,String)])
 pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   let standalone = writerStandalone opts
   tit <- if standalone
@@ -107,6 +107,9 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   auths <- if standalone
               then mapM (inlineListToHtml opts) authors'
               else return []
+  authsMeta <- if standalone
+               then foldAuthorsMeta authors'
+               else return []
   date <- if standalone
              then inlineListToHtml opts date'
              else return mempty
@@ -164,6 +167,7 @@ inTemplate :: TemplateTarget a
            => WriterOptions
            -> Html
            -> [Html]
+           -> [String]
            -> Html
            -> Maybe Html
            -> Html

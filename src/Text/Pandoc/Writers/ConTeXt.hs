@@ -31,7 +31,7 @@ Conversion of 'Pandoc' format into ConTeXt.
 module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
-import Text.Pandoc.Generic (queryWith)
+import Text.Pandoc.Generic (queryWith, bottomUp)
 import Text.Printf ( printf )
 import Data.List ( intercalate )
 import Control.Monad.State
@@ -69,8 +69,8 @@ pandocToConTeXt options (Pandoc (Meta title authors date) blocks) = do
   datetext <-  if null date
                   then return ""
                   else liftM (render colwidth) $ inlineListToConTeXt date
-  body <- blockListToConTeXt blocks
-  let main = render colwidth $ body
+  body <- mapM (elementToConTeXt options) $ hierarchicalize blocks
+  let main = (render colwidth . cat) body
   let context  = writerVariables options ++
                  [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
@@ -111,6 +111,14 @@ escapeCharForConTeXt ch =
 -- | Escape string for ConTeXt
 stringToConTeXt :: String -> String
 stringToConTeXt = concatMap escapeCharForConTeXt
+
+-- | Convert Elements to ConTeXt
+elementToConTeXt :: WriterOptions -> Element -> State WriterState Doc
+elementToConTeXt _ (Blk block) = blockToConTeXt block
+elementToConTeXt opts (Sec level _ id' title' elements) = do
+  header' <- sectionHeader id' level title'
+  innerContents <- mapM (elementToConTeXt opts) elements
+  return $ cat (header' : innerContents)
 
 -- | Convert Pandoc block element to ConTeXt.
 blockToConTeXt :: Block 
@@ -171,18 +179,8 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
 blockToConTeXt (DefinitionList lst) =
   liftM vcat $ mapM defListItemToConTeXt lst
 blockToConTeXt HorizontalRule = return $ "\\thinrule" <> blankline
-blockToConTeXt (Header level lst) = do
-  contents <- inlineListToConTeXt lst
-  st <- get
-  let opts = stOptions st
-  let base = if writerNumberSections opts then "section" else "subject"
-  let level' = if writerChapters opts then level - 1 else level
-  return $ if level' >= 1 && level' <= 5
-               then char '\\' <> text (concat (replicate (level' - 1) "sub")) <>
-                         text base <> char '{' <> contents <> char '}' <> blankline
-               else if level' == 0
-                       then "\\chapter{" <> contents <> "}"
-                       else contents <> blankline
+-- If this is ever executed, provide a default for the reference identifier.
+blockToConTeXt (Header level lst) = sectionHeader "" level lst
 blockToConTeXt (Table caption aligns widths heads rows) = do
     let colDescriptor colWidth alignment = (case alignment of
                                                AlignLeft    -> 'l' 
@@ -272,18 +270,42 @@ inlineToConTeXt (RawInline "tex" str) = return $ text str
 inlineToConTeXt (RawInline _ _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt Space = return space
-inlineToConTeXt (Link [Code _ str] (src, tit)) = -- since ConTeXt has its own 
-  inlineToConTeXt (Link [Str str] (src, tit))  -- way of printing links... 
-inlineToConTeXt (Link txt (src, _)) = do
+-- ConTeXT has its own way of printing links
+inlineToConTeXt (Link [Code _ str] (src, tit))    = inlineToConTeXt (Link [Str str] (src, tit))
+-- Handle HTML-like internal document references to sections
+inlineToConTeXt (Link txt          (('#' : ref), _)) = do
+  st <- get
+  let opts = stOptions st
+  let numberedSections = writerNumberSections opts
+  label <-  inlineListToConTeXt $ bottomUp hyphenateURL (normalize txt)
+  let hasLabel = (not . isEmpty) label
+  let label' = if hasLabel
+               then label <+> text "("
+               else if numberedSections
+                    then text "Section"
+                    else empty
+  let label'' = braces $ if hasLabel
+                         then text ")"
+                         else empty
+  return $ text "\\in"
+           <> braces label'
+           <> braces label''
+           <> brackets (text ref)
+
+-- Convert link's text, hyphenating URLs when they're seen (does deep list inspection)
+inlineToConTeXt (Link txt          (src, _))      = do
   st <- get
   let next = stNextRef st
   put $ st {stNextRef = next + 1}
-  let ref = show next
-  label <- inlineListToConTeXt txt
-  return $ "\\useURL" <> brackets (text ref) <>
-           brackets (text $ escapeStringUsing [('#',"\\#")] src) <>
-           brackets empty <> brackets label <>
-           "\\from" <> brackets (text ref)
+  let ref = "urlref" ++ (show next)
+  label <-  inlineListToConTeXt $ bottomUp hyphenateURL (normalize txt)
+  return $ "\\useURL"
+           <> brackets (text ref)
+           <> brackets (text $ escapeStringUsing [('#',"\\#")] src)
+           <> brackets empty
+           <> brackets label
+           <> "\\from"
+           <> brackets (text ref)
 inlineToConTeXt (Image _ (src, _)) = do
   let src' = if isAbsoluteURI src
                 then src
@@ -298,3 +320,35 @@ inlineToConTeXt (Note contents) = do
               then text "\\footnote{" <> nest 2 contents' <> char '}'
               else text "\\startbuffer " <> nest 2 contents' <>
                    text "\\stopbuffer\\footnote{\\getbuffer}"
+
+-- | Craft the section header, inserting the secton reference, if supplied.
+sectionHeader :: [Char]
+              -> Int
+              -> [Inline]
+              -> State WriterState Doc
+sectionHeader ident hdrLevel lst = do
+  contents <- (inlineListToConTeXt . normalize) lst
+  st <- get
+  let opts = stOptions st
+  let base = if writerNumberSections opts then "section" else "subject"
+  let level' = if writerChapters opts then hdrLevel - 1 else hdrLevel
+  return $ if level' >= 1 && level' <= 5
+               then char '\\'
+                    <> text (concat (replicate (level' - 1) "sub"))
+                    <> text base
+                    <> (if (not . null) ident then brackets (text ident) else empty)
+                    <> braces contents
+                    <> blankline
+               else if level' == 0
+                       then "\\chapter{" <> contents <> "}"
+                       else contents <> blankline
+
+-- | Convert absolute URLs/URIs to ConTeXt raw inlines so that they are hyphenated.
+hyphenateURL :: Inline
+             -> Inline
+hyphenateURL x =
+  case x of
+    (Str str)         -> if isAbsoluteURI str
+                         then (RawInline "context" ("\\hyphenatedurl{" ++ str ++ "}"))
+                         else x
+    _otherwise        -> x
