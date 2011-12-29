@@ -1,4 +1,10 @@
-\documentclass$if(fontsize)$[$fontsize$]$endif${article}
+\documentclass[$if(fontsize)$$fontsize$,$endif$$if(handout)$handout,$endif$]{$documentclass$}
+$if(theme)$
+\usetheme{$theme$}
+$endif$
+$if(colortheme)$
+\usecolortheme{$colortheme$}
+$endif$
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
 \ifxetex
@@ -62,6 +68,8 @@ $if(graphics)$
 \let\Oldincludegraphics\includegraphics
 \renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=\maxwidth]{#1}}
 $endif$
+$if(beamer)$
+$else$
 \ifxetex
   \usepackage[setpagesize=false, % page size defined by xetex
               unicode=false, % unicode breaks when used with xetex
@@ -70,6 +78,7 @@ $endif$
   \usepackage[unicode=true]{hyperref}
 \fi
 \hypersetup{breaklinks=true, pdfborder={0 0 0}}
+$endif$
 $if(strikeout)$
 \usepackage[normalem]{ulem}
 % avoid problems with \sout in headers with hyperref:
@@ -115,7 +124,13 @@ $include-before$
 
 $endfor$
 $if(toc)$
+$if(beamer)$
+\begin{frame}
+\tableofcontents[hideallsubsections]
+\end{frame}
+$else$
 \tableofcontents
+$endif$
 
 $endif$
 $body$
