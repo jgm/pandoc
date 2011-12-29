@@ -65,17 +65,17 @@ compileInfo :: String
 compileInfo =
   "\nCompiled with citeproc support." ++
    "\nCompiled with syntax highlighting support for:\n" ++
-       wrapWords 78 languages
+       wrapWords 4 78 languages
 
 -- | Converts a list of strings into a single string with the items printed as
 -- comma separated words in lines with a maximum line length.
-wrapWords :: Int -> [String] -> String
-wrapWords c = wrap' c c where
-              wrap' _    _         []     = ""
+wrapWords :: Int -> Int -> [String] -> String
+wrapWords indent c = wrap' (c - indent) (c - indent)
+        where wrap' _    _         []     = ""
               wrap' cols remaining (x:xs) = if remaining == cols
                                                then x ++ wrap' cols (remaining - length x) xs
                                                else if (length x + 1) > remaining
-                                                       then ",\n" ++ x ++ wrap' cols (cols - length x) xs
+                                                       then ",\n" ++ replicate indent ' ' ++ x ++ wrap' cols (cols - length x) xs
                                                        else ", "  ++ x ++ wrap' cols (remaining - (length x + 2)) xs
 
 isNonTextOutput :: String -> Bool
@@ -620,8 +620,8 @@ options =
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName = usageInfo
   (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++
-  (intercalate ", " $ map fst readers) ++ "\nOutput formats:  " ++
-  (intercalate ", " $ map fst writers ++ ["odt","epub"]) ++ "\nOptions:")
+  (wrapWords 16 78 $ map fst readers) ++ "\nOutput formats: " ++
+  (wrapWords 16 78 $ map fst writers ++ ["odt","epub"]) ++ "\nOptions:")
 
 -- Determine default reader based on source file extensions
 defaultReaderName :: String -> [FilePath] -> String
