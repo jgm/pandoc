@@ -829,11 +829,12 @@ main = do
                               stateStandalone      = standalone',
                               stateCitations       = map CSL.refId refs,
                               stateSmart           = smart || writerName' `elem`
-                                                              ["latex", "context", "latex+lhs"],
+                                                     ["latex", "context", "latex+lhs", "beamer"],
                               stateColumns         = columns,
                               stateStrict          = strict,
                               stateIndentedCodeClasses = codeBlockClasses,
-                              stateApplyMacros     = writerName' `notElem` ["latex", "latex+lhs"] }
+                              stateApplyMacros     = writerName' `notElem`
+                                                     ["latex", "latex+lhs", "beamer"] }
 
   let writerOptions = defaultWriterOptions
                                     { writerStandalone       = standalone',
