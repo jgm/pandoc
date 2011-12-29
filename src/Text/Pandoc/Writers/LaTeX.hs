@@ -62,6 +62,8 @@ data WriterState =
               , stBook         :: Bool          -- true if document uses book or memoir class
               , stCsquotes     :: Bool          -- true if document uses csquotes
               , stHighlighting :: Bool          -- true if document has highlighted code
+              , stFirstFrame   :: Bool          -- true til we've written first beamer frame
+              , stIncremental  :: Bool          -- true if beamer lists should be displayed bit by bit
               }
 
 -- | Convert Pandoc to LaTeX.
@@ -74,23 +76,24 @@ writeLaTeX options document =
                 stTable = False, stStrikeout = False, stSubscript = False,
                 stUrl = False, stGraphics = False,
                 stLHS = False, stBook = writerChapters options,
-                stCsquotes = False, stHighlighting = False }
+                stCsquotes = False, stHighlighting = False,
+                stFirstFrame = True, stIncremental = writerIncremental options }
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
   let template = writerTemplate options
+  let templateLines = lines template
   let usesBookClass x = "\\documentclass" `isPrefixOf` x &&
          ("{memoir}" `isSuffixOf` x || "{book}" `isSuffixOf` x ||
           "{report}" `isSuffixOf` x)
-  when (any usesBookClass (lines template)) $
+  when (any usesBookClass templateLines) $
     modify $ \s -> s{stBook = True}
   -- check for \usepackage...{csquotes}; if present, we'll use
   -- \enquote{...} for smart quotes:
   when ("{csquotes}" `isInfixOf` template) $
     modify $ \s -> s{stCsquotes = True}
-  opts <- liftM stOptions get
-  let colwidth = if writerWrapText opts
-                    then Just $ writerColumns opts
+  let colwidth = if writerWrapText options
+                    then Just $ writerColumns options
                     else Nothing
   titletext <- liftM (render colwidth) $ inlineListToLaTeX title
   authorsText <- mapM (liftM (render colwidth) . inlineListToLaTeX) authors
@@ -100,7 +103,10 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                               else case last blocks of
                                 Header 1 il -> (init blocks, il)
                                 _           -> (blocks, [])
-  body <- blockListToLaTeX blocks'
+  blocks'' <- if writerBeamer options
+                 then toSlides blocks'
+                 else return blocks'
+  body <- blockListToLaTeX blocks''
   biblioTitle <- liftM (render colwidth) $ inlineListToLaTeX lastHeader
   let main = render colwidth body
   st <- get
@@ -119,7 +125,12 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
                  , ("title", titletext)
-                 , ("date", dateText) ] ++
+                 , ("date", dateText)
+                 , ("documentclass", if writerBeamer options
+                                        then "beamer"
+                                        else if writerChapters options
+                                                then "book"
+                                                else "article") ] ++
                  [ ("author", a) | a <- authorsText ] ++
                  [ ("verbatim-in-note", "yes") | stVerbInNote st ] ++
                  [ ("fancy-enums", "yes") | stEnumerate st ] ++
@@ -132,8 +143,9 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("graphics", "yes") | stGraphics st ] ++
                  [ ("book-class", "yes") | stBook st] ++
                  [ ("listings", "yes") | writerListings options || stLHS st ] ++
+                 [ ("beamer", "yes") | writerBeamer options ] ++
                  [ ("highlighting-macros", styleToLaTeX
-                       $ writerHighlightStyle opts ) | stHighlighting st ] ++
+                       $ writerHighlightStyle options ) | stHighlighting st ] ++
                  citecontext
   return $ if writerStandalone options
               then renderTemplate context template
@@ -171,6 +183,42 @@ stringToLaTeX isUrl = escapeStringUsing latexEscapes
 inCmd :: String -> Doc -> Doc
 inCmd cmd contents = char '\\' <> text cmd <> braces contents
 
+toSlides :: [Block] -> State WriterState [Block]
+toSlides (Header n ils : bs) = do
+  tit <- inlineListToLaTeX ils
+  firstFrame <- gets stFirstFrame
+  modify $ \s -> s{ stFirstFrame = False }
+  -- note: [fragile] is required or verbatim breaks
+  result <- ((Header n ils :) .
+             (RawBlock "latex" ("\\begin{frame}[fragile]\n" ++
+               "\\frametitle{" ++ render Nothing tit ++ "}") :))
+         `fmap` toSlides bs
+  if firstFrame
+     then return result
+     else return $ RawBlock "latex" "\\end{frame}" : result
+toSlides (HorizontalRule : Header n ils : bs) =
+  toSlides (Header n ils : bs)
+toSlides (HorizontalRule : bs) = do
+  firstFrame <- gets stFirstFrame
+  modify $ \s -> s{ stFirstFrame = False }
+  result <- (RawBlock "latex" "\\begin{frame}[fragile]" :)
+         `fmap` toSlides bs
+  if firstFrame
+     then return result
+     else return $ RawBlock "latex" "\\end{frame}" : result
+toSlides (b:bs) = (b:) `fmap` toSlides bs
+toSlides [] = do
+  firstFrame <- gets stFirstFrame
+  if firstFrame
+     then return []
+     else return [RawBlock "latex" "\\end{frame}"]
+
+isListBlock :: Block -> Bool
+isListBlock (BulletList _)     = True
+isListBlock (OrderedList _ _)  = True
+isListBlock (DefinitionList _) = True
+isListBlock _                  = False
+
 -- | Convert Pandoc block element to LaTeX.
 blockToLaTeX :: Block     -- ^ Block to convert
              -> State WriterState Doc
@@ -185,8 +233,17 @@ blockToLaTeX (Para lst) = do
   result <- inlineListToLaTeX lst
   return $ result <> blankline
 blockToLaTeX (BlockQuote lst) = do
-  contents <- blockListToLaTeX lst
-  return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
+  beamer <- writerBeamer `fmap` gets stOptions
+  case lst of
+       [b] | beamer && isListBlock b -> do
+         oldIncremental <- gets stIncremental
+         modify $ \s -> s{ stIncremental = True }
+         result <- blockToLaTeX b
+         modify $ \s -> s{ stIncremental = oldIncremental }
+         return result
+       _ -> do
+         contents <- blockListToLaTeX lst
+         return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
 blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
   opts <- gets stOptions
   case () of
@@ -243,10 +300,13 @@ blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
 blockToLaTeX (RawBlock "latex" x) = return $ text x <> blankline
 blockToLaTeX (RawBlock _ _) = return empty
 blockToLaTeX (BulletList lst) = do
+  incremental <- gets stIncremental
+  let inc = if incremental then "[<+->]" else ""
   items <- mapM listItemToLaTeX lst
-  return $ "\\begin{itemize}" $$ vcat items $$ "\\end{itemize}"
+  return $ text ("\\begin{itemize}" ++ inc) $$ vcat items $$ "\\end{itemize}"
 blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   st <- get
+  let inc = if stIncremental st then "[<+->]" else ""
   let oldlevel = stOLLevel st
   put $ st {stOLLevel = oldlevel + 1}
   items <- mapM listItemToLaTeX lst
@@ -263,11 +323,13 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
                              map toLower (toRomanNumeral oldlevel) ++
                              "}{" ++ show (start - 1) ++ "}"
                         else empty
-  return $ "\\begin{enumerate}" <> exemplar $$ resetcounter $$
+  return $ text ("\\begin{enumerate}" ++ inc) <> exemplar $$ resetcounter $$
            vcat items $$ "\\end{enumerate}"
 blockToLaTeX (DefinitionList lst) = do
+  incremental <- gets stIncremental
+  let inc = if incremental then "[<+->]" else ""
   items <- mapM defListItemToLaTeX lst
-  return $ "\\begin{description}" $$ vcat items $$ "\\end{description}"
+  return $ text ("\\begin{description}" ++ inc) $$ vcat items $$ "\\end{description}"
 blockToLaTeX HorizontalRule = return $
   "\\begin{center}\\rule{3in}{0.4pt}\\end{center}" $$ blankline
 blockToLaTeX (Header level lst) = do

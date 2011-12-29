@@ -78,11 +78,11 @@ parsePandocArgs args = do
         --trim = reverse . dropWhile isSpace . reverse . dropWhile isSpace
         trim = takeWhile (/='\r') . dropWhile (=='\r')
 
-runPandoc :: [String] -> FilePath -> IO (Either String FilePath)
-runPandoc inputsAndArgs output = do
+runPandoc :: String -> [String] -> FilePath -> IO (Either String FilePath)
+runPandoc outputFormat inputsAndArgs output = do
   let texFile = addExtension output "tex"
   result <- run "pandoc" $
-    ["-s", "--no-wrap", "-r", "markdown", "-w", "latex"]
+    ["-s", "--no-wrap", "-r", "markdown", "-w", outputFormat]
     ++ inputsAndArgs ++ ["-o", texFile]
   return $ either Left (const $ Right texFile) result
 
@@ -207,14 +207,15 @@ main = withTempDir "pandoc"
                    "--custom-header","--output",
                    "--template", "--variable",
                    "--no-highlight", "--highlight-style",
-                   "--csl", "--bibliography", "--data-dir", "--listings"]
+                   "--csl", "--bibliography", "--data-dir", "--listings",
+                   "--beamer"]
     let isOpt ('-':_) = True
         isOpt _       = False
     let opts = filter isOpt args
     -- note that a long option can come in this form: --opt=val
     let isGoodopt x = x `elem` (goodopts ++ goodoptslong) ||
                       any (\o -> (o ++ "=") `isPrefixOf` x) goodoptslong
-    let markdown2pdfOpts = ["--xetex","--luatex"]
+    let markdown2pdfOpts = ["--xetex","--luatex", "--beamer"]
     unless (all isGoodopt opts) $ do
       (code, out, _err) <- readProcessWithExitCode "pandoc" ["--help"] ""
       UTF8.putStrLn "markdown2pdf [OPTIONS] [FILES]\nOptions:"
@@ -231,6 +232,9 @@ main = withTempDir "pandoc"
                           else if "--luatex" `elem` opts
                                   then "lualatex"
                                   else "pdflatex"
+    let outputFormat = if "--beamer" `elem` opts
+                          then "beamer"
+                          else "latex"
     let execs = ["pandoc", latexProgram, "bibtex"]
     paths <- mapM findExecutable execs
     let miss = map snd $ filter (isNothing . fst) $ zip paths execs
@@ -249,7 +253,7 @@ main = withTempDir "pandoc"
       -- no need because we'll pass all arguments to pandoc
       Just (_ ,out) -> return ([], out)
     -- run pandoc
-    pandocRes <- runPandoc (input ++ args') $ replaceDirectory output tmp
+    pandocRes <- runPandoc outputFormat (input ++ args') $ replaceDirectory output tmp
     case pandocRes of
       Left err -> exit err
       Right texFile  -> do

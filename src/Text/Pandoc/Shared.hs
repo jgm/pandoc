@@ -477,6 +477,7 @@ data WriterOptions = WriterOptions
   , writerCiteMethod       :: CiteMethod -- ^ How to print cites
   , writerBiblioFiles      :: [FilePath] -- ^ Biblio files to use for citations
   , writerHtml5            :: Bool       -- ^ Produce HTML5
+  , writerBeamer           :: Bool       -- ^ Produce beamer LaTeX slide show
   , writerChapters         :: Bool       -- ^ Use "chapter" for top-level sects
   , writerListings         :: Bool       -- ^ Use listings package for code
   , writerHighlight        :: Bool       -- ^ Highlight source code
@@ -512,6 +513,7 @@ defaultWriterOptions =
                 , writerCiteMethod       = Citeproc
                 , writerBiblioFiles      = []
                 , writerHtml5            = False
+                , writerBeamer           = False
                 , writerChapters         = False
                 , writerListings         = False
                 , writerHighlight        = False

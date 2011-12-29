@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass[]{article}
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
 \ifxetex
