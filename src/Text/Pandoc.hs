@@ -171,8 +171,13 @@ writers :: [ ( String, WriterOptions -> Pandoc -> String ) ]
 writers = [("native"       , writeNative)
           ,("json"         , \_ -> encodeJSON)
           ,("html"         , writeHtmlString)
+          ,("html5"        , \o ->
+                             writeHtmlString o{ writerHtml5 = True })
           ,("html+lhs"     , \o ->
                              writeHtmlString o{ writerLiterateHaskell = True })
+          ,("html5+lhs"    , \o ->
+                             writeHtmlString o{ writerLiterateHaskell = True,
+                                                writerHtml5 = True })
           ,("s5"           , writeHtmlString)
           ,("slidy"        , writeHtmlString)
           ,("dzslides"     , writeHtmlString)

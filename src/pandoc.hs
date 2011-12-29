@@ -244,7 +244,10 @@ options =
 
     , Option "5" ["html5"]
                  (NoArg
-                  (\opt -> return opt { optHtml5 = True }))
+                  (\opt -> do
+                     UTF8.hPutStrLn stderr $ "pandoc: --html5 is deprecated. "
+                       ++ "Use the html5 output format instead."
+                     return opt { optHtml5 = True }))
                  "" -- "Produce HTML5 in HTML output"
 
     , Option "" ["no-highlight"]

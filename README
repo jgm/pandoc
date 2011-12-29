@@ -14,7 +14,7 @@ Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
 and [LaTeX]; and it can write plain text, [markdown], [reStructuredText],
-[HTML], [LaTeX], [LaTeX beamer], [ConTeXt], [RTF], [DocBook XML],
+[XHTML], [HTML 5], [LaTeX], [LaTeX beamer], [ConTeXt], [RTF], [DocBook XML],
 [OpenDocument XML], [ODT], [GNU Texinfo], [MediaWiki markup], [EPUB],
 [Textile], [groff man] pages, [Emacs Org-Mode], [AsciiDoc], and [Slidy],
 [DZSlides], or [S5] HTML slide shows.
@@ -151,19 +151,19 @@ Options
 `-t` *FORMAT*, `-w` *FORMAT*, `--to=`*FORMAT*, `--write=`*FORMAT*
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
     `json` (JSON version of native AST), `plain` (plain text),
-    `markdown` (markdown), `rst` (reStructuredText), `html` (HTML), `latex`
-    (LaTeX), `beamer` (LaTeX beamer), `context` (ConTeXt), `man` (groff
-    man), `mediawiki` (MediaWiki markup), `textile` (Textile), `org`
-    (Emacs Org-Mode), `texinfo` (GNU Texinfo), `docbook` (DocBook XML),
-    `opendocument` (OpenDocument XML), `odt` (OpenOffice text document),
-    `epub` (EPUB book), `asciidoc` (AsciiDoc), `slidy` (Slidy HTML and
-    javascript slide show), `dzslides` (HTML5 + javascript slide show),
+    `markdown` (markdown), `rst` (reStructuredText), `html` (XHTML 1),
+    `html5` (HTML 5), `latex` (LaTeX), `beamer` (LaTeX beamer), `context`
+    (ConTeXt), `man` (groff man), `mediawiki` (MediaWiki markup), `textile`
+    (Textile), `org` (Emacs Org-Mode), `texinfo` (GNU Texinfo), `docbook`
+    (DocBook XML), `opendocument` (OpenDocument XML), `odt` (OpenOffice text
+    document), `epub` (EPUB book), `asciidoc` (AsciiDoc), `slidy` (Slidy HTML
+    and javascript slide show), `dzslides` (HTML5 + javascript slide show),
     `s5` (S5 HTML and javascript slide show), or `rtf` (rich text format).
-    Note that `odt` and `epub` output will not be directed to *stdout*; an
-    output filename must be specified using the `-o/--output` option. If
-    `+lhs` is appended to `markdown`, `rst`, `latex`, or `html`, the output
-    will be rendered as literate Haskell source: see [Literate Haskell
-    support](#literate-haskell-support), below.
+    Note that `odt` and `epub` output will not be directed to *stdout*;
+    an output filename must be specified using the `-o/--output` option.
+    If `+lhs` is appended to `markdown`, `rst`, `latex`, `html`, or `html5`,
+    the output will be rendered as literate Haskell source: see [Literate
+    Haskell support](#literate-haskell-support), below.
 
 `-s`, `--standalone`
 :   Produce output with an appropriate header and footer (e.g. a
@@ -214,7 +214,7 @@ Options
 
 `-5`, `--html5`
 :   Produce HTML5 instead of HTML4.  This option has no effect for writers
-    other than `html`.
+    other than `html`. (*Deprecated:*  Use the `html5` output format instead.)
 
 `--no-highlight`
 :   Disables syntax highlighting for code blocks and inlines, even when
@@ -277,11 +277,11 @@ Options
     images, and videos. The resulting file should be "self-contained,"
     in the sense that it needs no external files and no net access to be
     displayed properly by a browser. This option works only with HTML output
-    formats, including `html`, `html+lhs`, `s5`, `slidy`, and `dzslides`.
-    Scripts, images, and stylesheets at absolute URLs will be downloaded;
-    those at relative URLs will be sought first relative to the working
-    directory, then relative to the user data directory (see `--data-dir`),
-    and finally relative to pandoc's default data directory.
+    formats, including `html`, `html5`, `html+lhs`, `html5+lhs`, `s5`,
+    `slidy`, and `dzslides`. Scripts, images, and stylesheets at absolute URLs
+    will be downloaded; those at relative URLs will be sought first relative
+    to the working directory, then relative to the user data directory (see
+    `--data-dir`), and finally relative to pandoc's default data directory.
 
 `--offline`
 :   Deprecated synonym for `--self-contained`.
@@ -1994,8 +1994,8 @@ Literate Haskell support
 ========================
 
 If you append `+lhs` to an appropriate input or output format (`markdown`,
-`rst`, or `latex` for input or output; `html` for output only), pandoc
-will treat the document as literate Haskell source. This means that
+`rst`, or `latex` for input or output; `html` or `html5` for output only),
+pandoc will treat the document as literate Haskell source. This means that
 
   - In markdown input, "bird track" sections will be parsed as Haskell
     code rather than block quotations.  Text between `\begin{code}`
@@ -2052,6 +2052,7 @@ Christopher Sawicki, Kelsey Hightower.
 [S5]: http://meyerweb.com/eric/tools/s5/
 [Slidy]: http://www.w3.org/Talks/Tools/Slidy/
 [HTML]:  http://www.w3.org/TR/html40/
+[XHTML]:  http://www.w3.org/TR/xhtml1/
 [LaTeX]: http://www.latex-project.org/
 [LaTeX beamer]: http://www.tex.ac.uk/CTAN/macros/latex/contrib/beamer
 [ConTeXt]: http://www.pragma-ade.nl/ 
