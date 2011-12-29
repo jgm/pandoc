@@ -829,7 +829,7 @@ main = do
                               stateStandalone      = standalone',
                               stateCitations       = map CSL.refId refs,
                               stateSmart           = smart || writerName' `elem`
-                                                              ["latex", "context", "latex+lhs", "man"],
+                                                              ["latex", "context", "latex+lhs"],
                               stateColumns         = columns,
                               stateStrict          = strict,
                               stateIndentedCodeClasses = codeBlockClasses,
