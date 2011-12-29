@@ -379,7 +379,7 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
                     in  return $ foldl (!) H.pre attrs $ H.code
                                          $ toHtml adjCode
          Just  h -> modify (\st -> st{ stHighlighting = True }) >>
-                    return h
+                    return (foldl (!) h (attrsToHtml opts (id',[],keyvals)))
 blockToHtml opts (BlockQuote blocks) =
   -- in S5, treat list in blockquote specially
   -- if default is incremental, make it nonincremental;
@@ -547,7 +547,9 @@ inlineToHtml opts inline =
                              Nothing -> return
                                         $ foldl (!) H.code (attrsToHtml opts attr)
                                         $ strToHtml str
-                             Just  h -> return h
+                             Just  h -> return $ foldl (!) h $
+                                          attrsToHtml opts (id',[],keyvals)
+                                where (id',_,keyvals) = attr
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . H.del
     (SmallCaps lst)   -> inlineListToHtml opts lst >>=

@@ -70,6 +70,7 @@ highlight formatter (_, classes, keyvals) rawCode =
   in  case find (`elem` lcLanguages) lcclasses of
             Nothing        -> Nothing
             Just language  -> Just
-                              $ formatter fmtOpts{ codeClasses = [language] }
+                              $ formatter fmtOpts{ codeClasses = [language],
+                                                   containerClasses = classes }
                               $ highlightAs language rawCode
 
