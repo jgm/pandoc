@@ -40,13 +40,13 @@ import System.Time
 import Text.Pandoc.Shared hiding ( Element )
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
-import Control.Monad (liftM)
+import Control.Monad.State
 import Text.XML.Light hiding (ppTopElement)
 import Text.Pandoc.UUID
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.Markdown ( writePlain )
 import Data.Char ( toLower )
-import Network.URI ( unEscapeString, isRelativeReference )
+import Network.URI ( unEscapeString )
 
 -- | Produce an EPUB file from a Pandoc document.
 writeEPUB :: Maybe String   -- ^ EPUB stylesheet specified at command line
@@ -104,12 +104,16 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
   -- body pages
   let isH1 (Header 1 _) = True
       isH1 _            = False
-  let h1Indices = dropWhile (== 0) $ findIndices isH1 blocks
-  let chunks = splitByIndices h1Indices blocks
+  -- internal reference IDs change when we chunk the file,
+  -- so the next two lines fix that:
+  let reftable = correlateRefs blocks
+  let blocks' = replaceRefs reftable blocks
+  let h1Indices = dropWhile (== 0) $ findIndices isH1 blocks'
+  let chunks = splitByIndices h1Indices blocks'
   let titleize (Header 1 xs : ys) = Pandoc meta{docTitle = xs} ys
       titleize xs                 = Pandoc meta xs
-  let chapToHtml = writeHtmlString opts'{ writerTemplate = pageTemplate }
   let chapters = map titleize chunks
+  let chapToHtml = writeHtmlString opts'{ writerTemplate = pageTemplate }
   let chapterToEntry :: Int -> Pandoc -> Entry
       chapterToEntry num chap = mkEntry ("ch" ++ show num ++ ".xhtml") $
                                    fromString $ chapToHtml chap
@@ -271,7 +275,6 @@ transformInlines (MathML _) _ _ (x@(Math _ _) : xs) = do
       result = if "<math" `isPrefixOf` mathml then inOps else mathml
   return $ RawInline "html" result : xs
 transformInlines _ _ _ (RawInline _ _ : xs) = return $ Str "" : xs
-transformInlines _ _ _ (Link lab (src,_) : xs) | isRelativeReference src = return $ lab ++ xs
 transformInlines _ _ _ xs = return xs
 
 transformBlock :: Block -> Block
@@ -305,3 +308,49 @@ imageTypeOf x = case drop 1 (map toLower (takeExtension x)) of
                      "svg"       -> Just "image/svg+xml"
                      _           -> Nothing
 
+
+data IdentState = IdentState{
+       chapterNumber :: Int,
+       runningIdents :: [String],
+       chapterIdents :: [String],
+       identTable    :: [(String,String)]
+       } deriving (Read, Show)
+
+-- Go through a block list and construct a table
+-- correlating the automatically constructed references
+-- that would be used in a normal pandoc document with
+-- new URLs to be used in the EPUB.  For example, what
+-- was "header-1" might turn into "ch6.xhtml#header".
+correlateRefs :: [Block] -> [(String,String)]
+correlateRefs bs = identTable $ execState (mapM_ go bs)
+                                IdentState{ chapterNumber = 0
+                                          , runningIdents = []
+                                          , chapterIdents = []
+                                          , identTable = [] }
+ where go :: Block -> State IdentState ()
+       go (Header n ils) = do
+          when (n == 1) $
+              modify $ \s -> s{ chapterNumber = chapterNumber s + 1
+                              , chapterIdents = [] }
+          st <- get
+          let runningid = uniqueIdent ils (runningIdents st)
+          let chapid    = if n == 1
+                             then Nothing
+                             else Just $ uniqueIdent ils (chapterIdents st)
+          modify $ \s -> s{ runningIdents = runningid : runningIdents st
+                          , chapterIdents = maybe (chapterIdents st)
+                                              (: chapterIdents st) chapid
+                          , identTable = (runningid, "ch" ++ show (chapterNumber st) ++
+                              ".xhtml" ++ maybe "" ('#':) chapid) : identTable st
+                           }
+       go _ = return ()
+
+-- Replace internal link references using the table produced
+-- by correlateRefs.
+replaceRefs :: [(String,String)] -> [Block] -> [Block]
+replaceRefs refTable = bottomUp replaceOneRef
+  where replaceOneRef x@(Link lab ('#':xs,tit)) =
+          case lookup xs refTable of
+                Just url -> Link lab (url,tit)
+                Nothing  -> x
+        replaceOneRef x = x
