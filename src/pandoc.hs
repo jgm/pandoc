@@ -64,7 +64,7 @@ copyrightMessage = "\nCopyright (C) 2006-2011 John MacFarlane\n" ++
 compileInfo :: String
 compileInfo =
   "\nCompiled with citeproc support." ++
-   "\nCompiled with syntax highlighting support for:\n" ++
+   "\nCompiled with syntax highlighting support for:\n    " ++
        wrapWords 4 78 languages
 
 -- | Converts a list of strings into a single string with the items printed as
