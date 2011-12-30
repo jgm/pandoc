@@ -43,9 +43,9 @@ tests = [ testGroup "inline code"
           ]
         , testGroup "headers"
           [ "level 1" =:
-            header 1 "My header" =?> "\\subject{My header}"
+            header 1 "My header" =?> "\\section{My header}"
           , property "header 1 property" $ \ils ->
-                context' (header 1 ils) == "\\subject{" ++ context' ils ++ "}"
+                context' (header 1 ils) == "\\section{" ++ context' ils ++ "}"
           ]
         , testGroup "bullet lists"
           [ "nested" =:
