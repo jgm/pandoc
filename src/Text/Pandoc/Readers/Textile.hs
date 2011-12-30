@@ -436,6 +436,8 @@ str = do
               next <- lookAhead letter
               guard $ isLetter (last xs) || isLetter next
               return $ xs ++ "-"
+  pos <- getPosition
+  updateState $ \s -> s{ stateLastStrPos = Just pos }
   return $ Str result
 
 -- | Textile allows HTML span infos, we discard them

@@ -791,7 +791,11 @@ whitespace :: GenParser Char ParserState Inline
 whitespace = many1 spaceChar >> return Space <?> "whitespace"
 
 str :: GenParser Char ParserState Inline
-str = many1 (noneOf (specialChars ++ "\t\n ")) >>= return . Str
+str = do
+  result <- many1 (noneOf (specialChars ++ "\t\n "))
+  pos <- getPosition
+  updateState $ \s -> s{ stateLastStrPos = Just pos }
+  return $ Str result
 
 -- an endline character that can be treated as a space, not a structural break
 endline :: GenParser Char ParserState Inline

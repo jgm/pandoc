@@ -603,6 +603,7 @@ data ParserState = ParserState
     { stateParseRaw        :: Bool,          -- ^ Parse raw HTML and LaTeX?
       stateParserContext   :: ParserContext, -- ^ Inside list?
       stateQuoteContext    :: QuoteContext,  -- ^ Inside quoted environment?
+      stateLastStrPos      :: Maybe SourcePos, -- ^ Position after last str parsed
       stateKeys            :: KeyTable,      -- ^ List of reference keys
       stateCitations       :: [String],      -- ^ List of available citations
       stateNotes           :: NoteTable,     -- ^ List of notes
@@ -630,6 +631,7 @@ defaultParserState =
     ParserState { stateParseRaw        = False,
                   stateParserContext   = NullState,
                   stateQuoteContext    = NoQuote,
+                  stateLastStrPos      = Nothing,
                   stateKeys            = M.empty,
                   stateCitations       = [],
                   stateNotes           = [],
@@ -751,8 +753,12 @@ charOrRef cs =
                        return c)
 
 singleQuoteStart :: GenParser Char ParserState ()
-singleQuoteStart = do 
+singleQuoteStart = do
   failIfInQuoteContext InSingleQuote
+  pos <- getPosition
+  st <- getState
+  -- single quote start can't be right after str
+  guard $ stateLastStrPos st /= Just pos
   try $ do charOrRef "'\8216\145"
            notFollowedBy (oneOf ")!],;:-? \t\n")
            notFollowedBy (char '.') <|> lookAhead (string "..." >> return ())

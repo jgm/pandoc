@@ -1096,6 +1096,8 @@ str = do
                          lookAhead alphaNum >> return '\x2019')
                          -- for things like l'aide
                    else mzero
+  pos <- getPosition
+  updateState $ \s -> s{ stateLastStrPos = Just pos }
   let result = a:as
   let spacesToNbr = map (\c -> if c == ' ' then '\160' else c)
   if smart

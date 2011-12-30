@@ -421,8 +421,12 @@ pTagContents =
   pStr <|> pSpace <|> smartPunctuation pTagContents <|> pSymbol <|> pBad
 
 pStr :: GenParser Char ParserState Inline
-pStr = liftM Str $ many1 $ satisfy $ \c ->
-           not (isSpace c) && not (isSpecial c) && not (isBad c)
+pStr = do
+  result <- many1 $ satisfy $ \c ->
+                     not (isSpace c) && not (isSpecial c) && not (isBad c)
+  pos <- getPosition
+  updateState $ \s -> s{ stateLastStrPos = Just pos }
+  return $ Str result
 
 isSpecial :: Char -> Bool
 isSpecial '"' = True
