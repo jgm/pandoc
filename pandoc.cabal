@@ -74,6 +74,8 @@ Data-Files:
                  slidy/graphics/nofold-dim.gif,
                  slidy/graphics/unfold-dim.gif,
                  slidy/graphics/fold-dim.gif,
+                 -- data for dzslides writer
+                 dzslides/template.html,
                  -- data for citeproc
                  default.csl,
                  -- documentation

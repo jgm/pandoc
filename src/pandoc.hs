@@ -40,7 +40,7 @@ import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower )
-import Data.List ( intercalate, isSuffixOf )
+import Data.List ( intercalate, isSuffixOf, isPrefixOf )
 import System.Directory ( getAppUserDataDirectory, doesFileExist )
 import System.IO ( stdout, stderr )
 import System.IO.Error ( isDoesNotExistError )
@@ -798,6 +798,12 @@ main = do
                                              (\_ -> throwIO e)
                                        else throwIO e)
 
+  let slideVariant = case writerName' of
+                           "s5"       -> S5Slides
+                           "slidy"    -> SlidySlides
+                           "dzslides" -> DZSlides
+                           _          -> NoSlides
+
   variables' <- case mathMethod of
                       LaTeXMathML Nothing -> do
                          s <- readDataFile datadir $ "data" </> "LaTeXMathML.js"
@@ -807,6 +813,14 @@ main = do
                          return $ ("mathml-script", s) : variables
                       _ -> return variables
 
+  variables'' <- case slideVariant of
+                      DZSlides  -> do
+                        dztempl <- readDataFile datadir $ "dzslides" </> "template.html"
+                        let dzcore = unlines $ dropWhile (not . isPrefixOf "<!-- {{{{ dzslides core")
+                                             $ lines dztempl
+                        return $ ("dzslides-core", dzcore) : variables'
+                      _         -> return variables'
+
   refs <- mapM (\f -> catch (CSL.readBiblioFile f) $ \e -> do
          UTF8.hPutStrLn stderr $ "Error reading bibliography `" ++ f ++ "'"
          UTF8.hPutStrLn stderr $ show e
@@ -815,12 +829,6 @@ main = do
   let sourceDir = if null sources
                      then "."
                      else takeDirectory (head sources)
-
-  let slideVariant = case writerName' of
-                           "s5"       -> S5Slides
-                           "slidy"    -> SlidySlides
-                           "dzslides" -> DZSlides
-                           _          -> NoSlides
 
   let startParserState =
          defaultParserState { stateParseRaw        = parseRaw,
@@ -840,7 +848,7 @@ main = do
   let writerOptions = defaultWriterOptions
                                     { writerStandalone       = standalone',
                                       writerTemplate         = templ,
-                                      writerVariables        = variables',
+                                      writerVariables        = variables'',
                                       writerEPUBMetadata     = epubMetadata,
                                       writerTabStop          = tabStop,
                                       writerTableOfContents  = toc &&
