@@ -82,12 +82,15 @@ writeLaTeX options document =
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
   let template = writerTemplate options
-  let templateLines = lines template
-  let usesBookClass x = "\\documentclass" `isPrefixOf` x &&
-         ("{memoir}" `isSuffixOf` x || "{book}" `isSuffixOf` x ||
-          "{report}" `isSuffixOf` x)
-  when (any usesBookClass templateLines) $
-    modify $ \s -> s{stBook = True}
+  -- set stBook depending on documentclass
+  let bookClasses = ["memoir","book","report","scrreprt","scrbook"]
+  case lookup "documentclass" (writerVariables options) of
+         Just x  | x `elem` bookClasses -> modify $ \s -> s{stBook = True}
+                 | otherwise            -> return ()
+         Nothing | any (\x -> "\\documentclass" `isPrefixOf` x &&
+                          (any (`isSuffixOf` x) bookClasses))
+                          (lines template) -> modify $ \s -> s{stBook = True}
+                 | otherwise               -> return ()
   -- check for \usepackage...{csquotes}; if present, we'll use
   -- \enquote{...} for smart quotes:
   when ("{csquotes}" `isInfixOf` template) $
