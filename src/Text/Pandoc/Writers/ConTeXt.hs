@@ -37,7 +37,7 @@ import Data.List ( intercalate )
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import Text.Pandoc.Templates ( renderTemplate )
-import Network.URI ( isAbsoluteURI, unEscapeString )
+import Network.URI ( isURI, unEscapeString )
 
 data WriterState = 
   WriterState { stNextRef          :: Int  -- number of next URL reference
@@ -279,20 +279,17 @@ inlineToConTeXt (Link txt          (src, _))      = do
   st <- get
   let next = stNextRef st
   put $ st {stNextRef = next + 1}
-  let ref ="urlref" ++ (show next)
-  let hyphenateURL x =
-        case x of
-          (Str str)  -> if isAbsoluteURI str
-                        then (RawInline "context" ("\\hyphenatedurl{" ++ str ++ "}"))
-                        else x
-          _otherwise -> x
+  let ref = "url" ++ show next
+  let hyphenateURL (Str str) | isURI str =
+             RawInline "context" ("\\hyphenatedurl{" ++ str ++ "}")
+      hyphenateURL x = x
   label <-  inlineListToConTeXt (bottomUp hyphenateURL $ normalize txt)
   return $ "\\useURL" <> brackets (text ref) <>
            brackets (text $ escapeStringUsing [('#',"\\#")] src) <>
            brackets empty <> brackets label <>
            "\\from" <> brackets (text ref)
 inlineToConTeXt (Image _ (src, _)) = do
-  let src' = if isAbsoluteURI src
+  let src' = if isURI src
                 then src
                 else unEscapeString src
   return $ braces $ "\\externalfigure" <> brackets (text src')
