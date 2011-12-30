@@ -53,7 +53,9 @@ import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString )
+import Text.HTML.TagSoup.Entity (lookupEntity)
 import Codec.Binary.UTF8.String (decodeString, encodeString)
+import Text.CSL.Reference (Reference(..))
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2011 John MacFarlane\n" ++
@@ -617,6 +619,18 @@ options =
                  "" -- "Show help"
     ]
 
+-- Unescapes XML entities
+deEntity :: String -> String
+deEntity ('&':xs) =
+  case lookupEntity ent of
+        Just c  -> c : deEntity rest
+        Nothing -> '&' : deEntity rest
+    where (ent, rest) = case break (==';') xs of
+                             (zs,';':ys) -> (zs,ys)
+                             (zs,ys)     -> (zs,ys)
+deEntity (x:xs) = x : deEntity xs
+deEntity [] = []
+
 -- Returns usage message
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName = usageInfo
@@ -821,10 +835,15 @@ main = do
                         return $ ("dzslides-core", dzcore) : variables'
                       _         -> return variables'
 
+  -- unescape reference ids, which may contain XML entities, so
+  -- that we can do lookups with regular string equality
+  let unescapeRefId ref = ref{ refId = deEntity (refId ref) }
+
   refs <- mapM (\f -> catch (CSL.readBiblioFile f) $ \e -> do
          UTF8.hPutStrLn stderr $ "Error reading bibliography `" ++ f ++ "'"
          UTF8.hPutStrLn stderr $ show e
-         exitWith (ExitFailure 23)) reffiles >>= \rs -> return $ concat rs
+         exitWith (ExitFailure 23)) reffiles >>=
+           return . map unescapeRefId . concat
 
   let sourceDir = if null sources
                      then "."
