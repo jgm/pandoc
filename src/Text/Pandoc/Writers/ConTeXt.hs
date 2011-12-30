@@ -76,6 +76,7 @@ pandocToConTeXt options (Pandoc (Meta title authors date) blocks) = do
                  , ("body", main)
                  , ("title", titletext)
                  , ("date", datetext) ] ++
+                 [ ("number-sections", "yes") | writerNumberSections options ] ++
                  [ ("author", a) | a <- authorstext ]
   return $ if writerStandalone options
               then renderTemplate context $ writerTemplate options
@@ -175,11 +176,10 @@ blockToConTeXt (Header level lst) = do
   contents <- inlineListToConTeXt lst
   st <- get
   let opts = stOptions st
-  let base = if writerNumberSections opts then "section" else "subject"
   let level' = if writerChapters opts then level - 1 else level
   return $ if level' >= 1 && level' <= 5
                then char '\\' <> text (concat (replicate (level' - 1) "sub")) <>
-                         text base <> char '{' <> contents <> char '}' <> blankline
+                         text "section" <> char '{' <> contents <> char '}' <> blankline
                else if level' == 0
                        then "\\chapter{" <> contents <> "}"
                        else contents <> blankline
