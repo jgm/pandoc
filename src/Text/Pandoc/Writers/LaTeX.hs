@@ -109,9 +109,9 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
   blocks'' <- if writerBeamer options
                  then toSlides blocks'
                  else return blocks'
-  body <- blockListToLaTeX blocks''
+  body <- mapM (elementToLaTeX options) $ hierarchicalize blocks''
   biblioTitle <- liftM (render colwidth) $ inlineListToLaTeX lastHeader
-  let main = render colwidth body
+  let main = render colwidth $ cat body
   st <- get
   let biblioFiles = intercalate "," $ map dropExtension $  writerBiblioFiles options
       citecontext = case writerCiteMethod options of
@@ -154,8 +154,15 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
               then renderTemplate context template
               else main
 
--- escape things as needed for LaTeX
+-- | Convert Elements to LaTeX
+elementToLaTeX :: WriterOptions -> Element -> State WriterState Doc
+elementToLaTeX _ (Blk block) = blockToLaTeX block
+elementToLaTeX opts (Sec level _ id' title' elements) = do
+  header' <- sectionHeader id' level title'
+  innerContents <- mapM (elementToLaTeX opts) elements
+  return $ cat (header' : innerContents)
 
+-- escape things as needed for LaTeX
 stringToLaTeX :: Bool -> String -> String
 stringToLaTeX isUrl = escapeStringUsing latexEscapes
   where latexEscapes = backslashEscapes "{}$%&_" ++
@@ -335,30 +342,7 @@ blockToLaTeX (DefinitionList lst) = do
   return $ text ("\\begin{description}" ++ inc) $$ vcat items $$ "\\end{description}"
 blockToLaTeX HorizontalRule = return $
   "\\begin{center}\\rule{3in}{0.4pt}\\end{center}" $$ blankline
-blockToLaTeX (Header level lst) = do
-  txt <- inlineListToLaTeX lst
-  let noNote (Note _) = Str ""
-      noNote x        = x
-  let lstNoNotes = bottomUp noNote lst
-  -- footnotes in sections don't work unless you specify an optional
-  -- argument:  \section[mysec]{mysec\footnote{blah}}
-  optional <- if lstNoNotes == lst
-                 then return empty
-                 else do
-                   res <- inlineListToLaTeX lstNoNotes
-                   return $ char '[' <> res <> char ']'
-  let stuffing = optional <> char '{' <> txt <> char '}'
-  book <- liftM stBook get
-  let level' = if book then level - 1 else level
-  let headerWith x y = text x <> y $$ blankline
-  return $ case level' of
-                0  -> headerWith "\\chapter" stuffing
-                1  -> headerWith "\\section" stuffing
-                2  -> headerWith "\\subsection" stuffing
-                3  -> headerWith "\\subsubsection" stuffing
-                4  -> headerWith "\\paragraph" stuffing
-                5  -> headerWith "\\subparagraph" stuffing
-                _            -> txt $$ blankline
+blockToLaTeX (Header level lst) = sectionHeader "" level lst
 blockToLaTeX (Table caption aligns widths heads rows) = do
   modify $ \s -> s{ stInTable = True, stTableNotes = [] }
   headers <- if all null heads
@@ -425,6 +409,45 @@ defListItemToLaTeX (term, defs) = do
     term' <- inlineListToLaTeX term
     def'  <- liftM vsep $ mapM blockListToLaTeX defs
     return $ "\\item" <> brackets term' $$ def'
+
+-- | Craft the section header, inserting the secton reference, if supplied.
+sectionHeader :: [Char]
+              -> Int
+              -> [Inline]
+              -> State WriterState Doc
+sectionHeader ref level lst = do
+  txt <- inlineListToLaTeX lst
+  let noNote (Note _) = Str ""
+      noNote x        = x
+  let lstNoNotes = bottomUp noNote lst
+  -- footnotes in sections don't work unless you specify an optional
+  -- argument:  \section[mysec]{mysec\footnote{blah}}
+  optional <- if lstNoNotes == lst
+                 then return empty
+                 else do
+                   res <- inlineListToLaTeX lstNoNotes
+                   return $ char '[' <> res <> char ']'
+  let stuffing = optional <> char '{' <> txt <> char '}'
+  book <- liftM stBook get
+  let level' = if book then level - 1 else level
+  let refLabel lab = (if (not . null) ref
+                      then text "\\hyperdef"
+                             <> braces empty
+                             <> braces (text ref)
+                             <> braces (lab <> text "\\label"
+                                            <> braces (text ref))
+                      else lab)
+                      $$ blankline
+  let headerWith x y = refLabel $ text x <> y
+  return $ case level' of
+                0  -> headerWith "\\chapter" stuffing
+                1  -> headerWith "\\section" stuffing
+                2  -> headerWith "\\subsection" stuffing
+                3  -> headerWith "\\subsubsection" stuffing
+                4  -> headerWith "\\paragraph" stuffing
+                5  -> headerWith "\\subparagraph" stuffing
+                _            -> txt $$ blankline
+
 
 -- | Convert list of inline elements to LaTeX.
 inlineListToLaTeX :: [Inline]  -- ^ Inlines to convert
