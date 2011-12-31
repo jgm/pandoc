@@ -45,25 +45,26 @@ import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
                                  formatLaTeXInline, formatLaTeXBlock)
 
 data WriterState =
-  WriterState { stInNote       :: Bool          -- true if we're in a note
-              , stInTable      :: Bool          -- true if we're in a table
-              , stTableNotes   :: [(Char, Doc)] -- List of markers, notes
-                                                -- in current table
-              , stOLLevel      :: Int           -- level of ordered list nesting
-              , stOptions      :: WriterOptions -- writer options, so they don't have to be parameter
-              , stVerbInNote   :: Bool          -- true if document has verbatim text in note
-              , stEnumerate    :: Bool          -- true if document needs fancy enumerated lists
-              , stTable        :: Bool          -- true if document has a table
-              , stStrikeout    :: Bool          -- true if document has strikeout
-              , stSubscript    :: Bool          -- true if document has subscript
-              , stUrl          :: Bool          -- true if document has visible URL link
-              , stGraphics     :: Bool          -- true if document contains images
-              , stLHS          :: Bool          -- true if document has literate haskell code
-              , stBook         :: Bool          -- true if document uses book or memoir class
-              , stCsquotes     :: Bool          -- true if document uses csquotes
-              , stHighlighting :: Bool          -- true if document has highlighted code
-              , stFirstFrame   :: Bool          -- true til we've written first beamer frame
-              , stIncremental  :: Bool          -- true if beamer lists should be displayed bit by bit
+  WriterState { stInNote        :: Bool          -- true if we're in a note
+              , stInTable       :: Bool          -- true if we're in a table
+              , stTableNotes    :: [(Char, Doc)] -- List of markers, notes
+                                                 -- in current table
+              , stOLLevel       :: Int           -- level of ordered list nesting
+              , stOptions       :: WriterOptions -- writer options, so they don't have to be parameter
+              , stVerbInNote    :: Bool          -- true if document has verbatim text in note
+              , stEnumerate     :: Bool          -- true if document needs fancy enumerated lists
+              , stTable         :: Bool          -- true if document has a table
+              , stStrikeout     :: Bool          -- true if document has strikeout
+              , stSubscript     :: Bool          -- true if document has subscript
+              , stUrl           :: Bool          -- true if document has visible URL link
+              , stGraphics      :: Bool          -- true if document contains images
+              , stLHS           :: Bool          -- true if document has literate haskell code
+              , stBook          :: Bool          -- true if document uses book or memoir class
+              , stCsquotes      :: Bool          -- true if document uses csquotes
+              , stHighlighting  :: Bool          -- true if document has highlighted code
+              , stFirstFrame    :: Bool          -- true til we've written first beamer frame
+              , stIncremental   :: Bool          -- true if beamer lists should be displayed bit by bit
+              , stInternalLinks :: [String]      -- list of internal link targets
               }
 
 -- | Convert Pandoc to LaTeX.
@@ -77,10 +78,15 @@ writeLaTeX options document =
                 stUrl = False, stGraphics = False,
                 stLHS = False, stBook = writerChapters options,
                 stCsquotes = False, stHighlighting = False,
-                stFirstFrame = True, stIncremental = writerIncremental options }
+                stFirstFrame = True, stIncremental = writerIncremental options,
+                stInternalLinks = [] }
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
+  -- see if there are internal links
+  let isInternalLink (Link _ ('#':xs,_))  = [xs]
+      isInternalLink _                    = []
+  modify $ \s -> s{ stInternalLinks = queryWith isInternalLink blocks }
   let template = writerTemplate options
   -- set stBook depending on documentclass
   let bookClasses = ["memoir","book","report","scrreprt","scrbook"]
@@ -430,13 +436,14 @@ sectionHeader ref level lst = do
   let stuffing = optional <> char '{' <> txt <> char '}'
   book <- liftM stBook get
   let level' = if book then level - 1 else level
-  let refLabel lab = (if (not . null) ref
-                      then text "\\hyperdef"
-                             <> braces empty
-                             <> braces (text ref)
-                             <> braces (lab <> text "\\label"
-                                            <> braces (text ref))
-                      else lab)
+  internalLinks <- gets stInternalLinks
+  let refLabel lab = (if ref `elem` internalLinks
+                         then text "\\hyperdef"
+                                <> braces empty
+                                <> braces (text ref)
+                                <> braces (lab <> text "\\label"
+                                               <> braces (text ref))
+                         else lab)
                       $$ blankline
   let headerWith x y = refLabel $ text x <> y
   return $ case level' of
