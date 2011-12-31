@@ -35,9 +35,13 @@
 \ifxetex
   \usepackage[setpagesize=false, % page size defined by xetex
               unicode=false, % unicode breaks when used with xetex
-              xetex]{hyperref}
+              xetex,
+              colorlinks=true,
+              linkcolor=blue]{hyperref}
 \else
-  \usepackage[unicode=true]{hyperref}
+  \usepackage[unicode=true,
+              colorlinks=true,
+              linkcolor=blue]{hyperref}
 \fi
 \hypersetup{breaklinks=true, pdfborder={0 0 0}}
 \setlength{\parindent}{0pt}
