@@ -42,6 +42,7 @@ module Text.Pandoc.Pretty (
      , flush
      , nest
      , hang
+     , beforeNonBlank
      , nowrap
      , offset
      , height
@@ -91,6 +92,7 @@ type DocState a = State (RenderState a) ()
 data D = Text Int String
        | Block Int [String]
        | Prefixed String Doc
+       | BeforeNonBlank Doc
        | Flush Doc
        | BreakingSpace
        | CarriageReturn
@@ -106,6 +108,14 @@ instance Show Doc where
 
 instance IsString Doc where
   fromString = text
+
+isBlank :: D -> Bool
+isBlank BreakingSpace  = True
+isBlank CarriageReturn = True
+isBlank NewLine        = True
+isBlank BlankLine      = True
+isBlank (Text _ (c:_)) = isSpace c
+isBlank _              = False
 
 -- | True if the document is empty.
 isEmpty :: Doc -> Bool
@@ -241,6 +251,12 @@ renderList (Flush d : xs) = do
   modify $ \s -> s{ usePrefix = oldUsePrefix }
   renderList xs
 
+renderList (BeforeNonBlank d : xs) =
+  case xs of
+    (x:_) | isBlank x -> renderList xs
+          | otherwise -> renderDoc d >> renderList xs
+    []                -> renderList xs
+
 renderList (BlankLine : xs) = do
   st <- get
   case output st of
@@ -370,6 +386,11 @@ nest ind = prefixed (replicate ind ' ')
 -- line but the first.
 hang :: Int -> Doc -> Doc -> Doc
 hang ind start doc = start <> nest ind doc
+
+-- | @beforeNonBlank d@ conditionally includes @d@ unless it is
+-- followed by blank space.
+beforeNonBlank :: Doc -> Doc
+beforeNonBlank d = Doc $ singleton (BeforeNonBlank d)
 
 -- | Makes a 'Doc' non-reflowable.
 nowrap :: Doc -> Doc
