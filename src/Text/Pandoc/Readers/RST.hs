@@ -128,6 +128,7 @@ block = choice [ codeBlock
                , fieldList
                , imageBlock
                , customCodeBlock
+               , mathBlock
                , unknownDirective
                , header
                , hrule
@@ -359,6 +360,32 @@ customCodeBlock = try $ do
   blanklines
   result <- indentedBlock
   return $ CodeBlock ("", ["sourceCode", language], []) $ stripTrailingNewlines result
+
+-- | The 'math' directive (from Sphinx) for display math.
+mathBlock :: GenParser Char st Block
+mathBlock = mathBlockMultiline <|> mathBlockOneLine
+
+mathBlockOneLine :: GenParser Char st Block
+mathBlockOneLine = try $ do
+  string ".. math:"
+  result <- manyTill anyChar newline
+  blanklines
+  return $ Para [Math DisplayMath $ removeLeadingTrailingSpace result]
+
+mathBlockMultiline :: GenParser Char st Block
+mathBlockMultiline = try $ do
+  string ".. math::"
+  blanklines
+  result <- indentedBlock
+  -- a single block can contain multiple equations, which need to go
+  -- in separate Pandoc math elements
+  let lns = map removeLeadingTrailingSpace $ lines result
+  -- drop :label, :nowrap, etc.
+  let startsWithColon (':':_) = True
+      startsWithColon _       = False
+  let lns' = dropWhile startsWithColon lns
+  let eqs = map unwords $ filter (not . null) $ splitBy null lns'
+  return $ Para $ map (Math DisplayMath) eqs
 
 lhsCodeBlock :: GenParser Char ParserState Block
 lhsCodeBlock = try $ do
@@ -736,6 +763,7 @@ inline = choice [ whitespace
                 , image
                 , superscript
                 , subscript
+                , math
                 , note
                 , smartPunctuation inline
                 , hyphens
@@ -774,18 +802,21 @@ strong :: GenParser Char ParserState Inline
 strong = enclosed (string "**") (try $ string "**") inline >>= 
          return . Strong . normalizeSpaces
 
-interpreted :: [Char] -> GenParser Char st [Inline]
+interpreted :: [Char] -> GenParser Char st [Char]
 interpreted role = try $ do
   optional $ try $ string "\\ "
   result <- enclosed (string $ ":" ++ role ++ ":`") (char '`') anyChar
   try (string "\\ ") <|> lookAhead (count 1 $ oneOf " \t\n") <|> (eof >> return "")
-  return [Str result]
+  return result
 
 superscript :: GenParser Char ParserState Inline
-superscript = interpreted "sup" >>= (return . Superscript)
+superscript = interpreted "sup" >>= \x -> return (Superscript [Str x])
 
 subscript :: GenParser Char ParserState Inline
-subscript = interpreted "sub" >>= (return . Subscript)
+subscript = interpreted "sub" >>= \x -> return (Subscript [Str x])
+
+math :: GenParser Char ParserState Inline
+math = interpreted "math" >>= \x -> return (Math InlineMath x)
 
 whitespace :: GenParser Char ParserState Inline
 whitespace = many1 spaceChar >> return Space <?> "whitespace"
