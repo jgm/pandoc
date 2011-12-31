@@ -117,7 +117,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  else return blocks'
   body <- mapM (elementToLaTeX options) $ hierarchicalize blocks''
   biblioTitle <- liftM (render colwidth) $ inlineListToLaTeX lastHeader
-  let main = render colwidth $ cat body
+  let main = render colwidth $ vcat body
   st <- get
   let biblioFiles = intercalate "," $ map dropExtension $  writerBiblioFiles options
       citecontext = case writerCiteMethod options of
@@ -166,7 +166,7 @@ elementToLaTeX _ (Blk block) = blockToLaTeX block
 elementToLaTeX opts (Sec level _ id' title' elements) = do
   header' <- sectionHeader id' level title'
   innerContents <- mapM (elementToLaTeX opts) elements
-  return $ cat (header' : innerContents)
+  return $ vcat (header' : innerContents)
 
 -- escape things as needed for LaTeX
 stringToLaTeX :: Bool -> String -> String

@@ -70,7 +70,7 @@ pandocToConTeXt options (Pandoc (Meta title authors date) blocks) = do
                   then return ""
                   else liftM (render colwidth) $ inlineListToConTeXt date
   body <- mapM (elementToConTeXt options) $ hierarchicalize blocks
-  let main = (render colwidth . cat) body
+  let main = (render colwidth . vcat) body
   let context  = writerVariables options ++
                  [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
@@ -119,7 +119,7 @@ elementToConTeXt _ (Blk block) = blockToConTeXt block
 elementToConTeXt opts (Sec level _ id' title' elements) = do
   header' <- sectionHeader id' level title'
   innerContents <- mapM (elementToConTeXt opts) elements
-  return $ cat (header' : innerContents)
+  return $ vcat (header' : innerContents)
 
 -- | Convert Pandoc block element to ConTeXt.
 blockToConTeXt :: Block 
