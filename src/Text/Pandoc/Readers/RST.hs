@@ -363,18 +363,18 @@ customCodeBlock = try $ do
 
 -- | The 'math' directive (from Sphinx) for display math.
 mathBlock :: GenParser Char st Block
-mathBlock = mathBlockMultiline <|> mathBlockOneLine
+mathBlock = try $ do
+  string ".. math::"
+  mathBlockMultiline <|> mathBlockOneLine
 
 mathBlockOneLine :: GenParser Char st Block
 mathBlockOneLine = try $ do
-  string ".. math:"
   result <- manyTill anyChar newline
   blanklines
   return $ Para [Math DisplayMath $ removeLeadingTrailingSpace result]
 
 mathBlockMultiline :: GenParser Char st Block
 mathBlockMultiline = try $ do
-  string ".. math::"
   blanklines
   result <- indentedBlock
   -- a single block can contain multiple equations, which need to go
@@ -384,7 +384,8 @@ mathBlockMultiline = try $ do
   let startsWithColon (':':_) = True
       startsWithColon _       = False
   let lns' = dropWhile startsWithColon lns
-  let eqs = map unwords $ filter (not . null) $ splitBy null lns'
+  let eqs = map (removeLeadingTrailingSpace . unlines)
+            $ filter (not . null) $ splitBy null lns'
   return $ Para $ map (Math DisplayMath) eqs
 
 lhsCodeBlock :: GenParser Char ParserState Block

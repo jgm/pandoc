@@ -286,9 +286,11 @@ inlineToRST (Str str) = return $ text $ escapeString str
 inlineToRST (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath
-              then ":math:`" <> text str <> "`\\ "
-              else blankline $$ ".. math::" $$ blankline $$
-                   nest 3 (text str) $$ blankline
+              then ":math:`" <> text str <> "`" <> beforeNonBlank "\\ "
+              else if '\n' `elem` str
+                   then blankline $$ ".. math::" $$
+                        blankline $$ nest 3 (text str) $$ blankline
+                   else blankline $$ (".. math:: " <> text str) $$ blankline
 inlineToRST (RawInline _ _) = return empty
 inlineToRST (LineBreak) = return cr -- there's no line break in RST
 inlineToRST Space = return space

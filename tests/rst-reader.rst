@@ -536,3 +536,32 @@ Footnotes
 
 Not in note.
 
+Math
+====
+
+Some inline math :math:`E=mc^2`\ .  Now some
+display math:
+
+.. math:: E=mc^2
+
+.. math::
+
+   E = mc^2
+
+.. math::
+
+   E = mc^2
+
+   \alpha = \beta
+
+.. math::
+   :label hithere
+   :nowrap
+
+   E &= mc^2\\
+   F &= \pi E
+
+   F &= \gamma \alpha^2
+
+All done.
+
