@@ -418,9 +418,10 @@ Options
 
     By default, pandoc will include the following metadata elements:
     `<dc:title>` (from the document title), `<dc:creator>` (from the
-    document authors), `<dc:language>` (from the locale), and
-    `<dc:identifier id="BookId">` (a randomly generated UUID). Any of
-    these may be overridden by elements in the metadata file.
+    document authors), `<dc:language>` (from the `lang` variable, or,
+    if is not set, the locale), and `<dc:identifier id="BookId">` (a
+    randomly generated UUID). Any of these may be overridden by elements
+    in the metadata file.
 
 `-D` *FORMAT*, `--print-default-template=`*FORMAT*
 :   Print the default template for an output *FORMAT*. (See `-t`

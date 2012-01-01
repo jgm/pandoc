@@ -120,8 +120,11 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
   let chapterEntries = zipWith chapterToEntry [1..] chapters
 
   -- contents.opf
-  lang <- catch (liftM (takeWhile (/='.')) $ getEnv "LANG")
-                (\_ -> return "en-US")
+  localeLang <- catch (liftM (takeWhile (/='.')) $ getEnv "LANG")
+                    (\_ -> return "en-US")
+  let lang = case lookup "lang" (writerVariables opts') of
+                     Just x  -> x
+                     Nothing -> localeLang
   uuid <- getRandomUUID
   let chapterNode ent = unode "item" !
                            [("id", takeBaseName $ eRelativePath ent),
