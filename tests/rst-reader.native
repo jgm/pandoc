@@ -165,14 +165,14 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":
   ,([Str "city"],
     [[Para [Emph [Str "Nowhere"],Str ",",Space,Str "MA,",Space,Str "USA"]]])
   ,([Str "phone"],
-    [[Para [Str "123",Str "\8211",Str "4567"]]])]]
+    [[Para [Str "123",Str "-",Str "4567"]]])]]
 ,DefinitionList
  [([Str "address"],
    [[Para [Str "61",Space,Str "Main",Space,Str "St",Str "."]]])
  ,([Str "city"],
    [[Para [Emph [Str "Nowhere"],Str ",",Space,Str "MA,",Space,Str "USA"]]])
  ,([Str "phone"],
-   [[Para [Str "123",Str "\8211",Str "4567"]]])]
+   [[Para [Str "123",Str "-",Str "4567"]]])]
 ,Header 1 [Str "HTML",Space,Str "Blocks"]
 ,Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line",Str ":"]
 ,RawBlock "html" "<div>foo</div>\n"

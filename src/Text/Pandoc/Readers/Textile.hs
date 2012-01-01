@@ -68,7 +68,8 @@ import Control.Monad ( guard, liftM )
 readTextile :: ParserState -- ^ Parser state, including options for parser
              -> String      -- ^ String to parse (assuming @'\n'@ line endings)
              -> Pandoc
-readTextile state s = (readWith parseTextile) state (s ++ "\n\n")
+readTextile state s =
+  (readWith parseTextile) state{ stateOldDashes = True } (s ++ "\n\n")
 
 
 --

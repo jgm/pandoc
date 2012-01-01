@@ -103,6 +103,7 @@ data Opt = Opt
     , optSelfContained     :: Bool    -- ^ Make HTML accessible offline
     , optXeTeX             :: Bool    -- ^ Format latex for xetex
     , optSmart             :: Bool    -- ^ Use smart typography
+    , optOldDashes         :: Bool    -- ^ Parse dashes like pandoc <=1.8.2.1
     , optHtml5             :: Bool    -- ^ Produce HTML5 in HTML
     , optHighlight         :: Bool    -- ^ Highlight source code
     , optHighlightStyle    :: Style   -- ^ Style to use for highlighted code
@@ -149,6 +150,7 @@ defaultOpts = Opt
     , optSelfContained     = False
     , optXeTeX             = False
     , optSmart             = False
+    , optOldDashes         = False
     , optHtml5             = False
     , optHighlight         = True
     , optHighlightStyle    = pygments
@@ -243,6 +245,12 @@ options =
     , Option "S" ["smart"]
                  (NoArg
                   (\opt -> return opt { optSmart = True }))
+                 "" -- "Use smart quotes, dashes, and ellipses"
+
+    , Option "" ["old-dashes"]
+                 (NoArg
+                  (\opt -> return opt { optSmart = True
+                                      , optOldDashes = True }))
                  "" -- "Use smart quotes, dashes, and ellipses"
 
     , Option "5" ["html5"]
@@ -735,6 +743,7 @@ main = do
               , optIncremental       = incremental
               , optSelfContained     = selfContained
               , optSmart             = smart
+              , optOldDashes         = oldDashes
               , optHtml5             = html5
               , optHighlight         = highlight
               , optHighlightStyle    = highlightStyle
@@ -858,6 +867,7 @@ main = do
                               stateCitations       = map CSL.refId refs,
                               stateSmart           = smart || writerName' `elem`
                                                      ["latex", "context", "latex+lhs", "beamer"],
+                              stateOldDashes       = oldDashes,
                               stateColumns         = columns,
                               stateStrict          = strict,
                               stateIndentedCodeClasses = codeBlockClasses,

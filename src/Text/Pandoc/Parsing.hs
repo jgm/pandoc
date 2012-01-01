@@ -614,6 +614,9 @@ data ParserState = ParserState
       stateDate            :: [Inline],      -- ^ Date of document
       stateStrict          :: Bool,          -- ^ Use strict markdown syntax?
       stateSmart           :: Bool,          -- ^ Use smart typography?
+      stateOldDashes       :: Bool,          -- ^ Use pandoc <= 1.8.2.1 behavior
+                                             --   in parsing dashes; -- is em-dash;
+                                             --   before numeral is en-dash
       stateLiterateHaskell :: Bool,          -- ^ Treat input as literate haskell
       stateColumns         :: Int,           -- ^ Number of columns in terminal
       stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
@@ -642,6 +645,7 @@ defaultParserState =
                   stateDate            = [],
                   stateStrict          = False,
                   stateSmart           = False,
+                  stateOldDashes       = False,
                   stateLiterateHaskell = False,
                   stateColumns         = 80,
                   stateHeaderTable     = [],
@@ -788,17 +792,37 @@ ellipses = do
   try (charOrRef "\8230\133") <|> try (string "..." >> return '…')
   return (Str "\8230")
 
-dash :: GenParser Char st Inline
-dash = enDash <|> emDash
+dash :: GenParser Char ParserState Inline
+dash = do
+  oldDashes <- stateOldDashes `fmap` getState
+  if oldDashes
+     then emDashOld <|> enDashOld
+     else Str `fmap` (hyphenDash <|> emDash <|> enDash)
 
-enDash :: GenParser Char st Inline
+-- Two hyphens = en-dash, three = em-dash
+hyphenDash :: GenParser Char st String
+hyphenDash = do
+  try $ string "--"
+  option "\8211" (char '-' >> return "\8212")
+
+emDash :: GenParser Char st String
+emDash = do
+  try (charOrRef "\8212\151")
+  return "\8212"
+
+enDash :: GenParser Char st String
 enDash = do
+  try (charOrRef "\8212\151")
+  return "\8211"
+
+enDashOld :: GenParser Char st Inline
+enDashOld = do
   try (charOrRef "\8211\150") <|>
     try (char '-' >> lookAhead (satisfy isDigit) >> return '–')
   return (Str "\8211")
 
-emDash :: GenParser Char st Inline
-emDash = do
+emDashOld :: GenParser Char st Inline
+emDashOld = do
   try (charOrRef "\8212\151") <|> (try $ string "--" >> optional (char '-') >> return '-')
   return (Str "\8212")
 

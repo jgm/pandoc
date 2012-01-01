@@ -206,11 +206,17 @@ Options
 
 `-S`, `--smart`
 :   Produce typographically correct output, converting straight quotes
-    to curly quotes, `---` and `--` to dashes, and `...` to ellipses.
-    Nonbreaking spaces are inserted after certain abbreviations, such
-    as "Mr." (Note: This option is significant only when the input format is
-    `markdown` or `textile`.  It is selected automatically when the input
-    format is `textile` or the output format is `latex` or `context`.)
+    to curly quotes, `---` to em-dashes, `--` to en-dashes, and
+    `...` to ellipses. Nonbreaking spaces are inserted after certain
+    abbreviations, such as "Mr." (Note: This option is significant only when
+    the input format is `markdown` or `textile`. It is selected automatically
+    when the input format is `textile` or the output format is `latex` or
+    `context`.)
+
+`--old-dashes`
+:   Selects the pandoc <= 1.8.2.1 behavior for parsing smart dashes: `-` before
+    a numeral is an en-dash, and `--` is an em-dash.  This option is selected
+    automatically for `textile` input.
 
 `-5`, `--html5`
 :   Produce HTML5 instead of HTML4.  This option has no effect for writers
