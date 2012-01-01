@@ -418,10 +418,11 @@ Options
 
     By default, pandoc will include the following metadata elements:
     `<dc:title>` (from the document title), `<dc:creator>` (from the
-    document authors), `<dc:language>` (from the `lang` variable, or,
-    if is not set, the locale), and `<dc:identifier id="BookId">` (a
-    randomly generated UUID). Any of these may be overridden by elements
-    in the metadata file.
+    document authors), `<dc:date>` (from the document date, which should
+    be is in [ISO 8601 format]), `<dc:language>` (from the `lang`
+    variable, or, if is not set, the locale), and `<dc:identifier
+    id="BookId">` (a randomly generated UUID). Any of these may be
+    overridden by elements in the metadata file.
 
 `-D` *FORMAT*, `--print-default-template=`*FORMAT*
 :   Print the default template for an output *FORMAT*. (See `-t`
@@ -2078,4 +2079,4 @@ Christopher Sawicki, Kelsey Hightower.
 [EPUB]: http://www.idpf.org/
 [GPL]: http://www.gnu.org/copyleft/gpl.html "GNU General Public License"
 [DZSlides]: http://paulrouget.com/dzslides/
-
+[ISO 8601 format]: http://www.w3.org/TR/NOTE-datetime
