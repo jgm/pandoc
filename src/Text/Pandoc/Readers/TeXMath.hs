@@ -69,6 +69,9 @@ expToInlines (ESymbol t s) = Just $ addSpace t (Str s)
         medspace  = Str "\x2005"
         widespace = Str "\x2004"
 expToInlines (EStretchy x) = expToInlines x
+expToInlines (EDelimited start end xs) = do
+  xs' <- mapM expToInlines xs
+  return $ [Str start] ++ concat xs' ++ [Str end]
 expToInlines (EGrouped xs) = expsToInlines xs
 expToInlines (ESpace "0.167em") = Just [Str "\x2009"]
 expToInlines (ESpace "0.222em") = Just [Str "\x2005"]
@@ -94,10 +97,10 @@ expToInlines (ESubsup x y z) = do
 expToInlines (EDown x y) = expToInlines (ESub x y)
 expToInlines (EUp x y) = expToInlines (ESuper x y)
 expToInlines (EDownup x y z) = expToInlines (ESubsup x y z)
-expToInlines (EText "normal" x) = Just [Str x]
-expToInlines (EText "bold" x) = Just [Strong [Str x]]
-expToInlines (EText "monospace" x) = Just [Code nullAttr x]
-expToInlines (EText "italic" x) = Just [Emph [Str x]]
+expToInlines (EText TextNormal x) = Just [Str x]
+expToInlines (EText TextBold x) = Just [Strong [Str x]]
+expToInlines (EText TextMonospace x) = Just [Code nullAttr x]
+expToInlines (EText TextItalic x) = Just [Emph [Str x]]
 expToInlines (EText _ x) = Just [Str x]
 expToInlines (EOver (EGrouped [EIdentifier [c]]) (ESymbol Accent [accent])) =
     case accent of

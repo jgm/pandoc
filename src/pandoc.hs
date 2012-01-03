@@ -81,8 +81,8 @@ wrapWords indent c = wrap' (c - indent) (c - indent)
                                                        then ",\n" ++ replicate indent ' ' ++ x ++ wrap' cols (cols - length x) xs
                                                        else ", "  ++ x ++ wrap' cols (remaining - (length x + 2)) xs
 
-isNonTextOutput :: String -> Bool
-isNonTextOutput = (`elem` ["odt","epub"])
+nonTextFormats :: [String]
+nonTextFormats = ["odt","docx","epub"]
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -110,6 +110,7 @@ data Opt = Opt
     , optChapters          :: Bool    -- ^ Use chapter for top-level sects
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
+    , optReferenceDocx     :: Maybe FilePath -- ^ Path of reference.docx
     , optEPUBStylesheet    :: Maybe String   -- ^ EPUB stylesheet
     , optEPUBMetadata      :: String  -- ^ EPUB metadata
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
@@ -157,6 +158,7 @@ defaultOpts = Opt
     , optChapters          = False
     , optHTMLMathMethod    = PlainMath
     , optReferenceODT      = Nothing
+    , optReferenceDocx     = Nothing
     , optEPUBStylesheet    = Nothing
     , optEPUBMetadata      = ""
     , optDumpArgs          = False
@@ -530,6 +532,13 @@ options =
                   "FILENAME")
                  "" -- "Path of custom reference.odt"
 
+    , Option "" ["reference-docx"]
+                 (ReqArg
+                  (\arg opt -> do
+                    return opt { optReferenceDocx = Just arg })
+                  "FILENAME")
+                 "" -- "Path of custom reference.docx"
+
     , Option "" ["epub-stylesheet"]
                  (ReqArg
                   (\arg opt -> do
@@ -644,7 +653,7 @@ usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName = usageInfo
   (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++
   (wrapWords 16 78 $ map fst readers) ++ "\nOutput formats: " ++
-  (wrapWords 16 78 $ map fst writers ++ ["odt","epub"]) ++ "\nOptions:")
+  (wrapWords 16 78 $ map fst writers ++ nonTextFormats) ++ "\nOptions:")
 
 -- Determine default reader based on source file extensions
 defaultReaderName :: String -> [FilePath] -> String
@@ -695,6 +704,7 @@ defaultWriterName x =
     ".texinfo"  -> "texinfo"
     ".db"       -> "docbook"
     ".odt"      -> "odt"
+    ".docx"     -> "docx"
     ".epub"     -> "epub"
     ".org"      -> "org"
     ".asciidoc" -> "asciidoc"
@@ -750,6 +760,7 @@ main = do
               , optChapters          = chapters
               , optHTMLMathMethod    = mathMethod
               , optReferenceODT      = referenceODT
+              , optReferenceDocx     = referenceDocx
               , optEPUBStylesheet    = epubStylesheet
               , optEPUBMetadata      = epubMetadata
               , optDumpArgs          = dumpArgs
@@ -798,7 +809,7 @@ main = do
      Just r  -> return r
      Nothing -> error ("Unknown reader: " ++ readerName')
 
-  let standalone' = standalone || isNonTextOutput writerName'
+  let standalone' = standalone || (`elem` nonTextFormats) writerName'
 
   templ <- case templatePath of
                 _ | not standalone' -> return ""
@@ -909,7 +920,7 @@ main = do
                                       writerHighlight        = highlight,
                                       writerHighlightStyle   = highlightStyle }
 
-  when (isNonTextOutput writerName' && outputFile == "-") $
+  when (writerName' `elem` nonTextFormats&& outputFile == "-") $
     do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName' ++ " output to stdout.\n" ++
                                "Specify an output file using the -o option.")
        exitWith $ ExitFailure 5
@@ -955,9 +966,13 @@ main = do
         Nothing | writerName' == "epub" ->
            writeEPUB epubStylesheet writerOptions doc2
            >>= B.writeFile (encodeString outputFile)
-        Nothing | writerName' == "odt"  ->
+                | writerName' == "odt"  ->
            writeODT referenceODT writerOptions doc2
            >>= B.writeFile (encodeString outputFile)
+                | writerName' == "docx"  ->
+           writeDocx referenceDocx writerOptions doc2
+           >>= B.writeFile (encodeString outputFile)
+                | otherwise -> error $ "Unknown writer: " ++ writerName'
         Just r  -> writerFn outputFile =<< postProcess result
             where writerFn "-" = UTF8.putStr
                   writerFn f   = UTF8.writeFile f
@@ -966,5 +981,3 @@ main = do
                   postProcess = if selfContained && writerName' `elem` htmlFormats
                                   then makeSelfContained datadir
                                   else return
-
-        Nothing -> error $ "Unknown writer: " ++ writerName'

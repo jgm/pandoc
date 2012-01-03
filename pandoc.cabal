@@ -18,8 +18,8 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  this library. It can read markdown and (subsets of)
                  reStructuredText, HTML, LaTeX and Textile, and it can write
                  markdown, reStructuredText, HTML, LaTeX, ConTeXt, Docbook,
-                 OpenDocument, ODT, RTF, MediaWiki, Textile, groff man pages,
-                 plain text, Emacs Org-Mode, AsciiDoc, EPUB,
+                 OpenDocument, ODT, Word docx, RTF, MediaWiki, Textile,
+                 groff man pages, plain text, Emacs Org-Mode, AsciiDoc, EPUB,
                  and S5 and Slidy HTML slide shows.
                  .
                  Pandoc extends standard markdown syntax with footnotes,
@@ -51,6 +51,8 @@ Data-Files:
                  templates/epub-coverimage.html,
                  -- data for ODT writer
                  reference.odt,
+                 -- data for docx writer
+                 reference.docx,
                  -- stylesheet for EPUB writer
                  epub.css,
                  -- data for LaTeXMathML writer
@@ -215,7 +217,7 @@ Library
                  utf8-string >= 0.3 && < 0.4,
                  old-time >= 1 && < 1.2,
                  HTTP >= 4000.0.5 && < 4000.3,
-                 texmath >= 0.5 && < 0.6,
+                 texmath >= 0.6 && < 0.7,
                  xml >= 1.3.5 && < 1.4,
                  random >= 1 && < 1.1,
                  extensible-exceptions >= 0.1 && < 0.2,
@@ -269,6 +271,7 @@ Library
                    Text.Pandoc.Writers.MediaWiki,
                    Text.Pandoc.Writers.RTF,
                    Text.Pandoc.Writers.ODT,
+                   Text.Pandoc.Writers.Docx,
                    Text.Pandoc.Writers.EPUB,
                    Text.Pandoc.Templates,
                    Text.Pandoc.Biblio,
@@ -302,7 +305,7 @@ Executable pandoc
                  utf8-string >= 0.3 && < 0.4,
                  old-time >= 1 && < 1.2,
                  HTTP >= 4000.0.5 && < 4000.3,
-                 texmath >= 0.5 && < 0.6,
+                 texmath >= 0.6 && < 0.7,
                  xml >= 1.3.5 && < 1.4,
                  random >= 1 && < 1.1,
                  extensible-exceptions >= 0.1 && < 0.2,
