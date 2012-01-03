@@ -556,9 +556,9 @@ listLine = try $ do
   return $ concat chunks ++ "\n"
 
 -- parse raw text for one list item, excluding start marker and continuations
-rawListItem :: GenParser Char ParserState [Char]
-rawListItem = try $ do
-  listStart
+rawListItem :: GenParser Char ParserState a -> GenParser Char ParserState [Char]
+rawListItem start = try $ do
+  start
   result <- many1 listLine
   blanks <- many blankline
   return $ concat result ++ blanks
@@ -581,9 +581,9 @@ listContinuationLine = try $ do
   result <- manyTill anyChar newline
   return $ result ++ "\n"
 
-listItem :: GenParser Char ParserState [Block]
-listItem = try $ do 
-  first <- rawListItem
+listItem :: GenParser Char ParserState a -> GenParser Char ParserState [Block]
+listItem start = try $ do 
+  first <- rawListItem start
   continuations <- many listContinuation
   -- parsing with ListItemState forces markers at beginning of lines to
   -- count as list item markers, even if not separated by blank space.
@@ -600,13 +600,15 @@ listItem = try $ do
 orderedList :: GenParser Char ParserState Block
 orderedList = try $ do
   (start, style, delim) <- lookAhead anyOrderedListStart
-  items <- many1 listItem
+  items <- many1 $ listItem $ try $
+             do optional newline -- if preceded by a Plain block in a list context
+                skipNonindentSpaces
+                orderedListMarker style delim
   return $ OrderedList (start, style, delim) $ compactify items
 
 bulletList :: GenParser Char ParserState Block
-bulletList = try $ do
-  lookAhead bulletListStart
-  many1 listItem >>= return . BulletList . compactify
+bulletList =
+  many1 (listItem bulletListStart) >>= return . BulletList . compactify
 
 -- definition lists
 

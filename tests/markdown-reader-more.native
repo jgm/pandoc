@@ -47,4 +47,14 @@
 ,Para [Link [Str "bat"] ("/bat","")]
 ,Header 2 [Str "Curly",Space,Str "smart",Space,Str "quotes"]
 ,Para [Quoted DoubleQuote [Str "Hi"]]
-,Para [Quoted SingleQuote [Str "Hi"]]]
+,Para [Quoted SingleQuote [Str "Hi"]]
+,Header 2 [Str "Consecutive",Space,Str "lists"]
+,BulletList
+ [[Plain [Str "one"]]
+ ,[Plain [Str "two"]]]
+,OrderedList (1,Decimal,Period)
+ [[Plain [Str "one"]]
+ ,[Plain [Str "two"]]]
+,OrderedList (1,LowerAlpha,Period)
+ [[Plain [Str "one"]]
+ ,[Plain [Str "two"]]]]
