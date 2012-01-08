@@ -936,15 +936,6 @@ inlineParsers = [ whitespace
                 , symbol
                 , ltSign ]
 
-inlineNonLink :: GenParser Char ParserState Inline
-inlineNonLink = (choice $
-                 map (\parser -> try (parser >>= failIfLink)) inlineParsers)
-                <?> "inline (non-link)"
-
-failIfLink :: Inline -> GenParser tok st Inline
-failIfLink (Link _ _) = pzero
-failIfLink elt        = return elt
-
 escapedChar' :: GenParser Char ParserState Char
 escapedChar' = try $ do
   char '\\'
@@ -1146,7 +1137,7 @@ endline = try $ do
 -- a reference label for a link
 reference :: GenParser Char ParserState [Inline]
 reference = do notFollowedBy' (string "[^")   -- footnote reference
-               result <- inlinesInBalancedBrackets inlineNonLink
+               result <- inlinesInBalancedBrackets inline
                return $ normalizeSpaces result
 
 -- source for a link, with optional title
@@ -1187,7 +1178,12 @@ link :: GenParser Char ParserState Inline
 link = try $ do
   lab <- reference
   (src, tit) <- source <|> referenceLink lab
-  return $ Link lab (src, tit)
+  return $ Link (delinkify lab) (src, tit)
+
+delinkify :: [Inline] -> [Inline]
+delinkify = bottomUp $ concatMap go
+  where go (Link lab _) = lab
+        go x            = [x]
 
 -- a link like [this][ref] or [this][] or [this]
 referenceLink :: [Inline]
@@ -1214,8 +1210,9 @@ autoLink = try $ do
 image :: GenParser Char ParserState Inline
 image = try $ do
   char '!'
-  (Link lab src) <- link
-  return $ Image lab src
+  lab <- reference
+  (src, tit) <- source <|> referenceLink lab
+  return $ Image lab (src,tit)
 
 note :: GenParser Char ParserState Inline
 note = try $ do
