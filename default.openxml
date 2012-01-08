@@ -6,6 +6,8 @@
   xmlns:o="urn:schemas-microsoft-com:office:office"
   xmlns:v="urn:schemas-microsoft-com:vml"
   xmlns:w10="urn:schemas-microsoft-com:office:word"
+  xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+  xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"
   xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" >
 <w:body>
 $body$
