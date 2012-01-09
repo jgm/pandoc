@@ -277,6 +277,7 @@ Library
                    Text.Pandoc.UTF8,
                    Text.Pandoc.MIME,
                    Text.Pandoc.UUID,
+                   Text.Pandoc.ImageSize,
                    Paths_pandoc
 
   if flag(library)
