@@ -850,7 +850,7 @@ multilineTableHeader :: Bool -- ^ Headerless table
 multilineTableHeader headless = try $ do
   if headless
      then return '\n'
-     else tableSep
+     else tableSep >>~ notFollowedBy blankline
   rawContent  <- if headless
                     then return $ repeat "" 
                     else many1
