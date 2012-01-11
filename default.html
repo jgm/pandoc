@@ -1,17 +1,8 @@
-$if(html5)$
-<!DOCTYPE html>
-<html$if(lang)$ lang="$lang$"$endif$>
-$else$
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"$if(lang)$ lang="$lang$" xml:lang="$lang$"$endif$>
-$endif$
 <head>
-$if(html5)$
-  <meta charset="utf-8" />
-$else$
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Style-Type" content="text/css" />
-$endif$
   <meta name="generator" content="pandoc" />
 $for(author-meta)$
   <meta name="author" content="$author-meta$" />
@@ -20,11 +11,6 @@ $if(date-meta)$
   <meta name="date" content="$date-meta$" />
 $endif$
   <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
-$if(html5)$
-  <!--[if lt IE 9]>
-    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-  <![endif]-->
-$endif$
 $if(highlighting-css)$
 $highlighting-css$
 $endif$
@@ -43,11 +29,7 @@ $for(include-before)$
 $include-before$
 $endfor$
 $if(title)$
-$if(html5)$
-<header>
-$else$
 <div id="$idprefix$header">
-$endif$
 <h1 class="title">$title$</h1>
 $for(author)$
 <h2 class="author">$author$</h2>
@@ -55,22 +37,12 @@ $endfor$
 $if(date)$
 <h3 class="date">$date$</h3>
 $endif$
-$if(html5)$
-</header>
-$else$
 </div>
 $endif$
-$endif$
 $if(toc)$
-$if(html5)$
-<nav id="$idprefix$TOC">
-$toc$
-</nav>
-$else$
 <div id="$idprefix$TOC">
 $toc$
 </div>
-$endif$
 $endif$
 $body$
 $for(include-after)$
