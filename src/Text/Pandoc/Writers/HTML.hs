@@ -281,13 +281,14 @@ footnoteSection opts notes =
   if null notes
      then mempty
      else nl opts >> (container
-          $ nl opts >> H.hr >> nl opts >>
+          $ nl opts >> hrtag >> nl opts >>
             H.ol (mconcat notes >> nl opts) >> nl opts)
    where container x = if writerHtml5 opts
                           then H5.section ! A.class_ "footnotes" $ x
                           else if writerSlideVariant opts /= NoSlides
                                then H.div ! A.class_ "footnotes slide" $ x
                                else H.div ! A.class_ "footnotes" $ x
+         hrtag = if writerHtml5 opts then H5.hr else H.hr
 
 -- | Parse a mailto link; return Just (name, domain) or Nothing.
 parseMailto :: String -> Maybe (String, String)
@@ -375,7 +376,7 @@ blockToHtml opts (Para lst) = do
   return $ H.p contents
 blockToHtml _ (RawBlock "html" str) = return $ preEscapedString str
 blockToHtml _ (RawBlock _ _) = return mempty
-blockToHtml _ (HorizontalRule) = return H.hr
+blockToHtml opts (HorizontalRule) = return $ if writerHtml5 opts then H5.hr else H.hr
 blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
   let tolhs = writerLiterateHaskell opts &&
                 any (\c -> map toLower c == "haskell") classes &&
@@ -554,7 +555,7 @@ inlineToHtml opts inline =
   case inline of
     (Str str)        -> return $ strToHtml str
     (Space)          -> return $ strToHtml " "
-    (LineBreak)      -> return H.br
+    (LineBreak)      -> return $ if writerHtml5 opts then H5.br else H.br
     (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
     (Code attr str)  -> case highlight formatHtmlInline attr str of
@@ -594,13 +595,15 @@ inlineToHtml opts inline =
                                            InlineMath -> H.span ! A.class_ "math" $ m
                                            DisplayMath -> H.div ! A.class_ "math" $ m
                                WebTeX url -> do
-                                  let m = H.img ! A.style "vertical-align:middle"
+                                  let imtag = if writerHtml5 opts then H5.img else H.img
+                                  let m = imtag ! A.style "vertical-align:middle"
                                                 ! A.src (toValue $ url ++ urlEncode str)
                                                 ! A.alt (toValue str)
                                                 ! A.title (toValue str)
+                                  let brtag = if writerHtml5 opts then H5.br else H.br 
                                   return $ case t of
                                             InlineMath  -> m
-                                            DisplayMath -> H.br >> m >> H.br
+                                            DisplayMath -> brtag >> m >> brtag
                                GladTeX ->
                                   return $ case t of
                                              InlineMath -> preEscapedString "<EQ ENV=\"math\">" >> toHtml str >> preEscapedString "</EQ>"
@@ -624,9 +627,10 @@ inlineToHtml opts inline =
                                PlainMath -> do
                                   x <- inlineListToHtml opts (readTeXMath str)
                                   let m = H.span ! A.class_ "math" $ x
+                                  let brtag = if writerHtml5 opts then H5.br else H.br
                                   return  $ case t of
                                              InlineMath  -> m
-                                             DisplayMath -> H.br >> m >> H.br )
+                                             DisplayMath -> brtag >> m >> brtag )
     (RawInline "latex" str) -> case writerHTMLMathMethod opts of
                                LaTeXMathML _ -> do modify (\st -> st {stMath = True})
                                                    return $ toHtml str
@@ -653,7 +657,8 @@ inlineToHtml opts inline =
                                          if null txt
                                             then []
                                             else [A.alt $ toValue alternate']
-                        return $ foldl (!) H.img attributes
+                        let tag = if writerHtml5 opts then H5.img else H.img
+                        return $ foldl (!) tag attributes
                         -- note:  null title included, as in Markdown.pl
     (Image _ (s,tit)) -> do
                         let attributes = [A.src $ toValue s] ++
