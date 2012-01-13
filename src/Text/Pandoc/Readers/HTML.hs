@@ -521,7 +521,7 @@ blockDocBookTags = ["calloutlist", "bibliolist", "glosslist", "itemizedlist",
                     "figure", "screenshot", "mediaobject", "qandaset",
                     "procedure", "task", "cmdsynopsis", "funcsynopsis",
                     "classsynopsis", "blockquote", "epigraph", "msgset",
-                    "sidebar"]
+                    "sidebar", "title"]
 
 blockTags :: [String]
 blockTags = blockHtmlTags ++ blockDocBookTags
