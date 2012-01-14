@@ -31,7 +31,7 @@ Functions for determining the size of a PNG, JPEG, or GIF image.
 Algorithms borrowwed from wwwis.pl (c) 2005 Alex K, released
 under the GPL.
 -}
-module Text.Pandoc.ImageSize ( imageType, imageSize, readImageSize ) where
+module Text.Pandoc.ImageSize ( ImageType(..), imageType, imageSize, readImageSize ) where
 import Data.ByteString.Lazy (ByteString, unpack)
 import qualified Data.ByteString.Lazy.Char8 as B
 import Control.Monad
