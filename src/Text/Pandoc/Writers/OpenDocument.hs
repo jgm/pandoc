@@ -40,7 +40,7 @@ import Text.Printf ( printf )
 import Control.Applicative ( (<$>) )
 import Control.Arrow ( (***), (>>>) )
 import Control.Monad.State hiding ( when )
-import Data.Char (chr)
+import Data.Char (chr, isDigit)
 import qualified Data.Map as Map
 
 -- | Auxiliary function to convert Plain block to Para.
@@ -378,7 +378,7 @@ inlineToOpenDocument o ils
     | RawInline "html" s <- ils = preformatted s  -- for backwards compat.
     | RawInline _ _ <- ils = return empty
     | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
-    | Image _ (s,_) <- ils = return $ mkImg  s
+    | Image _ (s,t) <- ils = return $ mkImg  s t
     | Note        l <- ils = mkNote l
     | otherwise            = return empty
     where
@@ -387,7 +387,7 @@ inlineToOpenDocument o ils
                                            , ("xlink:href" , s       )
                                            , ("office:name", t       )
                                            ] . inSpanTags "Definition"
-      mkImg  s     = inTags False "draw:frame" [] $
+      mkImg  s t   = inTags False "draw:frame" (attrsFromTitle t) $
                      selfClosingTag "draw:image" [ ("xlink:href"   , s       )
                                                  , ("xlink:type"   , "simple")
                                                  , ("xlink:show"   , "embed" )
@@ -402,6 +402,17 @@ inlineToOpenDocument o ils
         nn <- footNote <$> withParagraphStyle o "Footnote" l
         addNote nn
         return nn
+
+-- a title of the form "120x140" will be interpreted as image
+-- size in pixels.
+attrsFromTitle :: String -> [(String,String)]
+attrsFromTitle s = if null xs || null ys
+                      then []
+                      else [("svg:x",xs),("svg:y",ys)]
+  where (xs,rest) = span isDigit s
+        ys        = case rest of
+                         ('x':zs) | all isDigit zs -> zs
+                         _ -> ""
 
 bulletListStyle :: Int -> State WriterState (Int,(Int,[Doc]))
 bulletListStyle l =
