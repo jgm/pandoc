@@ -94,7 +94,7 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
 
   -- handle pictures
   picsRef <- newIORef []
-  Pandoc _ blocks <- liftM (bottomUp transformBlock) $ bottomUpM
+  Pandoc _ blocks <- bottomUpM
        (transformInlines (writerHTMLMathMethod opts) sourceDir picsRef) doc
   pics <- readIORef picsRef
   let readPicEntry (oldsrc, newsrc) = readEntry [] oldsrc >>= \e ->
@@ -277,12 +277,7 @@ transformInlines (MathML _) _ _ (x@(Math _ _) : xs) = do
        "</ops:switch>"
       result = if "<math" `isPrefixOf` mathml then inOps else mathml
   return $ RawInline "html" result : xs
-transformInlines _ _ _ (RawInline _ _ : xs) = return $ Str "" : xs
 transformInlines _ _ _ xs = return xs
-
-transformBlock :: Block -> Block
-transformBlock (RawBlock _ _) = Null
-transformBlock x = x
 
 (!) :: Node t => (t -> Element) -> [(String, String)] -> t -> Element
 (!) f attrs n = add_attrs (map (\(k,v) -> Attr (unqual k) v) attrs) (f n)
