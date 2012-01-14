@@ -404,11 +404,11 @@ inlineToOpenDocument o ils
         return nn
 
 -- a title of the form "120x140" will be interpreted as image
--- size in pixels.
+-- size in points.
 attrsFromTitle :: String -> [(String,String)]
 attrsFromTitle s = if null xs || null ys
                       then []
-                      else [("svg:x",xs),("svg:y",ys)]
+                      else [("svg:width",xs ++ "pt"),("svg:height",ys ++ "pt")]
   where (xs,rest) = span isDigit s
         ys        = case rest of
                          ('x':zs) | all isDigit zs -> zs

@@ -37,6 +37,7 @@ import Codec.Archive.Zip
 import System.Time
 import Paths_pandoc ( getDataFileName )
 import Text.Pandoc.Shared ( WriterOptions(..) )
+import Text.Pandoc.ImageSize ( readImageSize )
 import Text.Pandoc.MIME ( getMimeType )
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
@@ -102,11 +103,17 @@ writeODT mbRefOdt opts doc = do
 transformPic :: FilePath -> IORef [Entry] -> Inline -> IO Inline
 transformPic sourceDir entriesRef (Image lab (src,tit)) = do
   let src' = unEscapeString src
+  mbSize <- readImageSize src'
+  let pxToPoints px = px * 72 `div` 96
+  let tit' = case mbSize of
+                  Just (w,h)  -> show (pxToPoints w) ++ "x" ++
+                                 show (pxToPoints h)
+                  Nothing     -> tit
   entries <- readIORef entriesRef
   let newsrc = "Pictures/" ++ show (length entries) ++ takeExtension src'
   catch (readEntry [] (sourceDir </> src') >>= \entry ->
            modifyIORef entriesRef (entry{ eRelativePath = newsrc } :) >>
-           return (Image lab (newsrc, tit)))
+           return (Image lab (newsrc, tit')))
         (\_ -> return (Emph lab))
 transformPic _ _ x = return x
 
