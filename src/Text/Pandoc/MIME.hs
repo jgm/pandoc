@@ -35,6 +35,7 @@ import qualified Data.Map as M
 
 -- | Determine mime type appropriate for file path.
 getMimeType :: FilePath -> Maybe String
+getMimeType "layout-cache" = Just "application/binary"  -- in ODT
 getMimeType f = M.lookup (map toLower $ drop 1 $ takeExtension f) mimeTypes
   where mimeTypes = M.fromList -- List borrowed from happstack-server.
            [("gz","application/x-gzip")
