@@ -70,7 +70,7 @@ sizeInPixels :: ImageSize -> (Integer, Integer)
 sizeInPixels s = (pxX s, pxY s)
 
 sizeInPoints :: ImageSize -> (Integer, Integer)
-sizeInPoints s = (pxX s `div` dpiX s * 72, pxY s `div` dpiY s * 72)
+sizeInPoints s = (pxX s * 72 `div` dpiX s, pxY s * 72 `div` dpiY s)
 
 pngSize :: ByteString -> Maybe ImageSize
 pngSize img = do
