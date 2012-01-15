@@ -7,31 +7,28 @@
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-         but WITHOUT ANY WARRANTY; without even the implied warranty of
-           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-           GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+    more details.
 
-           You should have received a copy of the GNU General Public License
-           along with this program; if not, write to the Free Software
-           Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-           -}
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc., 59
+    Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-}
 
 {- |
 Module      : Text.Pandoc.ImageSize
-                Copyright   : Copyright (C) 2011 John MacFarlane
-                License     : GNU GPL, version 2 or above
+Copyright   : Copyright (C) 2011 John MacFarlane
+License     : GNU GPL, version 2 or above
 
-                Maintainer  : John MacFarlane <jgm@berkeley.edu>
-                Stability   : alpha
-                Portability : portable
+Maintainer  : John MacFarlane <jgm@berkeley.edu>
+Stability   : alpha
+Portability : portable
 
-                Functions for determining the size of a PNG, JPEG, or GIF image.
-
-                Algorithms borrowwed from wwwis.pl (c) 2005 Alex K, released
-                under the GPL.
-                -}
-                module Text.Pandoc.ImageSize ( ImageType(..), imageType, imageSize,
+Functions for determining the size of a PNG, JPEG, or GIF image.
+-}
+module Text.Pandoc.ImageSize ( ImageType(..), imageType, imageSize,
                     sizeInPixels, sizeInPoints, readImageSize ) where
 import Data.ByteString.Lazy (ByteString, unpack)
 import qualified Data.ByteString.Lazy.Char8 as B
