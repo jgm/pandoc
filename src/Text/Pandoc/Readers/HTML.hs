@@ -228,7 +228,7 @@ pSimpleTable = try $ do
 pCell :: String -> TagParser [TableCell]
 pCell celltype = try $ do
   skipMany pBlank
-  res <- pInTags celltype pPlain
+  res <- pInTags celltype block
   skipMany pBlank
   return [res]
 
