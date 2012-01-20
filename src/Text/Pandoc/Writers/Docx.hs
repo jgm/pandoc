@@ -567,8 +567,14 @@ inlineToOpenXML opts (Note bs) = do
   let insertNoteRef (Plain ils : xs) = Plain (notemarkerXml : ils) : xs
       insertNoteRef (Para ils  : xs) = Para  (notemarkerXml : ils) : xs
       insertNoteRef xs               = Para [notemarkerXml] : xs
+  oldListLevel <- gets stListLevel
+  oldParaProperties <- gets stParaProperties
+  oldTextProperties <- gets stTextProperties
+  modify $ \st -> st{ stListLevel = -1, stParaProperties = [], stTextProperties = [] }
   contents <- withParaProp (pStyle "FootnoteText") $ blocksToOpenXML opts
                 $ insertNoteRef bs
+  modify $ \st -> st{ stListLevel = oldListLevel, stParaProperties = oldParaProperties,
+                      stTextProperties = oldTextProperties }
   let newnote = mknode "w:footnote" [("w:id",show notenum)] $ contents
   modify $ \s -> s{ stFootnotes = newnote : notes }
   return [ mknode "w:r" []
