@@ -250,7 +250,7 @@ mkLvl marker lvl =
                                          ,patternFor de ("%" ++ show (lvl + 1))
                                          ,show n)
           step = 720
-          hang = step `div` 2
+          hang = 480
           bulletFor 0 = "\8226"
           bulletFor 1 = "\9702"
           bulletFor 2 = "\8227"
