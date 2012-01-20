@@ -77,7 +77,7 @@ defaultWriterState = WriterState{
       , stSectionIds     = []
       , stExternalLinks  = M.empty
       , stImages         = M.empty
-      , stListLevel      = 0 -- not in a list
+      , stListLevel      = -1
       , stListMarker     = NoMarker
       , stNumStyles      = M.fromList [(NoMarker, 0)]
       , stLists          = [NoMarker]
@@ -477,7 +477,7 @@ getParaProps = do
   props <- gets stParaProperties
   listLevel <- gets stListLevel
   numid <- getNumId
-  let listPr = if listLevel >= 1
+  let listPr = if listLevel >= 0
                   then [ mknode "w:numPr" []
                          [ mknode "w:numId" [("w:val",show numid)] ()
                          , mknode "w:ilvl" [("w:val",show listLevel)] () ]
