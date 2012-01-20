@@ -537,13 +537,17 @@ inlineToOpenXML opts (Quoted quoteType lst) =
     where (open, close) = case quoteType of
                             SingleQuote -> ("\x2018", "\x2019")
                             DoubleQuote -> ("\x201C", "\x201D")
-inlineToOpenXML opts (Math t str) =
-  case texMathToOMML dt str of
+inlineToOpenXML opts (Math InlineMath str) =
+  case texMathToOMML DisplayInline str of
         Right r -> return [r]
         Left  _ -> inlinesToOpenXML opts (readTeXMath str)
-    where dt = if t == InlineMath
-                  then DisplayInline
-                  else DisplayBlock
+inlineToOpenXML opts (Math DisplayMath str) =
+  case texMathToOMML DisplayBlock str of
+        Right r -> return [br, r, br]
+        Left  _ -> do
+            fallback <- inlinesToOpenXML opts (readTeXMath str)
+            return $ [br] ++ fallback ++ [br]
+    where br = mknode "w:br" [] ()
 inlineToOpenXML opts (Cite _ lst) = inlinesToOpenXML opts lst
 inlineToOpenXML _ (Code attrs str) =
   withTextProp (rStyle "VerbatimChar")
