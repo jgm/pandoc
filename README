@@ -15,7 +15,7 @@ another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
 and [LaTeX]; and it can write plain text, [markdown], [reStructuredText],
 [XHTML], [HTML 5], [LaTeX], [LaTeX beamer], [ConTeXt], [RTF], [DocBook XML],
-[OpenDocument XML], [ODT], [GNU Texinfo], [MediaWiki markup], [EPUB],
+[OpenDocument XML], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup], [EPUB],
 [Textile], [groff man] pages, [Emacs Org-Mode], [AsciiDoc], and [Slidy],
 [DZSlides], or [S5] HTML slide shows.
 
@@ -40,8 +40,8 @@ Using Pandoc
 If no *input-file* is specified, input is read from *stdin*.
 Otherwise, the *input-files* are concatenated (with a blank
 line between each) and used as input.  Output goes to *stdout* by
-default (though output to *stdout* is disabled for the `odt` and
-`epub` output formats).  For output to a file, use the `-o` option:
+default (though output to *stdout* is disabled for the `odt`, `docx`,
+and `epub` output formats).  For output to a file, use the `-o` option:
 
     pandoc -o output.html input.txt
 
@@ -156,14 +156,14 @@ Options
     (ConTeXt), `man` (groff man), `mediawiki` (MediaWiki markup), `textile`
     (Textile), `org` (Emacs Org-Mode), `texinfo` (GNU Texinfo), `docbook`
     (DocBook XML), `opendocument` (OpenDocument XML), `odt` (OpenOffice text
-    document), `epub` (EPUB book), `asciidoc` (AsciiDoc), `slidy` (Slidy HTML
-    and javascript slide show), `dzslides` (HTML5 + javascript slide show),
-    `s5` (S5 HTML and javascript slide show), or `rtf` (rich text format).
-    Note that `odt` and `epub` output will not be directed to *stdout*;
-    an output filename must be specified using the `-o/--output` option.
-    If `+lhs` is appended to `markdown`, `rst`, `latex`, `html`, or `html5`,
-    the output will be rendered as literate Haskell source: see [Literate
-    Haskell support](#literate-haskell-support), below.
+    document), `docx` (Word docx), `epub` (EPUB book), `asciidoc` (AsciiDoc),
+    `slidy` (Slidy HTML and javascript slide show), `dzslides` (HTML5 +
+    javascript slide show), `s5` (S5 HTML and javascript slide show), or
+    `rtf` (rich text format). Note that `odt` and `epub` output will not be
+    directed to *stdout*; an output filename must be specified using the
+    `-o/--output` option. If `+lhs` is appended to `markdown`, `rst`, `latex`,
+    `html`, or `html5`, the output will be rendered as literate Haskell source:
+    see [Literate Haskell support](#literate-haskell-support), below.
 
 `-s`, `--standalone`
 :   Produce output with an appropriate header and footer (e.g. a
@@ -172,7 +172,7 @@ Options
 `-o` *FILE*, `--output=`*FILE*
 :   Write output to *FILE* instead of *stdout*.  If *FILE* is
     `-`, output will go to *stdout*.  (Exception: if the output
-    format is `odt` or `epub`, output to stdout is disabled.)
+    format is `odt`, `docx`, or `epub`, output to stdout is disabled.)
 
 `-p`, `--preserve-tabs`
 :   Preserve tabs instead of converting them to spaces (the default).
@@ -397,6 +397,16 @@ Options
     `--data-dir`). If this is not found either, sensible defaults will be
     used.
 
+`--reference-docx=`*FILE*
+:   Use the specified file as a style reference in producing a docx file.
+    For best results, the reference docx should be a modified version
+    of a docx file produced using pandoc.  The contents of the reference docx
+    are ignored, but its stylesheets are used in the new docx. If no
+    reference docx is specified on the command line, pandoc will look
+    for a file `reference.docx` in the user data directory (see
+    `--data-dir`). If this is not found either, sensible defaults will be
+    used.
+
 `--epub-stylesheet=`*FILE*
 :   Use the specified CSS file to style the EPUB.  If no stylesheet
     is specified, pandoc will look for a file `epub.css` in the
@@ -494,9 +504,9 @@ Options
 
         C:\Documents And Settings\USERNAME\Application Data\pandoc
 
-    in Windows. A `reference.odt`, `epub.css`, `templates` directory,
-    or `s5` directory placed in this directory will override pandoc's
-    normal defaults.
+    in Windows. A `reference.odt`, `reference.docx`,
+    `epub.css`, `templates` directory, or `s5` directory placed in this
+    directory will override pandoc's normal defaults.
 
 `--dump-args`
 :   Print information about command-line arguments to *stdout*, then exit.
@@ -1567,6 +1577,9 @@ RTF, DocBook, OpenDocument, ODT
   ~ It will be rendered, if possible, using unicode characters,
     and will otherwise appear verbatim.
 
+Docx
+  ~ It will be rendered using OMML math markup.
+
 HTML, Slidy, DZSlides, S5, EPUB
   ~ The way math is rendered in HTML will depend on the
     command-line options selected:
@@ -2080,3 +2093,4 @@ Christopher Sawicki, Kelsey Hightower.
 [GPL]: http://www.gnu.org/copyleft/gpl.html "GNU General Public License"
 [DZSlides]: http://paulrouget.com/dzslides/
 [ISO 8601 format]: http://www.w3.org/TR/NOTE-datetime
+[Word docx]: http://www.microsoft.com/interop/openup/openxml/default.aspx
