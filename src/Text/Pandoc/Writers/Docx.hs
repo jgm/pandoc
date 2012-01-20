@@ -151,7 +151,6 @@ writeDocx mbRefDocx opts doc@(Pandoc (Meta tit auths _) _) = do
   let markersUsed = stMarkersUsed st
   let numpath = "word/numbering.xml"
   let numEntry = toEntry numpath epochtime $ fromString $ showTopElement' $ mkNumbering markersUsed
-  -- TODO add metadata, etc.
   let docPropsPath = "docProps/core.xml"
   let docProps = mknode "cp:coreProperties"
           [("xmlns:cp","http://schemas.openxmlformats.org/package/2006/metadata/core-properties")
@@ -585,7 +584,6 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
        (ident,size) <- case M.lookup src imgs of
                             Just (i,img) -> return (i, imageSize img)
                             Nothing -> do
-                              -- TODO check existence download etc.
                               img <- liftIO $ B.readFile src
                               let ident' = "image" ++ show (M.size imgs + 1)
                               let size'  = imageSize img
