@@ -83,8 +83,8 @@ getDefaultTemplate :: (Maybe FilePath) -- ^ User data directory to search first
                    -> IO (Either E.IOException String)
 getDefaultTemplate _ "native" = return $ Right ""
 getDefaultTemplate _ "json"   = return $ Right ""
+getDefaultTemplate _ "docx"   = return $ Right ""
 getDefaultTemplate user "odt" = getDefaultTemplate user "opendocument"
-getDefaultTemplate user "docx" = getDefaultTemplate user "openxml"
 getDefaultTemplate user "epub" = getDefaultTemplate user "html"
 getDefaultTemplate user "beamer" = getDefaultTemplate user "latex"
 getDefaultTemplate user writer = do
