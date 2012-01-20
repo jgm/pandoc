@@ -33,6 +33,8 @@ import System.FilePath ( (</>) )
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import Data.ByteString.Lazy.UTF8 ( fromString, toString )
+import Text.Pandoc.UTF8 as UTF8
+import System.IO ( stderr )
 import Codec.Archive.Zip
 import System.Time
 import Paths_pandoc ( getDataFileName )
@@ -575,52 +577,58 @@ inlineToOpenXML opts (Link txt (src,_)) = do
                         M.insert src i extlinks }
               return i
   return [ mknode "w:hyperlink" [("r:id",ind)] contents ]
-inlineToOpenXML _ (Image _ (src, tit)) = do
-  imgs <- gets stImages
-  (ident,size) <- case M.lookup src imgs of
-                       Just (i,img) -> return (i, imageSize img)
-                       Nothing -> do
-                         -- TODO check existence download etc.
-                         img <- liftIO $ B.readFile src
-                         let ident' = "image" ++ show (M.size imgs + 1)
-                         let size'  = imageSize img
-                         modify $ \st -> st{
-                            stImages = M.insert src (ident',img) $ stImages st }
-                         return (ident',size')
-  let (xpt,ypt) = maybe (120,120) sizeInPoints size
-  -- 12700 emu = 1 pt
-  let (xemu,yemu) = (xpt * 12700, ypt * 12700)
-  let cNvPicPr = mknode "pic:cNvPicPr" [] $
-                   mknode "a:picLocks" [("noChangeArrowheads","1"),("noChangeAspect","1")] ()
-  let nvPicPr  = mknode "pic:nvPicPr" []
-                  [ mknode "pic:cNvPr"
-                      [("descr",src),("id","0"),("name","Picture")] ()
-                  , cNvPicPr ]
-  let blipFill = mknode "pic:blipFill" []
-                   [ mknode "a:blip" [("r:embed",ident)] ()
-                   , mknode "a:stretch" [] $ mknode "a:fillRect" [] () ]
-  let xfrm =    mknode "a:xfrm" []
-                  [ mknode "a:off" [("x","0"),("y","0")] ()
-                  , mknode "a:ext" [("cx",show xemu),("cy",show yemu)] () ]
-  let prstGeom = mknode "a:prstGeom" [("prst","rect")] $
-                   mknode "a:avLst" [] ()
-  let ln =      mknode "a:ln" [("w","9525")]
-                  [ mknode "a:noFill" [] ()
-                  , mknode "a:headEnd" [] ()
-                  , mknode "a:tailEnd" [] () ]
-  let spPr =    mknode "pic:spPr" [("bwMode","auto")]
-                  [xfrm, prstGeom, mknode "a:noFill" [] (), ln]
-  let graphic = mknode "a:graphic" [] $
-                  mknode "a:graphicData" [("uri","http://schemas.openxmlformats.org/drawingml/2006/picture")]
-                    [ mknode "pic:pic" []
-                      [ nvPicPr
-                      , blipFill
-                      , spPr ] ]
-  return [ mknode "w:r" [] $
-      mknode "w:drawing" [] $
-        mknode "wp:inline" []
-          [ mknode "wp:extent" [("cx",show xemu),("cy",show yemu)] ()
-          , mknode "wp:effectExtent" [("b","0"),("l","0"),("r","0"),("t","0")] ()
-          , mknode "wp:docPr" [("descr",tit),("id","1"),("name","Picture")] ()
-          , graphic ] ]
-
+inlineToOpenXML opts (Image alt (src, tit)) = do
+  exists <- liftIO $ doesFileExist src
+  if exists
+     then do
+       imgs <- gets stImages
+       (ident,size) <- case M.lookup src imgs of
+                            Just (i,img) -> return (i, imageSize img)
+                            Nothing -> do
+                              -- TODO check existence download etc.
+                              img <- liftIO $ B.readFile src
+                              let ident' = "image" ++ show (M.size imgs + 1)
+                              let size'  = imageSize img
+                              modify $ \st -> st{
+                                 stImages = M.insert src (ident',img) $ stImages st }
+                              return (ident',size')
+       let (xpt,ypt) = maybe (120,120) sizeInPoints size
+       -- 12700 emu = 1 pt
+       let (xemu,yemu) = (xpt * 12700, ypt * 12700)
+       let cNvPicPr = mknode "pic:cNvPicPr" [] $
+                        mknode "a:picLocks" [("noChangeArrowheads","1"),("noChangeAspect","1")] ()
+       let nvPicPr  = mknode "pic:nvPicPr" []
+                       [ mknode "pic:cNvPr"
+                           [("descr",src),("id","0"),("name","Picture")] ()
+                       , cNvPicPr ]
+       let blipFill = mknode "pic:blipFill" []
+                        [ mknode "a:blip" [("r:embed",ident)] ()
+                        , mknode "a:stretch" [] $ mknode "a:fillRect" [] () ]
+       let xfrm =    mknode "a:xfrm" []
+                       [ mknode "a:off" [("x","0"),("y","0")] ()
+                       , mknode "a:ext" [("cx",show xemu),("cy",show yemu)] () ]
+       let prstGeom = mknode "a:prstGeom" [("prst","rect")] $
+                        mknode "a:avLst" [] ()
+       let ln =      mknode "a:ln" [("w","9525")]
+                       [ mknode "a:noFill" [] ()
+                       , mknode "a:headEnd" [] ()
+                       , mknode "a:tailEnd" [] () ]
+       let spPr =    mknode "pic:spPr" [("bwMode","auto")]
+                       [xfrm, prstGeom, mknode "a:noFill" [] (), ln]
+       let graphic = mknode "a:graphic" [] $
+                       mknode "a:graphicData" [("uri","http://schemas.openxmlformats.org/drawingml/2006/picture")]
+                         [ mknode "pic:pic" []
+                           [ nvPicPr
+                           , blipFill
+                           , spPr ] ]
+       return [ mknode "w:r" [] $
+           mknode "w:drawing" [] $
+             mknode "wp:inline" []
+               [ mknode "wp:extent" [("cx",show xemu),("cy",show yemu)] ()
+               , mknode "wp:effectExtent" [("b","0"),("l","0"),("r","0"),("t","0")] ()
+               , mknode "wp:docPr" [("descr",tit),("id","1"),("name","Picture")] ()
+               , graphic ] ]
+     else do
+       liftIO $ UTF8.hPutStrLn stderr $
+          "Could not find image `" ++ src ++ "', skipping..."
+       inlinesToOpenXML opts alt
