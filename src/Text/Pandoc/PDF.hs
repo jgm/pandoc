@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of LaTeX documents to PDF.
 -}
-module Text.Pandoc.PDF ( tex2pdf ) where
+module Text.Pandoc.PDF ( TeXProgram(..), tex2pdf ) where
 
 import System.IO.Temp
 import Data.Char (toLower)
