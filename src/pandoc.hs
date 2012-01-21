@@ -409,7 +409,7 @@ options =
                             "javascript" -> return JavascriptObfuscation
                             "none"       -> return NoObfuscation
                             _            -> err 6
-                               ("Error: Unknown obfuscation method: " ++ arg)
+                               ("Unknown obfuscation method: " ++ arg)
                      return opt { optEmailObfuscation = method })
                   "none|javascript|references")
                  "" -- "Method for obfuscating email in HTML"
@@ -947,7 +947,7 @@ main = do
                                       writerHighlightStyle   = highlightStyle }
 
   when (writerName' `elem` nonTextFormats&& outputFile == "-") $
-    err 5 $ "Error:  Cannot write " ++ writerName' ++ " output to stdout.\n" ++
+    err 5 $ "Cannot write " ++ writerName' ++ " output to stdout.\n" ++
             "Specify an output file using the -o option."
 
   let readSources [] = mapM readSource ["-"]
