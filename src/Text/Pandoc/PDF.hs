@@ -28,10 +28,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of LaTeX documents to PDF.
 -}
-module Text.Pandoc.PDF ( TeXProgram(..), tex2pdf ) where
+module Text.Pandoc.PDF ( tex2pdf ) where
 
 import System.IO.Temp
-import Data.Char (toLower)
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as BC
@@ -44,14 +43,14 @@ import System.IO (hClose)
 import Control.Concurrent (putMVar, takeMVar, newEmptyMVar, forkIO)
 import Text.Pandoc.UTF8 as UTF8
 
-tex2pdf :: TeXProgram
-        -> String                           -- ^ latex source
+tex2pdf :: String       -- ^ tex program (pdflatex, lualatex, xelatex)
+        -> String       -- ^ latex source
         -> IO (Either ByteString ByteString)
 tex2pdf program source = withSystemTempDirectory "tex2pdf" $ \tmpdir ->
   tex2pdf' tmpdir program source
 
 tex2pdf' :: FilePath                        -- ^ temp directory for output
-         -> TeXProgram
+         -> String                          -- ^ tex program
          -> String                          -- ^ tex source
          -> IO (Either ByteString ByteString)
 tex2pdf' tmpDir program source = do
@@ -62,14 +61,6 @@ tex2pdf' tmpDir program source = do
                                      msg <> "\n" <> extractMsg log'
        (ExitSuccess, Nothing)  -> return $ Left msg
        (ExitSuccess, Just pdf) -> return $ Right pdf
-
-data TeXProgram = PDFLaTeX
-                | XeLaTeX
-                | LuaLaTeX
-                | XeTeX
-                | LuaTeX
-                | PDFTeX
-                deriving (Show, Read)
 
 (<>) :: ByteString -> ByteString -> ByteString
 (<>) = B.append
@@ -102,16 +93,15 @@ hasUndefinedRefs = or . map parseLine . BC.lines
 -- Run a TeX program on an input bytestring and return (exit code,
 -- contents of stdout, contents of produced PDF if any).  Rerun
 -- latex as needed to resolve references, but don't run bibtex/biber.
-runTeXProgram :: TeXProgram -> Int -> FilePath -> String
+runTeXProgram :: String -> Int -> FilePath -> String
               -> IO (ExitCode, ByteString, Maybe ByteString)
 runTeXProgram program runsLeft tmpDir source = do
-  let programName = map toLower (show program)
   withTempFile tmpDir "tex2pdf" $ \file h -> do
     UTF8.hPutStr h source
     hClose h
     let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
          "-output-directory", tmpDir, file]
-    (exit, out, _err) <- readCommand programName programArgs
+    (exit, out, _err) <- readCommand program programArgs
     removeFile file
     let pdfFile = replaceDirectory (replaceExtension file ".pdf") tmpDir
     pdfExists <- doesFileExist pdfFile

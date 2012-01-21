@@ -30,7 +30,7 @@ writers.
 -}
 module Main where
 import Text.Pandoc
-import Text.Pandoc.PDF (tex2pdf, TeXProgram(..))
+import Text.Pandoc.PDF (tex2pdf)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
                             headerShift, findDataFile, normalize )
 import Text.Pandoc.SelfContained ( makeSelfContained )
@@ -972,7 +972,7 @@ main = do
                 | writerName' == "docx"  ->
            writeDocx referenceDocx writerOptions doc2 >>= writeBinary
                 | writerName' == "pdf"  ->
-           do res <- tex2pdf PDFLaTeX $ writeLaTeX writerOptions doc2
+           do res <- tex2pdf "pdflatex" $ writeLaTeX writerOptions doc2
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> B.hPutStr stderr err'
