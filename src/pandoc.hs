@@ -549,6 +549,16 @@ options =
                   "FILENAME")
                  "" -- "Path of epub metadata file"
 
+    , Option "" ["latex-program"]
+                 (ReqArg
+                  (\arg opt -> do
+                     let b = takeBaseName arg
+                     if (b == "pdflatex" || b == "lualatex" || b == "xelatex")
+                        then return opt { optLaTeXProgram = arg }
+                        else err 45 "latex-program must be pdflatex, lualatex, or xelatex.")
+                  "PROGRAM")
+                 "" -- "Name of latex program to use in generating PDF"
+
     , Option "D" ["print-default-template"]
                  (ReqArg
                   (\arg _ -> do

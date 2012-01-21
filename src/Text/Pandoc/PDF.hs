@@ -72,9 +72,9 @@ extractMsg log' = do
   let msg'  = dropWhile (not . ("!" `BC.isPrefixOf`)) $ BC.lines log'
   let (msg'',rest) = break ("l." `BC.isPrefixOf`) msg'
   let lineno = take 1 rest
-  if not (null msg')
-     then BC.unlines (msg'' ++ lineno)
-     else "Unknown errorR"
+  if null msg'
+     then log'
+     else BC.unlines (msg'' ++ lineno)
 
 parseLine :: ByteString -> Bool
 parseLine ln =
@@ -101,7 +101,7 @@ runTeXProgram program runsLeft tmpDir source = do
     hClose h
     let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
          "-output-directory", tmpDir, file]
-    (exit, out, _err) <- readCommand program programArgs
+    (exit, out, err) <- readCommand program programArgs
     removeFile file
     let pdfFile = replaceDirectory (replaceExtension file ".pdf") tmpDir
     pdfExists <- doesFileExist pdfFile
@@ -110,7 +110,7 @@ runTeXProgram program runsLeft tmpDir source = do
               else return Nothing
     if hasUndefinedRefs out && runsLeft > 0
        then runTeXProgram program (runsLeft - 1) tmpDir source
-       else return (exit, out, pdf)
+       else return (exit, out <> err, pdf)
 
 -- utility functions
 
