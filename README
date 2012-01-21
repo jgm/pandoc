@@ -94,12 +94,20 @@ should pipe input and output through `iconv`:
 `markdown2pdf`
 --------------
 
-Earlier versions of pandoc came with a program, `markdown2pdf`,
-that used pandoc and pdflatex to produce a PDF.  This is no
-longer needed, since `pandoc` now has a `pdf` output format.
-Note that whereas `markdown2pdf` would create an ouput file
-based on the input file name, `pandoc` requires that you specify
-the output filename explicitly.
+Earlier versions of pandoc came with a program, `markdown2pdf`, that
+used pandoc and pdflatex to produce a PDF.  This is no longer needed,
+since `pandoc` now has a `pdf` output format, and there is no reason
+to limit input to markdown. Note that whereas `markdown2pdf` would
+create an ouput file based on the input file name, `pandoc` requires
+that you specify the output filename explicitly.  So,
+
+    pandoc input.txt -o input.pdf --latex-program=xelatex
+
+does the same thing
+
+    markdown2pdf --xetex input.txt
+
+used to do.
 
 `hsmarkdown`
 ------------
