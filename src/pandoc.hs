@@ -30,6 +30,7 @@ writers.
 -}
 module Main where
 import Text.Pandoc
+import Text.Pandoc.PDF (tex2pdf)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
                             headerShift, findDataFile, normalize )
 import Text.Pandoc.SelfContained ( makeSelfContained )

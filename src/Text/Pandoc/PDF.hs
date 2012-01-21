@@ -46,19 +46,20 @@ import Text.Pandoc.UTF8 as UTF8
 
 tex2pdf :: TeXProgram
         -> String                           -- ^ latex source
-        -> IO (Either TeXError ByteString)
+        -> IO (Either ByteString ByteString)
 tex2pdf program source = withSystemTempDirectory "tex2pdf" $ \tmpdir ->
   tex2pdf' tmpdir program source
 
 tex2pdf' :: FilePath                        -- ^ temp directory for output
          -> TeXProgram
          -> String                          -- ^ tex source
-         -> IO (Either TeXError ByteString)
+         -> IO (Either ByteString ByteString)
 tex2pdf' tmpDir program source = do
   (exit, log', mbPdf) <- runTeXProgram program 3 tmpDir source
   case (exit, mbPdf) of
-       (ExitFailure ec, _)     -> return $ Left $ extractTeXError ec log'
-       (ExitSuccess, Nothing)  -> error "tex2pdf: ExitSuccess but no PDF created!"
+       (ExitFailure _, _)      -> return $ Left $ extractMsg log'
+       (ExitSuccess, Nothing)  -> return $ Left
+                                   "tex2pdf: ExitSuccess but no PDF created!"
        (ExitSuccess, Just pdf) -> return $ Right pdf
 
 data TeXProgram = PDFLaTeX
@@ -69,17 +70,7 @@ data TeXProgram = PDFLaTeX
                 | PDFTeX
                 deriving (Show, Read)
 
-data TeXError = TeXError { exitCode   :: Int
-                         , message    :: ByteString
-                         , fullLog    :: ByteString
-                         } deriving (Show, Read)
-
 -- parsing output
-
-extractTeXError :: Int -> ByteString -> TeXError
-extractTeXError ec log' = TeXError { exitCode = ec
-                                   , message = extractMsg log'
-                                   , fullLog = log' }
 
 extractMsg :: ByteString -> ByteString
 extractMsg log' = do
@@ -134,8 +125,7 @@ runTeXProgram program runsLeft tmpDir source = do
 -- 'readProcessWithExitCode' from 'System.Process'.)
 readCommand :: FilePath                            -- ^ command to run
             -> [String]                            -- ^ any arguments
-            -> IO (ExitCode,ByteString,ByteString) -- ^ exitcode, stdout, stderr
-
+            -> IO (ExitCode,ByteString,ByteString) -- ^ exit, stdout, stderr
 readCommand cmd args = do
     (Just inh, Just outh, Just errh, pid) <-
         createProcess (proc cmd args){ std_in  = CreatePipe,
@@ -157,4 +147,3 @@ readCommand cmd args = do
     -- wait on the process
     ex <- waitForProcess pid
     return (ex, out, err)
-
