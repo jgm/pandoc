@@ -30,23 +30,17 @@ Conversion of LaTeX documents to PDF.
 -}
 module Text.Pandoc.PDF ( tex2pdf ) where
 
-import Data.Char (isDigit)
 import System.IO.Temp
-import Data.Maybe (catMaybes)
 import Data.Char (toLower)
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as BC
-import qualified Data.ByteString as BS
-import System.Exit (ExitCode (..), exitWith)
+import System.Exit (ExitCode (..))
 import System.FilePath
 import System.Directory
 import System.Process
-import Control.Exception (tryJust, evaluate)
-import Control.Monad.Trans (liftIO)
-import Control.Monad (guard)
-import System.IO.Error (isAlreadyExistsError)
-import System.IO (hClose, stderr, stdout)
+import Control.Exception (evaluate)
+import System.IO (hClose)
 import Control.Concurrent (putMVar, takeMVar, newEmptyMVar, forkIO)
 import Text.Pandoc.UTF8 as UTF8
 
@@ -54,17 +48,16 @@ tex2pdf :: TeXProgram
         -> String                           -- ^ latex source
         -> IO (Either TeXError ByteString)
 tex2pdf program source = withSystemTempDirectory "tex2pdf" $ \tmpdir ->
-  tex2pdf' 1 tmpdir program source
+  tex2pdf' tmpdir program source
 
-tex2pdf' :: Int                             -- ^ number of run
-         -> FilePath                        -- ^ temp directory for output
+tex2pdf' :: FilePath                        -- ^ temp directory for output
          -> TeXProgram
          -> String                          -- ^ tex source
          -> IO (Either TeXError ByteString)
-tex2pdf' run tmpDir program source = do
-  (exit, log, mbPdf) <- runTeXProgram program 3 tmpDir source
+tex2pdf' tmpDir program source = do
+  (exit, log', mbPdf) <- runTeXProgram program 3 tmpDir source
   case (exit, mbPdf) of
-       (ExitFailure ec, _)     -> return $ Left $ extractTeXError ec log
+       (ExitFailure ec, _)     -> return $ Left $ extractTeXError ec log'
        (ExitSuccess, Nothing)  -> error "tex2pdf: ExitSuccess but no PDF created!"
        (ExitSuccess, Just pdf) -> return $ Right pdf
 
@@ -84,13 +77,13 @@ data TeXError = TeXError { exitCode   :: Int
 -- parsing output
 
 extractTeXError :: Int -> ByteString -> TeXError
-extractTeXError ec log = TeXError { exitCode = ec
-                                  , message = extractMsg log
-                                  , fullLog = log }
+extractTeXError ec log' = TeXError { exitCode = ec
+                                   , message = extractMsg log'
+                                   , fullLog = log' }
 
 extractMsg :: ByteString -> ByteString
-extractMsg log = do
-  let msg'  = dropWhile (not . ("!" `BC.isPrefixOf`)) $ BC.lines log
+extractMsg log' = do
+  let msg'  = dropWhile (not . ("!" `BC.isPrefixOf`)) $ BC.lines log'
   let (msg'',rest) = break ("l." `BC.isPrefixOf`) msg'
   let lineno = take 1 rest
   if not (null msg')
