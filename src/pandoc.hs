@@ -975,10 +975,9 @@ main = do
            do res <- tex2pdf PDFLaTeX $ writeLaTeX writerOptions doc2
               case res of
                    Right pdf -> writeBinary pdf
-                   Left err' -> B.hPutStr stderr err' >> B.hPutStr stderr nl
+                   Left err' -> B.hPutStr stderr err'
                 | otherwise -> error $ "Unknown writer: " ++ writerName'
           where writeBinary  = B.writeFile (encodeString outputFile)
-                nl           = B.singleton 10
         Just r  -> writerFn outputFile =<< postProcess result
           where writerFn "-" = UTF8.putStr
                 writerFn f   = UTF8.writeFile f

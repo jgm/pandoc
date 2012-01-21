@@ -56,10 +56,11 @@ tex2pdf' :: FilePath                        -- ^ temp directory for output
          -> IO (Either ByteString ByteString)
 tex2pdf' tmpDir program source = do
   (exit, log', mbPdf) <- runTeXProgram program 3 tmpDir source
+  let msg = "Error producing PDF from TeX source."
   case (exit, mbPdf) of
-       (ExitFailure _, _)      -> return $ Left $ extractMsg log'
-       (ExitSuccess, Nothing)  -> return $ Left
-                                   "tex2pdf: ExitSuccess but no PDF created!"
+       (ExitFailure _, _)      -> return $ Left $
+                                     msg <> "\n" <> extractMsg log'
+       (ExitSuccess, Nothing)  -> return $ Left msg
        (ExitSuccess, Just pdf) -> return $ Right pdf
 
 data TeXProgram = PDFLaTeX
@@ -69,6 +70,9 @@ data TeXProgram = PDFLaTeX
                 | LuaTeX
                 | PDFTeX
                 deriving (Show, Read)
+
+(<>) :: ByteString -> ByteString -> ByteString
+(<>) = B.append
 
 -- parsing output
 
