@@ -102,7 +102,6 @@ data Opt = Opt
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
     , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/S5
     , optSelfContained     :: Bool    -- ^ Make HTML accessible offline
-    , optXeTeX             :: Bool    -- ^ Format latex for xetex
     , optSmart             :: Bool    -- ^ Use smart typography
     , optOldDashes         :: Bool    -- ^ Parse dashes like pandoc <=1.8.2.1
     , optHtml5             :: Bool    -- ^ Produce HTML5 in HTML
@@ -151,7 +150,6 @@ defaultOpts = Opt
     , optSectionDivs       = False
     , optIncremental       = False
     , optSelfContained     = False
-    , optXeTeX             = False
     , optSmart             = False
     , optOldDashes         = False
     , optHtml5             = False
@@ -359,14 +357,6 @@ options =
                                                        optVariables opt,
                                         optStandalone = True }))
                  "" -- "Make slide shows include all the needed js and css"
-
-    , Option "" ["xetex"]
-                 (NoArg
-                  (\opt -> do
-                     warn $ "pandoc: --xetex is deprecated. "
-                       ++ "It is no longer needed for use with XeTeX."
-                     return opt { optXeTeX = True }))
-                 "" -- "Format latex for processing by XeTeX"
 
     , Option "" ["chapters"]
                  (NoArg
