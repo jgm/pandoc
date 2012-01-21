@@ -42,7 +42,7 @@ import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower )
 import Data.List ( intercalate, isSuffixOf, isPrefixOf )
-import System.Directory ( getAppUserDataDirectory, doesFileExist )
+import System.Directory ( getAppUserDataDirectory, doesFileExist, findExecutable )
 import System.IO ( stdout, stderr )
 import System.IO.Error ( isDoesNotExistError )
 import Control.Exception.Extensible ( throwIO )
@@ -217,10 +217,8 @@ options =
                   (\arg opt ->
                       case reads arg of
                            [(t,"")] | t > 0 -> return opt { optTabStop = t }
-                           _          -> do
-                               UTF8.hPutStrLn stderr $
-                                   "tab-stop must be a number greater than 0"
-                               exitWith $ ExitFailure 31)
+                           _                -> err 31
+                                          "tab-stop must be a number greater than 0")
                   "NUMBER")
                  "" -- "Tab stop (default 4)"
 
@@ -259,7 +257,7 @@ options =
     , Option "5" ["html5"]
                  (NoArg
                   (\opt -> do
-                     UTF8.hPutStrLn stderr $ "pandoc: --html5 is deprecated. "
+                     warn $ "pandoc: --html5 is deprecated. "
                        ++ "Use the html5 output format instead."
                      return opt { optHtml5 = True }))
                  "" -- "Produce HTML5 in HTML output"
@@ -279,9 +277,8 @@ options =
                                      "kate"       -> return kate
                                      "monochrome" -> return monochrome
                                      "haddock"    -> return haddock
-                                     _            -> UTF8.hPutStrLn stderr
-                                       ("Unknown style: " ++ arg) >>
-                                       exitWith (ExitFailure 39)
+                                     _            -> err 39 $
+                                         "Unknown style :" ++ arg
                    return opt{ optHighlightStyle = newStyle })
                  "STYLE")
                  "" -- "Style for highlighted code"
@@ -364,7 +361,7 @@ options =
     , Option "" ["xetex"]
                  (NoArg
                   (\opt -> do
-                     UTF8.hPutStrLn stderr $ "pandoc: --xetex is deprecated. "
+                     warn $ "pandoc: --xetex is deprecated. "
                        ++ "It is no longer needed for use with XeTeX."
                      return opt { optXeTeX = True }))
                  "" -- "Format latex for processing by XeTeX"
@@ -399,10 +396,8 @@ options =
                   (\arg opt ->
                       case reads arg of
                            [(t,"")] | t > 0 -> return opt { optColumns = t }
-                           _          -> do
-                               UTF8.hPutStrLn stderr $
-                                   "columns must be a number greater than 0"
-                               exitWith $ ExitFailure 33)
+                           _          -> err 33 $
+                                   "columns must be a number greater than 0")
                  "NUMBER")
                  "" -- "Length of line in characters"
 
@@ -413,8 +408,8 @@ options =
                             "references" -> return ReferenceObfuscation
                             "javascript" -> return JavascriptObfuscation
                             "none"       -> return NoObfuscation
-                            _            -> UTF8.hPutStrLn stderr ("Error: Unknown obfuscation method: " ++ arg) >>
-                                            exitWith (ExitFailure 6)
+                            _            -> err 6
+                               ("Error: Unknown obfuscation method: " ++ arg)
                      return opt { optEmailObfuscation = method })
                   "none|javascript|references")
                  "" -- "Method for obfuscating email in HTML"
@@ -446,10 +441,8 @@ options =
                                let shift = t - 1
                                return opt{ optTransforms =
                                            headerShift shift : oldTransforms }
-                           _          -> do
-                               UTF8.hPutStrLn stderr $
-                                   "base-header-level must be a number > 0"
-                               exitWith $ ExitFailure 19)
+                           _          -> err 19
+                                       "base-header-level must be a number > 0")
                   "NUMBER")
                  "" -- "Headers base level"
 
@@ -468,9 +461,8 @@ options =
                           (k,_:v) -> do
                             let newvars = optVariables opt ++ [(k,v)]
                             return opt{ optVariables = newvars }
-                          _  -> do
-                            UTF8.hPutStrLn stderr $ "Could not parse `" ++ arg ++ "' as a key/value pair (k=v or k:v)"
-                            exitWith $ ExitFailure 17)
+                          _  -> err 17 $
+                            "Could not parse `" ++ arg ++ "' as a key/value pair (k=v or k:v)")
                   "KEY:VALUE")
                  "" -- "Use custom template"
 
@@ -713,6 +705,19 @@ defaultWriterName x =
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
+
+err :: Int -> String -> IO a
+err exitCode msg = do
+  name <- getProgName
+  UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
+  exitWith $ ExitFailure exitCode
+  return undefined
+
+warn :: String -> IO ()
+warn msg = do
+  name <- getProgName
+  UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
+
 main :: IO ()
 main = do
 
@@ -725,10 +730,8 @@ main = do
                                   else getOpt Permute options rawArgs
 
   unless (null errors) $
-    do name <- getProgName
-       mapM_ (\e -> UTF8.hPutStr stderr (name ++ ": ") >> UTF8.hPutStr stderr e) errors
-       UTF8.hPutStrLn stderr $ "Try " ++ name ++ " --help for more information."
-       exitWith $ ExitFailure 2
+     err 2 $ concat $ errors ++
+        ["Try " ++ prg ++ " --help for more information."]
 
   let defaultOpts' = if compatMode
                        then defaultOpts { optReader = "markdown"
@@ -809,7 +812,7 @@ main = do
 
   reader <- case (lookup readerName' readers) of
      Just r  -> return r
-     Nothing -> error ("Unknown reader: " ++ readerName')
+     Nothing -> err 7 ("Unknown reader: " ++ readerName')
 
   let standalone' = standalone || (`elem` nonTextFormats) writerName'
 
@@ -861,10 +864,9 @@ main = do
   -- that we can do lookups with regular string equality
   let unescapeRefId ref = ref{ refId = deEntity (refId ref) }
 
-  refs <- mapM (\f -> catch (CSL.readBiblioFile f) $ \e -> do
-         UTF8.hPutStrLn stderr $ "Error reading bibliography `" ++ f ++ "'"
-         UTF8.hPutStrLn stderr $ show e
-         exitWith (ExitFailure 23)) reffiles >>=
+  refs <- mapM (\f -> catch (CSL.readBiblioFile f) $ \e ->
+             err 23 $ "Error reading bibliography `" ++ f ++ "'" ++ "\n" ++ show e)
+          reffiles >>=
            return . map unescapeRefId . concat
 
   let sourceDir = if null sources
@@ -923,9 +925,8 @@ main = do
                                       writerHighlightStyle   = highlightStyle }
 
   when (writerName' `elem` nonTextFormats&& outputFile == "-") $
-    do UTF8.hPutStrLn stderr ("Error:  Cannot write " ++ writerName' ++ " output to stdout.\n" ++
-                               "Specify an output file using the -o option.")
-       exitWith $ ExitFailure 5
+    err 5 $ "Error:  Cannot write " ++ writerName' ++ " output to stdout.\n" ++
+            "Specify an output file using the -o option."
 
   let readSources [] = mapM readSource ["-"]
       readSources srcs = mapM readSource srcs
@@ -964,6 +965,8 @@ main = do
                 processBiblio cslfile' cslabbrevs refs doc1
              else return doc1
 
+  let latexProgram = "pdflatex"
+
   case lookup writerName' writers of
         Nothing | writerName' == "epub" ->
            writeEPUB epubStylesheet writerOptions doc2 >>= writeBinary
@@ -972,11 +975,17 @@ main = do
                 | writerName' == "docx"  ->
            writeDocx referenceDocx writerOptions doc2 >>= writeBinary
                 | writerName' == "pdf"  ->
-           do res <- tex2pdf "pdflatex" $ writeLaTeX writerOptions doc2
-              case res of
-                   Right pdf -> writeBinary pdf
-                   Left err' -> B.hPutStr stderr err'
-                | otherwise -> error $ "Unknown writer: " ++ writerName'
+           do -- first check to make sure we have latex
+              mbLatex <- findExecutable latexProgram
+              case mbLatex of
+                   Nothing  -> err 41 $
+                      latexProgram ++ " not found" -- TODO improve
+                   Just pgm -> do
+                      res <- tex2pdf latexProgram $ writeLaTeX writerOptions doc2
+                      case res of
+                           Right pdf -> writeBinary pdf
+                           Left err' -> err 43 $ toString err'
+                | otherwise -> err 9 ("Unknown writer: " ++ writerName')
           where writeBinary  = B.writeFile (encodeString outputFile)
         Just r  -> writerFn outputFile =<< postProcess result
           where writerFn "-" = UTF8.putStr
