@@ -84,14 +84,11 @@ Data-Files:
                  -- documentation
                  README, INSTALL, COPYRIGHT, BUGS, changelog
 Extra-Source-Files:
-                 -- sources for man pages
-                 man/man1/markdown2pdf.1.md,
                  -- code to create pandoc.1 man page
                  MakeManPage.hs,
                  man/man1/pandoc.1.template,
                  man/man5/pandoc_markdown.5.template,
                  -- generated man pages (produced post-build)
-                 man/man1/markdown2pdf.1,
                  man/man1/pandoc.1,
                  man/man5/pandoc_markdown.5,
                  -- benchmarks
@@ -174,30 +171,20 @@ Extra-Source-Files:
                  tests/lhs-test.nohl.html+lhs,
                  tests/lhs-test.fragment.html+lhs
 Extra-Tmp-Files: man/man1/pandoc.1,
-                 man/man1/markdown2pdf.1,
                  man/man5/pandoc_markdown.5
 
 Source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
 
-Flag threaded
-  Description:   Compile markdown2pdf with -threaded option.
-  Default:       True
 Flag executable
   Description:   Build the pandoc executable.
   Default:       True
 Flag library
   Description:   Build the pandoc library.
   Default:       True
-Flag wrappers
-  Description:   Build the wrappers (markdown2pdf).
-  Default:       True
 Flag tests
   Description:   Build test-pandoc.
-  Default:       False
-Flag benchmarks
-  Description:   Build benchmark-pandoc.
   Default:       False
 
 Library
@@ -334,21 +321,7 @@ Executable pandoc
   -- END DUPLICATED SECTION
 
   Main-Is:            pandoc.hs
-  if flag(executable) || flag(wrappers)
-    Buildable:        True
-  else
-    Buildable:        False
-
-Executable markdown2pdf
-  Hs-Source-Dirs:     src
-  Main-Is:            markdown2pdf.hs
-  if flag(threaded)
-    Ghc-Options:        -Wall -threaded
-  else
-    Ghc-Options:        -Wall
-  Ghc-Prof-Options:   -auto-all -rtsopts
-  Extensions:         CPP
-  if flag(wrappers)
+  if flag(executable)
     Buildable:        True
   else
     Buildable:        False

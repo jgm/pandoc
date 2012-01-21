@@ -25,14 +25,11 @@ main = do
   defaultMainWithHooks $ simpleUserHooks {
       runTests  = runTestSuite
     , postBuild = makeManPages 
-    , postCopy = \ _ flags pkg lbi -> do
+    , postCopy = \ _ flags pkg lbi ->
          installManpages pkg lbi (fromFlag $ copyVerbosity flags)
               (fromFlag $ copyDest flags)
-         installScripts pkg lbi (fromFlag $ copyVerbosity flags)
-              (fromFlag $ copyDest flags)
-    , postInst = \ _ flags pkg lbi -> do
+    , postInst = \ _ flags pkg lbi ->
          installManpages pkg lbi (fromFlag $ installVerbosity flags) NoCopyDest
-         installScripts pkg lbi (fromFlag $ installVerbosity flags) NoCopyDest
     }
   exitWith ExitSuccess
 
@@ -53,9 +50,7 @@ makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO
 makeManPages _ flags _ lbi = do
   ds1 <- modifiedDependencies (manDir </> "man1" </> "pandoc.1")
     ["README", manDir </> "man1" </> "pandoc.1.template"]
-  ds2 <- modifiedDependencies (manDir </> "man1" </> "markdown2pdf.1")
-    [manDir </> "man1" </> "markdown2pdf.1.md"]
-  ds3 <- modifiedDependencies (manDir </> "man5" </> "pandoc_markdown.5")
+  ds2 <- modifiedDependencies (manDir </> "man5" </> "pandoc_markdown.5")
     ["README", manDir </> "man5" </> "pandoc_markdown.5.template"]
 
   let distPref  = fromFlag (buildDistPref flags)
@@ -71,7 +66,7 @@ makeManPages _ flags _ lbi = do
                 then args
                 else args ++ ["--verbose"]
   -- Don't run MakeManPage.hs unless we have to
-  unless (null ds1 && null ds2 && null ds3) $ do
+  unless (null ds1 && null ds2) $ do
     rawSystem "runghc" args' >>= exitWith
 
 -- format arguments to runghc that we wish to pass to ghc
@@ -83,20 +78,10 @@ makeGhcArgs = map ("--ghc-arg="++)
 
 manpages :: [FilePath]
 manpages = ["man1" </> "pandoc.1"
-           ,"man1" </> "markdown2pdf.1"
            ,"man5" </> "pandoc_markdown.5"]
 
 manDir :: FilePath
 manDir = "man"
-
-installScripts :: PackageDescription -> LocalBuildInfo
-               -> Verbosity -> CopyDest -> IO ()
-installScripts pkg lbi verbosity copy =
-  copyFiles verbosity (bindir (absoluteInstallDirs pkg lbi copy))
-      (zip (repeat ".") (wrappers \\ exes))
-    where exes = map exeName $ filter isBuildable $ executables pkg
-          isBuildable = buildable . buildInfo
-          wrappers = ["markdown2pdf"]
 
 installManpages :: PackageDescription -> LocalBuildInfo
                 -> Verbosity -> CopyDest -> IO ()

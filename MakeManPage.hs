@@ -24,16 +24,6 @@ main = do
       meta manBlocks
   makeManPage verbose ("man" </> "man5" </> "pandoc_markdown.5")
       meta syntaxBlocks
-  let markdown2pdfpage = "man" </> "man1" </> "markdown2pdf.1"
-  modDeps <- modifiedDependencies markdown2pdfpage [markdown2pdfpage <.> "md"]
-  unless (null modDeps) $ do
-    mpdfContents <- liftM toString $ B.readFile $ markdown2pdfpage <.> "md"
-    templ <- liftM toString $ B.readFile $ "templates" </> "default.man"
-    let doc = readMarkdown defaultParserState{ stateStandalone = True }
-                                             mpdfContents
-    writeManPage markdown2pdfpage templ doc
-    when verbose $
-      putStrLn $ "Created " ++ markdown2pdfpage
 
 makeManPage :: Bool -> FilePath -> Meta -> [Block] -> IO ()
 makeManPage verbose page meta blocks = do
