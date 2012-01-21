@@ -130,6 +130,7 @@ data Opt = Opt
     , optCslFile           :: FilePath
     , optAbbrevsFile       :: Maybe FilePath
     , optListings          :: Bool       -- ^ Use listings package for code blocks
+    , optLaTeXProgram      :: String   -- ^ Program to use for latex -> pdf
     }
 
 -- | Defaults for command-line options.
@@ -178,6 +179,7 @@ defaultOpts = Opt
     , optCslFile           = ""
     , optAbbrevsFile       = Nothing
     , optListings          = False
+    , optLaTeXProgram      = "pdflatex"
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -783,6 +785,7 @@ main = do
               , optAbbrevsFile       = cslabbrevs
               , optCiteMethod        = citeMethod
               , optListings          = listings
+              , optLaTeXProgram      = latexProgram
              } = opts
 
   when dumpArgs $
@@ -965,8 +968,6 @@ main = do
                 processBiblio cslfile' cslabbrevs refs doc1
              else return doc1
 
-  let latexProgram = "pdflatex"
-
   case lookup writerName' writers of
         Nothing | writerName' == "epub" ->
            writeEPUB epubStylesheet writerOptions doc2 >>= writeBinary
@@ -981,7 +982,7 @@ main = do
                    Nothing  -> err 41 $
                       latexProgram ++ " not found" -- TODO improve
                    Just pgm -> do
-                      res <- tex2pdf latexProgram $ writeLaTeX writerOptions doc2
+                      res <- tex2pdf pgm $ writeLaTeX writerOptions doc2
                       case res of
                            Right pdf -> writeBinary pdf
                            Left err' -> err 43 $ toString err'
