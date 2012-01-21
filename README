@@ -153,6 +153,14 @@ Options
     using the `-o/--output` option. If `+lhs` is appended to `markdown`, `rst`,
     `latex`, `html`, or `html5`, the output will be rendered as literate Haskell
     source: see [Literate Haskell support](#literate-haskell-support), below.
+    Production of `pdf` output requires that a LaTeX engine be installed
+    (see `--latex-engine`, below), and assumes that the following LaTeX
+    packages are available: `amssymb`, `amsmath`, `ifxetex`, `ifluatex`,
+    `listings` (if the `--listings` option is used), `fancyvrb`,
+    `enumerate`, `ctable`, `url`, `graphicx`, `hyperref`, `ulem`,
+    `babel` (if the `lang` variable is set)`, `fontspec` (if `xelatex`
+    or `lualatex` is used as the LaTeX engine), `xltxtra` and
+    `xunicode` (if `xelatex` is used).
 
 `-s`, `--standalone`
 :   Produce output with an appropriate header and footer (e.g. a
