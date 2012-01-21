@@ -813,6 +813,15 @@ main = do
                       then defaultWriterName outputFile
                       else writerName
 
+  when (writerName' == "pdf") $ do
+    -- check for latex program
+    mbLatex <- findExecutable latexProgram
+    case mbLatex of
+         Nothing  -> err 41 $
+           latexProgram ++ " not found. " ++
+           latexProgram ++ " is needed for pdf output."
+         Just _   -> return ()
+
   reader <- case (lookup readerName' readers) of
      Just r  -> return r
      Nothing -> err 7 ("Unknown reader: " ++ readerName')
@@ -976,16 +985,10 @@ main = do
                 | writerName' == "docx"  ->
            writeDocx referenceDocx writerOptions doc2 >>= writeBinary
                 | writerName' == "pdf"  ->
-           do -- first check to make sure we have latex
-              mbLatex <- findExecutable latexProgram
-              case mbLatex of
-                   Nothing  -> err 41 $
-                      latexProgram ++ " not found" -- TODO improve
-                   Just pgm -> do
-                      res <- tex2pdf pgm $ writeLaTeX writerOptions doc2
-                      case res of
-                           Right pdf -> writeBinary pdf
-                           Left err' -> err 43 $ toString err'
+           do res <- tex2pdf latexProgram $ writeLaTeX writerOptions doc2
+              case res of
+                   Right pdf -> writeBinary pdf
+                   Left err' -> err 43 $ toString err'
                 | otherwise -> err 9 ("Unknown writer: " ++ writerName')
           where writeBinary  = B.writeFile (encodeString outputFile)
         Just r  -> writerFn outputFile =<< postProcess result
