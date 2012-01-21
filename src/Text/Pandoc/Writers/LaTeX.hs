@@ -200,14 +200,18 @@ inCmd :: String -> Doc -> Doc
 inCmd cmd contents = char '\\' <> text cmd <> braces contents
 
 toSlides :: [Block] -> State WriterState [Block]
-toSlides (Header n ils : bs) = do
+toSlides (Header 4 ils : bs) = do
+  tit <- inlineListToLaTeX ils
+  result <- (RawBlock "latex" ("\\framesubtitle{" ++ render Nothing tit ++ "}") :)
+            `fmap` toSlides bs
+  return $ result
+toSlides (Header 3 ils : bs) = do
   tit <- inlineListToLaTeX ils
   firstFrame <- gets stFirstFrame
   modify $ \s -> s{ stFirstFrame = False }
   -- note: [fragile] is required or verbatim breaks
-  result <- ((Header n ils :) .
-             (RawBlock "latex" ("\\begin{frame}[fragile]\n" ++
-               "\\frametitle{" ++ render Nothing tit ++ "}") :))
+  result <- (RawBlock "latex" ("\\begin{frame}[fragile]\n" ++
+               "\\frametitle{" ++ render Nothing tit ++ "}") :)
          `fmap` toSlides bs
   if firstFrame
      then return result
