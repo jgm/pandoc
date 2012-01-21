@@ -30,7 +30,7 @@ writers.
 -}
 module Main where
 import Text.Pandoc
-import Text.Pandoc.PDF (tex2pdf)
+import Text.Pandoc.PDF (tex2pdf, TeXProgram(..))
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
                             headerShift, findDataFile, normalize )
 import Text.Pandoc.SelfContained ( makeSelfContained )
@@ -83,7 +83,7 @@ wrapWords indent c = wrap' (c - indent) (c - indent)
                                                        else ", "  ++ x ++ wrap' cols (remaining - (length x + 2)) xs
 
 nonTextFormats :: [String]
-nonTextFormats = ["odt","docx","epub"]
+nonTextFormats = ["odt","docx","epub","pdf"]
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -709,6 +709,7 @@ defaultWriterName x =
     ".epub"     -> "epub"
     ".org"      -> "org"
     ".asciidoc" -> "asciidoc"
+    ".pdf"      -> "pdf"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
@@ -965,20 +966,24 @@ main = do
 
   case lookup writerName' writers of
         Nothing | writerName' == "epub" ->
-           writeEPUB epubStylesheet writerOptions doc2
-           >>= B.writeFile (encodeString outputFile)
+           writeEPUB epubStylesheet writerOptions doc2 >>= writeBinary
                 | writerName' == "odt"  ->
-           writeODT referenceODT writerOptions doc2
-           >>= B.writeFile (encodeString outputFile)
+           writeODT referenceODT writerOptions doc2 >>= writeBinary
                 | writerName' == "docx"  ->
-           writeDocx referenceDocx writerOptions doc2
-           >>= B.writeFile (encodeString outputFile)
+           writeDocx referenceDocx writerOptions doc2 >>= writeBinary
+                | writerName' == "pdf"  ->
+           do res <- tex2pdf PDFLaTeX $ writeLaTeX writerOptions doc2
+              case res of
+                   Right pdf -> writeBinary pdf
+                   Left err' -> B.hPutStr stderr err' >> B.hPutStr stderr nl
                 | otherwise -> error $ "Unknown writer: " ++ writerName'
+          where writeBinary  = B.writeFile (encodeString outputFile)
+                nl           = B.singleton 10
         Just r  -> writerFn outputFile =<< postProcess result
-            where writerFn "-" = UTF8.putStr
-                  writerFn f   = UTF8.writeFile f
-                  result       = r writerOptions doc2 ++ ['\n' | not standalone']
-                  htmlFormats = ["html","html+lhs","s5","slidy","dzslides"]
-                  postProcess = if selfContained && writerName' `elem` htmlFormats
-                                  then makeSelfContained datadir
-                                  else return
+          where writerFn "-" = UTF8.putStr
+                writerFn f   = UTF8.writeFile f
+                result       = r writerOptions doc2 ++ ['\n' | not standalone']
+                htmlFormats = ["html","html+lhs","s5","slidy","dzslides"]
+                postProcess = if selfContained && writerName' `elem` htmlFormats
+                                then makeSelfContained datadir
+                                else return
