@@ -87,7 +87,6 @@ getDefaultTemplate _ "docx"   = return $ Right ""
 getDefaultTemplate user "odt" = getDefaultTemplate user "opendocument"
 getDefaultTemplate user "pdf" = getDefaultTemplate user "latex"
 getDefaultTemplate user "epub" = getDefaultTemplate user "html"
-getDefaultTemplate user "beamer" = getDefaultTemplate user "latex"
 getDefaultTemplate user writer = do
   let format = takeWhile (/='+') writer  -- strip off "+lhs" if present
   let fname = "templates" </> "default" <.> format

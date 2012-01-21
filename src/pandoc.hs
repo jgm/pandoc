@@ -129,7 +129,8 @@ data Opt = Opt
     , optCslFile           :: FilePath
     , optAbbrevsFile       :: Maybe FilePath
     , optListings          :: Bool       -- ^ Use listings package for code blocks
-    , optLaTeXProgram      :: String   -- ^ Program to use for latex -> pdf
+    , optLaTeXEngine       :: String     -- ^ Program to use for latex -> pdf
+    , optBeamer            :: Bool       -- ^ Produce latex output for beamer class
     }
 
 -- | Defaults for command-line options.
@@ -177,7 +178,8 @@ defaultOpts = Opt
     , optCslFile           = ""
     , optAbbrevsFile       = Nothing
     , optListings          = False
-    , optLaTeXProgram      = "pdflatex"
+    , optLaTeXEngine       = "pdflatex"
+    , optBeamer            = False
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -374,6 +376,11 @@ options =
                   (\opt -> return opt { optListings = True }))
                  "" -- "Use listings package for LaTeX code blocks"
 
+    , Option "" ["beamer"]
+                 (NoArg
+                  (\opt -> return opt { optBeamer = True }))
+                 "" -- "Produce latex output for beamer class"
+
     , Option "" ["section-divs"]
                  (NoArg
                   (\opt -> return opt { optSectionDivs = True }))
@@ -549,13 +556,13 @@ options =
                   "FILENAME")
                  "" -- "Path of epub metadata file"
 
-    , Option "" ["latex-program"]
+    , Option "" ["latex-engine"]
                  (ReqArg
                   (\arg opt -> do
                      let b = takeBaseName arg
                      if (b == "pdflatex" || b == "lualatex" || b == "xelatex")
-                        then return opt { optLaTeXProgram = arg }
-                        else err 45 "latex-program must be pdflatex, lualatex, or xelatex.")
+                        then return opt { optLaTeXEngine = arg }
+                        else err 45 "latex-engine must be pdflatex, lualatex, or xelatex.")
                   "PROGRAM")
                  "" -- "Name of latex program to use in generating PDF"
 
@@ -786,7 +793,8 @@ main = do
               , optAbbrevsFile       = cslabbrevs
               , optCiteMethod        = citeMethod
               , optListings          = listings
-              , optLaTeXProgram      = latexProgram
+              , optLaTeXEngine       = latexEngine
+              , optBeamer            = beamer
              } = opts
 
   when dumpArgs $
@@ -816,11 +824,11 @@ main = do
 
   when (writerName' == "pdf") $ do
     -- check for latex program
-    mbLatex <- findExecutable latexProgram
+    mbLatex <- findExecutable latexEngine
     case mbLatex of
          Nothing  -> err 41 $
-           latexProgram ++ " not found. " ++
-           latexProgram ++ " is needed for pdf output."
+           latexEngine ++ " not found. " ++
+           latexEngine ++ " is needed for pdf output."
          Just _   -> return ()
 
   reader <- case (lookup readerName' readers) of
@@ -894,13 +902,13 @@ main = do
                               stateStandalone      = standalone',
                               stateCitations       = map CSL.refId refs,
                               stateSmart           = smart || writerName' `elem`
-                                                     ["latex", "context", "latex+lhs", "beamer"],
+                                                     ["latex", "context", "latex+lhs", "pdf"],
                               stateOldDashes       = oldDashes,
                               stateColumns         = columns,
                               stateStrict          = strict,
                               stateIndentedCodeClasses = codeBlockClasses,
                               stateApplyMacros     = writerName' `notElem`
-                                                     ["latex", "latex+lhs", "beamer"] }
+                                                     ["latex", "latex+lhs", "pdf"] }
 
   let writerOptions = defaultWriterOptions
                                     { writerStandalone       = standalone',
@@ -934,6 +942,7 @@ main = do
                                            slideVariant == DZSlides,
                                       writerChapters         = chapters,
                                       writerListings         = listings,
+                                      writerBeamer           = beamer,
                                       writerHighlight        = highlight,
                                       writerHighlightStyle   = highlightStyle }
 
@@ -986,7 +995,7 @@ main = do
                 | writerName' == "docx"  ->
            writeDocx referenceDocx writerOptions doc2 >>= writeBinary
                 | writerName' == "pdf"  ->
-           do res <- tex2pdf latexProgram $ writeLaTeX writerOptions doc2
+           do res <- tex2pdf latexEngine $ writeLaTeX writerOptions doc2
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> err 43 $ toString err'

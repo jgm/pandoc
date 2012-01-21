@@ -14,7 +14,7 @@ Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
 and [LaTeX]; and it can write plain text, [markdown], [reStructuredText],
-[XHTML], [HTML 5], [LaTeX], [LaTeX beamer], [ConTeXt], [RTF], [DocBook XML],
+[XHTML], [HTML 5], [LaTeX], [ConTeXt], [RTF], [DocBook XML],
 [OpenDocument XML], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup], [EPUB],
 [Textile], [groff man] pages, [Emacs Org-Mode], [AsciiDoc], and [Slidy],
 [DZSlides], or [S5] HTML slide shows. It can also produce [PDF] output
@@ -141,8 +141,8 @@ Options
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
     `json` (JSON version of native AST), `plain` (plain text),
     `markdown` (markdown), `rst` (reStructuredText), `html` (XHTML 1),
-    `html5` (HTML 5), `latex` (LaTeX), `beamer` (LaTeX beamer), `context`
-    (ConTeXt), `man` (groff man), `mediawiki` (MediaWiki markup), `textile`
+    `html5` (HTML 5), `latex` (LaTeX), `context` (ConTeXt),
+    `man` (groff man), `mediawiki` (MediaWiki markup), `textile`
     (Textile), `org` (Emacs Org-Mode), `texinfo` (GNU Texinfo), `docbook`
     (DocBook XML), `opendocument` (OpenDocument XML), `odt` (OpenOffice text
     document), `docx` (Word docx), `epub` (EPUB book), `asciidoc` (AsciiDoc),
@@ -293,6 +293,10 @@ Options
 `--listings`
 :   Use listings package for LaTeX code blocks
 
+`--beamer`
+:   Produce LaTeX output for the `beamer` document class.
+    This has an effect only for `latex` or `pdf` output.
+
 `--section-divs`
 :   Wrap sections in `<div>` tags (or `<section>` tags in HTML5),
     and attach identifiers to the enclosing `<div>` (or `<section>`)
@@ -422,6 +426,11 @@ Options
     variable, or, if is not set, the locale), and `<dc:identifier
     id="BookId">` (a randomly generated UUID). Any of these may be
     overridden by elements in the metadata file.
+
+`--latex-engine=`*pdflatex|lualatex|xelatex*
+:   Use the specified LaTeX engine when producing PDF output.
+    The default is `pdflatex`.  If the engine is not in your PATH,
+    the full path of the engine may be specified here.
 
 `-D` *FORMAT*, `--print-default-template=`*FORMAT*
 :   Print the default template for an output *FORMAT*. (See `-t`
@@ -587,13 +596,13 @@ depending on the output format, but include:
 `s5-url`
 :   base URL for S5 documents (defaults to `ui/default`)
 `font-size`
-:   font size (10pt, 11pt, 12pt) for LaTeX and beamer documents
+:   font size (10pt, 11pt, 12pt) for LaTeX documents
 `documentclass`
 :   document class for LaTeX documents
 `theme`
-:   theme for beamer documents
+:   theme for LaTeX beamer documents
 `colortheme`
-:   colortheme for beamer documents
+:   colortheme for LaTeX beamer documents
 
 Variables may be set at the command line using the `-V/--variable`
 option. This allows users to include custom variables in their
