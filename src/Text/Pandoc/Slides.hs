@@ -32,15 +32,16 @@ module Text.Pandoc.Slides ( ) where
 import Text.Pandoc.Definition
 import Text.ParserCombinators.Parsec
 import Text.Parsec.Pos (initialPos)
+import Control.Monad
 
-data SlideElement = Outside Block
-                  | Slide [Inline] [Inline] [Block]  -- title - subtitle - contents
+data SlideElement = SectionSlide Int [Inline]
+                  | ContentSlide [Inline] [Inline] [Block]  -- title - subtitle - contents
                   deriving (Read, Show)
 
 toSlideElements :: [Block] -> [SlideElement]
 toSlideElements bs =
   case parse (pElements $ getSlideLevel bs) "blocks" bs of
-       Left err   -> map Outside bs
+       Left err   -> error $ show err
        Right res  -> res
 
 anyTok :: GenParser Block () Block
@@ -52,16 +53,30 @@ satisfies f = token show (const $ initialPos "blocks")
 
 pElements :: Int -> GenParser Block () [SlideElement]
 pElements slideLevel = do
-  res <- many (pSlide slideLevel <|> pOutside)
+  res <- many (pSectionSlide slideLevel <|> pContentSlide slideLevel)
   eof
   return res
 
-pSlide :: Int -> GenParser Block () SlideElement
-pSlide slideLevel = try $ do
-  
+pContentSlide :: Int -> GenParser Block () SlideElement
+pContentSlide slideLevel = try $ do
+  hrs <- many $ satisfies (== HorizontalRule)
+  Header _ tit <- option (Header 1 []) $ satisfies (isHeader (== slideLevel))
+  Header _ subtit <- option (Header 1 []) $ satisfies (isHeader (== slideLevel + 1))
+  guard $ not (null hrs && null tit && null subtit)
+  xs <- many $ try $ notFollowedBy (satisfies (== HorizontalRule)) >>
+                     notFollowedBy (satisfies (isHeader (<= slideLevel))) >>
+                     anyTok
+  return $ ContentSlide tit subtit xs
 
-pOutside :: GenParser Block () SlideElement
-pOutside = Outside `fmap` anyTok
+pSectionSlide :: Int -> GenParser Block () SlideElement
+pSectionSlide slideLevel = try $ do
+  skipMany $ satisfies (== HorizontalRule)
+  Header lvl txt <- satisfies (isHeader (< slideLevel))
+  return $ SectionSlide lvl txt
+
+isHeader :: (Int -> Bool) -> Block -> Bool
+isHeader f (Header n _) = f n
+isHeader _ _ = False
 
 -- | Find level of header that starts slides (defined as the least header
 -- level that occurs before a non-header/non-hrule in the blocks).
