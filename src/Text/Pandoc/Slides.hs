@@ -28,14 +28,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Utility functions for splitting documents into slides for slide
 show formats (dzslides, s5, slidy, beamer).
 -}
-module Text.Pandoc.Slides ( ) where
+module Text.Pandoc.Slides ( toSlideElements, SlideElement(..) ) where
 import Text.Pandoc.Definition
 import Text.ParserCombinators.Parsec
 import Text.Parsec.Pos (initialPos)
 import Control.Monad
 
 data SlideElement = SectionSlide Int [Inline]
-                  | ContentSlide [Inline] [Inline] [Block]  -- title - subtitle - contents
+                  | ContentSlide [Inline] [Block]  -- title - contents
                   deriving (Read, Show)
 
 toSlideElements :: [Block] -> [SlideElement]
@@ -43,9 +43,6 @@ toSlideElements bs =
   case parse (pElements $ getSlideLevel bs) "blocks" bs of
        Left err   -> error $ show err
        Right res  -> res
-
-anyTok :: GenParser Block () Block
-anyTok = token show (const $ initialPos "blocks") Just
 
 satisfies :: (Block -> Bool) -> GenParser Block () Block
 satisfies f = token show (const $ initialPos "blocks")
@@ -61,12 +58,11 @@ pContentSlide :: Int -> GenParser Block () SlideElement
 pContentSlide slideLevel = try $ do
   hrs <- many $ satisfies (== HorizontalRule)
   Header _ tit <- option (Header 1 []) $ satisfies (isHeader (== slideLevel))
-  Header _ subtit <- option (Header 1 []) $ satisfies (isHeader (== slideLevel + 1))
-  guard $ not (null hrs && null tit && null subtit)
   xs <- many $ try $ notFollowedBy (satisfies (== HorizontalRule)) >>
                      notFollowedBy (satisfies (isHeader (<= slideLevel))) >>
-                     anyTok
-  return $ ContentSlide tit subtit xs
+                     anyToken
+  guard $ not (null hrs && null tit && null xs)  -- make sure we can't match empty
+  return $ ContentSlide tit xs
 
 pSectionSlide :: Int -> GenParser Block () SlideElement
 pSectionSlide slideLevel = try $ do
@@ -85,7 +81,7 @@ getSlideLevel = go 6
   where go least (Header n _ : x : xs)
                  | n < least && nonHOrHR x = go n xs
                  | otherwise               = go least (x:xs)
-        go least (x : xs) = go least xs
+        go least (_ : xs) = go least xs
         go least [] = least
         nonHOrHR (Header _ _) = False
         nonHOrHR (HorizontalRule) = False

@@ -41,6 +41,7 @@ import Data.Char ( toLower, isPunctuation )
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import System.FilePath (dropExtension)
+import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
                                  formatLaTeXInline, formatLaTeXBlock)
 
@@ -62,7 +63,6 @@ data WriterState =
               , stBook          :: Bool          -- true if document uses book or memoir class
               , stCsquotes      :: Bool          -- true if document uses csquotes
               , stHighlighting  :: Bool          -- true if document has highlighted code
-              , stFirstFrame    :: Bool          -- true til we've written first beamer frame
               , stIncremental   :: Bool          -- true if beamer lists should be displayed bit by bit
               , stInternalLinks :: [String]      -- list of internal link targets
               }
@@ -78,7 +78,7 @@ writeLaTeX options document =
                 stUrl = False, stGraphics = False,
                 stLHS = False, stBook = writerChapters options,
                 stCsquotes = False, stHighlighting = False,
-                stFirstFrame = True, stIncremental = writerIncremental options,
+                stIncremental = writerIncremental options,
                 stInternalLinks = [] }
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
@@ -200,34 +200,22 @@ inCmd :: String -> Doc -> Doc
 inCmd cmd contents = char '\\' <> text cmd <> braces contents
 
 toSlides :: [Block] -> State WriterState [Block]
-toSlides (Header n ils : bs) = do
-  tit <- inlineListToLaTeX ils
-  firstFrame <- gets stFirstFrame
-  modify $ \s -> s{ stFirstFrame = False }
+toSlides bs = concat `fmap` (mapM slideToBeamer $ toSlideElements bs)
+
+slideToBeamer :: SlideElement -> State WriterState [Block]
+slideToBeamer (SectionSlide lvl tit) = return [Header lvl tit]
+slideToBeamer (ContentSlide tit bs)  = do
+  tit' <- inlineListToLaTeX tit
   -- note: [fragile] is required or verbatim breaks
-  result <- ((Header n ils :) .
-             (RawBlock "latex" ("\\begin{frame}[fragile]\n" ++
-               "\\frametitle{" ++ render Nothing tit ++ "}") :))
-         `fmap` toSlides bs
-  if firstFrame
-     then return result
-     else return $ RawBlock "latex" "\\end{frame}" : result
-toSlides (HorizontalRule : Header n ils : bs) =
-  toSlides (Header n ils : bs)
-toSlides (HorizontalRule : bs) = do
-  firstFrame <- gets stFirstFrame
-  modify $ \s -> s{ stFirstFrame = False }
-  result <- (RawBlock "latex" "\\begin{frame}[fragile]" :)
-         `fmap` toSlides bs
-  if firstFrame
-     then return result
-     else return $ RawBlock "latex" "\\end{frame}" : result
-toSlides (b:bs) = (b:) `fmap` toSlides bs
-toSlides [] = do
-  firstFrame <- gets stFirstFrame
-  if firstFrame
-     then return []
-     else return [RawBlock "latex" "\\end{frame}"]
+  let slideStart = RawBlock "latex" ("\\begin{frame}[fragile]\n" ++
+            "\\frametitle{" ++ render Nothing tit' ++ "}")
+  let slideEnd = RawBlock "latex" "\\end{frame}"
+  -- now carve up slide into blocks if there are sections inside
+  let eltToBlocks (Blk b) = [b]
+      eltToBlocks (Sec _ _ _ lab xs) =
+         Para (RawInline "latex" "\\begin{block}{" : lab ++ [RawInline "latex" "}"])
+         : concatMap eltToBlocks xs ++ [RawBlock "latex" "\\end{block}"]
+  return $ slideStart : concatMap eltToBlocks (hierarchicalize bs) ++ [slideEnd]
 
 isListBlock :: Block -> Bool
 isListBlock (BulletList _)     = True
