@@ -270,6 +270,7 @@ Library
                    Text.Pandoc.MIME,
                    Text.Pandoc.UUID,
                    Text.Pandoc.ImageSize,
+                   Text.Pandoc.Slides,
                    Paths_pandoc
 
   if flag(library)
