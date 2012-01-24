@@ -16,16 +16,8 @@ $endif$
 $if(highlighting-css)$
 $highlighting-css$
 $endif$
-$if(slidy-css)$
-  <style type="text/css">
-/*<![CDATA[*/
-$slidy-css$
-/*]]>*/
-  </style>
-$else$
   <link rel="stylesheet" type="text/css" media="screen, projection, print"
     href="$slidy-url$/styles/slidy.css" />
-$endif$
 $for(css)$
   <link rel="stylesheet" type="text/css" media="screen, projection, print"
    href="$css$" />
@@ -36,16 +28,8 @@ $endif$
 $for(header-includes)$
   $header-includes$
 $endfor$
-$if(slidy-js)$
-<script type="text/javascript" charset="utf-8">
-/*<![CDATA[*/
-$slidy-js$
-/*]]>*/
-</script>
-$else$
   <script src="$slidy-url$/scripts/slidy.js.gz"
     charset="utf-8" type="text/javascript"></script>
-$endif$
 $if(duration)$
   <meta name="duration" content="$duration$" />
 $endif$
