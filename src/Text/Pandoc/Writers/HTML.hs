@@ -36,6 +36,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Pandoc.Generic
 import Text.Pandoc.Readers.TeXMath
+import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting ( highlight, styleToHtml,
                                   formatHtmlInline, formatHtmlBlock )
 import Text.Pandoc.XML (stripTags, escapeStringForXML)
@@ -114,22 +115,16 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   date <- if standalone
              then inlineListToHtml opts date'
              else return mempty
-  let splitHrule (HorizontalRule : Header 1 xs : ys)
-                                       = Header 1 xs : splitHrule ys
-      splitHrule (HorizontalRule : xs) = Header 1 [] : splitHrule xs
-      splitHrule (x : xs)              = x : splitHrule xs
-      splitHrule []                    = []
-  let ensureStartWithH1 bs@(Header 1 _:_) = bs
-      ensureStartWithH1 bs                = Header 1 [] : bs
+  let slideLevel = getSlideLevel blocks
   let sects = hierarchicalize $
               if writerSlideVariant opts == NoSlides
                  then blocks
-                 else ensureStartWithH1 $ splitHrule blocks
+                 else prepSlides slideLevel blocks
   toc <- if writerTableOfContents opts
             then tableOfContents opts sects
             else return Nothing
   blocks' <- liftM (mconcat . intersperse (nl opts)) $
-                 mapM (elementToHtml opts) sects
+                 mapM (elementToHtml slideLevel opts) sects
   st <- get
   let notes = reverse (stNotes st)
   let thebody = blocks' >> footnoteSection opts notes
@@ -250,29 +245,30 @@ elementToListItem opts (Sec _ num id' headerText subsecs) = do
                        $ toHtml txt) >> subList
 
 -- | Convert an Element to Html.
-elementToHtml :: WriterOptions -> Element -> State WriterState Html
-elementToHtml opts (Blk block) = blockToHtml opts block
-elementToHtml opts (Sec level num id' title' elements) = do
+elementToHtml :: Int -> WriterOptions -> Element -> State WriterState Html
+elementToHtml _slideLevel opts (Blk block) = blockToHtml opts block
+elementToHtml slideLevel opts (Sec level num id' title' elements) = do
   modify $ \st -> st{stSecNum = num}  -- update section number
   header' <- blockToHtml opts (Header level title')
-  innerContents <- mapM (elementToHtml opts) elements
+  innerContents <- mapM (elementToHtml slideLevel opts) elements
   let header'' = if (writerStrictMarkdown opts ||
                      writerSectionDivs opts ||
                      writerSlideVariant opts == S5Slides)
                     then header'
                     else header' ! prefixedId opts id'
-  let stuff = header'' : innerContents
-  let slide = writerSlideVariant opts /= NoSlides && level == 1
-  let titleSlide = slide && null elements
+  let slide = writerSlideVariant opts /= NoSlides && level <= slideLevel
+  let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
+  let titleSlide = slide && level < slideLevel
   let classes = ["titleslide" | titleSlide] ++ ["slide" | slide] ++
                   ["level" ++ show level]
-  let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
   let secttag  = if writerHtml5 opts
                     then H5.section ! A.class_ (toValue $ unwords classes)
                     else H.div ! A.class_ (toValue $ unwords ("section":classes))
-  return $ if writerSectionDivs opts || slide
-              then secttag ! prefixedId opts id' $ inNl stuff
-              else mconcat $ intersperse (nl opts) stuff
+  return $ if titleSlide
+              then mconcat $ (secttag ! prefixedId opts id' $ header'') : innerContents
+              else if writerSectionDivs opts || slide
+                   then secttag ! prefixedId opts id' $ inNl $ header'' : innerContents
+                   else mconcat $ intersperse (nl opts) $ header'' : innerContents
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
