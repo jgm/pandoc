@@ -20,9 +20,6 @@ $endif$
 $for(css)$
   <link rel="stylesheet" href="$css$" type="text/css" />
 $endfor$
-$if(s5includes)$
-$s5includes$
-$else$
   <!-- style sheet links -->
   <link rel="stylesheet" href="$s5-url$/slides.css" type="text/css" media="projection" id="slideProj" />
   <link rel="stylesheet" href="$s5-url$/outline.css" type="text/css" media="screen" id="outlineStyle" />
@@ -30,7 +27,6 @@ $else$
   <link rel="stylesheet" href="$s5-url$/opera.css" type="text/css" media="projection" id="operaFix" />
   <!-- S5 JS -->
   <script src="$s5-url$/slides.js" type="text/javascript"></script>
-$endif$
 $if(math)$
   $math$
 $endif$
