@@ -207,7 +207,14 @@ slideToBeamer (SectionSlide lvl tit) = return [Header lvl tit]
 slideToBeamer (ContentSlide tit bs)  = do
   tit' <- inlineListToLaTeX tit
   -- note: [fragile] is required or verbatim breaks
-  let slideStart = RawBlock "latex" ("\\begin{frame}[fragile]\n" ++
+  let hasCodeBlock (CodeBlock _ _) = [True]
+      hasCodeBlock _               = []
+  let hasCode (Code _ _) = [True]
+      hasCode _          = []
+  let fragile = if not $ null $ queryWith hasCodeBlock bs ++ queryWith hasCode bs
+                   then "[fragile]"
+                   else ""
+  let slideStart = RawBlock "latex" ("\\begin{frame}" ++ fragile ++
             "\\frametitle{" ++ render Nothing tit' ++ "}")
   let slideEnd = RawBlock "latex" "\\end{frame}"
   -- now carve up slide into blocks if there are sections inside
