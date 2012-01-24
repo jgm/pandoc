@@ -248,15 +248,15 @@ elementToListItem opts (Sec _ num id' headerText subsecs) = do
 elementToHtml :: Int -> WriterOptions -> Element -> State WriterState Html
 elementToHtml _slideLevel opts (Blk block) = blockToHtml opts block
 elementToHtml slideLevel opts (Sec level num id' title' elements) = do
+  let slide = writerSlideVariant opts /= NoSlides && level <= slideLevel
   modify $ \st -> st{stSecNum = num}  -- update section number
-  header' <- blockToHtml opts (Header level title')
+  header' <- blockToHtml opts (Header 1 title')  -- always use level 1 for slide titles
   innerContents <- mapM (elementToHtml slideLevel opts) elements
   let header'' = if (writerStrictMarkdown opts ||
                      writerSectionDivs opts ||
                      writerSlideVariant opts == S5Slides)
                     then header'
                     else header' ! prefixedId opts id'
-  let slide = writerSlideVariant opts /= NoSlides && level <= slideLevel
   let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
   let titleSlide = slide && level < slideLevel
   let classes = ["titleslide" | titleSlide] ++ ["slide" | slide] ++
