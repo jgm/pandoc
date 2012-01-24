@@ -247,3 +247,13 @@ instance (Data a) => ToJsonFilter (a -> a) where
 instance (Data a) => ToJsonFilter (a -> IO a) where
   toJsonFilter f = getContents >>= (bottomUpM f :: Pandoc -> IO Pandoc) . decodeJSON
     >>= putStr . encodeJSON
+
+instance (Data a) => ToJsonFilter (a -> [a]) where
+  toJsonFilter f = getContents
+    >>= putStr . encodeJSON . (bottomUp (concatMap f) :: Pandoc -> Pandoc) . decodeJSON
+
+instance (Data a) => ToJsonFilter (a -> IO [a]) where
+  toJsonFilter f = getContents
+    >>= (bottomUpM (fmap concat . mapM f) :: Pandoc -> IO Pandoc) . decodeJSON
+    >>= putStr . encodeJSON
+
