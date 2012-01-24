@@ -41,7 +41,7 @@ data SlideElement = SectionSlide Int [Inline]
 toSlideElements :: [Block] -> [SlideElement]
 toSlideElements bs =
   case parse (pElements $ getSlideLevel bs) "blocks" bs of
-       Left err   -> error $ show err
+       Left err   -> error $ "toSlideElements: " ++ show err  -- should never happen
        Right res  -> res
 
 satisfies :: (Block -> Bool) -> GenParser Block () Block
