@@ -53,5 +53,5 @@ prepSlides slideLevel = ensureStartWithH . splitHrule
         splitHrule (x : xs)              = x : splitHrule xs
         splitHrule []                    = []
         ensureStartWithH bs@(Header n _:_)
-                       | n == slideLevel = bs
+                       | n <= slideLevel = bs
         ensureStartWithH bs              = Header slideLevel [] : bs
