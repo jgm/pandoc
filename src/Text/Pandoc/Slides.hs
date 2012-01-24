@@ -28,51 +28,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Utility functions for splitting documents into slides for slide
 show formats (dzslides, s5, slidy, beamer).
 -}
-module Text.Pandoc.Slides ( toSlideElements, SlideElement(..) ) where
+module Text.Pandoc.Slides ( getSlideLevel, prepSlides ) where
 import Text.Pandoc.Definition
-import Text.ParserCombinators.Parsec
-import Text.Parsec.Pos (initialPos)
-import Control.Monad
-
-data SlideElement = SectionSlide Int [Inline]
-                  | ContentSlide [Inline] [Block]  -- title - contents
-                  deriving (Read, Show)
-
-toSlideElements :: [Block] -> [SlideElement]
-toSlideElements bs =
-  case parse (pElements $ getSlideLevel bs) "blocks" bs of
-       Left err   -> error $ "toSlideElements: " ++ show err  -- should never happen
-       Right res  -> res
-
-satisfies :: (Block -> Bool) -> GenParser Block () Block
-satisfies f = token show (const $ initialPos "blocks")
-                   (\x -> if f x then Just x else Nothing)
-
-pElements :: Int -> GenParser Block () [SlideElement]
-pElements slideLevel = do
-  res <- many (pSectionSlide slideLevel <|> pContentSlide slideLevel)
-  eof
-  return res
-
-pContentSlide :: Int -> GenParser Block () SlideElement
-pContentSlide slideLevel = try $ do
-  hrs <- many $ satisfies (== HorizontalRule)
-  Header _ tit <- option (Header 1 []) $ satisfies (isHeader (== slideLevel))
-  xs <- many $ try $ notFollowedBy (satisfies (== HorizontalRule)) >>
-                     notFollowedBy (satisfies (isHeader (<= slideLevel))) >>
-                     anyToken
-  guard $ not (null hrs && null tit && null xs)  -- make sure we can't match empty
-  return $ ContentSlide tit xs
-
-pSectionSlide :: Int -> GenParser Block () SlideElement
-pSectionSlide slideLevel = try $ do
-  skipMany $ satisfies (== HorizontalRule)
-  Header lvl txt <- satisfies (isHeader (< slideLevel))
-  return $ SectionSlide lvl txt
-
-isHeader :: (Int -> Bool) -> Block -> Bool
-isHeader f (Header n _) = f n
-isHeader _ _ = False
 
 -- | Find level of header that starts slides (defined as the least header
 -- level that occurs before a non-header/non-hrule in the blocks).
@@ -86,3 +43,15 @@ getSlideLevel = go 6
         nonHOrHR (Header _ _) = False
         nonHOrHR (HorizontalRule) = False
         nonHOrHR _ = True
+
+-- | Prepare a block list to be passed to hierarchicalize.
+prepSlides :: Int -> [Block] -> [Block]
+prepSlides slideLevel = ensureStartWithH . splitHrule
+  where splitHrule (HorizontalRule : Header n xs : ys)
+                       | n == slideLevel = Header slideLevel xs : splitHrule ys
+        splitHrule (HorizontalRule : xs) = Header slideLevel [] : splitHrule xs
+        splitHrule (x : xs)              = x : splitHrule xs
+        splitHrule []                    = []
+        ensureStartWithH bs@(Header n _:_)
+                       | n == slideLevel = bs
+        ensureStartWithH bs              = Header slideLevel [] : bs

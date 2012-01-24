@@ -200,29 +200,37 @@ inCmd :: String -> Doc -> Doc
 inCmd cmd contents = char '\\' <> text cmd <> braces contents
 
 toSlides :: [Block] -> State WriterState [Block]
-toSlides bs = concat `fmap` (mapM slideToBeamer $ toSlideElements bs)
+toSlides bs = do
+  let slideLevel = getSlideLevel bs
+  let bs' = prepSlides slideLevel bs
+  concat `fmap` (mapM (elementToBeamer slideLevel) $ hierarchicalize bs')
 
-slideToBeamer :: SlideElement -> State WriterState [Block]
-slideToBeamer (SectionSlide lvl tit) = return [Header lvl tit]
-slideToBeamer (ContentSlide tit bs)  = do
-  tit' <- inlineListToLaTeX tit
-  -- note: [fragile] is required or verbatim breaks
-  let hasCodeBlock (CodeBlock _ _) = [True]
-      hasCodeBlock _               = []
-  let hasCode (Code _ _) = [True]
-      hasCode _          = []
-  let fragile = if not $ null $ queryWith hasCodeBlock bs ++ queryWith hasCode bs
-                   then "[fragile]"
-                   else ""
-  let slideStart = RawBlock "latex" ("\\begin{frame}" ++ fragile ++
-            "\\frametitle{" ++ render Nothing tit' ++ "}")
-  let slideEnd = RawBlock "latex" "\\end{frame}"
-  -- now carve up slide into blocks if there are sections inside
-  let eltToBlocks (Blk b) = [b]
-      eltToBlocks (Sec _ _ _ lab xs) =
-         Para (RawInline "latex" "\\begin{block}{" : lab ++ [RawInline "latex" "}"])
-         : concatMap eltToBlocks xs ++ [RawBlock "latex" "\\end{block}"]
-  return $ slideStart : concatMap eltToBlocks (hierarchicalize bs) ++ [slideEnd]
+elementToBeamer :: Int -> Element -> State WriterState [Block]
+elementToBeamer _slideLevel (Blk b) = return [b]
+elementToBeamer slideLevel  (Sec lvl _num _ident tit elts)
+  | lvl >  slideLevel = do
+      bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
+      return $ Para ( RawInline "latex" "\\begin{block}{"
+                    : tit ++ [RawInline "latex" "}"] )
+             : bs ++ [RawBlock "latex" "\\end{block}"]
+  | lvl <  slideLevel = do
+      bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
+      return $ (Header lvl tit) : bs
+  | otherwise = do -- lvl == slideLevel
+      -- note: [fragile] is required or verbatim breaks
+      let hasCodeBlock (CodeBlock _ _) = [True]
+          hasCodeBlock _               = []
+      let hasCode (Code _ _) = [True]
+          hasCode _          = []
+      let fragile = if not $ null $ queryWith hasCodeBlock elts ++ queryWith hasCode elts
+                       then "[fragile]"
+                       else ""
+      let slideStart = Para $ RawInline "latex" ("\\begin{frame}" ++ fragile ++
+                "\\frametitle{") : tit ++ [RawInline "latex" "}"]
+      let slideEnd = RawBlock "latex" "\\end{frame}"
+      -- now carve up slide into blocks if there are sections inside
+      bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
+      return $ slideStart : bs ++ [slideEnd]
 
 isListBlock :: Block -> Bool
 isListBlock (BulletList _)     = True
