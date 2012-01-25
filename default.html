@@ -12,7 +12,9 @@ $if(date-meta)$
 $endif$
   <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
 $if(highlighting-css)$
+  <style type="text/css">
 $highlighting-css$
+  </style>
 $endif$
 $for(css)$
   <link rel="stylesheet" href="$css$" $if(html5)$$else$type="text/css" $endif$/>

@@ -9,7 +9,9 @@ $if(date-meta)$
 $endif$
   <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
 $if(highlighting-css)$
+  <style type="text/css">
 $highlighting-css$
+  </style>
 $endif$
 $if(css)$
 $for(css)$
