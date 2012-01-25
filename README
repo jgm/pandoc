@@ -1948,41 +1948,76 @@ output.
 
 Here's the markdown source for a simple slide show, `eating.txt`:
 
-    % Eating Habits
+    % Habits
     % John Doe
     % March 22, 2005
 
     # In the morning
+
+    ## Getting up
+
+    - Turn off alarm
+    - Get out of bed
+
+    ## Breakfast
 
     - Eat eggs
     - Drink coffee
 
     # In the evening
 
+    ## Dinner
+
     - Eat spaghetti
     - Drink wine
 
-    --------------------------
+    ------------------
 
     ![picture of spaghetti](images/spaghetti.jpg)
 
+    ## Going to sleep
+
+    - Get in bed
+    - Count sheep
+
 To produce the slide show, simply type
 
-    pandoc -w s5 -s eating.txt > eating.html
+    pandoc -t s5 -s habits.txt -o habits.html
 
-for S5, or
+for S5,
 
-    pandoc -w slidy -s eating.txt > eating.html
+    pandoc -t slidy -s habits.txt -o habits.html
 
-for Slidy, or
+for Slidy,
 
-    pandoc -w dzslides -s eating.txt > eating.html
+    pandoc -t dzslides -s habits.txt -o habits.html
 
-for DZSlides.
+for DZSlides, or
 
-A title page is constructed automatically from the document's title
-block. Each level-one header and horizontal rule begins a new slide.
-(If beamer is used, all headers begin a new slide.)
+    pandoc --beamer habits.txt -o habits.pdf
+
+for beamer.
+
+The document is carved up into slides according to the following
+rules. The *content level* is the the highest header level in the hierarchy
+that is followed immediately by content, and not another header, somewhere in
+the document. In the example above, level 1 headers are always followed by
+level 2 headers, which are followed by content, so 2 is the content level.
+
+  * A horizontal rule always starts a new slide.
+
+  * A header at the content level always starts a new slide.
+
+  * Headers *below* the content level in the hierarchy create
+    headers *within* a slide.
+
+  * Headers *above* the content level in the hierarchy create
+    "title slides," which just contain the section title
+    and help to break the slide show into sections.
+
+  * A title page is constructed automatically from the document's title
+    block, if present.  (In the case of beamer, this can be disabled
+    by commenting out some lines in the default template.)
 
 For Slidy and S5, the file produced by pandoc with the `-s/--standalone`
 option embeds a link to javascripts and CSS files, which are assumed to
