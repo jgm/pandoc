@@ -2019,6 +2019,12 @@ level 2 headers, which are followed by content, so 2 is the content level.
     block, if present.  (In the case of beamer, this can be disabled
     by commenting out some lines in the default template.)
 
+These rules are designed to support many different styles of slide show. If
+you don't care about structuring your slides into sections and subsections,
+you can just use level 1 headers for all each slide. (In that case, level 1
+will be the content level.) But you can also structure the slide show into
+sections, as in the example above.
+
 For Slidy and S5, the file produced by pandoc with the `-s/--standalone`
 option embeds a link to javascripts and CSS files, which are assumed to
 be available at the relative path `s5/default` (for S5) or at the Slidy
