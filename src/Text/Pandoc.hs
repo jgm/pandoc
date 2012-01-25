@@ -215,13 +215,12 @@ jsonFilter :: (Pandoc -> Pandoc) -> String -> String
 jsonFilter f = encodeJSON . f . decodeJSON
 
 -- | 'toJsonFilter' convert a function into a filter that reads pandoc's json output
--- from stdin, transforms it, and writes it to stdout.  Usage example:
+-- from stdin, transforms it by walking the AST and applying the specified
+-- function, and writes the result as json to stdout.  Usage example:
 --
 -- > -- capitalize.hs
--- > -- compile with:
--- > --     ghc --make capitalize
--- > -- run with:
--- > --     pandoc -t json | ./capitalize | pandoc -f json
+-- > -- compile with:  ghc --make capitalize
+-- > -- run with:      pandoc -t json | ./capitalize | pandoc -f json
 -- >
 -- > import Text.Pandoc
 -- > import Data.Char (toUpper)
@@ -233,10 +232,11 @@ jsonFilter f = encodeJSON . f . decodeJSON
 -- > capitalizeStrings (Str s) = Str $ map toUpper s
 -- > capitalizeStrings x       = x
 --
--- The function can be any type @(a -> a)@ or @(a -> IO a)@, where @a@
--- is an instance of 'Data'.  So, for example, @a@ can be 'Pandoc',
--- 'Inline', 'Block', ['Inline'], ['Block'], 'Meta', 'ListNumberStyle',
--- 'Alignment', 'ListNumberDelim', 'QuoteType', etc. See 'Text.Pandoc.Definition'.
+-- The function can be any type @(a -> a)@, @(a -> IO a)@, @(a -> [a])@,
+-- or @(a -> IO [a])@, where @a@ is an instance of 'Data'.
+-- So, for example, @a@ can be 'Pandoc', 'Inline', 'Block', ['Inline'],
+-- ['Block'], 'Meta', 'ListNumberStyle', 'Alignment', 'ListNumberDelim',
+-- 'QuoteType', etc. See 'Text.Pandoc.Definition'.
 class ToJsonFilter a where
   toJsonFilter :: a -> IO ()
 
@@ -256,4 +256,3 @@ instance (Data a) => ToJsonFilter (a -> IO [a]) where
   toJsonFilter f = getContents
     >>= (bottomUpM (fmap concat . mapM f) :: Pandoc -> IO Pandoc) . decodeJSON
     >>= putStr . encodeJSON
-
