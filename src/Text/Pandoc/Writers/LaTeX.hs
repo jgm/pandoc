@@ -437,8 +437,9 @@ sectionHeader ref level lst = do
                    res <- inlineListToLaTeX lstNoNotes
                    return $ char '[' <> res <> char ']'
   let stuffing = optional <> char '{' <> txt <> char '}'
-  book <- liftM stBook get
-  let level' = if book then level - 1 else level
+  book <- gets stBook
+  opts <- gets stOptions
+  let level' = if book || writerChapters opts then level - 1 else level
   internalLinks <- gets stInternalLinks
   let refLabel lab = (if ref `elem` internalLinks
                          then text "\\hyperdef"
@@ -450,7 +451,9 @@ sectionHeader ref level lst = do
                       $$ blankline
   let headerWith x y = refLabel $ text x <> y
   return $ case level' of
-                0  -> headerWith "\\chapter" stuffing
+                0  -> if writerBeamer opts
+                         then headerWith "\\part" stuffing
+                         else headerWith "\\chapter" stuffing
                 1  -> headerWith "\\section" stuffing
                 2  -> headerWith "\\subsection" stuffing
                 3  -> headerWith "\\subsubsection" stuffing
