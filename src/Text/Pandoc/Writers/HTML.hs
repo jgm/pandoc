@@ -250,7 +250,9 @@ elementToHtml _slideLevel opts (Blk block) = blockToHtml opts block
 elementToHtml slideLevel opts (Sec level num id' title' elements) = do
   let slide = writerSlideVariant opts /= NoSlides && level <= slideLevel
   modify $ \st -> st{stSecNum = num}  -- update section number
-  header' <- blockToHtml opts (Header 1 title')  -- always use level 1 for slide titles
+  -- always use level 1 for slide titles
+  let level' = if slide then 1 else level
+  header' <- blockToHtml opts (Header level' title')
   innerContents <- mapM (elementToHtml slideLevel opts) elements
   let header'' = if (writerStrictMarkdown opts ||
                      writerSectionDivs opts ||
