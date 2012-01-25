@@ -1947,7 +1947,7 @@ using [S5], [DZSlides], or [Slidy].  You can also produce a PDF slide
 show using [LaTeX beamer]: just use the `--beamer` option with `pdf`
 output.
 
-Here's the markdown source for a simple slide show, `eating.txt`:
+Here's the markdown source for a simple slide show, `habits.txt`:
 
     % Habits
     % John Doe
@@ -1999,6 +1999,13 @@ for DZSlides, or
 
 for beamer.
 
+With all HTML slide formats, the `--self-contained` option can be used to
+produce a single file that contains all of the data necessary to display the
+slide show, including linked scripts, stylesheets, images, and videos.
+
+Structuring the slide show
+--------------------------
+
 The document is carved up into slides according to the following
 rules. The *content level* is the the highest header level in the hierarchy
 that is followed immediately by content, and not another header, somewhere in
@@ -2033,17 +2040,6 @@ website at `w3.org` (for Slidy). (These paths can be changed by setting
 the `slidy-url` or `s5-url` variables; see `--variable`, above.) For DZSlides,
 the (relatively short) javascript and css are included in the file by default.
 
-You can change the style of the slides by putting customized CSS files
-in `$DATADIR/s5/default` (for S5) or `$DATADIR/slidy` (for Slidy),
-where `$DATADIR` is the user data directory (see `--data-dir`, above).
-The originals may be found in pandoc's system data directory (generally
-`$CABALDIR/pandoc-VERSION/s5/default`). Pandoc will look there for any
-files it does not find in the user data directory.
-
-The `--self-contained` option can be used to produce a single file that
-contains all of the data necessary to display the slide show, including
-linked scripts, stylesheets, images, and videos.
-
 Incremental lists
 -----------------
 
@@ -2058,6 +2054,24 @@ all at once with the `-i` option), put it in a block quote:
 
 In this way incremental and nonincremental lists can be mixed in
 a single document.
+
+Styling the slides
+------------------
+
+You can change the style of HTML slides by putting customized CSS files
+in `$DATADIR/s5/default` (for S5) or `$DATADIR/slidy` (for Slidy),
+where `$DATADIR` is the user data directory (see `--data-dir`, above).
+The originals may be found in pandoc's system data directory (generally
+`$CABALDIR/pandoc-VERSION/s5/default`). Pandoc will look there for any
+files it does not find in the user data directory.
+
+For dzslides, the CSS is included in the HTML file itself, and may
+be modified there.
+
+To style beamer slides, you can specify a beamer "theme" or "colortheme"
+using the `-V` option:
+
+    pandoc --beamer habits.txt -V theme:Warsaw -o habits.pdf
 
 Literate Haskell support
 ========================
