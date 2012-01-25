@@ -292,7 +292,8 @@ Options
 `--chapters`
 :   Treat top-level headers as chapters in LaTeX, ConTeXt, and DocBook
     output.  When the LaTeX template uses the report, book, or
-    memoir class, this option is implied.
+    memoir class, this option is implied.  If `--beamer` is used,
+    top-level headers will become `\part{..}`.
 
 `-N`, `--number-sections`
 :   Number section headings in LaTeX, ConTeXt, or HTML output.
