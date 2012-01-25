@@ -215,7 +215,7 @@ Library
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
                  zlib >= 0.5 && <= 0.6,
-                 highlighting-kate >= 0.4 && < 0.5,
+                 highlighting-kate >= 0.5 && < 0.6,
                  temporary >= 1.1 && < 1.2
   if impl(ghc >= 6.10)
     Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
@@ -306,7 +306,7 @@ Executable pandoc
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
                  zlib >= 0.5 && <= 0.6,
-                 highlighting-kate >= 0.4 && < 0.5,
+                 highlighting-kate >= 0.5 && < 0.6,
                  temporary >= 1.1 && < 1.2
   if impl(ghc >= 6.10)
     Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4

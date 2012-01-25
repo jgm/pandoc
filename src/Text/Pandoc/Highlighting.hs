@@ -36,7 +36,7 @@ module Text.Pandoc.Highlighting ( languages
                                 , styleToLaTeX
                                 , formatHtmlInline
                                 , formatHtmlBlock
-                                , styleToHtml
+                                , styleToCss
                                 , pygments
                                 , espresso
                                 , tango
