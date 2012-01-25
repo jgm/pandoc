@@ -101,7 +101,7 @@ to limit input to markdown. Note that whereas `markdown2pdf` would
 create an ouput file based on the input file name, `pandoc` requires
 that you specify the output filename explicitly.  So,
 
-    pandoc input.txt -o input.pdf --latex-program=xelatex
+    pandoc input.txt -o input.pdf --latex-engine=xelatex
 
 does the same thing
 
