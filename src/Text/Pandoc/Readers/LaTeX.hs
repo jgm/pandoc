@@ -691,12 +691,15 @@ unescapedChar :: GenParser Char st Inline
 unescapedChar = oneOf "`$^&_#{}[]|<>" >>= return . (\c -> Str [c])
 
 specialChar :: GenParser Char st Inline
-specialChar = choice [ spacer, interwordSpace,
+specialChar = choice [ spacer, interwordSpace, sentenceEnd,
                        backslash, tilde, caret,
                        bar, lt, gt, doubleQuote ]
 
 spacer :: GenParser Char st Inline
 spacer = try (string "\\,") >> return (Str "")
+
+sentenceEnd :: GenParser Char st Inline
+sentenceEnd = try (string "\\@") >> return (Str "")
 
 interwordSpace :: GenParser Char st Inline
 interwordSpace = try (string "\\ ") >> return (Str "\160")
