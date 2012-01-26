@@ -67,6 +67,7 @@ module Text.Pandoc.Pretty (
      , parens
      , quotes
      , doubleQuotes
+     , charWidth
      )
 
 where
@@ -461,3 +462,39 @@ quotes = inside (char '\'') (char '\'')
 doubleQuotes :: Doc -> Doc
 doubleQuotes = inside (char '"') (char '"')
 
+-- | Returns width of a character in a monospace font:  0 for a combining
+-- character, 1 for a regular character, 2 for an East Asian wide character.
+charWidth :: Char -> Int
+charWidth c =
+  case c of
+      _ | c >= '\x300' && c <= '\x36e'     -> 0  -- combining
+        | c == '\x3000'                    -> 2  -- full
+        | c >= '\xFF01' && c <= '\xFF60'   -> 2
+        | c >= '\xFFE0' && c <= '\xFFE6'   -> 2
+        | c >= '\x1100' && c <= '\x1159'   -> 2  -- wide
+        | c >= '\x115F' && c <= '\x115F'   -> 2
+        | c >= '\x2329' && c <= '\x232A'   -> 2
+        | c >= '\x2E80' && c <= '\x2E99'   -> 2
+        | c >= '\x2E9B' && c <= '\x2EF3'   -> 2
+        | c >= '\x2F00' && c <= '\x2FD5'   -> 2
+        | c >= '\x2FF0' && c <= '\x2FFB'   -> 2
+        | c >= '\x3001' && c <= '\x303E'   -> 2
+        | c >= '\x3041' && c <= '\x3096'   -> 2
+        | c >= '\x3099' && c <= '\x30FF'   -> 2
+        | c >= '\x3105' && c <= '\x312C'   -> 2
+        | c >= '\x3131' && c <= '\x318E'   -> 2
+        | c >= '\x3190' && c <= '\x31B7'   -> 2
+        | c >= '\x31F0' && c <= '\x321E'   -> 2
+        | c >= '\x3220' && c <= '\x3243'   -> 2
+        | c >= '\x3250' && c <= '\x327D'   -> 2
+        | c >= '\x327F' && c <= '\x32FE'   -> 2
+        | c >= '\x3300' && c <= '\x33FF'   -> 2
+        | c >= '\xA000' && c <= '\xA48C'   -> 2
+        | c >= '\xA490' && c <= '\xA4C6'   -> 2
+        | c >= '\xF900' && c <= '\xFA2D'   -> 2
+        | c >= '\xFA30' && c <= '\xFA6A'   -> 2
+        | c >= '\xFE30' && c <= '\xFE52'   -> 2
+        | c >= '\xFE54' && c <= '\xFE66'   -> 2
+        | c >= '\xFE68' && c <= '\xFE6B'   -> 2
+        | c >= '\x2F800' && c <= '\x2FA1D' -> 2
+        | otherwise                        -> 1
