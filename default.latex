@@ -1,4 +1,4 @@
-\documentclass[$if(fontsize)$$fontsize$,$endif$$if(handout)$handout,$endif$]{$documentclass$}
+\documentclass[$if(fontsize)$$fontsize$,$endif$$if(handout)$handout,$endif$$if(beamer)$ignorenonframetext,$endif$]{$documentclass$}
 $if(theme)$
 \usetheme{$theme$}
 $endif$
@@ -126,7 +126,11 @@ $endif$
 
 \begin{document}
 $if(title)$
+$if(beamer)$
+\frame{\titlepage}
+$else$
 \maketitle
+$endif$
 $endif$
 
 $for(include-before)$
