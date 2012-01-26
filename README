@@ -128,6 +128,9 @@ problems with its simulation of symbolic links.
 Options
 =======
 
+General options
+---------------
+
 `-f` *FORMAT*, `-r` *FORMAT*, `--from=`*FORMAT*, `--read=`*FORMAT*
 :   Specify input format.  *FORMAT* can be `native` (native Haskell),
     `json` (JSON version of native AST), `markdown` (markdown),
@@ -153,43 +156,50 @@ Options
     using the `-o/--output` option. If `+lhs` is appended to `markdown`, `rst`,
     `latex`, `html`, or `html5`, the output will be rendered as literate Haskell
     source: see [Literate Haskell support](#literate-haskell-support), below.
+
     Production of `pdf` output requires that a LaTeX engine be installed
     (see `--latex-engine`, below), and assumes that the following LaTeX
     packages are available: `amssymb`, `amsmath`, `ifxetex`, `ifluatex`,
     `listings` (if the `--listings` option is used), `fancyvrb`,
     `enumerate`, `ctable`, `url`, `graphicx`, `hyperref`, `ulem`,
-    `babel` (if the `lang` variable is set)`, `fontspec` (if `xelatex`
+    `babel` (if the `lang` variable is set), `fontspec` (if `xelatex`
     or `lualatex` is used as the LaTeX engine), `xltxtra` and
     `xunicode` (if `xelatex` is used).
-
-`-s`, `--standalone`
-:   Produce output with an appropriate header and footer (e.g. a
-    standalone HTML, LaTeX, or RTF file, not a fragment).
 
 `-o` *FILE*, `--output=`*FILE*
 :   Write output to *FILE* instead of *stdout*.  If *FILE* is
     `-`, output will go to *stdout*.  (Exception: if the output
     format is `odt`, `docx`, `pdf`, or `epub`, output to stdout is disabled.)
 
-`-p`, `--preserve-tabs`
-:   Preserve tabs instead of converting them to spaces (the default).
+`--data-dir=`*DIRECTORY*
+:   Specify the user data directory to search for pandoc data files.
+    If this option is not specified, the default user data directory
+    will be used:
 
-`--tab-stop=`*NUMBER*
-:   Specify the number of spaces per tab (default is 4).
+        $HOME/.pandoc
+
+    in unix and
+
+        C:\Documents And Settings\USERNAME\Application Data\pandoc
+
+    in Windows. A `reference.odt`, `reference.docx`, `default.csl`,
+    `epub.css`, `templates`, `slidy`, or `s5` directory placed in this
+    directory will override pandoc's normal defaults.
+
+`-v`, `--version`
+:   Print version.
+
+`-h`, `--help`
+:   Show usage message.
+
+Reader options
+--------------
 
 `--strict`
 :   Use strict markdown syntax, with no pandoc extensions or variants.
     When the input format is HTML, this means that constructs that have no
     equivalents in standard markdown (e.g. definition lists or strikeout
     text) will be parsed as raw HTML.
-
-`--normalize`
-:   Normalize the document after reading:  merge adjacent
-    `Str` or `Emph` elements, for example, and remove repeated `Space`s.
-
-`--reference-links`
-:   Use reference-style links, rather than inline links, in writing markdown
-    or reStructuredText.  By default inline links are used.
 
 `-R`, `--parse-raw`
 :   Parse untranslatable HTML codes and LaTeX environments as raw HTML
@@ -215,145 +225,30 @@ Options
     a numeral is an en-dash, and `--` is an em-dash.  This option is selected
     automatically for `textile` input.
 
-`-5`, `--html5`
-:   Produce HTML5 instead of HTML4.  This option has no effect for writers
-    other than `html`. (*Deprecated:*  Use the `html5` output format instead.)
-
-`--no-highlight`
-:   Disables syntax highlighting for code blocks and inlines, even when
-    a language attribute is given.
-
-`--highlight-style`=*STYLE*
-:   Specifies the coloring style to be used in highlighted source code.
-    Options are `pygments` (the default), `kate`, `monochrome`,
-    `espresso`, `haddock`, and `tango`.
-
-`-m` [*URL*], `--latexmathml`[=*URL*]
-:   Use the [LaTeXMathML] script to display embedded TeX math in HTML output.
-    To insert a link to a local copy of the `LaTeXMathML.js` script,
-    provide a *URL*. If no *URL* is provided, the contents of the
-    script will be inserted directly into the HTML header, preserving
-    portability at the price of efficiency. If you plan to use math on
-    several pages, it is much better to link to a copy of the script,
-    so it can be cached.
-
-`--mathml`[=*URL*]
-:   Convert TeX math to MathML.  In standalone mode, a small javascript
-    (or a link to such a script if a *URL* is supplied) will be inserted that
-    allows the MathML to be viewed on some browsers.
-
-`--jsmath`[=*URL*]
-:   Use [jsMath] to display embedded TeX math in HTML output.
-    The *URL* should point to the jsMath load script (e.g.
-    `jsMath/easy/load.js`); if provided, it will be linked to in
-    the header of standalone HTML documents. If a *URL* is not provided,
-    no link to the jsMath load script will be inserted; it is then
-    up to the author to provide such a link in the HTML template.
-
-`--mathjax`[=*URL*]
-:   Use [MathJax] to display embedded TeX math in HTML output.
-    The *URL* should point to the `MathJax.js` load script.
-    If a *URL* is not provided, a link to the MathJax CDN will
-    be inserted.
-
-`--gladtex`
-:   Enclose TeX math in `<eq>` tags in HTML output.  These can then
-    be processed by [gladTeX] to produce links to images of the typeset
-    formulas. 
-
-`--mimetex`[=*URL*]
-:   Render TeX math using the [mimeTeX] CGI script.  If *URL* is not
-    specified, it is assumed that the script is at `/cgi-bin/mimetex.cgi`.
-
-`--webtex`[=*URL*]
-:   Render TeX formulas using an external script that converts TeX
-    formulas to images. The formula will be concatenated with the URL
-    provided. If *URL* is not specified, the Google Chart API will be used.
-
-`-i`, `--incremental`
-:   Make list items in Slidy, DZSlides or S5 display incrementally (one by one).
-    The default is for lists to be displayed all at once.
-
-`--self-contained`
-:   Produce a standalone HTML file with no external dependencies, using
-    `data:` URIs to incorporate the contents of linked scripts, stylesheets,
-    images, and videos. The resulting file should be "self-contained,"
-    in the sense that it needs no external files and no net access to be
-    displayed properly by a browser. This option works only with HTML output
-    formats, including `html`, `html5`, `html+lhs`, `html5+lhs`, `s5`,
-    `slidy`, and `dzslides`. Scripts, images, and stylesheets at absolute URLs
-    will be downloaded; those at relative URLs will be sought first relative
-    to the working directory, then relative to the user data directory (see
-    `--data-dir`), and finally relative to pandoc's default data directory.
-
-`--offline`
-:   Deprecated synonym for `--self-contained`.
-
-`--chapters`
-:   Treat top-level headers as chapters in LaTeX, ConTeXt, and DocBook
-    output.  When the LaTeX template uses the report, book, or
-    memoir class, this option is implied.  If `--beamer` is used,
-    top-level headers will become `\part{..}`.
-
-`-N`, `--number-sections`
-:   Number section headings in LaTeX, ConTeXt, or HTML output.
-    By default, sections are not numbered.
-
-`--listings`
-:   Use listings package for LaTeX code blocks
-
-`--beamer`
-:   Produce LaTeX output for the `beamer` document class.
-    This has an effect only for `latex` or `pdf` output.
-
-`--slide-level`=*NUMBER*
-:   Specifies that headers with the specified level create
-    slides (for `beamer`, `s5`, `slidy`, `dzslides`).  Headers
-    above this level in the hierarchy are used to divide the
-    slide show into sections; headers below this level create
-    subheads within a slide.  The default is to set the slide level
-    based on the contents of the document; see
-    [Structuring the slide show](#structuring-the-slide-show), below.
-
-`--section-divs`
-:   Wrap sections in `<div>` tags (or `<section>` tags in HTML5),
-    and attach identifiers to the enclosing `<div>` (or `<section>`)
-    rather than the header itself.
-    See [Section identifiers](#header-identifiers-in-html), below.
-
-`--no-wrap`
-:   Disable text wrapping in output. By default, text is wrapped
-    appropriately for the output format.
-
-`--columns`=*NUMBER*
-:   Specify length of lines in characters (for text wrapping).
-
-`--email-obfuscation=`*none|javascript|references*
-:   Specify a method for obfuscating `mailto:` links in HTML documents.
-    *none* leaves `mailto:` links as they are.  *javascript* obfuscates
-    them using javascript. *references* obfuscates them by printing their
-    letters as decimal or hexadecimal character references.
-    If `--strict` is specified, *references* is used regardless of the
-    presence of this option.
-
-`--id-prefix`=*STRING*
-:   Specify a prefix to be added to all automatically generated identifiers
-    in HTML output.  This is useful for preventing duplicate identifiers
-    when generating fragments to be included in other pages.
+`--base-header-level=`*NUMBER*
+:   Specify the base level for headers (defaults to 1).
 
 `--indented-code-classes=`*CLASSES*
 :   Specify classes to use for indented code blocks--for example,
     `perl,numberLines` or `haskell`. Multiple classes may be separated
     by spaces or commas.
 
-`--toc`, `--table-of-contents`
-:   Include an automatically generated table of contents (or, in
-    the case of `latex`, `context`, and `rst`, an instruction to create
-    one) in the output document. This option has no effect on `man`,
-    `docbook`, `slidy`, or `s5` output.
+`--normalize`
+:   Normalize the document after reading:  merge adjacent
+    `Str` or `Emph` elements, for example, and remove repeated `Space`s.
 
-`--base-header-level=`*NUMBER*
-:   Specify the base level for headers (defaults to 1).
+`-p`, `--preserve-tabs`
+:   Preserve tabs instead of converting them to spaces (the default).
+
+`--tab-stop=`*NUMBER*
+:   Specify the number of spaces per tab (default is 4).
+
+General writer options
+----------------------
+
+`-s`, `--standalone`
+:   Produce output with an appropriate header and footer (e.g. a
+    standalone HTML, LaTeX, or RTF file, not a fragment).
 
 `--template=`*FILE*
 :   Use *FILE* as a custom template for the generated document. Implies
@@ -373,8 +268,31 @@ Options
     pandoc automatically sets the variables used in the default
     templates.
 
-`-c` *URL*, `--css=`*URL*
-:   Link to a CSS style sheet.
+`-D` *FORMAT*, `--print-default-template=`*FORMAT*
+:   Print the default template for an output *FORMAT*. (See `-t`
+    for a list of possible *FORMAT*s.)
+
+`--no-wrap`
+:   Disable text wrapping in output. By default, text is wrapped
+    appropriately for the output format.
+
+`--columns`=*NUMBER*
+:   Specify length of lines in characters (for text wrapping).
+
+`--toc`, `--table-of-contents`
+:   Include an automatically generated table of contents (or, in
+    the case of `latex`, `context`, and `rst`, an instruction to create
+    one) in the output document. This option has no effect on `man`,
+    `docbook`, `slidy`, or `s5` output.
+
+`--no-highlight`
+:   Disables syntax highlighting for code blocks and inlines, even when
+    a language attribute is given.
+
+`--highlight-style`=*STYLE*
+:   Specifies the coloring style to be used in highlighted source code.
+    Options are `pygments` (the default), `kate`, `monochrome`,
+    `espresso`, `haddock`, and `tango`.
 
 `-H` *FILE*, `--include-in-header=`*FILE*
 :   Include contents of *FILE*, verbatim, at the end of the header.
@@ -397,6 +315,90 @@ Options
     `\end{document}` command in LaTeX). This option can be be used
     repeatedly to include multiple files. They will be included in the
     order specified.  Implies `--standalone`.
+
+Options affecting specific writers
+----------------------------------
+
+`--self-contained`
+:   Produce a standalone HTML file with no external dependencies, using
+    `data:` URIs to incorporate the contents of linked scripts, stylesheets,
+    images, and videos. The resulting file should be "self-contained,"
+    in the sense that it needs no external files and no net access to be
+    displayed properly by a browser. This option works only with HTML output
+    formats, including `html`, `html5`, `html+lhs`, `html5+lhs`, `s5`,
+    `slidy`, and `dzslides`. Scripts, images, and stylesheets at absolute URLs
+    will be downloaded; those at relative URLs will be sought first relative
+    to the working directory, then relative to the user data directory (see
+    `--data-dir`), and finally relative to pandoc's default data directory.
+
+`--offline`
+:   Deprecated synonym for `--self-contained`.
+
+`-5`, `--html5`
+:   Produce HTML5 instead of HTML4.  This option has no effect for writers
+    other than `html`. (*Deprecated:*  Use the `html5` output format instead.)
+
+`--reference-links`
+:   Use reference-style links, rather than inline links, in writing markdown
+    or reStructuredText.  By default inline links are used.
+
+`--chapters`
+:   Treat top-level headers as chapters in LaTeX, ConTeXt, and DocBook
+    output.  When the LaTeX template uses the report, book, or
+    memoir class, this option is implied.  If `--beamer` is used,
+    top-level headers will become `\part{..}`.
+
+`-N`, `--number-sections`
+:   Number section headings in LaTeX, ConTeXt, or HTML output.
+    By default, sections are not numbered.
+
+`--listings`
+:   Use listings package for LaTeX code blocks
+
+`--beamer`
+:   Produce LaTeX output for the `beamer` document class.
+    This has an effect only for `latex` or `pdf` output.
+
+`-i`, `--incremental`
+:   Make list items in slide shows display incrementally (one by one).
+    The default is for lists to be displayed all at once.
+
+`--slide-level`=*NUMBER*
+:   Specifies that headers with the specified level create
+    slides (for `beamer`, `s5`, `slidy`, `dzslides`).  Headers
+    above this level in the hierarchy are used to divide the
+    slide show into sections; headers below this level create
+    subheads within a slide.  The default is to set the slide level
+    based on the contents of the document; see
+    [Structuring the slide show](#structuring-the-slide-show), below.
+
+`--section-divs`
+:   Wrap sections in `<div>` tags (or `<section>` tags in HTML5),
+    and attach identifiers to the enclosing `<div>` (or `<section>`)
+    rather than the header itself.
+    See [Section identifiers](#header-identifiers-in-html), below.
+
+`--email-obfuscation=`*none|javascript|references*
+:   Specify a method for obfuscating `mailto:` links in HTML documents.
+    *none* leaves `mailto:` links as they are.  *javascript* obfuscates
+    them using javascript. *references* obfuscates them by printing their
+    letters as decimal or hexadecimal character references.
+    If `--strict` is specified, *references* is used regardless of the
+    presence of this option.
+
+`--id-prefix`=*STRING*
+:   Specify a prefix to be added to all automatically generated identifiers
+    in HTML output.  This is useful for preventing duplicate identifiers
+    when generating fragments to be included in other pages.
+
+`-T` *STRING*, `--title-prefix=`*STRING*
+:   Specify *STRING* as a prefix at the beginning of the title
+    that appears in the HTML header (but not in the title as it
+    appears at the beginning of the HTML body).  Implies
+    `--standalone`.
+
+`-c` *URL*, `--css=`*URL*
+:   Link to a CSS style sheet.
 
 `--reference-odt=`*FILE*
 :   Use the specified file as a style reference in producing an ODT.
@@ -421,7 +423,7 @@ Options
 `--epub-stylesheet=`*FILE*
 :   Use the specified CSS file to style the EPUB.  If no stylesheet
     is specified, pandoc will look for a file `epub.css` in the
-    user data directory (see `--data-dir`, below).  If it is not
+    user data directory (see `--data-dir`).  If it is not
     found there, sensible defaults will be used.
 
 `--epub-cover-image=`*FILE*
@@ -450,15 +452,8 @@ Options
     The default is `pdflatex`.  If the engine is not in your PATH,
     the full path of the engine may be specified here.
 
-`-D` *FORMAT*, `--print-default-template=`*FORMAT*
-:   Print the default template for an output *FORMAT*. (See `-t`
-    for a list of possible *FORMAT*s.)
-
-`-T` *STRING*, `--title-prefix=`*STRING*
-:   Specify *STRING* as a prefix at the beginning of the title
-    that appears in the HTML header (but not in the title as it
-    appears at the beginning of the HTML body).  Implies
-    `--standalone`.
+Citations
+---------
 
 `--bibliography=`*FILE*
 :   Specify bibliography database to be used in resolving
@@ -509,20 +504,53 @@ Options
 `--biblatex`
 :   Use biblatex for citations in LaTeX output.
 
-`--data-dir=`*DIRECTORY*
-:   Specify the user data directory to search for pandoc data files.
-    If this option is not specified, the default user data directory
-    will be used:
+Math rendering in HTML
+----------------------
 
-        $HOME/.pandoc
+`-m` [*URL*], `--latexmathml`[=*URL*]
+:   Use the [LaTeXMathML] script to display embedded TeX math in HTML output.
+    To insert a link to a local copy of the `LaTeXMathML.js` script,
+    provide a *URL*. If no *URL* is provided, the contents of the
+    script will be inserted directly into the HTML header, preserving
+    portability at the price of efficiency. If you plan to use math on
+    several pages, it is much better to link to a copy of the script,
+    so it can be cached.
 
-    in unix and
+`--mathml`[=*URL*]
+:   Convert TeX math to MathML.  In standalone mode, a small javascript
+    (or a link to such a script if a *URL* is supplied) will be inserted that
+    allows the MathML to be viewed on some browsers.
 
-        C:\Documents And Settings\USERNAME\Application Data\pandoc
+`--jsmath`[=*URL*]
+:   Use [jsMath] to display embedded TeX math in HTML output.
+    The *URL* should point to the jsMath load script (e.g.
+    `jsMath/easy/load.js`); if provided, it will be linked to in
+    the header of standalone HTML documents. If a *URL* is not provided,
+    no link to the jsMath load script will be inserted; it is then
+    up to the author to provide such a link in the HTML template.
 
-    in Windows. A `reference.odt`, `reference.docx`,
-    `epub.css`, `templates` directory, or `s5` directory placed in this
-    directory will override pandoc's normal defaults.
+`--mathjax`[=*URL*]
+:   Use [MathJax] to display embedded TeX math in HTML output.
+    The *URL* should point to the `MathJax.js` load script.
+    If a *URL* is not provided, a link to the MathJax CDN will
+    be inserted.
+
+`--gladtex`
+:   Enclose TeX math in `<eq>` tags in HTML output.  These can then
+    be processed by [gladTeX] to produce links to images of the typeset
+    formulas. 
+
+`--mimetex`[=*URL*]
+:   Render TeX math using the [mimeTeX] CGI script.  If *URL* is not
+    specified, it is assumed that the script is at `/cgi-bin/mimetex.cgi`.
+
+`--webtex`[=*URL*]
+:   Render TeX formulas using an external script that converts TeX
+    formulas to images. The formula will be concatenated with the URL
+    provided. If *URL* is not specified, the Google Chart API will be used.
+
+Options for wrapper scripts
+---------------------------
 
 `--dump-args`
 :   Print information about command-line arguments to *stdout*, then exit.
@@ -543,12 +571,6 @@ Options
     is equivalent to
 
         pandoc -o foo.html -s
-
-`-v`, `--version`
-:   Print version.
-
-`-h`, `--help`
-:   Show usage message.
 
 [LaTeXMathML]: http://math.etsu.edu/LaTeXMathML/
 [jsMath]:  http://www.math.union.edu/~dpvc/jsmath/
