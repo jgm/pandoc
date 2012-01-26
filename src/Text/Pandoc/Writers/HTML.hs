@@ -115,7 +115,7 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   date <- if standalone
              then inlineListToHtml opts date'
              else return mempty
-  let slideLevel = getSlideLevel blocks
+  let slideLevel = maybe (getSlideLevel blocks) id $ writerSlideLevel opts
   let sects = hierarchicalize $
               if writerSlideVariant opts == NoSlides
                  then blocks
@@ -252,15 +252,21 @@ elementToHtml slideLevel opts (Sec level num id' title' elements) = do
   modify $ \st -> st{stSecNum = num}  -- update section number
   -- always use level 1 for slide titles
   let level' = if slide then 1 else level
+  let titleSlide = slide && level < slideLevel
   header' <- blockToHtml opts (Header level' title')
-  innerContents <- mapM (elementToHtml slideLevel opts) elements
+  let isSec (Sec _ _ _ _ _) = True
+      isSec (Blk _)         = False
+  innerContents <- mapM (elementToHtml slideLevel opts)
+                   $ if titleSlide
+                        -- title slides have no content of their own
+                        then filter isSec elements
+                        else elements
   let header'' = if (writerStrictMarkdown opts ||
                      writerSectionDivs opts ||
                      writerSlideVariant opts == S5Slides)
                     then header'
                     else header' ! prefixedId opts id'
   let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
-  let titleSlide = slide && level < slideLevel
   let classes = ["titleslide" | titleSlide] ++ ["slide" | slide] ++
                   ["level" ++ show level]
   let secttag  = if writerHtml5 opts

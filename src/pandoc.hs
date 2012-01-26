@@ -131,6 +131,7 @@ data Opt = Opt
     , optListings          :: Bool       -- ^ Use listings package for code blocks
     , optLaTeXEngine       :: String     -- ^ Program to use for latex -> pdf
     , optBeamer            :: Bool       -- ^ Produce latex output for beamer class
+    , optSlideLevel        :: Maybe Int  -- ^ Header level that creates slides
     }
 
 -- | Defaults for command-line options.
@@ -180,6 +181,7 @@ defaultOpts = Opt
     , optListings          = False
     , optLaTeXEngine       = "pdflatex"
     , optBeamer            = False
+    , optSlideLevel        = Nothing
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -380,6 +382,17 @@ options =
                  (NoArg
                   (\opt -> return opt { optBeamer = True }))
                  "" -- "Produce latex output for beamer class"
+
+    , Option "" ["slide-level"]
+                 (ReqArg
+                  (\arg opt -> do
+                      case reads arg of
+                           [(t,"")] | t >= 1 && t <= 6 ->
+                                    return opt { optSlideLevel = Just t }
+                           _          -> err 39 $
+                                    "slide level must be a number between 1 and 6")
+                 "NUMBER")
+                 "" -- "Force header level for slides"
 
     , Option "" ["section-divs"]
                  (NoArg
@@ -795,6 +808,7 @@ main = do
               , optListings          = listings
               , optLaTeXEngine       = latexEngine
               , optBeamer            = beamer
+              , optSlideLevel        = slideLevel
              } = opts
 
   when dumpArgs $
@@ -943,6 +957,7 @@ main = do
                                       writerChapters         = chapters,
                                       writerListings         = listings,
                                       writerBeamer           = beamer,
+                                      writerSlideLevel       = slideLevel,
                                       writerHighlight        = highlight,
                                       writerHighlightStyle   = highlightStyle }
 

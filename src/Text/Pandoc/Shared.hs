@@ -478,6 +478,7 @@ data WriterOptions = WriterOptions
   , writerBiblioFiles      :: [FilePath] -- ^ Biblio files to use for citations
   , writerHtml5            :: Bool       -- ^ Produce HTML5
   , writerBeamer           :: Bool       -- ^ Produce beamer LaTeX slide show
+  , writerSlideLevel       :: Maybe Int  -- ^ Force header level of slides
   , writerChapters         :: Bool       -- ^ Use "chapter" for top-level sects
   , writerListings         :: Bool       -- ^ Use listings package for code
   , writerHighlight        :: Bool       -- ^ Highlight source code
@@ -514,6 +515,7 @@ defaultWriterOptions =
                 , writerBiblioFiles      = []
                 , writerHtml5            = False
                 , writerBeamer           = False
+                , writerSlideLevel       = Nothing
                 , writerChapters         = False
                 , writerListings         = False
                 , writerHighlight        = False

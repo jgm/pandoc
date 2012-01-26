@@ -201,7 +201,8 @@ inCmd cmd contents = char '\\' <> text cmd <> braces contents
 
 toSlides :: [Block] -> State WriterState [Block]
 toSlides bs = do
-  let slideLevel = getSlideLevel bs
+  opts <- gets stOptions
+  let slideLevel = maybe (getSlideLevel bs) id $ writerSlideLevel opts
   let bs' = prepSlides slideLevel bs
   concat `fmap` (mapM (elementToBeamer slideLevel) $ hierarchicalize bs')
 
@@ -214,7 +215,10 @@ elementToBeamer slideLevel  (Sec lvl _num _ident tit elts)
                     : tit ++ [RawInline "latex" "}"] )
              : bs ++ [RawBlock "latex" "\\end{block}"]
   | lvl <  slideLevel = do
+      let isSec (Sec _ _ _ _ _) = True
+          isSec (Blk _)         = False
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
+               -- (filter isSec elts)
       return $ (Header lvl tit) : bs
   | otherwise = do -- lvl == slideLevel
       -- note: [fragile] is required or verbatim breaks
