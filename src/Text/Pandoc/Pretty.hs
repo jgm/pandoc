@@ -68,6 +68,7 @@ module Text.Pandoc.Pretty (
      , quotes
      , doubleQuotes
      , charWidth
+     , realLength
      )
 
 where
@@ -195,7 +196,7 @@ outp off s | off <= 0 = do
   when (column st' == 0 && usePrefix st' && not (null rawpref)) $ do
     let pref = reverse $ dropWhile isSpace $ reverse rawpref
     modify $ \st -> st{ output = fromString pref : output st
-                      , column = column st + length pref }
+                      , column = column st + realLength pref }
   when (off < 0) $ do
      modify $ \st -> st { output = fromString s : output st
                         , column = 0
@@ -205,7 +206,7 @@ outp off s = do
   let pref = prefix st'
   when (column st' == 0 && usePrefix st' && not (null pref)) $ do
     modify $ \st -> st{ output = fromString pref : output st
-                      , column = column st + length pref }
+                      , column = column st + realLength pref }
   modify $ \st -> st{ output = fromString s : output st
                     , column = column st + off
                     , newlines = 0 }
@@ -312,7 +313,7 @@ renderList (b1@Block{} : BreakingSpace : b2@Block{} : xs) =
 renderList (Block width lns : xs) = do
   st <- get
   let oldPref = prefix st
-  case column st - length oldPref of
+  case column st - realLength oldPref of
         n | n > 0 -> modify $ \s -> s{ prefix = oldPref ++ replicate n ' ' }
         _         -> return ()
   renderDoc $ blockToDoc width lns
@@ -324,7 +325,7 @@ mergeBlocks addSpace (Block w1 lns1) (Block w2 lns2) =
   Block (w1 + w2 + if addSpace then 1 else 0) $
      zipWith (\l1 l2 -> pad w1 l1 ++ l2) (lns1 ++ empties) (map sp lns2 ++ empties)
     where empties = replicate (abs $ length lns1 - length lns2) ""
-          pad n s = s ++ replicate (n - length s) ' '
+          pad n s = s ++ replicate (n - realLength s) ' '
           sp "" = ""
           sp xs = if addSpace then (' ' : xs) else xs
 mergeBlocks _ _ _ = error "mergeBlocks tried on non-Block!"
@@ -345,9 +346,9 @@ text = Doc . toChunks
         toChunks [] = mempty
         toChunks s = case break (=='\n') s of
                           ([], _:ys) -> NewLine `cons` toChunks ys
-                          (xs, _:ys) -> Text (length xs) xs `cons`
+                          (xs, _:ys) -> Text (realLength xs) xs `cons`
                                             NewLine `cons` toChunks ys
-                          (xs, [])      -> singleton $ Text (length xs) xs
+                          (xs, [])      -> singleton $ Text (realLength xs) xs
 
 -- | A character.
 char :: Char -> Doc
@@ -401,7 +402,7 @@ nowrap doc = Doc $ fromList $ map replaceSpace $ toList $ unDoc doc
 
 -- | Returns the width of a 'Doc'.
 offset :: Doc -> Int
-offset d = case map length . lines . render Nothing $ d of
+offset d = case map realLength . lines . render Nothing $ d of
                 []    -> 0
                 os    -> maximum os
 
@@ -416,11 +417,11 @@ lblock = block id
 
 -- | Like 'lblock' but aligned to the right.
 rblock :: Int -> Doc -> Doc
-rblock w = block (\s -> replicate (w - length s) ' ' ++ s) w
+rblock w = block (\s -> replicate (w - realLength s) ' ' ++ s) w
 
 -- | Like 'lblock' but aligned centered.
 cblock :: Int -> Doc -> Doc
-cblock w = block (\s -> replicate ((w - length s) `div` 2) ' ' ++ s) w
+cblock w = block (\s -> replicate ((w - realLength s) `div` 2) ' ' ++ s) w
 
 -- | Returns the height of a block or other 'Doc'.
 height :: Doc -> Int
@@ -435,7 +436,7 @@ chop n cs = case break (=='\n') cs of
                                              (_:[]) -> [xs, ""]
                                              (_:zs) -> xs : chop n zs
                                      else take n xs : chop n (drop n xs ++ ys)
-                                   where len = length xs
+                                   where len = realLength xs
 
 -- | Encloses a 'Doc' inside a start and end 'Doc'.
 inside :: Doc -> Doc -> Doc -> Doc
@@ -498,3 +499,8 @@ charWidth c =
         | c >= '\xFE68' && c <= '\xFE6B'   -> 2
         | c >= '\x2F800' && c <= '\x2FA1D' -> 2
         | otherwise                        -> 1
+
+-- | Get real length of string, taking into account combining and double-wide
+-- characters.
+realLength :: String -> Int
+realLength = sum . map charWidth
