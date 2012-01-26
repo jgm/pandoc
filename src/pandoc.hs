@@ -200,47 +200,22 @@ options =
                   "FORMAT")
                  ""
 
-    , Option "s" ["standalone"]
-                 (NoArg
-                  (\opt -> return opt { optStandalone = True }))
-                 "" -- "Include needed header and footer on output"
-
     , Option "o" ["output"]
                  (ReqArg
                   (\arg opt -> return opt { optOutputFile = arg })
                   "FILENAME")
                  "" -- "Name of output file"
 
-    , Option "p" ["preserve-tabs"]
-                 (NoArg
-                  (\opt -> return opt { optPreserveTabs = True }))
-                 "" -- "Preserve tabs instead of converting to spaces"
-
-    , Option "" ["tab-stop"]
+    , Option "" ["data-dir"]
                  (ReqArg
-                  (\arg opt ->
-                      case reads arg of
-                           [(t,"")] | t > 0 -> return opt { optTabStop = t }
-                           _                -> err 31
-                                          "tab-stop must be a number greater than 0")
-                  "NUMBER")
-                 "" -- "Tab stop (default 4)"
+                  (\arg opt -> return opt { optDataDir = Just arg })
+                 "DIRECTORY") -- "Directory containing pandoc data files."
+                ""
 
     , Option "" ["strict"]
                  (NoArg
                   (\opt -> return opt { optStrict = True } ))
                  "" -- "Disable markdown syntax extensions"
-
-    , Option "" ["normalize"]
-                 (NoArg
-                  (\opt -> return opt { optTransforms =
-                                   normalize : optTransforms opt } ))
-                 "" -- "Normalize the Pandoc AST"
-
-    , Option "" ["reference-links"]
-                 (NoArg
-                  (\opt -> return opt { optReferenceLinks = True } ))
-                 "" -- "Use reference links in parsing HTML"
 
     , Option "R" ["parse-raw"]
                  (NoArg
@@ -258,13 +233,103 @@ options =
                                       , optOldDashes = True }))
                  "" -- "Use smart quotes, dashes, and ellipses"
 
-    , Option "5" ["html5"]
+    , Option "" ["base-header-level"]
+                 (ReqArg
+                  (\arg opt ->
+                      case reads arg of
+                           [(t,"")] | t > 0 -> do
+                               let oldTransforms = optTransforms opt
+                               let shift = t - 1
+                               return opt{ optTransforms =
+                                           headerShift shift : oldTransforms }
+                           _          -> err 19
+                                       "base-header-level must be a number > 0")
+                  "NUMBER")
+                 "" -- "Headers base level"
+
+     , Option "" ["indented-code-classes"]
+                  (ReqArg
+                   (\arg opt -> return opt { optIndentedCodeClasses = words $
+                                             map (\c -> if c == ',' then ' ' else c) arg })
+                   "STRING")
+                  "" -- "Classes (whitespace- or comma-separated) to use for indented code-blocks"
+
+    , Option "" ["normalize"]
                  (NoArg
-                  (\opt -> do
-                     warn $ "--html5 is deprecated. "
-                       ++ "Use the html5 output format instead."
-                     return opt { optHtml5 = True }))
-                 "" -- "Produce HTML5 in HTML output"
+                  (\opt -> return opt { optTransforms =
+                                   normalize : optTransforms opt } ))
+                 "" -- "Normalize the Pandoc AST"
+
+    , Option "p" ["preserve-tabs"]
+                 (NoArg
+                  (\opt -> return opt { optPreserveTabs = True }))
+                 "" -- "Preserve tabs instead of converting to spaces"
+
+    , Option "" ["tab-stop"]
+                 (ReqArg
+                  (\arg opt ->
+                      case reads arg of
+                           [(t,"")] | t > 0 -> return opt { optTabStop = t }
+                           _                -> err 31
+                                          "tab-stop must be a number greater than 0")
+                  "NUMBER")
+                 "" -- "Tab stop (default 4)"
+
+    , Option "s" ["standalone"]
+                 (NoArg
+                  (\opt -> return opt { optStandalone = True }))
+                 "" -- "Include needed header and footer on output"
+
+    , Option "" ["template"]
+                 (ReqArg
+                  (\arg opt -> do
+                     return opt{ optTemplate = Just arg,
+                                 optStandalone = True })
+                  "FILENAME")
+                 "" -- "Use custom template"
+
+    , Option "V" ["variable"]
+                 (ReqArg
+                  (\arg opt ->
+                     case break (`elem` ":=") arg of
+                          (k,_:v) -> do
+                            let newvars = optVariables opt ++ [(k,v)]
+                            return opt{ optVariables = newvars }
+                          _  -> err 17 $
+                            "Could not parse `" ++ arg ++ "' as a key/value pair (k=v or k:v)")
+                  "KEY:VALUE")
+                 "" -- "Use custom template"
+
+    , Option "D" ["print-default-template"]
+                 (ReqArg
+                  (\arg _ -> do
+                     templ <- getDefaultTemplate Nothing arg
+                     case templ of
+                          Right t -> UTF8.hPutStr stdout t
+                          Left e  -> error $ show e
+                     exitWith ExitSuccess)
+                  "FORMAT")
+                 "" -- "Print default template for FORMAT"
+
+    , Option "" ["no-wrap"]
+                 (NoArg
+                  (\opt -> return opt { optWrapText = False }))
+                 "" -- "Do not wrap text in output"
+
+    , Option "" ["columns"]
+                 (ReqArg
+                  (\arg opt ->
+                      case reads arg of
+                           [(t,"")] | t > 0 -> return opt { optColumns = t }
+                           _          -> err 33 $
+                                   "columns must be a number greater than 0")
+                 "NUMBER")
+                 "" -- "Length of line in characters"
+
+    , Option "" ["toc", "table-of-contents"]
+                (NoArg
+                 (\opt -> return opt { optTableOfContents = True }))
+               "" -- "Include table of contents"
 
     , Option "" ["no-highlight"]
                 (NoArg
@@ -286,6 +351,223 @@ options =
                    return opt{ optHighlightStyle = newStyle })
                  "STYLE")
                  "" -- "Style for highlighted code"
+
+    , Option "H" ["include-in-header"]
+                 (ReqArg
+                  (\arg opt -> do
+                     text <- UTF8.readFile arg
+                     -- add new ones to end, so they're included in order specified
+                     let newvars = optVariables opt ++ [("header-includes",text)]
+                     return opt { optVariables = newvars,
+                                  optStandalone = True })
+                  "FILENAME")
+                 "" -- "File to include at end of header (implies -s)"
+
+    , Option "B" ["include-before-body"]
+                 (ReqArg
+                  (\arg opt -> do
+                     text <- UTF8.readFile arg
+                     -- add new ones to end, so they're included in order specified
+                     let newvars = optVariables opt ++ [("include-before",text)]
+                     return opt { optVariables = newvars,
+                                  optStandalone = True })
+                  "FILENAME")
+                 "" -- "File to include before document body"
+
+    , Option "A" ["include-after-body"]
+                 (ReqArg
+                  (\arg opt -> do
+                     text <- UTF8.readFile arg
+                     -- add new ones to end, so they're included in order specified
+                     let newvars = optVariables opt ++ [("include-after",text)]
+                     return opt { optVariables = newvars,
+                                  optStandalone = True })
+                  "FILENAME")
+                 "" -- "File to include after document body"
+
+    , Option "" ["self-contained"]
+                 (NoArg
+                  (\opt -> return opt { optSelfContained = True,
+                                        optVariables = ("slidy-url","slidy") :
+                                                       optVariables opt,
+                                        optStandalone = True }))
+                 "" -- "Make slide shows include all the needed js and css"
+
+    , Option "" ["offline"]
+                 (NoArg
+                  (\opt -> do warn $ "--offline is deprecated. Use --self-contained instead."
+                              return opt { optSelfContained = True,
+                                           optStandalone = True }))
+                 "" -- "Make slide shows include all the needed js and css"
+                 -- deprecated synonym for --self-contained
+
+    , Option "5" ["html5"]
+                 (NoArg
+                  (\opt -> do
+                     warn $ "--html5 is deprecated. "
+                       ++ "Use the html5 output format instead."
+                     return opt { optHtml5 = True }))
+                 "" -- "Produce HTML5 in HTML output"
+
+    , Option "" ["reference-links"]
+                 (NoArg
+                  (\opt -> return opt { optReferenceLinks = True } ))
+                 "" -- "Use reference links in parsing HTML"
+
+    , Option "" ["chapters"]
+                 (NoArg
+                  (\opt -> return opt { optChapters = True }))
+                 "" -- "Use chapter for top-level sections in LaTeX, DocBook"
+
+    , Option "N" ["number-sections"]
+                 (NoArg
+                  (\opt -> return opt { optNumberSections = True }))
+                 "" -- "Number sections in LaTeX"
+
+    , Option "" ["listings"]
+                 (NoArg
+                  (\opt -> return opt { optListings = True }))
+                 "" -- "Use listings package for LaTeX code blocks"
+
+    , Option "" ["beamer"]
+                 (NoArg
+                  (\opt -> return opt { optBeamer = True }))
+                 "" -- "Produce latex output for beamer class"
+
+    , Option "i" ["incremental"]
+                 (NoArg
+                  (\opt -> return opt { optIncremental = True }))
+                 "" -- "Make list items display incrementally in Slidy/S5"
+
+    , Option "" ["slide-level"]
+                 (ReqArg
+                  (\arg opt -> do
+                      case reads arg of
+                           [(t,"")] | t >= 1 && t <= 6 ->
+                                    return opt { optSlideLevel = Just t }
+                           _          -> err 39 $
+                                    "slide level must be a number between 1 and 6")
+                 "NUMBER")
+                 "" -- "Force header level for slides"
+
+    , Option "" ["section-divs"]
+                 (NoArg
+                  (\opt -> return opt { optSectionDivs = True }))
+                 "" -- "Put sections in div tags in HTML"
+
+    , Option "" ["email-obfuscation"]
+                 (ReqArg
+                  (\arg opt -> do
+                     method <- case arg of
+                            "references" -> return ReferenceObfuscation
+                            "javascript" -> return JavascriptObfuscation
+                            "none"       -> return NoObfuscation
+                            _            -> err 6
+                               ("Unknown obfuscation method: " ++ arg)
+                     return opt { optEmailObfuscation = method })
+                  "none|javascript|references")
+                 "" -- "Method for obfuscating email in HTML"
+
+     , Option "" ["id-prefix"]
+                  (ReqArg
+                   (\arg opt -> return opt { optIdentifierPrefix = arg })
+                   "STRING")
+                  "" -- "Prefix to add to automatically generated HTML identifiers"
+
+    , Option "T" ["title-prefix"]
+                 (ReqArg
+                  (\arg opt -> do
+                    let newvars = ("title-prefix", arg) : optVariables opt
+                    return opt { optVariables = newvars,
+                                 optStandalone = True })
+                  "STRING")
+                 "" -- "String to prefix to HTML window title"
+
+    , Option "c" ["css"]
+                 (ReqArg
+                  (\arg opt -> do
+                     -- add new link to end, so it is included in proper order
+                     let newvars = optVariables opt ++ [("css",arg)]
+                     return opt { optVariables = newvars,
+                                  optStandalone = True })
+                  "URL")
+                 "" -- "Link to CSS style sheet"
+
+    , Option "" ["reference-odt"]
+                 (ReqArg
+                  (\arg opt -> do
+                    return opt { optReferenceODT = Just arg })
+                  "FILENAME")
+                 "" -- "Path of custom reference.odt"
+
+    , Option "" ["reference-docx"]
+                 (ReqArg
+                  (\arg opt -> do
+                    return opt { optReferenceDocx = Just arg })
+                  "FILENAME")
+                 "" -- "Path of custom reference.docx"
+
+    , Option "" ["epub-stylesheet"]
+                 (ReqArg
+                  (\arg opt -> do
+                     text <- UTF8.readFile arg
+                     return opt { optEPUBStylesheet = Just text })
+                  "FILENAME")
+                 "" -- "Path of epub.css"
+
+    , Option "" ["epub-cover-image"]
+                 (ReqArg
+                  (\arg opt ->
+                     return opt { optVariables =
+                                 ("epub-cover-image", arg) : optVariables opt })
+                  "FILENAME")
+                 "" -- "Path of epub cover image"
+
+    , Option "" ["epub-metadata"]
+                 (ReqArg
+                  (\arg opt -> do
+                     text <- UTF8.readFile arg
+                     return opt { optEPUBMetadata = text })
+                  "FILENAME")
+                 "" -- "Path of epub metadata file"
+
+    , Option "" ["latex-engine"]
+                 (ReqArg
+                  (\arg opt -> do
+                     let b = takeBaseName arg
+                     if (b == "pdflatex" || b == "lualatex" || b == "xelatex")
+                        then return opt { optLaTeXEngine = arg }
+                        else err 45 "latex-engine must be pdflatex, lualatex, or xelatex.")
+                  "PROGRAM")
+                 "" -- "Name of latex program to use in generating PDF"
+
+    , Option "" ["bibliography"]
+                 (ReqArg
+                  (\arg opt -> return opt { optBibliography = (optBibliography opt) ++ [arg] })
+                  "FILENAME")
+                 ""
+
+    , Option "" ["csl"]
+                 (ReqArg
+                  (\arg opt -> return opt { optCslFile = arg })
+                  "FILENAME")
+                 ""
+
+    , Option "" ["citation-abbreviations"]
+                 (ReqArg
+                  (\arg opt -> return opt { optAbbrevsFile = Just arg })
+                  "FILENAME")
+                 ""
+
+    , Option "" ["natbib"]
+                 (NoArg
+                  (\opt -> return opt { optCiteMethod = Natbib }))
+                 "" -- "Use natbib cite commands in LaTeX output"
+
+    , Option "" ["biblatex"]
+                 (NoArg
+                  (\opt -> return opt { optCiteMethod = Biblatex }))
+                 "" -- "Use biblatex cite commands in LaTeX output"
 
     , Option "m" ["latexmathml", "asciimathml"]
                  (OptArg
@@ -342,288 +624,6 @@ options =
                   (\opt -> return opt { optHTMLMathMethod = GladTeX }))
                  "" -- "Use gladtex for HTML math"
 
-    , Option "i" ["incremental"]
-                 (NoArg
-                  (\opt -> return opt { optIncremental = True }))
-                 "" -- "Make list items display incrementally in Slidy/S5"
-
-    , Option "" ["offline"]
-                 (NoArg
-                  (\opt -> do warn $ "--offline is deprecated. Use --self-contained instead."
-                              return opt { optSelfContained = True,
-                                           optStandalone = True }))
-                 "" -- "Make slide shows include all the needed js and css"
-                 -- deprecated synonym for --self-contained
-
-    , Option "" ["self-contained"]
-                 (NoArg
-                  (\opt -> return opt { optSelfContained = True,
-                                        optVariables = ("slidy-url","slidy") :
-                                                       optVariables opt,
-                                        optStandalone = True }))
-                 "" -- "Make slide shows include all the needed js and css"
-
-    , Option "" ["chapters"]
-                 (NoArg
-                  (\opt -> return opt { optChapters = True }))
-                 "" -- "Use chapter for top-level sections in LaTeX, DocBook"
-
-    , Option "N" ["number-sections"]
-                 (NoArg
-                  (\opt -> return opt { optNumberSections = True }))
-                 "" -- "Number sections in LaTeX"
-
-    , Option "" ["listings"]
-                 (NoArg
-                  (\opt -> return opt { optListings = True }))
-                 "" -- "Use listings package for LaTeX code blocks"
-
-    , Option "" ["beamer"]
-                 (NoArg
-                  (\opt -> return opt { optBeamer = True }))
-                 "" -- "Produce latex output for beamer class"
-
-    , Option "" ["slide-level"]
-                 (ReqArg
-                  (\arg opt -> do
-                      case reads arg of
-                           [(t,"")] | t >= 1 && t <= 6 ->
-                                    return opt { optSlideLevel = Just t }
-                           _          -> err 39 $
-                                    "slide level must be a number between 1 and 6")
-                 "NUMBER")
-                 "" -- "Force header level for slides"
-
-    , Option "" ["section-divs"]
-                 (NoArg
-                  (\opt -> return opt { optSectionDivs = True }))
-                 "" -- "Put sections in div tags in HTML"
-
-    , Option "" ["no-wrap"]
-                 (NoArg
-                  (\opt -> return opt { optWrapText = False }))
-                 "" -- "Do not wrap text in output"
-
-    , Option "" ["columns"]
-                 (ReqArg
-                  (\arg opt ->
-                      case reads arg of
-                           [(t,"")] | t > 0 -> return opt { optColumns = t }
-                           _          -> err 33 $
-                                   "columns must be a number greater than 0")
-                 "NUMBER")
-                 "" -- "Length of line in characters"
-
-    , Option "" ["email-obfuscation"]
-                 (ReqArg
-                  (\arg opt -> do
-                     method <- case arg of
-                            "references" -> return ReferenceObfuscation
-                            "javascript" -> return JavascriptObfuscation
-                            "none"       -> return NoObfuscation
-                            _            -> err 6
-                               ("Unknown obfuscation method: " ++ arg)
-                     return opt { optEmailObfuscation = method })
-                  "none|javascript|references")
-                 "" -- "Method for obfuscating email in HTML"
-
-     , Option "" ["id-prefix"]
-                  (ReqArg
-                   (\arg opt -> return opt { optIdentifierPrefix = arg })
-                   "STRING")
-                  "" -- "Prefix to add to automatically generated HTML identifiers"
-
-     , Option "" ["indented-code-classes"]
-                  (ReqArg
-                   (\arg opt -> return opt { optIndentedCodeClasses = words $
-                                             map (\c -> if c == ',' then ' ' else c) arg })
-                   "STRING")
-                  "" -- "Classes (whitespace- or comma-separated) to use for indented code-blocks"
-
-    , Option "" ["toc", "table-of-contents"]
-                (NoArg
-                 (\opt -> return opt { optTableOfContents = True }))
-               "" -- "Include table of contents"
-
-    , Option "" ["base-header-level"]
-                 (ReqArg
-                  (\arg opt ->
-                      case reads arg of
-                           [(t,"")] | t > 0 -> do
-                               let oldTransforms = optTransforms opt
-                               let shift = t - 1
-                               return opt{ optTransforms =
-                                           headerShift shift : oldTransforms }
-                           _          -> err 19
-                                       "base-header-level must be a number > 0")
-                  "NUMBER")
-                 "" -- "Headers base level"
-
-    , Option "" ["template"]
-                 (ReqArg
-                  (\arg opt -> do
-                     return opt{ optTemplate = Just arg,
-                                 optStandalone = True })
-                  "FILENAME")
-                 "" -- "Use custom template"
-
-    , Option "V" ["variable"]
-                 (ReqArg
-                  (\arg opt ->
-                     case break (`elem` ":=") arg of
-                          (k,_:v) -> do
-                            let newvars = optVariables opt ++ [(k,v)]
-                            return opt{ optVariables = newvars }
-                          _  -> err 17 $
-                            "Could not parse `" ++ arg ++ "' as a key/value pair (k=v or k:v)")
-                  "KEY:VALUE")
-                 "" -- "Use custom template"
-
-    , Option "c" ["css"]
-                 (ReqArg
-                  (\arg opt -> do
-                     -- add new link to end, so it is included in proper order
-                     let newvars = optVariables opt ++ [("css",arg)]
-                     return opt { optVariables = newvars,
-                                  optStandalone = True })
-                  "URL")
-                 "" -- "Link to CSS style sheet"
-
-    , Option "H" ["include-in-header"]
-                 (ReqArg
-                  (\arg opt -> do
-                     text <- UTF8.readFile arg
-                     -- add new ones to end, so they're included in order specified
-                     let newvars = optVariables opt ++ [("header-includes",text)]
-                     return opt { optVariables = newvars,
-                                  optStandalone = True })
-                  "FILENAME")
-                 "" -- "File to include at end of header (implies -s)"
-
-    , Option "B" ["include-before-body"]
-                 (ReqArg
-                  (\arg opt -> do
-                     text <- UTF8.readFile arg
-                     -- add new ones to end, so they're included in order specified
-                     let newvars = optVariables opt ++ [("include-before",text)]
-                     return opt { optVariables = newvars,
-                                  optStandalone = True })
-                  "FILENAME")
-                 "" -- "File to include before document body"
-
-    , Option "A" ["include-after-body"]
-                 (ReqArg
-                  (\arg opt -> do
-                     text <- UTF8.readFile arg
-                     -- add new ones to end, so they're included in order specified
-                     let newvars = optVariables opt ++ [("include-after",text)]
-                     return opt { optVariables = newvars,
-                                  optStandalone = True })
-                  "FILENAME")
-                 "" -- "File to include after document body"
-
-    , Option "T" ["title-prefix"]
-                 (ReqArg
-                  (\arg opt -> do
-                    let newvars = ("title-prefix", arg) : optVariables opt
-                    return opt { optVariables = newvars,
-                                 optStandalone = True })
-                  "STRING")
-                 "" -- "String to prefix to HTML window title"
-
-    , Option "" ["reference-odt"]
-                 (ReqArg
-                  (\arg opt -> do
-                    return opt { optReferenceODT = Just arg })
-                  "FILENAME")
-                 "" -- "Path of custom reference.odt"
-
-    , Option "" ["reference-docx"]
-                 (ReqArg
-                  (\arg opt -> do
-                    return opt { optReferenceDocx = Just arg })
-                  "FILENAME")
-                 "" -- "Path of custom reference.docx"
-
-    , Option "" ["epub-stylesheet"]
-                 (ReqArg
-                  (\arg opt -> do
-                     text <- UTF8.readFile arg
-                     return opt { optEPUBStylesheet = Just text })
-                  "FILENAME")
-                 "" -- "Path of epub.css"
-
-    , Option "" ["epub-cover-image"]
-                 (ReqArg
-                  (\arg opt ->
-                     return opt { optVariables =
-                                 ("epub-cover-image", arg) : optVariables opt })
-                  "FILENAME")
-                 "" -- "Path of epub cover image"
-
-    , Option "" ["epub-metadata"]
-                 (ReqArg
-                  (\arg opt -> do
-                     text <- UTF8.readFile arg
-                     return opt { optEPUBMetadata = text })
-                  "FILENAME")
-                 "" -- "Path of epub metadata file"
-
-    , Option "" ["latex-engine"]
-                 (ReqArg
-                  (\arg opt -> do
-                     let b = takeBaseName arg
-                     if (b == "pdflatex" || b == "lualatex" || b == "xelatex")
-                        then return opt { optLaTeXEngine = arg }
-                        else err 45 "latex-engine must be pdflatex, lualatex, or xelatex.")
-                  "PROGRAM")
-                 "" -- "Name of latex program to use in generating PDF"
-
-    , Option "D" ["print-default-template"]
-                 (ReqArg
-                  (\arg _ -> do
-                     templ <- getDefaultTemplate Nothing arg
-                     case templ of
-                          Right t -> UTF8.hPutStr stdout t
-                          Left e  -> error $ show e
-                     exitWith ExitSuccess)
-                  "FORMAT")
-                 "" -- "Print default template for FORMAT"
-
-    , Option "" ["bibliography"]
-                 (ReqArg
-                  (\arg opt -> return opt { optBibliography = (optBibliography opt) ++ [arg] })
-                  "FILENAME")
-                 ""
-
-    , Option "" ["csl"]
-                 (ReqArg
-                  (\arg opt -> return opt { optCslFile = arg })
-                  "FILENAME")
-                 ""
-
-    , Option "" ["citation-abbreviations"]
-                 (ReqArg
-                  (\arg opt -> return opt { optAbbrevsFile = Just arg })
-                  "FILENAME")
-                 ""
-
-    , Option "" ["natbib"]
-                 (NoArg
-                  (\opt -> return opt { optCiteMethod = Natbib }))
-                 "" -- "Use natbib cite commands in LaTeX output"
-
-    , Option "" ["biblatex"]
-                 (NoArg
-                  (\opt -> return opt { optCiteMethod = Biblatex }))
-                 "" -- "Use biblatex cite commands in LaTeX output"
-
-    , Option "" ["data-dir"]
-                 (ReqArg
-                  (\arg opt -> return opt { optDataDir = Just arg })
-                 "DIRECTORY") -- "Directory containing pandoc data files."
-                ""
-
     , Option "" ["dump-args"]
                  (NoArg
                   (\opt -> return opt { optDumpArgs = True }))
@@ -650,6 +650,7 @@ options =
                      UTF8.hPutStr stdout (usageMessage prg options)
                      exitWith ExitSuccess ))
                  "" -- "Show help"
+
     ]
 
 -- Unescapes XML entities
