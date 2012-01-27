@@ -69,11 +69,12 @@ writeDocbook opts (Pandoc (Meta tit auths dat) blocks) =
                     then Just $ writerColumns opts
                     else Nothing
       render' = render colwidth
-      opts' = if "</book>" `isSuffixOf`
+      opts' = if "/book>" `isSuffixOf`
                       (removeTrailingSpace $ writerTemplate opts)
                  then opts{ writerChapters = True }
                  else opts
-      main     = render' $ vcat (map (elementToDocbook opts') elements)
+      startLvl = if writerChapters opts' then 0 else 1
+      main     = render' $ vcat (map (elementToDocbook opts' startLvl) elements)
       context = writerVariables opts ++
                 [ ("body", main)
                 , ("title", render' title)
@@ -84,19 +85,20 @@ writeDocbook opts (Pandoc (Meta tit auths dat) blocks) =
          else main
 
 -- | Convert an Element to Docbook.
-elementToDocbook :: WriterOptions -> Element -> Doc
-elementToDocbook opts (Blk block) = blockToDocbook opts block 
-elementToDocbook opts (Sec _ _num id' title elements) =
+elementToDocbook :: WriterOptions -> Int -> Element -> Doc
+elementToDocbook opts _   (Blk block) = blockToDocbook opts block 
+elementToDocbook opts lvl (Sec _ _num id' title elements) =
   -- Docbook doesn't allow sections with no content, so insert some if needed
   let elements' = if null elements
                     then [Blk (Para [])]
                     else elements
-      tag = if writerChapters opts
-               then "chapter"
-               else "section"
+      tag = case lvl of
+                 n | n == 0           -> "chapter"
+                   | n >= 1 && n <= 5 -> "sect" ++ show n
+                   | otherwise        -> "simplesect"
   in  inTags True tag [("id",id')] $
       inTagsSimple "title" (inlinesToDocbook opts title) $$
-      vcat (map (elementToDocbook opts{ writerChapters = False }) elements') 
+      vcat (map (elementToDocbook opts (lvl + 1)) elements')
 
 -- | Convert a list of Pandoc blocks to Docbook.
 blocksToDocbook :: WriterOptions -> [Block] -> Doc
