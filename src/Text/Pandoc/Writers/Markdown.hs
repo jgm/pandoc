@@ -233,10 +233,13 @@ blockToMarkdown _ HorizontalRule =
 blockToMarkdown opts (Header level inlines) = do
   contents <- inlineListToMarkdown opts inlines
   st <- get
+  let setext = writerSetextHeaders opts
   return $ case level of
-            1 -> contents <> cr <> text (replicate (offset contents) '=') <>
+            1 | setext ->
+                  contents <> cr <> text (replicate (offset contents) '=') <>
                   blankline
-            2 -> contents <> cr <> text (replicate (offset contents) '-') <>
+            2 | setext ->
+                  contents <> cr <> text (replicate (offset contents) '-') <>
                   blankline
             -- ghc interprets '#' characters in column 1 as linenum specifiers.
             _ | stPlain st || writerLiterateHaskell opts ->
