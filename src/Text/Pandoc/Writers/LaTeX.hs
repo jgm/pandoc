@@ -171,12 +171,8 @@ elementToLaTeX opts (Sec level _ id' title' elements) = do
 -- escape things as needed for LaTeX
 stringToLaTeX :: Bool -> String -> String
 stringToLaTeX isUrl = escapeStringUsing latexEscapes
-  where latexEscapes = backslashEscapes "{}$%&_" ++
-                       if isUrl
-                          then []
-                          else [ ('~', "\\ensuremath{\\sim}")
-                               , ('#', "\\#")
-                               ] ++
+  where latexEscapes = backslashEscapes "{}$%&_#" ++
+                       [ ('~', "\\ensuremath{\\sim}") | not isUrl ] ++
                        [ ('^', "\\^{}")
                        , ('\\', "\\textbackslash{}")
                        , ('€', "\\euro{}")
