@@ -215,10 +215,7 @@ elementToBeamer slideLevel  (Sec lvl _num _ident tit elts)
                     : tit ++ [RawInline "latex" "}"] )
              : bs ++ [RawBlock "latex" "\\end{block}"]
   | lvl <  slideLevel = do
-      let isSec (Sec _ _ _ _ _) = True
-          isSec (Blk _)         = False
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
-               -- (filter isSec elts)
       return $ (Header lvl tit) : bs
   | otherwise = do -- lvl == slideLevel
       -- note: [fragile] is required or verbatim breaks
