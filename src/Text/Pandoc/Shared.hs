@@ -32,6 +32,7 @@ module Text.Pandoc.Shared (
                      -- * List processing
                      splitBy,
                      splitByIndices,
+                     splitStringByIndices,
                      substitute,
                      -- * Text processing
                      backslashEscapes,
@@ -82,6 +83,7 @@ import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import Paths_pandoc (getDataFileName)
 import Text.Pandoc.Highlighting (Style, pygments)
+import Text.Pandoc.Pretty (charWidth)
 
 --
 -- List processing
@@ -95,12 +97,23 @@ splitBy isSep lst =
       rest'         = dropWhile isSep rest
   in  first:(splitBy isSep rest')
 
--- | Split list into chunks divided at specified indices.
 splitByIndices :: [Int] -> [a] -> [[a]]
 splitByIndices [] lst = [lst]
-splitByIndices (x:xs) lst =
-    let (first, rest) = splitAt x lst in
-    first:(splitByIndices (map (\y -> y - x)  xs) rest)
+splitByIndices (x:xs) lst = first:(splitByIndices (map (\y -> y - x)  xs) rest)
+  where (first, rest) = splitAt x lst
+
+-- | Split string into chunks divided at specified indices.
+splitStringByIndices :: [Int] -> [Char] -> [[Char]]
+splitStringByIndices [] lst = [lst]
+splitStringByIndices (x:xs) lst =
+  let (first, rest) = splitAt' x lst in
+  first : (splitStringByIndices (map (\y -> y - x) xs) rest)
+
+splitAt' :: Int -> [Char] -> ([Char],[Char])
+splitAt' _ []          = ([],[])
+splitAt' n xs | n <= 0 = ([],xs)
+splitAt' n (x:xs)      = (x:ys,zs)
+  where (ys,zs) = splitAt' (n - charWidth x) xs
 
 -- | Replace each occurrence of one sublist in a list with another.
 substitute :: (Eq a) => [a] -> [a] -> [a] -> [a]
