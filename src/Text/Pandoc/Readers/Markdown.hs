@@ -773,7 +773,7 @@ simpleTableHeader headless = try $ do
   let (lengths, lines') = unzip dashes
   let indices  = scanl (+) (length initSp) lines'
   -- If no header, calculate alignment on basis of first row of text
-  rawHeads <- liftM (tail . splitByIndices (init indices)) $
+  rawHeads <- liftM (tail . splitStringByIndices (init indices)) $
               if headless
                  then lookAhead anyLine 
                  else return rawContent
@@ -800,7 +800,7 @@ rawTableLine indices = do
   notFollowedBy' (blanklines <|> tableFooter)
   line <- many1Till anyChar newline
   return $ map removeLeadingTrailingSpace $ tail $ 
-           splitByIndices (init indices) line
+           splitStringByIndices (init indices) line
 
 -- Parse a table line and return a list of lists of blocks (columns).
 tableLine :: [Int]
@@ -862,9 +862,9 @@ multilineTableHeader headless = try $ do
   let indices  = scanl (+) (length initSp) lines'
   rawHeadsList <- if headless
                      then liftM (map (:[]) . tail .
-                              splitByIndices (init indices)) $ lookAhead anyLine
+                              splitStringByIndices (init indices)) $ lookAhead anyLine
                      else return $ transpose $ map 
-                           (\ln -> tail $ splitByIndices (init indices) ln)
+                           (\ln -> tail $ splitStringByIndices (init indices) ln)
                            rawContent
   let aligns   = zipWith alignType rawHeadsList lengths
   let rawHeads = if headless

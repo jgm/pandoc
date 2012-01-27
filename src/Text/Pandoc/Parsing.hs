@@ -502,7 +502,7 @@ gridTableWith block tableCaption headless =
 
 gridTableSplitLine :: [Int] -> String -> [String]
 gridTableSplitLine indices line = map removeFinalBar $ tail $
-  splitByIndices (init indices) $ removeTrailingSpace line
+  splitStringByIndices (init indices) $ removeTrailingSpace line
 
 gridPart :: Char -> GenParser Char st (Int, Int)
 gridPart ch = do
