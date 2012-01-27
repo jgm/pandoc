@@ -380,7 +380,7 @@ Options affecting specific writers
 :   Wrap sections in `<div>` tags (or `<section>` tags in HTML5),
     and attach identifiers to the enclosing `<div>` (or `<section>`)
     rather than the header itself.
-    See [Section identifiers](#header-identifiers-in-html), below.
+    See [Section identifiers](#header-identifiers-in-html-latex-and-context), below.
 
 `--email-obfuscation=`*none|javascript|references*
 :   Specify a method for obfuscating `mailto:` links in HTML documents.
