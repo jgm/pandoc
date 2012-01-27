@@ -342,6 +342,10 @@ Options affecting specific writers
 :   Use reference-style links, rather than inline links, in writing markdown
     or reStructuredText.  By default inline links are used.
 
+`--atx-headers`
+:   Use ATX style headers in markdown output. The default is to use
+    setext-style headers for levels 1-2, and then ATX headers.
+
 `--chapters`
 :   Treat top-level headers as chapters in LaTeX, ConTeXt, and DocBook
     output.  When the LaTeX template uses the report, book, or

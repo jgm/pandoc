@@ -483,6 +483,7 @@ data WriterOptions = WriterOptions
   , writerListings         :: Bool       -- ^ Use listings package for code
   , writerHighlight        :: Bool       -- ^ Highlight source code
   , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
+  , writerSetextHeaders    :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
   } deriving Show
 
 {-# DEPRECATED writerXeTeX "writerXeTeX no longer does anything" #-}
@@ -520,6 +521,7 @@ defaultWriterOptions =
                 , writerListings         = False
                 , writerHighlight        = False
                 , writerHighlightStyle   = pygments
+                , writerSetextHeaders    = True
                 }
 
 --

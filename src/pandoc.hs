@@ -132,6 +132,7 @@ data Opt = Opt
     , optLaTeXEngine       :: String     -- ^ Program to use for latex -> pdf
     , optBeamer            :: Bool       -- ^ Produce latex output for beamer class
     , optSlideLevel        :: Maybe Int  -- ^ Header level that creates slides
+    , optSetextHeaders     :: Bool       -- ^ Use atx headers for markdown level 1-2
     }
 
 -- | Defaults for command-line options.
@@ -182,6 +183,7 @@ defaultOpts = Opt
     , optLaTeXEngine       = "pdflatex"
     , optBeamer            = False
     , optSlideLevel        = Nothing
+    , optSetextHeaders     = True
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -413,6 +415,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optReferenceLinks = True } ))
                  "" -- "Use reference links in parsing HTML"
+
+    , Option "" ["atx-headers"]
+                 (NoArg
+                  (\opt -> return opt { optSetextHeaders = False } ))
+                 "" -- "Use atx-style headers for markdown"
 
     , Option "" ["chapters"]
                  (NoArg
@@ -810,6 +817,7 @@ main = do
               , optLaTeXEngine       = latexEngine
               , optBeamer            = beamer
               , optSlideLevel        = slideLevel
+              , optSetextHeaders     = setextHeaders
              } = opts
 
   when dumpArgs $
@@ -960,7 +968,9 @@ main = do
                                       writerBeamer           = beamer,
                                       writerSlideLevel       = slideLevel,
                                       writerHighlight        = highlight,
-                                      writerHighlightStyle   = highlightStyle }
+                                      writerHighlightStyle   = highlightStyle,
+                                      writerSetextHeaders    = setextHeaders
+                                      }
 
   when (writerName' `elem` nonTextFormats&& outputFile == "-") $
     err 5 $ "Cannot write " ++ writerName' ++ " output to stdout.\n" ++
