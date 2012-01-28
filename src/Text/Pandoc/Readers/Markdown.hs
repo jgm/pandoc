@@ -371,17 +371,21 @@ hrule = try $ do
 indentedLine :: GenParser Char ParserState [Char]
 indentedLine = indentSpaces >> manyTill anyChar newline >>= return . (++ "\n")
 
-codeBlockDelimiter :: Maybe Int
-                   -> GenParser Char st (Int, ([Char], [[Char]], [([Char], [Char])]))
-codeBlockDelimiter len = try $ do
+blockDelimiter :: (Char -> Bool)
+               -> Maybe Int
+               -> GenParser Char st (Int, (String, [String], [(String, String)]), Char)
+blockDelimiter f len = try $ do
+  c <- lookAhead (satisfy f)
   size <- case len of
-              Just l  -> count l (char '~') >> many (char '~') >> return l
-              Nothing -> count 3 (char '~') >> many (char '~') >>= 
-                         return . (+ 3) . length 
+              Just l  -> count l (char c) >> many (char c) >> return l
+              Nothing -> count 3 (char c) >> many (char c) >>=
+                         return . (+ 3) . length
   many spaceChar
-  attr <- option ([],[],[]) attributes
+  attr <- option ([],[],[])
+          $ (try $ many spaceChar >> attributes)   -- ~~~ {.ruby}
+         <|> (many1 alphaNum >>= \x -> return ([],[x],[])) -- github variant ```ruby
   blankline
-  return (size, attr) 
+  return (size, attr, c)
 
 attributes :: GenParser Char st ([Char], [[Char]], [([Char], [Char])])
 attributes = try $ do
@@ -425,8 +429,8 @@ keyValAttr = try $ do
 
 codeBlockDelimited :: GenParser Char st Block
 codeBlockDelimited = try $ do
-  (size, attr) <- codeBlockDelimiter Nothing
-  contents <- manyTill anyLine (codeBlockDelimiter (Just size))
+  (size, attr, c) <- blockDelimiter (\c -> c == '~' || c == '`') Nothing
+  contents <- manyTill anyLine (blockDelimiter (== c) (Just size))
   blanklines
   return $ CodeBlock attr $ intercalate "\n" contents
 

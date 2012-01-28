@@ -876,9 +876,9 @@ Note: blank lines in the verbatim text need not begin with four spaces.
 
 In addition to standard indented code blocks, Pandoc supports
 *delimited* code blocks.  These begin with a row of three or more
-tildes (`~`) and end with a row of tildes that must be at least
-as long as the starting row.  Everything between the tilde-lines
-is treated as code.  No indentation is necessary:
+tildes (`~`) or backticks (`` ` ``) and end with a row of tildes or
+backticks that must be at least as long as the starting row. Everything
+between these lines is treated as code. No indentation is necessary:
 
     ~~~~~~~
     if (a > 3) {
@@ -889,8 +889,8 @@ is treated as code.  No indentation is necessary:
 Like regular code blocks, delimited code blocks must be separated
 from surrounding text by blank lines.
 
-If the code itself contains a row of tildes, just use a longer
-row of tildes at the start and end:
+If the code itself contains a row of tildes or backticks, just use a longer
+row of tildes or backticks at the start and end:
 
     ~~~~~~~~~~~~~~~~
     ~~~~~~~~~~
@@ -898,27 +898,41 @@ row of tildes at the start and end:
     ~~~~~~~~~~
     ~~~~~~~~~~~~~~~~
 
-Optionally, you may specify the language of the code block using
+Optionally, you may attach attributes to the code block using
 this syntax:
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.haskell .numberLines}
+    ~~~~ {#mycode .haskell .numberLines startFrom="100"}
     qsort []     = []
     qsort (x:xs) = qsort (filter (< x) xs) ++ [x] ++
                    qsort (filter (>= x) xs)
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Some output formats can use this information to do syntax highlighting.
-Currently, the only output formats that uses this information are HTML
-and LaTeX. If highlighting is supported for your output format and language,
-then the code block above will appear highlighted, with numbered lines. (To
-see which languages are supported, do `pandoc --version`.) Otherwise, the code
-block above will appear as follows:
+Here `mycode` is an identifier, `haskell` and `numberLines` are classes, and
+`startFrom` is an attribute with value `100`. Some output formats can use this
+information to do syntax highlighting. Currently, the only output formats
+that uses this information are HTML and LaTeX. If highlighting is supported
+for your output format and language, then the code block above will appear
+highlighted, with numbered lines. (To see which languages are supported, do
+`pandoc --version`.) Otherwise, the code block above will appear as follows:
 
-    <pre class="haskell">
+    <pre id="mycode" class="haskell numberLines" startFrom="100">
       <code>
       ...
       </code>
     </pre>
+
+A shortcut form can also be used for specifying the language of
+the code block:
+
+    ```haskell
+    qsort [] = []
+    ```
+
+This is equivalent to:
+
+    ``` {.haskell}
+    qsort [] = []
+    ```
 
 To prevent all highlighting, use the `--no-highlight` flag.
 To set the highlighting style, use `--highlight-style`.
