@@ -35,6 +35,7 @@ $else$
     margin: 10px 10px 10px 50px;
   }
   section.titleslide h1 { margin-top: 200px; }
+  h1.title { margin-top: 150px; }
   h1 { font-size: 180%; }
   h2 { font-size: 120%; }
   h3 { font-size: 100%; }
@@ -96,9 +97,9 @@ $endfor$
 $if(title)$
 <section>
   <h1 class="title">$title$</h1>
-  $for(author)$
+$for(author)$
   <h2 class="author">$author$</h2>
-  $endfor$
+$endfor$
   <h3 class="date">$date$</h3>
 </section>
 $endif$
