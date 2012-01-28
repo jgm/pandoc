@@ -190,6 +190,8 @@ writers = [("native"       , writeNative)
           ,("latex"        , writeLaTeX)
           ,("latex+lhs"    , \o ->
                              writeLaTeX o{ writerLiterateHaskell = True })
+          ,("beamer"       , \o ->
+                             writeLaTeX o{ writerBeamer = True })
           ,("context"      , writeConTeXt)
           ,("texinfo"      , writeTexinfo)
           ,("man"          , writeMan)

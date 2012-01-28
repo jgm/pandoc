@@ -85,7 +85,7 @@ getDefaultTemplate _ "native" = return $ Right ""
 getDefaultTemplate _ "json"   = return $ Right ""
 getDefaultTemplate _ "docx"   = return $ Right ""
 getDefaultTemplate user "odt" = getDefaultTemplate user "opendocument"
-getDefaultTemplate user "pdf" = getDefaultTemplate user "latex"
+getDefaultTemplate user "beamer" = getDefaultTemplate user "latex"
 getDefaultTemplate user "epub" = getDefaultTemplate user "html"
 getDefaultTemplate user writer = do
   let format = takeWhile (/='+') writer  -- strip off "+lhs" if present

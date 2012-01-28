@@ -83,7 +83,7 @@ wrapWords indent c = wrap' (c - indent) (c - indent)
                                                        else ", "  ++ x ++ wrap' cols (remaining - (length x + 2)) xs
 
 nonTextFormats :: [String]
-nonTextFormats = ["odt","docx","epub","pdf"]
+nonTextFormats = ["odt","docx","epub"]
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -130,7 +130,6 @@ data Opt = Opt
     , optAbbrevsFile       :: Maybe FilePath
     , optListings          :: Bool       -- ^ Use listings package for code blocks
     , optLaTeXEngine       :: String     -- ^ Program to use for latex -> pdf
-    , optBeamer            :: Bool       -- ^ Produce latex output for beamer class
     , optSlideLevel        :: Maybe Int  -- ^ Header level that creates slides
     , optSetextHeaders     :: Bool       -- ^ Use atx headers for markdown level 1-2
     }
@@ -181,7 +180,6 @@ defaultOpts = Opt
     , optAbbrevsFile       = Nothing
     , optListings          = False
     , optLaTeXEngine       = "pdflatex"
-    , optBeamer            = False
     , optSlideLevel        = Nothing
     , optSetextHeaders     = True
     }
@@ -435,11 +433,6 @@ options =
                  (NoArg
                   (\opt -> return opt { optListings = True }))
                  "" -- "Use listings package for LaTeX code blocks"
-
-    , Option "" ["beamer"]
-                 (NoArg
-                  (\opt -> return opt { optBeamer = True }))
-                 "" -- "Produce latex output for beamer class"
 
     , Option "i" ["incremental"]
                  (NoArg
@@ -732,7 +725,7 @@ defaultWriterName x =
     ".epub"     -> "epub"
     ".org"      -> "org"
     ".asciidoc" -> "asciidoc"
-    ".pdf"      -> "pdf"
+    ".pdf"      -> "latex"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
@@ -815,7 +808,6 @@ main = do
               , optCiteMethod        = citeMethod
               , optListings          = listings
               , optLaTeXEngine       = latexEngine
-              , optBeamer            = beamer
               , optSlideLevel        = slideLevel
               , optSetextHeaders     = setextHeaders
              } = opts
@@ -845,7 +837,13 @@ main = do
                       then defaultWriterName outputFile
                       else writerName
 
-  when (writerName' == "pdf") $ do
+  let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
+
+  when pdfOutput $ do
+    -- make sure writer is latex or beamer
+    unless (writerName' == "latex" || writerName' == "beamer" ||
+            writerName' == "latex+lhs") $
+      err 47 $ "cannot produce pdf output with " ++ writerName' ++ " writer"
     -- check for latex program
     mbLatex <- findExecutable latexEngine
     case mbLatex of
@@ -858,7 +856,7 @@ main = do
      Just r  -> return r
      Nothing -> err 7 ("Unknown reader: " ++ readerName')
 
-  let standalone' = standalone || (`elem` nonTextFormats) writerName'
+  let standalone' = standalone || writerName' `elem` nonTextFormats || pdfOutput
 
   templ <- case templatePath of
                 _ | not standalone' -> return ""
@@ -925,13 +923,13 @@ main = do
                               stateStandalone      = standalone',
                               stateCitations       = map CSL.refId refs,
                               stateSmart           = smart || writerName' `elem`
-                                                     ["latex", "context", "latex+lhs", "pdf"],
+                                                     ["latex", "context", "latex+lhs", "beamer"],
                               stateOldDashes       = oldDashes,
                               stateColumns         = columns,
                               stateStrict          = strict,
                               stateIndentedCodeClasses = codeBlockClasses,
                               stateApplyMacros     = writerName' `notElem`
-                                                     ["latex", "latex+lhs", "pdf"] }
+                                                     ["latex", "latex+lhs", "beamer"] }
 
   let writerOptions = defaultWriterOptions
                                     { writerStandalone       = standalone',
@@ -965,7 +963,7 @@ main = do
                                            slideVariant == DZSlides,
                                       writerChapters         = chapters,
                                       writerListings         = listings,
-                                      writerBeamer           = beamer,
+                                      writerBeamer           = writerName' == "beamer",
                                       writerSlideLevel       = slideLevel,
                                       writerHighlight        = highlight,
                                       writerHighlightStyle   = highlightStyle,
@@ -1013,24 +1011,30 @@ main = do
                 processBiblio cslfile' cslabbrevs refs doc1
              else return doc1
 
+  let writeBinary :: B.ByteString -> IO ()
+      writeBinary = B.writeFile (encodeString outputFile)
+
+  let writerFn :: FilePath -> String -> IO ()
+      writerFn "-" = UTF8.putStr
+      writerFn f   = UTF8.writeFile f
+
   case lookup writerName' writers of
-        Nothing | writerName' == "epub" ->
-           writeEPUB epubStylesheet writerOptions doc2 >>= writeBinary
-                | writerName' == "odt"  ->
-           writeODT referenceODT writerOptions doc2 >>= writeBinary
-                | writerName' == "docx"  ->
-           writeDocx referenceDocx writerOptions doc2 >>= writeBinary
-                | writerName' == "pdf"  ->
-           do res <- tex2pdf latexEngine $ writeLaTeX writerOptions doc2
+        Nothing
+          | writerName' == "epub" ->
+              writeEPUB epubStylesheet writerOptions doc2 >>= writeBinary
+          | writerName' == "odt"  ->
+              writeODT referenceODT writerOptions doc2 >>= writeBinary
+          | writerName' == "docx"  ->
+              writeDocx referenceDocx writerOptions doc2 >>= writeBinary
+          | otherwise -> err 9 ("Unknown writer: " ++ writerName')
+        Just _
+          | pdfOutput  -> do
+              res <- tex2pdf latexEngine $ writeLaTeX writerOptions doc2
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> err 43 $ toString err'
-                | otherwise -> err 9 ("Unknown writer: " ++ writerName')
-          where writeBinary  = B.writeFile (encodeString outputFile)
         Just r  -> writerFn outputFile =<< postProcess result
-          where writerFn "-" = UTF8.putStr
-                writerFn f   = UTF8.writeFile f
-                result       = r writerOptions doc2 ++ ['\n' | not standalone']
+          where result       = r writerOptions doc2 ++ ['\n' | not standalone']
                 htmlFormats = ["html","html+lhs","s5","slidy","dzslides"]
                 postProcess = if selfContained && writerName' `elem` htmlFormats
                                 then makeSelfContained datadir
