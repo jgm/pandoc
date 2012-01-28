@@ -382,7 +382,7 @@ blockDelimiter f len = try $ do
                          return . (+ 3) . length
   many spaceChar
   attr <- option ([],[],[])
-          $ (try $ many spaceChar >> attributes)   -- ~~~ {.ruby}
+          $ attributes                                     -- ~~~ {.ruby}
          <|> (many1 alphaNum >>= \x -> return ([],[x],[])) -- github variant ```ruby
   blankline
   return (size, attr, c)
