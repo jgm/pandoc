@@ -33,9 +33,11 @@ module Text.Pandoc.XML ( stripTags,
                          inTags,
                          selfClosingTag,
                          inTagsSimple,
-                         inTagsIndented  ) where
+                         inTagsIndented,
+                         toEntities ) where
 
 import Text.Pandoc.Pretty
+import Data.Char (ord, isAscii)
 
 -- | Remove everything between <...>
 stripTags :: String -> String
@@ -89,3 +91,10 @@ inTagsSimple tagType = inTags False tagType []
 -- | Put the supplied contents in indented block btw start and end tags.
 inTagsIndented :: String -> Doc -> Doc
 inTagsIndented tagType = inTags True tagType []
+
+-- | Escape all non-ascii characters using numerical entities.
+toEntities :: String -> String
+toEntities [] = ""
+toEntities (c:cs)
+  | isAscii c = c : toEntities cs
+  | otherwise = "&#" ++ show (ord c) ++ ";" ++ toEntities cs
