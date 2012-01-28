@@ -182,13 +182,13 @@ inTemplate :: TemplateTarget a
 inTemplate opts tit auths authsMeta date toc body' newvars =
   let title'      = renderHtml tit
       date'       = renderHtml date
+      dateMeta    = maybe [] (\x -> [("date-meta",x)]) $ normalizeDate date'
       variables   = writerVariables opts ++ newvars
-      context     = variables ++
+      context     = variables ++ dateMeta ++
                     [ ("body", dropWhile (=='\n') $ renderHtml body')
                     , ("pagetitle", stripTags title')
                     , ("title", title')
                     , ("date", date')
-                    , ("date-meta", stripTags date')
                     , ("idprefix", writerIdentifierPrefix opts)
                     , ("slidy-url", "http://www.w3.org/Talks/Tools/Slidy2")
                     , ("s5-url", "s5/default") ] ++

@@ -97,7 +97,7 @@ writeDocx :: Maybe FilePath -- ^ Path specified by --reference-docx
           -> WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO B.ByteString
-writeDocx mbRefDocx opts doc@(Pandoc (Meta tit auths _) _) = do
+writeDocx mbRefDocx opts doc@(Pandoc (Meta tit auths date) _) = do
   let datadir = writerUserDataDir opts
   refArchive <- liftM toArchive $
        case mbRefDocx of
@@ -161,7 +161,8 @@ writeDocx mbRefDocx opts doc@(Pandoc (Meta tit auths _) _) = do
           ,("xmlns:dcmitype","http://purl.org/dc/dcmitype/")
           ,("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")]
           $ mknode "dc:title" [] (stringify tit)
-          : mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] ()  -- put doc date here
+          : mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")]
+            (maybe "" id $ normalizeDate $ stringify date)
           : mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] () -- put current time here
           : map (mknode "dc:creator" [] . stringify) auths
   let docPropsEntry = toEntry docPropsPath epochtime $ fromString $ showTopElement' docProps

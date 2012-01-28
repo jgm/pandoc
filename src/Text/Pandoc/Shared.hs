@@ -46,6 +46,8 @@ module Text.Pandoc.Shared (
                      toRomanNumeral,
                      escapeURI,
                      tabFilter,
+                     -- * Date/time
+                     normalizeDate,
                      -- * Pandoc block and inline list processing
                      orderedListMarkers,
                      normalizeSpaces,
@@ -81,9 +83,12 @@ import System.Directory
 import System.FilePath ( (</>) )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
+import Control.Monad (msum)
 import Paths_pandoc (getDataFileName)
 import Text.Pandoc.Highlighting (Style, pygments)
 import Text.Pandoc.Pretty (charWidth)
+import System.Locale (defaultTimeLocale)
+import Data.Time
 
 --
 -- List processing
@@ -216,6 +221,18 @@ tabFilter tabStop =
       go spsToNextStop (x:xs) =
         x : go (spsToNextStop - 1) xs
   in  go tabStop
+
+--
+-- Date/time
+--
+
+-- | Parse a date and convert (if possible) to "YYYY-MM-DD" format.
+normalizeDate :: String -> Maybe String
+normalizeDate s = fmap (formatTime defaultTimeLocale "%F")
+  (msum $ map (\fs -> parsetimeWith fs s) formats :: Maybe Day)
+   where parsetimeWith = parseTime defaultTimeLocale
+         formats = ["%x","%m/%d/%Y", "%D","%F", "%d %b %Y",
+                    "%d %B %Y", "%b. %d, %Y", "%B %d, %Y"]
 
 --
 -- Pandoc block and inline list processing
