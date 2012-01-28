@@ -394,12 +394,13 @@ attributes = try $ do
   attrs <- many (attribute >>~ many spaceChar)
   char '}'
   let (ids, classes, keyvals) = unzip3 attrs
-  let id' = if null ids then "" else head ids
-  return (id', concat classes, concat keyvals)  
+  let firstNonNull [] = ""
+      firstNonNull (x:xs) | not (null x) = x
+                          | otherwise    = firstNonNull xs
+  return (firstNonNull $ reverse ids, concat classes, concat keyvals)
 
 attribute :: GenParser Char st ([Char], [[Char]], [([Char], [Char])])
 attribute = identifierAttr <|> classAttr <|> keyValAttr
-
 
 identifier :: GenParser Char st [Char]
 identifier = do
