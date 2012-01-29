@@ -7,7 +7,7 @@ $for(author-meta)$
   <meta name="author" content="$author-meta$">
 $endfor$
 $if(date-meta)$
-  <meta name="date" content="$date-meta$">
+  <meta name="dcterms.date" content="$date-meta$">
 $endif$
   <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
   <!--[if lt IE 9]>
