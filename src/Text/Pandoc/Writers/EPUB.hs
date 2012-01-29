@@ -36,7 +36,7 @@ import System.FilePath ( (</>), (<.>), takeBaseName, takeExtension )
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 ( fromString )
 import Codec.Archive.Zip
-import System.Time
+import Data.Time.Clock.POSIX
 import Text.Pandoc.Shared hiding ( Element )
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
@@ -54,7 +54,7 @@ writeEPUB :: Maybe String   -- ^ EPUB stylesheet specified at command line
           -> Pandoc         -- ^ Document to convert
           -> IO B.ByteString
 writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
-  (TOD epochtime _) <- getClockTime
+  epochtime <- floor `fmap` getPOSIXTime
   let mkEntry path content = toEntry path epochtime content
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerStandalone = True

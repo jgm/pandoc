@@ -36,7 +36,7 @@ import Data.ByteString.Lazy.UTF8 ( fromString, toString )
 import Text.Pandoc.UTF8 as UTF8
 import System.IO ( stderr )
 import Codec.Archive.Zip
-import System.Time
+import Data.Time.Clock.POSIX
 import Paths_pandoc ( getDataFileName )
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
@@ -114,7 +114,7 @@ writeDocx mbRefDocx opts doc@(Pandoc (Meta tit auths date) _) = do
 
   (newContents, st) <- runStateT (writeOpenXML opts{writerWrapText = False} doc)
                        defaultWriterState
-  (TOD epochtime _) <- getClockTime
+  epochtime <- floor `fmap` getPOSIXTime
   let imgs = M.elems $ stImages st
   let imgPath ident img = "media/" ++ ident ++
                             case imageType img of
