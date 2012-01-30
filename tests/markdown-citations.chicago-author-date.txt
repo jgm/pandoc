@@ -15,13 +15,13 @@ Pandoc with citeproc-hs
 
 -   In a note.[^1]
 
--   A citation group (see Doe 2005, chap. 3; also Doe and Roe 2007, 34-35).
+-   A citation group (see Doe 2005, chap. 3; also Doe and Roe 2007, 34–35).
 
--   Another one (see Doe 2005, 34-35).
+-   Another one (see Doe 2005, 34–35).
 
 -   And another one in a note.[^2]
 
--   Citation with a suffix and locator (Doe 2005, 33, 35-37, and nowhere else).
+-   Citation with a suffix and locator (Doe 2005, 33, 35–37, and nowhere else).
 
 -   Citation with suffix only (Doe 2005 and nowhere else).
 
@@ -34,7 +34,7 @@ References
 
 Doe, John. 2005. *First Book*. Cambridge: Cambridge University Press.
 
-———. 2006. “Article.” *Journal of Generic Studies* 6: 33-34.
+———. 2006. “Article.” *Journal of Generic Studies* 6: 33–34.
 
 Doe, John, and Jenny Roe. 2007. “Why Water Is Wet.” In *Third Book*, ed. Sam Smith. Oxford: Oxford University Press.
 
