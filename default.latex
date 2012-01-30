@@ -58,6 +58,8 @@ $if(url)$
 $endif$
 $if(graphics)$
 \usepackage{graphicx}
+$if(beamer)$
+$else$
 % We will generate all images so they have a width \maxwidth. This means
 % that they will get their normal width if they fit onto the page, but
 % are scaled down if they would overflow the margins.
@@ -67,6 +69,7 @@ $if(graphics)$
 \makeatother
 \let\Oldincludegraphics\includegraphics
 \renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=\maxwidth]{#1}}
+$endif$
 $endif$
 $if(beamer)$
 % Comment these out if you don't want a slide with just the
