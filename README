@@ -442,6 +442,38 @@ Options affecting specific writers
     id="BookId">` (a randomly generated UUID). Any of these may be
     overridden by elements in the metadata file.
 
+`--epub-embed-font=`*FILE*
+:   Embed the specified font in the EPUB. This option can be repeated
+    to embed multiple fonts.  To use embedded fonts, you
+    will need to add declarations like the following to your CSS (see
+    ``--epub-stylesheet`):
+
+        @font-face {
+        font-family: DejaVuSans;
+        font-style: normal;
+        font-weight: normal;
+        src:url("DejaVuSans-Regular.ttf");
+        }
+        @font-face {
+        font-family: DejaVuSans;
+        font-style: normal;
+        font-weight: bold;
+        src:url("DejaVuSans-Bold.ttf");
+        }
+        @font-face {
+        font-family: DejaVuSans;
+        font-style: italic;
+        font-weight: normal;
+        src:url("DejaVuSans-Oblique.ttf");
+        }
+        @font-face {
+        font-family: DejaVuSans;
+        font-style: italic;
+        font-weight: bold;
+        src:url("DejaVuSans-BoldOblique.ttf");
+        }
+        body { font-family: "DejaVuSans"; }
+
 `--latex-engine=`*pdflatex|lualatex|xelatex*
 :   Use the specified LaTeX engine when producing PDF output.
     The default is `pdflatex`.  If the engine is not in your PATH,

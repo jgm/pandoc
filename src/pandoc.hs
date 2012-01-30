@@ -113,6 +113,7 @@ data Opt = Opt
     , optReferenceDocx     :: Maybe FilePath -- ^ Path of reference.docx
     , optEPUBStylesheet    :: Maybe String   -- ^ EPUB stylesheet
     , optEPUBMetadata      :: String  -- ^ EPUB metadata
+    , optEPUBFonts         :: [FilePath] -- ^ EPUB fonts to embed
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optStrict            :: Bool    -- ^ Use strict markdown syntax
@@ -163,6 +164,7 @@ defaultOpts = Opt
     , optReferenceDocx     = Nothing
     , optEPUBStylesheet    = Nothing
     , optEPUBMetadata      = ""
+    , optEPUBFonts         = []
     , optDumpArgs          = False
     , optIgnoreArgs        = False
     , optStrict            = False
@@ -531,6 +533,13 @@ options =
                   "FILENAME")
                  "" -- "Path of epub metadata file"
 
+    , Option "" ["epub-embed-font"]
+                 (ReqArg
+                  (\arg opt -> do
+                     return opt{ optEPUBFonts = arg : optEPUBFonts opt })
+                  "FILE")
+                 "" -- "Directory of fonts to embed"
+
     , Option "" ["latex-engine"]
                  (ReqArg
                   (\arg opt -> do
@@ -792,6 +801,7 @@ main = do
               , optReferenceDocx     = referenceDocx
               , optEPUBStylesheet    = epubStylesheet
               , optEPUBMetadata      = epubMetadata
+              , optEPUBFonts         = epubFonts
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
               , optStrict            = strict
@@ -1021,7 +1031,8 @@ main = do
   case lookup writerName' writers of
         Nothing
           | writerName' == "epub" ->
-              writeEPUB epubStylesheet writerOptions doc2 >>= writeBinary
+              writeEPUB epubStylesheet epubFonts writerOptions doc2
+               >>= writeBinary
           | writerName' == "odt"  ->
               writeODT referenceODT writerOptions doc2 >>= writeBinary
           | writerName' == "docx"  ->
