@@ -624,6 +624,7 @@ ccedil :: GenParser Char st Inline
 ccedil = try $ do
   char '\\'
   letter' <- oneOfStrings ["cc", "cC"]
+  notFollowedBy letter
   let num = if letter' == "cc" then 231 else 199
   return $ Str [chr num]
 
@@ -631,6 +632,7 @@ aring :: GenParser Char st Inline
 aring = try $ do
   char '\\'
   letter' <- oneOfStrings ["aa", "AA"]
+  notFollowedBy letter
   let num = if letter' == "aa" then 229 else 197
   return $ Str [chr num]
 
@@ -639,18 +641,20 @@ iuml = try (string "\\\"") >> oneOfStrings ["\\i", "{\\i}"] >>
        return (Str [chr 239])
 
 szlig :: GenParser Char st Inline
-szlig = try (string "\\ss") >> return (Str [chr 223])
+szlig = try (string "\\ss") >> notFollowedBy letter >> return (Str [chr 223])
 
 oslash :: GenParser Char st Inline
 oslash = try $ do
   char '\\'
   letter' <- choice [char 'o', char 'O']
+  notFollowedBy letter
   let num = if letter' == 'o' then 248 else 216
   return $ Str [chr num]
 
 lslash :: GenParser Char st Inline
 lslash = try $ do
-  cmd <- oneOfStrings ["{\\L}","{\\l}","\\L ","\\l "]
+  cmd <- oneOfStrings ["{\\L}","{\\l}"]
+       <|> (oneOfStrings ["\\L ","\\l "] >>~ notFollowedBy letter)
   return $ if 'l' `elem` cmd
               then Str "\x142"
               else Str "\x141"
@@ -659,20 +663,21 @@ aelig :: GenParser Char st Inline
 aelig = try $ do
   char '\\'
   letter' <- oneOfStrings ["ae", "AE"]
+  notFollowedBy letter
   let num = if letter' == "ae" then 230 else 198
   return $ Str [chr num]
 
 pound :: GenParser Char st Inline
-pound = try (string "\\pounds") >> return (Str [chr 163])
+pound = try (string "\\pounds" >> notFollowedBy letter) >> return (Str [chr 163])
 
 euro :: GenParser Char st Inline
-euro = try (string "\\euro") >> return (Str [chr 8364])
+euro = try (string "\\euro" >> notFollowedBy letter) >> return (Str [chr 8364])
 
 copyright :: GenParser Char st Inline
-copyright = try (string "\\copyright") >> return (Str [chr 169])
+copyright = try (string "\\copyright" >> notFollowedBy letter) >> return (Str [chr 169])
 
 sect :: GenParser Char st Inline
-sect = try (string "\\S") >> return (Str [chr 167])
+sect = try (string "\\S" >> notFollowedBy letter) >> return (Str [chr 167])
 
 escapedChar :: GenParser Char st Inline
 escapedChar = do
