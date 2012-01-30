@@ -87,7 +87,7 @@ natbibCitations = testGroup "natbib"
   , "group" =: "\\citetext{\\citealp[see][p.~34--35]{item1}; \\citealp[also][chap. 3]{item3}}"
     =?> para (cite [baseCitation{ citationMode = NormalCitation
                                 , citationPrefix = [Str "see"]
-                                , citationSuffix = [Str "p.\160\&34",Str "-",Str "35"] }
+                                , citationSuffix = [Str "p.\160\&34\8211\&35"] }
                    ,baseCitation{ citationMode = NormalCitation
                                 , citationId = "item3"
                                 , citationPrefix = [Str "also"]
@@ -95,7 +95,7 @@ natbibCitations = testGroup "natbib"
                    ] mempty)
   , "suffix and locator" =: "\\citep[pp.~33, 35--37, and nowhere else]{item1}"
     =?> para (cite [baseCitation{ citationMode = NormalCitation
-                                , citationSuffix = [Str "pp.\160\&33,",Space,Str "35",Str "-",Str "37,",Space,Str "and",Space,Str "nowhere",Space, Str "else"] }] mempty)
+                                , citationSuffix = [Str "pp.\160\&33,",Space,Str "35\8211\&37,",Space,Str "and",Space,Str "nowhere",Space, Str "else"] }] mempty)
   , "suffix only" =: "\\citep[and nowhere else]{item1}"
     =?> para (cite [baseCitation{ citationMode = NormalCitation
                                 , citationSuffix = toList $ text "and nowhere else" }] mempty)
@@ -134,7 +134,7 @@ biblatexCitations = testGroup "biblatex"
   , "group" =: "\\autocites[see][p.~34--35]{item1}[also][chap. 3]{item3}"
     =?> para (cite [baseCitation{ citationMode = NormalCitation
                                 , citationPrefix = [Str "see"]
-                                , citationSuffix = [Str "p.\160\&34",Str "-",Str "35"] }
+                                , citationSuffix = [Str "p.\160\&34\8211\&35"] }
                    ,baseCitation{ citationMode = NormalCitation
                                 , citationId = "item3"
                                 , citationPrefix = [Str "also"]
@@ -142,7 +142,7 @@ biblatexCitations = testGroup "biblatex"
                    ] mempty)
   , "suffix and locator" =: "\\autocite[pp.~33, 35--37, and nowhere else]{item1}"
     =?> para (cite [baseCitation{ citationMode = NormalCitation
-                                , citationSuffix = [Str "pp.\160\&33,",Space,Str "35",Str "-",Str "37,",Space,Str "and",Space,Str "nowhere",Space, Str "else"] }] mempty)
+                                , citationSuffix = [Str "pp.\160\&33,",Space,Str "35\8211\&37,",Space,Str "and",Space,Str "nowhere",Space, Str "else"] }] mempty)
   , "suffix only" =: "\\autocite[and nowhere else]{item1}"
     =?> para (cite [baseCitation{ citationMode = NormalCitation
                                 , citationSuffix = toList $ text "and nowhere else" }] mempty)

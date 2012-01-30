@@ -39,7 +39,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
-import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment' )
+import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
                                   isTextTag, isCommentTag )
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
@@ -729,8 +729,8 @@ rawVerbatimBlock = try $ do
 rawTeXBlock :: GenParser Char ParserState Block
 rawTeXBlock = do
   failIfStrict
-  result <- liftM (RawBlock "latex") rawLaTeXEnvironment'
-          <|> liftM (RawBlock "context") rawConTeXtEnvironment'
+  result <- liftM (RawBlock "latex") rawLaTeXBlock
+          <|> liftM (RawBlock "context") rawConTeXtEnvironment
   spaces
   return result
 
@@ -933,8 +933,8 @@ inlineParsers = [ whitespace
                 , inlineNote  -- after superscript because of ^[link](/foo)^
                 , autoLink
                 , rawHtmlInline
-                , rawLaTeXInline'
                 , escapedChar
+                , rawLaTeXInline'
                 , exampleRef
                 , smartPunctuation inline
                 , charRef
@@ -977,8 +977,7 @@ symbol :: GenParser Char ParserState Inline
 symbol = do 
   result <- noneOf "<\\\n\t "
          <|> try (do lookAhead $ char '\\'
-                     notFollowedBy' $ rawLaTeXEnvironment'
-                                   <|> rawConTeXtEnvironment'
+                     notFollowedBy' rawTeXBlock
                      char '\\')
   return $ Str [result]
 
@@ -1246,18 +1245,16 @@ inlineNote = try $ do
 rawLaTeXInline' :: GenParser Char ParserState Inline
 rawLaTeXInline' = try $ do
   failIfStrict
-  lookAhead $ char '\\'
-  notFollowedBy' $ rawLaTeXEnvironment'
-                <|> rawConTeXtEnvironment'
+  lookAhead $ char '\\' >> notFollowedBy' (string "start") -- context env
   RawInline _ s <- rawLaTeXInline
   return $ RawInline "tex" s  -- "tex" because it might be context or latex
 
-rawConTeXtEnvironment' :: GenParser Char st String
-rawConTeXtEnvironment' = try $ do
+rawConTeXtEnvironment :: GenParser Char st String
+rawConTeXtEnvironment = try $ do
   string "\\start"
   completion <- inBrackets (letter <|> digit <|> spaceChar)
                <|> (many1 letter)
-  contents <- manyTill (rawConTeXtEnvironment' <|> (count 1 anyChar))
+  contents <- manyTill (rawConTeXtEnvironment <|> (count 1 anyChar))
                        (try $ string "\\stop" >> string completion)
   return $ "\\start" ++ completion ++ concat contents ++ "\\stop" ++ completion
 

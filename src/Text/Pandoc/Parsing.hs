@@ -46,6 +46,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              emailAddress,
                              uri,
                              withHorizDisplacement,
+                             withRaw,
                              nullBlock,
                              failIfStrict,
                              failUnlessLHS,
@@ -299,6 +300,23 @@ withHorizDisplacement parser = do
   pos2 <- getPosition
   return (result, sourceColumn pos2 - sourceColumn pos1)
 
+-- | Applies a parser and returns the raw string that was parsed,
+-- along with the value produced by the parser.
+withRaw :: GenParser Char st a -> GenParser Char st (a, [Char])
+withRaw parser = do
+  pos1 <- getPosition
+  inp <- getInput
+  result <- parser
+  pos2 <- getPosition
+  let (l1,c1) = (sourceLine pos1, sourceColumn pos1)
+  let (l2,c2) = (sourceLine pos2, sourceColumn pos2)
+  let inplines = take ((l2 - l1) + 1) $ lines inp
+  let raw = case inplines of
+                []   -> error "raw: inplines is null" -- shouldn't happen
+                [l]  -> take (c2 - c1) l
+                ls   -> unlines (init ls) ++ take (c2 - 1) (last ls)
+  return (result, raw)
+
 -- | Parses a character and returns 'Null' (so that the parser can move on
 -- if it gets stuck).
 nullBlock :: GenParser Char st Block
@@ -312,9 +330,7 @@ failIfStrict = do
 
 -- | Fail unless we're in literate haskell mode.
 failUnlessLHS :: GenParser tok ParserState ()
-failUnlessLHS = do
-  state <- getState
-  if stateLiterateHaskell state then return () else fail "Literate haskell feature"
+failUnlessLHS = getState >>= guard . stateLiterateHaskell
 
 -- | Parses backslash, then applies character parser.
 escaped :: GenParser Char st Char  -- ^ Parser for character to escape
@@ -588,7 +604,7 @@ readWith :: GenParser t ParserState a      -- ^ parser
          -> a
 readWith parser state input = 
     case runParser parser state "source" input of
-      Left err     -> error $ "\nError:\n" ++ show err
+      Left err'    -> error $ "\nError:\n" ++ show err'
       Right result -> result
 
 -- | Parse a string with @parser@ (for testing).

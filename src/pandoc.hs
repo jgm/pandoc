@@ -31,8 +31,9 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.PDF (tex2pdf)
+import Text.Pandoc.Readers.LaTeX (handleIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
-                            headerShift, findDataFile, normalize )
+                            headerShift, findDataFile, normalize, err, warn )
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Highlighting ( languages, Style, tango, pygments,
          espresso, kate, haddock, monochrome )
@@ -43,7 +44,7 @@ import System.Console.GetOpt
 import Data.Char ( toLower )
 import Data.List ( intercalate, isSuffixOf, isPrefixOf )
 import System.Directory ( getAppUserDataDirectory, doesFileExist, findExecutable )
-import System.IO ( stdout, stderr )
+import System.IO ( stdout )
 import System.IO.Error ( isDoesNotExistError )
 import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -738,19 +739,6 @@ defaultWriterName x =
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
-
-err :: Int -> String -> IO a
-err exitCode msg = do
-  name <- getProgName
-  UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
-  exitWith $ ExitFailure exitCode
-  return undefined
-
-warn :: String -> IO ()
-warn msg = do
-  name <- getProgName
-  UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
-
 main :: IO ()
 main = do
 
@@ -996,7 +984,14 @@ main = do
 
   let convertTabs = tabFilter (if preserveTabs then 0 else tabStop)
 
-  doc <- fmap (reader startParserState . convertTabs . intercalate "\n") (readSources sources)
+  let handleIncludes' = if readerName' == "latex" || readerName' == "beamer" ||
+                           readerName' == "latex+lhs" ||
+                           readerName' == "context"
+                           then handleIncludes
+                           else return
+
+  doc <- (reader startParserState) `fmap` (readSources sources >>=
+             handleIncludes' . convertTabs . intercalate "\n")
 
   let doc0 = foldr ($) doc transforms
 

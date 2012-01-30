@@ -70,11 +70,16 @@ module Text.Pandoc.Shared (
                      inDirectory,
                      findDataFile,
                      readDataFile,
+                     -- * Error handling
+                     err,
+                     warn,
                     ) where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
-import qualified Text.Pandoc.UTF8 as UTF8 (readFile)
+import qualified Text.Pandoc.UTF8 as UTF8
+import System.Environment (getProgName)
+import System.Exit (exitWith, ExitCode(..))
 import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
 import Data.List ( find, isPrefixOf, intercalate )
@@ -89,6 +94,7 @@ import Text.Pandoc.Highlighting (Style, pygments)
 import Text.Pandoc.Pretty (charWidth)
 import System.Locale (defaultTimeLocale)
 import Data.Time
+import System.IO (stderr)
 
 --
 -- List processing
@@ -581,3 +587,19 @@ findDataFile (Just u) f = do
 -- Cabal data directory.
 readDataFile :: Maybe FilePath -> FilePath -> IO String
 readDataFile userDir fname = findDataFile userDir fname >>= UTF8.readFile
+
+--
+-- Error reporting
+--
+
+err :: Int -> String -> IO a
+err exitCode msg = do
+  name <- getProgName
+  UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
+  exitWith $ ExitFailure exitCode
+  return undefined
+
+warn :: String -> IO ()
+warn msg = do
+  name <- getProgName
+  UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
