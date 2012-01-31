@@ -544,10 +544,10 @@ Math rendering in HTML
     so it can be cached.
 
 `--mathml`[=*URL*]
-:   Convert TeX math to MathML (works with `docbook` as well as `html`).
-    In standalone mode, a small javascript (or a link to such a script if a
-    *URL* is supplied) will be inserted that allows the MathML to be viewed on
-    some browsers.
+:   Convert TeX math to MathML (in `docbook` as well as `html` and `html5`).
+    In standalone `html` output, a small javascript (or a link to such a
+    script if a *URL* is supplied) will be inserted that allows the MathML to
+    be viewed on some browsers.
 
 `--jsmath`[=*URL*]
 :   Use [jsMath] to display embedded TeX math in HTML output.

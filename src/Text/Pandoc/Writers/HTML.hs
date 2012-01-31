@@ -147,10 +147,11 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                                        ! A.type_ "text/javascript"
                                        $ mempty
                            _ -> case lookup "mathml-script" (writerVariables opts) of
-                                      Just s ->
+                                      Just s | not (writerHtml5 opts) ->
                                         H.script ! A.type_ "text/javascript"
                                            $ preEscapedString
                                             ("/*<![CDATA[*/\n" ++ s ++ "/*]]>*/\n")
+                                             | otherwise -> mempty
                                       Nothing -> mempty
                 else mempty
   let newvars = [("highlighting-css",
