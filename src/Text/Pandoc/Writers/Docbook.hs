@@ -37,6 +37,9 @@ import Data.List ( isPrefixOf, intercalate, isSuffixOf )
 import Data.Char ( toLower )
 import Text.Pandoc.Highlighting ( languages, languagesByExtension )
 import Text.Pandoc.Pretty
+import Text.TeXMath
+import qualified Text.XML.Light as Xml
+import Data.Generics (everywhere, mkT)
 
 -- | Convert list of authors to a docbook <author> section
 authorToDocbook :: WriterOptions -> [Inline] -> Doc
@@ -79,7 +82,10 @@ writeDocbook opts (Pandoc (Meta tit auths dat) blocks) =
                 [ ("body", main)
                 , ("title", render' title)
                 , ("date", render' date) ] ++
-                [ ("author", render' a) | a <- authors ]
+                [ ("author", render' a) | a <- authors ] ++
+                [ ("mathml", "yes") | case writerHTMLMathMethod opts of
+                                            MathML _ -> True
+                                            _ -> False ]
   in  if writerStandalone opts
          then renderTemplate context $ writerTemplate opts
          else main
@@ -252,7 +258,23 @@ inlineToDocbook opts (Cite _ lst) =
   inlinesToDocbook opts lst 
 inlineToDocbook _ (Code _ str) = 
   inTagsSimple "literal" $ text (escapeStringForXML str)
-inlineToDocbook opts (Math _ str) = inlinesToDocbook opts $ readTeXMath str
+inlineToDocbook opts (Math t str)
+  | isMathML (writerHTMLMathMethod opts) =
+    case texMathToMathML dt str of
+      Right r -> inTagsSimple tagtype
+                 $ text $ Xml.ppcElement conf
+                 $ fixNS
+                 $ removeAttr r
+      Left  _ -> inlinesToDocbook opts
+                 $ readTeXMath str
+  | otherwise = inlinesToDocbook opts $ readTeXMath str
+     where (dt, tagtype) = case t of
+                            InlineMath  -> (DisplayInline,"inlineequation")
+                            DisplayMath -> (DisplayBlock,"informalequation")
+           conf = Xml.useShortEmptyTags (const False) Xml.defaultConfigPP
+           removeAttr e = e{ Xml.elAttribs = [] }
+           fixNS' qname = qname{ Xml.qPrefix = Just "mml" }
+           fixNS = everywhere (mkT fixNS')
 inlineToDocbook _ (RawInline f x) | f == "html" || f == "docbook" = text x
                                   | otherwise                     = empty
 inlineToDocbook _ LineBreak = inTagsSimple "literallayout" empty
@@ -279,3 +301,7 @@ inlineToDocbook _ (Image _ (src, tit)) =
       titleDoc $$ selfClosingTag "imagedata" [("fileref", src)]
 inlineToDocbook opts (Note contents) = 
   inTagsIndented "footnote" $ blocksToDocbook opts contents
+
+isMathML :: HTMLMathMethod -> Bool
+isMathML (MathML _) = True
+isMathML _          = False

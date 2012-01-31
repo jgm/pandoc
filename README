@@ -544,9 +544,10 @@ Math rendering in HTML
     so it can be cached.
 
 `--mathml`[=*URL*]
-:   Convert TeX math to MathML.  In standalone mode, a small javascript
-    (or a link to such a script if a *URL* is supplied) will be inserted that
-    allows the MathML to be viewed on some browsers.
+:   Convert TeX math to MathML (works with `docbook` as well as `html`).
+    In standalone mode, a small javascript (or a link to such a script if a
+    *URL* is supplied) will be inserted that allows the MathML to be viewed on
+    some browsers.
 
 `--jsmath`[=*URL*]
 :   Use [jsMath] to display embedded TeX math in HTML output.
@@ -1652,9 +1653,14 @@ MediaWiki
 Textile
   ~ It will be rendered inside `<span class="math">` tags.
 
-RTF, DocBook, OpenDocument, ODT
+RTF, OpenDocument, ODT
   ~ It will be rendered, if possible, using unicode characters,
     and will otherwise appear verbatim.
+
+Docbook
+  ~ If the `--mathml` flag is used, it will be rendered using mathml
+    in an `inlineequation` or `informalequation` tag.  Otherwise it
+    will be rendered, if possible, using unicode characters.
 
 Docx
   ~ It will be rendered using OMML math markup.
