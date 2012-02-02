@@ -198,6 +198,8 @@ writers = [("native"       , writeNative)
           ,("markdown"     , writeMarkdown)
           ,("markdown+lhs" , \o ->
                              writeMarkdown o{ writerLiterateHaskell = True })
+          ,("markdown+strict" , \o ->
+                             writeMarkdown o{ writerStrictMarkdown = True })
           ,("plain"        , writePlain)
           ,("rst"          , writeRST)
           ,("rst+lhs"      , \o ->

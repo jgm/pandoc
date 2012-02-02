@@ -159,6 +159,8 @@ General options
     to `markdown`, `rst`, `latex`, `html`, or `html5`, the output will
     be rendered as literate Haskell source: see [Literate Haskell
     support](#literate-haskell-support), below.
+    If `+strict` is appended to `markdown`, the generated output will contain
+    no pandoc extensions.
 
 `-o` *FILE*, `--output=`*FILE*
 :   Write output to *FILE* instead of *stdout*.  If *FILE* is
