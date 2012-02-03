@@ -74,7 +74,7 @@ module Text.Pandoc.Pretty (
 where
 import Data.DList (DList, fromList, toList, cons, singleton)
 import Data.List (intercalate)
-import Data.Monoid
+import Data.Monoid hiding ((<>))
 import Data.String
 import Control.Monad.State
 import Data.Char (isSpace)
