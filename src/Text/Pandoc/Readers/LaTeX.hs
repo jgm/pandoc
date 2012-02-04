@@ -536,7 +536,7 @@ handleIncludes :: String -> IO String
 handleIncludes [] = return []
 handleIncludes ('\\':xs) =
   case runParser include defaultParserState "input" ('\\':xs) of
-       Right (f, rest) -> do ys <- catch (readFile (replaceExtension f ".tex"))
+       Right (f, rest) -> do ys <- catch (readFile f)
                                     (\e -> warn
                                       ("could not open included file `" ++
                                        f ++ "': " ++ show e) >> return "")
@@ -548,10 +548,14 @@ handleIncludes (x:xs) = (x:) `fmap` handleIncludes xs
 
 include :: LP (FilePath, String)
 include = do
-  controlSeq "include"
+  name <- controlSeq "include" <|> controlSeq "usepackage"
+  optional opt
   f <- braced
   rest <- getInput
-  return (f, rest)
+  let f' = if name == "include"
+              then replaceExtension f ".tex"
+              else replaceExtension f ".sty"
+  return (f', rest)
 
 verbatimEnv :: LP (String, String)
 verbatimEnv = do
