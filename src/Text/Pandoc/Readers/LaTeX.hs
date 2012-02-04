@@ -139,8 +139,10 @@ double_quote = (doubleQuoted . mconcat) <$>
   (try $ string "``" *> manyTill inline (try $ string "''"))
 
 single_quote :: LP Inlines
-single_quote = (singleQuoted . mconcat) <$>
-  (try $ char '`' *> manyTill inline (try $ char '\'' >> notFollowedBy letter))
+single_quote = char '`' *>
+  ( try ((singleQuoted . mconcat) <$>
+         manyTill inline (try $ char '\'' >> notFollowedBy letter))
+  <|> lit "`")
 
 inline :: LP Inlines
 inline = (mempty <$ comment)
@@ -161,7 +163,8 @@ inline = (mempty <$ comment)
      <|> (failUnlessLHS *> char '|' *> doLHSverb)
      <|> (str <$> count 1 tildeEscape)
      <|> (str <$> string "]")
-     <|> (str <$> count 1 (satisfy (\c -> c /= '\\' && c /='\n' && c /='}' && c /='{'))) -- eat random leftover characters
+     <|> (str <$> string "#") -- TODO print warning?
+     -- <|> (str <$> count 1 (satisfy (\c -> c /= '\\' && c /='\n' && c /='}' && c /='{'))) -- eat random leftover characters
 
 inlines :: LP Inlines
 inlines = mconcat <$> many (notFollowedBy (char '}') *> inline)
@@ -174,6 +177,7 @@ block = (mempty <$ comment)
     <|> blockCommand
     <|> grouped block
     <|> paragraph
+    <|> (mempty <$ char '&')  -- loose & in table environment
 
 
 blocks :: LP Blocks
@@ -790,11 +794,8 @@ parseTableRow cols = try $ do
   guard $ length cells' == cols
   spaces
   optional $ controlSeq "\\"
+  spaces
   return cells'
-
-parseTableHeader :: Int   -- ^ number of columns
-                 -> LP [Blocks]
-parseTableHeader cols = try $ parseTableRow cols <* hline
 
 simpTable :: LP Blocks
 simpTable = try $ do
@@ -802,11 +803,12 @@ simpTable = try $ do
   aligns <- parseAligns
   let cols = length aligns
   optional hline
-  header' <- option [] $ parseTableHeader cols
+  header' <- option [] $ try (parseTableRow cols <* hline)
   rows <- many (parseTableRow cols <* optional hline)
   spaces
   let header'' = if null header'
                     then replicate cols mempty
                     else header'
+  lookAhead $ controlSeq "end" -- make sure we're at end
   return $ table mempty (zip aligns (repeat 0)) header'' rows
 
