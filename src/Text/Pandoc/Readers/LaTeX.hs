@@ -37,6 +37,7 @@ import Text.ParserCombinators.Parsec hiding ((<|>), space, many, optional)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
+import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char ( chr, ord )
 import Control.Monad
 import Text.Pandoc.Builder
@@ -44,6 +45,7 @@ import Data.Char (isLetter)
 import Control.Applicative
 import Data.Monoid
 import System.FilePath (replaceExtension)
+import Data.List (intercalate)
 import qualified Data.Map as M
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
@@ -536,23 +538,26 @@ handleIncludes :: String -> IO String
 handleIncludes [] = return []
 handleIncludes ('\\':xs) =
   case runParser include defaultParserState "input" ('\\':xs) of
-       Right (f, rest) -> do ys <- catch (readFile f) (\_ -> return "")
-                             (ys ++) `fmap` handleIncludes rest
+       Right (fs, rest) -> do let getfile f = catch (UTF8.readFile f)
+                                               (\_ -> return "")
+                              yss <- mapM getfile fs
+                              (intercalate "\n" yss ++) `fmap`
+                                handleIncludes rest
        _  -> case runParser verbatimEnv defaultParserState "input" ('\\':xs) of
                     Right (r, rest) -> (r ++) `fmap` handleIncludes rest
                     _               -> ('\\':) `fmap` handleIncludes xs
 handleIncludes (x:xs) = (x:) `fmap` handleIncludes xs
 
-include :: LP (FilePath, String)
+include :: LP ([FilePath], String)
 include = do
   name <- controlSeq "include" <|> controlSeq "usepackage"
   optional opt
-  f <- braced
+  fs <- (splitBy (==',')) <$> braced
   rest <- getInput
-  let f' = if name == "include"
-              then replaceExtension f ".tex"
-              else replaceExtension f ".sty"
-  return (f', rest)
+  let fs' = if name == "include"
+               then map (flip replaceExtension ".tex") fs
+               else map (flip replaceExtension ".sty") fs
+  return (fs', rest)
 
 verbatimEnv :: LP (String, String)
 verbatimEnv = do
