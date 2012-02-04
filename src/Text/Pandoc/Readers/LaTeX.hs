@@ -781,11 +781,10 @@ parseTableRow :: Int  -- ^ number of columns
 parseTableRow cols = try $ do
   let amp = try $ spaces *> string "&"
   let tableCellInline = notFollowedBy (amp <|> controlSeq "\\") >> inline
-  cells' <- sepBy (spaces *> ((plain . trimInlines . mconcat) <$>
-              many tableCellInline)) amp
+  cells' <- sepBy ((plain . trimInlines . mconcat) <$> many tableCellInline) amp
   guard $ length cells' == cols
   spaces
-  try $ controlSeq "\\" <|> lookAhead (try $ controlSeq "end" >> string "{tabular}")
+  optional $ controlSeq "\\"
   return cells'
 
 parseTableHeader :: Int   -- ^ number of columns
