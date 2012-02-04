@@ -514,14 +514,18 @@ environment :: LP Blocks
 environment = do
   controlSeq "begin"
   name <- braced
-  parseRaw <- stateParseRaw `fmap` getState
-  let addBegin x = "\\begin{" ++ name ++ "}" ++ x
   case M.lookup name environments of
-       Just p      -> p
-       Nothing     -> if parseRaw
-                         then (rawBlock "latex" . addBegin) <$>
-                              (withRaw (env name blocks) >>= applyMacros' . snd)
-                         else env name blocks
+       Just p      -> p <|> rawEnv name
+       Nothing     -> rawEnv name
+
+rawEnv :: String -> LP Blocks
+rawEnv name = do
+  let addBegin x = "\\begin{" ++ name ++ "}" ++ x
+  parseRaw <- stateParseRaw `fmap` getState
+  if parseRaw
+     then (rawBlock "latex" . addBegin) <$>
+            (withRaw (env name blocks) >>= applyMacros' . snd)
+     else env name blocks
 
 -- | Replace "include" commands with file contents.
 handleIncludes :: String -> IO String
