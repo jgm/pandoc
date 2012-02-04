@@ -592,7 +592,8 @@ environments = M.fromList
   , ("description", definitionList <$> listenv "description" (many descItem))
   , ("enumerate", ordered_list)
   , ("code", failUnlessLHS *>
-      (codeBlockWith ("",["sourceCode","literate","haskell"],[]) <$> verbEnv "code"))
+      (codeBlockWith ("",["sourceCode","literate","haskell"],[]) <$>
+        verbEnv "code"))
   , ("verbatim", codeBlock <$> (verbEnv "verbatim"))
   , ("Verbatim", codeBlock <$> (verbEnv "Verbatim"))
   , ("lstlisting", codeBlock <$> (verbEnv "listlisting"))
