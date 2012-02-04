@@ -44,6 +44,8 @@ import Data.Char (isLetter)
 import Control.Applicative
 import Data.Monoid
 import System.FilePath (replaceExtension)
+import System.Exit (ExitCode(..))
+import System.Process (readProcessWithExitCode)
 import qualified Data.Map as M
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
@@ -536,7 +538,7 @@ handleIncludes :: String -> IO String
 handleIncludes [] = return []
 handleIncludes ('\\':xs) =
   case runParser include defaultParserState "input" ('\\':xs) of
-       Right (f, rest) -> do ys <- catch (readFile f)
+       Right (f, rest) -> do ys <- catch (kpsewhich f >>= readFile)
                                     (\e -> warn
                                       ("could not open included file `" ++
                                        f ++ "': " ++ show e) >> return "")
@@ -567,6 +569,14 @@ verbatimEnv = do
              verbEnv name
   rest <- getInput
   return (r,rest)
+
+kpsewhich :: FilePath -> IO FilePath
+kpsewhich f = do
+  (ec, ou, _) <- catch (readProcessWithExitCode "kpsewhich" [f] "")
+                 (\_ -> return (ExitFailure 1, f, ""))
+  if ec == ExitSuccess
+     then return $ trim ou
+     else return f
 
 -- | Parse any LaTeX environment and return a string containing
 -- the whole literal environment as raw TeX.
