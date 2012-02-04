@@ -536,10 +536,7 @@ handleIncludes :: String -> IO String
 handleIncludes [] = return []
 handleIncludes ('\\':xs) =
   case runParser include defaultParserState "input" ('\\':xs) of
-       Right (f, rest) -> do ys <- catch (readFile f)
-                                    (\e -> warn
-                                      ("could not open included file `" ++
-                                       f ++ "': " ++ show e) >> return "")
+       Right (f, rest) -> do ys <- catch (readFile f) (\_ -> return "")
                              (ys ++) `fmap` handleIncludes rest
        _  -> case runParser verbatimEnv defaultParserState "input" ('\\':xs) of
                     Right (r, rest) -> (r ++) `fmap` handleIncludes rest
