@@ -342,6 +342,7 @@ inlineCommands = M.fromList
   , ("^", option (str "^") $ try $ tok >>= accent hat)
   , ("~", option (str "~") $ try $ tok >>= accent circ)
   , ("\"", option (str "\"") $ try $ tok >>= accent umlaut)
+  , (".", option (str ".") $ try $ tok >>= accent dot)
   , ("i", lit "i")
   , ("\\", linebreak <$ optional (bracketed inline *> optional sp))
   , (",", pure mempty)
@@ -499,6 +500,18 @@ umlaut 'i' = 'ï'
 umlaut 'o' = 'ö'
 umlaut 'u' = 'ü'
 umlaut c = c
+
+dot :: Char -> Char
+dot 'C' = 'Ċ'
+dot 'c' = 'ċ'
+dot 'E' = 'Ė'
+dot 'e' = 'ė'
+dot 'G' = 'Ġ'
+dot 'g' = 'ġ'
+dot 'I' = 'İ'
+dot 'Z' = 'Ż'
+dot 'z' = 'ż'
+dot c = c
 
 tok :: LP Inlines
 tok = try $ grouped inline <|> inlineCommand <|> str <$> (count 1 $ inlineChar)
