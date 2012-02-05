@@ -253,6 +253,7 @@ blockCommands = M.fromList $
   , "hyperdef"
   , "noindent"
   , "markboth", "markright", "markleft"
+  , "hspace", "vspace"
   ]
 
 addTitle :: Inlines -> LP ()
