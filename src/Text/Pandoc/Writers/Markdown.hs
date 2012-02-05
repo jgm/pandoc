@@ -233,10 +233,13 @@ blockToMarkdown _ HorizontalRule =
 blockToMarkdown opts (Header level inlines) = do
   contents <- inlineListToMarkdown opts inlines
   st <- get
+  let setext = writerSetextHeaders opts
   return $ case level of
-            1 -> contents <> cr <> text (replicate (offset contents) '=') <>
+            1 | setext ->
+                  contents <> cr <> text (replicate (offset contents) '=') <>
                   blankline
-            2 -> contents <> cr <> text (replicate (offset contents) '-') <>
+            2 | setext ->
+                  contents <> cr <> text (replicate (offset contents) '-') <>
                   blankline
             -- ghc interprets '#' characters in column 1 as linenum specifiers.
             _ | stPlain st || writerLiterateHaskell opts ->
@@ -495,10 +498,10 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
                      then empty
                      else text $ " \"" ++ tit ++ "\""
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
-  let useRefLinks = writerReferenceLinks opts
   let useAuto = case (tit,txt) of
                       ("", [Code _ s]) | s == srcSuffix -> True
                       _                                 -> False
+  let useRefLinks = writerReferenceLinks opts && not useAuto
   ref <- if useRefLinks then getReference txt (src, tit) else return []
   reftext <- inlineListToMarkdown opts ref
   return $ if useAuto

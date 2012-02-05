@@ -39,7 +39,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
-import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXEnvironment' )
+import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
                                   isTextTag, isCommentTag )
 import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
@@ -371,17 +371,21 @@ hrule = try $ do
 indentedLine :: GenParser Char ParserState [Char]
 indentedLine = indentSpaces >> manyTill anyChar newline >>= return . (++ "\n")
 
-codeBlockDelimiter :: Maybe Int
-                   -> GenParser Char st (Int, ([Char], [[Char]], [([Char], [Char])]))
-codeBlockDelimiter len = try $ do
+blockDelimiter :: (Char -> Bool)
+               -> Maybe Int
+               -> GenParser Char st (Int, (String, [String], [(String, String)]), Char)
+blockDelimiter f len = try $ do
+  c <- lookAhead (satisfy f)
   size <- case len of
-              Just l  -> count l (char '~') >> many (char '~') >> return l
-              Nothing -> count 3 (char '~') >> many (char '~') >>= 
-                         return . (+ 3) . length 
+              Just l  -> count l (char c) >> many (char c) >> return l
+              Nothing -> count 3 (char c) >> many (char c) >>=
+                         return . (+ 3) . length
   many spaceChar
-  attr <- option ([],[],[]) attributes
+  attr <- option ([],[],[])
+          $ attributes                                     -- ~~~ {.ruby}
+         <|> (many1 alphaNum >>= \x -> return ([],[x],[])) -- github variant ```ruby
   blankline
-  return (size, attr) 
+  return (size, attr, c)
 
 attributes :: GenParser Char st ([Char], [[Char]], [([Char], [Char])])
 attributes = try $ do
@@ -390,12 +394,13 @@ attributes = try $ do
   attrs <- many (attribute >>~ many spaceChar)
   char '}'
   let (ids, classes, keyvals) = unzip3 attrs
-  let id' = if null ids then "" else head ids
-  return (id', concat classes, concat keyvals)  
+  let firstNonNull [] = ""
+      firstNonNull (x:xs) | not (null x) = x
+                          | otherwise    = firstNonNull xs
+  return (firstNonNull $ reverse ids, concat classes, concat keyvals)
 
 attribute :: GenParser Char st ([Char], [[Char]], [([Char], [Char])])
 attribute = identifierAttr <|> classAttr <|> keyValAttr
-
 
 identifier :: GenParser Char st [Char]
 identifier = do
@@ -425,8 +430,8 @@ keyValAttr = try $ do
 
 codeBlockDelimited :: GenParser Char st Block
 codeBlockDelimited = try $ do
-  (size, attr) <- codeBlockDelimiter Nothing
-  contents <- manyTill anyLine (codeBlockDelimiter (Just size))
+  (size, attr, c) <- blockDelimiter (\c -> c == '~' || c == '`') Nothing
+  contents <- manyTill anyLine (blockDelimiter (== c) (Just size))
   blanklines
   return $ CodeBlock attr $ intercalate "\n" contents
 
@@ -724,8 +729,8 @@ rawVerbatimBlock = try $ do
 rawTeXBlock :: GenParser Char ParserState Block
 rawTeXBlock = do
   failIfStrict
-  result <- liftM (RawBlock "latex") rawLaTeXEnvironment'
-          <|> liftM (RawBlock "context") rawConTeXtEnvironment'
+  result <- liftM (RawBlock "latex") rawLaTeXBlock
+          <|> liftM (RawBlock "context") rawConTeXtEnvironment
   spaces
   return result
 
@@ -773,7 +778,7 @@ simpleTableHeader headless = try $ do
   let (lengths, lines') = unzip dashes
   let indices  = scanl (+) (length initSp) lines'
   -- If no header, calculate alignment on basis of first row of text
-  rawHeads <- liftM (tail . splitByIndices (init indices)) $
+  rawHeads <- liftM (tail . splitStringByIndices (init indices)) $
               if headless
                  then lookAhead anyLine 
                  else return rawContent
@@ -800,7 +805,7 @@ rawTableLine indices = do
   notFollowedBy' (blanklines <|> tableFooter)
   line <- many1Till anyChar newline
   return $ map removeLeadingTrailingSpace $ tail $ 
-           splitByIndices (init indices) line
+           splitStringByIndices (init indices) line
 
 -- Parse a table line and return a list of lists of blocks (columns).
 tableLine :: [Int]
@@ -862,9 +867,9 @@ multilineTableHeader headless = try $ do
   let indices  = scanl (+) (length initSp) lines'
   rawHeadsList <- if headless
                      then liftM (map (:[]) . tail .
-                              splitByIndices (init indices)) $ lookAhead anyLine
+                              splitStringByIndices (init indices)) $ lookAhead anyLine
                      else return $ transpose $ map 
-                           (\ln -> tail $ splitByIndices (init indices) ln)
+                           (\ln -> tail $ splitStringByIndices (init indices) ln)
                            rawContent
   let aligns   = zipWith alignType rawHeadsList lengths
   let rawHeads = if headless
@@ -928,8 +933,8 @@ inlineParsers = [ whitespace
                 , inlineNote  -- after superscript because of ^[link](/foo)^
                 , autoLink
                 , rawHtmlInline
-                , rawLaTeXInline'
                 , escapedChar
+                , rawLaTeXInline'
                 , exampleRef
                 , smartPunctuation inline
                 , charRef
@@ -972,8 +977,7 @@ symbol :: GenParser Char ParserState Inline
 symbol = do 
   result <- noneOf "<\\\n\t "
          <|> try (do lookAhead $ char '\\'
-                     notFollowedBy' $ rawLaTeXEnvironment'
-                                   <|> rawConTeXtEnvironment'
+                     notFollowedBy' rawTeXBlock
                      char '\\')
   return $ Str [result]
 
@@ -1241,18 +1245,16 @@ inlineNote = try $ do
 rawLaTeXInline' :: GenParser Char ParserState Inline
 rawLaTeXInline' = try $ do
   failIfStrict
-  lookAhead $ char '\\'
-  notFollowedBy' $ rawLaTeXEnvironment'
-                <|> rawConTeXtEnvironment'
+  lookAhead $ char '\\' >> notFollowedBy' (string "start") -- context env
   RawInline _ s <- rawLaTeXInline
   return $ RawInline "tex" s  -- "tex" because it might be context or latex
 
-rawConTeXtEnvironment' :: GenParser Char st String
-rawConTeXtEnvironment' = try $ do
+rawConTeXtEnvironment :: GenParser Char st String
+rawConTeXtEnvironment = try $ do
   string "\\start"
   completion <- inBrackets (letter <|> digit <|> spaceChar)
                <|> (many1 letter)
-  contents <- manyTill (rawConTeXtEnvironment' <|> (count 1 anyChar))
+  contents <- manyTill (rawConTeXtEnvironment <|> (count 1 anyChar))
                        (try $ string "\\stop" >> string completion)
   return $ "\\start" ++ completion ++ concat contents ++ "\\stop" ++ completion
 

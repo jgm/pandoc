@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -94,6 +95,7 @@ module Text.Pandoc
                , writeTextile
                , writeRTF
                , writeODT
+               , writeDocx
                , writeEPUB
                , writeOrg
                , writeAsciiDoc
@@ -110,6 +112,7 @@ module Text.Pandoc
                -- * Miscellaneous
                , rtfEmbedImage
                , jsonFilter
+               , ToJsonFilter(..)
              ) where
 
 import Text.Pandoc.Definition
@@ -128,6 +131,7 @@ import Text.Pandoc.Writers.ConTeXt
 import Text.Pandoc.Writers.Texinfo
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.ODT
+import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Writers.EPUB
 import Text.Pandoc.Writers.Docbook
 import Text.Pandoc.Writers.OpenDocument
@@ -166,7 +170,7 @@ readers = [("native"       , \_ -> readNative)
           ]
 
 -- | Association list of formats and writers (omitting the
--- binary writers, odt and epub).
+-- binary writers, odt, docx, and epub).
 writers :: [ ( String, WriterOptions -> Pandoc -> String ) ]
 writers = [("native"       , writeNative)
           ,("json"         , \_ -> encodeJSON)
@@ -205,8 +209,52 @@ writers = [("native"       , writeNative)
           ,("asciidoc"     , writeAsciiDoc)
           ]
 
+{-# DEPRECATED jsonFilter "Use toJsonFilter instead" #-}
 -- | Converts a transformation on the Pandoc AST into a function
 -- that reads and writes a JSON-encoded string.  This is useful
 -- for writing small scripts.
 jsonFilter :: (Pandoc -> Pandoc) -> String -> String
 jsonFilter f = encodeJSON . f . decodeJSON
+
+-- | 'toJsonFilter' convert a function into a filter that reads pandoc's json output
+-- from stdin, transforms it by walking the AST and applying the specified
+-- function, and writes the result as json to stdout.  Usage example:
+--
+-- > -- capitalize.hs
+-- > -- compile with:  ghc --make capitalize
+-- > -- run with:      pandoc -t json | ./capitalize | pandoc -f json
+-- >
+-- > import Text.Pandoc
+-- > import Data.Char (toUpper)
+-- >
+-- > main :: IO ()
+-- > main = toJsonFilter capitalizeStrings
+-- >
+-- > capitalizeStrings :: Inline -> Inline
+-- > capitalizeStrings (Str s) = Str $ map toUpper s
+-- > capitalizeStrings x       = x
+--
+-- The function can be any type @(a -> a)@, @(a -> IO a)@, @(a -> [a])@,
+-- or @(a -> IO [a])@, where @a@ is an instance of 'Data'.
+-- So, for example, @a@ can be 'Pandoc', 'Inline', 'Block', ['Inline'],
+-- ['Block'], 'Meta', 'ListNumberStyle', 'Alignment', 'ListNumberDelim',
+-- 'QuoteType', etc. See 'Text.Pandoc.Definition'.
+class ToJsonFilter a where
+  toJsonFilter :: a -> IO ()
+
+instance (Data a) => ToJsonFilter (a -> a) where
+  toJsonFilter f = getContents
+    >>= putStr . encodeJSON . (bottomUp f :: Pandoc -> Pandoc) . decodeJSON
+
+instance (Data a) => ToJsonFilter (a -> IO a) where
+  toJsonFilter f = getContents >>= (bottomUpM f :: Pandoc -> IO Pandoc) . decodeJSON
+    >>= putStr . encodeJSON
+
+instance (Data a) => ToJsonFilter (a -> [a]) where
+  toJsonFilter f = getContents
+    >>= putStr . encodeJSON . (bottomUp (concatMap f) :: Pandoc -> Pandoc) . decodeJSON
+
+instance (Data a) => ToJsonFilter (a -> IO [a]) where
+  toJsonFilter f = getContents
+    >>= (bottomUpM (fmap concat . mapM f) :: Pandoc -> IO Pandoc) . decodeJSON
+    >>= putStr . encodeJSON

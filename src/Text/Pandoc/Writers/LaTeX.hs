@@ -41,6 +41,7 @@ import Data.Char ( toLower, isPunctuation )
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import System.FilePath (dropExtension)
+import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
                                  formatLaTeXInline, formatLaTeXBlock)
 
@@ -62,7 +63,6 @@ data WriterState =
               , stBook          :: Bool          -- true if document uses book or memoir class
               , stCsquotes      :: Bool          -- true if document uses csquotes
               , stHighlighting  :: Bool          -- true if document has highlighted code
-              , stFirstFrame    :: Bool          -- true til we've written first beamer frame
               , stIncremental   :: Bool          -- true if beamer lists should be displayed bit by bit
               , stInternalLinks :: [String]      -- list of internal link targets
               }
@@ -78,7 +78,7 @@ writeLaTeX options document =
                 stUrl = False, stGraphics = False,
                 stLHS = False, stBook = writerChapters options,
                 stCsquotes = False, stHighlighting = False,
-                stFirstFrame = True, stIncremental = writerIncremental options,
+                stIncremental = writerIncremental options,
                 stInternalLinks = [] }
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
@@ -171,12 +171,8 @@ elementToLaTeX opts (Sec level _ id' title' elements) = do
 -- escape things as needed for LaTeX
 stringToLaTeX :: Bool -> String -> String
 stringToLaTeX isUrl = escapeStringUsing latexEscapes
-  where latexEscapes = backslashEscapes "{}$%&_" ++
-                       if isUrl
-                          then []
-                          else [ ('~', "\\ensuremath{\\sim}")
-                               , ('#', "\\#")
-                               ] ++
+  where latexEscapes = backslashEscapes "{}$%&_#" ++
+                       [ ('~', "\\ensuremath{\\sim}") | not isUrl ] ++
                        [ ('^', "\\^{}")
                        , ('\\', "\\textbackslash{}")
                        , ('€', "\\euro{}")
@@ -200,34 +196,38 @@ inCmd :: String -> Doc -> Doc
 inCmd cmd contents = char '\\' <> text cmd <> braces contents
 
 toSlides :: [Block] -> State WriterState [Block]
-toSlides (Header n ils : bs) = do
-  tit <- inlineListToLaTeX ils
-  firstFrame <- gets stFirstFrame
-  modify $ \s -> s{ stFirstFrame = False }
-  -- note: [fragile] is required or verbatim breaks
-  result <- ((Header n ils :) .
-             (RawBlock "latex" ("\\begin{frame}[fragile]\n" ++
-               "\\frametitle{" ++ render Nothing tit ++ "}") :))
-         `fmap` toSlides bs
-  if firstFrame
-     then return result
-     else return $ RawBlock "latex" "\\end{frame}" : result
-toSlides (HorizontalRule : Header n ils : bs) =
-  toSlides (Header n ils : bs)
-toSlides (HorizontalRule : bs) = do
-  firstFrame <- gets stFirstFrame
-  modify $ \s -> s{ stFirstFrame = False }
-  result <- (RawBlock "latex" "\\begin{frame}[fragile]" :)
-         `fmap` toSlides bs
-  if firstFrame
-     then return result
-     else return $ RawBlock "latex" "\\end{frame}" : result
-toSlides (b:bs) = (b:) `fmap` toSlides bs
-toSlides [] = do
-  firstFrame <- gets stFirstFrame
-  if firstFrame
-     then return []
-     else return [RawBlock "latex" "\\end{frame}"]
+toSlides bs = do
+  opts <- gets stOptions
+  let slideLevel = maybe (getSlideLevel bs) id $ writerSlideLevel opts
+  let bs' = prepSlides slideLevel bs
+  concat `fmap` (mapM (elementToBeamer slideLevel) $ hierarchicalize bs')
+
+elementToBeamer :: Int -> Element -> State WriterState [Block]
+elementToBeamer _slideLevel (Blk b) = return [b]
+elementToBeamer slideLevel  (Sec lvl _num _ident tit elts)
+  | lvl >  slideLevel = do
+      bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
+      return $ Para ( RawInline "latex" "\\begin{block}{"
+                    : tit ++ [RawInline "latex" "}"] )
+             : bs ++ [RawBlock "latex" "\\end{block}"]
+  | lvl <  slideLevel = do
+      bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
+      return $ (Header lvl tit) : bs
+  | otherwise = do -- lvl == slideLevel
+      -- note: [fragile] is required or verbatim breaks
+      let hasCodeBlock (CodeBlock _ _) = [True]
+          hasCodeBlock _               = []
+      let hasCode (Code _ _) = [True]
+          hasCode _          = []
+      let fragile = if not $ null $ queryWith hasCodeBlock elts ++ queryWith hasCode elts
+                       then "[fragile]"
+                       else ""
+      let slideStart = Para $ RawInline "latex" ("\\begin{frame}" ++ fragile ++
+                "\\frametitle{") : tit ++ [RawInline "latex" "}"]
+      let slideEnd = RawBlock "latex" "\\end{frame}"
+      -- now carve up slide into blocks if there are sections inside
+      bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
+      return $ slideStart : bs ++ [slideEnd]
 
 isListBlock :: Block -> Bool
 isListBlock (BulletList _)     = True
@@ -434,8 +434,9 @@ sectionHeader ref level lst = do
                    res <- inlineListToLaTeX lstNoNotes
                    return $ char '[' <> res <> char ']'
   let stuffing = optional <> char '{' <> txt <> char '}'
-  book <- liftM stBook get
-  let level' = if book then level - 1 else level
+  book <- gets stBook
+  opts <- gets stOptions
+  let level' = if book || writerChapters opts then level - 1 else level
   internalLinks <- gets stInternalLinks
   let refLabel lab = (if ref `elem` internalLinks
                          then text "\\hyperdef"
@@ -447,7 +448,9 @@ sectionHeader ref level lst = do
                       $$ blankline
   let headerWith x y = refLabel $ text x <> y
   return $ case level' of
-                0  -> headerWith "\\chapter" stuffing
+                0  -> if writerBeamer opts
+                         then headerWith "\\part" stuffing
+                         else headerWith "\\chapter" stuffing
                 1  -> headerWith "\\section" stuffing
                 2  -> headerWith "\\subsection" stuffing
                 3  -> headerWith "\\subsubsection" stuffing

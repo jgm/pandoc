@@ -32,11 +32,11 @@ import Data.IORef
 import Data.Maybe ( fromMaybe, isNothing )
 import Data.List ( findIndices, isPrefixOf )
 import System.Environment ( getEnv )
-import System.FilePath ( (</>), (<.>), takeBaseName, takeExtension )
+import System.FilePath ( (</>), (<.>), takeBaseName, takeExtension, takeFileName )
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 ( fromString )
 import Codec.Archive.Zip
-import System.Time
+import Data.Time.Clock.POSIX
 import Text.Pandoc.Shared hiding ( Element )
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
@@ -47,14 +47,16 @@ import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.Markdown ( writePlain )
 import Data.Char ( toLower )
 import Network.URI ( unEscapeString )
+import Text.Pandoc.MIME (getMimeType)
 
 -- | Produce an EPUB file from a Pandoc document.
 writeEPUB :: Maybe String   -- ^ EPUB stylesheet specified at command line
+          -> [FilePath]     -- ^ Paths to fonts to embed
           -> WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO B.ByteString
-writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
-  (TOD epochtime _) <- getClockTime
+writeEPUB mbStylesheet fonts opts doc@(Pandoc meta _) = do
+  epochtime <- floor `fmap` getPOSIXTime
   let mkEntry path content = toEntry path epochtime content
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerStandalone = True
@@ -101,6 +103,10 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
                                           return e{ eRelativePath = newsrc }
   picEntries <- mapM readPicEntry pics
 
+  -- handle fonts
+  let mkFontEntry f = mkEntry (takeFileName f) `fmap` B.readFile f
+  fontEntries <- mapM mkFontEntry fonts
+
   -- body pages
   let isH1 (Header 1 _) = True
       isH1 _            = False
@@ -137,6 +143,10 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
                             ("href", eRelativePath ent),
                             ("media-type", fromMaybe "application/octet-stream"
                                $ imageTypeOf $ eRelativePath ent)] $ ()
+  let fontNode ent = unode "item" !
+                           [("id", takeBaseName $ eRelativePath ent),
+                            ("href", eRelativePath ent),
+                            ("media-type", maybe "" id $ getMimeType $ eRelativePath ent)] $ ()
   let plainify t = removeTrailingSpace $
                     writePlain opts'{ writerStandalone = False } $
                     Pandoc meta [Plain t]
@@ -156,7 +166,8 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
                               ,("media-type","text/css")] $ ()
              ] ++
              map chapterNode (cpgEntry ++ (tpEntry : chapterEntries)) ++
-             map pictureNode (cpicEntry ++ picEntries)
+             map pictureNode (cpicEntry ++ picEntries) ++
+             map fontNode fontEntries
           , unode "spine" ! [("toc","ncx")] $
               case mbCoverImage of
                     Nothing -> []
@@ -210,6 +221,13 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
                ,("media-type","application/oebps-package+xml")] $ ()
   let containerEntry = mkEntry "META-INF/container.xml" containerData
 
+  -- com.apple.ibooks.display-options.xml
+  let apple = fromString $ ppTopElement $
+        unode "display_options" $
+          unode "platform" ! [("name","*")] $
+            unode "option" ! [("name","specified-fonts")] $ "true"
+  let appleEntry = mkEntry "META-INF/com.apple.ibooks.display-options.xml" apple
+
   -- stylesheet
   stylesheet <- case mbStylesheet of
                    Just s  -> return s
@@ -218,9 +236,9 @@ writeEPUB mbStylesheet opts doc@(Pandoc meta _) = do
 
   -- construct archive
   let archive = foldr addEntryToArchive emptyArchive
-                 (mimetypeEntry : containerEntry : stylesheetEntry : tpEntry :
+                 (mimetypeEntry : containerEntry : appleEntry : stylesheetEntry : tpEntry :
                   contentsEntry : tocEntry :
-                  (picEntries ++ cpicEntry ++ cpgEntry ++ chapterEntries) )
+                  (picEntries ++ cpicEntry ++ cpgEntry ++ chapterEntries ++ fontEntries) )
   return $ fromArchive archive
 
 metadataElement :: String -> UUID -> String -> String -> [String] -> String -> Maybe a -> Element
