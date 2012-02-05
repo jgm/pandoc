@@ -34,10 +34,12 @@ module Text.Pandoc.XML ( stripTags,
                          selfClosingTag,
                          inTagsSimple,
                          inTagsIndented,
-                         toEntities ) where
+                         toEntities,
+                         fromEntities ) where
 
 import Text.Pandoc.Pretty
 import Data.Char (ord, isAscii)
+import Text.HTML.TagSoup.Entity (lookupEntity)
 
 -- | Remove everything between <...>
 stripTags :: String -> String
@@ -98,3 +100,15 @@ toEntities [] = ""
 toEntities (c:cs)
   | isAscii c = c : toEntities cs
   | otherwise = "&#" ++ show (ord c) ++ ";" ++ toEntities cs
+
+-- Unescapes XML entities
+fromEntities :: String -> String
+fromEntities ('&':xs) =
+  case lookupEntity ent of
+        Just c  -> c : fromEntities rest
+        Nothing -> '&' : fromEntities rest
+    where (ent, rest) = case break (==';') xs of
+                             (zs,';':ys) -> (zs,ys)
+                             (zs,ys)     -> (zs,ys)
+fromEntities (x:xs) = x : fromEntities xs
+fromEntities [] = []

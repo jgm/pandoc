@@ -34,6 +34,7 @@ import Text.Pandoc.PDF (tex2pdf)
 import Text.Pandoc.Readers.LaTeX (handleIncludes)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
                             headerShift, findDataFile, normalize, err, warn )
+import Text.Pandoc.XML ( toEntities, fromEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Highlighting ( languages, Style, tango, pygments,
          espresso, kate, haddock, monochrome )
@@ -55,7 +56,6 @@ import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString )
-import Text.HTML.TagSoup.Entity (lookupEntity)
 import Codec.Binary.UTF8.String (decodeString, encodeString)
 import Text.CSL.Reference (Reference(..))
 
@@ -663,18 +663,6 @@ options =
 
     ]
 
--- Unescapes XML entities
-deEntity :: String -> String
-deEntity ('&':xs) =
-  case lookupEntity ent of
-        Just c  -> c : deEntity rest
-        Nothing -> '&' : deEntity rest
-    where (ent, rest) = case break (==';') xs of
-                             (zs,';':ys) -> (zs,ys)
-                             (zs,ys)     -> (zs,ys)
-deEntity (x:xs) = x : deEntity xs
-deEntity [] = []
-
 -- Returns usage message
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName = usageInfo
@@ -902,7 +890,7 @@ main = do
 
   -- unescape reference ids, which may contain XML entities, so
   -- that we can do lookups with regular string equality
-  let unescapeRefId ref = ref{ refId = deEntity (refId ref) }
+  let unescapeRefId ref = ref{ refId = fromEntities (refId ref) }
 
   refs <- mapM (\f -> catch (CSL.readBiblioFile f) $ \e ->
              err 23 $ "Error reading bibliography `" ++ f ++ "'" ++ "\n" ++ show e)
