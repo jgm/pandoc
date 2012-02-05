@@ -43,7 +43,14 @@ import Control.Monad
 import Text.Pandoc.Builder
 import Data.Char (isLetter)
 import Control.Applicative
+
+-- Data.Monoid exports (<>) under base 4.5
+#if __GLASGOW_HASKELL__ < 704
 import Data.Monoid
+#else
+import Data.Monoid hiding ( (<>) )
+#endif
+
 import System.FilePath (replaceExtension)
 import Data.List (intercalate)
 import qualified Data.Map as M

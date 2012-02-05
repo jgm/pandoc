@@ -74,7 +74,11 @@ module Text.Pandoc.Pretty (
 where
 import Data.DList (DList, fromList, toList, cons, singleton)
 import Data.List (intercalate)
-import Data.Monoid
+#if __GLASGOW_HASKELL__ >= 704
+import Data.Monoid hiding ( (<>) )
+#else
+import Data.Monoid 
+#endif
 import Data.String
 import Control.Monad.State
 import Data.Char (isSpace)
