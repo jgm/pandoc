@@ -134,6 +134,7 @@ data Opt = Opt
     , optLaTeXEngine       :: String     -- ^ Program to use for latex -> pdf
     , optSlideLevel        :: Maybe Int  -- ^ Header level that creates slides
     , optSetextHeaders     :: Bool       -- ^ Use atx headers for markdown level 1-2
+    , optAscii             :: Bool       -- ^ Use ascii characters only in html
     }
 
 -- | Defaults for command-line options.
@@ -185,6 +186,7 @@ defaultOpts = Opt
     , optLaTeXEngine       = "pdflatex"
     , optSlideLevel        = Nothing
     , optSetextHeaders     = True
+    , optAscii             = False
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -411,6 +413,11 @@ options =
                        ++ "Use the html5 output format instead."
                      return opt { optHtml5 = True }))
                  "" -- "Produce HTML5 in HTML output"
+
+    , Option "" ["ascii"]
+                 (NoArg
+                  (\opt -> return opt { optAscii = True }))
+                 ""  -- "Use ascii characters only in HTML output"
 
     , Option "" ["reference-links"]
                  (NoArg
@@ -796,6 +803,7 @@ main = do
               , optLaTeXEngine       = latexEngine
               , optSlideLevel        = slideLevel
               , optSetextHeaders     = setextHeaders
+              , optAscii             = ascii
              } = opts
 
   when dumpArgs $
@@ -1027,10 +1035,15 @@ main = do
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> err 43 $ toString err'
-        Just r  -> writerFn outputFile =<< postProcess result
+        Just r
+          | htmlFormat && ascii ->
+                  writerFn outputFile =<< selfcontain (toEntities result)
+          | otherwise ->
+                  writerFn outputFile =<< selfcontain result
           where result       = r writerOptions doc2 ++ ['\n' | not standalone']
-                htmlFormats = ["html","html+lhs","html5","html5+lhs",
+                htmlFormat = writerName' `elem`
+                               ["html","html+lhs","html5","html5+lhs",
                                "s5","slidy","dzslides"]
-                postProcess = if selfContained && writerName' `elem` htmlFormats
-                                then makeSelfContained datadir
-                                else return
+                selfcontain = if selfContained && htmlFormat
+                                 then makeSelfContained datadir
+                                 else return

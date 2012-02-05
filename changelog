@@ -178,9 +178,6 @@ pandoc (1.9)
   * `'` is no longer escaped in HTML output.  It does not need to be
     escaped outside of attributes.
 
-  * The `--ascii` option has been removed, because of differences
-      in blaze-html's and xhtml's escaping.
-
   * Pandoc will no longer transform leading newlines in code
     blocks to `<br/>` tags.
 
