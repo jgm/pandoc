@@ -199,8 +199,23 @@ blockCommand = try $ do
 inBrackets :: Inlines -> Inlines
 inBrackets x = (str "[") <> x <> (str "]")
 
+-- eat an optional argument and one or more arguments in braces
+ignoreInlines :: String -> (String, LP Inlines)
+ignoreInlines name = (name, doraw <|> (mempty <$ optargs))
+  where optargs = optional opt *> skipMany (optional sp *> braced)
+        contseq = '\\':name
+        doraw = (rawInline "latex" . (contseq ++) . snd) <$>
+                 (getState >>= guard . stateParseRaw >> (withRaw optargs))
+
+ignoreBlocks :: String -> (String, LP Blocks)
+ignoreBlocks name = (name, doraw <|> (mempty <$ optargs))
+  where optargs = optional opt *> skipMany (optional sp *> braced)
+        contseq = '\\':name
+        doraw = (rawBlock "latex" . (contseq ++) . snd) <$>
+                 (getState >>= guard . stateParseRaw >> (withRaw optargs))
+
 blockCommands :: M.Map String (LP Blocks)
-blockCommands = M.fromList
+blockCommands = M.fromList $
   [ ("par", pure mempty)
   , ("title", mempty <$ (tok >>= addTitle))
   , ("subtitle", mempty <$ (tok >>= addSubtitle))
@@ -209,11 +224,7 @@ blockCommands = M.fromList
   , ("address", mempty <$ (tok >>= addTitle))
   , ("signature", mempty <$ authors)
   , ("date", mempty <$ (tok >>= addDate))
-  , ("maketitle", pure mempty)
-  -- \ignore{} is used conventionally in literate haskell for definitions
-  -- that are to be processed by the compiler but not printed.
-  , ("ignore", mempty <$ tok)
-  , ("hyperdef", mempty <$ (tok *> tok))
+  -- sectioning
   , ("chapter", updateState (\s -> s{ stateHasChapters = True }) *> section 0)
   , ("section", section 1)
   , ("subsection", section 2)
@@ -221,23 +232,27 @@ blockCommands = M.fromList
   , ("paragraph", section 4)
   , ("subparagraph", section 5)
   , ("opening", (para . trimInlines) <$> tok)
-  , ("closing", (para . trimInlines) <$> tok)
+  , ("closing", closing)
   , ("rule", optional opt *> tok *> tok *> pure horizontalRule)
   , ("begin", mzero)   -- these are here so they won't be interpreted as inline
   , ("end", mzero)
   , ("item", loose_item)
   , ("documentclass", optional opt *> braced *> preamble)
-  -- should be parsed by macro, but we need this
-  -- here so these aren't parsed as inline
-  , ("newcommand", mempty <$ (tok *> optional opt *> tok))
-  , ("renewcommand", mempty <$ (tok *> optional opt *> tok))
-  , ("newenvironment", mempty <$ (tok *> tok *> tok))
-  , ("renewenvironment", mempty <$ (tok *> tok *> tok))
-  , ("special", pure mempty)
-  , ("pdfannot", pure mempty)
-  , ("pdfstringdef", pure mempty)
-  , ("index", pure mempty)
-  , ("bibliography", pure mempty)
+  ] ++ map ignoreBlocks
+  -- these commands will be ignored unless --parse-raw is specified,
+  -- in which case they will appear as raw latex blocks
+  [ "newcommand", "renewcommand", "newenvironment", "renewenvironment"
+    -- newcommand, etc. should be parsed by macro, but we need this
+    -- here so these aren't parsed as inline commands to ignore
+  , "special", "pdfannot", "pdfstringdef"
+  , "bibliography", "maketitle", "makeindex", "makeglossary"
+  , "addcontentsline", "addtocontents", "addtocounter"
+     -- \ignore{} is used conventionally in literate haskell for definitions
+     -- that are to be processed by the compiler but not printed.
+  , "ignore"
+  , "hyperdef"
+  , "noindent"
+  , "markboth", "markright", "markleft"
   ]
 
 addTitle :: Inlines -> LP ()
@@ -288,7 +303,7 @@ isBlockCommand :: String -> Bool
 isBlockCommand s = maybe False (const True) $ M.lookup s blockCommands
 
 inlineCommands :: M.Map String (LP Inlines)
-inlineCommands = M.fromList
+inlineCommands = M.fromList $
   [ ("emph", emph <$> tok)
   , ("textit", emph <$> tok)
   , ("textsc", smallcaps <$> tok)
@@ -307,6 +322,8 @@ inlineCommands = M.fromList
   , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
   , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
   , ("ensuremath", mathInline $ braced)
+  , ("P", lit "¶")
+  , ("S", lit "§")
   , ("$", lit "$")
   , ("%", lit "%")
   , ("&", lit "&")
@@ -339,7 +356,6 @@ inlineCommands = M.fromList
   , ("pounds", lit "£")
   , ("euro", lit "€")
   , ("copyright", lit "©")
-  , ("sect", lit "§")
   , ("`", option (str "`") $ try $ tok >>= accent grave)
   , ("'", option (str "'") $ try $ tok >>= accent acute)
   , ("^", option (str "^") $ try $ tok >>= accent hat)
@@ -352,6 +368,7 @@ inlineCommands = M.fromList
   , (",", pure mempty)
   , ("@", pure mempty)
   , (" ", lit "\160")
+  , ("ps", pure $ str "PS." <> space)
   , ("bar", lit "|")
   , ("textless", lit "<")
   , ("textgreater", lit ">")
@@ -417,7 +434,10 @@ inlineCommands = M.fromList
   , ("citeauthor", (try (tok *> optional sp *> controlSeq "citetext") *>
                         complexNatbibCitation AuthorInText)
                    <|> citation AuthorInText False)
-  ]
+  ] ++ map ignoreInlines
+  -- these commands will be ignored unless --parse-raw is specified,
+  -- in which case they will appear as raw latex blocks:
+  [ "index" ]
 
 unescapeURL :: String -> String
 unescapeURL ('\\':x:xs) | isEscapable x = x:unescapeURL xs
@@ -573,7 +593,8 @@ handleIncludes ('\\':xs) =
                               yss <- mapM getfile fs
                               (intercalate "\n" yss ++) `fmap`
                                 handleIncludes rest
-       _  -> case runParser verbatimEnv defaultParserState "input" ('\\':xs) of
+       _  -> case runParser (verbCmd <|> verbatimEnv) defaultParserState
+                   "input" ('\\':xs) of
                     Right (r, rest) -> (r ++) `fmap` handleIncludes rest
                     _               -> ('\\':) `fmap` handleIncludes xs
 handleIncludes (x:xs) = (x:) `fmap` handleIncludes xs
@@ -588,6 +609,15 @@ include = do
                then map (flip replaceExtension ".tex") fs
                else map (flip replaceExtension ".sty") fs
   return (fs', rest)
+
+verbCmd :: LP (String, String)
+verbCmd = do
+  (_,r) <- withRaw $ do
+             controlSeq "verb"
+             c <- anyChar
+             manyTill anyChar (char c)
+  rest <- getInput
+  return (r, rest)
 
 verbatimEnv :: LP (String, String)
 verbatimEnv = do
@@ -659,12 +689,19 @@ letter_contents = do
   -- add signature (author) and address (title)
   let addr = case stateTitle st of
                   []   -> mempty
-                  x    -> para $ fromList x
+                  x    -> para $ trimInlines $ fromList x
+  updateState $ \s -> s{ stateAuthors = [], stateTitle = [] }
+  return $ addr <> bs -- sig added by \closing
+
+closing :: LP Blocks
+closing = do
+  contents <- tok
+  st <- getState
   let sigs = case stateAuthors st of
                   []   -> mempty
-                  xs   -> para $ fromList $ intercalate [LineBreak] xs
-  updateState $ \s -> s{ stateAuthors = [], stateTitle = [] }
-  return $ addr <> bs <> sigs
+                  xs   -> para $ trimInlines $ fromList
+                               $ intercalate [LineBreak] xs
+  return $ para (trimInlines contents) <> sigs
 
 item :: LP Blocks
 item = blocks *> controlSeq "item" *> optional opt *> blocks
