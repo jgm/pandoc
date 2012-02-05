@@ -79,7 +79,7 @@ vivid s = setSGRCode [SetColor Background Dull Red
                      , SetColor Foreground Vivid White] ++ s
           ++ setSGRCode [Reset]
 
-infix 6 =?>
+infix 5 =?>
 (=?>) :: a -> b -> (a,b)
 x =?> y = (x, y)
 

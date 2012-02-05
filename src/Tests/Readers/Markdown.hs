@@ -15,7 +15,7 @@ markdown = readMarkdown defaultParserState{ stateStandalone = True }
 markdownSmart :: String -> Pandoc
 markdownSmart = readMarkdown defaultParserState{ stateSmart = True }
 
-infix 5 =:
+infix 4 =:
 (=:) :: ToString c
      => String -> (String, c) -> Test
 (=:) = test markdown

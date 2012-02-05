@@ -12,7 +12,7 @@ import Data.Monoid (mempty)
 latex :: String -> Pandoc
 latex = readLaTeX defaultParserState
 
-infix 5 =:
+infix 4 =:
 (=:) :: ToString c
      => String -> (String, c) -> Test
 (=:) = test latex

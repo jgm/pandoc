@@ -11,7 +11,7 @@ import Text.Pandoc
 rst :: String -> Pandoc
 rst = readRST defaultParserState{ stateStandalone = True }
 
-infix 5 =:
+infix 4 =:
 (=:) :: ToString c
      => String -> (String, c) -> Test
 (=:) = test rst
