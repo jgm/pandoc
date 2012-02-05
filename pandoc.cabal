@@ -226,7 +226,10 @@ Library
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
   else
     Ghc-Options:     -O2 -Wall
-  Ghc-Prof-Options: -auto-all -caf-all -rtsopts
+  if impl(ghc >= 7.0.1)
+    Ghc-Prof-Options: -auto-all -caf-all -rtsopts
+  else
+    Ghc-Prof-Options: -auto-all -caf-all
   Extensions:         CPP
   Hs-Source-Dirs:  src
   -- END DUPLICATED SECTION
@@ -318,7 +321,10 @@ Executable pandoc
     Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
   else
     Ghc-Options:     -O2 -Wall
-  Ghc-Prof-Options: -auto-all -caf-all -rtsopts
+  if impl(ghc >= 7.0.1)
+    Ghc-Prof-Options: -auto-all -caf-all -rtsopts
+  else
+    Ghc-Prof-Options: -auto-all -caf-all
   Extensions:         CPP
   Hs-Source-Dirs:  src
   -- END DUPLICATED SECTION
