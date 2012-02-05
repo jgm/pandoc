@@ -152,7 +152,7 @@ writeEPUB mbStylesheet fonts opts doc@(Pandoc meta _) = do
                     Pandoc meta [Plain t]
   let plainTitle = plainify $ docTitle meta
   let plainAuthors = map plainify $ docAuthors meta
-  let plainDate = plainify $ docDate meta
+  let plainDate = maybe "" id $ normalizeDate $ stringify $ docDate meta
   let contentsData = fromString $ ppTopElement $
         unode "package" ! [("version","2.0")
                           ,("xmlns","http://www.idpf.org/2007/opf")
