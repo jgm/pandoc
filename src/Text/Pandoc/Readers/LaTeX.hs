@@ -205,6 +205,9 @@ blockCommands = M.fromList
   , ("title", mempty <$ (tok >>= addTitle))
   , ("subtitle", mempty <$ (tok >>= addSubtitle))
   , ("author", mempty <$ authors)
+  -- in letter class, temp. store address & sig as title, author
+  , ("address", mempty <$ (tok >>= addTitle))
+  , ("signature", mempty <$ authors)
   , ("date", mempty <$ (tok >>= addDate))
   , ("maketitle", pure mempty)
   -- \ignore{} is used conventionally in literate haskell for definitions
@@ -345,7 +348,7 @@ inlineCommands = M.fromList
   , (".", option (str ".") $ try $ tok >>= accent dot)
   , ("=", option (str "=") $ try $ tok >>= accent macron)
   , ("i", lit "i")
-  , ("\\", linebreak <$ optional (bracketed inline *> optional sp))
+  , ("\\", linebreak <$ (optional (bracketed inline) *> optional sp))
   , (",", pure mempty)
   , ("@", pure mempty)
   , (" ", lit "\160")
@@ -620,7 +623,7 @@ rawLaTeXInline = do
 environments :: M.Map String (LP Blocks)
 environments = M.fromList
   [ ("document", env "document" blocks)
-  , ("letter", env "letter" blocks)
+  , ("letter", env "letter" letter_contents)
   , ("center", env "center" blocks)
   , ("tabular", env "tabular" simpTable)
   , ("quote", blockQuote <$> env "quote" blocks)
@@ -648,6 +651,20 @@ environments = M.fromList
   , ("alignat", mathEnv (Just "aligned*") "alignat")
   , ("alignat*", mathEnv (Just "aligned*") "alignat*")
   ]
+
+letter_contents :: LP Blocks
+letter_contents = do
+  bs <- blocks
+  st <- getState
+  -- add signature (author) and address (title)
+  let addr = case stateTitle st of
+                  []   -> mempty
+                  x    -> para $ fromList x
+  let sigs = case stateAuthors st of
+                  []   -> mempty
+                  xs   -> para $ fromList $ intercalate [LineBreak] xs
+  updateState $ \s -> s{ stateAuthors = [], stateTitle = [] }
+  return $ addr <> bs <> sigs
 
 item :: LP Blocks
 item = blocks *> controlSeq "item" *> optional opt *> blocks
