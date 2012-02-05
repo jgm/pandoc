@@ -370,6 +370,8 @@ inlineCommands = M.fromList $
   , ("@", pure mempty)
   , (" ", lit "\160")
   , ("ps", pure $ str "PS." <> space)
+  , ("TeX", lit "TeX")
+  , ("LaTeX", lit "LaTeX")
   , ("bar", lit "|")
   , ("textless", lit "<")
   , ("textgreater", lit ">")
