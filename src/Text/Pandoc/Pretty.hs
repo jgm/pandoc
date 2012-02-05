@@ -72,7 +72,8 @@ module Text.Pandoc.Pretty (
      )
 
 where
-import Data.DList (DList, fromList, toList, cons, singleton)
+import Data.Sequence (Seq, fromList, (<|), singleton)
+import Data.Foldable (toList)
 import Data.List (intercalate)
 import Data.Monoid
 import Data.String
@@ -102,7 +103,7 @@ data D = Text Int String
        | BlankLine
        deriving (Show)
 
-newtype Doc = Doc { unDoc :: DList D }
+newtype Doc = Doc { unDoc :: Seq D }
               deriving (Monoid)
 
 instance Show Doc where
@@ -342,12 +343,12 @@ offsetOf _                = 0
 -- | A literal string.
 text :: String -> Doc
 text = Doc . toChunks
-  where toChunks :: String -> DList D
+  where toChunks :: String -> Seq D
         toChunks [] = mempty
         toChunks s = case break (=='\n') s of
-                          ([], _:ys) -> NewLine `cons` toChunks ys
-                          (xs, _:ys) -> Text (realLength xs) xs `cons`
-                                            NewLine `cons` toChunks ys
+                          ([], _:ys) -> NewLine <| toChunks ys
+                          (xs, _:ys) -> Text (realLength xs) xs <|
+                                            (NewLine <| toChunks ys)
                           (xs, [])      -> singleton $ Text (realLength xs) xs
 
 -- | A character.
