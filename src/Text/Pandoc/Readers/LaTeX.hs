@@ -231,8 +231,13 @@ blockCommands = M.fromList $
   , ("subsubsection", section 3)
   , ("paragraph", section 4)
   , ("subparagraph", section 5)
+  -- beamer slides
+  , ("frametitle", section 3)
+  , ("framesubtitle", section 4)
+  -- letters
   , ("opening", (para . trimInlines) <$> tok)
   , ("closing", closing)
+  --
   , ("rule", optional opt *> tok *> tok *> pure horizontalRule)
   , ("begin", mzero)   -- these are here so they won't be interpreted as inline
   , ("end", mzero)
