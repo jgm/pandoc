@@ -653,7 +653,7 @@ rawLaTeXInline = do
 
 environments :: M.Map String (LP Blocks)
 environments = M.fromList
-  [ ("document", env "document" blocks)
+  [ ("document", env "document" blocks <* skipMany anyChar)
   , ("letter", env "letter" letter_contents)
   , ("center", env "center" blocks)
   , ("tabular", env "tabular" simpTable)
