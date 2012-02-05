@@ -1041,7 +1041,8 @@ main = do
                    Left err' -> err 43 $ toString err'
         Just r  -> writerFn outputFile =<< postProcess result
           where result       = r writerOptions doc2 ++ ['\n' | not standalone']
-                htmlFormats = ["html","html+lhs","s5","slidy","dzslides"]
+                htmlFormats = ["html","html+lhs","html5","html5+lhs",
+                               "s5","slidy","dzslides"]
                 postProcess = if selfContained && writerName' `elem` htmlFormats
                                 then makeSelfContained datadir
                                 else return
