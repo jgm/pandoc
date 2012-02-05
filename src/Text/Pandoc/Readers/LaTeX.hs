@@ -266,8 +266,10 @@ addSubtitle tit = updateState (\s -> s{ stateTitle = stateTitle s ++
 authors :: LP ()
 authors = try $ do
   char '{'
-  let oneAuthor = mconcat <$> many1 (notFollowedBy' (controlSeq "and") >> inline)
+  let oneAuthor = mconcat <$>
+       many1 (notFollowedBy' (controlSeq "and") >> inline)
   auths <- sepBy oneAuthor (controlSeq "and")
+  char '}'
   updateState (\s -> s { stateAuthors = map (normalizeSpaces . toList) auths })
 
 addDate :: Inlines -> LP ()
