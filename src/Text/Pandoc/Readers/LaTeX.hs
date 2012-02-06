@@ -640,8 +640,6 @@ verbatimEnv = do
   rest <- getInput
   return (r,rest)
 
--- | Parse any LaTeX environment and return a string containing
--- the whole literal environment as raw TeX.
 rawLaTeXBlock :: GenParser Char ParserState String
 rawLaTeXBlock =
   (rawLaTeXEnvironment <|> (snd <$> withRaw blockCommand)) >>= applyMacros'
