@@ -227,7 +227,7 @@ Library
     Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   else
     Ghc-Prof-Options: -auto-all -caf-all
-  Default-Language: Haskell2010
+  Default-Language: Haskell98
   Default-Extensions: CPP
   Other-Extensions:   PatternGuards, OverloadedStrings,
                       ScopedTypeVariables, GeneralizedNewtypeDeriving,
@@ -325,7 +325,7 @@ Executable pandoc
     Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   else
     Ghc-Prof-Options: -auto-all -caf-all
-  Default-Language: Haskell2010
+  Default-Language: Haskell98
   Default-Extensions: CPP
   Other-Extensions:   PatternGuards, OverloadedStrings,
                       ScopedTypeVariables, GeneralizedNewtypeDeriving,
@@ -383,7 +383,7 @@ Executable test-pandoc
     Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   else
     Ghc-Prof-Options: -auto-all -caf-all
-  Default-Language: Haskell2010
+  Default-Language: Haskell98
   Default-Extensions: CPP
   Other-Extensions:   PatternGuards, OverloadedStrings,
                       ScopedTypeVariables, GeneralizedNewtypeDeriving,
@@ -400,8 +400,7 @@ Executable test-pandoc
   else
     Buildable:        False
   Other-Extensions: TemplateHaskell, QuasiQuotes
-  Default-Language: Haskell2010
-  Build-Depends:    base >= 4 && < 5, Diff, test-framework >= 0.3 && < 0.5,
+  Build-Depends:    Diff, test-framework >= 0.3 && < 0.5,
                     test-framework-hunit >= 0.2 && < 0.3,
                     test-framework-quickcheck2 >= 0.2.9 && < 0.3,
                     QuickCheck >= 2.4 && < 2.6,
