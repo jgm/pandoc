@@ -75,7 +75,7 @@ where
 import Data.Sequence (Seq, fromList, (<|), singleton)
 import Data.Foldable (toList)
 import Data.List (intercalate)
-import Data.Monoid
+import Data.Monoid hiding ((<>))
 import Data.String
 import Control.Monad.State
 import Data.Char (isSpace)
