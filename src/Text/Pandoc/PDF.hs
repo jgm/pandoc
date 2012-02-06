@@ -42,6 +42,7 @@ import Control.Exception (evaluate)
 import System.IO (hClose)
 import Control.Concurrent (putMVar, takeMVar, newEmptyMVar, forkIO)
 import Text.Pandoc.UTF8 as UTF8
+import Control.Monad (unless)
 
 tex2pdf :: String       -- ^ tex program (pdflatex, lualatex, xelatex)
         -> String       -- ^ latex source
@@ -54,7 +55,8 @@ tex2pdf' :: FilePath                        -- ^ temp directory for output
          -> String                          -- ^ tex source
          -> IO (Either ByteString ByteString)
 tex2pdf' tmpDir program source = do
-  (exit, log', mbPdf) <- runTeXProgram program 3 tmpDir source
+  let numruns = 2 -- should suffice for toc and hyperrefs
+  (exit, log', mbPdf) <- runTeXProgram program numruns tmpDir source
   let msg = "Error producing PDF from TeX source."
   case (exit, mbPdf) of
        (ExitFailure _, _)      -> return $ Left $
@@ -76,41 +78,29 @@ extractMsg log' = do
      then log'
      else BC.unlines (msg'' ++ lineno)
 
-parseLine :: ByteString -> Bool
-parseLine ln =
-  if "LaTeX Warning:" `BC.isPrefixOf` ln
-      then if "Rerun" `elem` ws
-              then True
-              else False
-      else False
-   where ws = BC.words ln
-
-hasUndefinedRefs :: ByteString -> Bool
-hasUndefinedRefs = or . map parseLine . BC.lines
-
 -- running tex programs
 
 -- Run a TeX program on an input bytestring and return (exit code,
 -- contents of stdout, contents of produced PDF if any).  Rerun
--- latex as needed to resolve references, but don't run bibtex/biber.
+-- a fixed number of times to resolve references.
 runTeXProgram :: String -> Int -> FilePath -> String
               -> IO (ExitCode, ByteString, Maybe ByteString)
 runTeXProgram program runsLeft tmpDir source = do
-  withTempFile tmpDir "tex2pdf" $ \file h -> do
-    UTF8.hPutStr h source
-    hClose h
+    let file = tmpDir </> "input.tex"
+    exists <- doesFileExist file
+    unless exists $ UTF8.writeFile file source
     let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
          "-output-directory", tmpDir, file]
     (exit, out, err) <- readCommand program programArgs
-    removeFile file
-    let pdfFile = replaceDirectory (replaceExtension file ".pdf") tmpDir
-    pdfExists <- doesFileExist pdfFile
-    pdf <- if pdfExists
-              then Just `fmap` B.readFile pdfFile
-              else return Nothing
-    if hasUndefinedRefs out && runsLeft > 0
+    if runsLeft > 1
        then runTeXProgram program (runsLeft - 1) tmpDir source
-       else return (exit, out <> err, pdf)
+       else do
+         let pdfFile = replaceDirectory (replaceExtension file ".pdf") tmpDir
+         pdfExists <- doesFileExist pdfFile
+         pdf <- if pdfExists
+                   then Just `fmap` B.readFile pdfFile
+                   else return Nothing
+         return (exit, out <> err, pdf)
 
 -- utility functions
 
