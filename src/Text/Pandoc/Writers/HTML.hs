@@ -31,7 +31,6 @@ Conversion of 'Pandoc' documents to HTML.
 -}
 module Text.Pandoc.Writers.HTML ( writeHtml , writeHtmlString ) where
 import Text.Pandoc.Definition
-import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Pandoc.Generic
@@ -39,7 +38,7 @@ import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting ( highlight, styleToCss,
                                   formatHtmlInline, formatHtmlBlock )
-import Text.Pandoc.XML (stripTags, escapeStringForXML)
+import Text.Pandoc.XML (stripTags, escapeStringForXML, fromEntities)
 import Network.HTTP ( urlEncode )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
@@ -344,7 +343,7 @@ obfuscateChar char =
 
 -- | Obfuscate string using entities.
 obfuscateString :: String -> String
-obfuscateString = concatMap obfuscateChar . decodeCharacterReferences
+obfuscateString = concatMap obfuscateChar . fromEntities
 
 attrsToHtml :: WriterOptions -> Attr -> [Attribute]
 attrsToHtml opts (id',classes',keyvals) =

@@ -233,7 +233,6 @@ Library
 
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Pretty,
-                   Text.Pandoc.CharacterReferences,
                    Text.Pandoc.Shared,
                    Text.Pandoc.Parsing,
                    Text.Pandoc.Highlighting,

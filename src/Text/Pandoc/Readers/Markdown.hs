@@ -42,7 +42,7 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
                                   isTextTag, isCommentTag )
-import Text.Pandoc.CharacterReferences ( decodeCharacterReferences )
+import Text.Pandoc.XML ( fromEntities )
 import Text.ParserCombinators.Parsec
 import Control.Monad (when, liftM, guard, mzero)
 import Text.HTML.TagSoup
@@ -244,7 +244,7 @@ referenceTitle = try $ do
         <|> do delim <- char '\'' <|> char '"'
                manyTill litChar (try (char delim >> skipSpaces >>
                                       notFollowedBy (noneOf ")\n")))
-  return $ decodeCharacterReferences tit
+  return $ fromEntities tit
 
 noteMarker :: GenParser Char ParserState [Char]
 noteMarker = string "[^" >> many1Till (satisfy $ not . isBlank) (char ']')
@@ -1176,7 +1176,7 @@ linkTitle = try $ do
   skipSpaces
   delim <- oneOf "'\""
   tit <-   manyTill litChar (try (char delim >> skipSpaces >> eof))
-  return $ decodeCharacterReferences tit
+  return $ fromEntities tit
 
 link :: GenParser Char ParserState Inline
 link = try $ do
