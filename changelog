@@ -35,7 +35,7 @@ pandoc (1.9)
   * A new `--self-contained` option produces HTML output that does not
     depend on an internet connection or the presence of any external
     files. Linked images, CSS, and javascript is downloaded (or fetched
-    locally) and encoded in data:` URIs. This is useful for making portable
+    locally) and encoded in `data:` URIs. This is useful for making portable
     `HTML slide shows. The --offline` option has been deprecated and is now
     `treated as a synonym or --self-contained`.
 
