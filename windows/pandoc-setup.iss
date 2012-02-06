@@ -53,8 +53,8 @@ end;
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "cabal-dev\bin\pandoc.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
-Source: "cabal-dev\bin\markdown2pdf.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "..\cabal-dev\bin\pandoc.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "..\cabal-dev\bin\markdown2pdf.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "..\README.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\COPYRIGHT.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\COPYING.txt"; DestDir: "{app}"; Flags: ignoreversion
