@@ -15,7 +15,7 @@ echo Building pandoc...
 sudo cabal-dev install-deps
 sudo cabal-dev install --reinstall --flags="embed_data_files" citeproc-hs
 sudo cabal-dev install --disable-library-for-ghci highlighting-kate
-sudo cabal-dev install --prefix=/usr/local --datasubdir=$BASE --docdir=/usr/local/doc/$BASE --flags="executable -library highlighting"
+sudo cabal-dev install --prefix=/usr/local --datasubdir=$BASE --docdir=/usr/local/doc/$BASE --flags="executable -library"
 sudo cabal-dev copy --destdir=$ROOT
 sudo chown -R $ME:staff $DIST
 
