@@ -1,3 +1,15 @@
+pandoc (1.9.0.4)
+
+  * Raised version bound on test-framework to avoid problems
+    compiling tests on GHC 7.4.1.
+
+  * LaTeX reader: Use raw LaTeX as fallback inline text for Cites,
+    so citations don't just disappear unless you process with
+    citeproc.  Ignore `\bibliographystyle`, `\nocite`.
+
+  * Simplified tex2pdf; it will always run latex twice to
+    resolve table of contents and hyperrefs.
+
 pandoc (1.9.0.3)
 
   * Require Cabal >= 1.10.
