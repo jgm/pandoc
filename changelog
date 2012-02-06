@@ -351,7 +351,7 @@ pandoc (1.9)
     instead of always falling back to the default user package db. (Thanks to
     Antoine Latter.)
 
-  * Updated to work with GHC 7.4 (Antoine Latter).
+  * Updated to work with GHC 7.4.1.
 
   * Removed dependency on old-time.
 
