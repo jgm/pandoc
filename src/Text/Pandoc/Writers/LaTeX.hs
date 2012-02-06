@@ -170,26 +170,38 @@ elementToLaTeX opts (Sec level _ id' title' elements) = do
 
 -- escape things as needed for LaTeX
 stringToLaTeX :: Bool -> String -> String
-stringToLaTeX isUrl = escapeStringUsing latexEscapes
-  where latexEscapes = backslashEscapes "{}$%&_#" ++
-                       [ ('~', "\\ensuremath{\\sim}") | not isUrl ] ++
-                       [ ('^', "\\^{}")
-                       , ('\\', "\\textbackslash{}")
-                       , ('€', "\\euro{}")
-                       , ('|', "\\textbar{}")
-                       , ('<', "\\textless{}")
-                       , ('>', "\\textgreater{}")
-                       , ('[', "{[}")  -- to avoid interpretation as
-                       , (']', "{]}")  -- optional arguments
-                       , ('\160', "~")
-                       , ('\x2018', "`")
-                       , ('\x2019', "'")
-                       , ('\x201C', "``")
-                       , ('\x201D', "''")
-                       , ('\x2026', "\\ldots{}")
-                       , ('\x2014', "---")
-                       , ('\x2013', "--")
-                       ]
+stringToLaTeX _     []     = ""
+stringToLaTeX isUrl (x:xs) =
+  case x of
+       '{' -> "\\{" ++ rest
+       '}' -> "\\}" ++ rest
+       '$' -> "\\$" ++ rest
+       '%' -> "\\%" ++ rest
+       '&' -> "\\&" ++ rest
+       '_' -> "\\_" ++ rest
+       '#' -> "\\#" ++ rest
+       '-' -> case xs of   -- prevent adjacent hyphens from forming ligatures
+                   ('-':_) -> "-{}" ++ rest
+                   _       -> '-' : rest
+       '~' | not isUrl -> "\\ensuremath{\\sim}"
+       '^' -> "\\^{}" ++ rest
+       '\\' -> "\\textbackslash{}" ++ rest
+       '€' -> "\\euro{}" ++ rest
+       '|' -> "\\textbar{}" ++ rest
+       '<' -> "\\textless{}" ++ rest
+       '>' -> "\\textgreater{}" ++ rest
+       '[' -> "{[}" ++ rest  -- to avoid interpretation as
+       ']' -> "{]}" ++ rest  -- optional arguments
+       '\160' -> "~" ++ rest
+       '\x2018' -> "`" ++ rest
+       '\x2019' -> "'" ++ rest
+       '\x201C' -> "``" ++ rest
+       '\x201D' -> "''" ++ rest
+       '\x2026' -> "\\ldots{}" ++ rest
+       '\x2014' -> "---" ++ rest
+       '\x2013' -> "--" ++ rest
+       _        -> x : rest
+    where rest = stringToLaTeX isUrl xs
 
 -- | Puts contents into LaTeX command.
 inCmd :: String -> Doc -> Doc
