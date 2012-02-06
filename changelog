@@ -60,6 +60,9 @@ pandoc (1.9)
   * Internal links to sections now work in ConTeXt and LaTeX as well as HTML
     (thanks to B. Scott Michel).
 
+  * LaTeX `\\include` and `\\usepackage` commands are now processed,
+    provided the files are in the working directory.
+
   * EPUB improvements:
 
     + Internal and external links now work in EPUB.
