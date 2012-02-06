@@ -1,6 +1,6 @@
 Name:            pandoc
 Version:         1.9.0.2
-Cabal-Version:   >= 1.6
+Cabal-Version:   >= 1.10
 Build-Type:      Custom
 License:         GPL
 License-File:    COPYING
