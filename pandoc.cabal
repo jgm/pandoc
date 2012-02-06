@@ -186,7 +186,7 @@ Flag tests
   Default:       False
 
 Library
-  -- Note: the following material must be in both Library and Executable stanzas.
+  -- Note: the following is duplicated in all stanzas.
   -- It needs to be duplicated because of the library & executable flags.
   -- BEGIN DUPLICATED SECTION
   Build-Depends: containers >= 0.1 && < 0.5,
@@ -220,14 +220,19 @@ Library
   else
     Build-depends: base >= 3 && < 4
   if impl(ghc >= 6.12)
-    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
+    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind -dno-debug-output
   else
     Ghc-Options:     -O2 -Wall
   if impl(ghc >= 7.0.1)
     Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   else
     Ghc-Prof-Options: -auto-all -caf-all
-  Extensions:         CPP
+  Default-Language: Haskell2010
+  Default-Extensions: CPP
+  Other-Extensions:   PatternGuards, OverloadedStrings,
+                      ScopedTypeVariables, GeneralizedNewtypeDeriving,
+                      RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
+                      FlexibleInstances
   Hs-Source-Dirs:  src
   -- END DUPLICATED SECTION
 
@@ -279,7 +284,7 @@ Library
     Buildable:      False
 
 Executable pandoc
-  -- Note: the following material must be in both Library and Executable stanzas.
+  -- Note: the following is duplicated in all stanzas.
   -- It needs to be duplicated because of the library & executable flags.
   -- BEGIN DUPLICATED SECTION
   Build-Depends: containers >= 0.1 && < 0.5,
@@ -313,14 +318,19 @@ Executable pandoc
   else
     Build-depends: base >= 3 && < 4
   if impl(ghc >= 6.12)
-    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
+    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind -dno-debug-output
   else
     Ghc-Options:     -O2 -Wall
   if impl(ghc >= 7.0.1)
     Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   else
     Ghc-Prof-Options: -auto-all -caf-all
-  Extensions:         CPP
+  Default-Language: Haskell2010
+  Default-Extensions: CPP
+  Other-Extensions:   PatternGuards, OverloadedStrings,
+                      ScopedTypeVariables, GeneralizedNewtypeDeriving,
+                      RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
+                      FlexibleInstances
   Hs-Source-Dirs:  src
   -- END DUPLICATED SECTION
 
@@ -331,35 +341,81 @@ Executable pandoc
     Buildable:        False
 
 Executable test-pandoc
-  Hs-Source-Dirs:     src
   Main-Is:            test-pandoc.hs
+  -- Note: the following is duplicated in all stanzas.
+  -- It needs to be duplicated because of the library & executable flags.
+  -- BEGIN DUPLICATED SECTION
+  Build-Depends: containers >= 0.1 && < 0.5,
+                 parsec >= 3.1 && < 3.2,
+                 blaze-html >= 0.4.3.0 && < 0.5,
+                 mtl >= 1.1 && < 2.1,
+                 network >= 2 && < 2.4,
+                 filepath >= 1.1 && < 1.4,
+                 process >= 1 && < 1.2,
+                 directory >= 1 && < 1.2,
+                 bytestring >= 0.9 && < 1.0,
+                 zip-archive >= 0.1.1.7 && < 0.2,
+                 utf8-string >= 0.3 && < 0.4,
+                 old-locale >= 1 && < 1.1,
+                 time >= 1.2 && < 1.5,
+                 HTTP >= 4000.0.5 && < 4000.3,
+                 texmath >= 0.6 && < 0.7,
+                 xml >= 1.3.12 && < 1.4,
+                 random >= 1 && < 1.1,
+                 extensible-exceptions >= 0.1 && < 0.2,
+                 citeproc-hs >= 0.3.4 && < 0.4,
+                 pandoc-types >= 1.9.0.2 && < 1.10,
+                 json >= 0.4 && < 0.6,
+                 tagsoup >= 0.12.5 && < 0.13,
+                 base64-bytestring >= 0.1 && < 0.2,
+                 zlib >= 0.5 && <= 0.6,
+                 highlighting-kate >= 0.5.0.1 && < 0.6,
+                 temporary >= 1.1 && < 1.2
+  if impl(ghc >= 6.10)
+    Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
+  else
+    Build-depends: base >= 3 && < 4
+  if impl(ghc >= 6.12)
+    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind -dno-debug-output
+  else
+    Ghc-Options:     -O2 -Wall
+  if impl(ghc >= 7.0.1)
+    Ghc-Prof-Options: -auto-all -caf-all -rtsopts
+  else
+    Ghc-Prof-Options: -auto-all -caf-all
+  Default-Language: Haskell2010
+  Default-Extensions: CPP
+  Other-Extensions:   PatternGuards, OverloadedStrings,
+                      ScopedTypeVariables, GeneralizedNewtypeDeriving,
+                      RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
+                      FlexibleInstances
+  Hs-Source-Dirs:  src
+  -- END DUPLICATED SECTION
   if impl(ghc >= 7)
     cpp-options:      -D_LIT=lit
   else
     cpp-options:      -D_LIT=$lit
-  if !flag(tests)
-    Buildable:        False
+  if flag(tests)
+    Buildable:        True
   else
-    if impl(ghc >= 6.12)
-      Ghc-Options:    -Wall -fno-warn-unused-do-bind
-    else
-      Ghc-Options:    -Wall
-    Extensions:       CPP
-    Build-Depends:    base >= 4 && < 5, Diff, test-framework >= 0.3 && < 0.5,
-                      test-framework-hunit >= 0.2 && < 0.3,
-                      test-framework-quickcheck2 >= 0.2.9 && < 0.3,
-                      QuickCheck >= 2.4 && < 2.6,
-                      HUnit >= 1.2 && < 1.3,
-                      template-haskell >= 2.4 && < 2.8,
-                      ansi-terminal == 0.5.*
-    Other-Modules:    Tests.Old
-                      Tests.Helpers
-                      Tests.Arbitrary
-                      Tests.Shared
-                      Tests.Readers.LaTeX
-                      Tests.Readers.Markdown
-                      Tests.Readers.RST
-                      Tests.Writers.Native
-                      Tests.Writers.ConTeXt
-                      Tests.Writers.HTML
-                      Tests.Writers.Markdown
+    Buildable:        False
+  Other-Extensions: TemplateHaskell, QuasiQuotes
+  Default-Language: Haskell2010
+  Build-Depends:    base >= 4 && < 5, Diff, test-framework >= 0.3 && < 0.5,
+                    test-framework-hunit >= 0.2 && < 0.3,
+                    test-framework-quickcheck2 >= 0.2.9 && < 0.3,
+                    QuickCheck >= 2.4 && < 2.6,
+                    HUnit >= 1.2 && < 1.3,
+                    template-haskell >= 2.4 && < 2.8,
+                    ansi-terminal == 0.5.*
+  Other-Modules:    Tests.Old
+                    Tests.Helpers
+                    Tests.Arbitrary
+                    Tests.Shared
+                    Tests.Readers.LaTeX
+                    Tests.Readers.Markdown
+                    Tests.Readers.RST
+                    Tests.Writers.Native
+                    Tests.Writers.ConTeXt
+                    Tests.Writers.HTML
+                    Tests.Writers.Markdown
