@@ -250,7 +250,8 @@ blockCommands = M.fromList $
     -- newcommand, etc. should be parsed by macro, but we need this
     -- here so these aren't parsed as inline commands to ignore
   , "special", "pdfannot", "pdfstringdef"
-  , "bibliography", "maketitle", "makeindex", "makeglossary"
+  , "bibliography", "bibliographystyle"
+  , "maketitle", "makeindex", "makeglossary"
   , "addcontentsline", "addtocontents", "addtocounter"
      -- \ignore{} is used conventionally in literate haskell for definitions
      -- that are to be processed by the compiler but not printed.
@@ -394,60 +395,60 @@ inlineCommands = M.fromList $
          pure (link url "" lab))
   , ("includegraphics", optional opt *> (unescapeURL <$> braced) >>=
        (\src -> pure (image src "" (str "image"))))
-  , ("cite", citation NormalCitation False)
-  , ("citep", citation NormalCitation False)
-  , ("citep*", citation NormalCitation False)
-  , ("citeal", citation NormalCitation False)
-  , ("citealp", citation NormalCitation False)
-  , ("citealp*", citation NormalCitation False)
-  , ("autocite", citation NormalCitation False)
-  , ("footcite", citation NormalCitation False)
-  , ("parencite", citation NormalCitation False)
-  , ("supercite", citation NormalCitation False)
-  , ("footcitetext", citation NormalCitation False)
-  , ("citeyearpar", citation SuppressAuthor False)
-  , ("citeyear", citation SuppressAuthor False)
-  , ("autocite*", citation SuppressAuthor False)
-  , ("cite*", citation SuppressAuthor False)
-  , ("parencite*", citation SuppressAuthor False)
-  , ("textcite", citation AuthorInText False)
-  , ("citet", citation AuthorInText False)
-  , ("citet*", citation AuthorInText False)
-  , ("citealt", citation AuthorInText False)
-  , ("citealt*", citation AuthorInText False)
-  , ("textcites", citation AuthorInText True)
-  , ("cites", citation NormalCitation True)
-  , ("autocites", citation NormalCitation True)
-  , ("footcites", citation NormalCitation True)
-  , ("parencites", citation NormalCitation True)
-  , ("supercites", citation NormalCitation True)
-  , ("footcitetexts", citation NormalCitation True)
-  , ("Autocite", citation NormalCitation False)
-  , ("Footcite", citation NormalCitation False)
-  , ("Parencite", citation NormalCitation False)
-  , ("Supercite", citation NormalCitation False)
-  , ("Footcitetext", citation NormalCitation False)
-  , ("Citeyearpar", citation SuppressAuthor False)
-  , ("Citeyear", citation SuppressAuthor False)
-  , ("Autocite*", citation SuppressAuthor False)
-  , ("Cite*", citation SuppressAuthor False)
-  , ("Parencite*", citation SuppressAuthor False)
-  , ("Textcite", citation AuthorInText False)
-  , ("Textcites", citation AuthorInText True)
-  , ("Cites", citation NormalCitation True)
-  , ("Autocites", citation NormalCitation True)
-  , ("Footcites", citation NormalCitation True)
-  , ("Parencites", citation NormalCitation True)
-  , ("Supercites", citation NormalCitation True)
-  , ("Footcitetexts", citation NormalCitation True)
+  , ("cite", citation "cite" NormalCitation False)
+  , ("citep", citation "citep" NormalCitation False)
+  , ("citep*", citation "citep*" NormalCitation False)
+  , ("citeal", citation "citeal" NormalCitation False)
+  , ("citealp", citation "citealp" NormalCitation False)
+  , ("citealp*", citation "citealp*" NormalCitation False)
+  , ("autocite", citation "autocite" NormalCitation False)
+  , ("footcite", citation "footcite" NormalCitation False)
+  , ("parencite", citation "parencite" NormalCitation False)
+  , ("supercite", citation "supercite" NormalCitation False)
+  , ("footcitetext", citation "footcitetext" NormalCitation False)
+  , ("citeyearpar", citation "citeyearpar" SuppressAuthor False)
+  , ("citeyear", citation "citeyear" SuppressAuthor False)
+  , ("autocite*", citation "autocite*" SuppressAuthor False)
+  , ("cite*", citation "cite*" SuppressAuthor False)
+  , ("parencite*", citation "parencite*" SuppressAuthor False)
+  , ("textcite", citation "textcite" AuthorInText False)
+  , ("citet", citation "citet" AuthorInText False)
+  , ("citet*", citation "citet*" AuthorInText False)
+  , ("citealt", citation "citealt" AuthorInText False)
+  , ("citealt*", citation "citealt*" AuthorInText False)
+  , ("textcites", citation "textcites" AuthorInText True)
+  , ("cites", citation "cites" NormalCitation True)
+  , ("autocites", citation "autocites" NormalCitation True)
+  , ("footcites", citation "footcites" NormalCitation True)
+  , ("parencites", citation "parencites" NormalCitation True)
+  , ("supercites", citation "supercites" NormalCitation True)
+  , ("footcitetexts", citation "footcitetexts" NormalCitation True)
+  , ("Autocite", citation "Autocite" NormalCitation False)
+  , ("Footcite", citation "Footcite" NormalCitation False)
+  , ("Parencite", citation "Parencite" NormalCitation False)
+  , ("Supercite", citation "Supercite" NormalCitation False)
+  , ("Footcitetext", citation "Footcitetext" NormalCitation False)
+  , ("Citeyearpar", citation "Citeyearpar" SuppressAuthor False)
+  , ("Citeyear", citation "Citeyear" SuppressAuthor False)
+  , ("Autocite*", citation "Autocite*" SuppressAuthor False)
+  , ("Cite*", citation "Cite*" SuppressAuthor False)
+  , ("Parencite*", citation "Parencite*" SuppressAuthor False)
+  , ("Textcite", citation "Textcite" AuthorInText False)
+  , ("Textcites", citation "Textcites" AuthorInText True)
+  , ("Cites", citation "Cites" NormalCitation True)
+  , ("Autocites", citation "Autocites" NormalCitation True)
+  , ("Footcites", citation "Footcites" NormalCitation True)
+  , ("Parencites", citation "Parencites" NormalCitation True)
+  , ("Supercites", citation "Supercites" NormalCitation True)
+  , ("Footcitetexts", citation "Footcitetexts" NormalCitation True)
   , ("citetext", complexNatbibCitation NormalCitation)
   , ("citeauthor", (try (tok *> optional sp *> controlSeq "citetext") *>
                         complexNatbibCitation AuthorInText)
-                   <|> citation AuthorInText False)
+                   <|> citation "citeauthor" AuthorInText False)
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
-  [ "index" ]
+  [ "index", "nocite" ]
 
 unescapeURL :: String -> String
 unescapeURL ('\\':x:xs) | isEscapable x = x:unescapeURL xs
@@ -839,8 +840,10 @@ cites mode multi = try $ do
         AuthorInText   -> c {citationMode = mode} : cs
         _              -> map (\a -> a {citationMode = mode}) (c:cs)
 
-citation :: CitationMode -> Bool -> LP Inlines
-citation mode multi = (flip cite mempty) <$> cites mode multi
+citation :: String -> CitationMode -> Bool -> LP Inlines
+citation name mode multi = do
+  (c,raw) <- withRaw $ cites mode multi
+  return $ cite c (rawInline "latex" $ "\\" ++ name ++ raw)
 
 complexNatbibCitation :: CitationMode -> LP Inlines
 complexNatbibCitation mode = try $ do
@@ -858,8 +861,9 @@ complexNatbibCitation mode = try $ do
                    skipSpaces
                    optional $ char ';'
                    return $ addPrefix pref $ addSuffix suff $ cits'
-  (c:cits) <- grouped parseOne
-  return $ cite (c{ citationMode = mode }:cits) mempty
+  (c:cits, raw) <- withRaw $ grouped parseOne
+  return $ cite (c{ citationMode = mode }:cits)
+           (rawInline "latex" $ "\\citetext" ++ raw)
 
 -- tables
 
