@@ -128,9 +128,17 @@ isEmpty = null . toList . unDoc
 empty :: Doc
 empty = mempty
 
--- | @a <> b@ is the result of concatenating @a@ with @b@.
-(<>) :: Doc -> Doc -> Doc
+#if MIN_VERSION_base(4,5,0)
+-- (<>) is defined in Data.Monoid
+#else
+infixr 6 <>
+
+-- | An infix synonym for 'mappend'.
+-- @a <> b@ is the result of concatenating @a@ with @b@.
+(<>) :: Monoid m => m -> m -> m
 (<>) = mappend
+{-# INLINE (<>) #-}
+#endif
 
 -- | Concatenate a list of 'Doc's.
 cat :: [Doc] -> Doc
@@ -142,6 +150,7 @@ hcat = mconcat
 
 -- | Concatenate a list of 'Doc's, putting breakable spaces
 -- between them.
+infixr 6 <+>
 (<+>) :: Doc -> Doc -> Doc
 (<+>) x y = if isEmpty x
                then y
@@ -154,6 +163,7 @@ hcat = mconcat
 hsep :: [Doc] -> Doc
 hsep = foldr (<+>) empty
 
+infixr 5 $$
 -- | @a $$ b@ puts @a@ above @b@.
 ($$) :: Doc -> Doc -> Doc
 ($$) x y = if isEmpty x
@@ -162,6 +172,7 @@ hsep = foldr (<+>) empty
                    then x
                    else x <> cr <> y
 
+infixr 5 $+$
 -- | @a $$ b@ puts @a@ above @b@, with a blank line between.
 ($+$) :: Doc -> Doc -> Doc
 ($+$) x y = if isEmpty x
