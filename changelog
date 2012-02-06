@@ -1,3 +1,8 @@
+pandoc (1.9.0.2)
+
+  * Allow build with json 0.4 or 0.5.  Otherwise we can't build with
+    ghc 6.12.
+
 pandoc (1.9)
 
   [new features]
