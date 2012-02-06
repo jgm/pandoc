@@ -1,3 +1,11 @@
+pandoc (1.9.0.5)
+
+  * Changed cabal file so that build-depends for the test program
+    are not required unless the tests flag is used.
+
+  * LaTeX writer:  insert `{}` between adjacent hyphens so they don't
+    form ligatures (dashes) in code spans.
+
 pandoc (1.9.0.4)
 
   * Raised version bound on test-framework to avoid problems
