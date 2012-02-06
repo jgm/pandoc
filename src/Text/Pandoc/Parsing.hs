@@ -342,10 +342,10 @@ escaped parser = try $ char '\\' >> parser
 characterReference :: GenParser Char st Char
 characterReference = try $ do
   char '&'
-  ent <- manyTill nonspaceChar (char ';')
+  ent <- many1Till nonspaceChar (char ';')
   case lookupEntity ent of
        Just c  -> return c
-       Nothing -> return '?'
+       Nothing -> fail "entity not found"
 
 -- | Parses an uppercase roman numeral and returns (UpperRoman, number).
 upperRoman :: GenParser Char st (ListNumberStyle, Int)
