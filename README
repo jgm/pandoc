@@ -2170,8 +2170,8 @@ pandoc will treat the document as literate Haskell source. This means that
     code rather than block quotations.  Text between `\begin{code}`
     and `\end{code}` will also be treated as Haskell code.
 
-  - In markdown output, code blocks with class `haskell` will be
-    rendered using bird tracks, and block quotations will be
+  - In markdown output, code blocks with classes `haskell` and `literate`
+    will be rendered using bird tracks, and block quotations will be
     indented one space, so they will not be treated as Haskell code.
     In addition, headers will be rendered setext-style (with underlines)
     rather than atx-style (with '#' characters). (This is because ghc
