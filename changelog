@@ -1,3 +1,8 @@
+pandoc (1.9.0.3)
+
+  * Require Cabal >= 1.10.
+  * Tweaked cabal file to meet Cabal 1.10 requirements.
+
 pandoc (1.9.0.2)
 
   * Allow build with json 0.4 or 0.5.  Otherwise we can't build with
