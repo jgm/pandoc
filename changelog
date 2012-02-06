@@ -6,7 +6,7 @@ pandoc (1.9)
     for highlighted code and for math (which is converted from TeX to OMML,
     Office's native math markup language, using texmath's new OMML module).
     A new option `--reference-docx` allows the user to customize the
-    styles in the standard `reference.docx`.
+    styles.
 
   * Added an `asciidoc` writer (<http://www.methods.co.nz/asciidoc/>).
 
@@ -24,19 +24,15 @@ pandoc (1.9)
       shows to be organized into sections and subsections containing
       multiple slides.
 
-    + Added a `--slide-level` option to override defaults and select a slide
-      level below the first header level with content. Note that content
-      in sections above the slide level will not appear in slides (either in
-      beamer or in HTML slide shows). This is primarily useful for creating
-      documents that can be made into both slides and handouts (which contain
-      additional content outside the slides).
+    + A new `--slide-level` option allows users to override defaults
+      and select a slide level below the first header level with content.
 
-  * New `--self-contained` option tries to create HTML output that does not
+  * A new `--self-contained` option produces HTML output that does not
     depend on an internet connection or the presence of any external
-    files. Linked images, CSS, and javascript is downloaded and encoded in
-    `data:` URIs. This is useful for making portable HTML slide shows. The
-    `--offline` option has been deprecated and is now treated as a synonym or
-    `--self-contained`.
+    files. Linked images, CSS, and javascript is downloaded (or fetched
+    locally) and encoded in data:` URIs. This is useful for making portable
+    `HTML slide shows. The --offline` option has been deprecated and is now
+    `treated as a synonym or --self-contained`.
 
   * Support for PDF output:
 
@@ -49,18 +45,17 @@ pandoc (1.9)
 
   * Highlighting changes:
 
-    + Syntax highlighting is now a standard feature; pandoc no longer
-      need be compiled with a `highlighting` flag to enable it.
-    + A new `--no-highlight` option allows it to be selectively disabled.
+    + Syntax highlighting is now a standard feature; the `highlighting`
+      flag is no longer needed when compiling.
+    + A new `--no-highlight` option allows highlighting to be disabled.
     + Highlighting now works in `docx`, `latex`, and `epub`, as well as
       `html`, `html5`, `dzslides`, `s5`, and `slidy`.
     + A new `--highlight-style` option selects between various highlighting
       color themes.
 
-  * Internal links to sections now work in ConTeXt and LaTeX as well as HTML
-    (thanks to B. Scott Michel).
+  * Internal links to sections now work in ConTeXt and LaTeX as well as HTML.
 
-  * LaTeX `\\include` and `\\usepackage` commands are now processed,
+  * LaTeX `\include` and `\usepackage` commands are now processed,
     provided the files are in the working directory.
 
   * EPUB improvements:
@@ -68,13 +63,13 @@ pandoc (1.9)
     + Internal and external links now work in EPUB.
     + Raw HTML is allowed.
     + New `--epub-embed-font` option.
-    + Customizable templates for EPUB pages, giving more control over
+    + Customizable templates for EPUB pages offer more control over
       formatting: `epub-page.html`, `epub-coverimage.html`,
       `epub-titlepage.html`.
 
-  * `--mathml` now works with DocBook as well as HTML.
+  * `--mathml` now works with DocBook.
 
-  * Support for math in RST reader and writer.  Inline math uses the
+  * Added support for math in RST reader and writer.  Inline math uses the
     `` :math:`...` `` construct.  Display math uses
 
         .. math:: ...
@@ -85,9 +80,9 @@ pandoc (1.9)
 
            ...
 
-    These constructions seem to be supported now by `rst2latex.py`.
+    These constructions are now supported now by `rst2latex.py`.
 
-  * Github syntax for fenced code blocks is now understood in pandoc's
+  * Github syntax for fenced code blocks is supported in pandoc's
     markdown.  You can now write
 
         ```ruby
@@ -100,7 +95,7 @@ pandoc (1.9)
         x = 2
         ~~~~
 
-  * Easier scripting:  a new `ToJsonFilter` class makes it easier to
+  * Easier scripting:  a new `toJsonFilter` function makes it easier to
     write Haskell scripts to manipulate the Pandoc AST.
 
   [behavior changes]
@@ -132,7 +127,18 @@ pandoc (1.9)
     anyone would ever rely on, we do not preserve the old behavior
     even when `--strict` is selected.
 
-  * Allow links in markdown image captions.  This change also means that
+  * Dashes work differently with `--smart`: `---` is always em-dash,
+    and `--` is always en-dash.  Pandoc no longer tries to guess when
+    `-` should be en-dash.  *Note:* This may change how existing documents
+    look when processed with pandoc. A new option, `--old-dashes`,
+    is provided for legacy documents.
+
+  * The markdown writer now uses setext headers for levels 1-2.
+    The old behavior (ATX headers for all levels) can be restored
+    using the new `--atx-headers` option.
+
+  * Links are now allowed in markdown image captions.  They are also
+    allowed in links, but will appear there as regular text. So,
 
         [link with [link](/url)](/url)
 
@@ -140,17 +146,13 @@ pandoc (1.9)
 
         <p><a href="/url">link with link</a></p>
 
-    instead of
-
-        <p><a href="/url">link with [link](/url)</a></p>
-
   * Improved handling of citations using `citeproc-hs-0.3.4`.
-    Added `--citation-abbreviations` option (Andrea Rossato).
+    Added `--citation-abbreviations` option.
 
-  * Disallow punctuation as the last letter of a citation key.
-    This means that '@item1.' will be parsed as a citation, 'item1',
-    followed by a period, instead of a citation 'item1.', as was the
-    case previously.
+  * Citation keys can no longer end with a punctuation character.
+    This means that `@item1.` will be parsed as a citation with key
+    'item1', followed by a period, instead of a citation with key
+    'item1.', as was the case previously.
 
   * In HTML output, citations are now put in a span with class `citation`.
 
@@ -165,12 +167,6 @@ pandoc (1.9)
 
     will not be wrapped in `<para>` tags.
 
-  * Dashes work differently with `--smart`: `---` is always em-dash,
-    and `--` is always en-dash.  Pandoc no longer tries to guess when
-    `-` should be en-dash.  *Note:* This may change how existing documents
-    look when processed with pandoc. A new option, `--old-dashes`,
-    is provided for legacy documents.
-
   * `--smart` is no longer selected automatically with `man` output.
 
   * The deprecated `--xetex` option has been removed.
@@ -178,8 +174,8 @@ pandoc (1.9)
   * The `--html5`/`-5` option has been deprecated. Use `-t html5`
     instead. `html5` and `html5+lhs` are now separate output formats.
 
-  * `'` is no longer escaped in HTML output.  It does not need to be
-    escaped outside of attributes.
+  * Single quotes are no longer escaped in HTML output.  They do not
+    need to be escaped outside of attributes.
 
   * Pandoc will no longer transform leading newlines in code
     blocks to `<br/>` tags.
@@ -204,8 +200,7 @@ pandoc (1.9)
   * EPUB writer changes:
 
     + The `lang` variable now sets the language
-      in the metadata (if it is not set, we default to the locale
-      language).
+      in the metadata (if it is not set, we default to the locale).
     + EPUB:  UTF-8 is used rather than decimal entities.
 
   * Added `titleslide` class to title slide in S5 template.
@@ -228,9 +223,7 @@ pandoc (1.9)
 
   * URLs are hyphenated in the ConTeXt writer (B. Scott Michel).
 
-  * The markdown writer now uses setext headers for levels 1-2.
-    The old behavior (ATX headers for all levels) can be restored
-    using the new `--atx-headers` option.
+  * In `Text.Pandoc.Builder`, `+++` has been replaced by `<>`.
 
   [bug fixes]
 
@@ -263,8 +256,7 @@ pandoc (1.9)
     + Fixed bug in code block attribute parser. Previously the ID attribute
       got lost if it didn't come first. Now attributes can come in any order.
 
-  * RST reader: allow footnotes followed by newline without space chars
-    (patch from Masayoshi Takahashi).
+  * RST reader: allow footnotes followed by newline without space characters.
 
   * LaTeX reader:
 
@@ -315,18 +307,17 @@ pandoc (1.9)
     META-INF/manifest.xml for ODT files will have everything it needs, so
     that ODT files modified by LibreOffice can be used as `--reference-odt`.
 
-  * Templates: Return empty string for json template.
+  * `Text.Pandoc.Templates`: Return empty string for json template.
 
   * `Text.Pandoc.Biblio`:
 
     + Expand citations recursively inside nested inlines.
-    + Treat \160 as space when parsing locator and suffix.
+    + Treat `\160` as space when parsing locator and suffix.
       This fixes a bug with "p. 33" when `--smart` is used. Previously
       the whole "p. 33" would be included in the suffix, with no locator.
     + Put whole author-in-text citation in a Cite.  Previously just the
       date and other info went in the Cite.
     + Don't add comma+space to prefix if it ends in punctuation.
-      (Andrea Rossato)
 
   * Updated chicago-author-date.csl.  The old version did not work
     properly for edited volumes with no author.
@@ -339,44 +330,29 @@ pandoc (1.9)
 
   [under the hood improvements]
 
-  * Modified make_osx_package.sh to use cabal-dev.
+  * Modified `make_osx_package.sh` to use cabal-dev.
+    Items are no longer installed as root.
+    Man pages are zipped and given proper permissions.
 
   * Modified windows installer generater to use cabal-dev.
 
-  * Fixed make_osx_package.sh.  Items no longer installed as root.
-    Man page zipped and given proper permissions.
-
-  * Setup: Making man pages now works with cabal-dev. In Setup.hs we now
-    invoke 'runghc' in a way that points it to the correct package databases,
-    instead of always falling back to the default user package db. (Thanks to
-    Antoine Latter.)
+  * Setup: Making man pages now works with cabal-dev (at least on OSX). In
+    Setup.hs we now invoke 'runghc' in a way that points it to the correct
+    package databases, instead of always falling back to the default user
+    package db.
 
   * Updated to work with GHC 7.4.1.
 
   * Removed dependency on old-time.
 
-  * DZSlides: Added dzslides/template.html. This is the unaltered file from
-    the dzslides repository. Pandoc now reads it, looking for the core part,
-    and includes this in the new dzslides template via the 'dzslides-core'
-    variable. When dzslides is updated, you can just put the new template.html
-    in your `~/.pandoc/dzslides` directory, and things should work -- provided
-    the core part can be identified as everything from
-
-        <!-- {{{{ dzslides core
-
-    to the end of the file.  This should make it a bit easier to keep up
-    to date.
+  * Removed dependency on dlist.
 
   * New slidy directory for "self-contained."
 
   * LaTeX parser completely rewritten; it is now much more accurate,
     robust, and extensible.
 
-  * Simplified `Text.Pandoc.Biblio`, removed `procInlines`, used
-    generics instead.
-
   * TeXMath writer:  Use unicode thin spaces for thin spaces.
-    Partially resolves issue #333.
 
   * Markdown citations: don't strip off initial space in locator.
 
