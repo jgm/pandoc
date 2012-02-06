@@ -109,6 +109,6 @@ fromEntities ('&':xs) =
         Nothing -> '&' : fromEntities rest
     where (ent, rest) = case break (==';') xs of
                              (zs,';':ys) -> (zs,ys)
-                             (zs,ys)     -> (zs,ys)
+                             _           -> ("",xs)
 fromEntities (x:xs) = x : fromEntities xs
 fromEntities [] = []
