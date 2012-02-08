@@ -1041,8 +1041,20 @@ inlinesBetween start end =
     where inner      = innerSpace <|> (notFollowedBy' whitespace >> inline)
           innerSpace = try $ whitespace >>~ notFollowedBy' end
 
+-- This is used to prevent exponential blowups for things like:
+-- a**a*a**a*a**a*a**a*a**a*a**a*a**
+nested :: GenParser Char ParserState a
+       -> GenParser Char ParserState a
+nested p = do
+  nestlevel <- stateMaxNestingLevel `fmap` getState
+  guard $ nestlevel > 0
+  updateState $ \st -> st{ stateMaxNestingLevel = stateMaxNestingLevel st - 1 }
+  res <- p
+  updateState $ \st -> st{ stateMaxNestingLevel = nestlevel }
+  return res
+
 emph :: GenParser Char ParserState Inline
-emph = Emph `liftM`
+emph = Emph `fmap` nested
   (inlinesBetween starStart starEnd <|> inlinesBetween ulStart ulEnd)
     where starStart = char '*' >> lookAhead nonspaceChar
           starEnd   = notFollowedBy' strong >> char '*'
@@ -1050,7 +1062,7 @@ emph = Emph `liftM`
           ulEnd     = notFollowedBy' strong >> char '_'
 
 strong :: GenParser Char ParserState Inline
-strong = Strong `liftM`
+strong = Strong `liftM` nested
   (inlinesBetween starStart starEnd <|> inlinesBetween ulStart ulEnd)
     where starStart = string "**" >> lookAhead nonspaceChar
           starEnd   = try $ string "**"
