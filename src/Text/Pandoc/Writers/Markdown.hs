@@ -234,7 +234,8 @@ blockToMarkdown opts (Header level inlines) = do
   contents <- inlineListToMarkdown opts inlines
   st <- get
   let setext = writerSetextHeaders opts
-  return $ case level of
+  return $ nowrap
+         $ case level of
             1 | setext ->
                   contents <> cr <> text (replicate (offset contents) '=') <>
                   blankline

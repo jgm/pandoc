@@ -157,7 +157,7 @@ blockToRST (Header level inlines) = do
   contents <- inlineListToRST inlines
   let headerChar = if level > 5 then ' ' else "=-~^'" !! (level - 1)
   let border = text $ replicate (offset contents) headerChar
-  return $ contents $$ border $$ blankline
+  return $ nowrap $ contents $$ border $$ blankline
 blockToRST (CodeBlock (_,classes,_) str) = do
   opts <- stOptions <$> get
   let tabstop = writerTabStop opts
