@@ -43,7 +43,7 @@ tests = [ testGroup "basic"
 
         , testGroup "math"
           [ "escaped $" =:
-            "$x=\\$4" =?> para (math "x=\\$4")
+            "$x=\\$4$" =?> para (math "x=\\$4")
           ]
 
         , testGroup "space and comments"
