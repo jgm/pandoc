@@ -72,7 +72,7 @@ module Text.Pandoc.Pretty (
      )
 
 where
-import Data.Sequence (Seq, fromList, (<|), singleton)
+import Data.Sequence (Seq, fromList, (<|), singleton, mapWithIndex)
 import Data.Foldable (toList)
 import Data.List (intercalate)
 import Data.Monoid
@@ -408,9 +408,9 @@ beforeNonBlank d = Doc $ singleton (BeforeNonBlank d)
 
 -- | Makes a 'Doc' non-reflowable.
 nowrap :: Doc -> Doc
-nowrap doc = Doc $ fromList $ map replaceSpace $ toList $ unDoc doc
-  where replaceSpace BreakingSpace = Text 1 " "
-        replaceSpace x = x
+nowrap doc = Doc $ mapWithIndex replaceSpace $ unDoc doc
+  where replaceSpace _ BreakingSpace = Text 1 " "
+        replaceSpace _ x = x
 
 -- | Returns the width of a 'Doc'.
 offset :: Doc -> Int
