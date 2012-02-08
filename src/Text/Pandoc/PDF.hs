@@ -43,6 +43,7 @@ import System.IO (hClose)
 import Control.Concurrent (putMVar, takeMVar, newEmptyMVar, forkIO)
 import Text.Pandoc.UTF8 as UTF8
 import Control.Monad (unless)
+import Data.List (isInfixOf)
 
 tex2pdf :: String       -- ^ tex program (pdflatex, lualatex, xelatex)
         -> String       -- ^ latex source
@@ -55,7 +56,9 @@ tex2pdf' :: FilePath                        -- ^ temp directory for output
          -> String                          -- ^ tex source
          -> IO (Either ByteString ByteString)
 tex2pdf' tmpDir program source = do
-  let numruns = 2 -- should suffice for toc and hyperrefs
+  let numruns = if "\\tableofcontents" `isInfixOf` source
+                   then 2
+                   else 1
   (exit, log', mbPdf) <- runTeXProgram program numruns tmpDir source
   let msg = "Error producing PDF from TeX source."
   case (exit, mbPdf) of
