@@ -136,6 +136,12 @@ mathDisplay p = displayMath <$> (try p >>= applyMacros' . trim)
 mathInline :: LP String -> LP Inlines
 mathInline p = math <$> (try p >>= applyMacros')
 
+mathChars :: LP String
+mathChars = concat <$>
+  many (   many1 (satisfy (\c -> c /= '$' && c /='\\'))
+      <|> (\c -> ['\\',c]) <$> (try $ char '\\' *> anyChar)
+       )
+
 double_quote :: LP Inlines
 double_quote = (doubleQuoted . mconcat) <$>
   (try $ string "``" *> manyTill inline (try $ string "''"))
@@ -158,8 +164,8 @@ inline = (mempty <$ comment)
      <|> single_quote
      <|> (str "’" <$ char '\'')
      <|> (str "\160" <$ char '~')
-     <|> (mathDisplay $ string "$$" *> manyTill anyChar (try $ string "$$"))
-     <|> (mathInline  $ char '$' *> manyTill anyChar (char '$'))
+     <|> (mathDisplay $ string "$$" *> mathChars <* string "$$")
+     <|> (mathInline  $ char '$' *> mathChars <* char '$')
      <|> (superscript <$> (char '^' *> tok))
      <|> (subscript <$> (char '_' *> tok))
      <|> (failUnlessLHS *> char '|' *> doLHSverb)
