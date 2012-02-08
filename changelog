@@ -196,6 +196,15 @@ pandoc (1.9)
         </sidebar>
 
     will not be wrapped in `<para>` tags.
+  
+  * The LaTeX parser has been completely rewritten; it is now much more
+    accurate, robust, and extensible. However, there are two important
+    changes in how it treats unknown LaTeX. (1) Previously, unknown
+    environments became BlockQuote elements; now, they are treated
+    as "transparent", so `\begin{unknown}xyz\end{unknown}` is the
+    same as `xyz`.  (2) Previously, arguments of unknown commands
+    were passed through with their braces; now the braces are stripped
+    off.
 
   * `--smart` is no longer selected automatically with `man` output.
 
@@ -378,9 +387,6 @@ pandoc (1.9)
   * Removed dependency on dlist.
 
   * New slidy directory for "self-contained."
-
-  * LaTeX parser completely rewritten; it is now much more accurate,
-    robust, and extensible.
 
   * TeXMath writer:  Use unicode thin spaces for thin spaces.
 
