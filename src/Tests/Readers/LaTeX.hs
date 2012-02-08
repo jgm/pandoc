@@ -41,6 +41,11 @@ tests = [ testGroup "basic"
               header 1 ("text" <> space <> link "/url" "" "link")
           ]
 
+        , testGroup "math"
+          [ "escaped $" =:
+            "$x=\\$4" =?> para (math "x=\\$4")
+          ]
+
         , testGroup "space and comments"
           [ "blank lines + space at beginning" =:
             "\n  \n  hi" =?> para "hi"
