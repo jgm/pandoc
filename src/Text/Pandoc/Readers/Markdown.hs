@@ -390,8 +390,8 @@ blockDelimiter f len = try $ do
 attributes :: GenParser Char st ([Char], [[Char]], [([Char], [Char])])
 attributes = try $ do
   char '{'
-  many spaceChar
-  attrs <- many (attribute >>~ many spaceChar)
+  spnl
+  attrs <- many (attribute >>~ spnl)
   char '}'
   let (ids, classes, keyvals) = unzip3 attrs
   let firstNonNull [] = ""
@@ -424,8 +424,9 @@ keyValAttr :: GenParser Char st ([Char], [a], [([Char], [Char])])
 keyValAttr = try $ do
   key <- identifier
   char '='
-  char '"'
-  val <- manyTill (satisfy (/='\n')) (char '"')
+  val <- enclosed (char '"') (char '"') anyChar
+     <|> enclosed (char '\'') (char '\'') anyChar
+     <|> many nonspaceChar
   return ("",[],[(key,val)])
 
 codeBlockDelimited :: GenParser Char st Block
