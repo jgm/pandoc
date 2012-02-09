@@ -1,3 +1,32 @@
+pandoc (1.9.1)
+
+  * LaTeX reader:
+  
+    + Fixed regression in 1.9; properly handle escaped $ in latex math.
+    + Put LaTeX verse environments in blockquotes.
+
+  * Markdown reader:
+  
+    + Limit nesting of strong/emph.  This avoids exponential lookahead
+      in parasitic cases, like `a**a*a**a*a**a*a**a*a**a*a**a*a**a*a**`.
+    + Improved attributes syntax (inn code blocks/spans):
+      (1) Attributes can contain line breaks. (2) Values in key-value
+      attributes can be surrounded by either double or single quotes, or
+      left unquoted if they contain no spaces.
+
+  * Don't wrap headers in markdown or RST writers.
+
+  * Added `stateMaxNestingLevel` to `ParserState`.
+    We set this to 6, so you can still have `Emph` inside `Emph`,
+    just not indefinitely.
+
+  * More efficient implementation of `nowrap` in `Text.Pandoc.Pretty`.
+
+  * `Text.Pandoc.PDF`:  Only run latex twice if `\tableofcontents`
+    is present.
+
+  * Require highlighting-kate >= 0.5.0.2, texmath >= 0.6.0.2.
+
 pandoc (1.9.0.5)
 
   * Changed cabal file so that build-depends for the test program
