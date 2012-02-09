@@ -1275,10 +1275,9 @@ of one big list:
 
     <!-- -->
 
-    a.  uno
-    b.  dos
-    c.  tres
-
+    1.  uno
+    2.  dos
+    3.  tres
 
 Horizontal rules
 ----------------
