@@ -648,15 +648,7 @@ verbatimEnv = do
   return (r,rest)
 
 rawLaTeXBlock :: GenParser Char ParserState String
-rawLaTeXBlock =
-  (rawLaTeXEnvironment <|> (snd <$> withRaw blockCommand)) >>= applyMacros'
-
-rawLaTeXEnvironment :: GenParser Char ParserState String
-rawLaTeXEnvironment = try $ do
-  controlSeq "begin"
-  name <- braced
-  let addBegin x = "\\begin{" ++ name ++ "}" ++ x
-  addBegin <$> (withRaw (env name blocks) >>= applyMacros' . snd)
+rawLaTeXBlock = snd <$> withRaw (environment <|> blockCommand)
 
 rawLaTeXInline :: GenParser Char ParserState Inline
 rawLaTeXInline = do
