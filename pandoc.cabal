@@ -59,7 +59,6 @@ Data-Files:
                  data/LaTeXMathML.js,
                  data/MathMLinHTML.js,
                  -- data for S5 writer
-                 s5/default/slides.min.js,
                  s5/default/slides.js,
                  s5/default/s5-core.css,
                  s5/default/framing.css,
@@ -69,6 +68,8 @@ Data-Files:
                  s5/default/print.css,
                  s5/default/slides.css,
                  s5/default/iepngfix.htc,
+                 s5/default/blank.gif,
+                 s5/default/bodybg.gif,
                  -- data for slidy writer
                  slidy/styles/slidy.css,
                  slidy/scripts/slidy.js.gz,
