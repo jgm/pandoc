@@ -120,6 +120,7 @@ braced = char '{' *> (concat <$> manyTill
          (  many1 (satisfy (\c -> c /= '\\' && c /= '}' && c /= '{'))
         <|> try (string "\\}")
         <|> try (string "\\{")
+        <|> try (string "\\\\")
         <|> ((\x -> "{" ++ x ++ "}") <$> braced)
         <|> count 1 anyChar
          ) (char '}'))
@@ -172,6 +173,7 @@ inline = (mempty <$ comment)
      <|> (str <$> count 1 tildeEscape)
      <|> (str <$> string "]")
      <|> (str <$> string "#") -- TODO print warning?
+     <|> (str <$> string "&") -- TODO print warning?
      -- <|> (str <$> count 1 (satisfy (\c -> c /= '\\' && c /='\n' && c /='}' && c /='{'))) -- eat random leftover characters
 
 inlines :: LP Inlines
@@ -208,28 +210,28 @@ inBrackets x = (str "[") <> x <> (str "]")
 -- eat an optional argument and one or more arguments in braces
 ignoreInlines :: String -> (String, LP Inlines)
 ignoreInlines name = (name, doraw <|> (mempty <$ optargs))
-  where optargs = optional opt *> skipMany (optional sp *> braced)
+  where optargs = skipopts *> skipMany (try $ optional sp *> braced)
         contseq = '\\':name
         doraw = (rawInline "latex" . (contseq ++) . snd) <$>
                  (getState >>= guard . stateParseRaw >> (withRaw optargs))
 
 ignoreBlocks :: String -> (String, LP Blocks)
 ignoreBlocks name = (name, doraw <|> (mempty <$ optargs))
-  where optargs = optional opt *> skipMany (optional sp *> braced)
+  where optargs = skipopts *> skipMany (try $ optional sp *> braced)
         contseq = '\\':name
         doraw = (rawBlock "latex" . (contseq ++) . snd) <$>
                  (getState >>= guard . stateParseRaw >> (withRaw optargs))
 
 blockCommands :: M.Map String (LP Blocks)
 blockCommands = M.fromList $
-  [ ("par", pure mempty)
-  , ("title", mempty <$ (tok >>= addTitle))
-  , ("subtitle", mempty <$ (tok >>= addSubtitle))
-  , ("author", mempty <$ authors)
-  -- in letter class, temp. store address & sig as title, author
-  , ("address", mempty <$ (tok >>= addTitle))
-  , ("signature", mempty <$ authors)
-  , ("date", mempty <$ (tok >>= addDate))
+  [ ("par", mempty <$ skipopts)
+  , ("title", mempty <$ (skipopts *> tok >>= addTitle))
+  , ("subtitle", mempty <$ (skipopts *> tok >>= addSubtitle))
+  , ("author", mempty <$ (skipopts *> authors))
+  -- -- in letter class, temp. store address & sig as title, author
+  , ("address", mempty <$ (skipopts *> tok >>= addTitle))
+  , ("signature", mempty <$ (skipopts *> authors))
+  , ("date", mempty <$ (skipopts *> tok >>= addDate))
   -- sectioning
   , ("chapter", updateState (\s -> s{ stateHasChapters = True }) *> section 0)
   , ("section", section 1)
@@ -241,14 +243,14 @@ blockCommands = M.fromList $
   , ("frametitle", section 3)
   , ("framesubtitle", section 4)
   -- letters
-  , ("opening", (para . trimInlines) <$> tok)
-  , ("closing", closing)
+  , ("opening", (para . trimInlines) <$> (skipopts *> tok))
+  , ("closing", skipopts *> closing)
   --
-  , ("rule", optional opt *> tok *> tok *> pure horizontalRule)
+  , ("rule", skipopts *> tok *> tok *> pure horizontalRule)
   , ("begin", mzero)   -- these are here so they won't be interpreted as inline
   , ("end", mzero)
-  , ("item", loose_item)
-  , ("documentclass", optional opt *> braced *> preamble)
+  , ("item", skipopts *> loose_item)
+  , ("documentclass", skipopts *> braced *> preamble)
   ] ++ map ignoreBlocks
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks
@@ -291,8 +293,7 @@ section :: Int -> LP Blocks
 section lvl = do
   hasChapters <- stateHasChapters `fmap` getState
   let lvl' = if hasChapters then lvl + 1 else lvl
-  optional sp
-  optional opt
+  skipopts
   contents <- grouped inline
   return $ header lvl' contents
 
@@ -310,7 +311,7 @@ inlineCommand = try $ do
                            Nothing
                              | parseRaw  ->
                                 (rawInline "latex" . (('\\':name') ++)) <$>
-                                 (withRaw (optional opt *> many braced)
+                                 (withRaw (skipopts *> many braced)
                                       >>= applyMacros' . snd)
                              | otherwise -> return mempty
 
@@ -399,7 +400,7 @@ inlineCommands = M.fromList $
   , ("href", (unescapeURL <$> braced <* optional sp) >>= \url ->
        tok >>= \lab ->
          pure (link url "" lab))
-  , ("includegraphics", optional opt *> (unescapeURL <$> braced) >>=
+  , ("includegraphics", skipopts *> (unescapeURL <$> braced) >>=
        (\src -> pure (image src "" (str "image"))))
   , ("cite", citation "cite" NormalCitation False)
   , ("citep", citation "citep" NormalCitation False)
@@ -573,6 +574,9 @@ tok = try $ grouped inline <|> inlineCommand <|> str <$> (count 1 $ inlineChar)
 opt :: LP Inlines
 opt = bracketed inline <* optional sp
 
+skipopts :: LP ()
+skipopts = skipMany opt
+
 inlineText :: LP Inlines
 inlineText = str <$> many1 inlineChar
 
@@ -619,7 +623,7 @@ handleIncludes (x:xs) = (x:) `fmap` handleIncludes xs
 include :: LP ([FilePath], String)
 include = do
   name <- controlSeq "include" <|> controlSeq "usepackage"
-  optional opt
+  skipopts
   fs <- (splitBy (==',')) <$> braced
   rest <- getInput
   let fs' = if name == "include"
@@ -712,7 +716,7 @@ closing = do
   return $ para (trimInlines contents) <> sigs
 
 item :: LP Blocks
-item = blocks *> controlSeq "item" *> optional opt *> blocks
+item = blocks *> controlSeq "item" *> skipopts *> blocks
 
 loose_item :: LP Blocks
 loose_item = do
@@ -750,7 +754,7 @@ mathEnv innerEnv name = para <$> mathDisplay (inner <$> verbEnv name)
 
 verbEnv :: String -> LP String
 verbEnv name = do
-  optional opt
+  skipopts
   optional blankline
   let endEnv = try $ controlSeq "end" *> braced >>= guard . (== name)
   res <- manyTill anyChar endEnv
