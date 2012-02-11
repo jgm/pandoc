@@ -166,8 +166,17 @@ writeDocx mbRefDocx opts doc@(Pandoc (Meta tit auths date) _) = do
           : mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] () -- put current time here
           : map (mknode "dc:creator" [] . stringify) auths
   let docPropsEntry = toEntry docPropsPath epochtime $ fromString $ showTopElement' docProps
+  let relsPath = "_rels/.rels"
+  rels <- case findEntryByPath relsPath refArchive of
+                   Just e  -> return $ toString $ fromEntry e
+                   Nothing -> err 57 "could not find .rels/_rels in reference docx"
+  -- fix .rels/_rels, which can get screwed up when reference.docx is edited by Word
+  let rels' = substitute "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties"
+                  "http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties"
+                  rels
+  let relsEntry = toEntry relsPath epochtime $ fromString rels'
   let archive = foldr addEntryToArchive refArchive $
-                  contentEntry : relEntry : numEntry : styleEntry : docPropsEntry : imageEntries
+                  relsEntry : contentEntry : relEntry : numEntry : styleEntry : docPropsEntry : imageEntries
   return $ fromArchive archive
 
 styleToOpenXml :: Style -> [Element]
