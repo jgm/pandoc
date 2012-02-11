@@ -69,15 +69,13 @@ test fn name (input, expected) =
 
 vividize :: (DI,String) -> String
 vividize (B,s) = s
-vividize (_,s) = vivid s
+vividize (F,s) = s
+vividize (S,s) = setSGRCode [SetColor Background Dull Red
+                         , SetColor Foreground Vivid White] ++ s
+                 ++ setSGRCode [Reset]
 
 property :: QP.Testable a => TestName -> a -> Test
 property = testProperty
-
-vivid :: String -> String
-vivid s = setSGRCode [SetColor Background Dull Red
-                     , SetColor Foreground Vivid White] ++ s
-          ++ setSGRCode [Reset]
 
 infix 5 =?>
 (=?>) :: a -> b -> (a,b)
