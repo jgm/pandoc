@@ -41,7 +41,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char ( chr, ord )
 import Control.Monad
 import Text.Pandoc.Builder
-import Data.Char (isLetter)
+import Data.Char (isLetter, isPunctuation, isSpace)
 import Control.Applicative
 import Data.Monoid
 import System.FilePath (replaceExtension)
@@ -800,20 +800,24 @@ preamble = mempty <$> manyTill preambleBlock beginDoc
 
 -- citations
 
-addPrefix :: Inlines -> [Citation] -> [Citation]
-addPrefix p (k:ks)   = k {citationPrefix = toList p ++ citationPrefix k} : ks
+addPrefix :: [Inline] -> [Citation] -> [Citation]
+addPrefix p (k:ks)   = k {citationPrefix = p ++ citationPrefix k} : ks
 addPrefix _ _ = []
 
-addSuffix :: Inlines -> [Citation] -> [Citation]
+addSuffix :: [Inline] -> [Citation] -> [Citation]
 addSuffix s ks@(_:_) =
-  let k = last ks
-  in  init ks ++ [k {citationSuffix = citationSuffix k ++ toList s}]
+  let k  = last ks
+      s' = case s of
+                (Str (c:_):_)
+                  | not (isPunctuation c || isSpace c) -> Str "," : Space : s
+                _                                      -> s
+  in  init ks ++ [k {citationSuffix = citationSuffix k ++ s'}]
 addSuffix _ _ = []
 
 simpleCiteArgs :: LP [Citation]
 simpleCiteArgs = try $ do
-  first  <- optionMaybe opt
-  second <- optionMaybe opt
+  first  <- optionMaybe $ toList <$> opt
+  second <- optionMaybe $ toList <$> opt
   char '{'
   keys <- manyTill citationLabel (char '}')
   let (pre, suf) = case (first  , second ) of
@@ -850,7 +854,7 @@ citation name mode multi = do
 
 complexNatbibCitation :: CitationMode -> LP Inlines
 complexNatbibCitation mode = try $ do
-  let ils = (trimInlines . mconcat) <$>
+  let ils = (toList . trimInlines . mconcat) <$>
               many (notFollowedBy (oneOf "\\};") >> inline)
   let parseOne = try $ do
                    skipSpaces
