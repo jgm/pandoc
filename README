@@ -668,7 +668,7 @@ depending on the output format, but include:
     `http://www.w3.org/Talks/Tools/Slidy2`)
 `s5-url`
 :   base URL for S5 documents (defaults to `ui/default`)
-`font-size`
+`fontsize`
 :   font size (10pt, 11pt, 12pt) for LaTeX documents
 `documentclass`
 :   document class for LaTeX documents
