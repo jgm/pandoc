@@ -1,3 +1,37 @@
+pandoc (1.9.1.1)
+
+  * Better handling of raw latex environments in markdown.  Now
+
+        \begin{equation}
+        a_1
+        \end{equation}
+
+    turns into a raw latex block as expected.
+
+  * Improvements to LaTeX reader:
+
+    + Skip options after block commands.
+    + Correctly handle `{\\}` in braced.
+    + Added a needed 'try'.
+    + Citations: add `, ` to suffix if it doesn't start with space or
+      punctuation. Otherwise we get no space between the year and the
+      suffix in author-date styles.
+
+  * Added two needed data files for S5.  This fixes a problem with
+    `pandoc -t s5 --self-contained`.  Also removed `slides.min.js`,
+    which was no longer being used.
+
+  * Fixed some minor problems in `reference.docx`:
+    name on "Date" style, `xCs` instead of `xIs`.
+
+  * Fixed a problem creating docx files using a reference docx
+    modified using Word.  The problem seems to be that Word
+    modifies `_rels/.rels`, changing the Type of the Relationship to
+    `docProps/core.xml`. Pandoc now changes this back to the correct
+    value if it has been altered, fixing the problem.
+
+  * Fixed html5 template so it works properly with highlighting.
+
 pandoc (1.9.1)
 
   * LaTeX reader:
