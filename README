@@ -1534,10 +1534,12 @@ Backslash escapes do not work in verbatim contexts.
 Smart punctuation
 -----------------
 
+*Pandoc extension*.
+
 If the `--smart` option is specified, pandoc will produce typographically
-correct output, converting straight quotes to curly quotes, `---` and `--`
-to Em-dashes, and `...` to ellipses. Nonbreaking spaces are inserted after
-certain abbreviations, such as "Mr."
+correct output, converting straight quotes to curly quotes, `---` to
+em-dashes, `--` to en-dashes, and `...` to ellipses. Nonbreaking spaces
+are inserted after certain abbreviations, such as "Mr."
 
 Note:  if your LaTeX template uses the `csquotes` package, pandoc will
 detect automatically this and use `\enquote{...}` for quoted text.
