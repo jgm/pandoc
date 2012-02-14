@@ -141,6 +141,8 @@ import Text.Pandoc.Templates
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
 import Data.Version (showVersion)
+import Data.ByteString.Lazy.Char8 (ByteString)
+import Data.ByteString.Lazy.UTF8 (toString)
 import Text.JSON.Generic
 import Paths_pandoc (version)
 
@@ -149,20 +151,20 @@ pandocVersion :: String
 pandocVersion = showVersion version
 
 -- | Association list of formats and readers.
-readers :: [(String, ParserState -> String -> Pandoc)]
-readers = [("native"       , \_ -> readNative)
-          ,("json"         , \_ -> decodeJSON)
-          ,("markdown"     , readMarkdown)
-          ,("markdown+lhs" , \st ->
-                             readMarkdown st{ stateLiterateHaskell = True})
-          ,("rst"          , readRST)
-          ,("rst+lhs"      , \st ->
-                             readRST st{ stateLiterateHaskell = True})
-          ,("textile"      , readTextile) -- TODO : textile+lhs 
-          ,("html"         , readHtml)
-          ,("latex"        , readLaTeX)
-          ,("latex+lhs"    , \st ->
-                             readLaTeX st{ stateLiterateHaskell = True})
+readers :: [(String, ParserState -> ByteString -> Pandoc)]
+readers = [("native"       , \_ -> readNative . toString)
+          ,("json"         , \_ -> decodeJSON . toString)
+          ,("markdown"     , \st bs -> readMarkdown st (toString bs))
+          ,("markdown+lhs" , \st bs ->
+                             readMarkdown st{ stateLiterateHaskell = True} (toString bs))
+          ,("rst"          , \st bs -> readRST st (toString bs))
+          ,("rst+lhs"      , \st bs ->
+                             readRST st{ stateLiterateHaskell = True} (toString bs))
+          ,("textile"      , \st bs -> readTextile st (toString bs)) -- TODO : textile+lhs 
+          ,("html"         , \st bs -> readHtml st (toString bs))
+          ,("latex"        , \st bs -> readLaTeX st (toString bs))
+          ,("latex+lhs"    , \st bs ->
+                             readLaTeX st{ stateLiterateHaskell = True} (toString bs))
           ]
 
 -- | Association list of formats and writers (omitting the

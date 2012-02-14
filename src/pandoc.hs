@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2006-2011 John MacFarlane <jgm@berkeley.edu>
 
@@ -916,17 +917,16 @@ main = do
 
   let readSources [] = mapM readSource ["-"]
       readSources srcs = mapM readSource srcs
-      readSource "-" = UTF8.getContents
+      readSource "-" = B.getContents
       readSource src = case parseURI src of
                             Just u | uriScheme u `elem` ["http:","https:"] ->
                                        readURI u
-                            _       -> UTF8.readFile src
-      readURI uri = simpleHTTP (mkRequest GET uri) >>= getResponseBody >>=
-                      return . toString  -- treat all as UTF8
+                            _       -> B.readFile src
+      readURI uri = simpleHTTP (mkRequest GET uri) >>= getResponseBody
 
   let convertTabs = tabFilter (if preserveTabs then 0 else tabStop)
 
-  doc <- fmap (reader startParserState . convertTabs . intercalate "\n") (readSources sources)
+  doc <- fmap (reader startParserState . B.intercalate "\n") (readSources sources)
 
   let doc0 = foldr ($) doc transforms
 
