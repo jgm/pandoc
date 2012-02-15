@@ -387,8 +387,9 @@ blockToOpenXML opts (Table caption aligns widths headers rows) = do
   return $
     [ mknode "w:tbl" []
       ( mknode "w:tblPr" []
-        [ mknode "w:tblCaption" [("w:val", captionStr)] ()
-          | not (null caption) ]
+        ( [ mknode "w:tblStyle" [("w:val","TableNormal")] () ] ++
+          [ mknode "w:tblCaption" [("w:val", captionStr)] ()
+          | not (null caption) ] )
       : mknode "w:tblGrid" []
         (if all (==0) widths
             then []
