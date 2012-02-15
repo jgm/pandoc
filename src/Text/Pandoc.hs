@@ -120,6 +120,7 @@ import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.HTML
 import Text.Pandoc.Readers.Textile
 import Text.Pandoc.Readers.Native
+import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Writers.Native
 import Text.Pandoc.Writers.Markdown
 import Text.Pandoc.Writers.RST 
@@ -165,6 +166,7 @@ readers = [("native"       , \_ -> readNative . toString)
           ,("latex"        , \st bs -> readLaTeX st (toString bs))
           ,("latex+lhs"    , \st bs ->
                              readLaTeX st{ stateLiterateHaskell = True} (toString bs))
+          ,("docx"         , \st bs -> readDocx st bs)
           ]
 
 -- | Association list of formats and writers (omitting the
