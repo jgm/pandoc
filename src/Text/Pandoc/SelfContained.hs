@@ -157,6 +157,16 @@ makeSelfContained :: Maybe FilePath -> String -> IO String
 makeSelfContained userdata inp = do
   let tags = parseTags inp
   out' <- mapM (convertTag userdata) tags
-  return $ renderTagsOptions renderOptions{ optMinimize = (\t -> t == "br"
-                 || t == "img" || t == "meta" || t == "link" ) } out'
+  return $ renderTags' out'
 
+-- repeated from HTML reader:
+renderTags' :: [Tag String] -> String
+renderTags' = renderTagsOptions
+               renderOptions{ optMinimize = \x ->
+                                    let y = map toLower x
+                                    in  y == "hr" || y == "br" ||
+                                        y == "img" || y == "meta" ||
+                                        y == "link"
+                            , optRawTag = \x ->
+                                    let y = map toLower x
+                                    in  y == "script" || y == "style" }
