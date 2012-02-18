@@ -1,5 +1,6 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2008-2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,393 +19,458 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.PseudoPod 
-   Copyright   : Copyright (C) 2012 Jess Robinson
+   Copyright   : Copyright (C) 2006-2010 John MacFarlane
    License     : GNU GPL, version 2 or above 
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
    Portability : portable
 
-Conversion of 'Pandoc' documents to PseudoPod markup.
+Conversion of 'Pandoc' documents to PseudoPod-formatted plain text.
 
-PseudoPod:  <http://www.mediawiki.org/wiki/PseudoPod>
+PseudoPod:  <http://daringfireball.net/projects/PseudoPod/>
 -}
-module Text.Pandoc.Writers.PseudoPod ( writePseudoPod ) where
+module Text.Pandoc.Writers.PseudoPod (writePseudoPod) where
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared 
+import Text.Pandoc.Generic
 import Text.Pandoc.Templates (renderTemplate)
-import Text.Pandoc.XML ( escapeStringForXML )
-import Data.List ( intersect, intercalate )
-import Network.URI ( isURI )
+import Text.Pandoc.Shared
+import Text.Pandoc.Parsing hiding (blankline)
+import Text.ParserCombinators.Parsec ( runParser, GenParser )
+import Data.List ( group, intersperse, transpose )
+import Text.Pandoc.Pretty
 import Control.Monad.State
 
-data WriterState = WriterState {
-    stNotes     :: Bool            -- True if there are notes
-  , stListLevel :: [Char]          -- String at beginning of list items, e.g. "**"
-  , stUseTags   :: Bool            -- True if we should use HTML tags because we're in a complex list
-  }
+type Notes = [[Block]]
+type Refs = [([Inline], Target)]
+data WriterState = WriterState { stNotes :: Notes
+                               , stRefs :: Refs
+                               , stPlain :: Bool }
 
 -- | Convert Pandoc to PseudoPod.
 writePseudoPod :: WriterOptions -> Pandoc -> String
 writePseudoPod opts document = 
-  evalState (pandocToPseudoPod opts document) 
-            (WriterState { stNotes = False, stListLevel = [], stUseTags = False }) 
+  evalState (pandocToPseudoPod opts document) WriterState{ stNotes = []
+                                                        , stRefs  = []
+                                                        , stPlain = False }
 
 -- | Return PseudoPod representation of document.
 pandocToPseudoPod :: WriterOptions -> Pandoc -> State WriterState String
-pandocToPseudoPod opts (Pandoc _ blocks) = do
+pandocToPseudoPod opts (Pandoc (Meta title authors date) blocks) = do
+  title' <- inlineListToPseudoPod opts title
+  authors' <- mapM (inlineListToPseudoPod opts) authors
+  date' <- inlineListToPseudoPod opts date
+  let titleblock = not $ null title && null authors && null date
+  let headerBlocks = filter isHeaderBlock blocks
+  let toc = if writerTableOfContents opts 
+               then tableOfContents opts headerBlocks
+               else empty
   body <- blockListToPseudoPod opts blocks
-  notesExist <- get >>= return . stNotes
-  let notes = if notesExist
-                 then "\n<references />"
-                 else "" 
-  let main = body ++ notes
-  let context = writerVariables opts ++
-                [ ("body", main) ] ++
-                [ ("toc", "yes") | writerTableOfContents opts ]
+  st <- get
+  notes' <- notesToPseudoPod opts (reverse $ stNotes st)
+  st' <- get  -- note that the notes may contain refs
+  refs' <- refsToPseudoPod opts (reverse $ stRefs st')
+  let colwidth = if writerWrapText opts
+                    then Just $ writerColumns opts
+                    else Nothing
+  let main = render colwidth $ body <>
+               (if isEmpty notes' then empty else blankline <> notes') <>
+               (if isEmpty refs' then empty else blankline <> refs')
+  let context  = writerVariables opts ++
+                 [ ("toc", render colwidth toc)
+                 , ("body", main)
+                 , ("title", render colwidth title')
+                 , ("date", render colwidth date')
+                 ] ++
+                 [ ("titleblock", "yes") | titleblock ] ++
+                 [ ("author", render colwidth a) | a <- authors' ]
   if writerStandalone opts
      then return $ renderTemplate context $ writerTemplate opts
      else return main
 
+-- | Return PseudoPod representation of reference key table.
+refsToPseudoPod :: WriterOptions -> Refs -> State WriterState Doc
+refsToPseudoPod opts refs = mapM (keyToPseudoPod opts) refs >>= return . vcat
+
+-- | Return PseudoPod representation of a reference key. 
+keyToPseudoPod :: WriterOptions 
+              -> ([Inline], (String, String)) 
+              -> State WriterState Doc
+keyToPseudoPod opts (label, (src, tit)) = do
+  label' <- inlineListToPseudoPod opts label
+  let tit' = if null tit
+                then empty
+                else space <> "\"" <> text tit <> "\""
+  return $ nest 2 $ hang 2
+            ("[" <> label' <> "]:" <> space) (text src <> tit')
+
+-- | Return PseudoPod representation of notes.
+notesToPseudoPod :: WriterOptions -> [[Block]] -> State WriterState Doc
+notesToPseudoPod opts notes = 
+  mapM (\(num, note) -> noteToPseudoPod opts num note) (zip [1..] notes) >>=
+  return . vsep
+
+-- | Return PseudoPod representation of a note.
+noteToPseudoPod :: WriterOptions -> Int -> [Block] -> State WriterState Doc
+noteToPseudoPod opts num blocks = do
+  contents  <- blockListToPseudoPod opts blocks
+  let num' = text $ show num
+  let marker = text "[^" <> num' <> text "]:"
+  let markerSize = 4 + offset num'
+  let spacer = case writerTabStop opts - markerSize of
+                     n | n > 0  -> text $ replicate n ' '
+                     _          -> text " "
+  return $ hang (writerTabStop opts) (marker <> spacer) contents
+
 -- | Escape special characters for PseudoPod.
 escapeString :: String -> String
-escapeString =  escapeStringForXML
+escapeString = escapeStringUsing pseudopodEscapes
+  where pseudopodEscapes = backslashEscapes "\\`*_>#~^"
 
--- | Convert Pandoc block element to PseudoPod. 
+-- | Construct table of contents from list of header blocks.
+tableOfContents :: WriterOptions -> [Block] -> Doc 
+tableOfContents opts headers =
+  let opts' = opts { writerIgnoreNotes = True }
+      contents = BulletList $ map elementToListItem $ hierarchicalize headers
+  in  evalState (blockToPseudoPod opts' contents) WriterState{ stNotes = []
+                                                            , stRefs  = []
+                                                            , stPlain = False }
+
+-- | Converts an Element to a list item for a table of contents,
+elementToListItem :: Element -> [Block]
+elementToListItem (Blk _) = []
+elementToListItem (Sec _ _ _ headerText subsecs) = [Plain headerText] ++ 
+  if null subsecs
+     then []
+     else [BulletList $ map elementToListItem subsecs]
+
+attrsToPseudoPod :: Attr -> Doc
+attrsToPseudoPod attribs = braces $ hsep [attribId, attribClasses, attribKeys]
+        where attribId = case attribs of
+                                ([],_,_) -> empty
+                                (i,_,_)  -> "#" <> text i
+              attribClasses = case attribs of
+                                (_,[],_) -> empty
+                                (_,cs,_) -> hsep $
+                                            map (text . ('.':))
+                                            cs
+              attribKeys = case attribs of
+                                (_,_,[]) -> empty
+                                (_,_,ks) -> hsep $
+                                            map (\(k,v) -> text k
+                                              <> "=\"" <> text v <> "\"") ks
+
+-- | Ordered list start parser for use in Para below.
+olMarker :: GenParser Char ParserState Char
+olMarker = do (start, style', delim) <- anyOrderedListMarker
+              if delim == Period && 
+                          (style' == UpperAlpha || (style' == UpperRoman &&
+                          start `elem` [1, 5, 10, 50, 100, 500, 1000]))
+                          then spaceChar >> spaceChar
+                          else spaceChar
+
+-- | True if string begins with an ordered list marker
+beginsWithOrderedListMarker :: String -> Bool
+beginsWithOrderedListMarker str =
+  case runParser olMarker defaultParserState "para start" (take 10 str) of
+         Left  _  -> False
+         Right _  -> True
+
+-- | Convert Pandoc block element to PseudoPod.
 blockToPseudoPod :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
-                -> State WriterState String 
-
-blockToPseudoPod _ Null = return ""
-
-blockToPseudoPod opts (Plain inlines) = 
-  inlineListToPseudoPod opts inlines
-
-blockToPseudoPod opts (Para [Image txt (src,tit)]) = do
-  capt <- inlineListToPseudoPod opts txt 
-  let opt = if null txt
-               then ""
-               else "|alt=" ++ if null tit then capt else tit ++
-                    "|caption " ++ capt
-  return $ "[[Image:" ++ src ++ "|frame|none" ++ opt ++ "]]\n"
-
-blockToPseudoPod opts (Para inlines) = do
-  useTags <- get >>= return . stUseTags
-  listLevel <- get >>= return . stListLevel
+                -> State WriterState Doc 
+blockToPseudoPod _ Null = return empty
+blockToPseudoPod opts (Plain inlines) = do
   contents <- inlineListToPseudoPod opts inlines
-  return $ if useTags
-              then  "<p>" ++ contents ++ "</p>"
-              else contents ++ if null listLevel then "\n" else ""
+  return $ contents <> cr
+blockToPseudoPod opts (Para inlines) = do
+  contents <- inlineListToPseudoPod opts inlines
+  -- escape if para starts with ordered list marker
+  st <- get
+  let esc = if (not (writerStrictMarkdown opts)) &&
+               not (stPlain st) &&
+               beginsWithOrderedListMarker (render Nothing contents)
+               then text "\\"
+               else empty
+  return $ esc <> contents <> blankline
+blockToPseudoPod _ (RawBlock f str)
+  | f == "html" || f == "latex" || f == "tex" || f == "PseudoPod" = do
+    st <- get
+    if stPlain st
+       then return empty
+       else return $ text str <> text "\n"
+blockToPseudoPod _ (RawBlock _ _) = return empty
+blockToPseudoPod _ HorizontalRule =
+  return $ blankline <> text "* * * * *" <> blankline
 
-blockToPseudoPod _ (RawBlock "mediawiki" str) = return str
-blockToPseudoPod _ (RawBlock "html" str) = return str
-blockToPseudoPod _ (RawBlock _ _) = return ""
-
-blockToPseudoPod _ HorizontalRule = return "\n-----\n"
-
--- | =head X <content> - DONE
+-- | =headN <content> - DONE
 blockToPseudoPod opts (Header level inlines) = do
   contents <- inlineListToPseudoPod opts inlines
-  return $ "=head" ++ show level ++ " "  ++ contents ++ "\n"
+  return $ "=head" <> text (show level) <> " "  <> contents <> blankline
 
--- | C<> or indented ?
-blockToPseudoPod _ (CodeBlock (_,classes,_) str) = do
-  let at  = classes `intersect` ["actionscript", "ada", "apache", "applescript", "asm", "asp",
-                       "autoit", "bash", "blitzbasic", "bnf", "c", "c_mac", "caddcl", "cadlisp", "cfdg", "cfm",
-                       "cpp", "cpp-qt", "csharp", "css", "d", "delphi", "diff", "div", "dos", "eiffel", "fortran",
-                       "freebasic", "gml", "groovy", "html4strict", "idl", "ini", "inno", "io", "java", "java5",
-                       "javascript", "latex", "lisp", "lua", "matlab", "mirc", "mpasm", "mysql", "nsis", "objc",
-                       "ocaml", "ocaml-brief", "oobas", "oracle8", "pascal", "perl", "php", "php-brief", "plsql",
-                       "python", "qbasic", "rails", "reg", "robots", "ruby", "sas", "scheme", "sdlbasic",
-                       "smalltalk", "smarty", "sql", "tcl", "", "thinbasic", "tsql", "vb", "vbnet", "vhdl", 
-                       "visualfoxpro", "winbatch", "xml", "xpp", "z80"]
-  let (beg, end) = if null at
-                      then ("<pre" ++ if null classes then ">" else " class=\"" ++ unwords classes ++ "\">", "</pre>")
-                      else ("<source lang=\"" ++ head at ++ "\">", "</source>")
-  return $ beg ++ escapeString str ++ end
+{-
+blockToPseudoPod opts (CodeBlock (_,classes,_) str)
+  | "haskell" `elem` classes && "literate" `elem` classes &&
+    writerLiterateHaskell opts =
+  return $ prefixed "> " (text str) <> blankline
+-}
+
+-- | indent 3 spaces - DONE
+blockToPseudoPod _ (CodeBlock _ str) = return $
+  nest 3 (text str) <> blankline
+
+{-
+  if writerStrictMarkdown opts || attribs == nullAttr
+     then nest (writerTabStop opts) (text str) <> blankline
+     else -- use delimited code block
+          flush (tildes <> space <> attrs <> cr <> text str <>
+                  cr <> tildes) <> blankline
+            where tildes  = text "~~~~"
+                  attrs = attrsToPseudoPod attribs
+-}
 
 blockToPseudoPod opts (BlockQuote blocks) = do
+  st <- get
+  -- if we're writing literate haskell, put a space before the bird tracks
+  -- so they won't be interpreted as lhs...
+  let leader = if writerLiterateHaskell opts
+                  then " > "
+                  else if stPlain st
+                          then "  "
+                          else "> "
   contents <- blockListToPseudoPod opts blocks
-  return $ "<blockquote>" ++ contents ++ "</blockquote>" 
+  return $ (prefixed leader contents) <> blankline
+blockToPseudoPod opts (Table caption aligns widths headers rows) =  do
+  caption' <- inlineListToPseudoPod opts caption
+  let caption'' = if null caption
+                     then empty
+                     else blankline <> ": " <> caption' <> blankline
+  headers' <- mapM (blockListToPseudoPod opts) headers
+  let alignHeader alignment = case alignment of
+                                AlignLeft    -> lblock
+                                AlignCenter  -> cblock
+                                AlignRight   -> rblock
+                                AlignDefault -> lblock
+  rawRows <- mapM (mapM (blockListToPseudoPod opts)) rows
+  let isSimple = all (==0) widths
+  let numChars = maximum . map offset
+  let widthsInChars =
+       if isSimple
+          then map ((+2) . numChars) $ transpose (headers' : rawRows)
+          else map (floor . (fromIntegral (writerColumns opts) *)) widths
+  let makeRow = hcat . intersperse (lblock 1 (text " ")) .
+                   (zipWith3 alignHeader aligns widthsInChars)
+  let rows' = map makeRow rawRows
+  let head' = makeRow headers'
+  let maxRowHeight = maximum $ map height (head':rows')
+  let underline = cat $ intersperse (text " ") $
+                  map (\width -> text (replicate width '-')) widthsInChars
+  let border = if maxRowHeight > 1
+                  then text (replicate (sum widthsInChars +
+                          length widthsInChars - 1) '-')
+                  else if all null headers
+                          then underline
+                          else empty
+  let head'' = if all null headers
+                  then empty
+                  else border <> cr <> head'
+  let body = if maxRowHeight > 1
+                then vsep rows'
+                else vcat rows'
+  let bottom = if all null headers
+                  then underline
+                  else border
+  return $ nest 2 $ head'' $$ underline $$ body $$
+              bottom $$ blankline $$ caption'' $$ blankline
+blockToPseudoPod opts (BulletList items) = do
+  contents <- mapM (bulletListItemToPseudoPod opts) items
+  return $ cat contents <> blankline
+blockToPseudoPod opts (OrderedList attribs items) = do
+  let markers  = orderedListMarkers attribs
+  let markers' = map (\m -> if length m < 3
+                               then m ++ replicate (3 - length m) ' '
+                               else m) markers
+  contents <- mapM (\(item, num) -> orderedListItemToPseudoPod opts item num) $
+              zip markers' items
+  return $ cat contents <> blankline
+blockToPseudoPod opts (DefinitionList items) = do
+  contents <- mapM (definitionListItemToPseudoPod opts) items
+  return $ cat contents <> blankline
 
-blockToPseudoPod opts (Table capt aligns widths headers rows') = do
-  let alignStrings = map alignmentToString aligns
-  captionDoc <- if null capt
-                   then return ""
-                   else do
-                      c <- inlineListToPseudoPod opts capt
-                      return $ "<caption>" ++ c ++ "</caption>\n"
-  let percent w = show (truncate (100*w) :: Integer) ++ "%"
-  let coltags = if all (== 0.0) widths
-                   then ""
-                   else unlines $ map
-                         (\w -> "<col width=\"" ++ percent w ++ "\" />") widths
-  head' <- if all null headers
-              then return ""
-              else do
-                 hs <- tableRowToPseudoPod opts alignStrings 0 headers
-                 return $ "<thead>\n" ++ hs ++ "\n</thead>\n"
-  body' <- zipWithM (tableRowToPseudoPod opts alignStrings) [1..] rows'
-  return $ "<table>\n" ++ captionDoc ++ coltags ++ head' ++
-            "<tbody>\n" ++ unlines body' ++ "</tbody>\n</table>\n"
-
-blockToPseudoPod opts x@(BulletList items) = do
-  oldUseTags <- get >>= return . stUseTags
-  let useTags = oldUseTags || not (isSimpleList x)
-  if useTags
-     then do
-        modify $ \s -> s { stUseTags = True }
-        contents <- mapM (listItemToPseudoPod opts) items
-        modify $ \s -> s { stUseTags = oldUseTags }
-        return $ "<ul>\n" ++ vcat contents ++ "</ul>\n"
-     else do
-        modify $ \s -> s { stListLevel = stListLevel s ++ "*" }
-        contents <- mapM (listItemToPseudoPod opts) items
-        modify $ \s -> s { stListLevel = init (stListLevel s) }
-        return $ vcat contents ++ "\n"
-
-blockToPseudoPod opts x@(OrderedList attribs items) = do
-  oldUseTags <- get >>= return . stUseTags
-  let useTags = oldUseTags || not (isSimpleList x)
-  if useTags
-     then do
-        modify $ \s -> s { stUseTags = True }
-        contents <- mapM (listItemToPseudoPod opts) items
-        modify $ \s -> s { stUseTags = oldUseTags }
-        return $ "<ol" ++ listAttribsToString attribs ++ ">\n" ++ vcat contents ++ "</ol>\n"
-     else do
-        modify $ \s -> s { stListLevel = stListLevel s ++ "#" }
-        contents <- mapM (listItemToPseudoPod opts) items
-        modify $ \s -> s { stListLevel = init (stListLevel s) }
-        return $ vcat contents ++ "\n"
-
-blockToPseudoPod opts x@(DefinitionList items) = do
-  oldUseTags <- get >>= return . stUseTags
-  let useTags = oldUseTags || not (isSimpleList x)
-  if useTags
-     then do
-        modify $ \s -> s { stUseTags = True }
-        contents <- mapM (definitionListItemToPseudoPod opts) items
-        modify $ \s -> s { stUseTags = oldUseTags }
-        return $ "<dl>\n" ++ vcat contents ++ "</dl>\n"
-     else do
-        modify $ \s -> s { stListLevel = stListLevel s ++ ";" }
-        contents <- mapM (definitionListItemToPseudoPod opts) items
-        modify $ \s -> s { stListLevel = init (stListLevel s) }
-        return $ vcat contents ++ "\n"
-
--- Auxiliary functions for lists:
-
--- | Convert ordered list attributes to HTML attribute string
-listAttribsToString :: ListAttributes -> String
-listAttribsToString (startnum, numstyle, _) =
-  let numstyle' = camelCaseToHyphenated $ show numstyle
-  in  (if startnum /= 1
-          then " start=\"" ++ show startnum ++ "\""
-          else "") ++
-      (if numstyle /= DefaultStyle
-          then " style=\"list-style-type: " ++ numstyle' ++ ";\""
-          else "")
-
--- | Convert bullet or ordered list item (list of blocks) to PseudoPod.
-listItemToPseudoPod :: WriterOptions -> [Block] -> State WriterState String
-listItemToPseudoPod opts items = do
+-- | Convert bullet list item (list of blocks) to PseudoPod.
+bulletListItemToPseudoPod :: WriterOptions -> [Block] -> State WriterState Doc
+bulletListItemToPseudoPod opts items = do
   contents <- blockListToPseudoPod opts items
-  useTags <- get >>= return . stUseTags
-  if useTags
-     then return $ "<li>" ++ contents ++ "</li>"
-     else do
-       marker <- get >>= return . stListLevel
-       return $ marker ++ " " ++ contents
+  let sps = replicate (writerTabStop opts - 2) ' '
+  let start = text ('-' : ' ' : sps)
+  return $ hang (writerTabStop opts) start $ contents <> cr
+
+-- | Convert ordered list item (a list of blocks) to PseudoPod.
+orderedListItemToPseudoPod :: WriterOptions -- ^ options
+                          -> String        -- ^ list item marker
+                          -> [Block]       -- ^ list item (list of blocks)
+                          -> State WriterState Doc
+orderedListItemToPseudoPod opts marker items = do
+  contents <- blockListToPseudoPod opts items
+  let sps = case length marker - writerTabStop opts of
+                   n | n > 0 -> text $ replicate n ' '
+                   _         -> text " "
+  let start = text marker <> sps
+  return $ hang (writerTabStop opts) start $ contents <> cr
 
 -- | Convert definition list item (label, list of blocks) to PseudoPod.
 definitionListItemToPseudoPod :: WriterOptions
                              -> ([Inline],[[Block]]) 
-                             -> State WriterState String
-definitionListItemToPseudoPod opts (label, items) = do
+                             -> State WriterState Doc
+definitionListItemToPseudoPod opts (label, defs) = do
   labelText <- inlineListToPseudoPod opts label
-  contents <- mapM (blockListToPseudoPod opts) items
-  useTags <- get >>= return . stUseTags
-  if useTags
-     then return $ "<dt>" ++ labelText ++ "</dt>\n" ++
-           (intercalate "\n" $ map (\d -> "<dd>" ++ d ++ "</dd>") contents)
-     else do
-       marker <- get >>= return . stListLevel
-       return $ marker ++ " " ++ labelText ++ "\n" ++
-           (intercalate "\n" $ map (\d -> init marker ++ ": " ++ d) contents)
-
--- | True if the list can be handled by simple wiki markup, False if HTML tags will be needed.
-isSimpleList :: Block -> Bool
-isSimpleList x =
-  case x of
-       BulletList items                 -> all isSimpleListItem items
-       OrderedList (num, sty, _) items  -> all isSimpleListItem items &&
-                                            num == 1 && sty `elem` [DefaultStyle, Decimal]
-       DefinitionList items             -> all isSimpleListItem $ concatMap snd items 
-       _                                -> False
-
--- | True if list item can be handled with the simple wiki syntax.  False if
---   HTML tags will be needed.
-isSimpleListItem :: [Block] -> Bool
-isSimpleListItem []  = True
-isSimpleListItem [x] =
-  case x of
-       Plain _           -> True
-       Para  _           -> True
-       BulletList _      -> isSimpleList x
-       OrderedList _ _   -> isSimpleList x
-       DefinitionList _  -> isSimpleList x
-       _                 -> False
-isSimpleListItem [x, y] | isPlainOrPara x =
-  case y of
-       BulletList _      -> isSimpleList y
-       OrderedList _ _   -> isSimpleList y
-       DefinitionList _  -> isSimpleList y
-       _                 -> False
-isSimpleListItem _ = False
-
-isPlainOrPara :: Block -> Bool
-isPlainOrPara (Plain _) = True
-isPlainOrPara (Para  _) = True
-isPlainOrPara _         = False
-
--- | Concatenates strings with line breaks between them.
-vcat :: [String] -> String
-vcat = intercalate "\n"
-
--- Auxiliary functions for tables:
-
-tableRowToPseudoPod :: WriterOptions
-                    -> [String]
-                    -> Int
-                    -> [[Block]]
-                    -> State WriterState String
-tableRowToPseudoPod opts alignStrings rownum cols' = do
-  let celltype = if rownum == 0 then "th" else "td"
-  let rowclass = case rownum of
-                      0                  -> "header"
-                      x | x `rem` 2 == 1 -> "odd"
-                      _                  -> "even"
-  cols'' <- sequence $ zipWith 
-            (\alignment item -> tableItemToPseudoPod opts celltype alignment item) 
-            alignStrings cols'
-  return $ "<tr class=\"" ++ rowclass ++ "\">\n" ++ unlines cols'' ++ "</tr>"
-
-alignmentToString :: Alignment -> [Char]
-alignmentToString alignment = case alignment of
-                                 AlignLeft    -> "left"
-                                 AlignRight   -> "right"
-                                 AlignCenter  -> "center"
-                                 AlignDefault -> "left"
-
-tableItemToPseudoPod :: WriterOptions
-                     -> String
-                     -> String
-                     -> [Block]
-                     -> State WriterState String
-tableItemToPseudoPod opts celltype align' item = do
-  let mkcell x = "<" ++ celltype ++ " align=\"" ++ align' ++ "\">" ++
-                    x ++ "</" ++ celltype ++ ">"
-  contents <- blockListToPseudoPod opts item
-  return $ mkcell contents
+  let tabStop = writerTabStop opts
+  st <- get
+  let leader  = if stPlain st then "   " else "  ~"
+  let sps = case writerTabStop opts - 3 of
+                 n | n > 0   -> text $ replicate n ' '
+                 _           -> text " "
+  defs' <- mapM (mapM (blockToPseudoPod opts)) defs
+  let contents = vcat $ map (\d -> hang tabStop (leader <> sps) $ vcat d <> cr) defs'
+  return $ labelText <> cr <> contents <> cr
 
 -- | Convert list of Pandoc block elements to PseudoPod.
 blockListToPseudoPod :: WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
-                    -> State WriterState String 
+                    -> State WriterState Doc 
 blockListToPseudoPod opts blocks =
-  mapM (blockToPseudoPod opts) blocks >>= return . vcat
+  mapM (blockToPseudoPod opts) (fixBlocks blocks) >>= return . cat
+    -- insert comment between list and indented code block, or the
+    -- code block will be treated as a list continuation paragraph
+    where fixBlocks (b : CodeBlock attr x : rest)
+            | (writerStrictMarkdown opts || attr == nullAttr) && isListBlock b =
+               b : RawBlock "html" "<!-- -->\n" : CodeBlock attr x :
+                  fixBlocks rest
+          fixBlocks (x : xs)             = x : fixBlocks xs
+          fixBlocks []                   = []
+          isListBlock (BulletList _)     = True
+          isListBlock (OrderedList _ _)  = True
+          isListBlock (DefinitionList _) = True
+          isListBlock _                  = False
 
 -- | Convert list of Pandoc inline elements to PseudoPod.
-inlineListToPseudoPod :: WriterOptions -> [Inline] -> State WriterState String
+inlineListToPseudoPod :: WriterOptions -> [Inline] -> State WriterState Doc
 inlineListToPseudoPod opts lst =
-  mapM (inlineToPseudoPod opts) lst >>= return . concat
+  mapM (inlineToPseudoPod opts) lst >>= return . cat
+
+escapeSpaces :: Inline -> Inline
+escapeSpaces (Str s) = Str $ substitute " " "\\ " s
+escapeSpaces Space = Str "\\ "
+escapeSpaces x = x
 
 -- | Convert Pandoc inline element to PseudoPod.
-inlineToPseudoPod :: WriterOptions -> Inline -> State WriterState String
+inlineToPseudoPod :: WriterOptions -> Inline -> State WriterState Doc
 
 -- | B< > - DONE
 inlineToPseudoPod opts (Emph lst) = do 
   contents <- inlineListToPseudoPod opts lst
-  return $ "B<" ++ contents ++ ">" 
+  return $ "B<" <> contents <> ">"
 
--- | B< > - FIXME
+-- | B< > - DONE
 inlineToPseudoPod opts (Strong lst) = do
   contents <- inlineListToPseudoPod opts lst
-  return $ "B<" ++ contents ++ ">"
+  return $ "B<" <> contents <> ">"
 
--- | - FIXME
 inlineToPseudoPod opts (Strikeout lst) = inlineListToPseudoPod opts lst
 {-
 inlineToPseudoPod opts (Strikeout lst) = do
   contents <- inlineListToPseudoPod opts lst
-  return $ "strike<" ++ contents ++ "> FIXME"
+  return $ "~~" <> contents <> "~~"
 -}
 
--- | G<> - DONE
 inlineToPseudoPod opts (Superscript lst) = do
-  contents <- inlineListToPseudoPod opts lst
-  return $ "G<" ++ contents ++ ">"
-
--- | H<> - DONE
+  let lst' = bottomUp escapeSpaces lst
+  contents <- inlineListToPseudoPod opts lst'
+  return $ "^" <> contents <> "^"
 inlineToPseudoPod opts (Subscript lst) = do
-  contents <- inlineListToPseudoPod opts lst
-  return $ "H<" ++ contents ++ ">"
-
--- | - FIXME
+  let lst' = bottomUp escapeSpaces lst
+  contents <- inlineListToPseudoPod opts lst'
+  return $ "~" <> contents <> "~"
 inlineToPseudoPod opts (SmallCaps lst) = inlineListToPseudoPod opts lst
-
--- | preserve quotes
 inlineToPseudoPod opts (Quoted SingleQuote lst) = do
   contents <- inlineListToPseudoPod opts lst
-  return $ "\8216" ++ contents ++ "\8217"
-
+  return $ "‘" <> contents <> "’"
 inlineToPseudoPod opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToPseudoPod opts lst
-  return $ "\8220" ++ contents ++ "\8221"
+  return $ "“" <> contents <> "”"
+inlineToPseudoPod opts (Code attr str) =
+  let tickGroups = filter (\s -> '`' `elem` s) $ group str 
+      longest    = if null tickGroups
+                     then 0
+                     else maximum $ map length tickGroups 
+      marker     = replicate (longest + 1) '`' 
+      spacer     = if (longest == 0) then "" else " "
+      attrs      = if writerStrictMarkdown opts || attr == nullAttr
+                      then empty
+                      else attrsToPseudoPod attr
+  in  return $ text (marker ++ spacer ++ str ++ spacer ++ marker) <> attrs
+inlineToPseudoPod _ (Str str) = do
+  st <- get
+  if stPlain st
+     then return $ text str
+     else return $ text $ escapeString str
+inlineToPseudoPod _ (Math InlineMath str) =
+  return $ "$" <> text str <> "$"
+inlineToPseudoPod _ (Math DisplayMath str) =
+  return $ "$$" <> text str <> "$$"
+inlineToPseudoPod _ (RawInline f str)
+  | f == "html" || f == "latex" || f == "tex" || f == "PseudoPod" =
+    return $ text str
+inlineToPseudoPod _ (RawInline _ _) = return empty
+inlineToPseudoPod opts (LineBreak) = return $
+  if writerStrictMarkdown opts
+     then "  " <> cr
+     else "\\" <> cr
+inlineToPseudoPod _ Space = return space
+inlineToPseudoPod opts (Cite (c:cs) lst)
+  | writerCiteMethod opts == Citeproc = inlineListToPseudoPod opts lst
+  | citationMode c == AuthorInText = do
+    suffs <- inlineListToPseudoPod opts $ citationSuffix c
+    rest <- mapM convertOne cs
+    let inbr = suffs <+> joincits rest
+        br   = if isEmpty inbr then empty else char '[' <> inbr <> char ']'
+    return $ text ("@" ++ citationId c) <+> br
+  | otherwise = do
+    cits <- mapM convertOne (c:cs)
+    return $ text "[" <> joincits cits <> text "]"
+  where
+        joincits = hcat . intersperse (text "; ") . filter (not . isEmpty)
+        convertOne Citation { citationId      = k
+                            , citationPrefix  = pinlines
+                            , citationSuffix  = sinlines
+                            , citationMode    = m }
+                               = do
+           pdoc <- inlineListToPseudoPod opts pinlines
+           sdoc <- inlineListToPseudoPod opts sinlines
+           let k' = text (modekey m ++ "@" ++ k)
+               r = case sinlines of
+                        Str (y:_):_ | y `elem` ",;]@" -> k' <> sdoc
+                        _                             -> k' <+> sdoc
+           return $ pdoc <+> r
+        modekey SuppressAuthor = "-"
+        modekey _              = ""
+inlineToPseudoPod _ (Cite _ _) = return $ text ""
 
--- | T<> - DONE
-inlineToPseudoPod opts (Cite _ lst) = do
-  contents <- inlineListToPseudoPod opts lst
-  return $ "T<" ++ contents ++ ">"
-
--- | C<< content >> - DONE
-inlineToPseudoPod _ (Code _ str) =
-  return $ "C<< " ++ (escapeString str) ++ " >>"
-
-inlineToPseudoPod _ (Str str) = return $ escapeString str
-
--- | Math? C<> ? - FIXME
-inlineToPseudoPod _ (Math _ str) = return $ "<math>" ++ str ++ "</math>"
-                                 -- note:  str should NOT be escaped
-
--- | ??? FIXME
-inlineToPseudoPod _ (RawInline "mediawiki" str) = return str 
-inlineToPseudoPod _ (RawInline "html" str) = return str 
-inlineToPseudoPod _ (RawInline _ _) = return ""
-
--- | newline
-inlineToPseudoPod _ (LineBreak) = return "\n"
-
-inlineToPseudoPod _ Space = return " "
-
--- | L<>, L<label|name/"section"> - FIXME, ignoring some cases ? no sections?
+-- | L<> - DONE
 inlineToPseudoPod opts (Link txt (src, _)) = do
   label <- inlineListToPseudoPod opts txt
-  return $ "L<" ++ label ++ "|" ++ src ++ ">"
+  return $ "L<" <> label <> "|" <> (text src) <> ">"
 
-
-inlineToPseudoPod opts (Image alt (source, tit)) = do
-  alt' <- inlineListToPseudoPod opts alt
-  let txt = if (null tit)
-               then if null alt
-                       then ""
-                       else "|" ++ alt'
-               else "|" ++ tit
-  return $ "[[Image:" ++ source ++ txt ++ "]]"
-
-inlineToPseudoPod opts (Note contents) = do 
-  contents' <- blockListToPseudoPod opts contents
-  modify (\s -> s { stNotes = True })
-  return $ "<ref>" ++ contents' ++ "</ref>"
-  -- note - may not work for notes with multiple blocks
+inlineToPseudoPod opts (Image alternate (source, tit)) = do
+  let txt = if (null alternate) || (alternate == [Str ""]) || 
+               (alternate == [Str source]) -- to prevent autolinks
+               then [Str "image"]
+               else alternate
+  linkPart <- inlineToPseudoPod opts (Link txt (source, tit))
+  return $ "!" <> linkPart
+inlineToPseudoPod _ (Note contents) = do 
+  modify (\st -> st{ stNotes = contents : stNotes st })
+  st <- get
+  let ref = show $ (length $ stNotes st)
+  return $ "[^" <> text ref <> "]"
