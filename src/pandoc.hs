@@ -731,6 +731,7 @@ defaultWriterName x =
     ".org"      -> "org"
     ".asciidoc" -> "asciidoc"
     ".pdf"      -> "latex"
+    ".pod"      -> "pseudopod"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
