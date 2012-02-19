@@ -6,6 +6,7 @@ import Text.Pandoc.Definition
 import Text.HTML.TagSoup
 import Data.ByteString.Lazy.Char8 (ByteString, pack)
 import Data.ByteString.Lazy.UTF8 (toString)
+import Debug.Trace
 import Codec.Archive.Zip (toArchive, findEntryByPath, fromEntry)
 import Control.Monad (liftM)
 
@@ -41,6 +42,7 @@ blocks = liftM concat $ many1 block
 block :: TagParser [Block]
 block = choice
             [ pList
+            , pTable
             , pPlain
             ]
 pList :: TagParser [Block]
@@ -57,6 +59,33 @@ item = try $ do
   str <- liftM concat $ many1Till plainText (pSatisfy (~== TagClose "w:p"))
   return [Plain [Str str]]
 
+pTable :: TagParser [Block]
+pTable = try $ do
+  pSatisfy (~== TagOpen "w:tbl" [])
+  let non = pSatisfy (\t -> (t ~/= TagClose "w:tbl") && (t ~/= TagOpen "w:tr" []))
+  skipMany non
+  rows <- manyTill pTableRow (pCloses "w:tbl")
+  let cols = maximum $ map length rows
+  let aligns = replicate cols AlignLeft
+  let widths = replicate cols 0
+  return [Table [] aligns widths [] rows]
+
+pTableRow :: TagParser [TableCell]
+pTableRow = try $ do
+  pSatisfy (~== TagOpen "w:tr" [])
+  let non = pSatisfy (\t -> (t ~/= TagClose "w:tr") && (t ~/= TagOpen "w:tc" []))
+  skipMany non
+  cells <- manyTill pTableCell (pCloses "w:tr")
+  return cells
+
+pTableCell :: TagParser TableCell
+pTableCell = try $ do
+  pSatisfy (~== TagOpen "w:tc" [])
+  let non = pSatisfy (\t -> (t ~/= TagClose "w:tc") && (t ~/= TagOpen "w:p" []))
+  skipMany non
+  cell <- manyTill block (pCloses "w:tc")
+  return $ concat cell
+
 pPlain :: TagParser [Block]
 pPlain = do
   str <- plainText
@@ -66,12 +95,32 @@ plainText :: TagParser String
 plainText = try $ do
   tag <- lookAhead anyTag
   pPlain' tag
-    where pPlain' (TagOpen n _) = do str <- pInTags n getText
-                                     return str
+    where pPlain' (TagOpen n _) = pInTags n getText
           pPlain' (TagText str) = do anyTag
                                      return str
           pPlain' _             = do anyTag
                                      return ""
+
+pPlainDebug :: TagParser [Block]
+pPlainDebug = do
+  str <- plainTextDebug
+  return [Plain [Str str]]
+
+plainTextDebug :: TagParser String
+plainTextDebug = try $ do
+  tag <- lookAhead anyTag
+  txt <- pPlain' tag
+  trace ("plainText: return " ++ txt) (return txt)
+    where pPlain' (TagOpen n _) = trace ("plainText: open " ++ n) $ pInTags n getTextDebug
+          pPlain' (TagText str) = do anyTag
+                                     return $ trace ("plainText: text " ++ str) str
+          pPlain' _             = do anyTag
+                                     return $ trace ("plainText: other ") ""
+
+getTextDebug :: TagParser String
+getTextDebug = do
+  x <- anyTag
+  return $ if isTagText (trace ("getText: " ++ show x) x) then innerText [x] else []
 
 getText :: TagParser String
 getText = do
