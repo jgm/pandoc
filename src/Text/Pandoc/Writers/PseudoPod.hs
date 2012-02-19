@@ -218,48 +218,23 @@ blockToPseudoPod opts (BlockQuote blocks) = do
   contents <- blockListToPseudoPod opts blocks
   return $ "=begin blockquote" <> blankline <> contents <> blankline <> "=end blockquote" <> blankline
 
-blockToPseudoPod opts (Table caption aligns widths headers rows) =  do
+-- | =begin table <caption> / =headrow / =row / =cell / =bodyrows / =row / =cell / =end table
+blockToPseudoPod opts (Table caption _ _ headers rows) =  do
   caption' <- inlineListToPseudoPod opts caption
-  let caption'' = if null caption
-                     then empty
-                     else blankline <> ": " <> caption' <> blankline
   headers' <- mapM (blockListToPseudoPod opts) headers
-  let alignHeader alignment = case alignment of
-                                AlignLeft    -> lblock
-                                AlignCenter  -> cblock
-                                AlignRight   -> rblock
-                                AlignDefault -> lblock
+
   rawRows <- mapM (mapM (blockListToPseudoPod opts)) rows
-  let isSimple = all (==0) widths
-  let numChars = maximum . map offset
-  let widthsInChars =
-       if isSimple
-          then map ((+2) . numChars) $ transpose (headers' : rawRows)
-          else map (floor . (fromIntegral (writerColumns opts) *)) widths
-  let makeRow = hcat . intersperse (lblock 1 (text " ")) .
-                   (zipWith3 alignHeader aligns widthsInChars)
+  let makeRow = hcat . intersperse (text("\n=cell "))
+  let makeRowBlock = hcat . intersperse (text("\n=row\n\n=cell "))
+
   let rows' = map makeRow rawRows
+  let rows'' = makeRowBlock rows'
+  let rows''' = "=row" <> blankline <> "=cell " <> rows''
+
   let head' = makeRow headers'
-  let maxRowHeight = maximum $ map height (head':rows')
-  let underline = cat $ intersperse (text " ") $
-                  map (\width -> text (replicate width '-')) widthsInChars
-  let border = if maxRowHeight > 1
-                  then text (replicate (sum widthsInChars +
-                          length widthsInChars - 1) '-')
-                  else if all null headers
-                          then underline
-                          else empty
-  let head'' = if all null headers
-                  then empty
-                  else border <> cr <> head'
-  let body = if maxRowHeight > 1
-                then vsep rows'
-                else vcat rows'
-  let bottom = if all null headers
-                  then underline
-                  else border
-  return $ nest 2 $ head'' $$ underline $$ body $$
-              bottom $$ blankline $$ caption'' $$ blankline
+  let head'' = "=row" <> blankline <> "=cell " <> head'
+
+  return $ "=begin table " <> caption' <> blankline <> "=headrow" <> blankline <> head'' <> blankline <> "=bodyrows" <> blankline <> rows''' <> blankline <> "=end table" <> blankline
 
 -- | =over / =item * / =back
 blockToPseudoPod opts (BulletList items) = do
