@@ -213,17 +213,11 @@ blockToPseudoPod _ (CodeBlock _ str) = return $
                   attrs = attrsToPseudoPod attribs
 -}
 
+-- | =begin blockquote ?
 blockToPseudoPod opts (BlockQuote blocks) = do
-  st <- get
-  -- if we're writing literate haskell, put a space before the bird tracks
-  -- so they won't be interpreted as lhs...
-  let leader = if writerLiterateHaskell opts
-                  then " > "
-                  else if stPlain st
-                          then "  "
-                          else "> "
   contents <- blockListToPseudoPod opts blocks
-  return $ (prefixed leader contents) <> blankline
+  return $ "=begin blockquote" <> blankline <> contents <> blankline <> "=end blockquote" <> blankline
+
 blockToPseudoPod opts (Table caption aligns widths headers rows) =  do
   caption' <- inlineListToPseudoPod opts caption
   let caption'' = if null caption
@@ -311,6 +305,7 @@ orderedListItemToPseudoPod opts marker items = do
   return $ hang (writerTabStop opts) start $ contents <> cr
 -}
 
+{-
 -- | Convert definition list item (label, list of blocks) to markdown.
 definitionListItemToPseudoPod :: WriterOptions
                              -> ([Inline],[[Block]]) 
@@ -326,8 +321,8 @@ definitionListItemToPseudoPod opts (label, defs) = do
   defs' <- mapM (mapM (blockToPseudoPod opts)) defs
   let contents = vcat $ map (\d -> hang tabStop (leader <> sps) $ vcat d <> cr) defs'
   return $ labelText <> cr <> contents <> cr
+-}
 
-{-
 -- | Convert definition list item (label, list of blocks) to PseudoPod.
 -- | =over / =item FOO / para / =back
 definitionListItemToPseudoPod :: WriterOptions
@@ -337,13 +332,10 @@ definitionListItemToPseudoPod opts (label, defs) = do
   labelText <- inlineListToPseudoPod opts label
   -- each call to definitonListItemToPseudoPod is one label, which can have multiple defintions.  (Each definition is a [Block].)
 
-  defs' <- mapM (mapM (blockToPseudoPod opts)) defs
+  defs' <- mapM (blockListToPseudoPod opts) defs
 --  let contents = vcat $ map (\d -> "=item") $ vcat d <> cr) defs'
-  return $ "=item" <> labelText <> blankline <> vcat (vcat defs') <> blankline
+  return $ "=item " <> labelText <> blankline <> vcat defs' <> blankline
 
-definitionListSubItemToPseudoPod :: WriterOptions -> ([Inline], [Block])
-definitionListSubItemToPseudoPod opts (label, def) = do
--}
 
 -- | Convert list of Pandoc block elements to PseudoPod.
 blockListToPseudoPod :: WriterOptions -- ^ Options
@@ -487,5 +479,6 @@ inlineToPseudoPod opts (Image alternate (source, tit)) = do
 
 -- | N<>
 inlineToPseudoPod opts (Note blocks) = do 
-  contents <- blockListToPseudoPod opts blocks
-  return $ "N<" <> contents <> ">"
+--  contents <- blockListToPseudoPod opts blocks
+  contents <- mapM (blockToPseudoPod opts) blocks
+  return $ "N<" <> vcat contents <> ">"
