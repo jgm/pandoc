@@ -57,7 +57,7 @@ tex2pdf' :: FilePath                        -- ^ temp directory for output
          -> IO (Either ByteString ByteString)
 tex2pdf' tmpDir program source = do
   let numruns = if "\\tableofcontents" `isInfixOf` source
-                   then 2
+                   then 3
                    else 1
   (exit, log', mbPdf) <- runTeXProgram program numruns tmpDir source
   let msg = "Error producing PDF from TeX source."
