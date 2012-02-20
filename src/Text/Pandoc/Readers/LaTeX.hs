@@ -684,14 +684,14 @@ environments = M.fromList
   , ("equation*", mathEnv Nothing "equation*")
   , ("gather", mathEnv (Just "gathered") "gather")
   , ("gather*", mathEnv (Just "gathered") "gather*")
-  , ("multiline", mathEnv (Just "gathered") "multiline")
-  , ("multiline*", mathEnv (Just "gathered") "multiline*")
-  , ("eqnarray", mathEnv (Just "aligned*") "eqnarray")
-  , ("eqnarray*", mathEnv (Just "aligned*") "eqnarray*")
-  , ("align", mathEnv (Just "aligned*") "align")
-  , ("align*", mathEnv (Just "aligned*") "align*")
-  , ("alignat", mathEnv (Just "aligned*") "alignat")
-  , ("alignat*", mathEnv (Just "aligned*") "alignat*")
+  , ("multline", mathEnv (Just "gathered") "multline")
+  , ("multline*", mathEnv (Just "gathered") "multline*")
+  , ("eqnarray", mathEnv (Just "aligned") "eqnarray")
+  , ("eqnarray*", mathEnv (Just "aligned") "eqnarray*")
+  , ("align", mathEnv (Just "aligned") "align")
+  , ("align*", mathEnv (Just "aligned") "align*")
+  , ("alignat", mathEnv (Just "aligned") "alignat")
+  , ("alignat*", mathEnv (Just "aligned") "alignat*")
   ]
 
 letter_contents :: LP Blocks
