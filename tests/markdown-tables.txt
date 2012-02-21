@@ -1,0 +1,34 @@
+Simplest table without caption:
+
+| Default1 | Default2 | Default3 | 
+|----------|----------|----------|
+|12|12|12|
+|123|123|123|
+|1|1|1|
+
+Simple table with caption:
+
+| Right | Left | Default | Center |
+|------:|:-----|---------|:------:|
+|   12  |  12  |    12   |    12  |
+|  123  |  123 |   123   |   123  |
+|    1  |    1 |     1   |     1  |
+
+  : Demonstration of simple table syntax.
+
+Simple table without caption:
+
+| Right | Left | Center | 
+|------:|:-----|:------:|
+|12|12|12|
+|123|123|123|
+|1|1|1|
+
+
+Headerless table without caption:
+
+|------:|:-----|:------:|
+|12|12|12|
+|123|123|123|
+|1|1|1|
+
