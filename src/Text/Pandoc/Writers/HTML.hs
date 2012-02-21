@@ -610,8 +610,8 @@ inlineToHtml opts inline =
                                             DisplayMath -> brtag >> m >> brtag
                                GladTeX ->
                                   return $ case t of
-                                             InlineMath -> preEscapedString "<EQ ENV=\"math\">" >> toHtml str >> preEscapedString "</EQ>"
-                                             DisplayMath -> preEscapedString "<EQ ENV=\"displaymath\">" >> toHtml str >> preEscapedString "</EQ>"
+                                             InlineMath -> preEscapedString $ "<EQ ENV=\"math\">" ++ str ++ "</EQ>"
+                                             DisplayMath -> preEscapedString $ "<EQ ENV=\"displaymath\">" ++ str ++ "</EQ>"
                                MathML _ -> do
                                   let dt = if t == InlineMath
                                               then DisplayInline
