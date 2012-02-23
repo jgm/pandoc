@@ -415,7 +415,6 @@ Executable test-pandoc
                       Tests.Shared
                       Tests.Readers.LaTeX
                       Tests.Readers.Markdown
-                      Tests.Readers.PseudoPod
                       Tests.Readers.RST
                       Tests.Writers.Native
                       Tests.Writers.ConTeXt

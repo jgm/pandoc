@@ -68,7 +68,7 @@ pandocToPseudoPod opts (Pandoc (Meta title authors date) blocks) = do
   let colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
                     else Nothing
-  let main = render colwidth $ body <>
+  let main = render colwidth $ text("=encoding utf8\n\n") <> body <>
                (if isEmpty refs' then empty else blankline <> refs')
   let context  = writerVariables opts ++
                  [ ("toc", render colwidth toc)
@@ -105,7 +105,7 @@ escapeString = escapeStringUsing pseudopodEscapes
 
 -- | pod-ish entity escapes, E<>
 entityEscapes :: [(Char,String)]
-entityEscapes = [('>', "E<gt>")]
+entityEscapes = [('>', "E<gt>"), ('<', "E<lt>"), ('|', "E<verbar>"), ('/', "E<sol>")]
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: WriterOptions -> [Block] -> Doc 
@@ -162,7 +162,7 @@ blockToPseudoPod :: WriterOptions -- ^ Options
 blockToPseudoPod _ Null = return empty
 blockToPseudoPod opts (Plain inlines) = do
   contents <- inlineListToPseudoPod opts inlines
-  return $ contents <> cr
+  return $ contents <> blankline
 
 
 blockToPseudoPod opts (Para inlines) = do
@@ -175,6 +175,7 @@ blockToPseudoPod opts (Para inlines) = do
                then text "\\"
                else empty
   return $ esc <> contents <> blankline
+
 blockToPseudoPod _ (RawBlock f str)
   | f == "html" || f == "latex" || f == "tex" || f == "PseudoPod" = do
     st <- get
@@ -317,19 +318,7 @@ blockListToPseudoPod :: WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
                     -> State WriterState Doc 
 blockListToPseudoPod opts blocks =
-  mapM (blockToPseudoPod opts) (fixBlocks blocks) >>= return . cat
-    -- insert comment between list and indented code block, or the
-    -- code block will be treated as a list continuation paragraph
-    where fixBlocks (b : CodeBlock attr x : rest)
-            | (writerStrictMarkdown opts || attr == nullAttr) && isListBlock b =
-               b : RawBlock "html" "<!-- -->\n" : CodeBlock attr x :
-                  fixBlocks rest
-          fixBlocks (x : xs)             = x : fixBlocks xs
-          fixBlocks []                   = []
-          isListBlock (BulletList _)     = True
-          isListBlock (OrderedList _ _)  = True
-          isListBlock (DefinitionList _) = True
-          isListBlock _                  = False
+  mapM (blockToPseudoPod opts) (blocks) >>= return . cat
 
 -- | Convert list of Pandoc inline elements to PseudoPod.
 inlineListToPseudoPod :: WriterOptions -> [Inline] -> State WriterState Doc
@@ -344,10 +333,10 @@ escapeSpaces x = x
 -- | Convert Pandoc inline element to PseudoPod.
 inlineToPseudoPod :: WriterOptions -> Inline -> State WriterState Doc
 
--- | B< > - DONE
+-- | I< > - DONE
 inlineToPseudoPod opts (Emph lst) = do 
   contents <- inlineListToPseudoPod opts lst
-  return $ "B<" <> contents <> ">"
+  return $ "I<" <> contents <> ">"
 
 -- | B< > - DONE
 inlineToPseudoPod opts (Strong lst) = do
@@ -456,4 +445,4 @@ inlineToPseudoPod opts (Image alternate (source, tit)) = do
 inlineToPseudoPod opts (Note blocks) = do 
 --  contents <- blockListToPseudoPod opts blocks
   contents <- mapM (blockToPseudoPod opts) blocks
-  return $ "N<" <> vcat contents <> ">"
+  return $ "N<" <> cat contents <> ">"
