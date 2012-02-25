@@ -358,8 +358,6 @@ inlineCommands = M.fromList $
   , ("scshape", smallcaps <$> inlines)
   , ("bfseries", strong <$> inlines)
   , ("/", pure mempty) -- italic correction
-  , ("cc", lit "ç")
-  , ("cC", lit "Ç")
   , ("aa", lit "å")
   , ("AA", lit "Å")
   , ("ss", lit "ß")
@@ -372,13 +370,14 @@ inlineCommands = M.fromList $
   , ("pounds", lit "£")
   , ("euro", lit "€")
   , ("copyright", lit "©")
-  , ("`", option (str "`") $ try $ tok >>= accent grave)
-  , ("'", option (str "'") $ try $ tok >>= accent acute)
-  , ("^", option (str "^") $ try $ tok >>= accent hat)
-  , ("~", option (str "~") $ try $ tok >>= accent circ)
-  , ("\"", option (str "\"") $ try $ tok >>= accent umlaut)
-  , (".", option (str ".") $ try $ tok >>= accent dot)
-  , ("=", option (str "=") $ try $ tok >>= accent macron)
+  , ("`", tok >>= accent grave)
+  , ("'", tok >>= accent acute)
+  , ("^", tok >>= accent circ)
+  , ("~", tok >>= accent tilde)
+  , ("\"", tok >>= accent umlaut)
+  , (".", tok >>= accent dot)
+  , ("=", tok >>= accent macron)
+  , ("c", tok >>= accent cedilla)
   , ("i", lit "i")
   , ("\\", linebreak <$ (optional (bracketed inline) *> optional sp))
   , (",", pure mempty)
@@ -502,33 +501,66 @@ acute 'E' = 'É'
 acute 'I' = 'Í'
 acute 'O' = 'Ó'
 acute 'U' = 'Ú'
+acute 'Y' = 'Ý'
 acute 'a' = 'á'
 acute 'e' = 'é'
 acute 'i' = 'í'
 acute 'o' = 'ó'
 acute 'u' = 'ú'
+acute 'y' = 'ý'
+acute 'C' = 'Ć'
+acute 'c' = 'ć'
+acute 'L' = 'Ĺ'
+acute 'l' = 'ĺ'
+acute 'N' = 'Ń'
+acute 'n' = 'ń'
+acute 'R' = 'Ŕ'
+acute 'r' = 'ŕ'
+acute 'S' = 'Ś'
+acute 's' = 'ś'
+acute 'Z' = 'Ź'
+acute 'z' = 'ź'
 acute c = c
 
-hat :: Char -> Char
-hat 'A' = 'Â'
-hat 'E' = 'Ê'
-hat 'I' = 'Î'
-hat 'O' = 'Ô'
-hat 'U' = 'Û'
-hat 'a' = 'ã'
-hat 'e' = 'ê'
-hat 'i' = 'î'
-hat 'o' = 'ô'
-hat 'u' = 'û'
-hat c = c
-
 circ :: Char -> Char
-circ 'A' = 'Ã'
-circ 'O' = 'Õ'
-circ 'o' = 'õ'
-circ 'N' = 'Ñ'
-circ 'n' = 'ñ'
-circ c   = c
+circ 'A' = 'Â'
+circ 'E' = 'Ê'
+circ 'I' = 'Î'
+circ 'O' = 'Ô'
+circ 'U' = 'Û'
+circ 'a' = 'â'
+circ 'e' = 'ê'
+circ 'i' = 'î'
+circ 'o' = 'ô'
+circ 'u' = 'û'
+circ 'C' = 'Ĉ'
+circ 'c' = 'ĉ'
+circ 'G' = 'Ĝ'
+circ 'g' = 'ĝ'
+circ 'H' = 'Ĥ'
+circ 'h' = 'ĥ'
+circ 'J' = 'Ĵ'
+circ 'j' = 'ĵ'
+circ 'S' = 'Ŝ'
+circ 's' = 'ŝ'
+circ 'W' = 'Ŵ'
+circ 'w' = 'ŵ'
+circ 'Y' = 'Ŷ'
+circ 'y' = 'ŷ'
+circ c = c
+
+tilde :: Char -> Char
+tilde 'A' = 'Ã'
+tilde 'a' = 'ã'
+tilde 'O' = 'Õ'
+tilde 'o' = 'õ'
+tilde 'I' = 'Ĩ'
+tilde 'i' = 'ĩ'
+tilde 'U' = 'Ũ'
+tilde 'u' = 'ũ'
+tilde 'N' = 'Ñ'
+tilde 'n' = 'ñ'
+tilde c   = c
 
 umlaut :: Char -> Char
 umlaut 'A' = 'Ä'
@@ -567,6 +599,13 @@ macron 'i' = 'ī'
 macron 'o' = 'ō'
 macron 'u' = 'ū'
 macron c = c
+
+cedilla :: Char -> Char
+cedilla 'c' = 'ç'
+cedilla 'C' = 'Ç'
+cedilla 's' = 'ş'
+cedilla 'S' = 'Ş'
+cedilla c = c
 
 tok :: LP Inlines
 tok = try $ grouped inline <|> inlineCommand <|> str <$> (count 1 $ inlineChar)
