@@ -685,7 +685,7 @@ verbatimEnv = do
              controlSeq "begin"
              name <- braced
              guard $ name == "verbatim" || name == "Verbatim" ||
-                     name == "lstlisting"
+                     name == "lstlisting" || name == "minted"
              verbEnv name
   rest <- getInput
   return (r,rest)
@@ -718,6 +718,8 @@ environments = M.fromList
   , ("verbatim", codeBlock <$> (verbEnv "verbatim"))
   , ("Verbatim", codeBlock <$> (verbEnv "Verbatim"))
   , ("lstlisting", codeBlock <$> (verbEnv "listlisting"))
+  , ("minted", liftA2 (\l c -> codeBlockWith ("",[l],[]) c)
+            (grouped (many1 $ satisfy (/= '}'))) (verbEnv "minted"))
   , ("displaymath", mathEnv Nothing "displaymath")
   , ("equation", mathEnv Nothing "equation")
   , ("equation*", mathEnv Nothing "equation*")
