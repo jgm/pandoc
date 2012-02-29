@@ -233,9 +233,11 @@ blockToPseudoPod opts (Table caption _ _ headers rows) =  do
   let rows''' = "=row" <> blankline <> "=cell " <> rows''
 
   let head' = makeRow headers'
-  let head'' = "=row" <> blankline <> "=cell " <> head'
+  let head'' = if all null headers
+                  then empty
+                  else "=headrow" <> blankline <> "=row" <> blankline <> "=cell " <> head'
 
-  return $ "=begin table " <> caption' <> blankline <> "=headrow" <> blankline <> head'' <> blankline <> "=bodyrows" <> blankline <> rows''' <> blankline <> "=end table" <> blankline
+  return $ "=begin table " <> caption' <> blankline <> head'' <> blankline <> "=bodyrows" <> blankline <> rows''' <> blankline <> "=end table" <> blankline
 
 -- | =over / =item * / =back
 blockToPseudoPod opts (BulletList items) = do
