@@ -16,9 +16,14 @@
 
 \setupwhitespace[medium]
 
-\setuphead[section]      [style=\tfc$if(number-sections)$$else$,number=no$endif$]
-\setuphead[subsection]   [style=\tfb$if(number-sections)$$else$,number=no$endif$]
-\setuphead[subsubsection][style=\bf$if(number-sections)$$else$,number=no$endif$]
+\setuphead[chapter]      [style=\tfd]
+\setuphead[section]      [style=\tfc]
+\setuphead[subsection]   [style=\tfb]
+\setuphead[subsubsection][style=\bf]
+
+$if(number-sections)$$else$
+\setuphead[chapter, section, subsection, subsubsection][number=no]
+$endif$
 
 \definedescription
   [description]
