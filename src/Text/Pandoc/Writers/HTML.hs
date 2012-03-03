@@ -59,12 +59,14 @@ import Data.Monoid (mempty, mconcat)
 data WriterState = WriterState
     { stNotes            :: [Html]  -- ^ List of notes
     , stMath             :: Bool    -- ^ Math is used in document
+    , stQuotes           :: Bool    -- ^ <q> tag is used
     , stHighlighting     :: Bool    -- ^ Syntax highlighting is used
     , stSecNum           :: [Int]   -- ^ Number of current section
     }
 
 defaultWriterState :: WriterState
-defaultWriterState = WriterState {stNotes= [], stMath = False, stHighlighting = False, stSecNum = []}
+defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
+                                  stHighlighting = False, stSecNum = []}
 
 -- Helpers to render HTML with the appropriate function.
 
@@ -156,7 +158,8 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   let newvars = [("highlighting-css",
                    styleToCss $ writerHighlightStyle opts) |
                    stHighlighting st] ++
-                [("math", renderHtml math) | stMath st]
+                [("math", renderHtml math) | stMath st] ++
+                [("quotes", "yes") | stQuotes st]
   return (tit, auths, authsMeta, date, toc, thebody, newvars)
 
 -- | Prepare author for meta tag, converting notes into
@@ -581,8 +584,12 @@ inlineToHtml opts inline =
                                               strToHtml "’")
                               DoubleQuote -> (strToHtml "“",
                                               strToHtml "”")
-                        in  do contents <- inlineListToHtml opts lst
-                               return $ leftQuote >> contents >> rightQuote
+                        in  if writerHtml5 opts
+                               then do
+                                 modify $ \st -> st{ stQuotes = True }
+                                 H.q `fmap` inlineListToHtml opts lst
+                               else (\x -> leftQuote >> x >> rightQuote)
+                                    `fmap` inlineListToHtml opts lst
     (Math t str) ->     modify (\st -> st {stMath = True}) >>
                         (case writerHTMLMathMethod opts of
                                LaTeXMathML _ ->
