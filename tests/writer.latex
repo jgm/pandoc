@@ -591,7 +591,7 @@ a\textsuperscript{hello~there}.
 Subscripts: H\textsubscr{2}O, H\textsubscr{23}O, H\textsubscr{many~of~them}O.
 
 These should not be superscripts or subscripts, because of the unescaped
-spaces: a\^{}b c\^{}d, a\ensuremath{\sim}b c\ensuremath{\sim}d.
+spaces: a\^{}b c\^{}d, a\textasciitilde{}b c\textasciitilde{}d.
 
 \begin{center}\rule{3in}{0.4pt}\end{center}
 
