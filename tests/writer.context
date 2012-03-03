@@ -16,9 +16,12 @@
 
 \setupwhitespace[medium]
 
-\setuphead[section]      [style=\tfc,number=no]
-\setuphead[subsection]   [style=\tfb,number=no]
-\setuphead[subsubsection][style=\bf,number=no]
+\setuphead[chapter]      [style=\tfd]
+\setuphead[section]      [style=\tfc]
+\setuphead[subsection]   [style=\tfb]
+\setuphead[subsubsection][style=\bf]
+
+\setuphead[chapter, section, subsection, subsubsection][number=no]
 
 \definedescription
   [description]
