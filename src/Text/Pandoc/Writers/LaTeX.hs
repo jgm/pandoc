@@ -183,7 +183,7 @@ stringToLaTeX isUrl (x:xs) =
        '-' -> case xs of   -- prevent adjacent hyphens from forming ligatures
                    ('-':_) -> "-{}" ++ rest
                    _       -> '-' : rest
-       '~' | not isUrl -> "\\ensuremath{\\sim}" ++ rest
+       '~' | not isUrl -> "\\textasciitilde{}" ++ rest
        '^' -> "\\^{}" ++ rest
        '\\' -> "\\textbackslash{}" ++ rest
        '€' -> "\\euro{}" ++ rest
