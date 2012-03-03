@@ -48,6 +48,8 @@ import Text.Pandoc.Writers.Markdown ( writePlain )
 import Data.Char ( toLower )
 import Network.URI ( unEscapeString )
 import Text.Pandoc.MIME (getMimeType)
+import Prelude hiding (catch)
+import Control.Exception (catch, SomeException)
 
 -- | Produce an EPUB file from a Pandoc document.
 writeEPUB :: Maybe String   -- ^ EPUB stylesheet specified at command line
@@ -127,7 +129,7 @@ writeEPUB mbStylesheet fonts opts doc@(Pandoc meta _) = do
 
   -- contents.opf
   localeLang <- catch (liftM (takeWhile (/='.')) $ getEnv "LANG")
-                    (\_ -> return "en-US")
+                    (\e -> let _ = (e :: SomeException) in return "en-US")
   let lang = case lookup "lang" (writerVariables opts') of
                      Just x  -> x
                      Nothing -> localeLang
