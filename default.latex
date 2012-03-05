@@ -1,4 +1,4 @@
-\documentclass[$if(fontsize)$$fontsize$,$endif$]{$documentclass$}
+\documentclass[$if(fontsize)$$fontsize$,$endif$$if(lang)$$lang$,$endif$]{$documentclass$}
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
 \ifxetex
@@ -93,7 +93,12 @@ $if(verbatim-in-note)$
 \VerbatimFootnotes % allows verbatim text in footnotes
 $endif$
 $if(lang)$
-\usepackage[$lang$]{babel}
+\ifxetex
+  \usepackage{polyglossia}
+  \setmainlanguage{$lang$}
+\else
+  \usepackage[$lang$]{babel}
+\fi
 $endif$
 $for(header-includes)$
 $header-includes$
