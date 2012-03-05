@@ -98,7 +98,7 @@ $endif$
 $if(lang)$
 \ifxetex
   \usepackage{polyglossia}
-  \setmainlanguage{$lang$}
+  \setmainlanguage{$mainlang$}
 \else
   \usepackage[$lang$]{babel}
 \fi
