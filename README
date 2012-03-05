@@ -111,6 +111,17 @@ available: `amssymb`, `amsmath`, `ifxetex`, `ifluatex`, `listings` (if the
 `fontspec` (if `xelatex` or `lualatex` is used as the LaTeX engine), `xltxtra`
 and `xunicode` (if `xelatex` is used).
 
+Note the PDF output is not strictly identical to other pandoc
+formats. Details of the PDF can be controlled via customization of
+the LaTeX template. A custom template usually derives from
+`default.latex` and can be given as argument to `markdown2pdf`:
+
+    markdown2pdf sample.txt --template=mylatex
+
+See the [Wiki: User contributed templates] page for examples.
+
+[Wiki: User contributed templates]: https://github.com/jgm/pandoc/wiki/User-contributed-templates
+
 `hsmarkdown`
 ------------
 
