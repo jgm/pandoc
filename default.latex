@@ -4,12 +4,15 @@
 \ifxetex
   \usepackage{fontspec,xltxtra,xunicode}
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
 \else
   \ifluatex
     \usepackage{fontspec}
     \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+    \newcommand{\euro}{€}
   \else
     \usepackage[utf8]{inputenc}
+    \usepackage{eurosym}
   \fi
 \fi
 $if(natbib)$
