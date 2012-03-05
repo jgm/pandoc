@@ -625,7 +625,11 @@ where `FORMAT` is the name of the output format. A custom template
 can be specified using the `--template` option.  You can also override
 the system default templates for a given output format `FORMAT`
 by putting a file `templates/default.FORMAT` in the user data
-directory (see `--data-dir`, above).
+directory (see `--data-dir`, above). *Exceptions:* For `odt` output,
+customize the `default.opendocument` template.  For `pdf` output,
+customize the `default.latex` template. For `epub` output, customize
+the `epub-page.html`, `epub-coverimage.html`, and `epub-titlepage.html`
+templates.
 
 Templates may contain *variables*.  Variable names are sequences of
 alphanumerics, `-`, and `_`, starting with a letter.  A variable name
