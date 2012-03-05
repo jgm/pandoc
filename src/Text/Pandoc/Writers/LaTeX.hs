@@ -153,6 +153,8 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("book-class", "yes") | stBook st] ++
                  [ ("listings", "yes") | writerListings options || stLHS st ] ++
                  [ ("beamer", "yes") | writerBeamer options ] ++
+                 [ ("mainlang", maybe "" (reverse . takeWhile (/=',') . reverse)
+                                (lookup "lang" $ writerVariables options)) ] ++
                  [ ("highlighting-macros", styleToLaTeX
                        $ writerHighlightStyle options ) | stHighlighting st ] ++
                  citecontext
