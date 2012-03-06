@@ -10,12 +10,9 @@ Simple table with caption:
 
 =cell Right
 
-
 =cell Left
 
-
 =cell Center
-
 
 =cell Default
 
@@ -25,40 +22,29 @@ Simple table with caption:
 
 =cell 12
 
+=cell 12
 
 =cell 12
 
-
 =cell 12
-
-
-=cell 12
-
 
 =row
 
 =cell 123
 
+=cell 123
 
 =cell 123
 
-
 =cell 123
-
-
-=cell 123
-
 
 =row
 
 =cell 1
 
-
 =cell 1
 
-
 =cell 1
-
 
 =cell 1
 
@@ -74,12 +60,9 @@ Simple table without caption:
 
 =cell Right
 
-
 =cell Left
 
-
 =cell Center
-
 
 =cell Default
 
@@ -89,40 +72,29 @@ Simple table without caption:
 
 =cell 12
 
+=cell 12
 
 =cell 12
 
-
 =cell 12
-
-
-=cell 12
-
 
 =row
 
 =cell 123
 
+=cell 123
 
 =cell 123
 
-
 =cell 123
-
-
-=cell 123
-
 
 =row
 
 =cell 1
 
-
 =cell 1
 
-
 =cell 1
-
 
 =cell 1
 
@@ -138,12 +110,9 @@ Simple table indented two spaces:
 
 =cell Right
 
-
 =cell Left
 
-
 =cell Center
-
 
 =cell Default
 
@@ -153,40 +122,29 @@ Simple table indented two spaces:
 
 =cell 12
 
+=cell 12
 
 =cell 12
 
-
 =cell 12
-
-
-=cell 12
-
 
 =row
 
 =cell 123
 
+=cell 123
 
 =cell 123
 
-
 =cell 123
-
-
-=cell 123
-
 
 =row
 
 =cell 1
 
-
 =cell 1
 
-
 =cell 1
-
 
 =cell 1
 
@@ -202,12 +160,9 @@ Multiline table with caption:
 
 =cell Centered Header
 
-
 =cell Left Aligned
 
-
 =cell Right Aligned
-
 
 =cell Default aligned
 
@@ -217,26 +172,19 @@ Multiline table with caption:
 
 =cell First
 
-
 =cell row
-
 
 =cell 12.0
 
-
 =cell Example of a row that spans multiple lines.
-
 
 =row
 
 =cell Second
 
-
 =cell row
 
-
 =cell 5.0
-
 
 =cell Here's another one. Note the blank line between rows.
 
@@ -252,12 +200,9 @@ Multiline table without caption:
 
 =cell Centered Header
 
-
 =cell Left Aligned
 
-
 =cell Right Aligned
-
 
 =cell Default aligned
 
@@ -267,26 +212,19 @@ Multiline table without caption:
 
 =cell First
 
-
 =cell row
-
 
 =cell 12.0
 
-
 =cell Example of a row that spans multiple lines.
-
 
 =row
 
 =cell Second
 
-
 =cell row
 
-
 =cell 5.0
-
 
 =cell Here's another one. Note the blank line between rows.
 
@@ -302,40 +240,29 @@ Table without column headers:
 
 =cell 12
 
+=cell 12
 
 =cell 12
 
-
 =cell 12
-
-
-=cell 12
-
 
 =row
 
 =cell 123
 
+=cell 123
 
 =cell 123
 
-
 =cell 123
-
-
-=cell 123
-
 
 =row
 
 =cell 1
 
-
 =cell 1
 
-
 =cell 1
-
 
 =cell 1
 
@@ -351,26 +278,19 @@ Multiline table without column headers:
 
 =cell First
 
-
 =cell row
-
 
 =cell 12.0
 
-
 =cell Example of a row that spans multiple lines.
-
 
 =row
 
 =cell Second
 
-
 =cell row
 
-
 =cell 5.0
-
 
 =cell Here's another one. Note the blank line between rows.
 
