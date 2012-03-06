@@ -162,7 +162,7 @@ blockToPseudoPod :: WriterOptions -- ^ Options
 blockToPseudoPod _ Null = return empty
 blockToPseudoPod opts (Plain inlines) = do
   contents <- inlineListToPseudoPod opts inlines
-  return $ contents <> blankline
+  return $ contents
 
 
 blockToPseudoPod opts (Para inlines) = do
@@ -174,7 +174,7 @@ blockToPseudoPod opts (Para inlines) = do
                beginsWithOrderedListMarker (render Nothing contents)
                then text "\\"
                else empty
-  return $ esc <> contents <> blankline
+  return $ esc <> contents
 
 blockToPseudoPod _ (RawBlock f str)
   | f == "html" || f == "latex" || f == "tex" || f == "PseudoPod" = do
@@ -186,12 +186,12 @@ blockToPseudoPod _ (RawBlock _ _) = return empty
 
 -- | No horizontal rules, leave a space
 blockToPseudoPod _ HorizontalRule =
-  return $ blankline <> blankline <> blankline
+  return $ blankline <> blankline
 
 -- | =headN <content> - DONE
 blockToPseudoPod opts (Header level inlines) = do
   contents <- inlineListToPseudoPod opts inlines
-  return $ "=head" <> text (show level) <> " "  <> contents <> blankline
+  return $ "=head" <> text (show level) <> " "  <> contents
 
 {-
 blockToPseudoPod opts (CodeBlock (_,classes,_) str)
@@ -202,7 +202,7 @@ blockToPseudoPod opts (CodeBlock (_,classes,_) str)
 
 -- | indent 3 spaces - DONE
 blockToPseudoPod _ (CodeBlock _ str) = return $
-  nest 3 (text str) <> blankline
+  nest 3 (text str)
 
 {-
   if writerStrictMarkdown opts || attribs == nullAttr
@@ -217,7 +217,7 @@ blockToPseudoPod _ (CodeBlock _ str) = return $
 -- | =begin blockquote ?
 blockToPseudoPod opts (BlockQuote blocks) = do
   contents <- blockListToPseudoPod opts blocks
-  return $ "=begin blockquote" <> blankline <> contents <> blankline <> "=end blockquote" <> blankline
+  return $ "=begin blockquote" <> blankline <> contents <> blankline <> "=end blockquote"
 
 -- | =begin table <caption> / =headrow / =row / =cell / =bodyrows / =row / =cell / =end table
 blockToPseudoPod opts (Table caption _ _ headers rows) =  do
@@ -237,12 +237,12 @@ blockToPseudoPod opts (Table caption _ _ headers rows) =  do
                   then empty
                   else "=headrow" <> blankline <> "=row" <> blankline <> "=cell " <> head'
 
-  return $ "=begin table " <> caption' <> blankline <> head'' <> blankline <> "=bodyrows" <> blankline <> rows''' <> blankline <> "=end table" <> blankline
+  return $ "=begin table " <> caption' <> blankline <> head'' <> blankline <> "=bodyrows" <> blankline <> rows''' <> blankline <> "=end table"
 
 -- | =over / =item * / =back
 blockToPseudoPod opts (BulletList items) = do
   contents <- mapM (bulletListItemToPseudoPod opts) items
-  return $ "=over" <> blankline <> cat contents <> blankline <> "=back" <> blankline
+  return $ "=over" <> blankline <> cat contents <> blankline <> "=back"
 
 
 -- | =over / =item N. / =back
@@ -253,12 +253,12 @@ blockToPseudoPod opts (OrderedList attribs items) = do
                                else m) markers
   contents <- mapM (\(item, num) -> orderedListItemToPseudoPod opts item num) $
               zip markers' items
-  return $ "=over" <> blankline <> cat contents <> blankline <> "=back" <> blankline
+  return $ "=over" <> blankline <> cat contents <> blankline <> "=back"
 --  return $ cat contents <> blankline
 
 blockToPseudoPod opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToPseudoPod opts) items
-  return $ "=over" <> blankline <> cat contents <> blankline <> "=back" <> blankline
+  return $ "=over" <> blankline <> cat contents <> blankline <> "=back"
 
 -- | bullet list -> =item *
 bulletListItemToPseudoPod :: WriterOptions -> [Block] -> State WriterState Doc
@@ -319,8 +319,12 @@ definitionListItemToPseudoPod opts (label, defs) = do
 blockListToPseudoPod :: WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
                     -> State WriterState Doc 
-blockListToPseudoPod opts blocks =
-  mapM (blockToPseudoPod opts) (blocks) >>= return . cat
+blockListToPseudoPod opts blocks = do
+  contents <-  mapM (blockToPseudoPod opts) (blocks)
+  let makeBlank = hcat . intersperse (text("\n\n"))
+  let contents' = makeBlank contents
+  return $ contents'
+-- >>= return . cat . intersperse (blankline)
 
 -- | Convert list of Pandoc inline elements to PseudoPod.
 inlineListToPseudoPod :: WriterOptions -> [Inline] -> State WriterState Doc
@@ -433,7 +437,10 @@ inlineToPseudoPod _ (Cite _ _) = return $ text ""
 -- | L<> - DONE
 inlineToPseudoPod opts (Link txt (src, _)) = do
   label <- inlineListToPseudoPod opts txt
-  return $ "L<" <> label <> "|" <> (text src) <> ">"
+  let linktext = if null txt
+                   then empty
+                   else label <> (text "|")
+  return $ "L<" <> linktext <> (text src) <> ">"
 
 inlineToPseudoPod opts (Image alternate (source, tit)) = do
   let txt = if (null alternate) || (alternate == [Str ""]) || 
@@ -444,7 +451,10 @@ inlineToPseudoPod opts (Image alternate (source, tit)) = do
   return $ "!" <> linkPart
 
 -- | N<>
-inlineToPseudoPod opts (Note blocks) = do 
---  contents <- blockListToPseudoPod opts blocks
-  contents <- mapM (blockToPseudoPod opts) blocks
-  return $ "N<" <> cat contents <> ">"
+-- inlineToPseudoPod :: WriterOptions -> Inline -> State WriterState Doc
+-- We need the converted blocks not to end in a blankline, else we get blankline ">", which the pseudopod parser does not like
+inlineToPseudoPod opts (Note (block:_)) = do 
+--  contents <- mapM (blockToPseudoPod opts) blocks
+  contents <- blockToPseudoPod opts block
+  return $ "N<" <> contents <> ">"
+--  return $ "N<" <> cat contents <> ">"

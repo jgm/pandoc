@@ -1,0 +1,377 @@
+=encoding utf8
+
+Simple table with caption:
+
+=begin table Demonstration of simple table syntax.
+
+=headrow
+
+=row
+
+=cell Right
+
+
+=cell Left
+
+
+=cell Center
+
+
+=cell Default
+
+=bodyrows
+
+=row
+
+=cell 12
+
+
+=cell 12
+
+
+=cell 12
+
+
+=cell 12
+
+
+=row
+
+=cell 123
+
+
+=cell 123
+
+
+=cell 123
+
+
+=cell 123
+
+
+=row
+
+=cell 1
+
+
+=cell 1
+
+
+=cell 1
+
+
+=cell 1
+
+=end table
+
+Simple table without caption:
+
+=begin table 
+
+=headrow
+
+=row
+
+=cell Right
+
+
+=cell Left
+
+
+=cell Center
+
+
+=cell Default
+
+=bodyrows
+
+=row
+
+=cell 12
+
+
+=cell 12
+
+
+=cell 12
+
+
+=cell 12
+
+
+=row
+
+=cell 123
+
+
+=cell 123
+
+
+=cell 123
+
+
+=cell 123
+
+
+=row
+
+=cell 1
+
+
+=cell 1
+
+
+=cell 1
+
+
+=cell 1
+
+=end table
+
+Simple table indented two spaces:
+
+=begin table Demonstration of simple table syntax.
+
+=headrow
+
+=row
+
+=cell Right
+
+
+=cell Left
+
+
+=cell Center
+
+
+=cell Default
+
+=bodyrows
+
+=row
+
+=cell 12
+
+
+=cell 12
+
+
+=cell 12
+
+
+=cell 12
+
+
+=row
+
+=cell 123
+
+
+=cell 123
+
+
+=cell 123
+
+
+=cell 123
+
+
+=row
+
+=cell 1
+
+
+=cell 1
+
+
+=cell 1
+
+
+=cell 1
+
+=end table
+
+Multiline table with caption:
+
+=begin table Here's the caption. It may span multiple lines.
+
+=headrow
+
+=row
+
+=cell Centered Header
+
+
+=cell Left Aligned
+
+
+=cell Right Aligned
+
+
+=cell Default aligned
+
+=bodyrows
+
+=row
+
+=cell First
+
+
+=cell row
+
+
+=cell 12.0
+
+
+=cell Example of a row that spans multiple lines.
+
+
+=row
+
+=cell Second
+
+
+=cell row
+
+
+=cell 5.0
+
+
+=cell Here's another one. Note the blank line between rows.
+
+=end table
+
+Multiline table without caption:
+
+=begin table 
+
+=headrow
+
+=row
+
+=cell Centered Header
+
+
+=cell Left Aligned
+
+
+=cell Right Aligned
+
+
+=cell Default aligned
+
+=bodyrows
+
+=row
+
+=cell First
+
+
+=cell row
+
+
+=cell 12.0
+
+
+=cell Example of a row that spans multiple lines.
+
+
+=row
+
+=cell Second
+
+
+=cell row
+
+
+=cell 5.0
+
+
+=cell Here's another one. Note the blank line between rows.
+
+=end table
+
+Table without column headers:
+
+=begin table 
+
+=bodyrows
+
+=row
+
+=cell 12
+
+
+=cell 12
+
+
+=cell 12
+
+
+=cell 12
+
+
+=row
+
+=cell 123
+
+
+=cell 123
+
+
+=cell 123
+
+
+=cell 123
+
+
+=row
+
+=cell 1
+
+
+=cell 1
+
+
+=cell 1
+
+
+=cell 1
+
+=end table
+
+Multiline table without column headers:
+
+=begin table 
+
+=bodyrows
+
+=row
+
+=cell First
+
+
+=cell row
+
+
+=cell 12.0
+
+
+=cell Example of a row that spans multiple lines.
+
+
+=row
+
+=cell Second
+
+
+=cell row
+
+
+=cell 5.0
+
+
+=cell Here's another one. Note the blank line between rows.
+
+=end table
