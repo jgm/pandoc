@@ -3,6 +3,10 @@
   \setupcolors[state=start]
 \stopmode
 
+$if(lang)$
+\mainlanguage[$lang$]
+$endif$
+
 % Enable hyperlinks
 \setupinteraction[state=start, color=middleblue]
 
