@@ -37,7 +37,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing hiding (blankline)
 import Text.ParserCombinators.Parsec ( runParser, GenParser )
-import Data.List ( intersperse, transpose )
+import Data.List ( intersperse )
 import Text.Pandoc.Pretty
 import Control.Monad.State
 
@@ -122,22 +122,6 @@ elementToListItem (Sec _ _ _ headerText subsecs) = [Plain headerText] ++
   if null subsecs
      then []
      else [BulletList $ map elementToListItem subsecs]
-
-attrsToPseudoPod :: Attr -> Doc
-attrsToPseudoPod attribs = braces $ hsep [attribId, attribClasses, attribKeys]
-        where attribId = case attribs of
-                                ([],_,_) -> empty
-                                (i,_,_)  -> "#" <> text i
-              attribClasses = case attribs of
-                                (_,[],_) -> empty
-                                (_,cs,_) -> hsep $
-                                            map (text . ('.':))
-                                            cs
-              attribKeys = case attribs of
-                                (_,_,[]) -> empty
-                                (_,_,ks) -> hsep $
-                                            map (\(k,v) -> text k
-                                              <> "=\"" <> text v <> "\"") ks
 
 -- | Ordered list start parser for use in Para below.
 olMarker :: GenParser Char ParserState Char
@@ -379,7 +363,7 @@ inlineToPseudoPod opts (Quoted DoubleQuote lst) = do
   return $ "“" <> contents <> "”"
 
 -- | C<>
-inlineToPseudoPod opts (Code attr str) =
+inlineToPseudoPod _ (Code _ str) =
   return $ "C<< " <> text (escapeString str) <> " >>"
 
 inlineToPseudoPod _ (Str str) = do
@@ -458,3 +442,4 @@ inlineToPseudoPod opts (Note (block:_)) = do
   contents <- blockToPseudoPod opts block
   return $ "N<" <> contents <> ">"
 --  return $ "N<" <> cat contents <> ">"
+ 
