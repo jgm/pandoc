@@ -225,8 +225,8 @@ blockToPseudoPod opts (Table caption _ _ headers rows) =  do
   headers' <- mapM (blockListToPseudoPod opts) headers
 
   rawRows <- mapM (mapM (blockListToPseudoPod opts)) rows
-  let makeRow = hcat . intersperse (text("\n=cell "))
-  let makeRowBlock = hcat . intersperse (text("\n=row\n\n=cell "))
+  let makeRow = hcat . intersperse (text("\n\n=cell "))
+  let makeRowBlock = hcat . intersperse (text("\n\n=row\n\n=cell "))
 
   let rows' = map makeRow rawRows
   let rows'' = makeRowBlock rows'
