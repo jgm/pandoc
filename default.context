@@ -2,7 +2,6 @@
   \enableregime[utf-8]  
   \setupcolors[state=start]
 \stopmode
-
 $if(mainlang)$
 \mainlanguage[$mainlang$]
 $endif$
