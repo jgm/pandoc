@@ -3,8 +3,8 @@
   \setupcolors[state=start]
 \stopmode
 
-$if(lang)$
-\mainlanguage[$lang$]
+$if(mainlang)$
+\mainlanguage[$mainlang$]
 $endif$
 
 % Enable hyperlinks
