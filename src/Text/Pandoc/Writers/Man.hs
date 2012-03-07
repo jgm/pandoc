@@ -112,7 +112,11 @@ escapeString = escapeStringUsing manEscapes
 
 -- | Escape a literal (code) section for Man.
 escapeCode :: String -> String
-escapeCode = escapeStringUsing (manEscapes ++ backslashEscapes "\t ")
+escapeCode = concat . intersperse "\n" . map escapeLine . lines  where
+  escapeLine codeline = 
+    case escapeStringUsing (manEscapes ++ backslashEscapes "\t ") codeline of
+      a@('.':_) -> "\\&" ++ a
+      b       -> b
 
 -- We split inline lists into sentences, and print one sentence per
 -- line.  groff/troff treats the line-ending period differently.
