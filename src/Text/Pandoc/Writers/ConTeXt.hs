@@ -77,6 +77,8 @@ pandocToConTeXt options (Pandoc (Meta title authors date) blocks) = do
                  , ("title", titletext)
                  , ("date", datetext) ] ++
                  [ ("number-sections", "yes") | writerNumberSections options ] ++
+                 [ ("mainlang", maybe "" (reverse . takeWhile (/=',') . reverse)
+                                (lookup "lang" $ writerVariables options)) ] ++
                  [ ("author", a) | a <- authorstext ]
   return $ if writerStandalone options
               then renderTemplate context $ writerTemplate options
