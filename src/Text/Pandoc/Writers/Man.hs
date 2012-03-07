@@ -124,6 +124,7 @@ breakSentence [] = ([],[])
 breakSentence xs =
   let isSentenceEndInline (Str ".") = True
       isSentenceEndInline (Str "?") = True
+      isSentenceEndInline (LineBreak) = True
       isSentenceEndInline _         = False
       (as, bs) = break isSentenceEndInline xs
   in  case bs of
@@ -131,6 +132,7 @@ breakSentence xs =
            [c]            -> (as ++ [c], [])
            (c:Space:cs)   -> (as ++ [c], cs)
            (Str ".":Str ")":cs) -> (as ++ [Str ".", Str ")"], cs)
+           (LineBreak:Str ".":cs) -> (as ++[LineBreak], Str ".":cs)
            (c:cs)         -> (as ++ [c] ++ ds, es)
               where (ds, es) = breakSentence cs
 
