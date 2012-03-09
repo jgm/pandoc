@@ -126,8 +126,8 @@ escapeCode = concat . intersperse "\n" . map escapeLine . lines  where
 breakSentence :: [Inline] -> ([Inline], [Inline])
 breakSentence [] = ([],[])
 breakSentence xs =
-  let isSentenceEndInline (Str ".") = True
-      isSentenceEndInline (Str "?") = True
+  let isSentenceEndInline (Str ys@(_:_)) | last ys == '.' = True
+      isSentenceEndInline (Str ys@(_:_)) | last ys == '?' = True
       isSentenceEndInline (LineBreak) = True
       isSentenceEndInline _         = False
       (as, bs) = break isSentenceEndInline xs
@@ -135,8 +135,9 @@ breakSentence xs =
            []             -> (as, [])
            [c]            -> (as ++ [c], [])
            (c:Space:cs)   -> (as ++ [c], cs)
-           (Str ".":Str ")":cs) -> (as ++ [Str ".", Str ")"], cs)
-           (LineBreak:Str ".":cs) -> (as ++[LineBreak], Str ".":cs)
+           (Str ".":Str (')':ys):cs) -> (as ++ [Str ".", Str (')':ys)], cs)
+           (x@(Str ('.':')':_)):cs) -> (as ++ [x], cs)
+           (LineBreak:x@(Str ('.':_)):cs) -> (as ++[LineBreak], x:cs)
            (c:cs)         -> (as ++ [c] ++ ds, es)
               where (ds, es) = breakSentence cs
 
@@ -285,7 +286,7 @@ blockListToMan opts blocks =
 inlineListToMan :: WriterOptions -> [Inline] -> State WriterState Doc
 -- if list starts with ., insert a zero-width character \& so it
 -- won't be interpreted as markup if it falls at the beginning of a line.
-inlineListToMan opts lst@(Str "." : _) = mapM (inlineToMan opts) lst >>=
+inlineListToMan opts lst@(Str ('.':_) : _) = mapM (inlineToMan opts) lst >>=
   (return . (text "\\&" <>)  . hcat)
 inlineListToMan opts lst = mapM (inlineToMan opts) lst >>= (return . hcat)
 
