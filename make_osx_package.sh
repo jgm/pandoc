@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-DIST=osx
+DIST=osx_package
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 RESOURCES=$DIST/Resources
 ROOT=$DIST/pandoc
