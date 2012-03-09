@@ -295,14 +295,13 @@ options =
 
     , Option "V" ["variable"]
                  (ReqArg
-                  (\arg opt ->
-                     case break (`elem` ":=") arg of
-                          (k,_:v) -> do
-                            let newvars = optVariables opt ++ [(k,v)]
-                            return opt{ optVariables = newvars }
-                          _  -> err 17 $
-                            "Could not parse `" ++ arg ++ "' as a key/value pair (k=v or k:v)")
-                  "KEY:VALUE")
+                  (\arg opt -> do
+                     let (key,val) = case break (`elem` ":=") arg of
+                                       (k,_:v) -> (k,v)
+                                       (k,_)   -> (k,"true")
+                     let newvars = optVariables opt ++ [(key,val)]
+                     return opt{ optVariables = newvars })
+                  "KEY[:VALUE]")
                  "" -- "Use custom template"
 
     , Option "D" ["print-default-template"]

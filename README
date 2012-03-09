@@ -256,12 +256,13 @@ General writer options
     template appropriate for the output format will be used (see
     `-D/--print-default-template`).
 
-`-V` *KEY=VAL*, `--variable=`*KEY:VAL*
+`-V` *KEY[=VAL]*, `--variable=`*KEY[:VAL]*
 :   Set the template variable *KEY* to the value *VAL* when rendering the
     document in standalone mode. This is generally only useful when the
     `--template` option is used to specify a custom template, since
     pandoc automatically sets the variables used in the default
-    templates.
+    templates.  If no *VAL* is specified, the key will be given the
+    value `true`.
 
 `-D` *FORMAT*, `--print-default-template=`*FORMAT*
 :   Print the default template for an output *FORMAT*. (See `-t`
