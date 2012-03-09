@@ -1,3 +1,62 @@
+pandoc (1.9.1.2)
+
+  * Added `beamer+lhs` as output format.
+
+  * Don't escape `<` in `<style>` tags with `--self-contained`.
+    This fixes a bug which prevented highlighting from working
+    when using `--self-contained`.
+
+  * PDF: run latex engine three times if `--toc` specified.
+    This fixes page numbers in the table of contents.
+
+  * Docx writer: Added TableNormal style to tables.
+
+  * LaTeX math environment fixes. `aligned` is now used instead of
+    the nonexistent `aligned*`. `multline` instead of the nonexistent
+    `multiline`.
+
+  * LaTeX writer: Use `\textasciitilde` for literal `~`.
+
+  * HTML writer: Don't escape contents of EQ tags with --gladtex.
+    This fixes a regression from 1.8.
+
+  * Use `<q>` tags for Quoted items for HTML5 output.
+    The quote style can be changed by modifying the template
+    or including a css file. A default quote style is included.
+
+  * LaTeX reader: Fixed accents (\~{a}, `\c{c}`).
+    Correctly handle \^{}. Support "minted" as a LaTeX verbatim block.
+
+  * Updated LaTeX template for better language support.
+    Use `polyglossia` instead of `babel` with xetex.
+    Set `lang` as documentclass option.
+    `\setmainlanguage` will use the last of a comma-separated
+    list of languages. Thanks to François Gannaz.
+
+  * Fixed default LaTeX template so `\euro` and `€` work.  The
+    `eurosym` package is needed if you are using pdflatex.
+
+  * Fixed escaping of period in man writer (thanks to Michael Thompson).
+
+  * Fixed list label positions in beamer.
+
+  * Set `mainlang` variable in context writer.
+    This parallels behavior of latex writer.  `mainlang` is the last
+    of a comma-separated list of languages in lang.
+
+  * EPUB language metadat: convert e.g. `en_US` from locale to `en-US`.
+
+  * Changed `-V` so that you can specify a key without a value.
+    Such keys get the value `true`.
+
+  * Fixed permissions on installed man pages - thanks Magnus Therning.
+
+  * Windows installer: require XP or higher.  The installer is
+    now compiled on a Windows 7 machine, which fixes a problem
+    using citation functions on Windows 7.
+
+  * OSX package: Check for 64-bit Intel CPU before installing.
+
 pandoc (1.9.1.1)
 
   * Better handling of raw latex environments in markdown.  Now
