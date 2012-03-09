@@ -128,7 +128,8 @@ writeEPUB mbStylesheet fonts opts doc@(Pandoc meta _) = do
   let chapterEntries = zipWith chapterToEntry [1..] chapters
 
   -- contents.opf
-  localeLang <- catch (liftM (takeWhile (/='.')) $ getEnv "LANG")
+  localeLang <- catch (liftM (map (\c -> if c == '_' then '-' else c) .
+                       takeWhile (/='.')) $ getEnv "LANG")
                     (\e -> let _ = (e :: SomeException) in return "en-US")
   let lang = case lookup "lang" (writerVariables opts') of
                      Just x  -> x
