@@ -4,6 +4,7 @@ DIST=osx_package
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 RESOURCES=$DIST/Resources
 ROOT=$DIST/pandoc
+SCRIPTS=osx-resources
 BASE=pandoc-$VERSION
 ME=jgm
 
@@ -36,6 +37,7 @@ $PACKAGEMAKER \
     --resources $RESOURCES \
     --version $VERSION \
     --no-relocate \
+    --scripts $SCRIPTS \
     --out $BASE.pkg
 
 echo Creating disk image...
