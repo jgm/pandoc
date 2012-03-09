@@ -8,7 +8,7 @@ import Distribution.Simple.LocalBuildInfo
 import Distribution.Verbosity ( Verbosity, silent )
 import Distribution.Simple.GHC (ghcPackageDbOptions)
 import Distribution.Simple.InstallDirs (mandir, bindir, CopyDest (NoCopyDest))
-import Distribution.Simple.Utils (copyFiles)
+import Distribution.Simple.Utils (installOrdinaryFiles)
 import Control.Exception ( bracket_ )
 import Control.Monad ( unless )
 import System.Process ( rawSystem, runCommand, waitForProcess )
@@ -86,7 +86,7 @@ manDir = "man"
 installManpages :: PackageDescription -> LocalBuildInfo
                 -> Verbosity -> CopyDest -> IO ()
 installManpages pkg lbi verbosity copy =
-  copyFiles verbosity (mandir (absoluteInstallDirs pkg lbi copy))
+  installOrdinaryFiles verbosity (mandir (absoluteInstallDirs pkg lbi copy))
              (zip (repeat manDir) manpages)
 
 -- | Returns a list of 'dependencies' that have been modified after 'file'.
