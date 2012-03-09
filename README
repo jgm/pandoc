@@ -138,7 +138,7 @@ General options
     `json` (JSON version of native AST), `markdown` (markdown),
     `textile` (Textile), `rst` (reStructuredText), `html` (HTML),
     or `latex` (LaTeX).  If `+lhs` is appended to `markdown`, `rst`,
-    or `latex`, the input will be treated as literate Haskell source:
+    `latex`, the input will be treated as literate Haskell source:
     see [Literate Haskell support](#literate-haskell-support),
     below.
 
@@ -156,8 +156,8 @@ General options
     slide show), or `rtf` (rich text format). Note that `odt` and `epub`
     output will not be directed to *stdout*; an output filename must
     be specified using the `-o/--output` option. If `+lhs` is appended
-    to `markdown`, `rst`, `latex`, `html`, or `html5`, the output will
-    be rendered as literate Haskell source: see [Literate Haskell
+    to `markdown`, `rst`, `latex`, `beamer`, `html`, or `html5`, the output
+    will be rendered as literate Haskell source: see [Literate Haskell
     support](#literate-haskell-support), below.
 
 `-o` *FILE*, `--output=`*FILE*
@@ -2168,8 +2168,9 @@ Literate Haskell support
 ========================
 
 If you append `+lhs` to an appropriate input or output format (`markdown`,
-`rst`, or `latex` for input or output; `html` or `html5` for output only),
-pandoc will treat the document as literate Haskell source. This means that
+`rst`, or `latex` for input or output; `beamer`, `html` or `html5` for
+output only), pandoc will treat the document as literate Haskell source.
+This means that
 
   - In markdown input, "bird track" sections will be parsed as Haskell
     code rather than block quotations.  Text between `\begin{code}`
