@@ -213,7 +213,7 @@ Library
                  json >= 0.4 && < 0.6,
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
-                 zlib >= 0.5 && <= 0.6,
+                 zlib >= 0.5 && < 0.6,
                  highlighting-kate >= 0.5.0.2 && < 0.6,
                  temporary >= 1.1 && < 1.2
   if impl(ghc >= 6.10)
@@ -311,7 +311,7 @@ Executable pandoc
                  json >= 0.4 && < 0.6,
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
-                 zlib >= 0.5 && <= 0.6,
+                 zlib >= 0.5 && < 0.6,
                  highlighting-kate >= 0.5.0.2 && < 0.6,
                  temporary >= 1.1 && < 1.2
   if impl(ghc >= 6.10)
@@ -369,7 +369,7 @@ Executable test-pandoc
                  json >= 0.4 && < 0.6,
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
-                 zlib >= 0.5 && <= 0.6,
+                 zlib >= 0.5 && < 0.6,
                  highlighting-kate >= 0.5.0.2 && < 0.6,
                  temporary >= 1.1 && < 1.2
   if impl(ghc >= 6.10)
