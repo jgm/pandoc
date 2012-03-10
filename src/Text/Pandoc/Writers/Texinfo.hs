@@ -415,7 +415,7 @@ inlineToTexinfo (Image alternate (source, _)) = do
            text (ext ++ "}")
   where
     ext     = drop 1 $ takeExtension source'
-    base    = takeBaseName source'
+    base    = dropExtension source'
     source' = if isAbsoluteURI source
                  then source
                  else unEscapeString source
