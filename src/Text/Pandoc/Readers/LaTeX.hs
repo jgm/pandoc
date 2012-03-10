@@ -717,7 +717,7 @@ environments = M.fromList
         verbEnv "code"))
   , ("verbatim", codeBlock <$> (verbEnv "verbatim"))
   , ("Verbatim", codeBlock <$> (verbEnv "Verbatim"))
-  , ("lstlisting", codeBlock <$> (verbEnv "listlisting"))
+  , ("lstlisting", codeBlock <$> (verbEnv "lstlisting"))
   , ("minted", liftA2 (\l c -> codeBlockWith ("",[l],[]) c)
             (grouped (many1 $ satisfy (/= '}'))) (verbEnv "minted"))
   , ("displaymath", mathEnv Nothing "displaymath")
