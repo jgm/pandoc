@@ -452,7 +452,7 @@ Options affecting specific writers
 :   Embed the specified font in the EPUB. This option can be repeated
     to embed multiple fonts.  To use embedded fonts, you
     will need to add declarations like the following to your CSS (see
-    ``--epub-stylesheet`):
+    `--epub-stylesheet`):
 
         @font-face {
         font-family: DejaVuSans;
