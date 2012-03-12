@@ -372,7 +372,7 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
   captionText <- inlineListToLaTeX caption
   let capt = if isEmpty captionText
                 then empty
-                else text "caption = " <> captionText <> "," <> space
+                else text "caption = {" <> captionText <> "}," <> space
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
   let rows'' = intersperse ("\\\\\\noalign{\\medskip}") rows'
   tableNotes <- liftM (reverse . stTableNotes) get
