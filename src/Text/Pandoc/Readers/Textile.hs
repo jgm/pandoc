@@ -228,14 +228,14 @@ bulletListItemAtDepth depth = try $ do
   return (p:sublist)
 
 -- | Ordered List of given depth, depth being the number of
--- leading '#'
+-- leading '#'
 orderedListAtDepth :: Int -> GenParser Char ParserState Block
 orderedListAtDepth depth = try $ do
   items <- many1 (orderedListItemAtDepth depth)
   return (OrderedList (1, DefaultStyle, DefaultDelim) items)
 
 -- | Ordered List Item of given depth, depth being the number of
--- leading '#'
+-- leading '#'
 orderedListItemAtDepth :: Int -> GenParser Char ParserState [Block]
 orderedListItemAtDepth depth = try $ do
   count depth (char '#')
