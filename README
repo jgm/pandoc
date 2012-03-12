@@ -1642,7 +1642,7 @@ them and they won't be treated as math delimiters.
 TeX math will be printed in all output formats. How it is rendered
 depends on the output format:
 
-Markdown, reStructuredText, LaTeX, Org-Mode, ConTeXt
+Markdown, LaTeX, Org-Mode, ConTeXt
   ~ It will appear verbatim between `$` characters.
 
 reStructuredText
