@@ -1879,6 +1879,23 @@ empty, or omitted entirely:
 
     [my website]: http://foo.bar.baz
 
+### Internal links
+
+To link to another section of the same document, use the automatically
+generated identifier (see [Header identifiers in HTML, LaTeX, and
+ConTeXt](#header-identifiers-in-html-latex-and-context), below).
+For example:
+
+    See the [Introduction](#introduction).
+
+or
+
+    See the [Introduction].
+
+    [Introduction]: #introduction
+
+Internal links are currently supported for HTML formats (including
+HTML slide shows and EPUB), LaTeX, and ConTeXt.
 
 Images
 ------
