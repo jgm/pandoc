@@ -15,6 +15,9 @@
     \usepackage{eurosym}
   \fi
 \fi
+$if(geometry)$
+\usepackage[$geometry$]{geometry}
+$endif$
 $if(natbib)$
 \usepackage{natbib}
 \bibliographystyle{plainnat}
