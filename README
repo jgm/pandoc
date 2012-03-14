@@ -677,6 +677,8 @@ depending on the output format, but include:
 :   font size (10pt, 11pt, 12pt) for LaTeX documents
 `documentclass`
 :   document class for LaTeX documents
+`geometry`
+:   options for LaTeX `geometry` class, e.g. `margin=1in`
 `theme`
 :   theme for LaTeX beamer documents
 `colortheme`
