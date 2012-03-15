@@ -1,7 +1,8 @@
 \documentclass[$if(fontsize)$$fontsize$,$endif$$if(lang)$$lang$,$endif$]{$documentclass$}
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
-\newcommand{\SetupFonts}{%
+\ifxetex
+  \usepackage{fontspec,xltxtra,xunicode}
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
   \newcommand{\euro}{€}
   $if(romanfont)$
@@ -13,14 +14,20 @@
   $if(monofont)$
   \setmonofont{$monofont$}
   $endif$
-}
-\ifxetex
-  \usepackage{fontspec,xltxtra,xunicode}
-  \SetupFonts
 \else
   \ifluatex
     \usepackage{fontspec}
-    \SetupFonts
+    \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+    \newcommand{\euro}{€}
+    $if(romanfont)$
+    \setromanfont{$romanfont$}
+    $endif$
+    $if(sansfont)$
+    \setsansfont{$sansfont$}
+    $endif$
+    $if(monofont)$
+    \setmonofont{$monofont$}
+    $endif$
   \else
     \usepackage[utf8]{inputenc}
     \usepackage{eurosym}
