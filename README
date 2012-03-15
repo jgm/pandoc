@@ -678,7 +678,17 @@ depending on the output format, but include:
 `documentclass`
 :   document class for LaTeX documents
 `geometry`
-:   options for LaTeX `geometry` class, e.g. `margin=1in`
+:   options for LaTeX `geometry` class, e.g. `margin=1in`;
+    may be repeated for multiple options
+`mainfont`
+:   main font for LaTeX documents (works only with xelatex
+    and lualatex)
+`sansfont`
+:   sans-serif font for LaTeX documents (works only with
+    xelatex and lualatex)
+`monofont`
+:   monospaced font for LaTeX documents (works only with
+    xelatex and lualatex)
 `theme`
 :   theme for LaTeX beamer documents
 `colortheme`
