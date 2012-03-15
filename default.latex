@@ -14,6 +14,9 @@ $endif$
 $if(monofont)$
   \setmonofont{$monofont$}
 $endif$
+$if(mathfont)$
+  \setmathfont{$mathfont$}
+$endif$
 \else
   \ifluatex
     \usepackage{fontspec}
@@ -27,6 +30,9 @@ $if(sansfont)$
 $endif$
 $if(monofont)$
     \setmonofont{$monofont$}
+$endif$
+$if(mathfont)$
+    \setmathfont{$mathfont$}
 $endif$
   \else
     \usepackage[utf8]{inputenc}
