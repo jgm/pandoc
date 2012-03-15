@@ -5,8 +5,8 @@
   \usepackage{fontspec,xltxtra,xunicode}
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
   \newcommand{\euro}{€}
-$if(romanfont)$
-  \setromanfont{$romanfont$}
+$if(mainfont)$
+  \setmainfont{$mainfont$}
 $endif$
 $if(sansfont)$
   \setsansfont{$sansfont$}
@@ -19,8 +19,8 @@ $endif$
     \usepackage{fontspec}
     \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
     \newcommand{\euro}{€}
-$if(romanfont)$
-    \setromanfont{$romanfont$}
+$if(mainfont)$
+    \setmainfont{$mainfont$}
 $endif$
 $if(sansfont)$
     \setsansfont{$sansfont$}
@@ -34,7 +34,7 @@ $endif$
   \fi
 \fi
 $if(geometry)$
-\usepackage[$geometry$]{geometry}
+\usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
 $endif$
 $if(natbib)$
 \usepackage{natbib}
