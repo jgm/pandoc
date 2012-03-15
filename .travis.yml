@@ -4,3 +4,4 @@ before_install:
 install:
   - cabal update
   - cabal install -ftests
+script:  cabal configure -ftests && cabal build && cabal test
