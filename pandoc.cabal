@@ -401,7 +401,7 @@ Executable test-pandoc
     else
       cpp-options:    -D_LIT=$lit
     Other-Extensions: TemplateHaskell, QuasiQuotes
-    Build-Depends:    Diff, test-framework >= 0.3 && < 0.6,
+    Build-Depends:    Diff, test-framework >= 0.3 && < 0.7,
                       test-framework-hunit >= 0.2 && < 0.3,
                       test-framework-quickcheck2 >= 0.2.9 && < 0.3,
                       QuickCheck >= 2.4 && < 2.6,
