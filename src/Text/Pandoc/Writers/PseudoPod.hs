@@ -37,7 +37,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing hiding (blankline)
 import Text.ParserCombinators.Parsec ( runParser, GenParser )
-import Data.List ( intersperse )
+import Data.List ( isPrefixOf, intersperse )
 import Text.Pandoc.Pretty
 import Control.Monad.State
 
@@ -424,7 +424,10 @@ inlineToPseudoPod opts (Link txt (src, _)) = do
   let linktext = if null txt
                    then empty
                    else label <> (text "|")
-  return $ "L<" <> linktext <> (text src) <> ">"
+  let linktype = if isPrefixOf "http://" src
+                  then "U<"
+                  else "L<"
+  return $ linktype <> linktext <> (text src) <> ">"
 
 inlineToPseudoPod opts (Image alternate (source, tit)) = do
   let txt = if (null alternate) || (alternate == [Str ""]) || 

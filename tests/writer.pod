@@ -879,7 +879,7 @@ spaces: a^b c^d, a~b c~d.
 
 ‘He said, “I want to go.”’ Were you alive in the 70’s?
 
-Here is some quoted ‘C<< code >>’ and a “L<quoted
+Here is some quoted ‘C<< code >>’ and a “U<quoted
 link|http://example.com/?foo=1&bar=2>”.
 
 Some dashes: one—two — three—four — five.
@@ -1085,9 +1085,9 @@ Foo L<biz|/url/>.
 
 =head2 With ampersands
 
-Here’s a L<link with an ampersand in the URL|http://example.com/?foo=1&bar=2>.
+Here’s a U<link with an ampersand in the URL|http://example.com/?foo=1&bar=2>.
 
-Here’s a link with an amersand in the link text: L<AT&T|http://att.com/>.
+Here’s a link with an amersand in the link text: U<AT&T|http://att.com/>.
 
 Here’s an L<inline link|/script?foo=1&bar=2>.
 
@@ -1096,7 +1096,7 @@ Here’s an L<inline link in pointy braces|/script?foo=1&bar=2>.
 =head2 Autolinks
 
 With an ampersand:
-L<C<< http:E<sol>E<sol>example.comE<sol>?foo=1&bar=2 >>|http://example.com/?foo=1&bar=2>
+U<C<< http:E<sol>E<sol>example.comE<sol>?foo=1&bar=2 >>|http://example.com/?foo=1&bar=2>
 
 =over
 
@@ -1106,7 +1106,7 @@ In a list?
 
 =item *
 
-L<C<< http:E<sol>E<sol>example.comE<sol> >>|http://example.com/>
+U<C<< http:E<sol>E<sol>example.comE<sol> >>|http://example.com/>
 
 =item *
 
@@ -1118,7 +1118,7 @@ An e-mail address: L<C<< nobody@nowhere.net >>|mailto:nobody@nowhere.net>
 
 =begin blockquote
 
-Blockquoted: L<C<< http:E<sol>E<sol>example.comE<sol> >>|http://example.com/>
+Blockquoted: U<C<< http:E<sol>E<sol>example.comE<sol> >>|http://example.com/>
 
 =end blockquote
 
@@ -1146,7 +1146,7 @@ the footnote reference. It need not be placed at the end of the document.> and
 another.N<Here’s the long note. This one contains multiple blocks.> This
 should I<not> be a footnote reference, because it contains a space.[^my note]
 Here is an inline note.N<This is I<easier> to type. Inline notes may contain
-L<links|http://google.com> and C<< ] >> verbatim characters, as well as
+U<links|http://google.com> and C<< ] >> verbatim characters, as well as
 [bracketed text].>
 
 =begin blockquote
