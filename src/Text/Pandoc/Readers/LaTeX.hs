@@ -919,9 +919,9 @@ parseAligns :: LP [Alignment]
 parseAligns = try $ do
   char '{'
   optional $ char '|'
-  let cAlign = char 'c' >> return AlignCenter
-  let lAlign = char 'l' >> return AlignLeft
-  let rAlign = char 'r' >> return AlignRight
+  let cAlign = AlignCenter <$ char 'c'
+  let lAlign = AlignLeft <$ char 'l'
+  let rAlign = AlignRight <$ char 'r'
   let alignChar = optional sp *> (cAlign <|> lAlign <|> rAlign)
   aligns' <- sepEndBy alignChar (optional $ char '|')
   spaces
@@ -932,15 +932,19 @@ parseAligns = try $ do
 hline :: LP ()
 hline = () <$ (try $ spaces >> controlSeq "hline")
 
+lbreak :: LP ()
+lbreak = () <$ (try $ spaces *> controlSeq "\\")
+
+amp :: LP ()
+amp = () <$ (try $ spaces *> char '&')
+
 parseTableRow :: Int  -- ^ number of columns
               -> LP [Blocks]
 parseTableRow cols = try $ do
-  let amp = try $ spaces *> string "&"
-  let tableCellInline = notFollowedBy (amp <|> controlSeq "\\") >> inline
-  cells' <- sepBy ((plain . trimInlines . mconcat) <$> many tableCellInline) amp
+  let tableCellInline = notFollowedBy (amp <|> lbreak) >> inline
+  let tableCell = (plain . trimInlines . mconcat) <$> many tableCellInline
+  cells' <- sepBy tableCell amp
   guard $ length cells' == cols
-  spaces
-  optional $ controlSeq "\\"
   spaces
   return cells'
 
@@ -950,8 +954,8 @@ simpTable = try $ do
   aligns <- parseAligns
   let cols = length aligns
   optional hline
-  header' <- option [] $ try (parseTableRow cols <* hline)
-  rows <- many (parseTableRow cols <* optional hline)
+  header' <- option [] $ try (parseTableRow cols <* lbreak <* hline)
+  rows <- sepEndBy (parseTableRow cols) (lbreak <* optional hline)
   spaces
   let header'' = if null header'
                     then replicate cols mempty
