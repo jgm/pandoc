@@ -281,6 +281,11 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
   ,[Plain [Str "2"]]]
  ,[[Plain [Str "Cat"]]
   ,[Plain [Str "1"]]]]
+,Para [Str "A",Space,Str "table",Space,Str "with",Space,Str "one",Space,Str "column:"]
+,Table [] [AlignCenter] [0.0]
+ [[]]
+ [[[Plain [Str "Animal"]]]
+ ,[[Plain [Str "Vegetable"]]]]
 ,HorizontalRule
 ,Header 1 [Str "Special",Space,Str "Characters"]
 ,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "unicode:"]
