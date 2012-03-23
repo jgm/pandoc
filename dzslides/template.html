@@ -13,7 +13,8 @@
 </section>
 
 <section>
-    <h2>Part one</h2>
+    <p>Some random text: But I've never been to the moon! You can see how I lived before I met you. Also Zoidberg.
+    I could if you hadn't turned on the light and shut off my stereo.</p>
 </section>
 
 <section>
@@ -23,12 +24,12 @@
       <li>Item 2
       <li>Item 3
     </ul>
+    <details>Some notes. They are only visible using onstage shell.</details>
 </section>
 
 <section>
   <q>
-    Soothe us with sweet lies. Is that a cooking show? No! I want to
-    live! There are still too many things I don't own!
+    Who's brave enough to fly into something we all keep calling a death sphere?
   </q>
 </section>
 
@@ -37,13 +38,18 @@
 </section>
 
 <section>
-    <h3>An image</h3>
-    <img src="http://placekitten.com/g/800/600">
+    <figure> <!-- Figures are used to display images and videos fullpage -->
+      <img src="http://placekitten.com/g/800/600">
+      <figcaption>An image</figcaption>
+    </figure>
+    <details>Kittens are so cute!</details>
 </section>
 
 <section>
-    <h3>A video</h3>
-    <video src="http://videos-cdn.mozilla.net/brand/Mozilla_Firefox_Manifesto_v0.2_640.webm" poster="http://www.mozilla.org/images/about/poster.jpg"></video>
+    <figure> <!-- Videos are automatically played -->
+      <video src="http://videos-cdn.mozilla.net/brand/Mozilla_Firefox_Manifesto_v0.2_640.webm" poster="http://www.mozilla.org/images/about/poster.jpg"></video>
+      <figcaption>A video</figcaption>
+    </figure>
 </section>
 
 <section>
@@ -58,12 +64,12 @@
 
 <style>
   html { background-color: black; }
-  body { background-color: white; }
+  body { background-color: white; border-radius: 12px}
   /* A section is a slide. It's size is 800x600, and this will never change */
   section {
       /* The font from Google */
       font-family: 'Oswald', arial, serif;
-      font-size: 40px;
+      font-size: 30px;
   }
   h1, h2 {
     margin-top: 200px;
@@ -78,29 +84,39 @@
       margin: 50px 200px;
   }
 
+  p {
+    margin: 75px;
+    font-size: 50px;
+  }
+
   q {
-    display: inline-block;
-    width: 700px;
-    height: 600px;
+    display: block;
+    width: 100%;
+    height: 100%;
     background-color: black;
     color: white;
     font-size: 60px;
     padding: 50px;
   }
 
-  img, video {
-    width: 800px;
-    height: 600px;
-    position: absolute;
-    top: 0;
+  /* Figures are displayed full-page, with the caption
+     on top of the image/video */
+  figure {
     background-color: black;
-    z-index: -1;
+  }
+  figcaption {
+    margin: 70px;
+    font-size: 50px;
   }
 
   footer {
     position: absolute;
-    bottom: 10px;
-    right: 20px;
+    bottom: 0;
+    width: 100%;
+    padding: 40px;
+    text-align: right;
+    background-color: #F3F4F8;
+    border-top: 1px solid #CCC;
   }
 
   /* Transition effect */
@@ -128,11 +144,17 @@
   .incremental > * { opacity: 1; }
 
   /* The current item */
-  .incremental > *[aria-selected] { color: red; opacity: 1; }
+  .incremental > *[aria-selected] { opacity: 1; }
 
   /* The items to-be-selected */
-  .incremental > *[aria-selected] ~ * { opacity: 0.2; }
+  .incremental > *[aria-selected] ~ * { opacity: 0; }
 
+  /* The progressbar, at the bottom of the slides, show the global
+     progress of the presentation. */
+  #progress-bar {
+    height: 2px;
+    background: #AAA;
+  }
 </style>
 
 <!-- {{{{ dzslides core
@@ -149,9 +171,11 @@
 #
 -->
 
+<div id="progress-bar"></div>
+
 <!-- Default Style -->
 <style>
-  * { margin: 0; padding: 0; }
+  * { margin: 0; padding: 0; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
   details { display: none; }
   body {
     width: 800px; height: 600px;
@@ -170,6 +194,24 @@
   body.loaded { display: block; }
   .incremental {visibility: hidden; }
   .incremental[active] {visibility: visible; }
+  #progress-bar{
+    bottom: 0;
+    position: absolute;
+    -moz-transition: width 400ms linear 0s;
+    -webkit-transition: width 400ms linear 0s;
+    -ms-transition: width 400ms linear 0s;
+    transition: width 400ms linear 0s;
+  }
+  figure {
+    width: 100%;
+    height: 100%;
+  }
+  figure > * {
+    position: absolute;
+  }
+  figure > img, figure > video {
+    width: 100%; height: 100%;
+  }
 </style>
 
 <script>
@@ -178,6 +220,7 @@
     idx: -1,
     step: 0,
     slides: null,
+    progressBar : null,
     params: {
       autoplay: "1"
     }
@@ -186,6 +229,7 @@
   Dz.init = function() {
     document.body.className = "loaded";
     this.slides = $$("body > section");
+    this.progressBar = $("#progress-bar");
     this.setupParams();
     this.onhashchange();
     this.setupTouchEvents();
@@ -198,6 +242,9 @@
       var keyVal = e.split('=');
       Dz.params[keyVal[0]] = decodeURIComponent(keyVal[1]);
     });
+  // Specific params handling
+    if (!+this.params.autoplay)
+      $$.forEach($$("video"), function(v){ v.controls = true });
   }
 
   Dz.onkeydown = function(aEvent) {
@@ -233,6 +280,10 @@
     if (aEvent.keyCode == 32) { // space
       aEvent.preventDefault();
       this.toggleContent();
+    }
+    if (aEvent.keyCode == 70) { // f
+      aEvent.preventDefault();
+      this.goFullscreen();
     }
   }
 
@@ -352,6 +403,7 @@
         newidx++;
       }
     }
+    this.setProgress(newidx, newstep);
     if (newidx != this.idx) {
       this.setSlide(newidx);
     }
@@ -427,9 +479,9 @@
     if (old) {
       old.removeAttribute('aria-selected');
     }
-    var incrementals = this.slides[this.idx - 1].$$('.incremental');
+    var incrementals = $$('.incremental');
     if (this.step <= 0) {
-      incrementals.forEach(function(aNode) {
+      $$.forEach(incrementals, function(aNode) {
         aNode.removeAttribute('active');
       });
       return;
@@ -439,7 +491,7 @@
       next.setAttribute('aria-selected', true);
       next.parentNode.setAttribute('active', true);
       var found = false;
-      incrementals.forEach(function(aNode) {
+      $$.forEach(incrementals, function(aNode) {
         if (aNode != next.parentNode)
           if (found)
             aNode.removeAttribute('active');
@@ -453,6 +505,24 @@
     }
     return next;
   }
+
+  Dz.goFullscreen = function() {
+    var html = $('html'),
+        requestFullscreen = html.requestFullscreen || html.requestFullScreen || html.mozRequestFullScreen || html.webkitRequestFullScreen;
+    if (requestFullscreen) {
+      requestFullscreen.apply(html);
+    }
+  }
+  
+  Dz.setProgress = function(aIdx, aStep) {
+    var slide = $("section:nth-of-type("+ aIdx +")");
+    if (!slide)
+      return;
+    var steps = slide.$$('.incremental > *').length + 1,
+        slideSize = 100 / (this.slides.length - 1),
+        stepSize = slideSize / steps;
+    this.progressBar.style.width = ((aIdx - 1) * slideSize + aStep * stepSize) + '%';
+  }
   
   Dz.postMsg = function(aWin, aMsg) { // [arg0, [arg1...]]
     aMsg = [aMsg];
@@ -460,12 +530,16 @@
       aMsg.push(encodeURIComponent(arguments[i]));
     aWin.postMessage(aMsg.join(" "), "*");
   }
+  
+  function init() {
+    Dz.init();
+    window.onkeydown = Dz.onkeydown.bind(Dz);
+    window.onresize = Dz.onresize.bind(Dz);
+    window.onhashchange = Dz.onhashchange.bind(Dz);
+    window.onmessage = Dz.onmessage.bind(Dz);
+  }
 
-  window.onload = Dz.init.bind(Dz);
-  window.onkeydown = Dz.onkeydown.bind(Dz);
-  window.onresize = Dz.onresize.bind(Dz);
-  window.onhashchange = Dz.onhashchange.bind(Dz);
-  window.onmessage = Dz.onmessage.bind(Dz);
+  window.onload = init;
 </script>
 
 
@@ -503,11 +577,8 @@
     return this.querySelectorAll(aQuery);
   }).bind(document);
 
-  NodeList.prototype.forEach = function(fun) {
-    if (typeof fun !== "function") throw new TypeError();
-    for (var i = 0; i < this.length; i++) {
-      fun.call(this, this[i]);
-    }
+  $$.forEach = function(nodeList, fun) {
+    Array.prototype.forEach.call(nodeList, fun);
   }
 
 </script>
