@@ -807,9 +807,10 @@ strong = enclosed (string "**") (try $ string "**") inline >>=
 
 interpreted :: [Char] -> GenParser Char st [Char]
 interpreted role = try $ do
-  optional $ try $ string "\\ "
+  -- Note, this doesn't precisely implement the complex rule in
+  -- http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#inline-markup-recognition-rules
+  -- but it should be good enough for most purposes
   result <- enclosed (string $ ":" ++ role ++ ":`") (char '`') anyChar
-  try (string "\\ ") <|> lookAhead (count 1 $ oneOf " \t\n") <|> (eof >> return "")
   return result
 
 superscript :: GenParser Char ParserState Inline
