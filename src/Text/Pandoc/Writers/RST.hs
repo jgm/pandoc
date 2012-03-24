@@ -38,6 +38,7 @@ import Data.List ( isPrefixOf, intersperse, transpose )
 import Text.Pandoc.Pretty
 import Control.Monad.State
 import Control.Applicative ( (<$>) )
+import Data.Char (isSpace)
 
 type Refs = [([Inline], Target)]
 
@@ -253,7 +254,52 @@ blockListToRST blocks = mapM blockToRST blocks >>= return . vcat
 
 -- | Convert list of Pandoc inline elements to RST.
 inlineListToRST :: [Inline] -> State WriterState Doc
-inlineListToRST lst = mapM inlineToRST lst >>= return . hcat
+inlineListToRST lst = mapM inlineToRST (insertBS lst) >>= return . hcat
+  where insertBS :: [Inline] -> [Inline] -- insert '\ ' where needed
+        insertBS (x:y:z:zs)
+          | isComplex y && surroundComplex x z =
+             x : y : RawInline "rst" "\\ " : insertBS (z:zs)
+        insertBS (x:y:zs)
+          | isComplex x && not (okAfterComplex y) =
+              x : RawInline "rst" "\\ " : insertBS (y : zs)
+          | isComplex y && not (okBeforeComplex x) =
+              x : RawInline "rst" "\\ " : insertBS (y : zs)
+          | otherwise =
+              x : insertBS (y : zs)
+        insertBS (x:ys) = x : insertBS ys
+        insertBS [] = []
+        surroundComplex :: Inline -> Inline -> Bool
+        surroundComplex (Str s@(_:_)) (Str s'@(_:_)) =
+          case (last s, head s') of
+             ('\'','\'') -> True
+             ('"','"')   -> True
+             ('<','>')   -> True
+             ('[',']')   -> True
+             ('{','}')   -> True
+             _           -> False
+        surroundComplex _ _ = False
+        okAfterComplex :: Inline -> Bool
+        okAfterComplex Space = True
+        okAfterComplex LineBreak = True
+        okAfterComplex (Str (c:_)) = isSpace c || c `elem` "-.,:;!?\\/'\")]}>–—"
+        okAfterComplex _ = False
+        okBeforeComplex :: Inline -> Bool
+        okBeforeComplex Space = True
+        okBeforeComplex LineBreak = True
+        okBeforeComplex (Str (c:_)) = isSpace c || c `elem` "-:/'\"<([{–—"
+        okBeforeComplex _ = False
+        isComplex :: Inline -> Bool
+        isComplex (Emph _) = True
+        isComplex (Strong _) = True
+        isComplex (SmallCaps _) = True
+        isComplex (Strikeout _) = True
+        isComplex (Superscript _) = True
+        isComplex (Subscript _) = True
+        isComplex (Link _ _) = True
+        isComplex (Image _ _) = True
+        isComplex (Code _ _) = True
+        isComplex (Math _ _) = True
+        isComplex _ = False
 
 -- | Convert Pandoc inline element to RST.
 inlineToRST :: Inline -> State WriterState Doc
@@ -268,10 +314,10 @@ inlineToRST (Strikeout lst) = do
   return $ "[STRIKEOUT:" <> contents <> "]"
 inlineToRST (Superscript lst) = do 
   contents <- inlineListToRST lst
-  return $ "\\ :sup:`" <> contents <> "`\\ "
+  return $ ":sup:`" <> contents <> "`"
 inlineToRST (Subscript lst) = do 
   contents <- inlineListToRST lst
-  return $ "\\ :sub:`" <> contents <> "`\\ "
+  return $ ":sub:`" <> contents <> "`"
 inlineToRST (SmallCaps lst) = inlineListToRST lst
 inlineToRST (Quoted SingleQuote lst) = do
   contents <- inlineListToRST lst
@@ -286,11 +332,12 @@ inlineToRST (Str str) = return $ text $ escapeString str
 inlineToRST (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath
-              then ":math:`" <> text str <> "`" <> beforeNonBlank "\\ "
+              then ":math:`" <> text str <> "`"
               else if '\n' `elem` str
                    then blankline $$ ".. math::" $$
                         blankline $$ nest 3 (text str) $$ blankline
                    else blankline $$ (".. math:: " <> text str) $$ blankline
+inlineToRST (RawInline "rst" x) = return $ text x
 inlineToRST (RawInline _ _) = return empty
 inlineToRST (LineBreak) = return cr -- there's no line break in RST
 inlineToRST Space = return space
