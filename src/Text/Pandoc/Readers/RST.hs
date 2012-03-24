@@ -780,7 +780,9 @@ hyphens = do
 
 escapedChar :: GenParser Char st Inline
 escapedChar = do c <- escaped anyChar
-                 return $ Str [c]
+                 return $ if c == ' '  -- '\ ' is null in RST
+                             then Str ""
+                             else Str [c]
 
 symbol :: GenParser Char ParserState Inline
 symbol = do 
