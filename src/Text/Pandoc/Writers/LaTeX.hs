@@ -134,6 +134,8 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
                  , ("title", titletext)
+                 , ("title-meta", stringify title)
+                 , ("author-meta", intercalate "; " $ map stringify authors)
                  , ("date", dateText)
                  , ("documentclass", if writerBeamer options
                                         then "beamer"

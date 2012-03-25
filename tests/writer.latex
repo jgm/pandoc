@@ -38,10 +38,16 @@
   \usepackage[setpagesize=false, % page size defined by xetex
               unicode=false, % unicode breaks when used with xetex
               xetex,
+              bookmarks=true,
+              pdfauthor={John MacFarlane; Anonymous},
+              pdftitle={Pandoc Test Suite},
               colorlinks=true,
               linkcolor=blue]{hyperref}
 \else
   \usepackage[unicode=true,
+              bookmarks=true,
+              pdfauthor={John MacFarlane; Anonymous},
+              pdftitle={Pandoc Test Suite},
               colorlinks=true,
               linkcolor=blue]{hyperref}
 \fi

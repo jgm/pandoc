@@ -39,10 +39,16 @@
   \usepackage[setpagesize=false, % page size defined by xetex
               unicode=false, % unicode breaks when used with xetex
               xetex,
+              bookmarks=true,
+              pdfauthor={},
+              pdftitle={},
               colorlinks=true,
               linkcolor=blue]{hyperref}
 \else
   \usepackage[unicode=true,
+              bookmarks=true,
+              pdfauthor={},
+              pdftitle={},
               colorlinks=true,
               linkcolor=blue]{hyperref}
 \fi
