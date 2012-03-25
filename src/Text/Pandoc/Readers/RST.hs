@@ -539,13 +539,16 @@ bulletList = many1 (listItem bulletListStart) >>=
 
 defaultRoleBlock :: GenParser Char ParserState Block
 defaultRoleBlock = try $ do
-    string ".. default-role:: "
+    string ".. default-role::"
+    -- doesn't enforce any restrictions on the role name; embedded spaces shouldn't be allowed, for one
     role <- manyTill anyChar newline >>= return . removeLeadingTrailingSpace
     updateState $ \s -> s { stateRstDefaultRole =
         if null role
            then stateRstDefaultRole defaultParserState
            else role
         }
+    -- skip body of the directive if it exists
+    many $ blanklines <|> (spaceChar >> manyTill anyChar newline)
     return Null
 
 --
