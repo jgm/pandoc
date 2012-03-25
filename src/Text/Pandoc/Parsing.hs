@@ -652,7 +652,8 @@ data ParserState = ParserState
       stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers 
       stateHasChapters     :: Bool,          -- ^ True if \chapter encountered
       stateApplyMacros     :: Bool,          -- ^ Apply LaTeX macros?
-      stateMacros          :: [Macro]        -- ^ List of macros defined so far
+      stateMacros          :: [Macro],       -- ^ List of macros defined so far
+      stateRstDefaultRole  :: String         -- ^ Current rST default interpreted text role
     }
     deriving Show
 
@@ -682,7 +683,8 @@ defaultParserState =
                   stateExamples        = M.empty,
                   stateHasChapters     = False,
                   stateApplyMacros     = True,
-                  stateMacros          = []}
+                  stateMacros          = [],
+                  stateRstDefaultRole  = "title-reference"}
 
 data HeaderType 
     = SingleHeader Char  -- ^ Single line of characters underneath
