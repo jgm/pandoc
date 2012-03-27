@@ -80,7 +80,7 @@ processCite s cs (Cite t _ : rest) =
                             ++ processCite s cs rest
                    else Cite t (renderPandoc s (x:xs)) : processCite s cs rest
         _ -> Str ("Error processing " ++ show t) : processCite s cs rest
-processCite s cs (x:xs) = x : processCite s cs xs
+processCite s cs (x:xs) = bottomUp (processCite s cs) x : processCite s cs xs
 processCite _ _ [] = []
 
 procInlines :: ([Inline] -> [Inline]) -> Block -> Block
