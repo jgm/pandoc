@@ -40,15 +40,6 @@ $else$
   h2 { font-size: 120%; }
   h3 { font-size: 100%; }
   blockquote { font-style: italic }
-  q {
-    display: block;
-    width: 100%;
-    height: 100%;
-    background-color: black;
-    color: white;
-    font-size: 60px;
-    padding: 50px;
-  }
   /* Figures are displayed full-page, with the caption on
      top of the image/video */
   figure {
