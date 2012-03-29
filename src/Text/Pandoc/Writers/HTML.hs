@@ -264,9 +264,8 @@ elementToHtml slideLevel opts (Sec level num id' title' elements) = do
                         -- title slides have no content of their own
                         then filter isSec elements
                         else elements
-  let header'' = if (writerStrictMarkdown opts ||
-                     writerSectionDivs opts ||
-                     writerSlideVariant opts == S5Slides)
+  let header'' = if (writerStrictMarkdown opts || writerSectionDivs opts ||
+                     writerSlideVariant opts == S5Slides || slide)
                     then header'
                     else header' ! prefixedId opts id'
   let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
