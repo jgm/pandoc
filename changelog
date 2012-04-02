@@ -1,3 +1,62 @@
+pandoc (1.9.2)
+
+  * LaTeX reader:
+
+    + Made `lstlisting` work as a proper verbatim environment.
+    + Fixed bug parsing LaTeX tables with one column.
+
+  * LaTeX writer:  Use `{}` around `ctable` caption, so that formatting
+    can be included.
+
+  * LaTeX template: Added variables for `geometry`, `romanfont`,
+    `sansfont`, `mathfont`, `mainfont` so users can more easily
+    customize fonts.
+
+  * PDF writer:
+
+    + Run latex engine at least two times, to ensure
+      that PDFs will have hyperlinked bookmarks.
+    + Added PDF metadata (title,author) in LaTeX standalone + PDF output.
+
+  * Texinfo writer: retain directories in image paths.  (Peter Wang)
+
+  * RST writer:  Better handling of inline formatting, in accord
+    with docutils' "inline markup recognition rules" (though we don't
+    implement the unicode rules fully). Now `hi*there*hi` gets
+    rendered properly as `hi\ *there*\ hi`, and unnecessary
+    `\ ` are avoided around `:math:`, `:sub:`, `:sup:`.
+
+  * RST reader:
+
+    + Parse `\ ` as null, not escaped space.
+    + Allow `` :math:`...` `` even when not followed by blank
+      or `\`.  This does not implement the complex rule docutils follows,
+      but it should be good enough for most purposes.
+    + Add support for the rST default-role directive. (Greg Maslov)
+
+  * Text.Pandoc.Parsing: Added `stateRstDefaultRole` field to `ParserState`.
+    (Greg Maslov)
+
+  * Markdown reader: Properly handle citations nested in other inline
+    elements.
+
+  * DZSlides:  Updated template.html and styles in default template.
+    Removed bizarre CSS for `q` in dzslides template.
+
+  * Avoid repeated `id` attribute in section and header in HTML slides.
+
+  * README improvements:  new instructions on internal links,
+    removed misleading note on reST math.
+
+  * Build system:
+
+    + Fixed Windows installer so that dzslides works.
+    + Removed stripansi.sh.
+    + Added .travis.yml for Travis continuous integration support..
+    + Fixed upper bound for zlib (Sergei Trofimovich).
+    + Fixed upper bound for test-framework.
+    + Updated haddocks for haddock-2.10 (Sergei Trofimovich).
+
 pandoc (1.9.1.2)
 
   * Added `beamer+lhs` as output format.
