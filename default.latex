@@ -36,7 +36,9 @@ $if(mathfont)$
 $endif$
   \else
     \usepackage[utf8]{inputenc}
+$if(euro)$
     \usepackage{eurosym}
+$endif$
   \fi
 \fi
 $if(geometry)$
