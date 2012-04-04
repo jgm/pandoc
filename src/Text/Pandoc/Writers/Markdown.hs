@@ -516,9 +516,9 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
                       else "[" <> linktext <> "](" <> 
                            text src <> linktitle <> ")"
 inlineToMarkdown opts (Image alternate (source, tit)) = do
-  let txt = if (null alternate) || (alternate == [Str ""]) || 
-               (alternate == [Str source]) -- to prevent autolinks
-               then [Str "image"]
+  let txt = if null alternate || alternate == [Str source]
+                                 -- to prevent autolinks
+               then [Str ""]
                else alternate
   linkPart <- inlineToMarkdown opts (Link txt (source, tit))
   return $ "!" <> linkPart
