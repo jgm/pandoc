@@ -65,6 +65,7 @@ data WriterState =
               , stHighlighting  :: Bool          -- true if document has highlighted code
               , stIncremental   :: Bool          -- true if beamer lists should be displayed bit by bit
               , stInternalLinks :: [String]      -- list of internal link targets
+              , stUsesEuro      :: Bool          -- true if euro symbol used
               }
 
 -- | Convert Pandoc to LaTeX.
@@ -79,7 +80,7 @@ writeLaTeX options document =
                 stLHS = False, stBook = writerChapters options,
                 stCsquotes = False, stHighlighting = False,
                 stIncremental = writerIncremental options,
-                stInternalLinks = [] }
+                stInternalLinks = [], stUsesEuro = False }
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
@@ -153,6 +154,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("lhs", "yes") | stLHS st ] ++
                  [ ("graphics", "yes") | stGraphics st ] ++
                  [ ("book-class", "yes") | stBook st] ++
+                 [ ("euro", "yes") | stUsesEuro st] ++
                  [ ("listings", "yes") | writerListings options || stLHS st ] ++
                  [ ("beamer", "yes") | writerBeamer options ] ++
                  [ ("mainlang", maybe "" (reverse . takeWhile (/=',') . reverse)
@@ -173,10 +175,15 @@ elementToLaTeX opts (Sec level _ id' title' elements) = do
   return $ vcat (header' : innerContents)
 
 -- escape things as needed for LaTeX
-stringToLaTeX :: Bool -> String -> String
-stringToLaTeX _     []     = ""
-stringToLaTeX isUrl (x:xs) =
-  case x of
+stringToLaTeX :: Bool -> String -> State WriterState String
+stringToLaTeX _     []     = return ""
+stringToLaTeX isUrl (x:xs) = do
+  rest <- stringToLaTeX isUrl xs
+  when (x == '€') $
+     modify $ \st -> st{ stUsesEuro = True }
+  return $
+    case x of
+       '€' -> "\\euro{}" ++ rest
        '{' -> "\\{" ++ rest
        '}' -> "\\}" ++ rest
        '$' -> "\\$" ++ rest
@@ -190,7 +197,6 @@ stringToLaTeX isUrl (x:xs) =
        '~' | not isUrl -> "\\textasciitilde{}" ++ rest
        '^' -> "\\^{}" ++ rest
        '\\' -> "\\textbackslash{}" ++ rest
-       '€' -> "\\euro{}" ++ rest
        '|' -> "\\textbar{}" ++ rest
        '<' -> "\\textless{}" ++ rest
        '>' -> "\\textgreater{}" ++ rest
@@ -205,7 +211,6 @@ stringToLaTeX isUrl (x:xs) =
        '\x2014' -> "---" ++ rest
        '\x2013' -> "--" ++ rest
        _        -> x : rest
-    where rest = stringToLaTeX isUrl xs
 
 -- | Puts contents into LaTeX command.
 inCmd :: String -> Doc -> Doc
@@ -529,8 +534,8 @@ inlineToLaTeX (Code (_,classes,_) str) = do
                   Nothing -> rawCode
                   Just  h -> modify (\st -> st{ stHighlighting = True }) >>
                              return (text h)
-         rawCode = return
-                 $ text $ "\\texttt{" ++ stringToLaTeX False str ++ "}" 
+         rawCode = liftM (text . (\s -> "\\texttt{" ++ s ++ "}"))
+                       $ stringToLaTeX False str
 inlineToLaTeX (Quoted SingleQuote lst) = do
   contents <- inlineListToLaTeX lst
   csquotes <- liftM stCsquotes get
@@ -557,7 +562,7 @@ inlineToLaTeX (Quoted DoubleQuote lst) = do
                    then "\\,"
                    else empty
        return $ "``" <> s1 <> contents <> s2 <> "''"
-inlineToLaTeX (Str str) = return $ text $ stringToLaTeX False str
+inlineToLaTeX (Str str) = liftM text $ stringToLaTeX False str
 inlineToLaTeX (Math InlineMath str) = return $ char '$' <> text str <> char '$'
 inlineToLaTeX (Math DisplayMath str) = return $ "\\[" <> text str <> "\\]"
 inlineToLaTeX (RawInline "latex" str) = return $ text str
@@ -571,7 +576,8 @@ inlineToLaTeX (Link txt (src, _)) =
              do modify $ \s -> s{ stUrl = True }
                 return $ text $ "\\url{" ++ x ++ "}"
         _ -> do contents <- inlineListToLaTeX txt
-                return $ text ("\\href{" ++ stringToLaTeX True src ++ "}{") <>
+                src' <- stringToLaTeX True src
+                return $ text ("\\href{" ++ src' ++ "}{") <>
                          contents <> char '}'
 inlineToLaTeX (Image _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True }

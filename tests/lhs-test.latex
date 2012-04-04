@@ -12,7 +12,6 @@
     \newcommand{\euro}{€}
   \else
     \usepackage[utf8]{inputenc}
-    \usepackage{eurosym}
   \fi
 \fi
 \usepackage{color}
