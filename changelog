@@ -5,8 +5,10 @@ pandoc (1.9.2)
     + Made `lstlisting` work as a proper verbatim environment.
     + Fixed bug parsing LaTeX tables with one column.
 
-  * LaTeX writer:  Use `{}` around `ctable` caption, so that formatting
-    can be included.
+  * LaTeX writer:
+
+    + Use `{}` around `ctable` caption, so that formatting can be used.
+    + Don't require eurosym package unless document has a €.
 
   * LaTeX template: Added variables for `geometry`, `romanfont`,
     `sansfont`, `mathfont`, `mainfont` so users can more easily
@@ -39,6 +41,8 @@ pandoc (1.9.2)
 
   * Markdown reader: Properly handle citations nested in other inline
     elements.
+
+  * Markdown writer:  don't replace empty alt in image with "image".
 
   * DZSlides:  Updated template.html and styles in default template.
     Removed bizarre CSS for `q` in dzslides template.
