@@ -78,7 +78,7 @@ readTextile state s =
 
 -- | Special chars border strings parsing
 specialChars :: [Char]
-specialChars = "\\[]<>*#_@~-+^&,.;:!?|\"'%()"
+specialChars = "\\[]<>*#_@~-+^&,.;:!?|\"'%()="
 
 -- | Generate a Pandoc ADT from a textile document
 parseTextile :: GenParser Char ParserState Pandoc
@@ -370,6 +370,7 @@ inlineParsers = [ autoLink
                 , whitespace
                 , endline
                 , code
+                , escapedInline
                 , htmlSpan
                 , rawHtmlInline
                 , note
@@ -485,6 +486,23 @@ image = try $ do
   alt <- option "" (try $ (char '(' >> manyTill anyChar (char ')')))
   char '!'
   return $ Image [Str alt] (src, alt)
+
+escapedInline :: GenParser Char ParserState Inline
+escapedInline = escapedEqs <|> escapedTag
+
+-- | literal text escaped between == ... ==
+escapedEqs :: GenParser Char ParserState Inline
+escapedEqs = try $ do
+  string "=="
+  contents <- manyTill anyChar (try $ string "==")
+  return $ Str contents
+
+-- | literal text escaped btw <notextile> tags
+escapedTag :: GenParser Char ParserState Inline
+escapedTag = try $ do
+  string "<notextile>"
+  contents <- manyTill anyChar (try $ string "</notextile>")
+  return $ Str contents
 
 -- | Any special symbol defined in specialChars
 symbol :: GenParser Char ParserState Inline
