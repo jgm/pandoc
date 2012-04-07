@@ -112,18 +112,28 @@ comment = do
   newline
   return ()
 
+bgroup :: LP ()
+bgroup = () <$ char '{'
+     <|> () <$ controlSeq "bgroup"
+     <|> () <$ controlSeq "begingroup"
+
+egroup :: LP ()
+egroup = () <$ char '}'
+     <|> () <$ controlSeq "egroup"
+     <|> () <$ controlSeq "endgroup"
+
 grouped :: Monoid a => LP a -> LP a
-grouped parser = try $ char '{' *> (mconcat <$> manyTill parser (char '}'))
+grouped parser = try $ bgroup *> (mconcat <$> manyTill parser egroup)
 
 braced :: LP String
-braced = char '{' *> (concat <$> manyTill
+braced = bgroup *> (concat <$> manyTill
          (  many1 (satisfy (\c -> c /= '\\' && c /= '}' && c /= '{'))
         <|> try (string "\\}")
         <|> try (string "\\{")
         <|> try (string "\\\\")
         <|> ((\x -> "{" ++ x ++ "}") <$> braced)
         <|> count 1 anyChar
-         ) (char '}'))
+         ) egroup)
 
 bracketed :: Monoid a => LP a -> LP a
 bracketed parser = try $ char '[' *> (mconcat <$> manyTill parser (char ']'))
