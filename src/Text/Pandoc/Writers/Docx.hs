@@ -488,7 +488,10 @@ getParaProps :: WS [Element]
 getParaProps = do
   props <- gets stParaProperties
   listLevel <- gets stListLevel
-  numid <- getNumId
+  listMarker <- gets stListMarker
+  numid <- case listMarker of
+                 NoMarker -> return 1
+                 _        -> getNumId
   let listPr = if listLevel >= 0
                   then [ mknode "w:numPr" []
                          [ mknode "w:numId" [("w:val",show numid)] ()
