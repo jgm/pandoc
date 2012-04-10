@@ -1,3 +1,7 @@
+{-# LANGUAGE CPP #-}
+#if __GLASGOW_HASKELL__ >= 702
+{-# LANGUAGE Trustworthy #-}
+#endif
 {-# LANGUAGE PatternGuards #-}
 {-
 Copyright (C) 2008-2010 Andrea Rossato <andrea.rossato@ing.unitn.it>
