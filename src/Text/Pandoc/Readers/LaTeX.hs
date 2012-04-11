@@ -82,7 +82,7 @@ controlSeq name = try $ do
   case name of
         ""   -> mzero
         [c] | not (isLetter c) -> string [c]
-        cs   -> string cs <* optional sp
+        cs   -> string cs <* notFollowedBy letter <* optional sp
   return name
 
 sp :: LP ()
