@@ -254,7 +254,7 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
   if writerStrictMarkdown opts || attribs == nullAttr
      then nest (writerTabStop opts) (text str) <> blankline
      else -- use delimited code block
-          flush (tildes <> space <> attrs <> cr <> text str <>
+          (tildes <> space <> attrs <> cr <> text str <>
                   cr <> tildes) <> blankline
             where tildes  = text "~~~~"
                   attrs = attrsToMarkdown attribs
