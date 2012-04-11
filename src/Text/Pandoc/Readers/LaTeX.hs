@@ -85,6 +85,13 @@ controlSeq name = try $ do
         cs   -> string cs <* notFollowedBy letter <* optional sp
   return name
 
+dimenarg :: LP String
+dimenarg = try $ do
+  ch  <- option "" $ string "="
+  num <- many1 digit
+  dim <- oneOfStrings ["pt","pc","in","bp","cm","mm","dd","cc","sp"]
+  return $ ch ++ num ++ dim
+
 sp :: LP ()
 sp = skipMany1 $ satisfy (\c -> c == ' ' || c == '\t')
         <|> (try $ newline >>~ lookAhead anyChar >>~ notFollowedBy blankline)
@@ -318,12 +325,12 @@ inlineCommand = try $ do
        Just p      -> p
        Nothing     -> case M.lookup name inlineCommands of
                            Just p    -> p
-                           Nothing
-                             | parseRaw  ->
-                                (rawInline "latex" . (('\\':name') ++)) <$>
-                                 (withRaw (skipopts *> many braced)
-                                      >>= applyMacros' . snd)
-                             | otherwise -> return mempty
+                           Nothing   ->
+                             if parseRaw
+                                then (rawInline "latex" . (('\\':name') ++)) <$> rawargs
+                                else mempty <$> rawargs
+                              where rawargs = withRaw (skipopts *> option "" dimenarg
+                                                 *> many braced) >>= applyMacros' . snd
 
 isBlockCommand :: String -> Bool
 isBlockCommand s = maybe False (const True) $ M.lookup s blockCommands
