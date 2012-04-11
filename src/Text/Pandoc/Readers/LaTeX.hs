@@ -198,7 +198,7 @@ inlines = mconcat <$> many (notFollowedBy (char '}') *> inline)
 
 block :: LP Blocks
 block = (mempty <$ comment)
-    <|> (mempty <$ ((spaceChar <|> blankline) *> spaces))
+    <|> (mempty <$ ((spaceChar <|> newline) *> spaces))
     <|> environment
     <|> mempty <$ macro -- TODO improve macros, make them work everywhere
     <|> blockCommand
