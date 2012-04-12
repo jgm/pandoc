@@ -183,6 +183,7 @@ parseMarkdown = do
   st <- getState
   let firstPassParser = referenceKey
                      <|> (if stateStrict st then pzero else noteBlock)
+                     <|> liftM snd (withRaw codeBlockDelimited)
                      <|> lineClump
   docMinusKeys <- liftM concat $ manyTill firstPassParser eof
   setInput docMinusKeys
