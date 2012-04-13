@@ -554,7 +554,6 @@ listStart = bulletListStart <|> (anyOrderedListStart >> return ())
 -- parse a line of a list item (start = parser for beginning of list item)
 listLine :: GenParser Char ParserState [Char]
 listLine = try $ do
-  notFollowedBy' listStart
   notFollowedBy blankline
   notFollowedBy' (do indentSpaces
                      many (spaceChar)
@@ -563,12 +562,14 @@ listLine = try $ do
   return $ concat chunks ++ "\n"
 
 -- parse raw text for one list item, excluding start marker and continuations
-rawListItem :: GenParser Char ParserState a -> GenParser Char ParserState [Char]
+rawListItem :: GenParser Char ParserState a
+            -> GenParser Char ParserState [Char]
 rawListItem start = try $ do
   start
-  result <- many1 listLine
+  first <- listLine
+  rest <- many (notFollowedBy listStart >> listLine)
   blanks <- many blankline
-  return $ concat result ++ blanks
+  return $ concat (first:rest)  ++ blanks
 
 -- continuation of a list item - indented and separated by blankline 
 -- or (in compact lists) endline.
@@ -588,8 +589,9 @@ listContinuationLine = try $ do
   result <- manyTill anyChar newline
   return $ result ++ "\n"
 
-listItem :: GenParser Char ParserState a -> GenParser Char ParserState [Block]
-listItem start = try $ do 
+listItem :: GenParser Char ParserState a
+         -> GenParser Char ParserState [Block]
+listItem start = try $ do
   first <- rawListItem start
   continuations <- many listContinuation
   -- parsing with ListItemState forces markers at beginning of lines to
