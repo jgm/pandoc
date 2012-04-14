@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, DatatypeContexts #-}
 {-
 Copyright (C) 2010 John MacFarlane <jgm@berkeley.edu>
 
