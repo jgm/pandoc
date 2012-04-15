@@ -47,6 +47,7 @@ parseBlock (Elem e) =
         "sect5" -> sect 5
         "sect6" -> sect 6
         "section" -> gets dbSectionLevel >>= sect . (+1)
+        "abstract" -> blockQuote <$> getBlocks e
         "itemizedlist" -> bulletList <$> listitems
         "orderedlist" -> orderedList <$> listitems -- TODO list attributes
         "articleinfo" -> getTitle >> getAuthors >> getDate >> return mempty
@@ -107,6 +108,13 @@ parseInline (Elem e) =
                         then singleQuoted contents
                         else doubleQuoted contents
         "literal" -> return $ code $ strContent e -- TODO attrs
+        "varname" -> return $ codeWith ("",["varname"],[]) $ strContent e
+        "function" -> return $ codeWith ("",["function"],[]) $ strContent e
+        "type"    -> return $ codeWith ("",["type"],[]) $ strContent e
+        "symbol"  -> return $ codeWith ("",["symbol"],[]) $ strContent e
+        "constant" -> return $ codeWith ("",["constant"],[]) $ strContent e
+        "userinput" -> return $ codeWith ("",["userinput"],[]) $ strContent e
+        "varargs" -> return $ str "(…)"
         "ulink" -> link
             (fromMaybe "" (lookupAttrBy (\attr -> qName attr == "url")
               (elAttribs e))) "" <$> innerInlines
