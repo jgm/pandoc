@@ -25,6 +25,7 @@ parseBlock (Text (CData _ s _)) = if all isSpace s
 parseBlock (Elem e) =
   case qName (elName e) of
         "para"  -> para <$> getInlines e
+        "blockquote" -> blockQuote <$> innerBlocks
         "sect1" -> sect 1
         "sect2" -> sect 2
         "sect3" -> sect 3
