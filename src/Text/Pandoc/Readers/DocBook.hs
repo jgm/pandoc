@@ -106,6 +106,7 @@ parseInline (Elem e) =
             return $ if qt == SingleQuote
                         then singleQuoted contents
                         else doubleQuoted contents
+        "literal" -> return $ code $ strContent e -- TODO attrs
         "ulink" -> link
             (fromMaybe "" (lookupAttrBy (\attr -> qName attr == "url")
               (elAttribs e))) "" <$> innerInlines
