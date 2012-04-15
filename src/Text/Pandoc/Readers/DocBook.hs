@@ -11,17 +11,28 @@ import Control.Applicative ((<$>))
 type DB = State DBState
 
 data DBState = DBState{ dbSectionLevel :: Int
+                      , dbDocTitle     :: Inlines
+                      , dbDocAuthors   :: [Inlines]
+                      , dbDocDate      :: Inlines
                       } deriving Show
 
 readDocBook :: ParserState -> String -> Pandoc
-readDocBook st inp = Pandoc (Meta [] [] []) $ toList blocks
-  where blocks = mconcat $ evalState (mapM parseBlock $ parseXML inp)
-                             DBState{ dbSectionLevel = 0 }
+readDocBook st inp = setTitle (dbDocTitle st')
+                   $ setAuthors (dbDocAuthors st')
+                   $ setDate (dbDocDate st')
+                   $ doc $ mconcat bs
+  where (bs, st') = runState (mapM parseBlock $ parseXML inp)
+                             DBState{ dbSectionLevel = 0
+                                    , dbDocTitle = mempty
+                                    , dbDocAuthors = []
+                                    , dbDocDate = mempty
+                                    }
 
 parseBlock :: Content -> DB Blocks
+parseBlock (Text (CData CDataRaw _ _)) = return mempty -- DOCTYPE
 parseBlock (Text (CData _ s _)) = if all isSpace s
-                                        then return mempty
-                                        else return $ plain $ text s
+                                     then return mempty
+                                     else return $ plain $ text s
 parseBlock (Elem e) =
   case qName (elName e) of
         "para"  -> para <$> getInlines e
@@ -33,7 +44,9 @@ parseBlock (Elem e) =
         "sect5" -> sect 5
         "sect6" -> sect 6
         "section" -> gets dbSectionLevel >>= sect . (+1)
-        "title" -> return $ mempty -- processed by sect
+        "articleinfo" -> getTitle >> getAuthors >> getDate >> return mempty
+        "title" -> return mempty -- processed by sect
+        "?xml"  -> return mempty
         _       -> innerBlocks
    where innerBlocks = mconcat <$> (mapM parseBlock $ elContent e)
          getInlines e' = (trimInlines . mconcat) <$>
@@ -42,6 +55,20 @@ parseBlock (Elem e) =
          skipWhite (Text (CData _ s _):xs) | all isSpace s = skipWhite xs
                                            | otherwise     = xs
          skipWhite xs = xs
+         getTitle = case findChild (unqual "title") e of
+                         Just t  -> do
+                            tit <- getInlines t
+                            modify $ \st -> st{dbDocTitle = tit}
+                         Nothing -> return ()
+         getAuthors = do
+                      auths <- mapM getInlines
+                               $ findChildren (unqual "author") e
+                      modify $ \st -> st{dbDocAuthors = auths}
+         getDate = case findChild (unqual "date") e of
+                         Just t  -> do
+                            dat <- getInlines t
+                            modify $ \st -> st{dbDocDate = dat}
+                         Nothing -> return ()
          sect n = case skipWhite (elContent e) of
                         ((Elem t):body)
                           | isTitle t -> do
