@@ -212,7 +212,6 @@ writers = [("native"       , writeNative)
           ,("rtf"          , writeRTF)
           ,("org"          , writeOrg)
           ,("asciidoc"     , writeAsciiDoc)
-          ,("fb2"          , writeFB2)
           ]
 
 -- | Association list of formats and writers which require IO to work.
