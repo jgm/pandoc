@@ -1,0 +1,4 @@
+Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
+[Para [Str "some",Space,Str "text",Space,Math InlineMath "1/2",Space,Str "and",Space,Str "then",Space,Str "another",Space,Str "formula",Space,Math InlineMath "\\frac{1}{\\sin(25)}"]
+,Para [Str "this",Space,Str "shouldn",Str "'",Str "t",Space,Str "be",Space,Str "replaced",Space,Math DisplayMath "\n\\inactive\n"]
+,Para [Str "test",Space,Str "of",Space,Str "redefining",Space,Str "a",Space,Str "macro",Space,Math DisplayMath "\n0.333== 0.333\n"]]

@@ -61,6 +61,12 @@ tests = [ testGroup "markdown"
             , lhsReaderTest "markdown+lhs"
             ]
           , testGroup "citations" markdownCitationTests
+          , testGroup "include-macros"
+            [ test "basic" ["-f", "markdown", "-t", "native", 
+                            "--include-macros=include-macros.tex",
+                            "--include-macros=include-macros-1.tex"]
+              "include-macros.txt" "include-macros.native"
+            ]
           ]
         , testGroup "rst"
           [ testGroup "writer" (writerTests "rst" ++ lhsWriterTests "rst")
