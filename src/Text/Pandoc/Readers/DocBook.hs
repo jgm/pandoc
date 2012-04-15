@@ -12,6 +12,7 @@ import Control.Applicative ((<$>))
 type DB = State DBState
 
 data DBState = DBState{ dbSectionLevel :: Int
+                      , dbQuoteType    :: QuoteType
                       , dbDocTitle     :: Inlines
                       , dbDocAuthors   :: [Inlines]
                       , dbDocDate      :: Inlines
@@ -24,6 +25,7 @@ readDocBook st inp = setTitle (dbDocTitle st')
                    $ doc $ mconcat bs
   where (bs, st') = runState (mapM parseBlock $ parseXML inp)
                              DBState{ dbSectionLevel = 0
+                                    , dbQuoteType = DoubleQuote
                                     , dbDocTitle = mempty
                                     , dbDocAuthors = []
                                     , dbDocDate = mempty
@@ -95,6 +97,15 @@ parseInline (Elem e) =
   case qName (elName e) of
         "subscript" -> subscript <$> innerInlines
         "superscript" -> superscript <$> innerInlines
+        "quote" -> do
+            qt <- gets dbQuoteType
+            let qt' = if qt == SingleQuote then DoubleQuote else SingleQuote
+            modify $ \st -> st{ dbQuoteType = qt' }
+            contents <- innerInlines
+            modify $ \st -> st{ dbQuoteType = qt }
+            return $ if qt == SingleQuote
+                        then singleQuoted contents
+                        else doubleQuoted contents
         "ulink" -> link
             (fromMaybe "" (lookupAttrBy (\attr -> qName attr == "url")
               (elAttribs e))) "" <$> innerInlines
