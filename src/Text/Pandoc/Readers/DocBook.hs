@@ -36,7 +36,7 @@ parseBlock (Text (CData _ s _)) = if all isSpace s
 parseBlock (Elem e) =
   case qName (elName e) of
         "para"  -> para <$> getInlines e
-        "blockquote" -> blockQuote <$> innerBlocks
+        "blockquote" -> blockQuote <$> getBlocks e
         "sect1" -> sect 1
         "sect2" -> sect 2
         "sect3" -> sect 3
@@ -44,17 +44,19 @@ parseBlock (Elem e) =
         "sect5" -> sect 5
         "sect6" -> sect 6
         "section" -> gets dbSectionLevel >>= sect . (+1)
+        "itemizedlist" -> bulletList <$> listitems
         "articleinfo" -> getTitle >> getAuthors >> getDate >> return mempty
         "title" -> return mempty -- processed by sect
         "?xml"  -> return mempty
-        _       -> innerBlocks
-   where innerBlocks = mconcat <$> (mapM parseBlock $ elContent e)
+        _       -> getBlocks e
+   where getBlocks e' =  mconcat <$> (mapM parseBlock $ elContent e')
          getInlines e' = (trimInlines . mconcat) <$>
                        (mapM parseInline $ elContent e')
          isTitle e' = qName (elName e') == "title"
          skipWhite (Text (CData _ s _):xs) | all isSpace s = skipWhite xs
                                            | otherwise     = xs
          skipWhite xs = xs
+         listitems = mapM getBlocks $ findChildren (unqual "listitem") e
          getTitle = case findChild (unqual "title") e of
                          Just t  -> do
                             tit <- getInlines t
