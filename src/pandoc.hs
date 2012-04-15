@@ -43,7 +43,7 @@ import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower )
-import Data.List ( intercalate, isSuffixOf, isPrefixOf, sort )
+import Data.List ( intercalate, isSuffixOf, isPrefixOf )
 import System.Directory ( getAppUserDataDirectory, doesFileExist, findExecutable )
 import System.IO ( stdout )
 import System.IO.Error ( isDoesNotExistError )
@@ -1034,7 +1034,6 @@ main = do
               writeODT referenceODT writerOptions doc2 >>= writeBinary
           | writerName' == "docx"  ->
               writeDocx referenceDocx writerOptions doc2 >>= writeBinary
-           B.writeFile (encodeString outputFile) (fromString d)
           | otherwise -> err 9 ("Unknown writer: " ++ writerName')
         (Just w, _)
           | pdfOutput  -> do
