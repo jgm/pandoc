@@ -62,6 +62,8 @@ parseInline :: Content -> DB Inlines
 parseInline (Text (CData _ s _)) = return $ text s
 parseInline (Elem e) =
   case qName (elName e) of
+        "subscript" -> subscript <$> innerInlines
+        "superscript" -> superscript <$> innerInlines
         "emphasis" -> case lookupAttrBy (\attr -> qName attr == "role")
                            (elAttribs e) of
                              Just "strong" -> strong <$> innerInlines
