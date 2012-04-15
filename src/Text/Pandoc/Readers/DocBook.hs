@@ -3,6 +3,7 @@ import Text.Pandoc.Parsing (ParserState(..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder
 import Text.XML.Light
+import Data.Maybe (fromMaybe)
 import Data.Monoid
 import Data.Char (isSpace)
 import Control.Monad.State
@@ -45,8 +46,9 @@ parseBlock (Elem e) =
         "sect6" -> sect 6
         "section" -> gets dbSectionLevel >>= sect . (+1)
         "itemizedlist" -> bulletList <$> listitems
+        "orderedlist" -> orderedList <$> listitems -- TODO list attributes
         "articleinfo" -> getTitle >> getAuthors >> getDate >> return mempty
-        "programlisting" -> return $ codeBlock $ strContent e
+        "programlisting" -> return $ codeBlock $ strContent e  -- TODO attrs
         "?xml"  -> return mempty
         _       -> getBlocks e
    where getBlocks e' =  mconcat <$> (mapM parseBlock $ elContent e')
@@ -93,6 +95,9 @@ parseInline (Elem e) =
   case qName (elName e) of
         "subscript" -> subscript <$> innerInlines
         "superscript" -> superscript <$> innerInlines
+        "ulink" -> link
+            (fromMaybe "" (lookupAttrBy (\attr -> qName attr == "url")
+              (elAttribs e))) "" <$> innerInlines
         "emphasis" -> case lookupAttrBy (\attr -> qName attr == "role")
                            (elAttribs e) of
                              Just "strong" -> strong <$> innerInlines
