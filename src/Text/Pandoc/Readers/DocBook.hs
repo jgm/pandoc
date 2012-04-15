@@ -32,7 +32,7 @@ parseBlock (Elem e) =
         "sect5" -> sect 5
         "sect6" -> sect 6
         "section" -> gets dbSectionLevel >>= sect . (+1)
-        "title" -> return $ mempty
+        "title" -> return $ mempty -- processed by sect
         _       -> innerBlocks
    where innerBlocks = mconcat <$> (mapM parseBlock $ elContent e)
          getInlines e' = (trimInlines . mconcat) <$>
@@ -65,6 +65,7 @@ parseInline (Elem e) =
                            (elAttribs e) of
                              Just "strong" -> strong <$> innerInlines
                              _             -> emph <$> innerInlines
+        "footnote" -> (note . mconcat) <$> (mapM parseBlock $ elContent e)
         _          -> innerInlines
    where innerInlines = (trimInlines . mconcat) <$>
                           (mapM parseInline $ elContent e)
