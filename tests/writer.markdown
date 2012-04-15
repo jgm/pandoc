@@ -528,10 +528,10 @@ LaTeX
 These shouldn’t be math:
 
 -   To get the famous equation, write `$e = mc^2$`.
--   $22,000 is a *lot* of money. So is $34,000. (It worked if “lot” is
+-   \$22,000 is a *lot* of money. So is \$34,000. (It worked if “lot” is
     emphasized.)
--   Shoes ($20) and socks ($5).
--   Escaped `$`: $73 *this should be emphasized* 23$.
+-   Shoes (\$20) and socks (\$5).
+-   Escaped `$`: \$73 *this should be emphasized* 23\$.
 
 Here’s a LaTeX table:
 
@@ -560,7 +560,7 @@ AT&T is another way to write it.
 
 This & that.
 
-4 < 5.
+4 \< 5.
 
 6 \> 5.
 
