@@ -47,7 +47,6 @@ parseBlock (Elem e) =
         "itemizedlist" -> bulletList <$> listitems
         "articleinfo" -> getTitle >> getAuthors >> getDate >> return mempty
         "programlisting" -> return $ codeBlock $ strContent e
-        "title" -> return mempty -- processed by sect
         "?xml"  -> return mempty
         _       -> getBlocks e
    where getBlocks e' =  mconcat <$> (mapM parseBlock $ elContent e')
