@@ -321,16 +321,19 @@ inlineCommand = try $ do
   parseRaw <- stateParseRaw `fmap` getState
   star <- option "" (string "*")
   let name' = name ++ star
+  let rawargs = withRaw (skipopts *> option "" dimenarg
+                  *> many braced) >>= applyMacros' . snd
+  let raw = if parseRaw
+               then (rawInline "latex" . (('\\':name') ++)) <$> rawargs
+               else mempty <$> rawargs
   case M.lookup name' inlineCommands of
-       Just p      -> p
+       Just p      -> p <|> raw
        Nothing     -> case M.lookup name inlineCommands of
-                           Just p    -> p
-                           Nothing   ->
-                             if parseRaw
-                                then (rawInline "latex" . (('\\':name') ++)) <$> rawargs
-                                else mempty <$> rawargs
-                              where rawargs = withRaw (skipopts *> option "" dimenarg
-                                                 *> many braced) >>= applyMacros' . snd
+                           Just p    -> p <|> raw
+                           Nothing   -> raw
+
+unlessParseRaw :: LP ()
+unlessParseRaw = getState >>= guard . not . stateParseRaw
 
 isBlockCommand :: String -> Bool
 isBlockCommand s = maybe False (const True) $ M.lookup s blockCommands
@@ -350,8 +353,8 @@ inlineCommands = M.fromList $
   , ("dots", lit "…")
   , ("mdots", lit "…")
   , ("sim", lit "~")
-  , ("label", inBrackets <$> tok)
-  , ("ref", inBrackets <$> tok)
+  , ("label", unlessParseRaw >> (inBrackets <$> tok))
+  , ("ref", unlessParseRaw >> (inBrackets <$> tok))
   , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
   , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
   , ("ensuremath", mathInline $ braced)
