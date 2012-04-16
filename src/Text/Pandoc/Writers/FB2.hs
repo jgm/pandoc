@@ -1,5 +1,5 @@
 {-
-Copyright (c) 2011, Sergey Astanin
+Copyright (c) 2011-2012, Sergey Astanin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ FictionBook is an XML-based e-book format. For more information see:
 -}
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
-import Control.Monad.State
+import Control.Monad.State (StateT, evalStateT, put, get, liftM, liftM2, liftIO)
 import Data.ByteString.Base64 (encode)
 import Data.Char (toUpper, toLower, isSpace)
 import Network.Browser (browse, request, setAllowRedirects, setOutHandler)
