@@ -59,10 +59,12 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML ( htmlTag, isInlineTag, isBlockTag )
+import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.ParserCombinators.Parsec
 import Text.HTML.TagSoup.Match
 import Data.Char ( digitToInt, isLetter )
 import Control.Monad ( guard, liftM )
+import Control.Applicative ((<$>), (*>), (<*))
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: ParserState -- ^ Parser state, including options for parser
@@ -128,6 +130,7 @@ blockParsers = [ codeBlock
                , hrule
                , anyList
                , rawHtmlBlock
+               , rawLaTeXBlock'
                , maybeExplicitBlock "table" table
                , maybeExplicitBlock "p" para
                , nullBlock ]
@@ -164,21 +167,16 @@ codeBlockPre = try $ do
 header :: GenParser Char ParserState Block
 header = try $ do
   char 'h'
-  level <- oneOf "123456" >>= return . digitToInt
-  optional attributes
-  char '.'
-  whitespace
-  name <- manyTill inline blockBreak
-  return $ Header level (normalizeSpaces name)
+  level <- digitToInt <$> oneOf "123456"
+  optional attributes >> char '.' >> whitespace
+  name <- normalizeSpaces <$> manyTill inline blockBreak
+  return $ Header level name
 
 -- | Blockquote of the form "bq. content"
 blockQuote :: GenParser Char ParserState Block
 blockQuote = try $ do
-  string "bq"
-  optional attributes
-  char '.'
-  whitespace
-  para >>= return . BlockQuote . (:[])
+  string "bq" >> optional attributes >> char '.' >> whitespace
+  BlockQuote . singleton <$> para
 
 -- Horizontal rule
 
@@ -198,10 +196,7 @@ hrule = try $ do
 -- strict in the nesting, sublist must start at exactly "parent depth
 -- plus one"
 anyList :: GenParser Char ParserState Block
-anyList = try $ do
-  l <- anyListAtDepth 1
-  blanklines
-  return l
+anyList = try $ ( (anyListAtDepth 1) <* blanklines )
 
 -- | This allow one type of list to be nested into an other type,
 -- provided correct nesting
@@ -212,20 +207,12 @@ anyListAtDepth depth = choice [ bulletListAtDepth depth,
 
 -- | Bullet List of given depth, depth being the number of leading '*'
 bulletListAtDepth :: Int -> GenParser Char ParserState Block
-bulletListAtDepth depth = try $ do
-  items <- many1 (bulletListItemAtDepth depth)
-  return (BulletList items)
+bulletListAtDepth depth = try $ BulletList <$> many1 (bulletListItemAtDepth depth)
 
 -- | Bullet List Item of given depth, depth being the number of
 -- leading '*'
 bulletListItemAtDepth :: Int -> GenParser Char ParserState [Block]
-bulletListItemAtDepth depth = try $ do
-  count depth (char '*')
-  optional attributes
-  whitespace
-  p <- inlines >>= return . Plain
-  sublist <- option [] (anyListAtDepth (depth + 1) >>= return . (:[]))
-  return (p:sublist)
+bulletListItemAtDepth = genericListItemAtDepth '*'
 
 -- | Ordered List of given depth, depth being the number of
 -- leading '#'
@@ -237,19 +224,19 @@ orderedListAtDepth depth = try $ do
 -- | Ordered List Item of given depth, depth being the number of
 -- leading '#'
 orderedListItemAtDepth :: Int -> GenParser Char ParserState [Block]
-orderedListItemAtDepth depth = try $ do
-  count depth (char '#')
-  optional attributes
-  whitespace
-  p <- inlines >>= return . Plain
-  sublist <- option [] (anyListAtDepth (depth + 1) >>= return . (:[]))
-  return (p:sublist)
+orderedListItemAtDepth = genericListItemAtDepth '#'
+
+-- | Common implementation of list items
+genericListItemAtDepth :: Char -> Int -> GenParser Char ParserState [Block]
+genericListItemAtDepth c depth = try $ do
+  count depth (char c) >> optional attributes >> whitespace
+  p <- inlines
+  sublist <- option [] (singleton <$> anyListAtDepth (depth + 1))
+  return ((Plain p):sublist)
 
 -- | A definition list is a set of consecutive definition items
 definitionList :: GenParser Char ParserState Block  
-definitionList = try $ do
-  items <- many1 definitionListItem
-  return $ DefinitionList items
+definitionList = try $ DefinitionList <$> many1 definitionListItem
   
 -- | A definition list item in textile begins with '- ', followed by
 -- the term defined, then spaces and ":=". The definition follows, on
@@ -277,6 +264,8 @@ blockBreak :: GenParser Char ParserState ()
 blockBreak = try (newline >> blanklines >> return ()) <|>
               (lookAhead rawHtmlBlock >> return ())
 
+-- raw content
+
 -- | A raw Html Block, optionally followed by blanklines
 rawHtmlBlock :: GenParser Char ParserState Block
 rawHtmlBlock = try $ do
@@ -284,11 +273,16 @@ rawHtmlBlock = try $ do
   optional blanklines
   return $ RawBlock "html" b
 
+-- | Raw block of LaTeX content
+rawLaTeXBlock' :: GenParser Char ParserState Block
+rawLaTeXBlock' = do
+  failIfStrict
+  RawBlock "latex" <$> (rawLaTeXBlock <* spaces)
+
+
 -- | In textile, paragraphs are separated by blank lines.
 para :: GenParser Char ParserState Block
-para = try $ do
-  content <- manyTill inline blockBreak
-  return $ Para $ normalizeSpaces content
+para = try $ Para . normalizeSpaces <$> manyTill inline blockBreak
 
 
 -- Tables
@@ -302,11 +296,7 @@ tableCell = do
 
 -- | A table row is made of many table cells
 tableRow :: GenParser Char ParserState [TableCell]
-tableRow = try $ do
-  char '|'
-  cells <- endBy1 tableCell (char '|')
-  newline
-  return cells
+tableRow = try $ ( char '|' *> (endBy1 tableCell (char '|')) <* newline)
 
 -- | Many table rows
 tableRows :: GenParser Char ParserState [[TableCell]]
@@ -314,13 +304,8 @@ tableRows = many1 tableRow
 
 -- | Table headers are made of cells separated by a tag "|_."
 tableHeaders :: GenParser Char ParserState [TableCell]
-tableHeaders = try $ do
-  let separator = (try $ string "|_.")
-  separator
-  headers <- sepBy1 tableCell separator
-  char '|'
-  newline
-  return headers
+tableHeaders = let separator = (try $ string "|_.") in
+  try $ ( separator *> (sepBy1 tableCell separator) <* char '|' <* newline )
   
 -- | A table with an optional header. Current implementation can
 -- handle tables with and without header, but will parse cells
@@ -373,6 +358,7 @@ inlineParsers = [ autoLink
                 , escapedInline
                 , htmlSpan
                 , rawHtmlInline
+                , rawLaTeXInline'
                 , note
                 , simpleInline (string "??") (Cite [])
                 , simpleInline (string "**") Strong
@@ -444,11 +430,7 @@ str = do
 
 -- | Textile allows HTML span infos, we discard them
 htmlSpan :: GenParser Char ParserState Inline
-htmlSpan = try $ do
-  char '%'
-  _ <- attributes
-  content <- manyTill anyChar (char '%')
-  return $ Str content
+htmlSpan = try $ Str <$> ( char '%' *> attributes *> manyTill anyChar (char '%') )
 
 -- | Some number of space chars
 whitespace :: GenParser Char ParserState Inline
@@ -461,8 +443,13 @@ endline = try $ do
   return LineBreak
 
 rawHtmlInline :: GenParser Char ParserState Inline
-rawHtmlInline = liftM (RawInline "html" . snd)
-                $ htmlTag isInlineTag
+rawHtmlInline = RawInline "html" . snd <$> htmlTag isInlineTag
+                
+-- | Raw LaTeX Inline 
+rawLaTeXInline' :: GenParser Char ParserState Inline
+rawLaTeXInline' = try $ do
+  failIfStrict
+  rawLaTeXInline
 
 -- | Textile standard link syntax is "label":target
 link :: GenParser Char ParserState Inline
@@ -499,16 +486,12 @@ escapedEqs = try $ do
 
 -- | literal text escaped btw <notextile> tags
 escapedTag :: GenParser Char ParserState Inline
-escapedTag = try $ do
-  string "<notextile>"
-  contents <- manyTill anyChar (try $ string "</notextile>")
-  return $ Str contents
+escapedTag = try $ Str <$> ( string "<notextile>" *> 
+                             manyTill anyChar (try $ string "</notextile>") )
 
 -- | Any special symbol defined in specialChars
 symbol :: GenParser Char ParserState Inline
-symbol = do
-  result <- oneOf specialChars
-  return $ Str [result]
+symbol = Str . singleton <$> oneOf specialChars
 
 -- | Inline code
 code :: GenParser Char ParserState Inline
@@ -542,3 +525,7 @@ simpleInline :: GenParser Char ParserState t           -- ^ surrounding parser
 simpleInline border construct = surrounded border (inlineWithAttribute) >>=
                                 return . construct . normalizeSpaces
   where inlineWithAttribute = (try $ optional attributes) >> inline
+
+-- | Create a singleton list
+singleton :: a -> [a]
+singleton x = [x]

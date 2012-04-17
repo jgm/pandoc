@@ -139,6 +139,10 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
  [[Plain [Str "this",Space,Str "<",Str "div",Str ">",Space,Str "won",Str "\8217",Str "t",Space,Str "produce",Space,Str "raw",Space,Str "html",Space,Str "blocks",Space,Str "<",Str "/div",Str ">"]]
  ,[Plain [Str "but",Space,Str "this",Space,RawInline "html" "<strong>",Space,Str "will",Space,Str "produce",Space,Str "inline",Space,Str "html",Space,RawInline "html" "</strong>"]]]
 ,Para [Str "Can",Space,Str "you",Space,Str "prove",Space,Str "that",Space,Str "2",Space,Str "<",Space,Str "3",Space,Str "?"]
+,Header 1 [Str "Raw",Space,Str "LaTeX"]
+,Para [Str "This",Space,Str "Textile",Space,Str "reader",Space,Str "also",Space,Str "accepts",Space,Str "raw",Space,Str "LaTeX",Space,Str "for",Space,Str "blocks",Space,Str ":"]
+,RawBlock "latex" "\\begin{itemize}\n  \\item one\n  \\item two\n\\end{itemize}"
+,Para [Str "and",Space,Str "for",Space,RawInline "latex" "\\emph{inlines}",Str "."]
 ,Header 1 [Str "Acronyms",Space,Str "and",Space,Str "marks"]
 ,Para [Str "PBS",Space,Str "(",Str "Public",Space,Str "Broadcasting",Space,Str "System",Str ")"]
 ,Para [Str "Hi",Str "\8482"]
