@@ -38,6 +38,7 @@ module Text.Pandoc.Writers.FB2 (writeFB2)  where
 import Control.Monad.State (StateT, evalStateT, put, get, liftM, liftM2, liftIO)
 import Data.ByteString.Base64 (encode)
 import Data.Char (toUpper, toLower, isSpace)
+import Data.List (intersperse)
 import Data.Either (lefts, rights)
 import Network.Browser (browse, request, setAllowRedirects, setOutHandler)
 import Network.HTTP (catchIO_, getRequest, getHeaders, getResponseBody, lookupHeader, HeaderName(..))
@@ -154,8 +155,7 @@ renderSection :: Int -> ([Inline], [Block]) -> FBM Content
 renderSection level (ttl, body) = do
     title <- if null ttl
             then return []
-            else (list . el "title" . el "p") `liftM` cMapM toXml ttl
-            -- FIXME: only <p> and <empty-line> are allowed within <title>
+            else return . list . el "title" . formatTitle $ ttl
     content <- if (hasSubsections body)
                then renderSections (level + 1) body
                else cMapM blockToXml body
@@ -164,6 +164,19 @@ renderSection level (ttl, body) = do
     hasSubsections = any isHeader
     isHeader (Header _ _) = True
     isHeader _ = False
+
+-- | Only <p> and <empty-line> are allowed within <title> in FB2.
+formatTitle :: [Inline] -> [Content]
+formatTitle inlines =
+  let lns = split isLineBreak inlines :: [[Inline]]
+      lns' = map (el "p" . cMap plain) lns :: [Content]
+  in  intersperse (el "empty-line" ()) lns'
+  where
+    split _ [] = []
+    split cond xs = let (b,a) = break cond xs
+                    in  (b:split cond (drop 1 a))
+    isLineBreak LineBreak = True
+    isLineBreak _ = False
 
 -- | Divide the stream of block elements into sections: [(title, blocks)].
 splitSections :: Int -> [Block] -> [([Inline], [Block])]
