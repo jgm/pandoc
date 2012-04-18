@@ -38,12 +38,16 @@ module Text.Pandoc.Writers.FB2 (writeFB2)  where
 import Control.Monad.State (StateT, evalStateT, put, get, liftM, liftM2, liftIO)
 import Data.ByteString.Base64 (encode)
 import Data.Char (toUpper, toLower, isSpace)
+import Data.Either (lefts, rights)
 import Network.Browser (browse, request, setAllowRedirects, setOutHandler)
 import Network.HTTP (catchIO_, getRequest, getHeaders, getResponseBody, lookupHeader, HeaderName(..))
 import Network.URI (isURI, unEscapeString)
 import System.FilePath (takeExtension)
 import Text.XML.Light
+import qualified Control.Exception as E
 import qualified Data.ByteString as B
+import qualified Text.XML.Light as X
+import qualified Text.XML.Light.Cursor as XC
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (WriterOptions, orderedListMarkers)
@@ -80,8 +84,9 @@ writeFB2 _ (Pandoc meta blocks) = flip evalStateT newFB $ do
      secs <- renderSections 1 blocks
      let body = el "body" $ fp ++ secs
      notes <- renderFootnotes
-     imgs <- liftM imagesToFetch get >>= \s -> liftIO (fetchImages s)
-     let fb2_xml = el "FictionBook" (fb2_attrs, [desc, body] ++ notes ++ imgs)
+     (imgs,missing) <- liftM imagesToFetch get >>= \s -> liftIO (fetchImages s)
+     let body' = replaceImagesWithAlt missing body
+     let fb2_xml = el "FictionBook" (fb2_attrs, [desc, body'] ++ notes ++ imgs)
      return $ xml_head ++ (showContent fb2_xml)
   where
   xml_head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -192,17 +197,21 @@ renderFootnotes = do
         in  el "section" ([uattr "id" idstr], fn_texts)
 
 -- | Fetch images and encode them for the FictionBook XML.
-fetchImages :: [(String,String)] -> IO [Content]
-fetchImages = mapM (uncurry fetchImage)
+-- Return image data and a list of hrefs of the missing images.
+fetchImages :: [(String,String)] -> IO ([Content],[String])
+fetchImages links = do
+    imgs <- mapM (uncurry fetchImage) links
+    return $ (rights imgs, lefts imgs)
 
 -- | Fetch image data from disk or from network and make a <binary> XML section.
-fetchImage :: String -> String -> IO Content
-fetchImage fname link = do
+-- Return either (Left hrefOfMissingImage) or (Right xmlContent).
+fetchImage :: String -> String -> IO (Either String Content)
+fetchImage href link = do
   mbimg <-
       if isURI link
       then fetchURL link
       else do
-        d <- liftM Just $ B.readFile (unEscapeString link)
+        d <- nothingOnError $ B.readFile (unEscapeString link)
         let t = case map toLower (takeExtension link) of
                   ".png" -> Just "image/png"
                   ".jpg" -> Just "image/jpeg"
@@ -210,23 +219,20 @@ fetchImage fname link = do
                   ".jpe" -> Just "image/jpeg"
                   _ -> Nothing  -- only PNG and JPEG are supported in FB2
         return $ liftM2 (,) t d
-  -- insert a 1x1 PNG placeholder if the real image cannot be read/downloaded
-  -- FIXME: report missing images, revisit text, replace images with their ALTs
-  let png1x1 = B.pack [137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1
-                      ,0,0,0,1,1,3,0,0,0,37,219,86,202,0,0,0,1,115,82,71,66
-                      ,0,174,206,28,233,0,0,0,3,80,76,84,69,255,255,255,167
-                      ,196,27,200,0,0,0,1,98,75,71,68,0,136,5,29,72,0,0,0,9
-                      ,112,72,89,115,0,0,11,19,0,0,11,19,1,0,154,156,24,0,0
-                      ,0,7,116,73,77,69,7,219,3,2,1,8,50,88,72,69,168,0,0,0
-                      ,10,73,68,65,84,8,215,99,96,0,0,0,2,0,1,226,33,188,51
-                      ,0,0,0,0,73,69,78,68,174,66,96,130]
-  let (imgtype, imgdata) = maybe ("image/png", png1x1) id mbimg
-  let encdata = encode imgdata
-  let encstr = map (toEnum . fromEnum) . B.unpack $ encdata
-  return $ el "binary"
-             ( [uattr "id" fname
-               , uattr "content-type" imgtype]
-             , txt encstr )
+  case mbimg of
+    Just (imgtype, imgdata) -> do
+        let encdata = encode imgdata
+        let encstr = map (toEnum . fromEnum) . B.unpack $ encdata
+        return . Right $ el "binary"
+                   ( [uattr "id" href
+                     , uattr "content-type" imgtype]
+                   , txt encstr )
+    _ -> return (Left ('#':href))
+  where
+   nothingOnError :: (IO B.ByteString) -> (IO (Maybe B.ByteString))
+   nothingOnError action = liftM Just action `E.catch` omnihandler
+   omnihandler :: E.SomeException -> IO (Maybe B.ByteString)
+   omnihandler _ = return Nothing
 
 -- | Fetch URL, return its Content-Type and binary data on success.
 fetchURL :: String -> IO (Maybe (String, B.ByteString))
@@ -382,6 +388,54 @@ insertImage immode (Image alt (url,ttl)) = do
             ++ ttlattr
 insertImage _ _ = error "unexpected inline instead of image"
 
+replaceImagesWithAlt :: [String] -> Content -> Content
+replaceImagesWithAlt missingHrefs body =
+  let cur = XC.fromContent body
+      cur' = replaceAll cur
+  in  XC.toTree . XC.root $ cur'
+  where
+  --
+    replaceAll :: XC.Cursor -> XC.Cursor
+    replaceAll c =
+        let n = XC.current c
+            c' = if isImage n && isMissing n
+                 then XC.modifyContent replaceNode c
+                 else c
+        in  case XC.nextDF c' of
+              (Just cnext) -> replaceAll cnext
+              Nothing -> c'  -- end of document
+  --
+    isImage :: Content -> Bool
+    isImage (Elem e) = (elName e) == (uname "image")
+    isImage _ = False
+  --
+    isMissing (Elem img@(Element _ _ _ _)) =
+        let imgAttrs = elAttribs img
+            badAttrs = map (attr ("l","href")) missingHrefs
+        in  any (`elem` imgAttrs) badAttrs
+    isMissing _ = False
+  --
+    replaceNode :: Content -> Content
+    replaceNode n@(Elem img@(Element _ _ _ _)) =
+        let attrs = elAttribs img
+            alt = getAttrVal attrs (uname "alt")
+            imtype = getAttrVal attrs (qname "l" "type")
+        in case (alt, imtype) of
+             (Just alt', Just imtype') ->
+                 if imtype' == show NormalImage
+                 then el "p" alt'
+                 else txt alt'
+             (Just alt', Nothing) -> txt alt'  -- no type attribute
+             _ -> n   -- don't replace if alt text is not found
+    replaceNode n = n
+  --
+    getAttrVal :: [X.Attr] -> QName -> Maybe String
+    getAttrVal attrs name =
+        case filter ((name ==) . attrKey) attrs of
+           (a:_) -> Just (attrVal a)
+           _     -> Nothing
+
+
 -- | Wrap all inlines with an XML tag (given its unqualified name).
 wrap :: String -> [Inline] -> FBM Content
 wrap tagname inlines = el tagname `liftM` cMapM toXml inlines
@@ -423,11 +477,19 @@ txt s = Text $ CData CDataText s Nothing
 
 -- | Create an XML attribute with an unqualified name.
 uattr :: String -> String -> Text.XML.Light.Attr
-uattr name val = Attr (QName name Nothing Nothing) val
+uattr name val = Attr (uname name) val
 
 -- | Create an XML attribute with a qualified name from given namespace.
 attr :: (String, String) -> String -> Text.XML.Light.Attr
-attr (ns, name) val = Attr (QName name Nothing (Just ns)) val
+attr (ns, name) val = Attr (qname ns name) val
+
+-- | Unqualified name
+uname :: String -> QName
+uname name = QName name Nothing Nothing
+
+-- | Qualified name
+qname :: String -> String -> QName
+qname ns name = QName name Nothing (Just ns)
 
 -- | Abbreviation for 'concatMap'.
 cMap :: (a -> [b]) -> [a] -> [b]
