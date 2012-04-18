@@ -35,7 +35,7 @@ FictionBook is an XML-based e-book format. For more information see:
 -}
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
-import Control.Monad.State (StateT, evalStateT, put, get, modify)
+import Control.Monad.State (StateT, evalStateT, get, modify)
 import Control.Monad.State (liftM, liftM2, liftIO)
 import Data.ByteString.Base64 (encode)
 import Data.Char (toUpper, toLower, isSpace)
@@ -290,9 +290,9 @@ blockToXml (OrderedList a bss) = do
     let pmrk = parentListMarker state
     let markers = map ((pmrk ++ " ") ++) $ orderedListMarkers a
     let mkitem mrk bs = do
-          put state { parentListMarker = mrk }
+          modify (\s -> s { parentListMarker = mrk })
           itemtext <- cMapM blockToXml . paraToPlain $ bs
-          put state -- restore old parent marker
+          modify (\s -> s { parentListMarker = pmrk }) -- old parent marker
           return . el "p" $ [ txt mrk, txt " " ] ++ itemtext
     mapM (uncurry mkitem) (zip markers bss)
 blockToXml (BulletList bss) = do
@@ -303,9 +303,9 @@ blockToXml (BulletList bss) = do
     let bullets = ["\x2022", "\x25e6", "*", "\x2043", "\x2023"]
     let mrk = prefix ++ bullets !! (level `mod` (length bullets))
     let mkitem bs = do
-          put state { parentBulletLevel = (level+1) }
+          modify (\s -> s { parentBulletLevel = (level+1) })
           itemtext <- cMapM blockToXml . paraToPlain $ bs
-          put state  -- restore bullet level
+          modify (\s -> s { parentBulletLevel = level }) -- restore bullet level
           return $ el "p" $ [ txt (mrk ++ " ") ] ++ itemtext
     mapM mkitem bss
 blockToXml (DefinitionList defs) =
@@ -404,8 +404,7 @@ toXml LineBreak = return [el "empty-line" ()]
 toXml (Math _ formula) = insertMath InlineImage formula
 toXml (RawInline _ _) = return []  -- raw TeX and raw HTML are suppressed
 toXml (Link text (url,ttl)) = do
-  state <- get
-  let fns = footnotes state
+  fns <- footnotes `liftM` get
   let n = 1 + length fns
   let ln_id = linkID n
   let ln_ref = list . el "sup" . txt $ "[" ++ show n ++ "]"
@@ -415,7 +414,7 @@ toXml (Link text (url,ttl)) = do
           in if null ttl'
              then list . el "p" $ el "code" url
              else list . el "p" $ [ txt (ttl' ++ ": "), el "code" url ]
-  put state { footnotes = (n, ln_id, ln_desc) : fns }
+  modify (\s -> s { footnotes = (n, ln_id, ln_desc) : fns })
   return $ ln_text ++
          [ el "a"
                   ( [ attr ("l","href") ('#':ln_id)
@@ -423,12 +422,11 @@ toXml (Link text (url,ttl)) = do
                   , ln_ref) ]
 toXml img@(Image _ _) = insertImage InlineImage img
 toXml (Note bs) = do
-  state <- get
-  let fns = footnotes state
+  fns <- footnotes `liftM` get
   let n = 1 + length fns
   let fn_id = footnoteID n
   fn_desc <- cMapM blockToXml bs
-  put state { footnotes = (n, fn_id, fn_desc) : fns }
+  modify (\s -> s { footnotes = (n, fn_id, fn_desc) : fns })
   let fn_ref = el "sup" . txt $ "[" ++ show n ++ "]"
   return . list $ el "a" ( [ attr ("l","href") ('#':fn_id)
                            , uattr "type" "note" ]
@@ -447,11 +445,10 @@ insertMath immode formula = do
 
 insertImage :: ImageMode -> Inline -> FBM [Content]
 insertImage immode (Image alt (url,ttl)) = do
-  state <- get
-  let images = imagesToFetch state
+  images <- imagesToFetch `liftM` get
   let n = 1 + length images
   let fname = "image" ++ show n
-  put state { imagesToFetch = (fname, url) : images }
+  modify (\s -> s { imagesToFetch = (fname, url) : images })
   let ttlattr = case (immode, null ttl) of
                   (NormalImage, False) -> [ uattr "title" ttl ]
                   _ -> []
