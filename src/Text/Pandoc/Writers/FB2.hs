@@ -51,16 +51,19 @@ import Text.Pandoc.Generic (bottomUp)
 
 -- | Data to be written at the end of the document:
 -- (foot)notes, URLs, references, images.
-data FbTailData = FbTailData
+data FbRenderState = FbRenderState
     { footnotes :: [ (Int, String, [Content]) ]  -- ^ #, ID, text
     , imagesToFetch :: [ (String, String) ]  -- ^ filename, URL or path
+    , parentListMarker :: String  -- ^ list marker of the parent ordered list
+    , parentBulletLevel :: Int  -- ^ nesting level of the unordered list
     } deriving (Show)
 
 -- | FictionBook building monad.
-type FBM = StateT FbTailData IO
+type FBM = StateT FbRenderState IO
 
-newFB :: FbTailData
-newFB = FbTailData { footnotes = [], imagesToFetch = [] }
+newFB :: FbRenderState
+newFB = FbRenderState { footnotes = [], imagesToFetch = []
+                      , parentListMarker = "", parentBulletLevel = 0 }
 
 -- | Produce an FB2 document from a 'Pandoc' document.
 writeFB2 :: WriterOptions    -- ^ conversion options
@@ -247,17 +250,27 @@ blockToXml (Para ss) = liftM (list . el "p") $ cMapM toXml ss
 blockToXml (CodeBlock _ s) = return . map (el "p" . el "code") . lines $ s
 blockToXml (RawBlock _ s) = return [ el "p" (el "code" s) ]
 blockToXml (BlockQuote bs) = liftM (list . el "cite") $ cMapM blockToXml bs
-blockToXml (OrderedList a bss) =
-    let markers = orderedListMarkers a
-        mkitem mrk bs = do
+blockToXml (OrderedList a bss) = do
+    state <- get
+    let pmrk = parentListMarker state
+    let markers = map ((pmrk ++ " ") ++) $ orderedListMarkers a
+    let mkitem mrk bs = do
+          put state { parentListMarker = mrk }
           itemtext <- cMapM blockToXml bs
-          return . el "cite" $ [ txt mrk, txt " " ] ++ itemtext
-    in  mapM (uncurry mkitem) (zip markers bss)
-blockToXml (BulletList bss) =
+          put state -- restore old parent marker
+          return . el "p" $ [ txt mrk, txt " " ] ++ itemtext
+    mapM (uncurry mkitem) (zip markers bss)
+blockToXml (BulletList bss) = do
+    state <- get
+    let level = parentBulletLevel state
+    let bullets = ["\x2022", "\x25e6", "*", "\x2043", "\x2023"]
+    let mrk = bullets !! (level `mod` (length bullets))
     let mkitem bs = do
+          put state { parentBulletLevel = (level+1) }
           itemtext <- cMapM blockToXml bs
-          return $ el "cite" $ [ txt "• " ] ++ itemtext
-    in  mapM mkitem bss
+          put state  -- restore bullet level
+          return $ el "p" $ [ txt (mrk ++ " ") ] ++ itemtext
+    mapM mkitem bss
 blockToXml (DefinitionList defs) =
     cMapM mkdef defs
     where
