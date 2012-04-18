@@ -35,13 +35,15 @@ FictionBook is an XML-based e-book format. For more information see:
 -}
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
-import Control.Monad.State (StateT, evalStateT, put, get, liftM, liftM2, liftIO)
+import Control.Monad.State (StateT, evalStateT, put, get, modify)
+import Control.Monad.State (liftM, liftM2, liftIO)
 import Data.ByteString.Base64 (encode)
 import Data.Char (toUpper, toLower, isSpace)
 import Data.List (intersperse, intercalate)
 import Data.Either (lefts, rights)
 import Network.Browser (browse, request, setAllowRedirects, setOutHandler)
-import Network.HTTP (catchIO_, getRequest, getHeaders, getResponseBody, lookupHeader, HeaderName(..))
+import Network.HTTP (catchIO_, getRequest, getHeaders, getResponseBody)
+import Network.HTTP (lookupHeader, HeaderName(..), urlEncode)
 import Network.URI (isURI, unEscapeString)
 import System.FilePath (takeExtension)
 import Text.XML.Light
@@ -51,7 +53,8 @@ import qualified Text.XML.Light as X
 import qualified Text.XML.Light.Cursor as XC
 
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared (WriterOptions, orderedListMarkers)
+import Text.Pandoc.Shared (WriterOptions(..), HTMLMathMethod(..))
+import Text.Pandoc.Shared (orderedListMarkers, defaultWriterOptions)
 import Text.Pandoc.Generic (bottomUp)
 
 -- | Data to be written at the end of the document:
@@ -61,6 +64,7 @@ data FbRenderState = FbRenderState
     , imagesToFetch :: [ (String, String) ]  -- ^ filename, URL or path
     , parentListMarker :: String  -- ^ list marker of the parent ordered list
     , parentBulletLevel :: Int  -- ^ nesting level of the unordered list
+    , writerOptions :: WriterOptions
     } deriving (Show)
 
 -- | FictionBook building monad.
@@ -68,7 +72,8 @@ type FBM = StateT FbRenderState IO
 
 newFB :: FbRenderState
 newFB = FbRenderState { footnotes = [], imagesToFetch = []
-                      , parentListMarker = "", parentBulletLevel = 0 }
+                      , parentListMarker = "", parentBulletLevel = 0
+                      , writerOptions = defaultWriterOptions }
 
 data ImageMode = NormalImage | InlineImage deriving (Eq)
 instance Show ImageMode where
@@ -79,7 +84,8 @@ instance Show ImageMode where
 writeFB2 :: WriterOptions    -- ^ conversion options
          -> Pandoc           -- ^ document to convert
          -> IO String        -- ^ FictionBook2 document (not encoded yet)
-writeFB2 _ (Pandoc meta blocks) = flip evalStateT newFB $ do
+writeFB2 opts (Pandoc meta blocks) = flip evalStateT newFB $ do
+     modify (\s -> s { writerOptions = opts { writerStandalone = True } })
      desc <- description meta
      fp <- frontpage meta
      secs <- renderSections 1 blocks
@@ -273,6 +279,7 @@ linkID i = "l" ++ (show i)
 -- | Convert a block-level Pandoc's element to FictionBook XML representation.
 blockToXml :: Block -> FBM [Content]
 blockToXml (Plain ss) = cMapM toXml ss  -- FIXME: can lead to malformed FB2
+blockToXml (Para [Math DisplayMath formula]) = insertMath NormalImage formula
 blockToXml (Para [img@(Image _ _)]) = insertImage NormalImage img
 blockToXml (Para ss) = liftM (list . el "p") $ cMapM toXml ss
 blockToXml (CodeBlock _ s) = return . map (el "p" . el "code") . lines $ s
@@ -394,7 +401,7 @@ toXml (Cite _ ss) = cMapM toXml ss  -- FIXME: support citation styles
 toXml (Code _ s) = return [el "code" s]
 toXml Space = return [txt " "]
 toXml LineBreak = return [el "empty-line" ()]
-toXml (Math _ s) = return [el "code" s] -- FIXME: generate formula images
+toXml (Math _ formula) = insertMath InlineImage formula
 toXml (RawInline _ _) = return []  -- raw TeX and raw HTML are suppressed
 toXml (Link text (url,ttl)) = do
   state <- get
@@ -426,6 +433,17 @@ toXml (Note bs) = do
   return . list $ el "a" ( [ attr ("l","href") ('#':fn_id)
                            , uattr "type" "note" ]
                          , fn_ref )
+
+insertMath :: ImageMode -> String -> FBM [Content]
+insertMath immode formula = do
+  htmlMath <- return . writerHTMLMathMethod . writerOptions =<< get
+  case htmlMath of
+    WebTeX url -> do
+       let alt = [Code nullAttr formula]
+       let imgurl = url ++ urlEncode formula
+       let img = Image alt (imgurl, "")
+       insertImage immode img
+    _ -> return [el "code" formula]
 
 insertImage :: ImageMode -> Inline -> FBM [Content]
 insertImage immode (Image alt (url,ttl)) = do
