@@ -130,36 +130,43 @@ writeFB2 _ (Pandoc meta blocks) = flip evalStateT newFB $ do
                then []
                else [el "date" d]
 
--- | Divide the stream of blocks into sections and convert to XML representation.
+-- | Divide the stream of blocks into sections and convert to XML
+-- representation.
 renderSections :: Int -> [Block] -> FBM [Content]
 renderSections level blocks = do
     let secs = splitSections level blocks
     mapM (renderSection level) secs
 
 renderSection :: Int -> ([Inline], [Block]) -> FBM Content
-renderSection level (ttl, bs) = do
+renderSection level (ttl, body) = do
     title <- if null ttl
             then return []
             else (list . el "title" . el "p") `liftM` cMapM toXml ttl
-                 -- FIXME: only <p> and <empty-line> are allowed within <title>
-    let subsecs = splitSections (level + 1) bs
-    content <- if length subsecs == 1  -- if no subsections
-              then cMapM blockToXml bs
-              else renderSections (level + 1) bs
+            -- FIXME: only <p> and <empty-line> are allowed within <title>
+    content <- if (hasSubsections body)
+               then renderSections (level + 1) body
+               else cMapM blockToXml body
     return $ el "section" (title ++ content)
+  where
+    hasSubsections = any isHeader
+    isHeader (Header _ _) = True
+    isHeader _ = False
 
 -- | Divide the stream of block elements into sections: [(title, blocks)].
 splitSections :: Int -> [Block] -> [([Inline], [Block])]
 splitSections level blocks = reverse $ revSplit (reverse blocks)
   where
+  revSplit [] = []
   revSplit rblocks =
     let (lastsec, before) = break sameLevel rblocks
-    in case before of
-      ((Header _ inlines):prevblocks) ->
-          (inlines, reverse lastsec) : revSplit prevblocks
-      _ -> if null lastsec
-           then []
-           else [([], reverse lastsec)]
+        (header, prevblocks) =
+            case before of
+              ((Header n title):prevblocks') ->
+                  if n == level
+                     then (title, prevblocks')
+                     else ([], before)
+              _ -> ([], before)
+    in (header, reverse lastsec) : revSplit prevblocks
   sameLevel (Header n _) = n == level
   sameLevel _ = False
 
@@ -258,7 +265,7 @@ blockToXml (DefinitionList defs) =
           def <- cMapM (cMapM blockToXml) bss
           t <- wrap "strong" term
           return [ el "p" t, el "cite" def ]
-blockToXml (Header _ _) = -- should never happen, see renderSections FIXME
+blockToXml (Header _ _) = -- should never happen, see renderSections
                           error "unexpected header in section text"
 blockToXml HorizontalRule = return
                             [ el "empty-line" ()
