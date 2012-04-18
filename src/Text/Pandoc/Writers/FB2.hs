@@ -65,6 +65,11 @@ newFB :: FbRenderState
 newFB = FbRenderState { footnotes = [], imagesToFetch = []
                       , parentListMarker = "", parentBulletLevel = 0 }
 
+data ImageMode = NormalImage | InlineImage deriving (Eq)
+instance Show ImageMode where
+    show NormalImage = "imageType"
+    show InlineImage = "inlineImageType"
+
 -- | Produce an FB2 document from a 'Pandoc' document.
 writeFB2 :: WriterOptions    -- ^ conversion options
          -> Pandoc           -- ^ document to convert
@@ -246,6 +251,7 @@ linkID i = "l" ++ (show i)
 -- | Convert a block-level Pandoc's element to FictionBook XML representation.
 blockToXml :: Block -> FBM [Content]
 blockToXml (Plain ss) = cMapM toXml ss  -- FIXME: can lead to malformed FB2
+blockToXml (Para [img@(Image _ _)]) = insertImage NormalImage img
 blockToXml (Para ss) = liftM (list . el "p") $ cMapM toXml ss
 blockToXml (CodeBlock _ s) = return . map (el "p" . el "code") . lines $ s
 blockToXml (RawBlock _ s) = return [ el "p" (el "code" s) ]
@@ -345,17 +351,7 @@ toXml (Link text (url,ttl)) = do
                   ( [ attr ("l","href") ('#':ln_id)
                     , uattr "type" "note" ]
                   , ln_ref) ]
-toXml (Image alt (url,_)) = do
-  state <- get
-  let images = imagesToFetch state
-  let n = 1 + length images
-  let fname = "image" ++ show n
-  put state { imagesToFetch = (fname, url) : images }
-  return . list $
-         el "image"
-            [ attr ("l","href") ('#':fname)
-            , attr ("l","type") "inlineImageType"  -- FIXME: or imageType
-            , uattr "alt" (cMap plain alt) ]
+toXml img@(Image _ _) = insertImage InlineImage img
 toXml (Note bs) = do
   state <- get
   let fns = footnotes state
@@ -367,6 +363,24 @@ toXml (Note bs) = do
   return . list $ el "a" ( [ attr ("l","href") ('#':fn_id)
                            , uattr "type" "note" ]
                          , fn_ref )
+
+insertImage :: ImageMode -> Inline -> FBM [Content]
+insertImage immode (Image alt (url,ttl)) = do
+  state <- get
+  let images = imagesToFetch state
+  let n = 1 + length images
+  let fname = "image" ++ show n
+  put state { imagesToFetch = (fname, url) : images }
+  let ttlattr = case (immode, null ttl) of
+                  (NormalImage, False) -> [ uattr "title" ttl ]
+                  _ -> []
+  return . list $
+         el "image" $
+            [ attr ("l","href") ('#':fname)
+            , attr ("l","type") (show immode)
+            , uattr "alt" (cMap plain alt) ]
+            ++ ttlattr
+insertImage _ _ = error "unexpected inline instead of image"
 
 -- | Wrap all inlines with an XML tag (given its unqualified name).
 wrap :: String -> [Inline] -> FBM Content
