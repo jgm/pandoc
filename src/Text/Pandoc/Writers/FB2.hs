@@ -38,7 +38,7 @@ module Text.Pandoc.Writers.FB2 (writeFB2)  where
 import Control.Monad.State (StateT, evalStateT, put, get, liftM, liftM2, liftIO)
 import Data.ByteString.Base64 (encode)
 import Data.Char (toUpper, toLower, isSpace)
-import Data.List (intersperse)
+import Data.List (intersperse, intercalate)
 import Data.Either (lefts, rights)
 import Network.Browser (browse, request, setAllowRedirects, setOutHandler)
 import Network.HTTP (catchIO_, getRequest, getHeaders, getResponseBody, lookupHeader, HeaderName(..))
@@ -168,15 +168,18 @@ renderSection level (ttl, body) = do
 -- | Only <p> and <empty-line> are allowed within <title> in FB2.
 formatTitle :: [Inline] -> [Content]
 formatTitle inlines =
-  let lns = split isLineBreak inlines :: [[Inline]]
-      lns' = map (el "p" . cMap plain) lns :: [Content]
+  let lns = split isLineBreak inlines
+      lns' = map (el "p" . cMap plain) lns
   in  intersperse (el "empty-line" ()) lns'
-  where
-    split _ [] = []
-    split cond xs = let (b,a) = break cond xs
-                    in  (b:split cond (drop 1 a))
-    isLineBreak LineBreak = True
-    isLineBreak _ = False
+
+split :: (a -> Bool) -> [a] -> [[a]]
+split _ [] = []
+split cond xs = let (b,a) = break cond xs
+                in  (b:split cond (drop 1 a))
+
+isLineBreak :: Inline -> Bool
+isLineBreak LineBreak = True
+isLineBreak _ = False
 
 -- | Divide the stream of block elements into sections: [(title, blocks)].
 splitSections :: Int -> [Block] -> [([Inline], [Block])]
@@ -281,18 +284,20 @@ blockToXml (OrderedList a bss) = do
     let markers = map ((pmrk ++ " ") ++) $ orderedListMarkers a
     let mkitem mrk bs = do
           put state { parentListMarker = mrk }
-          itemtext <- cMapM blockToXml bs
+          itemtext <- cMapM blockToXml . paraToPlain $ bs
           put state -- restore old parent marker
           return . el "p" $ [ txt mrk, txt " " ] ++ itemtext
     mapM (uncurry mkitem) (zip markers bss)
 blockToXml (BulletList bss) = do
     state <- get
     let level = parentBulletLevel state
+    let pmrk = parentListMarker state
+    let prefix = replicate (length pmrk) ' '
     let bullets = ["\x2022", "\x25e6", "*", "\x2043", "\x2023"]
-    let mrk = bullets !! (level `mod` (length bullets))
+    let mrk = prefix ++ bullets !! (level `mod` (length bullets))
     let mkitem bs = do
           put state { parentBulletLevel = (level+1) }
-          itemtext <- cMapM blockToXml bs
+          itemtext <- cMapM blockToXml . paraToPlain $ bs
           put state  -- restore bullet level
           return $ el "p" $ [ txt (mrk ++ " ") ] ++ itemtext
     mapM mkitem bss
@@ -300,9 +305,17 @@ blockToXml (DefinitionList defs) =
     cMapM mkdef defs
     where
       mkdef (term, bss) = do
-          def <- cMapM (cMapM blockToXml) bss
+          def <- cMapM (cMapM blockToXml . sep . paraToPlain . map indent) bss
           t <- wrap "strong" term
-          return [ el "p" t, el "cite" def ]
+          return [ el "p" t, el "p" def ]
+      sep blocks =
+          if all needsBreak blocks then
+              blocks ++ [Plain [LineBreak]]
+          else
+              blocks
+      needsBreak (Para _) = False
+      needsBreak (Plain ins) = LineBreak `notElem` ins
+      needsBreak _ = True
 blockToXml (Header _ _) = -- should never happen, see renderSections
                           error "unexpected header in section text"
 blockToXml HorizontalRule = return
@@ -330,6 +343,37 @@ blockToXml (Table caption aligns _ headers rows) = do
       align_str AlignRight = "right"
       align_str AlignDefault = "left"
 blockToXml Null = return []
+
+-- Replace paragraphs with plain text and line break.
+-- Necessary to simulate multi-paragraph lists in FB2.
+paraToPlain :: [Block] -> [Block]
+paraToPlain [] = []
+paraToPlain (Para inlines : rest) =
+    let p = (Plain (inlines ++ [LineBreak]))
+    in  p : paraToPlain rest
+paraToPlain (p:rest) = p : paraToPlain rest
+
+-- Simulate increased indentation level. Will not really work
+-- for multi-line paragraphs.
+indent :: Block -> Block
+indent = indentBlock
+  where
+  -- indentation space
+  spacer :: String
+  spacer = replicate 4 ' '
+  --
+  indentBlock (Plain ins) = Plain ((Str spacer):ins)
+  indentBlock (Para ins) = Para ((Str spacer):ins)
+  indentBlock (CodeBlock a s) =
+    let s' = unlines . map (spacer++) . lines $ s
+    in  CodeBlock a s'
+  indentBlock (BlockQuote bs) = BlockQuote (map indent bs)
+  indentBlock (Header l ins) = Header l (indentLines ins)
+  indentBlock everythingElse = everythingElse
+  -- indent every (explicit) line
+  indentLines :: [Inline] -> [Inline]
+  indentLines ins = let lns = split isLineBreak ins :: [[Inline]]
+                    in  intercalate [LineBreak] $ map ((Str spacer):) lns
 
 -- | Convert a Pandoc's Inline element to FictionBook XML representation.
 toXml :: Inline -> FBM [Content]
