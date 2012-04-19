@@ -16,9 +16,10 @@ another, and a command-line tool that uses this library. It can read
 and [LaTeX]; and it can write plain text, [markdown], [reStructuredText],
 [XHTML], [HTML 5], [LaTeX] (including [beamer] slide shows),
 [ConTeXt], [RTF], [DocBook XML], [OpenDocument XML], [ODT], [Word docx], [GNU
-Texinfo], [MediaWiki markup], [EPUB], [Textile], [groff man] pages, [Emacs
-Org-Mode], [AsciiDoc], and [Slidy], [DZSlides], or [S5] HTML slide shows. It
-can also produce [PDF] output on systems where LaTeX is installed.
+Texinfo], [MediaWiki markup], [EPUB], [FictionBook2], [Textile], [groff
+man] pages, [Emacs Org-Mode], [AsciiDoc], and [Slidy], [DZSlides], or
+[S5] HTML slide shows. It can also produce [PDF] output on systems
+where LaTeX is installed.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, delimited code blocks,
@@ -121,7 +122,7 @@ invoked under the name `hsmarkdown`, `pandoc` will behave as if the
 recognized. However, this approach does not work under Cygwin, due to
 problems with its simulation of symbolic links.
 
-[Cygwin]:  http://www.cygwin.com/ 
+[Cygwin]:  http://www.cygwin.com/
 [`iconv`]: http://www.gnu.org/software/libiconv/
 [CTAN]: http://www.ctan.org "Comprehensive TeX Archive Network"
 [TeX Live]: http://www.tug.org/texlive/
@@ -150,14 +151,15 @@ General options
     `context` (ConTeXt), `man` (groff man), `mediawiki` (MediaWiki markup),
     `textile` (Textile), `org` (Emacs Org-Mode), `texinfo` (GNU Texinfo),
     `docbook` (DocBook XML), `opendocument` (OpenDocument XML), `odt`
-    (OpenOffice text document), `docx` (Word docx), `epub` (EPUB book),
-    `asciidoc` (AsciiDoc), `slidy` (Slidy HTML and javascript slide show),
-    `dzslides` (HTML5 + javascript slide show), `s5` (S5 HTML and javascript
-    slide show), or `rtf` (rich text format). Note that `odt` and `epub`
-    output will not be directed to *stdout*; an output filename must
-    be specified using the `-o/--output` option. If `+lhs` is appended
-    to `markdown`, `rst`, `latex`, `beamer`, `html`, or `html5`, the output
-    will be rendered as literate Haskell source: see [Literate Haskell
+    (OpenOffice text document), `docx` (Word docx), `epub` (EPUB e-book),
+    `fb2` (FictionBook2 e-book), `asciidoc` (AsciiDoc), `slidy` (Slidy
+    HTML and javascript slide show), `dzslides` (HTML5 + javascript
+    slide show), `s5` (S5 HTML and javascript slide show), or `rtf`
+    (rich text format). Note that `odt` and `epub` output will not be
+    directed to *stdout*; an output filename must be specified using
+    the `-o/--output` option. If `+lhs` is appended to `markdown`,
+    `rst`, `latex`, `beamer`, `html`, or `html5`, the output will be
+    rendered as literate Haskell source: see [Literate Haskell
     support](#literate-haskell-support), below.
 
 `-o` *FILE*, `--output=`*FILE*
@@ -243,7 +245,8 @@ General writer options
 `-s`, `--standalone`
 :   Produce output with an appropriate header and footer (e.g. a
     standalone HTML, LaTeX, or RTF file, not a fragment).  This option
-    is set automatically for `pdf`, `epub`, `docx`, and `odt` output.
+    is set automatically for `pdf`, `epub`, `fb2`, `docx`, and `odt`
+    output.
 
 `--template=`*FILE*
 :   Use *FILE* as a custom template for the generated document. Implies
@@ -572,7 +575,7 @@ Math rendering in HTML
 `--gladtex`
 :   Enclose TeX math in `<eq>` tags in HTML output.  These can then
     be processed by [gladTeX] to produce links to images of the typeset
-    formulas. 
+    formulas.
 
 `--mimetex`[=*URL*]
 :   Render TeX math using the [mimeTeX] CGI script.  If *URL* is not
@@ -610,7 +613,7 @@ Options for wrapper scripts
 [jsMath]:  http://www.math.union.edu/~dpvc/jsmath/
 [MathJax]: http://www.mathjax.org/
 [gladTeX]:  http://www.math.uio.no/~martingu/gladtex/index.html
-[mimeTeX]: http://www.forkosh.com/mimetex.html 
+[mimeTeX]: http://www.forkosh.com/mimetex.html
 [CSL]: http://CitationStyles.org
 
 Templates
@@ -1231,7 +1234,7 @@ or hyphens.
 ### Compact and loose lists ###
 
 Pandoc behaves differently from `Markdown.pl` on some "edge
-cases" involving lists.  Consider this source: 
+cases" involving lists.  Consider this source:
 
     +   First
     +   Second:
@@ -1325,7 +1328,7 @@ to the dashed line below it:[^4]
 
   - If the dashed line is flush with the header text on the right side
     but extends beyond it on the left, the column is right-aligned.
-  - If the dashed line is flush with the header text on the left side 
+  - If the dashed line is flush with the header text on the left side
     but extends beyond it on the right, the column is left-aligned.
   - If the dashed line extends beyond the header text on both sides,
     the column is centered.
@@ -1682,6 +1685,11 @@ Docbook
 Docx
   ~ It will be rendered using OMML math markup.
 
+FictionBook2
+  ~ If the `--webtex` option is used, formulas are rendered as images
+    using Google Charts or other compatible web service, downloaded
+    and embedded in the e-book. Otherwise, they will appear verbatim.
+
 HTML, Slidy, DZSlides, S5, EPUB
   ~ The way math is rendered in HTML will depend on the
     command-line options selected:
@@ -1791,7 +1799,7 @@ Note that in LaTeX environments, like
     \begin{tabular}{|l|l|}\hline
     Age & Frequency \\ \hline
     18--25  & 15 \\
-    26--35  & 33 \\ 
+    26--35  & 33 \\
     36--45  & 22 \\ \hline
     \end{tabular}
 
@@ -1935,7 +1943,7 @@ If you just want a regular inline image, just make sure it is not
 the only thing in the paragraph. One way to do this is to insert a
 nonbreaking space after the image:
 
-    ![This image won't be a figure](/url/of/image.png)\ 
+    ![This image won't be a figure](/url/of/image.png)\
 
 
 Footnotes
@@ -1951,7 +1959,7 @@ Pandoc's markdown allows footnotes, using the following syntax:
 
     [^longnote]: Here's one with multiple blocks.
 
-        Subsequent paragraphs are indented to show that they 
+        Subsequent paragraphs are indented to show that they
     belong to the previous footnote.
 
             { some.code }
@@ -2245,7 +2253,7 @@ Andrea Rossato, Eric Kow, infinity0x, Luke Plant, shreevatsa.public,
 Puneeth Chaganti, Paul Rivier, rodja.trappe, Bradley Kuhn, thsutton,
 Nathan Gass, Jonathan Daugherty, Jérémy Bobbio, Justin Bogner, qerub,
 Christopher Sawicki, Kelsey Hightower, Masayoshi Takahashi, Antoine
-Latter, Ralf Stephan, Eric Seidel, B. Scott Michel.
+Latter, Ralf Stephan, Eric Seidel, B. Scott Michel, Sergey Astanin.
 
 [markdown]: http://daringfireball.net/projects/markdown/
 [reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html
@@ -2256,10 +2264,10 @@ Latter, Ralf Stephan, Eric Seidel, B. Scott Michel.
 [XHTML]:  http://www.w3.org/TR/xhtml1/
 [LaTeX]: http://www.latex-project.org/
 [beamer]: http://www.tex.ac.uk/CTAN/macros/latex/contrib/beamer
-[ConTeXt]: http://www.pragma-ade.nl/ 
+[ConTeXt]: http://www.pragma-ade.nl/
 [RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook XML]:  http://www.docbook.org/
-[OpenDocument XML]: http://opendocument.xml.org/ 
+[OpenDocument XML]: http://opendocument.xml.org/
 [ODT]: http://en.wikipedia.org/wiki/OpenDocument
 [Textile]: http://redcloth.org/textile
 [MediaWiki markup]: http://www.mediawiki.org/wiki/Help:Formatting
@@ -2274,3 +2282,4 @@ Latter, Ralf Stephan, Eric Seidel, B. Scott Michel.
 [ISO 8601 format]: http://www.w3.org/TR/NOTE-datetime
 [Word docx]: http://www.microsoft.com/interop/openup/openxml/default.aspx
 [PDF]: http://www.adobe.com/pdf/
+[FictionBook2]: http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1

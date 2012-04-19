@@ -102,6 +102,15 @@ tests = [ testGroup "markdown"
           , test "reader" ["-r", "native", "-w", "native", "-s"]
             "testsuite.native" "testsuite.native"
           ]
+        , testGroup "fb2"
+          [ fb2WriterTest "basic" [] "fb2.basic.markdown" "fb2.basic.fb2"
+          , fb2WriterTest "titles" [] "fb2.titles.markdown" "fb2.titles.fb2"
+          , fb2WriterTest "images" [] "fb2.images.markdown" "fb2.images.fb2"
+          , fb2WriterTest "tables" [] "tables.native" "tables.fb2"
+          , fb2WriterTest "math" [] "fb2.math.markdown" "fb2.math.fb2"
+          , fb2WriterTest "math-webtex" ["--webtex"] "fb2.math.markdown" "fb2.math-webtex.fb2"
+          , fb2WriterTest "testsuite" [] "testsuite.native" "writer.fb2"
+          ]
         , testGroup "other writers" $ map (\f -> testGroup f $ writerTests f)
           [ "docbook", "opendocument" , "context" , "texinfo"
           , "man" , "plain" , "mediawiki", "rtf", "org", "asciidoc"
@@ -137,14 +146,27 @@ writerTests format
     opts = ["-r", "native", "-w", format, "--columns=78"]
 
 s5WriterTest :: String -> [String] -> String -> Test
-s5WriterTest modifier opts format 
+s5WriterTest modifier opts format
   = test (format ++ " writer (" ++ modifier ++ ")")
-    (["-r", "native", "-w", format] ++ opts) 
+    (["-r", "native", "-w", format] ++ opts)
     "s5.native"  ("s5." ++ modifier <.> "html")
+
+fb2WriterTest :: String -> [String] -> String -> String -> Test
+fb2WriterTest title opts inputfile normfile =
+  testWithNormalize (ignoreBinary . formatXML)
+                    title (["-t", "fb2"]++opts) inputfile normfile
+  where
+    formatXML xml = splitTags $ zip xml (drop 1 xml)
+    splitTags [] = []
+    splitTags [end] = fst end : snd end : []
+    splitTags (('>','<'):rest) = ">\n" ++ splitTags rest
+    splitTags ((c,_):rest) = c : splitTags rest
+    ignoreBinary = unlines . filter (not . startsWith "<binary ") . lines
+    startsWith tag str = all (uncurry (==)) $ zip tag str
 
 markdownCitationTests :: [Test]
 markdownCitationTests
-  =  map styleToTest ["chicago-author-date","ieee","mhra"] 
+  =  map styleToTest ["chicago-author-date","ieee","mhra"]
      ++ [test "natbib" wopts "markdown-citations.txt"
          "markdown-citations.txt"]
   where

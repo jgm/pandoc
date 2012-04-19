@@ -20,10 +20,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Text.Pandoc
    Copyright   : Copyright (C) 2006-2010 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
-   Stability   : alpha 
+   Stability   : alpha
    Portability : portable
 
 This helper module exports the main writers, readers, and data
@@ -45,7 +45,7 @@ inline links:
 > markdownToRST =
 >   (writeRST defaultWriterOptions {writerReferenceLinks = True}) .
 >   readMarkdown defaultParserState
-> 
+>
 > main = getContents >>= putStrLn . markdownToRST
 
 Note:  all of the readers assume that the input text has @'\n'@
@@ -55,7 +55,7 @@ you should remove @'\r'@ characters using @filter (/='\r')@.
 -}
 
 module Text.Pandoc
-               ( 
+               (
                -- * Definitions
                module Text.Pandoc.Definition
                -- * Generics
@@ -63,6 +63,7 @@ module Text.Pandoc
                -- * Lists of readers and writers
                , readers
                , writers
+               , iowriters
                -- * Readers: converting /to/ Pandoc format
                , readMarkdown
                , readRST
@@ -97,9 +98,10 @@ module Text.Pandoc
                , writeODT
                , writeDocx
                , writeEPUB
+               , writeFB2
                , writeOrg
                , writeAsciiDoc
-               -- * Writer options used in writers 
+               -- * Writer options used in writers
                , WriterOptions (..)
                , HTMLSlideVariant (..)
                , HTMLMathMethod (..)
@@ -125,7 +127,7 @@ import Text.Pandoc.Readers.Textile
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Writers.Native
 import Text.Pandoc.Writers.Markdown
-import Text.Pandoc.Writers.RST 
+import Text.Pandoc.Writers.RST
 import Text.Pandoc.Writers.LaTeX
 import Text.Pandoc.Writers.ConTeXt
 import Text.Pandoc.Writers.Texinfo
@@ -133,10 +135,11 @@ import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.ODT
 import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Writers.EPUB
+import Text.Pandoc.Writers.FB2
 import Text.Pandoc.Writers.Docbook
 import Text.Pandoc.Writers.OpenDocument
 import Text.Pandoc.Writers.Man
-import Text.Pandoc.Writers.RTF 
+import Text.Pandoc.Writers.RTF
 import Text.Pandoc.Writers.MediaWiki
 import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.Org
@@ -162,7 +165,7 @@ readers = [("native"       , \_ -> readNative)
           ,("rst"          , readRST)
           ,("rst+lhs"      , \st ->
                              readRST st{ stateLiterateHaskell = True})
-          ,("textile"      , readTextile) -- TODO : textile+lhs 
+          ,("textile"      , readTextile) -- TODO : textile+lhs
           ,("html"         , readHtml)
           ,("latex"        , readLaTeX)
           ,("latex+lhs"    , \st ->
@@ -210,6 +213,12 @@ writers = [("native"       , writeNative)
           ,("org"          , writeOrg)
           ,("asciidoc"     , writeAsciiDoc)
           ]
+
+-- | Association list of formats and writers which require IO to work.
+-- These writers produce text output as well as thoses in 'writers'.
+iowriters :: [ (String, WriterOptions -> Pandoc -> IO String) ]
+iowriters = [ ("fb2"       , writeFB2)
+            ]
 
 {-# DEPRECATED jsonFilter "Use toJsonFilter instead" #-}
 -- | Converts a transformation on the Pandoc AST into a function
