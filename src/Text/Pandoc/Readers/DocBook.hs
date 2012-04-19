@@ -79,7 +79,7 @@ List of all DocBook tags, with [x] indicating implemented:
     a ClassSynopsis
 [ ] cmdsynopsis - A syntax summary for a software command
 [ ] co - The location of a callout embedded in text
-[ ] code - An inline code fragment
+[x] code - An inline code fragment
 [ ] col - Specifications for a column in an HTML table
 [ ] colgroup - A group of columns in an HTML table
 [ ] collab - Identifies a collaborator
@@ -177,6 +177,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] indexentry - An entry in an index
 [ ] indexinfo - Meta-information for an Index
 [ ] indexterm - A wrapper for terms to be indexed
+[ ] info - A wrapper for information about a component or other block. (DocBook v5)
 [ ] informalequation - A displayed mathematical equation without a title
 [ ] informalexample - A displayed example without a title
 [ ] informalfigure - A untitled figure
@@ -209,7 +210,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] lineage - The portion of a person's name indicating a relationship to
     ancestors
 [ ] lineannotation - A comment on a line in a verbatim listing
-[ ] link - A hypertext link
+[x] link - A hypertext link
 [ ] listitem - A wrapper for the elements of a list item
 [x] literal - Inline text that is some literal value
 [ ] literallayout - A block of text in which line breaks and white space are
@@ -405,10 +406,10 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] subjectset - A set of terms describing the subject matter of a document
 [ ] subjectterm - A term in a group of terms describing the subject matter of
     a document
-[ ] subscript - A subscript (as in H2O, the molecular formula for water)
+[x] subscript - A subscript (as in H2O, the molecular formula for water)
 [ ] substeps - A wrapper for steps that occur within steps in a procedure
 [ ] subtitle - The subtitle of a document
-[ ] superscript - A superscript (as in x2, the mathematical notation for x
+[x] superscript - A superscript (as in x2, the mathematical notation for x
     multiplied by itself)
 [ ] surname - A family name; in western cultures the last name
 [ ] svg:svg - An SVG graphic
@@ -527,6 +528,7 @@ parseBlock (Elem e) =
         "abstract" -> blockQuote <$> getBlocks e
         "itemizedlist" -> bulletList <$> listitems
         "orderedlist" -> orderedList <$> listitems -- TODO list attributes
+        "info" -> getTitle >> getAuthors >> getDate >> return mempty
         "articleinfo" -> getTitle >> getAuthors >> getDate >> return mempty
         "programlisting" -> return $ codeBlock $ strContent e  -- TODO attrs
         "?xml"  -> return mempty
@@ -584,6 +586,7 @@ parseInline (Elem e) =
             return $ if qt == SingleQuote
                         then singleQuoted contents
                         else doubleQuoted contents
+        "code" -> return $ code $ strContent e -- TODO attrs
         "literal" -> return $ code $ strContent e -- TODO attrs
         "varname" -> return $ codeWith ("",["varname"],[]) $ strContent e
         "function" -> return $ codeWith ("",["function"],[]) $ strContent e
@@ -595,6 +598,11 @@ parseInline (Elem e) =
         "ulink" -> link
             (fromMaybe "" (lookupAttrBy (\attr -> qName attr == "url")
               (elAttribs e))) "" <$> innerInlines
+        "link" -> case findAttr (QName "href" Nothing $ Just "xlink") e of
+            			Just href -> link href "" <$> innerInlines
+        				_         -> link ("#"++(fromMaybe "" (lookupAttrBy
+        								(\attr -> qName attr == "linkend")
+						              	(elAttribs e)))) "" <$> innerInlines
         "emphasis" -> case lookupAttrBy (\attr -> qName attr == "role")
                            (elAttribs e) of
                              Just "strong" -> strong <$> innerInlines
@@ -604,4 +612,3 @@ parseInline (Elem e) =
    where innerInlines = (trimInlines . mconcat) <$>
                           (mapM parseInline $ elContent e)
 parseInline (CRef _) = return mempty
-
