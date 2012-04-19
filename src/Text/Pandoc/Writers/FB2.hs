@@ -272,8 +272,10 @@ blockToXml (Plain ss) = cMapM toXml ss  -- FIXME: can lead to malformed FB2
 blockToXml (Para [Math DisplayMath formula]) = insertMath NormalImage formula
 blockToXml (Para [img@(Image _ _)]) = insertImage NormalImage img
 blockToXml (Para ss) = liftM (list . el "p") $ cMapM toXml ss
-blockToXml (CodeBlock _ s) = return . map (el "p" . el "code") . lines $ s
-blockToXml (RawBlock _ s) = return [ el "p" (el "code" s) ]
+blockToXml (CodeBlock _ s) = return . spaceBeforeAfter .
+                             map (el "p" . el "code") . lines $ s
+blockToXml (RawBlock _ s) = return . spaceBeforeAfter .
+                            map (el "p" . el "code") . lines $ s
 blockToXml (BlockQuote bs) = liftM (list . el "cite") $ cMapM blockToXml bs
 blockToXml (OrderedList a bss) = do
     state <- get
@@ -532,6 +534,12 @@ el :: (Node t)
    -> t        -- ^ node contents
    -> Content  -- ^ XML content
 el name cs = Elem $ unode name cs
+
+-- | Put empty lines around content
+spaceBeforeAfter :: [Content] -> [Content]
+spaceBeforeAfter cs =
+    let emptyline = el "empty-line" ()
+    in  [emptyline] ++ cs ++ [emptyline]
 
 -- | Create a plain-text XML content.
 txt :: String -> Content
