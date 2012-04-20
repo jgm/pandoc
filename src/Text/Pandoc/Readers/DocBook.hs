@@ -3,7 +3,6 @@ import Text.Pandoc.Parsing (ParserState(..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder
 import Text.XML.Light
-import Data.Maybe (fromMaybe)
 import Data.Monoid
 import Data.Char (isSpace)
 import Control.Monad.State
@@ -510,6 +509,13 @@ readDocBook st inp = setTitle (dbDocTitle st')
                                     , dbDocDate = mempty
                                     }
 
+-- convenience function to get an attribute value, defaulting to ""
+attrValue :: String -> Element -> String
+attrValue attr elt =
+  case lookupAttrBy (\x -> qName x == attr) (elAttribs elt) of
+    Just z  -> z
+    Nothing -> ""
+
 parseBlock :: Content -> DB Blocks
 parseBlock (Text (CData CDataRaw _ _)) = return mempty -- DOCTYPE
 parseBlock (Text (CData _ s _)) = if all isSpace s
@@ -595,19 +601,14 @@ parseInline (Elem e) =
         "constant" -> return $ codeWith ("",["constant"],[]) $ strContent e
         "userinput" -> return $ codeWith ("",["userinput"],[]) $ strContent e
         "varargs" -> return $ str "(…)"
-        "ulink" -> link
-            (fromMaybe "" (lookupAttrBy (\attr -> qName attr == "url")
-              (elAttribs e))) "" <$> innerInlines
+        "ulink" -> link (attrValue "url" e) "" <$> innerInlines
         "link" -> case findAttr (QName "href" Nothing $ Just "xlink") e of
                        Just href -> link href "" <$> innerInlines
-                       _         -> link ('#':anchor) "" <$> innerInlines
-                         where anchor = fromMaybe "" $ lookupAttrBy
-                                          (\attr -> qName attr == "linkend")
-                                          (elAttribs e)
-        "emphasis" -> case lookupAttrBy (\attr -> qName attr == "role")
-                           (elAttribs e) of
-                             Just "strong" -> strong <$> innerInlines
-                             _             -> emph <$> innerInlines
+                       _         -> link ('#' : attrValue "linkend" e) ""
+                                      <$> innerInlines
+        "emphasis" -> case attrValue "role" e of
+                             "strong" -> strong <$> innerInlines
+                             _        -> emph <$> innerInlines
         "footnote" -> (note . mconcat) <$> (mapM parseBlock $ elContent e)
         _          -> innerInlines
    where innerInlines = (trimInlines . mconcat) <$>
