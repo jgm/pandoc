@@ -599,10 +599,11 @@ parseInline (Elem e) =
             (fromMaybe "" (lookupAttrBy (\attr -> qName attr == "url")
               (elAttribs e))) "" <$> innerInlines
         "link" -> case findAttr (QName "href" Nothing $ Just "xlink") e of
-            			Just href -> link href "" <$> innerInlines
-        				_         -> link ("#"++(fromMaybe "" (lookupAttrBy
-        								(\attr -> qName attr == "linkend")
-						              	(elAttribs e)))) "" <$> innerInlines
+                       Just href -> link href "" <$> innerInlines
+                       _         -> link ('#':anchor) "" <$> innerInlines
+                         where anchor = fromMaybe "" $ lookupAttrBy
+                                          (\attr -> qName attr == "linkend")
+                                          (elAttribs e)
         "emphasis" -> case lookupAttrBy (\attr -> qName attr == "role")
                            (elAttribs e) of
                              Just "strong" -> strong <$> innerInlines
