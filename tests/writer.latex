@@ -1,6 +1,7 @@
 \documentclass[]{article}
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
 \ifxetex
   \usepackage{fontspec,xltxtra,xunicode}
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
@@ -54,7 +55,6 @@
 \usepackage[normalem]{ulem}
 % avoid problems with \sout in headers with hyperref:
 \pdfstringdefDisableCommands{\renewcommand{\sout}{}}
-\newcommand{\textsubscr}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 \setlength{\emergencystretch}{3em}  % prevent overfull lines
@@ -596,7 +596,8 @@ This is code: \texttt{\textgreater{}}, \texttt{\$}, \texttt{\textbackslash{}},
 Superscripts: a\textsuperscript{bc}d a\textsuperscript{\emph{hello}}
 a\textsuperscript{hello~there}.
 
-Subscripts: H\textsubscr{2}O, H\textsubscr{23}O, H\textsubscr{many~of~them}O.
+Subscripts: H\textsubscript{2}O, H\textsubscript{23}O,
+H\textsubscript{many~of~them}O.
 
 These should not be superscripts or subscripts, because of the unescaped
 spaces: a\^{}b c\^{}d, a\textasciitilde{}b c\textasciitilde{}d.

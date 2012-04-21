@@ -56,7 +56,6 @@ data WriterState =
               , stEnumerate     :: Bool          -- true if document needs fancy enumerated lists
               , stTable         :: Bool          -- true if document has a table
               , stStrikeout     :: Bool          -- true if document has strikeout
-              , stSubscript     :: Bool          -- true if document has subscript
               , stUrl           :: Bool          -- true if document has visible URL link
               , stGraphics      :: Bool          -- true if document contains images
               , stLHS           :: Bool          -- true if document has literate haskell code
@@ -75,7 +74,7 @@ writeLaTeX options document =
   WriterState { stInNote = False, stInTable = False,
                 stTableNotes = [], stOLLevel = 1, stOptions = options,
                 stVerbInNote = False, stEnumerate = False,
-                stTable = False, stStrikeout = False, stSubscript = False,
+                stTable = False, stStrikeout = False,
                 stUrl = False, stGraphics = False,
                 stLHS = False, stBook = writerChapters options,
                 stCsquotes = False, stHighlighting = False,
@@ -148,7 +147,6 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("fancy-enums", "yes") | stEnumerate st ] ++
                  [ ("tables", "yes") | stTable st ] ++
                  [ ("strikeout", "yes") | stStrikeout st ] ++
-                 [ ("subscript", "yes") | stSubscript st ] ++
                  [ ("url", "yes") | stUrl st ] ++
                  [ ("numbersections", "yes") | writerNumberSections options ] ++
                  [ ("lhs", "yes") | stLHS st ] ++
@@ -503,11 +501,7 @@ inlineToLaTeX (Strikeout lst) = do
 inlineToLaTeX (Superscript lst) =
   inlineListToLaTeX lst >>= return . inCmd "textsuperscript"
 inlineToLaTeX (Subscript lst) = do
-  modify $ \s -> s{ stSubscript = True }
-  contents <- inlineListToLaTeX lst
-  -- oddly, latex includes \textsuperscript but not \textsubscript
-  -- so we have to define it (using a different name so as not to conflict with memoir class):
-  return $ inCmd "textsubscr" contents
+  inlineListToLaTeX lst >>= return . inCmd "textsubscript"
 inlineToLaTeX (SmallCaps lst) =
   inlineListToLaTeX lst >>= return . inCmd "textsc"
 inlineToLaTeX (Cite cits lst) = do
