@@ -33,7 +33,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] article - An article
 [x] articleinfo - Meta-information for an Article
 [ ] artpagenums - The page numbers of an article as published
-[ ] attribution - The source of a block quote or epigraph
+[x] attribution - The source of a block quote or epigraph
 [ ] audiodata - Pointer to external audio data
 [ ] audioobject - A wrapper for audio data and its associated meta-information
 [x] author - The name of an individual author
@@ -118,6 +118,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] entrytbl - A subtable appearing in place of an Entry in a table
 [ ] envar - A software environment variable
 [ ] epigraph - A short inscription at the beginning of a document or component
+    note:  also handle embedded attribution tag
 [ ] equation - A displayed mathematical equation
 [ ] errorcode - An error code
 [ ] errorname - An error name
@@ -524,7 +525,15 @@ parseBlock (Text (CData _ s _)) = if all isSpace s
 parseBlock (Elem e) =
   case qName (elName e) of
         "para"  -> para <$> getInlines e
-        "blockquote" -> blockQuote <$> getBlocks e
+        "blockquote" -> do
+            attrib <- case filterChild
+                           (\e' -> qName (elName e') == "attribution") e of
+                             Nothing  -> return mempty
+                             Just z   -> (para . (str "— " <>) . mconcat)
+                                         <$> (mapM parseInline $ elContent z)
+            contents <- getBlocks e
+            return $ blockQuote (contents <> attrib)
+        "attribution" -> return mempty
         "sect1" -> sect 1
         "sect2" -> sect 2
         "sect3" -> sect 3
