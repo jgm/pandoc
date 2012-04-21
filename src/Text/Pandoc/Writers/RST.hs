@@ -97,7 +97,7 @@ keyToRST (label, (src, _)) = do
   let label'' = if ':' `elem` (render Nothing label')
                    then char '`' <> label' <> char '`'
                    else label'
-  return $ ".. _" <> label'' <> ": " <> text src
+  return $ nowrap $ ".. _" <> label'' <> ": " <> text src
 
 -- | Return RST representation of notes.
 notesToRST :: [[Block]] -> State WriterState Doc
