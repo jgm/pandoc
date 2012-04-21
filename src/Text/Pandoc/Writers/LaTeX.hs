@@ -570,6 +570,10 @@ inlineToLaTeX (RawInline "tex" str) = return $ text str
 inlineToLaTeX (RawInline _ _) = return empty
 inlineToLaTeX (LineBreak) = return "\\\\"
 inlineToLaTeX Space = return space
+inlineToLaTeX (Link txt ('#':ident, _)) = do
+  contents <- inlineListToLaTeX txt
+  ident' <- stringToLaTeX False ident
+  return $ text "\\hyperref" <> brackets (text ident') <> braces contents
 inlineToLaTeX (Link txt (src, _)) =
   case txt of
         [Code _ x] | x == src ->  -- autolink
