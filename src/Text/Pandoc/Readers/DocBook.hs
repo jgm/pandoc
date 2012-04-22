@@ -63,7 +63,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] bridgehead - A free-floating heading
 [ ] callout - A “called out” description of a marked Area
 [ ] calloutlist - A list of Callouts
-[ ] caption - A caption
+[x] caption - A caption
 [ ] caution - A note of caution
 [ ] chapter - A chapter, as of a book
 [ ] chapterinfo - Meta-information for a Chapter
@@ -132,7 +132,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] filename - The name of a file
 [ ] firstname - The first name of a person
 [ ] firstterm - The first occurrence of a term
-[ ] footnote - A footnote
+[x] footnote - A footnote
 [ ] footnoteref - A cross reference to a footnote (a footnote mark)
 [ ] foreignphrase - A word or phrase in a language other than the primary
     language of the document
@@ -177,7 +177,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] indexentry - An entry in an index
 [ ] indexinfo - Meta-information for an Index
 [ ] indexterm - A wrapper for terms to be indexed
-[ ] info - A wrapper for information about a component or other block. (DocBook v5)
+[x] info - A wrapper for information about a component or other block. (DocBook v5)
 [ ] informalequation - A displayed mathematical equation without a title
 [ ] informalexample - A displayed example without a title
 [ ] informalfigure - A untitled figure
@@ -186,7 +186,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] inlineequation - A mathematical equation or expression occurring inline
 [ ] inlinegraphic - An object containing or pointing to graphical data
     that will be rendered inline
-[ ] inlinemediaobject - An inline media object (video, audio, image, and so on)
+[x] inlinemediaobject - An inline media object (video, audio, image, and so on)
 [ ] interface - An element of a GUI
 [ ] interfacename - The name of an interface
 [ ] invpartnumber - An inventory part number
@@ -225,7 +225,7 @@ List of all DocBook tags, with [x] indicating implemented:
     with ordinary text and a small amount of markup
 [ ] medialabel - A name that identifies the physical medium on which some
     information resides
-[ ] mediaobject - A displayed media object (video, audio, image, etc.)
+[x] mediaobject - A displayed media object (video, audio, image, etc.)
 [ ] mediaobjectco - A media object that contains callouts
 [ ] member - An element of a simple list
 [ ] menuchoice - A selection or series of selections from a menu
@@ -308,7 +308,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] qandaentry - A question/answer set within a QandASet
 [ ] qandaset - A question-and-answer set
 [ ] question - A question in a QandASet
-[ ] quote - An inline quotation
+[x] quote - An inline quotation
 [ ] refclass - The scope or other indication of applicability of a
     reference entry
 [ ] refdescriptor - A description of the topic of a reference page
@@ -517,6 +517,23 @@ attrValue attr elt =
     Just z  -> z
     Nothing -> ""
 
+-- function that is used by both mediaobject (in parseBlock) 
+-- and inlinemediaobject (in parseInline)
+getImage :: Element -> DB Inlines
+getImage e = do
+  imageUrl <- case filterChild
+              (\e' -> qName (elName e') == "imageobject") e of
+                Nothing  -> return mempty
+                Just z   -> case filterChild
+                            (\e' -> qName (elName e') == "imagedata") z of
+                              Nothing -> return mempty
+                              Just i -> return $ attrValue "fileref" i
+  caption <- case filterChild
+             (\e' -> qName (elName e') == "caption") e of
+               Nothing  -> return mempty
+               Just z   -> mconcat <$> (mapM parseInline $ elContent z)
+  return $ image imageUrl "" caption
+
 parseBlock :: Content -> DB Blocks
 parseBlock (Text (CData CDataRaw _ _)) = return mempty -- DOCTYPE
 parseBlock (Text (CData _ s _)) = if all isSpace s
@@ -543,6 +560,8 @@ parseBlock (Elem e) =
         "abstract" -> blockQuote <$> getBlocks e
         "itemizedlist" -> bulletList <$> listitems
         "orderedlist" -> orderedList <$> listitems -- TODO list attributes
+        "mediaobject" -> para <$> (getImage e)
+        "caption" -> return mempty
         "info" -> getTitle >> getAuthors >> getDate >> return mempty
         "articleinfo" -> getTitle >> getAuthors >> getDate >> return mempty
         "programlisting" -> return $ codeBlock $ strContent e  -- TODO attrs
@@ -592,6 +611,7 @@ parseInline (Elem e) =
   case qName (elName e) of
         "subscript" -> subscript <$> innerInlines
         "superscript" -> superscript <$> innerInlines
+        "inlinemediaobject" -> getImage e
         "quote" -> do
             qt <- gets dbQuoteType
             let qt' = if qt == SingleQuote then DoubleQuote else SingleQuote
