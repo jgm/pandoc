@@ -28,8 +28,8 @@ module Text.Pandoc.Writers.FB2 (writeFB2)  where
 import Control.Monad.State (StateT, evalStateT, get, modify)
 import Control.Monad.State (liftM, liftM2, liftIO)
 import Data.ByteString.Base64 (encode)
-import Data.Char (toUpper, toLower, isSpace)
-import Data.List (intersperse, intercalate)
+import Data.Char (toUpper, toLower, isSpace, isAscii, isControl)
+import Data.List (intersperse, intercalate, isPrefixOf)
 import Data.Either (lefts, rights)
 import Network.Browser (browse, request, setAllowRedirects, setOutHandler)
 import Network.HTTP (catchIO_, getRequest, getHeaders, getResponseBody)
@@ -220,9 +220,15 @@ fetchImages links = do
 fetchImage :: String -> String -> IO (Either String Content)
 fetchImage href link = do
   mbimg <-
-      if isURI link
-      then fetchURL link
-      else do
+      case (isURI link, readDataURI link) of
+       (True, Just (mime,_,True,base64)) ->
+           let mime' = map toLower mime
+           in if mime' == "image/png" || mime' == "image/jpeg"
+              then return (Just (mime',base64))
+              else return Nothing
+       (True, Just _) -> return Nothing  -- not base64-encoded
+       (True, Nothing) -> fetchURL link
+       (False, _) -> do
         d <- nothingOnError $ B.readFile (unEscapeString link)
         let t = case map toLower (takeExtension link) of
                   ".png" -> Just "image/png"
@@ -230,15 +236,13 @@ fetchImage href link = do
                   ".jpeg" -> Just "image/jpeg"
                   ".jpe" -> Just "image/jpeg"
                   _ -> Nothing  -- only PNG and JPEG are supported in FB2
-        return $ liftM2 (,) t d
+        return $ liftM2 (,) t (liftM (toStr . encode) d)
   case mbimg of
     Just (imgtype, imgdata) -> do
-        let encdata = encode imgdata
-        let encstr = map (toEnum . fromEnum) . B.unpack $ encdata
         return . Right $ el "binary"
                    ( [uattr "id" href
                      , uattr "content-type" imgtype]
-                   , txt encstr )
+                   , txt imgdata )
     _ -> return (Left ('#':href))
   where
    nothingOnError :: (IO B.ByteString) -> (IO (Maybe B.ByteString))
@@ -246,8 +250,45 @@ fetchImage href link = do
    omnihandler :: E.SomeException -> IO (Maybe B.ByteString)
    omnihandler _ = return Nothing
 
+-- | Extract mime type and encoded data from the Data URI.
+readDataURI :: String -- ^ URI
+            -> Maybe (String,String,Bool,String)
+               -- ^ Maybe (mime,charset,isBase64,data)
+readDataURI uri =
+    let prefix = "data:"
+    in  if not (prefix `isPrefixOf` uri)
+        then Nothing
+        else
+            let rest = drop (length prefix) uri
+                meta = takeWhile (/= ',') rest  -- without trailing ','
+                uridata = drop (length meta + 1) rest
+                parts = split (== ';') meta
+                (mime,cs,enc)=foldr upd ("text/plain","US-ASCII",False) parts
+            in  Just (mime,cs,enc,uridata)
+ where
+   upd str m@(mime,cs,enc)
+       | isMimeType str               = (str,cs,enc)
+       | "charset=" `isPrefixOf` str  = (mime,drop (length "charset=") str,enc)
+       | str ==  "base64"             = (mime,cs,True)
+       | otherwise                    = m
+
+-- Without parameters like ;charset=...; see RFC 2045, 5.1
+isMimeType :: String -> Bool
+isMimeType s =
+    case split (=='/') s of
+      [mtype,msubtype] ->
+          ((map toLower mtype) `elem` types
+           || "x-" `isPrefixOf` (map toLower mtype))
+          && all valid mtype
+          && all valid msubtype
+      _ -> False
+ where
+   types =  ["text","image","audio","video","application","message","multipart"]
+   valid c = isAscii c && not (isControl c) && not (isSpace c) &&
+             c `notElem` "()<>@,;:\\\"/[]?="
+
 -- | Fetch URL, return its Content-Type and binary data on success.
-fetchURL :: String -> IO (Maybe (String, B.ByteString))
+fetchURL :: String -> IO (Maybe (String, String))
 fetchURL url = do
   flip catchIO_ (return Nothing) $ do
      r <- browse $ do
@@ -255,10 +296,15 @@ fetchURL url = do
            setAllowRedirects True
            liftM snd . request . getRequest $ url
      let content_type = lookupHeader HdrContentType (getHeaders r)
-     content <- liftM (Just . toBS) . getResponseBody $ Right r
+     content <- liftM (Just . toStr . encode . toBS) . getResponseBody $ Right r
      return $ liftM2 (,) content_type content
   where
-    toBS = B.pack . map (toEnum . fromEnum)
+
+toBS :: String -> B.ByteString
+toBS = B.pack . map (toEnum . fromEnum)
+
+toStr :: B.ByteString -> String
+toStr = map (toEnum . fromEnum) . B.unpack
 
 footnoteID :: Int -> String
 footnoteID i = "n" ++ (show i)
