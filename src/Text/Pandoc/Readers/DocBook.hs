@@ -574,7 +574,7 @@ parseBlock (Elem e) =
          skipWhite (Text (CData _ s _):xs) | all isSpace s = skipWhite xs
                                            | otherwise     = xs
          skipWhite xs = xs
-         listitems = mapM getBlocks $ findChildren (unqual "listitem") e
+         listitems = mapM getBlocks $ filterChildren (\e' -> qName (elName e') == "listitem") e
          getTitle = case findChild (unqual "title") e of
                          Just t  -> do
                             tit <- getInlines t
