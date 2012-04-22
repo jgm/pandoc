@@ -211,7 +211,7 @@ List of all DocBook tags, with [x] indicating implemented:
     ancestors
 [ ] lineannotation - A comment on a line in a verbatim listing
 [x] link - A hypertext link
-[ ] listitem - A wrapper for the elements of a list item
+[x] listitem - A wrapper for the elements of a list item
 [x] literal - Inline text that is some literal value
 [ ] literallayout - A block of text in which line breaks and white space are
     to be reproduced faithfully
@@ -631,7 +631,7 @@ parseInline (Elem e) =
         "userinput" -> return $ codeWith ("",["userinput"],[]) $ strContent e
         "varargs" -> return $ str "(…)"
         "ulink" -> link (attrValue "url" e) "" <$> innerInlines
-        "link" -> case findAttr (QName "href" Nothing $ Just "xlink") e of
+        "link" -> case findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e of
                        Just href -> link href "" <$> innerInlines
                        _         -> link ('#' : attrValue "linkend" e) ""
                                       <$> innerInlines
