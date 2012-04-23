@@ -72,7 +72,8 @@ import Text.ParserCombinators.Parsec
 import Control.Monad (liftM, when, forM)
 import System.FilePath
 import Data.List (intercalate, intersperse)
-import Text.Blaze (preEscapedString, Html)
+import Text.Blaze (preEscapedToMarkup)
+import Text.Blaze.Html (Html)
 import Data.ByteString.Lazy.UTF8 (ByteString, fromString)
 import Text.Pandoc.Shared (readDataFile)
 import qualified Control.Exception.Extensible as E (try, IOException)
@@ -112,7 +113,7 @@ instance TemplateTarget ByteString where
   toTarget = fromString
 
 instance TemplateTarget Html where
-  toTarget = preEscapedString
+  toTarget = preEscapedToMarkup
 
 -- | Renders a template 
 renderTemplate :: TemplateTarget a
