@@ -46,11 +46,11 @@ import Data.List ( isPrefixOf, intersperse )
 import Data.String ( fromString )
 import Data.Maybe ( catMaybes )
 import Control.Monad.State
-import Text.Blaze
+import Text.Blaze.Html hiding (contents)
 import qualified Text.Blaze.Html5 as H5
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
-import Text.Blaze.Renderer.String (renderHtml)
+import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.TeXMath
 import Text.XML.Light.Output
 import System.FilePath (takeExtension)
@@ -71,13 +71,13 @@ defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
 -- Helpers to render HTML with the appropriate function.
 
 strToHtml :: String -> Html
-strToHtml = preEscapedString . escapeStringForXML
+strToHtml = preEscapedToMarkup . escapeStringForXML
 -- strToHtml = toHtml
 
 -- | Hard linebreak.
 nl :: WriterOptions -> Html
 nl opts = if writerWrapText opts
-             then preEscapedString "\n"
+             then preEscapedToMarkup ("\n" :: String)
              else mempty
 
 -- | Convert Pandoc document to Html string.
@@ -150,7 +150,7 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                            _ -> case lookup "mathml-script" (writerVariables opts) of
                                       Just s | not (writerHtml5 opts) ->
                                         H.script ! A.type_ "text/javascript"
-                                           $ preEscapedString
+                                           $ preEscapedToMarkup
                                             ("/*<![CDATA[*/\n" ++ s ++ "/*]]>*/\n")
                                              | otherwise -> mempty
                                       Nothing -> mempty
@@ -237,7 +237,7 @@ elementToListItem _ (Blk _) = return Nothing
 elementToListItem opts (Sec _ num id' headerText subsecs) = do
   let sectnum = if writerNumberSections opts
                    then (H.span ! A.class_ "toc-section-number" $ toHtml $ showSecNum num) >>
-                     preEscapedString " "
+                     preEscapedToMarkup (" " :: String)
                    else mempty
   txt <- liftM (sectnum >>) $ inlineListToHtml opts headerText
   subHeads <- mapM (elementToListItem opts) subsecs >>= return . catMaybes
@@ -322,17 +322,17 @@ obfuscateLink opts txt s =
                           domain' ++ ")")
           in  case meth of
                 ReferenceObfuscation ->
-                     -- need to use preEscapedString or &'s are escaped to &amp; in URL
-                     preEscapedString $ "<a href=\"" ++ (obfuscateString s')
+                     -- need to use preEscapedToMarkup or &'s are escaped to &amp; in URL
+                     preEscapedToMarkup $ "<a href=\"" ++ (obfuscateString s')
                      ++ "\">" ++ (obfuscateString txt) ++ "</a>"
                 JavascriptObfuscation ->
                      (H.script ! A.type_ "text/javascript" $
-                     preEscapedString ("\n<!--\nh='" ++
+                     preEscapedToMarkup ("\n<!--\nh='" ++
                      obfuscateString domain ++ "';a='" ++ at' ++ "';n='" ++
                      obfuscateString name' ++ "';e=n+a+h;\n" ++
                      "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\">'+" ++
                      linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) >>
-                     H.noscript (preEscapedString $ obfuscateString altText)
+                     H.noscript (preEscapedToMarkup $ obfuscateString altText)
                 _ -> error $ "Unknown obfuscation method: " ++ show meth
         _ -> H.a ! A.href (toValue s) $ toHtml txt  -- malformed email
 
@@ -380,7 +380,7 @@ blockToHtml opts (Para [Image txt (s,tit)]) = do
 blockToHtml opts (Para lst) = do
   contents <- inlineListToHtml opts lst
   return $ H.p contents
-blockToHtml _ (RawBlock "html" str) = return $ preEscapedString str
+blockToHtml _ (RawBlock "html" str) = return $ preEscapedToMarkup str
 blockToHtml _ (RawBlock _ _) = return mempty
 blockToHtml opts (HorizontalRule) = return $ if writerHtml5 opts then H5.hr else H.hr
 blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
@@ -600,7 +600,7 @@ inlineToHtml opts inline =
                                            InlineMath  -> toHtml ("$" ++ str ++ "$")
                                            DisplayMath -> toHtml ("$$" ++ str ++ "$$")
                                JsMath _ -> do
-                                  let m = preEscapedString str
+                                  let m = preEscapedToMarkup str
                                   return $ case t of
                                            InlineMath -> H.span ! A.class_ "math" $ m
                                            DisplayMath -> H.div ! A.class_ "math" $ m
@@ -616,8 +616,8 @@ inlineToHtml opts inline =
                                             DisplayMath -> brtag >> m >> brtag
                                GladTeX ->
                                   return $ case t of
-                                             InlineMath -> preEscapedString $ "<EQ ENV=\"math\">" ++ str ++ "</EQ>"
-                                             DisplayMath -> preEscapedString $ "<EQ ENV=\"displaymath\">" ++ str ++ "</EQ>"
+                                             InlineMath -> preEscapedToMarkup $ "<EQ ENV=\"math\">" ++ str ++ "</EQ>"
+                                             DisplayMath -> preEscapedToMarkup $ "<EQ ENV=\"displaymath\">" ++ str ++ "</EQ>"
                                MathML _ -> do
                                   let dt = if t == InlineMath
                                               then DisplayInline
@@ -625,7 +625,7 @@ inlineToHtml opts inline =
                                   let conf = useShortEmptyTags (const False)
                                                defaultConfigPP
                                   case texMathToMathML dt str of
-                                        Right r -> return $ preEscapedString $
+                                        Right r -> return $ preEscapedToMarkup $
                                                     ppcElement conf r
                                         Left  _ -> inlineListToHtml opts
                                                    (readTeXMath str) >>= return .
@@ -645,7 +645,7 @@ inlineToHtml opts inline =
                                LaTeXMathML _ -> do modify (\st -> st {stMath = True})
                                                    return $ toHtml str
                                _             -> return mempty
-    (RawInline "html" str) -> return $ preEscapedString str
+    (RawInline "html" str) -> return $ preEscapedToMarkup str
     (RawInline _ _) -> return mempty
     (Link [Code _ str] (s,_)) | "mailto:" `isPrefixOf` s ->
                         return $ obfuscateLink opts str s
