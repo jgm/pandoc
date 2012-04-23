@@ -631,6 +631,13 @@ Dog    & 2      \\
 Cat    & 1      \\ \hline
 \end{tabular}
 
+A table with one column:
+
+\begin{tabular}{c}
+Animal \\
+Vegetable
+\end{tabular}
+
 \begin{center}\rule{3in}{0.4pt}\end{center}
 
 \section{Special Characters}

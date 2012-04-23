@@ -152,7 +152,7 @@ noteToMarkdown opts num blocks = do
 -- | Escape special characters for Markdown.
 escapeString :: String -> String
 escapeString = escapeStringUsing markdownEscapes
-  where markdownEscapes = backslashEscapes "\\`*_>#~^"
+  where markdownEscapes = backslashEscapes "\\`*_$<>#~^"
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: WriterOptions -> [Block] -> Doc 
@@ -254,7 +254,7 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
   if writerStrictMarkdown opts || attribs == nullAttr
      then nest (writerTabStop opts) (text str) <> blankline
      else -- use delimited code block
-          flush (tildes <> space <> attrs <> cr <> text str <>
+          (tildes <> space <> attrs <> cr <> text str <>
                   cr <> tildes) <> blankline
             where tildes  = text "~~~~"
                   attrs = attrsToMarkdown attribs
@@ -516,9 +516,9 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
                       else "[" <> linktext <> "](" <> 
                            text src <> linktitle <> ")"
 inlineToMarkdown opts (Image alternate (source, tit)) = do
-  let txt = if (null alternate) || (alternate == [Str ""]) || 
-               (alternate == [Str source]) -- to prevent autolinks
-               then [Str "image"]
+  let txt = if null alternate || alternate == [Str source]
+                                 -- to prevent autolinks
+               then [Str ""]
                else alternate
   linkPart <- inlineToMarkdown opts (Link txt (source, tit))
   return $ "!" <> linkPart

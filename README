@@ -13,12 +13,13 @@ Description
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
-and [LaTeX]; and it can write plain text, [markdown], [reStructuredText],
-[XHTML], [HTML 5], [LaTeX] (including [beamer] slide shows),
-[ConTeXt], [RTF], [DocBook XML], [OpenDocument XML], [ODT], [Word docx], [GNU
-Texinfo], [MediaWiki markup], [EPUB], [Textile], [groff man] pages, [Emacs
-Org-Mode], [AsciiDoc], and [Slidy], [DZSlides], or [S5] HTML slide shows. It
-can also produce [PDF] output on systems where LaTeX is installed.
+[LaTeX], and [DocBook XML]; and it can write plain text, [markdown],
+[reStructuredText], [XHTML], [HTML 5], [LaTeX] (including [beamer]
+slide shows), [ConTeXt], [RTF], [DocBook XML], [OpenDocument XML],
+[ODT], [Word docx], [GNU Texinfo], [MediaWiki markup], [EPUB],
+[Textile], [groff man] pages, [Emacs Org-Mode], [AsciiDoc], and [Slidy],
+[DZSlides], or [S5] HTML slide shows. It can also produce [PDF] output
+on systems where LaTeX is installed.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, delimited code blocks,
@@ -137,10 +138,10 @@ General options
 :   Specify input format.  *FORMAT* can be `native` (native Haskell),
     `json` (JSON version of native AST), `markdown` (markdown),
     `textile` (Textile), `rst` (reStructuredText), `html` (HTML),
-    or `latex` (LaTeX).  If `+lhs` is appended to `markdown`, `rst`,
-    or `latex`, the input will be treated as literate Haskell source:
-    see [Literate Haskell support](#literate-haskell-support),
-    below.
+    `docbook` (DocBook XML), or `latex` (LaTeX). If `+lhs` is
+    appended to `markdown`, `rst`, `latex`, the input will be
+    treated as literate Haskell source: see [Literate Haskell
+    support](#literate-haskell-support), below.
 
 `-t` *FORMAT*, `-w` *FORMAT*, `--to=`*FORMAT*, `--write=`*FORMAT*
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
@@ -156,8 +157,8 @@ General options
     slide show), or `rtf` (rich text format). Note that `odt` and `epub`
     output will not be directed to *stdout*; an output filename must
     be specified using the `-o/--output` option. If `+lhs` is appended
-    to `markdown`, `rst`, `latex`, `html`, or `html5`, the output will
-    be rendered as literate Haskell source: see [Literate Haskell
+    to `markdown`, `rst`, `latex`, `beamer`, `html`, or `html5`, the output
+    will be rendered as literate Haskell source: see [Literate Haskell
     support](#literate-haskell-support), below.
 
 `-o` *FILE*, `--output=`*FILE*
@@ -256,12 +257,13 @@ General writer options
     template appropriate for the output format will be used (see
     `-D/--print-default-template`).
 
-`-V` *KEY=VAL*, `--variable=`*KEY:VAL*
+`-V` *KEY[=VAL]*, `--variable=`*KEY[:VAL]*
 :   Set the template variable *KEY* to the value *VAL* when rendering the
     document in standalone mode. This is generally only useful when the
     `--template` option is used to specify a custom template, since
     pandoc automatically sets the variables used in the default
-    templates.
+    templates.  If no *VAL* is specified, the key will be given the
+    value `true`.
 
 `-D` *FORMAT*, `--print-default-template=`*FORMAT*
 :   Print the default template for an output *FORMAT*. (See `-t`
@@ -451,7 +453,7 @@ Options affecting specific writers
 :   Embed the specified font in the EPUB. This option can be repeated
     to embed multiple fonts.  To use embedded fonts, you
     will need to add declarations like the following to your CSS (see
-    ``--epub-stylesheet`):
+    `--epub-stylesheet`):
 
         @font-face {
         font-family: DejaVuSans;
@@ -625,7 +627,11 @@ where `FORMAT` is the name of the output format. A custom template
 can be specified using the `--template` option.  You can also override
 the system default templates for a given output format `FORMAT`
 by putting a file `templates/default.FORMAT` in the user data
-directory (see `--data-dir`, above).
+directory (see `--data-dir`, above). *Exceptions:* For `odt` output,
+customize the `default.opendocument` template.  For `pdf` output,
+customize the `default.latex` template. For `epub` output, customize
+the `epub-page.html`, `epub-coverimage.html`, and `epub-titlepage.html`
+templates.
 
 Templates may contain *variables*.  Variable names are sequences of
 alphanumerics, `-`, and `_`, starting with a letter.  A variable name
@@ -672,6 +678,12 @@ depending on the output format, but include:
 :   font size (10pt, 11pt, 12pt) for LaTeX documents
 `documentclass`
 :   document class for LaTeX documents
+`geometry`
+:   options for LaTeX `geometry` class, e.g. `margin=1in`;
+    may be repeated for multiple options
+`mainfont`, `sansfont`, `monofont`, `mathfont`
+:   fonts for LaTeX documents (works only with xelatex
+    and lualatex)
 `theme`
 :   theme for LaTeX beamer documents
 `colortheme`
@@ -834,7 +846,7 @@ also make it easy to provide links from one section of a document to
 another. A link to this section, for example, might look like this:
 
     See the section on
-    [header identifiers][#header-identifiers-in-html].
+    [header identifiers](#header-identifiers-in-html).
 
 Note, however, that this method of providing links to sections works
 only in HTML, LaTeX, and ConTeXt formats.
@@ -1637,7 +1649,7 @@ them and they won't be treated as math delimiters.
 TeX math will be printed in all output formats. How it is rendered
 depends on the output format:
 
-Markdown, reStructuredText, LaTeX, Org-Mode, ConTeXt
+Markdown, LaTeX, Org-Mode, ConTeXt
   ~ It will appear verbatim between `$` characters.
 
 reStructuredText
@@ -1874,6 +1886,23 @@ empty, or omitted entirely:
 
     [my website]: http://foo.bar.baz
 
+### Internal links
+
+To link to another section of the same document, use the automatically
+generated identifier (see [Header identifiers in HTML, LaTeX, and
+ConTeXt](#header-identifiers-in-html-latex-and-context), below).
+For example:
+
+    See the [Introduction](#introduction).
+
+or
+
+    See the [Introduction].
+
+    [Introduction]: #introduction
+
+Internal links are currently supported for HTML formats (including
+HTML slide shows and EPUB), LaTeX, and ConTeXt.
 
 Images
 ------
@@ -2164,8 +2193,9 @@ Literate Haskell support
 ========================
 
 If you append `+lhs` to an appropriate input or output format (`markdown`,
-`rst`, or `latex` for input or output; `html` or `html5` for output only),
-pandoc will treat the document as literate Haskell source. This means that
+`rst`, or `latex` for input or output; `beamer`, `html` or `html5` for
+output only), pandoc will treat the document as literate Haskell source.
+This means that
 
   - In markdown input, "bird track" sections will be parsed as Haskell
     code rather than block quotations.  Text between `\begin{code}`

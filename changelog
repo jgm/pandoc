@@ -1,3 +1,125 @@
+pandoc (1.9.2)
+
+  * LaTeX reader:
+
+    + Made `lstlisting` work as a proper verbatim environment.
+    + Fixed bug parsing LaTeX tables with one column.
+
+  * LaTeX writer:
+
+    + Use `{}` around `ctable` caption, so that formatting can be used.
+    + Don't require eurosym package unless document has a €.
+
+  * LaTeX template: Added variables for `geometry`, `romanfont`,
+    `sansfont`, `mathfont`, `mainfont` so users can more easily
+    customize fonts.
+
+  * PDF writer:
+
+    + Run latex engine at least two times, to ensure
+      that PDFs will have hyperlinked bookmarks.
+    + Added PDF metadata (title,author) in LaTeX standalone + PDF output.
+
+  * Texinfo writer: retain directories in image paths.  (Peter Wang)
+
+  * RST writer:  Better handling of inline formatting, in accord
+    with docutils' "inline markup recognition rules" (though we don't
+    implement the unicode rules fully). Now `hi*there*hi` gets
+    rendered properly as `hi\ *there*\ hi`, and unnecessary
+    `\ ` are avoided around `:math:`, `:sub:`, `:sup:`.
+
+  * RST reader:
+
+    + Parse `\ ` as null, not escaped space.
+    + Allow `` :math:`...` `` even when not followed by blank
+      or `\`.  This does not implement the complex rule docutils follows,
+      but it should be good enough for most purposes.
+    + Add support for the rST default-role directive. (Greg Maslov)
+
+  * Text.Pandoc.Parsing: Added `stateRstDefaultRole` field to `ParserState`.
+    (Greg Maslov)
+
+  * Markdown reader: Properly handle citations nested in other inline
+    elements.
+
+  * Markdown writer:  don't replace empty alt in image with "image".
+
+  * DZSlides:  Updated template.html and styles in default template.
+    Removed bizarre CSS for `q` in dzslides template.
+
+  * Avoid repeated `id` attribute in section and header in HTML slides.
+
+  * README improvements:  new instructions on internal links,
+    removed misleading note on reST math.
+
+  * Build system:
+
+    + Fixed Windows installer so that dzslides works.
+    + Removed stripansi.sh.
+    + Added .travis.yml for Travis continuous integration support..
+    + Fixed upper bound for zlib (Sergei Trofimovich).
+    + Fixed upper bound for test-framework.
+    + Updated haddocks for haddock-2.10 (Sergei Trofimovich).
+
+pandoc (1.9.1.2)
+
+  * Added `beamer+lhs` as output format.
+
+  * Don't escape `<` in `<style>` tags with `--self-contained`.
+    This fixes a bug which prevented highlighting from working
+    when using `--self-contained`.
+
+  * PDF: run latex engine three times if `--toc` specified.
+    This fixes page numbers in the table of contents.
+
+  * Docx writer: Added TableNormal style to tables.
+
+  * LaTeX math environment fixes. `aligned` is now used instead of
+    the nonexistent `aligned*`. `multline` instead of the nonexistent
+    `multiline`.
+
+  * LaTeX writer: Use `\textasciitilde` for literal `~`.
+
+  * HTML writer: Don't escape contents of EQ tags with --gladtex.
+    This fixes a regression from 1.8.
+
+  * Use `<q>` tags for Quoted items for HTML5 output.
+    The quote style can be changed by modifying the template
+    or including a css file. A default quote style is included.
+
+  * LaTeX reader: Fixed accents (\~{a}, `\c{c}`).
+    Correctly handle \^{}. Support "minted" as a LaTeX verbatim block.
+
+  * Updated LaTeX template for better language support.
+    Use `polyglossia` instead of `babel` with xetex.
+    Set `lang` as documentclass option.
+    `\setmainlanguage` will use the last of a comma-separated
+    list of languages. Thanks to François Gannaz.
+
+  * Fixed default LaTeX template so `\euro` and `€` work.  The
+    `eurosym` package is needed if you are using pdflatex.
+
+  * Fixed escaping of period in man writer (thanks to Michael Thompson).
+
+  * Fixed list label positions in beamer.
+
+  * Set `mainlang` variable in context writer.
+    This parallels behavior of latex writer.  `mainlang` is the last
+    of a comma-separated list of languages in lang.
+
+  * EPUB language metadat: convert e.g. `en_US` from locale to `en-US`.
+
+  * Changed `-V` so that you can specify a key without a value.
+    Such keys get the value `true`.
+
+  * Fixed permissions on installed man pages - thanks Magnus Therning.
+
+  * Windows installer: require XP or higher.  The installer is
+    now compiled on a Windows 7 machine, which fixes a problem
+    using citation functions on Windows 7.
+
+  * OSX package: Check for 64-bit Intel CPU before installing.
+
 pandoc (1.9.1.1)
 
   * Better handling of raw latex environments in markdown.  Now

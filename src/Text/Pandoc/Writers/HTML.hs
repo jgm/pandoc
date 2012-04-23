@@ -59,12 +59,14 @@ import Data.Monoid (mempty, mconcat)
 data WriterState = WriterState
     { stNotes            :: [Html]  -- ^ List of notes
     , stMath             :: Bool    -- ^ Math is used in document
+    , stQuotes           :: Bool    -- ^ <q> tag is used
     , stHighlighting     :: Bool    -- ^ Syntax highlighting is used
     , stSecNum           :: [Int]   -- ^ Number of current section
     }
 
 defaultWriterState :: WriterState
-defaultWriterState = WriterState {stNotes= [], stMath = False, stHighlighting = False, stSecNum = []}
+defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
+                                  stHighlighting = False, stSecNum = []}
 
 -- Helpers to render HTML with the appropriate function.
 
@@ -156,7 +158,8 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   let newvars = [("highlighting-css",
                    styleToCss $ writerHighlightStyle opts) |
                    stHighlighting st] ++
-                [("math", renderHtml math) | stMath st]
+                [("math", renderHtml math) | stMath st] ++
+                [("quotes", "yes") | stQuotes st]
   return (tit, auths, authsMeta, date, toc, thebody, newvars)
 
 -- | Prepare author for meta tag, converting notes into
@@ -261,9 +264,8 @@ elementToHtml slideLevel opts (Sec level num id' title' elements) = do
                         -- title slides have no content of their own
                         then filter isSec elements
                         else elements
-  let header'' = if (writerStrictMarkdown opts ||
-                     writerSectionDivs opts ||
-                     writerSlideVariant opts == S5Slides)
+  let header'' = if (writerStrictMarkdown opts || writerSectionDivs opts ||
+                     writerSlideVariant opts == S5Slides || slide)
                     then header'
                     else header' ! prefixedId opts id'
   let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
@@ -581,8 +583,12 @@ inlineToHtml opts inline =
                                               strToHtml "’")
                               DoubleQuote -> (strToHtml "“",
                                               strToHtml "”")
-                        in  do contents <- inlineListToHtml opts lst
-                               return $ leftQuote >> contents >> rightQuote
+                        in  if writerHtml5 opts
+                               then do
+                                 modify $ \st -> st{ stQuotes = True }
+                                 H.q `fmap` inlineListToHtml opts lst
+                               else (\x -> leftQuote >> x >> rightQuote)
+                                    `fmap` inlineListToHtml opts lst
     (Math t str) ->     modify (\st -> st {stMath = True}) >>
                         (case writerHTMLMathMethod opts of
                                LaTeXMathML _ ->
@@ -610,8 +616,8 @@ inlineToHtml opts inline =
                                             DisplayMath -> brtag >> m >> brtag
                                GladTeX ->
                                   return $ case t of
-                                             InlineMath -> preEscapedString "<EQ ENV=\"math\">" >> toHtml str >> preEscapedString "</EQ>"
-                                             DisplayMath -> preEscapedString "<EQ ENV=\"displaymath\">" >> toHtml str >> preEscapedString "</EQ>"
+                                             InlineMath -> preEscapedString $ "<EQ ENV=\"math\">" ++ str ++ "</EQ>"
+                                             DisplayMath -> preEscapedString $ "<EQ ENV=\"displaymath\">" ++ str ++ "</EQ>"
                                MathML _ -> do
                                   let dt = if t == InlineMath
                                               then DisplayInline

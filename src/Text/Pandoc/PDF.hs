@@ -57,8 +57,8 @@ tex2pdf' :: FilePath                        -- ^ temp directory for output
          -> IO (Either ByteString ByteString)
 tex2pdf' tmpDir program source = do
   let numruns = if "\\tableofcontents" `isInfixOf` source
-                   then 2
-                   else 1
+                   then 3  -- to get page numbers
+                   else 2  -- 1 run won't give you PDF bookmarks
   (exit, log', mbPdf) <- runTeXProgram program numruns tmpDir source
   let msg = "Error producing PDF from TeX source."
   case (exit, mbPdf) of

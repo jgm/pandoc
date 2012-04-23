@@ -1,9 +1,10 @@
 #!/bin/sh -e
 
-DIST=osx
+DIST=osx_package
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 RESOURCES=$DIST/Resources
 ROOT=$DIST/pandoc
+SCRIPTS=osx-resources
 BASE=pandoc-$VERSION
 ME=jgm
 
@@ -13,7 +14,7 @@ mkdir -p $RESOURCES
 
 echo Building pandoc...
 sudo cabal-dev install-deps
-sudo cabal-dev install --reinstall --flags="embed_data_files" citeproc-hs
+sudo cabal-dev install --flags="embed_data_files" citeproc-hs
 sudo cabal-dev install --disable-library-for-ghci highlighting-kate
 sudo cabal-dev install --prefix=/usr/local --datasubdir=$BASE --docdir=/usr/local/doc/$BASE --flags="executable -library"
 sudo cabal-dev copy --destdir=$ROOT
@@ -36,6 +37,7 @@ $PACKAGEMAKER \
     --resources $RESOURCES \
     --version $VERSION \
     --no-relocate \
+    --scripts $SCRIPTS \
     --out $BASE.pkg
 
 echo Creating disk image...

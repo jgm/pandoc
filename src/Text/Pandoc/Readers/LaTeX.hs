@@ -82,8 +82,15 @@ controlSeq name = try $ do
   case name of
         ""   -> mzero
         [c] | not (isLetter c) -> string [c]
-        cs   -> string cs <* optional sp
+        cs   -> string cs <* notFollowedBy letter <* optional sp
   return name
+
+dimenarg :: LP String
+dimenarg = try $ do
+  ch  <- option "" $ string "="
+  num <- many1 digit
+  dim <- oneOfStrings ["pt","pc","in","bp","cm","mm","dd","cc","sp"]
+  return $ ch ++ num ++ dim
 
 sp :: LP ()
 sp = skipMany1 $ satisfy (\c -> c == ' ' || c == '\t')
@@ -112,18 +119,28 @@ comment = do
   newline
   return ()
 
+bgroup :: LP ()
+bgroup = () <$ char '{'
+     <|> () <$ controlSeq "bgroup"
+     <|> () <$ controlSeq "begingroup"
+
+egroup :: LP ()
+egroup = () <$ char '}'
+     <|> () <$ controlSeq "egroup"
+     <|> () <$ controlSeq "endgroup"
+
 grouped :: Monoid a => LP a -> LP a
-grouped parser = try $ char '{' *> (mconcat <$> manyTill parser (char '}'))
+grouped parser = try $ bgroup *> (mconcat <$> manyTill parser egroup)
 
 braced :: LP String
-braced = char '{' *> (concat <$> manyTill
+braced = bgroup *> (concat <$> manyTill
          (  many1 (satisfy (\c -> c /= '\\' && c /= '}' && c /= '{'))
         <|> try (string "\\}")
         <|> try (string "\\{")
         <|> try (string "\\\\")
         <|> ((\x -> "{" ++ x ++ "}") <$> braced)
         <|> count 1 anyChar
-         ) (char '}'))
+         ) egroup)
 
 bracketed :: Monoid a => LP a -> LP a
 bracketed parser = try $ char '[' *> (mconcat <$> manyTill parser (char ']'))
@@ -181,7 +198,7 @@ inlines = mconcat <$> many (notFollowedBy (char '}') *> inline)
 
 block :: LP Blocks
 block = (mempty <$ comment)
-    <|> (mempty <$ ((spaceChar <|> blankline) *> spaces))
+    <|> (mempty <$ ((spaceChar <|> newline) *> spaces))
     <|> environment
     <|> mempty <$ macro -- TODO improve macros, make them work everywhere
     <|> blockCommand
@@ -304,16 +321,19 @@ inlineCommand = try $ do
   parseRaw <- stateParseRaw `fmap` getState
   star <- option "" (string "*")
   let name' = name ++ star
+  let rawargs = withRaw (skipopts *> option "" dimenarg
+                  *> many braced) >>= applyMacros' . snd
+  let raw = if parseRaw
+               then (rawInline "latex" . (('\\':name') ++)) <$> rawargs
+               else mempty <$> rawargs
   case M.lookup name' inlineCommands of
-       Just p      -> p
+       Just p      -> p <|> raw
        Nothing     -> case M.lookup name inlineCommands of
-                           Just p    -> p
-                           Nothing
-                             | parseRaw  ->
-                                (rawInline "latex" . (('\\':name') ++)) <$>
-                                 (withRaw (skipopts *> many braced)
-                                      >>= applyMacros' . snd)
-                             | otherwise -> return mempty
+                           Just p    -> p <|> raw
+                           Nothing   -> raw
+
+unlessParseRaw :: LP ()
+unlessParseRaw = getState >>= guard . not . stateParseRaw
 
 isBlockCommand :: String -> Bool
 isBlockCommand s = maybe False (const True) $ M.lookup s blockCommands
@@ -333,8 +353,8 @@ inlineCommands = M.fromList $
   , ("dots", lit "…")
   , ("mdots", lit "…")
   , ("sim", lit "~")
-  , ("label", inBrackets <$> tok)
-  , ("ref", inBrackets <$> tok)
+  , ("label", unlessParseRaw >> (inBrackets <$> tok))
+  , ("ref", unlessParseRaw >> (inBrackets <$> tok))
   , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
   , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
   , ("ensuremath", mathInline $ braced)
@@ -358,8 +378,6 @@ inlineCommands = M.fromList $
   , ("scshape", smallcaps <$> inlines)
   , ("bfseries", strong <$> inlines)
   , ("/", pure mempty) -- italic correction
-  , ("cc", lit "ç")
-  , ("cC", lit "Ç")
   , ("aa", lit "å")
   , ("AA", lit "Å")
   , ("ss", lit "ß")
@@ -374,11 +392,12 @@ inlineCommands = M.fromList $
   , ("copyright", lit "©")
   , ("`", option (str "`") $ try $ tok >>= accent grave)
   , ("'", option (str "'") $ try $ tok >>= accent acute)
-  , ("^", option (str "^") $ try $ tok >>= accent hat)
-  , ("~", option (str "~") $ try $ tok >>= accent circ)
+  , ("^", option (str "^") $ try $ tok >>= accent circ)
+  , ("~", option (str "~") $ try $ tok >>= accent tilde)
   , ("\"", option (str "\"") $ try $ tok >>= accent umlaut)
   , (".", option (str ".") $ try $ tok >>= accent dot)
   , ("=", option (str "=") $ try $ tok >>= accent macron)
+  , ("c", option (str "c") $ try $ tok >>= accent cedilla)
   , ("i", lit "i")
   , ("\\", linebreak <$ (optional (bracketed inline) *> optional sp))
   , (",", pure mempty)
@@ -502,33 +521,66 @@ acute 'E' = 'É'
 acute 'I' = 'Í'
 acute 'O' = 'Ó'
 acute 'U' = 'Ú'
+acute 'Y' = 'Ý'
 acute 'a' = 'á'
 acute 'e' = 'é'
 acute 'i' = 'í'
 acute 'o' = 'ó'
 acute 'u' = 'ú'
+acute 'y' = 'ý'
+acute 'C' = 'Ć'
+acute 'c' = 'ć'
+acute 'L' = 'Ĺ'
+acute 'l' = 'ĺ'
+acute 'N' = 'Ń'
+acute 'n' = 'ń'
+acute 'R' = 'Ŕ'
+acute 'r' = 'ŕ'
+acute 'S' = 'Ś'
+acute 's' = 'ś'
+acute 'Z' = 'Ź'
+acute 'z' = 'ź'
 acute c = c
 
-hat :: Char -> Char
-hat 'A' = 'Â'
-hat 'E' = 'Ê'
-hat 'I' = 'Î'
-hat 'O' = 'Ô'
-hat 'U' = 'Û'
-hat 'a' = 'ã'
-hat 'e' = 'ê'
-hat 'i' = 'î'
-hat 'o' = 'ô'
-hat 'u' = 'û'
-hat c = c
-
 circ :: Char -> Char
-circ 'A' = 'Ã'
-circ 'O' = 'Õ'
-circ 'o' = 'õ'
-circ 'N' = 'Ñ'
-circ 'n' = 'ñ'
-circ c   = c
+circ 'A' = 'Â'
+circ 'E' = 'Ê'
+circ 'I' = 'Î'
+circ 'O' = 'Ô'
+circ 'U' = 'Û'
+circ 'a' = 'â'
+circ 'e' = 'ê'
+circ 'i' = 'î'
+circ 'o' = 'ô'
+circ 'u' = 'û'
+circ 'C' = 'Ĉ'
+circ 'c' = 'ĉ'
+circ 'G' = 'Ĝ'
+circ 'g' = 'ĝ'
+circ 'H' = 'Ĥ'
+circ 'h' = 'ĥ'
+circ 'J' = 'Ĵ'
+circ 'j' = 'ĵ'
+circ 'S' = 'Ŝ'
+circ 's' = 'ŝ'
+circ 'W' = 'Ŵ'
+circ 'w' = 'ŵ'
+circ 'Y' = 'Ŷ'
+circ 'y' = 'ŷ'
+circ c = c
+
+tilde :: Char -> Char
+tilde 'A' = 'Ã'
+tilde 'a' = 'ã'
+tilde 'O' = 'Õ'
+tilde 'o' = 'õ'
+tilde 'I' = 'Ĩ'
+tilde 'i' = 'ĩ'
+tilde 'U' = 'Ũ'
+tilde 'u' = 'ũ'
+tilde 'N' = 'Ñ'
+tilde 'n' = 'ñ'
+tilde c   = c
 
 umlaut :: Char -> Char
 umlaut 'A' = 'Ä'
@@ -567,6 +619,13 @@ macron 'i' = 'ī'
 macron 'o' = 'ō'
 macron 'u' = 'ū'
 macron c = c
+
+cedilla :: Char -> Char
+cedilla 'c' = 'ç'
+cedilla 'C' = 'Ç'
+cedilla 's' = 'ş'
+cedilla 'S' = 'Ş'
+cedilla c = c
 
 tok :: LP Inlines
 tok = try $ grouped inline <|> inlineCommand <|> str <$> (count 1 $ inlineChar)
@@ -646,7 +705,7 @@ verbatimEnv = do
              controlSeq "begin"
              name <- braced
              guard $ name == "verbatim" || name == "Verbatim" ||
-                     name == "lstlisting"
+                     name == "lstlisting" || name == "minted"
              verbEnv name
   rest <- getInput
   return (r,rest)
@@ -678,20 +737,22 @@ environments = M.fromList
         verbEnv "code"))
   , ("verbatim", codeBlock <$> (verbEnv "verbatim"))
   , ("Verbatim", codeBlock <$> (verbEnv "Verbatim"))
-  , ("lstlisting", codeBlock <$> (verbEnv "listlisting"))
+  , ("lstlisting", codeBlock <$> (verbEnv "lstlisting"))
+  , ("minted", liftA2 (\l c -> codeBlockWith ("",[l],[]) c)
+            (grouped (many1 $ satisfy (/= '}'))) (verbEnv "minted"))
   , ("displaymath", mathEnv Nothing "displaymath")
   , ("equation", mathEnv Nothing "equation")
   , ("equation*", mathEnv Nothing "equation*")
   , ("gather", mathEnv (Just "gathered") "gather")
   , ("gather*", mathEnv (Just "gathered") "gather*")
-  , ("multiline", mathEnv (Just "gathered") "multiline")
-  , ("multiline*", mathEnv (Just "gathered") "multiline*")
-  , ("eqnarray", mathEnv (Just "aligned*") "eqnarray")
-  , ("eqnarray*", mathEnv (Just "aligned*") "eqnarray*")
-  , ("align", mathEnv (Just "aligned*") "align")
-  , ("align*", mathEnv (Just "aligned*") "align*")
-  , ("alignat", mathEnv (Just "aligned*") "alignat")
-  , ("alignat*", mathEnv (Just "aligned*") "alignat*")
+  , ("multline", mathEnv (Just "gathered") "multline")
+  , ("multline*", mathEnv (Just "gathered") "multline*")
+  , ("eqnarray", mathEnv (Just "aligned") "eqnarray")
+  , ("eqnarray*", mathEnv (Just "aligned") "eqnarray*")
+  , ("align", mathEnv (Just "aligned") "align")
+  , ("align*", mathEnv (Just "aligned") "align*")
+  , ("alignat", mathEnv (Just "aligned") "alignat")
+  , ("alignat*", mathEnv (Just "aligned") "alignat*")
   ]
 
 letter_contents :: LP Blocks
@@ -878,9 +939,9 @@ parseAligns :: LP [Alignment]
 parseAligns = try $ do
   char '{'
   optional $ char '|'
-  let cAlign = char 'c' >> return AlignCenter
-  let lAlign = char 'l' >> return AlignLeft
-  let rAlign = char 'r' >> return AlignRight
+  let cAlign = AlignCenter <$ char 'c'
+  let lAlign = AlignLeft <$ char 'l'
+  let rAlign = AlignRight <$ char 'r'
   let alignChar = optional sp *> (cAlign <|> lAlign <|> rAlign)
   aligns' <- sepEndBy alignChar (optional $ char '|')
   spaces
@@ -891,15 +952,19 @@ parseAligns = try $ do
 hline :: LP ()
 hline = () <$ (try $ spaces >> controlSeq "hline")
 
+lbreak :: LP ()
+lbreak = () <$ (try $ spaces *> controlSeq "\\")
+
+amp :: LP ()
+amp = () <$ (try $ spaces *> char '&')
+
 parseTableRow :: Int  -- ^ number of columns
               -> LP [Blocks]
 parseTableRow cols = try $ do
-  let amp = try $ spaces *> string "&"
-  let tableCellInline = notFollowedBy (amp <|> controlSeq "\\") >> inline
-  cells' <- sepBy ((plain . trimInlines . mconcat) <$> many tableCellInline) amp
+  let tableCellInline = notFollowedBy (amp <|> lbreak) >> inline
+  let tableCell = (plain . trimInlines . mconcat) <$> many tableCellInline
+  cells' <- sepBy tableCell amp
   guard $ length cells' == cols
-  spaces
-  optional $ controlSeq "\\"
   spaces
   return cells'
 
@@ -909,8 +974,8 @@ simpTable = try $ do
   aligns <- parseAligns
   let cols = length aligns
   optional hline
-  header' <- option [] $ try (parseTableRow cols <* hline)
-  rows <- many (parseTableRow cols <* optional hline)
+  header' <- option [] $ try (parseTableRow cols <* lbreak <* hline)
+  rows <- sepEndBy (parseTableRow cols) (lbreak <* optional hline)
   spaces
   let header'' = if null header'
                     then replicate cols mempty

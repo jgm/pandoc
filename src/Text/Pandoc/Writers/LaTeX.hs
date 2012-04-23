@@ -56,7 +56,6 @@ data WriterState =
               , stEnumerate     :: Bool          -- true if document needs fancy enumerated lists
               , stTable         :: Bool          -- true if document has a table
               , stStrikeout     :: Bool          -- true if document has strikeout
-              , stSubscript     :: Bool          -- true if document has subscript
               , stUrl           :: Bool          -- true if document has visible URL link
               , stGraphics      :: Bool          -- true if document contains images
               , stLHS           :: Bool          -- true if document has literate haskell code
@@ -65,6 +64,7 @@ data WriterState =
               , stHighlighting  :: Bool          -- true if document has highlighted code
               , stIncremental   :: Bool          -- true if beamer lists should be displayed bit by bit
               , stInternalLinks :: [String]      -- list of internal link targets
+              , stUsesEuro      :: Bool          -- true if euro symbol used
               }
 
 -- | Convert Pandoc to LaTeX.
@@ -74,12 +74,12 @@ writeLaTeX options document =
   WriterState { stInNote = False, stInTable = False,
                 stTableNotes = [], stOLLevel = 1, stOptions = options,
                 stVerbInNote = False, stEnumerate = False,
-                stTable = False, stStrikeout = False, stSubscript = False,
+                stTable = False, stStrikeout = False,
                 stUrl = False, stGraphics = False,
                 stLHS = False, stBook = writerChapters options,
                 stCsquotes = False, stHighlighting = False,
                 stIncremental = writerIncremental options,
-                stInternalLinks = [] }
+                stInternalLinks = [], stUsesEuro = False }
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
@@ -134,6 +134,8 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
                  , ("title", titletext)
+                 , ("title-meta", stringify title)
+                 , ("author-meta", intercalate "; " $ map stringify authors)
                  , ("date", dateText)
                  , ("documentclass", if writerBeamer options
                                         then "beamer"
@@ -145,14 +147,16 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  [ ("fancy-enums", "yes") | stEnumerate st ] ++
                  [ ("tables", "yes") | stTable st ] ++
                  [ ("strikeout", "yes") | stStrikeout st ] ++
-                 [ ("subscript", "yes") | stSubscript st ] ++
                  [ ("url", "yes") | stUrl st ] ++
                  [ ("numbersections", "yes") | writerNumberSections options ] ++
                  [ ("lhs", "yes") | stLHS st ] ++
                  [ ("graphics", "yes") | stGraphics st ] ++
                  [ ("book-class", "yes") | stBook st] ++
+                 [ ("euro", "yes") | stUsesEuro st] ++
                  [ ("listings", "yes") | writerListings options || stLHS st ] ++
                  [ ("beamer", "yes") | writerBeamer options ] ++
+                 [ ("mainlang", maybe "" (reverse . takeWhile (/=',') . reverse)
+                                (lookup "lang" $ writerVariables options)) ] ++
                  [ ("highlighting-macros", styleToLaTeX
                        $ writerHighlightStyle options ) | stHighlighting st ] ++
                  citecontext
@@ -169,10 +173,15 @@ elementToLaTeX opts (Sec level _ id' title' elements) = do
   return $ vcat (header' : innerContents)
 
 -- escape things as needed for LaTeX
-stringToLaTeX :: Bool -> String -> String
-stringToLaTeX _     []     = ""
-stringToLaTeX isUrl (x:xs) =
-  case x of
+stringToLaTeX :: Bool -> String -> State WriterState String
+stringToLaTeX _     []     = return ""
+stringToLaTeX isUrl (x:xs) = do
+  rest <- stringToLaTeX isUrl xs
+  when (x == '€') $
+     modify $ \st -> st{ stUsesEuro = True }
+  return $
+    case x of
+       '€' -> "\\euro{}" ++ rest
        '{' -> "\\{" ++ rest
        '}' -> "\\}" ++ rest
        '$' -> "\\$" ++ rest
@@ -183,10 +192,9 @@ stringToLaTeX isUrl (x:xs) =
        '-' -> case xs of   -- prevent adjacent hyphens from forming ligatures
                    ('-':_) -> "-{}" ++ rest
                    _       -> '-' : rest
-       '~' | not isUrl -> "\\ensuremath{\\sim}"
+       '~' | not isUrl -> "\\textasciitilde{}" ++ rest
        '^' -> "\\^{}" ++ rest
        '\\' -> "\\textbackslash{}" ++ rest
-       '€' -> "\\euro{}" ++ rest
        '|' -> "\\textbar{}" ++ rest
        '<' -> "\\textless{}" ++ rest
        '>' -> "\\textgreater{}" ++ rest
@@ -201,7 +209,6 @@ stringToLaTeX isUrl (x:xs) =
        '\x2014' -> "---" ++ rest
        '\x2013' -> "--" ++ rest
        _        -> x : rest
-    where rest = stringToLaTeX isUrl xs
 
 -- | Puts contents into LaTeX command.
 inCmd :: String -> Doc -> Doc
@@ -370,7 +377,7 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
   captionText <- inlineListToLaTeX caption
   let capt = if isEmpty captionText
                 then empty
-                else text "caption = " <> captionText <> "," <> space
+                else text "caption = {" <> captionText <> "}," <> space
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
   let rows'' = intersperse ("\\\\\\noalign{\\medskip}") rows'
   tableNotes <- liftM (reverse . stTableNotes) get
@@ -494,11 +501,7 @@ inlineToLaTeX (Strikeout lst) = do
 inlineToLaTeX (Superscript lst) =
   inlineListToLaTeX lst >>= return . inCmd "textsuperscript"
 inlineToLaTeX (Subscript lst) = do
-  modify $ \s -> s{ stSubscript = True }
-  contents <- inlineListToLaTeX lst
-  -- oddly, latex includes \textsuperscript but not \textsubscript
-  -- so we have to define it (using a different name so as not to conflict with memoir class):
-  return $ inCmd "textsubscr" contents
+  inlineListToLaTeX lst >>= return . inCmd "textsubscript"
 inlineToLaTeX (SmallCaps lst) =
   inlineListToLaTeX lst >>= return . inCmd "textsc"
 inlineToLaTeX (Cite cits lst) = do
@@ -525,8 +528,8 @@ inlineToLaTeX (Code (_,classes,_) str) = do
                   Nothing -> rawCode
                   Just  h -> modify (\st -> st{ stHighlighting = True }) >>
                              return (text h)
-         rawCode = return
-                 $ text $ "\\texttt{" ++ stringToLaTeX False str ++ "}" 
+         rawCode = liftM (text . (\s -> "\\texttt{" ++ s ++ "}"))
+                       $ stringToLaTeX False str
 inlineToLaTeX (Quoted SingleQuote lst) = do
   contents <- inlineListToLaTeX lst
   csquotes <- liftM stCsquotes get
@@ -553,7 +556,7 @@ inlineToLaTeX (Quoted DoubleQuote lst) = do
                    then "\\,"
                    else empty
        return $ "``" <> s1 <> contents <> s2 <> "''"
-inlineToLaTeX (Str str) = return $ text $ stringToLaTeX False str
+inlineToLaTeX (Str str) = liftM text $ stringToLaTeX False str
 inlineToLaTeX (Math InlineMath str) = return $ char '$' <> text str <> char '$'
 inlineToLaTeX (Math DisplayMath str) = return $ "\\[" <> text str <> "\\]"
 inlineToLaTeX (RawInline "latex" str) = return $ text str
@@ -561,13 +564,18 @@ inlineToLaTeX (RawInline "tex" str) = return $ text str
 inlineToLaTeX (RawInline _ _) = return empty
 inlineToLaTeX (LineBreak) = return "\\\\"
 inlineToLaTeX Space = return space
+inlineToLaTeX (Link txt ('#':ident, _)) = do
+  contents <- inlineListToLaTeX txt
+  ident' <- stringToLaTeX False ident
+  return $ text "\\hyperref" <> brackets (text ident') <> braces contents
 inlineToLaTeX (Link txt (src, _)) =
   case txt of
         [Code _ x] | x == src ->  -- autolink
              do modify $ \s -> s{ stUrl = True }
                 return $ text $ "\\url{" ++ x ++ "}"
         _ -> do contents <- inlineListToLaTeX txt
-                return $ text ("\\href{" ++ stringToLaTeX True src ++ "}{") <>
+                src' <- stringToLaTeX True src
+                return $ text ("\\href{" ++ src' ++ "}{") <>
                          contents <> char '}'
 inlineToLaTeX (Image _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True }

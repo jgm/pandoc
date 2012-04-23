@@ -146,7 +146,8 @@ writeDocx mbRefDocx opts doc@(Pandoc (Meta tit auths date) _) = do
   let styledoc = case findEntryByPath stylepath refArchive >>=
                       parseXMLDoc . toString . fromEntry of
                         Just d  -> d
-                        Nothing -> error $ stylepath ++ "missing in reference docx"
+                        Nothing -> error $ "Unable to parse " ++ stylepath ++
+                                           " from reference.docx"
   let styledoc' = styledoc{ elContent = elContent styledoc ++ map Elem newstyles }
   let styleEntry = toEntry stylepath epochtime $ fromString $ showTopElement' styledoc'
   -- construct word/numbering.xml
@@ -488,7 +489,10 @@ getParaProps :: WS [Element]
 getParaProps = do
   props <- gets stParaProperties
   listLevel <- gets stListLevel
-  numid <- getNumId
+  listMarker <- gets stListMarker
+  numid <- case listMarker of
+                 NoMarker -> return 1
+                 _        -> getNumId
   let listPr = if listLevel >= 0
                   then [ mknode "w:numPr" []
                          [ mknode "w:numId" [("w:val",show numid)] ()

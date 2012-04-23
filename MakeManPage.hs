@@ -1,4 +1,4 @@
--- Create pandoc.1 man page from README
+-- Create pandoc.1 man and pandoc_markdown.5 man pages from README
 import Text.Pandoc
 import Data.ByteString.UTF8 (toString, fromString)
 import Data.Char (toUpper)

@@ -120,6 +120,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.RST
+import Text.Pandoc.Readers.DocBook
 import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.HTML
 import Text.Pandoc.Readers.Textile
@@ -164,6 +165,7 @@ readers = [("native"       , \_ -> readNative)
           ,("rst"          , readRST)
           ,("rst+lhs"      , \st ->
                              readRST st{ stateLiterateHaskell = True})
+          ,("docbook"      , readDocBook)
           ,("textile"      , readTextile) -- TODO : textile+lhs 
           ,("html"         , readHtml)
           ,("latex"        , readLaTeX)
@@ -194,6 +196,8 @@ writers = [("native"       , writeNative)
                              writeLaTeX o{ writerLiterateHaskell = True })
           ,("beamer"       , \o ->
                              writeLaTeX o{ writerBeamer = True })
+          ,("beamer+lhs"   , \o ->
+                             writeLaTeX o{ writerBeamer = True, writerLiterateHaskell = True })
           ,("context"      , writeConTeXt)
           ,("texinfo"      , writeTexinfo)
           ,("man"          , writeMan)

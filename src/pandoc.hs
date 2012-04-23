@@ -295,14 +295,13 @@ options =
 
     , Option "V" ["variable"]
                  (ReqArg
-                  (\arg opt ->
-                     case break (`elem` ":=") arg of
-                          (k,_:v) -> do
-                            let newvars = optVariables opt ++ [(k,v)]
-                            return opt{ optVariables = newvars }
-                          _  -> err 17 $
-                            "Could not parse `" ++ arg ++ "' as a key/value pair (k=v or k:v)")
-                  "KEY:VALUE")
+                  (\arg opt -> do
+                     let (key,val) = case break (`elem` ":=") arg of
+                                       (k,_:v) -> (k,v)
+                                       (k,_)   -> (k,"true")
+                     let newvars = optVariables opt ++ [(key,val)]
+                     return opt{ optVariables = newvars })
+                  "KEY[:VALUE]")
                  "" -- "Use custom template"
 
     , Option "D" ["print-default-template"]
@@ -690,6 +689,7 @@ defaultReaderName fallback (x:xs) =
     ".ltx"      -> "latex"
     ".rst"      -> "rst"
     ".lhs"      -> "markdown+lhs"
+    ".db"       -> "docbook"
     ".textile"  -> "textile"
     ".native"   -> "native"
     ".json"     -> "json"
@@ -834,10 +834,12 @@ main = do
 
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
 
+  let laTeXOutput = writerName' == "latex" || writerName' == "beamer" ||
+         writerName' == "latex+lhs" || writerName' == "beamer+lhs"
+
   when pdfOutput $ do
     -- make sure writer is latex or beamer
-    unless (writerName' == "latex" || writerName' == "beamer" ||
-            writerName' == "latex+lhs") $
+    unless laTeXOutput $
       err 47 $ "cannot produce pdf output with " ++ writerName' ++ " writer"
     -- check for latex program
     mbLatex <- findExecutable latexEngine
@@ -917,14 +919,13 @@ main = do
                                                      lhsExtension sources,
                               stateStandalone      = standalone',
                               stateCitations       = map CSL.refId refs,
-                              stateSmart           = smart || writerName' `elem`
-                                                     ["latex", "context", "latex+lhs", "beamer"],
+                              stateSmart           = smart || laTeXOutput || writerName' == "context",
                               stateOldDashes       = oldDashes,
                               stateColumns         = columns,
                               stateStrict          = strict,
                               stateIndentedCodeClasses = codeBlockClasses,
-                              stateApplyMacros     = writerName' `notElem`
-                                                     ["latex", "latex+lhs", "beamer"] }
+                              stateApplyMacros     = not laTeXOutput
+                              }
 
   let writerOptions = defaultWriterOptions
                                     { writerStandalone       = standalone',
@@ -946,8 +947,7 @@ main = do
                                       writerReferenceLinks   = referenceLinks,
                                       writerWrapText         = wrap,
                                       writerColumns          = columns,
-                                      writerLiterateHaskell  = "+lhs" `isSuffixOf` writerName' ||
-                                                               lhsExtension [outputFile],
+                                      writerLiterateHaskell  = False,
                                       writerEmailObfuscation = if strict
                                                                   then ReferenceObfuscation
                                                                   else obfuscationMethod,
@@ -958,7 +958,7 @@ main = do
                                            slideVariant == DZSlides,
                                       writerChapters         = chapters,
                                       writerListings         = listings,
-                                      writerBeamer           = writerName' == "beamer",
+                                      writerBeamer           = False,
                                       writerSlideLevel       = slideLevel,
                                       writerHighlight        = highlight,
                                       writerHighlightStyle   = highlightStyle,
@@ -981,9 +981,7 @@ main = do
 
   let convertTabs = tabFilter (if preserveTabs then 0 else tabStop)
 
-  let handleIncludes' = if readerName' == "latex" || readerName' == "beamer" ||
-                           readerName' == "latex+lhs" ||
-                           readerName' == "context"
+  let handleIncludes' = if readerName' == "latex" || readerName' == "latex+lhs"
                            then handleIncludes
                            else return
 
@@ -1030,18 +1028,18 @@ main = do
           | writerName' == "docx"  ->
               writeDocx referenceDocx writerOptions doc2 >>= writeBinary
           | otherwise -> err 9 ("Unknown writer: " ++ writerName')
-        Just _
+        Just w
           | pdfOutput  -> do
-              res <- tex2pdf latexEngine $ writeLaTeX writerOptions doc2
+              res <- tex2pdf latexEngine $ w writerOptions doc2
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> err 43 $ toString err'
-        Just r
+        Just w
           | htmlFormat && ascii ->
                   writerFn outputFile =<< selfcontain (toEntities result)
           | otherwise ->
                   writerFn outputFile =<< selfcontain result
-          where result       = r writerOptions doc2 ++ ['\n' | not standalone']
+          where result       = w writerOptions doc2 ++ ['\n' | not standalone']
                 htmlFormat = writerName' `elem`
                                ["html","html+lhs","html5","html5+lhs",
                                "s5","slidy","dzslides"]

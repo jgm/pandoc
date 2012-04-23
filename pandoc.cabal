@@ -1,5 +1,5 @@
 Name:            pandoc
-Version:         1.9.1.1
+Version:         1.9.2
 Cabal-Version:   >= 1.10
 Build-Type:      Custom
 License:         GPL
@@ -193,7 +193,7 @@ Library
   Build-Depends: containers >= 0.1 && < 0.5,
                  parsec >= 3.1 && < 3.2,
                  blaze-html >= 0.4.3.0 && < 0.5,
-                 mtl >= 1.1 && < 2.1,
+                 mtl >= 1.1 && < 2.2,
                  network >= 2 && < 2.4,
                  filepath >= 1.1 && < 1.4,
                  process >= 1 && < 1.2,
@@ -213,7 +213,7 @@ Library
                  json >= 0.4 && < 0.6,
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
-                 zlib >= 0.5 && <= 0.6,
+                 zlib >= 0.5 && < 0.6,
                  highlighting-kate >= 0.5.0.2 && < 0.6,
                  temporary >= 1.1 && < 1.2
   if impl(ghc >= 6.10)
@@ -246,6 +246,7 @@ Library
                    Text.Pandoc.Readers.LaTeX,
                    Text.Pandoc.Readers.Markdown,
                    Text.Pandoc.Readers.RST,
+                   Text.Pandoc.Readers.DocBook,
                    Text.Pandoc.Readers.TeXMath,
                    Text.Pandoc.Readers.Textile,
                    Text.Pandoc.Readers.Native,
@@ -292,7 +293,7 @@ Executable pandoc
   Build-Depends: containers >= 0.1 && < 0.5,
                  parsec >= 3.1 && < 3.2,
                  blaze-html >= 0.4.3.0 && < 0.5,
-                 mtl >= 1.1 && < 2.1,
+                 mtl >= 1.1 && < 2.2,
                  network >= 2 && < 2.4,
                  filepath >= 1.1 && < 1.4,
                  process >= 1 && < 1.2,
@@ -312,7 +313,7 @@ Executable pandoc
                  json >= 0.4 && < 0.6,
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
-                 zlib >= 0.5 && <= 0.6,
+                 zlib >= 0.5 && < 0.6,
                  highlighting-kate >= 0.5.0.2 && < 0.6,
                  temporary >= 1.1 && < 1.2
   if impl(ghc >= 6.10)
@@ -350,7 +351,7 @@ Executable test-pandoc
   Build-Depends: containers >= 0.1 && < 0.5,
                  parsec >= 3.1 && < 3.2,
                  blaze-html >= 0.4.3.0 && < 0.5,
-                 mtl >= 1.1 && < 2.1,
+                 mtl >= 1.1 && < 2.2,
                  network >= 2 && < 2.4,
                  filepath >= 1.1 && < 1.4,
                  process >= 1 && < 1.2,
@@ -370,7 +371,7 @@ Executable test-pandoc
                  json >= 0.4 && < 0.6,
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
-                 zlib >= 0.5 && <= 0.6,
+                 zlib >= 0.5 && < 0.6,
                  highlighting-kate >= 0.5.0.2 && < 0.6,
                  temporary >= 1.1 && < 1.2
   if impl(ghc >= 6.10)
@@ -402,7 +403,7 @@ Executable test-pandoc
     else
       cpp-options:    -D_LIT=$lit
     Other-Extensions: TemplateHaskell, QuasiQuotes
-    Build-Depends:    Diff, test-framework >= 0.3 && < 0.6,
+    Build-Depends:    Diff, test-framework >= 0.3 && < 0.7,
                       test-framework-hunit >= 0.2 && < 0.3,
                       test-framework-quickcheck2 >= 0.2.9 && < 0.3,
                       QuickCheck >= 2.4 && < 2.6,
