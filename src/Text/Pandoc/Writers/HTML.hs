@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
@@ -46,12 +46,8 @@ import Data.List ( isPrefixOf, intersperse )
 import Data.String ( fromString )
 import Data.Maybe ( catMaybes )
 import Control.Monad.State
-#if MIN_VERSION_blaze_html(0,5,0)
 import Text.Blaze.Html hiding(contents)
 import Text.Blaze.Internal(preEscapedString)
-#else
-import Text.Blaze
-#endif
 import qualified Text.Blaze.Html5 as H5
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
