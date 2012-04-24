@@ -115,14 +115,15 @@ h1. Inline Markup
 
 This is _emphasized_, and so __is this__.
 This is *strong*, and so **is this**.
+Hyphenated-words-are-ok, as well as strange_underscore_notation.
 A "*strong link*":http://www.foobar.com.
 
 _*This is strong and em.*_
 So is *_this_* word and __**that one**__.
 -This is strikeout and *strong*-
 
-Superscripts:  a^bc^d a^*hello*^ a^hello there^.
-Subscripts: H~2~O, H~23~O, H~many of them~O.
+Superscripts: a[^bc^]d a^*hello*^ a[^hello there^].
+Subscripts: ~here~ H[~2~]O, H[~23~]O, H[~many of them~]O.
 
 Dashes : How cool -- automatic dashes.
 

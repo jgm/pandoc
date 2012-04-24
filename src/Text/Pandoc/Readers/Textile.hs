@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Textile
-   Copyright   : Copyright (C) 2010-2011 Paul Rivier and John MacFarlane
+   Copyright   : Copyright (C) 2010-2012 Paul Rivier and John MacFarlane
    License     : GNU GPL, version 2 or above 
 
    Maintainer  : Paul Rivier <paul*rivier#demotera*com>
@@ -62,7 +62,7 @@ import Text.Pandoc.Readers.HTML ( htmlTag, isInlineTag, isBlockTag )
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.ParserCombinators.Parsec
 import Text.HTML.TagSoup.Match
-import Data.Char ( digitToInt, isLetter )
+import Data.Char ( digitToInt, isUpper )
 import Control.Monad ( guard, liftM )
 import Control.Applicative ((<$>), (*>), (<*))
 
@@ -73,14 +73,6 @@ readTextile :: ParserState -- ^ Parser state, including options for parser
 readTextile state s =
   (readWith parseTextile) state{ stateOldDashes = True } (s ++ "\n\n")
 
-
---
--- Constants and data structure definitions
---
-
--- | Special chars border strings parsing
-specialChars :: [Char]
-specialChars = "\\[]<>*#_@~-+^&,.;:!?|\"'%()="
 
 -- | Generate a Pandoc ADT from a textile document
 parseTextile :: GenParser Char ParserState Pandoc
@@ -360,20 +352,26 @@ inlineParsers = [ autoLink
                 , rawHtmlInline
                 , rawLaTeXInline'
                 , note
-                , simpleInline (string "??") (Cite [])
-                , simpleInline (string "**") Strong
-                , simpleInline (string "__") Emph
-                , simpleInline (char '*') Strong
-                , simpleInline (char '_') Emph
-                , simpleInline (char '-') Strikeout
-                , simpleInline (char '^') Superscript
-                , simpleInline (char '~') Subscript
+                , try $ (char '[' *> inlineMarkup <* char ']')
+                , inlineMarkup
                 , link
                 , image
                 , mark
                 , smartPunctuation inline
                 , symbol
                 ]
+
+-- | Inline markups
+inlineMarkup :: GenParser Char ParserState Inline
+inlineMarkup = choice [ simpleInline (string "??") (Cite [])
+                      , simpleInline (string "**") Strong
+                      , simpleInline (string "__") Emph
+                      , simpleInline (char '*') Strong
+                      , simpleInline (char '_') Emph
+                      , simpleInline (char '-') Strikeout
+                      , simpleInline (char '^') Superscript
+                      , simpleInline (char '~') Subscript
+                      ]
 
 -- | Trademark, registered, copyright
 mark :: GenParser Char st Inline
@@ -400,33 +398,49 @@ copy = do
 
 note :: GenParser Char ParserState Inline
 note = try $ do
-  char '['
-  ref <- many1 digit
-  char ']'
-  state <- getState
-  let notes = stateNotes state
+  ref <- (char '[' *> many1 digit <* char ']')
+  notes <- stateNotes <$> getState
   case lookup ref notes of
     Nothing   -> fail "note not found"
     Just raw  -> liftM Note $ parseFromString parseBlocks raw
 
+-- | Special chars 
+markupChars :: [Char]
+markupChars = "\\[]*#_@~-+^|%="
+
+-- | Break strings on following chars. Space tab and newline break for
+--  inlines breaking. Open paren breaks for mark. Quote, dash and dot
+--  break for smart punctuation. Punctuation breaks for regular
+--  punctuation. Double quote breaks for named links. > and < break
+--  for inline html.
+stringBreakers :: [Char]
+stringBreakers = " \t\n('-.,:!?;\"<>"
+
+wordBoundaries :: [Char]
+wordBoundaries = markupChars ++ stringBreakers
+
+-- | Parse a hyphened sequence of words
+hyphenedWords :: GenParser Char ParserState String
+hyphenedWords = try $ do
+  hd <- noneOf wordBoundaries
+  tl <- many ( (noneOf wordBoundaries) <|> 
+               try (oneOf markupChars <* lookAhead (noneOf wordBoundaries) ) )
+  let wd = hd:tl
+  option wd $ try $ 
+    (\r -> concat [wd, "-", r]) <$> (char '-' *> hyphenedWords)
+
 -- | Any string
 str :: GenParser Char ParserState Inline
 str = do
-  xs <- many1 (noneOf (specialChars ++ "\t\n "))
-  optional $ try $ do
-    lookAhead (char '(')
-    notFollowedBy' mark
-    getInput >>= setInput . (' ':) -- add space before acronym explanation
-  -- parse a following hyphen if followed by a letter
-  -- (this prevents unwanted interpretation as starting a strikeout section)
-  result <- option xs $ try $ do
-              char '-'
-              next <- lookAhead letter
-              guard $ isLetter (last xs) || isLetter next
-              return $ xs ++ "-"
-  pos <- getPosition
-  updateState $ \s -> s{ stateLastStrPos = Just pos }
-  return $ Str result
+  baseStr <- hyphenedWords
+  -- RedCloth compliance : if parsed word is uppercase and immediatly
+  -- followed by parens, parens content is unconditionally word acronym
+  fullStr <- option baseStr $ try $ do
+    guard $ all isUpper baseStr
+    acro <- enclosed (char '(') (char ')') anyChar
+    return $ concat [baseStr, " (", acro, ")"]
+  updateLastStrPos
+  return $ Str fullStr
 
 -- | Textile allows HTML span infos, we discard them
 htmlSpan :: GenParser Char ParserState Inline
@@ -477,34 +491,36 @@ image = try $ do
 escapedInline :: GenParser Char ParserState Inline
 escapedInline = escapedEqs <|> escapedTag
 
--- | literal text escaped between == ... ==
 escapedEqs :: GenParser Char ParserState Inline
-escapedEqs = try $ do
-  string "=="
-  contents <- manyTill anyChar (try $ string "==")
-  return $ Str contents
+escapedEqs = Str <$> (try $ surrounded (string "==") anyChar)
+
+-- -- | literal text escaped between == ... ==
+-- escapedEqs :: GenParser Char ParserState Inline
+-- escapedEqs = try $ do
+--   string "=="
+--   contents <- manyTill anyChar (try $ string "==")
+--   return $ Str contents
 
 -- | literal text escaped btw <notextile> tags
 escapedTag :: GenParser Char ParserState Inline
-escapedTag = try $ Str <$> ( string "<notextile>" *> 
-                             manyTill anyChar (try $ string "</notextile>") )
+escapedTag = try $ Str <$>
+  enclosed (string "<notextile>") (string "</notextile>") anyChar
 
--- | Any special symbol defined in specialChars
+-- | Any special symbol defined in wordBoundaries
 symbol :: GenParser Char ParserState Inline
-symbol = Str . singleton <$> oneOf specialChars
+symbol = Str . singleton <$> oneOf wordBoundaries
 
 -- | Inline code
 code :: GenParser Char ParserState Inline
 code = code1 <|> code2
 
 code1 :: GenParser Char ParserState Inline
-code1 = surrounded (char '@') anyChar >>= return . Code nullAttr
+code1 = Code nullAttr <$> surrounded (char '@') anyChar
 
 code2 :: GenParser Char ParserState Inline
 code2 = do
   htmlTag (tagOpen (=="tt") null)
-  result' <- manyTill anyChar (try $ htmlTag $ tagClose (=="tt"))
-  return $ Code nullAttr result'
+  Code nullAttr <$> manyTill anyChar (try $ htmlTag $ tagClose (=="tt"))
 
 -- | Html / CSS attributes
 attributes :: GenParser Char ParserState String
