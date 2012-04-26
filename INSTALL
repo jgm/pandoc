@@ -130,3 +130,25 @@ This is essentially what the binary installer does.
 [blaze-html]: http://hackage.haskell.org/package/blaze-html
 [Cabal User's Guide]: http://www.haskell.org/cabal/release/latest/doc/users-guide/builders.html#setup-configure-paths
 
+
+Running tests
+-------------
+
+Pandoc comes with an automated test suite integrated to cabal. Data
+files are located under the 'tests' directory. If you implement a new
+feature, please update them to improve covering, and make sure by any
+necessary mean that the new reference native file is 100% correct.
+
+Also, tests require templates that leave in a separate git repository,
+tied into the main one as a git submodule. To populate 'template'
+directory, you must therefore run first :
+
+    git submodule update --init templates
+
+You are now ready to build tests :
+
+    cabal-dev install -ftests
+
+And finally run them !
+
+    cabal-dev test

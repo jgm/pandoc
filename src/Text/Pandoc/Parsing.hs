@@ -52,6 +52,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              failUnlessLHS,
                              escaped,
                              characterReference,
+                             updateLastStrPos,
                              anyOrderedListMarker,
                              orderedListMarker,
                              charRef,
@@ -785,6 +786,10 @@ charOrRef cs =
   oneOf cs <|> try (do c <- characterReference
                        guard (c `elem` cs)
                        return c)
+
+updateLastStrPos :: GenParser Char ParserState ()
+updateLastStrPos = getPosition >>= \p -> 
+  updateState $ \s -> s{ stateLastStrPos = Just p }
 
 singleQuoteStart :: GenParser Char ParserState ()
 singleQuoteStart = do
