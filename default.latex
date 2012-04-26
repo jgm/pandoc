@@ -103,6 +103,7 @@ $endif$
               pdfauthor={$author-meta$},
               pdftitle={$title-meta$},
               colorlinks=true,
+              urlcolor=blue,
               linkcolor=blue]{hyperref}
 \else
   \usepackage[unicode=true,
@@ -110,6 +111,7 @@ $endif$
               pdfauthor={$author-meta$},
               pdftitle={$title-meta$},
               colorlinks=true,
+              urlcolor=blue,
               linkcolor=blue]{hyperref}
 \fi
 \hypersetup{breaklinks=true, pdfborder={0 0 0}}
