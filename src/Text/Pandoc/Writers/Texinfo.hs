@@ -344,7 +344,8 @@ inlineListToTexinfo lst = mapM inlineToTexinfo lst >>= return . hcat
 -- | Convert list of inline elements to Texinfo acceptable for a node name.
 inlineListForNode :: [Inline]  -- ^ Inlines to convert
                   -> State WriterState Doc
-inlineListForNode = return . text . filter (not . disallowedInNode) . stringify
+inlineListForNode = return . text . stringToTexinfo .
+                    filter (not . disallowedInNode) . stringify
 
 -- periods, commas, colons, and parentheses are disallowed in node names
 disallowedInNode :: Char -> Bool
