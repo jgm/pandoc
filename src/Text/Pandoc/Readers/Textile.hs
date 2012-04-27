@@ -368,6 +368,7 @@ inlineMarkup = choice [ simpleInline (string "??") (Cite [])
                       , simpleInline (string "__") Emph
                       , simpleInline (char '*') Strong
                       , simpleInline (char '_') Emph
+                      , simpleInline (char '+') Emph  -- approximates underline
                       , simpleInline (char '-') Strikeout
                       , simpleInline (char '^') Superscript
                       , simpleInline (char '~') Subscript
