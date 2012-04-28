@@ -92,6 +92,7 @@ module Text.Pandoc
                , writeOpenDocument
                , writeMan
                , writeMediaWiki
+               , writePseudoPod
                , writeTextile
                , writeRTF
                , writeODT
@@ -139,6 +140,7 @@ import Text.Pandoc.Writers.OpenDocument
 import Text.Pandoc.Writers.Man
 import Text.Pandoc.Writers.RTF 
 import Text.Pandoc.Writers.MediaWiki
+import Text.Pandoc.Writers.PseudoPod
 import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.Org
 import Text.Pandoc.Writers.AsciiDoc
@@ -207,6 +209,7 @@ writers = [("native"       , writeNative)
           ,("rst+lhs"      , \o ->
                              writeRST o{ writerLiterateHaskell = True })
           ,("mediawiki"    , writeMediaWiki)
+          ,("pseudopod"    , writePseudoPod)
           ,("textile"      , writeTextile)
           ,("rtf"          , writeRTF)
           ,("org"          , writeOrg)

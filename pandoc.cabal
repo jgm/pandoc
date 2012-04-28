@@ -265,6 +265,7 @@ Library
                    Text.Pandoc.Writers.AsciiDoc,
                    Text.Pandoc.Writers.Textile,
                    Text.Pandoc.Writers.MediaWiki,
+                   Text.Pandoc.Writers.PseudoPod,
                    Text.Pandoc.Writers.RTF,
                    Text.Pandoc.Writers.ODT,
                    Text.Pandoc.Writers.Docx,

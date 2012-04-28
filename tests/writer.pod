@@ -1,0 +1,1166 @@
+=encoding utf8
+
+This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
+markdown test suite.
+
+
+
+=head1 Headers
+
+=head2 Level 2 with an L<embedded link|/url>
+
+=head3 Level 3 with I<emphasis>
+
+=head4 Level 4
+
+=head5 Level 5
+
+=head1 Level 1
+
+=head2 Level 2 with I<emphasis>
+
+=head3 Level 3
+
+with no blank line
+
+=head2 Level 2
+
+with no blank line
+
+
+
+=head1 Paragraphs
+
+Here’s a regular paragraph.
+
+In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
+Because a hard-wrapped line in the middle of a paragraph looked like a list
+item.
+
+Here’s one with a bullet. * criminey.
+
+There should be a hard line break\
+here.
+
+
+
+=head1 Block Quotes
+
+E-mail style:
+
+=begin blockquote
+
+This is a block quote. It is pretty short.
+
+=end blockquote
+
+=begin blockquote
+
+Code in a block quote:
+
+   sub status {
+       print "working";
+   }
+
+A list:
+
+=over
+
+=item 1. 
+
+item one
+
+=item 2. 
+
+item two
+
+=back
+
+Nested block quotes:
+
+=begin blockquote
+
+nested
+
+=end blockquote
+
+=begin blockquote
+
+nested
+
+=end blockquote
+
+=end blockquote
+
+This should not be a block quote: 2 E<gt> 1.
+
+And a following paragraph.
+
+
+
+=head1 Code Blocks
+
+Code:
+
+   ---- (should be four hyphens)
+
+   sub status {
+       print "working";
+   }
+
+   this code block is indented by one tab
+
+And:
+
+       this code block is indented by two tabs
+
+   These should not be escaped:  \$ \\ \> \[ \{
+
+
+
+=head1 Lists
+
+=head2 Unordered
+
+Asterisks tight:
+
+=over
+
+=item *
+
+asterisk 1
+
+=item *
+
+asterisk 2
+
+=item *
+
+asterisk 3
+
+=back
+
+Asterisks loose:
+
+=over
+
+=item *
+
+asterisk 1
+
+=item *
+
+asterisk 2
+
+=item *
+
+asterisk 3
+
+=back
+
+Pluses tight:
+
+=over
+
+=item *
+
+Plus 1
+
+=item *
+
+Plus 2
+
+=item *
+
+Plus 3
+
+=back
+
+Pluses loose:
+
+=over
+
+=item *
+
+Plus 1
+
+=item *
+
+Plus 2
+
+=item *
+
+Plus 3
+
+=back
+
+Minuses tight:
+
+=over
+
+=item *
+
+Minus 1
+
+=item *
+
+Minus 2
+
+=item *
+
+Minus 3
+
+=back
+
+Minuses loose:
+
+=over
+
+=item *
+
+Minus 1
+
+=item *
+
+Minus 2
+
+=item *
+
+Minus 3
+
+=back
+
+=head2 Ordered
+
+Tight:
+
+=over
+
+=item 1. 
+
+First
+
+=item 2. 
+
+Second
+
+=item 3. 
+
+Third
+
+=back
+
+and:
+
+=over
+
+=item 1. 
+
+One
+
+=item 2. 
+
+Two
+
+=item 3. 
+
+Three
+
+=back
+
+Loose using tabs:
+
+=over
+
+=item 1. 
+
+First
+
+=item 2. 
+
+Second
+
+=item 3. 
+
+Third
+
+=back
+
+and using spaces:
+
+=over
+
+=item 1. 
+
+One
+
+=item 2. 
+
+Two
+
+=item 3. 
+
+Three
+
+=back
+
+Multiple paragraphs:
+
+=over
+
+=item 1. 
+
+Item 1, graf one.
+
+Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
+
+=item 2. 
+
+Item 2.
+
+=item 3. 
+
+Item 3.
+
+=back
+
+=head2 Nested
+
+=over
+
+=item *
+
+Tab
+
+=over
+
+=item *
+
+Tab
+
+=over
+
+=item *
+
+Tab
+
+=back
+
+=back
+
+=back
+
+Here’s another:
+
+=over
+
+=item 1. 
+
+First
+
+=item 2. 
+
+Second:
+
+=over
+
+=item *
+
+Fee
+
+=item *
+
+Fie
+
+=item *
+
+Foe
+
+=back
+
+=item 3. 
+
+Third
+
+=back
+
+Same thing but with paragraphs:
+
+=over
+
+=item 1. 
+
+First
+
+=item 2. 
+
+Second:
+
+=over
+
+=item *
+
+Fee
+
+=item *
+
+Fie
+
+=item *
+
+Foe
+
+=back
+
+=item 3. 
+
+Third
+
+=back
+
+=head2 Tabs and spaces
+
+=over
+
+=item *
+
+this is a list item indented with tabs
+
+=item *
+
+this is a list item indented with spaces
+
+=over
+
+=item *
+
+this is an example list item indented with tabs
+
+=item *
+
+this is an example list item indented with spaces
+
+=back
+
+=back
+
+=head2 Fancy list markers
+
+=over
+
+=item (2)
+
+begins with 2
+
+=item (3)
+
+and now 3
+
+with a continuation
+
+=over
+
+=item iv.
+
+sublist with roman numerals, starting with 4
+
+=item v. 
+
+more items
+
+=over
+
+=item (A)
+
+a subsublist
+
+=item (B)
+
+a subsublist
+
+=back
+
+=back
+
+=back
+
+Nesting:
+
+=over
+
+=item A. 
+
+Upper Alpha
+
+=over
+
+=item I. 
+
+Upper Roman.
+
+=over
+
+=item (6)
+
+Decimal start with 6
+
+=over
+
+=item c) 
+
+Lower alpha with paren
+
+=back
+
+=back
+
+=back
+
+=back
+
+Autonumbering:
+
+=over
+
+=item 1. 
+
+Autonumber.
+
+=item 2. 
+
+More.
+
+=over
+
+=item 1. 
+
+Nested.
+
+=back
+
+=back
+
+Should not be a list item:
+
+M.A. 2007
+
+B. Williams
+
+
+
+=head1 Definition Lists
+
+Tight using spaces:
+
+=over
+
+=item apple
+
+red fruit
+
+=item orange
+
+orange fruit
+
+=item banana
+
+yellow fruit
+
+=back
+
+Tight using tabs:
+
+=over
+
+=item apple
+
+red fruit
+
+=item orange
+
+orange fruit
+
+=item banana
+
+yellow fruit
+
+=back
+
+Loose:
+
+=over
+
+=item apple
+
+red fruit
+
+=item orange
+
+orange fruit
+
+=item banana
+
+yellow fruit
+
+=back
+
+Multiple blocks with italics:
+
+=over
+
+=item I<apple>
+
+red fruit
+
+contains seeds, crisp, pleasant to taste
+
+=item I<orange>
+
+orange fruit
+
+   { orange code block }
+
+=begin blockquote
+
+orange block quote
+
+=end blockquote
+
+=back
+
+Multiple definitions, tight:
+
+=over
+
+=item apple
+
+red fruit
+computer
+
+=item orange
+
+orange fruit
+bank
+
+=back
+
+Multiple definitions, loose:
+
+=over
+
+=item apple
+
+red fruit
+computer
+
+=item orange
+
+orange fruit
+bank
+
+=back
+
+Blank line after term, indented marker, alternate markers:
+
+=over
+
+=item apple
+
+red fruit
+computer
+
+=item orange
+
+orange fruit
+
+=over
+
+=item 1. 
+
+sublist
+
+=item 2. 
+
+sublist
+
+=back
+
+=back
+
+=head1 HTML Blocks
+
+Simple block on one line:
+
+<div>
+
+
+foo
+
+</div>
+
+
+
+And nested without indentation:
+
+<div>
+<div>
+<div>
+
+
+foo
+
+</div>
+</div>
+<div>
+
+
+bar
+
+</div>
+</div>
+
+
+
+Interpreted markdown in a table:
+
+<table>
+<tr>
+<td>
+
+
+This is I<emphasized>
+
+</td>
+<td>
+
+
+And this is B<strong>
+
+</td>
+</tr>
+</table>
+
+<script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
+
+
+
+Here’s a simple block:
+
+<div>
+    
+
+
+foo
+
+</div>
+
+
+
+This should be a code block, though:
+
+   <div>
+       foo
+   </div>
+
+As should this:
+
+   <div>foo</div>
+
+Now, nested:
+
+<div>
+    <div>
+        <div>
+            
+
+
+foo
+
+</div>
+    </div>
+</div>
+
+
+
+This should just be an HTML comment:
+
+<!-- Comment -->
+
+
+
+Multiline:
+
+<!--
+Blah
+Blah
+-->
+
+<!--
+    This is another comment.
+-->
+
+
+
+Code block:
+
+   <!-- Comment -->
+
+Just plain comment, with trailing spaces on the line:
+
+<!-- foo -->   
+
+
+
+Code:
+
+   <hr />
+
+Hr’s:
+
+<hr>
+
+<hr />
+
+<hr />
+
+<hr>   
+
+<hr />  
+
+<hr /> 
+
+<hr class="foo" id="bar" />
+
+<hr class="foo" id="bar" />
+
+<hr class="foo" id="bar">
+
+
+
+
+
+=head1 Inline Markup
+
+This is I<emphasized>, and so I<is this>.
+
+This is B<strong>, and so B<is this>.
+
+An I<L<emphasized link|/url>>.
+
+B<I<This is strong and em.>>
+
+So is B<I<this>> word.
+
+B<I<This is strong and em.>>
+
+So is B<I<this>> word.
+
+This is code: C<< E<gt> >>, C<< $ >>, C<< \ >>, C<< \$ >>,
+C<< E<lt>htmlE<gt> >>.
+
+This is I<strikeout>.
+
+Superscripts: aG<bc>d aG<I<hello>> aG<hello there>.
+
+Subscripts: HH<2>O, HH<23>O, HH<many of them>O.
+
+These should not be superscripts or subscripts, because of the unescaped
+spaces: a^b c^d, a~b c~d.
+
+
+
+=head1 Smart quotes, ellipses, dashes
+
+“Hello,” said the spider. “‘Shelob’ is my name.”
+
+‘A’, ‘B’, and ‘C’ are letters.
+
+‘Oak,’ ‘elm,’ and ‘beech’ are names of trees. So is ‘pine.’
+
+‘He said, “I want to go.”’ Were you alive in the 70’s?
+
+Here is some quoted ‘C<< code >>’ and a “U<quoted
+link|http://example.com/?foo=1&bar=2>”.
+
+Some dashes: one—two — three—four — five.
+
+Dashes between numbers: 5–7, 255–66, 1987–1999.
+
+Ellipses…and…and….
+
+
+
+=head1 LaTeX
+
+=over
+
+=item *
+
+\cite[22-23]{smith.1899}
+
+=item *
+
+$2+2=4$
+
+=item *
+
+$x \in y$
+
+=item *
+
+$\alpha \wedge \omega$
+
+=item *
+
+$223$
+
+=item *
+
+$p$-Tree
+
+=item *
+
+Here’s some display math:
+$$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$
+
+=item *
+
+Here’s one that has a line break in it: $\alpha + \omega \times x^2$.
+
+=back
+
+These shouldn’t be math:
+
+=over
+
+=item *
+
+To get the famous equation, write C<< $e = mc^2$ >>.
+
+=item *
+
+$22,000 is a I<lot> of money. So is $34,000. (It worked if “lot” is
+emphasized.)
+
+=item *
+
+Shoes ($20) and socks ($5).
+
+=item *
+
+Escaped C<< $ >>: $73 I<this should be emphasized> 23$.
+
+=back
+
+Here’s a LaTeX table:
+
+\begin{tabular}{|l|l|}\hline
+Animal & Number \\ \hline
+Dog    & 2      \\
+Cat    & 1      \\ \hline
+\end{tabular}
+
+
+
+
+=head1 Special Characters
+
+Here is some unicode:
+
+=over
+
+=item *
+
+I hat: Î
+
+=item *
+
+o umlaut: ö
+
+=item *
+
+section: §
+
+=item *
+
+set membership: ∈
+
+=item *
+
+copyright: ©
+
+=back
+
+AT&T has an ampersand in their name.
+
+AT&T is another way to write it.
+
+This & that.
+
+4 E<lt> 5.
+
+6 E<gt> 5.
+
+Backslash: \
+
+Backtick: `
+
+Asterisk: *
+
+Underscore: _
+
+Left brace: {
+
+Right brace: }
+
+Left bracket: [
+
+Right bracket: ]
+
+Left paren: (
+
+Right paren: )
+
+Greater-than: E<gt>
+
+Hash: #
+
+Period: .
+
+Bang: !
+
+Plus: +
+
+Minus: -
+
+
+
+=head1 Links
+
+=head2 Explicit
+
+Just a L<URL|/url/>.
+
+L<URL and title|/url/>.
+
+L<URL and title|/url/>.
+
+L<URL and title|/url/>.
+
+L<URL and title|/url/>
+
+L<URL and title|/url/>
+
+L<with_underscore|/url/with_underscore>
+
+L<Email link|mailto:nobody@nowhere.net>
+
+L<Empty|>.
+
+=head2 Reference
+
+Foo L<bar|/url/>.
+
+Foo L<bar|/url/>.
+
+Foo L<bar|/url/>.
+
+With L<embedded [brackets]|/url/>.
+
+L<b|/url/> by itself should be a link.
+
+Indented L<once|/url>.
+
+Indented L<twice|/url>.
+
+Indented L<thrice|/url>.
+
+This should [not][] be a link.
+
+   [not]: /url
+
+Foo L<bar|/url/>.
+
+Foo L<biz|/url/>.
+
+=head2 With ampersands
+
+Here’s a U<link with an ampersand in the URL|http://example.com/?foo=1&bar=2>.
+
+Here’s a link with an amersand in the link text: U<AT&T|http://att.com/>.
+
+Here’s an L<inline link|/script?foo=1&bar=2>.
+
+Here’s an L<inline link in pointy braces|/script?foo=1&bar=2>.
+
+=head2 Autolinks
+
+With an ampersand:
+U<C<< http:E<sol>E<sol>example.comE<sol>?foo=1&bar=2 >>|http://example.com/?foo=1&bar=2>
+
+=over
+
+=item *
+
+In a list?
+
+=item *
+
+U<C<< http:E<sol>E<sol>example.comE<sol> >>|http://example.com/>
+
+=item *
+
+It should.
+
+=back
+
+An e-mail address: L<C<< nobody@nowhere.net >>|mailto:nobody@nowhere.net>
+
+=begin blockquote
+
+Blockquoted: U<C<< http:E<sol>E<sol>example.comE<sol> >>|http://example.com/>
+
+=end blockquote
+
+Auto-links should not occur here:
+C<< E<lt>http:E<sol>E<sol>example.comE<sol>E<gt> >>
+
+   or here: <http://example.com/>
+
+
+
+=head1 Images
+
+From “Voyage dans la Lune” by Georges Melies (1902):
+
+!L<lalune|lalune.jpg>
+
+Here is a movie !L<movie|movie.jpg> icon.
+
+
+
+=head1 Footnotes
+
+Here is a footnote reference,N<Here is the footnote. It can go anywhere after
+the footnote reference. It need not be placed at the end of the document.> and
+another.N<Here’s the long note. This one contains multiple blocks.> This
+should I<not> be a footnote reference, because it contains a space.[^my note]
+Here is an inline note.N<This is I<easier> to type. Inline notes may contain
+U<links|http://google.com> and C<< ] >> verbatim characters, as well as
+[bracketed text].>
+
+=begin blockquote
+
+Notes can go in quotes.N<In quote.>
+
+=end blockquote
+
+=over
+
+=item 1. 
+
+And in list items.N<In list.>
+
+=back
+
+This paragraph should not be part of the note, as it is not indented.

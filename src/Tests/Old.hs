@@ -104,7 +104,7 @@ tests = [ testGroup "markdown"
           ]
         , testGroup "other writers" $ map (\f -> testGroup f $ writerTests f)
           [ "docbook", "opendocument" , "context" , "texinfo"
-          , "man" , "plain" , "mediawiki", "rtf", "org", "asciidoc"
+          , "man" , "plain" , "mediawiki", "rtf", "org", "asciidoc", "pseudopod"
           ]
         ]
 
