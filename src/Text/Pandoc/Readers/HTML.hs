@@ -46,8 +46,14 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Data.Maybe ( fromMaybe, isJust )
 import Data.List ( intercalate )
-import Data.Char ( isSpace, isDigit, toLower )
+import Data.Char ( isDigit, toLower )
 import Control.Monad ( liftM, guard, when )
+
+isSpace :: Char -> Bool
+isSpace ' '  = True
+isSpace '\t' = True
+isSpace '\n' = True
+isSpace _    = False
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: ParserState   -- ^ Parser state
