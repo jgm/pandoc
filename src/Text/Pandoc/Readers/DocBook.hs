@@ -7,6 +7,7 @@ import Data.Monoid
 import Data.Char (isSpace)
 import Control.Monad.State
 import Control.Applicative ((<$>))
+import Data.List (intersperse)
 
 {-
 
@@ -427,7 +428,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] tasksummary - A summary of a task
 [ ] tbody - A wrapper for the rows of a table or informal table
 [ ] td - A table entry in an HTML table
-[ ] term - The word or phrase being defined or described in a variable list
+[x] term - The word or phrase being defined or described in a variable list
 [ ] termdef - An inline term definition
 [ ] tertiary - A tertiary word or phrase in an index term
 [ ] tertiaryie - A tertiary term in an index entry, rather than in the text
@@ -469,9 +470,9 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] userinput - Data entered by the user
 [x] varargs - An empty element in a function synopsis indicating a variable
     number of arguments
-[ ] variablelist - A list in which each entry is composed of a set of one or
+[x] variablelist - A list in which each entry is composed of a set of one or
     more terms and an associated description
-[ ] varlistentry - A wrapper for a set of terms and the associated description
+[x] varlistentry - A wrapper for a set of terms and the associated description
     in a variable list
 [x] varname - The name of a variable
 [ ] videodata - Pointer to external video data
@@ -517,19 +518,20 @@ attrValue attr elt =
     Just z  -> z
     Nothing -> ""
 
+-- convenience function
+named :: String -> Element -> Bool
+named s e = qName (elName e) == s
+
 -- function that is used by both mediaobject (in parseBlock) 
 -- and inlinemediaobject (in parseInline)
 getImage :: Element -> DB Inlines
 getImage e = do
-  imageUrl <- case filterChild
-              (\e' -> qName (elName e') == "imageobject") e of
+  imageUrl <- case filterChild (named "imageobject") e of
                 Nothing  -> return mempty
-                Just z   -> case filterChild
-                            (\e' -> qName (elName e') == "imagedata") z of
+                Just z   -> case filterChild (named "imagedata") z of
                               Nothing -> return mempty
                               Just i -> return $ attrValue "fileref" i
-  caption <- case filterChild
-             (\e' -> qName (elName e') == "caption") e of
+  caption <- case filterChild (named "caption") e of
                Nothing  -> return mempty
                Just z   -> mconcat <$> (mapM parseInline $ elContent z)
   return $ image imageUrl "" caption
@@ -543,8 +545,7 @@ parseBlock (Elem e) =
   case qName (elName e) of
         "para"  -> para <$> getInlines e
         "blockquote" -> do
-            attrib <- case filterChild
-                           (\e' -> qName (elName e') == "attribution") e of
+            attrib <- case filterChild (named "attribution") e of
                              Nothing  -> return mempty
                              Just z   -> (para . (str "— " <>) . mconcat)
                                          <$> (mapM parseInline $ elContent z)
@@ -560,6 +561,7 @@ parseBlock (Elem e) =
         "abstract" -> blockQuote <$> getBlocks e
         "itemizedlist" -> bulletList <$> listitems
         "orderedlist" -> orderedList <$> listitems -- TODO list attributes
+        "variablelist" -> definitionList <$> deflistitems
         "mediaobject" -> para <$> (getImage e)
         "caption" -> return mempty
         "info" -> getTitle >> getAuthors >> getDate >> return mempty
@@ -570,11 +572,20 @@ parseBlock (Elem e) =
    where getBlocks e' =  mconcat <$> (mapM parseBlock $ elContent e')
          getInlines e' = (trimInlines . mconcat) <$>
                        (mapM parseInline $ elContent e')
-         isTitle e' = qName (elName e') == "title"
          skipWhite (Text (CData _ s _):xs) | all isSpace s = skipWhite xs
                                            | otherwise     = xs
          skipWhite xs = xs
-         listitems = mapM getBlocks $ filterChildren (\e' -> qName (elName e') == "listitem") e
+         listitems = mapM getBlocks $ filterChildren (named "listitem") e
+         deflistitems = mapM parseVarListEntry $ filterChildren
+                     (named "varlistentry") e
+         parseVarListEntry e' = do
+                     let defs = filterChildren (named "term") e'
+                     let items = filterChildren (named "listitem") e'
+                     defs' <- mapM ((mconcat <$>) . mapM parseInline)
+                                 $ map elContent defs
+                     items' <- mapM ((mconcat <$>) . mapM parseBlock)
+                                 $ map elContent items
+                     return (mconcat $ intersperse (str "; ") defs', items')
          getTitle = case findChild (unqual "title") e of
                          Just t  -> do
                             tit <- getInlines t
@@ -591,7 +602,7 @@ parseBlock (Elem e) =
                          Nothing -> return ()
          sect n = case skipWhite (elContent e) of
                         ((Elem t):body)
-                          | isTitle t -> do
+                          | named "title" t -> do
                                   h <- header n <$> (getInlines t)
                                   modify $ \st -> st{ dbSectionLevel = n }
                                   b <- mconcat <$> (mapM parseBlock body)
