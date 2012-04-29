@@ -220,7 +220,7 @@ List of all DocBook tags, with [x] indicating implemented:
     a document
 [ ] lotentry - An entry in a list of titles
 [ ] manvolnum - A reference volume number
-[ ] markup - A string of formatting markup in text that is to be
+[x] markup - A string of formatting markup in text that is to be
     represented literally
 [ ] mathphrase - A mathematical phrase, an expression that can be represented
     with ordinary text and a small amount of markup
@@ -482,7 +482,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] volumenum - The volume number of a document in a set (as of books in a set
     or articles in a journal)
 [ ] warning - An admonition set off from the text
-[ ] wordasword - A word meant specifically as a word and not representing
+[x] wordasword - A word meant specifically as a word and not representing
     anything else
 [ ] xref - A cross reference to another part of the document
 [ ] year - The year of publication of a document
@@ -634,6 +634,8 @@ parseInline (Elem e) =
                         else doubleQuoted contents
         "code" -> return $ code $ strContent e -- TODO attrs
         "literal" -> return $ code $ strContent e -- TODO attrs
+        "markup" -> return $ code $ strContent e -- TODO attrs
+        "wordasword" -> emph <$> innerInlines
         "varname" -> return $ codeWith ("",["varname"],[]) $ strContent e
         "function" -> return $ codeWith ("",["function"],[]) $ strContent e
         "type"    -> return $ codeWith ("",["type"],[]) $ strContent e
