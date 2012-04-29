@@ -31,7 +31,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] areaset - A set of related areas in a graphic or code example
 [ ] areaspec - A collection of regions in a graphic or code example
 [ ] arg - An argument in a CmdSynopsis
-[ ] article - An article
+[x] article - An article
 [x] articleinfo - Meta-information for an Article
 [ ] artpagenums - The page numbers of an article as published
 [x] attribution - The source of a block quote or epigraph
@@ -41,7 +41,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] authorblurb - A short description or note about an author
 [ ] authorgroup - Wrapper for author information when a document has
     multiple authors or collabarators
-[ ] authorinitials - The initials or other short identifier for an author
+[x] authorinitials - The initials or other short identifier for an author
 [ ] beginpage - The location of a page break in a print version of the document
 [ ] bibliocoverage - The spatial or temporal coverage of a document
 [ ] bibliodiv - A section of a Bibliography
@@ -130,12 +130,12 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] fax - A fax number
 [ ] fieldsynopsis - The name of a field in a class definition
 [ ] figure - A formal figure, generally an illustration, with a title
-[ ] filename - The name of a file
+[x] filename - The name of a file
 [ ] firstname - The first name of a person
 [ ] firstterm - The first occurrence of a term
 [x] footnote - A footnote
 [ ] footnoteref - A cross reference to a footnote (a footnote mark)
-[ ] foreignphrase - A word or phrase in a language other than the primary
+[x] foreignphrase - A word or phrase in a language other than the primary
     language of the document
 [ ] formalpara - A paragraph with a title
 [ ] funcdef - A function (subroutine) name and its return type
@@ -555,7 +555,8 @@ parseBlock (Elem e) =
             return $ blockQuote (contents <> attrib)
         "attribution" -> return mempty
         "titleabbrev" -> return mempty
-        "title" -> return mempty -- handled by getTitle
+        "authorinitials" -> return mempty
+        "title" -> return mempty -- handled by getTitle or sect
         "chapter" -> sect 0
         "appendix" -> sect 0
         "preface" -> sect 0
@@ -645,6 +646,7 @@ parseInline (Elem e) =
                         then singleQuoted contents
                         else doubleQuoted contents
         "code" -> return $ code $ strContent e -- TODO attrs
+        "filename" -> return $ code $ strContent e -- TODO attrs
         "literal" -> return $ code $ strContent e -- TODO attrs
         "markup" -> return $ code $ strContent e -- TODO attrs
         "wordasword" -> emph <$> innerInlines
@@ -660,6 +662,7 @@ parseInline (Elem e) =
                        Just href -> link href "" <$> innerInlines
                        _         -> link ('#' : attrValue "linkend" e) ""
                                       <$> innerInlines
+        "foreignphrase" -> emph <$> innerInlines
         "emphasis" -> case attrValue "role" e of
                              "strong" -> strong <$> innerInlines
                              _        -> emph <$> innerInlines
