@@ -1633,6 +1633,10 @@ work in verbatim contexts:
 
     This is a backslash followed by an asterisk: `\*`.
 
+Attributes can be attached to verbatim text, just as with
+[delimited code blocks](#delimited-code-blocks):
+
+    `<$>`{.haskell}
 
 Math
 ----
