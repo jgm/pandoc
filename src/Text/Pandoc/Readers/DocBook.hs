@@ -6,7 +6,7 @@ import Text.XML.Light
 import Data.Monoid
 import Data.Char (isSpace)
 import Control.Monad.State
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), (<$))
 import Data.List (intersperse)
 
 {-
@@ -24,7 +24,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] alt - Text representation for a graphical element
 [ ] anchor - A spot in the document
 [ ] answer - An answer to a question posed in a QandASet
-[ ] appendix - An appendix in a Book or Article
+[x] appendix - An appendix in a Book or Article
 [ ] appendixinfo - Meta-information for an Appendix
 [ ] application - The name of a software program
 [ ] area - A region defined for a Callout in a graphic or code example
@@ -59,8 +59,8 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] bibliosource - The source of a document
 [ ] blockinfo - Meta-information for a block element
 [x] blockquote - A quotation set off from the main text
-[ ] book - A book
-[ ] bookinfo - Meta-information for a Book
+[x] book - A book
+[x] bookinfo - Meta-information for a Book
 [ ] bridgehead - A free-floating heading
 [ ] callout - A “called out” description of a marked Area
 [ ] calloutlist - A list of Callouts
@@ -283,7 +283,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] phrase - A span of text
 [ ] pob - A post office box in an address
 [ ] postcode - A postal code in an address
-[ ] preface - Introductory matter preceding the first chapter of a book
+[x] preface - Introductory matter preceding the first chapter of a book
 [ ] prefaceinfo - Meta-information for a Preface
 [ ] primary - The primary word or phrase under which an index term should be
     sorted
@@ -442,7 +442,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] tip - A suggestion to the user, set off from the text
 [x] title - The text of the title of a section of a document or of a formal
     block-level element
-[ ] titleabbrev - The abbreviation of a Title
+[x] titleabbrev - The abbreviation of a Title
 [ ] toc - A table of contents
 [ ] tocback - An entry in a table of contents for a back matter component
 [ ] tocchap - An entry in a table of contents for a component in the body of
@@ -496,6 +496,7 @@ data DBState = DBState{ dbSectionLevel :: Int
                       , dbDocTitle     :: Inlines
                       , dbDocAuthors   :: [Inlines]
                       , dbDocDate      :: Inlines
+                      , dbBook         :: Bool
                       } deriving Show
 
 readDocBook :: ParserState -> String -> Pandoc
@@ -509,6 +510,7 @@ readDocBook st inp = setTitle (dbDocTitle st')
                                     , dbDocTitle = mempty
                                     , dbDocAuthors = []
                                     , dbDocDate = mempty
+                                    , dbBook = False
                                     }
 
 -- convenience function to get an attribute value, defaulting to ""
@@ -552,6 +554,11 @@ parseBlock (Elem e) =
             contents <- getBlocks e
             return $ blockQuote (contents <> attrib)
         "attribution" -> return mempty
+        "titleabbrev" -> return mempty
+        "title" -> return mempty -- handled by getTitle
+        "chapter" -> sect 0
+        "appendix" -> sect 0
+        "preface" -> sect 0
         "sect1" -> sect 1
         "sect2" -> sect 2
         "sect3" -> sect 3
@@ -566,6 +573,10 @@ parseBlock (Elem e) =
         "caption" -> return mempty
         "info" -> getTitle >> getAuthors >> getDate >> return mempty
         "articleinfo" -> getTitle >> getAuthors >> getDate >> return mempty
+        "bookinfo" -> getTitle >> getAuthors >> getDate >> return mempty
+        "article" -> modify (\st -> st{ dbBook = False }) >>
+                          getTitle >> getBlocks e
+        "book" -> modify (\st -> st{ dbBook = True }) >> getTitle >> getBlocks e
         "programlisting" -> return $ codeBlock $ strContent e  -- TODO attrs
         "?xml"  -> return mempty
         _       -> getBlocks e
@@ -600,16 +611,17 @@ parseBlock (Elem e) =
                             dat <- getInlines t
                             modify $ \st -> st{dbDocDate = dat}
                          Nothing -> return ()
-         sect n = case skipWhite (elContent e) of
-                        ((Elem t):body)
-                          | named "title" t -> do
-                                  h <- header n <$> (getInlines t)
+         sect n = do isbook <- gets dbBook
+                     let n' = if isbook then n + 1 else n
+                     case skipWhite (elContent e) of
+                        ((Elem t):body) | named "title" t -> do
+                                  h <- header n' <$> (getInlines t)
                                   modify $ \st -> st{ dbSectionLevel = n }
                                   b <- mconcat <$> (mapM parseBlock body)
                                   modify $ \st -> st{ dbSectionLevel = n - 1 }
                                   return $ h <> b
                         body      -> do
-                                  let h = header n mempty
+                                  let h = header n' mempty
                                   modify $ \st -> st{ dbSectionLevel = n }
                                   b <- mconcat <$> (mapM parseBlock body)
                                   modify $ \st -> st{ dbSectionLevel = n - 1 }
