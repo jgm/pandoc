@@ -95,7 +95,7 @@ escapeCharForConTeXt ch =
     '$'    -> "\\$"
     '|'    -> "\\letterbar{}"
     '^'    -> "\\letterhat{}"
-    '%'    -> "\\%"
+    '%'    -> "\\letterpercent "
     '~'    -> "\\lettertilde{}"
     '&'    -> "\\&"
     '#'    -> "\\#"
@@ -298,7 +298,7 @@ inlineToConTeXt (Link txt          (src, _))      = do
   label <-  inlineListToConTeXt txt
   return $ "\\useURL"
            <> brackets (text ref)
-           <> brackets (text $ escapeStringUsing [('#',"\\#")] src)
+           <> brackets (text $ escapeStringUsing [('#',"\\#"),('%',"\\%")] src)
            <> brackets empty
            <> brackets label
            <> "\\from"
