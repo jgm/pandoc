@@ -62,6 +62,7 @@ the second item of the pair).
 \begin{verbatim}
 f *** g = first f >>> second g
 \end{verbatim}
+
 Block quote:
 
 \begin{quote}

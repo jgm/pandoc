@@ -129,6 +129,7 @@ sub status {
     print "working";
 }
 \end{verbatim}
+
 A list:
 
 \begin{enumerate}[1.]
@@ -137,6 +138,7 @@ A list:
 \item
   item two
 \end{enumerate}
+
 Nested block quotes:
 
 \begin{quote}
@@ -167,6 +169,7 @@ sub status {
 
 this code block is indented by one tab
 \end{verbatim}
+
 And:
 
 \begin{verbatim}
@@ -174,6 +177,7 @@ And:
 
 These should not be escaped:  \$ \\ \> \[ \{
 \end{verbatim}
+
 \begin{center}\rule{3in}{0.4pt}\end{center}
 
 \section{Lists}
@@ -190,6 +194,7 @@ Asterisks tight:
 \item
   asterisk 3
 \end{itemize}
+
 Asterisks loose:
 
 \begin{itemize}
@@ -200,6 +205,7 @@ Asterisks loose:
 \item
   asterisk 3
 \end{itemize}
+
 Pluses tight:
 
 \begin{itemize}
@@ -210,6 +216,7 @@ Pluses tight:
 \item
   Plus 3
 \end{itemize}
+
 Pluses loose:
 
 \begin{itemize}
@@ -220,6 +227,7 @@ Pluses loose:
 \item
   Plus 3
 \end{itemize}
+
 Minuses tight:
 
 \begin{itemize}
@@ -230,6 +238,7 @@ Minuses tight:
 \item
   Minus 3
 \end{itemize}
+
 Minuses loose:
 
 \begin{itemize}
@@ -240,6 +249,7 @@ Minuses loose:
 \item
   Minus 3
 \end{itemize}
+
 \subsection{Ordered}
 
 Tight:
@@ -252,6 +262,7 @@ Tight:
 \item
   Third
 \end{enumerate}
+
 and:
 
 \begin{enumerate}[1.]
@@ -262,6 +273,7 @@ and:
 \item
   Three
 \end{enumerate}
+
 Loose using tabs:
 
 \begin{enumerate}[1.]
@@ -272,6 +284,7 @@ Loose using tabs:
 \item
   Third
 \end{enumerate}
+
 and using spaces:
 
 \begin{enumerate}[1.]
@@ -282,6 +295,7 @@ and using spaces:
 \item
   Three
 \end{enumerate}
+
 Multiple paragraphs:
 
 \begin{enumerate}[1.]
@@ -294,6 +308,7 @@ Multiple paragraphs:
 \item
   Item 3.
 \end{enumerate}
+
 \subsection{Nested}
 
 \begin{itemize}
@@ -308,6 +323,7 @@ Multiple paragraphs:
     \end{itemize}
   \end{itemize}
 \end{itemize}
+
 Here's another:
 
 \begin{enumerate}[1.]
@@ -326,6 +342,7 @@ Here's another:
 \item
   Third
 \end{enumerate}
+
 Same thing but with paragraphs:
 
 \begin{enumerate}[1.]
@@ -345,6 +362,7 @@ Same thing but with paragraphs:
 \item
   Third
 \end{enumerate}
+
 \subsection{Tabs and spaces}
 
 \begin{itemize}
@@ -360,6 +378,7 @@ Same thing but with paragraphs:
     this is an example list item indented with spaces
   \end{itemize}
 \end{itemize}
+
 \subsection{Fancy list markers}
 
 \begin{enumerate}[(1)]
@@ -385,6 +404,7 @@ Same thing but with paragraphs:
     \end{enumerate}
   \end{enumerate}
 \end{enumerate}
+
 Nesting:
 
 \begin{enumerate}[A.]
@@ -405,6 +425,7 @@ Nesting:
     \end{enumerate}
   \end{enumerate}
 \end{enumerate}
+
 Autonumbering:
 
 \begin{enumerate}
@@ -417,6 +438,7 @@ Autonumbering:
     Nested.
   \end{enumerate}
 \end{enumerate}
+
 Should not be a list item:
 
 M.A.~2007
@@ -437,6 +459,7 @@ orange fruit
 \item[banana]
 yellow fruit
 \end{description}
+
 Tight using tabs:
 
 \begin{description}
@@ -447,6 +470,7 @@ orange fruit
 \item[banana]
 yellow fruit
 \end{description}
+
 Loose:
 
 \begin{description}
@@ -458,8 +482,8 @@ orange fruit
 
 \item[banana]
 yellow fruit
-
 \end{description}
+
 Multiple blocks with italics:
 
 \begin{description}
@@ -474,11 +498,12 @@ orange fruit
 \begin{verbatim}
 { orange code block }
 \end{verbatim}
+
 \begin{quote}
 orange block quote
 \end{quote}
-
 \end{description}
+
 Multiple definitions, tight:
 
 \begin{description}
@@ -491,6 +516,7 @@ orange fruit
 
 bank
 \end{description}
+
 Multiple definitions, loose:
 
 \begin{description}
@@ -503,8 +529,8 @@ computer
 orange fruit
 
 bank
-
 \end{description}
+
 Blank line after term, indented marker, alternate markers:
 
 \begin{description}
@@ -523,6 +549,7 @@ orange fruit
   sublist
 \end{enumerate}
 \end{description}
+
 \section{HTML Blocks}
 
 Simple block on one line:
@@ -546,11 +573,13 @@ This should be a code block, though:
     foo
 </div>
 \end{verbatim}
+
 As should this:
 
 \begin{verbatim}
 <div>foo</div>
 \end{verbatim}
+
 Now, nested:
 
 foo
@@ -563,6 +592,7 @@ Code block:
 \begin{verbatim}
 <!-- Comment -->
 \end{verbatim}
+
 Just plain comment, with trailing spaces on the line:
 
 Code:
@@ -570,6 +600,7 @@ Code:
 \begin{verbatim}
 <hr />
 \end{verbatim}
+
 Hr's:
 
 \begin{center}\rule{3in}{0.4pt}\end{center}
@@ -648,6 +679,7 @@ Ellipses\ldots{}and\ldots{}and\ldots{}.
 \item
   Here's one that has a line break in it: $\alpha + \omega \times x^2$.
 \end{itemize}
+
 These shouldn't be math:
 
 \begin{itemize}
@@ -661,6 +693,7 @@ These shouldn't be math:
 \item
   Escaped \texttt{\$}: \$73 \emph{this should be emphasized} 23\$.
 \end{itemize}
+
 Here's a LaTeX table:
 
 \begin{tabular}{|l|l|}\hline
@@ -687,6 +720,7 @@ Here is some unicode:
 \item
   copyright: ©
 \end{itemize}
+
 AT\&T has an ampersand in their name.
 
 AT\&T is another way to write it.
@@ -776,6 +810,7 @@ This should {[}not{]}{[}{]} be a link.
 \begin{verbatim}
 [not]: /url
 \end{verbatim}
+
 Foo \href{/url/}{bar}.
 
 Foo \href{/url/}{biz}.
@@ -804,6 +839,7 @@ With an ampersand: \url{http://example.com/?foo=1&bar=2}
 \item
   It should.
 \end{itemize}
+
 An e-mail address:
 \href{mailto:nobody@nowhere.net}{\texttt{nobody@nowhere.net}}
 
@@ -817,6 +853,7 @@ Auto-links should not occur here:
 \begin{verbatim}
 or here: <http://example.com/>
 \end{verbatim}
+
 \begin{center}\rule{3in}{0.4pt}\end{center}
 
 \section{Images}
@@ -846,6 +883,7 @@ Here is a footnote reference,\footnote{Here is the footnote. It can go
 \begin{Verbatim}
   { <code> }
 \end{Verbatim}
+
   If you want, you can indent every line, but you can also be lazy and just
   indent the first line of each block.} This should \emph{not} be a footnote
 reference, because it contains a space.{[}\^{}my note{]} Here is an inline
@@ -861,6 +899,7 @@ Notes can go in quotes.\footnote{In quote.}
 \item
   And in list items.\footnote{In list.}
 \end{enumerate}
+
 This paragraph should not be part of the note, as it is not indented.
 
 \end{document}

@@ -298,7 +298,11 @@ blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
                           return "Verbatim"
                      else return "verbatim"
            return $ flush (text ("\\begin{" ++ env ++ "}") $$ text str $$
-                    text ("\\end{" ++ env ++ "}")) $$ cr -- final cr because of notes
+                    text ("\\end{" ++ env ++ "}")) <> text "\n" <> blankline
+                    -- note: we use 'text "\n"' instead of cr to make this
+                    -- resistant to the 'chomp' in footnotes; a footnote
+                    -- ending with a Verbatim environment must have a
+                    -- cr before the closing }
          listingsCodeBlock = do
            st <- get
            let params = if writerListings (stOptions st)
@@ -339,7 +343,8 @@ blockToLaTeX (BulletList lst) = do
   incremental <- gets stIncremental
   let inc = if incremental then "[<+->]" else ""
   items <- mapM listItemToLaTeX lst
-  return $ text ("\\begin{itemize}" ++ inc) $$ vcat items $$ "\\end{itemize}"
+  return $ text ("\\begin{itemize}" ++ inc) $$ chomp (vcat items) $$
+             "\\end{itemize}" <> blankline
 blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   st <- get
   let inc = if stIncremental st then "[<+->]" else ""
@@ -360,12 +365,13 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
                              "}{" ++ show (start - 1) ++ "}"
                         else empty
   return $ text ("\\begin{enumerate}" ++ inc) <> exemplar $$ resetcounter $$
-           vcat items $$ "\\end{enumerate}"
+           chomp (vcat items) $$ "\\end{enumerate}" <> blankline
 blockToLaTeX (DefinitionList lst) = do
   incremental <- gets stIncremental
   let inc = if incremental then "[<+->]" else ""
   items <- mapM defListItemToLaTeX lst
-  return $ text ("\\begin{description}" ++ inc) $$ vcat items $$ "\\end{description}"
+  return $ text ("\\begin{description}" ++ inc) $$ chomp (vcat items) $$
+               "\\end{description}" <> blankline
 blockToLaTeX HorizontalRule = return $
   "\\begin{center}\\rule{3in}{0.4pt}\\end{center}" $$ blankline
 blockToLaTeX (Header level lst) = sectionHeader "" level lst
@@ -595,7 +601,7 @@ inlineToLaTeX (Note contents) = do
        let marker = cycle ['a'..'z'] !! length curnotes
        modify $ \s -> s{ stTableNotes = (marker, contents') : curnotes }
        return $ "\\tmark" <> brackets (char marker) <> space
-     else return $ "\\footnote" <> braces (nest 2 contents')
+     else return $ "\\footnote" <> braces (chomp $ nest 2 contents')
      -- note: a \n before } needed when note ends with a Verbatim environment
 
 citationsToNatbib :: [Citation] -> State WriterState Doc
