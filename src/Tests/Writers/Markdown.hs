@@ -22,7 +22,7 @@ which is in turn shorthand for
   test markdown "my test" (X,Y)
 -}
 
-infix 5 =:
+infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
      => String -> (a, String) -> Test
 (=:) = test markdown

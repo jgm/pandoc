@@ -1,13 +1,16 @@
-\documentclass{article}
+\documentclass[]{article}
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
 \ifxetex
   \usepackage{fontspec,xltxtra,xunicode}
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
 \else
   \ifluatex
     \usepackage{fontspec}
     \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+    \newcommand{\euro}{€}
   \else
     \usepackage[utf8]{inputenc}
   \fi
@@ -17,9 +20,21 @@
 \ifxetex
   \usepackage[setpagesize=false, % page size defined by xetex
               unicode=false, % unicode breaks when used with xetex
-              xetex]{hyperref}
+              xetex,
+              bookmarks=true,
+              pdfauthor={},
+              pdftitle={},
+              colorlinks=true,
+              urlcolor=blue,
+              linkcolor=blue]{hyperref}
 \else
-  \usepackage[unicode=true]{hyperref}
+  \usepackage[unicode=true,
+              bookmarks=true,
+              pdfauthor={},
+              pdftitle={},
+              colorlinks=true,
+              urlcolor=blue,
+              linkcolor=blue]{hyperref}
 \fi
 \hypersetup{breaklinks=true, pdfborder={0 0 0}}
 \setlength{\parindent}{0pt}
@@ -47,11 +62,11 @@ the second item of the pair).
 \begin{verbatim}
 f *** g = first f >>> second g
 \end{verbatim}
+
 Block quote:
 
 \begin{quote}
 foo bar
-
 \end{quote}
 
 \end{document}

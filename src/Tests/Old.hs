@@ -13,7 +13,6 @@ import Data.Algorithm.Diff
 import Text.Pandoc.Shared ( normalize, defaultWriterOptions )
 import Text.Pandoc.Writers.Native ( writeNative )
 import Text.Pandoc.Readers.Native ( readNative )
-import Text.Pandoc.Highlighting ( languages )
 import Prelude hiding ( readFile )
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString)
@@ -121,10 +120,7 @@ lhsWriterTests format
     ]
   where
     t n f = test n ["--columns=78", "-r", "native", "-s", "-w", f]
-             "lhs-test.native" ("lhs-test" <.> ext f)
-    ext f = if null languages && format == "html"
-               then "nohl" <.> f
-               else f
+             "lhs-test.native" ("lhs-test" <.> f)
 
 lhsReaderTest :: String -> Test
 lhsReaderTest format =

@@ -346,21 +346,13 @@ inlineToMediaWiki opts (SmallCaps lst) = inlineListToMediaWiki opts lst
 
 inlineToMediaWiki opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMediaWiki opts lst
-  return $ "&lsquo;" ++ contents ++ "&rsquo;"
+  return $ "\8216" ++ contents ++ "\8217"
 
 inlineToMediaWiki opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMediaWiki opts lst
-  return $ "&ldquo;" ++ contents ++ "&rdquo;"
+  return $ "\8220" ++ contents ++ "\8221"
 
 inlineToMediaWiki opts (Cite _  lst) = inlineListToMediaWiki opts lst
-
-inlineToMediaWiki _ EmDash = return "&mdash;"
-
-inlineToMediaWiki _ EnDash = return "&ndash;"
-
-inlineToMediaWiki _ Apostrophe = return "&rsquo;"
-
-inlineToMediaWiki _ Ellipses = return "&hellip;"
 
 inlineToMediaWiki _ (Code _ str) =
   return $ "<tt>" ++ (escapeString str) ++ "</tt>"

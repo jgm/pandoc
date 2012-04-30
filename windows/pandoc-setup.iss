@@ -6,8 +6,10 @@
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{3CEE7B38-B19D-4980-9CAD-DF53600BD4CA}
+; Version 5.1 is XP
+MinVersion=5.1,5.1
 AppName=Pandoc
-AppVerName=Pandoc 1.8.2
+AppVerName=Pandoc 1.9.2
 AppPublisher=John MacFarlane
 AppPublisherURL=http://johnmacfarlane.net/pandoc/
 AppSupportURL=http://johnmacfarlane.net/pandoc/
@@ -54,17 +56,20 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 Source: "..\cabal-dev\bin\pandoc.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
-Source: "..\cabal-dev\bin\markdown2pdf.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "..\README.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\COPYRIGHT.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\COPYING.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\reference.odt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\reference.docx"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\epub.css"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\default.csl"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion
 Source: "..\data\*"; DestDir: "{app}\data"; Flags: ignoreversion
 Source: "..\s5\default\*"; DestDir: "{app}\s5\default"; Flags: ignoreversion
-Source: "..\slidy\*"; DestDir: "{app}\slidy"; Flags: ignoreversion
+Source: "..\slidy\graphics\*"; DestDir: "{app}\slidy\graphics"; Flags: ignoreversion
+Source: "..\slidy\scripts\*"; DestDir: "{app}\slidy\scripts"; Flags: ignoreversion
+Source: "..\slidy\styles\*"; DestDir: "{app}\slidy\styles"; Flags: ignoreversion
+Source: "..\dzslides\*"; DestDir: "{app}\dzslides"; Flags: ignoreversion
 Source: "pcre-license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "pcre3.dll"; DestDir: "{sys}"; Flags: onlyifdoesntexist sharedfile
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files

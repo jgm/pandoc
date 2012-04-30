@@ -32,32 +32,32 @@ Pandoc with citeproc-hs
 References
 ==========
 
-Doe, John, ‘Article’, *Journal of Generic Studies*, 6 (2006), 33-34.
+Doe, John, ‘Article’, *Journal of Generic Studies*, 6 (2006), 33–34.
 
 ---, *First Book* (Cambridge: Cambridge University Press, 2005).
 
-Doe, John, and Jenny Roe, ‘Why Water Is Wet’, in *Third Book*, ed by Sam Smith (Oxford: Oxford University Press, 2007).
+Doe, John, and Jenny Roe, ‘Why Water Is Wet’, in *Third Book*, ed. by Sam Smith (Oxford: Oxford University Press, 2007).
 
 [^1]: *First Book* (Cambridge: Cambridge University Press, 2005).
 
-[^2]: First Book, p. 30.
+[^2]: *First Book*, p. 30.
 
-[^3]: First Book, p. 30, with suffix.
+[^3]: *First Book*, p. 30, with suffix.
 
-[^4]: First Book; ‘Article’, *Journal of Generic Studies*, 6 (2006), 33-34 (p. 30); see also John Doe and Jenny Roe, ‘Why Water Is Wet’, in *Third Book*, ed by Sam Smith (Oxford: Oxford University Press, 2007).
+[^4]: *First Book*; ‘Article’, *Journal of Generic Studies*, 6 (2006), 33–34 (p. 30); see also John Doe and Jenny Roe, ‘Why Water Is Wet’, in *Third Book*, ed. by Sam Smith (Oxford: Oxford University Press, 2007).
 
 [^5]: A citation without locators Doe and Roe.
 
-[^6]: See Doe, First Book, pp. 34-35; also Doe and Roe, chap. 3.
+[^6]: See Doe, *First Book*, chap. 3; also Doe and Roe, pp. 34–35.
 
-[^7]: See Doe, First Book, pp. 34-35.
+[^7]: See Doe, *First Book*, pp. 34–35.
 
-[^8]: Some citations see Doe, Article, 33-34 (chap. 3); Doe and Roe; Doe, First Book.
+[^8]: Some citations see Doe, *First Book*, chap. 3; Doe and Roe; Doe, ‘Article’, 33–34.
 
-[^9]: Doe, First Book, pp. 33, 35-37, and nowhere else.
+[^9]: Doe, *First Book*, pp. 33, 35–37, and nowhere else.
 
-[^10]: Doe, First Book and nowhere else.
+[^10]: Doe, *First Book* and nowhere else.
 
-[^11]: Like a citation without author: First Book, and now Doe with a locator Article, 33-34 (p. 44).
+[^11]: Like a citation without author: *First Book*, and now Doe with a locator ‘Article’, 33–34 (p. 44).
 
-[^12]: *See* Doe, First Book, p. 32.
+[^12]: *See* Doe, *First Book*, p. 32.

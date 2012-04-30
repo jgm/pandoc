@@ -72,15 +72,19 @@ withUseTags action = do
 -- | Escape one character as needed for Textile.
 escapeCharForTextile :: Char -> String
 escapeCharForTextile x = case x of
-                         '&'    -> "&amp;"
-                         '<'    -> "&lt;"
-                         '>'    -> "&gt;"
-                         '"'    -> "&quot;"
-                         '*'    -> "&#42;"
-                         '_'    -> "&#95;"
-                         '@'    -> "&#64;"
-                         '|'    -> "&#124;"
-                         c      -> [c]
+                         '&'      -> "&amp;"
+                         '<'      -> "&lt;"
+                         '>'      -> "&gt;"
+                         '"'      -> "&quot;"
+                         '*'      -> "&#42;"
+                         '_'      -> "&#95;"
+                         '@'      -> "&#64;"
+                         '|'      -> "&#124;"
+                         '\x2014' -> " -- "
+                         '\x2013' -> " - "
+                         '\x2019' -> "'"
+                         '\x2026' -> "..."
+                         c        -> [c]
 
 -- | Escape string as needed for Textile.
 escapeStringForTextile :: String -> String
@@ -369,14 +373,6 @@ inlineToTextile opts (Quoted DoubleQuote lst) = do
   return $ "\"" ++ contents ++ "\""
 
 inlineToTextile opts (Cite _  lst) = inlineListToTextile opts lst
-
-inlineToTextile _ EmDash = return " -- "
-
-inlineToTextile _ EnDash = return " - "
-
-inlineToTextile _ Apostrophe = return "'"
-
-inlineToTextile _ Ellipses = return "..."
 
 inlineToTextile _ (Code _ str) =
   return $ if '@' `elem` str

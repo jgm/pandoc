@@ -106,7 +106,15 @@ handleUnicode (c:cs) =
 
 -- | Escape special characters.
 escapeSpecial :: String -> String
-escapeSpecial = escapeStringUsing (('\t',"\\tab "):(backslashEscapes "{\\}"))
+escapeSpecial = escapeStringUsing $
+  [ ('\t',"\\tab ")
+  , ('\8216',"\\u8216'")
+  , ('\8217',"\\u8217'")
+  , ('\8220',"\\u8220\"")
+  , ('\8221',"\\u8221\"")
+  , ('\8211',"\\u8211-")
+  , ('\8212',"\\u8212-")
+  ] ++ backslashEscapes "{\\}"
 
 -- | Escape strings as needed for rich text format.
 stringToRTF :: String -> String
@@ -287,10 +295,6 @@ inlineToRTF (Quoted SingleQuote lst) =
   "\\u8216'" ++ (inlineListToRTF lst) ++ "\\u8217'"
 inlineToRTF (Quoted DoubleQuote lst) = 
   "\\u8220\"" ++ (inlineListToRTF lst) ++ "\\u8221\""
-inlineToRTF Apostrophe = "\\u8217'"
-inlineToRTF Ellipses = "\\u8230?"
-inlineToRTF EmDash = "\\u8212-"
-inlineToRTF EnDash = "\\u8211-"
 inlineToRTF (Code _ str) = "{\\f1 " ++ (codeStringToRTF str) ++ "}"
 inlineToRTF (Str str) = stringToRTF str
 inlineToRTF (Math _ str) = inlineListToRTF $ readTeXMath str

@@ -96,6 +96,10 @@ stringToTexinfo = escapeStringUsing texinfoEscapes
                          , ('@', "@@")
                          , (',', "@comma{}") -- only needed in argument lists
                          , ('\160', "@ ")
+                         , ('\x2014', "---")
+                         , ('\x2013', "--")
+                         , ('\x2026', "@dots{}")
+                         , ('\x2019', "'")
                          ]
 
 -- | Puts contents into Texinfo command.
@@ -340,7 +344,8 @@ inlineListToTexinfo lst = mapM inlineToTexinfo lst >>= return . hcat
 -- | Convert list of inline elements to Texinfo acceptable for a node name.
 inlineListForNode :: [Inline]  -- ^ Inlines to convert
                   -> State WriterState Doc
-inlineListForNode = return . text . filter (not . disallowedInNode) . stringify
+inlineListForNode = return . text . stringToTexinfo .
+                    filter (not . disallowedInNode) . stringify
 
 -- periods, commas, colons, and parentheses are disallowed in node names
 disallowedInNode :: Char -> Bool
@@ -387,10 +392,6 @@ inlineToTexinfo (Quoted DoubleQuote lst) = do
 
 inlineToTexinfo (Cite _ lst) =
   inlineListToTexinfo lst
-inlineToTexinfo Apostrophe = return $ char '\''
-inlineToTexinfo EmDash = return $ text "---"
-inlineToTexinfo EnDash = return $ text "--"
-inlineToTexinfo Ellipses = return $ text "@dots{}"
 inlineToTexinfo (Str str) = return $ text (stringToTexinfo str)
 inlineToTexinfo (Math _ str) = return $ inCmd "math" $ text str
 inlineToTexinfo (RawInline f str) | f == "latex" || f == "tex" =
@@ -415,7 +416,7 @@ inlineToTexinfo (Image alternate (source, _)) = do
            text (ext ++ "}")
   where
     ext     = drop 1 $ takeExtension source'
-    base    = takeBaseName source'
+    base    = dropExtension source'
     source' = if isAbsoluteURI source
                  then source
                  else unEscapeString source

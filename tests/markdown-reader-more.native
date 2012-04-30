@@ -2,7 +2,7 @@
 ,Header 2 [Str "Blank",Space,Str "line",Space,Str "before",Space,Str "URL",Space,Str "in",Space,Str "link",Space,Str "reference"]
 ,Para [Link [Str "foo"] ("/url",""),Space,Str "and",Space,Link [Str "bar"] ("/url","title")]
 ,Header 2 [Str "Raw",Space,Str "ConTeXt",Space,Str "environments"]
-,Plain [RawInline "tex" "\\placeformula"]
+,Plain [RawInline "tex" "\\placeformula "]
 ,RawBlock "context" "\\startformula\n   L_{1} = L_{2}\n   \\stopformula"
 ,RawBlock "context" "\\start[a2]\n\\start[a2]\n\\stop[a2]\n\\stop[a2]"
 ,Header 2 [Str "URLs",Space,Str "with",Space,Str "spaces"]
@@ -47,4 +47,14 @@
 ,Para [Link [Str "bat"] ("/bat","")]
 ,Header 2 [Str "Curly",Space,Str "smart",Space,Str "quotes"]
 ,Para [Quoted DoubleQuote [Str "Hi"]]
-,Para [Quoted SingleQuote [Str "Hi"]]]
+,Para [Quoted SingleQuote [Str "Hi"]]
+,Header 2 [Str "Consecutive",Space,Str "lists"]
+,BulletList
+ [[Plain [Str "one"]]
+ ,[Plain [Str "two"]]]
+,OrderedList (1,Decimal,Period)
+ [[Plain [Str "one"]]
+ ,[Plain [Str "two"]]]
+,OrderedList (1,LowerAlpha,Period)
+ [[Plain [Str "one"]]
+ ,[Plain [Str "two"]]]]

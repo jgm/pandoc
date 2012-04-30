@@ -37,7 +37,7 @@ import Data.List ( intercalate )
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import Text.Pandoc.Templates ( renderTemplate )
-import Network.URI ( isAbsoluteURI, unEscapeString )
+import Network.URI ( isURI, unEscapeString )
 
 data WriterState = 
   WriterState { stNextRef          :: Int  -- number of next URL reference
@@ -70,12 +70,15 @@ pandocToConTeXt options (Pandoc (Meta title authors date) blocks) = do
                   then return ""
                   else liftM (render colwidth) $ inlineListToConTeXt date
   body <- mapM (elementToConTeXt options) $ hierarchicalize blocks
-  let main = (render colwidth . cat) body
+  let main = (render colwidth . vcat) body
   let context  = writerVariables options ++
                  [ ("toc", if writerTableOfContents options then "yes" else "")
                  , ("body", main)
                  , ("title", titletext)
                  , ("date", datetext) ] ++
+                 [ ("number-sections", "yes") | writerNumberSections options ] ++
+                 [ ("mainlang", maybe "" (reverse . takeWhile (/=',') . reverse)
+                                (lookup "lang" $ writerVariables options)) ] ++
                  [ ("author", a) | a <- authorstext ]
   return $ if writerStandalone options
               then renderTemplate context $ writerTemplate options
@@ -92,7 +95,7 @@ escapeCharForConTeXt ch =
     '$'    -> "\\$"
     '|'    -> "\\letterbar{}"
     '^'    -> "\\letterhat{}"
-    '%'    -> "\\%"
+    '%'    -> "\\letterpercent "
     '~'    -> "\\lettertilde{}"
     '&'    -> "\\&"
     '#'    -> "\\#"
@@ -102,6 +105,10 @@ escapeCharForConTeXt ch =
     ']'    -> "{]}"
     '_'    -> "\\letterunderscore{}"
     '\160' -> "~"
+    '\x2014' -> "---"
+    '\x2013' -> "--"
+    '\x2019' -> "'"
+    '\x2026' -> "\\ldots{}"
     x      -> [x]
 
 -- | Escape string for ConTeXt
@@ -114,7 +121,7 @@ elementToConTeXt _ (Blk block) = blockToConTeXt block
 elementToConTeXt opts (Sec level _ id' title' elements) = do
   header' <- sectionHeader id' level title'
   innerContents <- mapM (elementToConTeXt opts) elements
-  return $ cat (header' : innerContents)
+  return $ vcat (header' : innerContents)
 
 -- | Convert Pandoc block element to ConTeXt.
 blockToConTeXt :: Block 
@@ -256,10 +263,6 @@ inlineToConTeXt (Quoted DoubleQuote lst) = do
   contents <- inlineListToConTeXt lst
   return $ "\\quotation" <> braces contents
 inlineToConTeXt (Cite _ lst) = inlineListToConTeXt lst
-inlineToConTeXt Apostrophe = return $ char '\''
-inlineToConTeXt EmDash = return "---"
-inlineToConTeXt EnDash = return "--"
-inlineToConTeXt Ellipses = return "\\ldots{}"
 inlineToConTeXt (Str str) = return $ text $ stringToConTeXt str
 inlineToConTeXt (Math InlineMath str) =
   return $ char '$' <> text str <> char '$'
@@ -270,44 +273,38 @@ inlineToConTeXt (RawInline "tex" str) = return $ text str
 inlineToConTeXt (RawInline _ _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt Space = return space
--- ConTeXT has its own way of printing links
-inlineToConTeXt (Link [Code _ str] (src, tit))    = inlineToConTeXt (Link [Str str] (src, tit))
+-- autolink
+inlineToConTeXt (Link [Code _ str] (src, tit)) = inlineToConTeXt (Link
+    [RawInline "context" "\\hyphenatedurl{", Str str, RawInline "context" "}"]
+    (src, tit))
 -- Handle HTML-like internal document references to sections
 inlineToConTeXt (Link txt          (('#' : ref), _)) = do
-  st <- get
-  let opts = stOptions st
-  let numberedSections = writerNumberSections opts
-  label <-  inlineListToConTeXt $ bottomUp hyphenateURL (normalize txt)
-  let hasLabel = (not . isEmpty) label
-  let label' = if hasLabel
-               then label <+> text "("
-               else if numberedSections
-                    then text "Section"
-                    else empty
-  let label'' = braces $ if hasLabel
-                         then text ")"
-                         else empty
+  opts <- gets stOptions
+  label <-  inlineListToConTeXt txt
   return $ text "\\in"
-           <> braces label'
-           <> braces label''
+           <> braces (if writerNumberSections opts
+                         then label <+> text "(\\S"
+                         else label)  -- prefix
+           <> braces (if writerNumberSections opts
+                         then text ")"
+                         else empty)  -- suffix
            <> brackets (text ref)
 
--- Convert link's text, hyphenating URLs when they're seen (does deep list inspection)
 inlineToConTeXt (Link txt          (src, _))      = do
   st <- get
   let next = stNextRef st
   put $ st {stNextRef = next + 1}
-  let ref = "urlref" ++ (show next)
-  label <-  inlineListToConTeXt $ bottomUp hyphenateURL (normalize txt)
+  let ref = "url" ++ show next
+  label <-  inlineListToConTeXt txt
   return $ "\\useURL"
            <> brackets (text ref)
-           <> brackets (text $ escapeStringUsing [('#',"\\#")] src)
+           <> brackets (text $ escapeStringUsing [('#',"\\#"),('%',"\\%")] src)
            <> brackets empty
            <> brackets label
            <> "\\from"
            <> brackets (text ref)
 inlineToConTeXt (Image _ (src, _)) = do
-  let src' = if isAbsoluteURI src
+  let src' = if isURI src
                 then src
                 else unEscapeString src
   return $ braces $ "\\externalfigure" <> brackets (text src')
@@ -327,28 +324,17 @@ sectionHeader :: [Char]
               -> [Inline]
               -> State WriterState Doc
 sectionHeader ident hdrLevel lst = do
-  contents <- (inlineListToConTeXt . normalize) lst
+  contents <- inlineListToConTeXt lst
   st <- get
   let opts = stOptions st
-  let base = if writerNumberSections opts then "section" else "subject"
   let level' = if writerChapters opts then hdrLevel - 1 else hdrLevel
   return $ if level' >= 1 && level' <= 5
                then char '\\'
                     <> text (concat (replicate (level' - 1) "sub"))
-                    <> text base
+                    <> text "section"
                     <> (if (not . null) ident then brackets (text ident) else empty)
                     <> braces contents
                     <> blankline
                else if level' == 0
                        then "\\chapter{" <> contents <> "}"
                        else contents <> blankline
-
--- | Convert absolute URLs/URIs to ConTeXt raw inlines so that they are hyphenated.
-hyphenateURL :: Inline
-             -> Inline
-hyphenateURL x =
-  case x of
-    (Str str)         -> if isAbsoluteURI str
-                         then (RawInline "context" ("\\hyphenatedurl{" ++ str ++ "}"))
-                         else x
-    _otherwise        -> x

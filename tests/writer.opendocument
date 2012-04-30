@@ -864,7 +864,7 @@
 <text:p text:style-name="Author">Anonymous</text:p>
 <text:p text:style-name="Date">July 17, 2006</text:p>
 <text:p text:style-name="Text_20_body">This is a set of tests for pandoc. Most
-of them are adapted from John Gruber&#8217;s markdown test suite.</text:p>
+of them are adapted from John Gruber’s markdown test suite.</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
 <text:h text:style-name="Heading_20_1" text:outline-level="1">Headers</text:h>
 <text:h text:style-name="Heading_20_2" text:outline-level="2">Level 2 with an
@@ -883,12 +883,12 @@ link</text:span></text:a></text:h>
 <text:p text:style-name="First_20_paragraph">with no blank line</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
 <text:h text:style-name="Heading_20_1" text:outline-level="1">Paragraphs</text:h>
-<text:p text:style-name="First_20_paragraph">Here&#8217;s a regular
+<text:p text:style-name="First_20_paragraph">Here’s a regular
 paragraph.</text:p>
 <text:p text:style-name="Text_20_body">In Markdown 1.0.0 and earlier. Version
 8. This line turns into a list item. Because a hard-wrapped line in the middle
 of a paragraph looked like a list item.</text:p>
-<text:p text:style-name="Text_20_body">Here&#8217;s one with a bullet. *
+<text:p text:style-name="Text_20_body">Here’s one with a bullet. *
 criminey.</text:p>
 <text:p text:style-name="Text_20_body">There should be a hard line
 break<text:line-break />here.</text:p>
@@ -1061,7 +1061,7 @@ Blocks</text:h>
   <text:list-item>
     <text:p text:style-name="P29">Item 1, graf one.</text:p>
     <text:p text:style-name="P29">Item 1. graf two. The quick brown fox jumped
-    over the lazy dog&#8217;s back.</text:p>
+    over the lazy dog’s back.</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P29">Item 2.</text:p>
@@ -1084,7 +1084,7 @@ Blocks</text:h>
     </text:list>
   </text:list-item>
 </text:list>
-<text:p text:style-name="First_20_paragraph">Here&#8217;s another:</text:p>
+<text:p text:style-name="First_20_paragraph">Here’s another:</text:p>
 <text:list text:style-name="L16">
   <text:list-item>
     <text:p text:style-name="P33">First</text:p>
@@ -1303,7 +1303,7 @@ table:</text:p>
 <text:span text:style-name="T5">emphasized</text:span></text:p>
 <text:p text:style-name="Text_20_body">And this is
 <text:span text:style-name="T6">strong</text:span></text:p>
-<text:p text:style-name="Text_20_body">Here&#8217;s a simple block:</text:p>
+<text:p text:style-name="Text_20_body">Here’s a simple block:</text:p>
 <text:p text:style-name="Text_20_body">foo</text:p>
 <text:p text:style-name="Text_20_body">This should be a code block,
 though:</text:p>
@@ -1323,7 +1323,7 @@ comment:</text:p>
 spaces on the line:</text:p>
 <text:p text:style-name="Text_20_body">Code:</text:p>
 <text:p text:style-name="P50">&lt;hr /&gt;</text:p>
-<text:p text:style-name="First_20_paragraph">Hr&#8217;s:</text:p>
+<text:p text:style-name="First_20_paragraph">Hr’s:</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
 <text:h text:style-name="Heading_20_1" text:outline-level="1">Inline
 Markup</text:h>
@@ -1374,23 +1374,22 @@ subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
 <text:h text:style-name="Heading_20_1" text:outline-level="1">Smart quotes,
 ellipses, dashes</text:h>
-<text:p text:style-name="First_20_paragraph">&#8220;Hello,&#8221; said the
-spider. &#8220;&#8216;Shelob&#8217; is my name.&#8221;</text:p>
-<text:p text:style-name="Text_20_body">&#8216;A&#8217;, &#8216;B&#8217;, and
-&#8216;C&#8217; are letters.</text:p>
-<text:p text:style-name="Text_20_body">&#8216;Oak,&#8217; &#8216;elm,&#8217;
-and &#8216;beech&#8217; are names of trees. So is &#8216;pine.&#8217;</text:p>
-<text:p text:style-name="Text_20_body">&#8216;He said, &#8220;I want to
-go.&#8221;&#8217; Were you alive in the 70&#8217;s?</text:p>
+<text:p text:style-name="First_20_paragraph">“Hello,” said the spider.
+“‘Shelob’ is my name.”</text:p>
+<text:p text:style-name="Text_20_body">‘A’, ‘B’, and ‘C’ are letters.</text:p>
+<text:p text:style-name="Text_20_body">‘Oak,’ ‘elm,’ and ‘beech’ are names of
+trees. So is ‘pine.’</text:p>
+<text:p text:style-name="Text_20_body">‘He said, “I want to go.”’ Were you
+alive in the 70’s?</text:p>
 <text:p text:style-name="Text_20_body">Here is some quoted
-&#8216;<text:span text:style-name="Teletype">code</text:span>&#8217; and a
-&#8220;<text:a xlink:type="simple" xlink:href="http://example.com/?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">quoted
-link</text:span></text:a>&#8221;.</text:p>
-<text:p text:style-name="Text_20_body">Some dashes: one&#8212;two &#8212;
-three&#8212;four &#8212; five.</text:p>
-<text:p text:style-name="Text_20_body">Dashes between numbers: 5&#8211;7,
-255&#8211;66, 1987&#8211;1999.</text:p>
-<text:p text:style-name="Text_20_body">Ellipses&#8230;and&#8230;and&#8230;.</text:p>
+‘<text:span text:style-name="Teletype">code</text:span>’ and a
+“<text:a xlink:type="simple" xlink:href="http://example.com/?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">quoted
+link</text:span></text:a>”.</text:p>
+<text:p text:style-name="Text_20_body">Some dashes: one—two — three—four —
+five.</text:p>
+<text:p text:style-name="Text_20_body">Dashes between numbers: 5–7, 255–66,
+1987–1999.</text:p>
+<text:p text:style-name="Text_20_body">Ellipses…and…and….</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
 <text:h text:style-name="Heading_20_1" text:outline-level="1">LaTeX</text:h>
 <text:list text:style-name="L26">
@@ -1413,17 +1412,15 @@ three&#8212;four &#8212; five.</text:p>
     <text:p text:style-name="P51"><text:span text:style-name="T62">p</text:span>-Tree</text:p>
   </text:list-item>
   <text:list-item>
-    <text:p text:style-name="P51">Here&#8217;s some display math:
+    <text:p text:style-name="P51">Here’s some display math:
     $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$</text:p>
   </text:list-item>
   <text:list-item>
-    <text:p text:style-name="P51">Here&#8217;s one that has a line break in
-    it:
+    <text:p text:style-name="P51">Here’s one that has a line break in it:
     <text:span text:style-name="T63">α</text:span> + <text:span text:style-name="T64">ω</text:span> × <text:span text:style-name="T65">x</text:span><text:span text:style-name="T66">2</text:span>.</text:p>
   </text:list-item>
 </text:list>
-<text:p text:style-name="First_20_paragraph">These shouldn&#8217;t be
-math:</text:p>
+<text:p text:style-name="First_20_paragraph">These shouldn’t be math:</text:p>
 <text:list text:style-name="L27">
   <text:list-item>
     <text:p text:style-name="P52">To get the famous equation, write
@@ -1432,7 +1429,7 @@ math:</text:p>
   <text:list-item>
     <text:p text:style-name="P52">$22,000 is a
     <text:span text:style-name="T67">lot</text:span> of money. So is $34,000.
-    (It worked if &#8220;lot&#8221; is emphasized.)</text:p>
+    (It worked if “lot” is emphasized.)</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P52">Shoes ($20) and socks ($5).</text:p>
@@ -1447,8 +1444,7 @@ math:</text:p>
     23$.</text:p>
   </text:list-item>
 </text:list>
-<text:p text:style-name="First_20_paragraph">Here&#8217;s a LaTeX
-table:</text:p>
+<text:p text:style-name="First_20_paragraph">Here’s a LaTeX table:</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
 <text:h text:style-name="Heading_20_1" text:outline-level="1">Special
 Characters</text:h>
@@ -1538,16 +1534,16 @@ by itself should be a link.</text:p>
 <text:a xlink:type="simple" xlink:href="/url/" office:name="Title with &quot;quote&quot; inside"><text:span text:style-name="Definition">biz</text:span></text:a>.</text:p>
 <text:h text:style-name="Heading_20_2" text:outline-level="2">With
 ampersands</text:h>
-<text:p text:style-name="First_20_paragraph">Here&#8217;s a
+<text:p text:style-name="First_20_paragraph">Here’s a
 <text:a xlink:type="simple" xlink:href="http://example.com/?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">link
 with an ampersand in the URL</text:span></text:a>.</text:p>
-<text:p text:style-name="Text_20_body">Here&#8217;s a link with an amersand in
-the link text:
+<text:p text:style-name="Text_20_body">Here’s a link with an amersand in the
+link text:
 <text:a xlink:type="simple" xlink:href="http://att.com/" office:name="AT&amp;T"><text:span text:style-name="Definition">AT&amp;T</text:span></text:a>.</text:p>
-<text:p text:style-name="Text_20_body">Here&#8217;s an
+<text:p text:style-name="Text_20_body">Here’s an
 <text:a xlink:type="simple" xlink:href="/script?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">inline
 link</text:span></text:a>.</text:p>
-<text:p text:style-name="Text_20_body">Here&#8217;s an
+<text:p text:style-name="Text_20_body">Here’s an
 <text:a xlink:type="simple" xlink:href="/script?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">inline
 link in pointy braces</text:span></text:a>.</text:p>
 <text:h text:style-name="Heading_20_2" text:outline-level="2">Autolinks</text:h>
@@ -1573,8 +1569,8 @@ link in pointy braces</text:span></text:a>.</text:p>
 <text:p text:style-name="P57">or here: &lt;http://example.com/&gt;</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
 <text:h text:style-name="Heading_20_1" text:outline-level="1">Images</text:h>
-<text:p text:style-name="First_20_paragraph">From &#8220;Voyage dans la
-Lune&#8221; by Georges Melies (1902):</text:p>
+<text:p text:style-name="First_20_paragraph">From “Voyage dans la Lune” by
+Georges Melies (1902):</text:p>
 <text:p text:style-name="Text_20_body"><draw:frame><draw:image xlink:href="lalune.jpg" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad" /></draw:frame></text:p>
 <text:p text:style-name="Text_20_body">Here is a movie
 <draw:frame><draw:image xlink:href="movie.jpg" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad" /></draw:frame>
@@ -1586,7 +1582,7 @@ reference,<text:note text:id="ftn0" text:note-class="footnote"><text:note-citati
 is the footnote. It can go anywhere after the footnote reference. It need not
 be placed at the end of the document.</text:p></text:note-body></text:note>
 and
-another.<text:note text:id="ftn1" text:note-class="footnote"><text:note-citation>2</text:note-citation><text:note-body><text:p text:style-name="Footnote">Here&#8217;s
+another.<text:note text:id="ftn1" text:note-class="footnote"><text:note-citation>2</text:note-citation><text:note-body><text:p text:style-name="Footnote">Here’s
 the long note. This one contains multiple
 blocks.</text:p><text:p text:style-name="Footnote">Subsequent blocks are
 indented to show that they belong to the footnote (as with list

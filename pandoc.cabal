@@ -1,25 +1,25 @@
 Name:            pandoc
-Version:         1.9
-Cabal-Version:   >= 1.6
+Version:         1.9.2
+Cabal-Version:   >= 1.10
 Build-Type:      Custom
 License:         GPL
 License-File:    COPYING
-Copyright:       (c) 2006-2011 John MacFarlane
+Copyright:       (c) 2006-2012 John MacFarlane
 Author:          John MacFarlane <jgm@berkeley.edu>
 Maintainer:      John MacFarlane <jgm@berkeley.edu>
 Bug-Reports:     https://github.com/jgm/pandoc/issues
 Stability:       alpha
 Homepage:        http://johnmacfarlane.net/pandoc
 Category:        Text
-Tested-With:     GHC == 6.12.3, GHC == 7.0.3
+Tested-With:     GHC == 6.12.1, GHC == 7.0.4, GHC == 7.4.1
 Synopsis:        Conversion between markup formats
 Description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
                  this library. It can read markdown and (subsets of)
                  reStructuredText, HTML, LaTeX and Textile, and it can write
                  markdown, reStructuredText, HTML, LaTeX, ConTeXt, Docbook,
-                 OpenDocument, ODT, RTF, MediaWiki, Textile, groff man pages,
-                 plain text, Emacs Org-Mode, AsciiDoc, EPUB,
+                 OpenDocument, ODT, Word docx, RTF, MediaWiki, Textile,
+                 groff man pages, plain text, Emacs Org-Mode, AsciiDoc, EPUB,
                  and S5 and Slidy HTML slide shows.
                  .
                  Pandoc extends standard markdown syntax with footnotes,
@@ -37,7 +37,8 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  only adding a reader or writer.
 Data-Files:
                  -- templates
-                 templates/default.html, templates/default.docbook,
+                 templates/default.html, templates/default.html5,
+                 templates/default.docbook, templates/default.beamer,
                  templates/default.opendocument, templates/default.latex,
                  templates/default.context, templates/default.texinfo,
                  templates/default.man, templates/default.markdown,
@@ -50,13 +51,14 @@ Data-Files:
                  templates/epub-coverimage.html,
                  -- data for ODT writer
                  reference.odt,
+                 -- data for docx writer
+                 reference.docx,
                  -- stylesheet for EPUB writer
                  epub.css,
                  -- data for LaTeXMathML writer
                  data/LaTeXMathML.js,
                  data/MathMLinHTML.js,
                  -- data for S5 writer
-                 s5/default/slides.min.js,
                  s5/default/slides.js,
                  s5/default/s5-core.css,
                  s5/default/framing.css,
@@ -66,6 +68,8 @@ Data-Files:
                  s5/default/print.css,
                  s5/default/slides.css,
                  s5/default/iepngfix.htc,
+                 s5/default/blank.gif,
+                 s5/default/bodybg.gif,
                  -- data for slidy writer
                  slidy/styles/slidy.css,
                  slidy/scripts/slidy.js.gz,
@@ -74,19 +78,18 @@ Data-Files:
                  slidy/graphics/nofold-dim.gif,
                  slidy/graphics/unfold-dim.gif,
                  slidy/graphics/fold-dim.gif,
+                 -- data for dzslides writer
+                 dzslides/template.html,
                  -- data for citeproc
                  default.csl,
                  -- documentation
                  README, INSTALL, COPYRIGHT, BUGS, changelog
 Extra-Source-Files:
-                 -- sources for man pages
-                 man/man1/markdown2pdf.1.md,
                  -- code to create pandoc.1 man page
                  MakeManPage.hs,
                  man/man1/pandoc.1.template,
                  man/man5/pandoc_markdown.5.template,
                  -- generated man pages (produced post-build)
-                 man/man1/markdown2pdf.1,
                  man/man1/pandoc.1,
                  man/man5/pandoc_markdown.5,
                  -- benchmarks
@@ -165,86 +168,78 @@ Extra-Source-Files:
                  tests/lhs-test.latex+lhs,
                  tests/lhs-test.html,
                  tests/lhs-test.html+lhs,
-                 tests/lhs-test.nohl.html,
-                 tests/lhs-test.nohl.html+lhs,
                  tests/lhs-test.fragment.html+lhs
 Extra-Tmp-Files: man/man1/pandoc.1,
-                 man/man1/markdown2pdf.1,
                  man/man5/pandoc_markdown.5
 
 Source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
 
-Flag threaded
-  Description:   Compile markdown2pdf with -threaded option.
-  Default:       True
-Flag highlighting
-  Description:   Compile in support for syntax highlighting of code blocks.
-  Default:       False
 Flag executable
   Description:   Build the pandoc executable.
   Default:       True
 Flag library
   Description:   Build the pandoc library.
   Default:       True
-Flag wrappers
-  Description:   Build the wrappers (markdown2pdf).
-  Default:       True
 Flag tests
   Description:   Build test-pandoc.
   Default:       False
-Flag benchmarks
-  Description:   Build benchmark-pandoc.
-  Default:       False
 
 Library
-  -- Note: the following material must be in both Library and Executable stanzas.
+  -- Note: the following is duplicated in all stanzas.
   -- It needs to be duplicated because of the library & executable flags.
   -- BEGIN DUPLICATED SECTION
   Build-Depends: containers >= 0.1 && < 0.5,
-                 parsec >= 2.1 && < 3.2,
-                 blaze-html >= 0.4.3.0 && < 0.5,
-                 mtl >= 1.1 && < 2.1,
+                 parsec >= 3.1 && < 3.2,
+                 blaze-html >= 0.5 && < 0.6,
+                 blaze-markup >= 0.5.1 && < 0.6,
+                 mtl >= 1.1 && < 2.2,
                  network >= 2 && < 2.4,
-                 filepath >= 1.1 && < 1.3,
+                 filepath >= 1.1 && < 1.4,
                  process >= 1 && < 1.2,
                  directory >= 1 && < 1.2,
                  bytestring >= 0.9 && < 1.0,
                  zip-archive >= 0.1.1.7 && < 0.2,
                  utf8-string >= 0.3 && < 0.4,
-                 old-time >= 1 && < 1.1,
+                 old-locale >= 1 && < 1.1,
+                 time >= 1.2 && < 1.5,
                  HTTP >= 4000.0.5 && < 4000.3,
-                 texmath >= 0.5 && < 0.6,
-                 xml >= 1.3.5 && < 1.4,
+                 texmath >= 0.6.0.2 && < 0.7,
+                 xml >= 1.3.12 && < 1.4,
                  random >= 1 && < 1.1,
                  extensible-exceptions >= 0.1 && < 0.2,
                  citeproc-hs >= 0.3.4 && < 0.4,
-                 pandoc-types == 1.9.*,
+                 pandoc-types >= 1.9.0.2 && < 1.10,
                  json >= 0.4 && < 0.6,
-                 dlist >= 0.4 && < 0.6,
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
-                 zlib >= 0.5 && <= 0.6
+                 zlib >= 0.5 && < 0.6,
+                 highlighting-kate >= 0.5.0.2 && < 0.6,
+                 temporary >= 1.1 && < 1.2
   if impl(ghc >= 6.10)
     Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
   else
     Build-depends: base >= 3 && < 4
-  if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.4 && < 0.5
-    cpp-options:   -D_HIGHLIGHTING
   if impl(ghc >= 6.12)
-    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
+    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind -dno-debug-output
   else
     Ghc-Options:     -O2 -Wall
-  Ghc-Prof-Options: -auto-all -caf-all -rtsopts
-  Extensions:         CPP
+  if impl(ghc >= 7.0.1)
+    Ghc-Prof-Options: -auto-all -caf-all -rtsopts
+  else
+    Ghc-Prof-Options: -auto-all -caf-all
+  Default-Language: Haskell98
+  Default-Extensions: CPP
+  Other-Extensions:   PatternGuards, OverloadedStrings,
+                      ScopedTypeVariables, GeneralizedNewtypeDeriving,
+                      RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
+                      FlexibleInstances
   Hs-Source-Dirs:  src
   -- END DUPLICATED SECTION
 
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Pretty,
-                   Text.Pandoc.CharacterReferences,
                    Text.Pandoc.Shared,
                    Text.Pandoc.Parsing,
                    Text.Pandoc.Highlighting,
@@ -252,6 +247,7 @@ Library
                    Text.Pandoc.Readers.LaTeX,
                    Text.Pandoc.Readers.Markdown,
                    Text.Pandoc.Readers.RST,
+                   Text.Pandoc.Readers.DocBook,
                    Text.Pandoc.Readers.TeXMath,
                    Text.Pandoc.Readers.Textile,
                    Text.Pandoc.Readers.Native,
@@ -271,7 +267,9 @@ Library
                    Text.Pandoc.Writers.MediaWiki,
                    Text.Pandoc.Writers.RTF,
                    Text.Pandoc.Writers.ODT,
+                   Text.Pandoc.Writers.Docx,
                    Text.Pandoc.Writers.EPUB,
+                   Text.Pandoc.PDF,
                    Text.Pandoc.Templates,
                    Text.Pandoc.Biblio,
                    Text.Pandoc.SelfContained
@@ -279,6 +277,8 @@ Library
                    Text.Pandoc.UTF8,
                    Text.Pandoc.MIME,
                    Text.Pandoc.UUID,
+                   Text.Pandoc.ImageSize,
+                   Text.Pandoc.Slides,
                    Paths_pandoc
 
   if flag(library)
@@ -287,92 +287,130 @@ Library
     Buildable:      False
 
 Executable pandoc
-  -- Note: the following material must be in both Library and Executable stanzas.
+  -- Note: the following is duplicated in all stanzas.
   -- It needs to be duplicated because of the library & executable flags.
   -- BEGIN DUPLICATED SECTION
   Build-Depends: containers >= 0.1 && < 0.5,
-                 parsec >= 2.1 && < 3.2,
-                 blaze-html >= 0.4.3.0 && < 0.5,
-                 mtl >= 1.1 && < 2.1,
+                 blaze-html >= 0.5 && < 0.6,
+                 blaze-markup >= 0.5.1 && < 0.6,
+                 parsec >= 3.1 && < 3.2,
+                 mtl >= 1.1 && < 2.2,
                  network >= 2 && < 2.4,
-                 filepath >= 1.1 && < 1.3,
+                 filepath >= 1.1 && < 1.4,
                  process >= 1 && < 1.2,
                  directory >= 1 && < 1.2,
                  bytestring >= 0.9 && < 1.0,
                  zip-archive >= 0.1.1.7 && < 0.2,
                  utf8-string >= 0.3 && < 0.4,
-                 old-time >= 1 && < 1.1,
+                 old-locale >= 1 && < 1.1,
+                 time >= 1.2 && < 1.5,
                  HTTP >= 4000.0.5 && < 4000.3,
-                 texmath >= 0.5 && < 0.6,
-                 xml >= 1.3.5 && < 1.4,
+                 texmath >= 0.6.0.2 && < 0.7,
+                 xml >= 1.3.12 && < 1.4,
                  random >= 1 && < 1.1,
                  extensible-exceptions >= 0.1 && < 0.2,
                  citeproc-hs >= 0.3.4 && < 0.4,
-                 pandoc-types == 1.9.*,
+                 pandoc-types >= 1.9.0.2 && < 1.10,
                  json >= 0.4 && < 0.6,
-                 dlist >= 0.4 && < 0.6,
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
-                 zlib >= 0.5 && <= 0.6
+                 zlib >= 0.5 && < 0.6,
+                 highlighting-kate >= 0.5.0.2 && < 0.6,
+                 temporary >= 1.1 && < 1.2
   if impl(ghc >= 6.10)
     Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
   else
     Build-depends: base >= 3 && < 4
-  if flag(highlighting)
-    Build-depends: highlighting-kate >= 0.4 && < 0.5
-    cpp-options:   -D_HIGHLIGHTING
   if impl(ghc >= 6.12)
-    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
+    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind -dno-debug-output
   else
     Ghc-Options:     -O2 -Wall
-  Ghc-Prof-Options: -auto-all -caf-all -rtsopts
-  Extensions:         CPP
+  if impl(ghc >= 7.0.1)
+    Ghc-Prof-Options: -auto-all -caf-all -rtsopts
+  else
+    Ghc-Prof-Options: -auto-all -caf-all
+  Default-Language: Haskell98
+  Default-Extensions: CPP
+  Other-Extensions:   PatternGuards, OverloadedStrings,
+                      ScopedTypeVariables, GeneralizedNewtypeDeriving,
+                      RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
+                      FlexibleInstances
   Hs-Source-Dirs:  src
   -- END DUPLICATED SECTION
 
   Main-Is:            pandoc.hs
-  if flag(executable) || flag(wrappers)
-    Buildable:        True
-  else
-    Buildable:        False
-
-Executable markdown2pdf
-  Hs-Source-Dirs:     src
-  Main-Is:            markdown2pdf.hs
-  if flag(threaded)
-    Ghc-Options:        -Wall -threaded
-  else
-    Ghc-Options:        -Wall
-  Ghc-Prof-Options:   -auto-all -rtsopts
-  Extensions:         CPP
-  if flag(wrappers)
+  if flag(executable)
     Buildable:        True
   else
     Buildable:        False
 
 Executable test-pandoc
-  Hs-Source-Dirs:     src
   Main-Is:            test-pandoc.hs
-  if flag(highlighting)
-    cpp-options:      -D_HIGHLIGHTING
-  if impl(ghc >= 7)
-    cpp-options:      -D_LIT=lit
+  -- Note: the following is duplicated in all stanzas.
+  -- It needs to be duplicated because of the library & executable flags.
+  -- BEGIN DUPLICATED SECTION
+  Build-Depends: containers >= 0.1 && < 0.5,
+                 blaze-html >= 0.5 && < 0.6,
+                 blaze-markup >= 0.5.1 && < 0.6,
+                 parsec >= 3.1 && < 3.2,
+                 mtl >= 1.1 && < 2.2,
+                 network >= 2 && < 2.4,
+                 filepath >= 1.1 && < 1.4,
+                 process >= 1 && < 1.2,
+                 directory >= 1 && < 1.2,
+                 bytestring >= 0.9 && < 1.0,
+                 zip-archive >= 0.1.1.7 && < 0.2,
+                 utf8-string >= 0.3 && < 0.4,
+                 old-locale >= 1 && < 1.1,
+                 time >= 1.2 && < 1.5,
+                 HTTP >= 4000.0.5 && < 4000.3,
+                 texmath >= 0.6.0.2 && < 0.7,
+                 xml >= 1.3.12 && < 1.4,
+                 random >= 1 && < 1.1,
+                 extensible-exceptions >= 0.1 && < 0.2,
+                 citeproc-hs >= 0.3.4 && < 0.4,
+                 pandoc-types >= 1.9.0.2 && < 1.10,
+                 json >= 0.4 && < 0.6,
+                 tagsoup >= 0.12.5 && < 0.13,
+                 base64-bytestring >= 0.1 && < 0.2,
+                 zlib >= 0.5 && < 0.6,
+                 highlighting-kate >= 0.5.0.2 && < 0.6,
+                 temporary >= 1.1 && < 1.2
+  if impl(ghc >= 6.10)
+    Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
   else
-    cpp-options:      -D_LIT=$lit
+    Build-depends: base >= 3 && < 4
+  if impl(ghc >= 6.12)
+    Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind -dno-debug-output
+  else
+    Ghc-Options:     -O2 -Wall
+  if impl(ghc >= 7.0.1)
+    Ghc-Prof-Options: -auto-all -caf-all -rtsopts
+  else
+    Ghc-Prof-Options: -auto-all -caf-all
+  Default-Language: Haskell98
+  Default-Extensions: CPP
+  Other-Extensions:   PatternGuards, OverloadedStrings,
+                      ScopedTypeVariables, GeneralizedNewtypeDeriving,
+                      RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
+                      FlexibleInstances
+  Hs-Source-Dirs:  src
+  -- END DUPLICATED SECTION
   if !flag(tests)
     Buildable:        False
   else
-    if impl(ghc >= 6.12)
-      Ghc-Options:    -Wall -fno-warn-unused-do-bind
+    Buildable:        True
+    if impl(ghc >= 7)
+      cpp-options:    -D_LIT=lit
     else
-      Ghc-Options:    -Wall
-    Extensions:       CPP
-    Build-Depends:    base >= 4 && < 5, Diff, test-framework >= 0.3 && < 0.5,
+      cpp-options:    -D_LIT=$lit
+    Other-Extensions: TemplateHaskell, QuasiQuotes
+    Build-Depends:    Diff, test-framework >= 0.3 && < 0.7,
                       test-framework-hunit >= 0.2 && < 0.3,
                       test-framework-quickcheck2 >= 0.2.9 && < 0.3,
                       QuickCheck >= 2.4 && < 2.6,
                       HUnit >= 1.2 && < 1.3,
-                      template-haskell >= 2.4 && < 2.7,
+                      template-haskell >= 2.4 && < 2.8,
                       ansi-terminal == 0.5.*
     Other-Modules:    Tests.Old
                       Tests.Helpers

@@ -152,7 +152,7 @@ noteToMarkdown opts num blocks = do
 -- | Escape special characters for Markdown.
 escapeString :: String -> String
 escapeString = escapeStringUsing markdownEscapes
-  where markdownEscapes = backslashEscapes "\\`*_>#~^"
+  where markdownEscapes = backslashEscapes "\\`*_$<>#~^"
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: WriterOptions -> [Block] -> Doc 
@@ -233,10 +233,14 @@ blockToMarkdown _ HorizontalRule =
 blockToMarkdown opts (Header level inlines) = do
   contents <- inlineListToMarkdown opts inlines
   st <- get
-  return $ case level of
-            1 -> contents <> cr <> text (replicate (offset contents) '=') <>
+  let setext = writerSetextHeaders opts
+  return $ nowrap
+         $ case level of
+            1 | setext ->
+                  contents <> cr <> text (replicate (offset contents) '=') <>
                   blankline
-            2 -> contents <> cr <> text (replicate (offset contents) '-') <>
+            2 | setext ->
+                  contents <> cr <> text (replicate (offset contents) '-') <>
                   blankline
             -- ghc interprets '#' characters in column 1 as linenum specifiers.
             _ | stPlain st || writerLiterateHaskell opts ->
@@ -250,7 +254,7 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
   if writerStrictMarkdown opts || attribs == nullAttr
      then nest (writerTabStop opts) (text str) <> blankline
      else -- use delimited code block
-          flush (tildes <> space <> attrs <> cr <> text str <>
+          (tildes <> space <> attrs <> cr <> text str <>
                   cr <> tildes) <> blankline
             where tildes  = text "~~~~"
                   attrs = attrsToMarkdown attribs
@@ -432,10 +436,6 @@ inlineToMarkdown opts (Quoted SingleQuote lst) = do
 inlineToMarkdown opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ "“" <> contents <> "”"
-inlineToMarkdown _ EmDash = return "\8212"
-inlineToMarkdown _ EnDash = return "\8211"
-inlineToMarkdown _ Apostrophe = return "\8217"
-inlineToMarkdown _ Ellipses = return "\8230"
 inlineToMarkdown opts (Code attr str) =
   let tickGroups = filter (\s -> '`' `elem` s) $ group str 
       longest    = if null tickGroups
@@ -499,10 +499,10 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
                      then empty
                      else text $ " \"" ++ tit ++ "\""
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
-  let useRefLinks = writerReferenceLinks opts
   let useAuto = case (tit,txt) of
                       ("", [Code _ s]) | s == srcSuffix -> True
                       _                                 -> False
+  let useRefLinks = writerReferenceLinks opts && not useAuto
   ref <- if useRefLinks then getReference txt (src, tit) else return []
   reftext <- inlineListToMarkdown opts ref
   return $ if useAuto
@@ -516,9 +516,9 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
                       else "[" <> linktext <> "](" <> 
                            text src <> linktitle <> ")"
 inlineToMarkdown opts (Image alternate (source, tit)) = do
-  let txt = if (null alternate) || (alternate == [Str ""]) || 
-               (alternate == [Str source]) -- to prevent autolinks
-               then [Str "image"]
+  let txt = if null alternate || alternate == [Str source]
+                                 -- to prevent autolinks
+               then [Str ""]
                else alternate
   linkPart <- inlineToMarkdown opts (Link txt (source, tit))
   return $ "!" <> linkPart

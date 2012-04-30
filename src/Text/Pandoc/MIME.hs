@@ -35,6 +35,7 @@ import qualified Data.Map as M
 
 -- | Determine mime type appropriate for file path.
 getMimeType :: FilePath -> Maybe String
+getMimeType "layout-cache" = Just "application/binary"  -- in ODT
 getMimeType f = M.lookup (map toLower $ drop 1 $ takeExtension f) mimeTypes
   where mimeTypes = M.fromList -- List borrowed from happstack-server.
            [("gz","application/x-gzip")
@@ -294,6 +295,7 @@ getMimeType f = M.lookup (map toLower $ drop 1 $ takeExtension f) mimeTypes
            ,("oth","application/vnd.oasis.opendocument.text-web")
            ,("otp","application/vnd.oasis.opendocument.presentation-template")
            ,("ots","application/vnd.oasis.opendocument.spreadsheet-template")
+           ,("otf","application/x-font-opentype")
            ,("ott","application/vnd.oasis.opendocument.text-template")
            ,("oza","application/x-oz-application")
            ,("p","text/x-pascal")
@@ -427,6 +429,7 @@ getMimeType f = M.lookup (map toLower $ drop 1 $ takeExtension f) mimeTypes
            ,("ts","text/texmacs")
            ,("tsp","application/dsptype")
            ,("tsv","text/tab-separated-values")
+           ,("ttf","application/x-font-truetype")
            ,("txt","text/plain")
            ,("udeb","application/x-debian-package")
            ,("uls","text/iuls")

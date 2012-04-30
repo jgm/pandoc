@@ -32,6 +32,7 @@ module Text.Pandoc.Shared (
                      -- * List processing
                      splitBy,
                      splitByIndices,
+                     splitStringByIndices,
                      substitute,
                      -- * Text processing
                      backslashEscapes,
@@ -45,6 +46,8 @@ module Text.Pandoc.Shared (
                      toRomanNumeral,
                      escapeURI,
                      tabFilter,
+                     -- * Date/time
+                     normalizeDate,
                      -- * Pandoc block and inline list processing
                      orderedListMarkers,
                      normalizeSpaces,
@@ -67,11 +70,16 @@ module Text.Pandoc.Shared (
                      inDirectory,
                      findDataFile,
                      readDataFile,
+                     -- * Error handling
+                     err,
+                     warn,
                     ) where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
-import qualified Text.Pandoc.UTF8 as UTF8 (readFile)
+import qualified Text.Pandoc.UTF8 as UTF8
+import System.Environment (getProgName)
+import System.Exit (exitWith, ExitCode(..))
 import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
 import Data.List ( find, isPrefixOf, intercalate )
@@ -80,7 +88,13 @@ import System.Directory
 import System.FilePath ( (</>) )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
+import Control.Monad (msum)
 import Paths_pandoc (getDataFileName)
+import Text.Pandoc.Highlighting (Style, pygments)
+import Text.Pandoc.Pretty (charWidth)
+import System.Locale (defaultTimeLocale)
+import Data.Time
+import System.IO (stderr)
 
 --
 -- List processing
@@ -94,12 +108,23 @@ splitBy isSep lst =
       rest'         = dropWhile isSep rest
   in  first:(splitBy isSep rest')
 
--- | Split list into chunks divided at specified indices.
 splitByIndices :: [Int] -> [a] -> [[a]]
 splitByIndices [] lst = [lst]
-splitByIndices (x:xs) lst =
-    let (first, rest) = splitAt x lst in
-    first:(splitByIndices (map (\y -> y - x)  xs) rest)
+splitByIndices (x:xs) lst = first:(splitByIndices (map (\y -> y - x)  xs) rest)
+  where (first, rest) = splitAt x lst
+
+-- | Split string into chunks divided at specified indices.
+splitStringByIndices :: [Int] -> [Char] -> [[Char]]
+splitStringByIndices [] lst = [lst]
+splitStringByIndices (x:xs) lst =
+  let (first, rest) = splitAt' x lst in
+  first : (splitStringByIndices (map (\y -> y - x) xs) rest)
+
+splitAt' :: Int -> [Char] -> ([Char],[Char])
+splitAt' _ []          = ([],[])
+splitAt' n xs | n <= 0 = ([],xs)
+splitAt' n (x:xs)      = (x:ys,zs)
+  where (ys,zs) = splitAt' (n - charWidth x) xs
 
 -- | Replace each occurrence of one sublist in a list with another.
 substitute :: (Eq a) => [a] -> [a] -> [a] -> [a]
@@ -202,6 +227,18 @@ tabFilter tabStop =
       go spsToNextStop (x:xs) =
         x : go (spsToNextStop - 1) xs
   in  go tabStop
+
+--
+-- Date/time
+--
+
+-- | Parse a date and convert (if possible) to "YYYY-MM-DD" format.
+normalizeDate :: String -> Maybe String
+normalizeDate s = fmap (formatTime defaultTimeLocale "%F")
+  (msum $ map (\fs -> parsetimeWith fs s) formats :: Maybe Day)
+   where parsetimeWith = parseTime defaultTimeLocale
+         formats = ["%x","%m/%d/%Y", "%D","%F", "%d %b %Y",
+                    "%d %B %Y", "%b. %d, %Y", "%B %d, %Y"]
 
 --
 -- Pandoc block and inline list processing
@@ -325,10 +362,6 @@ stringify = queryWith go
         go (Str x) = x
         go (Code _ x) = x
         go (Math _ x) = x
-        go EmDash = "--"
-        go EnDash = "-"
-        go Apostrophe = "'"
-        go Ellipses = "..."
         go LineBreak = " "
         go _ = ""
 
@@ -480,9 +513,13 @@ data WriterOptions = WriterOptions
   , writerCiteMethod       :: CiteMethod -- ^ How to print cites
   , writerBiblioFiles      :: [FilePath] -- ^ Biblio files to use for citations
   , writerHtml5            :: Bool       -- ^ Produce HTML5
+  , writerBeamer           :: Bool       -- ^ Produce beamer LaTeX slide show
+  , writerSlideLevel       :: Maybe Int  -- ^ Force header level of slides
   , writerChapters         :: Bool       -- ^ Use "chapter" for top-level sects
   , writerListings         :: Bool       -- ^ Use listings package for code
-  , writerAscii            :: Bool       -- ^ Avoid non-ascii characters
+  , writerHighlight        :: Bool       -- ^ Highlight source code
+  , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
+  , writerSetextHeaders    :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
   } deriving Show
 
 {-# DEPRECATED writerXeTeX "writerXeTeX no longer does anything" #-}
@@ -514,9 +551,13 @@ defaultWriterOptions =
                 , writerCiteMethod       = Citeproc
                 , writerBiblioFiles      = []
                 , writerHtml5            = False
+                , writerBeamer           = False
+                , writerSlideLevel       = Nothing
                 , writerChapters         = False
                 , writerListings         = False
-                , writerAscii            = False
+                , writerHighlight        = False
+                , writerHighlightStyle   = pygments
+                , writerSetextHeaders    = True
                 }
 
 --
@@ -546,3 +587,19 @@ findDataFile (Just u) f = do
 -- Cabal data directory.
 readDataFile :: Maybe FilePath -> FilePath -> IO String
 readDataFile userDir fname = findDataFile userDir fname >>= UTF8.readFile
+
+--
+-- Error reporting
+--
+
+err :: Int -> String -> IO a
+err exitCode msg = do
+  name <- getProgName
+  UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
+  exitWith $ ExitFailure exitCode
+  return undefined
+
+warn :: String -> IO ()
+warn msg = do
+  name <- getProgName
+  UTF8.hPutStrLn stderr $ name ++ ": " ++ msg

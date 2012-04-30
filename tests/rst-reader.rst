@@ -536,3 +536,60 @@ Footnotes
 
 Not in note.
 
+Math
+====
+
+Some inline math :math:`E=mc^2`\ .  Now some
+display math:
+
+.. math:: E=mc^2
+
+.. math::
+
+   E = mc^2
+
+.. math::
+
+   E = mc^2
+
+   \alpha = \beta
+
+.. math::
+   :label hithere
+   :nowrap
+
+   E &= mc^2\\
+   F &= \pi E
+
+   F &= \gamma \alpha^2
+
+All done.
+
+Default-Role
+============
+
+Try changing the default role to a few different things.
+
+.. default-role:: math
+
+Doesn't Break Title Parsing
+---------------------------
+
+Inline math: `E=mc^2` or :math:`E=mc^2` or `E=mc^2`:math:.
+Other roles: :sup:`super`, `sub`:sub:.
+
+.. math::
+    \alpha = beta
+
+    E = mc^2
+
+.. default-role:: sup
+
+Some `of` these :sup:`words` are in `superscript`:sup:.
+
+Reset default-role to the default default.
+
+.. default-role::
+
+And now `some-invalid-string-3231231` is nonsense.
+

@@ -72,7 +72,8 @@ import Text.ParserCombinators.Parsec
 import Control.Monad (liftM, when, forM)
 import System.FilePath
 import Data.List (intercalate, intersperse)
-import Text.Blaze (preEscapedString, Html)
+import Text.Blaze.Html (Html)
+import Text.Blaze.Internal (preEscapedString)
 import Data.ByteString.Lazy.UTF8 (ByteString, fromString)
 import Text.Pandoc.Shared (readDataFile)
 import qualified Control.Exception.Extensible as E (try, IOException)
@@ -83,6 +84,7 @@ getDefaultTemplate :: (Maybe FilePath) -- ^ User data directory to search first
                    -> IO (Either E.IOException String)
 getDefaultTemplate _ "native" = return $ Right ""
 getDefaultTemplate _ "json"   = return $ Right ""
+getDefaultTemplate _ "docx"   = return $ Right ""
 getDefaultTemplate user "odt" = getDefaultTemplate user "opendocument"
 getDefaultTemplate user "epub" = getDefaultTemplate user "html"
 getDefaultTemplate user writer = do

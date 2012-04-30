@@ -42,6 +42,7 @@ module Text.Pandoc.Pretty (
      , flush
      , nest
      , hang
+     , beforeNonBlank
      , nowrap
      , offset
      , height
@@ -66,10 +67,13 @@ module Text.Pandoc.Pretty (
      , parens
      , quotes
      , doubleQuotes
+     , charWidth
+     , realLength
      )
 
 where
-import Data.DList (DList, fromList, toList, cons, singleton)
+import Data.Sequence (Seq, fromList, (<|), singleton, mapWithIndex)
+import Data.Foldable (toList)
 import Data.List (intercalate)
 import Data.Monoid
 import Data.String
@@ -91,6 +95,7 @@ type DocState a = State (RenderState a) ()
 data D = Text Int String
        | Block Int [String]
        | Prefixed String Doc
+       | BeforeNonBlank Doc
        | Flush Doc
        | BreakingSpace
        | CarriageReturn
@@ -98,7 +103,7 @@ data D = Text Int String
        | BlankLine
        deriving (Show)
 
-newtype Doc = Doc { unDoc :: DList D }
+newtype Doc = Doc { unDoc :: Seq D }
               deriving (Monoid)
 
 instance Show Doc where
@@ -106,6 +111,14 @@ instance Show Doc where
 
 instance IsString Doc where
   fromString = text
+
+isBlank :: D -> Bool
+isBlank BreakingSpace  = True
+isBlank CarriageReturn = True
+isBlank NewLine        = True
+isBlank BlankLine      = True
+isBlank (Text _ (c:_)) = isSpace c
+isBlank _              = False
 
 -- | True if the document is empty.
 isEmpty :: Doc -> Bool
@@ -115,9 +128,17 @@ isEmpty = null . toList . unDoc
 empty :: Doc
 empty = mempty
 
--- | @a <> b@ is the result of concatenating @a@ with @b@.
-(<>) :: Doc -> Doc -> Doc
+#if MIN_VERSION_base(4,5,0)
+-- (<>) is defined in Data.Monoid
+#else
+infixr 6 <>
+
+-- | An infix synonym for 'mappend'.
+-- @a <> b@ is the result of concatenating @a@ with @b@.
+(<>) :: Monoid m => m -> m -> m
 (<>) = mappend
+{-# INLINE (<>) #-}
+#endif
 
 -- | Concatenate a list of 'Doc's.
 cat :: [Doc] -> Doc
@@ -129,6 +150,7 @@ hcat = mconcat
 
 -- | Concatenate a list of 'Doc's, putting breakable spaces
 -- between them.
+infixr 6 <+>
 (<+>) :: Doc -> Doc -> Doc
 (<+>) x y = if isEmpty x
                then y
@@ -141,6 +163,7 @@ hcat = mconcat
 hsep :: [Doc] -> Doc
 hsep = foldr (<+>) empty
 
+infixr 5 $$
 -- | @a $$ b@ puts @a@ above @b@.
 ($$) :: Doc -> Doc -> Doc
 ($$) x y = if isEmpty x
@@ -149,6 +172,7 @@ hsep = foldr (<+>) empty
                    then x
                    else x <> cr <> y
 
+infixr 5 $+$
 -- | @a $$ b@ puts @a@ above @b@, with a blank line between.
 ($+$) :: Doc -> Doc -> Doc
 ($+$) x y = if isEmpty x
@@ -184,7 +208,7 @@ outp off s | off <= 0 = do
   when (column st' == 0 && usePrefix st' && not (null rawpref)) $ do
     let pref = reverse $ dropWhile isSpace $ reverse rawpref
     modify $ \st -> st{ output = fromString pref : output st
-                      , column = column st + length pref }
+                      , column = column st + realLength pref }
   when (off < 0) $ do
      modify $ \st -> st { output = fromString s : output st
                         , column = 0
@@ -194,7 +218,7 @@ outp off s = do
   let pref = prefix st'
   when (column st' == 0 && usePrefix st' && not (null pref)) $ do
     modify $ \st -> st{ output = fromString pref : output st
-                      , column = column st + length pref }
+                      , column = column st + realLength pref }
   modify $ \st -> st{ output = fromString s : output st
                     , column = column st + off
                     , newlines = 0 }
@@ -240,6 +264,12 @@ renderList (Flush d : xs) = do
   renderDoc d
   modify $ \s -> s{ usePrefix = oldUsePrefix }
   renderList xs
+
+renderList (BeforeNonBlank d : xs) =
+  case xs of
+    (x:_) | isBlank x -> renderList xs
+          | otherwise -> renderDoc d >> renderList xs
+    []                -> renderList xs
 
 renderList (BlankLine : xs) = do
   st <- get
@@ -295,7 +325,7 @@ renderList (b1@Block{} : BreakingSpace : b2@Block{} : xs) =
 renderList (Block width lns : xs) = do
   st <- get
   let oldPref = prefix st
-  case column st - length oldPref of
+  case column st - realLength oldPref of
         n | n > 0 -> modify $ \s -> s{ prefix = oldPref ++ replicate n ' ' }
         _         -> return ()
   renderDoc $ blockToDoc width lns
@@ -307,7 +337,7 @@ mergeBlocks addSpace (Block w1 lns1) (Block w2 lns2) =
   Block (w1 + w2 + if addSpace then 1 else 0) $
      zipWith (\l1 l2 -> pad w1 l1 ++ l2) (lns1 ++ empties) (map sp lns2 ++ empties)
     where empties = replicate (abs $ length lns1 - length lns2) ""
-          pad n s = s ++ replicate (n - length s) ' '
+          pad n s = s ++ replicate (n - realLength s) ' '
           sp "" = ""
           sp xs = if addSpace then (' ' : xs) else xs
 mergeBlocks _ _ _ = error "mergeBlocks tried on non-Block!"
@@ -324,13 +354,13 @@ offsetOf _                = 0
 -- | A literal string.
 text :: String -> Doc
 text = Doc . toChunks
-  where toChunks :: String -> DList D
+  where toChunks :: String -> Seq D
         toChunks [] = mempty
         toChunks s = case break (=='\n') s of
-                          ([], _:ys) -> NewLine `cons` toChunks ys
-                          (xs, _:ys) -> Text (length xs) xs `cons`
-                                            NewLine `cons` toChunks ys
-                          (xs, [])      -> singleton $ Text (length xs) xs
+                          ([], _:ys) -> NewLine <| toChunks ys
+                          (xs, _:ys) -> Text (realLength xs) xs <|
+                                            (NewLine <| toChunks ys)
+                          (xs, [])      -> singleton $ Text (realLength xs) xs
 
 -- | A character.
 char :: Char -> Doc
@@ -371,15 +401,20 @@ nest ind = prefixed (replicate ind ' ')
 hang :: Int -> Doc -> Doc -> Doc
 hang ind start doc = start <> nest ind doc
 
+-- | @beforeNonBlank d@ conditionally includes @d@ unless it is
+-- followed by blank space.
+beforeNonBlank :: Doc -> Doc
+beforeNonBlank d = Doc $ singleton (BeforeNonBlank d)
+
 -- | Makes a 'Doc' non-reflowable.
 nowrap :: Doc -> Doc
-nowrap doc = Doc $ fromList $ map replaceSpace $ toList $ unDoc doc
-  where replaceSpace BreakingSpace = Text 1 " "
-        replaceSpace x = x
+nowrap doc = Doc $ mapWithIndex replaceSpace $ unDoc doc
+  where replaceSpace _ BreakingSpace = Text 1 " "
+        replaceSpace _ x = x
 
 -- | Returns the width of a 'Doc'.
 offset :: Doc -> Int
-offset d = case map length . lines . render Nothing $ d of
+offset d = case map realLength . lines . render Nothing $ d of
                 []    -> 0
                 os    -> maximum os
 
@@ -394,11 +429,11 @@ lblock = block id
 
 -- | Like 'lblock' but aligned to the right.
 rblock :: Int -> Doc -> Doc
-rblock w = block (\s -> replicate (w - length s) ' ' ++ s) w
+rblock w = block (\s -> replicate (w - realLength s) ' ' ++ s) w
 
 -- | Like 'lblock' but aligned centered.
 cblock :: Int -> Doc -> Doc
-cblock w = block (\s -> replicate ((w - length s) `div` 2) ' ' ++ s) w
+cblock w = block (\s -> replicate ((w - realLength s) `div` 2) ' ' ++ s) w
 
 -- | Returns the height of a block or other 'Doc'.
 height :: Doc -> Int
@@ -413,7 +448,7 @@ chop n cs = case break (=='\n') cs of
                                              (_:[]) -> [xs, ""]
                                              (_:zs) -> xs : chop n zs
                                      else take n xs : chop n (drop n xs ++ ys)
-                                   where len = length xs
+                                   where len = realLength xs
 
 -- | Encloses a 'Doc' inside a start and end 'Doc'.
 inside :: Doc -> Doc -> Doc -> Doc
@@ -440,3 +475,50 @@ quotes = inside (char '\'') (char '\'')
 doubleQuotes :: Doc -> Doc
 doubleQuotes = inside (char '"') (char '"')
 
+-- | Returns width of a character in a monospace font:  0 for a combining
+-- character, 1 for a regular character, 2 for an East Asian wide character.
+charWidth :: Char -> Int
+charWidth c =
+  case c of
+      _ | c <  '\x0300'                    -> 1
+        | c >= '\x0300' && c <= '\x036F'   -> 0  -- combining
+        | c >= '\x0370' && c <= '\x10FC'   -> 1
+        | c >= '\x1100' && c <= '\x115F'   -> 2
+        | c >= '\x1160' && c <= '\x11A2'   -> 1
+        | c >= '\x11A3' && c <= '\x11A7'   -> 2
+        | c >= '\x11A8' && c <= '\x11F9'   -> 1
+        | c >= '\x11FA' && c <= '\x11FF'   -> 2
+        | c >= '\x1200' && c <= '\x2328'   -> 1
+        | c >= '\x2329' && c <= '\x232A'   -> 2
+        | c >= '\x232B' && c <= '\x2E31'   -> 1
+        | c >= '\x2E80' && c <= '\x303E'   -> 2
+        | c == '\x303F'                    -> 1
+        | c >= '\x3041' && c <= '\x3247'   -> 2
+        | c >= '\x3248' && c <= '\x324F'   -> 1 -- ambiguous
+        | c >= '\x3250' && c <= '\x4DBF'   -> 2
+        | c >= '\x4DC0' && c <= '\x4DFF'   -> 1
+        | c >= '\x4E00' && c <= '\xA4C6'   -> 2
+        | c >= '\xA4D0' && c <= '\xA95F'   -> 1
+        | c >= '\xA960' && c <= '\xA97C'   -> 2
+        | c >= '\xA980' && c <= '\xABF9'   -> 1
+        | c >= '\xAC00' && c <= '\xD7FB'   -> 2
+        | c >= '\xD800' && c <= '\xDFFF'   -> 1
+        | c >= '\xE000' && c <= '\xF8FF'   -> 1 -- ambiguous
+        | c >= '\xF900' && c <= '\xFAFF'   -> 2
+        | c >= '\xFB00' && c <= '\xFDFD'   -> 1
+        | c >= '\xFE00' && c <= '\xFE0F'   -> 1 -- ambiguous
+        | c >= '\xFE10' && c <= '\xFE19'   -> 2
+        | c >= '\xFE20' && c <= '\xFE26'   -> 1
+        | c >= '\xFE30' && c <= '\xFE6B'   -> 2
+        | c >= '\xFE70' && c <= '\x16A38'  -> 1
+        | c >= '\x1B000' && c <= '\x1B001' -> 2
+        | c >= '\x1D000' && c <= '\x1F1FF' -> 1
+        | c >= '\x1F200' && c <= '\x1F251' -> 2
+        | c >= '\x1F300' && c <= '\x1F773' -> 1
+        | c >= '\x20000' && c <= '\x3FFFD' -> 2
+        | otherwise                        -> 1
+
+-- | Get real length of string, taking into account combining and double-wide
+-- characters.
+realLength :: String -> Int
+realLength = sum . map charWidth

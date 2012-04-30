@@ -1,4 +1,4 @@
-This is a set of tests for pandoc. Most of them are adapted from John Gruber&rsquo;s markdown test suite.
+This is a set of tests for pandoc. Most of them are adapted from John Gruber’s markdown test suite.
 
 
 -----
@@ -30,11 +30,11 @@ with no blank line
 
 = Paragraphs =
 
-Here&rsquo;s a regular paragraph.
+Here’s a regular paragraph.
 
 In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.
 
-Here&rsquo;s one with a bullet. * criminey.
+Here’s one with a bullet. * criminey.
 
 There should be a hard line break<br />
 here.
@@ -160,7 +160,7 @@ Multiple paragraphs:
 
 <ol style="list-style-type: decimal;">
 <li><p>Item 1, graf one.</p>
-<p>Item 1. graf two. The quick brown fox jumped over the lazy dog&rsquo;s back.</p></li>
+<p>Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.</p></li>
 <li><p>Item 2.</p></li>
 <li><p>Item 3.</p></li></ol>
 
@@ -172,7 +172,7 @@ Multiple paragraphs:
 
 
 
-Here&rsquo;s another:
+Here’s another:
 
 # First
 # Second:
@@ -350,7 +350,7 @@ And this is '''strong'''
 
 <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
 
-Here&rsquo;s a simple block:
+Here’s a simple block:
 
 <div>
     
@@ -401,7 +401,7 @@ Just plain comment, with trailing spaces on the line:
 Code:
 
 <pre>&lt;hr /&gt;</pre>
-Hr&rsquo;s:
+Hr’s:
 
 <hr>
 
@@ -455,21 +455,21 @@ These should not be superscripts or subscripts, because of the unescaped spaces:
 
 = Smart quotes, ellipses, dashes =
 
-&ldquo;Hello,&rdquo; said the spider. &ldquo;&lsquo;Shelob&rsquo; is my name.&rdquo;
+“Hello,” said the spider. “‘Shelob’ is my name.”
 
-&lsquo;A&rsquo;, &lsquo;B&rsquo;, and &lsquo;C&rsquo; are letters.
+‘A’, ‘B’, and ‘C’ are letters.
 
-&lsquo;Oak,&rsquo; &lsquo;elm,&rsquo; and &lsquo;beech&rsquo; are names of trees. So is &lsquo;pine.&rsquo;
+‘Oak,’ ‘elm,’ and ‘beech’ are names of trees. So is ‘pine.’
 
-&lsquo;He said, &ldquo;I want to go.&rdquo;&rsquo; Were you alive in the 70&rsquo;s?
+‘He said, “I want to go.”’ Were you alive in the 70’s?
 
-Here is some quoted &lsquo;<tt>code</tt>&rsquo; and a &ldquo;[http://example.com/?foo=1&bar=2 quoted link]&rdquo;.
+Here is some quoted ‘<tt>code</tt>’ and a “[http://example.com/?foo=1&bar=2 quoted link]”.
 
-Some dashes: one&mdash;two &mdash; three&mdash;four &mdash; five.
+Some dashes: one—two — three—four — five.
 
-Dashes between numbers: 5&ndash;7, 255&ndash;66, 1987&ndash;1999.
+Dashes between numbers: 5–7, 255–66, 1987–1999.
 
-Ellipses&hellip;and&hellip;and&hellip;.
+Ellipses…and…and….
 
 
 -----
@@ -482,17 +482,17 @@ Ellipses&hellip;and&hellip;and&hellip;.
 * <math>\alpha \wedge \omega</math>
 * <math>223</math>
 * <math>p</math>-Tree
-* Here&rsquo;s some display math: <math>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</math>
-* Here&rsquo;s one that has a line break in it: <math>\alpha + \omega \times x^2</math>.
+* Here’s some display math: <math>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</math>
+* Here’s one that has a line break in it: <math>\alpha + \omega \times x^2</math>.
 
-These shouldn&rsquo;t be math:
+These shouldn’t be math:
 
 * To get the famous equation, write <tt>$e = mc^2$</tt>.
-* $22,000 is a ''lot'' of money. So is $34,000. (It worked if &ldquo;lot&rdquo; is emphasized.)
+* $22,000 is a ''lot'' of money. So is $34,000. (It worked if “lot” is emphasized.)
 * Shoes ($20) and socks ($5).
 * Escaped <tt>$</tt>: $73 ''this should be emphasized'' 23$.
 
-Here&rsquo;s a LaTeX table:
+Here’s a LaTeX table:
 
 
 
@@ -602,13 +602,13 @@ Foo [[url/|biz]].
 
 == With ampersands ==
 
-Here&rsquo;s a [http://example.com/?foo=1&bar=2 link with an ampersand in the URL].
+Here’s a [http://example.com/?foo=1&bar=2 link with an ampersand in the URL].
 
-Here&rsquo;s a link with an amersand in the link text: [http://att.com/ AT&amp;T].
+Here’s a link with an amersand in the link text: [http://att.com/ AT&amp;T].
 
-Here&rsquo;s an [[script?foo=1&bar=2|inline link]].
+Here’s an [[script?foo=1&bar=2|inline link]].
 
-Here&rsquo;s an [[script?foo=1&bar=2|inline link in pointy braces]].
+Here’s an [[script?foo=1&bar=2|inline link in pointy braces]].
 
 == Autolinks ==
 
@@ -630,7 +630,7 @@ Auto-links should not occur here: <tt>&lt;http://example.com/&gt;</tt>
 
 = Images =
 
-From &ldquo;Voyage dans la Lune&rdquo; by Georges Melies (1902):
+From “Voyage dans la Lune” by Georges Melies (1902):
 
 [[Image:lalune.jpg|frame|none|alt=Voyage dans la Lune|caption lalune]]
 
@@ -642,7 +642,7 @@ Here is a movie [[Image:movie.jpg|movie]] icon.
 = Footnotes =
 
 Here is a footnote reference,<ref>Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.
-</ref> and another.<ref>Here&rsquo;s the long note. This one contains multiple blocks.
+</ref> and another.<ref>Here’s the long note. This one contains multiple blocks.
 
 Subsequent blocks are indented to show that they belong to the footnote (as with list items).
 

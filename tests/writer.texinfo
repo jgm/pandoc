@@ -1,5 +1,5 @@
 \input texinfo
-@documentencoding utf-8
+@documentencoding UTF-8
 
 @macro textstrikeout{text}
 ~~\text\~~

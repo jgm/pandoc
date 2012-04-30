@@ -46,8 +46,14 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Data.Maybe ( fromMaybe, isJust )
 import Data.List ( intercalate )
-import Data.Char ( isSpace, isDigit )
+import Data.Char ( isDigit, toLower )
 import Control.Monad ( liftM, guard, when )
+
+isSpace :: Char -> Bool
+isSpace ' '  = True
+isSpace '\t' = True
+isSpace '\n' = True
+isSpace _    = False
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: ParserState   -- ^ Parser state
@@ -90,9 +96,17 @@ block = choice
             , pRawHtmlBlock
             ]
 
+-- repeated in SelfContained -- consolidate eventually
 renderTags' :: [Tag String] -> String
 renderTags' = renderTagsOptions
-               renderOptions{ optMinimize = (`elem` ["hr","br","img"]) }
+               renderOptions{ optMinimize = \x ->
+                                    let y = map toLower x
+                                    in  y == "hr" || y == "br" ||
+                                        y == "img" || y == "meta" ||
+                                        y == "link"
+                            , optRawTag = \x ->
+                                    let y = map toLower x
+                                    in  y == "script" || y == "style" }
 
 pList :: TagParser [Block]
 pList = pBulletList <|> pOrderedList <|> pDefinitionList
@@ -214,6 +228,8 @@ pSimpleTable :: TagParser [Block]
 pSimpleTable = try $ do
   TagOpen _ _ <- pSatisfy (~== TagOpen "table" [])
   skipMany pBlank
+  caption <- option [] $ pInTags "caption" inline >>~ skipMany pBlank
+  skipMany $ pInTags "col" block >> skipMany pBlank
   head' <- option [] $ pOptInTag "thead" $ pInTags "tr" (pCell "th")
   skipMany pBlank
   rows <- pOptInTag "tbody"
@@ -223,7 +239,7 @@ pSimpleTable = try $ do
   let cols = maximum $ map length rows
   let aligns = replicate cols AlignLeft
   let widths = replicate cols 0
-  return [Table [] aligns widths head' rows]
+  return [Table caption aligns widths head' rows]
 
 pCell :: String -> TagParser [TableCell]
 pCell celltype = try $ do
@@ -421,8 +437,12 @@ pTagContents =
   pStr <|> pSpace <|> smartPunctuation pTagContents <|> pSymbol <|> pBad
 
 pStr :: GenParser Char ParserState Inline
-pStr = liftM Str $ many1 $ satisfy $ \c ->
-           not (isSpace c) && not (isSpecial c) && not (isBad c)
+pStr = do
+  result <- many1 $ satisfy $ \c ->
+                     not (isSpace c) && not (isSpecial c) && not (isBad c)
+  pos <- getPosition
+  updateState $ \s -> s{ stateLastStrPos = Just pos }
+  return $ Str result
 
 isSpecial :: Char -> Bool
 isSpecial '"' = True
@@ -517,7 +537,7 @@ blockDocBookTags = ["calloutlist", "bibliolist", "glosslist", "itemizedlist",
                     "figure", "screenshot", "mediaobject", "qandaset",
                     "procedure", "task", "cmdsynopsis", "funcsynopsis",
                     "classsynopsis", "blockquote", "epigraph", "msgset",
-                    "sidebar"]
+                    "sidebar", "title"]
 
 blockTags :: [String]
 blockTags = blockHtmlTags ++ blockDocBookTags

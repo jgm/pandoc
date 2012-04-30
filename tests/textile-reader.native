@@ -1,5 +1,5 @@
 Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
-[Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc",Space,Str "Textile",Space,Str "Reader",Str ".",Space,Str "Part",Space,Str "of",Space,Str "it",Space,Str "comes",LineBreak,Str "from",Space,Str "John",Space,Str "Gruber",Apostrophe,Str "s",Space,Str "markdown",Space,Str "test",Space,Str "suite",Str "."]
+[Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc",Space,Str "Textile",Space,Str "Reader",Str ".",Space,Str "Part",Space,Str "of",Space,Str "it",Space,Str "comes",LineBreak,Str "from",Space,Str "John",Space,Str "Gruber",Str "\8217",Str "s",Space,Str "markdown",Space,Str "test",Space,Str "suite",Str "."]
 ,HorizontalRule
 ,Header 1 [Str "Headers"]
 ,Header 2 [Str "Level",Space,Str "2",Space,Str "with",Space,Str "an",Space,Link [Str "embeded",Space,Str "link"] ("http://www.example.com","")]
@@ -8,9 +8,9 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 ,Header 5 [Str "Level",Space,Str "5"]
 ,Header 6 [Str "Level",Space,Str "6"]
 ,Header 1 [Str "Paragraphs"]
-,Para [Str "Here",Apostrophe,Str "s",Space,Str "a",Space,Str "regular",Space,Str "paragraph",Str "."]
+,Para [Str "Here",Str "\8217",Str "s",Space,Str "a",Space,Str "regular",Space,Str "paragraph",Str "."]
 ,Para [Str "Line",Space,Str "breaks",Space,Str "are",Space,Str "preserved",Space,Str "in",Space,Str "textile",Str ",",Space,Str "so",Space,Str "you",Space,Str "can",Space,Str "not",Space,Str "wrap",Space,Str "your",Space,Str "very",LineBreak,Str "long",Space,Str "paragraph",Space,Str "with",Space,Str "your",Space,Str "favourite",Space,Str "text",Space,Str "editor",Space,Str "and",Space,Str "have",Space,Str "it",Space,Str "rendered",LineBreak,Str "with",Space,Str "no",Space,Str "break",Str "."]
-,Para [Str "Here",Apostrophe,Str "s",Space,Str "one",Space,Str "with",Space,Str "a",Space,Str "bullet",Str "."]
+,Para [Str "Here",Str "\8217",Str "s",Space,Str "one",Space,Str "with",Space,Str "a",Space,Str "bullet",Str "."]
 ,BulletList
  [[Plain [Str "criminey",Str "."]]]
 ,Para [Str "There",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "paragraph",Space,Str "break",Space,Str "between",Space,Str "here"]
@@ -67,12 +67,12 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
  ,([Str "beer"],
    [[Plain [Str "fresh",Space,Str "and",Space,Str "bitter"]]])]
 ,Header 1 [Str "Inline",Space,Str "Markup"]
-,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str ".",LineBreak,Str "This",Space,Str "is",Space,Strong [Str "strong"],Str ",",Space,Str "and",Space,Str "so",Space,Strong [Str "is",Space,Str "this"],Str ".",LineBreak,Str "A",Space,Link [Strong [Str "strong",Space,Str "link"]] ("http://www.foobar.com",""),Str "."]
+,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str ".",LineBreak,Str "This",Space,Str "is",Space,Strong [Str "strong"],Str ",",Space,Str "and",Space,Str "so",Space,Strong [Str "is",Space,Str "this"],Str ".",LineBreak,Str "Hyphenated-words-are-ok",Str ",",Space,Str "as",Space,Str "well",Space,Str "as",Space,Str "strange_underscore_notation",Str ".",LineBreak,Str "A",Space,Link [Strong [Str "strong",Space,Str "link"]] ("http://www.foobar.com",""),Str "."]
 ,Para [Emph [Strong [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em",Str "."]],LineBreak,Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word",Space,Str "and",Space,Emph [Strong [Str "that",Space,Str "one"]],Str ".",LineBreak,Strikeout [Str "This",Space,Str "is",Space,Str "strikeout",Space,Str "and",Space,Strong [Str "strong"]]]
-,Para [Str "Superscripts",Str ":",Space,Str "a",Superscript [Str "bc"],Str "d",Space,Str "a",Superscript [Strong [Str "hello"]],Space,Str "a",Superscript [Str "hello",Space,Str "there"],Str ".",LineBreak,Str "Subscripts",Str ":",Space,Str "H",Subscript [Str "2"],Str "O",Str ",",Space,Str "H",Subscript [Str "23"],Str "O",Str ",",Space,Str "H",Subscript [Str "many",Space,Str "of",Space,Str "them"],Str "O",Str "."]
-,Para [Str "Dashes",Space,Str ":",Space,Str "How",Space,Str "cool",Space,EmDash,Space,Str "automatic",Space,Str "dashes",Str "."]
-,Para [Str "Elipses",Space,Str ":",Space,Str "He",Space,Str "thought",Space,Str "and",Space,Str "thought",Space,Ellipses,Space,Str "and",Space,Str "then",Space,Str "thought",Space,Str "some",Space,Str "more",Str "."]
-,Para [Str "Quotes",Space,Str "and",Space,Str "apostrophes",Space,Str ":",Space,Quoted DoubleQuote [Str "I",Apostrophe,Str "d",Space,Str "like",Space,Str "to",Space,Str "thank",Space,Str "you"],Space,Str "for",Space,Str "example",Str "."]
+,Para [Str "Superscripts",Str ":",Space,Str "a",Superscript [Str "bc"],Str "d",Space,Str "a",Superscript [Strong [Str "hello"]],Space,Str "a",Superscript [Str "hello",Space,Str "there"],Str ".",LineBreak,Str "Subscripts",Str ":",Space,Subscript [Str "here"],Space,Str "H",Subscript [Str "2"],Str "O",Str ",",Space,Str "H",Subscript [Str "23"],Str "O",Str ",",Space,Str "H",Subscript [Str "many",Space,Str "of",Space,Str "them"],Str "O",Str "."]
+,Para [Str "Dashes",Space,Str ":",Space,Str "How",Space,Str "cool",Space,Str "\8212",Space,Str "automatic",Space,Str "dashes",Str "."]
+,Para [Str "Elipses",Space,Str ":",Space,Str "He",Space,Str "thought",Space,Str "and",Space,Str "thought",Space,Str "\8230",Space,Str "and",Space,Str "then",Space,Str "thought",Space,Str "some",Space,Str "more",Str "."]
+,Para [Str "Quotes",Space,Str "and",Space,Str "apostrophes",Space,Str ":",Space,Quoted DoubleQuote [Str "I",Str "\8217",Str "d",Space,Str "like",Space,Str "to",Space,Str "thank",Space,Str "you"],Space,Str "for",Space,Str "example",Str "."]
 ,Header 1 [Str "Links"]
 ,Header 2 [Str "Explicit"]
 ,Para [Str "Just",Space,Str "a",Space,Link [Str "url"] ("http://www.url.com","")]
@@ -96,7 +96,7 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
  ,[[Plain [Str "bella"]]
   ,[Plain [Str "45"]]
   ,[Plain [Str "f"]]]]
-,Para [Str "and",Space,Str "some",Space,Str "text",Space,Str "following",Space,Ellipses]
+,Para [Str "and",Space,Str "some",Space,Str "text",Space,Str "following",Space,Str "\8230"]
 ,Header 2 [Str "With",Space,Str "headers"]
 ,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
  [[Plain [Str "name"]]
@@ -136,11 +136,15 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 ,RawBlock "html" "</div>"
 ,Para [Str "as",Space,Str "well",Str "."]
 ,BulletList
- [[Plain [Str "this",Space,Str "<",Str "div",Str ">",Space,Str "won",Apostrophe,Str "t",Space,Str "produce",Space,Str "raw",Space,Str "html",Space,Str "blocks",Space,Str "<",Str "/div",Str ">"]]
+ [[Plain [Str "this",Space,Str "<",Str "div",Str ">",Space,Str "won",Str "\8217",Str "t",Space,Str "produce",Space,Str "raw",Space,Str "html",Space,Str "blocks",Space,Str "<",Str "/div",Str ">"]]
  ,[Plain [Str "but",Space,Str "this",Space,RawInline "html" "<strong>",Space,Str "will",Space,Str "produce",Space,Str "inline",Space,Str "html",Space,RawInline "html" "</strong>"]]]
 ,Para [Str "Can",Space,Str "you",Space,Str "prove",Space,Str "that",Space,Str "2",Space,Str "<",Space,Str "3",Space,Str "?"]
+,Header 1 [Str "Raw",Space,Str "LaTeX"]
+,Para [Str "This",Space,Str "Textile",Space,Str "reader",Space,Str "also",Space,Str "accepts",Space,Str "raw",Space,Str "LaTeX",Space,Str "for",Space,Str "blocks",Space,Str ":"]
+,RawBlock "latex" "\\begin{itemize}\n  \\item one\n  \\item two\n\\end{itemize}"
+,Para [Str "and",Space,Str "for",Space,RawInline "latex" "\\emph{inlines}",Str "."]
 ,Header 1 [Str "Acronyms",Space,Str "and",Space,Str "marks"]
-,Para [Str "PBS",Space,Str "(",Str "Public",Space,Str "Broadcasting",Space,Str "System",Str ")"]
+,Para [Str "PBS (Public Broadcasting System)"]
 ,Para [Str "Hi",Str "\8482"]
 ,Para [Str "Hi",Space,Str "\8482"]
 ,Para [Str "\174",Space,Str "Hi",Str "\174"]

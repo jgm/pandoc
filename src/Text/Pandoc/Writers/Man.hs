@@ -98,7 +98,13 @@ noteToMan opts num note = do
 
 -- | Association list of characters to escape.
 manEscapes :: [(Char, String)]
-manEscapes = [('\160', "\\ "), ('\'', "\\[aq]")] ++ backslashEscapes "@\\"
+manEscapes = [ ('\160', "\\ ")
+             , ('\'', "\\[aq]")
+             , ('’', "'")
+             , ('\x2014', "\\[em]")
+             , ('\x2013', "\\[en]")
+             , ('\x2026', "\\&...")
+             ] ++ backslashEscapes "@\\"
 
 -- | Escape special characters for Man.
 escapeString :: String -> String
@@ -106,7 +112,11 @@ escapeString = escapeStringUsing manEscapes
 
 -- | Escape a literal (code) section for Man.
 escapeCode :: String -> String
-escapeCode = escapeStringUsing (manEscapes ++ backslashEscapes "\t ")
+escapeCode = concat . intersperse "\n" . map escapeLine . lines  where
+  escapeLine codeline = 
+    case escapeStringUsing (manEscapes ++ backslashEscapes "\t ") codeline of
+      a@('.':_) -> "\\&" ++ a
+      b       -> b
 
 -- We split inline lists into sentences, and print one sentence per
 -- line.  groff/troff treats the line-ending period differently.
@@ -116,15 +126,18 @@ escapeCode = escapeStringUsing (manEscapes ++ backslashEscapes "\t ")
 breakSentence :: [Inline] -> ([Inline], [Inline])
 breakSentence [] = ([],[])
 breakSentence xs =
-  let isSentenceEndInline (Str ".") = True
-      isSentenceEndInline (Str "?") = True
+  let isSentenceEndInline (Str ys@(_:_)) | last ys == '.' = True
+      isSentenceEndInline (Str ys@(_:_)) | last ys == '?' = True
+      isSentenceEndInline (LineBreak) = True
       isSentenceEndInline _         = False
       (as, bs) = break isSentenceEndInline xs
   in  case bs of
            []             -> (as, [])
            [c]            -> (as ++ [c], [])
            (c:Space:cs)   -> (as ++ [c], cs)
-           (Str ".":Str ")":cs) -> (as ++ [Str ".", Str ")"], cs)
+           (Str ".":Str (')':ys):cs) -> (as ++ [Str ".", Str (')':ys)], cs)
+           (x@(Str ('.':')':_)):cs) -> (as ++ [x], cs)
+           (LineBreak:x@(Str ('.':_)):cs) -> (as ++[LineBreak], x:cs)
            (c:cs)         -> (as ++ [c] ++ ds, es)
               where (ds, es) = breakSentence cs
 
@@ -273,7 +286,7 @@ blockListToMan opts blocks =
 inlineListToMan :: WriterOptions -> [Inline] -> State WriterState Doc
 -- if list starts with ., insert a zero-width character \& so it
 -- won't be interpreted as markup if it falls at the beginning of a line.
-inlineListToMan opts lst@(Str "." : _) = mapM (inlineToMan opts) lst >>=
+inlineListToMan opts lst@(Str ('.':_) : _) = mapM (inlineToMan opts) lst >>=
   (return . (text "\\&" <>)  . hcat)
 inlineListToMan opts lst = mapM (inlineToMan opts) lst >>= (return . hcat)
 
@@ -303,10 +316,6 @@ inlineToMan opts (Quoted DoubleQuote lst) = do
   return $ text "\\[lq]" <> contents <> text "\\[rq]"
 inlineToMan opts (Cite _ lst) =
   inlineListToMan opts lst
-inlineToMan _ EmDash = return $ text "\\[em]"
-inlineToMan _ EnDash = return $ text "\\[en]"
-inlineToMan _ Apostrophe = return $ char '\''
-inlineToMan _ Ellipses = return $ text "\\&..."
 inlineToMan _ (Code _ str) =
   return $ text $ "\\f[C]" ++ escapeCode str ++ "\\f[]"
 inlineToMan _ (Str str) = return $ text $ escapeString str

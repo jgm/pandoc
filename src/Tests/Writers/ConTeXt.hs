@@ -26,7 +26,7 @@ which is in turn shorthand for
   test context "my test" (X,Y)
 -}
 
-infix 5 =:
+infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
      => String -> (a, String) -> Test
 (=:) = test context
@@ -43,9 +43,7 @@ tests = [ testGroup "inline code"
           ]
         , testGroup "headers"
           [ "level 1" =:
-            header 1 "My header" =?> "\\subject{My header}"
-          , property "header 1 property" $ \ils ->
-                context' (header 1 ils) == "\\subject{" ++ context' ils ++ "}"
+            header 1 "My header" =?> "\\section[my-header]{My header}"
           ]
         , testGroup "bullet lists"
           [ "nested" =:

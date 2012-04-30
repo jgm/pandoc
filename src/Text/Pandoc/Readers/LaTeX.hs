@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2012 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.LaTeX
-   Copyright   : Copyright (C) 2006-2010 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   Copyright   : Copyright (C) 2006-2012 John MacFarlane
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
@@ -27,20 +27,26 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of LaTeX to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.LaTeX ( 
-                                  readLaTeX,
-                                  rawLaTeXInline,
-                                  rawLaTeXEnvironment'
+module Text.Pandoc.Readers.LaTeX ( readLaTeX,
+                                   rawLaTeXInline,
+                                   rawLaTeXBlock,
+                                   handleIncludes
                                  ) where
 
-import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec hiding ((<|>), space, many, optional)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
-import Data.Maybe ( fromMaybe )
-import Data.Char ( chr, toUpper )
-import Data.List ( intercalate, isPrefixOf, isSuffixOf )
+import qualified Text.Pandoc.UTF8 as UTF8
+import Data.Char ( chr, ord )
 import Control.Monad
+import Text.Pandoc.Builder
+import Data.Char (isLetter, isPunctuation, isSpace)
+import Control.Applicative
+import Data.Monoid
+import System.FilePath (replaceExtension)
+import Data.List (intercalate)
+import qualified Data.Map as M
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ParserState   -- ^ Parser state, including options for parser
@@ -48,894 +54,837 @@ readLaTeX :: ParserState   -- ^ Parser state, including options for parser
           -> Pandoc
 readLaTeX = readWith parseLaTeX
 
--- characters with special meaning
-specialChars :: [Char]
-specialChars = "\\`$%^&_~#{}[]\n \t|<>'\"-"
-
---
--- utility functions
---
-
--- | Returns text between brackets and its matching pair.
-bracketedText :: Char -> Char -> GenParser Char st [Char]
-bracketedText openB closeB = do
-  result <- charsInBalanced openB closeB anyChar
-  return $ [openB] ++ result ++ [closeB]
-
--- | Returns an option or argument of a LaTeX command.
-optOrArg :: GenParser Char st [Char]
-optOrArg = try $ spaces >> (bracketedText '{' '}' <|> bracketedText '[' ']')
-
--- | True if the string begins with '{'.
-isArg :: [Char] -> Bool
-isArg ('{':_) = True
-isArg _       = False
-
--- | Returns list of options and arguments of a LaTeX command.
-commandArgs :: GenParser Char st [[Char]]
-commandArgs = many optOrArg
-
--- | Parses LaTeX command, returns (name, star, list of options or arguments).
-command :: GenParser Char st ([Char], [Char], [[Char]])
-command = do
-  char '\\'
-  name <- many1 letter
-  star <- option "" (string "*")  -- some commands have starred versions
-  args <- commandArgs
-  return (name, star, args)
-
-begin :: [Char] -> GenParser Char st [Char]
-begin name = try $ do
-  string "\\begin"
-  spaces
-  char '{'
-  string name
-  char '}'
-  optional commandArgs
-  spaces
-  return name
-
-end :: [Char] -> GenParser Char st [Char]
-end name = try $ do
-  string "\\end"
-  spaces
-  char '{'
-  string name
-  char '}'
-  return name
-
--- | Returns a list of block elements containing the contents of an
--- environment.
-environment :: [Char] -> GenParser Char ParserState [Block]
-environment name = try $ begin name >> spaces >> manyTill block (end name) >>~ spaces
-
-anyEnvironment :: GenParser Char ParserState Block
-anyEnvironment =  try $ do
-  string "\\begin"
-  spaces
-  char '{'
-  name <- many letter
-  star <- option "" (string "*") -- some environments have starred variants
-  char '}'
-  optional commandArgs
-  spaces
-  contents <- manyTill block (end (name ++ star))
-  spaces
-  return $ BlockQuote contents
-
---
--- parsing documents
---
-
--- | Process LaTeX preamble, extracting metadata.
-processLaTeXPreamble :: GenParser Char ParserState ()
-processLaTeXPreamble = do
-  try $ string "\\documentclass"
-  skipMany $ bibliographic <|> macro <|> commentBlock <|> skipChar
-
--- | Parse LaTeX and return 'Pandoc'.
-parseLaTeX :: GenParser Char ParserState Pandoc
+parseLaTeX :: LP Pandoc
 parseLaTeX = do
-  spaces
-  skipMany $ comment >> spaces
-  blocks <- try (processLaTeXPreamble >> environment "document")
-           <|> (many block >>~ (spaces >> eof))
-  state <- getState
-  let blocks' = filter (/= Null) blocks
-  let title' = stateTitle state
-  let authors' = stateAuthors state
-  let date' = stateDate state
-  return $ Pandoc (Meta title' authors' date')  blocks'
-
---
--- parsing blocks
---
-
-parseBlocks :: GenParser Char ParserState [Block]
-parseBlocks = spaces >> many block
-
-block :: GenParser Char ParserState Block
-block = choice [ hrule
-               , codeBlock
-               , header
-               , list
-               , blockQuote
-               , simpleTable
-               , commentBlock
-               , macro
-               , bibliographic
-               , para
-               , itemBlock
-               , unknownEnvironment
-               , ignore
-               , unknownCommand
-               ] <?> "block"
-
---
--- header blocks
---
-
-header :: GenParser Char ParserState Block
-header = section <|> chapter
-
-chapter :: GenParser Char ParserState Block
-chapter = try $ do
-  string "\\chapter"
-  result <- headerWithLevel 1
-  updateState $ \s -> s{ stateHasChapters = True }
-  return result
-
-section :: GenParser Char ParserState Block
-section = try $ do
-  char '\\'
-  subs <- many (try (string "sub"))
-  base <- try (string "section" >> return 1) <|> (string "paragraph" >> return 4)
+  bs <- blocks
+  eof
   st <- getState
-  let lev = if stateHasChapters st
-               then length subs + base + 1
-               else length subs + base
-  headerWithLevel lev
+  let title' = stateTitle st
+  let authors' = stateAuthors st
+  let date' = stateDate st
+  return $ Pandoc (Meta title' authors' date') $ toList bs
 
-headerWithLevel :: Int -> GenParser Char ParserState Block
-headerWithLevel lev = try $ do
-  spaces
-  optional (char '*')
-  spaces
-  optional $ bracketedText '[' ']' -- alt title
-  spaces
-  char '{'
-  title' <- manyTill inline (char '}')
-  spaces
-  return $ Header lev (normalizeSpaces title')
+type LP = GenParser Char ParserState
 
---
--- hrule block
---
+anyControlSeq :: LP String
+anyControlSeq = do
+  char '\\'
+  next <- option '\n' anyChar
+  name <- case next of
+               '\n'           -> return ""
+               c | isLetter c -> (c:) <$> (many letter <* optional sp)
+                 | otherwise  -> return [c]
+  return name
 
-hrule :: GenParser Char st Block
-hrule = oneOfStrings [ "\\begin{center}\\rule{3in}{0.4pt}\\end{center}\n\n", 
-                       "\\newpage" ] >> spaces >> return HorizontalRule
+controlSeq :: String -> LP String
+controlSeq name = try $ do
+  char '\\'
+  case name of
+        ""   -> mzero
+        [c] | not (isLetter c) -> string [c]
+        cs   -> string cs <* notFollowedBy letter <* optional sp
+  return name
 
--- tables
+dimenarg :: LP String
+dimenarg = try $ do
+  ch  <- option "" $ string "="
+  num <- many1 digit
+  dim <- oneOfStrings ["pt","pc","in","bp","cm","mm","dd","cc","sp"]
+  return $ ch ++ num ++ dim
 
-simpleTable :: GenParser Char ParserState Block
-simpleTable = try $ do
-  string "\\begin"
-  spaces
-  string "{tabular}"
-  spaces
-  aligns <- parseAligns
-  let cols = length aligns
-  optional hline
-  header' <- option [] $ parseTableHeader cols
-  rows <- many (parseTableRow cols >>~ optional hline)
-  spaces
-  end "tabular"
-  spaces
-  let header'' = if null header'
-                    then replicate cols []
-                    else header'
-  return $ Table [] aligns (replicate cols 0) header'' rows
+sp :: LP ()
+sp = skipMany1 $ satisfy (\c -> c == ' ' || c == '\t')
+        <|> (try $ newline >>~ lookAhead anyChar >>~ notFollowedBy blankline)
 
-hline :: GenParser Char st ()
-hline = try $ spaces >> string "\\hline" >> return ()
+isLowerHex :: Char -> Bool
+isLowerHex x = x >= '0' && x <= '9' || x >= 'a' && x <= 'f'
 
-parseAligns :: GenParser Char ParserState [Alignment]
-parseAligns = try $ do
-  char '{'
-  optional $ char '|'
-  let cAlign = char 'c' >> return AlignCenter
-  let lAlign = char 'l' >> return AlignLeft
-  let rAlign = char 'r' >> return AlignRight
-  let alignChar = cAlign <|> lAlign <|> rAlign
-  aligns' <- sepEndBy alignChar (optional $ char '|')
-  char '}'
-  spaces
-  return aligns'
+tildeEscape :: LP Char
+tildeEscape = try $ do
+  string "^^"
+  c <- satisfy (\x -> x >= '\0' && x <= '\128')
+  d <- if isLowerHex c
+          then option "" $ count 1 (satisfy isLowerHex)
+          else return ""
+  if null d
+     then case ord c of
+           x | x >= 64 && x <= 127 -> return $ chr (x - 64)
+             | otherwise           -> return $ chr (x + 64)
+     else return $ chr $ read ('0':'x':c:d)
 
-parseTableHeader :: Int   -- ^ number of columns
-                 -> GenParser Char ParserState [TableCell]
-parseTableHeader cols = try $ do
-  cells' <- parseTableRow cols
-  hline
-  return cells'
+comment :: LP ()
+comment = do
+  char '%'
+  skipMany (satisfy (/='\n'))
+  newline
+  return ()
 
-parseTableRow :: Int  -- ^ number of columns
-              -> GenParser Char ParserState [TableCell]
-parseTableRow cols = try $ do
-  let tableCellInline = notFollowedBy (char '&' <|>
-                          (try $ char '\\' >> char '\\')) >> inline
-  cells' <- sepBy (spaces >> liftM ((:[]) . Plain . normalizeSpaces)
-             (many tableCellInline)) (char '&')
-  guard $ length cells' == cols
-  spaces
-  (try $ string "\\\\" >> spaces) <|>
-    (lookAhead (end "tabular") >> return ())
-  return cells'
+bgroup :: LP ()
+bgroup = () <$ char '{'
+     <|> () <$ controlSeq "bgroup"
+     <|> () <$ controlSeq "begingroup"
 
---
--- code blocks
---
+egroup :: LP ()
+egroup = () <$ char '}'
+     <|> () <$ controlSeq "egroup"
+     <|> () <$ controlSeq "endgroup"
 
-codeBlock :: GenParser Char ParserState Block
-codeBlock = codeBlockWith "verbatim" <|> codeBlockWith "Verbatim" <|> codeBlockWith "lstlisting" <|> lhsCodeBlock
--- Note:  Verbatim is from fancyvrb.
+grouped :: Monoid a => LP a -> LP a
+grouped parser = try $ bgroup *> (mconcat <$> manyTill parser egroup)
 
-codeBlockWith :: String -> GenParser Char st Block
-codeBlockWith env = try $ do
-  string "\\begin"
-  spaces                      -- don't use begin function because it
-  string $ "{" ++ env ++ "}"  -- gobbles whitespace; we want to gobble
-  optional blanklines         -- blank lines, but not leading space
-  contents <- manyTill anyChar (try (string $ "\\end{" ++ env ++ "}"))
-  spaces
-  let classes = if env == "code" then ["haskell"] else []
-  return $ CodeBlock ("",classes,[]) (stripTrailingNewlines contents)
+braced :: LP String
+braced = bgroup *> (concat <$> manyTill
+         (  many1 (satisfy (\c -> c /= '\\' && c /= '}' && c /= '{'))
+        <|> try (string "\\}")
+        <|> try (string "\\{")
+        <|> try (string "\\\\")
+        <|> ((\x -> "{" ++ x ++ "}") <$> braced)
+        <|> count 1 anyChar
+         ) egroup)
 
-lhsCodeBlock :: GenParser Char ParserState Block
-lhsCodeBlock = do
-  failUnlessLHS
-  (CodeBlock (_,_,_) cont) <- codeBlockWith "code"
-  return $ CodeBlock ("", ["sourceCode","literate","haskell"], []) cont
+bracketed :: Monoid a => LP a -> LP a
+bracketed parser = try $ char '[' *> (mconcat <$> manyTill parser (char ']'))
 
---
--- block quotes
---
+trim :: String -> String
+trim = removeLeadingTrailingSpace
 
-blockQuote :: GenParser Char ParserState Block
-blockQuote = (environment "quote" <|> environment "quotation") >>~ spaces >>= 
-             return . BlockQuote
+mathDisplay :: LP String -> LP Inlines
+mathDisplay p = displayMath <$> (try p >>= applyMacros' . trim)
 
---
--- list blocks
---
+mathInline :: LP String -> LP Inlines
+mathInline p = math <$> (try p >>= applyMacros')
 
-list :: GenParser Char ParserState Block
-list = bulletList <|> orderedList <|> definitionList <?> "list"
+mathChars :: LP String
+mathChars = concat <$>
+  many (   many1 (satisfy (\c -> c /= '$' && c /='\\'))
+      <|> (\c -> ['\\',c]) <$> (try $ char '\\' *> anyChar)
+       )
 
-listItem :: GenParser Char ParserState ([Inline], [Block])
-listItem = try $ do
-  ("item", _, args) <- command
-  spaces
-  state <- getState
-  let oldParserContext = stateParserContext state
-  updateState (\s -> s {stateParserContext = ListItemState})
-  blocks <- many block
-  updateState (\s -> s {stateParserContext = oldParserContext})
-  opt <- case args of
-           ([x]) | "[" `isPrefixOf` x && "]" `isSuffixOf` x -> 
-                       parseFromString (many inline) $ tail $ init x
-           _        -> return []
-  return (opt, blocks)
+double_quote :: LP Inlines
+double_quote = (doubleQuoted . mconcat) <$>
+  (try $ string "``" *> manyTill inline (try $ string "''"))
 
-orderedList :: GenParser Char ParserState Block
-orderedList = try $ do
-  string "\\begin"
-  spaces
-  string "{enumerate}"
-  spaces
-  (_, style, delim) <- option (1, DefaultStyle, DefaultDelim) $
-                              try $ do failIfStrict
-                                       char '['
-                                       res <- anyOrderedListMarker
-                                       char ']'
-                                       return res
-  spaces
-  option "" $ try $ do string "\\setlength{\\itemindent}"
-                       char '{'
-                       manyTill anyChar (char '}')
-  spaces
-  start <- option 1 $ try $ do failIfStrict
-                               string "\\setcounter{enum"
-                               many1 (oneOf "iv")
-                               string "}{"
-                               num <- many1 digit
-                               char '}' 
-                               spaces
-                               return $ (read num) + 1
-  items <- many listItem
-  end "enumerate"
-  spaces
-  return $ OrderedList (start, style, delim) $ map snd items
+single_quote :: LP Inlines
+single_quote = char '`' *>
+  ( try ((singleQuoted . mconcat) <$>
+         manyTill inline (try $ char '\'' >> notFollowedBy letter))
+  <|> lit "`")
 
-bulletList :: GenParser Char ParserState Block
-bulletList = try $ do
-  begin "itemize"
-  items <- many listItem
-  end "itemize"
-  spaces
-  return (BulletList $ map snd items)
+inline :: LP Inlines
+inline = (mempty <$ comment)
+     <|> (space  <$ sp)
+     <|> inlineText
+     <|> inlineCommand
+     <|> grouped inline
+     <|> (char '-' *> option (str "-")
+           ((char '-') *> option (str "–") (str "—" <$ char '-')))
+     <|> double_quote
+     <|> single_quote
+     <|> (str "’" <$ char '\'')
+     <|> (str "\160" <$ char '~')
+     <|> (mathDisplay $ string "$$" *> mathChars <* string "$$")
+     <|> (mathInline  $ char '$' *> mathChars <* char '$')
+     <|> (superscript <$> (char '^' *> tok))
+     <|> (subscript <$> (char '_' *> tok))
+     <|> (failUnlessLHS *> char '|' *> doLHSverb)
+     <|> (str <$> count 1 tildeEscape)
+     <|> (str <$> string "]")
+     <|> (str <$> string "#") -- TODO print warning?
+     <|> (str <$> string "&") -- TODO print warning?
+     -- <|> (str <$> count 1 (satisfy (\c -> c /= '\\' && c /='\n' && c /='}' && c /='{'))) -- eat random leftover characters
 
-definitionList :: GenParser Char ParserState Block
-definitionList = try $ do
-  begin "description"
-  items <- many listItem
-  end "description"
-  spaces
-  return $ DefinitionList $ map (\(t,d) -> (t,[d])) items
+inlines :: LP Inlines
+inlines = mconcat <$> many (notFollowedBy (char '}') *> inline)
 
---
--- paragraph block
---
+block :: LP Blocks
+block = (mempty <$ comment)
+    <|> (mempty <$ ((spaceChar <|> newline) *> spaces))
+    <|> environment
+    <|> mempty <$ macro -- TODO improve macros, make them work everywhere
+    <|> blockCommand
+    <|> grouped block
+    <|> paragraph
+    <|> (mempty <$ char '&')  -- loose & in table environment
 
-para :: GenParser Char ParserState Block
-para = do
-  res <- many1 inline
-  spaces
-  return $ if null (filter (`notElem` [Str "", Space]) res)
-              then Null
-              else Para $ normalizeSpaces res
 
---
--- title authors date
---
+blocks :: LP Blocks
+blocks = mconcat <$> many block
 
-bibliographic :: GenParser Char ParserState Block
-bibliographic = choice [ maketitle, title, subtitle, authors, date ]
-
-maketitle :: GenParser Char st Block
-maketitle = try (string "\\maketitle") >> spaces >> return Null
-
-title :: GenParser Char ParserState Block
-title = try $ do
-  string "\\title{"
-  tit <- manyTill inline (char '}')
-  spaces
-  updateState (\state -> state { stateTitle = tit })
-  return Null
-
-subtitle :: GenParser Char ParserState Block
-subtitle = try $ do
-  string "\\subtitle{"
-  tit <- manyTill inline (char '}')
-  spaces
-  updateState (\state -> state { stateTitle = stateTitle state ++
-                                   Str ":" : LineBreak : tit })
-  return Null
-
-authors :: GenParser Char ParserState Block
-authors = try $ do
-  string "\\author{"
-  let andsep = try $ string "\\and" >> notFollowedBy letter >>
-                     spaces >> return '&'
-  raw <- sepBy (many $ notFollowedBy (char '}' <|> andsep) >> inline) andsep
-  let authors' = map normalizeSpaces raw
-  char '}'
-  spaces
-  updateState (\s -> s { stateAuthors = authors' })
-  return Null
-
-date :: GenParser Char ParserState Block
-date = try $ do
-  string "\\date{"
-  date' <- manyTill inline (char '}')
-  spaces
-  updateState (\state -> state { stateDate = normalizeSpaces date' })
-  return Null
-
---
--- item block
--- for use in unknown environments that aren't being parsed as raw latex
---
-
--- this forces items to be parsed in different blocks
-itemBlock :: GenParser Char ParserState Block
-itemBlock = try $ do
-  ("item", _, args) <- command
-  state <- getState
-  if stateParserContext state == ListItemState
-     then fail "item should be handled by list block"
-     else if null args 
-             then return Null
-             else return $ Plain [Str (stripFirstAndLast (head args))]
-
---
--- raw LaTeX 
---
-
--- | Parse any LaTeX environment and return a Para block containing
--- the whole literal environment as raw TeX.
-rawLaTeXEnvironment :: GenParser Char st Block
-rawLaTeXEnvironment = do
-  contents <- rawLaTeXEnvironment'
-  spaces
-  return $ RawBlock "latex" contents
-
--- | Parse any LaTeX environment and return a string containing
--- the whole literal environment as raw TeX.
-rawLaTeXEnvironment' :: GenParser Char st String 
-rawLaTeXEnvironment' = try $ do
-  string "\\begin"
-  spaces
-  char '{'
-  name <- many1 letter
-  star <- option "" (string "*") -- for starred variants
+blockCommand :: LP Blocks
+blockCommand = try $ do
+  name <- anyControlSeq
+  star <- option "" (string "*" <* optional sp)
   let name' = name ++ star
-  char '}'
-  args <- option [] commandArgs
-  let argStr = concat args
-  contents <- manyTill (choice [ (many1 (noneOf "\\")), 
-                                 rawLaTeXEnvironment',
-                                 string "\\" ]) 
-                       (end name')
-  return $ "\\begin{" ++ name' ++ "}" ++ argStr ++ 
-                 concat contents ++ "\\end{" ++ name' ++ "}"
+  case M.lookup name' blockCommands of
+       Just p      -> p
+       Nothing     -> case M.lookup name blockCommands of
+                           Just p    -> p
+                           Nothing   -> mzero
 
-unknownEnvironment :: GenParser Char ParserState Block
-unknownEnvironment = try $ do
-  state <- getState
-  result <- if stateParseRaw state -- check whether we should include raw TeX 
-               then rawLaTeXEnvironment -- if so, get whole raw environment
-               else anyEnvironment      -- otherwise just the contents
-  return result
+inBrackets :: Inlines -> Inlines
+inBrackets x = (str "[") <> x <> (str "]")
 
--- \ignore{} is used conventionally in literate haskell for definitions
--- that are to be processed by the compiler but not printed.
-ignore :: GenParser Char ParserState Block
-ignore = try $ do
-  ("ignore", _, _) <- command
-  spaces
-  return Null
+-- eat an optional argument and one or more arguments in braces
+ignoreInlines :: String -> (String, LP Inlines)
+ignoreInlines name = (name, doraw <|> (mempty <$ optargs))
+  where optargs = skipopts *> skipMany (try $ optional sp *> braced)
+        contseq = '\\':name
+        doraw = (rawInline "latex" . (contseq ++) . snd) <$>
+                 (getState >>= guard . stateParseRaw >> (withRaw optargs))
 
-demacro :: (String, String, [String]) -> GenParser Char ParserState Inline
-demacro (n,st,args) = try $ do
-  let raw = "\\" ++ n ++ st ++ concat args
-  s' <- applyMacros' raw
-  if raw == s'
-     then return $ RawInline "latex" raw
-     else do
-       inp <- getInput
-       setInput $ s' ++ inp
-       return $ Str ""
+ignoreBlocks :: String -> (String, LP Blocks)
+ignoreBlocks name = (name, doraw <|> (mempty <$ optargs))
+  where optargs = skipopts *> skipMany (try $ optional sp *> braced)
+        contseq = '\\':name
+        doraw = (rawBlock "latex" . (contseq ++) . snd) <$>
+                 (getState >>= guard . stateParseRaw >> (withRaw optargs))
 
-unknownCommand :: GenParser Char ParserState Block
-unknownCommand = try $ do
-  spaces
-  notFollowedBy' $ oneOfStrings ["\\begin","\\end","\\item"] >>
-                   notFollowedBy letter
-  state <- getState
-  when (stateParserContext state == ListItemState) $
-     notFollowedBy' (string "\\item")
-  if stateParseRaw state
-     then command >>= demacro >>= return . Plain . (:[])
-     else do
-        (name, _, args) <- command
-        spaces
-        unless (name `elem` commandsToIgnore) $ do
-        -- put arguments back in input to be parsed
-          inp <- getInput
-          setInput $ intercalate " " args ++ inp
-        return Null
+blockCommands :: M.Map String (LP Blocks)
+blockCommands = M.fromList $
+  [ ("par", mempty <$ skipopts)
+  , ("title", mempty <$ (skipopts *> tok >>= addTitle))
+  , ("subtitle", mempty <$ (skipopts *> tok >>= addSubtitle))
+  , ("author", mempty <$ (skipopts *> authors))
+  -- -- in letter class, temp. store address & sig as title, author
+  , ("address", mempty <$ (skipopts *> tok >>= addTitle))
+  , ("signature", mempty <$ (skipopts *> authors))
+  , ("date", mempty <$ (skipopts *> tok >>= addDate))
+  -- sectioning
+  , ("chapter", updateState (\s -> s{ stateHasChapters = True }) *> section 0)
+  , ("section", section 1)
+  , ("subsection", section 2)
+  , ("subsubsection", section 3)
+  , ("paragraph", section 4)
+  , ("subparagraph", section 5)
+  -- beamer slides
+  , ("frametitle", section 3)
+  , ("framesubtitle", section 4)
+  -- letters
+  , ("opening", (para . trimInlines) <$> (skipopts *> tok))
+  , ("closing", skipopts *> closing)
+  --
+  , ("rule", skipopts *> tok *> tok *> pure horizontalRule)
+  , ("begin", mzero)   -- these are here so they won't be interpreted as inline
+  , ("end", mzero)
+  , ("item", skipopts *> loose_item)
+  , ("documentclass", skipopts *> braced *> preamble)
+  ] ++ map ignoreBlocks
+  -- these commands will be ignored unless --parse-raw is specified,
+  -- in which case they will appear as raw latex blocks
+  [ "newcommand", "renewcommand", "newenvironment", "renewenvironment"
+    -- newcommand, etc. should be parsed by macro, but we need this
+    -- here so these aren't parsed as inline commands to ignore
+  , "special", "pdfannot", "pdfstringdef"
+  , "bibliography", "bibliographystyle"
+  , "maketitle", "makeindex", "makeglossary"
+  , "addcontentsline", "addtocontents", "addtocounter"
+     -- \ignore{} is used conventionally in literate haskell for definitions
+     -- that are to be processed by the compiler but not printed.
+  , "ignore"
+  , "hyperdef"
+  , "noindent"
+  , "markboth", "markright", "markleft"
+  , "hspace", "vspace"
+  ]
 
-commandsToIgnore :: [String]
-commandsToIgnore = ["special","pdfannot","pdfstringdef", "index","bibliography"]
+addTitle :: Inlines -> LP ()
+addTitle tit = updateState (\s -> s{ stateTitle = toList tit })
 
-skipChar :: GenParser Char ParserState Block
-skipChar = do
-  satisfy (/='\\') <|>
-    (notFollowedBy' (try $
-                     string "\\begin" >> spaces >> string "{document}") >>
-     anyChar)
-  spaces
-  return Null
+addSubtitle :: Inlines -> LP ()
+addSubtitle tit = updateState (\s -> s{ stateTitle = stateTitle s ++
+                        toList (str ":" <> linebreak <> tit) })
 
-commentBlock :: GenParser Char st Block
-commentBlock = many1 (comment >> spaces) >> return Null
-
--- 
--- inline
---
-
-inline :: GenParser Char ParserState Inline
-inline =  choice [ str
-                 , endline
-                 , whitespace
-                 , quoted
-                 , apostrophe
-                 , strong
-                 , math
-                 , ellipses
-                 , emDash
-                 , enDash
-                 , hyphen
-                 , emph
-                 , strikeout
-                 , superscript
-                 , subscript
-                 , code
-                 , url
-                 , link
-                 , image
-                 , footnote
-                 , linebreak
-                 , accentedChar
-                 , nonbreakingSpace
-                 , cite
-                 , specialChar
-                 , ensureMath
-                 , rawLaTeXInline'
-                 , escapedChar
-                 , emptyGroup
-                 , unescapedChar
-                 , comment
-                 ] <?> "inline"
-
-
--- latex comment
-comment :: GenParser Char st Inline
-comment = try $ char '%' >> manyTill anyChar newline >> spaces >> return (Str "")
-
-accentedChar :: GenParser Char st Inline
-accentedChar = normalAccentedChar <|> specialAccentedChar
-
-normalAccentedChar :: GenParser Char st Inline
-normalAccentedChar = try $ do
-  char '\\'
-  accent <- oneOf "'`^\"~"
-  character <- (try $ char '{' >> letter >>~ char '}') <|> letter
-  let table = fromMaybe [] $ lookup character accentTable 
-  let result = case lookup accent table of
-                 Just num  -> chr num
-                 Nothing   -> '?'
-  return $ Str [result]
-
--- an association list of letters and association list of accents
--- and decimal character numbers.
-accentTable :: [(Char, [(Char, Int)])]
-accentTable = 
-  [ ('A', [('`', 192), ('\'', 193), ('^', 194), ('~', 195), ('"', 196)]),
-    ('E', [('`', 200), ('\'', 201), ('^', 202), ('"', 203)]),
-    ('I', [('`', 204), ('\'', 205), ('^', 206), ('"', 207)]),
-    ('N', [('~', 209)]),
-    ('O', [('`', 210), ('\'', 211), ('^', 212), ('~', 213), ('"', 214)]),
-    ('U', [('`', 217), ('\'', 218), ('^', 219), ('"', 220)]),
-    ('a', [('`', 224), ('\'', 225), ('^', 227), ('"', 228)]),
-    ('e', [('`', 232), ('\'', 233), ('^', 234), ('"', 235)]),
-    ('i', [('`', 236), ('\'', 237), ('^', 238), ('"', 239)]),
-    ('n', [('~', 241)]),
-    ('o', [('`', 242), ('\'', 243), ('^', 244), ('~', 245), ('"', 246)]),
-    ('u', [('`', 249), ('\'', 250), ('^', 251), ('"', 252)]) ]
-
-specialAccentedChar :: GenParser Char st Inline
-specialAccentedChar = choice [ ccedil, aring, iuml, szlig, aelig, lslash,
-                               oslash, pound, euro, copyright, sect ]
-
-ccedil :: GenParser Char st Inline
-ccedil = try $ do
-  char '\\'
-  letter' <- oneOfStrings ["cc", "cC"]
-  let num = if letter' == "cc" then 231 else 199
-  return $ Str [chr num]
-
-aring :: GenParser Char st Inline
-aring = try $ do
-  char '\\'
-  letter' <- oneOfStrings ["aa", "AA"]
-  let num = if letter' == "aa" then 229 else 197
-  return $ Str [chr num]
-
-iuml :: GenParser Char st Inline
-iuml = try (string "\\\"") >> oneOfStrings ["\\i", "{\\i}"] >> 
-       return (Str [chr 239])
-
-szlig :: GenParser Char st Inline
-szlig = try (string "\\ss") >> return (Str [chr 223])
-
-oslash :: GenParser Char st Inline
-oslash = try $ do
-  char '\\'
-  letter' <- choice [char 'o', char 'O']
-  let num = if letter' == 'o' then 248 else 216
-  return $ Str [chr num]
-
-lslash :: GenParser Char st Inline
-lslash = try $ do
-  cmd <- oneOfStrings ["{\\L}","{\\l}","\\L ","\\l "]
-  return $ if 'l' `elem` cmd
-              then Str "\x142"
-              else Str "\x141"
-
-aelig :: GenParser Char st Inline
-aelig = try $ do
-  char '\\'
-  letter' <- oneOfStrings ["ae", "AE"]
-  let num = if letter' == "ae" then 230 else 198
-  return $ Str [chr num]
-
-pound :: GenParser Char st Inline
-pound = try (string "\\pounds") >> return (Str [chr 163])
-
-euro :: GenParser Char st Inline
-euro = try (string "\\euro") >> return (Str [chr 8364])
-
-copyright :: GenParser Char st Inline
-copyright = try (string "\\copyright") >> return (Str [chr 169])
-
-sect :: GenParser Char st Inline
-sect = try (string "\\S") >> return (Str [chr 167])
-
-escapedChar :: GenParser Char st Inline
-escapedChar = do
-  result <- escaped (oneOf specialChars)
-  return $ if result == '\n' then Str " " else Str [result]
-
-emptyGroup :: GenParser Char st Inline
-emptyGroup = try $ do
+authors :: LP ()
+authors = try $ do
   char '{'
-  spaces
+  let oneAuthor = mconcat <$>
+       many1 (notFollowedBy' (controlSeq "and") >> inline)
+  auths <- sepBy oneAuthor (controlSeq "and")
   char '}'
-  return $ Str ""
+  updateState (\s -> s { stateAuthors = map (normalizeSpaces . toList) auths })
 
--- nonescaped special characters
-unescapedChar :: GenParser Char st Inline
-unescapedChar = oneOf "`$^&_#{}[]|<>" >>= return . (\c -> Str [c])
+addDate :: Inlines -> LP ()
+addDate dat = updateState (\s -> s{ stateDate = toList dat })
 
-specialChar :: GenParser Char st Inline
-specialChar = choice [ spacer, interwordSpace,
-                       backslash, tilde, caret,
-                       bar, lt, gt, doubleQuote ]
+section :: Int -> LP Blocks
+section lvl = do
+  hasChapters <- stateHasChapters `fmap` getState
+  let lvl' = if hasChapters then lvl + 1 else lvl
+  skipopts
+  contents <- grouped inline
+  return $ header lvl' contents
 
-spacer :: GenParser Char st Inline
-spacer = try (string "\\,") >> return (Str "")
+inlineCommand :: LP Inlines
+inlineCommand = try $ do
+  name <- anyControlSeq
+  guard $ not $ isBlockCommand name
+  parseRaw <- stateParseRaw `fmap` getState
+  star <- option "" (string "*")
+  let name' = name ++ star
+  let rawargs = withRaw (skipopts *> option "" dimenarg
+                  *> many braced) >>= applyMacros' . snd
+  let raw = if parseRaw
+               then (rawInline "latex" . (('\\':name') ++)) <$> rawargs
+               else mempty <$> rawargs
+  case M.lookup name' inlineCommands of
+       Just p      -> p <|> raw
+       Nothing     -> case M.lookup name inlineCommands of
+                           Just p    -> p <|> raw
+                           Nothing   -> raw
 
-interwordSpace :: GenParser Char st Inline
-interwordSpace = try (string "\\ ") >> return (Str "\160")
+unlessParseRaw :: LP ()
+unlessParseRaw = getState >>= guard . not . stateParseRaw
 
-backslash :: GenParser Char st Inline
-backslash = try (string "\\textbackslash") >> optional (try $ string "{}") >> return (Str "\\")
+isBlockCommand :: String -> Bool
+isBlockCommand s = maybe False (const True) $ M.lookup s blockCommands
 
-tilde :: GenParser Char st Inline
-tilde = try (string "\\ensuremath{\\sim}") >> return (Str "~")
+inlineCommands :: M.Map String (LP Inlines)
+inlineCommands = M.fromList $
+  [ ("emph", emph <$> tok)
+  , ("textit", emph <$> tok)
+  , ("textsc", smallcaps <$> tok)
+  , ("sout", strikeout <$> tok)
+  , ("textsuperscript", superscript <$> tok)
+  , ("textsubscript", subscript <$> tok)
+  , ("textbackslash", lit "\\")
+  , ("backslash", lit "\\")
+  , ("textbf", strong <$> tok)
+  , ("ldots", lit "…")
+  , ("dots", lit "…")
+  , ("mdots", lit "…")
+  , ("sim", lit "~")
+  , ("label", unlessParseRaw >> (inBrackets <$> tok))
+  , ("ref", unlessParseRaw >> (inBrackets <$> tok))
+  , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
+  , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
+  , ("ensuremath", mathInline $ braced)
+  , ("P", lit "¶")
+  , ("S", lit "§")
+  , ("$", lit "$")
+  , ("%", lit "%")
+  , ("&", lit "&")
+  , ("#", lit "#")
+  , ("_", lit "_")
+  , ("{", lit "{")
+  , ("}", lit "}")
+  -- old TeX commands
+  , ("em", emph <$> inlines)
+  , ("it", emph <$> inlines)
+  , ("sl", emph <$> inlines)
+  , ("bf", strong <$> inlines)
+  , ("rm", inlines)
+  , ("itshape", emph <$> inlines)
+  , ("slshape", emph <$> inlines)
+  , ("scshape", smallcaps <$> inlines)
+  , ("bfseries", strong <$> inlines)
+  , ("/", pure mempty) -- italic correction
+  , ("aa", lit "å")
+  , ("AA", lit "Å")
+  , ("ss", lit "ß")
+  , ("o", lit "ø")
+  , ("O", lit "Ø")
+  , ("L", lit "Ł")
+  , ("l", lit "ł")
+  , ("ae", lit "æ")
+  , ("AE", lit "Æ")
+  , ("pounds", lit "£")
+  , ("euro", lit "€")
+  , ("copyright", lit "©")
+  , ("`", option (str "`") $ try $ tok >>= accent grave)
+  , ("'", option (str "'") $ try $ tok >>= accent acute)
+  , ("^", option (str "^") $ try $ tok >>= accent circ)
+  , ("~", option (str "~") $ try $ tok >>= accent tilde)
+  , ("\"", option (str "\"") $ try $ tok >>= accent umlaut)
+  , (".", option (str ".") $ try $ tok >>= accent dot)
+  , ("=", option (str "=") $ try $ tok >>= accent macron)
+  , ("c", option (str "c") $ try $ tok >>= accent cedilla)
+  , ("i", lit "i")
+  , ("\\", linebreak <$ (optional (bracketed inline) *> optional sp))
+  , (",", pure mempty)
+  , ("@", pure mempty)
+  , (" ", lit "\160")
+  , ("ps", pure $ str "PS." <> space)
+  , ("TeX", lit "TeX")
+  , ("LaTeX", lit "LaTeX")
+  , ("bar", lit "|")
+  , ("textless", lit "<")
+  , ("textgreater", lit ">")
+  , ("thanks", (note . mconcat) <$> (char '{' *> manyTill block (char '}')))
+  , ("footnote", (note . mconcat) <$> (char '{' *> manyTill block (char '}')))
+  , ("verb", doverb)
+  , ("lstinline", doverb)
+  , ("texttt", (code . stringify . toList) <$> tok)
+  , ("url", (unescapeURL <$> braced) >>= \url ->
+       pure (link url "" (codeWith ("",["url"],[]) url)))
+  , ("href", (unescapeURL <$> braced <* optional sp) >>= \url ->
+       tok >>= \lab ->
+         pure (link url "" lab))
+  , ("includegraphics", skipopts *> (unescapeURL <$> braced) >>=
+       (\src -> pure (image src "" (str "image"))))
+  , ("cite", citation "cite" NormalCitation False)
+  , ("citep", citation "citep" NormalCitation False)
+  , ("citep*", citation "citep*" NormalCitation False)
+  , ("citeal", citation "citeal" NormalCitation False)
+  , ("citealp", citation "citealp" NormalCitation False)
+  , ("citealp*", citation "citealp*" NormalCitation False)
+  , ("autocite", citation "autocite" NormalCitation False)
+  , ("footcite", citation "footcite" NormalCitation False)
+  , ("parencite", citation "parencite" NormalCitation False)
+  , ("supercite", citation "supercite" NormalCitation False)
+  , ("footcitetext", citation "footcitetext" NormalCitation False)
+  , ("citeyearpar", citation "citeyearpar" SuppressAuthor False)
+  , ("citeyear", citation "citeyear" SuppressAuthor False)
+  , ("autocite*", citation "autocite*" SuppressAuthor False)
+  , ("cite*", citation "cite*" SuppressAuthor False)
+  , ("parencite*", citation "parencite*" SuppressAuthor False)
+  , ("textcite", citation "textcite" AuthorInText False)
+  , ("citet", citation "citet" AuthorInText False)
+  , ("citet*", citation "citet*" AuthorInText False)
+  , ("citealt", citation "citealt" AuthorInText False)
+  , ("citealt*", citation "citealt*" AuthorInText False)
+  , ("textcites", citation "textcites" AuthorInText True)
+  , ("cites", citation "cites" NormalCitation True)
+  , ("autocites", citation "autocites" NormalCitation True)
+  , ("footcites", citation "footcites" NormalCitation True)
+  , ("parencites", citation "parencites" NormalCitation True)
+  , ("supercites", citation "supercites" NormalCitation True)
+  , ("footcitetexts", citation "footcitetexts" NormalCitation True)
+  , ("Autocite", citation "Autocite" NormalCitation False)
+  , ("Footcite", citation "Footcite" NormalCitation False)
+  , ("Parencite", citation "Parencite" NormalCitation False)
+  , ("Supercite", citation "Supercite" NormalCitation False)
+  , ("Footcitetext", citation "Footcitetext" NormalCitation False)
+  , ("Citeyearpar", citation "Citeyearpar" SuppressAuthor False)
+  , ("Citeyear", citation "Citeyear" SuppressAuthor False)
+  , ("Autocite*", citation "Autocite*" SuppressAuthor False)
+  , ("Cite*", citation "Cite*" SuppressAuthor False)
+  , ("Parencite*", citation "Parencite*" SuppressAuthor False)
+  , ("Textcite", citation "Textcite" AuthorInText False)
+  , ("Textcites", citation "Textcites" AuthorInText True)
+  , ("Cites", citation "Cites" NormalCitation True)
+  , ("Autocites", citation "Autocites" NormalCitation True)
+  , ("Footcites", citation "Footcites" NormalCitation True)
+  , ("Parencites", citation "Parencites" NormalCitation True)
+  , ("Supercites", citation "Supercites" NormalCitation True)
+  , ("Footcitetexts", citation "Footcitetexts" NormalCitation True)
+  , ("citetext", complexNatbibCitation NormalCitation)
+  , ("citeauthor", (try (tok *> optional sp *> controlSeq "citetext") *>
+                        complexNatbibCitation AuthorInText)
+                   <|> citation "citeauthor" AuthorInText False)
+  ] ++ map ignoreInlines
+  -- these commands will be ignored unless --parse-raw is specified,
+  -- in which case they will appear as raw latex blocks:
+  [ "index", "nocite" ]
 
-caret :: GenParser Char st Inline
-caret = try (string "\\^{}") >> return (Str "^")
+unescapeURL :: String -> String
+unescapeURL ('\\':x:xs) | isEscapable x = x:unescapeURL xs
+  where isEscapable '%' = True
+        isEscapable '#' = True
+        isEscapable _   = False
+unescapeURL (x:xs) = x:unescapeURL xs
+unescapeURL [] = ""
 
-bar :: GenParser Char st Inline
-bar = try (string "\\textbar") >> optional (try $ string "{}") >> return (Str "\\")
-
-lt :: GenParser Char st Inline
-lt = try (string "\\textless") >> optional (try $ string "{}") >> return (Str "<")
-
-gt :: GenParser Char st Inline
-gt = try (string "\\textgreater") >> optional (try $ string "{}") >> return (Str ">")
-
-doubleQuote :: GenParser Char st Inline
-doubleQuote = char '"' >> return (Str "\"")
-
-code :: GenParser Char ParserState Inline
-code = code1 <|> code2 <|> code3 <|> lhsInlineCode
-
-code1 :: GenParser Char st Inline
-code1 = try $ do 
-  string "\\verb"
+doverb :: LP Inlines
+doverb = do
   marker <- anyChar
-  result <- manyTill anyChar (char marker)
-  return $ Code nullAttr $ removeLeadingTrailingSpace result
+  code <$> manyTill (satisfy (/='\n')) (char marker)
 
-code2 :: GenParser Char st Inline
-code2 = try $ do
-  string "\\texttt{"
-  result <- manyTill (noneOf "\\\n~$%^&{}") (char '}')
-  return $ Code nullAttr result
+doLHSverb :: LP Inlines
+doLHSverb = codeWith ("",["haskell"],[]) <$> manyTill (satisfy (/='\n')) (char '|')
 
-code3 :: GenParser Char st Inline
-code3 = try $ do 
-  string "\\lstinline"
-  marker <- anyChar
-  result <- manyTill anyChar (char marker)
-  return $ Code nullAttr $ removeLeadingTrailingSpace result
+lit :: String -> LP Inlines
+lit = pure . str
 
-lhsInlineCode :: GenParser Char ParserState Inline
-lhsInlineCode = try $ do
-  failUnlessLHS
-  char '|'
-  result <- manyTill (noneOf "|\n") (char '|')
-  return $ Code ("",["haskell"],[]) result
+accent :: (Char -> Char) -> Inlines -> LP Inlines
+accent f ils =
+  case toList ils of
+       (Str (x:xs) : ys) -> return $ fromList $ (Str (f x : xs) : ys)
+       []                -> mzero
+       _                 -> return ils
 
-emph :: GenParser Char ParserState Inline
-emph = try $ oneOfStrings [ "\\emph{", "\\textit{" ] >>
-             manyTill inline (char '}') >>= return . Emph
+grave :: Char -> Char
+grave 'A' = 'À'
+grave 'E' = 'È'
+grave 'I' = 'Ì'
+grave 'O' = 'Ò'
+grave 'U' = 'Ù'
+grave 'a' = 'à'
+grave 'e' = 'è'
+grave 'i' = 'ì'
+grave 'o' = 'ò'
+grave 'u' = 'ù'
+grave c   = c
 
-strikeout :: GenParser Char ParserState Inline
-strikeout = try $ string "\\sout{" >> manyTill inline (char '}') >>=
-                  return . Strikeout
+acute :: Char -> Char
+acute 'A' = 'Á'
+acute 'E' = 'É'
+acute 'I' = 'Í'
+acute 'O' = 'Ó'
+acute 'U' = 'Ú'
+acute 'Y' = 'Ý'
+acute 'a' = 'á'
+acute 'e' = 'é'
+acute 'i' = 'í'
+acute 'o' = 'ó'
+acute 'u' = 'ú'
+acute 'y' = 'ý'
+acute 'C' = 'Ć'
+acute 'c' = 'ć'
+acute 'L' = 'Ĺ'
+acute 'l' = 'ĺ'
+acute 'N' = 'Ń'
+acute 'n' = 'ń'
+acute 'R' = 'Ŕ'
+acute 'r' = 'ŕ'
+acute 'S' = 'Ś'
+acute 's' = 'ś'
+acute 'Z' = 'Ź'
+acute 'z' = 'ź'
+acute c = c
 
-superscript :: GenParser Char ParserState Inline
-superscript = try $ string "\\textsuperscript{" >> 
-                    manyTill inline (char '}') >>= return . Superscript
+circ :: Char -> Char
+circ 'A' = 'Â'
+circ 'E' = 'Ê'
+circ 'I' = 'Î'
+circ 'O' = 'Ô'
+circ 'U' = 'Û'
+circ 'a' = 'â'
+circ 'e' = 'ê'
+circ 'i' = 'î'
+circ 'o' = 'ô'
+circ 'u' = 'û'
+circ 'C' = 'Ĉ'
+circ 'c' = 'ĉ'
+circ 'G' = 'Ĝ'
+circ 'g' = 'ĝ'
+circ 'H' = 'Ĥ'
+circ 'h' = 'ĥ'
+circ 'J' = 'Ĵ'
+circ 'j' = 'ĵ'
+circ 'S' = 'Ŝ'
+circ 's' = 'ŝ'
+circ 'W' = 'Ŵ'
+circ 'w' = 'ŵ'
+circ 'Y' = 'Ŷ'
+circ 'y' = 'ŷ'
+circ c = c
 
--- note: \textsubscript isn't a standard latex command, but we use
--- a defined version in pandoc.
-subscript :: GenParser Char ParserState Inline
-subscript = try $ string "\\textsubscript{" >> manyTill inline (char '}') >>=
-                  return . Subscript
+tilde :: Char -> Char
+tilde 'A' = 'Ã'
+tilde 'a' = 'ã'
+tilde 'O' = 'Õ'
+tilde 'o' = 'õ'
+tilde 'I' = 'Ĩ'
+tilde 'i' = 'ĩ'
+tilde 'U' = 'Ũ'
+tilde 'u' = 'ũ'
+tilde 'N' = 'Ñ'
+tilde 'n' = 'ñ'
+tilde c   = c
 
-apostrophe :: GenParser Char ParserState Inline
-apostrophe = char '\'' >> return Apostrophe
+umlaut :: Char -> Char
+umlaut 'A' = 'Ä'
+umlaut 'E' = 'Ë'
+umlaut 'I' = 'Ï'
+umlaut 'O' = 'Ö'
+umlaut 'U' = 'Ü'
+umlaut 'a' = 'ä'
+umlaut 'e' = 'ë'
+umlaut 'i' = 'ï'
+umlaut 'o' = 'ö'
+umlaut 'u' = 'ü'
+umlaut c = c
 
-quoted :: GenParser Char ParserState Inline
-quoted = doubleQuoted <|> singleQuoted
+dot :: Char -> Char
+dot 'C' = 'Ċ'
+dot 'c' = 'ċ'
+dot 'E' = 'Ė'
+dot 'e' = 'ė'
+dot 'G' = 'Ġ'
+dot 'g' = 'ġ'
+dot 'I' = 'İ'
+dot 'Z' = 'Ż'
+dot 'z' = 'ż'
+dot c = c
 
-singleQuoted :: GenParser Char ParserState Inline
-singleQuoted = enclosed singleQuoteStart singleQuoteEnd inline >>=
-               return . Quoted SingleQuote . normalizeSpaces
+macron :: Char -> Char
+macron 'A' = 'Ā'
+macron 'E' = 'Ē'
+macron 'I' = 'Ī'
+macron 'O' = 'Ō'
+macron 'U' = 'Ū'
+macron 'a' = 'ā'
+macron 'e' = 'ē'
+macron 'i' = 'ī'
+macron 'o' = 'ō'
+macron 'u' = 'ū'
+macron c = c
 
-doubleQuoted :: GenParser Char ParserState Inline
-doubleQuoted = enclosed doubleQuoteStart doubleQuoteEnd inline >>=
-               return . Quoted DoubleQuote . normalizeSpaces
+cedilla :: Char -> Char
+cedilla 'c' = 'ç'
+cedilla 'C' = 'Ç'
+cedilla 's' = 'ş'
+cedilla 'S' = 'Ş'
+cedilla c = c
 
-singleQuoteStart :: GenParser Char st Char
-singleQuoteStart = char '`'
+tok :: LP Inlines
+tok = try $ grouped inline <|> inlineCommand <|> str <$> (count 1 $ inlineChar)
 
-singleQuoteEnd :: GenParser Char st ()
-singleQuoteEnd = try $ char '\'' >> notFollowedBy alphaNum
+opt :: LP Inlines
+opt = bracketed inline <* optional sp
 
-doubleQuoteStart :: CharParser st String
-doubleQuoteStart = string "``"
+skipopts :: LP ()
+skipopts = skipMany opt
 
-doubleQuoteEnd :: CharParser st String
-doubleQuoteEnd = try $ string "''"
+inlineText :: LP Inlines
+inlineText = str <$> many1 inlineChar
 
-ellipses :: GenParser Char st Inline
-ellipses = try $ do
-  char '\\'
-  optional $ char 'l'
-  string "dots"
-  optional $ try $ string "{}"
-  return Ellipses
+inlineChar :: LP Char
+inlineChar = satisfy $ \c ->
+  not (c == '\\' || c == '$' || c == '%' || c == '^' || c == '_' ||
+       c == '&'  || c == '~' || c == '#' || c == '{' || c == '}' ||
+       c == '^'  || c == '\'' || c == '`' || c == '-' || c == ']' ||
+       c == ' '  || c == '\t' || c == '\n' )
 
-enDash :: GenParser Char st Inline
-enDash = try (string "--") >> return EnDash
+environment :: LP Blocks
+environment = do
+  controlSeq "begin"
+  name <- braced
+  case M.lookup name environments of
+       Just p      -> p <|> rawEnv name
+       Nothing     -> rawEnv name
 
-emDash :: GenParser Char st Inline
-emDash = try (string "---") >> return EmDash
+rawEnv :: String -> LP Blocks
+rawEnv name = do
+  let addBegin x = "\\begin{" ++ name ++ "}" ++ x
+  parseRaw <- stateParseRaw `fmap` getState
+  if parseRaw
+     then (rawBlock "latex" . addBegin) <$>
+            (withRaw (env name blocks) >>= applyMacros' . snd)
+     else env name blocks
 
-hyphen :: GenParser Char st Inline
-hyphen = char '-' >> return (Str "-")
+-- | Replace "include" commands with file contents.
+handleIncludes :: String -> IO String
+handleIncludes [] = return []
+handleIncludes ('\\':xs) =
+  case runParser include defaultParserState "input" ('\\':xs) of
+       Right (fs, rest) -> do let getfile f = catch (UTF8.readFile f)
+                                               (\_ -> return "")
+                              yss <- mapM getfile fs
+                              (intercalate "\n" yss ++) `fmap`
+                                handleIncludes rest
+       _  -> case runParser (verbCmd <|> verbatimEnv) defaultParserState
+                   "input" ('\\':xs) of
+                    Right (r, rest) -> (r ++) `fmap` handleIncludes rest
+                    _               -> ('\\':) `fmap` handleIncludes xs
+handleIncludes (x:xs) = (x:) `fmap` handleIncludes xs
 
-strong :: GenParser Char ParserState Inline
-strong = try (string "\\textbf{") >> manyTill inline (char '}') >>=
-         return . Strong
-
-whitespace :: GenParser Char st Inline
-whitespace = many1 (oneOf " \t") >> return Space
-
-nonbreakingSpace :: GenParser Char st Inline
-nonbreakingSpace = char '~' >> return (Str "\160")
-
--- hard line break
-linebreak :: GenParser Char st Inline
-linebreak = try $ do
-  string "\\\\"
-  optional $ bracketedText '[' ']'  -- e.g. \\[10pt]
-  spaces
-  return LineBreak
-
-str :: GenParser Char st Inline
-str = many1 (noneOf specialChars) >>= return . Str
-
--- endline internal to paragraph
-endline :: GenParser Char st Inline
-endline = try $ newline >> notFollowedBy blankline >> return Space
-
--- math
-math :: GenParser Char ParserState Inline
-math =   (math3 >>= applyMacros' >>= return . Math DisplayMath)
-     <|> (math1 >>= applyMacros' >>= return . Math InlineMath)
-     <|> (math2 >>= applyMacros' >>= return . Math InlineMath)
-     <|> (math4 >>= applyMacros' >>= return . Math DisplayMath)
-     <|> (math5 >>= applyMacros' >>= return . Math DisplayMath)
-     <|> (math6 >>= applyMacros' >>= return . Math DisplayMath)
-     <?> "math"
-
-math1 :: GenParser Char st String 
-math1 = try $ char '$' >> manyTill anyChar (char '$')
-
-math2 :: GenParser Char st String
-math2 = try $ string "\\(" >> manyTill anyChar (try $ string "\\)")
-
-math3 :: GenParser Char st String 
-math3 = try $ char '$' >> math1 >>~ char '$'
-
-math4 :: GenParser Char st String
-math4 = try $ do
-  name <- begin "displaymath" <|> begin "equation" <|> begin "equation*" <|>
-           begin "gather" <|> begin "gather*" <|> begin "gathered" <|>
-             begin "multline" <|> begin "multline*"
-  manyTill anyChar (end name)
-
-math5 :: GenParser Char st String
-math5 = try $ (string "\\[") >> spaces >> manyTill anyChar (try $ string "\\]")
-
-math6 :: GenParser Char st String
-math6 = try $ do
-  name <- begin "eqnarray" <|> begin "eqnarray*" <|> begin "align" <|>
-           begin "align*" <|> begin "alignat" <|> begin "alignat*" <|>
-             begin "split" <|> begin "aligned" <|> begin "alignedat"
-  res <- manyTill anyChar (end name)
-  return $ filter (/= '&') res  -- remove alignment codes
-
-ensureMath :: GenParser Char st Inline
-ensureMath = try $ do
-  (n, _, args) <- command
-  guard $ n == "ensuremath" && not (null args)
-  return $ Math InlineMath $ tail $ init $ head args
-
---
--- links and images
---
-
-url :: GenParser Char ParserState Inline
-url = try $ do
-  string "\\url"
-  url' <- charsInBalanced '{' '}' anyChar
-  return $ Link [Code ("",["url"],[]) url'] (escapeURI url', "")
-
-link :: GenParser Char ParserState Inline
-link = try $ do
-  string "\\href{"
-  url' <- manyTill anyChar (char '}')
-  char '{'
-  label' <- manyTill inline (char '}') 
-  return $ Link (normalizeSpaces label') (escapeURI url', "")
-
-image :: GenParser Char ParserState Inline
-image = try $ do
-  ("includegraphics", _, args) <- command
-  let args' = filter isArg args -- filter out options
-  let (src,tit) = case args' of
-                       []    -> ("", "")
-                       (x:_) -> (stripFirstAndLast x, "")
-  return $ Image [Str "image"] (escapeURI src, tit)
-
-footnote :: GenParser Char ParserState Inline
-footnote = try $ do
-  (name, _, (contents:[])) <- command
-  if ((name == "footnote") || (name == "thanks"))
-     then string ""
-     else fail "not a footnote or thanks command"
-  let contents' = stripFirstAndLast contents
-  -- parse the extracted block, which may contain various block elements:
+include :: LP ([FilePath], String)
+include = do
+  name <- controlSeq "include" <|> controlSeq "usepackage"
+  skipopts
+  fs <- (splitBy (==',')) <$> braced
   rest <- getInput
-  setInput $ contents'
-  blocks <- parseBlocks
-  setInput rest
-  return $ Note blocks
+  let fs' = if name == "include"
+               then map (flip replaceExtension ".tex") fs
+               else map (flip replaceExtension ".sty") fs
+  return (fs', rest)
 
--- | citations
-cite :: GenParser Char ParserState Inline
-cite = simpleCite <|> complexNatbibCites
+verbCmd :: LP (String, String)
+verbCmd = do
+  (_,r) <- withRaw $ do
+             controlSeq "verb"
+             c <- anyChar
+             manyTill anyChar (char c)
+  rest <- getInput
+  return (r, rest)
 
-simpleCiteArgs :: GenParser Char ParserState [Citation]
+verbatimEnv :: LP (String, String)
+verbatimEnv = do
+  (_,r) <- withRaw $ do
+             controlSeq "begin"
+             name <- braced
+             guard $ name == "verbatim" || name == "Verbatim" ||
+                     name == "lstlisting" || name == "minted"
+             verbEnv name
+  rest <- getInput
+  return (r,rest)
+
+rawLaTeXBlock :: GenParser Char ParserState String
+rawLaTeXBlock = snd <$> withRaw (environment <|> blockCommand)
+
+rawLaTeXInline :: GenParser Char ParserState Inline
+rawLaTeXInline = do
+  (res, raw) <- withRaw inlineCommand
+  if res == mempty
+     then return (Str "")
+     else RawInline "latex" <$> (applyMacros' raw)
+
+environments :: M.Map String (LP Blocks)
+environments = M.fromList
+  [ ("document", env "document" blocks <* skipMany anyChar)
+  , ("letter", env "letter" letter_contents)
+  , ("center", env "center" blocks)
+  , ("tabular", env "tabular" simpTable)
+  , ("quote", blockQuote <$> env "quote" blocks)
+  , ("quotation", blockQuote <$> env "quotation" blocks)
+  , ("verse", blockQuote <$> env "verse" blocks)
+  , ("itemize", bulletList <$> listenv "itemize" (many item))
+  , ("description", definitionList <$> listenv "description" (many descItem))
+  , ("enumerate", ordered_list)
+  , ("code", failUnlessLHS *>
+      (codeBlockWith ("",["sourceCode","literate","haskell"],[]) <$>
+        verbEnv "code"))
+  , ("verbatim", codeBlock <$> (verbEnv "verbatim"))
+  , ("Verbatim", codeBlock <$> (verbEnv "Verbatim"))
+  , ("lstlisting", codeBlock <$> (verbEnv "lstlisting"))
+  , ("minted", liftA2 (\l c -> codeBlockWith ("",[l],[]) c)
+            (grouped (many1 $ satisfy (/= '}'))) (verbEnv "minted"))
+  , ("displaymath", mathEnv Nothing "displaymath")
+  , ("equation", mathEnv Nothing "equation")
+  , ("equation*", mathEnv Nothing "equation*")
+  , ("gather", mathEnv (Just "gathered") "gather")
+  , ("gather*", mathEnv (Just "gathered") "gather*")
+  , ("multline", mathEnv (Just "gathered") "multline")
+  , ("multline*", mathEnv (Just "gathered") "multline*")
+  , ("eqnarray", mathEnv (Just "aligned") "eqnarray")
+  , ("eqnarray*", mathEnv (Just "aligned") "eqnarray*")
+  , ("align", mathEnv (Just "aligned") "align")
+  , ("align*", mathEnv (Just "aligned") "align*")
+  , ("alignat", mathEnv (Just "aligned") "alignat")
+  , ("alignat*", mathEnv (Just "aligned") "alignat*")
+  ]
+
+letter_contents :: LP Blocks
+letter_contents = do
+  bs <- blocks
+  st <- getState
+  -- add signature (author) and address (title)
+  let addr = case stateTitle st of
+                  []   -> mempty
+                  x    -> para $ trimInlines $ fromList x
+  updateState $ \s -> s{ stateAuthors = [], stateTitle = [] }
+  return $ addr <> bs -- sig added by \closing
+
+closing :: LP Blocks
+closing = do
+  contents <- tok
+  st <- getState
+  let sigs = case stateAuthors st of
+                  []   -> mempty
+                  xs   -> para $ trimInlines $ fromList
+                               $ intercalate [LineBreak] xs
+  return $ para (trimInlines contents) <> sigs
+
+item :: LP Blocks
+item = blocks *> controlSeq "item" *> skipopts *> blocks
+
+loose_item :: LP Blocks
+loose_item = do
+  ctx <- stateParserContext `fmap` getState
+  if ctx == ListItemState
+     then mzero
+     else return mempty
+
+descItem :: LP (Inlines, [Blocks])
+descItem = do
+  blocks -- skip blocks before item
+  controlSeq "item"
+  optional sp
+  ils <- opt
+  bs <- blocks
+  return (ils, [bs])
+
+env :: String -> LP a -> LP a
+env name p = p <* (controlSeq "end" *> braced >>= guard . (== name))
+
+listenv :: String -> LP a -> LP a
+listenv name p = try $ do
+  oldCtx <- stateParserContext `fmap` getState
+  updateState $ \st -> st{ stateParserContext = ListItemState }
+  res <- env name p
+  updateState $ \st -> st{ stateParserContext = oldCtx }
+  return res
+
+mathEnv :: Maybe String -> String -> LP Blocks
+mathEnv innerEnv name = para <$> mathDisplay (inner <$> verbEnv name)
+   where inner x = case innerEnv of
+                      Nothing -> x
+                      Just y  -> "\\begin{" ++ y ++ "}\n" ++ x ++
+                                    "\\end{" ++ y ++ "}"
+
+verbEnv :: String -> LP String
+verbEnv name = do
+  skipopts
+  optional blankline
+  let endEnv = try $ controlSeq "end" *> braced >>= guard . (== name)
+  res <- manyTill anyChar endEnv
+  return $ stripTrailingNewlines res
+
+ordered_list :: LP Blocks
+ordered_list = do
+  optional sp
+  (_, style, delim) <- option (1, DefaultStyle, DefaultDelim) $
+                              try $ char '[' *> anyOrderedListMarker <* char ']'
+  spaces
+  optional $ try $ controlSeq "setlength" *> grouped (controlSeq "itemindent") *> braced
+  spaces
+  start <- option 1 $ try $ do controlSeq "setcounter"
+                               grouped (string "enum" *> many1 (oneOf "iv"))
+                               optional sp
+                               num <- grouped (many1 digit)
+                               spaces
+                               return $ (read num + 1 :: Int)
+  bs <- listenv "enumerate" (many item)
+  return $ orderedListWith (start, style, delim) bs
+
+paragraph :: LP Blocks
+paragraph = do
+  x <- mconcat <$> many1 inline
+  if x == mempty
+     then return mempty
+     else return $ para $ trimInlines x
+
+preamble :: LP Blocks
+preamble = mempty <$> manyTill preambleBlock beginDoc
+  where beginDoc = lookAhead $ controlSeq "begin" *> string "{document}"
+        preambleBlock =  (mempty <$ comment)
+                     <|> (mempty <$ sp)
+                     <|> (mempty <$ blanklines)
+                     <|> (mempty <$ macro)
+                     <|> blockCommand
+                     <|> (mempty <$ anyControlSeq)
+                     <|> (mempty <$ braced)
+                     <|> (mempty <$ anyChar)
+
+-------
+
+-- citations
+
+addPrefix :: [Inline] -> [Citation] -> [Citation]
+addPrefix p (k:ks)   = k {citationPrefix = p ++ citationPrefix k} : ks
+addPrefix _ _ = []
+
+addSuffix :: [Inline] -> [Citation] -> [Citation]
+addSuffix s ks@(_:_) =
+  let k  = last ks
+      s' = case s of
+                (Str (c:_):_)
+                  | not (isPunctuation c || isSpace c) -> Str "," : Space : s
+                _                                      -> s
+  in  init ks ++ [k {citationSuffix = citationSuffix k ++ s'}]
+addSuffix _ _ = []
+
+simpleCiteArgs :: LP [Citation]
 simpleCiteArgs = try $ do
-  first  <- optionMaybe $ (char '[') >> manyTill inline (char ']')
-  second <- optionMaybe $ (char '[') >> manyTill inline (char ']')
+  first  <- optionMaybe $ toList <$> opt
+  second <- optionMaybe $ toList <$> opt
   char '{'
-  keys <- many1Till citationLabel (char '}')
+  keys <- manyTill citationLabel (char '}')
   let (pre, suf) = case (first  , second ) of
-        (Just s , Nothing) -> ([], s )
+        (Just s , Nothing) -> (mempty, s )
         (Just s , Just t ) -> (s , t )
-        _                  -> ([], [])
+        _                  -> (mempty, mempty)
       conv k = Citation { citationId      = k
                         , citationPrefix  = []
                         , citationSuffix  = []
@@ -945,97 +894,92 @@ simpleCiteArgs = try $ do
                         }
   return $ addPrefix pre $ addSuffix suf $ map conv keys
 
+citationLabel :: LP String
+citationLabel  = trim <$>
+  (many1 (satisfy $ \c -> c /=',' && c /='}') <* optional (char ',') <* optional sp)
 
-simpleCite :: GenParser Char ParserState Inline
-simpleCite = try $ do
-  char '\\'
-  let biblatex     = [a ++ "cite" | a <- ["auto", "foot", "paren", "super", ""]]
-                     ++ ["footcitetext"]
-      normal       = ["cite" ++ a ++ b | a <- ["al", ""], b <- ["p", "p*", ""]]
-                     ++ biblatex
-      supress      = ["citeyearpar", "citeyear", "autocite*", "cite*", "parencite*"]
-      intext       = ["textcite"] ++ ["cite" ++ a ++ b | a <- ["al", ""], b <- ["t", "t*"]]
-      mintext      = ["textcites"]
-      mnormal      = map (++ "s") biblatex
-      cmdend       = notFollowedBy (letter <|> char '*')
-      capit []     = []
-      capit (x:xs) = toUpper x : xs
-      addUpper xs  = xs ++ map capit xs
-      toparser l t = try $ oneOfStrings (addUpper l) >> cmdend >> return t
-  (mode, multi) <-  toparser normal  (NormalCitation, False)
-                <|> toparser supress (SuppressAuthor, False)
-                <|> toparser intext  (AuthorInText  , False)
-                <|> toparser mnormal (NormalCitation, True )
-                <|> toparser mintext (AuthorInText  , True )
-  cits <- if multi then
-            many1 simpleCiteArgs
-          else
-            simpleCiteArgs >>= \c -> return [c]
+cites :: CitationMode -> Bool -> LP [Citation]
+cites mode multi = try $ do
+  cits <- if multi
+             then many1 simpleCiteArgs
+             else count 1 simpleCiteArgs
   let (c:cs) = concat cits
-      cits'  = case mode of
+  return $ case mode of
         AuthorInText   -> c {citationMode = mode} : cs
         _              -> map (\a -> a {citationMode = mode}) (c:cs)
-  return $ Cite cits' []
 
-complexNatbibCites :: GenParser Char ParserState Inline
-complexNatbibCites = complexNatbibTextual <|> complexNatbibParenthetical
+citation :: String -> CitationMode -> Bool -> LP Inlines
+citation name mode multi = do
+  (c,raw) <- withRaw $ cites mode multi
+  return $ cite c (rawInline "latex" $ "\\" ++ name ++ raw)
 
-complexNatbibTextual :: GenParser Char ParserState Inline
-complexNatbibTextual = try $ do
-  string "\\citeauthor{"
-  manyTill (noneOf "}") (char '}')
-  skipSpaces
-  Cite (c:cs) _ <- complexNatbibParenthetical
-  return $ Cite (c {citationMode = AuthorInText} : cs) []
+complexNatbibCitation :: CitationMode -> LP Inlines
+complexNatbibCitation mode = try $ do
+  let ils = (toList . trimInlines . mconcat) <$>
+              many (notFollowedBy (oneOf "\\};") >> inline)
+  let parseOne = try $ do
+                   skipSpaces
+                   pref  <- ils
+                   cit' <- inline -- expect a citation
+                   let citlist = toList cit'
+                   cits' <- case citlist of
+                                 [Cite cs _] -> return cs
+                                 _           -> mzero
+                   suff  <- ils
+                   skipSpaces
+                   optional $ char ';'
+                   return $ addPrefix pref $ addSuffix suff $ cits'
+  (c:cits, raw) <- withRaw $ grouped parseOne
+  return $ cite (c{ citationMode = mode }:cits)
+           (rawInline "latex" $ "\\citetext" ++ raw)
 
+-- tables
 
-complexNatbibParenthetical :: GenParser Char ParserState Inline
-complexNatbibParenthetical = try $ do
-  string "\\citetext{"
-  cits <- many1Till parseOne (char '}')
-  return $ Cite (concat cits) []
-  where
-    parseOne = do
-                 skipSpaces
-                 pref           <- many (notFollowedBy (oneOf "\\}") >> inline)
-                 (Cite cites _) <- simpleCite
-                 suff           <- many (notFollowedBy (oneOf "\\};") >> inline)
-                 skipSpaces
-                 optional $ char ';'
-                 return $ addPrefix pref $ addSuffix suff $ cites
+parseAligns :: LP [Alignment]
+parseAligns = try $ do
+  char '{'
+  optional $ char '|'
+  let cAlign = AlignCenter <$ char 'c'
+  let lAlign = AlignLeft <$ char 'l'
+  let rAlign = AlignRight <$ char 'r'
+  let alignChar = optional sp *> (cAlign <|> lAlign <|> rAlign)
+  aligns' <- sepEndBy alignChar (optional $ char '|')
+  spaces
+  char '}'
+  spaces
+  return aligns'
 
-addPrefix :: [Inline] -> [Citation] -> [Citation]
-addPrefix p (k:ks)   = k {citationPrefix = p ++ citationPrefix k} : ks
-addPrefix _ _ = []
+hline :: LP ()
+hline = () <$ (try $ spaces >> controlSeq "hline")
 
-addSuffix :: [Inline] -> [Citation] -> [Citation]
-addSuffix s ks@(_:_) = let k = last ks
-                        in init ks ++ [k {citationSuffix = citationSuffix k ++ s}]
-addSuffix _ _ = []
+lbreak :: LP ()
+lbreak = () <$ (try $ spaces *> controlSeq "\\")
 
-citationLabel :: GenParser Char ParserState String
-citationLabel  = do
-  res <- many1 $ noneOf ",}"
-  optional $ char ','
-  return $ removeLeadingTrailingSpace res
+amp :: LP ()
+amp = () <$ (try $ spaces *> char '&')
 
--- | Parse any LaTeX inline command and return it in a raw TeX inline element.
-rawLaTeXInline' :: GenParser Char ParserState Inline
-rawLaTeXInline' = do
-  notFollowedBy' $ oneOfStrings ["\\begin", "\\end", "\\item", "\\ignore",
-                                 "\\section"]
-  rawLaTeXInline
+parseTableRow :: Int  -- ^ number of columns
+              -> LP [Blocks]
+parseTableRow cols = try $ do
+  let tableCellInline = notFollowedBy (amp <|> lbreak) >> inline
+  let tableCell = (plain . trimInlines . mconcat) <$> many tableCellInline
+  cells' <- sepBy tableCell amp
+  guard $ length cells' == cols
+  spaces
+  return cells'
 
--- | Parse any LaTeX command and return it in a raw TeX inline element.
-rawLaTeXInline :: GenParser Char ParserState Inline
-rawLaTeXInline = try $ do
-  state <- getState
-  if stateParseRaw state
-     then command >>= demacro
-     else do
-        (name,st,args) <- command
-        x <- demacro (name,st,args)
-        unless (x == Str "" || name `elem` commandsToIgnore) $ do
-          inp <- getInput
-          setInput $ intercalate " " args ++ inp
-        return $ Str ""
+simpTable :: LP Blocks
+simpTable = try $ do
+  spaces
+  aligns <- parseAligns
+  let cols = length aligns
+  optional hline
+  header' <- option [] $ try (parseTableRow cols <* lbreak <* hline)
+  rows <- sepEndBy (parseTableRow cols) (lbreak <* optional hline)
+  spaces
+  let header'' = if null header'
+                    then replicate cols mempty
+                    else header'
+  lookAhead $ controlSeq "end" -- make sure we're at end
+  return $ table mempty (zip aligns (repeat 0)) header'' rows
+
