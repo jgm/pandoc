@@ -278,7 +278,8 @@ blockToLaTeX (BlockQuote lst) = do
          return result
        _ -> do
          contents <- blockListToLaTeX lst
-         return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
+         return $ "\\begin{quote}" $$ chomp contents $$ "\\end{quote}"
+                  <> blankline
 blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
   opts <- gets stOptions
   case () of

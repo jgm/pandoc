@@ -86,7 +86,6 @@ Block quote:
 
 \begin{quote}
 foo bar
-
 \end{quote}
 
 \end{document}

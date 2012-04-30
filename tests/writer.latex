@@ -119,8 +119,8 @@ E-mail style:
 
 \begin{quote}
 This is a block quote. It is pretty short.
-
 \end{quote}
+
 \begin{quote}
 Code in a block quote:
 
@@ -141,13 +141,13 @@ Nested block quotes:
 
 \begin{quote}
 nested
-
 \end{quote}
+
 \begin{quote}
 nested
+\end{quote}
+\end{quote}
 
-\end{quote}
-\end{quote}
 This should not be a block quote: 2 \textgreater{} 1.
 
 And a following paragraph.
@@ -476,8 +476,8 @@ orange fruit
 \end{verbatim}
 \begin{quote}
 orange block quote
-
 \end{quote}
+
 \end{description}
 Multiple definitions, tight:
 
@@ -809,8 +809,8 @@ An e-mail address:
 
 \begin{quote}
 Blockquoted: \url{http://example.com/}
-
 \end{quote}
+
 Auto-links should not occur here:
 \texttt{\textless{}http://example.com/\textgreater{}}
 
@@ -855,8 +855,8 @@ note.\footnote{This is \emph{easier} to type. Inline notes may contain
 
 \begin{quote}
 Notes can go in quotes.\footnote{In quote.}
-
 \end{quote}
+
 \begin{enumerate}[1.]
 \item
   And in list items.\footnote{In list.}
