@@ -11,15 +11,16 @@ import Data.List (intersperse)
 
 {-
 
-List of all DocBook tags, with [x] indicating implemented:
+List of all DocBook tags, with [x] indicating implemented,
+[o] meaning intentionally left unimplemented (pass through):
 
-[ ] abbrev - An abbreviation, especially one followed by a period
+[o] abbrev - An abbreviation, especially one followed by a period
 [x] abstract - A summary
-[ ] accel - A graphical user interface (GUI) keyboard shortcut
-[ ] ackno - Acknowledgements in an Article
-[ ] acronym - An often pronounceable word made from the initial
-[ ] action - A response to a user event
-[ ] address - A real-world address, generally a postal address
+[o] accel - A graphical user interface (GUI) keyboard shortcut
+[x] ackno - Acknowledgements in an Article
+[o] acronym - An often pronounceable word made from the initial
+[o] action - A response to a user event
+[o] address - A real-world address, generally a postal address
 [ ] affiliation - The institutional affiliation of an individual
 [ ] alt - Text representation for a graphical element
 [ ] anchor - A spot in the document
@@ -305,7 +306,7 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] publishername - The name of the publisher of a document
 [ ] pubsnumber - A number assigned to a publication other than an ISBN or ISSN
     or inventory part number
-[ ] qandadiv - A titled division in a QandASet
+[x] qandadiv - A titled division in a QandASet
 [ ] qandaentry - A question/answer set within a QandASet
 [ ] qandaset - A question-and-answer set
 [ ] question - A question in a QandASet
@@ -349,9 +350,9 @@ List of all DocBook tags, with [x] indicating implemented:
 [ ] rhs - The right-hand side of an EBNF production
 [ ] row - A row in a table
 [ ] sbr - An explicit line break in a command synopsis
-[ ] screen - Text that a user sees or might see on a computer screen
-[ ] screenco - A screen with associated areas used in callouts
-[ ] screeninfo - Information about how a screen shot was produced
+[x] screen - Text that a user sees or might see on a computer screen
+[o] screenco - A screen with associated areas used in callouts
+[o] screeninfo - Information about how a screen shot was produced
 [ ] screenshot - A representation of what the user sees or might see on a
     computer screen
 [ ] secondary - A secondary word or phrase in an index term
@@ -546,6 +547,7 @@ parseBlock (Text (CData _ s _)) = if all isSpace s
 parseBlock (Elem e) =
   case qName (elName e) of
         "para"  -> para <$> getInlines e
+        "ackno"  -> para <$> getInlines e
         "blockquote" -> do
             attrib <- case filterChild (named "attribution") e of
                              Nothing  -> return mempty
@@ -566,6 +568,7 @@ parseBlock (Elem e) =
         "sect4" -> sect 4
         "sect5" -> sect 5
         "section" -> gets dbSectionLevel >>= sect . (+1)
+        "qandadiv" -> gets dbSectionLevel >>= sect . (+1)
         "abstract" -> blockQuote <$> getBlocks e
         "itemizedlist" -> bulletList <$> listitems
         "orderedlist" -> orderedList <$> listitems -- TODO list attributes
@@ -578,6 +581,7 @@ parseBlock (Elem e) =
         "article" -> modify (\st -> st{ dbBook = False }) >>
                           getTitle >> getBlocks e
         "book" -> modify (\st -> st{ dbBook = True }) >> getTitle >> getBlocks e
+        "screen" -> return $ codeBlock $ strContent e  -- TODO attrs
         "programlisting" -> return $ codeBlock $ strContent e  -- TODO attrs
         "?xml"  -> return mempty
         _       -> getBlocks e
