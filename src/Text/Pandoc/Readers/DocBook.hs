@@ -24,7 +24,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] affiliation - The institutional affiliation of an individual
 [ ] alt - Text representation for a graphical element
 [ ] anchor - A spot in the document
-[ ] answer - An answer to a question posed in a QandASet
+[x] answer - An answer to a question posed in a QandASet
 [x] appendix - An appendix in a Book or Article
 [ ] appendixinfo - Meta-information for an Appendix
 [ ] application - The name of a software program
@@ -307,9 +307,9 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] pubsnumber - A number assigned to a publication other than an ISBN or ISSN
     or inventory part number
 [x] qandadiv - A titled division in a QandASet
-[ ] qandaentry - A question/answer set within a QandASet
-[ ] qandaset - A question-and-answer set
-[ ] question - A question in a QandASet
+[o] qandaentry - A question/answer set within a QandASet
+[o] qandaset - A question-and-answer set
+[x] question - A question in a QandASet
 [x] quote - An inline quotation
 [ ] refclass - The scope or other indication of applicability of a
     reference entry
@@ -525,6 +525,14 @@ attrValue attr elt =
 named :: String -> Element -> Bool
 named s e = qName (elName e) == s
 
+-- meld text into beginning of first paragraph of Blocks.
+-- assumes Blocks start with a Para; if not, does nothing.
+addToStart :: Inlines -> Blocks -> Blocks
+addToStart toadd bs =
+  case toList bs of
+    (Para xs : rest) -> para (toadd <> fromList xs) <> fromList rest
+    _                -> bs
+
 -- function that is used by both mediaobject (in parseBlock) 
 -- and inlinemediaobject (in parseInline)
 getImage :: Element -> DB Inlines
@@ -569,6 +577,8 @@ parseBlock (Elem e) =
         "sect5" -> sect 5
         "section" -> gets dbSectionLevel >>= sect . (+1)
         "qandadiv" -> gets dbSectionLevel >>= sect . (+1)
+        "question" -> addToStart (strong (str "Q:") <> str " ") <$> getBlocks e
+        "answer" -> addToStart (strong (str "A:") <> str " ") <$> getBlocks e
         "abstract" -> blockQuote <$> getBlocks e
         "itemizedlist" -> bulletList <$> listitems
         "orderedlist" -> orderedList <$> listitems -- TODO list attributes
