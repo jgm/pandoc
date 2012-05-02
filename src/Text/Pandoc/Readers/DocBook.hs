@@ -326,13 +326,13 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] refnamediv - The name, purpose, and classification of a reference page
 [ ] refpurpose - A short (one sentence) synopsis of the topic of a reference
     page
-[ ] refsect1 - A major subsection of a reference entry
+[x] refsect1 - A major subsection of a reference entry
 [ ] refsect1info - Meta-information for a RefSect1
-[ ] refsect2 - A subsection of a RefSect1
+[x] refsect2 - A subsection of a RefSect1
 [ ] refsect2info - Meta-information for a RefSect2
-[ ] refsect3 - A subsection of a RefSect2
+[x] refsect3 - A subsection of a RefSect2
 [ ] refsect3info - Meta-information for a RefSect3
-[ ] refsection - A recursive section in a refentry
+[x] refsection - A recursive section in a refentry
 [ ] refsectioninfo - Meta-information for a refsection
 [ ] refsynopsisdiv - A syntactic synopsis of the subject of the reference page
 [ ] refsynopsisdivinfo - Meta-information for a RefSynopsisDiv
@@ -576,6 +576,10 @@ parseBlock (Elem e) =
         "sect4" -> sect 4
         "sect5" -> sect 5
         "section" -> gets dbSectionLevel >>= sect . (+1)
+        "refsect1" -> sect 1
+        "refsect2" -> sect 2
+        "refsect3" -> sect 3
+        "refsection" -> gets dbSectionLevel >>= sect . (+1)
         "qandadiv" -> gets dbSectionLevel >>= sect . (+1)
         "question" -> addToStart (strong (str "Q:") <> str " ") <$> getBlocks e
         "answer" -> addToStart (strong (str "A:") <> str " ") <$> getBlocks e
