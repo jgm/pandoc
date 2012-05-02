@@ -67,7 +67,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] calloutlist - A list of Callouts
 [x] caption - A caption
 [ ] caution - A note of caution
-[ ] chapter - A chapter, as of a book
+[x] chapter - A chapter, as of a book
 [ ] chapterinfo - Meta-information for a Chapter
 [ ] citation - An inline bibliographic reference to another published work
 [ ] citebiblioid - A citation of a bibliographic identifier
