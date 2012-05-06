@@ -1,3 +1,80 @@
+pandoc (1.9.3)
+
+  * Fixed bug in `fromEntities`.  The previous version would turn
+    `hi & low you know;` into `hi &`.
+
+  * HTML reader:
+
+    + Don't skip nonbreaking spaces.
+      Previously a paragraph containing just `&nbsp;` would be rendered
+      as an empty paragraph. Thanks to Paul Vorbach for pointing out the bug.
+    + Support `<col>` and `<caption>` in tables. Closes #486.
+
+  * Markdown reader:
+
+    + Don't recognize references inside delimited code blocks.
+    + Allow list items to begin with lists.
+
+  * Added basic docbook reader (John MacFarlane and Mauro Bieg).
+
+  * LaTeX reader:
+
+    + Handle `\bgroup`, `\egroup`, `\begingroup`, `\endgroup`.
+    + Control sequences can't be followed by a letter.
+      This fixes a bug where `\begingroup` was parsed as `\begin`
+      followed by `group`.
+    + Parse 'dimension' arguments to unknown commands.  e.g. `\parindent0pt`
+    + Make `\label` and `\ref` sensitive to `--parse-raw`.
+      If `--parse-raw` is selected, these will be parsed as raw latex
+      inlines, rather than bracketed text.
+
+  * Textile reader:
+
+    + Implemented literal escapes with `==` and `<notextile>`.  Closes #473.
+    + Added support for LaTeX blocks and inlines (Paul Rivier).
+    + Better conformance to RedCloth inline parsing (Paul Rivier).
+    + Parse '+text+' as emphasized (should be underlined, but this
+      is better than leaving literal plus characters in the output.
+
+  * Docx writer: Fixed multi-paragraph list items.  Previously they each
+    got a list marker.  Closes #457.
+
+  * LaTeX writer:
+
+    + Use `fixltx2e` package to provide '\textsubscript'.
+    + Improve spacing around LaTeX block environments:
+      quote, verbatim, itemize, description, enumerate.
+      Closes #502.
+    + Use blue instead of pink for URL links in latex/pdf output.
+
+  * ConTeXt writer: Fixed escaping of `%`.
+    In text, `%` needs to be escaped as `\letterpercent`, not `\%`
+    Inside URLs, `%` needs to be escaped as `\%`
+    Thanks to jmarca and adityam for the fix.  Closes #492.
+
+  * Texinfo writer:  Escape special characters in node titles.
+    This fixes a problem pointed out by Joost Kremers.  Pandoc used
+    to escape an '@' in a chapter title, but not in the corresponding
+    node title, leading to invalid texinfo.
+
+  * Fixed document encoding in texinfo template.
+    Resolves Debian Bug #667816.
+
+  * Markdown writer:
+
+    + Don't force delimited code blocks to be flush left.
+      Fixes bug with delimited code blocks inside lists etc.
+    + Escape `<` and `$`.
+
+  * LaTeX writer: Use `\hyperref[ident]{text}` for internal links.
+    Previously we used `\href{\#ident}{text}`, which didn't work on
+    all systems. Thanks to Dirk Laurie.
+
+  * RST writer: Don't wrap link references.  Closes #487.
+
+  * Updated to use latest versions of blaze-html, mtl.
+
+
 pandoc (1.9.2)
 
   * LaTeX reader:
