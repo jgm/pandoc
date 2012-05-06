@@ -66,7 +66,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] callout - A “called out” description of a marked Area
 [ ] calloutlist - A list of Callouts
 [x] caption - A caption
-[ ] caution - A note of caution
+[x] caution - A note of caution
 [x] chapter - A chapter, as of a book
 [ ] chapterinfo - Meta-information for a Chapter
 [ ] citation - An inline bibliographic reference to another published work
@@ -168,12 +168,12 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] hardware - A physical part of a computer system
 [ ] highlights - A summary of the main points of the discussed component
 [ ] holder - The name of the individual or organization that holds a copyright
-[ ] honorific - The title of a person
+[o] honorific - The title of a person
 [ ] html:form - An HTML form
 [ ] imagedata - Pointer to external image data
 [ ] imageobject - A wrapper for image data and its associated meta-information
 [ ] imageobjectco - A wrapper for an image object with callouts
-[ ] important - An admonition set off from the text
+[x] important - An admonition set off from the text
 [ ] index - An index
 [ ] indexdiv - A division in an index
 [ ] indexentry - An entry in an index
@@ -252,7 +252,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] msgsub - A subcomponent of a message in a message set
 [ ] msgtext - The actual text of a message component in a message set
 [ ] nonterminal - A non-terminal in an EBNF production
-[ ] note - A message set off from the text
+[x] note - A message set off from the text
 [ ] objectinfo - Meta-information for an object
 [ ] olink - A link that addresses its target indirectly, through an entity
 [ ] ooclass - A class in an object-oriented programming language
@@ -440,7 +440,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] tgroup - A wrapper for the main content of a table, or part of a table
 [ ] th - A table header entry in an HTML table
 [ ] thead - A table header consisting of one or more rows
-[ ] tip - A suggestion to the user, set off from the text
+[x] tip - A suggestion to the user, set off from the text
 [x] title - The text of the title of a section of a document or of a formal
     block-level element
 [x] titleabbrev - The abbreviation of a Title
@@ -482,7 +482,7 @@ List of all DocBook tags, with [x] indicating implemented,
     function in question takes no arguments
 [ ] volumenum - The volume number of a document in a set (as of books in a set
     or articles in a journal)
-[ ] warning - An admonition set off from the text
+[x] warning - An admonition set off from the text
 [x] wordasword - A word meant specifically as a word and not representing
     anything else
 [ ] xref - A cross reference to another part of the document
@@ -580,6 +580,16 @@ parseBlock (Elem e) =
         "refsect2" -> sect 2
         "refsect3" -> sect 3
         "refsection" -> gets dbSectionLevel >>= sect . (+1)
+        "important" -> blockQuote . (para (strong $ str "Important") <>)
+                        <$> getBlocks e
+        "caution" -> blockQuote . (para (strong $ str "Caution") <>)
+                        <$> getBlocks e
+        "note" -> blockQuote . (para (strong $ str "Note") <>)
+                        <$> getBlocks e
+        "tip" -> blockQuote . (para (strong $ str "Tip") <>)
+                        <$> getBlocks e
+        "warning" -> blockQuote . (para (strong $ str "Warning") <>)
+                        <$> getBlocks e
         "qandadiv" -> gets dbSectionLevel >>= sect . (+1)
         "question" -> addToStart (strong (str "Q:") <> str " ") <$> getBlocks e
         "answer" -> addToStart (strong (str "A:") <> str " ") <$> getBlocks e
