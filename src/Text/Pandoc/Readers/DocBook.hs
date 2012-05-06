@@ -114,7 +114,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] destructorsynopsis - A syntax summary for a destructor
 [ ] edition - The name or number of an edition of a document
 [ ] editor - The name of the editor of a document
-[ ] email - An email address
+[x] email - An email address
 [x] emphasis - Emphasized text
 [ ] entry - A cell in a table
 [ ] entrytbl - A subtable appearing in place of an Entry in a table
@@ -675,6 +675,8 @@ parseInline (Elem e) =
         "constant" -> return $ codeWith ("",["constant"],[]) $ strContent e
         "userinput" -> return $ codeWith ("",["userinput"],[]) $ strContent e
         "varargs" -> return $ str "(…)"
+        "email" -> return $ link ("mailto:" ++ strContent e) ""
+                          $ code $ strContent e
         "ulink" -> link (attrValue "url" e) "" <$> innerInlines
         "link" -> case findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e of
                        Just href -> link href "" <$> innerInlines
