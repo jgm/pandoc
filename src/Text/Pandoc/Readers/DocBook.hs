@@ -1,8 +1,10 @@
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
+import Data.Char (toUpper)
 import Text.Pandoc.Parsing (ParserState(..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder
 import Text.XML.Light
+import Text.HTML.TagSoup.Entity (lookupEntity)
 import Data.Monoid
 import Data.Char (isSpace)
 import Control.Monad.State
@@ -81,8 +83,8 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] cmdsynopsis - A syntax summary for a software command
 [ ] co - The location of a callout embedded in text
 [x] code - An inline code fragment
-[ ] col - Specifications for a column in an HTML table
-[ ] colgroup - A group of columns in an HTML table
+[x] col - Specifications for a column in an HTML table
+[x] colgroup - A group of columns in an HTML table
 [ ] collab - Identifies a collaborator
 [ ] collabname - The name of a collaborator
 [ ] colophon - Text at the back of a book describing facts about its production
@@ -116,7 +118,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] editor - The name of the editor of a document
 [x] email - An email address
 [x] emphasis - Emphasized text
-[ ] entry - A cell in a table
+[x] entry - A cell in a table
 [ ] entrytbl - A subtable appearing in place of an Entry in a table
 [ ] envar - A software environment variable
 [ ] epigraph - A short inscription at the beginning of a document or component
@@ -258,7 +260,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] ooclass - A class in an object-oriented programming language
 [ ] ooexception - An exception in an object-oriented programming language
 [ ] oointerface - An interface in an object-oriented programming language
-[ ] option - An option for a software command
+[x] option - An option for a software command
 [ ] optional - Optional information
 [x] orderedlist - A list in which each entry is marked with a sequentially
     incremented label
@@ -296,7 +298,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] productionset - A set of EBNF productions
 [ ] productname - The formal name of a product
 [ ] productnumber - A number assigned to a product
-[ ] programlisting - A literal listing of all or part of a program
+[x] programlisting - A literal listing of all or part of a program
 [ ] programlistingco - A program listing with associated areas used in callouts
 [ ] prompt - A character or string indicating the start of an input field in
     a computer display
@@ -348,7 +350,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] revnumber - A document revision number
 [ ] revremark - A description of a revision to a document
 [ ] rhs - The right-hand side of an EBNF production
-[ ] row - A row in a table
+[x] row - A row in a table
 [ ] sbr - An explicit line break in a command synopsis
 [x] screen - Text that a user sees or might see on a computer screen
 [o] screenco - A screen with associated areas used in callouts
@@ -427,8 +429,8 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] taskprerequisites - The prerequisites for a task
 [ ] taskrelated - Information related to a task
 [ ] tasksummary - A summary of a task
-[ ] tbody - A wrapper for the rows of a table or informal table
-[ ] td - A table entry in an HTML table
+[x] tbody - A wrapper for the rows of a table or informal table
+[x] td - A table entry in an HTML table
 [x] term - The word or phrase being defined or described in a variable list
 [ ] termdef - An inline term definition
 [ ] tertiary - A tertiary word or phrase in an index term
@@ -437,9 +439,9 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] textobject - A wrapper for a text description of an object and its
     associated meta-information
 [ ] tfoot - A table footer consisting of one or more rows
-[ ] tgroup - A wrapper for the main content of a table, or part of a table
-[ ] th - A table header entry in an HTML table
-[ ] thead - A table header consisting of one or more rows
+[x] tgroup - A wrapper for the main content of a table, or part of a table
+[x] th - A table header entry in an HTML table
+[x] thead - A table header consisting of one or more rows
 [x] tip - A suggestion to the user, set off from the text
 [x] title - The text of the title of a section of a document or of a formal
     block-level element
@@ -462,7 +464,7 @@ List of all DocBook tags, with [x] indicating implemented,
     chapter-like component
 [ ] tocpart - An entry in a table of contents for a part of a book
 [ ] token - A unit of information
-[ ] tr - A row in an HTML table
+[x] tr - A row in an HTML table
 [ ] trademark - A trademark
 [ ] type - The classification of a value
 [x] ulink - A link that addresses its target by means of a URL
@@ -552,6 +554,7 @@ parseBlock (Text (CData CDataRaw _ _)) = return mempty -- DOCTYPE
 parseBlock (Text (CData _ s _)) = if all isSpace s
                                      then return mempty
                                      else return $ plain $ text s
+parseBlock (CRef _) = return mempty  -- TODO need something better here
 parseBlock (Elem e) =
   case qName (elName e) of
         "para"  -> para <$> getInlines e
@@ -605,13 +608,13 @@ parseBlock (Elem e) =
         "article" -> modify (\st -> st{ dbBook = False }) >>
                           getTitle >> getBlocks e
         "book" -> modify (\st -> st{ dbBook = True }) >> getTitle >> getBlocks e
+        "table" -> parseTable
+        "informaltable" -> parseTable
         "screen" -> return $ codeBlock $ strContent e  -- TODO attrs
         "programlisting" -> return $ codeBlock $ strContent e  -- TODO attrs
         "?xml"  -> return mempty
         _       -> getBlocks e
    where getBlocks e' =  mconcat <$> (mapM parseBlock $ elContent e')
-         getInlines e' = (trimInlines . mconcat) <$>
-                       (mapM parseInline $ elContent e')
          skipWhite (Text (CData _ s _):xs) | all isSpace s = skipWhite xs
                                            | otherwise     = xs
          skipWhite xs = xs
@@ -626,20 +629,56 @@ parseBlock (Elem e) =
                      items' <- mapM ((mconcat <$>) . mapM parseBlock)
                                  $ map elContent items
                      return (mconcat $ intersperse (str "; ") defs', items')
-         getTitle = case findChild (unqual "title") e of
+         getTitle = case filterChild (named "title") e of
                          Just t  -> do
                             tit <- getInlines t
                             modify $ \st -> st{dbDocTitle = tit}
                          Nothing -> return ()
          getAuthors = do
                       auths <- mapM getInlines
-                               $ findChildren (unqual "author") e
+                               $ filterChildren (named "author") e
                       modify $ \st -> st{dbDocAuthors = auths}
-         getDate = case findChild (unqual "date") e of
+         getDate = case filterChild (named "date") e of
                          Just t  -> do
                             dat <- getInlines t
                             modify $ \st -> st{dbDocDate = dat}
                          Nothing -> return ()
+         parseTable = do
+                      let isCaption x = named "title" x || named "caption" x
+                      caption <- case filterChild isCaption e of
+                                       Just t  -> getInlines t
+                                       Nothing -> return mempty
+                      let e' = maybe e id $ filterChild (named "tgroup") e
+                      let isColspec x = named "colspec" x || named "col" x
+                      let colspecs = case filterChild (named "colgroup") e' of
+                                           Just c -> filterChildren isColspec c
+                                           _      -> filterChildren isColspec e'
+                      let isRow x = named "row" x || named "tr" x
+                      headrows <- case filterChild (named "thead") e' of
+                                       Just h  -> case filterChild isRow h of
+                                                       Just x  -> parseRow x
+                                                       Nothing -> return []
+                                       Nothing -> return []
+                      bodyrows <- case filterChild (named "tbody") e' of
+                                       Just b  -> mapM parseRow
+                                                  $ filterChildren isRow b
+                                       Nothing -> mapM parseRow
+                                                  $ filterChildren isRow e'
+                      let toAlignment c = case findAttr (unqual "align") c of
+                                                Just "left"   -> AlignLeft
+                                                Just "right"  -> AlignRight
+                                                Just "center" -> AlignCenter
+                                                _             -> AlignDefault
+                      let aligns = case colspecs of
+                                     []  -> replicate
+                                              (maximum $ map length bodyrows)
+                                              AlignDefault
+                                     cs  -> map toAlignment cs
+                      return $ table caption
+                                 (zip aligns (repeat 0))
+                                 headrows bodyrows
+         isEntry x  = named "entry" x || named "td" x || named "th" x
+         parseRow = mapM getBlocks . filterChildren isEntry
          sect n = do isbook <- gets dbBook
                      let n' = if isbook then n + 1 else n
                      case skipWhite (elContent e) of
@@ -655,10 +694,14 @@ parseBlock (Elem e) =
                                   b <- mconcat <$> (mapM parseBlock body)
                                   modify $ \st -> st{ dbSectionLevel = n - 1 }
                                   return $ h <> b
-parseBlock (CRef _) = return mempty
+
+getInlines :: Element -> DB Inlines
+getInlines e' = (trimInlines . mconcat) <$> (mapM parseInline $ elContent e')
 
 parseInline :: Content -> DB Inlines
 parseInline (Text (CData _ s _)) = return $ text s
+parseInline (CRef ref) =
+  return $ maybe (text $ map toUpper ref) (text . (:[])) $ lookupEntity ref
 parseInline (Elem e) =
   case qName (elName e) of
         "subscript" -> subscript <$> innerInlines
@@ -676,6 +719,7 @@ parseInline (Elem e) =
         "code" -> return $ code $ strContent e -- TODO attrs
         "filename" -> return $ code $ strContent e -- TODO attrs
         "literal" -> return $ code $ strContent e -- TODO attrs
+        "option" -> return $ code $ strContent e -- TODO attrs
         "markup" -> return $ code $ strContent e -- TODO attrs
         "wordasword" -> emph <$> innerInlines
         "varname" -> return $ codeWith ("",["varname"],[]) $ strContent e
@@ -700,4 +744,3 @@ parseInline (Elem e) =
         _          -> innerInlines
    where innerInlines = (trimInlines . mconcat) <$>
                           (mapM parseInline $ elContent e)
-parseInline (CRef _) = return mempty
