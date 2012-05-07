@@ -5,6 +5,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Builder
 import Text.XML.Light
 import Text.HTML.TagSoup.Entity (lookupEntity)
+import Data.Generics
 import Data.Monoid
 import Data.Char (isSpace)
 import Control.Monad.State
@@ -121,7 +122,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] entry - A cell in a table
 [ ] entrytbl - A subtable appearing in place of an Entry in a table
 [ ] envar - A software environment variable
-[ ] epigraph - A short inscription at the beginning of a document or component
+[x] epigraph - A short inscription at the beginning of a document or component
     note:  also handle embedded attribution tag
 [ ] equation - A displayed mathematical equation
 [ ] errorcode - An error code
@@ -507,7 +508,7 @@ readDocBook st inp = setTitle (dbDocTitle st')
                    $ setAuthors (dbDocAuthors st')
                    $ setDate (dbDocDate st')
                    $ doc $ mconcat bs
-  where (bs, st') = runState (mapM parseBlock $ parseXML inp)
+  where (bs, st') = runState (mapM parseBlock $ normalizeTree $ parseXML inp)
                              DBState{ dbSectionLevel = 0
                                     , dbQuoteType = DoubleQuote
                                     , dbDocTitle = mempty
@@ -515,6 +516,25 @@ readDocBook st inp = setTitle (dbDocTitle st')
                                     , dbDocDate = mempty
                                     , dbBook = False
                                     }
+
+-- normalize input, consolidating adjacent Text and CRef elements
+normalizeTree :: [Content] -> [Content]
+normalizeTree = everywhere (mkT go)
+  where go :: [Content] -> [Content]
+        go (Text (CData CDataRaw _ _):xs) = xs
+        go (Text (CData CDataText s1 z):Text (CData CDataText s2 _):xs) =
+           Text (CData CDataText (s1 ++ s2) z):xs
+        go (Text (CData CDataText s1 z):CRef r:xs) =
+           Text (CData CDataText (s1 ++ [c]) z):xs
+               where c = maybe '?' id (lookupEntity r)
+        go (CRef r:Text (CData CDataText s1 z):xs) =
+             Text (CData CDataText ([c] ++ s1) z):xs
+               where c = maybe '?' id (lookupEntity r)
+        go (CRef r1:CRef r2:xs) =
+             Text (CData CDataText [c1,c2] Nothing):xs
+               where c1 = maybe '?' id (lookupEntity r1)
+                     c2 = maybe '?' id (lookupEntity r2)
+        go xs = xs
 
 -- convenience function to get an attribute value, defaulting to ""
 attrValue :: String -> Element -> String
@@ -553,19 +573,14 @@ parseBlock :: Content -> DB Blocks
 parseBlock (Text (CData CDataRaw _ _)) = return mempty -- DOCTYPE
 parseBlock (Text (CData _ s _)) = if all isSpace s
                                      then return mempty
-                                     else return $ plain $ text s
+                                     else return $ plain $ trimInlines $ text s
 parseBlock (CRef _) = return mempty  -- TODO need something better here
 parseBlock (Elem e) =
   case qName (elName e) of
         "para"  -> para <$> getInlines e
         "ackno"  -> para <$> getInlines e
-        "blockquote" -> do
-            attrib <- case filterChild (named "attribution") e of
-                             Nothing  -> return mempty
-                             Just z   -> (para . (str "— " <>) . mconcat)
-                                         <$> (mapM parseInline $ elContent z)
-            contents <- getBlocks e
-            return $ blockQuote (contents <> attrib)
+        "epigraph" -> parseBlockquote
+        "blockquote" -> parseBlockquote
         "attribution" -> return mempty
         "titleabbrev" -> return mempty
         "authorinitials" -> return mempty
@@ -618,6 +633,13 @@ parseBlock (Elem e) =
          skipWhite (Text (CData _ s _):xs) | all isSpace s = skipWhite xs
                                            | otherwise     = xs
          skipWhite xs = xs
+         parseBlockquote = do
+            attrib <- case filterChild (named "attribution") e of
+                             Nothing  -> return mempty
+                             Just z   -> (para . (str "— " <>) . mconcat)
+                                         <$> (mapM parseInline $ elContent z)
+            contents <- getBlocks e
+            return $ blockQuote (contents <> attrib)
          listitems = mapM getBlocks $ filterChildren (named "listitem") e
          deflistitems = mapM parseVarListEntry $ filterChildren
                      (named "varlistentry") e
