@@ -71,7 +71,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] caption - A caption
 [x] caution - A note of caution
 [x] chapter - A chapter, as of a book
-[ ] chapterinfo - Meta-information for a Chapter
+[x] chapterinfo - Meta-information for a Chapter
 [ ] citation - An inline bibliographic reference to another published work
 [ ] citebiblioid - A citation of a bibliographic identifier
 [ ] citerefentry - A citation to a reference page
@@ -619,6 +619,7 @@ parseBlock (Elem e) =
         "caption" -> return mempty
         "info" -> getTitle >> getAuthors >> getDate >> return mempty
         "articleinfo" -> getTitle >> getAuthors >> getDate >> return mempty
+        "chapterinfo" -> return mempty  -- keywords & other metadata
         "bookinfo" -> getTitle >> getAuthors >> getDate >> return mempty
         "article" -> modify (\st -> st{ dbBook = False }) >>
                           getTitle >> getBlocks e
