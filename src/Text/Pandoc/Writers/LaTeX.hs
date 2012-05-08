@@ -582,8 +582,8 @@ inlineToLaTeX (Link txt (src, _)) =
                 return $ text $ "\\url{" ++ x ++ "}"
         _ -> do contents <- inlineListToLaTeX txt
                 src' <- stringToLaTeX True src
-                return $ text ("\\href{" ++ src' ++ "}{") <>
-                         contents <> char '}'
+                return $ text ("\\href{" ++ src' ++ "}{\\url{") <>
+                         contents <> char '}' <> char '}'
 inlineToLaTeX (Image _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True }
   let source' = if isAbsoluteURI source

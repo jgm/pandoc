@@ -31,7 +31,7 @@ Conversion of 'Pandoc' format into ConTeXt.
 module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
-import Text.Pandoc.Generic (queryWith)
+import Text.Pandoc.Generic (queryWith, bottomUp)
 import Text.Printf ( printf )
 import Data.List ( intercalate )
 import Control.Monad.State
@@ -274,9 +274,7 @@ inlineToConTeXt (RawInline _ _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt Space = return space
 -- autolink
-inlineToConTeXt (Link [Code _ str] (src, tit)) = inlineToConTeXt (Link
-    [RawInline "context" "\\hyphenatedurl{", Str str, RawInline "context" "}"]
-    (src, tit))
+inlineToConTeXt (Link [Code _ str] (src, tit)) = inlineToConTeXt (Link [Str str] (src, tit))
 -- Handle HTML-like internal document references to sections
 inlineToConTeXt (Link txt          (('#' : ref), _)) = do
   opts <- gets stOptions
@@ -295,10 +293,11 @@ inlineToConTeXt (Link txt          (src, _))      = do
   let next = stNextRef st
   put $ st {stNextRef = next + 1}
   let ref = "url" ++ show next
-  label <-  inlineListToConTeXt txt
+  -- Intentionally collapse adjacent Str objects in txt, apply URL hyphenation
+  label <-  inlineListToConTeXt $ bottomUp hyphenateURL (normalize txt)
   return $ "\\useURL"
            <> brackets (text ref)
-           <> brackets (text $ escapeStringUsing [('#',"\\#"),('%',"\\%")] src)
+           <> brackets ((text . escapedURL) src)
            <> brackets empty
            <> brackets label
            <> "\\from"
@@ -339,3 +338,17 @@ sectionHeader ident hdrLevel lst = do
                        then "\\chapter{" <> contents <> "}"
                        else contents <> blankline
 
+-- | Convert absolute URLs/URIs to ConTeXt raw inlines so that they are hyphenated.
+hyphenateURL :: Inline
+             -> Inline
+hyphenateURL x =
+  case x of
+    (Str str)         -> if isURI str
+                         then (RawInline "context" ("\\hyphenatedurl{" ++ (escapedURL str) ++ "}"))
+                         else x
+    _otherwise        -> x
+
+-- | Escape characters in a URL so that TeX doesn't complain.
+escapedURL :: String
+           -> String
+escapedURL = escapeStringUsing [('#',"\\#"),('%',"\\%")]
