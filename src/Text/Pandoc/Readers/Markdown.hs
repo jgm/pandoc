@@ -1026,11 +1026,11 @@ mathInline = try $ do
   notFollowedBy digit
   return $ intercalate " " words'
 
--- to avoid performance problems, treat 4 or more _ or * in a row as a literal
--- rather than attempting to parse for emph/strong
+-- to avoid performance problems, treat 4 or more _ or * or ~ or ^ in a row
+-- as a literal rather than attempting to parse for emph/strong/strikeout/super/sub
 fours :: GenParser Char st Inline
 fours = try $ do
-  x <- char '*' <|> char '_'
+  x <- char '*' <|> char '_' <|> char '~' <|> char '^'
   count 2 $ satisfy (==x)
   rest <- many1 (satisfy (==x))
   return $ Str (x:x:x:rest)
