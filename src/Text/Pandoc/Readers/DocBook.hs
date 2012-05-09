@@ -651,13 +651,11 @@ parseBlock (Elem e) =
          deflistitems = mapM parseVarListEntry $ filterChildren
                      (named "varlistentry") e
          parseVarListEntry e' = do
-                     let defs = filterChildren (named "term") e'
+                     let terms = filterChildren (named "term") e'
                      let items = filterChildren (named "listitem") e'
-                     defs' <- mapM ((mconcat <$>) . mapM parseInline)
-                                 $ map elContent defs
-                     items' <- mapM ((mconcat <$>) . mapM parseBlock)
-                                 $ map elContent items
-                     return (trimInlines $ mconcat $ intersperse (str "; ") defs', items')
+                     terms' <- mapM ((trimInlines . mconcat <$>) . mapM parseInline . elContent) terms
+                     items' <- mapM ((mconcat <$>) . mapM parseBlock . elContent) items
+                     return (mconcat $ intersperse (str "; ") terms', items')
          getTitle = case filterChild (named "title") e of
                          Just t  -> do
                             tit <- getInlines t
