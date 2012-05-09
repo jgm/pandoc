@@ -848,7 +848,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       <ulink url="/url/with_underscore">with_underscore</ulink>
     </para>
     <para>
-      Email link (<email>nobody@nowhere.net</email>)
+      <email>nobody@nowhere.net</email>
     </para>
     <para>
       <ulink url="">Empty</ulink>.

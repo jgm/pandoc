@@ -227,7 +227,7 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 ,Para [Link [Str "URL",Space,Str "and",Space,Str "title"] ("/url/","")]
 ,Para [Link [Str "URL",Space,Str "and",Space,Str "title"] ("/url/","")]
 ,Para [Link [Str "with_underscore"] ("/url/with_underscore","")]
-,Para [Link [Str "Email",Space,Str "link"] ("mailto:nobody@nowhere.net","")]
+,Para [Link [Code ("",[],[]) "nobody@nowhere.net"] ("mailto:nobody@nowhere.net","")]
 ,Para [Link [Str "Empty"] ("",""),Str "."]
 ,Header 2 [Str "Reference"]
 ,Para [Str "Foo",Space,Link [Str "bar"] ("/url/",""),Str "."]
