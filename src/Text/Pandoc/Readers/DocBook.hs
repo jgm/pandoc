@@ -657,7 +657,7 @@ parseBlock (Elem e) =
                                  $ map elContent defs
                      items' <- mapM ((mconcat <$>) . mapM parseBlock)
                                  $ map elContent items
-                     return (mconcat $ intersperse (str "; ") defs', items')
+                     return (trimInlines $ mconcat $ intersperse (str "; ") defs', items')
          getTitle = case filterChild (named "title") e of
                          Just t  -> do
                             tit <- getInlines t
