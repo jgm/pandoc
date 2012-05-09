@@ -773,9 +773,9 @@ parseInline (Elem e) =
                         then singleQuoted contents
                         else doubleQuoted contents
         "code" -> return $ code $ strContent e -- TODO attrs
-        "filename" -> return $ code $ strContent e -- TODO attrs
+        "filename" -> return $ codeWith ("",["filename"],[]) $ strContent e -- TODO attrs
         "literal" -> return $ code $ strContent e -- TODO attrs
-        "option" -> return $ code $ strContent e -- TODO attrs
+        "option" -> return $ codeWith ("",["option"],[]) $ strContent e -- TODO attrs
         "markup" -> return $ code $ strContent e -- TODO attrs
         "wordasword" -> emph <$> innerInlines
         "varname" -> return $ codeWith ("",["varname"],[]) $ strContent e
