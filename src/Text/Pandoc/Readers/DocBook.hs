@@ -1,5 +1,5 @@
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
-import Data.Char (toUpper)
+import Data.Char (toUpper, isDigit)
 import Text.Pandoc.Parsing (ParserState(..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder
@@ -10,7 +10,7 @@ import Data.Monoid
 import Data.Char (isSpace)
 import Control.Monad.State
 import Control.Applicative ((<$>))
-import Data.List (intersperse, transpose)
+import Data.List (intersperse)
 
 {-
 
@@ -619,7 +619,20 @@ parseBlock (Elem e) =
         "answer" -> addToStart (strong (str "A:") <> str " ") <$> getBlocks e
         "abstract" -> blockQuote <$> getBlocks e
         "itemizedlist" -> bulletList <$> listitems
-        "orderedlist" -> orderedList <$> listitems -- TODO list attributes
+        "orderedlist" -> do
+          let listStyle = case attrValue "numeration" e of
+                               "arabic"     -> Decimal
+                               "loweralpha" -> LowerAlpha
+                               "upperalpha" -> UpperAlpha
+                               "lowerroman" -> LowerRoman
+                               "upperroman" -> UpperRoman
+                               _            -> Decimal
+          let start = case attrValue "override" <$>
+                            filterElement (named "listitem") e of
+                              Just x@(_:_) | all isDigit x -> read x
+                              _                            -> 1
+          orderedListWith (start,listStyle,DefaultDelim)
+            <$> listitems -- TODO list attributes
         "variablelist" -> definitionList <$> deflistitems
         "mediaobject" -> para <$> (getImage e)
         "caption" -> return mempty
@@ -653,8 +666,8 @@ parseBlock (Elem e) =
          parseVarListEntry e' = do
                      let terms = filterChildren (named "term") e'
                      let items = filterChildren (named "listitem") e'
-                     terms' <- mapM ((trimInlines . mconcat <$>) . mapM parseInline . elContent) terms
-                     items' <- mapM ((mconcat <$>) . mapM parseBlock . elContent) items
+                     terms' <- mapM getInlines terms
+                     items' <- mapM getBlocks items
                      return (mconcat $ intersperse (str "; ") terms', items')
          getTitle = case filterChild (named "title") e of
                          Just t  -> do
@@ -768,6 +781,7 @@ parseInline (Elem e) =
         "foreignphrase" -> emph <$> innerInlines
         "emphasis" -> case attrValue "role" e of
                              "strong" -> strong <$> innerInlines
+                             "strikethrough" -> strikeout <$> innerInlines
                              _        -> emph <$> innerInlines
         "footnote" -> (note . mconcat) <$> (mapM parseBlock $ elContent e)
         _          -> innerInlines

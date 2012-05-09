@@ -602,6 +602,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         <para>
           orange fruit
         </para>
+      </listitem>
+      <listitem>
         <para>
           bank
         </para>
@@ -620,6 +622,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         <para>
           red fruit
         </para>
+      </listitem>
+      <listitem>
         <para>
           computer
         </para>
@@ -709,17 +713,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <quote>A</quote>, <quote>B</quote>, and <quote>C</quote> are letters.
   </para>
   <para>
-    <quote>Oak,</quote> <quote>elm,</quote> and <quote>beech</quote> are names
-    of trees. So is <quote>pine.</quote>
-  </para>
-  <para>
     <quote>He said, <quote>I want to go.</quote></quote> Were you alive in the
     70’s?
-  </para>
-  <para>
-    Here is some quoted <quote><literal>code</literal></quote> and a
-    <quote><ulink url="http://example.com/?foo=1&amp;bar=2">quoted
-    link</ulink></quote>.
   </para>
   <para>
     Some dashes: one—two — three—four — five.
