@@ -1,3 +1,7 @@
+{-# LANGUAGE CPP #-}
+#if __GLASGOW_HASKELL__ >= 702
+{-# LANGUAGE Trustworthy #-}
+#endif
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2012 John MacFarlane <jgm@berkeley.edu>

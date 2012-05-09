@@ -1,3 +1,7 @@
+{-# LANGUAGE CPP #-}
+#if __GLASGOW_HASKELL__ >= 702
+{-# LANGUAGE Trustworthy #-}
+#endif
 {-
 Copyright (C) 2010 Paul Rivier <paul*rivier#demotera*com> | tr '*#' '.@'
 
