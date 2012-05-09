@@ -91,7 +91,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] colophon - Text at the back of a book describing facts about its production
 [x] colspec - Specifications for a column in a table
 [ ] command - The name of an executable program or other software command
-[ ] computeroutput - Data, generally text, displayed or presented by a computer
+[x] computeroutput - Data, generally text, displayed or presented by a computer
 [ ] confdates - The dates of a conference for which a document was written
 [ ] confgroup - A wrapper for document meta-information about a conference
 [ ] confnum - An identifier, frequently numerical, associated with a conference for which a document was written
@@ -218,7 +218,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] link - A hypertext link
 [x] listitem - A wrapper for the elements of a list item
 [x] literal - Inline text that is some literal value
-[ ] literallayout - A block of text in which line breaks and white space are
+[x] literallayout - A block of text in which line breaks and white space are
     to be reproduced faithfully
 [ ] lot - A list of the titles of formal objects (as tables or figures) in
     a document
@@ -471,7 +471,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] ulink - A link that addresses its target by means of a URL
     (Uniform Resource Locator)
 [ ] uri - A Uniform Resource Identifier
-[ ] userinput - Data entered by the user
+[x] userinput - Data entered by the user
 [x] varargs - An empty element in a function synopsis indicating a variable
     number of arguments
 [x] variablelist - A list in which each entry is composed of a set of one or
@@ -646,6 +646,8 @@ parseBlock (Elem e) =
         "book" -> modify (\st -> st{ dbBook = True }) >> getTitle >> getBlocks e
         "table" -> parseTable
         "informaltable" -> parseTable
+        "literallayout" -> return $ codeBlock $ trimNl . strContent $ e  -- TODO attrs
+        "computeroutput" -> return $ codeBlock $ trimNl . strContent $ e  -- TODO attrs
         "screen" -> return $ codeBlock $ trimNl . strContent $ e  -- TODO attrs
         "programlisting" -> return $ codeBlock $ trimNl . strContent $ e  -- TODO attrs
         "?xml"  -> return mempty
