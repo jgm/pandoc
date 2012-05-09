@@ -9,7 +9,7 @@ import Data.Generics
 import Data.Monoid
 import Data.Char (isSpace)
 import Control.Monad.State
-import Control.Applicative ((<$>), (<$))
+import Control.Applicative ((<$>))
 import Data.List (intersperse)
 
 {-
@@ -504,7 +504,7 @@ data DBState = DBState{ dbSectionLevel :: Int
                       } deriving Show
 
 readDocBook :: ParserState -> String -> Pandoc
-readDocBook st inp = setTitle (dbDocTitle st')
+readDocBook _ inp  = setTitle (dbDocTitle st')
                    $ setAuthors (dbDocAuthors st')
                    $ setDate (dbDocDate st')
                    $ doc $ mconcat bs
@@ -546,6 +546,12 @@ attrValue attr elt =
 -- convenience function
 named :: String -> Element -> Bool
 named s e = qName (elName e) == s
+
+-- Trim leading and trailing newline characters
+trimNl :: String -> String
+trimNl = reverse . go . reverse . go
+  where go ('\n':xs) = xs
+        go xs        = xs
 
 -- meld text into beginning of first paragraph of Blocks.
 -- assumes Blocks start with a Para; if not, does nothing.
@@ -626,8 +632,8 @@ parseBlock (Elem e) =
         "book" -> modify (\st -> st{ dbBook = True }) >> getTitle >> getBlocks e
         "table" -> parseTable
         "informaltable" -> parseTable
-        "screen" -> return $ codeBlock $ strContent e  -- TODO attrs
-        "programlisting" -> return $ codeBlock $ strContent e  -- TODO attrs
+        "screen" -> return $ codeBlock $ trimNl . strContent $ e  -- TODO attrs
+        "programlisting" -> return $ codeBlock $ trimNl . strContent $ e  -- TODO attrs
         "?xml"  -> return mempty
         _       -> getBlocks e
    where getBlocks e' =  mconcat <$> (mapM parseBlock $ elContent e')
