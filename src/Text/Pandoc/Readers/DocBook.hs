@@ -89,7 +89,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] collab - Identifies a collaborator
 [ ] collabname - The name of a collaborator
 [ ] colophon - Text at the back of a book describing facts about its production
-[ ] colspec - Specifications for a column in a table
+[x] colspec - Specifications for a column in a table
 [ ] command - The name of an executable program or other software command
 [ ] computeroutput - Data, generally text, displayed or presented by a computer
 [ ] confdates - The dates of a conference for which a document was written
@@ -570,7 +570,8 @@ getImage e = do
                 Just z   -> case filterChild (named "imagedata") z of
                               Nothing -> return mempty
                               Just i -> return $ attrValue "fileref" i
-  caption <- case filterChild (named "caption") e of
+  caption <- case filterChild
+                  (\x -> named "caption" x || named "textobject" x) e of
                Nothing  -> return mempty
                Just z   -> mconcat <$> (mapM parseInline $ elContent z)
   return $ image imageUrl "" caption
@@ -709,15 +710,26 @@ parseBlock (Elem e) =
                                                 Just "right"  -> AlignRight
                                                 Just "center" -> AlignCenter
                                                 _             -> AlignDefault
+                      let toWidth c = case findAttr (unqual "colwidth") c of
+                                                Just w -> read $ filter (\x ->
+                                                     (x >= '0' && x <= '9')
+                                                      || x == '.') w
+                                                Nothing -> 0 :: Double
                       let numrows = maximum $ map length bodyrows
                       let aligns = case colspecs of
                                      []  -> replicate numrows AlignDefault
                                      cs  -> map toAlignment cs
+                      let widths = case colspecs of
+                                     []  -> replicate numrows 0
+                                     cs  -> let ws = map toWidth cs
+                                                tot = sum ws
+                                            in  if all (> 0) ws
+                                                   then map (/ tot) ws
+                                                   else replicate numrows 0
                       let headrows' = if null headrows
                                          then replicate numrows mempty
                                          else headrows
-                      return $ table caption
-                                 (zip aligns (repeat 0))
+                      return $ table caption (zip aligns widths)
                                  headrows' bodyrows
          isEntry x  = named "entry" x || named "td" x || named "th" x
          parseRow = mapM getBlocks . filterChildren isEntry

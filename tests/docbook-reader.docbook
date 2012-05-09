@@ -1259,10 +1259,10 @@ or here: &lt;http://example.com/&gt;
       Here's the caption. It may span multiple lines.
     </title>
     <tgroup cols="4">
-      <colspec colwidth="15*" align="center" />
-      <colspec colwidth="13*" align="left" />
-      <colspec colwidth="16*" align="right" />
-      <colspec colwidth="33*" align="left" />
+      <colspec colwidth="2*" align="center" />
+      <colspec colwidth="2*" align="left" />
+      <colspec colwidth="3*" align="right" />
+      <colspec colwidth="3*" align="left" />
       <thead>
         <row>
           <entry>
@@ -1316,10 +1316,10 @@ or here: &lt;http://example.com/&gt;
   </para>
   <informaltable>
     <tgroup cols="4">
-      <colspec colwidth="15*" align="center" />
-      <colspec colwidth="13*" align="left" />
-      <colspec colwidth="16*" align="right" />
-      <colspec colwidth="33*" align="left" />
+      <colspec colwidth="1*" align="center" />
+      <colspec colwidth="2*" align="left" />
+      <colspec colwidth="3*" align="right" />
+      <colspec colwidth="4*" align="left" />
       <thead>
         <row>
           <entry>
@@ -1428,10 +1428,10 @@ or here: &lt;http://example.com/&gt;
   </para>
   <informaltable>
     <tgroup cols="4">
-      <colspec colwidth="15*" align="center" />
-      <colspec colwidth="13*" align="left" />
-      <colspec colwidth="16*" align="right" />
-      <colspec colwidth="33*" align="left" />
+      <colspec colwidth="10*" align="center" />
+      <colspec colwidth="10*" align="left" />
+      <colspec colwidth="10*" align="right" />
+      <colspec colwidth="10*" align="left" />
       <tbody>
         <row>
           <entry>
