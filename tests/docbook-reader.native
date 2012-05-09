@@ -5,6 +5,7 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 ,Header 3 [Str "Level",Space,Str "3",Space,Str "with",Space,Emph [Str "emphasis"]]
 ,Header 4 [Str "Level",Space,Str "4"]
 ,Header 5 [Str "Level",Space,Str "5"]
+,Para [Str "Hi."]
 ,Header 1 [Str "Level",Space,Str "1"]
 ,Header 2 [Str "Level",Space,Str "2",Space,Str "with",Space,Emph [Str "emphasis"]]
 ,Header 3 [Str "Level",Space,Str "3"]
@@ -15,7 +16,6 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 ,Para [Str "Here\8217s",Space,Str "a",Space,Str "regular",Space,Str "paragraph."]
 ,Para [Str "In",Space,Str "Markdown",Space,Str "1.0.0",Space,Str "and",Space,Str "earlier.",Space,Str "Version",Space,Str "8.",Space,Str "This",Space,Str "line",Space,Str "turns",Space,Str "into",Space,Str "a",Space,Str "list",Space,Str "item.",Space,Str "Because",Space,Str "a",Space,Str "hard-wrapped",Space,Str "line",Space,Str "in",Space,Str "the",Space,Str "middle",Space,Str "of",Space,Str "a",Space,Str "paragraph",Space,Str "looked",Space,Str "like",Space,Str "a",Space,Str "list",Space,Str "item."]
 ,Para [Str "Here\8217s",Space,Str "one",Space,Str "with",Space,Str "a",Space,Str "bullet.",Space,Str "*",Space,Str "criminey."]
-,Para [Str "There",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "hard",Space,Str "line",Space,Str "break",LineBreak,Str "here."]
 ,Header 1 [Str "Block",Space,Str "Quotes"]
 ,Para [Str "E-mail",Space,Str "style:"]
 ,BlockQuote
@@ -25,8 +25,8 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
  ,CodeBlock ("",[],[]) "sub status {\n    print \"working\";\n}"
  ,Para [Str "A",Space,Str "list:"]
  ,OrderedList (1,Decimal,Period)
-  [[Plain [Str "item",Space,Str "one"]]
-  ,[Plain [Str "item",Space,Str "two"]]]
+  [[Para [Str "item",Space,Str "one"]]
+  ,[Para [Str "item",Space,Str "two"]]]
  ,Para [Str "Nested",Space,Str "block",Space,Str "quotes:"]
  ,BlockQuote
   [Para [Str "nested"]]
@@ -41,48 +41,22 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 ,CodeBlock ("",[],[]) "    this code block is indented by two tabs\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{"
 ,Header 1 [Str "Lists"]
 ,Header 2 [Str "Unordered"]
-,Para [Str "Asterisks",Space,Str "tight:"]
-,BulletList
- [[Plain [Str "asterisk",Space,Str "1"]]
- ,[Plain [Str "asterisk",Space,Str "2"]]
- ,[Plain [Str "asterisk",Space,Str "3"]]]
 ,Para [Str "Asterisks",Space,Str "loose:"]
 ,BulletList
  [[Para [Str "asterisk",Space,Str "1"]]
  ,[Para [Str "asterisk",Space,Str "2"]]
  ,[Para [Str "asterisk",Space,Str "3"]]]
-,Para [Str "Pluses",Space,Str "tight:"]
-,BulletList
- [[Plain [Str "Plus",Space,Str "1"]]
- ,[Plain [Str "Plus",Space,Str "2"]]
- ,[Plain [Str "Plus",Space,Str "3"]]]
 ,Para [Str "Pluses",Space,Str "loose:"]
 ,BulletList
  [[Para [Str "Plus",Space,Str "1"]]
  ,[Para [Str "Plus",Space,Str "2"]]
  ,[Para [Str "Plus",Space,Str "3"]]]
-,Para [Str "Minuses",Space,Str "tight:"]
-,BulletList
- [[Plain [Str "Minus",Space,Str "1"]]
- ,[Plain [Str "Minus",Space,Str "2"]]
- ,[Plain [Str "Minus",Space,Str "3"]]]
 ,Para [Str "Minuses",Space,Str "loose:"]
 ,BulletList
  [[Para [Str "Minus",Space,Str "1"]]
  ,[Para [Str "Minus",Space,Str "2"]]
  ,[Para [Str "Minus",Space,Str "3"]]]
 ,Header 2 [Str "Ordered"]
-,Para [Str "Tight:"]
-,OrderedList (1,Decimal,Period)
- [[Plain [Str "First"]]
- ,[Plain [Str "Second"]]
- ,[Plain [Str "Third"]]]
-,Para [Str "and:"]
-,OrderedList (1,Decimal,Period)
- [[Plain [Str "One"]]
- ,[Plain [Str "Two"]]
- ,[Plain [Str "Three"]]]
-,Para [Str "Loose",Space,Str "using",Space,Str "tabs:"]
 ,OrderedList (1,Decimal,Period)
  [[Para [Str "First"]]
  ,[Para [Str "Second"]]
@@ -100,28 +74,28 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
  ,[Para [Str "Item",Space,Str "3."]]]
 ,Header 2 [Str "Nested"]
 ,BulletList
- [[Plain [Str "Tab"]
+ [[Para [Str "Tab"]
   ,BulletList
-   [[Plain [Str "Tab"]
+   [[Para [Str "Tab"]
     ,BulletList
-     [[Plain [Str "Tab"]]]]]]]
+     [[Para [Str "Tab"]]]]]]]
 ,Para [Str "Here\8217s",Space,Str "another:"]
 ,OrderedList (1,Decimal,Period)
- [[Plain [Str "First"]]
- ,[Plain [Str "Second:"]
+ [[Para [Str "First"]]
+ ,[Para [Str "Second:"]
   ,BulletList
-   [[Plain [Str "Fee"]]
-   ,[Plain [Str "Fie"]]
-   ,[Plain [Str "Foe"]]]]
- ,[Plain [Str "Third"]]]
+   [[Para [Str "Fee"]]
+   ,[Para [Str "Fie"]]
+   ,[Para [Str "Foe"]]]]
+ ,[Para [Str "Third"]]]
 ,Para [Str "Same",Space,Str "thing",Space,Str "but",Space,Str "with",Space,Str "paragraphs:"]
 ,OrderedList (1,Decimal,Period)
  [[Para [Str "First"]]
  ,[Para [Str "Second:"]
   ,BulletList
-   [[Plain [Str "Fee"]]
-   ,[Plain [Str "Fie"]]
-   ,[Plain [Str "Foe"]]]]
+   [[Para [Str "Fee"]]
+   ,[Para [Str "Fie"]]
+   ,[Para [Str "Foe"]]]]
  ,[Para [Str "Third"]]]
 ,Header 2 [Str "Tabs",Space,Str "and",Space,Str "spaces"]
 ,BulletList
@@ -132,51 +106,34 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
    ,[Para [Str "this",Space,Str "is",Space,Str "an",Space,Str "example",Space,Str "list",Space,Str "item",Space,Str "indented",Space,Str "with",Space,Str "spaces"]]]]]
 ,Header 2 [Str "Fancy",Space,Str "list",Space,Str "markers"]
 ,OrderedList (2,Decimal,TwoParens)
- [[Plain [Str "begins",Space,Str "with",Space,Str "2"]]
+ [[Para [Str "begins",Space,Str "with",Space,Str "2"]]
  ,[Para [Str "and",Space,Str "now",Space,Str "3"]
   ,Para [Str "with",Space,Str "a",Space,Str "continuation"]
   ,OrderedList (4,LowerRoman,Period)
-   [[Plain [Str "sublist",Space,Str "with",Space,Str "roman",Space,Str "numerals,",Space,Str "starting",Space,Str "with",Space,Str "4"]]
-   ,[Plain [Str "more",Space,Str "items"]
+   [[Para [Str "sublist",Space,Str "with",Space,Str "roman",Space,Str "numerals,",Space,Str "starting",Space,Str "with",Space,Str "4"]]
+   ,[Para [Str "more",Space,Str "items"]
     ,OrderedList (1,UpperAlpha,TwoParens)
-     [[Plain [Str "a",Space,Str "subsublist"]]
-     ,[Plain [Str "a",Space,Str "subsublist"]]]]]]]
+     [[Para [Str "a",Space,Str "subsublist"]]
+     ,[Para [Str "a",Space,Str "subsublist"]]]]]]]
 ,Para [Str "Nesting:"]
 ,OrderedList (1,UpperAlpha,Period)
- [[Plain [Str "Upper",Space,Str "Alpha"]
+ [[Para [Str "Upper",Space,Str "Alpha"]
   ,OrderedList (1,UpperRoman,Period)
-   [[Plain [Str "Upper",Space,Str "Roman."]
+   [[Para [Str "Upper",Space,Str "Roman."]
     ,OrderedList (6,Decimal,TwoParens)
-     [[Plain [Str "Decimal",Space,Str "start",Space,Str "with",Space,Str "6"]
+     [[Para [Str "Decimal",Space,Str "start",Space,Str "with",Space,Str "6"]
       ,OrderedList (3,LowerAlpha,OneParen)
-       [[Plain [Str "Lower",Space,Str "alpha",Space,Str "with",Space,Str "paren"]]]]]]]]]
+       [[Para [Str "Lower",Space,Str "alpha",Space,Str "with",Space,Str "paren"]]]]]]]]]
 ,Para [Str "Autonumbering:"]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
- [[Plain [Str "Autonumber."]]
- ,[Plain [Str "More."]
+ [[Para [Str "Autonumber."]]
+ ,[Para [Str "More."]
   ,OrderedList (1,DefaultStyle,DefaultDelim)
-   [[Plain [Str "Nested."]]]]]
+   [[Para [Str "Nested."]]]]]
 ,Para [Str "Should",Space,Str "not",Space,Str "be",Space,Str "a",Space,Str "list",Space,Str "item:"]
 ,Para [Str "M.A.\160\&2007"]
 ,Para [Str "B.",Space,Str "Williams"]
 ,Header 1 [Str "Definition",Space,Str "Lists"]
-,Para [Str "Tight",Space,Str "using",Space,Str "spaces:"]
-,DefinitionList
- [([Str "apple"],
-   [[Plain [Str "red",Space,Str "fruit"]]])
- ,([Str "orange"],
-   [[Plain [Str "orange",Space,Str "fruit"]]])
- ,([Str "banana"],
-   [[Plain [Str "yellow",Space,Str "fruit"]]])]
-,Para [Str "Tight",Space,Str "using",Space,Str "tabs:"]
-,DefinitionList
- [([Str "apple"],
-   [[Plain [Str "red",Space,Str "fruit"]]])
- ,([Str "orange"],
-   [[Plain [Str "orange",Space,Str "fruit"]]])
- ,([Str "banana"],
-   [[Plain [Str "yellow",Space,Str "fruit"]]])]
-,Para [Str "Loose:"]
 ,DefinitionList
  [([Str "apple"],
    [[Para [Str "red",Space,Str "fruit"]]])
@@ -194,14 +151,6 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
     ,CodeBlock ("",[],[]) "{ orange code block }"
     ,BlockQuote
      [Para [Str "orange",Space,Str "block",Space,Str "quote"]]]])]
-,Para [Str "Multiple",Space,Str "definitions,",Space,Str "tight:"]
-,DefinitionList
- [([Str "apple"],
-   [[Plain [Str "red",Space,Str "fruit"]]
-   ,[Plain [Str "computer"]]])
- ,([Str "orange"],
-   [[Plain [Str "orange",Space,Str "fruit"]]
-   ,[Plain [Str "bank"]]])]
 ,Para [Str "Multiple",Space,Str "definitions,",Space,Str "loose:"]
 ,DefinitionList
  [([Str "apple"],
@@ -218,49 +167,8 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
  ,([Str "orange"],
    [[Para [Str "orange",Space,Str "fruit"]
     ,OrderedList (1,Decimal,Period)
-     [[Plain [Str "sublist"]]
-     ,[Plain [Str "sublist"]]]]])]
-,Header 1 [Str "HTML",Space,Str "Blocks"]
-,Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line:"]
-,RawBlock "html" "<div>"
-,Plain [Str "foo"]
-,RawBlock "html" "</div>\n"
-,Para [Str "And",Space,Str "nested",Space,Str "without",Space,Str "indentation:"]
-,RawBlock "html" "<div>\n<div>\n<div>"
-,Plain [Str "foo"]
-,RawBlock "html" "</div>\n</div>\n<div>"
-,Plain [Str "bar"]
-,RawBlock "html" "</div>\n</div>\n"
-,Para [Str "Interpreted",Space,Str "markdown",Space,Str "in",Space,Str "a",Space,Str "table:"]
-,RawBlock "html" "<table>\n<tr>\n<td>"
-,Plain [Str "This",Space,Str "is",Space,Emph [Str "emphasized"]]
-,RawBlock "html" "</td>\n<td>"
-,Plain [Str "And",Space,Str "this",Space,Str "is",Space,Strong [Str "strong"]]
-,RawBlock "html" "</td>\n</tr>\n</table>\n\n<script type=\"text/javascript\">document.write('This *should not* be interpreted as markdown');</script>\n"
-,Para [Str "Here\8217s",Space,Str "a",Space,Str "simple",Space,Str "block:"]
-,RawBlock "html" "<div>\n    "
-,Plain [Str "foo"]
-,RawBlock "html" "</div>\n"
-,Para [Str "This",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "code",Space,Str "block,",Space,Str "though:"]
-,CodeBlock ("",[],[]) "<div>\n    foo\n</div>"
-,Para [Str "As",Space,Str "should",Space,Str "this:"]
-,CodeBlock ("",[],[]) "<div>foo</div>"
-,Para [Str "Now,",Space,Str "nested:"]
-,RawBlock "html" "<div>\n    <div>\n        <div>\n            "
-,Plain [Str "foo"]
-,RawBlock "html" "</div>\n    </div>\n</div>\n"
-,Para [Str "This",Space,Str "should",Space,Str "just",Space,Str "be",Space,Str "an",Space,Str "HTML",Space,Str "comment:"]
-,RawBlock "html" "<!-- Comment -->\n"
-,Para [Str "Multiline:"]
-,RawBlock "html" "<!--\nBlah\nBlah\n-->\n\n<!--\n    This is another comment.\n-->\n"
-,Para [Str "Code",Space,Str "block:"]
-,CodeBlock ("",[],[]) "<!-- Comment -->"
-,Para [Str "Just",Space,Str "plain",Space,Str "comment,",Space,Str "with",Space,Str "trailing",Space,Str "spaces",Space,Str "on",Space,Str "the",Space,Str "line:"]
-,RawBlock "html" "<!-- foo -->   \n"
-,Para [Str "Code:"]
-,CodeBlock ("",[],[]) "<hr />"
-,Para [Str "Hr\8217s:"]
-,RawBlock "html" "<hr>\n\n<hr />\n\n<hr />\n\n<hr>   \n\n<hr />  \n\n<hr /> \n\n<hr class=\"foo\" id=\"bar\" />\n\n<hr class=\"foo\" id=\"bar\" />\n\n<hr class=\"foo\" id=\"bar\">\n"
+     [[Para [Str "sublist"]]
+     ,[Para [Str "sublist"]]]]])]
 ,Header 1 [Str "Inline",Space,Str "Markup"]
 ,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str "."]
 ,Para [Str "This",Space,Str "is",Space,Strong [Str "strong"],Str ",",Space,Str "and",Space,Str "so",Space,Strong [Str "is",Space,Str "this"],Str "."]
@@ -283,32 +191,14 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 ,Para [Str "Some",Space,Str "dashes:",Space,Str "one\8212two",Space,Str "\8212",Space,Str "three\8212four",Space,Str "\8212",Space,Str "five."]
 ,Para [Str "Dashes",Space,Str "between",Space,Str "numbers:",Space,Str "5\8211\&7,",Space,Str "255\8211\&66,",Space,Str "1987\8211\&1999."]
 ,Para [Str "Ellipses\8230and\8230and\8230."]
-,Header 1 [Str "LaTeX"]
-,BulletList
- [[Plain [RawInline "tex" "\\cite[22-23]{smith.1899}"]]
- ,[Plain [Math InlineMath "2+2=4"]]
- ,[Plain [Math InlineMath "x \\in y"]]
- ,[Plain [Math InlineMath "\\alpha \\wedge \\omega"]]
- ,[Plain [Math InlineMath "223"]]
- ,[Plain [Math InlineMath "p",Str "-Tree"]]
- ,[Plain [Str "Here\8217s",Space,Str "some",Space,Str "display",Space,Str "math:",Space,Math DisplayMath "\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}"]]
- ,[Plain [Str "Here\8217s",Space,Str "one",Space,Str "that",Space,Str "has",Space,Str "a",Space,Str "line",Space,Str "break",Space,Str "in",Space,Str "it:",Space,Math InlineMath "\\alpha + \\omega \\times x^2",Str "."]]]
-,Para [Str "These",Space,Str "shouldn\8217t",Space,Str "be",Space,Str "math:"]
-,BulletList
- [[Plain [Str "To",Space,Str "get",Space,Str "the",Space,Str "famous",Space,Str "equation,",Space,Str "write",Space,Code ("",[],[]) "$e = mc^2$",Str "."]]
- ,[Plain [Str "$22,000",Space,Str "is",Space,Str "a",Space,Emph [Str "lot"],Space,Str "of",Space,Str "money.",Space,Str "So",Space,Str "is",Space,Str "$34,000.",Space,Str "(It",Space,Str "worked",Space,Str "if",Space,Quoted DoubleQuote [Str "lot"],Space,Str "is",Space,Str "emphasized.)"]]
- ,[Plain [Str "Shoes",Space,Str "($20)",Space,Str "and",Space,Str "socks",Space,Str "($5)."]]
- ,[Plain [Str "Escaped",Space,Code ("",[],[]) "$",Str ":",Space,Str "$73",Space,Emph [Str "this",Space,Str "should",Space,Str "be",Space,Str "emphasized"],Space,Str "23$."]]]
-,Para [Str "Here\8217s",Space,Str "a",Space,Str "LaTeX",Space,Str "table:"]
-,RawBlock "latex" "\\begin{tabular}{|l|l|}\\hline\nAnimal & Number \\\\ \\hline\nDog    & 2      \\\\\nCat    & 1      \\\\ \\hline\n\\end{tabular}"
 ,Header 1 [Str "Special",Space,Str "Characters"]
 ,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "unicode:"]
 ,BulletList
- [[Plain [Str "I",Space,Str "hat:",Space,Str "\206"]]
- ,[Plain [Str "o",Space,Str "umlaut:",Space,Str "\246"]]
- ,[Plain [Str "section:",Space,Str "\167"]]
- ,[Plain [Str "set",Space,Str "membership:",Space,Str "\8712"]]
- ,[Plain [Str "copyright:",Space,Str "\169"]]]
+ [[Para [Str "I",Space,Str "hat:",Space,Str "\206"]]
+ ,[Para [Str "o",Space,Str "umlaut:",Space,Str "\246"]]
+ ,[Para [Str "section:",Space,Str "\167"]]
+ ,[Para [Str "set",Space,Str "membership:",Space,Str "\8712"]]
+ ,[Para [Str "copyright:",Space,Str "\169"]]]
 ,Para [Str "AT&T",Space,Str "has",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "their",Space,Str "name."]
 ,Para [Str "AT&T",Space,Str "is",Space,Str "another",Space,Str "way",Space,Str "to",Space,Str "write",Space,Str "it."]
 ,Para [Str "This",Space,Str "&",Space,Str "that."]
@@ -362,9 +252,9 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 ,Header 2 [Str "Autolinks"]
 ,Para [Str "With",Space,Str "an",Space,Str "ampersand:",Space,Link [Code ("",["url"],[]) "http://example.com/?foo=1&bar=2"] ("http://example.com/?foo=1&bar=2","")]
 ,BulletList
- [[Plain [Str "In",Space,Str "a",Space,Str "list?"]]
- ,[Plain [Link [Code ("",["url"],[]) "http://example.com/"] ("http://example.com/","")]]
- ,[Plain [Str "It",Space,Str "should."]]]
+ [[Para [Str "In",Space,Str "a",Space,Str "list?"]]
+ ,[Para [Link [Code ("",["url"],[]) "http://example.com/"] ("http://example.com/","")]]
+ ,[Para [Str "It",Space,Str "should."]]]
 ,Para [Str "An",Space,Str "e-mail",Space,Str "address:",Space,Link [Code ("",["url"],[]) "nobody@nowhere.net"] ("mailto:nobody@nowhere.net","")]
 ,BlockQuote
  [Para [Str "Blockquoted:",Space,Link [Code ("",["url"],[]) "http://example.com/"] ("http://example.com/","")]]
@@ -379,7 +269,7 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 ,BlockQuote
  [Para [Str "Notes",Space,Str "can",Space,Str "go",Space,Str "in",Space,Str "quotes.",Note [Para [Str "In",Space,Str "quote."]]]]
 ,OrderedList (1,Decimal,Period)
- [[Plain [Str "And",Space,Str "in",Space,Str "list",Space,Str "items.",Note [Para [Str "In",Space,Str "list."]]]]]
+ [[Para [Str "And",Space,Str "in",Space,Str "list",Space,Str "items.",Note [Para [Str "In",Space,Str "list."]]]]]
 ,Para [Str "This",Space,Str "paragraph",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "part",Space,Str "of",Space,Str "the",Space,Str "note,",Space,Str "as",Space,Str "it",Space,Str "is",Space,Str "not",Space,Str "indented."]
 ,Header 1 [Str "Tables"]
 ,Para [Str "Simple",Space,Str "table",Space,Str "with",Space,Str "caption:"]

@@ -29,6 +29,7 @@
         <sect5 id="level-5">
           <title>Level 5</title>
           <para>
+            Hi.
           </para>
         </sect5>
       </sect4>
@@ -65,9 +66,6 @@
   </para>
   <para>
     Here’s one with a bullet. * criminey.
-  </para>
-  <para>
-    There should be a hard line break<literallayout></literallayout>here.
   </para>
 </sect1>
 <sect1 id="block-quotes">
@@ -153,26 +151,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <sect2 id="unordered">
     <title>Unordered</title>
     <para>
-      Asterisks tight:
-    </para>
-    <itemizedlist>
-      <listitem>
-        <para>
-          asterisk 1
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          asterisk 2
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          asterisk 3
-        </para>
-      </listitem>
-    </itemizedlist>
-    <para>
       Asterisks loose:
     </para>
     <itemizedlist>
@@ -193,26 +171,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
     </itemizedlist>
     <para>
-      Pluses tight:
-    </para>
-    <itemizedlist>
-      <listitem>
-        <para>
-          Plus 1
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Plus 2
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Plus 3
-        </para>
-      </listitem>
-    </itemizedlist>
-    <para>
       Pluses loose:
     </para>
     <itemizedlist>
@@ -229,26 +187,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       <listitem>
         <para>
           Plus 3
-        </para>
-      </listitem>
-    </itemizedlist>
-    <para>
-      Minuses tight:
-    </para>
-    <itemizedlist>
-      <listitem>
-        <para>
-          Minus 1
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Minus 2
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Minus 3
         </para>
       </listitem>
     </itemizedlist>
@@ -275,49 +213,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   </sect2>
   <sect2 id="ordered">
     <title>Ordered</title>
-    <para>
-      Tight:
-    </para>
-    <orderedlist numeration="arabic">
-      <listitem>
-        <para>
-          First
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Second
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Third
-        </para>
-      </listitem>
-    </orderedlist>
-    <para>
-      and:
-    </para>
-    <orderedlist numeration="arabic">
-      <listitem>
-        <para>
-          One
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Two
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Three
-        </para>
-      </listitem>
-    </orderedlist>
-    <para>
-      Loose using tabs:
-    </para>
     <orderedlist numeration="arabic">
       <listitem>
         <para>
@@ -612,79 +507,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
 </sect1>
 <sect1 id="definition-lists">
   <title>Definition Lists</title>
-  <para>
-    Tight using spaces:
-  </para>
-  <variablelist>
-    <varlistentry>
-      <term>
-        apple
-      </term>
-      <listitem>
-        <para>
-          red fruit
-        </para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>
-        orange
-      </term>
-      <listitem>
-        <para>
-          orange fruit
-        </para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>
-        banana
-      </term>
-      <listitem>
-        <para>
-          yellow fruit
-        </para>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-  <para>
-    Tight using tabs:
-  </para>
-  <variablelist>
-    <varlistentry>
-      <term>
-        apple
-      </term>
-      <listitem>
-        <para>
-          red fruit
-        </para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>
-        orange
-      </term>
-      <listitem>
-        <para>
-          orange fruit
-        </para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>
-        banana
-      </term>
-      <listitem>
-        <para>
-          yellow fruit
-        </para>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-  <para>
-    Loose:
-  </para>
   <variablelist>
     <varlistentry>
       <term>
@@ -754,37 +576,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     </varlistentry>
   </variablelist>
   <para>
-    Multiple definitions, tight:
-  </para>
-  <variablelist>
-    <varlistentry>
-      <term>
-        apple
-      </term>
-      <listitem>
-        <para>
-          red fruit
-        </para>
-        <para>
-          computer
-        </para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>
-        orange
-      </term>
-      <listitem>
-        <para>
-          orange fruit
-        </para>
-        <para>
-          bank
-        </para>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-  <para>
     Multiple definitions, loose:
   </para>
   <variablelist>
@@ -796,6 +587,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         <para>
           red fruit
         </para>
+      </listitem>
+      <listitem>
         <para>
           computer
         </para>
@@ -855,126 +648,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
     </varlistentry>
   </variablelist>
-</sect1>
-<sect1 id="html-blocks">
-  <title>HTML Blocks</title>
-  <para>
-    Simple block on one line:
-  </para>
-  <div>
-  foo
-  </div>
-  <para>
-    And nested without indentation:
-  </para>
-  <div>
-  <div>
-  <div>
-  foo
-  </div>
-  </div>
-  <div>
-  bar
-  </div>
-  </div>
-  <para>
-    Interpreted markdown in a table:
-  </para>
-  <table>
-  <tr>
-  <td>
-  This is <emphasis>emphasized</emphasis>
-  </td>
-  <td>
-  And this is <emphasis role="strong">strong</emphasis>
-  </td>
-  </tr>
-  </table>
-
-  <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
-  <para>
-    Here’s a simple block:
-  </para>
-  <div>
-      
-  foo
-  </div>
-  <para>
-    This should be a code block, though:
-  </para>
-  <programlisting>
-&lt;div&gt;
-    foo
-&lt;/div&gt;
-</programlisting>
-  <para>
-    As should this:
-  </para>
-  <programlisting>
-&lt;div&gt;foo&lt;/div&gt;
-</programlisting>
-  <para>
-    Now, nested:
-  </para>
-  <div>
-      <div>
-          <div>
-              
-  foo
-  </div>
-      </div>
-  </div>
-  <para>
-    This should just be an HTML comment:
-  </para>
-  <!-- Comment -->
-  <para>
-    Multiline:
-  </para>
-  <!--
-  Blah
-  Blah
-  -->
-
-  <!--
-      This is another comment.
-  -->
-  <para>
-    Code block:
-  </para>
-  <programlisting>
-&lt;!-- Comment --&gt;
-</programlisting>
-  <para>
-    Just plain comment, with trailing spaces on the line:
-  </para>
-  <!-- foo -->   
-  <para>
-    Code:
-  </para>
-  <programlisting>
-&lt;hr /&gt;
-</programlisting>
-  <para>
-    Hr’s:
-  </para>
-  <hr>
-
-  <hr />
-
-  <hr />
-
-  <hr>   
-
-  <hr />  
-
-  <hr /> 
-
-  <hr class="foo" id="bar" />
-
-  <hr class="foo" id="bar" />
-
-  <hr class="foo" id="bar">
 </sect1>
 <sect1 id="inline-markup">
   <title>Inline Markup</title>
@@ -1056,82 +729,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   </para>
   <para>
     Ellipses…and…and….
-  </para>
-</sect1>
-<sect1 id="latex">
-  <title>LaTeX</title>
-  <itemizedlist>
-    <listitem>
-      <para>
-      </para>
-    </listitem>
-    <listitem>
-      <para>
-        2 + 2 = 4
-      </para>
-    </listitem>
-    <listitem>
-      <para>
-        <emphasis>x</emphasis> ∈ <emphasis>y</emphasis>
-      </para>
-    </listitem>
-    <listitem>
-      <para>
-        <emphasis>α</emphasis> ∧ <emphasis>ω</emphasis>
-      </para>
-    </listitem>
-    <listitem>
-      <para>
-        223
-      </para>
-    </listitem>
-    <listitem>
-      <para>
-        <emphasis>p</emphasis>-Tree
-      </para>
-    </listitem>
-    <listitem>
-      <para>
-        Here’s some display math:
-        $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$
-      </para>
-    </listitem>
-    <listitem>
-      <para>
-        Here’s one that has a line break in it:
-        <emphasis>α</emphasis> + <emphasis>ω</emphasis> × <emphasis>x</emphasis><superscript>2</superscript>.
-      </para>
-    </listitem>
-  </itemizedlist>
-  <para>
-    These shouldn’t be math:
-  </para>
-  <itemizedlist>
-    <listitem>
-      <para>
-        To get the famous equation, write <literal>$e = mc^2$</literal>.
-      </para>
-    </listitem>
-    <listitem>
-      <para>
-        $22,000 is a <emphasis>lot</emphasis> of money. So is $34,000. (It
-        worked if <quote>lot</quote> is emphasized.)
-      </para>
-    </listitem>
-    <listitem>
-      <para>
-        Shoes ($20) and socks ($5).
-      </para>
-    </listitem>
-    <listitem>
-      <para>
-        Escaped <literal>$</literal>: $73 <emphasis>this should be
-        emphasized</emphasis> 23$.
-      </para>
-    </listitem>
-  </itemizedlist>
-  <para>
-    Here’s a LaTeX table:
   </para>
 </sect1>
 <sect1 id="special-characters">
