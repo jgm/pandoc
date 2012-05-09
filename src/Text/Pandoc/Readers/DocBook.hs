@@ -10,7 +10,7 @@ import Data.Monoid
 import Data.Char (isSpace)
 import Control.Monad.State
 import Control.Applicative ((<$>))
-import Data.List (intersperse)
+import Data.List (intersperse, transpose)
 
 {-
 
@@ -698,14 +698,16 @@ parseBlock (Elem e) =
                                                 Just "right"  -> AlignRight
                                                 Just "center" -> AlignCenter
                                                 _             -> AlignDefault
+                      let numrows = maximum $ map length bodyrows
                       let aligns = case colspecs of
-                                     []  -> replicate
-                                              (maximum $ map length bodyrows)
-                                              AlignDefault
+                                     []  -> replicate numrows AlignDefault
                                      cs  -> map toAlignment cs
+                      let headrows' = if null headrows
+                                         then replicate numrows mempty
+                                         else headrows
                       return $ table caption
                                  (zip aligns (repeat 0))
-                                 headrows bodyrows
+                                 headrows' bodyrows
          isEntry x  = named "entry" x || named "td" x || named "th" x
          parseRow = mapM getBlocks . filterChildren isEntry
          sect n = do isbook <- gets dbBook
