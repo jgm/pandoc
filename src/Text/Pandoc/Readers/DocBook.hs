@@ -650,13 +650,19 @@ parseBlock (Elem e) =
         "book" -> modify (\st -> st{ dbBook = True }) >> getTitle >> getBlocks e
         "table" -> parseTable
         "informaltable" -> parseTable
-        "literallayout" -> return $ codeBlock $ trimNl . strContent $ e  -- TODO attrs
-        "computeroutput" -> return $ codeBlock $ trimNl . strContent $ e  -- TODO attrs
-        "screen" -> return $ codeBlock $ trimNl . strContent $ e  -- TODO attrs
-        "programlisting" -> return $ codeBlock $ trimNl . strContent $ e  -- TODO attrs
+        "literallayout" -> codeBlockWithLang ["literallayout"]
+        "computeroutput" -> codeBlockWithLang ["computeroutput"]
+        "screen" -> codeBlockWithLang ["screen"]
+        "programlisting" -> codeBlockWithLang []
         "?xml"  -> return mempty
         _       -> getBlocks e
    where getBlocks e' =  mconcat <$> (mapM parseBlock $ elContent e')
+         codeBlockWithLang classes = do
+           let classes' = case attrValue "language" e of
+                                ""   -> classes
+                                x    -> x:classes
+           return $ codeBlockWith (attrValue "id" e, classes', [])
+                  $ trimNl $ strContent e
          skipWhite (Text (CData _ s _):xs) | all isSpace s = skipWhite xs
                                            | otherwise     = xs
          skipWhite xs = xs
