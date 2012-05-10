@@ -394,7 +394,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] sidebar - A portion of a document that is isolated from the main
     narrative flow
 [ ] sidebarinfo - Meta-information for a Sidebar
-[ ] simpara - A paragraph that contains only text and inline markup, no block
+[x] simpara - A paragraph that contains only text and inline markup, no block
     elements
 [ ] simplelist - An undecorated list of single words or short phrases
 [ ] simplemsgentry - A wrapper for a simpler entry in a message set
@@ -413,7 +413,7 @@ List of all DocBook tags, with [x] indicating implemented,
     a document
 [x] subscript - A subscript (as in H2O, the molecular formula for water)
 [ ] substeps - A wrapper for steps that occur within steps in a procedure
-[ ] subtitle - The subtitle of a document
+[x] subtitle - The subtitle of a document
 [x] superscript - A superscript (as in x2, the mathematical notation for x
     multiplied by itself)
 [ ] surname - A family name; in western cultures the last name
@@ -585,6 +585,7 @@ parseBlock (CRef _) = return mempty  -- TODO need something better here
 parseBlock (Elem e) =
   case qName (elName e) of
         "para"  -> para <$> getInlines e
+        "simpara"  -> para <$> getInlines e
         "ackno"  -> para <$> getInlines e
         "epigraph" -> parseBlockquote
         "blockquote" -> parseBlockquote
@@ -675,7 +676,11 @@ parseBlock (Elem e) =
          getTitle = case filterChild (named "title") e of
                          Just t  -> do
                             tit <- getInlines t
-                            modify $ \st -> st{dbDocTitle = tit}
+                            subtit <-  case filterChild (named "subtitle") e of
+                                            Just s  -> (text ": " <>) <$>
+                                                         getInlines s
+                                            Nothing -> return mempty
+                            modify $ \st -> st{dbDocTitle = tit <> subtit}
                          Nothing -> return ()
          getAuthors = do
                       auths <- mapM getInlines
