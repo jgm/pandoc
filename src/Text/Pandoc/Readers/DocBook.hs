@@ -90,7 +90,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] collabname - The name of a collaborator
 [ ] colophon - Text at the back of a book describing facts about its production
 [x] colspec - Specifications for a column in a table
-[ ] command - The name of an executable program or other software command
+[x] command - The name of an executable program or other software command
 [x] computeroutput - Data, generally text, displayed or presented by a computer
 [ ] confdates - The dates of a conference for which a document was written
 [ ] confgroup - A wrapper for document meta-information about a conference
@@ -262,7 +262,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] ooexception - An exception in an object-oriented programming language
 [ ] oointerface - An interface in an object-oriented programming language
 [x] option - An option for a software command
-[ ] optional - Optional information
+[x] optional - Optional information
 [x] orderedlist - A list in which each entry is marked with a sequentially
     incremented label
 [ ] orgdiv - A division of an organization
@@ -781,8 +781,11 @@ parseInline (Elem e) =
         "filename" -> return $ codeWith ("",["filename"],[]) $ strContent e -- TODO attrs
         "literal" -> return $ code $ strContent e -- TODO attrs
         "option" -> return $ codeWith ("",["option"],[]) $ strContent e -- TODO attrs
+        "optional" -> do x <- getInlines e
+                         return $ str "[" <> x <> str "]"
         "markup" -> return $ code $ strContent e -- TODO attrs
         "wordasword" -> emph <$> innerInlines
+        "command" -> return $ codeWith ("",["command"],[]) $ strContent e
         "varname" -> return $ codeWith ("",["varname"],[]) $ strContent e
         "function" -> return $ codeWith ("",["function"],[]) $ strContent e
         "type"    -> return $ codeWith ("",["type"],[]) $ strContent e
