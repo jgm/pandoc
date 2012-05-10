@@ -277,7 +277,7 @@ List of all DocBook tags, with [x] indicating implemented,
     entry
 [x] para - A paragraph
 [ ] paramdef - Information about a function parameter in a programming language
-[ ] parameter - A value or a symbolic reference to a value
+[x] parameter - A value or a symbolic reference to a value
 [ ] part - A division in a book
 [ ] partinfo - Meta-information for a Part
 [ ] partintro - An introduction to the contents of a part
@@ -301,7 +301,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] productnumber - A number assigned to a product
 [x] programlisting - A literal listing of all or part of a program
 [ ] programlistingco - A program listing with associated areas used in callouts
-[ ] prompt - A character or string indicating the start of an input field in
+[x] prompt - A character or string indicating the start of an input field in
     a computer display
 [ ] property - A unit of data associated with some part of a computer system
 [ ] pubdate - The date of publication of a document
@@ -780,6 +780,8 @@ parseInline (Elem e) =
         "code" -> return $ code $ strContent e -- TODO attrs
         "filename" -> return $ codeWith ("",["filename"],[]) $ strContent e -- TODO attrs
         "literal" -> return $ code $ strContent e -- TODO attrs
+        "prompt" -> return $ codeWith ("",["prompt"],[]) $ strContent e -- TODO attrs
+        "parameter" -> return $ codeWith ("",["parameter"],[]) $ strContent e -- TODO attrs
         "option" -> return $ codeWith ("",["option"],[]) $ strContent e -- TODO attrs
         "optional" -> do x <- getInlines e
                          return $ str "[" <> x <> str "]"
