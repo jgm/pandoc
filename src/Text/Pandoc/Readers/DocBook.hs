@@ -581,7 +581,7 @@ parseBlock (Text (CData CDataRaw _ _)) = return mempty -- DOCTYPE
 parseBlock (Text (CData _ s _)) = if all isSpace s
                                      then return mempty
                                      else return $ plain $ trimInlines $ text s
-parseBlock (CRef _) = return mempty  -- TODO need something better here
+parseBlock (CRef x) = return $ plain $ str $ map toUpper x
 parseBlock (Elem e) =
   case qName (elName e) of
         "para"  -> para <$> getInlines e
@@ -637,7 +637,7 @@ parseBlock (Elem e) =
                               Just x@(_:_) | all isDigit x -> read x
                               _                            -> 1
           orderedListWith (start,listStyle,DefaultDelim)
-            <$> listitems -- TODO list attributes
+            <$> listitems
         "variablelist" -> definitionList <$> deflistitems
         "mediaobject" -> para <$> (getImage e)
         "caption" -> return mempty
@@ -786,24 +786,24 @@ parseInline (Elem e) =
             return $ if qt == SingleQuote
                         then singleQuoted contents
                         else doubleQuoted contents
-        "code" -> return $ code $ strContent e -- TODO attrs
-        "filename" -> return $ codeWith ("",["filename"],[]) $ strContent e -- TODO attrs
-        "literal" -> return $ code $ strContent e -- TODO attrs
-        "prompt" -> return $ codeWith ("",["prompt"],[]) $ strContent e -- TODO attrs
-        "parameter" -> return $ codeWith ("",["parameter"],[]) $ strContent e -- TODO attrs
-        "option" -> return $ codeWith ("",["option"],[]) $ strContent e -- TODO attrs
+        "code" -> codeWithLang []
+        "filename" -> codeWithLang ["filename"]
+        "literal" -> codeWithLang []
+        "prompt" -> codeWithLang ["prompt"]
+        "parameter" -> codeWithLang ["parameter"]
+        "option" -> codeWithLang ["option"]
         "optional" -> do x <- getInlines e
                          return $ str "[" <> x <> str "]"
-        "markup" -> return $ code $ strContent e -- TODO attrs
+        "markup" -> codeWithLang []
         "wordasword" -> emph <$> innerInlines
-        "command" -> return $ codeWith ("",["command"],[]) $ strContent e
-        "varname" -> return $ codeWith ("",["varname"],[]) $ strContent e
-        "function" -> return $ codeWith ("",["function"],[]) $ strContent e
-        "type"    -> return $ codeWith ("",["type"],[]) $ strContent e
-        "symbol"  -> return $ codeWith ("",["symbol"],[]) $ strContent e
-        "constant" -> return $ codeWith ("",["constant"],[]) $ strContent e
-        "userinput" -> return $ codeWith ("",["userinput"],[]) $ strContent e
-        "varargs" -> return $ str "(…)"
+        "command" -> codeWithLang ["command"]
+        "varname" -> codeWithLang ["varname"]
+        "function" -> codeWithLang ["function"]
+        "type"    -> codeWithLang ["type"]
+        "symbol"  -> codeWithLang ["symbol"]
+        "constant" -> codeWithLang ["constant"]
+        "userinput" -> codeWithLang ["userinput"]
+        "varargs" -> return $ code "(...)"
         "email" -> return $ link ("mailto:" ++ strContent e) ""
                           $ code $ strContent e
         "ulink" -> link (attrValue "url" e) "" <$> innerInlines
@@ -820,3 +820,9 @@ parseInline (Elem e) =
         _          -> innerInlines
    where innerInlines = (trimInlines . mconcat) <$>
                           (mapM parseInline $ elContent e)
+         codeWithLang classes = do
+           let classes' = case attrValue "language" e of
+                               "" -> classes
+                               l  -> l:classes
+           return $ codeWith (attrValue "id" e,classes',[]) $ strContent e
+
