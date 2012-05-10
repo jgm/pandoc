@@ -31,9 +31,9 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] appendix - An appendix in a Book or Article
 [ ] appendixinfo - Meta-information for an Appendix
 [ ] application - The name of a software program
-[ ] area - A region defined for a Callout in a graphic or code example
-[ ] areaset - A set of related areas in a graphic or code example
-[ ] areaspec - A collection of regions in a graphic or code example
+[x] area - A region defined for a Callout in a graphic or code example
+[x] areaset - A set of related areas in a graphic or code example
+[x] areaspec - A collection of regions in a graphic or code example
 [ ] arg - An argument in a CmdSynopsis
 [x] article - An article
 [x] articleinfo - Meta-information for an Article
@@ -616,6 +616,9 @@ parseBlock (Elem e) =
                         <$> getBlocks e
         "warning" -> blockQuote . (para (strong $ str "Warning") <>)
                         <$> getBlocks e
+        "area" -> return mempty
+        "areaset" -> return mempty
+        "areaspec" -> return mempty
         "qandadiv" -> gets dbSectionLevel >>= sect . (+1)
         "question" -> addToStart (strong (str "Q:") <> str " ") <$> getBlocks e
         "answer" -> addToStart (strong (str "A:") <> str " ") <$> getBlocks e
