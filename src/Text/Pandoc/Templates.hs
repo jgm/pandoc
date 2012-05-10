@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, CPP #-}
 {-
 Copyright (C) 2009-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -72,8 +72,12 @@ import Text.ParserCombinators.Parsec
 import Control.Monad (liftM, when, forM)
 import System.FilePath
 import Data.List (intercalate, intersperse)
+#if MIN_VERSION_blaze_html(0,5,0)
 import Text.Blaze.Html (Html)
 import Text.Blaze.Internal (preEscapedString)
+#else
+import Text.Blaze (preEscapedString, Html)
+#endif
 import Data.ByteString.Lazy.UTF8 (ByteString, fromString)
 import Text.Pandoc.Shared (readDataFile)
 import qualified Control.Exception.Extensible as E (try, IOException)

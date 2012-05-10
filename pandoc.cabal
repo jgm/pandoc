@@ -185,6 +185,9 @@ Flag library
 Flag tests
   Description:   Build test-pandoc.
   Default:       False
+Flag blaze_html_0_5
+  Description:   Use blaze-html 0.5 and blaze-markup 0.5
+  Default:       False
 
 Library
   -- Note: the following is duplicated in all stanzas.
@@ -192,8 +195,6 @@ Library
   -- BEGIN DUPLICATED SECTION
   Build-Depends: containers >= 0.1 && < 0.5,
                  parsec >= 3.1 && < 3.2,
-                 blaze-html >= 0.5 && < 0.6,
-                 blaze-markup >= 0.5.1 && < 0.6,
                  mtl >= 1.1 && < 2.2,
                  network >= 2 && < 2.4,
                  filepath >= 1.1 && < 1.4,
@@ -217,6 +218,13 @@ Library
                  zlib >= 0.5 && < 0.6,
                  highlighting-kate >= 0.5.0.2 && < 0.6,
                  temporary >= 1.1 && < 1.2
+  if flag(blaze_html_0_5)
+    build-depends:
+                 blaze-html >= 0.5 && < 0.6,
+                 blaze-markup >= 0.5.1 && < 0.6
+  else
+    build-depends:
+                 blaze-html >= 0.4.3.0 && < 0.5
   if impl(ghc >= 6.10)
     Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
   else
@@ -291,8 +299,6 @@ Executable pandoc
   -- It needs to be duplicated because of the library & executable flags.
   -- BEGIN DUPLICATED SECTION
   Build-Depends: containers >= 0.1 && < 0.5,
-                 blaze-html >= 0.5 && < 0.6,
-                 blaze-markup >= 0.5.1 && < 0.6,
                  parsec >= 3.1 && < 3.2,
                  mtl >= 1.1 && < 2.2,
                  network >= 2 && < 2.4,
@@ -317,6 +323,13 @@ Executable pandoc
                  zlib >= 0.5 && < 0.6,
                  highlighting-kate >= 0.5.0.2 && < 0.6,
                  temporary >= 1.1 && < 1.2
+  if flag(blaze_html_0_5)
+    build-depends:
+                 blaze-html >= 0.5 && < 0.6,
+                 blaze-markup >= 0.5.1 && < 0.6
+  else
+    build-depends:
+                 blaze-html >= 0.4.3.0 && < 0.5
   if impl(ghc >= 6.10)
     Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
   else
@@ -350,8 +363,6 @@ Executable test-pandoc
   -- It needs to be duplicated because of the library & executable flags.
   -- BEGIN DUPLICATED SECTION
   Build-Depends: containers >= 0.1 && < 0.5,
-                 blaze-html >= 0.5 && < 0.6,
-                 blaze-markup >= 0.5.1 && < 0.6,
                  parsec >= 3.1 && < 3.2,
                  mtl >= 1.1 && < 2.2,
                  network >= 2 && < 2.4,
@@ -376,6 +387,13 @@ Executable test-pandoc
                  zlib >= 0.5 && < 0.6,
                  highlighting-kate >= 0.5.0.2 && < 0.6,
                  temporary >= 1.1 && < 1.2
+  if flag(blaze_html_0_5)
+    build-depends:
+                 blaze-html >= 0.5 && < 0.6,
+                 blaze-markup >= 0.5.1 && < 0.6
+  else
+    build-depends:
+                 blaze-html >= 0.4.3.0 && < 0.5
   if impl(ghc >= 6.10)
     Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
   else
