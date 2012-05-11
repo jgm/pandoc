@@ -26,11 +26,11 @@ List of all DocBook tags, with [x] indicating implemented,
 [o] address - A real-world address, generally a postal address
 [ ] affiliation - The institutional affiliation of an individual
 [ ] alt - Text representation for a graphical element
-[ ] anchor - A spot in the document
+[o] anchor - A spot in the document
 [x] answer - An answer to a question posed in a QandASet
 [x] appendix - An appendix in a Book or Article
-[ ] appendixinfo - Meta-information for an Appendix
-[ ] application - The name of a software program
+[x] appendixinfo - Meta-information for an Appendix
+[o] application - The name of a software program
 [x] area - A region defined for a Callout in a graphic or code example
 [x] areaset - A set of related areas in a graphic or code example
 [x] areaspec - A collection of regions in a graphic or code example
@@ -46,14 +46,14 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] authorgroup - Wrapper for author information when a document has
     multiple authors or collabarators
 [x] authorinitials - The initials or other short identifier for an author
-[ ] beginpage - The location of a page break in a print version of the document
+[o] beginpage - The location of a page break in a print version of the document
 [ ] bibliocoverage - The spatial or temporal coverage of a document
-[ ] bibliodiv - A section of a Bibliography
-[ ] biblioentry - An entry in a Bibliography
-[ ] bibliography - A bibliography
+[x] bibliodiv - A section of a Bibliography
+[x] biblioentry - An entry in a Bibliography
+[x] bibliography - A bibliography
 [ ] bibliographyinfo - Meta-information for a Bibliography
 [ ] biblioid - An identifier for a document
-[ ] bibliolist - A wrapper for a set of bibliography entries
+[o] bibliolist - A wrapper for a set of bibliography entries
 [ ] bibliomisc - Untyped bibliographic information
 [ ] bibliomixed - An entry in a Bibliography
 [ ] bibliomset - A cooked container for related bibliographic information
@@ -593,6 +593,13 @@ parseBlock (Elem e) =
         "titleabbrev" -> return mempty
         "authorinitials" -> return mempty
         "title" -> return mempty -- handled by getTitle or sect
+        "bibliography" -> do
+           book <- gets dbBook
+           if book then sect 0 else sect 1
+        "bibliodiv" -> do
+           book <- gets dbBook
+           if book then sect 1 else sect 2
+        "biblioentry" -> para <$> getInlines e
         "chapter" -> sect 0
         "appendix" -> sect 0
         "preface" -> sect 0
@@ -644,6 +651,7 @@ parseBlock (Elem e) =
         "info" -> getTitle >> getAuthors >> getDate >> return mempty
         "articleinfo" -> getTitle >> getAuthors >> getDate >> return mempty
         "chapterinfo" -> return mempty  -- keywords & other metadata
+        "appendixinfo" -> return mempty  -- keywords & other metadata
         "bookinfo" -> getTitle >> getAuthors >> getDate >> return mempty
         "article" -> modify (\st -> st{ dbBook = False }) >>
                           getTitle >> getBlocks e
