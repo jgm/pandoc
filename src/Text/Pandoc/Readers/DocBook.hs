@@ -150,15 +150,15 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] funcsynopsisinfo - Information supplementing the FuncDefs of a FuncSynopsis
 [x] function - The name of a function or subroutine, as in a
     programming language
-[ ] glossary - A glossary
-[ ] glossaryinfo - Meta-information for a Glossary
-[ ] glossdef - A definition in a GlossEntry
-[ ] glossdiv - A division in a Glossary
-[ ] glossentry - An entry in a Glossary or GlossList
-[ ] glosslist - A wrapper for a set of GlossEntrys
-[ ] glosssee - A cross-reference from one GlossEntry to another
-[ ] glossseealso - A cross-reference from one GlossEntry to another
-[ ] glossterm - A glossary term
+[x] glossary - A glossary
+[x] glossaryinfo - Meta-information for a Glossary
+[x] glossdef - A definition in a GlossEntry
+[x] glossdiv - A division in a Glossary
+[x] glossentry - An entry in a Glossary or GlossList
+[x] glosslist - A wrapper for a set of GlossEntrys
+[x] glosssee - A cross-reference from one GlossEntry to another
+[x] glossseealso - A cross-reference from one GlossEntry to another
+[x] glossterm - A glossary term
 [ ] graphic - A displayed graphical object (not an inline)
 [ ] graphicco - A graphic that contains callout areas
 [ ] group - A group of elements in a CmdSynopsis
@@ -595,13 +595,18 @@ parseBlock (Elem e) =
         "titleabbrev" -> return mempty
         "authorinitials" -> return mempty
         "title" -> return mempty -- handled by getTitle or sect
-        "bibliography" -> do
-           book <- gets dbBook
-           if book then sect 0 else sect 1
-        "bibliodiv" -> do
-           book <- gets dbBook
-           if book then sect 1 else sect 2
+        "bibliography" -> sect 0
+        "bibliodiv" -> sect 1
         "biblioentry" -> para <$> getInlines e
+        "glosssee" -> para . (\ils -> text "See " <> ils <> str ".")
+                         <$> getInlines e
+        "glossseealso" -> para . (\ils -> text "See also " <> ils <> str ".")
+                         <$> getInlines e
+        "glossary" -> sect 0
+        "glossdiv" -> definitionList <$>
+                  mapM parseGlossEntry (filterChildren (named "glossentry") e)
+        "glosslist" -> definitionList <$>
+                  mapM parseGlossEntry (filterChildren (named "glossentry") e)
         "chapter" -> sect 0
         "appendix" -> sect 0
         "preface" -> sect 0
@@ -653,6 +658,7 @@ parseBlock (Elem e) =
         "info" -> getTitle >> getAuthors >> getDate >> return mempty
         "articleinfo" -> getTitle >> getAuthors >> getDate >> return mempty
         "chapterinfo" -> return mempty  -- keywords & other metadata
+        "glossaryinfo" -> return mempty  -- keywords & other metadata
         "appendixinfo" -> return mempty  -- keywords & other metadata
         "bookinfo" -> getTitle >> getAuthors >> getDate >> return mempty
         "article" -> modify (\st -> st{ dbBook = False }) >>
@@ -673,9 +679,6 @@ parseBlock (Elem e) =
                                 x    -> x:classes
            return $ codeBlockWith (attrValue "id" e, classes', [])
                   $ trimNl $ strContent e
-         skipWhite (Text (CData _ s _):xs) | all isSpace s = skipWhite xs
-                                           | otherwise     = xs
-         skipWhite xs = xs
          parseBlockquote = do
             attrib <- case filterChild (named "attribution") e of
                              Nothing  -> return mempty
@@ -689,6 +692,12 @@ parseBlock (Elem e) =
          parseVarListEntry e' = do
                      let terms = filterChildren (named "term") e'
                      let items = filterChildren (named "listitem") e'
+                     terms' <- mapM getInlines terms
+                     items' <- mapM getBlocks items
+                     return (mconcat $ intersperse (str "; ") terms', items')
+         parseGlossEntry e' = do
+                     let terms = filterChildren (named "glossterm") e'
+                     let items = filterChildren (named "glossdef") e'
                      terms' <- mapM getInlines terms
                      items' <- mapM getBlocks items
                      return (mconcat $ intersperse (str "; ") terms', items')
@@ -761,19 +770,13 @@ parseBlock (Elem e) =
          parseRow = mapM getBlocks . filterChildren isEntry
          sect n = do isbook <- gets dbBook
                      let n' = if isbook then n + 1 else n
-                     case skipWhite (elContent e) of
-                        ((Elem t):body) | named "title" t -> do
-                                  h <- header n' <$> (getInlines t)
-                                  modify $ \st -> st{ dbSectionLevel = n }
-                                  b <- mconcat <$> (mapM parseBlock body)
-                                  modify $ \st -> st{ dbSectionLevel = n - 1 }
-                                  return $ h <> b
-                        body      -> do
-                                  let h = header n' mempty
-                                  modify $ \st -> st{ dbSectionLevel = n }
-                                  b <- mconcat <$> (mapM parseBlock body)
-                                  modify $ \st -> st{ dbSectionLevel = n - 1 }
-                                  return $ h <> b
+                     headerText <- case filterChild (named "title") e of
+                                      Just t -> getInlines t
+                                      Nothing -> return mempty
+                     modify $ \st -> st{ dbSectionLevel = n }
+                     b <- getBlocks e
+                     modify $ \st -> st{ dbSectionLevel = n - 1 }
+                     return $ header n' headerText <> b
 
 getInlines :: Element -> DB Inlines
 getInlines e' = (trimInlines . mconcat) <$> (mapM parseInline $ elContent e')
