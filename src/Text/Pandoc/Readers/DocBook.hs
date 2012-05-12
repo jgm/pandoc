@@ -856,6 +856,7 @@ parseInline (Elem e) =
         "constant" -> codeWithLang ["constant"]
         "userinput" -> codeWithLang ["userinput"]
         "varargs" -> return $ code "(...)"
+        "xref" -> return $ str "?" -- so at least you know something is there
         "email" -> return $ link ("mailto:" ++ strContent e) ""
                           $ code $ strContent e
         "uri" -> return $ link (strContent e) "" $ code $ strContent e
