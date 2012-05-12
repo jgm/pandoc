@@ -697,9 +697,9 @@ parseBlock (Elem e) =
         "book" -> modify (\st -> st{ dbBook = True }) >> getTitle >> getBlocks e
         "table" -> parseTable
         "informaltable" -> parseTable
-        "literallayout" -> codeBlockWithLang ["literallayout"]
-        "screen" -> codeBlockWithLang ["screen"]
-        "programlisting" -> codeBlockWithLang []
+        "literallayout" -> codeBlockWithLang
+        "screen" -> codeBlockWithLang
+        "programlisting" -> codeBlockWithLang
         "?xml"  -> return mempty
         _       -> getBlocks e
    where getBlocks e' =  mconcat <$> (mapM parseBlock $ elContent e')
@@ -713,10 +713,10 @@ parseBlock (Elem e) =
                     b <- parseBlock r
                     x <- parseMixed container rs
                     return $ p <> b <> x
-         codeBlockWithLang classes = do
+         codeBlockWithLang = do
            let classes' = case attrValue "language" e of
-                                ""   -> classes
-                                x    -> x:classes
+                                ""   -> []
+                                x    -> [x]
            return $ codeBlockWith (attrValue "id" e, classes', [])
                   $ trimNl $ strContent e
          parseBlockquote = do
