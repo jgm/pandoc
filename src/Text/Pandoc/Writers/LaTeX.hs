@@ -570,6 +570,9 @@ inlineToLaTeX (RawInline "tex" str) = return $ text str
 inlineToLaTeX (RawInline _ _) = return empty
 inlineToLaTeX (LineBreak) = return "\\\\"
 inlineToLaTeX Space = return space
+inlineToLaTeX (Link [] ('#':ident, _)) = do
+  ident' <- stringToLaTeX False ident
+  return $ text "\\ref" <> braces (text ident') 
 inlineToLaTeX (Link txt ('#':ident, _)) = do
   contents <- inlineListToLaTeX txt
   ident' <- stringToLaTeX False ident
