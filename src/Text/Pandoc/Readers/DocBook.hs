@@ -470,7 +470,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] type - The classification of a value
 [x] ulink - A link that addresses its target by means of a URL
     (Uniform Resource Locator)
-[ ] uri - A Uniform Resource Identifier
+[x] uri - A Uniform Resource Identifier
 [x] userinput - Data entered by the user
 [x] varargs - An empty element in a function synopsis indicating a variable
     number of arguments
@@ -858,6 +858,7 @@ parseInline (Elem e) =
         "varargs" -> return $ code "(...)"
         "email" -> return $ link ("mailto:" ++ strContent e) ""
                           $ code $ strContent e
+        "uri" -> return $ link (strContent e) "" $ code $ strContent e
         "ulink" -> link (attrValue "url" e) "" <$> innerInlines
         "link" -> case findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e of
                        Just href -> link href "" <$> innerInlines
