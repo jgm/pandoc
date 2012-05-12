@@ -861,10 +861,13 @@ parseInline (Elem e) =
                           $ code $ strContent e
         "uri" -> return $ link (strContent e) "" $ code $ strContent e
         "ulink" -> link (attrValue "url" e) "" <$> innerInlines
-        "link" -> case findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e of
-                       Just href -> link href "" <$> innerInlines
-                       _         -> link ('#' : attrValue "linkend" e) ""
-                                      <$> innerInlines
+        "link" -> do
+             ils <- innerInlines
+             let href = case findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e of
+                               Just h -> h
+                               _      -> ('#' : attrValue "linkend" e)
+             let ils' = if ils == mempty then code href else ils
+             return $ link href "" ils'
         "foreignphrase" -> emph <$> innerInlines
         "emphasis" -> case attrValue "role" e of
                              "strong" -> strong <$> innerInlines
