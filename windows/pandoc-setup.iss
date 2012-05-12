@@ -9,7 +9,7 @@ AppId={{3CEE7B38-B19D-4980-9CAD-DF53600BD4CA}
 ; Version 5.1 is XP
 MinVersion=5.1,5.1
 AppName=Pandoc
-AppVerName=Pandoc 1.9.2
+AppVerName=Pandoc 1.9.3
 AppPublisher=John MacFarlane
 AppPublisherURL=http://johnmacfarlane.net/pandoc/
 AppSupportURL=http://johnmacfarlane.net/pandoc/
