@@ -557,7 +557,7 @@ isBlockElement (Elem e) = qName (elName e) `elem` blocktags
            "important","caution","note","tip","warning","qandadiv",
            "question","answer","abstract","itemizedlist","orderedlist",
            "variablelist","article","book","table","informaltable",
-           "screen","programlisting"]
+           "screen","programlisting","example"]
 isBlockElement _ = False
 
 -- Trim leading and trailing newline characters
