@@ -809,7 +809,7 @@ parseBlock (Elem e) =
          isEntry x  = named "entry" x || named "td" x || named "th" x
          parseRow = mapM (parseMixed plain . elContent) . filterChildren isEntry
          sect n = do isbook <- gets dbBook
-                     let n' = if isbook then n + 1 else n
+                     let n' = if isbook || n == 0 then n + 1 else n
                      headerText <- case filterChild (named "title") e of
                                       Just t -> getInlines t
                                       Nothing -> return mempty
