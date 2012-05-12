@@ -27,6 +27,8 @@ pandoc (1.9.3)
     + Make `\label` and `\ref` sensitive to `--parse-raw`.
       If `--parse-raw` is selected, these will be parsed as raw latex
       inlines, rather than bracketed text.
+    + Don't crash on unknown block commands (like `\vspace{10pt}`)
+      inside `\author`; just skip them.  Closes #505.
 
   * Textile reader:
 
