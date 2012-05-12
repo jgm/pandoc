@@ -65,7 +65,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] blockquote - A quotation set off from the main text
 [x] book - A book
 [x] bookinfo - Meta-information for a Book
-[ ] bridgehead - A free-floating heading
+[x] bridgehead - A free-floating heading
 [ ] callout - A “called out” description of a marked Area
 [ ] calloutlist - A list of Callouts
 [x] caption - A caption
@@ -552,7 +552,7 @@ isBlockElement (Elem e) = qName (elName e) `elem` blocktags
            "ackno","epigraph","blockquote","bibliography","bibliodiv",
            "biblioentry","glossee","glosseealso","glossary",
            "glossdiv","glosslist","chapter","appendix","preface",
-           "sect1","sect2","sect3","sect4","sect5","section",
+           "bridgehead","sect1","sect2","sect3","sect4","sect5","section",
            "refsect1","refsect2","refsect3","refsection",
            "important","caution","note","tip","warning","qandadiv",
            "question","answer","abstract","itemizedlist","orderedlist",
@@ -630,6 +630,7 @@ parseBlock (Elem e) =
         "chapter" -> sect 0
         "appendix" -> sect 0
         "preface" -> sect 0
+        "bridgehead" -> para . strong <$> getInlines e
         "sect1" -> sect 1
         "sect2" -> sect 2
         "sect3" -> sect 3
