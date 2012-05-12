@@ -55,7 +55,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] biblioid - An identifier for a document
 [o] bibliolist - A wrapper for a set of bibliography entries
 [ ] bibliomisc - Untyped bibliographic information
-[ ] bibliomixed - An entry in a Bibliography
+[x] bibliomixed - An entry in a Bibliography
 [ ] bibliomset - A cooked container for related bibliographic information
 [ ] biblioref - A cross reference to a bibliographic entry
 [ ] bibliorelation - The relationship of a document to another
@@ -617,6 +617,7 @@ parseBlock (Elem e) =
         "bibliography" -> sect 0
         "bibliodiv" -> sect 1
         "biblioentry" -> parsePara (elContent e)
+        "bibliomixed" -> parsePara (elContent e)
         "glosssee" -> para . (\ils -> text "See " <> ils <> str ".")
                          <$> getInlines e
         "glossseealso" -> para . (\ils -> text "See also " <> ils <> str ".")
