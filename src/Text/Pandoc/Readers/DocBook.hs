@@ -232,7 +232,7 @@ List of all DocBook tags, with [x] indicating implemented,
     information resides
 [x] mediaobject - A displayed media object (video, audio, image, etc.)
 [ ] mediaobjectco - A media object that contains callouts
-[ ] member - An element of a simple list
+[x] member - An element of a simple list
 [ ] menuchoice - A selection or series of selections from a menu
 [ ] methodname - The name of a method
 [ ] methodparam - Parameters to a method
@@ -396,7 +396,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] sidebarinfo - Meta-information for a Sidebar
 [x] simpara - A paragraph that contains only text and inline markup, no block
     elements
-[ ] simplelist - An undecorated list of single words or short phrases
+[x] simplelist - An undecorated list of single words or short phrases
 [ ] simplemsgentry - A wrapper for a simpler entry in a message set
 [ ] simplesect - A section of a document with no subdivisions
 [ ] spanspec - Formatting information for a spanned column in a table
@@ -839,6 +839,7 @@ parseInline (Elem e) =
             return $ if qt == SingleQuote
                         then singleQuoted contents
                         else doubleQuoted contents
+        "simplelist" -> simpleList
         "code" -> codeWithLang
         "filename" -> codeWithLang
         "literal" -> codeWithLang
@@ -885,4 +886,5 @@ parseInline (Elem e) =
                                "" -> []
                                l  -> [l]
            return $ codeWith (attrValue "id" e,classes',[]) $ strContent e
-
+         simpleList = (mconcat . intersperse (str "," <> space)) <$> mapM getInlines
+                         (filterChildren (named "member") e)
