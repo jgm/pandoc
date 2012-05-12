@@ -525,16 +525,15 @@ normalizeTree = everywhere (mkT go)
         go (Text (CData CDataText s1 z):Text (CData CDataText s2 _):xs) =
            Text (CData CDataText (s1 ++ s2) z):xs
         go (Text (CData CDataText s1 z):CRef r:xs) =
-           Text (CData CDataText (s1 ++ [c]) z):xs
-               where c = maybe '?' id (lookupEntity r)
+           Text (CData CDataText (s1 ++ convertEntity r) z):xs
         go (CRef r:Text (CData CDataText s1 z):xs) =
-             Text (CData CDataText ([c] ++ s1) z):xs
-               where c = maybe '?' id (lookupEntity r)
+             Text (CData CDataText (convertEntity r ++ s1) z):xs
         go (CRef r1:CRef r2:xs) =
-             Text (CData CDataText [c1,c2] Nothing):xs
-               where c1 = maybe '?' id (lookupEntity r1)
-                     c2 = maybe '?' id (lookupEntity r2)
+             Text (CData CDataText (convertEntity r1 ++ convertEntity r2) Nothing):xs
         go xs = xs
+
+convertEntity :: String -> String
+convertEntity e = maybe (map toUpper e) (:[]) (lookupEntity e)
 
 -- convenience function to get an attribute value, defaulting to ""
 attrValue :: String -> Element -> String
