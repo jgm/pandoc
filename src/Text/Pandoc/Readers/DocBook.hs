@@ -557,7 +557,7 @@ isBlockElement (Elem e) = qName (elName e) `elem` blocktags
            "important","caution","note","tip","warning","qandadiv",
            "question","answer","abstract","itemizedlist","orderedlist",
            "variablelist","article","book","table","informaltable",
-           "computeroutput","screen","programlisting"]
+           "screen","programlisting"]
 isBlockElement _ = False
 
 -- Trim leading and trailing newline characters
@@ -697,7 +697,6 @@ parseBlock (Elem e) =
         "table" -> parseTable
         "informaltable" -> parseTable
         "literallayout" -> codeBlockWithLang ["literallayout"]
-        "computeroutput" -> codeBlockWithLang ["computeroutput"]
         "screen" -> codeBlockWithLang ["screen"]
         "programlisting" -> codeBlockWithLang []
         "?xml"  -> return mempty
@@ -842,6 +841,7 @@ parseInline (Elem e) =
         "code" -> codeWithLang []
         "filename" -> codeWithLang ["filename"]
         "literal" -> codeWithLang []
+        "computeroutput" -> codeWithLang ["computeroutput"]
         "prompt" -> codeWithLang ["prompt"]
         "parameter" -> codeWithLang ["parameter"]
         "option" -> codeWithLang ["option"]
