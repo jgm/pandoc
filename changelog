@@ -43,6 +43,8 @@ pandoc (1.9.3)
 
   * LaTeX writer:
 
+    + Added `--no-tex-ligatures` option to avoid replacing
+      quotation marks and dashes with TeX ligatures.
     + Use `fixltx2e` package to provide '\textsubscript'.
     + Improve spacing around LaTeX block environments:
       quote, verbatim, itemize, description, enumerate.

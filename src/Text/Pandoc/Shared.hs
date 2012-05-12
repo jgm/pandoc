@@ -520,6 +520,7 @@ data WriterOptions = WriterOptions
   , writerHighlight        :: Bool       -- ^ Highlight source code
   , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
   , writerSetextHeaders    :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
+  , writerTeXLigatures     :: Bool       -- ^ Use tex ligatures quotes, dashes in latex
   } deriving Show
 
 {-# DEPRECATED writerXeTeX "writerXeTeX no longer does anything" #-}
@@ -558,6 +559,7 @@ defaultWriterOptions =
                 , writerHighlight        = False
                 , writerHighlightStyle   = pygments
                 , writerSetextHeaders    = True
+                , writerTeXLigatures     = True
                 }
 
 --

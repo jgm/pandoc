@@ -213,7 +213,7 @@ Reader options
     abbreviations, such as "Mr." (Note: This option is significant only when
     the input format is `markdown` or `textile`. It is selected automatically
     when the input format is `textile` or the output format is `latex` or
-    `context`.)
+    `context`, unless `--no-tex-ligatures` is used.)
 
 `--old-dashes`
 :   Selects the pandoc <= 1.8.2.1 behavior for parsing smart dashes: `-` before
@@ -357,6 +357,17 @@ Options affecting specific writers
 `-N`, `--number-sections`
 :   Number section headings in LaTeX, ConTeXt, or HTML output.
     By default, sections are not numbered.
+
+`--no-tex-ligatures`
+:   Do not convert quotation marks, apostrophes, and dashes to
+    the TeX ligatures when writing LaTeX or ConTeXt. Instead, just
+    use literal unicode characters. This is needed for using advanced
+    OpenType features with XeLaTeX and LuaLaTeX. Note: normally
+    `--smart` is selected automatically for LaTeX and ConTeXt
+    output, but it must be specified explicitly if `--no-tex-ligatures`
+    is selected. If you use literal curly quotes, dashes, and ellipses
+    in your source, then you may want to use `--no-tex-ligatures`
+    without `--smart`.
 
 `--listings`
 :   Use listings package for LaTeX code blocks

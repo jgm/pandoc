@@ -135,6 +135,7 @@ data Opt = Opt
     , optSlideLevel        :: Maybe Int  -- ^ Header level that creates slides
     , optSetextHeaders     :: Bool       -- ^ Use atx headers for markdown level 1-2
     , optAscii             :: Bool       -- ^ Use ascii characters only in html
+    , optTeXLigatures      :: Bool       -- ^ Use TeX ligatures for quotes/dashes
     }
 
 -- | Defaults for command-line options.
@@ -187,6 +188,7 @@ defaultOpts = Opt
     , optSlideLevel        = Nothing
     , optSetextHeaders     = True
     , optAscii             = False
+    , optTeXLigatures      = True
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -437,6 +439,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optNumberSections = True }))
                  "" -- "Number sections in LaTeX"
+
+    , Option "" ["no-tex-ligatures"]
+                 (NoArg
+                  (\opt -> return opt { optTeXLigatures = False }))
+                 "" -- "Don't use tex ligatures for quotes, dashes"
 
     , Option "" ["listings"]
                  (NoArg
@@ -804,6 +811,7 @@ main = do
               , optSlideLevel        = slideLevel
               , optSetextHeaders     = setextHeaders
               , optAscii             = ascii
+              , optTeXLigatures      = texLigatures
              } = opts
 
   when dumpArgs $
@@ -918,7 +926,8 @@ main = do
                                                      lhsExtension sources,
                               stateStandalone      = standalone',
                               stateCitations       = map CSL.refId refs,
-                              stateSmart           = smart || laTeXOutput || writerName' == "context",
+                              stateSmart           = smart || (texLigatures &&
+                                       (laTeXOutput || writerName' == "context")),
                               stateOldDashes       = oldDashes,
                               stateColumns         = columns,
                               stateStrict          = strict,
@@ -961,7 +970,8 @@ main = do
                                       writerSlideLevel       = slideLevel,
                                       writerHighlight        = highlight,
                                       writerHighlightStyle   = highlightStyle,
-                                      writerSetextHeaders    = setextHeaders
+                                      writerSetextHeaders    = setextHeaders,
+                                      writerTeXLigatures     = texLigatures
                                       }
 
   when (writerName' `elem` nonTextFormats&& outputFile == "-") $

@@ -174,9 +174,11 @@ elementToLaTeX opts (Sec level _ id' title' elements) = do
 
 -- escape things as needed for LaTeX
 stringToLaTeX :: Bool -> String -> State WriterState String
-stringToLaTeX _     []     = return ""
-stringToLaTeX isUrl (x:xs) = do
+stringToLaTeX  _     []     = return ""
+stringToLaTeX  isUrl (x:xs) = do
+  opts <- gets stOptions
   rest <- stringToLaTeX isUrl xs
+  let ligatures = writerTeXLigatures opts
   when (x == '€') $
      modify $ \st -> st{ stUsesEuro = True }
   return $
@@ -201,13 +203,13 @@ stringToLaTeX isUrl (x:xs) = do
        '[' -> "{[}" ++ rest  -- to avoid interpretation as
        ']' -> "{]}" ++ rest  -- optional arguments
        '\160' -> "~" ++ rest
-       '\x2018' -> "`" ++ rest
-       '\x2019' -> "'" ++ rest
-       '\x201C' -> "``" ++ rest
-       '\x201D' -> "''" ++ rest
        '\x2026' -> "\\ldots{}" ++ rest
-       '\x2014' -> "---" ++ rest
-       '\x2013' -> "--" ++ rest
+       '\x2018' | ligatures -> "`" ++ rest
+       '\x2019' | ligatures -> "'" ++ rest
+       '\x201C' | ligatures -> "``" ++ rest
+       '\x201D' | ligatures -> "''" ++ rest
+       '\x2014' | ligatures -> "---" ++ rest
+       '\x2013' | ligatures -> "--" ++ rest
        _        -> x : rest
 
 -- | Puts contents into LaTeX command.
@@ -536,10 +538,11 @@ inlineToLaTeX (Code (_,classes,_) str) = do
                   Just  h -> modify (\st -> st{ stHighlighting = True }) >>
                              return (text h)
          rawCode = liftM (text . (\s -> "\\texttt{" ++ s ++ "}"))
-                       $ stringToLaTeX False str
-inlineToLaTeX (Quoted SingleQuote lst) = do
+                          $ stringToLaTeX False str
+inlineToLaTeX (Quoted qt lst) = do
   contents <- inlineListToLaTeX lst
   csquotes <- liftM stCsquotes get
+  opts <- gets stOptions
   if csquotes
      then return $ "\\enquote" <> braces contents
      else do
@@ -549,20 +552,16 @@ inlineToLaTeX (Quoted SingleQuote lst) = do
        let s2 = if (not (null lst)) && (isQuoted (last lst))
                    then "\\,"
                    else empty
-       return $ char '`' <> s1 <> contents <> s2 <> char '\''
-inlineToLaTeX (Quoted DoubleQuote lst) = do
-  contents <- inlineListToLaTeX lst
-  csquotes <- liftM stCsquotes get
-  if csquotes
-     then return $ "\\enquote" <> braces contents
-     else do
-       let s1 = if (not (null lst)) && (isQuoted (head lst))
-                   then "\\,"
-                   else empty
-       let s2 = if (not (null lst)) && (isQuoted (last lst))
-                   then "\\,"
-                   else empty
-       return $ "``" <> s1 <> contents <> s2 <> "''"
+       let inner = s1 <> contents <> s2
+       return $ case qt of
+                DoubleQuote ->
+                   if writerTeXLigatures opts
+                      then text "``" <> inner <> text "''"
+                      else char '\x201C' <> inner <> char '\x201D'
+                SingleQuote ->
+                   if writerTeXLigatures opts
+                      then char '`' <> inner <> char '\''
+                      else char '\x2018' <> inner <> char '\x2019'
 inlineToLaTeX (Str str) = liftM text $ stringToLaTeX False str
 inlineToLaTeX (Math InlineMath str) = return $ char '$' <> text str <> char '$'
 inlineToLaTeX (Math DisplayMath str) = return $ "\\[" <> text str <> "\\]"
