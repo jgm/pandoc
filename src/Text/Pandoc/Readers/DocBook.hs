@@ -838,24 +838,24 @@ parseInline (Elem e) =
             return $ if qt == SingleQuote
                         then singleQuoted contents
                         else doubleQuoted contents
-        "code" -> codeWithLang []
-        "filename" -> codeWithLang ["filename"]
-        "literal" -> codeWithLang []
-        "computeroutput" -> codeWithLang ["computeroutput"]
-        "prompt" -> codeWithLang ["prompt"]
-        "parameter" -> codeWithLang ["parameter"]
-        "option" -> codeWithLang ["option"]
+        "code" -> codeWithLang
+        "filename" -> codeWithLang
+        "literal" -> codeWithLang
+        "computeroutput" -> codeWithLang
+        "prompt" -> codeWithLang
+        "parameter" -> codeWithLang
+        "option" -> codeWithLang
         "optional" -> do x <- getInlines e
                          return $ str "[" <> x <> str "]"
-        "markup" -> codeWithLang []
+        "markup" -> codeWithLang
         "wordasword" -> emph <$> innerInlines
-        "command" -> codeWithLang ["command"]
-        "varname" -> codeWithLang ["varname"]
-        "function" -> codeWithLang ["function"]
-        "type"    -> codeWithLang ["type"]
-        "symbol"  -> codeWithLang ["symbol"]
-        "constant" -> codeWithLang ["constant"]
-        "userinput" -> codeWithLang ["userinput"]
+        "command" -> codeWithLang
+        "varname" -> codeWithLang
+        "function" -> codeWithLang
+        "type"    -> codeWithLang
+        "symbol"  -> codeWithLang
+        "constant" -> codeWithLang
+        "userinput" -> codeWithLang
         "varargs" -> return $ code "(...)"
         "xref" -> return $ str "?" -- so at least you know something is there
         "email" -> return $ link ("mailto:" ++ strContent e) ""
@@ -879,9 +879,9 @@ parseInline (Elem e) =
         _          -> innerInlines
    where innerInlines = (trimInlines . mconcat) <$>
                           (mapM parseInline $ elContent e)
-         codeWithLang classes = do
+         codeWithLang = do
            let classes' = case attrValue "language" e of
-                               "" -> classes
-                               l  -> l:classes
+                               "" -> []
+                               l  -> [l]
            return $ codeWith (attrValue "id" e,classes',[]) $ strContent e
 
