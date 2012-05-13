@@ -430,7 +430,7 @@ tableRowToLaTeX header aligns widths cols = do
   let toCell 0 _ c = c
       toCell w a c = "\\parbox" <> valign <>
                      braces (text (printf "%.2f\\columnwidth" w)) <>
-                     braces (halign a <> cr <> c <> cr)
+                     braces (halign a <> cr <> chomp c <> cr)
   let cells = zipWith3 toCell widths aligns renderedCells
   return $ hcat $ intersperse (" & ") cells
 
