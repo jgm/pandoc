@@ -378,10 +378,10 @@ List of all DocBook tags, with [x] indicating implemented,
     in the index
 [ ] seealsoie - A See also entry in an index, rather than in the text
 [ ] seeie - A See entry in an index, rather than in the text
-[ ] seg - An element of a list item in a segmented list
-[ ] seglistitem - A list item in a segmented list
-[ ] segmentedlist - A segmented list, a list of sets of elements
-[ ] segtitle - The title of an element of a list item in a segmented list
+[x] seg - An element of a list item in a segmented list
+[x] seglistitem - A list item in a segmented list
+[x] segmentedlist - A segmented list, a list of sets of elements
+[x] segtitle - The title of an element of a list item in a segmented list
 [ ] seriesvolnums - Numbers of the volumes in a series of books
 [ ] set - A collection of books
 [ ] setindex - An index to a set of books
@@ -840,6 +840,7 @@ parseInline (Elem e) =
                         then singleQuoted contents
                         else doubleQuoted contents
         "simplelist" -> simpleList
+        "segmentedlist" -> segmentedList
         "code" -> codeWithLang
         "filename" -> codeWithLang
         "literal" -> codeWithLang
@@ -888,3 +889,15 @@ parseInline (Elem e) =
            return $ codeWith (attrValue "id" e,classes',[]) $ strContent e
          simpleList = (mconcat . intersperse (str "," <> space)) <$> mapM getInlines
                          (filterChildren (named "member") e)
+         segmentedList = do
+           tit <- maybe (return mempty) getInlines $ filterChild (named "title") e
+           segtits <- mapM getInlines $ filterChildren (named "segtitle") e
+           segitems <- mapM (mapM getInlines . filterChildren (named "seg"))
+                          $ filterChildren (named "seglistitem") e
+           let toSeg = mconcat . zipWith (\x y -> strong (x <> str ":") <> space <>
+                                  y <> linebreak) segtits
+           let segs = mconcat $ map toSeg segitems
+           let tit' = if tit == mempty
+                         then mempty
+                         else strong tit <> linebreak
+           return $ linebreak <> tit' <> segs
