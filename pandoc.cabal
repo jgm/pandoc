@@ -15,8 +15,8 @@ Tested-With:     GHC == 6.12.1, GHC == 7.0.4, GHC == 7.4.1
 Synopsis:        Conversion between markup formats
 Description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
-                 this library. It can read markdown and (subsets of)
-                 reStructuredText, HTML, LaTeX and Textile, and it can write
+                 this library. It can read markdown and (subsets of) HTML,
+                 reStructuredText, LaTeX, DocBook, and Textile, and it can write
                  markdown, reStructuredText, HTML, LaTeX, ConTeXt, Docbook,
                  OpenDocument, ODT, Word docx, RTF, MediaWiki, Textile,
                  groff man pages, plain text, Emacs Org-Mode, AsciiDoc, EPUB,
