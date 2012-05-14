@@ -75,6 +75,7 @@ return a single value:
           \CommentTok{-- arr (\textbackslash{}op (x,y) -> x `op` y) }
 \end{Highlighting}
 \end{Shaded}
+
 \texttt{(***)} combines two arrows into a new arrow by running the two arrows
 on a pair of values (one arrow on the first item of the pair and one arrow on
 the second item of the pair).

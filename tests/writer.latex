@@ -314,9 +314,11 @@ Multiple paragraphs:
 \begin{itemize}
 \item
   Tab
+
   \begin{itemize}
   \item
     Tab
+
     \begin{itemize}
     \item
       Tab
@@ -331,6 +333,7 @@ Here's another:
   First
 \item
   Second:
+
   \begin{itemize}
   \item
     Fee
@@ -396,6 +399,7 @@ Same thing but with paragraphs:
     sublist with roman numerals, starting with 4
   \item
     more items
+
     \begin{enumerate}[(A)]
     \item
       a subsublist
@@ -410,13 +414,16 @@ Nesting:
 \begin{enumerate}[A.]
 \item
   Upper Alpha
+
   \begin{enumerate}[I.]
   \item
     Upper Roman.
+
     \begin{enumerate}[(1)]
     \setcounter{enumiii}{5}
     \item
       Decimal start with 6
+
       \begin{enumerate}[a)]
       \setcounter{enumiv}{2}
       \item
@@ -433,6 +440,7 @@ Autonumbering:
   Autonumber.
 \item
   More.
+
   \begin{enumerate}
   \item
     Nested.
@@ -476,10 +484,8 @@ Loose:
 \begin{description}
 \item[apple]
 red fruit
-
 \item[orange]
 orange fruit
-
 \item[banana]
 yellow fruit
 \end{description}
@@ -491,7 +497,6 @@ Multiple blocks with italics:
 red fruit
 
 contains seeds, crisp, pleasant to taste
-
 \item[\emph{orange}]
 orange fruit
 
@@ -524,7 +529,6 @@ Multiple definitions, loose:
 red fruit
 
 computer
-
 \item[orange]
 orange fruit
 
@@ -538,7 +542,6 @@ Blank line after term, indented marker, alternate markers:
 red fruit
 
 computer
-
 \item[orange]
 orange fruit
 
@@ -555,17 +558,23 @@ orange fruit
 Simple block on one line:
 
 foo
+
 And nested without indentation:
 
 foo
+
 bar
+
 Interpreted markdown in a table:
 
 This is \emph{emphasized}
+
 And this is \textbf{strong}
+
 Here's a simple block:
 
 foo
+
 This should be a code block, though:
 
 \begin{verbatim}
@@ -583,6 +592,7 @@ As should this:
 Now, nested:
 
 foo
+
 This should just be an HTML comment:
 
 Multiline:

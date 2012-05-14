@@ -117,7 +117,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  else return blocks'
   body <- mapM (elementToLaTeX options) $ hierarchicalize blocks''
   biblioTitle <- liftM (render colwidth) $ inlineListToLaTeX lastHeader
-  let main = render colwidth $ vcat body
+  let main = render colwidth $ vsep body
   st <- get
   let biblioFiles = intercalate "," $ map dropExtension $  writerBiblioFiles options
       citecontext = case writerCiteMethod options of
@@ -170,7 +170,7 @@ elementToLaTeX _ (Blk block) = blockToLaTeX block
 elementToLaTeX opts (Sec level _ id' title' elements) = do
   header' <- sectionHeader id' level title'
   innerContents <- mapM (elementToLaTeX opts) elements
-  return $ vcat (header' : innerContents)
+  return $ vsep (header' : innerContents)
 
 -- escape things as needed for LaTeX
 stringToLaTeX :: Bool -> String -> State WriterState String
@@ -265,10 +265,10 @@ blockToLaTeX (Para [Image txt (src,tit)]) = do
   capt <- inlineListToLaTeX txt
   img <- inlineToLaTeX (Image txt (src,tit))
   return $ "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
-           ("\\caption{" <> capt <> char '}') $$ "\\end{figure}" $$ blankline
+           ("\\caption{" <> capt <> char '}') $$ "\\end{figure}"
 blockToLaTeX (Para lst) = do
   result <- inlineListToLaTeX lst
-  return $ result <> blankline
+  return result
 blockToLaTeX (BlockQuote lst) = do
   beamer <- writerBeamer `fmap` gets stOptions
   case lst of
@@ -280,8 +280,7 @@ blockToLaTeX (BlockQuote lst) = do
          return result
        _ -> do
          contents <- blockListToLaTeX lst
-         return $ "\\begin{quote}" $$ chomp contents $$ "\\end{quote}"
-                  <> blankline
+         return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
 blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
   opts <- gets stOptions
   case () of
@@ -300,11 +299,7 @@ blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
                           return "Verbatim"
                      else return "verbatim"
            return $ flush (text ("\\begin{" ++ env ++ "}") $$ text str $$
-                    text ("\\end{" ++ env ++ "}")) <> text "\n" <> blankline
-                    -- note: we use 'text "\n"' instead of cr to make this
-                    -- resistant to the 'chomp' in footnotes; a footnote
-                    -- ending with a Verbatim environment must have a
-                    -- cr before the closing }
+                    text ("\\end{" ++ env ++ "}")) <> cr
          listingsCodeBlock = do
            st <- get
            let params = if writerListings (stOptions st)
@@ -339,14 +334,14 @@ blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
                   Nothing -> rawCodeBlock
                   Just  h -> modify (\st -> st{ stHighlighting = True }) >>
                              return (flush $ text h)
-blockToLaTeX (RawBlock "latex" x) = return $ text x <> blankline
+blockToLaTeX (RawBlock "latex" x) = return $ text x
 blockToLaTeX (RawBlock _ _) = return empty
 blockToLaTeX (BulletList lst) = do
   incremental <- gets stIncremental
   let inc = if incremental then "[<+->]" else ""
   items <- mapM listItemToLaTeX lst
-  return $ text ("\\begin{itemize}" ++ inc) $$ chomp (vcat items) $$
-             "\\end{itemize}" <> blankline
+  return $ text ("\\begin{itemize}" ++ inc) $$ vcat items $$
+             "\\end{itemize}"
 blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   st <- get
   let inc = if stIncremental st then "[<+->]" else ""
@@ -367,15 +362,15 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
                              "}{" ++ show (start - 1) ++ "}"
                         else empty
   return $ text ("\\begin{enumerate}" ++ inc) <> exemplar $$ resetcounter $$
-           chomp (vcat items) $$ "\\end{enumerate}" <> blankline
+           vcat items $$ "\\end{enumerate}"
 blockToLaTeX (DefinitionList lst) = do
   incremental <- gets stIncremental
   let inc = if incremental then "[<+->]" else ""
   items <- mapM defListItemToLaTeX lst
-  return $ text ("\\begin{description}" ++ inc) $$ chomp (vcat items) $$
-               "\\end{description}" <> blankline
+  return $ text ("\\begin{description}" ++ inc) $$ vcat items $$
+               "\\end{description}"
 blockToLaTeX HorizontalRule = return $
-  "\\begin{center}\\rule{3in}{0.4pt}\\end{center}" $$ blankline
+  "\\begin{center}\\rule{3in}{0.4pt}\\end{center}"
 blockToLaTeX (Header level lst) = sectionHeader "" level lst
 blockToLaTeX (Table caption aligns widths heads rows) = do
   modify $ \s -> s{ stInTable = True, stTableNotes = [] }
@@ -401,7 +396,7 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
          $$ braces (text "% rows" $$ "\\FL" $$
                      vcat (headers : rows'') $$ "\\LL" <> cr)
   modify $ \s -> s{ stTable = True, stInTable = False, stTableNotes = [] }
-  return $ tableBody $$ blankline
+  return $ tableBody
 
 toColDescriptor :: Alignment -> String
 toColDescriptor align =
@@ -412,7 +407,7 @@ toColDescriptor align =
          AlignDefault -> "l"
 
 blockListToLaTeX :: [Block] -> State WriterState Doc
-blockListToLaTeX lst = mapM blockToLaTeX lst >>= return . vcat
+blockListToLaTeX lst = vsep `fmap` mapM blockToLaTeX lst
 
 tableRowToLaTeX :: Bool
                 -> [Alignment]
@@ -430,7 +425,7 @@ tableRowToLaTeX header aligns widths cols = do
   let toCell 0 _ c = c
       toCell w a c = "\\parbox" <> valign <>
                      braces (text (printf "%.2f\\columnwidth" w)) <>
-                     braces (halign a <> cr <> chomp c <> cr)
+                     braces (halign a <> cr <> c <> cr)
   let cells = zipWith3 toCell widths aligns renderedCells
   return $ hcat $ intersperse (" & ") cells
 
@@ -473,7 +468,6 @@ sectionHeader ref level lst = do
                                 <> braces (lab <> text "\\label"
                                                <> braces (text ref))
                          else lab)
-                      $$ blankline
   let headerWith x y = refLabel $ text x <> y
   return $ case level' of
                 0  -> if writerBeamer opts
@@ -484,7 +478,7 @@ sectionHeader ref level lst = do
                 3  -> headerWith "\\subsubsection" stuffing
                 4  -> headerWith "\\paragraph" stuffing
                 5  -> headerWith "\\subparagraph" stuffing
-                _            -> txt $$ blankline
+                _            -> txt
 
 
 -- | Convert list of inline elements to LaTeX.
@@ -600,7 +594,7 @@ inlineToLaTeX (Note contents) = do
        let marker = cycle ['a'..'z'] !! length curnotes
        modify $ \s -> s{ stTableNotes = (marker, contents') : curnotes }
        return $ "\\tmark" <> brackets (char marker) <> space
-     else return $ "\\footnote" <> braces (chomp $ nest 2 contents')
+     else return $ "\\footnote" <> braces (nest 2 contents')
      -- note: a \n before } needed when note ends with a Verbatim environment
 
 citationsToNatbib :: [Citation] -> State WriterState Doc
