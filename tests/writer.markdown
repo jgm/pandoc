@@ -272,41 +272,41 @@ Definition Lists
 Tight using spaces:
 
 apple
-  ~ red fruit
+:   red fruit
 orange
-  ~ orange fruit
+:   orange fruit
 banana
-  ~ yellow fruit
+:   yellow fruit
 
 Tight using tabs:
 
 apple
-  ~ red fruit
+:   red fruit
 orange
-  ~ orange fruit
+:   orange fruit
 banana
-  ~ yellow fruit
+:   yellow fruit
 
 Loose:
 
 apple
-  ~ red fruit
+:   red fruit
 
 orange
-  ~ orange fruit
+:   orange fruit
 
 banana
-  ~ yellow fruit
+:   yellow fruit
 
 Multiple blocks with italics:
 
 *apple*
-  ~ red fruit
+:   red fruit
 
     contains seeds, crisp, pleasant to taste
 
 *orange*
-  ~ orange fruit
+:   orange fruit
 
         { orange code block }
 
@@ -315,33 +315,33 @@ Multiple blocks with italics:
 Multiple definitions, tight:
 
 apple
-  ~ red fruit
-  ~ computer
+:   red fruit
+:   computer
 orange
-  ~ orange fruit
-  ~ bank
+:   orange fruit
+:   bank
 
 Multiple definitions, loose:
 
 apple
-  ~ red fruit
+:   red fruit
 
-  ~ computer
+:   computer
 
 orange
-  ~ orange fruit
+:   orange fruit
 
-  ~ bank
+:   bank
 
 Blank line after term, indented marker, alternate markers:
 
 apple
-  ~ red fruit
+:   red fruit
 
-  ~ computer
+:   computer
 
 orange
-  ~ orange fruit
+:   orange fruit
 
     1.  sublist
     2.  sublist

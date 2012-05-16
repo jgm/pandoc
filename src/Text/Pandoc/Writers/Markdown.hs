@@ -355,13 +355,13 @@ definitionListItemToMarkdown opts (label, defs) = do
   labelText <- inlineListToMarkdown opts label
   let tabStop = writerTabStop opts
   st <- get
-  let leader  = if stPlain st then "   " else "  ~"
+  let leader  = if stPlain st then "   " else ":  "
   let sps = case writerTabStop opts - 3 of
                  n | n > 0   -> text $ replicate n ' '
                  _           -> text " "
   defs' <- mapM (mapM (blockToMarkdown opts)) defs
   let contents = vcat $ map (\d -> hang tabStop (leader <> sps) $ vcat d <> cr) defs'
-  return $ labelText <> cr <> contents <> cr
+  return $ nowrap labelText <> cr <> contents <> cr
 
 -- | Convert list of Pandoc block elements to markdown.
 blockListToMarkdown :: WriterOptions -- ^ Options
