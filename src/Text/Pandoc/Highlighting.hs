@@ -39,6 +39,7 @@ module Text.Pandoc.Highlighting ( languages
                                 , styleToCss
                                 , pygments
                                 , espresso
+                                , zenburn
                                 , tango
                                 , kate
                                 , monochrome

@@ -289,7 +289,7 @@ General writer options
 `--highlight-style`=*STYLE*
 :   Specifies the coloring style to be used in highlighted source code.
     Options are `pygments` (the default), `kate`, `monochrome`,
-    `espresso`, `haddock`, and `tango`.
+    `espresso`, `zenburn`, `haddock`, and `tango`.
 
 `-H` *FILE*, `--include-in-header=`*FILE*
 :   Include contents of *FILE*, verbatim, at the end of the header.

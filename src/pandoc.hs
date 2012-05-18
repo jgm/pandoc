@@ -37,7 +37,7 @@ import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
 import Text.Pandoc.XML ( toEntities, fromEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Highlighting ( languages, Style, tango, pygments,
-         espresso, kate, haddock, monochrome )
+         espresso, zenburn, kate, haddock, monochrome )
 import System.Environment ( getArgs, getProgName )
 import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
@@ -349,6 +349,7 @@ options =
                                      "pygments"   -> return pygments
                                      "tango"      -> return tango
                                      "espresso"   -> return espresso
+                                     "zenburn"    -> return zenburn
                                      "kate"       -> return kate
                                      "monochrome" -> return monochrome
                                      "haddock"    -> return haddock
