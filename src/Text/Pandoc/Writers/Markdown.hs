@@ -218,7 +218,7 @@ blockToMarkdown opts (Para inlines) = do
   let esc = if (not (writerStrictMarkdown opts)) &&
                not (stPlain st) &&
                beginsWithOrderedListMarker (render Nothing contents)
-               then text "\\"
+               then text "\x200B" -- zero-width space, a hack
                else empty
   return $ esc <> contents <> blankline
 blockToMarkdown _ (RawBlock f str)
