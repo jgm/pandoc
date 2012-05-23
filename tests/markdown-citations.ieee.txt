@@ -38,7 +38,7 @@ References
 
 [3] J. Doe and J. Roe, “Why Water Is Wet,” in *Third Book*, S. Smith, Ed. Oxford: Oxford University Press, 2007.
 
-[^1]: A citation without locators [3].
+[^1]: A citation without locators [3], and inline: Reference 3.
 
 [^2]: Some citations [1–3].
 
