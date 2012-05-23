@@ -53,42 +53,58 @@ processBiblio cslfile abrfile r p
                       Just f  -> readJsonAbbrevFile f
                       Nothing -> return []
         p'   <- bottomUpM setHash p
-        let (nts,grps) = if styleClass csl == "note"
-                         then let cits   = queryWith getCite p'
-                                  ncits  = map (queryWith getCite) $ queryWith getNote p'
-                                  needNt = cits \\ concat ncits
-                              in (,) needNt $ getNoteCitations needNt p'
-                         else (,) [] $ queryWith getCitation p'
+        let grps = queryWith getCitation p'
             style      = csl { styleAbbrevs = abbrevs }
             result     = citeproc procOpts style r (setNearNote style $
                             map (map toCslCite) grps)
             cits_map   = M.fromList $ zip grps (citations result)
             biblioList = map (renderPandoc' style) (bibliography result)
-            Pandoc m b = bottomUp (procInlines $ processCite style cits_map) p'
-        return . generateNotes nts . Pandoc m $ b ++ biblioList
+            Pandoc m b = bottomUp (processCite style cits_map) p'
+            b' = bottomUp mvPunct $ deNote b
+        return $ Pandoc m $ b' ++ biblioList
 
 -- | Substitute 'Cite' elements with formatted citations.
-processCite :: Style -> M.Map [Citation] [FormattedOutput] -> [Inline] -> [Inline]
-processCite s cs (Cite t _ : rest) =
+processCite :: Style -> M.Map [Citation] [FormattedOutput] -> Inline -> Inline
+processCite s cs (Cite t _) =
    case M.lookup t cs of
-        Just (x:xs) ->
-                   if isTextualCitation t
-                   then renderPandoc s [x] ++
-                         if null xs
-                         then processCite s cs rest
-                         else [Space,  Cite t (renderPandoc s xs)]
-                            ++ processCite s cs rest
-                   else Cite t (renderPandoc s (x:xs)) : processCite s cs rest
-        _ -> Str ("Error processing " ++ show t) : processCite s cs rest
-processCite s cs (x:xs) = bottomUp (processCite s cs) x : processCite s cs xs
-processCite _ _ [] = []
+        Just (x:xs)
+          | isTextualCitation t && not (null xs) ->
+             let xs' = renderPandoc s xs
+             in  if styleClass s == "note"
+                    then Cite t (renderPandoc s [x] ++ [Note [Para xs']])
+                    else Cite t (renderPandoc s [x] ++ [Space | not (startWithPunct xs')] ++ xs')
+          | otherwise -> if styleClass s == "note"
+                            then Cite t [Note [Para $ renderPandoc s (x:xs)]]
+                            else Cite t (renderPandoc s (x:xs))
+        _             -> Strong [Str "???"]  -- TODO raise error instead?
+processCite _ _ x = x
 
-procInlines :: ([Inline] -> [Inline]) -> Block -> Block
-procInlines f b
-    | Plain    inls <- b = Plain    $ f inls
-    | Para     inls <- b = Para     $ f inls
-    | Header i inls <- b = Header i $ f inls
-    | otherwise          = b
+isNote :: Inline -> Bool
+isNote (Note _) = True
+isNote (Cite _ [Note _]) = True
+isNote _ = False
+
+mvPunct :: [Inline] -> [Inline]
+mvPunct (Space : Space : xs) = Space : xs
+mvPunct (Space : x : ys) | isNote x, startWithPunct ys =
+   Str (headInline ys) : x : tailFirstInlineStr ys
+mvPunct (Space : x : ys) | isNote x = x : ys
+mvPunct xs = xs
+
+sanitize :: [Inline] -> [Inline]
+sanitize xs | endWithPunct xs = toCapital xs
+            | otherwise       = toCapital (xs ++ [Str "."])
+
+deNote :: [Block] -> [Block]
+deNote = topDown go
+  where go (Note [Para xs]) = Note $ bottomUp go' [Para $ sanitize xs]
+        go (Note xs) = Note $ bottomUp go' xs
+        go x = x
+        go' (Note [Para xs]:ys) =
+             if startWithPunct ys && endWithPunct xs
+                then initInline xs ++ ys
+                else xs ++ ys
+        go' xs = xs
 
 isTextualCitation :: [Citation] -> Bool
 isTextualCitation (c:_) = citationMode c == AuthorInText
@@ -100,65 +116,9 @@ getCitation :: Inline -> [[Citation]]
 getCitation i | Cite t _ <- i = [t]
               | otherwise     = []
 
-getNote :: Inline -> [Inline]
-getNote i | Note _ <- i = [i]
-          | otherwise   = []
-
-getCite :: Inline -> [Inline]
-getCite i | Cite _ _ <- i = [i]
-          | otherwise     = []
-
-getNoteCitations :: [Inline] -> Pandoc -> [[Citation]]
-getNoteCitations needNote
-    = let mvCite i = if i `elem` needNote then Note [Para [i]] else i
-          setNote  = bottomUp mvCite
-          getCits  = concat . flip (zipWith $ setCiteNoteNum) [1..] .
-                     map (queryWith getCite) . queryWith getNote . setNote
-      in  queryWith getCitation . getCits
-
 setHash :: Citation -> IO Citation
 setHash (Citation i p s cm nn _)
     = hashUnique `fmap` newUnique >>= return . Citation i p s cm nn
-
-generateNotes :: [Inline] -> Pandoc -> Pandoc
-generateNotes needNote = bottomUp (mvCiteInNote needNote)
-
-mvCiteInNote :: [Inline] -> Block -> Block
-mvCiteInNote is = procInlines mvCite
-    where
-      mvCite :: [Inline] -> [Inline]
-      mvCite inls
-          | x:i:xs <- inls, startWithPunct xs
-          , x == Space,   i `elem_` is = switch i xs ++ mvCite (tailFirstInlineStr xs)
-          | x:i:xs <- inls
-          , x == Space,   i `elem_` is = mvInNote i :   mvCite xs
-          | i:xs <- inls, i `elem_` is
-          , startWithPunct xs          = switch i xs ++ mvCite (tailFirstInlineStr xs)
-          | i:xs <- inls, Note _ <- i  = checkNt  i :   mvCite xs
-          | i:xs <- inls               = i          :   mvCite xs
-          | otherwise                  = []
-      elem_  x xs = case x of Cite cs _ -> (Cite cs []) `elem` xs; _ -> False
-      switch i xs = Str (headInline xs) : mvInNote i : []
-      mvInNote i
-          | Cite t o <- i = Note [Para [Cite t $ sanitize o]]
-          | otherwise     = Note [Para [i                  ]]
-      sanitize i
-          | endWithPunct   i = toCapital i
-          | otherwise        = toCapital (i ++ [Str "."])
-
-      checkPt i
-          | Cite c o : xs <- i , endWithPunct o, startWithPunct xs
-                           = Cite c (initInline o) : checkPt xs
-          | x:xs <- i      = x : checkPt xs
-          | otherwise      = []
-      checkNt  = bottomUp $ procInlines checkPt
-
-setCiteNoteNum :: [Inline] -> Int -> [Inline]
-setCiteNoteNum ((Cite cs o):xs) n = Cite (setCitationNoteNum n cs) o : setCiteNoteNum xs n
-setCiteNoteNum               _  _ = []
-
-setCitationNoteNum :: Int -> [Citation] -> [Citation]
-setCitationNoteNum i = map $ \c -> c { citationNoteNum = i}
 
 toCslCite :: Citation -> CSL.Cite
 toCslCite c
