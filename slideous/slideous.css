@@ -1,0 +1,95 @@
+/*	This work is licensed under Creative Commons GNU LGPL License.
+
+	License: http://creativecommons.org/licenses/LGPL/2.1/
+	Version: 1.0
+
+	Author:  Stefan Goessner/2005
+	Web:     http://goessner.net/ 
+*/
+@media screen, projection {
+body {
+  background-color: #e3eee7;
+  padding: 0;
+  margin: 0;
+  color: #132; 
+  border-color: #678; 
+  font-size: 125%;
+}
+#statusbar {
+  display: none;
+  position: absolute; z-index: 10;
+  top: auto; bottom: 0; left: 0; right: 0;
+  height: 2em;
+  background-color: #f0fff8;
+  color: #132;
+  font-size: 75%;
+  padding: 0.5em 0.5em 0 2px;
+  border-top: solid 1px #000;
+}
+#statusbar button, #tocbox {
+  cursor: pointer; 
+  color: #031;
+  background-color: #e0eee7;
+  margin: 1px;
+  padding: 0 0.5em;
+  border: inset 1px black;
+}
+#statusbar button:hover, #tocbox:hover {
+  color: #031;
+  background-color: #c0ccc6;
+  border: outset 1px black;
+}
+#tocbox {
+  width: 15em;
+}
+#eos {
+  visibility: hidden;
+  color: #021;
+  background-color: #fffafa;
+  border: inset 1px black;
+  font-size: 120%;
+}
+div.slide {
+   display: block;
+   margin: 0 0 2em 0;
+   padding: 0 150px;
+}
+
+div.slide h1 {
+  background: #a0aaa4;
+  color: #f0fff8;
+  padding: 0 0.5em 0 0.5em;
+  margin: 0 -150px;
+  font-size: 120%;
+  border-bottom: solid 1px black;
+}
+
+div.slide h1:before { content: "# "; }
+div.handout { display: block; }
+   
+body>#statusbar {   /* ie6 hack for fixing the statusbar - in quirks mode */
+  position: fixed;  /* thanks to Anne van Kesteren and Arthur Steiner */
+}                   /* see http://limpid.nl/lab/css/fixed/footer */
+* html body {
+  overflow: hidden;
+}
+* html div.slide {
+  height: 100%;
+  padding-bottom: 2em;
+  overflow: auto;
+}                   /* end ie6-hack */
+
+} /* @media screen, projection */
+
+@media print {
+body {
+  color: black;
+  font-family: sans-serif;
+  font-size: 11pt;
+}
+
+#statusbar { display: none; }
+div.slide { page-break-after: always; }
+div.handout { display: block; }
+
+} /* @media print */
