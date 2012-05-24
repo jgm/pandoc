@@ -1,0 +1,11 @@
+some text $\half$ and then another formula $\frac{1}{\func{25}}$
+
+this shouldn't be replaced
+$$
+\inactive
+$$
+
+test of redefining a macro
+$$
+\third == 0.333
+$$

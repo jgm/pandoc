@@ -31,7 +31,7 @@ writers.
 module Main where
 import Text.Pandoc
 import Text.Pandoc.PDF (tex2pdf)
-import Text.Pandoc.Readers.LaTeX (handleIncludes)
+import Text.Pandoc.Readers.LaTeX (handleIncludes, readMacros)
 import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
                             headerShift, findDataFile, normalize, err, warn )
 import Text.Pandoc.XML ( toEntities, fromEntities )
@@ -391,6 +391,17 @@ options =
                                   optStandalone = True })
                   "FILENAME")
                  "" -- "File to include after document body"
+
+    , Option "" ["include-macros"]
+                 (ReqArg
+                  (\arg opt -> do
+                     text <- UTF8.readFile arg
+                     -- add new ones to end, so they're included in order specified
+                     let newvars = optVariables opt ++ [("include-macros",text)]
+                     return opt { optVariables = newvars,
+                                  optStandalone = True })
+                  "FILENAME")
+                 "" -- "File containing latex macros to include"
 
     , Option "" ["self-contained"]
                  (NoArg
@@ -995,7 +1006,18 @@ main = do
                            then handleIncludes
                            else return
 
-  doc <- (reader startParserState) `fmap` (readSources sources >>=
+  -- parse included macros from the imported files
+  let includedMacros = readMacros startParserState $
+        intercalate "\n" $
+        map snd $
+        filter (\(name,_) -> name == "include-macros") variables
+
+  -- initial parser state contains included macros
+  let startParserState' = startParserState
+                {stateMacros = includedMacros ++
+                    stateMacros startParserState}
+
+  doc <- (reader startParserState') `fmap` (readSources sources >>=
              handleIncludes' . convertTabs . intercalate "\n")
 
   let doc0 = foldr ($) doc transforms

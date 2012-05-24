@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of LaTeX to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.LaTeX ( readLaTeX,
+                                   readMacros,
                                    rawLaTeXInline,
                                    rawLaTeXBlock,
                                    handleIncludes
@@ -47,6 +48,7 @@ import Data.Monoid
 import System.FilePath (replaceExtension)
 import Data.List (intercalate)
 import qualified Data.Map as M
+import Text.TeXMath.Macros (Macro)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ParserState   -- ^ Parser state, including options for parser
@@ -63,6 +65,17 @@ parseLaTeX = do
   let authors' = stateAuthors st
   let date' = stateDate st
   return $ Pandoc (Meta title' authors' date') $ toList bs
+
+-- | Parse LaTeX from string and return the macros defined throughout the document
+readMacros :: ParserState -> String -> [Macro]
+readMacros = readWith parseMacros
+
+parseMacros :: LP [Macro]
+parseMacros = do
+  blocks
+  eof
+  st <- getState
+  return $ stateMacros st
 
 type LP = GenParser Char ParserState
 

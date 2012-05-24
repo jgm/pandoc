@@ -168,7 +168,11 @@ Extra-Source-Files:
                  tests/lhs-test.latex+lhs,
                  tests/lhs-test.html,
                  tests/lhs-test.html+lhs,
-                 tests/lhs-test.fragment.html+lhs
+                 tests/lhs-test.fragment.html+lhs,
+                 tests/include-macros.tex,
+                 tests/include-macros-1.tex,
+                 tests/include-macros.txt,
+                 tests/include-macros.native
 Extra-Tmp-Files: man/man1/pandoc.1,
                  man/man5/pandoc_markdown.5
 
