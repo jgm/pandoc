@@ -127,6 +127,7 @@ block = choice [ codeBlock
                , blockQuote
                , fieldList
                , imageBlock
+               , figureBlock
                , customCodeBlock
                , mathBlock
                , defaultRoleBlock
@@ -361,6 +362,20 @@ customCodeBlock = try $ do
   blanklines
   result <- indentedBlock
   return $ CodeBlock ("", ["sourceCode", language], []) $ stripTrailingNewlines result
+
+
+figureBlock :: GenParser Char ParserState Block
+figureBlock = try $ do
+  string ".. figure::"
+  src <- removeLeadingTrailingSpace `fmap` manyTill anyChar newline
+  body <- indentedBlock
+  caption <- parseFromString extractCaption body
+  return $ Para [Image caption (src,"")]
+
+extractCaption :: GenParser Char ParserState [Inline]
+extractCaption = try $ do
+  manyTill anyLine blanklines
+  many inline
 
 -- | The 'math' directive (from Sphinx) for display math.
 mathBlock :: GenParser Char st Block
