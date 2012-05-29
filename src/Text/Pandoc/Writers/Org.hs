@@ -139,9 +139,9 @@ blockToOrg (CodeBlock (_,classes,_) str) = do
                     "ledger", "lisp", "matlab", "mscgen", "ocaml", "octave", 
                     "oz", "perl", "plantuml", "python", "R", "ruby", "sass", 
                     "scheme", "screen", "sh", "sql", "sqlite"]
-  let (beg, end) = if null at
-                      then ("#+BEGIN_EXAMPLE", "#+END_EXAMPLE")
-                      else ("#+BEGIN_SRC" ++ head at, "#+END_SRC")
+  let (beg, end) = case at of
+                      []    -> ("#+BEGIN_EXAMPLE", "#+END_EXAMPLE")
+                      (x:_) -> ("#+BEGIN_SRC " ++ x, "#+END_SRC")
   return $ text beg $$ nest tabstop (text str) $$ text end $$ blankline
 blockToOrg (BlockQuote blocks) = do
   contents <- blockListToOrg blocks 
