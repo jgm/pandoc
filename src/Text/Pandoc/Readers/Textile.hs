@@ -505,7 +505,7 @@ escapedEqs = Str <$> (try $ surrounded (string "==") anyChar)
 -- | literal text escaped btw <notextile> tags
 escapedTag :: GenParser Char ParserState Inline
 escapedTag = try $ Str <$>
-  enclosed (string "<notextile>") (string "</notextile>") anyChar
+  enclosed (string "<notextile>") (try $ string "</notextile>") anyChar
 
 -- | Any special symbol defined in wordBoundaries
 symbol :: GenParser Char ParserState Inline
@@ -533,7 +533,7 @@ attributes = choice [ enclosed (char '(') (char ')') anyChar,
 surrounded :: GenParser Char st t   -- ^ surrounding parser
 	    -> GenParser Char st a    -- ^ content parser (to be used repeatedly)
 	    -> GenParser Char st [a]
-surrounded border = enclosed border border
+surrounded border = enclosed border (try border)
 
 -- | Inlines are most of the time of the same form
 simpleInline :: GenParser Char ParserState t           -- ^ surrounding parser
