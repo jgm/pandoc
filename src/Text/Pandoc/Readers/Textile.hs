@@ -493,19 +493,12 @@ escapedInline :: GenParser Char ParserState Inline
 escapedInline = escapedEqs <|> escapedTag
 
 escapedEqs :: GenParser Char ParserState Inline
-escapedEqs = Str <$> (try $ surrounded (string "==") anyChar)
-
--- -- | literal text escaped between == ... ==
--- escapedEqs :: GenParser Char ParserState Inline
--- escapedEqs = try $ do
---   string "=="
---   contents <- manyTill anyChar (try $ string "==")
---   return $ Str contents
+escapedEqs = Str <$> (try $ string "==" *> manyTill anyChar (try $ string "=="))
 
 -- | literal text escaped btw <notextile> tags
 escapedTag :: GenParser Char ParserState Inline
-escapedTag = try $ Str <$>
-  enclosed (string "<notextile>") (try $ string "</notextile>") anyChar
+escapedTag = Str <$>
+  (try $ string "<notextile>" *> manyTill anyChar (try $ string "</notextile>"))
 
 -- | Any special symbol defined in wordBoundaries
 symbol :: GenParser Char ParserState Inline
