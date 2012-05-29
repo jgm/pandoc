@@ -271,7 +271,7 @@ inlineToConTeXt (Str str) = do
 inlineToConTeXt (Math InlineMath str) =
   return $ char '$' <> text str <> char '$'
 inlineToConTeXt (Math DisplayMath str) =
-  return $ text "\\startformula "  <> text str <> text " \\stopformula"
+  return $ text "\\startformula "  <> text str <> text " \\stopformula" <> space
 inlineToConTeXt (RawInline "context" str) = return $ text str
 inlineToConTeXt (RawInline "tex" str) = return $ text str
 inlineToConTeXt (RawInline _ _) = return empty
