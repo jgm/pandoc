@@ -27,6 +27,10 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 ,CodeBlock ("",[],[]) "        this code block is indented by two tabs\n\n    These should not be escaped:  \\$ \\\\ \\> \\[ \\{"
 ,CodeBlock ("",[],[]) "Code block with .bc\n        continued\n    @</\\\n"
 ,Para [Str "Inline",Space,Str "code",Str ":",Space,Code ("",[],[]) "<tt>",Str ",",Space,Code ("",[],[]) "@",Str "."]
+,Header 1 [Str "Notextile"]
+,Para [Str "A",Space,Str "block",Space,Str "of",Space,Str "text",Space,Str "can",Space,Str "be",Space,Str "protected",Space,Str "with",Space,Str "notextile",Space,Str ":"]
+,Para [Str "\nNo *bold* and\n* no bullet\n"]
+,Para [Str "and",Space,Str "inlines",Space,Str "can",Space,Str "be",Space,Str "protected",Space,Str "with",Space,Str "double *equals (=)* markup",Str "."]
 ,Header 1 [Str "Lists"]
 ,Header 2 [Str "Unordered"]
 ,Para [Str "Asterisks",Space,Str "tight",Str ":"]
