@@ -492,20 +492,18 @@ image = try $ do
 escapedInline :: GenParser Char ParserState Inline
 escapedInline = escapedEqs <|> escapedTag
 
-escapedEqs :: GenParser Char ParserState Inline
-escapedEqs = Str <$> (try $ surrounded (string "==") anyChar)
-
--- -- | literal text escaped between == ... ==
 -- escapedEqs :: GenParser Char ParserState Inline
--- escapedEqs = try $ do
---   string "=="
---   contents <- manyTill anyChar (try $ string "==")
---   return $ Str contents
+-- escapedEqs = Str <$> (try $ surrounded (try $ string "==") anyChar)
+
+escapedEqs :: GenParser Char ParserState Inline
+escapedEqs = let b = try $ string "==" in 
+  try $ Str <$> (b *> many1Till anyChar b)
 
 -- | literal text escaped btw <notextile> tags
 escapedTag :: GenParser Char ParserState Inline
-escapedTag = try $ Str <$>
-  enclosed (string "<notextile>") (string "</notextile>") anyChar
+escapedTag = let s = try $ string "<notextile>"
+                 e = try $ string "</notextile>" in
+  try $ Str <$> (s *> manyTill anyChar e)
 
 -- | Any special symbol defined in wordBoundaries
 symbol :: GenParser Char ParserState Inline

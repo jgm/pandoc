@@ -70,6 +70,17 @@ bc. Code block with .bc
 
 Inline code: @<tt>@, <tt>@</tt>.
 
+h1. Notextile
+
+A block of text can be protected with notextile :
+
+<notextile>
+No *bold* and
+* no bullet
+</notextile>
+
+and inlines can be protected with ==double *equals (=)* markup==.
+
 h1. Lists
 
 h2. Unordered
