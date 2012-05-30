@@ -216,7 +216,7 @@ Library
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
                  zlib >= 0.5 && < 0.6,
-                 highlighting-kate >= 0.5.0.6 && < 0.6,
+                 highlighting-kate >= 0.5.1 && < 0.6,
                  temporary >= 1.1 && < 1.2
   if flag(blaze_html_0_5)
     build-depends:
@@ -321,7 +321,7 @@ Executable pandoc
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
                  zlib >= 0.5 && < 0.6,
-                 highlighting-kate >= 0.5.0.6 && < 0.6,
+                 highlighting-kate >= 0.5.1 && < 0.6,
                  temporary >= 1.1 && < 1.2
   if flag(blaze_html_0_5)
     build-depends:
@@ -385,7 +385,7 @@ Executable test-pandoc
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
                  zlib >= 0.5 && < 0.6,
-                 highlighting-kate >= 0.5.0.6 && < 0.6,
+                 highlighting-kate >= 0.5.1 && < 0.6,
                  temporary >= 1.1 && < 1.2
   if flag(blaze_html_0_5)
     build-depends:
