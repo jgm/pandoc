@@ -18,8 +18,8 @@ another, and a command-line tool that uses this library. It can read
 slide shows), [ConTeXt], [RTF], [DocBook XML], [OpenDocument XML],
 [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup], [EPUB],
 [Textile], [groff man] pages, [Emacs Org-Mode], [AsciiDoc], and [Slidy],
-[DZSlides], or [S5] HTML slide shows. It can also produce [PDF] output
-on systems where LaTeX is installed.
+[Slideous], [DZSlides], or [S5] HTML slide shows. It can also produce
+[PDF] output on systems where LaTeX is installed.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, delimited code blocks,
@@ -153,6 +153,7 @@ General options
     `docbook` (DocBook XML), `opendocument` (OpenDocument XML), `odt`
     (OpenOffice text document), `docx` (Word docx), `epub` (EPUB book),
     `asciidoc` (AsciiDoc), `slidy` (Slidy HTML and javascript slide show),
+    `slideous` (Slideous HTML and javascript slide show),
     `dzslides` (HTML5 + javascript slide show), `s5` (S5 HTML and javascript
     slide show), or `rtf` (rich text format). Note that `odt` and `epub`
     output will not be directed to *stdout*; an output filename must
@@ -178,8 +179,8 @@ General options
         C:\Documents And Settings\USERNAME\Application Data\pandoc
 
     in Windows. A `reference.odt`, `reference.docx`, `default.csl`,
-    `epub.css`, `templates`, `slidy`, or `s5` directory placed in this
-    directory will override pandoc's normal defaults.
+    `epub.css`, `templates`, `slidy`, `slideous`, or `s5` directory
+    placed in this directory will override pandoc's normal defaults.
 
 `-v`, `--version`
 :   Print version.
@@ -199,7 +200,8 @@ Reader options
 `-R`, `--parse-raw`
 :   Parse untranslatable HTML codes and LaTeX environments as raw HTML
     or LaTeX, instead of ignoring them.  Affects only HTML and LaTeX
-    input. Raw HTML can be printed in markdown, reStructuredText, HTML, Slidy,
+    input. Raw HTML can be printed in markdown, reStructuredText, HTML,
+    Slidy, Slideous,
     DZSlides, and S5 output; raw LaTeX can be printed in markdown,
     reStructuredText, LaTeX, and ConTeXt output. The default is for the
     readers to omit untranslatable HTML codes and LaTeX environments.
@@ -280,7 +282,7 @@ General writer options
 :   Include an automatically generated table of contents (or, in
     the case of `latex`, `context`, and `rst`, an instruction to create
     one) in the output document. This option has no effect on `man`,
-    `docbook`, `slidy`, or `s5` output.
+    `docbook`, `slidy`, `slideous`, or `s5` output.
 
 `--no-highlight`
 :   Disables syntax highlighting for code blocks and inlines, even when
@@ -323,7 +325,8 @@ Options affecting specific writers
     in the sense that it needs no external files and no net access to be
     displayed properly by a browser. This option works only with HTML output
     formats, including `html`, `html5`, `html+lhs`, `html5+lhs`, `s5`,
-    `slidy`, and `dzslides`. Scripts, images, and stylesheets at absolute URLs
+    `slidy`, `slideous`,
+    and `dzslides`. Scripts, images, and stylesheets at absolute URLs
     will be downloaded; those at relative URLs will be sought first relative
     to the working directory, then relative to the user data directory (see
     `--data-dir`), and finally relative to pandoc's default data directory.
@@ -378,7 +381,7 @@ Options affecting specific writers
 
 `--slide-level`=*NUMBER*
 :   Specifies that headers with the specified level create
-    slides (for `beamer`, `s5`, `slidy`, `dzslides`).  Headers
+    slides (for `beamer`, `s5`, `slidy`, `slideous`, `dzslides`).  Headers
     above this level in the hierarchy are used to divide the
     slide show into sections; headers below this level create
     subheads within a slide.  The default is to set the slide level
@@ -683,6 +686,8 @@ depending on the output format, but include:
 `slidy-url`
 :   base URL for Slidy documents (defaults to
     `http://www.w3.org/Talks/Tools/Slidy2`)
+`slideous-url`
+:   base URL for Slideous documents (defaults to `default`)
 `s5-url`
 :   base URL for S5 documents (defaults to `ui/default`)
 `fontsize`
@@ -1698,7 +1703,7 @@ Docbook
 Docx
   ~ It will be rendered using OMML math markup.
 
-HTML, Slidy, DZSlides, S5, EPUB
+HTML, Slidy, Slideous, DZSlides, S5, EPUB
   ~ The way math is rendered in HTML will depend on the
     command-line options selected:
 
@@ -1749,7 +1754,8 @@ Markdown allows you to insert raw HTML (or DocBook) anywhere in a document
 (except verbatim contexts, where `<`, `>`, and `&` are interpreted
 literally).
 
-The raw HTML is passed through unchanged in HTML, S5, Slidy, DZSlides, EPUB,
+The raw HTML is passed through unchanged in HTML, S5, Slidy, Slideous,
+DZSlides, EPUB,
 Markdown, and Textile output, and suppressed in other formats.
 
 *Pandoc extension*.
@@ -2070,9 +2076,9 @@ Producing slide shows with Pandoc
 =================================
 
 You can use Pandoc to produce an HTML + javascript slide presentation
-that can be viewed via a web browser.  There are three ways to do this,
-using [S5], [DZSlides], or [Slidy].  You can also produce a PDF slide
-show using LaTeX [beamer].
+that can be viewed via a web browser.  There are four ways to do this,
+using [S5], [DZSlides], [Slidy], or [Slideous].  You can also produce a
+PDF slide show using LaTeX [beamer].
 
 Here's the markdown source for a simple slide show, `habits.txt`:
 
@@ -2117,6 +2123,10 @@ for S5,
     pandoc -t slidy -s habits.txt -o habits.html
 
 for Slidy,
+
+    pandoc -t slideous -s habits.txt -o habits.html
+
+for Slideous,
 
     pandoc -t dzslides -s habits.txt -o habits.html
 
@@ -2164,11 +2174,14 @@ you can just use level 1 headers for all each slide. (In that case, level 1
 will be the slide level.) But you can also structure the slide show into
 sections, as in the example above.
 
-For Slidy and S5, the file produced by pandoc with the `-s/--standalone`
+For Slidy, Slideous and S5, the file produced by pandoc with the
+`-s/--standalone`
 option embeds a link to javascripts and CSS files, which are assumed to
-be available at the relative path `s5/default` (for S5) or at the Slidy
+be available at the relative path `s5/default` (for S5) or `slideous`
+(for Slideous), or at the Slidy
 website at `w3.org` (for Slidy). (These paths can be changed by setting
-the `slidy-url` or `s5-url` variables; see `--variable`, above.) For DZSlides,
+the `slidy-url`, `slideous-url` or `s5-url` variables; see `--variable`,
+above.) For DZSlides,
 the (relatively short) javascript and css are included in the file by default.
 
 Incremental lists
@@ -2190,7 +2203,8 @@ Styling the slides
 ------------------
 
 You can change the style of HTML slides by putting customized CSS files
-in `$DATADIR/s5/default` (for S5) or `$DATADIR/slidy` (for Slidy),
+in `$DATADIR/s5/default` (for S5), `$DATADIR/slidy` (for Slidy),
+or `$DATADIR/slideous` (for Slideous),
 where `$DATADIR` is the user data directory (see `--data-dir`, above).
 The originals may be found in pandoc's system data directory (generally
 `$CABALDIR/pandoc-VERSION/s5/default`). Pandoc will look there for any
@@ -2267,6 +2281,7 @@ Latter, Ralf Stephan, Eric Seidel, B. Scott Michel.
 [reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html
 [S5]: http://meyerweb.com/eric/tools/s5/
 [Slidy]: http://www.w3.org/Talks/Tools/Slidy/
+[Slideous]: http://goessner.net/articles/slideous/
 [HTML]:  http://www.w3.org/TR/html40/
 [HTML 5]:  http://www.w3.org/TR/html5/
 [XHTML]:  http://www.w3.org/TR/xhtml1/

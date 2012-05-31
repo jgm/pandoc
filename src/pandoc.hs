@@ -101,7 +101,7 @@ data Opt = Opt
     , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
-    , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/S5
+    , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
     , optSelfContained     :: Bool    -- ^ Make HTML accessible offline
     , optSmart             :: Bool    -- ^ Use smart typography
     , optOldDashes         :: Bool    -- ^ Parse dashes like pandoc <=1.8.2.1
@@ -454,7 +454,7 @@ options =
     , Option "i" ["incremental"]
                  (NoArg
                   (\opt -> return opt { optIncremental = True }))
-                 "" -- "Make list items display incrementally in Slidy/S5"
+                 "" -- "Make list items display incrementally in Slidy/Slideous/S5"
 
     , Option "" ["slide-level"]
                  (ReqArg
@@ -887,6 +887,7 @@ main = do
   let slideVariant = case writerName' of
                            "s5"       -> S5Slides
                            "slidy"    -> SlidySlides
+                           "slideous" -> SlideousSlides
                            "dzslides" -> DZSlides
                            _          -> NoSlides
 
@@ -1052,7 +1053,7 @@ main = do
           where result       = w writerOptions doc2 ++ ['\n' | not standalone']
                 htmlFormat = writerName' `elem`
                                ["html","html+lhs","html5","html5+lhs",
-                               "s5","slidy","dzslides"]
+                               "s5","slidy","slideous","dzslides"]
                 selfcontain = if selfContained && htmlFormat
                                  then makeSelfContained datadir
                                  else return
