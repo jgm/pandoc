@@ -53,6 +53,16 @@ $if(url)$
 $endif$
 $if(graphics)$
 \usepackage{graphicx}
+\makeatletter
+\def\ScaleIfNeeded{%
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+\setkeys{Gin}{width=\ScaleIfNeeded}
 $endif$
 % Comment these out if you don't want a slide with just the
 % part/section/subsection/subsubsection title:
