@@ -19,7 +19,7 @@ $highlighting-css$
   </style>
 $endif$
   <link rel="stylesheet" type="text/css" media="screen, projection, print"
-    href="$slidy-url$/styles/slidy.css" />
+    href="$slideous-url$/slideous.css" />
 $for(css)$
   <link rel="stylesheet" type="text/css" media="screen, projection, print"
    href="$css$" />
@@ -30,7 +30,7 @@ $endif$
 $for(header-includes)$
   $header-includes$
 $endfor$
-  <script src="$slidy-url$/scripts/slidy.js.gz"
+  <script src="$slideous-url$/slideous.js"
     charset="utf-8" type="text/javascript"></script>
 $if(duration)$
   <meta name="duration" content="$duration$" />
@@ -40,6 +40,22 @@ $endif$
 $for(include-before)$
 $include-before$
 $endfor$
+<div id="statusbar">
+<span style="float:right;">
+<span style="margin-right:4em;font-weight:bold;"><span id="slideidx"></span> of {$$slidecount}</span>
+<button id="homebutton" title="first slide">1</button>
+<button id="prevslidebutton" title="previous slide">&laquo;</button>
+<button id="previtembutton" title="previous item">&lsaquo;</button>
+<button id="nextitembutton" title="next item">&rsaquo;</button>
+<button id="nextslidebutton" title="next slide">&raquo;</button>
+<button id="endbutton" title="last slide">{$$slidecount}</button>
+<button id="incfontbutton" title="content">A+</button>
+<button id="decfontbutton" title="first slide">A-</button>
+<select id="tocbox" size="1"><option></option></select>
+</span>
+<span id="eos">&frac12;</span>
+<span title="{$$location}, {$$date}">{$$title}, {$$author}</span>
+</div>
 $if(title)$
 <div class="slide titlepage">
   <h1 class="title">$title$</h1>
