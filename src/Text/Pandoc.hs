@@ -123,6 +123,7 @@ import Text.Pandoc.Readers.RST
 import Text.Pandoc.Readers.DocBook
 import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.HTML
+import Text.Pandoc.Readers.MoinMoin
 import Text.Pandoc.Readers.Textile
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Writers.Native
@@ -161,6 +162,7 @@ readers = [("native"       , \_ -> readNative)
           ,("markdown"     , readMarkdown)
           ,("markdown+lhs" , \st ->
                              readMarkdown st{ stateLiterateHaskell = True})
+          ,("moinmoin"     , readMoinMoin)
           ,("rst"          , readRST)
           ,("rst+lhs"      , \st ->
                              readRST st{ stateLiterateHaskell = True})
