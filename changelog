@@ -17,6 +17,8 @@ pandoc (1.9.4)
     + More consistent interblock spacing.
     + Require highlighting-kate >= 0.5.1, for proper highlighted inline
       code in LaTeX.  Closes #527.
+    + Ensure that a Verbatim at the end of a footnote is followed by
+      a newline. (Fixes a regression in the previous version.)
 
   * ConTeXt writer:
 
