@@ -9,7 +9,7 @@ AppId={{3CEE7B38-B19D-4980-9CAD-DF53600BD4CA}
 ; Version 5.1 is XP
 MinVersion=5.1,5.1
 AppName=Pandoc
-AppVerName=Pandoc 1.9.3
+AppVerName=Pandoc 1.9.4
 AppPublisher=John MacFarlane
 AppPublisherURL=http://johnmacfarlane.net/pandoc/
 AppSupportURL=http://johnmacfarlane.net/pandoc/
@@ -66,6 +66,7 @@ Source: "..\default.csl"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion
 Source: "..\data\*"; DestDir: "{app}\data"; Flags: ignoreversion
 Source: "..\s5\default\*"; DestDir: "{app}\s5\default"; Flags: ignoreversion
+Source: "..\slideous\*"; DestDir: "{app}\slideous"; Flags: ignoreversion
 Source: "..\slidy\graphics\*"; DestDir: "{app}\slidy\graphics"; Flags: ignoreversion
 Source: "..\slidy\scripts\*"; DestDir: "{app}\slidy\scripts"; Flags: ignoreversion
 Source: "..\slidy\styles\*"; DestDir: "{app}\slidy\styles"; Flags: ignoreversion
