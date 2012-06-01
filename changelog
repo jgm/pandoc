@@ -1,3 +1,46 @@
+pandoc (1.9.4)
+
+  * Simplified `Text.Pandoc.Biblio` and fixed bugs with citations inside
+    footnotes and captions.  We now handle note citations by inserting
+    footnotes during initial citation processing, and doing a separate
+    pass later to remove notes inside notes.
+
+  * Added 'zenburn' highlight style from highlighting-kate.
+
+  * Added Slideous writer. Slideous is an HTML + javascript slide show
+    format, similar to Slidy, but works with IE 7. (Jonas Smedegaard)
+
+  * LaTeX writer:
+
+    + Ensure we don't have extra blank lines at ends of cells.
+      This can cause LaTeX errors, as they are interpreted as new paragraphs.
+    + More consistent interblock spacing.
+    + Require highlighting-kate >= 0.5.1, for proper highlighted inline
+      code in LaTeX.  Closes #527.
+
+  * ConTeXt writer:
+
+    + Escape `%` as `\letterpercent{}` not `\letterpercent `,
+      to avoid gobbling spaces after the `%` sign.
+    + Ensure space after `\stopformula`.
+
+  * Markdown writer:
+
+    + Use `:` form instead of `~` in definition lists, for better
+      compatibility with other markdown implementations.
+    + Don't wrap the term, because it breaks definition lists.
+    + Use a nonzero space to prevent false recognition
+      of list marker in ordered lists.  Closes #516.
+
+  * Org writer: Add space before language name.  Closes #523.
+
+  * LaTeX reader: Support `\centerline`.
+
+  * RST reader:  handle figures.  Closes #522.
+
+  * Textile reader: fix for `<notextile>` and `==`.  Closes #517.
+    (Paul Rivier)
+
 pandoc (1.9.3)
 
   * Fixed bug in `fromEntities`.  The previous version would turn
