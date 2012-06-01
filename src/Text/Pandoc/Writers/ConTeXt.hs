@@ -96,7 +96,7 @@ escapeCharForConTeXt opts ch =
     '$'    -> "\\$"
     '|'    -> "\\letterbar{}"
     '^'    -> "\\letterhat{}"
-    '%'    -> "\\letterpercent "
+    '%'    -> "\\letterpercent{}"
     '~'    -> "\\lettertilde{}"
     '&'    -> "\\&"
     '#'    -> "\\#"
