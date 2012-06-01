@@ -9,6 +9,7 @@ import qualified Tests.Readers.LaTeX
 import qualified Tests.Readers.Markdown
 import qualified Tests.Readers.RST
 import qualified Tests.Writers.ConTeXt
+import qualified Tests.Writers.LaTeX
 import qualified Tests.Writers.HTML
 import qualified Tests.Writers.Native
 import qualified Tests.Writers.Markdown
@@ -20,6 +21,7 @@ tests = [ testGroup "Old" Tests.Old.tests
         , testGroup "Writers"
           [ testGroup "Native" Tests.Writers.Native.tests
           , testGroup "ConTeXt" Tests.Writers.ConTeXt.tests
+          , testGroup "LaTeX" Tests.Writers.LaTeX.tests
           , testGroup "HTML" Tests.Writers.HTML.tests
           , testGroup "Markdown" Tests.Writers.Markdown.tests
           ]

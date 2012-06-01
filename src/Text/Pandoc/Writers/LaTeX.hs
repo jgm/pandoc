@@ -588,13 +588,16 @@ inlineToLaTeX (Note contents) = do
   contents' <- blockListToLaTeX contents
   modify (\s -> s {stInNote = False})
   inTable <- liftM stInTable get
+  let optnl = case reverse contents of
+                   (CodeBlock _ _ : _) -> cr
+                   _                   -> empty
   if inTable
      then do
        curnotes <- liftM stTableNotes get
        let marker = cycle ['a'..'z'] !! length curnotes
        modify $ \s -> s{ stTableNotes = (marker, contents') : curnotes }
        return $ "\\tmark" <> brackets (char marker) <> space
-     else return $ "\\footnote" <> braces (nest 2 contents')
+     else return $ "\\footnote" <> braces (nest 2 contents' <> optnl)
      -- note: a \n before } needed when note ends with a Verbatim environment
 
 citationsToNatbib :: [Citation] -> State WriterState Doc
