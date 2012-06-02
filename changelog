@@ -36,6 +36,9 @@ pandoc (1.9.4)
 
   * Org writer: Add space before language name.  Closes #523.
 
+  * Docx writer: Simplified bullet characters so they work properly
+    with Word 2007. Closes #520.
+
   * LaTeX reader: Support `\centerline`.
 
   * RST reader:  handle figures.  Closes #522.
