@@ -20,23 +20,20 @@
 \ifxetex
   \usepackage[setpagesize=false, % page size defined by xetex
               unicode=false, % unicode breaks when used with xetex
-              xetex,
-              bookmarks=true,
-              pdfauthor={},
-              pdftitle={},
-              colorlinks=true,
-              urlcolor=blue,
-              linkcolor=blue]{hyperref}
+              xetex]{hyperref}
 \else
-  \usepackage[unicode=true,
-              bookmarks=true,
-              pdfauthor={},
-              pdftitle={},
-              colorlinks=true,
-              urlcolor=blue,
-              linkcolor=blue]{hyperref}
+  \usepackage[unicode=true]{hyperref}
 \fi
-\hypersetup{breaklinks=true, pdfborder={0 0 0}}
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={},
+            colorlinks=true,
+            urlcolor=blue,
+            linkcolor=black,
+            pdfborder={0 0 0}}
+% Uncomment next line if you want links as footnotes instead of hotlinks:
+% \renewcommand{\href}[2]{#2\footnote{\url{#1}}}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 \setlength{\emergencystretch}{3em}  % prevent overfull lines

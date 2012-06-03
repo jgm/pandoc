@@ -23,7 +23,6 @@
     {\setlength{\labelwidth}{4em}}
 }\makeatother
 \usepackage{enumerate}
-\usepackage{url}
 \usepackage{graphicx}
 % We will generate all images so they have a width \maxwidth. This means
 % that they will get their normal width if they fit onto the page, but
@@ -37,23 +36,20 @@
 \ifxetex
   \usepackage[setpagesize=false, % page size defined by xetex
               unicode=false, % unicode breaks when used with xetex
-              xetex,
-              bookmarks=true,
-              pdfauthor={John MacFarlane; Anonymous},
-              pdftitle={Pandoc Test Suite},
-              colorlinks=true,
-              urlcolor=blue,
-              linkcolor=blue]{hyperref}
+              xetex]{hyperref}
 \else
-  \usepackage[unicode=true,
-              bookmarks=true,
-              pdfauthor={John MacFarlane; Anonymous},
-              pdftitle={Pandoc Test Suite},
-              colorlinks=true,
-              urlcolor=blue,
-              linkcolor=blue]{hyperref}
+  \usepackage[unicode=true]{hyperref}
 \fi
-\hypersetup{breaklinks=true, pdfborder={0 0 0}}
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={John MacFarlane; Anonymous},
+            pdftitle={Pandoc Test Suite},
+            colorlinks=true,
+            urlcolor=blue,
+            linkcolor=black,
+            pdfborder={0 0 0}}
+% Uncomment next line if you want links as footnotes instead of hotlinks:
+% \renewcommand{\href}[2]{#2\footnote{\url{#1}}}
 \usepackage[normalem]{ulem}
 % avoid problems with \sout in headers with hyperref:
 \pdfstringdefDisableCommands{\renewcommand{\sout}{}}
