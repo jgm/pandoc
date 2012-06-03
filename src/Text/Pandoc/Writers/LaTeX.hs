@@ -274,7 +274,7 @@ blockToLaTeX (BlockQuote lst) = do
   case lst of
        [b] | beamer && isListBlock b -> do
          oldIncremental <- gets stIncremental
-         modify $ \s -> s{ stIncremental = True }
+         modify $ \s -> s{ stIncremental = not oldIncremental }
          result <- blockToLaTeX b
          modify $ \s -> s{ stIncremental = oldIncremental }
          return result
