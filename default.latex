@@ -80,9 +80,6 @@ $if(tables)$
 \usepackage{ctable}
 \usepackage{float} % provides the H option for float placement
 $endif$
-$if(url)$
-\usepackage{url}
-$endif$
 $if(graphics)$
 \usepackage{graphicx}
 % We will generate all images so they have a width \maxwidth. This means
@@ -98,23 +95,20 @@ $endif$
 \ifxetex
   \usepackage[setpagesize=false, % page size defined by xetex
               unicode=false, % unicode breaks when used with xetex
-              xetex,
-              bookmarks=true,
-              pdfauthor={$author-meta$},
-              pdftitle={$title-meta$},
-              colorlinks=true,
-              urlcolor=blue,
-              linkcolor=blue]{hyperref}
+              xetex]{hyperref}
 \else
-  \usepackage[unicode=true,
-              bookmarks=true,
-              pdfauthor={$author-meta$},
-              pdftitle={$title-meta$},
-              colorlinks=true,
-              urlcolor=blue,
-              linkcolor=blue]{hyperref}
+  \usepackage[unicode=true]{hyperref}
 \fi
-\hypersetup{breaklinks=true, pdfborder={0 0 0}}
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={$author-meta$},
+            pdftitle={$title-meta$},
+            colorlinks=true,
+            urlcolor=blue,
+            linkcolor=black,
+            pdfborder={0 0 0}}
+% Uncomment next line if you want links as footnotes instead of hotlinks:
+% \renewcommand{\href}[2]{#2\footnote{\url{#1}}}
 $if(strikeout)$
 \usepackage[normalem]{ulem}
 % avoid problems with \sout in headers with hyperref:
