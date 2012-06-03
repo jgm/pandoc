@@ -19,6 +19,9 @@ pandoc (1.9.4)
       code in LaTeX.  Closes #527.
     + Ensure that a Verbatim at the end of a footnote is followed by
       a newline. (Fixes a regression in the previous version.)
+    + In default template, use black for internal links and TOC.
+      Added commented-out code to use footnotes for links, as would
+      be suitable in print output.
 
   * Beamer writer:  When `--incremental` is used, lists inside
     a block quote should appear all at once.  (This makes Beamer
