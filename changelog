@@ -20,6 +20,10 @@ pandoc (1.9.4)
     + Ensure that a Verbatim at the end of a footnote is followed by
       a newline. (Fixes a regression in the previous version.)
 
+  * Beamer writer:  When `--incremental` is used, lists inside
+    a block quote should appear all at once.  (This makes Beamer
+    output consistent with the HTML slide show formats.)
+
   * ConTeXt writer:
 
     + Escape `%` as `\letterpercent{}` not `\letterpercent `,
