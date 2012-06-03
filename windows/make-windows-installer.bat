@@ -1,5 +1,7 @@
 @echo off
 cd ..
+ghc --make MakeManPage
+MakeManPage.exe
 cabal update
 cabal-dev install --disable-library-for-ghci highlighting-kate
 cabal-dev install --flags="embed_data_files" citeproc-hs
