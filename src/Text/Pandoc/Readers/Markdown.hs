@@ -1131,7 +1131,7 @@ likelyAbbrev x =
                   "Gen.", "Gov.", "e.g.", "i.e.", "Sgt.", "St.",
                   "vol.", "vs.", "Sen.", "Rep.", "Pres.", "Hon.",
                   "Rev.", "Ph.D.", "M.D.", "M.A.", "p.", "pp.",
-                  "ch.", "sec." ]
+                  "ch.", "sec.", "cf.", "cp."]
       abbrPairs = map (break (=='.')) abbrevs
   in  map snd $ filter (\(y,_) -> y == x) abbrPairs
 
