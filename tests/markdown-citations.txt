@@ -32,7 +32,7 @@ Pandoc with citeproc-hs
 References
 ==========
 
-[^1]: A citation without locators [@пункт3], and inline: @пункт3 [p. 12].
+[^1]: @пункт3 [p. 12] and a citation without locators [@пункт3].
 
 [^2]: Some citations [see @item1 chap. 3; @пункт3; @item2].
 
