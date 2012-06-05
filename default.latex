@@ -104,8 +104,8 @@ $endif$
             pdfauthor={$author-meta$},
             pdftitle={$title-meta$},
             colorlinks=true,
-            urlcolor=blue,
-            linkcolor=black,
+            urlcolor=$if(linkcolor)$$linkcolor$$else$blue$endif$,
+            linkcolor=$if(linkcolor)$$linkcolor$$else$blue$endif$,
             pdfborder={0 0 0}}
 % Uncomment next line if you want links as footnotes instead of hotlinks:
 % \renewcommand{\href}[2]{#2\footnote{\url{#1}}}
