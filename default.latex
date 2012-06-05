@@ -2,29 +2,24 @@
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage{amssymb,amsmath}
-\usepackage{ifxetex,ifluatex}
+\usepackage{iftex}
 \usepackage{fixltx2e} % provides \textsubscript
-\ifxetex
-  \usepackage{fontspec,xltxtra,xunicode}
-  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
-  \newcommand{\euro}{€}
-$if(mainfont)$
-  \setmainfont{$mainfont$}
-$endif$
-$if(sansfont)$
-  \setsansfont{$sansfont$}
-$endif$
-$if(monofont)$
-  \setmonofont{$monofont$}
-$endif$
-$if(mathfont)$
-  \setmathfont{$mathfont$}
+\ifPDFTeX % use microtype with pdflatex if available
+  \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\fi
+
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+$if(euro)$
+  \usepackage{eurosym}
 $endif$
 \else
-  \ifluatex
-    \usepackage{fontspec}
-    \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
-    \newcommand{\euro}{€}
+  \usepackage{fontspec}
+  \ifXeTeX
+    \usepackage{xltxtra,xunicode}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
 $if(mainfont)$
     \setmainfont{$mainfont$}
 $endif$
@@ -37,12 +32,6 @@ $endif$
 $if(mathfont)$
     \setmathfont{$mathfont$}
 $endif$
-  \else
-    \usepackage[utf8]{inputenc}
-$if(euro)$
-    \usepackage{eurosym}
-$endif$
-  \fi
 \fi
 $if(geometry)$
 \usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
@@ -94,7 +83,7 @@ $if(graphics)$
 \let\Oldincludegraphics\includegraphics
 \renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=\maxwidth]{#1}}
 $endif$
-\ifxetex
+\ifXeTeX
   \usepackage[setpagesize=false, % page size defined by xetex
               unicode=false, % unicode breaks when used with xetex
               xetex]{hyperref}
@@ -129,7 +118,7 @@ $if(verbatim-in-note)$
 \VerbatimFootnotes % allows verbatim text in footnotes
 $endif$
 $if(lang)$
-\ifxetex
+\ifXeTeX
   \usepackage{polyglossia}
   \setmainlanguage{$mainlang$}
 \else
