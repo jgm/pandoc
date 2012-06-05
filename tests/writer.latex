@@ -1,19 +1,21 @@
 \documentclass[]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
 \usepackage{amssymb,amsmath}
-\usepackage{ifxetex,ifluatex}
+\usepackage{iftex}
 \usepackage{fixltx2e} % provides \textsubscript
-\ifxetex
-  \usepackage{fontspec,xltxtra,xunicode}
+\ifPDFTeX % use microtype with pdflatex if available
+  \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\fi
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+\else
+  \usepackage{fontspec}
+  \ifXeTeX
+    \usepackage{xltxtra,xunicode}
+  \fi
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
   \newcommand{\euro}{€}
-\else
-  \ifluatex
-    \usepackage{fontspec}
-    \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
-    \newcommand{\euro}{€}
-  \else
-    \usepackage[utf8]{inputenc}
-  \fi
 \fi
 \usepackage{fancyvrb}
 % Redefine labelwidth for lists; otherwise, the enumerate package will cause
@@ -33,7 +35,7 @@
 \makeatother
 \let\Oldincludegraphics\includegraphics
 \renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=\maxwidth]{#1}}
-\ifxetex
+\ifXeTeX
   \usepackage[setpagesize=false, % page size defined by xetex
               unicode=false, % unicode breaks when used with xetex
               xetex]{hyperref}
@@ -46,10 +48,8 @@
             pdftitle={Pandoc Test Suite},
             colorlinks=true,
             urlcolor=blue,
-            linkcolor=black,
+            linkcolor=blue,
             pdfborder={0 0 0}}
-% Uncomment next line if you want links as footnotes instead of hotlinks:
-% \renewcommand{\href}[2]{#2\footnote{\url{#1}}}
 \usepackage[normalem]{ulem}
 % avoid problems with \sout in headers with hyperref:
 \pdfstringdefDisableCommands{\renewcommand{\sout}{}}
