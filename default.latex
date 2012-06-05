@@ -158,8 +158,10 @@ $include-before$
 
 $endfor$
 $if(toc)$
+{
+\hypersetup{linkcolor=black}
 \tableofcontents
-
+}
 $endif$
 $body$
 
