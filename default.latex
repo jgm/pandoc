@@ -7,7 +7,6 @@
 \ifPDFTeX % use microtype with pdflatex if available
   \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
 \fi
-
 \ifPDFTeX
   \usepackage[utf8]{inputenc}
 $if(euro)$
