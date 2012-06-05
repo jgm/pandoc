@@ -31,7 +31,7 @@ module Text.Pandoc.Biblio ( processBiblio ) where
 
 import Data.List
 import Data.Unique
-import Data.Char ( isDigit )
+import Data.Char ( isDigit, isPunctuation )
 import qualified Data.Map as M
 import Text.CSL hiding ( Cite(..), Citation(..) )
 import qualified Text.CSL as CSL ( Cite(..) )
@@ -124,13 +124,21 @@ toCslCite :: Citation -> CSL.Cite
 toCslCite c
     = let (l, s)  = locatorWords $ citationSuffix c
           (la,lo) = parseLocator l
+          s'      = case (l,s,citationMode c) of
+                         -- treat a bare locator as if it begins with comma
+                         -- so @item1 [blah] is like [@item1, blah]
+                         ("",(x:_),AuthorInText) | not (isPunct x)
+                                                 -> [Str ",",Space] ++ s
+                         _                       -> s
+          isPunct (Str (c:_)) = isPunctuation c
+          isPunct _           = False
           citMode = case citationMode c of
                       AuthorInText   -> (True, False)
                       SuppressAuthor -> (False,True )
                       NormalCitation -> (False,False)
       in   emptyCite { CSL.citeId         = citationId c
                      , CSL.citePrefix     = PandocText $ citationPrefix c
-                     , CSL.citeSuffix     = PandocText $ s
+                     , CSL.citeSuffix     = PandocText s'
                      , CSL.citeLabel      = la
                      , CSL.citeLocator    = lo
                      , CSL.citeNoteNumber = show $ citationNoteNum c
