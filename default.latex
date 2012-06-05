@@ -107,8 +107,10 @@ $endif$
             urlcolor=$if(linkcolor)$$linkcolor$$else$blue$endif$,
             linkcolor=$if(linkcolor)$$linkcolor$$else$blue$endif$,
             pdfborder={0 0 0}}
-% Uncomment next line if you want links as footnotes instead of hotlinks:
-% \renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+$if(links-as-notes)$
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+$endif$
 $if(strikeout)$
 \usepackage[normalem]{ulem}
 % avoid problems with \sout in headers with hyperref:
