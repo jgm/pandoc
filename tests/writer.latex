@@ -2,16 +2,15 @@
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage{amssymb,amsmath}
-\usepackage{iftex}
+\usepackage{ifxetex,ifluatex}
 \usepackage{fixltx2e} % provides \textsubscript
-\ifPDFTeX % use microtype with pdflatex if available
-  \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
-\fi
-\ifPDFTeX
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
   \usepackage[utf8]{inputenc}
-\else
+\else % if luatex or xelatex
   \usepackage{fontspec}
-  \ifXeTeX
+  \ifxetex
     \usepackage{xltxtra,xunicode}
   \fi
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
@@ -35,7 +34,7 @@
 \makeatother
 \let\Oldincludegraphics\includegraphics
 \renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=\maxwidth]{#1}}
-\ifXeTeX
+\ifxetex
   \usepackage[setpagesize=false, % page size defined by xetex
               unicode=false, % unicode breaks when used with xetex
               xetex]{hyperref}
