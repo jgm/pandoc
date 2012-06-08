@@ -2,8 +2,8 @@ pandoc (1.9.4.1)
 
   * Markdown reader: Added `cf.` and `cp.` to list of likely abbreviations.
 
-  * LaTeX template: Added linkcolor and links-as-notes variables.
-    Make TOC links black.
+  * LaTeX template: Added `linkcolor`, `urlcolor` and `links-as-notes`
+    variables.  Make TOC links black.
 
   * LaTeX template improvements.
 
