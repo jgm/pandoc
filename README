@@ -1157,8 +1157,8 @@ roman numerals:
           ii. subtwo
          iii. subthree
 
-Note that Pandoc pays attention only to the *starting* marker in a list.
-So, the following yields a list numbered sequentially starting from 2:
+Pandoc will start a new list each time a different type of list
+marker is used.  So, the following will create three lists:
 
     (2) Two
     (5) Three
