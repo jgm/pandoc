@@ -704,6 +704,13 @@ depending on the output format, but include:
 :   theme for LaTeX beamer documents
 `colortheme`
 :   colortheme for LaTeX beamer documents
+`linkcolor`
+:   color for internal links in LaTeX documents (`red`, `green`,
+    `magenta`, `cyan`, `blue`, `black`)
+`urlcolor`
+:   color for external links in LaTeX documents
+`links-as-notes`
+:   causes links to be printed as footnotes in LaTeX documents
 
 Variables may be set at the command line using the `-V/--variable`
 option. This allows users to include custom variables in their
