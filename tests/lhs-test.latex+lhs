@@ -31,7 +31,7 @@
             pdftitle={},
             colorlinks=true,
             urlcolor=blue,
-            linkcolor=blue,
+            linkcolor=magenta,
             pdfborder={0 0 0}}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}

@@ -47,7 +47,7 @@
             pdftitle={Pandoc Test Suite},
             colorlinks=true,
             urlcolor=blue,
-            linkcolor=blue,
+            linkcolor=magenta,
             pdfborder={0 0 0}}
 \usepackage[normalem]{ulem}
 % avoid problems with \sout in headers with hyperref:
