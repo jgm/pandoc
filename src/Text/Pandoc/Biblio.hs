@@ -138,7 +138,7 @@ toCslCite c
                          ("",(x:_),AuthorInText) | not (isPunct x)
                                                  -> [Str ",",Space] ++ s
                          _                       -> s
-          isPunct (Str (c:_)) = isPunctuation c
+          isPunct (Str (x:_)) = isPunctuation x
           isPunct _           = False
           citMode = case citationMode c of
                       AuthorInText   -> (True, False)
