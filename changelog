@@ -1,3 +1,27 @@
+pandoc (1.9.4.1)
+
+  * Markdown reader: Added `cf.` and `cp.` to list of likely abbreviations.
+
+  * LaTeX template: Added linkcolor and links-as-notes variables.
+    Make TOC links black.
+
+  * LaTeX template improvements.
+
+    + Don't print date unless one is given explicitly in the document.
+    + Simplified templates.
+    + Use fontenc [T1] by default, and lmodern.
+    + Use microtype if available.
+
+  * Biblio:
+  
+    + Add comma to beginning of bare suffix, e.g. `@item1 [50]`.
+      Motivation: `@item1 [50]` should be as close as possible to
+      `[@item1, 50]`.
+    + Added workaround for a bug in citeproc-hs 0.3.4 that causes footnotes
+      beginning with a citation to be empty.  Closes #531.
+
+  * Fixed documentation on mixed lists.  Closes #533.
+
 pandoc (1.9.4)
 
   * Simplified `Text.Pandoc.Biblio` and fixed bugs with citations inside
