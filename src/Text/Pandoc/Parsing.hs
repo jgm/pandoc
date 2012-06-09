@@ -60,6 +60,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              gridTableWith,
                              readWith,
                              testStringWith,
+                             LineBreakConv (..),
                              ParserState (..),
                              defaultParserState,
                              HeaderType (..),
@@ -625,6 +626,13 @@ testStringWith :: (Show a) => GenParser Char ParserState a
 testStringWith parser str = UTF8.putStrLn $ show $
                             readWith parser defaultParserState str
 
+-- | Experimental line break control options.
+data LineBreakConv
+    = LineBreakSpace    -- ^ Convert newline characters to spaces
+    | LineBreakSkip     -- ^ Skip newline characters within paragraphs
+    | LineBreakPreserve -- ^ Preverve all newline characters
+    deriving Show
+
 -- | Parsing options.
 data ParserState = ParserState
     { stateParseRaw        :: Bool,          -- ^ Parse raw HTML and LaTeX?
@@ -654,7 +662,8 @@ data ParserState = ParserState
       stateHasChapters     :: Bool,          -- ^ True if \chapter encountered
       stateApplyMacros     :: Bool,          -- ^ Apply LaTeX macros?
       stateMacros          :: [Macro],       -- ^ List of macros defined so far
-      stateRstDefaultRole  :: String         -- ^ Current rST default interpreted text role
+      stateRstDefaultRole  :: String,        -- ^ Current rST default interpreted text role
+      stateLineBreakConv   :: LineBreakConv  -- ^ How to convert line breaks?
     }
     deriving Show
 
@@ -685,7 +694,8 @@ defaultParserState =
                   stateHasChapters     = False,
                   stateApplyMacros     = True,
                   stateMacros          = [],
-                  stateRstDefaultRole  = "title-reference"}
+                  stateRstDefaultRole  = "title-reference",
+                  stateLineBreakConv   = LineBreakSpace}
 
 data HeaderType 
     = SingleHeader Char  -- ^ Single line of characters underneath
