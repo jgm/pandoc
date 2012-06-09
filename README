@@ -237,6 +237,11 @@ Reader options
 `-p`, `--preserve-tabs`
 :   Preserve tabs instead of converting them to spaces (the default).
 
+`--linebreak=`*METHOD*
+:   Specify the treatment of newline characters within paragraphs.
+    *METHOD* can be `space`, `skip`, or `preserve` (defaults to `space`).
+    This option currently has effect only on `markdown` input.
+
 `--tab-stop=`*NUMBER*
 :   Specify the number of spaces per tab (default is 4).
 

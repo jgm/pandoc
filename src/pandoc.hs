@@ -104,6 +104,7 @@ nonTextFormats = ["odt","docx","epub"]
 data Opt = Opt
     { optTabStop           :: Int     -- ^ Number of spaces per tab
     , optPreserveTabs      :: Bool    -- ^ Preserve tabs instead of converting to spaces
+    , optLineBreakConv     :: LineBreakConv -- ^ Linebreak conversion
     , optStandalone        :: Bool    -- ^ Include header, footer
     , optReader            :: String  -- ^ Reader format
     , optWriter            :: String  -- ^ Writer format
@@ -157,6 +158,7 @@ defaultOpts :: Opt
 defaultOpts = Opt
     { optTabStop           = 4
     , optPreserveTabs      = False
+    , optLineBreakConv     = LineBreakSpace
     , optStandalone        = False
     , optReader            = ""    -- null for default reader
     , optWriter            = ""    -- null for default writer
@@ -285,6 +287,19 @@ options =
                  (NoArg
                   (\opt -> return opt { optPreserveTabs = True }))
                  "" -- "Preserve tabs instead of converting to spaces"
+
+    , Option "" ["linebreak"]
+                 (ReqArg
+                  (\arg opt -> do
+                     method <- case arg of
+                            "space"      -> return LineBreakSpace
+                            "skip"       -> return LineBreakSkip
+                            "preserve"   -> return LineBreakPreserve
+                            _            -> err 51
+                               ("Unknown line-break conversion method: " ++ arg)
+                     return opt { optLineBreakConv = method })
+                  "space|skip|none")
+                 "" -- "Method for converting line breaks"
 
     , Option "" ["tab-stop"]
                  (ReqArg
@@ -781,6 +796,7 @@ main = do
 
   let Opt    {  optTabStop           = tabStop
               , optPreserveTabs      = preserveTabs
+              , optLineBreakConv     = lineBreakConv
               , optStandalone        = standalone
               , optReader            = readerName
               , optWriter            = writerName
@@ -947,7 +963,8 @@ main = do
                               stateColumns         = columns,
                               stateStrict          = strict,
                               stateIndentedCodeClasses = codeBlockClasses,
-                              stateApplyMacros     = not laTeXOutput
+                              stateApplyMacros     = not laTeXOutput,
+                              stateLineBreakConv   = lineBreakConv
                               }
 
   let writerOptions = defaultWriterOptions
