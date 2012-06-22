@@ -39,21 +39,25 @@ module Text.Pandoc.UTF8 ( readFile
 
 where
 
+#if MIN_VERSION_base(4,5,0)
+#else
+import Codec.Binary.UTF8.String (encodeString)
+#endif
+
 #if MIN_VERSION_base(4,2,0)
 
 import System.IO hiding (readFile, writeFile, getContents,
                           putStr, putStrLn, hPutStr, hPutStrLn, hGetContents)
 import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn )
-import Codec.Binary.UTF8.String (encodeString)
 import qualified System.IO as IO
 
 readFile :: FilePath -> IO String
 readFile f = do
-  h <- openFile (encodeString f) ReadMode
+  h <- openFile (encodePath f) ReadMode
   hGetContents h
 
 writeFile :: FilePath -> String -> IO ()
-writeFile f s = withFile (encodeString f) WriteMode $ \h -> hPutStr h s
+writeFile f s = withFile (encodePath f) WriteMode $ \h -> hPutStr h s
 
 getContents :: IO String
 getContents = hGetContents stdin
@@ -76,7 +80,6 @@ hGetContents h = hSetEncoding h utf8_bom >> IO.hGetContents h
 #else
 
 import qualified Data.ByteString as B
-import Codec.Binary.UTF8.String (encodeString)
 import Data.ByteString.UTF8 (toString, fromString)
 import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn)
 import System.IO (Handle)
@@ -91,10 +94,10 @@ stripBOM s | bom `B.isPrefixOf` s = B.drop 3 s
 stripBOM s = s
 
 readFile :: FilePath -> IO String
-readFile = liftM (toString . stripBOM) . B.readFile . encodeString
+readFile = liftM (toString . stripBOM) . B.readFile . encodePath
 
 writeFile :: FilePath -> String -> IO ()
-writeFile f = B.writeFile (encodeString f) . fromString
+writeFile f = B.writeFile (encodePath f) . fromString
 
 getContents :: IO String
 getContents = liftM (toString . stripBOM) B.getContents
@@ -114,4 +117,11 @@ hPutStr h = B.hPutStr h . fromString
 hPutStrLn :: Handle -> String -> IO ()
 hPutStrLn h s = hPutStr h (s ++ "\n")
 
+#endif
+
+encodePath :: FilePath -> FilePath
+#if MIN_VERSION_base(4,5,0)
+encodePath = id
+#else
+encodePath = encodeString
 #endif

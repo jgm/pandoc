@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-
 Copyright (C) 2006-2012 John MacFarlane <jgm@berkeley.edu>
 
@@ -56,8 +57,21 @@ import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString )
-import Codec.Binary.UTF8.String (decodeString, encodeString)
 import Text.CSL.Reference (Reference(..))
+#if MIN_VERSION_base(4,5,0)
+#else
+import Codec.Binary.UTF8.String (decodeString, encodeString)
+#endif
+
+encodePath, decodeArg :: FilePath -> FilePath
+#if MIN_VERSION_base(4,5,0)
+encodePath = id
+decodeArg  = id
+#else
+encodePath = encodeString
+decodeArg  = decodeString
+#endif
+
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2012 John MacFarlane\n" ++
@@ -745,7 +759,7 @@ defaultWriterName x =
 main :: IO ()
 main = do
 
-  rawArgs <- liftM (map decodeString) getArgs
+  rawArgs <- liftM (map decodeArg) getArgs
   prg <- getProgName
   let compatMode = (prg == "hsmarkdown")
 
@@ -1023,7 +1037,7 @@ main = do
              else return doc1
 
   let writeBinary :: B.ByteString -> IO ()
-      writeBinary = B.writeFile (encodeString outputFile)
+      writeBinary = B.writeFile (encodePath outputFile)
 
   let writerFn :: FilePath -> String -> IO ()
       writerFn "-" = UTF8.putStr
