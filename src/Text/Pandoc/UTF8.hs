@@ -39,7 +39,7 @@ module Text.Pandoc.UTF8 ( readFile
 
 where
 
-#if MIN_VERSION_base(4,5,0)
+#if MIN_VERSION_base(4,4,0)
 #else
 import Codec.Binary.UTF8.String (encodeString)
 #endif
@@ -120,7 +120,7 @@ hPutStrLn h s = hPutStr h (s ++ "\n")
 #endif
 
 encodePath :: FilePath -> FilePath
-#if MIN_VERSION_base(4,5,0)
+#if MIN_VERSION_base(4,4,0)
 encodePath = id
 #else
 encodePath = encodeString

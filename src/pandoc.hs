@@ -58,13 +58,13 @@ import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString )
 import Text.CSL.Reference (Reference(..))
-#if MIN_VERSION_base(4,5,0)
+#if MIN_VERSION_base(4,4,0)
 #else
 import Codec.Binary.UTF8.String (decodeString, encodeString)
 #endif
 
 encodePath, decodeArg :: FilePath -> FilePath
-#if MIN_VERSION_base(4,5,0)
+#if MIN_VERSION_base(4,4,0)
 encodePath = id
 decodeArg  = id
 #else
