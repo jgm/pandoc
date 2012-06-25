@@ -262,7 +262,9 @@ elementToHtml slideLevel opts (Sec level num id' title' elements) = do
   -- always use level 1 for slide titles
   let level' = if slide then 1 else level
   let titleSlide = slide && level < slideLevel
-  header' <- blockToHtml opts (Header level' title')
+  header' <- if title' == [Str "\0"]  -- marker for hrule
+                then return mempty
+                else blockToHtml opts (Header level' title')
   let isSec (Sec _ _ _ _ _) = True
       isSec (Blk _)         = False
   innerContents <- mapM (elementToHtml slideLevel opts)

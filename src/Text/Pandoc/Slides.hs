@@ -49,9 +49,10 @@ prepSlides :: Int -> [Block] -> [Block]
 prepSlides slideLevel = ensureStartWithH . splitHrule
   where splitHrule (HorizontalRule : Header n xs : ys)
                        | n == slideLevel = Header slideLevel xs : splitHrule ys
-        splitHrule (HorizontalRule : xs) = Header slideLevel [] : splitHrule xs
+        splitHrule (HorizontalRule : xs) = Header slideLevel [Str "\0"] :
+                                           splitHrule xs
         splitHrule (x : xs)              = x : splitHrule xs
         splitHrule []                    = []
         ensureStartWithH bs@(Header n _:_)
                        | n <= slideLevel = bs
-        ensureStartWithH bs              = Header slideLevel [] : bs
+        ensureStartWithH bs              = Header slideLevel [Str "\0"] : bs

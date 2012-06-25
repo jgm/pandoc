@@ -243,8 +243,11 @@ elementToBeamer slideLevel  (Sec lvl _num _ident tit elts)
       let fragile = if not $ null $ queryWith hasCodeBlock elts ++ queryWith hasCode elts
                        then "[fragile]"
                        else ""
-      let slideStart = Para $ RawInline "latex" ("\\begin{frame}" ++ fragile ++
-                "\\frametitle{") : tit ++ [RawInline "latex" "}"]
+      let slideStart = Para $ RawInline "latex" ("\\begin{frame}" ++ fragile) :
+                if tit == [Str "\0"]  -- marker for hrule
+                   then []
+                   else (RawInline "latex" "\\frametitle{") : tit ++
+                        [RawInline "latex" "}"]
       let slideEnd = RawBlock "latex" "\\end{frame}"
       -- now carve up slide into blocks if there are sections inside
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
