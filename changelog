@@ -1,3 +1,33 @@
+pandoc (1.9.4.2)
+
+  * Don't encode/decode file paths if base >= 4.4.
+    Prior to base 4.4, filepaths and command line arguments were treated
+    as unencoded lists of bytes, not unicode strings, so we had to work
+    around that by encoding and decoding them. This commit adds CPP
+    checks for the base version that intelligibly enable encoding/decoding
+    when needed. Fixes a bug with multilingual filenames when pandoc was
+    compiled with ghc 7.4 (#540).
+    
+  * Don't generate an empty H1 after hrule slide breaks.
+    We now use a slide-level header with contents `[Str "\0"]` to mark
+    an hrule break.  This avoids creation of an empty H1 in these
+    contexts.  Closes #484.
+    
+  * Docbook reader: Added support for "bold" emphasis.  Thanks to mb21.
+  
+  * In make_osx_package.sh, ensure citeproc-hs is built with the
+    embed_data_files flag.
+    
+  * MediaWiki writer: Avoid extra blank lines after sublists (Gavin Beatty).
+    
+  * ConTeXt writer: Don't escape `&`, `^`, `<`, `>`, `_`,
+    simplified escapes for `}` and `{` to `\{` and `\}` (Aditya Mahajan).
+
+  * Added some missing exports and tests to the cabal file
+    (Alexander V Vershilov).
+    
+  * Compile with `-rtsopts` and `-threaded` by default.
+
 pandoc (1.9.4.1)
 
   * Markdown reader: Added `cf.` and `cp.` to list of likely abbreviations.
