@@ -874,6 +874,7 @@ parseInline (Elem e) =
              return $ link href "" ils'
         "foreignphrase" -> emph <$> innerInlines
         "emphasis" -> case attrValue "role" e of
+                             "bold"   -> strong <$> innerInlines
                              "strong" -> strong <$> innerInlines
                              "strikethrough" -> strikeout <$> innerInlines
                              _        -> emph <$> innerInlines
