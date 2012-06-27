@@ -104,7 +104,6 @@ escapeCharForConTeXt opts ch =
     '>'    -> "\\lettermore{}"
     '['    -> "{[}"
     ']'    -> "{]}"
-    '_'    -> "\\letterunderscore{}"
     '\160' -> "~"
     '\x2014' | ligatures -> "---"
     '\x2013' | ligatures -> "--"

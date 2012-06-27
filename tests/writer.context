@@ -717,7 +717,7 @@ Backtick: `
 
 Asterisk: *
 
-Underscore: \letterunderscore{}
+Underscore: _
 
 Left brace: \letteropenbrace{}
 
@@ -761,7 +761,7 @@ Just a \useURL[url4][/url/][][URL]\from[url4].
 
 \useURL[url9][/url/][][URL and title]\from[url9]
 
-\useURL[url10][/url/with_underscore][][with\letterunderscore{}underscore]\from[url10]
+\useURL[url10][/url/with_underscore][][with_underscore]\from[url10]
 
 \useURL[url11][mailto:nobody@nowhere.net][][Email link]\from[url11]
 
