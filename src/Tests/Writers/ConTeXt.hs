@@ -33,7 +33,7 @@ infix 4 =:
 
 tests :: [Test]
 tests = [ testGroup "inline code"
-          [ "with '}'" =: code "}" =?> "\\mono{\\letterclosebrace{}}"
+          [ "with '}'" =: code "}" =?> "\\mono{\\}}"
           , "without '}'" =: code "]" =?> "\\type{]}"
           , property "code property" $ \s -> null s ||
                 if '{' `elem` s || '}' `elem` s

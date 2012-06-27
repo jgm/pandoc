@@ -90,18 +90,14 @@ escapeCharForConTeXt :: WriterOptions -> Char -> String
 escapeCharForConTeXt opts ch =
  let ligatures = writerTeXLigatures opts in
  case ch of
-    '{'    -> "\\letteropenbrace{}"
-    '}'    -> "\\letterclosebrace{}"
+    '{'    -> "\\{"
+    '}'    -> "\\}"
     '\\'   -> "\\letterbackslash{}"
     '$'    -> "\\$"
     '|'    -> "\\letterbar{}"
-    '^'    -> "\\letterhat{}"
     '%'    -> "\\letterpercent{}"
     '~'    -> "\\lettertilde{}"
-    '&'    -> "\\&"
     '#'    -> "\\#"
-    '<'    -> "\\letterless{}"
-    '>'    -> "\\lettermore{}"
     '['    -> "{[}"
     ']'    -> "{]}"
     '\160' -> "~"

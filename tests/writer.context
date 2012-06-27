@@ -133,7 +133,7 @@ nested
 \stopblockquote
 \stopblockquote
 
-This should not be a block quote: 2 \lettermore{} 1.
+This should not be a block quote: 2 > 1.
 
 And a following paragraph.
 
@@ -617,7 +617,7 @@ Superscripts: a\high{bc}d a\high{{\em hello}} a\high{hello~there}.
 Subscripts: H\low{2}O, H\low{23}O, H\low{many~of~them}O.
 
 These should not be superscripts or subscripts, because of the unescaped
-spaces: a\letterhat{}b c\letterhat{}d, a\lettertilde{}b c\lettertilde{}d.
+spaces: a^b c^d, a\lettertilde{}b c\lettertilde{}d.
 
 \thinrule
 
@@ -701,15 +701,15 @@ Here is some unicode:
   copyright: ©
 \stopitemize
 
-AT\&T has an ampersand in their name.
+AT&T has an ampersand in their name.
 
-AT\&T is another way to write it.
+AT&T is another way to write it.
 
-This \& that.
+This & that.
 
-4 \letterless{} 5.
+4 < 5.
 
-6 \lettermore{} 5.
+6 > 5.
 
 Backslash: \letterbackslash{}
 
@@ -719,9 +719,9 @@ Asterisk: *
 
 Underscore: _
 
-Left brace: \letteropenbrace{}
+Left brace: \{
 
-Right brace: \letterclosebrace{}
+Right brace: \}
 
 Left bracket: {[}
 
@@ -731,7 +731,7 @@ Left paren: (
 
 Right paren: )
 
-Greater-than: \lettermore{}
+Greater-than: >
 
 Hash: \#
 
@@ -801,7 +801,7 @@ Here's a \useURL[url23][http://example.com/?foo=1&bar=2][][link with an
 ampersand in the URL]\from[url23].
 
 Here's a link with an amersand in the link text:
-\useURL[url24][http://att.com/][][AT\&T]\from[url24].
+\useURL[url24][http://att.com/][][AT&T]\from[url24].
 
 Here's an \useURL[url25][/script?foo=1&bar=2][][inline link]\from[url25].
 
@@ -811,7 +811,7 @@ braces]\from[url26].
 \subsection[autolinks]{Autolinks}
 
 With an ampersand:
-\useURL[url27][http://example.com/?foo=1&bar=2][][\hyphenatedurl{http://example.com/?foo=1\&bar=2}]\from[url27]
+\useURL[url27][http://example.com/?foo=1&bar=2][][\hyphenatedurl{http://example.com/?foo=1&bar=2}]\from[url27]
 
 \startitemize
 \item
@@ -864,11 +864,10 @@ Here is a footnote reference,\footnote{Here is the footnote. It can go
 
   If you want, you can indent every line, but you can also be lazy and just
   indent the first line of each block.\stopbuffer\footnote{\getbuffer} This
-should {\em not} be a footnote reference, because it contains a
-space.{[}\letterhat{}my note{]} Here is an inline note.\footnote{This is
-  {\em easier} to type. Inline notes may contain
-  \useURL[url31][http://google.com][][links]\from[url31] and \type{]} verbatim
-  characters, as well as {[}bracketed text{]}.}
+should {\em not} be a footnote reference, because it contains a space.{[}^my
+note{]} Here is an inline note.\footnote{This is {\em easier} to type. Inline
+  notes may contain \useURL[url31][http://google.com][][links]\from[url31] and
+  \type{]} verbatim characters, as well as {[}bracketed text{]}.}
 
 \startblockquote
 Notes can go in quotes.\footnote{In quote.}
