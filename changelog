@@ -23,6 +23,8 @@ pandoc (1.9.4.2)
   * ConTeXt writer: Don't escape `&`, `^`, `<`, `>`, `_`,
     simplified escapes for `}` and `{` to `\{` and `\}` (Aditya Mahajan).
 
+  * Added webm to mime types. Closes #543.
+
   * Added some missing exports and tests to the cabal file
     (Alexander V Vershilov).
     
