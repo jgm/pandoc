@@ -23,6 +23,9 @@ pandoc (1.9.4.2)
   * ConTeXt writer: Don't escape `&`, `^`, `<`, `>`, `_`,
     simplified escapes for `}` and `{` to `\{` and `\}` (Aditya Mahajan).
 
+  * Fixed handling of absolute URLs in CSS imports with `--self-contained`.
+    Closes #535.
+
   * Added webm to mime types. Closes #543.
 
   * Added some missing exports and tests to the cabal file
