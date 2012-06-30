@@ -52,6 +52,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              failUnlessLHS,
                              escaped,
                              characterReference,
+                             updateLastStrPos,
                              anyOrderedListMarker,
                              orderedListMarker,
                              charRef,
@@ -660,7 +661,8 @@ data ParserState = ParserState
       stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers 
       stateHasChapters     :: Bool,          -- ^ True if \chapter encountered
       stateApplyMacros     :: Bool,          -- ^ Apply LaTeX macros?
-      stateMacros          :: [Macro]        -- ^ List of macros defined so far
+      stateMacros          :: [Macro],       -- ^ List of macros defined so far
+      stateRstDefaultRole  :: String         -- ^ Current rST default interpreted text role
     }
     deriving Show
 
@@ -690,7 +692,8 @@ defaultParserState =
                   stateExamples        = M.empty,
                   stateHasChapters     = False,
                   stateApplyMacros     = True,
-                  stateMacros          = []}
+                  stateMacros          = [],
+                  stateRstDefaultRole  = "title-reference"}
 
 data HeaderType 
     = SingleHeader Char  -- ^ Single line of characters underneath
@@ -792,6 +795,10 @@ charOrRef cs =
                        guard (c `elem` cs)
                        return c)
 
+updateLastStrPos :: GenParser Char ParserState ()
+updateLastStrPos = getPosition >>= \p -> 
+  updateState $ \s -> s{ stateLastStrPos = Just p }
+
 singleQuoteStart :: GenParser Char ParserState ()
 singleQuoteStart = do
   failIfInQuoteContext InSingleQuote
@@ -869,14 +876,17 @@ emDashOld = do
 -- | Parse a \newcommand or \renewcommand macro definition.
 macro :: GenParser Char ParserState Block
 macro = do
-  getState >>= guard . stateApplyMacros
+  apply <- stateApplyMacros `fmap` getState
   inp <- getInput
   case parseMacroDefinitions inp of
        ([], _)    -> pzero
-       (ms, rest) -> do count (length inp - length rest) anyChar
-                        updateState $ \st ->
-                           st { stateMacros = ms ++ stateMacros st }
-                        return Null
+       (ms, rest) -> do def <- count (length inp - length rest) anyChar
+                        if apply
+                           then do
+                             updateState $ \st ->
+                               st { stateMacros = ms ++ stateMacros st }
+                             return Null
+                           else return $ RawBlock "latex" def
 
 -- | Apply current macros to string.
 applyMacros' :: String -> GenParser Char ParserState String

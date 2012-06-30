@@ -448,6 +448,7 @@ getMimeType f = M.lookup (map toLower $ drop 1 $ takeExtension f) mimeTypes
            ,("wax","audio/x-ms-wax")
            ,("wbmp","image/vnd.wap.wbmp")
            ,("wbxml","application/vnd.wap.wbxml")
+           ,("webm","video/webm")
            ,("wk","application/x-123")
            ,("wm","video/x-ms-wm")
            ,("wma","audio/x-ms-wma")

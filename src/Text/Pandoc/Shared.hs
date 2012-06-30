@@ -482,6 +482,7 @@ data ObfuscationMethod = NoObfuscation
 -- | Varieties of HTML slide shows.
 data HTMLSlideVariant = S5Slides
                       | SlidySlides
+                      | SlideousSlides
                       | DZSlides
                       | NoSlides
                       deriving (Show, Read, Eq)
@@ -494,7 +495,7 @@ data WriterOptions = WriterOptions
   , writerEPUBMetadata     :: String -- ^ Metadata to include in EPUB
   , writerTabStop          :: Int    -- ^ Tabstop for conversion btw spaces and tabs
   , writerTableOfContents  :: Bool   -- ^ Include table of contents
-  , writerSlideVariant     :: HTMLSlideVariant -- ^ Are we writing S5 or Slidy?
+  , writerSlideVariant     :: HTMLSlideVariant -- ^ Are we writing S5, Slidy or Slideous?
   , writerIncremental      :: Bool   -- ^ True if lists should be incremental
   , writerXeTeX            :: Bool   -- ^ Create latex suitable for use by xetex
   , writerHTMLMathMethod   :: HTMLMathMethod  -- ^ How to print math in HTML
@@ -520,6 +521,7 @@ data WriterOptions = WriterOptions
   , writerHighlight        :: Bool       -- ^ Highlight source code
   , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
   , writerSetextHeaders    :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
+  , writerTeXLigatures     :: Bool       -- ^ Use tex ligatures quotes, dashes in latex
   } deriving Show
 
 {-# DEPRECATED writerXeTeX "writerXeTeX no longer does anything" #-}
@@ -558,6 +560,7 @@ defaultWriterOptions =
                 , writerHighlight        = False
                 , writerHighlightStyle   = pygments
                 , writerSetextHeaders    = True
+                , writerTeXLigatures     = True
                 }
 
 --

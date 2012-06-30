@@ -170,8 +170,6 @@ Multiple paragraphs:
 ** Tab
 *** Tab
 
-
-
 Here’s another:
 
 # First
@@ -179,7 +177,6 @@ Here’s another:
 #* Fee
 #* Fie
 #* Foe
-
 # Third
 
 Same thing but with paragraphs:
@@ -189,7 +186,6 @@ Same thing but with paragraphs:
 #* Fee
 #* Fie
 #* Foe
-
 # Third
 
 == Tabs and spaces ==
@@ -198,7 +194,6 @@ Same thing but with paragraphs:
 * this is a list item indented with spaces
 ** this is an example list item indented with tabs
 ** this is an example list item indented with spaces
-
 
 == Fancy list markers ==
 
@@ -234,7 +229,6 @@ Autonumbering:
 # Autonumber.
 # More.
 ## Nested.
-
 
 Should not be a list item:
 
@@ -312,7 +306,6 @@ Blank line after term, indented marker, alternate markers:
 : orange fruit
 ;# sublist
 ;# sublist
-
 
 = HTML Blocks =
 

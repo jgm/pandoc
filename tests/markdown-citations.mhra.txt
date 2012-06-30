@@ -46,7 +46,7 @@ Doe, John, and Jenny Roe, ‘Why Water Is Wet’, in *Third Book*, ed. by Sam Sm
 
 [^4]: *First Book*; ‘Article’, *Journal of Generic Studies*, 6 (2006), 33–34 (p. 30); see also John Doe and Jenny Roe, ‘Why Water Is Wet’, in *Third Book*, ed. by Sam Smith (Oxford: Oxford University Press, 2007).
 
-[^5]: A citation without locators Doe and Roe.
+[^5]: Doe and Roe, p. 12 and a citation without locators Doe and Roe.
 
 [^6]: See Doe, *First Book*, chap. 3; also Doe and Roe, pp. 34–35.
 

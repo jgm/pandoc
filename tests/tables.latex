@@ -1,6 +1,6 @@
 Simple table with caption:
 
-\ctable[caption = Demonstration of simple table syntax.,
+\ctable[caption = {Demonstration of simple table syntax.},
 pos = H, center, botcap]{rlcl}
 {% notes
 }
@@ -35,7 +35,7 @@ Right & Left & Center & Default
 
 Simple table indented two spaces:
 
-\ctable[caption = Demonstration of simple table syntax.,
+\ctable[caption = {Demonstration of simple table syntax.},
 pos = H, center, botcap]{rlcl}
 {% notes
 }
@@ -53,7 +53,7 @@ Right & Left & Center & Default
 
 Multiline table with caption:
 
-\ctable[caption = Here's the caption. It may span multiple lines.,
+\ctable[caption = {Here's the caption. It may span multiple lines.},
 pos = H, center, botcap]{clrl}
 {% notes
 }
@@ -173,4 +173,3 @@ Here's another one. Note the blank line between rows.
 }
 \LL
 }
-

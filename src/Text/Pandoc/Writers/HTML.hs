@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, CPP #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
@@ -46,7 +46,12 @@ import Data.List ( isPrefixOf, intersperse )
 import Data.String ( fromString )
 import Data.Maybe ( catMaybes )
 import Control.Monad.State
+#if MIN_VERSION_blaze_html(0,5,0)
+import Text.Blaze.Html hiding(contents)
+import Text.Blaze.Internal(preEscapedString)
+#else
 import Text.Blaze
+#endif
 import qualified Text.Blaze.Html5 as H5
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
@@ -59,12 +64,14 @@ import Data.Monoid (mempty, mconcat)
 data WriterState = WriterState
     { stNotes            :: [Html]  -- ^ List of notes
     , stMath             :: Bool    -- ^ Math is used in document
+    , stQuotes           :: Bool    -- ^ <q> tag is used
     , stHighlighting     :: Bool    -- ^ Syntax highlighting is used
     , stSecNum           :: [Int]   -- ^ Number of current section
     }
 
 defaultWriterState :: WriterState
-defaultWriterState = WriterState {stNotes= [], stMath = False, stHighlighting = False, stSecNum = []}
+defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
+                                  stHighlighting = False, stSecNum = []}
 
 -- Helpers to render HTML with the appropriate function.
 
@@ -156,7 +163,8 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
   let newvars = [("highlighting-css",
                    styleToCss $ writerHighlightStyle opts) |
                    stHighlighting st] ++
-                [("math", renderHtml math) | stMath st]
+                [("math", renderHtml math) | stMath st] ++
+                [("quotes", "yes") | stQuotes st]
   return (tit, auths, authsMeta, date, toc, thebody, newvars)
 
 -- | Prepare author for meta tag, converting notes into
@@ -191,6 +199,7 @@ inTemplate opts tit auths authsMeta date toc body' newvars =
                     , ("date", date')
                     , ("idprefix", writerIdentifierPrefix opts)
                     , ("slidy-url", "http://www.w3.org/Talks/Tools/Slidy2")
+                    , ("slideous-url", "slideous")
                     , ("s5-url", "s5/default") ] ++
                     [ ("html5","true") | writerHtml5 opts ] ++
                     (case toc of
@@ -253,7 +262,9 @@ elementToHtml slideLevel opts (Sec level num id' title' elements) = do
   -- always use level 1 for slide titles
   let level' = if slide then 1 else level
   let titleSlide = slide && level < slideLevel
-  header' <- blockToHtml opts (Header level' title')
+  header' <- if title' == [Str "\0"]  -- marker for hrule
+                then return mempty
+                else blockToHtml opts (Header level' title')
   let isSec (Sec _ _ _ _ _) = True
       isSec (Blk _)         = False
   innerContents <- mapM (elementToHtml slideLevel opts)
@@ -261,9 +272,8 @@ elementToHtml slideLevel opts (Sec level num id' title' elements) = do
                         -- title slides have no content of their own
                         then filter isSec elements
                         else elements
-  let header'' = if (writerStrictMarkdown opts ||
-                     writerSectionDivs opts ||
-                     writerSlideVariant opts == S5Slides)
+  let header'' = if (writerStrictMarkdown opts || writerSectionDivs opts ||
+                     writerSlideVariant opts == S5Slides || slide)
                     then header'
                     else header' ! prefixedId opts id'
   let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
@@ -581,8 +591,12 @@ inlineToHtml opts inline =
                                               strToHtml "’")
                               DoubleQuote -> (strToHtml "“",
                                               strToHtml "”")
-                        in  do contents <- inlineListToHtml opts lst
-                               return $ leftQuote >> contents >> rightQuote
+                        in  if writerHtml5 opts
+                               then do
+                                 modify $ \st -> st{ stQuotes = True }
+                                 H.q `fmap` inlineListToHtml opts lst
+                               else (\x -> leftQuote >> x >> rightQuote)
+                                    `fmap` inlineListToHtml opts lst
     (Math t str) ->     modify (\st -> st {stMath = True}) >>
                         (case writerHTMLMathMethod opts of
                                LaTeXMathML _ ->

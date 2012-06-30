@@ -1,0 +1,7 @@
+language: haskell
+before_install:
+  - git submodule update --init --recursive
+install:
+  - cabal update
+  - cabal install -ftests
+script:  cabal configure -ftests && cabal build && cabal test

@@ -70,6 +70,17 @@ bc. Code block with .bc
 
 Inline code: @<tt>@, <tt>@</tt>.
 
+h1. Notextile
+
+A block of text can be protected with notextile :
+
+<notextile>
+No *bold* and
+* no bullet
+</notextile>
+
+and inlines can be protected with ==double *equals (=)* markup==.
+
 h1. Lists
 
 h2. Unordered
@@ -115,14 +126,15 @@ h1. Inline Markup
 
 This is _emphasized_, and so __is this__.
 This is *strong*, and so **is this**.
+Hyphenated-words-are-ok, as well as strange_underscore_notation.
 A "*strong link*":http://www.foobar.com.
 
 _*This is strong and em.*_
 So is *_this_* word and __**that one**__.
 -This is strikeout and *strong*-
 
-Superscripts:  a^bc^d a^*hello*^ a^hello there^.
-Subscripts: H~2~O, H~23~O, H~many of them~O.
+Superscripts: a[^bc^]d a^*hello*^ a[^hello there^].
+Subscripts: ~here~ H[~2~]O, H[~23~]O, H[~many of them~]O.
 
 Dashes : How cool -- automatic dashes.
 
@@ -197,6 +209,17 @@ Html blocks can be <div>inlined</div> as well.
 * but this <strong> will produce inline html </strong>
 
 Can you prove that 2 < 3 ?
+
+h1. Raw LaTeX
+
+This Textile reader also accepts raw LaTeX for blocks :
+
+\begin{itemize}
+  \item one
+  \item two
+\end{itemize}
+
+and for \emph{inlines}.
 
 h1. Acronyms and marks
 

@@ -77,6 +77,8 @@ pandocToConTeXt options (Pandoc (Meta title authors date) blocks) = do
                  , ("title", titletext)
                  , ("date", datetext) ] ++
                  [ ("number-sections", "yes") | writerNumberSections options ] ++
+                 [ ("mainlang", maybe "" (reverse . takeWhile (/=',') . reverse)
+                                (lookup "lang" $ writerVariables options)) ] ++
                  [ ("author", a) | a <- authorstext ]
   return $ if writerStandalone options
               then renderTemplate context $ writerTemplate options
@@ -84,34 +86,30 @@ pandocToConTeXt options (Pandoc (Meta title authors date) blocks) = do
 
 -- escape things as needed for ConTeXt
 
-escapeCharForConTeXt :: Char -> String
-escapeCharForConTeXt ch =
+escapeCharForConTeXt :: WriterOptions -> Char -> String
+escapeCharForConTeXt opts ch =
+ let ligatures = writerTeXLigatures opts in
  case ch of
-    '{'    -> "\\letteropenbrace{}"
-    '}'    -> "\\letterclosebrace{}"
+    '{'    -> "\\{"
+    '}'    -> "\\}"
     '\\'   -> "\\letterbackslash{}"
     '$'    -> "\\$"
     '|'    -> "\\letterbar{}"
-    '^'    -> "\\letterhat{}"
-    '%'    -> "\\%"
+    '%'    -> "\\letterpercent{}"
     '~'    -> "\\lettertilde{}"
-    '&'    -> "\\&"
     '#'    -> "\\#"
-    '<'    -> "\\letterless{}"
-    '>'    -> "\\lettermore{}"
     '['    -> "{[}"
     ']'    -> "{]}"
-    '_'    -> "\\letterunderscore{}"
     '\160' -> "~"
-    '\x2014' -> "---"
-    '\x2013' -> "--"
-    '\x2019' -> "'"
+    '\x2014' | ligatures -> "---"
+    '\x2013' | ligatures -> "--"
+    '\x2019' | ligatures -> "'"
     '\x2026' -> "\\ldots{}"
     x      -> [x]
 
 -- | Escape string for ConTeXt
-stringToConTeXt :: String -> String
-stringToConTeXt = concatMap escapeCharForConTeXt
+stringToConTeXt :: WriterOptions -> String -> String
+stringToConTeXt opts = concatMap (escapeCharForConTeXt opts)
 
 -- | Convert Elements to ConTeXt
 elementToConTeXt :: WriterOptions -> Element -> State WriterState Doc
@@ -252,8 +250,9 @@ inlineToConTeXt (SmallCaps lst) = do
   return $ braces $ "\\sc " <> contents
 inlineToConTeXt (Code _ str) | not ('{' `elem` str || '}' `elem` str) =
   return $ "\\type" <> braces (text str)
-inlineToConTeXt (Code _ str) =
-  return $ "\\mono" <> braces (text $ stringToConTeXt str)
+inlineToConTeXt (Code _ str) = do
+  opts <- gets stOptions
+  return $ "\\mono" <> braces (text $ stringToConTeXt opts str)
 inlineToConTeXt (Quoted SingleQuote lst) = do
   contents <- inlineListToConTeXt lst
   return $ "\\quote" <> braces contents
@@ -261,11 +260,13 @@ inlineToConTeXt (Quoted DoubleQuote lst) = do
   contents <- inlineListToConTeXt lst
   return $ "\\quotation" <> braces contents
 inlineToConTeXt (Cite _ lst) = inlineListToConTeXt lst
-inlineToConTeXt (Str str) = return $ text $ stringToConTeXt str
+inlineToConTeXt (Str str) = do
+  opts <- gets stOptions
+  return $ text $ stringToConTeXt opts str
 inlineToConTeXt (Math InlineMath str) =
   return $ char '$' <> text str <> char '$'
 inlineToConTeXt (Math DisplayMath str) =
-  return $ text "\\startformula "  <> text str <> text " \\stopformula"
+  return $ text "\\startformula "  <> text str <> text " \\stopformula" <> space
 inlineToConTeXt (RawInline "context" str) = return $ text str
 inlineToConTeXt (RawInline "tex" str) = return $ text str
 inlineToConTeXt (RawInline _ _) = return empty
@@ -296,7 +297,7 @@ inlineToConTeXt (Link txt          (src, _))      = do
   label <-  inlineListToConTeXt txt
   return $ "\\useURL"
            <> brackets (text ref)
-           <> brackets (text $ escapeStringUsing [('#',"\\#")] src)
+           <> brackets (text $ escapeStringUsing [('#',"\\#"),('%',"\\%")] src)
            <> brackets empty
            <> brackets label
            <> "\\from"

@@ -1,3 +1,320 @@
+pandoc (1.9.4.2)
+
+  * Don't encode/decode file paths if base >= 4.4.
+    Prior to base 4.4, filepaths and command line arguments were treated
+    as unencoded lists of bytes, not unicode strings, so we had to work
+    around that by encoding and decoding them. This commit adds CPP
+    checks for the base version that intelligibly enable encoding/decoding
+    when needed. Fixes a bug with multilingual filenames when pandoc was
+    compiled with ghc 7.4 (#540).
+    
+  * Don't generate an empty H1 after hrule slide breaks.
+    We now use a slide-level header with contents `[Str "\0"]` to mark
+    an hrule break.  This avoids creation of an empty H1 in these
+    contexts.  Closes #484.
+    
+  * Docbook reader: Added support for "bold" emphasis.  Thanks to mb21.
+  
+  * In make_osx_package.sh, ensure citeproc-hs is built with the
+    embed_data_files flag.
+    
+  * MediaWiki writer: Avoid extra blank lines after sublists (Gavin Beatty).
+    
+  * ConTeXt writer: Don't escape `&`, `^`, `<`, `>`, `_`,
+    simplified escapes for `}` and `{` to `\{` and `\}` (Aditya Mahajan).
+
+  * Fixed handling of absolute URLs in CSS imports with `--self-contained`.
+    Closes #535.
+
+  * Added webm to mime types. Closes #543.
+
+  * Added some missing exports and tests to the cabal file
+    (Alexander V Vershilov).
+    
+  * Compile with `-rtsopts` and `-threaded` by default.
+
+pandoc (1.9.4.1)
+
+  * Markdown reader: Added `cf.` and `cp.` to list of likely abbreviations.
+
+  * LaTeX template: Added `linkcolor`, `urlcolor` and `links-as-notes`
+    variables.  Make TOC links black.
+
+  * LaTeX template improvements.
+
+    + Don't print date unless one is given explicitly in the document.
+    + Simplified templates.
+    + Use fontenc [T1] by default, and lmodern.
+    + Use microtype if available.
+
+  * Biblio:
+  
+    + Add comma to beginning of bare suffix, e.g. `@item1 [50]`.
+      Motivation: `@item1 [50]` should be as close as possible to
+      `[@item1, 50]`.
+    + Added workaround for a bug in citeproc-hs 0.3.4 that causes footnotes
+      beginning with a citation to be empty.  Closes #531.
+
+  * Fixed documentation on mixed lists.  Closes #533.
+
+pandoc (1.9.4)
+
+  * Simplified `Text.Pandoc.Biblio` and fixed bugs with citations inside
+    footnotes and captions.  We now handle note citations by inserting
+    footnotes during initial citation processing, and doing a separate
+    pass later to remove notes inside notes.
+
+  * Added 'zenburn' highlight style from highlighting-kate.
+
+  * Added Slideous writer. Slideous is an HTML + javascript slide show
+    format, similar to Slidy, but works with IE 7. (Jonas Smedegaard)
+
+  * LaTeX writer:
+
+    + Ensure we don't have extra blank lines at ends of cells.
+      This can cause LaTeX errors, as they are interpreted as new paragraphs.
+    + More consistent interblock spacing.
+    + Require highlighting-kate >= 0.5.1, for proper highlighted inline
+      code in LaTeX.  Closes #527.
+    + Ensure that a Verbatim at the end of a footnote is followed by
+      a newline. (Fixes a regression in the previous version.)
+    + In default template, use black for internal links and TOC.
+      Added commented-out code to use footnotes for links, as would
+      be suitable in print output.
+
+  * Beamer writer:  When `--incremental` is used, lists inside
+    a block quote should appear all at once.  (This makes Beamer
+    output consistent with the HTML slide show formats.)
+
+  * ConTeXt writer:
+
+    + Escape `%` as `\letterpercent{}` not `\letterpercent `,
+      to avoid gobbling spaces after the `%` sign.
+    + Ensure space after `\stopformula`.
+
+  * Markdown writer:
+
+    + Use `:` form instead of `~` in definition lists, for better
+      compatibility with other markdown implementations.
+    + Don't wrap the term, because it breaks definition lists.
+    + Use a nonzero space to prevent false recognition
+      of list marker in ordered lists.  Closes #516.
+
+  * Org writer: Add space before language name.  Closes #523.
+
+  * Docx writer: Simplified bullet characters so they work properly
+    with Word 2007. Closes #520.
+
+  * LaTeX reader: Support `\centerline`.
+
+  * RST reader:  handle figures.  Closes #522.
+
+  * Textile reader: fix for `<notextile>` and `==`.  Closes #517.
+    (Paul Rivier)
+
+pandoc (1.9.3)
+
+  * Fixed bug in `fromEntities`.  The previous version would turn
+    `hi & low you know;` into `hi &`.
+
+  * HTML reader:
+
+    + Don't skip nonbreaking spaces.
+      Previously a paragraph containing just `&nbsp;` would be rendered
+      as an empty paragraph. Thanks to Paul Vorbach for pointing out the bug.
+    + Support `<col>` and `<caption>` in tables. Closes #486.
+
+  * Markdown reader:
+
+    + Don't recognize references inside delimited code blocks.
+    + Allow list items to begin with lists.
+
+  * Added basic docbook reader (John MacFarlane and Mauro Bieg).
+
+  * LaTeX reader:
+
+    + Handle `\bgroup`, `\egroup`, `\begingroup`, `\endgroup`.
+    + Control sequences can't be followed by a letter.
+      This fixes a bug where `\begingroup` was parsed as `\begin`
+      followed by `group`.
+    + Parse 'dimension' arguments to unknown commands.  e.g. `\parindent0pt`
+    + Make `\label` and `\ref` sensitive to `--parse-raw`.
+      If `--parse-raw` is selected, these will be parsed as raw latex
+      inlines, rather than bracketed text.
+    + Don't crash on unknown block commands (like `\vspace{10pt}`)
+      inside `\author`; just skip them.  Closes #505.
+
+  * Textile reader:
+
+    + Implemented literal escapes with `==` and `<notextile>`.  Closes #473.
+    + Added support for LaTeX blocks and inlines (Paul Rivier).
+    + Better conformance to RedCloth inline parsing (Paul Rivier).
+    + Parse '+text+' as emphasized (should be underlined, but this
+      is better than leaving literal plus characters in the output.
+
+  * Docx writer: Fixed multi-paragraph list items.  Previously they each
+    got a list marker.  Closes #457.
+
+  * LaTeX writer:
+
+    + Added `--no-tex-ligatures` option to avoid replacing
+      quotation marks and dashes with TeX ligatures.
+    + Use `fixltx2e` package to provide '\textsubscript'.
+    + Improve spacing around LaTeX block environments:
+      quote, verbatim, itemize, description, enumerate.
+      Closes #502.
+    + Use blue instead of pink for URL links in latex/pdf output.
+
+  * ConTeXt writer: Fixed escaping of `%`.
+    In text, `%` needs to be escaped as `\letterpercent`, not `\%`
+    Inside URLs, `%` needs to be escaped as `\%`
+    Thanks to jmarca and adityam for the fix.  Closes #492.
+
+  * Texinfo writer:  Escape special characters in node titles.
+    This fixes a problem pointed out by Joost Kremers.  Pandoc used
+    to escape an '@' in a chapter title, but not in the corresponding
+    node title, leading to invalid texinfo.
+
+  * Fixed document encoding in texinfo template.
+    Resolves Debian Bug #667816.
+
+  * Markdown writer:
+
+    + Don't force delimited code blocks to be flush left.
+      Fixes bug with delimited code blocks inside lists etc.
+    + Escape `<` and `$`.
+
+  * LaTeX writer: Use `\hyperref[ident]{text}` for internal links.
+    Previously we used `\href{\#ident}{text}`, which didn't work on
+    all systems. Thanks to Dirk Laurie.
+
+  * RST writer: Don't wrap link references.  Closes #487.
+
+  * Updated to use latest versions of blaze-html, mtl.
+
+
+pandoc (1.9.2)
+
+  * LaTeX reader:
+
+    + Made `lstlisting` work as a proper verbatim environment.
+    + Fixed bug parsing LaTeX tables with one column.
+
+  * LaTeX writer:
+
+    + Use `{}` around `ctable` caption, so that formatting can be used.
+    + Don't require eurosym package unless document has a €.
+
+  * LaTeX template: Added variables for `geometry`, `romanfont`,
+    `sansfont`, `mathfont`, `mainfont` so users can more easily
+    customize fonts.
+
+  * PDF writer:
+
+    + Run latex engine at least two times, to ensure
+      that PDFs will have hyperlinked bookmarks.
+    + Added PDF metadata (title,author) in LaTeX standalone + PDF output.
+
+  * Texinfo writer: retain directories in image paths.  (Peter Wang)
+
+  * RST writer:  Better handling of inline formatting, in accord
+    with docutils' "inline markup recognition rules" (though we don't
+    implement the unicode rules fully). Now `hi*there*hi` gets
+    rendered properly as `hi\ *there*\ hi`, and unnecessary
+    `\ ` are avoided around `:math:`, `:sub:`, `:sup:`.
+
+  * RST reader:
+
+    + Parse `\ ` as null, not escaped space.
+    + Allow `` :math:`...` `` even when not followed by blank
+      or `\`.  This does not implement the complex rule docutils follows,
+      but it should be good enough for most purposes.
+    + Add support for the rST default-role directive. (Greg Maslov)
+
+  * Text.Pandoc.Parsing: Added `stateRstDefaultRole` field to `ParserState`.
+    (Greg Maslov)
+
+  * Markdown reader: Properly handle citations nested in other inline
+    elements.
+
+  * Markdown writer:  don't replace empty alt in image with "image".
+
+  * DZSlides:  Updated template.html and styles in default template.
+    Removed bizarre CSS for `q` in dzslides template.
+
+  * Avoid repeated `id` attribute in section and header in HTML slides.
+
+  * README improvements:  new instructions on internal links,
+    removed misleading note on reST math.
+
+  * Build system:
+
+    + Fixed Windows installer so that dzslides works.
+    + Removed stripansi.sh.
+    + Added .travis.yml for Travis continuous integration support..
+    + Fixed upper bound for zlib (Sergei Trofimovich).
+    + Fixed upper bound for test-framework.
+    + Updated haddocks for haddock-2.10 (Sergei Trofimovich).
+
+pandoc (1.9.1.2)
+
+  * Added `beamer+lhs` as output format.
+
+  * Don't escape `<` in `<style>` tags with `--self-contained`.
+    This fixes a bug which prevented highlighting from working
+    when using `--self-contained`.
+
+  * PDF: run latex engine three times if `--toc` specified.
+    This fixes page numbers in the table of contents.
+
+  * Docx writer: Added TableNormal style to tables.
+
+  * LaTeX math environment fixes. `aligned` is now used instead of
+    the nonexistent `aligned*`. `multline` instead of the nonexistent
+    `multiline`.
+
+  * LaTeX writer: Use `\textasciitilde` for literal `~`.
+
+  * HTML writer: Don't escape contents of EQ tags with --gladtex.
+    This fixes a regression from 1.8.
+
+  * Use `<q>` tags for Quoted items for HTML5 output.
+    The quote style can be changed by modifying the template
+    or including a css file. A default quote style is included.
+
+  * LaTeX reader: Fixed accents (\~{a}, `\c{c}`).
+    Correctly handle \^{}. Support "minted" as a LaTeX verbatim block.
+
+  * Updated LaTeX template for better language support.
+    Use `polyglossia` instead of `babel` with xetex.
+    Set `lang` as documentclass option.
+    `\setmainlanguage` will use the last of a comma-separated
+    list of languages. Thanks to François Gannaz.
+
+  * Fixed default LaTeX template so `\euro` and `€` work.  The
+    `eurosym` package is needed if you are using pdflatex.
+
+  * Fixed escaping of period in man writer (thanks to Michael Thompson).
+
+  * Fixed list label positions in beamer.
+
+  * Set `mainlang` variable in context writer.
+    This parallels behavior of latex writer.  `mainlang` is the last
+    of a comma-separated list of languages in lang.
+
+  * EPUB language metadat: convert e.g. `en_US` from locale to `en-US`.
+
+  * Changed `-V` so that you can specify a key without a value.
+    Such keys get the value `true`.
+
+  * Fixed permissions on installed man pages - thanks Magnus Therning.
+
+  * Windows installer: require XP or higher.  The installer is
+    now compiled on a Windows 7 machine, which fixes a problem
+    using citation functions on Windows 7.
+
+  * OSX package: Check for 64-bit Intel CPU before installing.
+
 pandoc (1.9.1.1)
 
   * Better handling of raw latex environments in markdown.  Now

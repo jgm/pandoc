@@ -13,12 +13,13 @@ Description
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
-and [LaTeX]; and it can write plain text, [markdown], [reStructuredText],
-[XHTML], [HTML 5], [LaTeX] (including [beamer] slide shows),
-[ConTeXt], [RTF], [DocBook XML], [OpenDocument XML], [ODT], [Word docx], [GNU
-Texinfo], [MediaWiki markup], [EPUB], [Textile], [groff man] pages, [Emacs
-Org-Mode], [AsciiDoc], and [Slidy], [DZSlides], or [S5] HTML slide shows. It
-can also produce [PDF] output on systems where LaTeX is installed.
+[LaTeX], and [DocBook XML]; and it can write plain text, [markdown],
+[reStructuredText], [XHTML], [HTML 5], [LaTeX] (including [beamer]
+slide shows), [ConTeXt], [RTF], [DocBook XML], [OpenDocument XML],
+[ODT], [Word docx], [GNU Texinfo], [MediaWiki markup], [EPUB],
+[Textile], [groff man] pages, [Emacs Org-Mode], [AsciiDoc], and [Slidy],
+[Slideous], [DZSlides], or [S5] HTML slide shows. It can also produce
+[PDF] output on systems where LaTeX is installed.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, delimited code blocks,
@@ -137,10 +138,10 @@ General options
 :   Specify input format.  *FORMAT* can be `native` (native Haskell),
     `json` (JSON version of native AST), `markdown` (markdown),
     `textile` (Textile), `rst` (reStructuredText), `html` (HTML),
-    or `latex` (LaTeX).  If `+lhs` is appended to `markdown`, `rst`,
-    or `latex`, the input will be treated as literate Haskell source:
-    see [Literate Haskell support](#literate-haskell-support),
-    below.
+    `docbook` (DocBook XML), or `latex` (LaTeX). If `+lhs` is
+    appended to `markdown`, `rst`, `latex`, the input will be
+    treated as literate Haskell source: see [Literate Haskell
+    support](#literate-haskell-support), below.
 
 `-t` *FORMAT*, `-w` *FORMAT*, `--to=`*FORMAT*, `--write=`*FORMAT*
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
@@ -152,12 +153,13 @@ General options
     `docbook` (DocBook XML), `opendocument` (OpenDocument XML), `odt`
     (OpenOffice text document), `docx` (Word docx), `epub` (EPUB book),
     `asciidoc` (AsciiDoc), `slidy` (Slidy HTML and javascript slide show),
+    `slideous` (Slideous HTML and javascript slide show),
     `dzslides` (HTML5 + javascript slide show), `s5` (S5 HTML and javascript
     slide show), or `rtf` (rich text format). Note that `odt` and `epub`
     output will not be directed to *stdout*; an output filename must
     be specified using the `-o/--output` option. If `+lhs` is appended
-    to `markdown`, `rst`, `latex`, `html`, or `html5`, the output will
-    be rendered as literate Haskell source: see [Literate Haskell
+    to `markdown`, `rst`, `latex`, `beamer`, `html`, or `html5`, the output
+    will be rendered as literate Haskell source: see [Literate Haskell
     support](#literate-haskell-support), below.
 
 `-o` *FILE*, `--output=`*FILE*
@@ -177,8 +179,8 @@ General options
         C:\Documents And Settings\USERNAME\Application Data\pandoc
 
     in Windows. A `reference.odt`, `reference.docx`, `default.csl`,
-    `epub.css`, `templates`, `slidy`, or `s5` directory placed in this
-    directory will override pandoc's normal defaults.
+    `epub.css`, `templates`, `slidy`, `slideous`, or `s5` directory
+    placed in this directory will override pandoc's normal defaults.
 
 `-v`, `--version`
 :   Print version.
@@ -198,7 +200,8 @@ Reader options
 `-R`, `--parse-raw`
 :   Parse untranslatable HTML codes and LaTeX environments as raw HTML
     or LaTeX, instead of ignoring them.  Affects only HTML and LaTeX
-    input. Raw HTML can be printed in markdown, reStructuredText, HTML, Slidy,
+    input. Raw HTML can be printed in markdown, reStructuredText, HTML,
+    Slidy, Slideous,
     DZSlides, and S5 output; raw LaTeX can be printed in markdown,
     reStructuredText, LaTeX, and ConTeXt output. The default is for the
     readers to omit untranslatable HTML codes and LaTeX environments.
@@ -212,7 +215,7 @@ Reader options
     abbreviations, such as "Mr." (Note: This option is significant only when
     the input format is `markdown` or `textile`. It is selected automatically
     when the input format is `textile` or the output format is `latex` or
-    `context`.)
+    `context`, unless `--no-tex-ligatures` is used.)
 
 `--old-dashes`
 :   Selects the pandoc <= 1.8.2.1 behavior for parsing smart dashes: `-` before
@@ -256,12 +259,13 @@ General writer options
     template appropriate for the output format will be used (see
     `-D/--print-default-template`).
 
-`-V` *KEY=VAL*, `--variable=`*KEY:VAL*
+`-V` *KEY[=VAL]*, `--variable=`*KEY[:VAL]*
 :   Set the template variable *KEY* to the value *VAL* when rendering the
     document in standalone mode. This is generally only useful when the
     `--template` option is used to specify a custom template, since
     pandoc automatically sets the variables used in the default
-    templates.
+    templates.  If no *VAL* is specified, the key will be given the
+    value `true`.
 
 `-D` *FORMAT*, `--print-default-template=`*FORMAT*
 :   Print the default template for an output *FORMAT*. (See `-t`
@@ -278,7 +282,7 @@ General writer options
 :   Include an automatically generated table of contents (or, in
     the case of `latex`, `context`, and `rst`, an instruction to create
     one) in the output document. This option has no effect on `man`,
-    `docbook`, `slidy`, or `s5` output.
+    `docbook`, `slidy`, `slideous`, or `s5` output.
 
 `--no-highlight`
 :   Disables syntax highlighting for code blocks and inlines, even when
@@ -287,7 +291,7 @@ General writer options
 `--highlight-style`=*STYLE*
 :   Specifies the coloring style to be used in highlighted source code.
     Options are `pygments` (the default), `kate`, `monochrome`,
-    `espresso`, `haddock`, and `tango`.
+    `espresso`, `zenburn`, `haddock`, and `tango`.
 
 `-H` *FILE*, `--include-in-header=`*FILE*
 :   Include contents of *FILE*, verbatim, at the end of the header.
@@ -321,7 +325,8 @@ Options affecting specific writers
     in the sense that it needs no external files and no net access to be
     displayed properly by a browser. This option works only with HTML output
     formats, including `html`, `html5`, `html+lhs`, `html5+lhs`, `s5`,
-    `slidy`, and `dzslides`. Scripts, images, and stylesheets at absolute URLs
+    `slidy`, `slideous`,
+    and `dzslides`. Scripts, images, and stylesheets at absolute URLs
     will be downloaded; those at relative URLs will be sought first relative
     to the working directory, then relative to the user data directory (see
     `--data-dir`), and finally relative to pandoc's default data directory.
@@ -356,6 +361,17 @@ Options affecting specific writers
 :   Number section headings in LaTeX, ConTeXt, or HTML output.
     By default, sections are not numbered.
 
+`--no-tex-ligatures`
+:   Do not convert quotation marks, apostrophes, and dashes to
+    the TeX ligatures when writing LaTeX or ConTeXt. Instead, just
+    use literal unicode characters. This is needed for using advanced
+    OpenType features with XeLaTeX and LuaLaTeX. Note: normally
+    `--smart` is selected automatically for LaTeX and ConTeXt
+    output, but it must be specified explicitly if `--no-tex-ligatures`
+    is selected. If you use literal curly quotes, dashes, and ellipses
+    in your source, then you may want to use `--no-tex-ligatures`
+    without `--smart`.
+
 `--listings`
 :   Use listings package for LaTeX code blocks
 
@@ -365,7 +381,7 @@ Options affecting specific writers
 
 `--slide-level`=*NUMBER*
 :   Specifies that headers with the specified level create
-    slides (for `beamer`, `s5`, `slidy`, `dzslides`).  Headers
+    slides (for `beamer`, `s5`, `slidy`, `slideous`, `dzslides`).  Headers
     above this level in the hierarchy are used to divide the
     slide show into sections; headers below this level create
     subheads within a slide.  The default is to set the slide level
@@ -451,7 +467,7 @@ Options affecting specific writers
 :   Embed the specified font in the EPUB. This option can be repeated
     to embed multiple fonts.  To use embedded fonts, you
     will need to add declarations like the following to your CSS (see
-    ``--epub-stylesheet`):
+    `--epub-stylesheet`):
 
         @font-face {
         font-family: DejaVuSans;
@@ -625,7 +641,11 @@ where `FORMAT` is the name of the output format. A custom template
 can be specified using the `--template` option.  You can also override
 the system default templates for a given output format `FORMAT`
 by putting a file `templates/default.FORMAT` in the user data
-directory (see `--data-dir`, above).
+directory (see `--data-dir`, above). *Exceptions:* For `odt` output,
+customize the `default.opendocument` template.  For `pdf` output,
+customize the `default.latex` template. For `epub` output, customize
+the `epub-page.html`, `epub-coverimage.html`, and `epub-titlepage.html`
+templates.
 
 Templates may contain *variables*.  Variable names are sequences of
 alphanumerics, `-`, and `_`, starting with a letter.  A variable name
@@ -666,16 +686,31 @@ depending on the output format, but include:
 `slidy-url`
 :   base URL for Slidy documents (defaults to
     `http://www.w3.org/Talks/Tools/Slidy2`)
+`slideous-url`
+:   base URL for Slideous documents (defaults to `default`)
 `s5-url`
 :   base URL for S5 documents (defaults to `ui/default`)
 `fontsize`
 :   font size (10pt, 11pt, 12pt) for LaTeX documents
 `documentclass`
 :   document class for LaTeX documents
+`geometry`
+:   options for LaTeX `geometry` class, e.g. `margin=1in`;
+    may be repeated for multiple options
+`mainfont`, `sansfont`, `monofont`, `mathfont`
+:   fonts for LaTeX documents (works only with xelatex
+    and lualatex)
 `theme`
 :   theme for LaTeX beamer documents
 `colortheme`
 :   colortheme for LaTeX beamer documents
+`linkcolor`
+:   color for internal links in LaTeX documents (`red`, `green`,
+    `magenta`, `cyan`, `blue`, `black`)
+`urlcolor`
+:   color for external links in LaTeX documents
+`links-as-notes`
+:   causes links to be printed as footnotes in LaTeX documents
 
 Variables may be set at the command line using the `-V/--variable`
 option. This allows users to include custom variables in their
@@ -834,7 +869,7 @@ also make it easy to provide links from one section of a document to
 another. A link to this section, for example, might look like this:
 
     See the section on
-    [header identifiers][#header-identifiers-in-html].
+    [header identifiers](#header-identifiers-in-html).
 
 Note, however, that this method of providing links to sections works
 only in HTML, LaTeX, and ConTeXt formats.
@@ -1129,8 +1164,8 @@ roman numerals:
           ii. subtwo
          iii. subthree
 
-Note that Pandoc pays attention only to the *starting* marker in a list.
-So, the following yields a list numbered sequentially starting from 2:
+Pandoc will start a new list each time a different type of list
+marker is used.  So, the following will create three lists:
 
     (2) Two
     (5) Three
@@ -1621,6 +1656,10 @@ work in verbatim contexts:
 
     This is a backslash followed by an asterisk: `\*`.
 
+Attributes can be attached to verbatim text, just as with
+[delimited code blocks](#delimited-code-blocks):
+
+    `<$>`{.haskell}
 
 Math
 ----
@@ -1637,7 +1676,7 @@ them and they won't be treated as math delimiters.
 TeX math will be printed in all output formats. How it is rendered
 depends on the output format:
 
-Markdown, reStructuredText, LaTeX, Org-Mode, ConTeXt
+Markdown, LaTeX, Org-Mode, ConTeXt
   ~ It will appear verbatim between `$` characters.
 
 reStructuredText
@@ -1671,7 +1710,7 @@ Docbook
 Docx
   ~ It will be rendered using OMML math markup.
 
-HTML, Slidy, DZSlides, S5, EPUB
+HTML, Slidy, Slideous, DZSlides, S5, EPUB
   ~ The way math is rendered in HTML will depend on the
     command-line options selected:
 
@@ -1722,7 +1761,8 @@ Markdown allows you to insert raw HTML (or DocBook) anywhere in a document
 (except verbatim contexts, where `<`, `>`, and `&` are interpreted
 literally).
 
-The raw HTML is passed through unchanged in HTML, S5, Slidy, DZSlides, EPUB,
+The raw HTML is passed through unchanged in HTML, S5, Slidy, Slideous,
+DZSlides, EPUB,
 Markdown, and Textile output, and suppressed in other formats.
 
 *Pandoc extension*.
@@ -1874,6 +1914,23 @@ empty, or omitted entirely:
 
     [my website]: http://foo.bar.baz
 
+### Internal links
+
+To link to another section of the same document, use the automatically
+generated identifier (see [Header identifiers in HTML, LaTeX, and
+ConTeXt](#header-identifiers-in-html-latex-and-context), below).
+For example:
+
+    See the [Introduction](#introduction).
+
+or
+
+    See the [Introduction].
+
+    [Introduction]: #introduction
+
+Internal links are currently supported for HTML formats (including
+HTML slide shows and EPUB), LaTeX, and ConTeXt.
 
 Images
 ------
@@ -2026,9 +2083,9 @@ Producing slide shows with Pandoc
 =================================
 
 You can use Pandoc to produce an HTML + javascript slide presentation
-that can be viewed via a web browser.  There are three ways to do this,
-using [S5], [DZSlides], or [Slidy].  You can also produce a PDF slide
-show using LaTeX [beamer].
+that can be viewed via a web browser.  There are four ways to do this,
+using [S5], [DZSlides], [Slidy], or [Slideous].  You can also produce a
+PDF slide show using LaTeX [beamer].
 
 Here's the markdown source for a simple slide show, `habits.txt`:
 
@@ -2073,6 +2130,10 @@ for S5,
     pandoc -t slidy -s habits.txt -o habits.html
 
 for Slidy,
+
+    pandoc -t slideous -s habits.txt -o habits.html
+
+for Slideous,
 
     pandoc -t dzslides -s habits.txt -o habits.html
 
@@ -2120,11 +2181,14 @@ you can just use level 1 headers for all each slide. (In that case, level 1
 will be the slide level.) But you can also structure the slide show into
 sections, as in the example above.
 
-For Slidy and S5, the file produced by pandoc with the `-s/--standalone`
+For Slidy, Slideous and S5, the file produced by pandoc with the
+`-s/--standalone`
 option embeds a link to javascripts and CSS files, which are assumed to
-be available at the relative path `s5/default` (for S5) or at the Slidy
+be available at the relative path `s5/default` (for S5) or `slideous`
+(for Slideous), or at the Slidy
 website at `w3.org` (for Slidy). (These paths can be changed by setting
-the `slidy-url` or `s5-url` variables; see `--variable`, above.) For DZSlides,
+the `slidy-url`, `slideous-url` or `s5-url` variables; see `--variable`,
+above.) For DZSlides,
 the (relatively short) javascript and css are included in the file by default.
 
 Incremental lists
@@ -2146,7 +2210,8 @@ Styling the slides
 ------------------
 
 You can change the style of HTML slides by putting customized CSS files
-in `$DATADIR/s5/default` (for S5) or `$DATADIR/slidy` (for Slidy),
+in `$DATADIR/s5/default` (for S5), `$DATADIR/slidy` (for Slidy),
+or `$DATADIR/slideous` (for Slideous),
 where `$DATADIR` is the user data directory (see `--data-dir`, above).
 The originals may be found in pandoc's system data directory (generally
 `$CABALDIR/pandoc-VERSION/s5/default`). Pandoc will look there for any
@@ -2164,8 +2229,9 @@ Literate Haskell support
 ========================
 
 If you append `+lhs` to an appropriate input or output format (`markdown`,
-`rst`, or `latex` for input or output; `html` or `html5` for output only),
-pandoc will treat the document as literate Haskell source. This means that
+`rst`, or `latex` for input or output; `beamer`, `html` or `html5` for
+output only), pandoc will treat the document as literate Haskell source.
+This means that
 
   - In markdown input, "bird track" sections will be parsed as Haskell
     code rather than block quotations.  Text between `\begin{code}`
@@ -2216,12 +2282,13 @@ Andrea Rossato, Eric Kow, infinity0x, Luke Plant, shreevatsa.public,
 Puneeth Chaganti, Paul Rivier, rodja.trappe, Bradley Kuhn, thsutton,
 Nathan Gass, Jonathan Daugherty, Jérémy Bobbio, Justin Bogner, qerub,
 Christopher Sawicki, Kelsey Hightower, Masayoshi Takahashi, Antoine
-Latter, Ralf Stephan, Eric Seidel, B. Scott Michel.
+Latter, Ralf Stephan, Eric Seidel, B. Scott Michel, Gavin Beatty.
 
 [markdown]: http://daringfireball.net/projects/markdown/
 [reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html
 [S5]: http://meyerweb.com/eric/tools/s5/
 [Slidy]: http://www.w3.org/Talks/Tools/Slidy/
+[Slideous]: http://goessner.net/articles/slideous/
 [HTML]:  http://www.w3.org/TR/html40/
 [HTML 5]:  http://www.w3.org/TR/html5/
 [XHTML]:  http://www.w3.org/TR/xhtml1/

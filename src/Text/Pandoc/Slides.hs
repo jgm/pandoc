@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Portability : portable
 
 Utility functions for splitting documents into slides for slide
-show formats (dzslides, s5, slidy, beamer).
+show formats (dzslides, s5, slidy, slideous, beamer).
 -}
 module Text.Pandoc.Slides ( getSlideLevel, prepSlides ) where
 import Text.Pandoc.Definition
@@ -49,9 +49,10 @@ prepSlides :: Int -> [Block] -> [Block]
 prepSlides slideLevel = ensureStartWithH . splitHrule
   where splitHrule (HorizontalRule : Header n xs : ys)
                        | n == slideLevel = Header slideLevel xs : splitHrule ys
-        splitHrule (HorizontalRule : xs) = Header slideLevel [] : splitHrule xs
+        splitHrule (HorizontalRule : xs) = Header slideLevel [Str "\0"] :
+                                           splitHrule xs
         splitHrule (x : xs)              = x : splitHrule xs
         splitHrule []                    = []
         ensureStartWithH bs@(Header n _:_)
                        | n <= slideLevel = bs
-        ensureStartWithH bs              = Header slideLevel [] : bs
+        ensureStartWithH bs              = Header slideLevel [Str "\0"] : bs

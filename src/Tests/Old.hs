@@ -97,13 +97,18 @@ tests = [ testGroup "markdown"
           , test "reader" ["-r", "textile", "-w", "native", "-s"]
             "textile-reader.textile" "textile-reader.native"
           ]
+        , testGroup "docbook"
+          [ testGroup "writer" $ writerTests "docbook"
+          , test "reader" ["-r", "docbook", "-w", "native", "-s"]
+            "docbook-reader.docbook" "docbook-reader.native"
+          ]
         , testGroup "native"
           [ testGroup "writer" $ writerTests "native"
           , test "reader" ["-r", "native", "-w", "native", "-s"]
             "testsuite.native" "testsuite.native"
           ]
         , testGroup "other writers" $ map (\f -> testGroup f $ writerTests f)
-          [ "docbook", "opendocument" , "context" , "texinfo"
+          [ "opendocument" , "context" , "texinfo"
           , "man" , "plain" , "mediawiki", "rtf", "org", "asciidoc"
           ]
         ]

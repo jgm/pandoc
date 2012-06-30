@@ -149,6 +149,7 @@ blockToMediaWiki opts (Table capt aligns widths headers rows') = do
 
 blockToMediaWiki opts x@(BulletList items) = do
   oldUseTags <- get >>= return . stUseTags
+  listLevel <- get >>= return . stListLevel
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
@@ -160,10 +161,11 @@ blockToMediaWiki opts x@(BulletList items) = do
         modify $ \s -> s { stListLevel = stListLevel s ++ "*" }
         contents <- mapM (listItemToMediaWiki opts) items
         modify $ \s -> s { stListLevel = init (stListLevel s) }
-        return $ vcat contents ++ "\n"
+        return $ vcat contents ++ if null listLevel then "\n" else ""
 
 blockToMediaWiki opts x@(OrderedList attribs items) = do
   oldUseTags <- get >>= return . stUseTags
+  listLevel <- get >>= return . stListLevel
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
@@ -175,10 +177,11 @@ blockToMediaWiki opts x@(OrderedList attribs items) = do
         modify $ \s -> s { stListLevel = stListLevel s ++ "#" }
         contents <- mapM (listItemToMediaWiki opts) items
         modify $ \s -> s { stListLevel = init (stListLevel s) }
-        return $ vcat contents ++ "\n"
+        return $ vcat contents ++ if null listLevel then "\n" else ""
 
 blockToMediaWiki opts x@(DefinitionList items) = do
   oldUseTags <- get >>= return . stUseTags
+  listLevel <- get >>= return . stListLevel
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
@@ -190,7 +193,7 @@ blockToMediaWiki opts x@(DefinitionList items) = do
         modify $ \s -> s { stListLevel = stListLevel s ++ ";" }
         contents <- mapM (definitionListItemToMediaWiki opts) items
         modify $ \s -> s { stListLevel = init (stListLevel s) }
-        return $ vcat contents ++ "\n"
+        return $ vcat contents ++ if null listLevel then "\n" else ""
 
 -- Auxiliary functions for lists:
 

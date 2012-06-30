@@ -1,8 +1,11 @@
 @echo off
 cd ..
+ghc --make MakeManPage
+MakeManPage.exe
+cabal update
 cabal-dev install --disable-library-for-ghci highlighting-kate
 cabal-dev install --flags="embed_data_files" citeproc-hs
-cabal-dev install --flags="executable -library" --datasubdir=
+cabal-dev install --flags="executable -library blaze_html_0_5" --datasubdir=
 rem note: we use -f-library in building pandoc, because
 rem if the library is built, the data file paths will not be relocatable!
 strip cabal-dev\bin\pandoc.exe

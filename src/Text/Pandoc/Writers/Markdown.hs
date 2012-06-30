@@ -152,7 +152,7 @@ noteToMarkdown opts num blocks = do
 -- | Escape special characters for Markdown.
 escapeString :: String -> String
 escapeString = escapeStringUsing markdownEscapes
-  where markdownEscapes = backslashEscapes "\\`*_>#~^"
+  where markdownEscapes = backslashEscapes "\\`*_$<>#~^"
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: WriterOptions -> [Block] -> Doc 
@@ -218,7 +218,7 @@ blockToMarkdown opts (Para inlines) = do
   let esc = if (not (writerStrictMarkdown opts)) &&
                not (stPlain st) &&
                beginsWithOrderedListMarker (render Nothing contents)
-               then text "\\"
+               then text "\x200B" -- zero-width space, a hack
                else empty
   return $ esc <> contents <> blankline
 blockToMarkdown _ (RawBlock f str)
@@ -254,7 +254,7 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
   if writerStrictMarkdown opts || attribs == nullAttr
      then nest (writerTabStop opts) (text str) <> blankline
      else -- use delimited code block
-          flush (tildes <> space <> attrs <> cr <> text str <>
+          (tildes <> space <> attrs <> cr <> text str <>
                   cr <> tildes) <> blankline
             where tildes  = text "~~~~"
                   attrs = attrsToMarkdown attribs
@@ -355,13 +355,13 @@ definitionListItemToMarkdown opts (label, defs) = do
   labelText <- inlineListToMarkdown opts label
   let tabStop = writerTabStop opts
   st <- get
-  let leader  = if stPlain st then "   " else "  ~"
+  let leader  = if stPlain st then "   " else ":  "
   let sps = case writerTabStop opts - 3 of
                  n | n > 0   -> text $ replicate n ' '
                  _           -> text " "
   defs' <- mapM (mapM (blockToMarkdown opts)) defs
   let contents = vcat $ map (\d -> hang tabStop (leader <> sps) $ vcat d <> cr) defs'
-  return $ labelText <> cr <> contents <> cr
+  return $ nowrap labelText <> cr <> contents <> cr
 
 -- | Convert list of Pandoc block elements to markdown.
 blockListToMarkdown :: WriterOptions -- ^ Options
@@ -516,9 +516,9 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
                       else "[" <> linktext <> "](" <> 
                            text src <> linktitle <> ")"
 inlineToMarkdown opts (Image alternate (source, tit)) = do
-  let txt = if (null alternate) || (alternate == [Str ""]) || 
-               (alternate == [Str source]) -- to prevent autolinks
-               then [Str "image"]
+  let txt = if null alternate || alternate == [Str source]
+                                 -- to prevent autolinks
+               then [Str ""]
                else alternate
   linkPart <- inlineToMarkdown opts (Link txt (source, tit))
   return $ "!" <> linkPart

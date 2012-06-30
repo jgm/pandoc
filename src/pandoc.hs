@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-
 Copyright (C) 2006-2012 John MacFarlane <jgm@berkeley.edu>
 
@@ -37,7 +38,7 @@ import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
 import Text.Pandoc.XML ( toEntities, fromEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Highlighting ( languages, Style, tango, pygments,
-         espresso, kate, haddock, monochrome )
+         espresso, zenburn, kate, haddock, monochrome )
 import System.Environment ( getArgs, getProgName )
 import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
@@ -56,8 +57,21 @@ import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString )
-import Codec.Binary.UTF8.String (decodeString, encodeString)
 import Text.CSL.Reference (Reference(..))
+#if MIN_VERSION_base(4,4,0)
+#else
+import Codec.Binary.UTF8.String (decodeString, encodeString)
+#endif
+
+encodePath, decodeArg :: FilePath -> FilePath
+#if MIN_VERSION_base(4,4,0)
+encodePath = id
+decodeArg  = id
+#else
+encodePath = encodeString
+decodeArg  = decodeString
+#endif
+
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2012 John MacFarlane\n" ++
@@ -101,7 +115,7 @@ data Opt = Opt
     , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
-    , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/S5
+    , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
     , optSelfContained     :: Bool    -- ^ Make HTML accessible offline
     , optSmart             :: Bool    -- ^ Use smart typography
     , optOldDashes         :: Bool    -- ^ Parse dashes like pandoc <=1.8.2.1
@@ -135,6 +149,7 @@ data Opt = Opt
     , optSlideLevel        :: Maybe Int  -- ^ Header level that creates slides
     , optSetextHeaders     :: Bool       -- ^ Use atx headers for markdown level 1-2
     , optAscii             :: Bool       -- ^ Use ascii characters only in html
+    , optTeXLigatures      :: Bool       -- ^ Use TeX ligatures for quotes/dashes
     }
 
 -- | Defaults for command-line options.
@@ -187,6 +202,7 @@ defaultOpts = Opt
     , optSlideLevel        = Nothing
     , optSetextHeaders     = True
     , optAscii             = False
+    , optTeXLigatures      = True
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -295,14 +311,13 @@ options =
 
     , Option "V" ["variable"]
                  (ReqArg
-                  (\arg opt ->
-                     case break (`elem` ":=") arg of
-                          (k,_:v) -> do
-                            let newvars = optVariables opt ++ [(k,v)]
-                            return opt{ optVariables = newvars }
-                          _  -> err 17 $
-                            "Could not parse `" ++ arg ++ "' as a key/value pair (k=v or k:v)")
-                  "KEY:VALUE")
+                  (\arg opt -> do
+                     let (key,val) = case break (`elem` ":=") arg of
+                                       (k,_:v) -> (k,v)
+                                       (k,_)   -> (k,"true")
+                     let newvars = optVariables opt ++ [(key,val)]
+                     return opt{ optVariables = newvars })
+                  "KEY[:VALUE]")
                  "" -- "Use custom template"
 
     , Option "D" ["print-default-template"]
@@ -348,6 +363,7 @@ options =
                                      "pygments"   -> return pygments
                                      "tango"      -> return tango
                                      "espresso"   -> return espresso
+                                     "zenburn"    -> return zenburn
                                      "kate"       -> return kate
                                      "monochrome" -> return monochrome
                                      "haddock"    -> return haddock
@@ -439,6 +455,11 @@ options =
                   (\opt -> return opt { optNumberSections = True }))
                  "" -- "Number sections in LaTeX"
 
+    , Option "" ["no-tex-ligatures"]
+                 (NoArg
+                  (\opt -> return opt { optTeXLigatures = False }))
+                 "" -- "Don't use tex ligatures for quotes, dashes"
+
     , Option "" ["listings"]
                  (NoArg
                   (\opt -> return opt { optListings = True }))
@@ -447,7 +468,7 @@ options =
     , Option "i" ["incremental"]
                  (NoArg
                   (\opt -> return opt { optIncremental = True }))
-                 "" -- "Make list items display incrementally in Slidy/S5"
+                 "" -- "Make list items display incrementally in Slidy/Slideous/S5"
 
     , Option "" ["slide-level"]
                  (ReqArg
@@ -690,6 +711,7 @@ defaultReaderName fallback (x:xs) =
     ".ltx"      -> "latex"
     ".rst"      -> "rst"
     ".lhs"      -> "markdown+lhs"
+    ".db"       -> "docbook"
     ".textile"  -> "textile"
     ".native"   -> "native"
     ".json"     -> "json"
@@ -737,7 +759,7 @@ defaultWriterName x =
 main :: IO ()
 main = do
 
-  rawArgs <- liftM (map decodeString) getArgs
+  rawArgs <- liftM (map decodeArg) getArgs
   prg <- getProgName
   let compatMode = (prg == "hsmarkdown")
 
@@ -804,6 +826,7 @@ main = do
               , optSlideLevel        = slideLevel
               , optSetextHeaders     = setextHeaders
               , optAscii             = ascii
+              , optTeXLigatures      = texLigatures
              } = opts
 
   when dumpArgs $
@@ -833,10 +856,12 @@ main = do
 
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
 
+  let laTeXOutput = writerName' == "latex" || writerName' == "beamer" ||
+         writerName' == "latex+lhs" || writerName' == "beamer+lhs"
+
   when pdfOutput $ do
     -- make sure writer is latex or beamer
-    unless (writerName' == "latex" || writerName' == "beamer" ||
-            writerName' == "latex+lhs") $
+    unless laTeXOutput $
       err 47 $ "cannot produce pdf output with " ++ writerName' ++ " writer"
     -- check for latex program
     mbLatex <- findExecutable latexEngine
@@ -876,6 +901,7 @@ main = do
   let slideVariant = case writerName' of
                            "s5"       -> S5Slides
                            "slidy"    -> SlidySlides
+                           "slideous" -> SlideousSlides
                            "dzslides" -> DZSlides
                            _          -> NoSlides
 
@@ -916,14 +942,14 @@ main = do
                                                      lhsExtension sources,
                               stateStandalone      = standalone',
                               stateCitations       = map CSL.refId refs,
-                              stateSmart           = smart || writerName' `elem`
-                                                     ["latex", "context", "latex+lhs", "beamer"],
+                              stateSmart           = smart || (texLigatures &&
+                                       (laTeXOutput || writerName' == "context")),
                               stateOldDashes       = oldDashes,
                               stateColumns         = columns,
                               stateStrict          = strict,
                               stateIndentedCodeClasses = codeBlockClasses,
-                              stateApplyMacros     = writerName' `notElem`
-                                                     ["latex", "latex+lhs", "beamer"] }
+                              stateApplyMacros     = not laTeXOutput
+                              }
 
   let writerOptions = defaultWriterOptions
                                     { writerStandalone       = standalone',
@@ -945,8 +971,7 @@ main = do
                                       writerReferenceLinks   = referenceLinks,
                                       writerWrapText         = wrap,
                                       writerColumns          = columns,
-                                      writerLiterateHaskell  = "+lhs" `isSuffixOf` writerName' ||
-                                                               lhsExtension [outputFile],
+                                      writerLiterateHaskell  = False,
                                       writerEmailObfuscation = if strict
                                                                   then ReferenceObfuscation
                                                                   else obfuscationMethod,
@@ -957,11 +982,12 @@ main = do
                                            slideVariant == DZSlides,
                                       writerChapters         = chapters,
                                       writerListings         = listings,
-                                      writerBeamer           = writerName' == "beamer",
+                                      writerBeamer           = False,
                                       writerSlideLevel       = slideLevel,
                                       writerHighlight        = highlight,
                                       writerHighlightStyle   = highlightStyle,
-                                      writerSetextHeaders    = setextHeaders
+                                      writerSetextHeaders    = setextHeaders,
+                                      writerTeXLigatures     = texLigatures
                                       }
 
   when (writerName' `elem` nonTextFormats&& outputFile == "-") $
@@ -980,9 +1006,7 @@ main = do
 
   let convertTabs = tabFilter (if preserveTabs then 0 else tabStop)
 
-  let handleIncludes' = if readerName' == "latex" || readerName' == "beamer" ||
-                           readerName' == "latex+lhs" ||
-                           readerName' == "context"
+  let handleIncludes' = if readerName' == "latex" || readerName' == "latex+lhs"
                            then handleIncludes
                            else return
 
@@ -1013,7 +1037,7 @@ main = do
              else return doc1
 
   let writeBinary :: B.ByteString -> IO ()
-      writeBinary = B.writeFile (encodeString outputFile)
+      writeBinary = B.writeFile (encodePath outputFile)
 
   let writerFn :: FilePath -> String -> IO ()
       writerFn "-" = UTF8.putStr
@@ -1029,21 +1053,21 @@ main = do
           | writerName' == "docx"  ->
               writeDocx referenceDocx writerOptions doc2 >>= writeBinary
           | otherwise -> err 9 ("Unknown writer: " ++ writerName')
-        Just _
+        Just w
           | pdfOutput  -> do
-              res <- tex2pdf latexEngine $ writeLaTeX writerOptions doc2
+              res <- tex2pdf latexEngine $ w writerOptions doc2
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> err 43 $ toString err'
-        Just r
+        Just w
           | htmlFormat && ascii ->
                   writerFn outputFile =<< selfcontain (toEntities result)
           | otherwise ->
                   writerFn outputFile =<< selfcontain result
-          where result       = r writerOptions doc2 ++ ['\n' | not standalone']
+          where result       = w writerOptions doc2 ++ ['\n' | not standalone']
                 htmlFormat = writerName' `elem`
                                ["html","html+lhs","html5","html5+lhs",
-                               "s5","slidy","dzslides"]
+                               "s5","slidy","slideous","dzslides"]
                 selfcontain = if selfContained && htmlFormat
                                  then makeSelfContained datadir
                                  else return

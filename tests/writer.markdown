@@ -272,41 +272,41 @@ Definition Lists
 Tight using spaces:
 
 apple
-  ~ red fruit
+:   red fruit
 orange
-  ~ orange fruit
+:   orange fruit
 banana
-  ~ yellow fruit
+:   yellow fruit
 
 Tight using tabs:
 
 apple
-  ~ red fruit
+:   red fruit
 orange
-  ~ orange fruit
+:   orange fruit
 banana
-  ~ yellow fruit
+:   yellow fruit
 
 Loose:
 
 apple
-  ~ red fruit
+:   red fruit
 
 orange
-  ~ orange fruit
+:   orange fruit
 
 banana
-  ~ yellow fruit
+:   yellow fruit
 
 Multiple blocks with italics:
 
 *apple*
-  ~ red fruit
+:   red fruit
 
     contains seeds, crisp, pleasant to taste
 
 *orange*
-  ~ orange fruit
+:   orange fruit
 
         { orange code block }
 
@@ -315,33 +315,33 @@ Multiple blocks with italics:
 Multiple definitions, tight:
 
 apple
-  ~ red fruit
-  ~ computer
+:   red fruit
+:   computer
 orange
-  ~ orange fruit
-  ~ bank
+:   orange fruit
+:   bank
 
 Multiple definitions, loose:
 
 apple
-  ~ red fruit
+:   red fruit
 
-  ~ computer
+:   computer
 
 orange
-  ~ orange fruit
+:   orange fruit
 
-  ~ bank
+:   bank
 
 Blank line after term, indented marker, alternate markers:
 
 apple
-  ~ red fruit
+:   red fruit
 
-  ~ computer
+:   computer
 
 orange
-  ~ orange fruit
+:   orange fruit
 
     1.  sublist
     2.  sublist
@@ -528,10 +528,10 @@ LaTeX
 These shouldn’t be math:
 
 -   To get the famous equation, write `$e = mc^2$`.
--   $22,000 is a *lot* of money. So is $34,000. (It worked if “lot” is
+-   \$22,000 is a *lot* of money. So is \$34,000. (It worked if “lot” is
     emphasized.)
--   Shoes ($20) and socks ($5).
--   Escaped `$`: $73 *this should be emphasized* 23$.
+-   Shoes (\$20) and socks (\$5).
+-   Escaped `$`: \$73 *this should be emphasized* 23\$.
 
 Here’s a LaTeX table:
 
@@ -560,7 +560,7 @@ AT&T is another way to write it.
 
 This & that.
 
-4 < 5.
+4 \< 5.
 
 6 \> 5.
 

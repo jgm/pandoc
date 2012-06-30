@@ -38,7 +38,7 @@ module Text.Pandoc.XML ( stripTags,
                          fromEntities ) where
 
 import Text.Pandoc.Pretty
-import Data.Char (ord, isAscii)
+import Data.Char (ord, isAscii, isSpace)
 import Text.HTML.TagSoup.Entity (lookupEntity)
 
 -- | Remove everything between <...>
@@ -106,8 +106,8 @@ fromEntities :: String -> String
 fromEntities ('&':xs) =
   case lookupEntity ent of
         Just c  -> c : fromEntities rest
-        Nothing -> '&' : fromEntities rest
-    where (ent, rest) = case break (==';') xs of
+        Nothing -> '&' : fromEntities xs
+    where (ent, rest) = case break (\c -> isSpace c || c == ';') xs of
                              (zs,';':ys) -> (zs,ys)
                              _           -> ("",xs)
 fromEntities (x:xs) = x : fromEntities xs

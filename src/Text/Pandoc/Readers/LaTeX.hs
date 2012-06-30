@@ -88,8 +88,15 @@ controlSeq name = try $ do
   case name of
         ""   -> mzero
         [c] | not (isLetter c) -> string [c]
-        cs   -> string cs <* optional sp
+        cs   -> string cs <* notFollowedBy letter <* optional sp
   return name
+
+dimenarg :: LP String
+dimenarg = try $ do
+  ch  <- option "" $ string "="
+  num <- many1 digit
+  dim <- oneOfStrings ["pt","pc","in","bp","cm","mm","dd","cc","sp"]
+  return $ ch ++ num ++ dim
 
 sp :: LP ()
 sp = skipMany1 $ satisfy (\c -> c == ' ' || c == '\t')
@@ -118,18 +125,28 @@ comment = do
   newline
   return ()
 
+bgroup :: LP ()
+bgroup = () <$ char '{'
+     <|> () <$ controlSeq "bgroup"
+     <|> () <$ controlSeq "begingroup"
+
+egroup :: LP ()
+egroup = () <$ char '}'
+     <|> () <$ controlSeq "egroup"
+     <|> () <$ controlSeq "endgroup"
+
 grouped :: Monoid a => LP a -> LP a
-grouped parser = try $ char '{' *> (mconcat <$> manyTill parser (char '}'))
+grouped parser = try $ bgroup *> (mconcat <$> manyTill parser egroup)
 
 braced :: LP String
-braced = char '{' *> (concat <$> manyTill
+braced = bgroup *> (concat <$> manyTill
          (  many1 (satisfy (\c -> c /= '\\' && c /= '}' && c /= '{'))
         <|> try (string "\\}")
         <|> try (string "\\{")
         <|> try (string "\\\\")
         <|> ((\x -> "{" ++ x ++ "}") <$> braced)
         <|> count 1 anyChar
-         ) (char '}'))
+         ) egroup)
 
 bracketed :: Monoid a => LP a -> LP a
 bracketed parser = try $ char '[' *> (mconcat <$> manyTill parser (char ']'))
@@ -187,7 +204,7 @@ inlines = mconcat <$> many (notFollowedBy (char '}') *> inline)
 
 block :: LP Blocks
 block = (mempty <$ comment)
-    <|> (mempty <$ ((spaceChar <|> blankline) *> spaces))
+    <|> (mempty <$ ((spaceChar <|> newline) *> spaces))
     <|> environment
     <|> mempty <$ macro -- TODO improve macros, make them work everywhere
     <|> blockCommand
@@ -257,6 +274,7 @@ blockCommands = M.fromList $
   , ("end", mzero)
   , ("item", skipopts *> loose_item)
   , ("documentclass", skipopts *> braced *> preamble)
+  , ("centerline", (para . trimInlines) <$> (skipopts *> tok))
   ] ++ map ignoreBlocks
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks
@@ -287,7 +305,9 @@ authors :: LP ()
 authors = try $ do
   char '{'
   let oneAuthor = mconcat <$>
-       many1 (notFollowedBy' (controlSeq "and") >> inline)
+       many1 (notFollowedBy' (controlSeq "and") >>
+               (inline <|> mempty <$ blockCommand))
+               -- skip e.g. \vspace{10pt}
   auths <- sepBy oneAuthor (controlSeq "and")
   char '}'
   updateState (\s -> s { stateAuthors = map (normalizeSpaces . toList) auths })
@@ -310,16 +330,19 @@ inlineCommand = try $ do
   parseRaw <- stateParseRaw `fmap` getState
   star <- option "" (string "*")
   let name' = name ++ star
+  let rawargs = withRaw (skipopts *> option "" dimenarg
+                  *> many braced) >>= applyMacros' . snd
+  let raw = if parseRaw
+               then (rawInline "latex" . (('\\':name') ++)) <$> rawargs
+               else mempty <$> rawargs
   case M.lookup name' inlineCommands of
-       Just p      -> p
+       Just p      -> p <|> raw
        Nothing     -> case M.lookup name inlineCommands of
-                           Just p    -> p
-                           Nothing
-                             | parseRaw  ->
-                                (rawInline "latex" . (('\\':name') ++)) <$>
-                                 (withRaw (skipopts *> many braced)
-                                      >>= applyMacros' . snd)
-                             | otherwise -> return mempty
+                           Just p    -> p <|> raw
+                           Nothing   -> raw
+
+unlessParseRaw :: LP ()
+unlessParseRaw = getState >>= guard . not . stateParseRaw
 
 isBlockCommand :: String -> Bool
 isBlockCommand s = maybe False (const True) $ M.lookup s blockCommands
@@ -339,8 +362,8 @@ inlineCommands = M.fromList $
   , ("dots", lit "…")
   , ("mdots", lit "…")
   , ("sim", lit "~")
-  , ("label", inBrackets <$> tok)
-  , ("ref", inBrackets <$> tok)
+  , ("label", unlessParseRaw >> (inBrackets <$> tok))
+  , ("ref", unlessParseRaw >> (inBrackets <$> tok))
   , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
   , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
   , ("ensuremath", mathInline $ braced)
@@ -691,7 +714,7 @@ verbatimEnv = do
              controlSeq "begin"
              name <- braced
              guard $ name == "verbatim" || name == "Verbatim" ||
-                     name == "lstlisting"
+                     name == "lstlisting" || name == "minted"
              verbEnv name
   rest <- getInput
   return (r,rest)
@@ -723,7 +746,9 @@ environments = M.fromList
         verbEnv "code"))
   , ("verbatim", codeBlock <$> (verbEnv "verbatim"))
   , ("Verbatim", codeBlock <$> (verbEnv "Verbatim"))
-  , ("lstlisting", codeBlock <$> (verbEnv "listlisting"))
+  , ("lstlisting", codeBlock <$> (verbEnv "lstlisting"))
+  , ("minted", liftA2 (\l c -> codeBlockWith ("",[l],[]) c)
+            (grouped (many1 $ satisfy (/= '}'))) (verbEnv "minted"))
   , ("displaymath", mathEnv Nothing "displaymath")
   , ("equation", mathEnv Nothing "equation")
   , ("equation*", mathEnv Nothing "equation*")
@@ -923,9 +948,9 @@ parseAligns :: LP [Alignment]
 parseAligns = try $ do
   char '{'
   optional $ char '|'
-  let cAlign = char 'c' >> return AlignCenter
-  let lAlign = char 'l' >> return AlignLeft
-  let rAlign = char 'r' >> return AlignRight
+  let cAlign = AlignCenter <$ char 'c'
+  let lAlign = AlignLeft <$ char 'l'
+  let rAlign = AlignRight <$ char 'r'
   let alignChar = optional sp *> (cAlign <|> lAlign <|> rAlign)
   aligns' <- sepEndBy alignChar (optional $ char '|')
   spaces
@@ -936,15 +961,19 @@ parseAligns = try $ do
 hline :: LP ()
 hline = () <$ (try $ spaces >> controlSeq "hline")
 
+lbreak :: LP ()
+lbreak = () <$ (try $ spaces *> controlSeq "\\")
+
+amp :: LP ()
+amp = () <$ (try $ spaces *> char '&')
+
 parseTableRow :: Int  -- ^ number of columns
               -> LP [Blocks]
 parseTableRow cols = try $ do
-  let amp = try $ spaces *> string "&"
-  let tableCellInline = notFollowedBy (amp <|> controlSeq "\\") >> inline
-  cells' <- sepBy ((plain . trimInlines . mconcat) <$> many tableCellInline) amp
+  let tableCellInline = notFollowedBy (amp <|> lbreak) >> inline
+  let tableCell = (plain . trimInlines . mconcat) <$> many tableCellInline
+  cells' <- sepBy tableCell amp
   guard $ length cells' == cols
-  spaces
-  optional $ controlSeq "\\"
   spaces
   return cells'
 
@@ -954,8 +983,8 @@ simpTable = try $ do
   aligns <- parseAligns
   let cols = length aligns
   optional hline
-  header' <- option [] $ try (parseTableRow cols <* hline)
-  rows <- many (parseTableRow cols <* optional hline)
+  header' <- option [] $ try (parseTableRow cols <* lbreak <* hline)
+  rows <- sepEndBy (parseTableRow cols) (lbreak <* optional hline)
   spaces
   let header'' = if null header'
                     then replicate cols mempty

@@ -47,8 +47,14 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Data.Maybe ( fromMaybe, isJust )
 import Data.List ( intercalate )
-import Data.Char ( isSpace, isDigit, toLower )
+import Data.Char ( isDigit, toLower )
 import Control.Monad ( liftM, guard, when )
+
+isSpace :: Char -> Bool
+isSpace ' '  = True
+isSpace '\t' = True
+isSpace '\n' = True
+isSpace _    = False
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: ParserState   -- ^ Parser state
@@ -229,6 +235,8 @@ pSimpleTable :: TagParser [Block]
 pSimpleTable = try $ do
   TagOpen _ _ <- pSatisfy (~== TagOpen "table" [])
   skipMany pBlank
+  caption <- option [] $ pInTags "caption" inline >>~ skipMany pBlank
+  skipMany $ pInTags "col" block >> skipMany pBlank
   head' <- option [] $ pOptInTag "thead" $ pInTags "tr" (pCell "th")
   skipMany pBlank
   rows <- pOptInTag "tbody"
@@ -238,7 +246,7 @@ pSimpleTable = try $ do
   let cols = maximum $ map length rows
   let aligns = replicate cols AlignLeft
   let widths = replicate cols 0
-  return [Table [] aligns widths head' rows]
+  return [Table caption aligns widths head' rows]
 
 pCell :: String -> TagParser [TableCell]
 pCell celltype = try $ do

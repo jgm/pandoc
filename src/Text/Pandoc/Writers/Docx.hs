@@ -146,7 +146,8 @@ writeDocx mbRefDocx opts doc@(Pandoc (Meta tit auths date) _) = do
   let styledoc = case findEntryByPath stylepath refArchive >>=
                       parseXMLDoc . toString . fromEntry of
                         Just d  -> d
-                        Nothing -> error $ stylepath ++ "missing in reference docx"
+                        Nothing -> error $ "Unable to parse " ++ stylepath ++
+                                           " from reference.docx"
   let styledoc' = styledoc{ elContent = elContent styledoc ++ map Elem newstyles }
   let styleEntry = toEntry stylepath epochtime $ fromString $ showTopElement' styledoc'
   -- construct word/numbering.xml
@@ -261,13 +262,13 @@ mkLvl marker lvl =
                                          ,show n)
           step = 720
           hang = 480
-          bulletFor 0 = "\8226"
-          bulletFor 1 = "\9702"
-          bulletFor 2 = "\8227"
-          bulletFor 3 = "\8259"
-          bulletFor 4 = "\8226"
-          bulletFor 5 = "\9702"
-          bulletFor _ = "\8227"
+          bulletFor 0 = "\x2022"  -- filled circle
+          bulletFor 1 = "\x2013"  -- en dash
+          bulletFor 2 = "\x2022"  -- hyphen bullet
+          bulletFor 3 = "\x2013"
+          bulletFor 4 = "\x2022"
+          bulletFor 5 = "\x2013"
+          bulletFor _ = "\x2022"
           styleFor UpperAlpha _ = "upperLetter"
           styleFor LowerAlpha _ = "lowerLetter"
           styleFor UpperRoman _ = "upperRoman"
@@ -488,7 +489,10 @@ getParaProps :: WS [Element]
 getParaProps = do
   props <- gets stParaProperties
   listLevel <- gets stListLevel
-  numid <- getNumId
+  listMarker <- gets stListMarker
+  numid <- case listMarker of
+                 NoMarker -> return 1
+                 _        -> getNumId
   let listPr = if listLevel >= 0
                   then [ mknode "w:numPr" []
                          [ mknode "w:numId" [("w:val",show numid)] ()

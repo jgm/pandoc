@@ -121,8 +121,12 @@ cssURLs userdata d orig =
                   let url = toString
                           $ case B.take 1 u of
                                  "\"" -> B.takeWhile (/='"') $ B.drop 1 u
+                                 "'"  -> B.takeWhile (/='\'') $ B.drop 1 u
                                  _    -> u
-                  (raw, mime) <- getRaw userdata "" (d </> url)
+                  let url' = if isAbsoluteURI url
+                                then url
+                                else d </> url
+                  (raw, mime) <- getRaw userdata "" url'
                   rest <- cssURLs userdata d v
                   let enc = "data:" `B.append` fromString mime `B.append`
                                ";base64," `B.append` (encode raw)

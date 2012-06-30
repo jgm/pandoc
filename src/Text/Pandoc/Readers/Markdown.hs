@@ -188,6 +188,7 @@ parseMarkdown = do
   st <- getState
   let firstPassParser = referenceKey
                      <|> (if stateStrict st then pzero else noteBlock)
+                     <|> liftM snd (withRaw codeBlockDelimited)
                      <|> lineClump
   docMinusKeys <- liftM concat $ manyTill firstPassParser eof
   setInput docMinusKeys
@@ -558,7 +559,6 @@ listStart = bulletListStart <|> (anyOrderedListStart >> return ())
 -- parse a line of a list item (start = parser for beginning of list item)
 listLine :: GenParser Char ParserState [Char]
 listLine = try $ do
-  notFollowedBy' listStart
   notFollowedBy blankline
   notFollowedBy' (do indentSpaces
                      many (spaceChar)
@@ -567,12 +567,14 @@ listLine = try $ do
   return $ concat chunks ++ "\n"
 
 -- parse raw text for one list item, excluding start marker and continuations
-rawListItem :: GenParser Char ParserState a -> GenParser Char ParserState [Char]
+rawListItem :: GenParser Char ParserState a
+            -> GenParser Char ParserState [Char]
 rawListItem start = try $ do
   start
-  result <- many1 listLine
+  first <- listLine
+  rest <- many (notFollowedBy listStart >> listLine)
   blanks <- many blankline
-  return $ concat result ++ blanks
+  return $ concat (first:rest)  ++ blanks
 
 -- continuation of a list item - indented and separated by blankline 
 -- or (in compact lists) endline.
@@ -592,8 +594,9 @@ listContinuationLine = try $ do
   result <- manyTill anyChar newline
   return $ result ++ "\n"
 
-listItem :: GenParser Char ParserState a -> GenParser Char ParserState [Block]
-listItem start = try $ do 
+listItem :: GenParser Char ParserState a
+         -> GenParser Char ParserState [Block]
+listItem start = try $ do
   first <- rawListItem start
   continuations <- many listContinuation
   -- parsing with ListItemState forces markers at beginning of lines to
@@ -1028,11 +1031,11 @@ mathInline = try $ do
   notFollowedBy digit
   return $ intercalate " " words'
 
--- to avoid performance problems, treat 4 or more _ or * in a row as a literal
--- rather than attempting to parse for emph/strong
+-- to avoid performance problems, treat 4 or more _ or * or ~ or ^ in a row
+-- as a literal rather than attempting to parse for emph/strong/strikeout/super/sub
 fours :: GenParser Char st Inline
 fours = try $ do
-  x <- char '*' <|> char '_'
+  x <- char '*' <|> char '_' <|> char '~' <|> char '^'
   count 2 $ satisfy (==x)
   rest <- many1 (satisfy (==x))
   return $ Str (x:x:x:rest)
@@ -1133,7 +1136,7 @@ likelyAbbrev x =
                   "Gen.", "Gov.", "e.g.", "i.e.", "Sgt.", "St.",
                   "vol.", "vs.", "Sen.", "Rep.", "Pres.", "Hon.",
                   "Rev.", "Ph.D.", "M.D.", "M.A.", "p.", "pp.",
-                  "ch.", "sec." ]
+                  "ch.", "sec.", "cf.", "cp."]
       abbrPairs = map (break (=='.')) abbrevs
   in  map snd $ filter (\(y,_) -> y == x) abbrPairs
 
