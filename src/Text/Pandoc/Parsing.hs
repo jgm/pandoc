@@ -58,6 +58,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              tableWith,
                              gridTableWith,
                              readWith,
+                             dumpParseError,
                              testStringWith,
                              ParserState (..),
                              defaultParserState,
@@ -607,15 +608,22 @@ gridTableFooter = blanklines
 
 ---
 
--- | Parse a string with a given parser and state.
+
+-- | Takes a parser result and returns the string, if the parsing failed
+--   it just returns an error
+dumpParseError :: Either ParseError a           -- ^ the result of of running a parser
+               -> a
+dumpParseError r = case r of
+                     Left err'    -> error $ "\nError:\n" ++ show err'
+                     Right result -> result
+
+-- | Run the parser on a given input and state
 readWith :: GenParser t ParserState a      -- ^ parser
          -> ParserState                    -- ^ initial state
          -> [t]                            -- ^ input
-         -> a
-readWith parser state input = 
-    case runParser parser state "source" input of
-      Left err'    -> error $ "\nError:\n" ++ show err'
-      Right result -> result
+         -> Either ParseError a
+readWith parser state = runParser parser state "source"
+
 
 -- | Parse a string with @parser@ (for testing).
 testStringWith :: (Show a) => GenParser Char ParserState a

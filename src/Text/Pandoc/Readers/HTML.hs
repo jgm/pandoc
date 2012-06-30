@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of HTML to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.HTML ( readHtml
+                                , readHtml'
                                 , htmlTag
                                 , htmlInBalanced
                                 , isInlineTag
@@ -53,12 +54,18 @@ import Control.Monad ( liftM, guard, when )
 readHtml :: ParserState   -- ^ Parser state
          -> String        -- ^ String to parse (assumes @'\n'@ line endings)
          -> Pandoc
-readHtml st inp = Pandoc meta blocks
-  where blocks  = readWith parseBody st rest
-        tags    = canonicalizeTags $
-                   parseTagsOptions parseOptions{ optTagPosition = True } inp
-        hasHeader = any (~== TagOpen "head" []) tags
-        (meta, rest) = if hasHeader
+readHtml state = dumpParseError . readHtml' state
+
+readHtml' :: ParserState   -- ^ Parser state
+          -> String        -- ^ String to parse (assumes @'\n'@ line endings)
+          -> Either ParseError Pandoc
+readHtml' st inp = either Left mkPandoc . readWith parseBody st $ rest
+    where
+      mkPandoc     = Right . Pandoc meta
+      tags         = canonicalizeTags $
+                     parseTagsOptions parseOptions{ optTagPosition = True } inp
+      hasHeader    = any (~== TagOpen "head" []) tags
+      (meta, rest) = if hasHeader
                           then parseHeader tags
                           else (Meta [] [] [], tags)
 
