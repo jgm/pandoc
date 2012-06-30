@@ -868,14 +868,17 @@ emDashOld = do
 -- | Parse a \newcommand or \renewcommand macro definition.
 macro :: GenParser Char ParserState Block
 macro = do
-  getState >>= guard . stateApplyMacros
+  apply <- stateApplyMacros `fmap` getState
   inp <- getInput
   case parseMacroDefinitions inp of
        ([], _)    -> pzero
-       (ms, rest) -> do count (length inp - length rest) anyChar
-                        updateState $ \st ->
-                           st { stateMacros = ms ++ stateMacros st }
-                        return Null
+       (ms, rest) -> do def <- count (length inp - length rest) anyChar
+                        if apply
+                           then do
+                             updateState $ \st ->
+                               st { stateMacros = ms ++ stateMacros st }
+                             return Null
+                           else return $ RawBlock "latex" def
 
 -- | Apply current macros to string.
 applyMacros' :: String -> GenParser Char ParserState String
