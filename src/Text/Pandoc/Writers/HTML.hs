@@ -638,7 +638,7 @@ inlineToHtml opts inline =
                                         Left  _ -> inlineListToHtml opts
                                                    (readTeXMath str) >>= return .
                                                      (H.span ! A.class_ "math")
-                               MathJax _ -> return $ toHtml $
+                               MathJax _ -> return $ H.span ! A.class_ "math" $ toHtml $
                                   case t of
                                     InlineMath  -> "\\(" ++ str ++ "\\)"
                                     DisplayMath -> "\\[" ++ str ++ "\\]"
