@@ -414,7 +414,8 @@ Options affecting specific writers
     `--standalone`.
 
 `-c` *URL*, `--css=`*URL*
-:   Link to a CSS style sheet.
+:   Link to a CSS style sheet. This option can be be used repeatedly to
+    include multiple files. They will be included in the order specified. 
 
 `--reference-odt=`*FILE*
 :   Use the specified file as a style reference in producing an ODT.
