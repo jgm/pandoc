@@ -1754,6 +1754,10 @@ HTML, Slidy, Slideous, DZSlides, S5, EPUB
         with the URL provided. If no URL is specified, the Google Chart
         API will be used (`http://chart.apis.google.com/chart?cht=tx&chl=`).
 
+    7.  If the `--mathjax` option is used, TeX math will be displayed
+        between `\(...\)` (for inline math) or `\[...\]` (for display
+        math) and put in `<span>` tags with class `math`.
+        The [MathJax] script will be used to render it as formulas.
 
 Raw HTML
 --------
