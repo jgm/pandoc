@@ -36,7 +36,7 @@ import Data.ByteString.Lazy.UTF8 ( fromString )
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
 import Paths_pandoc ( getDataFileName )
-import Text.Pandoc.Shared hiding (Element)
+import Text.Pandoc.Shared ( WriterOptions(..), stringify )
 import Text.Pandoc.ImageSize ( readImageSize, sizeInPoints )
 import Text.Pandoc.MIME ( getMimeType )
 import Text.Pandoc.Definition
