@@ -83,6 +83,7 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 ,Para [Link [Str "Email",Space,Str "link"] ("mailto:nobody@nowhere.net","")]
 ,Para [Str "Automatic",Space,Str "linking",Space,Str "to",Space,Link [Str "http://www.example.com"] ("http://www.example.com",""),Space,Str "and",Space,Link [Str "foobar@example.com"] ("mailto:foobar@example.com",""),Str "."]
 ,Para [Link [Str "Example"] ("http://www.example.com/",""),Str ":",Space,Str "Example",Space,Str "of",Space,Str "a",Space,Str "link",Space,Str "followed",Space,Str "by",Space,Str "a",Space,Str "colon",Str "."]
+,Para [Str "A",Space,Str "link",Link [Str "with",Space,Str "brackets"] ("http://www.example.com",""),Str "and",Space,Str "no",Space,Str "spaces",Str "."]
 ,Header 1 [Str "Tables"]
 ,Para [Str "Textile",Space,Str "allows",Space,Str "tables",Space,Str "with",Space,Str "and",Space,Str "without",Space,Str "headers",Space,Str ":"]
 ,Header 2 [Str "Without",Space,Str "headers"]

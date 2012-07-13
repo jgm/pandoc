@@ -155,6 +155,8 @@ Automatic linking to http://www.example.com and foobar@example.com.
 
 "Example":http://www.example.com/: Example of a link followed by a colon.
 
+A link["with brackets":http://www.example.com]and no spaces.
+
 h1. Tables
 
 Textile allows tables with and without headers :
