@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of LaTeX to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.LaTeX ( readLaTeX,
+                                   readLaTeX',
                                    rawLaTeXInline,
                                    rawLaTeXBlock,
                                    handleIncludes
@@ -52,7 +53,12 @@ import qualified Data.Map as M
 readLaTeX :: ParserState   -- ^ Parser state, including options for parser
           -> String        -- ^ String to parse (assumes @'\n'@ line endings)
           -> Pandoc
-readLaTeX = readWith parseLaTeX
+readLaTeX st = dumpParseError . readLaTeX' st
+
+readLaTeX' :: ParserState   -- ^ Parser state, including options for parser
+           -> String        -- ^ String to parse (assumes @'\n'@ line endings)
+           -> Either ParseError Pandoc
+readLaTeX' = readWith parseLaTeX
 
 parseLaTeX :: LP Pandoc
 parseLaTeX = do
@@ -985,4 +991,3 @@ simpTable = try $ do
                     else header'
   lookAhead $ controlSeq "end" -- make sure we're at end
   return $ table mempty (zip aligns (repeat 0)) header'' rows
-

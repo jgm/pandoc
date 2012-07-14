@@ -53,7 +53,7 @@ TODO : refactor common patterns across readers :
 -}
 
 
-module Text.Pandoc.Readers.Textile ( readTextile) where
+module Text.Pandoc.Readers.Textile ( readTextile, readTextile' ) where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
@@ -70,7 +70,12 @@ import Control.Applicative ((<$>), (*>), (<*))
 readTextile :: ParserState -- ^ Parser state, including options for parser
              -> String      -- ^ String to parse (assuming @'\n'@ line endings)
              -> Pandoc
-readTextile state s =
+readTextile st = dumpParseError . readTextile' st
+
+readTextile' :: ParserState -- ^ Parser state, including options for parser
+             -> String      -- ^ String to parse (assuming @'\n'@ line endings)
+             -> Either ParseError Pandoc
+readTextile' state s =
   (readWith parseTextile) state{ stateOldDashes = True } (s ++ "\n\n")
 
 

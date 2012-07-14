@@ -27,8 +27,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion from reStructuredText to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.RST ( 
-                                readRST
+module Text.Pandoc.Readers.RST ( readRST
+                               , readRST'
                                ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
@@ -44,7 +44,12 @@ import Data.Maybe ( catMaybes )
 readRST :: ParserState -- ^ Parser state, including options for parser
         -> String      -- ^ String to parse (assuming @'\n'@ line endings)
         -> Pandoc
-readRST state s = (readWith parseRST) state (s ++ "\n\n")
+readRST st = dumpParseError . readRST' st
+
+readRST' :: ParserState -- ^ Parser state, including options for parser
+         -> String      -- ^ String to parse (assuming @'\n'@ line endings)
+         -> Either ParseError Pandoc
+readRST' state s = (readWith parseRST) state (s ++ "\n\n")
 
 --
 -- Constants and data structure definitions

@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of markdown-formatted plain text to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.Markdown ( readMarkdown ) where
+module Text.Pandoc.Readers.Markdown ( readMarkdown , readMarkdown' ) where
 
 import Data.List ( transpose, sortBy, findIndex, intercalate )
 import qualified Data.Map as M
@@ -52,7 +52,12 @@ import Text.HTML.TagSoup.Match (tagOpen)
 readMarkdown :: ParserState -- ^ Parser state, including options for parser
              -> String      -- ^ String to parse (assuming @'\n'@ line endings)
              -> Pandoc
-readMarkdown state s = (readWith parseMarkdown) state (s ++ "\n\n")
+readMarkdown state = dumpParseError . readMarkdown' state
+
+readMarkdown' :: ParserState -- ^ Parser state, including options for parser
+              -> String      -- ^ String to parse (assuming @'\n'@ line endings)
+              -> Either ParseError Pandoc
+readMarkdown' state s = (readWith parseMarkdown) state (s ++ "\n\n")
 
 --
 -- Constants and data structure definitions
