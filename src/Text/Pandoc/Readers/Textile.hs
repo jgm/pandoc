@@ -471,12 +471,25 @@ rawLaTeXInline' = try $ do
   failIfStrict
   rawLaTeXInline
 
--- | Textile standard link syntax is "label":target
+-- | Textile standard link syntax is "label":target. But we
+-- can also have ["label":target].
 link :: GenParser Char ParserState Inline
-link = try $ do
+link = linkB <|> linkNoB
+
+linkNoB :: GenParser Char ParserState Inline
+linkNoB = try $ do
   name <- surrounded (char '"') inline
   char ':'
-  url <- manyTill (anyChar) (lookAhead $ (space <|> try (oneOf ".;,:" >> (space <|> newline))))
+  let stopChars = "!.,;:"
+  url <- manyTill nonspaceChar (lookAhead $ space <|> try (oneOf stopChars >> (space <|> newline)))
+  return $ Link name (url, "")
+
+linkB :: GenParser Char ParserState Inline
+linkB = try $ do
+  char '['
+  name <- surrounded (char '"') inline
+  char ':'
+  url <- manyTill nonspaceChar (char ']')
   return $ Link name (url, "")
 
 -- | Detect plain links to http or email.

@@ -315,8 +315,7 @@ options =
                      let (key,val) = case break (`elem` ":=") arg of
                                        (k,_:v) -> (k,v)
                                        (k,_)   -> (k,"true")
-                     let newvars = optVariables opt ++ [(key,val)]
-                     return opt{ optVariables = newvars })
+                     return opt{ optVariables = (key,val) : optVariables opt })
                   "KEY[:VALUE]")
                  "" -- "Use custom template"
 

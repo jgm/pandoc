@@ -414,7 +414,8 @@ Options affecting specific writers
     `--standalone`.
 
 `-c` *URL*, `--css=`*URL*
-:   Link to a CSS style sheet.
+:   Link to a CSS style sheet. This option can be be used repeatedly to
+    include multiple files. They will be included in the order specified. 
 
 `--reference-odt=`*FILE*
 :   Use the specified file as a style reference in producing an ODT.
@@ -624,7 +625,7 @@ Options for wrapper scripts
 [LaTeXMathML]: http://math.etsu.edu/LaTeXMathML/
 [jsMath]:  http://www.math.union.edu/~dpvc/jsmath/
 [MathJax]: http://www.mathjax.org/
-[gladTeX]:  http://www.math.uio.no/~martingu/gladtex/index.html
+[gladTeX]:  http://ans.hsh.no/home/mgg/gladtex/
 [mimeTeX]: http://www.forkosh.com/mimetex.html 
 [CSL]: http://CitationStyles.org
 
@@ -1753,6 +1754,10 @@ HTML, Slidy, Slideous, DZSlides, S5, EPUB
         with the URL provided. If no URL is specified, the Google Chart
         API will be used (`http://chart.apis.google.com/chart?cht=tx&chl=`).
 
+    7.  If the `--mathjax` option is used, TeX math will be displayed
+        between `\(...\)` (for inline math) or `\[...\]` (for display
+        math) and put in `<span>` tags with class `math`.
+        The [MathJax] script will be used to render it as formulas.
 
 Raw HTML
 --------
