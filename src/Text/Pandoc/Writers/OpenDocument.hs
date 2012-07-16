@@ -378,6 +378,7 @@ inlineToOpenDocument o ils
     | RawInline "html" s <- ils = preformatted s  -- for backwards compat.
     | RawInline _ _ <- ils = return empty
     | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
+    | Image c (s,t) <- ils = return $ mkImgCaption  c s t
     | Image _ (s,t) <- ils = return $ mkImg  s t
     | Note        l <- ils = mkNote l
     | otherwise            = return empty
@@ -392,6 +393,31 @@ inlineToOpenDocument o ils
                                                  , ("xlink:type"   , "simple")
                                                  , ("xlink:show"   , "embed" )
                                                  , ("xlink:actuate", "onLoad")]
+      mkImgCaption  c s t = (inTags True "draw:frame" ((attrsFromTitle t) ++ [("draw:z-index","0")
+      																		 ,("text:anchor-type","as-char")
+                                										     ,("style:rel-height","scale")
+      																		 ,("draw:style-name","IllustrationFrame")]) $
+                              inTags True "draw:text-box" [("fo:min-height","75pt")] $
+                               inTags False "text:p" [("text:style-name","Illustration")] $
+                                (inTags True "draw:frame" ((attrsFromTitle t) ++ [("draw:z-index","1")
+																				 ,("svg:x","0.004cm")
+																				 ,("svg:y","0.002cm")
+																			     ,("text:anchor-type","paragraph")
+																				 ,("style:rel-width","100%")
+																				 ,("style:rel-height","scale")
+																				 ,("draw:style-name","IllustrationGraphics")]) $
+                                 selfClosingTag "draw:image" [ ("xlink:href"   , s       )
+                                                             , ("xlink:type"   , "simple")
+                                                             , ("xlink:show"   , "embed" )
+                                                             , ("xlink:actuate", "onLoad")]) <>
+                                (text $ escapeStringForXML "Illustration ") <>
+                                (inTags False "text:sequence"
+								 [("text:ref-name","refIllustration0")
+								 ,("text:name","Illustration")
+								 ,("text:formula","ooow:Illustration+1")
+								 ,("style:num-format","1")]
+                                 (text $ escapeStringForXML ("1"))) <>
+                                (text $ escapeStringForXML (": " ++ stringify c)))
       mkNote     l = do
         n <- length <$> gets stNotes
         let footNote t = inTags False "text:note"
