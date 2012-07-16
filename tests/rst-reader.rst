@@ -593,3 +593,7 @@ Reset default-role to the default default.
 
 And now `some-invalid-string-3231231` is nonsense.
 
+Literal symbols
+---------------
+
+2*2 = 4*1

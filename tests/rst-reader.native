@@ -320,4 +320,6 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":
 ,Para [Math DisplayMath "\\alpha = beta",Math DisplayMath "E = mc^2"]
 ,Para [Str "Some",Space,Superscript [Str "of"],Space,Str "these",Space,Superscript [Str "words"],Space,Str "are",Space,Str "in",Space,Superscript [Str "superscript"],Str "."]
 ,Para [Str "Reset",Space,Str "default",Str "-",Str "role",Space,Str "to",Space,Str "the",Space,Str "default",Space,Str "default",Str "."]
-,Para [Str "And",Space,Str "now",Space,Str "`",Str "some",Str "-",Str "invalid",Str "-",Str "string",Str "-",Str "3231231",Str "`",Space,Str "is",Space,Str "nonsense",Str "."]]
+,Para [Str "And",Space,Str "now",Space,Str "`",Str "some",Str "-",Str "invalid",Str "-",Str "string",Str "-",Str "3231231",Str "`",Space,Str "is",Space,Str "nonsense",Str "."]
+,Header 2 [Str "Literal",Space,Str "symbols"]
+,Para [Str "2",Str "*",Str "2",Space,Str "=",Space,Str "4",Str "*",Str "1"]]

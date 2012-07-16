@@ -34,7 +34,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.ParserCombinators.Parsec
-import Control.Monad ( when, liftM )
+import Control.Monad ( when, liftM, guard )
 import Data.List ( findIndex, intercalate, transpose, sort, deleteFirstsBy )
 import qualified Data.Map as M
 import Text.Printf ( printf )
@@ -58,7 +58,7 @@ underlineChars = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
-specialChars = "\\`|*_<>$:[]()-.\"'\8216\8217\8220\8221"
+specialChars = "\\`|*_<>$:/[]{}()-.\"'\8216\8217\8220\8221"
 
 --
 -- parsing documents
@@ -831,12 +831,21 @@ code = try $ do
   return $ Code nullAttr
          $ removeLeadingTrailingSpace $ intercalate " " $ lines result
 
+-- succeeds only if we're not right after a str (ie. in middle of word)
+atStart :: GenParser Char ParserState a -> GenParser Char ParserState a
+atStart p = do
+  pos <- getPosition
+  st <- getState
+  -- single quote start can't be right after str
+  guard $ stateLastStrPos st /= Just pos
+  p
+
 emph :: GenParser Char ParserState Inline
-emph = enclosed (char '*') (char '*') inline >>= 
+emph = enclosed (atStart $ char '*') (char '*') inline >>= 
        return . Emph . normalizeSpaces
 
 strong :: GenParser Char ParserState Inline
-strong = enclosed (string "**") (try $ string "**") inline >>= 
+strong = enclosed (atStart $ string "**") (try $ string "**") inline >>= 
          return . Strong . normalizeSpaces
 
 -- Parses inline interpreted text which is required to have the given role.
@@ -856,7 +865,7 @@ interpreted role = try $ do
   -- http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#inline-markup-recognition-rules
   -- but it should be good enough for most purposes
   unmarkedInterpretedText = do
-      result <- enclosed (char '`') (char '`') anyChar
+      result <- enclosed (atStart $ char '`') (char '`') anyChar
       return result
 
 superscript :: GenParser Char ParserState Inline
@@ -873,9 +882,9 @@ whitespace = many1 spaceChar >> return Space <?> "whitespace"
 
 str :: GenParser Char ParserState Inline
 str = do
-  result <- many1 (noneOf (specialChars ++ "\t\n "))
-  pos <- getPosition
-  updateState $ \s -> s{ stateLastStrPos = Just pos }
+  let strChar = noneOf ("\t\n " ++ specialChars)
+  result <- many1 strChar
+  updateLastStrPos
   return $ Str result
 
 -- an endline character that can be treated as a space, not a structural break
