@@ -1060,7 +1060,7 @@ main = do
                    Left err' -> err 43 $ toString err'
         Just w
           | htmlFormat && ascii ->
-                  writerFn outputFile =<< selfcontain (toEntities result)
+                  writerFn outputFile . toEntities =<< selfcontain result
           | otherwise ->
                   writerFn outputFile =<< selfcontain result
           where result       = w writerOptions doc2 ++ ['\n' | not standalone']
