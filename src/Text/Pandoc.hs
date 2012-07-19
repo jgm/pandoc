@@ -114,6 +114,8 @@ module Text.Pandoc
                , rtfEmbedImage
                , jsonFilter
                , ToJsonFilter(..)
+               -- * From Data.Default
+               , def
              ) where
 
 import Text.Pandoc.Definition
@@ -149,6 +151,7 @@ import Text.Pandoc.Shared
 import Data.Version (showVersion)
 import Text.JSON.Generic
 import Paths_pandoc (version)
+import Data.Default
 
 -- | Version number of pandoc library.
 pandocVersion :: String

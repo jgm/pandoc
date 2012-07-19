@@ -88,6 +88,7 @@ import Text.Pandoc.Shared
 import qualified Data.Map as M
 import Text.TeXMath.Macros (applyMacros, Macro, parseMacroDefinitions)
 import Text.HTML.TagSoup.Entity ( lookupEntity )
+import Data.Default
 
 -- | Like >>, but returns the operation on the left.
 -- (Suggested by Tillmann Rendel on Haskell-cafe list.)
@@ -658,6 +659,9 @@ data ParserState = ParserState
     }
     deriving Show
 
+instance Default ParserState where
+  def = defaultParserState
+
 defaultParserState :: ParserState
 defaultParserState = 
     ParserState { stateParseRaw        = False,
@@ -872,13 +876,13 @@ macro = do
   inp <- getInput
   case parseMacroDefinitions inp of
        ([], _)    -> pzero
-       (ms, rest) -> do def <- count (length inp - length rest) anyChar
+       (ms, rest) -> do def' <- count (length inp - length rest) anyChar
                         if apply
                            then do
                              updateState $ \st ->
                                st { stateMacros = ms ++ stateMacros st }
                              return Null
-                           else return $ RawBlock "latex" def
+                           else return $ RawBlock "latex" def'
 
 -- | Apply current macros to string.
 applyMacros' :: String -> GenParser Char ParserState String

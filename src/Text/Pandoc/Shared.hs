@@ -72,7 +72,7 @@ module Text.Pandoc.Shared (
                      readDataFile,
                      -- * Error handling
                      err,
-                     warn,
+                     warn
                     ) where
 
 import Text.Pandoc.Definition
@@ -94,6 +94,7 @@ import Text.Pandoc.Highlighting (Style, pygments)
 import Text.Pandoc.Pretty (charWidth)
 import System.Locale (defaultTimeLocale)
 import Data.Time
+import Data.Default
 import System.IO (stderr)
 
 --
@@ -523,6 +524,9 @@ data WriterOptions = WriterOptions
   , writerSetextHeaders    :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
   , writerTeXLigatures     :: Bool       -- ^ Use tex ligatures quotes, dashes in latex
   } deriving Show
+
+instance Default WriterOptions where
+  def = defaultWriterOptions
 
 {-# DEPRECATED writerXeTeX "writerXeTeX no longer does anything" #-}
 -- | Default writer options.

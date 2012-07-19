@@ -223,6 +223,7 @@ Library
                  base64-bytestring >= 0.1 && < 0.2,
                  zlib >= 0.5 && < 0.6,
                  highlighting-kate >= 0.5.1 && < 0.6,
+                 data-default >= 0.4 && < 0.6,
                  temporary >= 1.1 && < 1.2
   if flag(blaze_html_0_5)
     build-depends:
@@ -331,6 +332,7 @@ Executable pandoc
                  base64-bytestring >= 0.1 && < 0.2,
                  zlib >= 0.5 && < 0.6,
                  highlighting-kate >= 0.5.1 && < 0.6,
+                 data-default >= 0.4 && < 0.6,
                  temporary >= 1.1 && < 1.2
   if flag(blaze_html_0_5)
     build-depends:
@@ -398,6 +400,7 @@ Executable test-pandoc
                  base64-bytestring >= 0.1 && < 0.2,
                  zlib >= 0.5 && < 0.6,
                  highlighting-kate >= 0.5.1 && < 0.6,
+                 data-default >= 0.4 && < 0.6,
                  temporary >= 1.1 && < 1.2
   if flag(blaze_html_0_5)
     build-depends:
