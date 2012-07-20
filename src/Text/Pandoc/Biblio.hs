@@ -38,7 +38,7 @@ import qualified Text.CSL as CSL ( Cite(..) )
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Shared (stringify)
-import Text.ParserCombinators.Parsec
+import Text.Parsec
 import Control.Monad
 
 -- | Process a 'Pandoc' document by adding citations formatted
@@ -165,7 +165,7 @@ locatorWords inp =
          breakup (x : xs) = x : breakup xs
          splitup = groupBy (\x y -> x /= '\160' && y /= '\160')
 
-pLocatorWords :: GenParser Inline st (String, [Inline])
+pLocatorWords :: Parsec [Inline] st (String, [Inline])
 pLocatorWords = do
   l <- pLocator
   s <- getInput -- rest is suffix
@@ -173,16 +173,16 @@ pLocatorWords = do
      then return (init l, Str "," : s)
      else return (l, s)
 
-pMatch :: (Inline -> Bool) -> GenParser Inline st Inline
+pMatch :: (Inline -> Bool) -> Parsec [Inline] st Inline
 pMatch condition = try $ do
   t <- anyToken
   guard $ condition t
   return t
 
-pSpace :: GenParser Inline st Inline
+pSpace :: Parsec [Inline] st Inline
 pSpace = pMatch (\t -> t == Space || t == Str "\160")
 
-pLocator :: GenParser Inline st String
+pLocator :: Parsec [Inline] st String
 pLocator = try $ do
   optional $ pMatch (== Str ",")
   optional pSpace
@@ -190,7 +190,7 @@ pLocator = try $ do
   gs <- many1 pWordWithDigits
   return $ stringify f ++ (' ' : unwords gs)
 
-pWordWithDigits :: GenParser Inline st String
+pWordWithDigits :: Parsec [Inline] st String
 pWordWithDigits = try $ do
   pSpace
   r <- many1 (notFollowedBy pSpace >> anyToken)

@@ -41,7 +41,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing hiding (blankline)
-import Text.ParserCombinators.Parsec ( runParser, GenParser )
+import Text.Parsec ( Parsec, runParser )
 import Data.List ( isPrefixOf, intersperse, intercalate )
 import Text.Pandoc.Pretty
 import Control.Monad.State
@@ -93,7 +93,7 @@ escapeString = escapeStringUsing escs
   where escs = backslashEscapes "{"
 
 -- | Ordered list start parser for use in Para below.
-olMarker :: GenParser Char ParserState Char
+olMarker :: Parsec [Char] ParserState Char
 olMarker = do (start, style', delim) <- anyOrderedListMarker
               if delim == Period &&
                           (style' == UpperAlpha || (style' == UpperRoman &&

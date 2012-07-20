@@ -33,7 +33,7 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    handleIncludes
                                  ) where
 
-import Text.ParserCombinators.Parsec hiding ((<|>), space, many, optional)
+import Text.Parsec hiding ((<|>), space, many, optional)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
@@ -64,7 +64,7 @@ parseLaTeX = do
   let date' = stateDate st
   return $ Pandoc (Meta title' authors' date') $ toList bs
 
-type LP = GenParser Char ParserState
+type LP = Parsec [Char] ParserState
 
 anyControlSeq :: LP String
 anyControlSeq = do
@@ -713,10 +713,10 @@ verbatimEnv = do
   rest <- getInput
   return (r,rest)
 
-rawLaTeXBlock :: GenParser Char ParserState String
+rawLaTeXBlock :: Parsec [Char] ParserState String
 rawLaTeXBlock = snd <$> withRaw (environment <|> blockCommand)
 
-rawLaTeXInline :: GenParser Char ParserState Inline
+rawLaTeXInline :: Parsec [Char] ParserState Inline
 rawLaTeXInline = do
   (res, raw) <- withRaw inlineCommand
   if res == mempty

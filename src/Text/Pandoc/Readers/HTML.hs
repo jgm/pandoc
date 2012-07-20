@@ -36,8 +36,8 @@ module Text.Pandoc.Readers.HTML ( readHtml
                                 , isCommentTag
                                 ) where
 
-import Text.ParserCombinators.Parsec
-import Text.ParserCombinators.Parsec.Pos
+import Text.Parsec
+import Text.Parsec.Pos
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Definition
@@ -47,7 +47,7 @@ import Text.Pandoc.Parsing
 import Data.Maybe ( fromMaybe, isJust )
 import Data.List ( intercalate )
 import Data.Char ( isDigit, toLower )
-import Control.Monad ( liftM, guard, when )
+import Control.Monad ( liftM, guard, when, mzero )
 
 isSpace :: Char -> Bool
 isSpace ' '  = True
@@ -68,7 +68,7 @@ readHtml st inp = Pandoc meta blocks
                           then parseHeader tags
                           else (Meta [] [] [], tags)
 
-type TagParser = GenParser (Tag String) ParserState
+type TagParser = Parsec [Tag String] ParserState
 
 -- TODO - fix this - not every header has a title tag
 parseHeader :: [Tag String] -> (Meta, [Tag String])
@@ -417,7 +417,7 @@ pCloses tagtype = try $ do
        (TagClose "ul") | tagtype == "li" -> return ()
        (TagClose "ol") | tagtype == "li" -> return ()
        (TagClose "dl") | tagtype == "li" -> return ()
-       _ -> pzero
+       _ -> mzero
 
 pTagText :: TagParser [Inline]
 pTagText = try $ do
@@ -432,11 +432,11 @@ pBlank = try $ do
   (TagText str) <- pSatisfy isTagText
   guard $ all isSpace str
 
-pTagContents :: GenParser Char ParserState Inline
+pTagContents :: Parsec [Char] ParserState Inline
 pTagContents =
   pStr <|> pSpace <|> smartPunctuation pTagContents <|> pSymbol <|> pBad
 
-pStr :: GenParser Char ParserState Inline
+pStr :: Parsec [Char] ParserState Inline
 pStr = do
   result <- many1 $ satisfy $ \c ->
                      not (isSpace c) && not (isSpecial c) && not (isBad c)
@@ -455,13 +455,13 @@ isSpecial '\8220' = True
 isSpecial '\8221' = True
 isSpecial _ = False
 
-pSymbol :: GenParser Char ParserState Inline
+pSymbol :: Parsec [Char] ParserState Inline
 pSymbol = satisfy isSpecial >>= return . Str . (:[])
 
 isBad :: Char -> Bool
 isBad c = c >= '\128' && c <= '\159' -- not allowed in HTML
 
-pBad :: GenParser Char ParserState Inline
+pBad :: Parsec [Char] ParserState Inline
 pBad = do
   c <- satisfy isBad
   let c' = case c of
@@ -495,7 +495,7 @@ pBad = do
                 _      -> '?'
   return $ Str [c']
 
-pSpace :: GenParser Char ParserState Inline
+pSpace :: Parsec [Char] ParserState Inline
 pSpace = many1 (satisfy isSpace) >> return Space
 
 --
@@ -593,7 +593,7 @@ _ `closes` _ = False
 --- parsers for use in markdown, textile readers
 
 -- | Matches a stretch of HTML in balanced tags.
-htmlInBalanced :: (Tag String -> Bool) -> GenParser Char ParserState String
+htmlInBalanced :: (Tag String -> Bool) -> Parsec [Char] ParserState String
 htmlInBalanced f = try $ do
   (TagOpen t _, tag) <- htmlTag f
   guard $ '/' `notElem` tag      -- not a self-closing tag
@@ -606,7 +606,7 @@ htmlInBalanced f = try $ do
   return $ tag ++ concat contents ++ endtag
 
 -- | Matches a tag meeting a certain condition.
-htmlTag :: (Tag String -> Bool) -> GenParser Char ParserState (Tag String, String)
+htmlTag :: (Tag String -> Bool) -> Parsec [Char] ParserState (Tag String, String)
 htmlTag f = try $ do
   lookAhead (char '<')
   (next : _) <- getInput >>= return . canonicalizeTags . parseTags
