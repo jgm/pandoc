@@ -68,7 +68,7 @@ module Text.Pandoc.Templates ( renderTemplate
                              , TemplateTarget
                              , getDefaultTemplate ) where
 
-import Text.Pandoc.Parsing
+import Text.Parsec
 import Control.Monad (liftM, when, forM, mzero)
 import System.FilePath
 import Data.List (intercalate, intersperse)
@@ -98,7 +98,7 @@ getDefaultTemplate user writer = do
 
 data TemplateState = TemplateState Int [(String,String)]
 
-adjustPosition :: String -> Parser [Char] TemplateState String
+adjustPosition :: String -> Parsec [Char] TemplateState String
 adjustPosition str = do
   let lastline = takeWhile (/= '\n') $ reverse str
   updateState $ \(TemplateState pos x) ->
@@ -132,21 +132,21 @@ renderTemplate vals templ =
 reservedWords :: [String]
 reservedWords = ["else","endif","for","endfor","sep"]
 
-parseTemplate :: Parser [Char] TemplateState [String]
+parseTemplate :: Parsec [Char] TemplateState [String]
 parseTemplate =
   many $ (plaintext <|> escapedDollar <|> conditional <|> for <|> variable)
            >>= adjustPosition
 
-plaintext :: Parser [Char] TemplateState String
+plaintext :: Parsec [Char] TemplateState String
 plaintext = many1 $ noneOf "$"
 
-escapedDollar :: Parser [Char] TemplateState String
+escapedDollar :: Parsec [Char] TemplateState String
 escapedDollar = try $ string "$$" >> return "$"
 
-skipEndline :: Parser [Char] st ()
+skipEndline :: Parsec [Char] st ()
 skipEndline = try $ skipMany (oneOf " \t") >> newline >> return ()
 
-conditional :: Parser [Char] TemplateState String
+conditional :: Parsec [Char] TemplateState String
 conditional = try $ do
   TemplateState pos vars <- getState
   string "$if("
@@ -170,7 +170,7 @@ conditional = try $ do
               then ifContents
               else elseContents
 
-for :: Parser [Char] TemplateState String
+for :: Parsec [Char] TemplateState String
 for = try $ do
   TemplateState pos vars <- getState
   string "$for("
@@ -193,7 +193,7 @@ for = try $ do
   setState $ TemplateState pos vars
   return $ concat $ intersperse sep contents
 
-ident :: Parser [Char] TemplateState String
+ident :: Parsec [Char] TemplateState String
 ident = do
   first <- letter
   rest <- many (alphaNum <|> oneOf "_-")
@@ -202,7 +202,7 @@ ident = do
      then mzero
      else return id'
 
-variable :: Parser [Char] TemplateState String
+variable :: Parsec [Char] TemplateState String
 variable = try $ do
   char '$'
   id' <- ident
