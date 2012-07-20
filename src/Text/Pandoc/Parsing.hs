@@ -73,13 +73,64 @@ module Text.Pandoc.Parsing ( (>>~),
                              lookupKeySrc,
                              smartPunctuation,
                              macro,
-                             applyMacros' )
+                             applyMacros',
+                             -- * Re-exports from Text.Pandoc.Parsec
+                             Parsec,
+                             runParser,
+                             parse,
+                             anyToken,
+                             getInput,
+                             setInput,
+                             unexpected,
+                             char,
+                             letter,
+                             digit,
+                             alphaNum,
+                             skipMany,
+                             skipMany1,
+                             spaces,
+                             space,
+                             anyChar,
+                             satisfy,
+                             newline,
+                             string,
+                             count,
+                             eof,
+                             noneOf,
+                             oneOf,
+                             lookAhead,
+                             notFollowedBy,
+                             many,
+                             many1,
+                             manyTill,
+                             (<|>),
+                             (<?>),
+                             choice,
+                             try,
+                             sepBy1,
+                             sepBy,
+                             sepEndBy,
+                             endBy1,
+                             option,
+                             optional,
+                             optionMaybe,
+                             getState,
+                             setState,
+                             updateState,
+                             getPosition,
+                             setPosition,
+                             sourceColumn,
+                             sourceLine,
+                             newPos,
+                             token
+                             )
 where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec
+import Text.Parsec.Pos (newPos)
 import Data.Char ( toLower, toUpper, ord, isAscii, isAlphaNum, isDigit, isPunctuation )
 import Data.List ( intercalate, transpose )
 import Network.URI ( parseURI, URI (..), isAllowedInURI )

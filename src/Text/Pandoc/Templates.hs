@@ -68,7 +68,7 @@ module Text.Pandoc.Templates ( renderTemplate
                              , TemplateTarget
                              , getDefaultTemplate ) where
 
-import Text.Parsec
+import Text.Pandoc.Parsing
 import Control.Monad (liftM, when, forM, mzero)
 import System.FilePath
 import Data.List (intercalate, intersperse)

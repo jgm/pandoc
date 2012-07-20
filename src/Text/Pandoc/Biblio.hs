@@ -38,7 +38,7 @@ import qualified Text.CSL as CSL ( Cite(..) )
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Shared (stringify)
-import Text.Parsec
+import Text.Pandoc.Parsing
 import Control.Monad
 
 -- | Process a 'Pandoc' document by adding citations formatted

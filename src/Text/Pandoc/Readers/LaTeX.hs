@@ -33,10 +33,9 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    handleIncludes
                                  ) where
 
-import Text.Parsec hiding ((<|>), space, many, optional)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
-import Text.Pandoc.Parsing
+import Text.Pandoc.Parsing hiding ((<|>), many, optional, space)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char ( chr, ord )
 import Control.Monad

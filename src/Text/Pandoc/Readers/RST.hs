@@ -33,7 +33,6 @@ module Text.Pandoc.Readers.RST (
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
-import Text.Parsec
 import Control.Monad ( when, liftM, guard, mzero )
 import Data.List ( findIndex, intercalate, transpose, sort, deleteFirstsBy )
 import qualified Data.Map as M

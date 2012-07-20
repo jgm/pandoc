@@ -60,7 +60,6 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML ( htmlTag, isInlineTag, isBlockTag )
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
-import Text.Parsec
 import Text.HTML.TagSoup.Match
 import Data.Char ( digitToInt, isUpper )
 import Control.Monad ( guard, liftM )

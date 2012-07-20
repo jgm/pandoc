@@ -43,7 +43,6 @@ import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
                                   isTextTag, isCommentTag )
 import Text.Pandoc.XML ( fromEntities )
-import Text.Parsec
 import Control.Monad (when, liftM, guard, mzero)
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match (tagOpen)
