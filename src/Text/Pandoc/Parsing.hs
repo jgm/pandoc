@@ -75,7 +75,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              macro,
                              applyMacros',
                              -- * Re-exports from Text.Pandoc.Parsec
-                             Parsec,
+                             Parser,
                              runParser,
                              parse,
                              anyToken,
@@ -140,6 +140,8 @@ import qualified Data.Map as M
 import Text.TeXMath.Macros (applyMacros, Macro, parseMacroDefinitions)
 import Text.HTML.TagSoup.Entity ( lookupEntity )
 import Data.Default
+
+type Parser t s = Parsec t s
 
 -- | Like >>, but returns the operation on the left.
 -- (Suggested by Tillmann Rendel on Haskell-cafe list.)

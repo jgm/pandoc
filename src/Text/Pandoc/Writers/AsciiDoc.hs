@@ -92,7 +92,7 @@ escapeString = escapeStringUsing escs
   where escs = backslashEscapes "{"
 
 -- | Ordered list start parser for use in Para below.
-olMarker :: Parsec [Char] ParserState Char
+olMarker :: Parser [Char] ParserState Char
 olMarker = do (start, style', delim) <- anyOrderedListMarker
               if delim == Period &&
                           (style' == UpperAlpha || (style' == UpperRoman &&

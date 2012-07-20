@@ -165,7 +165,7 @@ locatorWords inp =
          breakup (x : xs) = x : breakup xs
          splitup = groupBy (\x y -> x /= '\160' && y /= '\160')
 
-pLocatorWords :: Parsec [Inline] st (String, [Inline])
+pLocatorWords :: Parser [Inline] st (String, [Inline])
 pLocatorWords = do
   l <- pLocator
   s <- getInput -- rest is suffix
@@ -173,16 +173,16 @@ pLocatorWords = do
      then return (init l, Str "," : s)
      else return (l, s)
 
-pMatch :: (Inline -> Bool) -> Parsec [Inline] st Inline
+pMatch :: (Inline -> Bool) -> Parser [Inline] st Inline
 pMatch condition = try $ do
   t <- anyToken
   guard $ condition t
   return t
 
-pSpace :: Parsec [Inline] st Inline
+pSpace :: Parser [Inline] st Inline
 pSpace = pMatch (\t -> t == Space || t == Str "\160")
 
-pLocator :: Parsec [Inline] st String
+pLocator :: Parser [Inline] st String
 pLocator = try $ do
   optional $ pMatch (== Str ",")
   optional pSpace
@@ -190,7 +190,7 @@ pLocator = try $ do
   gs <- many1 pWordWithDigits
   return $ stringify f ++ (' ' : unwords gs)
 
-pWordWithDigits :: Parsec [Inline] st String
+pWordWithDigits :: Parser [Inline] st String
 pWordWithDigits = try $ do
   pSpace
   r <- many1 (notFollowedBy pSpace >> anyToken)

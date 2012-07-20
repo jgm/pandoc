@@ -98,7 +98,7 @@ getDefaultTemplate user writer = do
 
 data TemplateState = TemplateState Int [(String,String)]
 
-adjustPosition :: String -> Parsec [Char] TemplateState String
+adjustPosition :: String -> Parser [Char] TemplateState String
 adjustPosition str = do
   let lastline = takeWhile (/= '\n') $ reverse str
   updateState $ \(TemplateState pos x) ->
@@ -132,21 +132,21 @@ renderTemplate vals templ =
 reservedWords :: [String]
 reservedWords = ["else","endif","for","endfor","sep"]
 
-parseTemplate :: Parsec [Char] TemplateState [String]
+parseTemplate :: Parser [Char] TemplateState [String]
 parseTemplate =
   many $ (plaintext <|> escapedDollar <|> conditional <|> for <|> variable)
            >>= adjustPosition
 
-plaintext :: Parsec [Char] TemplateState String
+plaintext :: Parser [Char] TemplateState String
 plaintext = many1 $ noneOf "$"
 
-escapedDollar :: Parsec [Char] TemplateState String
+escapedDollar :: Parser [Char] TemplateState String
 escapedDollar = try $ string "$$" >> return "$"
 
-skipEndline :: Parsec [Char] st ()
+skipEndline :: Parser [Char] st ()
 skipEndline = try $ skipMany (oneOf " \t") >> newline >> return ()
 
-conditional :: Parsec [Char] TemplateState String
+conditional :: Parser [Char] TemplateState String
 conditional = try $ do
   TemplateState pos vars <- getState
   string "$if("
@@ -170,7 +170,7 @@ conditional = try $ do
               then ifContents
               else elseContents
 
-for :: Parsec [Char] TemplateState String
+for :: Parser [Char] TemplateState String
 for = try $ do
   TemplateState pos vars <- getState
   string "$for("
@@ -193,7 +193,7 @@ for = try $ do
   setState $ TemplateState pos vars
   return $ concat $ intersperse sep contents
 
-ident :: Parsec [Char] TemplateState String
+ident :: Parser [Char] TemplateState String
 ident = do
   first <- letter
   rest <- many (alphaNum <|> oneOf "_-")
@@ -202,7 +202,7 @@ ident = do
      then mzero
      else return id'
 
-variable :: Parsec [Char] TemplateState String
+variable :: Parser [Char] TemplateState String
 variable = try $ do
   char '$'
   id' <- ident

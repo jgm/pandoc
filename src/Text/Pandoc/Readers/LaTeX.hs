@@ -63,7 +63,7 @@ parseLaTeX = do
   let date' = stateDate st
   return $ Pandoc (Meta title' authors' date') $ toList bs
 
-type LP = Parsec [Char] ParserState
+type LP = Parser [Char] ParserState
 
 anyControlSeq :: LP String
 anyControlSeq = do
@@ -712,10 +712,10 @@ verbatimEnv = do
   rest <- getInput
   return (r,rest)
 
-rawLaTeXBlock :: Parsec [Char] ParserState String
+rawLaTeXBlock :: Parser [Char] ParserState String
 rawLaTeXBlock = snd <$> withRaw (environment <|> blockCommand)
 
-rawLaTeXInline :: Parsec [Char] ParserState Inline
+rawLaTeXInline :: Parser [Char] ParserState Inline
 rawLaTeXInline = do
   (res, raw) <- withRaw inlineCommand
   if res == mempty

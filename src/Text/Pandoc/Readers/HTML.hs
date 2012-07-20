@@ -66,7 +66,7 @@ readHtml st inp = Pandoc meta blocks
                           then parseHeader tags
                           else (Meta [] [] [], tags)
 
-type TagParser = Parsec [Tag String] ParserState
+type TagParser = Parser [Tag String] ParserState
 
 -- TODO - fix this - not every header has a title tag
 parseHeader :: [Tag String] -> (Meta, [Tag String])
@@ -430,11 +430,11 @@ pBlank = try $ do
   (TagText str) <- pSatisfy isTagText
   guard $ all isSpace str
 
-pTagContents :: Parsec [Char] ParserState Inline
+pTagContents :: Parser [Char] ParserState Inline
 pTagContents =
   pStr <|> pSpace <|> smartPunctuation pTagContents <|> pSymbol <|> pBad
 
-pStr :: Parsec [Char] ParserState Inline
+pStr :: Parser [Char] ParserState Inline
 pStr = do
   result <- many1 $ satisfy $ \c ->
                      not (isSpace c) && not (isSpecial c) && not (isBad c)
@@ -453,13 +453,13 @@ isSpecial '\8220' = True
 isSpecial '\8221' = True
 isSpecial _ = False
 
-pSymbol :: Parsec [Char] ParserState Inline
+pSymbol :: Parser [Char] ParserState Inline
 pSymbol = satisfy isSpecial >>= return . Str . (:[])
 
 isBad :: Char -> Bool
 isBad c = c >= '\128' && c <= '\159' -- not allowed in HTML
 
-pBad :: Parsec [Char] ParserState Inline
+pBad :: Parser [Char] ParserState Inline
 pBad = do
   c <- satisfy isBad
   let c' = case c of
@@ -493,7 +493,7 @@ pBad = do
                 _      -> '?'
   return $ Str [c']
 
-pSpace :: Parsec [Char] ParserState Inline
+pSpace :: Parser [Char] ParserState Inline
 pSpace = many1 (satisfy isSpace) >> return Space
 
 --
@@ -591,7 +591,7 @@ _ `closes` _ = False
 --- parsers for use in markdown, textile readers
 
 -- | Matches a stretch of HTML in balanced tags.
-htmlInBalanced :: (Tag String -> Bool) -> Parsec [Char] ParserState String
+htmlInBalanced :: (Tag String -> Bool) -> Parser [Char] ParserState String
 htmlInBalanced f = try $ do
   (TagOpen t _, tag) <- htmlTag f
   guard $ '/' `notElem` tag      -- not a self-closing tag
@@ -604,7 +604,7 @@ htmlInBalanced f = try $ do
   return $ tag ++ concat contents ++ endtag
 
 -- | Matches a tag meeting a certain condition.
-htmlTag :: (Tag String -> Bool) -> Parsec [Char] ParserState (Tag String, String)
+htmlTag :: (Tag String -> Bool) -> Parser [Char] ParserState (Tag String, String)
 htmlTag f = try $ do
   lookAhead (char '<')
   (next : _) <- getInput >>= return . canonicalizeTags . parseTags
