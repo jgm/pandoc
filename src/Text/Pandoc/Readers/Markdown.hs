@@ -901,6 +901,10 @@ alignType strLst len =
         (True,  True)    -> AlignCenter
         (False, False)   -> AlignDefault
 
+extraTable :: Bool -- ^ Headerless table
+          -> GenParser Char ParserState Block
+extraTable = extraTableWith block tableCaption
+
 gridTable :: Bool -- ^ Headerless table
           -> Parser [Char] ParserState Block
 gridTable = gridTableWith block tableCaption
@@ -908,6 +912,7 @@ gridTable = gridTableWith block tableCaption
 table :: Parser [Char] ParserState Block
 table = multilineTable False <|> simpleTable True <|>
         simpleTable False <|> multilineTable True <|>
+        extraTable False <|> extraTable True <|>
         gridTable False <|> gridTable True <?> "table"
 
 -- 
