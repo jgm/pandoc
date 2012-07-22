@@ -236,6 +236,8 @@ Reader options
 
 `-p`, `--preserve-tabs`
 :   Preserve tabs instead of converting them to spaces (the default).
+    Note that this will only affect tabs in literal code spans and code
+    blocks; tabs in regular text will be treated as spaces.
 
 `--tab-stop=`*NUMBER*
 :   Specify the number of spaces per tab (default is 4).
