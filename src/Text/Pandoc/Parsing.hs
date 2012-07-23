@@ -57,6 +57,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              orderedListMarker,
                              charRef,
                              tableWith,
+                             extraTableWith,
                              gridTableWith,
                              readWith,
                              testStringWith,
@@ -542,7 +543,9 @@ tableWith headerParser rowParser lineParser footerParser captionParser = try $ d
                   else return caption'
     state <- getState
     let numColumns = stateColumns state
-    let widths = widthsFromIndices numColumns indices
+    let widths = if (indices == [])
+                    then replicate (length aligns) 0.0
+                    else widthsFromIndices numColumns indices
     return $ Table caption aligns widths heads lines'
 
 -- Calculate relative widths of table columns, based on indices
@@ -569,6 +572,99 @@ widthsFromIndices numColumns' indices =
                    else fromIntegral numColumns
       fracs = map (\l -> (fromIntegral l) / quotient) lengths in
   tail fracs
+
+
+-- Parse an extra table (php-markdown): each line starts and ends with '|',
+-- with a mandatory line of '--' to separate the (optionnal) headers from content.
+extraTableWith :: GenParser Char ParserState Block    -- ^ Block parser
+              -> GenParser Char ParserState [Inline] -- ^ Caption parser
+              -> Bool                                -- ^ Headerless table
+              -> GenParser Char ParserState Block
+extraTableWith block tableCaption headless =
+  tableWith (extraTableHeader headless block) (extraTableRow block) (extraTableSep '-') extraTableFooter tableCaption
+
+-- | Parse header for an extra table.
+extraTableHeader :: Bool -- ^ Headerless table
+                -> GenParser Char ParserState Block
+                -> GenParser Char ParserState ([[Block]], [Alignment], [Int])
+extraTableHeader headless block = try $ do
+  optional blanklines
+  rawContent  <- if headless
+                    then return $ repeat "" 
+                    else many1
+                         (notFollowedBy (extraTableHeaderSep) >> char '|' >>
+                           many1Till anyChar newline)
+  aligns <- extraTableHeaderDashedLine
+  let indices  = []
+  let rawHeads = if headless
+                    then replicate (length aligns) ""
+                    else map (intercalate " ") $ transpose
+                       $ map (extraTableSplitLine ) 
+                       $ map (trimOnceBy '|') rawContent
+  heads <- mapM (parseFromString $ many block) $
+               map removeLeadingTrailingSpace rawHeads
+  return (heads, aligns, indices)
+
+extraTableHeaderPart :: GenParser Char st Alignment
+extraTableHeaderPart = do
+  left <- optionMaybe (char ':')
+  many1 (char '-')
+  right <- optionMaybe (char ':')
+  char '|'
+  return $
+    case (left,right) of
+      (Nothing,Nothing) -> AlignDefault
+      (Just _,Nothing)  -> AlignLeft
+      (Nothing,Just _)  -> AlignRight
+      (Just _,Just _)   -> AlignCenter
+
+extraTableHeaderDashedLine :: GenParser Char st [Alignment]
+extraTableHeaderDashedLine = try $ char '|' >> many1 (extraTableHeaderPart) >>~ blankline
+
+extraTableHeaderSep :: GenParser Char ParserState Char
+extraTableHeaderSep = try $ extraTableHeaderDashedLine >> return '\n'
+
+-- | Split a header or data line in an extra table.
+-- | The line must contain only *inside* separators.
+extraTableSplitLine :: String -> [String]
+extraTableSplitLine line = map removeLeadingSpace $
+  splitBy (== '|') $ removeTrailingSpace line
+
+-- Remove, if present, a character from both ends of a string
+trimOnceBy :: Char -> String -> String
+trimOnceBy ch s =
+   if (head s == ch) && (last s == ch)
+     then init $ tail s
+     else s
+trimEndOnceBy :: Char -> String -> String
+trimEndOnceBy ch s =
+   if (last s == ch)
+     then init s
+     else s
+
+-- | Parse row of an extra table.
+extraTableRow :: GenParser Char ParserState Block
+             -> [Int]
+             -> GenParser Char ParserState [[Block]]
+extraTableRow block indices = do
+  cols <- extraTableRawLine
+  mapM (liftM compactifyCell . parseFromString (many block)) cols
+
+extraTableRawLine :: GenParser Char ParserState [String]
+extraTableRawLine = do
+  char '|'
+  line <- many1Till anyChar newline
+  return (extraTableSplitLine $ trimEndOnceBy '|' line)
+
+-- | Separator between rows of an extra table.
+extraTableSep :: Char -> GenParser Char ParserState Char
+extraTableSep ch = do return '\n'
+
+-- | Parse footer for an extra table.
+extraTableFooter :: GenParser Char ParserState [Char]
+extraTableFooter = blanklines
+
+---
 
 -- Parse a grid table:  starts with row of '-' on top, then header
 -- (which may be grid), then the rows,
