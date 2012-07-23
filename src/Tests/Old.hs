@@ -57,7 +57,7 @@ tests = [ testGroup "markdown"
             , test "tables" ["-r", "markdown", "-w", "native", "--columns=80"]
               "tables.txt" "tables.native"
             , test "extratables" ["-r", "markdown", "-w", "native", "--columns=80"]
-              "markdown-tables.txt" "markdown-tables.native"
+              "extra-tables.markdown" "extra-tables.native"
             , test "more" ["-r", "markdown", "-w", "native", "-S"]
               "markdown-reader-more.txt" "markdown-reader-more.native"
             , lhsReaderTest "markdown+lhs"
