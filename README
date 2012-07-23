@@ -240,6 +240,11 @@ Reader options
     Note that this will only affect tabs in literal code spans and code
     blocks; tabs in regular text will be treated as spaces.
 
+`--linebreak=`*METHOD*
+:   Specify the treatment of newline characters within paragraphs.
+    *METHOD* can be `space`, `skip`, or `preserve` (defaults to `space`).
+    This option currently has effect only on `markdown` input.
+
 `--tab-stop=`*NUMBER*
 :   Specify the number of spaces per tab (default is 4).
 

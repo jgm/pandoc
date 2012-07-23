@@ -74,6 +74,7 @@ module Text.Pandoc
                , readNative
                -- * Parser state used in readers
                , ParserState (..)
+               , LineBreakConv (..)
                , defaultParserState
                , ParserContext (..)
                , QuoteContext (..)

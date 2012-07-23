@@ -110,7 +110,11 @@ atMostSpaces n = (char ' ' >> atMostSpaces (n-1)) <|> return ()
 litChar :: Parser [Char] ParserState Char
 litChar = escapedChar'
        <|> noneOf "\n"
-       <|> (newline >> notFollowedBy blankline >> return ' ')
+       <|> (newline >> notFollowedBy blankline >> do state <- getState
+                                                     case stateLineBreakConv state of
+                                                         LineBreakSpace    -> return ' '
+                                                         LineBreakSkip     -> litChar
+                                                         LineBreakPreserve -> fail "end of line")
 
 -- | Fail unless we're at beginning of a line.
 failUnlessBeginningOfLine :: Parser [tok] st () 
@@ -1198,7 +1202,10 @@ endline = try $ do
   when (stateParserContext st == ListItemState) $ do
      notFollowedBy' bulletListStart
      notFollowedBy' anyOrderedListStart
-  return Space
+  case stateLineBreakConv st of
+       LineBreakSpace    -> return Space
+       LineBreakSkip     -> return $ Str ""
+       LineBreakPreserve -> return LineBreak
 
 --
 -- links
