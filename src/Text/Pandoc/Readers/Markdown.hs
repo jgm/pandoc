@@ -901,18 +901,64 @@ alignType strLst len =
         (True,  True)    -> AlignCenter
         (False, False)   -> AlignDefault
 
-extraTable :: Bool -- ^ Headerless table
-          -> GenParser Char ParserState Block
-extraTable = extraTableWith block tableCaption
-
 gridTable :: Bool -- ^ Headerless table
           -> Parser [Char] ParserState Block
 gridTable = gridTableWith block tableCaption
 
+pipeTable :: Bool -- ^ Headerless table
+           -> Parser [Char] ParserState Block
+pipeTable headless = tableWith (pipeTableHeader headless)
+   (\_ -> pipeTableRow) (return ()) blanklines tableCaption
+
+-- | Parse header for an pipe table.
+pipeTableHeader :: Bool -- ^ Headerless table
+                 -> Parser [Char] ParserState ([[Block]], [Alignment], [Int])
+pipeTableHeader headless = try $ do
+  optional blanklines
+  heads <- if headless
+              then return $ repeat []
+              else pipeTableRow
+  aligns <- nonindentSpaces >> optional (char '|') >>
+             pipeTableHeaderPart `sepBy1` sepPipe
+  optional (char '|')
+  newline
+  let cols = length aligns
+  return (take cols heads, aligns, [])
+
+sepPipe :: Parser [Char] ParserState ()
+sepPipe = try $ char '|' >> notFollowedBy blankline
+
+pipeTableRow :: Parser [Char] ParserState [[Block]]
+pipeTableRow = do
+  nonindentSpaces
+  optional (char '|')
+  let cell = many (notFollowedBy (blankline <|> char '|') >> inline)
+  first <- cell
+  sepPipe
+  rest <- cell `sepBy1` sepPipe
+  optional (char '|')
+  blankline
+  return $ map (\ils ->
+     if null ils
+        then []
+        else [Plain $ normalizeSpaces ils]) (first:rest)
+
+pipeTableHeaderPart :: Parser [Char] st Alignment
+pipeTableHeaderPart = do
+  left <- optionMaybe (char ':')
+  many1 (char '-')
+  right <- optionMaybe (char ':')
+  return $
+    case (left,right) of
+      (Nothing,Nothing) -> AlignDefault
+      (Just _,Nothing)  -> AlignLeft
+      (Nothing,Just _)  -> AlignRight
+      (Just _,Just _)   -> AlignCenter
+
 table :: Parser [Char] ParserState Block
 table = multilineTable False <|> simpleTable True <|>
         simpleTable False <|> multilineTable True <|>
-        extraTable False <|> extraTable True <|>
+        pipeTable False <|> pipeTable True <|>
         gridTable False <|> gridTable True <?> "table"
 
 -- 

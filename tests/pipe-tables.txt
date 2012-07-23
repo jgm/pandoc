@@ -32,3 +32,11 @@ Headerless table without caption:
 |123|123|123|
 |1|1|1|
 
+Table without sides:
+
+Fruit |Quantity
+------|-------:
+apple |    5
+orange|   17
+pear  |  302
+
