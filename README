@@ -1335,10 +1335,13 @@ Tables
 
 *Pandoc extension*.
 
-Three kinds of tables may be used. All three kinds presuppose the use of
-a fixed-width font, such as Courier.
+Four kinds of tables may be used. The first three kinds presuppose the use of
+a fixed-width font, such as Courier. The fourth kind can be used with
+proportionally spaced fonts, as it does not require lining up columns.
 
-**Simple tables** look like this:
+### Simple tables
+
+Simple tables look like this:
 
       Right     Left     Center     Default
     -------     ------ ----------   -------
@@ -1383,7 +1386,9 @@ When headers are omitted, column alignments are determined on the basis
 of the first line of the table body. So, in the tables above, the columns
 would be right, left, center, and right aligned, respectively.
 
-**Multiline tables** allow headers and table rows to span multiple lines
+### Multiline tables
+
+Multiline tables allow headers and table rows to span multiple lines
 of text (but cells that span multiple columns or rows of the table are
 not supported).  Here is an example:
 
@@ -1431,7 +1436,9 @@ It is possible for a multiline table to have just one row, but the row
 should be followed by a blank line (and then the row of dashes that ends
 the table), or the table may be interpreted as a simple table.
 
-**Grid tables** look like this:
+### Grid tables
+
+Grid tables look like this:
 
     : Sample grid table.
 
@@ -1453,6 +1460,38 @@ columns or rows. Grid tables can be created easily using [Emacs table mode].
 
   [Emacs table mode]: http://table.sourceforge.net/
 
+### Pipe tables
+
+Pipe tables look like this:
+
+    | Right | Left | Default | Center |
+    |------:|:-----|---------|:------:|
+    |   12  |  12  |    12   |    12  |
+    |  123  |  123 |   123   |   123  |
+    |    1  |    1 |     1   |     1  |
+
+      : Demonstration of simple table syntax.
+
+The syntax is the same as in [PHP markdown extra].  The beginning and
+ending pipe characters are optional, but pipes are required between all
+columns.  The colons indicate column alignment as shown.  The header
+can be omitted, but the horizontal line must still be included, as
+it defines column alignments.
+
+Since the pipes indicate column boundaries, columns need not be vertically
+aligned, as they are in the above example.  So, this is a perfectly
+legal (though ugly) pipe table:
+
+    fruit| price
+    -----|-----:
+    apple|2.05
+    pear|1.37
+    orange|3.09
+
+The cells of pipe tables cannot contain block elements like paragraphs
+and lists, and cannot span multiple lines.
+
+  [PHP markdown extra]: http://michelf.ca/projects/php-markdown/extra/#table
 
 Title block
 -----------
