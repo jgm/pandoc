@@ -52,12 +52,10 @@ import Prelude hiding (catch)
 import Control.Exception (catch, SomeException)
 
 -- | Produce an EPUB file from a Pandoc document.
-writeEPUB :: Maybe String   -- ^ EPUB stylesheet specified at command line
-          -> [FilePath]     -- ^ Paths to fonts to embed
-          -> WriterOptions  -- ^ Writer options
+writeEPUB :: WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO B.ByteString
-writeEPUB mbStylesheet fonts opts doc@(Pandoc meta _) = do
+writeEPUB opts doc@(Pandoc meta _) = do
   epochtime <- floor `fmap` getPOSIXTime
   let mkEntry path content = toEntry path epochtime content
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
@@ -107,7 +105,7 @@ writeEPUB mbStylesheet fonts opts doc@(Pandoc meta _) = do
 
   -- handle fonts
   let mkFontEntry f = mkEntry (takeFileName f) `fmap` B.readFile f
-  fontEntries <- mapM mkFontEntry fonts
+  fontEntries <- mapM mkFontEntry $ writerEpubFonts opts
 
   -- body pages
   let isH1 (Header 1 _) = True
@@ -232,7 +230,7 @@ writeEPUB mbStylesheet fonts opts doc@(Pandoc meta _) = do
   let appleEntry = mkEntry "META-INF/com.apple.ibooks.display-options.xml" apple
 
   -- stylesheet
-  stylesheet <- case mbStylesheet of
+  stylesheet <- case writerEpubStylesheet opts of
                    Just s  -> return s
                    Nothing -> readDataFile (writerUserDataDir opts) "epub.css"
   let stylesheetEntry = mkEntry "stylesheet.css" $ fromString stylesheet

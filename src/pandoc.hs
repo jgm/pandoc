@@ -979,7 +979,11 @@ main = do
                             writerHighlight        = highlight,
                             writerHighlightStyle   = highlightStyle,
                             writerSetextHeaders    = setextHeaders,
-                            writerTeXLigatures     = texLigatures
+                            writerTeXLigatures     = texLigatures,
+                            writerEpubStylesheet   = epubStylesheet,
+                            writerEpubFonts        = epubFonts,
+                            writerReferenceODT     = referenceODT,
+                            writerReferenceDocx    = referenceDocx
                           }
 
   when (writerName' `elem` nonTextFormats&& outputFile == "-") $
@@ -1043,12 +1047,12 @@ main = do
             writerFn outputFile d
         (Nothing, Nothing)
           | writerName' == "epub" ->
-              writeEPUB epubStylesheet epubFonts writerOptions doc2
+              writeEPUB writerOptions doc2
                >>= writeBinary
           | writerName' == "odt"  ->
-              writeODT referenceODT writerOptions doc2 >>= writeBinary
+              writeODT writerOptions doc2 >>= writeBinary
           | writerName' == "docx"  ->
-              writeDocx referenceDocx writerOptions doc2 >>= writeBinary
+              writeDocx writerOptions doc2 >>= writeBinary
           | otherwise -> err 9 ("Unknown writer: " ++ writerName')
         (Just w, _)
           | pdfOutput  -> do

@@ -49,14 +49,13 @@ import Text.Pandoc.XML
 import Text.Pandoc.Pretty
 
 -- | Produce an ODT file from a Pandoc document.
-writeODT :: Maybe FilePath -- ^ Path specified by --reference-odt
-         -> WriterOptions  -- ^ Writer options
+writeODT :: WriterOptions  -- ^ Writer options
          -> Pandoc         -- ^ Document to convert
          -> IO B.ByteString
-writeODT mbRefOdt opts doc = do
+writeODT opts doc = do
   let datadir = writerUserDataDir opts
   refArchive <- liftM toArchive $
-       case mbRefOdt of
+       case writerReferenceODT opts of
              Just f -> B.readFile f
              Nothing -> do
                let defaultODT = getDataFileName "reference.odt" >>= B.readFile

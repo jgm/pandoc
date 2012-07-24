@@ -93,14 +93,13 @@ mknode s attrs =
   add_attrs (map (\(k,v) -> Attr (unqual k) v) attrs) . node (unqual s)
 
 -- | Produce an Docx file from a Pandoc document.
-writeDocx :: Maybe FilePath -- ^ Path specified by --reference-docx
-          -> WriterOptions  -- ^ Writer options
+writeDocx :: WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO B.ByteString
-writeDocx mbRefDocx opts doc@(Pandoc (Meta tit auths date) _) = do
+writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
   let datadir = writerUserDataDir opts
   refArchive <- liftM toArchive $
-       case mbRefDocx of
+       case writerReferenceDocx opts of
              Just f -> B.readFile f
              Nothing -> do
                let defaultDocx = getDataFileName "reference.docx" >>= B.readFile
