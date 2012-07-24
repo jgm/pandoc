@@ -962,9 +962,9 @@ table :: Parser [Char] ParserState Block
 table = try $ do
   frontCaption <- option [] tableCaption
   Table _ aligns widths heads lines' <-
+           try (scanForPipe >> (pipeTable True <|> pipeTable False)) <|>
            multilineTable False <|> simpleTable True <|>
            simpleTable False <|> multilineTable True <|>
-           (scanForPipe >> (pipeTable False <|> pipeTable True)) <|>
            gridTable False <|> gridTable True <?> "table"
   caption <- if null frontCaption
                 then option [] tableCaption
