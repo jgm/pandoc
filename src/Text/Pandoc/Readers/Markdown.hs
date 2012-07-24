@@ -913,17 +913,18 @@ pipeTable headless = tableWith (pipeTableHeader headless)
 -- | Parse header for an pipe table.
 pipeTableHeader :: Bool -- ^ Headerless table
                  -> Parser [Char] ParserState ([[Block]], [Alignment], [Int])
-pipeTableHeader headless = try $ do
-  optional blanklines
-  heads <- if headless
-              then return $ repeat []
-              else pipeTableRow
-  aligns <- nonindentSpaces >> optional (char '|') >>
-             pipeTableHeaderPart `sepBy1` sepPipe
-  optional (char '|')
-  newline
-  let cols = length aligns
-  return (take cols heads, aligns, [])
+pipeTableHeader headless = do
+  scanForPipe
+  try $ do
+    heads <- if headless
+                then return $ repeat []
+                else pipeTableRow
+    aligns <- nonindentSpaces >> optional (char '|') >>
+               pipeTableHeaderPart `sepBy1` sepPipe
+    optional (char '|')
+    newline
+    let cols = length aligns
+    return (take cols heads, aligns, [])
 
 sepPipe :: Parser [Char] ParserState ()
 sepPipe = try $ char '|' >> notFollowedBy blankline
@@ -954,6 +955,10 @@ pipeTableHeaderPart = do
       (Just _,Nothing)  -> AlignLeft
       (Nothing,Just _)  -> AlignRight
       (Just _,Just _)   -> AlignCenter
+
+-- Succeed only if current line contains a pipe.
+scanForPipe :: Parser [Char] st ()
+scanForPipe = lookAhead (manyTill (satisfy (/='\n')) (char '|')) >> return ()
 
 table :: Parser [Char] ParserState Block
 table = multilineTable False <|> simpleTable True <|>
