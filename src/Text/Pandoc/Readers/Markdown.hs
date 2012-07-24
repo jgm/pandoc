@@ -966,6 +966,7 @@ table = try $ do
            multilineTable False <|> simpleTable True <|>
            simpleTable False <|> multilineTable True <|>
            gridTable False <|> gridTable True <?> "table"
+  optional blanklines
   caption <- if null frontCaption
                 then option [] tableCaption
                 else return frontCaption
