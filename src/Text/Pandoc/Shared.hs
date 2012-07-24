@@ -523,6 +523,10 @@ data WriterOptions = WriterOptions
   , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
   , writerSetextHeaders    :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
   , writerTeXLigatures     :: Bool       -- ^ Use tex ligatures quotes, dashes in latex
+  , writerEpubStylesheet   :: Maybe String -- ^ EPUB stylesheet specified at command line
+  , writerEpubFonts        :: [FilePath] -- ^ Paths to fonts to embed
+  , writerReferenceODT     :: Maybe FilePath -- ^ Path to reference ODT if specified
+  , writerReferenceDocx    :: Maybe FilePath -- ^ Ptah to reference DOCX if specified
   } deriving Show
 
 instance Default WriterOptions where
@@ -565,6 +569,10 @@ defaultWriterOptions =
                 , writerHighlightStyle   = pygments
                 , writerSetextHeaders    = True
                 , writerTeXLigatures     = True
+                , writerEpubStylesheet   = Nothing
+                , writerEpubFonts        = []
+                , writerReferenceODT     = Nothing
+                , writerReferenceDocx    = Nothing
                 }
 
 --
