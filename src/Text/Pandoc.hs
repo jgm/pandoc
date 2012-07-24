@@ -192,7 +192,8 @@ writers = [("native"       , writeNative)
                              writeHtmlString o{ writerLiterateHaskell = True,
                                                 writerHtml5 = True })
           ,("s5"           , \o ->
-                             writeHtmlString o{ writerSlideVariant = S5Slides })
+                             writeHtmlString o{ writerSlideVariant = S5Slides
+                                              , writerTableOfContents = False })
           ,("slidy"        , \o ->
                              writeHtmlString o{ writerSlideVariant = SlidySlides })
           ,("slideous"     , \o ->
