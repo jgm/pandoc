@@ -191,10 +191,15 @@ writers = [("native"       , writeNative)
           ,("html5+lhs"    , \o ->
                              writeHtmlString o{ writerLiterateHaskell = True,
                                                 writerHtml5 = True })
-          ,("s5"           , writeHtmlString)
-          ,("slidy"        , writeHtmlString)
-          ,("slideous"     , writeHtmlString)
-          ,("dzslides"     , writeHtmlString)
+          ,("s5"           , \o ->
+                             writeHtmlString o{ writerSlideVariant = S5Slides })
+          ,("slidy"        , \o ->
+                             writeHtmlString o{ writerSlideVariant = SlidySlides })
+          ,("slideous"     , \o ->
+                             writeHtmlString o{ writerSlideVariant = SlideousSlides })
+          ,("dzslides"     , \o ->
+                             writeHtmlString o{ writerSlideVariant = DZSlides
+                                              , writerHtml5 = True })
           ,("docbook"      , writeDocbook)
           ,("opendocument" , writeOpenDocument)
           ,("latex"        , writeLaTeX)

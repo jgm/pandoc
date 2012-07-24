@@ -902,13 +902,6 @@ main = do
                                              (\_ -> throwIO e)
                                        else throwIO e)
 
-  let slideVariant = case writerName' of
-                           "s5"       -> S5Slides
-                           "slidy"    -> SlidySlides
-                           "slideous" -> SlideousSlides
-                           "dzslides" -> DZSlides
-                           _          -> NoSlides
-
   variables' <- case mathMethod of
                       LaTeXMathML Nothing -> do
                          s <- readDataFile datadir $ "data" </> "LaTeXMathML.js"
@@ -918,8 +911,8 @@ main = do
                          return $ ("mathml-script", s) : variables
                       _ -> return variables
 
-  variables'' <- case slideVariant of
-                      DZSlides  -> do
+  variables'' <- case writerName' of
+                      "dzslides" -> do
                         dztempl <- readDataFile datadir $ "dzslides" </> "template.html"
                         let dzcore = unlines $ dropWhile (not . isPrefixOf "<!-- {{{{ dzslides core")
                                              $ lines dztempl
@@ -939,8 +932,7 @@ main = do
                      then "."
                      else takeDirectory (head sources)
 
-  let startParserState =
-         defaultParserState { stateParseRaw        = parseRaw,
+  let startParserState = def{ stateParseRaw        = parseRaw,
                               stateTabStop         = tabStop,
                               stateLiterateHaskell = "+lhs" `isSuffixOf` readerName' ||
                                                      lhsExtension sources,
@@ -955,44 +947,41 @@ main = do
                               stateApplyMacros     = not laTeXOutput
                               }
 
-  let writerOptions = defaultWriterOptions
-                                    { writerStandalone       = standalone',
-                                      writerTemplate         = templ,
-                                      writerVariables        = variables'',
-                                      writerEPUBMetadata     = epubMetadata,
-                                      writerTabStop          = tabStop,
-                                      writerTableOfContents  = toc &&
-                                                               writerName' /= "s5",
-                                      writerHTMLMathMethod   = mathMethod,
-                                      writerSlideVariant     = slideVariant,
-                                      writerIncremental      = incremental,
-                                      writerCiteMethod       = citeMethod,
-                                      writerBiblioFiles      = reffiles,
-                                      writerIgnoreNotes      = False,
-                                      writerNumberSections   = numberSections,
-                                      writerSectionDivs      = sectionDivs,
-                                      writerStrictMarkdown   = strict,
-                                      writerReferenceLinks   = referenceLinks,
-                                      writerWrapText         = wrap,
-                                      writerColumns          = columns,
-                                      writerLiterateHaskell  = False,
-                                      writerEmailObfuscation = if strict
-                                                                  then ReferenceObfuscation
-                                                                  else obfuscationMethod,
-                                      writerIdentifierPrefix = idPrefix,
-                                      writerSourceDirectory  = sourceDir,
-                                      writerUserDataDir      = datadir,
-                                      writerHtml5            = html5 ||
-                                           slideVariant == DZSlides,
-                                      writerChapters         = chapters,
-                                      writerListings         = listings,
-                                      writerBeamer           = False,
-                                      writerSlideLevel       = slideLevel,
-                                      writerHighlight        = highlight,
-                                      writerHighlightStyle   = highlightStyle,
-                                      writerSetextHeaders    = setextHeaders,
-                                      writerTeXLigatures     = texLigatures
-                                      }
+  let writerOptions = def { writerStandalone       = standalone',
+                            writerTemplate         = templ,
+                            writerVariables        = variables'',
+                            writerEPUBMetadata     = epubMetadata,
+                            writerTabStop          = tabStop,
+                            writerTableOfContents  = toc &&
+                                                     writerName' /= "s5",
+                            writerHTMLMathMethod   = mathMethod,
+                            writerIncremental      = incremental,
+                            writerCiteMethod       = citeMethod,
+                            writerBiblioFiles      = reffiles,
+                            writerIgnoreNotes      = False,
+                            writerNumberSections   = numberSections,
+                            writerSectionDivs      = sectionDivs,
+                            writerStrictMarkdown   = strict,
+                            writerReferenceLinks   = referenceLinks,
+                            writerWrapText         = wrap,
+                            writerColumns          = columns,
+                            writerLiterateHaskell  = False,
+                            writerEmailObfuscation = if strict
+                                                     then ReferenceObfuscation
+                                                     else obfuscationMethod,
+                            writerIdentifierPrefix = idPrefix,
+                            writerSourceDirectory  = sourceDir,
+                            writerUserDataDir      = datadir,
+                            writerHtml5            = html5,
+                            writerChapters         = chapters,
+                            writerListings         = listings,
+                            writerBeamer           = False,
+                            writerSlideLevel       = slideLevel,
+                            writerHighlight        = highlight,
+                            writerHighlightStyle   = highlightStyle,
+                            writerSetextHeaders    = setextHeaders,
+                            writerTeXLigatures     = texLigatures
+                          }
 
   when (writerName' `elem` nonTextFormats&& outputFile == "-") $
     err 5 $ "Cannot write " ++ writerName' ++ " output to stdout.\n" ++
