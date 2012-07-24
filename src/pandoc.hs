@@ -57,7 +57,6 @@ import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString)
-import Codec.Binary.UTF8.String (decodeString, encodeString)
 import Text.CSL.Reference (Reference(..))
 #if MIN_VERSION_base(4,4,0)
 #else
