@@ -913,7 +913,6 @@ pipeTable headless = tableWith (pipeTableHeader headless)
 pipeTableHeader :: Bool -- ^ Headerless table
                  -> Parser [Char] ParserState ([[Block]], [Alignment], [Int])
 pipeTableHeader headless = do
-  scanForPipe
   try $ do
     heads <- if headless
                 then return $ repeat []
@@ -965,7 +964,7 @@ table = try $ do
   Table _ aligns widths heads lines' <-
            multilineTable False <|> simpleTable True <|>
            simpleTable False <|> multilineTable True <|>
-           pipeTable False <|> pipeTable True <|>
+           (scanForPipe >> (pipeTable False <|> pipeTable True)) <|>
            gridTable False <|> gridTable True <?> "table"
   caption <- if null frontCaption
                 then option [] tableCaption
