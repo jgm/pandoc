@@ -840,7 +840,6 @@ simpleTable headless = do
   Table c a _w h l <- tableWith (simpleTableHeader headless) tableLine
               (return ())
               (if headless then tableFooter else tableFooter <|> blanklines)
-              tableCaption
   -- Simple tables get 0s for relative column widths (i.e., use default)
   return $ Table c a (replicate (length a) 0) h l
 
@@ -851,7 +850,7 @@ simpleTable headless = do
 multilineTable :: Bool -- ^ Headerless table
                -> Parser [Char] ParserState Block
 multilineTable headless =
-  tableWith (multilineTableHeader headless) multilineRow blanklines tableFooter tableCaption
+  tableWith (multilineTableHeader headless) multilineRow blanklines tableFooter
 
 multilineTableHeader :: Bool -- ^ Headerless table
                      -> Parser [Char] ParserState ([[Block]], [Alignment], [Int])
@@ -903,12 +902,12 @@ alignType strLst len =
 
 gridTable :: Bool -- ^ Headerless table
           -> Parser [Char] ParserState Block
-gridTable = gridTableWith block tableCaption
+gridTable = gridTableWith block
 
 pipeTable :: Bool -- ^ Headerless table
            -> Parser [Char] ParserState Block
 pipeTable headless = tableWith (pipeTableHeader headless)
-   (\_ -> pipeTableRow) (return ()) blanklines tableCaption
+   (\_ -> pipeTableRow) (return ()) blanklines
 
 -- | Parse header for an pipe table.
 pipeTableHeader :: Bool -- ^ Headerless table
@@ -961,12 +960,19 @@ scanForPipe :: Parser [Char] st ()
 scanForPipe = lookAhead (manyTill (satisfy (/='\n')) (char '|')) >> return ()
 
 table :: Parser [Char] ParserState Block
-table = multilineTable False <|> simpleTable True <|>
-        simpleTable False <|> multilineTable True <|>
-        pipeTable False <|> pipeTable True <|>
-        gridTable False <|> gridTable True <?> "table"
+table = try $ do
+  frontCaption <- option [] tableCaption
+  Table _ aligns widths heads lines' <-
+           multilineTable False <|> simpleTable True <|>
+           simpleTable False <|> multilineTable True <|>
+           pipeTable False <|> pipeTable True <|>
+           gridTable False <|> gridTable True <?> "table"
+  caption <- if null frontCaption
+                then option [] tableCaption
+                else return frontCaption
+  return $ Table caption aligns widths heads lines'
 
--- 
+--
 -- inline
 --
 

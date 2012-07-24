@@ -532,22 +532,17 @@ tableWith :: Parsec [Char] ParserState ([[Block]], [Alignment], [Int])
           -> ([Int] -> Parsec [Char] ParserState [[Block]])
           -> Parsec [Char] ParserState sep
           -> Parsec [Char] ParserState end
-          -> Parsec [Char] ParserState [Inline]
           -> Parsec [Char] ParserState Block
-tableWith headerParser rowParser lineParser footerParser captionParser = try $ do
-    caption' <- option [] captionParser
+tableWith headerParser rowParser lineParser footerParser = try $ do
     (heads, aligns, indices) <- headerParser
     lines' <- rowParser indices `sepEndBy1` lineParser
     footerParser
-    caption <- if null caption'
-                  then option [] captionParser
-                  else return caption'
     state <- getState
     let numColumns = stateColumns state
     let widths = if (indices == [])
                     then replicate (length aligns) 0.0
                     else widthsFromIndices numColumns indices
-    return $ Table caption aligns widths heads lines'
+    return $ Table [] aligns widths heads lines'
 
 -- Calculate relative widths of table columns, based on indices
 widthsFromIndices :: Int      -- Number of columns on terminal
@@ -581,11 +576,10 @@ widthsFromIndices numColumns' indices =
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
 gridTableWith :: Parsec [Char] ParserState Block    -- ^ Block parser
-              -> Parsec [Char] ParserState [Inline] -- ^ Caption parser
               -> Bool                                -- ^ Headerless table
               -> Parsec [Char] ParserState Block
-gridTableWith block tableCaption headless =
-  tableWith (gridTableHeader headless block) (gridTableRow block) (gridTableSep '-') gridTableFooter tableCaption
+gridTableWith block headless =
+  tableWith (gridTableHeader headless block) (gridTableRow block) (gridTableSep '-') gridTableFooter
 
 gridTableSplitLine :: [Int] -> String -> [String]
 gridTableSplitLine indices line = map removeFinalBar $ tail $

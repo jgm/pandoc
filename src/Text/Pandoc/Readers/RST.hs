@@ -767,7 +767,7 @@ simpleTableHeader headless = try $ do
 simpleTable :: Bool  -- ^ Headerless table
             -> Parser [Char] ParserState Block
 simpleTable headless = do
-  Table c a _w h l <- tableWith (simpleTableHeader headless) simpleTableRow sep simpleTableFooter (return [])
+  Table c a _w h l <- tableWith (simpleTableHeader headless) simpleTableRow sep simpleTableFooter
   -- Simple tables get 0s for relative column widths (i.e., use default)
   return $ Table c a (replicate (length a) 0) h l
  where
@@ -775,7 +775,7 @@ simpleTable headless = do
 
 gridTable :: Bool -- ^ Headerless table
           -> Parser [Char] ParserState Block
-gridTable = gridTableWith block (return [])
+gridTable = gridTableWith block
 
 table :: Parser [Char] ParserState Block
 table = gridTable False <|> simpleTable False <|>
