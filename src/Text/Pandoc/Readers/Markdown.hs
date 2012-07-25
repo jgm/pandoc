@@ -717,9 +717,7 @@ htmlBlock = try $ do
     return $ RawBlock "html" $ first ++ finalSpace ++ finalNewlines
 
 strictHtmlBlock :: Parser [Char] ParserState [Char]
-strictHtmlBlock = do
-  failUnlessBeginningOfLine
-  htmlInBalanced (not . isInlineTag)
+strictHtmlBlock = htmlInBalanced (not . isInlineTag)
 
 rawVerbatimBlock :: Parser [Char] ParserState String
 rawVerbatimBlock = try $ do
