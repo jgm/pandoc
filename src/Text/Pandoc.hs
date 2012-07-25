@@ -63,7 +63,6 @@ module Text.Pandoc
                -- * Lists of readers and writers
                , readers
                , writers
-               , iowriters
                -- * Readers: converting /to/ Pandoc format
                , readMarkdown
                , readRST
@@ -81,6 +80,7 @@ module Text.Pandoc
                , NoteTable
                , HeaderType (..)
                -- * Writers: converting /from/ Pandoc format
+               , Writer (..)
                , writeNative
                , writeMarkdown
                , writePlain
@@ -151,6 +151,7 @@ import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Templates
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
+import Data.ByteString.Lazy (ByteString)
 import Data.Version (showVersion)
 import Text.JSON.Generic
 import Paths_pandoc (version)
@@ -178,60 +179,62 @@ readers = [("native"       , \_ -> readNative)
                              readLaTeX st{ stateLiterateHaskell = True})
           ]
 
--- | Association list of formats and writers (omitting the
--- binary writers, odt, docx, and epub).
-writers :: [ ( String, WriterOptions -> Pandoc -> String ) ]
-writers = [("native"       , writeNative)
-          ,("json"         , \_ -> encodeJSON)
-          ,("html"         , writeHtmlString)
-          ,("html5"        , \o ->
-                             writeHtmlString o{ writerHtml5 = True })
-          ,("html+lhs"     , \o ->
-                             writeHtmlString o{ writerLiterateHaskell = True })
-          ,("html5+lhs"    , \o ->
-                             writeHtmlString o{ writerLiterateHaskell = True,
-                                                writerHtml5 = True })
-          ,("s5"           , \o ->
-                             writeHtmlString o{ writerSlideVariant = S5Slides
-                                              , writerTableOfContents = False })
-          ,("slidy"        , \o ->
-                             writeHtmlString o{ writerSlideVariant = SlidySlides })
-          ,("slideous"     , \o ->
-                             writeHtmlString o{ writerSlideVariant = SlideousSlides })
-          ,("dzslides"     , \o ->
-                             writeHtmlString o{ writerSlideVariant = DZSlides
-                                              , writerHtml5 = True })
-          ,("docbook"      , writeDocbook)
-          ,("opendocument" , writeOpenDocument)
-          ,("latex"        , writeLaTeX)
-          ,("latex+lhs"    , \o ->
-                             writeLaTeX o{ writerLiterateHaskell = True })
-          ,("beamer"       , \o ->
-                             writeLaTeX o{ writerBeamer = True })
-          ,("beamer+lhs"   , \o ->
-                             writeLaTeX o{ writerBeamer = True, writerLiterateHaskell = True })
-          ,("context"      , writeConTeXt)
-          ,("texinfo"      , writeTexinfo)
-          ,("man"          , writeMan)
-          ,("markdown"     , writeMarkdown)
-          ,("markdown+lhs" , \o ->
-                             writeMarkdown o{ writerLiterateHaskell = True })
-          ,("plain"        , writePlain)
-          ,("rst"          , writeRST)
-          ,("rst+lhs"      , \o ->
-                             writeRST o{ writerLiterateHaskell = True })
-          ,("mediawiki"    , writeMediaWiki)
-          ,("textile"      , writeTextile)
-          ,("rtf"          , writeRTF)
-          ,("org"          , writeOrg)
-          ,("asciidoc"     , writeAsciiDoc)
-          ]
+data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
+            | IOStringWriter     (WriterOptions -> Pandoc -> IO String)
+            | IOByteStringWriter (WriterOptions -> Pandoc -> IO ByteString)
 
--- | Association list of formats and writers which require IO to work.
--- These writers produce text output as well as thoses in 'writers'.
-iowriters :: [ (String, WriterOptions -> Pandoc -> IO String) ]
-iowriters = [ ("fb2"       , writeFB2)
-            ]
+-- | Association list of formats and writers.
+writers :: [ ( String, Writer ) ]
+writers = [
+   ("native"       , PureStringWriter writeNative)
+  ,("json"         , PureStringWriter $ \_ -> encodeJSON)
+  ,("docx"         , IOByteStringWriter writeDocx)
+  ,("odt"          , IOByteStringWriter writeODT)
+  ,("epub"         , IOByteStringWriter writeEPUB)
+  ,("fb2"          , IOStringWriter writeFB2)
+  ,("html"         , PureStringWriter writeHtmlString)
+  ,("html5"        , PureStringWriter $ \o ->
+     writeHtmlString o{ writerHtml5 = True })
+  ,("html+lhs"     , PureStringWriter $ \o ->
+     writeHtmlString o{ writerLiterateHaskell = True })
+  ,("html5+lhs"    , PureStringWriter $ \o ->
+     writeHtmlString o{ writerLiterateHaskell = True,
+                        writerHtml5 = True })
+  ,("s5"           , PureStringWriter $ \o ->
+     writeHtmlString o{ writerSlideVariant = S5Slides
+                      , writerTableOfContents = False })
+  ,("slidy"        , PureStringWriter $ \o ->
+     writeHtmlString o{ writerSlideVariant = SlidySlides })
+  ,("slideous"     , PureStringWriter $ \o ->
+     writeHtmlString o{ writerSlideVariant = SlideousSlides })
+  ,("dzslides"     , PureStringWriter $ \o ->
+     writeHtmlString o{ writerSlideVariant = DZSlides
+                      , writerHtml5 = True })
+  ,("docbook"      , PureStringWriter writeDocbook)
+  ,("opendocument" , PureStringWriter writeOpenDocument)
+  ,("latex"        , PureStringWriter writeLaTeX)
+  ,("latex+lhs"    , PureStringWriter $ \o ->
+     writeLaTeX o{ writerLiterateHaskell = True })
+  ,("beamer"       , PureStringWriter $ \o ->
+     writeLaTeX o{ writerBeamer = True })
+  ,("beamer+lhs"   , PureStringWriter $ \o ->
+     writeLaTeX o{ writerBeamer = True, writerLiterateHaskell = True })
+  ,("context"      , PureStringWriter writeConTeXt)
+  ,("texinfo"      , PureStringWriter writeTexinfo)
+  ,("man"          , PureStringWriter writeMan)
+  ,("markdown"     , PureStringWriter writeMarkdown)
+  ,("markdown+lhs" , PureStringWriter $ \o ->
+     writeMarkdown o{ writerLiterateHaskell = True })
+  ,("plain"        , PureStringWriter writePlain)
+  ,("rst"          , PureStringWriter writeRST)
+  ,("rst+lhs"      , PureStringWriter $ \o ->
+     writeRST o{ writerLiterateHaskell = True })
+  ,("mediawiki"    , PureStringWriter writeMediaWiki)
+  ,("textile"      , PureStringWriter writeTextile)
+  ,("rtf"          , PureStringWriter writeRTF)
+  ,("org"          , PureStringWriter writeOrg)
+  ,("asciidoc"     , PureStringWriter writeAsciiDoc)
+  ]
 
 {-# DEPRECATED jsonFilter "Use toJsonFilter instead" #-}
 -- | Converts a transformation on the Pandoc AST into a function

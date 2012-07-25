@@ -697,7 +697,7 @@ usageMessage programName = usageInfo
   (wrapWords 16 78 $ readers'names) ++ "\nOutput formats: " ++
   (wrapWords 16 78 $ writers'names ++ nonTextFormats) ++ "\nOptions:")
   where
-    writers'names = map fst writers ++ map fst iowriters
+    writers'names = map fst writers
     readers'names = map fst readers
 
 -- Determine default reader based on source file extensions
@@ -1038,36 +1038,26 @@ main = do
       writerFn "-" = UTF8.putStr
       writerFn f   = UTF8.writeFile f
 
-  let purewriter = lookup writerName' writers
-  let iowriter = lookup writerName' iowriters
-  case (purewriter, iowriter) of
-        (Nothing, Just iow) -> do
-            d <- iow writerOptions doc2
-            writerFn outputFile d
-        (Nothing, Nothing)
-          | writerName' == "epub" ->
-              writeEPUB writerOptions doc2
-               >>= writeBinary
-          | writerName' == "odt"  ->
-              writeODT writerOptions doc2 >>= writeBinary
-          | writerName' == "docx"  ->
-              writeDocx writerOptions doc2 >>= writeBinary
-          | otherwise -> err 9 ("Unknown writer: " ++ writerName')
-        (Just w, _)
-          | pdfOutput  -> do
-              res <- tex2pdf latexEngine $ w writerOptions doc2
+  let mbwriter = lookup writerName' writers
+  case mbwriter of
+    Nothing -> err 9 ("Unknown writer: " ++ writerName')
+    Just (IOStringWriter f) -> f writerOptions doc2 >>= writerFn outputFile
+    Just (IOByteStringWriter f) -> f writerOptions doc2 >>= writeBinary
+    Just (PureStringWriter f)
+      | pdfOutput -> do
+              res <- tex2pdf latexEngine $ f writerOptions doc2
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> err 43 $ toString err'
-        (Just w, _)
-          | htmlFormat && ascii ->
-                  writerFn outputFile . toEntities =<< selfcontain result
-          | otherwise ->
-                  writerFn outputFile =<< selfcontain result
-          where result       = w writerOptions doc2 ++ ['\n' | not standalone']
-                htmlFormat = writerName' `elem`
+      | otherwise -> selfcontain (f writerOptions doc2 ++
+                                  ['\n' | not standalone'])
+                      >>= writerFn outputFile . handleEntities
+          where htmlFormat = writerName' `elem`
                                ["html","html+lhs","html5","html5+lhs",
                                "s5","slidy","slideous","dzslides"]
                 selfcontain = if selfContained && htmlFormat
                                  then makeSelfContained datadir
                                  else return
+                handleEntities = if htmlFormat && ascii
+                                    then toEntities
+                                    else id
