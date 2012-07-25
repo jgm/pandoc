@@ -61,6 +61,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              readWith,
                              testStringWith,
                              ParserState (..),
+                             getOption,
                              defaultParserState,
                              HeaderType (..),
                              ParserContext (..),
@@ -390,9 +391,7 @@ nullBlock = anyChar >> return Null
 
 -- | Fail if reader is in strict markdown syntax mode.
 failIfStrict :: Parsec [a] ParserState ()
-failIfStrict = do
-  state <- getState
-  if readerStrict (stateOptions state) then fail "strict mode" else return ()
+failIfStrict = getOption readerStrict >>= guard . not
 
 -- | Fail unless we're in literate haskell mode.
 failUnlessLHS :: Parsec [tok] ParserState ()
@@ -750,6 +749,9 @@ defaultParserState =
                   stateMacros          = [],
                   stateRstDefaultRole  = "title-reference"}
 
+getOption :: (ReaderOptions -> a) -> Parser [t] ParserState a
+getOption f = (f . stateOptions) `fmap` getState
+
 data HeaderType 
     = SingleHeader Char  -- ^ Single line of characters underneath
     | DoubleHeader Char  -- ^ Lines of characters above and below
@@ -795,7 +797,7 @@ lookupKeySrc table key = case M.lookup key table of
 
 -- | Fail unless we're in "smart typography" mode.
 failUnlessSmart :: Parsec [tok] ParserState ()
-failUnlessSmart = getState >>= guard . readerSmart . stateOptions
+failUnlessSmart = getOption readerSmart >>= guard
 
 smartPunctuation :: Parsec [Char] ParserState Inline
                  -> Parsec [Char] ParserState Inline
