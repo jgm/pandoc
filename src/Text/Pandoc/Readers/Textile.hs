@@ -79,9 +79,9 @@ parseTextile :: Parser [Char] ParserState Pandoc
 parseTextile = do
   -- textile allows raw HTML and does smart punctuation by default
   oldOpts <- stateOptions `fmap` getState
-  updateState $ \state -> state { stateParseRaw = True
-                                , stateOptions = oldOpts{ readerSmart = True }
-                                }
+  updateState $ \state -> state{ stateOptions = oldOpts{ readerSmart = True
+                                                       , readerParseRaw = True
+                                                       } }
   many blankline
   startPos <- getPosition
   -- go through once just to get list of reference keys and notes

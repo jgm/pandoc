@@ -176,7 +176,9 @@ titleBlock = try $ do
 parseMarkdown :: Parser [Char] ParserState Pandoc 
 parseMarkdown = do
   -- markdown allows raw HTML
-  updateState (\state -> state { stateParseRaw = True })
+  updateState $ \state -> state { stateOptions =
+                let oldOpts = stateOptions state in
+                    oldOpts{ readerParseRaw = True } }
   startPos <- getPosition
   -- go through once just to get list of reference keys and notes
   -- docMinusKeys is the raw document with blanks where the keys/notes were...

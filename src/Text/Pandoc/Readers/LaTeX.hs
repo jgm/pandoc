@@ -35,6 +35,7 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding ((<|>), many, optional, space)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char ( chr, ord )
@@ -230,14 +231,14 @@ ignoreInlines name = (name, doraw <|> (mempty <$ optargs))
   where optargs = skipopts *> skipMany (try $ optional sp *> braced)
         contseq = '\\':name
         doraw = (rawInline "latex" . (contseq ++) . snd) <$>
-                 (getState >>= guard . stateParseRaw >> (withRaw optargs))
+                 (getOption readerParseRaw >>= guard >> (withRaw optargs))
 
 ignoreBlocks :: String -> (String, LP Blocks)
 ignoreBlocks name = (name, doraw <|> (mempty <$ optargs))
   where optargs = skipopts *> skipMany (try $ optional sp *> braced)
         contseq = '\\':name
         doraw = (rawBlock "latex" . (contseq ++) . snd) <$>
-                 (getState >>= guard . stateParseRaw >> (withRaw optargs))
+                 (getOption readerParseRaw >>= guard >> (withRaw optargs))
 
 blockCommands :: M.Map String (LP Blocks)
 blockCommands = M.fromList $
@@ -321,7 +322,7 @@ inlineCommand :: LP Inlines
 inlineCommand = try $ do
   name <- anyControlSeq
   guard $ not $ isBlockCommand name
-  parseRaw <- stateParseRaw `fmap` getState
+  parseRaw <- getOption readerParseRaw
   star <- option "" (string "*")
   let name' = name ++ star
   let rawargs = withRaw (skipopts *> option "" dimenarg
@@ -336,7 +337,7 @@ inlineCommand = try $ do
                            Nothing   -> raw
 
 unlessParseRaw :: LP ()
-unlessParseRaw = getState >>= guard . not . stateParseRaw
+unlessParseRaw = getOption readerParseRaw >>= guard . not
 
 isBlockCommand :: String -> Bool
 isBlockCommand s = maybe False (const True) $ M.lookup s blockCommands
@@ -660,7 +661,7 @@ environment = do
 rawEnv :: String -> LP Blocks
 rawEnv name = do
   let addBegin x = "\\begin{" ++ name ++ "}" ++ x
-  parseRaw <- stateParseRaw `fmap` getState
+  parseRaw <- getOption readerParseRaw
   if parseRaw
      then (rawBlock "latex" . addBegin) <$>
             (withRaw (env name blocks) >>= applyMacros' . snd)

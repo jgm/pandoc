@@ -689,7 +689,6 @@ testStringWith parser str = UTF8.putStrLn $ show $
 -- | Parsing options.
 data ParserState = ParserState
     { stateOptions         :: ReaderOptions, -- ^ User options
-      stateParseRaw        :: Bool,          -- ^ Parse raw HTML and LaTeX?
       stateParserContext   :: ParserContext, -- ^ Inside list?
       stateQuoteContext    :: QuoteContext,  -- ^ Inside quoted environment?
       stateMaxNestingLevel :: Int,           -- ^ Max # of nested Strong/Emph
@@ -724,7 +723,6 @@ instance Default ParserState where
 defaultParserState :: ParserState
 defaultParserState = 
     ParserState { stateOptions         = def,
-                  stateParseRaw        = False,
                   stateParserContext   = NullState,
                   stateQuoteContext    = NoQuote,
                   stateMaxNestingLevel = 6,

@@ -51,9 +51,10 @@ data Extension = Footnotes
                deriving (Show, Read, Enum, Eq, Ord, Bounded)
 
 data ReaderOptions = ReaderOptions{
-         readerExtensions     :: Set Extension
-       , readerSmart          :: Bool
-       , readerStrict         :: Bool -- FOR TRANSITION ONLY
+         readerExtensions     :: Set Extension  -- ^ Syntax extensions
+       , readerSmart          :: Bool  -- ^ Smart punctuation
+       , readerStrict         :: Bool  -- ^ FOR TRANSITION ONLY
+       , readerParseRaw       :: Bool  -- ^ Parse raw HTML, LaTeX
        } deriving (Show, Read)
 
 instance Default ReaderOptions
@@ -61,4 +62,5 @@ instance Default ReaderOptions
                  readerExtensions    = Set.fromList [minBound..maxBound]
                , readerSmart         = False
                , readerStrict        = False
+               , readerParseRaw      = False
                }

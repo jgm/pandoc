@@ -936,18 +936,19 @@ main = do
                      then "."
                      else takeDirectory (head sources)
 
-  let startParserState = def{ stateParseRaw        = parseRaw,
-                              stateTabStop         = tabStop,
+  let startParserState = def{ stateTabStop         = tabStop,
                               stateLiterateHaskell = "+lhs" `isSuffixOf` readerName' ||
                                                      lhsExtension sources,
                               stateStandalone      = standalone',
                               stateCitations       = map CSL.refId refs,
                               stateOldDashes       = oldDashes,
                               stateColumns         = columns,
-                              stateOptions         = def{ readerStrict = strict
-                                                        , readerSmart = smart ||
-                                                           (texLigatures &&
-                                       (laTeXOutput || writerName' == "context")) },
+                              stateOptions         = def{
+                                   readerStrict = strict
+                                 , readerSmart = smart || (texLigatures &&
+                                     (laTeXOutput || writerName' == "context"))
+                                 , readerParseRaw = parseRaw
+                                 },
                               stateIndentedCodeClasses = codeBlockClasses,
                               stateApplyMacros     = not laTeXOutput
                               }
