@@ -11,6 +11,7 @@ import System.Directory (getModificationTime)
 import System.IO.Error (isDoesNotExistError)
 import System.Time (ClockTime(..))
 import Data.Maybe (catMaybes)
+import qualified Control.Exception as E
 
 main = do
   rmContents <- liftM toString $ B.readFile "README"
@@ -47,7 +48,7 @@ writeManPage page templ doc = do
 -- | Returns a list of 'dependencies' that have been modified after 'file'.
 modifiedDependencies :: FilePath -> [FilePath] -> IO [FilePath]
 modifiedDependencies file dependencies = do
-  fileModTime <- catch (getModificationTime file) $
+  fileModTime <- E.catch (getModificationTime file) $
                  \e -> if isDoesNotExistError e
                           then return (TOD 0 0)   -- the minimum ClockTime
                           else ioError e

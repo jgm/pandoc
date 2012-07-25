@@ -38,6 +38,7 @@ import System.FilePath ( takeExtension )
 import qualified Data.ByteString as B
 import Text.Printf ( printf )
 import Network.URI ( isAbsoluteURI, unEscapeString )
+import qualified Control.Exception as E
 
 -- | Convert Image inlines into a raw RTF embedded image, read from a file.
 -- If file not found or filetype not jpeg or png, leave the inline unchanged.
@@ -47,7 +48,8 @@ rtfEmbedImage x@(Image _ (src,_)) = do
   if ext `elem` [".jpg",".jpeg",".png"] && not (isAbsoluteURI src)
      then do
        let src' = unEscapeString src
-       imgdata <- catch (B.readFile src') (\_ -> return B.empty)
+       imgdata <- E.catch (B.readFile src')
+                    (\e -> let _ = (e :: E.SomeException) in return B.empty)
        let bytes = map (printf "%02x") $ B.unpack imgdata
        let filetype = case ext of
                            ".jpg" -> "\\jpegblip"

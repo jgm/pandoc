@@ -46,6 +46,7 @@ import Data.Monoid
 import System.FilePath (replaceExtension)
 import Data.List (intercalate)
 import qualified Data.Map as M
+import qualified Control.Exception as E
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ParserState   -- ^ Parser state, including options for parser
@@ -670,8 +671,9 @@ handleIncludes :: String -> IO String
 handleIncludes [] = return []
 handleIncludes ('\\':xs) =
   case runParser include defaultParserState "input" ('\\':xs) of
-       Right (fs, rest) -> do let getfile f = catch (UTF8.readFile f)
-                                               (\_ -> return "")
+       Right (fs, rest) -> do let getfile f = E.catch (UTF8.readFile f)
+                                               (\e -> let _ = (e :: E.SomeException)
+                                                      in  return "")
                               yss <- mapM getfile fs
                               (intercalate "\n" yss ++) `fmap`
                                 handleIncludes rest

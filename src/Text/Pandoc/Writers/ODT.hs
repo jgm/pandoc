@@ -47,6 +47,7 @@ import Control.Monad (liftM)
 import Network.URI ( unEscapeString )
 import Text.Pandoc.XML
 import Text.Pandoc.Pretty
+import qualified Control.Exception as E
 
 -- | Produce an ODT file from a Pandoc document.
 writeODT :: WriterOptions  -- ^ Writer options
@@ -109,9 +110,9 @@ transformPic sourceDir entriesRef (Image lab (src,tit)) = do
                   Nothing  -> tit
   entries <- readIORef entriesRef
   let newsrc = "Pictures/" ++ show (length entries) ++ takeExtension src'
-  catch (readEntry [] (sourceDir </> src') >>= \entry ->
-           modifyIORef entriesRef (entry{ eRelativePath = newsrc } :) >>
-           return (Image lab (newsrc, tit')))
-        (\_ -> return (Emph lab))
+  E.catch (readEntry [] (sourceDir </> src') >>= \entry ->
+            modifyIORef entriesRef (entry{ eRelativePath = newsrc } :) >>
+            return (Image lab (newsrc, tit')))
+          (\e -> let _ = (e :: E.SomeException) in return (Emph lab))
 transformPic _ _ x = return x
 

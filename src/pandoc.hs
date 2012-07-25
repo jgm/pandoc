@@ -48,6 +48,7 @@ import Data.List ( intercalate, isSuffixOf, isPrefixOf )
 import System.Directory ( getAppUserDataDirectory, doesFileExist, findExecutable )
 import System.IO ( stdout )
 import System.IO.Error ( isDoesNotExistError )
+import qualified Control.Exception as E
 import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Text.CSL as CSL
@@ -840,9 +841,10 @@ main = do
   let sources = if ignoreArgs then [] else args
 
   datadir <- case mbDataDir of
-                  Nothing   -> catch
+                  Nothing   -> E.catch
                                  (liftM Just $ getAppUserDataDirectory "pandoc")
-                                 (const $ return Nothing)
+                                 (\e -> let _ = (e :: E.SomeException)
+                                        in  return Nothing)
                   Just _    -> return mbDataDir
 
   -- assign reader and writer based on options and filenames
@@ -893,12 +895,13 @@ main = do
                            let tp' = case takeExtension tp of
                                           ""   -> tp <.> format
                                           _    -> tp
-                           catch (UTF8.readFile tp')
+                           E.catch (UTF8.readFile tp')
                              (\e -> if isDoesNotExistError e
-                                       then catch
+                                       then E.catch
                                              (readDataFile datadir $
                                                "templates" </> tp')
-                                             (\_ -> throwIO e)
+                                             (\e' -> let _ = (e' :: E.SomeException)
+                                                     in throwIO e')
                                        else throwIO e)
 
   variables' <- case mathMethod of
@@ -922,8 +925,10 @@ main = do
   -- that we can do lookups with regular string equality
   let unescapeRefId ref = ref{ refId = fromEntities (refId ref) }
 
-  refs <- mapM (\f -> catch (CSL.readBiblioFile f) $ \e ->
-             err 23 $ "Error reading bibliography `" ++ f ++ "'" ++ "\n" ++ show e)
+  refs <- mapM (\f -> E.catch (CSL.readBiblioFile f)
+                   (\e -> let _ = (e :: E.SomeException)
+                          in  err 23 $ "Error reading bibliography `" ++ f ++
+                                       "'" ++ "\n" ++ show e))
           reffiles >>=
            return . map unescapeRefId . concat
 
