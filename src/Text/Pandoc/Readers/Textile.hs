@@ -80,7 +80,7 @@ parseTextile = do
   -- textile allows raw HTML and does smart punctuation by default
   oldOpts <- stateOptions `fmap` getState
   updateState $ \state -> state { stateParseRaw = True
-                                , stateOptions = oldOpts{ optionSmart = True }
+                                , stateOptions = oldOpts{ readerSmart = True }
                                 }
   many blankline
   startPos <- getPosition

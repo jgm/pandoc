@@ -15,7 +15,7 @@ markdown = readMarkdown defaultParserState{ stateStandalone = True }
 markdownSmart :: String -> Pandoc
 markdownSmart = readMarkdown defaultParserState{ stateOptions =
                    let oldOpts = stateOptions defaultParserState in
-                       oldOpts { optionSmart = True } }
+                       oldOpts { readerSmart = True } }
 
 infix 4 =:
 (=:) :: ToString c

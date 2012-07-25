@@ -392,7 +392,7 @@ nullBlock = anyChar >> return Null
 failIfStrict :: Parsec [a] ParserState ()
 failIfStrict = do
   state <- getState
-  if optionStrict (stateOptions state) then fail "strict mode" else return ()
+  if readerStrict (stateOptions state) then fail "strict mode" else return ()
 
 -- | Fail unless we're in literate haskell mode.
 failUnlessLHS :: Parsec [tok] ParserState ()
@@ -689,7 +689,7 @@ testStringWith parser str = UTF8.putStrLn $ show $
 
 -- | Parsing options.
 data ParserState = ParserState
-    { stateOptions         :: Options,       -- ^ User options
+    { stateOptions         :: ReaderOptions, -- ^ User options
       stateParseRaw        :: Bool,          -- ^ Parse raw HTML and LaTeX?
       stateParserContext   :: ParserContext, -- ^ Inside list?
       stateQuoteContext    :: QuoteContext,  -- ^ Inside quoted environment?
@@ -795,7 +795,7 @@ lookupKeySrc table key = case M.lookup key table of
 
 -- | Fail unless we're in "smart typography" mode.
 failUnlessSmart :: Parsec [tok] ParserState ()
-failUnlessSmart = getState >>= guard . optionSmart . stateOptions
+failUnlessSmart = getState >>= guard . readerSmart . stateOptions
 
 smartPunctuation :: Parsec [Char] ParserState Inline
                  -> Parsec [Char] ParserState Inline

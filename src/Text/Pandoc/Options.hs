@@ -29,7 +29,7 @@ Data structures and functions for representing parser and writer
 options.
 -}
 module Text.Pandoc.Options ( Extension(..)
-                           , Options(..)
+                           , ReaderOptions(..)
                            ) where
 import Data.Set (Set)
 import qualified Data.Set as Set
@@ -50,15 +50,15 @@ data Extension = Footnotes
                | Significant_bullets
                deriving (Show, Read, Enum, Eq, Ord, Bounded)
 
-data Options = Options{
-         optionExtensions     :: Set Extension
-       , optionSmart          :: Bool
-       , optionStrict         :: Bool -- FOR TRANSITION ONLY
+data ReaderOptions = ReaderOptions{
+         readerExtensions     :: Set Extension
+       , readerSmart          :: Bool
+       , readerStrict         :: Bool -- FOR TRANSITION ONLY
        } deriving (Show, Read)
 
-instance Default Options
-  where def = Options{
-                 optionExtensions    = Set.fromList [minBound..maxBound]
-               , optionSmart         = False
-               , optionStrict        = False
+instance Default ReaderOptions
+  where def = ReaderOptions{
+                 readerExtensions    = Set.fromList [minBound..maxBound]
+               , readerSmart         = False
+               , readerStrict        = False
                }

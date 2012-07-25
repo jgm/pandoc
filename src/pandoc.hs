@@ -944,8 +944,8 @@ main = do
                               stateCitations       = map CSL.refId refs,
                               stateOldDashes       = oldDashes,
                               stateColumns         = columns,
-                              stateOptions         = def{ optionStrict = strict
-                                                        , optionSmart = smart ||
+                              stateOptions         = def{ readerStrict = strict
+                                                        , readerSmart = smart ||
                                                            (texLigatures &&
                                        (laTeXOutput || writerName' == "context")) },
                               stateIndentedCodeClasses = codeBlockClasses,
