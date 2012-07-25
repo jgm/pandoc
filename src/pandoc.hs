@@ -940,7 +940,6 @@ main = do
                                                      lhsExtension sources,
                               stateStandalone      = standalone',
                               stateCitations       = map CSL.refId refs,
-                              stateOldDashes       = oldDashes,
                               stateOptions         = def{
                                    readerStrict = strict
                                  , readerSmart = smart || (texLigatures &&
@@ -948,6 +947,7 @@ main = do
                                  , readerParseRaw = parseRaw
                                  , readerColumns = columns
                                  , readerTabStop = tabStop
+                                 , readerOldDashes = oldDashes
                                  },
                               stateIndentedCodeClasses = codeBlockClasses,
                               stateApplyMacros     = not laTeXOutput

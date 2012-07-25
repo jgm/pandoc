@@ -699,9 +699,6 @@ data ParserState = ParserState
       stateTitle           :: [Inline],      -- ^ Title of document
       stateAuthors         :: [[Inline]],    -- ^ Authors of document
       stateDate            :: [Inline],      -- ^ Date of document
-      stateOldDashes       :: Bool,          -- ^ Use pandoc <= 1.8.2.1 behavior
-                                             --   in parsing dashes; -- is em-dash;
-                                             --   before numeral is en-dash
       stateLiterateHaskell :: Bool,          -- ^ Treat input as literate haskell
       stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
       stateIndentedCodeClasses :: [String],  -- ^ Classes to use for indented code blocks
@@ -731,7 +728,6 @@ defaultParserState =
                   stateTitle           = [],
                   stateAuthors         = [],
                   stateDate            = [],
-                  stateOldDashes       = False,
                   stateLiterateHaskell = False,
                   stateHeaderTable     = [],
                   stateIndentedCodeClasses = [],
@@ -887,7 +883,7 @@ ellipses = do
 
 dash :: Parsec [Char] ParserState Inline
 dash = do
-  oldDashes <- stateOldDashes `fmap` getState
+  oldDashes <- getOption readerOldDashes
   if oldDashes
      then emDashOld <|> enDashOld
      else Str `fmap` (hyphenDash <|> emDash <|> enDash)

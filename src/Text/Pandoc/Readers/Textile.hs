@@ -71,7 +71,7 @@ readTextile :: ParserState -- ^ Parser state, including options for parser
              -> String      -- ^ String to parse (assuming @'\n'@ line endings)
              -> Pandoc
 readTextile state s =
-  (readWith parseTextile) state{ stateOldDashes = True } (s ++ "\n\n")
+  (readWith parseTextile) state (s ++ "\n\n")
 
 
 -- | Generate a Pandoc ADT from a textile document
@@ -79,9 +79,11 @@ parseTextile :: Parser [Char] ParserState Pandoc
 parseTextile = do
   -- textile allows raw HTML and does smart punctuation by default
   oldOpts <- stateOptions `fmap` getState
-  updateState $ \state -> state{ stateOptions = oldOpts{ readerSmart = True
-                                                       , readerParseRaw = True
-                                                       } }
+  updateState $ \state -> state{ stateOptions =
+                                   oldOpts{ readerSmart = True
+                                          , readerParseRaw = True
+                                          , readerOldDashes = True
+                                          } }
   many blankline
   startPos <- getPosition
   -- go through once just to get list of reference keys and notes
