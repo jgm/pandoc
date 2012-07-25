@@ -544,7 +544,6 @@ tableWith headerParser rowParser lineParser footerParser = try $ do
     (heads, aligns, indices) <- headerParser
     lines' <- rowParser indices `sepEndBy1` lineParser
     footerParser
-    state <- getState
     numColumns <- getOption readerColumns
     let widths = if (indices == [])
                     then replicate (length aligns) 0.0
@@ -696,7 +695,6 @@ data ParserState = ParserState
       stateKeys            :: KeyTable,      -- ^ List of reference keys
       stateCitations       :: [String],      -- ^ List of available citations
       stateNotes           :: NoteTable,     -- ^ List of notes
-      stateTabStop         :: Int,           -- ^ Tab stop
       stateStandalone      :: Bool,          -- ^ Parse bibliographic info?
       stateTitle           :: [Inline],      -- ^ Title of document
       stateAuthors         :: [[Inline]],    -- ^ Authors of document
@@ -729,7 +727,6 @@ defaultParserState =
                   stateKeys            = M.empty,
                   stateCitations       = [],
                   stateNotes           = [],
-                  stateTabStop         = 4,
                   stateStandalone      = False,
                   stateTitle           = [],
                   stateAuthors         = [],

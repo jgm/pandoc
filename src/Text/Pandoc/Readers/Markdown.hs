@@ -85,15 +85,13 @@ isBlank _    = False
 
 indentSpaces :: Parser [Char] ParserState [Char]
 indentSpaces = try $ do
-  state <- getState
-  let tabStop = stateTabStop state
+  tabStop <- getOption readerTabStop
   count tabStop (char ' ') <|>
     string "\t" <?> "indentation"
 
 nonindentSpaces :: Parser [Char] ParserState [Char]
 nonindentSpaces = do
-  state <- getState
-  let tabStop = stateTabStop state
+  tabStop <- getOption readerTabStop
   sps <- many (char ' ')
   if length sps < tabStop 
      then return sps
@@ -101,8 +99,8 @@ nonindentSpaces = do
 
 skipNonindentSpaces :: Parser [Char] ParserState ()
 skipNonindentSpaces = do
-  state <- getState
-  atMostSpaces (stateTabStop state - 1)
+  tabStop <- getOption readerTabStop
+  atMostSpaces (tabStop - 1)
 
 atMostSpaces :: Int -> Parser [Char] ParserState ()
 atMostSpaces 0 = notFollowedBy (char ' ')
@@ -627,8 +625,7 @@ defListMarker :: Parser [Char] ParserState ()
 defListMarker = do
   sps <- nonindentSpaces
   char ':' <|> char '~'
-  st <- getState
-  let tabStop = stateTabStop st
+  tabStop <- getOption readerTabStop
   let remaining = tabStop - (length sps + 1)
   if remaining > 0
      then count remaining (char ' ') <|> string "\t"

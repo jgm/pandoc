@@ -936,8 +936,7 @@ main = do
                      then "."
                      else takeDirectory (head sources)
 
-  let startParserState = def{ stateTabStop         = tabStop,
-                              stateLiterateHaskell = "+lhs" `isSuffixOf` readerName' ||
+  let startParserState = def{ stateLiterateHaskell = "+lhs" `isSuffixOf` readerName' ||
                                                      lhsExtension sources,
                               stateStandalone      = standalone',
                               stateCitations       = map CSL.refId refs,
@@ -948,6 +947,7 @@ main = do
                                      (laTeXOutput || writerName' == "context"))
                                  , readerParseRaw = parseRaw
                                  , readerColumns = columns
+                                 , readerTabStop = tabStop
                                  },
                               stateIndentedCodeClasses = codeBlockClasses,
                               stateApplyMacros     = not laTeXOutput

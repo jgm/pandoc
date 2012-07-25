@@ -33,6 +33,7 @@ module Text.Pandoc.Readers.RST (
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
+import Text.Pandoc.Options
 import Control.Monad ( when, liftM, guard, mzero )
 import Data.List ( findIndex, intercalate, transpose, sort, deleteFirstsBy )
 import qualified Data.Map as M
@@ -493,8 +494,7 @@ listLine markerLength = try $ do
 -- indent by specified number of spaces (or equiv. tabs)
 indentWith :: Int -> Parser [Char] ParserState [Char]
 indentWith num = do
-  state <- getState
-  let tabStop = stateTabStop state
+  tabStop <- getOption readerTabStop
   if (num < tabStop)
      then count num  (char ' ')
      else choice [ try (count num (char ' ')), 

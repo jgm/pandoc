@@ -56,6 +56,7 @@ data ReaderOptions = ReaderOptions{
        , readerStrict         :: Bool  -- ^ FOR TRANSITION ONLY
        , readerParseRaw       :: Bool  -- ^ Parse raw HTML, LaTeX
        , readerColumns        :: Int   -- ^ Number of columns in terminal
+       , readerTabStop        :: Int   -- ^ Tab stop
        } deriving (Show, Read)
 
 instance Default ReaderOptions
@@ -65,4 +66,5 @@ instance Default ReaderOptions
                , readerStrict        = False
                , readerParseRaw      = False
                , readerColumns       = 80
+               , readerTabStop       = 4
                }
