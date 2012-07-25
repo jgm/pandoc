@@ -942,12 +942,12 @@ main = do
                               stateStandalone      = standalone',
                               stateCitations       = map CSL.refId refs,
                               stateOldDashes       = oldDashes,
-                              stateColumns         = columns,
                               stateOptions         = def{
                                    readerStrict = strict
                                  , readerSmart = smart || (texLigatures &&
                                      (laTeXOutput || writerName' == "context"))
                                  , readerParseRaw = parseRaw
+                                 , readerColumns = columns
                                  },
                               stateIndentedCodeClasses = codeBlockClasses,
                               stateApplyMacros     = not laTeXOutput

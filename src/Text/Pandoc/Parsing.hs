@@ -545,7 +545,7 @@ tableWith headerParser rowParser lineParser footerParser = try $ do
     lines' <- rowParser indices `sepEndBy1` lineParser
     footerParser
     state <- getState
-    let numColumns = stateColumns state
+    numColumns <- getOption readerColumns
     let widths = if (indices == [])
                     then replicate (length aligns) 0.0
                     else widthsFromIndices numColumns indices
@@ -705,7 +705,6 @@ data ParserState = ParserState
                                              --   in parsing dashes; -- is em-dash;
                                              --   before numeral is en-dash
       stateLiterateHaskell :: Bool,          -- ^ Treat input as literate haskell
-      stateColumns         :: Int,           -- ^ Number of columns in terminal
       stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
       stateIndentedCodeClasses :: [String],  -- ^ Classes to use for indented code blocks
       stateNextExample     :: Int,           -- ^ Number of next example
@@ -737,7 +736,6 @@ defaultParserState =
                   stateDate            = [],
                   stateOldDashes       = False,
                   stateLiterateHaskell = False,
-                  stateColumns         = 80,
                   stateHeaderTable     = [],
                   stateIndentedCodeClasses = [],
                   stateNextExample     = 1,
