@@ -942,11 +942,12 @@ main = do
                                                      lhsExtension sources,
                               stateStandalone      = standalone',
                               stateCitations       = map CSL.refId refs,
-                              stateSmart           = smart || (texLigatures &&
-                                       (laTeXOutput || writerName' == "context")),
                               stateOldDashes       = oldDashes,
                               stateColumns         = columns,
-                              stateStrict          = strict,
+                              stateOptions         = def{ optionStrict = strict
+                                                        , optionSmart = smart ||
+                                                           (texLigatures &&
+                                       (laTeXOutput || writerName' == "context")) },
                               stateIndentedCodeClasses = codeBlockClasses,
                               stateApplyMacros     = not laTeXOutput
                               }

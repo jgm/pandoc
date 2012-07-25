@@ -37,6 +37,7 @@ import Data.Char ( isAlphaNum )
 import Data.Maybe
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
+import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
@@ -181,7 +182,7 @@ parseMarkdown = do
   -- docMinusKeys is the raw document with blanks where the keys/notes were...
   st <- getState
   let firstPassParser = referenceKey
-                     <|> (if stateStrict st then mzero else noteBlock)
+                     <|> (if optionStrict (stateOptions st) then mzero else noteBlock)
                      <|> liftM snd (withRaw codeBlockDelimited)
                      <|> lineClump
   docMinusKeys <- liftM concat $ manyTill firstPassParser eof
@@ -292,7 +293,7 @@ parseBlocks = manyTill block eof
 block :: Parser [Char] ParserState Block
 block = do
   st <- getState
-  choice (if stateStrict st
+  choice (if optionStrict (stateOptions st)
               then [ header
                    , codeBlockIndented
                    , blockQuote
@@ -533,7 +534,7 @@ anyOrderedListStart = try $ do
   skipNonindentSpaces
   notFollowedBy $ string "p." >> spaceChar >> digit  -- page number
   state <- getState
-  if stateStrict state
+  if optionStrict (stateOptions state)
      then do many1 digit
              char '.'
              spaceChar
@@ -694,7 +695,7 @@ para = try $ do
   option (Plain result) $ try $ do
               newline
               blanklines <|>
-                (getState >>= guard . stateStrict >>
+                (getState >>= guard . optionStrict . stateOptions >>
                  lookAhead (blockQuote <|> header) >> return "")
               return $ Para result
 
@@ -1008,7 +1009,7 @@ escapedChar' :: Parser [Char] ParserState Char
 escapedChar' = try $ do
   char '\\'
   state <- getState
-  if stateStrict state
+  if optionStrict (stateOptions state)
      then oneOf "\\`*_{}[]()>#+-.!~"
      else satisfy (not . isAlphaNum)
 
@@ -1023,7 +1024,7 @@ escapedChar = do
 ltSign :: Parser [Char] ParserState Inline
 ltSign = do
   st <- getState
-  if stateStrict st
+  if optionStrict (stateOptions st)
      then char '<'
      else notFollowedBy' rawHtmlBlocks >> char '<' -- unless it starts html
   return $ Str ['<']
@@ -1159,7 +1160,7 @@ nonEndline = satisfy (/='\n')
 
 str :: Parser [Char] ParserState Inline
 str = do
-  smart <- stateSmart `fmap` getState
+  smart <- (optionSmart . stateOptions) `fmap` getState
   a <- alphaNum
   as <- many $ alphaNum
             <|> (try $ char '_' >>~ lookAhead alphaNum)
@@ -1200,7 +1201,7 @@ endline = try $ do
   newline
   notFollowedBy blankline
   st <- getState
-  when (stateStrict st) $ do
+  when (optionStrict (stateOptions st)) $ do
     notFollowedBy emailBlockQuoteStart
     notFollowedBy (char '#')  -- atx header
   -- parse potential list-starts differently if in a list:
@@ -1282,7 +1283,7 @@ autoLink = try $ do
   (orig, src) <- uri <|> emailAddress
   char '>'
   st <- getState
-  return $ if stateStrict st
+  return $ if optionStrict (stateOptions st)
               then Link [Str orig] (src, "")
               else Link [Code ("",["url"],[]) orig] (src, "")
 
@@ -1343,7 +1344,7 @@ inBrackets parser = do
 rawHtmlInline :: Parser [Char] ParserState Inline
 rawHtmlInline = do
   st <- getState
-  (_,result) <- if stateStrict st
+  (_,result) <- if optionStrict (stateOptions st)
                    then htmlTag (not . isTextTag)
                    else htmlTag isInlineTag
   return $ RawInline "html" result

@@ -129,6 +129,7 @@ module Text.Pandoc.Parsing ( (>>~),
 where
 
 import Text.Pandoc.Definition
+import Text.Pandoc.Options
 import Text.Pandoc.Generic
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec
@@ -391,7 +392,7 @@ nullBlock = anyChar >> return Null
 failIfStrict :: Parsec [a] ParserState ()
 failIfStrict = do
   state <- getState
-  if stateStrict state then fail "strict mode" else return ()
+  if optionStrict (stateOptions state) then fail "strict mode" else return ()
 
 -- | Fail unless we're in literate haskell mode.
 failUnlessLHS :: Parsec [tok] ParserState ()
@@ -688,7 +689,8 @@ testStringWith parser str = UTF8.putStrLn $ show $
 
 -- | Parsing options.
 data ParserState = ParserState
-    { stateParseRaw        :: Bool,          -- ^ Parse raw HTML and LaTeX?
+    { stateOptions         :: Options,       -- ^ User options
+      stateParseRaw        :: Bool,          -- ^ Parse raw HTML and LaTeX?
       stateParserContext   :: ParserContext, -- ^ Inside list?
       stateQuoteContext    :: QuoteContext,  -- ^ Inside quoted environment?
       stateMaxNestingLevel :: Int,           -- ^ Max # of nested Strong/Emph
@@ -701,8 +703,6 @@ data ParserState = ParserState
       stateTitle           :: [Inline],      -- ^ Title of document
       stateAuthors         :: [[Inline]],    -- ^ Authors of document
       stateDate            :: [Inline],      -- ^ Date of document
-      stateStrict          :: Bool,          -- ^ Use strict markdown syntax?
-      stateSmart           :: Bool,          -- ^ Use smart typography?
       stateOldDashes       :: Bool,          -- ^ Use pandoc <= 1.8.2.1 behavior
                                              --   in parsing dashes; -- is em-dash;
                                              --   before numeral is en-dash
@@ -724,7 +724,8 @@ instance Default ParserState where
 
 defaultParserState :: ParserState
 defaultParserState = 
-    ParserState { stateParseRaw        = False,
+    ParserState { stateOptions         = def,
+                  stateParseRaw        = False,
                   stateParserContext   = NullState,
                   stateQuoteContext    = NoQuote,
                   stateMaxNestingLevel = 6,
@@ -737,8 +738,6 @@ defaultParserState =
                   stateTitle           = [],
                   stateAuthors         = [],
                   stateDate            = [],
-                  stateStrict          = False,
-                  stateSmart           = False,
                   stateOldDashes       = False,
                   stateLiterateHaskell = False,
                   stateColumns         = 80,
@@ -796,7 +795,7 @@ lookupKeySrc table key = case M.lookup key table of
 
 -- | Fail unless we're in "smart typography" mode.
 failUnlessSmart :: Parsec [tok] ParserState ()
-failUnlessSmart = getState >>= guard . stateSmart
+failUnlessSmart = getState >>= guard . optionSmart . stateOptions
 
 smartPunctuation :: Parsec [Char] ParserState Inline
                  -> Parsec [Char] ParserState Inline

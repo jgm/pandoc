@@ -57,6 +57,7 @@ module Text.Pandoc.Readers.Textile ( readTextile) where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared 
+import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML ( htmlTag, isInlineTag, isBlockTag )
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
@@ -77,7 +78,10 @@ readTextile state s =
 parseTextile :: Parser [Char] ParserState Pandoc
 parseTextile = do
   -- textile allows raw HTML and does smart punctuation by default
-  updateState (\state -> state { stateParseRaw = True, stateSmart = True })
+  oldOpts <- stateOptions `fmap` getState
+  updateState $ \state -> state { stateParseRaw = True
+                                , stateOptions = oldOpts{ optionSmart = True }
+                                }
   many blankline
   startPos <- getPosition
   -- go through once just to get list of reference keys and notes

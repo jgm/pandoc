@@ -60,6 +60,8 @@ module Text.Pandoc
                module Text.Pandoc.Definition
                -- * Generics
                , module Text.Pandoc.Generic
+               -- * Options
+               , module Text.Pandoc.Options
                -- * Lists of readers and writers
                , readers
                , writers
@@ -151,6 +153,7 @@ import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Templates
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
+import Text.Pandoc.Options
 import Data.ByteString.Lazy (ByteString)
 import Data.Version (showVersion)
 import Text.JSON.Generic

@@ -41,6 +41,7 @@ import Text.HTML.TagSoup.Match
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder (text, toList)
 import Text.Pandoc.Shared
+import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Data.Maybe ( fromMaybe, isJust )
 import Data.List ( intercalate )
@@ -125,7 +126,7 @@ pOrderedList :: TagParser [Block]
 pOrderedList = try $ do
   TagOpen _ attribs <- pSatisfy (~== TagOpen "ol" [])
   st <- getState
-  let (start, style) =  if stateStrict st
+  let (start, style) =  if optionStrict (stateOptions st)
                            then (1, DefaultStyle) 
                            else (sta', sty')
                               where sta = fromMaybe "1" $
@@ -280,7 +281,7 @@ pCodeBlock = try $ do
   let attribsClasses = words $ fromMaybe "" $ lookup "class" attr
   let attribsKV = filter (\(k,_) -> k /= "class" && k /= "id") attr
   st <- getState
-  let attribs = if stateStrict st
+  let attribs = if optionStrict (stateOptions st)
                    then ("",[],[])
                    else (attribsId, attribsClasses, attribsKV)
   return [CodeBlock attribs result]

@@ -29,10 +29,13 @@ Data structures and functions for representing parser and writer
 options.
 -}
 module Text.Pandoc.Options ( Extension(..)
+                           , Options(..)
                            ) where
 import Data.Set (Set)
+import qualified Data.Set as Set
+import Data.Default
 
--- | Individually selectable markdown syntax extensions.
+-- | Individually selectable syntax extensions.
 data Extension = Footnotes
                | TeX_math
                | Delimited_code_blocks
@@ -45,6 +48,17 @@ data Extension = Footnotes
                | Blank_before_blockquote
                | Blank_before_header
                | Significant_bullets
-               deriving (Show, Read, Enum, Eq, Bounded)
+               deriving (Show, Read, Enum, Eq, Ord, Bounded)
 
+data Options = Options{
+         optionExtensions     :: Set Extension
+       , optionSmart          :: Bool
+       , optionStrict         :: Bool -- FOR TRANSITION ONLY
+       } deriving (Show, Read)
 
+instance Default Options
+  where def = Options{
+                 optionExtensions    = Set.fromList [minBound..maxBound]
+               , optionSmart         = False
+               , optionStrict        = False
+               }
