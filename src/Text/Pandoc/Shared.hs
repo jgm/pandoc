@@ -272,13 +272,12 @@ orderedListMarkers (start, numstyle, numdelim) =
 -- remove empty Str elements.
 normalizeSpaces :: [Inline] -> [Inline]
 normalizeSpaces = cleanup . dropWhile isSpaceOrEmpty
- where  cleanup [] = []
-        cleanup (Space:rest) = let rest' = dropWhile isSpaceOrEmpty rest
-                               in  case rest' of
-                                   []            -> []
-                                   _             -> Space : cleanup rest'
+ where  cleanup []              = []
+        cleanup (Space:rest)    = case dropWhile isSpaceOrEmpty rest of
+                                        []     -> []
+                                        (x:xs) -> Space : x : cleanup xs
         cleanup ((Str ""):rest) = cleanup rest
-        cleanup (x:rest) = x : cleanup rest
+        cleanup (x:rest)        = x : cleanup rest
 
 isSpaceOrEmpty :: Inline -> Bool
 isSpaceOrEmpty Space = True
