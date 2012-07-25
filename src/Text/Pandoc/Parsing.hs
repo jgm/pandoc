@@ -173,9 +173,16 @@ notFollowedBy' p  = try $ join $  do  a <- try p
                                   return (return ())
 -- (This version due to Andrew Pimlott on the Haskell mailing list.)
 
--- | Parses one of a list of strings (tried in order).  
+-- | Parses one of a list of strings (tried in order).
 oneOfStrings :: [String] -> Parsec [Char] st String
-oneOfStrings listOfStrings = choice $ map (try . string) listOfStrings
+oneOfStrings []   = fail "no strings"
+oneOfStrings strs = do
+  c <- anyChar
+  let strs' = [xs | (x:xs) <- strs, x == c]
+  case strs' of
+       []  -> fail "not found"
+       z | "" `elem` z -> return [c]
+         | otherwise    -> (c:) `fmap` oneOfStrings strs'
 
 -- | Parses a space or tab.
 spaceChar :: Parsec [Char] st Char
