@@ -595,11 +595,10 @@ htmlInBalanced :: (Tag String -> Bool) -> Parser [Char] ParserState String
 htmlInBalanced f = try $ do
   (TagOpen t _, tag) <- htmlTag f
   guard $ '/' `notElem` tag      -- not a self-closing tag
-  let nonTagChunk = many1 $ satisfy (/= '<')
   let stopper = htmlTag (~== TagClose t)
   let anytag = liftM snd $ htmlTag (const True)
   contents <- many $ notFollowedBy' stopper >>
-                     (nonTagChunk <|> htmlInBalanced (const True) <|> anytag)
+                     (htmlInBalanced f <|> anytag <|> count 1 anyChar)
   endtag <- liftM snd stopper
   return $ tag ++ concat contents ++ endtag
 
