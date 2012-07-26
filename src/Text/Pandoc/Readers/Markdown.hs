@@ -1405,8 +1405,8 @@ citeKey = try $ do
   let internal p = try $ p >>~ lookAhead (letter <|> digit)
   rest <- many $ letter <|> digit <|> internal (oneOf ":.#$%&-_?<>~")
   let key = first:rest
-  st <- getState
-  guard $ key `elem` stateCitations st
+  citations' <- getOption readerCitations
+  guard $ key `elem` citations'
   return (suppress_author, key)
 
 suffix :: Parser [Char] ParserState [Inline]

@@ -693,7 +693,6 @@ data ParserState = ParserState
       stateMaxNestingLevel :: Int,           -- ^ Max # of nested Strong/Emph
       stateLastStrPos      :: Maybe SourcePos, -- ^ Position after last str parsed
       stateKeys            :: KeyTable,      -- ^ List of reference keys
-      stateCitations       :: [String],      -- ^ List of available citations
       stateNotes           :: NoteTable,     -- ^ List of notes
       stateTitle           :: [Inline],      -- ^ Title of document
       stateAuthors         :: [[Inline]],    -- ^ Authors of document
@@ -720,7 +719,6 @@ defaultParserState =
                   stateMaxNestingLevel = 6,
                   stateLastStrPos      = Nothing,
                   stateKeys            = M.empty,
-                  stateCitations       = [],
                   stateNotes           = [],
                   stateTitle           = [],
                   stateAuthors         = [],

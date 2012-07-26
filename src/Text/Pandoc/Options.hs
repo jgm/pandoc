@@ -61,6 +61,7 @@ data ReaderOptions = ReaderOptions{
                                        --   in parsing dashes; -- is em-dash;
                                        --   - before numerial is en-dash
        , readerLiterateHaskell :: Bool -- ^ Interpret as literate Haskell
+       , readerCitations       :: [String] -- ^ List of available citations
 } deriving (Show, Read)
 
 instance Default ReaderOptions
@@ -73,4 +74,5 @@ instance Default ReaderOptions
                , readerTabStop         = 4
                , readerOldDashes       = False
                , readerLiterateHaskell = False
+               , readerCitations       = []
                }
