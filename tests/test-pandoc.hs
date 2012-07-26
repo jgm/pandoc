@@ -14,6 +14,7 @@ import qualified Tests.Writers.HTML
 import qualified Tests.Writers.Native
 import qualified Tests.Writers.Markdown
 import qualified Tests.Shared
+import Text.Pandoc.Shared (inDirectory)
 
 tests :: [Test]
 tests = [ testGroup "Old" Tests.Old.tests
@@ -33,4 +34,4 @@ tests = [ testGroup "Old" Tests.Old.tests
         ]
 
 main :: IO ()
-main = defaultMain tests
+main = inDirectory "tests" $ defaultMain tests
