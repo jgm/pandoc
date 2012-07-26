@@ -54,6 +54,7 @@ data ReaderOptions = ReaderOptions{
          readerExtensions      :: Set Extension  -- ^ Syntax extensions
        , readerSmart           :: Bool -- ^ Smart punctuation
        , readerStrict          :: Bool -- ^ FOR TRANSITION ONLY
+       , readerStandalone      :: Bool -- ^ Standalone document with header
        , readerParseRaw        :: Bool -- ^ Parse raw HTML, LaTeX
        , readerColumns         :: Int  -- ^ Number of columns in terminal
        , readerTabStop         :: Int  -- ^ Tab stop
@@ -72,6 +73,7 @@ instance Default ReaderOptions
                  readerExtensions          = Set.fromList [minBound..maxBound]
                , readerSmart               = False
                , readerStrict              = False
+               , readerStandalone          = False
                , readerParseRaw            = False
                , readerColumns             = 80
                , readerTabStop             = 4

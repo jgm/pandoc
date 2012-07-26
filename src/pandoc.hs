@@ -940,6 +940,7 @@ main = do
                                    readerStrict = strict
                                  , readerSmart = smart || (texLigatures &&
                                      (laTeXOutput || writerName' == "context"))
+                                 , readerStandalone = standalone'
                                  , readerParseRaw = parseRaw
                                  , readerColumns = columns
                                  , readerTabStop = tabStop

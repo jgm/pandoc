@@ -103,10 +103,13 @@ parseRST = do
   let reversedNotes = stateNotes st'
   updateState $ \s -> s { stateNotes = reverse reversedNotes }
   -- now parse it for real...
-  blocks <- parseBlocks 
+  blocks <- parseBlocks
   let blocks' = filter (/= Null) blocks
+  standalone <- getOption readerStandalone
+  let (blocks'', title) = if standalone
+                              then titleTransform blocks'
+                              else (blocks', [])
   state <- getState
-  let (blocks'', title) = titleTransform blocks'
   let authors = stateAuthors state
   let date = stateDate state
   let title' = if (null title) then (stateTitle state) else title
