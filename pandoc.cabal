@@ -96,8 +96,6 @@ Extra-Source-Files:
                  -- generated man pages (produced post-build)
                  man/man1/pandoc.1,
                  man/man5/pandoc_markdown.5,
-                 -- benchmarks
-                 Benchmark.hs,
                  -- tests
                  tests/bodybg.gif,
                  tests/docbook-reader.docbook
@@ -427,3 +425,22 @@ Executable test-pandoc
   Default-Language: Haskell98
   Default-Extensions: CPP, TemplateHaskell, QuasiQuotes
 
+benchmark benchmark-pandoc
+  Type:            exitcode-stdio-1.0
+  Main-Is:         benchmark-pandoc.hs
+  Hs-Source-Dirs:  benchmark
+  if impl(ghc >= 6.10)
+    Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
+  else
+    Build-depends: base >= 3 && < 4
+  Build-Depends: pandoc,
+                 criterion >= 0.5 && < 0.7,
+                 json >= 0.4 && < 0.6
+  if impl(ghc >= 7.0.1)
+    Ghc-Options:   -O2 -rtsopts -Wall -fno-warn-unused-do-bind -dno-debug-output
+  else
+    if impl(ghc >= 6.12)
+      Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind -dno-debug-output
+    else
+      Ghc-Options:   -O2 -Wall
+  Default-Language: Haskell98

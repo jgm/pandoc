@@ -3,7 +3,6 @@ import Text.Pandoc.Shared (readDataFile, normalize)
 import Criterion.Main
 import Data.List (isSuffixOf)
 import Text.JSON.Generic
-import Data.Default
 
 readerBench :: Pandoc
             -> (String, ReaderOptions -> String -> Pandoc)
@@ -42,5 +41,6 @@ main = do
   let doc = readMarkdown opts inp
   let readerBs = map (readerBench doc) readers
   let writers' = [(n,w) | (n, PureStringWriter w) <- writers]
-  defaultMain $ map (writerBench doc) writers' ++ readerBs ++ normalizeBench doc
+  defaultMain $
+    map (writerBench doc) writers' ++ readerBs ++ normalizeBench doc
 
