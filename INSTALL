@@ -136,9 +136,9 @@ Running tests
 -------------
 
 Pandoc comes with an automated test suite integrated to cabal.
-To enable the tests, compile pandoc with the `tests` flag:
+To build the tests:
 
-    cabal install -ftests
+    cabal configure --enable-tests && cabal build
 
 Note: If you obtained the source via git, you should first do
 
@@ -151,11 +151,35 @@ To run the tests:
 
     cabal test
 
+To run particular tests (pattern-matching on their names), use
+the `-t` option:
+
+    cabal test --test-options='-t markdown'
+
 If you add a new feature to pandoc, please add tests as well, following
 the pattern of the existing tests. The test suite code is in
-`src/test-pandoc.hs`. If you are adding a new reader or writer, it is
+`tests/test-pandoc.hs`. If you are adding a new reader or writer, it is
 probably easiest to add some data files to the `tests` directory, and
-modify `src/Tests/Old.hs`. Otherwise, it is better to modify the module
-under the `src/Tests` hierarchy corresponding to the pandoc module you
+modify `tests/Tests/Old.hs`. Otherwise, it is better to modify the module
+under the `tests/Tests` hierarchy corresponding to the pandoc module you
 are changing.
+
+Running benchmarks
+------------------
+
+To build the benchmarks:
+
+    cabal configure --enable-benchmarks && cabal build
+
+To run the benchmarks:
+
+    cabal bench
+
+To use a smaller sample size so the benchmarks run faster:
+
+    cabal bench --benchmark-options='-s 20'
+
+To run just the markdown benchmarks:
+
+    cabal bench --benchmark-options='markdown'
 
