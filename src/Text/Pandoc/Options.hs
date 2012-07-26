@@ -62,17 +62,22 @@ data ReaderOptions = ReaderOptions{
                                        --   - before numerial is en-dash
        , readerLiterateHaskell :: Bool -- ^ Interpret as literate Haskell
        , readerCitations       :: [String] -- ^ List of available citations
+       , readerApplyMacros     :: Bool -- ^ Apply macros to TeX math
+       , readerIndentedCodeClasses :: [String] -- ^ Default classes for
+                                       -- indented code blocks
 } deriving (Show, Read)
 
 instance Default ReaderOptions
   where def = ReaderOptions{
-                 readerExtensions      = Set.fromList [minBound..maxBound]
-               , readerSmart           = False
-               , readerStrict          = False
-               , readerParseRaw        = False
-               , readerColumns         = 80
-               , readerTabStop         = 4
-               , readerOldDashes       = False
-               , readerLiterateHaskell = False
-               , readerCitations       = []
+                 readerExtensions          = Set.fromList [minBound..maxBound]
+               , readerSmart               = False
+               , readerStrict              = False
+               , readerParseRaw            = False
+               , readerColumns             = 80
+               , readerTabStop             = 4
+               , readerOldDashes           = False
+               , readerLiterateHaskell     = False
+               , readerCitations           = []
+               , readerApplyMacros         = True
+               , readerIndentedCodeClasses = []
                }

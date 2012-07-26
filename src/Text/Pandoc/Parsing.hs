@@ -698,11 +698,9 @@ data ParserState = ParserState
       stateAuthors         :: [[Inline]],    -- ^ Authors of document
       stateDate            :: [Inline],      -- ^ Date of document
       stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
-      stateIndentedCodeClasses :: [String],  -- ^ Classes to use for indented code blocks
       stateNextExample     :: Int,           -- ^ Number of next example
       stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers 
       stateHasChapters     :: Bool,          -- ^ True if \chapter encountered
-      stateApplyMacros     :: Bool,          -- ^ Apply LaTeX macros?
       stateMacros          :: [Macro],       -- ^ List of macros defined so far
       stateRstDefaultRole  :: String         -- ^ Current rST default interpreted text role
     }
@@ -724,11 +722,9 @@ defaultParserState =
                   stateAuthors         = [],
                   stateDate            = [],
                   stateHeaderTable     = [],
-                  stateIndentedCodeClasses = [],
                   stateNextExample     = 1,
                   stateExamples        = M.empty,
                   stateHasChapters     = False,
-                  stateApplyMacros     = True,
                   stateMacros          = [],
                   stateRstDefaultRole  = "title-reference"}
 
@@ -916,7 +912,7 @@ emDashOld = do
 -- | Parse a \newcommand or \renewcommand macro definition.
 macro :: Parsec [Char] ParserState Block
 macro = do
-  apply <- stateApplyMacros `fmap` getState
+  apply <- getOption readerApplyMacros
   inp <- getInput
   case parseMacroDefinitions inp of
        ([], _)    -> mzero
@@ -931,7 +927,7 @@ macro = do
 -- | Apply current macros to string.
 applyMacros' :: String -> Parsec [Char] ParserState String
 applyMacros' target = do
-  apply <- liftM stateApplyMacros getState
+  apply <- getOption readerApplyMacros
   if apply
      then do macros <- liftM stateMacros getState
              return $ applyMacros macros target

@@ -948,9 +948,9 @@ main = do
                                      "+lhs" `isSuffixOf` readerName' ||
                                      lhsExtension sources
                                  , readerCitations = map CSL.refId refs
-                                 },
-                              stateIndentedCodeClasses = codeBlockClasses,
-                              stateApplyMacros     = not laTeXOutput
+                                 , readerIndentedCodeClasses = codeBlockClasses
+                                 , readerApplyMacros = not laTeXOutput
+                                 }
                               }
 
   let writerOptions = def { writerStandalone       = standalone',
