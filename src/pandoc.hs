@@ -936,23 +936,21 @@ main = do
                      then "."
                      else takeDirectory (head sources)
 
-  let startParserState = def{ stateOptions         = def{
-                                   readerStrict = strict
-                                 , readerSmart = smart || (texLigatures &&
-                                     (laTeXOutput || writerName' == "context"))
-                                 , readerStandalone = standalone'
-                                 , readerParseRaw = parseRaw
-                                 , readerColumns = columns
-                                 , readerTabStop = tabStop
-                                 , readerOldDashes = oldDashes
-                                 , readerLiterateHaskell =
-                                     "+lhs" `isSuffixOf` readerName' ||
-                                     lhsExtension sources
-                                 , readerCitations = map CSL.refId refs
-                                 , readerIndentedCodeClasses = codeBlockClasses
-                                 , readerApplyMacros = not laTeXOutput
-                                 }
-                              }
+  let readerOpts = def{ readerStrict = strict
+                      , readerSmart = smart || (texLigatures &&
+                          (laTeXOutput || writerName' == "context"))
+                      , readerStandalone = standalone'
+                      , readerParseRaw = parseRaw
+                      , readerColumns = columns
+                      , readerTabStop = tabStop
+                      , readerOldDashes = oldDashes
+                      , readerLiterateHaskell =
+                          "+lhs" `isSuffixOf` readerName' ||
+                          lhsExtension sources
+                      , readerCitations = map CSL.refId refs
+                      , readerIndentedCodeClasses = codeBlockClasses
+                      , readerApplyMacros = not laTeXOutput
+                      }
 
   let writerOptions = def { writerStandalone       = standalone',
                             writerTemplate         = templ,
@@ -1013,7 +1011,7 @@ main = do
                            then handleIncludes
                            else return
 
-  doc <- (reader startParserState) `fmap` (readSources sources >>=
+  doc <- (reader readerOpts) `fmap` (readSources sources >>=
              handleIncludes' . convertTabs . intercalate "\n")
 
   let doc0 = foldr ($) doc transforms

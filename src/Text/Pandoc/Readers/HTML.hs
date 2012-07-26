@@ -55,11 +55,11 @@ isSpace '\n' = True
 isSpace _    = False
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
-readHtml :: ParserState   -- ^ Parser state
+readHtml :: ReaderOptions -- ^ Reader options
          -> String        -- ^ String to parse (assumes @'\n'@ line endings)
          -> Pandoc
-readHtml st inp = Pandoc meta blocks
-  where blocks  = readWith parseBody st rest
+readHtml opts inp = Pandoc meta blocks
+  where blocks  = readWith parseBody def{ stateOptions = opts } rest
         tags    = canonicalizeTags $
                    parseTagsOptions parseOptions{ optTagPosition = True } inp
         hasHeader = any (~== TagOpen "head" []) tags

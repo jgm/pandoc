@@ -43,8 +43,7 @@ inline links:
 >
 > markdownToRST :: String -> String
 > markdownToRST =
->   (writeRST defaultWriterOptions {writerReferenceLinks = True}) .
->   readMarkdown defaultParserState
+>   (writeRST def {writerReferenceLinks = True}) . readMarkdown def
 >
 > main = getContents >>= putStrLn . markdownToRST
 
@@ -73,14 +72,6 @@ module Text.Pandoc
                , readTextile
                , readDocBook
                , readNative
-               -- * Parser state used in readers
-               , ParserState (..)
-               , defaultParserState
-               , ParserContext (..)
-               , QuoteContext (..)
-               , KeyTable
-               , NoteTable
-               , HeaderType (..)
                -- * Writers: converting /from/ Pandoc format
                , Writer (..)
                , writeNative
@@ -118,8 +109,6 @@ module Text.Pandoc
                , rtfEmbedImage
                , jsonFilter
                , ToJsonFilter(..)
-               -- * From Data.Default
-               , def
              ) where
 
 import Text.Pandoc.Definition
@@ -151,41 +140,33 @@ import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.Org
 import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Templates
-import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Data.ByteString.Lazy (ByteString)
 import Data.Version (showVersion)
 import Text.JSON.Generic
 import Paths_pandoc (version)
-import Data.Default
 
 -- | Version number of pandoc library.
 pandocVersion :: String
 pandocVersion = showVersion version
 
 -- | Association list of formats and readers.
-readers :: [(String, ParserState -> String -> Pandoc)]
+readers :: [(String, ReaderOptions -> String -> Pandoc)]
 readers = [("native"       , \_ -> readNative)
           ,("json"         , \_ -> decodeJSON)
           ,("markdown"     , readMarkdown)
-          ,("markdown+lhs" , \st ->
-                             readMarkdown st{ stateOptions =
-                                let oldopts = stateOptions st
-                                in  oldopts{ readerLiterateHaskell = True} })
+          ,("markdown+lhs" , \opt ->
+                             readMarkdown opt{ readerLiterateHaskell = True })
           ,("rst"          , readRST)
-          ,("rst+lhs"      , \st ->
-                             readRST st{ stateOptions =
-                                let oldopts = stateOptions st
-                                in  oldopts{ readerLiterateHaskell = True} })
+          ,("rst+lhs"      , \opt ->
+                             readRST opt{ readerLiterateHaskell = True })
           ,("docbook"      , readDocBook)
           ,("textile"      , readTextile) -- TODO : textile+lhs
           ,("html"         , readHtml)
           ,("latex"        , readLaTeX)
-          ,("latex+lhs"    , \st ->
-                             readLaTeX st{ stateOptions =
-                                let oldopts = stateOptions st
-                                in  oldopts{ readerLiterateHaskell = True} })
+          ,("latex+lhs"    , \opt ->
+                             readLaTeX opt{ readerLiterateHaskell = True })
           ]
 
 data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)

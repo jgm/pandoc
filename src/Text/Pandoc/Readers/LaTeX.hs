@@ -50,10 +50,10 @@ import qualified Data.Map as M
 import qualified Control.Exception as E
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
-readLaTeX :: ParserState   -- ^ Parser state, including options for parser
+readLaTeX :: ReaderOptions -- ^ Reader options
           -> String        -- ^ String to parse (assumes @'\n'@ line endings)
           -> Pandoc
-readLaTeX = readWith parseLaTeX
+readLaTeX opts = readWith parseLaTeX def{ stateOptions = opts }
 
 parseLaTeX :: LP Pandoc
 parseLaTeX = do

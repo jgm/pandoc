@@ -56,7 +56,7 @@ TODO : refactor common patterns across readers :
 module Text.Pandoc.Readers.Textile ( readTextile) where
 
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared 
+import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML ( htmlTag, isInlineTag, isBlockTag )
@@ -67,11 +67,11 @@ import Control.Monad ( guard, liftM )
 import Control.Applicative ((<$>), (*>), (<*))
 
 -- | Parse a Textile text and return a Pandoc document.
-readTextile :: ParserState -- ^ Parser state, including options for parser
-             -> String      -- ^ String to parse (assuming @'\n'@ line endings)
-             -> Pandoc
-readTextile state s =
-  (readWith parseTextile) state (s ++ "\n\n")
+readTextile :: ReaderOptions -- ^ Reader options
+            -> String       -- ^ String to parse (assuming @'\n'@ line endings)
+            -> Pandoc
+readTextile opts s =
+  (readWith parseTextile) def{ stateOptions = opts } (s ++ "\n\n")
 
 
 -- | Generate a Pandoc ADT from a textile document
@@ -243,8 +243,8 @@ definitionListItem :: Parser [Char] ParserState ([Inline], [[Block]])
 definitionListItem = try $ do
   string "- "
   term <- many1Till inline (try (whitespace >> string ":="))
-  def <- inlineDef <|> multilineDef
-  return (term, def)
+  def' <- inlineDef <|> multilineDef
+  return (term, def')
   where inlineDef :: Parser [Char] ParserState [[Block]]
         inlineDef = liftM (\d -> [[Plain d]]) $ try (whitespace >> inlines)
         multilineDef :: Parser [Char] ParserState [[Block]]

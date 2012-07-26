@@ -49,10 +49,11 @@ import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match (tagOpen)
 
 -- | Read markdown from an input string and return a Pandoc document.
-readMarkdown :: ParserState -- ^ Parser state, including options for parser
-             -> String      -- ^ String to parse (assuming @'\n'@ line endings)
+readMarkdown :: ReaderOptions -- ^ Reader options
+             -> String        -- ^ String to parse (assuming @'\n'@ line endings)
              -> Pandoc
-readMarkdown state s = (readWith parseMarkdown) state (s ++ "\n\n")
+readMarkdown opts s =
+  (readWith parseMarkdown) def{ stateOptions = opts } (s ++ "\n\n")
 
 --
 -- Constants and data structure definitions

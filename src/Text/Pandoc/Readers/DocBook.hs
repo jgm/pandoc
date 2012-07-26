@@ -1,6 +1,6 @@
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
 import Data.Char (toUpper, isDigit)
-import Text.Pandoc.Parsing (ParserState(..))
+import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder
 import Text.XML.Light
@@ -503,7 +503,7 @@ data DBState = DBState{ dbSectionLevel :: Int
                       , dbBook         :: Bool
                       } deriving Show
 
-readDocBook :: ParserState -> String -> Pandoc
+readDocBook :: ReaderOptions -> String -> Pandoc
 readDocBook _ inp  = setTitle (dbDocTitle st')
                    $ setAuthors (dbDocAuthors st')
                    $ setDate (dbDocDate st')

@@ -30,6 +30,7 @@ options.
 -}
 module Text.Pandoc.Options ( Extension(..)
                            , ReaderOptions(..)
+                           , def
                            ) where
 import Data.Set (Set)
 import qualified Data.Set as Set

@@ -10,12 +10,10 @@ import Text.Pandoc.Builder
 import Text.Pandoc
 
 markdown :: String -> Pandoc
-markdown = readMarkdown defaultParserState
+markdown = readMarkdown def
 
 markdownSmart :: String -> Pandoc
-markdownSmart = readMarkdown defaultParserState{ stateOptions =
-                   let oldOpts = stateOptions defaultParserState in
-                       oldOpts { readerSmart = True } }
+markdownSmart = readMarkdown def { readerSmart = True }
 
 infix 4 =:
 (=:) :: ToString c
@@ -27,7 +25,7 @@ p_markdown_round_trip :: Block -> Bool
 p_markdown_round_trip b = matches d' d''
   where d'  = normalize $ Pandoc (Meta [] [] []) [b]
         d'' = normalize
-              $ readMarkdown defaultParserState{ stateSmart = True }
+              $ readMarkdown def { readerSmart = True }
               $ writeMarkdown defaultWriterOptions d'
         matches (Pandoc _ [Plain []]) (Pandoc _ []) = True
         matches (Pandoc _ [Para []]) (Pandoc _ []) = True
@@ -93,8 +91,7 @@ tests = [ testGroup "inline code"
             =?> para (note (para "See [^1]"))
           ]
         , testGroup "lhs"
-          [ test (readMarkdown def{stateOptions =
-                      def{readerLiterateHaskell = True}})
+          [ test (readMarkdown def{ readerLiterateHaskell = True })
               "inverse bird tracks and html" $
               "> a\n\n< b\n\n<div>\n"
               =?> codeBlockWith ("",["sourceCode","literate","haskell"],[]) "a"
