@@ -6,7 +6,7 @@ import Text.JSON.Generic
 import Data.Default
 
 readerBench :: Pandoc
-            -> (String, ParserState -> String -> Pandoc)
+            -> (String, ReaderOptions -> String -> Pandoc)
             -> Benchmark
 readerBench doc (name, reader) =
   let writer = case lookup name writers of
@@ -19,10 +19,8 @@ readerBench doc (name, reader) =
       getLength (Pandoc (Meta a b c) d) =
             length a + length b + length c + length d
   in  bench (name ++ " reader") $ whnf (getLength .
-         reader def{ stateOptions = def{
-                         readerSmart = True
-                       , readerLiterateHaskell = "+lhs" `isSuffixOf` name
-                       }
+         reader def{ readerSmart = True
+                   , readerLiterateHaskell = "+lhs" `isSuffixOf` name
                    }) inp
 
 writerBench :: Pandoc
@@ -40,8 +38,8 @@ normalizeBench doc = [ bench "normalize - with" $ nf (encodeJSON . normalize) do
 
 main = do
   inp <- readDataFile (Just ".") "README"
-  let ps = defaultParserState{ stateOptions = def{ readerSmart = True }}
-  let doc = readMarkdown ps inp
+  let opts = def{ readerSmart = True }
+  let doc = readMarkdown opts inp
   let readerBs = map (readerBench doc) readers
   let writers' = [(n,w) | (n, PureStringWriter w) <- writers]
   defaultMain $ map (writerBench doc) writers' ++ readerBs ++ normalizeBench doc
