@@ -9,8 +9,8 @@ readerBench :: Pandoc
             -> Benchmark
 readerBench doc (name, reader) =
   let writer = case lookup name writers of
-                     Just w  -> w
-                     Nothing -> error $ "Could not find writer for " ++ name
+                     Just (PureStringWriter w) -> w
+                     _ -> error $ "Could not find writer for " ++ name
       inp = writer defaultWriterOptions{ writerWrapText = True
                                        , writerLiterateHaskell =
                                           "+lhs" `isSuffixOf` name } doc
@@ -41,5 +41,6 @@ main = do
   let ps = defaultParserState{ stateSmart = True }
   let doc = readMarkdown ps inp
   let readerBs = map (readerBench doc) readers
-  defaultMain $ map (writerBench doc) writers ++ readerBs ++ normalizeBench doc
+  let writers' = [(n,w) | (n, PureStringWriter w) <- writers]
+  defaultMain $ map (writerBench doc) writers' ++ readerBs ++ normalizeBench doc
 

@@ -938,7 +938,6 @@ main = do
 
   let startParserState = def{ stateLiterateHaskell = "+lhs" `isSuffixOf` readerName' ||
                                                      lhsExtension sources,
-                              stateStandalone      = standalone',
                               stateCitations       = map CSL.refId refs,
                               stateOptions         = def{
                                    readerStrict = strict

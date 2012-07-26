@@ -106,9 +106,7 @@ parseRST = do
   blocks <- parseBlocks 
   let blocks' = filter (/= Null) blocks
   state <- getState
-  let (blocks'', title) = if stateStandalone state
-                              then titleTransform blocks'
-                              else (blocks', [])
+  let (blocks'', title) = titleTransform blocks'
   let authors = stateAuthors state
   let date = stateDate state
   let title' = if (null title) then (stateTitle state) else title

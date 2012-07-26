@@ -695,7 +695,6 @@ data ParserState = ParserState
       stateKeys            :: KeyTable,      -- ^ List of reference keys
       stateCitations       :: [String],      -- ^ List of available citations
       stateNotes           :: NoteTable,     -- ^ List of notes
-      stateStandalone      :: Bool,          -- ^ Parse bibliographic info?
       stateTitle           :: [Inline],      -- ^ Title of document
       stateAuthors         :: [[Inline]],    -- ^ Authors of document
       stateDate            :: [Inline],      -- ^ Date of document
@@ -724,7 +723,6 @@ defaultParserState =
                   stateKeys            = M.empty,
                   stateCitations       = [],
                   stateNotes           = [],
-                  stateStandalone      = False,
                   stateTitle           = [],
                   stateAuthors         = [],
                   stateDate            = [],

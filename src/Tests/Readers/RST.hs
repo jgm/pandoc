@@ -9,7 +9,7 @@ import Text.Pandoc.Builder
 import Text.Pandoc
 
 rst :: String -> Pandoc
-rst = readRST defaultParserState{ stateStandalone = True }
+rst = readRST defaultParserState
 
 infix 4 =:
 (=:) :: ToString c

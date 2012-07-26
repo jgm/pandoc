@@ -10,7 +10,7 @@ import Text.Pandoc.Builder
 import Text.Pandoc
 
 markdown :: String -> Pandoc
-markdown = readMarkdown defaultParserState{ stateStandalone = True }
+markdown = readMarkdown defaultParserState
 
 markdownSmart :: String -> Pandoc
 markdownSmart = readMarkdown defaultParserState{ stateOptions =
