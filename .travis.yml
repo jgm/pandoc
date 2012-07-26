@@ -3,5 +3,5 @@ before_install:
   - git submodule update --init --recursive
 install:
   - cabal update
-  - cabal install -ftests
-script:  cabal configure -ftests && cabal build && cabal test
+  - cabal install --enable-tests
+script:  cabal configure --enable-tests && cabal build && cabal test
