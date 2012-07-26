@@ -35,6 +35,7 @@ normalizeBench doc = [ bench "normalize - with" $ nf (encodeJSON . normalize) do
                      , bench "normalize - without" $ nf encodeJSON doc
                      ]
 
+main :: IO ()
 main = do
   inp <- readDataFile (Just ".") "README"
   let opts = def{ readerSmart = True }
