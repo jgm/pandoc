@@ -3,6 +3,7 @@ import Text.Pandoc.Shared (readDataFile, normalize)
 import Criterion.Main
 import Data.List (isSuffixOf)
 import Text.JSON.Generic
+import Data.Default
 
 readerBench :: Pandoc
             -> (String, ParserState -> String -> Pandoc)
@@ -18,10 +19,11 @@ readerBench doc (name, reader) =
       getLength (Pandoc (Meta a b c) d) =
             length a + length b + length c + length d
   in  bench (name ++ " reader") $ whnf (getLength .
-         reader defaultParserState{ stateSmart = True
-                                  , stateStandalone = True
-                                  , stateLiterateHaskell =
-                                      "+lhs" `isSuffixOf` name }) inp
+         reader def{ stateOptions = def{
+                         readerSmart = True
+                       , readerLiterateHaskell = "+lhs" `isSuffixOf` name
+                       }
+                   }) inp
 
 writerBench :: Pandoc
             -> (String, WriterOptions -> Pandoc -> String)
@@ -38,7 +40,7 @@ normalizeBench doc = [ bench "normalize - with" $ nf (encodeJSON . normalize) do
 
 main = do
   inp <- readDataFile (Just ".") "README"
-  let ps = defaultParserState{ stateSmart = True }
+  let ps = defaultParserState{ stateOptions = def{ readerSmart = True }}
   let doc = readMarkdown ps inp
   let readerBs = map (readerBench doc) readers
   let writers' = [(n,w) | (n, PureStringWriter w) <- writers]

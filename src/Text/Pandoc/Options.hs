@@ -51,24 +51,26 @@ data Extension = Footnotes
                deriving (Show, Read, Enum, Eq, Ord, Bounded)
 
 data ReaderOptions = ReaderOptions{
-         readerExtensions     :: Set Extension  -- ^ Syntax extensions
-       , readerSmart          :: Bool  -- ^ Smart punctuation
-       , readerStrict         :: Bool  -- ^ FOR TRANSITION ONLY
-       , readerParseRaw       :: Bool  -- ^ Parse raw HTML, LaTeX
-       , readerColumns        :: Int   -- ^ Number of columns in terminal
-       , readerTabStop        :: Int   -- ^ Tab stop
-       , readerOldDashes      :: Bool  -- ^ Use pandoc <= 1.8.2.1 behavior
+         readerExtensions      :: Set Extension  -- ^ Syntax extensions
+       , readerSmart           :: Bool -- ^ Smart punctuation
+       , readerStrict          :: Bool -- ^ FOR TRANSITION ONLY
+       , readerParseRaw        :: Bool -- ^ Parse raw HTML, LaTeX
+       , readerColumns         :: Int  -- ^ Number of columns in terminal
+       , readerTabStop         :: Int  -- ^ Tab stop
+       , readerOldDashes       :: Bool -- ^ Use pandoc <= 1.8.2.1 behavior
                                        --   in parsing dashes; -- is em-dash;
                                        --   - before numerial is en-dash
+       , readerLiterateHaskell :: Bool -- ^ Interpret as literate Haskell
 } deriving (Show, Read)
 
 instance Default ReaderOptions
   where def = ReaderOptions{
-                 readerExtensions    = Set.fromList [minBound..maxBound]
-               , readerSmart         = False
-               , readerStrict        = False
-               , readerParseRaw      = False
-               , readerColumns       = 80
-               , readerTabStop       = 4
-               , readerOldDashes     = False
+                 readerExtensions      = Set.fromList [minBound..maxBound]
+               , readerSmart           = False
+               , readerStrict          = False
+               , readerParseRaw        = False
+               , readerColumns         = 80
+               , readerTabStop         = 4
+               , readerOldDashes       = False
+               , readerLiterateHaskell = False
                }

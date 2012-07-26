@@ -93,7 +93,8 @@ tests = [ testGroup "inline code"
             =?> para (note (para "See [^1]"))
           ]
         , testGroup "lhs"
-          [ test (readMarkdown defaultParserState{stateLiterateHaskell = True})
+          [ test (readMarkdown def{stateOptions =
+                      def{readerLiterateHaskell = True}})
               "inverse bird tracks and html" $
               "> a\n\n< b\n\n<div>\n"
               =?> codeBlockWith ("",["sourceCode","literate","haskell"],[]) "a"

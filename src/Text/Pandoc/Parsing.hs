@@ -395,7 +395,7 @@ failIfStrict = getOption readerStrict >>= guard . not
 
 -- | Fail unless we're in literate haskell mode.
 failUnlessLHS :: Parsec [tok] ParserState ()
-failUnlessLHS = getState >>= guard . stateLiterateHaskell
+failUnlessLHS = getOption readerLiterateHaskell >>= guard
 
 -- | Parses backslash, then applies character parser.
 escaped :: Parsec [Char] st Char  -- ^ Parser for character to escape
@@ -698,7 +698,6 @@ data ParserState = ParserState
       stateTitle           :: [Inline],      -- ^ Title of document
       stateAuthors         :: [[Inline]],    -- ^ Authors of document
       stateDate            :: [Inline],      -- ^ Date of document
-      stateLiterateHaskell :: Bool,          -- ^ Treat input as literate haskell
       stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
       stateIndentedCodeClasses :: [String],  -- ^ Classes to use for indented code blocks
       stateNextExample     :: Int,           -- ^ Number of next example
@@ -726,7 +725,6 @@ defaultParserState =
                   stateTitle           = [],
                   stateAuthors         = [],
                   stateDate            = [],
-                  stateLiterateHaskell = False,
                   stateHeaderTable     = [],
                   stateIndentedCodeClasses = [],
                   stateNextExample     = 1,

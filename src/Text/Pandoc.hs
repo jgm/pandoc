@@ -170,16 +170,22 @@ readers = [("native"       , \_ -> readNative)
           ,("json"         , \_ -> decodeJSON)
           ,("markdown"     , readMarkdown)
           ,("markdown+lhs" , \st ->
-                             readMarkdown st{ stateLiterateHaskell = True})
+                             readMarkdown st{ stateOptions =
+                                let oldopts = stateOptions st
+                                in  oldopts{ readerLiterateHaskell = True} })
           ,("rst"          , readRST)
           ,("rst+lhs"      , \st ->
-                             readRST st{ stateLiterateHaskell = True})
+                             readRST st{ stateOptions =
+                                let oldopts = stateOptions st
+                                in  oldopts{ readerLiterateHaskell = True} })
           ,("docbook"      , readDocBook)
           ,("textile"      , readTextile) -- TODO : textile+lhs
           ,("html"         , readHtml)
           ,("latex"        , readLaTeX)
           ,("latex+lhs"    , \st ->
-                             readLaTeX st{ stateLiterateHaskell = True})
+                             readLaTeX st{ stateOptions =
+                                let oldopts = stateOptions st
+                                in  oldopts{ readerLiterateHaskell = True} })
           ]
 
 data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
