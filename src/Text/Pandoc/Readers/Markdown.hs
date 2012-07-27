@@ -112,12 +112,6 @@ litChar = escapedChar'
        <|> noneOf "\n"
        <|> (newline >> notFollowedBy blankline >> return ' ')
 
--- | Fail unless we're at beginning of a line.
-failUnlessBeginningOfLine :: Parser [tok] st () 
-failUnlessBeginningOfLine = do
-  pos <- getPosition
-  if sourceColumn pos == 1 then return () else fail "not beginning of line"
-
 -- | Parse a sequence of inline elements between square brackets,
 -- including inlines between balanced pairs of square brackets.
 inlinesInBalancedBrackets :: Parser [Char] ParserState Inline
@@ -165,7 +159,7 @@ dateLine = try $ do
 
 titleBlock :: Parser [Char] ParserState ([Inline], [[Inline]], [Inline])
 titleBlock = try $ do
-  failIfStrict
+  guardEnabled Ext_pandoc_title_blocks
   title <- option [] titleLine
   author <- option [] authorsLine
   date <- option [] dateLine
@@ -181,10 +175,10 @@ parseMarkdown = do
   startPos <- getPosition
   -- go through once just to get list of reference keys and notes
   -- docMinusKeys is the raw document with blanks where the keys/notes were...
-  st <- getState
   let firstPassParser = referenceKey
-                     <|> (if readerStrict (stateOptions st) then mzero else noteBlock)
-                     <|> liftM snd (withRaw codeBlockDelimited)
+                     <|> (guardEnabled Ext_footnotes >> noteBlock)
+                     <|> (guardEnabled Ext_delimited_code_blocks >>
+                          liftM snd (withRaw codeBlockDelimited))
                      <|> lineClump
   docMinusKeys <- liftM concat $ manyTill firstPassParser eof
   setInput docMinusKeys
@@ -292,35 +286,22 @@ parseBlocks :: Parser [Char] ParserState [Block]
 parseBlocks = manyTill block eof
 
 block :: Parser [Char] ParserState Block
-block = do
-  st <- getState
-  choice (if readerStrict (stateOptions st)
-              then [ header
-                   , codeBlockIndented
-                   , blockQuote
-                   , hrule
-                   , bulletList
-                   , orderedList
-                   , htmlBlock
-                   , para
-                   , plain
-                   , nullBlock ]
-              else [ codeBlockDelimited
-                   , macro
-                   , header 
-                   , table
-                   , codeBlockIndented
-                   , lhsCodeBlock
-                   , blockQuote
-                   , hrule
-                   , bulletList
-                   , orderedList
-                   , definitionList
-                   , rawTeXBlock
-                   , para
-                   , rawHtmlBlocks
-                   , plain
-                   , nullBlock ]) <?> "block"
+block = choice [ codeBlockDelimited
+               , guardEnabled Ext_latex_macros >> macro
+               , header
+               , table
+               , codeBlockIndented
+               , lhsCodeBlock
+               , blockQuote
+               , hrule
+               , bulletList
+               , orderedList
+               , definitionList
+               , rawTeXBlock
+               , para
+               , htmlBlock
+               , plain
+               , nullBlock ] <?> "block"
 
 --
 -- header blocks
@@ -431,8 +412,9 @@ keyValAttr = try $ do
      <|> many nonspaceChar
   return ("",[],[(key,val)])
 
-codeBlockDelimited :: Parser [Char] st Block
+codeBlockDelimited :: Parser [Char] ParserState Block
 codeBlockDelimited = try $ do
+  guardEnabled Ext_delimited_code_blocks
   (size, attr, c) <- blockDelimiter (\c -> c == '~' || c == '`') Nothing
   contents <- manyTill anyLine (blockDelimiter (== c) (Just size))
   blanklines
@@ -635,6 +617,7 @@ defListMarker = do
 
 definitionListItem :: Parser [Char] ParserState ([Inline], [[Block]])
 definitionListItem = try $ do
+  guardEnabled Ext_definition_lists
   -- first, see if this has any chance of being a definition list:
   lookAhead (anyLine >> optional blankline >> defListMarker)
   term <- manyTill inline newline
@@ -694,9 +677,9 @@ para = try $ do
   guard $ not . all isHtmlOrBlank $ result
   option (Plain result) $ try $ do
               newline
-              blanklines <|>
-                (getState >>= guard . readerStrict . stateOptions >>
-                 lookAhead (blockQuote <|> header) >> return "")
+              (blanklines >> return Null)
+                <|> (guardDisabled Ext_blank_before_blockquote >> lookAhead blockQuote)
+                <|> (guardDisabled Ext_blank_before_header >> lookAhead header)
               return $ Para result
 
 plain :: Parser [Char] ParserState Block
@@ -710,12 +693,16 @@ htmlElement :: Parser [Char] ParserState [Char]
 htmlElement = strictHtmlBlock <|> liftM snd (htmlTag isBlockTag)
 
 htmlBlock :: Parser [Char] ParserState Block
-htmlBlock = try $ do
-    failUnlessBeginningOfLine
+htmlBlock = RawBlock "html" `fmap`
+  ((guardEnabled Ext_markdown_in_html_blocks >> rawHtmlBlocks)
+     <|> htmlBlock')
+
+htmlBlock' :: Parser [Char] ParserState String
+htmlBlock' = try $ do
     first <- htmlElement
     finalSpace <- many spaceChar
     finalNewlines <- many newline
-    return $ RawBlock "html" $ first ++ finalSpace ++ finalNewlines
+    return $ first ++ finalSpace ++ finalNewlines
 
 strictHtmlBlock :: Parser [Char] ParserState [Char]
 strictHtmlBlock = htmlInBalanced (not . isInlineTag)
@@ -730,13 +717,13 @@ rawVerbatimBlock = try $ do
 
 rawTeXBlock :: Parser [Char] ParserState Block
 rawTeXBlock = do
-  failIfStrict
+  guardEnabled Ext_raw_tex
   result <- liftM (RawBlock "latex") rawLaTeXBlock
           <|> liftM (RawBlock "context") rawConTeXtEnvironment
   spaces
   return result
 
-rawHtmlBlocks :: Parser [Char] ParserState Block
+rawHtmlBlocks :: Parser [Char] ParserState String
 rawHtmlBlocks = do
   htmlBlocks <- many1 $ do blk <- rawVerbatimBlock <|>
                                    liftM snd (htmlTag isBlockTag)
@@ -750,8 +737,7 @@ rawHtmlBlocks = do
                            -- by a blank line
                            return $ blk ++ sps
   let combined = concat htmlBlocks
-  let combined' = if last combined == '\n' then init combined else combined
-  return $ RawBlock "html" combined'
+  return $ if last combined == '\n' then init combined else combined
 
 --
 -- Tables
@@ -826,6 +812,7 @@ multilineRow indices = do
 -- and followed by blank lines.
 tableCaption :: Parser [Char] ParserState [Inline]
 tableCaption = try $ do
+  guardEnabled Ext_table_captions
   skipNonindentSpaces
   string ":" <|> string "Table:"
   result <- many1 inline
@@ -961,10 +948,14 @@ table :: Parser [Char] ParserState Block
 table = try $ do
   frontCaption <- option [] tableCaption
   Table _ aligns widths heads lines' <-
-           try (scanForPipe >> (pipeTable True <|> pipeTable False)) <|>
-           multilineTable False <|> simpleTable True <|>
-           simpleTable False <|> multilineTable True <|>
-           gridTable False <|> gridTable True <?> "table"
+           try (guardEnabled Ext_pipe_tables >> scanForPipe >>
+                 (pipeTable True <|> pipeTable False)) <|>
+           try (guardEnabled Ext_multiline_tables >>
+                (multilineTable False <|> simpleTable True)) <|>
+           try (guardEnabled Ext_simple_tables >>
+                (simpleTable False <|> multilineTable True)) <|>
+           try (guardEnabled Ext_grid_tables >>
+                (gridTable False <|> gridTable True)) <?> "table"
   optional blanklines
   caption <- if null frontCaption
                 then option [] tableCaption
@@ -1008,10 +999,8 @@ inlineParsers = [ whitespace
 escapedChar' :: Parser [Char] ParserState Char
 escapedChar' = try $ do
   char '\\'
-  state <- getState
-  if readerStrict (stateOptions state)
-     then oneOf "\\`*_{}[]()>#+-.!~"
-     else satisfy (not . isAlphaNum)
+  (guardEnabled Ext_all_symbols_escapable >> satisfy (not . isAlphaNum))
+     <|> oneOf "\\`*_{}[]()>#+-.!~"
 
 escapedChar :: Parser [Char] ParserState Inline
 escapedChar = do
@@ -1023,10 +1012,9 @@ escapedChar = do
 
 ltSign :: Parser [Char] ParserState Inline
 ltSign = do
-  st <- getState
-  if readerStrict (stateOptions st)
-     then char '<'
-     else notFollowedBy' rawHtmlBlocks >> char '<' -- unless it starts html
+  guardDisabled Ext_markdown_in_html_blocks
+    <|> (notFollowedBy' rawHtmlBlocks >> return ())
+  char '<'
   return $ Str ['<']
 
 exampleRef :: Parser [Char] ParserState Inline
@@ -1072,13 +1060,13 @@ math =  (mathDisplay >>= applyMacros' >>= return . Math DisplayMath)
 
 mathDisplay :: Parser [Char] ParserState String 
 mathDisplay = try $ do
-  failIfStrict
+  guardEnabled Ext_tex_math
   string "$$"
   many1Till (noneOf "\n" <|> (newline >>~ notFollowedBy' blankline)) (try $ string "$$")
 
 mathInline :: Parser [Char] ParserState String
 mathInline = try $ do
-  failIfStrict
+  guardEnabled Ext_tex_math
   char '$'
   notFollowedBy space
   words' <- sepBy1 mathWord (many1 (spaceChar <|> (newline >>~ notFollowedBy' blankline)))
@@ -1135,18 +1123,18 @@ strong = Strong `liftM` nested
 
 strikeout :: Parser [Char] ParserState Inline
 strikeout = Strikeout `liftM`
- (failIfStrict >> inlinesBetween strikeStart strikeEnd)
+ (guardEnabled Ext_strikeout >> inlinesBetween strikeStart strikeEnd)
     where strikeStart = string "~~" >> lookAhead nonspaceChar
                         >> notFollowedBy (char '~')
           strikeEnd   = try $ string "~~"
 
 superscript :: Parser [Char] ParserState Inline
-superscript = failIfStrict >> enclosed (char '^') (char '^') 
+superscript = guardEnabled Ext_superscript >> enclosed (char '^') (char '^') 
               (notFollowedBy spaceChar >> inline) >>= -- may not contain Space
               return . Superscript
 
 subscript :: Parser [Char] ParserState Inline
-subscript = failIfStrict >> enclosed (char '~') (char '~')
+subscript = guardEnabled Ext_subscript >> enclosed (char '~') (char '~')
             (notFollowedBy spaceChar >> inline) >>=  -- may not contain Space
             return . Subscript 
 
@@ -1163,7 +1151,8 @@ str = do
   smart <- (readerSmart . stateOptions) `fmap` getState
   a <- alphaNum
   as <- many $ alphaNum
-            <|> (try $ char '_' >>~ lookAhead alphaNum)
+            <|> (guardEnabled Ext_intraword_underscores >>
+                 try (char '_' >>~ lookAhead alphaNum))
             <|> if smart
                    then (try $ satisfy (\c -> c == '\'' || c == '\x2019') >>
                          lookAhead alphaNum >> return '\x2019')
@@ -1200,11 +1189,10 @@ endline :: Parser [Char] ParserState Inline
 endline = try $ do
   newline
   notFollowedBy blankline
-  st <- getState
-  when (readerStrict (stateOptions st)) $ do
-    notFollowedBy emailBlockQuoteStart
-    notFollowedBy (char '#')  -- atx header
+  guardEnabled Ext_blank_before_blockquote <|> notFollowedBy emailBlockQuoteStart
+  guardEnabled Ext_blank_before_header <|> notFollowedBy (char '#') -- atx header
   -- parse potential list-starts differently if in a list:
+  st <- getState
   when (stateParserContext st == ListItemState) $ do
      notFollowedBy' bulletListStart
      notFollowedBy' anyOrderedListStart
@@ -1282,10 +1270,9 @@ autoLink = try $ do
   char '<'
   (orig, src) <- uri <|> emailAddress
   char '>'
-  st <- getState
-  return $ if readerStrict (stateOptions st)
-              then Link [Str orig] (src, "")
-              else Link [Code ("",["url"],[]) orig] (src, "")
+  (guardEnabled Ext_autolink_code_spans >>
+       return (Link [Code ("",["url"],[]) orig] (src, "")))
+    <|> return (Link [Str orig] (src, ""))
 
 image :: Parser [Char] ParserState Inline
 image = try $ do
@@ -1296,7 +1283,7 @@ image = try $ do
 
 note :: Parser [Char] ParserState Inline
 note = try $ do
-  failIfStrict
+  guardEnabled Ext_footnotes
   ref <- noteMarker
   state <- getState
   let notes = stateNotes state
@@ -1313,14 +1300,14 @@ note = try $ do
 
 inlineNote :: Parser [Char] ParserState Inline
 inlineNote = try $ do
-  failIfStrict
+  guardEnabled Ext_inline_notes
   char '^'
   contents <- inlinesInBalancedBrackets inline
   return $ Note [Para contents]
 
 rawLaTeXInline' :: Parser [Char] ParserState Inline
 rawLaTeXInline' = try $ do
-  failIfStrict
+  guardEnabled Ext_raw_tex
   lookAhead $ char '\\' >> notFollowedBy' (string "start") -- context env
   RawInline _ s <- rawLaTeXInline
   return $ RawInline "tex" s  -- "tex" because it might be context or latex
@@ -1343,17 +1330,18 @@ inBrackets parser = do
 
 rawHtmlInline :: Parser [Char] ParserState Inline
 rawHtmlInline = do
-  st <- getState
-  (_,result) <- if readerStrict (stateOptions st)
-                   then htmlTag (not . isTextTag)
-                   else htmlTag isInlineTag
+  mdInHtml <- option False $
+                guardEnabled Ext_markdown_in_html_blocks >> return True
+  (_,result) <- if mdInHtml
+                   then htmlTag isInlineTag
+                   else htmlTag (not . isTextTag)
   return $ RawInline "html" result
 
 -- Citations
 
 cite :: Parser [Char] ParserState Inline
 cite = do
-  failIfStrict
+  guardEnabled Ext_citations
   citations <- textualCite <|> normalCite
   return $ Cite citations []
 

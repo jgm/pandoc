@@ -37,19 +37,33 @@ import qualified Data.Set as Set
 import Data.Default
 
 -- | Individually selectable syntax extensions.
-data Extension = Footnotes
-               | Tex_math
-               | Delimited_code_blocks
-               | Markdown_in_html_blocks
-               | Fancy_lists
-               | Startnum
-               | Definition_lists
-               | Header_identifiers
-               | All_symbols_escapable
-               | Intraword_underscores
-               | Blank_before_blockquote
-               | Blank_before_header
-               | Significant_bullets
+data Extension = Ext_footnotes
+               | Ext_inline_notes
+               | Ext_pandoc_title_blocks
+               | Ext_table_captions
+               | Ext_simple_tables
+               | Ext_multiline_tables
+               | Ext_grid_tables
+               | Ext_pipe_tables
+               | Ext_citations
+               | Ext_raw_tex
+               | Ext_tex_math
+               | Ext_latex_macros
+               | Ext_delimited_code_blocks
+               | Ext_markdown_in_html_blocks
+               | Ext_autolink_code_spans
+               | Ext_fancy_lists
+               | Ext_startnum
+               | Ext_definition_lists
+               | Ext_header_identifiers
+               | Ext_all_symbols_escapable
+               | Ext_intraword_underscores
+               | Ext_blank_before_blockquote
+               | Ext_blank_before_header
+               | Ext_significant_bullets
+               | Ext_strikeout
+               | Ext_superscript
+               | Ext_subscript
                deriving (Show, Read, Enum, Eq, Ord, Bounded)
 
 data ReaderOptions = ReaderOptions{

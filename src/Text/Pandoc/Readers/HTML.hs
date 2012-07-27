@@ -125,25 +125,22 @@ pBulletList = try $ do
 pOrderedList :: TagParser [Block]
 pOrderedList = try $ do
   TagOpen _ attribs <- pSatisfy (~== TagOpen "ol" [])
-  st <- getState
-  let (start, style) =  if readerStrict (stateOptions st)
-                           then (1, DefaultStyle) 
-                           else (sta', sty')
-                              where sta = fromMaybe "1" $
-                                          lookup "start" attribs
-                                    sta' = if all isDigit sta
-                                              then read sta
-                                              else 1
-                                    sty = fromMaybe (fromMaybe "" $
-                                          lookup "style" attribs) $
-                                          lookup "class" attribs
-                                    sty' = case sty of
-                                            "lower-roman"  -> LowerRoman
-                                            "upper-roman"  -> UpperRoman
-                                            "lower-alpha"  -> LowerAlpha
-                                            "upper-alpha"  -> UpperAlpha
-                                            "decimal"      -> Decimal
-                                            _              -> DefaultStyle
+  let (start, style) = (sta', sty')
+                       where sta = fromMaybe "1" $
+                                   lookup "start" attribs
+                             sta' = if all isDigit sta
+                                       then read sta
+                                       else 1
+                             sty = fromMaybe (fromMaybe "" $
+                                   lookup "style" attribs) $
+                                   lookup "class" attribs
+                             sty' = case sty of
+                                     "lower-roman"  -> LowerRoman
+                                     "upper-roman"  -> UpperRoman
+                                     "lower-alpha"  -> LowerAlpha
+                                     "upper-alpha"  -> UpperAlpha
+                                     "decimal"      -> Decimal
+                                     _              -> DefaultStyle
   let nonItem = pSatisfy (\t ->
                   not (tagOpen (`elem` ["li","ol","ul","dl"]) (const True) t) &&
                   not (t ~== TagClose "ol"))
@@ -280,10 +277,7 @@ pCodeBlock = try $ do
   let attribsId = fromMaybe "" $ lookup "id" attr
   let attribsClasses = words $ fromMaybe "" $ lookup "class" attr
   let attribsKV = filter (\(k,_) -> k /= "class" && k /= "id") attr
-  st <- getState
-  let attribs = if readerStrict (stateOptions st)
-                   then ("",[],[])
-                   else (attribsId, attribsClasses, attribsKV)
+  let attribs = (attribsId, attribsClasses, attribsKV)
   return [CodeBlock attribs result]
 
 inline :: TagParser [Inline]
@@ -331,14 +325,13 @@ pStrong :: TagParser [Inline]
 pStrong = pInlinesInTags "strong" Strong <|> pInlinesInTags "b" Strong
 
 pSuperscript :: TagParser [Inline]
-pSuperscript = failIfStrict >> pInlinesInTags "sup" Superscript
+pSuperscript = pInlinesInTags "sup" Superscript
 
 pSubscript :: TagParser [Inline]
-pSubscript = failIfStrict >> pInlinesInTags "sub" Subscript
+pSubscript = pInlinesInTags "sub" Subscript
 
 pStrikeout :: TagParser [Inline]
 pStrikeout = do
-  failIfStrict
   pInlinesInTags "s" Strikeout <|>
     pInlinesInTags "strike" Strikeout <|>
     pInlinesInTags "del" Strikeout <|>
