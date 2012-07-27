@@ -44,7 +44,7 @@ import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
                                   isTextTag, isCommentTag )
 import Text.Pandoc.XML ( fromEntities )
-import Control.Monad (when, liftM, guard, mzero)
+import Control.Monad (when, liftM, guard, mzero, unless )
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match (tagOpen)
 
@@ -592,11 +592,15 @@ listItem start = try $ do
 orderedList :: Parser [Char] ParserState Block
 orderedList = try $ do
   (start, style, delim) <- lookAhead anyOrderedListStart
+  unless ((style == DefaultStyle || style == Decimal) &&
+          (delim == DefaultDelim || delim == Period)) $
+    guardEnabled Ext_fancy_lists
   items <- many1 $ listItem $ try $
              do optional newline -- if preceded by a Plain block in a list context
                 skipNonindentSpaces
                 orderedListMarker style delim
-  return $ OrderedList (start, style, delim) $ compactify items
+  start' <- option 1 $ guardEnabled Ext_startnum >> return start
+  return $ OrderedList (start', style, delim) $ compactify items
 
 bulletList :: Parser [Char] ParserState Block
 bulletList =
