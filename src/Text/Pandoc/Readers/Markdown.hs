@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Text.Pandoc.Readers.Markdown
    Copyright   : Copyright (C) 2006-2010 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
@@ -94,7 +94,7 @@ nonindentSpaces :: Parser [Char] ParserState [Char]
 nonindentSpaces = do
   tabStop <- getOption readerTabStop
   sps <- many (char ' ')
-  if length sps < tabStop 
+  if length sps < tabStop
      then return sps
      else unexpected "indented line"
 
@@ -140,7 +140,7 @@ titleLine = try $ do
   return $ normalizeSpaces res
 
 authorsLine :: Parser [Char] ParserState [[Inline]]
-authorsLine = try $ do 
+authorsLine = try $ do
   char '%'
   skipSpaces
   authors <- sepEndBy (many (notFollowedBy (satisfy $ \c ->
@@ -166,7 +166,7 @@ titleBlock = try $ do
   optional blanklines
   return (title, author, date)
 
-parseMarkdown :: Parser [Char] ParserState Pandoc 
+parseMarkdown :: Parser [Char] ParserState Pandoc
 parseMarkdown = do
   -- markdown allows raw HTML
   updateState $ \state -> state { stateOptions =
@@ -202,7 +202,7 @@ parseMarkdown = do
      then return doc
      else return $ bottomUp handleExampleRef doc
 
--- 
+--
 -- initial pass for references and notes
 --
 
@@ -422,7 +422,7 @@ codeBlockDelimited = try $ do
 
 codeBlockIndented :: Parser [Char] ParserState Block
 codeBlockIndented = do
-  contents <- many1 (indentedLine <|> 
+  contents <- many1 (indentedLine <|>
                      try (do b <- blanklines
                              l <- indentedLine
                              return $ b ++ l))
@@ -483,7 +483,7 @@ emailBlockQuoteStart = try $ skipNonindentSpaces >> char '>' >>~ optional (char 
 emailBlockQuote :: Parser [Char] ParserState [[Char]]
 emailBlockQuote = try $ do
   emailBlockQuoteStart
-  raw <- sepBy (many (nonEndline <|> 
+  raw <- sepBy (many (nonEndline <|>
                       (try (endline >> notFollowedBy emailBlockQuoteStart >>
                        return '\n'))))
                (try (newline >> emailBlockQuoteStart))
@@ -492,12 +492,12 @@ emailBlockQuote = try $ do
   return raw
 
 blockQuote :: Parser [Char] ParserState Block
-blockQuote = do 
+blockQuote = do
   raw <- emailBlockQuote
   -- parse the extracted block, which may contain various block elements:
   contents <- parseFromString parseBlocks $ (intercalate "\n" raw) ++ "\n\n"
   return $ BlockQuote contents
- 
+
 --
 -- list blocks
 --
@@ -511,7 +511,7 @@ bulletListStart = try $ do
   spaceChar
   skipSpaces
 
-anyOrderedListStart :: Parser [Char] ParserState (Int, ListNumberStyle, ListNumberDelim) 
+anyOrderedListStart :: Parser [Char] ParserState (Int, ListNumberStyle, ListNumberDelim)
 anyOrderedListStart = try $ do
   optional newline -- if preceded by a Plain block in a list context
   skipNonindentSpaces
@@ -554,7 +554,7 @@ rawListItem start = try $ do
   blanks <- many blankline
   return $ concat (first:rest)  ++ blanks
 
--- continuation of a list item - indented and separated by blankline 
+-- continuation of a list item - indented and separated by blankline
 -- or (in compact lists) endline.
 -- note: nested lists are parsed as continuations
 listContinuation :: Parser [Char] ParserState [Char]
@@ -672,7 +672,7 @@ isHtmlOrBlank (LineBreak)     = True
 isHtmlOrBlank _               = False
 
 para :: Parser [Char] ParserState Block
-para = try $ do 
+para = try $ do
   result <- liftM normalizeSpaces $ many1 inline
   guard $ not . all isHtmlOrBlank $ result
   option (Plain result) $ try $ do
@@ -685,7 +685,7 @@ para = try $ do
 plain :: Parser [Char] ParserState Block
 plain = many1 inline >>~ spaces >>= return . Plain . normalizeSpaces
 
--- 
+--
 -- raw html
 --
 
@@ -741,20 +741,20 @@ rawHtmlBlocks = do
 
 --
 -- Tables
--- 
+--
 
 -- Parse a dashed line with optional trailing spaces; return its length
 -- and the length including trailing space.
-dashedLine :: Char 
+dashedLine :: Char
            -> Parser [Char] st (Int, Int)
 dashedLine ch = do
   dashes <- many1 (char ch)
   sp     <- many spaceChar
   return $ (length dashes, length $ dashes ++ sp)
 
--- Parse a table header with dashed lines of '-' preceded by 
+-- Parse a table header with dashed lines of '-' preceded by
 -- one (or zero) line of text.
-simpleTableHeader :: Bool  -- ^ Headerless table 
+simpleTableHeader :: Bool  -- ^ Headerless table
                   -> Parser [Char] ParserState ([[Block]], [Alignment], [Int])
 simpleTableHeader headless = try $ do
   rawContent  <- if headless
@@ -768,12 +768,12 @@ simpleTableHeader headless = try $ do
   -- If no header, calculate alignment on basis of first row of text
   rawHeads <- liftM (tail . splitStringByIndices (init indices)) $
               if headless
-                 then lookAhead anyLine 
+                 then lookAhead anyLine
                  else return rawContent
   let aligns   = zipWith alignType (map (\a -> [a]) rawHeads) lengths
   let rawHeads' = if headless
                      then replicate (length dashes) ""
-                     else rawHeads 
+                     else rawHeads
   heads <- mapM (parseFromString (many plain)) $
              map removeLeadingTrailingSpace rawHeads'
   return (heads, aligns, indices)
@@ -792,7 +792,7 @@ rawTableLine :: [Int]
 rawTableLine indices = do
   notFollowedBy' (blanklines <|> tableFooter)
   line <- many1Till anyChar newline
-  return $ map removeLeadingTrailingSpace $ tail $ 
+  return $ map removeLeadingTrailingSpace $ tail $
            splitStringByIndices (init indices) line
 
 -- Parse a table line and return a list of lists of blocks (columns).
@@ -845,7 +845,7 @@ multilineTableHeader headless = try $ do
      then return '\n'
      else tableSep >>~ notFollowedBy blankline
   rawContent  <- if headless
-                    then return $ repeat "" 
+                    then return $ repeat ""
                     else many1
                          (notFollowedBy tableSep >> many1Till anyChar newline)
   initSp      <- nonindentSpaces
@@ -856,7 +856,7 @@ multilineTableHeader headless = try $ do
   rawHeadsList <- if headless
                      then liftM (map (:[]) . tail .
                               splitStringByIndices (init indices)) $ lookAhead anyLine
-                     else return $ transpose $ map 
+                     else return $ transpose $ map
                            (\ln -> tail $ splitStringByIndices (init indices) ln)
                            rawContent
   let aligns   = zipWith alignType rawHeadsList lengths
@@ -1026,7 +1026,7 @@ exampleRef = try $ do
   return $ Str $ '@' : lab
 
 symbol :: Parser [Char] ParserState Inline
-symbol = do 
+symbol = do
   result <- noneOf "<\\\n\t "
          <|> try (do lookAhead $ char '\\'
                      notFollowedBy' rawTeXBlock
@@ -1035,12 +1035,12 @@ symbol = do
 
 -- parses inline code, between n `s and n `s
 code :: Parser [Char] ParserState Inline
-code = try $ do 
+code = try $ do
   starts <- many1 (char '`')
   skipSpaces
   result <- many1Till (many1 (noneOf "`\n") <|> many1 (char '`') <|>
                        (char '\n' >> notFollowedBy' blankline >> return " "))
-                      (try (skipSpaces >> count (length starts) (char '`') >> 
+                      (try (skipSpaces >> count (length starts) (char '`') >>
                       notFollowedBy (char '`')))
   attr <- option ([],[],[]) (try $ optional whitespace >> attributes)
   return $ Code attr $ removeLeadingTrailingSpace $ concat result
@@ -1058,7 +1058,7 @@ math :: Parser [Char] ParserState Inline
 math =  (mathDisplay >>= applyMacros' >>= return . Math DisplayMath)
      <|> (mathInline >>= applyMacros' >>= return . Math InlineMath)
 
-mathDisplay :: Parser [Char] ParserState String 
+mathDisplay :: Parser [Char] ParserState String
 mathDisplay = try $ do
   guardEnabled Ext_tex_math
   string "$$"
@@ -1129,14 +1129,14 @@ strikeout = Strikeout `liftM`
           strikeEnd   = try $ string "~~"
 
 superscript :: Parser [Char] ParserState Inline
-superscript = guardEnabled Ext_superscript >> enclosed (char '^') (char '^') 
+superscript = guardEnabled Ext_superscript >> enclosed (char '^') (char '^')
               (notFollowedBy spaceChar >> inline) >>= -- may not contain Space
               return . Superscript
 
 subscript :: Parser [Char] ParserState Inline
 subscript = guardEnabled Ext_subscript >> enclosed (char '~') (char '~')
             (notFollowedBy spaceChar >> inline) >>=  -- may not contain Space
-            return . Subscript 
+            return . Subscript
 
 whitespace :: Parser [Char] ParserState Inline
 whitespace = spaceChar >>
@@ -1257,13 +1257,13 @@ delinkify = bottomUp $ concatMap go
 referenceLink :: [Inline]
               -> Parser [Char] ParserState (String, [Char])
 referenceLink lab = do
-  ref <- option [] (try (optional (char ' ') >> 
+  ref <- option [] (try (optional (char ' ') >>
                          optional (newline >> skipSpaces) >> reference))
   let ref' = if null ref then lab else ref
   state <- getState
   case lookupKeySrc (stateKeys state) (toKey ref') of
-     Nothing     -> fail "no corresponding key" 
-     Just target -> return target 
+     Nothing     -> fail "no corresponding key"
+     Just target -> return target
 
 autoLink :: Parser [Char] ParserState Inline
 autoLink = try $ do

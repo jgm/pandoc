@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Text.Pandoc.Writers.Docbook
    Copyright   : Copyright (C) 2006-2010 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
@@ -47,23 +47,23 @@ authorToDocbook opts name' =
   let name = render Nothing $ inlinesToDocbook opts name'
   in  if ',' `elem` name
          then -- last name first
-              let (lastname, rest) = break (==',') name 
+              let (lastname, rest) = break (==',') name
                   firstname = removeLeadingSpace rest in
-              inTagsSimple "firstname" (text $ escapeStringForXML firstname) <> 
-              inTagsSimple "surname" (text $ escapeStringForXML lastname) 
+              inTagsSimple "firstname" (text $ escapeStringForXML firstname) <>
+              inTagsSimple "surname" (text $ escapeStringForXML lastname)
          else -- last name last
               let namewords = words name
-                  lengthname = length namewords 
+                  lengthname = length namewords
                   (firstname, lastname) = case lengthname of
-                    0  -> ("","") 
+                    0  -> ("","")
                     1  -> ("", name)
                     n  -> (intercalate " " (take (n-1) namewords), last namewords)
-               in inTagsSimple "firstname" (text $ escapeStringForXML firstname) $$ 
-                  inTagsSimple "surname" (text $ escapeStringForXML lastname) 
+               in inTagsSimple "firstname" (text $ escapeStringForXML firstname) $$
+                  inTagsSimple "surname" (text $ escapeStringForXML lastname)
 
 -- | Convert Pandoc document to string in Docbook format.
 writeDocbook :: WriterOptions -> Pandoc -> String
-writeDocbook opts (Pandoc (Meta tit auths dat) blocks) = 
+writeDocbook opts (Pandoc (Meta tit auths dat) blocks) =
   let title = inlinesToDocbook opts tit
       authors = map (authorToDocbook opts) auths
       date = inlinesToDocbook opts dat
@@ -92,7 +92,7 @@ writeDocbook opts (Pandoc (Meta tit auths dat) blocks) =
 
 -- | Convert an Element to Docbook.
 elementToDocbook :: WriterOptions -> Int -> Element -> Doc
-elementToDocbook opts _   (Blk block) = blockToDocbook opts block 
+elementToDocbook opts _   (Blk block) = blockToDocbook opts block
 elementToDocbook opts lvl (Sec _ _num id' title elements) =
   -- Docbook doesn't allow sections with no content, so insert some if needed
   let elements' = if null elements
@@ -115,10 +115,10 @@ plainToPara :: Block -> Block
 plainToPara (Plain x) = Para x
 plainToPara x         = x
 
--- | Convert a list of pairs of terms and definitions into a list of 
+-- | Convert a list of pairs of terms and definitions into a list of
 -- Docbook varlistentrys.
 deflistItemsToDocbook :: WriterOptions -> [([Inline],[[Block]])] -> Doc
-deflistItemsToDocbook opts items = 
+deflistItemsToDocbook opts items =
   vcat $ map (\(term, defs) -> deflistItemToDocbook opts term defs) items
 
 -- | Convert a term and a list of blocks into a Docbook varlistentry.
@@ -167,9 +167,9 @@ blockToDocbook _ (CodeBlock (_,classes,_) str) =
                            then [s]
                            else languagesByExtension . map toLower $ s
           langs       = concatMap langsFrom classes
-blockToDocbook opts (BulletList lst) = 
-  inTagsIndented "itemizedlist" $ listItemsToDocbook opts lst 
-blockToDocbook _ (OrderedList _ []) = empty 
+blockToDocbook opts (BulletList lst) =
+  inTagsIndented "itemizedlist" $ listItemsToDocbook opts lst
+blockToDocbook _ (OrderedList _ []) = empty
 blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) =
   let attribs  = case numstyle of
                        DefaultStyle -> []
@@ -182,12 +182,12 @@ blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) =
       items    = if start == 1
                     then listItemsToDocbook opts (first:rest)
                     else (inTags True "listitem" [("override",show start)]
-                         (blocksToDocbook opts $ map plainToPara first)) $$ 
-                         listItemsToDocbook opts rest 
+                         (blocksToDocbook opts $ map plainToPara first)) $$
+                         listItemsToDocbook opts rest
   in  inTags True "orderedlist" attribs items
-blockToDocbook opts (DefinitionList lst) = 
-  inTagsIndented "variablelist" $ deflistItemsToDocbook opts lst 
-blockToDocbook _ (RawBlock "docbook" str) = text str -- raw XML block 
+blockToDocbook opts (DefinitionList lst) =
+  inTagsIndented "variablelist" $ deflistItemsToDocbook opts lst
+blockToDocbook _ (RawBlock "docbook" str) = text str -- raw XML block
 -- we allow html for compatibility with earlier versions of pandoc
 blockToDocbook _ (RawBlock "html" str) = text str -- raw XML block
 blockToDocbook _ (RawBlock _ _) = empty
@@ -237,26 +237,26 @@ inlinesToDocbook opts lst = hcat $ map (inlineToDocbook opts) lst
 
 -- | Convert an inline element to Docbook.
 inlineToDocbook :: WriterOptions -> Inline -> Doc
-inlineToDocbook _ (Str str) = text $ escapeStringForXML str 
-inlineToDocbook opts (Emph lst) = 
+inlineToDocbook _ (Str str) = text $ escapeStringForXML str
+inlineToDocbook opts (Emph lst) =
   inTagsSimple "emphasis" $ inlinesToDocbook opts lst
-inlineToDocbook opts (Strong lst) = 
+inlineToDocbook opts (Strong lst) =
   inTags False "emphasis" [("role", "strong")] $ inlinesToDocbook opts lst
-inlineToDocbook opts (Strikeout lst) = 
+inlineToDocbook opts (Strikeout lst) =
   inTags False "emphasis" [("role", "strikethrough")] $
   inlinesToDocbook opts lst
-inlineToDocbook opts (Superscript lst) = 
+inlineToDocbook opts (Superscript lst) =
   inTagsSimple "superscript" $ inlinesToDocbook opts lst
-inlineToDocbook opts (Subscript lst) = 
+inlineToDocbook opts (Subscript lst) =
   inTagsSimple "subscript" $ inlinesToDocbook opts lst
-inlineToDocbook opts (SmallCaps lst) = 
+inlineToDocbook opts (SmallCaps lst) =
   inTags False "emphasis" [("role", "smallcaps")] $
   inlinesToDocbook opts lst
-inlineToDocbook opts (Quoted _ lst) = 
+inlineToDocbook opts (Quoted _ lst) =
   inTagsSimple "quote" $ inlinesToDocbook opts lst
 inlineToDocbook opts (Cite _ lst) =
-  inlinesToDocbook opts lst 
-inlineToDocbook _ (Code _ str) = 
+  inlinesToDocbook opts lst
+inlineToDocbook _ (Code _ str) =
   inTagsSimple "literal" $ text (escapeStringForXML str)
 inlineToDocbook opts (Math t str)
   | isMathML (writerHTMLMathMethod opts) =
@@ -282,7 +282,7 @@ inlineToDocbook _ Space = space
 inlineToDocbook opts (Link txt (src, _)) =
   if isPrefixOf "mailto:" src
      then let src' = drop 7 src
-              emailLink = inTagsSimple "email" $ text $ 
+              emailLink = inTagsSimple "email" $ text $
                           escapeStringForXML $ src'
           in  case txt of
                [Code _ s] | s == src' -> emailLink
@@ -292,14 +292,14 @@ inlineToDocbook opts (Link txt (src, _)) =
               then inTags False "link" [("linkend", drop 1 src)]
               else inTags False "ulink" [("url", src)]) $
           inlinesToDocbook opts txt
-inlineToDocbook _ (Image _ (src, tit)) = 
+inlineToDocbook _ (Image _ (src, tit)) =
   let titleDoc = if null tit
                    then empty
                    else inTagsIndented "objectinfo" $
                         inTagsIndented "title" (text $ escapeStringForXML tit)
   in  inTagsIndented "inlinemediaobject" $ inTagsIndented "imageobject" $
       titleDoc $$ selfClosingTag "imagedata" [("fileref", src)]
-inlineToDocbook opts (Note contents) = 
+inlineToDocbook opts (Note contents) =
   inTagsIndented "footnote" $ blocksToDocbook opts contents
 
 isMathML :: HTMLMathMethod -> Bool

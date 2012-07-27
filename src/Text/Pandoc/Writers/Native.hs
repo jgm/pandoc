@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Text.Pandoc.Writers.Native
    Copyright   : Copyright (C) 2006-2010 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
@@ -47,17 +47,17 @@ prettyList ds =
 prettyBlock :: Block -> Doc
 prettyBlock (BlockQuote blocks) =
   "BlockQuote" $$ prettyList (map prettyBlock blocks)
-prettyBlock (OrderedList attribs blockLists) = 
+prettyBlock (OrderedList attribs blockLists) =
   "OrderedList" <> space <> text (show attribs) $$
   (prettyList $ map (prettyList . map prettyBlock) blockLists)
-prettyBlock (BulletList blockLists) = 
+prettyBlock (BulletList blockLists) =
   "BulletList" $$
   (prettyList $ map (prettyList . map prettyBlock) blockLists)
 prettyBlock (DefinitionList items) = "DefinitionList" $$
   (prettyList $ map deflistitem items)
     where deflistitem (term, defs) = "(" <> text (show term) <> "," <> cr <>
            nest 1 (prettyList $ map (prettyList . map prettyBlock) defs) <> ")"
-prettyBlock (Table caption aligns widths header rows) = 
+prettyBlock (Table caption aligns widths header rows) =
   "Table " <> text (show caption) <> " " <> text (show aligns) <> " " <>
   text (show widths) $$
   prettyRow header $$

@@ -18,9 +18,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Writers.Markdown 
+   Module      : Text.Pandoc.Writers.Markdown
    Copyright   : Copyright (C) 2006-2010 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
@@ -48,7 +48,7 @@ data WriterState = WriterState { stNotes :: Notes
 
 -- | Convert Pandoc to Markdown.
 writeMarkdown :: WriterOptions -> Pandoc -> String
-writeMarkdown opts document = 
+writeMarkdown opts document =
   evalState (pandocToMarkdown opts document) WriterState{ stNotes = []
                                                         , stRefs  = []
                                                         , stPlain = False }
@@ -88,7 +88,7 @@ pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
   date' <- inlineListToMarkdown opts date
   let titleblock = not $ null title && null authors && null date
   let headerBlocks = filter isHeaderBlock blocks
-  let toc = if writerTableOfContents opts 
+  let toc = if writerTableOfContents opts
                then tableOfContents opts headerBlocks
                else empty
   body <- blockListToMarkdown opts blocks
@@ -118,9 +118,9 @@ pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
 refsToMarkdown :: WriterOptions -> Refs -> State WriterState Doc
 refsToMarkdown opts refs = mapM (keyToMarkdown opts) refs >>= return . vcat
 
--- | Return markdown representation of a reference key. 
-keyToMarkdown :: WriterOptions 
-              -> ([Inline], (String, String)) 
+-- | Return markdown representation of a reference key.
+keyToMarkdown :: WriterOptions
+              -> ([Inline], (String, String))
               -> State WriterState Doc
 keyToMarkdown opts (label, (src, tit)) = do
   label' <- inlineListToMarkdown opts label
@@ -132,7 +132,7 @@ keyToMarkdown opts (label, (src, tit)) = do
 
 -- | Return markdown representation of notes.
 notesToMarkdown :: WriterOptions -> [[Block]] -> State WriterState Doc
-notesToMarkdown opts notes = 
+notesToMarkdown opts notes =
   mapM (\(num, note) -> noteToMarkdown opts num note) (zip [1..] notes) >>=
   return . vsep
 
@@ -154,7 +154,7 @@ escapeString = escapeStringUsing markdownEscapes
   where markdownEscapes = backslashEscapes "\\`*_$<>#~^"
 
 -- | Construct table of contents from list of header blocks.
-tableOfContents :: WriterOptions -> [Block] -> Doc 
+tableOfContents :: WriterOptions -> [Block] -> Doc
 tableOfContents opts headers =
   let opts' = opts { writerIgnoreNotes = True }
       contents = BulletList $ map elementToListItem $ hierarchicalize headers
@@ -165,7 +165,7 @@ tableOfContents opts headers =
 -- | Converts an Element to a list item for a table of contents,
 elementToListItem :: Element -> [Block]
 elementToListItem (Blk _) = []
-elementToListItem (Sec _ _ _ headerText subsecs) = [Plain headerText] ++ 
+elementToListItem (Sec _ _ _ headerText subsecs) = [Plain headerText] ++
   if null subsecs
      then []
      else [BulletList $ map elementToListItem subsecs]
@@ -189,7 +189,7 @@ attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
 -- | Ordered list start parser for use in Para below.
 olMarker :: Parser [Char] ParserState Char
 olMarker = do (start, style', delim) <- anyOrderedListMarker
-              if delim == Period && 
+              if delim == Period &&
                           (style' == UpperAlpha || (style' == UpperRoman &&
                           start `elem` [1, 5, 10, 50, 100, 500, 1000]))
                           then spaceChar >> spaceChar
@@ -205,7 +205,7 @@ beginsWithOrderedListMarker str =
 -- | Convert Pandoc block element to markdown.
 blockToMarkdown :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
-                -> State WriterState Doc 
+                -> State WriterState Doc
 blockToMarkdown _ Null = return empty
 blockToMarkdown opts (Plain inlines) = do
   contents <- inlineListToMarkdown opts inlines
@@ -348,7 +348,7 @@ orderedListItemToMarkdown opts marker items = do
 
 -- | Convert definition list item (label, list of blocks) to markdown.
 definitionListItemToMarkdown :: WriterOptions
-                             -> ([Inline],[[Block]]) 
+                             -> ([Inline],[[Block]])
                              -> State WriterState Doc
 definitionListItemToMarkdown opts (label, defs) = do
   labelText <- inlineListToMarkdown opts label
@@ -365,7 +365,7 @@ definitionListItemToMarkdown opts (label, defs) = do
 -- | Convert list of Pandoc block elements to markdown.
 blockListToMarkdown :: WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
-                    -> State WriterState Doc 
+                    -> State WriterState Doc
 blockListToMarkdown opts blocks =
   mapM (blockToMarkdown opts) (fixBlocks blocks) >>= return . cat
     -- insert comment between list and indented code block, or the
@@ -411,7 +411,7 @@ escapeSpaces x = x
 
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: WriterOptions -> Inline -> State WriterState Doc
-inlineToMarkdown opts (Emph lst) = do 
+inlineToMarkdown opts (Emph lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ "*" <> contents <> "*"
 inlineToMarkdown opts (Strong lst) = do
@@ -436,11 +436,11 @@ inlineToMarkdown opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ "“" <> contents <> "”"
 inlineToMarkdown opts (Code attr str) =
-  let tickGroups = filter (\s -> '`' `elem` s) $ group str 
+  let tickGroups = filter (\s -> '`' `elem` s) $ group str
       longest    = if null tickGroups
                      then 0
-                     else maximum $ map length tickGroups 
-      marker     = replicate (longest + 1) '`' 
+                     else maximum $ map length tickGroups
+      marker     = replicate (longest + 1) '`'
       spacer     = if (longest == 0) then "" else " "
       attrs      = if writerStrictMarkdown opts || attr == nullAttr
                       then empty
@@ -512,7 +512,7 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
                                            then "[]"
                                            else "[" <> reftext <> "]"
                            in  first <> second
-                      else "[" <> linktext <> "](" <> 
+                      else "[" <> linktext <> "](" <>
                            text src <> linktitle <> ")"
 inlineToMarkdown opts (Image alternate (source, tit)) = do
   let txt = if null alternate || alternate == [Str source]
@@ -521,7 +521,7 @@ inlineToMarkdown opts (Image alternate (source, tit)) = do
                else alternate
   linkPart <- inlineToMarkdown opts (Link txt (source, tit))
   return $ "!" <> linkPart
-inlineToMarkdown _ (Note contents) = do 
+inlineToMarkdown _ (Note contents) = do
   modify (\st -> st{ stNotes = contents : stNotes st })
   st <- get
   let ref = show $ (length $ stNotes st)

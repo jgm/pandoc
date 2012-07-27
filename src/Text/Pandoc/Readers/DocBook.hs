@@ -455,13 +455,13 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] tocfront - An entry in a table of contents for a front matter component
 [x] toclevel1 - A top-level entry within a table of contents entry for a
     chapter-like component
-[x] toclevel2 - A second-level entry within a table of contents entry for a 
+[x] toclevel2 - A second-level entry within a table of contents entry for a
     chapter-like component
-[x] toclevel3 - A third-level entry within a table of contents entry for a 
+[x] toclevel3 - A third-level entry within a table of contents entry for a
     chapter-like component
-[x] toclevel4 - A fourth-level entry within a table of contents entry for a 
+[x] toclevel4 - A fourth-level entry within a table of contents entry for a
     chapter-like component
-[x] toclevel5 - A fifth-level entry within a table of contents entry for a 
+[x] toclevel5 - A fifth-level entry within a table of contents entry for a
     chapter-like component
 [x] tocpart - An entry in a table of contents for a part of a book
 [ ] token - A unit of information
@@ -574,7 +574,7 @@ addToStart toadd bs =
     (Para xs : rest) -> para (toadd <> fromList xs) <> fromList rest
     _                -> bs
 
--- function that is used by both mediaobject (in parseBlock) 
+-- function that is used by both mediaobject (in parseBlock)
 -- and inlinemediaobject (in parseInline)
 getImage :: Element -> DB Inlines
 getImage e = do

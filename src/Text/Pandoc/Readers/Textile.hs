@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Text.Pandoc.Readers.Textile
    Copyright   : Copyright (C) 2010-2012 Paul Rivier and John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : Paul Rivier <paul*rivier#demotera*com>
    Stability   : alpha
@@ -232,9 +232,9 @@ genericListItemAtDepth c depth = try $ do
   return ((Plain p):sublist)
 
 -- | A definition list is a set of consecutive definition items
-definitionList :: Parser [Char] ParserState Block  
+definitionList :: Parser [Char] ParserState Block
 definitionList = try $ DefinitionList <$> many1 definitionListItem
-  
+
 -- | A definition list item in textile begins with '- ', followed by
 -- the term defined, then spaces and ":=". The definition follows, on
 -- the same single line, or spaned on multiple line, after a line
@@ -283,7 +283,7 @@ para = try $ Para . normalizeSpaces <$> manyTill inline blockBreak
 
 
 -- Tables
-  
+
 -- | A table cell spans until a pipe |
 tableCell :: Parser [Char] ParserState TableCell
 tableCell = do
@@ -303,7 +303,7 @@ tableRows = many1 tableRow
 tableHeaders :: Parser [Char] ParserState [TableCell]
 tableHeaders = let separator = (try $ string "|_.") in
   try $ ( separator *> (sepBy1 tableCell separator) <* char '|' <* newline )
-  
+
 -- | A table with an optional header. Current implementation can
 -- handle tables with and without header, but will parse cells
 -- alignment attributes as content.
@@ -313,12 +313,12 @@ table = try $ do
   rows <- tableRows
   blanklines
   let nbOfCols = max (length headers) (length $ head rows)
-  return $ Table [] 
+  return $ Table []
     (replicate nbOfCols AlignDefault)
     (replicate nbOfCols 0.0)
     headers
     rows
-  
+
 
 -- | Blocks like 'p' and 'table' do not need explicit block tag.
 -- However, they can be used to set HTML/CSS attributes when needed.
@@ -326,7 +326,7 @@ maybeExplicitBlock :: String  -- ^ block tag name
                     -> Parser [Char] ParserState Block -- ^ implicit block
                     -> Parser [Char] ParserState Block
 maybeExplicitBlock name blk = try $ do
-  optional $ try $ string name >> optional attributes >> char '.' >> 
+  optional $ try $ string name >> optional attributes >> char '.' >>
     ((try whitespace) <|> endline)
   blk
 
@@ -410,7 +410,7 @@ note = try $ do
     Nothing   -> fail "note not found"
     Just raw  -> liftM Note $ parseFromString parseBlocks raw
 
--- | Special chars 
+-- | Special chars
 markupChars :: [Char]
 markupChars = "\\[]*#_@~-+^|%="
 
@@ -429,10 +429,10 @@ wordBoundaries = markupChars ++ stringBreakers
 hyphenedWords :: Parser [Char] ParserState String
 hyphenedWords = try $ do
   hd <- noneOf wordBoundaries
-  tl <- many ( (noneOf wordBoundaries) <|> 
+  tl <- many ( (noneOf wordBoundaries) <|>
                try (oneOf markupChars <* lookAhead (noneOf wordBoundaries) ) )
   let wd = hd:tl
-  option wd $ try $ 
+  option wd $ try $
     (\r -> concat [wd, "-", r]) <$> (char '-' *> hyphenedWords)
 
 -- | Any string
@@ -465,7 +465,7 @@ endline = try $ do
 rawHtmlInline :: Parser [Char] ParserState Inline
 rawHtmlInline = RawInline "html" . snd <$> htmlTag isInlineTag
 
--- | Raw LaTeX Inline 
+-- | Raw LaTeX Inline
 rawLaTeXInline' :: Parser [Char] ParserState Inline
 rawLaTeXInline' = try $ do
   guardEnabled Ext_raw_tex

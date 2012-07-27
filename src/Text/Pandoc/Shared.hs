@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Text.Pandoc.Shared
    Copyright   : Copyright (C) 2006-2010 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
@@ -150,7 +150,7 @@ backslashEscapes = map (\ch -> (ch, ['\\',ch]))
 -- characters and strings.
 escapeStringUsing :: [(Char, String)] -> String -> String
 escapeStringUsing _ [] = ""
-escapeStringUsing escapeTable (x:xs) = 
+escapeStringUsing escapeTable (x:xs) =
   case (lookup x escapeTable) of
        Just str  -> str ++ rest
        Nothing   -> x:rest
@@ -177,7 +177,7 @@ stripFirstAndLast :: String -> String
 stripFirstAndLast str =
   drop 1 $ take ((length str) - 1) str
 
--- | Change CamelCase word to hyphenated lowercase (e.g., camel-case). 
+-- | Change CamelCase word to hyphenated lowercase (e.g., camel-case).
 camelCaseToHyphenated :: String -> String
 camelCaseToHyphenated [] = ""
 camelCaseToHyphenated (a:b:rest) | isLower a && isUpper b =
@@ -248,13 +248,13 @@ normalizeDate s = fmap (formatTime defaultTimeLocale "%F")
 -- | Generate infinite lazy list of markers for an ordered list,
 -- depending on list attributes.
 orderedListMarkers :: (Int, ListNumberStyle, ListNumberDelim) -> [String]
-orderedListMarkers (start, numstyle, numdelim) = 
+orderedListMarkers (start, numstyle, numdelim) =
   let singleton c = [c]
       nums = case numstyle of
                      DefaultStyle -> map show [start..]
                      Example      -> map show [start..]
                      Decimal      -> map show [start..]
-                     UpperAlpha   -> drop (start - 1) $ cycle $ 
+                     UpperAlpha   -> drop (start - 1) $ cycle $
                                      map singleton ['A'..'Z']
                      LowerAlpha   -> drop (start - 1) $ cycle $
                                      map singleton ['a'..'z']
@@ -386,7 +386,7 @@ isPara (Para _) = True
 isPara _        = False
 
 -- | Data structure for defining hierarchical Pandoc documents
-data Element = Blk Block 
+data Element = Blk Block
              | Sec Int [Int] String [Inline] [Element]
              --    lvl  num ident  label    contents
              deriving (Eq, Read, Show, Typeable, Data)
@@ -414,7 +414,7 @@ hierarchicalizeWithIds ((Header level title'):xs) = do
   let ident = uniqueIdent title' usedIdents
   let lastnum' = take level lastnum
   let newnum = if length lastnum' >= level
-                  then init lastnum' ++ [last lastnum' + 1] 
+                  then init lastnum' ++ [last lastnum' + 1]
                   else lastnum ++ replicate (level - length lastnum - 1) 0 ++ [1]
   S.put (newnum, (ident : usedIdents))
   let (sectionContents, rest) = break (headerLtEq level) xs
@@ -459,7 +459,7 @@ headerShift n = bottomUp shift
 -- Writer options
 --
 
-data HTMLMathMethod = PlainMath 
+data HTMLMathMethod = PlainMath
                     | LaTeXMathML (Maybe String)  -- url of LaTeXMathML.js
                     | JsMath (Maybe String)       -- url of jsMath load script
                     | GladTeX
@@ -534,7 +534,7 @@ instance Default WriterOptions where
 {-# DEPRECATED writerXeTeX "writerXeTeX no longer does anything" #-}
 -- | Default writer options.
 defaultWriterOptions :: WriterOptions
-defaultWriterOptions = 
+defaultWriterOptions =
   WriterOptions { writerStandalone       = False
                 , writerTemplate         = ""
                 , writerVariables        = []

@@ -102,14 +102,14 @@ convertTag userdata t@(TagOpen "script" as) =
        src    -> do
            (raw, mime) <- getRaw userdata (fromAttrib "type" t) src
            let enc = "data:" ++ mime ++ "," ++ escapeURIString isOk (toString raw)
-           return $ TagOpen "script" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"]) 
+           return $ TagOpen "script" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
 convertTag userdata t@(TagOpen "link" as) =
   case fromAttrib "href" t of
        []  -> return t
        src -> do
            (raw, mime) <- getRaw userdata (fromAttrib "type" t) src
            let enc = "data:" ++ mime ++ "," ++ escapeURIString isOk (toString raw)
-           return $ TagOpen "link" (("href",enc) : [(x,y) | (x,y) <- as, x /= "href"]) 
+           return $ TagOpen "link" (("href",enc) : [(x,y) | (x,y) <- as, x /= "href"])
 convertTag _ t = return t
 
 cssURLs :: Maybe FilePath -> FilePath -> ByteString -> IO ByteString

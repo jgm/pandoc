@@ -19,10 +19,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Text.Pandoc.Writers.Texinfo
    Copyright   : Copyright (C) 2008-2010 John MacFarlane and Peter Wang
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
-   Stability   : alpha 
+   Stability   : alpha
    Portability : portable
 
 Conversion of 'Pandoc' format into Texinfo.
@@ -40,7 +40,7 @@ import Text.Pandoc.Pretty
 import Network.URI ( isAbsoluteURI, unEscapeString )
 import System.FilePath
 
-data WriterState = 
+data WriterState =
   WriterState { stStrikeout   :: Bool  -- document contains strikeout
               , stSuperscript :: Bool -- document contains superscript
               , stSubscript   :: Bool -- document contains subscript
@@ -53,8 +53,8 @@ data WriterState =
 
 -- | Convert Pandoc to Texinfo.
 writeTexinfo :: WriterOptions -> Pandoc -> String
-writeTexinfo options document = 
-  evalState (pandocToTexinfo options $ wrapTop document) $ 
+writeTexinfo options document =
+  evalState (pandocToTexinfo options $ wrapTop document) $
   WriterState { stStrikeout = False, stSuperscript = False, stSubscript = False }
 
 -- | Add a "Top" node around the document, needed by Texinfo.
@@ -217,7 +217,7 @@ blockToTexinfo (Table caption aligns widths heads rows) = do
        else return $ "@columnfractions " ++ concatMap (printf "%.2f ") widths
   let tableBody = text ("@multitable " ++ colDescriptors) $$
                   headers $$
-                  vcat rowsText $$ 
+                  vcat rowsText $$
                   text "@end multitable"
   return $ if isEmpty captionText
               then tableBody <> blankline
@@ -241,7 +241,7 @@ tableAnyRowToTexinfo :: String
                      -> [[Block]]
                      -> State WriterState Doc
 tableAnyRowToTexinfo itemtype aligns cols =
-  zipWithM alignedBlock aligns cols >>= 
+  zipWithM alignedBlock aligns cols >>=
   return . (text itemtype $$) . foldl (\row item -> row $$
   (if isEmpty row then empty else text " @tab ") <> item) empty
 
@@ -358,8 +358,8 @@ inlineToTexinfo :: Inline    -- ^ Inline to convert
 inlineToTexinfo (Emph lst) =
   inlineListToTexinfo lst >>= return . inCmd "emph"
 
-inlineToTexinfo (Strong lst) = 
-  inlineListToTexinfo lst >>= return . inCmd "strong" 
+inlineToTexinfo (Strong lst) =
+  inlineListToTexinfo lst >>= return . inCmd "strong"
 
 inlineToTexinfo (Strikeout lst) = do
   modify $ \st -> st{ stStrikeout = True }

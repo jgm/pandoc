@@ -19,10 +19,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Text.Pandoc.Readers.HTML
    Copyright   : Copyright (C) 2006-2010 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
-   Stability   : alpha 
+   Stability   : alpha
    Portability : portable
 
 Conversion of HTML to 'Pandoc' document.
@@ -231,7 +231,7 @@ pSimpleTable = try $ do
   rows <- pOptInTag "tbody"
           $ many1 $ try $ skipMany pBlank >> pInTags "tr" (pCell "td")
   skipMany pBlank
-  TagClose _ <- pSatisfy (~== TagClose "table") 
+  TagClose _ <- pSatisfy (~== TagClose "table")
   let cols = maximum $ map length rows
   let aligns = replicate cols AlignLeft
   let widths = replicate cols 0
@@ -303,7 +303,7 @@ pLocation = do
 pSat :: (Tag String -> Bool) -> TagParser (Tag String)
 pSat f = do
   pos <- getPosition
-  token show (const pos) (\x -> if f x then Just x else Nothing) 
+  token show (const pos) (\x -> if f x then Just x else Nothing)
 
 pSatisfy :: (Tag String -> Bool) -> TagParser (Tag String)
 pSatisfy f = try $ optional pLocation >> pSat f
@@ -608,7 +608,7 @@ htmlTag f = try $ do
           count (length s + 4) anyChar
           skipMany (satisfy (/='>'))
           char '>'
-          return (next, "<!--" ++ s ++ "-->") 
+          return (next, "<!--" ++ s ++ "-->")
        _            -> do
           rendered <- manyTill anyChar (char '>')
           return (next, rendered ++ ">")

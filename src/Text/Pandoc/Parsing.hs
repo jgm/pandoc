@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Text.Pandoc.Parsing
    Copyright   : Copyright (C) 2006-2010 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
@@ -167,7 +167,7 @@ many1Till p end = do
          rest <- manyTill p end
          return (first:rest)
 
--- | A more general form of @notFollowedBy@.  This one allows any 
+-- | A more general form of @notFollowedBy@.  This one allows any
 -- type of parser to be specified, and succeeds only if that parser fails.
 -- It does not consume any input.
 notFollowedBy' :: Show b => Parsec [a] st b -> Parsec [a] st ()
@@ -213,7 +213,7 @@ enclosed :: Parsec [Char] st t   -- ^ start parser
          -> Parsec [Char] st end  -- ^ end parser
          -> Parsec [Char] st a    -- ^ content parser (to be used repeatedly)
          -> Parsec [Char] st [a]
-enclosed start end parser = try $ 
+enclosed start end parser = try $
   start >> notFollowedBy space >> many1Till parser end
 
 -- | Parse string, case insensitive.
@@ -237,7 +237,7 @@ parseFromString parser str = do
 
 -- | Parse raw line block up to and including blank lines.
 lineClump :: Parsec [Char] st String
-lineClump = blanklines 
+lineClump = blanklines
           <|> (many1 (notFollowedBy blankline >> anyLine) >>= return . unlines)
 
 -- | Parse a string of characters between an open character
@@ -273,11 +273,11 @@ uppercaseRomanDigits = map toUpper lowercaseRomanDigits
 romanNumeral :: Bool                  -- ^ Uppercase if true
              -> Parsec [Char] st Int
 romanNumeral upperCase = do
-    let romanDigits = if upperCase 
-                         then uppercaseRomanDigits 
+    let romanDigits = if upperCase
+                         then uppercaseRomanDigits
                          else lowercaseRomanDigits
     lookAhead $ oneOf romanDigits
-    let [one, five, ten, fifty, hundred, fivehundred, thousand] = 
+    let [one, five, ten, fifty, hundred, fivehundred, thousand] =
           map char romanDigits
     thousands <- many thousand >>= (return . (1000 *) . length)
     ninehundreds <- option 0 $ try $ hundred >> thousand >> return 900
@@ -468,15 +468,15 @@ romanOne = (char 'i' >> return (LowerRoman, 1)) <|>
            (char 'I' >> return (UpperRoman, 1))
 
 -- | Parses an ordered list marker and returns list attributes.
-anyOrderedListMarker :: Parsec [Char] ParserState ListAttributes 
-anyOrderedListMarker = choice $ 
+anyOrderedListMarker :: Parsec [Char] ParserState ListAttributes
+anyOrderedListMarker = choice $
   [delimParser numParser | delimParser <- [inPeriod, inOneParen, inTwoParens],
                            numParser <- [decimal, exampleNum, defaultNum, romanOne,
                            lowerAlpha, lowerRoman, upperAlpha, upperRoman]]
 
 -- | Parses a list number (num) followed by a period, returns list attributes.
 inPeriod :: Parsec [Char] st (ListNumberStyle, Int)
-         -> Parsec [Char] st ListAttributes 
+         -> Parsec [Char] st ListAttributes
 inPeriod num = try $ do
   (style, start) <- num
   char '.'
@@ -484,10 +484,10 @@ inPeriod num = try $ do
                  then DefaultDelim
                  else Period
   return (start, style, delim)
- 
+
 -- | Parses a list number (num) followed by a paren, returns list attributes.
 inOneParen :: Parsec [Char] st (ListNumberStyle, Int)
-           -> Parsec [Char] st ListAttributes 
+           -> Parsec [Char] st ListAttributes
 inOneParen num = try $ do
   (style, start) <- num
   char ')'
@@ -495,7 +495,7 @@ inOneParen num = try $ do
 
 -- | Parses a list number (num) enclosed in parens, returns list attributes.
 inTwoParens :: Parsec [Char] st (ListNumberStyle, Int)
-            -> Parsec [Char] st ListAttributes 
+            -> Parsec [Char] st ListAttributes
 inTwoParens num = try $ do
   char '('
   (style, start) <- num
@@ -504,8 +504,8 @@ inTwoParens num = try $ do
 
 -- | Parses an ordered list marker with a given style and delimiter,
 -- returns number.
-orderedListMarker :: ListNumberStyle 
-                  -> ListNumberDelim 
+orderedListMarker :: ListNumberStyle
+                  -> ListNumberDelim
                   -> Parsec [Char] ParserState Int
 orderedListMarker style delim = do
   let num = defaultNum <|>  -- # can continue any kind of list
@@ -552,8 +552,8 @@ tableWith headerParser rowParser lineParser footerParser = try $ do
 widthsFromIndices :: Int      -- Number of columns on terminal
                   -> [Int]    -- Indices
                   -> [Double] -- Fractional relative sizes of columns
-widthsFromIndices _ [] = []  
-widthsFromIndices numColumns' indices = 
+widthsFromIndices _ [] = []
+widthsFromIndices numColumns' indices =
   let numColumns = max numColumns' (if null indices then 0 else last indices)
       lengths' = zipWith (-) indices (0:indices)
       lengths  = reverse $
@@ -614,7 +614,7 @@ gridTableHeader headless block = try $ do
   optional blanklines
   dashes <- gridDashedLines '-'
   rawContent  <- if headless
-                    then return $ repeat "" 
+                    then return $ repeat ""
                     else many1
                          (notFollowedBy (gridTableSep '=') >> char '|' >>
                            many1Till anyChar newline)
@@ -671,7 +671,7 @@ readWith :: Parsec [t] ParserState a      -- ^ parser
          -> ParserState                    -- ^ initial state
          -> [t]                            -- ^ input
          -> a
-readWith parser state input = 
+readWith parser state input =
     case runParser parser state "source" input of
       Left err'    -> error $ "\nError:\n" ++ show err'
       Right result -> result
@@ -697,7 +697,7 @@ data ParserState = ParserState
       stateDate            :: [Inline],      -- ^ Date of document
       stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
       stateNextExample     :: Int,           -- ^ Number of next example
-      stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers 
+      stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers
       stateHasChapters     :: Bool,          -- ^ True if \chapter encountered
       stateMacros          :: [Macro],       -- ^ List of macros defined so far
       stateRstDefaultRole  :: String         -- ^ Current rST default interpreted text role
@@ -708,7 +708,7 @@ instance Default ParserState where
   def = defaultParserState
 
 defaultParserState :: ParserState
-defaultParserState = 
+defaultParserState =
     ParserState { stateOptions         = def,
                   stateParserContext   = NullState,
                   stateQuoteContext    = NoQuote,
@@ -737,12 +737,12 @@ guardEnabled ext = getOption readerExtensions >>= guard . Set.member ext
 guardDisabled :: Extension -> Parser s ParserState ()
 guardDisabled ext = getOption readerExtensions >>= guard . not . Set.member ext
 
-data HeaderType 
+data HeaderType
     = SingleHeader Char  -- ^ Single line of characters underneath
     | DoubleHeader Char  -- ^ Lines of characters above and below
     deriving (Eq, Show)
 
-data ParserContext 
+data ParserContext
     = ListItemState   -- ^ Used when running parser on list item contents
     | NullState       -- ^ Default state
     deriving (Eq, Show)
@@ -838,7 +838,7 @@ charOrRef cs =
                        return c)
 
 updateLastStrPos :: Parsec [Char] ParserState ()
-updateLastStrPos = getPosition >>= \p -> 
+updateLastStrPos = getPosition >>= \p ->
   updateState $ \s -> s{ stateLastStrPos = Just p }
 
 singleQuoteStart :: Parsec [Char] ParserState ()
@@ -852,7 +852,7 @@ singleQuoteStart = do
            notFollowedBy (oneOf ")!],;:-? \t\n")
            notFollowedBy (char '.') <|> lookAhead (string "..." >> return ())
            notFollowedBy (try (oneOfStrings ["s","t","m","ve","ll","re"] >>
-                               satisfy (not . isAlphaNum))) 
+                               satisfy (not . isAlphaNum)))
                                -- possess/contraction
            return ()
 

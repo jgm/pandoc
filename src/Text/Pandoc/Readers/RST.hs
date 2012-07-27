@@ -17,9 +17,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Readers.RST 
+   Module      : Text.Pandoc.Readers.RST
    Copyright   : Copyright (C) 2006-2010 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
@@ -71,14 +71,14 @@ isHeader _ _            = False
 -- | Promote all headers in a list of blocks.  (Part of
 -- title transformation for RST.)
 promoteHeaders :: Int -> [Block] -> [Block]
-promoteHeaders num ((Header level text):rest) = 
+promoteHeaders num ((Header level text):rest) =
     (Header (level - num) text):(promoteHeaders num rest)
 promoteHeaders num (other:rest) = other:(promoteHeaders num rest)
 promoteHeaders _   [] = []
 
 -- | If list of blocks starts with a header (or a header and subheader)
 -- of level that are not found elsewhere, return it as a title and
--- promote all the other headers. 
+-- promote all the other headers.
 titleTransform :: [Block]              -- ^ list of blocks
                -> ([Block], [Inline])  -- ^ modified list of blocks, title
 titleTransform ((Header 1 head1):(Header 2 head2):rest) |
@@ -238,14 +238,14 @@ paraBeforeCodeBlock = try $ do
 
 -- regular paragraph
 paraNormal :: Parser [Char] ParserState Block
-paraNormal = try $ do 
+paraNormal = try $ do
   result <- many1 inline
   newline
   blanklines
   return $ Para $ normalizeSpaces result
 
 plain :: Parser [Char] ParserState Block
-plain = many1 inline >>= return . Plain . normalizeSpaces 
+plain = many1 inline >>= return . Plain . normalizeSpaces
 
 --
 -- image block
@@ -284,7 +284,7 @@ doubleHeader = try $ do
   blankline              -- spaces and newline
   count lenTop (char c)  -- the bottom line
   blanklines
-  -- check to see if we've had this kind of header before.  
+  -- check to see if we've had this kind of header before.
   -- if so, get appropriate level.  if not, add to list.
   state <- getState
   let headerTable = stateHeaderTable state
@@ -296,7 +296,7 @@ doubleHeader = try $ do
 
 -- a header with line on the bottom only
 singleHeader :: Parser [Char] ParserState Block
-singleHeader = try $ do 
+singleHeader = try $ do
   notFollowedBy' whitespace
   txt <- many1 (do {notFollowedBy blankline; inline})
   pos <- getPosition
@@ -498,8 +498,8 @@ indentWith num = do
   tabStop <- getOption readerTabStop
   if (num < tabStop)
      then count num  (char ' ')
-     else choice [ try (count num (char ' ')), 
-                   (try (char '\t' >> count (num - tabStop) (char ' '))) ] 
+     else choice [ try (count num (char ' ')),
+                   (try (char '\t' >> count (num - tabStop) (char ' '))) ]
 
 -- parse raw text for one list item, excluding start marker and continuations
 rawListItem :: Parser [Char] ParserState Int
@@ -510,8 +510,8 @@ rawListItem start = try $ do
   restLines <- many (listLine markerLength)
   return (markerLength, (firstLine ++ "\n" ++ (concat restLines)))
 
--- continuation of a list item - indented and separated by blankline or 
--- (in compact lists) endline.  
+-- continuation of a list item - indented and separated by blankline or
+-- (in compact lists) endline.
 -- Note: nested lists are parsed as continuations.
 listContinuation :: Int -> Parser [Char] ParserState [Char]
 listContinuation markerLength = try $ do
@@ -521,7 +521,7 @@ listContinuation markerLength = try $ do
 
 listItem :: Parser [Char] ParserState Int
          -> Parser [Char] ParserState [Block]
-listItem start = try $ do 
+listItem start = try $ do
   (markerLength, first) <- rawListItem start
   rest <- many (listContinuation markerLength)
   blanks <- choice [ try (many blankline >>~ lookAhead start),
@@ -545,7 +545,7 @@ orderedList = try $ do
   return $ OrderedList (start, style, delim) items'
 
 bulletList :: Parser [Char] ParserState Block
-bulletList = many1 (listItem bulletListStart) >>= 
+bulletList = many1 (listItem bulletListStart) >>=
              return . BulletList . compactify
 
 --
@@ -617,7 +617,7 @@ noteMarker = do
 quotedReferenceName :: Parser [Char] ParserState [Inline]
 quotedReferenceName = try $ do
   char '`' >> notFollowedBy (char '`') -- `` means inline code!
-  label' <- many1Till inline (char '`') 
+  label' <- many1Till inline (char '`')
   return label'
 
 unquotedReferenceName :: Parser [Char] ParserState [Inline]
@@ -662,7 +662,7 @@ targetURI :: Parser [Char] st [Char]
 targetURI = do
   skipSpaces
   optional newline
-  contents <- many1 (try (many spaceChar >> newline >> 
+  contents <- many1 (try (many spaceChar >> newline >>
                           many1 spaceChar >> noneOf " \t\n") <|> noneOf "\n")
   blanklines
   return $ escapeURI $ removeLeadingTrailingSpace $ contents
@@ -702,7 +702,7 @@ regularKey = try $ do
 -- Simple tables TODO:
 --  - column spans
 --  - multiline support
---  - ensure that rightmost column span does not need to reach end 
+--  - ensure that rightmost column span does not need to reach end
 --  - require at least 2 columns
 --
 -- Grid tables TODO:
@@ -745,7 +745,7 @@ simpleTableSplitLine indices line =
   map removeLeadingTrailingSpace
   $ tail $ splitByIndices (init indices) line
 
-simpleTableHeader :: Bool  -- ^ Headerless table 
+simpleTableHeader :: Bool  -- ^ Headerless table
                   -> Parser [Char] ParserState ([[Block]], [Alignment], [Int])
 simpleTableHeader headless = try $ do
   optional blanklines
@@ -783,7 +783,7 @@ table = gridTable False <|> simpleTable False <|>
         gridTable True  <|> simpleTable True <?> "table"
 
 
- -- 
+ --
  -- inline
  --
 
@@ -808,7 +808,7 @@ inline = choice [ whitespace
 hyphens :: Parser [Char] ParserState Inline
 hyphens = do
   result <- many1 (char '-')
-  option Space endline 
+  option Space endline
   -- don't want to treat endline after hyphen or dash as a space
   return $ Str result
 
@@ -819,13 +819,13 @@ escapedChar = do c <- escaped anyChar
                              else Str [c]
 
 symbol :: Parser [Char] ParserState Inline
-symbol = do 
+symbol = do
   result <- oneOf specialChars
   return $ Str [result]
 
 -- parses inline code, between codeStart and codeEnd
 code :: Parser [Char] ParserState Inline
-code = try $ do 
+code = try $ do
   string "``"
   result <- manyTill anyChar (try (string "``"))
   return $ Code nullAttr
@@ -841,11 +841,11 @@ atStart p = do
   p
 
 emph :: Parser [Char] ParserState Inline
-emph = enclosed (atStart $ char '*') (char '*') inline >>= 
+emph = enclosed (atStart $ char '*') (char '*') inline >>=
        return . Emph . normalizeSpaces
 
 strong :: Parser [Char] ParserState Inline
-strong = enclosed (atStart $ string "**") (try $ string "**") inline >>= 
+strong = enclosed (atStart $ string "**") (try $ string "**") inline >>=
          return . Strong . normalizeSpaces
 
 -- Parses inline interpreted text which is required to have the given role.
@@ -911,7 +911,7 @@ explicitLink :: Parser [Char] ParserState Inline
 explicitLink = try $ do
   char '`'
   notFollowedBy (char '`') -- `` marks start of inline code
-  label' <- manyTill (notFollowedBy (char '`') >> inline) 
+  label' <- manyTill (notFollowedBy (char '`') >> inline)
                     (try (spaces >> char '<'))
   src <- manyTill (noneOf ">\n") (char '>')
   skipSpaces
@@ -938,7 +938,7 @@ referenceLink = try $ do
                     Just target -> return target
   -- if anonymous link, remove key so it won't be used again
   when (isAnonKey key) $ updateState $ \s -> s{ stateKeys = M.delete key keyTable }
-  return $ Link (normalizeSpaces label') (src, tit) 
+  return $ Link (normalizeSpaces label') (src, tit)
 
 autoURI :: Parser [Char] ParserState Inline
 autoURI = do

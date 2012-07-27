@@ -20,10 +20,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Text.Pandoc.Writers.ConTeXt
    Copyright   : Copyright (C) 2007-2010 John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
-   Stability   : alpha 
+   Stability   : alpha
    Portability : portable
 
 Conversion of 'Pandoc' format into ConTeXt.
@@ -39,23 +39,23 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.Templates ( renderTemplate )
 import Network.URI ( isURI, unEscapeString )
 
-data WriterState = 
+data WriterState =
   WriterState { stNextRef          :: Int  -- number of next URL reference
               , stOrderedListLevel :: Int  -- level of ordered list
               , stOptions          :: WriterOptions -- writer options
               }
 
 orderedListStyles :: [[Char]]
-orderedListStyles = cycle ["[n]","[a]", "[r]", "[g]"] 
+orderedListStyles = cycle ["[n]","[a]", "[r]", "[g]"]
 
 -- | Convert Pandoc to ConTeXt.
 writeConTeXt :: WriterOptions -> Pandoc -> String
-writeConTeXt options document = 
+writeConTeXt options document =
   let defaultWriterState = WriterState { stNextRef = 1
                                        , stOrderedListLevel = 0
                                        , stOptions = options
-                                       } 
-  in evalState (pandocToConTeXt options document) defaultWriterState 
+                                       }
+  in evalState (pandocToConTeXt options document) defaultWriterState
 
 pandocToConTeXt :: WriterOptions -> Pandoc -> State WriterState String
 pandocToConTeXt options (Pandoc (Meta title authors date) blocks) = do
@@ -120,7 +120,7 @@ elementToConTeXt opts (Sec level _ id' title' elements) = do
   return $ vcat (header' : innerContents)
 
 -- | Convert Pandoc block element to ConTeXt.
-blockToConTeXt :: Block 
+blockToConTeXt :: Block
                -> State WriterState Doc
 blockToConTeXt Null = return empty
 blockToConTeXt (Plain lst) = inlineListToConTeXt lst
@@ -128,7 +128,7 @@ blockToConTeXt (Para [Image txt (src,_)]) = do
   capt <- inlineListToConTeXt txt
   return $ blankline $$ "\\placefigure[here,nonumber]" <> braces capt <>
            braces ("\\externalfigure" <> brackets (text src)) <> blankline
-blockToConTeXt (Para lst) = do 
+blockToConTeXt (Para lst) = do
   contents <- inlineListToConTeXt lst
   return $ contents <> blankline
 blockToConTeXt (BlockQuote lst) = do
@@ -147,18 +147,18 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
     let level = stOrderedListLevel st
     put $ st {stOrderedListLevel = level + 1}
     contents <- mapM listItemToConTeXt lst
-    put $ st {stOrderedListLevel = level} 
+    put $ st {stOrderedListLevel = level}
     let start' = if start == 1 then "" else "start=" ++ show start
     let delim' = case delim of
                         DefaultDelim -> ""
-                        Period       -> "stopper=." 
-                        OneParen     -> "stopper=)" 
+                        Period       -> "stopper=."
+                        OneParen     -> "stopper=)"
                         TwoParens    -> "left=(,stopper=)"
-    let width = maximum $ map length $ take (length contents) 
+    let width = maximum $ map length $ take (length contents)
                           (orderedListMarkers (start, style', delim))
     let width' = (toEnum width + 1) / 2
-    let width'' = if width' > (1.5 :: Double) 
-                     then "width=" ++ show width' ++ "em" 
+    let width'' = if width' > (1.5 :: Double)
+                     then "width=" ++ show width' ++ "em"
                      else ""
     let specs2Items = filter (not . null) [start', delim', width'']
     let specs2 = if null specs2Items
@@ -166,8 +166,8 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
                     else "[" ++ intercalate "," specs2Items ++ "]"
     let style'' = case style' of
                         DefaultStyle -> orderedListStyles !! level
-                        Decimal      -> "[n]" 
-                        Example      -> "[n]" 
+                        Decimal      -> "[n]"
+                        Example      -> "[n]"
                         LowerRoman   -> "[r]"
                         UpperRoman   -> "[R]"
                         LowerAlpha   -> "[a]"
@@ -182,21 +182,21 @@ blockToConTeXt HorizontalRule = return $ "\\thinrule" <> blankline
 blockToConTeXt (Header level lst) = sectionHeader "" level lst
 blockToConTeXt (Table caption aligns widths heads rows) = do
     let colDescriptor colWidth alignment = (case alignment of
-                                               AlignLeft    -> 'l' 
+                                               AlignLeft    -> 'l'
                                                AlignRight   -> 'r'
                                                AlignCenter  -> 'c'
                                                AlignDefault -> 'l'):
            if colWidth == 0
               then "|"
               else ("p(" ++ printf "%.2f" colWidth ++ "\\textwidth)|")
-    let colDescriptors = "|" ++ (concat $ 
+    let colDescriptors = "|" ++ (concat $
                                  zipWith colDescriptor widths aligns)
     headers <- if all null heads
                   then return empty
-                  else liftM ($$ "\\HL") $ tableRowToConTeXt heads 
-    captionText <- inlineListToConTeXt caption 
+                  else liftM ($$ "\\HL") $ tableRowToConTeXt heads
+    captionText <- inlineListToConTeXt caption
     let captionText' = if null caption then text "none" else captionText
-    rows' <- mapM tableRowToConTeXt rows 
+    rows' <- mapM tableRowToConTeXt rows
     return $ "\\placetable[here]" <> braces captionText' $$
              "\\starttable" <> brackets (text colDescriptors) $$
              "\\HL" $$ headers $$
@@ -230,7 +230,7 @@ inlineListToConTeXt lst = liftM hcat $ mapM inlineToConTeXt lst
 -- | Convert inline element to ConTeXt
 inlineToConTeXt :: Inline    -- ^ Inline to convert
                 -> State WriterState Doc
-inlineToConTeXt (Emph lst) = do 
+inlineToConTeXt (Emph lst) = do
   contents <- inlineListToConTeXt lst
   return $ braces $ "\\em " <> contents
 inlineToConTeXt (Strong lst) = do

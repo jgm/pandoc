@@ -30,7 +30,7 @@ A simple templating system with variable substitution and conditionals.
 Example:
 
 > renderTemplate [("name","Sam"),("salary","50,000")] $
->    "Hi, $name$.  $if(salary)$You make $$$salary$.$else$No salary data.$endif$" 
+>    "Hi, $name$.  $if(salary)$You make $$$salary$.$else$No salary data.$endif$"
 > "Hi, John.  You make $50,000."
 
 A slot for an interpolated variable is a variable name surrounded
@@ -83,8 +83,8 @@ import Text.Pandoc.Shared (readDataFile)
 import qualified Control.Exception.Extensible as E (try, IOException)
 
 -- | Get default template for the specified writer.
-getDefaultTemplate :: (Maybe FilePath) -- ^ User data directory to search first 
-                   -> String           -- ^ Name of writer 
+getDefaultTemplate :: (Maybe FilePath) -- ^ User data directory to search first
+                   -> String           -- ^ Name of writer
                    -> IO (Either E.IOException String)
 getDefaultTemplate _ "native" = return $ Right ""
 getDefaultTemplate _ "json"   = return $ Right ""
@@ -108,18 +108,18 @@ adjustPosition str = do
   return str
 
 class TemplateTarget a where
-  toTarget :: String -> a 
+  toTarget :: String -> a
 
 instance TemplateTarget String where
   toTarget = id
 
-instance TemplateTarget ByteString where 
+instance TemplateTarget ByteString where
   toTarget = fromString
 
 instance TemplateTarget Html where
   toTarget = preEscapedString
 
--- | Renders a template 
+-- | Renders a template
 renderTemplate :: TemplateTarget a
                => [(String,String)]  -- ^ Assoc. list of values for variables
                -> String             -- ^ Template
@@ -178,14 +178,14 @@ for = try $ do
   string ")$"
   -- if newline after the "for", then a newline after "endfor" will be swallowed
   multiline <- option False $ try $ skipEndline >> return True
-  let matches = filter (\(k,_) -> k == id') vars 
+  let matches = filter (\(k,_) -> k == id') vars
   let indent = replicate pos ' '
   contents <- forM matches $ \m -> do
                       updateState $ \(TemplateState p v) -> TemplateState p (m:v)
                       raw <- liftM concat $ lookAhead parseTemplate
                       return $ intercalate ('\n':indent) $ lines $ raw ++ "\n"
   parseTemplate
-  sep <- option "" $ do try (string "$sep$")  
+  sep <- option "" $ do try (string "$sep$")
                         when multiline $ optional skipEndline
                         liftM concat parseTemplate
   string "$endfor$"

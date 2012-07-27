@@ -618,7 +618,7 @@ inlineToHtml opts inline =
                                                 ! A.src (toValue $ url ++ urlEncode str)
                                                 ! A.alt (toValue str)
                                                 ! A.title (toValue str)
-                                  let brtag = if writerHtml5 opts then H5.br else H.br 
+                                  let brtag = if writerHtml5 opts then H5.br else H.br
                                   return $ case t of
                                             InlineMath  -> m
                                             DisplayMath -> brtag >> m >> brtag
