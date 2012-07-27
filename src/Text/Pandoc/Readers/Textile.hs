@@ -273,7 +273,7 @@ rawHtmlBlock = try $ do
 -- | Raw block of LaTeX content
 rawLaTeXBlock' :: Parser [Char] ParserState Block
 rawLaTeXBlock' = do
-  failIfStrict
+  guardEnabled Ext_raw_tex
   RawBlock "latex" <$> (rawLaTeXBlock <* spaces)
 
 
@@ -464,11 +464,11 @@ endline = try $ do
 
 rawHtmlInline :: Parser [Char] ParserState Inline
 rawHtmlInline = RawInline "html" . snd <$> htmlTag isInlineTag
-                
+
 -- | Raw LaTeX Inline 
 rawLaTeXInline' :: Parser [Char] ParserState Inline
 rawLaTeXInline' = try $ do
-  failIfStrict
+  guardEnabled Ext_raw_tex
   rawLaTeXInline
 
 -- | Textile standard link syntax is "label":target. But we
