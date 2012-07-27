@@ -48,7 +48,6 @@ module Text.Pandoc.Parsing ( (>>~),
                              withHorizDisplacement,
                              withRaw,
                              nullBlock,
-                             failIfStrict,
                              failUnlessLHS,
                              escaped,
                              characterReference,
@@ -391,10 +390,6 @@ withRaw parser = do
 -- if it gets stuck).
 nullBlock :: Parsec [Char] st Block
 nullBlock = anyChar >> return Null
-
--- | Fail if reader is in strict markdown syntax mode.
-failIfStrict :: Parsec [a] ParserState ()
-failIfStrict = getOption readerStrict >>= guard . not
 
 -- | Fail unless we're in literate haskell mode.
 failUnlessLHS :: Parsec [tok] ParserState ()
