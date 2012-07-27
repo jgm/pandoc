@@ -63,6 +63,7 @@ data Extension = Ext_footnotes
                | Ext_fancy_lists
                | Ext_startnum
                | Ext_definition_lists
+               | Ext_example_lists
                | Ext_header_identifiers
                | Ext_all_symbols_escapable
                | Ext_intraword_underscores

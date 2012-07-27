@@ -592,9 +592,10 @@ listItem start = try $ do
 orderedList :: Parser [Char] ParserState Block
 orderedList = try $ do
   (start, style, delim) <- lookAhead anyOrderedListStart
-  unless ((style == DefaultStyle || style == Decimal) &&
+  unless ((style == DefaultStyle || style == Decimal || style == Example) &&
           (delim == DefaultDelim || delim == Period)) $
     guardEnabled Ext_fancy_lists
+  when (style == Example) $ guardEnabled Ext_example_lists
   items <- many1 $ listItem $ try $
              do optional newline -- if preceded by a Plain block in a list context
                 skipNonindentSpaces
@@ -1024,6 +1025,7 @@ ltSign = do
 
 exampleRef :: Parser [Char] ParserState Inline
 exampleRef = try $ do
+  guardEnabled Ext_example_lists
   char '@'
   lab <- many1 (alphaNum <|> oneOf "-_")
   -- We just return a Str. These are replaced with numbers
