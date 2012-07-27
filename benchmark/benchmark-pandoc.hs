@@ -38,8 +38,9 @@ normalizeBench doc = [ bench "normalize - with" $ nf (encodeJSON . normalize) do
 main :: IO ()
 main = do
   inp <- readDataFile (Just ".") "README"
+  inp2 <- readDataFile (Just ".") "tests/testsuite.txt"
   let opts = def{ readerSmart = True }
-  let doc = readMarkdown opts inp
+  let doc = readMarkdown opts $ inp ++ unlines (drop 3 $ lines inp2)
   let readerBs = map (readerBench doc) readers
   let writers' = [(n,w) | (n, PureStringWriter w) <- writers]
   defaultMain $
