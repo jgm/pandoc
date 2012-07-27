@@ -58,6 +58,7 @@ import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString)
+import qualified Data.Set as Set
 import Text.CSL.Reference (Reference(..))
 #if MIN_VERSION_base(4,4,0)
 #else
@@ -936,7 +937,10 @@ main = do
                      then "."
                      else takeDirectory (head sources)
 
-  let readerOpts = def{ readerStrict = strict
+  let readerOpts = def{ readerExtensions =
+                           if strict
+                           then Set.empty
+                           else Set.fromList [minBound..maxBound]
                       , readerSmart = smart || (texLigatures &&
                           (laTeXOutput || writerName' == "context"))
                       , readerStandalone = standalone'

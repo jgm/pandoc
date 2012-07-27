@@ -38,10 +38,11 @@ import Data.Default
 
 -- | Individually selectable syntax extensions.
 data Extension = Footnotes
-               | TeX_math
+               | Tex_math
                | Delimited_code_blocks
-               | Markdown_in_HTML_blocks
+               | Markdown_in_html_blocks
                | Fancy_lists
+               | Startnum
                | Definition_lists
                | Header_identifiers
                | All_symbols_escapable
