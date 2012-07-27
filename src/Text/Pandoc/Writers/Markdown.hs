@@ -40,12 +40,16 @@ import Text.Pandoc.Parsing hiding (blankline, char, space)
 import Data.List ( group, isPrefixOf, find, intersperse, transpose )
 import Text.Pandoc.Pretty
 import Control.Monad.State
+import qualified Data.Set as Set
 
 type Notes = [[Block]]
 type Refs = [([Inline], Target)]
 data WriterState = WriterState { stNotes :: Notes
                                , stRefs :: Refs
                                , stPlain :: Bool }
+
+isEnabled :: Extension -> WriterOptions -> Bool
+isEnabled ext opts = ext `Set.member` (writerExtensions opts)
 
 -- | Convert Pandoc to Markdown.
 writeMarkdown :: WriterOptions -> Pandoc -> String
@@ -58,7 +62,7 @@ writeMarkdown opts document =
 -- pictures, or inline formatting).
 writePlain :: WriterOptions -> Pandoc -> String
 writePlain opts document =
-  evalState (pandocToMarkdown opts{writerStrictMarkdown = True}
+  evalState (pandocToMarkdown opts{writerExtensions = Set.empty}
               document') WriterState{ stNotes = []
                                     , stRefs  = []
                                     , stPlain = True }
@@ -215,7 +219,7 @@ blockToMarkdown opts (Para inlines) = do
   contents <- inlineListToMarkdown opts inlines
   -- escape if para starts with ordered list marker
   st <- get
-  let esc = if (not (writerStrictMarkdown opts)) &&
+  let esc = if isEnabled Ext_all_symbols_escapable opts &&
                not (stPlain st) &&
                beginsWithOrderedListMarker (render Nothing contents)
                then text "\x200B" -- zero-width space, a hack
@@ -251,13 +255,13 @@ blockToMarkdown opts (CodeBlock (_,classes,_) str)
     writerLiterateHaskell opts =
   return $ prefixed "> " (text str) <> blankline
 blockToMarkdown opts (CodeBlock attribs str) = return $
-  if writerStrictMarkdown opts || attribs == nullAttr
-     then nest (writerTabStop opts) (text str) <> blankline
-     else -- use delimited code block
+  if isEnabled Ext_delimited_code_blocks opts && attribs /= nullAttr
+     then -- use delimited code block
           (tildes <> space <> attrs <> cr <> text str <>
                   cr <> tildes) <> blankline
-            where tildes  = text "~~~~"
-                  attrs = attrsToMarkdown attribs
+     else nest (writerTabStop opts) (text str) <> blankline
+   where tildes  = text "~~~~"
+         attrs = attrsToMarkdown attribs
 blockToMarkdown opts (BlockQuote blocks) = do
   st <- get
   -- if we're writing literate haskell, put a space before the bird tracks
@@ -372,9 +376,10 @@ blockListToMarkdown opts blocks =
     -- insert comment between list and indented code block, or the
     -- code block will be treated as a list continuation paragraph
     where fixBlocks (b : CodeBlock attr x : rest)
-            | (writerStrictMarkdown opts || attr == nullAttr) && isListBlock b =
+            | (not (isEnabled Ext_delimited_code_blocks opts) || attr == nullAttr)
+                && isListBlock b =
                b : RawBlock "html" "<!-- -->\n" : CodeBlock attr x :
-                  fixBlocks rest
+                   fixBlocks rest
           fixBlocks (x : xs)             = x : fixBlocks xs
           fixBlocks []                   = []
           isListBlock (BulletList _)     = True
@@ -443,9 +448,9 @@ inlineToMarkdown opts (Code attr str) =
                      else maximum $ map length tickGroups
       marker     = replicate (longest + 1) '`'
       spacer     = if (longest == 0) then "" else " "
-      attrs      = if writerStrictMarkdown opts || attr == nullAttr
-                      then empty
-                      else attrsToMarkdown attr
+      attrs      = if isEnabled Ext_inline_code_attributes opts && attr /= nullAttr
+                      then attrsToMarkdown attr
+                      else empty
   in  return $ text (marker ++ spacer ++ str ++ spacer ++ marker) <> attrs
 inlineToMarkdown _ (Str str) = do
   st <- get
@@ -460,10 +465,9 @@ inlineToMarkdown _ (RawInline f str)
   | f == "html" || f == "latex" || f == "tex" || f == "markdown" =
     return $ text str
 inlineToMarkdown _ (RawInline _ _) = return empty
-inlineToMarkdown opts (LineBreak) = return $
-  if writerStrictMarkdown opts
-     then "  " <> cr
-     else "\\" <> cr
+inlineToMarkdown opts (LineBreak)
+  | isEnabled Ext_escaped_line_breaks opts = return $ "\\" <> cr
+  | otherwise                            = return $ "  " <> cr
 inlineToMarkdown _ Space = return space
 inlineToMarkdown opts (Cite (c:cs) lst)
   | writerCiteMethod opts == Citeproc = inlineListToMarkdown opts lst

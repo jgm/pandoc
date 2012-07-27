@@ -969,7 +969,10 @@ main = do
                             writerIgnoreNotes      = False,
                             writerNumberSections   = numberSections,
                             writerSectionDivs      = sectionDivs,
-                            writerStrictMarkdown   = strict,
+                            writerExtensions       = if strict
+                                                     then Set.empty
+                                                     else Set.fromList
+                                                           [minBound..maxBound],
                             writerReferenceLinks   = referenceLinks,
                             writerWrapText         = wrap,
                             writerColumns          = columns,

@@ -1005,10 +1005,11 @@ escapedChar' = try $ do
 escapedChar :: Parser [Char] ParserState Inline
 escapedChar = do
   result <- escapedChar'
-  return $ case result of
-                ' '   -> Str "\160" -- "\ " is a nonbreaking space
-                '\n'  -> LineBreak  -- "\[newline]" is a linebreak
-                _     -> Str [result]
+  case result of
+       ' '   -> return $ Str "\160" -- "\ " is a nonbreaking space
+       '\n'  -> guardEnabled Ext_escaped_line_breaks >>
+                return LineBreak  -- "\[newline]" is a linebreak
+       _     -> return $ Str [result]
 
 ltSign :: Parser [Char] ParserState Inline
 ltSign = do
@@ -1042,7 +1043,8 @@ code = try $ do
                        (char '\n' >> notFollowedBy' blankline >> return " "))
                       (try (skipSpaces >> count (length starts) (char '`') >>
                       notFollowedBy (char '`')))
-  attr <- option ([],[],[]) (try $ optional whitespace >> attributes)
+  attr <- option ([],[],[]) (try $ guardEnabled Ext_inline_code_attributes >>
+                                   optional whitespace >> attributes)
   return $ Code attr $ removeLeadingTrailingSpace $ concat result
 
 mathWord :: Parser [Char] st [Char]

@@ -56,7 +56,9 @@ data Extension = Ext_footnotes
                | Ext_tex_math
                | Ext_latex_macros
                | Ext_delimited_code_blocks
+               | Ext_inline_code_attributes
                | Ext_markdown_in_html_blocks
+               | Ext_escaped_line_breaks
                | Ext_autolink_code_spans
                | Ext_fancy_lists
                | Ext_startnum
@@ -154,7 +156,7 @@ data WriterOptions = WriterOptions
   , writerIgnoreNotes      :: Bool   -- ^ Ignore footnotes (used in making toc)
   , writerNumberSections   :: Bool   -- ^ Number sections in LaTeX
   , writerSectionDivs      :: Bool   -- ^ Put sections in div tags in HTML
-  , writerStrictMarkdown   :: Bool   -- ^ Use strict markdown syntax
+  , writerExtensions       :: Set Extension -- ^ Markdown extensions that can be used
   , writerReferenceLinks   :: Bool   -- ^ Use reference links in writing markdown, rst
   , writerWrapText         :: Bool   -- ^ Wrap text to line length
   , writerColumns          :: Int    -- ^ Characters in a line (for text wrapping)
@@ -194,7 +196,7 @@ instance Default WriterOptions where
                       , writerIgnoreNotes      = False
                       , writerNumberSections   = False
                       , writerSectionDivs      = False
-                      , writerStrictMarkdown   = False
+                      , writerExtensions       = Set.fromList [minBound..maxBound]
                       , writerReferenceLinks   = False
                       , writerWrapText         = True
                       , writerColumns          = 72
