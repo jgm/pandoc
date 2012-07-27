@@ -1,8 +1,11 @@
 import Text.Pandoc
 import Text.Pandoc.Shared (readDataFile, normalize)
 import Criterion.Main
+import Criterion.Config
 import Data.List (isSuffixOf)
 import Text.JSON.Generic
+import System.Environment (getArgs)
+import Data.Monoid
 
 readerBench :: Pandoc
             -> (String, ReaderOptions -> String -> Pandoc)
@@ -37,12 +40,14 @@ normalizeBench doc = [ bench "normalize - with" $ nf (encodeJSON . normalize) do
 
 main :: IO ()
 main = do
+  args <- getArgs
+  (conf,_) <- parseArgs defaultConfig{ cfgSamples = Last $ Just 20 }  defaultOptions args
   inp <- readDataFile (Just ".") "README"
   inp2 <- readDataFile (Just ".") "tests/testsuite.txt"
   let opts = def{ readerSmart = True }
   let doc = readMarkdown opts $ inp ++ unlines (drop 3 $ lines inp2)
   let readerBs = map (readerBench doc) readers
   let writers' = [(n,w) | (n, PureStringWriter w) <- writers]
-  defaultMain $
+  defaultMainWith conf (return ()) $
     map (writerBench doc) writers' ++ readerBs ++ normalizeBench doc
 
