@@ -60,8 +60,10 @@ module Text.Pandoc.Parsing ( (>>~),
                              gridTableWith,
                              readWith,
                              testStringWith,
-                             ParserState (..),
                              getOption,
+                             guardEnabled,
+                             guardDisabled,
+                             ParserState (..),
                              defaultParserState,
                              HeaderType (..),
                              ParserContext (..),
@@ -75,8 +77,8 @@ module Text.Pandoc.Parsing ( (>>~),
                              smartPunctuation,
                              macro,
                              applyMacros',
-                             -- * Re-exports from Text.Pandoc.Parsec
                              Parser,
+                             -- * Re-exports from Text.Pandoc.Parsec
                              runParser,
                              parse,
                              anyToken,
@@ -144,6 +146,7 @@ import qualified Data.Map as M
 import Text.TeXMath.Macros (applyMacros, Macro, parseMacroDefinitions)
 import Text.HTML.TagSoup.Entity ( lookupEntity )
 import Data.Default
+import qualified Data.Set as Set
 
 type Parser t s = Parsec t s
 
@@ -728,8 +731,16 @@ defaultParserState =
                   stateMacros          = [],
                   stateRstDefaultRole  = "title-reference"}
 
-getOption :: (ReaderOptions -> a) -> Parser [t] ParserState a
+getOption :: (ReaderOptions -> a) -> Parser s ParserState a
 getOption f = (f . stateOptions) `fmap` getState
+
+-- | Succeed only if the extension is enabled.
+guardEnabled :: Extension -> Parser s ParserState ()
+guardEnabled ext = getOption readerExtensions >>= guard . Set.member ext
+
+-- | Succeed only if the extension is disabled.
+guardDisabled :: Extension -> Parser s ParserState ()
+guardDisabled ext = getOption readerExtensions >>= guard . not . Set.member ext
 
 data HeaderType 
     = SingleHeader Char  -- ^ Single line of characters underneath
