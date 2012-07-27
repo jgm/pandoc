@@ -38,8 +38,8 @@ makeManPage verbose page meta blocks = do
 
 writeManPage :: FilePath -> String -> Pandoc -> IO ()
 writeManPage page templ doc = do
-  let opts = defaultWriterOptions{ writerStandalone = True
-                                 , writerTemplate = templ }
+  let opts = def{ writerStandalone = True
+                , writerTemplate = templ }
   let manPage = writeMan opts $
                     bottomUp (concatMap removeLinks) $
                     bottomUp  capitalizeHeaders doc

@@ -32,6 +32,7 @@ Org-Mode:  <http://orgmode.org>
 -}
 module Text.Pandoc.Writers.Org ( writeOrg) where
 import Text.Pandoc.Definition
+import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Pretty
 import Text.Pandoc.Templates (renderTemplate)

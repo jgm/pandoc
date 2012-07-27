@@ -11,7 +11,7 @@ readerBench doc (name, reader) =
   let writer = case lookup name writers of
                      Just (PureStringWriter w) -> w
                      _ -> error $ "Could not find writer for " ++ name
-      inp = writer defaultWriterOptions{ writerWrapText = True
+      inp = writer def{ writerWrapText = True
                                        , writerLiterateHaskell =
                                           "+lhs" `isSuffixOf` name } doc
       -- we compute the length to force full evaluation
@@ -26,7 +26,7 @@ writerBench :: Pandoc
             -> (String, WriterOptions -> Pandoc -> String)
             -> Benchmark
 writerBench doc (name, writer) = bench (name ++ " writer") $ nf
-    (writer defaultWriterOptions{
+    (writer def{
                    writerWrapText = True
                   , writerLiterateHaskell = "+lhs" `isSuffixOf` name }) doc
 

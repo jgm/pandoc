@@ -59,13 +59,6 @@ module Text.Pandoc.Shared (
                      uniqueIdent,
                      isHeaderBlock,
                      headerShift,
-                     -- * Writer options
-                     HTMLMathMethod (..),
-                     CiteMethod (..),
-                     ObfuscationMethod (..),
-                     HTMLSlideVariant (..),
-                     WriterOptions (..),
-                     defaultWriterOptions,
                      -- * File handling
                      inDirectory,
                      findDataFile,
@@ -90,11 +83,9 @@ import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import Control.Monad (msum)
 import Paths_pandoc (getDataFileName)
-import Text.Pandoc.Highlighting (Style, pygments)
 import Text.Pandoc.Pretty (charWidth)
 import System.Locale (defaultTimeLocale)
 import Data.Time
-import Data.Default
 import System.IO (stderr)
 
 --
@@ -454,125 +445,6 @@ headerShift n = bottomUp shift
   where shift :: Block -> Block
         shift (Header level inner) = Header (level + n) inner
         shift x                    = x
-
---
--- Writer options
---
-
-data HTMLMathMethod = PlainMath
-                    | LaTeXMathML (Maybe String)  -- url of LaTeXMathML.js
-                    | JsMath (Maybe String)       -- url of jsMath load script
-                    | GladTeX
-                    | WebTeX String               -- url of TeX->image script.
-                    | MathML (Maybe String)       -- url of MathMLinHTML.js
-                    | MathJax String              -- url of MathJax.js
-                    deriving (Show, Read, Eq)
-
-data CiteMethod = Citeproc                        -- use citeproc to render them
-                  | Natbib                        -- output natbib cite commands
-                  | Biblatex                      -- output biblatex cite commands
-                deriving (Show, Read, Eq)
-
--- | Methods for obfuscating email addresses in HTML.
-data ObfuscationMethod = NoObfuscation
-                       | ReferenceObfuscation
-                       | JavascriptObfuscation
-                       deriving (Show, Read, Eq)
-
--- | Varieties of HTML slide shows.
-data HTMLSlideVariant = S5Slides
-                      | SlidySlides
-                      | SlideousSlides
-                      | DZSlides
-                      | NoSlides
-                      deriving (Show, Read, Eq)
-
--- | Options for writers
-data WriterOptions = WriterOptions
-  { writerStandalone       :: Bool   -- ^ Include header and footer
-  , writerTemplate         :: String -- ^ Template to use in standalone mode
-  , writerVariables        :: [(String, String)] -- ^ Variables to set in template
-  , writerEPUBMetadata     :: String -- ^ Metadata to include in EPUB
-  , writerTabStop          :: Int    -- ^ Tabstop for conversion btw spaces and tabs
-  , writerTableOfContents  :: Bool   -- ^ Include table of contents
-  , writerSlideVariant     :: HTMLSlideVariant -- ^ Are we writing S5, Slidy or Slideous?
-  , writerIncremental      :: Bool   -- ^ True if lists should be incremental
-  , writerXeTeX            :: Bool   -- ^ Create latex suitable for use by xetex
-  , writerHTMLMathMethod   :: HTMLMathMethod  -- ^ How to print math in HTML
-  , writerIgnoreNotes      :: Bool   -- ^ Ignore footnotes (used in making toc)
-  , writerNumberSections   :: Bool   -- ^ Number sections in LaTeX
-  , writerSectionDivs      :: Bool   -- ^ Put sections in div tags in HTML
-  , writerStrictMarkdown   :: Bool   -- ^ Use strict markdown syntax
-  , writerReferenceLinks   :: Bool   -- ^ Use reference links in writing markdown, rst
-  , writerWrapText         :: Bool   -- ^ Wrap text to line length
-  , writerColumns          :: Int    -- ^ Characters in a line (for text wrapping)
-  , writerLiterateHaskell  :: Bool   -- ^ Write as literate haskell
-  , writerEmailObfuscation :: ObfuscationMethod -- ^ How to obfuscate emails
-  , writerIdentifierPrefix :: String -- ^ Prefix for section & note ids in HTML
-  , writerSourceDirectory  :: FilePath -- ^ Directory path of 1st source file
-  , writerUserDataDir      :: Maybe FilePath -- ^ Path of user data directory
-  , writerCiteMethod       :: CiteMethod -- ^ How to print cites
-  , writerBiblioFiles      :: [FilePath] -- ^ Biblio files to use for citations
-  , writerHtml5            :: Bool       -- ^ Produce HTML5
-  , writerBeamer           :: Bool       -- ^ Produce beamer LaTeX slide show
-  , writerSlideLevel       :: Maybe Int  -- ^ Force header level of slides
-  , writerChapters         :: Bool       -- ^ Use "chapter" for top-level sects
-  , writerListings         :: Bool       -- ^ Use listings package for code
-  , writerHighlight        :: Bool       -- ^ Highlight source code
-  , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
-  , writerSetextHeaders    :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
-  , writerTeXLigatures     :: Bool       -- ^ Use tex ligatures quotes, dashes in latex
-  , writerEpubStylesheet   :: Maybe String -- ^ EPUB stylesheet specified at command line
-  , writerEpubFonts        :: [FilePath] -- ^ Paths to fonts to embed
-  , writerReferenceODT     :: Maybe FilePath -- ^ Path to reference ODT if specified
-  , writerReferenceDocx    :: Maybe FilePath -- ^ Ptah to reference DOCX if specified
-  } deriving Show
-
-instance Default WriterOptions where
-  def = defaultWriterOptions
-
-{-# DEPRECATED writerXeTeX "writerXeTeX no longer does anything" #-}
--- | Default writer options.
-defaultWriterOptions :: WriterOptions
-defaultWriterOptions =
-  WriterOptions { writerStandalone       = False
-                , writerTemplate         = ""
-                , writerVariables        = []
-                , writerEPUBMetadata     = ""
-                , writerTabStop          = 4
-                , writerTableOfContents  = False
-                , writerSlideVariant     = NoSlides
-                , writerIncremental      = False
-                , writerXeTeX            = False
-                , writerHTMLMathMethod   = PlainMath
-                , writerIgnoreNotes      = False
-                , writerNumberSections   = False
-                , writerSectionDivs      = False
-                , writerStrictMarkdown   = False
-                , writerReferenceLinks   = False
-                , writerWrapText         = True
-                , writerColumns          = 72
-                , writerLiterateHaskell  = False
-                , writerEmailObfuscation = JavascriptObfuscation
-                , writerIdentifierPrefix = ""
-                , writerSourceDirectory  = "."
-                , writerUserDataDir      = Nothing
-                , writerCiteMethod       = Citeproc
-                , writerBiblioFiles      = []
-                , writerHtml5            = False
-                , writerBeamer           = False
-                , writerSlideLevel       = Nothing
-                , writerChapters         = False
-                , writerListings         = False
-                , writerHighlight        = False
-                , writerHighlightStyle   = pygments
-                , writerSetextHeaders    = True
-                , writerTeXLigatures     = True
-                , writerEpubStylesheet   = Nothing
-                , writerEpubFonts        = []
-                , writerReferenceODT     = Nothing
-                , writerReferenceDocx    = Nothing
-                }
 
 --
 -- File handling

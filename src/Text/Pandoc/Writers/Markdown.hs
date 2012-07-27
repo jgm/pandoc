@@ -35,6 +35,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Shared
+import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, char, space)
 import Data.List ( group, isPrefixOf, find, intersperse, transpose )
 import Text.Pandoc.Pretty

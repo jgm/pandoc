@@ -26,7 +26,7 @@ p_markdown_round_trip b = matches d' d''
   where d'  = normalize $ Pandoc (Meta [] [] []) [b]
         d'' = normalize
               $ readMarkdown def { readerSmart = True }
-              $ writeMarkdown defaultWriterOptions d'
+              $ writeMarkdown def d'
         matches (Pandoc _ [Plain []]) (Pandoc _ []) = True
         matches (Pandoc _ [Para []]) (Pandoc _ []) = True
         matches (Pandoc _ [Plain xs]) (Pandoc _ [Para xs']) = xs == xs'

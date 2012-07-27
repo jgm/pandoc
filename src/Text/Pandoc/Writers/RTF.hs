@@ -29,6 +29,7 @@ Conversion of 'Pandoc' documents to RTF (rich text format).
 -}
 module Text.Pandoc.Writers.RTF ( writeRTF, rtfEmbedImage ) where
 import Text.Pandoc.Definition
+import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Templates (renderTemplate)

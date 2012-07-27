@@ -38,6 +38,7 @@ import Data.ByteString.Lazy.UTF8 ( fromString )
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
 import Text.Pandoc.Shared hiding ( Element )
+import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Control.Monad.State
@@ -286,10 +287,8 @@ transformInlines _ sourceDir picsRef (Image lab (src,tit) : xs) = do
 transformInlines (MathML _) _ _ (x@(Math _ _) : xs) = do
   let writeHtmlInline opts z = removeTrailingSpace $
          writeHtmlString opts $ Pandoc (Meta [] [] []) [Plain [z]]
-      mathml = writeHtmlInline defaultWriterOptions{
-                 writerHTMLMathMethod = MathML Nothing } x
-      fallback = writeHtmlInline defaultWriterOptions{
-                 writerHTMLMathMethod = PlainMath } x
+      mathml = writeHtmlInline def{writerHTMLMathMethod = MathML Nothing } x
+      fallback = writeHtmlInline def{writerHTMLMathMethod = PlainMath } x
       inOps = "<ops:switch xmlns:ops=\"http://www.idpf.org/2007/ops\">" ++
        "<ops:case required-namespace=\"http://www.w3.org/1998/Math/MathML\">" ++
        mathml ++ "</ops:case><ops:default>" ++ fallback ++ "</ops:default>" ++

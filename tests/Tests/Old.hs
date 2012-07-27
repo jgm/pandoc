@@ -10,7 +10,8 @@ import System.FilePath ( (</>), (<.>) )
 import System.Directory
 import System.Exit
 import Data.Algorithm.Diff
-import Text.Pandoc.Shared ( normalize, defaultWriterOptions )
+import Text.Pandoc.Shared ( normalize )
+import Text.Pandoc.Options
 import Text.Pandoc.Writers.Native ( writeNative )
 import Text.Pandoc.Readers.Native ( readNative )
 import Prelude hiding ( readFile )
@@ -142,7 +143,7 @@ lhsReaderTest :: String -> Test
 lhsReaderTest format =
   testWithNormalize normalizer "lhs" ["-r", format, "-w", "native"]
     ("lhs-test" <.> format) "lhs-test.native"
-   where normalizer = writeNative defaultWriterOptions . normalize . readNative
+   where normalizer = writeNative def . normalize . readNative
 
 writerTests :: String -> [Test]
 writerTests format

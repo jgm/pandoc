@@ -40,6 +40,7 @@ module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Shared
+import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, space)
 import Data.List ( isPrefixOf, intersperse, intercalate )
 import Text.Pandoc.Pretty

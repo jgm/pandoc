@@ -32,6 +32,7 @@ module Text.Pandoc.Writers.Man ( writeMan) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Templates
 import Text.Pandoc.Shared
+import Text.Pandoc.Options
 import Text.Pandoc.Readers.TeXMath
 import Text.Printf ( printf )
 import Data.List ( isPrefixOf, intersperse, intercalate )

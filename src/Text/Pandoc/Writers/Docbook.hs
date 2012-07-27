@@ -31,6 +31,7 @@ module Text.Pandoc.Writers.Docbook ( writeDocbook) where
 import Text.Pandoc.Definition
 import Text.Pandoc.XML
 import Text.Pandoc.Shared
+import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Readers.TeXMath
 import Data.List ( isPrefixOf, intercalate, isSuffixOf )

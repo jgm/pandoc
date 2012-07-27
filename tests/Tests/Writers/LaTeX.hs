@@ -8,7 +8,7 @@ import Tests.Helpers
 import Tests.Arbitrary()
 
 latex :: (ToString a, ToPandoc a) => a -> String
-latex = writeLaTeX defaultWriterOptions . toPandoc
+latex = writeLaTeX def . toPandoc
 
 {-
   "my test" =: X =?> Y

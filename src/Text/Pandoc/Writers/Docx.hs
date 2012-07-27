@@ -43,6 +43,7 @@ import Text.Pandoc.Generic
 import System.Directory
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Shared hiding (Element)
+import Text.Pandoc.Options
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Highlighting ( highlight )
 import Text.Highlighting.Kate.Types ()

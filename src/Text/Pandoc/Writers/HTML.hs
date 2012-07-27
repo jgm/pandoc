@@ -32,6 +32,7 @@ Conversion of 'Pandoc' documents to HTML.
 module Text.Pandoc.Writers.HTML ( writeHtml , writeHtmlString ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Pandoc.Options
 import Text.Pandoc.Templates
 import Text.Pandoc.Generic
 import Text.Pandoc.Readers.TeXMath

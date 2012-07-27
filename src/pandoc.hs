@@ -33,7 +33,7 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.PDF (tex2pdf)
 import Text.Pandoc.Readers.LaTeX (handleIncludes)
-import Text.Pandoc.Shared ( tabFilter, ObfuscationMethod (..), readDataFile,
+import Text.Pandoc.Shared ( tabFilter, readDataFile,
                             headerShift, findDataFile, normalize, err, warn )
 import Text.Pandoc.XML ( toEntities, fromEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )

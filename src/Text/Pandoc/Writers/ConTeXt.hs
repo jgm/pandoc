@@ -31,6 +31,7 @@ Conversion of 'Pandoc' format into ConTeXt.
 module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Pandoc.Options
 import Text.Pandoc.Generic (queryWith)
 import Text.Printf ( printf )
 import Data.List ( intercalate )

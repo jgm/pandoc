@@ -95,12 +95,6 @@ module Text.Pandoc
                , writeFB2
                , writeOrg
                , writeAsciiDoc
-               -- * Writer options used in writers
-               , WriterOptions (..)
-               , HTMLSlideVariant (..)
-               , HTMLMathMethod (..)
-               , CiteMethod (..)
-               , defaultWriterOptions
                -- * Rendering templates and default templates
                , module Text.Pandoc.Templates
                -- * Version
@@ -140,7 +134,6 @@ import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.Org
 import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Templates
-import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Data.ByteString.Lazy (ByteString)
 import Data.Version (showVersion)

@@ -43,8 +43,8 @@ import qualified Text.XML.Light as X
 import qualified Text.XML.Light.Cursor as XC
 
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared (WriterOptions(..), HTMLMathMethod(..))
-import Text.Pandoc.Shared (orderedListMarkers, defaultWriterOptions)
+import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..), def)
+import Text.Pandoc.Shared (orderedListMarkers)
 import Text.Pandoc.Generic (bottomUp)
 
 -- | Data to be written at the end of the document:
@@ -63,7 +63,7 @@ type FBM = StateT FbRenderState IO
 newFB :: FbRenderState
 newFB = FbRenderState { footnotes = [], imagesToFetch = []
                       , parentListMarker = "", parentBulletLevel = 0
-                      , writerOptions = defaultWriterOptions }
+                      , writerOptions = def }
 
 data ImageMode = NormalImage | InlineImage deriving (Eq)
 instance Show ImageMode where
@@ -350,9 +350,9 @@ blockToXml (DefinitionList defs) =
     cMapM mkdef defs
     where
       mkdef (term, bss) = do
-          def <- cMapM (cMapM blockToXml . sep . paraToPlain . map indent) bss
+          def' <- cMapM (cMapM blockToXml . sep . paraToPlain . map indent) bss
           t <- wrap "strong" term
-          return [ el "p" t, el "p" def ]
+          return [ el "p" t, el "p" def' ]
       sep blocks =
           if all needsBreak blocks then
               blocks ++ [Plain [LineBreak]]

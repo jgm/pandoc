@@ -17,8 +17,8 @@ import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.Framework.Providers.QuickCheck2
 import Test.HUnit (assertBool)
-import Text.Pandoc.Shared (normalize, defaultWriterOptions,
-                           WriterOptions(..), removeTrailingSpace)
+import Text.Pandoc.Shared (normalize, removeTrailingSpace)
+import Text.Pandoc.Options
 import Text.Pandoc.Writers.Native (writeNative)
 import Language.Haskell.TH.Quote (QuasiQuoter(..))
 import Language.Haskell.TH.Syntax (Q, runIO)
@@ -85,18 +85,16 @@ class ToString a where
   toString :: a -> String
 
 instance ToString Pandoc where
-  toString d = writeNative defaultWriterOptions{ writerStandalone = s }
-               $ toPandoc d
+  toString d = writeNative def{ writerStandalone = s } $ toPandoc d
    where s = case d of
                   (Pandoc (Meta [] [] []) _) -> False
                   _                          -> True
 
 instance ToString Blocks where
-  toString = writeNative defaultWriterOptions . toPandoc
+  toString = writeNative def . toPandoc
 
 instance ToString Inlines where
-  toString = removeTrailingSpace . writeNative defaultWriterOptions .
-             toPandoc
+  toString = removeTrailingSpace . writeNative def . toPandoc
 
 instance ToString String where
   toString = id
