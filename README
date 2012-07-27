@@ -163,6 +163,14 @@ General options
     will be rendered as literate Haskell source: see [Literate Haskell
     support](#literate-haskell-support), below.
 
+`-e` *EXTENSION*, `--enable=`*EXTENSION*
+:   Enable the specified markdown syntax extension.  For a list of extensions,
+    see [Pandoc's markdown](#pandocs-markdown), below.
+
+`-d` *EXTENSION*, `--disable=`*EXTENSION*
+:   Disable the specified markdown syntax extension.  For a list of extensions,
+    see [Pandoc's markdown](#pandocs-markdown), below.
+
 `-o` *FILE*, `--output=`*FILE*
 :   Write output to *FILE* instead of *stdout*.  If *FILE* is
     `-`, output will go to *stdout*.  (Exception: if the output
@@ -760,7 +768,9 @@ Pandoc understands an extended and slightly revised version of
 John Gruber's [markdown] syntax.  This document explains the syntax,
 noting differences from standard markdown. Except where noted, these
 differences can be suppressed by specifying the `--strict` command-line
-option.
+option.  They can also be disabled piecemeal using the `--disable`
+(or `-d`) option. If `--strict` is used, `--enable` (or `-e`) can be
+used to turn on specific extensions.
 
 Philosophy
 ----------
@@ -789,8 +799,11 @@ Paragraphs
 
 A paragraph is one or more lines of text followed by one or more blank line.
 Newlines are treated as spaces, so you can reflow your paragraphs as you like.
-If you need a hard line break, put two or more spaces at the end of a line,
-or type a backslash followed by a newline.
+If you need a hard line break, put two or more spaces at the end of a line.
+
+**Extension: `escaped_line_breaks`**
+
+A backslash followed by a newline is also a hard line break.
 
 Headers
 -------
@@ -826,6 +839,8 @@ As with setext-style headers, the header text can contain formatting:
 
     # A level-one header with a [link](/url) and *emphasis*
 
+**Extension: `blank_before_header`**
+
 Standard markdown syntax does not require a blank line before a header.
 Pandoc does require this (except, of course, at the beginning of the
 document). The reason for the requirement is that it is all too easy for a
@@ -838,7 +853,7 @@ wrapping). Consider, for example:
 
 ### Header identifiers in HTML, LaTeX, and ConTeXt ###
 
-*Pandoc extension*.
+**Extension**
 
 Each header element in pandoc's HTML and ConTeXt output is given a
 unique identifier. This identifier is based on the text of the header.
@@ -918,6 +933,8 @@ other block quotes. That is, block quotes can be nested:
     >
     > > A block quote within a block quote.
 
+**Extension: `blank_line_before_blockquote`**
+
 Standard markdown syntax does not require a blank line before a block
 quote.  Pandoc does require this (except, of course, at the beginning of the
 document). The reason for the requirement is that it is all too easy for a
@@ -950,7 +967,7 @@ Note: blank lines in the verbatim text need not begin with four spaces.
 
 ### Delimited code blocks ###
 
-*Pandoc extension*.
+**Extension: `delimited_code_blocks`**
 
 In addition to standard indented code blocks, Pandoc supports
 *delimited* code blocks.  These begin with a row of three or more
@@ -1131,7 +1148,7 @@ and this one:
     7.  two
     1.  three
 
-*Pandoc extension*.
+**Extension: `fancy_lists`**
 
 Unlike standard markdown, Pandoc allows ordered list items to be marked
 with uppercase and lowercase letters and roman numerals, in addition to
@@ -1155,6 +1172,8 @@ capital letter with a period, by at least two spaces.[^2]
     escape can be used:
 
         (C\) 2007 Joe Smith
+
+**Extension: `startnum`**
 
 Pandoc also pays attention to the type of list marker used, and to the
 starting number, and both of these are preserved where possible in the
@@ -1186,7 +1205,7 @@ If default list markers are desired, use `#.`:
 
 ### Definition lists ###
 
-*Pandoc extension*.
+*Extension*.
 
 Pandoc supports definition lists, using a syntax inspired by
 [PHP Markdown Extra] and [reStructuredText]:[^3]
@@ -1231,7 +1250,7 @@ definition and the next term:
 
 ### Numbered example lists ###
 
-*Pandoc extension*.
+*Extension*.
 
 The special list marker `@` can be used for sequentially numbered
 examples. The first list item with a `@` marker will be numbered '1',
@@ -1333,7 +1352,7 @@ A line containing a row of three or more `*`, `-`, or `_` characters
 Tables
 ------
 
-*Pandoc extension*.
+*Extension*.
 
 Four kinds of tables may be used. The first three kinds presuppose the use of
 a fixed-width font, such as Courier. The fourth kind can be used with
@@ -1496,7 +1515,7 @@ and lists, and cannot span multiple lines.
 Title block
 -----------
 
-*Pandoc extension*.
+*Extension*.
 
 If the file begins with a title block
 
@@ -1613,7 +1632,7 @@ Backslash escapes do not work in verbatim contexts.
 Smart punctuation
 -----------------
 
-*Pandoc extension*.
+*Extension*.
 
 If the `--smart` option is specified, pandoc will produce typographically
 correct output, converting straight quotes to curly quotes, `---` to
@@ -1652,7 +1671,7 @@ just part of a word, use `*`:
 
 ### Strikeout ###
 
-*Pandoc extension*.
+*Extension*.
 
 To strikeout a section of text with a horizontal line, begin and end it
 with `~~`. Thus, for example,
@@ -1662,7 +1681,7 @@ with `~~`. Thus, for example,
 
 ### Superscripts and subscripts ###
 
-*Pandoc extension*.
+*Extension*.
 
 Superscripts may be written by surrounding the superscripted text by `^`
 characters; subscripts may be written by surrounding the subscripted
@@ -1708,7 +1727,7 @@ Attributes can be attached to verbatim text, just as with
 Math
 ----
 
-*Pandoc extension*.
+*Extension*.
 
 Anything between two `$` characters will be treated as TeX math.  The
 opening `$` must have a character immediately to its right, while the
@@ -1818,7 +1837,7 @@ The raw HTML is passed through unchanged in HTML, S5, Slidy, Slideous,
 DZSlides, EPUB,
 Markdown, and Textile output, and suppressed in other formats.
 
-*Pandoc extension*.
+*Extension*.
 
 Standard markdown allows you to include HTML "blocks":  blocks
 of HTML between balanced tags that are separated from the surrounding text
@@ -1859,7 +1878,7 @@ from being interpreted as markdown.
 Raw TeX
 -------
 
-*Pandoc extension*.
+*Extension*.
 
 In addition to raw HTML, pandoc allows raw LaTeX, TeX, and ConTeXt to be
 included in a document. Inline TeX commands will be preserved and passed
@@ -1999,7 +2018,7 @@ The link text will be used as the image's alt text:
 
 ### Pictures with captions ###
 
-*Pandoc extension*.
+*Extension*.
 
 An image occurring by itself in a paragraph will be rendered as
 a figure with a caption.[^5] (In LaTeX, a figure environment will be
@@ -2023,7 +2042,7 @@ nonbreaking space after the image:
 Footnotes
 ---------
 
-*Pandoc extension*.
+*Extension*.
 
 Pandoc's markdown allows footnotes, using the following syntax:
 
@@ -2067,7 +2086,7 @@ Inline and regular footnotes may be mixed freely.
 Citations
 ---------
 
-*Pandoc extension*.
+*Extension*.
 
 Pandoc can automatically generate citations and a bibliography in a number of
 styles (using Andrea Rossato's `hs-citeproc`). In order to use this feature,
