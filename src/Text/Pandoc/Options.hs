@@ -142,7 +142,6 @@ data HTMLSlideVariant = S5Slides
                       deriving (Show, Read, Eq)
 
 -- | Options for writers
-{-# DEPRECATED writerXeTeX "writerXeTeX no longer does anything" #-}
 data WriterOptions = WriterOptions
   { writerStandalone       :: Bool   -- ^ Include header and footer
   , writerTemplate         :: String -- ^ Template to use in standalone mode
@@ -152,7 +151,6 @@ data WriterOptions = WriterOptions
   , writerTableOfContents  :: Bool   -- ^ Include table of contents
   , writerSlideVariant     :: HTMLSlideVariant -- ^ Are we writing S5, Slidy or Slideous?
   , writerIncremental      :: Bool   -- ^ True if lists should be incremental
-  , writerXeTeX            :: Bool   -- ^ Create latex suitable for use by xetex
   , writerHTMLMathMethod   :: HTMLMathMethod  -- ^ How to print math in HTML
   , writerIgnoreNotes      :: Bool   -- ^ Ignore footnotes (used in making toc)
   , writerNumberSections   :: Bool   -- ^ Number sections in LaTeX
@@ -192,7 +190,6 @@ instance Default WriterOptions where
                       , writerTableOfContents  = False
                       , writerSlideVariant     = NoSlides
                       , writerIncremental      = False
-                      , writerXeTeX            = False
                       , writerHTMLMathMethod   = PlainMath
                       , writerIgnoreNotes      = False
                       , writerNumberSections   = False
