@@ -853,7 +853,7 @@ wrapping). Consider, for example:
 
 ### Header identifiers in HTML, LaTeX, and ConTeXt ###
 
-**Extension**
+**Extension: `header_identifiers`**
 
 Each header element in pandoc's HTML and ConTeXt output is given a
 unique identifier. This identifier is based on the text of the header.
@@ -1205,7 +1205,7 @@ If default list markers are desired, use `#.`:
 
 ### Definition lists ###
 
-*Extension*.
+**Extension: `definition_lists`**
 
 Pandoc supports definition lists, using a syntax inspired by
 [PHP Markdown Extra] and [reStructuredText]:[^3]
@@ -1250,7 +1250,7 @@ definition and the next term:
 
 ### Numbered example lists ###
 
-*Extension*.
+**Extension: `example_lists`**
 
 The special list marker `@` can be used for sequentially numbered
 examples. The first list item with a `@` marker will be numbered '1',
@@ -1352,13 +1352,13 @@ A line containing a row of three or more `*`, `-`, or `_` characters
 Tables
 ------
 
-*Extension*.
-
 Four kinds of tables may be used. The first three kinds presuppose the use of
 a fixed-width font, such as Courier. The fourth kind can be used with
 proportionally spaced fonts, as it does not require lining up columns.
 
 ### Simple tables
+
+**Extension: `simple_tables`**
 
 Simple tables look like this:
 
@@ -1406,6 +1406,8 @@ of the first line of the table body. So, in the tables above, the columns
 would be right, left, center, and right aligned, respectively.
 
 ### Multiline tables
+
+**Extension: `multiline_tables`**
 
 Multiline tables allow headers and table rows to span multiple lines
 of text (but cells that span multiple columns or rows of the table are
@@ -1457,6 +1459,8 @@ the table), or the table may be interpreted as a simple table.
 
 ### Grid tables
 
+**Extension: `grid_tables`**
+
 Grid tables look like this:
 
     : Sample grid table.
@@ -1480,6 +1484,8 @@ columns or rows. Grid tables can be created easily using [Emacs table mode].
   [Emacs table mode]: http://table.sourceforge.net/
 
 ### Pipe tables
+
+**Extension: `pipe_tables`**
 
 Pipe tables look like this:
 
@@ -1515,7 +1521,7 @@ and lists, and cannot span multiple lines.
 Title block
 -----------
 
-*Extension*.
+**Extension: `pandoc_title_blocks`**
 
 If the file begins with a title block
 
@@ -1594,6 +1600,8 @@ will also have "Version 4.0" in the header.
 
 Backslash escapes
 -----------------
+
+**Extension: `all_symbols_escapable`**
 
 Except inside a code block or inline code, any punctuation or space
 character preceded by a backslash will be treated literally, even if it
