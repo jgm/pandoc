@@ -853,7 +853,7 @@ wrapping). Consider, for example:
 
 ### Header identifiers in HTML, LaTeX, and ConTeXt ###
 
-**Extension: `header_identifiers`**
+**Extension**
 
 Each header element in pandoc's HTML and ConTeXt output is given a
 unique identifier. This identifier is based on the text of the header.
@@ -1352,13 +1352,14 @@ A line containing a row of three or more `*`, `-`, or `_` characters
 Tables
 ------
 
+**Extension: `simple_tables`, `multiline_tables`, `grid_tables`,
+`pipe_tables`, `table_captions`**
+
 Four kinds of tables may be used. The first three kinds presuppose the use of
 a fixed-width font, such as Courier. The fourth kind can be used with
 proportionally spaced fonts, as it does not require lining up columns.
 
 ### Simple tables
-
-**Extension: `simple_tables`**
 
 Simple tables look like this:
 
@@ -1406,8 +1407,6 @@ of the first line of the table body. So, in the tables above, the columns
 would be right, left, center, and right aligned, respectively.
 
 ### Multiline tables
-
-**Extension: `multiline_tables`**
 
 Multiline tables allow headers and table rows to span multiple lines
 of text (but cells that span multiple columns or rows of the table are
@@ -1459,8 +1458,6 @@ the table), or the table may be interpreted as a simple table.
 
 ### Grid tables
 
-**Extension: `grid_tables`**
-
 Grid tables look like this:
 
     : Sample grid table.
@@ -1484,8 +1481,6 @@ columns or rows. Grid tables can be created easily using [Emacs table mode].
   [Emacs table mode]: http://table.sourceforge.net/
 
 ### Pipe tables
-
-**Extension: `pipe_tables`**
 
 Pipe tables look like this:
 
@@ -1640,7 +1635,7 @@ Backslash escapes do not work in verbatim contexts.
 Smart punctuation
 -----------------
 
-*Extension*.
+**Extension**
 
 If the `--smart` option is specified, pandoc will produce typographically
 correct output, converting straight quotes to curly quotes, `---` to
@@ -1669,6 +1664,8 @@ will not trigger emphasis:
 
     This is * not emphasized *, and \*neither is this\*.
 
+**Extension: `intraword_underscores`**
+
 Because `_` is sometimes used inside words and identifiers,
 pandoc does not interpret a `_` surrounded by alphanumeric
 characters as an emphasis marker.  If you want to emphasize
@@ -1679,7 +1676,7 @@ just part of a word, use `*`:
 
 ### Strikeout ###
 
-*Extension*.
+**Extension:  `strikeout`**
 
 To strikeout a section of text with a horizontal line, begin and end it
 with `~~`. Thus, for example,
@@ -1689,7 +1686,7 @@ with `~~`. Thus, for example,
 
 ### Superscripts and subscripts ###
 
-*Extension*.
+**Extension: `superscript`, `subscript`**
 
 Superscripts may be written by surrounding the superscripted text by `^`
 characters; subscripts may be written by surrounding the subscripted
@@ -1727,6 +1724,8 @@ work in verbatim contexts:
 
     This is a backslash followed by an asterisk: `\*`.
 
+**Extension: `inline_code_attributes`**
+
 Attributes can be attached to verbatim text, just as with
 [delimited code blocks](#delimited-code-blocks):
 
@@ -1735,7 +1734,7 @@ Attributes can be attached to verbatim text, just as with
 Math
 ----
 
-*Extension*.
+**Extension: `tex_math`**
 
 Anything between two `$` characters will be treated as TeX math.  The
 opening `$` must have a character immediately to its right, while the
@@ -1842,10 +1841,10 @@ Markdown allows you to insert raw HTML (or DocBook) anywhere in a document
 literally).
 
 The raw HTML is passed through unchanged in HTML, S5, Slidy, Slideous,
-DZSlides, EPUB,
-Markdown, and Textile output, and suppressed in other formats.
+DZSlides, EPUB, Markdown, and Textile output, and suppressed in other
+formats.
 
-*Extension*.
+**Extension: `markdown_in_html_blocks`**
 
 Standard markdown allows you to include HTML "blocks":  blocks
 of HTML between balanced tags that are separated from the surrounding text
@@ -1886,7 +1885,7 @@ from being interpreted as markdown.
 Raw TeX
 -------
 
-*Extension*.
+**Extension: `raw_tex`**
 
 In addition to raw HTML, pandoc allows raw LaTeX, TeX, and ConTeXt to be
 included in a document. Inline TeX commands will be preserved and passed
@@ -1910,7 +1909,10 @@ LaTeX, not as markdown.
 Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
 and ConTeXt.
 
-### Macros ###
+LaTeX macros
+------------
+
+**Extension: `latex_macros`**
 
 For output formats other than LaTeX, pandoc will parse LaTeX `\newcommand` and
 `\renewcommand` definitions and apply the resulting macros to all LaTeX
@@ -1938,6 +1940,10 @@ will become a link:
     <http://google.com>
     <sam@green.eggs.ham>
 
+**Extension: `autolink_code_spans`**
+
+Pandoc will render autolinked URLs and email addresses as
+inline code.
 
 ### Inline links ###
 
@@ -2026,7 +2032,7 @@ The link text will be used as the image's alt text:
 
 ### Pictures with captions ###
 
-*Extension*.
+**Extension**
 
 An image occurring by itself in a paragraph will be rendered as
 a figure with a caption.[^5] (In LaTeX, a figure environment will be
@@ -2050,7 +2056,7 @@ nonbreaking space after the image:
 Footnotes
 ---------
 
-*Extension*.
+**Extension: `footnotes`**
 
 Pandoc's markdown allows footnotes, using the following syntax:
 
@@ -2081,6 +2087,8 @@ The footnotes themselves need not be placed at the end of the
 document.  They may appear anywhere except inside other block elements
 (lists, block quotes, tables, etc.).
 
+**Extension: `inline_notes`**
+
 Inline footnotes are also allowed (though, unlike regular notes,
 they cannot contain multiple paragraphs).  The syntax is as follows:
 
@@ -2094,7 +2102,7 @@ Inline and regular footnotes may be mixed freely.
 Citations
 ---------
 
-*Extension*.
+**Extension: `citations`**
 
 Pandoc can automatically generate citations and a bibliography in a number of
 styles (using Andrea Rossato's `hs-citeproc`). In order to use this feature,
