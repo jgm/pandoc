@@ -47,6 +47,7 @@ data Extension = Ext_footnotes
                | Ext_inline_notes
                | Ext_pandoc_title_blocks
                | Ext_table_captions
+               -- | Ext_image_captions
                | Ext_simple_tables
                | Ext_multiline_tables
                | Ext_grid_tables
@@ -64,12 +65,12 @@ data Extension = Ext_footnotes
                | Ext_startnum
                | Ext_definition_lists
                | Ext_example_lists
-               | Ext_header_identifiers
+               -- | Ext_header_identifiers
                | Ext_all_symbols_escapable
                | Ext_intraword_underscores
                | Ext_blank_before_blockquote
                | Ext_blank_before_header
-               | Ext_significant_bullets
+               -- | Ext_significant_bullets
                | Ext_strikeout
                | Ext_superscript
                | Ext_subscript
