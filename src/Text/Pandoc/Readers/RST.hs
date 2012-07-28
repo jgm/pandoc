@@ -407,7 +407,7 @@ mathBlockMultiline = try $ do
 
 lhsCodeBlock :: Parser [Char] ParserState Block
 lhsCodeBlock = try $ do
-  failUnlessLHS
+  getOption readerLiterateHaskell >>= guard
   optional codeBlockStart
   pos <- getPosition
   when (sourceColumn pos /= 1) $ fail "Not in first column"
@@ -776,7 +776,7 @@ simpleTable headless = do
 
 gridTable :: Bool -- ^ Headerless table
           -> Parser [Char] ParserState Block
-gridTable = gridTableWith block
+gridTable = gridTableWith parseBlocks
 
 table :: Parser [Char] ParserState Block
 table = gridTable False <|> simpleTable False <|>

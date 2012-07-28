@@ -56,6 +56,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              orderedListMarker,
                              charRef,
                              tableWith,
+                             widthsFromIndices,
                              gridTableWith,
                              readWith,
                              testStringWith,
@@ -68,12 +69,24 @@ module Text.Pandoc.Parsing ( (>>~),
                              ParserContext (..),
                              QuoteContext (..),
                              NoteTable,
+                             NoteTable',
                              KeyTable,
                              Key,
                              toKey,
                              fromKey,
                              lookupKeySrc,
+                             KeyTable',
+                             Key',
+                             toKey',
                              smartPunctuation,
+                             withQuoteContext,
+                             singleQuoteStart,
+                             singleQuoteEnd,
+                             doubleQuoteStart,
+                             doubleQuoteEnd,
+                             ellipses,
+                             apostrophe,
+                             dash,
                              macro,
                              applyMacros',
                              Parser,
@@ -133,19 +146,20 @@ where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Generic
+import Text.Pandoc.Builder (Blocks)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec
 import Text.Parsec.Pos (newPos)
 import Data.Char ( toLower, toUpper, ord, isAscii, isAlphaNum, isDigit, isPunctuation )
 import Data.List ( intercalate, transpose )
 import Network.URI ( parseURI, URI (..), isAllowedInURI )
-import Control.Monad ( join, liftM, guard, mzero )
 import Text.Pandoc.Shared
 import qualified Data.Map as M
 import Text.TeXMath.Macros (applyMacros, Macro, parseMacroDefinitions)
 import Text.HTML.TagSoup.Entity ( lookupEntity )
 import Data.Default
 import qualified Data.Set as Set
+import Control.Monad.Reader
 
 type Parser t s = Parsec t s
 
@@ -579,11 +593,12 @@ widthsFromIndices numColumns' indices =
 -- (which may be grid), then the rows,
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-gridTableWith :: Parser [Char] ParserState Block    -- ^ Block parser
+gridTableWith :: Parser [Char] ParserState [Block]   -- ^ Block list parser
               -> Bool                                -- ^ Headerless table
               -> Parser [Char] ParserState Block
-gridTableWith block headless =
-  tableWith (gridTableHeader headless block) (gridTableRow block) (gridTableSep '-') gridTableFooter
+gridTableWith blocks headless =
+  tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
+            (gridTableSep '-') gridTableFooter
 
 gridTableSplitLine :: [Int] -> String -> [String]
 gridTableSplitLine indices line = map removeFinalBar $ tail $
@@ -608,9 +623,9 @@ gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- | Parse header for a grid table.
 gridTableHeader :: Bool -- ^ Headerless table
-                -> Parser [Char] ParserState Block
+                -> Parser [Char] ParserState [Block]
                 -> Parser [Char] ParserState ([[Block]], [Alignment], [Int])
-gridTableHeader headless block = try $ do
+gridTableHeader headless blocks = try $ do
   optional blanklines
   dashes <- gridDashedLines '-'
   rawContent  <- if headless
@@ -629,7 +644,7 @@ gridTableHeader headless block = try $ do
                     then replicate (length dashes) ""
                     else map (intercalate " ") $ transpose
                        $ map (gridTableSplitLine indices) rawContent
-  heads <- mapM (parseFromString $ many block) $
+  heads <- mapM (parseFromString blocks) $
                map removeLeadingTrailingSpace rawHeads
   return (heads, aligns, indices)
 
@@ -640,14 +655,14 @@ gridTableRawLine indices = do
   return (gridTableSplitLine indices line)
 
 -- | Parse row of grid table.
-gridTableRow :: Parser [Char] ParserState Block
+gridTableRow :: Parser [Char] ParserState [Block]
              -> [Int]
              -> Parser [Char] ParserState [[Block]]
-gridTableRow block indices = do
+gridTableRow blocks indices = do
   colLines <- many1 (gridTableRawLine indices)
   let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
                transpose colLines
-  mapM (liftM compactifyCell . parseFromString (many block)) cols
+  mapM (liftM compactifyCell . parseFromString blocks) cols
 
 removeOneLeadingSpace :: [String] -> [String]
 removeOneLeadingSpace xs =
@@ -688,10 +703,13 @@ data ParserState = ParserState
     { stateOptions         :: ReaderOptions, -- ^ User options
       stateParserContext   :: ParserContext, -- ^ Inside list?
       stateQuoteContext    :: QuoteContext,  -- ^ Inside quoted environment?
+      stateAllowLinks      :: Bool,          -- ^ Allow parsing of links
       stateMaxNestingLevel :: Int,           -- ^ Max # of nested Strong/Emph
       stateLastStrPos      :: Maybe SourcePos, -- ^ Position after last str parsed
       stateKeys            :: KeyTable,      -- ^ List of reference keys
-      stateNotes           :: NoteTable,     -- ^ List of notes
+      stateKeys'           :: KeyTable',     -- ^ List of reference keys (with fallbacks)
+      stateNotes           :: NoteTable,     -- ^ List of notes (raw bodies)
+      stateNotes'          :: NoteTable',    -- ^ List of notes (parsed bodies)
       stateTitle           :: [Inline],      -- ^ Title of document
       stateAuthors         :: [[Inline]],    -- ^ Authors of document
       stateDate            :: [Inline],      -- ^ Date of document
@@ -702,7 +720,6 @@ data ParserState = ParserState
       stateMacros          :: [Macro],       -- ^ List of macros defined so far
       stateRstDefaultRole  :: String         -- ^ Current rST default interpreted text role
     }
-    deriving Show
 
 instance Default ParserState where
   def = defaultParserState
@@ -712,10 +729,13 @@ defaultParserState =
     ParserState { stateOptions         = def,
                   stateParserContext   = NullState,
                   stateQuoteContext    = NoQuote,
+                  stateAllowLinks      = True,
                   stateMaxNestingLevel = 6,
                   stateLastStrPos      = Nothing,
                   stateKeys            = M.empty,
+                  stateKeys'           = M.empty,
                   stateNotes           = [],
+                  stateNotes'          = [],
                   stateTitle           = [],
                   stateAuthors         = [],
                   stateDate            = [],
@@ -755,6 +775,8 @@ data QuoteContext
 
 type NoteTable = [(String, String)]
 
+type NoteTable' = [(String, Reader ParserState Blocks)]  -- used in markdown reader
+
 newtype Key = Key [Inline] deriving (Show, Read, Eq, Ord)
 
 toKey :: [Inline] -> Key
@@ -771,6 +793,13 @@ fromKey :: Key -> [Inline]
 fromKey (Key xs) = xs
 
 type KeyTable = M.Map Key Target
+
+newtype Key' = Key' String deriving (Show, Read, Eq, Ord)
+
+toKey' :: String -> Key'
+toKey' = Key' . map toLower . unwords . words
+
+type KeyTable' = M.Map Key' Target
 
 -- | Look up key in key table and return target object.
 lookupKeySrc :: KeyTable  -- ^ Key table
@@ -798,8 +827,8 @@ quoted :: Parser [Char] ParserState Inline
 quoted inlineParser = doubleQuoted inlineParser <|> singleQuoted inlineParser
 
 withQuoteContext :: QuoteContext
-                 -> (Parser [Char] ParserState Inline)
-                 -> Parser [Char] ParserState Inline
+                 -> Parser [Char] ParserState a
+                 -> Parser [Char] ParserState a
 withQuoteContext context parser = do
   oldState <- getState
   let oldQuoteContext = stateQuoteContext oldState

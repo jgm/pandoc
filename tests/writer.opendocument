@@ -665,27 +665,27 @@
     <style:style style:name="T35" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold" /></style:style>
     <style:style style:name="T36" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold" /></style:style>
     <style:style style:name="T37" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold" /></style:style>
-    <style:style style:name="T38" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold" /></style:style>
-    <style:style style:name="T39" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold" /></style:style>
+    <style:style style:name="T38" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
+    <style:style style:name="T39" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
     <style:style style:name="T40" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
     <style:style style:name="T41" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
-    <style:style style:name="T42" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
+    <style:style style:name="T42" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" style:text-line-through-style="solid" /></style:style>
     <style:style style:name="T43" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
-    <style:style style:name="T44" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" style:text-line-through-style="solid" /></style:style>
-    <style:style style:name="T45" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
+    <style:style style:name="T44" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
+    <style:style style:name="T45" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" style:text-position="super 58%" /></style:style>
     <style:style style:name="T46" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
-    <style:style style:name="T47" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" style:text-position="super 58%" /></style:style>
-    <style:style style:name="T48" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
-    <style:style style:name="T49" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
-    <style:style style:name="T50" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
-    <style:style style:name="T51" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
-    <style:style style:name="T52" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
-    <style:style style:name="T53" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
-    <style:style style:name="T54" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
-    <style:style style:name="T55" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
-    <style:style style:name="T56" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
-    <style:style style:name="T57" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
-    <style:style style:name="T58" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T47" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
+    <style:style style:name="T48" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
+    <style:style style:name="T49" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
+    <style:style style:name="T50" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T51" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T52" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T53" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T54" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T55" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T56" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T57" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T58" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
     <style:style style:name="T59" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T60" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T61" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
@@ -693,17 +693,9 @@
     <style:style style:name="T63" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T64" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T65" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T66" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
+    <style:style style:name="T66" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T67" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T68" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T69" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T70" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T71" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T72" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T73" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T74" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T75" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T76" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="P1" style:family="paragraph" style:parent-style-name="Quotations">
       <style:paragraph-properties fo:margin-left="0.5in" fo:margin-right="0in" fo:text-indent="0in" style:auto-text-indent="false" />
     </style:style>
@@ -1342,33 +1334,33 @@ Markup</text:h>
 </text:span><text:span text:style-name="T20">is</text:span><text:span text:style-name="T21">
 </text:span><text:span text:style-name="T22">strong</text:span><text:span text:style-name="T23">
 </text:span><text:span text:style-name="T24">and</text:span><text:span text:style-name="T25">
-</text:span><text:span text:style-name="T26">em</text:span><text:span text:style-name="T27">.</text:span></text:p>
+</text:span><text:span text:style-name="T26">em.</text:span></text:p>
 <text:p text:style-name="Text_20_body">So is
-<text:span text:style-name="T28">this</text:span> word.</text:p>
-<text:p text:style-name="Text_20_body"><text:span text:style-name="T29">This</text:span><text:span text:style-name="T30">
-</text:span><text:span text:style-name="T31">is</text:span><text:span text:style-name="T32">
-</text:span><text:span text:style-name="T33">strong</text:span><text:span text:style-name="T34">
-</text:span><text:span text:style-name="T35">and</text:span><text:span text:style-name="T36">
-</text:span><text:span text:style-name="T37">em</text:span><text:span text:style-name="T38">.</text:span></text:p>
+<text:span text:style-name="T27">this</text:span> word.</text:p>
+<text:p text:style-name="Text_20_body"><text:span text:style-name="T28">This</text:span><text:span text:style-name="T29">
+</text:span><text:span text:style-name="T30">is</text:span><text:span text:style-name="T31">
+</text:span><text:span text:style-name="T32">strong</text:span><text:span text:style-name="T33">
+</text:span><text:span text:style-name="T34">and</text:span><text:span text:style-name="T35">
+</text:span><text:span text:style-name="T36">em.</text:span></text:p>
 <text:p text:style-name="Text_20_body">So is
-<text:span text:style-name="T39">this</text:span> word.</text:p>
+<text:span text:style-name="T37">this</text:span> word.</text:p>
 <text:p text:style-name="Text_20_body">This is code:
 <text:span text:style-name="Teletype">&gt;</text:span>,
 <text:span text:style-name="Teletype">$</text:span>,
 <text:span text:style-name="Teletype">\</text:span>,
 <text:span text:style-name="Teletype">\$</text:span>,
 <text:span text:style-name="Teletype">&lt;html&gt;</text:span>.</text:p>
-<text:p text:style-name="Text_20_body"><text:span text:style-name="T40">This</text:span><text:span text:style-name="T41">
-</text:span><text:span text:style-name="T42">is</text:span><text:span text:style-name="T43">
-</text:span><text:span text:style-name="T44">strikeout</text:span><text:span text:style-name="T45">.</text:span></text:p>
+<text:p text:style-name="Text_20_body"><text:span text:style-name="T38">This</text:span><text:span text:style-name="T39">
+</text:span><text:span text:style-name="T40">is</text:span><text:span text:style-name="T41">
+</text:span><text:span text:style-name="T42">strikeout</text:span><text:span text:style-name="T43">.</text:span></text:p>
 <text:p text:style-name="Text_20_body">Superscripts:
-a<text:span text:style-name="T46">bc</text:span>d
-a<text:span text:style-name="T47">hello</text:span>
-a<text:span text:style-name="T48">hello</text:span><text:span text:style-name="T49"> </text:span><text:span text:style-name="T50">there</text:span>.</text:p>
+a<text:span text:style-name="T44">bc</text:span>d
+a<text:span text:style-name="T45">hello</text:span>
+a<text:span text:style-name="T46">hello there</text:span>.</text:p>
 <text:p text:style-name="Text_20_body">Subscripts:
-H<text:span text:style-name="T51">2</text:span>O,
-H<text:span text:style-name="T52">23</text:span>O,
-H<text:span text:style-name="T53">many</text:span><text:span text:style-name="T54"> </text:span><text:span text:style-name="T55">of</text:span><text:span text:style-name="T56"> </text:span><text:span text:style-name="T57">them</text:span>O.</text:p>
+H<text:span text:style-name="T47">2</text:span>O,
+H<text:span text:style-name="T48">23</text:span>O,
+H<text:span text:style-name="T49">many of them</text:span>O.</text:p>
 <text:p text:style-name="Text_20_body">These should not be superscripts or
 subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
@@ -1400,16 +1392,16 @@ five.</text:p>
     <text:p text:style-name="P51">2 + 2 = 4</text:p>
   </text:list-item>
   <text:list-item>
-    <text:p text:style-name="P51"><text:span text:style-name="T58">x</text:span> ∈ <text:span text:style-name="T59">y</text:span></text:p>
+    <text:p text:style-name="P51"><text:span text:style-name="T50">x</text:span> ∈ <text:span text:style-name="T51">y</text:span></text:p>
   </text:list-item>
   <text:list-item>
-    <text:p text:style-name="P51"><text:span text:style-name="T60">α</text:span> ∧ <text:span text:style-name="T61">ω</text:span></text:p>
+    <text:p text:style-name="P51"><text:span text:style-name="T52">α</text:span> ∧ <text:span text:style-name="T53">ω</text:span></text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P51">223</text:p>
   </text:list-item>
   <text:list-item>
-    <text:p text:style-name="P51"><text:span text:style-name="T62">p</text:span>-Tree</text:p>
+    <text:p text:style-name="P51"><text:span text:style-name="T54">p</text:span>-Tree</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P51">Here’s some display math:
@@ -1417,7 +1409,7 @@ five.</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P51">Here’s one that has a line break in it:
-    <text:span text:style-name="T63">α</text:span> + <text:span text:style-name="T64">ω</text:span> × <text:span text:style-name="T65">x</text:span><text:span text:style-name="T66">2</text:span>.</text:p>
+    <text:span text:style-name="T55">α</text:span> + <text:span text:style-name="T56">ω</text:span> × <text:span text:style-name="T57">x</text:span><text:span text:style-name="T58">2</text:span>.</text:p>
   </text:list-item>
 </text:list>
 <text:p text:style-name="First_20_paragraph">These shouldn’t be math:</text:p>
@@ -1428,7 +1420,7 @@ five.</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P52">$22,000 is a
-    <text:span text:style-name="T67">lot</text:span> of money. So is $34,000.
+    <text:span text:style-name="T59">lot</text:span> of money. So is $34,000.
     (It worked if “lot” is emphasized.)</text:p>
   </text:list-item>
   <text:list-item>
@@ -1437,10 +1429,10 @@ five.</text:p>
   <text:list-item>
     <text:p text:style-name="P52">Escaped
     <text:span text:style-name="Teletype">$</text:span>: $73
-    <text:span text:style-name="T68">this</text:span><text:span text:style-name="T69">
-    </text:span><text:span text:style-name="T70">should</text:span><text:span text:style-name="T71">
-    </text:span><text:span text:style-name="T72">be</text:span><text:span text:style-name="T73">
-    </text:span><text:span text:style-name="T74">emphasized</text:span>
+    <text:span text:style-name="T60">this</text:span><text:span text:style-name="T61">
+    </text:span><text:span text:style-name="T62">should</text:span><text:span text:style-name="T63">
+    </text:span><text:span text:style-name="T64">be</text:span><text:span text:style-name="T65">
+    </text:span><text:span text:style-name="T66">emphasized</text:span>
     23$.</text:p>
   </text:list-item>
 </text:list>
@@ -1589,10 +1581,10 @@ indented to show that they belong to the footnote (as with list
 items).</text:p><text:p text:style-name="P58"><text:s text:c="2" />{ &lt;code&gt; }</text:p><text:p text:style-name="Footnote">If
 you want, you can indent every line, but you can also be lazy and just indent
 the first line of each block.</text:p></text:note-body></text:note> This
-should <text:span text:style-name="T75">not</text:span> be a footnote
+should <text:span text:style-name="T67">not</text:span> be a footnote
 reference, because it contains a space.[^my note] Here is an inline
 note.<text:note text:id="ftn2" text:note-class="footnote"><text:note-citation>3</text:note-citation><text:note-body><text:p text:style-name="Footnote">This
-is <text:span text:style-name="T76">easier</text:span> to type. Inline notes
+is <text:span text:style-name="T68">easier</text:span> to type. Inline notes
 may contain
 <text:a xlink:type="simple" xlink:href="http://google.com" office:name=""><text:span text:style-name="Definition">links</text:span></text:a>
 and <text:span text:style-name="Teletype">]</text:span> verbatim characters,
