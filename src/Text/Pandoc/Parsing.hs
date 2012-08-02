@@ -71,13 +71,8 @@ module Text.Pandoc.Parsing ( (>>~),
                              NoteTable,
                              NoteTable',
                              KeyTable,
-                             Key,
+                             Key (..),
                              toKey,
-                             fromKey,
-                             lookupKeySrc,
-                             KeyTable',
-                             Key',
-                             toKey',
                              smartPunctuation,
                              withQuoteContext,
                              singleQuoteStart,
@@ -145,7 +140,6 @@ where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Generic
 import Text.Pandoc.Builder (Blocks)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec
@@ -706,8 +700,7 @@ data ParserState = ParserState
       stateAllowLinks      :: Bool,          -- ^ Allow parsing of links
       stateMaxNestingLevel :: Int,           -- ^ Max # of nested Strong/Emph
       stateLastStrPos      :: Maybe SourcePos, -- ^ Position after last str parsed
-      stateKeys            :: KeyTable,      -- ^ List of reference keys
-      stateKeys'           :: KeyTable',     -- ^ List of reference keys (with fallbacks)
+      stateKeys            :: KeyTable,      -- ^ List of reference keys (with fallbacks)
       stateNotes           :: NoteTable,     -- ^ List of notes (raw bodies)
       stateNotes'          :: NoteTable',    -- ^ List of notes (parsed bodies)
       stateTitle           :: [Inline],      -- ^ Title of document
@@ -733,7 +726,6 @@ defaultParserState =
                   stateMaxNestingLevel = 6,
                   stateLastStrPos      = Nothing,
                   stateKeys            = M.empty,
-                  stateKeys'           = M.empty,
                   stateNotes           = [],
                   stateNotes'          = [],
                   stateTitle           = [],
@@ -777,37 +769,12 @@ type NoteTable = [(String, String)]
 
 type NoteTable' = [(String, Reader ParserState Blocks)]  -- used in markdown reader
 
-newtype Key = Key [Inline] deriving (Show, Read, Eq, Ord)
+newtype Key = Key String deriving (Show, Read, Eq, Ord)
 
-toKey :: [Inline] -> Key
-toKey = Key . bottomUp lowercase
-  where lowercase :: Inline -> Inline
-        lowercase (Str xs)          = Str (map toLower xs)
-        lowercase (Math t xs)       = Math t (map toLower xs)
-        lowercase (Code attr xs)    = Code attr (map toLower xs)
-        lowercase (RawInline f xs)  = RawInline f (map toLower xs)
-        lowercase LineBreak         = Space
-        lowercase x                 = x
-
-fromKey :: Key -> [Inline]
-fromKey (Key xs) = xs
+toKey :: String -> Key
+toKey = Key . map toLower . unwords . words
 
 type KeyTable = M.Map Key Target
-
-newtype Key' = Key' String deriving (Show, Read, Eq, Ord)
-
-toKey' :: String -> Key'
-toKey' = Key' . map toLower . unwords . words
-
-type KeyTable' = M.Map Key' Target
-
--- | Look up key in key table and return target object.
-lookupKeySrc :: KeyTable  -- ^ Key table
-             -> Key       -- ^ Key
-             -> Maybe Target
-lookupKeySrc table key = case M.lookup key table of
-                           Nothing  -> Nothing
-                           Just src -> Just src
 
 -- | Fail unless we're in "smart typography" mode.
 failUnlessSmart :: Parser [tok] ParserState ()

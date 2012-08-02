@@ -670,26 +670,31 @@ targetURI = do
 imageKey :: Parser [Char] ParserState (Key, Target)
 imageKey = try $ do
   string ".. |"
-  ref <- manyTill inline (char '|')
+  (_,ref) <- withRaw (manyTill inline (char '|'))
   skipSpaces
   string "image::"
   src <- targetURI
-  return (toKey (normalizeSpaces ref), (src, ""))
+  return (toKey $ init ref, (src, ""))
 
 anonymousKey :: Parser [Char] st (Key, Target)
 anonymousKey = try $ do
   oneOfStrings [".. __:", "__"]
   src <- targetURI
   pos <- getPosition
-  return (toKey [Str $ "_" ++ printf "%09d" (sourceLine pos)], (src, ""))
+  return (toKey $ "_" ++ printf "%09d" (sourceLine pos), (src, ""))
+
+stripTicks :: String -> String
+stripTicks = reverse . stripTick . reverse . stripTick
+  where stripTick ('`':xs) = xs
+        stripTick xs = xs
 
 regularKey :: Parser [Char] ParserState (Key, Target)
 regularKey = try $ do
   string ".. _"
-  ref <- referenceName
+  (_,ref) <- withRaw referenceName
   char ':'
   src <- targetURI
-  return (toKey (normalizeSpaces ref), (src, ""))
+  return (toKey $ stripTicks ref, (src, ""))
 
 --
 -- tables
@@ -921,19 +926,19 @@ explicitLink = try $ do
 
 referenceLink :: Parser [Char] ParserState Inline
 referenceLink = try $ do
-  label' <- (quotedReferenceName <|> simpleReferenceName) >>~ char '_'
+  (label',ref) <- withRaw (quotedReferenceName <|> simpleReferenceName) >>~
+                   char '_'
   state <- getState
   let keyTable = stateKeys state
-  let isAnonKey x = case fromKey x of
-                         [Str ('_':_)] -> True
-                         _             -> False
-  key <- option (toKey label') $
+  let isAnonKey (Key ('_':_)) = True
+      isAnonKey _             = False
+  key <- option (toKey $ stripTicks ref) $
                 do char '_'
                    let anonKeys = sort $ filter isAnonKey $ M.keys keyTable
                    if null anonKeys
                       then mzero
                       else return (head anonKeys)
-  (src,tit) <- case lookupKeySrc keyTable key of
+  (src,tit) <- case M.lookup key keyTable of
                     Nothing     -> fail "no corresponding key"
                     Just target -> return target
   -- if anonymous link, remove key so it won't be used again
@@ -957,13 +962,13 @@ autoLink = autoURI <|> autoEmail
 image :: Parser [Char] ParserState Inline
 image = try $ do
   char '|'
-  ref <- manyTill inline (char '|')
+  (alt,ref) <- withRaw (manyTill inline (char '|'))
   state <- getState
   let keyTable = stateKeys state
-  (src,tit) <- case lookupKeySrc keyTable (toKey ref) of
+  (src,tit) <- case M.lookup (toKey $ init ref) keyTable of
                      Nothing     -> fail "no corresponding key"
                      Just target -> return target
-  return $ Image (normalizeSpaces ref) (src, tit)
+  return $ Image (normalizeSpaces alt) (src, tit)
 
 note :: Parser [Char] ParserState Inline
 note = try $ do

@@ -227,8 +227,8 @@ referenceKey = try $ do
   blanklines
   let target = (escapeURI $ removeTrailingSpace src,  tit)
   st <- getState
-  let oldkeys = stateKeys' st
-  updateState $ \s -> s { stateKeys' = M.insert (toKey' raw) target oldkeys }
+  let oldkeys = stateKeys st
+  updateState $ \s -> s { stateKeys = M.insert (toKey raw) target oldkeys }
   return $ return mempty
 
 referenceTitle :: Parser [Char] ParserState String
@@ -1405,7 +1405,7 @@ referenceLink constructor (lab, raw) = do
   raw' <- try (optional (char ' ') >>
                optional (newline >> skipSpaces) >>
                (snd <$> reference)) <|> return ""
-  let key = toKey' $ if raw' == "[]" || raw' == "" then raw else raw'
+  let key = toKey $ if raw' == "[]" || raw' == "" then raw else raw'
   let dropRB (']':xs) = xs
       dropRB xs = xs
   let dropLB ('[':xs) = xs
@@ -1413,7 +1413,7 @@ referenceLink constructor (lab, raw) = do
   let dropBrackets = reverse . dropRB . reverse . dropLB
   fallback <- parseFromString (mconcat <$> many inline) $ dropBrackets raw
   return $ do
-    keys <- asks stateKeys'
+    keys <- asks stateKeys
     case M.lookup key keys of
        Nothing        -> (\x -> B.str "[" <> x <> B.str "]" <> B.str raw') <$> fallback
        Just (src,tit) -> constructor src tit <$> lab
