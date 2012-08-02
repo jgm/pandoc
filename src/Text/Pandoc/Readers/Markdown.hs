@@ -992,29 +992,19 @@ removeOneLeadingSpace xs =
 gridTableFooter :: Parser [Char] ParserState [Char]
 gridTableFooter = blanklines
 
-pipeTable :: Bool -- ^ Headerless table
-          -> Parser [Char] ParserState ([Alignment], [Double], F [Blocks], F [[Blocks]])
-pipeTable headless =
-  tableWith (pipeTableHeader headless)
-            (\_ -> pipeTableRow) (return ()) blanklines
-
--- | Parse header for an pipe table.
-pipeTableHeader :: Bool -- ^ Headerless table
-                 -> Parser [Char] ParserState (F [Blocks], [Alignment], [Int])
-pipeTableHeader headless = do
-  try $ do
-    heads <- if headless
-                then return $ return $ repeat mempty
-                else pipeTableRow
-    aligns <- nonindentSpaces >> optional (char '|') >>
-               pipeTableHeaderPart `sepBy1` sepPipe
-    optional (char '|')
-    newline
-    let cols = length aligns
-    let heads' = if headless
-                    then return (replicate cols mempty)
-                    else heads
-    return (heads', aligns, [])
+pipeTable :: Parser [Char] ParserState ([Alignment], [Double], F [Blocks], F [[Blocks]])
+pipeTable = try $ do
+  let pipeBreak = nonindentSpaces *> optional (char '|') *>
+                      pipeTableHeaderPart `sepBy1` sepPipe <*
+                      optional (char '|') <* blankline
+  (heads,aligns) <- try ( pipeBreak >>= \als ->
+                     return (return $ replicate (length als) mempty, als))
+                  <|> ( pipeTableRow >>= \row -> pipeBreak >>= \als ->
+                          return (row, als) )
+  lines' <- fmap sequence $ many1 pipeTableRow
+  blanklines
+  let widths = replicate (length aligns) 0.0
+  return $ (aligns, widths, heads, lines')
 
 sepPipe :: Parser [Char] ParserState ()
 sepPipe = try $ char '|' >> notFollowedBy blankline
@@ -1078,8 +1068,7 @@ table :: Parser [Char] ParserState (F Blocks)
 table = try $ do
   frontCaption <- option Nothing (Just <$> tableCaption)
   (aligns, widths, heads, lns) <-
-         try (guardEnabled Ext_pipe_tables >> scanForPipe >>
-                (pipeTable True <|> pipeTable False)) <|>
+         try (guardEnabled Ext_pipe_tables >> scanForPipe >> pipeTable) <|>
          try (guardEnabled Ext_multiline_tables >>
                 multilineTable False) <|>
          try (guardEnabled Ext_simple_tables >>
