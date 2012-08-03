@@ -91,7 +91,8 @@ pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
   title' <- inlineListToMarkdown opts title
   authors' <- mapM (inlineListToMarkdown opts) authors
   date' <- inlineListToMarkdown opts date
-  let titleblock = not $ null title && null authors && null date
+  let titleblock = isEnabled Ext_pandoc_title_blocks opts &&
+                   not (null title && null authors && null date)
   let headerBlocks = filter isHeaderBlock blocks
   let toc = if writerTableOfContents opts
                then tableOfContents opts headerBlocks
