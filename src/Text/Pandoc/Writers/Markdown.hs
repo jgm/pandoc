@@ -439,15 +439,21 @@ inlineToMarkdown opts (Strong lst) = do
   return $ "**" <> contents <> "**"
 inlineToMarkdown opts (Strikeout lst) = do
   contents <- inlineListToMarkdown opts lst
-  return $ "~~" <> contents <> "~~"
+  return $ if isEnabled Ext_strikeout opts
+              then "~~" <> contents <> "~~"
+              else "<s>" <> contents <> "</s>"
 inlineToMarkdown opts (Superscript lst) = do
   let lst' = bottomUp escapeSpaces lst
   contents <- inlineListToMarkdown opts lst'
-  return $ "^" <> contents <> "^"
+  return $ if isEnabled Ext_superscript opts
+              then "^" <> contents <> "^"
+              else "<sup>" <> contents <> "</sup>"
 inlineToMarkdown opts (Subscript lst) = do
   let lst' = bottomUp escapeSpaces lst
   contents <- inlineListToMarkdown opts lst'
-  return $ "~" <> contents <> "~"
+  return $ if isEnabled Ext_subscript opts
+              then "~" <> contents <> "~"
+              else "<sub>" <> contents <> "</sub>"
 inlineToMarkdown opts (SmallCaps lst) = inlineListToMarkdown opts lst
 inlineToMarkdown opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
