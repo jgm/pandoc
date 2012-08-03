@@ -62,7 +62,9 @@ writeMarkdown opts document =
 -- pictures, or inline formatting).
 writePlain :: WriterOptions -> Pandoc -> String
 writePlain opts document =
-  evalState (pandocToMarkdown opts{writerExtensions = Set.empty}
+  evalState (pandocToMarkdown opts{
+                 writerExtensions = Set.delete Ext_escaped_line_breaks $
+                                    writerExtensions opts }
               document') WriterState{ stNotes = []
                                     , stRefs  = []
                                     , stPlain = True }
