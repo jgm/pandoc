@@ -1,3 +1,4 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -85,6 +86,10 @@ module Text.Pandoc.Parsing ( (>>~),
                              macro,
                              applyMacros',
                              Parser,
+                             F(..),
+                             runF,
+                             askF,
+                             asksF,
                              -- * Re-exports from Text.Pandoc.Parsec
                              runParser,
                              parse,
@@ -154,8 +159,25 @@ import Text.HTML.TagSoup.Entity ( lookupEntity )
 import Data.Default
 import qualified Data.Set as Set
 import Control.Monad.Reader
+import Data.Monoid
 
 type Parser t s = Parsec t s
+
+newtype F a = F { unF :: Reader ParserState a } deriving (Monad, Functor)
+
+runF :: F a -> ParserState -> a
+runF = runReader . unF
+
+askF :: F ParserState
+askF = F ask
+
+asksF :: (ParserState -> a) -> F a
+asksF f = F $ asks f
+
+instance Monoid a => Monoid (F a) where
+  mempty = return mempty
+  mappend = liftM2 mappend
+  mconcat = liftM mconcat . sequence
 
 -- | Like >>, but returns the operation on the left.
 -- (Suggested by Tillmann Rendel on Haskell-cafe list.)
@@ -767,7 +789,7 @@ data QuoteContext
 
 type NoteTable = [(String, String)]
 
-type NoteTable' = [(String, Reader ParserState Blocks)]  -- used in markdown reader
+type NoteTable' = [(String, F Blocks)]  -- used in markdown reader
 
 newtype Key = Key String deriving (Show, Read, Eq, Ord)
 

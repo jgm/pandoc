@@ -1,5 +1,6 @@
 {-# LANGUAGE RelaxedPolyRec #-} -- needed for inlinesBetween on GHC < 7
-{-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances, TypeSynonymInstances,
+    GeneralizedNewtypeDeriving #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -49,9 +50,9 @@ import Text.Pandoc.XML ( fromEntities )
 import Data.Monoid
 import qualified Data.Sequence as Seq  -- TODO leaky abstraction, need better isNull in Builder
 import Control.Applicative ((<$>), (<*), (*>), (<$))
+import Control.Monad
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match (tagOpen)
-import Control.Monad.Reader
 
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: ReaderOptions -- ^ Reader options
@@ -59,13 +60,6 @@ readMarkdown :: ReaderOptions -- ^ Reader options
              -> Pandoc
 readMarkdown opts s =
   (readWith parseMarkdown) def{ stateOptions = opts } (s ++ "\n\n")
-
-type F a = Reader ParserState a
-
-instance Monoid a => Monoid (Reader ParserState a) where
-  mempty = return mempty
-  mappend = liftM2 mappend
-  mconcat = liftM mconcat . sequence
 
 trimInlinesF :: F Inlines -> F Inlines
 trimInlinesF = liftM trimInlines
@@ -100,7 +94,7 @@ isBlank _    = False
 --
 
 isNull :: F Inlines -> Bool
-isNull ils = Seq.null $ unInlines (runReader ils def)
+isNull ils = Seq.null $ unInlines (runF ils def)
 
 spnl :: Parser [Char] st ()
 spnl = try $ do
@@ -143,7 +137,7 @@ inlinesInBalancedBrackets :: Parser [Char] ParserState (F Inlines)
 inlinesInBalancedBrackets = try $ do
   char '['
   result <- manyTill ( (do lookAhead $ try $ do x <- inline
-                                                guard (runReader x def == B.str "[")
+                                                guard (runF x def == B.str "[")
                            bal <- inlinesInBalancedBrackets
                            return $ (\x -> B.str "[" <> x <> B.str "]") <$> bal)
                        <|> inline)
@@ -198,10 +192,10 @@ parseMarkdown = do
   (title, authors, date) <- option (mempty,return [],mempty) titleBlock
   blocks <- parseBlocks
   st <- getState
-  return $ B.setTitle (runReader title st)
-         $ B.setAuthors (runReader authors st)
-         $ B.setDate (runReader date st)
-         $ B.doc $ runReader blocks st
+  return $ B.setTitle (runF title st)
+         $ B.setAuthors (runF authors st)
+         $ B.setDate (runF date st)
+         $ B.doc $ runF blocks st
 
 --
 -- initial pass for references and notes
@@ -1147,7 +1141,7 @@ exampleRef = try $ do
   char '@'
   lab <- many1 (alphaNum <|> oneOf "-_")
   return $ do
-    st <- ask
+    st <- askF
     return $ case M.lookup lab (stateExamples st) of
                   Just n    -> B.str (show n)
                   Nothing   -> B.str ('@':lab)
@@ -1402,7 +1396,7 @@ referenceLink constructor (lab, raw) = do
   let dropBrackets = reverse . dropRB . reverse . dropLB
   fallback <- parseFromString (mconcat <$> many inline) $ dropBrackets raw
   return $ do
-    keys <- asks stateKeys
+    keys <- asksF stateKeys
     case M.lookup key keys of
        Nothing        -> (\x -> B.str "[" <> x <> B.str "]" <> B.str raw') <$> fallback
        Just (src,tit) -> constructor src tit <$> lab
@@ -1427,15 +1421,15 @@ note = try $ do
   guardEnabled Ext_footnotes
   ref <- noteMarker
   return $ do
-    notes <- asks stateNotes'
+    notes <- asksF stateNotes'
     case lookup ref notes of
         Nothing       -> return $ B.str $ "[^" ++ ref ++ "]"
         Just contents -> do
-          st <- ask
+          st <- askF
           -- process the note in a context that doesn't resolve
           -- notes, to avoid infinite looping with notes inside
           -- notes:
-          let contents' = runReader contents st{ stateNotes' = [] }
+          let contents' = runF contents st{ stateNotes' = [] }
           return $ B.note contents'
 
 inlineNote :: Parser [Char] ParserState (F Inlines)
