@@ -366,15 +366,20 @@ definitionListItemToMarkdown :: WriterOptions
                              -> State WriterState Doc
 definitionListItemToMarkdown opts (label, defs) = do
   labelText <- inlineListToMarkdown opts label
-  let tabStop = writerTabStop opts
-  st <- get
-  let leader  = if stPlain st then "   " else ":  "
-  let sps = case writerTabStop opts - 3 of
-                 n | n > 0   -> text $ replicate n ' '
-                 _           -> text " "
   defs' <- mapM (mapM (blockToMarkdown opts)) defs
-  let contents = vcat $ map (\d -> hang tabStop (leader <> sps) $ vcat d <> cr) defs'
-  return $ nowrap labelText <> cr <> contents <> cr
+  if isEnabled Ext_definition_lists opts
+     then do
+       let tabStop = writerTabStop opts
+       st <- get
+       let leader  = if stPlain st then "   " else ":  "
+       let sps = case writerTabStop opts - 3 of
+                      n | n > 0   -> text $ replicate n ' '
+                      _           -> text " "
+       let contents = vcat $ map (\d -> hang tabStop (leader <> sps) $ vcat d <> cr) defs'
+       return $ nowrap labelText <> cr <> contents <> cr
+     else do
+       return $ nowrap labelText <> text "  " <> cr <>
+                vsep (map vsep defs') <> blankline
 
 -- | Convert list of Pandoc block elements to markdown.
 blockListToMarkdown :: WriterOptions -- ^ Options
