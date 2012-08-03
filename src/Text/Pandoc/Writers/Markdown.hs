@@ -280,7 +280,7 @@ blockToMarkdown opts (BlockQuote blocks) = do
   return $ (prefixed leader contents) <> blankline
 blockToMarkdown opts (Table caption aligns widths headers rows) =  do
   caption' <- inlineListToMarkdown opts caption
-  let caption'' = if null caption
+  let caption'' = if null caption || not (isEnabled Ext_table_captions opts)
                      then empty
                      else blankline <> ": " <> caption' <> blankline
   headers' <- mapM (blockListToMarkdown opts) headers
