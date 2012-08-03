@@ -323,7 +323,11 @@ blockToMarkdown opts (Table caption aligns widths headers rows) =  do
 blockToMarkdown opts (BulletList items) = do
   contents <- mapM (bulletListItemToMarkdown opts) items
   return $ cat contents <> blankline
-blockToMarkdown opts (OrderedList attribs items) = do
+blockToMarkdown opts (OrderedList (start,sty,delim) items) = do
+  let start' = if isEnabled Ext_startnum opts then start else 1
+  let sty'   = if isEnabled Ext_fancy_lists opts then sty else DefaultStyle
+  let delim' = if isEnabled Ext_fancy_lists opts then delim else DefaultDelim
+  let attribs = (start', sty', delim')
   let markers  = orderedListMarkers attribs
   let markers' = map (\m -> if length m < 3
                                then m ++ replicate (3 - length m) ' '
