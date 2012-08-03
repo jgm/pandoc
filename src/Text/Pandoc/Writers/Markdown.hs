@@ -146,12 +146,16 @@ noteToMarkdown :: WriterOptions -> Int -> [Block] -> State WriterState Doc
 noteToMarkdown opts num blocks = do
   contents  <- blockListToMarkdown opts blocks
   let num' = text $ show num
-  let marker = text "[^" <> num' <> text "]:"
+  let marker = if isEnabled Ext_footnotes opts
+                  then text "[^" <> num' <> text "]:"
+                  else text "[" <> num' <> text "]"
   let markerSize = 4 + offset num'
   let spacer = case writerTabStop opts - markerSize of
                      n | n > 0  -> text $ replicate n ' '
                      _          -> text " "
-  return $ hang (writerTabStop opts) (marker <> spacer) contents
+  return $ if isEnabled Ext_footnotes opts
+              then hang (writerTabStop opts) (marker <> spacer) contents
+              else marker <> spacer <> contents
 
 -- | Escape special characters for Markdown.
 escapeString :: String -> String
@@ -526,8 +530,10 @@ inlineToMarkdown opts (Image alternate (source, tit)) = do
                else alternate
   linkPart <- inlineToMarkdown opts (Link txt (source, tit))
   return $ "!" <> linkPart
-inlineToMarkdown _ (Note contents) = do
+inlineToMarkdown opts (Note contents) = do
   modify (\st -> st{ stNotes = contents : stNotes st })
   st <- get
   let ref = show $ (length $ stNotes st)
-  return $ "[^" <> text ref <> "]"
+  if isEnabled Ext_footnotes opts
+     then return $ "[^" <> text ref <> "]"
+     else return $ "[" <> text ref <> "]"
