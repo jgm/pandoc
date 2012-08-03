@@ -466,8 +466,9 @@ inlineToMarkdown _ (Math InlineMath str) =
   return $ "$" <> text str <> "$"
 inlineToMarkdown _ (Math DisplayMath str) =
   return $ "$$" <> text str <> "$$"
-inlineToMarkdown _ (RawInline f str)
-  | f == "html" || f == "latex" || f == "tex" || f == "markdown" =
+inlineToMarkdown opts (RawInline f str)
+  | f == "html" || f == "markdown" ||
+    (isEnabled Ext_raw_tex opts && (f == "latex" || f == "tex")) =
     return $ text str
 inlineToMarkdown _ (RawInline _ _) = return empty
 inlineToMarkdown opts (LineBreak)
