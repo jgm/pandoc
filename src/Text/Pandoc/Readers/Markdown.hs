@@ -277,6 +277,8 @@ block :: Parser [Char] ParserState (F Blocks)
 block = choice [ codeBlockDelimited
                , guardEnabled Ext_latex_macros *> (mempty <$ macro)
                , header
+               , rawTeXBlock
+               , htmlBlock
                , table
                , codeBlockIndented
                , lhsCodeBlock
@@ -285,8 +287,6 @@ block = choice [ codeBlockDelimited
                , bulletList
                , orderedList
                , definitionList
-               , rawTeXBlock
-               , htmlBlock
                , noteBlock
                , referenceKey
                , para
