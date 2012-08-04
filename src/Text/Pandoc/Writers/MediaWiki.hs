@@ -82,11 +82,12 @@ blockToMediaWiki opts (Plain inlines) =
   inlineListToMediaWiki opts inlines
 
 blockToMediaWiki opts (Para [Image txt (src,tit)]) = do
-  capt <- inlineListToMediaWiki opts txt
+  capt <- if null txt
+             then return ""
+             else ("|caption " ++) `fmap` inlineListToMediaWiki opts txt
   let opt = if null txt
                then ""
-               else "|alt=" ++ if null tit then capt else tit ++
-                    "|caption " ++ capt
+               else "|alt=" ++ if null tit then capt else tit ++ capt
   return $ "[[Image:" ++ src ++ "|frame|none" ++ opt ++ "]]\n"
 
 blockToMediaWiki opts (Para inlines) = do

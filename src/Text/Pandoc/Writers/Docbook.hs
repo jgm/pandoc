@@ -145,13 +145,16 @@ blockToDocbook _ Null = empty
 blockToDocbook _ (Header _ _) = empty -- should not occur after hierarchicalize
 blockToDocbook opts (Plain lst) = inlinesToDocbook opts lst
 blockToDocbook opts (Para [Image txt (src,_)]) =
-  let capt = inlinesToDocbook opts txt
+  let alt  = inlinesToDocbook opts txt
+      capt = if null txt
+                then empty
+                else inTagsSimple "title" alt
   in  inTagsIndented "figure" $
-        inTagsSimple "title" capt $$
+        capt $$
         (inTagsIndented "mediaobject" $
            (inTagsIndented "imageobject"
              (selfClosingTag "imagedata" [("fileref",src)])) $$
-           inTagsSimple "textobject" (inTagsSimple "phrase" capt))
+           inTagsSimple "textobject" (inTagsSimple "phrase" alt))
 blockToDocbook opts (Para lst) =
   inTagsIndented "para" $ inlinesToDocbook opts lst
 blockToDocbook opts (BlockQuote blocks) =

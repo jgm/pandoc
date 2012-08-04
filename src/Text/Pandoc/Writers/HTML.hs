@@ -379,13 +379,17 @@ blockToHtml _ Null = return mempty
 blockToHtml opts (Plain lst) = inlineListToHtml opts lst
 blockToHtml opts (Para [Image txt (s,tit)]) = do
   img <- inlineToHtml opts (Image txt (s,tit))
-  capt <- inlineListToHtml opts txt
+  let tocapt = if writerHtml5 opts
+                  then H5.figcaption
+                  else H.p ! A.class_ "caption"
+  capt <- if null txt
+             then return mempty
+             else tocapt `fmap` inlineListToHtml opts txt
   return $ if writerHtml5 opts
               then H5.figure $ mconcat
-                    [nl opts, img, H5.figcaption capt, nl opts]
+                    [nl opts, img, capt, nl opts]
               else H.div ! A.class_ "figure" $ mconcat
-                    [nl opts, img, H.p ! A.class_ "caption" $ capt,
-                    nl opts]
+                    [nl opts, img, capt, nl opts]
 blockToHtml opts (Para lst) = do
   contents <- inlineListToHtml opts lst
   return $ H.p contents

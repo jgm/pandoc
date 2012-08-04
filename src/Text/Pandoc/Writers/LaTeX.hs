@@ -266,10 +266,12 @@ blockToLaTeX :: Block     -- ^ Block to convert
 blockToLaTeX Null = return empty
 blockToLaTeX (Plain lst) = inlineListToLaTeX lst
 blockToLaTeX (Para [Image txt (src,tit)]) = do
-  capt <- inlineListToLaTeX txt
+  capt <- if null txt
+             then return empty
+             else (\c -> "\\caption" <> braces c) `fmap` inlineListToLaTeX txt
   img <- inlineToLaTeX (Image txt (src,tit))
   return $ "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
-           ("\\caption{" <> capt <> char '}') $$ "\\end{figure}"
+           capt $$ "\\end{figure}"
 blockToLaTeX (Para lst) = do
   result <- inlineListToLaTeX lst
   return result
