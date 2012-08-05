@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, TupleSections #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -289,20 +289,22 @@ blockToMarkdown opts t@(Table caption aligns widths headers rows) =  do
   rawHeaders <- mapM (blockListToMarkdown opts) headers
   rawRows <- mapM (mapM (blockListToMarkdown opts)) rows
   let isSimple = all (==0) widths
-  tbl <- case isSimple of
-            True  | isEnabled Ext_simple_tables opts ->
-                     simpleTable (all null headers) aligns rawHeaders rawRows
-                  | isEnabled Ext_pipe_tables opts ->
-                     undefined -- pipeTable aligns rawHeaders rawRows
-                  | otherwise ->
-                     return $ text
-                            $ writeHtmlString def (Pandoc (Meta [] [] []) [t])
-            False | isEnabled Ext_multiline_tables opts ->
-                     undefined -- multilineTable (all null headers) aligns widths rawHeaders rawRows
-                  | otherwise ->
-                     return $ text
-                            $ writeHtmlString def (Pandoc (Meta [] [] []) [t])
-  return $ tbl $$ blankline $$ caption'' $$ blankline
+  (nst,tbl) <- case isSimple of
+                True  | isEnabled Ext_simple_tables opts -> fmap (nest 2,) $
+                         pandocTable opts (all null headers) aligns widths
+                             rawHeaders rawRows
+                      | isEnabled Ext_pipe_tables opts -> fmap (id,) $
+                         pipeTable (all null headers) aligns rawHeaders rawRows
+                      | otherwise -> fmap (id,) $
+                         return $ text $ writeHtmlString def
+                                $ Pandoc (Meta [] [] []) [t]
+                False | isEnabled Ext_multiline_tables opts -> fmap (nest 2,) $
+                         pandocTable opts (all null headers) aligns widths
+                             rawHeaders rawRows
+                      | otherwise -> fmap (id,) $
+                         return $ text $ writeHtmlString def
+                                $ Pandoc (Meta [] [] []) [t]
+  return $ nst $ tbl $$ blankline $$ caption'' $$ blankline
 blockToMarkdown opts (BulletList items) = do
   contents <- mapM (bulletListItemToMarkdown opts) items
   return $ cat contents <> blankline
@@ -322,18 +324,37 @@ blockToMarkdown opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToMarkdown opts) items
   return $ cat contents <> blankline
 
-simpleTable :: Bool -> [Alignment] -> [Doc] -> [[Doc]] -> State WriterState Doc
-simpleTable headless aligns rawHeaders rawRows =  do
+pipeTable :: Bool -> [Alignment] -> [Doc] -> [[Doc]] -> State WriterState Doc
+pipeTable headless aligns rawHeaders rawRows = do
+  let torow cs = nowrap $ text "|" <>
+                 hcat (intersperse (text "|") $ map chomp cs) <> text "|"
+  let toborder (a, h) = let wid = max (offset h) 3
+                        in  text $ case a of
+                             AlignLeft    -> ':':replicate (wid - 1) '-'
+                             AlignCenter  -> ':':replicate (wid - 2) '-' ++ ":"
+                             AlignRight   -> replicate (wid - 1) '-' ++ ":"
+                             AlignDefault -> replicate wid '-'
+  let header = if headless then empty else torow rawHeaders
+  let border = torow $ map toborder $ zip aligns rawHeaders
+  let body   = vcat $ map torow rawRows
+  return $ header $$ border $$ body
+
+pandocTable :: WriterOptions -> Bool -> [Alignment] -> [Double]
+            -> [Doc] -> [[Doc]] -> State WriterState Doc
+pandocTable opts headless aligns widths rawHeaders rawRows =  do
+  let isSimple = all (==0) widths
   let alignHeader alignment = case alignment of
                                 AlignLeft    -> lblock
                                 AlignCenter  -> cblock
                                 AlignRight   -> rblock
                                 AlignDefault -> lblock
   let numChars = maximum . map offset
-  let widthsInChars = map ((+2) . numChars) $ transpose (rawHeaders : rawRows)
-       -- if isSimple
-          -- then map ((+2) . numChars) $ transpose (rawHeaders : rawRows)
-          -- else map (floor . (fromIntegral (writerColumns opts) *)) widths
+  let widthsInChars = if isSimple
+                         then map ((+2) . numChars)
+                              $ transpose (rawHeaders : rawRows)
+                         else map
+                              (floor . (fromIntegral (writerColumns opts) *))
+                              widths
   let makeRow = hcat . intersperse (lblock 1 (text " ")) .
                    (zipWith3 alignHeader aligns widthsInChars)
   let rows' = map makeRow rawRows
