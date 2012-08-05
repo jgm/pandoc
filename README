@@ -447,7 +447,12 @@ Options affecting specific writers
     reference docx is specified on the command line, pandoc will look
     for a file `reference.docx` in the user data directory (see
     `--data-dir`). If this is not found either, sensible defaults will be
-    used.
+    used. The following styles are used by pandoc: [paragraph]
+    Normal, Title, Authors, Date, Heading 1, Heading 2, Heading 3,
+    Heading 4, Heading 5, Block Quote, Definition Term, Definition,
+    Body Text, Table Caption, Picture Caption; [character] Default
+    Paragraph Font, Body Text Char, Verbatim Char, Footnote Reference,
+    Hyperlink.
 
 `--epub-stylesheet=`*FILE*
 :   Use the specified CSS file to style the EPUB.  If no stylesheet
