@@ -47,7 +47,7 @@ import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
                                   isTextTag, isCommentTag )
 import Text.Pandoc.XML ( fromEntities )
-import Data.Monoid hiding ((<>))
+import Data.Monoid (mconcat, mempty)
 import qualified Data.Sequence as Seq  -- TODO leaky abstraction, need better isNull in Builder
 import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad

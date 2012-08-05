@@ -41,6 +41,7 @@ import Data.List ( group, isPrefixOf, find, intersperse, transpose )
 import Text.Pandoc.Pretty
 import Control.Monad.State
 import qualified Data.Set as Set
+import Text.Pandoc.Writers.HTML (writeHtmlString)
 
 type Notes = [[Block]]
 type Refs = [([Inline], Target)]
@@ -280,48 +281,28 @@ blockToMarkdown opts (BlockQuote blocks) = do
                           else "> "
   contents <- blockListToMarkdown opts blocks
   return $ (prefixed leader contents) <> blankline
-blockToMarkdown opts (Table caption aligns widths headers rows) =  do
+blockToMarkdown opts t@(Table caption aligns widths headers rows) =  do
   caption' <- inlineListToMarkdown opts caption
   let caption'' = if null caption || not (isEnabled Ext_table_captions opts)
                      then empty
                      else blankline <> ": " <> caption' <> blankline
-  headers' <- mapM (blockListToMarkdown opts) headers
-  let alignHeader alignment = case alignment of
-                                AlignLeft    -> lblock
-                                AlignCenter  -> cblock
-                                AlignRight   -> rblock
-                                AlignDefault -> lblock
+  rawHeaders <- mapM (blockListToMarkdown opts) headers
   rawRows <- mapM (mapM (blockListToMarkdown opts)) rows
   let isSimple = all (==0) widths
-  let numChars = maximum . map offset
-  let widthsInChars =
-       if isSimple
-          then map ((+2) . numChars) $ transpose (headers' : rawRows)
-          else map (floor . (fromIntegral (writerColumns opts) *)) widths
-  let makeRow = hcat . intersperse (lblock 1 (text " ")) .
-                   (zipWith3 alignHeader aligns widthsInChars)
-  let rows' = map makeRow rawRows
-  let head' = makeRow headers'
-  let maxRowHeight = maximum $ map height (head':rows')
-  let underline = cat $ intersperse (text " ") $
-                  map (\width -> text (replicate width '-')) widthsInChars
-  let border = if maxRowHeight > 1
-                  then text (replicate (sum widthsInChars +
-                          length widthsInChars - 1) '-')
-                  else if all null headers
-                          then underline
-                          else empty
-  let head'' = if all null headers
-                  then empty
-                  else border <> cr <> head'
-  let body = if maxRowHeight > 1
-                then vsep rows'
-                else vcat rows'
-  let bottom = if all null headers
-                  then underline
-                  else border
-  return $ nest 2 $ head'' $$ underline $$ body $$
-              bottom $$ blankline $$ caption'' $$ blankline
+  tbl <- case isSimple of
+            True  | isEnabled Ext_simple_tables opts ->
+                     simpleTable (all null headers) aligns rawHeaders rawRows
+                  | isEnabled Ext_pipe_tables opts ->
+                     undefined -- pipeTable aligns rawHeaders rawRows
+                  | otherwise ->
+                     return $ text
+                            $ writeHtmlString def (Pandoc (Meta [] [] []) [t])
+            False | isEnabled Ext_multiline_tables opts ->
+                     undefined -- multilineTable (all null headers) aligns widths rawHeaders rawRows
+                  | otherwise ->
+                     return $ text
+                            $ writeHtmlString def (Pandoc (Meta [] [] []) [t])
+  return $ tbl $$ blankline $$ caption'' $$ blankline
 blockToMarkdown opts (BulletList items) = do
   contents <- mapM (bulletListItemToMarkdown opts) items
   return $ cat contents <> blankline
@@ -340,6 +321,42 @@ blockToMarkdown opts (OrderedList (start,sty,delim) items) = do
 blockToMarkdown opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToMarkdown opts) items
   return $ cat contents <> blankline
+
+simpleTable :: Bool -> [Alignment] -> [Doc] -> [[Doc]] -> State WriterState Doc
+simpleTable headless aligns rawHeaders rawRows =  do
+  let alignHeader alignment = case alignment of
+                                AlignLeft    -> lblock
+                                AlignCenter  -> cblock
+                                AlignRight   -> rblock
+                                AlignDefault -> lblock
+  let numChars = maximum . map offset
+  let widthsInChars = map ((+2) . numChars) $ transpose (rawHeaders : rawRows)
+       -- if isSimple
+          -- then map ((+2) . numChars) $ transpose (rawHeaders : rawRows)
+          -- else map (floor . (fromIntegral (writerColumns opts) *)) widths
+  let makeRow = hcat . intersperse (lblock 1 (text " ")) .
+                   (zipWith3 alignHeader aligns widthsInChars)
+  let rows' = map makeRow rawRows
+  let head' = makeRow rawHeaders
+  let maxRowHeight = maximum $ map height (head':rows')
+  let underline = cat $ intersperse (text " ") $
+                  map (\width -> text (replicate width '-')) widthsInChars
+  let border = if maxRowHeight > 1
+                  then text (replicate (sum widthsInChars +
+                          length widthsInChars - 1) '-')
+                  else if headless
+                          then underline
+                          else empty
+  let head'' = if headless
+                  then empty
+                  else border <> cr <> head'
+  let body = if maxRowHeight > 1
+                then vsep rows'
+                else vcat rows'
+  let bottom = if headless
+                  then underline
+                  else border
+  return $ head'' $$ underline $$ body $$ bottom
 
 -- | Convert bullet list item (list of blocks) to markdown.
 bulletListItemToMarkdown :: WriterOptions -> [Block] -> State WriterState Doc
