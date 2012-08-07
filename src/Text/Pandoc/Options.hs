@@ -137,7 +137,7 @@ data ReaderOptions = ReaderOptions{
 
 instance Default ReaderOptions
   where def = ReaderOptions{
-                 readerExtensions          = Set.fromList [minBound..maxBound]
+                 readerExtensions          = pandocExtensions
                , readerSmart               = False
                , readerStrict              = False
                , readerStandalone          = False
@@ -236,7 +236,7 @@ instance Default WriterOptions where
                       , writerIgnoreNotes      = False
                       , writerNumberSections   = False
                       , writerSectionDivs      = False
-                      , writerExtensions       = Set.fromList [minBound..maxBound]
+                      , writerExtensions       = pandocExtensions
                       , writerReferenceLinks   = False
                       , writerWrapText         = True
                       , writerColumns          = 72
