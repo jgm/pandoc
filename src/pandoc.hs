@@ -964,8 +964,8 @@ main = do
                      else takeDirectory (head sources)
 
   let defaultExts = if strict
-                       then Set.empty
-                       else Set.fromList [minBound..maxBound]
+                       then strictExtensions
+                       else pandocExtensions
 
   let extensions = foldl (\acc (inc,ext) -> if inc
                                             then Set.insert ext acc

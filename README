@@ -2171,6 +2171,16 @@ document with an appropriate header:
 
 The bibliography will be inserted after this header.
 
+Non-pandoc extensions
+=====================
+
+The following markdown syntax extensions are not enabled by default
+in pandoc, but can be enabled using the `-e` (`--enable`) option:
+
+**Extension:  `hard_line_breaks`**\
+Causes all newlines within a paragraph to be interpreted as hard line
+breaks instead of spaces.
+
 
 Producing slide shows with Pandoc
 =================================

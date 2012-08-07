@@ -29,6 +29,8 @@ Data structures and functions for representing parser and writer
 options.
 -}
 module Text.Pandoc.Options ( Extension(..)
+                           , pandocExtensions
+                           , strictExtensions
                            , ReaderOptions(..)
                            , HTMLMathMethod (..)
                            , CiteMethod (..)
@@ -74,7 +76,46 @@ data Extension = Ext_footnotes
                | Ext_strikeout
                | Ext_superscript
                | Ext_subscript
+               | Ext_hard_line_breaks
                deriving (Show, Read, Enum, Eq, Ord, Bounded)
+
+pandocExtensions :: Set Extension
+pandocExtensions = Set.fromList
+  [ Ext_footnotes
+  , Ext_inline_notes
+  , Ext_pandoc_title_blocks
+  , Ext_table_captions
+  -- , Ext_image_captions
+  , Ext_simple_tables
+  , Ext_multiline_tables
+  , Ext_grid_tables
+  , Ext_pipe_tables
+  , Ext_citations
+  , Ext_raw_tex
+  , Ext_tex_math
+  , Ext_latex_macros
+  , Ext_delimited_code_blocks
+  , Ext_inline_code_attributes
+  , Ext_markdown_in_html_blocks
+  , Ext_escaped_line_breaks
+  , Ext_autolink_code_spans
+  , Ext_fancy_lists
+  , Ext_startnum
+  , Ext_definition_lists
+  , Ext_example_lists
+  -- , Ext_header_identifiers
+  , Ext_all_symbols_escapable
+  , Ext_intraword_underscores
+  , Ext_blank_before_blockquote
+  , Ext_blank_before_header
+  -- , Ext_significant_bullets
+  , Ext_strikeout
+  , Ext_superscript
+  , Ext_subscript
+  ]
+
+strictExtensions :: Set Extension
+strictExtensions = Set.empty
 
 data ReaderOptions = ReaderOptions{
          readerExtensions      :: Set Extension  -- ^ Syntax extensions

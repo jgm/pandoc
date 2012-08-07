@@ -1321,7 +1321,8 @@ endline = try $ do
   when (stateParserContext st == ListItemState) $ do
      notFollowedBy' bulletListStart
      notFollowedBy' anyOrderedListStart
-  return $ return B.space
+  (guardEnabled Ext_hard_line_breaks >> return (return B.linebreak))
+    <|> (return $ return B.space)
 
 --
 -- links
