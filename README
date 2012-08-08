@@ -518,8 +518,8 @@ Options affecting specific writers
     The default is `pdflatex`.  If the engine is not in your PATH,
     the full path of the engine may be specified here.
 
-Citations
----------
+Citation rendering
+------------------
 
 `--bibliography=`*FILE*
 :   Specify bibliography database to be used in resolving
