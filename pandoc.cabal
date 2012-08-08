@@ -214,7 +214,7 @@ Library
                  random >= 1 && < 1.1,
                  extensible-exceptions >= 0.1 && < 0.2,
                  citeproc-hs >= 0.3.4 && < 0.4,
-                 pandoc-types >= 1.9.0.2 && < 1.10,
+                 pandoc-types >= 1.10 && < 1.11,
                  json >= 0.4 && < 0.6,
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
@@ -325,7 +325,7 @@ Executable pandoc
                  random >= 1 && < 1.1,
                  extensible-exceptions >= 0.1 && < 0.2,
                  citeproc-hs >= 0.3.4 && < 0.4,
-                 pandoc-types >= 1.9.0.2 && < 1.10,
+                 pandoc-types >= 1.10 && < 1.11,
                  json >= 0.4 && < 0.6,
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 0.2,
@@ -379,7 +379,7 @@ Test-Suite test-pandoc
   else
     Build-depends: base >= 3 && < 4
   Build-Depends: pandoc,
-                 pandoc-types >= 1.9.0.2 && < 1.10,
+                 pandoc-types >= 1.10 && < 1.11,
                  utf8-string >= 0.3 && < 0.4,
                  bytestring >= 0.9 && < 1.0,
                  directory >= 1 && < 1.2,
