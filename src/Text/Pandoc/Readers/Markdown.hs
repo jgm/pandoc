@@ -39,7 +39,7 @@ import Data.Char ( isAlphaNum )
 import Data.Maybe
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Builder (Inlines(..), Blocks, trimInlines, (<>))
+import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
 import Text.Pandoc.Options
 import Text.Pandoc.Shared hiding (compactify)
 import Text.Pandoc.Parsing hiding (tableWith)
@@ -48,7 +48,6 @@ import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockT
                                   isTextTag, isCommentTag )
 import Text.Pandoc.XML ( fromEntities )
 import Data.Monoid (mconcat, mempty)
-import qualified Data.Sequence as Seq  -- TODO leaky abstraction, need better isNull in Builder
 import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
 import Text.HTML.TagSoup
@@ -94,7 +93,7 @@ isBlank _    = False
 --
 
 isNull :: F Inlines -> Bool
-isNull ils = Seq.null $ unInlines (runF ils def)
+isNull ils = B.isNull $ runF ils def
 
 spnl :: Parser [Char] st ()
 spnl = try $ do
@@ -1020,8 +1019,7 @@ pipeTableRow = do
     return $ map
         (\ils ->
            case trimInlines ils of
-                 -- TODO leaky abstraction:
-                 ils' | Seq.null (unInlines ils') -> mempty
+                 ils' | B.isNull ils' -> mempty
                       | otherwise   -> B.plain $ ils') cells'
 
 pipeTableHeaderPart :: Parser [Char] st Alignment
