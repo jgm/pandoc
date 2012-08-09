@@ -49,7 +49,6 @@ module Text.Pandoc.Parsing ( (>>~),
                              withHorizDisplacement,
                              withRaw,
                              nullBlock,
-                             failUnlessLHS,
                              escaped,
                              characterReference,
                              updateLastStrPos,
@@ -420,10 +419,6 @@ withRaw parser = do
 -- if it gets stuck).
 nullBlock :: Parser [Char] st Block
 nullBlock = anyChar >> return Null
-
--- | Fail unless we're in literate haskell mode.
-failUnlessLHS :: Parser [tok] ParserState ()
-failUnlessLHS = getOption readerLiterateHaskell >>= guard
 
 -- | Parses backslash, then applies character parser.
 escaped :: Parser [Char] st Char  -- ^ Parser for character to escape

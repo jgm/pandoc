@@ -422,7 +422,7 @@ codeBlockIndented = do
 
 lhsCodeBlock :: Parser [Char] ParserState (F Blocks)
 lhsCodeBlock = do
-  failUnlessLHS
+  guardEnabled Ext_literate_haskell
   (return . B.codeBlockWith ("",["sourceCode","literate","haskell"],[]) <$>
           (lhsCodeBlockBird <|> lhsCodeBlockLaTeX))
     <|> (return . B.codeBlockWith ("",["sourceCode","haskell"],[]) <$>

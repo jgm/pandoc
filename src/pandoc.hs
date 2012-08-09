@@ -980,9 +980,6 @@ main = do
                       , readerColumns = columns
                       , readerTabStop = tabStop
                       , readerOldDashes = oldDashes
-                      , readerLiterateHaskell =
-                          "+lhs" `isSuffixOf` readerName' ||
-                          lhsExtension sources
                       , readerCitations = map CSL.refId refs
                       , readerIndentedCodeClasses = codeBlockClasses
                       , readerApplyMacros = not laTeXOutput
@@ -1005,7 +1002,6 @@ main = do
                             writerReferenceLinks   = referenceLinks,
                             writerWrapText         = wrap,
                             writerColumns          = columns,
-                            writerLiterateHaskell  = False,
                             writerEmailObfuscation = if strict
                                                      then ReferenceObfuscation
                                                      else obfuscationMethod,

@@ -407,7 +407,7 @@ mathBlockMultiline = try $ do
 
 lhsCodeBlock :: Parser [Char] ParserState Block
 lhsCodeBlock = try $ do
-  getOption readerLiterateHaskell >>= guard
+  guardEnabled Ext_literate_haskell
   optional codeBlockStart
   pos <- getPosition
   when (sourceColumn pos /= 1) $ fail "Not in first column"

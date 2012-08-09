@@ -2,7 +2,6 @@ import Text.Pandoc
 import Text.Pandoc.Shared (readDataFile, normalize)
 import Criterion.Main
 import Criterion.Config
-import Data.List (isSuffixOf)
 import Text.JSON.Generic
 import System.Environment (getArgs)
 import Data.Monoid
@@ -14,24 +13,18 @@ readerBench doc (name, reader) =
   let writer = case lookup name writers of
                      Just (PureStringWriter w) -> w
                      _ -> error $ "Could not find writer for " ++ name
-      inp = writer def{ writerWrapText = True
-                                       , writerLiterateHaskell =
-                                          "+lhs" `isSuffixOf` name } doc
+      inp = writer def{ writerWrapText = True } doc
       -- we compute the length to force full evaluation
       getLength (Pandoc (Meta a b c) d) =
             length a + length b + length c + length d
   in  bench (name ++ " reader") $ whnf (getLength .
-         reader def{ readerSmart = True
-                   , readerLiterateHaskell = "+lhs" `isSuffixOf` name
-                   }) inp
+         reader def{ readerSmart = True }) inp
 
 writerBench :: Pandoc
             -> (String, WriterOptions -> Pandoc -> String)
             -> Benchmark
 writerBench doc (name, writer) = bench (name ++ " writer") $ nf
-    (writer def{
-                   writerWrapText = True
-                  , writerLiterateHaskell = "+lhs" `isSuffixOf` name }) doc
+    (writer def{ writerWrapText = True }) doc
 
 normalizeBench :: Pandoc -> [Benchmark]
 normalizeBench doc = [ bench "normalize - with" $ nf (encodeJSON . normalize) doc

@@ -290,7 +290,7 @@ blockToLaTeX (BlockQuote lst) = do
 blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
   opts <- gets stOptions
   case () of
-     _ | writerLiterateHaskell opts && "haskell" `elem` classes &&
+     _ | isEnabled Ext_literate_haskell opts && "haskell" `elem` classes &&
          "literate" `elem` classes                      -> lhsCodeBlock
        | writerListings opts                            -> listingsCodeBlock
        | writerHighlight opts && not (null classes)     -> highlightedCodeBlock

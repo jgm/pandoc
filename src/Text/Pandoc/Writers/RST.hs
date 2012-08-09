@@ -164,7 +164,7 @@ blockToRST (CodeBlock (_,classes,_) str) = do
   opts <- stOptions <$> get
   let tabstop = writerTabStop opts
   if "haskell" `elem` classes && "literate" `elem` classes &&
-                  writerLiterateHaskell opts
+                  isEnabled Ext_literate_haskell opts
      then return $ prefixed "> " (text str) $$ blankline
      else return $ "::" $+$ nest tabstop (text str) $$ blankline
 blockToRST (BlockQuote blocks) = do

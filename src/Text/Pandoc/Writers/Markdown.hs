@@ -49,9 +49,6 @@ data WriterState = WriterState { stNotes :: Notes
                                , stRefs :: Refs
                                , stPlain :: Bool }
 
-isEnabled :: Extension -> WriterOptions -> Bool
-isEnabled ext opts = ext `Set.member` (writerExtensions opts)
-
 -- | Convert Pandoc to Markdown.
 writeMarkdown :: WriterOptions -> Pandoc -> String
 writeMarkdown opts document =
@@ -255,12 +252,12 @@ blockToMarkdown opts (Header level inlines) = do
                   contents <> cr <> text (replicate (offset contents) '-') <>
                   blankline
             -- ghc interprets '#' characters in column 1 as linenum specifiers.
-            _ | stPlain st || writerLiterateHaskell opts ->
+            _ | stPlain st || isEnabled Ext_literate_haskell opts ->
                 contents <> blankline
             _ -> text (replicate level '#') <> space <> contents <> blankline
 blockToMarkdown opts (CodeBlock (_,classes,_) str)
   | "haskell" `elem` classes && "literate" `elem` classes &&
-    writerLiterateHaskell opts =
+    isEnabled Ext_literate_haskell opts =
   return $ prefixed "> " (text str) <> blankline
 blockToMarkdown opts (CodeBlock attribs str) = return $
   if isEnabled Ext_delimited_code_blocks opts && attribs /= nullAttr
@@ -274,7 +271,7 @@ blockToMarkdown opts (BlockQuote blocks) = do
   st <- get
   -- if we're writing literate haskell, put a space before the bird tracks
   -- so they won't be interpreted as lhs...
-  let leader = if writerLiterateHaskell opts
+  let leader = if isEnabled Ext_literate_haskell opts
                   then " > "
                   else if stPlain st
                           then "  "

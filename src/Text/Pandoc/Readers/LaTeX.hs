@@ -187,7 +187,7 @@ inline = (mempty <$ comment)
      <|> (mathInline  $ char '$' *> mathChars <* char '$')
      <|> (superscript <$> (char '^' *> tok))
      <|> (subscript <$> (char '_' *> tok))
-     <|> (failUnlessLHS *> char '|' *> doLHSverb)
+     <|> (guardEnabled Ext_literate_haskell *> char '|' *> doLHSverb)
      <|> (str <$> count 1 tildeEscape)
      <|> (str <$> string "]")
      <|> (str <$> string "#") -- TODO print warning?
@@ -737,7 +737,7 @@ environments = M.fromList
   , ("itemize", bulletList <$> listenv "itemize" (many item))
   , ("description", definitionList <$> listenv "description" (many descItem))
   , ("enumerate", ordered_list)
-  , ("code", failUnlessLHS *>
+  , ("code", guardEnabled Ext_literate_haskell *>
       (codeBlockWith ("",["sourceCode","literate","haskell"],[]) <$>
         verbEnv "code"))
   , ("verbatim", codeBlock <$> (verbEnv "verbatim"))

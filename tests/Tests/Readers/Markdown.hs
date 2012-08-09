@@ -6,6 +6,7 @@ import Test.Framework
 import Tests.Helpers
 import Tests.Arbitrary()
 import Text.Pandoc.Builder
+import qualified Data.Set as Set
 -- import Text.Pandoc.Shared ( normalize )
 import Text.Pandoc
 
@@ -91,7 +92,8 @@ tests = [ testGroup "inline code"
             =?> para (note (para "See [^1]"))
           ]
         , testGroup "lhs"
-          [ test (readMarkdown def{ readerLiterateHaskell = True })
+          [ test (readMarkdown def{ readerExtensions = Set.insert
+                       Ext_literate_haskell $ readerExtensions def })
               "inverse bird tracks and html" $
               "> a\n\n< b\n\n<div>\n"
               =?> codeBlockWith ("",["sourceCode","literate","haskell"],[]) "a"

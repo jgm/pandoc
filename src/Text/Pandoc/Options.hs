@@ -38,6 +38,7 @@ module Text.Pandoc.Options ( Extension(..)
                            , HTMLSlideVariant (..)
                            , WriterOptions (..)
                            , def
+                           , isEnabled
                            ) where
 import Data.Set (Set)
 import qualified Data.Set as Set
@@ -77,6 +78,7 @@ data Extension = Ext_footnotes
                | Ext_superscript
                | Ext_subscript
                | Ext_hard_line_breaks
+               | Ext_literate_haskell
                deriving (Show, Read, Enum, Eq, Ord, Bounded)
 
 pandocExtensions :: Set Extension
@@ -128,7 +130,6 @@ data ReaderOptions = ReaderOptions{
        , readerOldDashes       :: Bool -- ^ Use pandoc <= 1.8.2.1 behavior
                                        --   in parsing dashes; -- is em-dash;
                                        --   - before numerial is en-dash
-       , readerLiterateHaskell :: Bool -- ^ Interpret as literate Haskell
        , readerCitations       :: [String] -- ^ List of available citations
        , readerApplyMacros     :: Bool -- ^ Apply macros to TeX math
        , readerIndentedCodeClasses :: [String] -- ^ Default classes for
@@ -145,7 +146,6 @@ instance Default ReaderOptions
                , readerColumns             = 80
                , readerTabStop             = 4
                , readerOldDashes           = False
-               , readerLiterateHaskell     = False
                , readerCitations           = []
                , readerApplyMacros         = True
                , readerIndentedCodeClasses = []
@@ -201,7 +201,6 @@ data WriterOptions = WriterOptions
   , writerReferenceLinks   :: Bool   -- ^ Use reference links in writing markdown, rst
   , writerWrapText         :: Bool   -- ^ Wrap text to line length
   , writerColumns          :: Int    -- ^ Characters in a line (for text wrapping)
-  , writerLiterateHaskell  :: Bool   -- ^ Write as literate haskell
   , writerEmailObfuscation :: ObfuscationMethod -- ^ How to obfuscate emails
   , writerIdentifierPrefix :: String -- ^ Prefix for section & note ids in HTML
   , writerSourceDirectory  :: FilePath -- ^ Directory path of 1st source file
@@ -240,7 +239,6 @@ instance Default WriterOptions where
                       , writerReferenceLinks   = False
                       , writerWrapText         = True
                       , writerColumns          = 72
-                      , writerLiterateHaskell  = False
                       , writerEmailObfuscation = JavascriptObfuscation
                       , writerIdentifierPrefix = ""
                       , writerSourceDirectory  = "."
@@ -262,3 +260,6 @@ instance Default WriterOptions where
                       , writerReferenceDocx    = Nothing
                       }
 
+-- | Returns True if the given extension is enabled.
+isEnabled :: Extension -> WriterOptions -> Bool
+isEnabled ext opts = ext `Set.member` (writerExtensions opts)

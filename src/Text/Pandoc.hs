@@ -149,17 +149,11 @@ readers :: [(String, ReaderOptions -> String -> Pandoc)]
 readers = [("native"       , \_ -> readNative)
           ,("json"         , \_ -> decodeJSON)
           ,("markdown"     , readMarkdown)
-          ,("markdown+lhs" , \opt ->
-                             readMarkdown opt{ readerLiterateHaskell = True })
           ,("rst"          , readRST)
-          ,("rst+lhs"      , \opt ->
-                             readRST opt{ readerLiterateHaskell = True })
           ,("docbook"      , readDocBook)
           ,("textile"      , readTextile) -- TODO : textile+lhs
           ,("html"         , readHtml)
           ,("latex"        , readLaTeX)
-          ,("latex+lhs"    , \opt ->
-                             readLaTeX opt{ readerLiterateHaskell = True })
           ]
 
 data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
@@ -178,11 +172,6 @@ writers = [
   ,("html"         , PureStringWriter writeHtmlString)
   ,("html5"        , PureStringWriter $ \o ->
      writeHtmlString o{ writerHtml5 = True })
-  ,("html+lhs"     , PureStringWriter $ \o ->
-     writeHtmlString o{ writerLiterateHaskell = True })
-  ,("html5+lhs"    , PureStringWriter $ \o ->
-     writeHtmlString o{ writerLiterateHaskell = True,
-                        writerHtml5 = True })
   ,("s5"           , PureStringWriter $ \o ->
      writeHtmlString o{ writerSlideVariant = S5Slides
                       , writerTableOfContents = False })
@@ -196,22 +185,14 @@ writers = [
   ,("docbook"      , PureStringWriter writeDocbook)
   ,("opendocument" , PureStringWriter writeOpenDocument)
   ,("latex"        , PureStringWriter writeLaTeX)
-  ,("latex+lhs"    , PureStringWriter $ \o ->
-     writeLaTeX o{ writerLiterateHaskell = True })
   ,("beamer"       , PureStringWriter $ \o ->
      writeLaTeX o{ writerBeamer = True })
-  ,("beamer+lhs"   , PureStringWriter $ \o ->
-     writeLaTeX o{ writerBeamer = True, writerLiterateHaskell = True })
   ,("context"      , PureStringWriter writeConTeXt)
   ,("texinfo"      , PureStringWriter writeTexinfo)
   ,("man"          , PureStringWriter writeMan)
   ,("markdown"     , PureStringWriter writeMarkdown)
-  ,("markdown+lhs" , PureStringWriter $ \o ->
-     writeMarkdown o{ writerLiterateHaskell = True })
   ,("plain"        , PureStringWriter writePlain)
   ,("rst"          , PureStringWriter writeRST)
-  ,("rst+lhs"      , PureStringWriter $ \o ->
-     writeRST o{ writerLiterateHaskell = True })
   ,("mediawiki"    , PureStringWriter writeMediaWiki)
   ,("textile"      , PureStringWriter writeTextile)
   ,("rtf"          , PureStringWriter writeRTF)
