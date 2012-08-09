@@ -47,6 +47,7 @@ module Text.Pandoc.Highlighting ( languages
                                 , Style
                                 ) where
 import Text.Pandoc.Definition
+import Text.Pandoc.Shared (safeRead)
 import Text.Highlighting.Kate
 import Data.List (find)
 import Data.Maybe (fromMaybe)
@@ -60,9 +61,9 @@ highlight :: (FormatOptions -> [SourceLine] -> a) -- ^ Formatter
           -> String -- ^ Raw contents of the CodeBlock
           -> Maybe a -- ^ Maybe the formatted result
 highlight formatter (_, classes, keyvals) rawCode =
-  let firstNum = case reads (fromMaybe "1" $ lookup "startFrom" keyvals) of
-                      ((n,_):_) -> n
-                      []        -> 1
+  let firstNum = case safeRead (fromMaybe "1" $ lookup "startFrom" keyvals) of
+                      Just n  -> n
+                      Nothing -> 1
       fmtOpts = defaultFormatOpts{
                   startNumber = firstNum,
                   numberLines = any (`elem`

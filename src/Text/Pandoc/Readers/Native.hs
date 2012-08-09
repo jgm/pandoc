@@ -31,6 +31,7 @@ Conversion of a string representation of a pandoc type (@Pandoc@,
 module Text.Pandoc.Readers.Native ( readNative ) where
 
 import Text.Pandoc.Definition
+import Text.Pandoc.Shared (safeRead)
 
 nullMeta :: Meta
 nullMeta = Meta{ docTitle = []
@@ -51,31 +52,31 @@ nullMeta = Meta{ docTitle = []
 readNative :: String      -- ^ String to parse (assuming @'\n'@ line endings)
            -> Pandoc
 readNative s =
-  case reads s of
-       (d,_):_    -> d
-       []         -> Pandoc nullMeta $ readBlocks s
+  case safeRead s of
+       Just d    -> d
+       Nothing   -> Pandoc nullMeta $ readBlocks s
 
 readBlocks :: String -> [Block]
 readBlocks s =
-  case reads s of
-       (d,_):_    -> d
-       []         -> [readBlock s]
+  case safeRead s of
+       Just d    -> d
+       Nothing   -> [readBlock s]
 
 readBlock :: String -> Block
 readBlock s =
-  case reads s of
-       (d,_):_    -> d
-       []         -> Plain $ readInlines s
+  case safeRead s of
+       Just d    -> d
+       Nothing   -> Plain $ readInlines s
 
 readInlines :: String -> [Inline]
 readInlines s =
-  case reads s of
-       (d,_):_    -> d
-       []         -> [readInline s]
+  case safeRead s of
+       Just d     -> d
+       Nothing    -> [readInline s]
 
 readInline :: String -> Inline
 readInline s =
-  case reads s of
-       (d,_):_    -> d
-       []         -> error "Cannot parse document"
+  case safeRead s of
+       Just d     -> d
+       Nothing    -> error "Cannot parse document"
 

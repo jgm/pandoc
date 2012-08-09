@@ -33,7 +33,7 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.PDF (tex2pdf)
 import Text.Pandoc.Readers.LaTeX (handleIncludes)
-import Text.Pandoc.Shared ( tabFilter, readDataFile,
+import Text.Pandoc.Shared ( tabFilter, readDataFile, safeRead,
                             headerShift, findDataFile, normalize, err, warn )
 import Text.Pandoc.XML ( toEntities, fromEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
@@ -279,13 +279,13 @@ options =
     , Option "" ["base-header-level"]
                  (ReqArg
                   (\arg opt ->
-                      case reads arg of
-                           [(t,"")] | t > 0 -> do
+                      case safeRead arg of
+                           Just t | t > 0 -> do
                                let oldTransforms = optTransforms opt
                                let shift = t - 1
                                return opt{ optTransforms =
                                            headerShift shift : oldTransforms }
-                           _          -> err 19
+                           _              -> err 19
                                        "base-header-level must be a number > 0")
                   "NUMBER")
                  "" -- "Headers base level"
@@ -311,9 +311,9 @@ options =
     , Option "" ["tab-stop"]
                  (ReqArg
                   (\arg opt ->
-                      case reads arg of
-                           [(t,"")] | t > 0 -> return opt { optTabStop = t }
-                           _                -> err 31
+                      case safeRead arg of
+                           Just t | t > 0 -> return opt { optTabStop = t }
+                           _              -> err 31
                                           "tab-stop must be a number greater than 0")
                   "NUMBER")
                  "" -- "Tab stop (default 4)"
@@ -360,9 +360,9 @@ options =
     , Option "" ["columns"]
                  (ReqArg
                   (\arg opt ->
-                      case reads arg of
-                           [(t,"")] | t > 0 -> return opt { optColumns = t }
-                           _          -> err 33 $
+                      case safeRead arg of
+                           Just t | t > 0 -> return opt { optColumns = t }
+                           _              -> err 33 $
                                    "columns must be a number greater than 0")
                  "NUMBER")
                  "" -- "Length of line in characters"
@@ -494,10 +494,10 @@ options =
     , Option "" ["slide-level"]
                  (ReqArg
                   (\arg opt -> do
-                      case reads arg of
-                           [(t,"")] | t >= 1 && t <= 6 ->
+                      case safeRead arg of
+                           Just t | t >= 1 && t <= 6 ->
                                     return opt { optSlideLevel = Just t }
-                           _          -> err 39 $
+                           _      -> err 39 $
                                     "slide level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Force header level for slides"
@@ -713,9 +713,9 @@ options =
     ]
 
 readExtension :: String -> IO Extension
-readExtension s = case reads ('E':'x':'t':'_':map toLower s) of
-                       ((ext,""):_) -> return ext
-                       _            -> err 59 $ "Unknown extension: " ++ s
+readExtension s = case safeRead ('E':'x':'t':'_':map toLower s) of
+                       Just ext -> return ext
+                       Nothing  -> err 59 $ "Unknown extension: " ++ s
 
 -- Returns usage message
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String

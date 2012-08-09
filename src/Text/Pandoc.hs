@@ -135,6 +135,7 @@ import Text.Pandoc.Writers.Org
 import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Templates
 import Text.Pandoc.Options
+import Text.Pandoc.Shared (safeRead)
 import Data.ByteString.Lazy (ByteString)
 import Data.Version (showVersion)
 import Text.JSON.Generic
@@ -158,10 +159,9 @@ parseFormatSpec = parse formatSpec ""
         extMod = do
           polarity <- oneOf "-+"
           name <- many1 $ noneOf "-+"
-          ext <- case reads name of
-                       ((n,[]):_) -> return n
-                       _          -> unexpected $ "Unknown extension: " ++
-                                        name
+          ext <- case safeRead name of
+                       Just n  -> return n
+                       Nothing -> unexpected $ "Unknown extension: " ++ name
           return $ case polarity of
                         '-'  -> Set.delete ext
                         _    -> Set.insert ext
