@@ -65,7 +65,9 @@ module Text.Pandoc.Shared (
                      readDataFile,
                      -- * Error handling
                      err,
-                     warn
+                     warn,
+                     -- * Safe read
+                     safeRead
                     ) where
 
 import Text.Pandoc.Definition
@@ -489,3 +491,12 @@ warn :: String -> IO ()
 warn msg = do
   name <- getProgName
   UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
+
+--
+-- Safe read
+--
+
+safeRead :: (Monad m, Read a) => String -> m a
+safeRead s = case reads s of
+                  (d,[]):_  -> return d
+                  _         -> fail $ "Could not read `" ++ s ++ "'"
