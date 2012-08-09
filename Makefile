@@ -15,13 +15,13 @@ bench:
 	cabal-dev configure --enable-benchmarks && cabal-dev build
 
 clean:
-	cabal-dev clean
+	cabal-dev clean && rm -rf pandoc-types citeproc-hs
 
 pandoc-types:
 	git clone https://github.com/jgm/pandoc-types && \
 	  cabal-dev add-source pandoc-types
 
-citeproc-hs:
+citeproc-hs: pandoc-types
 	git clone https://github.com/jgm/citeproc-hs && \
 	  cabal-dev add-source citeproc-hs
 
