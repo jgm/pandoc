@@ -138,11 +138,33 @@ import Text.Pandoc.Options
 import Data.ByteString.Lazy (ByteString)
 import Data.Version (showVersion)
 import Text.JSON.Generic
+import Data.Set (Set)
+import qualified Data.Set as Set
+import Text.Parsec
 import Paths_pandoc (version)
 
 -- | Version number of pandoc library.
 pandocVersion :: String
 pandocVersion = showVersion version
+
+parseFormatSpec :: String
+                -> Either ParseError (String, Set Extension -> Set Extension)
+parseFormatSpec = parse formatSpec ""
+  where formatSpec = do
+          name <- formatName
+          extMods <- many extMod
+          return (name, foldl (.) id extMods)
+        formatName = many1 $ noneOf "-+"
+        extMod = do
+          polarity <- oneOf "-+"
+          name <- many1 $ noneOf "-+"
+          ext <- case reads name of
+                       ((n,[]):_) -> return n
+                       _          -> unexpected $ "Unknown extension: " ++
+                                        name
+          return $ case polarity of
+                        '-'  -> Set.delete ext
+                        _    -> Set.insert ext
 
 -- | Association list of formats and readers.
 readers :: [(String, ReaderOptions -> String -> Pandoc)]
