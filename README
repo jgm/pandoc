@@ -137,32 +137,45 @@ General options
 
 `-f` *FORMAT*, `-r` *FORMAT*, `--from=`*FORMAT*, `--read=`*FORMAT*
 :   Specify input format.  *FORMAT* can be `native` (native Haskell),
-    `json` (JSON version of native AST), `markdown` (markdown),
+    `json` (JSON version of native AST), `markdown` (pandoc's
+    extended markdown), `markdown_strict` (original unextended markdown),
     `textile` (Textile), `rst` (reStructuredText), `html` (HTML),
     `docbook` (DocBook XML), or `latex` (LaTeX). If `+lhs` is
     appended to `markdown`, `rst`, `latex`, the input will be
     treated as literate Haskell source: see [Literate Haskell
-    support](#literate-haskell-support), below.
+    support](#literate-haskell-support), below.  Markdown syntax
+    extensions can be individually enabled or disabled by appending
+    `+EXTENSION` or `-EXTENSION` to the format name. So, for example,
+    `markdown_strict+footnotes+definition_lists` is strict markdown
+    with footnotes and definition lists enabled, and
+    `markdown-pipe_tables+hard_line_breaks` is pandoc's markdown
+    without pipe tables and with hard line breaks.  See
+    [Pandoc's markdown](#pandocs-markdown), below, for a list of
+    extensions and their names.
 
 `-t` *FORMAT*, `-w` *FORMAT*, `--to=`*FORMAT*, `--write=`*FORMAT*
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
     `json` (JSON version of native AST), `plain` (plain text),
-    `markdown` (markdown), `rst` (reStructuredText), `html` (XHTML 1),
-    `html5` (HTML 5), `latex` (LaTeX), `beamer` (LaTeX beamer slide show),
-    `context` (ConTeXt), `man` (groff man), `mediawiki` (MediaWiki markup),
-    `textile` (Textile), `org` (Emacs Org-Mode), `texinfo` (GNU Texinfo),
-    `docbook` (DocBook XML), `opendocument` (OpenDocument XML), `odt`
-    (OpenOffice text document), `docx` (Word docx), `epub` (EPUB book),
-    `fb2` (FictionBook2 e-book), `asciidoc` (AsciiDoc),
-    `slidy` (Slidy HTML and javascript slide show),
-    `slideous` (Slideous HTML and javascript slide show),
-    `dzslides` (HTML5 + javascript slide show), `s5` (S5 HTML and javascript
-    slide show), or `rtf` (rich text format). Note that `odt` and `epub`
-    output will not be directed to *stdout*; an output filename must
-    be specified using the `-o/--output` option. If `+lhs` is appended
-    to `markdown`, `rst`, `latex`, `beamer`, `html`, or `html5`, the output
-    will be rendered as literate Haskell source: see [Literate Haskell
-    support](#literate-haskell-support), below.
+    `markdown` (pandoc's extended markdown), `markdown_strict` (original
+    unextended markdown), `rst` (reStructuredText), `html` (XHTML
+    1), `html5` (HTML 5), `latex` (LaTeX), `beamer` (LaTeX beamer
+    slide show), `context` (ConTeXt), `man` (groff man), `mediawiki`
+    (MediaWiki markup), `textile` (Textile), `org` (Emacs Org-Mode),
+    `texinfo` (GNU Texinfo), `docbook` (DocBook XML), `opendocument`
+    (OpenDocument XML), `odt` (OpenOffice text document), `docx`
+    (Word docx), `epub` (EPUB book), `fb2` (FictionBook2 e-book),
+    `asciidoc` (AsciiDoc), `slidy` (Slidy HTML and javascript slide
+    show), `slideous` (Slideous HTML and javascript slide show),
+    `dzslides` (HTML5 + javascript slide show), `s5` (S5 HTML and
+    javascript slide show), or `rtf` (rich text format). Note that
+    `odt` and `epub` output will not be directed to *stdout*; an output
+    filename must be specified using the `-o/--output` option. If `+lhs`
+    is appended to `markdown`, `rst`, `latex`, `beamer`, `html`, or
+    `html5`, the output will be rendered as literate Haskell source:
+    see [Literate Haskell support](#literate-haskell-support), below.
+    Markdown syntax extensions can be individually enabled or disabled
+    by appending `+EXTENSION` or `-EXTENSION` to the format name, as
+    described above under `-f`.
 
 `-o` *FILE*, `--output=`*FILE*
 :   Write output to *FILE* instead of *stdout*.  If *FILE* is
@@ -209,9 +222,10 @@ Reader options
     to curly quotes, `---` to em-dashes, `--` to en-dashes, and
     `...` to ellipses. Nonbreaking spaces are inserted after certain
     abbreviations, such as "Mr." (Note: This option is significant only when
-    the input format is `markdown` or `textile`. It is selected automatically
-    when the input format is `textile` or the output format is `latex` or
-    `context`, unless `--no-tex-ligatures` is used.)
+    the input format is `markdown`, `markdown_strict`, or `textile`. It
+    is selected automatically when the input format is `textile` or the
+    output format is `latex` or `context`, unless `--no-tex-ligatures`
+    is used.)
 
 `--old-dashes`
 :   Selects the pandoc <= 1.8.2.1 behavior for parsing smart dashes: `-` before
@@ -758,7 +772,11 @@ Pandoc understands an extended and slightly revised version of
 John Gruber's [markdown] syntax.  This document explains the syntax,
 noting differences from standard markdown. Except where noted, these
 differences can be suppressed by using the `markdown_strict` format instead
-of `markdown`.
+of `markdown`.  An extensions can be enabled by adding `+EXTENSION`
+to the format name and disabled by adding `-EXTENSION`. For example,
+`markdown_strict+footnotes` is strict markdown with footnotes
+enabled, while `markdown-footnotes-pipe_tables` is pandoc's
+markdown without footnotes or pipe tables.
 
 Philosophy
 ----------
@@ -2158,7 +2176,9 @@ Non-pandoc extensions
 =====================
 
 The following markdown syntax extensions are not enabled by default
-in pandoc.
+in pandoc, but may be enabled by adding `+EXTENSION` to the format
+name, where `EXTENSION` is the name of the extension.  Thus, for
+example, `markdown+hard_line_breaks` is markdown with hard line breaks.
 
 **Extension:  `hard_line_breaks`**\
 Causes all newlines within a paragraph to be interpreted as hard line
@@ -2315,9 +2335,9 @@ Literate Haskell support
 ========================
 
 If you append `+lhs` to an appropriate input or output format (`markdown`,
-`rst`, or `latex` for input or output; `beamer`, `html` or `html5` for
-output only), pandoc will treat the document as literate Haskell source.
-This means that
+`mardkown_strict`, `rst`, or `latex` for input or output; `beamer`,
+`html` or `html5` for output only), pandoc will treat the document as
+literate Haskell source. This means that
 
   - In markdown input, "bird track" sections will be parsed as Haskell
     code rather than block quotations.  Text between `\begin{code}`
