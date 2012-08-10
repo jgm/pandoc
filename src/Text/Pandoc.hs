@@ -139,11 +139,13 @@ import Text.Pandoc.Templates
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (safeRead)
 import Data.ByteString.Lazy (ByteString)
+import Data.List (intercalate)
 import Data.Version (showVersion)
 import Text.JSON.Generic
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Text.Parsec
+import Text.Parsec.Error
 import Paths_pandoc (version)
 
 -- | Version number of pandoc library.
@@ -160,10 +162,12 @@ parseFormatSpec = parse formatSpec ""
         formatName = many1 $ noneOf "-+"
         extMod = do
           polarity <- oneOf "-+"
-          name <- many1 $ noneOf "-+"
-          ext <- case safeRead name of
+          name <- many $ noneOf "-+"
+          ext <- case safeRead ("Ext_" ++ name) of
                        Just n  -> return n
-                       Nothing -> unexpected $ "Unknown extension: " ++ name
+                       Nothing
+                         | name == "lhs" -> return Ext_literate_haskell
+                         | otherwise -> fail $ "Unknown extension: " ++ name
           return $ case polarity of
                         '-'  -> Set.delete ext
                         _    -> Set.insert ext
@@ -172,6 +176,8 @@ parseFormatSpec = parse formatSpec ""
 readers :: [(String, ReaderOptions -> String -> Pandoc)]
 readers = [("native"       , \_ -> readNative)
           ,("json"         , \_ -> decodeJSON)
+          ,("strict"       , \o -> readMarkdown
+                               o{ readerExtensions = strictExtensions } )
           ,("markdown"     , readMarkdown)
           ,("rst"          , readRST)
           ,("docbook"      , readDocBook)
@@ -215,6 +221,8 @@ writers = [
   ,("texinfo"      , PureStringWriter writeTexinfo)
   ,("man"          , PureStringWriter writeMan)
   ,("markdown"     , PureStringWriter writeMarkdown)
+  ,("strict"       , PureStringWriter $ \o ->
+     writeMarkdown o{ writerExtensions = strictExtensions } )
   ,("plain"        , PureStringWriter writePlain)
   ,("rst"          , PureStringWriter writeRST)
   ,("mediawiki"    , PureStringWriter writeMediaWiki)
@@ -224,10 +232,11 @@ writers = [
   ,("asciidoc"     , PureStringWriter writeAsciiDoc)
   ]
 
+-- | Retrieve reader based on formatSpec (format+extensions).
 getReader :: String -> Either String (ReaderOptions -> String -> Pandoc)
 getReader s =
   case parseFormatSpec s of
-       Left e  -> Left $ show e
+       Left e  -> Left $ intercalate "\n" $ [m | Message m <- errorMessages e]
        Right (readerName, setExts) ->
            case lookup readerName readers of
                    Nothing  -> Left $ "Unknown reader: " ++ readerName
@@ -239,7 +248,7 @@ getReader s =
 getWriter :: String -> Either String Writer
 getWriter s =
   case parseFormatSpec s of
-       Left e  -> Left $ show e
+       Left e  -> Left $ intercalate "\n" $ [m | Message m <- errorMessages e]
        Right (writerName, setExts) ->
            case lookup writerName writers of
                    Nothing  -> Left $ "Unknown writer: " ++ writerName

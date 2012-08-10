@@ -498,5 +498,6 @@ warn msg = do
 
 safeRead :: (Monad m, Read a) => String -> m a
 safeRead s = case reads s of
-                  (d,[]):_  -> return d
-                  _         -> fail $ "Could not read `" ++ s ++ "'"
+                  (d,x):_
+                    | all isSpace x -> return d
+                  _                 -> fail $ "Could not read `" ++ s ++ "'"

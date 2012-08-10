@@ -86,15 +86,16 @@ import qualified Control.Exception.Extensible as E (try, IOException)
 getDefaultTemplate :: (Maybe FilePath) -- ^ User data directory to search first
                    -> String           -- ^ Name of writer
                    -> IO (Either E.IOException String)
-getDefaultTemplate _ "native" = return $ Right ""
-getDefaultTemplate _ "json"   = return $ Right ""
-getDefaultTemplate _ "docx"   = return $ Right ""
-getDefaultTemplate user "odt" = getDefaultTemplate user "opendocument"
-getDefaultTemplate user "epub" = getDefaultTemplate user "html"
 getDefaultTemplate user writer = do
-  let format = takeWhile (/='+') writer  -- strip off "+lhs" if present
-  let fname = "templates" </> "default" <.> format
-  E.try $ readDataFile user fname
+  let format = takeWhile (`notElem` "+-") writer  -- strip off extensions
+  case format of
+       "native" -> return $ Right ""
+       "json"   -> return $ Right ""
+       "docx"   -> return $ Right ""
+       "odt"    -> getDefaultTemplate user "opendocument"
+       "epub"   -> return $ Right ""
+       _        -> let fname = "templates" </> "default" <.> format
+                   in  E.try $ readDataFile user fname
 
 data TemplateState = TemplateState Int [(String,String)]
 

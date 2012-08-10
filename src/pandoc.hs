@@ -44,7 +44,7 @@ import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower )
-import Data.List ( intercalate, isSuffixOf, isPrefixOf )
+import Data.List ( intercalate, isPrefixOf )
 import System.Directory ( getAppUserDataDirectory, doesFileExist, findExecutable )
 import System.IO ( stdout )
 import System.IO.Error ( isDoesNotExistError )
@@ -58,7 +58,6 @@ import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString)
-import qualified Data.Set as Set
 import Text.CSL.Reference (Reference(..))
 #if MIN_VERSION_base(4,4,0)
 #else
@@ -99,8 +98,8 @@ wrapWords indent c = wrap' (c - indent) (c - indent)
                                                        then ",\n" ++ replicate indent ' ' ++ x ++ wrap' cols (cols - length x) xs
                                                        else ", "  ++ x ++ wrap' cols (remaining - (length x + 2)) xs
 
-nonTextFormats :: [String]
-nonTextFormats = ["odt","docx","epub"]
+isTextFormat :: String -> Bool
+isTextFormat s = takeWhile (`notElem` "+-") s `notElem` ["odt","docx","epub"]
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -133,7 +132,6 @@ data Opt = Opt
     , optEPUBFonts         :: [FilePath] -- ^ EPUB fonts to embed
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
-    , optStrict            :: Bool    -- ^ Use strict markdown syntax
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optWrapText          :: Bool    -- ^ Wrap text
     , optColumns           :: Int     -- ^ Line length in characters
@@ -186,7 +184,6 @@ defaultOpts = Opt
     , optEPUBFonts         = []
     , optDumpArgs          = False
     , optIgnoreArgs        = False
-    , optStrict            = False
     , optReferenceLinks    = False
     , optWrapText          = True
     , optColumns           = 72
@@ -237,7 +234,10 @@ options =
 
     , Option "" ["strict"]
                  (NoArg
-                  (\opt -> return opt { optStrict = True } ))
+                  (\opt -> do
+                      err 59 $ "The --strict option has been removed.\n" ++
+                               "Use `strict' input or output format instead."
+                      return opt ))
                  "" -- "Disable markdown syntax extensions"
 
     , Option "R" ["parse-raw"]
@@ -702,7 +702,7 @@ usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName = usageInfo
   (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++
   (wrapWords 16 78 $ readers'names) ++ "\nOutput formats: " ++
-  (wrapWords 16 78 $ writers'names ++ nonTextFormats) ++ "\nOptions:")
+  (wrapWords 16 78 $ writers'names) ++ "\nOptions:")
   where
     writers'names = map fst writers
     readers'names = map fst readers
@@ -782,9 +782,10 @@ main = do
         ["Try " ++ prg ++ " --help for more information."]
 
   let defaultOpts' = if compatMode
-                       then defaultOpts { optReader = "markdown"
+                       then defaultOpts { optReader = "strict"
                                         , optWriter = "html"
-                                        , optStrict = True }
+                                        , optEmailObfuscation =
+                                           ReferenceObfuscation }
                        else defaultOpts
 
   -- thread option data structure through all supplied option actions
@@ -819,7 +820,6 @@ main = do
               , optEPUBFonts         = epubFonts
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
-              , optStrict            = strict
               , optReferenceLinks    = referenceLinks
               , optWrapText          = wrap
               , optColumns           = columns
@@ -867,8 +867,8 @@ main = do
 
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
 
-  let laTeXOutput = writerName' == "latex" || writerName' == "beamer" ||
-         writerName' == "latex+lhs" || writerName' == "beamer+lhs"
+  let laTeXOutput = "latex" `isPrefixOf` writerName' ||
+                    "beamer" `isPrefixOf` writerName'
 
   when pdfOutput $ do
     -- make sure writer is latex or beamer
@@ -882,11 +882,11 @@ main = do
            latexEngine ++ " is needed for pdf output."
          Just _   -> return ()
 
-  reader <- case (lookup readerName' readers) of
-     Just r  -> return r
-     Nothing -> err 7 ("Unknown reader: " ++ readerName')
+  reader <- case getReader readerName' of
+     Right r  -> return r
+     Left e   -> err 7 e
 
-  let standalone' = standalone || writerName' `elem` nonTextFormats || pdfOutput
+  let standalone' = standalone || not (isTextFormat writerName') || pdfOutput
 
   templ <- case templatePath of
                 _ | not standalone' -> return ""
@@ -896,8 +896,8 @@ main = do
                                  Left e   -> throwIO e
                                  Right t  -> return t
                 Just tp -> do
-                           -- strip off "+lhs" if present
-                           let format = takeWhile (/='+') writerName'
+                           -- strip off extensions
+                           let format = takeWhile (`notElem` "+-") writerName'
                            let tp' = case takeExtension tp of
                                           ""   -> tp <.> format
                                           _    -> tp
@@ -919,13 +919,13 @@ main = do
                          return $ ("mathml-script", s) : variables
                       _ -> return variables
 
-  variables'' <- case writerName' of
-                      "dzslides" -> do
+  variables'' <- if "dzslides" `isPrefixOf` writerName'
+                    then do
                         dztempl <- readDataFile datadir $ "dzslides" </> "template.html"
                         let dzcore = unlines $ dropWhile (not . isPrefixOf "<!-- {{{{ dzslides core")
                                              $ lines dztempl
                         return $ ("dzslides-core", dzcore) : variables'
-                      _         -> return variables'
+                    else return variables'
 
   -- unescape reference ids, which may contain XML entities, so
   -- that we can do lookups with regular string equality
@@ -942,13 +942,8 @@ main = do
                      then "."
                      else takeDirectory (head sources)
 
-  let defaultExts = if strict
-                       then strictExtensions
-                       else pandocExtensions
-
-  let readerOpts = def{ readerExtensions = defaultExts
-                      , readerSmart = smart || (texLigatures &&
-                          (laTeXOutput || writerName' == "context"))
+  let readerOpts = def{ readerSmart = smart || (texLigatures &&
+                          (laTeXOutput || "context" `isPrefixOf` writerName'))
                       , readerStandalone = standalone'
                       , readerParseRaw = parseRaw
                       , readerColumns = columns
@@ -972,13 +967,10 @@ main = do
                             writerIgnoreNotes      = False,
                             writerNumberSections   = numberSections,
                             writerSectionDivs      = sectionDivs,
-                            writerExtensions       = defaultExts,
                             writerReferenceLinks   = referenceLinks,
                             writerWrapText         = wrap,
                             writerColumns          = columns,
-                            writerEmailObfuscation = if strict
-                                                     then ReferenceObfuscation
-                                                     else obfuscationMethod,
+                            writerEmailObfuscation = obfuscationMethod,
                             writerIdentifierPrefix = idPrefix,
                             writerSourceDirectory  = sourceDir,
                             writerUserDataDir      = datadir,
@@ -997,7 +989,7 @@ main = do
                             writerReferenceDocx    = referenceDocx
                           }
 
-  when (writerName' `elem` nonTextFormats&& outputFile == "-") $
+  when (not (isTextFormat writerName') && outputFile == "-") $
     err 5 $ "Cannot write " ++ writerName' ++ " output to stdout.\n" ++
             "Specify an output file using the -o option."
 
@@ -1022,7 +1014,7 @@ main = do
 
   let doc0 = foldr ($) doc transforms
 
-  doc1 <- if writerName' == "rtf"
+  doc1 <- if "rtf" `isPrefixOf` writerName'
              then bottomUpM rtfEmbedImage doc0
              else return doc0
 
@@ -1050,12 +1042,11 @@ main = do
       writerFn "-" = UTF8.putStr
       writerFn f   = UTF8.writeFile f
 
-  let mbwriter = lookup writerName' writers
-  case mbwriter of
-    Nothing -> err 9 ("Unknown writer: " ++ writerName')
-    Just (IOStringWriter f) -> f writerOptions doc2 >>= writerFn outputFile
-    Just (IOByteStringWriter f) -> f writerOptions doc2 >>= writeBinary
-    Just (PureStringWriter f)
+  case getWriter writerName' of
+    Left e -> err 9 e
+    Right (IOStringWriter f) -> f writerOptions doc2 >>= writerFn outputFile
+    Right (IOByteStringWriter f) -> f writerOptions doc2 >>= writeBinary
+    Right (PureStringWriter f)
       | pdfOutput -> do
               res <- tex2pdf latexEngine $ f writerOptions doc2
               case res of
