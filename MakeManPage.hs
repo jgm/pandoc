@@ -7,11 +7,6 @@ import Control.Monad
 import System.FilePath
 import System.Environment (getArgs)
 import Text.Pandoc.Shared (normalize)
-import System.Directory (getModificationTime)
-import System.IO.Error (isDoesNotExistError)
-import System.Time (ClockTime(..))
-import Data.Maybe (catMaybes)
-import qualified Control.Exception as E
 
 main = do
   rmContents <- liftM toString $ B.readFile "README"
@@ -29,12 +24,9 @@ main = do
 makeManPage :: Bool -> FilePath -> Meta -> [Block] -> IO ()
 makeManPage verbose page meta blocks = do
   let templ = page <.> "template"
-  modDeps <- modifiedDependencies page ["README", templ]
-  unless (null modDeps) $ do
-    manTemplate <- liftM toString $ B.readFile templ
-    writeManPage page manTemplate (Pandoc meta blocks)
-    when verbose $
-      putStrLn $ "Created " ++ page
+  manTemplate <- liftM toString $ B.readFile templ
+  writeManPage page manTemplate (Pandoc meta blocks)
+  when verbose $ putStrLn $ "Created " ++ page
 
 writeManPage :: FilePath -> String -> Pandoc -> IO ()
 writeManPage page templ doc = do
@@ -44,17 +36,6 @@ writeManPage page templ doc = do
                     bottomUp (concatMap removeLinks) $
                     bottomUp  capitalizeHeaders doc
   B.writeFile page $ fromString manPage
-
--- | Returns a list of 'dependencies' that have been modified after 'file'.
-modifiedDependencies :: FilePath -> [FilePath] -> IO [FilePath]
-modifiedDependencies file dependencies = do
-  fileModTime <- E.catch (getModificationTime file) $
-                 \e -> if isDoesNotExistError e
-                          then return (TOD 0 0)   -- the minimum ClockTime
-                          else ioError e
-  depModTimes <- mapM getModificationTime dependencies
-  let modified = zipWith (\dep time -> if time > fileModTime then Just dep else Nothing) dependencies depModTimes
-  return $ catMaybes modified
 
 removeLinks :: Inline -> [Inline]
 removeLinks (Link l _) = l
