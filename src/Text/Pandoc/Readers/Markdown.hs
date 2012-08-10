@@ -993,27 +993,31 @@ pipeTable = try $ do
   (heads,aligns) <- try ( pipeBreak >>= \als ->
                      return (return $ replicate (length als) mempty, als))
                   <|> ( pipeTableRow >>= \row -> pipeBreak >>= \als ->
+
                           return (row, als) )
-  lines' <- fmap sequence $ many1 pipeTableRow
+  lines' <- sequence <$> many1 pipeTableRow
   blanklines
   let widths = replicate (length aligns) 0.0
   return $ (aligns, widths, heads, lines')
 
 sepPipe :: Parser [Char] ParserState ()
-sepPipe = try $ char '|' >> notFollowedBy blankline
+sepPipe = try $ do
+  char '|' <|> char '+'
+  notFollowedBy blankline
 
+-- parse a row, also returning probable alignments for org-table cells
 pipeTableRow :: Parser [Char] ParserState (F [Blocks])
 pipeTableRow = do
   nonindentSpaces
   optional (char '|')
   let cell = mconcat <$>
-             many (notFollowedBy (blankline <|> char '|') >> inline)
+                 many (notFollowedBy (blankline <|> char '|') >> inline)
   first <- cell
   sepPipe
   rest <- cell `sepBy1` sepPipe
   optional (char '|')
   blankline
-  let cells = sequence (first:rest)
+  let cells  = sequence (first:rest)
   return $ do
     cells' <- cells
     return $ map
