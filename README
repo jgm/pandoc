@@ -163,14 +163,6 @@ General options
     will be rendered as literate Haskell source: see [Literate Haskell
     support](#literate-haskell-support), below.
 
-`-e` *EXTENSION*, `--enable=`*EXTENSION*
-:   Enable the specified markdown syntax extension.  For a list of extensions,
-    see [Pandoc's markdown](#pandocs-markdown), below.
-
-`-d` *EXTENSION*, `--disable=`*EXTENSION*
-:   Disable the specified markdown syntax extension.  For a list of extensions,
-    see [Pandoc's markdown](#pandocs-markdown), below.
-
 `-o` *FILE*, `--output=`*FILE*
 :   Write output to *FILE* instead of *stdout*.  If *FILE* is
     `-`, output will go to *stdout*.  (Exception: if the output
@@ -773,9 +765,7 @@ Pandoc understands an extended and slightly revised version of
 John Gruber's [markdown] syntax.  This document explains the syntax,
 noting differences from standard markdown. Except where noted, these
 differences can be suppressed by specifying the `--strict` command-line
-option.  They can also be disabled piecemeal using the `--disable`
-(or `-d`) option. If `--strict` is used, `--enable` (or `-e`) can be
-used to turn on specific extensions.
+option.
 
 Philosophy
 ----------
@@ -2175,7 +2165,7 @@ Non-pandoc extensions
 =====================
 
 The following markdown syntax extensions are not enabled by default
-in pandoc, but can be enabled using the `-e` (`--enable`) option:
+in pandoc.
 
 **Extension:  `hard_line_breaks`**\
 Causes all newlines within a paragraph to be interpreted as hard line

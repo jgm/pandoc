@@ -134,7 +134,6 @@ data Opt = Opt
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optStrict            :: Bool    -- ^ Use strict markdown syntax
-    , optExtensions        :: [(Bool, Extension)]-- ^ Extensions to enable/disable
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optWrapText          :: Bool    -- ^ Wrap text
     , optColumns           :: Int     -- ^ Line length in characters
@@ -188,7 +187,6 @@ defaultOpts = Opt
     , optDumpArgs          = False
     , optIgnoreArgs        = False
     , optStrict            = False
-    , optExtensions        = []
     , optReferenceLinks    = False
     , optWrapText          = True
     , optColumns           = 72
@@ -241,24 +239,6 @@ options =
                  (NoArg
                   (\opt -> return opt { optStrict = True } ))
                  "" -- "Disable markdown syntax extensions"
-
-    , Option "e" ["enable"]
-                 (ReqArg
-                  (\arg opt -> do
-                      ext <- readExtension arg
-                      return opt { optExtensions =
-                                    (True,ext) : optExtensions opt } )
-                  "EXTENSION")
-                 "" -- "Enable specific markdown syntax extensions"
-
-    , Option "d" ["disable"]
-                 (ReqArg
-                  (\arg opt -> do
-                      ext <- readExtension arg
-                      return opt { optExtensions =
-                                   (False,ext) : optExtensions opt } )
-                  "EXTENSION")
-                 "" -- "Disable specific markdown syntax extensions"
 
     , Option "R" ["parse-raw"]
                  (NoArg
@@ -840,7 +820,6 @@ main = do
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
               , optStrict            = strict
-              , optExtensions        = exts
               , optReferenceLinks    = referenceLinks
               , optWrapText          = wrap
               , optColumns           = columns
@@ -967,12 +946,7 @@ main = do
                        then strictExtensions
                        else pandocExtensions
 
-  let extensions = foldl (\acc (inc,ext) -> if inc
-                                            then Set.insert ext acc
-                                            else Set.delete ext acc)
-                         defaultExts exts
-
-  let readerOpts = def{ readerExtensions = extensions
+  let readerOpts = def{ readerExtensions = defaultExts
                       , readerSmart = smart || (texLigatures &&
                           (laTeXOutput || writerName' == "context"))
                       , readerStandalone = standalone'
@@ -998,7 +972,7 @@ main = do
                             writerIgnoreNotes      = False,
                             writerNumberSections   = numberSections,
                             writerSectionDivs      = sectionDivs,
-                            writerExtensions       = extensions,
+                            writerExtensions       = defaultExts,
                             writerReferenceLinks   = referenceLinks,
                             writerWrapText         = wrap,
                             writerColumns          = columns,
