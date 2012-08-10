@@ -176,8 +176,7 @@ parseFormatSpec = parse formatSpec ""
 readers :: [(String, ReaderOptions -> String -> Pandoc)]
 readers = [("native"       , \_ -> readNative)
           ,("json"         , \_ -> decodeJSON)
-          ,("strict"       , \o -> readMarkdown
-                               o{ readerExtensions = strictExtensions } )
+          ,("strict"       , readMarkdown)
           ,("markdown"     , readMarkdown)
           ,("rst"          , readRST)
           ,("docbook"      , readDocBook)
@@ -221,8 +220,7 @@ writers = [
   ,("texinfo"      , PureStringWriter writeTexinfo)
   ,("man"          , PureStringWriter writeMan)
   ,("markdown"     , PureStringWriter writeMarkdown)
-  ,("strict"       , PureStringWriter $ \o ->
-     writeMarkdown o{ writerExtensions = strictExtensions } )
+  ,("strict"       , PureStringWriter writeMarkdown)
   ,("plain"        , PureStringWriter writePlain)
   ,("rst"          , PureStringWriter writeRST)
   ,("mediawiki"    , PureStringWriter writeMediaWiki)
@@ -231,6 +229,10 @@ writers = [
   ,("org"          , PureStringWriter writeOrg)
   ,("asciidoc"     , PureStringWriter writeAsciiDoc)
   ]
+
+getDefaultExtensions :: String -> Set Extension
+getDefaultExtensions "strict" = strictExtensions
+getDefaultExtensions _        = pandocExtensions
 
 -- | Retrieve reader based on formatSpec (format+extensions).
 getReader :: String -> Either String (ReaderOptions -> String -> Pandoc)
@@ -242,7 +244,7 @@ getReader s =
                    Nothing  -> Left $ "Unknown reader: " ++ readerName
                    Just  r  -> Right $ \o ->
                                   r o{ readerExtensions = setExts $
-                                            readerExtensions o }
+                                            getDefaultExtensions readerName }
 
 -- | Retrieve writer based on formatSpec (format+extensions).
 getWriter :: String -> Either String Writer
@@ -254,13 +256,13 @@ getWriter s =
                    Nothing  -> Left $ "Unknown writer: " ++ writerName
                    Just (PureStringWriter r) -> Right $ PureStringWriter $
                            \o -> r o{ writerExtensions = setExts $
-                                            writerExtensions o }
+                                            getDefaultExtensions writerName }
                    Just (IOStringWriter r) -> Right $ IOStringWriter $
                            \o -> r o{ writerExtensions = setExts $
-                                            writerExtensions o }
+                                            getDefaultExtensions writerName }
                    Just (IOByteStringWriter r) -> Right $ IOByteStringWriter $
                            \o -> r o{ writerExtensions = setExts $
-                                            writerExtensions o }
+                                            getDefaultExtensions writerName }
 
 {-# DEPRECATED jsonFilter "Use toJsonFilter instead" #-}
 -- | Converts a transformation on the Pandoc AST into a function
