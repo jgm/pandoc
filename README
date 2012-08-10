@@ -1519,6 +1519,18 @@ and lists, and cannot span multiple lines.
 
   [PHP markdown extra]: http://michelf.ca/projects/php-markdown/extra/#table
 
+Note:  Pandoc also recognizes pipe tables of the following
+form, as can produced by Emacs' orgtbl-mode:
+
+    | One | Two   |
+    |-----+-------|
+    | my  | table |
+    | is  | nice  |
+
+The difference is that `+` is used instead of `|`. Other orgtbl features
+are not supported. In particular, to get non-default column alignment,
+you'll need to add colons as above.
+
 Title block
 -----------
 
