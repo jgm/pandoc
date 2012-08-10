@@ -26,8 +26,8 @@ tables, flexible ordered lists, definition lists, delimited code blocks,
 superscript, subscript, strikeout, title blocks, automatic tables of
 contents, embedded LaTeX math, citations, and markdown inside HTML block
 elements. (These enhancements, described below under
-[Pandoc's markdown](#pandocs-markdown), can be disabled using the `strict`
-input or output format.)
+[Pandoc's markdown](#pandocs-markdown), can be disabled using the
+`markdown_strict` input or output format.)
 
 In contrast to most existing tools for converting markdown to HTML, which
 use regex substitutions, Pandoc has a modular design: it consists of a
@@ -118,7 +118,7 @@ and `xunicode` (if `xelatex` is used).
 A user who wants a drop-in replacement for `Markdown.pl` may create
 a symbolic link to the `pandoc` executable called `hsmarkdown`. When
 invoked under the name `hsmarkdown`, `pandoc` will behave as if
-invoked with `-f strict --email-obfuscation=references`,
+invoked with `-f markdown_strict --email-obfuscation=references`,
 and all command-line options will be treated as regular arguments.
 However, this approach does not work under Cygwin, due to problems with
 its simulation of symbolic links.
@@ -757,7 +757,7 @@ Pandoc's markdown
 Pandoc understands an extended and slightly revised version of
 John Gruber's [markdown] syntax.  This document explains the syntax,
 noting differences from standard markdown. Except where noted, these
-differences can be suppressed by using the `strict` format instead
+differences can be suppressed by using the `markdown_strict` format instead
 of `markdown`.
 
 Philosophy
@@ -927,7 +927,7 @@ Standard markdown syntax does not require a blank line before a block
 quote.  Pandoc does require this (except, of course, at the beginning of the
 document). The reason for the requirement is that it is all too easy for a
 `>` to end up at the beginning of a line by accident (perhaps through line
-wrapping). So, unless the `strict` format is used, the following does
+wrapping). So, unless the `markdown_strict` format is used, the following does
 not produce a nested block quote in pandoc:
 
     > This is a block quote.
@@ -1284,7 +1284,7 @@ around "Third". Pandoc follows a simple rule: if the text is followed by
 a blank line, it is treated as a paragraph. Since "Second" is followed
 by a list, and not a blank line, it isn't treated as a paragraph. The
 fact that the list is followed by a blank line is irrelevant. (Note:
-Pandoc works this way even when the `strict` format is specified. This
+Pandoc works this way even when the `markdown_strict` format is specified. This
 behavior is consistent with the official markdown syntax description,
 even though it is different from that of `Markdown.pl`.)
 
@@ -1605,7 +1605,7 @@ which allows only the following characters to be backslash-escaped:
 
     \`*_{}[]()>#+-.!
 
-(However, if the `strict` format is used, the standard markdown rule
+(However, if the `markdown_strict` format is used, the standard markdown rule
 will be used.)
 
 A backslash-escaped space is parsed as a nonbreaking space.  It will
@@ -1840,8 +1840,8 @@ with blank lines, and start and end at the left margin.  Within
 these blocks, everything is interpreted as HTML, not markdown;
 so (for example), `*` does not signify emphasis.
 
-Pandoc behaves this way when the `strict` format is used; but by default,
-pandoc interprets material between HTML block tags as markdown.
+Pandoc behaves this way when the `markdown_strict` format is used; but
+by default, pandoc interprets material between HTML block tags as markdown.
 Thus, for example, Pandoc will turn
 
     <table>

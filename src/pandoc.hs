@@ -236,7 +236,7 @@ options =
                  (NoArg
                   (\opt -> do
                       err 59 $ "The --strict option has been removed.\n" ++
-                               "Use `strict' input or output format instead."
+                               "Use `markdown_strict' input or output format instead."
                       return opt ))
                  "" -- "Disable markdown syntax extensions"
 
@@ -782,7 +782,7 @@ main = do
         ["Try " ++ prg ++ " --help for more information."]
 
   let defaultOpts' = if compatMode
-                       then defaultOpts { optReader = "strict"
+                       then defaultOpts { optReader = "markdown_strict"
                                         , optWriter = "html"
                                         , optEmailObfuscation =
                                            ReferenceObfuscation }

@@ -176,7 +176,7 @@ parseFormatSpec = parse formatSpec ""
 readers :: [(String, ReaderOptions -> String -> Pandoc)]
 readers = [("native"       , \_ -> readNative)
           ,("json"         , \_ -> decodeJSON)
-          ,("strict"       , readMarkdown)
+          ,("markdown_strict" , readMarkdown)
           ,("markdown"     , readMarkdown)
           ,("rst"          , readRST)
           ,("docbook"      , readDocBook)
@@ -220,7 +220,7 @@ writers = [
   ,("texinfo"      , PureStringWriter writeTexinfo)
   ,("man"          , PureStringWriter writeMan)
   ,("markdown"     , PureStringWriter writeMarkdown)
-  ,("strict"       , PureStringWriter writeMarkdown)
+  ,("markdown_strict" , PureStringWriter writeMarkdown)
   ,("plain"        , PureStringWriter writePlain)
   ,("rst"          , PureStringWriter writeRST)
   ,("mediawiki"    , PureStringWriter writeMediaWiki)
@@ -231,7 +231,7 @@ writers = [
   ]
 
 getDefaultExtensions :: String -> Set Extension
-getDefaultExtensions "strict" = strictExtensions
+getDefaultExtensions "markdown_strict" = strictExtensions
 getDefaultExtensions _        = pandocExtensions
 
 -- | Retrieve reader based on formatSpec (format+extensions).
