@@ -100,6 +100,8 @@ module Text.Pandoc
                -- * Version
                , pandocVersion
                -- * Miscellaneous
+               , getReader
+               , getWriter
                , rtfEmbedImage
                , jsonFilter
                , ToJsonFilter(..)
@@ -221,6 +223,35 @@ writers = [
   ,("org"          , PureStringWriter writeOrg)
   ,("asciidoc"     , PureStringWriter writeAsciiDoc)
   ]
+
+getReader :: String -> Either String (ReaderOptions -> String -> Pandoc)
+getReader s =
+  case parseFormatSpec s of
+       Left e  -> Left $ show e
+       Right (readerName, setExts) ->
+           case lookup readerName readers of
+                   Nothing  -> Left $ "Unknown reader: " ++ readerName
+                   Just  r  -> Right $ \o ->
+                                  r o{ readerExtensions = setExts $
+                                            readerExtensions o }
+
+-- | Retrieve writer based on formatSpec (format+extensions).
+getWriter :: String -> Either String Writer
+getWriter s =
+  case parseFormatSpec s of
+       Left e  -> Left $ show e
+       Right (writerName, setExts) ->
+           case lookup writerName writers of
+                   Nothing  -> Left $ "Unknown writer: " ++ writerName
+                   Just (PureStringWriter r) -> Right $ PureStringWriter $
+                           \o -> r o{ writerExtensions = setExts $
+                                            writerExtensions o }
+                   Just (IOStringWriter r) -> Right $ IOStringWriter $
+                           \o -> r o{ writerExtensions = setExts $
+                                            writerExtensions o }
+                   Just (IOByteStringWriter r) -> Right $ IOByteStringWriter $
+                           \o -> r o{ writerExtensions = setExts $
+                                            writerExtensions o }
 
 {-# DEPRECATED jsonFilter "Use toJsonFilter instead" #-}
 -- | Converts a transformation on the Pandoc AST into a function
