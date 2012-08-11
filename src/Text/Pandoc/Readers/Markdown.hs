@@ -1184,13 +1184,13 @@ math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros'))
 
 mathDisplay :: Parser [Char] ParserState String
 mathDisplay = try $ do
-  guardEnabled Ext_tex_math
+  guardEnabled Ext_tex_math_dollars
   string "$$"
   many1Till (noneOf "\n" <|> (newline >>~ notFollowedBy' blankline)) (try $ string "$$")
 
 mathInline :: Parser [Char] ParserState String
 mathInline = try $ do
-  guardEnabled Ext_tex_math
+  guardEnabled Ext_tex_math_dollars
   char '$'
   notFollowedBy space
   words' <- sepBy1 mathWord (many1 (spaceChar <|> (newline >>~ notFollowedBy' blankline)))

@@ -1752,7 +1752,7 @@ Attributes can be attached to verbatim text, just as with
 Math
 ----
 
-**Extension: `tex_math`**
+**Extension: `tex_math_dollars`**
 
 Anything between two `$` characters will be treated as TeX math.  The
 opening `$` must have a character immediately to its right, while the

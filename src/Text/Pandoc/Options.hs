@@ -57,7 +57,7 @@ data Extension = Ext_footnotes
                | Ext_pipe_tables
                | Ext_citations
                | Ext_raw_tex
-               | Ext_tex_math
+               | Ext_tex_math_dollars
                | Ext_latex_macros
                | Ext_delimited_code_blocks
                | Ext_inline_code_attributes
@@ -93,7 +93,7 @@ pandocExtensions = Set.fromList
   , Ext_pipe_tables
   , Ext_citations
   , Ext_raw_tex
-  , Ext_tex_math
+  , Ext_tex_math_dollars
   , Ext_latex_macros
   , Ext_delimited_code_blocks
   , Ext_inline_code_attributes
