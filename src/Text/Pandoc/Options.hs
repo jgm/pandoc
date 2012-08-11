@@ -58,6 +58,8 @@ data Extension = Ext_footnotes
                | Ext_citations
                | Ext_raw_tex
                | Ext_tex_math_dollars
+               | Ext_tex_math_single_backslash
+               | Ext_tex_math_double_backslash
                | Ext_latex_macros
                | Ext_delimited_code_blocks
                | Ext_inline_code_attributes

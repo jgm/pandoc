@@ -2196,6 +2196,16 @@ example, `markdown+hard_line_breaks` is markdown with hard line breaks.
 Causes all newlines within a paragraph to be interpreted as hard line
 breaks instead of spaces.
 
+**Extension: `tex_math_single_backslash`**\
+Causes anything between `\(` and `\)` to be interpreted as inline
+TeX math, and anything between `\[` and `\]` to be interpreted
+as display TeX math.  Note: a drawback of this extension is that
+it precludes escaping `(` and `[`.
+
+**Extension: `tex_math_double_backslash`**\
+Causes anything between `\\(` and `\\)` to be interpreted as inline
+TeX math, and anything between `\\[` and `\\]` to be interpreted
+as display TeX math.
 
 Producing slide shows with Pandoc
 =================================
