@@ -68,7 +68,6 @@ data Extension = Ext_footnotes
                | Ext_startnum
                | Ext_definition_lists
                | Ext_example_lists
-               -- | Ext_header_identifiers
                | Ext_all_symbols_escapable
                | Ext_intraword_underscores
                | Ext_blank_before_blockquote
@@ -105,7 +104,6 @@ pandocExtensions = Set.fromList
   , Ext_startnum
   , Ext_definition_lists
   , Ext_example_lists
-  -- , Ext_header_identifiers
   , Ext_all_symbols_escapable
   , Ext_intraword_underscores
   , Ext_blank_before_blockquote
