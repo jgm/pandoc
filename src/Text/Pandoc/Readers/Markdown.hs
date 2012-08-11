@@ -736,19 +736,10 @@ rawTeXBlock = do
   spaces
   return $ return result
 
-addMarkdownAttribute :: (Tag String, String) -> Parser [Char] ParserState String
-addMarkdownAttribute (t,s) = do
-  (guardDisabled Ext_markdown_attribute >> return s)
- <|>  case t of
-       TagOpen x attrs
-         | "markdown" `elem` map fst attrs -> return s
-         | otherwise -> return $ renderTags [TagOpen x (("markdown","1"):attrs)]
-       _ -> return s
-
 rawHtmlBlocks :: Parser [Char] ParserState String
 rawHtmlBlocks = do
   htmlBlocks <- many1 $ do blk <- rawVerbatimBlock <|>
-                                   (htmlTag isBlockTag >>= addMarkdownAttribute)
+                                   liftM snd (htmlTag isBlockTag)
                            sps <- do sp1 <- many spaceChar
                                      sp2 <- option "" (blankline >> return "\n")
                                      sp3 <- many spaceChar

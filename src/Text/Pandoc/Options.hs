@@ -64,7 +64,6 @@ data Extension = Ext_footnotes
                | Ext_delimited_code_blocks
                | Ext_inline_code_attributes
                | Ext_markdown_in_html_blocks
-               | Ext_markdown_attribute
                | Ext_escaped_line_breaks
                | Ext_autolink_code_spans
                | Ext_fancy_lists
