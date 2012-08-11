@@ -1169,34 +1169,42 @@ code = try $ do
                                    optional whitespace >> attributes)
   return $ return $ B.codeWith attr $ removeLeadingTrailingSpace $ concat result
 
-mathWord :: Parser [Char] st String
-mathWord = liftM concat $ many1 mathChunk
-
-mathChunk :: Parser [Char] st String
-mathChunk = do char '\\'
-               c <- anyChar
-               return ['\\',c]
-        <|> many1 (satisfy $ \c -> not (isBlank c || c == '\\' || c == '$'))
-
 math :: Parser [Char] ParserState (F Inlines)
 math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros'))
      <|> (return . B.math <$> (mathInline >>= applyMacros'))
 
 mathDisplay :: Parser [Char] ParserState String
-mathDisplay = try $ do
-  guardEnabled Ext_tex_math_dollars
-  string "$$"
-  many1Till (noneOf "\n" <|> (newline >>~ notFollowedBy' blankline)) (try $ string "$$")
+mathDisplay =
+      (guardEnabled Ext_tex_math_dollars >> mathDisplayWith "$$" "$$")
+  <|> (guardEnabled Ext_tex_math_single_backslash >>
+       mathDisplayWith "\\[" "\\]")
+  <|> (guardEnabled Ext_tex_math_double_backslash >>
+       mathDisplayWith "\\\\[" "\\\\]")
+
+mathDisplayWith :: String -> String -> Parser [Char] ParserState String
+mathDisplayWith op cl = try $ do
+  string op
+  many1Till (noneOf "\n" <|> (newline >>~ notFollowedBy' blankline)) (try $ string cl)
 
 mathInline :: Parser [Char] ParserState String
-mathInline = try $ do
-  guardEnabled Ext_tex_math_dollars
-  char '$'
+mathInline =
+      (guardEnabled Ext_tex_math_dollars >> mathInlineWith "$" "$")
+  <|> (guardEnabled Ext_tex_math_single_backslash >>
+       mathInlineWith "\\(" "\\)")
+  <|> (guardEnabled Ext_tex_math_double_backslash >>
+       mathInlineWith "\\\\(" "\\\\)")
+
+mathInlineWith :: String -> String -> Parser [Char] ParserState String
+mathInlineWith op cl = try $ do
+  string op
   notFollowedBy space
-  words' <- sepBy1 mathWord (many1 (spaceChar <|> (newline >>~ notFollowedBy' blankline)))
-  char '$'
-  notFollowedBy digit
-  return $ intercalate " " words'
+  words' <- many1Till (count 1 (noneOf "\n\\")
+                   <|> (char '\\' >> anyChar >>= \c -> return ['\\',c])
+                   <|> count 1 newline <* notFollowedBy' blankline
+                       *> return " ")
+              (try $ string cl)
+  notFollowedBy digit  -- to prevent capture of $5
+  return $ concat words'
 
 -- to avoid performance problems, treat 4 or more _ or * or ~ or ^ in a row
 -- as a literal rather than attempting to parse for emph/strong/strikeout/super/sub
