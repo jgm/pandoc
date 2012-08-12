@@ -52,6 +52,7 @@ import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match (tagOpen)
+import qualified Data.Set as Set
 
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: ReaderOptions -- ^ Reader options
@@ -720,13 +721,13 @@ htmlBlock' = try $ do
 strictHtmlBlock :: Parser [Char] ParserState String
 strictHtmlBlock = htmlInBalanced (not . isInlineTag)
 
-rawVerbatimBlock :: Parser [Char] ParserState String
+rawVerbatimBlock :: Parser [Char] ParserState (Tag String, String)
 rawVerbatimBlock = try $ do
-  (TagOpen tag _, open) <- htmlTag (tagOpen (\t ->
+  (TagOpen tag as, open) <- htmlTag (tagOpen (\t ->
                                       t == "pre" || t == "style" || t == "script")
                                      (const True))
   contents <- manyTill anyChar (htmlTag (~== TagClose tag))
-  return $ open ++ contents ++ renderTags [TagClose tag]
+  return (TagOpen tag as, open ++ contents ++ renderTags [TagClose tag])
 
 rawTeXBlock :: Parser [Char] ParserState (F Blocks)
 rawTeXBlock = do
@@ -738,17 +739,25 @@ rawTeXBlock = do
 
 rawHtmlBlocks :: Parser [Char] ParserState String
 rawHtmlBlocks = do
-  htmlBlocks <- many1 $ do blk <- rawVerbatimBlock <|>
-                                   liftM snd (htmlTag isBlockTag)
-                           sps <- do sp1 <- many spaceChar
-                                     sp2 <- option "" (blankline >> return "\n")
-                                     sp3 <- many spaceChar
-                                     sp4 <- option "" blanklines
-                                     return $ sp1 ++ sp2 ++ sp3 ++ sp4
-                           -- note: we want raw html to be able to
-                           -- precede a code block, when separated
-                           -- by a blank line
-                           return $ blk ++ sps
+  htmlBlocks <- many1 $ try $ do
+                          (t,s) <- rawVerbatimBlock <|> htmlTag isBlockTag
+                          exts <- getOption readerExtensions
+                          -- if open tag, need markdown=1 if
+                          -- markdown_attributes extension is set
+                          when (Ext_markdown_attribute `Set.member` exts
+                                && isTagOpen t) $ guard
+                                $ case t of
+                                  TagOpen _ as -> "markdown" `elem` map fst as
+                                  _            -> False
+                          sps <- do sp1 <- many spaceChar
+                                    sp2 <- option "" (blankline >> return "\n")
+                                    sp3 <- many spaceChar
+                                    sp4 <- option "" blanklines
+                                    return $ sp1 ++ sp2 ++ sp3 ++ sp4
+                          -- note: we want raw html to be able to
+                          -- precede a code block, when separated
+                          -- by a blank line
+                          return $ s ++ sps
   let combined = concat htmlBlocks
   return $ if last combined == '\n' then init combined else combined
 
