@@ -42,6 +42,7 @@ import Text.Pandoc.Pretty
 import Control.Monad.State
 import qualified Data.Set as Set
 import Text.Pandoc.Writers.HTML (writeHtmlString)
+import Text.HTML.TagSoup (renderTags, parseTags, isTagText, Tag(..))
 
 type Notes = [[Block]]
 type Refs = [([Inline], Target)]
@@ -230,8 +231,15 @@ blockToMarkdown opts (Para inlines) = do
                then text "\x200B" -- zero-width space, a hack
                else empty
   return $ esc <> contents <> blankline
-blockToMarkdown _ (RawBlock f str)
-  | f == "html" || f == "latex" || f == "tex" || f == "markdown" = do
+blockToMarkdown opts (RawBlock f str)
+  | f == "html" = do
+    st <- get
+    if stPlain st
+       then return empty
+       else return $ if isEnabled Ext_markdown_attribute opts
+                        then text (addMarkdownAttribute str) <> text "\n"
+                        else text str <> text "\n"
+  | f == "latex" || f == "tex" || f == "markdown" = do
     st <- get
     if stPlain st
        then return empty
@@ -320,6 +328,15 @@ blockToMarkdown opts (OrderedList (start,sty,delim) items) = do
 blockToMarkdown opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToMarkdown opts) items
   return $ cat contents <> blankline
+
+addMarkdownAttribute :: String -> String
+addMarkdownAttribute s =
+  case span isTagText $ reverse $ parseTags s of
+       (xs,(TagOpen t attrs:rest)) ->
+            renderTags $ reverse rest ++ (TagOpen t attrs' : reverse xs)
+              where attrs' = ("markdown","1"):[(x,y) | (x,y) <- attrs,
+                                 x /= "markdown"]
+       _ -> s
 
 pipeTable :: Bool -> [Alignment] -> [Doc] -> [[Doc]] -> State WriterState Doc
 pipeTable headless aligns rawHeaders rawRows = do
