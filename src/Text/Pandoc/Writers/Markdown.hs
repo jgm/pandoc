@@ -42,6 +42,7 @@ import Text.Pandoc.Pretty
 import Control.Monad.State
 import qualified Data.Set as Set
 import Text.Pandoc.Writers.HTML (writeHtmlString)
+import Text.Pandoc.Readers.TeXMath (readTeXMath)
 import Text.HTML.TagSoup (renderTags, parseTags, isTagText, Tag(..))
 
 type Notes = [[Block]]
@@ -531,10 +532,23 @@ inlineToMarkdown _ (Str str) = do
   if stPlain st
      then return $ text str
      else return $ text $ escapeString str
-inlineToMarkdown _ (Math InlineMath str) =
-  return $ "$" <> text str <> "$"
-inlineToMarkdown _ (Math DisplayMath str) =
-  return $ "$$" <> text str <> "$$"
+inlineToMarkdown opts (Math InlineMath str)
+  | isEnabled Ext_tex_math_dollars opts =
+      return $ "$" <> text str <> "$"
+  | isEnabled Ext_tex_math_single_backslash opts =
+      return $ "\\(" <> text str <> "\\)"
+  | isEnabled Ext_tex_math_double_backslash opts =
+      return $ "\\\\(" <> text str <> "\\\\)"
+  | otherwise = inlineListToMarkdown opts $ readTeXMath str
+inlineToMarkdown opts (Math DisplayMath str)
+  | isEnabled Ext_tex_math_dollars opts =
+      return $ "$$" <> text str <> "$$"
+  | isEnabled Ext_tex_math_single_backslash opts =
+      return $ "\\[" <> text str <> "\\]"
+  | isEnabled Ext_tex_math_double_backslash opts =
+      return $ "\\\\[" <> text str <> "\\\\]"
+  | otherwise = (\x -> cr <> x <> cr) `fmap`
+        inlineListToMarkdown opts (readTeXMath str)
 inlineToMarkdown opts (RawInline f str)
   | f == "html" || f == "markdown" ||
     (isEnabled Ext_raw_tex opts && (f == "latex" || f == "tex")) =
