@@ -729,9 +729,11 @@ htmlElement :: Parser [Char] ParserState String
 htmlElement = strictHtmlBlock <|> liftM snd (htmlTag isBlockTag)
 
 htmlBlock :: Parser [Char] ParserState (F Blocks)
-htmlBlock = return . B.rawBlock "html" <$>
-  ((guardEnabled Ext_markdown_in_html_blocks >> rawHtmlBlocks)
-     <|> htmlBlock')
+htmlBlock = do
+  guardEnabled Ext_raw_html
+  res <- (guardEnabled Ext_markdown_in_html_blocks >> rawHtmlBlocks)
+          <|> htmlBlock'
+  return $ return $ B.rawBlock "html" res
 
 htmlBlock' :: Parser [Char] ParserState String
 htmlBlock' = try $ do
@@ -1507,6 +1509,7 @@ inBrackets parser = do
 
 rawHtmlInline :: Parser [Char] ParserState (F Inlines)
 rawHtmlInline = do
+  guardEnabled Ext_raw_html
   mdInHtml <- option False $
                 guardEnabled Ext_markdown_in_html_blocks >> return True
   (_,result) <- if mdInHtml

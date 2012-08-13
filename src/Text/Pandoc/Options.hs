@@ -58,6 +58,7 @@ data Extension = Ext_footnotes
                | Ext_pipe_tables
                | Ext_citations
                | Ext_raw_tex
+               | Ext_raw_html
                | Ext_tex_math_dollars
                | Ext_tex_math_single_backslash
                | Ext_tex_math_double_backslash
@@ -97,6 +98,7 @@ pandocExtensions = Set.fromList
   , Ext_pipe_tables
   , Ext_citations
   , Ext_raw_tex
+  , Ext_raw_html
   , Ext_tex_math_dollars
   , Ext_latex_macros
   , Ext_delimited_code_blocks
@@ -119,7 +121,8 @@ pandocExtensions = Set.fromList
   ]
 
 strictExtensions :: Set Extension
-strictExtensions = Set.empty
+strictExtensions = Set.fromList
+  [ Ext_raw_html ]
 
 data ReaderOptions = ReaderOptions{
          readerExtensions      :: Set Extension  -- ^ Syntax extensions
