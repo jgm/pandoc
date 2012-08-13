@@ -1984,7 +1984,6 @@ before or after the link).
 
 The link consists of link text in square brackets, followed by a label in
 square brackets. (There can be space between the two.) The link definition
-must begin at the left margin or indented no more than three spaces. It
 consists of the bracketed label, followed by a colon and a space, followed by
 the URL, and optionally (after a space) a link title either in quotes or in
 parentheses.
@@ -2017,6 +2016,16 @@ empty, or omitted entirely:
     See [my website][], or [my website].
 
     [my website]: http://foo.bar.baz
+
+Note:  In `Markdown.pl` and most other markdown implementations,
+reference link definitions cannot occur in nested constructions
+such as list items or block quotes.  Pandoc lifts this arbitrary
+seeming restriction.  So the following is fine in pandoc, though
+not in most other implementations:
+
+    > My block [quote].
+    >
+    > [quote]: /foo
 
 ### Internal links
 
