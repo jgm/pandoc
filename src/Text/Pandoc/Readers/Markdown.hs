@@ -35,7 +35,7 @@ module Text.Pandoc.Readers.Markdown ( readMarkdown ) where
 import Data.List ( transpose, sortBy, findIndex, intercalate )
 import qualified Data.Map as M
 import Data.Ord ( comparing )
-import Data.Char ( isAlphaNum )
+import Data.Char ( isAlphaNum, toLower )
 import Data.Maybe
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
@@ -175,13 +175,35 @@ dateLine = try $ do
   trimInlinesF . mconcat <$> manyTill inline newline
 
 titleBlock :: Parser [Char] ParserState (F Inlines, F [Inlines], F Inlines)
-titleBlock = try $ do
-  guardEnabled Ext_pandoc_title_blocks
+titleBlock = pandocTitleBlock <|> mmdTitleBlock
+
+pandocTitleBlock :: Parser [Char] ParserState (F Inlines, F [Inlines], F Inlines)
+pandocTitleBlock = try $ do
+  guardEnabled Ext_pandoc_title_block
   title <- option mempty titleLine
   author <- option (return []) authorsLine
   date <- option mempty dateLine
   optional blanklines
   return (title, author, date)
+
+mmdTitleBlock :: Parser [Char] ParserState (F Inlines, F [Inlines], F Inlines)
+mmdTitleBlock = try $ do
+  guardEnabled Ext_mmd_title_block
+  kvPairs <- many1 kvPair
+  blanklines
+  let title = maybe mempty return $ lookup "title" kvPairs
+  let author = maybe mempty (\x -> return [x]) $ lookup "author" kvPairs
+  let date = maybe mempty return $ lookup "date" kvPairs
+  return (title, author, date)
+
+kvPair :: Parser [Char] ParserState (String, Inlines)
+kvPair = try $ do
+  key <- many1Till (alphaNum <|> oneOf "_- ") (char ':')
+  val <- manyTill anyChar
+          (try $ newline >> lookAhead (blankline <|> nonspaceChar))
+  let key' = concat $ words $ map toLower key
+  let val' = trimInlines $ B.text val
+  return (key',val')
 
 parseMarkdown :: Parser [Char] ParserState Pandoc
 parseMarkdown = do

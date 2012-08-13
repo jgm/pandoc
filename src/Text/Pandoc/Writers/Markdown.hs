@@ -87,14 +87,39 @@ plainify = bottomUp go
         go (Cite _ cits) = SmallCaps cits
         go x = x
 
+pandocTitleBlock :: Doc -> [Doc] -> Doc -> Doc
+pandocTitleBlock tit auths dat =
+  hang 2 (text "% ") tit <> cr <>
+  hang 2 (text "% ") (hcat (intersperse (text "; ") auths)) <> cr <>
+  hang 2 (text "% ") dat <> cr
+
+mmdTitleBlock :: Doc -> [Doc] -> Doc -> Doc
+mmdTitleBlock tit auths dat =
+  hang 8 (text "Title:  ") tit <> cr <>
+  hang 8 (text "Author: ") (hcat (intersperse (text "; ") auths)) <> cr <>
+  hang 8 (text "Date:   ") dat <> cr
+
+plainTitleBlock :: Doc -> [Doc] -> Doc -> Doc
+plainTitleBlock tit auths dat =
+  tit <> cr <>
+  (hcat (intersperse (text "; ") auths)) <> cr <>
+  dat <> cr
+
 -- | Return markdown representation of document.
 pandocToMarkdown :: WriterOptions -> Pandoc -> State WriterState String
 pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
   title' <- inlineListToMarkdown opts title
   authors' <- mapM (inlineListToMarkdown opts) authors
   date' <- inlineListToMarkdown opts date
-  let titleblock = isEnabled Ext_pandoc_title_blocks opts &&
-                   not (null title && null authors && null date)
+  isPlain <- gets stPlain
+  let titleblock = case True of
+                        _ | isPlain ->
+                              plainTitleBlock title' authors' date'
+                          | isEnabled Ext_pandoc_title_block opts ->
+                              pandocTitleBlock title' authors' date'
+                          | isEnabled Ext_mmd_title_block opts ->
+                              mmdTitleBlock title' authors' date'
+                          | otherwise -> empty
   let headerBlocks = filter isHeaderBlock blocks
   let toc = if writerTableOfContents opts
                then tableOfContents opts headerBlocks
@@ -113,11 +138,9 @@ pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
   let context  = writerVariables opts ++
                  [ ("toc", render colwidth toc)
                  , ("body", main)
-                 , ("title", render colwidth title')
-                 , ("date", render colwidth date')
                  ] ++
-                 [ ("titleblock", "yes") | titleblock ] ++
-                 [ ("author", render colwidth a) | a <- authors' ]
+                 [ ("titleblock", render colwidth titleblock)
+                   | not (null title && null authors && null date) ]
   if writerStandalone opts
      then return $ renderTemplate context $ writerTemplate opts
      else return main

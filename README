@@ -1534,7 +1534,7 @@ you'll need to add colons as above.
 Title block
 -----------
 
-**Extension: `pandoc_title_blocks`**
+**Extension: `pandoc_title_block`**
 
 If the file begins with a title block
 
@@ -2207,12 +2207,28 @@ Causes anything between `\\(` and `\\)` to be interpreted as inline
 TeX math, and anything between `\\[` and `\\]` to be interpreted
 as display TeX math.
 
-+**Extension: `markdown_attribute`**\
+**Extension: `markdown_attribute`**\
 Causes the attribute `markdown=1` to be added to all block-level
 HTML tags that might contain markdown.  In pandoc, material inside
 block-level tags is interpreted a markdown by default, but in some
 other implementations, the `markdown=1` tag is needed.
 
+**Extension: `mmd_title_block`**\
+Enables a [MultiMarkdown] style title block at the top of
+the document, for example:
+
+    Title:   My title
+    Author:  John Doe
+    Date:    September 1, 2008
+    Comment: This is a sample mmd title block, with
+             a field spanning multiple lines.
+
+See the MultiMarkdown documentation for details. Note that only title,
+author, and date are recognized; other fields are simply ignored by
+pandoc. If `pandoc_title_block` is enabled, it will take precedence over
+`mmd_title_block`.
+
+  [MultiMarkdown]: http://fletcherpenney.net/multimarkdown/
 
 Producing slide shows with Pandoc
 =================================

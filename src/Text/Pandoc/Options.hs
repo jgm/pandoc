@@ -48,7 +48,8 @@ import Text.Pandoc.Highlighting (Style, pygments)
 -- | Individually selectable syntax extensions.
 data Extension = Ext_footnotes
                | Ext_inline_notes
-               | Ext_pandoc_title_blocks
+               | Ext_pandoc_title_block
+               | Ext_mmd_title_block
                | Ext_table_captions
                -- | Ext_image_captions
                | Ext_simple_tables
@@ -87,7 +88,7 @@ pandocExtensions :: Set Extension
 pandocExtensions = Set.fromList
   [ Ext_footnotes
   , Ext_inline_notes
-  , Ext_pandoc_title_blocks
+  , Ext_pandoc_title_block
   , Ext_table_captions
   -- , Ext_image_captions
   , Ext_simple_tables
