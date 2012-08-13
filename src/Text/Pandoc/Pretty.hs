@@ -202,18 +202,17 @@ chomp d = Doc (fromList dl')
 
 outp :: (IsString a, Monoid a)
      => Int -> String -> DocState a
-outp off s | off <= 0 = do
+outp off s | off < 0 = do  -- offset < 0 means newline characters
   st' <- get
   let rawpref = prefix st'
   when (column st' == 0 && usePrefix st' && not (null rawpref)) $ do
     let pref = reverse $ dropWhile isSpace $ reverse rawpref
     modify $ \st -> st{ output = fromString pref : output st
                       , column = column st + realLength pref }
-  when (off < 0) $ do
-     modify $ \st -> st { output = fromString s : output st
-                        , column = 0
-                        , newlines = newlines st + 1 }
-outp off s = do
+  modify $ \st -> st { output = fromString s : output st
+                     , column = 0
+                     , newlines = newlines st + 1 }
+outp off s = do           -- offset >= 0 (0 might be combining char)
   st' <- get
   let pref = prefix st'
   when (column st' == 0 && usePrefix st' && not (null pref)) $ do
