@@ -1165,7 +1165,8 @@ escapedChar = do
 
 ltSign :: Parser [Char] ParserState (F Inlines)
 ltSign = do
-  guardDisabled Ext_markdown_in_html_blocks
+  guardDisabled Ext_raw_html
+    <|> guardDisabled Ext_markdown_in_html_blocks
     <|> (notFollowedBy' rawHtmlBlocks >> return ())
   char '<'
   return $ return $ B.str "<"
