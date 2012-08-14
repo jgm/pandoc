@@ -1,7 +1,8 @@
 # This Makefile is for development only.  It requires cabal-dev.
 # To get started, do 'make prep' and then 'make' or 'make quick'.
 
-.PHONY: prep, all, quick, bench, clean
+.PHONY: prep, all, quick, bench, clean, install
+
 all:
 	cabal-dev configure --enable-tests --enable-benchmarks && cabal-dev build
 
@@ -25,3 +26,5 @@ citeproc-hs: pandoc-types
 	git clone https://github.com/jgm/citeproc-hs && \
 	  cabal-dev add-source citeproc-hs
 
+install:
+	cabal-dev install
