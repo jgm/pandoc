@@ -370,6 +370,11 @@ Options affecting specific writers
     memoir class, this option is implied.  If `--beamer` is used,
     top-level headers will become `\part{..}`.
 
+`--recursive-sections`
+:   Use nested `<section>` tags rather than `<sect1>`, `<sect2>`,
+    `<sect3>`, `<sect4>`, `<sect5>` and `<simplesect>` when writing
+    DocBook.
+
 `-N`, `--number-sections`
 :   Number section headings in LaTeX, ConTeXt, or HTML output.
     By default, sections are not numbered.

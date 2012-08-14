@@ -216,6 +216,7 @@ data WriterOptions = WriterOptions
   , writerBeamer           :: Bool       -- ^ Produce beamer LaTeX slide show
   , writerSlideLevel       :: Maybe Int  -- ^ Force header level of slides
   , writerChapters         :: Bool       -- ^ Use "chapter" for top-level sects
+  , writerRecursiveSections :: Bool       -- ^ Use "section" not "sect1" ... "sect5"
   , writerListings         :: Bool       -- ^ Use listings package for code
   , writerHighlight        :: Bool       -- ^ Highlight source code
   , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
@@ -254,6 +255,7 @@ instance Default WriterOptions where
                       , writerBeamer           = False
                       , writerSlideLevel       = Nothing
                       , writerChapters         = False
+                      , writerRecursiveSections = False
                       , writerListings         = False
                       , writerHighlight        = False
                       , writerHighlightStyle   = pygments

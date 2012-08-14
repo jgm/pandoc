@@ -99,10 +99,14 @@ elementToDocbook opts lvl (Sec _ _num id' title elements) =
   let elements' = if null elements
                     then [Blk (Para [])]
                     else elements
-      tag = case lvl of
-                 n | n == 0           -> "chapter"
-                   | n >= 1 && n <= 5 -> "sect" ++ show n
-                   | otherwise        -> "simplesect"
+      tag = if writerRecursiveSections opts
+               then case lvl of
+                          n | n == 0           -> "chapter"
+                            | otherwise        -> "section"
+               else case lvl of
+                          n | n == 0           -> "chapter"
+                            | n >= 1 && n <= 5 -> "sect" ++ show n
+                            | otherwise        -> "simplesect"
   in  inTags True tag [("id",id')] $
       inTagsSimple "title" (inlinesToDocbook opts title) $$
       vcat (map (elementToDocbook opts (lvl + 1)) elements')

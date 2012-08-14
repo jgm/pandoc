@@ -124,6 +124,7 @@ data Opt = Opt
     , optHighlight         :: Bool    -- ^ Highlight source code
     , optHighlightStyle    :: Style   -- ^ Style to use for highlighted code
     , optChapters          :: Bool    -- ^ Use chapter for top-level sects
+    , optRecursiveSections :: Bool    -- ^ Use <section> not <sect1> ... <sect5> in DocBook
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
     , optReferenceDocx     :: Maybe FilePath -- ^ Path of reference.docx
@@ -176,6 +177,7 @@ defaultOpts = Opt
     , optHighlight         = True
     , optHighlightStyle    = pygments
     , optChapters          = False
+    , optRecursiveSections = False
     , optHTMLMathMethod    = PlainMath
     , optReferenceODT      = Nothing
     , optReferenceDocx     = Nothing
@@ -450,6 +452,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optChapters = True }))
                  "" -- "Use chapter for top-level sections in LaTeX, DocBook"
+
+    , Option "" ["recursive-sections"]
+                 (NoArg
+                  (\opt -> return opt { optRecursiveSections = True }))
+                 "" -- "Use <section> instead of <sect1> ... <sect5> and <simplesect> in DocBook"
 
     , Option "N" ["number-sections"]
                  (NoArg
@@ -812,6 +819,7 @@ main = do
               , optHighlight         = highlight
               , optHighlightStyle    = highlightStyle
               , optChapters          = chapters
+              , optRecursiveSections = recursiveSections
               , optHTMLMathMethod    = mathMethod
               , optReferenceODT      = referenceODT
               , optReferenceDocx     = referenceDocx
@@ -976,6 +984,7 @@ main = do
                             writerUserDataDir      = datadir,
                             writerHtml5            = html5,
                             writerChapters         = chapters,
+                            writerRecursiveSections = recursiveSections,
                             writerListings         = listings,
                             writerBeamer           = False,
                             writerSlideLevel       = slideLevel,
