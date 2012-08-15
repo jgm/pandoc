@@ -59,6 +59,8 @@ module Text.Pandoc.Shared (
                      uniqueIdent,
                      isHeaderBlock,
                      headerShift,
+                     -- * TagSoup HTML handling
+                     renderTags',
                      -- * File handling
                      inDirectory,
                      findDataFile,
@@ -89,6 +91,8 @@ import Text.Pandoc.Pretty (charWidth)
 import System.Locale (defaultTimeLocale)
 import Data.Time
 import System.IO (stderr)
+import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
+         renderOptions)
 
 --
 -- List processing
@@ -449,6 +453,22 @@ headerShift n = bottomUp shift
         shift x                    = x
 
 --
+-- TagSoup HTML handling
+--
+
+-- | Render HTML tags.
+renderTags' :: [Tag String] -> String
+renderTags' = renderTagsOptions
+               renderOptions{ optMinimize = \x ->
+                                    let y = map toLower x
+                                    in  y == "hr" || y == "br" ||
+                                        y == "img" || y == "meta" ||
+                                        y == "link"
+                            , optRawTag = \x ->
+                                    let y = map toLower x
+                                    in  y == "script" || y == "style" }
+
+--
 -- File handling
 --
 
@@ -501,3 +521,5 @@ safeRead s = case reads s of
                   (d,x):_
                     | all isSpace x -> return d
                   _                 -> fail $ "Could not read `" ++ s ++ "'"
+
+

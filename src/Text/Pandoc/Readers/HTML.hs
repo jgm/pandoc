@@ -45,7 +45,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Data.Maybe ( fromMaybe, isJust )
 import Data.List ( intercalate )
-import Data.Char ( isDigit, toLower )
+import Data.Char ( isDigit )
 import Control.Monad ( liftM, guard, when, mzero )
 
 isSpace :: Char -> Bool
@@ -94,18 +94,6 @@ block = choice
             , pPlain
             , pRawHtmlBlock
             ]
-
--- repeated in SelfContained -- consolidate eventually
-renderTags' :: [Tag String] -> String
-renderTags' = renderTagsOptions
-               renderOptions{ optMinimize = \x ->
-                                    let y = map toLower x
-                                    in  y == "hr" || y == "br" ||
-                                        y == "img" || y == "meta" ||
-                                        y == "link"
-                            , optRawTag = \x ->
-                                    let y = map toLower x
-                                    in  y == "script" || y == "style" }
 
 pList :: TagParser [Block]
 pList = pBulletList <|> pOrderedList <|> pDefinitionList

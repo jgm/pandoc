@@ -42,7 +42,7 @@ import System.FilePath (takeExtension, dropExtension, takeDirectory, (</>))
 import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
 import qualified Data.ByteString.Lazy as L
-import Text.Pandoc.Shared (findDataFile)
+import Text.Pandoc.Shared (findDataFile, renderTags')
 import Text.Pandoc.MIME (getMimeType)
 import System.Directory (doesFileExist)
 
@@ -163,14 +163,3 @@ makeSelfContained userdata inp = do
   out' <- mapM (convertTag userdata) tags
   return $ renderTags' out'
 
--- repeated from HTML reader:
-renderTags' :: [Tag String] -> String
-renderTags' = renderTagsOptions
-               renderOptions{ optMinimize = \x ->
-                                    let y = map toLower x
-                                    in  y == "hr" || y == "br" ||
-                                        y == "img" || y == "meta" ||
-                                        y == "link"
-                            , optRawTag = \x ->
-                                    let y = map toLower x
-                                    in  y == "script" || y == "style" }

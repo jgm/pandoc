@@ -776,11 +776,10 @@ rawHtmlBlocks = do
                                                 if "markdown" `notElem`
                                                    map fst as
                                                    then mzero
-                                                   else return $ substitute
-                                                        " markdown=\"1\"" "" raw
+                                                   else return $
+                                                     stripMarkdownAttribute raw
                                           | otherwise -> return raw
                                         _ -> return raw )
-                          -- TODO remove markdown="1" attribute from raw tags
                           sps <- do sp1 <- many spaceChar
                                     sp2 <- option "" (blankline >> return "\n")
                                     sp3 <- many spaceChar
@@ -792,6 +791,13 @@ rawHtmlBlocks = do
                           return $ s ++ sps
   let combined = concat htmlBlocks
   return $ if last combined == '\n' then init combined else combined
+
+-- remove markdown="1" attribute
+stripMarkdownAttribute :: String -> String
+stripMarkdownAttribute s = renderTags' $ map filterAttrib $ parseTags s
+  where filterAttrib (TagOpen t as) = TagOpen t
+                                        [(k,v) | (k,v) <- as, k /= "markdown"]
+        filterAttrib              x = x
 
 --
 -- Tables
