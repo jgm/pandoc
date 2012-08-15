@@ -745,13 +745,13 @@ htmlBlock' = try $ do
 strictHtmlBlock :: Parser [Char] ParserState String
 strictHtmlBlock = htmlInBalanced (not . isInlineTag)
 
-rawVerbatimBlock :: Parser [Char] ParserState (Tag String, String)
+rawVerbatimBlock :: Parser [Char] ParserState String
 rawVerbatimBlock = try $ do
-  (TagOpen tag as, open) <- htmlTag (tagOpen (\t ->
-                                      t == "pre" || t == "style" || t == "script")
-                                     (const True))
+  (TagOpen tag _, open) <- htmlTag (tagOpen (\t ->
+                              t == "pre" || t == "style" || t == "script")
+                              (const True))
   contents <- manyTill anyChar (htmlTag (~== TagClose tag))
-  return (TagOpen tag as, open ++ contents ++ renderTags [TagClose tag])
+  return $ open ++ contents ++ renderTags [TagClose tag]
 
 rawTeXBlock :: Parser [Char] ParserState (F Blocks)
 rawTeXBlock = do
@@ -764,15 +764,23 @@ rawTeXBlock = do
 rawHtmlBlocks :: Parser [Char] ParserState String
 rawHtmlBlocks = do
   htmlBlocks <- many1 $ try $ do
-                          (t,s) <- rawVerbatimBlock <|> htmlTag isBlockTag
-                          exts <- getOption readerExtensions
-                          -- if open tag, need markdown=1 if
-                          -- markdown_attributes extension is set
-                          when (Ext_markdown_attribute `Set.member` exts
-                                && isTagOpen t) $ guard
-                                $ case t of
-                                  TagOpen _ as -> "markdown" `elem` map fst as
-                                  _            -> False
+                          s <- rawVerbatimBlock <|> try (
+                                do (t,raw) <- htmlTag isBlockTag
+                                   exts <- getOption readerExtensions
+                                   -- if open tag, need markdown="1" if
+                                   -- markdown_attributes extension is set
+                                   case t of
+                                        TagOpen _ as
+                                          | Ext_markdown_attribute `Set.member`
+                                              exts ->
+                                                if "markdown" `notElem`
+                                                   map fst as
+                                                   then mzero
+                                                   else return $ substitute
+                                                        " markdown=\"1\"" "" raw
+                                          | otherwise -> return raw
+                                        _ -> return raw )
+                          -- TODO remove markdown="1" attribute from raw tags
                           sps <- do sp1 <- many spaceChar
                                     sp2 <- option "" (blankline >> return "\n")
                                     sp3 <- many spaceChar
