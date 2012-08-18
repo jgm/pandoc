@@ -543,7 +543,7 @@ inlineToOpenXML opts (SmallCaps lst) =
 inlineToOpenXML opts (Strikeout lst) =
   withTextProp (mknode "w:strike" [] ())
   $ inlinesToOpenXML opts lst
-inlineToOpenXML _ LineBreak = return [ mknode "w:br" [] () ]
+inlineToOpenXML _ LineBreak = return [br]
 inlineToOpenXML _ (RawInline f str)
   | f == "openxml" = return [ x | Elem x <- parseXML str ]
   | otherwise      = return []
@@ -562,16 +562,14 @@ inlineToOpenXML opts (Math DisplayMath str) =
         Left  _ -> do
             fallback <- inlinesToOpenXML opts (readTeXMath str)
             return $ [br] ++ fallback ++ [br]
-    where br = mknode "w:br" [] ()
 inlineToOpenXML opts (Cite _ lst) = inlinesToOpenXML opts lst
 inlineToOpenXML _ (Code attrs str) =
   withTextProp (rStyle "VerbatimChar")
   $ case highlight formatOpenXML attrs str of
-         Nothing  -> intercalate [mknode "w:br" [] ()]
+         Nothing  -> intercalate [br]
                      `fmap` (mapM formattedString $ lines str)
          Just h   -> return h
-     where formatOpenXML _fmtOpts = intercalate [mknode "w:br" [] ()] .
-                                    map (map toHlTok)
+     where formatOpenXML _fmtOpts = intercalate [br] . map (map toHlTok)
            toHlTok (toktype,tok) = mknode "w:r" []
                                      [ mknode "w:rPr" []
                                        [ rStyle $ show toktype ]
@@ -669,3 +667,6 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
        liftIO $ UTF8.hPutStrLn stderr $
           "Could not find image `" ++ src ++ "', skipping..."
        inlinesToOpenXML opts alt
+
+br :: Element
+br = mknode "w:r" [] [mknode "w:cr" [] () ]
