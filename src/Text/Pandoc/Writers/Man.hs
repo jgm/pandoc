@@ -105,7 +105,7 @@ manEscapes = [ ('\160', "\\ ")
              , ('\x2014', "\\[em]")
              , ('\x2013', "\\[en]")
              , ('\x2026', "\\&...")
-             ] ++ backslashEscapes "@\\"
+             ] ++ backslashEscapes "-@\\"
 
 -- | Escape special characters for Man.
 escapeString :: String -> String
