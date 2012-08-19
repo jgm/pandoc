@@ -85,6 +85,7 @@ data Extension =
     | Ext_subscript           -- ^ Subscript using ~this~ syntax
     | Ext_hard_line_breaks    -- ^ All newlines become hard line breaks
     | Ext_literate_haskell    -- ^ Enable literate Haskell conventions
+    | Ext_abbreviations       -- ^ PHP markdown extra abbreviation definitions
     deriving (Show, Read, Enum, Eq, Ord, Bounded)
 
 pandocExtensions :: Set Extension

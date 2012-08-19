@@ -219,10 +219,6 @@ parseMarkdown = do
          $ B.setDate (runF date st)
          $ B.doc $ runF blocks st
 
---
--- initial pass for references and notes
---
-
 referenceKey :: Parser [Char] ParserState (F Blocks)
 referenceKey = try $ do
   skipNonindentSpaces
@@ -255,6 +251,20 @@ referenceTitle = try $ do
                manyTill litChar (try (char delim >> skipSpaces >>
                                       notFollowedBy (noneOf ")\n")))
   return $ fromEntities tit
+
+-- | PHP Markdown Extra style abbreviation key.  Currently
+-- we just skip them, since Pandoc doesn't have an element for
+-- an abbreviation.
+abbrevKey :: Parser [Char] ParserState (F Blocks)
+abbrevKey = do
+  guardEnabled Ext_abbreviations
+  try $ do
+    char '*'
+    reference
+    char ':'
+    skipMany (satisfy (/= '\n'))
+    blanklines
+    return $ return mempty
 
 noteMarker :: Parser [Char] ParserState String
 noteMarker = string "[^" >> many1Till (satisfy $ not . isBlank) (char ']')
@@ -311,6 +321,7 @@ block = choice [ codeBlockDelimited
                , definitionList
                , noteBlock
                , referenceKey
+               , abbrevKey
                , para
                , plain
                ] <?> "block"

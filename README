@@ -2243,6 +2243,15 @@ pandoc. If `pandoc_title_block` is enabled, it will take precedence over
 
   [MultiMarkdown]: http://fletcherpenney.net/multimarkdown/
 
+**Extension: `abbrevations`**\
+Parses PHP Markdown Extra abbreviation keys, like
+
+    *[HTML]: Hyper Text Markup Language
+
+Note that the pandoc document model does not support
+abbreviations, so if this extension is enabled, abbreviation keys are
+simply skipped (as opposed to being parsed as paragraphs).
+
 Producing slide shows with Pandoc
 =================================
 
