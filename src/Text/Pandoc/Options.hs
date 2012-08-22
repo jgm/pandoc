@@ -66,6 +66,7 @@ data Extension =
     | Ext_latex_macros        -- ^ Parse LaTeX macro definitions (for math only)
     | Ext_fenced_code_blocks  -- ^ Parse fenced code blocks
     | Ext_fenced_code_attributes  -- ^ Allow attributes on fenced code blocks
+    | Ext_backtick_code_blocks    -- ^ Github style ``` code blocks
     | Ext_inline_code_attributes  -- ^ Allow attributes on inline code
     | Ext_markdown_in_html_blocks -- ^ Interpret as markdown inside HTML blocks
     | Ext_markdown_attribute      -- ^ Interpret text inside HTML as markdown
@@ -107,6 +108,7 @@ pandocExtensions = Set.fromList
   , Ext_latex_macros
   , Ext_fenced_code_blocks
   , Ext_fenced_code_attributes
+  , Ext_backtick_code_blocks
   , Ext_inline_code_attributes
   , Ext_markdown_in_html_blocks
   , Ext_escaped_line_breaks

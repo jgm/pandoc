@@ -307,6 +307,7 @@ parseBlocks = mconcat <$> manyTill block eof
 
 block :: Parser [Char] ParserState (F Blocks)
 block = choice [ codeBlockFenced
+               , codeBlockBackticks
                , guardEnabled Ext_latex_macros *> (mempty <$ macro)
                , header
                , rawTeXBlock
@@ -379,21 +380,13 @@ indentedLine = indentSpaces >> manyTill anyChar newline >>= return . (++ "\n")
 
 blockDelimiter :: (Char -> Bool)
                -> Maybe Int
-               -> Parser [Char] ParserState (Int, (String, [String], [(String, String)]), Char)
+               -> Parser [Char] st Int
 blockDelimiter f len = try $ do
   c <- lookAhead (satisfy f)
-  size <- case len of
-              Just l  -> count l (char c) >> many (char c) >> return l
-              Nothing -> count 3 (char c) >> many (char c) >>=
-                         return . (+ 3) . length
-  many spaceChar
-  attr <- option ([],[],[]) $ do
-            guardEnabled Ext_fenced_code_attributes
-            attributes                    -- ~~~ {.ruby}
-             <|> (many1 alphaNum >>= \x ->
-                    return ([],[x],[]))   -- github variant ```ruby
-  blankline
-  return (size, attr, c)
+  case len of
+      Just l  -> count l (char c) >> many (char c) >> return l
+      Nothing -> count 3 (char c) >> many (char c) >>=
+                 return . (+ 3) . length
 
 attributes :: Parser [Char] st (String, [String], [(String, String)])
 attributes = try $ do
@@ -440,10 +433,25 @@ keyValAttr = try $ do
 codeBlockFenced :: Parser [Char] ParserState (F Blocks)
 codeBlockFenced = try $ do
   guardEnabled Ext_fenced_code_blocks
-  (size, attr, c) <- blockDelimiter (\c -> c == '~' || c == '`') Nothing
-  contents <- manyTill anyLine (blockDelimiter (== c) (Just size))
+  size <- blockDelimiter (=='~') Nothing
+  skipMany spaceChar
+  attr <- option ([],[],[]) $
+            guardEnabled Ext_fenced_code_attributes >> attributes
+  blankline
+  contents <- manyTill anyLine (blockDelimiter (=='~') (Just size))
   blanklines
   return $ return $ B.codeBlockWith attr $ intercalate "\n" contents
+
+codeBlockBackticks :: Parser [Char] ParserState (F Blocks)
+codeBlockBackticks = try $ do
+  guardEnabled Ext_backtick_code_blocks
+  blockDelimiter (=='`') (Just 3)
+  skipMany spaceChar
+  cls <- many1 alphaNum
+  blankline
+  contents <- manyTill anyLine $ blockDelimiter (=='`') (Just 3)
+  blanklines
+  return $ return $ B.codeBlockWith ("",[cls],[]) $ intercalate "\n" contents
 
 codeBlockIndented :: Parser [Char] ParserState (F Blocks)
 codeBlockIndented = do

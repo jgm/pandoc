@@ -292,12 +292,20 @@ blockToMarkdown opts (CodeBlock (_,classes,_) str)
     isEnabled Ext_literate_haskell opts =
   return $ prefixed "> " (text str) <> blankline
 blockToMarkdown opts (CodeBlock attribs str) = return $
-  if isEnabled Ext_fenced_code_blocks opts && attribs /= nullAttr
-     then -- use fenced code block
-          (tildes <> space <> attrs <> cr <> text str <>
-                  cr <> tildes) <> blankline
-     else nest (writerTabStop opts) (text str) <> blankline
-   where tildes = text "~~~~"
+  case attribs of
+     x | x /= nullAttr && isEnabled Ext_fenced_code_blocks opts ->
+          tildes <> space <> attrs <> cr <> text str <>
+           cr <> tildes <> blankline
+     (_,(cls:_),_) | isEnabled Ext_backtick_code_blocks opts ->
+          backticks <> space <> text cls <> cr <> text str <>
+           cr <> backticks <> blankline
+     _ -> nest (writerTabStop opts) (text str) <> blankline
+   where tildes    = text $ case [ln | ln <- lines str, all (=='~') ln] of
+                               [] -> "~~~~"
+                               xs -> case maximum $ map length xs of
+                                          n | n < 3 -> "~~~~"
+                                            | otherwise -> replicate (n+1) '~'
+         backticks = text "```"
          attrs  = if isEnabled Ext_fenced_code_attributes opts
                      then attrsToMarkdown attribs
                      else empty
