@@ -64,7 +64,7 @@ data Extension =
     | Ext_tex_math_single_backslash  -- ^ TeX math btw \(..\) \[..\]
     | Ext_tex_math_double_backslash  -- ^ TeX math btw \\(..\\) \\[..\\]
     | Ext_latex_macros        -- ^ Parse LaTeX macro definitions (for math only)
-    | Ext_delimited_code_blocks   -- ^ Parse delimited code blocks
+    | Ext_fenced_code_blocks  -- ^ Parse fenced code blocks
     | Ext_inline_code_attributes  -- ^ Allow attributes on inline code
     | Ext_markdown_in_html_blocks -- ^ Interpret as markdown inside HTML blocks
     | Ext_markdown_attribute      -- ^ Interpret text inside HTML as markdown
@@ -104,7 +104,7 @@ pandocExtensions = Set.fromList
   , Ext_raw_html
   , Ext_tex_math_dollars
   , Ext_latex_macros
-  , Ext_delimited_code_blocks
+  , Ext_fenced_code_blocks
   , Ext_inline_code_attributes
   , Ext_markdown_in_html_blocks
   , Ext_escaped_line_breaks

@@ -306,7 +306,7 @@ parseBlocks :: Parser [Char] ParserState (F Blocks)
 parseBlocks = mconcat <$> manyTill block eof
 
 block :: Parser [Char] ParserState (F Blocks)
-block = choice [ codeBlockDelimited
+block = choice [ codeBlockFenced
                , guardEnabled Ext_latex_macros *> (mempty <$ macro)
                , header
                , rawTeXBlock
@@ -435,9 +435,9 @@ keyValAttr = try $ do
      <|> many nonspaceChar
   return ("",[],[(key,val)])
 
-codeBlockDelimited :: Parser [Char] ParserState (F Blocks)
-codeBlockDelimited = try $ do
-  guardEnabled Ext_delimited_code_blocks
+codeBlockFenced :: Parser [Char] ParserState (F Blocks)
+codeBlockFenced = try $ do
+  guardEnabled Ext_fenced_code_blocks
   (size, attr, c) <- blockDelimiter (\c -> c == '~' || c == '`') Nothing
   contents <- manyTill anyLine (blockDelimiter (== c) (Just size))
   blanklines

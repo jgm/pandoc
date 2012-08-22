@@ -22,7 +22,7 @@ slide shows), [ConTeXt], [RTF], [DocBook XML], [OpenDocument XML],
 [PDF] output on systems where LaTeX is installed.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
-tables, flexible ordered lists, definition lists, delimited code blocks,
+tables, flexible ordered lists, definition lists, fenced code blocks,
 superscript, subscript, strikeout, title blocks, automatic tables of
 contents, embedded LaTeX math, citations, and markdown inside HTML block
 elements. (These enhancements, described below under
@@ -971,12 +971,12 @@ of the verbatim text, and is removed in the output.
 Note: blank lines in the verbatim text need not begin with four spaces.
 
 
-### Delimited code blocks ###
+### Fenced code blocks ###
 
-**Extension: `delimited_code_blocks`**
+**Extension: `fenced_code_blocks`**
 
 In addition to standard indented code blocks, Pandoc supports
-*delimited* code blocks.  These begin with a row of three or more
+*fenced* code blocks.  These begin with a row of three or more
 tildes (`~`) or backticks (`` ` ``) and end with a row of tildes or
 backticks that must be at least as long as the starting row. Everything
 between these lines is treated as code. No indentation is necessary:
@@ -987,7 +987,7 @@ between these lines is treated as code. No indentation is necessary:
     }
     ~~~~~~~
 
-Like regular code blocks, delimited code blocks must be separated
+Like regular code blocks, fenced code blocks must be separated
 from surrounding text by blank lines.
 
 If the code itself contains a row of tildes or backticks, just use a longer
@@ -1745,7 +1745,7 @@ work in verbatim contexts:
 **Extension: `inline_code_attributes`**
 
 Attributes can be attached to verbatim text, just as with
-[delimited code blocks](#delimited-code-blocks):
+[fenced code blocks](#fenced-code-blocks):
 
     `<$>`{.haskell}
 

@@ -292,8 +292,8 @@ blockToMarkdown opts (CodeBlock (_,classes,_) str)
     isEnabled Ext_literate_haskell opts =
   return $ prefixed "> " (text str) <> blankline
 blockToMarkdown opts (CodeBlock attribs str) = return $
-  if isEnabled Ext_delimited_code_blocks opts && attribs /= nullAttr
-     then -- use delimited code block
+  if isEnabled Ext_fenced_code_blocks opts && attribs /= nullAttr
+     then -- use fenced code block
           (tildes <> space <> attrs <> cr <> text str <>
                   cr <> tildes) <> blankline
      else nest (writerTabStop opts) (text str) <> blankline
@@ -468,7 +468,7 @@ blockListToMarkdown opts blocks =
     -- insert comment between list and indented code block, or the
     -- code block will be treated as a list continuation paragraph
     where fixBlocks (b : CodeBlock attr x : rest)
-            | (not (isEnabled Ext_delimited_code_blocks opts) || attr == nullAttr)
+            | (not (isEnabled Ext_fenced_code_blocks opts) || attr == nullAttr)
                 && isListBlock b =
                b : RawBlock "html" "<!-- -->\n" : CodeBlock attr x :
                    fixBlocks rest
