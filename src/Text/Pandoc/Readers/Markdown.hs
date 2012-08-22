@@ -379,7 +379,7 @@ indentedLine = indentSpaces >> manyTill anyChar newline >>= return . (++ "\n")
 
 blockDelimiter :: (Char -> Bool)
                -> Maybe Int
-               -> Parser [Char] st (Int, (String, [String], [(String, String)]), Char)
+               -> Parser [Char] ParserState (Int, (String, [String], [(String, String)]), Char)
 blockDelimiter f len = try $ do
   c <- lookAhead (satisfy f)
   size <- case len of
@@ -387,9 +387,11 @@ blockDelimiter f len = try $ do
               Nothing -> count 3 (char c) >> many (char c) >>=
                          return . (+ 3) . length
   many spaceChar
-  attr <- option ([],[],[])
-          $ attributes                                     -- ~~~ {.ruby}
-         <|> (many1 alphaNum >>= \x -> return ([],[x],[])) -- github variant ```ruby
+  attr <- option ([],[],[]) $ do
+            guardEnabled Ext_fenced_code_attributes
+            attributes                    -- ~~~ {.ruby}
+             <|> (many1 alphaNum >>= \x ->
+                    return ([],[x],[]))   -- github variant ```ruby
   blankline
   return (size, attr, c)
 

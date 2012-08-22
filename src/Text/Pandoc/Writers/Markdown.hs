@@ -297,8 +297,10 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
           (tildes <> space <> attrs <> cr <> text str <>
                   cr <> tildes) <> blankline
      else nest (writerTabStop opts) (text str) <> blankline
-   where tildes  = text "~~~~"
-         attrs = attrsToMarkdown attribs
+   where tildes = text "~~~~"
+         attrs  = if isEnabled Ext_fenced_code_attributes opts
+                     then attrsToMarkdown attribs
+                     else empty
 blockToMarkdown opts (BlockQuote blocks) = do
   st <- get
   -- if we're writing literate haskell, put a space before the bird tracks
