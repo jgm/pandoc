@@ -248,12 +248,14 @@ metadataElement metadataXML uuid lang title authors date mbCoverImage =
   let userNodes = parseXML metadataXML
       elt = unode "metadata" ! [("xmlns:dc","http://purl.org/dc/elements/1.1/")
                                ,("xmlns:opf","http://www.idpf.org/2007/opf")] $
-            filter isDublinCoreElement $ onlyElems userNodes
+            filter isMetadataElement $ onlyElems userNodes
       dublinElements = ["contributor","coverage","creator","date",
             "description","format","identifier","language","publisher",
             "relation","rights","source","subject","title","type"]
-      isDublinCoreElement e = qPrefix (elName e) == Just "dc" &&
-                              qName (elName e) `elem` dublinElements
+      isMetadataElement e = (qPrefix (elName e) == Just "dc" &&
+                             qName (elName e) `elem` dublinElements) ||
+                            (qPrefix (elName e) == Nothing &&
+                             qName (elName e) `elem` ["link","meta"])
       contains e n = not (null (findElements (QName n Nothing (Just "dc")) e))
       newNodes = [ unode "dc:title" title | not (elt `contains` "title") ] ++
            [ unode "dc:language" lang | not (elt `contains` "language") ] ++
