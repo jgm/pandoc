@@ -37,6 +37,7 @@ import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
 import Paths_pandoc ( getDataFileName )
 import Text.Pandoc.Options ( WriterOptions(..) )
+import Text.Pandoc.Shared ( stringify )
 import Text.Pandoc.ImageSize ( readImageSize, sizeInPoints )
 import Text.Pandoc.MIME ( getMimeType )
 import Text.Pandoc.Definition
@@ -53,7 +54,7 @@ import qualified Control.Exception as E
 writeODT :: WriterOptions  -- ^ Writer options
          -> Pandoc         -- ^ Document to convert
          -> IO B.ByteString
-writeODT opts doc = do
+writeODT opts doc@(Pandoc (Meta title _ _) _) = do
   let datadir = writerUserDataDir opts
   refArchive <- liftM toArchive $
        case writerReferenceODT opts of
@@ -98,7 +99,25 @@ writeODT opts doc = do
               )
          )
   let archive' = addEntryToArchive manifestEntry archive
-  return $ fromArchive archive'
+  let metaEntry = toEntry "meta.xml" epochtime
+       $ fromString $ show
+       $ text "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+       $$
+        ( inTags True "office:document-meta"
+           [("xmlns:office","urn:oasis:names:tc:opendocument:xmlns:office:1.0")
+           ,("xmlns:xlink","http://www.w3.org/1999/xlink")
+           ,("xmlns:dc","http://purl.org/dc/elements/1.1/")
+           ,("xmlns:meta","urn:oasis:names:tc:opendocument:xmlns:meta:1.0")
+           ,("xmlns:ooo","http://openoffice.org/2004/office")
+           ,("xmlns:grddl","http://www.w3.org/2003/g/data-view#")
+           ,("office:version","1.2")]
+           $ ( inTagsSimple "office:meta"
+                $ ( inTagsSimple "dc:title" (text $ escapeStringForXML (stringify title))
+                  )
+             )
+        )
+  let archive'' = addEntryToArchive metaEntry archive'
+  return $ fromArchive archive''
 
 transformPic :: FilePath -> IORef [Entry] -> Inline -> IO Inline
 transformPic sourceDir entriesRef (Image lab (src,tit)) = do
