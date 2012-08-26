@@ -237,7 +237,9 @@ Hi(c)2008 (C) 2008
 
 h1. Footnotes
 
-A note.[1]
+A note.[1]  Another note[2].
 
 fn1. The note
 is here!
+
+fn2. Other note.
