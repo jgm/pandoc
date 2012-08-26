@@ -206,7 +206,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
           , unode "docTitle" $ unode "text" $ plainTitle
           , unode "navMap" $ zipWith3 navPointNode (tpEntry : chapterEntries)
                                 [1..(length chapterEntries + 1)]
-                                ("Title Page" : map (\(Pandoc m _) ->
+                                (plainTitle : map (\(Pandoc m _) ->
                                    plainify $ docTitle m) chapters)
           ]
   let tocEntry = mkEntry "toc.ncx" tocData
