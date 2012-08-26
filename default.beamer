@@ -64,12 +64,25 @@ $if(graphics)$
 \makeatother
 \setkeys{Gin}{width=\ScaleIfNeeded}
 $endif$
+
 % Comment these out if you don't want a slide with just the
 % part/section/subsection/subsubsection title:
-\AtBeginPart{\frame{\partpage}}
-\AtBeginSection{\frame{\sectionpage}}
-\AtBeginSubsection{\frame{\subsectionpage}}
-\AtBeginSubsubsection{\frame{\subsubsectionpage}}
+\AtBeginPart{
+  \let\insertpartnumber\relax
+  \let\partname\relax
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \let\insertsectionnumber\relax
+  \let\sectionname\relax
+  \frame{\sectionpage}
+}
+\AtBeginSubsection{
+  \let\insertsubsectionnumber\relax
+  \let\subsectionname\relax
+  \frame{\subsectionpage}
+}
+
 $if(strikeout)$
 \usepackage[normalem]{ulem}
 % avoid problems with \sout in headers with hyperref:
