@@ -152,7 +152,7 @@ rawFieldListItem indent = try $ do
   string indent
   char ':'
   name <- many1 $ alphaNum <|> spaceChar
-  string ": "
+  char ':'
   skipSpaces
   first <- manyTill anyChar newline
   rest <- option "" $ try $ do lookAhead (string indent >> spaceChar)
