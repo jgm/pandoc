@@ -9,7 +9,7 @@ $endif$
 % Enable hyperlinks
 \setupinteraction[state=start, color=middleblue]
 
-\setuppapersize [letter][letter]  
+\setuppapersize [$if(papersize)$$papersize$$else$letter$endif$][$if(papersize)$$papersize$$else$letter$endif$]
 \setuplayout    [width=middle,  backspace=1.5in, cutspace=1.5in,
                  height=middle, topspace=0.75in, bottomspace=0.75in]
 
