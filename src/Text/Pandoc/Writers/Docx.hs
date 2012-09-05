@@ -60,7 +60,7 @@ data WriterState = WriterState{
        , stExternalLinks  :: M.Map String String
        , stImages         :: M.Map FilePath (String, B.ByteString)
        , stListLevel      :: Int
-       , stListMarker     :: ListMarker
+       , stListNumId      :: Int
        , stNumStyles      :: M.Map ListMarker Int
        , stLists          :: [ListMarker]
        }
@@ -79,7 +79,7 @@ defaultWriterState = WriterState{
       , stExternalLinks  = M.empty
       , stImages         = M.empty
       , stListLevel      = -1
-      , stListMarker     = NoMarker
+      , stListNumId      = 1
       , stNumStyles      = M.fromList [(NoMarker, 0)]
       , stLists          = [NoMarker]
       }
@@ -285,6 +285,9 @@ mkLvl marker lvl =
           patternFor TwoParens s = "(" ++ s ++ ")"
           patternFor _ s = s ++ "."
 
+getNumId :: WS Int
+getNumId = length `fmap` gets stLists
+
 -- | Convert Pandoc document to string in OpenXML format.
 writeOpenXML :: WriterOptions -> Pandoc -> WS Element
 writeOpenXML opts (Pandoc (Meta tit auths dat) blocks) = do
@@ -402,11 +405,13 @@ blockToOpenXML opts (Table caption aligns widths headers rows) = do
 blockToOpenXML opts (BulletList lst) = do
   let marker = BulletMarker
   addList marker
-  asList $ concat `fmap` mapM (listItemToOpenXML opts marker) lst
+  numid  <- getNumId
+  asList $ concat `fmap` mapM (listItemToOpenXML opts numid) lst
 blockToOpenXML opts (OrderedList (start, numstyle, numdelim) lst) = do
   let marker = NumberMarker numstyle numdelim start
   addList marker
-  asList $ concat `fmap` mapM (listItemToOpenXML opts marker) lst
+  numid  <- getNumId
+  asList $ concat `fmap` mapM (listItemToOpenXML opts numid) lst
 blockToOpenXML opts (DefinitionList items) =
   concat `fmap` mapM (definitionListItemToOpenXML opts) items
 
@@ -418,9 +423,6 @@ definitionListItemToOpenXML opts (term,defs) = do
            $ concat `fmap` mapM (blocksToOpenXML opts) defs
   return $ term' ++ defs'
 
-getNumId :: WS Int
-getNumId = length `fmap` gets stLists
-
 addList :: ListMarker -> WS ()
 addList marker = do
   lists <- gets stLists
@@ -431,11 +433,11 @@ addList marker = do
            Nothing -> modify $ \st ->
                  st{ stNumStyles = M.insert marker (M.size numStyles + 1) numStyles }
 
-listItemToOpenXML :: WriterOptions -> ListMarker -> [Block] -> WS [Element]
+listItemToOpenXML :: WriterOptions -> Int -> [Block] -> WS [Element]
 listItemToOpenXML _ _ []                   = return []
-listItemToOpenXML opts marker (first:rest) = do
-  first' <- withMarker marker $ blockToOpenXML opts first
-  rest'  <- withMarker NoMarker $ blocksToOpenXML opts rest
+listItemToOpenXML opts numid (first:rest) = do
+  first' <- withNumId numid $ blockToOpenXML opts first
+  rest'  <- withNumId 1      $ blocksToOpenXML opts rest
   return $ first' ++ rest'
 
 alignmentToString :: Alignment -> [Char]
@@ -449,12 +451,12 @@ alignmentToString alignment = case alignment of
 inlinesToOpenXML :: WriterOptions -> [Inline] -> WS [Element]
 inlinesToOpenXML opts lst = concat `fmap` mapM (inlineToOpenXML opts) lst
 
-withMarker :: ListMarker -> WS a -> WS a
-withMarker m p = do
-  origMarker <- gets stListMarker
-  modify $ \st -> st{ stListMarker = m }
+withNumId :: Int -> WS a -> WS a
+withNumId numid p = do
+  origNumId <- gets stListNumId
+  modify $ \st -> st{ stListNumId = numid }
   result <- p
-  modify $ \st -> st{ stListMarker = origMarker }
+  modify $ \st -> st{ stListNumId = origNumId }
   return result
 
 asList :: WS a -> WS a
@@ -489,10 +491,7 @@ getParaProps :: WS [Element]
 getParaProps = do
   props <- gets stParaProperties
   listLevel <- gets stListLevel
-  listMarker <- gets stListMarker
-  numid <- case listMarker of
-                 NoMarker -> return 1
-                 _        -> getNumId
+  numid <- gets stListNumId
   let listPr = if listLevel >= 0
                   then [ mknode "w:numPr" []
                          [ mknode "w:numId" [("w:val",show numid)] ()
