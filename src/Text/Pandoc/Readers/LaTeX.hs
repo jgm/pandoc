@@ -352,6 +352,7 @@ inlineCommands = M.fromList $
   , ("textsubscript", subscript <$> tok)
   , ("textbackslash", lit "\\")
   , ("backslash", lit "\\")
+  , ("slash", lit "/")
   , ("textbf", strong <$> tok)
   , ("ldots", lit "…")
   , ("dots", lit "…")
