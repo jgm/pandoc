@@ -71,8 +71,6 @@ Source: "..\slidy\graphics\*"; DestDir: "{app}\slidy\graphics"; Flags: ignorever
 Source: "..\slidy\scripts\*"; DestDir: "{app}\slidy\scripts"; Flags: ignoreversion
 Source: "..\slidy\styles\*"; DestDir: "{app}\slidy\styles"; Flags: ignoreversion
 Source: "..\dzslides\*"; DestDir: "{app}\dzslides"; Flags: ignoreversion
-Source: "pcre-license.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "pcre3.dll"; DestDir: "{sys}"; Flags: onlyifdoesntexist sharedfile
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
