@@ -412,7 +412,7 @@ note = try $ do
 
 -- | Special chars
 markupChars :: [Char]
-markupChars = "\\[]*#_@~-+^|%="
+markupChars = "\\*#_@~-+^|%=[]"
 
 -- | Break strings on following chars. Space tab and newline break for
 --  inlines breaking. Open paren breaks for mark. Quote, dash and dot
@@ -430,7 +430,8 @@ hyphenedWords :: Parser [Char] ParserState String
 hyphenedWords = try $ do
   hd <- noneOf wordBoundaries
   tl <- many ( (noneOf wordBoundaries) <|>
-               try (oneOf markupChars <* lookAhead (noneOf wordBoundaries) ) )
+               try (notFollowedBy' note *> oneOf markupChars
+                     <* lookAhead (noneOf wordBoundaries) ) )
   let wd = hd:tl
   option wd $ try $
     (\r -> concat [wd, "-", r]) <$> (char '-' *> hyphenedWords)
