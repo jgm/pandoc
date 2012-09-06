@@ -57,6 +57,7 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 ,CodeBlock ("",[],[]) "---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}\n\nthis code block is indented by one tab"
 ,Para [Str "And:"]
 ,CodeBlock ("",[],[]) "    this code block is indented by two tabs\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{"
+,Para [Str "this",Space,Str "has",Space,Emph [Str "two",LineBreak,Str "lines"]]
 ,HorizontalRule
 ,Header 1 [Str "Lists"]
 ,Header 2 [Str "Unordered"]

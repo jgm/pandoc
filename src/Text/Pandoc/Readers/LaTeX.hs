@@ -742,6 +742,9 @@ environments = M.fromList
   , ("lstlisting", codeBlock <$> (verbEnv "lstlisting"))
   , ("minted", liftA2 (\l c -> codeBlockWith ("",[l],[]) c)
             (grouped (many1 $ satisfy (/= '}'))) (verbEnv "minted"))
+  , ("obeylines", parseFromString
+                  (para . trimInlines . mconcat <$> many inline) =<<
+                  intercalate "\\\\\n" . lines <$> verbEnv "obeylines")
   , ("displaymath", mathEnv Nothing "displaymath")
   , ("equation", mathEnv Nothing "equation")
   , ("equation*", mathEnv Nothing "equation*")

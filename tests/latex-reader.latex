@@ -155,6 +155,11 @@ And:
 
 These should not be escaped:  \$ \\ \> \[ \{
 \end{verbatim}
+
+\begin{obeylines}
+this has \emph{two
+lines}
+\end{obeylines}
 \begin{center}\rule{3in}{0.4pt}\end{center}
 
 \section{Lists}
