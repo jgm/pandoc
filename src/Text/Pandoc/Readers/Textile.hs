@@ -47,7 +47,6 @@ Left to be implemented:
 
 TODO : refactor common patterns across readers :
  - autolink
- - smartPunctuation
  - more ...
 
 -}
