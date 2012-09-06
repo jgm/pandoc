@@ -61,6 +61,7 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML ( htmlTag, isInlineTag, isBlockTag )
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.HTML.TagSoup.Match
+import Data.List ( intercalate )
 import Data.Char ( digitToInt, isUpper )
 import Control.Monad ( guard, liftM )
 import Control.Applicative ((<$>), (*>), (<*))
@@ -426,14 +427,15 @@ wordBoundaries = markupChars ++ stringBreakers
 
 -- | Parse a hyphened sequence of words
 hyphenedWords :: Parser [Char] ParserState String
-hyphenedWords = try $ do
+hyphenedWords = intercalate "-" <$> sepBy1 wordChunk (char '-')
+
+wordChunk :: Parser [Char] ParserState String
+wordChunk = try $ do
   hd <- noneOf wordBoundaries
   tl <- many ( (noneOf wordBoundaries) <|>
                try (notFollowedBy' note *> oneOf markupChars
                      <* lookAhead (noneOf wordBoundaries) ) )
-  let wd = hd:tl
-  option wd $ try $
-    (\r -> concat [wd, "-", r]) <$> (char '-' *> hyphenedWords)
+  return $ hd:tl
 
 -- | Any string
 str :: Parser [Char] ParserState Inline
