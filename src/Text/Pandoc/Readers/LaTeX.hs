@@ -203,8 +203,8 @@ block = (mempty <$ comment)
     <|> environment
     <|> mempty <$ macro -- TODO improve macros, make them work everywhere
     <|> blockCommand
-    <|> grouped block
     <|> paragraph
+    <|> grouped block
     <|> (mempty <$ char '&')  -- loose & in table environment
 
 
