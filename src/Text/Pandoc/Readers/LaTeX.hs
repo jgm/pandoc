@@ -166,10 +166,8 @@ double_quote = (doubleQuoted . mconcat) <$>
   (try $ string "``" *> manyTill inline (try $ string "''"))
 
 single_quote :: LP Inlines
-single_quote = char '`' *>
-  ( try ((singleQuoted . mconcat) <$>
-         manyTill inline (try $ char '\'' >> notFollowedBy letter))
-  <|> lit "`")
+single_quote = (singleQuoted . mconcat) <$>
+  (try $ char '`' *> manyTill inline (try $ char '\'' >> notFollowedBy letter))
 
 inline :: LP Inlines
 inline = (mempty <$ comment)
@@ -181,6 +179,9 @@ inline = (mempty <$ comment)
            ((char '-') *> option (str "–") (str "—" <$ char '-')))
      <|> double_quote
      <|> single_quote
+     <|> (str "“" <$ try (string "``"))  -- nb. {``} won't be caught by double_quote
+     <|> (str "”" <$ try (string "''"))
+     <|> (str "‘" <$ char '`')           -- nb. {`} won't be caught by single_quote
      <|> (str "’" <$ char '\'')
      <|> (str "\160" <$ char '~')
      <|> (mathDisplay $ string "$$" *> mathChars <* string "$$")
@@ -188,10 +189,9 @@ inline = (mempty <$ comment)
      <|> (superscript <$> (char '^' *> tok))
      <|> (subscript <$> (char '_' *> tok))
      <|> (guardEnabled Ext_literate_haskell *> char '|' *> doLHSverb)
-     <|> (str <$> count 1 tildeEscape)
-     <|> (str <$> string "]")
-     <|> (str <$> string "#") -- TODO print warning?
-     <|> (str <$> string "&") -- TODO print warning?
+     <|> (str . (:[]) <$> tildeEscape)
+     <|> (str . (:[]) <$> oneOf "[]")
+     <|> (str . (:[]) <$> oneOf "#&") -- TODO print warning?
      -- <|> (str <$> count 1 (satisfy (\c -> c /= '\\' && c /='\n' && c /='}' && c /='{'))) -- eat random leftover characters
 
 inlines :: LP Inlines
@@ -645,11 +645,7 @@ inlineText :: LP Inlines
 inlineText = str <$> many1 inlineChar
 
 inlineChar :: LP Char
-inlineChar = satisfy $ \c ->
-  not (c == '\\' || c == '$' || c == '%' || c == '^' || c == '_' ||
-       c == '&'  || c == '~' || c == '#' || c == '{' || c == '}' ||
-       c == '^'  || c == '\'' || c == '`' || c == '-' || c == ']' ||
-       c == ' '  || c == '\t' || c == '\n' )
+inlineChar = noneOf "\\$%^_&~#{}^'`-[] \t\n"
 
 environment :: LP Blocks
 environment = do
