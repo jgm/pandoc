@@ -757,7 +757,7 @@ simpleTableHeader headless = try $ do
   rawContent  <- if headless
                     then return ""
                     else simpleTableSep '=' >> anyLine
-  dashes      <- simpleDashedLines '='
+  dashes      <- simpleDashedLines '=' <|> simpleDashedLines '-'
   newline
   let lines'   = map snd dashes
   let indices  = scanl (+) 0 lines'
