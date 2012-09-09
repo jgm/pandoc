@@ -271,6 +271,7 @@ pCodeBlock = try $ do
 inline :: TagParser [Inline]
 inline = choice
            [ pTagText
+           , pQ
            , pEmph
            , pStrong
            , pSuperscript
@@ -305,6 +306,9 @@ pSelfClosing f g = do
   open <- pSatisfy (tagOpen f g)
   optional $ pSatisfy (tagClose f)
   return open
+
+pQ :: TagParser [Inline]
+pQ = pInlinesInTags "q" (Quoted DoubleQuote)
 
 pEmph :: TagParser [Inline]
 pEmph = pInlinesInTags "em" Emph <|> pInlinesInTags "i" Emph
