@@ -1813,11 +1813,11 @@ HTML, Slidy, DZSlides, S5, EPUB
         styled differently from the surrounding text if needed.
 
     2.  If the `--latexmathml` option is used, TeX math will be displayed
-        between $ or $$ characters and put in `<span>` tags with class `LaTeX`.
+        between `$` or `$$` characters and put in `<span>` tags with class `LaTeX`.
         The [LaTeXMathML] script will be used to render it as formulas.
         (This trick does not work in all browsers, but it works in Firefox.
         In browsers that do not support LaTeXMathML, TeX math will appear
-        verbatim between $ characters.)
+        verbatim between `$` characters.)
 
     3.  If the `--jsmath` option is used, TeX math will be put inside
         `<span>` tags (for inline math) or `<div>` tags (for display math)
