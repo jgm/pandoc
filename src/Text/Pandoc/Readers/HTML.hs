@@ -308,7 +308,15 @@ pSelfClosing f g = do
   return open
 
 pQ :: TagParser [Inline]
-pQ = pInlinesInTags "q" (Quoted DoubleQuote)
+pQ = do
+  quoteContext <- stateQuoteContext `fmap` getState
+  let quoteType = case quoteContext of
+                       InDoubleQuote -> SingleQuote
+                       _             -> DoubleQuote
+  let innerQuoteContext = if quoteType == SingleQuote
+                             then InSingleQuote
+                             else InDoubleQuote
+  withQuoteContext innerQuoteContext $ pInlinesInTags "q" (Quoted quoteType)
 
 pEmph :: TagParser [Inline]
 pEmph = pInlinesInTags "em" Emph <|> pInlinesInTags "i" Emph
