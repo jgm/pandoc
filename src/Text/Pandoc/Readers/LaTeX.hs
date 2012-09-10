@@ -801,7 +801,9 @@ descItem = do
   return (ils, [bs])
 
 env :: String -> LP a -> LP a
-env name p = p <* (controlSeq "end" *> braced >>= guard . (== name))
+env name p = p <*
+  (try (controlSeq "end" *> braced >>= guard . (== name))
+    <?> ("\\end{" ++ name ++ "}"))
 
 listenv :: String -> LP a -> LP a
 listenv name p = try $ do
