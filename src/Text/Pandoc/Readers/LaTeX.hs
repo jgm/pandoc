@@ -265,8 +265,6 @@ blockCommands = M.fromList $
   , ("closing", skipopts *> closing)
   --
   , ("rule", skipopts *> tok *> tok *> pure horizontalRule)
-  , ("begin", mzero)   -- these are here so they won't be interpreted as inline
-  , ("end", mzero)
   , ("item", skipopts *> loose_item)
   , ("documentclass", skipopts *> braced *> preamble)
   , ("centerline", (para . trimInlines) <$> (skipopts *> tok))
@@ -321,6 +319,7 @@ section lvl = do
 inlineCommand :: LP Inlines
 inlineCommand = try $ do
   name <- anyControlSeq
+  guard $ name /= "begin" && name /= "end"
   guard $ not $ isBlockCommand name
   parseRaw <- getOption readerParseRaw
   star <- option "" (string "*")
