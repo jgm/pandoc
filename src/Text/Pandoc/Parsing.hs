@@ -811,8 +811,8 @@ quoted :: Parser [Char] ParserState Inline
 quoted inlineParser = doubleQuoted inlineParser <|> singleQuoted inlineParser
 
 withQuoteContext :: QuoteContext
-                 -> Parser [Char] ParserState a
-                 -> Parser [Char] ParserState a
+                 -> Parser [tok] ParserState a
+                 -> Parser [tok] ParserState a
 withQuoteContext context parser = do
   oldState <- getState
   let oldQuoteContext = stateQuoteContext oldState
