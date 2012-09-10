@@ -1294,18 +1294,6 @@ inlinesBetween start end =
     where inner      = innerSpace <|> (notFollowedBy' (() <$ whitespace) >> inline)
           innerSpace = try $ whitespace >>~ notFollowedBy' end
 
--- This is used to prevent exponential blowups for things like:
--- a**a*a**a*a**a*a**a*a**a*a**a*a**
-nested :: Parser [Char] ParserState a
-       -> Parser [Char] ParserState a
-nested p = do
-  nestlevel <- stateMaxNestingLevel `fmap` getState
-  guard $ nestlevel > 0
-  updateState $ \st -> st{ stateMaxNestingLevel = stateMaxNestingLevel st - 1 }
-  res <- p
-  updateState $ \st -> st{ stateMaxNestingLevel = nestlevel }
-  return res
-
 emph :: Parser [Char] ParserState (F Inlines)
 emph = fmap B.emph <$> nested
   (inlinesBetween starStart starEnd <|> inlinesBetween ulStart ulEnd)

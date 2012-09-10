@@ -82,6 +82,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              ellipses,
                              apostrophe,
                              dash,
+                             nested,
                              macro,
                              applyMacros',
                              Parser,
@@ -924,6 +925,18 @@ emDashOld :: Parser [Char] st Inline
 emDashOld = do
   try (charOrRef "\8212\151") <|> (try $ string "--" >> optional (char '-') >> return '-')
   return (Str "\8212")
+
+-- This is used to prevent exponential blowups for things like:
+-- a**a*a**a*a**a*a**a*a**a*a**a*a**
+nested :: Parser s ParserState a
+       -> Parser s ParserState a
+nested p = do
+  nestlevel <- stateMaxNestingLevel `fmap` getState
+  guard $ nestlevel > 0
+  updateState $ \st -> st{ stateMaxNestingLevel = stateMaxNestingLevel st - 1 }
+  res <- p
+  updateState $ \st -> st{ stateMaxNestingLevel = nestlevel }
+  return res
 
 --
 -- Macros
