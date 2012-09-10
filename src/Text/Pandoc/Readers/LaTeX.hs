@@ -214,6 +214,7 @@ blocks = mconcat <$> many block
 blockCommand :: LP Blocks
 blockCommand = try $ do
   name <- anyControlSeq
+  guard $ name /= "begin" && name /= "end"
   star <- option "" (string "*" <* optional sp)
   let name' = name ++ star
   case M.lookup name' blockCommands of
