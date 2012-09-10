@@ -66,6 +66,7 @@ module Text.Pandoc
                , writers
                -- * Readers: converting /to/ Pandoc format
                , readMarkdown
+               , readMediaWiki
                , readRST
                , readLaTeX
                , readHtml
@@ -110,6 +111,7 @@ module Text.Pandoc
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Readers.Markdown
+import Text.Pandoc.Readers.MediaWiki
 import Text.Pandoc.Readers.RST
 import Text.Pandoc.Readers.DocBook
 import Text.Pandoc.Readers.LaTeX
@@ -179,6 +181,7 @@ readers = [("native"       , \_ -> readNative)
           ,("markdown_strict" , readMarkdown)
           ,("markdown"     , readMarkdown)
           ,("rst"          , readRST)
+          ,("mediawiki"    , readMediaWiki)
           ,("docbook"      , readDocBook)
           ,("textile"      , readTextile) -- TODO : textile+lhs
           ,("html"         , readHtml)

@@ -1,6 +1,4 @@
 {-# LANGUAGE RelaxedPolyRec #-} -- needed for inlinesBetween on GHC < 7
-{-# LANGUAGE FlexibleInstances, TypeSynonymInstances,
-    GeneralizedNewtypeDeriving #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 

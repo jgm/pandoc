@@ -119,9 +119,14 @@ tests = [ testGroup "markdown"
           , fb2WriterTest "math" [] "fb2.math.markdown" "fb2.math.fb2"
           , fb2WriterTest "testsuite" [] "testsuite.native" "writer.fb2"
           ]
+        , testGroup "mediawiki"
+          [ testGroup "writer" $ writerTests "mediawiki"
+          , test "reader" ["-r", "mediawiki", "-w", "native", "-s"]
+            "mediawiki-reader.wiki" "mediawiki-reader.native"
+          ]
         , testGroup "other writers" $ map (\f -> testGroup f $ writerTests f)
           [ "opendocument" , "context" , "texinfo"
-          , "man" , "plain" , "mediawiki", "rtf", "org", "asciidoc"
+          , "man" , "plain" , "rtf", "org", "asciidoc"
           ]
         ]
 
