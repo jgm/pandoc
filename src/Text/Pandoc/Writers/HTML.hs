@@ -485,7 +485,8 @@ blockToHtml opts (DefinitionList lst) = do
                   do term' <- liftM (H.dt) $ inlineListToHtml opts term
                      defs' <- mapM ((liftM (\x -> H.dd $ (x >> nl opts))) .
                                     blockListToHtml opts) defs
-                     return $ mconcat $ nl opts : term' : nl opts : defs') lst
+                     return $ mconcat $ nl opts : term' : nl opts :
+                                        intersperse (nl opts) defs') lst
   let lst' = H.dl $ mconcat contents >> nl opts
   let lst'' = if writerIncremental opts
                  then lst' ! A.class_ "incremental"
