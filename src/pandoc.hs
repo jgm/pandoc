@@ -653,7 +653,7 @@ options =
                   (\arg opt -> do
                       let url' = case arg of
                                       Just u   -> u
-                                      Nothing  -> "https://d3eoax9i5htok0.cloudfront.net/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+                                      Nothing  -> "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
                       return opt { optHTMLMathMethod = MathJax url'})
                   "URL")
                  "" -- "Use MathJax for HTML math"
