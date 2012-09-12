@@ -30,8 +30,6 @@ Conversion of mediawiki text to 'Pandoc' document.
 -}
 {-
 TODO:
-_ fix pre parser -- it should use html tagsoup parsers,
-  then just strip out the text from text tags.
 _ correctly handle skipped level in list, e.g. # to ###
 _ tests for lists
 _ support HTML lists
@@ -113,7 +111,7 @@ blocksInTags tag = mconcat <$> try
    manyTill block (htmlTag (~== TagClose tag)))
 
 charsInTags :: String -> MWParser [Char]
-charsInTags tag = fromEntities <$> try
+charsInTags tag = innerText . parseTags <$> try
   (htmlTag (~== TagOpen tag []) *>
    manyTill anyChar (htmlTag (~== TagClose tag)))
 
