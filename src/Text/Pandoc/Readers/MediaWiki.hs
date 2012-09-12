@@ -30,7 +30,6 @@ Conversion of mediawiki text to 'Pandoc' document.
 -}
 {-
 TODO:
-_ correctly handle skipped level in list, e.g. # to ###
 _ tests for lists
 _ support HTML lists
 _ support list style attributes and start values in ol lists, also
@@ -199,10 +198,27 @@ listStartChar :: MWParser Char
 listStartChar = oneOf "*#;:"
 
 anyListStart :: MWParser ()
-anyListStart = listStart '*' <|> listStart '#' <|> listStart ';'
+anyListStart =  skipMany1 (char '*')
+            <|> skipMany1 (char '#')
+            <|> (() <$ char ';')
 
 listItem :: Char -> MWParser Blocks
 listItem c = try $ do
+  extras <- many (try $ char c <* lookAhead listStartChar)
+  if null extras
+     then listItem' c
+     else do
+       first <- manyTill anyChar newline
+       rest <- many (try $ string extras *> manyTill anyChar newline)
+       contents <- parseFromString (many1 $ listItem' c)
+                          (unlines (first : rest))
+       case c of
+           '*'  -> return $ B.bulletList contents
+           '#'  -> return $ B.orderedList contents
+           _    -> mzero
+
+listItem' :: Char -> MWParser Blocks
+listItem' c = try $ do
   listStart c
   first <- manyTill anyChar newline
   rest <- many (try $ char c *> lookAhead listStartChar *>
