@@ -261,7 +261,7 @@ linebreak = B.linebreak <$
 externalLink :: MWParser Inlines
 externalLink = try $ do
   char '['
-  (orig, src) <- uri
+  (_, src) <- uri
   skipMany1 spaceChar
   lab <- manyTill inline (char ']')
   let lab' = if null lab
@@ -271,7 +271,7 @@ externalLink = try $ do
 
 url :: MWParser Inlines
 url = do
-  (_, src) <- uri
+  (orig, src) <- uri
   return $ B.link src "" (B.str orig)
 
 nowiki :: MWParser Inlines
