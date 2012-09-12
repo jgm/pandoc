@@ -379,10 +379,11 @@ uri = try $ do
                           char ')'
                           return $ '(' : res ++ ")"
   str <- liftM concat $ many1 $ inParens <|> count 1 (innerPunct <|> uriChar)
+  str' <- option str $ char '/' >> return (str ++ "/")
   -- now see if they amount to an absolute URI
-  case parseURI (escapeURI str) of
+  case parseURI (escapeURI str') of
        Just uri' -> if uriScheme uri' `elem` protocols
-                       then return (str, show uri')
+                       then return (str', show uri')
                        else fail "not a URI"
        Nothing   -> fail "not a URI"
 
