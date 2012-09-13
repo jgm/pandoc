@@ -217,4 +217,15 @@ def function():
     else:
         print False</nowiki>
 
+Not<hr/> preformatted
+
+== templates ==
+
+{{Welcome}}
+
+{{Foo:Bar}}
+
+{{Thankyou|all your effort|Me}}
+
+Written {{{date}}} by {{{name}}}.
 

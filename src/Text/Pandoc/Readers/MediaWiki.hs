@@ -38,7 +38,6 @@ _ support external links (partially implemented)
 _ support images http://www.mediawiki.org/wiki/Help:Images
 _ support tables http://www.mediawiki.org/wiki/Help:Tables
 _ gallery tag?
-_ tests for templates (should be -> raw mediawiki)
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
@@ -130,16 +129,17 @@ block =  mempty <$ skipMany1 blankline
      <|> blockTag
      <|> pTag
      <|> blockHtml
-     <|> rawMediaWiki
+     <|> template
      <|> para
 
 para :: MWParser Blocks
 para = B.para . trimInlines . mconcat <$> many1 inline
 
-rawMediaWiki :: MWParser Blocks
-rawMediaWiki = B.rawBlock "mediawiki" <$> doublebrackets
+template :: MWParser Blocks
+template = B.rawBlock "mediawiki" <$> doublebrackets
   where doublebrackets = try $ do
            string "{{"
+           notFollowedBy (char '{')
            contents <- manyTill anyChar (try $ string "}}")
            return $ "{{" ++ contents ++ "}}"
 
@@ -180,7 +180,8 @@ hrule :: MWParser Blocks
 hrule = B.horizontalRule <$ try (string "----" *> many (char '-') *> newline)
 
 preformatted :: MWParser Blocks
-preformatted = do
+preformatted = try $ do
+  getPosition >>= \pos -> guard (sourceColumn pos == 1)
   char ' '
   let endline' = B.linebreak <$ (try $ newline <* char ' ')
   let whitespace' = B.str <$> many1 ('\160' <$ spaceChar)
@@ -280,10 +281,18 @@ inline =  whitespace
       <|> inlineTag
       <|> B.singleton <$> charRef
       <|> inlineHtml
+      <|> variable
       <|> special
 
 str :: MWParser Inlines
 str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
+
+variable :: MWParser Inlines
+variable = B.rawInline "mediawiki" <$> triplebrackets
+  where triplebrackets = try $ do
+           string "{{{"
+           contents <- manyTill anyChar (try $ string "}}}")
+           return $ "{{{" ++ contents ++ "}}}"
 
 inlineTag :: MWParser Inlines
 inlineTag = do

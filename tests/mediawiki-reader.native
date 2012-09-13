@@ -135,4 +135,12 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 ,Header 2 [Str "preformatted",Space,Str "blocks"]
 ,Para [Code ("",[],[]) "Start\160each\160line\160with\160a\160space.",LineBreak,Code ("",[],[]) "Text\160is\160",Strong [Code ("",[],[]) "preformatted"],Code ("",[],[]) "\160and",LineBreak,Emph [Code ("",[],[]) "markups"],Code ("",[],[]) "\160",Strong [Emph [Code ("",[],[]) "can"]],Code ("",[],[]) "\160be\160done."]
 ,Para [Code ("",[],[]) "\160hell\160\160\160\160\160\160yeah"]
-,Para [Code ("",[],[]) "Start\160with\160a\160space\160in\160the\160first\160column,",LineBreak,Code ("",[],[]) "(before\160the\160<nowiki>).",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "Then\160your\160block\160format\160will\160be",LineBreak,Code ("",[],[]) "\160\160\160\160maintained.",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "This\160is\160good\160for\160copying\160in\160code\160blocks:",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "def\160function():",LineBreak,Code ("",[],[]) "\160\160\160\160\"\"\"documentation\160string\"\"\"",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "\160\160\160\160if\160True:",LineBreak,Code ("",[],[]) "\160\160\160\160\160\160\160\160print\160True",LineBreak,Code ("",[],[]) "\160\160\160\160else:",LineBreak,Code ("",[],[]) "\160\160\160\160\160\160\160\160print\160False"]]
+,Para [Code ("",[],[]) "Start\160with\160a\160space\160in\160the\160first\160column,",LineBreak,Code ("",[],[]) "(before\160the\160<nowiki>).",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "Then\160your\160block\160format\160will\160be",LineBreak,Code ("",[],[]) "\160\160\160\160maintained.",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "This\160is\160good\160for\160copying\160in\160code\160blocks:",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "def\160function():",LineBreak,Code ("",[],[]) "\160\160\160\160\"\"\"documentation\160string\"\"\"",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "\160\160\160\160if\160True:",LineBreak,Code ("",[],[]) "\160\160\160\160\160\160\160\160print\160True",LineBreak,Code ("",[],[]) "\160\160\160\160else:",LineBreak,Code ("",[],[]) "\160\160\160\160\160\160\160\160print\160False"]
+,Para [Str "Not"]
+,RawBlock "html" "<hr/>"
+,Para [Str "preformatted"]
+,Header 2 [Str "templates"]
+,RawBlock "mediawiki" "{{Welcome}}"
+,RawBlock "mediawiki" "{{Foo:Bar}}"
+,RawBlock "mediawiki" "{{Thankyou|all your effort|Me}}"
+,Para [Str "Written",Space,RawInline "mediawiki" "{{{date}}}",Space,Str "by",Space,RawInline "mediawiki" "{{{name}}}",Str "."]]
