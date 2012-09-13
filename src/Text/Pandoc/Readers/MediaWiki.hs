@@ -30,27 +30,31 @@ Conversion of mediawiki text to 'Pandoc' document.
 -}
 {-
 TODO:
-_ tests for lists
 _ support HTML lists
 _ support list style attributes and start values in ol lists, also
   value attribute on li
 _ support preformatted text (lines starting with space)
 _ support preformatted text blocks
 _ support internal links http://www.mediawiki.org/wiki/Help:Links
-_ support external links
-_ support automatic linkification of URLs
+_ support external links (partially implemented)
 _ support images http://www.mediawiki.org/wiki/Help:Images
-_ ignore gallery tag?
 _ support tables http://www.mediawiki.org/wiki/Help:Tables
 _ support <math> tag for latex math
-_ templates or anything in {{}} -> handle as raw wikimedia, can be dealt with in
-  postprocessing
-_ category links
+_ raw mediawiki:
+  _ templates or anything in {{}} (can be postprocessed)
+  _ category links
+_ gallery tag?
 _ tests for raw html inline
+_ tests for raw html block tags
+_ test for <p> tags
 _ tests for sup, sub, del
-_ tests for pre, haskell
+_ tests for pre, haskell, syntaxhighlight
 _ tests for code, tt, hask
 _ test for blockquote
+_ tests for native lists
+_ tests for autolink urls
+_ tests for external links
+_ tests for : lines
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
