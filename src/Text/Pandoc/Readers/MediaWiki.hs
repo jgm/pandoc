@@ -30,9 +30,6 @@ Conversion of mediawiki text to 'Pandoc' document.
 -}
 {-
 TODO:
-_ support HTML lists
-_ support list style attributes and start values in ol lists, also
-  value attribute on li
 _ support internal links http://www.mediawiki.org/wiki/Help:Links
 _ support external links (partially implemented)
 _ support images http://www.mediawiki.org/wiki/Help:Images
@@ -50,7 +47,7 @@ import Text.Pandoc.Readers.HTML ( htmlTag, isInlineTag,
 import Text.Pandoc.XML ( fromEntities )
 import Text.Pandoc.Parsing
 import Text.Pandoc.Generic ( bottomUp )
-import Text.Pandoc.Shared ( stripTrailingNewlines )
+import Text.Pandoc.Shared ( stripTrailingNewlines, safeRead )
 import Data.Monoid (mconcat, mempty)
 import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
@@ -121,8 +118,8 @@ block :: MWParser Blocks
 block =  mempty <$ skipMany1 blankline
      <|> header
      <|> hrule
-     <|> bulletList
      <|> orderedList
+     <|> bulletList
      <|> definitionList
      <|> mempty <$ try (spaces *> htmlComment)
      <|> preformatted
@@ -151,7 +148,7 @@ blockTag = do
       "pre" -> B.codeBlock . trimCode <$> charsInTags "pre"
       "syntaxhighlight" -> syntaxhighlight attrs
       "haskell" -> B.codeBlockWith ("",["haskell"],[]) . trimCode <$>
-                   charsInTags "haskell"
+                     charsInTags "haskell"
       "p" -> return mempty
       _ -> return $ B.rawBlock "html" raw
 
@@ -207,10 +204,23 @@ header = try $ do
   return $ B.header lev contents
 
 bulletList :: MWParser Blocks
-bulletList = B.bulletList <$> many1 (listItem '*')
+bulletList = B.bulletList <$>
+   (   many1 (listItem '*')
+   <|> (htmlTag (~== TagOpen "ul" []) *> spaces *> many (listItem '*' <|> li) <*
+        optional (htmlTag (~== TagClose "ul"))) )
 
 orderedList :: MWParser Blocks
-orderedList = B.orderedList <$> many1 (listItem '#')
+orderedList =
+       (B.orderedList <$> many1 (listItem '#'))
+   <|> (B.orderedList <$> (htmlTag (~== TagOpen "ul" []) *> spaces *>
+        many (listItem '#' <|> li) <*
+        optional (htmlTag (~== TagClose "ul"))))
+   <|> do (tag,_) <- htmlTag (~== TagOpen "ol" [])
+          spaces
+          items <- many (listItem '#' <|> li)
+          optional (htmlTag (~== TagClose "ol"))
+          let start = maybe 1 id $ safeRead $ fromAttrib "start" tag
+          return $ B.orderedListWith (start, DefaultStyle, DefaultDelim) items
 
 definitionList :: MWParser Blocks
 definitionList = B.definitionList <$> many1 defListItem
@@ -237,6 +247,10 @@ anyListStart =  char '*'
             <|> char ':'
             <|> char ';'
 
+li :: MWParser Blocks
+li = htmlTag (~== TagOpen "li" []) *>
+     (firstParaToPlain <$> blocksInTags "li") <* spaces
+
 listItem :: Char -> MWParser Blocks
 listItem c = try $ do
   extras <- many (try $ char c <* lookAhead listStartChar)
@@ -261,11 +275,14 @@ listItem' c = try $ do
   first <- manyTill anyChar newline
   rest <- many (try $ char c *> lookAhead listStartChar *>
                    manyTill anyChar newline)
-  contents <- parseFromString (mconcat <$> many1 block)
-               $ unlines $ first : rest
+  parseFromString (firstParaToPlain . mconcat <$> many1 block)
+      $ unlines $ first : rest
+
+firstParaToPlain :: Blocks -> Blocks
+firstParaToPlain contents =
   case viewl (B.unMany contents) of
-       (Para xs) :< ys -> return $ B.Many $ (Plain xs) <| ys
-       _               -> return contents
+       (Para xs) :< ys -> B.Many $ (Plain xs) <| ys
+       _               -> contents
 
 --
 -- inline parsers

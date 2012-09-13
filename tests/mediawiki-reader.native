@@ -130,6 +130,21 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
     ,OrderedList (1,DefaultStyle,DefaultDelim)
      [[Plain [Str "five",Space,Str "sub",Space,Str "1",Space,Str "sub",Space,Str "1"]]]]
    ,[Plain [Str "five",Space,Str "sub",Space,Str "2"]]]]]
+,OrderedList (1,DefaultStyle,DefaultDelim)
+ [[Plain [Str "list",Space,Str "item",Space,Emph [Str "emph"]]
+  ,OrderedList (1,DefaultStyle,DefaultDelim)
+   [[Plain [Str "list",Space,Str "item",Space,Str "B1"]]
+   ,[Plain [Str "list",Space,Str "item",Space,Str "B2"]]]
+  ,Para [Str "continuing",Space,Str "list",Space,Str "item",Space,Str "A1"]]
+ ,[Plain [Str "list",Space,Str "item",Space,Str "A2"]]]
+,OrderedList (1,DefaultStyle,DefaultDelim)
+ [[Plain [Str "abc"]]
+ ,[Plain [Str "def"]]
+ ,[Plain [Str "ghi"]]]
+,OrderedList (9,DefaultStyle,DefaultDelim)
+ [[Plain [Str "Amsterdam"]]
+ ,[Plain [Str "Rotterdam"]]
+ ,[Plain [Str "The",Space,Str "Hague"]]]
 ,Header 2 [Str "math"]
 ,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Math InlineMath "x=\\frac{y^\\pi}{z}",Str "."]
 ,Header 2 [Str "preformatted",Space,Str "blocks"]

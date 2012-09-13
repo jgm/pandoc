@@ -189,6 +189,28 @@ ends the list.
 ### five sub 1 sub 1
 ## five sub 2
 
+<ol>
+  <li>list item ''emph''
+    <ol>
+      <li>list item B1</li>
+      <li>list item B2</li>
+    </ol>continuing list item A1
+  </li>
+  <li>list item A2</li>
+</ol>
+
+<ul>
+#abc
+#def
+#ghi
+</ul>
+
+<ol start="9">
+<li>Amsterdam</li>
+<li>Rotterdam</li>
+<li>The Hague</li>
+</ol>
+
 == math ==
 
 Here is some <math>x=\frac{y^\pi}{z}</math>.
