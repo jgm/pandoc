@@ -51,7 +51,24 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 ,Para [Str "bud"]
 ,Para [Str "another"]
 ,Header 2 [Str "raw",Space,Str "html"]
-,Para [Str "hi",Space,RawInline "html" "<span style=\"color:red\">",Emph [Str "there"],RawInline "html" "</span>",Str "."]
+,Para [Str "hi",Space,RawInline "html" "<span style=\"color:red\">",Emph [Str "there"],RawInline "html" "</span>",Str ".",Space,RawInline "html" "<ins>",Str "inserted",RawInline "html" "</ins>"]
 ,RawBlock "html" "<div class=\"special\">"
 ,Para [Str "hi",Space,Emph [Str "there"]]
-,RawBlock "html" "</div>"]
+,RawBlock "html" "</div>"
+,Header 2 [Str "sup,",Space,Str "sub,",Space,Str "del"]
+,Para [Str "H",Subscript [Str "2"],Str "O",Space,Str "base",Superscript [Emph [Str "exponent"]],Space,Strikeout [Str "hello"]]
+,Header 2 [Str "inline",Space,Str "code"]
+,Para [Code ("",[],[]) "*\8594*",Space,Code ("",[],[]) "typed",Space,Code ("",["haskell"],[]) ">>="]
+,Header 2 [Str "code",Space,Str "blocks"]
+,CodeBlock ("",[],[]) "case xs of\n     (_:_) -> reverse xs\n     []    -> ['*']"
+,CodeBlock ("",["haskell"],[]) "case xs of\n     (_:_) -> reverse xs\n     []    -> ['*']"
+,CodeBlock ("",["ruby","numberLines"],[("startFrom","100")]) "widgets.each do |w|\n  print w.price\nend"
+,Header 2 [Str "block",Space,Str "quotes"]
+,Para [Str "Regular",Space,Str "paragraph"]
+,BlockQuote
+ [Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "block",Space,Str "quote."]
+ ,Para [Str "With",Space,Str "two",Space,Str "paragraphs."]]
+,Para [Str "Nother",Space,Str "paragraph."]
+,Header 2 [Str "external",Space,Str "links"]
+,Para [Link [Emph [Str "Google"],Space,Str "search",Space,Str "engine"] ("http://google.com","")]
+,Para [Link [Str "http://johnmacfarlane.net/pandoc/"] ("http://johnmacfarlane.net/pandoc/","")]]

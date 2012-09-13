@@ -91,9 +91,56 @@ another
 == raw html ==
 
 hi <span style="color:red">''there''</span>.
+<ins>inserted</ins>
 
 <div class="special">
 hi ''there''
 </div>
+
+== sup, sub, del ==
+
+H<sub>2</sub>O
+base<sup>''exponent''</sup>
+<del>hello</del>
+
+== inline code ==
+
+<code>*&rarr;*</code> <tt>typed</tt> <hask>&gt;&gt;=</hask>
+
+== code blocks ==
+
+<pre>
+case xs of
+     (_:_) -> reverse xs
+     []    -> ['*']
+</pre>
+
+<haskell>
+case xs of
+     (_:_) -> reverse xs
+     []    -> ['*']
+</haskell>
+
+<syntaxhighlight lang="ruby" line start=100>
+widgets.each do |w|
+  print w.price
+end
+</syntaxhighlight>
+
+== block quotes ==
+
+Regular paragraph
+<blockquote>
+This is a block quote.
+
+With two paragraphs.
+</blockquote>
+Nother paragraph.
+
+== external links ==
+
+[http://google.com ''Google'' search engine]
+
+http://johnmacfarlane.net/pandoc/
 
 

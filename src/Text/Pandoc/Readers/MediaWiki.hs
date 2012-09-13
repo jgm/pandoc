@@ -44,13 +44,7 @@ _ raw mediawiki:
   _ templates or anything in {{}} (can be postprocessed)
   _ category links
 _ gallery tag?
-_ tests for sup, sub, del
-_ tests for pre, haskell, syntaxhighlight
-_ tests for code, tt, hask
-_ test for blockquote
 _ tests for native lists
-_ tests for autolink urls
-_ tests for external links
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
@@ -175,7 +169,7 @@ syntaxhighlight = try $ do
   let classes = maybe [] (:[]) mblang ++ maybe [] (const ["numberLines"]) mbline
   let kvs = maybe [] (\x -> [("startFrom",x)]) mbstart
   contents <- charsInTags "syntaxhighlight"
-  return $ B.codeBlockWith ("",classes,kvs) contents
+  return $ B.codeBlockWith ("",classes,kvs) $ trimCode contents
 
 haskell :: MWParser Blocks
 haskell = B.codeBlockWith ("",["haskell"],[]) . trimCode <$>
