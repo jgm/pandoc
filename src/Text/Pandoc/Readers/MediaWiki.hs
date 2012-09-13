@@ -36,9 +36,6 @@ _ support list style attributes and start values in ol lists, also
   value attribute on li
 _ support preformatted text (lines starting with space)
 _ support preformatted text blocks
-_ code highlighting: http://www.mediawiki.org/wiki/Extension:SyntaxHighlight_GeSHi <syntaxhighlight lang="php"> (alternativel, <source...>)
-  if 'line' attribute present, number lines
-  if 'start' present, set starting line number
 _ support internal links http://www.mediawiki.org/wiki/Help:Links
 _ support external links
 _ support automatic linkification of URLs
@@ -137,6 +134,7 @@ block = header
      <|> definitionList
      <|> blockquote
      <|> codeblock
+     <|> syntaxhighlight
      <|> haskell
      <|> mempty <$ skipMany1 blankline
      <|> mempty <$ try (spaces *> htmlComment)
@@ -166,6 +164,18 @@ codeblock = B.codeBlock . trimCode <$> charsInTags "pre"
 trimCode :: String -> String
 trimCode ('\n':xs) = stripTrailingNewlines xs
 trimCode xs        = stripTrailingNewlines xs
+
+syntaxhighlight :: MWParser Blocks
+syntaxhighlight = try $ do
+  (tag@(TagOpen _ attrs), _) <- lookAhead
+                                $ htmlTag (~== TagOpen "syntaxhighlight" [])
+  let mblang = lookup "lang" attrs
+  let mbstart = lookup "start" attrs
+  let mbline = lookup "line" attrs
+  let classes = maybe [] (:[]) mblang ++ maybe [] (const ["numberLines"]) mbline
+  let kvs = maybe [] (\x -> [("startFrom",x)]) mbstart
+  contents <- charsInTags "syntaxhighlight"
+  return $ B.codeBlockWith ("",classes,kvs) contents
 
 haskell :: MWParser Blocks
 haskell = B.codeBlockWith ("",["haskell"],[]) . trimCode <$>
