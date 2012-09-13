@@ -44,7 +44,6 @@ _ raw mediawiki:
   _ templates or anything in {{}} (can be postprocessed)
   _ category links
 _ gallery tag?
-_ tests for native lists
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
@@ -308,7 +307,9 @@ url = do
   return $ B.link src "" (B.str orig)
 
 nowiki :: MWParser Inlines
-nowiki = B.text <$> charsInTags "nowiki"
+nowiki = B.text . fromEntities <$> try
+  (htmlTag (~== TagOpen "nowiki" []) *>
+   manyTill anyChar (htmlTag (~== TagClose "nowiki")))
 
 strikeout :: MWParser Inlines
 strikeout = B.strikeout <$> (inlinesInTags "strike" <|> inlinesInTags "del")

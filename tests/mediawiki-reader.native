@@ -71,4 +71,62 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 ,Para [Str "Nother",Space,Str "paragraph."]
 ,Header 2 [Str "external",Space,Str "links"]
 ,Para [Link [Emph [Str "Google"],Space,Str "search",Space,Str "engine"] ("http://google.com","")]
-,Para [Link [Str "http://johnmacfarlane.net/pandoc/"] ("http://johnmacfarlane.net/pandoc/","")]]
+,Para [Link [Str "http://johnmacfarlane.net/pandoc/"] ("http://johnmacfarlane.net/pandoc/","")]
+,Header 2 [Str "lists"]
+,BulletList
+ [[Plain [Str "Start",Space,Str "each",Space,Str "line"]]
+ ,[Plain [Str "with",Space,Str "an",Space,Str "asterisk",Space,Str "(*)."]
+  ,BulletList
+   [[Plain [Str "More",Space,Str "asterisks",Space,Str "gives",Space,Str "deeper"]
+    ,BulletList
+     [[Plain [Str "and",Space,Str "deeper",Space,Str "levels."]]]]]]
+ ,[Plain [Str "Line",Space,Str "breaks",LineBreak,Str "don't",Space,Str "break",Space,Str "levels."]
+  ,BulletList
+   [[BulletList
+     [[Plain [Str "But",Space,Str "jumping",Space,Str "levels",Space,Str "creates",Space,Str "empty",Space,Str "space."]]]]]]]
+,Para [Str "Any",Space,Str "other",Space,Str "start",Space,Str "ends",Space,Str "the",Space,Str "list."]
+,OrderedList (1,DefaultStyle,DefaultDelim)
+ [[Plain [Str "Start",Space,Str "each",Space,Str "line"]]
+ ,[Plain [Str "with",Space,Str "a",Space,Str "number",Space,Str "sign",Space,Str "(#)."]
+  ,OrderedList (1,DefaultStyle,DefaultDelim)
+   [[Plain [Str "More",Space,Str "number",Space,Str "signs",Space,Str "gives",Space,Str "deeper"]
+    ,OrderedList (1,DefaultStyle,DefaultDelim)
+     [[Plain [Str "and",Space,Str "deeper"]]
+     ,[Plain [Str "levels."]]]]]]
+ ,[Plain [Str "Line",Space,Str "breaks",LineBreak,Str "don't",Space,Str "break",Space,Str "levels."]
+  ,OrderedList (1,DefaultStyle,DefaultDelim)
+   [[OrderedList (1,DefaultStyle,DefaultDelim)
+     [[Plain [Str "But",Space,Str "jumping",Space,Str "levels",Space,Str "creates",Space,Str "empty",Space,Str "space."]]]]]]
+ ,[Plain [Str "Blank",Space,Str "lines"]]]
+,OrderedList (1,DefaultStyle,DefaultDelim)
+ [[Plain [Str "end",Space,Str "the",Space,Str "list",Space,Str "and",Space,Str "start",Space,Str "another."]]]
+,Para [Str "Any",Space,Str "other",Space,Str "start",Space,Str "also",Space,Str "ends",Space,Str "the",Space,Str "list."]
+,DefinitionList
+ [([Str "item",Space,Str "1"],
+   [[Plain [Str "definition",Space,Str "1"]]])
+ ,([Str "item",Space,Str "2"],
+   [[Plain [Str "definition",Space,Str "2-1"]]
+   ,[Plain [Str "definition",Space,Str "2-2"]]])]
+,OrderedList (1,DefaultStyle,DefaultDelim)
+ [[Plain [Str "one"]]
+ ,[Plain [Str "two"]
+  ,BulletList
+   [[Plain [Str "two",Space,Str "point",Space,Str "one"]]
+   ,[Plain [Str "two",Space,Str "point",Space,Str "two"]]]]
+ ,[Plain [Str "three"]
+  ,DefinitionList
+   [([Str "three",Space,Str "item",Space,Str "one"],
+     [[Plain [Str "three",Space,Str "def",Space,Str "one"]]])]]
+ ,[Plain [Str "four"]
+  ,DefinitionList
+   [([],
+     [[Plain [Str "four",Space,Str "def",Space,Str "one"]]
+     ,[Plain [Str "this",Space,Str "looks",Space,Str "like",Space,Str "a",Space,Str "continuation"]]
+     ,[Plain [Str "and",Space,Str "is",Space,Str "often",Space,Str "used"]]
+     ,[Plain [Str "instead",LineBreak,Str "of",Space,Str "<br/>"]]])]]
+ ,[Plain [Str "five"]
+  ,OrderedList (1,DefaultStyle,DefaultDelim)
+   [[Plain [Str "five",Space,Str "sub",Space,Str "1"]
+    ,OrderedList (1,DefaultStyle,DefaultDelim)
+     [[Plain [Str "five",Space,Str "sub",Space,Str "1",Space,Str "sub",Space,Str "1"]]]]
+   ,[Plain [Str "five",Space,Str "sub",Space,Str "2"]]]]]]

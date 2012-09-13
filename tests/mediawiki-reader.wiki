@@ -143,4 +143,49 @@ Nother paragraph.
 
 http://johnmacfarlane.net/pandoc/
 
+== lists ==
+
+* Start each line
+* with an asterisk (*).
+** More asterisks gives deeper
+*** and deeper levels.
+* Line breaks<br/>don't break levels.
+*** But jumping levels creates empty space.
+Any other start ends the list.
+
+# Start each line
+# with a number sign (#).
+## More number signs gives deeper
+### and deeper
+### levels.
+# Line breaks<br/>don't break levels.
+### But jumping levels creates empty space.
+# Blank lines
+
+# end the list and start another.
+Any other start also
+ends the list.
+
+;item 1
+: definition 1
+;item 2
+: definition 2-1
+: definition 2-2
+
+# one
+# two
+#* two point one
+#* two point two
+# three
+#; three item one
+#: three def one
+# four
+#: four def one
+#: this looks like a continuation
+#: and is often used
+#: instead<br/>of <nowiki><br/></nowiki>
+# five
+## five sub 1
+### five sub 1 sub 1
+## five sub 2
 
