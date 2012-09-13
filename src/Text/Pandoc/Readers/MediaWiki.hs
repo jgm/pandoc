@@ -34,7 +34,6 @@ _ tests for lists
 _ support HTML lists
 _ support list style attributes and start values in ol lists, also
   value attribute on li
-_ support <p> tags in lists (and out?)
 _ support :, ::, etc. for indent (treat as list continuation paras?)
 _ support preformatted text (lines starting with space)
 _ support preformatted text blocks
@@ -69,10 +68,12 @@ import Text.Pandoc.XML ( fromEntities )
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared ( stripTrailingNewlines )
 import Data.Monoid (mconcat, mempty)
+import qualified Data.Foldable as F
 import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
 import Data.List (intersperse)
 import Text.HTML.TagSoup
+import Data.Sequence (viewl, ViewL(..), (<|))
 
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: ReaderOptions -- ^ Reader options
@@ -140,10 +141,19 @@ block = header
      <|> haskell
      <|> mempty <$ skipMany1 blankline
      <|> mempty <$ try (spaces *> htmlComment)
+     <|> pTag
+     <|> blockHtml
      <|> para
 
 para :: MWParser Blocks
 para = B.para . trimInlines . mconcat <$> many1 inline
+
+-- We can just skip pTags, as contents will be treated as paragraphs
+pTag :: MWParser Blocks
+pTag = mempty <$ (htmlTag (\t -> t ~== TagOpen "p" [] || t ~== TagClose "p"))
+
+blockHtml :: MWParser Blocks
+blockHtml = (B.rawBlock "html" . snd <$> htmlTag isBlockTag)
 
 hrule :: MWParser Blocks
 hrule = B.horizontalRule <$ try (string "----" *> many (char '-') *> newline)
@@ -223,7 +233,11 @@ listItem' c = try $ do
   first <- manyTill anyChar newline
   rest <- many (try $ char c *> lookAhead listStartChar *>
                    manyTill anyChar newline)
-  parseFromString (mconcat <$> many1 block) $ unlines $ first : rest
+  contents <- parseFromString (mconcat <$> many1 block)
+               $ unlines $ first : rest
+  case viewl (B.unMany contents) of
+       (Para xs) :< rest -> return $ B.Many $ (Plain xs) <| rest
+       _                 -> return contents
 
 --
 -- inline parsers
