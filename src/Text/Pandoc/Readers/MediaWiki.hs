@@ -37,10 +37,8 @@ _ support internal links http://www.mediawiki.org/wiki/Help:Links
 _ support external links (partially implemented)
 _ support images http://www.mediawiki.org/wiki/Help:Images
 _ support tables http://www.mediawiki.org/wiki/Help:Tables
-_ raw mediawiki:
-  _ templates or anything in {{}} (can be postprocessed)
-  _ category links
 _ gallery tag?
+_ tests for templates (should be -> raw mediawiki)
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
@@ -75,7 +73,7 @@ type MWParser = Parser [Char] ParserState
 --
 
 specialChars :: [Char]
-specialChars = "'[]<=&*"
+specialChars = "'[]<=&*{}"
 
 spaceChars :: [Char]
 spaceChars = " \n\t"
@@ -132,10 +130,18 @@ block =  mempty <$ skipMany1 blankline
      <|> blockTag
      <|> pTag
      <|> blockHtml
+     <|> rawMediaWiki
      <|> para
 
 para :: MWParser Blocks
 para = B.para . trimInlines . mconcat <$> many1 inline
+
+rawMediaWiki :: MWParser Blocks
+rawMediaWiki = B.rawBlock "mediawiki" <$> doublebrackets
+  where doublebrackets = try $ do
+           string "{{"
+           contents <- manyTill anyChar (try $ string "}}")
+           return $ "{{" ++ contents ++ "}}"
 
 blockTag :: MWParser Blocks
 blockTag = do
