@@ -147,6 +147,18 @@ http://johnmacfarlane.net/pandoc/
 
 [mailto:info@example.org email me]
 
+== internal links ==
+
+[[Help]]
+
+[[Help|the help page]]
+
+[[Help]]ers
+
+[[Help]]<nowiki/>ers
+
+[[Help:Contents|]]
+
 == lists ==
 
 * Start each line

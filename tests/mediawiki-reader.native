@@ -74,6 +74,12 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 ,Para [Link [Str "http://johnmacfarlane.net/pandoc/"] ("http://johnmacfarlane.net/pandoc/","")]
 ,Para [Link [Str "1"] ("http://google.com",""),Space,Link [Str "2"] ("http://yahoo.com","")]
 ,Para [Link [Str "email",Space,Str "me"] ("mailto:info@example.org","")]
+,Header 2 [Str "internal",Space,Str "links"]
+,Para [Link [Str "Help"] ("Help","wikilink")]
+,Para [Link [Str "the",Space,Str "help",Space,Str "page"] ("Help","wikilink")]
+,Para [Link [Str "Helpers"] ("Help","wikilink")]
+,Para [Link [Str "Help"] ("Help","wikilink"),Str "ers"]
+,Para [Link [Str "Contents"] ("Help:Contents","wikilink")]
 ,Header 2 [Str "lists"]
 ,BulletList
  [[Plain [Str "Start",Space,Str "each",Space,Str "line"]]

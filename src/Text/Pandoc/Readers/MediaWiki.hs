@@ -110,16 +110,27 @@ htmlComment :: MWParser ()
 htmlComment = () <$ htmlTag isCommentTag
 
 inlinesInTags :: String -> MWParser Inlines
-inlinesInTags tag = trimInlines . mconcat <$> try
-   (manyTill inline (htmlTag (~== TagClose tag)))
+inlinesInTags tag = try $ do
+  (_,raw) <- htmlTag (~== TagOpen tag [])
+  if '/' `elem` raw   -- self-closing tag
+     then return mempty
+     else trimInlines . mconcat <$>
+            manyTill inline (htmlTag (~== TagClose tag))
 
 blocksInTags :: String -> MWParser Blocks
-blocksInTags tag = mconcat <$> try
-   (manyTill block (htmlTag (~== TagClose tag)))
+blocksInTags tag = try $ do
+  (_,raw) <- htmlTag (~== TagOpen tag [])
+  if '/' `elem` raw   -- self-closing tag
+     then return mempty
+     else mconcat <$> manyTill block (htmlTag (~== TagClose tag))
 
 charsInTags :: String -> MWParser [Char]
-charsInTags tag = innerText . parseTags <$> try
-   (manyTill anyChar (htmlTag (~== TagClose tag)))
+charsInTags tag = try $ do
+  (_,raw) <- htmlTag (~== TagOpen tag [])
+  if '/' `elem` raw   -- self-closing tag
+     then return ""
+     else innerText . parseTags <$>
+            manyTill anyChar (htmlTag (~== TagClose tag))
 
 --
 -- main parser
@@ -146,8 +157,6 @@ block =  mempty <$ skipMany1 blankline
      <|> mempty <$ try (spaces *> htmlComment)
      <|> preformatted
      <|> blockTag
-     <|> pTag
-     <|> blockHtml
      <|> template
      <|> para
 
@@ -164,16 +173,17 @@ template = B.rawBlock "mediawiki" <$> doublebrackets
 
 blockTag :: MWParser Blocks
 blockTag = do
-  (TagOpen t attrs, raw) <- htmlTag (\x -> isBlockTag' x && isTagOpen x)
-  case t of
-      "blockquote" -> B.blockQuote <$> blocksInTags "blockquote"
-      "pre" -> B.codeBlock . trimCode <$> charsInTags "pre"
-      "syntaxhighlight" -> syntaxhighlight attrs
-      "haskell" -> B.codeBlockWith ("",["haskell"],[]) . trimCode <$>
-                     charsInTags "haskell"
-      "gallery" -> blocksInTags "gallery"
-      "p" -> return mempty
-      _ -> return $ B.rawBlock "html" raw
+  (tag, _) <- lookAhead $ htmlTag isBlockTag'
+  case tag of
+      TagOpen "blockquote" _ -> B.blockQuote <$> blocksInTags "blockquote"
+      TagOpen "pre" _ -> B.codeBlock . trimCode <$> charsInTags "pre"
+      TagOpen "syntaxhighlight" attrs -> syntaxhighlight attrs
+      TagOpen "haskell" _ -> B.codeBlockWith ("",["haskell"],[]) . trimCode <$>
+                                charsInTags "haskell"
+      TagOpen "gallery" _ -> blocksInTags "gallery"
+      TagOpen "p" _ -> mempty <$ htmlTag (~== tag)
+      TagClose "p"  -> mempty <$ htmlTag (~== tag)
+      _ -> B.rawBlock "html" . snd <$> htmlTag (~== tag)
 
 trimCode :: String -> String
 trimCode ('\n':xs) = stripTrailingNewlines xs
@@ -188,13 +198,6 @@ syntaxhighlight attrs = try $ do
   let kvs = maybe [] (\x -> [("startFrom",x)]) mbstart
   contents <- charsInTags "syntaxhighlight"
   return $ B.codeBlockWith ("",classes,kvs) $ trimCode contents
-
--- We can just skip pTags, as contents will be treated as paragraphs
-pTag :: MWParser Blocks
-pTag = mempty <$ (htmlTag (\t -> t ~== TagOpen "p" [] || t ~== TagClose "p"))
-
-blockHtml :: MWParser Blocks
-blockHtml = (B.rawBlock "html" . snd <$> htmlTag isBlockTag)
 
 hrule :: MWParser Blocks
 hrule = B.horizontalRule <$ try (string "----" *> many (char '-') *> newline)
@@ -271,7 +274,7 @@ anyListStart =  char '*'
             <|> char ';'
 
 li :: MWParser Blocks
-li = htmlTag (~== TagOpen "li" []) *>
+li = lookAhead (htmlTag (~== TagOpen "li" [])) *>
      (firstParaToPlain <$> blocksInTags "li") <* spaces
 
 listItem :: Char -> MWParser Blocks
@@ -317,6 +320,7 @@ inline =  whitespace
       <|> str
       <|> strong
       <|> emph
+      <|> internalLink
       <|> externalLink
       <|> inlineTag
       <|> B.singleton <$> charRef
@@ -336,21 +340,25 @@ variable = B.rawInline "mediawiki" <$> triplebrackets
 
 inlineTag :: MWParser Inlines
 inlineTag = do
-  (TagOpen t _, raw) <- htmlTag (\x -> isInlineTag x && isTagOpen x)
-  case t of
-       "nowiki" -> B.text . fromEntities <$> try
-                     (manyTill anyChar (htmlTag (~== TagClose "nowiki")))
-       "br" -> B.linebreak <$
-                 (optional (htmlTag (~== TagClose "br")) *> optional blankline)
-       "strike" -> B.strikeout <$> inlinesInTags "strike"
-       "del" -> B.strikeout <$> inlinesInTags "del"
-       "sub" -> B.subscript <$> inlinesInTags "sub"
-       "sup" -> B.superscript <$> inlinesInTags "sup"
-       "math" -> B.math <$> charsInTags "math"
-       "code" -> B.code <$> charsInTags "code"
-       "tt" -> B.code <$> charsInTags "tt"
-       "hask" -> B.codeWith ("",["haskell"],[]) <$> charsInTags "hask"
-       _ -> return $ B.rawInline "html" raw
+  (tag, _) <- lookAhead $ htmlTag isInlineTag
+  case tag of
+       TagOpen "nowiki" _ -> try $ do
+          (_,raw) <- htmlTag (~== tag)
+          if '/' `elem` raw
+             then return mempty
+             else B.text . fromEntities <$>
+                       manyTill anyChar (htmlTag (~== TagClose "nowiki"))
+       TagOpen "br" _ -> B.linebreak <$ (htmlTag (~== TagOpen "br" []) -- will get /> too
+                            *> optional blankline)
+       TagOpen "strike" _ -> B.strikeout <$> inlinesInTags "strike"
+       TagOpen "del" _ -> B.strikeout <$> inlinesInTags "del"
+       TagOpen "sub" _ -> B.subscript <$> inlinesInTags "sub"
+       TagOpen "sup" _ -> B.superscript <$> inlinesInTags "sup"
+       TagOpen "math" _ -> B.math <$> charsInTags "math"
+       TagOpen "code" _ -> B.code <$> charsInTags "code"
+       TagOpen "tt" _ -> B.code <$> charsInTags "tt"
+       TagOpen "hask" _ -> B.codeWith ("",["haskell"],[]) <$> charsInTags "hask"
+       _ -> B.rawInline "html" . snd <$> htmlTag (~== tag)
 
 special :: MWParser Inlines
 special = B.str <$> count 1 (notFollowedBy' (htmlTag isBlockTag') *>
@@ -367,6 +375,19 @@ endline = () <$ try (newline <*
                      notFollowedBy blankline <*
                      notFollowedBy' hrule <*
                      notFollowedBy anyListStart)
+
+internalLink :: MWParser Inlines
+internalLink = try $ do
+  string "[["
+  pagename <- unwords . words <$> many (noneOf "|]")
+  label <- option (B.text pagename) $ char '|' *>
+             (  (mconcat <$> many1 (notFollowedBy (char ']') *> inline))
+             -- the "pipe trick"
+             -- [[Help:Contents|] -> "Contents"
+             <|> (return $ B.text $ drop 1 $ dropWhile (/=':') pagename) )
+  string "]]"
+  linktrail <- B.text <$> many (char '\'' <|> letter)
+  return $ B.link pagename "wikilink" (label <> linktrail)
 
 externalLink :: MWParser Inlines
 externalLink = try $ do
