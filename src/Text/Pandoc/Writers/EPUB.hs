@@ -32,6 +32,7 @@ import Data.IORef
 import Data.Maybe ( fromMaybe, isNothing )
 import Data.List ( findIndices, isPrefixOf )
 import System.Environment ( getEnv )
+import Text.Printf (printf)
 import System.FilePath ( (</>), (<.>), takeBaseName, takeExtension, takeFileName )
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 ( fromString )
@@ -122,8 +123,9 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let chapters = map titleize chunks
   let chapToHtml = writeHtmlString opts'{ writerTemplate = pageTemplate }
   let chapterToEntry :: Int -> Pandoc -> Entry
-      chapterToEntry num chap = mkEntry ("ch" ++ show num ++ ".xhtml") $
-                                   fromString $ chapToHtml chap
+      chapterToEntry num chap = mkEntry
+         (showChapter num) $
+         fromString $ chapToHtml chap
   let chapterEntries = zipWith chapterToEntry [1..] chapters
 
   -- contents.opf
@@ -334,11 +336,15 @@ data IdentState = IdentState{
        identTable    :: [(String,String)]
        } deriving (Read, Show)
 
+-- Returns filename for chapter number.
+showChapter :: Int -> String
+showChapter = printf "ch%03d.xhtml"
+
 -- Go through a block list and construct a table
 -- correlating the automatically constructed references
 -- that would be used in a normal pandoc document with
 -- new URLs to be used in the EPUB.  For example, what
--- was "header-1" might turn into "ch6.xhtml#header".
+-- was "header-1" might turn into "ch006.xhtml#header".
 correlateRefs :: [Block] -> [(String,String)]
 correlateRefs bs = identTable $ execState (mapM_ go bs)
                                 IdentState{ chapterNumber = 0
@@ -358,8 +364,9 @@ correlateRefs bs = identTable $ execState (mapM_ go bs)
           modify $ \s -> s{ runningIdents = runningid : runningIdents st
                           , chapterIdents = maybe (chapterIdents st)
                                               (: chapterIdents st) chapid
-                          , identTable = (runningid, "ch" ++ show (chapterNumber st) ++
-                              ".xhtml" ++ maybe "" ('#':) chapid) : identTable st
+                          , identTable = (runningid,
+                              showChapter (chapterNumber st) ++
+                              maybe "" ('#':) chapid) : identTable st
                            }
        go _ = return ()
 
