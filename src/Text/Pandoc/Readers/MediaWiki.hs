@@ -39,7 +39,6 @@ _ support internal links http://www.mediawiki.org/wiki/Help:Links
 _ support external links (partially implemented)
 _ support images http://www.mediawiki.org/wiki/Help:Images
 _ support tables http://www.mediawiki.org/wiki/Help:Tables
-_ support <math> tag for latex math
 _ raw mediawiki:
   _ templates or anything in {{}} (can be postprocessed)
   _ category links
@@ -259,6 +258,7 @@ inline =  whitespace
       <|> strikeout
       <|> subscript
       <|> superscript
+      <|> math
       <|> code
       <|> hask
       <|> B.singleton <$> charRef
@@ -319,6 +319,9 @@ superscript = B.superscript <$> inlinesInTags "sup"
 
 subscript :: MWParser Inlines
 subscript = B.subscript <$> inlinesInTags "sub"
+
+math :: MWParser Inlines
+math = B.math <$> charsInTags "math"
 
 code :: MWParser Inlines
 code = B.code <$> (charsInTags "code" <|> charsInTags "tt")

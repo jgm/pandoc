@@ -189,3 +189,7 @@ ends the list.
 ### five sub 1 sub 1
 ## five sub 2
 
+== math ==
+
+Here is some <math>x=\frac{y^\pi}{z}</math>.
+

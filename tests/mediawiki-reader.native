@@ -129,4 +129,6 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
    [[Plain [Str "five",Space,Str "sub",Space,Str "1"]
     ,OrderedList (1,DefaultStyle,DefaultDelim)
      [[Plain [Str "five",Space,Str "sub",Space,Str "1",Space,Str "sub",Space,Str "1"]]]]
-   ,[Plain [Str "five",Space,Str "sub",Space,Str "2"]]]]]]
+   ,[Plain [Str "five",Space,Str "sub",Space,Str "2"]]]]]
+,Header 2 [Str "math"]
+,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Math InlineMath "x=\\frac{y^\\pi}{z}",Str "."]]
