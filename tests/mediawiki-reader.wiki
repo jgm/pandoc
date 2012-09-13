@@ -69,3 +69,31 @@ hi<br/>there
 hi<br>
 there
 
+== : indents ==
+
+hi
+: there
+bud
+
+hi
+:: there
+bud
+
+== p tags ==
+
+hi there
+<p>
+bud
+<p>
+another
+</p>
+
+== raw html ==
+
+hi <span style="color:red">''there''</span>.
+
+<div class="special">
+hi ''there''
+</div>
+
+

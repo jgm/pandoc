@@ -32,4 +32,26 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 ,Para [Str "between",Space,Str "blocks"]
 ,Header 2 [Str "linebreaks"]
 ,Para [Str "hi",LineBreak,Str "there"]
-,Para [Str "hi",LineBreak,Str "there"]]
+,Para [Str "hi",LineBreak,Str "there"]
+,Header 2 [Str ":",Space,Str "indents"]
+,Para [Str "hi"]
+,DefinitionList
+ [([],
+   [[Plain [Str "there"]]])]
+,Para [Str "bud"]
+,Para [Str "hi"]
+,DefinitionList
+ [([],
+   [[DefinitionList
+     [([],
+       [[Plain [Str "there"]]])]]])]
+,Para [Str "bud"]
+,Header 2 [Str "p",Space,Str "tags"]
+,Para [Str "hi",Space,Str "there"]
+,Para [Str "bud"]
+,Para [Str "another"]
+,Header 2 [Str "raw",Space,Str "html"]
+,Para [Str "hi",Space,RawInline "html" "<span style=\"color:red\">",Emph [Str "there"],RawInline "html" "</span>",Str "."]
+,RawBlock "html" "<div class=\"special\">"
+,Para [Str "hi",Space,Emph [Str "there"]]
+,RawBlock "html" "</div>"]

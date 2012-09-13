@@ -44,9 +44,6 @@ _ raw mediawiki:
   _ templates or anything in {{}} (can be postprocessed)
   _ category links
 _ gallery tag?
-_ tests for raw html inline
-_ tests for raw html block tags
-_ test for <p> tags
 _ tests for sup, sub, del
 _ tests for pre, haskell, syntaxhighlight
 _ tests for code, tt, hask
@@ -54,7 +51,6 @@ _ test for blockquote
 _ tests for native lists
 _ tests for autolink urls
 _ tests for external links
-_ tests for : lines
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
