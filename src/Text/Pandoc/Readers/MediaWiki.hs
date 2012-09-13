@@ -30,6 +30,8 @@ Conversion of mediawiki text to 'Pandoc' document.
 -}
 {-
 TODO:
+_ make tag parsers more efficient by parsing one HTML tag, checking it,
+  then...
 _ support HTML lists
 _ support list style attributes and start values in ol lists, also
   value attribute on li
