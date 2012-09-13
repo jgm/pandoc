@@ -1,6 +1,6 @@
 {-# LANGUAGE RelaxedPolyRec #-} -- needed for inlinesBetween on GHC < 7
 {-
-Copyright (C) 2012 John MacFarlane <jgm@berkeley.edu>
+  Copyright (C) 2012 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -33,8 +33,6 @@ TODO:
 _ support HTML lists
 _ support list style attributes and start values in ol lists, also
   value attribute on li
-_ support preformatted text (lines starting with space)
-_ support preformatted text blocks
 _ support internal links http://www.mediawiki.org/wiki/Help:Links
 _ support external links (partially implemented)
 _ support images http://www.mediawiki.org/wiki/Help:Images
@@ -50,13 +48,13 @@ import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
 import Text.Pandoc.Options
-import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced,
-           isInlineTag, isBlockTag, isTextTag, isCommentTag )
+import Text.Pandoc.Readers.HTML ( htmlTag, isInlineTag,
+                                  isBlockTag, isCommentTag )
 import Text.Pandoc.XML ( fromEntities )
 import Text.Pandoc.Parsing
+import Text.Pandoc.Generic ( bottomUp )
 import Text.Pandoc.Shared ( stripTrailingNewlines )
 import Data.Monoid (mconcat, mempty)
-import qualified Data.Foldable as F
 import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
 import Data.List (intersperse)
@@ -124,12 +122,13 @@ block = header
      <|> bulletList
      <|> orderedList
      <|> definitionList
+     <|> mempty <$ try (spaces *> htmlComment)
+     <|> preformatted
      <|> blockquote
      <|> codeblock
      <|> syntaxhighlight
      <|> haskell
      <|> mempty <$ skipMany1 blankline
-     <|> mempty <$ try (spaces *> htmlComment)
      <|> pTag
      <|> blockHtml
      <|> para
@@ -147,6 +146,22 @@ blockHtml = (B.rawBlock "html" . snd <$> htmlTag isBlockTag)
 hrule :: MWParser Blocks
 hrule = B.horizontalRule <$ try (string "----" *> many (char '-') *> newline)
 
+preformatted :: MWParser Blocks
+preformatted = do
+  char ' '
+  let endline' = B.linebreak <$ (try $ newline <* char ' ')
+  let whitespace' = B.str <$> many1 ('\160' <$ spaceChar)
+  let spToNbsp ' ' = '\160'
+      spToNbsp x   = x
+  let nowiki' = mconcat . intersperse B.linebreak . map B.str .
+                lines . fromEntities . map spToNbsp <$> try
+                  (htmlTag (~== TagOpen "nowiki" []) *>
+                   manyTill anyChar (htmlTag (~== TagClose "nowiki")))
+  let inline' = whitespace' <|> endline' <|> nowiki' <|> inline
+  let strToCode (Str s) = Code ("",[],[]) s
+      strToCode  x      = x
+  B.para . bottomUp strToCode . mconcat <$> many1 inline'
+
 blockquote :: MWParser Blocks
 blockquote = B.blockQuote <$> blocksInTags "blockquote"
 
@@ -159,8 +174,8 @@ trimCode xs        = stripTrailingNewlines xs
 
 syntaxhighlight :: MWParser Blocks
 syntaxhighlight = try $ do
-  (tag@(TagOpen _ attrs), _) <- lookAhead
-                                $ htmlTag (~== TagOpen "syntaxhighlight" [])
+  (TagOpen _ attrs, _) <- lookAhead
+                          $ htmlTag (~== TagOpen "syntaxhighlight" [])
   let mblang = lookup "lang" attrs
   let mbstart = lookup "start" attrs
   let mbline = lookup "line" attrs
@@ -220,6 +235,7 @@ listItem c = try $ do
   if null extras
      then listItem' c
      else do
+       skipMany spaceChar
        first <- manyTill anyChar newline
        rest <- many (try $ string extras *> manyTill anyChar newline)
        contents <- parseFromString (many1 $ listItem' c)
@@ -233,14 +249,15 @@ listItem c = try $ do
 listItem' :: Char -> MWParser Blocks
 listItem' c = try $ do
   listStart c
+  skipMany spaceChar
   first <- manyTill anyChar newline
   rest <- many (try $ char c *> lookAhead listStartChar *>
                    manyTill anyChar newline)
   contents <- parseFromString (mconcat <$> many1 block)
                $ unlines $ first : rest
   case viewl (B.unMany contents) of
-       (Para xs) :< rest -> return $ B.Many $ (Plain xs) <| rest
-       _                 -> return contents
+       (Para xs) :< ys -> return $ B.Many $ (Plain xs) <| ys
+       _               -> return contents
 
 --
 -- inline parsers

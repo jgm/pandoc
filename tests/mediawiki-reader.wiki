@@ -193,3 +193,28 @@ ends the list.
 
 Here is some <math>x=\frac{y^\pi}{z}</math>.
 
+== preformatted blocks ==
+
+ Start each line with a space.
+ Text is '''preformatted''' and
+ ''markups'' '''''can''''' be done.
+
+  hell      yeah
+
+ <nowiki>Start with a space in the first column,
+(before the <nowiki>).
+
+Then your block format will be
+    maintained.
+
+This is good for copying in code blocks:
+
+def function():
+    """documentation string"""
+
+    if True:
+        print True
+    else:
+        print False</nowiki>
+
+
