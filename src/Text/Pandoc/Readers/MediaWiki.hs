@@ -34,7 +34,6 @@ _ support internal links http://www.mediawiki.org/wiki/Help:Links
 _ support external links (partially implemented)
 _ support images http://www.mediawiki.org/wiki/Help:Images
 _ support tables http://www.mediawiki.org/wiki/Help:Tables
-_ gallery tag?
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
@@ -77,11 +76,12 @@ spaceChars = " \n\t"
 sym :: String -> MWParser ()
 sym s = () <$ try (string s)
 
+newBlockTags :: [String]
+newBlockTags = ["haskell","syntaxhighlight","gallery"]
+
 isBlockTag' :: Tag String -> Bool
-isBlockTag' tag@(TagOpen t _) = isBlockTag tag ||
-  t == "haskell" || t == "syntaxhighlight"
-isBlockTag' tag@(TagClose t) = isBlockTag tag ||
-  t == "haskell" || t == "syntaxhighlight"
+isBlockTag' tag@(TagOpen t _) = isBlockTag tag || t `elem` newBlockTags
+isBlockTag' tag@(TagClose t) = isBlockTag tag || t `elem` newBlockTags
 isBlockTag' tag = isBlockTag tag
 
 htmlComment :: MWParser ()
@@ -149,6 +149,7 @@ blockTag = do
       "syntaxhighlight" -> syntaxhighlight attrs
       "haskell" -> B.codeBlockWith ("",["haskell"],[]) . trimCode <$>
                      charsInTags "haskell"
+      "gallery" -> blocksInTags "gallery"
       "p" -> return mempty
       _ -> return $ B.rawBlock "html" raw
 
