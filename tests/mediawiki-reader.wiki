@@ -145,6 +145,8 @@ http://johnmacfarlane.net/pandoc/
 
 [http://google.com] [http://yahoo.com]
 
+[mailto:info@example.org email me]
+
 == lists ==
 
 * Start each line
