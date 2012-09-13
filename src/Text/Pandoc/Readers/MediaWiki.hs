@@ -34,6 +34,7 @@ _ support internal links http://www.mediawiki.org/wiki/Help:Links
 _ support external links (partially implemented)
 _ support images http://www.mediawiki.org/wiki/Help:Images
 _ support tables http://www.mediawiki.org/wiki/Help:Tables
+- footnotes?
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
@@ -44,7 +45,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Readers.HTML ( htmlTag, isInlineTag,
                                   isBlockTag, isCommentTag )
 import Text.Pandoc.XML ( fromEntities )
-import Text.Pandoc.Parsing
+import Text.Pandoc.Parsing hiding ( nested )
 import Text.Pandoc.Generic ( bottomUp )
 import Text.Pandoc.Shared ( stripTrailingNewlines, safeRead )
 import Data.Monoid (mconcat, mempty)
@@ -56,16 +57,34 @@ import Data.Sequence (viewl, ViewL(..), (<|))
 
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: ReaderOptions -- ^ Reader options
-               -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-               -> Pandoc
+              -> String        -- ^ String to parse (assuming @'\n'@ line endings)
+              -> Pandoc
 readMediaWiki opts s =
-  (readWith parseMediaWiki) def{ stateOptions = opts } (s ++ "\n\n")
+  case runParser parseMediaWiki MWState{ mwOptions = opts, mwMaxNestingLevel = 4 }
+       "source" (s ++ "\n") of
+          Left err'    -> error $ "\nError:\n" ++ show err'
+          Right result -> result
 
-type MWParser = Parser [Char] ParserState
+data MWState = MWState { mwOptions :: ReaderOptions
+                       , mwMaxNestingLevel :: Int
+                       }
+
+type MWParser = Parser [Char] MWState
 
 --
 -- auxiliary functions
 --
+
+-- This is used to prevent exponential blowups for things like:
+-- ''a'''a''a'''a''a'''a''a'''a
+nested :: MWParser a -> MWParser a
+nested p = do
+  nestlevel <- mwMaxNestingLevel `fmap` getState
+  guard $ nestlevel > 0
+  updateState $ \st -> st{ mwMaxNestingLevel = mwMaxNestingLevel st - 1 }
+  res <- p
+  updateState $ \st -> st{ mwMaxNestingLevel = nestlevel }
+  return res
 
 specialChars :: [Char]
 specialChars = "'[]<=&*{}"

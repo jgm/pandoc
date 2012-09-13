@@ -597,7 +597,7 @@ htmlInBalanced f = try $ do
   return $ tag ++ concat contents ++ endtag
 
 -- | Matches a tag meeting a certain condition.
-htmlTag :: (Tag String -> Bool) -> Parser [Char] ParserState (Tag String, String)
+htmlTag :: (Tag String -> Bool) -> Parser [Char] st (Tag String, String)
 htmlTag f = try $ do
   lookAhead (char '<')
   (next : _) <- getInput >>= return . canonicalizeTags . parseTags
