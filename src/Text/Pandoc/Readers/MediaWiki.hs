@@ -60,13 +60,16 @@ readMediaWiki :: ReaderOptions -- ^ Reader options
               -> String        -- ^ String to parse (assuming @'\n'@ line endings)
               -> Pandoc
 readMediaWiki opts s =
-  case runParser parseMediaWiki MWState{ mwOptions = opts, mwMaxNestingLevel = 4 }
+  case runParser parseMediaWiki MWState{ mwOptions = opts
+                                       , mwMaxNestingLevel = 4
+                                       , mwNextLinkNumber  = 1 }
        "source" (s ++ "\n") of
           Left err'    -> error $ "\nError:\n" ++ show err'
           Right result -> result
 
-data MWState = MWState { mwOptions :: ReaderOptions
+data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwMaxNestingLevel :: Int
+                       , mwNextLinkNumber  :: Int
                        }
 
 type MWParser = Parser [Char] MWState
@@ -369,12 +372,13 @@ externalLink :: MWParser Inlines
 externalLink = try $ do
   char '['
   (_, src) <- uri
-  skipMany1 spaceChar
-  lab <- manyTill inline (char ']')
-  let lab' = if null lab
-                then [B.str "1"] -- TODO generate sequentially from state
-                else lab
-  return $ B.link src "" $ trimInlines $ mconcat lab'
+  lab <- try (trimInlines . mconcat <$>
+              (skipMany1 spaceChar *> manyTill inline (char ']')))
+       <|> do char ']'
+              num <- mwNextLinkNumber <$> getState
+              updateState $ \st -> st{ mwNextLinkNumber = num + 1 }
+              return $ B.str $ show num
+  return $ B.link src "" lab
 
 url :: MWParser Inlines
 url = do
