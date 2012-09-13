@@ -34,7 +34,6 @@ _ tests for lists
 _ support HTML lists
 _ support list style attributes and start values in ol lists, also
   value attribute on li
-_ support :, ::, etc. for indent (treat as list continuation paras?)
 _ support preformatted text (lines starting with space)
 _ support preformatted text blocks
 _ code highlighting: http://www.mediawiki.org/wiki/Extension:SyntaxHighlight_GeSHi <syntaxhighlight lang="php"> (alternativel, <source...>)
@@ -207,11 +206,11 @@ listStart c = char c *> notFollowedBy listStartChar
 listStartChar :: MWParser Char
 listStartChar = oneOf "*#;:"
 
-anyListStart :: MWParser ()
-anyListStart =  skipMany1 (char '*')
-            <|> skipMany1 (char '#')
-            <|> skipMany1 (char ':')
-            <|> (() <$ char ';')
+anyListStart :: MWParser Char
+anyListStart =  char '*'
+            <|> char '#'
+            <|> char ':'
+            <|> char ';'
 
 listItem :: Char -> MWParser Blocks
 listItem c = try $ do
@@ -226,6 +225,7 @@ listItem c = try $ do
        case c of
            '*'  -> return $ B.bulletList contents
            '#'  -> return $ B.orderedList contents
+           ':'  -> return $ B.definitionList [(mempty, contents)]
            _    -> mzero
 
 listItem' :: Char -> MWParser Blocks
