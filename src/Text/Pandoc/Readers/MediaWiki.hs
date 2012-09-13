@@ -193,7 +193,7 @@ definitionList = B.definitionList <$> many1 defListItem
 
 defListItem :: MWParser (Inlines, [Blocks])
 defListItem = try $ do
-  terms <- mconcat . intersperse B.linebreak <$> many1 defListTerm
+  terms <- mconcat . intersperse B.linebreak <$> many defListTerm
   defs  <- many1 $ listItem ':'
   return (terms, defs)
 
@@ -210,6 +210,7 @@ listStartChar = oneOf "*#;:"
 anyListStart :: MWParser ()
 anyListStart =  skipMany1 (char '*')
             <|> skipMany1 (char '#')
+            <|> skipMany1 (char ':')
             <|> (() <$ char ';')
 
 listItem :: Char -> MWParser Blocks
