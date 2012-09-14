@@ -80,6 +80,8 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 ,Para [Link [Str "Helpers"] ("Help","wikilink")]
 ,Para [Link [Str "Help"] ("Help","wikilink"),Str "ers"]
 ,Para [Link [Str "Contents"] ("Help:Contents","wikilink")]
+,Para [Link [Str "#My",Space,Str "anchor"] ("#My_anchor","wikilink")]
+,Para [Link [Str "and",Space,Str "text"] ("Page#with_anchor","wikilink")]
 ,Header 2 [Str "lists"]
 ,BulletList
  [[Plain [Str "Start",Space,Str "each",Space,Str "line"]]

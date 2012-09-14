@@ -30,8 +30,6 @@ Conversion of mediawiki text to 'Pandoc' document.
 -}
 {-
 TODO:
-_ support internal links http://www.mediawiki.org/wiki/Help:Links
-_ support external links (partially implemented)
 _ support images http://www.mediawiki.org/wiki/Help:Images
 _ support tables http://www.mediawiki.org/wiki/Help:Tables
 - footnotes?
@@ -51,7 +49,7 @@ import Text.Pandoc.Shared ( stripTrailingNewlines, safeRead )
 import Data.Monoid (mconcat, mempty)
 import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
-import Data.List (intersperse)
+import Data.List (intersperse, intercalate )
 import Text.HTML.TagSoup
 import Data.Sequence (viewl, ViewL(..), (<|))
 
@@ -379,6 +377,8 @@ endline = () <$ try (newline <*
 internalLink :: MWParser Inlines
 internalLink = try $ do
   string "[["
+  let addUnderscores x = let (pref,suff) = break (=='#') x
+                         in  pref ++ intercalate "_" (words suff)
   pagename <- unwords . words <$> many (noneOf "|]")
   label <- option (B.text pagename) $ char '|' *>
              (  (mconcat <$> many1 (notFollowedBy (char ']') *> inline))
@@ -387,7 +387,7 @@ internalLink = try $ do
              <|> (return $ B.text $ drop 1 $ dropWhile (/=':') pagename) )
   string "]]"
   linktrail <- B.text <$> many (char '\'' <|> letter)
-  return $ B.link pagename "wikilink" (label <> linktrail)
+  return $ B.link (addUnderscores pagename) "wikilink" (label <> linktrail)
 
 externalLink :: MWParser Inlines
 externalLink = try $ do

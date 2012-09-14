@@ -159,6 +159,10 @@ http://johnmacfarlane.net/pandoc/
 
 [[Help:Contents|]]
 
+[[#My anchor]]
+
+[[Page#with anchor|and text]]
+
 == lists ==
 
 * Start each line
