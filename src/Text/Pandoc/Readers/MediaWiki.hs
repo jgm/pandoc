@@ -88,7 +88,7 @@ nested p = do
   return res
 
 specialChars :: [Char]
-specialChars = "'[]<=&*{}"
+specialChars = "'[]<=&*{}|"
 
 spaceChars :: [Char]
 spaceChars = " \n\t"
@@ -318,6 +318,7 @@ inline =  whitespace
       <|> str
       <|> strong
       <|> emph
+      <|> image
       <|> internalLink
       <|> externalLink
       <|> inlineTag
@@ -374,9 +375,30 @@ endline = () <$ try (newline <*
                      notFollowedBy' hrule <*
                      notFollowedBy anyListStart)
 
+image :: MWParser Inlines
+image = try $ do
+  sym "[["
+  sym "File:"
+  fname <- many1 (noneOf "|]")
+  _ <- many (try $ char '|' *> imageOption)
+  caption <-   (B.str fname <$ sym "]]")
+           <|> try (char '|' *> (mconcat <$> manyTill inline (sym "]]")))
+  return $ B.image fname "image" caption
+
+imageOption :: MWParser String
+imageOption =
+      try (oneOfStrings [ "border", "thumbnail", "frameless"
+                        , "thumb", "upright", "left", "right"
+                        , "center", "none", "baseline", "sub"
+                        , "super", "top", "text-top", "middle"
+                        , "bottom", "text-bottom" ])
+  <|> try (string "frame")
+  <|> try (many1 (oneOf "x0123456789") <* string "px")
+  <|> try (oneOfStrings ["link=","alt=","page=","class="] <* many (noneOf "|]"))
+
 internalLink :: MWParser Inlines
 internalLink = try $ do
-  string "[["
+  sym "[["
   let addUnderscores x = let (pref,suff) = break (=='#') x
                          in  pref ++ intercalate "_" (words suff)
   pagename <- unwords . words <$> many (noneOf "|]")
@@ -385,7 +407,7 @@ internalLink = try $ do
              -- the "pipe trick"
              -- [[Help:Contents|] -> "Contents"
              <|> (return $ B.text $ drop 1 $ dropWhile (/=':') pagename) )
-  string "]]"
+  sym "]]"
   linktrail <- B.text <$> many (char '\'' <|> letter)
   return $ B.link (addUnderscores pagename) "wikilink" (label <> linktrail)
 

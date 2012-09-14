@@ -163,6 +163,16 @@ http://johnmacfarlane.net/pandoc/
 
 [[Page#with anchor|and text]]
 
+== images ==
+
+[[File:example.jpg|caption]]
+
+[[File:example.jpg|border|the ''caption'' with [http://google.com external link]]]
+
+[[File:example.jpg|frameless|border|30x40px|caption]]
+
+[[File:example.jpg]]
+
 == lists ==
 
 * Start each line
