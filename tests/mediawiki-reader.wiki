@@ -281,3 +281,29 @@ Not<hr/> preformatted
 
 Written {{{date}}} by {{{name}}}.
 
+== tables ==
+
+{|
+|-
+|Orange
+|Apple
+|-
+|Bread
+|Pie
+|-
+|Butter
+|Ice cream
+|}
+
+{|
+|+Food complements
+!Orange
+!Apple
+|-
+|Bread
+|Pie
+|-
+!Butter
+|Ice cream
+|}
+

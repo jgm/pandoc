@@ -173,4 +173,21 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 ,RawBlock "mediawiki" "{{Welcome}}"
 ,RawBlock "mediawiki" "{{Foo:Bar}}"
 ,RawBlock "mediawiki" "{{Thankyou|all your effort|Me}}"
-,Para [Str "Written",Space,RawInline "mediawiki" "{{{date}}}",Space,Str "by",Space,RawInline "mediawiki" "{{{name}}}",Str "."]]
+,Para [Str "Written",Space,RawInline "mediawiki" "{{{date}}}",Space,Str "by",Space,RawInline "mediawiki" "{{{name}}}",Str "."]
+,Header 2 [Str "tables"]
+,Table [] [AlignDefault,AlignDefault] [0.0,0.0]
+ [[]
+ ,[]]
+ [[[Para [Str "Orange"]]
+  ,[Para [Str "Apple"]]]
+ ,[[Para [Str "Bread"]]
+  ,[Para [Str "Pie"]]]
+ ,[[Para [Str "Butter"]]
+  ,[Para [Str "Ice",Space,Str "cream"]]]]
+,Table [Str "Food",Space,Str "complements"] [AlignDefault,AlignDefault] [0.0,0.0]
+ [[Para [Str "Orange"]]
+ ,[Para [Str "Apple"]]]
+ [[[Para [Str "Bread"]]
+  ,[Para [Str "Pie"]]]
+ ,[[Para [Str "Butter"]]
+  ,[Para [Str "Ice",Space,Str "cream"]]]]]

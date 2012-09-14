@@ -171,7 +171,7 @@ table = do
   rows' <- many $ try $ rowsep *> tableRow
   tableEnd
   -- TODO handle cellspecs from styles and aligns...
-  let cols = length $ head rows'
+  let cols = length hdr
   let (headers,rows) = if hasheader
                           then (hdr, rows')
                           else (replicate cols mempty, hdr:rows')
@@ -197,11 +197,12 @@ tableCaption = try $ guardColumnOne *> sym "|+" *> skipMany spaceChar *>
   (trimInlines . mconcat <$> (many inline)) <* skipMany blankline
 
 tableRow :: MWParser [Blocks]
-tableRow = try $ many tableCell <* skipMany blankline
+tableRow = try $ many tableCell
 
 tableCell :: MWParser Blocks
 tableCell =
-  try $ cellsep *> skipMany spaceChar *> (mconcat <$> (many block))
+  try $ cellsep *> skipMany spaceChar *>
+        (mconcat <$> (many $ notFollowedBy (cellsep <|> rowsep <|> tableEnd) *> block))
 
 template :: MWParser Blocks
 template = B.rawBlock "mediawiki" <$> doublebrackets
@@ -405,7 +406,9 @@ inlineTag = do
 
 special :: MWParser Inlines
 special = B.str <$> count 1 (notFollowedBy' (htmlTag isBlockTag') *>
-                             notFollowedBy (char '|') *> oneOf specialChars)
+--                             notFollowedBy (tableStart <|> tableEnd
+--                                            <|> cellsep <|> rowsep) *>
+                             oneOf specialChars)
 
 inlineHtml :: MWParser Inlines
 inlineHtml = B.rawInline "html" . snd <$> htmlTag isInlineTag
@@ -418,8 +421,10 @@ endline = () <$ try (newline <*
                      notFollowedBy blankline <*
                      notFollowedBy' hrule <*
                      notFollowedBy tableStart <*
+                     notFollowedBy tableEnd <*
                      notFollowedBy' template <*
                      notFollowedBy cellsep <*
+                     notFollowedBy rowsep <*
                      notFollowedBy anyListStart)
 
 image :: MWParser Inlines
