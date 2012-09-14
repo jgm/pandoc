@@ -30,7 +30,6 @@ Conversion of mediawiki text to 'Pandoc' document.
 -}
 {-
 TODO:
-_ support images http://www.mediawiki.org/wiki/Help:Images
 _ support tables http://www.mediawiki.org/wiki/Help:Tables
 - footnotes?
 -}
@@ -147,6 +146,7 @@ parseMediaWiki = do
 
 block :: MWParser Blocks
 block =  mempty <$ skipMany1 blankline
+     <|> table
      <|> header
      <|> hrule
      <|> orderedList
@@ -160,6 +160,48 @@ block =  mempty <$ skipMany1 blankline
 
 para :: MWParser Blocks
 para = B.para . trimInlines . mconcat <$> many1 inline
+
+table :: MWParser Blocks
+table = do
+  tableStart
+  caption <- option mempty tableCaption
+  optional rowsep
+  hasheader <- option False $ True <$ (lookAhead (char '!'))
+  hdr <- tableRow
+  rows' <- many $ try $ rowsep *> tableRow
+  tableEnd
+  -- TODO handle cellspecs from styles and aligns...
+  let cols = length $ head rows'
+  let (headers,rows) = if hasheader
+                          then (hdr, rows')
+                          else (replicate cols mempty, hdr:rows')
+  let cellspecs = replicate cols (AlignDefault, 0.0)
+  return $ B.table caption cellspecs headers rows
+
+tableStart :: MWParser ()
+tableStart = try $ guardColumnOne *> sym "{|" <* blanklines
+
+tableEnd :: MWParser ()
+tableEnd = try $ guardColumnOne *> sym "|}" <* blanklines
+
+rowsep :: MWParser ()
+rowsep = try $ guardColumnOne *> sym "|-" <* blanklines
+
+-- TODO add something like 'guard inTable' since this is used in endline
+cellsep :: MWParser ()
+cellsep = try $ guardColumnOne <*
+  (char '!' <|> (char '|' <* notFollowedBy (oneOf "-}+")))
+
+tableCaption :: MWParser Inlines
+tableCaption = try $ guardColumnOne *> sym "|+" *> skipMany spaceChar *>
+  (trimInlines . mconcat <$> (many inline)) <* skipMany blankline
+
+tableRow :: MWParser [Blocks]
+tableRow = try $ many tableCell <* skipMany blankline
+
+tableCell :: MWParser Blocks
+tableCell =
+  try $ cellsep *> skipMany spaceChar *> (mconcat <$> (many block))
 
 template :: MWParser Blocks
 template = B.rawBlock "mediawiki" <$> doublebrackets
@@ -200,9 +242,12 @@ syntaxhighlight attrs = try $ do
 hrule :: MWParser Blocks
 hrule = B.horizontalRule <$ try (string "----" *> many (char '-') *> newline)
 
+guardColumnOne :: MWParser ()
+guardColumnOne = getPosition >>= \pos -> guard (sourceColumn pos == 1)
+
 preformatted :: MWParser Blocks
 preformatted = try $ do
-  getPosition >>= \pos -> guard (sourceColumn pos == 1)
+  guardColumnOne
   char ' '
   let endline' = B.linebreak <$ (try $ newline <* char ' ')
   let whitespace' = B.str <$> many1 ('\160' <$ spaceChar)
@@ -219,8 +264,7 @@ preformatted = try $ do
 
 header :: MWParser Blocks
 header = try $ do
-  col <- sourceColumn <$> getPosition
-  guard $ col == 1  -- header must be at beginning of line
+  guardColumnOne
   eqs <- many1 (char '=')
   let lev = length eqs
   guard $ lev <= 6
@@ -361,7 +405,7 @@ inlineTag = do
 
 special :: MWParser Inlines
 special = B.str <$> count 1 (notFollowedBy' (htmlTag isBlockTag') *>
-                             oneOf specialChars)
+                             notFollowedBy (char '|') *> oneOf specialChars)
 
 inlineHtml :: MWParser Inlines
 inlineHtml = B.rawInline "html" . snd <$> htmlTag isInlineTag
@@ -373,6 +417,9 @@ endline :: MWParser ()
 endline = () <$ try (newline <*
                      notFollowedBy blankline <*
                      notFollowedBy' hrule <*
+                     notFollowedBy tableStart <*
+                     notFollowedBy' template <*
+                     notFollowedBy cellsep <*
                      notFollowedBy anyListStart)
 
 image :: MWParser Inlines
