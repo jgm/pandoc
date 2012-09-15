@@ -140,7 +140,7 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
      ,[Plain [Str "this",Space,Str "looks",Space,Str "like",Space,Str "a",Space,Str "continuation"]]
      ,[Plain [Str "and",Space,Str "is",Space,Str "often",Space,Str "used"]]
      ,[Plain [Str "instead",LineBreak,Str "of",Space,Str "<br/>"]]])]]
- ,[Plain [Str "five"]
+ ,[Plain [RawInline "mediawiki" "{{{template\n|author=John\n|title=My Book\n}}}"]
   ,OrderedList (1,DefaultStyle,DefaultDelim)
    [[Plain [Str "five",Space,Str "sub",Space,Str "1"]
     ,OrderedList (1,DefaultStyle,DefaultDelim)

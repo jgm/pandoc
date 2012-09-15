@@ -214,7 +214,10 @@ ends the list.
 #: this looks like a continuation
 #: and is often used
 #: instead<br/>of <nowiki><br/></nowiki>
-# five
+# {{{template
+|author=John
+|title=My Book
+}}}
 ## five sub 1
 ### five sub 1 sub 1
 ## five sub 2
