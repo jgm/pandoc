@@ -367,7 +367,10 @@ definitionList = B.definitionList <$> many1 defListItem
 defListItem :: MWParser (Inlines, [Blocks])
 defListItem = try $ do
   terms <- mconcat . intersperse B.linebreak <$> many defListTerm
-  defs  <- many1 $ listItem ':'
+  -- we allow dd with no dt, or dt with no dd
+  defs  <- if B.isNull terms
+              then many1 $ listItem ':'
+              else many $ listItem ':'
   return (terms, defs)
 
 defListTerm  :: MWParser Inlines
