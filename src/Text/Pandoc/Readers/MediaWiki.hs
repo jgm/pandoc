@@ -189,8 +189,9 @@ rowsep = try $ guardColumnOne *> sym "|-" <* blanklines
 
 -- TODO add something like 'guard inTable' since this is used in endline
 cellsep :: MWParser ()
-cellsep = try $ guardColumnOne <*
-  (char '!' <|> (char '|' <* notFollowedBy (oneOf "-}+")))
+cellsep = (try $ guardColumnOne <*
+              (char '!' <|> (char '|' <* notFollowedBy (oneOf "-}+"))))
+      <|> (() <$ try (string "||"))
 
 tableCaption :: MWParser Inlines
 tableCaption = try $ do
@@ -207,16 +208,16 @@ tableCell :: MWParser Blocks
 tableCell = try $ do
   cellsep
   skipMany spaceChar
-  ls <- many (notFollowedBy (cellsep <|> rowsep <|> tableEnd) *> anyLine)
-  parseFromString (mconcat <$> many block) (unlines ls)
+  ls <- many (notFollowedBy (cellsep <|> rowsep <|> tableEnd) *> anyChar)
+  parseFromString (mconcat <$> many block) ls
 
 template :: MWParser Blocks
 template = B.rawBlock "mediawiki" <$> doublebrackets
-  where doublebrackets = try $ do
-           string "{{"
-           notFollowedBy (char '{')
-           contents <- manyTill anyChar (try $ string "}}")
-           return $ "{{" ++ contents ++ "}}"
+  where doublebrackets = try $
+         do string "{{"
+            notFollowedBy (char '{')
+            contents <- manyTill anyChar (try $ string "}}")
+            return $ "{{" ++ contents ++ "}}"
 
 blockTag :: MWParser Blocks
 blockTag = do
