@@ -30,6 +30,8 @@ Conversion of mediawiki text to 'Pandoc' document.
 -}
 {-
 TODO:
+_ tables - cell alignment and width
+_ calculate cell widths when not given???  see html? latex? reader
 _ support tables http://www.mediawiki.org/wiki/Help:Tables
 - footnotes?
 -}
@@ -224,6 +226,10 @@ tableRow = try $ many tableCell
 tableCell :: MWParser Blocks
 tableCell = try $ do
   cellsep
+  skipMany spaceChar
+  attrs <- (parseAttrs <$>
+                  manyTill (satisfy (/='\n'))
+                    (try $ char '|' <* notFollowedBy (char '|')))
   skipMany spaceChar
   ls <- many (notFollowedBy (cellsep <|> rowsep <|> tableEnd) *> anyChar)
   parseFromString (mconcat <$> many block) ls
