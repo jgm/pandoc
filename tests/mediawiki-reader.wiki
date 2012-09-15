@@ -307,3 +307,20 @@ Written {{{date}}} by {{{name}}}.
 |Ice cream
 |}
 
+{|
+|+Food complements
+!Orange
+!Apple
+|-
+|Bread
+
+and cheese
+|Pie
+
+# apple
+# carrot
+
+|}
+
+
+
