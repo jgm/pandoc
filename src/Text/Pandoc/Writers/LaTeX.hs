@@ -49,8 +49,7 @@ import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
 data WriterState =
   WriterState { stInNote        :: Bool          -- true if we're in a note
               , stInTable       :: Bool          -- true if we're in a table
-              , stTableNotes    :: [(Char, Doc)] -- List of markers, notes
-                                                 -- in current table
+              , stTableNotes    :: [Doc]         -- List of notes in current table
               , stOLLevel       :: Int           -- level of ordered list nesting
               , stOptions       :: WriterOptions -- writer options, so they don't have to be parameter
               , stVerbInNote    :: Bool          -- true if document has verbatim text in note
@@ -382,27 +381,27 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
   modify $ \s -> s{ stInTable = True, stTableNotes = [] }
   headers <- if all null heads
                 then return empty
-                else liftM ($$ "\\ML")
-                     $ (tableRowToLaTeX True aligns widths) heads
+                else ($$ "\\hline\\endhead\\noalign{\\medskip}") `fmap`
+                      (tableRowToLaTeX True aligns widths) heads
   captionText <- inlineListToLaTeX caption
   let capt = if isEmpty captionText
                 then empty
-                else text "caption = {" <> captionText <> "}," <> space
+                else text "\\noalign{\\medskip}"
+                     $$ text "\\caption" <> braces captionText
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
-  let rows'' = intersperse ("\\\\\\noalign{\\medskip}") rows'
   tableNotes <- liftM (reverse . stTableNotes) get
-  let toNote (marker, x) = "\\tnote" <> brackets (char marker) <>
-                            braces (nest 2 x)
+  let toNote x = "\\footnotetext" <> braces (nest 2 x)
   let notes = vcat $ map toNote tableNotes
   let colDescriptors = text $ concat $ map toColDescriptor aligns
-  let tableBody =
-         ("\\ctable" <> brackets (capt <> text "pos = H, center, botcap"))
-         <> braces colDescriptors
-         $$ braces ("% notes" <> cr <> notes <> cr)
-         $$ braces (text "% rows" $$ "\\FL" $$
-                     vcat (headers : rows'') $$ "\\LL" <> cr)
   modify $ \s -> s{ stTable = True, stInTable = False, stTableNotes = [] }
-  return $ tableBody
+  return $ "\\begin{longtable}[c]" <> braces colDescriptors
+         $$ "\\hline\\noalign{\\medskip}"
+         $$ headers
+         $$ vcat rows'
+         $$ "\\hline"
+         $$ capt
+         $$ notes
+         $$ "\\end{longtable}"
 
 toColDescriptor :: Alignment -> String
 toColDescriptor align =
@@ -433,7 +432,7 @@ tableRowToLaTeX header aligns widths cols = do
                      braces (text (printf "%.2f\\columnwidth" w)) <>
                      braces (halign a <> cr <> c <> cr)
   let cells = zipWith3 toCell widths aligns renderedCells
-  return $ hcat $ intersperse (" & ") cells
+  return $ hsep (intersperse "&" cells) $$ "\\\\\\noalign{\\medskip}"
 
 listItemToLaTeX :: [Block] -> State WriterState Doc
 listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
@@ -600,9 +599,8 @@ inlineToLaTeX (Note contents) = do
   if inTable
      then do
        curnotes <- liftM stTableNotes get
-       let marker = cycle ['a'..'z'] !! length curnotes
-       modify $ \s -> s{ stTableNotes = (marker, contents') : curnotes }
-       return $ "\\tmark" <> brackets (char marker) <> space
+       modify $ \s -> s{ stTableNotes = contents' : curnotes }
+       return $ "\\footnotemark" <> space
      else return $ "\\footnote" <> braces (nest 2 contents' <> optnl)
      -- note: a \n before } needed when note ends with a Verbatim environment
 
