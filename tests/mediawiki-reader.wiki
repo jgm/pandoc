@@ -330,3 +330,13 @@ and cheese
 |   Butter   || Ice cream ||  and more
 |}
 
+{|
+! align="left"| Left
+! align="right"|Right
+! align="center"|Center
+|-
+| left || 15.00 || centered
+|-
+| more || 2.0 || more
+|}
+

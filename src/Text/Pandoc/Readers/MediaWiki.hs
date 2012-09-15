@@ -190,15 +190,15 @@ table = do
   caption <- option mempty tableCaption
   optional rowsep
   hasheader <- option False $ True <$ (lookAhead (char '!'))
-  hdr <- tableRow
-  rows' <- many $ try $ rowsep *> tableRow
+  (aligns,hdr) <- unzip <$> tableRow
+  rows' <- many $ try $ rowsep *> (map snd <$> tableRow)
   tableEnd
   -- TODO handle cellspecs from styles and aligns...
   let cols = length hdr
   let (headers,rows) = if hasheader
                           then (hdr, rows')
                           else (replicate cols mempty, hdr:rows')
-  let cellspecs = replicate cols (AlignDefault, 0.0)
+  let cellspecs = zip aligns (repeat 0.0)
   return $ B.table caption cellspecs headers rows
 
 parseAttrs :: String -> [(String,String)]
@@ -238,10 +238,10 @@ tableCaption = try $ do
   res <- manyTill anyChar newline >>= parseFromString (many inline)
   return $ trimInlines $ mconcat res
 
-tableRow :: MWParser [Blocks]
+tableRow :: MWParser [(Alignment, Blocks)]
 tableRow = try $ many tableCell
 
-tableCell :: MWParser Blocks
+tableCell :: MWParser (Alignment, Blocks)
 tableCell = try $ do
   cellsep
   skipMany spaceChar
@@ -249,7 +249,13 @@ tableCell = try $ do
        manyTill (satisfy (/='\n')) (char '|' <* notFollowedBy (char '|'))
   skipMany spaceChar
   ls <- many (notFollowedBy (cellsep <|> rowsep <|> tableEnd) *> anyChar)
-  parseFromString (mconcat <$> many block) ls
+  bs <- parseFromString (mconcat <$> many block) ls
+  let align = case lookup "align" attrs of
+                    Just "left"   -> AlignLeft
+                    Just "right"  -> AlignRight
+                    Just "center" -> AlignCenter
+                    _             -> AlignDefault
+  return (align, bs)
 
 template :: MWParser String
 template = try $ do
