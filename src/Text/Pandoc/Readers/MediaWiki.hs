@@ -31,6 +31,8 @@ Conversion of mediawiki text to 'Pandoc' document.
 {-
 TODO:
 _ tables - cell alignment and width
+_ wikipedia {{cite}} tags
+_ <references /> {{Reflist}}
 _ calculate cell widths when not given???  see html? latex? reader
 _ support tables http://www.mediawiki.org/wiki/Help:Tables
 - footnotes?
@@ -98,7 +100,7 @@ sym :: String -> MWParser ()
 sym s = () <$ try (string s)
 
 newBlockTags :: [String]
-newBlockTags = ["haskell","syntaxhighlight","gallery"]
+newBlockTags = ["haskell","syntaxhighlight","source","gallery"]
 
 isBlockTag' :: Tag String -> Bool
 isBlockTag' tag@(TagOpen t _) = isBlockTag tag || t `elem` newBlockTags
@@ -248,7 +250,8 @@ blockTag = do
   case tag of
       TagOpen "blockquote" _ -> B.blockQuote <$> blocksInTags "blockquote"
       TagOpen "pre" _ -> B.codeBlock . trimCode <$> charsInTags "pre"
-      TagOpen "syntaxhighlight" attrs -> syntaxhighlight attrs
+      TagOpen "syntaxhighlight" attrs -> syntaxhighlight "syntaxhighlight" attrs
+      TagOpen "source" attrs -> syntaxhighlight "source" attrs
       TagOpen "haskell" _ -> B.codeBlockWith ("",["haskell"],[]) . trimCode <$>
                                 charsInTags "haskell"
       TagOpen "gallery" _ -> blocksInTags "gallery"
@@ -260,14 +263,14 @@ trimCode :: String -> String
 trimCode ('\n':xs) = stripTrailingNewlines xs
 trimCode xs        = stripTrailingNewlines xs
 
-syntaxhighlight :: [Attribute String] -> MWParser Blocks
-syntaxhighlight attrs = try $ do
+syntaxhighlight :: String -> [Attribute String] -> MWParser Blocks
+syntaxhighlight tag attrs = try $ do
   let mblang = lookup "lang" attrs
   let mbstart = lookup "start" attrs
   let mbline = lookup "line" attrs
   let classes = maybe [] (:[]) mblang ++ maybe [] (const ["numberLines"]) mbline
   let kvs = maybe [] (\x -> [("startFrom",x)]) mbstart
-  contents <- charsInTags "syntaxhighlight"
+  contents <- charsInTags tag
   return $ B.codeBlockWith ("",classes,kvs) $ trimCode contents
 
 hrule :: MWParser Blocks
@@ -400,6 +403,7 @@ inline =  whitespace
       <|> B.singleton <$> charRef
       <|> inlineHtml
       <|> variable
+      <|> (mempty <$ template)
       <|> special
 
 str :: MWParser Inlines
@@ -450,6 +454,7 @@ endline = () <$ try (newline <*
                      notFollowedBy' hrule <*
                      notFollowedBy tableStart <*
                      notFollowedBy' template <*
+                     notFollowedBy' (htmlTag isBlockTag') <*
                      notFollowedBy anyListStart)
 
 image :: MWParser Inlines
