@@ -30,10 +30,7 @@ Conversion of mediawiki text to 'Pandoc' document.
 -}
 {-
 TODO:
-_ wikipedia {{cite}} tags
-_ <references /> {{Reflist}}
-_ support tables http://www.mediawiki.org/wiki/Help:Tables
-- footnotes?
+_ parse templates?
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
@@ -101,7 +98,7 @@ sym :: String -> MWParser ()
 sym s = () <$ try (string s)
 
 newBlockTags :: [String]
-newBlockTags = ["haskell","syntaxhighlight","source","gallery"]
+newBlockTags = ["haskell","syntaxhighlight","source","gallery","references"]
 
 isBlockTag' :: Tag String -> Bool
 isBlockTag' tag@(TagOpen t _) = (isBlockTag tag || t `elem` newBlockTags) &&
