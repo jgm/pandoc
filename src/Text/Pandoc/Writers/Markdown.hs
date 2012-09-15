@@ -54,9 +54,12 @@ data WriterState = WriterState { stNotes :: Notes
 -- | Convert Pandoc to Markdown.
 writeMarkdown :: WriterOptions -> Pandoc -> String
 writeMarkdown opts document =
-  evalState (pandocToMarkdown opts document) WriterState{ stNotes = []
-                                                        , stRefs  = []
-                                                        , stPlain = False }
+  evalState (pandocToMarkdown opts{
+                  writerWrapText = writerWrapText opts &&
+                  not (isEnabled Ext_hard_line_breaks opts) }
+             document) WriterState{ stNotes = []
+                                  , stRefs  = []
+                                  , stPlain = False }
 
 -- | Convert Pandoc to plain text (like markdown, but without links,
 -- pictures, or inline formatting).
@@ -588,8 +591,9 @@ inlineToMarkdown opts (RawInline f str)
     return $ text str
 inlineToMarkdown _ (RawInline _ _) = return empty
 inlineToMarkdown opts (LineBreak)
+  | isEnabled Ext_hard_line_breaks opts    = return cr
   | isEnabled Ext_escaped_line_breaks opts = return $ "\\" <> cr
-  | otherwise                            = return $ "  " <> cr
+  | otherwise                              = return $ "  " <> cr
 inlineToMarkdown _ Space = return space
 inlineToMarkdown opts (Cite (c:cs) lst)
   | writerCiteMethod opts == Citeproc = inlineListToMarkdown opts lst
