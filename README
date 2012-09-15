@@ -13,13 +13,14 @@ Description
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
-[LaTeX], and [DocBook XML]; and it can write plain text, [markdown],
-[reStructuredText], [XHTML], [HTML 5], [LaTeX] (including [beamer]
-slide shows), [ConTeXt], [RTF], [DocBook XML], [OpenDocument XML],
-[ODT], [Word docx], [GNU Texinfo], [MediaWiki markup], [EPUB], [FictionBook2],
-[Textile], [groff man] pages, [Emacs Org-Mode], [AsciiDoc], and [Slidy],
-[Slideous], [DZSlides], or [S5] HTML slide shows. It can also produce
-[PDF] output on systems where LaTeX is installed.
+[LaTeX], [MediaWiki markup], and [DocBook XML]; and it can write plain
+text, [markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX]
+(including [beamer] slide shows), [ConTeXt], [RTF], [DocBook XML],
+[OpenDocument XML], [ODT], [Word docx], [GNU Texinfo], [MediaWiki
+markup], [EPUB], [FictionBook2], [Textile], [groff man] pages, [Emacs
+Org-Mode], [AsciiDoc], and [Slidy], [Slideous], [DZSlides], or [S5] HTML
+slide shows. It can also produce [PDF] output on systems where LaTeX is
+installed.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, fenced code blocks,
@@ -140,18 +141,18 @@ General options
     `json` (JSON version of native AST), `markdown` (pandoc's
     extended markdown), `markdown_strict` (original unextended markdown),
     `textile` (Textile), `rst` (reStructuredText), `html` (HTML),
-    `docbook` (DocBook XML), or `latex` (LaTeX). If `+lhs` is
-    appended to `markdown`, `rst`, `latex`, the input will be
-    treated as literate Haskell source: see [Literate Haskell
-    support](#literate-haskell-support), below.  Markdown syntax
-    extensions can be individually enabled or disabled by appending
-    `+EXTENSION` or `-EXTENSION` to the format name. So, for example,
-    `markdown_strict+footnotes+definition_lists` is strict markdown
-    with footnotes and definition lists enabled, and
-    `markdown-pipe_tables+hard_line_breaks` is pandoc's markdown
-    without pipe tables and with hard line breaks.  See
-    [Pandoc's markdown](#pandocs-markdown), below, for a list of
-    extensions and their names.
+    `docbook` (DocBook XML), `mediawiki` (MediaWiki markup),
+    or `latex` (LaTeX). If `+lhs` is appended to `markdown`, `rst`,
+    `latex`, the input will be treated as literate Haskell source:
+    see [Literate Haskell support](#literate-haskell-support), below.
+    Markdown syntax extensions can be individually enabled or disabled
+    by appending `+EXTENSION` or `-EXTENSION` to the format name.
+    So, for example, `markdown_strict+footnotes+definition_lists`
+    is strict markdown with footnotes and definition lists enabled,
+    and `markdown-pipe_tables+hard_line_breaks` is pandoc's markdown
+    without pipe tables and with hard line breaks. See [Pandoc's
+    markdown](#pandocs-markdown), below, for a list of extensions and
+    their names.
 
 `-t` *FORMAT*, `-w` *FORMAT*, `--to=`*FORMAT*, `--write=`*FORMAT*
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
