@@ -277,8 +277,9 @@ template :: MWParser String
 template = try $ do
   string "{{"
   notFollowedBy (char '{')
-  contents <- manyTill anyChar (try $ string "}}")
-  return $ "{{" ++ contents ++ "}}"
+  let chunk = template <|> variable <|> many1 (noneOf "{}") <|> count 1 anyChar
+  contents <- manyTill chunk (try $ string "}}")
+  return $ "{{" ++ concat contents ++ "}}"
 
 blockTag :: MWParser Blocks
 blockTag = do
@@ -438,19 +439,18 @@ inline =  whitespace
       <|> inlineTag
       <|> B.singleton <$> charRef
       <|> inlineHtml
-      <|> variable
+      <|> (B.rawInline "mediawiki" <$> variable)
       <|> (B.rawInline "mediawiki" <$> template)
       <|> special
 
 str :: MWParser Inlines
 str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
 
-variable :: MWParser Inlines
-variable = B.rawInline "mediawiki" <$> triplebrackets
-  where triplebrackets = try $ do
-           string "{{{"
-           contents <- manyTill anyChar (try $ string "}}}")
-           return $ "{{{" ++ contents ++ "}}}"
+variable :: MWParser String
+variable = try $ do
+  string "{{{"
+  contents <- manyTill anyChar (try $ string "}}}")
+  return $ "{{{" ++ contents ++ "}}}"
 
 inlineTag :: MWParser Inlines
 inlineTag = do
@@ -489,6 +489,7 @@ endline = () <$ try (newline <*
                      notFollowedBy blankline <*
                      notFollowedBy' hrule <*
                      notFollowedBy tableStart <*
+                     notFollowedBy' header <*
                      notFollowedBy' template <*
                      notFollowedBy' (htmlTag isBlockTag') <*
                      notFollowedBy anyListStart)
