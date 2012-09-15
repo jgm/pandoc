@@ -456,6 +456,7 @@ inlineTag :: MWParser Inlines
 inlineTag = do
   (tag, _) <- lookAhead $ htmlTag isInlineTag'
   case tag of
+       TagOpen "ref" _ -> B.note . B.plain <$> inlinesInTags "ref"
        TagOpen "nowiki" _ -> try $ do
           (_,raw) <- htmlTag (~== tag)
           if '/' `elem` raw
