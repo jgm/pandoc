@@ -89,7 +89,7 @@ nested p = do
   return res
 
 specialChars :: [Char]
-specialChars = "'[]<=&*{}|"
+specialChars = "'[]<=&*{}|\""
 
 spaceChars :: [Char]
 spaceChars = " \n\t"
@@ -445,6 +445,7 @@ inline :: MWParser Inlines
 inline =  whitespace
       <|> url
       <|> str
+      <|> doubleQuotes
       <|> strong
       <|> emph
       <|> image
@@ -540,7 +541,7 @@ internalLink = try $ do
              -- [[Help:Contents|] -> "Contents"
              <|> (return $ B.text $ drop 1 $ dropWhile (/=':') pagename) )
   sym "]]"
-  linktrail <- B.text <$> many (char '\'' <|> letter)
+  linktrail <- B.text <$> many letter
   let link = B.link (addUnderscores pagename) "wikilink" (label <> linktrail)
   if "Category:" `isPrefixOf` pagename
      then do
@@ -581,4 +582,11 @@ strong :: MWParser Inlines
 strong = B.strong <$> nested (inlinesBetween start end)
     where start = sym "'''" >> lookAhead nonspaceChar
           end   = try $ sym "'''"
+
+doubleQuotes :: MWParser Inlines
+doubleQuotes = B.doubleQuoted . trimInlines . mconcat <$> try
+ ((getState >>= guard . readerSmart . mwOptions) *>
+   openDoubleQuote *> manyTill inline closeDoubleQuote )
+    where openDoubleQuote = char '"' <* lookAhead alphaNum
+          closeDoubleQuote = char '"' <* notFollowedBy alphaNum
 
