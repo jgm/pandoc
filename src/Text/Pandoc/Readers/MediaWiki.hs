@@ -193,16 +193,22 @@ cellsep = try $ guardColumnOne <*
   (char '!' <|> (char '|' <* notFollowedBy (oneOf "-}+")))
 
 tableCaption :: MWParser Inlines
-tableCaption = try $ guardColumnOne *> sym "|+" *> skipMany spaceChar *>
-  (trimInlines . mconcat <$> (many inline)) <* skipMany blankline
+tableCaption = try $ do
+  guardColumnOne
+  sym "|+"
+  skipMany spaceChar
+  res <- manyTill anyChar newline >>= parseFromString (many inline)
+  return $ trimInlines $ mconcat res
 
 tableRow :: MWParser [Blocks]
 tableRow = try $ many tableCell
 
 tableCell :: MWParser Blocks
-tableCell =
-  try $ cellsep *> skipMany spaceChar *>
-        (mconcat <$> (many $ notFollowedBy (cellsep <|> rowsep <|> tableEnd) *> block))
+tableCell = try $ do
+  cellsep
+  skipMany spaceChar
+  ls <- many (notFollowedBy (cellsep <|> rowsep <|> tableEnd) *> anyLine)
+  parseFromString (mconcat <$> many block) (unlines ls)
 
 template :: MWParser Blocks
 template = B.rawBlock "mediawiki" <$> doublebrackets
@@ -406,8 +412,6 @@ inlineTag = do
 
 special :: MWParser Inlines
 special = B.str <$> count 1 (notFollowedBy' (htmlTag isBlockTag') *>
---                             notFollowedBy (tableStart <|> tableEnd
---                                            <|> cellsep <|> rowsep) *>
                              oneOf specialChars)
 
 inlineHtml :: MWParser Inlines
@@ -421,10 +425,7 @@ endline = () <$ try (newline <*
                      notFollowedBy blankline <*
                      notFollowedBy' hrule <*
                      notFollowedBy tableStart <*
-                     notFollowedBy tableEnd <*
                      notFollowedBy' template <*
-                     notFollowedBy cellsep <*
-                     notFollowedBy rowsep <*
                      notFollowedBy anyListStart)
 
 image :: MWParser Inlines
