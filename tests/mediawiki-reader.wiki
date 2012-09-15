@@ -340,3 +340,7 @@ and cheese
 | more || 2.0 || more
 |}
 
+== notes ==
+
+My note!<ref>This.</ref>
+

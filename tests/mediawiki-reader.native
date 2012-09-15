@@ -223,4 +223,6 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
   ,[Para [Str "centered"]]]
  ,[[Para [Str "more"]]
   ,[Para [Str "2.0"]]
-  ,[Para [Str "more"]]]]]
+  ,[Para [Str "more"]]]]
+,Header 2 [Str "notes"]
+,Para [Str "My",Space,Str "note!",Note [Plain [Str "This."]]]]
