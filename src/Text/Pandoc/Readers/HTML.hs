@@ -599,7 +599,7 @@ htmlInBalanced f = try $ do
 -- | Matches a tag meeting a certain condition.
 htmlTag :: (Tag String -> Bool) -> Parser [Char] st (Tag String, String)
 htmlTag f = try $ do
-  lookAhead (char '<')
+  lookAhead $ char '<' >> (oneOf "/!?" <|> letter)
   (next : _) <- getInput >>= return . canonicalizeTags . parseTags
   guard $ f next
   -- advance the parser
