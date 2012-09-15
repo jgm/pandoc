@@ -1,64 +1,59 @@
 Simple table with caption:
 
-\ctable[caption = {Demonstration of simple table syntax.},
-pos = H, center, botcap]{rlcl}
-{% notes
-}
-{% rows
-\FL
+\begin{longtable}[c]{rlcl}
+\hline\noalign{\medskip}
 Right & Left & Center & Default
-\ML
+\\\noalign{\medskip}
+\hline\endhead\noalign{\medskip}
 12 & 12 & 12 & 12
 \\\noalign{\medskip}
 123 & 123 & 123 & 123
 \\\noalign{\medskip}
 1 & 1 & 1 & 1
-\LL
-}
+\\\noalign{\medskip}
+\hline
+\noalign{\medskip}
+\caption{Demonstration of simple table syntax.}
+\end{longtable}
 
 Simple table without caption:
 
-\ctable[pos = H, center, botcap]{rlcl}
-{% notes
-}
-{% rows
-\FL
+\begin{longtable}[c]{rlcl}
+\hline\noalign{\medskip}
 Right & Left & Center & Default
-\ML
+\\\noalign{\medskip}
+\hline\endhead\noalign{\medskip}
 12 & 12 & 12 & 12
 \\\noalign{\medskip}
 123 & 123 & 123 & 123
 \\\noalign{\medskip}
 1 & 1 & 1 & 1
-\LL
-}
+\\\noalign{\medskip}
+\hline
+\end{longtable}
 
 Simple table indented two spaces:
 
-\ctable[caption = {Demonstration of simple table syntax.},
-pos = H, center, botcap]{rlcl}
-{% notes
-}
-{% rows
-\FL
+\begin{longtable}[c]{rlcl}
+\hline\noalign{\medskip}
 Right & Left & Center & Default
-\ML
+\\\noalign{\medskip}
+\hline\endhead\noalign{\medskip}
 12 & 12 & 12 & 12
 \\\noalign{\medskip}
 123 & 123 & 123 & 123
 \\\noalign{\medskip}
 1 & 1 & 1 & 1
-\LL
-}
+\\\noalign{\medskip}
+\hline
+\noalign{\medskip}
+\caption{Demonstration of simple table syntax.}
+\end{longtable}
 
 Multiline table with caption:
 
-\ctable[caption = {Here's the caption. It may span multiple lines.},
-pos = H, center, botcap]{clrl}
-{% notes
-}
-{% rows
-\FL
+\begin{longtable}[c]{clrl}
+\hline\noalign{\medskip}
 \parbox[b]{0.15\columnwidth}{\centering
 Centered Header
 } & \parbox[b]{0.14\columnwidth}{\raggedright
@@ -68,7 +63,8 @@ Right Aligned
 } & \parbox[b]{0.34\columnwidth}{\raggedright
 Default aligned
 }
-\ML
+\\\noalign{\medskip}
+\hline\endhead\noalign{\medskip}
 \parbox[t]{0.15\columnwidth}{\centering
 First
 } & \parbox[t]{0.14\columnwidth}{\raggedright
@@ -88,16 +84,16 @@ row
 } & \parbox[t]{0.34\columnwidth}{\raggedright
 Here's another one. Note the blank line between rows.
 }
-\LL
-}
+\\\noalign{\medskip}
+\hline
+\noalign{\medskip}
+\caption{Here's the caption. It may span multiple lines.}
+\end{longtable}
 
 Multiline table without caption:
 
-\ctable[pos = H, center, botcap]{clrl}
-{% notes
-}
-{% rows
-\FL
+\begin{longtable}[c]{clrl}
+\hline\noalign{\medskip}
 \parbox[b]{0.15\columnwidth}{\centering
 Centered Header
 } & \parbox[b]{0.14\columnwidth}{\raggedright
@@ -107,7 +103,8 @@ Right Aligned
 } & \parbox[b]{0.34\columnwidth}{\raggedright
 Default aligned
 }
-\ML
+\\\noalign{\medskip}
+\hline\endhead\noalign{\medskip}
 \parbox[t]{0.15\columnwidth}{\centering
 First
 } & \parbox[t]{0.14\columnwidth}{\raggedright
@@ -127,31 +124,27 @@ row
 } & \parbox[t]{0.34\columnwidth}{\raggedright
 Here's another one. Note the blank line between rows.
 }
-\LL
-}
+\\\noalign{\medskip}
+\hline
+\end{longtable}
 
 Table without column headers:
 
-\ctable[pos = H, center, botcap]{rlcr}
-{% notes
-}
-{% rows
-\FL
+\begin{longtable}[c]{rlcr}
+\hline\noalign{\medskip}
 12 & 12 & 12 & 12
 \\\noalign{\medskip}
 123 & 123 & 123 & 123
 \\\noalign{\medskip}
 1 & 1 & 1 & 1
-\LL
-}
+\\\noalign{\medskip}
+\hline
+\end{longtable}
 
 Multiline table without column headers:
 
-\ctable[pos = H, center, botcap]{clrl}
-{% notes
-}
-{% rows
-\FL
+\begin{longtable}[c]{clrl}
+\hline\noalign{\medskip}
 \parbox[t]{0.15\columnwidth}{\centering
 First
 } & \parbox[t]{0.14\columnwidth}{\raggedright
@@ -171,5 +164,6 @@ row
 } & \parbox[t]{0.34\columnwidth}{\raggedright
 Here's another one. Note the blank line between rows.
 }
-\LL
-}
+\\\noalign{\medskip}
+\hline
+\end{longtable}
