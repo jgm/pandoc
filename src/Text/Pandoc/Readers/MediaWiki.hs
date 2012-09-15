@@ -164,6 +164,9 @@ para = B.para . trimInlines . mconcat <$> many1 inline
 table :: MWParser Blocks
 table = do
   tableStart
+  styles <- manyTill anyChar newline
+  let tableWidth = maybe (1.0 :: Double) read
+                 $ lookup "width" $ parseAttrs styles
   caption <- option mempty tableCaption
   optional rowsep
   hasheader <- option False $ True <$ (lookAhead (char '!'))
@@ -178,8 +181,22 @@ table = do
   let cellspecs = replicate cols (AlignDefault, 0.0)
   return $ B.table caption cellspecs headers rows
 
+parseAttrs :: String -> [(String,String)]
+parseAttrs s = case parse (many parseAttr) "attributes" s of
+                    Right r -> r
+                    Left _  -> []
+
+parseAttr :: Parser String () (String, String)
+parseAttr = try $ do
+  skipMany spaceChar
+  k <- many1 letter
+  char '='
+  char '"'
+  v <- many1Till anyChar (char '"')
+  return (k,v)
+
 tableStart :: MWParser ()
-tableStart = try $ guardColumnOne *> sym "{|" <* blanklines
+tableStart = try $ guardColumnOne *> sym "{|"
 
 tableEnd :: MWParser ()
 tableEnd = try $ guardColumnOne *> sym "|}" <* blanklines
