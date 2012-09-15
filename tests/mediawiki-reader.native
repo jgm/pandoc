@@ -51,7 +51,8 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 ,Para [Str "bud"]
 ,Para [Str "another"]
 ,Header 2 [Str "raw",Space,Str "html"]
-,Para [Str "hi",Space,RawInline "html" "<span style=\"color:red\">",Emph [Str "there"],RawInline "html" "</span>",Str ".",Space,RawInline "html" "<ins>",Str "inserted",RawInline "html" "</ins>"]
+,Para [Str "hi",Space,RawInline "html" "<span style=\"color:red\">",Emph [Str "there"],RawInline "html" "</span>",Str "."]
+,Para [RawInline "html" "<ins>",Str "inserted",RawInline "html" "</ins>"]
 ,RawBlock "html" "<div class=\"special\">"
 ,Para [Str "hi",Space,Emph [Str "there"]]
 ,RawBlock "html" "</div>"

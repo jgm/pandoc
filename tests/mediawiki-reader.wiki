@@ -91,6 +91,7 @@ another
 == raw html ==
 
 hi <span style="color:red">''there''</span>.
+
 <ins>inserted</ins>
 
 <div class="special">
@@ -99,8 +100,7 @@ hi ''there''
 
 == sup, sub, del ==
 
-H<sub>2</sub>O
-base<sup>''exponent''</sup>
+H<sub>2</sub>O base<sup>''exponent''</sup>
 <del>hello</del>
 
 == inline code ==

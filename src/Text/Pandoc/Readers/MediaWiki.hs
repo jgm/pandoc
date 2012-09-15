@@ -43,8 +43,7 @@ import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
 import Text.Pandoc.Options
-import Text.Pandoc.Readers.HTML ( htmlTag, isInlineTag,
-                                  isBlockTag, isCommentTag )
+import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag, isCommentTag )
 import Text.Pandoc.XML ( fromEntities )
 import Text.Pandoc.Parsing hiding ( nested )
 import Text.Pandoc.Generic ( bottomUp )
@@ -52,7 +51,7 @@ import Text.Pandoc.Shared ( stripTrailingNewlines, safeRead )
 import Data.Monoid (mconcat, mempty)
 import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
-import Data.List (intersperse, intercalate )
+import Data.List (intersperse, intercalate, isPrefixOf )
 import Text.HTML.TagSoup
 import Data.Sequence (viewl, ViewL(..), (<|))
 
@@ -63,7 +62,9 @@ readMediaWiki :: ReaderOptions -- ^ Reader options
 readMediaWiki opts s =
   case runParser parseMediaWiki MWState{ mwOptions = opts
                                        , mwMaxNestingLevel = 4
-                                       , mwNextLinkNumber  = 1 }
+                                       , mwNextLinkNumber  = 1
+                                       , mwCategoryLinks = []
+                                       }
        "source" (s ++ "\n") of
           Left err'    -> error $ "\nError:\n" ++ show err'
           Right result -> result
@@ -71,6 +72,7 @@ readMediaWiki opts s =
 data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwMaxNestingLevel :: Int
                        , mwNextLinkNumber  :: Int
+                       , mwCategoryLinks   :: [Inlines]
                        }
 
 type MWParser = Parser [Char] MWState
@@ -103,9 +105,19 @@ newBlockTags :: [String]
 newBlockTags = ["haskell","syntaxhighlight","source","gallery"]
 
 isBlockTag' :: Tag String -> Bool
-isBlockTag' tag@(TagOpen t _) = isBlockTag tag || t `elem` newBlockTags
-isBlockTag' tag@(TagClose t) = isBlockTag tag || t `elem` newBlockTags
+isBlockTag' tag@(TagOpen t _) = (isBlockTag tag || t `elem` newBlockTags) &&
+  t `notElem` eitherBlockOrInline
+isBlockTag' tag@(TagClose t) = (isBlockTag tag || t `elem` newBlockTags) &&
+  t `notElem` eitherBlockOrInline
 isBlockTag' tag = isBlockTag tag
+
+isInlineTag' :: Tag String -> Bool
+isInlineTag' (TagComment _) = True
+isInlineTag' t = not (isBlockTag' t)
+
+eitherBlockOrInline :: [String]
+eitherBlockOrInline = ["applet", "button", "del", "iframe", "ins",
+                               "map", "area", "object"]
 
 htmlComment :: MWParser ()
 htmlComment = () <$ htmlTag isCommentTag
@@ -142,7 +154,11 @@ parseMediaWiki = do
   bs <- mconcat <$> many block
   spaces
   eof
-  return $ B.doc bs
+  categoryLinks <- reverse . mwCategoryLinks <$> getState
+  let categories = if null categoryLinks
+                      then mempty
+                      else B.para $ mconcat $ intersperse B.space categoryLinks
+  return $ B.doc $ bs <> categories
 
 --
 -- block parsers
@@ -159,7 +175,7 @@ block =  mempty <$ skipMany1 blankline
      <|> mempty <$ try (spaces *> htmlComment)
      <|> preformatted
      <|> blockTag
-     <|> template
+     <|> (B.rawBlock "mediawiki" <$> template)
      <|> para
 
 para :: MWParser Blocks
@@ -229,20 +245,18 @@ tableCell :: MWParser Blocks
 tableCell = try $ do
   cellsep
   skipMany spaceChar
-  attrs <- (parseAttrs <$>
-                  manyTill (satisfy (/='\n'))
-                    (try $ char '|' <* notFollowedBy (char '|')))
+  attrs <- option [] $ try $ parseAttrs <$>
+       manyTill (satisfy (/='\n')) (char '|' <* notFollowedBy (char '|'))
   skipMany spaceChar
   ls <- many (notFollowedBy (cellsep <|> rowsep <|> tableEnd) *> anyChar)
   parseFromString (mconcat <$> many block) ls
 
-template :: MWParser Blocks
-template = B.rawBlock "mediawiki" <$> doublebrackets
-  where doublebrackets = try $
-         do string "{{"
-            notFollowedBy (char '{')
-            contents <- manyTill anyChar (try $ string "}}")
-            return $ "{{" ++ contents ++ "}}"
+template :: MWParser String
+template = try $ do
+  string "{{"
+  notFollowedBy (char '{')
+  contents <- manyTill anyChar (try $ string "}}")
+  return $ "{{" ++ contents ++ "}}"
 
 blockTag :: MWParser Blocks
 blockTag = do
@@ -403,7 +417,7 @@ inline =  whitespace
       <|> B.singleton <$> charRef
       <|> inlineHtml
       <|> variable
-      <|> (mempty <$ template)
+      <|> (B.rawInline "mediawiki" <$> template)
       <|> special
 
 str :: MWParser Inlines
@@ -418,7 +432,7 @@ variable = B.rawInline "mediawiki" <$> triplebrackets
 
 inlineTag :: MWParser Inlines
 inlineTag = do
-  (tag, _) <- lookAhead $ htmlTag isInlineTag
+  (tag, _) <- lookAhead $ htmlTag isInlineTag'
   case tag of
        TagOpen "nowiki" _ -> try $ do
           (_,raw) <- htmlTag (~== tag)
@@ -443,7 +457,7 @@ special = B.str <$> count 1 (notFollowedBy' (htmlTag isBlockTag') *>
                              oneOf specialChars)
 
 inlineHtml :: MWParser Inlines
-inlineHtml = B.rawInline "html" . snd <$> htmlTag isInlineTag
+inlineHtml = B.rawInline "html" . snd <$> htmlTag isInlineTag'
 
 whitespace :: MWParser Inlines
 whitespace = B.space <$ (skipMany1 spaceChar <|> endline <|> htmlComment)
@@ -491,7 +505,12 @@ internalLink = try $ do
              <|> (return $ B.text $ drop 1 $ dropWhile (/=':') pagename) )
   sym "]]"
   linktrail <- B.text <$> many (char '\'' <|> letter)
-  return $ B.link (addUnderscores pagename) "wikilink" (label <> linktrail)
+  let link = B.link (addUnderscores pagename) "wikilink" (label <> linktrail)
+  if "Category:" `isPrefixOf` pagename
+     then do
+       updateState $ \st -> st{ mwCategoryLinks = link : mwCategoryLinks st }
+       return mempty
+     else return link
 
 externalLink :: MWParser Inlines
 externalLink = try $ do

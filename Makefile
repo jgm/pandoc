@@ -30,4 +30,4 @@ citeproc-hs: pandoc-types
 	  cabal-dev add-source citeproc-hs
 
 install:
-	cabal-dev install
+	cabal-dev install --enable-tests --enable-benchmarks
