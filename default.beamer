@@ -45,7 +45,7 @@ $if(fancy-enums)$
 \usepackage{enumerate}
 $endif$
 $if(tables)$
-\usepackage{ctable}
+\usepackage{longtable}
 \usepackage{float} % provides the H option for float placement
 $endif$
 $if(url)$
