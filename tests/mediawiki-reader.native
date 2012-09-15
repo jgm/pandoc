@@ -214,7 +214,7 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
  ,[[Para [Str "Butter"]]
   ,[Para [Str "Ice",Space,Str "cream"]]
   ,[Para [Str "and",Space,Str "more"]]]]
-,Table [] [AlignLeft,AlignRight,AlignCenter] [0.0,0.0,0.0]
+,Table [] [AlignLeft,AlignRight,AlignCenter] [0.25,0.125,0.125]
  [[Para [Str "Left"]]
  ,[Para [Str "Right"]]
  ,[Para [Str "Center"]]]

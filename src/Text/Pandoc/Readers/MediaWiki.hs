@@ -30,10 +30,8 @@ Conversion of mediawiki text to 'Pandoc' document.
 -}
 {-
 TODO:
-_ tables - cell alignment and width
 _ wikipedia {{cite}} tags
 _ <references /> {{Reflist}}
-_ calculate cell widths when not given???  see html? latex? reader
 _ support tables http://www.mediawiki.org/wiki/Help:Tables
 - footnotes?
 -}
@@ -54,6 +52,7 @@ import Control.Monad
 import Data.List (intersperse, intercalate, isPrefixOf )
 import Text.HTML.TagSoup
 import Data.Sequence (viewl, ViewL(..), (<|))
+import Data.Char (isDigit)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: ReaderOptions -- ^ Reader options
@@ -185,20 +184,27 @@ table :: MWParser Blocks
 table = do
   tableStart
   styles <- manyTill anyChar newline
-  let tableWidth = maybe (1.0 :: Double) read
-                 $ lookup "width" $ parseAttrs styles
+  let tableWidth = case lookup "width" $ parseAttrs styles of
+                         Just w  -> maybe 1.0 id $ parseWidth w
+                         Nothing -> 1.0
   caption <- option mempty tableCaption
   optional rowsep
   hasheader <- option False $ True <$ (lookAhead (char '!'))
-  (aligns,hdr) <- unzip <$> tableRow
+  (cellspecs',hdr) <- unzip <$> tableRow
+  let widths = map ((tableWidth *) . snd) cellspecs'
+  let restwidth = tableWidth - sum widths
+  let zerocols = length $ filter (==0.0) widths
+  let defaultwidth = if zerocols == 0 || zerocols == length widths
+                        then 0.0
+                        else restwidth / fromIntegral zerocols
+  let widths' = map (\w -> if w == 0 then defaultwidth else w) widths
+  let cellspecs = zip (map fst cellspecs') widths'
   rows' <- many $ try $ rowsep *> (map snd <$> tableRow)
   tableEnd
-  -- TODO handle cellspecs from styles and aligns...
   let cols = length hdr
   let (headers,rows) = if hasheader
                           then (hdr, rows')
                           else (replicate cols mempty, hdr:rows')
-  let cellspecs = zip aligns (repeat 0.0)
   return $ B.table caption cellspecs headers rows
 
 parseAttrs :: String -> [(String,String)]
@@ -224,11 +230,15 @@ tableEnd = try $ guardColumnOne *> sym "|}" <* blanklines
 rowsep :: MWParser ()
 rowsep = try $ guardColumnOne *> sym "|-" <* blanklines
 
--- TODO add something like 'guard inTable' since this is used in endline
 cellsep :: MWParser ()
-cellsep = (try $ guardColumnOne <*
-              (char '!' <|> (char '|' <* notFollowedBy (oneOf "-}+"))))
-      <|> (() <$ try (string "||"))
+cellsep = try $
+             (guardColumnOne <*
+                 (  (char '|' <* notFollowedBy (oneOf "-}+"))
+                <|> (char '!')
+                 )
+             )
+            <|> (() <$ try (string "||"))
+            <|> (() <$ try (string "!!"))
 
 tableCaption :: MWParser Inlines
 tableCaption = try $ do
@@ -238,10 +248,10 @@ tableCaption = try $ do
   res <- manyTill anyChar newline >>= parseFromString (many inline)
   return $ trimInlines $ mconcat res
 
-tableRow :: MWParser [(Alignment, Blocks)]
+tableRow :: MWParser [((Alignment, Double), Blocks)]
 tableRow = try $ many tableCell
 
-tableCell :: MWParser (Alignment, Blocks)
+tableCell :: MWParser ((Alignment, Double), Blocks)
 tableCell = try $ do
   cellsep
   skipMany spaceChar
@@ -255,7 +265,16 @@ tableCell = try $ do
                     Just "right"  -> AlignRight
                     Just "center" -> AlignCenter
                     _             -> AlignDefault
-  return (align, bs)
+  let width = case lookup "width" attrs of
+                    Just xs -> maybe 0.0 id $ parseWidth xs
+                    Nothing -> 0.0
+  return ((align, width), bs)
+
+parseWidth :: String -> Maybe Double
+parseWidth s =
+  case reverse s of
+       ('%':ds) | all isDigit ds -> safeRead ('0':'.':reverse ds)
+       _ -> Nothing
 
 template :: MWParser String
 template = try $ do
