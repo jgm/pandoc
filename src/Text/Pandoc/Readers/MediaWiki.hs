@@ -397,8 +397,9 @@ listItem c = try $ do
      then listItem' c
      else do
        skipMany spaceChar
-       first <- manyTill anyChar newline
-       rest <- many (try $ string extras *> manyTill anyChar newline)
+       first <- concat <$> manyTill listChunk newline
+       rest <- many
+                (try $ string extras *> (concat <$> manyTill listChunk newline))
        contents <- parseFromString (many1 $ listItem' c)
                           (unlines (first : rest))
        case c of
@@ -407,13 +408,23 @@ listItem c = try $ do
            ':'  -> return $ B.definitionList [(mempty, contents)]
            _    -> mzero
 
+-- The point of this is to handle stuff like
+-- * {{cite book
+-- | blah
+-- | blah
+-- }}
+-- * next list item
+-- which seems to be valid mediawiki.
+listChunk :: MWParser String
+listChunk = template <|> count 1 anyChar
+
 listItem' :: Char -> MWParser Blocks
 listItem' c = try $ do
   listStart c
   skipMany spaceChar
-  first <- manyTill anyChar newline
+  first <- concat <$> manyTill listChunk newline
   rest <- many (try $ char c *> lookAhead listStartChar *>
-                   manyTill anyChar newline)
+                   (concat <$> manyTill listChunk newline))
   parseFromString (firstParaToPlain . mconcat <$> many1 block)
       $ unlines $ first : rest
 
