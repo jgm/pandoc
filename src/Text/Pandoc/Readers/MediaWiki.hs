@@ -505,8 +505,6 @@ endline = () <$ try (newline <*
                      notFollowedBy' hrule <*
                      notFollowedBy tableStart <*
                      notFollowedBy' header <*
-                     notFollowedBy' template <*
-                     notFollowedBy' (htmlTag isBlockTag') <*
                      notFollowedBy anyListStart)
 
 image :: MWParser Inlines
