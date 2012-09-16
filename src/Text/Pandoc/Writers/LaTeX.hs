@@ -381,7 +381,7 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
   modify $ \s -> s{ stInTable = True, stTableNotes = [] }
   headers <- if all null heads
                 then return empty
-                else ($$ "\\hline\\endhead\\noalign{\\medskip}") `fmap`
+                else ($$ "\\hline\\noalign{\\medskip}") `fmap`
                       (tableRowToLaTeX True aligns widths) heads
   captionText <- inlineListToLaTeX caption
   let capt = if isEmpty captionText

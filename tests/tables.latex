@@ -4,7 +4,7 @@ Simple table with caption:
 \hline\noalign{\medskip}
 Right & Left & Center & Default
 \\\noalign{\medskip}
-\hline\endhead\noalign{\medskip}
+\hline\noalign{\medskip}
 12 & 12 & 12 & 12
 \\\noalign{\medskip}
 123 & 123 & 123 & 123
@@ -22,7 +22,7 @@ Simple table without caption:
 \hline\noalign{\medskip}
 Right & Left & Center & Default
 \\\noalign{\medskip}
-\hline\endhead\noalign{\medskip}
+\hline\noalign{\medskip}
 12 & 12 & 12 & 12
 \\\noalign{\medskip}
 123 & 123 & 123 & 123
@@ -38,7 +38,7 @@ Simple table indented two spaces:
 \hline\noalign{\medskip}
 Right & Left & Center & Default
 \\\noalign{\medskip}
-\hline\endhead\noalign{\medskip}
+\hline\noalign{\medskip}
 12 & 12 & 12 & 12
 \\\noalign{\medskip}
 123 & 123 & 123 & 123
@@ -64,7 +64,7 @@ Right Aligned
 Default aligned
 }
 \\\noalign{\medskip}
-\hline\endhead\noalign{\medskip}
+\hline\noalign{\medskip}
 \parbox[t]{0.15\columnwidth}{\centering
 First
 } & \parbox[t]{0.14\columnwidth}{\raggedright
@@ -104,7 +104,7 @@ Right Aligned
 Default aligned
 }
 \\\noalign{\medskip}
-\hline\endhead\noalign{\medskip}
+\hline\noalign{\medskip}
 \parbox[t]{0.15\columnwidth}{\centering
 First
 } & \parbox[t]{0.14\columnwidth}{\raggedright
