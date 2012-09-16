@@ -577,7 +577,8 @@ inlineToLaTeX (Link txt (src, _)) =
   case txt of
         [Code _ x] | x == src ->  -- autolink
              do modify $ \s -> s{ stUrl = True }
-                return $ text $ "\\url{" ++ x ++ "}"
+                src' <- stringToLaTeX True x
+                return $ text $ "\\url{" ++ src' ++ "}"
         _ -> do contents <- inlineListToLaTeX txt
                 src' <- stringToLaTeX True src
                 return $ text ("\\href{" ++ src' ++ "}{") <>

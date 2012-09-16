@@ -834,7 +834,7 @@ Here's an \href{/script?foo=1\&bar=2}{inline link in pointy braces}.
 
 \subsection{Autolinks}
 
-With an ampersand: \url{http://example.com/?foo=1&bar=2}
+With an ampersand: \url{http://example.com/?foo=1\&bar=2}
 
 \begin{itemize}
 \item
