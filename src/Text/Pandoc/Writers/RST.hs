@@ -46,7 +46,7 @@ type Refs = [([Inline], Target)]
 data WriterState =
   WriterState { stNotes     :: [[Block]]
               , stLinks     :: Refs
-              , stImages    :: Refs
+              , stImages    :: [([Inline], (String, String, Maybe String))]
               , stHasMath   :: Bool
               , stOptions   :: WriterOptions
               }
@@ -111,18 +111,23 @@ noteToRST :: Int -> [Block] -> State WriterState Doc
 noteToRST num note = do
   contents <- blockListToRST note
   let marker = ".. [" <> text (show num) <> "]"
-  return $ marker $$ nest 3 contents
+  return $ nowrap $ marker $$ nest 3 contents
 
 -- | Return RST representation of picture reference table.
-pictRefsToRST :: Refs -> State WriterState Doc
+pictRefsToRST :: [([Inline], (String, String, Maybe String))]
+              -> State WriterState Doc
 pictRefsToRST refs = mapM pictToRST refs >>= return . vcat
 
 -- | Return RST representation of a picture substitution reference.
-pictToRST :: ([Inline], (String, String))
+pictToRST :: ([Inline], (String, String,Maybe String))
           -> State WriterState Doc
-pictToRST (label, (src, _)) = do
+pictToRST (label, (src, _, mbtarget)) = do
   label' <- inlineListToRST label
-  return $ ".. |" <> label' <> "| image:: " <> text src
+  return $ nowrap
+         $ ".. |" <> label' <> "| image:: " <> text src
+         $$ case mbtarget of
+                 Nothing -> empty
+                 Just t  -> "   :target: " <> text t
 
 -- | Escape special characters for RST.
 escapeString :: String -> String
@@ -346,6 +351,9 @@ inlineToRST (Link [Code _ str] (src, _)) | src == str ||
                                            src == "mailto:" ++ str = do
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
   return $ text srcSuffix
+inlineToRST (Link [Image alt (imgsrc,imgtit)] (src, _tit)) = do
+  label <- registerImage alt (imgsrc,imgtit) (Just src)
+  return $ "|" <> label <> "|"
 inlineToRST (Link txt (src, tit)) = do
   useReferenceLinks <- get >>= return . writerReferenceLinks . stOptions
   linktext <- inlineListToRST $ normalizeSpaces txt
@@ -358,17 +366,7 @@ inlineToRST (Link txt (src, tit)) = do
             return $ "`" <> linktext <> "`_"
     else return $ "`" <> linktext <> " <" <> text src <> ">`_"
 inlineToRST (Image alternate (source, tit)) = do
-  pics <- get >>= return . stImages
-  let labelsUsed = map fst pics
-  let txt = if null alternate || alternate == [Str ""] ||
-               alternate `elem` labelsUsed
-               then [Str $ "image" ++ show (length pics)]
-               else alternate
-  let pics' = if (txt, (source, tit)) `elem` pics
-                 then pics
-                 else (txt, (source, tit)):pics
-  modify $ \st -> st { stImages = pics' }
-  label <- inlineListToRST txt
+  label <- registerImage alternate (source,tit) Nothing
   return $ "|" <> label <> "|"
 inlineToRST (Note contents) = do
   -- add to notes in state
@@ -376,3 +374,16 @@ inlineToRST (Note contents) = do
   modify $ \st -> st { stNotes = contents:notes }
   let ref = show $ (length notes) + 1
   return $ " [" <> text ref <> "]_"
+
+registerImage :: [Inline] -> Target -> Maybe String -> State WriterState Doc
+registerImage alt (src,tit) mbtarget = do
+  pics <- get >>= return . stImages
+  txt <- case lookup alt pics of
+               Just (s,t,mbt) | (s,t,mbt) == (src,tit,mbtarget) -> return alt
+               _ | null alt || alt == [Str ""] -> return
+                         [Str $ "image" ++ show (length pics)]
+                 | otherwise -> do
+                    modify $ \st -> st { stImages =
+                        (alt, (src,tit, mbtarget)):stImages st }
+                    return alt
+  inlineListToRST txt
