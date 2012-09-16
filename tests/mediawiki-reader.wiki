@@ -343,6 +343,26 @@ and cheese
 | more || 2.0 || more
 |}
 
+{|
+|-
+|Orange
+|Apple
+|-
+|Bread
+|
+{|
+!fruit
+!topping
+|-
+|apple
+|ice cream
+|}
+|-
+|Butter
+|Ice cream
+|}
+
+
 == notes ==
 
 My note!<ref>This.</ref>

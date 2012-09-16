@@ -30,6 +30,7 @@ Conversion of mediawiki text to 'Pandoc' document.
 -}
 {-
 TODO:
+_ correctly handle tables within tables
 _ parse templates?
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
@@ -255,7 +256,8 @@ tableCell = try $ do
   attrs <- option [] $ try $ parseAttrs <$>
        manyTill (satisfy (/='\n')) (char '|' <* notFollowedBy (char '|'))
   skipMany spaceChar
-  ls <- many (notFollowedBy (cellsep <|> rowsep <|> tableEnd) *> anyChar)
+  ls <- concat <$> many (notFollowedBy (cellsep <|> rowsep <|> tableEnd) *>
+                     ((snd <$> withRaw table) <|> count 1 anyChar))
   bs <- parseFromString (mconcat <$> many block) ls
   let align = case lookup "align" attrs of
                     Just "left"   -> AlignLeft
