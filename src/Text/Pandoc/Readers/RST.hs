@@ -151,8 +151,8 @@ rawFieldListItem :: String -> Parser [Char] ParserState (String, String)
 rawFieldListItem indent = try $ do
   string indent
   char ':'
-  name <- many1 $ alphaNum <|> spaceChar
-  string ": "
+  name <- many1 $ noneOf ":"
+  char ':'
   skipSpaces
   first <- manyTill anyChar newline
   rest <- option "" $ try $ do lookAhead (string indent >> spaceChar)
