@@ -279,7 +279,8 @@ Field Lists
 :address:  61 Main St.
 :city:  *Nowhere*, MA,
     USA
-:phone: 123-4567
+:phone:
+  123-4567
 
 HTML Blocks
 ===========
