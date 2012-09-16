@@ -571,7 +571,7 @@ inlineToLaTeX (LineBreak) = return "\\\\"
 inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt ('#':ident, _)) = do
   contents <- inlineListToLaTeX txt
-  ident' <- stringToLaTeX False ident
+  ident' <- stringToLaTeX True ident
   return $ text "\\hyperref" <> brackets (text ident') <> braces contents
 inlineToLaTeX (Link txt (src, _)) =
   case txt of
