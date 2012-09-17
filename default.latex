@@ -58,7 +58,6 @@ $if(verbatim-in-note)$
 $endif$
 $if(tables)$
 \usepackage{longtable}
-\usepackage{float} % provides the H option for float placement
 $endif$
 $if(graphics)$
 \usepackage{graphicx}
