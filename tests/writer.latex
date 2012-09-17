@@ -17,13 +17,6 @@
   \newcommand{\euro}{€}
 \fi
 \usepackage{fancyvrb}
-% Redefine labelwidth for lists; otherwise, the enumerate package will cause
-% markers to extend beyond the left margin.
-\makeatletter\AtBeginDocument{%
-  \renewcommand{\@listi}
-    {\setlength{\labelwidth}{4em}}
-}\makeatother
-\usepackage{enumerate}
 \usepackage{graphicx}
 % We will generate all images so they have a width \maxwidth. This means
 % that they will get their normal width if they fit onto the page, but
@@ -127,7 +120,8 @@ sub status {
 
 A list:
 
-\begin{enumerate}[1.]
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
 \item
   item one
 \item
@@ -249,7 +243,8 @@ Minuses loose:
 
 Tight:
 
-\begin{enumerate}[1.]
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
 \item
   First
 \item
@@ -260,7 +255,8 @@ Tight:
 
 and:
 
-\begin{enumerate}[1.]
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
 \item
   One
 \item
@@ -271,7 +267,8 @@ and:
 
 Loose using tabs:
 
-\begin{enumerate}[1.]
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
 \item
   First
 \item
@@ -282,7 +279,8 @@ Loose using tabs:
 
 and using spaces:
 
-\begin{enumerate}[1.]
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
 \item
   One
 \item
@@ -293,7 +291,8 @@ and using spaces:
 
 Multiple paragraphs:
 
-\begin{enumerate}[1.]
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
 \item
   Item 1, graf one.
 
@@ -323,7 +322,8 @@ Multiple paragraphs:
 
 Here's another:
 
-\begin{enumerate}[1.]
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
 \item
   First
 \item
@@ -343,7 +343,8 @@ Here's another:
 
 Same thing but with paragraphs:
 
-\begin{enumerate}[1.]
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
 \item
   First
 \item
@@ -379,7 +380,8 @@ Same thing but with paragraphs:
 
 \subsection{Fancy list markers}
 
-\begin{enumerate}[(1)]
+\begin{enumerate}
+\def\labelenumi{(\arabic{enumi})}
 \setcounter{enumi}{1}
 \item
   begins with 2
@@ -388,14 +390,16 @@ Same thing but with paragraphs:
 
   with a continuation
 
-  \begin{enumerate}[i.]
+  \begin{enumerate}
+  \def\labelenumii{\roman{enumii}.}
   \setcounter{enumii}{3}
   \item
     sublist with roman numerals, starting with 4
   \item
     more items
 
-    \begin{enumerate}[(A)]
+    \begin{enumerate}
+    \def\labelenumiii{(\Alph{enumiii})}
     \item
       a subsublist
     \item
@@ -406,20 +410,24 @@ Same thing but with paragraphs:
 
 Nesting:
 
-\begin{enumerate}[A.]
+\begin{enumerate}
+\def\labelenumi{\Alph{enumi}.}
 \item
   Upper Alpha
 
-  \begin{enumerate}[I.]
+  \begin{enumerate}
+  \def\labelenumii{\Roman{enumii}.}
   \item
     Upper Roman.
 
-    \begin{enumerate}[(1)]
+    \begin{enumerate}
+    \def\labelenumiii{(\arabic{enumiii})}
     \setcounter{enumiii}{5}
     \item
       Decimal start with 6
 
-      \begin{enumerate}[a)]
+      \begin{enumerate}
+      \def\labelenumiv{\alph{enumiv})}
       \setcounter{enumiv}{2}
       \item
         Lower alpha with paren
@@ -540,7 +548,8 @@ computer
 \item[orange]
 orange fruit
 
-\begin{enumerate}[1.]
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
 \item
   sublist
 \item
@@ -900,7 +909,8 @@ note.\footnote{This is \emph{easier} to type. Inline notes may contain
 Notes can go in quotes.\footnote{In quote.}
 \end{quote}
 
-\begin{enumerate}[1.]
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
 \item
   And in list items.\footnote{In list.}
 \end{enumerate}

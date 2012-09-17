@@ -53,7 +53,6 @@ data WriterState =
               , stOLLevel       :: Int           -- level of ordered list nesting
               , stOptions       :: WriterOptions -- writer options, so they don't have to be parameter
               , stVerbInNote    :: Bool          -- true if document has verbatim text in note
-              , stEnumerate     :: Bool          -- true if document needs fancy enumerated lists
               , stTable         :: Bool          -- true if document has a table
               , stStrikeout     :: Bool          -- true if document has strikeout
               , stUrl           :: Bool          -- true if document has visible URL link
@@ -73,7 +72,7 @@ writeLaTeX options document =
   evalState (pandocToLaTeX options document) $
   WriterState { stInNote = False, stInTable = False,
                 stTableNotes = [], stOLLevel = 1, stOptions = options,
-                stVerbInNote = False, stEnumerate = False,
+                stVerbInNote = False,
                 stTable = False, stStrikeout = False,
                 stUrl = False, stGraphics = False,
                 stLHS = False, stBook = writerChapters options,
@@ -144,7 +143,6 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                                                 else "article") ] ++
                  [ ("author", a) | a <- authorsText ] ++
                  [ ("verbatim-in-note", "yes") | stVerbInNote st ] ++
-                 [ ("fancy-enums", "yes") | stEnumerate st ] ++
                  [ ("tables", "yes") | stTable st ] ++
                  [ ("strikeout", "yes") | stStrikeout st ] ++
                  [ ("url", "yes") | stUrl st ] ++
@@ -354,20 +352,32 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   put $ st {stOLLevel = oldlevel + 1}
   items <- mapM listItemToLaTeX lst
   modify (\s -> s {stOLLevel = oldlevel})
-  exemplar <- if numstyle /= DefaultStyle || numdelim /= DefaultDelim
-                 then do
-                   modify $ \s -> s{ stEnumerate = True }
-                   return $ char '[' <>
-                       text (head (orderedListMarkers (1, numstyle,
-                            numdelim))) <> char ']'
-                 else return empty
-  let resetcounter = if start /= 1 && oldlevel <= 4
-                        then text $ "\\setcounter{enum" ++
-                             map toLower (toRomanNumeral oldlevel) ++
-                             "}{" ++ show (start - 1) ++ "}"
-                        else empty
-  return $ text ("\\begin{enumerate}" ++ inc) <> exemplar $$ resetcounter $$
-           vcat items $$ "\\end{enumerate}"
+  let tostyle x = case numstyle of
+                       Decimal     -> "\\arabic" <> braces x
+                       UpperRoman  -> "\\Roman" <> braces x
+                       LowerRoman  -> "\\roman" <> braces x
+                       UpperAlpha  -> "\\Alph" <> braces x
+                       LowerAlpha  -> "\\alph" <> braces x
+                       _           -> x
+  let todelim x = case numdelim of
+                       OneParen    -> x <> ")"
+                       TwoParens   -> parens x
+                       Period      -> x <> "."
+                       _           -> x <> "."
+  let enum = text $ "enum" ++ map toLower (toRomanNumeral oldlevel)
+  let stylecommand = if numstyle == DefaultStyle && numdelim == DefaultDelim
+                        then empty
+                        else "\\def" <> "\\label" <> enum <>
+                              braces (todelim $ tostyle enum)
+  let resetcounter = if start == 1 || oldlevel > 4
+                        then empty
+                        else "\\setcounter" <> braces enum <>
+                              braces (text $ show $ start - 1)
+  return $ text ("\\begin{enumerate}" ++ inc)
+         $$ stylecommand
+         $$ resetcounter
+         $$ vcat items
+         $$ "\\end{enumerate}"
 blockToLaTeX (DefinitionList lst) = do
   incremental <- gets stIncremental
   let inc = if incremental then "[<+->]" else ""
