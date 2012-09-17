@@ -41,9 +41,6 @@ $endif$
 $if(verbatim-in-note)$
 \usepackage{fancyvrb}
 $endif$
-$if(fancy-enums)$
-\usepackage{enumerate}
-$endif$
 $if(tables)$
 \usepackage{longtable}
 \usepackage{float} % provides the H option for float placement
