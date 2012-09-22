@@ -48,6 +48,8 @@ tests = [ testGroup "inline code"
           [ "in URL" =:
             "\\begin\n" =?> para (text "\\begin")
           ]
+        , "unbalanced brackets" =:
+            "[[[[[[[[[[[[[[[hi" =?> para (text "[[[[[[[[[[[[[[[hi")
         , testGroup "backslash escapes"
           [ "in URL" =:
             "[hi](/there\\))"

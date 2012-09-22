@@ -132,15 +132,19 @@ litChar = escapedChar'
 -- | Parse a sequence of inline elements between square brackets,
 -- including inlines between balanced pairs of square brackets.
 inlinesInBalancedBrackets :: Parser [Char] ParserState (F Inlines)
-inlinesInBalancedBrackets = try $ do
+inlinesInBalancedBrackets = charsInBalancedBrackets >>=
+  parseFromString (trimInlinesF . mconcat <$> many inline)
+
+charsInBalancedBrackets :: Parser [Char] ParserState [Char]
+charsInBalancedBrackets = do
   char '['
-  result <- manyTill ( (do lookAhead $ try $ do x <- inline
-                                                guard (runF x def == B.str "[")
-                           bal <- inlinesInBalancedBrackets
-                           return $ (\x -> B.str "[" <> x <> B.str "]") <$> bal)
-                       <|> inline)
-                     (char ']')
-  return $ mconcat result
+  result <- manyTill (  many1 (noneOf "`[]\n")
+                    <|> (snd <$> withRaw code)
+                    <|> ((\xs -> '[' : xs ++ "]") <$> charsInBalancedBrackets)
+                    <|> count 1 (satisfy (/='\n'))
+                    <|> (newline >> notFollowedBy blankline >> return "\n")
+                     ) (char ']')
+  return $ concat result
 
 --
 -- document structure
