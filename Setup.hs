@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 import Distribution.Simple
 import Distribution.Simple.Setup
          (copyDest, copyVerbosity, fromFlag, installVerbosity, BuildFlags(..))
@@ -20,6 +22,7 @@ import System.Time
 import System.IO.Error ( isDoesNotExistError )
 import Data.Maybe ( catMaybes )
 import Data.List ( (\\) )
+import Data.Time.Clock (UTCTime(..))
 
 main :: IO ()
 main = do
@@ -82,7 +85,11 @@ modifiedDependencies :: FilePath -> [FilePath] -> IO [FilePath]
 modifiedDependencies file dependencies = do
   fileModTime <- catch (getModificationTime file) $
                  \e -> if isDoesNotExistError e
+#if __GLASGOW_HASKELL__ >= 706
+                          then return (UTCTime (toEnum 0) 0)   -- the minimum ClockTime
+#else
                           then return (TOD 0 0)   -- the minimum ClockTime
+#endif
                           else ioError e
   depModTimes <- mapM getModificationTime dependencies
   let modified = zipWith (\dep time -> if time > fileModTime then Just dep else Nothing) dependencies depModTimes
