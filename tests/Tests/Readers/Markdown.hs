@@ -44,6 +44,10 @@ tests = [ testGroup "inline code"
             "`*` {.haskell .special x=\"7\"}"
             =?> para (codeWith ("",["haskell","special"],[("x","7")]) "*")
           ]
+        , testGroup "raw LaTeX"
+          [ "in URL" =:
+            "\\begin\n" =?> para (text "\\begin")
+          ]
         , testGroup "backslash escapes"
           [ "in URL" =:
             "[hi](/there\\))"

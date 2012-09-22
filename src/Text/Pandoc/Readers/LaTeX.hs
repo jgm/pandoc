@@ -713,7 +713,7 @@ verbatimEnv = do
   return (r,rest)
 
 rawLaTeXBlock :: Parser [Char] ParserState String
-rawLaTeXBlock = snd <$> withRaw (environment <|> blockCommand)
+rawLaTeXBlock = snd <$> try (withRaw (environment <|> blockCommand))
 
 rawLaTeXInline :: Parser [Char] ParserState Inline
 rawLaTeXInline = do
