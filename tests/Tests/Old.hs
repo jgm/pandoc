@@ -212,7 +212,7 @@ testWithNormalize normalizer testname opts inp norm = testCase testname $ do
   let options = ["--data-dir", ".."] ++ [inpPath] ++ opts
   let cmd = pandocPath ++ " " ++ unwords options
   ph <- runProcess pandocPath options Nothing
-        (Just [("LANG","en_US.UTF-8"),("HOME", "./")]) Nothing (Just hOut)
+        (Just [("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./")]) Nothing (Just hOut)
         (Just stderr)
   ec <- waitForProcess ph
   result  <- if ec == ExitSuccess
