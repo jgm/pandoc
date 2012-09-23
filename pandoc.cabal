@@ -374,7 +374,9 @@ Test-Suite test-pandoc
   Type:           exitcode-stdio-1.0
   Main-Is:        test-pandoc.hs
   Hs-Source-Dirs: tests
-  Build-Depends: pandoc,
+  Build-Depends: base >= 4.2 && < 5,
+                 syb >= 0.1 && < 0.4,
+                 pandoc,
                  pandoc-types >= 1.10 && < 1.11,
                  utf8-string >= 0.3 && < 0.4,
                  bytestring >= 0.9 && < 1.0,
