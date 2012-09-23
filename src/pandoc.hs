@@ -59,20 +59,6 @@ import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString)
 import Text.CSL.Reference (Reference(..))
-#if MIN_VERSION_base(4,4,0)
-#else
-import Codec.Binary.UTF8.String (decodeString, encodeString)
-#endif
-
-encodePath, decodeArg :: FilePath -> FilePath
-#if MIN_VERSION_base(4,4,0)
-encodePath = id
-decodeArg  = id
-#else
-encodePath = encodeString
-decodeArg  = decodeString
-#endif
-
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2012 John MacFarlane\n" ++
@@ -1037,7 +1023,7 @@ main = do
              else return doc1
 
   let writeBinary :: B.ByteString -> IO ()
-      writeBinary = B.writeFile (encodePath outputFile)
+      writeBinary = B.writeFile (UTF8.encodePath outputFile)
 
   let writerFn :: FilePath -> String -> IO ()
       writerFn "-" = UTF8.putStr

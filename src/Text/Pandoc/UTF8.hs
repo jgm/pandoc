@@ -35,6 +35,7 @@ module Text.Pandoc.UTF8 ( readFile
                         , hPutStr
                         , hPutStrLn
                         , hGetContents
+                        , encodePath
                         )
 
 where
