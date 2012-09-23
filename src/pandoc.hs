@@ -363,7 +363,7 @@ options =
     , Option "H" ["include-in-header"]
                  (ReqArg
                   (\arg opt -> do
-                     text <- readFile arg
+                     text <- UTF8.readFile arg
                      -- add new ones to end, so they're included in order specified
                      let newvars = optVariables opt ++ [("header-includes",text)]
                      return opt { optVariables = newvars,
@@ -374,7 +374,7 @@ options =
     , Option "B" ["include-before-body"]
                  (ReqArg
                   (\arg opt -> do
-                     text <- readFile arg
+                     text <- UTF8.readFile arg
                      -- add new ones to end, so they're included in order specified
                      let newvars = optVariables opt ++ [("include-before",text)]
                      return opt { optVariables = newvars,
@@ -385,7 +385,7 @@ options =
     , Option "A" ["include-after-body"]
                  (ReqArg
                   (\arg opt -> do
-                     text <- readFile arg
+                     text <- UTF8.readFile arg
                      -- add new ones to end, so they're included in order specified
                      let newvars = optVariables opt ++ [("include-after",text)]
                      return opt { optVariables = newvars,
@@ -528,7 +528,7 @@ options =
     , Option "" ["epub-stylesheet"]
                  (ReqArg
                   (\arg opt -> do
-                     text <- readFile arg
+                     text <- UTF8.readFile arg
                      return opt { optEPUBStylesheet = Just text })
                   "FILENAME")
                  "" -- "Path of epub.css"
@@ -544,7 +544,7 @@ options =
     , Option "" ["epub-metadata"]
                  (ReqArg
                   (\arg opt -> do
-                     text <- readFile arg
+                     text <- UTF8.readFile arg
                      return opt { optEPUBMetadata = text })
                   "FILENAME")
                  "" -- "Path of epub metadata file"
@@ -756,7 +756,7 @@ defaultWriterName x =
 main :: IO ()
 main = do
 
-  rawArgs <- liftM (map UTF8.decodeArg) getArgs
+  rawArgs <- liftM (map decodeArg) getArgs
   prg <- getProgName
   let compatMode = (prg == "hsmarkdown")
 
@@ -888,7 +888,7 @@ main = do
                            let tp' = case takeExtension tp of
                                           ""   -> tp <.> format
                                           _    -> tp
-                           E.catch (readFile tp')
+                           E.catch (UTF8.readFile tp')
                              (\e -> if isDoesNotExistError e
                                        then E.catch
                                              (readDataFile datadir $
@@ -982,11 +982,11 @@ main = do
 
   let readSources [] = mapM readSource ["-"]
       readSources srcs = mapM readSource srcs
-      readSource "-" = getContents
+      readSource "-" = UTF8.getContents
       readSource src = case parseURI src of
                             Just u | uriScheme u `elem` ["http:","https:"] ->
                                        readURI u
-                            _       -> readFile src
+                            _       -> UTF8.readFile src
       readURI uri = simpleHTTP (mkRequest GET uri) >>= getResponseBody >>=
                       return . toString  -- treat all as UTF8
 
@@ -1026,8 +1026,8 @@ main = do
       writeBinary = B.writeFile (UTF8.encodePath outputFile)
 
   let writerFn :: FilePath -> String -> IO ()
-      writerFn "-" = putStr
-      writerFn f   = writeFile (UTF8.encodePath f)
+      writerFn "-" = UTF8.putStr
+      writerFn f   = UTF8.writeFile f
 
   case getWriter writerName' of
     Left e -> err 9 e
