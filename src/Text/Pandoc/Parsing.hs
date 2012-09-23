@@ -146,7 +146,6 @@ where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Builder (Blocks)
-import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec
 import Text.Parsec.Pos (newPos)
 import Data.Char ( toLower, toUpper, ord, isAscii, isAlphaNum, isDigit, isPunctuation )
@@ -708,7 +707,7 @@ readWith parser state input =
 testStringWith :: (Show a) => Parser [Char] ParserState a
                -> String
                -> IO ()
-testStringWith parser str = UTF8.putStrLn $ show $
+testStringWith parser str = putStrLn $ show $
                             readWith parser defaultParserState str
 
 -- | Parsing options.
