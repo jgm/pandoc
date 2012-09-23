@@ -36,13 +36,14 @@ module Text.Pandoc.UTF8 ( readFile
                         , hPutStrLn
                         , hGetContents
                         , encodePath
+                        , decodeArg
                         )
 
 where
 
 #if MIN_VERSION_base(4,4,0)
 #else
-import Codec.Binary.UTF8.String (encodeString)
+import Codec.Binary.UTF8.String (encodeString, decodeString)
 #endif
 
 #if MIN_VERSION_base(4,2,0)
@@ -121,8 +122,11 @@ hPutStrLn h s = hPutStr h (s ++ "\n")
 #endif
 
 encodePath :: FilePath -> FilePath
+decodeArg :: String -> String
 #if MIN_VERSION_base(4,4,0)
 encodePath = id
+decodeArg = id
 #else
 encodePath = encodeString
+decodeArg = decodeString
 #endif
