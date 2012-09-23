@@ -756,7 +756,7 @@ defaultWriterName x =
 main :: IO ()
 main = do
 
-  rawArgs <- liftM (map decodeArg) getArgs
+  rawArgs <- liftM (map UTF8.decodeArg) getArgs
   prg <- getProgName
   let compatMode = (prg == "hsmarkdown")
 
