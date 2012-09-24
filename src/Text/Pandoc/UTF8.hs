@@ -25,7 +25,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-UTF-8 aware string IO functions that will work with GHC 6.10, 6.12, or 7.
+UTF-8 aware string IO functions that will work with GHC 6.12 or 7.
+The reading functions first attempt to read UTF-8; if an encoding
+error is encountered, the local encoding is used instead.  This
+should work well in practice because text in other encodings
+is usually not valid UTF-8.
 -}
 module Text.Pandoc.UTF8 ( readFile
                         , writeFile
@@ -45,10 +49,11 @@ where
 #else
 import Codec.Binary.UTF8.String (encodeString, decodeString)
 #endif
-
+import Control.Exception (catch, throwIO)
+import GHC.IO.Exception (IOException(..), IOErrorType(..))
 import System.IO hiding (readFile, writeFile, getContents,
                           putStr, putStrLn, hPutStr, hPutStrLn, hGetContents)
-import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn )
+import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn, catch )
 import qualified System.IO as IO
 
 readFile :: FilePath -> IO String
@@ -75,7 +80,14 @@ hPutStrLn :: Handle -> String -> IO ()
 hPutStrLn h s = hSetEncoding h utf8 >> IO.hPutStrLn h s
 
 hGetContents :: Handle -> IO String
-hGetContents h = hSetEncoding h utf8_bom >> IO.hGetContents h
+hGetContents h = do
+  hSetEncoding h utf8_bom
+  catch (IO.hGetContents h) $ \e ->
+    case ioe_type e of
+         InvalidArgument -> do
+           hSetEncoding h localeEncoding
+           IO.hGetContents h
+         _ -> throwIO e
 
 encodePath :: FilePath -> FilePath
 decodeArg :: String -> String

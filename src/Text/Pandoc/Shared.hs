@@ -90,7 +90,7 @@ import Paths_pandoc (getDataFileName)
 import Text.Pandoc.Pretty (charWidth)
 import System.Locale (defaultTimeLocale)
 import Data.Time
-import System.IO (stderr)
+import System.IO (stderr, hPutStrLn)
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
          renderOptions)
 
@@ -503,14 +503,14 @@ readDataFile userDir fname = findDataFile userDir fname >>= UTF8.readFile
 err :: Int -> String -> IO a
 err exitCode msg = do
   name <- getProgName
-  UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
+  hPutStrLn stderr $ name ++ ": " ++ msg
   exitWith $ ExitFailure exitCode
   return undefined
 
 warn :: String -> IO ()
 warn msg = do
   name <- getProgName
-  UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
+  hPutStrLn stderr $ name ++ ": " ++ msg
 
 --
 -- Safe read

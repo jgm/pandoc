@@ -33,8 +33,7 @@ import System.FilePath ( (</>) )
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import Data.ByteString.Lazy.UTF8 ( fromString, toString )
-import Text.Pandoc.UTF8 as UTF8
-import System.IO ( stderr )
+import System.IO ( stderr, hPutStrLn )
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
 import Paths_pandoc ( getDataFileName )
@@ -663,7 +662,7 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
                , mknode "wp:docPr" [("descr",tit),("id","1"),("name","Picture")] ()
                , graphic ] ]
      else do
-       liftIO $ UTF8.hPutStrLn stderr $
+       liftIO $ hPutStrLn stderr $
           "Could not find image `" ++ src ++ "', skipping..."
        inlinesToOpenXML opts alt
 
