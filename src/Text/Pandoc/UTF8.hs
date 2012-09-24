@@ -46,8 +46,6 @@ where
 import Codec.Binary.UTF8.String (encodeString, decodeString)
 #endif
 
-#if MIN_VERSION_base(4,2,0)
-
 import System.IO hiding (readFile, writeFile, getContents,
                           putStr, putStrLn, hPutStr, hPutStrLn, hGetContents)
 import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn )
@@ -78,48 +76,6 @@ hPutStrLn h s = hSetEncoding h utf8 >> IO.hPutStrLn h s
 
 hGetContents :: Handle -> IO String
 hGetContents h = hSetEncoding h utf8_bom >> IO.hGetContents h
-
-#else
-
-import qualified Data.ByteString as B
-import Data.ByteString.UTF8 (toString, fromString)
-import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn)
-import System.IO (Handle)
-import Control.Monad (liftM)
-
-
-bom :: B.ByteString
-bom = B.pack [0xEF, 0xBB, 0xBF]
-
-stripBOM :: B.ByteString -> B.ByteString
-stripBOM s | bom `B.isPrefixOf` s = B.drop 3 s
-stripBOM s = s
-
-readFile :: FilePath -> IO String
-readFile = liftM (toString . stripBOM) . B.readFile . encodePath
-
-writeFile :: FilePath -> String -> IO ()
-writeFile f = B.writeFile (encodePath f) . fromString
-
-getContents :: IO String
-getContents = liftM (toString . stripBOM) B.getContents
-
-hGetContents :: Handle -> IO String
-hGetContents h = liftM (toString . stripBOM) (B.hGetContents h)
-
-putStr :: String -> IO ()
-putStr = B.putStr . fromString
-
-putStrLn :: String -> IO ()
-putStrLn = B.putStrLn . fromString
-
-hPutStr :: Handle -> String -> IO ()
-hPutStr h = B.hPutStr h . fromString
-
-hPutStrLn :: Handle -> String -> IO ()
-hPutStrLn h s = hPutStr h (s ++ "\n")
-
-#endif
 
 encodePath :: FilePath -> FilePath
 decodeArg :: String -> String
