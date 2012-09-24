@@ -46,7 +46,7 @@ import System.Console.GetOpt
 import Data.Char ( toLower )
 import Data.List ( intercalate, isPrefixOf )
 import System.Directory ( getAppUserDataDirectory, doesFileExist, findExecutable )
-import System.IO ( stdout, hPutStr, hPutStrLn )
+import System.IO ( stdout )
 import System.IO.Error ( isDoesNotExistError )
 import qualified Control.Exception as E
 import Control.Exception.Extensible ( throwIO )
@@ -312,7 +312,7 @@ options =
                   (\arg _ -> do
                      templ <- getDefaultTemplate Nothing arg
                      case templ of
-                          Right t -> hPutStr stdout t
+                          Right t -> UTF8.hPutStr stdout t
                           Left e  -> error $ show e
                      exitWith ExitSuccess)
                   "FORMAT")
@@ -663,7 +663,7 @@ options =
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     hPutStrLn stdout (prg ++ " " ++ pandocVersion ++ compileInfo ++
+                     UTF8.hPutStrLn stdout (prg ++ " " ++ pandocVersion ++ compileInfo ++
                                        copyrightMessage)
                      exitWith ExitSuccess ))
                  "" -- "Print version"
@@ -672,7 +672,7 @@ options =
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     hPutStr stdout (usageMessage prg options)
+                     UTF8.hPutStr stdout (usageMessage prg options)
                      exitWith ExitSuccess ))
                  "" -- "Show help"
 
@@ -827,8 +827,8 @@ main = do
              } = opts
 
   when dumpArgs $
-    do hPutStrLn stdout outputFile
-       mapM_ (\arg -> hPutStrLn stdout arg) args
+    do UTF8.hPutStrLn stdout outputFile
+       mapM_ (\arg -> UTF8.hPutStrLn stdout arg) args
        exitWith ExitSuccess
 
   let sources = if ignoreArgs then [] else args
@@ -1026,8 +1026,8 @@ main = do
       writeBinary = B.writeFile (UTF8.encodePath outputFile)
 
   let writerFn :: FilePath -> String -> IO ()
-      writerFn "-" = putStr
-      writerFn f   = writeFile f
+      writerFn "-" = UTF8.putStr
+      writerFn f   = UTF8.writeFile f
 
   case getWriter writerName' of
     Left e -> err 9 e
