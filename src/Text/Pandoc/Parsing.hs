@@ -1,4 +1,5 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -87,6 +88,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              -- macro,
                              -- applyMacros',
                              Parser,
+                             Stream (..),
                              F(..),
                              runF,
                              askF,
@@ -260,12 +262,12 @@ stringAnyCase (x:xs) = do
   return (firstChar:rest)
 
 -- | Parse contents of 'str' using 'parser' and return result.
-parseFromString :: Stream s Identity tok
-                => Parser s st a -> s -> Parser s st a
+parseFromString :: (IsString s, Stream s Identity tok)
+                => Parser s st a -> String -> Parser s st a
 parseFromString parser str = do
   oldPos <- getPosition
   oldInput <- getInput
-  setInput str
+  setInput $ fromString str
   result <- parser
   setInput oldInput
   setPosition oldPos
@@ -672,8 +674,7 @@ gridTableHeader headless blocks = try $ do
                     then replicate (length dashes) ""
                     else map (intercalate " ") $ transpose
                        $ map (gridTableSplitLine indices) rawContent
-  heads <- mapM (parseFromString blocks . fromString .
-                 removeLeadingTrailingSpace) rawHeads
+  heads <- mapM (parseFromString blocks . removeLeadingTrailingSpace) rawHeads
   return (heads, aligns, indices)
 
 gridTableRawLine :: Stream s Identity Char
@@ -692,7 +693,7 @@ gridTableRow blocks indices = do
   colLines <- many1 (gridTableRawLine indices)
   let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
                transpose colLines
-  mapM (liftM compactifyCell . parseFromString blocks . fromString) cols
+  mapM (liftM compactifyCell . parseFromString blocks) cols
 
 removeOneLeadingSpace :: [String] -> [String]
 removeOneLeadingSpace xs =
