@@ -45,6 +45,8 @@ data WriterState =
   WriterState { stStrikeout   :: Bool  -- document contains strikeout
               , stSuperscript :: Bool -- document contains superscript
               , stSubscript   :: Bool -- document contains subscript
+              , stEscapeComma :: Bool -- in a context where we need @comma
+              , stIdentifiers :: [String] -- header ids used already
               }
 
 {- TODO:
@@ -56,7 +58,8 @@ data WriterState =
 writeTexinfo :: WriterOptions -> Pandoc -> String
 writeTexinfo options document =
   evalState (pandocToTexinfo options $ wrapTop document) $
-  WriterState { stStrikeout = False, stSuperscript = False, stSubscript = False }
+  WriterState { stStrikeout = False, stSuperscript = False,
+                stEscapeComma = False, stSubscript = False, stIdentifiers = [] }
 
 -- | Add a "Top" node around the document, needed by Texinfo.
 wrapTop :: Pandoc -> Pandoc
@@ -95,13 +98,20 @@ stringToTexinfo = escapeStringUsing texinfoEscapes
   where texinfoEscapes = [ ('{', "@{")
                          , ('}', "@}")
                          , ('@', "@@")
-                         , (',', "@comma{}") -- only needed in argument lists
                          , ('\160', "@ ")
                          , ('\x2014', "---")
                          , ('\x2013', "--")
                          , ('\x2026', "@dots{}")
                          , ('\x2019', "'")
                          ]
+
+escapeCommas :: State WriterState Doc -> State WriterState Doc
+escapeCommas parser = do
+  oldEscapeComma <- gets stEscapeComma
+  modify $ \st -> st{ stEscapeComma = True }
+  res <- parser
+  modify $ \st -> st{ stEscapeComma = oldEscapeComma }
+  return res
 
 -- | Puts contents into Texinfo command.
 inCmd :: String -> Doc -> Doc
@@ -134,7 +144,8 @@ blockToTexinfo (BlockQuote lst) = do
            text "@end quotation"
 
 blockToTexinfo (CodeBlock _ str) = do
-  return $ text "@verbatim" $$
+  return $ blankline $$
+           text "@verbatim" $$
            flush (text str) $$
            text "@end verbatim" <> blankline
 
@@ -194,9 +205,13 @@ blockToTexinfo (Header 0 lst) = do
 blockToTexinfo (Header level lst) = do
   node <- inlineListForNode lst
   txt <- inlineListToTexinfo lst
+  idsUsed <- gets stIdentifiers
+  let id' = uniqueIdent lst idsUsed
+  modify $ \st -> st{ stIdentifiers = id' : idsUsed }
   return $ if (level > 0) && (level <= 4)
-              then blankline <> text "@node " <> node <> cr <>
-                   text (seccmd level) <> txt
+              then blankline <> text "@node " <> node $$
+                   text (seccmd level) <> txt $$
+                   text "@anchor" <> braces (text $ '#':id')
               else txt
   where
     seccmd 1 = "@chapter "
@@ -404,17 +419,21 @@ inlineToTexinfo (RawInline _ _) = return empty
 inlineToTexinfo (LineBreak) = return $ text "@*"
 inlineToTexinfo Space = return $ char ' '
 
+inlineToTexinfo (Link txt (src@('#':_), _)) = do
+  contents <- escapeCommas $ inlineListToTexinfo txt
+  return $ text "@ref" <>
+           braces (text (stringToTexinfo src) <> text "," <> contents)
 inlineToTexinfo (Link txt (src, _)) = do
   case txt of
         [Code _ x] | x == src ->  -- autolink
              do return $ text $ "@url{" ++ x ++ "}"
-        _ -> do contents <- inlineListToTexinfo txt
+        _ -> do contents <- escapeCommas $ inlineListToTexinfo txt
                 let src1 = stringToTexinfo src
                 return $ text ("@uref{" ++ src1 ++ ",") <> contents <>
                          char '}'
 
 inlineToTexinfo (Image alternate (source, _)) = do
-  content <- inlineListToTexinfo alternate
+  content <- escapeCommas $ inlineListToTexinfo alternate
   return $ text ("@image{" ++ base ++ ",,,") <> content <> text "," <>
            text (ext ++ "}")
   where
