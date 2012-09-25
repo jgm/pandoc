@@ -83,8 +83,9 @@ module Text.Pandoc.Parsing ( (>>~),
                              apostrophe,
                              dash,
                              nested,
-                             macro,
-                             applyMacros',
+                             -- TODO
+                             -- macro,
+                             -- applyMacros',
                              Parser,
                              F(..),
                              runF,
@@ -161,6 +162,7 @@ import qualified Data.Set as Set
 import Control.Monad.Reader
 import Control.Monad.Identity
 import Data.Monoid
+import Data.String (IsString, fromString)
 
 type Parser t s = Parsec t s
 
@@ -413,7 +415,6 @@ withRaw :: Stream s Identity Char
         => Parser s st a -> Parser s st (a, String)
 withRaw parser = do
   pos1 <- getPosition
-  inp <- getInput
   (result, pos2) <- lookAhead $ do res <- parser
                                    pos <- getPosition
                                    return (res, pos)
@@ -618,7 +619,7 @@ widthsFromIndices numColumns' indices =
 -- (which may be grid), then the rows,
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-gridTableWith :: Stream s Identity Char
+gridTableWith :: (IsString s, Stream s Identity Char)
               => Parser s ParserState [Block]   -- ^ Block list parser
               -> Bool                                -- ^ Headerless table
               -> Parser s ParserState Block
@@ -648,7 +649,7 @@ gridTableSep :: Stream s Identity Char => Char -> Parser s ParserState Char
 gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- | Parse header for a grid table.
-gridTableHeader :: Stream s Identity Char
+gridTableHeader :: (IsString s, Stream s Identity Char)
                 => Bool -- ^ Headerless table
                 -> Parser s ParserState [Block]
                 -> Parser s ParserState ([[Block]], [Alignment], [Int])
@@ -671,8 +672,8 @@ gridTableHeader headless blocks = try $ do
                     then replicate (length dashes) ""
                     else map (intercalate " ") $ transpose
                        $ map (gridTableSplitLine indices) rawContent
-  heads <- mapM (parseFromString blocks) $
-               map removeLeadingTrailingSpace rawHeads
+  heads <- mapM (parseFromString blocks . fromString .
+                 removeLeadingTrailingSpace) rawHeads
   return (heads, aligns, indices)
 
 gridTableRawLine :: Stream s Identity Char
@@ -683,7 +684,7 @@ gridTableRawLine indices = do
   return (gridTableSplitLine indices line)
 
 -- | Parse row of grid table.
-gridTableRow :: Stream s Identity Char
+gridTableRow :: (IsString s, Stream s Identity Char)
              => Parser s ParserState [Block]
              -> [Int]
              -> Parser s ParserState [[Block]]
@@ -691,7 +692,7 @@ gridTableRow blocks indices = do
   colLines <- many1 (gridTableRawLine indices)
   let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
                transpose colLines
-  mapM (liftM compactifyCell . parseFromString blocks) cols
+  mapM (liftM compactifyCell . parseFromString blocks . fromString) cols
 
 removeOneLeadingSpace :: [String] -> [String]
 removeOneLeadingSpace xs =
@@ -966,6 +967,8 @@ nested p = do
 -- Macros
 --
 
+{- TODO redo this all
+
 -- | Parse a \newcommand or \renewcommand macro definition.
 macro :: Stream s Identity Char => Parser s ParserState Block
 macro = do
@@ -989,4 +992,4 @@ applyMacros' target = do
      then do macros <- liftM stateMacros getState
              return $ applyMacros macros target
      else return target
-
+-}
