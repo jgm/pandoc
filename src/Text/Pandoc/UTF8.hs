@@ -75,7 +75,8 @@ hPutStrLn :: Handle -> String -> IO ()
 hPutStrLn h s = hSetEncoding h utf8 >> IO.hPutStrLn h s
 
 hGetContents :: Handle -> IO String
-hGetContents h = hSetEncoding h utf8_bom >> IO.hGetContents h
+hGetContents h = hSetEncoding h utf8_bom >> hSetNewlineMode h universalNewlineMode
+                  >> IO.hGetContents h
 
 encodePath :: FilePath -> FilePath
 decodeArg :: String -> String
