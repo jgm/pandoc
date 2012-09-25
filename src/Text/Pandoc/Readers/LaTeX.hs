@@ -49,6 +49,10 @@ import Data.List (intercalate)
 import qualified Data.Map as M
 import qualified Control.Exception as E
 
+-- TODO temporary til this is restored in Parsing
+applyMacros' = return
+macro = mzero
+
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ReaderOptions -- ^ Reader options
           -> String        -- ^ String to parse (assumes @'\n'@ line endings)
