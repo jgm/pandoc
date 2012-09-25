@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleContexts #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -159,6 +159,7 @@ import Text.HTML.TagSoup.Entity ( lookupEntity )
 import Data.Default
 import qualified Data.Set as Set
 import Control.Monad.Reader
+import Control.Monad.Identity
 import Data.Monoid
 
 type Parser t s = Parsec t s
@@ -185,13 +186,14 @@ instance Monoid a => Monoid (F a) where
 a >>~ b = a >>= \x -> b >> return x
 
 -- | Parse any line of text
-anyLine :: Parser [Char] st [Char]
+anyLine :: Stream s Identity Char => Parser s st [Char]
 anyLine = manyTill anyChar newline
 
 -- | Like @manyTill@, but reads at least one item.
-many1Till :: Parser [tok] st a
-          -> Parser [tok] st end
-          -> Parser [tok] st [a]
+many1Till :: Stream s Identity tok
+          => Parser s st a
+          -> Parser s st end
+          -> Parser s st [a]
 many1Till p end = do
          first <- p
          rest <- manyTill p end
@@ -200,7 +202,7 @@ many1Till p end = do
 -- | A more general form of @notFollowedBy@.  This one allows any
 -- type of parser to be specified, and succeeds only if that parser fails.
 -- It does not consume any input.
-notFollowedBy' :: Show b => Parser [a] st b -> Parser [a] st ()
+notFollowedBy' :: (Stream s Identity a, Show b) => Parser s st b -> Parser s st ()
 notFollowedBy' p  = try $ join $  do  a <- try p
                                       return (unexpected (show a))
                                   <|>
@@ -208,7 +210,7 @@ notFollowedBy' p  = try $ join $  do  a <- try p
 -- (This version due to Andrew Pimlott on the Haskell mailing list.)
 
 -- | Parses one of a list of strings (tried in order).
-oneOfStrings :: [String] -> Parser [Char] st String
+oneOfStrings :: Stream s Identity Char => [String] -> Parser s st String
 oneOfStrings []   = fail "no strings"
 oneOfStrings strs = do
   c <- anyChar
@@ -219,35 +221,36 @@ oneOfStrings strs = do
          | otherwise    -> (c:) `fmap` oneOfStrings strs'
 
 -- | Parses a space or tab.
-spaceChar :: Parser [Char] st Char
+spaceChar :: Stream s Identity Char => Parser s st Char
 spaceChar = satisfy $ \c -> c == ' ' || c == '\t'
 
 -- | Parses a nonspace, nonnewline character.
-nonspaceChar :: Parser [Char] st Char
+nonspaceChar :: Stream s Identity Char => Parser s st Char
 nonspaceChar = satisfy $ \x -> x /= '\t' && x /= '\n' && x /= ' ' && x /= '\r'
 
 -- | Skips zero or more spaces or tabs.
-skipSpaces :: Parser [Char] st ()
+skipSpaces :: Stream s Identity Char => Parser s st ()
 skipSpaces = skipMany spaceChar
 
 -- | Skips zero or more spaces or tabs, then reads a newline.
-blankline :: Parser [Char] st Char
+blankline :: Stream s Identity Char => Parser s st Char
 blankline = try $ skipSpaces >> newline
 
 -- | Parses one or more blank lines and returns a string of newlines.
-blanklines :: Parser [Char] st [Char]
+blanklines :: Stream s Identity Char => Parser s st [Char]
 blanklines = many1 blankline
 
 -- | Parses material enclosed between start and end parsers.
-enclosed :: Parser [Char] st t   -- ^ start parser
-         -> Parser [Char] st end  -- ^ end parser
-         -> Parser [Char] st a    -- ^ content parser (to be used repeatedly)
-         -> Parser [Char] st [a]
+enclosed :: Stream s Identity Char
+         => Parser s st t   -- ^ start parser
+         -> Parser s st end  -- ^ end parser
+         -> Parser s st a    -- ^ content parser (to be used repeatedly)
+         -> Parser s st [a]
 enclosed start end parser = try $
   start >> notFollowedBy space >> many1Till parser end
 
 -- | Parse string, case insensitive.
-stringAnyCase :: [Char] -> Parser [Char] st String
+stringAnyCase :: Stream s Identity Char => [Char] -> Parser s st String
 stringAnyCase [] = string ""
 stringAnyCase (x:xs) = do
   firstChar <- char (toUpper x) <|> char (toLower x)
@@ -255,7 +258,8 @@ stringAnyCase (x:xs) = do
   return (firstChar:rest)
 
 -- | Parse contents of 'str' using 'parser' and return result.
-parseFromString :: Parser [tok] st a -> [tok] -> Parser [tok] st a
+parseFromString :: Stream s Identity tok
+                => Parser s st a -> s -> Parser s st a
 parseFromString parser str = do
   oldPos <- getPosition
   oldInput <- getInput
@@ -266,7 +270,7 @@ parseFromString parser str = do
   return result
 
 -- | Parse raw line block up to and including blank lines.
-lineClump :: Parser [Char] st String
+lineClump :: Stream s Identity Char => Parser s st String
 lineClump = blanklines
           <|> (many1 (notFollowedBy blankline >> anyLine) >>= return . unlines)
 
@@ -275,8 +279,9 @@ lineClump = blanklines
 -- pairs of open and close, which must be different. For example,
 -- @charsInBalanced '(' ')' anyChar@ will parse "(hello (there))"
 -- and return "hello (there)".
-charsInBalanced :: Char -> Char -> Parser [Char] st Char
-                -> Parser [Char] st String
+charsInBalanced :: Stream s Identity Char
+                => Char -> Char -> Parser s st Char
+                -> Parser s st String
 charsInBalanced open close parser = try $ do
   char open
   let isDelim c = c == open || c == close
@@ -300,8 +305,9 @@ uppercaseRomanDigits :: [Char]
 uppercaseRomanDigits = map toUpper lowercaseRomanDigits
 
 -- | Parses a roman numeral (uppercase or lowercase), returns number.
-romanNumeral :: Bool                  -- ^ Uppercase if true
-             -> Parser [Char] st Int
+romanNumeral :: Stream s Identity Char
+             => Bool                  -- ^ Uppercase if true
+             -> Parser s st Int
 romanNumeral upperCase = do
     let romanDigits = if upperCase
                          then uppercaseRomanDigits
@@ -331,14 +337,14 @@ romanNumeral upperCase = do
 
 -- Parsers for email addresses and URIs
 
-emailChar :: Parser [Char] st Char
+emailChar :: Stream s Identity Char => Parser s st Char
 emailChar = alphaNum <|>
             satisfy (\c -> c == '-' || c == '+' || c == '_' || c == '.')
 
-domainChar :: Parser [Char] st Char
+domainChar :: Stream s Identity Char => Parser s st Char
 domainChar = alphaNum <|> char '-'
 
-domain :: Parser [Char] st [Char]
+domain :: Stream s Identity Char => Parser s st [Char]
 domain = do
   first <- many1 domainChar
   dom <- many1 $ try (char '.' >> many1 domainChar )
@@ -346,7 +352,7 @@ domain = do
 
 -- | Parses an email address; returns original and corresponding
 -- escaped mailto: URI.
-emailAddress :: Parser [Char] st (String, String)
+emailAddress :: Stream s Identity Char => Parser s st (String, String)
 emailAddress = try $ do
   firstLetter <- alphaNum
   restAddr <- many emailChar
@@ -357,7 +363,7 @@ emailAddress = try $ do
   return (full, escapeURI $ "mailto:" ++ full)
 
 -- | Parses a URI. Returns pair of original and URI-escaped version.
-uri :: Parser [Char] st (String, String)
+uri :: Stream s Identity Char => Parser s st (String, String)
 uri = try $ do
   let protocols = [ "http:", "https:", "ftp:", "file:", "mailto:",
                     "news:", "telnet:" ]
@@ -392,8 +398,9 @@ uri = try $ do
 -- displacement (the difference between the source column at the end
 -- and the source column at the beginning). Vertical displacement
 -- (source row) is ignored.
-withHorizDisplacement :: Parser [Char] st a  -- ^ Parser to apply
-                      -> Parser [Char] st (a, Int) -- ^ (result, displacement)
+withHorizDisplacement :: Stream s Identity Char
+                      => Parser s st a  -- ^ Parser to apply
+                      -> Parser s st (a, Int) -- ^ (result, displacement)
 withHorizDisplacement parser = do
   pos1 <- getPosition
   result <- parser
@@ -402,33 +409,33 @@ withHorizDisplacement parser = do
 
 -- | Applies a parser and returns the raw string that was parsed,
 -- along with the value produced by the parser.
-withRaw :: Parser [Char] st a -> Parser [Char] st (a, [Char])
+withRaw :: Stream s Identity Char
+        => Parser s st a -> Parser s st (a, String)
 withRaw parser = do
   pos1 <- getPosition
   inp <- getInput
-  result <- parser
-  pos2 <- getPosition
+  (result, pos2) <- lookAhead $ do res <- parser
+                                   pos <- getPosition
+                                   return (res, pos)
   let (l1,c1) = (sourceLine pos1, sourceColumn pos1)
   let (l2,c2) = (sourceLine pos2, sourceColumn pos2)
-  let inplines = take ((l2 - l1) + 1) $ lines inp
-  let raw = case inplines of
-                []   -> error "raw: inplines is null" -- shouldn't happen
-                [l]  -> take (c2 - c1) l
-                ls   -> unlines (init ls) ++ take (c2 - 1) (last ls)
-  return (result, raw)
+  inplines <- count (l2 - l1) anyLine
+  rest <- count (c2 - c1) anyChar
+  return (result, intercalate "\n" inplines ++ rest)
 
 -- | Parses a character and returns 'Null' (so that the parser can move on
 -- if it gets stuck).
-nullBlock :: Parser [Char] st Block
+nullBlock :: Stream s Identity Char => Parser s st Block
 nullBlock = anyChar >> return Null
 
 -- | Parses backslash, then applies character parser.
-escaped :: Parser [Char] st Char  -- ^ Parser for character to escape
-        -> Parser [Char] st Char
+escaped :: Stream s Identity Char
+        => Parser s st Char  -- ^ Parser for character to escape
+        -> Parser s st Char
 escaped parser = try $ char '\\' >> parser
 
 -- | Parse character entity.
-characterReference :: Parser [Char] st Char
+characterReference :: Stream s Identity Char => Parser s st Char
 characterReference = try $ do
   char '&'
   ent <- many1Till nonspaceChar (char ';')
@@ -437,19 +444,19 @@ characterReference = try $ do
        Nothing -> fail "entity not found"
 
 -- | Parses an uppercase roman numeral and returns (UpperRoman, number).
-upperRoman :: Parser [Char] st (ListNumberStyle, Int)
+upperRoman :: Stream s Identity Char => Parser s st (ListNumberStyle, Int)
 upperRoman = do
   num <- romanNumeral True
   return (UpperRoman, num)
 
 -- | Parses a lowercase roman numeral and returns (LowerRoman, number).
-lowerRoman :: Parser [Char] st (ListNumberStyle, Int)
+lowerRoman :: Stream s Identity Char => Parser s st (ListNumberStyle, Int)
 lowerRoman = do
   num <- romanNumeral False
   return (LowerRoman, num)
 
 -- | Parses a decimal numeral and returns (Decimal, number).
-decimal :: Parser [Char] st (ListNumberStyle, Int)
+decimal :: Stream s Identity Char => Parser s st (ListNumberStyle, Int)
 decimal = do
   num <- many1 digit
   return (Decimal, read num)
@@ -458,7 +465,7 @@ decimal = do
 -- returns (DefaultStyle, [next example number]).  The next
 -- example number is incremented in parser state, and the label
 -- (if present) is added to the label table.
-exampleNum :: Parser [Char] ParserState (ListNumberStyle, Int)
+exampleNum :: Stream s Identity Char => Parser s ParserState (ListNumberStyle, Int)
 exampleNum = do
   char '@'
   lab <- many (alphaNum <|> satisfy (\c -> c == '_' || c == '-'))
@@ -472,38 +479,39 @@ exampleNum = do
   return (Example, num)
 
 -- | Parses a '#' returns (DefaultStyle, 1).
-defaultNum :: Parser [Char] st (ListNumberStyle, Int)
+defaultNum :: Stream s Identity Char => Parser s st (ListNumberStyle, Int)
 defaultNum = do
   char '#'
   return (DefaultStyle, 1)
 
 -- | Parses a lowercase letter and returns (LowerAlpha, number).
-lowerAlpha :: Parser [Char] st (ListNumberStyle, Int)
+lowerAlpha :: Stream s Identity Char => Parser s st (ListNumberStyle, Int)
 lowerAlpha = do
   ch <- oneOf ['a'..'z']
   return (LowerAlpha, ord ch - ord 'a' + 1)
 
 -- | Parses an uppercase letter and returns (UpperAlpha, number).
-upperAlpha :: Parser [Char] st (ListNumberStyle, Int)
+upperAlpha :: Stream s Identity Char => Parser s st (ListNumberStyle, Int)
 upperAlpha = do
   ch <- oneOf ['A'..'Z']
   return (UpperAlpha, ord ch - ord 'A' + 1)
 
 -- | Parses a roman numeral i or I
-romanOne :: Parser [Char] st (ListNumberStyle, Int)
+romanOne :: Stream s Identity Char => Parser s st (ListNumberStyle, Int)
 romanOne = (char 'i' >> return (LowerRoman, 1)) <|>
            (char 'I' >> return (UpperRoman, 1))
 
 -- | Parses an ordered list marker and returns list attributes.
-anyOrderedListMarker :: Parser [Char] ParserState ListAttributes
+anyOrderedListMarker :: Stream s Identity Char => Parser s ParserState ListAttributes
 anyOrderedListMarker = choice $
   [delimParser numParser | delimParser <- [inPeriod, inOneParen, inTwoParens],
                            numParser <- [decimal, exampleNum, defaultNum, romanOne,
                            lowerAlpha, lowerRoman, upperAlpha, upperRoman]]
 
 -- | Parses a list number (num) followed by a period, returns list attributes.
-inPeriod :: Parser [Char] st (ListNumberStyle, Int)
-         -> Parser [Char] st ListAttributes
+inPeriod :: Stream s Identity Char
+         => Parser s st (ListNumberStyle, Int)
+         -> Parser s st ListAttributes
 inPeriod num = try $ do
   (style, start) <- num
   char '.'
@@ -513,16 +521,18 @@ inPeriod num = try $ do
   return (start, style, delim)
 
 -- | Parses a list number (num) followed by a paren, returns list attributes.
-inOneParen :: Parser [Char] st (ListNumberStyle, Int)
-           -> Parser [Char] st ListAttributes
+inOneParen :: Stream s Identity Char
+           => Parser s st (ListNumberStyle, Int)
+           -> Parser s st ListAttributes
 inOneParen num = try $ do
   (style, start) <- num
   char ')'
   return (start, style, OneParen)
 
 -- | Parses a list number (num) enclosed in parens, returns list attributes.
-inTwoParens :: Parser [Char] st (ListNumberStyle, Int)
-            -> Parser [Char] st ListAttributes
+inTwoParens :: Stream s Identity Char
+            => Parser s st (ListNumberStyle, Int)
+            -> Parser s st ListAttributes
 inTwoParens num = try $ do
   char '('
   (style, start) <- num
@@ -531,9 +541,10 @@ inTwoParens num = try $ do
 
 -- | Parses an ordered list marker with a given style and delimiter,
 -- returns number.
-orderedListMarker :: ListNumberStyle
+orderedListMarker :: Stream s Identity Char
+                  => ListNumberStyle
                   -> ListNumberDelim
-                  -> Parser [Char] ParserState Int
+                  -> Parser s ParserState Int
 orderedListMarker style delim = do
   let num = defaultNum <|>  -- # can continue any kind of list
             case style of
@@ -553,18 +564,19 @@ orderedListMarker style delim = do
   return start
 
 -- | Parses a character reference and returns a Str element.
-charRef :: Parser [Char] st Inline
+charRef :: Stream s Identity Char => Parser s st Inline
 charRef = do
   c <- characterReference
   return $ Str [c]
 
 -- | Parse a table using 'headerParser', 'rowParser',
 -- 'lineParser', and 'footerParser'.
-tableWith :: Parser [Char] ParserState ([[Block]], [Alignment], [Int])
-          -> ([Int] -> Parser [Char] ParserState [[Block]])
-          -> Parser [Char] ParserState sep
-          -> Parser [Char] ParserState end
-          -> Parser [Char] ParserState Block
+tableWith :: Stream s Identity Char
+          => Parser s ParserState ([[Block]], [Alignment], [Int])
+          -> ([Int] -> Parser s ParserState [[Block]])
+          -> Parser s ParserState sep
+          -> Parser s ParserState end
+          -> Parser s ParserState Block
 tableWith headerParser rowParser lineParser footerParser = try $ do
     (heads, aligns, indices) <- headerParser
     lines' <- rowParser indices `sepEndBy1` lineParser
@@ -606,9 +618,10 @@ widthsFromIndices numColumns' indices =
 -- (which may be grid), then the rows,
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-gridTableWith :: Parser [Char] ParserState [Block]   -- ^ Block list parser
+gridTableWith :: Stream s Identity Char
+              => Parser s ParserState [Block]   -- ^ Block list parser
               -> Bool                                -- ^ Headerless table
-              -> Parser [Char] ParserState Block
+              -> Parser s ParserState Block
 gridTableWith blocks headless =
   tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
             (gridTableSep '-') gridTableFooter
@@ -617,13 +630,13 @@ gridTableSplitLine :: [Int] -> String -> [String]
 gridTableSplitLine indices line = map removeFinalBar $ tail $
   splitStringByIndices (init indices) $ removeTrailingSpace line
 
-gridPart :: Char -> Parser [Char] st (Int, Int)
+gridPart :: Stream s Identity Char => Char -> Parser s st (Int, Int)
 gridPart ch = do
   dashes <- many1 (char ch)
   char '+'
   return (length dashes, length dashes + 1)
 
-gridDashedLines :: Char -> Parser [Char] st [(Int,Int)]
+gridDashedLines :: Stream s Identity Char => Char -> Parser s st [(Int,Int)]
 gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) >>~ blankline
 
 removeFinalBar :: String -> String
@@ -631,13 +644,14 @@ removeFinalBar =
   reverse . dropWhile (`elem` " \t") . dropWhile (=='|') . reverse
 
 -- | Separator between rows of grid table.
-gridTableSep :: Char -> Parser [Char] ParserState Char
+gridTableSep :: Stream s Identity Char => Char -> Parser s ParserState Char
 gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- | Parse header for a grid table.
-gridTableHeader :: Bool -- ^ Headerless table
-                -> Parser [Char] ParserState [Block]
-                -> Parser [Char] ParserState ([[Block]], [Alignment], [Int])
+gridTableHeader :: Stream s Identity Char
+                => Bool -- ^ Headerless table
+                -> Parser s ParserState [Block]
+                -> Parser s ParserState ([[Block]], [Alignment], [Int])
 gridTableHeader headless blocks = try $ do
   optional blanklines
   dashes <- gridDashedLines '-'
@@ -661,16 +675,18 @@ gridTableHeader headless blocks = try $ do
                map removeLeadingTrailingSpace rawHeads
   return (heads, aligns, indices)
 
-gridTableRawLine :: [Int] -> Parser [Char] ParserState [String]
+gridTableRawLine :: Stream s Identity Char
+                 => [Int] -> Parser s ParserState [String]
 gridTableRawLine indices = do
   char '|'
   line <- many1Till anyChar newline
   return (gridTableSplitLine indices line)
 
 -- | Parse row of grid table.
-gridTableRow :: Parser [Char] ParserState [Block]
+gridTableRow :: Stream s Identity Char
+             => Parser s ParserState [Block]
              -> [Int]
-             -> Parser [Char] ParserState [[Block]]
+             -> Parser s ParserState [[Block]]
 gridTableRow blocks indices = do
   colLines <- many1 (gridTableRawLine indices)
   let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
@@ -689,15 +705,16 @@ compactifyCell :: [Block] -> [Block]
 compactifyCell bs = head $ compactify [bs]
 
 -- | Parse footer for a grid table.
-gridTableFooter :: Parser [Char] ParserState [Char]
+gridTableFooter :: Stream s Identity Char => Parser s ParserState [Char]
 gridTableFooter = blanklines
 
 ---
 
 -- | Parse a string with a given parser and state.
-readWith :: Parser [t] ParserState a      -- ^ parser
-         -> ParserState                    -- ^ initial state
-         -> [t]                            -- ^ input
+readWith :: Stream s Identity t
+         => Parser s ParserState a      -- ^ parser
+         -> ParserState                 -- ^ initial state
+         -> s                           -- ^ input
          -> a
 readWith parser state input =
     case runParser parser state "source" input of
@@ -705,8 +722,9 @@ readWith parser state input =
       Right result -> result
 
 -- | Parse a string with @parser@ (for testing).
-testStringWith :: (Show a) => Parser [Char] ParserState a
-               -> String
+testStringWith :: (Show a, Stream s Identity Char)
+               => Parser s ParserState a
+               -> s
                -> IO ()
 testStringWith parser str = UTF8.putStrLn $ show $
                             readWith parser defaultParserState str
@@ -796,25 +814,28 @@ toKey = Key . map toLower . unwords . words
 type KeyTable = M.Map Key Target
 
 -- | Fail unless we're in "smart typography" mode.
-failUnlessSmart :: Parser [tok] ParserState ()
+failUnlessSmart :: Stream s Identity tok => Parser s ParserState ()
 failUnlessSmart = getOption readerSmart >>= guard
 
-smartPunctuation :: Parser [Char] ParserState Inline
-                 -> Parser [Char] ParserState Inline
+smartPunctuation :: Stream s Identity Char
+                 => Parser s ParserState Inline
+                 -> Parser s ParserState Inline
 smartPunctuation inlineParser = do
   failUnlessSmart
   choice [ quoted inlineParser, apostrophe, dash, ellipses ]
 
-apostrophe :: Parser [Char] ParserState Inline
+apostrophe :: Stream s Identity Char => Parser s ParserState Inline
 apostrophe = (char '\'' <|> char '\8217') >> return (Str "\x2019")
 
-quoted :: Parser [Char] ParserState Inline
-       -> Parser [Char] ParserState Inline
+quoted :: Stream s Identity Char
+       => Parser s ParserState Inline
+       -> Parser s ParserState Inline
 quoted inlineParser = doubleQuoted inlineParser <|> singleQuoted inlineParser
 
-withQuoteContext :: QuoteContext
-                 -> Parser [tok] ParserState a
-                 -> Parser [tok] ParserState a
+withQuoteContext :: Stream s Identity tok
+                 => QuoteContext
+                 -> Parser s ParserState a
+                 -> Parser s ParserState a
 withQuoteContext context parser = do
   oldState <- getState
   let oldQuoteContext = stateQuoteContext oldState
@@ -824,39 +845,42 @@ withQuoteContext context parser = do
   setState newState { stateQuoteContext = oldQuoteContext }
   return result
 
-singleQuoted :: Parser [Char] ParserState Inline
-             -> Parser [Char] ParserState Inline
+singleQuoted :: Stream s Identity Char
+             => Parser s ParserState Inline
+             -> Parser s ParserState Inline
 singleQuoted inlineParser = try $ do
   singleQuoteStart
   withQuoteContext InSingleQuote $ many1Till inlineParser singleQuoteEnd >>=
     return . Quoted SingleQuote . normalizeSpaces
 
-doubleQuoted :: Parser [Char] ParserState Inline
-             -> Parser [Char] ParserState Inline
+doubleQuoted :: Stream s Identity Char
+             => Parser s ParserState Inline
+             -> Parser s ParserState Inline
 doubleQuoted inlineParser = try $ do
   doubleQuoteStart
   withQuoteContext InDoubleQuote $ do
     contents <- manyTill inlineParser doubleQuoteEnd
     return . Quoted DoubleQuote . normalizeSpaces $ contents
 
-failIfInQuoteContext :: QuoteContext -> Parser [tok] ParserState ()
+failIfInQuoteContext :: Stream s Identity tok
+                     => QuoteContext -> Parser s ParserState ()
 failIfInQuoteContext context = do
   st <- getState
   if stateQuoteContext st == context
      then fail "already inside quotes"
      else return ()
 
-charOrRef :: [Char] -> Parser [Char] st Char
+charOrRef :: Stream s Identity Char => [Char] -> Parser s st Char
 charOrRef cs =
   oneOf cs <|> try (do c <- characterReference
                        guard (c `elem` cs)
                        return c)
 
-updateLastStrPos :: Parser [Char] ParserState ()
+updateLastStrPos :: Stream s Identity Char => Parser s ParserState ()
 updateLastStrPos = getPosition >>= \p ->
   updateState $ \s -> s{ stateLastStrPos = Just p }
 
-singleQuoteStart :: Parser [Char] ParserState ()
+singleQuoteStart :: Stream s Identity Char => Parser s ParserState ()
 singleQuoteStart = do
   failIfInQuoteContext InSingleQuote
   pos <- getPosition
@@ -871,28 +895,28 @@ singleQuoteStart = do
                                -- possess/contraction
            return ()
 
-singleQuoteEnd :: Parser [Char] st ()
+singleQuoteEnd :: Stream s Identity Char => Parser s st ()
 singleQuoteEnd = try $ do
   charOrRef "'\8217\146"
   notFollowedBy alphaNum
 
-doubleQuoteStart :: Parser [Char] ParserState ()
+doubleQuoteStart :: Stream s Identity Char => Parser s ParserState ()
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
   try $ do charOrRef "\"\8220\147"
            notFollowedBy (satisfy (\c -> c == ' ' || c == '\t' || c == '\n'))
 
-doubleQuoteEnd :: Parser [Char] st ()
+doubleQuoteEnd :: Stream s Identity Char => Parser s st ()
 doubleQuoteEnd = do
   charOrRef "\"\8221\148"
   return ()
 
-ellipses :: Parser [Char] st Inline
+ellipses :: Stream s Identity Char => Parser s st Inline
 ellipses = do
   try (charOrRef "\8230\133") <|> try (string "..." >> return '…')
   return (Str "\8230")
 
-dash :: Parser [Char] ParserState Inline
+dash :: Stream s Identity Char => Parser s ParserState Inline
 dash = do
   oldDashes <- getOption readerOldDashes
   if oldDashes
@@ -900,28 +924,28 @@ dash = do
      else Str `fmap` (hyphenDash <|> emDash <|> enDash)
 
 -- Two hyphens = en-dash, three = em-dash
-hyphenDash :: Parser [Char] st String
+hyphenDash :: Stream s Identity Char => Parser s st String
 hyphenDash = do
   try $ string "--"
   option "\8211" (char '-' >> return "\8212")
 
-emDash :: Parser [Char] st String
+emDash :: Stream s Identity Char => Parser s st String
 emDash = do
   try (charOrRef "\8212\151")
   return "\8212"
 
-enDash :: Parser [Char] st String
+enDash :: Stream s Identity Char => Parser s st String
 enDash = do
   try (charOrRef "\8212\151")
   return "\8211"
 
-enDashOld :: Parser [Char] st Inline
+enDashOld :: Stream s Identity Char => Parser s st Inline
 enDashOld = do
   try (charOrRef "\8211\150") <|>
     try (char '-' >> lookAhead (satisfy isDigit) >> return '–')
   return (Str "\8211")
 
-emDashOld :: Parser [Char] st Inline
+emDashOld :: Stream s Identity Char => Parser s st Inline
 emDashOld = do
   try (charOrRef "\8212\151") <|> (try $ string "--" >> optional (char '-') >> return '-')
   return (Str "\8212")
@@ -943,7 +967,7 @@ nested p = do
 --
 
 -- | Parse a \newcommand or \renewcommand macro definition.
-macro :: Parser [Char] ParserState Block
+macro :: Stream s Identity Char => Parser s ParserState Block
 macro = do
   apply <- getOption readerApplyMacros
   inp <- getInput
@@ -958,7 +982,7 @@ macro = do
                            else return $ RawBlock "latex" def'
 
 -- | Apply current macros to string.
-applyMacros' :: String -> Parser [Char] ParserState String
+applyMacros' :: Stream s Identity Char => String -> Parser s ParserState String
 applyMacros' target = do
   apply <- getOption readerApplyMacros
   if apply

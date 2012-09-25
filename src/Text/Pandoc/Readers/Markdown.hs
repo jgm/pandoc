@@ -51,15 +51,20 @@ import Control.Monad
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match (tagOpen)
 import qualified Data.Set as Set
+import Data.Text (Text)
+import qualified Data.Text as T
 
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: ReaderOptions -- ^ Reader options
              -> String        -- ^ String to parse (assuming @'\n'@ line endings)
              -> Pandoc
 readMarkdown opts s =
-  (readWith parseMarkdown) def{ stateOptions = opts } (s ++ "\n\n")
+  case runParser parseMarkdown def { stateOptions = opts }
+    (T.pack $ s ++ "\n\n") of
+          Left err'    -> error $ "\nError:\n" ++ show err'
+          Right result -> result
 
-type MarkdownParser = Parser [Char] ParserState
+type MarkdownParser = Parser Text ParserState
 
 trimInlinesF :: F Inlines -> F Inlines
 trimInlinesF = liftM trimInlines
