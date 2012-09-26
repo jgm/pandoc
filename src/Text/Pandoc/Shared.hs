@@ -163,7 +163,7 @@ removeLeadingTrailingSpace = removeLeadingSpace . removeTrailingSpace
 
 -- | Remove leading space (including newlines) from string.
 removeLeadingSpace :: String -> String
-removeLeadingSpace = dropWhile (`elem` " \n\t")
+removeLeadingSpace = dropWhile (`elem` " \r\n\t")
 
 -- | Remove trailing space (including newlines) from string.
 removeTrailingSpace :: String -> String
