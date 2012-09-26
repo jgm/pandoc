@@ -26,7 +26,7 @@ pandoc-types:
 	  cabal-dev add-source pandoc-types
 
 citeproc-hs: pandoc-types
-	git clone https://github.com/jgm/citeproc-hs && \
+	darcs get --lazy http://gorgias.mine.nu/repos/citeproc-hs && \
 	  cabal-dev add-source citeproc-hs
 
 install:
