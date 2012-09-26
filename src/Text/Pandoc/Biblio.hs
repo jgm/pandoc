@@ -92,16 +92,8 @@ mvPunct (Space : x : ys) | isNote x = x : ys
 mvPunct xs = xs
 
 sanitize :: [Inline] -> [Inline]
-sanitize xs | endWithPunct xs = toCapital' xs
-            | otherwise       = toCapital' (xs ++ [Str "."])
-
--- NOTE: toCapital' works around a bug in toCapital from citeproc-hs 0.3.4.
--- When citeproc-hs is fixed, we can return to using toCapital in sanitize.
-toCapital' :: [Inline] -> [Inline]
-toCapital' [] = []
-toCapital' xs = case toCapital xs of
-                       [] -> xs
-                       ys -> ys
+sanitize xs | endWithPunct xs = toCapital xs
+            | otherwise       = toCapital (xs ++ [Str "."])
 
 deNote :: [Block] -> [Block]
 deNote = topDown go
