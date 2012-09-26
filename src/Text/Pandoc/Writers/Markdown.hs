@@ -174,7 +174,7 @@ notesToMarkdown opts notes =
 noteToMarkdown :: WriterOptions -> Int -> [Block] -> State WriterState Doc
 noteToMarkdown opts num blocks = do
   contents  <- blockListToMarkdown opts blocks
-  let num' = text $ show num
+  let num' = text $ writerIdentifierPrefix opts ++ show num
   let marker = if isEnabled Ext_footnotes opts
                   then text "[^" <> num' <> text "]:"
                   else text "[" <> num' <> text "]"
@@ -655,7 +655,7 @@ inlineToMarkdown opts (Image alternate (source, tit)) = do
 inlineToMarkdown opts (Note contents) = do
   modify (\st -> st{ stNotes = contents : stNotes st })
   st <- get
-  let ref = show $ (length $ stNotes st)
+  let ref = text $ writerIdentifierPrefix opts ++ show (length $ stNotes st)
   if isEnabled Ext_footnotes opts
-     then return $ "[^" <> text ref <> "]"
-     else return $ "[" <> text ref <> "]"
+     then return $ "[^" <> ref <> "]"
+     else return $ "[" <> ref <> "]"

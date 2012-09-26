@@ -215,6 +215,7 @@ data WriterOptions = WriterOptions
   , writerColumns          :: Int    -- ^ Characters in a line (for text wrapping)
   , writerEmailObfuscation :: ObfuscationMethod -- ^ How to obfuscate emails
   , writerIdentifierPrefix :: String -- ^ Prefix for section & note ids in HTML
+                                     -- and for footnote marks in markdown
   , writerSourceDirectory  :: FilePath -- ^ Directory path of 1st source file
   , writerUserDataDir      :: Maybe FilePath -- ^ Path of user data directory
   , writerCiteMethod       :: CiteMethod -- ^ How to print cites

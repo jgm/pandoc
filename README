@@ -416,8 +416,9 @@ Options affecting specific writers
 
 `--id-prefix`=*STRING*
 :   Specify a prefix to be added to all automatically generated identifiers
-    in HTML and DocBook output.  This is useful for preventing duplicate
-    identifiers when generating fragments to be included in other pages.
+    in HTML and DocBook output, and to footnote numbers in markdown output.
+    This is useful for preventing duplicate identifiers when generating
+    fragments to be included in other pages.
 
 `-T` *STRING*, `--title-prefix=`*STRING*
 :   Specify *STRING* as a prefix at the beginning of the title
