@@ -35,6 +35,10 @@ module Text.Pandoc.UTF8 ( readFile
                         , hPutStr
                         , hPutStrLn
                         , hGetContents
+                        , toString
+                        , fromString
+                        , toStringLazy
+                        , fromStringLazy
                         , encodePath
                         , decodeArg
                         )
@@ -50,6 +54,13 @@ import System.IO hiding (readFile, writeFile, getContents,
                           putStr, putStrLn, hPutStr, hPutStrLn, hGetContents)
 import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn )
 import qualified System.IO as IO
+import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text.Encoding as T
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TL
+import Data.Text.Encoding.Error
 
 readFile :: FilePath -> IO String
 readFile f = do
@@ -75,8 +86,21 @@ hPutStrLn :: Handle -> String -> IO ()
 hPutStrLn h s = hSetEncoding h utf8 >> IO.hPutStrLn h s
 
 hGetContents :: Handle -> IO String
-hGetContents h = hSetEncoding h utf8_bom >> hSetNewlineMode h universalNewlineMode
+hGetContents h = hSetEncoding h utf8_bom
+                  >> hSetNewlineMode h universalNewlineMode
                   >> IO.hGetContents h
+
+toString :: B.ByteString -> String
+toString = T.unpack . T.decodeUtf8With lenientDecode
+
+fromString :: String -> B.ByteString
+fromString = T.encodeUtf8 . T.pack
+
+toStringLazy :: BL.ByteString -> String
+toStringLazy = TL.unpack . TL.decodeUtf8With lenientDecode
+
+fromStringLazy :: String -> BL.ByteString
+fromStringLazy = TL.encodeUtf8 . TL.pack
 
 encodePath :: FilePath -> FilePath
 decodeArg :: String -> String
@@ -84,6 +108,6 @@ decodeArg :: String -> String
 encodePath = id
 decodeArg = id
 #else
-encodePath = encodeString
-decodeArg = decodeString
+encodePath = B.unpack . fromString
+decodeArg = toString . B.pack
 #endif

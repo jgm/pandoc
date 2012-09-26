@@ -16,11 +16,11 @@ import Text.Pandoc.Writers.Native ( writeNative )
 import Text.Pandoc.Readers.Native ( readNative )
 import Prelude hiding ( readFile )
 import qualified Data.ByteString.Lazy as B
-import Data.ByteString.Lazy.UTF8 (toString)
+import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Printf
 
 readFileUTF8 :: FilePath -> IO String
-readFileUTF8 f = B.readFile f >>= return . toString
+readFileUTF8 f = B.readFile f >>= return . toStringLazy
 
 pandocPath :: FilePath
 pandocPath = ".." </> "dist" </> "build" </> "pandoc" </> "pandoc"

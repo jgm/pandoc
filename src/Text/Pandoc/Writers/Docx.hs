@@ -32,8 +32,7 @@ import Data.List ( intercalate )
 import System.FilePath ( (</>) )
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
-import Data.ByteString.Lazy.UTF8 ( fromString, toString )
-import Text.Pandoc.UTF8 as UTF8
+import qualified Text.Pandoc.UTF8 as UTF8
 import System.IO ( stderr )
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
@@ -126,7 +125,7 @@ writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
   let newrels = map toImgRel imgs
   let relpath = "word/_rels/document.xml.rels"
   let reldoc = case findEntryByPath relpath refArchive >>=
-                    parseXMLDoc . toString . fromEntry of
+                    parseXMLDoc . UTF8.toStringLazy . fromEntry of
                       Just d  -> d
                       Nothing -> error $ relpath ++ "missing in reference docx"
   let reldoc' = reldoc{ elContent = elContent reldoc ++ map Elem newrels }
@@ -138,21 +137,21 @@ writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
   let toLinkRel (src,ident) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"),("Id",ident),("Target",src),("TargetMode","External") ] ()
   let newrels' = map toLinkRel $ M.toList $ stExternalLinks st
   let reldoc'' = reldoc' { elContent = elContent reldoc' ++ map Elem newrels' }
-  let relEntry = toEntry relpath epochtime $ fromString $ showTopElement' reldoc''
-  let contentEntry = toEntry "word/document.xml" epochtime $ fromString $ showTopElement' newContents
+  let relEntry = toEntry relpath epochtime $ UTF8.fromStringLazy $ showTopElement' reldoc''
+  let contentEntry = toEntry "word/document.xml" epochtime $ UTF8.fromStringLazy $ showTopElement' newContents
   -- styles
   let newstyles = styleToOpenXml $ writerHighlightStyle opts
   let stylepath = "word/styles.xml"
   let styledoc = case findEntryByPath stylepath refArchive >>=
-                      parseXMLDoc . toString . fromEntry of
+                      parseXMLDoc . UTF8.toStringLazy . fromEntry of
                         Just d  -> d
                         Nothing -> error $ "Unable to parse " ++ stylepath ++
                                            " from reference.docx"
   let styledoc' = styledoc{ elContent = elContent styledoc ++ map Elem newstyles }
-  let styleEntry = toEntry stylepath epochtime $ fromString $ showTopElement' styledoc'
+  let styleEntry = toEntry stylepath epochtime $ UTF8.fromStringLazy $ showTopElement' styledoc'
   -- construct word/numbering.xml
   let numpath = "word/numbering.xml"
-  let numEntry = toEntry numpath epochtime $ fromString $ showTopElement'
+  let numEntry = toEntry numpath epochtime $ UTF8.fromStringLazy $ showTopElement'
                  $ mkNumbering (stNumStyles st) (stLists st)
   let docPropsPath = "docProps/core.xml"
   let docProps = mknode "cp:coreProperties"
@@ -166,16 +165,16 @@ writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
             (maybe "" id $ normalizeDate $ stringify date)
           : mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] () -- put current time here
           : map (mknode "dc:creator" [] . stringify) auths
-  let docPropsEntry = toEntry docPropsPath epochtime $ fromString $ showTopElement' docProps
+  let docPropsEntry = toEntry docPropsPath epochtime $ UTF8.fromStringLazy $ showTopElement' docProps
   let relsPath = "_rels/.rels"
   rels <- case findEntryByPath relsPath refArchive of
-                   Just e  -> return $ toString $ fromEntry e
+                   Just e  -> return $ UTF8.toStringLazy $ fromEntry e
                    Nothing -> err 57 "could not find .rels/_rels in reference docx"
   -- fix .rels/_rels, which can get screwed up when reference.docx is edited by Word
   let rels' = substitute "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties"
                   "http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties"
                   rels
-  let relsEntry = toEntry relsPath epochtime $ fromString rels'
+  let relsEntry = toEntry relsPath epochtime $ UTF8.fromStringLazy rels'
   let archive = foldr addEntryToArchive refArchive $
                   relsEntry : contentEntry : relEntry : numEntry : styleEntry : docPropsEntry : imageEntries
   return $ fromArchive archive

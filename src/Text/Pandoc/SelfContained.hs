@@ -37,7 +37,6 @@ import Network.HTTP
 import Data.ByteString.Base64
 import qualified Data.ByteString.Char8 as B
 import Data.ByteString (ByteString)
-import Data.ByteString.UTF8 (toString, fromString)
 import System.FilePath (takeExtension, dropExtension, takeDirectory, (</>))
 import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
@@ -45,6 +44,7 @@ import qualified Data.ByteString.Lazy as L
 import Text.Pandoc.Shared (findDataFile, renderTags')
 import Text.Pandoc.MIME (getMimeType)
 import System.Directory (doesFileExist)
+import Text.Pandoc.UTF8 (toString,  fromString)
 
 getItem :: Maybe FilePath -> String -> IO (ByteString, Maybe String)
 getItem userdata f =

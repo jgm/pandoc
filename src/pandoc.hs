@@ -57,7 +57,6 @@ import Control.Monad (when, unless, liftM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
-import Data.ByteString.Lazy.UTF8 (toString)
 import Text.CSL.Reference (Reference(..))
 
 copyrightMessage :: String
@@ -988,7 +987,7 @@ main = do
                                        readURI u
                             _       -> UTF8.readFile src
       readURI uri = simpleHTTP (mkRequest GET uri) >>= getResponseBody >>=
-                      return . toString  -- treat all as UTF8
+                      return . UTF8.toStringLazy  -- treat all as UTF8
 
   let convertTabs = tabFilter (if preserveTabs then 0 else tabStop)
 
@@ -1038,7 +1037,7 @@ main = do
               res <- tex2pdf latexEngine $ f writerOptions doc2
               case res of
                    Right pdf -> writeBinary pdf
-                   Left err' -> err 43 $ toString err'
+                   Left err' -> err 43 $ UTF8.toStringLazy err'
       | otherwise -> selfcontain (f writerOptions doc2 ++
                                   ['\n' | not standalone'])
                       >>= writerFn outputFile . handleEntities

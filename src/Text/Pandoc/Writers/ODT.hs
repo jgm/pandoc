@@ -32,7 +32,7 @@ import Data.IORef
 import Data.List ( isPrefixOf )
 import System.FilePath ( (</>), takeExtension )
 import qualified Data.ByteString.Lazy as B
-import Data.ByteString.Lazy.UTF8 ( fromString )
+import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
 import Paths_pandoc ( getDataFileName )
@@ -74,7 +74,7 @@ writeODT opts doc@(Pandoc (Meta title _ _) _) = do
   doc' <- bottomUpM (transformPic sourceDir picEntriesRef) doc
   let newContents = writeOpenDocument opts{writerWrapText = False} doc'
   epochtime <- floor `fmap` getPOSIXTime
-  let contentEntry = toEntry "content.xml" epochtime $ fromString newContents
+  let contentEntry = toEntry "content.xml" epochtime $ fromStringLazy newContents
   picEntries <- readIORef picEntriesRef
   let archive = foldr addEntryToArchive refArchive $ contentEntry : picEntries
   -- construct META-INF/manifest.xml based on archive
@@ -86,7 +86,7 @@ writeODT opts doc@(Pandoc (Meta title _ _) _) = do
                                      ]
   let files = [ ent | ent <- filesInArchive archive, not ("META-INF" `isPrefixOf` ent) ]
   let manifestEntry = toEntry "META-INF/manifest.xml" epochtime
-        $ fromString $ show
+        $ fromStringLazy $ show
         $ text "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
         $$
          ( inTags True "manifest:manifest"
@@ -100,7 +100,7 @@ writeODT opts doc@(Pandoc (Meta title _ _) _) = do
          )
   let archive' = addEntryToArchive manifestEntry archive
   let metaEntry = toEntry "meta.xml" epochtime
-       $ fromString $ show
+       $ fromStringLazy $ show
        $ text "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
        $$
         ( inTags True "office:document-meta"

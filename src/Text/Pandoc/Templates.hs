@@ -78,7 +78,8 @@ import Text.Blaze.Internal (preEscapedString)
 #else
 import Text.Blaze (preEscapedString, Html)
 #endif
-import Data.ByteString.Lazy.UTF8 (ByteString, fromString)
+import Text.Pandoc.UTF8 (fromStringLazy)
+import Data.ByteString.Lazy (ByteString)
 import Text.Pandoc.Shared (readDataFile)
 import qualified Control.Exception.Extensible as E (try, IOException)
 
@@ -118,7 +119,7 @@ instance TemplateTarget String where
   toTarget = id
 
 instance TemplateTarget ByteString where
-  toTarget = fromString
+  toTarget = fromStringLazy
 
 instance TemplateTarget Html where
   toTarget = preEscapedString

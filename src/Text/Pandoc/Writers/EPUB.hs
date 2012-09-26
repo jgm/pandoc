@@ -35,7 +35,7 @@ import System.Environment ( getEnv )
 import Text.Printf (printf)
 import System.FilePath ( (</>), (<.>), takeBaseName, takeExtension, takeFileName )
 import qualified Data.ByteString.Lazy as B
-import Data.ByteString.Lazy.UTF8 ( fromString )
+import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
 import Text.Pandoc.Shared hiding ( Element )
@@ -82,7 +82,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                      Nothing   -> return ([],[])
                      Just img  -> do
                        let coverImage = "cover-image" ++ takeExtension img
-                       let cpContent = fromString $ writeHtmlString
+                       let cpContent = fromStringLazy $ writeHtmlString
                              opts'{writerTemplate = coverImageTemplate,
                                    writerVariables = ("coverimage",coverImage):vars}
                                (Pandoc meta [])
@@ -91,7 +91,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                               , [mkEntry coverImage imgContent] )
 
   -- title page
-  let tpContent = fromString $ writeHtmlString
+  let tpContent = fromStringLazy $ writeHtmlString
                      opts'{writerTemplate = titlePageTemplate}
                      (Pandoc meta [])
   let tpEntry = mkEntry "title_page.xhtml" tpContent
@@ -125,7 +125,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let chapterToEntry :: Int -> Pandoc -> Entry
       chapterToEntry num chap = mkEntry
          (showChapter num) $
-         fromString $ chapToHtml chap
+         fromStringLazy $ chapToHtml chap
   let chapterEntries = zipWith chapterToEntry [1..] chapters
 
   -- contents.opf
@@ -157,7 +157,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let plainTitle = plainify $ docTitle meta
   let plainAuthors = map plainify $ docAuthors meta
   let plainDate = maybe "" id $ normalizeDate $ stringify $ docDate meta
-  let contentsData = fromString $ ppTopElement $
+  let contentsData = fromStringLazy $ ppTopElement $
         unode "package" ! [("version","2.0")
                           ,("xmlns","http://www.idpf.org/2007/opf")
                           ,("unique-identifier","BookId")] $
@@ -189,7 +189,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                                    , unode "content" ! [("src",
                                         eRelativePath ent)] $ ()
                                    ]
-  let tocData = fromString $ ppTopElement $
+  let tocData = fromStringLazy $ ppTopElement $
         unode "ncx" ! [("version","2005-1")
                        ,("xmlns","http://www.daisy.org/z3986/2005/ncx/")] $
           [ unode "head" $
@@ -214,10 +214,10 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let tocEntry = mkEntry "toc.ncx" tocData
 
   -- mimetype
-  let mimetypeEntry = mkEntry "mimetype" $ fromString "application/epub+zip"
+  let mimetypeEntry = mkEntry "mimetype" $ fromStringLazy "application/epub+zip"
 
   -- container.xml
-  let containerData = fromString $ ppTopElement $
+  let containerData = fromStringLazy $ ppTopElement $
        unode "container" ! [("version","1.0")
               ,("xmlns","urn:oasis:names:tc:opendocument:xmlns:container")] $
          unode "rootfiles" $
@@ -226,7 +226,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let containerEntry = mkEntry "META-INF/container.xml" containerData
 
   -- com.apple.ibooks.display-options.xml
-  let apple = fromString $ ppTopElement $
+  let apple = fromStringLazy $ ppTopElement $
         unode "display_options" $
           unode "platform" ! [("name","*")] $
             unode "option" ! [("name","specified-fonts")] $ "true"
@@ -236,7 +236,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
   stylesheet <- case writerEpubStylesheet opts of
                    Just s  -> return s
                    Nothing -> readDataFile (writerUserDataDir opts) "epub.css"
-  let stylesheetEntry = mkEntry "stylesheet.css" $ fromString stylesheet
+  let stylesheetEntry = mkEntry "stylesheet.css" $ fromStringLazy stylesheet
 
   -- construct archive
   let archive = foldr addEntryToArchive emptyArchive
