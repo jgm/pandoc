@@ -52,7 +52,8 @@ import Codec.Binary.UTF8.String (encodeString, decodeString)
 
 import System.IO hiding (readFile, writeFile, getContents,
                           putStr, putStrLn, hPutStr, hPutStrLn, hGetContents)
-import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn )
+import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn,
+                       catch)
 import qualified System.IO as IO
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as BL
@@ -86,9 +87,10 @@ hPutStrLn :: Handle -> String -> IO ()
 hPutStrLn h s = hSetEncoding h utf8 >> IO.hPutStrLn h s
 
 hGetContents :: Handle -> IO String
-hGetContents h = hSetEncoding h utf8_bom
-                  >> hSetNewlineMode h universalNewlineMode
-                  >> IO.hGetContents h
+hGetContents h = fmap (TL.unpack . TL.decodeUtf8) $ BL.hGetContents h
+-- hGetContents h = hSetEncoding h utf8_bom
+--                   >> hSetNewlineMode h universalNewlineMode
+--                   >> IO.hGetContents h
 
 toString :: B.ByteString -> String
 toString = T.unpack . T.decodeUtf8With lenientDecode
