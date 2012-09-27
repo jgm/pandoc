@@ -95,8 +95,8 @@ parseRST = do
   startPos <- getPosition
   -- go through once just to get list of reference keys and notes
   -- docMinusKeys is the raw document with blanks where the keys were...
-  docMinusKeys <- manyTill (referenceKey <|> noteBlock <|> lineClump) eof >>=
-                   return . concat
+  docMinusKeys <- manyTill (referenceKey <|> imageKey <|>
+                     noteBlock <|> lineClump) eof >>= return . concat
   setInput docMinusKeys
   setPosition startPos
   st' <- getState
@@ -652,7 +652,7 @@ referenceName = quotedReferenceName <|>
 referenceKey :: Parser [Char] ParserState [Char]
 referenceKey = do
   startPos <- getPosition
-  (key, target) <- choice [imageKey, anonymousKey, regularKey]
+  (key, target) <- choice [anonymousKey, regularKey]
   st <- getState
   let oldkeys = stateKeys st
   updateState $ \s -> s { stateKeys = M.insert key target oldkeys }
@@ -670,14 +670,21 @@ targetURI = do
   blanklines
   return $ escapeURI $ removeLeadingTrailingSpace $ contents
 
-imageKey :: Parser [Char] ParserState (Key, Target)
+imageKey :: Parser [Char] ParserState [Char]
 imageKey = try $ do
+  startPos <- getPosition
   string ".. |"
-  (_,ref) <- withRaw (manyTill inline (char '|'))
+  (alt,ref) <- withRaw (manyTill inline (char '|'))
   skipSpaces
   string "image::"
   src <- targetURI
-  return (toKey $ init ref, (src, ""))
+  let img = Image alt (src,"")
+  let key = toKey $ init ref
+  updateState $ \s -> s{ stateSubstitutions = M.insert key img $ stateSubstitutions s }
+  optional blanklines
+  endPos <- getPosition
+  -- return enough blanks to replace key
+  return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
 anonymousKey :: Parser [Char] st (Key, Target)
 anonymousKey = try $ do
@@ -965,13 +972,12 @@ autoLink = autoURI <|> autoEmail
 image :: Parser [Char] ParserState Inline
 image = try $ do
   char '|'
-  (alt,ref) <- withRaw (manyTill inline (char '|'))
+  (_,ref) <- withRaw (manyTill inline (char '|'))
   state <- getState
-  let keyTable = stateKeys state
-  (src,tit) <- case M.lookup (toKey $ init ref) keyTable of
-                     Nothing     -> fail "no corresponding key"
-                     Just target -> return target
-  return $ Image (normalizeSpaces alt) (src, tit)
+  let substTable = stateSubstitutions state
+  case M.lookup (toKey $ init ref) substTable of
+       Nothing     -> fail "no corresponding key"
+       Just target -> return target
 
 note :: Parser [Char] ParserState Inline
 note = try $ do

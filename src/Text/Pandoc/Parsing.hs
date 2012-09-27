@@ -71,6 +71,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              NoteTable,
                              NoteTable',
                              KeyTable,
+                             SubstTable,
                              Key (..),
                              toKey,
                              smartPunctuation,
@@ -720,6 +721,7 @@ data ParserState = ParserState
       stateMaxNestingLevel :: Int,           -- ^ Max # of nested Strong/Emph
       stateLastStrPos      :: Maybe SourcePos, -- ^ Position after last str parsed
       stateKeys            :: KeyTable,      -- ^ List of reference keys (with fallbacks)
+      stateSubstitutions   :: SubstTable,    -- ^ List of substitution references
       stateNotes           :: NoteTable,     -- ^ List of notes (raw bodies)
       stateNotes'          :: NoteTable',    -- ^ List of notes (parsed bodies)
       stateTitle           :: [Inline],      -- ^ Title of document
@@ -745,6 +747,7 @@ defaultParserState =
                   stateMaxNestingLevel = 6,
                   stateLastStrPos      = Nothing,
                   stateKeys            = M.empty,
+                  stateSubstitutions   = M.empty,
                   stateNotes           = [],
                   stateNotes'          = [],
                   stateTitle           = [],
@@ -794,6 +797,8 @@ toKey :: String -> Key
 toKey = Key . map toLower . unwords . words
 
 type KeyTable = M.Map Key Target
+
+type SubstTable = M.Map Key Inline
 
 -- | Fail unless we're in "smart typography" mode.
 failUnlessSmart :: Parser [tok] ParserState ()
