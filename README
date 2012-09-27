@@ -1964,7 +1964,7 @@ will become a link:
     <http://google.com>
     <sam@green.eggs.ham>
 
-**Extension: `autolink_code_spans`**
+**Extension: `monospace_autolinks`**
 
 Pandoc will render autolinked URLs and email addresses as
 inline code.

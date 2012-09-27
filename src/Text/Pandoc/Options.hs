@@ -72,7 +72,7 @@ data Extension =
     | Ext_markdown_attribute      -- ^ Interpret text inside HTML as markdown
                                   --   iff container has attribute 'markdown'
     | Ext_escaped_line_breaks     -- ^ Treat a backslash at EOL as linebreak
-    | Ext_autolink_code_spans -- ^ Put autolink text inside code spans
+    | Ext_monospace_autolinks -- ^ Put autolink text in monospace font
     | Ext_fancy_lists         -- ^ Enable fancy list numbers and delimiters
     | Ext_startnum            -- ^ Make start number of ordered list significant
     | Ext_definition_lists    -- ^ Definition lists as in pandoc, mmd, php
@@ -112,7 +112,7 @@ pandocExtensions = Set.fromList
   , Ext_inline_code_attributes
   , Ext_markdown_in_html_blocks
   , Ext_escaped_line_breaks
-  , Ext_autolink_code_spans
+  , Ext_monospace_autolinks
   , Ext_fancy_lists
   , Ext_startnum
   , Ext_definition_lists

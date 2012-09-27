@@ -1476,7 +1476,7 @@ autoLink = try $ do
   char '<'
   (orig, src) <- uri <|> emailAddress
   char '>'
-  (guardEnabled Ext_autolink_code_spans >>
+  (guardEnabled Ext_monospace_autolinks >>
        return (return $ B.link src "" (B.codeWith ("",["url"],[]) orig)))
     <|> return (return $ B.link src "" (B.str orig))
 
