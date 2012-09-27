@@ -48,7 +48,6 @@ module Text.Pandoc.Parsing ( (>>~),
                              uri,
                              withHorizDisplacement,
                              withRaw,
-                             nullBlock,
                              escaped,
                              characterReference,
                              updateLastStrPos,
@@ -417,11 +416,6 @@ withRaw parser = do
                 [l]  -> take (c2 - c1) l
                 ls   -> unlines (init ls) ++ take (c2 - 1) (last ls)
   return (result, raw)
-
--- | Parses a character and returns 'Null' (so that the parser can move on
--- if it gets stuck).
-nullBlock :: Parser [Char] st Block
-nullBlock = anyChar >> return Null
 
 -- | Parses backslash, then applies character parser.
 escaped :: Parser [Char] st Char  -- ^ Parser for character to escape

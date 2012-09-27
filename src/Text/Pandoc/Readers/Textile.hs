@@ -130,7 +130,7 @@ blockParsers = [ codeBlock
                , rawLaTeXBlock'
                , maybeExplicitBlock "table" table
                , maybeExplicitBlock "p" para
-               , nullBlock ]
+               ]
 
 -- | Any block in the order of definition of blockParsers
 block :: Parser [Char] ParserState Block
