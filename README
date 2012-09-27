@@ -1964,11 +1964,6 @@ will become a link:
     <http://google.com>
     <sam@green.eggs.ham>
 
-**Extension: `monospace_autolinks`**
-
-Pandoc will render autolinked URLs and email addresses as
-inline code.
-
 ### Inline links ###
 
 An inline link consists of the link text in square brackets,

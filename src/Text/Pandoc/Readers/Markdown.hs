@@ -1476,18 +1476,14 @@ bareURL :: Parser [Char] ParserState (F Inlines)
 bareURL = try $ do
   guardEnabled Ext_autolink_urls
   (orig, src) <- uri <|> emailAddress
-  (guardEnabled Ext_monospace_autolinks >>
-       return (return $ B.link src "" (B.codeWith ("",["url"],[]) orig)))
-    <|> return (return $ B.link src "" (B.str orig))
+  return $ return $ B.link src "" (B.codeWith ("",["url"],[]) orig)
 
 autoLink :: Parser [Char] ParserState (F Inlines)
 autoLink = try $ do
   char '<'
   (orig, src) <- uri <|> emailAddress
   char '>'
-  (guardEnabled Ext_monospace_autolinks >>
-       return (return $ B.link src "" (B.codeWith ("",["url"],[]) orig)))
-    <|> return (return $ B.link src "" (B.str orig))
+  return $ return $ B.link src "" (B.codeWith ("",["url"],[]) orig)
 
 image :: Parser [Char] ParserState (F Inlines)
 image = try $ do
