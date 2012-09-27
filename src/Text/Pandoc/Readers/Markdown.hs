@@ -1159,6 +1159,7 @@ table = try $ do
 
 inline :: Parser [Char] ParserState (F Inlines)
 inline = choice [ whitespace
+                , bareURL
                 , str
                 , endline
                 , code
@@ -1470,6 +1471,14 @@ referenceLink constructor (lab, raw) = do
     case M.lookup key keys of
        Nothing        -> (\x -> B.str "[" <> x <> B.str "]" <> B.str raw') <$> fallback
        Just (src,tit) -> constructor src tit <$> lab
+
+bareURL :: Parser [Char] ParserState (F Inlines)
+bareURL = try $ do
+  guardEnabled Ext_autolink_urls
+  (orig, src) <- uri <|> emailAddress
+  (guardEnabled Ext_monospace_autolinks >>
+       return (return $ B.link src "" (B.codeWith ("",["url"],[]) orig)))
+    <|> return (return $ B.link src "" (B.str orig))
 
 autoLink :: Parser [Char] ParserState (F Inlines)
 autoLink = try $ do

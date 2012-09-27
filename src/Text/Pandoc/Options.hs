@@ -73,6 +73,7 @@ data Extension =
                                   --   iff container has attribute 'markdown'
     | Ext_escaped_line_breaks     -- ^ Treat a backslash at EOL as linebreak
     | Ext_monospace_autolinks -- ^ Put autolink text in monospace font
+    | Ext_autolink_urls       -- ^ Make all absolute URLs into links
     | Ext_fancy_lists         -- ^ Enable fancy list numbers and delimiters
     | Ext_startnum            -- ^ Make start number of ordered list significant
     | Ext_definition_lists    -- ^ Definition lists as in pandoc, mmd, php
