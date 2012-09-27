@@ -145,7 +145,7 @@ where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Builder (Blocks)
+import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec
 import Text.Parsec.Pos (newPos)
@@ -792,7 +792,7 @@ toKey = Key . map toLower . unwords . words
 
 type KeyTable = M.Map Key Target
 
-type SubstTable = M.Map Key Inline
+type SubstTable = M.Map Key Inlines
 
 -- | Fail unless we're in "smart typography" mode.
 failUnlessSmart :: Parser [tok] ParserState ()
