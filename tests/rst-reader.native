@@ -223,8 +223,8 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":
 ,CodeBlock ("",[],[]) "http://example.com/"
 ,Header 1 [Str "Images"]
 ,Para [Str "From",Space,Quoted DoubleQuote [Str "Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune"],Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(",Str "1902",Str ")",Str ":"]
-,Plain [Image [Str "image"] ("lalune.jpg","")]
-,Plain [Image [Str "Voyage dans la Lune"] ("lalune.jpg","")]
+,Para [Image [Str "image"] ("lalune.jpg","")]
+,Para [Image [Str "Voyage dans la Lune"] ("lalune.jpg","")]
 ,Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "movie"] ("movie.jpg",""),Space,Str "icon",Str "."]
 ,Header 1 [Str "Comments"]
 ,Para [Str "First",Space,Str "paragraph"]

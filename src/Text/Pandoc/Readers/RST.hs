@@ -257,10 +257,14 @@ imageBlock = try $ do
   fields <- try $ do indent <- lookAhead $ many (oneOf " /t")
                      many $ rawFieldListItem indent
   optional blanklines
-  case lookup "alt" fields of
-        Just alt -> return $ Plain [Image [Str $ removeTrailingSpace alt]
-                             (src, "")]
-        Nothing  -> return $ Plain [Image [Str "image"] (src, "")]
+  let alt = maybe [Str "image"] (\x -> [Str $ removeTrailingSpace x])
+            $ lookup "alt" fields
+  let img = Image alt (src,"")
+  return $ Para [case lookup "target" fields of
+                       Just t  -> Link [img]
+                             (escapeURI $ removeLeadingTrailingSpace t,"")
+                       Nothing -> img]
+
 --
 -- header blocks
 --
