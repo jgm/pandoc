@@ -1,7 +1,7 @@
 # This Makefile is for development only.  It requires cabal-dev.
 # To get started, do 'make prep' and then 'make' or 'make quick'.
 
-.PHONY: prep, all, quick, bench, clean, install
+.PHONY: prep, all, quick, bench, clean, veryclean, install
 
 all:
 	cabal-dev configure --enable-tests --enable-benchmarks && cabal-dev build
@@ -19,6 +19,9 @@ bench:
 	cabal-dev configure --enable-benchmarks && cabal-dev build
 
 clean:
+	cabal-dev clean
+
+veryclean: clean
 	cabal-dev clean && rm -rf pandoc-types citeproc-hs
 
 pandoc-types:
