@@ -39,6 +39,7 @@ import Data.List ( findIndex, intercalate, transpose, sort, deleteFirstsBy )
 import qualified Data.Map as M
 import Text.Printf ( printf )
 import Data.Maybe ( catMaybes )
+import Control.Applicative ((<$>))
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: ReaderOptions -- ^ Reader options
@@ -95,8 +96,8 @@ parseRST = do
   startPos <- getPosition
   -- go through once just to get list of reference keys and notes
   -- docMinusKeys is the raw document with blanks where the keys were...
-  docMinusKeys <- manyTill (referenceKey <|> imageKey <|>
-                     noteBlock <|> lineClump) eof >>= return . concat
+  docMinusKeys <- concat <$>
+                  manyTill (referenceKey <|> noteBlock <|> lineClump) eof
   setInput docMinusKeys
   setPosition startPos
   st' <- getState
@@ -252,18 +253,25 @@ plain = many1 inline >>= return . Plain . normalizeSpaces
 
 imageBlock :: Parser [Char] ParserState Block
 imageBlock = try $ do
-  string ".. image:: "
-  src <- manyTill anyChar newline
+  string ".. "
+  res <- imageDef [Str "image"]
+  return $ Para [res]
+
+imageDef :: [Inline] -> Parser [Char] ParserState Inline
+imageDef defaultAlt = try $ do
+  string "image:: "
+  src <- escapeURI . removeLeadingTrailingSpace <$> manyTill anyChar newline
   fields <- try $ do indent <- lookAhead $ many (oneOf " /t")
                      many $ rawFieldListItem indent
   optional blanklines
-  let alt = maybe [Str "image"] (\x -> [Str $ removeTrailingSpace x])
+  let alt = maybe defaultAlt (\x -> [Str $ removeTrailingSpace x])
             $ lookup "alt" fields
   let img = Image alt (src,"")
-  return $ Para [case lookup "target" fields of
-                       Just t  -> Link [img]
-                             (escapeURI $ removeLeadingTrailingSpace t,"")
-                       Nothing -> img]
+  return $ case lookup "target" fields of
+                 Just t  -> Link [img]
+                            (escapeURI $ removeLeadingTrailingSpace t,"")
+                 Nothing -> img
+
 
 --
 -- header blocks
@@ -652,10 +660,7 @@ referenceName = quotedReferenceName <|>
 referenceKey :: Parser [Char] ParserState [Char]
 referenceKey = do
   startPos <- getPosition
-  (key, target) <- choice [anonymousKey, regularKey]
-  st <- getState
-  let oldkeys = stateKeys st
-  updateState $ \s -> s { stateKeys = M.insert key target oldkeys }
+  choice [imageKey, anonymousKey, regularKey]
   optional blanklines
   endPos <- getPosition
   -- return enough blanks to replace key
@@ -670,41 +675,36 @@ targetURI = do
   blanklines
   return $ escapeURI $ removeLeadingTrailingSpace $ contents
 
-imageKey :: Parser [Char] ParserState [Char]
+imageKey :: Parser [Char] ParserState ()
 imageKey = try $ do
-  startPos <- getPosition
   string ".. |"
   (alt,ref) <- withRaw (manyTill inline (char '|'))
   skipSpaces
-  string "image::"
-  src <- targetURI
-  let img = Image alt (src,"")
+  img <- imageDef alt
   let key = toKey $ init ref
   updateState $ \s -> s{ stateSubstitutions = M.insert key img $ stateSubstitutions s }
-  optional blanklines
-  endPos <- getPosition
-  -- return enough blanks to replace key
-  return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
-anonymousKey :: Parser [Char] st (Key, Target)
+anonymousKey :: Parser [Char] ParserState ()
 anonymousKey = try $ do
   oneOfStrings [".. __:", "__"]
   src <- targetURI
   pos <- getPosition
-  return (toKey $ "_" ++ printf "%09d" (sourceLine pos), (src, ""))
+  let key = toKey $ "_" ++ printf "%09d" (sourceLine pos)
+  updateState $ \s -> s { stateKeys = M.insert key (src,"") $ stateKeys s }
 
 stripTicks :: String -> String
 stripTicks = reverse . stripTick . reverse . stripTick
   where stripTick ('`':xs) = xs
         stripTick xs = xs
 
-regularKey :: Parser [Char] ParserState (Key, Target)
+regularKey :: Parser [Char] ParserState ()
 regularKey = try $ do
   string ".. _"
   (_,ref) <- withRaw referenceName
   char ':'
   src <- targetURI
-  return (toKey $ stripTicks ref, (src, ""))
+  let key = toKey $ stripTicks ref
+  updateState $ \s -> s { stateKeys = M.insert key (src,"") $ stateKeys s }
 
 --
 -- tables

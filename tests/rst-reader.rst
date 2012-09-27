@@ -416,6 +416,12 @@ Here is a movie |movie| icon.
 
 .. |movie| image:: movie.jpg
 
+And an |image with a link|.
+
+.. |image with a link| image:: movie.jpg
+   :alt:  A movie
+   :target: /url
+
 Comments
 ========
 
