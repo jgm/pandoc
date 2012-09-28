@@ -54,6 +54,7 @@ module Text.Pandoc.Shared (
                      normalize,
                      stringify,
                      compactify,
+                     compactify',
                      Element (..),
                      hierarchicalize,
                      uniqueIdent,
@@ -74,6 +75,8 @@ module Text.Pandoc.Shared (
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
+import Text.Pandoc.Builder (Blocks)
+import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.UTF8 as UTF8
 import System.Environment (getProgName)
 import System.Exit (exitWith, ExitCode(..))
@@ -377,6 +380,21 @@ compactify items =
                                 [_] -> others ++ [init final ++ [Plain a]]
                                 _   -> items
                  _      -> items
+
+-- | Change final list item from @Para@ to @Plain@ if the list contains
+-- no other @Para@ blocks.  Like compactify, but operates on @Blocks@ rather
+-- than @[Block]@.
+compactify' :: [Blocks]  -- ^ List of list items (each a list of blocks)
+           -> [Blocks]
+compactify' [] = []
+compactify' items =
+  let (others, final) = (init items, last items)
+  in  case reverse (B.toList final) of
+           (Para a:xs) -> case [Para x | Para x <- concatMap B.toList items] of
+                            -- if this is only Para, change to Plain
+                            [_] -> others ++ [B.fromList (reverse $ Plain a : xs)]
+                            _   -> items
+           _      -> items
 
 isPara :: Block -> Bool
 isPara (Para _) = True

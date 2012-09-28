@@ -39,7 +39,7 @@ import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
 import Text.Pandoc.Options
-import Text.Pandoc.Shared hiding (compactify)
+import Text.Pandoc.Shared
 import Text.Pandoc.Parsing hiding (tableWith)
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
@@ -635,26 +635,12 @@ orderedList = try $ do
                      skipNonindentSpaces
                      orderedListMarker style delim )
   start' <- option 1 $ guardEnabled Ext_startnum >> return start
-  return $ B.orderedListWith (start', style, delim) <$> fmap compactify items
-
--- | Change final list item from @Para@ to @Plain@ if the list contains
--- no other @Para@ blocks. (From Shared, modified for Blocks rather than [Block].)
-compactify :: [Blocks]  -- ^ List of list items (each a list of blocks)
-           -> [Blocks]
-compactify [] = []
-compactify items =
-  let (others, final) = (init items, last items)
-  in  case reverse (B.toList final) of
-           (Para a:xs) -> case [Para x | Para x <- concatMap B.toList items] of
-                            -- if this is only Para, change to Plain
-                            [_] -> others ++ [B.fromList (reverse $ Plain a : xs)]
-                            _   -> items
-           _      -> items
+  return $ B.orderedListWith (start', style, delim) <$> fmap compactify' items
 
 bulletList :: Parser [Char] ParserState (F Blocks)
 bulletList = do
   items <- fmap sequence $ many1 $ listItem  bulletListStart
-  return $ B.bulletList <$> fmap compactify items
+  return $ B.bulletList <$> fmap compactify' items
 
 -- definition lists
 
@@ -699,10 +685,10 @@ defRawBlock = try $ do
 definitionList :: Parser [Char] ParserState (F Blocks)
 definitionList = do
   items <- fmap sequence $ many1 definitionListItem
-  return $ B.definitionList <$> fmap compactifyDL items
+  return $ B.definitionList <$> fmap compactify'DL items
 
-compactifyDL :: [(Inlines, [Blocks])] -> [(Inlines, [Blocks])]
-compactifyDL items =
+compactify'DL :: [(Inlines, [Blocks])] -> [(Inlines, [Blocks])]
+compactify'DL items =
   let defs = concatMap snd items
       defBlocks = reverse $ concatMap B.toList defs
       isPara (Para _) = True
@@ -1041,7 +1027,7 @@ gridTableRow indices = do
   colLines <- many1 (gridTableRawLine indices)
   let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
                transpose colLines
-  fmap compactify <$> fmap sequence (mapM (parseFromString block) cols)
+  fmap compactify' <$> fmap sequence (mapM (parseFromString block) cols)
 
 removeOneLeadingSpace :: [String] -> [String]
 removeOneLeadingSpace xs =
