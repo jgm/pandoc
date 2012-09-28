@@ -39,7 +39,7 @@ import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting ( highlight, styleToCss,
                                   formatHtmlInline, formatHtmlBlock )
-import Text.Pandoc.XML (stripTags, escapeStringForXML, fromEntities)
+import Text.Pandoc.XML (stripTags, fromEntities)
 import Network.HTTP ( urlEncode )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
@@ -60,7 +60,7 @@ import Text.Blaze.Renderer.String (renderHtml)
 import Text.TeXMath
 import Text.XML.Light.Output
 import System.FilePath (takeExtension)
-import Data.Monoid (mempty, mconcat)
+import Data.Monoid
 
 data WriterState = WriterState
     { stNotes            :: [Html]  -- ^ List of notes
@@ -77,8 +77,11 @@ defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
 -- Helpers to render HTML with the appropriate function.
 
 strToHtml :: String -> Html
-strToHtml = preEscapedString . escapeStringForXML
--- strToHtml = toHtml
+strToHtml ('\'':xs) = preEscapedString "\'" `mappend` strToHtml xs
+strToHtml xs@(_:_)  = case break (=='\'') xs of
+                           (_ ,[]) -> toHtml xs
+                           (ys,zs) -> toHtml ys `mappend` strToHtml zs
+strToHtml [] = ""
 
 -- | Hard linebreak.
 nl :: WriterOptions -> Html
