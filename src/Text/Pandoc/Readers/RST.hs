@@ -35,7 +35,8 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Options
 import Control.Monad ( when, liftM, guard, mzero )
-import Data.List ( findIndex, intersperse, intercalate, transpose, sort, deleteFirstsBy )
+import Data.List ( findIndex, intersperse, intercalate,
+                   transpose, sort, deleteFirstsBy, isSuffixOf )
 import qualified Data.Map as M
 import Text.Printf ( printf )
 import Data.Maybe ( catMaybes )
@@ -43,6 +44,7 @@ import Control.Applicative ((<$>), (<$), (<*), (*>))
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
 import qualified Text.Pandoc.Builder as B
 import Data.Monoid (mconcat, mempty)
+import Data.Sequence (viewr, ViewR(..))
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: ReaderOptions -- ^ Reader options
@@ -223,16 +225,18 @@ lineBlock = try $ do
 -- paragraph block
 --
 
-codeBlockStart :: Parser [Char] st Char
-codeBlockStart = string "::" >> blankline >> blankline
-
 -- note: paragraph can end in a :: starting a code block
 para :: Parser [Char] ParserState Blocks
 para = try $ do
-  result <- trimInlines . mconcat <$>
-                many1 (notFollowedBy' codeBlockStart >> inline)
-  (lookAhead codeBlockStart >> return (B.para $ result <> B.str ":"))
-    <|> (newline >> blanklines >> return (B.para result))
+  result <- trimInlines . mconcat <$> many inline
+  newline
+  blanklines
+  case viewr (B.unMany result) of
+       ys :> (Str xs) | "::" `isSuffixOf` xs -> do
+            codeblock <- option mempty codeBlockBody
+            return $ B.para (B.Many ys <> B.str (take (length xs - 1) xs))
+                       <> codeblock
+       _ -> return (B.para result)
 
 plain :: Parser [Char] ParserState Blocks
 plain = B.plain . trimInlines . mconcat <$> many1 inline
@@ -348,11 +352,14 @@ indentedBlock = try $ do
   optional blanklines
   return $ unlines lns
 
+codeBlockStart :: Parser [Char] st Char
+codeBlockStart = string "::" >> blankline >> blankline
+
 codeBlock :: Parser [Char] st Blocks
-codeBlock = try $ do
-  codeBlockStart
-  result <- indentedBlock
-  return $ B.codeBlock $ stripTrailingNewlines result
+codeBlock = try $ codeBlockStart >> codeBlockBody
+
+codeBlockBody :: Parser [Char] st Blocks
+codeBlockBody = try $ B.codeBlock . stripTrailingNewlines <$> indentedBlock
 
 -- | The 'code-block' directive (from Sphinx) that allows a language to be
 -- specified.
