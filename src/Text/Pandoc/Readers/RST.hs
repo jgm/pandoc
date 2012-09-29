@@ -137,7 +137,6 @@ block = choice [ codeBlock
                , imageBlock
                , figureBlock
                , customCodeBlock
-               , defaultRoleBlock
                , directive
                , header
                , hrule
@@ -533,24 +532,6 @@ bulletList :: RSTParser Blocks
 bulletList = B.bulletList . compactify' <$> many1 (listItem bulletListStart)
 
 --
--- default-role block
---
-
-defaultRoleBlock :: RSTParser Blocks
-defaultRoleBlock = try $ do
-    string ".. default-role::"
-    -- doesn't enforce any restrictions on the role name; embedded spaces shouldn't be allowed, for one
-    role <- manyTill anyChar newline >>= return . trim
-    updateState $ \s -> s { stateRstDefaultRole =
-        if null role
-           then stateRstDefaultRole defaultParserState
-           else role
-        }
-    -- skip body of the directive if it exists
-    skipMany $ blanklines <|> (spaceChar >> manyTill anyChar newline)
-    return mempty
-
---
 -- directive (e.g. comment, container, compound-paragraph)
 --
 
@@ -559,7 +540,8 @@ directive = try $ do
   string ".."
   lookAhead (char '\n') <|> spaceChar
   skipMany spaceChar
-  label <- option "" $ try $ many1Till letter (try $ string "::")
+  label <- option "" $ try
+           $ many1Till (letter <|> char '-') (try $ string "::")
   skipMany spaceChar
   top <- many $ satisfy (/='\n')
              <|> try (char '\n' <* notFollowedBy blankline <*
@@ -572,7 +554,7 @@ directive = try $ do
   body <- option "" indentedBlock
   let body' = body ++ "\n\n"
   case label of
-        ""    -> return mempty
+        ""    -> return mempty -- comment
         "container" -> parseFromString parseBlocks body'
         "compound" -> parseFromString parseBlocks body'
         "pull-quote" -> B.blockQuote <$> parseFromString parseBlocks body'
@@ -580,6 +562,11 @@ directive = try $ do
         "highlights" -> B.blockQuote <$> parseFromString parseBlocks body'
         "rubric" -> B.para . B.strong <$> parseFromString
                           (trimInlines . mconcat <$> many inline) top
+        "default-role" -> mempty <$ updateState (\s ->
+                              s { stateRstDefaultRole =
+                                  case trim top of
+                                     ""   -> stateRstDefaultRole def
+                                     role -> role })
         "math" -> return $ B.para $ mconcat $ map B.displayMath
                          $ toChunks $ top ++ "\n\n" ++ body
         _     -> return mempty
