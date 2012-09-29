@@ -327,7 +327,7 @@ maybeExplicitBlock :: String  -- ^ block tag name
                     -> Parser [Char] ParserState Block
 maybeExplicitBlock name blk = try $ do
   optional $ try $ string name >> optional attributes >> char '.' >>
-    ((try whitespace) <|> endline)
+    optional whitespace >> optional endline
   blk
 
 
@@ -427,7 +427,10 @@ wordBoundaries = markupChars ++ stringBreakers
 
 -- | Parse a hyphened sequence of words
 hyphenedWords :: Parser [Char] ParserState String
-hyphenedWords = intercalate "-" <$> sepBy1 wordChunk (char '-')
+hyphenedWords = do
+  x <- wordChunk
+  xs <- many (try $ char '-' >> wordChunk)
+  return $ intercalate "-" (x:xs)
 
 wordChunk :: Parser [Char] ParserState String
 wordChunk = try $ do
