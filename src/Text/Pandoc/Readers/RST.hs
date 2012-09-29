@@ -136,7 +136,6 @@ block = choice [ codeBlock
                , fieldList
                , imageBlock
                , figureBlock
-               , customCodeBlock
                , directive
                , header
                , hrule
@@ -234,9 +233,9 @@ para = try $ do
     blanklines
     case viewr (B.unMany result) of
          ys :> (Str xs) | "::" `isSuffixOf` xs -> do
-              codeblock <- option mempty codeBlockBody
+              raw <- option mempty codeBlockBody
               return $ B.para (B.Many ys <> B.str (take (length xs - 1) xs))
-                         <> codeblock
+                         <> raw
          _ -> return (B.para result)
 
 plain :: RSTParser Blocks
@@ -361,21 +360,6 @@ codeBlock = try $ codeBlockStart >> codeBlockBody
 
 codeBlockBody :: Parser [Char] st Blocks
 codeBlockBody = try $ B.codeBlock . stripTrailingNewlines <$> indentedBlock
-
--- | The 'code-block' directive (from Sphinx) that allows a language to be
--- specified.
-customCodeBlock :: Parser [Char] st Blocks
-customCodeBlock = try $ do
-  string ".. "
-  string "code"
-  optional $ string "-block"
-  string "::"
-  skipSpaces
-  language <- manyTill anyChar newline
-  blanklines
-  result <- indentedBlock
-  return $ B.codeBlockWith ("", ["sourceCode", language], [])
-         $ stripTrailingNewlines result
 
 figureBlock :: RSTParser Blocks
 figureBlock = try $ do
@@ -567,6 +551,8 @@ directive = try $ do
                                   case trim top of
                                      ""   -> stateRstDefaultRole def
                                      role -> role })
+        "code" -> codeblock (lookup "number-lines" fields) (trim top) body
+        "code-block" -> codeblock (lookup "number-lines" fields) (trim top) body
         "math" -> return $ B.para $ mconcat $ map B.displayMath
                          $ toChunks $ top ++ "\n\n" ++ body
         _     -> return mempty
@@ -576,6 +562,17 @@ toChunks :: String -> [String]
 toChunks = dropWhile null
            . map (trim . unlines)
            . splitBy (all (`elem` " \t")) . lines
+
+codeblock :: Maybe String -> String -> String -> RSTParser Blocks
+codeblock numberLines lang body =
+  return $ B.codeBlockWith attribs $ stripTrailingNewlines body
+    where attribs = ("", classes, kvs)
+          classes = "sourceCode" : lang
+                    : maybe [] (\_ -> ["numberLines"]) numberLines
+          kvs     = case numberLines of
+                          Just "" -> []
+                          Nothing -> []
+                          Just n  -> [("startFrom",n)]
 
 ---
 --- note block
