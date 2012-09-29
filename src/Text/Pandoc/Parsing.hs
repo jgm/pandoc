@@ -610,7 +610,7 @@ gridTableWith blocks headless =
 
 gridTableSplitLine :: [Int] -> String -> [String]
 gridTableSplitLine indices line = map removeFinalBar $ tail $
-  splitStringByIndices (init indices) $ removeTrailingSpace line
+  splitStringByIndices (init indices) $ trimr line
 
 gridPart :: Char -> Parser [Char] st (Int, Int)
 gridPart ch = do
@@ -652,8 +652,7 @@ gridTableHeader headless blocks = try $ do
                     then replicate (length dashes) ""
                     else map (intercalate " ") $ transpose
                        $ map (gridTableSplitLine indices) rawContent
-  heads <- mapM (parseFromString blocks) $
-               map removeLeadingTrailingSpace rawHeads
+  heads <- mapM (parseFromString blocks) $ map trim rawHeads
   return (heads, aligns, indices)
 
 gridTableRawLine :: [Int] -> Parser [Char] ParserState [String]

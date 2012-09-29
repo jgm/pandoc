@@ -63,8 +63,7 @@ pandocToMan opts (Pandoc (Meta title authors date) blocks) = do
                                   (text (reverse xs), char d)
                             xs -> (text (reverse xs), doubleQuotes empty)
   let description = hsep $
-                    map (doubleQuotes . text . removeLeadingTrailingSpace) $
-                    splitBy (== '|') rest
+                    map (doubleQuotes . text . trim) $ splitBy (== '|') rest
   body <- blockListToMan opts blocks
   notes <- liftM stNotes get
   notes' <- notesToMan opts (reverse notes)

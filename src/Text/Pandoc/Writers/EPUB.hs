@@ -151,7 +151,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                            [("id", takeBaseName $ eRelativePath ent),
                             ("href", eRelativePath ent),
                             ("media-type", maybe "" id $ getMimeType $ eRelativePath ent)] $ ()
-  let plainify t = removeTrailingSpace $
+  let plainify t = trimr $
                     writePlain opts'{ writerStandalone = False } $
                     Pandoc meta [Plain t]
   let plainTitle = plainify $ docTitle meta
@@ -289,7 +289,7 @@ transformInlines _ sourceDir picsRef (Image lab (src,tit) : xs) = do
                         return new
   return $ Image lab (newsrc, tit) : xs
 transformInlines (MathML _) _ _ (x@(Math _ _) : xs) = do
-  let writeHtmlInline opts z = removeTrailingSpace $
+  let writeHtmlInline opts z = trimr $
          writeHtmlString opts $ Pandoc (Meta [] [] []) [Plain [z]]
       mathml = writeHtmlInline def{writerHTMLMathMethod = MathML Nothing } x
       fallback = writeHtmlInline def{writerHTMLMathMethod = PlainMath } x

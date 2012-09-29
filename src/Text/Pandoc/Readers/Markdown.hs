@@ -239,7 +239,7 @@ referenceKey = try $ do
   src <- try betweenAngles <|> sourceURL
   tit <- option "" referenceTitle
   blanklines
-  let target = (escapeURI $ removeTrailingSpace src,  tit)
+  let target = (escapeURI $ trimr src,  tit)
   st <- getState
   let oldkeys = stateKeys st
   updateState $ \s -> s { stateKeys = M.insert (toKey raw) target oldkeys }
@@ -848,7 +848,7 @@ simpleTableHeader headless = try $ do
                      else rawHeads
   heads <- fmap sequence
            $ mapM (parseFromString (mconcat <$> many plain))
-           $ map removeLeadingTrailingSpace rawHeads'
+           $ map trim rawHeads'
   return (heads, aligns, indices)
 
 -- Returns an alignment type for a table, based on a list of strings
@@ -859,7 +859,7 @@ alignType :: [String]
           -> Alignment
 alignType [] _ = AlignDefault
 alignType strLst len =
-  let nonempties = filter (not . null) $ map removeTrailingSpace strLst
+  let nonempties = filter (not . null) $ map trimr strLst
       (leftSpace, rightSpace) =
            case sortBy (comparing length) nonempties of
                  (x:_)  -> (head x `elem` " \t", length x < len)
@@ -884,7 +884,7 @@ rawTableLine :: [Int]
 rawTableLine indices = do
   notFollowedBy' (blanklines <|> tableFooter)
   line <- many1Till anyChar newline
-  return $ map removeLeadingTrailingSpace $ tail $
+  return $ map trim $ tail $
            splitStringByIndices (init indices) line
 
 -- Parse a table line and return a list of lists of blocks (columns).
@@ -957,7 +957,7 @@ multilineTableHeader headless = try $ do
                     else map (intercalate " ") rawHeadsList
   heads <- fmap sequence $
            mapM (parseFromString (mconcat <$> many plain)) $
-             map removeLeadingTrailingSpace rawHeads
+             map trim rawHeads
   return (heads, aligns, indices)
 
 -- Parse a grid table:  starts with row of '-' on top, then header
@@ -972,7 +972,7 @@ gridTable headless =
 
 gridTableSplitLine :: [Int] -> String -> [String]
 gridTableSplitLine indices line = map removeFinalBar $ tail $
-  splitStringByIndices (init indices) $ removeTrailingSpace line
+  splitStringByIndices (init indices) $ trimr line
 
 gridPart :: Char -> Parser [Char] st (Int, Int)
 gridPart ch = do
@@ -1014,7 +1014,7 @@ gridTableHeader headless = try $ do
                     else map (intercalate " ") $ transpose
                        $ map (gridTableSplitLine indices) rawContent
   heads <- fmap sequence $ mapM (parseFromString block) $
-               map removeLeadingTrailingSpace rawHeads
+               map trim rawHeads
   return (heads, aligns, indices)
 
 gridTableRawLine :: [Int] -> Parser [Char] ParserState [String]
@@ -1228,7 +1228,7 @@ code = try $ do
                       notFollowedBy (char '`')))
   attr <- option ([],[],[]) (try $ guardEnabled Ext_inline_code_attributes >>
                                    optional whitespace >> attributes)
-  return $ return $ B.codeWith attr $ removeLeadingTrailingSpace $ concat result
+  return $ return $ B.codeWith attr $ trim $ concat result
 
 math :: Parser [Char] ParserState (F Inlines)
 math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros'))
@@ -1416,7 +1416,7 @@ source' = do
   tit <- option "" linkTitle
   skipSpaces
   eof
-  return (escapeURI $ removeTrailingSpace src, tit)
+  return (escapeURI $ trimr src, tit)
 
 linkTitle :: Parser [Char] ParserState String
 linkTitle = try $ do

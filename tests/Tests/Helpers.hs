@@ -17,7 +17,7 @@ import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.Framework.Providers.QuickCheck2
 import Test.HUnit (assertBool)
-import Text.Pandoc.Shared (normalize, removeTrailingSpace)
+import Text.Pandoc.Shared (normalize, trimr)
 import Text.Pandoc.Options
 import Text.Pandoc.Writers.Native (writeNative)
 import Language.Haskell.TH.Quote (QuasiQuoter(..))
@@ -94,7 +94,7 @@ instance ToString Blocks where
   toString = writeNative def . toPandoc
 
 instance ToString Inlines where
-  toString = removeTrailingSpace . writeNative def . toPandoc
+  toString = trimr . writeNative def . toPandoc
 
 instance ToString String where
   toString = id

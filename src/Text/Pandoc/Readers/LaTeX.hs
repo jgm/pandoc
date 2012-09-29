@@ -146,9 +146,6 @@ braced = bgroup *> (concat <$> manyTill
 bracketed :: Monoid a => LP a -> LP a
 bracketed parser = try $ char '[' *> (mconcat <$> manyTill parser (char ']'))
 
-trim :: String -> String
-trim = removeLeadingTrailingSpace
-
 mathDisplay :: LP String -> LP Inlines
 mathDisplay p = displayMath <$> (try p >>= applyMacros' . trim)
 

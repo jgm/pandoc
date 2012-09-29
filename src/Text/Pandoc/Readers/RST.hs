@@ -256,15 +256,15 @@ imageBlock = try $ do
 imageDef :: Inlines -> RSTParser Inlines
 imageDef defaultAlt = try $ do
   string "image:: "
-  src <- escapeURI . removeLeadingTrailingSpace <$> manyTill anyChar newline
+  src <- escapeURI . trim <$> manyTill anyChar newline
   fields <- try $ do indent <- lookAhead $ many (oneOf " /t")
                      many $ rawFieldListItem indent
   optional blanklines
-  let alt = maybe defaultAlt (\x -> B.str $ removeTrailingSpace x)
+  let alt = maybe defaultAlt (\x -> B.str $ trimr x)
             $ lookup "alt" fields
   let img = B.image src "" alt
   return $ case lookup "target" fields of
-                 Just t  -> B.link (escapeURI $ removeLeadingTrailingSpace t)
+                 Just t  -> B.link (escapeURI $ trim t)
                               "" img
                  Nothing -> img
 
@@ -381,7 +381,7 @@ customCodeBlock = try $ do
 figureBlock :: RSTParser Blocks
 figureBlock = try $ do
   string ".. figure::"
-  src <- escapeURI . removeLeadingTrailingSpace <$> manyTill anyChar newline
+  src <- escapeURI . trim <$> manyTill anyChar newline
   body <- indentedBlock
   caption <- parseFromString extractCaption body
   return $ B.para $ B.image src "" caption
@@ -540,7 +540,7 @@ defaultRoleBlock :: RSTParser Blocks
 defaultRoleBlock = try $ do
     string ".. default-role::"
     -- doesn't enforce any restrictions on the role name; embedded spaces shouldn't be allowed, for one
-    role <- manyTill anyChar newline >>= return . removeLeadingTrailingSpace
+    role <- manyTill anyChar newline >>= return . trim
     updateState $ \s -> s { stateRstDefaultRole =
         if null role
            then stateRstDefaultRole defaultParserState
@@ -587,7 +587,7 @@ directive = try $ do
 -- divide string by blanklines
 toChunks :: String -> [String]
 toChunks = dropWhile null
-           . map (removeLeadingTrailingSpace . unlines)
+           . map (trim . unlines)
            . splitBy (all (`elem` " \t")) . lines
 
 ---
@@ -674,7 +674,7 @@ targetURI = do
   contents <- many1 (try (many spaceChar >> newline >>
                           many1 spaceChar >> noneOf " \t\n") <|> noneOf "\n")
   blanklines
-  return $ escapeURI $ removeLeadingTrailingSpace $ contents
+  return $ escapeURI $ trim $ contents
 
 imageKey :: RSTParser ()
 imageKey = try $ do
@@ -758,7 +758,7 @@ simpleTableRow indices = do
 
 simpleTableSplitLine :: [Int] -> String -> [String]
 simpleTableSplitLine indices line =
-  map removeLeadingTrailingSpace
+  map trim
   $ tail $ splitByIndices (init indices) line
 
 simpleTableHeader :: Bool  -- ^ Headerless table
@@ -777,7 +777,7 @@ simpleTableHeader headless = try $ do
                     then replicate (length dashes) ""
                     else simpleTableSplitLine indices rawContent
   heads <- mapM (parseFromString (B.toList . mconcat <$> many plain)) $
-             map removeLeadingTrailingSpace rawHeads
+             map trim rawHeads
   return (heads, aligns, indices)
 
 -- Parse a simple table.
@@ -845,7 +845,7 @@ code = try $ do
   string "``"
   result <- manyTill anyChar (try (string "``"))
   return $ B.code
-         $ removeLeadingTrailingSpace $ unwords $ lines result
+         $ trim $ unwords $ lines result
 
 -- succeeds only if we're not right after a str (ie. in middle of word)
 atStart :: RSTParser a -> RSTParser a
@@ -932,7 +932,7 @@ explicitLink = try $ do
   src <- manyTill (noneOf ">\n") (char '>')
   skipSpaces
   string "`_"
-  return $ B.link (escapeURI $ removeLeadingTrailingSpace src) "" label'
+  return $ B.link (escapeURI $ trim src) "" label'
 
 referenceLink :: RSTParser Inlines
 referenceLink = try $ do

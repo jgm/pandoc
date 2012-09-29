@@ -38,9 +38,9 @@ module Text.Pandoc.Shared (
                      backslashEscapes,
                      escapeStringUsing,
                      stripTrailingNewlines,
-                     removeLeadingTrailingSpace,
-                     removeLeadingSpace,
-                     removeTrailingSpace,
+                     trim,
+                     triml,
+                     trimr,
                      stripFirstAndLast,
                      camelCaseToHyphenated,
                      toRomanNumeral,
@@ -161,16 +161,16 @@ stripTrailingNewlines :: String -> String
 stripTrailingNewlines = reverse . dropWhile (== '\n') . reverse
 
 -- | Remove leading and trailing space (including newlines) from string.
-removeLeadingTrailingSpace :: String -> String
-removeLeadingTrailingSpace = removeLeadingSpace . removeTrailingSpace
+trim :: String -> String
+trim = triml . trimr
 
 -- | Remove leading space (including newlines) from string.
-removeLeadingSpace :: String -> String
-removeLeadingSpace = dropWhile (`elem` " \r\n\t")
+triml :: String -> String
+triml = dropWhile (`elem` " \r\n\t")
 
 -- | Remove trailing space (including newlines) from string.
-removeTrailingSpace :: String -> String
-removeTrailingSpace = reverse . removeLeadingSpace . reverse
+trimr :: String -> String
+trimr = reverse . triml . reverse
 
 -- | Strip leading and trailing characters from string
 stripFirstAndLast :: String -> String

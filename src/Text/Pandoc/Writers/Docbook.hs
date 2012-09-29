@@ -49,7 +49,7 @@ authorToDocbook opts name' =
   in  if ',' `elem` name
          then -- last name first
               let (lastname, rest) = break (==',') name
-                  firstname = removeLeadingSpace rest in
+                  firstname = triml rest in
               inTagsSimple "firstname" (text $ escapeStringForXML firstname) <>
               inTagsSimple "surname" (text $ escapeStringForXML lastname)
          else -- last name last
@@ -74,7 +74,7 @@ writeDocbook opts (Pandoc (Meta tit auths dat) blocks) =
                     else Nothing
       render' = render colwidth
       opts' = if "/book>" `isSuffixOf`
-                      (removeTrailingSpace $ writerTemplate opts)
+                      (trimr $ writerTemplate opts)
                  then opts{ writerChapters = True }
                  else opts
       startLvl = if writerChapters opts' then 0 else 1
