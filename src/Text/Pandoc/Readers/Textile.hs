@@ -522,7 +522,7 @@ escapedTag = Str <$>
 
 -- | Any special symbol defined in wordBoundaries
 symbol :: Parser [Char] ParserState Inline
-symbol = Str . singleton <$> oneOf wordBoundaries
+symbol = Str . singleton <$> (oneOf wordBoundaries <|> oneOf markupChars)
 
 -- | Inline code
 code :: Parser [Char] ParserState Inline
@@ -546,7 +546,7 @@ attributes = choice [ enclosed (char '(') (char ')') anyChar,
 surrounded :: Parser [Char] st t   -- ^ surrounding parser
 	    -> Parser [Char] st a    -- ^ content parser (to be used repeatedly)
 	    -> Parser [Char] st [a]
-surrounded border = enclosed border (try border)
+surrounded border = enclosed (border *> notFollowedBy (oneOf " \t\n\r")) (try border)
 
 -- | Inlines are most of the time of the same form
 simpleInline :: Parser [Char] ParserState t           -- ^ surrounding parser
