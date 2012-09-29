@@ -43,12 +43,12 @@ import Control.Monad
 
 -- | Process a 'Pandoc' document by adding citations formatted
 -- according to a CSL style, using 'citeproc' from citeproc-hs.
-processBiblio :: FilePath -> Maybe FilePath -> [Reference] -> Pandoc
+processBiblio :: String -> Maybe FilePath -> [Reference] -> Pandoc
               -> IO Pandoc
-processBiblio cslfile abrfile r p
+processBiblio cslStr abrfile r p
     = if null r then return p
       else do
-        csl <- readCSLFile cslfile
+        csl <- parseCSL cslStr
         abbrevs <- case abrfile of
                       Just f  -> readJsonAbbrevFile f
                       Nothing -> return []
