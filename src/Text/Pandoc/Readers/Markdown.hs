@@ -291,11 +291,11 @@ noteBlock = try $ do
   char ':'
   optional blankline
   optional indentSpaces
-  raw <- sepBy rawLines
-             (try (blankline >> indentSpaces >>
-                   notFollowedBy blankline))
+  first <- rawLines
+  rest <- many $ try $ blanklines >> indentSpaces >> rawLines
+  let raw = unlines (first:rest) ++ "\n"
   optional blanklines
-  parsed <- parseFromString parseBlocks $ unlines raw ++ "\n"
+  parsed <- parseFromString parseBlocks raw
   let newnote = (ref, parsed)
   updateState $ \s -> s { stateNotes' = newnote : stateNotes' s }
   return mempty
@@ -517,10 +517,13 @@ emailBlockQuoteStart = try $ skipNonindentSpaces >> char '>' >>~ optional (char 
 emailBlockQuote :: Parser [Char] ParserState [String]
 emailBlockQuote = try $ do
   emailBlockQuoteStart
-  raw <- sepBy (many (nonEndline <|>
-                      (try (endline >> notFollowedBy emailBlockQuoteStart >>
-                       return '\n'))))
-               (try (newline >> emailBlockQuoteStart))
+  let emailLine = many $ nonEndline <|> try
+                         (endline >> notFollowedBy emailBlockQuoteStart >>
+                         return '\n')
+  let emailSep = try (newline >> emailBlockQuoteStart)
+  first <- emailLine
+  rest <- many $ try $ emailSep >> emailLine
+  let raw = first:rest
   newline <|> (eof >> return '\n')
   optional blanklines
   return raw
