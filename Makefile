@@ -9,7 +9,8 @@ all:
 prof:
 	cabal-dev configure --enable-tests --enable-library-profiling --enable-executable-profiling && cabal-dev build
 
-prep: pandoc-types citeproc-hs
+prep: pandoc-types
+	cabal update && \
 	cabal-dev install-deps --enable-library-profiling --enable-tests --enable-benchmarks
 
 quick:
