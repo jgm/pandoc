@@ -228,15 +228,16 @@ lineBlock = try $ do
 -- note: paragraph can end in a :: starting a code block
 para :: Parser [Char] ParserState Blocks
 para = try $ do
-  result <- trimInlines . mconcat <$> many inline
-  newline
-  blanklines
-  case viewr (B.unMany result) of
-       ys :> (Str xs) | "::" `isSuffixOf` xs -> do
-            codeblock <- option mempty codeBlockBody
-            return $ B.para (B.Many ys <> B.str (take (length xs - 1) xs))
-                       <> codeblock
-       _ -> return (B.para result)
+  result <- trimInlines . mconcat <$> many1 inline
+  option (B.plain result) $ try $ do
+    newline
+    blanklines
+    case viewr (B.unMany result) of
+         ys :> (Str xs) | "::" `isSuffixOf` xs -> do
+              codeblock <- option mempty codeBlockBody
+              return $ B.para (B.Many ys <> B.str (take (length xs - 1) xs))
+                         <> codeblock
+         _ -> return (B.para result)
 
 plain :: Parser [Char] ParserState Blocks
 plain = B.plain . trimInlines . mconcat <$> many1 inline
