@@ -34,7 +34,7 @@ import Text.Pandoc
 import Text.Pandoc.PDF (tex2pdf)
 import Text.Pandoc.Readers.LaTeX (handleIncludes)
 import Text.Pandoc.Shared ( tabFilter, readDataFile, safeRead,
-                            headerShift, findDataFile, normalize, err, warn )
+                            headerShift, normalize, err, warn )
 import Text.Pandoc.XML ( toEntities, fromEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Highlighting ( languages, Style, tango, pygments,
@@ -127,7 +127,7 @@ data Opt = Opt
     , optDataDir           :: Maybe FilePath
     , optCiteMethod        :: CiteMethod -- ^ Method to output cites
     , optBibliography      :: [String]
-    , optCslFile           :: FilePath
+    , optCslFile           :: Maybe FilePath
     , optAbbrevsFile       :: Maybe FilePath
     , optListings          :: Bool       -- ^ Use listings package for code blocks
     , optLaTeXEngine       :: String     -- ^ Program to use for latex -> pdf
@@ -179,7 +179,7 @@ defaultOpts = Opt
     , optDataDir           = Nothing
     , optCiteMethod        = Citeproc
     , optBibliography      = []
-    , optCslFile           = ""
+    , optCslFile           = Nothing
     , optAbbrevsFile       = Nothing
     , optListings          = False
     , optLaTeXEngine       = "pdflatex"
@@ -573,7 +573,7 @@ options =
 
     , Option "" ["csl"]
                  (ReqArg
-                  (\arg opt -> return opt { optCslFile = arg })
+                  (\arg opt -> return opt { optCslFile = Just arg })
                   "FILENAME")
                  ""
 
@@ -814,7 +814,7 @@ main = do
               , optIndentedCodeClasses = codeBlockClasses
               , optDataDir           = mbDataDir
               , optBibliography      = reffiles
-              , optCslFile           = cslfile
+              , optCslFile           = mbCsl
               , optAbbrevsFile       = cslabbrevs
               , optCiteMethod        = citeMethod
               , optListings          = listings
@@ -1007,18 +1007,18 @@ main = do
   doc2 <- do
           if citeMethod == Citeproc && not (null refs)
              then do
-                csldir <- getAppUserDataDirectory "csl"
-                cslfile' <- if null cslfile
-                               then findDataFile datadir "default.csl"
-                               else do
-                                  ex <- doesFileExist cslfile
-                                  if ex
-                                     then return cslfile
-                                     else findDataFile datadir $
-                                            replaceDirectory
-                                            (replaceExtension cslfile "csl")
-                                            csldir
-                processBiblio cslfile' cslabbrevs refs doc1
+               csl <- case mbCsl of
+                            Nothing      -> readDataFile datadir "default.csl"
+                            Just cslfile -> do
+                                  exists <- doesFileExist cslfile
+                                  if exists
+                                     then UTF8.readFile cslfile
+                                     else do
+                                       csldir <- getAppUserDataDirectory "csl"
+                                       print csldir
+                                       readDataFile datadir (replaceDirectory
+                                                (replaceExtension cslfile "csl") csldir)
+               processBiblio csl cslabbrevs refs doc1
              else return doc1
 
   let writeBinary :: B.ByteString -> IO ()
