@@ -136,6 +136,7 @@ block = choice [ codeBlock
                , fieldList
                , figureBlock
                , directive
+               , comment
                , header
                , hrule
                , lineBlock     -- must go before definitionList
@@ -492,6 +493,19 @@ bulletList = B.bulletList . compactify' <$> many1 (listItem bulletListStart)
 -- directive (e.g. comment, container, compound-paragraph)
 --
 
+comment :: RSTParser Blocks
+comment = try $ do
+  getPosition >>= guard . (==1) . sourceColumn
+  string ".."
+  skipMany1 spaceChar <|> (() <$ lookAhead newline)
+  notFollowedBy' directiveLabel
+  manyTill anyChar blanklines
+  optional indentedBlock
+  return mempty
+
+directiveLabel :: RSTParser String
+directiveLabel = many1Till (letter <|> char '-') (try $ string "::")
+
 directive :: RSTParser Blocks
 directive = try $ do
   getPosition >>= guard . (==1) . sourceColumn
@@ -500,10 +514,8 @@ directive = try $ do
 
 directive' :: RSTParser Blocks
 directive' = do
-  lookAhead (char '\n') <|> spaceChar
-  skipMany spaceChar
-  label <- option "" $ try
-           $ many1Till (letter <|> char '-') (try $ string "::")
+  skipMany1 spaceChar
+  label <- directiveLabel
   skipMany spaceChar
   top <- many $ satisfy (/='\n')
              <|> try (char '\n' <* notFollowedBy blankline <*
@@ -516,7 +528,6 @@ directive' = do
   body <- option "" indentedBlock
   let body' = body ++ "\n\n"
   case label of
-        ""  -> return mempty -- comment
         "container" -> parseFromString parseBlocks body'
         "compound" -> parseFromString parseBlocks body'
         "pull-quote" -> B.blockQuote <$> parseFromString parseBlocks body'
@@ -653,7 +664,7 @@ substKey = try $ do
   skipMany1 spaceChar
   (alt,ref) <- withRaw $ trimInlines . mconcat
                       <$> enclosed (char '|') (char '|') inline
-  res <- B.toList <$> directive'
+  res <- B.toList <$> (directive' <|> para)
   il <- case res of
              -- use alt unless :alt: attribute on image:
              [Para [Image [Str "image"] (src,tit)]] ->
