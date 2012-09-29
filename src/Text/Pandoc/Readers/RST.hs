@@ -137,7 +137,6 @@ block = choice [ codeBlock
                , imageBlock
                , figureBlock
                , customCodeBlock
-               , mathBlock
                , defaultRoleBlock
                , directive
                , header
@@ -392,33 +391,6 @@ extractCaption = try $ do
   manyTill anyLine blanklines
   trimInlines . mconcat <$> many inline
 
--- | The 'math' directive (from Sphinx) for display math.
-mathBlock :: Parser [Char] st Blocks
-mathBlock = try $ do
-  string ".. math::"
-  mathBlockMultiline <|> mathBlockOneLine
-
-mathBlockOneLine :: Parser [Char] st Blocks
-mathBlockOneLine = try $ do
-  result <- manyTill anyChar newline
-  blanklines
-  return $ B.para $ B.displayMath $ removeLeadingTrailingSpace result
-
-mathBlockMultiline :: Parser [Char] st Blocks
-mathBlockMultiline = try $ do
-  blanklines
-  result <- indentedBlock
-  -- a single block can contain multiple equations, which need to go
-  -- in separate Pandoc math elements
-  let lns = map removeLeadingTrailingSpace $ lines result
-  -- drop :label, :nowrap, etc.
-  let startsWithColon (':':_) = True
-      startsWithColon _       = False
-  let lns' = dropWhile startsWithColon lns
-  let eqs = map (removeLeadingTrailingSpace . unlines)
-            $ filter (not . null) $ splitBy null lns'
-  return $ B.para $ mconcat $ map B.displayMath eqs
-
 lhsCodeBlock :: RSTParser Blocks
 lhsCodeBlock = try $ do
   guardEnabled Ext_literate_haskell
@@ -579,7 +551,7 @@ defaultRoleBlock = try $ do
     return mempty
 
 --
--- unknown directive (e.g. comment, container, compound-paragraph)
+-- directive (e.g. comment, container, compound-paragraph)
 --
 
 directive :: RSTParser Blocks
@@ -608,7 +580,15 @@ directive = try $ do
         "highlights" -> B.blockQuote <$> parseFromString parseBlocks body'
         "rubric" -> B.para . B.strong <$> parseFromString
                           (trimInlines . mconcat <$> many inline) top
+        "math" -> return $ B.para $ mconcat $ map B.displayMath
+                         $ toChunks $ top ++ "\n\n" ++ body
         _     -> return mempty
+
+-- divide string by blanklines
+toChunks :: String -> [String]
+toChunks = dropWhile null
+           . map (removeLeadingTrailingSpace . unlines)
+           . splitBy (all (`elem` " \t")) . lines
 
 ---
 --- note block

@@ -562,8 +562,8 @@ display math:
    \alpha = \beta
 
 .. math::
-   :label hithere
-   :nowrap
+   :label: hithere
+   :nowrap:
 
    E &= mc^2\\
    F &= \pi E
