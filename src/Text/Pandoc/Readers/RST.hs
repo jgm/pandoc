@@ -134,7 +134,6 @@ block = choice [ codeBlock
                , rawBlock
                , blockQuote
                , fieldList
-               , imageBlock
                , figureBlock
                , directive
                , header
@@ -240,31 +239,6 @@ para = try $ do
 
 plain :: RSTParser Blocks
 plain = B.plain . trimInlines . mconcat <$> many1 inline
-
---
--- image block
---
-
-imageBlock :: RSTParser Blocks
-imageBlock = try $ do
-  string ".. "
-  res <- imageDef (B.str "image")
-  return $ B.para res
-
-imageDef :: Inlines -> RSTParser Inlines
-imageDef defaultAlt = try $ do
-  string "image:: "
-  src <- escapeURI . trim <$> manyTill anyChar newline
-  fields <- try $ do indent <- lookAhead $ many (oneOf " /t")
-                     many $ rawFieldListItem indent
-  optional blanklines
-  let alt = maybe defaultAlt (\x -> B.str $ trimr x)
-            $ lookup "alt" fields
-  let img = B.image src "" alt
-  return $ case lookup "target" fields of
-                 Just t  -> B.link (escapeURI $ trim t)
-                              "" img
-                 Nothing -> img
 
 --
 -- header blocks
@@ -376,10 +350,9 @@ extractCaption = try $ do
 
 lhsCodeBlock :: RSTParser Blocks
 lhsCodeBlock = try $ do
+  getPosition >>= guard . (==1) . sourceColumn
   guardEnabled Ext_literate_haskell
   optional codeBlockStart
-  pos <- getPosition
-  when (sourceColumn pos /= 1) $ fail "Not in first column"
   lns <- many1 birdTrackLine
   -- if (as is normal) there is always a space after >, drop it
   let lns' = if all (\ln -> null ln || take 1 ln == " ") lns
@@ -521,7 +494,12 @@ bulletList = B.bulletList . compactify' <$> many1 (listItem bulletListStart)
 
 directive :: RSTParser Blocks
 directive = try $ do
+  getPosition >>= guard . (==1) . sourceColumn
   string ".."
+  directive'
+
+directive' :: RSTParser Blocks
+directive' = do
   lookAhead (char '\n') <|> spaceChar
   skipMany spaceChar
   label <- option "" $ try
@@ -538,7 +516,7 @@ directive = try $ do
   body <- option "" indentedBlock
   let body' = body ++ "\n\n"
   case label of
-        ""    -> return mempty -- comment
+        ""  -> return mempty -- comment
         "container" -> parseFromString parseBlocks body'
         "compound" -> parseFromString parseBlocks body'
         "pull-quote" -> B.blockQuote <$> parseFromString parseBlocks body'
@@ -555,6 +533,14 @@ directive = try $ do
         "code-block" -> codeblock (lookup "number-lines" fields) (trim top) body
         "math" -> return $ B.para $ mconcat $ map B.displayMath
                          $ toChunks $ top ++ "\n\n" ++ body
+        "image" -> do
+           let src = escapeURI $ trim top
+           let alt = B.str $ maybe "image" trim $ lookup "alt" fields
+           return $ B.para
+                  $ case lookup "target" fields of
+                          Just t  -> B.link (escapeURI $ trim t) ""
+                                     $ B.image src "" alt
+                          Nothing -> B.image src "" alt
         _     -> return mempty
 
 -- divide string by blanklines
@@ -645,7 +631,7 @@ referenceName = quotedReferenceName <|>
 referenceKey :: RSTParser [Char]
 referenceKey = do
   startPos <- getPosition
-  choice [imageKey, anonymousKey, regularKey]
+  choice [substKey, anonymousKey, regularKey]
   optional blanklines
   endPos <- getPosition
   -- return enough blanks to replace key
@@ -660,14 +646,24 @@ targetURI = do
   blanklines
   return $ escapeURI $ trim $ contents
 
-imageKey :: RSTParser ()
-imageKey = try $ do
-  string ".. |"
-  (alt,ref) <- withRaw (trimInlines . mconcat <$> manyTill inline (char '|'))
-  skipSpaces
-  img <- imageDef alt
-  let key = toKey $ init ref
-  updateState $ \s -> s{ stateSubstitutions = M.insert key img $ stateSubstitutions s }
+substKey :: RSTParser ()
+substKey = try $ do
+  getPosition >>= guard . (==1) . sourceColumn
+  string ".."
+  skipMany1 spaceChar
+  (alt,ref) <- withRaw $ trimInlines . mconcat
+                      <$> enclosed (char '|') (char '|') inline
+  res <- B.toList <$> directive'
+  il <- case res of
+             -- use alt unless :alt: attribute on image:
+             [Para [Image [Str "image"] (src,tit)]] ->
+                return $ B.image src tit alt
+             [Para [Link [Image [Str "image"] (src,tit)] (src',tit')]] ->
+                return $ B.link src' tit' (B.image src tit alt)
+             [Para ils] -> return $ B.fromList ils
+             _          -> mzero
+  let key = toKey $ stripFirstAndLast ref
+  updateState $ \s -> s{ stateSubstitutions = M.insert key il $ stateSubstitutions s }
 
 anonymousKey :: RSTParser ()
 anonymousKey = try $ do
@@ -955,11 +951,10 @@ autoLink = autoURI <|> autoEmail
 -- For now, we assume that all substitution references are for images.
 image :: RSTParser Inlines
 image = try $ do
-  char '|'
-  (_,ref) <- withRaw (manyTill inline (char '|'))
+  (_,ref) <- withRaw $ enclosed (char '|') (char '|') inline
   state <- getState
   let substTable = stateSubstitutions state
-  case M.lookup (toKey $ init ref) substTable of
+  case M.lookup (toKey $ stripFirstAndLast ref) substTable of
        Nothing     -> fail "no corresponding key"
        Just target -> return target
 
