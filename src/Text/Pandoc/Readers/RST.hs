@@ -52,6 +52,8 @@ readRST :: ReaderOptions -- ^ Reader options
         -> Pandoc
 readRST opts s = (readWith parseRST) def{ stateOptions = opts } (s ++ "\n\n")
 
+type RSTParser = Parser [Char] ParserState
+
 --
 -- Constants and data structure definitions
 ---
@@ -95,7 +97,7 @@ titleTransform ((Header 1 head1):rest) |
    (promoteHeaders 1 rest, head1)
 titleTransform blocks = (blocks, [])
 
-parseRST :: Parser [Char] ParserState Pandoc
+parseRST :: RSTParser Pandoc
 parseRST = do
   optional blanklines -- skip blank lines at beginning of file
   startPos <- getPosition
@@ -124,10 +126,10 @@ parseRST = do
 -- parsing blocks
 --
 
-parseBlocks :: Parser [Char] ParserState Blocks
+parseBlocks :: RSTParser Blocks
 parseBlocks = mconcat <$> manyTill block eof
 
-block :: Parser [Char] ParserState Blocks
+block :: RSTParser Blocks
 block = choice [ codeBlock
                , rawBlock
                , blockQuote
@@ -137,7 +139,7 @@ block = choice [ codeBlock
                , customCodeBlock
                , mathBlock
                , defaultRoleBlock
-               , unknownDirective
+               , directive
                , header
                , hrule
                , lineBlock     -- must go before definitionList
@@ -152,7 +154,7 @@ block = choice [ codeBlock
 -- field list
 --
 
-rawFieldListItem :: String -> Parser [Char] ParserState (String, String)
+rawFieldListItem :: String -> RSTParser (String, String)
 rawFieldListItem indent = try $ do
   string indent
   char ':'
@@ -165,7 +167,7 @@ rawFieldListItem indent = try $ do
   return (name, raw)
 
 fieldListItem :: String
-              -> Parser [Char] ParserState (Maybe (Inlines, [Blocks]))
+              -> RSTParser (Maybe (Inlines, [Blocks]))
 fieldListItem indent = try $ do
   (name, raw) <- rawFieldListItem indent
   let term = B.str name
@@ -192,7 +194,7 @@ extractContents [Plain auth] = auth
 extractContents [Para auth]  = auth
 extractContents _            = []
 
-fieldList :: Parser [Char] ParserState Blocks
+fieldList :: RSTParser Blocks
 fieldList = try $ do
   indent <- lookAhead $ many spaceChar
   items <- many1 $ fieldListItem indent
@@ -204,7 +206,7 @@ fieldList = try $ do
 -- line block
 --
 
-lineBlockLine :: Parser [Char] ParserState Inlines
+lineBlockLine :: RSTParser Inlines
 lineBlockLine = try $ do
   char '|'
   char ' ' <|> lookAhead (char '\n')
@@ -215,7 +217,7 @@ lineBlockLine = try $ do
               then mconcat line
               else B.str white <> mconcat line
 
-lineBlock :: Parser [Char] ParserState Blocks
+lineBlock :: RSTParser Blocks
 lineBlock = try $ do
   lines' <- many1 lineBlockLine
   blanklines
@@ -226,7 +228,7 @@ lineBlock = try $ do
 --
 
 -- note: paragraph can end in a :: starting a code block
-para :: Parser [Char] ParserState Blocks
+para :: RSTParser Blocks
 para = try $ do
   result <- trimInlines . mconcat <$> many1 inline
   option (B.plain result) $ try $ do
@@ -239,20 +241,20 @@ para = try $ do
                          <> codeblock
          _ -> return (B.para result)
 
-plain :: Parser [Char] ParserState Blocks
+plain :: RSTParser Blocks
 plain = B.plain . trimInlines . mconcat <$> many1 inline
 
 --
 -- image block
 --
 
-imageBlock :: Parser [Char] ParserState Blocks
+imageBlock :: RSTParser Blocks
 imageBlock = try $ do
   string ".. "
   res <- imageDef (B.str "image")
   return $ B.para res
 
-imageDef :: Inlines -> Parser [Char] ParserState Inlines
+imageDef :: Inlines -> RSTParser Inlines
 imageDef defaultAlt = try $ do
   string "image:: "
   src <- escapeURI . removeLeadingTrailingSpace <$> manyTill anyChar newline
@@ -271,11 +273,11 @@ imageDef defaultAlt = try $ do
 -- header blocks
 --
 
-header :: Parser [Char] ParserState Blocks
+header :: RSTParser Blocks
 header = doubleHeader <|> singleHeader <?> "header"
 
 -- a header with lines on top and bottom
-doubleHeader :: Parser [Char] ParserState Blocks
+doubleHeader :: RSTParser Blocks
 doubleHeader = try $ do
   c <- oneOf underlineChars
   rest <- many (char c)  -- the top line
@@ -300,7 +302,7 @@ doubleHeader = try $ do
   return $ B.header level txt
 
 -- a header with line on the bottom only
-singleHeader :: Parser [Char] ParserState Blocks
+singleHeader :: RSTParser Blocks
 singleHeader = try $ do
   notFollowedBy' whitespace
   txt <- trimInlines . mconcat <$> many1 (do {notFollowedBy blankline; inline})
@@ -377,7 +379,7 @@ customCodeBlock = try $ do
   return $ B.codeBlockWith ("", ["sourceCode", language], [])
          $ stripTrailingNewlines result
 
-figureBlock :: Parser [Char] ParserState Blocks
+figureBlock :: RSTParser Blocks
 figureBlock = try $ do
   string ".. figure::"
   src <- escapeURI . removeLeadingTrailingSpace <$> manyTill anyChar newline
@@ -385,7 +387,7 @@ figureBlock = try $ do
   caption <- parseFromString extractCaption body
   return $ B.para $ B.image src "" caption
 
-extractCaption :: Parser [Char] ParserState Inlines
+extractCaption :: RSTParser Inlines
 extractCaption = try $ do
   manyTill anyLine blanklines
   trimInlines . mconcat <$> many inline
@@ -417,7 +419,7 @@ mathBlockMultiline = try $ do
             $ filter (not . null) $ splitBy null lns'
   return $ B.para $ mconcat $ map B.displayMath eqs
 
-lhsCodeBlock :: Parser [Char] ParserState Blocks
+lhsCodeBlock :: RSTParser Blocks
 lhsCodeBlock = try $ do
   guardEnabled Ext_literate_haskell
   optional codeBlockStart
@@ -451,7 +453,7 @@ rawBlock = try $ do
 -- block quotes
 --
 
-blockQuote :: Parser [Char] ParserState Blocks
+blockQuote :: RSTParser Blocks
 blockQuote = do
   raw <- indentedBlock
   -- parse the extracted block, which may contain various block elements:
@@ -462,10 +464,10 @@ blockQuote = do
 -- list blocks
 --
 
-list :: Parser [Char] ParserState Blocks
+list :: RSTParser Blocks
 list = choice [ bulletList, orderedList, definitionList ] <?> "list"
 
-definitionListItem :: Parser [Char] ParserState (Inlines, [Blocks])
+definitionListItem :: RSTParser (Inlines, [Blocks])
 definitionListItem = try $ do
   -- avoid capturing a directive or comment
   notFollowedBy (try $ char '.' >> char '.')
@@ -475,7 +477,7 @@ definitionListItem = try $ do
   contents <- parseFromString parseBlocks $ raw ++ "\n"
   return (term, [contents])
 
-definitionList :: Parser [Char] ParserState Blocks
+definitionList :: RSTParser Blocks
 definitionList = B.definitionList <$> many1 definitionListItem
 
 -- parses bullet list start and returns its length (inc. following whitespace)
@@ -489,14 +491,14 @@ bulletListStart = try $ do
 -- parses ordered list start and returns its length (inc following whitespace)
 orderedListStart :: ListNumberStyle
                  -> ListNumberDelim
-                 -> Parser [Char] ParserState Int
+                 -> RSTParser Int
 orderedListStart style delim = try $ do
   (_, markerLen) <- withHorizDisplacement (orderedListMarker style delim)
   white <- many1 spaceChar
   return $ markerLen + length white
 
 -- parse a line of a list item
-listLine :: Int -> Parser [Char] ParserState [Char]
+listLine :: Int -> RSTParser [Char]
 listLine markerLength = try $ do
   notFollowedBy blankline
   indentWith markerLength
@@ -504,7 +506,7 @@ listLine markerLength = try $ do
   return $ line ++ "\n"
 
 -- indent by specified number of spaces (or equiv. tabs)
-indentWith :: Int -> Parser [Char] ParserState [Char]
+indentWith :: Int -> RSTParser [Char]
 indentWith num = do
   tabStop <- getOption readerTabStop
   if (num < tabStop)
@@ -513,8 +515,8 @@ indentWith num = do
                    (try (char '\t' >> count (num - tabStop) (char ' '))) ]
 
 -- parse raw text for one list item, excluding start marker and continuations
-rawListItem :: Parser [Char] ParserState Int
-            -> Parser [Char] ParserState (Int, [Char])
+rawListItem :: RSTParser Int
+            -> RSTParser (Int, [Char])
 rawListItem start = try $ do
   markerLength <- start
   firstLine <- manyTill anyChar newline
@@ -524,14 +526,14 @@ rawListItem start = try $ do
 -- continuation of a list item - indented and separated by blankline or
 -- (in compact lists) endline.
 -- Note: nested lists are parsed as continuations.
-listContinuation :: Int -> Parser [Char] ParserState [Char]
+listContinuation :: Int -> RSTParser [Char]
 listContinuation markerLength = try $ do
   blanks <- many1 blankline
   result <- many1 (listLine markerLength)
   return $ blanks ++ concat result
 
-listItem :: Parser [Char] ParserState Int
-         -> Parser [Char] ParserState Blocks
+listItem :: RSTParser Int
+         -> RSTParser Blocks
 listItem start = try $ do
   (markerLength, first) <- rawListItem start
   rest <- many (listContinuation markerLength)
@@ -548,21 +550,21 @@ listItem start = try $ do
   updateState (\st -> st {stateParserContext = oldContext})
   return parsed
 
-orderedList :: Parser [Char] ParserState Blocks
+orderedList :: RSTParser Blocks
 orderedList = try $ do
   (start, style, delim) <- lookAhead (anyOrderedListMarker >>~ spaceChar)
   items <- many1 (listItem (orderedListStart style delim))
   let items' = compactify' items
   return $ B.orderedListWith (start, style, delim) items'
 
-bulletList :: Parser [Char] ParserState Blocks
+bulletList :: RSTParser Blocks
 bulletList = B.bulletList . compactify' <$> many1 (listItem bulletListStart)
 
 --
 -- default-role block
 --
 
-defaultRoleBlock :: Parser [Char] ParserState Blocks
+defaultRoleBlock :: RSTParser Blocks
 defaultRoleBlock = try $ do
     string ".. default-role::"
     -- doesn't enforce any restrictions on the role name; embedded spaces shouldn't be allowed, for one
@@ -577,22 +579,42 @@ defaultRoleBlock = try $ do
     return mempty
 
 --
--- unknown directive (e.g. comment)
+-- unknown directive (e.g. comment, container, compound-paragraph)
 --
 
-unknownDirective :: Parser [Char] st Blocks
-unknownDirective = try $ do
+directive :: RSTParser Blocks
+directive = try $ do
   string ".."
-  notFollowedBy (noneOf " \t\n")
-  manyTill anyChar newline
-  many $ blanklines <|> (spaceChar >> manyTill anyChar newline)
-  return mempty
+  lookAhead (char '\n') <|> spaceChar
+  skipMany spaceChar
+  label <- option "" $ try $ many1Till letter (try $ string "::")
+  skipMany spaceChar
+  top <- many $ satisfy (/='\n')
+             <|> try (char '\n' <* notFollowedBy blankline <*
+                      notFollowedBy' (lookAhead (many spaceChar)
+                                       >>= rawFieldListItem))
+  newline
+  indent <- lookAhead $ many spaceChar
+  fields <- many $ rawFieldListItem indent
+  blanklines
+  body <- option "" indentedBlock
+  let body' = body ++ "\n\n"
+  case label of
+        ""    -> return mempty
+        "container" -> parseFromString parseBlocks body'
+        "compound" -> parseFromString parseBlocks body'
+        "pull-quote" -> B.blockQuote <$> parseFromString parseBlocks body'
+        "epigraph" -> B.blockQuote <$> parseFromString parseBlocks body'
+        "highlights" -> B.blockQuote <$> parseFromString parseBlocks body'
+        "rubric" -> B.para . B.strong <$> parseFromString
+                          (trimInlines . mconcat <$> many inline) top
+        _     -> return mempty
 
 ---
 --- note block
 ---
 
-noteBlock :: Parser [Char] ParserState [Char]
+noteBlock :: RSTParser [Char]
 noteBlock = try $ do
   startPos <- getPosition
   string ".."
@@ -611,7 +633,7 @@ noteBlock = try $ do
   -- return blanks so line count isn't affected
   return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
-noteMarker :: Parser [Char] ParserState [Char]
+noteMarker :: RSTParser [Char]
 noteMarker = do
   char '['
   res <- many1 digit
@@ -624,13 +646,13 @@ noteMarker = do
 -- reference key
 --
 
-quotedReferenceName :: Parser [Char] ParserState Inlines
+quotedReferenceName :: RSTParser Inlines
 quotedReferenceName = try $ do
   char '`' >> notFollowedBy (char '`') -- `` means inline code!
   label' <- trimInlines . mconcat <$> many1Till inline (char '`')
   return label'
 
-unquotedReferenceName :: Parser [Char] ParserState Inlines
+unquotedReferenceName :: RSTParser Inlines
 unquotedReferenceName = try $ do
   label' <- trimInlines . mconcat <$> many1Till inline (lookAhead $ char ':')
   return label'
@@ -651,12 +673,12 @@ simpleReferenceName = do
   raw <- simpleReferenceName'
   return $ B.str raw
 
-referenceName :: Parser [Char] ParserState Inlines
+referenceName :: RSTParser Inlines
 referenceName = quotedReferenceName <|>
                 (try $ simpleReferenceName >>~ lookAhead (char ':')) <|>
                 unquotedReferenceName
 
-referenceKey :: Parser [Char] ParserState [Char]
+referenceKey :: RSTParser [Char]
 referenceKey = do
   startPos <- getPosition
   choice [imageKey, anonymousKey, regularKey]
@@ -674,7 +696,7 @@ targetURI = do
   blanklines
   return $ escapeURI $ removeLeadingTrailingSpace $ contents
 
-imageKey :: Parser [Char] ParserState ()
+imageKey :: RSTParser ()
 imageKey = try $ do
   string ".. |"
   (alt,ref) <- withRaw (trimInlines . mconcat <$> manyTill inline (char '|'))
@@ -683,7 +705,7 @@ imageKey = try $ do
   let key = toKey $ init ref
   updateState $ \s -> s{ stateSubstitutions = M.insert key img $ stateSubstitutions s }
 
-anonymousKey :: Parser [Char] ParserState ()
+anonymousKey :: RSTParser ()
 anonymousKey = try $ do
   oneOfStrings [".. __:", "__"]
   src <- targetURI
@@ -696,7 +718,7 @@ stripTicks = reverse . stripTick . reverse . stripTick
   where stripTick ('`':xs) = xs
         stripTick xs = xs
 
-regularKey :: Parser [Char] ParserState ()
+regularKey :: RSTParser ()
 regularKey = try $ do
   string ".. _"
   (_,ref) <- withRaw referenceName
@@ -732,21 +754,21 @@ simpleDashedLines :: Char -> Parser [Char] st [(Int,Int)]
 simpleDashedLines ch = try $ many1 (dashedLine ch)
 
 -- Parse a table row separator
-simpleTableSep :: Char -> Parser [Char] ParserState Char
+simpleTableSep :: Char -> RSTParser Char
 simpleTableSep ch = try $ simpleDashedLines ch >> newline
 
 -- Parse a table footer
-simpleTableFooter :: Parser [Char] ParserState [Char]
+simpleTableFooter :: RSTParser [Char]
 simpleTableFooter = try $ simpleTableSep '=' >> blanklines
 
 -- Parse a raw line and split it into chunks by indices.
-simpleTableRawLine :: [Int] -> Parser [Char] ParserState [String]
+simpleTableRawLine :: [Int] -> RSTParser [String]
 simpleTableRawLine indices = do
   line <- many1Till anyChar newline
   return (simpleTableSplitLine indices line)
 
 -- Parse a table row and return a list of blocks (columns).
-simpleTableRow :: [Int] -> Parser [Char] ParserState [[Block]]
+simpleTableRow :: [Int] -> RSTParser [[Block]]
 simpleTableRow indices = do
   notFollowedBy' simpleTableFooter
   firstLine <- simpleTableRawLine indices
@@ -760,7 +782,7 @@ simpleTableSplitLine indices line =
   $ tail $ splitByIndices (init indices) line
 
 simpleTableHeader :: Bool  -- ^ Headerless table
-                  -> Parser [Char] ParserState ([[Block]], [Alignment], [Int])
+                  -> RSTParser ([[Block]], [Alignment], [Int])
 simpleTableHeader headless = try $ do
   optional blanklines
   rawContent  <- if headless
@@ -780,7 +802,7 @@ simpleTableHeader headless = try $ do
 
 -- Parse a simple table.
 simpleTable :: Bool  -- ^ Headerless table
-            -> Parser [Char] ParserState Blocks
+            -> RSTParser Blocks
 simpleTable headless = do
   Table c a _w h l <- tableWith (simpleTableHeader headless) simpleTableRow sep simpleTableFooter
   -- Simple tables get 0s for relative column widths (i.e., use default)
@@ -789,11 +811,11 @@ simpleTable headless = do
   sep = return () -- optional (simpleTableSep '-')
 
 gridTable :: Bool -- ^ Headerless table
-          -> Parser [Char] ParserState Blocks
+          -> RSTParser Blocks
 gridTable headerless = B.singleton
   <$> gridTableWith (B.toList <$> parseBlocks) headerless
 
-table :: Parser [Char] ParserState Blocks
+table :: RSTParser Blocks
 table = gridTable False <|> simpleTable False <|>
         gridTable True  <|> simpleTable True <?> "table"
 
@@ -801,7 +823,7 @@ table = gridTable False <|> simpleTable False <|>
 -- inline
 --
 
-inline :: Parser [Char] ParserState Inlines
+inline :: RSTParser Inlines
 inline = choice [ whitespace
                 , link
                 , str
@@ -819,7 +841,7 @@ inline = choice [ whitespace
                 , escapedChar
                 , symbol ] <?> "inline"
 
-hyphens :: Parser [Char] ParserState Inlines
+hyphens :: RSTParser Inlines
 hyphens = do
   result <- many1 (char '-')
   optional endline
@@ -832,13 +854,13 @@ escapedChar = do c <- escaped anyChar
                              then mempty
                              else B.str [c]
 
-symbol :: Parser [Char] ParserState Inlines
+symbol :: RSTParser Inlines
 symbol = do
   result <- oneOf specialChars
   return $ B.str [result]
 
 -- parses inline code, between codeStart and codeEnd
-code :: Parser [Char] ParserState Inlines
+code :: RSTParser Inlines
 code = try $ do
   string "``"
   result <- manyTill anyChar (try (string "``"))
@@ -846,7 +868,7 @@ code = try $ do
          $ removeLeadingTrailingSpace $ unwords $ lines result
 
 -- succeeds only if we're not right after a str (ie. in middle of word)
-atStart :: Parser [Char] ParserState a -> Parser [Char] ParserState a
+atStart :: RSTParser a -> RSTParser a
 atStart p = do
   pos <- getPosition
   st <- getState
@@ -854,18 +876,18 @@ atStart p = do
   guard $ stateLastStrPos st /= Just pos
   p
 
-emph :: Parser [Char] ParserState Inlines
+emph :: RSTParser Inlines
 emph = B.emph . trimInlines . mconcat <$>
          enclosed (atStart $ char '*') (char '*') inline
 
-strong :: Parser [Char] ParserState Inlines
+strong :: RSTParser Inlines
 strong = B.strong . trimInlines . mconcat <$>
           enclosed (atStart $ string "**") (try $ string "**") inline
 
 -- Parses inline interpreted text which is required to have the given role.
 -- This decision is based on the role marker (if present),
 -- and the current default interpreted text role.
-interpreted :: [Char] -> Parser [Char] ParserState [Char]
+interpreted :: [Char] -> RSTParser [Char]
 interpreted role = try $ do
   state <- getState
   if role == stateRstDefaultRole state
@@ -882,19 +904,19 @@ interpreted role = try $ do
       result <- enclosed (atStart $ char '`') (char '`') anyChar
       return result
 
-superscript :: Parser [Char] ParserState Inlines
+superscript :: RSTParser Inlines
 superscript = B.superscript . B.str <$> interpreted "sup"
 
-subscript :: Parser [Char] ParserState Inlines
+subscript :: RSTParser Inlines
 subscript = B.subscript . B.str <$> interpreted "sub"
 
-math :: Parser [Char] ParserState Inlines
+math :: RSTParser Inlines
 math = B.math <$> interpreted "math"
 
-whitespace :: Parser [Char] ParserState Inlines
+whitespace :: RSTParser Inlines
 whitespace = B.space <$ skipMany1 spaceChar <?> "whitespace"
 
-str :: Parser [Char] ParserState Inlines
+str :: RSTParser Inlines
 str = do
   let strChar = noneOf ("\t\n " ++ specialChars)
   result <- many1 strChar
@@ -902,7 +924,7 @@ str = do
   return $ B.str result
 
 -- an endline character that can be treated as a space, not a structural break
-endline :: Parser [Char] ParserState Inlines
+endline :: RSTParser Inlines
 endline = try $ do
   newline
   notFollowedBy blankline
@@ -918,10 +940,10 @@ endline = try $ do
 -- links
 --
 
-link :: Parser [Char] ParserState Inlines
+link :: RSTParser Inlines
 link = choice [explicitLink, referenceLink, autoLink]  <?> "link"
 
-explicitLink :: Parser [Char] ParserState Inlines
+explicitLink :: RSTParser Inlines
 explicitLink = try $ do
   char '`'
   notFollowedBy (char '`') -- `` marks start of inline code
@@ -932,7 +954,7 @@ explicitLink = try $ do
   string "`_"
   return $ B.link (escapeURI $ removeLeadingTrailingSpace src) "" label'
 
-referenceLink :: Parser [Char] ParserState Inlines
+referenceLink :: RSTParser Inlines
 referenceLink = try $ do
   (label',ref) <- withRaw (quotedReferenceName <|> simpleReferenceName) >>~
                    char '_'
@@ -953,21 +975,21 @@ referenceLink = try $ do
   when (isAnonKey key) $ updateState $ \s -> s{ stateKeys = M.delete key keyTable }
   return $ B.link src tit label'
 
-autoURI :: Parser [Char] ParserState Inlines
+autoURI :: RSTParser Inlines
 autoURI = do
   (orig, src) <- uri
   return $ B.link src "" $ B.str orig
 
-autoEmail :: Parser [Char] ParserState Inlines
+autoEmail :: RSTParser Inlines
 autoEmail = do
   (orig, src) <- emailAddress
   return $ B.link src "" $ B.str orig
 
-autoLink :: Parser [Char] ParserState Inlines
+autoLink :: RSTParser Inlines
 autoLink = autoURI <|> autoEmail
 
 -- For now, we assume that all substitution references are for images.
-image :: Parser [Char] ParserState Inlines
+image :: RSTParser Inlines
 image = try $ do
   char '|'
   (_,ref) <- withRaw (manyTill inline (char '|'))
@@ -977,7 +999,7 @@ image = try $ do
        Nothing     -> fail "no corresponding key"
        Just target -> return target
 
-note :: Parser [Char] ParserState Inlines
+note :: RSTParser Inlines
 note = try $ do
   ref <- noteMarker
   char '_'
@@ -1000,20 +1022,20 @@ note = try $ do
       updateState $ \st -> st{ stateNotes = newnotes }
       return $ B.note contents
 
-smart :: Parser [Char] ParserState Inlines
+smart :: RSTParser Inlines
 smart = do
   getOption readerSmart >>= guard
   doubleQuoted <|> singleQuoted <|>
     choice (map (B.singleton <$>) [apostrophe, dash, ellipses])
 
-singleQuoted :: Parser [Char] ParserState Inlines
+singleQuoted :: RSTParser Inlines
 singleQuoted = try $ do
   singleQuoteStart
   withQuoteContext InSingleQuote $
     B.singleQuoted . trimInlines . mconcat <$>
       many1Till inline singleQuoteEnd
 
-doubleQuoted :: Parser [Char] ParserState Inlines
+doubleQuoted :: RSTParser Inlines
 doubleQuoted = try $ do
   doubleQuoteStart
   withQuoteContext InDoubleQuote $
