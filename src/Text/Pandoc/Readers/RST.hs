@@ -366,7 +366,11 @@ codeBlockBody = try $ B.codeBlock . stripTrailingNewlines <$> indentedBlock
 -- specified.
 customCodeBlock :: Parser [Char] st Blocks
 customCodeBlock = try $ do
-  string ".. code-block:: "
+  string ".. "
+  string "code"
+  optional $ string "-block"
+  string "::"
+  skipSpaces
   language <- manyTill anyChar newline
   blanklines
   result <- indentedBlock
