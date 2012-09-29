@@ -45,11 +45,6 @@ module Text.Pandoc.UTF8 ( readFile
 
 where
 
-#if MIN_VERSION_base(4,4,0)
-#else
-import Codec.Binary.UTF8.String (encodeString, decodeString)
-#endif
-
 import System.IO hiding (readFile, writeFile, getContents,
                           putStr, putStrLn, hPutStr, hPutStrLn, hGetContents)
 import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn,
