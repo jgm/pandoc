@@ -500,29 +500,66 @@ directive = try $ do
   string ".."
   directive'
 
+-- TODO: line-block, parsed-literal, table, csv-table, list-table
+-- replace, unicode
+-- date
+-- include
+-- raw (consolidate)
+-- class
+-- title
 directive' :: RSTParser Blocks
 directive' = do
   skipMany1 spaceChar
   label <- directiveLabel
   skipMany spaceChar
   top <- many $ satisfy (/='\n')
-             <|> try (char '\n' <* notFollowedBy blankline <*
-                      notFollowedBy' (lookAhead (many spaceChar)
-                                       >>= rawFieldListItem))
+             <|> try (char '\n' <*
+                      notFollowedBy' (rawFieldListItem "   ") <*
+                      count 3 (char ' ') <*
+                      notFollowedBy blankline)
   newline
-  indent <- lookAhead $ many spaceChar
-  fields <- many $ rawFieldListItem indent
-  blanklines
-  body <- option "" indentedBlock
+  fields <- many $ rawFieldListItem "   "
+  body <- option "" $ try $ blanklines >> indentedBlock
+  optional blanklines
   let body' = body ++ "\n\n"
   case label of
         "container" -> parseFromString parseBlocks body'
+        "replace" -> B.para <$>  -- consumed by substKey
+                   parseFromString (trimInlines . mconcat <$> many inline)
+                   (trim top)
+        "unicode" -> B.para <$>  -- consumed by substKey
+                   parseFromString (trimInlines . mconcat <$> many inline)
+                   (trim $ unicodeTransform top)
         "compound" -> parseFromString parseBlocks body'
         "pull-quote" -> B.blockQuote <$> parseFromString parseBlocks body'
         "epigraph" -> B.blockQuote <$> parseFromString parseBlocks body'
         "highlights" -> B.blockQuote <$> parseFromString parseBlocks body'
         "rubric" -> B.para . B.strong <$> parseFromString
                           (trimInlines . mconcat <$> many inline) top
+        _ | label `elem` ["attention","caution","danger","error","hint",
+                          "important","note","tip","warning"] ->
+           do let tit = B.para $ B.strong $ B.str label
+              bod <- parseFromString parseBlocks $ top ++ "\n\n" ++ body'
+              return $ B.blockQuote $ tit <> bod
+        "admonition" ->
+           do tit <- B.para . B.strong <$> parseFromString
+                          (trimInlines . mconcat <$> many inline) top
+              bod <- parseFromString parseBlocks body'
+              return $ B.blockQuote $ tit <> bod
+        "sidebar" ->
+           do let subtit = maybe "" trim $ lookup "subtitle" fields
+              tit <- B.para . B.strong <$> parseFromString
+                          (trimInlines . mconcat <$> many inline)
+                          (trim top ++ if null subtit
+                                          then ""
+                                          else (":  " ++ subtit))
+              bod <- parseFromString parseBlocks body'
+              return $ B.blockQuote $ tit <> bod
+        "topic" ->
+           do tit <- B.para . B.strong <$> parseFromString
+                          (trimInlines . mconcat <$> many inline) top
+              bod <- parseFromString parseBlocks body'
+              return $ tit <> bod
         "default-role" -> mempty <$ updateState (\s ->
                               s { stateRstDefaultRole =
                                   case trim top of
@@ -545,6 +582,38 @@ directive' = do
                                      $ B.image src "" alt
                           Nothing -> B.image src "" alt
         _     -> return mempty
+
+-- Can contain haracter codes as decimal numbers or
+-- hexadecimal numbers, prefixed by 0x, x, \x, U+, u, or \u
+-- or as XML-style hexadecimal character entities, e.g. &#x1a2b;
+-- or text, which is used as-is.  Comments start with ..
+unicodeTransform :: String -> String
+unicodeTransform t =
+  case t of
+       ('.':'.':xs)  -> unicodeTransform $ dropWhile (/='\n') xs -- comment
+       ('0':'x':xs)  -> go "0x" xs
+       ('x':xs)      -> go "x" xs
+       ('\\':'x':xs) -> go "\\x" xs
+       ('U':'+':xs)  -> go "U+" xs
+       ('u':xs)      -> go "u" xs
+       ('\\':'u':xs) -> go "\\u" xs
+       ('&':'#':'x':xs) -> maybe ("&#x" ++ unicodeTransform xs)
+                           -- drop semicolon
+                           (\(c,s) -> c : unicodeTransform (drop 1 s))
+                           $ extractUnicodeChar xs
+       (x:xs)        -> x : unicodeTransform xs
+       []            -> []
+    where go pref zs = maybe (pref ++ unicodeTransform zs)
+                         (\(c,s) -> c : unicodeTransform s)
+                         $ extractUnicodeChar zs
+
+extractUnicodeChar :: String -> Maybe (Char, String)
+extractUnicodeChar s = maybe Nothing (\c -> Just (c,rest)) mbc
+  where (ds,rest) = span isHexDigit s
+        mbc = safeRead ('\'':'\\':'x':ds ++ "'")
+
+isHexDigit :: Char -> Bool
+isHexDigit c = c `elem` "0123456789ABCDEFabcdef"
 
 extractCaption :: RSTParser (Inlines, Blocks)
 extractCaption = do
@@ -662,7 +731,7 @@ substKey = try $ do
   skipMany1 spaceChar
   (alt,ref) <- withRaw $ trimInlines . mconcat
                       <$> enclosed (char '|') (char '|') inline
-  res <- B.toList <$> (directive' <|> para)
+  res <- B.toList <$> directive'
   il <- case res of
              -- use alt unless :alt: attribute on image:
              [Para [Image [Str "image"] (src,tit)]] ->
