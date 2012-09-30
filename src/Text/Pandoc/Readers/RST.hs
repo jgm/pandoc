@@ -132,7 +132,6 @@ parseBlocks = mconcat <$> manyTill block eof
 
 block :: RSTParser Blocks
 block = choice [ codeBlock
-               , rawBlock
                , blockQuote
                , fieldList
                , directive
@@ -354,18 +353,6 @@ birdTrackLine :: Parser [Char] st [Char]
 birdTrackLine = char '>' >> manyTill anyChar newline
 
 --
--- raw html/latex/etc
---
-
-rawBlock :: Parser [Char] st Blocks
-rawBlock = try $ do
-  string ".. raw:: "
-  lang <- many1 (letter <|> digit)
-  blanklines
-  result <- indentedBlock
-  return $ B.rawBlock lang result
-
---
 -- block quotes
 --
 
@@ -501,10 +488,8 @@ directive = try $ do
   directive'
 
 -- TODO: line-block, parsed-literal, table, csv-table, list-table
--- replace, unicode
 -- date
 -- include
--- raw (consolidate)
 -- class
 -- title
 directive' :: RSTParser Blocks
@@ -523,6 +508,7 @@ directive' = do
   optional blanklines
   let body' = body ++ "\n\n"
   case label of
+        "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
         "container" -> parseFromString parseBlocks body'
         "replace" -> B.para <$>  -- consumed by substKey
                    parseFromString (trimInlines . mconcat <$> many inline)
