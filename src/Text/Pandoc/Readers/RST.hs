@@ -507,6 +507,7 @@ directive' = do
   let body' = body ++ "\n\n"
   case label of
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
+        "role" -> return mempty
         "container" -> parseFromString parseBlocks body'
         "replace" -> B.para <$>  -- consumed by substKey
                    parseFromString (trimInlines . mconcat <$> many inline)
@@ -856,6 +857,7 @@ inline = choice [ whitespace
                 , superscript
                 , subscript
                 , math
+                , interpretedRole
                 , note
                 , smart
                 , hyphens
@@ -921,9 +923,16 @@ interpreted role = try $ do
   -- Note, this doesn't precisely implement the complex rule in
   -- http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#inline-markup-recognition-rules
   -- but it should be good enough for most purposes
-  unmarkedInterpretedText = do
-      result <- enclosed (atStart $ char '`') (char '`') anyChar
-      return result
+
+unmarkedInterpretedText :: RSTParser [Char]
+unmarkedInterpretedText = enclosed (atStart $ char '`') (char '`') anyChar
+
+-- For unknown interpreted roles, we just ignore the role.
+interpretedRole :: RSTParser Inlines
+interpretedRole = try $ B.str <$>
+  (     (roleMarker *> unmarkedInterpretedText)
+    <|> (unmarkedInterpretedText <* roleMarker) )
+   where roleMarker = char ':' *> many1Till (letter <|> char '-') (char ':')
 
 superscript :: RSTParser Inlines
 superscript = B.superscript . B.str <$> interpreted "sup"
