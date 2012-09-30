@@ -193,7 +193,7 @@ Flag library
   Default:       True
 Flag blaze_html_0_5
   Description:   Use blaze-html 0.5 and blaze-markup 0.5
-  Default:       False
+  Default:       True
 
 Library
   -- Note: the following is duplicated in all stanzas.
