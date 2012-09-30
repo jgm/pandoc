@@ -155,7 +155,7 @@ rawFieldListItem indent = try $ do
   string indent
   char ':'
   name <- many1Till (noneOf "\n") (char ':')
-  skipSpaces
+  (() <$ lookAhead newline) <|> skipMany1 spaceChar
   first <- manyTill anyChar newline
   rest <- option "" $ try $ do lookAhead (string indent >> spaceChar)
                                indentedBlock
