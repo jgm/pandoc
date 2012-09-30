@@ -134,7 +134,6 @@ block = choice [ codeBlock
                , rawBlock
                , blockQuote
                , fieldList
-               , figureBlock
                , directive
                , comment
                , header
@@ -336,19 +335,6 @@ codeBlock = try $ codeBlockStart >> codeBlockBody
 codeBlockBody :: Parser [Char] st Blocks
 codeBlockBody = try $ B.codeBlock . stripTrailingNewlines <$> indentedBlock
 
-figureBlock :: RSTParser Blocks
-figureBlock = try $ do
-  string ".. figure::"
-  src <- escapeURI . trim <$> manyTill anyChar newline
-  body <- indentedBlock
-  caption <- parseFromString extractCaption body
-  return $ B.para $ B.image src "" caption
-
-extractCaption :: RSTParser Inlines
-extractCaption = try $ do
-  manyTill anyLine blanklines
-  trimInlines . mconcat <$> many inline
-
 lhsCodeBlock :: RSTParser Blocks
 lhsCodeBlock = try $ do
   getPosition >>= guard . (==1) . sourceColumn
@@ -544,6 +530,10 @@ directive' = do
         "code-block" -> codeblock (lookup "number-lines" fields) (trim top) body
         "math" -> return $ B.para $ mconcat $ map B.displayMath
                          $ toChunks $ top ++ "\n\n" ++ body
+        "figure" -> do
+           (caption, legend) <- parseFromString extractCaption body'
+           let src = escapeURI $ trim top
+           return $ B.para (B.image src "" caption) <> legend
         "image" -> do
            let src = escapeURI $ trim top
            let alt = B.str $ maybe "image" trim $ lookup "alt" fields
@@ -553,6 +543,12 @@ directive' = do
                                      $ B.image src "" alt
                           Nothing -> B.image src "" alt
         _     -> return mempty
+
+extractCaption :: RSTParser (Inlines, Blocks)
+extractCaption = do
+  capt <- trimInlines . mconcat <$> many inline
+  legend <- optional blanklines >> (mconcat <$> many block)
+  return (capt,legend)
 
 -- divide string by blanklines
 toChunks :: String -> [String]
