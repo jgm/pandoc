@@ -45,6 +45,7 @@ import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
 import qualified Text.Pandoc.Builder as B
 import Data.Monoid (mconcat, mempty)
 import Data.Sequence (viewr, ViewR(..))
+import Data.Char (toLower)
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: ReaderOptions -- ^ Reader options
@@ -490,7 +491,8 @@ comment = try $ do
   return mempty
 
 directiveLabel :: RSTParser String
-directiveLabel = many1Till (letter <|> char '-') (try $ string "::")
+directiveLabel = map toLower
+  <$> many1Till (letter <|> char '-') (try $ string "::")
 
 directive :: RSTParser Blocks
 directive = try $ do
