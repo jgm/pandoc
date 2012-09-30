@@ -469,7 +469,6 @@ bulletList = B.bulletList . compactify' <$> many1 (listItem bulletListStart)
 
 comment :: RSTParser Blocks
 comment = try $ do
-  getPosition >>= guard . (==1) . sourceColumn
   string ".."
   skipMany1 spaceChar <|> (() <$ lookAhead newline)
   notFollowedBy' directiveLabel
@@ -483,7 +482,6 @@ directiveLabel = map toLower
 
 directive :: RSTParser Blocks
 directive = try $ do
-  getPosition >>= guard . (==1) . sourceColumn
   string ".."
   directive'
 
@@ -712,7 +710,6 @@ targetURI = do
 
 substKey :: RSTParser ()
 substKey = try $ do
-  getPosition >>= guard . (==1) . sourceColumn
   string ".."
   skipMany1 spaceChar
   (alt,ref) <- withRaw $ trimInlines . mconcat
