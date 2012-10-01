@@ -143,7 +143,6 @@ block = choice [ codeBlock
                , list
                , lhsCodeBlock
                , para
-               , plain
                ] <?> "block"
 
 --
