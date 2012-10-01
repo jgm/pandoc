@@ -854,9 +854,6 @@ inline = choice [ whitespace
                 , emph
                 , code
                 , subst
-                , superscript
-                , subscript
-                , math
                 , interpretedRole
                 , note
                 , smart
@@ -907,41 +904,35 @@ strong :: RSTParser Inlines
 strong = B.strong . trimInlines . mconcat <$>
           enclosed (atStart $ string "**") (try $ string "**") inline
 
--- Parses inline interpreted text which is required to have the given role.
--- This decision is based on the role marker (if present),
--- and the current default interpreted text role.
-interpreted :: [Char] -> RSTParser [Char]
-interpreted role = try $ do
-  state <- getState
-  if role == stateRstDefaultRole state
-     then try markedInterpretedText <|> unmarkedInterpretedText
-     else     markedInterpretedText
- where
-  markedInterpretedText = try (roleMarker *> unmarkedInterpretedText)
-                          <|> (unmarkedInterpretedText <* roleMarker)
-  roleMarker = string $ ":" ++ role ++ ":"
-  -- Note, this doesn't precisely implement the complex rule in
-  -- http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#inline-markup-recognition-rules
-  -- but it should be good enough for most purposes
+-- Note, this doesn't precisely implement the complex rule in
+-- http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#inline-markup-recognition-rules
+-- but it should be good enough for most purposes
+interpretedRole :: RSTParser Inlines
+interpretedRole = try $ do
+  (role, contents) <- roleBefore <|> roleAfter
+  case role of
+       "sup"  -> return $ B.superscript $ B.str contents
+       "sub"  -> return $ B.subscript $ B.str contents
+       "math" -> return $ B.math contents
+       _      -> return $ B.str contents  --unknown
+
+roleMarker :: RSTParser String
+roleMarker = char ':' *> many1Till (letter <|> char '-') (char ':')
+
+roleBefore :: RSTParser (String,String)
+roleBefore = try $ do
+  role <- roleMarker
+  contents <- unmarkedInterpretedText
+  return (role,contents)
+
+roleAfter :: RSTParser (String,String)
+roleAfter = try $ do
+  contents <- unmarkedInterpretedText
+  role <- roleMarker <|> (stateRstDefaultRole <$> getState)
+  return (role,contents)
 
 unmarkedInterpretedText :: RSTParser [Char]
 unmarkedInterpretedText = enclosed (atStart $ char '`') (char '`') anyChar
-
--- For unknown interpreted roles, we just ignore the role.
-interpretedRole :: RSTParser Inlines
-interpretedRole = try $ B.str <$>
-  (     (roleMarker *> unmarkedInterpretedText)
-    <|> (unmarkedInterpretedText <* roleMarker) )
-   where roleMarker = char ':' *> many1Till (letter <|> char '-') (char ':')
-
-superscript :: RSTParser Inlines
-superscript = B.superscript . B.str <$> interpreted "sup"
-
-subscript :: RSTParser Inlines
-subscript = B.subscript . B.str <$> interpreted "sub"
-
-math :: RSTParser Inlines
-math = B.math <$> interpreted "math"
 
 whitespace :: RSTParser Inlines
 whitespace = B.space <$ skipMany1 spaceChar <?> "whitespace"
