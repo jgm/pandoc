@@ -853,7 +853,7 @@ inline = choice [ whitespace
                 , strong
                 , emph
                 , code
-                , image
+                , subst
                 , superscript
                 , subscript
                 , math
@@ -1018,9 +1018,8 @@ autoEmail = do
 autoLink :: RSTParser Inlines
 autoLink = autoURI <|> autoEmail
 
--- For now, we assume that all substitution references are for images.
-image :: RSTParser Inlines
-image = try $ do
+subst :: RSTParser Inlines
+subst = try $ do
   (_,ref) <- withRaw $ enclosed (char '|') (char '|') inline
   state <- getState
   let substTable = stateSubstitutions state
