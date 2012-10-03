@@ -50,6 +50,7 @@ import Text.XML.Light
 import Text.TeXMath
 import Control.Monad.State
 import Text.Highlighting.Kate
+import Data.Unique (hashUnique, newUnique)
 
 data WriterState = WriterState{
          stTextProperties :: [Element]
@@ -333,11 +334,12 @@ blockToOpenXML opts (Header lev lst) = do
   contents <- withParaProp (pStyle $ "Heading" ++ show lev) $
                blockToOpenXML opts (Para lst)
   usedIdents <- gets stSectionIds
-  let ident = uniqueIdent lst usedIdents
-  modify $ \s -> s{ stSectionIds = ident : stSectionIds s }
-  let bookmarkStart = mknode "w:bookmarkStart" [("w:id",ident)
-                                               ,("w:name",ident)] ()
-  let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id",ident)] ()
+  let bookmarkName = uniqueIdent lst usedIdents
+  modify $ \s -> s{ stSectionIds = bookmarkName : stSectionIds s }
+  id' <- liftIO $ hashUnique `fmap` newUnique
+  let bookmarkStart = mknode "w:bookmarkStart" [("w:id",show id')
+                                               ,("w:name",bookmarkName)] ()
+  let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id",show id')] ()
   return $ [bookmarkStart] ++ contents ++ [bookmarkEnd]
 blockToOpenXML opts (Plain lst) = blockToOpenXML opts (Para lst)
 blockToOpenXML opts (Para x@[Image alt _]) = do
@@ -574,7 +576,7 @@ inlineToOpenXML _ (Code attrs str) =
                                      , mknode "w:t" [("xml:space","preserve")] tok ]
 inlineToOpenXML opts (Note bs) = do
   notes <- gets stFootnotes
-  let notenum = length notes + 1
+  notenum <- liftIO $ hashUnique `fmap` newUnique
   let notemarker = mknode "w:r" []
                    [ mknode "w:rPr" [] (rStyle "FootnoteReference")
                    , mknode "w:footnoteRef" [] () ]
