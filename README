@@ -1856,7 +1856,7 @@ HTML, Slidy, DZSlides, S5, EPUB
 Raw HTML
 --------
 
-**Extenion: `raw_html`**
+**Extension: `raw_html`**
 
 Markdown allows you to insert raw HTML (or DocBook) anywhere in a document
 (except verbatim contexts, where `<`, `>`, and `&` are interpreted
