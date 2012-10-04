@@ -371,7 +371,7 @@ inlineToMediaWiki _ (RawInline "mediawiki" str) = return str
 inlineToMediaWiki _ (RawInline "html" str) = return str
 inlineToMediaWiki _ (RawInline _ _) = return ""
 
-inlineToMediaWiki _ (LineBreak) = return "<br />\n"
+inlineToMediaWiki _ (LineBreak) = return "<br />"
 
 inlineToMediaWiki _ Space = return " "
 
