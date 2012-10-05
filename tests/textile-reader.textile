@@ -243,3 +243,10 @@ fn1. The note
 is here!
 
 fn2. Other note.
+
+h1. Comment blocks
+
+###. my comment
+is here.
+
+not a comment.

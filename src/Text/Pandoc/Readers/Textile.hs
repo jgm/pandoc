@@ -125,6 +125,7 @@ blockParsers = [ codeBlock
                , header
                , blockQuote
                , hrule
+               , commentBlock
                , anyList
                , rawHtmlBlock
                , rawLaTeXBlock'
@@ -135,6 +136,12 @@ blockParsers = [ codeBlock
 -- | Any block in the order of definition of blockParsers
 block :: Parser [Char] ParserState Block
 block = choice blockParsers <?> "block"
+
+commentBlock :: Parser [Char] ParserState Block
+commentBlock = try $ do
+  string "###."
+  manyTill anyLine blanklines
+  return Null
 
 codeBlock :: Parser [Char] ParserState Block
 codeBlock = codeBlockBc <|> codeBlockPre
