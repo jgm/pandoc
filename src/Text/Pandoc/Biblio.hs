@@ -30,7 +30,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 module Text.Pandoc.Biblio ( processBiblio ) where
 
 import Data.List
-import Data.Unique
 import Data.Char ( isDigit, isPunctuation )
 import qualified Data.Map as M
 import Text.CSL hiding ( Cite(..), Citation(..) )
@@ -38,30 +37,24 @@ import qualified Text.CSL as CSL ( Cite(..) )
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Shared (stringify)
-import Text.Parsec
+import Text.Parsec hiding (State)
 import Control.Monad
+import Control.Monad.State
 
 -- | Process a 'Pandoc' document by adding citations formatted
 -- according to a CSL style, using 'citeproc' from citeproc-hs.
-processBiblio :: String -> Maybe FilePath -> [Reference] -> Pandoc
-              -> IO Pandoc
-processBiblio cslStr abrfile r p
-    = if null r then return p
-      else do
-        csl <- parseCSL cslStr
-        abbrevs <- case abrfile of
-                      Just f  -> readJsonAbbrevFile f
-                      Nothing -> return []
-        p'   <- bottomUpM setHash p
-        let grps = queryWith getCitation p'
-            style      = csl { styleAbbrevs = abbrevs }
-            result     = citeproc procOpts style r (setNearNote style $
-                            map (map toCslCite) grps)
-            cits_map   = M.fromList $ zip grps (citations result)
-            biblioList = map (renderPandoc' style) (bibliography result)
-            Pandoc m b = bottomUp (processCite style cits_map) p'
-            b' = bottomUp mvPunct $ deNote b
-        return $ Pandoc m $ b' ++ biblioList
+processBiblio :: Style -> [Reference] -> Pandoc -> Pandoc
+processBiblio _ [] p = p
+processBiblio style r p =
+  let p'         = evalState (bottomUpM setHash p) 1
+      grps       = queryWith getCitation p'
+      result     = citeproc procOpts style r (setNearNote style $
+                      map (map toCslCite) grps)
+      cits_map   = M.fromList $ zip grps (citations result)
+      biblioList = map (renderPandoc' style) (bibliography result)
+      Pandoc m b = bottomUp (processCite style cits_map) p'
+      b' = bottomUp mvPunct $ deNote b
+  in  Pandoc m $ b' ++ biblioList
 
 -- | Substitute 'Cite' elements with formatted citations.
 processCite :: Style -> M.Map [Citation] [FormattedOutput] -> Inline -> Inline
@@ -116,9 +109,11 @@ getCitation :: Inline -> [[Citation]]
 getCitation i | Cite t _ <- i = [t]
               | otherwise     = []
 
-setHash :: Citation -> IO Citation
-setHash (Citation i p s cm nn _)
-    = hashUnique `fmap` newUnique >>= return . Citation i p s cm nn
+setHash :: Citation -> State Int Citation
+setHash (Citation i p s cm nn _) = do
+  ident <- get
+  put $ ident + 1
+  return $ Citation i p s cm nn ident
 
 toCslCite :: Citation -> CSL.Cite
 toCslCite c

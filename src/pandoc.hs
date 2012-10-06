@@ -1007,7 +1007,8 @@ main = do
   doc2 <- do
           if citeMethod == Citeproc && not (null refs)
              then do
-               csl <- case mbCsl of
+               csl <- CSL.parseCSL =<<
+                       case mbCsl of
                             Nothing      -> readDataFile datadir "default.csl"
                             Just cslfile -> do
                                   exists <- doesFileExist cslfile
@@ -1018,7 +1019,9 @@ main = do
                                        print csldir
                                        readDataFile datadir (replaceDirectory
                                                 (replaceExtension cslfile "csl") csldir)
-               processBiblio csl cslabbrevs refs doc1
+               abbrevs <- maybe (return []) CSL.readJsonAbbrevFile cslabbrevs
+               let csl' = csl { CSL.styleAbbrevs = abbrevs }
+               return $ processBiblio csl' refs doc1
              else return doc1
 
   let writeBinary :: B.ByteString -> IO ()
