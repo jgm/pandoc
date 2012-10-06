@@ -62,7 +62,6 @@ module Text.Pandoc.Parsing ( (>>~),
                              getOption,
                              guardEnabled,
                              guardDisabled,
-                             warning,
                              ParserState (..),
                              defaultParserState,
                              HeaderType (..),
@@ -726,7 +725,6 @@ data ParserState = ParserState
       stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers
       stateHasChapters     :: Bool,          -- ^ True if \chapter encountered
       stateMacros          :: [Macro],       -- ^ List of macros defined so far
-      stateWarnings        :: [(SourcePos, String)],  -- ^ List of warnings
       stateRstDefaultRole  :: String         -- ^ Current rST default interpreted text role
     }
 
@@ -753,16 +751,10 @@ defaultParserState =
                   stateExamples        = M.empty,
                   stateHasChapters     = False,
                   stateMacros          = [],
-                  stateWarnings        = [],
                   stateRstDefaultRole  = "title-reference"}
 
 getOption :: (ReaderOptions -> a) -> Parser s ParserState a
 getOption f = (f . stateOptions) `fmap` getState
-
-warning :: String -> Parser s ParserState ()
-warning msg = do
-  pos <- getPosition
-  modifyState $ \st -> st{ stateWarnings = stateWarnings st ++ [(pos,msg)] }
 
 -- | Succeed only if the extension is enabled.
 guardEnabled :: Extension -> Parser s ParserState ()
