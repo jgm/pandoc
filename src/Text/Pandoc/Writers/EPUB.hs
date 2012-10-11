@@ -30,7 +30,7 @@ Conversion of 'Pandoc' documents to EPUB.
 module Text.Pandoc.Writers.EPUB ( writeEPUB ) where
 import Data.IORef
 import Data.Maybe ( fromMaybe, isNothing )
-import Data.List ( findIndices, isPrefixOf )
+import Data.List ( isPrefixOf, intercalate )
 import System.Environment ( getEnv )
 import Text.Printf (printf)
 import System.FilePath ( (</>), (<.>), takeBaseName, takeExtension, takeFileName )
@@ -39,9 +39,11 @@ import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
 import Text.Pandoc.Shared hiding ( Element )
+import qualified Text.Pandoc.Shared as Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
+import Text.Pandoc.Templates
 import Control.Monad.State
 import Text.XML.Light hiding (ppTopElement)
 import Text.Pandoc.UUID
@@ -52,6 +54,7 @@ import Network.URI ( unEscapeString )
 import Text.Pandoc.MIME (getMimeType)
 import Prelude hiding (catch)
 import Control.Exception (catch, SomeException)
+import Text.HTML.TagSoup
 
 -- | Produce an EPUB file from a Pandoc document.
 writeEPUB :: WriterOptions  -- ^ Writer options
@@ -110,23 +113,26 @@ writeEPUB opts doc@(Pandoc meta _) = do
   fontEntries <- mapM mkFontEntry $ writerEpubFonts opts
 
   -- body pages
-  let isH1 (Header 1 _) = True
-      isH1 _            = False
+  -- add level 1 header to beginning if none there
+  let blocks' = case blocks of
+                      (Header 1 _ : _) -> blocks
+                      _                -> Header 1 (docTitle meta) : blocks
   -- internal reference IDs change when we chunk the file,
   -- so the next two lines fix that:
-  let reftable = correlateRefs blocks
-  let blocks' = replaceRefs reftable blocks
-  let h1Indices = dropWhile (== 0) $ findIndices isH1 blocks'
-  let chunks = splitByIndices h1Indices blocks'
-  let titleize (Header 1 xs : ys) = Pandoc meta{docTitle = xs} ys
-      titleize xs                 = Pandoc meta xs
-  let chapters = map titleize chunks
-  let chapToHtml = writeHtmlString opts'{ writerTemplate = pageTemplate }
-  let chapterToEntry :: Int -> Pandoc -> Entry
-      chapterToEntry num chap = mkEntry
-         (showChapter num) $
-         fromStringLazy $ chapToHtml chap
-  let chapterEntries = zipWith chapterToEntry [1..] chapters
+  let reftable = correlateRefs blocks'
+  let blocks'' = replaceRefs reftable blocks'
+  let tags = parseTags $ writeHtmlString opts'{writerStandalone = False}
+                       $ Pandoc (Meta [] [] []) blocks''
+
+  let chunks = partitions (~== TagOpen "h1" []) tags
+
+  let chapToEntry :: Int -> [Tag String] -> Entry
+      chapToEntry num ts = mkEntry (showChapter num)
+           $ fromStringLazy
+           $ renderTemplate [("body",renderTags ts)]
+           $ pageTemplate
+
+  let chapterEntries = zipWith chapToEntry [1..] chunks
 
   -- contents.opf
   localeLang <- catch (liftM (map (\c -> if c == '_' then '-' else c) .
@@ -182,13 +188,37 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let contentsEntry = mkEntry "content.opf" contentsData
 
   -- toc.ncx
-  let navPointNode ent n tit = unode "navPoint" !
-                                [("id", "navPoint-" ++ show n)
-                                ,("playOrder", show n)] $
-                                   [ unode "navLabel" $ unode "text" tit
-                                   , unode "content" ! [("src",
-                                        eRelativePath ent)] $ ()
-                                   ]
+  let secs = hierarchicalize blocks''
+
+  let navPointNode :: Shared.Element -> State Int Element
+      navPointNode (Sec _ nums ident ils children) = do
+        n <- get
+        modify (+1)
+        let showNums :: [Int] -> String
+            showNums = intercalate "." . map show
+        let tit' = plainify ils
+        let tit = if writerNumberSections opts
+                     then showNums nums ++ " " ++ tit'
+                     else tit'
+        let src = case lookup ident reftable of
+                       Just x  -> x
+                       Nothing -> error (ident ++ " not found in reftable")
+        let isSec (Sec lev _ _ _ _) = lev <= 3  -- only includes levels 1-3
+            isSec _                 = False
+        let subsecs = filter isSec children
+        subs <- mapM navPointNode subsecs
+        return $ unode "navPoint" !
+               [("id", "navPoint-" ++ show n)
+               ,("playOrder", show n)] $
+                  [ unode "navLabel" $ unode "text" tit
+                  , unode "content" ! [("src", src)] $ ()
+                  ] ++ subs
+      navPointNode (Blk _) = error "navPointNode encountered Blk"
+
+  let tpNode = unode "navPoint" !  [("id", "navPoint-0")] $
+                  [ unode "navLabel" $ unode "text" (plainify $ docTitle meta)
+                  , unode "content" ! [("src","title_page.xhtml")] $ () ]
+
   let tocData = fromStringLazy $ ppTopElement $
         unode "ncx" ! [("version","2005-1")
                        ,("xmlns","http://www.daisy.org/z3986/2005/ncx/")] $
@@ -206,10 +236,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                         Just _   -> [unode "meta" ! [("name","cover"),
                                             ("content","cover-image")] $ ()]
           , unode "docTitle" $ unode "text" $ plainTitle
-          , unode "navMap" $ zipWith3 navPointNode (tpEntry : chapterEntries)
-                                [1..(length chapterEntries + 1)]
-                                (plainTitle : map (\(Pandoc m _) ->
-                                   plainify $ docTitle m) chapters)
+          , unode "navMap" $ tpNode : evalState (mapM navPointNode secs) 1
           ]
   let tocEntry = mkEntry "toc.ncx" tocData
 
