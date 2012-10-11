@@ -423,17 +423,17 @@ inlineCommands = M.fromList $
          pure (link url "" lab))
   , ("includegraphics", skipopts *> (unescapeURL <$> braced) >>=
        (\src -> pure (image src "" (str "image"))))
-  , ("cite", citation "cite" NormalCitation False)
+  , ("cite", citation "cite" AuthorInText False)
   , ("citep", citation "citep" NormalCitation False)
   , ("citep*", citation "citep*" NormalCitation False)
   , ("citeal", citation "citeal" NormalCitation False)
   , ("citealp", citation "citealp" NormalCitation False)
   , ("citealp*", citation "citealp*" NormalCitation False)
   , ("autocite", citation "autocite" NormalCitation False)
-  , ("footcite", citation "footcite" NormalCitation False)
+  , ("footcite", inNote <$> citation "footcite" AuthorInText False)
   , ("parencite", citation "parencite" NormalCitation False)
   , ("supercite", citation "supercite" NormalCitation False)
-  , ("footcitetext", citation "footcitetext" NormalCitation False)
+  , ("footcitetext", inNote <$> citation "footcitetext" AuthorInText False)
   , ("citeyearpar", citation "citeyearpar" SuppressAuthor False)
   , ("citeyear", citation "citeyear" SuppressAuthor False)
   , ("autocite*", citation "autocite*" SuppressAuthor False)
@@ -447,15 +447,15 @@ inlineCommands = M.fromList $
   , ("textcites", citation "textcites" AuthorInText True)
   , ("cites", citation "cites" NormalCitation True)
   , ("autocites", citation "autocites" NormalCitation True)
-  , ("footcites", citation "footcites" NormalCitation True)
+  , ("footcites", inNote <$> citation "footcites" AuthorInText True)
   , ("parencites", citation "parencites" NormalCitation True)
   , ("supercites", citation "supercites" NormalCitation True)
-  , ("footcitetexts", citation "footcitetexts" NormalCitation True)
+  , ("footcitetexts", inNote <$> citation "footcitetexts" AuthorInText True)
   , ("Autocite", citation "Autocite" NormalCitation False)
   , ("Footcite", citation "Footcite" NormalCitation False)
   , ("Parencite", citation "Parencite" NormalCitation False)
   , ("Supercite", citation "Supercite" NormalCitation False)
-  , ("Footcitetext", citation "Footcitetext" NormalCitation False)
+  , ("Footcitetext", inNote <$> citation "Footcitetext" NormalCitation False)
   , ("Citeyearpar", citation "Citeyearpar" SuppressAuthor False)
   , ("Citeyear", citation "Citeyear" SuppressAuthor False)
   , ("Autocite*", citation "Autocite*" SuppressAuthor False)
@@ -468,7 +468,7 @@ inlineCommands = M.fromList $
   , ("Footcites", citation "Footcites" NormalCitation True)
   , ("Parencites", citation "Parencites" NormalCitation True)
   , ("Supercites", citation "Supercites" NormalCitation True)
-  , ("Footcitetexts", citation "Footcitetexts" NormalCitation True)
+  , ("Footcitetexts", inNote <$> citation "Footcitetexts" NormalCitation True)
   , ("citetext", complexNatbibCitation NormalCitation)
   , ("citeauthor", (try (tok *> optional sp *> controlSeq "citetext") *>
                         complexNatbibCitation AuthorInText)
@@ -477,6 +477,10 @@ inlineCommands = M.fromList $
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
   [ "index", "nocite" ]
+
+inNote :: Inlines -> Inlines
+inNote ils =
+  note $ para $ ils <> str "."
 
 unescapeURL :: String -> String
 unescapeURL ('\\':x:xs) | isEscapable x = x:unescapeURL xs
