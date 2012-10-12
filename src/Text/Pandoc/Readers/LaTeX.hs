@@ -717,10 +717,8 @@ rawLaTeXBlock = snd <$> try (withRaw (environment <|> blockCommand))
 
 rawLaTeXInline :: Parser [Char] ParserState Inline
 rawLaTeXInline = do
-  (res, raw) <- withRaw inlineCommand
-  if res == mempty
-     then return (Str "")
-     else RawInline "latex" <$> (applyMacros' raw)
+  raw <- (snd <$> withRaw inlineCommand) <|> (snd <$> withRaw blockCommand)
+  RawInline "latex" <$> applyMacros' raw
 
 environments :: M.Map String (LP Blocks)
 environments = M.fromList
