@@ -280,7 +280,6 @@ blockCommands = M.fromList $
      -- that are to be processed by the compiler but not printed.
   , "ignore"
   , "hyperdef"
-  , "noindent"
   , "markboth", "markright", "markleft"
   , "hspace", "vspace"
   ]
@@ -476,7 +475,7 @@ inlineCommands = M.fromList $
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
-  [ "index", "nocite" ]
+  [ "noindent", "index", "nocite" ]
 
 inNote :: Inlines -> Inlines
 inNote ils =
