@@ -291,13 +291,13 @@ Library
                    Text.Pandoc.PDF,
                    Text.Pandoc.UTF8,
                    Text.Pandoc.Templates,
-                   Text.Pandoc.Biblio,
                    Text.Pandoc.SelfContained
   Other-Modules:   Text.Pandoc.XML,
                    Text.Pandoc.MIME,
                    Text.Pandoc.UUID,
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.Slides,
+                   Text.Pandoc.Biblio,
                    Paths_pandoc
 
   if flag(library)
