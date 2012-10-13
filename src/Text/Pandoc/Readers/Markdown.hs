@@ -45,6 +45,8 @@ import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
                                   isTextTag, isCommentTag )
 import Text.Pandoc.XML ( fromEntities )
+import Text.Pandoc.Biblio (processBiblio)
+import qualified Text.CSL as CSL
 import Data.Monoid (mconcat, mempty)
 import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
@@ -216,7 +218,10 @@ parseMarkdown = do
   (title, authors, date) <- option (mempty,return [],mempty) titleBlock
   blocks <- parseBlocks
   st <- getState
-  return $ B.setTitle (runF title st)
+  mbsty <- getOption readerCitationStyle
+  refs <- getOption readerReferences
+  return $ processBiblio mbsty refs
+         $ B.setTitle (runF title st)
          $ B.setAuthors (runF authors st)
          $ B.setDate (runF date st)
          $ B.doc $ runF blocks st
@@ -1542,7 +1547,7 @@ rawHtmlInline = do
 cite :: Parser [Char] ParserState (F Inlines)
 cite = do
   guardEnabled Ext_citations
-  getOption readerCitations >>= guard . not . null
+  getOption readerReferences >>= guard . not . null
   citations <- textualCite <|> normalCite
   return $ flip B.cite mempty <$> citations
 
@@ -1591,7 +1596,7 @@ citeKey = try $ do
   let internal p = try $ p >>~ lookAhead (letter <|> digit)
   rest <- many $ letter <|> digit <|> internal (oneOf ":.#$%&-_?<>~")
   let key = first:rest
-  citations' <- getOption readerCitations
+  citations' <- map CSL.refId <$> getOption readerReferences
   guard $ key `elem` citations'
   return (suppress_author, key)
 

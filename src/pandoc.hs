@@ -52,7 +52,6 @@ import qualified Control.Exception as E
 import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Text.CSL as CSL
-import Text.Pandoc.Biblio
 import Control.Monad (when, unless, liftM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
@@ -924,6 +923,24 @@ main = do
           reffiles >>=
            return . map unescapeRefId . concat
 
+  mbsty <- if citeMethod == Citeproc && not (null refs)
+              then do
+                csl <- CSL.parseCSL =<<
+                        case mbCsl of
+                            Nothing      -> readDataFile datadir "default.csl"
+                            Just cslfile -> do
+                                  exists <- doesFileExist cslfile
+                                  if exists
+                                     then UTF8.readFile cslfile
+                                     else do
+                                       csldir <- getAppUserDataDirectory "csl"
+                                       print csldir
+                                       readDataFile datadir (replaceDirectory
+                                        (replaceExtension cslfile "csl") csldir)
+                abbrevs <- maybe (return []) CSL.readJsonAbbrevFile cslabbrevs
+                return $ Just csl { CSL.styleAbbrevs = abbrevs }
+              else return Nothing
+
   let sourceDir = if null sources
                      then "."
                      else takeDirectory (head sources)
@@ -935,7 +952,8 @@ main = do
                       , readerColumns = columns
                       , readerTabStop = tabStop
                       , readerOldDashes = oldDashes
-                      , readerCitations = map CSL.refId refs
+                      , readerReferences = refs
+                      , readerCitationStyle = mbsty
                       , readerIndentedCodeClasses = codeBlockClasses
                       , readerApplyMacros = not laTeXOutput
                       }
@@ -1004,26 +1022,6 @@ main = do
              then bottomUpM rtfEmbedImage doc0
              else return doc0
 
-  doc2 <- do
-          if citeMethod == Citeproc && not (null refs)
-             then do
-               csl <- CSL.parseCSL =<<
-                       case mbCsl of
-                            Nothing      -> readDataFile datadir "default.csl"
-                            Just cslfile -> do
-                                  exists <- doesFileExist cslfile
-                                  if exists
-                                     then UTF8.readFile cslfile
-                                     else do
-                                       csldir <- getAppUserDataDirectory "csl"
-                                       print csldir
-                                       readDataFile datadir (replaceDirectory
-                                                (replaceExtension cslfile "csl") csldir)
-               abbrevs <- maybe (return []) CSL.readJsonAbbrevFile cslabbrevs
-               let csl' = csl { CSL.styleAbbrevs = abbrevs }
-               return $ processBiblio csl' refs doc1
-             else return doc1
-
   let writeBinary :: B.ByteString -> IO ()
       writeBinary = B.writeFile (UTF8.encodePath outputFile)
 
@@ -1033,15 +1031,15 @@ main = do
 
   case getWriter writerName' of
     Left e -> err 9 e
-    Right (IOStringWriter f) -> f writerOptions doc2 >>= writerFn outputFile
-    Right (IOByteStringWriter f) -> f writerOptions doc2 >>= writeBinary
+    Right (IOStringWriter f) -> f writerOptions doc1 >>= writerFn outputFile
+    Right (IOByteStringWriter f) -> f writerOptions doc1 >>= writeBinary
     Right (PureStringWriter f)
       | pdfOutput -> do
-              res <- tex2pdf latexEngine $ f writerOptions doc2
+              res <- tex2pdf latexEngine $ f writerOptions doc1
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> err 43 $ UTF8.toStringLazy err'
-      | otherwise -> selfcontain (f writerOptions doc2 ++
+      | otherwise -> selfcontain (f writerOptions doc1 ++
                                   ['\n' | not standalone'])
                       >>= writerFn outputFile . handleEntities
           where htmlFormat = writerName' `elem`

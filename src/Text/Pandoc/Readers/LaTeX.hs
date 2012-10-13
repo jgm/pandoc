@@ -36,6 +36,7 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
+import Text.Pandoc.Biblio (processBiblio)
 import Text.Pandoc.Parsing hiding ((<|>), many, optional, space)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char ( chr, ord )
@@ -63,7 +64,10 @@ parseLaTeX = do
   let title' = stateTitle st
   let authors' = stateAuthors st
   let date' = stateDate st
-  return $ Pandoc (Meta title' authors' date') $ toList bs
+  refs <- getOption readerReferences
+  mbsty <- getOption readerCitationStyle
+  return $ processBiblio mbsty refs
+         $ Pandoc (Meta title' authors' date') $ toList bs
 
 type LP = Parser [Char] ParserState
 
