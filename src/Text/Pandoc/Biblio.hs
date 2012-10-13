@@ -43,9 +43,10 @@ import Control.Monad.State
 
 -- | Process a 'Pandoc' document by adding citations formatted
 -- according to a CSL style, using 'citeproc' from citeproc-hs.
-processBiblio :: Style -> [Reference] -> Pandoc -> Pandoc
-processBiblio _ [] p = p
-processBiblio style r p =
+processBiblio :: Maybe Style -> [Reference] -> Pandoc -> Pandoc
+processBiblio Nothing _ p = p
+processBiblio _      [] p = p
+processBiblio (Just style) r p =
   let p'         = evalState (bottomUpM setHash p) 1
       grps       = queryWith getCitation p'
       result     = citeproc procOpts style r (setNearNote style $
