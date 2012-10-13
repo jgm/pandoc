@@ -38,6 +38,10 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
  [[Plain [Str "asterisk",Space,Str "1"]]
  ,[Plain [Str "asterisk",Space,Str "2"]]
  ,[Plain [Str "asterisk",Space,Str "3"]]]
+,Para [Str "With",Space,Str "line",Space,Str "breaks",Str ":"]
+,BulletList
+ [[Plain [Str "asterisk",Space,Str "1",LineBreak,Str "newline"]]
+ ,[Plain [Str "asterisk",Space,Str "2"]]]
 ,Header 2 [Str "Ordered"]
 ,Para [Str "Tight",Str ":"]
 ,OrderedList (1,DefaultStyle,DefaultDelim)

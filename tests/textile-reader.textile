@@ -91,6 +91,12 @@ Asterisks tight:
 * asterisk 2
 * asterisk 3
 
+With line breaks:
+
+* asterisk 1
+newline
+* asterisk 2
+
 h2. Ordered
 
 Tight:

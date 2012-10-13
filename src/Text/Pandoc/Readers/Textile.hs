@@ -200,7 +200,7 @@ hrule = try $ do
 -- strict in the nesting, sublist must start at exactly "parent depth
 -- plus one"
 anyList :: Parser [Char] ParserState Block
-anyList = try $ ( (anyListAtDepth 1) <* blanklines )
+anyList = try $ anyListAtDepth 1 <* blanklines
 
 -- | This allow one type of list to be nested into an other type,
 -- provided correct nesting
@@ -234,13 +234,22 @@ orderedListItemAtDepth = genericListItemAtDepth '#'
 genericListItemAtDepth :: Char -> Int -> Parser [Char] ParserState [Block]
 genericListItemAtDepth c depth = try $ do
   count depth (char c) >> optional attributes >> whitespace
-  p <- inlines
+  p <- many listInline
+  newline
   sublist <- option [] (singleton <$> anyListAtDepth (depth + 1))
-  return ((Plain p):sublist)
+  return (Plain p : sublist)
 
 -- | A definition list is a set of consecutive definition items
 definitionList :: Parser [Char] ParserState Block
 definitionList = try $ DefinitionList <$> many1 definitionListItem
+
+-- | List start character.
+listStart :: Parser [Char] st Char
+listStart = oneOf "*#-"
+
+listInline :: Parser [Char] ParserState Inline
+listInline = try (notFollowedBy newline >> inline)
+         <|> try (endline <* notFollowedBy listStart)
 
 -- | A definition list item in textile begins with '- ', followed by
 -- the term defined, then spaces and ":=". The definition follows, on
@@ -250,10 +259,11 @@ definitionListItem :: Parser [Char] ParserState ([Inline], [[Block]])
 definitionListItem = try $ do
   string "- "
   term <- many1Till inline (try (whitespace >> string ":="))
-  def' <- inlineDef <|> multilineDef
+  def' <- multilineDef <|> inlineDef
   return (term, def')
   where inlineDef :: Parser [Char] ParserState [[Block]]
-        inlineDef = liftM (\d -> [[Plain d]]) $ try (whitespace >> inlines)
+        inlineDef = liftM (\d -> [[Plain d]])
+                    $ optional whitespace >> many listInline <* newline
         multilineDef :: Parser [Char] ParserState [[Block]]
         multilineDef = try $ do
           optional whitespace >> newline
@@ -347,10 +357,6 @@ maybeExplicitBlock name blk = try $ do
 -- | Any inline element
 inline :: Parser [Char] ParserState Inline
 inline = choice inlineParsers <?> "inline"
-
--- | List of consecutive inlines before a newline
-inlines :: Parser [Char] ParserState [Inline]
-inlines = manyTill inline newline
 
 -- | Inline parsers tried in order
 inlineParsers :: [Parser [Char] ParserState Inline]
