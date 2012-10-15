@@ -147,7 +147,7 @@ data ReaderOptions = ReaderOptions{
        , readerApplyMacros     :: Bool -- ^ Apply macros to TeX math
        , readerIndentedCodeClasses :: [String] -- ^ Default classes for
                                        -- indented code blocks
-} deriving (Show {- TODO need update in citeproc-hs , Read -})
+} deriving (Show, Read)
 
 instance Default ReaderOptions
   where def = ReaderOptions{
