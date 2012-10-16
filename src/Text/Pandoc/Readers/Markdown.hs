@@ -1554,12 +1554,13 @@ cite = do
 textualCite :: Parser [Char] ParserState (F [Citation])
 textualCite = try $ do
   (_, key) <- citeKey
-  let first = Citation{ citationId      = key
-                      , citationPrefix  = []
-                      , citationSuffix  = []
-                      , citationMode    = AuthorInText
-                      , citationNoteNum = 0
-                      , citationHash    = 0
+  let first = Citation{ citationId             = key
+                      , citationPrefix         = []
+                      , citationSuffix         = []
+                      , citationMode           = AuthorInText
+                      , citationNoteNum        = 0
+                      , citationSuppressParens = False
+                      , citationHash           = 0
                       }
   mbrest <- option Nothing $ try $ spnl >> Just <$> normalCite
   case mbrest of
@@ -1624,14 +1625,15 @@ citation = try $ do
   return $ do
     x <- pref
     y <- suff
-    return $ Citation{ citationId      = key
-                     , citationPrefix  = B.toList x
-                     , citationSuffix  = B.toList y
-                     , citationMode    = if suppress_author
-                                            then SuppressAuthor
-                                            else NormalCitation
-                     , citationNoteNum = 0
-                     , citationHash    = 0
+    return $ Citation{ citationId             = key
+                     , citationPrefix         = B.toList x
+                     , citationSuffix         = B.toList y
+                     , citationMode           = if suppress_author
+                                                   then SuppressAuthor
+                                                   else NormalCitation
+                     , citationNoteNum        = 0
+                     , citationSuppressParens = False
+                     , citationHash           = 0
                      }
 
 smart :: Parser [Char] ParserState (F Inlines)
