@@ -188,9 +188,6 @@ Flag executable
 Flag library
   Description:   Build the pandoc library.
   Default:       True
-Flag tests
-  Description:   Build test-pandoc.
-  Default:       False
 Flag blaze_html_0_5
   Description:   Use blaze-html 0.5 and blaze-markup 0.5
   Default:       False
@@ -369,15 +366,30 @@ Executable pandoc
   else
     Buildable:        False
 
-Executable test-pandoc
-  Main-Is:            test-pandoc.hs
-  -- Note: the following is duplicated in all stanzas.
-  -- It needs to be duplicated because of the library & executable flags.
-  -- BEGIN DUPLICATED SECTION
-  Build-Depends: containers >= 0.1 && < 0.6,
-                 parsec >= 3.1 && < 3.2,
-                 mtl >= 1.1 && < 2.2,
-                 network >= 2 && < 2.4,
+-- NOTE:  A trick in Setup.hs makes sure this won't be installed:
+Executable make-pandoc-man-pages
+  Main-Is:      make-pandoc-man-pages.hs
+  Hs-Source-Dirs: man
+  Build-Depends: base >= 4.2 && < 5,
+                 pandoc,
+                 directory >= 1 && < 1.3,
+                 filepath >= 1.1 && < 1.4,
+                 old-time >= 1.1 && < 1.2,
+                 time >= 1.2 && < 1.5
+  Default-Language: Haskell98
+  Default-Extensions: CPP
+
+Test-Suite test-pandoc
+  Type:           exitcode-stdio-1.0
+  Main-Is:        test-pandoc.hs
+  Hs-Source-Dirs: tests
+  Build-Depends: base >= 4.2 && < 5,
+                 syb >= 0.1 && < 0.4,
+                 pandoc,
+                 pandoc-types >= 1.10 && < 1.11,
+                 bytestring >= 0.9 && < 1.0,
+                 text >= 0.11 && < 0.12,
+                 directory >= 1 && < 1.3,
                  filepath >= 1.1 && < 1.4,
                  process >= 1 && < 1.2,
                  directory >= 1 && < 1.3,
