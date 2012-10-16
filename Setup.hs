@@ -95,9 +95,3 @@ modifiedDependencies file dependencies = do
   let modified = zipWith (\dep time -> if time > fileModTime then Just dep else Nothing) dependencies depModTimes
   return $ catMaybes modified
 
--- | Perform an IO action in a directory.
-inDirectory :: FilePath -> IO a -> IO a
-inDirectory dir action = do
-  oldDir <- getCurrentDirectory
-  bracket_ (setCurrentDirectory dir) (setCurrentDirectory oldDir) action
-
