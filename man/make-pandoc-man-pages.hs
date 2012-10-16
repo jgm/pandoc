@@ -86,7 +86,7 @@ modifiedDependencies :: FilePath -> [FilePath] -> IO [FilePath]
 modifiedDependencies file dependencies = do
   fileModTime <- catch (getModificationTime file) $
                  \e -> if isDoesNotExistError e
-#if __GLASGOW_HASKELL__ >= 706
+#if MIN_VERSION_directory(1,2,0)
                           then return (UTCTime (toEnum 0) 0)   -- the minimum ClockTime
 #else
                           then return (TOD 0 0)   -- the minimum ClockTime
