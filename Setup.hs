@@ -27,7 +27,7 @@ import Data.Time.Clock (UTCTime(..))
 main :: IO ()
 main = do
   defaultMainWithHooks $ simpleUserHooks {
-      postBuild = makeManPages 
+      postBuild = makeManPages
     , postCopy = \ _ flags pkg lbi ->
          installManpages pkg lbi (fromFlag $ copyVerbosity flags)
               (fromFlag $ copyDest flags)
@@ -48,7 +48,7 @@ makeManPages _ flags _ lbi = do
       packageDB =
           withPackageDB lbi
            ++ [SpecificPackageDB $ distPref </> "package.conf.inplace"]
-      
+
       verbosity = fromFlag $ buildVerbosity flags
 
       args = makeGhcArgs (ghcPackageDbOptions packageDB)
