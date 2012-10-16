@@ -426,6 +426,7 @@ inlineCommands = M.fromList $
          pure (link url "" lab))
   , ("includegraphics", skipopts *> (unescapeURL <$> braced) >>=
        (\src -> pure (image src "" (str "image"))))
+  , ("enquote", enquote)
   , ("cite", citation "cite" AuthorInText False False)
   , ("citep", citation "citep" NormalCitation False False)
   , ("citep*", citation "citep*" NormalCitation False False)
@@ -488,6 +489,14 @@ unescapeURL ('\\':x:xs) | isEscapable x = x:unescapeURL xs
         isEscapable _   = False
 unescapeURL (x:xs) = x:unescapeURL xs
 unescapeURL [] = ""
+
+enquote :: LP Inlines
+enquote = do
+  skipopts
+  context <- stateQuoteContext <$> getState
+  if context == InDoubleQuote
+     then singleQuoted <$> withQuoteContext InSingleQuote tok
+     else doubleQuoted <$> withQuoteContext InDoubleQuote tok
 
 doverb :: LP Inlines
 doverb = do
