@@ -934,7 +934,6 @@ main = do
                                      then UTF8.readFile cslfile
                                      else do
                                        csldir <- getAppUserDataDirectory "csl"
-                                       print csldir
                                        readDataFile datadir (replaceDirectory
                                         (replaceExtension cslfile "csl") csldir)
                 abbrevs <- maybe (return []) CSL.readJsonAbbrevFile cslabbrevs
