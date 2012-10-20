@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 -- Create pandoc.1 man and pandoc_markdown.5 man pages from README
 import Text.Pandoc
 import Data.ByteString.UTF8 (toString, fromString)
@@ -10,7 +11,17 @@ import Text.Pandoc.Shared (normalize)
 import System.Directory (getModificationTime)
 import System.IO.Error (isDoesNotExistError)
 import System.Time (ClockTime(..))
+import Data.Time.Clock
+import Data.Default
+import Data.Time.Clock.POSIX
 import Data.Maybe (catMaybes)
+import qualified Control.Exception as E
+
+instance Default ClockTime where
+  def = (TOD 0 0)
+
+instance Default UTCTime where
+  def =  posixSecondsToUTCTime (0::NominalDiffTime)
 
 main = do
   rmContents <- liftM toString $ B.readFile "README"
@@ -47,13 +58,14 @@ writeManPage page templ doc = do
 -- | Returns a list of 'dependencies' that have been modified after 'file'.
 modifiedDependencies :: FilePath -> [FilePath] -> IO [FilePath]
 modifiedDependencies file dependencies = do
-  fileModTime <- catch (getModificationTime file) $
-                 \e -> if isDoesNotExistError e
-                          then return (TOD 0 0)   -- the minimum ClockTime
+  fileModTime <- E.catch (getModificationTime file) $
+                 \(e::E.IOException) -> if isDoesNotExistError e
+                          then return def -- the minimum ClockTime
                           else ioError e
   depModTimes <- mapM getModificationTime dependencies
   let modified = zipWith (\dep time -> if time > fileModTime then Just dep else Nothing) dependencies depModTimes
   return $ catMaybes modified
+
 
 removeLinks :: Inline -> [Inline]
 removeLinks (Link l _) = l
