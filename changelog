@@ -1,3 +1,10 @@
+pandoc (1.9.4.3)
+
+  * Removed `-threaded` from default compile flags.
+
+  * Modified modules to compile with GHC 7.6 and latest version of time
+    package.
+
 pandoc (1.9.4.2)
 
   * Don't encode/decode file paths if base >= 4.4.
