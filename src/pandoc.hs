@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Parses command-line options and calls the appropriate readers and
 writers.
 -}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 import Text.Pandoc
 import Text.Pandoc.PDF (tex2pdf)
@@ -62,6 +63,7 @@ import Text.CSL.Reference (Reference(..))
 #else
 import Codec.Binary.UTF8.String (decodeString, encodeString)
 #endif
+import qualified Control.Exception as E (catch, IOException)
 
 encodePath, decodeArg :: FilePath -> FilePath
 #if MIN_VERSION_base(4,4,0)
@@ -837,9 +839,9 @@ main = do
   let sources = if ignoreArgs then [] else args
 
   datadir <- case mbDataDir of
-                  Nothing   -> catch
+                  Nothing   -> E.catch
                                  (liftM Just $ getAppUserDataDirectory "pandoc")
-                                 (const $ return Nothing)
+                                 (\(_::E.IOException) -> return Nothing)
                   Just _    -> return mbDataDir
 
   -- assign reader and writer based on options and filenames
@@ -890,12 +892,12 @@ main = do
                            let tp' = case takeExtension tp of
                                           ""   -> tp <.> format
                                           _    -> tp
-                           catch (UTF8.readFile tp')
-                             (\e -> if isDoesNotExistError e
-                                       then catch
+                           E.catch (UTF8.readFile tp')
+                             (\(e::E.IOException) -> if isDoesNotExistError e
+                                       then E.catch
                                              (readDataFile datadir $
                                                "templates" </> tp')
-                                             (\_ -> throwIO e)
+                                             (\(_::E.IOException) -> throwIO e)
                                        else throwIO e)
 
   let slideVariant = case writerName' of
@@ -926,7 +928,7 @@ main = do
   -- that we can do lookups with regular string equality
   let unescapeRefId ref = ref{ refId = fromEntities (refId ref) }
 
-  refs <- mapM (\f -> catch (CSL.readBiblioFile f) $ \e ->
+  refs <- mapM (\f -> E.catch (CSL.readBiblioFile f) $ \(e::E.IOException) ->
              err 23 $ "Error reading bibliography `" ++ f ++ "'" ++ "\n" ++ show e)
           reffiles >>=
            return . map unescapeRefId . concat

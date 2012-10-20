@@ -48,7 +48,9 @@ import Text.Pandoc.Writers.Markdown ( writePlain )
 import Data.Char ( toLower )
 import Network.URI ( unEscapeString )
 import Text.Pandoc.MIME (getMimeType)
+#if ! MIN_VERSION_base(4,6,0)
 import Prelude hiding (catch)
+#endif
 import Control.Exception (catch, SomeException)
 
 -- | Produce an EPUB file from a Pandoc document.

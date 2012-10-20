@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of LaTeX to 'Pandoc' document.
 -}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    rawLaTeXInline,
                                    rawLaTeXBlock,
@@ -47,6 +48,7 @@ import Data.Monoid
 import System.FilePath (replaceExtension)
 import Data.List (intercalate)
 import qualified Data.Map as M
+import qualified Control.Exception as E (catch, IOException)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ParserState   -- ^ Parser state, including options for parser
@@ -671,8 +673,8 @@ handleIncludes :: String -> IO String
 handleIncludes [] = return []
 handleIncludes ('\\':xs) =
   case runParser include defaultParserState "input" ('\\':xs) of
-       Right (fs, rest) -> do let getfile f = catch (UTF8.readFile f)
-                                               (\_ -> return "")
+       Right (fs, rest) -> do let getfile f = E.catch (UTF8.readFile f)
+                                               (\(_::E.IOException) -> return "")
                               yss <- mapM getfile fs
                               (intercalate "\n" yss ++) `fmap`
                                 handleIncludes rest

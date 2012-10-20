@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to ODT.
 -}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Text.Pandoc.Writers.ODT ( writeODT ) where
 import Data.IORef
 import Data.List ( isPrefixOf )
@@ -47,6 +48,7 @@ import Control.Monad (liftM)
 import Network.URI ( unEscapeString )
 import Text.Pandoc.XML
 import Text.Pandoc.Pretty
+import qualified Control.Exception as E (catch, IOException)
 
 -- | Produce an ODT file from a Pandoc document.
 writeODT :: Maybe FilePath -- ^ Path specified by --reference-odt
@@ -110,9 +112,9 @@ transformPic sourceDir entriesRef (Image lab (src,tit)) = do
                   Nothing  -> tit
   entries <- readIORef entriesRef
   let newsrc = "Pictures/" ++ show (length entries) ++ takeExtension src'
-  catch (readEntry [] (sourceDir </> src') >>= \entry ->
+  E.catch (readEntry [] (sourceDir </> src') >>= \entry ->
            modifyIORef entriesRef (entry{ eRelativePath = newsrc } :) >>
            return (Image lab (newsrc, tit')))
-        (\_ -> return (Emph lab))
+        (\(_::E.IOException) -> return (Emph lab))
 transformPic _ _ x = return x
 
