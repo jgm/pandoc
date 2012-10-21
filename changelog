@@ -1,4 +1,4 @@
-pando (1.9.4.4)
+pandoc (1.9.4.4)
 
   * Removed `tests` flag and made test suite into a proper cabal
     test suite, which can now be enabled using `--enable-tests`
