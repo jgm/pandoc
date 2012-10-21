@@ -90,7 +90,6 @@ Data-Files:
                  README, INSTALL, COPYRIGHT, BUGS, changelog
 Extra-Source-Files:
                  -- code to create pandoc.1 man page
-                 MakeManPage.hs,
                  man/man1/pandoc.1.template,
                  man/man5/pandoc_markdown.5.template,
                  -- generated man pages (produced post-build)
