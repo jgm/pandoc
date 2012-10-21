@@ -23,7 +23,7 @@ main = do
 
   unless (null ds1 && null ds2) $ do
     rmContents <- UTF8.readFile "README"
-    let (Pandoc meta blocks) = readMarkdown def rmContents
+    let (Pandoc meta blocks) = readMarkdown defaultParserState rmContents
     let manBlocks = removeSect [Str "Wrappers"]
                   $ removeSect [Str "Pandoc's",Space,Str "markdown"] blocks
     let syntaxBlocks = extractSect [Str "Pandoc's",Space,Str "markdown"] blocks
@@ -43,7 +43,8 @@ makeManPage verbose page meta blocks = do
 
 writeManPage :: FilePath -> String -> Pandoc -> IO ()
 writeManPage page templ doc = do
-  let opts = def{ writerStandalone = True
+  let opts = defaultWriterOptions{
+                  writerStandalone = True
                 , writerTemplate = templ }
   let manPage = writeMan opts $
                     bottomUp (concatMap removeLinks) $

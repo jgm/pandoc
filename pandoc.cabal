@@ -286,9 +286,9 @@ Library
                    Text.Pandoc.PDF,
                    Text.Pandoc.Templates,
                    Text.Pandoc.Biblio,
+                   Text.Pandoc.UTF8,
                    Text.Pandoc.SelfContained
   Other-Modules:   Text.Pandoc.XML,
-                   Text.Pandoc.UTF8,
                    Text.Pandoc.MIME,
                    Text.Pandoc.UUID,
                    Text.Pandoc.ImageSize,
@@ -383,41 +383,6 @@ Test-Suite test-pandoc
   Type:           exitcode-stdio-1.0
   Main-Is:        test-pandoc.hs
   Hs-Source-Dirs: tests
-  Build-Depends: base >= 4.2 && < 5,
-                 syb >= 0.1 && < 0.4,
-                 pandoc,
-                 pandoc-types >= 1.10 && < 1.11,
-                 bytestring >= 0.9 && < 1.0,
-                 text >= 0.11 && < 0.12,
-                 directory >= 1 && < 1.3,
-                 filepath >= 1.1 && < 1.4,
-                 process >= 1 && < 1.2,
-                 directory >= 1 && < 1.3,
-                 bytestring >= 0.9 && < 1.0,
-                 zip-archive >= 0.1.1.7 && < 0.2,
-                 utf8-string >= 0.3 && < 0.4,
-                 old-locale >= 1 && < 1.1,
-                 time >= 1.2 && < 1.5,
-                 HTTP >= 4000.0.5 && < 4000.3,
-                 texmath >= 0.6.0.2 && < 0.7,
-                 xml >= 1.3.12 && < 1.4,
-                 random >= 1 && < 1.1,
-                 extensible-exceptions >= 0.1 && < 0.2,
-                 citeproc-hs >= 0.3.4 && < 0.4,
-                 pandoc-types >= 1.9.0.2 && < 1.10,
-                 json >= 0.4 && < 0.6,
-                 tagsoup >= 0.12.5 && < 0.13,
-                 base64-bytestring >= 0.1 && < 0.2,
-                 zlib >= 0.5 && < 0.6,
-                 highlighting-kate >= 0.5.1 && < 0.6,
-                 temporary >= 1.1 && < 1.2
-  if flag(blaze_html_0_5)
-    build-depends:
-                 blaze-html >= 0.5 && < 0.6,
-                 blaze-markup >= 0.5.1 && < 0.6
-  else
-    build-depends:
-                 blaze-html >= 0.4.3.0 && < 0.5
   if impl(ghc >= 6.10)
     Build-depends: base >= 4 && < 5, syb >= 0.1 && < 0.4
   else
@@ -439,33 +404,33 @@ Test-Suite test-pandoc
                       ScopedTypeVariables, GeneralizedNewtypeDeriving,
                       RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
                       FlexibleInstances
-  Hs-Source-Dirs:  src
-  -- END DUPLICATED SECTION
-  if !flag(tests)
-    Buildable:        False
+  if impl(ghc >= 7)
+    cpp-options:    -D_LIT=lit
   else
-    Buildable:        True
-    if impl(ghc >= 7)
-      cpp-options:    -D_LIT=lit
-    else
-      cpp-options:    -D_LIT=$lit
-    Other-Extensions: TemplateHaskell, QuasiQuotes
-    Build-Depends:    Diff, test-framework >= 0.3 && < 0.7,
-                      test-framework-hunit >= 0.2 && < 0.3,
-                      test-framework-quickcheck2 >= 0.2.9 && < 0.3,
-                      QuickCheck >= 2.4 && < 2.6,
-                      HUnit >= 1.2 && < 1.3,
-                      template-haskell >= 2.4 && < 2.8,
-                      ansi-terminal == 0.5.*
-    Other-Modules:    Tests.Old
-                      Tests.Helpers
-                      Tests.Arbitrary
-                      Tests.Shared
-                      Tests.Readers.LaTeX
-                      Tests.Readers.Markdown
-                      Tests.Readers.RST
-                      Tests.Writers.Native
-                      Tests.Writers.ConTeXt
-                      Tests.Writers.HTML
-                      Tests.Writers.Markdown
-                      Tests.Writers.LaTeX
+    cpp-options:    -D_LIT=$lit
+  Other-Extensions: TemplateHaskell, QuasiQuotes
+  Build-Depends:    pandoc, Diff, test-framework >= 0.3 && < 0.7,
+                    pandoc-types >= 1.9.0.2 && < 1.10,
+                    test-framework-hunit >= 0.2 && < 0.3,
+                    test-framework-quickcheck2 >= 0.2.9 && < 0.3,
+                    process >= 1 && < 1.2,
+                    filepath >= 1.1 && < 1.4,
+                    directory >= 1 && < 1.3,
+                    bytestring >= 0.9 && < 1.0,
+                    utf8-string >= 0.3 && < 0.4,
+                    QuickCheck >= 2.4 && < 2.6,
+                    HUnit >= 1.2 && < 1.3,
+                    template-haskell >= 2.4 && < 2.8,
+                    ansi-terminal == 0.5.*
+  Other-Modules:    Tests.Old
+                    Tests.Helpers
+                    Tests.Arbitrary
+                    Tests.Shared
+                    Tests.Readers.LaTeX
+                    Tests.Readers.Markdown
+                    Tests.Readers.RST
+                    Tests.Writers.Native
+                    Tests.Writers.ConTeXt
+                    Tests.Writers.HTML
+                    Tests.Writers.Markdown
+                    Tests.Writers.LaTeX

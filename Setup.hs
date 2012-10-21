@@ -16,9 +16,7 @@ import System.Exit
 main :: IO ()
 main = do
   defaultMainWithHooks $ simpleUserHooks {
-      runTests  = runTestSuite
-    , postBuild = makeManPages 
-    , postCopy = \ _ flags pkg lbi ->
+      postCopy = \ _ flags pkg lbi ->
          installManpages pkg lbi (fromFlag $ copyVerbosity flags)
               (fromFlag $ copyDest flags)
     , postInst = \ _ flags pkg lbi ->
@@ -31,18 +29,6 @@ main = do
             [x | x <- executables pkgdescr, exeName x /= "make-pandoc-man-pages"] }
     }
   exitWith ExitSuccess
-
--- | Run test suite.
-runTestSuite :: Args -> Bool -> PackageDescription -> LocalBuildInfo -> IO a
-runTestSuite args _ pkg lbi = do
-  let testDir = buildDir lbi </> "test-pandoc"
-  testDir' <- canonicalizePath testDir
-  let testArgs = "--timeout=5" : concatMap (\arg -> ["-t",arg]) args
-  if any id [buildable (buildInfo exe) | exe <- executables pkg, exeName exe == "test-pandoc"]
-     then inDirectory "tests" $ rawSystem (testDir' </> "test-pandoc") testArgs >>= exitWith
-     else do
-         putStrLn "Build pandoc with the 'tests' flag to run tests"
-         exitWith $ ExitFailure 3
 
 -- | Build man pages from markdown sources in man/
 makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
