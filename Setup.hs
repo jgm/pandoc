@@ -16,7 +16,8 @@ import System.Exit
 main :: IO ()
 main = do
   defaultMainWithHooks $ simpleUserHooks {
-      postCopy = \ _ flags pkg lbi ->
+      postBuild = makeManPages
+    , postCopy = \ _ flags pkg lbi ->
          installManpages pkg lbi (fromFlag $ copyVerbosity flags)
               (fromFlag $ copyDest flags)
     , postInst = \ _ flags pkg lbi ->
