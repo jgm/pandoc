@@ -1,3 +1,18 @@
+pando (1.9.4.4)
+
+  * Removed `tests` flag and made test suite into a proper cabal
+    test suite, which can now be enabled using `--enable-tests`
+    and run with `cabal test`.
+
+  * Moved man page creation out of `Setup.hs` and into an
+    executable built by Cabal, but never installed.  This
+    allows dependencies to be specified, and solves a problem
+    with 1.9.4.3, which could only be installed if `data-default`
+    had already been installed.
+
+  * Updated `lhs-latex.tex` test for latest highlighting-kate
+    representation of backticks.
+
 pandoc (1.9.4.3)
 
   * Removed `-threaded` from default compile flags.
