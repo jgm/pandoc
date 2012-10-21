@@ -136,9 +136,9 @@ Running tests
 -------------
 
 Pandoc comes with an automated test suite integrated to cabal.
-To enable the tests, compile pandoc with the `tests` flag:
+To enable the tests, compile pandoc with the `--enable-tests` option:
 
-    cabal install -ftests
+    cabal install --enable-tests
 
 Note: If you obtained the source via git, you should first do
 
