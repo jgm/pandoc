@@ -1,3 +1,8 @@
+pandoc (1.9.4.5)
+
+  * Raised version bounds on network, base64-bytestring, json,
+    and template-haskell.
+
 pandoc (1.9.4.4)
 
   * Removed `tests` flag and made test suite into a proper cabal
