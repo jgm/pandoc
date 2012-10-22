@@ -62,13 +62,12 @@ tests = [ testGroup "basic"
         ]
 
 baseCitation :: Citation
-baseCitation = Citation{ citationId             = "item1"
-                       , citationPrefix         = []
-                       , citationSuffix         = []
-                       , citationMode           = AuthorInText
-                       , citationNoteNum        = 0
-                       , citationSuppressParens = False
-                       , citationHash           = 0 }
+baseCitation = Citation{ citationId      = "item1"
+                       , citationPrefix  = []
+                       , citationSuffix  = []
+                       , citationMode    = AuthorInText
+                       , citationNoteNum = 0
+                       , citationHash    = 0 }
 
 rt :: String -> Inlines
 rt = rawInline "latex"

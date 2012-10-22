@@ -111,10 +111,10 @@ getCitation i | Cite t _ <- i = [t]
               | otherwise     = []
 
 setHash :: Citation -> State Int Citation
-setHash c = do
+setHash (Citation i p s cm nn _) = do
   ident <- get
   put $ ident + 1
-  return c{ citationHash = ident }
+  return $ Citation i p s cm nn ident
 
 toCslCite :: Citation -> CSL.Cite
 toCslCite c
@@ -140,7 +140,6 @@ toCslCite c
                      , CSL.citeNoteNumber = show $ citationNoteNum c
                      , CSL.authorInText   = fst citMode
                      , CSL.suppressAuthor = snd citMode
-                     , CSL.suppressParens = citationSuppressParens c
                      , CSL.citeHash       = citationHash c
                      }
 
