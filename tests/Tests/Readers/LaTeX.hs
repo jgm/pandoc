@@ -67,7 +67,8 @@ baseCitation = Citation{ citationId      = "item1"
                        , citationSuffix  = []
                        , citationMode    = AuthorInText
                        , citationNoteNum = 0
-                       , citationHash    = 0 }
+                       , citationHash    = 0
+                       , citationSuppressParens = False }
 
 rt :: String -> Inlines
 rt = rawInline "latex"
