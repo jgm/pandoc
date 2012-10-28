@@ -260,7 +260,7 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
 ,HorizontalRule
 ,Header 1 [Str "LaTeX"]
 ,BulletList
- [[Para [Cite [Citation {citationId = "smith.1899", citationPrefix = [], citationSuffix = [Str ",",Space,Str "22-23"], citationMode = AuthorInText, citationNoteNum = 0, citationSuppressParens = False, citationHash = 0}] [RawInline "latex" "\\cite[22-23]{smith.1899}"]]]
+ [[Para [Cite [Citation {citationId = "smith.1899", citationPrefix = [], citationSuffix = [Str ",",Space,Str "22-23"], citationMode = AuthorInText, citationNoteNum = 0, citationHash = 0}] [RawInline "latex" "\\cite[22-23]{smith.1899}"]]]
  ,[Para [RawInline "latex" "\\doublespacing"]]
  ,[Para [Math InlineMath "2+2=4"]]
  ,[Para [Math InlineMath "x \\in y"]]

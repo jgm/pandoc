@@ -909,7 +909,6 @@ simpleCiteArgs = try $ do
                         , citationMode    = NormalCitation
                         , citationHash    = 0
                         , citationNoteNum = 0
-                        , citationSuppressParens = False
                         }
   return $ addPrefix pre $ addSuffix suf $ map conv keys
 

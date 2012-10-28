@@ -9,7 +9,7 @@ all:
 prof:
 	cabal-dev configure --enable-tests --enable-library-profiling --enable-executable-profiling && cabal-dev build
 
-prep: pandoc-types citeproc-hs
+prep: pandoc-types
 	cabal-dev update && \
 	cabal-dev install-deps --enable-library-profiling --enable-tests --enable-benchmarks
 
@@ -31,7 +31,7 @@ pandoc-types:
 
 citeproc-hs: pandoc-types
 	darcs get --lazy http://gorgias.mine.nu/repos/citeproc-hs && \
-	  cabal-dev add-source citeproc-hs
+	cabal-dev add-source citeproc-hs
 
 install:
 	cabal-dev install --enable-tests --enable-benchmarks
