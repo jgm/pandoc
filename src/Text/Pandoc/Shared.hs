@@ -426,18 +426,17 @@ inlineListToIdentifier =
 
 -- | Convert list of Pandoc blocks into (hierarchical) list of Elements
 hierarchicalize :: [Block] -> [Element]
-hierarchicalize blocks = S.evalState (hierarchicalizeWithIds blocks) ([],[])
+hierarchicalize blocks = S.evalState (hierarchicalizeWithIds blocks) []
 
-hierarchicalizeWithIds :: [Block] -> S.State ([Int],[String]) [Element]
+hierarchicalizeWithIds :: [Block] -> S.State [Int] [Element]
 hierarchicalizeWithIds [] = return []
-hierarchicalizeWithIds ((Header level title'):xs) = do
-  (lastnum, usedIdents) <- S.get
-  let ident = uniqueIdent title' usedIdents
+hierarchicalizeWithIds ((Header level (ident,_,_) title'):xs) = do
+  lastnum <- S.get
   let lastnum' = take level lastnum
   let newnum = if length lastnum' >= level
                   then init lastnum' ++ [last lastnum' + 1]
                   else lastnum ++ replicate (level - length lastnum - 1) 0 ++ [1]
-  S.put (newnum, (ident : usedIdents))
+  S.put newnum
   let (sectionContents, rest) = break (headerLtEq level) xs
   sectionContents' <- hierarchicalizeWithIds sectionContents
   rest' <- hierarchicalizeWithIds rest
@@ -447,7 +446,7 @@ hierarchicalizeWithIds (x:rest) = do
   return $ (Blk x) : rest'
 
 headerLtEq :: Int -> Block -> Bool
-headerLtEq level (Header l _) = l <= level
+headerLtEq level (Header l _ _) = l <= level
 headerLtEq _ _ = False
 
 -- | Generate a unique identifier from a list of inlines.
@@ -466,15 +465,15 @@ uniqueIdent title' usedIdents =
 
 -- | True if block is a Header block.
 isHeaderBlock :: Block -> Bool
-isHeaderBlock (Header _ _) = True
+isHeaderBlock (Header _ _ _) = True
 isHeaderBlock _ = False
 
 -- | Shift header levels up or down.
 headerShift :: Int -> Pandoc -> Pandoc
 headerShift n = bottomUp shift
   where shift :: Block -> Block
-        shift (Header level inner) = Header (level + n) inner
-        shift x                    = x
+        shift (Header level attr inner) = Header (level + n) attr inner
+        shift x                         = x
 
 -- | Detect if a list is tight.
 isTightList :: [[Block]] -> Bool

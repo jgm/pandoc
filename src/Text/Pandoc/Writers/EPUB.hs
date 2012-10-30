@@ -119,18 +119,17 @@ writeEPUB opts doc@(Pandoc meta _) = do
 
   -- add level 1 header to beginning if none there
   let blocks' = case blocks of
-                      (Header 1 _ : _) -> blocks
-                      _                -> Header 1 (docTitle meta) : blocks
+                      (Header 1 _ _ : _) -> blocks
+                      _                  -> Header 1 ("",[],[]) (docTitle meta) : blocks
 
   let chapterHeaderLevel = writerEpubChapterLevel opts
-
   -- internal reference IDs change when we chunk the file,
   -- so that '#my-header-1' might turn into 'chap004.xhtml#my-header'.
   -- the next two lines fix that:
   let reftable = correlateRefs chapterHeaderLevel blocks'
   let blocks'' = replaceRefs reftable blocks'
 
-  let isChapterHeader (Header n _) = n <= chapterHeaderLevel
+  let isChapterHeader (Header n _ _) = n <= chapterHeaderLevel
       isChapterHeader _ = False
 
   let toChunks :: [Block] -> [[Block]]
@@ -145,8 +144,8 @@ writeEPUB opts doc@(Pandoc meta _) = do
         $ renderHtml
         $ writeHtml opts'
         $ case bs of
-              (Header _ xs : _) -> Pandoc (Meta xs [] []) bs
-              _                 -> Pandoc (Meta [] [] []) bs
+              (Header _ _ xs : _) -> Pandoc (Meta xs [] []) bs
+              _                   -> Pandoc (Meta [] [] []) bs
 
   let chapterEntries = zipWith chapToEntry [1..] chunks
 
@@ -444,7 +443,7 @@ correlateRefs chapterHeaderLevel bs =
               , chapterIdents = []
               , identTable = [] }
  where go :: Block -> State IdentState ()
-       go (Header n ils) = do
+       go (Header n _ ils) = do
           when (n <= chapterHeaderLevel) $
               modify $ \s -> s{ chapterNumber = chapterNumber s + 1
                               , chapterIdents = [] }

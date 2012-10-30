@@ -74,14 +74,14 @@ specialChars = "\\`|*_<>$:/[]{}()-.\"'\8216\8217\8220\8221"
 --
 
 isHeader :: Int -> Block -> Bool
-isHeader n (Header x _) = x == n
-isHeader _ _            = False
+isHeader n (Header x _ _) = x == n
+isHeader _ _              = False
 
 -- | Promote all headers in a list of blocks.  (Part of
 -- title transformation for RST.)
 promoteHeaders :: Int -> [Block] -> [Block]
-promoteHeaders num ((Header level text):rest) =
-    (Header (level - num) text):(promoteHeaders num rest)
+promoteHeaders num ((Header level attr text):rest) =
+    (Header (level - num) attr text):(promoteHeaders num rest)
 promoteHeaders num (other:rest) = other:(promoteHeaders num rest)
 promoteHeaders _   [] = []
 
@@ -90,10 +90,10 @@ promoteHeaders _   [] = []
 -- promote all the other headers.
 titleTransform :: [Block]              -- ^ list of blocks
                -> ([Block], [Inline])  -- ^ modified list of blocks, title
-titleTransform ((Header 1 head1):(Header 2 head2):rest) |
+titleTransform ((Header 1 _ head1):(Header 2 _ head2):rest) |
    not (any (isHeader 1) rest || any (isHeader 2) rest) =  -- both title & subtitle
    (promoteHeaders 2 rest, head1 ++ [Str ":", Space] ++ head2)
-titleTransform ((Header 1 head1):rest) |
+titleTransform ((Header 1 _ head1):rest) |
    not (any (isHeader 1) rest) =  -- title, no subtitle
    (promoteHeaders 1 rest, head1)
 titleTransform blocks = (blocks, [])

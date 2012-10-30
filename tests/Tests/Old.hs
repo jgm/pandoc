@@ -147,8 +147,11 @@ lhsWriterTests format
 lhsReaderTest :: String -> Test
 lhsReaderTest format =
   testWithNormalize normalizer "lhs" ["-r", format, "-w", "native"]
-    ("lhs-test" <.> format) "lhs-test.native"
+    ("lhs-test" <.> format) norm
    where normalizer = writeNative def . normalize . readNative
+         norm = if format == "markdown+lhs"
+                   then "lhs-test-markdown.native"
+                   else "lhs-test.native"
 
 writerTests :: String -> [Test]
 writerTests format

@@ -121,9 +121,10 @@ blockToTextile _ (RawBlock f str) =
 
 blockToTextile _ HorizontalRule = return "<hr />\n"
 
-blockToTextile opts (Header level inlines) = do
+blockToTextile opts (Header level (ident,_,_) inlines) = do
   contents <- inlineListToTextile opts inlines
-  let prefix = 'h' : (show level ++ ". ")
+  let attribs = if null ident then "" else "(#" ++ ident ++ ")"
+  let prefix = 'h' : show level ++ attribs ++ ". "
   return $ prefix ++ contents ++ "\n"
 
 blockToTextile _ (CodeBlock (_,classes,_) str) | any (all isSpace) (lines str) =

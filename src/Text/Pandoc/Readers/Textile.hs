@@ -171,9 +171,14 @@ header :: Parser [Char] ParserState Block
 header = try $ do
   char 'h'
   level <- digitToInt <$> oneOf "123456"
-  optional attributes >> char '.' >> whitespace
+  attr <- option "" attributes
+  let ident = case attr of
+                   '#':xs -> xs
+                   _      -> ""
+  char '.'
+  whitespace
   name <- normalizeSpaces <$> manyTill inline blockBreak
-  return $ Header level name
+  return $ Header level (ident,[],[]) name
 
 -- | Blockquote of the form "bq. content"
 blockQuote :: Parser [Char] ParserState Block

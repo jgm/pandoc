@@ -723,6 +723,7 @@ data ParserState = ParserState
       stateDate            :: [Inline],      -- ^ Date of document
       stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
       stateHeaders         :: [[Inline]],    -- ^ List of headers (used for implicit ref links)
+      stateIdentifiers     :: [String],      -- ^ List of header identifiers used
       stateNextExample     :: Int,           -- ^ Number of next example
       stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers
       stateHasChapters     :: Bool,          -- ^ True if \chapter encountered
@@ -751,6 +752,7 @@ defaultParserState =
                   stateDate            = [],
                   stateHeaderTable     = [],
                   stateHeaders         = [],
+                  stateIdentifiers     = [],
                   stateNextExample     = 1,
                   stateExamples        = M.empty,
                   stateHasChapters     = False,

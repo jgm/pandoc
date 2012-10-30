@@ -81,7 +81,7 @@ arbBlock n = frequency $ [ (10, liftM Plain $ arbInlines (n-1))
                                          ])
                          , (5,  do x1 <- choose (1 :: Int, 6)
                                    x2 <- arbInlines (n-1)
-                                   return (Header x1 x2))
+                                   return (Header x1 nullAttr x2))
                          , (2, return HorizontalRule)
                          ] ++ [x | x <- nesters, n > 0]
    where nesters = [ (5,  liftM BlockQuote $ listOf1 $ arbBlock (n-1))

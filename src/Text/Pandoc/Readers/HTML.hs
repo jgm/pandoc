@@ -160,7 +160,7 @@ fixPlains inList bs = if any isParaish bs
                          else bs
   where isParaish (Para _) = True
         isParaish (CodeBlock _ _) = True
-        isParaish (Header _ _) = True
+        isParaish (Header _ _ _) = True
         isParaish (BlockQuote _) = True
         isParaish (BulletList _) = not inList
         isParaish (OrderedList _ _) = not inList
@@ -201,7 +201,9 @@ pHeader = try $ do
   contents <- liftM concat $ manyTill inline (pCloses tagtype <|> eof)
   return $ if bodyTitle
               then []  -- skip a representation of the title in the body
-              else [Header level $ normalizeSpaces contents]
+              else [Header level (fromAttrib "id" $
+                                  TagOpen tagtype attr, [], []) $
+                    normalizeSpaces contents]
 
 pHrule :: TagParser [Block]
 pHrule = do

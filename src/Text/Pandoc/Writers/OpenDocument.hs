@@ -287,7 +287,7 @@ blockToOpenDocument :: WriterOptions -> Block -> State WriterState Doc
 blockToOpenDocument o bs
     | Plain          b <- bs = inParagraphTags =<< inlinesToOpenDocument o b
     | Para           b <- bs = inParagraphTags =<< inlinesToOpenDocument o b
-    | Header       i b <- bs = setFirstPara >>
+    | Header     i _ b <- bs = setFirstPara >>
                                (inHeaderTags  i =<< inlinesToOpenDocument o b)
     | BlockQuote     b <- bs = setFirstPara >> mkBlockQuote b
     | DefinitionList b <- bs = setFirstPara >> defList b

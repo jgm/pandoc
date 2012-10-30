@@ -142,7 +142,7 @@ listItemToDocbook opts item =
 -- | Convert a Pandoc block element to Docbook.
 blockToDocbook :: WriterOptions -> Block -> Doc
 blockToDocbook _ Null = empty
-blockToDocbook _ (Header _ _) = empty -- should not occur after hierarchicalize
+blockToDocbook _ (Header _ _ _) = empty -- should not occur after hierarchicalize
 blockToDocbook opts (Plain lst) = inlinesToDocbook opts lst
 blockToDocbook opts (Para [Image txt (src,_)]) =
   let alt  = inlinesToDocbook opts txt

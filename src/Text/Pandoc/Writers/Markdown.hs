@@ -274,7 +274,7 @@ blockToMarkdown opts (RawBlock f str)
 blockToMarkdown _ (RawBlock _ _) = return empty
 blockToMarkdown _ HorizontalRule =
   return $ blankline <> text "* * * * *" <> blankline
-blockToMarkdown opts (Header level inlines) = do
+blockToMarkdown opts (Header level attr inlines) = do
   contents <- inlineListToMarkdown opts inlines
   st <- get
   let setext = writerSetextHeaders opts

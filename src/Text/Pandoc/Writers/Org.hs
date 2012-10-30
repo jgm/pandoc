@@ -131,7 +131,7 @@ blockToOrg (RawBlock f str) | f == "org" || f == "latex" || f == "tex" =
   return $ text str
 blockToOrg (RawBlock _ _) = return empty
 blockToOrg HorizontalRule = return $ blankline $$ "--------------" $$ blankline
-blockToOrg (Header level inlines) = do
+blockToOrg (Header level _ inlines) = do
   contents <- inlineListToOrg inlines
   let headerStr = text $ if level > 999 then " " else replicate level '*'
   return $ headerStr <> " " <> contents <> blankline

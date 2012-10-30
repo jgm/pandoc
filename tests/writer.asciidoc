@@ -9,31 +9,40 @@ markdown test suite.
 
 '''''
 
+[[headers]]
 Headers
 -------
 
+[[level-2-with-an-embedded-link]]
 Level 2 with an link:/url[embedded link]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+[[level-3-with-emphasis]]
 Level 3 with _emphasis_
 ^^^^^^^^^^^^^^^^^^^^^^^
 
+[[level-4]]
 Level 4
 +++++++
 
+[[level-5]]
 Level 5
 
+[[level-1]]
 Level 1
 -------
 
+[[level-2-with-emphasis]]
 Level 2 with _emphasis_
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+[[level-3]]
 Level 3
 ^^^^^^^
 
 with no blank line
 
+[[level-2]]
 Level 2
 ~~~~~~~
 
@@ -41,6 +50,7 @@ with no blank line
 
 '''''
 
+[[paragraphs]]
 Paragraphs
 ----------
 
@@ -57,6 +67,7 @@ here.
 
 '''''
 
+[[block-quotes]]
 Block Quotes
 ------------
 
@@ -100,6 +111,7 @@ And a following paragraph.
 
 '''''
 
+[[code-blocks]]
 Code Blocks
 -----------
 
@@ -125,9 +137,11 @@ These should not be escaped:  \$ \\ \> \[ \{
 
 '''''
 
+[[lists]]
 Lists
 -----
 
+[[unordered]]
 Unordered
 ~~~~~~~~~
 
@@ -167,6 +181,7 @@ Minuses loose:
 * Minus 2
 * Minus 3
 
+[[ordered]]
 Ordered
 ~~~~~~~
 
@@ -202,6 +217,7 @@ Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
 2.  Item 2.
 3.  Item 3.
 
+[[nested]]
 Nested
 ~~~~~~
 
@@ -227,6 +243,7 @@ Same thing but with paragraphs:
 * Foe
 3.  Third
 
+[[tabs-and-spaces]]
 Tabs and spaces
 ~~~~~~~~~~~~~~~
 
@@ -235,6 +252,7 @@ Tabs and spaces
 ** this is an example list item indented with tabs
 ** this is an example list item indented with spaces
 
+[[fancy-list-markers]]
 Fancy list markers
 ~~~~~~~~~~~~~~~~~~
 
@@ -268,6 +286,7 @@ B. Williams
 
 '''''
 
+[[definition-lists]]
 Definition Lists
 ----------------
 
@@ -349,6 +368,7 @@ orange::
   1.  sublist
   2.  sublist
 
+[[html-blocks]]
 HTML Blocks
 -----------
 
@@ -405,6 +425,7 @@ Hr’s:
 
 '''''
 
+[[inline-markup]]
 Inline Markup
 -------------
 
@@ -435,6 +456,7 @@ spaces: a^b c^d, a~b c~d.
 
 '''''
 
+[[smart-quotes-ellipses-dashes]]
 Smart quotes, ellipses, dashes
 ------------------------------
 
@@ -457,6 +479,7 @@ Ellipses…and…and….
 
 '''''
 
+[[latex]]
 LaTeX
 -----
 
@@ -483,6 +506,7 @@ Here’s a LaTeX table:
 
 '''''
 
+[[special-characters]]
 Special Characters
 ------------------
 
@@ -538,9 +562,11 @@ Minus: -
 
 '''''
 
+[[links]]
 Links
 -----
 
+[[explicit]]
 Explicit
 ~~~~~~~~
 
@@ -562,6 +588,7 @@ mailto:nobody@nowhere.net[Email link]
 
 link:[Empty].
 
+[[reference]]
 Reference
 ~~~~~~~~~
 
@@ -591,6 +618,7 @@ Foo link:/url/[bar].
 
 Foo link:/url/[biz].
 
+[[with-ampersands]]
 With ampersands
 ~~~~~~~~~~~~~~~
 
@@ -602,6 +630,7 @@ Here’s an link:/script?foo=1&bar=2[inline link].
 
 Here’s an link:/script?foo=1&bar=2[inline link in pointy braces].
 
+[[autolinks]]
 Autolinks
 ~~~~~~~~~
 
@@ -625,6 +654,7 @@ or here: <http://example.com/>
 
 '''''
 
+[[images]]
 Images
 ------
 
@@ -636,6 +666,7 @@ Here is a movie image:movie.jpg[movie] icon.
 
 '''''
 
+[[footnotes]]
 Footnotes
 ---------
 

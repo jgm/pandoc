@@ -126,10 +126,10 @@ blockToAsciiDoc opts (Para inlines) = do
 blockToAsciiDoc _ (RawBlock _ _) = return empty
 blockToAsciiDoc _ HorizontalRule =
   return $ blankline <> text "'''''" <> blankline
-blockToAsciiDoc opts (Header level inlines) = do
+blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   let len = offset contents
-  return $ contents <> cr <>
+  return $ ("[[" <> text ident <> "]]") $$ contents $$
          (case level of
                1  -> text $ replicate len '-'
                2  -> text $ replicate len '~'

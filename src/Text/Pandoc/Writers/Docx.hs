@@ -337,11 +337,13 @@ getUniqueId = liftIO $ (show . (+ 20) . hashUnique) `fmap` newUnique
 -- | Convert a Pandoc block element to OpenXML.
 blockToOpenXML :: WriterOptions -> Block -> WS [Element]
 blockToOpenXML _ Null = return []
-blockToOpenXML opts (Header lev lst) = do
+blockToOpenXML opts (Header lev (ident,_,_) lst) = do
   contents <- withParaProp (pStyle $ "Heading" ++ show lev) $
                blockToOpenXML opts (Para lst)
   usedIdents <- gets stSectionIds
-  let bookmarkName = uniqueIdent lst usedIdents
+  let bookmarkName = if null ident
+                        then uniqueIdent lst usedIdents
+                        else ident
   modify $ \s -> s{ stSectionIds = bookmarkName : stSectionIds s }
   id' <- getUniqueId
   let bookmarkStart = mknode "w:bookmarkStart" [("w:id", id')

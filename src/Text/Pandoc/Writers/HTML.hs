@@ -219,7 +219,10 @@ inTemplate opts tit auths authsMeta date toc body' newvars =
 
 -- | Like Text.XHtml's identifier, but adds the writerIdentifierPrefix
 prefixedId :: WriterOptions -> String -> Attribute
-prefixedId opts s = A.id $ toValue $ writerIdentifierPrefix opts ++ s
+prefixedId opts s =
+  case s of
+    ""       -> mempty
+    _        -> A.id $ toValue $ writerIdentifierPrefix opts ++ s
 
 -- | Replacement for Text.XHtml's unordList.
 unordList :: WriterOptions -> ([Html] -> Html)
@@ -258,7 +261,10 @@ elementToListItem opts (Sec lev num id' headerText subsecs)
   let subList = if null subHeads
                    then mempty
                    else unordList opts subHeads
-  return $ Just $ (H.a ! A.href (toValue $ "#" ++ writerIdentifierPrefix opts ++ id')
+  return $ Just
+         $ if null id'
+              then (H.a $ toHtml txt) >> subList
+              else (H.a ! A.href (toValue $ "#" ++ writerIdentifierPrefix opts ++ id')
                        $ toHtml txt) >> subList
 elementToListItem _ _ = return Nothing
 
@@ -273,7 +279,7 @@ elementToHtml slideLevel opts (Sec level num id' title' elements) = do
   let titleSlide = slide && level < slideLevel
   header' <- if title' == [Str "\0"]  -- marker for hrule
                 then return mempty
-                else blockToHtml opts (Header level' title')
+                else blockToHtml opts (Header level' (id',[],[]) title')
   let isSec (Sec _ _ _ _ _) = True
       isSec (Blk _)         = False
   innerContents <- mapM (elementToHtml slideLevel opts)
@@ -283,8 +289,7 @@ elementToHtml slideLevel opts (Sec level num id' title' elements) = do
                         else elements
   let header'' = if (writerSectionDivs opts ||
                      writerSlideVariant opts == S5Slides ||
-                     slide ||
-                     not (isEnabled Ext_header_identifiers opts))
+                     slide)
                     then header'
                     else header' ! prefixedId opts id'
   let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
@@ -442,15 +447,16 @@ blockToHtml opts (BlockQuote blocks) =
      else do
        contents <- blockListToHtml opts blocks
        return $ H.blockquote $ nl opts >> contents >> nl opts
-blockToHtml opts (Header level lst) = do
+blockToHtml opts (Header level (ident,_,_) lst) = do
   contents <- inlineListToHtml opts lst
   secnum <- liftM stSecNum get
   let contents' = if writerNumberSections opts
                      then (H.span ! A.class_ "header-section-number" $ toHtml $ showSecNum secnum) >>
                             strToHtml " " >> contents
                      else contents
-  let contents''  = if writerTableOfContents opts
-                       then H.a ! A.href (toValue $ "#" ++ writerIdentifierPrefix opts ++ "TOC") $ contents'
+  let contents''  = if writerTableOfContents opts && not (null ident)
+                       then H.a ! A.href (toValue $
+                              '#' : writerIdentifierPrefix opts ++ ident) $ contents'
                        else contents'
   return $ (case level of
               1 -> H.h1 contents''

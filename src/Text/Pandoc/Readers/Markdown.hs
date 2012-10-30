@@ -372,10 +372,16 @@ block = choice [ codeBlockFenced
 header :: MarkdownParser (F Blocks)
 header = setextHeader <|> atxHeader <?> "header"
 
-addToHeaderList :: F Inlines -> MarkdownParser ()
-addToHeaderList text =
-  updateState $ \st -> st{ stateHeaders = B.toList (runF text defaultParserState)
-                                          : stateHeaders st }
+--  returns unique identifier
+addToHeaderList :: F Inlines -> MarkdownParser String
+addToHeaderList text = do
+  let headerList = B.toList $ runF text defaultParserState
+  updateState $ \st -> st{ stateHeaders = headerList : stateHeaders st }
+  (do guardEnabled Ext_header_identifiers
+      ids <- stateIdentifiers `fmap` getState
+      let id' = uniqueIdent headerList ids
+      updateState $ \st -> st{ stateIdentifiers = id' : ids }
+      return id') <|> return ""
 
 atxHeader :: MarkdownParser (F Blocks)
 atxHeader = try $ do
@@ -383,8 +389,8 @@ atxHeader = try $ do
   notFollowedBy (char '.' <|> char ')') -- this would be a list
   skipSpaces
   text <- trimInlinesF . mconcat <$> manyTill inline atxClosing
-  addToHeaderList text
-  return $ B.header level <$> text
+  id' <- addToHeaderList text
+  return $ B.headerWith (id',[],[]) level <$> text
 
 atxClosing :: Parser [Char] st String
 atxClosing = try $ skipMany (char '#') >> blanklines
@@ -399,8 +405,8 @@ setextHeader = try $ do
   many (char underlineChar)
   blanklines
   let level = (fromMaybe 0 $ findIndex (== underlineChar) setextHChars) + 1
-  addToHeaderList text
-  return $ B.header level <$> text
+  id' <- addToHeaderList text
+  return $ B.headerWith (id',[],[]) level <$> text
 
 --
 -- hrule block

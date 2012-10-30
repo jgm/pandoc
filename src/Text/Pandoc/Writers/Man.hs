@@ -161,7 +161,7 @@ blockToMan opts (Para inlines) = do
 blockToMan _ (RawBlock "man" str) = return $ text str
 blockToMan _ (RawBlock _ _) = return empty
 blockToMan _ HorizontalRule = return $ text ".PP" $$ text "   *   *   *   *   *"
-blockToMan opts (Header level inlines) = do
+blockToMan opts (Header level _ inlines) = do
   contents <- inlineListToMan opts inlines
   let heading = case level of
                   1 -> ".SH "

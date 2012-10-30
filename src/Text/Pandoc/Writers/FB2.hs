@@ -158,7 +158,7 @@ renderSection level (ttl, body) = do
     return $ el "section" (title ++ content)
   where
     hasSubsections = any isHeader
-    isHeader (Header _ _) = True
+    isHeader (Header _ _ _) = True
     isHeader _ = False
 
 -- | Only <p> and <empty-line> are allowed within <title> in FB2.
@@ -186,13 +186,13 @@ splitSections level blocks = reverse $ revSplit (reverse blocks)
     let (lastsec, before) = break sameLevel rblocks
         (header, prevblocks) =
             case before of
-              ((Header n title):prevblocks') ->
+              ((Header n _ title):prevblocks') ->
                   if n == level
                      then (title, prevblocks')
                      else ([], before)
               _ -> ([], before)
     in (header, reverse lastsec) : revSplit prevblocks
-  sameLevel (Header n _) = n == level
+  sameLevel (Header n _ _) = n == level
   sameLevel _ = False
 
 -- | Make another FictionBook body with footnotes.
@@ -361,7 +361,7 @@ blockToXml (DefinitionList defs) =
       needsBreak (Para _) = False
       needsBreak (Plain ins) = LineBreak `notElem` ins
       needsBreak _ = True
-blockToXml (Header _ _) = -- should never happen, see renderSections
+blockToXml (Header _ _ _) = -- should never happen, see renderSections
                           error "unexpected header in section text"
 blockToXml HorizontalRule = return
                             [ el "empty-line" ()
@@ -413,7 +413,7 @@ indent = indentBlock
     let s' = unlines . map (spacer++) . lines $ s
     in  CodeBlock a s'
   indentBlock (BlockQuote bs) = BlockQuote (map indent bs)
-  indentBlock (Header l ins) = Header l (indentLines ins)
+  indentBlock (Header l attr' ins) = Header l attr' (indentLines ins)
   indentBlock everythingElse = everythingElse
   -- indent every (explicit) line
   indentLines :: [Inline] -> [Inline]

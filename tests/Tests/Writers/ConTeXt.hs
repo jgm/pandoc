@@ -42,7 +42,7 @@ tests = [ testGroup "inline code"
           ]
         , testGroup "headers"
           [ "level 1" =:
-            header 1 "My header" =?> "\\section[my-header]{My header}"
+            headerWith ("my-header",[],[]) 1 "My header" =?> "\\section[my-header]{My header}"
           ]
         , testGroup "bullet lists"
           [ "nested" =:

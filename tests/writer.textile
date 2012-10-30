@@ -2,31 +2,31 @@ This is a set of tests for pandoc. Most of them are adapted from John Gruber's m
 
 <hr />
 
-h1. Headers
+h1(#headers). Headers
 
-h2. Level 2 with an "embedded link":/url
+h2(#level-2-with-an-embedded-link). Level 2 with an "embedded link":/url
 
-h3. Level 3 with _emphasis_
+h3(#level-3-with-emphasis). Level 3 with _emphasis_
 
-h4. Level 4
+h4(#level-4). Level 4
 
-h5. Level 5
+h5(#level-5). Level 5
 
-h1. Level 1
+h1(#level-1). Level 1
 
-h2. Level 2 with _emphasis_
+h2(#level-2-with-emphasis). Level 2 with _emphasis_
 
-h3. Level 3
+h3(#level-3). Level 3
 
 with no blank line
 
-h2. Level 2
+h2(#level-2). Level 2
 
 with no blank line
 
 <hr />
 
-h1. Paragraphs
+h1(#paragraphs). Paragraphs
 
 Here's a regular paragraph.
 
@@ -39,7 +39,7 @@ here.
 
 <hr />
 
-h1. Block Quotes
+h1(#block-quotes). Block Quotes
 
 E-mail style:
 
@@ -79,7 +79,7 @@ And a following paragraph.
 
 <hr />
 
-h1. Code Blocks
+h1(#code-blocks). Code Blocks
 
 Code:
 
@@ -103,9 +103,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
 
 <hr />
 
-h1. Lists
+h1(#lists). Lists
 
-h2. Unordered
+h2(#unordered). Unordered
 
 Asterisks tight:
 
@@ -143,7 +143,7 @@ Minuses loose:
 * Minus 2
 * Minus 3
 
-h2. Ordered
+h2(#ordered). Ordered
 
 Tight:
 
@@ -178,7 +178,7 @@ Multiple paragraphs:
 <li><p>Item 3.</p></li>
 </ol>
 
-h2. Nested
+h2(#nested). Nested
 
 * Tab
 ** Tab
@@ -202,14 +202,14 @@ Same thing but with paragraphs:
 #* Foe
 # Third
 
-h2. Tabs and spaces
+h2(#tabs-and-spaces). Tabs and spaces
 
 * this is a list item indented with tabs
 * this is a list item indented with spaces
 ** this is an example list item indented with tabs
 ** this is an example list item indented with spaces
 
-h2. Fancy list markers
+h2(#fancy-list-markers). Fancy list markers
 
 <ol start="2" style="list-style-type: decimal;">
 <li>begins with 2</li>
@@ -259,7 +259,7 @@ B. Williams
 
 <hr />
 
-h1. Definition Lists
+h1(#definition-lists). Definition Lists
 
 Tight using spaces:
 
@@ -347,7 +347,7 @@ Blank line after term, indented marker, alternate markers:
 </dd>
 </dl>
 
-h1. HTML Blocks
+h1(#html-blocks). HTML Blocks
 
 Simple block on one line:
 
@@ -464,7 +464,7 @@ Hr's:
 
 <hr />
 
-h1. Inline Markup
+h1(#inline-markup). Inline Markup
 
 This is _emphasized_, and so _is this_.
 
@@ -492,7 +492,7 @@ These should not be superscripts or subscripts, because of the unescaped spaces:
 
 <hr />
 
-h1. Smart quotes, ellipses, dashes
+h1(#smart-quotes-ellipses-dashes). Smart quotes, ellipses, dashes
 
 "Hello," said the spider. "'Shelob' is my name."
 
@@ -512,7 +512,7 @@ Ellipses...and...and....
 
 <hr />
 
-h1. LaTeX
+h1(#latex). LaTeX
 
 * 
 * <span class="math">2+2=4</math>
@@ -535,7 +535,7 @@ Here's a LaTeX table:
 
 <hr />
 
-h1. Special Characters
+h1(#special-characters). Special Characters
 
 Here is some unicode:
 
@@ -589,9 +589,9 @@ Minus: -
 
 <hr />
 
-h1. Links
+h1(#links). Links
 
-h2. Explicit
+h2(#explicit). Explicit
 
 Just a "URL":/url/.
 
@@ -611,7 +611,7 @@ Just a "URL":/url/.
 
 "Empty":.
 
-h2. Reference
+h2(#reference). Reference
 
 Foo "bar":/url/.
 
@@ -638,7 +638,7 @@ Foo "bar":/url/.
 
 Foo "biz":/url/.
 
-h2. With ampersands
+h2(#with-ampersands). With ampersands
 
 Here's a "link with an ampersand in the URL":http://example.com/?foo=1&bar=2.
 
@@ -648,7 +648,7 @@ Here's an "inline link":/script?foo=1&bar=2.
 
 Here's an "inline link in pointy braces":/script?foo=1&bar=2.
 
-h2. Autolinks
+h2(#autolinks). Autolinks
 
 With an ampersand: "$":http://example.com/?foo=1&bar=2
 
@@ -669,7 +669,7 @@ bc. or here: <http://example.com/>
 
 <hr />
 
-h1. Images
+h1(#images). Images
 
 From "Voyage dans la Lune" by Georges Melies (1902):
 
@@ -680,7 +680,7 @@ Here is a movie !movie.jpg(movie)! icon.
 
 <hr />
 
-h1. Footnotes
+h1(#footnotes). Footnotes
 
 Here is a footnote reference,[1] and another.[2] This should _not_ be a footnote reference, because it contains a space.[^my note] Here is an inline note.[3]
 
