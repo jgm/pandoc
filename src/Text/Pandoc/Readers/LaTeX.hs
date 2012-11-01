@@ -681,16 +681,25 @@ rawEnv name = do
 
 -- | Replace "include" commands with file contents.
 handleIncludes :: String -> IO String
-handleIncludes [] = return []
-handleIncludes ('\\':xs) =
+handleIncludes = handleIncludes' []
+
+-- parents parameter prevents infinite include loops
+handleIncludes' :: [FilePath] -> String -> IO String
+handleIncludes' _ [] = return []
+handleIncludes' parents ('\\':xs) =
   case runParser include defaultParserState "input" ('\\':xs) of
-       Right (fs, rest) -> do yss <- mapM readTeXFile fs
-                              handleIncludes $ intercalate "\n" yss ++ rest
+       Right (fs, rest) -> do yss <- mapM (\f -> if f `elem` parents
+                                                    then "" <$ warn ("Include file loop in '"
+                                                                      ++ f ++ "'.")
+                                                    else readTeXFile f >>=
+                                                           handleIncludes' (f:parents)) fs
+                              rest' <- handleIncludes' parents rest
+                              return $ intercalate "\n" yss ++ rest'
        _  -> case runParser (verbCmd <|> verbatimEnv) defaultParserState
-                   "input" ('\\':xs) of
-                    Right (r, rest) -> (r ++) `fmap` handleIncludes rest
-                    _               -> ('\\':) `fmap` handleIncludes xs
-handleIncludes (x:xs) = (x:) `fmap` handleIncludes xs
+                  "input" ('\\':xs) of
+                   Right (r, rest) -> (r ++) `fmap` handleIncludes' parents rest
+                   _               -> ('\\':) `fmap` handleIncludes' parents xs
+handleIncludes' parents (x:xs) = (x:) `fmap` handleIncludes' parents xs
 
 readTeXFile :: FilePath -> IO String
 readTeXFile f = do
