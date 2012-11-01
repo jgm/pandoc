@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-
 Copyright (C) 2006-2012 John MacFarlane <jgm@berkeley.edu>
 
@@ -45,7 +46,8 @@ import Text.Pandoc.Builder
 import Data.Char (isLetter, isPunctuation, isSpace)
 import Control.Applicative
 import Data.Monoid
-import System.FilePath (replaceExtension)
+import System.Environment (getEnv)
+import System.FilePath (replaceExtension, (</>))
 import Data.List (intercalate)
 import qualified Data.Map as M
 import qualified Control.Exception as E
@@ -682,27 +684,38 @@ handleIncludes :: String -> IO String
 handleIncludes [] = return []
 handleIncludes ('\\':xs) =
   case runParser include defaultParserState "input" ('\\':xs) of
-       Right (fs, rest) -> do let getfile f = E.catch (UTF8.readFile f)
-                                               (\e -> let _ = (e :: E.SomeException)
-                                                      in  return "")
-                              yss <- mapM getfile fs
-                              (intercalate "\n" yss ++) `fmap`
-                                handleIncludes rest
+       Right (fs, rest) -> do yss <- mapM readTeXFile fs
+                              handleIncludes $ intercalate "\n" yss ++ rest
        _  -> case runParser (verbCmd <|> verbatimEnv) defaultParserState
                    "input" ('\\':xs) of
                     Right (r, rest) -> (r ++) `fmap` handleIncludes rest
                     _               -> ('\\':) `fmap` handleIncludes xs
 handleIncludes (x:xs) = (x:) `fmap` handleIncludes xs
 
+readTeXFile :: FilePath -> IO String
+readTeXFile f = do
+  texinputs <- E.catch (getEnv "TEXINPUTS") $ \(_ :: E.SomeException) ->
+                   return "."
+  let ds = splitBy (==':') texinputs
+  readFileFromDirs ds f
+
+readFileFromDirs :: [FilePath] -> FilePath -> IO String
+readFileFromDirs [] _ = return ""
+readFileFromDirs (d:ds) f =
+  E.catch (UTF8.readFile $ d </> f) $ \(_ :: E.SomeException) ->
+    readFileFromDirs ds f
+
 include :: LP ([FilePath], String)
 include = do
-  name <- controlSeq "include" <|> controlSeq "usepackage"
+  name <- controlSeq "include"
+      <|> controlSeq "input"
+      <|> controlSeq "usepackage"
   skipopts
   fs <- (splitBy (==',')) <$> braced
   rest <- getInput
-  let fs' = if name == "include"
-               then map (flip replaceExtension ".tex") fs
-               else map (flip replaceExtension ".sty") fs
+  let fs' = if name == "usepackage"
+               then map (flip replaceExtension ".sty") fs
+               else map (flip replaceExtension ".tex") fs
   return (fs', rest)
 
 verbCmd :: LP (String, String)
