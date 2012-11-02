@@ -133,7 +133,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] exceptionname - The name of an exception
 [ ] fax - A fax number
 [ ] fieldsynopsis - The name of a field in a class definition
-[ ] figure - A formal figure, generally an illustration, with a title
+[x] figure - A formal figure, generally an illustration, with a title
 [x] filename - The name of a file
 [ ] firstname - The first name of a person
 [ ] firstterm - The first occurrence of a term
@@ -501,6 +501,7 @@ data DBState = DBState{ dbSectionLevel :: Int
                       , dbDocAuthors   :: [Inlines]
                       , dbDocDate      :: Inlines
                       , dbBook         :: Bool
+                      , dbFigureTitle  :: Inlines
                       } deriving Show
 
 readDocBook :: ReaderOptions -> String -> Pandoc
@@ -515,7 +516,18 @@ readDocBook _ inp  = setTitle (dbDocTitle st')
                                     , dbDocAuthors = []
                                     , dbDocDate = mempty
                                     , dbBook = False
+                                    , dbFigureTitle = mempty
                                     }
+
+getFigure :: Element -> DB Blocks
+getFigure e = do
+  tit <- case filterChild (named "title") e of
+              Just t -> getInlines t
+              Nothing -> return mempty
+  modify $ \st -> st{ dbFigureTitle = tit }
+  res <- getBlocks e
+  modify $ \st -> st{ dbFigureTitle = mempty }
+  return res
 
 -- normalize input, consolidating adjacent Text and CRef elements
 normalizeTree :: [Content] -> [Content]
@@ -585,9 +597,12 @@ getImage e = do
                               Just i -> return $ attrValue "fileref" i
   caption <- case filterChild
                   (\x -> named "caption" x || named "textobject" x) e of
-               Nothing  -> return mempty
+               Nothing  -> gets dbFigureTitle
                Just z   -> mconcat <$> (mapM parseInline $ elContent z)
   return $ image imageUrl "" caption
+
+getBlocks :: Element -> DB Blocks
+getBlocks e =  mconcat <$> (mapM parseBlock $ elContent e)
 
 parseBlock :: Content -> DB Blocks
 parseBlock (Text (CData CDataRaw _ _)) = return mempty -- DOCTYPE
@@ -613,7 +628,7 @@ parseBlock (Elem e) =
         "attribution" -> return mempty
         "titleabbrev" -> return mempty
         "authorinitials" -> return mempty
-        "title" -> return mempty -- handled by getTitle or sect
+        "title" -> return mempty -- handled by getTitle or sect or figure
         "bibliography" -> sect 0
         "bibliodiv" -> sect 1
         "biblioentry" -> parseMixed para (elContent e)
@@ -674,7 +689,8 @@ parseBlock (Elem e) =
           orderedListWith (start,listStyle,DefaultDelim)
             <$> listitems
         "variablelist" -> definitionList <$> deflistitems
-        "mediaobject" -> para <$> (getImage e)
+        "figure" -> getFigure e
+        "mediaobject" -> para <$> getImage e
         "caption" -> return mempty
         "info" -> getTitle >> getAuthors >> getDate >> return mempty
         "articleinfo" -> getTitle >> getAuthors >> getDate >> return mempty
@@ -702,8 +718,7 @@ parseBlock (Elem e) =
         "programlisting" -> codeBlockWithLang
         "?xml"  -> return mempty
         _       -> getBlocks e
-   where getBlocks e' =  mconcat <$> (mapM parseBlock $ elContent e')
-         parseMixed container conts = do
+   where parseMixed container conts = do
            let (ils,rest) = break isBlockElement conts
            ils' <- (trimInlines . mconcat) <$> mapM parseInline ils
            let p = if ils' == mempty then mempty else container ils'
