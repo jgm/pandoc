@@ -72,13 +72,14 @@ writeEPUB :: EPUBVersion
           -> Pandoc         -- ^ Document to convert
           -> IO B.ByteString
 writeEPUB version opts doc@(Pandoc meta _) = do
+  let epub3 = version == EPUB3
   epochtime <- floor `fmap` getPOSIXTime
   let mkEntry path content = toEntry path epochtime content
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerStandalone = True
                   , writerWrapText = False }
   let sourceDir = writerSourceDirectory opts'
-  let vars = writerVariables opts'
+  let vars = ("epub3", if epub3 then "true" else "false"):writerVariables opts'
   let mbCoverImage = lookup "epub-cover-image" vars
 
   titlePageTemplate <- readDataFile (writerUserDataDir opts)
@@ -106,7 +107,8 @@ writeEPUB version opts doc@(Pandoc meta _) = do
 
   -- title page
   let tpContent = fromStringLazy $ writeHtmlString
-                     opts'{writerTemplate = titlePageTemplate}
+                     opts'{writerTemplate = titlePageTemplate,
+                           writerVariables = vars}
                      (Pandoc meta [])
   let tpEntry = mkEntry "title_page.xhtml" tpContent
 
@@ -140,7 +142,7 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   let chapToEntry :: Int -> [Tag String] -> Entry
       chapToEntry num ts = mkEntry (showChapter num)
            $ fromStringLazy
-           $ renderTemplate [("body",renderTags ts), ("pagetitle",show num)]
+           $ renderTemplate (("body",renderTags ts):("pagetitle",show num):vars)
            $ pageTemplate
 
   let chapterEntries = zipWith chapToEntry [1..] chunks
