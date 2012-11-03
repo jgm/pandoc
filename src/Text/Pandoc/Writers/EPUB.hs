@@ -195,7 +195,9 @@ writeEPUB version opts doc@(Pandoc meta _) = do
              , unode "item" ! [("id","style"), ("href","stylesheet.css")
                               ,("media-type","text/css")] $ ()
              ] ++
-             [ unode "item" ! [("id","nav"), ("href","nav.xhtml")
+             [ unode "item" ! [("id","nav")
+                              ,("href","nav.xhtml")
+                              ,("properties","nav")
                               ,("media-type","application/xhtml+xml")] $ ()
                | version == EPUB3
              ] ++
