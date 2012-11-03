@@ -140,7 +140,7 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   let chapToEntry :: Int -> [Tag String] -> Entry
       chapToEntry num ts = mkEntry (showChapter num)
            $ fromStringLazy
-           $ renderTemplate [("body",renderTags ts)]
+           $ renderTemplate [("body",renderTags ts), ("pagetitle",show num)]
            $ pageTemplate
 
   let chapterEntries = zipWith chapToEntry [1..] chunks
@@ -173,8 +173,9 @@ writeEPUB version opts doc@(Pandoc meta _) = do
                     Pandoc meta [Plain t]
   let plainTitle = plainify $ docTitle meta
   let plainAuthors = map plainify $ docAuthors meta
-  let plainDate = maybe "" id $ normalizeDate $ stringify $ docDate meta
   currentTime <- getCurrentTime
+  let plainDate = maybe (showDateTimeISO8601 currentTime) id
+                   $ normalizeDate $ stringify $ docDate meta
   let contentsData = fromStringLazy $ ppTopElement $
         unode "package" ! [("version", case version of
                                              EPUB2 -> "2.0"
