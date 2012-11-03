@@ -53,7 +53,11 @@ import Text.Blaze.Internal(preEscapedString)
 #else
 import Text.Blaze
 #endif
+#if MIN_VERSION_blaze_html(0,5,1)
 import qualified Text.Blaze.XHtml5 as H5
+#else
+import qualified Text.Blaze.Html5 as H5
+#endif
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
 import Text.Blaze.Renderer.String (renderHtml)
