@@ -189,9 +189,10 @@ writeEPUB version opts doc@(Pandoc meta _) = do
                               ,("media-type","application/x-dtbncx+xml")] $ ()
              , unode "item" ! [("id","style"), ("href","stylesheet.css")
                               ,("media-type","text/css")] $ ()
-             , unode "item" ! [("id","nav"), ("href","nav.xhtml")
-                              ,("properties","nav")
+             ] ++
+             [ unode "item" ! [("id","nav"), ("href","nav.xhtml")
                               ,("media-type","application/xhtml+xml")] $ ()
+               | version == EPUB3
              ] ++
              map chapterNode (cpgEntry ++ (tpEntry : chapterEntries)) ++
              map pictureNode (cpicEntry ++ picEntries) ++
