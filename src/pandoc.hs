@@ -83,7 +83,7 @@ wrapWords indent c = wrap' (c - indent) (c - indent)
                                                        else ", "  ++ x ++ wrap' cols (remaining - (length x + 2)) xs
 
 isTextFormat :: String -> Bool
-isTextFormat s = takeWhile (`notElem` "+-") s `notElem` ["odt","docx","epub"]
+isTextFormat s = takeWhile (`notElem` "+-") s `notElem` ["odt","docx","epub","epub3"]
 
 -- | Data structure for command line options.
 data Opt = Opt

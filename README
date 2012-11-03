@@ -17,7 +17,7 @@ another, and a command-line tool that uses this library. It can read
 text, [markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX]
 (including [beamer] slide shows), [ConTeXt], [RTF], [DocBook XML],
 [OpenDocument XML], [ODT], [Word docx], [GNU Texinfo], [MediaWiki
-markup], [EPUB], [FictionBook2], [Textile], [groff man] pages, [Emacs
+markup], [EPUB] (v2 or v3), [FictionBook2], [Textile], [groff man] pages, [Emacs
 Org-Mode], [AsciiDoc], and [Slidy], [Slideous], [DZSlides], or [S5] HTML
 slide shows. It can also produce [PDF] output on systems where LaTeX is
 installed.
@@ -44,7 +44,7 @@ If no *input-file* is specified, input is read from *stdin*.
 Otherwise, the *input-files* are concatenated (with a blank
 line between each) and used as input.  Output goes to *stdout* by
 default (though output to *stdout* is disabled for the `odt`, `docx`,
-and `epub` output formats).  For output to a file, use the
+`epub`, and `epub3` output formats).  For output to a file, use the
 `-o` option:
 
     pandoc -o output.html input.txt
@@ -159,29 +159,27 @@ General options
     `json` (JSON version of native AST), `plain` (plain text),
     `markdown` (pandoc's extended markdown), `markdown_strict` (original
     unextended markdown), `rst` (reStructuredText), `html` (XHTML
-    1), `html5` (HTML 5), `latex` (LaTeX), `beamer` (LaTeX beamer
-    slide show), `context` (ConTeXt), `man` (groff man), `mediawiki`
-    (MediaWiki markup), `textile` (Textile), `org` (Emacs Org-Mode),
-    `texinfo` (GNU Texinfo), `docbook` (DocBook XML), `opendocument`
-    (OpenDocument XML), `odt` (OpenOffice text document), `docx`
-    (Word docx), `epub` (EPUB book), `fb2` (FictionBook2 e-book),
-    `asciidoc` (AsciiDoc), `slidy` (Slidy HTML and javascript slide
-    show), `slideous` (Slideous HTML and javascript slide show),
-    `dzslides` (HTML5 + javascript slide show), `s5` (S5 HTML and
-    javascript slide show), or `rtf` (rich text format). Note that
-    `odt` and `epub` output will not be directed to *stdout*; an output
-    filename must be specified using the `-o/--output` option. If `+lhs`
-    is appended to `markdown`, `rst`, `latex`, `beamer`, `html`, or
-    `html5`, the output will be rendered as literate Haskell source:
-    see [Literate Haskell support](#literate-haskell-support), below.
-    Markdown syntax extensions can be individually enabled or disabled
-    by appending `+EXTENSION` or `-EXTENSION` to the format name, as
-    described above under `-f`.
+    1), `html5` (HTML 5), `latex` (LaTeX), `beamer` (LaTeX beamer slide show),
+    `context` (ConTeXt), `man` (groff man), `mediawiki` (MediaWiki markup),
+    `textile` (Textile), `org` (Emacs Org-Mode), `texinfo` (GNU Texinfo),
+    `docbook` (DocBook XML), `opendocument` (OpenDocument XML), `odt`
+    (OpenOffice text document), `docx` (Word docx), `epub` (EPUB book), `epub3`
+    (EPUB v3), `fb2` (FictionBook2 e-book), `asciidoc` (AsciiDoc), `slidy`
+    (Slidy HTML and javascript slide show), `slideous` (Slideous HTML and
+    javascript slide show), `dzslides` (HTML5 + javascript slide show), `s5`
+    (S5 HTML and javascript slide show), or `rtf` (rich text format). Note that
+    `odt`, `epub`, and `epub3` output will not be directed to *stdout*; an output
+    filename must be specified using the `-o/--output` option. If `+lhs` is
+    appended to `markdown`, `rst`, `latex`, `beamer`, `html`, or `html5`, the
+    output will be rendered as literate Haskell source: see [Literate Haskell
+    support](#literate-haskell-support), below.  Markdown syntax extensions can
+    be individually enabled or disabled by appending `+EXTENSION` or
+    `-EXTENSION` to the format name, as described above under `-f`.
 
 `-o` *FILE*, `--output=`*FILE*
 :   Write output to *FILE* instead of *stdout*.  If *FILE* is
     `-`, output will go to *stdout*.  (Exception: if the output
-    format is `odt`, `docx`, or `epub`, output to stdout is disabled.)
+    format is `odt`, `docx`, `epub`, or `epub3`, output to stdout is disabled.)
 
 `--data-dir=`*DIRECTORY*
 :   Specify the user data directory to search for pandoc data files.
@@ -259,7 +257,7 @@ General writer options
 `-s`, `--standalone`
 :   Produce output with an appropriate header and footer (e.g. a
     standalone HTML, LaTeX, or RTF file, not a fragment).  This option
-    is set automatically for `pdf`, `epub`, `fb2`, `docx`, and `odt`
+    is set automatically for `pdf`, `epub`, `epub3`, `fb2`, `docx`, and `odt`
     output.
 
 `--template=`*FILE*
@@ -662,9 +660,9 @@ the system default templates for a given output format `FORMAT`
 by putting a file `templates/default.FORMAT` in the user data
 directory (see `--data-dir`, above). *Exceptions:* For `odt` output,
 customize the `default.opendocument` template.  For `pdf` output,
-customize the `default.latex` template. For `epub` output, customize
-the `epub-page.html`, `epub-coverimage.html`, and `epub-titlepage.html`
-templates.
+customize the `default.latex` template. For `epub` and `epub3` output,
+customize the `epub-page.html`, `epub-coverimage.html`, and
+`epub-titlepage.html` templates.
 
 Templates may contain *variables*.  Variable names are sequences of
 alphanumerics, `-`, and `_`, starting with a letter.  A variable name

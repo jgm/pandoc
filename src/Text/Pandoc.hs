@@ -92,7 +92,8 @@ module Text.Pandoc
                , writeRTF
                , writeODT
                , writeDocx
-               , writeEPUB
+               , writeEPUB2
+               , writeEPUB3
                , writeFB2
                , writeOrg
                , writeAsciiDoc
@@ -199,7 +200,8 @@ writers = [
   ,("json"         , PureStringWriter $ \_ -> encodeJSON)
   ,("docx"         , IOByteStringWriter writeDocx)
   ,("odt"          , IOByteStringWriter writeODT)
-  ,("epub"         , IOByteStringWriter writeEPUB)
+  ,("epub"         , IOByteStringWriter writeEPUB2)
+  ,("epub3"        , IOByteStringWriter writeEPUB3)
   ,("fb2"          , IOStringWriter writeFB2)
   ,("html"         , PureStringWriter writeHtmlString)
   ,("html5"        , PureStringWriter $ \o ->

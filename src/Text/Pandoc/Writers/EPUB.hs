@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to EPUB.
 -}
-module Text.Pandoc.Writers.EPUB ( writeEPUB ) where
+module Text.Pandoc.Writers.EPUB ( writeEPUB2, writeEPUB3 ) where
 import Data.IORef
 import Data.Maybe ( fromMaybe, isNothing )
 import Data.List ( isPrefixOf, intercalate )
@@ -38,6 +38,8 @@ import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
+import Data.Time
+import System.Locale
 import Text.Pandoc.Shared hiding ( Element )
 import qualified Text.Pandoc.Shared as Shared
 import Text.Pandoc.Options
@@ -56,11 +58,20 @@ import Prelude hiding (catch)
 import Control.Exception (catch, SomeException)
 import Text.HTML.TagSoup
 
+data EPUBVersion = EPUB2 | EPUB3 deriving Eq
+
+writeEPUB2, writeEPUB3 :: WriterOptions   -- ^ Writer options
+                       -> Pandoc          -- ^ Document to convert
+                       -> IO B.ByteString
+writeEPUB2 = writeEPUB EPUB2
+writeEPUB3 = writeEPUB EPUB3
+
 -- | Produce an EPUB file from a Pandoc document.
-writeEPUB :: WriterOptions  -- ^ Writer options
+writeEPUB :: EPUBVersion
+          -> WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO B.ByteString
-writeEPUB opts doc@(Pandoc meta _) = do
+writeEPUB version opts doc@(Pandoc meta _) = do
   epochtime <- floor `fmap` getPOSIXTime
   let mkEntry path content = toEntry path epochtime content
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
@@ -163,17 +174,23 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let plainTitle = plainify $ docTitle meta
   let plainAuthors = map plainify $ docAuthors meta
   let plainDate = maybe "" id $ normalizeDate $ stringify $ docDate meta
+  currentTime <- getCurrentTime
   let contentsData = fromStringLazy $ ppTopElement $
-        unode "package" ! [("version","2.0")
+        unode "package" ! [("version", case version of
+                                             EPUB2 -> "2.0"
+                                             EPUB3 -> "3.0")
                           ,("xmlns","http://www.idpf.org/2007/opf")
                           ,("unique-identifier","BookId")] $
-          [ metadataElement (writerEPUBMetadata opts')
-              uuid lang plainTitle plainAuthors plainDate mbCoverImage
+          [ metadataElement version (writerEPUBMetadata opts')
+              uuid lang plainTitle plainAuthors plainDate currentTime mbCoverImage
           , unode "manifest" $
              [ unode "item" ! [("id","ncx"), ("href","toc.ncx")
                               ,("media-type","application/x-dtbncx+xml")] $ ()
              , unode "item" ! [("id","style"), ("href","stylesheet.css")
                               ,("media-type","text/css")] $ ()
+             , unode "item" ! [("id","nav"), ("href","nav.xhtml")
+                              ,("properties","nav")
+                              ,("media-type","application/xhtml+xml")] $ ()
              ] ++
              map chapterNode (cpgEntry ++ (tpEntry : chapterEntries)) ++
              map pictureNode (cpicEntry ++ picEntries) ++
@@ -190,8 +207,9 @@ writeEPUB opts doc@(Pandoc meta _) = do
   -- toc.ncx
   let secs = hierarchicalize blocks''
 
-  let navPointNode :: Shared.Element -> State Int Element
-      navPointNode (Sec _ nums ident ils children) = do
+  let navPointNode :: (Int -> String -> String -> [Element] -> Element)
+                   -> Shared.Element -> State Int Element
+      navPointNode formatter (Sec _ nums ident ils children) = do
         n <- get
         modify (+1)
         let showNums :: [Int] -> String
@@ -206,14 +224,17 @@ writeEPUB opts doc@(Pandoc meta _) = do
         let isSec (Sec lev _ _ _ _) = lev <= 3  -- only includes levels 1-3
             isSec _                 = False
         let subsecs = filter isSec children
-        subs <- mapM navPointNode subsecs
-        return $ unode "navPoint" !
+        subs <- mapM (navPointNode formatter) subsecs
+        return $ formatter n tit src subs
+      navPointNode _ (Blk _) = error "navPointNode encountered Blk"
+
+  let navMapFormatter :: Int -> String -> String -> [Element] -> Element
+      navMapFormatter n tit src subs = unode "navPoint" !
                [("id", "navPoint-" ++ show n)
                ,("playOrder", show n)] $
                   [ unode "navLabel" $ unode "text" tit
                   , unode "content" ! [("src", src)] $ ()
                   ] ++ subs
-      navPointNode (Blk _) = error "navPointNode encountered Blk"
 
   let tpNode = unode "navPoint" !  [("id", "navPoint-0")] $
                   [ unode "navLabel" $ unode "text" (plainify $ docTitle meta)
@@ -236,9 +257,30 @@ writeEPUB opts doc@(Pandoc meta _) = do
                         Just _   -> [unode "meta" ! [("name","cover"),
                                             ("content","cover-image")] $ ()]
           , unode "docTitle" $ unode "text" $ plainTitle
-          , unode "navMap" $ tpNode : evalState (mapM navPointNode secs) 1
+          , unode "navMap" $
+              tpNode : evalState (mapM (navPointNode navMapFormatter) secs) 1
           ]
   let tocEntry = mkEntry "toc.ncx" tocData
+
+  let navXhtmlFormatter :: Int -> String -> String -> [Element] -> Element
+      navXhtmlFormatter n tit src subs = unode "li" !
+                                       [("id", "toc-li-" ++ show n)] $
+                                          unode "a" ! [("href",src)] $
+                                            unode "span" tit :
+                                            case subs of
+                                                 []    -> []
+                                                 (_:_) -> [unode "ol" subs]
+
+  let navData = fromStringLazy $ ppTopElement $
+        unode "html" ! [("xmlns","http://www.w3.org/1999/xhtml")
+                       ,("xmlns:epub","http://www.idpf.org/2007/ops")] $
+          [ unode "head" $ unode "title" plainTitle
+          , unode "body" $
+              unode "nav" ! [("epub:type","toc")] $
+                [ unode "h1" plainTitle
+                , unode "ol" $ evalState (mapM (navPointNode navXhtmlFormatter) secs) 1]
+          ]
+  let navEntry = mkEntry "nav.xhtml" navData
 
   -- mimetype
   let mimetypeEntry = mkEntry "mimetype" $ fromStringLazy "application/epub+zip"
@@ -269,11 +311,13 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let archive = foldr addEntryToArchive emptyArchive
                  (mimetypeEntry : containerEntry : appleEntry : stylesheetEntry : tpEntry :
                   contentsEntry : tocEntry :
-                  (picEntries ++ cpicEntry ++ cpgEntry ++ chapterEntries ++ fontEntries) )
+                  ([navEntry | version == EPUB3] ++ picEntries ++ cpicEntry ++ cpgEntry ++
+                    chapterEntries ++ fontEntries) )
   return $ fromArchive archive
 
-metadataElement :: String -> UUID -> String -> String -> [String] -> String -> Maybe a -> Element
-metadataElement metadataXML uuid lang title authors date mbCoverImage =
+metadataElement :: EPUBVersion -> String -> UUID -> String -> String -> [String]
+                -> String -> UTCTime -> Maybe a -> Element
+metadataElement version metadataXML uuid lang title authors date currentTime mbCoverImage =
   let userNodes = parseXML metadataXML
       elt = unode "metadata" ! [("xmlns:dc","http://purl.org/dc/elements/1.1/")
                                ,("xmlns:opf","http://www.idpf.org/2007/opf")] $
@@ -292,9 +336,14 @@ metadataElement metadataXML uuid lang title authors date mbCoverImage =
                not (elt `contains` "identifier") ] ++
            [ unode "dc:creator" ! [("opf:role","aut")] $ a | a <- authors ] ++
            [ unode "dc:date" date | not (elt `contains` "date") ] ++
+           [ unode "meta" ! [("property", "dcterms:modified")] $
+               (showDateTimeISO8601 currentTime) | version == EPUB3 ] ++
            [ unode "meta" ! [("name","cover"), ("content","cover-image")] $ () |
                not (isNothing mbCoverImage) ]
   in  elt{ elContent = elContent elt ++ map Elem newNodes }
+
+showDateTimeISO8601 :: UTCTime -> String
+showDateTimeISO8601 = formatTime defaultTimeLocale "%FT%TZ"
 
 transformInlines :: HTMLMathMethod
                  -> FilePath
