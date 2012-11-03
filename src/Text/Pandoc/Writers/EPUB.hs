@@ -274,9 +274,9 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   let navXhtmlFormatter :: Int -> String -> String -> [Element] -> Element
       navXhtmlFormatter n tit src subs = unode "li" !
                                        [("id", "toc-li-" ++ show n)] $
-                                          unode "a" ! [("href",src)] $
-                                            unode "span" tit :
-                                            case subs of
+                                            (unode "a" ! [("href",src)]
+                                             $ (unode "span" tit))
+                                            : case subs of
                                                  []    -> []
                                                  (_:_) -> [unode "ol" subs]
 
