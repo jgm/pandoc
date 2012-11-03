@@ -99,6 +99,7 @@ writeEPUB version opts doc@(Pandoc meta _) = do
                        let coverImage = "cover-image" ++ takeExtension img
                        let cpContent = fromStringLazy $ writeHtmlString
                              opts'{writerTemplate = coverImageTemplate,
+                                   writerHtml5 = epub3,
                                    writerVariables = ("coverimage",coverImage):vars}
                                (Pandoc meta [])
                        imgContent <- B.readFile img
@@ -108,6 +109,7 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   -- title page
   let tpContent = fromStringLazy $ writeHtmlString
                      opts'{writerTemplate = titlePageTemplate,
+                           writerHtml5 = epub3,
                            writerVariables = vars}
                      (Pandoc meta [])
   let tpEntry = mkEntry "title_page.xhtml" tpContent
@@ -134,7 +136,8 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   -- so the next two lines fix that:
   let reftable = correlateRefs blocks'
   let blocks'' = replaceRefs reftable blocks'
-  let tags = parseTags $ writeHtmlString opts'{writerStandalone = False}
+  let tags = parseTags $ writeHtmlString opts'{writerStandalone = False,
+                                               writerHtml5 = epub3}
                        $ Pandoc (Meta [] [] []) blocks''
 
   let chunks = partitions (~== TagOpen "h1" []) tags
