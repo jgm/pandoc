@@ -12,7 +12,7 @@ $endfor$
 $if(date-meta)$
   <meta name="date" content="$date-meta$" />
 $endif$
-  <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
+  <title>$if(title-prefix)$$title-prefix$ - $endif$$pagetitle$</title>
 $if(highlighting-css)$
   <style type="text/css">
 $highlighting-css$
