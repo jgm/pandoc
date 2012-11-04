@@ -30,11 +30,12 @@ Conversion of 'Pandoc' documents to EPUB.
 module Text.Pandoc.Writers.EPUB ( writeEPUB2, writeEPUB3 ) where
 import Data.IORef
 import Data.Maybe ( fromMaybe, isNothing )
-import Data.List ( isPrefixOf, intercalate )
+import Data.List ( isPrefixOf, isInfixOf, intercalate )
 import System.Environment ( getEnv )
 import Text.Printf (printf)
 import System.FilePath ( (</>), (<.>), takeBaseName, takeExtension, takeFileName )
 import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString.Lazy.Char8 as B8
 import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
@@ -77,18 +78,22 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   let mkEntry path content = toEntry path epochtime content
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerStandalone = True
+                  , writerHTMLMathMethod =
+                       if epub3
+                          then MathML Nothing
+                          else writerHTMLMathMethod opts
                   , writerWrapText = False }
   let sourceDir = writerSourceDirectory opts'
   let vars = ("epub3", if epub3 then "true" else "false"):writerVariables opts'
   let mbCoverImage = lookup "epub-cover-image" vars
 
-  titlePageTemplate <- readDataFile (writerUserDataDir opts)
+  titlePageTemplate <- readDataFile (writerUserDataDir opts')
                        $ "templates" </> "epub-titlepage" <.> "html"
 
-  coverImageTemplate <- readDataFile (writerUserDataDir opts)
+  coverImageTemplate <- readDataFile (writerUserDataDir opts')
                        $ "templates" </> "epub-coverimage" <.> "html"
 
-  pageTemplate <- readDataFile (writerUserDataDir opts)
+  pageTemplate <- readDataFile (writerUserDataDir opts')
                        $ "templates" </> "epub-page" <.> "html"
 
   -- cover page
@@ -117,7 +122,7 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   -- handle pictures
   picsRef <- newIORef []
   Pandoc _ blocks <- bottomUpM
-       (transformInlines (writerHTMLMathMethod opts) sourceDir picsRef) doc
+       (transformInlines (writerHTMLMathMethod opts') sourceDir picsRef) doc
   pics <- readIORef picsRef
   let readPicEntry (oldsrc, newsrc) = readEntry [] oldsrc >>= \e ->
                                           return e{ eRelativePath = newsrc }
@@ -125,7 +130,7 @@ writeEPUB version opts doc@(Pandoc meta _) = do
 
   -- handle fonts
   let mkFontEntry f = mkEntry (takeFileName f) `fmap` B.readFile f
-  fontEntries <- mapM mkFontEntry $ writerEpubFonts opts
+  fontEntries <- mapM mkFontEntry $ writerEpubFonts opts'
 
   -- body pages
   -- add level 1 header to beginning if none there
@@ -150,6 +155,9 @@ writeEPUB version opts doc@(Pandoc meta _) = do
 
   let chapterEntries = zipWith chapToEntry [1..] chunks
 
+  -- incredibly inefficient (TODO):
+  let containsMathML ent = "<math" `isInfixOf` (B8.unpack $ fromEntry ent)
+
   -- contents.opf
   localeLang <- catch (liftM (map (\c -> if c == '_' then '-' else c) .
                        takeWhile (/='.')) $ getEnv "LANG")
@@ -159,9 +167,11 @@ writeEPUB version opts doc@(Pandoc meta _) = do
                      Nothing -> localeLang
   uuid <- getRandomUUID
   let chapterNode ent = unode "item" !
-                           [("id", takeBaseName $ eRelativePath ent),
-                            ("href", eRelativePath ent),
-                            ("media-type", "application/xhtml+xml")] $ ()
+                           ([("id", takeBaseName $ eRelativePath ent),
+                             ("href", eRelativePath ent),
+                             ("media-type", "application/xhtml+xml")]
+                            ++ [("properties","mathml switch") | epub3 &&
+                                   containsMathML ent]) $ ()
   let chapterRefNode ent = unode "itemref" !
                              [("idref", takeBaseName $ eRelativePath ent)] $ ()
   let pictureNode ent = unode "item" !
@@ -360,8 +370,8 @@ transformInlines :: HTMLMathMethod
                  -> IORef [(FilePath, FilePath)] -- ^ (oldpath, newpath) images
                  -> [Inline]
                  -> IO [Inline]
-transformInlines _ _ _ (Image lab (src,_) : xs) | isNothing (imageTypeOf src) =
-  return $ Emph lab : xs
+transformInlines _ _ _ (Image lab (src,_) : xs)
+  | isNothing (imageTypeOf src) = return $ Emph lab : xs
 transformInlines _ sourceDir picsRef (Image lab (src,tit) : xs) = do
   let src' = unEscapeString src
   pics <- readIORef picsRef
@@ -379,11 +389,11 @@ transformInlines (MathML _) _ _ (x@(Math _ _) : xs) = do
          writeHtmlString opts $ Pandoc (Meta [] [] []) [Plain [z]]
       mathml = writeHtmlInline def{writerHTMLMathMethod = MathML Nothing } x
       fallback = writeHtmlInline def{writerHTMLMathMethod = PlainMath } x
-      inOps = "<ops:switch xmlns:ops=\"http://www.idpf.org/2007/ops\">" ++
-       "<ops:case required-namespace=\"http://www.w3.org/1998/Math/MathML\">" ++
-       mathml ++ "</ops:case><ops:default>" ++ fallback ++ "</ops:default>" ++
-       "</ops:switch>"
-      result = if "<math" `isPrefixOf` mathml then inOps else mathml
+      inSwitch = "<epub:switch><epub:case required-namespace=" ++
+         "\"http://www.w3.org/1998/Math/MathML\">" ++ mathml ++
+         "</epub:case><epub:default>" ++ fallback ++
+         "</epub:default></epub:switch>"
+      result = if "<math" `isPrefixOf` mathml then inSwitch else mathml
   return $ RawInline "html" result : xs
 transformInlines _ _ _ xs = return xs
 
