@@ -20,7 +20,7 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  and Textile, and it can write markdown, reStructuredText,
                  HTML, LaTeX, ConTeXt, Docbook, OpenDocument, ODT,
                  Word docx, RTF, MediaWiki, Textile, groff man pages,
-                 plain text, Emacs Org-Mode, AsciiDoc, EPUB,
+                 plain text, Emacs Org-Mode, AsciiDoc, EPUB (v2 and v3),
                  FictionBook2, and S5, Slidy and Slideous HTML slide shows.
                  .
                  Pandoc extends standard markdown syntax with footnotes,
