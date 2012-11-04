@@ -78,6 +78,7 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   let mkEntry path content = toEntry path epochtime content
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerStandalone = True
+                  , writerSectionDivs = True
                   , writerHTMLMathMethod =
                        if epub3
                           then MathML Nothing
