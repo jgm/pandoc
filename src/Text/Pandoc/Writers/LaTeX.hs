@@ -238,7 +238,11 @@ elementToBeamer slideLevel  (Sec lvl _num _ident tit elts)
           hasCodeBlock _               = []
       let hasCode (Code _ _) = [True]
           hasCode _          = []
-      let fragile = if not $ null $ queryWith hasCodeBlock elts ++ queryWith hasCode elts
+      opts <- gets stOptions
+      let fragile = if not $ null $ queryWith hasCodeBlock elts ++
+                                     if writerListings opts
+                                        then queryWith hasCode elts
+                                        else []
                        then "[fragile]"
                        else ""
       let slideStart = Para $ RawInline "latex" ("\\begin{frame}" ++ fragile) :
