@@ -310,7 +310,8 @@ tableCell = do
 
 -- | A table row is made of many table cells
 tableRow :: Parser [Char] ParserState [TableCell]
-tableRow = try $ ( char '|' *> (endBy1 tableCell (char '|')) <* newline)
+tableRow = try $ ( char '|' *>
+  (endBy1 tableCell (optional blankline *> char '|')) <* newline)
 
 -- | Many table rows
 tableRows :: Parser [Char] ParserState [[TableCell]]
