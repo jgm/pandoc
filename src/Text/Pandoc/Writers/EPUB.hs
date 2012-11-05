@@ -33,7 +33,7 @@ import Data.Maybe ( fromMaybe, isNothing )
 import Data.List ( isPrefixOf, isInfixOf, intercalate )
 import System.Environment ( getEnv )
 import Text.Printf (printf)
-import System.FilePath ( (</>), (<.>), takeBaseName, takeExtension, takeFileName )
+import System.FilePath ( (</>), takeBaseName, takeExtension, takeFileName )
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import Text.Pandoc.UTF8 ( fromStringLazy )
@@ -74,15 +74,12 @@ writeEPUB :: EPUBVersion
 writeEPUB version opts doc@(Pandoc meta _) = do
   let epub3 = version == EPUB3
   epochtime <- floor `fmap` getPOSIXTime
-  pageTemplate <- readDataFile (writerUserDataDir opts)
-                       $ "templates" </> "epub-page" <.> "html"
   let mkEntry path content = toEntry path epochtime content
   let vars = ("epub3", if epub3 then "true" else "false")
            : ("css", "stylesheet.css")
            : writerVariables opts
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerStandalone = True
-                  , writerTemplate = pageTemplate
                   , writerSectionDivs = True
                   , writerHtml5 = epub3
                   , writerTableOfContents = False -- we always have one in epub
@@ -102,7 +99,7 @@ writeEPUB version opts doc@(Pandoc meta _) = do
                      Just img  -> do
                        let coverImage = "cover-image" ++ takeExtension img
                        let cpContent = renderHtml $ writeHtml opts'
-                               (Pandoc meta [RawBlock "html" $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ " alt=\"cover image\" />\n</div"])
+                               (Pandoc meta [RawBlock "html" $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"])
                        imgContent <- B.readFile img
                        return ( [mkEntry "cover.xhtml" cpContent]
                               , [mkEntry coverImage imgContent] )
@@ -149,9 +146,7 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   let chapToEntry :: Int -> [Block] -> Entry
       chapToEntry num bs = mkEntry (showChapter num)
         $ renderHtml
-        $ writeHtml opts'{ writerStandalone = True
-                         , writerTemplate = pageTemplate
-                         }
+        $ writeHtml opts'
         $ case bs of
               (Header 1 xs : _) -> Pandoc (Meta xs [] []) bs
               _                 -> Pandoc (Meta [] [] []) bs

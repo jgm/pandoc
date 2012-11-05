@@ -660,8 +660,7 @@ the system default templates for a given output format `FORMAT`
 by putting a file `templates/default.FORMAT` in the user data
 directory (see `--data-dir`, above). *Exceptions:* For `odt` output,
 customize the `default.opendocument` template.  For `pdf` output,
-customize the `default.latex` template. For `epub` and `epub3` output,
-customize the `epub-page.html` template.
+customize the `default.latex` template.
 
 Templates may contain *variables*.  Variable names are sequences of
 alphanumerics, `-`, and `_`, starting with a letter.  A variable name

@@ -93,8 +93,6 @@ getDefaultTemplate user writer = do
        "native" -> return $ Right ""
        "json"   -> return $ Right ""
        "docx"   -> return $ Right ""
-       "epub"   -> return $ Right ""
-       "epub3"  -> return $ Right ""
        "odt"    -> getDefaultTemplate user "opendocument"
        "markdown_strict" -> getDefaultTemplate user "markdown"
        "multimarkdown"   -> getDefaultTemplate user "markdown"
