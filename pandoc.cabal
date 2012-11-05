@@ -50,7 +50,6 @@ Data-Files:
                  templates/default.dzslides, templates/default.asciidoc,
                  templates/default.textile, templates/default.org,
                  templates/epub-titlepage.html, templates/epub-page.html,
-                 templates/epub-coverimage.html,
                  -- data for ODT writer
                  reference.odt,
                  -- data for docx writer

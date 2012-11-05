@@ -74,12 +74,15 @@ writeEPUB :: EPUBVersion
 writeEPUB version opts doc@(Pandoc meta _) = do
   let epub3 = version == EPUB3
   epochtime <- floor `fmap` getPOSIXTime
+  pageTemplate <- readDataFile (writerUserDataDir opts)
+                       $ "templates" </> "epub-page" <.> "html"
   let mkEntry path content = toEntry path epochtime content
   let vars = ("epub3", if epub3 then "true" else "false")
            : ("css", "stylesheet.css")
            : writerVariables opts
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerStandalone = True
+                  , writerTemplate = pageTemplate
                   , writerSectionDivs = True
                   , writerHtml5 = epub3
                   , writerTableOfContents = False -- we always have one in epub
@@ -95,23 +98,14 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   titlePageTemplate <- readDataFile (writerUserDataDir opts')
                        $ "templates" </> "epub-titlepage" <.> "html"
 
-  coverImageTemplate <- readDataFile (writerUserDataDir opts')
-                       $ "templates" </> "epub-coverimage" <.> "html"
-
-  pageTemplate <- readDataFile (writerUserDataDir opts')
-                       $ "templates" </> "epub-page" <.> "html"
-
   -- cover page
   (cpgEntry, cpicEntry) <-
                 case mbCoverImage of
                      Nothing   -> return ([],[])
                      Just img  -> do
                        let coverImage = "cover-image" ++ takeExtension img
-                       let cpContent = fromStringLazy $ writeHtmlString
-                             opts'{writerTemplate = coverImageTemplate,
-                                   writerHtml5 = epub3,
-                                   writerVariables = ("coverimage",coverImage):vars}
-                               (Pandoc meta [])
+                       let cpContent = renderHtml $ writeHtml opts'
+                               (Pandoc meta [RawBlock "html" $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ " alt=\"cover image\" />\n</div"])
                        imgContent <- B.readFile img
                        return ( [mkEntry "cover.xhtml" cpContent]
                               , [mkEntry coverImage imgContent] )
