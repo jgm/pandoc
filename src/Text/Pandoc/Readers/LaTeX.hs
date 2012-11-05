@@ -686,6 +686,8 @@ handleIncludes = handleIncludes' []
 -- parents parameter prevents infinite include loops
 handleIncludes' :: [FilePath] -> String -> IO String
 handleIncludes' _ [] = return []
+handleIncludes' parents ('%':xs) = handleIncludes' parents
+  $ drop 1 $ dropWhile (/='\n') xs
 handleIncludes' parents ('\\':xs) =
   case runParser include defaultParserState "input" ('\\':xs) of
        Right (fs, rest) -> do yss <- mapM (\f -> if f `elem` parents
