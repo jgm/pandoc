@@ -591,7 +591,9 @@ inlineToHtml opts inline =
                              Nothing -> return
                                         $ foldl (!) H.code (attrsToHtml opts attr)
                                         $ strToHtml str
-                             Just  h -> return $ foldl (!) h $
+                             Just  h -> do
+                               modify $ \st -> st{ stHighlighting = True }
+                               return $ foldl (!) h $
                                           attrsToHtml opts (id',[],keyvals)
                                 where (id',_,keyvals) = attr
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
