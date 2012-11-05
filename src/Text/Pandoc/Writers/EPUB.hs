@@ -95,9 +95,6 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   let sourceDir = writerSourceDirectory opts'
   let mbCoverImage = lookup "epub-cover-image" vars
 
-  titlePageTemplate <- readDataFile (writerUserDataDir opts')
-                       $ "templates" </> "epub-titlepage" <.> "html"
-
   -- cover page
   (cpgEntry, cpicEntry) <-
                 case mbCoverImage of
@@ -111,11 +108,9 @@ writeEPUB version opts doc@(Pandoc meta _) = do
                               , [mkEntry coverImage imgContent] )
 
   -- title page
-  let tpContent = fromStringLazy $ writeHtmlString
-                     opts'{writerTemplate = titlePageTemplate,
-                           writerHtml5 = epub3,
-                           writerVariables = vars}
-                     (Pandoc meta [])
+  let tpContent = renderHtml $ writeHtml opts'{
+                      writerVariables = ("titlepage","true"):vars }
+                      (Pandoc meta [])
   let tpEntry = mkEntry "title_page.xhtml" tpContent
 
   -- handle pictures
