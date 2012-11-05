@@ -75,18 +75,19 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   let epub3 = version == EPUB3
   epochtime <- floor `fmap` getPOSIXTime
   let mkEntry path content = toEntry path epochtime content
+  let vars = ("epub3", if epub3 then "true" else "false"):writerVariables opts
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerStandalone = True
                   , writerSectionDivs = True
                   , writerHtml5 = epub3
                   , writerTableOfContents = False -- we always have one in epub
+                  , writerVariables = vars
                   , writerHTMLMathMethod =
                        if epub3
                           then MathML Nothing
                           else writerHTMLMathMethod opts
                   , writerWrapText = False }
   let sourceDir = writerSourceDirectory opts'
-  let vars = ("epub3", if epub3 then "true" else "false"):writerVariables opts'
   let mbCoverImage = lookup "epub-cover-image" vars
 
   titlePageTemplate <- readDataFile (writerUserDataDir opts')
