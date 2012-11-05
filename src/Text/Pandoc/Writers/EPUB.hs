@@ -75,7 +75,9 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   let epub3 = version == EPUB3
   epochtime <- floor `fmap` getPOSIXTime
   let mkEntry path content = toEntry path epochtime content
-  let vars = ("epub3", if epub3 then "true" else "false"):writerVariables opts
+  let vars = ("epub3", if epub3 then "true" else "false")
+           : ("css", "stylesheet.css")
+           : writerVariables opts
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerStandalone = True
                   , writerSectionDivs = True
@@ -400,7 +402,9 @@ transformInlines (MathML _) _ _ (x@(Math _ _) : xs) = do
   let writeHtmlInline opts z = trimr $
          writeHtmlString opts $ Pandoc (Meta [] [] []) [Plain [z]]
       mathml = writeHtmlInline def{writerHTMLMathMethod = MathML Nothing } x
-      fallback = writeHtmlInline def{writerHTMLMathMethod = PlainMath } x
+      -- we use mathjax to get raw latex, since readers tend to
+      -- fall back to using mathjax...
+      fallback = writeHtmlInline def{writerHTMLMathMethod = MathJax "" } x
       inSwitch = "<epub:switch><epub:case required-namespace=" ++
          "\"http://www.w3.org/1998/Math/MathML\">" ++ mathml ++
          "</epub:case><epub:default>" ++ fallback ++
