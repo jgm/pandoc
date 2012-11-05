@@ -149,9 +149,8 @@ blockToRST (Plain inlines) = inlineListToRST inlines
 blockToRST (Para [Image txt (src,tit)]) = do
   capt <- inlineListToRST txt
   let fig = "figure:: " <> text src
-  let align = ":align: center"
   let alt = ":alt: " <> if null tit then capt else text tit
-  return $ hang 3 ".. " $ fig $$ align $$ alt $+$ capt $$ blankline
+  return $ hang 3 ".. " $ fig $$ alt $+$ capt $$ blankline
 blockToRST (Para inlines) = do
   contents <- inlineListToRST inlines
   return $ contents <> blankline
