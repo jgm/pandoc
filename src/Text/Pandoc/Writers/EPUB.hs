@@ -46,7 +46,6 @@ import qualified Text.Pandoc.Shared as Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
-import Text.Pandoc.Templates
 import Control.Monad.State
 import Text.XML.Light hiding (ppTopElement)
 import Text.Pandoc.UUID
@@ -57,7 +56,7 @@ import Network.URI ( unEscapeString )
 import Text.Pandoc.MIME (getMimeType)
 import Prelude hiding (catch)
 import Control.Exception (catch, SomeException)
-import Text.HTML.TagSoup
+import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 
 data EPUBVersion = EPUB2 | EPUB3 deriving Eq
 
@@ -79,6 +78,8 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerStandalone = True
                   , writerSectionDivs = True
+                  , writerHtml5 = epub3
+                  , writerTableOfContents = False -- we always have one in epub
                   , writerHTMLMathMethod =
                        if epub3
                           then MathML Nothing
@@ -134,25 +135,34 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   fontEntries <- mapM mkFontEntry $ writerEpubFonts opts'
 
   -- body pages
+
   -- add level 1 header to beginning if none there
   let blocks' = case blocks of
                       (Header 1 _ : _) -> blocks
                       _                -> Header 1 (docTitle meta) : blocks
+
   -- internal reference IDs change when we chunk the file,
-  -- so the next two lines fix that:
+  -- so that '#my-header-1' might turn into 'chap004.xhtml#my-header'.
+  -- the next two lines fix that:
   let reftable = correlateRefs blocks'
   let blocks'' = replaceRefs reftable blocks'
-  let tags = parseTags $ writeHtmlString opts'{writerStandalone = False,
-                                               writerHtml5 = epub3}
-                       $ Pandoc (Meta [] [] []) blocks''
 
-  let chunks = partitions (~== TagOpen "h1" []) tags
+  let addToChunk :: [[Block]] -> Block -> [[Block]]
+      addToChunk (c:cs) (Header 1 xs) = [Header 1 xs] : c : cs
+      addToChunk (c:cs) x = (c ++ [x]) : cs
+      addToChunk []     x = [[x]]
 
-  let chapToEntry :: Int -> [Tag String] -> Entry
-      chapToEntry num ts = mkEntry (showChapter num)
-           $ fromStringLazy
-           $ renderTemplate (("body",renderTags ts):("pagetitle",show num):vars)
-           $ pageTemplate
+  let chunks = reverse $ foldl addToChunk [] blocks''
+
+  let chapToEntry :: Int -> [Block] -> Entry
+      chapToEntry num bs = mkEntry (showChapter num)
+        $ renderHtml
+        $ writeHtml opts'{ writerStandalone = True
+                         , writerTemplate = pageTemplate
+                         }
+        $ case bs of
+              (Header 1 xs : _) -> Pandoc (Meta xs [] []) bs
+              _                 -> Pandoc (Meta [] [] []) bs
 
   let chapterEntries = zipWith chapToEntry [1..] chunks
 
@@ -455,15 +465,14 @@ correlateRefs bs = identTable $ execState (mapM_ go bs)
                               , chapterIdents = [] }
           st <- get
           let runningid = uniqueIdent ils (runningIdents st)
-          let chapid    = if n == 1
-                             then Nothing
-                             else Just $ uniqueIdent ils (chapterIdents st)
+          let chapterid = showChapter (chapterNumber st) ++
+                          if n == 1
+                             then ""
+                             else '#' : uniqueIdent ils (chapterIdents st)
           modify $ \s -> s{ runningIdents = runningid : runningIdents st
-                          , chapterIdents = maybe (chapterIdents st)
-                                              (: chapterIdents st) chapid
-                          , identTable = (runningid,
-                              showChapter (chapterNumber st) ++
-                              maybe "" ('#':) chapid) : identTable st
+                          , chapterIdents = chapterid : chapterIdents st
+                          , identTable = (runningid, chapterid) :
+                                            identTable st
                            }
        go _ = return ()
 
