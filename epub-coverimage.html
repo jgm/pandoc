@@ -5,6 +5,19 @@
 <title>$pagetitle$</title>
 <style type="text/css">img{ max-width: 100%; }</style>
 <link href="stylesheet.css" type="text/css" rel="stylesheet" />
+$if(quotes)$
+  <style type="text/css">
+    q { quotes: "“" "”" "‘" "’"; }
+  </style>
+$endif$
+$if(highlighting-css)$
+  <style type="text/css">
+$highlighting-css$
+  </style>
+$endif$
+$for(css)$
+  <link rel="stylesheet" $if(epub3)$$else$type="text/css"$endif$ href="$css$" />
+$endfor$
 </head>
 <body>
 <div id="cover-image">

@@ -3,7 +3,19 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title>$pagetitle$</title>
-<link href="stylesheet.css" type="text/css" rel="stylesheet" />
+$if(quotes)$
+  <style type="text/css">
+    q { quotes: "“" "”" "‘" "’"; }
+  </style>
+$endif$
+$if(highlighting-css)$
+  <style type="text/css">
+$highlighting-css$
+  </style>
+$endif$
+$for(css)$
+  <link rel="stylesheet" $if(epub3)$$else$type="text/css"$endif$ href="$css$" />
+$endfor$
 </head>
 <body>
 <h1 class="title">$title$</h1>
