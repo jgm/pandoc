@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html$if(epub3)$$else$ PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"$endif$>
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 <head>
 <title>$pagetitle$</title>
@@ -14,17 +14,17 @@ $highlighting-css$
   </style>
 $endif$
 $for(css)$
-  <link rel="stylesheet" $if(epub3)$$else$type="text/css"$endif$ href="$css$" />
+  <link rel="stylesheet" href="$css$" />
 $endfor$
 </head>
 <body>
 $if(titlepage)$
-<h1 class="title">$title$</h1>
+  <h1 class="title">$title$</h1>
 $for(author)$
-<h2 class="author">$author$</h2>
+  <h2 class="author">$author$</h2>
 $endfor$
 $if(date)$
-<h3 class="date">$date$</h3>
+  <h3 class="date">$date$</h3>
 $endif$
 $else$
 $body$
