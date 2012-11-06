@@ -434,7 +434,7 @@ markupChars = "\\*#_@~-+^|%=[]"
 --  punctuation. Double quote breaks for named links. > and < break
 --  for inline html.
 stringBreakers :: [Char]
-stringBreakers = " \t\n('-.,:!?;\"<>"
+stringBreakers = " \t\n\r.,\"'?!;:<>«»„“”‚‘’()[]"
 
 wordBoundaries :: [Char]
 wordBoundaries = markupChars ++ stringBreakers
