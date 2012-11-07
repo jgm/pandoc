@@ -34,10 +34,10 @@ main = do
 
 -- | Build man pages from markdown sources in man/
 makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
-makeManPages _ flags _ _ = do
+makeManPages _ flags _ lbi = do
   let verbosity = fromFlag $ buildVerbosity flags
   let args = ["--verbose" | verbosity /= silent]
-  rawSystem ("dist" </> "build" </> "make-pandoc-man-pages" </> "make-pandoc-man-pages")
+  rawSystem (buildDir lbi </> "make-pandoc-man-pages" </> "make-pandoc-man-pages")
       args >>= exitWith
 
 manpages :: [FilePath]
