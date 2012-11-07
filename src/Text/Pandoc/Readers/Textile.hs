@@ -46,7 +46,6 @@ Left to be implemented:
  - continued blocks (ex bq..)
 
 TODO : refactor common patterns across readers :
- - autolink
  - more ...
 
 -}
@@ -361,8 +360,7 @@ inline = choice inlineParsers <?> "inline"
 
 -- | Inline parsers tried in order
 inlineParsers :: [Parser [Char] ParserState Inline]
-inlineParsers = [ autoLink
-                , str
+inlineParsers = [ str
                 , whitespace
                 , endline
                 , code
@@ -501,7 +499,8 @@ linkNoB = try $ do
   char ':'
   let stopChars = "!.,;:"
   url <- manyTill nonspaceChar (lookAhead $ space <|> try (oneOf stopChars >> (space <|> newline)))
-  return $ Link name (url, "")
+  let name' = if name == [Str "$"] then [Str url] else name
+  return $ Link name' (url, "")
 
 linkB :: Parser [Char] ParserState Inline
 linkB = try $ do
@@ -509,13 +508,8 @@ linkB = try $ do
   name <- surrounded (char '"') inline
   char ':'
   url <- manyTill nonspaceChar (char ']')
-  return $ Link name (url, "")
-
--- | Detect plain links to http or email.
-autoLink :: Parser [Char] ParserState Inline
-autoLink = do
-  (orig, src) <- (try uri <|> try emailAddress)
-  return $ Link [Str orig] (src, "")
+  let name' = if name == [Str "$"] then [Str url] else name
+  return $ Link name' (url, "")
 
 -- | image embedding
 image :: Parser [Char] ParserState Inline

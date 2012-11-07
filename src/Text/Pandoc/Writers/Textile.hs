@@ -396,7 +396,10 @@ inlineToTextile _ Space = return " "
 
 inlineToTextile opts (Link txt (src, _)) = do
   label <- case txt of
-                [Code _ s]  -> return s
+                [Code _ s]
+                 | s == src -> return "$"
+                [Str s]
+                 | s == src -> return "$"
                 _           -> inlineListToTextile opts txt
   return $ "\"" ++ label ++ "\":" ++ src
 

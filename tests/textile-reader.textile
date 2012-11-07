@@ -157,7 +157,7 @@ Just a "url":http://www.url.com
 
 "Email link":mailto:nobody@nowhere.net
 
-Automatic linking to http://www.example.com and foobar@example.com.
+Automatic linking to "$":http://www.example.com.
 
 "Example":http://www.example.com/: Example of a link followed by a colon.
 
