@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of LaTeX documents to PDF.
 -}
-module Text.Pandoc.PDF ( tex2pdf ) where
+module Text.Pandoc.PDF ( tex2pdf, tex2pdf' ) where
 
 import System.IO.Temp
 import Data.ByteString.Lazy (ByteString)
@@ -38,39 +38,100 @@ import System.Exit (ExitCode (..))
 import System.FilePath
 import System.Directory
 import System.Process
-import Control.Exception (evaluate)
+import Control.Exception (evaluate, bracket)
 import System.IO (hClose)
 import Control.Concurrent (putMVar, takeMVar, newEmptyMVar, forkIO)
 import Text.Pandoc.UTF8 as UTF8
-import Control.Monad (unless)
-import Data.List (isInfixOf)
+import Control.Monad (liftM)
+import Data.List (nub, isPrefixOf)
 
-tex2pdf :: String       -- ^ tex program (pdflatex, lualatex, xelatex)
-        -> String       -- ^ latex source
-        -> IO (Either ByteString ByteString)
-tex2pdf program source = withSystemTempDirectory "tex2pdf" $ \tmpdir ->
-  tex2pdf' tmpdir program source
 
-tex2pdf' :: FilePath                        -- ^ temp directory for output
-         -> String                          -- ^ tex program
-         -> String                          -- ^ tex source
-         -> IO (Either ByteString ByteString)
-tex2pdf' tmpDir program source = do
-  let numruns = if "\\tableofcontents" `isInfixOf` source
-                   then 3  -- to get page numbers
-                   else 2  -- 1 run won't give you PDF bookmarks
-  (exit, log', mbPdf) <- runTeXProgram program numruns tmpDir source
-  let msg = "Error producing PDF from TeX source."
-  case (exit, mbPdf) of
-       (ExitFailure _, _)      -> return $ Left $
-                                     msg <> "\n" <> extractMsg log'
-       (ExitSuccess, Nothing)  -> return $ Left msg
-       (ExitSuccess, Just pdf) -> return $ Right pdf
+-- | Convert latex without bibliography to pdf.
+tex2pdf :: FilePath                          -- ^ program (pdflatex, lualatex, xelatex)
+        -> String                            -- ^ latex source
+        -> IO (Either ByteString ByteString) -- ^ either error or pdf contents
+tex2pdf prog tex = tex2pdf' prog tex ""
 
-(<>) :: ByteString -> ByteString -> ByteString
-(<>) = B.append
 
--- parsing output
+-- | Convert latex with bibliography to pdf.
+-- Currently, only Biblatex with Biber backend supported.
+tex2pdf' :: FilePath                          -- ^ program (pdflatex, lualatex, xelatex)
+         -> String                            -- ^ latex source
+         -> String                            -- ^ bibl source
+         -> IO (Either ByteString ByteString) -- ^ either error or pdf contents
+tex2pdf' prog tex bib = inTempDir "tex2pdf" (tex2pdf'' prog tex bib)
+
+
+tex2pdf'' :: FilePath
+          -> String
+          -> String
+          -> IO (Either ByteString ByteString)
+tex2pdf'' prog tex bib = do
+
+  UTF8.writeFile fileTex (prepareTex tex)
+  UTF8.writeFile fileBib bib
+
+  choose Again
+
+  where choose Again = runTex >>= checkTex
+        choose Biber = runBib >>= checkBib
+        choose Done  = liftM Right (BC.readFile filePdf)
+
+        checkTex (ExitSuccess, o) = choose $ toChoice o
+        checkTex (ExitFailure _, e) = return $ Left $ extractMsg e
+
+        checkBib (ExitSuccess, _) = choose Again
+        checkBib (ExitFailure _, e) = return $ Left e
+
+        runTex = readCommand prog
+                  [ "-halt-on-error"
+                  , "-interaction", "nonstopmode"
+                  , fileBase
+                  ]
+
+        -- TODO : implement bibtex support.
+        runBib = readCommand "biber"
+                  [ "--quiet"
+                  , fileBase
+                  ]
+
+        fileBase = "tex2pdf"
+        fileTex = fileBase <.> "tex"
+        fileBib = fileBase <.> "bib"
+        filePdf = fileBase <.> "pdf"
+
+        -- Remove any \addbibresource commands in the preamble
+        -- and append one for the provided bib source.
+        -- TODO : implement natbib support.
+        prepareTex s
+          | begDoc `isPrefixOf` s = bibCmd ++ "{" ++ fileBib ++ "}\n" ++ s
+          | bibCmd `isPrefixOf` s = prepareTex $ mySkip s
+          | null s = []
+          | otherwise = head s : prepareTex (tail s)
+        begDoc = "\\begin{document}"
+        bibCmd = "\\addbibresource"
+        mySkip = tail . dropWhile (/= '}')
+
+
+data Choice
+  = Done
+  | Again
+  | Biber
+  deriving (Eq)
+
+-- Transform LaTeX log into a 'Choice'.
+toChoice :: ByteString -> Choice
+toChoice stdout
+  | Biber `elem` choices = Biber
+  | Again `elem` choices = Again
+  | otherwise = Done
+  where choices = nub $ map toCh (BC.lines stdout)
+        toCh line
+          | "Package biblatex Warning: Please (re)run Biber" `BC.isPrefixOf` line = Biber
+          | "Package biblatex Warning: Please rerun LaTeX" `BC.isPrefixOf` line = Again
+          | "Package rerunfilecheck Warning: File `" `BC.isPrefixOf` line = Again
+          | otherwise = Done
+
 
 extractMsg :: ByteString -> ByteString
 extractMsg log' = do
@@ -81,38 +142,14 @@ extractMsg log' = do
      then log'
      else BC.unlines (msg'' ++ lineno)
 
--- running tex programs
-
--- Run a TeX program on an input bytestring and return (exit code,
--- contents of stdout, contents of produced PDF if any).  Rerun
--- a fixed number of times to resolve references.
-runTeXProgram :: String -> Int -> FilePath -> String
-              -> IO (ExitCode, ByteString, Maybe ByteString)
-runTeXProgram program runsLeft tmpDir source = do
-    let file = tmpDir </> "input.tex"
-    exists <- doesFileExist file
-    unless exists $ UTF8.writeFile file source
-    let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
-         "-output-directory", tmpDir, file]
-    (exit, out, err) <- readCommand program programArgs
-    if runsLeft > 1
-       then runTeXProgram program (runsLeft - 1) tmpDir source
-       else do
-         let pdfFile = replaceDirectory (replaceExtension file ".pdf") tmpDir
-         pdfExists <- doesFileExist pdfFile
-         pdf <- if pdfExists
-                   then Just `fmap` B.readFile pdfFile
-                   else return Nothing
-         return (exit, out <> err, pdf)
 
 -- utility functions
 
--- Run a command and return exitcode, contents of stdout, and
--- contents of stderr. (Based on
--- 'readProcessWithExitCode' from 'System.Process'.)
-readCommand :: FilePath                            -- ^ command to run
-            -> [String]                            -- ^ any arguments
-            -> IO (ExitCode,ByteString,ByteString) -- ^ exit, stdout, stderr
+-- Run a command and return exitcode and contents of stdout (stderr is
+-- ignored). Based on 'readProcessWithExitCode' from 'System.Process'.
+readCommand :: FilePath                 -- ^ command to run
+            -> [String]                 -- ^ arguments
+            -> IO (ExitCode,ByteString) -- ^ exit, stdout
 readCommand cmd args = do
     (Just inh, Just outh, Just errh, pid) <-
         createProcess (proc cmd args){ std_in  = CreatePipe,
@@ -122,15 +159,22 @@ readCommand cmd args = do
     -- fork off a thread to start consuming stdout
     out  <- B.hGetContents outh
     _ <- forkIO $ evaluate (B.length out) >> putMVar outMVar ()
-    -- fork off a thread to start consuming stderr
-    err  <- B.hGetContents errh
-    _ <- forkIO $ evaluate (B.length err) >> putMVar outMVar ()
-    -- now write and flush any input
     hClose inh -- done with stdin
     -- wait on the output
     takeMVar outMVar
-    takeMVar outMVar
     hClose outh
+    hClose errh
     -- wait on the process
     ex <- waitForProcess pid
-    return (ex, out, err)
+    return (ex, out)
+
+
+-- Execute 'action' inside a temporary working dir.
+inTempDir :: String     -- ^ Directory name template. See 'openTempFile'.
+          -> IO a       -- ^ Callback that can use the directory
+          -> IO a       -- ^ Callback result
+inTempDir template action = getCurrentDirectory >>= go
+  where go from = bracket alloc (dealloc from) go'
+        go' tmp = setCurrentDirectory tmp >> action
+        alloc = getTemporaryDirectory >>= flip createTempDirectory template
+        dealloc from tmp = setCurrentDirectory from >> removeDirectoryRecursive tmp
