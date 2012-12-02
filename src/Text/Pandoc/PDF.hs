@@ -68,7 +68,7 @@ tex2pdf'' :: FilePath
           -> IO (Either ByteString ByteString)
 tex2pdf'' prog tex bib = do
 
-  UTF8.writeFile fileTex (prepareTex tex)
+  UTF8.writeFile fileTex (prepareTex tex fileBase)
   UTF8.writeFile fileBib bib
 
   choose Again
@@ -90,27 +90,30 @@ tex2pdf'' prog tex bib = do
                   ]
 
         -- TODO : implement bibtex support.
-        runBib = readCommand "biber"
-                  [ "--quiet"
-                  , fileBase
-                  ]
+        runBib = readCommand "biber" [ "--quiet" , fileBase ]
 
         fileBase = "tex2pdf"
         fileTex = fileBase <.> "tex"
         fileBib = fileBase <.> "bib"
         filePdf = fileBase <.> "pdf"
 
-        -- Remove any \addbibresource commands in the preamble
-        -- and append one for the provided bib source.
-        -- TODO : implement natbib support.
-        prepareTex s
-          | begDoc `isPrefixOf` s = bibCmd ++ "{" ++ fileBib ++ "}\n" ++ s
-          | bibCmd `isPrefixOf` s = prepareTex $ mySkip s
-          | null s = []
-          | otherwise = head s : prepareTex (tail s)
-        begDoc = "\\begin{document}"
-        bibCmd = "\\addbibresource"
-        mySkip = tail . dropWhile (/= '}')
+
+-- Remove bib loading commands from the preamble
+-- and append one for the provided bib source.
+prepareTex :: String -> FilePath -> String
+prepareTex src fileBase
+  | null src = []
+  | isBegCmd src = "\\bibliography{" ++ fileBase ++ "}\n" ++ src
+  | isBibCmd src = prepareTex (dropBCmd src) fileBase
+  | otherwise = head src : prepareTex (tail src) fileBase
+  where isBegCmd = isPrefixOf "\\begin{document}"
+        dropBCmd = tail . dropWhile (/= '}')
+        isBibCmd s = any (`isPrefixOf` s)
+                         [ "\\bibliography"
+                         , "\\addbibresource"
+                         , "\\addglobalbib"
+                         , "\\addsectionbib"
+                         ]
 
 
 data Choice
