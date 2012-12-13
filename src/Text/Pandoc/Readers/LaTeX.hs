@@ -204,7 +204,7 @@ block :: LP Blocks
 block = (mempty <$ comment)
     <|> (mempty <$ ((spaceChar <|> newline) *> spaces))
     <|> environment
-    <|> mempty <$ macro -- TODO improve macros, make them work everywhere
+    <|> mempty <$ macro
     <|> blockCommand
     <|> paragraph
     <|> grouped block
@@ -327,11 +327,15 @@ inlineCommand = try $ do
   parseRaw <- getOption readerParseRaw
   star <- option "" (string "*")
   let name' = name ++ star
-  let rawargs = withRaw (skipopts *> option "" dimenarg
-                  *> many braced) >>= applyMacros' . snd
-  let raw = if parseRaw
-               then (rawInline "latex" . (('\\':name') ++)) <$> rawargs
-               else mempty <$> rawargs
+  let raw = do
+        rawargs <- withRaw (skipopts *> option "" dimenarg *> many braced)
+        let rawcommand = '\\' : name ++ star ++ snd rawargs
+        transformed <- applyMacros' rawcommand
+        if transformed /= rawcommand
+           then parseFromString inlines transformed
+           else if parseRaw
+                   then return $ rawInline "latex" rawcommand
+                   else return mempty
   case M.lookup name' inlineCommands of
        Just p      -> p <|> raw
        Nothing     -> case M.lookup name inlineCommands of
