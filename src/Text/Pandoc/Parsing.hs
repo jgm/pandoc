@@ -412,7 +412,7 @@ withRaw parser = do
   let (l2,c2) = (sourceLine pos2, sourceColumn pos2)
   let inplines = take ((l2 - l1) + 1) $ lines inp
   let raw = case inplines of
-                []   -> error "raw: inplines is null" -- shouldn't happen
+                []   -> ""
                 [l]  -> take (c2 - c1) l
                 ls   -> unlines (init ls) ++ take (c2 - 1) (last ls)
   return (result, raw)
