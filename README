@@ -524,7 +524,8 @@ Citation rendering
 :   Specify bibliography database to be used in resolving
     citations. The database type will be determined from the
     extension of *FILE*, which may be `.mods` (MODS format),
-    `.bib` (BibTeX/BibLaTeX format),
+    `.bib` (BibLaTeX format, which will normally work for BibTeX
+    files as well), `.bibtex` (BibTeX format),
     `.ris` (RIS format), `.enl` (EndNote format),
     `.xml` (EndNote XML format), `.wos` (ISI format),
     `.medline` (MEDLINE format), `.copac` (Copac format),
@@ -2135,7 +2136,8 @@ you will need a bibliographic database in one of the following formats:
   Format            File extension
   ------------      --------------
   MODS              .mods
-  BibTeX/BibLaTeX   .bib
+  BibLaTeX          .bib
+  BibTeX            .bibtex
   RIS               .ris
   EndNote           .enl
   EndNote XML       .xml
@@ -2143,6 +2145,9 @@ you will need a bibliographic database in one of the following formats:
   MEDLINE           .medline
   Copac             .copac
   JSON citeproc     .json
+
+Note that `.bib` can generally be used with both BibTeX and BibLaTeX
+files, but you can use `.bibtex` to force BibTeX.
 
 You will need to specify the bibliography file using the `--bibliography`
 command-line option (which may be repeated if you have several
