@@ -168,7 +168,7 @@ writeEPUB version opts doc@(Pandoc meta _) = do
                            ([("id", takeBaseName $ eRelativePath ent),
                              ("href", eRelativePath ent),
                              ("media-type", "application/xhtml+xml")]
-                            ++ [("properties","mathml switch") | epub3 &&
+                            ++ [("properties","mathml") | epub3 &&
                                    containsMathML ent]) $ ()
   let chapterRefNode ent = unode "itemref" !
                              [("idref", takeBaseName $ eRelativePath ent)] $ ()
@@ -383,17 +383,12 @@ transformInlines _ sourceDir picsRef (Image lab (src,tit) : xs) = do
                         return new
   return $ Image lab (newsrc, tit) : xs
 transformInlines (MathML _) _ _ (x@(Math _ _) : xs) = do
+  -- note: ideally we'd use a switch statement to provide a fallback
+  -- but switch does not seem to be widely implemented yet, so we just
+  -- provide the mathml
   let writeHtmlInline opts z = trimr $
          writeHtmlString opts $ Pandoc (Meta [] [] []) [Plain [z]]
-      mathml = writeHtmlInline def{writerHTMLMathMethod = MathML Nothing } x
-      -- we use mathjax to get raw latex, since readers tend to
-      -- fall back to using mathjax...
-      fallback = writeHtmlInline def{writerHTMLMathMethod = MathJax "" } x
-      inSwitch = "<epub:switch><epub:case required-namespace=" ++
-         "\"http://www.w3.org/1998/Math/MathML\">" ++ mathml ++
-         "</epub:case><epub:default>" ++ fallback ++
-         "</epub:default></epub:switch>"
-      result = if "<math" `isPrefixOf` mathml then inSwitch else mathml
+      result = writeHtmlInline def{writerHTMLMathMethod = MathML Nothing } x
   return $ RawInline "html" result : xs
 transformInlines _ _ _ xs = return xs
 
