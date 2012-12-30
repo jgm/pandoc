@@ -33,7 +33,7 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.PDF (tex2pdf)
 import Text.Pandoc.Readers.LaTeX (handleIncludes)
-import Text.Pandoc.Shared ( tabFilter, readDataFile, safeRead,
+import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, safeRead,
                             headerShift, normalize, err, warn )
 import Text.Pandoc.XML ( toEntities, fromEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
@@ -889,24 +889,27 @@ main = do
                            E.catch (UTF8.readFile tp')
                              (\e -> if isDoesNotExistError e
                                        then E.catch
-                                             (readDataFile datadir $
-                                               "templates" </> tp')
+                                             (readDataFileUTF8 datadir
+                                                ("templates" </> tp'))
                                              (\e' -> let _ = (e' :: E.SomeException)
                                                      in throwIO e')
                                        else throwIO e)
 
   variables' <- case mathMethod of
                       LaTeXMathML Nothing -> do
-                         s <- readDataFile datadir $ "data" </> "LaTeXMathML.js"
+                         s <- readDataFileUTF8 datadir
+                                 ("data" </> "LaTeXMathML.js")
                          return $ ("mathml-script", s) : variables
                       MathML Nothing -> do
-                         s <- readDataFile datadir $ "data"</>"MathMLinHTML.js"
+                         s <- readDataFileUTF8 datadir
+                                 ("data"</>"MathMLinHTML.js")
                          return $ ("mathml-script", s) : variables
                       _ -> return variables
 
   variables'' <- if "dzslides" `isPrefixOf` writerName'
                     then do
-                        dztempl <- readDataFile datadir $ "dzslides" </> "template.html"
+                        dztempl <- readDataFileUTF8 datadir
+                                     ("dzslides" </> "template.html")
                         let dzcore = unlines $ dropWhile (not . isPrefixOf "<!-- {{{{ dzslides core")
                                              $ lines dztempl
                         return $ ("dzslides-core", dzcore) : variables'
@@ -927,15 +930,16 @@ main = do
               then do
                 csl <- CSL.parseCSL =<<
                         case mbCsl of
-                            Nothing      -> readDataFile datadir "default.csl"
+                            Nothing      -> readDataFileUTF8 datadir
+                                              "default.csl"
                             Just cslfile -> do
                                   exists <- doesFileExist cslfile
                                   if exists
                                      then UTF8.readFile cslfile
                                      else do
                                        csldir <- getAppUserDataDirectory "csl"
-                                       readDataFile (Just csldir)
-                                          (replaceExtension cslfile "csl")
+                                       readDataFileUTF8 (Just csldir)
+                                           (replaceExtension cslfile "csl")
                 abbrevs <- maybe (return []) CSL.readJsonAbbrevFile cslabbrevs
                 return $ Just csl { CSL.styleAbbrevs = abbrevs }
               else return Nothing

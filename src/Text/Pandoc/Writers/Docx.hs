@@ -29,14 +29,12 @@ Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
 import Data.List ( intercalate )
-import System.FilePath ( (</>) )
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import qualified Text.Pandoc.UTF8 as UTF8
 import System.IO ( stderr )
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
-import Paths_pandoc ( getDataFileName )
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import System.Directory
@@ -104,15 +102,8 @@ writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
   refArchive <- liftM toArchive $
        case writerReferenceDocx opts of
              Just f -> B.readFile f
-             Nothing -> do
-               let defaultDocx = getDataFileName "reference.docx" >>= B.readFile
-               case datadir of
-                     Nothing  -> defaultDocx
-                     Just d   -> do
-                        exists <- doesFileExist (d </> "reference.docx")
-                        if exists
-                           then B.readFile (d </> "reference.docx")
-                           else defaultDocx
+             Nothing -> (B.fromChunks . (:[])) `fmap`
+                          readDataFile datadir "reference.docx"
 
   (newContents, st) <- runStateT (writeOpenXML opts{writerWrapText = False} doc)
                        defaultWriterState

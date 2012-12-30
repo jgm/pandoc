@@ -80,7 +80,7 @@ import Text.Blaze (preEscapedString, Html)
 #endif
 import Text.Pandoc.UTF8 (fromStringLazy)
 import Data.ByteString.Lazy (ByteString)
-import Text.Pandoc.Shared (readDataFile)
+import Text.Pandoc.Shared (readDataFileUTF8)
 import qualified Control.Exception.Extensible as E (try, IOException)
 
 -- | Get default template for the specified writer.
@@ -98,7 +98,7 @@ getDefaultTemplate user writer = do
        "multimarkdown"   -> getDefaultTemplate user "markdown"
        "markdown_github" -> getDefaultTemplate user "markdown"
        _        -> let fname = "templates" </> "default" <.> format
-                   in  E.try $ readDataFile user fname
+                   in  E.try $ readDataFileUTF8 user fname
 
 data TemplateState = TemplateState Int [(String,String)]
 

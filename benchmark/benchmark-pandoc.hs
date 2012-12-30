@@ -1,5 +1,5 @@
 import Text.Pandoc
-import Text.Pandoc.Shared (readDataFile, normalize)
+import Text.Pandoc.Shared (readDataFileUTF8, normalize)
 import Criterion.Main
 import Criterion.Config
 import Text.JSON.Generic
@@ -35,8 +35,8 @@ main :: IO ()
 main = do
   args <- getArgs
   (conf,_) <- parseArgs defaultConfig{ cfgSamples = Last $ Just 20 }  defaultOptions args
-  inp <- readDataFile (Just ".") "README"
-  inp2 <- readDataFile (Just ".") "tests/testsuite.txt"
+  inp  <- readDataFileUTF8 (Just ".") "README"
+  inp2 <- readDataFileUTF8 (Just ".") "tests/testsuite.txt"
   let opts = def{ readerSmart = True }
   let doc = readMarkdown opts $ inp ++ unlines (drop 3 $ lines inp2)
   let readerBs = map (readerBench doc) readers

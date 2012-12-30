@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, CPP #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -64,8 +64,8 @@ module Text.Pandoc.Shared (
                      renderTags',
                      -- * File handling
                      inDirectory,
-                     findDataFile,
                      readDataFile,
+                     readDataFileUTF8,
                      -- * Error handling
                      err,
                      warn,
@@ -89,13 +89,18 @@ import System.FilePath ( (</>) )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import Control.Monad (msum)
-import Paths_pandoc (getDataFileName)
 import Text.Pandoc.Pretty (charWidth)
 import System.Locale (defaultTimeLocale)
 import Data.Time
 import System.IO (stderr)
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
          renderOptions)
+import qualified Data.ByteString as B
+#ifdef EMBED_DATA_FILES
+import Data.FileEmbed
+#else
+import Paths_pandoc (getDataFileName)
+#endif
 
 --
 -- List processing
@@ -499,20 +504,28 @@ inDirectory path action = do
   setCurrentDirectory oldDir
   return result
 
--- | Get file path for data file, either from specified user data directory,
--- or, if not found there, from Cabal data directory.
-findDataFile :: Maybe FilePath -> FilePath -> IO FilePath
-findDataFile Nothing f = getDataFileName f
-findDataFile (Just u) f = do
-  ex <- doesFileExist (u </> f)
-  if ex
-     then return (u </> f)
-     else getDataFileName f
+readDefaultDataFile :: FilePath -> IO B.ByteString
+readDefaultDataFile fname =
+#ifdef EMBED_DATA_FILES
+  TODO
+#else
+  getDataFileName fname >>= B.readFile
+#endif
 
 -- | Read file from specified user data directory or, if not found there, from
 -- Cabal data directory.
-readDataFile :: Maybe FilePath -> FilePath -> IO String
-readDataFile userDir fname = findDataFile userDir fname >>= UTF8.readFile
+readDataFile :: Maybe FilePath -> FilePath -> IO B.ByteString
+readDataFile Nothing fname = readDefaultDataFile fname
+readDataFile (Just userDir) fname = do
+  exists <- doesFileExist (userDir </> fname)
+  if exists
+     then B.readFile (userDir </> fname)
+     else readDefaultDataFile fname
+
+-- | Same as 'readDataFile' but returns a String instead of a ByteString.
+readDataFileUTF8 :: Maybe FilePath -> FilePath -> IO String
+readDataFileUTF8 userDir fname =
+  UTF8.toString `fmap` readDataFile userDir fname
 
 --
 -- Error reporting

@@ -187,6 +187,9 @@ Source-repository head
 Flag blaze_html_0_5
   Description:   Use blaze-html 0.5 and blaze-markup 0.5
   Default:       True
+Flag embed_data_files
+  Description:   Embed data files in binary for relocatable executable.
+  Default:       False
 
 Library
   Build-Depends: base >= 4.2 && <5,
@@ -224,6 +227,10 @@ Library
   else
     build-depends:
                  blaze-html >= 0.4.3.0 && < 0.5
+  if flag(embed_data_files)
+     build-depends: file-embed >= 0.0.4 && < 0.1,
+                    template-haskell >= 2.4 && < 2.9
+     cpp-options:   -DEMBED_DATA_FILES
   if impl(ghc >= 7.0.1)
     Ghc-Options:   -O2 -rtsopts -Wall -fno-warn-unused-do-bind -dno-debug-output
   else

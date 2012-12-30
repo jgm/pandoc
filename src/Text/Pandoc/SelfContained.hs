@@ -41,7 +41,7 @@ import System.FilePath (takeExtension, dropExtension, takeDirectory, (</>))
 import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
 import qualified Data.ByteString.Lazy as L
-import Text.Pandoc.Shared (findDataFile, renderTags')
+import Text.Pandoc.Shared (readDataFile, renderTags')
 import Text.Pandoc.MIME (getMimeType)
 import System.Directory (doesFileExist)
 import Text.Pandoc.UTF8 (toString,  fromString)
@@ -55,18 +55,8 @@ getItem userdata f =
                       ".gz" -> getMimeType $ dropExtension f
                       x     -> getMimeType x
        exists <- doesFileExist f
-       if exists
-          then do
-            cont <- B.readFile f
-            return (cont, mime)
-          else do
-            res <- findDataFile userdata f
-            exists' <- doesFileExist res
-            if exists'
-               then do
-                 cont <- B.readFile res
-                 return (cont, mime)
-               else error $ "Could not find `" ++ f ++ "'"
+       cont <- if exists then B.readFile f else readDataFile userdata f
+       return (cont, mime)
 
 -- TODO - have this return mime type too - then it can work for google
 -- chart API, e.g.

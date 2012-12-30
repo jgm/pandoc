@@ -35,15 +35,13 @@ import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
-import Paths_pandoc ( getDataFileName )
 import Text.Pandoc.Options ( WriterOptions(..) )
-import Text.Pandoc.Shared ( stringify )
+import Text.Pandoc.Shared ( stringify, readDataFile )
 import Text.Pandoc.ImageSize ( readImageSize, sizeInPoints )
 import Text.Pandoc.MIME ( getMimeType )
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Writers.OpenDocument ( writeOpenDocument )
-import System.Directory
 import Control.Monad (liftM)
 import Network.URI ( unEscapeString )
 import Text.Pandoc.XML
@@ -59,15 +57,8 @@ writeODT opts doc@(Pandoc (Meta title _ _) _) = do
   refArchive <- liftM toArchive $
        case writerReferenceODT opts of
              Just f -> B.readFile f
-             Nothing -> do
-               let defaultODT = getDataFileName "reference.odt" >>= B.readFile
-               case datadir of
-                     Nothing  -> defaultODT
-                     Just d   -> do
-                        exists <- doesFileExist (d </> "reference.odt")
-                        if exists
-                           then B.readFile (d </> "reference.odt")
-                           else defaultODT
+             Nothing -> (B.fromChunks . (:[])) `fmap`
+                           readDataFile datadir "reference.odt"
   -- handle pictures
   picEntriesRef <- newIORef ([] :: [Entry])
   let sourceDir = writerSourceDirectory opts

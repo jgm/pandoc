@@ -30,13 +30,13 @@ Conversion of 'Pandoc' documents to EPUB.
 module Text.Pandoc.Writers.EPUB ( writeEPUB2, writeEPUB3 ) where
 import Data.IORef
 import Data.Maybe ( fromMaybe, isNothing )
-import Data.List ( isPrefixOf, isInfixOf, intercalate )
+import Data.List ( isInfixOf, intercalate )
 import System.Environment ( getEnv )
 import Text.Printf (printf)
 import System.FilePath ( (</>), takeBaseName, takeExtension, takeFileName )
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
-import Text.Pandoc.UTF8 ( fromStringLazy )
+import Text.Pandoc.UTF8 ( fromStringLazy, toString )
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
 import Data.Time
@@ -321,7 +321,8 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   -- stylesheet
   stylesheet <- case writerEpubStylesheet opts of
                    Just s  -> return s
-                   Nothing -> readDataFile (writerUserDataDir opts) "epub.css"
+                   Nothing -> toString `fmap`
+                              readDataFile (writerUserDataDir opts) "epub.css"
   let stylesheetEntry = mkEntry "stylesheet.css" $ fromStringLazy stylesheet
 
   -- construct archive
