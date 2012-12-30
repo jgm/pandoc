@@ -62,15 +62,8 @@ you will need [zip-archive], [blaze-html], and [highlighting-kate].
     preceded by a `-` (to force the flag to `false`), and separated
     by spaces.  Pandoc's flags include:
 
-    - `executable`: build the pandoc executable (default yes)
-    - `library`: build the pandoc library (default yes)
-
-    So, for example,
-
-        --flags="-executable"
-
-    tells Cabal to build the library but not the executables,
-    and to compile with syntax highlighting support.
+    - `blaze_html_0_5`: Use blaze-html >= 0.5 (default yes)
+    - `embed_data_files`: embed all data files into the binary (default no)
 
 3.  Build:
 
@@ -94,37 +87,19 @@ you will need [zip-archive], [blaze-html], and [highlighting-kate].
     generate a script that can be run to register the package at
     install time.
 
-Creating a relocatable Windows binary
--------------------------------------
+Creating a relocatable binary
+-----------------------------
 
-On Windows it is possible to compile pandoc such that it
-(and its data files) are "relocatable."  You can put the relocatable
-binary in any directory (even on a USB drive), and it will look for its
-data files there.
+It is possible to compile pandoc such that the data files
+pandoc uses are embedded in the binary.  The resulting binary
+can be run from any directory and is completely self-contained.
 
     cabal install --flags="embed_data_files" citeproc-hs
-    cabal install --flags="executable -library" --datasubdir=
+    cabal configure --flags="embed_data_files"
+    cabal build
 
-You can find `pandoc.exe` in `dist/build/pandoc`.  Copy this wherever
-you please, and copy the following data files to the same place:
-
-    README
-    COPYRIGHT
-    COPYING
-    reference.odt
-    reference.docx
-    epub.css
-    default.csl
-    templates/
-    data/
-    s5/
-    slidy/
-    slideous/
-    dzslides/
-    pcre-license.txt
-    pcre3.dll
-
-This is essentially what the binary installer does.
+You can find the pandoc executable in `dist/build/pandoc`.  Copy this wherever
+you please.
 
 [zip-archive]: http://hackage.haskell.org/package/zip-archive
 [highlighting-kate]: http://hackage.haskell.org/package/highlighting-kate
