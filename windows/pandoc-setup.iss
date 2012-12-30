@@ -59,18 +59,6 @@ Source: "..\cabal-dev\bin\pandoc.exe"; DestDir: "{app}\bin"; Flags: ignoreversio
 Source: "..\README.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\COPYRIGHT.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\COPYING.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\reference.odt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\reference.docx"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\epub.css"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\default.csl"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion
-Source: "..\data\*"; DestDir: "{app}\data"; Flags: ignoreversion
-Source: "..\s5\default\*"; DestDir: "{app}\s5\default"; Flags: ignoreversion
-Source: "..\slideous\*"; DestDir: "{app}\slideous"; Flags: ignoreversion
-Source: "..\slidy\graphics\*"; DestDir: "{app}\slidy\graphics"; Flags: ignoreversion
-Source: "..\slidy\scripts\*"; DestDir: "{app}\slidy\scripts"; Flags: ignoreversion
-Source: "..\slidy\styles\*"; DestDir: "{app}\slidy\styles"; Flags: ignoreversion
-Source: "..\dzslides\*"; DestDir: "{app}\dzslides"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
