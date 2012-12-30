@@ -512,10 +512,12 @@ dataFiles = $(embedDir "data")
 readDefaultDataFile :: FilePath -> IO B.ByteString
 readDefaultDataFile fname =
 #ifdef EMBED_DATA_FILES
-  case lookup fname dataFiles of
+  case lookup (map backToForwardSlash fname) dataFiles of
     Nothing       -> ioError $ userError
                              $ "Data file `" ++ fname ++ "' does not exist"
     Just contents -> return contents
+ where backToForwardSlash '\\' = '/'
+       backToForwardSlash c    = c
 #else
   getDataFileName ("data" </> fname) >>= B.readFile
 #endif
