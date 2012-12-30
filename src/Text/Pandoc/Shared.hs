@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, CPP #-}
+{-# LANGUAGE DeriveDataTypeable, CPP, TemplateHaskell #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -504,12 +504,20 @@ inDirectory path action = do
   setCurrentDirectory oldDir
   return result
 
+#ifdef EMBED_DATA_FILES
+dataFiles :: [(FilePath, B.ByteString)]
+dataFiles = $(embedDir "data")
+#endif
+
 readDefaultDataFile :: FilePath -> IO B.ByteString
 readDefaultDataFile fname =
 #ifdef EMBED_DATA_FILES
-  TODO
+  case lookup fname dataFiles of
+    Nothing       -> ioError $ userError
+                             $ "Data file `" ++ fname ++ "' does not exist"
+    Just contents -> return contents
 #else
-  getDataFileName fname >>= B.readFile
+  getDataFileName ("data" </> fname) >>= B.readFile
 #endif
 
 -- | Read file from specified user data directory or, if not found there, from
