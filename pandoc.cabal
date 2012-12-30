@@ -184,20 +184,11 @@ Source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
 
-Flag executable
-  Description:   Build the pandoc executable.
-  Default:       True
-Flag library
-  Description:   Build the pandoc library.
-  Default:       True
 Flag blaze_html_0_5
   Description:   Use blaze-html 0.5 and blaze-markup 0.5
   Default:       True
 
 Library
-  -- Note: the following is duplicated in all stanzas.
-  -- It needs to be duplicated because of the library & executable flags.
-  -- BEGIN DUPLICATED SECTION
   Build-Depends: base >= 4.2 && <5,
                  syb >= 0.1 && < 0.4,
                  containers >= 0.1 && < 0.6,
@@ -251,7 +242,6 @@ Library
                       RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
                       FlexibleInstances
   Hs-Source-Dirs:  src
-  -- END DUPLICATED SECTION
 
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Options,
@@ -290,91 +280,56 @@ Library
                    Text.Pandoc.PDF,
                    Text.Pandoc.UTF8,
                    Text.Pandoc.Templates,
+                   Text.Pandoc.XML,
+                   Text.Pandoc.Biblio,
                    Text.Pandoc.SelfContained
-  Other-Modules:   Text.Pandoc.XML,
-                   Text.Pandoc.MIME,
+  Other-Modules:   Text.Pandoc.MIME,
                    Text.Pandoc.UUID,
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.Slides,
-                   Text.Pandoc.Biblio,
                    Paths_pandoc
 
-  if flag(library)
-    Buildable:      True
-  else
-    Buildable:      False
+  Buildable:       True
 
 Executable pandoc
-  -- Note: the following is duplicated in all stanzas.
-  -- It needs to be duplicated because of the library & executable flags.
-  -- BEGIN DUPLICATED SECTION
-  Build-Depends: base >= 4.2 && <5,
-                 syb >= 0.1 && < 0.4,
-                 containers >= 0.1 && < 0.6,
-                 parsec >= 3.1 && < 3.2,
-                 mtl >= 1.1 && < 2.2,
-                 network >= 2 && < 2.5,
-                 filepath >= 1.1 && < 1.4,
-                 process >= 1 && < 1.2,
+  Build-Depends: pandoc,
+                 base >= 4.2 && <5,
                  directory >= 1 && < 1.3,
-                 bytestring >= 0.9 && < 1.0,
+                 filepath >= 1.1 && < 1.4,
+                 network >= 2 && < 2.5,
                  text >= 0.11 && < 0.12,
-                 zip-archive >= 0.1.1.7 && < 0.2,
-                 old-locale >= 1 && < 1.1,
-                 time >= 1.2 && < 1.5,
-                 HTTP >= 4000.0.5 && < 4000.3,
-                 texmath >= 0.6.0.2 && < 0.7,
-                 xml >= 1.3.12 && < 1.4,
-                 random >= 1 && < 1.1,
+                 bytestring >= 0.9 && < 1.0,
                  extensible-exceptions >= 0.1 && < 0.2,
-                 citeproc-hs >= 0.3.4 && < 0.4,
-                 pandoc-types >= 1.10 && < 1.11,
-                 json >= 0.4 && < 0.8,
-                 tagsoup >= 0.12.5 && < 0.13,
-                 base64-bytestring >= 0.1 && < 1.1,
-                 zlib >= 0.5 && < 0.6,
                  highlighting-kate >= 0.5.1 && < 0.6,
-                 data-default >= 0.4 && < 0.6,
-                 temporary >= 1.1 && < 1.2
-  if flag(blaze_html_0_5)
-    build-depends:
-                 blaze-html >= 0.5 && < 0.6,
-                 blaze-markup >= 0.5.1 && < 0.6
-  else
-    build-depends:
-                 blaze-html >= 0.4.3.0 && < 0.5
+                 HTTP >= 4000.0.5 && < 4000.3,
+                 citeproc-hs >= 0.3.6 && < 0.4
   if impl(ghc >= 7.0.1)
     Ghc-Options:   -O2 -rtsopts -Wall -fno-warn-unused-do-bind -dno-debug-output
   else
     if impl(ghc >= 6.12)
-      Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind -dno-debug-output
+      Ghc-Options:  -O2 -Wall -fno-warn-unused-do-bind -dno-debug-output
     else
-      Ghc-Options:   -O2 -Wall
+      Ghc-Options:  -O2 -Wall
   if impl(ghc >= 7.0.1)
     Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   else
     Ghc-Prof-Options: -auto-all -caf-all
   Default-Language: Haskell98
   Default-Extensions: CPP
-  Other-Extensions:   PatternGuards, OverloadedStrings,
-                      ScopedTypeVariables, GeneralizedNewtypeDeriving,
-                      RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
-                      FlexibleInstances
-  Hs-Source-Dirs:  src
-  -- END DUPLICATED SECTION
-
-  Main-Is:            pandoc.hs
-  if flag(executable)
-    Buildable:        True
-  else
-    Buildable:        False
+  Other-Extensions: PatternGuards, OverloadedStrings,
+                    ScopedTypeVariables, GeneralizedNewtypeDeriving,
+                    RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
+                    FlexibleInstances
+  Hs-Source-Dirs:  .
+  Main-Is:         pandoc.hs
+  Buildable:       True
 
 -- NOTE:  A trick in Setup.hs makes sure this won't be installed:
 Executable make-pandoc-man-pages
-  Main-Is:      make-pandoc-man-pages.hs
+  Main-Is:       make-pandoc-man-pages.hs
   Hs-Source-Dirs: man
-  Build-Depends: base >= 4.2 && < 5,
-                 pandoc,
+  Build-Depends: pandoc,
+                 base >= 4.2 && < 5,
                  directory >= 1 && < 1.3,
                  filepath >= 1.1 && < 1.4,
                  old-time >= 1.1 && < 1.2,
@@ -386,47 +341,47 @@ Test-Suite test-pandoc
   Type:           exitcode-stdio-1.0
   Main-Is:        test-pandoc.hs
   Hs-Source-Dirs: tests
-  Build-Depends: base >= 4.2 && < 5,
-                 syb >= 0.1 && < 0.4,
-                 pandoc,
-                 pandoc-types >= 1.10 && < 1.11,
-                 bytestring >= 0.9 && < 1.0,
-                 text >= 0.11 && < 0.12,
-                 directory >= 1 && < 1.3,
-                 filepath >= 1.1 && < 1.4,
-                 process >= 1 && < 1.2,
-                 Diff,
-                 test-framework >= 0.3 && < 0.7,
-                 test-framework-hunit >= 0.2 && < 0.3,
-                 test-framework-quickcheck2 >= 0.2.9 && < 0.3,
-                 QuickCheck >= 2.4 && < 2.6,
-                 HUnit >= 1.2 && < 1.3,
-                 template-haskell >= 2.4 && < 2.9,
-                 containers >= 0.1 && < 0.6,
-                 ansi-terminal == 0.5.*
-  Other-Modules: Tests.Old
-                 Tests.Helpers
-                 Tests.Arbitrary
-                 Tests.Shared
-                 Tests.Readers.LaTeX
-                 Tests.Readers.Markdown
-                 Tests.Readers.RST
-                 Tests.Writers.Native
-                 Tests.Writers.ConTeXt
-                 Tests.Writers.HTML
-                 Tests.Writers.Markdown
-                 Tests.Writers.LaTeX
+  Build-Depends:  base >= 4.2 && < 5,
+                  syb >= 0.1 && < 0.4,
+                  pandoc,
+                  pandoc-types >= 1.10 && < 1.11,
+                  bytestring >= 0.9 && < 1.0,
+                  text >= 0.11 && < 0.12,
+                  directory >= 1 && < 1.3,
+                  filepath >= 1.1 && < 1.4,
+                  process >= 1 && < 1.2,
+                  Diff,
+                  test-framework >= 0.3 && < 0.7,
+                  test-framework-hunit >= 0.2 && < 0.3,
+                  test-framework-quickcheck2 >= 0.2.9 && < 0.3,
+                  QuickCheck >= 2.4 && < 2.6,
+                  HUnit >= 1.2 && < 1.3,
+                  template-haskell >= 2.4 && < 2.9,
+                  containers >= 0.1 && < 0.6,
+                  ansi-terminal == 0.5.*
+  Other-Modules:  Tests.Old
+                  Tests.Helpers
+                  Tests.Arbitrary
+                  Tests.Shared
+                  Tests.Readers.LaTeX
+                  Tests.Readers.Markdown
+                  Tests.Readers.RST
+                  Tests.Writers.Native
+                  Tests.Writers.ConTeXt
+                  Tests.Writers.HTML
+                  Tests.Writers.Markdown
+                  Tests.Writers.LaTeX
   if impl(ghc >= 7.0.1)
-    Ghc-Options:   -O2 -rtsopts -Wall -fno-warn-unused-do-bind -dno-debug-output
+    Ghc-Options:  -O2 -rtsopts -Wall -fno-warn-unused-do-bind -dno-debug-output
   else
     if impl(ghc >= 6.12)
-      Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind -dno-debug-output
+      Ghc-Options: -O2 -Wall -fno-warn-unused-do-bind -dno-debug-output
     else
-      Ghc-Options:   -O2 -Wall
+      Ghc-Options: -O2 -Wall
   if impl(ghc >= 7)
-    cpp-options:    -D_LIT=lit
+    cpp-options:   -D_LIT=lit
   else
-    cpp-options:    -D_LIT=$lit
+    cpp-options:   -D_LIT=$lit
   Default-Language: Haskell98
   Default-Extensions: CPP, TemplateHaskell, QuasiQuotes
 
@@ -434,11 +389,11 @@ benchmark benchmark-pandoc
   Type:            exitcode-stdio-1.0
   Main-Is:         benchmark-pandoc.hs
   Hs-Source-Dirs:  benchmark
-  Build-Depends: base >= 4.2 && < 5,
-                 syb >= 0.1 && < 0.4,
-                 pandoc,
-                 criterion >= 0.5 && < 0.7,
-                 json >= 0.4 && < 0.8
+  Build-Depends:   pandoc,
+                   base >= 4.2 && < 5,
+                   syb >= 0.1 && < 0.4,
+                   criterion >= 0.5 && < 0.7,
+                   json >= 0.4 && < 0.8
   if impl(ghc >= 7.0.1)
     Ghc-Options:   -O2 -rtsopts -Wall -fno-warn-unused-do-bind -dno-debug-output
   else
