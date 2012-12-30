@@ -232,7 +232,7 @@ Library
     build-depends:
                  blaze-html >= 0.4.3.0 && < 0.5
   if flag(embed_data_files)
-     build-depends: file-embed >= 0.0.4 && < 0.1,
+     build-depends: file-embed >= 0.0.4.7 && < 0.1,
                     template-haskell >= 2.4 && < 2.9
      cpp-options:   -DEMBED_DATA_FILES
   if impl(ghc >= 7.0.1)
