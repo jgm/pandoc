@@ -16,6 +16,9 @@ prep: pandoc-types
 quick:
 	cabal-dev configure --enable-tests --disable-optimization && cabal-dev build
 
+relocatable:
+	cabal-dev configure -fembed_data_files && cabal-dev build
+
 bench:
 	cabal-dev configure --enable-benchmarks && cabal-dev build
 
