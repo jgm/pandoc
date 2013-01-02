@@ -62,17 +62,17 @@ test fn name (input, expected) =
            actual' = toString $ fn input
            expected' = toString expected
            diff = getDiff (lines expected') (lines actual')
-           expected'' = unlines $ map vividize $ filter (\(d,_) -> d /= S) diff
-           actual''   = unlines $ map vividize $ filter (\(d,_) -> d /= F) diff
+           expected'' = unlines $ map vividize [Second x | Second x <- diff]
+           actual''   = unlines $ map vividize [First x | First x <- diff]
            dashes "" = replicate 72 '-'
            dashes x  = replicate (72 - length x - 5) '-' ++ " " ++ x ++ " ---"
 
-vividize :: (DI,String) -> String
-vividize (B,s) = s
-vividize (F,s) = s
-vividize (S,s) = setSGRCode [SetColor Background Dull Red
+vividize :: Diff String -> String
+vividize (Both s _) = s
+vividize (First s)  = s
+vividize (Second s) = setSGRCode [SetColor Background Dull Red
                          , SetColor Foreground Vivid White] ++ s
-                 ++ setSGRCode [Reset]
+                      ++ setSGRCode [Reset]
 
 property :: QP.Testable a => TestName -> a -> Test
 property = testProperty
