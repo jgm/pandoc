@@ -1,7 +1,7 @@
 # This Makefile is for development only.  It requires cabal-dev.
 # To get started, do 'make prep' and then 'make' or 'make quick'.
 
-.PHONY: prep, all, quick, bench, clean, veryclean, install
+.PHONY: prep, submodules, all, quick, bench, clean, veryclean, install
 
 all:
 	cabal-dev configure --enable-tests --enable-benchmarks && cabal-dev build
@@ -9,9 +9,13 @@ all:
 prof:
 	cabal-dev configure --enable-tests --enable-library-profiling --enable-executable-profiling && cabal-dev build
 
-prep: pandoc-types
+prep: pandoc-types submodules
+	(cabal-dev --version || (cabal update && cabal install cabal-dev)) && \
 	cabal-dev update && \
 	cabal-dev install-deps --enable-library-profiling --enable-tests --enable-benchmarks
+
+submodules:
+	git submodule update --init
 
 quick:
 	cabal-dev configure --enable-tests --disable-optimization && cabal-dev build
