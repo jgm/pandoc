@@ -27,7 +27,7 @@ pandocPath = ".." </> "dist" </> "build" </> "pandoc" </> "pandoc"
 
 data TestResult = TestPassed
                 | TestError ExitCode
-                | TestFailed String FilePath [(DI, String)]
+                | TestFailed String FilePath [Diff String]
      deriving (Eq)
 
 instance Show TestResult where
@@ -39,13 +39,13 @@ instance Show TestResult where
                                  dash
     where dash = replicate 72 '-'
 
-showDiff :: (Int,Int) -> [(DI, String)] -> String
+showDiff :: (Int,Int) -> [Diff String] -> String
 showDiff _ []             = ""
-showDiff (l,r) ((F, ln) : ds) =
+showDiff (l,r) (First ln : ds) =
   printf "+%4d " l ++ ln ++ "\n" ++ showDiff (l+1,r) ds
-showDiff (l,r) ((S, ln) : ds) =
+showDiff (l,r) (Second ln : ds) =
   printf "-%4d " r ++ ln ++ "\n" ++ showDiff (l,r+1) ds
-showDiff (l,r) ((B, _ ) : ds) =
+showDiff (l,r) (Both _ _ : ds) =
   showDiff (l+1,r+1) ds
 
 tests :: [Test]
@@ -209,7 +209,7 @@ testWithNormalize normalizer testname opts inp norm = testCase testname $ do
   (outputPath, hOut) <- openTempFile "" "pandoc-test"
   let inpPath = inp
   let normPath = norm
-  let options = ["--data-dir", ".."] ++ [inpPath] ++ opts
+  let options = ["--data-dir", ".." </> "data"] ++ [inpPath] ++ opts
   let cmd = pandocPath ++ " " ++ unwords options
   ph <- runProcess pandocPath options Nothing
         (Just [("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./")]) Nothing (Just hOut)
