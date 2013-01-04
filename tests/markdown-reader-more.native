@@ -57,4 +57,10 @@
  ,[Plain [Str "two"]]]
 ,OrderedList (1,LowerAlpha,Period)
  [[Plain [Str "one"]]
- ,[Plain [Str "two"]]]]
+ ,[Plain [Str "two"]]]
+,Header 2 [Str "Implicit",Space,Str "header",Space,Str "references"]
+,Header 3 [Str "My",Space,Str "header"]
+,Header 3 [Str "My",Space,Str "other",Space,Str "header"]
+,Para [Str "A",Space,Str "link",Space,Str "to",Space,Link [Str "My",Space,Str "header"] ("#my-header",""),Str "."]
+,Para [Str "Another",Space,Str "link",Space,Str "to",Space,Link [Str "it"] ("#my-header",""),Str "."]
+,Para [Str "But",Space,Str "this",Space,Str "is",Space,Str "not",Space,Str "a",Space,Str "link",Space,Str "to",Space,Link [Str "My",Space,Str "other",Space,Str "header"] ("/foo",""),Str ",",Space,Str "since",Space,Str "the",Space,Str "reference",Space,Str "is",Space,Str "defined."]]

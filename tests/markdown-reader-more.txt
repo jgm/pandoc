@@ -133,3 +133,17 @@ $\tuple{x,y}$
 
  a. one
  b. two
+
+## Implicit header references
+
+### My header
+
+### My other header
+
+A link to [My header].
+
+Another link to [it][My header].
+
+[my other header]: /foo
+
+But this is not a link to [My other header], since the reference is defined.
