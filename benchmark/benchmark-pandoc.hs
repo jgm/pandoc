@@ -7,7 +7,7 @@ import System.Environment (getArgs)
 import Data.Monoid
 
 readerBench :: Pandoc
-            -> (String, ReaderOptions -> String -> Pandoc)
+            -> (String, ReaderOptions -> String -> IO Pandoc)
             -> Benchmark
 readerBench doc (name, reader) =
   let writer = case lookup name writers of
@@ -17,8 +17,8 @@ readerBench doc (name, reader) =
       -- we compute the length to force full evaluation
       getLength (Pandoc (Meta a b c) d) =
             length a + length b + length c + length d
-  in  bench (name ++ " reader") $ whnf (getLength .
-         reader def{ readerSmart = True }) inp
+  in  bench (name ++ " reader") $ whnfIO $ getLength `fmap`
+      (reader def{ readerSmart = True }) inp
 
 writerBench :: Pandoc
             -> (String, WriterOptions -> Pandoc -> String)
