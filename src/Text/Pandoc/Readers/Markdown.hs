@@ -241,8 +241,15 @@ parseMarkdown = do
          $ B.setDate (runF date st)
          $ B.doc $ runF blocks st
 
+addWarning :: Maybe SourcePos -> String -> MarkdownParser ()
+addWarning mbpos msg =
+  updateState $ \st -> st{
+    stateWarnings = (msg ++ maybe "" (\pos -> " " ++ show pos) mbpos) :
+                     stateWarnings st }
+
 referenceKey :: MarkdownParser (F Blocks)
 referenceKey = try $ do
+  pos <- getPosition
   skipNonindentSpaces
   (_,raw) <- reference
   char ':'
@@ -262,7 +269,11 @@ referenceKey = try $ do
   let target = (escapeURI $ trimr src,  tit)
   st <- getState
   let oldkeys = stateKeys st
-  updateState $ \s -> s { stateKeys = M.insert (toKey raw) target oldkeys }
+  let key = toKey raw
+  case M.lookup key oldkeys of
+    Just _  -> addWarning (Just pos) $ "Duplicate link reference `" ++ raw ++ "'"
+    Nothing -> return ()
+  updateState $ \s -> s { stateKeys = M.insert key target oldkeys }
   return $ return mempty
 
 referenceTitle :: MarkdownParser String
