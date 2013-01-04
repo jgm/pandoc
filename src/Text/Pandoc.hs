@@ -140,7 +140,7 @@ import Text.Pandoc.Writers.Org
 import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Templates
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Shared (safeRead, warn)
 import Data.ByteString.Lazy (ByteString)
 import Data.List (intercalate)
 import Data.Version (showVersion)
@@ -179,8 +179,15 @@ parseFormatSpec = parse formatSpec ""
 readers :: [(String, ReaderOptions -> String -> IO Pandoc)]
 readers = [("native"       , \_ s -> return $ readNative s)
           ,("json"         , \_ s -> return $ decodeJSON s)
-          ,("markdown_strict" , \o s -> return $ readMarkdown o s)
-          ,("markdown"     , \o s -> return $ readMarkdown o s)
+          ,("markdown_strict" , \o s -> do
+                             let (doc, warnings) = readMarkdownWithWarnings
+                                     o{ readerExtensions = strictExtensions  } s
+                             mapM_ warn warnings
+                             return doc)
+          ,("markdown"     , \o s -> do
+                             let (doc, warnings) = readMarkdownWithWarnings o s
+                             mapM_ warn warnings
+                             return doc)
           ,("rst"          , \o s -> return $ readRST o s)
           ,("mediawiki"    , \o s -> return $ readMediaWiki o s)
           ,("docbook"      , \o s -> return $ readDocBook o s)
