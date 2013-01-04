@@ -317,6 +317,7 @@ rawLines = do
 
 noteBlock :: MarkdownParser (F Blocks)
 noteBlock = try $ do
+  pos <- getPosition
   skipNonindentSpaces
   ref <- noteMarker
   char ':'
@@ -328,7 +329,11 @@ noteBlock = try $ do
   optional blanklines
   parsed <- parseFromString parseBlocks raw
   let newnote = (ref, parsed)
-  updateState $ \s -> s { stateNotes' = newnote : stateNotes' s }
+  oldnotes <- stateNotes' <$> getState
+  case lookup ref oldnotes of
+    Just _  -> addWarning (Just pos) $ "Duplicate note reference `" ++ ref ++ "'"
+    Nothing -> return ()
+  updateState $ \s -> s { stateNotes' = newnote : oldnotes }
   return mempty
 
 --
