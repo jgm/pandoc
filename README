@@ -858,7 +858,7 @@ wrapping). Consider, for example:
 
 ### Header identifiers in HTML, LaTeX, and ConTeXt ###
 
-**Extension**
+**Extension: `header_identifiers`**
 
 Each header element in pandoc's HTML and ConTeXt output is given a
 unique identifier. This identifier is based on the text of the header.
@@ -906,6 +906,30 @@ and the identifier will be attached to the enclosing `<div>`
 sections to be manipulated using javascript or treated differently in
 CSS.
 
+**Extension: `implicit_header_references`**
+
+Pandoc behaves as if reference links have been defined for each header.
+So, instead of
+
+    [header identifiers](#header-identifiers-in-html)
+
+you can simply write
+
+    [header identifiers]
+
+or
+
+    [header identifiers][]
+
+or
+
+    [the section on header identifiers][header identifiers]
+
+If there are multiple headers with identical text, the corresponding
+reference will link to the first one only, and you will need to use explicit
+links to link to the others, as described above.
+
+Unlike regular reference links, these references are case-sensitive.
 
 Block quotations
 ----------------
