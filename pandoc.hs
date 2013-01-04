@@ -1016,8 +1016,9 @@ main = do
                            then handleIncludes
                            else return
 
-  doc <- (reader readerOpts) `fmap` (readSources sources >>=
-             handleIncludes' . convertTabs . intercalate "\n")
+  doc <- readSources sources >>=
+           handleIncludes' . convertTabs . intercalate "\n" >>=
+           reader readerOpts
 
   let doc0 = foldr ($) doc transforms
 

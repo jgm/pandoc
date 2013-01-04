@@ -176,17 +176,17 @@ parseFormatSpec = parse formatSpec ""
                         _    -> Set.insert ext
 
 -- | Association list of formats and readers.
-readers :: [(String, ReaderOptions -> String -> Pandoc)]
-readers = [("native"       , \_ -> readNative)
-          ,("json"         , \_ -> decodeJSON)
-          ,("markdown_strict" , readMarkdown)
-          ,("markdown"     , readMarkdown)
-          ,("rst"          , readRST)
-          ,("mediawiki"    , readMediaWiki)
-          ,("docbook"      , readDocBook)
-          ,("textile"      , readTextile) -- TODO : textile+lhs
-          ,("html"         , readHtml)
-          ,("latex"        , readLaTeX)
+readers :: [(String, ReaderOptions -> String -> IO Pandoc)]
+readers = [("native"       , \_ s -> return $ readNative s)
+          ,("json"         , \_ s -> return $ decodeJSON s)
+          ,("markdown_strict" , \o s -> return $ readMarkdown o s)
+          ,("markdown"     , \o s -> return $ readMarkdown o s)
+          ,("rst"          , \o s -> return $ readRST o s)
+          ,("mediawiki"    , \o s -> return $ readMediaWiki o s)
+          ,("docbook"      , \o s -> return $ readDocBook o s)
+          ,("textile"      , \o s -> return $ readTextile o s) -- TODO : textile+lhs
+          ,("html"         , \o s -> return $ readHtml o s)
+          ,("latex"        , \o s -> return $ readLaTeX o s)
           ]
 
 data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
@@ -240,7 +240,7 @@ getDefaultExtensions "markdown_strict" = strictExtensions
 getDefaultExtensions _        = pandocExtensions
 
 -- | Retrieve reader based on formatSpec (format+extensions).
-getReader :: String -> Either String (ReaderOptions -> String -> Pandoc)
+getReader :: String -> Either String (ReaderOptions -> String -> IO Pandoc)
 getReader s =
   case parseFormatSpec s of
        Left e  -> Left $ intercalate "\n" $ [m | Message m <- errorMessages e]
