@@ -79,7 +79,9 @@ pandocToRST (Pandoc (Meta tit auth dat) blocks) = do
   let context = writerVariables opts ++
                 [ ("body", main)
                 , ("title", render Nothing title)
-                , ("date", render colwidth date) ] ++
+                , ("date", render colwidth date)
+                , ("toc", if writerTableOfContents opts then "yes" else "")
+                , ("toc-level", show (writerTOCLevel opts)) ] ++
                 [ ("math", "yes") | hasMath ] ++
                 [ ("author", render colwidth a) | a <- authors ]
   if writerStandalone opts
