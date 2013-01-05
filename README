@@ -1521,7 +1521,7 @@ Pipe tables look like this:
 
       : Demonstration of simple table syntax.
 
-The syntax is the same as in [PHP markdown extra].  The beginning and
+The syntax is [the same as in PHP markdown extra].  The beginning and
 ending pipe characters are optional, but pipes are required between all
 columns.  The colons indicate column alignment as shown.  The header
 can be omitted, but the horizontal line must still be included, as
@@ -1540,7 +1540,8 @@ legal (though ugly) pipe table:
 The cells of pipe tables cannot contain block elements like paragraphs
 and lists, and cannot span multiple lines.
 
-  [PHP markdown extra]: http://michelf.ca/projects/php-markdown/extra/#table
+  [the same as in PHP markdown extra]:
+    http://michelf.ca/projects/php-markdown/extra/#table
 
 Note:  Pandoc also recognizes pipe tables of the following
 form, as can produced by Emacs' orgtbl-mode:
