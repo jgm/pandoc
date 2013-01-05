@@ -60,6 +60,9 @@ import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 
 data EPUBVersion = EPUB2 | EPUB3 deriving Eq
 
+-- TODO - make an option
+chapterHeaderLevel = 1
+
 writeEPUB2, writeEPUB3 :: WriterOptions   -- ^ Writer options
                        -> Pandoc          -- ^ Document to convert
                        -> IO B.ByteString
@@ -136,19 +139,22 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   let reftable = correlateRefs blocks'
   let blocks'' = replaceRefs reftable blocks'
 
-  let addToChunk :: [[Block]] -> Block -> [[Block]]
-      addToChunk (c:cs) (Header 1 xs) = [Header 1 xs] : c : cs
-      addToChunk (c:cs) x = (c ++ [x]) : cs
-      addToChunk []     x = [[x]]
+  let isChapterHeader (Header n _) = n <= chapterHeaderLevel
+      isChapterHeader _ = False
 
-  let chunks = reverse $ foldl addToChunk [] blocks''
+  let toChunks :: [Block] -> [[Block]]
+      toChunks [] = []
+      toChunks (b:bs) = (b:xs) : toChunks ys
+        where (xs,ys) = break isChapterHeader bs
+
+  let chunks = toChunks blocks''
 
   let chapToEntry :: Int -> [Block] -> Entry
       chapToEntry num bs = mkEntry (showChapter num)
         $ renderHtml
         $ writeHtml opts'
         $ case bs of
-              (Header 1 xs : _) -> Pandoc (Meta xs [] []) bs
+              (Header _ xs : _) -> Pandoc (Meta xs [] []) bs
               _                 -> Pandoc (Meta [] [] []) bs
 
   let chapterEntries = zipWith chapToEntry [1..] chunks
@@ -445,13 +451,13 @@ correlateRefs bs = identTable $ execState (mapM_ go bs)
                                           , identTable = [] }
  where go :: Block -> State IdentState ()
        go (Header n ils) = do
-          when (n == 1) $
+          when (n <= chapterHeaderLevel) $
               modify $ \s -> s{ chapterNumber = chapterNumber s + 1
                               , chapterIdents = [] }
           st <- get
           let runningid = uniqueIdent ils (runningIdents st)
           let chapterid = showChapter (chapterNumber st) ++
-                          if n == 1
+                          if n <= chapterHeaderLevel
                              then ""
                              else '#' : uniqueIdent ils (chapterIdents st)
           modify $ \s -> s{ runningIdents = runningid : runningIdents st
