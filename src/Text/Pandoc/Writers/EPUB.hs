@@ -60,9 +60,6 @@ import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 
 data EPUBVersion = EPUB2 | EPUB3 deriving Eq
 
--- TODO - make an option
-chapterHeaderLevel = 1
-
 writeEPUB2, writeEPUB3 :: WriterOptions   -- ^ Writer options
                        -> Pandoc          -- ^ Document to convert
                        -> IO B.ByteString
@@ -133,10 +130,12 @@ writeEPUB version opts doc@(Pandoc meta _) = do
                       (Header 1 _ : _) -> blocks
                       _                -> Header 1 (docTitle meta) : blocks
 
+  let chapterHeaderLevel = writerEpubChapterLevel opts
+
   -- internal reference IDs change when we chunk the file,
   -- so that '#my-header-1' might turn into 'chap004.xhtml#my-header'.
   -- the next two lines fix that:
-  let reftable = correlateRefs blocks'
+  let reftable = correlateRefs chapterHeaderLevel blocks'
   let blocks'' = replaceRefs reftable blocks'
 
   let isChapterHeader (Header n _) = n <= chapterHeaderLevel
@@ -230,6 +229,8 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   -- toc.ncx
   let secs = hierarchicalize blocks''
 
+  let tocLevel = writerEpubTOCLevel opts
+
   let navPointNode :: (Int -> String -> String -> [Element] -> Element)
                    -> Shared.Element -> State Int Element
       navPointNode formatter (Sec _ nums ident ils children) = do
@@ -244,7 +245,7 @@ writeEPUB version opts doc@(Pandoc meta _) = do
         let src = case lookup ident reftable of
                        Just x  -> x
                        Nothing -> error (ident ++ " not found in reftable")
-        let isSec (Sec lev _ _ _ _) = lev <= 3  -- only includes levels 1-3
+        let isSec (Sec lev _ _ _ _) = lev <= tocLevel
             isSec _                 = False
         let subsecs = filter isSec children
         subs <- mapM (navPointNode formatter) subsecs
@@ -443,12 +444,13 @@ showChapter = printf "ch%03d.xhtml"
 -- that would be used in a normal pandoc document with
 -- new URLs to be used in the EPUB.  For example, what
 -- was "header-1" might turn into "ch006.xhtml#header".
-correlateRefs :: [Block] -> [(String,String)]
-correlateRefs bs = identTable $ execState (mapM_ go bs)
-                                IdentState{ chapterNumber = 0
-                                          , runningIdents = []
-                                          , chapterIdents = []
-                                          , identTable = [] }
+correlateRefs :: Int -> [Block] -> [(String,String)]
+correlateRefs chapterHeaderLevel bs =
+  identTable $ execState (mapM_ go bs)
+    IdentState{ chapterNumber = 0
+              , runningIdents = []
+              , chapterIdents = []
+              , identTable = [] }
  where go :: Block -> State IdentState ()
        go (Header n ils) = do
           when (n <= chapterHeaderLevel) $

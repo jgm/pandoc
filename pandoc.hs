@@ -114,6 +114,8 @@ data Opt = Opt
     , optEPUBStylesheet    :: Maybe String   -- ^ EPUB stylesheet
     , optEPUBMetadata      :: String  -- ^ EPUB metadata
     , optEPUBFonts         :: [FilePath] -- ^ EPUB fonts to embed
+    , optEPUBChapterLevel  :: Int     -- ^ Header level at which to split chapters
+    , optEPUBTOCLevel      :: Int     -- ^ Number of levels to include in TOC
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
@@ -166,6 +168,8 @@ defaultOpts = Opt
     , optEPUBStylesheet    = Nothing
     , optEPUBMetadata      = ""
     , optEPUBFonts         = []
+    , optEPUBChapterLevel  = 1
+    , optEPUBTOCLevel      = 3
     , optDumpArgs          = False
     , optIgnoreArgs        = False
     , optReferenceLinks    = False
@@ -554,6 +558,28 @@ options =
                   "FILE")
                  "" -- "Directory of fonts to embed"
 
+    , Option "" ["epub-chapter-level"]
+                 (ReqArg
+                  (\arg opt -> do
+                      case safeRead arg of
+                           Just t | t >= 1 && t <= 6 ->
+                                    return opt { optEPUBChapterLevel = t }
+                           _      -> err 59 $
+                                    "chapter level must be a number between 1 and 6")
+                 "NUMBER")
+                 "" -- "Header level at which to split chapters in EPUB"
+
+    , Option "" ["epub-toc-level"]
+                 (ReqArg
+                  (\arg opt -> do
+                      case safeRead arg of
+                           Just t | t >= 1 && t <= 6 ->
+                                    return opt { optEPUBTOCLevel = t }
+                           _      -> err 57 $
+                                    "TOC level must be a number between 1 and 6")
+                 "NUMBER")
+                 "" -- "Number of levels to include in EPUB TOC"
+
     , Option "" ["latex-engine"]
                  (ReqArg
                   (\arg opt -> do
@@ -803,6 +829,8 @@ main = do
               , optEPUBStylesheet    = epubStylesheet
               , optEPUBMetadata      = epubMetadata
               , optEPUBFonts         = epubFonts
+              , optEPUBChapterLevel  = epubChapterLevel
+              , optEPUBTOCLevel      = epubTOCLevel
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
               , optReferenceLinks    = referenceLinks
@@ -992,6 +1020,8 @@ main = do
                             writerTeXLigatures     = texLigatures,
                             writerEpubStylesheet   = epubStylesheet,
                             writerEpubFonts        = epubFonts,
+                            writerEpubChapterLevel = epubChapterLevel,
+                            writerEpubTOCLevel     = epubTOCLevel,
                             writerReferenceODT     = referenceODT,
                             writerReferenceDocx    = referenceDocx
                           }

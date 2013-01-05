@@ -512,6 +512,20 @@ Options affecting specific writers
         }
         body { font-family: "DejaVuSans"; }
 
+`--epub-chapter-level=`*NUMBER*
+:   Specify the header level at which to split the EPUB into separate
+    "chapter" files. The default is to split into chapters at level 1
+    headers. This option only affects the internal composition of the
+    EPUB, not the way chapters and sections are displayed to users. Some
+    readers may be slow if the chapter files are too large, so for large
+    documents with few level 1 headers, one might want to use a chapter
+    level of 2 or 3.
+
+`--epub-toc-level=`*NUMBER*
+:   Specify the number of section levels to include in an EPUB's table
+    of contents.  The default is 3 (which means that level 1, 2, and 3
+    headers will be listed in the contents).
+
 `--latex-engine=`*pdflatex|lualatex|xelatex*
 :   Use the specified LaTeX engine when producing PDF output.
     The default is `pdflatex`.  If the engine is not in your PATH,
