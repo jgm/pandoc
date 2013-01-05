@@ -360,7 +360,7 @@ inlineToMediaWiki opts (Quoted DoubleQuote lst) = do
 inlineToMediaWiki opts (Cite _  lst) = inlineListToMediaWiki opts lst
 
 inlineToMediaWiki _ (Code _ str) =
-  return $ "<tt>" ++ (escapeString str) ++ "</tt>"
+  return $ "<code>" ++ (escapeString str) ++ "</code>"
 
 inlineToMediaWiki _ (Str str) = return $ escapeString str
 

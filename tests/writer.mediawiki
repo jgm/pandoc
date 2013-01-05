@@ -432,7 +432,7 @@ So is '''''this''''' word.
 
 So is '''''this''''' word.
 
-This is code: <tt>&gt;</tt>, <tt>$</tt>, <tt>\</tt>, <tt>\$</tt>, <tt>&lt;html&gt;</tt>.
+This is code: <code>&gt;</code>, <code>$</code>, <code>\</code>, <code>\$</code>, <code>&lt;html&gt;</code>.
 
 <s>This is ''strikeout''.</s>
 
@@ -455,7 +455,7 @@ These should not be superscripts or subscripts, because of the unescaped spaces:
 
 ‘He said, “I want to go.”’ Were you alive in the 70’s?
 
-Here is some quoted ‘<tt>code</tt>’ and a “[http://example.com/?foo=1&bar=2 quoted link]”.
+Here is some quoted ‘<code>code</code>’ and a “[http://example.com/?foo=1&bar=2 quoted link]”.
 
 Some dashes: one—two — three—four — five.
 
@@ -479,10 +479,10 @@ Ellipses…and…and….
 
 These shouldn’t be math:
 
-* To get the famous equation, write <tt>$e = mc^2$</tt>.
+* To get the famous equation, write <code>$e = mc^2$</code>.
 * $22,000 is a ''lot'' of money. So is $34,000. (It worked if “lot” is emphasized.)
 * Shoes ($20) and socks ($5).
-* Escaped <tt>$</tt>: $73 ''this should be emphasized'' 23$.
+* Escaped <code>$</code>: $73 ''this should be emphasized'' 23$.
 
 Here’s a LaTeX table:
 
@@ -610,11 +610,11 @@ With an ampersand: http://example.com/?foo=1&bar=2
 * http://example.com/
 * It should.
 
-An e-mail address: [mailto:nobody@nowhere.net <tt>nobody@nowhere.net</tt>]
+An e-mail address: [mailto:nobody@nowhere.net <code>nobody@nowhere.net</code>]
 
 <blockquote>Blockquoted: http://example.com/
 </blockquote>
-Auto-links should not occur here: <tt>&lt;http://example.com/&gt;</tt>
+Auto-links should not occur here: <code>&lt;http://example.com/&gt;</code>
 
 <pre>or here: &lt;http://example.com/&gt;</pre>
 
@@ -640,7 +640,7 @@ Subsequent blocks are indented to show that they belong to the footnote (as with
 
 <pre>  { &lt;code&gt; }</pre>
 If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
-</ref> This should ''not'' be a footnote reference, because it contains a space.[^my note] Here is an inline note.<ref>This is ''easier'' to type. Inline notes may contain [http://google.com links] and <tt>]</tt> verbatim characters, as well as [bracketed text].
+</ref> This should ''not'' be a footnote reference, because it contains a space.[^my note] Here is an inline note.<ref>This is ''easier'' to type. Inline notes may contain [http://google.com links] and <code>]</code> verbatim characters, as well as [bracketed text].
 </ref>
 
 <blockquote>Notes can go in quotes.<ref>In quote.
