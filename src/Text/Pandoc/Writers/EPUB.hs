@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to EPUB.
 -}
-module Text.Pandoc.Writers.EPUB ( writeEPUB2, writeEPUB3 ) where
+module Text.Pandoc.Writers.EPUB ( writeEPUB ) where
 import Data.IORef
 import Data.Maybe ( fromMaybe, isNothing )
 import Data.List ( isInfixOf, intercalate )
@@ -58,20 +58,12 @@ import Prelude hiding (catch)
 import Control.Exception (catch, SomeException)
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 
-data EPUBVersion = EPUB2 | EPUB3 deriving Eq
-
-writeEPUB2, writeEPUB3 :: WriterOptions   -- ^ Writer options
-                       -> Pandoc          -- ^ Document to convert
-                       -> IO B.ByteString
-writeEPUB2 = writeEPUB EPUB2
-writeEPUB3 = writeEPUB EPUB3
-
 -- | Produce an EPUB file from a Pandoc document.
-writeEPUB :: EPUBVersion
-          -> WriterOptions  -- ^ Writer options
+writeEPUB :: WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO B.ByteString
-writeEPUB version opts doc@(Pandoc meta _) = do
+writeEPUB opts doc@(Pandoc meta _) = do
+  let version = maybe EPUB2 id (writerEpubVersion opts)
   let epub3 = version == EPUB3
   epochtime <- floor `fmap` getPOSIXTime
   let mkEntry path content = toEntry path epochtime content
