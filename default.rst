@@ -27,6 +27,7 @@ $include-before$
 $endfor$
 $if(toc)$
 .. contents::
+   :depth: $toc-level$
 ..
 
 $endif$
