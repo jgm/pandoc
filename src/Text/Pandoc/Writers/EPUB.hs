@@ -200,7 +200,7 @@ writeEPUB version opts doc@(Pandoc meta _) = do
                                              EPUB3 -> "3.0")
                           ,("xmlns","http://www.idpf.org/2007/opf")
                           ,("unique-identifier","BookId")] $
-          [ metadataElement version (writerEPUBMetadata opts')
+          [ metadataElement version (writerEpubMetadata opts')
               uuid lang plainTitle plainAuthors plainDate currentTime mbCoverImage
           , unode "manifest" $
              [ unode "item" ! [("id","ncx"), ("href","toc.ncx")

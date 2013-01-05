@@ -206,7 +206,6 @@ data WriterOptions = WriterOptions
   { writerStandalone       :: Bool   -- ^ Include header and footer
   , writerTemplate         :: String -- ^ Template to use in standalone mode
   , writerVariables        :: [(String, String)] -- ^ Variables to set in template
-  , writerEPUBMetadata     :: String -- ^ Metadata to include in EPUB
   , writerTabStop          :: Int    -- ^ Tabstop for conversion btw spaces and tabs
   , writerTableOfContents  :: Bool   -- ^ Include table of contents
   , writerSlideVariant     :: HTMLSlideVariant -- ^ Are we writing S5, Slidy or Slideous?
@@ -235,6 +234,7 @@ data WriterOptions = WriterOptions
   , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
   , writerSetextHeaders    :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
   , writerTeXLigatures     :: Bool       -- ^ Use tex ligatures quotes, dashes in latex
+  , writerEpubMetadata     :: String     -- ^ Metadata to include in EPUB
   , writerEpubStylesheet   :: Maybe String -- ^ EPUB stylesheet specified at command line
   , writerEpubFonts        :: [FilePath] -- ^ Paths to fonts to embed
   , writerEpubChapterLevel :: Int            -- ^ Header level for chapters (separate files)
@@ -247,7 +247,6 @@ instance Default WriterOptions where
   def = WriterOptions { writerStandalone       = False
                       , writerTemplate         = ""
                       , writerVariables        = []
-                      , writerEPUBMetadata     = ""
                       , writerTabStop          = 4
                       , writerTableOfContents  = False
                       , writerSlideVariant     = NoSlides
@@ -275,6 +274,7 @@ instance Default WriterOptions where
                       , writerHighlightStyle   = pygments
                       , writerSetextHeaders    = True
                       , writerTeXLigatures     = True
+                      , writerEpubMetadata     = ""
                       , writerEpubStylesheet   = Nothing
                       , writerEpubFonts        = []
                       , writerEpubChapterLevel = 1
