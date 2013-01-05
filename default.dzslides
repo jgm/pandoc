@@ -8,6 +8,7 @@ $if(date-meta)$
   <meta name="dcterms.date" content="$date-meta$" />
 $endif$
   <title>$if(title-prefix)$$title-prefix$ - $endif$$pagetitle$</title>
+  <style type="text/css">code{white-space: pre;}</style>
 $if(highlighting-css)$
   <style type="text/css">
 $highlighting-css$
