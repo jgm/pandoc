@@ -195,18 +195,18 @@ escapeString = escapeStringUsing markdownEscapes
 tableOfContents :: WriterOptions -> [Block] -> Doc
 tableOfContents opts headers =
   let opts' = opts { writerIgnoreNotes = True }
-      contents = BulletList $ map elementToListItem $ hierarchicalize headers
+      contents = BulletList $ map (elementToListItem opts) $ hierarchicalize headers
   in  evalState (blockToMarkdown opts' contents) WriterState{ stNotes = []
                                                             , stRefs  = []
                                                             , stPlain = False }
 
 -- | Converts an Element to a list item for a table of contents,
-elementToListItem :: Element -> [Block]
-elementToListItem (Blk _) = []
-elementToListItem (Sec _ _ _ headerText subsecs) = [Plain headerText] ++
-  if null subsecs
-     then []
-     else [BulletList $ map elementToListItem subsecs]
+elementToListItem :: WriterOptions -> Element -> [Block]
+elementToListItem opts (Sec lev _ _ headerText subsecs)
+  = Plain headerText :
+    [ BulletList (map (elementToListItem opts) subsecs) |
+      not (null subsecs) && lev < writerTOCDepth opts ]
+elementToListItem _ (Blk _) = []
 
 attrsToMarkdown :: Attr -> Doc
 attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
