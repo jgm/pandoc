@@ -131,7 +131,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                          _      -> []
       context  = writerVariables options ++
                  [ ("toc", if writerTableOfContents options then "yes" else "")
-                 , ("toc-level", show (writerTOCLevel options -
+                 , ("toc-depth", show (writerTOCDepth options -
                                        if writerChapters options
                                           then 1
                                           else 0))

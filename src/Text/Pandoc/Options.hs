@@ -238,7 +238,7 @@ data WriterOptions = WriterOptions
   , writerEpubStylesheet   :: Maybe String -- ^ EPUB stylesheet specified at command line
   , writerEpubFonts        :: [FilePath] -- ^ Paths to fonts to embed
   , writerEpubChapterLevel :: Int            -- ^ Header level for chapters (separate files)
-  , writerTOCLevel         :: Int            -- ^ Number of levels to include in TOC
+  , writerTOCDepth         :: Int            -- ^ Number of levels to include in TOC
   , writerReferenceODT     :: Maybe FilePath -- ^ Path to reference ODT if specified
   , writerReferenceDocx    :: Maybe FilePath -- ^ Ptah to reference DOCX if specified
   } deriving Show
@@ -278,7 +278,7 @@ instance Default WriterOptions where
                       , writerEpubStylesheet   = Nothing
                       , writerEpubFonts        = []
                       , writerEpubChapterLevel = 1
-                      , writerTOCLevel         = 3
+                      , writerTOCDepth         = 3
                       , writerReferenceODT     = Nothing
                       , writerReferenceDocx    = Nothing
                       }

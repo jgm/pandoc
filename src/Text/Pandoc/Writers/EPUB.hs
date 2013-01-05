@@ -229,7 +229,7 @@ writeEPUB version opts doc@(Pandoc meta _) = do
   -- toc.ncx
   let secs = hierarchicalize blocks''
 
-  let tocLevel = writerTOCLevel opts
+  let tocLevel = writerTOCDepth opts
 
   let navPointNode :: (Int -> String -> String -> [Element] -> Element)
                    -> Shared.Element -> State Int Element

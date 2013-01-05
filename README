@@ -296,7 +296,7 @@ General writer options
     one) in the output document. This option has no effect on `man`,
     `docbook`, `slidy`, `slideous`, or `s5` output.
 
-`--toc-level=`*NUMBER*
+`--toc-depth=`*NUMBER*
 :   Specify the number of section levels to include in the table
     of contents.  The default is 3 (which means that level 1, 2, and 3
     headers will be listed in the contents).  Implies `--toc`.

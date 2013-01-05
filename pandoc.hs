@@ -115,7 +115,7 @@ data Opt = Opt
     , optEpubMetadata      :: String  -- ^ EPUB metadata
     , optEpubFonts         :: [FilePath] -- ^ EPUB fonts to embed
     , optEpubChapterLevel  :: Int     -- ^ Header level at which to split chapters
-    , optTOCLevel          :: Int     -- ^ Number of levels to include in TOC
+    , optTOCDepth          :: Int     -- ^ Number of levels to include in TOC
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
@@ -169,7 +169,7 @@ defaultOpts = Opt
     , optEpubMetadata      = ""
     , optEpubFonts         = []
     , optEpubChapterLevel  = 1
-    , optTOCLevel          = 3
+    , optTOCDepth          = 3
     , optDumpArgs          = False
     , optIgnoreArgs        = False
     , optReferenceLinks    = False
@@ -340,12 +340,12 @@ options =
                  (\opt -> return opt { optTableOfContents = True }))
                "" -- "Include table of contents"
 
-    , Option "" ["toc-level"]
+    , Option "" ["toc-depth"]
                  (ReqArg
                   (\arg opt -> do
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
-                                    return opt { optTOCLevel = t,
+                                    return opt { optTOCDepth = t,
                                                  optTableOfContents = True }
                            _      -> err 57 $
                                     "TOC level must be a number between 1 and 6")
@@ -831,7 +831,7 @@ main = do
               , optEpubMetadata      = epubMetadata
               , optEpubFonts         = epubFonts
               , optEpubChapterLevel  = epubChapterLevel
-              , optTOCLevel          = epubTOCLevel
+              , optTOCDepth          = epubTOCDepth
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
               , optReferenceLinks    = referenceLinks
@@ -1022,7 +1022,7 @@ main = do
                             writerEpubStylesheet   = epubStylesheet,
                             writerEpubFonts        = epubFonts,
                             writerEpubChapterLevel = epubChapterLevel,
-                            writerTOCLevel         = epubTOCLevel,
+                            writerTOCDepth         = epubTOCDepth,
                             writerReferenceODT     = referenceODT,
                             writerReferenceDocx    = referenceDocx
                           }
