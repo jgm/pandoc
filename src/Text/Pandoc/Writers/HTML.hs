@@ -247,8 +247,8 @@ showSecNum = concat . intersperse "." . map show
 -- | Converts an Element to a list item for a table of contents,
 -- retrieving the appropriate identifier from state.
 elementToListItem :: WriterOptions -> Element -> State WriterState (Maybe Html)
-elementToListItem _ (Blk _) = return Nothing
-elementToListItem opts (Sec _ num id' headerText subsecs) = do
+elementToListItem opts (Sec lev num id' headerText subsecs)
+  | lev <= writerTOCDepth opts = do
   let sectnum = if writerNumberSections opts
                    then (H.span ! A.class_ "toc-section-number" $ toHtml $ showSecNum num) >>
                      preEscapedString " "
@@ -260,6 +260,7 @@ elementToListItem opts (Sec _ num id' headerText subsecs) = do
                    else unordList opts subHeads
   return $ Just $ (H.a ! A.href (toValue $ "#" ++ writerIdentifierPrefix opts ++ id')
                        $ toHtml txt) >> subList
+elementToListItem _ _ = return Nothing
 
 -- | Convert an Element to Html.
 elementToHtml :: Int -> WriterOptions -> Element -> State WriterState Html
