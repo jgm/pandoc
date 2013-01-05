@@ -296,6 +296,11 @@ General writer options
     one) in the output document. This option has no effect on `man`,
     `docbook`, `slidy`, `slideous`, or `s5` output.
 
+`--toc-level=`*NUMBER*
+:   Specify the number of section levels to include in the table
+    of contents.  The default is 3 (which means that level 1, 2, and 3
+    headers will be listed in the contents).  Implies `--toc`.
+
 `--no-highlight`
 :   Disables syntax highlighting for code blocks and inlines, even when
     a language attribute is given.
@@ -520,11 +525,6 @@ Options affecting specific writers
     readers may be slow if the chapter files are too large, so for large
     documents with few level 1 headers, one might want to use a chapter
     level of 2 or 3.
-
-`--epub-toc-level=`*NUMBER*
-:   Specify the number of section levels to include in an EPUB's table
-    of contents.  The default is 3 (which means that level 1, 2, and 3
-    headers will be listed in the contents).
 
 `--latex-engine=`*pdflatex|lualatex|xelatex*
 :   Use the specified LaTeX engine when producing PDF output.

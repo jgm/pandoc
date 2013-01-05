@@ -115,7 +115,7 @@ data Opt = Opt
     , optEpubMetadata      :: String  -- ^ EPUB metadata
     , optEpubFonts         :: [FilePath] -- ^ EPUB fonts to embed
     , optEpubChapterLevel  :: Int     -- ^ Header level at which to split chapters
-    , optEpubTOCLevel      :: Int     -- ^ Number of levels to include in TOC
+    , optTOCLevel          :: Int     -- ^ Number of levels to include in TOC
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
@@ -169,7 +169,7 @@ defaultOpts = Opt
     , optEpubMetadata      = ""
     , optEpubFonts         = []
     , optEpubChapterLevel  = 1
-    , optEpubTOCLevel      = 3
+    , optTOCLevel          = 3
     , optDumpArgs          = False
     , optIgnoreArgs        = False
     , optReferenceLinks    = False
@@ -339,6 +339,18 @@ options =
                 (NoArg
                  (\opt -> return opt { optTableOfContents = True }))
                "" -- "Include table of contents"
+
+    , Option "" ["toc-level"]
+                 (ReqArg
+                  (\arg opt -> do
+                      case safeRead arg of
+                           Just t | t >= 1 && t <= 6 ->
+                                    return opt { optTOCLevel = t,
+                                                 optTableOfContents = True }
+                           _      -> err 57 $
+                                    "TOC level must be a number between 1 and 6")
+                 "NUMBER")
+                 "" -- "Number of levels to include in TOC"
 
     , Option "" ["no-highlight"]
                 (NoArg
@@ -568,17 +580,6 @@ options =
                                     "chapter level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Header level at which to split chapters in EPUB"
-
-    , Option "" ["epub-toc-level"]
-                 (ReqArg
-                  (\arg opt -> do
-                      case safeRead arg of
-                           Just t | t >= 1 && t <= 6 ->
-                                    return opt { optEpubTOCLevel = t }
-                           _      -> err 57 $
-                                    "TOC level must be a number between 1 and 6")
-                 "NUMBER")
-                 "" -- "Number of levels to include in EPUB TOC"
 
     , Option "" ["latex-engine"]
                  (ReqArg
@@ -830,7 +831,7 @@ main = do
               , optEpubMetadata      = epubMetadata
               , optEpubFonts         = epubFonts
               , optEpubChapterLevel  = epubChapterLevel
-              , optEpubTOCLevel      = epubTOCLevel
+              , optTOCLevel          = epubTOCLevel
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
               , optReferenceLinks    = referenceLinks
@@ -1021,7 +1022,7 @@ main = do
                             writerEpubStylesheet   = epubStylesheet,
                             writerEpubFonts        = epubFonts,
                             writerEpubChapterLevel = epubChapterLevel,
-                            writerEpubTOCLevel     = epubTOCLevel,
+                            writerTOCLevel         = epubTOCLevel,
                             writerReferenceODT     = referenceODT,
                             writerReferenceDocx    = referenceDocx
                           }
