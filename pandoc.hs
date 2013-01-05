@@ -111,11 +111,11 @@ data Opt = Opt
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
     , optReferenceDocx     :: Maybe FilePath -- ^ Path of reference.docx
-    , optEPUBStylesheet    :: Maybe String   -- ^ EPUB stylesheet
-    , optEPUBMetadata      :: String  -- ^ EPUB metadata
-    , optEPUBFonts         :: [FilePath] -- ^ EPUB fonts to embed
-    , optEPUBChapterLevel  :: Int     -- ^ Header level at which to split chapters
-    , optEPUBTOCLevel      :: Int     -- ^ Number of levels to include in TOC
+    , optEpubStylesheet    :: Maybe String   -- ^ EPUB stylesheet
+    , optEpubMetadata      :: String  -- ^ EPUB metadata
+    , optEpubFonts         :: [FilePath] -- ^ EPUB fonts to embed
+    , optEpubChapterLevel  :: Int     -- ^ Header level at which to split chapters
+    , optEpubTOCLevel      :: Int     -- ^ Number of levels to include in TOC
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
@@ -165,11 +165,11 @@ defaultOpts = Opt
     , optHTMLMathMethod    = PlainMath
     , optReferenceODT      = Nothing
     , optReferenceDocx     = Nothing
-    , optEPUBStylesheet    = Nothing
-    , optEPUBMetadata      = ""
-    , optEPUBFonts         = []
-    , optEPUBChapterLevel  = 1
-    , optEPUBTOCLevel      = 3
+    , optEpubStylesheet    = Nothing
+    , optEpubMetadata      = ""
+    , optEpubFonts         = []
+    , optEpubChapterLevel  = 1
+    , optEpubTOCLevel      = 3
     , optDumpArgs          = False
     , optIgnoreArgs        = False
     , optReferenceLinks    = False
@@ -531,7 +531,7 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      text <- UTF8.readFile arg
-                     return opt { optEPUBStylesheet = Just text })
+                     return opt { optEpubStylesheet = Just text })
                   "FILENAME")
                  "" -- "Path of epub.css"
 
@@ -547,14 +547,14 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      text <- UTF8.readFile arg
-                     return opt { optEPUBMetadata = text })
+                     return opt { optEpubMetadata = text })
                   "FILENAME")
                  "" -- "Path of epub metadata file"
 
     , Option "" ["epub-embed-font"]
                  (ReqArg
                   (\arg opt -> do
-                     return opt{ optEPUBFonts = arg : optEPUBFonts opt })
+                     return opt{ optEpubFonts = arg : optEpubFonts opt })
                   "FILE")
                  "" -- "Directory of fonts to embed"
 
@@ -563,7 +563,7 @@ options =
                   (\arg opt -> do
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
-                                    return opt { optEPUBChapterLevel = t }
+                                    return opt { optEpubChapterLevel = t }
                            _      -> err 59 $
                                     "chapter level must be a number between 1 and 6")
                  "NUMBER")
@@ -574,7 +574,7 @@ options =
                   (\arg opt -> do
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
-                                    return opt { optEPUBTOCLevel = t }
+                                    return opt { optEpubTOCLevel = t }
                            _      -> err 57 $
                                     "TOC level must be a number between 1 and 6")
                  "NUMBER")
@@ -826,11 +826,11 @@ main = do
               , optHTMLMathMethod    = mathMethod
               , optReferenceODT      = referenceODT
               , optReferenceDocx     = referenceDocx
-              , optEPUBStylesheet    = epubStylesheet
-              , optEPUBMetadata      = epubMetadata
-              , optEPUBFonts         = epubFonts
-              , optEPUBChapterLevel  = epubChapterLevel
-              , optEPUBTOCLevel      = epubTOCLevel
+              , optEpubStylesheet    = epubStylesheet
+              , optEpubMetadata      = epubMetadata
+              , optEpubFonts         = epubFonts
+              , optEpubChapterLevel  = epubChapterLevel
+              , optEpubTOCLevel      = epubTOCLevel
               , optDumpArgs          = dumpArgs
               , optIgnoreArgs        = ignoreArgs
               , optReferenceLinks    = referenceLinks
