@@ -135,6 +135,7 @@ $endfor$
 $if(toc)$
 {
 \hypersetup{linkcolor=black}
+\setcounter{tocdepth}{$toc-level$}
 \tableofcontents
 }
 $endif$
