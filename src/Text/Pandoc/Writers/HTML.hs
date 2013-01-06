@@ -713,11 +713,15 @@ inlineToHtml opts inline =
                         htmlContents <- blockListToNote opts ref contents
                         -- push contents onto front of notes
                         put $ st {stNotes = (htmlContents:notes)}
-                        return $ H.sup $
-                                 H.a ! A.href (toValue $ "#" ++ writerIdentifierPrefix opts ++ "fn" ++ ref)
-                                     ! A.class_ "footnoteRef"
-                                     ! prefixedId opts ("fnref" ++ ref)
-                                     $ toHtml ref
+                        let link = H.a ! A.href (toValue $ "#" ++
+                                         writerIdentifierPrefix opts ++ "fn" ++ ref)
+                                       ! A.class_ "footnoteRef"
+                                       ! prefixedId opts ("fnref" ++ ref)
+                                       $ toHtml ref
+                        let link' = case writerEpubVersion opts of
+                                         Just EPUB3 -> link ! customAttribute "epub:type" "noteref"
+                                         _ -> link
+                        return $ H.sup $ link'
     (Cite _ il)  -> do contents <- inlineListToHtml opts il
                        return $ H.span ! A.class_ "citation" $ contents
 
@@ -738,4 +742,8 @@ blockListToNote opts ref blocks =
                                   _           -> otherBlocks ++ [lastBlock,
                                                  Plain backlink]
   in  do contents <- blockListToHtml opts blocks'
-         return $ nl opts >> (H.li ! (prefixedId opts ("fn" ++ ref)) $ contents)
+         let noteItem = H.li ! (prefixedId opts ("fn" ++ ref)) $ contents
+         let noteItem' = case writerEpubVersion opts of
+                              Just EPUB3 -> noteItem ! customAttribute "epub:type" "footnote"
+                              _          -> noteItem
+         return $ nl opts >> noteItem'
