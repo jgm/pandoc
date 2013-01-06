@@ -74,6 +74,12 @@ pandocToConTeXt options (Pandoc (Meta title authors date) blocks) = do
   let main = (render colwidth . vcat) body
   let context  = writerVariables options ++
                  [ ("toc", if writerTableOfContents options then "yes" else "")
+                 , ("placelist", intercalate "," $
+                     take (writerTOCDepth options + if writerChapters options
+                                                       then 0
+                                                       else 1)
+                       ["chapter","section","subsection","subsubsection",
+                        "subsubsubsection","subsubsubsubsection"])
                  , ("body", main)
                  , ("title", titletext)
                  , ("date", datetext) ] ++
