@@ -105,7 +105,7 @@ writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
              Nothing -> (B.fromChunks . (:[])) `fmap`
                           readDataFile datadir "reference.docx"
 
-  (newContents, st) <- runStateT (writeOpenXML opts{writerWrapText = False} doc)
+  ((contents, footnotes), st) <- runStateT (writeOpenXML opts{writerWrapText = False} doc)
                        defaultWriterState
   epochtime <- floor `fmap` getPOSIXTime
   let imgs = M.elems $ stImages st
@@ -132,7 +132,14 @@ writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
   let newrels' = map toLinkRel $ M.toList $ stExternalLinks st
   let reldoc'' = reldoc' { elContent = elContent reldoc' ++ map Elem newrels' }
   let relEntry = toEntry relpath epochtime $ UTF8.fromStringLazy $ showTopElement' reldoc''
-  let contentEntry = toEntry "word/document.xml" epochtime $ UTF8.fromStringLazy $ showTopElement' newContents
+  let contentEntry = toEntry "word/document.xml" epochtime $ UTF8.fromStringLazy $ showTopElement' contents
+  -- footnotes
+  let footnotesEntry = toEntry "word/footnotes.xml" epochtime $ UTF8.fromStringLazy $
+        showTopElement' footnotes
+  -- footnote rels
+  let footnoteRelEntry = toEntry "word/_rels/footnotes.xml.rels" epochtime $ UTF8.fromStringLazy $
+        showTopElement' $ mknode "Relationships" [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")]
+        $ newrels'
   -- styles
   let newstyles = styleToOpenXml $ writerHighlightStyle opts
   let stylepath = "word/styles.xml"
@@ -170,7 +177,7 @@ writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
                   rels
   let relsEntry = toEntry relsPath epochtime $ UTF8.fromStringLazy rels'
   let archive = foldr addEntryToArchive refArchive $
-                  relsEntry : contentEntry : relEntry : numEntry : styleEntry : docPropsEntry : imageEntries
+                  relsEntry : contentEntry : relEntry : footnoteRelEntry : numEntry : styleEntry : footnotesEntry : docPropsEntry : imageEntries
   return $ fromArchive archive
 
 styleToOpenXml :: Style -> [Element]
@@ -284,8 +291,8 @@ mkLvl marker lvl =
 getNumId :: WS Int
 getNumId = length `fmap` gets stLists
 
--- | Convert Pandoc document to string in OpenXML format.
-writeOpenXML :: WriterOptions -> Pandoc -> WS Element
+-- | Convert Pandoc document to two OpenXML elements (the main document and footnotes).
+writeOpenXML :: WriterOptions -> Pandoc -> WS (Element, Element)
 writeOpenXML opts (Pandoc (Meta tit auths dat) blocks) = do
   title <- withParaProp (pStyle "Title") $ blocksToOpenXML opts [Para tit | not (null tit)]
   authors <- withParaProp (pStyle "Authors") $ blocksToOpenXML opts
@@ -295,13 +302,10 @@ writeOpenXML opts (Pandoc (Meta tit auths dat) blocks) = do
       convertSpace (Str x : Str y : xs) = Str (x ++ y) : xs
       convertSpace xs = xs
   let blocks' = bottomUp convertSpace $ blocks
-  doc <- blocksToOpenXML opts blocks'
+  doc' <- blocksToOpenXML opts blocks'
   notes' <- reverse `fmap` gets stFootnotes
-  let notes = case notes' of
-                   [] -> []
-                   ns -> [mknode "w:footnotes" [] ns]
   let meta = title ++ authors ++ date
-  return $ mknode "w:document"
+  let stdAttributes =
             [("xmlns:w","http://schemas.openxmlformats.org/wordprocessingml/2006/main")
             ,("xmlns:m","http://schemas.openxmlformats.org/officeDocument/2006/math")
             ,("xmlns:r","http://schemas.openxmlformats.org/officeDocument/2006/relationships")
@@ -311,7 +315,9 @@ writeOpenXML opts (Pandoc (Meta tit auths dat) blocks) = do
             ,("xmlns:a","http://schemas.openxmlformats.org/drawingml/2006/main")
             ,("xmlns:pic","http://schemas.openxmlformats.org/drawingml/2006/picture")
             ,("xmlns:wp","http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing")]
-         $ mknode "w:body" [] (meta ++ doc ++ notes)
+  let doc = mknode "w:document" stdAttributes $ mknode "w:body" [] (meta ++ doc')
+  let notes = mknode "w:footnotes" stdAttributes notes'
+  return (doc, notes)
 
 -- | Convert a list of Pandoc blocks to OpenXML.
 blocksToOpenXML :: WriterOptions -> [Block] -> WS [Element]
@@ -323,6 +329,11 @@ pStyle sty = mknode "w:pStyle" [("w:val",sty)] ()
 rStyle :: String -> Element
 rStyle sty = mknode "w:rStyle" [("w:val",sty)] ()
 
+getUniqueId :: MonadIO m => m String
+-- the + 20 is to ensure that there are no clashes with the rIds
+-- already in word/document.xml.rel
+getUniqueId = liftIO $ (show . (+ 20) . hashUnique) `fmap` newUnique
+
 -- | Convert a Pandoc block element to OpenXML.
 blockToOpenXML :: WriterOptions -> Block -> WS [Element]
 blockToOpenXML _ Null = return []
@@ -332,10 +343,10 @@ blockToOpenXML opts (Header lev lst) = do
   usedIdents <- gets stSectionIds
   let bookmarkName = uniqueIdent lst usedIdents
   modify $ \s -> s{ stSectionIds = bookmarkName : stSectionIds s }
-  id' <- liftIO $ hashUnique `fmap` newUnique
-  let bookmarkStart = mknode "w:bookmarkStart" [("w:id",show id')
+  id' <- getUniqueId
+  let bookmarkStart = mknode "w:bookmarkStart" [("w:id", id')
                                                ,("w:name",bookmarkName)] ()
-  let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id",show id')] ()
+  let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
   return $ [bookmarkStart] ++ contents ++ [bookmarkEnd]
 blockToOpenXML opts (Plain lst) = blockToOpenXML opts (Para lst)
 blockToOpenXML opts (Para x@[Image alt _]) = do
@@ -572,7 +583,7 @@ inlineToOpenXML _ (Code attrs str) =
                                      , mknode "w:t" [("xml:space","preserve")] tok ]
 inlineToOpenXML opts (Note bs) = do
   notes <- gets stFootnotes
-  notenum <- liftIO $ hashUnique `fmap` newUnique
+  notenum <- getUniqueId
   let notemarker = mknode "w:r" []
                    [ mknode "w:rPr" [] (rStyle "FootnoteReference")
                    , mknode "w:footnoteRef" [] () ]
@@ -588,11 +599,11 @@ inlineToOpenXML opts (Note bs) = do
                 $ insertNoteRef bs
   modify $ \st -> st{ stListLevel = oldListLevel, stParaProperties = oldParaProperties,
                       stTextProperties = oldTextProperties }
-  let newnote = mknode "w:footnote" [("w:id",show notenum)] $ contents
+  let newnote = mknode "w:footnote" [("w:id", notenum)] $ contents
   modify $ \s -> s{ stFootnotes = newnote : notes }
   return [ mknode "w:r" []
            [ mknode "w:rPr" [] (rStyle "FootnoteReference")
-           , mknode "w:footnoteReference" [("w:id", show notenum)] () ] ]
+           , mknode "w:footnoteReference" [("w:id", notenum)] () ] ]
 -- internal link:
 inlineToOpenXML opts (Link txt ('#':xs,_)) = do
   contents <- withTextProp (rStyle "Hyperlink") $ inlinesToOpenXML opts txt
@@ -601,14 +612,14 @@ inlineToOpenXML opts (Link txt ('#':xs,_)) = do
 inlineToOpenXML opts (Link txt (src,_)) = do
   contents <- withTextProp (rStyle "Hyperlink") $ inlinesToOpenXML opts txt
   extlinks <- gets stExternalLinks
-  ind <- case M.lookup src extlinks of
+  id' <- case M.lookup src extlinks of
             Just i   -> return i
             Nothing  -> do
-              let i = "link" ++ show (M.size extlinks)
+              i <- ("rId"++) `fmap` getUniqueId
               modify $ \st -> st{ stExternalLinks =
                         M.insert src i extlinks }
               return i
-  return [ mknode "w:hyperlink" [("r:id",ind)] contents ]
+  return [ mknode "w:hyperlink" [("r:id",id')] contents ]
 inlineToOpenXML opts (Image alt (src, tit)) = do
   exists <- liftIO $ doesFileExist src
   if exists
@@ -618,7 +629,7 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
                             Just (i,img) -> return (i, imageSize img)
                             Nothing -> do
                               img <- liftIO $ B.readFile src
-                              let ident' = "image" ++ show (M.size imgs + 1)
+                              ident' <- getUniqueId
                               let size'  = imageSize img
                               modify $ \st -> st{
                                  stImages = M.insert src (ident',img) $ stImages st }
