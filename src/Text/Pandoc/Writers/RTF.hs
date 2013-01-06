@@ -72,13 +72,15 @@ writeRTF options (Pandoc (Meta title authors date) blocks) =
       datetext = inlineListToRTF date
       spacer = not $ all null $ titletext : datetext : authorstext
       body = concatMap (blockToRTF 0 AlignDefault) blocks
+      isTOCHeader (Header lev _) = lev <= writerTOCDepth options
+      isTOCHeader _ = False
       context = writerVariables options ++
                 [ ("body", body)
                 , ("title", titletext)
                 , ("date", datetext) ] ++
                 [ ("author", a) | a <- authorstext ] ++
                 [ ("spacer", "yes") | spacer ] ++
-                [ ("toc", tableOfContents $ filter isHeaderBlock blocks) |
+                [ ("toc", tableOfContents $ filter isTOCHeader blocks) |
                    writerTableOfContents options ]
   in  if writerStandalone options
          then renderTemplate context $ writerTemplate options
