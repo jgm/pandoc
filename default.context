@@ -69,6 +69,7 @@ $for(include-before)$
 $include-before$
 $endfor$
 $if(toc)$
+\placelist[$placelist$]
 \placecontent
 $endif$
 
