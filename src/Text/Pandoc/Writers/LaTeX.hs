@@ -446,9 +446,9 @@ tableRowToLaTeX header aligns widths cols = do
                   AlignCenter  -> "\\centering"
                   AlignDefault -> "\\raggedright"
   let toCell 0 _ c = c
-      toCell w a c = "\\parbox" <> valign <>
+      toCell w a c = "\\begin{minipage}" <> valign <>
                      braces (text (printf "%.2f\\columnwidth" w)) <>
-                     braces (halign a <> cr <> c <> cr)
+                     (halign a <> cr <> c <> cr) <> "\\end{minipage}"
   let cells = zipWith3 toCell widths aligns renderedCells
   return $ hsep (intersperse "&" cells) $$ "\\\\\\noalign{\\medskip}"
 
