@@ -139,8 +139,7 @@ charsInTags tag = try $ do
   (_,raw) <- htmlTag (~== TagOpen tag [])
   if '/' `elem` raw   -- self-closing tag
      then return ""
-     else innerText . parseTags <$>
-            manyTill anyChar (htmlTag (~== TagClose tag))
+     else manyTill anyChar (htmlTag (~== TagClose tag))
 
 --
 -- main parser

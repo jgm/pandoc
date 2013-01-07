@@ -105,7 +105,7 @@ H<sub>2</sub>O base<sup>''exponent''</sup>
 
 == inline code ==
 
-<code>*&rarr;*</code> <tt>typed</tt> <hask>&gt;&gt;=</hask>
+<code>*→*</code> <tt>typed</tt> <hask>>>=</hask>
 
 == code blocks ==
 
