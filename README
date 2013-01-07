@@ -2258,10 +2258,9 @@ TeX math, and anything between `\\[` and `\\]` to be interpreted
 as display TeX math.
 
 **Extension: `markdown_attribute`**\
-Causes the attribute `markdown=1` to be added to all block-level
-HTML tags that might contain markdown.  In pandoc, material inside
-block-level tags is interpreted a markdown by default, but in some
-other implementations, the `markdown=1` tag is needed.
+By default, pandoc interprets material inside block-level tags as markdown.
+This extension changes the behavior so that markdown is only parsed
+inside block-level tags if the tags have the attribute `markdown=1`.
 
 **Extension: `mmd_title_block`**\
 Enables a [MultiMarkdown] style title block at the top of
