@@ -656,7 +656,7 @@ With an ampersand: "$":http://example.com/?foo=1&bar=2
 * "$":http://example.com/
 * It should.
 
-An e-mail address: "<tt>nobody@nowhere.net</tt>":mailto:nobody@nowhere.net
+An e-mail address: "nobody&#64;nowhere.net":mailto:nobody@nowhere.net
 
 bq. Blockquoted: "$":http://example.com/
 

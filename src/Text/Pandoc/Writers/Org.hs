@@ -271,7 +271,7 @@ inlineToOrg (LineBreak) = return cr -- there's no line break in Org
 inlineToOrg Space = return space
 inlineToOrg (Link txt (src, _)) = do
   case txt of
-        [Code _ x] | x == src ->  -- autolink
+        [Str x] | escapeURI x == src ->  -- autolink
              do modify $ \s -> s{ stLinks = True }
                 return $ "[[" <> text x <> "]]"
         _ -> do contents <- inlineListToOrg txt

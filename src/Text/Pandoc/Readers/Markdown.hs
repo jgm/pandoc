@@ -1519,14 +1519,14 @@ bareURL :: MarkdownParser (F Inlines)
 bareURL = try $ do
   guardEnabled Ext_autolink_urls
   (orig, src) <- uri <|> emailAddress
-  return $ return $ B.link src "" (B.codeWith ("",["url"],[]) orig)
+  return $ return $ B.link src "" (B.str orig)
 
 autoLink :: MarkdownParser (F Inlines)
 autoLink = try $ do
   char '<'
   (orig, src) <- uri <|> emailAddress
   char '>'
-  return $ return $ B.link src "" (B.codeWith ("",["url"],[]) orig)
+  return $ return $ B.link src "" (B.str orig)
 
 image :: MarkdownParser (F Inlines)
 image = try $ do

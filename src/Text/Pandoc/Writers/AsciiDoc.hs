@@ -343,8 +343,8 @@ inlineToAsciiDoc opts (Link txt (src, _tit)) = do
                   else empty
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
   let useAuto = case txt of
-                      [Code _ s] | s == srcSuffix -> True
-                      _                           -> False
+                      [Str s] | escapeURI s == srcSuffix -> True
+                      _                                  -> False
   return $ if useAuto
               then text srcSuffix
               else prefix <> text src <> "[" <> linktext <> "]"

@@ -854,8 +854,7 @@ With an ampersand: \url{http://example.com/?foo=1\&bar=2}
   It should.
 \end{itemize}
 
-An e-mail address:
-\href{mailto:nobody@nowhere.net}{\texttt{nobody@nowhere.net}}
+An e-mail address: \href{mailto:nobody@nowhere.net}{nobody@nowhere.net}
 
 \begin{quote}
 Blockquoted: \url{http://example.com/}

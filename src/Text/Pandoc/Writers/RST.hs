@@ -348,8 +348,11 @@ inlineToRST (RawInline "rst" x) = return $ text x
 inlineToRST (RawInline _ _) = return empty
 inlineToRST (LineBreak) = return cr -- there's no line break in RST
 inlineToRST Space = return space
-inlineToRST (Link [Code _ str] (src, _)) | src == str ||
-                                           src == "mailto:" ++ str = do
+-- autolink
+inlineToRST (Link [Str str] (src, _))
+  | if "mailto:" `isPrefixOf` src
+    then src == escapeURI ("mailto:" ++ str)
+    else src == escapeURI str = do
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
   return $ text srcSuffix
 inlineToRST (Link [Image alt (imgsrc,imgtit)] (src, _tit)) = do

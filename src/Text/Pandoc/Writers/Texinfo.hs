@@ -425,7 +425,7 @@ inlineToTexinfo (Link txt (src@('#':_), _)) = do
            braces (text (stringToTexinfo src) <> text "," <> contents)
 inlineToTexinfo (Link txt (src, _)) = do
   case txt of
-        [Code _ x] | x == src ->  -- autolink
+        [Str x] | escapeURI x == src ->  -- autolink
              do return $ text $ "@url{" ++ x ++ "}"
         _ -> do contents <- escapeCommas $ inlineListToTexinfo txt
                 let src1 = stringToTexinfo src

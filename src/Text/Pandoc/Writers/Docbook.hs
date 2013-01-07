@@ -289,7 +289,7 @@ inlineToDocbook opts (Link txt (src, _)) =
               emailLink = inTagsSimple "email" $ text $
                           escapeStringForXML $ src'
           in  case txt of
-               [Code _ s] | s == src' -> emailLink
+               [Str s] | escapeURI s == src' -> emailLink
                _             -> inlinesToDocbook opts txt <+>
                                   char '(' <> emailLink <> char ')'
      else (if isPrefixOf "#" src

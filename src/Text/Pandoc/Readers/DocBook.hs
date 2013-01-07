@@ -877,15 +877,15 @@ parseInline (Elem e) =
         "varargs" -> return $ code "(...)"
         "xref" -> return $ str "?" -- so at least you know something is there
         "email" -> return $ link ("mailto:" ++ strContent e) ""
-                          $ code $ strContent e
-        "uri" -> return $ link (strContent e) "" $ code $ strContent e
+                          $ str $ strContent e
+        "uri" -> return $ link (strContent e) "" $ str $ strContent e
         "ulink" -> link (attrValue "url" e) "" <$> innerInlines
         "link" -> do
              ils <- innerInlines
              let href = case findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e of
                                Just h -> h
                                _      -> ('#' : attrValue "linkend" e)
-             let ils' = if ils == mempty then code href else ils
+             let ils' = if ils == mempty then str href else ils
              return $ link href "" ils'
         "foreignphrase" -> emph <$> innerInlines
         "emphasis" -> case attrValue "role" e of

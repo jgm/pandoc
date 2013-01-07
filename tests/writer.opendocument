@@ -1540,22 +1540,22 @@ link</text:span></text:a>.</text:p>
 link in pointy braces</text:span></text:a>.</text:p>
 <text:h text:style-name="Heading_20_2" text:outline-level="2">Autolinks</text:h>
 <text:p text:style-name="First_20_paragraph">With an ampersand:
-<text:a xlink:type="simple" xlink:href="http://example.com/?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition"><text:span text:style-name="Teletype">http://example.com/?foo=1&amp;bar=2</text:span></text:span></text:a></text:p>
+<text:a xlink:type="simple" xlink:href="http://example.com/?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">http://example.com/?foo=1&amp;bar=2</text:span></text:a></text:p>
 <text:list text:style-name="L29">
   <text:list-item>
     <text:p text:style-name="P55">In a list?</text:p>
   </text:list-item>
   <text:list-item>
-    <text:p text:style-name="P55"><text:a xlink:type="simple" xlink:href="http://example.com/" office:name=""><text:span text:style-name="Definition"><text:span text:style-name="Teletype">http://example.com/</text:span></text:span></text:a></text:p>
+    <text:p text:style-name="P55"><text:a xlink:type="simple" xlink:href="http://example.com/" office:name=""><text:span text:style-name="Definition">http://example.com/</text:span></text:a></text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P55">It should.</text:p>
   </text:list-item>
 </text:list>
 <text:p text:style-name="First_20_paragraph">An e-mail address:
-<text:a xlink:type="simple" xlink:href="mailto:nobody@nowhere.net" office:name=""><text:span text:style-name="Definition"><text:span text:style-name="Teletype">nobody@nowhere.net</text:span></text:span></text:a></text:p>
+<text:a xlink:type="simple" xlink:href="mailto:nobody@nowhere.net" office:name=""><text:span text:style-name="Definition">nobody@nowhere.net</text:span></text:a></text:p>
 <text:p text:style-name="P56">Blockquoted:
-<text:a xlink:type="simple" xlink:href="http://example.com/" office:name=""><text:span text:style-name="Definition"><text:span text:style-name="Teletype">http://example.com/</text:span></text:span></text:a></text:p>
+<text:a xlink:type="simple" xlink:href="http://example.com/" office:name=""><text:span text:style-name="Definition">http://example.com/</text:span></text:a></text:p>
 <text:p text:style-name="First_20_paragraph">Auto-links should not occur here:
 <text:span text:style-name="Teletype">&lt;http://example.com/&gt;</text:span></text:p>
 <text:p text:style-name="P57">or here: &lt;http://example.com/&gt;</text:p>

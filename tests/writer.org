@@ -711,7 +711,7 @@ With an ampersand: [[http://example.com/?foo=1&bar=2]]
 -  [[http://example.com/]]
 -  It should.
 
-An e-mail address: [[mailto:nobody@nowhere.net][=nobody@nowhere.net=]]
+An e-mail address: [[mailto:nobody@nowhere.net][nobody@nowhere.net]]
 
 #+BEGIN_QUOTE
   Blockquoted: [[http://example.com/]]

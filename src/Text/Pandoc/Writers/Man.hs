@@ -332,8 +332,9 @@ inlineToMan opts (Link txt (src, _)) = do
   linktext <- inlineListToMan opts txt
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
   return $ case txt of
-           [Code _ s]
-             | s == srcSuffix -> char '<' <> text srcSuffix <> char '>'
+           [Str s]
+             | escapeURI s == srcSuffix ->
+                                 char '<' <> text srcSuffix <> char '>'
            _                  -> linktext <> text " (" <> text src <> char ')'
 inlineToMan opts (Image alternate (source, tit)) = do
   let txt = if (null alternate) || (alternate == [Str ""]) ||

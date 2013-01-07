@@ -610,7 +610,7 @@ With an ampersand: http://example.com/?foo=1&bar=2
 * http://example.com/
 * It should.
 
-An e-mail address: [mailto:nobody@nowhere.net <code>nobody@nowhere.net</code>]
+An e-mail address: [mailto:nobody@nowhere.net nobody@nowhere.net]
 
 <blockquote>Blockquoted: http://example.com/
 </blockquote>

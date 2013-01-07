@@ -593,7 +593,7 @@ inlineToLaTeX (Link txt ('#':ident, _)) = do
   return $ text "\\hyperref" <> brackets (text ident') <> braces contents
 inlineToLaTeX (Link txt (src, _)) =
   case txt of
-        [Code _ x] | x == src ->  -- autolink
+        [Str x] | x == src ->  -- autolink
              do modify $ \s -> s{ stUrl = True }
                 src' <- stringToLaTeX True x
                 return $ text $ "\\url{" ++ src' ++ "}"

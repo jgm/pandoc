@@ -378,7 +378,7 @@ inlineToMediaWiki _ Space = return " "
 inlineToMediaWiki opts (Link txt (src, _)) = do
   label <- inlineListToMediaWiki opts txt
   case txt of
-     [Code _ s] | s == src -> return src
+     [Str s] | escapeURI s == src -> return src
      _  -> if isURI src
               then return $ "[" ++ src ++ " " ++ label ++ "]"
               else return $ "[[" ++ src' ++ "|" ++ label ++ "]]"

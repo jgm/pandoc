@@ -34,7 +34,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Generic (queryWith)
 import Text.Printf ( printf )
-import Data.List ( intercalate )
+import Data.List ( intercalate, isPrefixOf )
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import Text.Pandoc.Templates ( renderTemplate )
@@ -280,7 +280,11 @@ inlineToConTeXt (RawInline _ _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt Space = return space
 -- autolink
-inlineToConTeXt (Link [Code _ str] (src, tit)) = inlineToConTeXt (Link
+inlineToConTeXt (Link [Str str] (src, tit))
+  | if "mailto:" `isPrefixOf` src
+    then src == escapeURI ("mailto:" ++ str)
+    else src == escapeURI str =
+  inlineToConTeXt (Link
     [RawInline "context" "\\hyphenatedurl{", Str str, RawInline "context" "}"]
     (src, tit))
 -- Handle HTML-like internal document references to sections

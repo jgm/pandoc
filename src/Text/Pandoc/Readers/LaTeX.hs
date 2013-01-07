@@ -426,7 +426,7 @@ inlineCommands = M.fromList $
   , ("lstinline", doverb)
   , ("texttt", (code . stringify . toList) <$> tok)
   , ("url", (unescapeURL <$> braced) >>= \url ->
-       pure (link url "" (codeWith ("",["url"],[]) url)))
+       pure (link url "" (str url)))
   , ("href", (unescapeURL <$> braced <* optional sp) >>= \url ->
        tok >>= \lab ->
          pure (link url "" lab))
