@@ -629,7 +629,7 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
                             Just (i,img) -> return (i, imageSize img)
                             Nothing -> do
                               img <- liftIO $ B.readFile src
-                              ident' <- getUniqueId
+                              ident' <- ("rId"++) `fmap` getUniqueId
                               let size'  = imageSize img
                               modify $ \st -> st{
                                  stImages = M.insert src (ident',img) $ stImages st }
