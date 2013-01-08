@@ -60,6 +60,7 @@ module Text.Pandoc.Shared (
                      uniqueIdent,
                      isHeaderBlock,
                      headerShift,
+                     isTightList,
                      -- * TagSoup HTML handling
                      renderTags',
                      -- * File handling
@@ -474,6 +475,12 @@ headerShift n = bottomUp shift
   where shift :: Block -> Block
         shift (Header level inner) = Header (level + n) inner
         shift x                    = x
+
+-- | Detect if a list is tight.
+isTightList :: [[Block]] -> Bool
+isTightList = and . map firstIsPlain
+  where firstIsPlain (Plain _ : _) = True
+        firstIsPlain _             = False
 
 --
 -- TagSoup HTML handling
