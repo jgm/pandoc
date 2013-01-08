@@ -46,19 +46,20 @@ tests = [ testGroup "inline code"
           ]
         , testGroup "bullet lists"
           [ "nested" =:
-            bulletList [plain (text "top")
-                        ,bulletList [plain (text "next")
-                         ,bulletList [plain (text "bot")]]]
-              =?> [_LIT|
-\startitemize
+            bulletList [
+               plain (text "top")
+            <> bulletList [
+                 plain (text "next")
+              <> bulletList [plain (text "bot")]
+            ]
+          ] =?> [_LIT|
+\startitemize[packed]
 \item
   top
-\item
-  \startitemize
+  \startitemize[packed]
   \item
     next
-  \item
-    \startitemize
+    \startitemize[packed]
     \item
       bot
     \stopitemize

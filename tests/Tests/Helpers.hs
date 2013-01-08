@@ -62,8 +62,8 @@ test fn name (input, expected) =
            actual' = toString $ fn input
            expected' = toString expected
            diff = getDiff (lines expected') (lines actual')
-           expected'' = unlines $ map vividize [Second x | Second x <- diff]
-           actual''   = unlines $ map vividize [First x | First x <- diff]
+           expected'' = unlines $ map vividize [First x | First x <- diff]
+           actual''   = unlines $ map vividize [Second x | Second x <- diff]
            dashes "" = replicate 72 '-'
            dashes x  = replicate (72 - length x - 5) '-' ++ " " ++ x ++ " ---"
 
