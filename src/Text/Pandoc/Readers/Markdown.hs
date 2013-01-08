@@ -1643,7 +1643,7 @@ citeKey = try $ do
   char '@'
   first <- letter
   let internal p = try $ p >>~ lookAhead (letter <|> digit)
-  rest <- many $ letter <|> digit <|> internal (oneOf ":.#$%&-_?<>~")
+  rest <- many $ letter <|> digit <|> internal (oneOf ":.#$%&-_?<>~/")
   let key = first:rest
   citations' <- map CSL.refId <$> getOption readerReferences
   guard $ key `elem` citations'
