@@ -46,8 +46,8 @@ data WriterState =
               , stOptions          :: WriterOptions -- writer options
               }
 
-orderedListStyles :: [[Char]]
-orderedListStyles = cycle ["[n]","[a]", "[r]", "[g]"]
+orderedListStyles :: [Char]
+orderedListStyles = cycle "narg"
 
 -- | Convert Pandoc to ConTeXt.
 writeConTeXt :: WriterOptions -> Pandoc -> String
@@ -148,7 +148,10 @@ blockToConTeXt (RawBlock "context" str) = return $ text str <> blankline
 blockToConTeXt (RawBlock _ _ ) = return empty
 blockToConTeXt (BulletList lst) = do
   contents <- mapM listItemToConTeXt lst
-  return $ "\\startitemize" $$ vcat contents $$ text "\\stopitemize" <> blankline
+  return $ ("\\startitemize" <> if isTightList lst
+                                   then brackets "packed"
+                                   else empty) $$
+    vcat contents $$ text "\\stopitemize" <> blankline
 blockToConTeXt (OrderedList (start, style', delim) lst) = do
     st <- get
     let level = stOrderedListLevel st
@@ -171,14 +174,15 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
     let specs2 = if null specs2Items
                     then ""
                     else "[" ++ intercalate "," specs2Items ++ "]"
-    let style'' = case style' of
-                        DefaultStyle -> orderedListStyles !! level
-                        Decimal      -> "[n]"
-                        Example      -> "[n]"
-                        LowerRoman   -> "[r]"
-                        UpperRoman   -> "[R]"
-                        LowerAlpha   -> "[a]"
-                        UpperAlpha   -> "[A]"
+    let style'' = '[': (case style' of
+                          DefaultStyle -> orderedListStyles !! level
+                          Decimal      -> 'n'
+                          Example      -> 'n'
+                          LowerRoman   -> 'r'
+                          UpperRoman   -> 'R'
+                          LowerAlpha   -> 'a'
+                          UpperAlpha   -> 'A') :
+                       if isTightList lst then ",packed]" else "]"
     let specs = style'' ++ specs2
     return $ "\\startitemize" <> text specs $$ vcat contents $$
              "\\stopitemize" <> blankline

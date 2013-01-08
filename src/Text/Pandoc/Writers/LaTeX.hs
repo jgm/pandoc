@@ -351,7 +351,10 @@ blockToLaTeX (BulletList lst) = do
   incremental <- gets stIncremental
   let inc = if incremental then "[<+->]" else ""
   items <- mapM listItemToLaTeX lst
-  return $ text ("\\begin{itemize}" ++ inc) $$ vcat items $$
+  let spacing = if isTightList lst
+                   then text "\\itemsep1pt\\parskip0pt\\parsep0pt"
+                   else empty
+  return $ text ("\\begin{itemize}" ++ inc) $$ spacing $$ vcat items $$
              "\\end{itemize}"
 blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   st <- get
@@ -381,16 +384,23 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
                         then empty
                         else "\\setcounter" <> braces enum <>
                               braces (text $ show $ start - 1)
+  let spacing = if isTightList lst
+                   then text "\\itemsep1pt\\parskip0pt\\parsep0pt"
+                   else empty
   return $ text ("\\begin{enumerate}" ++ inc)
          $$ stylecommand
          $$ resetcounter
+         $$ spacing
          $$ vcat items
          $$ "\\end{enumerate}"
 blockToLaTeX (DefinitionList lst) = do
   incremental <- gets stIncremental
   let inc = if incremental then "[<+->]" else ""
   items <- mapM defListItemToLaTeX lst
-  return $ text ("\\begin{description}" ++ inc) $$ vcat items $$
+  let spacing = if and $ map isTightList (map snd lst)
+                   then text "\\itemsep1pt\\parskip0pt\\parsep0pt"
+                   else empty
+  return $ text ("\\begin{description}" ++ inc) $$ spacing $$ vcat items $$
                "\\end{description}"
 blockToLaTeX HorizontalRule = return $
   "\\begin{center}\\rule{3in}{0.4pt}\\end{center}"
