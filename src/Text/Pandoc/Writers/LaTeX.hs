@@ -364,12 +364,13 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   items <- mapM listItemToLaTeX lst
   modify (\s -> s {stOLLevel = oldlevel})
   let tostyle x = case numstyle of
-                       Decimal     -> "\\arabic" <> braces x
-                       UpperRoman  -> "\\Roman" <> braces x
-                       LowerRoman  -> "\\roman" <> braces x
-                       UpperAlpha  -> "\\Alph" <> braces x
-                       LowerAlpha  -> "\\alph" <> braces x
-                       _           -> x
+                       Decimal      -> "\\arabic" <> braces x
+                       UpperRoman   -> "\\Roman" <> braces x
+                       LowerRoman   -> "\\roman" <> braces x
+                       UpperAlpha   -> "\\Alph" <> braces x
+                       LowerAlpha   -> "\\alph" <> braces x
+                       Example      -> "\\arabic" <> braces x
+                       DefaultStyle -> "\\arabic" <> braces x
   let todelim x = case numdelim of
                        OneParen    -> x <> ")"
                        TwoParens   -> parens x
