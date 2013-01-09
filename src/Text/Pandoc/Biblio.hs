@@ -53,9 +53,8 @@ processBiblio (Just style) r p =
                       map (map toCslCite) grps)
       cits_map   = M.fromList $ zip grps (citations result)
       biblioList = map (renderPandoc' style) (bibliography result)
-      Pandoc m b = bottomUp (processCite style cits_map) p'
-      b' = bottomUp mvPunct $ deNote b
-  in  Pandoc m $ b' ++ biblioList
+      Pandoc m b = bottomUp mvPunct . deNote . bottomUp (processCite style cits_map) $ p'
+  in  Pandoc m $ b ++ biblioList
 
 -- | Substitute 'Cite' elements with formatted citations.
 processCite :: Style -> M.Map [Citation] [FormattedOutput] -> Inline -> Inline
@@ -89,7 +88,7 @@ sanitize :: [Inline] -> [Inline]
 sanitize xs | endWithPunct xs = toCapital xs
             | otherwise       = toCapital (xs ++ [Str "."])
 
-deNote :: [Block] -> [Block]
+deNote :: Pandoc -> Pandoc
 deNote = topDown go
   where go (Note [Para xs]) = Note $ bottomUp go' [Para $ sanitize xs]
         go (Note xs) = Note $ bottomUp go' xs
