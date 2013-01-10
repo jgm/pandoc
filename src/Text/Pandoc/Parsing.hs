@@ -333,25 +333,27 @@ romanNumeral upperCase = do
 -- Parsers for email addresses and URIs
 
 emailChar :: Parser [Char] st Char
-emailChar = alphaNum <|>
-            satisfy (\c -> c == '-' || c == '+' || c == '_' || c == '.')
+emailChar = alphaNum <|> oneOf "!\"#$%&'*+-/0123456789=?^_{|}~"
 
-domainChar :: Parser [Char] st Char
-domainChar = alphaNum <|> char '-'
-
-domain :: Parser [Char] st [Char]
+domain :: Parser [Char] st String
 domain = do
-  first <- many1 domainChar
-  dom <- many1 $ try (char '.' >> many1 domainChar )
-  return $ intercalate "." (first:dom)
+  x <- subdomain
+  xs <- many (try $ char '.' >> subdomain)
+  return $ intercalate "." (x:xs)
+
+subdomain :: Parser [Char] st String
+subdomain = many1 (emailChar <|> char '@')
+
+emailWord :: Parser [Char] st String
+emailWord = many1 emailChar  -- ignores possibility of quoted strings
 
 -- | Parses an email address; returns original and corresponding
 -- escaped mailto: URI.
 emailAddress :: Parser [Char] st (String, String)
 emailAddress = try $ do
-  firstLetter <- alphaNum
-  restAddr <- many emailChar
-  let addr = firstLetter:restAddr
+  x <- emailWord
+  xs <- many (try $ char '.' >> emailWord)
+  let addr = intercalate "." (x:xs)
   char '@'
   dom <- domain
   let full = addr ++ '@':dom
