@@ -160,6 +160,7 @@ import Text.HTML.TagSoup.Entity ( lookupEntity )
 import Data.Default
 import qualified Data.Set as Set
 import Control.Monad.Reader
+import Control.Applicative ((*>), (<*), liftA2)
 import Data.Monoid
 
 type Parser t s = Parsec t s
@@ -332,32 +333,25 @@ romanNumeral upperCase = do
 
 -- Parsers for email addresses and URIs
 
-emailChar :: Parser [Char] st Char
-emailChar = alphaNum <|> oneOf "!\"#$%&'*+-/0123456789=?^_{|}~"
-
-domain :: Parser [Char] st String
-domain = do
-  x <- subdomain
-  xs <- many (try $ char '.' >> subdomain)
-  return $ intercalate "." (x:xs)
-
-subdomain :: Parser [Char] st String
-subdomain = many1 (emailChar <|> char '@')
-
-emailWord :: Parser [Char] st String
-emailWord = many1 emailChar  -- ignores possibility of quoted strings
-
 -- | Parses an email address; returns original and corresponding
 -- escaped mailto: URI.
 emailAddress :: Parser [Char] st (String, String)
-emailAddress = try $ do
-  x <- emailWord
-  xs <- many (try $ char '.' >> emailWord)
-  let addr = intercalate "." (x:xs)
-  char '@'
-  dom <- domain
-  let full = addr ++ '@':dom
-  return (full, escapeURI $ "mailto:" ++ full)
+emailAddress = try $ liftA2 toResult mailbox (char '@' *> domain)
+ where toResult mbox dom = let full = mbox ++ '@':dom
+                           in  (full, escapeURI $ "mailto:" ++ full)
+       mailbox           = intercalate "." `fmap` (emailWord `sepby1` dot)
+       domain            = intercalate "." `fmap` (subdomain `sepby1` dot)
+       dot               = char '.'
+       subdomain         = many1 $ alphaNum <|> innerPunct
+       innerPunct        = try (satisfy (\c -> isEmailPunct c || c == '@') <*
+                                 notFollowedBy space)
+       emailWord         = many1 $ satisfy isEmailChar
+       isEmailChar c     = isAlphaNum c || isEmailPunct c
+       isEmailPunct c    = c `elem` "!\"#$%&'*+-/=?^_{|}~"
+       -- note: sepBy1 from parsec consumes input when sep
+       -- succeeds and p fails, so we use this variant here.
+       sepby1 p sep      = liftA2 (:) p (many (try $ sep >> p))
+
 
 -- | Parses a URI. Returns pair of original and URI-escaped version.
 uri :: Parser [Char] st (String, String)
