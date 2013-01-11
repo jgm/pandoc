@@ -968,9 +968,13 @@ main = do
                 return $ Just csl { CSL.styleAbbrevs = abbrevs }
               else return Nothing
 
-  let sourceDir = if null sources
-                     then "."
-                     else takeDirectory (head sources)
+  let sourceDir = case sources of
+                        []    -> "."
+                        (x:_) -> case parseURI x of
+                                    Just u
+                                      | uriScheme u `elem` ["http:","https:"] ->
+                                          show u{ uriPath = "", uriQuery = "", uriFragment = "" }
+                                    _ -> takeDirectory x
 
   let readerOpts = def{ readerSmart = smart || (texLigatures &&
                           (laTeXOutput || "context" `isPrefixOf` writerName'))
