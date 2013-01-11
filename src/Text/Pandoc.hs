@@ -236,6 +236,7 @@ writers = [
   ,("markdown"     , PureStringWriter writeMarkdown)
   ,("markdown_strict" , PureStringWriter writeMarkdown)
   ,("markdown_phpextra" , PureStringWriter writeMarkdown)
+  ,("markdown_github" , PureStringWriter writeMarkdown)
   ,("plain"        , PureStringWriter writePlain)
   ,("rst"          , PureStringWriter writeRST)
   ,("mediawiki"    , PureStringWriter writeMediaWiki)
@@ -248,6 +249,7 @@ writers = [
 getDefaultExtensions :: String -> Set Extension
 getDefaultExtensions "markdown_strict" = strictExtensions
 getDefaultExtensions "markdown_phpextra" = phpMarkdownExtraExtensions
+getDefaultExtensions "markdown_github" = githubMarkdownExtensions
 getDefaultExtensions _        = pandocExtensions
 
 -- | Retrieve reader based on formatSpec (format+extensions).

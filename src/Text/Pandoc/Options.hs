@@ -32,6 +32,7 @@ module Text.Pandoc.Options ( Extension(..)
                            , pandocExtensions
                            , strictExtensions
                            , phpMarkdownExtraExtensions
+                           , githubMarkdownExtensions
                            , ReaderOptions(..)
                            , HTMLMathMethod (..)
                            , CiteMethod (..)
@@ -146,6 +147,20 @@ phpMarkdownExtraExtensions = Set.fromList
   , Ext_intraword_underscores
   , Ext_header_attributes
   , Ext_abbreviations
+  ]
+
+githubMarkdownExtensions :: Set Extension
+githubMarkdownExtensions = Set.fromList
+  [ Ext_pipe_tables
+  , Ext_raw_html
+  , Ext_tex_math_single_backslash
+  , Ext_fenced_code_blocks
+  , Ext_fenced_code_attributes
+  , Ext_backtick_code_blocks
+  , Ext_autolink_urls
+  , Ext_intraword_underscores
+  , Ext_strikeout
+  , Ext_hard_line_breaks
   ]
 
 strictExtensions :: Set Extension

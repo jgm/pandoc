@@ -141,6 +141,7 @@ General options
     `json` (JSON version of native AST), `markdown` (pandoc's
     extended markdown), `markdown_strict` (original unextended markdown),
     `markdown_phpextra` (PHP Markdown Extra extended markdown),
+    `markdown_github` (github extended markdown),
     `textile` (Textile), `rst` (reStructuredText), `html` (HTML),
     `docbook` (DocBook XML), `mediawiki` (MediaWiki markup),
     or `latex` (LaTeX). If `+lhs` is appended to `markdown`, `rst`,
@@ -160,7 +161,8 @@ General options
     `json` (JSON version of native AST), `plain` (plain text),
     `markdown` (pandoc's extended markdown), `markdown_strict` (original
     unextended markdown), `markdown_phpextra` (PHP Markdown extra
-    extended markdown), `rst` (reStructuredText), `html` (XHTML
+    extended markdown), `markdown_github` (github extended markdown),
+    `rst` (reStructuredText), `html` (XHTML
     1), `html5` (HTML 5), `latex` (LaTeX), `beamer` (LaTeX beamer slide show),
     `context` (ConTeXt), `man` (groff man), `mediawiki` (MediaWiki markup),
     `textile` (Textile), `org` (Emacs Org-Mode), `texinfo` (GNU Texinfo),
