@@ -29,7 +29,7 @@ Portability : portable
 Functions for determining the size of a PNG, JPEG, or GIF image.
 -}
 module Text.Pandoc.ImageSize ( ImageType(..), imageType, imageSize,
-                    sizeInPixels, sizeInPoints, readImageSize ) where
+                    sizeInPixels, sizeInPoints ) where
 import Data.ByteString (ByteString, unpack)
 import qualified Data.ByteString.Char8 as B
 import Control.Monad
@@ -47,9 +47,6 @@ data ImageSize = ImageSize{
                    , dpiY  :: Integer
                    } deriving (Read, Show, Eq)
 
-
-readImageSize :: FilePath -> IO (Maybe ImageSize)
-readImageSize fp = imageSize `fmap` B.readFile fp
 
 imageType :: ByteString -> Maybe ImageType
 imageType img = case B.take 4 img of
