@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-
 Copyright (C) 2012 John MacFarlane <jgm@berkeley.edu>
 
@@ -29,15 +30,14 @@ Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
 import Data.List ( intercalate )
-import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
 import qualified Data.Map as M
 import qualified Text.Pandoc.UTF8 as UTF8
-import System.IO ( stderr )
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
-import System.Directory
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Shared hiding (Element)
 import Text.Pandoc.Options
@@ -51,6 +51,7 @@ import Text.Highlighting.Kate
 import Data.Unique (hashUnique, newUnique)
 import System.Random (randomRIO)
 import Text.Printf (printf)
+import qualified Control.Exception as E
 
 data WriterState = WriterState{
          stTextProperties :: [Element]
@@ -93,17 +94,19 @@ mknode :: Node t => String -> [(String,String)] -> t -> Element
 mknode s attrs =
   add_attrs (map (\(k,v) -> Attr (unqual k) v) attrs) . node (unqual s)
 
+toLazy :: B.ByteString -> BL.ByteString
+toLazy = BL.fromChunks . (:[])
+
 -- | Produce an Docx file from a Pandoc document.
 writeDocx :: WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
-          -> IO B.ByteString
+          -> IO BL.ByteString
 writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
   let datadir = writerUserDataDir opts
-  refArchive <- liftM toArchive $
+  refArchive <- liftM (toArchive . toLazy) $
        case writerReferenceDocx opts of
-             Just f -> B.readFile f
-             Nothing -> (B.fromChunks . (:[])) `fmap`
-                          readDataFile datadir "reference.docx"
+             Just f  -> B.readFile f
+             Nothing -> readDataFile datadir "reference.docx"
 
   ((contents, footnotes), st) <- runStateT (writeOpenXML opts{writerWrapText = False} doc)
                        defaultWriterState
@@ -125,7 +128,7 @@ writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
   let reldoc' = reldoc{ elContent = elContent reldoc ++ map Elem newrels }
   -- create entries for images
   let toImageEntry (ident,img) = toEntry ("word/" ++ imgPath ident img)
-         epochtime img
+         epochtime $ toLazy img
   let imageEntries = map toImageEntry imgs
   -- NOW get list of external links and images from this, and do what's needed
   let toLinkRel (src,ident) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"),("Id",ident),("Target",src),("TargetMode","External") ] ()
@@ -623,14 +626,20 @@ inlineToOpenXML opts (Link txt (src,_)) = do
               return i
   return [ mknode "w:hyperlink" [("r:id",id')] contents ]
 inlineToOpenXML opts (Image alt (src, tit)) = do
-  exists <- liftIO $ doesFileExist src
-  if exists
-     then do
+  res <- liftIO $ E.try $ getItem (writerUserDataDir opts) src
+  -- res is Right (img, maybeMIMEString) or Left err
+  case res of
+     Left (_ :: E.SomeException) -> do
+       liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
+       inlinesToOpenXML opts alt
+     Right (img, _) -> do
        imgs <- gets stImages
+       -- TODO move this check to before the getItem
+       -- also TODO, instead of storing ident, imagebs; store
+       -- the whole Element, so we don't have to reconstruct it at all.
        (ident,size) <- case M.lookup src imgs of
-                            Just (i,img) -> return (i, imageSize img)
+                            Just (i,img') -> return (i, imageSize img')
                             Nothing -> do
-                              img <- liftIO $ B.readFile src
                               ident' <- ("rId"++) `fmap` getUniqueId
                               let size'  = imageSize img
                               modify $ \st -> st{
@@ -672,10 +681,6 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
                , mknode "wp:effectExtent" [("b","0"),("l","0"),("r","0"),("t","0")] ()
                , mknode "wp:docPr" [("descr",tit),("id","1"),("name","Picture")] ()
                , graphic ] ]
-     else do
-       liftIO $ UTF8.hPutStrLn stderr $
-          "Could not find image `" ++ src ++ "', skipping..."
-       inlinesToOpenXML opts alt
 
 br :: Element
 br = mknode "w:r" [] [mknode "w:cr" [] () ]
