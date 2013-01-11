@@ -235,6 +235,7 @@ writers = [
   ,("man"          , PureStringWriter writeMan)
   ,("markdown"     , PureStringWriter writeMarkdown)
   ,("markdown_strict" , PureStringWriter writeMarkdown)
+  ,("markdown_phpextra" , PureStringWriter writeMarkdown)
   ,("plain"        , PureStringWriter writePlain)
   ,("rst"          , PureStringWriter writeRST)
   ,("mediawiki"    , PureStringWriter writeMediaWiki)
