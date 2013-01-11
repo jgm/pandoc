@@ -377,7 +377,7 @@ addToHeaderList :: F Inlines -> MarkdownParser String
 addToHeaderList text = do
   let headerList = B.toList $ runF text defaultParserState
   updateState $ \st -> st{ stateHeaders = headerList : stateHeaders st }
-  (do guardEnabled Ext_header_identifiers
+  (do guardEnabled Ext_auto_identifiers
       ids <- stateIdentifiers `fmap` getState
       let id' = uniqueIdent headerList ids
       updateState $ \st -> st{ stateIdentifiers = id' : ids }

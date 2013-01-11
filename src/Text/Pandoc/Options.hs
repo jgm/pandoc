@@ -90,7 +90,7 @@ data Extension =
     | Ext_hard_line_breaks    -- ^ All newlines become hard line breaks
     | Ext_literate_haskell    -- ^ Enable literate Haskell conventions
     | Ext_abbreviations       -- ^ PHP markdown extra abbreviation definitions
-    | Ext_header_identifiers  -- ^ Automatic identifiers for headers
+    | Ext_auto_identifiers    -- ^ Automatic identifiers for headers
     | Ext_implicit_header_references -- ^ Implicit reference links for headers
     deriving (Show, Read, Enum, Eq, Ord, Bounded)
 
@@ -128,7 +128,7 @@ pandocExtensions = Set.fromList
   , Ext_strikeout
   , Ext_superscript
   , Ext_subscript
-  , Ext_header_identifiers
+  , Ext_auto_identifiers
   , Ext_implicit_header_references
   ]
 
