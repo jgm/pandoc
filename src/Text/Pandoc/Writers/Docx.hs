@@ -52,6 +52,8 @@ import Data.Unique (hashUnique, newUnique)
 import System.Random (randomRIO)
 import Text.Printf (printf)
 import qualified Control.Exception as E
+import Network.URI (isAbsoluteURI)
+import System.FilePath ((</>))
 
 data WriterState = WriterState{
          stTextProperties :: [Element]
@@ -624,10 +626,15 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
   case M.lookup src imgs of
     Just (_,_,elt,_) -> return [elt]
     Nothing -> do
-      res <- liftIO $ E.try $ getItem (writerUserDataDir opts) src
+      let sourceDir = writerSourceDirectory opts
+      let src' = case src of
+                   s | isAbsoluteURI s         -> s
+                     | isAbsoluteURI sourceDir -> sourceDir ++ "/" ++ s
+                     | otherwise               -> sourceDir </> s
+      res <- liftIO $ E.try $ getItem Nothing src'
       case res of
         Left (_ :: E.SomeException) -> do
-          liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
+          liftIO $ warn $ "Could not find image `" ++ src' ++ "', skipping..."
           -- emit alt text
           inlinesToOpenXML opts alt
         Right (img, _) -> do
