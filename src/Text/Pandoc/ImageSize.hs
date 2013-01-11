@@ -30,8 +30,8 @@ Functions for determining the size of a PNG, JPEG, or GIF image.
 -}
 module Text.Pandoc.ImageSize ( ImageType(..), imageType, imageSize,
                     sizeInPixels, sizeInPoints, readImageSize ) where
-import Data.ByteString.Lazy (ByteString, unpack)
-import qualified Data.ByteString.Lazy.Char8 as B
+import Data.ByteString (ByteString, unpack)
+import qualified Data.ByteString.Char8 as B
 import Control.Monad
 import Data.Bits
 
