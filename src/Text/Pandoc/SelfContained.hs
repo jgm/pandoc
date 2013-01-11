@@ -32,41 +32,16 @@ the HTML using data URIs.
 -}
 module Text.Pandoc.SelfContained ( makeSelfContained ) where
 import Text.HTML.TagSoup
-import Network.URI (isAbsoluteURI, parseURI, escapeURIString)
-import Network.HTTP
+import Network.URI (isAbsoluteURI, escapeURIString)
 import Data.ByteString.Base64
 import qualified Data.ByteString.Char8 as B
 import Data.ByteString (ByteString)
-import System.FilePath (takeExtension, dropExtension, takeDirectory, (</>))
+import System.FilePath (takeExtension, takeDirectory, (</>))
 import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
 import qualified Data.ByteString.Lazy as L
-import Text.Pandoc.Shared (readDataFile, renderTags')
-import Text.Pandoc.MIME (getMimeType)
-import System.Directory (doesFileExist)
+import Text.Pandoc.Shared (renderTags', getItem)
 import Text.Pandoc.UTF8 (toString,  fromString)
-
-getItem :: Maybe FilePath -> String -> IO (ByteString, Maybe String)
-getItem userdata f =
-  if isAbsoluteURI f
-     then openURL f
-     else do
-       let mime = case takeExtension f of
-                      ".gz" -> getMimeType $ dropExtension f
-                      x     -> getMimeType x
-       exists <- doesFileExist f
-       cont <- if exists then B.readFile f else readDataFile userdata f
-       return (cont, mime)
-
--- TODO - have this return mime type too - then it can work for google
--- chart API, e.g.
-openURL :: String -> IO (ByteString, Maybe String)
-openURL u = getBodyAndMimeType =<< simpleHTTP (getReq u)
-  where getReq v = case parseURI v of
-                     Nothing  -> error $ "Could not parse URI: " ++ v
-                     Just u'  -> mkRequest GET u'
-        getBodyAndMimeType (Left err) = fail (show err)
-        getBodyAndMimeType (Right r)  = return (rspBody r, findHeader HdrContentType r)
 
 isOk :: Char -> Bool
 isOk c = isAscii c && isAlphaNum c

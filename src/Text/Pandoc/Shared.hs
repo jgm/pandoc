@@ -67,6 +67,7 @@ module Text.Pandoc.Shared (
                      inDirectory,
                      readDataFile,
                      readDataFileUTF8,
+                     getItem,
                      -- * Error handling
                      err,
                      warn,
@@ -84,9 +85,10 @@ import System.Exit (exitWith, ExitCode(..))
 import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
 import Data.List ( find, isPrefixOf, intercalate )
-import Network.URI ( escapeURIString )
+import Network.URI ( escapeURIString, isAbsoluteURI, parseURI )
 import System.Directory
-import System.FilePath ( (</>) )
+import Text.Pandoc.MIME (getMimeType)
+import System.FilePath ( (</>), takeExtension, dropExtension )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import Control.Monad (msum)
@@ -97,6 +99,8 @@ import System.IO (stderr)
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
          renderOptions)
 import qualified Data.ByteString as B
+import Network.HTTP (findHeader, rspBody, simpleHTTP, RequestMethod(..),
+                     HeaderName(..), mkRequest)
 #ifdef EMBED_DATA_FILES
 import Data.FileEmbed
 #else
@@ -540,6 +544,28 @@ readDataFile (Just userDir) fname = do
 readDataFileUTF8 :: Maybe FilePath -> FilePath -> IO String
 readDataFileUTF8 userDir fname =
   UTF8.toString `fmap` readDataFile userDir fname
+
+getItem :: Maybe FilePath -> String -> IO (B.ByteString, Maybe String)
+getItem userdata f =
+  if isAbsoluteURI f
+     then openURL f
+     else do
+       let mime = case takeExtension f of
+                      ".gz" -> getMimeType $ dropExtension f
+                      x     -> getMimeType x
+       exists <- doesFileExist f
+       cont <- if exists then B.readFile f else readDataFile userdata f
+       return (cont, mime)
+
+-- TODO - have this return mime type too - then it can work for google
+-- chart API, e.g.
+openURL :: String -> IO (B.ByteString, Maybe String)
+openURL u = getBodyAndMimeType =<< simpleHTTP (getReq u)
+  where getReq v = case parseURI v of
+                     Nothing  -> error $ "Could not parse URI: " ++ v
+                     Just u'  -> mkRequest GET u'
+        getBodyAndMimeType (Left e) = fail (show e)
+        getBodyAndMimeType (Right r)  = return (rspBody r, findHeader HdrContentType r)
 
 --
 -- Error reporting
