@@ -91,6 +91,7 @@ data Extension =
     | Ext_literate_haskell    -- ^ Enable literate Haskell conventions
     | Ext_abbreviations       -- ^ PHP markdown extra abbreviation definitions
     | Ext_auto_identifiers    -- ^ Automatic identifiers for headers
+    | Ext_header_attributes   -- ^ Explicit header attributes {#id .class k=v}
     | Ext_implicit_header_references -- ^ Implicit reference links for headers
     deriving (Show, Read, Enum, Eq, Ord, Bounded)
 
@@ -129,6 +130,7 @@ pandocExtensions = Set.fromList
   , Ext_superscript
   , Ext_subscript
   , Ext_auto_identifiers
+  , Ext_header_attributes
   , Ext_implicit_header_references
   ]
 

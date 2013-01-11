@@ -872,10 +872,31 @@ wrapping). Consider, for example:
 
 ### Header identifiers in HTML, LaTeX, and ConTeXt ###
 
-**Extension: `header_identifiers`**
+**Extension: `header_attributes`**
 
-Each header element in pandoc's HTML and ConTeXt output is given a
-unique identifier. This identifier is based on the text of the header.
+Headers can be assigned attributes using this syntax at the end
+of the line containing the header text:
+
+    {#identifier .class .class key=value key=value}
+
+Although this syntax allows assignment of classes and key/value attributes,
+only identifiers currently have any affect in the writers (and only in some
+writers: HTML, LaTeX, ConTeXt, Textile, AsciiDoc).  Thus, for example,
+the following headers will all be assigned the identifier `foo`:
+
+    # My header {#foo}
+
+    ## My header ##    {#foo}
+
+    My other header   {#foo}
+    ---------------
+
+(This syntax is compatible with [PHP Markdown Extra].)
+
+**Extension: `auto_identifiers`**
+
+A header without an explicitly specified identifier will be
+automatically assigned a unique identifier based on the header text.
 To derive the identifier from the header text,
 
   - Remove all formatting, links, etc.

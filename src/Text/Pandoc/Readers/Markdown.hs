@@ -373,40 +373,48 @@ header :: MarkdownParser (F Blocks)
 header = setextHeader <|> atxHeader <?> "header"
 
 --  returns unique identifier
-addToHeaderList :: F Inlines -> MarkdownParser String
-addToHeaderList text = do
+addToHeaderList :: Attr -> F Inlines -> MarkdownParser Attr
+addToHeaderList (ident,classes,kvs) text = do
   let headerList = B.toList $ runF text defaultParserState
   updateState $ \st -> st{ stateHeaders = headerList : stateHeaders st }
   (do guardEnabled Ext_auto_identifiers
       ids <- stateIdentifiers `fmap` getState
-      let id' = uniqueIdent headerList ids
+      let id' = if null ident
+                   then uniqueIdent headerList ids
+                   else ident
       updateState $ \st -> st{ stateIdentifiers = id' : ids }
-      return id') <|> return ""
+      return (id',classes,kvs)) <|> return ("",classes,kvs)
 
 atxHeader :: MarkdownParser (F Blocks)
 atxHeader = try $ do
   level <- many1 (char '#') >>= return . length
   notFollowedBy (char '.' <|> char ')') -- this would be a list
   skipSpaces
-  text <- trimInlinesF . mconcat <$> manyTill inline atxClosing
-  id' <- addToHeaderList text
-  return $ B.headerWith (id',[],[]) level <$> text
+  text <- trimInlinesF . mconcat <$> many (notFollowedBy atxClosing >> inline)
+  attr <- atxClosing
+  attr' <- addToHeaderList attr text
+  return $ B.headerWith attr' level <$> text
 
-atxClosing :: Parser [Char] st String
-atxClosing = try $ skipMany (char '#') >> blanklines
+atxClosing :: Parser [Char] st Attr
+atxClosing =
+  try $ skipMany (char '#') >> skipSpaces >> option nullAttr attributes <* blanklines
+
+setextHeaderEnd :: MarkdownParser Attr
+setextHeaderEnd = try $ option nullAttr attributes <* blankline
 
 setextHeader :: MarkdownParser (F Blocks)
 setextHeader = try $ do
   -- This lookahead prevents us from wasting time parsing Inlines
   -- unless necessary -- it gives a significant performance boost.
   lookAhead $ anyLine >> many1 (oneOf setextHChars) >> blankline
-  text <- trimInlinesF . mconcat <$> many1Till inline newline
+  text <- trimInlinesF . mconcat <$> many1 (notFollowedBy setextHeaderEnd >> inline)
+  attr <- setextHeaderEnd
   underlineChar <- oneOf setextHChars
   many (char underlineChar)
   blanklines
   let level = (fromMaybe 0 $ findIndex (== underlineChar) setextHChars) + 1
-  id' <- addToHeaderList text
-  return $ B.headerWith (id',[],[]) level <$> text
+  attr' <- addToHeaderList attr text
+  return $ B.headerWith attr' level <$> text
 
 --
 -- hrule block
