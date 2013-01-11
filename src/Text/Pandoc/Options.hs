@@ -31,6 +31,7 @@ options.
 module Text.Pandoc.Options ( Extension(..)
                            , pandocExtensions
                            , strictExtensions
+                           , phpMarkdownExtraExtensions
                            , ReaderOptions(..)
                            , HTMLMathMethod (..)
                            , CiteMethod (..)
@@ -132,6 +133,19 @@ pandocExtensions = Set.fromList
   , Ext_auto_identifiers
   , Ext_header_attributes
   , Ext_implicit_header_references
+  ]
+
+phpMarkdownExtraExtensions :: Set Extension
+phpMarkdownExtraExtensions = Set.fromList
+  [ Ext_footnotes
+  , Ext_pipe_tables
+  , Ext_raw_html
+  , Ext_markdown_attribute
+  , Ext_fenced_code_blocks
+  , Ext_definition_lists
+  , Ext_intraword_underscores
+  , Ext_header_attributes
+  , Ext_abbreviations
   ]
 
 strictExtensions :: Set Extension

@@ -703,11 +703,6 @@ options =
 
     ]
 
-readExtension :: String -> IO Extension
-readExtension s = case safeRead ('E':'x':'t':'_':map toLower s) of
-                       Just ext -> return ext
-                       Nothing  -> err 59 $ "Unknown extension: " ++ s
-
 -- Returns usage message
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName = usageInfo

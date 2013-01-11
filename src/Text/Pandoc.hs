@@ -174,19 +174,20 @@ parseFormatSpec = parse formatSpec ""
                         '-'  -> Set.delete ext
                         _    -> Set.insert ext
 
+-- auxiliary function for readers:
+markdown :: ReaderOptions -> String -> IO Pandoc
+markdown o s = do
+  let (doc, warnings) = readMarkdownWithWarnings o s
+  mapM_ warn warnings
+  return doc
+
 -- | Association list of formats and readers.
 readers :: [(String, ReaderOptions -> String -> IO Pandoc)]
 readers = [("native"       , \_ s -> return $ readNative s)
           ,("json"         , \_ s -> return $ decodeJSON s)
-          ,("markdown_strict" , \o s -> do
-                             let (doc, warnings) = readMarkdownWithWarnings
-                                     o{ readerExtensions = strictExtensions  } s
-                             mapM_ warn warnings
-                             return doc)
-          ,("markdown"     , \o s -> do
-                             let (doc, warnings) = readMarkdownWithWarnings o s
-                             mapM_ warn warnings
-                             return doc)
+          ,("markdown"     , markdown)
+          ,("markdown_strict" , markdown)
+          ,("markdown_phpextra" , markdown)
           ,("rst"          , \o s -> return $ readRST o s)
           ,("mediawiki"    , \o s -> return $ readMediaWiki o s)
           ,("docbook"      , \o s -> return $ readDocBook o s)
@@ -245,6 +246,7 @@ writers = [
 
 getDefaultExtensions :: String -> Set Extension
 getDefaultExtensions "markdown_strict" = strictExtensions
+getDefaultExtensions "markdown_phpextra" = phpMarkdownExtraExtensions
 getDefaultExtensions _        = pandocExtensions
 
 -- | Retrieve reader based on formatSpec (format+extensions).
