@@ -23,7 +23,6 @@ import Text.Pandoc.Writers.Native (writeNative)
 import Language.Haskell.TH.Quote (QuasiQuoter(..))
 import Language.Haskell.TH.Syntax (Q, runIO)
 import qualified Test.QuickCheck.Property as QP
-import System.Console.ANSI
 import Data.Algorithm.Diff
 
 lit :: QuasiQuoter
@@ -54,25 +53,21 @@ test :: (ToString a, ToString b, ToString c)
 test fn name (input, expected) =
   testCase name $ assertBool msg (actual' == expected')
      where msg = nl ++ dashes "input" ++ nl ++ input' ++ nl ++
-                 dashes "expected" ++ nl ++ expected'' ++
-                 dashes "got" ++ nl ++ actual'' ++
+                 dashes "result" ++ nl ++
+                 unlines (map vividize diff) ++
                  dashes ""
            nl = "\n"
            input'  = toString input
-           actual' = toString $ fn input
-           expected' = toString expected
-           diff = getDiff (lines expected') (lines actual')
-           expected'' = unlines $ map vividize [First x | First x <- diff]
-           actual''   = unlines $ map vividize [Second x | Second x <- diff]
+           actual' = lines $ toString $ fn input
+           expected' = lines $ toString expected
+           diff = getDiff expected' actual'
            dashes "" = replicate 72 '-'
            dashes x  = replicate (72 - length x - 5) '-' ++ " " ++ x ++ " ---"
 
 vividize :: Diff String -> String
-vividize (Both s _) = s
-vividize (First s)  = s
-vividize (Second s) = setSGRCode [SetColor Background Dull Red
-                         , SetColor Foreground Vivid White] ++ s
-                      ++ setSGRCode [Reset]
+vividize (Both s _) = "  " ++ s
+vividize (First s)  = "- " ++ s
+vividize (Second s) = "+ " ++ s
 
 property :: QP.Testable a => TestName -> a -> Test
 property = testProperty
