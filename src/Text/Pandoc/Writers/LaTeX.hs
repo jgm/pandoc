@@ -530,7 +530,7 @@ inlineListToLaTeX lst =
        fixLineInitialSpaces (x:xs) = x : fixLineInitialSpaces xs
        fixNbsps s = let (ys,zs) = span (=='\160') s
                     in  replicate (length ys) hspace ++ [Str zs]
-       hspace = RawInline "latex" "\\hspace*{0.4em}"
+       hspace = RawInline "latex" "\\hspace*{0.333em}"
 
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
