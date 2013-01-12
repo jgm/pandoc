@@ -67,7 +67,8 @@ module Text.Pandoc.Shared (
                      inDirectory,
                      readDataFile,
                      readDataFileUTF8,
-                     getItem,
+                     fetchItem,
+                     openURL,
                      -- * Error handling
                      err,
                      warn,
@@ -545,20 +546,24 @@ readDataFileUTF8 :: Maybe FilePath -> FilePath -> IO String
 readDataFileUTF8 userDir fname =
   UTF8.toString `fmap` readDataFile userDir fname
 
-getItem :: Maybe FilePath -> String -> IO (B.ByteString, Maybe String)
-getItem userdata f =
-  if isAbsoluteURI f
-     then openURL f
-     else do
-       let mime = case takeExtension f of
-                      ".gz" -> getMimeType $ dropExtension f
-                      x     -> getMimeType x
-       exists <- doesFileExist f
-       cont <- if exists then B.readFile f else readDataFile userdata f
-       return (cont, mime)
+-- | Fetch an image or other item from the local filesystem or the net.
+-- Returns raw content and maybe mime type.
+fetchItem :: String -> String -> IO (B.ByteString, Maybe String)
+fetchItem sourceDir s =
+  case s of
+    _ | isAbsoluteURI s         -> openURL s
+      | isAbsoluteURI sourceDir -> openURL $ sourceDir ++ "/" ++ s
+      | otherwise               -> do
+          let mime = case takeExtension s of
+                        ".gz" -> getMimeType $ dropExtension s
+                        x     -> getMimeType x
+          let f = sourceDir </> s
+          cont <- B.readFile f
+          return (cont, mime)
 
 -- TODO - have this return mime type too - then it can work for google
 -- chart API, e.g.
+-- | Read from a URL and return raw data and maybe mime type.
 openURL :: String -> IO (B.ByteString, Maybe String)
 openURL u = getBodyAndMimeType =<< simpleHTTP (getReq u)
   where getReq v = case parseURI v of

@@ -36,12 +36,14 @@ import Network.URI (isAbsoluteURI, escapeURIString)
 import Data.ByteString.Base64
 import qualified Data.ByteString.Char8 as B
 import Data.ByteString (ByteString)
-import System.FilePath (takeExtension, takeDirectory, (</>))
+import System.FilePath (takeExtension, dropExtension, takeDirectory, (</>))
 import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
 import qualified Data.ByteString.Lazy as L
-import Text.Pandoc.Shared (renderTags', getItem)
+import Text.Pandoc.Shared (renderTags', openURL, readDataFile)
 import Text.Pandoc.UTF8 (toString,  fromString)
+import Text.Pandoc.MIME (getMimeType)
+import System.Directory (doesFileExist)
 
 isOk :: Char -> Bool
 isOk c = isAscii c && isAlphaNum c
@@ -96,6 +98,18 @@ cssURLs userdata d orig =
                   let enc = "data:" `B.append` fromString mime `B.append`
                                ";base64," `B.append` (encode raw)
                   return $ x `B.append` "url(" `B.append` enc `B.append` rest
+
+getItem :: Maybe FilePath -> String -> IO (ByteString, Maybe String)
+getItem userdata f =
+  if isAbsoluteURI f
+     then openURL f
+     else do
+       let mime = case takeExtension f of
+                       ".gz" -> getMimeType $ dropExtension f
+                       x     -> getMimeType x
+       exists <- doesFileExist f
+       cont <- if exists then B.readFile f else readDataFile userdata f
+       return (cont, mime)
 
 getRaw :: Maybe FilePath -> String -> String -> IO (ByteString, String)
 getRaw userdata mimetype src = do

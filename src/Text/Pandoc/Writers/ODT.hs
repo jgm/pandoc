@@ -31,12 +31,11 @@ Conversion of 'Pandoc' documents to ODT.
 module Text.Pandoc.Writers.ODT ( writeODT ) where
 import Data.IORef
 import Data.List ( isPrefixOf )
-import System.FilePath ( takeExtension, (</>) )
 import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
 import Text.Pandoc.Options ( WriterOptions(..) )
-import Text.Pandoc.Shared ( stringify, readDataFile, getItem, warn )
+import Text.Pandoc.Shared ( stringify, readDataFile, fetchItem, warn )
 import Text.Pandoc.ImageSize ( imageSize, sizeInPoints )
 import Text.Pandoc.MIME ( getMimeType )
 import Text.Pandoc.Definition
@@ -44,11 +43,11 @@ import Text.Pandoc.Generic
 import Text.Pandoc.Writers.OpenDocument ( writeOpenDocument )
 import Control.Monad (liftM)
 import Control.Monad.Trans (liftIO)
-import Network.URI ( unEscapeString, isAbsoluteURI )
 import Text.Pandoc.XML
 import Text.Pandoc.Pretty
 import qualified Control.Exception as E
 import Data.Time.Clock.POSIX ( getPOSIXTime )
+import System.FilePath ( takeExtension )
 
 -- | Produce an ODT file from a Pandoc document.
 writeODT :: WriterOptions  -- ^ Writer options
@@ -114,25 +113,20 @@ writeODT opts doc@(Pandoc (Meta title _ _) _) = do
 
 transformPic :: FilePath -> IORef [Entry] -> Inline -> IO Inline
 transformPic sourceDir entriesRef (Image lab (src,_)) = do
-  let src' = case unEscapeString src of
-                  s | isAbsoluteURI s         -> s
-                    | isAbsoluteURI sourceDir -> sourceDir ++ "/" ++ s
-                    | otherwise               -> sourceDir </> s
-  res <- liftIO $ E.try $ getItem Nothing src'
+  res <- liftIO $ E.try $ fetchItem sourceDir src
   case res of
      Left (_ :: E.SomeException) -> do
-       liftIO $ warn $ "Could not find image `" ++ src' ++ "', skipping..."
+       liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
        return $ Emph lab
      Right (img, _) -> do
        let size = imageSize img
        let (w,h) = maybe (0,0) id $ sizeInPoints `fmap` size
        let tit' = show w ++ "x" ++ show h
        entries <- readIORef entriesRef
-       let newsrc = "Pictures/" ++ show (length entries) ++ takeExtension src'
+       let newsrc = "Pictures/" ++ show (length entries) ++ takeExtension src
        let toLazy = B.fromChunks . (:[])
        epochtime <- floor `fmap` getPOSIXTime
        let entry = toEntry newsrc epochtime $ toLazy img
-       -- insert into entriesRef: sourceDir </> src', eRelativePath = newsrc
        modifyIORef entriesRef (entry:)
        return $ Image lab (newsrc, tit')
 transformPic _ _ x = return x
