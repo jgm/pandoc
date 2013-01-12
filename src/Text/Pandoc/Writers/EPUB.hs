@@ -107,9 +107,9 @@ writeEPUB opts doc@(Pandoc meta _) = do
   Pandoc _ blocks <- bottomUpM
        (transformInlines (writerHTMLMathMethod opts') sourceDir picsRef) doc
   pics <- readIORef picsRef
-  -- TODO make this work with URLs:
-  let readPicEntry (oldsrc, newsrc) = readEntry [] oldsrc >>= \e ->
-                                          return e{ eRelativePath = newsrc }
+  let readPicEntry (oldsrc, newsrc) = do
+        (img,_) <- fetchItem sourceDir oldsrc
+        return $ toEntry newsrc epochtime $ B.fromChunks . (:[]) $ img
   picEntries <- mapM readPicEntry pics
 
   -- handle fonts
