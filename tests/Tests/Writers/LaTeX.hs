@@ -32,4 +32,8 @@ tests = [ testGroup "code blocks"
           [ "in footnotes" =: note (para "hi" <> codeBlock "hi") =?>
             "\\footnote{hi\n\n\\begin{Verbatim}\nhi\n\\end{Verbatim}\n}"
           ]
+        , testGroup "math"
+          [ "escape |" =: para (math "\\sigma|_{\\{x\\}}") =?>
+            "$\\sigma\\vert _{\\{x\\}}$"
+          ]
         ]

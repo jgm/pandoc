@@ -214,6 +214,13 @@ stringToLaTeX  isUrl (x:xs) = do
        '\x2013' | ligatures -> "--" ++ rest
        _        -> x : rest
 
+-- This is needed because | in math mode interacts badly with
+-- highlighting-kate, which redefines | as a short verb command.
+escapeMath :: String -> String
+escapeMath ('|':xs) = "\\vert " ++ escapeMath xs
+escapeMath (x:xs)   = x : escapeMath xs
+escapeMath []       = ""
+
 -- | Puts contents into LaTeX command.
 inCmd :: String -> Doc -> Doc
 inCmd cmd contents = char '\\' <> text cmd <> braces contents
@@ -603,8 +610,10 @@ inlineToLaTeX (Quoted qt lst) = do
                       then char '`' <> inner <> char '\''
                       else char '\x2018' <> inner <> char '\x2019'
 inlineToLaTeX (Str str) = liftM text $ stringToLaTeX False str
-inlineToLaTeX (Math InlineMath str) = return $ char '$' <> text str <> char '$'
-inlineToLaTeX (Math DisplayMath str) = return $ "\\[" <> text str <> "\\]"
+inlineToLaTeX (Math InlineMath str) =
+  return $ char '$' <> text (escapeMath str) <> char '$'
+inlineToLaTeX (Math DisplayMath str) =
+  return $ "\\[" <> text (escapeMath str) <> "\\]"
 inlineToLaTeX (RawInline "latex" str) = return $ text str
 inlineToLaTeX (RawInline "tex" str) = return $ text str
 inlineToLaTeX (RawInline _ _) = return empty
