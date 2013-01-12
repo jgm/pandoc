@@ -518,7 +518,19 @@ sectionHeader ref level lst = do
 -- | Convert list of inline elements to LaTeX.
 inlineListToLaTeX :: [Inline]  -- ^ Inlines to convert
                   -> State WriterState Doc
-inlineListToLaTeX lst = mapM inlineToLaTeX lst >>= return . hcat
+inlineListToLaTeX lst =
+  mapM inlineToLaTeX (fixLineInitialSpaces lst)
+    >>= return . hcat
+    -- nonbreaking spaces (~) in LaTeX don't work after line breaks,
+    -- so we turn nbsps after hard breaks to \hspace commands.
+    -- this is mostly used in verse.
+ where fixLineInitialSpaces [] = []
+       fixLineInitialSpaces (LineBreak : Str s@('\160':_) : xs) =
+         LineBreak : fixNbsps s ++ fixLineInitialSpaces xs
+       fixLineInitialSpaces (x:xs) = x : fixLineInitialSpaces xs
+       fixNbsps s = let (ys,zs) = span (=='\160') s
+                    in  replicate (length ys) hspace ++ [Str zs]
+       hspace = RawInline "latex" "\\hspace*{0.4em}"
 
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
