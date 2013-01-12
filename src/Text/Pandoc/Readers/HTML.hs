@@ -510,12 +510,15 @@ inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big",
 -}
 
 blockHtmlTags :: [String]
-blockHtmlTags = ["address", "blockquote", "body", "center", "dir", "div",
-                 "dl", "fieldset", "form", "h1", "h2", "h3", "h4",
-                 "h5", "h6", "head", "hr", "html", "isindex", "menu",
-                 "noframes", "noscript", "ol", "p", "pre", "table", "ul", "dd",
+blockHtmlTags = ["address", "article", "aside", "blockquote", "body", "button", "canvas",
+                 "caption", "center", "col", "colgroup", "dd", "dir", "div",
+                 "dl", "dt", "embed", "fieldset", "figcaption", "figure", "footer",
+                 "form", "h1", "h2", "h3", "h4",
+                 "h5", "h6", "head", "header", "hgroup", "hr", "html", "isindex", "map", "menu",
+                 "noframes", "noscript", "object", "ol", "output", "p", "pre", "progress",
+                 "section", "table", "tbody", "textarea", "thead", "tfoot", "ul", "dd",
                  "dt", "frameset", "li", "tbody", "td", "tfoot",
-                 "th", "thead", "tr", "script", "style"]
+                 "th", "thead", "tr", "script", "style", "video"]
 
 -- We want to allow raw docbook in markdown documents, so we
 -- include docbook block tags here too.
