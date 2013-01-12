@@ -119,7 +119,8 @@ writeEPUB opts doc@(Pandoc meta _) = do
   -- body pages
 
   -- add level 1 header to beginning if none there
-  let blocks' = case blocks of
+  let blocks' = addIdentifiers
+                $ case blocks of
                       (Header 1 _ _ : _) -> blocks
                       _                  -> Header 1 ("",[],[]) (docTitle meta) : blocks
 
@@ -431,6 +432,18 @@ data IdentState = IdentState{
 showChapter :: Int -> String
 showChapter = printf "ch%03d.xhtml"
 
+-- Add identifiers to any headers without them.
+addIdentifiers :: [Block] -> [Block]
+addIdentifiers bs = evalState (mapM go bs) []
+ where go (Header n (ident,classes,kvs) ils) = do
+         ids <- get
+         let ident' = if null ident
+                         then uniqueIdent ils ids
+                         else ident
+         put $ ident' : ids
+         return $ Header n (ident',classes,kvs) ils
+       go x = return x
+
 -- Go through a block list and construct a table
 -- correlating the automatically constructed references
 -- that would be used in a normal pandoc document with
@@ -444,21 +457,19 @@ correlateRefs chapterHeaderLevel bs =
               , chapterIdents = []
               , identTable = [] }
  where go :: Block -> State IdentState ()
-       go (Header n _ ils) = do
+       go (Header n (ident,_,_) ils) = do
           when (n <= chapterHeaderLevel) $
               modify $ \s -> s{ chapterNumber = chapterNumber s + 1
                               , chapterIdents = [] }
           st <- get
-          let runningid = uniqueIdent ils (runningIdents st)
           let chapterid = showChapter (chapterNumber st) ++
                           if n <= chapterHeaderLevel
                              then ""
                              else '#' : uniqueIdent ils (chapterIdents st)
-          modify $ \s -> s{ runningIdents = runningid : runningIdents st
+          modify $ \s -> s{ runningIdents = ident : runningIdents st
                           , chapterIdents = chapterid : chapterIdents st
-                          , identTable = (runningid, chapterid) :
-                                            identTable st
-                           }
+                          , identTable = (ident, chapterid) : identTable st
+                          }
        go _ = return ()
 
 -- Replace internal link references using the table produced
