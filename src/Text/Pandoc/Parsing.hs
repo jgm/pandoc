@@ -54,6 +54,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              anyOrderedListMarker,
                              orderedListMarker,
                              charRef,
+                             lineBlockLines,
                              tableWith,
                              widthsFromIndices,
                              gridTableWith,
@@ -549,6 +550,23 @@ charRef :: Parser [Char] st Inline
 charRef = do
   c <- characterReference
   return $ Str [c]
+
+lineBlockLine :: Parser [Char] st String
+lineBlockLine = try $ do
+  char '|'
+  char ' '
+  white <- many (spaceChar >> return '\160')
+  notFollowedBy newline
+  line <- anyLine
+  continuations <- many (try $ char ' ' >> anyLine)
+  return $ white ++ unwords (line : continuations)
+
+-- | Parses an RST-style line block and returns a list of strings.
+lineBlockLines :: Parser [Char] st [String]
+lineBlockLines = try $ do
+  lines' <- many1 lineBlockLine
+  skipMany1 $ blankline <|> try (char '|' >> blankline)
+  return lines'
 
 -- | Parse a table using 'headerParser', 'rowParser',
 -- 'lineParser', and 'footerParser'.
