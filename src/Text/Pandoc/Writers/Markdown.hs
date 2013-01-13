@@ -44,12 +44,16 @@ import qualified Data.Set as Set
 import Text.Pandoc.Writers.HTML (writeHtmlString)
 import Text.Pandoc.Readers.TeXMath (readTeXMath)
 import Text.HTML.TagSoup (renderTags, parseTags, isTagText, Tag(..))
+import Data.Default
 
 type Notes = [[Block]]
 type Refs = [([Inline], Target)]
 data WriterState = WriterState { stNotes :: Notes
-                               , stRefs :: Refs
+                               , stRefs  :: Refs
+                               , stIds   :: [String]
                                , stPlain :: Bool }
+instance Default WriterState
+  where def = WriterState{ stNotes = [], stRefs = [], stIds = [], stPlain = False }
 
 -- | Convert Pandoc to Markdown.
 writeMarkdown :: WriterOptions -> Pandoc -> String
@@ -57,9 +61,7 @@ writeMarkdown opts document =
   evalState (pandocToMarkdown opts{
                   writerWrapText = writerWrapText opts &&
                   not (isEnabled Ext_hard_line_breaks opts) }
-             document) WriterState{ stNotes = []
-                                  , stRefs  = []
-                                  , stPlain = False }
+             document) def
 
 -- | Convert Pandoc to plain text (like markdown, but without links,
 -- pictures, or inline formatting).
@@ -68,9 +70,7 @@ writePlain opts document =
   evalState (pandocToMarkdown opts{
                  writerExtensions = Set.delete Ext_escaped_line_breaks $
                                     writerExtensions opts }
-              document') WriterState{ stNotes = []
-                                    , stRefs  = []
-                                    , stPlain = True }
+              document') def{ stPlain = True }
     where document' = plainify document
 
 plainify :: Pandoc -> Pandoc
@@ -196,9 +196,7 @@ tableOfContents :: WriterOptions -> [Block] -> Doc
 tableOfContents opts headers =
   let opts' = opts { writerIgnoreNotes = True }
       contents = BulletList $ map (elementToListItem opts) $ hierarchicalize headers
-  in  evalState (blockToMarkdown opts' contents) WriterState{ stNotes = []
-                                                            , stRefs  = []
-                                                            , stPlain = False }
+  in  evalState (blockToMarkdown opts' contents) def
 
 -- | Converts an Element to a list item for a table of contents,
 elementToListItem :: WriterOptions -> Element -> [Block]
@@ -275,21 +273,33 @@ blockToMarkdown _ (RawBlock _ _) = return empty
 blockToMarkdown _ HorizontalRule =
   return $ blankline <> text "* * * * *" <> blankline
 blockToMarkdown opts (Header level attr inlines) = do
+  -- we calculate the id that would be used by auto_identifiers
+  -- so we know whether to print an explicit identifier
+  ids <- gets stIds
+  let autoId = uniqueIdent inlines ids
+  modify $ \st -> st{ stIds = autoId : ids }
+  let attr' = case attr of
+                   ("",[],[]) -> empty
+                   (id',[],[]) | isEnabled Ext_auto_identifiers opts
+                                 && id' == autoId -> empty
+                   _ | isEnabled Ext_header_attributes opts ->
+                                    space <> attrsToMarkdown attr
+                     | otherwise -> empty
   contents <- inlineListToMarkdown opts inlines
   st <- get
   let setext = writerSetextHeaders opts
   return $ nowrap
          $ case level of
             1 | setext ->
-                  contents <> cr <> text (replicate (offset contents) '=') <>
+                  contents <> attr' <> cr <> text (replicate (offset contents) '=') <>
                   blankline
             2 | setext ->
-                  contents <> cr <> text (replicate (offset contents) '-') <>
+                  contents <> attr' <> cr <> text (replicate (offset contents) '-') <>
                   blankline
             -- ghc interprets '#' characters in column 1 as linenum specifiers.
             _ | stPlain st || isEnabled Ext_literate_haskell opts ->
                 contents <> blankline
-            _ -> text (replicate level '#') <> space <> contents <> blankline
+            _ -> text (replicate level '#') <> space <> contents <> attr' <> blankline
 blockToMarkdown opts (CodeBlock (_,classes,_) str)
   | "haskell" `elem` classes && "literate" `elem` classes &&
     isEnabled Ext_literate_haskell opts =
