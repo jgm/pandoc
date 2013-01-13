@@ -59,8 +59,8 @@ item.
 
 Here’s one with a bullet. \* criminey.
 
-There should be a hard line break
-here.
+| There should be a hard line break
+| here.
 
 --------------
 

@@ -153,9 +153,13 @@ blockToRST (Para [Image txt (src,tit)]) = do
   let fig = "figure:: " <> text src
   let alt = ":alt: " <> if null tit then capt else text tit
   return $ hang 3 ".. " $ fig $$ alt $+$ capt $$ blankline
-blockToRST (Para inlines) = do
-  contents <- inlineListToRST inlines
-  return $ contents <> blankline
+blockToRST (Para inlines)
+  | LineBreak `elem` inlines = do -- use line block if LineBreaks 
+      lns <- mapM inlineListToRST $ splitBy (==LineBreak) inlines
+      return $ (nowrap $ vcat $ map (text "| " <>) lns) <> blankline
+  | otherwise = do
+      contents <- inlineListToRST inlines
+      return $ contents <> blankline
 blockToRST (RawBlock f str) =
   return $ blankline <> ".. raw:: " <> text f $+$
            (nest 3 $ text str) $$ blankline
@@ -346,7 +350,7 @@ inlineToRST (Math t str) = do
                    else blankline $$ (".. math:: " <> text str) $$ blankline
 inlineToRST (RawInline "rst" x) = return $ text x
 inlineToRST (RawInline _ _) = return empty
-inlineToRST (LineBreak) = return cr -- there's no line break in RST
+inlineToRST (LineBreak) = return cr -- there's no line break in RST (see Para)
 inlineToRST Space = return space
 -- autolink
 inlineToRST (Link [Str str] (src, _))
