@@ -201,27 +201,23 @@ fieldList = try $ do
 -- line block
 --
 
-lineBlockLine :: RSTParser Inlines
+lineBlockLine :: RSTParser String
 lineBlockLine = try $ do
   char '|'
-  char ' ' <|> lookAhead (char '\n')
-  white <- many spaceChar
-  line <- many1 $ (notFollowedBy newline >> inline) <|> (try $ endline >>~ char ' ')
-  optional endline
-  return $ if null white
-              then mconcat line
-              else B.str (spToNbsp white) <> mconcat line
-
-spToNbsp :: String -> String
-spToNbsp (' ':xs) = '\160' : spToNbsp xs
-spToNbsp (x:xs)   = x : spToNbsp xs
-spToNbsp []       = ""
+  char ' '
+  white <- many (spaceChar >> return '\160')
+  notFollowedBy newline
+  line <- anyLine
+  continuations <- many (try $ char ' ' >> anyLine)
+  return $ white ++ unwords (line : continuations)
 
 lineBlock :: RSTParser Blocks
 lineBlock = try $ do
   lines' <- many1 lineBlockLine
+  lines'' <- mapM (parseFromString
+                   (trimInlines . mconcat <$> many inline)) lines'
   skipMany1 $ blankline <|> try (char '|' >> blankline)
-  return $ B.para (mconcat $ intersperse B.linebreak lines')
+  return $ B.para (mconcat $ intersperse B.linebreak lines'')
 
 --
 -- paragraph block
