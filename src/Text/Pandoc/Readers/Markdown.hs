@@ -31,7 +31,7 @@ Conversion of markdown-formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Markdown ( readMarkdown,
                                       readMarkdownWithWarnings ) where
 
-import Data.List ( transpose, sortBy, findIndex, intercalate )
+import Data.List ( transpose, sortBy, findIndex, intersperse, intercalate )
 import qualified Data.Map as M
 import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum, toLower )
@@ -350,6 +350,7 @@ block = choice [ codeBlockFenced
                , header
                , rawTeXBlock
                , htmlBlock
+               , lineBlock
                , table
                , codeBlockIndented
                , lhsCodeBlock
@@ -867,6 +868,17 @@ stripMarkdownAttribute s = renderTags' $ map filterAttrib $ parseTags s
   where filterAttrib (TagOpen t as) = TagOpen t
                                         [(k,v) | (k,v) <- as, k /= "markdown"]
         filterAttrib              x = x
+
+--
+-- line block
+--
+
+lineBlock :: MarkdownParser (F Blocks)
+lineBlock = try $ do
+  guardEnabled Ext_line_blocks
+  lines' <- lineBlockLines >>=
+            mapM (parseFromString (trimInlinesF . mconcat <$> many inline))
+  return $ B.para <$> (mconcat $ intersperse (return B.linebreak) lines')
 
 --
 -- Tables

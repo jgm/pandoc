@@ -95,6 +95,7 @@ data Extension =
     | Ext_auto_identifiers    -- ^ Automatic identifiers for headers
     | Ext_header_attributes   -- ^ Explicit header attributes {#id .class k=v}
     | Ext_implicit_header_references -- ^ Implicit reference links for headers
+    | Ext_line_blocks         -- ^ RST style line blocks
     deriving (Show, Read, Enum, Eq, Ord, Bounded)
 
 pandocExtensions :: Set Extension
@@ -134,6 +135,7 @@ pandocExtensions = Set.fromList
   , Ext_auto_identifiers
   , Ext_header_attributes
   , Ext_implicit_header_references
+  , Ext_line_blocks
   ]
 
 phpMarkdownExtraExtensions :: Set Extension
