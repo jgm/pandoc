@@ -18,8 +18,8 @@ infix 4 =:
 
 tests :: [Test]
 tests = [ "line block with blank line" =:
-          "| a\n|\n|  b" =?> para (str "a" <> linebreak <>
-                                   linebreak <> str " " <> str "b")
+          "| a\n|\n|  b" =?> para (str "a") <>
+                             para (str "\160b")
         , "field list" =:
           [_LIT|
 :Hostname: media08

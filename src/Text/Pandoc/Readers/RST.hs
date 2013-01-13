@@ -206,16 +206,21 @@ lineBlockLine = try $ do
   char '|'
   char ' ' <|> lookAhead (char '\n')
   white <- many spaceChar
-  line <- many $ (notFollowedBy newline >> inline) <|> (try $ endline >>~ char ' ')
+  line <- many1 $ (notFollowedBy newline >> inline) <|> (try $ endline >>~ char ' ')
   optional endline
   return $ if null white
               then mconcat line
-              else B.str white <> mconcat line
+              else B.str (spToNbsp white) <> mconcat line
+
+spToNbsp :: String -> String
+spToNbsp (' ':xs) = '\160' : spToNbsp xs
+spToNbsp (x:xs)   = x : spToNbsp xs
+spToNbsp []       = ""
 
 lineBlock :: RSTParser Blocks
 lineBlock = try $ do
   lines' <- many1 lineBlockLine
-  blanklines
+  skipMany1 $ blankline <|> try (char '|' >> blankline)
   return $ B.para (mconcat $ intersperse B.linebreak lines')
 
 --
