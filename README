@@ -1545,7 +1545,7 @@ Headers may be omitted in multiline tables as well as simple tables:
       Second    row                 5.0 Here's another one. Note
                                         the blank line between
                                         rows.
-    -------------------------------------------------------------
+    ----------- ------- --------------- -------------------------
 
     : Here's a multiline table without headers.
 
