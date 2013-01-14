@@ -12,6 +12,8 @@ prof:
 prep: pandoc-types submodules
 	(cabal-dev --version || (cabal update && cabal install cabal-dev)) && \
 	cabal-dev update && \
+	(cd pandoc-types && git pull && cd .. && cabal-dev add-source pandoc-types) && \
+	cabal-dev install --reinstall --force-reinstall pandoc-types citeproc-hs && \
 	cabal-dev install-deps --enable-library-profiling --enable-tests --enable-benchmarks
 
 submodules:
