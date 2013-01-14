@@ -147,3 +147,18 @@ Another link to [it][My header].
 [my other header]: /foo
 
 But this is not a link to [My other header], since the reference is defined.
+
+## Explicit header attributes {#foobar .baz key="val"}
+
+## Line blocks
+
+| But can a bee be said to be
+|     or not to be an entire bee,
+|         when half the bee is not a bee,
+|             due to some ancient injury?
+|
+| Continuation
+ line
+|   and
+       another
+
