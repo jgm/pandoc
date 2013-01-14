@@ -388,10 +388,11 @@ registerImage alt (src,tit) mbtarget = do
   pics <- get >>= return . stImages
   txt <- case lookup alt pics of
                Just (s,t,mbt) | (s,t,mbt) == (src,tit,mbtarget) -> return alt
-               _ | null alt || alt == [Str ""] -> return
-                         [Str $ "image" ++ show (length pics)]
-                 | otherwise -> do
-                    modify $ \st -> st { stImages =
-                        (alt, (src,tit, mbtarget)):stImages st }
-                    return alt
+               _ -> do
+                 let alt' = if null alt || alt == [Str ""]
+                               then [Str $ "image" ++ show (length pics)]
+                               else alt
+                 modify $ \st -> st { stImages =
+                        (alt', (src,tit, mbtarget)):stImages st }
+                 return alt'
   inlineListToRST txt
