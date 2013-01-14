@@ -18,8 +18,8 @@ markdown test suite.
 Headers
 =======
 
-Level 2 with an `embedded link </url>`_
----------------------------------------
+Level 2 with an `embedded link </url>`__
+----------------------------------------
 
 Level 3 with *emphasis*
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -549,7 +549,7 @@ This is *emphasized*, and so *is this*.
 
 This is **strong**, and so **is this**.
 
-An *`emphasized link </url>`_*.
+An *`emphasized link </url>`__*.
 
 ***This is strong and em.***
 
@@ -584,7 +584,7 @@ Smart quotes, ellipses, dashes
 ‘He said, “I want to go.”’ Were you alive in the 70’s?
 
 Here is some quoted ‘``code``’ and a “`quoted
-link <http://example.com/?foo=1&bar=2>`_”.
+link <http://example.com/?foo=1&bar=2>`__”.
 
 Some dashes: one—two — three—four — five.
 
@@ -690,42 +690,42 @@ Links
 Explicit
 --------
 
-Just a `URL </url/>`_.
+Just a `URL </url/>`__.
 
-`URL and title </url/>`_.
+`URL and title </url/>`__.
 
-`URL and title </url/>`_.
+`URL and title </url/>`__.
 
-`URL and title </url/>`_.
+`URL and title </url/>`__.
 
-`URL and title </url/>`_
+`URL and title </url/>`__
 
-`URL and title </url/>`_
+`URL and title </url/>`__
 
-`with\_underscore </url/with_underscore>`_
+`with\_underscore </url/with_underscore>`__
 
-`Email link <mailto:nobody@nowhere.net>`_
+`Email link <mailto:nobody@nowhere.net>`__
 
-`Empty <>`_.
+`Empty <>`__.
 
 Reference
 ---------
 
-Foo `bar </url/>`_.
+Foo `bar </url/>`__.
 
-Foo `bar </url/>`_.
+Foo `bar </url/>`__.
 
-Foo `bar </url/>`_.
+Foo `bar </url/>`__.
 
-With `embedded [brackets] </url/>`_.
+With `embedded [brackets] </url/>`__.
 
-`b </url/>`_ by itself should be a link.
+`b </url/>`__ by itself should be a link.
 
-Indented `once </url>`_.
+Indented `once </url>`__.
 
-Indented `twice </url>`_.
+Indented `twice </url>`__.
 
-Indented `thrice </url>`_.
+Indented `thrice </url>`__.
 
 This should [not][] be a link.
 
@@ -733,21 +733,21 @@ This should [not][] be a link.
 
     [not]: /url
 
-Foo `bar </url/>`_.
+Foo `bar </url/>`__.
 
-Foo `biz </url/>`_.
+Foo `biz </url/>`__.
 
 With ampersands
 ---------------
 
 Here’s a `link with an ampersand in the
-URL <http://example.com/?foo=1&bar=2>`_.
+URL <http://example.com/?foo=1&bar=2>`__.
 
-Here’s a link with an amersand in the link text: `AT&T <http://att.com/>`_.
+Here’s a link with an amersand in the link text: `AT&T <http://att.com/>`__.
 
-Here’s an `inline link </script?foo=1&bar=2>`_.
+Here’s an `inline link </script?foo=1&bar=2>`__.
 
-Here’s an `inline link in pointy braces </script?foo=1&bar=2>`_.
+Here’s an `inline link in pointy braces </script?foo=1&bar=2>`__.
 
 Autolinks
 ---------
@@ -815,7 +815,7 @@ This paragraph should not be part of the note, as it is not indented.
 
 .. [3]
    This is *easier* to type. Inline notes may contain
-   `links <http://google.com>`_ and ``]`` verbatim characters, as well as
+   `links <http://google.com>`__ and ``]`` verbatim characters, as well as
    [bracketed text].
 
 .. [4]

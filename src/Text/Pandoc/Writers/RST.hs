@@ -367,12 +367,16 @@ inlineToRST (Link txt (src, tit)) = do
   linktext <- inlineListToRST $ normalizeSpaces txt
   if useReferenceLinks
     then do refs <- get >>= return . stLinks
-            let refs' = if (txt, (src, tit)) `elem` refs
-                           then refs
-                           else (txt, (src, tit)):refs
-            modify $ \st -> st { stLinks = refs' }
-            return $ "`" <> linktext <> "`_"
-    else return $ "`" <> linktext <> " <" <> text src <> ">`_"
+            case lookup txt refs of
+                 Just (src',tit') ->
+                   if src == src' && tit == tit'
+                      then return $ "`" <> linktext <> "`_"
+                      else do -- duplicate label, use non-reference link
+                        return $ "`" <> linktext <> " <" <> text src <> ">`__"
+                 Nothing -> do
+                   modify $ \st -> st { stLinks = (txt,(src,tit)):refs }
+                   return $ "`" <> linktext <> "`_"
+    else return $ "`" <> linktext <> " <" <> text src <> ">`__"
 inlineToRST (Image alternate (source, tit)) = do
   label <- registerImage alternate (source,tit) Nothing
   return $ "|" <> label <> "|"
