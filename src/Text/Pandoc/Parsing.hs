@@ -395,7 +395,7 @@ schemes = ["coap","doi","javascript","aaa","aaas","about","acap","cap","cid",
 -- | Parses a URI. Returns pair of original and URI-escaped version.
 uri :: Parser [Char] st (String, String)
 uri = try $ do
-  scheme <- oneOfStrings schemes
+  scheme <- oneOfStringsCI schemes
   char ':'
   -- /^[\/\w\u0080-\uffff]+|%[A-Fa-f0-9]+|&#?\w+;|(?:[,]+|[\S])[%&~\w\u0080-\uffff]/
   -- We allow punctuation except at the end, since
