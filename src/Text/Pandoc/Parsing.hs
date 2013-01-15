@@ -212,7 +212,7 @@ notFollowedBy' p  = try $ join $  do  a <- try p
 -- (This version due to Andrew Pimlott on the Haskell mailing list.)
 
 oneOfStrings' :: (Char -> Char -> Bool) -> [String] -> Parser [Char] st String
-oneOfStrings' matches []   = fail "no strings"
+oneOfStrings' _ []   = fail "no strings"
 oneOfStrings' matches strs = try $ do
   c <- anyChar
   let strs' = [xs | (x:xs) <- strs, x `matches` c]
@@ -392,10 +392,13 @@ schemes = ["coap","doi","javascript","aaa","aaas","about","acap","cap","cid",
            "ventrilo","view-source","webcal","wtai","wyciwyg","xfire","xri",
            "ymsgr"]
 
+uriScheme :: Parser [Char] st String
+uriScheme = oneOfStringsCI schemes
+
 -- | Parses a URI. Returns pair of original and URI-escaped version.
 uri :: Parser [Char] st (String, String)
 uri = try $ do
-  scheme <- oneOfStringsCI schemes
+  scheme <- uriScheme
   char ':'
   -- /^[\/\w\u0080-\uffff]+|%[A-Fa-f0-9]+|&#?\w+;|(?:[,]+|[\S])[%&~\w\u0080-\uffff]/
   -- We allow punctuation except at the end, since

@@ -1543,7 +1543,7 @@ referenceLink constructor (lab, raw) = do
 
 bareURL :: MarkdownParser (F Inlines)
 bareURL = try $ do
-  guardEnabled Ext_autolink_urls
+  guardEnabled Ext_autolink_bare_uris
   (orig, src) <- uri <|> emailAddress
   return $ return $ B.link src "" (B.str orig)
 

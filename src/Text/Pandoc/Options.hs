@@ -76,7 +76,7 @@ data Extension =
     | Ext_markdown_attribute      -- ^ Interpret text inside HTML as markdown
                                   --   iff container has attribute 'markdown'
     | Ext_escaped_line_breaks     -- ^ Treat a backslash at EOL as linebreak
-    | Ext_autolink_urls       -- ^ Make all absolute URLs into links
+    | Ext_autolink_bare_uris  -- ^ Make all absolute URIs into links
     | Ext_fancy_lists         -- ^ Enable fancy list numbers and delimiters
     | Ext_startnum            -- ^ Make start number of ordered list significant
     | Ext_definition_lists    -- ^ Definition lists as in pandoc, mmd, php
@@ -159,7 +159,7 @@ githubMarkdownExtensions = Set.fromList
   , Ext_fenced_code_blocks
   , Ext_fenced_code_attributes
   , Ext_backtick_code_blocks
-  , Ext_autolink_urls
+  , Ext_autolink_bare_uris
   , Ext_intraword_underscores
   , Ext_strikeout
   , Ext_hard_line_breaks

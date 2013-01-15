@@ -24,7 +24,7 @@ infix 4 =:
 testBareLink :: (String, Inlines) -> Test
 testBareLink (inp, ils) =
   test (readMarkdown def{ readerExtensions =
-             Set.fromList [Ext_autolink_urls] })
+             Set.fromList [Ext_autolink_bare_uris] })
        inp (inp, doc $ para ils)
 
 autolink :: String -> Inlines

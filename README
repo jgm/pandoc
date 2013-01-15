@@ -2342,8 +2342,8 @@ Note that the pandoc document model does not support
 abbreviations, so if this extension is enabled, abbreviation keys are
 simply skipped (as opposed to being parsed as paragraphs).
 
-**Extension: `autolink_urls`**\
-Makes all absolute URLs into links, even when not surrounded by
+**Extension: `autolink_bare_uris`**\
+Makes all absolute URIs into links, even when not surrounded by
 pointy braces `<...>`.
 
 Producing slide shows with Pandoc
