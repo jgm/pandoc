@@ -81,7 +81,8 @@ blockToMediaWiki _ Null = return ""
 blockToMediaWiki opts (Plain inlines) =
   inlineListToMediaWiki opts inlines
 
-blockToMediaWiki opts (Para [Image txt (src,tit)]) = do
+-- title beginning with \1 indicates that the image is a figure
+blockToMediaWiki opts (Para [Image txt (src,'\1':tit)]) = do
   capt <- if null txt
              then return ""
              else ("|caption " ++) `fmap` inlineListToMediaWiki opts txt

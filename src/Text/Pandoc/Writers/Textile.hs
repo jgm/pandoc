@@ -101,7 +101,8 @@ blockToTextile _ Null = return ""
 blockToTextile opts (Plain inlines) =
   inlineListToTextile opts inlines
 
-blockToTextile opts (Para [Image txt (src,tit)]) = do
+-- title beginning with \1 indicates that the image is a figure
+blockToTextile opts (Para [Image txt (src,'\1':tit)]) = do
   capt <- blockToTextile opts (Para txt)
   im <- inlineToTextile opts (Image txt (src,tit))
   return $ im ++ "\n" ++ capt

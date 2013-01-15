@@ -770,13 +770,23 @@ compactify'DL items =
 
 para :: MarkdownParser (F Blocks)
 para = try $ do
+  exts <- getOption readerExtensions
   result <- trimInlinesF . mconcat <$> many1 inline
-  option (B.plain <$> result) $ try $ do
-              newline
-              (blanklines >> return mempty)
-                <|> (guardDisabled Ext_blank_before_blockquote >> lookAhead blockQuote)
-                <|> (guardDisabled Ext_blank_before_header >> lookAhead header)
-              return $ B.para <$> result
+  option (B.plain <$> result)
+    $ try $ do
+            newline
+            (blanklines >> return mempty)
+              <|> (guardDisabled Ext_blank_before_blockquote >> lookAhead blockQuote)
+              <|> (guardDisabled Ext_blank_before_header >> lookAhead header)
+            return $ do
+              result' <- result
+              case B.toList result' of
+                   [Image alt (src,tit)]
+                     | Ext_implicit_figures `Set.member` exts ->
+                        -- the \1 at beginning of title indicates a figure
+                        return $ B.para $ B.singleton
+                               $ Image alt (src,'\1':tit)
+                   _ -> return $ B.para result'
 
 plain :: MarkdownParser (F Blocks)
 plain = fmap B.plain . trimInlinesF . mconcat <$> many1 inline <* spaces

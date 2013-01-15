@@ -144,7 +144,8 @@ blockToDocbook :: WriterOptions -> Block -> Doc
 blockToDocbook _ Null = empty
 blockToDocbook _ (Header _ _ _) = empty -- should not occur after hierarchicalize
 blockToDocbook opts (Plain lst) = inlinesToDocbook opts lst
-blockToDocbook opts (Para [Image txt (src,_)]) =
+-- title beginning with \1 indicates that the image is a figure
+blockToDocbook opts (Para [Image txt (src,'\1':_)]) =
   let alt  = inlinesToDocbook opts txt
       capt = if null txt
                 then empty

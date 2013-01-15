@@ -392,7 +392,8 @@ treatAsImage fp =
 blockToHtml :: WriterOptions -> Block -> State WriterState Html
 blockToHtml _ Null = return mempty
 blockToHtml opts (Plain lst) = inlineListToHtml opts lst
-blockToHtml opts (Para [Image txt (s,tit)]) = do
+-- title beginning with \1 indicates that the image is a figure
+blockToHtml opts (Para [Image txt (s,'\1':tit)]) = do
   img <- inlineToHtml opts (Image txt (s,tit))
   let tocapt = if writerHtml5 opts
                   then H5.figcaption

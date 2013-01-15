@@ -148,7 +148,8 @@ blockToRST :: Block         -- ^ Block element
            -> State WriterState Doc
 blockToRST Null = return empty
 blockToRST (Plain inlines) = inlineListToRST inlines
-blockToRST (Para [Image txt (src,tit)]) = do
+-- title beginning with \1 indicates that the image is a figure
+blockToRST (Para [Image txt (src,'\1':tit)]) = do
   capt <- inlineListToRST txt
   let fig = "figure:: " <> text src
   let alt = ":alt: " <> if null tit then capt else text tit
