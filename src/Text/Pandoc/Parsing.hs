@@ -33,6 +33,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              many1Till,
                              notFollowedBy',
                              oneOfStrings,
+                             oneOfStringsCI,
                              spaceChar,
                              nonspaceChar,
                              skipSpaces,
@@ -210,16 +211,28 @@ notFollowedBy' p  = try $ join $  do  a <- try p
                                   return (return ())
 -- (This version due to Andrew Pimlott on the Haskell mailing list.)
 
--- | Parses one of a list of strings (tried in order).
-oneOfStrings :: [String] -> Parser [Char] st String
-oneOfStrings []   = fail "no strings"
-oneOfStrings strs = do
+oneOfStrings' :: (Char -> Char -> Bool) -> [String] -> Parser [Char] st String
+oneOfStrings' matches []   = fail "no strings"
+oneOfStrings' matches strs = try $ do
   c <- anyChar
-  let strs' = [xs | (x:xs) <- strs, x == c]
+  let strs' = [xs | (x:xs) <- strs, x `matches` c]
   case strs' of
        []  -> fail "not found"
-       z | "" `elem` z -> return [c]
-         | otherwise    -> (c:) `fmap` oneOfStrings strs'
+       _   -> (c:) `fmap` oneOfStrings' matches strs'
+               <|> if "" `elem` strs'
+                      then return [c]
+                      else fail "not found"
+
+-- | Parses one of a list of strings.  If the list contains
+-- two strings one of which is a prefix of the other, the longer
+-- string will be matched if possible.
+oneOfStrings :: [String] -> Parser [Char] st String
+oneOfStrings = oneOfStrings' (==)
+
+-- | Parses one of a list of strings (tried in order), case insensitive.
+oneOfStringsCI :: [String] -> Parser [Char] st String
+oneOfStringsCI = oneOfStrings' ciMatch
+  where ciMatch x y = toLower x == toLower y
 
 -- | Parses a space or tab.
 spaceChar :: Parser [Char] st Char
