@@ -151,9 +151,9 @@ import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec
 import Text.Parsec.Pos (newPos)
-import Data.Char ( toLower, toUpper, ord, isAscii, isAlphaNum, isDigit, isPunctuation )
+import Data.Char ( toLower, toUpper, ord, isAscii, isAlphaNum, isDigit, isHexDigit,
+                   isSpace )
 import Data.List ( intercalate, transpose )
-import Network.URI ( parseURI, URI (..), isAllowedInURI, isUnescapedInURI, escapeURIString )
 import Text.Pandoc.Shared
 import qualified Data.Map as M
 import Text.TeXMath.Macros (applyMacros, Macro, parseMacroDefinitions)
@@ -354,37 +354,60 @@ emailAddress = try $ liftA2 toResult mailbox (char '@' *> domain)
        sepby1 p sep      = liftA2 (:) p (many (try $ sep >> p))
 
 
+-- Schemes from http://www.iana.org/assignments/uri-schemes.html plus
+-- the unofficial schemes coap, doi, javascript.
+schemes :: [String]
+schemes = ["coap","doi","javascript","aaa","aaas","about","acap","cap","cid",
+           "crid","data","dav","dict","dns","file","ftp","geo","go","gopher",
+           "h323","http","https","iax","icap","im","imap","info","ipp","iris",
+           "iris.beep","iris.xpc","iris.xpcs","iris.lwz","ldap","mailto","mid",
+           "msrp","msrps","mtqp","mupdate","news","nfs","ni","nih","nntp",
+           "opaquelocktoken","pop","pres","rtsp","service","session","shttp","sieve",
+           "sip","sips","sms","snmp","soap.beep","soap.beeps","tag","tel","telnet",
+           "tftp","thismessage","tn3270","tip","tv","urn","vemmi","ws","wss","xcon",
+           "xcon-userid","xmlrpc.beep","xmlrpc.beeps","xmpp","z39.50r","z39.50s",
+           "adiumxtra","afp","afs","aim","apt","attachment","aw","beshare","bitcoin",
+           "bolo","callto","chrome","chrome-extension","com-eventbrite-attendee",
+           "content", "cvs","dlna-playsingle","dlna-playcontainer","dtn","dvb",
+           "ed2k","facetime","feed","finger","fish","gg","git","gizmoproject",
+           "gtalk","hcp","icon","ipn","irc","irc6","ircs","itms","jar","jms",
+           "keyparc","lastfm","ldaps","magnet","maps","market","message","mms",
+           "ms-help","msnim","mumble","mvn","notes","oid","palm","paparazzi",
+           "platform","proxy","psyc","query","res","resource","rmi","rsync",
+           "rtmp","secondlife","sftp","sgn","skype","smb","soldat","spotify",
+           "ssh","steam","svn","teamspeak","things","udp","unreal","ut2004",
+           "ventrilo","view-source","webcal","wtai","wyciwyg","xfire","xri",
+           "ymsgr"]
+
 -- | Parses a URI. Returns pair of original and URI-escaped version.
 uri :: Parser [Char] st (String, String)
 uri = try $ do
-  let protocols = [ "http:", "https:", "ftp:", "file:", "mailto:",
-                    "news:", "telnet:" ]
-  lookAhead $ oneOfStrings protocols
-  -- Scan non-ascii characters and ascii characters allowed in a URI.
-  -- We allow punctuation except when followed by a space, since
-  -- we don't want the trailing '.' in 'http://google.com.'
-  let innerPunct = try $ satisfy isPunctuation >>~
-                         notFollowedBy (newline <|> spaceChar)
-  let uriChar = innerPunct <|>
-                satisfy (\c -> not (isPunctuation c) &&
-                            (not (isAscii c) || isAllowedInURI c))
-  -- We want to allow
+  scheme <- oneOfStrings schemes
+  char ':'
+  -- /^[\/\w\u0080-\uffff]+|%[A-Fa-f0-9]+|&#?\w+;|(?:[,]+|[\S])[%&~\w\u0080-\uffff]/
+  -- We allow punctuation except at the end, since
+  -- we don't want the trailing '.' in 'http://google.com.' We want to allow
   -- http://en.wikipedia.org/wiki/State_of_emergency_(disambiguation)
   -- as a URL, while NOT picking up the closing paren in
-  -- (http://wikipedia.org)
-  -- So we include balanced parens in the URL.
-  let inParens = try $ do char '('
-                          res <- many uriChar
-                          char ')'
-                          return $ '(' : res ++ ")"
-  str <- liftM concat $ many1 $ inParens <|> count 1 (innerPunct <|> uriChar)
+  -- (http://wikipedia.org). So we include balanced parens in the URL.
+  let isWordChar c = isAlphaNum c || c == '_' || c == '/' || not (isAscii c)
+  let wordChar = satisfy isWordChar
+  let percentEscaped = try $ char '%' >> skipMany1 (satisfy isHexDigit)
+  let entity = () <$ characterReference
+  let punct = skipMany1 (char ',')
+          <|> () <$ (satisfy (not . isSpace))
+  let uriChunk =  skipMany1 wordChar
+              <|> percentEscaped
+              <|> entity
+              <|> (try $ punct >> notFollowedBy (satisfy $ not . isWordChar))
+  str <- snd `fmap` withRaw (skipMany1 ( () <$
+                                         (enclosed (char '(') (char ')') uriChunk
+                                         <|> enclosed (char '{') (char '}') uriChunk
+                                         <|> enclosed (char '[') (char ']') uriChunk)
+                                         <|> uriChunk))
   str' <- option str $ char '/' >> return (str ++ "/")
-  -- now see if they amount to an absolute URI
-  case parseURI (escapeURIString isUnescapedInURI str') of
-       Just uri' -> if uriScheme uri' `elem` protocols
-                       then return (str', show uri')
-                       else fail "not a URI"
-       Nothing   -> fail "not a URI"
+  let uri' = scheme ++ ":" ++ str'
+  return (uri', escapeURI uri')
 
 -- | Applies a parser, returns tuple of its results and its horizontal
 -- displacement (the difference between the source column at the end

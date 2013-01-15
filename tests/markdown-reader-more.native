@@ -29,7 +29,7 @@
 ,Para [Str "`hi"]
 ,Para [Str "there`"]
 ,Header 2 ("multilingual-urls",[],[]) [Str "Multilingual",Space,Str "URLs"]
-,Para [Link [Str "http://\27979.com?\27979=\27979"] ("http://%E6%B5%8B.com?%E6%B5%8B=%E6%B5%8B","")]
+,Para [Link [Str "http://\27979.com?\27979=\27979"] ("http://\27979.com?\27979=\27979","")]
 ,Para [Link [Str "foo"] ("/bar/\27979?x=\27979","title")]
 ,Para [Link [Str "\27979@foo.\27979.baz"] ("mailto:\27979@foo.\27979.baz","")]
 ,Header 2 ("numbered-examples",[],[]) [Str "Numbered",Space,Str "examples"]
