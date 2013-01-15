@@ -56,7 +56,7 @@ data Extension =
     | Ext_pandoc_title_block  -- ^ Pandoc title block
     | Ext_mmd_title_block     -- ^ Multimarkdown metadata block
     | Ext_table_captions      -- ^ Pandoc-style table captions
-    -- | Ext_image_captions
+    | Ext_implicit_figures    -- ^ A paragraph with just an image is a figure
     | Ext_simple_tables       -- ^ Pandoc-style simple tables
     | Ext_multiline_tables    -- ^ Pandoc-style multiline tables
     | Ext_grid_tables         -- ^ Grid tables (pandoc, reST)
@@ -104,7 +104,7 @@ pandocExtensions = Set.fromList
   , Ext_inline_notes
   , Ext_pandoc_title_block
   , Ext_table_captions
-  -- , Ext_image_captions
+  , Ext_implicit_figures
   , Ext_simple_tables
   , Ext_multiline_tables
   , Ext_grid_tables

@@ -2150,7 +2150,7 @@ The link text will be used as the image's alt text:
 
 ### Pictures with captions ###
 
-**Extension**
+**Extension: `implicit_figures`**
 
 An image occurring by itself in a paragraph will be rendered as
 a figure with a caption.[^5] (In LaTeX, a figure environment will be
