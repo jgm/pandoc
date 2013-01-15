@@ -126,8 +126,8 @@ blockToTexinfo Null = return empty
 blockToTexinfo (Plain lst) =
   inlineListToTexinfo lst
 
--- title beginning with \1 indicates that the image is a figure
-blockToTexinfo (Para [Image txt (src,'\1':tit)]) = do
+-- title beginning with fig: indicates that the image is a figure
+blockToTexinfo (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   capt <- if null txt
              then return empty
              else (\c -> text "@caption" <> braces c) `fmap`

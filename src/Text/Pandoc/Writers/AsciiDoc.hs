@@ -116,7 +116,7 @@ blockToAsciiDoc _ Null = return empty
 blockToAsciiDoc opts (Plain inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   return $ contents <> cr
-blockToAsciiDoc opts (Para [Image alt (src,'\1':tit)]) =
+blockToAsciiDoc opts (Para [Image alt (src,'f':'i':'g':':':tit)]) =
   blockToAsciiDoc opts (Para [Image alt (src,tit)])
 blockToAsciiDoc opts (Para inlines) = do
   contents <- inlineListToAsciiDoc opts inlines

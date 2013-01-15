@@ -347,8 +347,8 @@ blockToOpenXML opts (Header lev (ident,_,_) lst) = do
   let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
   return $ [bookmarkStart] ++ contents ++ [bookmarkEnd]
 blockToOpenXML opts (Plain lst) = blockToOpenXML opts (Para lst)
--- title beginning with \1 indicates that the image is a figure
-blockToOpenXML opts (Para [Image alt (src,'\1':tit)]) = do
+-- title beginning with fig: indicates that the image is a figure
+blockToOpenXML opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
   paraProps <- getParaProps
   contents <- inlinesToOpenXML opts [Image alt (src,tit)]
   captionNode <- withParaProp (pStyle "ImageCaption")

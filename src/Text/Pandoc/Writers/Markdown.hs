@@ -246,8 +246,8 @@ blockToMarkdown _ Null = return empty
 blockToMarkdown opts (Plain inlines) = do
   contents <- inlineListToMarkdown opts inlines
   return $ contents <> cr
--- title beginning with \1 indicates figure
-blockToMarkdown opts (Para [Image alt (src,'\1':tit)]) =
+-- title beginning with fig: indicates figure
+blockToMarkdown opts (Para [Image alt (src,'f':'i':'g':':':tit)]) =
   blockToMarkdown opts (Para [Image alt (src,tit)])
 blockToMarkdown opts (Para inlines) = do
   contents <- inlineListToMarkdown opts inlines

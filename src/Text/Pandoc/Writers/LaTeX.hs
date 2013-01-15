@@ -277,8 +277,8 @@ blockToLaTeX :: Block     -- ^ Block to convert
              -> State WriterState Doc
 blockToLaTeX Null = return empty
 blockToLaTeX (Plain lst) = inlineListToLaTeX lst
--- title beginning with \1 indicates that the image is a figure
-blockToLaTeX (Para [Image txt (src,'\1':tit)]) = do
+-- title beginning with fig: indicates that the image is a figure
+blockToLaTeX (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   capt <- if null txt
              then return empty
              else (\c -> "\\caption" <> braces c) `fmap` inlineListToLaTeX txt

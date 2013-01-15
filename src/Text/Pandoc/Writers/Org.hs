@@ -114,8 +114,8 @@ blockToOrg :: Block         -- ^ Block element
            -> State WriterState Doc
 blockToOrg Null = return empty
 blockToOrg (Plain inlines) = inlineListToOrg inlines
--- title beginning with \1 indicates that the image is a figure
-blockToOrg (Para [Image txt (src,'\1':tit)]) = do
+-- title beginning with fig: indicates that the image is a figure
+blockToOrg (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   capt <- if null txt
              then return empty
              else (\c -> "#+CAPTION: " <> c <> blankline) `fmap`

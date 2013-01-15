@@ -131,8 +131,8 @@ blockToConTeXt :: Block
                -> State WriterState Doc
 blockToConTeXt Null = return empty
 blockToConTeXt (Plain lst) = inlineListToConTeXt lst
--- title beginning with \1 indicates that the image is a figure
-blockToConTeXt (Para [Image txt (src,'\1':_)]) = do
+-- title beginning with fig: indicates that the image is a figure
+blockToConTeXt (Para [Image txt (src,'f':'i':'g':':':_)]) = do
   capt <- inlineListToConTeXt txt
   return $ blankline $$ "\\placefigure[here,nonumber]" <> braces capt <>
            braces ("\\externalfigure" <> brackets (text src)) <> blankline
