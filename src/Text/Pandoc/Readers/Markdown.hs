@@ -768,19 +768,9 @@ compactify'DL items =
 -- paragraph block
 --
 
-{-
-isHtmlOrBlank :: Inline -> Bool
-isHtmlOrBlank (RawInline "html" _) = True
-isHtmlOrBlank (Space)         = True
-isHtmlOrBlank (LineBreak)     = True
-isHtmlOrBlank _               = False
--}
-
 para :: MarkdownParser (F Blocks)
 para = try $ do
   result <- trimInlinesF . mconcat <$> many1 inline
-  -- TODO remove this if not really needed?  and remove isHtmlOrBlank
-  -- guard $ not $ F.all isHtmlOrBlank result
   option (B.plain <$> result) $ try $ do
               newline
               (blanklines >> return mempty)
