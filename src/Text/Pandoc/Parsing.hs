@@ -161,7 +161,7 @@ import Text.HTML.TagSoup.Entity ( lookupEntity )
 import Data.Default
 import qualified Data.Set as Set
 import Control.Monad.Reader
-import Control.Applicative ((*>), (<*), liftA2)
+import Control.Applicative ((*>), (<*), (<$), liftA2)
 import Data.Monoid
 
 type Parser t s = Parsec t s
@@ -882,13 +882,7 @@ singleQuoteStart = do
   st <- getState
   -- single quote start can't be right after str
   guard $ stateLastStrPos st /= Just pos
-  try $ do charOrRef "'\8216\145"
-           notFollowedBy (oneOf ")!],;:-? \t\n")
-           notFollowedBy (char '.') <|> lookAhead (string "..." >> return ())
-           notFollowedBy (try (oneOfStrings ["s","t","m","ve","ll","re"] >>
-                               satisfy (not . isAlphaNum)))
-                               -- possess/contraction
-           return ()
+  () <$ charOrRef "'\8216\145"
 
 singleQuoteEnd :: Parser [Char] st ()
 singleQuoteEnd = try $ do
