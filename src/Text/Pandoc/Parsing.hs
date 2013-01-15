@@ -153,7 +153,7 @@ import Text.Parsec
 import Text.Parsec.Pos (newPos)
 import Data.Char ( toLower, toUpper, ord, isAscii, isAlphaNum, isDigit, isPunctuation )
 import Data.List ( intercalate, transpose )
-import Network.URI ( parseURI, URI (..), isAllowedInURI )
+import Network.URI ( parseURI, URI (..), isAllowedInURI, isUnescapedInURI, escapeURIString )
 import Text.Pandoc.Shared
 import qualified Data.Map as M
 import Text.TeXMath.Macros (applyMacros, Macro, parseMacroDefinitions)
@@ -380,7 +380,7 @@ uri = try $ do
   str <- liftM concat $ many1 $ inParens <|> count 1 (innerPunct <|> uriChar)
   str' <- option str $ char '/' >> return (str ++ "/")
   -- now see if they amount to an absolute URI
-  case parseURI (escapeURI str') of
+  case parseURI (escapeURIString isUnescapedInURI str') of
        Just uri' -> if uriScheme uri' `elem` protocols
                        then return (str', show uri')
                        else fail "not a URI"
