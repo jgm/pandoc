@@ -285,6 +285,8 @@ blockToMarkdown opts (Header level attr inlines) = do
                    ("",[],[]) -> empty
                    (id',[],[]) | isEnabled Ext_auto_identifiers opts
                                  && id' == autoId -> empty
+                   (id',_,_)   | isEnabled Ext_mmd_header_identifiers opts ->
+                                    space <> brackets (text id')
                    _ | isEnabled Ext_header_attributes opts ->
                                     space <> attrsToMarkdown attr
                      | otherwise -> empty
