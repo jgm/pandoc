@@ -15,9 +15,7 @@ $endif$
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
 $if(quotes)$
-  <style type="text/css">
-    q { quotes: "“" "”" "‘" "’"; }
-  </style>
+  <style type="text/css">q { quotes: "“" "”" "‘" "’"; }</style>
 $endif$
 $if(highlighting-css)$
   <style type="text/css">
