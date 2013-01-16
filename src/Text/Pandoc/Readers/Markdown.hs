@@ -144,7 +144,7 @@ atMostSpaces n = (char ' ' >> atMostSpaces (n-1)) <|> return ()
 litChar :: MarkdownParser Char
 litChar = escapedChar'
        <|> noneOf "\n"
-       <|> (newline >> notFollowedBy blankline >> return ' ')
+       <|> try (newline >> notFollowedBy blankline >> return ' ')
 
 -- | Parse a sequence of inline elements between square brackets,
 -- including inlines between balanced pairs of square brackets.
@@ -265,6 +265,9 @@ referenceKey = try $ do
                        manyTill (escapedChar' <|> litChar) (char '>')
   src <- try betweenAngles <|> sourceURL
   tit <- option "" referenceTitle
+  -- currently we just ignore MMD-style link/image attributes
+  _kvs <- option [] $ guardEnabled Ext_link_attributes
+                      >> many (spnl >> keyValAttr)
   blanklines
   let target = (escapeURI $ trimr src,  tit)
   st <- getState
@@ -279,11 +282,18 @@ referenceKey = try $ do
 referenceTitle :: MarkdownParser String
 referenceTitle = try $ do
   skipSpaces >> optional newline >> skipSpaces
-  tit <-    (charsInBalanced '(' ')' litChar >>= return . unwords . words)
-        <|> do delim <- char '\'' <|> char '"'
-               manyTill litChar (try (char delim >> skipSpaces >>
-                                      notFollowedBy (noneOf ")\n")))
-  return $ fromEntities tit
+  let parenTit = charsInBalanced '(' ')' litChar
+  fromEntities <$> (quotedTitle '"' <|> quotedTitle '\'' <|> parenTit)
+
+-- A link title in quotes
+quotedTitle :: Char -> MarkdownParser String
+quotedTitle c = try $ do
+  char c
+  notFollowedBy spaces
+  let pEnder = try $ char c >> notFollowedBy (satisfy isAlphaNum)
+  let regChunk = many1 (noneOf ['\\','\n',c]) <|> count 1 litChar
+  let nestedChunk = (\x -> [c] ++ x ++ [c]) <$> quotedTitle c
+  unwords . words . concat <$> manyTill (nestedChunk <|> regChunk) pEnder
 
 -- | PHP Markdown Extra style abbreviation key.  Currently
 -- we just skip them, since Pandoc doesn't have an element for
@@ -1266,7 +1276,7 @@ escapedChar' :: MarkdownParser Char
 escapedChar' = try $ do
   char '\\'
   (guardEnabled Ext_all_symbols_escapable >> satisfy (not . isAlphaNum))
-     <|> oneOf "\\`*_{}[]()>#+-.!~"
+     <|> oneOf "\\`*_{}[]()>#+-.!~\""
 
 escapedChar :: MarkdownParser (F Inlines)
 escapedChar = do
@@ -1481,37 +1491,22 @@ reference = do notFollowedBy' (string "[^")   -- footnote reference
 
 -- source for a link, with optional title
 source :: MarkdownParser (String, String)
-source =
-  (try $ charsInBalanced '(' ')' litChar >>= parseFromString source') <|>
-  -- the following is needed for cases like:  [ref](/url(a).
-  (enclosed (char '(') (char ')') litChar >>= parseFromString source')
-
--- auxiliary function for source
-source' :: MarkdownParser (String, String)
-source' = do
+source = do
+  char '('
   skipSpaces
-  let nl = char '\n' >>~ notFollowedBy blankline
-  let sourceURL = liftM unwords $ many $ try $ do
-                    notFollowedBy' linkTitle
-                    skipMany spaceChar
-                    optional nl
-                    skipMany spaceChar
-                    many1 $ escapedChar' <|> satisfy (not . isBlank)
+  let urlChunk = try $ notFollowedBy (oneOf "\"')") >>
+                          (charsInBalanced '(' ')' litChar <|> count 1 litChar)
+  let sourceURL = (unwords . words . concat) <$> many urlChunk
   let betweenAngles = try $
-         char '<' >> manyTill (escapedChar' <|> noneOf ">\n" <|> nl) (char '>')
+         char '<' >> manyTill litChar (char '>')
   src <- try betweenAngles <|> sourceURL
-  tit <- option "" linkTitle
+  tit <- option "" $ try $ spnl >> linkTitle
   skipSpaces
-  eof
+  char ')'
   return (escapeURI $ trimr src, tit)
 
 linkTitle :: MarkdownParser String
-linkTitle = try $ do
-  (many1 spaceChar >> option '\n' newline) <|> newline
-  skipSpaces
-  delim <- oneOf "'\""
-  tit <-   manyTill litChar (try (char delim >> skipSpaces >> eof))
-  return $ fromEntities tit
+linkTitle = fromEntities <$> (quotedTitle '"' <|> quotedTitle '\'')
 
 link :: MarkdownParser (F Inlines)
 link = try $ do

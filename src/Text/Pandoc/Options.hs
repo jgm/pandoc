@@ -77,6 +77,7 @@ data Extension =
     | Ext_markdown_attribute      -- ^ Interpret text inside HTML as markdown
                                   --   iff container has attribute 'markdown'
     | Ext_escaped_line_breaks     -- ^ Treat a backslash at EOL as linebreak
+    | Ext_link_attributes     -- ^ MMD style reference link attributes
     | Ext_autolink_bare_uris  -- ^ Make all absolute URIs into links
     | Ext_fancy_lists         -- ^ Enable fancy list numbers and delimiters
     | Ext_startnum            -- ^ Make start number of ordered list significant
@@ -170,6 +171,7 @@ multimarkdownExtensions = Set.fromList
   [ Ext_pipe_tables
   , Ext_raw_html
   , Ext_markdown_attribute
+  , Ext_link_attributes
   , Ext_raw_tex
   , Ext_tex_math_double_backslash
   , Ext_intraword_underscores
