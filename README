@@ -973,6 +973,9 @@ links to link to the others, as described above.
 
 Unlike regular reference links, these references are case-sensitive.
 
+Note:  if you have defined an explicit identifier for a header,
+then implicit references to it will not work.
+
 Block quotations
 ----------------
 
