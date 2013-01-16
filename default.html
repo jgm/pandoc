@@ -12,6 +12,9 @@ $if(date-meta)$
 $endif$
   <title>$if(title-prefix)$$title-prefix$ - $endif$$pagetitle$</title>
   <style type="text/css">code{white-space: pre;}</style>
+$if(quotes)$
+  <style type="text/css">q { quotes: "“" "”" "‘" "’"; }</style>
+$endif$
 $if(highlighting-css)$
   <style type="text/css">
 $highlighting-css$
