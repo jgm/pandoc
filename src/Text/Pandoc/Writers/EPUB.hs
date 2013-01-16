@@ -423,8 +423,6 @@ imageTypeOf x = case drop 1 (map toLower (takeExtension x)) of
 
 data IdentState = IdentState{
        chapterNumber :: Int,
-       runningIdents :: [String],
-       chapterIdents :: [String],
        identTable    :: [(String,String)]
        } deriving (Read, Show)
 
@@ -453,23 +451,17 @@ correlateRefs :: Int -> [Block] -> [(String,String)]
 correlateRefs chapterHeaderLevel bs =
   identTable $ execState (mapM_ go bs)
     IdentState{ chapterNumber = 0
-              , runningIdents = []
-              , chapterIdents = []
               , identTable = [] }
  where go :: Block -> State IdentState ()
-       go (Header n (ident,_,_) ils) = do
+       go (Header n (ident,_,_) _) = do
           when (n <= chapterHeaderLevel) $
-              modify $ \s -> s{ chapterNumber = chapterNumber s + 1
-                              , chapterIdents = [] }
+              modify $ \s -> s{ chapterNumber = chapterNumber s + 1 }
           st <- get
           let chapterid = showChapter (chapterNumber st) ++
                           if n <= chapterHeaderLevel
                              then ""
-                             else '#' : uniqueIdent ils (chapterIdents st)
-          modify $ \s -> s{ runningIdents = ident : runningIdents st
-                          , chapterIdents = chapterid : chapterIdents st
-                          , identTable = (ident, chapterid) : identTable st
-                          }
+                             else '#' : ident
+          modify $ \s -> s{ identTable = (ident, chapterid) : identTable st }
        go _ = return ()
 
 -- Replace internal link references using the table produced
