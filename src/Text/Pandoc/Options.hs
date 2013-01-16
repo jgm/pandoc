@@ -33,6 +33,7 @@ module Text.Pandoc.Options ( Extension(..)
                            , strictExtensions
                            , phpMarkdownExtraExtensions
                            , githubMarkdownExtensions
+                           , multimarkdownExtensions
                            , ReaderOptions(..)
                            , HTMLMathMethod (..)
                            , CiteMethod (..)
@@ -85,7 +86,6 @@ data Extension =
     | Ext_intraword_underscores  -- ^ Treat underscore inside word as literal
     | Ext_blank_before_blockquote -- ^ Require blank line before a blockquote
     | Ext_blank_before_header     -- ^ Require blank line before a header
-    -- | Ext_significant_bullets
     | Ext_strikeout           -- ^ Strikeout using ~~this~~ syntax
     | Ext_superscript         -- ^ Superscript using ^this^ syntax
     | Ext_subscript           -- ^ Subscript using ~this~ syntax
@@ -94,6 +94,7 @@ data Extension =
     | Ext_abbreviations       -- ^ PHP markdown extra abbreviation definitions
     | Ext_auto_identifiers    -- ^ Automatic identifiers for headers
     | Ext_header_attributes   -- ^ Explicit header attributes {#id .class k=v}
+    | Ext_mmd_header_identifiers -- ^ Multimarkdown style header identifiers [myid]
     | Ext_implicit_header_references -- ^ Implicit reference links for headers
     | Ext_line_blocks         -- ^ RST style line blocks
     deriving (Show, Read, Enum, Eq, Ord, Bounded)
@@ -128,7 +129,6 @@ pandocExtensions = Set.fromList
   , Ext_intraword_underscores
   , Ext_blank_before_blockquote
   , Ext_blank_before_header
-  -- , Ext_significant_bullets
   , Ext_strikeout
   , Ext_superscript
   , Ext_subscript
@@ -163,6 +163,22 @@ githubMarkdownExtensions = Set.fromList
   , Ext_intraword_underscores
   , Ext_strikeout
   , Ext_hard_line_breaks
+  ]
+
+multimarkdownExtensions :: Set Extension
+multimarkdownExtensions = Set.fromList
+  [ Ext_pipe_tables
+  , Ext_raw_html
+  , Ext_raw_tex
+  , Ext_tex_math_double_backslash
+  , Ext_intraword_underscores
+  , Ext_mmd_title_block
+  , Ext_footnotes
+  , Ext_definition_lists
+  , Ext_all_symbols_escapable
+  , Ext_implicit_header_references
+  , Ext_auto_identifiers
+  , Ext_mmd_header_identifiers
   ]
 
 strictExtensions :: Set Extension
