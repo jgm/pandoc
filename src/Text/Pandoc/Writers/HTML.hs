@@ -618,7 +618,7 @@ inlineToHtml opts inline =
                                               strToHtml "’")
                               DoubleQuote -> (strToHtml "“",
                                               strToHtml "”")
-                        in  if writerHtml5 opts
+                        in  if writerHtmlQTags opts
                                then do
                                  modify $ \st -> st{ stQuotes = True }
                                  H.q `fmap` inlineListToHtml opts lst

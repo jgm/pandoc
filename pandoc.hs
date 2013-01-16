@@ -105,6 +105,7 @@ data Opt = Opt
     , optSmart             :: Bool    -- ^ Use smart typography
     , optOldDashes         :: Bool    -- ^ Parse dashes like pandoc <=1.8.2.1
     , optHtml5             :: Bool    -- ^ Produce HTML5 in HTML
+    , optHtmlQTags         :: Bool    -- ^ Use <q> tags in HTML
     , optHighlight         :: Bool    -- ^ Highlight source code
     , optHighlightStyle    :: Style   -- ^ Style to use for highlighted code
     , optChapters          :: Bool    -- ^ Use chapter for top-level sects
@@ -159,6 +160,7 @@ defaultOpts = Opt
     , optSmart             = False
     , optOldDashes         = False
     , optHtml5             = False
+    , optHtmlQTags         = False
     , optHighlight         = True
     , optHighlightStyle    = pygments
     , optChapters          = False
@@ -430,6 +432,12 @@ options =
                        ++ "Use the html5 output format instead."
                      return opt { optHtml5 = True }))
                  "" -- "Produce HTML5 in HTML output"
+
+    , Option "" ["html-q-tags"]
+                 (NoArg
+                  (\opt -> do
+                     return opt { optHtmlQTags = True }))
+                 "" -- "Use <q> tags for quotes in HTML"
 
     , Option "" ["ascii"]
                  (NoArg
@@ -816,6 +824,7 @@ main = do
               , optSmart             = smart
               , optOldDashes         = oldDashes
               , optHtml5             = html5
+              , optHtmlQTags         = htmlQTags
               , optHighlight         = highlight
               , optHighlightStyle    = highlightStyle
               , optChapters          = chapters
@@ -1009,6 +1018,7 @@ main = do
                             writerSourceDirectory  = sourceDir,
                             writerUserDataDir      = datadir,
                             writerHtml5            = html5,
+                            writerHtmlQTags        = htmlQTags,
                             writerChapters         = chapters,
                             writerListings         = listings,
                             writerBeamer           = False,

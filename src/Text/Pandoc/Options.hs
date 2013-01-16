@@ -262,6 +262,7 @@ data WriterOptions = WriterOptions
   , writerCiteMethod       :: CiteMethod -- ^ How to print cites
   , writerBiblioFiles      :: [FilePath] -- ^ Biblio files to use for citations
   , writerHtml5            :: Bool       -- ^ Produce HTML5
+  , writerHtmlQTags        :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
   , writerBeamer           :: Bool       -- ^ Produce beamer LaTeX slide show
   , writerSlideLevel       :: Maybe Int  -- ^ Force header level of slides
   , writerChapters         :: Bool       -- ^ Use "chapter" for top-level sects
@@ -303,6 +304,7 @@ instance Default WriterOptions where
                       , writerCiteMethod       = Citeproc
                       , writerBiblioFiles      = []
                       , writerHtml5            = False
+                      , writerHtmlQTags        = False
                       , writerBeamer           = False
                       , writerSlideLevel       = Nothing
                       , writerChapters         = False
