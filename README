@@ -461,7 +461,7 @@ Options affecting specific writers
     used. The following styles are used by pandoc: [paragraph]
     Normal, Title, Authors, Date, Heading 1, Heading 2, Heading 3,
     Heading 4, Heading 5, Block Quote, Definition Term, Definition,
-    Body Text, Table Caption, Picture Caption; [character] Default
+    Body Text, Table Caption, Image Caption; [character] Default
     Paragraph Font, Body Text Char, Verbatim Char, Footnote Reference,
     Hyperlink.
 
