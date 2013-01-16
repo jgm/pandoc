@@ -396,12 +396,30 @@ atxHeader = try $ do
   attr' <- addToHeaderList attr text
   return $ B.headerWith attr' level <$> text
 
-atxClosing :: Parser [Char] st Attr
-atxClosing =
-  try $ skipMany (char '#') >> skipSpaces >> option nullAttr attributes <* blanklines
+atxClosing :: MarkdownParser Attr
+atxClosing = try $ do
+  attr' <- option nullAttr
+             (guardEnabled Ext_mmd_header_identifiers >> mmdHeaderIdentifier)
+  skipMany (char '#')
+  skipSpaces
+  attr <- option attr'
+             (guardEnabled Ext_header_attributes >> attributes)
+  blanklines
+  return attr
 
 setextHeaderEnd :: MarkdownParser Attr
-setextHeaderEnd = try $ option nullAttr attributes <* blankline
+setextHeaderEnd = try $ do
+  attr <- option nullAttr
+          $ (guardEnabled Ext_mmd_header_identifiers >> mmdHeaderIdentifier)
+           <|> (guardEnabled Ext_header_attributes >> attributes)
+  blanklines
+  return attr
+
+mmdHeaderIdentifier :: MarkdownParser Attr
+mmdHeaderIdentifier = do
+  ident <- stripFirstAndLast . snd <$> reference
+  skipSpaces
+  return (ident,[],[])
 
 setextHeader :: MarkdownParser (F Blocks)
 setextHeader = try $ do

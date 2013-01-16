@@ -169,6 +169,7 @@ multimarkdownExtensions :: Set Extension
 multimarkdownExtensions = Set.fromList
   [ Ext_pipe_tables
   , Ext_raw_html
+  , Ext_markdown_attribute
   , Ext_raw_tex
   , Ext_tex_math_double_backslash
   , Ext_intraword_underscores
