@@ -272,11 +272,17 @@ isListBlock (OrderedList _ _)  = True
 isListBlock (DefinitionList _) = True
 isListBlock _                  = False
 
+isLineBreakOrSpace :: Inline -> Bool
+isLineBreakOrSpace LineBreak = True
+isLineBreakOrSpace Space = True
+isLineBreakOrSpace _ = False
+
 -- | Convert Pandoc block element to LaTeX.
 blockToLaTeX :: Block     -- ^ Block to convert
              -> State WriterState Doc
 blockToLaTeX Null = return empty
-blockToLaTeX (Plain lst) = inlineListToLaTeX lst
+blockToLaTeX (Plain lst) =
+  inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
 blockToLaTeX (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   capt <- if null txt
@@ -285,9 +291,8 @@ blockToLaTeX (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   img <- inlineToLaTeX (Image txt (src,tit))
   return $ "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
            capt $$ "\\end{figure}"
-blockToLaTeX (Para lst) = do
-  result <- inlineListToLaTeX lst
-  return result
+blockToLaTeX (Para lst) =
+  inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 blockToLaTeX (BlockQuote lst) = do
   beamer <- writerBeamer `fmap` gets stOptions
   case lst of
