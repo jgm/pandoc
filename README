@@ -2352,6 +2352,15 @@ simply skipped (as opposed to being parsed as paragraphs).
 Makes all absolute URIs into links, even when not surrounded by
 pointy braces `<...>`.
 
+**Extension: `link_attributes`**\
+Parses multimarkdown style key-value attributes on link and image references.
+Note that pandoc's internal document model provides nowhere to put
+these, so they are presently just ignored.
+
+**Extension: `mmd_header_identifiers`**\
+Parses multimarkdown style header identifiers (in square brackets,
+after the header but before any trailing `#`s in an ATX header).
+
 Producing slide shows with Pandoc
 =================================
 
