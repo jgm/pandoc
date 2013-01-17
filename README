@@ -2510,9 +2510,9 @@ using the `-V` option:
 Literate Haskell support
 ========================
 
-If you append `+lhs` to an appropriate input or output format (`markdown`,
-`mardkown_strict`, `rst`, or `latex` for input or output; `beamer`,
-`html` or `html5` for output only), pandoc will treat the document as
+If you append `+lhs` (or `+literate_haskell`) to an appropriate input or output
+format (`markdown`, `mardkown_strict`, `rst`, or `latex` for input or output;
+`beamer`, `html` or `html5` for output only), pandoc will treat the document as
 literate Haskell source. This means that
 
   - In markdown input, "bird track" sections will be parsed as Haskell
