@@ -506,7 +506,7 @@ identifierAttr = try $ do
 classAttr :: Parser [Char] st (String, [String], [a])
 classAttr = try $ do
   char '.'
-  result <- many1 $ noneOf " \t\n\r}"
+  result <- identifier
   return ("",[result],[])
 
 keyValAttr :: Parser [Char] st (String, [a], [(String, String)])
