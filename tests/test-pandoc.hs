@@ -3,7 +3,7 @@
 module Main where
 
 import Test.Framework
-
+import GHC.IO.Encoding
 import qualified Tests.Old
 import qualified Tests.Readers.LaTeX
 import qualified Tests.Readers.Markdown
@@ -34,4 +34,6 @@ tests = [ testGroup "Old" Tests.Old.tests
         ]
 
 main :: IO ()
-main = inDirectory "tests" $ defaultMain tests
+main = do
+  setLocaleEncoding utf8
+  inDirectory "tests" $ defaultMain tests
