@@ -27,12 +27,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to RTF (rich text format).
 -}
-module Text.Pandoc.Writers.RTF ( writeRTF, rtfEmbedImage ) where
+module Text.Pandoc.Writers.RTF ( writeRTF, writeRTFWithEmbeddedImages ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Templates (renderTemplate)
+import Text.Pandoc.Generic (bottomUpM)
 import Data.List ( isSuffixOf, intercalate )
 import Data.Char ( ord, isDigit, toLower )
 import System.FilePath ( takeExtension )
@@ -63,6 +64,12 @@ rtfEmbedImage x@(Image _ (src,_)) = do
                    else RawInline "rtf" raw
      else return x
 rtfEmbedImage x = return x
+
+-- | Convert Pandoc to a string in rich text format, with
+-- images embedded as encoded binary data.
+writeRTFWithEmbeddedImages :: WriterOptions -> Pandoc -> IO String
+writeRTFWithEmbeddedImages options doc =
+  writeRTF options `fmap` bottomUpM rtfEmbedImage doc
 
 -- | Convert Pandoc to a string in rich text format.
 writeRTF :: WriterOptions -> Pandoc -> String

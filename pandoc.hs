@@ -1062,10 +1062,6 @@ main = do
 
   let doc0 = foldr ($) doc transforms
 
-  doc1 <- if "rtf" `isPrefixOf` writerName'
-             then bottomUpM rtfEmbedImage doc0
-             else return doc0
-
   let writeBinary :: B.ByteString -> IO ()
       writeBinary = B.writeFile (UTF8.encodePath outputFile)
 
@@ -1075,15 +1071,15 @@ main = do
 
   case getWriter writerName' of
     Left e -> err 9 e
-    Right (IOStringWriter f) -> f writerOptions doc1 >>= writerFn outputFile
-    Right (IOByteStringWriter f) -> f writerOptions doc1 >>= writeBinary
+    Right (IOStringWriter f) -> f writerOptions doc0 >>= writerFn outputFile
+    Right (IOByteStringWriter f) -> f writerOptions doc0 >>= writeBinary
     Right (PureStringWriter f)
       | pdfOutput -> do
-              res <- tex2pdf latexEngine $ f writerOptions doc1
+              res <- tex2pdf latexEngine $ f writerOptions doc0
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> err 43 $ UTF8.toStringLazy err'
-      | otherwise -> selfcontain (f writerOptions doc1 ++
+      | otherwise -> selfcontain (f writerOptions doc0 ++
                                   ['\n' | not standalone'])
                       >>= writerFn outputFile . handleEntities
           where htmlFormat = writerName' `elem`

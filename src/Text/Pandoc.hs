@@ -103,7 +103,6 @@ module Text.Pandoc
                -- * Miscellaneous
                , getReader
                , getWriter
-               , rtfEmbedImage
                , jsonFilter
                , ToJsonFilter(..)
              ) where
@@ -243,7 +242,7 @@ writers = [
   ,("rst"          , PureStringWriter writeRST)
   ,("mediawiki"    , PureStringWriter writeMediaWiki)
   ,("textile"      , PureStringWriter writeTextile)
-  ,("rtf"          , PureStringWriter writeRTF)
+  ,("rtf"          , IOStringWriter writeRTFWithEmbeddedImages)
   ,("org"          , PureStringWriter writeOrg)
   ,("asciidoc"     , PureStringWriter writeAsciiDoc)
   ]
