@@ -28,7 +28,9 @@ import Data.Algorithm.Diff
 lit :: QuasiQuoter
 lit = QuasiQuoter {
            quoteExp = (\a -> let b = rnl a in [|b|]) . filter (/= '\r')
-         , quotePat = error "Cannot use lit as a pattern"
+         , quotePat = error "Unimplemented"
+         , quoteType = error "Unimplemented"
+         , quoteDec = error "Unimplemented"
          }
        where rnl ('\n':xs) = xs
              rnl xs        = xs
@@ -39,7 +41,8 @@ file = quoteFile lit
 -- adapted from TH 2.5 code
 quoteFile :: QuasiQuoter -> QuasiQuoter
 quoteFile (QuasiQuoter { quoteExp = qe, quotePat = qp }) =
-  QuasiQuoter { quoteExp = get qe, quotePat = get qp }
+  QuasiQuoter { quoteExp = get qe, quotePat = get qp,
+                quoteType = error "Unimplemented", quoteDec = error "Unimplemented" }
   where
     get :: (String -> Q a) -> String -> Q a
     get old_quoter file_name = do { file_cts <- runIO (readFile file_name)
