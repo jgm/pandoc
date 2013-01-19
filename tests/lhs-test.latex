@@ -6,6 +6,8 @@
 \usepackage{fixltx2e} % provides \textsubscript
 % use microtype if available
 \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
   \usepackage[utf8]{inputenc}
 \else % if luatex or xelatex
@@ -70,7 +72,7 @@ return a single value:
 \begin{Highlighting}[]
 \OtherTok{unsplit ::} \NormalTok{(}\DataTypeTok{Arrow} \NormalTok{a) }\OtherTok{=>} \NormalTok{(b }\OtherTok{->} \NormalTok{c }\OtherTok{->} \NormalTok{d) }\OtherTok{->} \NormalTok{a (b, c) d}
 \NormalTok{unsplit }\FunctionTok{=} \NormalTok{arr }\FunctionTok{.} \FunctionTok{uncurry}       
-          \CommentTok{-- arr (\textbackslash{}op (x,y) -> x {\char18}op{\char18} y) }
+          \CommentTok{-- arr (\textbackslash{}op (x,y) -> x `op` y) }
 \end{Highlighting}
 \end{Shaded}
 
