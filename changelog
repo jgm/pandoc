@@ -211,6 +211,7 @@ pandoc (1.10)
     + The module now exports `isNull`, `toList`, `fromList`.
     + The old `Read` and `Show` instances have been removed; derived
       instances are now used.
+    + Added `headerWith`.
 
   * The readers now take a `ReaderOptions` rather than a `ParserState`
     as a parameter.  Indeed, not all parsers use the `ParserState` type;
