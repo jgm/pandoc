@@ -15,8 +15,8 @@ mkdir -p $RESOURCES
 echo Building pandoc...
 cabal-dev install-deps
 cabal-dev install --reinstall --force-reinstalls --flags="embed_data_files" citeproc-hs
-cabal-dev install --disable-library-for-ghci highlighting-kate
-cabal-dev install --prefix=/usr/local --datasubdir=$BASE --docdir=/usr/local/doc/$BASE
+cabal-dev configure --prefix=/usr/local --datasubdir=$BASE --docdir=/usr/local/doc/$BASE
+cabal-dev build
 cabal-dev copy --destdir=$ROOT
 # remove library files
 rm -r $ROOT/usr/local/lib
@@ -33,7 +33,7 @@ PACKAGEMAKER=/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/P
 
 echo Creating OSX package...
 
-$PACKAGEMAKER \
+sudo $PACKAGEMAKER \
     --root $ROOT \
     --id net.johnmacfarlane.pandoc \
     --resources $RESOURCES \
@@ -44,9 +44,9 @@ $PACKAGEMAKER \
 
 echo Creating disk image...
 
-hdiutil create "$BASE.dmg" \
+sudo hdiutil create "$BASE.dmg" \
     -format UDZO -ov \
     -volname "pandoc $VERSION" \
     -srcfolder $BASE.pkg
-hdiutil internet-enable "$BASE.dmg"
+sudo hdiutil internet-enable "$BASE.dmg"
 
