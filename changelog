@@ -179,6 +179,9 @@ pandoc (1.10)
   * LaTeX, Beamer templates: Don't require 'float' package for tables.
     We don't actually seem to use the '[H]' option.
 
+  * LaTeX:  Use `upquote` package if it is available.  This fixes
+    straight quotes in verbatim environments.
+
   * Markdown, plain: Fixed titleblock so it is just a single string.
     Previously separate title, author, and date variables were used,
     but this didn't allow different kinds of title blocks.
