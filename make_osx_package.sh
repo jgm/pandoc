@@ -14,12 +14,12 @@ mkdir -p $RESOURCES
 
 echo Building pandoc...
 sudo cabal-dev install-deps
-sudo cabal-dev install --reinstall --flags="embed_data_files" citeproc-hs
+sudo cabal-dev install --reinstall --force-reinstalls --flags="embed_data_files" citeproc-hs
 sudo cabal-dev install --disable-library-for-ghci highlighting-kate
 sudo cabal-dev install --prefix=/usr/local --datasubdir=$BASE --docdir=/usr/local/doc/$BASE
 sudo cabal-dev copy --destdir=$ROOT
 # remove library files
-sudo rm -r $ROOT/lib
+sudo rm -r $ROOT/usr/local/lib
 sudo chown -R $ME:staff $DIST
 
 gzip $ROOT/usr/local/share/man/man?/*.*
