@@ -150,6 +150,7 @@ Extra-Source-Files:
                  tests/tables.rtf,
                  tests/tables.txt,
                  tests/tables-rstsubset.native,
+                 tests/tables.fb2,
                  tests/testsuite.native,
                  tests/testsuite.txt,
                  tests/writer.latex,
@@ -168,6 +169,7 @@ Extra-Source-Files:
                  tests/writer.rst,
                  tests/writer.rtf,
                  tests/writer.texinfo,
+                 tests/writer.fb2,
                  tests/lhs-test.native,
                  tests/lhs-test-markdown.native,
                  tests/lhs-test.markdown,
@@ -180,7 +182,12 @@ Extra-Source-Files:
                  tests/lhs-test.html+lhs,
                  tests/lhs-test.fragment.html+lhs,
                  tests/pipe-tables.txt,
-                 tests/pipe-tables.native
+                 tests/pipe-tables.native,
+                 tests/fb2.basic.markdown,
+                 tests/fb2.titles.markdown,
+                 tests/fb2.images.markdown,
+                 tests/fb2.images-embedded.html,
+                 tests/fb2.math.markdown
 Extra-Tmp-Files: man/man1/pandoc.1,
                  man/man5/pandoc_markdown.5
 
