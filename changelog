@@ -1,3 +1,7 @@
+pandoc (1.10.0.1)
+
+  * Bump version bounds on test-framework packages.
+
 pandoc (1.10)
 
   [new features]
