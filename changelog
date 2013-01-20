@@ -673,6 +673,10 @@ pandoc (1.10)
     in building the pandoc executable.  (This required moving `pandoc.hs`
     from `src` to `.`.)  This cuts compile time in half.
 
+  * `-O2` is no longer used in building pandoc.  The performance improvement
+    it yields is so slight that it is not worth it.  (Measured with
+    benchmarks on ghc 7.4.)
+
   * The `executable` and `library` flags have been removed.
 
   * `-threaded` has been removed from ghc-options.
