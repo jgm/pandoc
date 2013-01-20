@@ -236,12 +236,12 @@ Library
                     template-haskell >= 2.4 && < 2.9
      cpp-options:   -DEMBED_DATA_FILES
   if impl(ghc >= 7.0.1)
-    Ghc-Options:   -O2 -rtsopts -Wall -fno-warn-unused-do-bind
+    Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   else
     if impl(ghc >= 6.12)
-      Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
+      Ghc-Options:   -Wall -fno-warn-unused-do-bind
     else
-      Ghc-Options:   -O2 -Wall
+      Ghc-Options:   -Wall
   if impl(ghc >= 7.0.1)
     Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   else
@@ -315,12 +315,12 @@ Executable pandoc
                  HTTP >= 4000.0.5 && < 4000.3,
                  citeproc-hs >= 0.3.6 && < 0.4
   if impl(ghc >= 7.0.1)
-    Ghc-Options:   -O2 -rtsopts -Wall -fno-warn-unused-do-bind
+    Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   else
     if impl(ghc >= 6.12)
-      Ghc-Options:  -O2 -Wall -fno-warn-unused-do-bind
+      Ghc-Options:  -Wall -fno-warn-unused-do-bind
     else
-      Ghc-Options:  -O2 -Wall
+      Ghc-Options:  -Wall
   if impl(ghc >= 7.0.1)
     Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   else
@@ -383,12 +383,12 @@ Test-Suite test-pandoc
                   Tests.Writers.Markdown
                   Tests.Writers.LaTeX
   if impl(ghc >= 7.0.1)
-    Ghc-Options:  -O2 -rtsopts -Wall -fno-warn-unused-do-bind
+    Ghc-Options:  -rtsopts -Wall -fno-warn-unused-do-bind
   else
     if impl(ghc >= 6.12)
-      Ghc-Options: -O2 -Wall -fno-warn-unused-do-bind
+      Ghc-Options: -Wall -fno-warn-unused-do-bind
     else
-      Ghc-Options: -O2 -Wall
+      Ghc-Options: -Wall
   if impl(ghc >= 7)
     cpp-options:   -D_LIT=lit
   else
@@ -406,10 +406,10 @@ benchmark benchmark-pandoc
                    criterion >= 0.5 && < 0.7,
                    json >= 0.4 && < 0.8
   if impl(ghc >= 7.0.1)
-    Ghc-Options:   -O2 -rtsopts -Wall -fno-warn-unused-do-bind
+    Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   else
     if impl(ghc >= 6.12)
-      Ghc-Options:   -O2 -Wall -fno-warn-unused-do-bind
+      Ghc-Options:   -Wall -fno-warn-unused-do-bind
     else
-      Ghc-Options:   -O2 -Wall
+      Ghc-Options:   -Wall
   Default-Language: Haskell98
