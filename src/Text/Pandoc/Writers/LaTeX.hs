@@ -337,8 +337,9 @@ blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
                printParams
                    | null params = empty
                    | otherwise   = brackets $ hsep (intersperse "," (map text params))
-           return $ flush ("\\begin{lstlisting}" <> printParams $$ text str $$
-                    "\\end{lstlisting}") $$ cr
+           let env = writerListingsEnv (stOptions st)
+           return $ flush (text("\\begin{" ++ env ++ "}") <> printParams $$ text str $$
+                    text("\\end{" ++ env ++ "}")) $$ cr
          highlightedCodeBlock =
            case highlight formatLaTeXBlock ("",classes,keyvalAttr) str of
                   Nothing -> rawCodeBlock

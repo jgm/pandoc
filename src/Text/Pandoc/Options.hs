@@ -286,6 +286,7 @@ data WriterOptions = WriterOptions
   , writerSlideLevel       :: Maybe Int  -- ^ Force header level of slides
   , writerChapters         :: Bool       -- ^ Use "chapter" for top-level sects
   , writerListings         :: Bool       -- ^ Use listings package for code
+  , writerListingsEnv      :: String     -- ^ Name of LaTex environment when using listings
   , writerHighlight        :: Bool       -- ^ Highlight source code
   , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
   , writerSetextHeaders    :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
@@ -328,6 +329,7 @@ instance Default WriterOptions where
                       , writerSlideLevel       = Nothing
                       , writerChapters         = False
                       , writerListings         = False
+                      , writerListingsEnv      = "lstlisting"
                       , writerHighlight        = False
                       , writerHighlightStyle   = pygments
                       , writerSetextHeaders    = True

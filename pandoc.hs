@@ -132,6 +132,7 @@ data Opt = Opt
     , optCslFile           :: Maybe FilePath
     , optAbbrevsFile       :: Maybe FilePath
     , optListings          :: Bool       -- ^ Use listings package for code blocks
+    , optListingsEnv       :: String     -- ^ Name of LaTex environment when using listings
     , optLaTeXEngine       :: String     -- ^ Program to use for latex -> pdf
     , optSlideLevel        :: Maybe Int  -- ^ Header level that creates slides
     , optSetextHeaders     :: Bool       -- ^ Use atx headers for markdown level 1-2
@@ -187,6 +188,7 @@ defaultOpts = Opt
     , optCslFile           = Nothing
     , optAbbrevsFile       = Nothing
     , optListings          = False
+    , optListingsEnv       = "lstlisting"
     , optLaTeXEngine       = "pdflatex"
     , optSlideLevel        = Nothing
     , optSetextHeaders     = True
@@ -473,6 +475,12 @@ options =
                  (NoArg
                   (\opt -> return opt { optListings = True }))
                  "" -- "Use listings package for LaTeX code blocks"
+
+    , Option "" ["listings-env"]
+                 (ReqArg
+                  (\arg opt -> return opt { optListingsEnv = arg })
+                  "STRING")
+                 "" -- "Name of listings environment for LaTeX code blocks"
 
     , Option "i" ["incremental"]
                  (NoArg
@@ -850,6 +858,7 @@ main = do
               , optAbbrevsFile       = cslabbrevs
               , optCiteMethod        = citeMethod
               , optListings          = listings
+              , optListingsEnv       = listingsEnv
               , optLaTeXEngine       = latexEngine
               , optSlideLevel        = slideLevel
               , optSetextHeaders     = setextHeaders
@@ -1021,6 +1030,7 @@ main = do
                             writerHtmlQTags        = htmlQTags,
                             writerChapters         = chapters,
                             writerListings         = listings,
+                            writerListingsEnv      = listingsEnv,
                             writerBeamer           = False,
                             writerSlideLevel       = slideLevel,
                             writerHighlight        = highlight,
