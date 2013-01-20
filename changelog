@@ -1,3 +1,7 @@
+pandoc (1.10.0.2)
+
+  * Added fb2 tests to cabal file's extra-source-files.
+
 pandoc (1.10.0.1)
 
   * Bump version bounds on test-framework packages.
