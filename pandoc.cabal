@@ -4,7 +4,7 @@ Cabal-Version:   >= 1.10
 Build-Type:      Custom
 License:         GPL
 License-File:    COPYING
-Copyright:       (c) 2006-2012 John MacFarlane
+Copyright:       (c) 2006-2013 John MacFarlane
 Author:          John MacFarlane <jgm@berkeley.edu>
 Maintainer:      John MacFarlane <jgm@berkeley.edu>
 Bug-Reports:     https://github.com/jgm/pandoc/issues
