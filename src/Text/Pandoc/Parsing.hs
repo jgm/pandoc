@@ -415,7 +415,7 @@ uri = try $ do
   let uriChunk =  skipMany1 wordChar
               <|> percentEscaped
               <|> entity
-              <|> (try $ punct >> notFollowedBy (satisfy $ not . isWordChar))
+              <|> (try $ punct >> lookAhead (satisfy isWordChar) >> return ())
   str <- snd `fmap` withRaw (skipMany1 ( () <$
                                          (enclosed (char '(') (char ')') uriChunk
                                          <|> enclosed (char '{') (char '}') uriChunk
