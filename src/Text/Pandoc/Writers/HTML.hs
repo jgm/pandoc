@@ -341,7 +341,7 @@ obfuscateLink opts txt s =
               at'      = obfuscateChar '@'
               (linkText, altText) =
                  if txt == drop 7 s' -- autolink
-                    then ("'<code>'+e+'</code>'", name' ++ " at " ++ domain')
+                    then ("e", name' ++ " at " ++ domain')
                     else ("'" ++ txt ++ "'", txt ++ " (" ++ name' ++ " at " ++
                           domain' ++ ")")
           in  case meth of
