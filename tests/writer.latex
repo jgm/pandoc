@@ -44,6 +44,7 @@
             urlcolor=blue,
             linkcolor=magenta,
             pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
 \usepackage[normalem]{ulem}
 % avoid problems with \sout in headers with hyperref:
 \pdfstringdefDisableCommands{\renewcommand{\sout}{}}
