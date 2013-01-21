@@ -1,3 +1,7 @@
+pandoc (1.10.0.4)
+
+  * Fixed bug with escaped % in LaTeX reader. Closes #710.
+
 pandoc (1.10.0.3)
 
   * Added further missing fb2 tests to cabal file.
