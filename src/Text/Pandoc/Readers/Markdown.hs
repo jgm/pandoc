@@ -1110,7 +1110,7 @@ gridTableHeader headless = try $ do
                     then replicate (length dashes) ""
                     else map (intercalate " ") $ transpose
                        $ map (gridTableSplitLine indices) rawContent
-  heads <- fmap sequence $ mapM (parseFromString block) $
+  heads <- fmap sequence $ mapM (parseFromString parseBlocks) $
                map trim rawHeads
   return (heads, aligns, indices)
 
@@ -1127,7 +1127,7 @@ gridTableRow indices = do
   colLines <- many1 (gridTableRawLine indices)
   let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
                transpose colLines
-  fmap compactify' <$> fmap sequence (mapM (parseFromString block) cols)
+  fmap compactify' <$> fmap sequence (mapM (parseFromString parseBlocks) cols)
 
 removeOneLeadingSpace :: [String] -> [String]
 removeOneLeadingSpace xs =
