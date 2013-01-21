@@ -690,6 +690,8 @@ handleIncludes = handleIncludes' []
 -- parents parameter prevents infinite include loops
 handleIncludes' :: [FilePath] -> String -> IO String
 handleIncludes' _ [] = return []
+handleIncludes' parents ('\\':'%':xs) =
+  ("\\%"++) `fmap` handleIncludes' parents xs
 handleIncludes' parents ('%':xs) = handleIncludes' parents
   $ drop 1 $ dropWhile (/='\n') xs
 handleIncludes' parents ('\\':xs) =

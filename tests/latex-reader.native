@@ -370,4 +370,6 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
  [Para [Str "Notes",Space,Str "can",Space,Str "go",Space,Str "in",Space,Str "quotes.",Note [Para [Str "In",Space,Str "quote."]]]]
 ,OrderedList (1,Decimal,Period)
  [[Para [Str "And",Space,Str "in",Space,Str "list",Space,Str "items.",Note [Para [Str "In",Space,Str "list."]]]]]
-,Para [Str "This",Space,Str "paragraph",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "part",Space,Str "of",Space,Str "the",Space,Str "note,",Space,Str "as",Space,Str "it",Space,Str "is",Space,Str "not",Space,Str "indented."]]
+,Para [Str "This",Space,Str "paragraph",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "part",Space,Str "of",Space,Str "the",Space,Str "note,",Space,Str "as",Space,Str "it",Space,Str "is",Space,Str "not",Space,Str "indented."]
+,Header 1 ("",[],[]) [Str "Escaped",Space,Str "characters"]
+,Para [Str "$",Space,Str "%",Space,Str "&",Space,Str "#",Space,Str "_",Space,Str "{",Space,Str "}"]]
