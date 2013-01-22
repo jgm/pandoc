@@ -1007,7 +1007,7 @@ other block quotes. That is, block quotes can be nested:
     >
     > > A block quote within a block quote.
 
-**Extension: `blank_line_before_blockquote`**
+**Extension: `blank_before_blockquote`**
 
 Standard markdown syntax does not require a blank line before a block
 quote.  Pandoc does require this (except, of course, at the beginning of the

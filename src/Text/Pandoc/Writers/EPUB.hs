@@ -56,7 +56,11 @@ import Network.URI ( unEscapeString )
 import Text.Pandoc.MIME (getMimeType)
 import Prelude hiding (catch)
 import Control.Exception (catch, SomeException)
+#if MIN_VERSION_blaze_html(0,5,0)
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
+#else
+import Text.Blaze.Renderer.Utf8 (renderHtml)
+#endif
 
 -- | Produce an EPUB file from a Pandoc document.
 writeEPUB :: WriterOptions  -- ^ Writer options
