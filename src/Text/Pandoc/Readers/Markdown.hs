@@ -358,12 +358,12 @@ block = choice [ codeBlockFenced
                , codeBlockBackticks
                , guardEnabled Ext_latex_macros *> (mempty <$ macro)
                , header
+               , lhsCodeBlock
                , rawTeXBlock
                , htmlBlock
                , lineBlock
                , table
                , codeBlockIndented
-               , lhsCodeBlock
                , blockQuote
                , hrule
                , bulletList
