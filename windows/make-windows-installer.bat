@@ -2,7 +2,7 @@
 cd ..
 cabal update
 cabal-dev clean
-cabal-dev install --reinstall --force-reinstall --disable-library-for-ghci highlighting-kate
+cabal-dev install --reinstall --force-reinstall highlighting-kate
 cabal-dev install --reinstall --force-reinstall --flags="embed_data_files" citeproc-hs
 cabal-dev install --reinstall --force-reinstall --flags="embed_data_files"
 strip cabal-dev\bin\pandoc.exe
