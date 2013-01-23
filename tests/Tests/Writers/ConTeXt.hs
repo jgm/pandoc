@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.ConTeXt (tests) where
 
 import Test.Framework
@@ -48,23 +48,23 @@ tests = [ testGroup "inline code"
           [ "nested" =:
             bulletList [
                plain (text "top")
-            <> bulletList [
-                 plain (text "next")
-              <> bulletList [plain (text "bot")]
-            ]
-          ] =?> [_LIT|
-\startitemize[packed]
-\item
-  top
-  \startitemize[packed]
-  \item
-    next
-    \startitemize[packed]
-    \item
-      bot
-    \stopitemize
-  \stopitemize
-\stopitemize|]
+                 <> bulletList [
+                   plain (text "next")
+                    <> bulletList [plain (text "bot")]
+                 ]
+            ] =?> unlines
+                [ "\\startitemize[packed]"
+                , "\\item"
+                , "  top"
+                , "  \\startitemize[packed]"
+                , "  \\item"
+                , "    next"
+                , "    \\startitemize[packed]"
+                , "    \\item"
+                , "      bot"
+                , "    \\stopitemize"
+                , "  \\stopitemize"
+                , "\\stopitemize" ]
           ]
         ]
 

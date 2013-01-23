@@ -384,7 +384,6 @@ Test-Suite test-pandoc
                   test-framework-quickcheck2 >= 0.2.9 && < 0.4,
                   QuickCheck >= 2.4 && < 2.6,
                   HUnit >= 1.2 && < 1.3,
-                  template-haskell >= 2.4 && < 2.9,
                   containers >= 0.1 && < 0.6,
                   ansi-terminal == 0.5.*
   Other-Modules:  Tests.Old
@@ -411,7 +410,7 @@ Test-Suite test-pandoc
   else
     cpp-options:   -D_LIT=$lit
   Default-Language: Haskell98
-  Default-Extensions: CPP, TemplateHaskell, QuasiQuotes
+  Default-Extensions: CPP
 
 benchmark benchmark-pandoc
   Type:            exitcode-stdio-1.0

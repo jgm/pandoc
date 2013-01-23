@@ -1,9 +1,7 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, TemplateHaskell #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 -- Utility functions for the test suite.
 
-module Tests.Helpers ( lit
-                     , file
-                     , test
+module Tests.Helpers ( test
                      , (=?>)
                      , property
                      , ToString(..)
@@ -20,33 +18,8 @@ import Test.HUnit (assertBool)
 import Text.Pandoc.Shared (normalize, trimr)
 import Text.Pandoc.Options
 import Text.Pandoc.Writers.Native (writeNative)
-import Language.Haskell.TH.Quote (QuasiQuoter(..))
-import Language.Haskell.TH.Syntax (Q, runIO)
 import qualified Test.QuickCheck.Property as QP
 import Data.Algorithm.Diff
-
-lit :: QuasiQuoter
-lit = QuasiQuoter {
-           quoteExp = (\a -> let b = rnl a in [|b|]) . filter (/= '\r')
-         , quotePat = error "Unimplemented"
-         , quoteType = error "Unimplemented"
-         , quoteDec = error "Unimplemented"
-         }
-       where rnl ('\n':xs) = xs
-             rnl xs        = xs
-
-file :: QuasiQuoter
-file = quoteFile lit
-
--- adapted from TH 2.5 code
-quoteFile :: QuasiQuoter -> QuasiQuoter
-quoteFile (QuasiQuoter { quoteExp = qe, quotePat = qp }) =
-  QuasiQuoter { quoteExp = get qe, quotePat = get qp,
-                quoteType = error "Unimplemented", quoteDec = error "Unimplemented" }
-  where
-    get :: (String -> Q a) -> String -> Q a
-    get old_quoter file_name = do { file_cts <- runIO (readFile file_name)
-                                  ; old_quoter file_cts }
 
 test :: (ToString a, ToString b, ToString c)
      => (a -> b)  -- ^ function to test
