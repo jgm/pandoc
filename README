@@ -1455,14 +1455,13 @@ A line containing a row of three or more `*`, `-`, or `_` characters
 Tables
 ------
 
-**Extension: `simple_tables`, `multiline_tables`, `grid_tables`,
-`pipe_tables`, `table_captions`**
-
 Four kinds of tables may be used. The first three kinds presuppose the use of
 a fixed-width font, such as Courier. The fourth kind can be used with
 proportionally spaced fonts, as it does not require lining up columns.
 
 ### Simple tables
+
+**Extension: `simple_tables`, `table_captions`**
 
 Simple tables look like this:
 
@@ -1491,7 +1490,7 @@ to the dashed line below it:[^4]
        [Markdown discussion list](http://six.pairlist.net/pipermail/markdown-discuss/2005-March/001097.html).
 
 The table must end with a blank line, or a line of dashes followed by
-a blank line. A caption may optionally be provided (as illustrated in
+a blank line.  A caption may optionally be provided (as illustrated in
 the example above). A caption is a paragraph beginning with the string
 `Table:` (or just `:`), which will be stripped off. It may appear either
 before or after the table.
@@ -1510,6 +1509,8 @@ of the first line of the table body. So, in the tables above, the columns
 would be right, left, center, and right aligned, respectively.
 
 ### Multiline tables
+
+**Extension: `multiline_tables`, `table_captions`**
 
 Multiline tables allow headers and table rows to span multiple lines
 of text (but cells that span multiple columns or rows of the table are
@@ -1561,6 +1562,8 @@ the table), or the table may be interpreted as a simple table.
 
 ### Grid tables
 
+**Extension: `grid_tables`, `table_captions`**
+
 Grid tables look like this:
 
     : Sample grid table.
@@ -1584,6 +1587,8 @@ columns or rows. Grid tables can be created easily using [Emacs table mode].
   [Emacs table mode]: http://table.sourceforge.net/
 
 ### Pipe tables
+
+**Extension: `pipe_tables`, `table_captions`**
 
 Pipe tables look like this:
 
