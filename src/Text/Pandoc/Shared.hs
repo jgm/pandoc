@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, CPP, TemplateHaskell #-}
+{-# LANGUAGE DeriveDataTypeable, CPP #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -103,7 +103,7 @@ import qualified Data.ByteString as B
 import Network.HTTP (findHeader, rspBody, simpleHTTP, RequestMethod(..),
                      HeaderName(..), mkRequest)
 #ifdef EMBED_DATA_FILES
-import Data.FileEmbed
+import Text.Pandoc.Data (dataFiles)
 #else
 import Paths_pandoc (getDataFileName)
 #endif
@@ -514,11 +514,6 @@ inDirectory path action = do
   result <- action
   setCurrentDirectory oldDir
   return result
-
-#ifdef EMBED_DATA_FILES
-dataFiles :: [(FilePath, B.ByteString)]
-dataFiles = $(embedDir "data")
-#endif
 
 readDefaultDataFile :: FilePath -> IO B.ByteString
 readDefaultDataFile fname =

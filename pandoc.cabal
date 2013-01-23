@@ -314,6 +314,9 @@ Library
                    Text.Pandoc.Slides,
                    Paths_pandoc
 
+  if flag(embed_data_files)
+    Other-Modules: Text.Pandoc.Data
+
   Buildable:       True
 
 Executable pandoc
