@@ -94,6 +94,7 @@ It is possible to compile pandoc such that the data files
 pandoc uses are embedded in the binary.  The resulting binary
 can be run from any directory and is completely self-contained.
 
+    cabal install hsb2hs  # a required build tool
     cabal install --flags="embed_data_files" citeproc-hs
     cabal configure --flags="embed_data_files"
     cabal build
