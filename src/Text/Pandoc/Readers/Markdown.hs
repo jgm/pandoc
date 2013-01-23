@@ -355,7 +355,6 @@ parseBlocks = mconcat <$> manyTill block eof
 
 block :: MarkdownParser (F Blocks)
 block = choice [ codeBlockFenced
-               , codeBlockBackticks
                , guardEnabled Ext_latex_macros *> (mempty <$ macro)
                , header
                , lhsCodeBlock
@@ -520,26 +519,17 @@ keyValAttr = try $ do
 
 codeBlockFenced :: MarkdownParser (F Blocks)
 codeBlockFenced = try $ do
-  guardEnabled Ext_fenced_code_blocks
-  size <- blockDelimiter (=='~') Nothing
+  c <- try (guardEnabled Ext_fenced_code_blocks >> lookAhead (char '~'))
+     <|> (guardEnabled Ext_backtick_code_blocks >> lookAhead (char '`'))
+  size <- blockDelimiter (== c) Nothing
   skipMany spaceChar
   attr <- option ([],[],[]) $
-            guardEnabled Ext_fenced_code_attributes >> attributes
+            try (guardEnabled Ext_fenced_code_attributes >> attributes)
+           <|> ((\x -> ("",[x],[])) <$> identifier)
   blankline
-  contents <- manyTill anyLine (blockDelimiter (=='~') (Just size))
+  contents <- manyTill anyLine (blockDelimiter (== c) (Just size))
   blanklines
   return $ return $ B.codeBlockWith attr $ intercalate "\n" contents
-
-codeBlockBackticks :: MarkdownParser (F Blocks)
-codeBlockBackticks = try $ do
-  guardEnabled Ext_backtick_code_blocks
-  blockDelimiter (=='`') (Just 3)
-  skipMany spaceChar
-  cls <- many1 alphaNum
-  blankline
-  contents <- manyTill anyLine $ blockDelimiter (=='`') (Just 3)
-  blanklines
-  return $ return $ B.codeBlockWith ("",[cls],[]) $ intercalate "\n" contents
 
 codeBlockIndented :: MarkdownParser (F Blocks)
 codeBlockIndented = do
