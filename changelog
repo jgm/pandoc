@@ -1,3 +1,56 @@
+pandoc (1.10.0.5)
+
+  * Markdown reader: Try `lhsCodeBlock` before `rawTeXBlock`.  Otherwise
+    `\begin{code}...\end{code}` isn't handled properly in markdown+lhs.
+    Thanks to Daniel Miot for noticing the bug and suggesting the fix.
+
+  * Markdown reader: Fixed bug with headerless grid tables.
+    The 1.10 code assumed that each table header cell contains exactly one
+    block. That failed for headerless tables (0) and also for tables with
+    multiple blocks in a header cell.  The code is fixed and tests provided.
+    Thanks to Andrew Lee for pointing out the bug.
+
+  * Markdown reader: Fixed regressions in fenced code blocks. Closes #722.
+    
+    + Tilde code fences can again take a bare language string
+      (`~~~ haskell`), not just curly-bracketed attributes
+      (`~~~ {.haskell}`).
+    + Backtick code blocks can take the curly-bracketed attributes.
+    + Backtick code blocks don't *require* a language.
+    + Consolidated code for the two kinds of fenced code blocks.
+
+  * LaTeX template: Use `\urlstyle{same}` to avoid monospace URLs.
+
+  * Markdown writer: Use proportional font for email autolinks with
+    obfuscation.  Closes #714.
+
+  * Corrected name of `blank_before_blockquote` in README.  Closes #718.
+
+  * `Text.Pandoc.Shared`: Fixed bug in `uri` parser.
+    The bug prevented an autolink at the end of a string (e.g.
+    at the end of a line block line) from counting as a link.  Closes #711.
+
+  * Use the `hsb2hs` preprocessor instead of TH for embed_data_files.
+    This should work on Windows, unlike the TH solution with
+    file-embed.
+
+  * Eliminated use of TH in test suite.
+
+  * Added `Text.Pandoc.Data` (non-exported) to hold the association
+    list of embedded data files, if the `embed_data_files` flag is selected.
+    This isolates the code that needs special treatment with file-embed or
+    `hsb2hs`.
+
+  * Changes to `make-windows-installer.bat`.
+    
+    + Exit batch file if any of the cabal-dev installs fail.
+    + There's no longer any need to reinstall `highlighting-kate`.
+    + Don't start with a `cabal update`; leave that to the user.
+    + Force reinstall of pandoc.
+
+  * Fixed EPUB writer so it builds with blaze-html 0.4.x. Thanks to
+    Jens Petersen.
+
 pandoc (1.10.0.4)
 
   * Fixed bug with escaped % in LaTeX reader. Closes #710.
