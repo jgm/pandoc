@@ -1,7 +1,7 @@
 # This Makefile is for development only.  It requires cabal-dev.
 # To get started, do 'make prep' and then 'make' or 'make quick'.
 
-.PHONY: prep, submodules, all, quick, bench, clean, veryclean, install
+.PHONY: prep, submodules, all, quick, bench, clean, veryclean, install, sdist
 
 all:
 	cabal-dev configure --enable-tests --enable-benchmarks && cabal-dev build
@@ -25,6 +25,10 @@ relocatable:
 
 bench:
 	cabal-dev configure --enable-benchmarks && cabal-dev build
+
+sdist:
+	dist/setup/setup sdist
+	# cabal sdist won't work, see https://github.com/haskell/cabal/issues/403
 
 clean:
 	cabal-dev clean
