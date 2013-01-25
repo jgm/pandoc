@@ -357,7 +357,7 @@ Executable make-pandoc-man-pages
                  base >= 4.2 && < 5,
                  directory >= 1 && < 1.3,
                  filepath >= 1.1 && < 1.4,
-                 old-time >= 1.1 && < 1.2,
+                 old-time >= 1.0 && < 1.2,
                  time >= 1.2 && < 1.5
   Default-Language: Haskell98
   Default-Extensions: CPP
