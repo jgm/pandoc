@@ -7,11 +7,14 @@ import System.FilePath
 import System.Environment (getArgs)
 import Text.Pandoc.Shared (normalize)
 import Data.Maybe ( catMaybes )
-import Data.Time.Clock (UTCTime(..))
 import Prelude hiding (catch)
 import Control.Exception ( catch )
 import System.IO.Error ( isDoesNotExistError )
+#if MIN_VERSION_directory(1,2,0)
+import Data.Time.Clock (UTCTime(..))
+#else
 import System.Time (ClockTime(..))
+#endif
 import System.Directory
 
 main :: IO ()
