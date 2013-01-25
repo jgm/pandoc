@@ -1,7 +1,7 @@
 # This Makefile is for development only.  It requires cabal-dev.
 # To get started, do 'make prep' and then 'make' or 'make quick'.
 
-.PHONY: prep, submodules, all, quick, bench, clean, veryclean, install, sdist
+.PHONY: prep submodules all quick bench clean veryclean install sdist
 
 all:
 	cabal-dev configure --enable-tests --enable-benchmarks && cabal-dev build
