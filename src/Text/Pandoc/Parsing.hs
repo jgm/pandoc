@@ -190,7 +190,14 @@ a >>~ b = a >>= \x -> b >> return x
 
 -- | Parse any line of text
 anyLine :: Parser [Char] st [Char]
-anyLine = manyTill anyChar newline
+anyLine = do
+  -- This is much faster than:
+  -- manyTill anyChar newline
+  inp <- getInput
+  let (this, rest) = break (=='\n') inp
+  setInput rest
+  void (char '\n') <|> (guard (not $ null this) >> eof)
+  return this
 
 -- | Like @manyTill@, but reads at least one item.
 many1Till :: Parser [tok] st a
