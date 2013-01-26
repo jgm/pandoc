@@ -644,9 +644,9 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
                      then empty
                      else text $ " \"" ++ tit ++ "\""
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
-  let useAuto = case (tit,txt) of
-                      ("", [Str s]) | escapeURI s == srcSuffix -> True
-                      _                                        -> False
+  let useAuto = case txt of
+                      [Str s] | escapeURI s == srcSuffix -> True
+                      _                                  -> False
   let useRefLinks = writerReferenceLinks opts && not useAuto
   ref <- if useRefLinks then getReference txt (src, tit) else return []
   reftext <- inlineListToMarkdown opts ref
