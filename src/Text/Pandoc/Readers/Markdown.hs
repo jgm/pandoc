@@ -1186,7 +1186,11 @@ pipeTableHeaderPart = do
 
 -- Succeed only if current line contains a pipe.
 scanForPipe :: Parser [Char] st ()
-scanForPipe = lookAhead (manyTill (satisfy (/='\n')) (char '|')) >> return ()
+scanForPipe = do
+  inp <- getInput
+  case break (\c -> c == '\n' || c == '|') inp of
+       (_,'|':_) -> return ()
+       _         -> mzero
 
 -- | Parse a table using 'headerParser', 'rowParser',
 -- 'lineParser', and 'footerParser'.  Variant of the version in
