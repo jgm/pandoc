@@ -1422,11 +1422,14 @@ nonEndline = satisfy (/='\n')
 
 str :: MarkdownParser (F Inlines)
 str = do
-  isSmart <- readerSmart . stateOptions <$> getState
+  isSmart <- getOption readerSmart
+  intrawordUnderscores <- option False $
+                          True <$ guardEnabled Ext_intraword_underscores
   a <- alphaNum
   as <- many $ alphaNum
-            <|> (guardEnabled Ext_intraword_underscores >>
-                 try (char '_' >>~ lookAhead alphaNum))
+            <|> (if intrawordUnderscores
+                    then try (char '_' >>~ lookAhead alphaNum)
+                    else mzero)
             <|> if isSmart
                    then (try $ satisfy (\c -> c == '\'' || c == '\x2019') >>
                          lookAhead alphaNum >> return '\x2019')
