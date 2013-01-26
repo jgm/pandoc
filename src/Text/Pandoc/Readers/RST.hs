@@ -155,7 +155,7 @@ rawFieldListItem indent = try $ do
   char ':'
   name <- many1Till (noneOf "\n") (char ':')
   (() <$ lookAhead newline) <|> skipMany1 spaceChar
-  first <- manyTill anyChar newline
+  first <- anyLine
   rest <- option "" $ try $ do lookAhead (string indent >> spaceChar)
                                indentedBlock
   let raw = (if null first then "" else (first ++ "\n")) ++ rest ++ "\n"
@@ -302,7 +302,7 @@ hrule = try $ do
 indentedLine :: String -> Parser [Char] st [Char]
 indentedLine indents = try $ do
   string indents
-  manyTill anyChar newline
+  anyLine
 
 -- one or more indented lines, possibly separated by blank lines.
 -- any amount of indentation will work.
@@ -339,7 +339,7 @@ lhsCodeBlock = try $ do
          $ intercalate "\n" lns'
 
 birdTrackLine :: Parser [Char] st [Char]
-birdTrackLine = char '>' >> manyTill anyChar newline
+birdTrackLine = char '>' >> anyLine
 
 --
 -- block quotes
@@ -394,7 +394,7 @@ listLine :: Int -> RSTParser [Char]
 listLine markerLength = try $ do
   notFollowedBy blankline
   indentWith markerLength
-  line <- manyTill anyChar newline
+  line <- anyLine
   return $ line ++ "\n"
 
 -- indent by specified number of spaces (or equiv. tabs)
@@ -411,7 +411,7 @@ rawListItem :: RSTParser Int
             -> RSTParser (Int, [Char])
 rawListItem start = try $ do
   markerLength <- start
-  firstLine <- manyTill anyChar newline
+  firstLine <- anyLine
   restLines <- many (listLine markerLength)
   return (markerLength, (firstLine ++ "\n" ++ (concat restLines)))
 

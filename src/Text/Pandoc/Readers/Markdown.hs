@@ -463,7 +463,7 @@ hrule = try $ do
 --
 
 indentedLine :: MarkdownParser String
-indentedLine = indentSpaces >> manyTill anyChar newline >>= return . (++ "\n")
+indentedLine = indentSpaces >> anyLine >>= return . (++ "\n")
 
 blockDelimiter :: (Char -> Bool)
                -> Maybe Int
@@ -581,7 +581,7 @@ birdTrackLine c = try $ do
   char c
   -- allow html tags on left margin:
   when (c == '<') $ notFollowedBy letter
-  manyTill anyChar newline
+  anyLine
 
 --
 -- block quotes
@@ -681,7 +681,7 @@ listContinuationLine = try $ do
   notFollowedBy blankline
   notFollowedBy' listStart
   optional indentSpaces
-  result <- manyTill anyChar newline
+  result <- anyLine
   return $ result ++ "\n"
 
 listItem :: MarkdownParser a

@@ -180,7 +180,7 @@ para = B.para . trimInlines . mconcat <$> many1 inline
 table :: MWParser Blocks
 table = do
   tableStart
-  styles <- manyTill anyChar newline
+  styles <- anyLine
   let tableWidth = case lookup "width" $ parseAttrs styles of
                          Just w  -> maybe 1.0 id $ parseWidth w
                          Nothing -> 1.0
@@ -242,7 +242,7 @@ tableCaption = try $ do
   guardColumnOne
   sym "|+"
   skipMany spaceChar
-  res <- manyTill anyChar newline >>= parseFromString (many inline)
+  res <- anyLine >>= parseFromString (many inline)
   return $ trimInlines $ mconcat res
 
 tableRow :: MWParser [((Alignment, Double), Blocks)]
@@ -375,7 +375,7 @@ defListItem = try $ do
   return (terms, defs)
 
 defListTerm  :: MWParser Inlines
-defListTerm = char ';' >> skipMany spaceChar >> manyTill anyChar newline >>=
+defListTerm = char ';' >> skipMany spaceChar >> anyLine >>=
   parseFromString (trimInlines . mconcat <$> many inline)
 
 listStart :: Char -> MWParser ()
