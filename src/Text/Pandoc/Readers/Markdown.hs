@@ -736,7 +736,6 @@ defListMarker = do
 
 definitionListItem :: MarkdownParser (F (Inlines, [Blocks]))
 definitionListItem = try $ do
-  guardEnabled Ext_definition_lists
   -- first, see if this has any chance of being a definition list:
   lookAhead (anyLine >> optional blankline >> defListMarker)
   term <- trimInlinesF . mconcat <$> manyTill inline newline
@@ -763,6 +762,7 @@ defRawBlock = try $ do
 
 definitionList :: MarkdownParser (F Blocks)
 definitionList = do
+  guardEnabled Ext_definition_lists
   items <- fmap sequence $ many1 definitionListItem
   return $ B.definitionList <$> fmap compactify'DL items
 
