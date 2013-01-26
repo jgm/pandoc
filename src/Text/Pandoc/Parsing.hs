@@ -197,7 +197,7 @@ anyLine = do
   pos <- getPosition
   let (this, rest) = break (=='\n') inp
   setInput rest
-  let newpos = setSourceLine (setSourceColumn pos 0) (sourceLine pos + 1)
+  let newpos = incSourceLine (setSourceColumn pos 0) 1
   setPosition newpos
   void (char '\n') <|> (guard (not $ null this) >> eof)
   return this
