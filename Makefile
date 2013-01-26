@@ -7,7 +7,7 @@ all:
 	cabal-dev configure --enable-tests --enable-benchmarks && cabal-dev build
 
 prof:
-	cabal-dev configure --enable-tests --enable-library-profiling --enable-executable-profiling && cabal-dev build
+	cabal-dev configure --disable-tests --enable-library-profiling --enable-executable-profiling && cabal-dev build
 
 prep: submodules
 	(cabal-dev --version || (cabal update && cabal install cabal-dev)) && \
