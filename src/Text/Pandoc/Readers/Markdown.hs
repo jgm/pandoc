@@ -1041,7 +1041,7 @@ multilineTableHeader headless = try $ do
   let aligns   = zipWith alignType rawHeadsList lengths
   let rawHeads = if headless
                     then replicate (length dashes) ""
-                    else map (intercalate " ") rawHeadsList
+                    else map unwords rawHeadsList
   heads <- fmap sequence $
            mapM (parseFromString (mconcat <$> many plain)) $
              map trim rawHeads
@@ -1098,10 +1098,9 @@ gridTableHeader headless = try $ do
   -- RST does not have a notion of alignments
   let rawHeads = if headless
                     then replicate (length dashes) ""
-                    else map (intercalate " ") $ transpose
+                    else map unwords $ transpose
                        $ map (gridTableSplitLine indices) rawContent
-  heads <- fmap sequence $ mapM (parseFromString parseBlocks) $
-               map trim rawHeads
+  heads <- fmap sequence $ mapM (parseFromString parseBlocks . trim) rawHeads
   return (heads, aligns, indices)
 
 gridTableRawLine :: [Int] -> MarkdownParser [String]
@@ -1622,9 +1621,9 @@ rawHtmlInline = do
   guardEnabled Ext_raw_html
   mdInHtml <- option False $
                 guardEnabled Ext_markdown_in_html_blocks >> return True
-  (_,result) <- if mdInHtml
-                   then htmlTag isInlineTag
-                   else htmlTag (not . isTextTag)
+  (_,result) <- htmlTag $ if mdInHtml
+                             then isInlineTag
+                             else not . isTextTag
   return $ return $ B.rawInline "html" result
 
 -- Citations
