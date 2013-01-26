@@ -962,6 +962,7 @@ explicitLink = try $ do
   src <- manyTill (noneOf ">\n") (char '>')
   skipSpaces
   string "`_"
+  optional $ char '_' -- anonymous form
   return $ B.link (escapeURI $ trim src) "" label'
 
 referenceLink :: RSTParser Inlines
