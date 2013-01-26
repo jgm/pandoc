@@ -195,12 +195,14 @@ anyLine = do
   -- manyTill anyChar newline
   inp <- getInput
   pos <- getPosition
-  let (this, rest) = break (=='\n') inp
-  setInput rest
-  let newpos = incSourceLine (setSourceColumn pos 0) 1
-  setPosition newpos
-  void (char '\n') <|> (guard (not $ null this) >> eof)
-  return this
+  case break (=='\n') inp of
+       (this, '\n':rest) -> do
+         -- needed to persuade parsec that this won't match an empty string:
+         anyChar
+         setInput rest
+         setPosition $ incSourceLine (setSourceColumn pos 1) 1
+         return this
+       _ -> mzero
 
 -- | Like @manyTill@, but reads at least one item.
 many1Till :: Parser [tok] st a
