@@ -1381,8 +1381,14 @@ emph = fmap B.emph <$> nested
   (inlinesBetween starStart starEnd <|> inlinesBetween ulStart ulEnd)
     where starStart = char '*' >> lookAhead nonspaceChar
           starEnd   = notFollowedBy' (() <$ strong) >> char '*'
-          ulStart   = char '_' >> lookAhead nonspaceChar
+          ulStart   = checkIntraword >> char '_' >> lookAhead nonspaceChar
           ulEnd     = notFollowedBy' (() <$ strong) >> char '_'
+          checkIntraword = do
+            exts <- getOption readerExtensions
+            when (Ext_intraword_underscores `Set.member` exts) $ do
+              pos <- getPosition
+              lastStrPos <- stateLastStrPos <$> getState
+              guard $ lastStrPos /= Just pos
 
 strong :: MarkdownParser (F Inlines)
 strong = fmap B.strong <$> nested
@@ -1421,23 +1427,11 @@ nonEndline = satisfy (/='\n')
 
 str :: MarkdownParser (F Inlines)
 str = do
-  isSmart <- getOption readerSmart
-  intrawordUnderscores <- option False $
-                          True <$ guardEnabled Ext_intraword_underscores
-  a <- alphaNum
-  as <- many $ alphaNum
-            <|> (if intrawordUnderscores
-                    then try (char '_' >>~ lookAhead alphaNum)
-                    else mzero)
-            <|> if isSmart
-                   then (try $ satisfy (\c -> c == '\'' || c == '\x2019') >>
-                         lookAhead alphaNum >> return '\x2019')
-                         -- for things like l'aide
-                   else mzero
+  result <- many1 alphaNum
   pos <- getPosition
   updateState $ \s -> s{ stateLastStrPos = Just pos }
-  let result = a:as
   let spacesToNbr = map (\c -> if c == ' ' then '\160' else c)
+  isSmart <- getOption readerSmart
   if isSmart
      then case likelyAbbrev result of
                []        -> return $ return $ B.str result
