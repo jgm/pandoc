@@ -177,7 +177,12 @@ blockToRST (CodeBlock (_,classes,_) str) = do
   if "haskell" `elem` classes && "literate" `elem` classes &&
                   isEnabled Ext_literate_haskell opts
      then return $ prefixed "> " (text str) $$ blankline
-     else return $ "::" $+$ nest tabstop (text str) $$ blankline
+     else return $
+          (case [c | c <- classes,
+                     c `notElem` ["sourceCode","literate","numberLines"]] of
+             []       -> "::"
+             (lang:_) -> ".. code:: " <> text lang)
+          $+$ nest tabstop (text str) $$ blankline
 blockToRST (BlockQuote blocks) = do
   tabstop <- get >>= (return . writerTabStop . stOptions)
   contents <- blockListToRST blocks

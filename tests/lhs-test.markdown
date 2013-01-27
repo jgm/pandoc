@@ -6,8 +6,8 @@ a single value:
 
 ~~~~ {.sourceCode .literate .haskell}
 unsplit :: (Arrow a) => (b -> c -> d) -> a (b, c) d
-unsplit = arr . uncurry       
-          -- arr (\op (x,y) -> x `op` y) 
+unsplit = arr . uncurry
+          -- arr (\op (x,y) -> x `op` y)
 ~~~~
 
 `(***)` combines two arrows into a new arrow by running the two arrows on a
