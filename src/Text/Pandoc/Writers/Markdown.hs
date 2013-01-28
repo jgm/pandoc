@@ -141,7 +141,10 @@ pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
   let context  = writerVariables opts ++
                  [ ("toc", render colwidth toc)
                  , ("body", main)
+                 , ("title", render Nothing title')
+                 , ("date", render Nothing date')
                  ] ++
+                 [ ("author", render Nothing a) | a <- authors' ] ++
                  [ ("titleblock", render colwidth titleblock)
                    | not (null title && null authors && null date) ]
   if writerStandalone opts
