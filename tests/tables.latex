@@ -1,6 +1,6 @@
 Simple table with caption:
 
-\begin{longtable}[c]{rlcl}
+\begin{longtable}[c]{@{}rlcl@{}}
 \hline\noalign{\medskip}
 Right & Left & Center & Default
 \\\noalign{\medskip}
@@ -18,7 +18,7 @@ Right & Left & Center & Default
 
 Simple table without caption:
 
-\begin{longtable}[c]{rlcl}
+\begin{longtable}[c]{@{}rlcl@{}}
 \hline\noalign{\medskip}
 Right & Left & Center & Default
 \\\noalign{\medskip}
@@ -34,7 +34,7 @@ Right & Left & Center & Default
 
 Simple table indented two spaces:
 
-\begin{longtable}[c]{rlcl}
+\begin{longtable}[c]{@{}rlcl@{}}
 \hline\noalign{\medskip}
 Right & Left & Center & Default
 \\\noalign{\medskip}
@@ -52,7 +52,7 @@ Right & Left & Center & Default
 
 Multiline table with caption:
 
-\begin{longtable}[c]{clrl}
+\begin{longtable}[c]{@{}clrl@{}}
 \hline\noalign{\medskip}
 \begin{minipage}[b]{0.15\columnwidth}\centering
 Centered Header
@@ -92,7 +92,7 @@ Here's another one. Note the blank line between rows.
 
 Multiline table without caption:
 
-\begin{longtable}[c]{clrl}
+\begin{longtable}[c]{@{}clrl@{}}
 \hline\noalign{\medskip}
 \begin{minipage}[b]{0.15\columnwidth}\centering
 Centered Header
@@ -130,7 +130,7 @@ Here's another one. Note the blank line between rows.
 
 Table without column headers:
 
-\begin{longtable}[c]{rlcr}
+\begin{longtable}[c]{@{}rlcr@{}}
 \hline\noalign{\medskip}
 12 & 12 & 12 & 12
 \\\noalign{\medskip}
@@ -143,7 +143,7 @@ Table without column headers:
 
 Multiline table without column headers:
 
-\begin{longtable}[c]{clrl}
+\begin{longtable}[c]{@{}clrl@{}}
 \hline\noalign{\medskip}
 \begin{minipage}[t]{0.15\columnwidth}\centering
 First
