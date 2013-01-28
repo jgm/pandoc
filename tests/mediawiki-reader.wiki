@@ -362,6 +362,9 @@ and cheese
 |Ice cream
 |}
 
+{|
+|Orange
+|}Paragraph after the table.
 
 == notes ==
 

@@ -222,7 +222,7 @@ tableStart :: MWParser ()
 tableStart = try $ guardColumnOne *> sym "{|"
 
 tableEnd :: MWParser ()
-tableEnd = try $ guardColumnOne *> sym "|}" <* blanklines
+tableEnd = try $ guardColumnOne *> sym "|}"
 
 rowsep :: MWParser ()
 rowsep = try $ guardColumnOne *> sym "|-" <* blanklines
