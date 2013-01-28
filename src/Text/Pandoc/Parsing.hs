@@ -148,7 +148,7 @@ where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Builder (Blocks, Inlines)
+import Text.Pandoc.Builder (Blocks, Inlines, rawBlock)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec
 import Text.Parsec.Pos (newPos)
@@ -1007,7 +1007,7 @@ nested p = do
 --
 
 -- | Parse a \newcommand or \renewcommand macro definition.
-macro :: Parser [Char] ParserState Block
+macro :: Parser [Char] ParserState Blocks
 macro = do
   apply <- getOption readerApplyMacros
   inp <- getInput
@@ -1018,8 +1018,8 @@ macro = do
                            then do
                              updateState $ \st ->
                                st { stateMacros = ms ++ stateMacros st }
-                             return Null
-                           else return $ RawBlock "latex" def'
+                             return mempty
+                           else return $ rawBlock "latex" def'
 
 -- | Apply current macros to string.
 applyMacros' :: String -> Parser [Char] ParserState String

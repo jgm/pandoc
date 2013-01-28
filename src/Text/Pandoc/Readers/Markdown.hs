@@ -355,7 +355,7 @@ parseBlocks = mconcat <$> manyTill block eof
 
 block :: MarkdownParser (F Blocks)
 block = choice [ codeBlockFenced
-               , guardEnabled Ext_latex_macros *> (mempty <$ macro)
+               , guardEnabled Ext_latex_macros *> (macro >>= return . return)
                , header
                , lhsCodeBlock
                , rawTeXBlock

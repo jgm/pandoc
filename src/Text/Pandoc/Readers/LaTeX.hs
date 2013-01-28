@@ -204,7 +204,7 @@ block :: LP Blocks
 block = (mempty <$ comment)
     <|> (mempty <$ ((spaceChar <|> newline) *> spaces))
     <|> environment
-    <|> mempty <$ macro
+    <|> macro
     <|> blockCommand
     <|> paragraph
     <|> grouped block
