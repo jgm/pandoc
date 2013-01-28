@@ -3,25 +3,26 @@ pandoc (1.10.1)
   * Markdown reader:  various optimizations, leading to a
     significant performance boost.
 
-  * `Text.Pandoc.Parsing`:
-  
-    + More efficient version of `anyLine`.
-    + Type of `macro` has changed; the parser now returns `Blocks`
-      instead of `Block`.
-
   * RST reader:  Allow anonymous form of inline links:
     `` `hello <url>`__ `` Closes #724.
 
   * Mediawiki reader: Don't require newlines after tables.
     Thanks to jrunningen for the patch. Closes #733.
 
-  * RST writer:  Use `.. code:: language` for code blocks with language.
-    Closes #721.
+  * Fixed LaTeX macro parsing.  Now LaTeX macro definitions are preserved
+    when output is LaTeX, and applied when it is another format.
+    Partially addresses #730.
 
   * Markdown and RST readers:  Added parser to `block` that skips blank
     lines.  This fixes a subtle regression involving grid tables with
     empty cells.  Also added test for grid table with empty cells.
     Closes #732.
+
+  * RST writer:  Use `.. code:: language` for code blocks with language.
+    Closes #721.
+
+  * DocBook writer:  Fixed output for hard line breaks, adding a newline
+    between `<literallayout>` tags.
 
   * Markdown writer:  Use an autolink when link text matches url.
     Previously we also checked for a null title, but this
@@ -36,9 +37,11 @@ pandoc (1.10.1)
   * LaTeX writer:  Avoid extra space at start/end of table cell.
     Thanks to Nick Bart for the suggestion of using @{}.
 
-  * Fixed LaTeX macro parsing.  Now LaTeX macro definitions are preserved
-    when output is LaTeX, and applied when it is another format.
-    Partially addresses #730.
+  * `Text.Pandoc.Parsing`:
+  
+    + More efficient version of `anyLine`.
+    + Type of `macro` has changed; the parser now returns `Blocks`
+      instead of `Block`.
 
   * Relaxed old-time version bound, allowing 1.0.*.
 
