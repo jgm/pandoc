@@ -1,3 +1,50 @@
+pandoc (1.10.1)
+
+  * Markdown reader:  various optimizations, leading to a
+    significant performance boost.
+
+  * `Text.Pandoc.Parsing`:
+  
+    + More efficient version of `anyLine`.
+    + Type of `macro` has changed; the parser now returns `Blocks`
+      instead of `Block`.
+
+  * RST reader:  Allow anonymous form of inline links:
+    `` `hello <url>`__ `` Closes #724.
+
+  * Mediawiki reader: Don't require newlines after tables.
+    Thanks to jrunningen for the patch. Closes #733.
+
+  * RST writer:  Use `.. code:: language` for code blocks with language.
+    Closes #721.
+
+  * Markdown and RST readers:  Added parser to `block` that skips blank
+    lines.  This fixes a subtle regression involving grid tables with
+    empty cells.  Also added test for grid table with empty cells.
+    Closes #732.
+
+  * Markdown writer:  Use an autolink when link text matches url.
+    Previously we also checked for a null title, but this
+    test fails for links produced by citeproc-hs in bibliographies.
+    So, if the link has a title, it will be lost on conversion
+    to an autolink, but that seems okay.
+
+  * Markdown writer:  Set title, author, date variables as before.
+    These are no longer used in the default template, since we use
+    titleblock, but we set them anyway for those who use custom templates.
+
+  * LaTeX writer:  Avoid extra space at start/end of table cell.
+    Thanks to Nick Bart for the suggestion of using @{}.
+
+  * Fixed LaTeX macro parsing.  Now LaTeX macro definitions are preserved
+    when output is LaTeX, and applied when it is another format.
+    Partially addresses #730.
+
+  * Relaxed old-time version bound, allowing 1.0.*.
+
+  * Removed obsolete `hsmarkdown` script.  Those who need `hsmarkdown`
+    should create a symlink as described in the README.
+
 pandoc (1.10.0.5)
 
   * Markdown reader: Try `lhsCodeBlock` before `rawTeXBlock`.  Otherwise
