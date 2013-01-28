@@ -282,7 +282,7 @@ inlineToDocbook opts (Math t str)
            fixNS = everywhere (mkT fixNS')
 inlineToDocbook _ (RawInline f x) | f == "html" || f == "docbook" = text x
                                   | otherwise                     = empty
-inlineToDocbook _ LineBreak = inTagsSimple "literallayout" empty
+inlineToDocbook _ LineBreak = flush $ inTagsSimple "literallayout" (text "\n")
 inlineToDocbook _ Space = space
 inlineToDocbook opts (Link txt (src, _)) =
   if isPrefixOf "mailto:" src

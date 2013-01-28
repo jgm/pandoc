@@ -67,7 +67,8 @@
     Here’s one with a bullet. * criminey.
   </para>
   <para>
-    There should be a hard line break<literallayout></literallayout>here.
+    There should be a hard line break<literallayout>
+</literallayout>here.
   </para>
 </sect1>
 <sect1 id="block-quotes">
