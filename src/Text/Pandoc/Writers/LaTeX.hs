@@ -422,7 +422,9 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
   let notes = vcat $ map toNote tableNotes
   let colDescriptors = text $ concat $ map toColDescriptor aligns
   modify $ \s -> s{ stTable = True, stInTable = False, stTableNotes = [] }
-  return $ "\\begin{longtable}[c]" <> braces colDescriptors
+  return $ "\\begin{longtable}[c]" <>
+              braces ("@{}" <> colDescriptors <> "@{}")
+              -- the @{} removes extra space at beginning and end
          $$ "\\hline\\noalign{\\medskip}"
          $$ headers
          $$ vcat rows'
