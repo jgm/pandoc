@@ -143,6 +143,7 @@ block = choice [ codeBlock
                , list
                , lhsCodeBlock
                , para
+               , mempty <$ blanklines
                ] <?> "block"
 
 --

@@ -373,6 +373,7 @@ block = choice [ codeBlockFenced
                , abbrevKey
                , para
                , plain
+               , mempty <$ blanklines
                ] <?> "block"
 
 --
@@ -807,7 +808,7 @@ para = try $ do
                    _ -> return $ B.para result'
 
 plain :: MarkdownParser (F Blocks)
-plain = fmap B.plain . trimInlinesF . mconcat <$> many1 inline <* spaces
+plain = fmap B.plain . trimInlinesF . mconcat <$> many1 inline
 
 --
 -- raw html
