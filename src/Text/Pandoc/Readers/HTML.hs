@@ -215,7 +215,8 @@ pSimpleTable = try $ do
   TagOpen _ _ <- pSatisfy (~== TagOpen "table" [])
   skipMany pBlank
   caption <- option [] $ pInTags "caption" inline >>~ skipMany pBlank
-  skipMany $ pInTags "col" block >> skipMany pBlank
+  skipMany $ (pInTags "col" block >> skipMany pBlank) <|>
+             (pInTags "colgroup" block >> skipMany pBlank)
   head' <- option [] $ pOptInTag "thead" $ pInTags "tr" (pCell "th")
   skipMany pBlank
   rows <- pOptInTag "tbody"
