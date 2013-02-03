@@ -43,6 +43,10 @@ $if(verbatim-in-note)$
 $endif$
 $if(tables)$
 \usepackage{longtable}
+% These lines are needed to make table captions work with longtable:
+\makeatletter
+\def\fnum@table{\tablename~\thetable}
+\makeatother
 $endif$
 $if(url)$
 \usepackage{url}
