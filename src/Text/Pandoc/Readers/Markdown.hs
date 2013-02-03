@@ -1142,7 +1142,6 @@ pipeTable = try $ do
 
                           return (row, als) )
   lines' <- sequence <$> many1 pipeTableRow
-  blanklines
   let widths = replicate (length aligns) 0.0
   return $ (aligns, widths, heads, lines')
 
