@@ -152,8 +152,8 @@ import Text.Pandoc.Builder (Blocks, Inlines, rawBlock)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec
 import Text.Parsec.Pos (newPos)
-import Data.Char ( toLower, toUpper, ord, isAscii, isAlphaNum, isDigit, isHexDigit,
-                   isSpace )
+import Data.Char ( toLower, toUpper, ord, chr, isAscii, isAlphaNum, isDigit,
+                   isHexDigit, isSpace )
 import Data.List ( intercalate, transpose )
 import Text.Pandoc.Shared
 import qualified Data.Map as M
@@ -244,7 +244,13 @@ oneOfStrings = oneOfStrings' (==)
 -- | Parses one of a list of strings (tried in order), case insensitive.
 oneOfStringsCI :: [String] -> Parser [Char] st String
 oneOfStringsCI = oneOfStrings' ciMatch
-  where ciMatch x y = toLower x == toLower y
+  where ciMatch x y = toLower' x == toLower' y
+        -- this optimizes toLower by checking common ASCII case
+        -- first, before calling the expensive unicode-aware
+        -- function:
+        toLower' c | c >= 'A' && c <= 'Z' = chr (ord c + 32)
+                   | isAscii c = c
+                   | otherwise = toLower c
 
 -- | Parses a space or tab.
 spaceChar :: Parser [Char] st Char
