@@ -272,7 +272,6 @@ Library
                    Text.Pandoc.Options,
                    Text.Pandoc.Pretty,
                    Text.Pandoc.Shared,
-                   Text.Pandoc.Highlighting,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,
                    Text.Pandoc.Readers.Markdown,
@@ -312,6 +311,7 @@ Library
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.Slides,
                    Text.Pandoc.Parsing,
+                   Text.Pandoc.Highlighting,
                    Paths_pandoc
 
   Buildable:       True
