@@ -243,6 +243,11 @@ Reader options
     `perl,numberLines` or `haskell`. Multiple classes may be separated
     by spaces or commas.
 
+`--default-image-extension=`*EXTENSION*
+:   Specify a default extension to use when markdown image paths/URLs have no
+    extension.  This allows you to use the same markdown source for
+    formats that require different kinds of images.
+
 `--normalize`
 :   Normalize the document after reading:  merge adjacent
     `Str` or `Emph` elements, for example, and remove repeated `Space`s.

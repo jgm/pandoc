@@ -137,61 +137,63 @@ data Opt = Opt
     , optSetextHeaders     :: Bool       -- ^ Use atx headers for markdown level 1-2
     , optAscii             :: Bool       -- ^ Use ascii characters only in html
     , optTeXLigatures      :: Bool       -- ^ Use TeX ligatures for quotes/dashes
+    , optDefaultImageExtension :: String -- ^ Default image extension
     }
 
 -- | Defaults for command-line options.
 defaultOpts :: Opt
 defaultOpts = Opt
-    { optTabStop           = 4
-    , optPreserveTabs      = False
-    , optStandalone        = False
-    , optReader            = ""    -- null for default reader
-    , optWriter            = ""    -- null for default writer
-    , optParseRaw          = False
-    , optTableOfContents   = False
-    , optTransforms        = []
-    , optTemplate          = Nothing
-    , optVariables         = []
-    , optOutputFile        = "-"    -- "-" means stdout
-    , optNumberSections    = False
-    , optSectionDivs       = False
-    , optIncremental       = False
-    , optSelfContained     = False
-    , optSmart             = False
-    , optOldDashes         = False
-    , optHtml5             = False
-    , optHtmlQTags         = False
-    , optHighlight         = True
-    , optHighlightStyle    = pygments
-    , optChapters          = False
-    , optHTMLMathMethod    = PlainMath
-    , optReferenceODT      = Nothing
-    , optReferenceDocx     = Nothing
-    , optEpubStylesheet    = Nothing
-    , optEpubMetadata      = ""
-    , optEpubFonts         = []
-    , optEpubChapterLevel  = 1
-    , optTOCDepth          = 3
-    , optDumpArgs          = False
-    , optIgnoreArgs        = False
-    , optReferenceLinks    = False
-    , optWrapText          = True
-    , optColumns           = 72
-    , optPlugins           = []
-    , optEmailObfuscation  = JavascriptObfuscation
-    , optIdentifierPrefix  = ""
-    , optIndentedCodeClasses = []
-    , optDataDir           = Nothing
-    , optCiteMethod        = Citeproc
-    , optBibliography      = []
-    , optCslFile           = Nothing
-    , optAbbrevsFile       = Nothing
-    , optListings          = False
-    , optLaTeXEngine       = "pdflatex"
-    , optSlideLevel        = Nothing
-    , optSetextHeaders     = True
-    , optAscii             = False
-    , optTeXLigatures      = True
+    { optTabStop               = 4
+    , optPreserveTabs          = False
+    , optStandalone            = False
+    , optReader                = ""    -- null for default reader
+    , optWriter                = ""    -- null for default writer
+    , optParseRaw              = False
+    , optTableOfContents       = False
+    , optTransforms            = []
+    , optTemplate              = Nothing
+    , optVariables             = []
+    , optOutputFile            = "-"    -- "-" means stdout
+    , optNumberSections        = False
+    , optSectionDivs           = False
+    , optIncremental           = False
+    , optSelfContained         = False
+    , optSmart                 = False
+    , optOldDashes             = False
+    , optHtml5                 = False
+    , optHtmlQTags             = False
+    , optHighlight             = True
+    , optHighlightStyle        = pygments
+    , optChapters              = False
+    , optHTMLMathMethod        = PlainMath
+    , optReferenceODT          = Nothing
+    , optReferenceDocx         = Nothing
+    , optEpubStylesheet        = Nothing
+    , optEpubMetadata          = ""
+    , optEpubFonts             = []
+    , optEpubChapterLevel      = 1
+    , optTOCDepth              = 3
+    , optDumpArgs              = False
+    , optIgnoreArgs            = False
+    , optReferenceLinks        = False
+    , optWrapText              = True
+    , optColumns               = 72
+    , optPlugins               = []
+    , optEmailObfuscation      = JavascriptObfuscation
+    , optIdentifierPrefix      = ""
+    , optIndentedCodeClasses   = []
+    , optDataDir               = Nothing
+    , optCiteMethod            = Citeproc
+    , optBibliography          = []
+    , optCslFile               = Nothing
+    , optAbbrevsFile           = Nothing
+    , optListings              = False
+    , optLaTeXEngine           = "pdflatex"
+    , optSlideLevel            = Nothing
+    , optSetextHeaders         = True
+    , optAscii                 = False
+    , optTeXLigatures          = True
+    , optDefaultImageExtension = ""
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -494,6 +496,12 @@ options =
                  (NoArg
                   (\opt -> return opt { optSectionDivs = True }))
                  "" -- "Put sections in div tags in HTML"
+
+    , Option "" ["default-image-extension"]
+                 (ReqArg
+                  (\arg opt -> return opt { optDefaultImageExtension = arg })
+                   "extension")
+                  "" -- "Default extension for extensionless images"
 
     , Option "" ["email-obfuscation"]
                  (ReqArg
@@ -806,55 +814,56 @@ main = do
   -- thread option data structure through all supplied option actions
   opts <- foldl (>>=) (return defaultOpts') actions
 
-  let Opt    {  optTabStop           = tabStop
-              , optPreserveTabs      = preserveTabs
-              , optStandalone        = standalone
-              , optReader            = readerName
-              , optWriter            = writerName
-              , optParseRaw          = parseRaw
-              , optVariables         = variables
-              , optTableOfContents   = toc
-              , optTransforms        = transforms
-              , optTemplate          = templatePath
-              , optOutputFile        = outputFile
-              , optNumberSections    = numberSections
-              , optSectionDivs       = sectionDivs
-              , optIncremental       = incremental
-              , optSelfContained     = selfContained
-              , optSmart             = smart
-              , optOldDashes         = oldDashes
-              , optHtml5             = html5
-              , optHtmlQTags         = htmlQTags
-              , optHighlight         = highlight
-              , optHighlightStyle    = highlightStyle
-              , optChapters          = chapters
-              , optHTMLMathMethod    = mathMethod
-              , optReferenceODT      = referenceODT
-              , optReferenceDocx     = referenceDocx
-              , optEpubStylesheet    = epubStylesheet
-              , optEpubMetadata      = epubMetadata
-              , optEpubFonts         = epubFonts
-              , optEpubChapterLevel  = epubChapterLevel
-              , optTOCDepth          = epubTOCDepth
-              , optDumpArgs          = dumpArgs
-              , optIgnoreArgs        = ignoreArgs
-              , optReferenceLinks    = referenceLinks
-              , optWrapText          = wrap
-              , optColumns           = columns
-              , optEmailObfuscation  = obfuscationMethod
-              , optIdentifierPrefix  = idPrefix
-              , optIndentedCodeClasses = codeBlockClasses
-              , optDataDir           = mbDataDir
-              , optBibliography      = reffiles
-              , optCslFile           = mbCsl
-              , optAbbrevsFile       = cslabbrevs
-              , optCiteMethod        = citeMethod
-              , optListings          = listings
-              , optLaTeXEngine       = latexEngine
-              , optSlideLevel        = slideLevel
-              , optSetextHeaders     = setextHeaders
-              , optAscii             = ascii
-              , optTeXLigatures      = texLigatures
+  let Opt    {  optTabStop               = tabStop
+              , optPreserveTabs          = preserveTabs
+              , optStandalone            = standalone
+              , optReader                = readerName
+              , optWriter                = writerName
+              , optParseRaw              = parseRaw
+              , optVariables             = variables
+              , optTableOfContents       = toc
+              , optTransforms            = transforms
+              , optTemplate              = templatePath
+              , optOutputFile            = outputFile
+              , optNumberSections        = numberSections
+              , optSectionDivs           = sectionDivs
+              , optIncremental           = incremental
+              , optSelfContained         = selfContained
+              , optSmart                 = smart
+              , optOldDashes             = oldDashes
+              , optHtml5                 = html5
+              , optHtmlQTags             = htmlQTags
+              , optHighlight             = highlight
+              , optHighlightStyle        = highlightStyle
+              , optChapters              = chapters
+              , optHTMLMathMethod        = mathMethod
+              , optReferenceODT          = referenceODT
+              , optReferenceDocx         = referenceDocx
+              , optEpubStylesheet        = epubStylesheet
+              , optEpubMetadata          = epubMetadata
+              , optEpubFonts             = epubFonts
+              , optEpubChapterLevel      = epubChapterLevel
+              , optTOCDepth              = epubTOCDepth
+              , optDumpArgs              = dumpArgs
+              , optIgnoreArgs            = ignoreArgs
+              , optReferenceLinks        = referenceLinks
+              , optWrapText              = wrap
+              , optColumns               = columns
+              , optEmailObfuscation      = obfuscationMethod
+              , optIdentifierPrefix      = idPrefix
+              , optIndentedCodeClasses   = codeBlockClasses
+              , optDataDir               = mbDataDir
+              , optBibliography          = reffiles
+              , optCslFile               = mbCsl
+              , optAbbrevsFile           = cslabbrevs
+              , optCiteMethod            = citeMethod
+              , optListings              = listings
+              , optLaTeXEngine           = latexEngine
+              , optSlideLevel            = slideLevel
+              , optSetextHeaders         = setextHeaders
+              , optAscii                 = ascii
+              , optTeXLigatures          = texLigatures
+              , optDefaultImageExtension = defaultImageExtension
              } = opts
 
   when dumpArgs $
@@ -996,6 +1005,7 @@ main = do
                       , readerCitationStyle = mbsty
                       , readerIndentedCodeClasses = codeBlockClasses
                       , readerApplyMacros = not laTeXOutput
+                      , readerDefaultImageExtension = defaultImageExtension
                       }
 
   let writerOptions = def { writerStandalone       = standalone',

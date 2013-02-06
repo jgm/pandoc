@@ -204,22 +204,24 @@ data ReaderOptions = ReaderOptions{
        , readerApplyMacros     :: Bool -- ^ Apply macros to TeX math
        , readerIndentedCodeClasses :: [String] -- ^ Default classes for
                                        -- indented code blocks
+       , readerDefaultImageExtension :: String -- ^ Default extension for images
 } deriving (Show, Read)
 
 instance Default ReaderOptions
   where def = ReaderOptions{
-                 readerExtensions          = pandocExtensions
-               , readerSmart               = False
-               , readerStrict              = False
-               , readerStandalone          = False
-               , readerParseRaw            = False
-               , readerColumns             = 80
-               , readerTabStop             = 4
-               , readerOldDashes           = False
-               , readerReferences          = []
-               , readerCitationStyle       = Nothing
-               , readerApplyMacros         = True
-               , readerIndentedCodeClasses = []
+                 readerExtensions            = pandocExtensions
+               , readerSmart                 = False
+               , readerStrict                = False
+               , readerStandalone            = False
+               , readerParseRaw              = False
+               , readerColumns               = 80
+               , readerTabStop               = 4
+               , readerOldDashes             = False
+               , readerReferences            = []
+               , readerCitationStyle         = Nothing
+               , readerApplyMacros           = True
+               , readerIndentedCodeClasses   = []
+               , readerDefaultImageExtension = ""
                }
 
 --

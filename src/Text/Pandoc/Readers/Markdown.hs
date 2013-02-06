@@ -51,6 +51,7 @@ import qualified Text.CSL as CSL
 import Data.Monoid (mconcat, mempty)
 import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
+import System.FilePath (takeExtension, addExtension)
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match (tagOpen)
 import qualified Data.Set as Set
@@ -1561,7 +1562,11 @@ image :: MarkdownParser (F Inlines)
 image = try $ do
   char '!'
   (lab,raw) <- reference
-  regLink B.image lab <|> referenceLink B.image (lab,raw)
+  defaultExt <- getOption readerDefaultImageExtension
+  let constructor src = case takeExtension src of
+                              "" -> B.image (addExtension src defaultExt)
+                              _  -> B.image src
+  regLink constructor lab <|> referenceLink constructor (lab,raw)
 
 note :: MarkdownParser (F Inlines)
 note = try $ do
