@@ -244,9 +244,10 @@ Reader options
     by spaces or commas.
 
 `--default-image-extension=`*EXTENSION*
-:   Specify a default extension to use when markdown image paths/URLs have no
-    extension.  This allows you to use the same markdown source for
-    formats that require different kinds of images.
+:   Specify a default extension to use when image paths/URLs have no
+    extension.  This allows you to use the same source for formats that
+    require different kinds of images.  Currently this option only affects
+    the markdown and LaTeX readers.
 
 `--normalize`
 :   Normalize the document after reading:  merge adjacent

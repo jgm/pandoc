@@ -51,6 +51,7 @@ import System.FilePath (replaceExtension, (</>))
 import Data.List (intercalate)
 import qualified Data.Map as M
 import qualified Control.Exception as E
+import System.FilePath (takeExtension, addExtension)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ReaderOptions -- ^ Reader options
@@ -430,8 +431,7 @@ inlineCommands = M.fromList $
   , ("href", (unescapeURL <$> braced <* optional sp) >>= \url ->
        tok >>= \lab ->
          pure (link url "" lab))
-  , ("includegraphics", skipopts *> (unescapeURL <$> braced) >>=
-       (\src -> pure (image src "" (str "image"))))
+  , ("includegraphics", skipopts *> (unescapeURL <$> braced) >>= mkImage)
   , ("enquote", enquote)
   , ("cite", citation "cite" AuthorInText False)
   , ("citep", citation "citep" NormalCitation False)
@@ -487,6 +487,14 @@ inlineCommands = M.fromList $
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
   [ "noindent", "index", "nocite" ]
+
+mkImage :: String -> LP Inlines
+mkImage src =
+   case takeExtension src of
+        "" -> do
+              defaultExt <- getOption readerDefaultImageExtension
+              return $ image (addExtension src defaultExt) "" (str "image")
+        _  -> return $ image src "" (str "image")
 
 inNote :: Inlines -> Inlines
 inNote ils =
