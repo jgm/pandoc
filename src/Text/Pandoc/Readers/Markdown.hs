@@ -1248,6 +1248,7 @@ inline = choice [ whitespace
                 , emph
                 , note
                 , cite
+                , textCite
                 , link
                 , image
                 , math
@@ -1630,12 +1631,12 @@ rawHtmlInline = do
 cite :: MarkdownParser (F Inlines)
 cite = do
   guardEnabled Ext_citations
-  getOption readerReferences >>= guard . not . null
-  citations <- textualCite <|> normalCite
+  citations <- normalCite
   return $ flip B.cite mempty <$> citations
 
-textualCite :: MarkdownParser (F [Citation])
-textualCite = try $ do
+textCite :: MarkdownParser (F Inlines)
+textCite = try $ do
+  guardEnabled Ext_citations
   (_, key) <- citeKey
   let first = Citation{ citationId      = key
                       , citationPrefix  = []
@@ -1646,8 +1647,15 @@ textualCite = try $ do
                       }
   mbrest <- option Nothing $ try $ spnl >> Just <$> normalCite
   case mbrest of
-       Just rest  -> return $ (first:) <$> rest
-       Nothing    -> option (return [first]) $ bareloc first
+       Just rest  -> return $ (flip B.cite mempty . (first:)) <$> rest
+       Nothing    -> (do cites <- bareloc first
+                         return $ flip B.cite mempty <$> cites)
+                 <|> (do guardEnabled Ext_example_lists
+                         st <- getState
+                         case M.lookup key (stateExamples st) of
+                              Just n   -> return $ return $ B.str (show n)
+                              Nothing  -> mzero)
+                 <|> (return $ return $ flip B.cite mempty [first])
 
 bareloc :: Citation -> MarkdownParser (F [Citation])
 bareloc c = try $ do
@@ -1679,8 +1687,6 @@ citeKey = try $ do
   let internal p = try $ p >>~ lookAhead (letter <|> digit)
   rest <- many $ letter <|> digit <|> internal (oneOf ":.#$%&-_?<>~/")
   let key = first:rest
-  citations' <- map CSL.refId <$> getOption readerReferences
-  guard $ key `elem` citations'
   return (suppress_author, key)
 
 suffix :: MarkdownParser (F Inlines)
