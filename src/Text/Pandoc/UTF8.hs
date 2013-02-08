@@ -86,10 +86,17 @@ hGetContents = fmap toStringLazy . BL.hGetContents
 --                   >> hSetNewlineMode h universalNewlineMode
 --                   >> IO.hGetContents h
 
+-- | Drop BOM (byte order marker) if present at beginning of string.
+-- Note that Data.Text converts the BOM to code point FEFF, zero-width
+-- no-break space, so if the string begins with this  we strip it off.
+dropBOM :: String -> String
+dropBOM ('\xFEFF':xs) = xs
+dropBOM xs = xs
+
 -- | Convert UTF8-encoded ByteString to String, also
 -- removing '\r' characters.
 toString :: B.ByteString -> String
-toString = filter (/='\r') . T.unpack . T.decodeUtf8
+toString = filter (/='\r') . dropBOM . T.unpack . T.decodeUtf8
 
 fromString :: String -> B.ByteString
 fromString = T.encodeUtf8 . T.pack
@@ -97,7 +104,7 @@ fromString = T.encodeUtf8 . T.pack
 -- | Convert UTF8-encoded ByteString to String, also
 -- removing '\r' characters.
 toStringLazy :: BL.ByteString -> String
-toStringLazy = filter (/='\r') . TL.unpack . TL.decodeUtf8
+toStringLazy = filter (/='\r') . dropBOM . TL.unpack . TL.decodeUtf8
 
 fromStringLazy :: String -> BL.ByteString
 fromStringLazy = TL.encodeUtf8 . TL.pack
