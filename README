@@ -192,11 +192,15 @@ General options
 
         $HOME/.pandoc
 
-    in unix and
+    in unix,
 
         C:\Documents And Settings\USERNAME\Application Data\pandoc
 
-    in Windows. A `reference.odt`, `reference.docx`, `default.csl`,
+    in Windows XP, and
+
+        C:\Users\USERNAME\AppData\Roaming\pandoc
+
+    in Windows 7. A `reference.odt`, `reference.docx`, `default.csl`,
     `epub.css`, `templates`, `slidy`, `slideous`, or `s5` directory
     placed in this directory will override pandoc's normal defaults.
 
@@ -566,11 +570,15 @@ Citation rendering
 
         $HOME/.csl
 
-    in unix and
+    in unix,
 
         C:\Documents And Settings\USERNAME\Application Data\csl
 
-    in Windows. If the `--csl` option is not specified, pandoc
+    in Windows XP, and
+
+        C:\Users\USERNAME\AppData\Roaming\csl
+
+    in Windows 7. If the `--csl` option is not specified, pandoc
     will use a default style:  either `default.csl` in the
     user data directory (see `--data-dir`), or, if that is
     not present, the Chicago author-date style.
