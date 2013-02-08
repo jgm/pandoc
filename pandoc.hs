@@ -69,7 +69,8 @@ compileInfo =
   "\nCompiled with citeproc-hs " ++ VERSION_citeproc_hs ++ ", texmath " ++
   VERSION_texmath ++ ", highlighting-kate " ++ VERSION_highlighting_kate ++
    ".\nSyntax highlighting is supported for the following languages:\n    " ++
-       wrapWords 4 78 languages
+       wrapWords 4 78
+       [map toLower l | l <- languages, l /= "Alert" && l /= "Alert_indent"]
 
 -- | Converts a list of strings into a single string with the items printed as
 -- comma separated words in lines with a maximum line length.
@@ -704,8 +705,10 @@ options =
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     UTF8.hPutStrLn stdout (prg ++ " " ++ pandocVersion ++ compileInfo ++
-                                       copyrightMessage)
+                     defaultDatadir <- getAppUserDataDirectory "pandoc"
+                     UTF8.hPutStrLn stdout (prg ++ " " ++ pandocVersion ++
+                       compileInfo ++ "\nDefault data directory: " ++
+                       defaultDatadir ++ copyrightMessage)
                      exitWith ExitSuccess ))
                  "" -- "Print version"
 
