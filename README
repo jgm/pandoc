@@ -188,7 +188,7 @@ General options
 `--data-dir=`*DIRECTORY*
 :   Specify the user data directory to search for pandoc data files.
     If this option is not specified, the default user data directory
-    will be used:
+    will be used.  This is
 
         $HOME/.pandoc
 
@@ -200,7 +200,9 @@ General options
 
         C:\Users\USERNAME\AppData\Roaming\pandoc
 
-    in Windows 7. A `reference.odt`, `reference.docx`, `default.csl`,
+    in Windows 7. (You can find the default user data directory
+    on your system by looking at the output of `pandoc --version`.)
+    A `reference.odt`, `reference.docx`, `default.csl`,
     `epub.css`, `templates`, `slidy`, `slideous`, or `s5` directory
     placed in this directory will override pandoc's normal defaults.
 

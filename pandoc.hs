@@ -707,7 +707,7 @@ options =
                      prg <- getProgName
                      defaultDatadir <- getAppUserDataDirectory "pandoc"
                      UTF8.hPutStrLn stdout (prg ++ " " ++ pandocVersion ++
-                       compileInfo ++ "\nDefault data directory: " ++
+                       compileInfo ++ "\nDefault user data directory: " ++
                        defaultDatadir ++ copyrightMessage)
                      exitWith ExitSuccess ))
                  "" -- "Print version"
