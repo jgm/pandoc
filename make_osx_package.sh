@@ -7,6 +7,8 @@ ROOT=$DIST/pandoc
 SCRIPTS=osx-resources
 BASE=pandoc-$VERSION
 ME=jgm
+CODESIGNID="Developer ID Application: John Macfarlane"
+PACKAGEMAKER=/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker
 
 echo Removing old files...
 rm -rf $DIST
@@ -29,7 +31,9 @@ chmod +r $ROOT/usr/local/share/man/man?/*.*
 echo Copying license...
 cp COPYING $RESOURCES/License.txt
 
-PACKAGEMAKER=/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker
+echo Signing pandoc executable...
+
+codesign --force --sign "$CODESIGNID" $ROOT/usr/local/bin/pandoc
 
 echo Creating OSX package...
 
@@ -41,6 +45,10 @@ sudo $PACKAGEMAKER \
     --no-relocate \
     --scripts $SCRIPTS \
     --out $BASE.pkg
+
+echo Signing package...
+
+codesign --force --sign "$CODESIGNID" $BASE.pkg
 
 echo Creating disk image...
 
