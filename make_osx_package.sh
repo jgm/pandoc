@@ -29,7 +29,7 @@ gzip $ROOT/usr/local/share/man/man?/*.*
 chmod +r $ROOT/usr/local/share/man/man?/*.*
 
 echo Copying license...
-cp COPYING $RESOURCES/License.txt
+dist/build/pandoc/pandoc --data data -t rtf -s COPYING -o $RESOURCES/License.rtf
 
 echo Signing pandoc executable...
 
