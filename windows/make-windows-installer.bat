@@ -9,7 +9,8 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 strip cabal-dev\bin\pandoc.exe
 cabal-dev\bin\pandoc.exe -s --template data\templates\default.html -S README -o README.html
 if %errorlevel% neq 0 exit /b %errorlevel%
-copy COPYING COPYING.txt
+cabal-dev\bin\pandoc.exe -s --template data\templates\default.rtf COPYING -t rtf -S -o COPYING.rtf
+if %errorlevel% neq 0 exit /b %errorlevel%
 copy COPYRIGHT COPYRIGHT.txt
 cd windows
 echo Creating msi...

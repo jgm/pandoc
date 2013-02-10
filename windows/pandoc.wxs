@@ -16,8 +16,8 @@
             Source="..\cabal-dev\bin\pandoc.exe" />
             <File Id="pandocCOPYRIGHT" Name="COPYRIGHT.txt"
             Source="..\COPYRIGHT.txt" />
-            <File Id="pandocCOPYING" Name="COPYING.txt"
-            Source="..\COPYING.txt" />
+            <File Id="pandocCOPYING" Name="COPYING.rtf"
+            Source="..\COPYING.rtf" />
             <Environment Id="UpdatePath" Name="PATH" Action="set"
 		    Part="last" System="yes" Value="[INSTALLDIR]" />
           </Component>
@@ -29,9 +29,15 @@
         </Directory>
       </Directory>
     </Directory>
-    <Feature Id="Complete" Level="1">
-      <ComponentRef Id="MainExecutable" />
-      <ComponentRef Id="Documentation" />
+    <Feature Id="Complete" Level="1" Title="Pandoc 1.10" Description="Complete package"  Display="expand" ConfigurableDirectory="INSTALLDIR">
+      <Feature Id="MainProgram" Title="Program" Description="The main executable." Level="1">
+        <ComponentRef Id="MainExecutable" />
+      </Feature>
+      <Feature Id="Manual">
+        <ComponentRef Id="Documentation" />
+      </Feature>
     </Feature>
+    <UIRef Id="WixUI_Advanced" />
+    <WixVariable Id="WixUILicenseRtf" Value="..\COPYING.rtf" />
   </Product>
 </Wix>
