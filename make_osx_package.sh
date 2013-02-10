@@ -48,7 +48,7 @@ sudo $PACKAGEMAKER \
 
 echo Signing package...
 
-codesign --force --sign "$CODESIGNID" $BASE.pkg
+sudo codesign --force --sign "$CODESIGNID" $BASE.pkg
 
 echo Creating disk image...
 
