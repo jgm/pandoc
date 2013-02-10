@@ -34,6 +34,8 @@ cp COPYING $RESOURCES/License.txt
 echo Signing pandoc executable...
 
 codesign --force --sign "$CODESIGNID" $ROOT/usr/local/bin/pandoc
+# make sure it's valid... returns nonzero exit code if it isn't:
+spctl --assess --type execute $ROOT/usr/local/bin/pandoc
 
 echo Creating OSX package...
 
@@ -49,6 +51,8 @@ sudo $PACKAGEMAKER \
 echo Signing package...
 
 sudo codesign --force --sign "$CODESIGNID" $BASE.pkg
+# make sure it's valid...
+spctl --assess --type install $BASE.pkg
 
 echo Creating disk image...
 
