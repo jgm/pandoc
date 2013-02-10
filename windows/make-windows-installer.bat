@@ -12,4 +12,6 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 copy COPYING COPYING.txt
 copy COPYRIGHT COPYRIGHT.txt
 cd windows
-ISCC pandoc-setup.iss
+'C:\Program Files\WiX Toolset v3.7\bin\candle.exe' -out pandoc.wxs pandoc.wxs
+'C:\Program Files\WiX Toolset v3.7\bin\light.exe' -out Output\pandoc.msi pandoc.wixobj
+echo Created Output\pandoc.msi.  Run kSign to sign the installer.
