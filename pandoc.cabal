@@ -272,6 +272,7 @@ Library
                    Text.Pandoc.Options,
                    Text.Pandoc.Pretty,
                    Text.Pandoc.Shared,
+                   Text.Pandoc.Parsing,
                    Text.Pandoc.Highlighting,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,
@@ -311,7 +312,6 @@ Library
                    Text.Pandoc.UUID,
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.Slides,
-                   Text.Pandoc.Parsing,
                    Paths_pandoc
 
   Buildable:       True
