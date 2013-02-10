@@ -8,6 +8,10 @@
     Comments="Windows Installer Package" />
     <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
     <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="DesktopFolder" Name="Desktop" />
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="Pandoc"/>
+      </Directory>
       <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLDIR" Name="Pandoc">
           <Component Id="MainExecutable"
@@ -29,15 +33,28 @@
         </Directory>
       </Directory>
     </Directory>
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="ApplicationShortcut" Guid="7F807DD5-CC54-474A-B571-89630893F563">
+        <Shortcut Id="ApplicationStartMenuShortcut" 
+                Name="Pandoc User's Guide"
+                Description="Pandoc User's Guide"
+		Target="[INSTALLDIR]Pandoc User's Guide.html"
+	        WorkingDirectory="INSTALLDIR" />
+        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+        <RegistryValue Root="HKCU" Key="Software\John MacFarlane\Pandoc" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
     <Feature Id="Complete" Level="1" Title="Pandoc 1.10" Description="Complete package"  Display="expand" ConfigurableDirectory="INSTALLDIR">
       <Feature Id="MainProgram" Title="Program" Description="The main executable." Level="1">
         <ComponentRef Id="MainExecutable" />
       </Feature>
       <Feature Id="Manual">
         <ComponentRef Id="Documentation" />
+        <ComponentRef Id="ApplicationShortcut" />
       </Feature>
     </Feature>
-    <UIRef Id="WixUI_Advanced" />
+    <UIRef Id="WixUI_Minimal" />
+    <UIRef Id="WixUI_ErrorProgressText" />
     <WixVariable Id="WixUILicenseRtf" Value="..\COPYING.rtf" />
   </Product>
 </Wix>
