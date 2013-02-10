@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="37DB5E26-BDA9-4166-AFD7-E23DA4B75755"
+  UpgradeCode="A68E8EF6-ABB1-4F22-A3C5-68DFDF0AB562" Name="Pandoc 1.10"
+  Version="1.10.2.1" Manufacturer="John MacFarlane"
+  Language="1033">
+    <Package InstallerVersion="200" Compressed="yes"
+    Comments="Windows Installer Package" />
+    <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLDIR" Name="Pandoc">
+          <Component Id="MainExecutable"
+          Guid="ECD35082-4C28-49E1-977E-B90FC7C400C7" KeyPath="yes">
+            <File Id="pandocEXE" Name="pandoc.exe"
+            Source="..\cabal-dev\bin\pandoc.exe" />
+            <File Id="pandocCOPYRIGHT" Name="COPYRIGHT.txt"
+            Source="..\COPYRIGHT.txt" />
+            <File Id="pandocCOPYING" Name="COPYING.txt"
+            Source="..\COPYING.txt" />
+            <Environment Id="UpdatePath" Name="PATH" Action="set"
+		    Part="last" System="yes" Value="[INSTALLDIR]" />
+          </Component>
+          <Component Id="Documentation"
+          Guid="A8D54A76-1A3D-4647-8327-81B69D39D8A3" KeyPath="yes">
+            <File Id="pandocREADME" Name="Pandoc User's Guide.html"
+            Source="..\README.html" />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+    <Feature Id="Complete" Level="1">
+      <ComponentRef Id="MainExecutable" />
+      <ComponentRef Id="Documentation" />
+    </Feature>
+  </Product>
+</Wix>
