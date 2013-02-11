@@ -1,3 +1,41 @@
+pandoc (1.10.1.1)
+
+  * Windows installer improvements:
+
+    + The installer is now signed with a certificate.
+    + WiX is used instead of InnoSetup.  The installer is now a
+      standard msi file.
+    + The version number is now auto-detected, and need not be
+      updated separately.
+
+  * OSX installer improvements:
+  
+    + The package and pandoc executable are now signed with a
+      certificate.
+    + RTF version of license is used.
+
+  * Converted COPYING to markdown.
+
+  * `Text.Pandoc.UTF8`:  Strip off BOM if present.  Closes #743.
+
+  * README:  List proper default data directory for Windows 7.
+
+  * Added `--default-image-extension` and `readerDefaultImageExtension`.
+    This allows you to determine extensions for extensionless
+    image files from the command line, using different extensions
+    for different output formats.  Currently only works for input in
+    markdown and LaTeX.
+
+  * Beamer template:  Fixed captions with longtable.  Thanks to Joost Kremers.
+
+  * `Text.Pandoc.Parsing`: Optimized `oneOfStringsCI`.
+    This dramatically reduces the speed penalty that comes from enabling the
+    `autolink_bare_uris` extension.  The penalty is still substantial (in one
+    test, from 0.33s to 0.44s), but nowhere near what it used to be.
+    The RST reader is also much faster now, as it autodetects URIs.
+
+  * HTML reader: Handle `<colgroup>` tag.
+
 pandoc (1.10.1)
 
   * Markdown reader:  various optimizations, leading to a
