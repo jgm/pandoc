@@ -1,12 +1,22 @@
 <?xml version="1.0"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="37DB5E26-BDA9-4166-AFD7-E23DA4B75755"
-  UpgradeCode="A68E8EF6-ABB1-4F22-A3C5-68DFDF0AB562" Name="Pandoc 1.10"
-  Version="1.10.2.1" Manufacturer="John MacFarlane"
+  <Product Id="*"
+  UpgradeCode="A68E8EF6-ABB1-4F22-A3C5-68DFDF0AB562" Name="Pandoc $(var.VERSION)"
+  Version="$(var.VERSION)" Manufacturer="John MacFarlane"
   Language="1033">
     <Package InstallerVersion="200" Compressed="yes"
     Comments="Windows Installer Package" />
     <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
+    <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
+    <Upgrade Id="A68E8EF6-ABB1-4F22-A3C5-68DFDF0AB562">
+      <UpgradeVersion
+	      Minimum="0.46.0.0" Maximum="$(var.VERSION)"
+	      Property="PREVIOUSVERSIONSINSTALLED"
+	      IncludeMinimum="yes" IncludeMaximum="no" />
+    </Upgrade>
+    <InstallExecuteSequence>
+      <RemoveExistingProducts After="InstallFinalize"/>
+    </InstallExecuteSequence>
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="DesktopFolder" Name="Desktop" />
       <Directory Id="ProgramMenuFolder">
@@ -44,7 +54,7 @@
         <RegistryValue Root="HKCU" Key="Software\John MacFarlane\Pandoc" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
       </Component>
     </DirectoryRef>
-    <Feature Id="Complete" Level="1" Title="Pandoc 1.10" Description="Complete package"  Display="expand" ConfigurableDirectory="INSTALLDIR">
+    <Feature Id="Complete" Level="1" Title="Pandoc $(var.VERSION)" Description="Complete package"  Display="expand" ConfigurableDirectory="INSTALLDIR">
       <Feature Id="MainProgram" Title="Program" Description="The main executable." Level="1">
         <ComponentRef Id="MainExecutable" />
       </Feature>
