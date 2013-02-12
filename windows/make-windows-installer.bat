@@ -26,7 +26,7 @@ cd windows
 echo Creating msi...
 "C:\Program Files\WiX Toolset v3.7\bin\candle.exe" -dVERSION=%VERSION% -ext WixUIExtension pandoc.wxs
 if %errorlevel% neq 0 exit /b %errorlevel%
-"C:\Program Files\WiX Toolset v3.7\bin\light.exe" -ext WixUIExtension -out pandoc-%VERSION%.msi pandoc.wixobj
+"C:\Program Files\WiX Toolset v3.7\bin\light.exe"  -sw1076 -ext WixUIExtension -out pandoc-%VERSION%.msi pandoc.wixobj
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo Starting kSign: sign, then quit kSign to complete the build...
 "C:\Program Files\kSign\kSign.exe"
