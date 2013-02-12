@@ -18,7 +18,6 @@
       <RemoveExistingProducts After="InstallFinalize"/>
     </InstallExecuteSequence>
     <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="DesktopFolder" Name="Desktop" />
       <Directory Id="ProgramMenuFolder">
         <Directory Id="ApplicationProgramsFolder" Name="Pandoc"/>
       </Directory>
