@@ -269,6 +269,7 @@ blockCommands = M.fromList $
   , ("opening", (para . trimInlines) <$> (skipopts *> tok))
   , ("closing", skipopts *> closing)
   --
+  , ("hrule", pure horizontalRule)
   , ("rule", skipopts *> tok *> tok *> pure horizontalRule)
   , ("item", skipopts *> loose_item)
   , ("documentclass", skipopts *> braced *> preamble)
