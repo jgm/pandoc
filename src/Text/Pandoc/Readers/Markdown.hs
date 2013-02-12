@@ -477,7 +477,7 @@ blockDelimiter f len = try $ do
       Nothing -> count 3 (char c) >> many (char c) >>=
                  return . (+ 3) . length
 
-attributes :: Parser [Char] st (String, [String], [(String, String)])
+attributes :: MarkdownParser (String, [String], [(String, String)])
 attributes = try $ do
   char '{'
   spnl
@@ -489,34 +489,34 @@ attributes = try $ do
                           | otherwise    = firstNonNull xs
   return (firstNonNull $ reverse ids, concat classes, concat keyvals)
 
-attribute :: Parser [Char] st (String, [String], [(String, String)])
+attribute :: MarkdownParser (String, [String], [(String, String)])
 attribute = identifierAttr <|> classAttr <|> keyValAttr
 
-identifier :: Parser [Char] st String
+identifier :: MarkdownParser String
 identifier = do
   first <- letter
   rest <- many $ alphaNum <|> oneOf "-_:."
   return (first:rest)
 
-identifierAttr :: Parser [Char] st (String, [a], [a1])
+identifierAttr :: MarkdownParser (String, [a], [a1])
 identifierAttr = try $ do
   char '#'
   result <- identifier
   return (result,[],[])
 
-classAttr :: Parser [Char] st (String, [String], [a])
+classAttr :: MarkdownParser (String, [String], [a])
 classAttr = try $ do
   char '.'
   result <- identifier
   return ("",[result],[])
 
-keyValAttr :: Parser [Char] st (String, [a], [(String, String)])
+keyValAttr :: MarkdownParser (String, [a], [(String, String)])
 keyValAttr = try $ do
   key <- identifier
   char '='
-  val <- enclosed (char '"') (char '"') anyChar
-     <|> enclosed (char '\'') (char '\'') anyChar
-     <|> many (noneOf " \t\n\r}")
+  val <- enclosed (char '"') (char '"') litChar
+     <|> enclosed (char '\'') (char '\'') litChar
+     <|> many (escapedChar' <|> noneOf " \t\n\r}")
   return ("",[],[(key,val)])
 
 codeBlockFenced :: MarkdownParser (F Blocks)
