@@ -4,7 +4,7 @@
   UpgradeCode="A68E8EF6-ABB1-4F22-A3C5-68DFDF0AB562" Name="Pandoc $(var.VERSION)"
   Version="$(var.VERSION)" Manufacturer="John MacFarlane"
   Language="1033">
-    <Package InstallerVersion="200" Compressed="yes"
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perUser"
     Comments="Windows Installer Package" />
     <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
     <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
@@ -22,10 +22,13 @@
       <Directory Id="ProgramMenuFolder">
         <Directory Id="ApplicationProgramsFolder" Name="Pandoc"/>
       </Directory>
-      <Directory Id="ProgramFilesFolder">
+      <Directory Id="LocalAppDataFolder">
         <Directory Id="INSTALLDIR" Name="Pandoc">
           <Component Id="MainExecutable"
-          Guid="ECD35082-4C28-49E1-977E-B90FC7C400C7" KeyPath="yes">
+          Guid="ECD35082-4C28-49E1-977E-B90FC7C400C7">
+            <RegistryValue Root="HKCU" Key="Software\John MacFarlane\Pandoc"
+            Name="Version" Type="string" Value="[ProductVersion]" KeyPath="yes"/>
+            <RemoveFolder Id="INSTALLDIR" On="uninstall"/>
             <File Id="pandocEXE" Name="pandoc.exe"
             Source="..\cabal-dev\bin\pandoc.exe" />
             <File Id="pandocCOPYRIGHT" Name="COPYRIGHT.txt"
@@ -33,10 +36,12 @@
             <File Id="pandocCOPYING" Name="COPYING.rtf"
             Source="..\COPYING.rtf" />
             <Environment Id="UpdatePath" Name="PATH" Action="set"
-		    Part="last" System="yes" Value="[INSTALLDIR]" />
+		    Part="last" Value="[INSTALLDIR]" />
           </Component>
           <Component Id="Documentation"
-          Guid="A8D54A76-1A3D-4647-8327-81B69D39D8A3" KeyPath="yes">
+          Guid="A8D54A76-1A3D-4647-8327-81B69D39D8A3">
+            <RegistryValue Root="HKCU" Key="Software\John MacFarlane\Pandoc"
+            Name="DocumentationInstalled" Type="integer" Value="1" KeyPath="yes"/>
             <File Id="pandocREADME" Name="Pandoc User's Guide.html"
             Source="..\README.html" />
           </Component>
@@ -51,7 +56,8 @@
 		Target="[INSTALLDIR]Pandoc User's Guide.html"
 	        WorkingDirectory="INSTALLDIR" />
         <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
-        <RegistryValue Root="HKCU" Key="Software\John MacFarlane\Pandoc" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+        <RegistryValue Root="HKCU" Key="Software\John MacFarlane\Pandoc"
+        Name="ShortcutInstalled" Type="integer" Value="1" KeyPath="yes"/>
       </Component>
     </DirectoryRef>
     <Feature Id="Complete" Level="1" Title="Pandoc $(var.VERSION)" Description="Complete package"  Display="expand" ConfigurableDirectory="INSTALLDIR">
