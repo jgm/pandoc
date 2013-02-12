@@ -14,6 +14,7 @@
 	      Property="PREVIOUSVERSIONSINSTALLED"
 	      IncludeMinimum="yes" IncludeMaximum="no" />
     </Upgrade>
+    <Property Id="ARPURLINFOABOUT" Value="http://johnmacfarlane.net/pandoc/" />
     <InstallExecuteSequence>
       <RemoveExistingProducts After="InstallFinalize"/>
     </InstallExecuteSequence>
