@@ -1,14 +1,15 @@
 <?xml version="1.0"?>
+<?define UpgradeCode = "A68E8EF6-ABB1-4F22-A3C5-68DFDF0AB562" ?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="*"
-  UpgradeCode="A68E8EF6-ABB1-4F22-A3C5-68DFDF0AB562" Name="Pandoc $(var.VERSION)"
+  UpgradeCode="$(var.UpgradeCode)" Name="Pandoc $(var.VERSION)"
   Version="$(var.VERSION)" Manufacturer="John MacFarlane"
   Language="1033">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perUser"
     Comments="Windows Installer Package" />
     <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
     <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
-    <Upgrade Id="A68E8EF6-ABB1-4F22-A3C5-68DFDF0AB562">
+    <Upgrade Id="$(var.UpgradeCode)">
       <UpgradeVersion Property='PREVIOUSVERSIONSINSTALLED'
         Minimum='0.0.0.0'  IncludeMinimum='yes'
         Maximum="99.0.0.0" IncludeMaximum="no" />
