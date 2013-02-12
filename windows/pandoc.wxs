@@ -9,10 +9,9 @@
     <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
     <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
     <Upgrade Id="A68E8EF6-ABB1-4F22-A3C5-68DFDF0AB562">
-      <UpgradeVersion
-	      Minimum="0.46.0.0" Maximum="$(var.VERSION)"
-	      Property="PREVIOUSVERSIONSINSTALLED"
-	      IncludeMinimum="yes" IncludeMaximum="no" />
+      <UpgradeVersion Property='PREVIOUSVERSIONSINSTALLED'
+        Minimum='0.0.0.0'  IncludeMinimum='yes'
+        Maximum="99.0.0.0" IncludeMaximum="no" />
     </Upgrade>
     <Property Id="ARPURLINFOABOUT" Value="http://johnmacfarlane.net/pandoc/" />
     <InstallExecuteSequence>
