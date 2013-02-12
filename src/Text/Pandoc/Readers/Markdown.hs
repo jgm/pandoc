@@ -516,7 +516,7 @@ keyValAttr = try $ do
   char '='
   val <- enclosed (char '"') (char '"') anyChar
      <|> enclosed (char '\'') (char '\'') anyChar
-     <|> many nonspaceChar
+     <|> many (noneOf " \t\n\r}")
   return ("",[],[(key,val)])
 
 codeBlockFenced :: MarkdownParser (F Blocks)
