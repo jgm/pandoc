@@ -1,5 +1,5 @@
 Name:            pandoc
-Version:         1.10.1.1
+Version:         1.11
 Cabal-Version:   >= 1.10
 Build-Type:      Custom
 License:         GPL
@@ -272,7 +272,6 @@ Library
                    Text.Pandoc.Options,
                    Text.Pandoc.Pretty,
                    Text.Pandoc.Shared,
-                   Text.Pandoc.Parsing,
                    Text.Pandoc.Highlighting,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,
@@ -309,6 +308,7 @@ Library
                    Text.Pandoc.Biblio,
                    Text.Pandoc.SelfContained
   Other-Modules:   Text.Pandoc.MIME,
+                   Text.Pandoc.Parsing,
                    Text.Pandoc.UUID,
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.Slides,
