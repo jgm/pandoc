@@ -279,7 +279,7 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
   let titleSlide = slide && level < slideLevel
   header' <- if title' == [Str "\0"]  -- marker for hrule
                 then return mempty
-                else blockToHtml opts (Header level' (id',[],[]) title')
+                else blockToHtml opts (Header level' (id',classes,keyvals) title')
   let isSec (Sec _ _ _ _ _) = True
       isSec (Blk _)         = False
   innerContents <- mapM (elementToHtml slideLevel opts)
@@ -371,6 +371,9 @@ obfuscateChar char =
 obfuscateString :: String -> String
 obfuscateString = concatMap obfuscateChar . fromEntities
 
+addAttrs :: WriterOptions -> Attr -> Html -> Html
+addAttrs opts attr h = foldl (!) h (attrsToHtml opts attr)
+
 attrsToHtml :: WriterOptions -> Attr -> [Attribute]
 attrsToHtml opts (id',classes',keyvals) =
   [A.class_ (toValue $ unwords classes') | not (null classes')] ++
@@ -425,11 +428,10 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
                     then unlines . map ("> " ++) . lines $ rawCode
                     else rawCode
   case highlight formatHtmlBlock (id',classes,keyvals) adjCode of
-         Nothing -> let attrs = attrsToHtml opts (id', classes', keyvals)
-                    in  return $ foldl (!) H.pre attrs $ H.code
-                                         $ toHtml adjCode
+         Nothing -> return $ addAttrs opts (id',classes,keyvals)
+                           $ H.pre $ H.code $ toHtml adjCode
          Just  h -> modify (\st -> st{ stHighlighting = True }) >>
-                    return (foldl (!) h (attrsToHtml opts (id',[],keyvals)))
+                    return (addAttrs opts (id',[],keyvals) h)
 blockToHtml opts (BlockQuote blocks) =
   -- in S5, treat list in blockquote specially
   -- if default is incremental, make it nonincremental;
@@ -599,12 +601,11 @@ inlineToHtml opts inline =
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
     (Code attr str)  -> case highlight formatHtmlInline attr str of
                              Nothing -> return
-                                        $ foldl (!) H.code (attrsToHtml opts attr)
-                                        $ strToHtml str
+                                        $ addAttrs opts attr
+                                        $ H.code $ strToHtml str
                              Just  h -> do
                                modify $ \st -> st{ stHighlighting = True }
-                               return $ foldl (!) h $
-                                          attrsToHtml opts (id',[],keyvals)
+                               return $ addAttrs opts (id',[],keyvals) h
                                 where (id',_,keyvals) = attr
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . H.del
