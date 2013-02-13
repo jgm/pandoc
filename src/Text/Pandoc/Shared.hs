@@ -92,7 +92,7 @@ import Text.Pandoc.MIME (getMimeType)
 import System.FilePath ( (</>), takeExtension, dropExtension )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
-import Control.Monad (msum)
+import Control.Monad (msum, unless)
 import Text.Pandoc.Pretty (charWidth)
 import System.Locale (defaultTimeLocale)
 import Data.Time
@@ -435,13 +435,15 @@ hierarchicalize blocks = S.evalState (hierarchicalizeWithIds blocks) []
 
 hierarchicalizeWithIds :: [Block] -> S.State [Int] [Element]
 hierarchicalizeWithIds [] = return []
-hierarchicalizeWithIds ((Header level attr title'):xs) = do
+hierarchicalizeWithIds ((Header level attr@(_,classes,_) title'):xs) = do
   lastnum <- S.get
   let lastnum' = take level lastnum
-  let newnum = if length lastnum' >= level
-                  then init lastnum' ++ [last lastnum' + 1]
-                  else lastnum ++ replicate (level - length lastnum - 1) 0 ++ [1]
-  S.put newnum
+  let newnum = case length lastnum' of
+                    x | "unnumbered" `elem` classes -> []
+                      | x >= level -> init lastnum' ++ [last lastnum' + 1]
+                      | otherwise -> lastnum ++
+                           replicate (level - length lastnum - 1) 0 ++ [1]
+  unless (null newnum) $ S.put newnum
   let (sectionContents, rest) = break (headerLtEq level) xs
   sectionContents' <- hierarchicalizeWithIds sectionContents
   rest' <- hierarchicalizeWithIds rest

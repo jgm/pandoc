@@ -252,9 +252,9 @@ showSecNum = concat . intersperse "." . map show
 elementToListItem :: WriterOptions -> Element -> State WriterState (Maybe Html)
 elementToListItem opts (Sec lev num (id',classes,keyvals) headerText subsecs)
   | lev <= writerTOCDepth opts = do
-  let sectnum = if writerNumberSections opts
-                   then (H.span ! A.class_ "toc-section-number" $ toHtml $ showSecNum num) >>
-                     preEscapedString " "
+  let sectnum = if writerNumberSections opts && not (null num)
+                   then (H.span ! A.class_ "toc-section-number"
+                        $ toHtml $ showSecNum num) >> preEscapedString " "
                    else mempty
   txt <- liftM (sectnum >>) $ inlineListToHtml opts headerText
   subHeads <- mapM (elementToListItem opts) subsecs >>= return . catMaybes
@@ -453,9 +453,9 @@ blockToHtml opts (BlockQuote blocks) =
 blockToHtml opts (Header level (ident,_,_) lst) = do
   contents <- inlineListToHtml opts lst
   secnum <- liftM stSecNum get
-  let contents' = if writerNumberSections opts
-                     then (H.span ! A.class_ "header-section-number" $ toHtml $ showSecNum secnum) >>
-                            strToHtml " " >> contents
+  let contents' = if writerNumberSections opts && not (null secnum)
+                     then (H.span ! A.class_ "header-section-number" $ toHtml
+                          $ showSecNum secnum) >> strToHtml " " >> contents
                      else contents
   let contents''  = if writerTableOfContents opts && not (null ident)
                        then H.a ! A.href (toValue $
