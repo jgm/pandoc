@@ -195,11 +195,14 @@ dateLine = try $ do
   trimInlinesF . mconcat <$> manyTill inline newline
 
 titleBlock :: MarkdownParser (F Inlines, F [Inlines], F Inlines)
-titleBlock = pandocTitleBlock <|> mmdTitleBlock
+titleBlock = pandocTitleBlock
+         <|> mmdTitleBlock
+         <|> return (mempty, return [], mempty)
 
 pandocTitleBlock :: MarkdownParser (F Inlines, F [Inlines], F Inlines)
 pandocTitleBlock = try $ do
   guardEnabled Ext_pandoc_title_block
+  lookAhead (char '%')
   title <- option mempty titleLine
   author <- option (return []) authorsLine
   date <- option mempty dateLine
