@@ -121,7 +121,7 @@ stringToConTeXt opts = concatMap (escapeCharForConTeXt opts)
 -- | Convert Elements to ConTeXt
 elementToConTeXt :: WriterOptions -> Element -> State WriterState Doc
 elementToConTeXt _ (Blk block) = blockToConTeXt block
-elementToConTeXt opts (Sec level _ id' title' elements) = do
+elementToConTeXt opts (Sec level _ (id',_,_) title' elements) = do
   header' <- sectionHeader id' level title'
   innerContents <- mapM (elementToConTeXt opts) elements
   return $ vcat (header' : innerContents)

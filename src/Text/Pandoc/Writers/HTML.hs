@@ -250,7 +250,7 @@ showSecNum = concat . intersperse "." . map show
 -- | Converts an Element to a list item for a table of contents,
 -- retrieving the appropriate identifier from state.
 elementToListItem :: WriterOptions -> Element -> State WriterState (Maybe Html)
-elementToListItem opts (Sec lev num id' headerText subsecs)
+elementToListItem opts (Sec lev num (id',classes,keyvals) headerText subsecs)
   | lev <= writerTOCDepth opts = do
   let sectnum = if writerNumberSections opts
                    then (H.span ! A.class_ "toc-section-number" $ toHtml $ showSecNum num) >>
@@ -271,7 +271,7 @@ elementToListItem _ _ = return Nothing
 -- | Convert an Element to Html.
 elementToHtml :: Int -> WriterOptions -> Element -> State WriterState Html
 elementToHtml _slideLevel opts (Blk block) = blockToHtml opts block
-elementToHtml slideLevel opts (Sec level num id' title' elements) = do
+elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elements) = do
   let slide = writerSlideVariant opts /= NoSlides && level <= slideLevel
   modify $ \st -> st{stSecNum = num}  -- update section number
   -- always use level 1 for slide titles

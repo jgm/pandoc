@@ -230,7 +230,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
 
   let navPointNode :: (Int -> String -> String -> [Element] -> Element)
                    -> Shared.Element -> State Int Element
-      navPointNode formatter (Sec _ nums ident ils children) = do
+      navPointNode formatter (Sec _ nums (ident,classes,keyvals) ils children) = do
         n <- get
         modify (+1)
         let showNums :: [Int] -> String

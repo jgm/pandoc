@@ -413,8 +413,8 @@ isPara _        = False
 
 -- | Data structure for defining hierarchical Pandoc documents
 data Element = Blk Block
-             | Sec Int [Int] String [Inline] [Element]
-             --    lvl  num ident  label    contents
+             | Sec Int [Int] Attr [Inline] [Element]
+             --    lvl  num attributes label    contents
              deriving (Eq, Read, Show, Typeable, Data)
 
 -- | Convert Pandoc inline list to plain text identifier.  HTML
@@ -435,7 +435,7 @@ hierarchicalize blocks = S.evalState (hierarchicalizeWithIds blocks) []
 
 hierarchicalizeWithIds :: [Block] -> S.State [Int] [Element]
 hierarchicalizeWithIds [] = return []
-hierarchicalizeWithIds ((Header level (ident,_,_) title'):xs) = do
+hierarchicalizeWithIds ((Header level attr title'):xs) = do
   lastnum <- S.get
   let lastnum' = take level lastnum
   let newnum = if length lastnum' >= level
@@ -445,7 +445,7 @@ hierarchicalizeWithIds ((Header level (ident,_,_) title'):xs) = do
   let (sectionContents, rest) = break (headerLtEq level) xs
   sectionContents' <- hierarchicalizeWithIds sectionContents
   rest' <- hierarchicalizeWithIds rest
-  return $ Sec level newnum ident title' sectionContents' : rest'
+  return $ Sec level newnum attr title' sectionContents' : rest'
 hierarchicalizeWithIds (x:rest) = do
   rest' <- hierarchicalizeWithIds rest
   return $ (Blk x) : rest'

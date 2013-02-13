@@ -94,7 +94,7 @@ writeDocbook opts (Pandoc (Meta tit auths dat) blocks) =
 -- | Convert an Element to Docbook.
 elementToDocbook :: WriterOptions -> Int -> Element -> Doc
 elementToDocbook opts _   (Blk block) = blockToDocbook opts block
-elementToDocbook opts lvl (Sec _ _num id' title elements) =
+elementToDocbook opts lvl (Sec _ _num (id',_,_) title elements) =
   -- Docbook doesn't allow sections with no content, so insert some if needed
   let elements' = if null elements
                     then [Blk (Para [])]

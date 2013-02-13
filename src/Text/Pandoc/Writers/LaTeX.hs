@@ -171,7 +171,7 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
 -- | Convert Elements to LaTeX
 elementToLaTeX :: WriterOptions -> Element -> State WriterState Doc
 elementToLaTeX _ (Blk block) = blockToLaTeX block
-elementToLaTeX opts (Sec level _ id' title' elements) = do
+elementToLaTeX opts (Sec level _ (id',_,_) title' elements) = do
   header' <- sectionHeader id' level title'
   innerContents <- mapM (elementToLaTeX opts) elements
   return $ vsep (header' : innerContents)
@@ -236,7 +236,7 @@ toSlides bs = do
 
 elementToBeamer :: Int -> Element -> State WriterState [Block]
 elementToBeamer _slideLevel (Blk b) = return [b]
-elementToBeamer slideLevel  (Sec lvl _num ident tit elts)
+elementToBeamer slideLevel  (Sec lvl _num (ident,_,_) tit elts)
   | lvl >  slideLevel = do
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
       return $ Para ( RawInline "latex" "\\begin{block}{"
