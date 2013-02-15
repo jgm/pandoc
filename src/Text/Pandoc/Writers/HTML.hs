@@ -250,9 +250,10 @@ showSecNum = concat . intersperse "." . map show
 -- | Converts an Element to a list item for a table of contents,
 -- retrieving the appropriate identifier from state.
 elementToListItem :: WriterOptions -> Element -> State WriterState (Maybe Html)
-elementToListItem opts (Sec lev num (id',classes,keyvals) headerText subsecs)
+elementToListItem opts (Sec lev num (id',classes,_) headerText subsecs)
   | lev <= writerTOCDepth opts = do
-  let sectnum = if writerNumberSections opts && not (null num)
+  let sectnum = if writerNumberSections opts && not (null num) &&
+                   "unnumbered" `notElem` classes
                    then (H.span ! A.class_ "toc-section-number"
                         $ toHtml $ showSecNum num) >> preEscapedString " "
                    else mempty
@@ -287,22 +288,24 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
                         -- title slides have no content of their own
                         then filter isSec elements
                         else elements
-  let header'' = if (writerSectionDivs opts ||
-                     writerSlideVariant opts == S5Slides ||
-                     slide)
-                    then header'
-                    else header' ! prefixedId opts id'
   let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
-  let classes = ["titleslide" | titleSlide] ++ ["slide" | slide] ++
-                  ["level" ++ show level]
+  let classes' = ["titleslide" | titleSlide] ++ ["slide" | slide] ++
+                  ["section" | (slide || writerSectionDivs opts) &&
+                               not (writerHtml5 opts) ] ++
+                  ["level" ++ show level | slide || writerSectionDivs opts ]
+                  ++ classes
   let secttag  = if writerHtml5 opts
-                    then H5.section ! A.class_ (toValue $ unwords classes)
-                    else H.div ! A.class_ (toValue $ unwords ("section":classes))
+                    then H5.section
+                    else H.div
+  let attr = (id',classes',keyvals)
   return $ if titleSlide
-              then mconcat $ (secttag ! prefixedId opts id' $ header'') : innerContents
+              then mconcat $
+                   (addAttrs opts attr $ secttag $ header') : innerContents
               else if writerSectionDivs opts || slide
-                   then secttag ! prefixedId opts id' $ inNl $ header'' : innerContents
-                   else mconcat $ intersperse (nl opts) $ header'' : innerContents
+                   then addAttrs opts attr
+                        $ secttag $ inNl $ header' : innerContents
+                   else mconcat $ intersperse (nl opts)
+                        $ addAttrs opts attr header' : innerContents
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
@@ -376,8 +379,8 @@ addAttrs opts attr h = foldl (!) h (attrsToHtml opts attr)
 
 attrsToHtml :: WriterOptions -> Attr -> [Attribute]
 attrsToHtml opts (id',classes',keyvals) =
-  [A.class_ (toValue $ unwords classes') | not (null classes')] ++
   [prefixedId opts id' | not (null id')] ++
+  [A.class_ (toValue $ unwords classes') | not (null classes')] ++
   map (\(x,y) -> customAttribute (fromString x) (toValue y)) keyvals
 
 imageExts :: [String]
@@ -423,11 +426,11 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
                     then map (\c -> if map toLower c == "haskell"
                                        then "literatehaskell"
                                        else c) classes
-                    else filter (/= "literate") classes
+                    else classes
       adjCode  = if tolhs
                     then unlines . map ("> " ++) . lines $ rawCode
                     else rawCode
-  case highlight formatHtmlBlock (id',classes,keyvals) adjCode of
+  case highlight formatHtmlBlock (id',classes',keyvals) adjCode of
          Nothing -> return $ addAttrs opts (id',classes,keyvals)
                            $ H.pre $ H.code $ toHtml adjCode
          Just  h -> modify (\st -> st{ stHighlighting = True }) >>
@@ -461,14 +464,14 @@ blockToHtml opts (Header level (ident,_,_) lst) = do
                        then H.a ! A.href (toValue $
                               '#' : writerIdentifierPrefix opts ++ ident) $ contents'
                        else contents'
-  return $ (case level of
+  return $ case level of
               1 -> H.h1 contents''
               2 -> H.h2 contents''
               3 -> H.h3 contents''
               4 -> H.h4 contents''
               5 -> H.h5 contents''
               6 -> H.h6 contents''
-              _ -> H.p contents'')
+              _ -> H.p contents''
 blockToHtml opts (BulletList lst) = do
   contents <- mapM (blockListToHtml opts) lst
   let lst' = unordList opts contents
