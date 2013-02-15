@@ -171,8 +171,8 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
 -- | Convert Elements to LaTeX
 elementToLaTeX :: WriterOptions -> Element -> State WriterState Doc
 elementToLaTeX _ (Blk block) = blockToLaTeX block
-elementToLaTeX opts (Sec level _ (id',_,_) title' elements) = do
-  header' <- sectionHeader id' level title'
+elementToLaTeX opts (Sec level _ (id',classes,_) title' elements) = do
+  header' <- sectionHeader ("unnumbered" `elem` classes) id' level title'
   innerContents <- mapM (elementToLaTeX opts) elements
   return $ vsep (header' : innerContents)
 
@@ -236,7 +236,7 @@ toSlides bs = do
 
 elementToBeamer :: Int -> Element -> State WriterState [Block]
 elementToBeamer _slideLevel (Blk b) = return [b]
-elementToBeamer slideLevel  (Sec lvl _num (ident,_,_) tit elts)
+elementToBeamer slideLevel  (Sec lvl _num (ident,classes,_) tit elts)
   | lvl >  slideLevel = do
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
       return $ Para ( RawInline "latex" "\\begin{block}{"
@@ -244,7 +244,7 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,_,_) tit elts)
              : bs ++ [RawBlock "latex" "\\end{block}"]
   | lvl <  slideLevel = do
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
-      return $ (Header lvl (ident,[],[]) tit) : bs
+      return $ (Header lvl (ident,classes,[]) tit) : bs
   | otherwise = do -- lvl == slideLevel
       -- note: [fragile] is required or verbatim breaks
       let hasCodeBlock (CodeBlock _ _) = [True]
@@ -404,7 +404,8 @@ blockToLaTeX (DefinitionList lst) = do
                "\\end{description}"
 blockToLaTeX HorizontalRule = return $
   "\\begin{center}\\rule{3in}{0.4pt}\\end{center}"
-blockToLaTeX (Header level (id',_,_) lst) = sectionHeader id' level lst
+blockToLaTeX (Header level (id',classes,_) lst) =
+  sectionHeader ("unnumbered" `elem` classes) id' level lst
 blockToLaTeX (Table caption aligns widths heads rows) = do
   modify $ \s -> s{ stInTable = True, stTableNotes = [] }
   headers <- if all null heads
@@ -475,15 +476,17 @@ defListItemToLaTeX (term, defs) = do
     return $ "\\item" <> brackets term' $$ def'
 
 -- | Craft the section header, inserting the secton reference, if supplied.
-sectionHeader :: [Char]
+sectionHeader :: Bool    -- True for unnumbered
+              -> [Char]
               -> Int
               -> [Inline]
               -> State WriterState Doc
-sectionHeader ref level lst = do
+sectionHeader unnumbered ref level lst = do
   txt <- inlineListToLaTeX lst
   let noNote (Note _) = Str ""
       noNote x        = x
   let lstNoNotes = bottomUp noNote lst
+  let star = if unnumbered then text "*" else empty
   -- footnotes in sections don't work unless you specify an optional
   -- argument:  \section[mysec]{mysec\footnote{blah}}
   optional <- if lstNoNotes == lst
@@ -491,7 +494,7 @@ sectionHeader ref level lst = do
                  else do
                    res <- inlineListToLaTeX lstNoNotes
                    return $ char '[' <> res <> char ']'
-  let stuffing = optional <> char '{' <> txt <> char '}'
+  let stuffing = star <> optional <> char '{' <> txt <> char '}'
   book <- gets stBook
   opts <- gets stOptions
   let level' = if book || writerChapters opts then level - 1 else level
