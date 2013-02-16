@@ -208,3 +208,14 @@ Empty cells
 |   |   |
 +---+---+
 
+## Entities in links and titles
+
+[link](/&uuml;rl "&ouml;&ouml;!")
+
+<http://g&ouml;&ouml;gle.com>
+
+<me@ex&auml;mple.com>
+
+[foobar]
+
+[foobar]: /&uuml;rl "&ouml;&ouml;!"

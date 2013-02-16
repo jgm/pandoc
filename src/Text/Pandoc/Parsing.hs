@@ -380,7 +380,7 @@ emailAddress = try $ liftA2 toResult mailbox (char '@' *> domain)
                                  notFollowedBy space)
        emailWord         = many1 $ satisfy isEmailChar
        isEmailChar c     = isAlphaNum c || isEmailPunct c
-       isEmailPunct c    = c `elem` "!\"#$%&'*+-/=?^_{|}~"
+       isEmailPunct c    = c `elem` "!\"#$%&'*+-/=?^_{|}~;"
        -- note: sepBy1 from parsec consumes input when sep
        -- succeeds and p fails, so we use this variant here.
        sepby1 p sep      = liftA2 (:) p (many (try $ sep >> p))

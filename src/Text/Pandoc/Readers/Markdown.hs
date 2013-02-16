@@ -264,7 +264,7 @@ referenceKey = try $ do
                     optional $ newline >> notFollowedBy blankline
                     skipMany spaceChar
                     notFollowedBy' (() <$ reference)
-                    many1 $ escapedChar' <|> satisfy (not . isBlank)
+                    many1 $ notFollowedBy space >> litChar
   let betweenAngles = try $ char '<' >>
                        manyTill (escapedChar' <|> litChar) (char '>')
   src <- try betweenAngles <|> sourceURL
