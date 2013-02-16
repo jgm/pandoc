@@ -45,7 +45,6 @@ import Text.Pandoc.Parsing hiding (tableWith)
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
                                   isTextTag, isCommentTag )
-import Text.Pandoc.XML ( fromEntities )
 import Text.Pandoc.Biblio (processBiblio)
 import qualified Text.CSL as CSL
 import Data.Monoid (mconcat, mempty)
@@ -144,6 +143,7 @@ atMostSpaces n = (char ' ' >> atMostSpaces (n-1)) <|> return ()
 
 litChar :: MarkdownParser Char
 litChar = escapedChar'
+       <|> characterReference
        <|> noneOf "\n"
        <|> try (newline >> notFollowedBy blankline >> return ' ')
 
@@ -287,7 +287,7 @@ referenceTitle :: MarkdownParser String
 referenceTitle = try $ do
   skipSpaces >> optional newline >> skipSpaces
   let parenTit = charsInBalanced '(' ')' litChar
-  fromEntities <$> (quotedTitle '"' <|> quotedTitle '\'' <|> parenTit)
+  quotedTitle '"' <|> quotedTitle '\'' <|> parenTit
 
 -- A link title in quotes
 quotedTitle :: Char -> MarkdownParser String
@@ -295,7 +295,7 @@ quotedTitle c = try $ do
   char c
   notFollowedBy spaces
   let pEnder = try $ char c >> notFollowedBy (satisfy isAlphaNum)
-  let regChunk = many1 (noneOf ['\\','\n',c]) <|> count 1 litChar
+  let regChunk = many1 (noneOf ['\\','\n','&',c]) <|> count 1 litChar
   let nestedChunk = (\x -> [c] ++ x ++ [c]) <$> quotedTitle c
   unwords . words . concat <$> manyTill (nestedChunk <|> regChunk) pEnder
 
@@ -1500,7 +1500,7 @@ source = do
   return (escapeURI $ trimr src, tit)
 
 linkTitle :: MarkdownParser String
-linkTitle = fromEntities <$> (quotedTitle '"' <|> quotedTitle '\'')
+linkTitle = quotedTitle '"' <|> quotedTitle '\''
 
 link :: MarkdownParser (F Inlines)
 link = try $ do
