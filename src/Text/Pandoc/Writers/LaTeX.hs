@@ -494,7 +494,7 @@ sectionHeader unnumbered ref level lst = do
                  else do
                    res <- inlineListToLaTeX lstNoNotes
                    return $ char '[' <> res <> char ']'
-  let stuffing = star <> optional <> char '{' <> txt <> char '}'
+  let stuffing = star <> optional <> braces txt
   book <- gets stBook
   opts <- gets stOptions
   let level' = if book || writerChapters opts then level - 1 else level
@@ -507,17 +507,23 @@ sectionHeader unnumbered ref level lst = do
                                                <> braces (text ref))
                          else lab)
   let headerWith x y = refLabel $ text x <> y
-  return $ case level' of
-                0  -> if writerBeamer opts
-                         then headerWith "\\part" stuffing
-                         else headerWith "\\chapter" stuffing
-                1  -> headerWith "\\section" stuffing
-                2  -> headerWith "\\subsection" stuffing
-                3  -> headerWith "\\subsubsection" stuffing
-                4  -> headerWith "\\paragraph" stuffing
-                5  -> headerWith "\\subparagraph" stuffing
-                _            -> txt
-
+  let sectionType = case level' of
+                          0  | writerBeamer opts -> "part"
+                             | otherwise -> "chapter"
+                          1  -> "section"
+                          2  -> "subsection"
+                          3  -> "subsubsection"
+                          4  -> "paragraph"
+                          5  -> "subparagraph"
+                          _  -> ""
+  return $ if level' > 5
+              then txt
+              else headerWith ('\\':sectionType) stuffing
+                   $$ if unnumbered
+                         then "\\addcontentsline{toc}" <>
+                                braces (text sectionType) <>
+                                braces txt
+                         else empty
 
 -- | Convert list of inline elements to LaTeX.
 inlineListToLaTeX :: [Inline]  -- ^ Inlines to convert
