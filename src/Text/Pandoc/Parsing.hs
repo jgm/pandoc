@@ -149,6 +149,7 @@ where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Builder (Blocks, Inlines, rawBlock)
+import Text.Pandoc.XML (fromEntities)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec
 import Text.Parsec.Pos (newPos)
@@ -369,7 +370,7 @@ romanNumeral upperCase = do
 -- escaped mailto: URI.
 emailAddress :: Parser [Char] st (String, String)
 emailAddress = try $ liftA2 toResult mailbox (char '@' *> domain)
- where toResult mbox dom = let full = mbox ++ '@':dom
+ where toResult mbox dom = let full = fromEntities $ mbox ++ '@':dom
                            in  (full, escapeURI $ "mailto:" ++ full)
        mailbox           = intercalate "." `fmap` (emailWord `sepby1` dot)
        domain            = intercalate "." `fmap` (subdomain `sepby1` dot)
@@ -440,7 +441,7 @@ uri = try $ do
                                          <|> enclosed (char '[') (char ']') uriChunk)
                                          <|> uriChunk))
   str' <- option str $ char '/' >> return (str ++ "/")
-  let uri' = scheme ++ ":" ++ str'
+  let uri' = scheme ++ ":" ++ fromEntities str'
   return (uri', escapeURI uri')
 
 -- | Applies a parser, returns tuple of its results and its horizontal
