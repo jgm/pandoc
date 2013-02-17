@@ -199,10 +199,12 @@ pHeader = try $ do
   let bodyTitle = TagOpen tagtype attr ~== TagOpen "h1" [("class","title")]
   let level = read (drop 1 tagtype)
   contents <- liftM concat $ manyTill inline (pCloses tagtype <|> eof)
+  let ident = maybe "" id $ lookup "id" attr
+  let classes = maybe [] words $ lookup "class" attr
+  let keyvals = [(k,v) | (k,v) <- attr, k /= "class", k /= "id"]
   return $ if bodyTitle
               then []  -- skip a representation of the title in the body
-              else [Header level (fromAttrib "id" $
-                                  TagOpen tagtype attr, [], []) $
+              else [Header level (ident, classes, keyvals) $
                     normalizeSpaces contents]
 
 pHrule :: TagParser [Block]
