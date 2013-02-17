@@ -147,6 +147,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
 
   let chapToEntry :: Int -> [Block] -> Entry
       chapToEntry num bs = mkEntry (showChapter num)
+        $ fixSectionNumbers num
         $ renderHtml
         $ writeHtml opts'
         $ case bs of
@@ -230,7 +231,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
 
   let navPointNode :: (Int -> String -> String -> [Element] -> Element)
                    -> Shared.Element -> State Int Element
-      navPointNode formatter (Sec _ nums (ident,classes,keyvals) ils children) = do
+      navPointNode formatter (Sec _ nums (ident,_,_) ils children) = do
         n <- get
         modify (+1)
         let showNums :: [Int] -> String
@@ -477,3 +478,9 @@ replaceRefs refTable = bottomUp replaceOneRef
                 Just url -> Link lab (url,tit)
                 Nothing  -> x
         replaceOneRef x = x
+
+-- This is ugly and inefficient.
+fixSectionNumbers :: Int -> B8.ByteString -> B8.ByteString
+fixSectionNumbers num = B8.pack . go . B8.unpack
+  where go = substitute "<span class=\"header-section-number\">1"
+                   ("<span class=\"header-section-number\">" ++ show num)
