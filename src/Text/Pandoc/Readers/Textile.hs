@@ -36,9 +36,7 @@ Implemented and parsed:
  - Inlines : strong, emph, cite, code, deleted, superscript,
    subscript, links
  - footnotes
-
-Implemented but discarded:
- - HTML-specific and CSS-specific attributes
+ - HTML-specific and CSS-specific attributes on headers
 
 Left to be implemented:
  - dimension sign
@@ -171,19 +169,16 @@ header :: Parser [Char] ParserState Block
 header = try $ do
   char 'h'
   level <- digitToInt <$> oneOf "123456"
-  attr <- option "" attributes
-  let ident = case attr of
-                   '#':xs -> xs
-                   _      -> ""
+  attr <- attributes
   char '.'
   whitespace
   name <- normalizeSpaces <$> manyTill inline blockBreak
-  return $ Header level (ident,[],[]) name
+  return $ Header level attr name
 
 -- | Blockquote of the form "bq. content"
 blockQuote :: Parser [Char] ParserState Block
 blockQuote = try $ do
-  string "bq" >> optional attributes >> char '.' >> whitespace
+  string "bq" >> attributes >> char '.' >> whitespace
   BlockQuote . singleton <$> para
 
 -- Horizontal rule
@@ -237,7 +232,7 @@ orderedListItemAtDepth = genericListItemAtDepth '#'
 -- | Common implementation of list items
 genericListItemAtDepth :: Char -> Int -> Parser [Char] ParserState [Block]
 genericListItemAtDepth c depth = try $ do
-  count depth (char c) >> optional attributes >> whitespace
+  count depth (char c) >> attributes >> whitespace
   p <- many listInline
   newline
   sublist <- option [] (singleton <$> anyListAtDepth (depth + 1))
@@ -348,7 +343,7 @@ maybeExplicitBlock :: String  -- ^ block tag name
                     -> Parser [Char] ParserState Block -- ^ implicit block
                     -> Parser [Char] ParserState Block
 maybeExplicitBlock name blk = try $ do
-  optional $ try $ string name >> optional attributes >> char '.' >>
+  optional $ try $ string name >> attributes >> char '.' >>
     optional whitespace >> optional endline
   blk
 
@@ -553,10 +548,32 @@ code2 = do
   Code nullAttr <$> manyTill anyChar (try $ htmlTag $ tagClose (=="tt"))
 
 -- | Html / CSS attributes
-attributes :: Parser [Char] ParserState String
-attributes = choice [ enclosed (char '(') (char ')') anyChar,
-                      enclosed (char '{') (char '}') anyChar,
-                      enclosed (char '[') (char ']') anyChar]
+attributes :: Parser [Char] ParserState Attr
+attributes = (foldl (flip ($)) ("",[],[])) `fmap` many attribute
+
+attribute :: Parser [Char] ParserState (Attr -> Attr)
+attribute = classIdAttr <|> styleAttr <|> langAttr
+
+classIdAttr :: Parser [Char] ParserState (Attr -> Attr)
+classIdAttr = try $ do -- (class class #id)
+  char '('
+  ws <- words `fmap` manyTill anyChar (char ')')
+  case reverse ws of
+       []                      -> return $ \(_,_,keyvals) -> ("",[],keyvals)
+       (('#':ident'):classes') -> return $ \(_,_,keyvals) ->
+                                             (ident',classes',keyvals)
+       classes'                -> return $ \(_,_,keyvals) ->
+                                             ("",classes',keyvals)
+
+styleAttr :: Parser [Char] ParserState (Attr -> Attr)
+styleAttr = do
+  style <- try $ enclosed (char '{') (char '}') anyChar
+  return $ \(id',classes,keyvals) -> (id',classes,("style",style):keyvals)
+
+langAttr :: Parser [Char] ParserState (Attr -> Attr)
+langAttr = do
+  lang <- try $ enclosed (char '[') (char ']') anyChar
+  return $ \(id',classes,keyvals) -> (id',classes,("lang",lang):keyvals)
 
 -- | Parses material surrounded by a parser.
 surrounded :: Parser [Char] st t   -- ^ surrounding parser

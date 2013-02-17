@@ -193,7 +193,7 @@ and here !this_is_an_image.png!.
 
 h1. Attributes
 
-h2{color:red}. HTML and CSS attributes are ignored
+h2[en]{color:red}(foo bar #ident). HTML and CSS attributes are parsed in headers.
 
 as well as *(foo)inline attributes* of %{color:red} all kind%
 

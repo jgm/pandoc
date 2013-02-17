@@ -123,7 +123,7 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 ,Header 1 ("",[],[]) [Str "Images"]
 ,Para [Str "Textile",Space,Str "inline",Space,Str "image",Space,Str "syntax",Str ",",Space,Str "like",Space,LineBreak,Str "here",Space,Image [Str "this is the alt text"] ("this_is_an_image.png","this is the alt text"),LineBreak,Str "and",Space,Str "here",Space,Image [Str ""] ("this_is_an_image.png",""),Str "."]
 ,Header 1 ("",[],[]) [Str "Attributes"]
-,Header 2 ("",[],[]) [Str "HTML",Space,Str "and",Space,Str "CSS",Space,Str "attributes",Space,Str "are",Space,Str "ignored"]
+,Header 2 ("ident",["bar","foo"],[("style","color:red"),("lang","en")]) [Str "HTML",Space,Str "and",Space,Str "CSS",Space,Str "attributes",Space,Str "are",Space,Str "parsed",Space,Str "in",Space,Str "headers",Str "."]
 ,Para [Str "as",Space,Str "well",Space,Str "as",Space,Strong [Str "inline",Space,Str "attributes"],Space,Str "of",Space,Str " all kind"]
 ,Para [Str "and",Space,Str "paragraph",Space,Str "attributes",Str ",",Space,Str "and",Space,Str "table",Space,Str "attributes",Str "."]
 ,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
