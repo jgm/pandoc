@@ -346,6 +346,7 @@ blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
                              return (flush $ text h)
 blockToLaTeX (RawBlock "latex" x) = return $ text x
 blockToLaTeX (RawBlock _ _) = return empty
+blockToLaTeX (BulletList []) = return empty  -- otherwise latex error
 blockToLaTeX (BulletList lst) = do
   incremental <- gets stIncremental
   let inc = if incremental then "[<+->]" else ""
@@ -355,6 +356,7 @@ blockToLaTeX (BulletList lst) = do
                    else empty
   return $ text ("\\begin{itemize}" ++ inc) $$ spacing $$ vcat items $$
              "\\end{itemize}"
+blockToLaTeX (OrderedList _ []) = return empty -- otherwise latex error
 blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   st <- get
   let inc = if stIncremental st then "[<+->]" else ""
@@ -393,6 +395,7 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
          $$ spacing
          $$ vcat items
          $$ "\\end{enumerate}"
+blockToLaTeX (DefinitionList []) = return empty
 blockToLaTeX (DefinitionList lst) = do
   incremental <- gets stIncremental
   let inc = if incremental then "[<+->]" else ""
