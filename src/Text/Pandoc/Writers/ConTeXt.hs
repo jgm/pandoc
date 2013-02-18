@@ -121,8 +121,8 @@ stringToConTeXt opts = concatMap (escapeCharForConTeXt opts)
 -- | Convert Elements to ConTeXt
 elementToConTeXt :: WriterOptions -> Element -> State WriterState Doc
 elementToConTeXt _ (Blk block) = blockToConTeXt block
-elementToConTeXt opts (Sec level _ (id',_,_) title' elements) = do
-  header' <- sectionHeader id' level title'
+elementToConTeXt opts (Sec level _ attr title' elements) = do
+  header' <- sectionHeader attr level title'
   innerContents <- mapM (elementToConTeXt opts) elements
   return $ vcat (header' : innerContents)
 
@@ -191,7 +191,7 @@ blockToConTeXt (DefinitionList lst) =
   liftM vcat $ mapM defListItemToConTeXt lst
 blockToConTeXt HorizontalRule = return $ "\\thinrule" <> blankline
 -- If this is ever executed, provide a default for the reference identifier.
-blockToConTeXt (Header level (ident,_,_) lst) = sectionHeader ident level lst
+blockToConTeXt (Header level attr lst) = sectionHeader attr level lst
 blockToConTeXt (Table caption aligns widths heads rows) = do
     let colDescriptor colWidth alignment = (case alignment of
                                                AlignLeft    -> 'l'
@@ -334,23 +334,26 @@ inlineToConTeXt (Note contents) = do
                    text "\\stopbuffer\\footnote{\\getbuffer}"
 
 -- | Craft the section header, inserting the secton reference, if supplied.
-sectionHeader :: [Char]
+sectionHeader :: Attr
               -> Int
               -> [Inline]
               -> State WriterState Doc
-sectionHeader ident hdrLevel lst = do
+sectionHeader (ident,classes,_) hdrLevel lst = do
   contents <- inlineListToConTeXt lst
   st <- get
   let opts = stOptions st
   let level' = if writerChapters opts then hdrLevel - 1 else hdrLevel
+  let (section, chapter) = if "unnumbered" `elem` classes
+                              then (text "subject", text "title")
+                              else (text "section", text "chapter")
   return $ if level' >= 1 && level' <= 5
                then char '\\'
                     <> text (concat (replicate (level' - 1) "sub"))
-                    <> text "section"
+                    <> section
                     <> (if (not . null) ident then brackets (text ident) else empty)
                     <> braces contents
                     <> blankline
                else if level' == 0
-                       then "\\chapter{" <> contents <> "}"
+                       then char '\\' <> chapter <> braces contents
                        else contents <> blankline
 
