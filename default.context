@@ -47,8 +47,8 @@ $endif$
 
 $if(toc)$
 \setupcombinedlist[content][list={$placelist$}]
-$endif$
 
+$endif$
 $for(header-includes)$
 $header-includes$
 $endfor$
