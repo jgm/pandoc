@@ -905,10 +905,10 @@ ordered_list = do
 
 paragraph :: LP Blocks
 paragraph = do
-  x <- mconcat <$> many1 inline
+  x <- trimInlines . mconcat <$> many1 inline
   if x == mempty
      then return mempty
-     else return $ para $ trimInlines x
+     else return $ para x
 
 preamble :: LP Blocks
 preamble = mempty <$> manyTill preambleBlock beginDoc
