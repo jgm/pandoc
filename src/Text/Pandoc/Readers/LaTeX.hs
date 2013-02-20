@@ -256,15 +256,23 @@ blockCommands = M.fromList $
   , ("signature", mempty <$ (skipopts *> authors))
   , ("date", mempty <$ (skipopts *> tok >>= addDate))
   -- sectioning
-  , ("chapter", updateState (\s -> s{ stateHasChapters = True }) *> section 0)
-  , ("section", section 1)
-  , ("subsection", section 2)
-  , ("subsubsection", section 3)
-  , ("paragraph", section 4)
-  , ("subparagraph", section 5)
+  , ("chapter", updateState (\s -> s{ stateHasChapters = True })
+                      *> section nullAttr 0)
+  , ("chapter*", updateState (\s -> s{ stateHasChapters = True })
+                      *> section ("",["unnumbered"],[]) 0)
+  , ("section", section nullAttr 1)
+  , ("section*", section ("",["unnumbered"],[]) 1)
+  , ("subsection", section nullAttr 2)
+  , ("subsection*", section ("",["unnumbered"],[]) 2)
+  , ("subsubsection", section nullAttr 3)
+  , ("subsubsection*", section ("",["unnumbered"],[]) 3)
+  , ("paragraph", section nullAttr 4)
+  , ("paragraph*", section ("",["unnumbered"],[]) 4)
+  , ("subparagraph", section nullAttr 5)
+  , ("subparagraph*", section ("",["unnumbered"],[]) 5)
   -- beamer slides
-  , ("frametitle", section 3)
-  , ("framesubtitle", section 4)
+  , ("frametitle", section nullAttr 3)
+  , ("framesubtitle", section nullAttr 4)
   -- letters
   , ("opening", (para . trimInlines) <$> (skipopts *> tok))
   , ("closing", skipopts *> closing)
@@ -313,13 +321,13 @@ authors = try $ do
 addDate :: Inlines -> LP ()
 addDate dat = updateState (\s -> s{ stateDate = toList dat })
 
-section :: Int -> LP Blocks
-section lvl = do
+section :: Attr -> Int -> LP Blocks
+section attr lvl = do
   hasChapters <- stateHasChapters `fmap` getState
   let lvl' = if hasChapters then lvl + 1 else lvl
   skipopts
   contents <- grouped inline
-  return $ header lvl' contents
+  return $ headerWith attr lvl' contents
 
 inlineCommand :: LP Inlines
 inlineCommand = try $ do
