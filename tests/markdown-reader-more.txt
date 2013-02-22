@@ -144,6 +144,8 @@ A link to [My header].
 
 Another link to [it][My header].
 
+Link to [Explicit header attributes].
+
 [my other header]: /foo
 
 But this is not a link to [My other header], since the reference is defined.

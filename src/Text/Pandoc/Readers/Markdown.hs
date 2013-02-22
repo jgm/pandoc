@@ -390,15 +390,22 @@ header = setextHeader <|> atxHeader <?> "header"
 --  returns unique identifier
 addToHeaderList :: Attr -> F Inlines -> MarkdownParser Attr
 addToHeaderList (ident,classes,kvs) text = do
-  let headerList = B.toList $ runF text defaultParserState
-  updateState $ \st -> st{ stateHeaders = headerList : stateHeaders st }
-  (do guardEnabled Ext_auto_identifiers
-      ids <- stateIdentifiers `fmap` getState
-      let id' = if null ident
-                   then uniqueIdent headerList ids
-                   else ident
-      updateState $ \st -> st{ stateIdentifiers = id' : ids }
-      return (id',classes,kvs)) <|> return ("",classes,kvs)
+  let header' = runF text defaultParserState
+  exts <- getOption readerExtensions
+  let insert' = M.insertWith (\_new old -> old)
+  if null ident && Ext_auto_identifiers `Set.member` exts
+     then do
+       ids <- stateIdentifiers `fmap` getState
+       let id' = uniqueIdent (B.toList header') ids
+       updateState $ \st -> st{
+              stateIdentifiers = id' : ids,
+              stateHeaders = insert' header' id' $ stateHeaders st }
+       return (id',classes,kvs)
+     else do
+        unless (null ident) $
+          updateState $ \st -> st{
+               stateHeaders = insert' header' ident $ stateHeaders st }
+        return (ident,classes,kvs)
 
 atxHeader :: MarkdownParser (F Blocks)
 atxHeader = try $ do
@@ -1539,13 +1546,13 @@ referenceLink constructor (lab, raw) = do
     case M.lookup key keys of
        Nothing        -> do
          headers <- asksF stateHeaders
-         let ref' = B.toList $ runF (if labIsRef then lab else ref)
-                               defaultParserState
-         if implicitHeaderRefs && ref' `elem` headers
-            then do
-              let src = '#' : uniqueIdent ref' []
-              constructor src "" <$> lab
-            else (\x -> B.str "[" <> x <> B.str "]" <> B.str raw') <$> fallback
+         let ref' = runF (if labIsRef then lab else ref) defaultParserState
+         let makeFallback x = B.str "[" <> x <> B.str "]" <> B.str raw'
+         if implicitHeaderRefs
+            then case M.lookup ref' headers of
+                   Just ident -> constructor ('#':ident) "" <$> lab
+                   Nothing    -> makeFallback <$> fallback
+            else makeFallback <$> fallback
        Just (src,tit) -> constructor src tit <$> lab
 
 bareURL :: MarkdownParser (F Inlines)

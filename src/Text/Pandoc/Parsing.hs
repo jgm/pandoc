@@ -794,7 +794,7 @@ data ParserState = ParserState
       stateAuthors         :: [[Inline]],    -- ^ Authors of document
       stateDate            :: [Inline],      -- ^ Date of document
       stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
-      stateHeaders         :: [[Inline]],    -- ^ List of headers (used for implicit ref links)
+      stateHeaders         :: M.Map Inlines String, -- ^ List of headers and ids (used for implicit ref links)
       stateIdentifiers     :: [String],      -- ^ List of header identifiers used
       stateNextExample     :: Int,           -- ^ Number of next example
       stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers
@@ -823,7 +823,7 @@ defaultParserState =
                   stateAuthors         = [],
                   stateDate            = [],
                   stateHeaderTable     = [],
-                  stateHeaders         = [],
+                  stateHeaders         = M.empty,
                   stateIdentifiers     = [],
                   stateNextExample     = 1,
                   stateExamples        = M.empty,
