@@ -397,6 +397,10 @@ Options affecting specific writers
 :   Number section headings in LaTeX, ConTeXt, or HTML output.
     By default, sections are not numbered.
 
+`--number-from`=*NUMBER*
+:   Starting number for top-level section headings in LaTeX, ConTeXt,
+    or HTML output.  Implies `--number-sections`.
+
 `--no-tex-ligatures`
 :   Do not convert quotation marks, apostrophes, and dashes to
     the TeX ligatures when writing LaTeX or ConTeXt. Instead, just
