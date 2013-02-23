@@ -147,9 +147,8 @@ writeEPUB opts doc@(Pandoc meta _) = do
 
   let chapToEntry :: Int -> [Block] -> Entry
       chapToEntry num bs = mkEntry (showChapter num)
-        $ fixSectionNumbers num
         $ renderHtml
-        $ writeHtml opts'
+        $ writeHtml opts'{ writerNumberFrom = num }
         $ case bs of
               (Header _ _ xs : _) -> Pandoc (Meta xs [] []) bs
               _                   -> Pandoc (Meta [] [] []) bs
@@ -478,9 +477,3 @@ replaceRefs refTable = bottomUp replaceOneRef
                 Just url -> Link lab (url,tit)
                 Nothing  -> x
         replaceOneRef x = x
-
--- This is ugly and inefficient.
-fixSectionNumbers :: Int -> B8.ByteString -> B8.ByteString
-fixSectionNumbers num = B8.pack . go . B8.unpack
-  where go = substitute "<span class=\"header-section-number\">1"
-                   ("<span class=\"header-section-number\">" ++ show num)
