@@ -394,12 +394,12 @@ Options affecting specific writers
     top-level headers will become `\part{..}`.
 
 `-N`, `--number-sections`
-:   Number section headings in LaTeX, ConTeXt, or HTML output.
+:   Number section headings in LaTeX, ConTeXt, HTML, or EPUB output.
     By default, sections are not numbered.
 
 `--number-from`=*NUMBER*
-:   Starting number for top-level section headings in LaTeX, ConTeXt,
-    or HTML output.  Implies `--number-sections`.
+:   Starting number for top-level section headings in HTML output.
+    Ignored in other output formats.  Implies `--number-sections`.
 
 `--no-tex-ligatures`
 :   Do not convert quotation marks, apostrophes, and dashes to
