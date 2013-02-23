@@ -126,7 +126,8 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let blocks' = addIdentifiers
                 $ case blocks of
                       (Header 1 _ _ : _) -> blocks
-                      _                  -> Header 1 ("",[],[]) (docTitle meta) : blocks
+                      _                  -> Header 1 ("",["unnumbered"],[])
+                                                 (docTitle meta) : blocks
 
   let chapterHeaderLevel = writerEpubChapterLevel opts
   -- internal reference IDs change when we chunk the file,
@@ -236,7 +237,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
         let showNums :: [Int] -> String
             showNums = intercalate "." . map show
         let tit' = plainify ils
-        let tit = if writerNumberSections opts
+        let tit = if writerNumberSections opts && not (null nums)
                      then showNums nums ++ " " ++ tit'
                      else tit'
         let src = case lookup ident reftable of
