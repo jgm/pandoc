@@ -473,7 +473,8 @@ options =
                  (ReqArg
                   (\arg opt ->
                       case safeRead arg of
-                           Just n -> return opt { optNumberFrom = n }
+                           Just n -> return opt { optNumberFrom = n,
+                                                  optNumberSections = True }
                            _      -> err 57 "could not parse number-from")
                  "NUMBER")
                  "" -- "Starting number for sections"
