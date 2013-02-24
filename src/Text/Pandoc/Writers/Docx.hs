@@ -680,6 +680,7 @@ imgPath ident img = "media/" ++ ident ++
                                   Just Png  -> ".png"
                                   Just Jpeg -> ".jpeg"
                                   Just Gif  -> ".gif"
+                                  Just Pdf  -> ".pdf"
                                   Nothing   -> ""
 
 br :: Element
