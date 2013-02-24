@@ -38,7 +38,7 @@ import Data.Bits
 -- quick and dirty functions to get image sizes
 -- algorithms borrowed from wwwis.pl
 
-data ImageType = Png | Gif | Jpeg deriving Show
+data ImageType = Png | Gif | Jpeg | Pdf deriving Show
 
 data ImageSize = ImageSize{
                      pxX   :: Integer
@@ -53,6 +53,7 @@ imageType img = case B.take 4 img of
                      "\x89\x50\x4e\x47" -> return Png
                      "\x47\x49\x46\x38" -> return Gif
                      "\xff\xd8\xff\xe0" -> return Jpeg
+                     "%PDF"             -> return Pdf
                      _                  -> fail "Unknown image type"
 
 imageSize :: ByteString -> Maybe ImageSize
@@ -62,6 +63,7 @@ imageSize img = do
        Png  -> pngSize img
        Gif  -> gifSize img
        Jpeg -> jpegSize img
+       Pdf  -> Nothing  -- TODO
 
 sizeInPixels :: ImageSize -> (Integer, Integer)
 sizeInPixels s = (pxX s, pxY s)
