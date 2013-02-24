@@ -1,6 +1,6 @@
 #!/bin/sh
-cputype=`sysctl -n hw.cputype`
-sixtyfourbit=`sysctl -n hw.cpu64bit_capable`
+cputype=`/usr/sbin/sysctl -n hw.cputype`
+sixtyfourbit=`/usr/sbin/sysctl -n hw.cpu64bit_capable`
 
 if [ "x$cputype" != "x7" ] # x86
 then
