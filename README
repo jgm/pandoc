@@ -397,9 +397,11 @@ Options affecting specific writers
 :   Number section headings in LaTeX, ConTeXt, HTML, or EPUB output.
     By default, sections are not numbered.
 
-`--number-from`=*NUMBER*
-:   Starting number for top-level section headings in HTML output.
-    Ignored in other output formats.  Implies `--number-sections`.
+`--number-offset`=*NUMBER[,NUMBER,...]*,
+:   Offset for section headings in HTML output (ignored in other
+    output formats).  The first number is added to the section number for
+    top-level headers, the second for second-level headers, and so on.
+    Offsets are 0 by default.  Implies `--number-sections`.
 
 `--no-tex-ligatures`
 :   Do not convert quotation marks, apostrophes, and dashes to

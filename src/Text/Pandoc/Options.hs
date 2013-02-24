@@ -270,7 +270,7 @@ data WriterOptions = WriterOptions
   , writerHTMLMathMethod   :: HTMLMathMethod  -- ^ How to print math in HTML
   , writerIgnoreNotes      :: Bool   -- ^ Ignore footnotes (used in making toc)
   , writerNumberSections   :: Bool   -- ^ Number sections in LaTeX
-  , writerNumberFrom       :: Int    -- ^ Starting section number
+  , writerNumberOffset     :: [Int]  -- ^ Starting number for section, subsection, ...
   , writerSectionDivs      :: Bool   -- ^ Put sections in div tags in HTML
   , writerExtensions       :: Set Extension -- ^ Markdown extensions that can be used
   , writerReferenceLinks   :: Bool   -- ^ Use reference links in writing markdown, rst
@@ -314,7 +314,7 @@ instance Default WriterOptions where
                       , writerHTMLMathMethod   = PlainMath
                       , writerIgnoreNotes      = False
                       , writerNumberSections   = False
-                      , writerNumberFrom       = 1
+                      , writerNumberOffset     = [0,0,0,0,0,0]
                       , writerSectionDivs      = False
                       , writerExtensions       = pandocExtensions
                       , writerReferenceLinks   = False

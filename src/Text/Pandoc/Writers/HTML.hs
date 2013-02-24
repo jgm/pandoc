@@ -274,9 +274,7 @@ elementToHtml :: Int -> WriterOptions -> Element -> State WriterState Html
 elementToHtml _slideLevel opts (Blk block) = blockToHtml opts block
 elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elements) = do
   let slide = writerSlideVariant opts /= NoSlides && level <= slideLevel
-  let num' = case num of
-                  (n:ns) -> n + writerNumberFrom opts - 1 : ns
-                  []     -> []
+  let num' = zipWith (+) num (writerNumberOffset opts)
   modify $ \st -> st{stSecNum = num'}  -- update section number
   -- always use level 1 for slide titles
   let level' = if slide then 1 else level

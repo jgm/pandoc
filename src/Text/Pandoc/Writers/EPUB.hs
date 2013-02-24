@@ -149,7 +149,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let chapToEntry :: Int -> [Block] -> Entry
       chapToEntry num bs = mkEntry (showChapter num)
         $ renderHtml
-        $ writeHtml opts'{ writerNumberFrom = num }
+        $ writeHtml opts'{ writerNumberOffset = [num - 1] }
         $ case bs of
               (Header _ _ xs : _) -> Pandoc (Meta xs [] []) bs
               _                   -> Pandoc (Meta [] [] []) bs

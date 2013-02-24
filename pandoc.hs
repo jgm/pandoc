@@ -100,7 +100,7 @@ data Opt = Opt
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
-    , optNumberFrom        :: Int     -- ^ Starting number for sections
+    , optNumberOffset        :: [Int]   -- ^ Starting number for sections
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
     , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
     , optSelfContained     :: Bool    -- ^ Make HTML accessible offline
@@ -157,7 +157,7 @@ defaultOpts = Opt
     , optVariables             = []
     , optOutputFile            = "-"    -- "-" means stdout
     , optNumberSections        = False
-    , optNumberFrom            = 1
+    , optNumberOffset          = [1,1,1,1,1,1]
     , optSectionDivs           = False
     , optIncremental           = False
     , optSelfContained         = False
@@ -469,15 +469,15 @@ options =
                   (\opt -> return opt { optNumberSections = True }))
                  "" -- "Number sections in LaTeX"
 
-    , Option "" ["number-from"]
+    , Option "" ["number-offset"]
                  (ReqArg
                   (\arg opt ->
-                      case safeRead arg of
-                           Just n -> return opt { optNumberFrom = n,
-                                                  optNumberSections = True }
-                           _      -> err 57 "could not parse number-from")
-                 "NUMBER")
-                 "" -- "Starting number for sections"
+                      case safeRead ('[':arg ++ "]") of
+                           Just ns -> return opt { optNumberOffset = ns,
+                                                   optNumberSections = True }
+                           _      -> err 57 "could not parse number-offset")
+                 "NUMBERS")
+                 "" -- "Starting number for sections, subsections, etc."
 
     , Option "" ["no-tex-ligatures"]
                  (NoArg
@@ -841,7 +841,7 @@ main = do
               , optTemplate              = templatePath
               , optOutputFile            = outputFile
               , optNumberSections        = numberSections
-              , optNumberFrom            = numberFrom
+              , optNumberOffset            = numberFrom
               , optSectionDivs           = sectionDivs
               , optIncremental           = incremental
               , optSelfContained         = selfContained
@@ -1035,7 +1035,7 @@ main = do
                             writerBiblioFiles      = reffiles,
                             writerIgnoreNotes      = False,
                             writerNumberSections   = numberSections,
-                            writerNumberFrom       = numberFrom,
+                            writerNumberOffset       = numberFrom,
                             writerSectionDivs      = sectionDivs,
                             writerReferenceLinks   = referenceLinks,
                             writerWrapText         = wrap,
