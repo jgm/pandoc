@@ -62,6 +62,10 @@ import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import Text.Blaze.Renderer.Utf8 (renderHtml)
 #endif
 
+-- A Chapter includes a list of blocks and maybe a display
+-- number.  Note, some chapters are unnumbered. The display
+-- number is different from the index number, which will be used
+-- in filenames, chapter0003.xhtml.
 data Chapter = Chapter (Maybe [Int]) [Block]
 
 -- | Produce an EPUB file from a Pandoc document.
@@ -141,12 +145,12 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let isChapterHeader (Header n _ _) = n <= chapterHeaderLevel
       isChapterHeader _ = False
 
-  let toChunks :: [Block] -> [[Block]]
-      toChunks [] = []
-      toChunks (b:bs) = (b:xs) : toChunks ys
-        where (xs,ys) = break isChapterHeader bs
+  let toChapters :: [Block] -> State [Int] [Chapter]
+      toChapters []     = return []
+      toChapters (b:bs) = (Chapter Nothing (b:xs) :) `fmap` toChapters ys
+         where (xs,ys) = break isChapterHeader bs
 
-  let chaps = map (Chapter Nothing) $ toChunks blocks'' -- TODO For now
+  let chapters = evalState (toChapters blocks'') [0,0,0,0,0,0]
 
   let chapToEntry :: Int -> Chapter -> Entry
       chapToEntry num (Chapter mbnum bs) = mkEntry (showChapter num)
@@ -157,7 +161,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
               (Header _ _ xs : _) -> Pandoc (Meta xs [] []) bs
               _                   -> Pandoc (Meta [] [] []) bs
 
-  let chapterEntries = zipWith chapToEntry [1..] chaps
+  let chapterEntries = zipWith chapToEntry [1..] chapters
 
   -- incredibly inefficient (TODO):
   let containsMathML ent = "<math" `isInfixOf` (B8.unpack $ fromEntry ent)
