@@ -401,6 +401,10 @@ Options affecting specific writers
 :   Offset for section headings in HTML output (ignored in other
     output formats).  The first number is added to the section number for
     top-level headers, the second for second-level headers, and so on.
+    So, for example, if you want the first top-level header in your
+    document to be numbered "6", specify `--number-offset=5`.
+    If your document starts with a level-2 header which you want to
+    be numbered "1.5", specify `--number-offset=1,4`.
     Offsets are 0 by default.  Implies `--number-sections`.
 
 `--no-tex-ligatures`
