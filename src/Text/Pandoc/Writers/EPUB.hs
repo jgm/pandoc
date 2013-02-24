@@ -62,6 +62,8 @@ import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import Text.Blaze.Renderer.Utf8 (renderHtml)
 #endif
 
+data Chapter = Chapter (Maybe [Int]) [Block]
+
 -- | Produce an EPUB file from a Pandoc document.
 writeEPUB :: WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
@@ -144,17 +146,18 @@ writeEPUB opts doc@(Pandoc meta _) = do
       toChunks (b:bs) = (b:xs) : toChunks ys
         where (xs,ys) = break isChapterHeader bs
 
-  let chunks = toChunks blocks''
+  let chaps = map (Chapter Nothing) $ toChunks blocks'' -- TODO For now
 
-  let chapToEntry :: Int -> [Block] -> Entry
-      chapToEntry num bs = mkEntry (showChapter num)
+  let chapToEntry :: Int -> Chapter -> Entry
+      chapToEntry num (Chapter mbnum bs) = mkEntry (showChapter num)
         $ renderHtml
-        $ writeHtml opts'{ writerNumberOffset = [num - 1] }
+        $ writeHtml opts'{ writerNumberOffset =
+            maybe [] (map (\x -> x - 1)) mbnum }
         $ case bs of
               (Header _ _ xs : _) -> Pandoc (Meta xs [] []) bs
               _                   -> Pandoc (Meta [] [] []) bs
 
-  let chapterEntries = zipWith chapToEntry [1..] chunks
+  let chapterEntries = zipWith chapToEntry [1..] chaps
 
   -- incredibly inefficient (TODO):
   let containsMathML ent = "<math" `isInfixOf` (B8.unpack $ fromEntry ent)
