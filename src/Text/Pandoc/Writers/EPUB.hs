@@ -62,8 +62,8 @@ import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import Text.Blaze.Renderer.Utf8 (renderHtml)
 #endif
 
--- A Chapter includes a list of blocks and maybe a display
--- number.  Note, some chapters are unnumbered. The display
+-- A Chapter includes a list of blocks and maybe a section
+-- number offset.  Note, some chapters are unnumbered. The section
 -- number is different from the index number, which will be used
 -- in filenames, chapter0003.xhtml.
 data Chapter = Chapter (Maybe [Int]) [Block]
@@ -147,16 +147,33 @@ writeEPUB opts doc@(Pandoc meta _) = do
 
   let toChapters :: [Block] -> State [Int] [Chapter]
       toChapters []     = return []
-      toChapters (b:bs) = (Chapter Nothing (b:xs) :) `fmap` toChapters ys
-         where (xs,ys) = break isChapterHeader bs
+      toChapters (Header n attr@(_,classes,_) ils : bs) = do
+        nums <- get
+        mbnum <- if "unnumbered" `elem` classes
+                    then return Nothing
+                    else case splitAt (n - 1) nums of
+                              (ks, (m:_)) -> do
+                                let nums' = ks ++ [m+1]
+                                put nums'
+                                return $ Just (ks ++ [m])
+                                -- note, this is the offset not the sec number
+                              (ks, []) -> do
+                                let nums' = ks ++ [1]
+                                put nums'
+                                return $ Just ks
+        let (xs,ys) = break isChapterHeader bs
+        (Chapter mbnum (Header n attr ils : xs) :) `fmap` toChapters ys
+      toChapters (b:bs) = do
+        let (xs,ys) = break isChapterHeader bs
+        (Chapter Nothing (b:xs) :) `fmap` toChapters ys
 
-  let chapters = evalState (toChapters blocks'') [0,0,0,0,0,0]
+  let chapters = evalState (toChapters blocks'') []
 
   let chapToEntry :: Int -> Chapter -> Entry
       chapToEntry num (Chapter mbnum bs) = mkEntry (showChapter num)
         $ renderHtml
         $ writeHtml opts'{ writerNumberOffset =
-            maybe [] (map (\x -> x - 1)) mbnum }
+            maybe [] id mbnum }
         $ case bs of
               (Header _ _ xs : _) -> Pandoc (Meta xs [] []) bs
               _                   -> Pandoc (Meta [] [] []) bs
