@@ -52,6 +52,8 @@ import Data.Unique (hashUnique, newUnique)
 import System.Random (randomRIO)
 import Text.Printf (printf)
 import qualified Control.Exception as E
+import System.FilePath (takeExtension)
+import Text.Pandoc.MIME (getMimeType)
 
 data WriterState = WriterState{
          stTextProperties :: [Element]
@@ -59,7 +61,7 @@ data WriterState = WriterState{
        , stFootnotes      :: [Element]
        , stSectionIds     :: [String]
        , stExternalLinks  :: M.Map String String
-       , stImages         :: M.Map FilePath (String, String, Element, B.ByteString)
+       , stImages         :: M.Map FilePath (String, String, Maybe String, Element, B.ByteString)
        , stListLevel      :: Int
        , stListNumId      :: Int
        , stNumStyles      :: M.Map ListMarker Int
@@ -112,40 +114,41 @@ writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
                        defaultWriterState
   epochtime <- floor `fmap` getPOSIXTime
   let imgs = M.elems $ stImages st
-  let toImgRel (ident,path,_,_) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"),("Id",ident),("Target",path)] ()
+  let toImgRel (ident,path,_,_,_) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"),("Id",ident),("Target",path)] ()
+
+  -- word/_rels/document.xml.rels
   let newrels = map toImgRel imgs
   let relpath = "word/_rels/document.xml.rels"
-  let reldoc = case findEntryByPath relpath refArchive >>=
-                    parseXMLDoc . UTF8.toStringLazy . fromEntry of
-                      Just d  -> d
-                      Nothing -> error $ relpath ++ "missing in reference docx"
+  reldoc <- parseXml refArchive relpath
   let reldoc' = reldoc{ elContent = elContent reldoc ++ map Elem newrels }
+
   -- create entries for images
-  let toImageEntry (_,path,_,img) = toEntry ("word/" ++ path) epochtime $ toLazy img
+  let toImageEntry (_,path,_,_,img) = toEntry ("word/" ++ path) epochtime $ toLazy img
   let imageEntries = map toImageEntry imgs
+
   -- NOW get list of external links and images from this, and do what's needed
   let toLinkRel (src,ident) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"),("Id",ident),("Target",src),("TargetMode","External") ] ()
   let newrels' = map toLinkRel $ M.toList $ stExternalLinks st
   let reldoc'' = reldoc' { elContent = elContent reldoc' ++ map Elem newrels' }
   let relEntry = toEntry relpath epochtime $ UTF8.fromStringLazy $ showTopElement' reldoc''
   let contentEntry = toEntry "word/document.xml" epochtime $ UTF8.fromStringLazy $ showTopElement' contents
+
   -- footnotes
   let footnotesEntry = toEntry "word/footnotes.xml" epochtime $ UTF8.fromStringLazy $
         showTopElement' footnotes
+
   -- footnote rels
   let footnoteRelEntry = toEntry "word/_rels/footnotes.xml.rels" epochtime $ UTF8.fromStringLazy $
         showTopElement' $ mknode "Relationships" [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")]
         $ newrels'
+
   -- styles
   let newstyles = styleToOpenXml $ writerHighlightStyle opts
   let stylepath = "word/styles.xml"
-  let styledoc = case findEntryByPath stylepath refArchive >>=
-                      parseXMLDoc . UTF8.toStringLazy . fromEntry of
-                        Just d  -> d
-                        Nothing -> error $ "Unable to parse " ++ stylepath ++
-                                           " from reference.docx"
+  styledoc <- parseXml refArchive stylepath
   let styledoc' = styledoc{ elContent = elContent styledoc ++ map Elem newstyles }
   let styleEntry = toEntry stylepath epochtime $ UTF8.fromStringLazy $ showTopElement' styledoc'
+
   -- construct word/numbering.xml
   let numpath = "word/numbering.xml"
   numEntry <- (toEntry numpath epochtime . UTF8.fromStringLazy . showTopElement')
@@ -167,11 +170,14 @@ writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
   rels <- case findEntryByPath relsPath refArchive of
                    Just e  -> return $ UTF8.toStringLazy $ fromEntry e
                    Nothing -> err 57 "could not find .rels/_rels in reference docx"
+
   -- fix .rels/_rels, which can get screwed up when reference.docx is edited by Word
   let rels' = substitute "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties"
                   "http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties"
                   rels
   let relsEntry = toEntry relsPath epochtime $ UTF8.fromStringLazy rels'
+
+  -- Create archive
   let archive = foldr addEntryToArchive refArchive $
                   relsEntry : contentEntry : relEntry : footnoteRelEntry : numEntry : styleEntry : footnotesEntry : docPropsEntry : imageEntries
   return $ fromArchive archive
@@ -623,7 +629,7 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
   -- first, check to see if we've already done this image
   imgs <- gets stImages
   case M.lookup src imgs of
-    Just (_,_,elt,_) -> return [elt]
+    Just (_,_,_,elt,_) -> return [elt]
     Nothing -> do
       let sourceDir = writerSourceDirectory opts
       res <- liftIO $ E.try $ fetchItem sourceDir src
@@ -671,17 +677,31 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
                   , mknode "wp:effectExtent" [("b","0"),("l","0"),("r","0"),("t","0")] ()
                   , mknode "wp:docPr" [("descr",tit),("id","1"),("name","Picture")] ()
                   , graphic ]
-          modify $ \st -> st{ stImages = M.insert src (ident, imgPath ident img, imgElt, img) $ stImages st }
-          return [imgElt]
-
-imgPath :: String -> B.ByteString -> String
-imgPath ident img = "media/" ++ ident ++
-                            case imageType img of
-                                  Just Png  -> ".png"
-                                  Just Jpeg -> ".jpeg"
-                                  Just Gif  -> ".gif"
-                                  Just Pdf  -> ".pdf"
-                                  Nothing   -> ""
+          let imgext = case imageType img of
+                             Just Png  -> ".png"
+                             Just Jpeg -> ".jpeg"
+                             Just Gif  -> ".gif"
+                             Just Pdf  -> ".pdf"
+                             Nothing   -> takeExtension src
+          if null imgext
+             then -- without an extension there is no rule for content type
+               inlinesToOpenXML opts alt -- return alt to avoid corrupted docx
+             else do
+               let imgpath = "media/" ++ ident ++ imgext
+               let mbMimeType = getMimeType imgpath
+               -- TODO also insert mime type; later can use this
+               -- to construct [Content_Types].xml
+               modify $ \st -> st{ stImages =
+                   M.insert src (ident, imgpath, mbMimeType, imgElt, img)
+                           $ stImages st }
+               return [imgElt]
 
 br :: Element
 br = mknode "w:r" [] [mknode "w:cr" [] () ]
+
+parseXml :: Archive -> String -> IO Element
+parseXml refArchive relpath =
+  case (findEntryByPath relpath refArchive >>= parseXMLDoc . UTF8.toStringLazy . fromEntry) of
+       Just d  -> return d
+       Nothing -> fail $ relpath ++ " missing in reference docx"
+
