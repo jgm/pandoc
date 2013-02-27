@@ -655,7 +655,7 @@ inlineToOpenXML opts (Note bs) = do
   notes <- gets stFootnotes
   notenum <- getUniqueId
   let notemarker = mknode "w:r" []
-                   [ mknode "w:rPr" [] (rStyle "FootnoteReference")
+                   [ mknode "w:rPr" [] (rStyle "FootnoteRef")
                    , mknode "w:footnoteRef" [] () ]
   let notemarkerXml = RawInline "openxml" $ ppElement notemarker
   let insertNoteRef (Plain ils : xs) = Plain (notemarkerXml : ils) : xs
@@ -672,15 +672,15 @@ inlineToOpenXML opts (Note bs) = do
   let newnote = mknode "w:footnote" [("w:id", notenum)] $ contents
   modify $ \s -> s{ stFootnotes = newnote : notes }
   return [ mknode "w:r" []
-           [ mknode "w:rPr" [] (rStyle "FootnoteReference")
+           [ mknode "w:rPr" [] (rStyle "FootnoteRef")
            , mknode "w:footnoteReference" [("w:id", notenum)] () ] ]
 -- internal link:
 inlineToOpenXML opts (Link txt ('#':xs,_)) = do
-  contents <- withTextProp (rStyle "Hyperlink") $ inlinesToOpenXML opts txt
+  contents <- withTextProp (rStyle "Link") $ inlinesToOpenXML opts txt
   return [ mknode "w:hyperlink" [("w:anchor",xs)] contents ]
 -- external link:
 inlineToOpenXML opts (Link txt (src,_)) = do
-  contents <- withTextProp (rStyle "Hyperlink") $ inlinesToOpenXML opts txt
+  contents <- withTextProp (rStyle "Link") $ inlinesToOpenXML opts txt
   extlinks <- gets stExternalLinks
   id' <- case M.lookup src extlinks of
             Just i   -> return i
