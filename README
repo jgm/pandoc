@@ -962,7 +962,7 @@ also make it easy to provide links from one section of a document to
 another. A link to this section, for example, might look like this:
 
     See the section on
-    [header identifiers](#header-identifiers-in-html).
+    [header identifiers](#header-identifiers-in-html-latex-and-context).
 
 Note, however, that this method of providing links to sections works
 only in HTML, LaTeX, and ConTeXt formats.
