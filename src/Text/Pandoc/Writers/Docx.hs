@@ -114,23 +114,88 @@ writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
                        defaultWriterState
   epochtime <- floor `fmap` getPOSIXTime
   let imgs = M.elems $ stImages st
-  let toImgRel (ident,path,_,_,_) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"),("Id",ident),("Target",path)] ()
+
+  -- we create [Content_Types].xml and word/_rels/document.xml.rels
+  -- from scratch rather than reading from reference.docx,
+  -- because Word sometimes changes these files when a reference.docx is modified,
+  -- e.g. deleting the reference to footnotes.xml or removing default entries
+  -- for image content types.
+
+  -- [Content_Types].xml
+  let mkOverrideNode (part', contentType') = mknode "Override"
+               [("PartName",part'),("ContentType",contentType')] ()
+  let mkImageOverride (_, imgpath, mbMimeType, _, _) =
+             mkOverrideNode ("/word/" ++ imgpath, maybe "application/octet-stream" id mbMimeType)
+  let overrides = map mkOverrideNode
+                  [("/word/webSettings.xml",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml")
+                  ,("/word/numbering.xml",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml")
+                  ,("/word/settings.xml",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml")
+                  ,("/word/theme/theme1.xml",
+                    "application/vnd.openxmlformats-officedocument.theme+xml")
+                  ,("/word/fontTable.xml",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml")
+                  ,("/docProps/app.xml",
+                    "application/vnd.openxmlformats-officedocument.extended-properties+xml")
+                  ,("/docProps/core.xml",
+                    "application/vnd.openxmlformats-package.core-properties+xml")
+                  ,("/word/styles.xml",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml")
+                  ,("/word/document.xml",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml")
+                  ,("/word/footnotes.xml",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml")
+                  ] ++ map mkImageOverride imgs
+  let defaultnodes = [mknode "Default"
+              [("Extension","xml"),("ContentType","application/xml")] (),
+             mknode "Default"
+              [("Extension","rels"),("ContentType","application/vnd.openxmlformats-package.relationships+xml")] ()]
+  let contentTypesDoc = mknode "Types" [("xmlns","http://schemas.openxmlformats.org/package/2006/content-types")] $ defaultnodes ++ overrides
+  let contentTypesEntry = toEntry "[Content_Types].xml" epochtime
+        $ UTF8.fromStringLazy $ showTopElement' contentTypesDoc
 
   -- word/_rels/document.xml.rels
-  let newrels = map toImgRel imgs
-  let relpath = "word/_rels/document.xml.rels"
-  reldoc <- parseXml refArchive relpath
-  let reldoc' = reldoc{ elContent = elContent reldoc ++ map Elem newrels }
+  let toBaseRel (url', id', target') = mknode "Relationship"
+                                          [("Type",url')
+                                          ,("Id",id')
+                                          ,("Target",target')] ()
+  let baserels = map toBaseRel
+                    [("http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering",
+                      "rId1",
+                      "numbering.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles",
+                      "rId2",
+                      "styles.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings",
+                      "rId3",
+                      "settings.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings",
+                      "rId4",
+                      "webSettings.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable",
+                      "rId5",
+                      "fontTable.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme",
+                      "rId6",
+                      "theme/theme1.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes",
+                      "rId7",
+                      "footnotes.xml")]
+  let toImgRel (ident,path,_,_,_) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"),("Id",ident),("Target",path)] ()
+  let imgrels = map toImgRel imgs
+  let toLinkRel (src,ident) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"),("Id",ident),("Target",src),("TargetMode","External") ] ()
+  let linkrels = map toLinkRel $ M.toList $ stExternalLinks st
+  let reldoc = mknode "Relationships" [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")] $ baserels ++ imgrels ++ linkrels
+  let relEntry = toEntry "word/_rels/document.xml.rels" epochtime
+        $ UTF8.fromStringLazy $ showTopElement' reldoc
 
-  -- create entries for images
+  -- create entries for images in word/media/...
   let toImageEntry (_,path,_,_,img) = toEntry ("word/" ++ path) epochtime $ toLazy img
   let imageEntries = map toImageEntry imgs
 
-  -- NOW get list of external links and images from this, and do what's needed
-  let toLinkRel (src,ident) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"),("Id",ident),("Target",src),("TargetMode","External") ] ()
-  let newrels' = map toLinkRel $ M.toList $ stExternalLinks st
-  let reldoc'' = reldoc' { elContent = elContent reldoc' ++ map Elem newrels' }
-  let relEntry = toEntry relpath epochtime $ UTF8.fromStringLazy $ showTopElement' reldoc''
+  -- word/document.xml
   let contentEntry = toEntry "word/document.xml" epochtime $ UTF8.fromStringLazy $ showTopElement' contents
 
   -- footnotes
@@ -140,7 +205,7 @@ writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
   -- footnote rels
   let footnoteRelEntry = toEntry "word/_rels/footnotes.xml.rels" epochtime $ UTF8.fromStringLazy $
         showTopElement' $ mknode "Relationships" [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")]
-        $ newrels'
+        $ linkrels
 
   -- styles
   let newstyles = styleToOpenXml $ writerHighlightStyle opts
@@ -179,7 +244,7 @@ writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
 
   -- Create archive
   let archive = foldr addEntryToArchive refArchive $
-                  relsEntry : contentEntry : relEntry : footnoteRelEntry : numEntry : styleEntry : footnotesEntry : docPropsEntry : imageEntries
+                  contentTypesEntry : relsEntry : contentEntry : relEntry : footnoteRelEntry : numEntry : styleEntry : footnotesEntry : docPropsEntry : imageEntries
   return $ fromArchive archive
 
 styleToOpenXml :: Style -> [Element]
@@ -689,8 +754,7 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
              else do
                let imgpath = "media/" ++ ident ++ imgext
                let mbMimeType = getMimeType imgpath
-               -- TODO also insert mime type; later can use this
-               -- to construct [Content_Types].xml
+               -- insert mime type to use in constructing [Content_Types].xml
                modify $ \st -> st{ stImages =
                    M.insert src (ident, imgpath, mbMimeType, imgElt, img)
                            $ stImages st }
