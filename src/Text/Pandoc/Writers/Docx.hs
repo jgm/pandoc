@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
-import Data.List ( intercalate )
+import Data.List ( intercalate, groupBy )
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Map as M
@@ -425,10 +425,16 @@ blockToOpenXML opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
   captionNode <- withParaProp (pStyle "ImageCaption")
                  $ blockToOpenXML opts (Para alt)
   return $ mknode "w:p" [] (paraProps ++ contents) : captionNode
-blockToOpenXML opts (Para lst) = do
-  paraProps <- getParaProps
-  contents <- inlinesToOpenXML opts lst
-  return [mknode "w:p" [] (paraProps ++ contents)]
+blockToOpenXML opts (Para lst)
+  | any isDisplayMath lst && not (all isDisplayMath lst) = do
+    -- chop into several paragraphs so each displaymath is its own
+    let lsts = groupBy (\x y -> (isDisplayMath x && isDisplayMath y) ||
+                         not (isDisplayMath x || isDisplayMath y)) lst
+    blocksToOpenXML opts (map Para lsts)
+  | otherwise = do
+    paraProps <- getParaProps
+    contents <- inlinesToOpenXML opts lst
+    return [mknode "w:p" [] (paraProps ++ contents)]
 blockToOpenXML _ (RawBlock format str)
   | format == "openxml" = return [ x | Elem x <- parseXML str ]
   | otherwise           = return []
@@ -629,16 +635,13 @@ inlineToOpenXML opts (Quoted quoteType lst) =
     where (open, close) = case quoteType of
                             SingleQuote -> ("\x2018", "\x2019")
                             DoubleQuote -> ("\x201C", "\x201D")
-inlineToOpenXML opts (Math InlineMath str) =
-  case texMathToOMML DisplayInline str of
+inlineToOpenXML opts (Math mathType str) = do
+  let displayType = if mathType == DisplayMath
+                       then DisplayBlock
+                       else DisplayInline
+  case texMathToOMML displayType str of
         Right r -> return [r]
         Left  _ -> inlinesToOpenXML opts (readTeXMath str)
-inlineToOpenXML opts (Math DisplayMath str) =
-  case texMathToOMML DisplayBlock str of
-        Right r -> return [br, r, br]
-        Left  _ -> do
-            fallback <- inlinesToOpenXML opts (readTeXMath str)
-            return $ [br] ++ fallback ++ [br]
 inlineToOpenXML opts (Cite _ lst) = inlinesToOpenXML opts lst
 inlineToOpenXML _ (Code attrs str) =
   withTextProp (rStyle "VerbatimChar")
@@ -769,3 +772,6 @@ parseXml refArchive relpath =
        Just d  -> return d
        Nothing -> fail $ relpath ++ " missing in reference docx"
 
+isDisplayMath :: Inline -> Bool
+isDisplayMath (Math DisplayMath _) = True
+isDisplayMath _                    = False
