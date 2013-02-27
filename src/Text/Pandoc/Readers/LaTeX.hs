@@ -498,12 +498,15 @@ inlineCommands = M.fromList $
   [ "noindent", "index", "nocite" ]
 
 mkImage :: String -> LP Inlines
-mkImage src =
+mkImage src = do
+   -- try for a caption
+   alt <- option (str "image") $ try $ spaces >>
+           controlSeq "caption" >> optional (char '*') >> grouped inline
    case takeExtension src of
         "" -> do
               defaultExt <- getOption readerDefaultImageExtension
-              return $ image (addExtension src defaultExt) "" (str "image")
-        _  -> return $ image src "" (str "image")
+              return $ image (addExtension src defaultExt) "" alt
+        _  -> return $ image src "" alt
 
 inNote :: Inlines -> Inlines
 inNote ils =
