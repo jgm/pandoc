@@ -4,8 +4,6 @@
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
 \usepackage{fixltx2e} % provides \textsubscript
-% use microtype if available
-\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
 % use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
@@ -18,6 +16,8 @@
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
   \newcommand{\euro}{€}
 \fi
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
 \usepackage{fancyvrb}
 \usepackage{graphicx}
 % We will generate all images so they have a width \maxwidth. This means
