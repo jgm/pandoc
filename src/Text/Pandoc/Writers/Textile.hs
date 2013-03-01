@@ -125,7 +125,6 @@ blockToTextile _ HorizontalRule = return "<hr />\n"
 blockToTextile opts (Header level (ident,classes,keyvals) inlines) = do
   contents <- inlineListToTextile opts inlines
   let identAttr = if null ident then "" else ('#':ident)
-  let classAttr = unwords classes
   let attribs = if null identAttr && null classes
                    then ""
                    else "(" ++ unwords classes ++ identAttr ++ ")"
