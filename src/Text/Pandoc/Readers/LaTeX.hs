@@ -500,13 +500,17 @@ inlineCommands = M.fromList $
 mkImage :: String -> LP Inlines
 mkImage src = do
    -- try for a caption
-   alt <- option (str "image") $ try $ spaces >>
-           controlSeq "caption" >> optional (char '*') >> grouped inline
+   (alt, tit) <- option (str "image", "") $ try $ do
+                   spaces
+                   controlSeq "caption"
+                   optional (char '*')
+                   ils <- grouped inline
+                   return (ils, "fig:")
    case takeExtension src of
         "" -> do
               defaultExt <- getOption readerDefaultImageExtension
-              return $ image (addExtension src defaultExt) "" alt
-        _  -> return $ image src "" alt
+              return $ image (addExtension src defaultExt) tit alt
+        _  -> return $ image src tit alt
 
 inNote :: Inlines -> Inlines
 inNote ils =
