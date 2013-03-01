@@ -190,12 +190,14 @@ vsep = foldr ($+$) empty
 chomp :: Doc -> Doc
 chomp d = Doc (fromList dl')
   where dl = toList (unDoc d)
-        dl' = reverse $ dropWhile removeable $ reverse dl
-        removeable BreakingSpace = True
-        removeable CarriageReturn = True
-        removeable NewLine = True
-        removeable BlankLine = True
-        removeable _ = False
+        dl' = reverse $ go $ reverse dl
+        go [] = []
+        go (BreakingSpace : xs) = go xs
+        go (CarriageReturn : xs) = go xs
+        go (NewLine : xs) = go xs
+        go (BlankLine : xs) = go xs
+        go (Prefixed s d' : xs) = Prefixed s (chomp d') : xs
+        go xs = xs
 
 outp :: (IsString a, Monoid a)
      => Int -> String -> DocState a
