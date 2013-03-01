@@ -349,6 +349,9 @@ blockToMarkdown opts t@(Table caption aligns widths headers rows) =  do
   rawHeaders <- mapM (blockListToMarkdown opts) headers
   rawRows <- mapM (mapM (blockListToMarkdown opts)) rows
   let isSimple = all (==0) widths
+  let isPlainBlock (Plain _) = True
+      isPlainBlock _         = False
+  let hasBlocks = not (all isPlainBlock $ concat . concat $ headers:rows)
   (nst,tbl) <- case isSimple of
                 True  | isEnabled Ext_simple_tables opts -> fmap (nest 2,) $
                          pandocTable opts (all null headers) aligns widths
@@ -358,8 +361,12 @@ blockToMarkdown opts t@(Table caption aligns widths headers rows) =  do
                       | otherwise -> fmap (id,) $
                          return $ text $ writeHtmlString def
                                 $ Pandoc (Meta [] [] []) [t]
-                False | isEnabled Ext_multiline_tables opts -> fmap (nest 2,) $
+                False | not hasBlocks &&
+                        isEnabled Ext_multiline_tables opts -> fmap (nest 2,) $
                          pandocTable opts (all null headers) aligns widths
+                             rawHeaders rawRows
+                      | isEnabled Ext_grid_tables opts -> fmap (id,) $
+                         gridTable opts (all null headers) aligns widths
                              rawHeaders rawRows
                       | otherwise -> fmap (id,) $
                          return $ text $ writeHtmlString def
@@ -447,6 +454,29 @@ pandocTable opts headless aligns widths rawHeaders rawRows =  do
                   then underline
                   else border
   return $ head'' $$ underline $$ body $$ bottom
+
+gridTable :: WriterOptions -> Bool -> [Alignment] -> [Double]
+          -> [Doc] -> [[Doc]] -> State WriterState Doc
+gridTable opts headless _aligns widths headers' rawRows =  do
+  let widthsInChars = map (floor . (fromIntegral (writerColumns opts) *)) widths
+  let hpipeBlocks blocks = hcat [beg, middle, end]
+        where h       = maximum (map height blocks)
+              sep'    = lblock 3 $ vcat (map text $ replicate h " | ")
+              beg     = lblock 2 $ vcat (map text $ replicate h "| ")
+              end     = lblock 2 $ vcat (map text $ replicate h " |")
+              middle  = chomp $ hcat $ intersperse sep' blocks
+  let makeRow = hpipeBlocks . zipWith lblock widthsInChars
+  let head' = makeRow headers'
+  let rows' = map (makeRow . map chomp) rawRows
+  let border ch = char '+' <> char ch <>
+                  (hcat $ intersperse (char ch <> char '+' <> char ch) $
+                          map (\l -> text $ replicate l ch) widthsInChars) <>
+                  char ch <> char '+'
+  let body = vcat $ intersperse (border '-') rows'
+  let head'' = if headless
+                  then empty
+                  else head' $$ border '='
+  return $ border '-' $$ head'' $$ body $$ border '-'
 
 -- | Convert bullet list item (list of blocks) to markdown.
 bulletListItemToMarkdown :: WriterOptions -> [Block] -> State WriterState Doc
