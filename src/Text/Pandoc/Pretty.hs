@@ -104,10 +104,7 @@ data D = Text Int String
        deriving (Show)
 
 newtype Doc = Doc { unDoc :: Seq D }
-              deriving (Monoid)
-
-instance Show Doc where
-  show = render Nothing
+              deriving (Monoid, Show)
 
 instance IsString Doc where
   fromString = text
