@@ -488,20 +488,16 @@ blockDelimiter f len = try $ do
       Nothing -> count 3 (char c) >> many (char c) >>=
                  return . (+ 3) . length
 
-attributes :: MarkdownParser (String, [String], [(String, String)])
+attributes :: MarkdownParser Attr
 attributes = try $ do
   char '{'
   spnl
   attrs <- many (attribute >>~ spnl)
   char '}'
-  let (ids, classes, keyvals) = unzip3 attrs
-  let firstNonNull [] = ""
-      firstNonNull (x:xs) | not (null x) = x
-                          | otherwise    = firstNonNull xs
-  return (firstNonNull $ reverse ids, concat classes, concat keyvals)
+  return $ foldl (\x f -> f x) nullAttr attrs
 
-attribute :: MarkdownParser (String, [String], [(String, String)])
-attribute = identifierAttr <|> classAttr <|> keyValAttr
+attribute :: MarkdownParser (Attr -> Attr)
+attribute = identifierAttr <|> classAttr <|> keyValAttr <|> specialAttr
 
 identifier :: MarkdownParser String
 identifier = do
@@ -509,26 +505,31 @@ identifier = do
   rest <- many $ alphaNum <|> oneOf "-_:."
   return (first:rest)
 
-identifierAttr :: MarkdownParser (String, [a], [a1])
+identifierAttr :: MarkdownParser (Attr -> Attr)
 identifierAttr = try $ do
   char '#'
   result <- identifier
-  return (result,[],[])
+  return $ \(_,cs,kvs) -> (result,cs,kvs)
 
-classAttr :: MarkdownParser (String, [String], [a])
+classAttr :: MarkdownParser (Attr -> Attr)
 classAttr = try $ do
   char '.'
   result <- identifier
-  return ("",[result],[])
+  return $ \(id',cs,kvs) -> (id',cs ++ [result],kvs)
 
-keyValAttr :: MarkdownParser (String, [a], [(String, String)])
+keyValAttr :: MarkdownParser (Attr -> Attr)
 keyValAttr = try $ do
   key <- identifier
   char '='
   val <- enclosed (char '"') (char '"') litChar
      <|> enclosed (char '\'') (char '\'') litChar
      <|> many (escapedChar' <|> noneOf " \t\n\r}")
-  return ("",[],[(key,val)])
+  return $ \(id',cs,kvs) -> (id',cs,kvs ++ [(key,val)])
+
+specialAttr :: MarkdownParser (Attr -> Attr)
+specialAttr = do
+  char '-'
+  return $ \(id',cs,kvs) -> (id',cs ++ ["unnumbered"],kvs)
 
 codeBlockFenced :: MarkdownParser (F Blocks)
 codeBlockFenced = try $ do
