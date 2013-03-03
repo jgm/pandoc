@@ -62,7 +62,8 @@ $if(graphics)$
   \fi
 }
 \makeatother
-\setkeys{Gin}{width=\ScaleIfNeeded}
+\let\Oldincludegraphics\includegraphics
+\renewcommand{\includegraphics}[2][]{\Oldincludegraphics[width=\ScaleIfNeeded]{#2}}
 $endif$
 
 % Comment these out if you don't want a slide with just the
