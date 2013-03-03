@@ -395,7 +395,9 @@ Options affecting specific writers
 
 `-N`, `--number-sections`
 :   Number section headings in LaTeX, ConTeXt, HTML, or EPUB output.
-    By default, sections are not numbered.
+    By default, sections are not numbered.  Sections with class
+    `unnumbered` will never be numbered, even if `--number-sections`
+    is specified.
 
 `--number-offset`=*NUMBER[,NUMBER,...]*,
 :   Offset for section headings in HTML output (ignored in other
@@ -925,6 +927,17 @@ the following headers will all be assigned the identifier `foo`:
     ---------------
 
 (This syntax is compatible with [PHP Markdown Extra].)
+
+Headers with the class `unnumbered` will not be numbered, even if
+`--number-sections` is specified.  A single hyphen (`-`) in an attribute
+context is equivalent to `.unnumbered`, and preferable in non-English
+documents.  So,
+
+    # My header {-}
+
+is just the same as
+
+    # My header {.unnumbered}
 
 **Extension: `auto_identifiers`**
 
