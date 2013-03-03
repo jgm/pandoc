@@ -365,8 +365,8 @@ block = choice [ codeBlockFenced
                , lhsCodeBlock
                , rawTeXBlock
                , htmlBlock
-               , lineBlock
                , table
+               , lineBlock
                , codeBlockIndented
                , blockQuote
                , hrule
