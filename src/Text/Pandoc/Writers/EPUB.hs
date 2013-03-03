@@ -229,12 +229,10 @@ writeEPUB opts doc@(Pandoc meta _) = do
                               ,("media-type","application/x-dtbncx+xml")] $ ()
              , unode "item" ! [("id","style"), ("href","stylesheet.css")
                               ,("media-type","text/css")] $ ()
-             ] ++
-             [ unode "item" ! [("id","nav")
-                              ,("href","nav.xhtml")
-                              ,("properties","nav")
-                              ,("media-type","application/xhtml+xml")] $ ()
-               | version == EPUB3
+             , unode "item" ! ([("id","nav")
+                               ,("href","nav.xhtml")
+                               ,("media-type","application/xhtml+xml")] ++
+                               [("properties","nav") | epub3 ]) $ ()
              ] ++
              map chapterNode (cpgEntry ++ (tpEntry : chapterEntries)) ++
              map pictureNode (cpicEntry ++ picEntries) ++
@@ -244,7 +242,15 @@ writeEPUB opts doc@(Pandoc meta _) = do
                     Nothing -> []
                     Just _ -> [ unode "itemref" !
                                 [("idref", "cover"),("linear","no")] $ () ]
-              ++ map chapterRefNode (tpEntry : chapterEntries)
+              ++ ((unode "itemref" ! [("idref", "title_page"),("linear","yes")] $ ()) :
+                  (unode "itemref" ! [("idref", "nav")
+                                     ,("linear", if writerTableOfContents opts
+                                                    then "yes"
+                                                    else "no")] $ ()) :
+                  map chapterRefNode chapterEntries)
+          , unode "guide" $
+              unode "reference" !
+                [("type","toc"),("title",plainTitle),("href","nav.xhtml")] $ ()
           ]
   let contentsEntry = mkEntry "content.opf" contentsData
 
@@ -315,16 +321,19 @@ writeEPUB opts doc@(Pandoc meta _) = do
                                              $ (unode "span" tit))
                                             : case subs of
                                                  []    -> []
-                                                 (_:_) -> [unode "ol" subs]
+                                                 (_:_) -> [unode "ol" ! [("class","toc")] $ subs]
 
+  let navtag = if epub3 then "nav" else "div"
   let navData = fromStringLazy $ ppTopElement $
         unode "html" ! [("xmlns","http://www.w3.org/1999/xhtml")
                        ,("xmlns:epub","http://www.idpf.org/2007/ops")] $
-          [ unode "head" $ unode "title" plainTitle
+          [ unode "head" $
+            [ unode "title" plainTitle
+            , unode "link" ! [("rel","stylesheet"),("type","text/css"),("href","stylesheet.css")] $ () ]
           , unode "body" $
-              unode "nav" ! [("epub:type","toc")] $
+              unode navtag ! [("epub:type","toc") | epub3] $
                 [ unode "h1" plainTitle
-                , unode "ol" $ evalState (mapM (navPointNode navXhtmlFormatter) secs) 1]
+                , unode "ol" ! [("class","toc")] $ evalState (mapM (navPointNode navXhtmlFormatter) secs) 1]
           ]
   let navEntry = mkEntry "nav.xhtml" navData
 
@@ -357,9 +366,8 @@ writeEPUB opts doc@(Pandoc meta _) = do
   -- construct archive
   let archive = foldr addEntryToArchive emptyArchive
                  (mimetypeEntry : containerEntry : appleEntry : stylesheetEntry : tpEntry :
-                  contentsEntry : tocEntry :
-                  ([navEntry | version == EPUB3] ++ picEntries ++ cpicEntry ++ cpgEntry ++
-                    chapterEntries ++ fontEntries) )
+                  contentsEntry : tocEntry : navEntry :
+                  (picEntries ++ cpicEntry ++ cpgEntry ++ chapterEntries ++ fontEntries))
   return $ fromArchive archive
 
 metadataElement :: EPUBVersion -> String -> UUID -> String -> String -> [String]
@@ -385,7 +393,7 @@ metadataElement version metadataXML uuid lang title authors date currentTime mbC
                      $ a | a <- authors ] ++
            [ unode "dc:date" date | not (elt `contains` "date") ] ++
            [ unode "meta" ! [("property", "dcterms:modified")] $
-               (showDateTimeISO8601 currentTime) | version == EPUB3 ] ++
+               (showDateTimeISO8601 currentTime) | version == EPUB3] ++
            [ unode "meta" ! [("name","cover"), ("content","cover-image")] $ () |
                not (isNothing mbCoverImage) ]
   in  elt{ elContent = elContent elt ++ map Elem newNodes }
