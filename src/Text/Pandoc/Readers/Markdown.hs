@@ -1184,10 +1184,12 @@ pipeTableRow = do
                       | otherwise   -> B.plain $ ils') cells'
 
 pipeTableHeaderPart :: Parser [Char] st Alignment
-pipeTableHeaderPart = do
+pipeTableHeaderPart = try $ do
+  skipMany spaceChar
   left <- optionMaybe (char ':')
   many1 (char '-')
   right <- optionMaybe (char ':')
+  skipMany spaceChar
   return $
     case (left,right) of
       (Nothing,Nothing) -> AlignDefault
