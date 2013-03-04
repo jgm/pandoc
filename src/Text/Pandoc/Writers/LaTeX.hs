@@ -332,11 +332,17 @@ blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
                         then (case getListingsLanguage classes of
                                    Just l  -> [ "language=" ++ l ]
                                    Nothing -> []) ++
-                             [ key ++ "=" ++ attr | (key,attr) <- keyvalAttr ]
+                             [ "numbers=left" | "numberLines" `elem` classes
+                                || "number" `elem` classes
+                                || "number-lines" `elem` classes ] ++
+                             [ (if key == "startFrom"
+                                   then "firstnumber"
+                                   else key) ++ "=" ++ attr |
+                                   (key,attr) <- keyvalAttr ]
                         else []
                printParams
                    | null params = empty
-                   | otherwise   = brackets $ hsep (intersperse "," (map text params))
+                   | otherwise   = brackets $ hcat (intersperse ", " (map text params))
            return $ flush ("\\begin{lstlisting}" <> printParams $$ text str $$
                     "\\end{lstlisting}") $$ cr
          highlightedCodeBlock =
