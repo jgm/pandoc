@@ -768,6 +768,20 @@ verbCmd = do
   rest <- getInput
   return (r, rest)
 
+keyval :: LP (String, String)
+keyval = try $ do
+  key <- many1 alphaNum
+  char '='
+  val <- many1 alphaNum
+  skipMany spaceChar
+  optional (char ',')
+  skipMany spaceChar
+  return (key, val)
+
+
+keyvals :: LP [(String, String)]
+keyvals = try $ char '[' *> manyTill keyval (char ']')
+
 verbatimEnv :: LP (String, String)
 verbatimEnv = do
   (_,r) <- withRaw $ do
@@ -804,7 +818,14 @@ environments = M.fromList
         verbEnv "code"))
   , ("verbatim", codeBlock <$> (verbEnv "verbatim"))
   , ("Verbatim", codeBlock <$> (verbEnv "Verbatim"))
-  , ("lstlisting", codeBlock <$> (verbEnv "lstlisting"))
+  , ("lstlisting", do options <- option [] keyvals
+                      let classes = [ "numberLines" |
+                                      lookup "numbers" options == Just "left" ]
+                      let kvs = [ (if k == "firstnumber"
+                                      then "startFrom"
+                                      else k, v) | (k,v) <- options ]
+                      let attr = ("",classes,kvs)
+                      codeBlockWith attr <$> (verbEnv "lstlisting"))
   , ("minted", liftA2 (\l c -> codeBlockWith ("",[l],[]) c)
             (grouped (many1 $ satisfy (/= '}'))) (verbEnv "minted"))
   , ("obeylines", parseFromString
