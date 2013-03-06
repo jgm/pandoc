@@ -35,18 +35,18 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
-import qualified Data.Map as M
 import Network.URI ( isAbsoluteURI, unEscapeString )
 import Data.List ( (\\), isSuffixOf, isInfixOf,
                    isPrefixOf, intercalate, intersperse )
 import Data.Char ( toLower, isPunctuation )
-import Control.Monad.State
 import Control.Applicative ((<|>))
+import Control.Monad.State
 import Text.Pandoc.Pretty
 import System.FilePath (dropExtension)
 import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
-                                 formatLaTeXInline, formatLaTeXBlock)
+                                 formatLaTeXInline, formatLaTeXBlock,
+                                 toListingsLanguage)
 
 data WriterState =
   WriterState { stInNote        :: Bool          -- true if we're in a note
@@ -762,60 +762,7 @@ citationsToBiblatex (c:cs) = do
 
 citationsToBiblatex _ = return empty
 
--- correlate pandoc language names with listings names
-langsMap :: M.Map String String
-langsMap = M.fromList
-               [("ada","Ada")
-               ,("java","Java")
-               ,("prolog","Prolog")
-               ,("python","Python")
-               ,("gnuassembler","Assembler")
-               ,("commonlisp","Lisp")
-               ,("r","R")
-               ,("awk","Awk")
-               ,("bash","bash")
-               ,("makefile","make")
-               ,("c","C")
-               ,("matlab","Matlab")
-               ,("ruby","Ruby")
-               ,("cpp","C++")
-               ,("ocaml","Caml")
-               ,("modula2","Modula-2")
-               ,("sql","SQL")
-               ,("eiffel","Eiffel")
-               ,("tcl","tcl")
-               ,("erlang","erlang")
-               ,("verilog","Verilog")
-               ,("fortran","Fortran")
-               ,("vhdl","VHDL")
-               ,("pascal","Pascal")
-               ,("perl","Perl")
-               ,("xml","XML")
-               ,("haskell","Haskell")
-               ,("php","PHP")
-               ,("xslt","XSLT")
-               ,("html","HTML")
-               ]
-
-listingsLangs :: [String]
-listingsLangs = ["Ada","Java","Prolog","Algol","JVMIS","Promela",
-                 "Ant","ksh","Python","Assembler","Lisp","R","Awk",
-                 "Logo","Reduce","bash","make","Rexx","Basic",
-                 "Mathematica","RSL","C","Matlab","Ruby","C++",
-                 "Mercury","S","Caml","MetaPost","SAS","Clean",
-                 "Miranda","Scilab","Cobol","Mizar","sh","Comal",
-                 "ML","SHELXL","csh","Modula-2","Simula","Delphi",
-                 "MuPAD","SQL","Eiffel","NASTRAN","tcl","Elan",
-                 "Oberon-2","TeX","erlang","OCL","VBScript","Euphoria",
-                 "Octave","Verilog","Fortran","Oz","VHDL","GCL",
-                 "Pascal","VRML","Gnuplot","Perl","XML","Haskell",
-                 "PHP","XSLT","HTML","PL/I"]
-
 -- Determine listings language from list of class attributes.
 getListingsLanguage :: [String] -> Maybe String
 getListingsLanguage [] = Nothing
-getListingsLanguage (x:xs) = (if x `elem` listingsLangs
-                              then Just x
-                              else Nothing) <|>
-                             M.lookup (map toLower x) langsMap <|>
-                             getListingsLanguage xs
+getListingsLanguage (x:xs) = toListingsLanguage x <|> getListingsLanguage xs

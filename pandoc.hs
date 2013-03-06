@@ -37,7 +37,7 @@ import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, safeRead,
                             headerShift, normalize, err, warn )
 import Text.Pandoc.XML ( toEntities, fromEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
-import Text.Pandoc.Highlighting ( languages, Style, tango, pygments,
+import Text.Highlighting.Kate ( languages, Style, tango, pygments,
          espresso, zenburn, kate, haddock, monochrome )
 import System.Environment ( getArgs, getProgName )
 import System.Exit ( exitWith, ExitCode (..) )

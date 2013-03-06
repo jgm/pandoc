@@ -6,7 +6,7 @@ import Text.Pandoc.Builder
 import Text.Pandoc
 import Tests.Helpers
 import Tests.Arbitrary()
-import Text.Pandoc.Highlighting (languages) -- null if no hl support
+import Text.Highlighting.Kate (languages) -- null if no hl support
 
 html :: (ToString a, ToPandoc a) => a -> String
 html = writeHtmlString def{ writerWrapText = False } . toPandoc

@@ -45,6 +45,8 @@ module Text.Pandoc.Highlighting ( languages
                                 , monochrome
                                 , haddock
                                 , Style
+                                , fromListingsLanguage
+                                , toListingsLanguage
                                 ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (safeRead)
@@ -52,6 +54,8 @@ import Text.Highlighting.Kate
 import Data.List (find)
 import Data.Maybe (fromMaybe)
 import Data.Char (toLower)
+import qualified Data.Map as M
+import Control.Applicative ((<|>))
 
 lcLanguages :: [String]
 lcLanguages = map (map toLower) languages
@@ -76,3 +80,69 @@ highlight formatter (_, classes, keyvals) rawCode =
                                                    containerClasses = classes }
                               $ highlightAs language rawCode
 
+-- Functions for correlating latex listings package's language names
+-- with highlighting-kate language names:
+
+langToListingsMap :: M.Map String String
+langToListingsMap = M.fromList langsList
+
+listingsToLangMap :: M.Map String String
+listingsToLangMap = M.fromList $ reverse langsList
+
+langsList :: [(String, String)]
+langsList =    [("ada","Ada")
+               ,("java","Java")
+               ,("prolog","Prolog")
+               ,("python","Python")
+               ,("gnuassembler","Assembler")
+               ,("commonlisp","Lisp")
+               ,("r","R")
+               ,("awk","Awk")
+               ,("bash","bash")
+               ,("makefile","make")
+               ,("c","C")
+               ,("matlab","Matlab")
+               ,("ruby","Ruby")
+               ,("cpp","C++")
+               ,("ocaml","Caml")
+               ,("modula2","Modula-2")
+               ,("sql","SQL")
+               ,("eiffel","Eiffel")
+               ,("tcl","tcl")
+               ,("erlang","erlang")
+               ,("verilog","Verilog")
+               ,("fortran","Fortran")
+               ,("vhdl","VHDL")
+               ,("pascal","Pascal")
+               ,("perl","Perl")
+               ,("xml","XML")
+               ,("haskell","Haskell")
+               ,("php","PHP")
+               ,("xslt","XSLT")
+               ,("html","HTML")
+               ]
+
+listingsLangs :: [String]
+listingsLangs = ["Ada","Java","Prolog","Algol","JVMIS","Promela",
+                 "Ant","ksh","Python","Assembler","Lisp","R","Awk",
+                 "Logo","Reduce","bash","make","Rexx","Basic",
+                 "Mathematica","RSL","C","Matlab","Ruby","C++",
+                 "Mercury","S","Caml","MetaPost","SAS","Clean",
+                 "Miranda","Scilab","Cobol","Mizar","sh","Comal",
+                 "ML","SHELXL","csh","Modula-2","Simula","Delphi",
+                 "MuPAD","SQL","Eiffel","NASTRAN","tcl","Elan",
+                 "Oberon-2","TeX","erlang","OCL","VBScript","Euphoria",
+                 "Octave","Verilog","Fortran","Oz","VHDL","GCL",
+                 "Pascal","VRML","Gnuplot","Perl","XML","Haskell",
+                 "PHP","XSLT","HTML","PL/I"]
+
+-- Determine listings language name from highlighting-kate language name.
+toListingsLanguage :: String -> Maybe String
+toListingsLanguage lang = (if lang `elem` listingsLangs
+                              then Just lang
+                              else Nothing) <|>
+                             M.lookup (map toLower lang) langToListingsMap
+
+-- Determine highlighting-kate language name from listings language name.
+fromListingsLanguage :: String -> Maybe String
+fromListingsLanguage lang = M.lookup lang listingsToLangMap

@@ -272,7 +272,6 @@ Library
                    Text.Pandoc.Options,
                    Text.Pandoc.Pretty,
                    Text.Pandoc.Shared,
-                   Text.Pandoc.Highlighting,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,
                    Text.Pandoc.Readers.Markdown,
@@ -312,6 +311,7 @@ Library
                    Text.Pandoc.UUID,
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.Slides,
+                   Text.Pandoc.Highlighting,
                    Paths_pandoc
 
   Buildable:       True
@@ -375,6 +375,7 @@ Test-Suite test-pandoc
                   directory >= 1 && < 1.3,
                   filepath >= 1.1 && < 1.4,
                   process >= 1 && < 1.2,
+                 highlighting-kate >= 0.5.3.7 && < 0.6,
                   Diff >= 0.2 && < 0.4,
                   test-framework >= 0.3 && < 0.9,
                   test-framework-hunit >= 0.2 && < 0.4,
