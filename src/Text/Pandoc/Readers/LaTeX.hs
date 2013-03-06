@@ -818,7 +818,14 @@ environments = M.fromList
       (codeBlockWith ("",["sourceCode","literate","haskell"],[]) <$>
         verbEnv "code"))
   , ("verbatim", codeBlock <$> (verbEnv "verbatim"))
-  , ("Verbatim", codeBlock <$> (verbEnv "Verbatim"))
+  , ("Verbatim",   do options <- option [] keyvals
+                      let kvs = [ (if k == "firstnumber"
+                                      then "startFrom"
+                                      else k, v) | (k,v) <- options ]
+                      let classes = [ "numberLines" |
+                                      lookup "numbers" options == Just "left" ]
+                      let attr = ("",classes,kvs)
+                      codeBlockWith attr <$> (verbEnv "Verbatim"))
   , ("lstlisting", do options <- option [] keyvals
                       let kvs = [ (if k == "firstnumber"
                                       then "startFrom"
@@ -829,8 +836,16 @@ environments = M.fromList
                                          >>= fromListingsLanguage)
                       let attr = ("",classes,kvs)
                       codeBlockWith attr <$> (verbEnv "lstlisting"))
-  , ("minted", liftA2 (\l c -> codeBlockWith ("",[l],[]) c)
-            (grouped (many1 $ satisfy (/= '}'))) (verbEnv "minted"))
+  , ("minted",     do options <- option [] keyvals
+                      lang <- grouped (many1 $ satisfy (/='}'))
+                      let kvs = [ (if k == "firstnumber"
+                                      then "startFrom"
+                                      else k, v) | (k,v) <- options ]
+                      let classes = [ lang | not (null lang) ] ++
+                                    [ "numberLines" |
+                                      lookup "linenos" options == Just "true" ]
+                      let attr = ("",classes,kvs)
+                      codeBlockWith attr <$> (verbEnv "minted"))
   , ("obeylines", parseFromString
                   (para . trimInlines . mconcat <$> many inline) =<<
                   intercalate "\\\\\n" . lines <$> verbEnv "obeylines")
