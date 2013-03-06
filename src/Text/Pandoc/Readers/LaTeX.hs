@@ -772,8 +772,7 @@ verbCmd = do
 keyval :: LP (String, String)
 keyval = try $ do
   key <- many1 alphaNum
-  char '='
-  val <- many1 alphaNum
+  val <- option "" $ char '=' >> many1 alphaNum
   skipMany spaceChar
   optional (char ',')
   skipMany spaceChar

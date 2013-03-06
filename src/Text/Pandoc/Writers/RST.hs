@@ -171,9 +171,13 @@ blockToRST (Header level _ inlines) = do
   let headerChar = if level > 5 then ' ' else "=-~^'" !! (level - 1)
   let border = text $ replicate (offset contents) headerChar
   return $ nowrap $ contents $$ border $$ blankline
-blockToRST (CodeBlock (_,classes,_) str) = do
+blockToRST (CodeBlock (_,classes,kvs) str) = do
   opts <- stOptions <$> get
   let tabstop = writerTabStop opts
+  let startnum = maybe "" (\x -> " " <> text x) $ lookup "startFrom" kvs
+  let numberlines = if "numberLines" `elem` classes
+                       then "   :number-lines:" <> startnum
+                       else empty
   if "haskell" `elem` classes && "literate" `elem` classes &&
                   isEnabled Ext_literate_haskell opts
      then return $ prefixed "> " (text str) $$ blankline
@@ -181,7 +185,7 @@ blockToRST (CodeBlock (_,classes,_) str) = do
           (case [c | c <- classes,
                      c `notElem` ["sourceCode","literate","numberLines"]] of
              []       -> "::"
-             (lang:_) -> ".. code:: " <> text lang)
+             (lang:_) -> (".. code:: " <> text lang) $$ numberlines)
           $+$ nest tabstop (text str) $$ blankline
 blockToRST (BlockQuote blocks) = do
   tabstop <- get >>= (return . writerTabStop . stOptions)
