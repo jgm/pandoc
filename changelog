@@ -1,5 +1,8 @@
 pandoc (1.11)
 
+  * pandoc.cabal:  Require latest versions of highlighting-kate,
+    texmath, citeproc-hs, zip-archive.
+
   * Added `--number-offset` option and `writerNumberOffset` field
     in `WriterOptions`. The offset is a list of numbers (0 by default).
     These are added to the section, subsection, etc.
@@ -8,6 +11,12 @@ pandoc (1.11)
     for each section of a document.
 
   * `Text.Pandoc.Parsing` no longer exposed. (API change.)
+
+  *  `Text.Pandoc.Highlighting` no longer exposed. (API change.)
+    
+     + Moved code for translating listings language names to
+       highlighting-kate names and back from LaTeX reader to Highlighting.
+     + Text.Pandoc.Highlighting exports `toListingsLang`, `fromListingsLang`
 
   * `Text.Pandoc.Shared`:  Changed type of `Element`.
     `Sec` now includes a field for `Attr` rather than just `String`.
@@ -93,6 +102,8 @@ pandoc (1.11)
       We convert these to pandoc standard names, e.g. `numberLines`
       for `numbers=left`, `startFrom=100` from `firstnumber=100`.
       Still need to add code to convert the language names.
+    + Handle language attribute for lstlistings.
+    + Better support for Verbatim and minted environments.  Closes #763.
 
   * Markdown reader:
   
@@ -153,6 +164,8 @@ pandoc (1.11)
 
   * Markdown writer: Use grid tables when needed, and if enabled.
     Closes #740.
+
+  * RST writer:  Support `:number-lines:` in code blocks.
 
   * Docx writer:
   
