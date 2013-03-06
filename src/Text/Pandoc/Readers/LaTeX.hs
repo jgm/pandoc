@@ -52,6 +52,7 @@ import Data.List (intercalate)
 import qualified Data.Map as M
 import qualified Control.Exception as E
 import System.FilePath (takeExtension, addExtension)
+import Text.Pandoc.Highlighting (fromListingsLanguage)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ReaderOptions -- ^ Reader options
@@ -819,11 +820,13 @@ environments = M.fromList
   , ("verbatim", codeBlock <$> (verbEnv "verbatim"))
   , ("Verbatim", codeBlock <$> (verbEnv "Verbatim"))
   , ("lstlisting", do options <- option [] keyvals
-                      let classes = [ "numberLines" |
-                                      lookup "numbers" options == Just "left" ]
                       let kvs = [ (if k == "firstnumber"
                                       then "startFrom"
                                       else k, v) | (k,v) <- options ]
+                      let classes = [ "numberLines" |
+                                      lookup "numbers" options == Just "left" ]
+                                 ++ maybe [] (:[]) (lookup "language" options
+                                         >>= fromListingsLanguage)
                       let attr = ("",classes,kvs)
                       codeBlockWith attr <$> (verbEnv "lstlisting"))
   , ("minted", liftA2 (\l c -> codeBlockWith ("",[l],[]) c)

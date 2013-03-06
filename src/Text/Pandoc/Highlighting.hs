@@ -87,7 +87,8 @@ langToListingsMap :: M.Map String String
 langToListingsMap = M.fromList langsList
 
 listingsToLangMap :: M.Map String String
-listingsToLangMap = M.fromList $ reverse langsList
+listingsToLangMap = M.fromList $ map switch langsList
+  where switch (a,b) = (b,a)
 
 langsList :: [(String, String)]
 langsList =    [("ada","Ada")
