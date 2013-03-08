@@ -162,8 +162,15 @@ pandoc (1.11)
 
   * Textile writer: Support header attributes.
 
-  * Markdown writer: Use grid tables when needed, and if enabled.
-    Closes #740.
+  * Markdown writer:
+
+    + Use grid tables when needed, and if enabled.  Closes #740.
+    + Render citations as pandoc-markdown citations.
+      Previously citations were rendered as citeproc-formatted citations
+      by default.  Now we render them as pandoc citations, e.g. `[@item1]`,
+      unless the `citations` extension is disabled.
+      If you still want formatted citations in your markdown output,
+      use `pandoc -t markdown-citations`.
 
   * RST writer:  Support `:number-lines:` in code blocks.
 
