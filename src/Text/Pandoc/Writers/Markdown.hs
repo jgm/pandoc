@@ -644,7 +644,7 @@ inlineToMarkdown opts (LineBreak)
   | otherwise                              = return $ "  " <> cr
 inlineToMarkdown _ Space = return space
 inlineToMarkdown opts (Cite (c:cs) lst)
-  | writerCiteMethod opts == Citeproc = inlineListToMarkdown opts lst
+  | not (isEnabled Ext_citations opts) = inlineListToMarkdown opts lst
   | citationMode c == AuthorInText = do
     suffs <- inlineListToMarkdown opts $ citationSuffix c
     rest <- mapM convertOne cs
