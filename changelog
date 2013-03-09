@@ -1,81 +1,33 @@
 pandoc (1.11)
 
-  * pandoc.cabal:  Require latest versions of highlighting-kate,
-    texmath, citeproc-hs, zip-archive.
+  * Added `--number-offset` option.  (See README for description.)
 
-  * Added `--number-offset` option and `writerNumberOffset` field
-    in `WriterOptions`. The offset is a list of numbers (0 by default).
-    These are added to the section, subsection, etc.
-    numbers that would have been generated automatically.  This
-    can be used e.g. when generating separate web pages
-    for each section of a document.
-
-  * `Text.Pandoc.Parsing` no longer exposed. (API change.)
-
-  *  `Text.Pandoc.Highlighting` no longer exposed. (API change.)
-    
-     + Moved code for translating listings language names to
-       highlighting-kate names and back from LaTeX reader to Highlighting.
-     + Text.Pandoc.Highlighting exports `toListingsLang`, `fromListingsLang`
-
-  * `Text.Pandoc.Shared`:  Changed type of `Element`.
-    `Sec` now includes a field for `Attr` rather than just `String`.
-    (API change.)
-
-  * `Text.Pandoc.Parsing`: Allow `&` in emails (for entities).
-    Added tests for entities in titles and links.  Resolve entities.
-    A markdown link `<http://g&ouml;ogle.com>` should
-    be a link to http://göogle.com.  Closes #723.
-
-  * `Text.Pandoc.Pretty`:
+  * Added `--default-image-extension` option.  (See README for description.)
   
-    + Fixed `chomp` so it works inside `Prefixed` elements.
-    + Changed `Show` instance so it is better for debugging.
+  * `--number-sections` behavior change: headers with class `unnumbered`
+    will not be numbered.
 
-  * `Text.Pandoc.ImageSize`:  Added `Pdf` to `ImageType`.
-    So far we have no function to determine PDF's size.
+  * `--version` now reports the default data directory.
+
+  * `Text.Pandoc.Parsing` is no longer exposed. (API change.)
+
+  * `Text.Pandoc.Highlighting` is no longer exposed. (API change.)
+
+  * `Text.Pandoc.Shared`:  Changed type of `Element`.  `Sec` now includes
+    a field for `Attr` rather than just `String`.  (API change.)
 
   * Added `markdown_github` as input format.  This was an accidental
     omission in 1.10.
 
-  * Windows installer improvements:
+  * Added `readerDefaultImageExtension` field to `ReaderOptions`.  (API
+    change.)
 
-    + The installer is now signed with a certificate.
-    + WiX is used instead of InnoSetup.  The installer is now a
-      standard msi file.
-    + The version number is now auto-detected, and need not be
-      updated separately.
-    + Thanks to Fyodor Sheremetyev for several improvements to
-      the WiX installer.
-
-  * OSX installer improvements:
-  
-    + The package and pandoc executable are now signed with a
-      certificate.
-    + RTF version of license is used.
-    + Use full path for sysctl in `InstallationCheck` script (jonahbull).
-      Closes #580.
-
-  * Converted COPYING to markdown.
-
-  * `Text.Pandoc.UTF8`:  Strip off BOM if present.  Closes #743.
-
-  * README:  List proper default data directory for Windows 7.
-
-  * Added `--default-image-extension` and `readerDefaultImageExtension`.
-    This allows you to determine extensions for extensionless
-    image files from the command line, using different extensions
-    for different output formats.  Currently only works for input in
-    markdown and LaTeX.
+  * Added `writerNumberOffset` field in `WriterOptions`. (API change.)
 
   * Beamer template:
 
     + Fixed captions with longtable.  Thanks to Joost Kremers.
-    + Provide `\Oldincludegraphics` as in LaTeX template.
-      The template redefines `\includegraphics` to give special treatment
-      for too-wide images.  But this causes problems for literal uses
-      of `\includegraphics`. This change allows authors to use
-      `\Oldincludegraphics`, as in the latex template.  (Benjamin Bannier)
+    + Provide `\Oldincludegraphics` as in LaTeX template (Benjamin Bannier).
 
   * LaTeX template:
 
@@ -85,28 +37,27 @@ pandoc (1.11)
       This yields behavior equivalent to the other writers, numbering
       level 4 and 5 headers too.  Closes #753.
 
-  * `Text.Pandoc.Parsing`: Optimized `oneOfStringsCI`.
-    This dramatically reduces the speed penalty that comes from enabling the
-    `autolink_bare_uris` extension.  The penalty is still substantial (in one
-    test, from 0.33s to 0.44s), but nowhere near what it used to be.
-    The RST reader is also much faster now, as it autodetects URIs.
+  * HTML reader:
 
-  * HTML reader: Handle `<colgroup>` tag.
+    + Handle `<colgroup>` tag.
+    + Preserve all header attributes.
 
   * LaTeX reader:
-  
+
     + Parse `\hrule` as `HorizontalRule`.  Closes #746.
     + Parse starred variants of `\section` etc. as headers with
       attribute `unnumbered`.
-    + Read optional attributes in `lstlisting` environment.
+    + Read optional attributes in `lstlisting` and `Verbatim` environments.
       We convert these to pandoc standard names, e.g. `numberLines`
       for `numbers=left`, `startFrom=100` from `firstnumber=100`.
-      Still need to add code to convert the language names.
     + Handle language attribute for lstlistings.
     + Better support for Verbatim and minted environments.  Closes #763.
 
   * Markdown reader:
   
+    + `-` in an attribute context = `.unnumbered`.  The point of this
+      is to provide a way to specify unnumbered headers in non-English
+      documents.
     + Fixed bug parsing key/value attributes.  Parsing failed if you
       had an unquoted attribute immediately before the final '}'.
     + Make backslash escape work in attributes.
@@ -115,7 +66,6 @@ pandoc (1.11)
       `pandoc_title_blocks` is enabled.
     + Refactoring: `litChar` now includes entities, so we don't need
       to use `fromEntities` e.g. on titles.
-    + Cleaned up attribute parsing code.
     + Allow spaces around borders in pipe tables.  Closes #772.
     + Allow all punctuation in angle-bracket autolinks.  Previously
       things like `----` were disallowed, because the uri parser
@@ -124,16 +74,20 @@ pandoc (1.11)
       headers are given explicit identifiers.
     + Check for tables before line blocks.  Otherwise some pipe
       tables get treated as line blocks.
+    + Allow `&` in emails (for entities).
+    + Properly handle entities in titles and links.  A markdown link
+      `<http://g&ouml;ogle.com>` should be a link to `http://göogle.com`.
+      Closes #723.
 
-  * HTML reader:  Preserve all header attributes.
-
-  * Textile reader:  Handle attributes on headers.
+  * Textile reader:
+  
+    + Handle attributes on headers.
 
   * LaTeX reader:
 
     + Add `fig:` as title for images with captions.
       This is needed for them to be rendered as figures.  Closes #766.
-    + Don't emit empty paragraph.  See #761.
+    + Never emit an empty paragraph.  See #761.
     + Handle `\caption` for images in figures.  Closes #766.
     + Parse `\section*`, etc. as unnumbered sections.
 
@@ -143,24 +97,24 @@ pandoc (1.11)
       the enclosing `section` or `div` tag if `--section-divs` is specified.
     + Fixed a regression (only now noticed) in html+lhs output.
       Previously the bird tracks were being omitted.
-    + Refactored adding attributes to html element.
 
   * LaTeX writer:
 
     + Omit lists with no items to avoid LaTeX errors.
     + Support line numbering with `--listings`.
       If `numberLines` class is present, we add `numbers=left`;
-      if `startFrom` is present, we add `firstnumber=`.
-      Partially addresses #763.
+      if `startFrom` is present, we add `firstnumber=`. (#763)
 
   * ConTeXt writer:
 
     + Removed `\placecontent`.  This produced a duplicate toc,
       in conjunction with `\placelist`.
-    + Now sensitive to `unnumbered` class in headers.  In this case
-      `\title`, `\subject` are used instead of `\chapter`, `\section`.
+    + Use `\title`, `\subject` etc. for headers with
+      `unnumbered` class.
 
-  * Textile writer: Support header attributes.
+  * Textile writer:
+  
+    + Support header attributes.
 
   * Markdown writer:
 
@@ -172,7 +126,9 @@ pandoc (1.11)
       If you still want formatted citations in your markdown output,
       use `pandoc -t markdown-citations`.
 
-  * RST writer:  Support `:number-lines:` in code blocks.
+  * RST writer:
+  
+    + Support `:number-lines:` in code blocks.
 
   * Docx writer:
   
@@ -183,49 +139,68 @@ pandoc (1.11)
     + Content types and document rels xml files are now created from
       scratch, rather than being taken over from `reference.docx`.
       This fixes problems that arise when you edit the `reference.docx`
-      with Word.  Word tends to remove things from the `[Content_Types].xml`
-      and `word/_rels/document.xml.rels` files that are needed (e.g.
-      references to the `footnotes.xml` file and image default mime types).
-      So we regenerate these completely rather than taking them from
-      the `reference.docx`.
+      with Word.
     + We also now encode mime types for each individual image rather
       than using defaults.  This should allow us to handle a wider
       range of image types (including PDF).   Closes #414.
     + Changed style names in `reference docx`.
       `FootnoteReference` -> `FootnoteRef`, `Hyperlink` -> `Link`.
-      Why?  Because the old names got changed by Word when the
-      `reference.docx` was edited.  I don't understand why, but this
-      fixes things.  Closes #414.
+      The old names got changed by Word when the `reference.docx` was
+      edited.  Closes #414.
 
   * EPUB writer:
   
-    + Improved behavior with `--number-sections`.
-      Headers with "unnumbered" attribute are not numbered.
-      (Nor do they cause an increment in running numbering.)
-      Section numbers now work properly, even when there is
-      material before the first numbered section.
-    + Include HTML TOC, even in epub2.
-      The TOC is included in `<spine>`, but `linear` is set
-      to `no` unless the `--toc` option is specified.
-      Include `<guide>` element in OPF.  This should allow the TOC to
-      be useable in Kindles when converted with kindlegen. Closes #773.
-    + Minor section numbering tweaks:
-      If we need to add an initial section, make it unnumbered.
-      Don't add extra space before unnumbered section titles in TOC.
     + Fix section numbering.  Previously the numbering restarted from 1
       in each chapter (with `--number-sections`), though the numbers in
       the table of contents were correct.
+    + Headers with "unnumbered" attribute are not numbered.  (Nor do they
+      cause an increment in running numbering.) Section numbers now work
+      properly, even when there is material before the first numbered section.
+    + Include HTML TOC, even in epub2.  The TOC is included in `<spine>`,
+      but `linear` is set to `no` unless the `--toc` option is specified.
+      Include `<guide>` element in OPF.  This should allow the TOC to
+      be useable in Kindles when converted with kindlegen. Closes #773.
 
-  * `Text.Pandoc.Shared`:  hierarchicalize will not number section
-    with class "unnumbered".  Unnumbered sections get [] for their
+  * `Text.Pandoc.Parsing`: Optimized `oneOfStringsCI`.
+    This dramatically reduces the speed penalty that comes from enabling the
+    `autolink_bare_uris` extension.  The penalty is still substantial (in one
+    test, from 0.33s to 0.44s), but nowhere near what it used to be.
+    The RST reader is also much faster now, as it autodetects URIs.
+
+  * `Text.Pandoc.Shared`:  `hierarchicalize` will not number section
+    with class "unnumbered".  Unnumbered sections get `[]` for their
     section number.
 
-  * Headers with class `unnumbered` will not be numbered, even when
-    `--number-sections` is specified.
+  * `Text.Pandoc.Pretty`:
+  
+    + Fixed `chomp` so it works inside `Prefixed` elements.
+    + Changed `Show` instance so it is better for debugging.
 
-  * '-' in an attribute context = '.unnumbered'.  The point of this
-    is to provide a way to specify unnumbered headers in non-English
-    documents:
+  * `Text.Pandoc.ImageSize`:  Added `Pdf` to `ImageType`.
+
+  * `Text.Pandoc.UTF8`:  Strip off BOM if present.  Closes #743.
+
+  * Windows installer improvements:
+
+    + The installer is now signed with a certificate (thanks to
+      Fyodor Sheremetyev).
+    + WiX is used instead of InnoSetup.  The installer is now a
+      standard msi file.
+    + The version number is now auto-detected, and need not be
+      updated separately.
+
+  * OSX installer improvements:
+
+    + The package and pandoc executable are now signed with a
+      certificate (thanks to Fyodor Sheremetyev).
+    + RTF version of license is used.
+    + Use full path for sysctl in `InstallationCheck` script (jonahbull).
+      Closes #580.
+
+  * Converted COPYING to markdown.
+
+  * pandoc.cabal:  Require latest versions of highlighting-kate,
+    texmath, citeproc-hs, zip-archive.
 
 pandoc (1.10.1)
 
