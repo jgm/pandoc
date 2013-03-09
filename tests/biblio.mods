@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<modsCollection xmlns="http://www.loc.gov/mods/v3">
+<mods ID="item1">
+    <titleInfo>
+        <title>First Book</title>
+    </titleInfo>
+    <name type="personal">
+        <namePart type="given">John</namePart>
+        <namePart type="family">Doe</namePart>
+        <role>
+            <roleTerm authority="marcrelator" type="text">author</roleTerm>
+        </role>
+    </name>
+    <originInfo>
+        <issuance>monographic</issuance>
+        <dateIssued>2005</dateIssued>
+        <publisher>Cambridge University Press</publisher>
+        <place>
+            <placeTerm type="text">Cambridge</placeTerm>
+        </place>
+    </originInfo>
+    <typeOfResource>text</typeOfResource>
+    <genre authority="marcgt">book</genre>
+    <identifier type="citekey">item1</identifier>
+</mods>
+<mods ID="item2">
+    <titleInfo>
+        <title>Article</title>
+    </titleInfo>
+    <name type="personal">
+        <namePart type="given">John</namePart>
+        <namePart type="family">Doe</namePart>
+        <role>
+            <roleTerm authority="marcrelator" type="text">author</roleTerm>
+        </role>
+    </name>
+    <originInfo>
+        <dateIssued>2006</dateIssued>
+    </originInfo>
+    <typeOfResource>text</typeOfResource>
+    <relatedItem type="host">
+        <titleInfo>
+            <title>Journal of Generic Studies</title>
+        </titleInfo>
+        <originInfo>
+            <issuance>continuing</issuance>
+        </originInfo>
+        <genre authority="marcgt">periodical</genre>
+        <genre>academic journal</genre>
+    </relatedItem>
+    <identifier type="citekey">item2</identifier>
+    <part>
+        <date>2006</date>
+        <detail type="volume"><number>6</number></detail>
+        <extent unit="page">
+            <start>33</start>
+            <end>34</end>
+        </extent>
+    </part>
+</mods>
+<mods ID="пункт3">
+    <titleInfo>
+        <title>Why Water Is Wet</title>
+    </titleInfo>
+    <name type="personal">
+        <namePart type="given">John</namePart>
+        <namePart type="family">Doe</namePart>
+        <role>
+            <roleTerm authority="marcrelator" type="text">author</roleTerm>
+        </role>
+    </name>
+    <name type="personal">
+        <namePart type="given">Jenny</namePart>
+        <namePart type="family">Roe</namePart>
+        <role>
+            <roleTerm authority="marcrelator" type="text">author</roleTerm>
+        </role>
+    </name>
+    <originInfo>
+        <issuance>monographic</issuance>
+        <dateIssued>2007</dateIssued>
+    </originInfo>
+    <typeOfResource>text</typeOfResource>
+    <relatedItem type="host">
+        <titleInfo>
+            <title>Third Book</title>
+        </titleInfo>
+        <name type="personal">
+            <namePart type="given">Sam</namePart>
+            <namePart type="family">Smith</namePart>
+            <role>
+                <roleTerm authority="marcrelator" type="text">editor</roleTerm>
+            </role>
+        </name>
+        <originInfo>
+            <dateIssued>2007</dateIssued>
+            <publisher>Oxford University Press</publisher>
+            <place>
+                <placeTerm type="text">Oxford</placeTerm>
+            </place>
+        </originInfo>
+        <genre>collection</genre>
+    </relatedItem>
+    <identifier type="citekey">пункт3</identifier>
+</mods>
+</modsCollection>

@@ -644,7 +644,8 @@ inlineToMarkdown opts (LineBreak)
   | otherwise                              = return $ "  " <> cr
 inlineToMarkdown _ Space = return space
 inlineToMarkdown opts (Cite (c:cs) lst)
-  | not (isEnabled Ext_citations opts) = inlineListToMarkdown opts lst
+  | not (null lst) = inlineListToMarkdown opts lst
+  -- if lst is null, citeproc wasn't run; print a pandoc markdown citation
   | citationMode c == AuthorInText = do
     suffs <- inlineListToMarkdown opts $ citationSuffix c
     rest <- mapM convertOne cs

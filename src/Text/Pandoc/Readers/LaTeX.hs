@@ -1021,7 +1021,10 @@ cites mode multi = try $ do
 citation :: String -> CitationMode -> Bool -> LP Inlines
 citation name mode multi = do
   (c,raw) <- withRaw $ cites mode multi
-  return $ cite c (rawInline "latex" $ "\\" ++ name ++ raw)
+  refs <- getOption readerReferences
+  return $ if null refs
+              then rawInline "latex" $ "\\" ++ name ++ raw
+              else cite c mempty
 
 complexNatbibCitation :: CitationMode -> LP Inlines
 complexNatbibCitation mode = try $ do
@@ -1040,8 +1043,10 @@ complexNatbibCitation mode = try $ do
                    optional $ char ';'
                    return $ addPrefix pref $ addSuffix suff $ cits'
   (c:cits, raw) <- withRaw $ grouped parseOne
-  return $ cite (c{ citationMode = mode }:cits)
-           (rawInline "latex" $ "\\citetext" ++ raw)
+  refs <- getOption readerReferences
+  return $ if null refs
+              then rawInline "latex" $ "\\citetext" ++ raw
+              else cite (c{ citationMode = mode}:cits) mempty
 
 -- tables
 
