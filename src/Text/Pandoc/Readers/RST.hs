@@ -611,7 +611,7 @@ codeblock numberLines lang body =
           kvs     = case numberLines of
                           Just "" -> []
                           Nothing -> []
-                          Just n  -> [("startFrom",n)]
+                          Just n  -> [("startFrom",trim n)]
 
 ---
 --- note block

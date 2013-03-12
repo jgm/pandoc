@@ -328,7 +328,7 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
                                             | otherwise -> replicate (n+1) '~'
          backticks = text "```"
          attrs  = if isEnabled Ext_fenced_code_attributes opts
-                     then attrsToMarkdown attribs
+                     then nowrap $ attrsToMarkdown attribs
                      else empty
 blockToMarkdown opts (BlockQuote blocks) = do
   st <- get
