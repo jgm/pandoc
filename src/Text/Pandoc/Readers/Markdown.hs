@@ -1748,9 +1748,14 @@ singleQuoted = try $ do
     fmap B.singleQuoted . trimInlinesF . mconcat <$>
       many1Till inline singleQuoteEnd
 
+-- doubleQuoted will handle regular double-quoted sections, as well
+-- as dialogues with an open double-quote without a close double-quote
+-- in the same paragraph.
 doubleQuoted :: MarkdownParser (F Inlines)
 doubleQuoted = try $ do
   doubleQuoteStart
-  withQuoteContext InDoubleQuote $
-    fmap B.doubleQuoted . trimInlinesF . mconcat <$>
-      many1Till inline doubleQuoteEnd
+  contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)
+  (withQuoteContext InDoubleQuote $ doubleQuoteEnd >> return
+       (fmap B.doubleQuoted . trimInlinesF $ contents))
+   <|> (return $ return (B.str "\8220") <> contents)
+
