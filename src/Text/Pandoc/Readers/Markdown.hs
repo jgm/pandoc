@@ -287,8 +287,7 @@ referenceKey = try $ do
 referenceTitle :: MarkdownParser String
 referenceTitle = try $ do
   skipSpaces >> optional newline >> skipSpaces
-  let parenTit = charsInBalanced '(' ')' litChar
-  quotedTitle '"' <|> quotedTitle '\'' <|> parenTit
+  quotedTitle '"' <|> quotedTitle '\'' <|> charsInBalanced '(' ')' litChar
 
 -- A link title in quotes
 quotedTitle :: Char -> MarkdownParser String
@@ -1494,13 +1493,18 @@ reference :: MarkdownParser (F Inlines, String)
 reference = do notFollowedBy' (string "[^")   -- footnote reference
                withRaw $ trimInlinesF <$> inlinesInBalancedBrackets
 
+parenthesizedChars :: MarkdownParser [Char]
+parenthesizedChars = do
+  result <- charsInBalanced '(' ')' litChar
+  return $ '(' : result ++ ")"
+
 -- source for a link, with optional title
 source :: MarkdownParser (String, String)
 source = do
   char '('
   skipSpaces
   let urlChunk = try $ notFollowedBy (oneOf "\"')") >>
-                          (charsInBalanced '(' ')' litChar <|> count 1 litChar)
+                          (parenthesizedChars <|> count 1 litChar)
   let sourceURL = (unwords . words . concat) <$> many urlChunk
   let betweenAngles = try $
          char '<' >> manyTill litChar (char '>')

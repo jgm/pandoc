@@ -221,3 +221,13 @@ Empty cells
 [foobar]
 
 [foobar]: /&uuml;rl "&ouml;&ouml;!"
+
+## Parentheses in URLs
+
+[link](/hi(there))
+
+[link](/hithere\))
+
+[linky]
+
+[linky]: hi_(there_(nested))
