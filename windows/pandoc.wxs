@@ -28,12 +28,12 @@
     <Directory Id="TARGETDIR" Name="SourceDir">
 
       <Directory Id="ProgramFilesFolder">
-        <Directory Id="INSTALLDIR" Name="Pandoc">
+        <Directory Id="APPLICATIONFOLDER" Name="Pandoc">
           <Component Id="MainExecutable"
           Guid="ECD35082-4C28-49E1-977E-B90FC7C400C7">
             <RegistryValue Root="HKMU" Key="Software\John MacFarlane\Pandoc"
             Name="Version" Type="string" Value="[ProductVersion]" KeyPath="yes"/>
-            <RemoveFolder Id="INSTALLDIR" On="uninstall"/>
+            <RemoveFolder Id="APPLICATIONFOLDER" On="uninstall"/>
             <File Id="pandocEXE" Name="pandoc.exe"
             Source="..\cabal-dev\bin\pandoc.exe" />
             <File Id="pandocCOPYRIGHT" Name="COPYRIGHT.txt"
@@ -41,7 +41,7 @@
             <File Id="pandocCOPYING" Name="COPYING.rtf"
             Source="..\COPYING.rtf" />
             <Environment Id="UpdatePath" Name="PATH" Action="set"
-            Part="last" Value="[INSTALLDIR]" />
+            Part="last" Value="[APPLICATIONFOLDER]" />
           </Component>
           <Component Id="Documentation"
           Guid="A8D54A76-1A3D-4647-8327-81B69D39D8A3">
@@ -66,7 +66,7 @@
 
     </Directory>
 
-    <Feature Id="Complete" Level="1" Title="Pandoc $(var.VERSION)" Description="Complete package"  Display="expand" ConfigurableDirectory="INSTALLDIR">
+    <Feature Id="Complete" Level="1" Title="Pandoc $(var.VERSION)" Description="Complete package"  Display="expand" ConfigurableDirectory="APPLICATIONFOLDER">
       <Feature Id="MainProgram" Title="Program" Description="The main executable." Level="1">
         <ComponentRef Id="MainExecutable" />
       </Feature>
