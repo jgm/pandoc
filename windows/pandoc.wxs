@@ -21,16 +21,17 @@
       <RemoveExistingProducts After="InstallFinalize"/>
     </InstallExecuteSequence>
 
-    <Property Id="ApplicationFolderName" Value="Pandoc" />
-    <Property Id="WixAppFolder" Value="WixPerUserFolder" />
     <Property Id="DISABLEADVTSHORTCUTS" Value="1" />
 
-    <CustomAction Id="WixSetPerUserFolderOverride" Property="APPLICATIONFOLDER" Value="[LocalAppDataFolder][ApplicationFolderName]" Execute="immediate" />
+    <CustomAction Id="SetPerUserFolder" Property="APPLICATIONFOLDER" Value="[LocalAppDataFolder]Pandoc" Execute="immediate" />
+    <CustomAction Id="SetPerMachineFolder" Property="APPLICATIONFOLDER" Value="[ProgramFilesFolder]Pandoc" Execute="immediate" />
     <InstallExecuteSequence>
-      <Custom Action="WixSetPerUserFolderOverride" After="WixSetPerUserFolder">ACTION="INSTALL" AND (ALLUSERS="" OR (ALLUSERS=2 AND (NOT Privileged)))</Custom>
+      <Custom Action="SetPerUserFolder" Before="CostFinalize">ACTION="INSTALL" AND APPLICATIONFOLDER="" AND (ALLUSERS="" OR (ALLUSERS=2 AND (NOT Privileged)))</Custom>
+      <Custom Action="SetPerMachineFolder" After="SetPerUserFolder">ACTION="INSTALL" AND APPLICATIONFOLDER="" AND (ALLUSERS=1 OR (ALLUSERS=2 AND Privileged))</Custom>
     </InstallExecuteSequence>
     <InstallUISequence>
-      <Custom Action="WixSetPerUserFolderOverride" After="WixSetPerUserFolder">ACTION="INSTALL" AND (ALLUSERS="" OR (ALLUSERS=2 AND (NOT Privileged)))</Custom>
+      <Custom Action="SetPerUserFolder" Before="CostFinalize">ACTION="INSTALL" AND APPLICATIONFOLDER="" AND (ALLUSERS="" OR (ALLUSERS=2 AND (NOT Privileged)))</Custom>
+      <Custom Action="SetPerMachineFolder" After="SetPerUserFolder">ACTION="INSTALL" AND APPLICATIONFOLDER="" AND (ALLUSERS=1 OR (ALLUSERS=2 AND Privileged))</Custom>
     </InstallUISequence>
 
     <Directory Id="TARGETDIR" Name="SourceDir">
@@ -103,7 +104,8 @@
       </Feature>
     </Feature>
 
-    <UIRef Id="WixUI_Advanced" />
+    <Property Id="WIXUI_INSTALLDIR" Value="APPLICATIONFOLDER" />
+    <UIRef Id="WixUI_Minimal" />
     <UIRef Id="WixUI_ErrorProgressText" />
     <WixVariable Id="WixUILicenseRtf" Value="..\COPYING.rtf" />
 
