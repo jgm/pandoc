@@ -78,7 +78,7 @@ writeODT opts doc@(Pandoc (Meta title _ _) _) = do
                                      ]
   let files = [ ent | ent <- filesInArchive archive, not ("META-INF" `isPrefixOf` ent) ]
   let manifestEntry = toEntry "META-INF/manifest.xml" epochtime
-        $ fromStringLazy $ show
+        $ fromStringLazy $ render Nothing
         $ text "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
         $$
          ( inTags True "manifest:manifest"
@@ -92,7 +92,7 @@ writeODT opts doc@(Pandoc (Meta title _ _) _) = do
          )
   let archive' = addEntryToArchive manifestEntry archive
   let metaEntry = toEntry "meta.xml" epochtime
-       $ fromStringLazy $ show
+       $ fromStringLazy $ render Nothing
        $ text "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
        $$
         ( inTags True "office:document-meta"
