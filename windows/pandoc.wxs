@@ -36,7 +36,7 @@
             <File Id="pandocCOPYING" Name="COPYING.rtf"
             Source="..\COPYING.rtf" />
             <Environment Id="UpdatePath" Name="PATH" Action="set"
-		    Part="last" Value="[INSTALLDIR]" />
+            Part="last" Value="[INSTALLDIR]" />
           </Component>
           <Component Id="Documentation"
           Guid="A8D54A76-1A3D-4647-8327-81B69D39D8A3">
@@ -53,8 +53,8 @@
         <Shortcut Id="ApplicationStartMenuShortcut" 
                 Name="Pandoc User's Guide"
                 Description="Pandoc User's Guide"
-		Target="[INSTALLDIR]Pandoc User's Guide.html"
-	        WorkingDirectory="INSTALLDIR" />
+                Target="[INSTALLDIR]Pandoc User's Guide.html"
+                WorkingDirectory="INSTALLDIR" />
         <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
         <RegistryValue Root="HKCU" Key="Software\John MacFarlane\Pandoc"
         Name="ShortcutInstalled" Type="integer" Value="1" KeyPath="yes"/>
