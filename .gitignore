@@ -10,4 +10,9 @@ man/man?/*.html
 pandoc.cabal.orig
 *.o
 *.hi
-
+/COPYING.rtf
+/COPYRIGHT.txt
+/cabal-dev/
+/windows/*.msi
+/windows/*.wixpdb
+windows/*.wixobj
