@@ -21,11 +21,14 @@
       <RemoveExistingProducts After="InstallFinalize"/>
     </InstallExecuteSequence>
 
+    <Property Id="ApplicationFolderName" Value="Pandoc" />
+    <Property Id="WixAppFolder" Value="WixPerUserFolder" />
+
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramMenuFolder">
         <Directory Id="ApplicationProgramsFolder" Name="Pandoc"/>
       </Directory>
-      <Directory Id="LocalAppDataFolder">
+      <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLDIR" Name="Pandoc">
           <Component Id="MainExecutable"
           Guid="ECD35082-4C28-49E1-977E-B90FC7C400C7">
@@ -75,7 +78,7 @@
       </Feature>
     </Feature>
 
-    <UIRef Id="WixUI_Minimal" />
+    <UIRef Id="WixUI_Advanced" />
     <UIRef Id="WixUI_ErrorProgressText" />
     <WixVariable Id="WixUILicenseRtf" Value="..\COPYING.rtf" />
 
