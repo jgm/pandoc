@@ -44,10 +44,8 @@
           </Component>
           <Component Id="Documentation"
           Guid="A8D54A76-1A3D-4647-8327-81B69D39D8A3">
-            <RegistryValue Root="HKCU" Key="Software\John MacFarlane\Pandoc"
-            Name="DocumentationInstalled" Type="integer" Value="1" KeyPath="yes"/>
             <File Id="pandocREADME" Name="Pandoc User's Guide.html"
-            Source="..\README.html" />
+            Source="..\README.html" KeyPath="yes" />
           </Component>
         </Directory>
       </Directory>
