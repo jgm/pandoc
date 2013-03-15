@@ -23,6 +23,7 @@
 
     <Property Id="ApplicationFolderName" Value="Pandoc" />
     <Property Id="WixAppFolder" Value="WixPerUserFolder" />
+    <Property Id="DISABLEADVTSHORTCUTS" Value="1" />
 
     <Directory Id="TARGETDIR" Name="SourceDir">
 
@@ -30,7 +31,7 @@
         <Directory Id="INSTALLDIR" Name="Pandoc">
           <Component Id="MainExecutable"
           Guid="ECD35082-4C28-49E1-977E-B90FC7C400C7">
-            <RegistryValue Root="HKCU" Key="Software\John MacFarlane\Pandoc"
+            <RegistryValue Root="HKMU" Key="Software\John MacFarlane\Pandoc"
             Name="Version" Type="string" Value="[ProductVersion]" KeyPath="yes"/>
             <RemoveFolder Id="INSTALLDIR" On="uninstall"/>
             <File Id="pandocEXE" Name="pandoc.exe"
@@ -45,7 +46,10 @@
           <Component Id="Documentation"
           Guid="A8D54A76-1A3D-4647-8327-81B69D39D8A3">
             <File Id="pandocREADME" Name="Pandoc User's Guide.html"
-            Source="..\README.html" KeyPath="yes" />
+            Source="..\README.html" KeyPath="yes">
+              <Shortcut Id="ApplicationStartMenuShortcut" Directory="ApplicationProgramsFolder"
+              Name="Pandoc User’s Guide" Advertise="yes" />
+            </File>
           </Component>
         </Directory>
       </Directory>
@@ -53,13 +57,8 @@
       <Directory Id="ProgramMenuFolder">
         <Directory Id="ApplicationProgramsFolder" Name="Pandoc">
           <Component Id="ApplicationShortcut" Guid="7F807DD5-CC54-474A-B571-89630893F563">
-            <Shortcut Id="ApplicationStartMenuShortcut"
-                    Name="Pandoc User's Guide"
-                    Description="Pandoc User's Guide"
-                    Target="[INSTALLDIR]Pandoc User's Guide.html"
-                    WorkingDirectory="INSTALLDIR" />
             <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
-            <RegistryValue Root="HKCU" Key="Software\John MacFarlane\Pandoc"
+            <RegistryValue Root="HKMU" Key="Software\John MacFarlane\Pandoc"
             Name="ShortcutInstalled" Type="integer" Value="1" KeyPath="yes"/>
           </Component>
         </Directory>
