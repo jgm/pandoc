@@ -25,9 +25,7 @@
     <Property Id="WixAppFolder" Value="WixPerUserFolder" />
 
     <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramMenuFolder">
-        <Directory Id="ApplicationProgramsFolder" Name="Pandoc"/>
-      </Directory>
+
       <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLDIR" Name="Pandoc">
           <Component Id="MainExecutable"
@@ -53,20 +51,23 @@
           </Component>
         </Directory>
       </Directory>
-    </Directory>
 
-    <DirectoryRef Id="ApplicationProgramsFolder">
-      <Component Id="ApplicationShortcut" Guid="7F807DD5-CC54-474A-B571-89630893F563">
-        <Shortcut Id="ApplicationStartMenuShortcut" 
-                Name="Pandoc User's Guide"
-                Description="Pandoc User's Guide"
-                Target="[INSTALLDIR]Pandoc User's Guide.html"
-                WorkingDirectory="INSTALLDIR" />
-        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
-        <RegistryValue Root="HKCU" Key="Software\John MacFarlane\Pandoc"
-        Name="ShortcutInstalled" Type="integer" Value="1" KeyPath="yes"/>
-      </Component>
-    </DirectoryRef>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="Pandoc">
+          <Component Id="ApplicationShortcut" Guid="7F807DD5-CC54-474A-B571-89630893F563">
+            <Shortcut Id="ApplicationStartMenuShortcut"
+                    Name="Pandoc User's Guide"
+                    Description="Pandoc User's Guide"
+                    Target="[INSTALLDIR]Pandoc User's Guide.html"
+                    WorkingDirectory="INSTALLDIR" />
+            <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+            <RegistryValue Root="HKCU" Key="Software\John MacFarlane\Pandoc"
+            Name="ShortcutInstalled" Type="integer" Value="1" KeyPath="yes"/>
+          </Component>
+        </Directory>
+      </Directory>
+
+    </Directory>
 
     <Feature Id="Complete" Level="1" Title="Pandoc $(var.VERSION)" Description="Complete package"  Display="expand" ConfigurableDirectory="INSTALLDIR">
       <Feature Id="MainProgram" Title="Program" Description="The main executable." Level="1">
