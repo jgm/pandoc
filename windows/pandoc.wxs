@@ -25,6 +25,14 @@
     <Property Id="WixAppFolder" Value="WixPerUserFolder" />
     <Property Id="DISABLEADVTSHORTCUTS" Value="1" />
 
+    <CustomAction Id="WixSetPerUserFolderOverride" Property="APPLICATIONFOLDER" Value="[LocalAppDataFolder][ApplicationFolderName]" Execute="immediate" />
+    <InstallExecuteSequence>
+      <Custom Action="WixSetPerUserFolderOverride" After="WixSetPerUserFolder">ACTION="INSTALL" AND (ALLUSERS="" OR (ALLUSERS=2 AND (NOT Privileged)))</Custom>
+    </InstallExecuteSequence>
+    <InstallUISequence>
+      <Custom Action="WixSetPerUserFolderOverride" After="WixSetPerUserFolder">ACTION="INSTALL" AND (ALLUSERS="" OR (ALLUSERS=2 AND (NOT Privileged)))</Custom>
+    </InstallUISequence>
+
     <Directory Id="TARGETDIR" Name="SourceDir">
 
       <Directory Id="ProgramFilesFolder">
