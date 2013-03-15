@@ -5,6 +5,7 @@
   UpgradeCode="$(var.UpgradeCode)" Name="Pandoc $(var.VERSION)"
   Version="$(var.VERSION)" Manufacturer="John MacFarlane"
   Language="1033">
+
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perUser"
     Comments="Windows Installer Package" />
     <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
@@ -15,9 +16,11 @@
         Maximum="99.0.0.0" IncludeMaximum="no" />
     </Upgrade>
     <Property Id="ARPURLINFOABOUT" Value="http://johnmacfarlane.net/pandoc/" />
+
     <InstallExecuteSequence>
       <RemoveExistingProducts After="InstallFinalize"/>
     </InstallExecuteSequence>
+
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramMenuFolder">
         <Directory Id="ApplicationProgramsFolder" Name="Pandoc"/>
@@ -48,6 +51,7 @@
         </Directory>
       </Directory>
     </Directory>
+
     <DirectoryRef Id="ApplicationProgramsFolder">
       <Component Id="ApplicationShortcut" Guid="7F807DD5-CC54-474A-B571-89630893F563">
         <Shortcut Id="ApplicationStartMenuShortcut" 
@@ -60,6 +64,7 @@
         Name="ShortcutInstalled" Type="integer" Value="1" KeyPath="yes"/>
       </Component>
     </DirectoryRef>
+
     <Feature Id="Complete" Level="1" Title="Pandoc $(var.VERSION)" Description="Complete package"  Display="expand" ConfigurableDirectory="INSTALLDIR">
       <Feature Id="MainProgram" Title="Program" Description="The main executable." Level="1">
         <ComponentRef Id="MainExecutable" />
@@ -69,8 +74,10 @@
         <ComponentRef Id="ApplicationShortcut" />
       </Feature>
     </Feature>
+
     <UIRef Id="WixUI_Minimal" />
     <UIRef Id="WixUI_ErrorProgressText" />
     <WixVariable Id="WixUILicenseRtf" Value="..\COPYING.rtf" />
+
   </Product>
 </Wix>
