@@ -70,7 +70,7 @@
       <Feature Id="MainProgram" Title="Program" Description="The main executable." Level="1">
         <ComponentRef Id="MainExecutable" />
       </Feature>
-      <Feature Id="Manual">
+      <Feature Id="Manual" Title="Manual">
         <ComponentRef Id="Documentation" />
         <ComponentRef Id="ApplicationShortcut" />
       </Feature>
