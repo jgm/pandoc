@@ -48,9 +48,26 @@
             Source="..\COPYRIGHT.txt" />
             <File Id="pandocCOPYING" Name="COPYING.rtf"
             Source="..\COPYING.rtf" />
-            <Environment Id="UpdatePath" Name="PATH" Action="set"
-            Part="last" Value="[APPLICATIONFOLDER]" />
           </Component>
+
+          <Component Id="UpdatePathUser"
+            Guid="C7B71304-09FC-421D-9EA2-AEFB7D61759D">
+            <Condition><![CDATA[ ALLUSERS="" OR (ALLUSERS=2 AND (NOT Privileged)) ]]></Condition>
+            <Environment Id="UpdatePathUser" Name="PATH" Action="set"
+            Part="last" Value="[APPLICATIONFOLDER]" System="no" />
+            <RegistryValue Root="HKCU" Key="Software\John MacFarlane\Pandoc"
+            Name="UserPathUpdated" Type="integer" Value="1" KeyPath="yes"/>
+          </Component>
+
+          <Component Id="UpdatePathMachine"
+            Guid="0C642D0A-7175-4CD7-B11F-0A69F73FD757">
+            <Condition><![CDATA[ ALLUSERS=1 OR (ALLUSERS=2 AND Privileged) ]]></Condition>
+            <Environment Id="UpdatePathMachine" Name="PATH" Action="set"
+            Part="last" Value="[APPLICATIONFOLDER]" System="yes" />
+            <RegistryValue Root="HKLM" Key="Software\John MacFarlane\Pandoc"
+            Name="SystemPathUpdated" Type="integer" Value="1" KeyPath="yes"/>
+          </Component>
+
           <Component Id="Documentation"
           Guid="A8D54A76-1A3D-4647-8327-81B69D39D8A3">
             <File Id="pandocREADME" Name="Pandoc User's Guide.html"
@@ -77,6 +94,8 @@
     <Feature Id="Complete" Level="1" Title="Pandoc $(var.VERSION)" Description="Complete package"  Display="expand" ConfigurableDirectory="APPLICATIONFOLDER">
       <Feature Id="MainProgram" Title="Program" Description="The main executable." Level="1">
         <ComponentRef Id="MainExecutable" />
+        <ComponentRef Id="UpdatePathUser" />
+        <ComponentRef Id="UpdatePathMachine" />
       </Feature>
       <Feature Id="Manual" Title="Manual">
         <ComponentRef Id="Documentation" />
