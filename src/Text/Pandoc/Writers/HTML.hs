@@ -252,10 +252,11 @@ showSecNum = concat . intersperse "." . map show
 elementToListItem :: WriterOptions -> Element -> State WriterState (Maybe Html)
 elementToListItem opts (Sec lev num (id',classes,_) headerText subsecs)
   | lev <= writerTOCDepth opts = do
+  let num' = zipWith (+) num (writerNumberOffset opts ++ repeat 0)
   let sectnum = if writerNumberSections opts && not (null num) &&
                    "unnumbered" `notElem` classes
                    then (H.span ! A.class_ "toc-section-number"
-                        $ toHtml $ showSecNum num) >> preEscapedString " "
+                        $ toHtml $ showSecNum num') >> preEscapedString " "
                    else mempty
   txt <- liftM (sectnum >>) $ inlineListToHtml opts headerText
   subHeads <- mapM (elementToListItem opts) subsecs >>= return . catMaybes

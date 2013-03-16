@@ -100,7 +100,7 @@ data Opt = Opt
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
-    , optNumberOffset        :: [Int]   -- ^ Starting number for sections
+    , optNumberOffset      :: [Int]   -- ^ Starting number for sections
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
     , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
     , optSelfContained     :: Bool    -- ^ Make HTML accessible offline
@@ -157,7 +157,7 @@ defaultOpts = Opt
     , optVariables             = []
     , optOutputFile            = "-"    -- "-" means stdout
     , optNumberSections        = False
-    , optNumberOffset          = [1,1,1,1,1,1]
+    , optNumberOffset          = [0,0,0,0,0,0]
     , optSectionDivs           = False
     , optIncremental           = False
     , optSelfContained         = False
@@ -1035,7 +1035,7 @@ main = do
                             writerBiblioFiles      = reffiles,
                             writerIgnoreNotes      = False,
                             writerNumberSections   = numberSections,
-                            writerNumberOffset       = numberFrom,
+                            writerNumberOffset     = numberFrom,
                             writerSectionDivs      = sectionDivs,
                             writerReferenceLinks   = referenceLinks,
                             writerWrapText         = wrap,
