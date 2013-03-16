@@ -1,3 +1,52 @@
+pandoc (1.11.0.1)
+
+  * Markdown reader:
+
+    + Fixed regression in which parentheses were lost in link URLs.
+      Added tests.  Closes #786.
+    + `--smart` mode: Better handling of unmatched double quotes.
+      These occur frequently in fiction, since it is customary not to
+      close quotes in dialogue if the speaker does not change between
+      paragraphs.  The unmatched quotes now get turned into literal
+      left double quotes. (No `Quoted` inline is generated, however.)
+      Closes #99 (again).
+
+  * LaTeX reader: citation handling changes.  Previously, a LaTeX
+    citation would always be parsed as a `Citation` element, with the raw
+    LaTeX as contents. Now, the LaTeX citation is parsed as a `Citation`
+    element only if `--bibliography` was specified (i.e. only if there
+    is a nonempty set of references in readerReferences).  Otherwise it is
+    parsed as raw LaTeX.  This makes it possible to simplify some things in
+    the markdown writer.  It also makes the LaTeX reader behave more like
+    the Markdown reader.
+
+  * Markdown writer:
+  
+    + Fixed numbering mismatch between TOC and sections in
+      HTML.  `--number-offset` now affects TOC numbering as well
+      as section numbering, as it should have all along.  Closes #789.
+    + Citations are again rendered using citeproc, even if the `citations`
+      extension is specified.  (This reverts a 1.11 change.)  To retain
+      pandoc citations when prettyprinting markdown, just omit the
+      `--bibliography` option.  To convert LaTeX to pandoc citations,
+      use the `--natbib` option to prevent citeproc processing.
+
+  * ODT writer: Fixed regression leading to corrupt ODTs.
+    This was due to a change in the `Show` instance for
+    `Text.Pandoc.Pretty.Doc`.  Closes #780.
+
+  * Fixed spacing bugs involving code block attributes in
+    RST reader and Markdown writer. Closes #763.
+
+  * Windows package:  Various improvements due to Fyodor Sheremetyev.
+
+    + Automatically set installation path (Program Files or Local App Data).
+    + Set system PATH environment variable when installing for all users.
+    + Pandoc can installed for all users using the following command.
+      `msiexec /i pandoc-1.11.msi ALLUSERS=1`.
+
+  * Bumped QuickCheck version bound.
+
 pandoc (1.11)
 
   * Added `--number-offset` option.  (See README for description.)
