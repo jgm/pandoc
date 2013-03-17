@@ -2,20 +2,14 @@
 module Tests.Readers.LaTeX (tests) where
 
 import Text.Pandoc.Definition
-import Data.Monoid (mempty)
-import Text.CSL (Reference, readBiblioFile)
 import Test.Framework
 import Tests.Helpers
 import Tests.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
-import System.IO.Unsafe (unsafePerformIO)
-
-refs :: [Reference]
-refs = unsafePerformIO $ readBiblioFile "biblio.mods"
 
 latex :: String -> Pandoc
-latex = readLaTeX def{ readerReferences = refs }
+latex = readLaTeX def
 
 infix 4 =:
 (=:) :: ToString c
@@ -77,7 +71,7 @@ baseCitation = Citation{ citationId      = "item1"
                        }
 
 rt :: String -> Inlines
-rt = const mempty -- rawInline "latex"
+rt = rawInline "latex"
 
 natbibCitations :: Test
 natbibCitations = testGroup "natbib"
