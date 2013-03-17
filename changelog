@@ -11,25 +11,17 @@ pandoc (1.11.1)
       left double quotes. (No `Quoted` inline is generated, however.)
       Closes #99 (again).
 
-  * LaTeX reader: citation handling changes.  Previously, a LaTeX
-    citation would always be parsed as a `Citation` element, with the raw
-    LaTeX as contents. Now, the LaTeX citation is parsed as a `Citation`
-    element only if `--bibliography` was specified (i.e. only if there
-    is a nonempty set of references in readerReferences).  Otherwise it is
-    parsed as raw LaTeX.  This makes it possible to simplify some things in
-    the markdown writer.  It also makes the LaTeX reader behave more like
-    the Markdown reader.
-
   * Markdown writer:
   
     + Fixed numbering mismatch between TOC and sections in
       HTML.  `--number-offset` now affects TOC numbering as well
       as section numbering, as it should have all along.  Closes #789.
-    + Citations are again rendered using citeproc, even if the `citations`
-      extension is specified.  (This reverts a 1.11 change.)  To retain
-      pandoc citations when prettyprinting markdown, just omit the
-      `--bibliography` option.  To convert LaTeX to pandoc citations,
-      use the `--natbib` option to prevent citeproc processing.
+    + Omit bibliography when `citations` enabled.  In 1.11, citations
+      would be rendered as pandoc markdown citations, but the bibliography
+      would still be printed.  We avoid that by adding a
+      `RawBlock "pandoc" "references"` block before the references.
+      This allows the markdown writer to find the references
+      and strip them off when `citations` is enabled.
 
   * ODT writer: Fixed regression leading to corrupt ODTs.
     This was due to a change in the `Show` instance for
