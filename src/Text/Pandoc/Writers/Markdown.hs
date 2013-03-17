@@ -61,7 +61,8 @@ writeMarkdown opts document =
   evalState (pandocToMarkdown opts{
                   writerWrapText = writerWrapText opts &&
                   not (isEnabled Ext_hard_line_breaks opts) }
-             document) def
+             document') def
+   where document' = maybeRemoveBiblio opts document
 
 -- | Convert Pandoc to plain text (like markdown, but without links,
 -- pictures, or inline formatting).
@@ -71,7 +72,16 @@ writePlain opts document =
                  writerExtensions = Set.delete Ext_escaped_line_breaks $
                                     writerExtensions opts }
               document') def{ stPlain = True }
-    where document' = plainify document
+    where document' = plainify $ maybeRemoveBiblio opts document
+
+-- If we're rendering citations as pandoc markdown citations,
+-- then we don't want to include a bibliography.
+maybeRemoveBiblio :: WriterOptions -> Pandoc -> Pandoc
+maybeRemoveBiblio opts (Pandoc meta bs) = Pandoc meta bs'
+  where bs' = if isEnabled Ext_citations opts
+                 then takeWhile
+                       (/= RawBlock "pandoc" "references") bs
+                 else bs
 
 plainify :: Pandoc -> Pandoc
 plainify = bottomUp go

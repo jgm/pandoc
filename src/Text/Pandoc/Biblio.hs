@@ -54,7 +54,7 @@ processBiblio (Just style) r p =
       cits_map   = M.fromList $ zip grps (citations result)
       biblioList = map (renderPandoc' style) (bibliography result)
       Pandoc m b = bottomUp mvPunct . deNote . bottomUp (processCite style cits_map) $ p'
-  in  Pandoc m $ b ++ biblioList
+  in  Pandoc m $ b ++ (RawBlock "pandoc" "references" : biblioList)
 
 -- | Substitute 'Cite' elements with formatted citations.
 processCite :: Style -> M.Map [Citation] [FormattedOutput] -> Inline -> Inline
