@@ -4,7 +4,7 @@ pandoc (1.11.1)
 
     + Fixed regression in which parentheses were lost in link URLs.
       Added tests.  Closes #786.
-    + `--smart` mode: Better handling of unmatched double quotes.
+    + Better handling of unmatched double quotes in `--smart` mode.
       These occur frequently in fiction, since it is customary not to
       close quotes in dialogue if the speaker does not change between
       paragraphs.  The unmatched quotes now get turned into literal
