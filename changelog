@@ -10,18 +10,19 @@ pandoc (1.11.1)
       paragraphs.  The unmatched quotes now get turned into literal
       left double quotes. (No `Quoted` inline is generated, however.)
       Closes #99 (again).
+    
+  * HTML writer: Fixed numbering mismatch between TOC and sections.
+    `--number-offset` now affects TOC numbering as well
+    as section numbering, as it should have all along.  Closes #789.
 
-  * Markdown writer:
-  
-    + Fixed numbering mismatch between TOC and sections in
-      HTML.  `--number-offset` now affects TOC numbering as well
-      as section numbering, as it should have all along.  Closes #789.
-    + Omit bibliography when `citations` enabled.  In 1.11, citations
-      would be rendered as pandoc markdown citations, but the bibliography
-      would still be printed.  We avoid that by adding a
-      `RawBlock "pandoc" "references"` block before the references.
-      This allows the markdown writer to find the references
-      and strip them off when `citations` is enabled.
+  * Markdown writer: Reverted 1.11 change that caused citations to be rendered
+    as markdown citations, even if `--bibliography` was specified, unless
+    `citation` extension is disabled.  Now, formatted citations are always
+    printed if `--bibliography` was specified.  If you want to reformat
+    markdown keeping pandoc markdown citations intact, don't use
+    `--bibliography`.  Note that citations parsed from LaTeX documents will
+    be rendered as pandoc markdown citations when `--bibliography` is not
+    specified.
 
   * ODT writer: Fixed regression leading to corrupt ODTs.
     This was due to a change in the `Show` instance for
