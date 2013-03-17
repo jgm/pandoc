@@ -1,3 +1,6 @@
 [submodule "templates"]
 	path = data/templates
 	url = https://github.com/jgm/pandoc-templates.git
+[submodule "data/reveal_js"]
+	path = data/reveal_js
+	url = git://github.com/hakimel/reveal.js.git
