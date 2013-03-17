@@ -61,8 +61,7 @@ writeMarkdown opts document =
   evalState (pandocToMarkdown opts{
                   writerWrapText = writerWrapText opts &&
                   not (isEnabled Ext_hard_line_breaks opts) }
-             document') def
-   where document' = maybeRemoveBiblio opts document
+             document) def
 
 -- | Convert Pandoc to plain text (like markdown, but without links,
 -- pictures, or inline formatting).
@@ -72,16 +71,7 @@ writePlain opts document =
                  writerExtensions = Set.delete Ext_escaped_line_breaks $
                                     writerExtensions opts }
               document') def{ stPlain = True }
-    where document' = plainify $ maybeRemoveBiblio opts document
-
--- If we're rendering citations as pandoc markdown citations,
--- then we don't want to include a bibliography.
-maybeRemoveBiblio :: WriterOptions -> Pandoc -> Pandoc
-maybeRemoveBiblio opts (Pandoc meta bs) = Pandoc meta bs'
-  where bs' = if isEnabled Ext_citations opts
-                 then takeWhile
-                       (/= RawBlock "pandoc" "references") bs
-                 else bs
+    where document' = plainify document
 
 plainify :: Pandoc -> Pandoc
 plainify = bottomUp go
@@ -653,7 +643,7 @@ inlineToMarkdown opts (LineBreak)
   | isEnabled Ext_escaped_line_breaks opts = return $ "\\" <> cr
   | otherwise                              = return $ "  " <> cr
 inlineToMarkdown _ Space = return space
-inlineToMarkdown opts (Cite (c:cs) lst)
+inlineToMarkdown opts (Cite (c:cs) lst@[RawInline "latex" _])
   | not (isEnabled Ext_citations opts) = inlineListToMarkdown opts lst
   | citationMode c == AuthorInText = do
     suffs <- inlineListToMarkdown opts $ citationSuffix c
@@ -680,7 +670,7 @@ inlineToMarkdown opts (Cite (c:cs) lst)
            return $ pdoc <+> r
         modekey SuppressAuthor = "-"
         modekey _              = ""
-inlineToMarkdown _ (Cite _ _) = return $ text ""
+inlineToMarkdown opts (Cite _ lst) = inlineListToMarkdown opts lst
 inlineToMarkdown opts (Link txt (src, tit)) = do
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if null tit
