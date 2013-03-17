@@ -118,7 +118,7 @@ To build the tests:
 
 Note: If you obtained the source via git, you should first do
 
-    git submodule update --init templates
+    git submodule update --init data/templates
 
 to populate the templates subdirectory.  (You can skip this step
 if you obtained the source from a release tarball.)
