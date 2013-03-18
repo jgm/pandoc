@@ -767,6 +767,7 @@ defaultReaderName fallback (x:xs) =
     ".rst"      -> "rst"
     ".lhs"      -> "markdown+lhs"
     ".db"       -> "docbook"
+    ".opml"     -> "opml"
     ".wiki"     -> "mediawiki"
     ".textile"  -> "textile"
     ".native"   -> "native"

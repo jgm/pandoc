@@ -13,8 +13,8 @@ Description
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
-[LaTeX], [MediaWiki markup], and [DocBook XML]; and it can write plain
-text, [markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX]
+[LaTeX], [MediaWiki markup], [OPML], and [DocBook XML]; and it can write
+plain text, [markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX]
 (including [beamer] slide shows), [ConTeXt], [RTF], [DocBook XML],
 [OpenDocument XML], [ODT], [Word docx], [GNU Texinfo], [MediaWiki
 markup], [EPUB] (v2 or v3), [FictionBook2], [Textile], [groff man] pages, [Emacs
@@ -143,7 +143,7 @@ General options
     `markdown_phpextra` (PHP Markdown Extra extended markdown),
     `markdown_github` (github extended markdown),
     `textile` (Textile), `rst` (reStructuredText), `html` (HTML),
-    `docbook` (DocBook XML), `mediawiki` (MediaWiki markup),
+    `docbook` (DocBook XML), `opml` (OPML), `mediawiki` (MediaWiki markup),
     or `latex` (LaTeX). If `+lhs` is appended to `markdown`, `rst`,
     `latex`, the input will be treated as literate Haskell source:
     see [Literate Haskell support](#literate-haskell-support), below.
@@ -2626,6 +2626,7 @@ Sergey Astanin, Arlo O'Keeffe, Denis Laxalde, Brent Yorgey.
 [ConTeXt]: http://www.pragma-ade.nl/
 [RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook XML]:  http://www.docbook.org/
+[OPML]: http://dev.opml.org/spec2.html
 [OpenDocument XML]: http://opendocument.xml.org/
 [ODT]: http://en.wikipedia.org/wiki/OpenDocument
 [Textile]: http://redcloth.org/textile
