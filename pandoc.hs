@@ -140,6 +140,7 @@ data Opt = Opt
     , optAscii             :: Bool       -- ^ Use ascii characters only in html
     , optTeXLigatures      :: Bool       -- ^ Use TeX ligatures for quotes/dashes
     , optDefaultImageExtension :: String -- ^ Default image extension
+    , optRevealJsRoot    :: String   -- ^ Reveal.js base directory
     }
 
 -- | Defaults for command-line options.
@@ -197,6 +198,7 @@ defaultOpts = Opt
     , optAscii                 = False
     , optTeXLigatures          = True
     , optDefaultImageExtension = ""
+    , optRevealJsRoot    = "."   -- ^ Reveal.js base directory
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -422,10 +424,9 @@ options =
                                         optStandalone = True }))
                  "" -- "Make slide shows include all the needed js and css"
 
-    , Option "" ["reveal_js-uri"]
+    , Option "" ["reveal_js-url"]
                  (ReqArg
-                  (\arg opt -> return opt { optVariables = ("reveal_js-url",arg) :
-                                                       optVariables opt})
+                  (\arg opt -> return opt { optRevealJsRoot = arg })
                   "DIRECTORY")
                  "" -- "Set root url for reveal.js files"
 
@@ -979,8 +980,10 @@ main = do
                         let dzcore = unlines $ dropWhile (not . isPrefixOf "<!-- {{{{ dzslides core")
                                              $ lines dztempl
                         return $ ("dzslides-core", dzcore) : variables'
-                    else return variables'
-
+                    else if "reveal_js" `isPrefixOf` writerName'
+                        then return $ ("reveal_js-url",optRevealJsRoot opts) : variables'
+                        else return variables'
+                    
   -- unescape reference ids, which may contain XML entities, so
   -- that we can do lookups with regular string equality
   let unescapeRefId ref = ref{ refId = fromEntities (refId ref) }
