@@ -105,12 +105,13 @@ writeDocx :: WriterOptions  -- ^ Writer options
           -> IO BL.ByteString
 writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
   let datadir = writerUserDataDir opts
+  let doc' = bottomUp (concatMap fixDisplayMath) doc
   refArchive <- liftM (toArchive . toLazy) $
        case writerReferenceDocx opts of
              Just f  -> B.readFile f
              Nothing -> readDataFile datadir "reference.docx"
 
-  ((contents, footnotes), st) <- runStateT (writeOpenXML opts{writerWrapText = False} doc)
+  ((contents, footnotes), st) <- runStateT (writeOpenXML opts{writerWrapText = False} doc')
                        defaultWriterState
   epochtime <- floor `fmap` getPOSIXTime
   let imgs = M.elems $ stImages st
@@ -420,19 +421,17 @@ blockToOpenXML opts (Header lev (ident,_,_) lst) = do
 blockToOpenXML opts (Plain lst) = blockToOpenXML opts (Para lst)
 -- title beginning with fig: indicates that the image is a figure
 blockToOpenXML opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
-  paraProps <- getParaProps
+  paraProps <- getParaProps False
   contents <- inlinesToOpenXML opts [Image alt (src,tit)]
   captionNode <- withParaProp (pStyle "ImageCaption")
                  $ blockToOpenXML opts (Para alt)
   return $ mknode "w:p" [] (paraProps ++ contents) : captionNode
-blockToOpenXML opts (Para lst)
-  | any isDisplayMath lst && not (all isDisplayMath lst) = do
-    -- chop into several paragraphs so each displaymath is its own
-    let lsts = groupBy (\x y -> (isDisplayMath x && isDisplayMath y) ||
-                         not (isDisplayMath x || isDisplayMath y)) lst
-    blocksToOpenXML opts (map Para lsts)
-  | otherwise = do
-    paraProps <- getParaProps
+-- fixDisplayMath sometimes produces a Para [] as artifact
+blockToOpenXML _ (Para []) = return []
+blockToOpenXML opts (Para lst) = do
+    paraProps <- getParaProps $ case lst of
+                                     [Math DisplayMath _] -> True
+                                     _                    -> False
     contents <- inlinesToOpenXML opts lst
     return [mknode "w:p" [] (paraProps ++ contents)]
 blockToOpenXML _ (RawBlock format str)
@@ -571,12 +570,12 @@ withTextProp d p = do
   popTextProp
   return res
 
-getParaProps :: WS [Element]
-getParaProps = do
+getParaProps :: Bool -> WS [Element]
+getParaProps displayMathPara = do
   props <- gets stParaProperties
   listLevel <- gets stListLevel
   numid <- gets stListNumId
-  let listPr = if listLevel >= 0
+  let listPr = if listLevel >= 0 && not displayMathPara
                   then [ mknode "w:numPr" []
                          [ mknode "w:numId" [("w:val",show numid)] ()
                          , mknode "w:ilvl" [("w:val",show listLevel)] () ]
@@ -775,3 +774,18 @@ parseXml refArchive relpath =
 isDisplayMath :: Inline -> Bool
 isDisplayMath (Math DisplayMath _) = True
 isDisplayMath _                    = False
+
+stripLeadingTrailingSpace :: [Inline] -> [Inline]
+stripLeadingTrailingSpace = go . reverse . go . reverse
+  where go (Space:xs) = xs
+        go xs         = xs
+
+fixDisplayMath :: Block -> [Block]
+fixDisplayMath (Plain lst) = fixDisplayMath (Para lst)
+fixDisplayMath (Para lst)
+  | any isDisplayMath lst && not (all isDisplayMath lst) =
+    -- chop into several paragraphs so each displaymath is its own
+    map (Para . stripLeadingTrailingSpace) $
+       groupBy (\x y -> (isDisplayMath x && isDisplayMath y) ||
+                         not (isDisplayMath x || isDisplayMath y)) lst
+fixDisplayMath x = [x]
