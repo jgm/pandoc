@@ -64,11 +64,18 @@ escapeCharForXML x = case x of
 escapeStringForXML :: String -> String
 escapeStringForXML = concatMap escapeCharForXML
 
+-- | Escape newline characters as &#10;
+escapeNls :: String -> String
+escapeNls (x:xs)
+  | x == '\n' = "&#10;" ++ escapeNls xs
+  | otherwise = x : escapeNls xs
+escapeNls []     = []
+
 -- | Return a text object with a string of formatted XML attributes.
 attributeList :: [(String, String)] -> Doc
 attributeList = hcat . map
   (\(a, b) -> text (' ' : escapeStringForXML a ++ "=\"" ++
-  escapeStringForXML b ++ "\""))
+  escapeNls (escapeStringForXML b) ++ "\""))
 
 -- | Put the supplied contents between start and end tags of tagType,
 --   with specified attributes and (if specified) indentation.
