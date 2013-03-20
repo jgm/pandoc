@@ -224,13 +224,20 @@ prefixedId opts s =
     ""       -> mempty
     _        -> A.id $ toValue $ writerIdentifierPrefix opts ++ s
 
--- | Replacement for Text.XHtml's unordList.
-unordList :: WriterOptions -> ([Html] -> Html)
-unordList opts items = H.ul $ mconcat $ toListItems opts items
+toList :: (Html -> Html) -> WriterOptions -> ([Html] -> Html)
+toList listop opts items = do
+    let items' = toListItems opts items
+    if (writerIncremental opts)
+       then if (writerSlideVariant opts /= RevealJsSlides)
+               then (listop $ mconcat items') ! A.class_ "incremental"
+               else listop $ mconcat $ map (! A.class_ "fragment") items'
+       else listop $ mconcat items'
 
--- | Replacement for Text.XHtml's ordList.
-ordList :: WriterOptions -> ([Html] -> Html)
-ordList opts items = H.ol $ mconcat $ toListItems opts items
+unordList :: WriterOptions -> [Html] -> Html
+unordList = toList H.ul
+
+ordList :: WriterOptions -> [Html] -> Html
+ordList = toList H.ol
 
 -- | Construct table of contents from list of elements.
 tableOfContents :: WriterOptions -> [Element] -> State WriterState (Maybe Html)
@@ -476,18 +483,11 @@ blockToHtml opts (Header level (ident,_,_) lst) = do
               _ -> H.p contents''
 blockToHtml opts (BulletList lst) = do
   contents <- mapM (blockListToHtml opts) lst
-  let lst' = unordList opts contents
-  let lst'' = if writerIncremental opts
-                 then lst' ! A.class_ "incremental"
-                 else lst'
-  return lst''
+  return $ unordList opts contents
 blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
   contents <- mapM (blockListToHtml opts) lst
   let numstyle' = camelCaseToHyphenated $ show numstyle
-  let attribs = (if writerIncremental opts
-                   then [A.class_ "incremental"]
-                   else []) ++
-                (if startnum /= 1
+  let attribs = (if startnum /= 1
                    then [A.start $ toValue startnum]
                    else []) ++
                 (if numstyle /= DefaultStyle

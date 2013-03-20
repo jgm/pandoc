@@ -1113,7 +1113,7 @@ main = do
                       >>= writerFn outputFile . handleEntities
           where htmlFormat = writerName' `elem`
                                ["html","html+lhs","html5","html5+lhs",
-                               "s5","slidy","slideous","dzslides"]
+                               "s5","slidy","slideous","dzslides","reveal_js"]
                 selfcontain = if selfContained && htmlFormat
                                  then makeSelfContained datadir
                                  else return
