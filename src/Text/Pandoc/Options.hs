@@ -248,6 +248,7 @@ data CiteMethod = Citeproc                        -- use citeproc to render them
 data ObfuscationMethod = NoObfuscation
                        | ReferenceObfuscation
                        | JavascriptObfuscation
+                       | CssObfuscation
                        deriving (Show, Read, Eq)
 
 -- | Varieties of HTML slide shows.

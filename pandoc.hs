@@ -522,11 +522,12 @@ options =
                      method <- case arg of
                             "references" -> return ReferenceObfuscation
                             "javascript" -> return JavascriptObfuscation
+                            "css"        -> return CssObfuscation
                             "none"       -> return NoObfuscation
                             _            -> err 6
                                ("Unknown obfuscation method: " ++ arg)
                      return opt { optEmailObfuscation = method })
-                  "none|javascript|references")
+                  "none|javascript|css|references")
                  "" -- "Method for obfuscating email in HTML"
 
      , Option "" ["id-prefix"]

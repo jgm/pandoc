@@ -361,6 +361,10 @@ obfuscateLink opts txt s =
                      "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\">'+" ++
                      linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) >>
                      H.noscript (preEscapedString $ obfuscateString altText)
+                CssObfuscation -> do
+                     (H.style ! (A.type_ "text/css") $ 
+                        "span.redirection { unicode-bidi:bidi-override; direction: rtl; }")  
+                     (H.span ! A.class_ "redirection" $ (toHtml $ reverse txt))
                 _ -> error $ "Unknown obfuscation method: " ++ show meth
         _ -> H.a ! A.href (toValue s) $ toHtml txt  -- malformed email
 
