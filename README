@@ -13,11 +13,11 @@ Description
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
-[LaTeX], [MediaWiki markup], [OPML], and [DocBook XML]; and it can write
+[LaTeX], [MediaWiki markup], [OPML], and [DocBook]; and it can write
 plain text, [markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX]
-(including [beamer] slide shows), [ConTeXt], [RTF], [DocBook XML],
-[OpenDocument XML], [ODT], [Word docx], [GNU Texinfo], [MediaWiki
-markup], [EPUB] (v2 or v3), [FictionBook2], [Textile], [groff man] pages, [Emacs
+(including [beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
+[OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
+[EPUB] (v2 or v3), [FictionBook2], [Textile], [groff man] pages, [Emacs
 Org-Mode], [AsciiDoc], and [Slidy], [Slideous], [DZSlides], or [S5] HTML
 slide shows. It can also produce [PDF] output on systems where LaTeX is
 installed.
@@ -143,7 +143,7 @@ General options
     `markdown_phpextra` (PHP Markdown Extra extended markdown),
     `markdown_github` (github extended markdown),
     `textile` (Textile), `rst` (reStructuredText), `html` (HTML),
-    `docbook` (DocBook XML), `opml` (OPML), `mediawiki` (MediaWiki markup),
+    `docbook` (DocBook), `opml` (OPML), `mediawiki` (MediaWiki markup),
     or `latex` (LaTeX). If `+lhs` is appended to `markdown`, `rst`,
     `latex`, the input will be treated as literate Haskell source:
     see [Literate Haskell support](#literate-haskell-support), below.
@@ -162,11 +162,11 @@ General options
     `markdown` (pandoc's extended markdown), `markdown_strict` (original
     unextended markdown), `markdown_phpextra` (PHP Markdown extra
     extended markdown), `markdown_github` (github extended markdown),
-    `rst` (reStructuredText), `html` (XHTML
-    1), `html5` (HTML 5), `latex` (LaTeX), `beamer` (LaTeX beamer slide show),
+    `rst` (reStructuredText), `html` (XHTML 1), `html5` (HTML 5),
+    `latex` (LaTeX), `beamer` (LaTeX beamer slide show),
     `context` (ConTeXt), `man` (groff man), `mediawiki` (MediaWiki markup),
     `textile` (Textile), `org` (Emacs Org-Mode), `texinfo` (GNU Texinfo),
-    `docbook` (DocBook XML), `opendocument` (OpenDocument XML), `odt`
+    `opml` (OPML), `docbook` (DocBook), `opendocument` (OpenDocument), `odt`
     (OpenOffice text document), `docx` (Word docx), `epub` (EPUB book), `epub3`
     (EPUB v3), `fb2` (FictionBook2 e-book), `asciidoc` (AsciiDoc), `slidy`
     (Slidy HTML and javascript slide show), `slideous` (Slideous HTML and
@@ -2623,9 +2623,9 @@ Sergey Astanin, Arlo O'Keeffe, Denis Laxalde, Brent Yorgey.
 [beamer]: http://www.tex.ac.uk/CTAN/macros/latex/contrib/beamer
 [ConTeXt]: http://www.pragma-ade.nl/
 [RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
-[DocBook XML]:  http://www.docbook.org/
+[DocBook]:  http://www.docbook.org/
 [OPML]: http://dev.opml.org/spec2.html
-[OpenDocument XML]: http://opendocument.xml.org/
+[OpenDocument]: http://opendocument.xml.org/
 [ODT]: http://en.wikipedia.org/wiki/OpenDocument
 [Textile]: http://redcloth.org/textile
 [MediaWiki markup]: http://www.mediawiki.org/wiki/Help:Formatting
