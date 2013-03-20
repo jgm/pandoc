@@ -256,6 +256,7 @@ data HTMLSlideVariant = S5Slides
                       | SlidySlides
                       | SlideousSlides
                       | DZSlides
+                      | RevealJsSlides
                       | NoSlides
                       deriving (Show, Read, Eq)
 

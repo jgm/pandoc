@@ -422,6 +422,13 @@ options =
                                         optStandalone = True }))
                  "" -- "Make slide shows include all the needed js and css"
 
+    , Option "" ["reveal_js-uri"]
+                 (ReqArg
+                  (\arg opt -> return opt { optVariables = ("reveal_js-url",arg) :
+                                                       optVariables opt})
+                  "DIRECTORY")
+                 "" -- "Set root url for reveal.js files"
+
     , Option "" ["offline"]
                  (NoArg
                   (\opt -> do warn $ "--offline is deprecated. Use --self-contained instead."
@@ -1112,7 +1119,7 @@ main = do
                       >>= writerFn outputFile . handleEntities
           where htmlFormat = writerName' `elem`
                                ["html","html+lhs","html5","html5+lhs",
-                               "s5","slidy","slideous","dzslides"]
+                               "s5","slidy","slideous","dzslides","reveal_js"]
                 selfcontain = if selfContained && htmlFormat
                                  then makeSelfContained datadir
                                  else return

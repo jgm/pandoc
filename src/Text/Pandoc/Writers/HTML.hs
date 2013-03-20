@@ -226,8 +226,15 @@ prefixedId opts s =
 
 -- | Replacement for Text.XHtml's unordList.
 unordList :: WriterOptions -> ([Html] -> Html)
-unordList opts items = H.ul $ mconcat $ toListItems opts items
-
+unordList opts items = do
+    let items' = toListItems opts items
+    let lst = if (writerIncremental opts)
+          then if (writerSlideVariant opts /= RevealJsSlides)
+                 then (H.ul $ mconcat items') ! A.class_ "incremental"
+                 else H.ul $ mconcat $ map (! A.class_ "fragment") items'
+          else H.ul $ mconcat items'
+    lst
+  
 -- | Replacement for Text.XHtml's ordList.
 ordList :: WriterOptions -> ([Html] -> Html)
 ordList opts items = H.ol $ mconcat $ toListItems opts items
@@ -479,15 +486,13 @@ blockToHtml opts (Header level (ident,_,_) lst) = do
               _ -> H.p contents''
 blockToHtml opts (BulletList lst) = do
   contents <- mapM (blockListToHtml opts) lst
-  let lst' = unordList opts contents
-  let lst'' = if writerIncremental opts
-                 then lst' ! A.class_ "incremental"
-                 else lst'
-  return lst''
+  let lst = unordList opts contents
+  return lst
 blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
   contents <- mapM (blockListToHtml opts) lst
   let numstyle' = camelCaseToHyphenated $ show numstyle
-  let attribs = (if writerIncremental opts
+  let attribs = (if writerIncremental opts && 
+                        (writerSlideVariant opts /= RevealJsSlides)
                    then [A.class_ "incremental"]
                    else []) ++
                 (if startnum /= 1
