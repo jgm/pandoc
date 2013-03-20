@@ -87,8 +87,8 @@ parseBlock (Elem e) =
                      modify $ \st -> st{ opmlSectionLevel = n }
                      bs <- getBlocks e
                      modify $ \st -> st{ opmlSectionLevel = n - 1 }
-                     let headerText' = case attrValue "type" e of
-                                             "link"  -> link
+                     let headerText' = case map toUpper (attrValue "type" e) of
+                                             "LINK"  -> link
                                                (attrValue "url" e) "" headerText
                                              _ -> headerText
                      return $ header n headerText' <> noteBlocks <> bs
