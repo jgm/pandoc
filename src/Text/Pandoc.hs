@@ -72,6 +72,7 @@ module Text.Pandoc
                , readHtml
                , readTextile
                , readDocBook
+               , readOPML
                , readNative
                -- * Writers: converting /from/ Pandoc format
                , Writer (..)
@@ -113,6 +114,7 @@ import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.MediaWiki
 import Text.Pandoc.Readers.RST
 import Text.Pandoc.Readers.DocBook
+import Text.Pandoc.Readers.OPML
 import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.HTML
 import Text.Pandoc.Readers.Textile
@@ -192,6 +194,7 @@ readers = [("native"       , \_ s -> return $ readNative s)
           ,("rst"          , \o s -> return $ readRST o s)
           ,("mediawiki"    , \o s -> return $ readMediaWiki o s)
           ,("docbook"      , \o s -> return $ readDocBook o s)
+          ,("opml"         , \o s -> return $ readOPML o s)
           ,("textile"      , \o s -> return $ readTextile o s) -- TODO : textile+lhs
           ,("html"         , \o s -> return $ readHtml o s)
           ,("latex"        , \o s -> return $ readLaTeX o s)
