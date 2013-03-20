@@ -86,6 +86,7 @@ module Text.Pandoc
                , writeHtml
                , writeHtmlString
                , writeDocbook
+               , writeOPML
                , writeOpenDocument
                , writeMan
                , writeMediaWiki
@@ -131,6 +132,7 @@ import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Writers.EPUB
 import Text.Pandoc.Writers.FB2
 import Text.Pandoc.Writers.Docbook
+import Text.Pandoc.Writers.OPML
 import Text.Pandoc.Writers.OpenDocument
 import Text.Pandoc.Writers.Man
 import Text.Pandoc.Writers.RTF
@@ -233,6 +235,7 @@ writers = [
      writeHtmlString o{ writerSlideVariant = RevealJsSlides
                       , writerHtml5 = True })
   ,("docbook"      , PureStringWriter writeDocbook)
+  ,("opml"         , PureStringWriter writeOPML)
   ,("opendocument" , PureStringWriter writeOpenDocument)
   ,("latex"        , PureStringWriter writeLaTeX)
   ,("beamer"       , PureStringWriter $ \o ->
