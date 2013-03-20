@@ -125,7 +125,9 @@ tests = [ testGroup "markdown"
             "mediawiki-reader.wiki" "mediawiki-reader.native"
           ]
         , testGroup "opml"
-          [ test "reader" ["-r", "opml", "-w", "native", "-s"]
+          [ test "basic" ["-r", "native", "-w", "opml", "--columns=78", "-s"]
+             "testsuite.native" "writer.opml"
+          , test "reader" ["-r", "opml", "-w", "native", "-s"]
             "opml-reader.opml" "opml-reader.native"
           ]
         , testGroup "other writers" $ map (\f -> testGroup f $ writerTests f)
