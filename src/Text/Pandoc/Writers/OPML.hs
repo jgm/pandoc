@@ -37,19 +37,20 @@ import Text.Pandoc.Writers.HTML (writeHtmlString)
 import Text.Pandoc.Writers.Markdown (writeMarkdown)
 import Data.List ( intercalate )
 import Text.Pandoc.Pretty
+import Data.Time
+import System.Locale (defaultTimeLocale)
 
 -- | Convert Pandoc document to string in OPML format.
 writeOPML :: WriterOptions -> Pandoc -> String
 writeOPML opts (Pandoc (Meta tit auths dat) blocks) =
   let title = writeHtmlInlines tit
       author = writeHtmlInlines $ intercalate [Space,Str ";",Space] auths
-      date = trim $ writeHtmlInlines dat
+      date = convertDate dat
       elements = hierarchicalize blocks
       colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
                     else Nothing
-      render' = render colwidth
-      main     = render' $ vcat (map (elementToOPML opts) elements)
+      main     = render colwidth $ vcat (map (elementToOPML opts) elements)
       context = writerVariables opts ++
                 [ ("body", main)
                 , ("title", title)
@@ -63,6 +64,14 @@ writeHtmlInlines :: [Inline] -> String
 writeHtmlInlines ils = trim $ writeHtmlString def
                             $ Pandoc (Meta [] [] []) [Plain ils]
 
+-- date format: RFC 822: Thu, 14 Jul 2005 23:41:05 GMT
+showDateTimeRFC822 :: UTCTime -> String
+showDateTimeRFC822 = formatTime defaultTimeLocale "%a, %d %b %Y %X %Z"
+
+convertDate :: [Inline] -> String
+convertDate ils = maybe "" showDateTimeRFC822
+  $ parseTime defaultTimeLocale "%F" =<< (normalizeDate $ stringify ils)
+
 -- | Convert an Element to OPML.
 elementToOPML :: WriterOptions -> Element -> Doc
 elementToOPML _ (Blk _) = empty
@@ -73,7 +82,7 @@ elementToOPML opts (Sec _ _num _ title elements) =
       fromBlk _ = error "fromBlk called on non-block"
       (blocks, rest) = span isBlk elements
       attrs = [("text", writeHtmlInlines title)] ++
-              [("_note", writeMarkdown opts (Pandoc (Meta [] [] [])
+              [("_note", writeMarkdown def (Pandoc (Meta [] [] [])
                               (map fromBlk blocks)))
                 | not (null blocks)]
   in  inTags True "outline" attrs $

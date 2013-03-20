@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>Pandoc Test Suite</title>
+    <dateModified>Mon, 17 Jul 2006 00:00:00 UTC</dateModified>
+    <ownerName>John MacFarlane ; Anonymous</ownerName>
+  </head>
+  <body>
+<outline text="Headers">
+  <outline text="Level 2 with an &lt;a href=&quot;/url&quot;&gt;embedded link&lt;/a&gt;">
+    <outline text="Level 3 with &lt;em&gt;emphasis&lt;/em&gt;">
+      <outline text="Level 4">
+        <outline text="Level 5">
+        </outline>
+      </outline>
+    </outline>
+  </outline>
+</outline>
+<outline text="Level 1">
+  <outline text="Level 2 with &lt;em&gt;emphasis&lt;/em&gt;">
+    <outline text="Level 3" _note="with no blank line">
+    </outline>
+  </outline>
+  <outline text="Level 2" _note="with no blank line&#10;&#10;* * * * *">
+  </outline>
+</outline>
+<outline text="Paragraphs" _note="Here’s a regular paragraph.&#10;&#10;In Markdown 1.0.0 and earlier. Version 8. This line turns into a list&#10;item. Because a hard-wrapped line in the middle of a paragraph looked&#10;like a list item.&#10;&#10;Here’s one with a bullet. \* criminey.&#10;&#10;There should be a hard line break\&#10;here.&#10;&#10;* * * * *">
+</outline>
+<outline text="Block Quotes" _note="E-mail style:&#10;&#10;&gt; This is a block quote. It is pretty short.&#10;&#10;&gt; Code in a block quote:&#10;&gt;&#10;&gt;     sub status {&#10;&gt;         print &quot;working&quot;;&#10;&gt;     }&#10;&gt;&#10;&gt; A list:&#10;&gt;&#10;&gt; 1.  item one&#10;&gt; 2.  item two&#10;&gt;&#10;&gt; Nested block quotes:&#10;&gt;&#10;&gt; &gt; nested&#10;&gt;&#10;&gt; &gt; nested&#10;&#10;This should not be a block quote: 2 \&gt; 1.&#10;&#10;And a following paragraph.&#10;&#10;* * * * *">
+</outline>
+<outline text="Code Blocks" _note="Code:&#10;&#10;    ---- (should be four hyphens)&#10;&#10;    sub status {&#10;        print &quot;working&quot;;&#10;    }&#10;&#10;    this code block is indented by one tab&#10;&#10;And:&#10;&#10;        this code block is indented by two tabs&#10;&#10;    These should not be escaped:  \$ \\ \&gt; \[ \{&#10;&#10;* * * * *">
+</outline>
+<outline text="Lists">
+  <outline text="Unordered" _note="Asterisks tight:&#10;&#10;-   asterisk 1&#10;-   asterisk 2&#10;-   asterisk 3&#10;&#10;Asterisks loose:&#10;&#10;-   asterisk 1&#10;&#10;-   asterisk 2&#10;&#10;-   asterisk 3&#10;&#10;Pluses tight:&#10;&#10;-   Plus 1&#10;-   Plus 2&#10;-   Plus 3&#10;&#10;Pluses loose:&#10;&#10;-   Plus 1&#10;&#10;-   Plus 2&#10;&#10;-   Plus 3&#10;&#10;Minuses tight:&#10;&#10;-   Minus 1&#10;-   Minus 2&#10;-   Minus 3&#10;&#10;Minuses loose:&#10;&#10;-   Minus 1&#10;&#10;-   Minus 2&#10;&#10;-   Minus 3&#10;&#10;">
+  </outline>
+  <outline text="Ordered" _note="Tight:&#10;&#10;1.  First&#10;2.  Second&#10;3.  Third&#10;&#10;and:&#10;&#10;1.  One&#10;2.  Two&#10;3.  Three&#10;&#10;Loose using tabs:&#10;&#10;1.  First&#10;&#10;2.  Second&#10;&#10;3.  Third&#10;&#10;and using spaces:&#10;&#10;1.  One&#10;&#10;2.  Two&#10;&#10;3.  Three&#10;&#10;Multiple paragraphs:&#10;&#10;1.  Item 1, graf one.&#10;&#10;    Item 1. graf two. The quick brown fox jumped over the lazy dog’s&#10;    back.&#10;&#10;2.  Item 2.&#10;&#10;3.  Item 3.&#10;&#10;">
+  </outline>
+  <outline text="Nested" _note="-   Tab&#10;    -   Tab&#10;        -   Tab&#10;&#10;Here’s another:&#10;&#10;1.  First&#10;2.  Second:&#10;    -   Fee&#10;    -   Fie&#10;    -   Foe&#10;&#10;3.  Third&#10;&#10;Same thing but with paragraphs:&#10;&#10;1.  First&#10;&#10;2.  Second:&#10;&#10;    -   Fee&#10;    -   Fie&#10;    -   Foe&#10;&#10;3.  Third&#10;&#10;">
+  </outline>
+  <outline text="Tabs and spaces" _note="-   this is a list item indented with tabs&#10;&#10;-   this is a list item indented with spaces&#10;&#10;    -   this is an example list item indented with tabs&#10;&#10;    -   this is an example list item indented with spaces&#10;&#10;">
+  </outline>
+  <outline text="Fancy list markers" _note="(2) begins with 2&#10;(3) and now 3&#10;&#10;    with a continuation&#10;&#10;    iv. sublist with roman numerals, starting with 4&#10;    v.  more items&#10;        (A) a subsublist&#10;        (B) a subsublist&#10;&#10;Nesting:&#10;&#10;A.  Upper Alpha&#10;    I.  Upper Roman.&#10;        (6) Decimal start with 6&#10;            c)  Lower alpha with paren&#10;&#10;Autonumbering:&#10;&#10;1.  Autonumber.&#10;2.  More.&#10;    1.  Nested.&#10;&#10;Should not be a list item:&#10;&#10;M.A. 2007&#10;&#10;B. Williams&#10;&#10;* * * * *">
+  </outline>
+</outline>
+<outline text="Definition Lists" _note="Tight using spaces:&#10;&#10;apple&#10;:   red fruit&#10;orange&#10;:   orange fruit&#10;banana&#10;:   yellow fruit&#10;&#10;Tight using tabs:&#10;&#10;apple&#10;:   red fruit&#10;orange&#10;:   orange fruit&#10;banana&#10;:   yellow fruit&#10;&#10;Loose:&#10;&#10;apple&#10;:   red fruit&#10;&#10;orange&#10;:   orange fruit&#10;&#10;banana&#10;:   yellow fruit&#10;&#10;Multiple blocks with italics:&#10;&#10;*apple*&#10;:   red fruit&#10;&#10;    contains seeds, crisp, pleasant to taste&#10;&#10;*orange*&#10;:   orange fruit&#10;&#10;        { orange code block }&#10;&#10;    &gt; orange block quote&#10;&#10;Multiple definitions, tight:&#10;&#10;apple&#10;:   red fruit&#10;:   computer&#10;orange&#10;:   orange fruit&#10;:   bank&#10;&#10;Multiple definitions, loose:&#10;&#10;apple&#10;:   red fruit&#10;&#10;:   computer&#10;&#10;orange&#10;:   orange fruit&#10;&#10;:   bank&#10;&#10;Blank line after term, indented marker, alternate markers:&#10;&#10;apple&#10;:   red fruit&#10;&#10;:   computer&#10;&#10;orange&#10;:   orange fruit&#10;&#10;    1.  sublist&#10;    2.  sublist&#10;&#10;">
+</outline>
+<outline text="HTML Blocks" _note="Simple block on one line:&#10;&#10;&lt;div&gt;&#10;foo&#10;&lt;/div&gt;&#10;&#10;And nested without indentation:&#10;&#10;&lt;div&gt;&#10;&lt;div&gt;&#10;&lt;div&gt;&#10;foo&#10;&lt;/div&gt;&#10;&lt;/div&gt;&#10;&lt;div&gt;&#10;bar&#10;&lt;/div&gt;&#10;&lt;/div&gt;&#10;&#10;Interpreted markdown in a table:&#10;&#10;&lt;table&gt;&#10;&lt;tr&gt;&#10;&lt;td&gt;&#10;This is *emphasized*&#10;&lt;/td&gt;&#10;&lt;td&gt;&#10;And this is **strong**&#10;&lt;/td&gt;&#10;&lt;/tr&gt;&#10;&lt;/table&gt;&#10;&#10;&lt;script type=&quot;text/javascript&quot;&gt;document.write('This *should not* be interpreted as markdown');&lt;/script&gt;&#10;&#10;Here’s a simple block:&#10;&#10;&lt;div&gt;&#10;    &#10;foo&#10;&lt;/div&gt;&#10;&#10;This should be a code block, though:&#10;&#10;    &lt;div&gt;&#10;        foo&#10;    &lt;/div&gt;&#10;&#10;As should this:&#10;&#10;    &lt;div&gt;foo&lt;/div&gt;&#10;&#10;Now, nested:&#10;&#10;&lt;div&gt;&#10;    &lt;div&gt;&#10;        &lt;div&gt;&#10;            &#10;foo&#10;&lt;/div&gt;&#10;    &lt;/div&gt;&#10;&lt;/div&gt;&#10;&#10;This should just be an HTML comment:&#10;&#10;&lt;!-- Comment --&gt;&#10;&#10;Multiline:&#10;&#10;&lt;!--&#10;Blah&#10;Blah&#10;--&gt;&#10;&#10;&lt;!--&#10;    This is another comment.&#10;--&gt;&#10;&#10;Code block:&#10;&#10;    &lt;!-- Comment --&gt;&#10;&#10;Just plain comment, with trailing spaces on the line:&#10;&#10;&lt;!-- foo --&gt;   &#10;&#10;Code:&#10;&#10;    &lt;hr /&gt;&#10;&#10;Hr’s:&#10;&#10;&lt;hr&gt;&#10;&#10;&lt;hr /&gt;&#10;&#10;&lt;hr /&gt;&#10;&#10;&lt;hr&gt;   &#10;&#10;&lt;hr /&gt;  &#10;&#10;&lt;hr /&gt; &#10;&#10;&lt;hr class=&quot;foo&quot; id=&quot;bar&quot; /&gt;&#10;&#10;&lt;hr class=&quot;foo&quot; id=&quot;bar&quot; /&gt;&#10;&#10;&lt;hr class=&quot;foo&quot; id=&quot;bar&quot;&gt;&#10;&#10;* * * * *">
+</outline>
+<outline text="Inline Markup" _note="This is *emphasized*, and so *is this*.&#10;&#10;This is **strong**, and so **is this**.&#10;&#10;An *[emphasized link](/url)*.&#10;&#10;***This is strong and em.***&#10;&#10;So is ***this*** word.&#10;&#10;***This is strong and em.***&#10;&#10;So is ***this*** word.&#10;&#10;This is code: `&gt;`, `$`, `\`, `\$`, `&lt;html&gt;`.&#10;&#10;~~This is *strikeout*.~~&#10;&#10;Superscripts: a^bc^d a^*hello*^ a^hello there^.&#10;&#10;Subscripts: H~2~O, H~23~O, H~many of them~O.&#10;&#10;These should not be superscripts or subscripts, because of the unescaped&#10;spaces: a\^b c\^d, a\~b c\~d.&#10;&#10;* * * * *">
+</outline>
+<outline text="Smart quotes, ellipses, dashes" _note="“Hello,” said the spider. “‘Shelob’ is my name.”&#10;&#10;‘A’, ‘B’, and ‘C’ are letters.&#10;&#10;‘Oak,’ ‘elm,’ and ‘beech’ are names of trees. So is ‘pine.’&#10;&#10;‘He said, “I want to go.”’ Were you alive in the 70’s?&#10;&#10;Here is some quoted ‘`code`’ and a “[quoted&#10;link](http://example.com/?foo=1&amp;bar=2)”.&#10;&#10;Some dashes: one—two — three—four — five.&#10;&#10;Dashes between numbers: 5–7, 255–66, 1987–1999.&#10;&#10;Ellipses…and…and….&#10;&#10;* * * * *">
+</outline>
+<outline text="LaTeX" _note="-   \cite[22-23]{smith.1899}&#10;-   $2+2=4$&#10;-   $x \in y$&#10;-   $\alpha \wedge \omega$&#10;-   $223$&#10;-   $p$-Tree&#10;-   Here’s some display math:&#10;    $$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$&#10;-   Here’s one that has a line break in it:&#10;    $\alpha + \omega \times x^2$.&#10;&#10;These shouldn’t be math:&#10;&#10;-   To get the famous equation, write `$e = mc^2$`.&#10;-   \$22,000 is a *lot* of money. So is \$34,000. (It worked if “lot” is&#10;    emphasized.)&#10;-   Shoes (\$20) and socks (\$5).&#10;-   Escaped `$`: \$73 *this should be emphasized* 23\$.&#10;&#10;Here’s a LaTeX table:&#10;&#10;\begin{tabular}{|l|l|}\hline&#10;Animal &amp; Number \\ \hline&#10;Dog    &amp; 2      \\&#10;Cat    &amp; 1      \\ \hline&#10;\end{tabular}&#10;&#10;* * * * *">
+</outline>
+<outline text="Special Characters" _note="Here is some unicode:&#10;&#10;-   I hat: Î&#10;-   o umlaut: ö&#10;-   section: §&#10;-   set membership: ∈&#10;-   copyright: ©&#10;&#10;AT&amp;T has an ampersand in their name.&#10;&#10;AT&amp;T is another way to write it.&#10;&#10;This &amp; that.&#10;&#10;4 \&lt; 5.&#10;&#10;6 \&gt; 5.&#10;&#10;Backslash: \\&#10;&#10;Backtick: \`&#10;&#10;Asterisk: \*&#10;&#10;Underscore: \_&#10;&#10;Left brace: {&#10;&#10;Right brace: }&#10;&#10;Left bracket: [&#10;&#10;Right bracket: ]&#10;&#10;Left paren: (&#10;&#10;Right paren: )&#10;&#10;Greater-than: \&gt;&#10;&#10;Hash: \#&#10;&#10;Period: .&#10;&#10;Bang: !&#10;&#10;Plus: +&#10;&#10;Minus: -&#10;&#10;* * * * *">
+</outline>
+<outline text="Links">
+  <outline text="Explicit" _note="Just a [URL](/url/).&#10;&#10;[URL and title](/url/ &quot;title&quot;).&#10;&#10;[URL and title](/url/ &quot;title preceded by two spaces&quot;).&#10;&#10;[URL and title](/url/ &quot;title preceded by a tab&quot;).&#10;&#10;[URL and title](/url/ &quot;title with &quot;quotes&quot; in it&quot;)&#10;&#10;[URL and title](/url/ &quot;title with single quotes&quot;)&#10;&#10;[with\_underscore](/url/with_underscore)&#10;&#10;[Email link](mailto:nobody@nowhere.net)&#10;&#10;[Empty]().">
+  </outline>
+  <outline text="Reference" _note="Foo [bar](/url/).&#10;&#10;Foo [bar](/url/).&#10;&#10;Foo [bar](/url/).&#10;&#10;With [embedded [brackets]](/url/).&#10;&#10;[b](/url/) by itself should be a link.&#10;&#10;Indented [once](/url).&#10;&#10;Indented [twice](/url).&#10;&#10;Indented [thrice](/url).&#10;&#10;This should [not][] be a link.&#10;&#10;    [not]: /url&#10;&#10;Foo [bar](/url/ &quot;Title with &quot;quotes&quot; inside&quot;).&#10;&#10;Foo [biz](/url/ &quot;Title with &quot;quote&quot; inside&quot;).">
+  </outline>
+  <outline text="With ampersands" _note="Here’s a [link with an ampersand in the&#10;URL](http://example.com/?foo=1&amp;bar=2).&#10;&#10;Here’s a link with an amersand in the link text:&#10;[AT&amp;T](http://att.com/ &quot;AT&amp;T&quot;).&#10;&#10;Here’s an [inline link](/script?foo=1&amp;bar=2).&#10;&#10;Here’s an [inline link in pointy braces](/script?foo=1&amp;bar=2).">
+  </outline>
+  <outline text="Autolinks" _note="With an ampersand: &lt;http://example.com/?foo=1&amp;bar=2&gt;&#10;&#10;-   In a list?&#10;-   &lt;http://example.com/&gt;&#10;-   It should.&#10;&#10;An e-mail address: &lt;nobody@nowhere.net&gt;&#10;&#10;&gt; Blockquoted: &lt;http://example.com/&gt;&#10;&#10;Auto-links should not occur here: `&lt;http://example.com/&gt;`&#10;&#10;    or here: &lt;http://example.com/&gt;&#10;&#10;* * * * *">
+  </outline>
+</outline>
+<outline text="Images" _note="From “Voyage dans la Lune” by Georges Melies (1902):&#10;&#10;![lalune](lalune.jpg &quot;Voyage dans la Lune&quot;)&#10;&#10;Here is a movie ![movie](movie.jpg) icon.&#10;&#10;* * * * *">
+</outline>
+<outline text="Footnotes" _note="Here is a footnote reference,[^1] and another.[^2] This should *not* be&#10;a footnote reference, because it contains a space.[\^my note] Here is an&#10;inline note.[^3]&#10;&#10;&gt; Notes can go in quotes.[^4]&#10;&#10;1.  And in list items.[^5]&#10;&#10;This paragraph should not be part of the note, as it is not indented.&#10;&#10;[^1]: Here is the footnote. It can go anywhere after the footnote&#10;    reference. It need not be placed at the end of the document.&#10;&#10;[^2]: Here’s the long note. This one contains multiple blocks.&#10;&#10;    Subsequent blocks are indented to show that they belong to the&#10;    footnote (as with list items).&#10;&#10;          { &lt;code&gt; }&#10;&#10;    If you want, you can indent every line, but you can also be lazy and&#10;    just indent the first line of each block.&#10;&#10;[^3]: This is *easier* to type. Inline notes may contain&#10;    [links](http://google.com) and `]` verbatim characters, as well as&#10;    [bracketed text].&#10;&#10;[^4]: In quote.&#10;&#10;[^5]: In list.">
+</outline>
+  </body>
+</opml>
