@@ -466,6 +466,9 @@ blockToHtml opts (BlockQuote blocks) =
              [OrderedList attribs lst] ->
                                   blockToHtml (opts {writerIncremental = inc})
                                   (OrderedList attribs lst)
+             [DefinitionList lst] ->
+                                  blockToHtml (opts {writerIncremental = inc})
+                                  (DefinitionList lst)
              _                 -> do contents <- blockListToHtml opts blocks
                                      return $ H.blockquote
                                             $ nl opts >> contents >> nl opts
