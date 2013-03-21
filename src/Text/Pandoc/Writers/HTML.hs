@@ -226,18 +226,20 @@ prefixedId opts s =
 
 toList :: (Html -> Html) -> WriterOptions -> ([Html] -> Html)
 toList listop opts items = do
-    let items' = toListItems opts items
     if (writerIncremental opts)
        then if (writerSlideVariant opts /= RevealJsSlides)
-               then (listop $ mconcat items') ! A.class_ "incremental"
-               else listop $ mconcat $ map (! A.class_ "fragment") items'
-       else listop $ mconcat items'
+               then (listop $ mconcat items) ! A.class_ "incremental"
+               else listop $ mconcat $ map (! A.class_ "fragment") items
+       else listop $ mconcat items
 
 unordList :: WriterOptions -> [Html] -> Html
-unordList = toList H.ul
+unordList opts = toList H.ul opts . toListItems opts
 
 ordList :: WriterOptions -> [Html] -> Html
-ordList = toList H.ol
+ordList opts = toList H.ol opts . toListItems opts
+
+defList :: WriterOptions -> [Html] -> Html
+defList opts items = toList H.dl opts (items ++ [nl opts])
 
 -- | Construct table of contents from list of elements.
 tableOfContents :: WriterOptions -> [Element] -> State WriterState (Maybe Html)
@@ -456,6 +458,9 @@ blockToHtml opts (BlockQuote blocks) =
              [OrderedList attribs lst] ->
                                   blockToHtml (opts {writerIncremental = inc})
                                   (OrderedList attribs lst)
+             [DefinitionList lst] ->
+                                  blockToHtml (opts {writerIncremental = inc})
+                                  (DefinitionList lst)
              _                 -> do contents <- blockListToHtml opts blocks
                                      return $ H.blockquote
                                             $ nl opts >> contents >> nl opts
@@ -513,11 +518,7 @@ blockToHtml opts (DefinitionList lst) = do
                                     blockListToHtml opts) defs
                      return $ mconcat $ nl opts : term' : nl opts :
                                         intersperse (nl opts) defs') lst
-  let lst' = H.dl $ mconcat contents >> nl opts
-  let lst'' = if writerIncremental opts
-                 then lst' ! A.class_ "incremental"
-                 else lst'
-  return lst''
+  return $ defList opts contents
 blockToHtml opts (Table capt aligns widths headers rows') = do
   captionDoc <- if null capt
                    then return mempty
