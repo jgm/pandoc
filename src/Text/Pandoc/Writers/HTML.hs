@@ -299,7 +299,7 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
   let isSec (Sec _ _ _ _ _) = True
       isSec (Blk _)         = False
   innerContents <- mapM (elementToHtml slideLevel opts)
-                   $ if titleSlide
+                   $ if titleSlide && (writerSlideVariant opts /= RevealJsSlides)
                         -- title slides have no content of their own
                         then filter isSec elements
                         else elements
@@ -313,14 +313,14 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
                     then H5.section
                     else H.div
   let attr = (id',classes',keyvals)
+  let sectattrs = (addAttrs opts attr)
   return $ if titleSlide
-              then mconcat $
-                   (addAttrs opts attr $ secttag $ header') : innerContents
-              else if writerSectionDivs opts || slide
-                   then addAttrs opts attr
-                        $ secttag $ inNl $ header' : innerContents
-                   else mconcat $ intersperse (nl opts)
-                        $ addAttrs opts attr header' : innerContents
+        then if (writerSlideVariant opts == RevealJsSlides)
+                then secttag $ mconcat $ (sectattrs $ secttag $ header') : innerContents
+                else mconcat $ (sectattrs $ secttag $ header') : innerContents
+        else if (writerSectionDivs opts) || slide 
+                then sectattrs $ secttag $ inNl $ header' : innerContents
+                else mconcat $ intersperse (nl opts) $ sectattrs header' : innerContents
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
