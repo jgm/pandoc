@@ -390,7 +390,7 @@ metadataElement version metadataXML uuid lang title authors date currentTime mbC
            [ unode "dc:identifier" ! [("id","BookId")] $ show uuid |
                not (elt `contains` "identifier") ] ++
            [ unode "dc:creator" ! [("opf:role","aut") | version == EPUB2]
-                     $ a | a <- authors ] ++
+                     $ a | a <- authors, not (elt `contains` "creator") ] ++
            [ unode "dc:date" date | not (elt `contains` "date") ] ++
            [ unode "meta" ! [("property", "dcterms:modified")] $
                (showDateTimeISO8601 currentTime) | version == EPUB3] ++
