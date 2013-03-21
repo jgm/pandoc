@@ -442,11 +442,13 @@ Options affecting specific writers
     rather than the header itself.
     See [Section identifiers](#header-identifiers-in-html-latex-and-context), below.
 
-`--email-obfuscation=`*none|javascript|references*
+`--email-obfuscation=`*none|javascript|css|references*
 :   Specify a method for obfuscating `mailto:` links in HTML documents.
     *none* leaves `mailto:` links as they are.  *javascript* obfuscates
-    them using javascript. *references* obfuscates them by printing their
-    letters as decimal or hexadecimal character references.
+    them using javascript. *css* obfuscates by changing the direction of the 
+    text to right-to-left in css and reversing the email in html.  *references*
+    obfuscates them by printing their letters as decimal or hexadecimal
+    character references.
 
 `--id-prefix`=*STRING*
 :   Specify a prefix to be added to all automatically generated identifiers

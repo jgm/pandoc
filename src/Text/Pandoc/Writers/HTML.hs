@@ -226,11 +226,25 @@ prefixedId opts s =
 
 -- | Replacement for Text.XHtml's unordList.
 unordList :: WriterOptions -> ([Html] -> Html)
-unordList opts items = H.ul $ mconcat $ toListItems opts items
-
+unordList opts items = do
+    let items' = toListItems opts items
+    let lst = if (writerIncremental opts)
+          then if (writerSlideVariant opts /= RevealJsSlides)
+                 then (H.ul $ mconcat items') ! A.class_ "incremental"
+                 else H.ul $ mconcat $ map (! A.class_ "fragment") items'
+          else H.ul $ mconcat items'
+    lst
+  
 -- | Replacement for Text.XHtml's ordList.
 ordList :: WriterOptions -> ([Html] -> Html)
-ordList opts items = H.ol $ mconcat $ toListItems opts items
+ordList opts items = do
+    let items' = toListItems opts items
+    let lst = if (writerIncremental opts)
+          then if (writerSlideVariant opts /= RevealJsSlides)
+                 then (H.ol $ mconcat items') ! A.class_ "incremental"
+                 else H.ol $ mconcat $ map (! A.class_ "fragment") items'
+          else H.ol $ mconcat items'
+    lst
 
 -- | Construct table of contents from list of elements.
 tableOfContents :: WriterOptions -> [Element] -> State WriterState (Maybe Html)
@@ -286,7 +300,7 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
   let isSec (Sec _ _ _ _ _) = True
       isSec (Blk _)         = False
   innerContents <- mapM (elementToHtml slideLevel opts)
-                   $ if titleSlide
+                   $ if titleSlide && (writerSlideVariant opts /= RevealJsSlides)
                         -- title slides have no content of their own
                         then filter isSec elements
                         else elements
@@ -300,14 +314,14 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
                     then H5.section
                     else H.div
   let attr = (id',classes',keyvals)
+  let sectattrs = (addAttrs opts attr)
   return $ if titleSlide
-              then mconcat $
-                   (addAttrs opts attr $ secttag $ header') : innerContents
-              else if writerSectionDivs opts || slide
-                   then addAttrs opts attr
-                        $ secttag $ inNl $ header' : innerContents
-                   else mconcat $ intersperse (nl opts)
-                        $ addAttrs opts attr header' : innerContents
+        then if (writerSlideVariant opts == RevealJsSlides)
+                then secttag $ mconcat $ (sectattrs $ secttag $ header') : innerContents
+                else mconcat $ (sectattrs $ secttag $ header') : innerContents
+        else if (writerSectionDivs opts) || slide 
+                then sectattrs $ secttag $ inNl $ header' : innerContents
+                else mconcat $ intersperse (nl opts) $ sectattrs header' : innerContents
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
@@ -362,6 +376,10 @@ obfuscateLink opts txt s =
                      "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\">'+" ++
                      linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) >>
                      H.noscript (preEscapedString $ obfuscateString altText)
+                CssObfuscation -> do
+                     (H.style ! (A.type_ "text/css") $ 
+                        "span.redirection { unicode-bidi:bidi-override; direction: rtl; }")  
+                     (H.span ! A.class_ "redirection" $ (toHtml $ reverse txt))
                 _ -> error $ "Unknown obfuscation method: " ++ show meth
         _ -> H.a ! A.href (toValue s) $ toHtml txt  -- malformed email
 
@@ -449,6 +467,9 @@ blockToHtml opts (BlockQuote blocks) =
              [OrderedList attribs lst] ->
                                   blockToHtml (opts {writerIncremental = inc})
                                   (OrderedList attribs lst)
+             [DefinitionList lst] ->
+                                  blockToHtml (opts {writerIncremental = inc})
+                                  (DefinitionList lst)
              _                 -> do contents <- blockListToHtml opts blocks
                                      return $ H.blockquote
                                             $ nl opts >> contents >> nl opts
@@ -477,17 +498,11 @@ blockToHtml opts (Header level (ident,_,_) lst) = do
 blockToHtml opts (BulletList lst) = do
   contents <- mapM (blockListToHtml opts) lst
   let lst' = unordList opts contents
-  let lst'' = if writerIncremental opts
-                 then lst' ! A.class_ "incremental"
-                 else lst'
-  return lst''
+  return lst'
 blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
   contents <- mapM (blockListToHtml opts) lst
   let numstyle' = camelCaseToHyphenated $ show numstyle
-  let attribs = (if writerIncremental opts
-                   then [A.class_ "incremental"]
-                   else []) ++
-                (if startnum /= 1
+  let attribs = (if startnum /= 1
                    then [A.start $ toValue startnum]
                    else []) ++
                 (if numstyle /= DefaultStyle
@@ -505,19 +520,25 @@ blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
                    else [])
   return $ foldl (!) (ordList opts contents) attribs
 blockToHtml opts (DefinitionList lst) = do
+  let  dt = if writerIncremental opts && writerSlideVariant opts == RevealJsSlides
+                then (H.dt ! A.class_ "fragment")
+                else (H.dt)
+  let   dd = if writerIncremental opts && writerSlideVariant opts == RevealJsSlides
+                then (H.dd ! A.class_ "fragment")
+                else (H.dd)
+  let   dl = if writerIncremental opts && writerSlideVariant opts /= RevealJsSlides
+                then (H.dl ! A.class_ "incremental")
+                else (H.dl)
   contents <- mapM (\(term, defs) ->
                   do term' <- if null term
                                  then return mempty
-                                 else liftM (H.dt) $ inlineListToHtml opts term
-                     defs' <- mapM ((liftM (\x -> H.dd $ (x >> nl opts))) .
+                                 else liftM (dt) $ inlineListToHtml opts term
+                     defs' <- mapM ((liftM (\x -> dd $ (x >> nl opts))) .
                                     blockListToHtml opts) defs
                      return $ mconcat $ nl opts : term' : nl opts :
                                         intersperse (nl opts) defs') lst
-  let lst' = H.dl $ mconcat contents >> nl opts
-  let lst'' = if writerIncremental opts
-                 then lst' ! A.class_ "incremental"
-                 else lst'
-  return lst''
+  let lst' = dl $ mconcat contents >> nl opts
+  return lst'
 blockToHtml opts (Table capt aligns widths headers rows') = do
   captionDoc <- if null capt
                    then return mempty

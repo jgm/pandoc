@@ -231,6 +231,9 @@ writers = [
   ,("dzslides"     , PureStringWriter $ \o ->
      writeHtmlString o{ writerSlideVariant = DZSlides
                       , writerHtml5 = True })
+  ,("reveal_js"     , PureStringWriter $ \o ->
+     writeHtmlString o{ writerSlideVariant = RevealJsSlides
+                      , writerHtml5 = True })
   ,("docbook"      , PureStringWriter writeDocbook)
   ,("opml"         , PureStringWriter writeOPML)
   ,("opendocument" , PureStringWriter writeOpenDocument)
