@@ -310,8 +310,10 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
                     else H.div
   let attr = (id',classes',keyvals)
   return $ if titleSlide
-              then mconcat $
-                   (addAttrs opts attr $ secttag $ header') : innerContents
+              then (if writerSlideVariant opts == RevealJsSlides
+                       then H5.section
+                       else id) $ mconcat $
+                       (addAttrs opts attr $ secttag $ header') : innerContents
               else if writerSectionDivs opts || slide
                    then addAttrs opts attr
                         $ secttag $ inNl $ header' : innerContents
