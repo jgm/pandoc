@@ -208,6 +208,7 @@ inTemplate opts tit auths authsMeta date toc body' newvars =
                     , ("idprefix", writerIdentifierPrefix opts)
                     , ("slidy-url", "http://www.w3.org/Talks/Tools/Slidy2")
                     , ("slideous-url", "slideous")
+                    , ("revealjs-url", "reveal.js")
                     , ("s5-url", "s5/default") ] ++
                     [ ("html5","true") | writerHtml5 opts ] ++
                     (case toc of

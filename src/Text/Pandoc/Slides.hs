@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Portability : portable
 
 Utility functions for splitting documents into slides for slide
-show formats (dzslides, reveal_js, s5, slidy, slideous, beamer).
+show formats (dzslides, revealjs, s5, slidy, slideous, beamer).
 -}
 module Text.Pandoc.Slides ( getSlideLevel, prepSlides ) where
 import Text.Pandoc.Definition
