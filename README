@@ -18,9 +18,9 @@ plain text, [markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX]
 (including [beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
 [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
 [EPUB] (v2 or v3), [FictionBook2], [Textile], [groff man] pages, [Emacs
-Org-Mode], [AsciiDoc], and [Slidy], [Slideous], [DZSlides], or [S5] HTML
-slide shows. It can also produce [PDF] output on systems where LaTeX is
-installed.
+Org-Mode], [AsciiDoc], and [Slidy], [Slideous], [DZSlides], [reveal.js]
+or [S5] HTML slide shows. It can also produce [PDF] output on systems
+where LaTeX is installed.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, fenced code blocks,
@@ -167,12 +167,14 @@ General options
     `context` (ConTeXt), `man` (groff man), `mediawiki` (MediaWiki markup),
     `textile` (Textile), `org` (Emacs Org-Mode), `texinfo` (GNU Texinfo),
     `opml` (OPML), `docbook` (DocBook), `opendocument` (OpenDocument), `odt`
-    (OpenOffice text document), `docx` (Word docx), `epub` (EPUB book), `epub3`
+    (OpenOffice text document), `docx` (Word docx),
+    `rtf` (rich text format), `epub` (EPUB v2 book), `epub3`
     (EPUB v3), `fb2` (FictionBook2 e-book), `asciidoc` (AsciiDoc), `slidy`
     (Slidy HTML and javascript slide show), `slideous` (Slideous HTML and
-    javascript slide show), `dzslides` (HTML5 + javascript slide show), `s5`
-    (S5 HTML and javascript slide show), or `rtf` (rich text format). Note that
-    `odt`, `epub`, and `epub3` output will not be directed to *stdout*; an output
+    javascript slide show), `dzslides` (DZSlides HTML5 + javascript slide
+    show), `revealjs` (reveal.js HTML5 + javascript slide show), `s5`
+    (S5 HTML and javascript slide show). Note that `odt`, `epub`, and
+    `epub3` output will not be directed to *stdout*; an output
     filename must be specified using the `-o/--output` option. If `+lhs` is
     appended to `markdown`, `rst`, `latex`, `beamer`, `html`, or `html5`, the
     output will be rendered as literate Haskell source: see [Literate Haskell
@@ -219,12 +221,11 @@ Reader options
 :   Parse untranslatable HTML codes and LaTeX environments as raw HTML
     or LaTeX, instead of ignoring them.  Affects only HTML and LaTeX
     input. Raw HTML can be printed in markdown, reStructuredText, HTML,
-    Slidy, Slideous,
-    DZSlides, and S5 output; raw LaTeX can be printed in markdown,
-    reStructuredText, LaTeX, and ConTeXt output. The default is for the
-    readers to omit untranslatable HTML codes and LaTeX environments.
-    (The LaTeX reader does pass through untranslatable LaTeX *commands*,
-    even if `-R` is not specified.)
+    Slidy, Slideous, DZSlides, reveal.js, and S5 output; raw LaTeX
+    can be printed in markdown, reStructuredText, LaTeX, and ConTeXt output.
+    The default is for the readers to omit untranslatable HTML codes and
+    LaTeX environments.  (The LaTeX reader does pass through untranslatable
+    LaTeX *commands*, even if `-R` is not specified.)
 
 `-S`, `--smart`
 :   Produce typographically correct output, converting straight quotes
@@ -755,6 +756,12 @@ depending on the output format, but include:
 :   base URL for Slideous documents (defaults to `default`)
 `s5-url`
 :   base URL for S5 documents (defaults to `ui/default`)
+`revealjs-url`
+:   base URL for reveal.js documents (defaults to `reveal.js`)
+`theme`
+:   reveal.js theme
+`transition`
+:   reveal.js transition
 `fontsize`
 :   font size (10pt, 11pt, 12pt) for LaTeX documents
 `documentclass`
@@ -2640,4 +2647,5 @@ Sergey Astanin, Arlo O'Keeffe, Denis Laxalde, Brent Yorgey.
 [ISO 8601 format]: http://www.w3.org/TR/NOTE-datetime
 [Word docx]: http://www.microsoft.com/interop/openup/openxml/default.aspx
 [PDF]: http://www.adobe.com/pdf/
+[reveal.js]: http://lab.hakim.se/reveal-js/
 [FictionBook2]: http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1
