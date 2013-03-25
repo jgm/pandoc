@@ -332,7 +332,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
             , unode "link" ! [("rel","stylesheet"),("type","text/css"),("href","stylesheet.css")] $ () ]
           , unode "body" $
               unode navtag ! [("epub:type","toc") | epub3] $
-                [ unode "h1" plainTitle
+                [ unode "h1" ! [("id","toc-title")] $ plainTitle
                 , unode "ol" ! [("class","toc")] $ evalState (mapM (navPointNode navXhtmlFormatter) secs) 1]
           ]
   let navEntry = mkEntry "nav.xhtml" navData
