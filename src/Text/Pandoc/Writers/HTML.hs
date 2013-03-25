@@ -426,6 +426,10 @@ blockToHtml opts (Para [Image txt (s,'f':'i':'g':':':tit)]) = do
                     [nl opts, img, capt, nl opts]
               else H.div ! A.class_ "figure" $ mconcat
                     [nl opts, img, capt, nl opts]
+-- . . . indicates a pause in a slideshow
+blockToHtml opts (Para [Str ".",Space,Str ".",Space,Str "."])
+  | writerSlideVariant opts == RevealJsSlides =
+  blockToHtml opts (RawBlock "html" "<div class=\"fragment\" />")
 blockToHtml opts (Para lst) = do
   contents <- inlineListToHtml opts lst
   return $ H.p contents

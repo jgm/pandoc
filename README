@@ -2416,9 +2416,9 @@ Producing slide shows with Pandoc
 =================================
 
 You can use Pandoc to produce an HTML + javascript slide presentation
-that can be viewed via a web browser.  There are four ways to do this,
-using [S5], [DZSlides], [Slidy], or [Slideous].  You can also produce a
-PDF slide show using LaTeX [beamer].
+that can be viewed via a web browser.  There are five ways to do this,
+using [S5], [DZSlides], [Slidy], [Slideous], or [reveal.js].
+You can also produce a PDF slide show using LaTeX [beamer].
 
 Here's the markdown source for a simple slide show, `habits.txt`:
 
@@ -2454,31 +2454,31 @@ Here's the markdown source for a simple slide show, `habits.txt`:
     - Get in bed
     - Count sheep
 
-To produce the slide show, simply type
+To produce an HTML/javascript slide show, simply type
 
-    pandoc -t s5 -s habits.txt -o habits.html
+    pandoc -t FORMAT -s habits.txt -o habits.html
 
-for S5,
+where `FORMAT` is either `s5`, `slidy`, `slideous`, `dzslides`, or `revealjs`.
 
-    pandoc -t slidy -s habits.txt -o habits.html
-
-for Slidy,
-
-    pandoc -t slideous -s habits.txt -o habits.html
-
-for Slideous,
-
-    pandoc -t dzslides -s habits.txt -o habits.html
-
-for DZSlides, or
-
-    pandoc -t beamer habits.txt -o habits.pdf
-
-for beamer.
+For Slidy, Slideous, reveal.js, and S5, the file produced by pandoc with the
+`-s/--standalone` option embeds a link to javascripts and CSS files, which are
+assumed to be available at the relative path `s5/default` (for S5), `slideous`
+(for Slideous), `reveal.js` (for reveal.js), or at the Slidy website at
+`w3.org` (for Slidy).  (These paths can be changed by setting the `slidy-url`,
+`slideous-url`, `revealjs-url`, or `s5-url` variables; see `--variable`,
+above.) For DZSlides, the (relatively short) javascript and css are included in
+the file by default.
 
 With all HTML slide formats, the `--self-contained` option can be used to
 produce a single file that contains all of the data necessary to display the
 slide show, including linked scripts, stylesheets, images, and videos.
+
+To produce a PDF slide show using beamer, type
+
+    pandoc -t beamer habits.txt -o habits.pdf
+
+Note that a reveal.js slide show can also be converted to a PDF
+by printing it to a file from the browser.
 
 Structuring the slide show
 --------------------------
@@ -2514,16 +2514,6 @@ you can just use level 1 headers for all each slide. (In that case, level 1
 will be the slide level.) But you can also structure the slide show into
 sections, as in the example above.
 
-For Slidy, Slideous and S5, the file produced by pandoc with the
-`-s/--standalone`
-option embeds a link to javascripts and CSS files, which are assumed to
-be available at the relative path `s5/default` (for S5) or `slideous`
-(for Slideous), or at the Slidy
-website at `w3.org` (for Slidy). (These paths can be changed by setting
-the `slidy-url`, `slideous-url` or `s5-url` variables; see `--variable`,
-above.) For DZSlides,
-the (relatively short) javascript and css are included in the file by default.
-
 Incremental lists
 -----------------
 
@@ -2539,6 +2529,21 @@ all at once with the `-i` option), put it in a block quote:
 In this way incremental and nonincremental lists can be mixed in
 a single document.
 
+Inserting pauses
+----------------
+
+In reveal.js and beamer slide shows, you can add "pauses" within
+a slide by including a paragraph containing three dots, separated
+by spaces:
+
+    # Slide with a pause
+
+    content before the pause
+
+    . . .
+
+    content after the pause
+
 Styling the slides
 ------------------
 
@@ -2552,6 +2557,13 @@ files it does not find in the user data directory.
 
 For dzslides, the CSS is included in the HTML file itself, and may
 be modified there.
+
+For reveal.js, themes can be used by setting the `theme` variable,
+for example:
+
+    -V theme=moon
+
+Or you can specify a custom stylesheet using the `--css` option.
 
 To style beamer slides, you can specify a beamer "theme" or "colortheme"
 using the `-V` option:

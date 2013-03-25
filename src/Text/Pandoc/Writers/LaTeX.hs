@@ -293,6 +293,12 @@ blockToLaTeX (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   img <- inlineToLaTeX (Image txt (src,tit))
   return $ "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
            capt $$ "\\end{figure}"
+-- . . . indicates pause in beamer slides
+blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
+  beamer <- writerBeamer `fmap` gets stOptions
+  if beamer
+     then blockToLaTeX (RawBlock "latex" "\\pause")
+     else inlineListToLaTeX [Str ".",Space,Str ".",Space,Str "."]
 blockToLaTeX (Para lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 blockToLaTeX (BlockQuote lst) = do
