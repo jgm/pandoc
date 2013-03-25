@@ -27,12 +27,7 @@ $endfor$
 $else$
     <link rel="stylesheet" href="$revealjs-url$/css/theme/simple.css" id="theme">
 $endif$
-  <!-- If the query includes 'print-pdf', use the PDF print sheet -->
-  <script>
-    document.write( '<link rel="stylesheet" href="$revealjs-url$/css/print/' +
-      ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) +
-       '.css" type="text/css" media="print">' );
-  </script>
+  <link rel="stylesheet" media="print" href="$revealjs-url$/css/print/pdf.css" />
   <!--[if lt IE 9]>
   <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
   <![endif]-->
