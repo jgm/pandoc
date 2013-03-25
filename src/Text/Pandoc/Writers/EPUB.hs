@@ -242,7 +242,10 @@ writeEPUB opts doc@(Pandoc meta _) = do
                     Nothing -> []
                     Just _ -> [ unode "itemref" !
                                 [("idref", "cover"),("linear","no")] $ () ]
-              ++ ((unode "itemref" ! [("idref", "title_page"),("linear","yes")] $ ()) :
+              ++ ((unode "itemref" ! [("idref", "title_page")
+                                     ,("linear", case meta of
+                                                      Meta [] [] [] -> "no"
+                                                      _  -> "yes")] $ ()) :
                   (unode "itemref" ! [("idref", "nav")
                                      ,("linear", if writerTableOfContents opts
                                                     then "yes"
