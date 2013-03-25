@@ -2390,7 +2390,7 @@ pandoc. If `pandoc_title_block` is enabled, it will take precedence over
 
   [MultiMarkdown]: http://fletcherpenney.net/multimarkdown/
 
-**Extension: `abbrevations`**\
+**Extension: `abbreviations`**\
 Parses PHP Markdown Extra abbreviation keys, like
 
     *[HTML]: Hyper Text Markup Language
