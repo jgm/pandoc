@@ -2514,6 +2514,11 @@ you can just use level 1 headers for all each slide. (In that case, level 1
 will be the slide level.) But you can also structure the slide show into
 sections, as in the example above.
 
+Note:  in reveal.js slide shows, if slide level is 2, a two-dimensional
+layout will be produced, with level 1 headers building horizontally
+and level 2 headers building vertically.  It is not recommended that
+you use deeper nesting of section levels with reveal.js.
+
 Incremental lists
 -----------------
 
