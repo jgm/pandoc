@@ -104,11 +104,15 @@ getItem userdata f =
   if isAbsoluteURI f
      then openURL f
      else do
-       let mime = case takeExtension f of
-                       ".gz" -> getMimeType $ dropExtension f
+       -- strip off trailing query or fragment part, if relative URL.
+       -- this is needed for things like cmunrm.eot?#iefix,
+       -- which is used to get old versions of IE to work with web fonts.
+       let f' = takeWhile (\c -> c /= '?' && c /= '#') f
+       let mime = case takeExtension f' of
+                       ".gz" -> getMimeType $ dropExtension f'
                        x     -> getMimeType x
-       exists <- doesFileExist f
-       cont <- if exists then B.readFile f else readDataFile userdata f
+       exists <- doesFileExist f'
+       cont <- if exists then B.readFile f' else readDataFile userdata f'
        return (cont, mime)
 
 getRaw :: Maybe FilePath -> String -> String -> IO (ByteString, String)
