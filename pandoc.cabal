@@ -87,7 +87,7 @@ Data-Files:
                  data/s5/default/bodybg.gif,
                  -- data for slidy writer
                  data/slidy/styles/slidy.css,
-                 data/slidy/scripts/slidy.js.gz,
+                 data/slidy/scripts/slidy.js,
                  data/slidy/graphics/fold.gif,
                  data/slidy/graphics/unfold.gif,
                  data/slidy/graphics/nofold-dim.gif,
