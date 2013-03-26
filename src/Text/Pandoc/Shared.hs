@@ -100,8 +100,9 @@ import System.IO (stderr)
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
          renderOptions)
 import qualified Data.ByteString as B
-import Network.HTTP (findHeader, rspBody, simpleHTTP, RequestMethod(..),
-                     HeaderName(..), mkRequest)
+import Network.HTTP (findHeader, rspBody,
+                     RequestMethod(..), HeaderName(..), mkRequest)
+import Network.Browser (browse, setAllowRedirects, request)
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
 #else
@@ -562,12 +563,13 @@ fetchItem sourceDir s =
 -- chart API, e.g.
 -- | Read from a URL and return raw data and maybe mime type.
 openURL :: String -> IO (B.ByteString, Maybe String)
-openURL u = getBodyAndMimeType =<< simpleHTTP (getReq u)
-  where getReq v = case parseURI v of
-                     Nothing  -> error $ "Could not parse URI: " ++ v
-                     Just u'  -> mkRequest GET u'
-        getBodyAndMimeType (Left e) = fail (show e)
-        getBodyAndMimeType (Right r)  = return (rspBody r, findHeader HdrContentType r)
+openURL u = getBodyAndMimeType `fmap`
+             browse (setAllowRedirects True >> request (getRequest' u))
+  where getBodyAndMimeType (_, r) = (rspBody r, findHeader HdrContentType r)
+        getRequest' uriString = case parseURI uriString of
+                                   Nothing -> error ("Not a valid URL: " ++
+                                                        uriString)
+                                   Just v  -> mkRequest GET v
 
 --
 -- Error reporting
