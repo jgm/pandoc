@@ -31,7 +31,7 @@ $endif$
 $for(header-includes)$
   $header-includes$
 $endfor$
-  <script src="$slidy-url$/scripts/slidy.js.gz"
+  <script src="$slidy-url$/scripts/slidy.js"
     charset="utf-8" type="text/javascript"></script>
 $if(duration)$
   <meta name="duration" content="$duration$" />
