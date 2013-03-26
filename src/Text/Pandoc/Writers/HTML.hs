@@ -47,12 +47,8 @@ import Data.List ( isPrefixOf, intersperse )
 import Data.String ( fromString )
 import Data.Maybe ( catMaybes )
 import Control.Monad.State
-#if MIN_VERSION_blaze_html(0,5,0)
 import Text.Blaze.Html hiding(contents)
 import Text.Blaze.Internal(preEscapedString)
-#else
-import Text.Blaze
-#endif
 #if MIN_VERSION_blaze_html(0,5,1)
 import qualified Text.Blaze.XHtml5 as H5
 #else

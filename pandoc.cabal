@@ -215,9 +215,6 @@ Source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
 
-Flag blaze_html_0_5
-  Description:   Use blaze-html >= 0.5 and blaze-markup >= 0.5
-  Default:       True
 Flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
   Default:       False
@@ -250,14 +247,9 @@ Library
                  zlib >= 0.5 && < 0.6,
                  highlighting-kate >= 0.5.3.7 && < 0.6,
                  data-default >= 0.4 && < 0.6,
-                 temporary >= 1.1 && < 1.2
-  if flag(blaze_html_0_5)
-    build-depends:
+                 temporary >= 1.1 && < 1.2,
                  blaze-html >= 0.5 && < 0.7,
                  blaze-markup >= 0.5.1 && < 0.6
-  else
-    build-depends:
-                 blaze-html >= 0.4.3.0 && < 0.5
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
      -- build-tools:   hsb2hs
