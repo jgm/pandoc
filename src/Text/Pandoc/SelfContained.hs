@@ -49,20 +49,15 @@ isOk :: Char -> Bool
 isOk c = isAscii c && isAlphaNum c
 
 convertTag :: Maybe FilePath -> Tag String -> IO (Tag String)
-convertTag userdata t@(TagOpen "img" as) =
+convertTag userdata t@(TagOpen tagname as)
+  | tagname `elem` ["img", "embed", "video", "input", "audio", "source"] =
        case fromAttrib "src" t of
          []   -> return t
          src  -> do
            (raw, mime) <- getRaw userdata (fromAttrib "type" t) src
            let enc = "data:" ++ mime ++ ";base64," ++ toString (encode raw)
-           return $ TagOpen "img" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
-convertTag userdata t@(TagOpen "video" as) =
-       case fromAttrib "src" t of
-         []   -> return t
-         src  -> do
-           (raw, mime) <- getRaw userdata (fromAttrib "type" t) src
-           let enc = "data:" ++ mime ++ ";base64," ++ toString (encode raw)
-           return $ TagOpen "video" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
+           return $ TagOpen tagname
+                    (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
 convertTag userdata t@(TagOpen "script" as) =
   case fromAttrib "src" t of
        []     -> return t
