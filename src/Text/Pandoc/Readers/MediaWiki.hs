@@ -219,17 +219,17 @@ parseAttr = try $ do
   return (k,v)
 
 tableStart :: MWParser ()
-tableStart = try $ guardColumnOne *> sym "{|"
+tableStart = try $ guardColumnOne *> skipSpaces *> sym "{|"
 
 tableEnd :: MWParser ()
-tableEnd = try $ guardColumnOne *> sym "|}"
+tableEnd = try $ guardColumnOne *> skipSpaces *> sym "|}"
 
 rowsep :: MWParser ()
-rowsep = try $ guardColumnOne *> sym "|-" <* blanklines
+rowsep = try $ guardColumnOne *> skipSpaces *> sym "|-" <* blanklines
 
 cellsep :: MWParser ()
 cellsep = try $
-             (guardColumnOne <*
+             (guardColumnOne *> skipSpaces <*
                  (  (char '|' <* notFollowedBy (oneOf "-}+"))
                 <|> (char '!')
                  )
@@ -240,6 +240,7 @@ cellsep = try $
 tableCaption :: MWParser Inlines
 tableCaption = try $ do
   guardColumnOne
+  skipSpaces
   sym "|+"
   skipMany spaceChar
   res <- anyLine >>= parseFromString (many inline)
