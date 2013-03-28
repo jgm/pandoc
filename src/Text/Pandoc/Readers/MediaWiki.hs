@@ -336,7 +336,7 @@ preformatted = try $ do
                   (htmlTag (~== TagOpen "nowiki" []) *>
                    manyTill anyChar (htmlTag (~== TagClose "nowiki")))
   let inline' = whitespace' <|> endline' <|> nowiki'
-                  <|> (notFollowedBy newline *> inline)
+                  <|> (try $ notFollowedBy newline *> inline)
   let strToCode (Str s) = Code ("",[],[]) s
       strToCode  x      = x
   contents <- mconcat <$> many1 inline'
