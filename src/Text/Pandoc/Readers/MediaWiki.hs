@@ -185,8 +185,8 @@ para = do
 table :: MWParser Blocks
 table = do
   tableStart
-  styles <- anyLine
-  let tableWidth = case lookup "width" $ parseAttrs styles of
+  styles <- option [] parseAttrs <* blankline
+  let tableWidth = case lookup "width" styles of
                          Just w  -> maybe 1.0 id $ parseWidth w
                          Nothing -> 1.0
   caption <- option mempty tableCaption
@@ -209,18 +209,16 @@ table = do
                           else (replicate cols mempty, hdr:rows')
   return $ B.table caption cellspecs headers rows
 
-parseAttrs :: String -> [(String,String)]
-parseAttrs s = case parse (many parseAttr) "attributes" s of
-                    Right r -> r
-                    Left _  -> []
+parseAttrs :: MWParser [(String,String)]
+parseAttrs = many1 parseAttr
 
-parseAttr :: Parser String () (String, String)
+parseAttr :: MWParser (String, String)
 parseAttr = try $ do
   skipMany spaceChar
   k <- many1 letter
   char '='
   char '"'
-  v <- many1Till anyChar (char '"')
+  v <- many1Till (satisfy (/='\n')) (char '"')
   return (k,v)
 
 tableStart :: MWParser ()
@@ -258,8 +256,8 @@ tableCell :: MWParser ((Alignment, Double), Blocks)
 tableCell = try $ do
   cellsep
   skipMany spaceChar
-  attrs <- option [] $ try $ parseAttrs <$>
-       manyTill (satisfy (/='\n')) (char '|' <* notFollowedBy (char '|'))
+  attrs <- option [] $ try $ parseAttrs <* skipSpaces <* char '|' <*
+                                 notFollowedBy (char '|')
   skipMany spaceChar
   ls <- concat <$> many (notFollowedBy (cellsep <|> rowsep <|> tableEnd) *>
                      ((snd <$> withRaw table) <|> count 1 anyChar))
