@@ -73,6 +73,7 @@ module Text.Pandoc
                , readTextile
                , readDocBook
                , readOPML
+               , readHaddock
                , readNative
                -- * Writers: converting /from/ Pandoc format
                , Writer (..)
@@ -120,6 +121,7 @@ import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.HTML
 import Text.Pandoc.Readers.Textile
 import Text.Pandoc.Readers.Native
+import Text.Pandoc.Readers.Haddock
 import Text.Pandoc.Writers.Native
 import Text.Pandoc.Writers.Markdown
 import Text.Pandoc.Writers.RST
@@ -200,6 +202,7 @@ readers = [("native"       , \_ s -> return $ readNative s)
           ,("textile"      , \o s -> return $ readTextile o s) -- TODO : textile+lhs
           ,("html"         , \o s -> return $ readHtml o s)
           ,("latex"        , \o s -> return $ readLaTeX o s)
+          ,("haddock"      , \o s -> return $ readHaddock o s)
           ]
 
 data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
