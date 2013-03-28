@@ -130,6 +130,10 @@ tests = [ testGroup "markdown"
           , test "reader" ["-r", "opml", "-w", "native", "-s"]
             "opml-reader.opml" "opml-reader.native"
           ]
+        , testGroup "haddock"
+          [ test "reader" ["-r", "haddock", "-w", "native", "-s"]
+            "haddock-reader.haddock" "haddock-reader.native"
+          ]
         , testGroup "other writers" $ map (\f -> testGroup f $ writerTests f)
           [ "opendocument" , "context" , "texinfo"
           , "man" , "plain" , "rtf", "org", "asciidoc"

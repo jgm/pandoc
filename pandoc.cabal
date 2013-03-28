@@ -118,6 +118,8 @@ Extra-Source-Files:
                  tests/html-reader.native,
                  tests/opml-reader.html,
                  tests/opml-reader.native,
+                 tests/haddock-reader.html,
+                 tests/haddock-reader.native,
                  tests/insert,
                  tests/lalune.jpg,
                  tests/movie.jpg,
