@@ -370,3 +370,4 @@ and cheese
 
 My note!<ref>This.</ref>
 
+URL note.<ref>http://docs.python.org/library/functions.html#range</ref>

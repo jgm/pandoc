@@ -242,4 +242,5 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
  [[[Para [Str "Orange"]]]]
 ,Para [Str "Paragraph",Space,Str "after",Space,Str "the",Space,Str "table."]
 ,Header 2 ("",[],[]) [Str "notes"]
-,Para [Str "My",Space,Str "note!",Note [Plain [Str "This."]]]]
+,Para [Str "My",Space,Str "note!",Note [Plain [Str "This."]]]
+,Para [Str "URL",Space,Str "note.",Note [Plain [Link [Str "http://docs.python.org/library/functions.html#range"] ("http://docs.python.org/library/functions.html#range","")]]]]
