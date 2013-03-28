@@ -274,6 +274,10 @@ def function():
 
 Not<hr/> preformatted
 
+Don't need
+ a blank line
+around a preformatted block.
+
 == templates ==
 
 {{Welcome}}

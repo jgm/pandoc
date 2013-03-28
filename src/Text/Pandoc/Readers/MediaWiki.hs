@@ -50,7 +50,8 @@ import Control.Monad
 import Data.List (intersperse, intercalate, isPrefixOf )
 import Text.HTML.TagSoup
 import Data.Sequence (viewl, ViewL(..), (<|))
-import Data.Char (isDigit)
+import qualified Data.Foldable as F
+import Data.Char (isDigit, isSpace)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: ReaderOptions -- ^ Reader options
@@ -175,7 +176,11 @@ block =  mempty <$ skipMany1 blankline
      <|> para
 
 para :: MWParser Blocks
-para = B.para . trimInlines . mconcat <$> many1 inline
+para = do
+  contents <- trimInlines . mconcat <$> many1 inline
+  if F.all (==Space) contents
+     then return mempty
+     else return $ B.para contents
 
 table :: MWParser Blocks
 table = do
@@ -330,10 +335,16 @@ preformatted = try $ do
                 lines . fromEntities . map spToNbsp <$> try
                   (htmlTag (~== TagOpen "nowiki" []) *>
                    manyTill anyChar (htmlTag (~== TagClose "nowiki")))
-  let inline' = whitespace' <|> endline' <|> nowiki' <|> inline
+  let inline' = whitespace' <|> endline' <|> nowiki'
+                  <|> (notFollowedBy newline *> inline)
   let strToCode (Str s) = Code ("",[],[]) s
       strToCode  x      = x
-  B.para . bottomUp strToCode . mconcat <$> many1 inline'
+  contents <- mconcat <$> many1 inline'
+  let spacesStr (Str xs) = all isSpace xs
+      spacesStr _        = False
+  if F.all spacesStr contents
+     then return mempty
+     else return $ B.para $ bottomUp strToCode contents
 
 header :: MWParser Blocks
 header = try $ do
@@ -504,7 +515,8 @@ whitespace = B.space <$ (skipMany1 spaceChar <|> endline <|> htmlComment)
 
 endline :: MWParser ()
 endline = () <$ try (newline <*
-                     notFollowedBy blankline <*
+                     notFollowedBy spaceChar <*
+                     notFollowedBy newline <*
                      notFollowedBy' hrule <*
                      notFollowedBy tableStart <*
                      notFollowedBy' header <*

@@ -170,6 +170,9 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
 ,Para [Str "Not"]
 ,RawBlock "html" "<hr/>"
 ,Para [Str "preformatted"]
+,Para [Str "Don't",Space,Str "need"]
+,Para [Code ("",[],[]) "a\160blank\160line"]
+,Para [Str "around",Space,Str "a",Space,Str "preformatted",Space,Str "block."]
 ,Header 2 ("",[],[]) [Str "templates"]
 ,RawBlock "mediawiki" "{{Welcome}}"
 ,RawBlock "mediawiki" "{{Foo:Bar}}"
