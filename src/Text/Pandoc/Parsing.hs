@@ -425,7 +425,8 @@ uri = try $ do
   -- http://en.wikipedia.org/wiki/State_of_emergency_(disambiguation)
   -- as a URL, while NOT picking up the closing paren in
   -- (http://wikipedia.org). So we include balanced parens in the URL.
-  let isWordChar c = isAlphaNum c || c == '_' || c == '/' || not (isAscii c)
+  let isWordChar c = isAlphaNum c || c == '_' || c == '/' || c == '+' ||
+                         not (isAscii c)
   let wordChar = satisfy isWordChar
   let percentEscaped = try $ char '%' >> skipMany1 (satisfy isHexDigit)
   let entity = () <$ characterReference
@@ -434,7 +435,8 @@ uri = try $ do
   let uriChunk =  skipMany1 wordChar
               <|> percentEscaped
               <|> entity
-              <|> (try $ punct >> lookAhead (satisfy isWordChar) >> return ())
+              <|> (try $ punct >>
+                    lookAhead (void (satisfy isWordChar) <|> percentEscaped))
   str <- snd `fmap` withRaw (skipMany1 ( () <$
                                          (enclosed (char '(') (char ')') uriChunk
                                          <|> enclosed (char '{') (char '}') uriChunk
