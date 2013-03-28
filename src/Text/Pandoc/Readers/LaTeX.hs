@@ -283,6 +283,7 @@ blockCommands = M.fromList $
   , ("item", skipopts *> loose_item)
   , ("documentclass", skipopts *> braced *> preamble)
   , ("centerline", (para . trimInlines) <$> (skipopts *> tok))
+  , ("newpage", pure newPage)
   ] ++ map ignoreBlocks
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks
