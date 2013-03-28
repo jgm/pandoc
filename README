@@ -13,9 +13,9 @@ Description
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
-[LaTeX], [MediaWiki markup], [OPML], and [DocBook]; and it can write
-plain text, [markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX]
-(including [beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
+[LaTeX], [MediaWiki markup], [Haddock markup], [OPML], and [DocBook]; and
+it can write plain text, [markdown], [reStructuredText], [XHTML], [HTML 5],
+[LaTeX] (including [beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
 [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
 [EPUB] (v2 or v3), [FictionBook2], [Textile], [groff man] pages, [Emacs
 Org-Mode], [AsciiDoc], and [Slidy], [Slideous], [DZSlides], [reveal.js]
@@ -144,8 +144,9 @@ General options
     `markdown_github` (github extended markdown),
     `textile` (Textile), `rst` (reStructuredText), `html` (HTML),
     `docbook` (DocBook), `opml` (OPML), `mediawiki` (MediaWiki markup),
-    or `latex` (LaTeX). If `+lhs` is appended to `markdown`, `rst`,
-    `latex`, the input will be treated as literate Haskell source:
+    `haddock` (Haddock markup), or `latex` (LaTeX).
+    If `+lhs` is appended to `markdown`, `rst`, `latex`, or `html`,
+    the input will be treated as literate Haskell source:
     see [Literate Haskell support](#literate-haskell-support), below.
     Markdown syntax extensions can be individually enabled or disabled
     by appending `+EXTENSION` or `-EXTENSION` to the format name.
@@ -2653,6 +2654,7 @@ Sergey Astanin, Arlo O'Keeffe, Denis Laxalde, Brent Yorgey.
 [ODT]: http://en.wikipedia.org/wiki/OpenDocument
 [Textile]: http://redcloth.org/textile
 [MediaWiki markup]: http://www.mediawiki.org/wiki/Help:Formatting
+[Haddock markup]: http://www.haskell.org/haddock/doc/html/ch03s08.html
 [groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
 [Haskell]:  http://www.haskell.org/
 [GNU Texinfo]: http://www.gnu.org/software/texinfo/
