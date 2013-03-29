@@ -46,7 +46,7 @@ import Data.Sequence (viewr, ViewR(..))
     PARA    { (TokPara,_) }
     STRING  { (TokString $$,_) }
 
-%monad { Maybe }
+%monad { Either [LToken] }
 
 %name parseParas doc
 %name parseString seq
@@ -126,8 +126,8 @@ strings :: { String }
     | STRING strings    { $1 ++ $2 }
 
 {
-happyError :: [LToken] -> Maybe a
-happyError toks = Nothing
+happyError :: [LToken] -> Either [LToken] a
+happyError toks = Left toks
 
 para' :: Inlines -> Blocks
 para' (Many ils) =

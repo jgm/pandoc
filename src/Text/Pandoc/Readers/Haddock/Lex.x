@@ -19,7 +19,8 @@
 module Text.Pandoc.Readers.Haddock.Lex (
     Token(..),
     LToken,
-    tokenise
+    tokenise,
+    tokenPos
  ) where
 
 import Data.Char
