@@ -18,6 +18,7 @@ import Data.Char  (isSpace)
 import Data.Maybe (fromMaybe)
 import Data.List  (stripPrefix)
 import Data.Monoid (mempty)
+import Data.Sequence (viewr, ViewR(..))
 }
 
 %expect 0
@@ -74,7 +75,7 @@ defpara :: { (Inlines, [Blocks]) }
     : '[' seq ']' seq   { ($2, [plain $4]) }
 
 para :: { Blocks }
-    : seq               { para $1 }
+    : seq               { para' $1 }
     | codepara          { codeBlock $1 }
     | property          { $1 }
     | examples          { $1 }
@@ -112,7 +113,7 @@ seq1 :: { Inlines }
     | elem1             { $1 }
 
 elem1 :: { Inlines }
-    : STRING            { str $1 }
+    : STRING            { text $1 }
     | '/../'            { emph (str $1) }
     | URL               { makeHyperlink $1 }
     | PIC               { image $1 $1 mempty }
@@ -128,7 +129,13 @@ strings :: { String }
 happyError :: [LToken] -> Maybe a
 happyError toks = Nothing
 
-monospace :: Inlines -> Inlines 
+para' :: Inlines -> Blocks
+para' (Many ils) =
+  case viewr ils of
+          ils' :> Space -> para $ Many ils'
+          _             -> para $ Many ils
+
+monospace :: Inlines -> Inlines
 monospace = everywhere (mkT go)
   where
     go (Str s) = Code nullAttr s
