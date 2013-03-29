@@ -46,7 +46,7 @@ import Data.Sequence (viewr, ViewR(..))
     PARA    { (TokPara,_) }
     STRING  { (TokString $$,_) }
 
-%monad { Maybe }
+%monad { Either [LToken] }
 
 %name parseParas doc
 %name parseString seq
@@ -76,7 +76,7 @@ defpara :: { (Inlines, [Blocks]) }
 
 para :: { Blocks }
     : seq               { para' $1 }
-    | codepara          { codeBlock $1 }
+    | codepara          { codeBlockWith ([], ["haskell"], []) $1 }
     | property          { $1 }
     | examples          { $1 }
 
@@ -118,16 +118,16 @@ elem1 :: { Inlines }
     | URL               { makeHyperlink $1 }
     | PIC               { image $1 $1 mempty }
     | ANAME             { mempty } -- TODO
-    | IDENT             { code $1 }
-    | DQUO strings DQUO { code $2 }
+    | IDENT             { codeWith ([], ["haskell"], []) $1 }
+    | DQUO strings DQUO { codeWith ([], ["haskell"], []) $2 }
 
 strings :: { String }
     : STRING            { $1 }
     | STRING strings    { $1 ++ $2 }
 
 {
-happyError :: [LToken] -> Maybe a
-happyError toks = Nothing
+happyError :: [LToken] -> Either [LToken] a
+happyError toks = Left toks
 
 para' :: Inlines -> Blocks
 para' (Many ils) =
@@ -162,7 +162,7 @@ makeProperty s = case strip s of
 -- | Create an 'Example', stripping superfluous characters as appropriate
 makeExample :: String -> String -> [String] -> Blocks
 makeExample prompt expression result =
-    para $ codeWith ([], ["expr"], []) (strip expression ++ "\n")
+    para $ codeWith ([], ["haskell", "expr"], []) (strip expression ++ "\n")
         <> codeWith ([], ["result"], []) (unlines result')
   where
     -- 1. drop trailing whitespace from the prompt, remember the prefix
