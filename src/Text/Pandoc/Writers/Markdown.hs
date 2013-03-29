@@ -352,23 +352,22 @@ blockToMarkdown opts t@(Table caption aligns widths headers rows) =  do
   let isPlainBlock (Plain _) = True
       isPlainBlock _         = False
   let hasBlocks = not (all isPlainBlock $ concat . concat $ headers:rows)
-  (nst,tbl) <- case isSimple of
-                True  | isEnabled Ext_simple_tables opts -> fmap (nest 2,) $
+  (nst,tbl) <- case True of
+                _ | isSimple &&
+                    isEnabled Ext_simple_tables opts -> fmap (nest 2,) $
                          pandocTable opts (all null headers) aligns widths
                              rawHeaders rawRows
-                      | isEnabled Ext_pipe_tables opts -> fmap (id,) $
+                  | isSimple &&
+                    isEnabled Ext_pipe_tables opts -> fmap (id,) $
                          pipeTable (all null headers) aligns rawHeaders rawRows
-                      | otherwise -> fmap (id,) $
-                         return $ text $ writeHtmlString def
-                                $ Pandoc (Meta [] [] []) [t]
-                False | not hasBlocks &&
-                        isEnabled Ext_multiline_tables opts -> fmap (nest 2,) $
+                  | not hasBlocks &&
+                    isEnabled Ext_multiline_tables opts -> fmap (nest 2,) $
                          pandocTable opts (all null headers) aligns widths
                              rawHeaders rawRows
-                      | isEnabled Ext_grid_tables opts -> fmap (id,) $
+                  | isEnabled Ext_grid_tables opts -> fmap (id,) $
                          gridTable opts (all null headers) aligns widths
                              rawHeaders rawRows
-                      | otherwise -> fmap (id,) $
+                  | otherwise -> fmap (id,) $
                          return $ text $ writeHtmlString def
                                 $ Pandoc (Meta [] [] []) [t]
   return $ nst $ tbl $$ blankline $$ caption'' $$ blankline
@@ -458,7 +457,11 @@ pandocTable opts headless aligns widths rawHeaders rawRows =  do
 gridTable :: WriterOptions -> Bool -> [Alignment] -> [Double]
           -> [Doc] -> [[Doc]] -> State WriterState Doc
 gridTable opts headless _aligns widths headers' rawRows =  do
-  let widthsInChars = map (floor . (fromIntegral (writerColumns opts) *)) widths
+  let numcols = length headers'
+  let widths' = if all (==0) widths
+                   then replicate numcols (1.0 / fromIntegral numcols)
+                   else widths
+  let widthsInChars = map (floor . (fromIntegral (writerColumns opts) *)) widths'
   let hpipeBlocks blocks = hcat [beg, middle, end]
         where h       = maximum (map height blocks)
               sep'    = lblock 3 $ vcat (map text $ replicate h " | ")
