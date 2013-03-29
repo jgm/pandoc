@@ -59,7 +59,10 @@ readHtml :: ReaderOptions -- ^ Reader options
          -> String        -- ^ String to parse (assumes @'\n'@ line endings)
          -> Pandoc
 readHtml opts inp = Pandoc meta blocks
-  where blocks  = readWith parseBody def{ stateOptions = opts } rest
+  where blocks  = case runParser parseBody def{ stateOptions = opts }
+                    "source" rest of
+                      Left err'    -> error $ "\nError at " ++ show  err'
+                      Right result -> result
         tags    = canonicalizeTags $
                    parseTagsOptions parseOptions{ optTagPosition = True } inp
         hasHeader = any (~== TagOpen "head" []) tags

@@ -764,13 +764,20 @@ gridTableFooter = blanklines
 ---
 
 -- | Parse a string with a given parser and state.
-readWith :: Parser [t] ParserState a      -- ^ parser
-         -> ParserState                    -- ^ initial state
-         -> [t]                            -- ^ input
+readWith :: Parser [Char] ParserState a       -- ^ parser
+         -> ParserState                       -- ^ initial state
+         -> [Char]                            -- ^ input
          -> a
 readWith parser state input =
     case runParser parser state "source" input of
-      Left err'    -> error $ "\nError:\n" ++ show err'
+      Left err'    ->
+        let errPos = errorPos err'
+            errLine = sourceLine errPos
+            errColumn = sourceColumn errPos
+            theline = (lines input ++ [""]) !! (errLine - 1)
+        in  error $ "\nError at " ++ show  err' ++ "\n" ++
+                theline ++ "\n" ++ replicate (errColumn - 1) ' ' ++
+                "^"
       Right result -> result
 
 -- | Parse a string with @parser@ (for testing).
