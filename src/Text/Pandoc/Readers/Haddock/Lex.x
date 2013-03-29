@@ -55,14 +55,15 @@ $ident    = [$alphanum \'\_\.\!\#\$\%\&\*\+\/\<\=\>\?\@\\\\\^\|\-\~\:]
 <line> {
   $ws* \>               { begin birdtrack }
   $ws* \>\>\>           { strtoken TokExamplePrompt `andBegin` exampleexpr }
-  $ws* \n               { token TokPara `andBegin` para }
 
-  -- Here, we really want to be able to say
+  $ws* \n               { token TokPara `andBegin` para }
+  -- ^ Here, we really want to be able to say
   -- $ws* (\n | <eof>)  { token TokPara `andBegin` para}
   -- because otherwise a trailing line of whitespace will result in
   -- a spurious TokString at the end of a docstring.  We don't have <eof>,
   -- though (NOW I realise what it was for :-).  To get around this, we always
   -- append \n to the end of a docstring.
+
   ()                    { begin string }
 }
 
