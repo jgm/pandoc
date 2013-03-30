@@ -24,8 +24,10 @@ readHaddock :: ReaderOptions -- ^ Reader options
 readHaddock _ s = Pandoc (Meta [] [] []) blocks
   where
     blocks = case parseParas (tokenise s (0,0)) of
-        Nothing -> []
-        Just x -> mergeLists (toList x)
+        Left [] -> error "parse failure"
+        Left (tok:_) -> error $ "parse failure " ++ pos (tokenPos tok)
+          where pos (l, c) = "(line " ++ show l ++ ", column " ++ show c ++ ")"
+        Right x -> mergeLists (toList x)
 
 -- similar to 'docAppend' in Haddock.Doc
 mergeLists :: [Block] -> [Block]
