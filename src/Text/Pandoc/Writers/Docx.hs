@@ -418,7 +418,8 @@ blockToOpenXML opts (Header lev (ident,_,_) lst) = do
                                                ,("w:name",bookmarkName)] ()
   let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
   return $ [bookmarkStart] ++ contents ++ [bookmarkEnd]
-blockToOpenXML opts (Plain lst) = blockToOpenXML opts (Para lst)
+blockToOpenXML opts (Plain lst) = withParaProp (pStyle "Compact")
+  $ blockToOpenXML opts (Para lst)
 -- title beginning with fig: indicates that the image is a figure
 blockToOpenXML opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
   paraProps <- getParaProps False
@@ -781,7 +782,12 @@ stripLeadingTrailingSpace = go . reverse . go . reverse
         go xs         = xs
 
 fixDisplayMath :: Block -> [Block]
-fixDisplayMath (Plain lst) = fixDisplayMath (Para lst)
+fixDisplayMath (Plain lst)
+  | any isDisplayMath lst && not (all isDisplayMath lst) =
+    -- chop into several paragraphs so each displaymath is its own
+    map (Plain . stripLeadingTrailingSpace) $
+       groupBy (\x y -> (isDisplayMath x && isDisplayMath y) ||
+                         not (isDisplayMath x || isDisplayMath y)) lst
 fixDisplayMath (Para lst)
   | any isDisplayMath lst && not (all isDisplayMath lst) =
     -- chop into several paragraphs so each displaymath is its own

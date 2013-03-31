@@ -485,7 +485,7 @@ Options affecting specific writers
     for a file `reference.docx` in the user data directory (see
     `--data-dir`). If this is not found either, sensible defaults will be
     used. The following styles are used by pandoc: [paragraph]
-    Normal, Title, Authors, Date, Heading 1, Heading 2, Heading 3,
+    Normal, Compact, Title, Authors, Date, Heading 1, Heading 2, Heading 3,
     Heading 4, Heading 5, Block Quote, Definition Term, Definition,
     Body Text, Table Caption, Image Caption; [character] Default
     Paragraph Font, Body Text Char, Verbatim Char, Footnote Ref,
