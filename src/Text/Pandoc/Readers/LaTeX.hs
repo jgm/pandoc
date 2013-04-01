@@ -412,6 +412,8 @@ inlineCommands = M.fromList $
   , ("pounds", lit "£")
   , ("euro", lit "€")
   , ("copyright", lit "©")
+  , ("textasciicircum", lit "^")
+  , ("textasciitilde", lit "~")
   , ("`", option (str "`") $ try $ tok >>= accent grave)
   , ("'", option (str "'") $ try $ tok >>= accent acute)
   , ("^", option (str "^") $ try $ tok >>= accent circ)
