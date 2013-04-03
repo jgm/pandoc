@@ -99,6 +99,7 @@ module Text.Pandoc
                , writeFB2
                , writeOrg
                , writeAsciiDoc
+               , writeCustom
                -- * Rendering templates and default templates
                , module Text.Pandoc.Templates
                -- * Version
@@ -142,11 +143,12 @@ import Text.Pandoc.Writers.MediaWiki
 import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.Org
 import Text.Pandoc.Writers.AsciiDoc
+import Text.Pandoc.Writers.Custom
 import Text.Pandoc.Templates
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (safeRead, warn)
 import Data.ByteString.Lazy (ByteString)
-import Data.List (intercalate)
+import Data.List (intercalate, isSuffixOf)
 import Data.Version (showVersion)
 import Text.JSON.Generic
 import Data.Set (Set)
@@ -286,7 +288,10 @@ getWriter s =
        Left e  -> Left $ intercalate "\n" $ [m | Message m <- errorMessages e]
        Right (writerName, setExts) ->
            case lookup writerName writers of
-                   Nothing  -> Left $ "Unknown writer: " ++ writerName
+                   Nothing
+                     | ".lua" `isSuffixOf` s ->
+                       Right $ IOStringWriter $ writeCustom s
+                     | otherwise -> Left $ "Unknown writer: " ++ writerName
                    Just (PureStringWriter r) -> Right $ PureStringWriter $
                            \o -> r o{ writerExtensions = setExts $
                                             getDefaultExtensions writerName }

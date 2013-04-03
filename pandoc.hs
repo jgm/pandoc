@@ -327,6 +327,14 @@ options =
                   "FORMAT")
                  "" -- "Print default template for FORMAT"
 
+    , Option "" ["print-sample-lua-writer"]
+                 (NoArg
+                  (\_ -> do
+                    sample <- readDataFileUTF8 Nothing "sample.lua"
+                    UTF8.hPutStr stdout sample
+                    exitWith ExitSuccess))
+                  "" -- "Print sample lua custom writer"
+
     , Option "" ["no-wrap"]
                  (NoArg
                   (\opt -> return opt { optWrapText = False }))

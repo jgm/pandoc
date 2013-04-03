@@ -174,14 +174,16 @@ General options
     (Slidy HTML and javascript slide show), `slideous` (Slideous HTML and
     javascript slide show), `dzslides` (DZSlides HTML5 + javascript slide
     show), `revealjs` (reveal.js HTML5 + javascript slide show), `s5`
-    (S5 HTML and javascript slide show). Note that `odt`, `epub`, and
-    `epub3` output will not be directed to *stdout*; an output
-    filename must be specified using the `-o/--output` option. If `+lhs` is
-    appended to `markdown`, `rst`, `latex`, `beamer`, `html`, or `html5`, the
-    output will be rendered as literate Haskell source: see [Literate Haskell
-    support](#literate-haskell-support), below.  Markdown syntax extensions can
-    be individually enabled or disabled by appending `+EXTENSION` or
-    `-EXTENSION` to the format name, as described above under `-f`.
+    (S5 HTML and javascript slide show), or the path of a custom
+    lua writer (see [Custom writers](#custom-writers), below). Note that
+    `odt`, `epub`, and `epub3` output will not be directed to *stdout*; an
+    output filename must be specified using the `-o/--output` option. If
+    `+lhs` is appended to `markdown`, `rst`, `latex`, `beamer`, `html`, or
+    `html5`, the output will be rendered as literate Haskell source: see
+    [Literate Haskell support](#literate-haskell-support), below.  Markdown
+    syntax extensions can be individually enabled or disabled by appending
+    `+EXTENSION` or `-EXTENSION` to the format name, as described above
+    under `-f`.
 
 `-o` *FILE*, `--output=`*FILE*
 :   Write output to *FILE* instead of *stdout*.  If *FILE* is
@@ -300,6 +302,10 @@ General writer options
 `-D` *FORMAT*, `--print-default-template=`*FORMAT*
 :   Print the default template for an output *FORMAT*. (See `-t`
     for a list of possible *FORMAT*s.)
+
+`--print-sample-lua-writer`
+:   Print a sample lua custom writer (see [Custom writers](#custom-writers),
+    below.
 
 `--no-wrap`
 :   Disable text wrapping in output. By default, text is wrapped
@@ -2622,6 +2628,23 @@ ordinary HTML (without bird tracks).
 writes HTML with the Haskell code in bird tracks, so it can be copied
 and pasted as literate Haskell source.
 
+Custom writers
+==============
+
+Pandoc can be extended with custom writers written in [lua].  (Pandoc
+includes a lua interpreter, so lua need not be installed separately.)
+
+To use a custom writer, simply specify the path to the lua script
+in place of the output format. For example:
+
+    pandoc -t data/sample.lua
+
+Creating a custom writer requires writing a lua function for each
+possible element in a pandoc document.  To get a documented example
+which you can modify according to your needs, do
+
+    pandoc --print-sample-lua-writer
+
 Authors
 =======
 
@@ -2668,3 +2691,5 @@ Sergey Astanin, Arlo O'Keeffe, Denis Laxalde, Brent Yorgey.
 [PDF]: http://www.adobe.com/pdf/
 [reveal.js]: http://lab.hakim.se/reveal-js/
 [FictionBook2]: http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1
+[lua]: TODO
+

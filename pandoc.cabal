@@ -101,6 +101,8 @@ Data-Files:
                  data/dzslides/template.html,
                  -- data for citeproc
                  data/default.csl,
+                 -- sample lua custom writer
+                 data/sample.lua
                  -- documentation
                  README, INSTALL, COPYRIGHT, BUGS, changelog
 Extra-Source-Files:
@@ -253,7 +255,8 @@ Library
                  data-default >= 0.4 && < 0.6,
                  temporary >= 1.1 && < 1.2,
                  blaze-html >= 0.5 && < 0.7,
-                 blaze-markup >= 0.5.1 && < 0.6
+                 blaze-markup >= 0.5.1 && < 0.6,
+                 hslua >= 0.3 && < 0.4
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
      -- build-tools:   hsb2hs
@@ -305,6 +308,7 @@ Library
                    Text.Pandoc.Writers.RST,
                    Text.Pandoc.Writers.Org,
                    Text.Pandoc.Writers.AsciiDoc,
+                   Text.Pandoc.Writers.Custom,
                    Text.Pandoc.Writers.Textile,
                    Text.Pandoc.Writers.MediaWiki,
                    Text.Pandoc.Writers.RTF,
