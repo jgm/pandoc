@@ -139,7 +139,6 @@ monospace :: Inlines -> Inlines
 monospace = everywhere (mkT go)
   where
     go (Str s) = Code nullAttr s
-    go Space = Code nullAttr " "
     go x = x
 
 -- | Create a `Hyperlink` from given string.
