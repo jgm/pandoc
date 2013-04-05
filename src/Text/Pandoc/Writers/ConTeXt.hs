@@ -189,6 +189,7 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
              "\\stopitemize" <> blankline
 blockToConTeXt (DefinitionList lst) =
   liftM vcat $ mapM defListItemToConTeXt lst
+blockToConTeXt NewPage = return $ "\\page"
 blockToConTeXt HorizontalRule = return $ "\\thinrule" <> blankline
 -- If this is ever executed, provide a default for the reference identifier.
 blockToConTeXt (Header level attr lst) = sectionHeader attr level lst
