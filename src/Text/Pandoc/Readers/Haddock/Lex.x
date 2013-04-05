@@ -131,7 +131,7 @@ data Token
   | TokExamplePrompt String
   | TokExampleExpression String
   | TokExampleResult String
---  deriving Show
+  deriving Show
 
 tokenPos :: LToken -> (Int, Int)
 tokenPos t = let AlexPn _ line col = snd t in (line, col)
