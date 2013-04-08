@@ -93,7 +93,7 @@ plainify = bottomUp go
 pandocTitleBlock :: Doc -> [Doc] -> Doc -> Doc
 pandocTitleBlock tit auths dat =
   hang 2 (text "% ") tit <> cr <>
-  hang 2 (text "% ") (hcat (intersperse (text "; ") auths)) <> cr <>
+  hang 2 (text "% ") (vcat $ map nowrap auths) <> cr <>
   hang 2 (text "% ") dat <> cr
 
 mmdTitleBlock :: Doc -> [Doc] -> Doc -> Doc
