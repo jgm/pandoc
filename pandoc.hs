@@ -44,7 +44,7 @@ import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower )
-import Data.List ( intercalate, isPrefixOf )
+import Data.List ( intercalate, isPrefixOf, sort )
 import System.Directory ( getAppUserDataDirectory, doesFileExist, findExecutable )
 import System.IO ( stdout )
 import System.IO.Error ( isDoesNotExistError )
@@ -741,8 +741,8 @@ usageMessage programName = usageInfo
   (wrapWords 16 78 $ readers'names) ++ "\nOutput formats: " ++
   (wrapWords 16 78 $ writers'names) ++ "\nOptions:")
   where
-    writers'names = map fst writers
-    readers'names = map fst readers
+    writers'names = sort $ map fst writers
+    readers'names = sort $ map fst readers
 
 -- Determine default reader based on source file extensions
 defaultReaderName :: String -> [FilePath] -> String
