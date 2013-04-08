@@ -30,7 +30,7 @@ Haddock supports REPL examples:
 55
 >>> putStrLn "foo\nbar"
 foo
-bar 
+bar
 
 That was /really cool/!
 I had no idea @fib 10 = 55@.
