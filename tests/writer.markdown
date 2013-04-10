@@ -1,5 +1,6 @@
 % Pandoc Test Suite
-% John MacFarlane; Anonymous
+% John MacFarlane
+  Anonymous
 % July 17, 2006
 
 This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
