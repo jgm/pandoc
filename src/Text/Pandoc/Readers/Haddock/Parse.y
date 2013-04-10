@@ -2,7 +2,6 @@
 -- into Pandoc by David Lazar.
 {
 {-# LANGUAGE BangPatterns #-} -- required for versions of Happy before 1.18.6
-{-# OPTIONS -Wwarn -w #-}
 -- The above warning supression flag is a temporary kludge.
 -- While working on this module you are encouraged to remove it and fix
 -- any warnings in the module. See
