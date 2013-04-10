@@ -74,6 +74,7 @@ convertTag userdata t@(TagOpen "link" as) =
            return $ TagOpen "link" (("href",enc) : [(x,y) | (x,y) <- as, x /= "href"])
 convertTag _ t = return t
 
+-- NOTE: This is really crude, it doesn't respect CSS comments.
 cssURLs :: Maybe FilePath -> FilePath -> ByteString -> IO ByteString
 cssURLs userdata d orig =
   case B.breakSubstring "url(" orig of
