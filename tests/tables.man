@@ -138,7 +138,7 @@ Multiline table with caption:
 Here\[aq]s the caption. It may span multiple lines.
 .TS
 tab(@);
-cw(10.50n) lw(9.63n) rw(11.38n) lw(23.63n).
+cw(10.5n) lw(9.6n) rw(11.4n) lw(23.6n).
 T{
 Centered Header
 T}@T{
@@ -174,7 +174,7 @@ Multiline table without caption:
 .PP
 .TS
 tab(@);
-cw(10.50n) lw(9.63n) rw(11.38n) lw(23.63n).
+cw(10.5n) lw(9.6n) rw(11.4n) lw(23.6n).
 T{
 Centered Header
 T}@T{
@@ -244,7 +244,7 @@ Multiline table without column headers:
 .PP
 .TS
 tab(@);
-cw(10.50n) lw(9.63n) rw(11.38n) lw(23.63n).
+cw(10.5n) lw(9.6n) rw(11.4n) lw(23.6n).
 T{
 First
 T}@T{

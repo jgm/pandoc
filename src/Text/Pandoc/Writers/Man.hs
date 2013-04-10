@@ -187,7 +187,7 @@ blockToMan opts (Table caption alignments widths headers rows) =
   modify $ \st -> st{ stHasTables = True }
   let iwidths = if all (== 0) widths
                    then repeat ""
-                   else map (printf "w(%0.2fn)" . (70 *)) widths
+                   else map (printf "w(%0.1fn)" . (70 *)) widths
   -- 78n default width - 8n indent = 70n
   let coldescriptions = text $ intercalate " "
                         (zipWith (\align width -> aligncode align ++ width)
