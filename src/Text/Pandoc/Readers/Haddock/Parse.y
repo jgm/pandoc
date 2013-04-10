@@ -16,9 +16,8 @@ import Text.Pandoc.Builder
 import Data.Generics (everywhere, mkT)
 import Data.Char  (isSpace)
 import Data.Maybe (fromMaybe)
-import Data.List  (stripPrefix)
-import Data.Monoid (mempty)
-import Data.Sequence (viewr, ViewR(..))
+import Data.List  (stripPrefix, intersperse)
+import Data.Monoid (mempty, mconcat)
 }
 
 %expect 0
@@ -72,7 +71,7 @@ olpara  :: { Blocks }
     : '(n)' para        { $2 }
 
 defpara :: { (Inlines, [Blocks]) }
-    : '[' seq ']' seq   { ($2, [plain $4]) }
+    : '[' seq ']' seq   { (trimInlines $2, [plain $ trimInlines $4]) }
 
 para :: { Blocks }
     : seq               { para' $1 }
@@ -130,10 +129,7 @@ happyError :: [LToken] -> Either [LToken] a
 happyError toks = Left toks
 
 para' :: Inlines -> Blocks
-para' (Many ils) =
-  case viewr ils of
-          ils' :> Space -> para $ Many ils'
-          _             -> para $ Many ils
+para' = para . trimInlines
 
 monospace :: Inlines -> Inlines
 monospace = everywhere (mkT go)
@@ -161,8 +157,9 @@ makeProperty s = case strip s of
 -- | Create an 'Example', stripping superfluous characters as appropriate
 makeExample :: String -> String -> [String] -> Blocks
 makeExample prompt expression result =
-    para $ codeWith ([], ["haskell", "expr"], []) (strip expression ++ "\n")
-        <> codeWith ([], ["result"], []) (unlines result')
+    para $ codeWith ([], ["haskell","expr"], []) (strip expression)
+        <> linebreak
+        <> (mconcat $ intersperse linebreak $ map coder result')
   where
     -- 1. drop trailing whitespace from the prompt, remember the prefix
     (prefix, _) = span isSpace prompt
@@ -178,6 +175,7 @@ makeExample prompt expression result =
 
         substituteBlankLine "<BLANKLINE>" = ""
         substituteBlankLine line          = line
+    coder = codeWith ([], ["result"], [])
 
 -- | Remove all leading and trailing whitespace
 strip :: String -> String
