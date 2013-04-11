@@ -128,6 +128,7 @@ blockToAsciiDoc opts (Para inlines) = do
 blockToAsciiDoc _ (RawBlock _ _) = return empty
 blockToAsciiDoc _ HorizontalRule =
   return $ blankline <> text "'''''" <> blankline
+blockToAsciiDoc _ NewPage = return $ "\f"
 blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   let len = offset contents

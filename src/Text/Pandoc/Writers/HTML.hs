@@ -431,6 +431,7 @@ blockToHtml opts (Para lst) = do
   return $ H.p contents
 blockToHtml _ (RawBlock "html" str) = return $ preEscapedString str
 blockToHtml _ (RawBlock _ _) = return mempty
+blockToHtml _ (NewPage) = return $ H.div (return()) ! A.style "page-break-before:always;" <> mempty
 blockToHtml opts (HorizontalRule) = return $ if writerHtml5 opts then H5.hr else H.hr
 blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
   let tolhs = isEnabled Ext_literate_haskell opts &&
