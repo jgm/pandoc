@@ -12,6 +12,7 @@ module Text.Pandoc.Readers.Haddock.Parse (parseString, parseParas) where
 
 import Text.Pandoc.Readers.Haddock.Lex
 import Text.Pandoc.Builder
+import Text.Pandoc.Shared (trim, trimr)
 import Data.Generics (everywhere, mkT)
 import Data.Char  (isSpace)
 import Data.Maybe (fromMaybe)
@@ -141,13 +142,12 @@ monospace = everywhere (mkT go)
 -- A hyperlink consists of a URL and an optional label.  The label is separated
 -- from the url by one or more whitespace characters.
 makeHyperlink :: String -> Inlines
-makeHyperlink input = case break isSpace $ strip input of
+makeHyperlink input = case break isSpace $ trim input of
   (url, "") -> link url url (str url)
-  (url, lb) -> link url url (str label)
-    where label = dropWhile isSpace lb
+  (url, lb) -> link url url (trimInlines $ text lb)
 
 makeProperty :: String -> Blocks
-makeProperty s = case strip s of
+makeProperty s = case trim s of
   'p':'r':'o':'p':'>':xs ->
     codeBlockWith ([], ["property"], []) (dropWhile isSpace xs)
   xs ->
@@ -156,12 +156,12 @@ makeProperty s = case strip s of
 -- | Create an 'Example', stripping superfluous characters as appropriate
 makeExample :: String -> String -> [String] -> Blocks
 makeExample prompt expression result =
-    para $ codeWith ([], ["haskell","expr"], []) (strip expression)
+    para $ codeWith ([], ["haskell","expr"], []) (trim expression)
         <> linebreak
         <> (mconcat $ intersperse linebreak $ map coder result')
   where
     -- 1. drop trailing whitespace from the prompt, remember the prefix
-    (prefix, _) = span isSpace prompt
+    prefix = takeWhile isSpace prompt
 
     -- 2. drop, if possible, the exact same sequence of whitespace
     -- characters from each result line
@@ -175,8 +175,4 @@ makeExample prompt expression result =
         substituteBlankLine "<BLANKLINE>" = ""
         substituteBlankLine line          = line
     coder = codeWith ([], ["result"], [])
-
--- | Remove all leading and trailing whitespace
-strip :: String -> String
-strip = dropWhile isSpace . reverse . dropWhile isSpace . reverse
 }

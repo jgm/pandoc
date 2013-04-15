@@ -28,4 +28,4 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
    [[Plain [Str "The",Space,Str "description",Space,Str "of",Space,Code ("",[],[]) "bar",Str "."]]])]
 ,Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "link:",Space,Link [Str "http://haskell.org"] ("http://haskell.org","http://haskell.org")]
 ,Para [Link [Str "Haskell"] ("http://haskell.org","http://haskell.org"),Space,Str "is",Space,Str "a",Space,Str "fun",Space,Str "language!"]
-,Para [Link [Str "Click Here!"] ("http://example.com","http://example.com")]]
+,Para [Link [Str "Click",Space,Str "Here!"] ("http://example.com","http://example.com")]]
