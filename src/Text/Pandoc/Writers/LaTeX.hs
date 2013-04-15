@@ -50,8 +50,6 @@ import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
 
 data WriterState =
   WriterState { stInNote        :: Bool          -- true if we're in a note
-              , stInTable       :: Bool          -- true if we're in a table
-              , stTableNotes    :: [Doc]         -- List of notes in current table
               , stOLLevel       :: Int           -- level of ordered list nesting
               , stOptions       :: WriterOptions -- writer options, so they don't have to be parameter
               , stVerbInNote    :: Bool          -- true if document has verbatim text in note
@@ -72,8 +70,8 @@ data WriterState =
 writeLaTeX :: WriterOptions -> Pandoc -> String
 writeLaTeX options document =
   evalState (pandocToLaTeX options document) $
-  WriterState { stInNote = False, stInTable = False,
-                stTableNotes = [], stOLLevel = 1, stOptions = options,
+  WriterState { stInNote = False,
+                stOLLevel = 1, stOptions = options,
                 stVerbInNote = False,
                 stTable = False, stStrikeout = False,
                 stUrl = False, stGraphics = False,
@@ -422,7 +420,6 @@ blockToLaTeX HorizontalRule = return $
 blockToLaTeX (Header level (id',classes,_) lst) =
   sectionHeader ("unnumbered" `elem` classes) id' level lst
 blockToLaTeX (Table caption aligns widths heads rows) = do
-  modify $ \s -> s{ stInTable = True, stTableNotes = [] }
   headers <- if all null heads
                 then return empty
                 else ($$ "\\hline\\noalign{\\medskip}") `fmap`
@@ -433,11 +430,8 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
                 else text "\\noalign{\\medskip}"
                      $$ text "\\caption" <> braces captionText
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
-  tableNotes <- liftM (reverse . stTableNotes) get
-  let toNote x = "\\footnotetext" <> braces (nest 2 x)
-  let notes = vcat $ map toNote tableNotes
   let colDescriptors = text $ concat $ map toColDescriptor aligns
-  modify $ \s -> s{ stTable = True, stInTable = False, stTableNotes = [] }
+  modify $ \s -> s{ stTable = True }
   return $ "\\begin{longtable}[c]" <>
               braces ("@{}" <> colDescriptors <> "@{}")
               -- the @{} removes extra space at beginning and end
@@ -446,7 +440,6 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
          $$ vcat rows'
          $$ "\\hline"
          $$ capt
-         $$ notes
          $$ "\\end{longtable}"
 
 toColDescriptor :: Alignment -> String
@@ -661,16 +654,10 @@ inlineToLaTeX (Note contents) = do
   modify (\s -> s{stInNote = True})
   contents' <- blockListToLaTeX contents
   modify (\s -> s {stInNote = False})
-  inTable <- liftM stInTable get
   let optnl = case reverse contents of
                    (CodeBlock _ _ : _) -> cr
                    _                   -> empty
-  if inTable
-     then do
-       curnotes <- liftM stTableNotes get
-       modify $ \s -> s{ stTableNotes = contents' : curnotes }
-       return $ "\\footnotemark" <> space
-     else return $ "\\footnote" <> braces (nest 2 contents' <> optnl)
+  return $ "\\footnote" <> braces (nest 2 contents' <> optnl)
      -- note: a \n before } needed when note ends with a Verbatim environment
 
 citationsToNatbib :: [Citation] -> State WriterState Doc
