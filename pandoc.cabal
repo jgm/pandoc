@@ -104,7 +104,7 @@ Data-Files:
                  -- sample lua custom writer
                  data/sample.lua
                  -- documentation
-                 README, INSTALL, COPYRIGHT, BUGS, changelog
+                 README, INSTALL, COPYRIGHT, BUGS, CONTRIBUTING.md, changelog
 Extra-Source-Files:
                  -- code to create pandoc.1 man page
                  man/man1/pandoc.1.template,
