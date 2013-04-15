@@ -44,6 +44,7 @@ import qualified Data.Set as Set
 import Text.Pandoc.Writers.HTML (writeHtmlString)
 import Text.Pandoc.Readers.TeXMath (readTeXMath)
 import Text.HTML.TagSoup (renderTags, parseTags, isTagText, Tag(..))
+import Network.URI (isAbsoluteURI)
 import Data.Default
 
 type Notes = [[Block]]
@@ -680,7 +681,8 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
                      then empty
                      else text $ " \"" ++ tit ++ "\""
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
-  let useAuto = case txt of
+  let useAuto = isAbsoluteURI src &&
+                case txt of
                       [Str s] | escapeURI s == srcSuffix -> True
                       _                                  -> False
   let useRefLinks = writerReferenceLinks opts && not useAuto

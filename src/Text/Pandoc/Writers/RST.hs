@@ -36,6 +36,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Data.List ( isPrefixOf, intersperse, transpose )
+import Network.URI (isAbsoluteURI)
 import Text.Pandoc.Pretty
 import Control.Monad.State
 import Control.Applicative ( (<$>) )
@@ -364,9 +365,10 @@ inlineToRST (LineBreak) = return cr -- there's no line break in RST (see Para)
 inlineToRST Space = return space
 -- autolink
 inlineToRST (Link [Str str] (src, _))
-  | if "mailto:" `isPrefixOf` src
-    then src == escapeURI ("mailto:" ++ str)
-    else src == escapeURI str = do
+  | isAbsoluteURI src &&
+    if "mailto:" `isPrefixOf` src
+       then src == escapeURI ("mailto:" ++ str)
+       else src == escapeURI str = do
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
   return $ text srcSuffix
 inlineToRST (Link [Image alt (imgsrc,imgtit)] (src, _tit)) = do
