@@ -197,6 +197,7 @@ readers = [("native"       , \_ s -> return $ readNative s)
           ,("markdown_phpextra" , markdown)
           ,("markdown_github" , markdown)
           ,("markdown_mmd",  markdown)
+          ,("markdown_soh" , markdown)
           ,("rst"          , \o s -> return $ readRST o s)
           ,("mediawiki"    , \o s -> return $ readMediaWiki o s)
           ,("docbook"      , \o s -> return $ readDocBook o s)
@@ -252,6 +253,7 @@ writers = [
   ,("markdown_strict" , PureStringWriter writeMarkdown)
   ,("markdown_phpextra" , PureStringWriter writeMarkdown)
   ,("markdown_github" , PureStringWriter writeMarkdown)
+  ,("markdown_soh" , PureStringWriter writeMarkdown)
   ,("markdown_mmd" , PureStringWriter writeMarkdown)
   ,("plain"        , PureStringWriter writePlain)
   ,("rst"          , PureStringWriter writeRST)
@@ -267,6 +269,7 @@ getDefaultExtensions "markdown_strict" = strictExtensions
 getDefaultExtensions "markdown_phpextra" = phpMarkdownExtraExtensions
 getDefaultExtensions "markdown_mmd" = multimarkdownExtensions
 getDefaultExtensions "markdown_github" = githubMarkdownExtensions
+getDefaultExtensions "markdown_soh" = sohMarkdownExtensions
 getDefaultExtensions _        = pandocExtensions
 
 -- | Retrieve reader based on formatSpec (format+extensions).
