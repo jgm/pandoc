@@ -105,6 +105,7 @@ import Network.HTTP (findHeader, rspBody,
 import Network.Browser (browse, setAllowRedirects, request)
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
+import System.FilePath ( joinPath )
 #else
 import Paths_pandoc (getDataFileName)
 #endif
@@ -525,7 +526,7 @@ readDefaultDataFile fname =
     Nothing       -> ioError $ userError
                              $ "Data file `" ++ fname ++ "' does not exist"
     Just contents -> return contents
-  where makeCanonical = intercalate "/" . transformPathParts . splitBy (=='/')
+  where makeCanonical = joinPath . transformPathParts . splitBy (=='/')
         transformPathParts = reverse . foldl go []
         go as     "."  = as
         go (_:as) ".." = as
