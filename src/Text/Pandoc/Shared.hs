@@ -105,6 +105,7 @@ import Network.HTTP (findHeader, rspBody,
 import Network.Browser (browse, setAllowRedirects, request)
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
+import System.FilePath ( joinPath )
 #else
 import Paths_pandoc (getDataFileName)
 #endif
@@ -521,10 +522,15 @@ inDirectory path action = do
 readDefaultDataFile :: FilePath -> IO B.ByteString
 readDefaultDataFile fname =
 #ifdef EMBED_DATA_FILES
-  case lookup fname dataFiles of
+  case lookup (makeCanonical fname) dataFiles of
     Nothing       -> ioError $ userError
                              $ "Data file `" ++ fname ++ "' does not exist"
     Just contents -> return contents
+  where makeCanonical = joinPath . transformPathParts . splitBy (=='/')
+        transformPathParts = reverse . foldl go []
+        go as     "."  = as
+        go (_:as) ".." = as
+        go as     x    = x : as
 #else
   getDataFileName ("data" </> fname) >>= B.readFile
 #endif
