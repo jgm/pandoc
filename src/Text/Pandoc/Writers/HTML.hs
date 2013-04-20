@@ -269,10 +269,13 @@ elementToListItem opts (Sec lev num (id',classes,_) headerText subsecs)
   let subList = if null subHeads
                    then mempty
                    else unordList opts subHeads
+  -- in reveal.js, we need #/apples, not #apples:
+  let revealSlash = ['/' | writerSlideVariant opts == RevealJsSlides]
   return $ Just
          $ if null id'
               then (H.a $ toHtml txt) >> subList
-              else (H.a ! A.href (toValue $ "#" ++ writerIdentifierPrefix opts ++ id')
+              else (H.a ! A.href (toValue $ "#" ++ revealSlash ++
+                    writerIdentifierPrefix opts ++ id')
                        $ toHtml txt) >> subList
 elementToListItem _ _ = return Nothing
 
@@ -477,9 +480,12 @@ blockToHtml opts (Header level (ident,_,_) lst) = do
                      then (H.span ! A.class_ "header-section-number" $ toHtml
                           $ showSecNum secnum) >> strToHtml " " >> contents
                      else contents
+  let revealSlash = ['/' | writerSlideVariant opts == RevealJsSlides]
   let contents''  = if writerTableOfContents opts && not (null ident)
                        then H.a ! A.href (toValue $
-                              '#' : writerIdentifierPrefix opts ++ ident) $ contents'
+                              '#' : revealSlash ++
+                                    writerIdentifierPrefix opts ++
+                                    ident) $ contents'
                        else contents'
   return $ case level of
               1 -> H.h1 contents''
@@ -701,7 +707,11 @@ inlineToHtml opts inline =
                         return $ obfuscateLink opts (renderHtml linkText) s
     (Link txt (s,tit)) -> do
                         linkText <- inlineListToHtml opts txt
-                        let link = H.a ! A.href (toValue s) $ linkText
+                        let s' = case s of
+                                      '#':xs | writerSlideVariant opts ==
+                                            RevealJsSlides -> '#':'/':xs
+                                      _ -> s
+                        let link = H.a ! A.href (toValue s') $ linkText
                         return $ if null tit
                                     then link
                                     else link ! A.title (toValue tit)
@@ -732,7 +742,10 @@ inlineToHtml opts inline =
                         htmlContents <- blockListToNote opts ref contents
                         -- push contents onto front of notes
                         put $ st {stNotes = (htmlContents:notes)}
+                        let revealSlash = ['/' | writerSlideVariant opts
+                                                 == RevealJsSlides]
                         let link = H.a ! A.href (toValue $ "#" ++
+                                         revealSlash ++
                                          writerIdentifierPrefix opts ++ "fn" ++ ref)
                                        ! A.class_ "footnoteRef"
                                        ! prefixedId opts ("fnref" ++ ref)
