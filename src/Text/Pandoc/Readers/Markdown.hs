@@ -667,7 +667,7 @@ listLine = try $ do
                      many (spaceChar)
                      listStart)
   chunks <- manyTill (liftM snd (htmlTag isCommentTag) <|> count 1 anyChar) newline
-  return $ concat chunks ++ "\n"
+  return $ concat chunks
 
 -- parse raw text for one list item, excluding start marker and continuations
 rawListItem :: MarkdownParser a
@@ -677,7 +677,7 @@ rawListItem start = try $ do
   first <- listLine
   rest <- many (notFollowedBy listStart >> listLine)
   blanks <- many blankline
-  return $ concat (first:rest)  ++ blanks
+  return $ unlines (first:rest) ++ blanks
 
 -- continuation of a list item - indented and separated by blankline
 -- or (in compact lists) endline.
