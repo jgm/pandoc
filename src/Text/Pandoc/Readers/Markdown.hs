@@ -42,6 +42,7 @@ import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.XML (fromEntities)
+import Text.Pandoc.Asciify (toAsciiChar)
 import Text.Pandoc.Parsing hiding (tableWith)
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
@@ -397,10 +398,15 @@ addToHeaderList (ident,classes,kvs) text = do
      then do
        ids <- stateIdentifiers `fmap` getState
        let id' = uniqueIdent (B.toList header') ids
+       let id'' = if Ext_ascii_identifiers `Set.member` exts
+                     then catMaybes $ map toAsciiChar id'
+                     else id'
        updateState $ \st -> st{
-              stateIdentifiers = id' : ids,
+              stateIdentifiers = if id' == id''
+                                    then id' : ids
+                                    else id' : id'' : ids,
               stateHeaders = insert' header' id' $ stateHeaders st }
-       return (id',classes,kvs)
+       return (id'',classes,kvs)
      else do
         unless (null ident) $
           updateState $ \st -> st{
