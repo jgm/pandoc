@@ -94,6 +94,7 @@ data Extension =
     | Ext_literate_haskell    -- ^ Enable literate Haskell conventions
     | Ext_abbreviations       -- ^ PHP markdown extra abbreviation definitions
     | Ext_auto_identifiers    -- ^ Automatic identifiers for headers
+    | Ext_ascii_identifiers   -- ^ ascii-only identifiers for headers
     | Ext_header_attributes   -- ^ Explicit header attributes {#id .class k=v}
     | Ext_mmd_header_identifiers -- ^ Multimarkdown style header identifiers [myid]
     | Ext_implicit_header_references -- ^ Implicit reference links for headers
@@ -159,6 +160,8 @@ githubMarkdownExtensions = Set.fromList
   , Ext_tex_math_single_backslash
   , Ext_fenced_code_blocks
   , Ext_fenced_code_attributes
+  , Ext_auto_identifiers
+  , Ext_ascii_identifiers
   , Ext_backtick_code_blocks
   , Ext_autolink_bare_uris
   , Ext_intraword_underscores
