@@ -97,6 +97,7 @@ getDefaultTemplate user writer = do
        "markdown_strict" -> getDefaultTemplate user "markdown"
        "multimarkdown"   -> getDefaultTemplate user "markdown"
        "markdown_github" -> getDefaultTemplate user "markdown"
+       "markdown_soh"    -> getDefaultTemplate user "markdown"
        _        -> let fname = "templates" </> "default" <.> format
                    in  E.try $ readDataFileUTF8 user fname
 

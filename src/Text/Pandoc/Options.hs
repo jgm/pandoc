@@ -34,6 +34,7 @@ module Text.Pandoc.Options ( Extension(..)
                            , phpMarkdownExtraExtensions
                            , githubMarkdownExtensions
                            , multimarkdownExtensions
+                           , sohMarkdownExtensions
                            , ReaderOptions(..)
                            , HTMLMathMethod (..)
                            , CiteMethod (..)
@@ -72,6 +73,7 @@ data Extension =
     | Ext_fenced_code_blocks  -- ^ Parse fenced code blocks
     | Ext_fenced_code_attributes  -- ^ Allow attributes on fenced code blocks
     | Ext_backtick_code_blocks    -- ^ Github style ``` code blocks
+    | Ext_backtick_code_multi     -- ^ School of Haskell style ``` code blocks with mutiple attributes 
     | Ext_inline_code_attributes  -- ^ Allow attributes on inline code
     | Ext_markdown_in_html_blocks -- ^ Interpret as markdown inside HTML blocks
     | Ext_markdown_attribute      -- ^ Interpret text inside HTML as markdown
@@ -120,6 +122,7 @@ pandocExtensions = Set.fromList
   , Ext_fenced_code_blocks
   , Ext_fenced_code_attributes
   , Ext_backtick_code_blocks
+  , Ext_backtick_code_multi
   , Ext_inline_code_attributes
   , Ext_markdown_in_html_blocks
   , Ext_escaped_line_breaks
@@ -185,6 +188,13 @@ multimarkdownExtensions = Set.fromList
   , Ext_implicit_header_references
   , Ext_auto_identifiers
   , Ext_mmd_header_identifiers
+  ]
+
+sohMarkdownExtensions :: Set Extension
+sohMarkdownExtensions = Set.fromList
+  [ Ext_raw_html
+  , Ext_backtick_code_blocks
+  , Ext_backtick_code_multi
   ]
 
 strictExtensions :: Set Extension

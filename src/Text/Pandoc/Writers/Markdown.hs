@@ -46,6 +46,7 @@ import Text.Pandoc.Readers.TeXMath (readTeXMath)
 import Text.HTML.TagSoup (renderTags, parseTags, isTagText, Tag(..))
 import Network.URI (isAbsoluteURI)
 import Data.Default
+import Data.Monoid (mconcat)
 
 type Notes = [[Block]]
 type Refs = [([Inline], Target)]
@@ -318,8 +319,8 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
      x | x /= nullAttr && isEnabled Ext_fenced_code_blocks opts ->
           tildes <> space <> attrs <> cr <> text str <>
            cr <> tildes <> blankline
-     (_,(cls:_),_) | isEnabled Ext_backtick_code_blocks opts ->
-          backticks <> space <> text cls <> cr <> text str <>
+     (_,clss@(_cls:_),_) | isEnabled Ext_backtick_code_blocks opts ->
+          backticks <> space <> clssToMarkdown clss <> cr <> text str <>
            cr <> backticks <> blankline
      _ -> nest (writerTabStop opts) (text str) <> blankline
    where tildes    = text $ case [ln | ln <- lines str, all (=='~') ln] of
@@ -331,6 +332,10 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
          attrs  = if isEnabled Ext_fenced_code_attributes opts
                      then nowrap $ attrsToMarkdown attribs
                      else empty
+         clssToMarkdown clss =
+             if isEnabled Ext_backtick_code_multi opts
+                then mconcat (intersperse space $ map text clss)
+                else text (head clss)
 blockToMarkdown opts (BlockQuote blocks) = do
   st <- get
   -- if we're writing literate haskell, put a space before the bird tracks

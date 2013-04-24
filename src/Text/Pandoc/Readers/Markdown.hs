@@ -544,6 +544,7 @@ codeBlockFenced = try $ do
   skipMany spaceChar
   attr <- option ([],[],[]) $
             try (guardEnabled Ext_fenced_code_attributes >> attributes)
+           <|> (guardEnabled Ext_backtick_code_multi >> ((\xs -> ("", xs, [])) <$> (identifier `sepBy1` (many1 (char ' ')))))
            <|> ((\x -> ("",[x],[])) <$> identifier)
   blankline
   contents <- manyTill anyLine (blockDelimiter (== c) (Just size))
