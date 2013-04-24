@@ -2353,7 +2353,7 @@ document with an appropriate header:
 The bibliography will be inserted after this header.
 
 Non-pandoc extensions
-=====================
+---------------------
 
 The following markdown syntax extensions are not enabled by default
 in pandoc, but may be enabled by adding `+EXTENSION` to the format
@@ -2423,6 +2423,33 @@ these, so they are presently just ignored.
 **Extension: `mmd_header_identifiers`**\
 Parses multimarkdown style header identifiers (in square brackets,
 after the header but before any trailing `#`s in an ATX header).
+
+Markdown variants
+-----------------
+
+In addition to pandoc's extended markdown, the following markdown
+variants are supported:
+
+`markdown_phpextra` (PHP Markdown Extra)
+:   `footnotes`, `pipe_tables`, `raw_html`, `markdown_attribute`,
+    `fenced_code_blocks`, `definition_lists`, `intraword_underscores`,
+    `header_attributes`, `abbreviations`.
+
+`markdown_github` (Github-flavored Markdown)
+:   `pipe_tables`, `raw_html`, `tex_math_single_backslash`,
+    `fenced_code_blocks`, `fenced_code_attributes`, `auto_identifiers`,
+    `ascii_identifiers`, `backtick_code_blocks`, `autolink_bare_uris`,
+    `intraword_underscores`, `strikeout`, `hard_line_breaks`
+
+`markdown_mmd` (MultiMarkdown)
+:   `pipe_tables` `raw_html`, `markdown_attribute`, `link_attributes`,
+    `raw_tex`, `tex_math_double_backslash`, `intraword_underscores`,
+    `mmd_title_block`, `footnotes`, `definition_lists`,
+    `all_symbols_escapable`, `implicit_header_references`,
+    `auto_identifiers`, `mmd_header_identifiers`
+
+`markdown_strict` (Markdown.pl)
+:   `raw_html`
 
 Producing slide shows with Pandoc
 =================================
