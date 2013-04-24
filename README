@@ -2410,6 +2410,11 @@ simply skipped (as opposed to being parsed as paragraphs).
 Makes all absolute URIs into links, even when not surrounded by
 pointy braces `<...>`.
 
+**Extension: `ascii_identifiers`**\
+Causes the identifiers produced by `auto_identifiers` to be pure ASCII.
+Accents are stripped off of accented latin letters, and non-latin
+letters are omitted.
+
 **Extension: `link_attributes`**\
 Parses multimarkdown style key-value attributes on link and image references.
 Note that pandoc's internal document model provides nowhere to put
