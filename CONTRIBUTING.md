@@ -167,6 +167,8 @@ The library is structured as follows:
   - `Text.Pandoc.Templates` defines pandoc's templating system.
   - `Text.Pandoc.UTF8` contains functions for converting text to and from
     UTF8 bytestrings (strict and lazy).
+  - `Text.Pandoc.Asciify` contains functions to derive ascii versions of
+    identifiers that use accented characters.
   - `Text.Pandoc.UUID` contains functions for generating UUIDs.
   - `Text.Pandoc.XML` contains functions for formatting XML.
 
