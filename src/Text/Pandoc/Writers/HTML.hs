@@ -338,11 +338,13 @@ footnoteSection opts notes =
 
 -- | Parse a mailto link; return Just (name, domain) or Nothing.
 parseMailto :: String -> Maybe (String, String)
-parseMailto ('m':'a':'i':'l':'t':'o':':':addr) =
-  let (name', rest) = span (/='@') addr
-      domain = drop 1 rest
-  in  Just (name', domain)
-parseMailto _ = Nothing
+parseMailto s = do
+  case break (==':') s of
+       (xs,':':addr) | map toLower xs == "mailto" -> do
+         let (name', rest) = span (/='@') addr
+         let domain = drop 1 rest
+         return (name', domain)
+       _ -> fail "not a mailto: URL"
 
 -- | Obfuscate a "mailto:" link.
 obfuscateLink :: WriterOptions -> String -> String -> Html
@@ -350,7 +352,7 @@ obfuscateLink opts txt s | writerEmailObfuscation opts == NoObfuscation =
   H.a ! A.href (toValue s) $ toHtml txt
 obfuscateLink opts txt s =
   let meth = writerEmailObfuscation opts
-      s' = map toLower s
+      s' = map toLower (take 7 s) ++ drop 7 s
   in  case parseMailto s' of
         (Just (name', domain)) ->
           let domain'  = substitute "." " dot " domain
