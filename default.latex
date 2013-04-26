@@ -12,9 +12,11 @@ $if(euro)$
   \usepackage{eurosym}
 $endif$
 \else % if luatex or xelatex
-  \usepackage{fontspec}
   \ifxetex
+    \usepackage{mathspec}
     \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
   \fi
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
   \newcommand{\euro}{€}
@@ -28,7 +30,7 @@ $if(monofont)$
     \setmonofont{$monofont$}
 $endif$
 $if(mathfont)$
-    \setmathfont{$mathfont$}
+    \setmathfont(Digits,Latin,Greek){$mathfont$}
 $endif$
 \fi
 % use microtype if available
