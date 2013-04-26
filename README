@@ -366,11 +366,12 @@ Options affecting specific writers
     in the sense that it needs no external files and no net access to be
     displayed properly by a browser. This option works only with HTML output
     formats, including `html`, `html5`, `html+lhs`, `html5+lhs`, `s5`,
-    `slidy`, `slideous`,
-    and `dzslides`. Scripts, images, and stylesheets at absolute URLs
-    will be downloaded; those at relative URLs will be sought first relative
-    to the working directory, then relative to the user data directory (see
-    `--data-dir`), and finally relative to pandoc's default data directory.
+    `slidy`, `slideous`, `dzslides`, and `revealjs`. Scripts, images, and
+    stylesheets at absolute URLs will be downloaded; those at relative URLs
+    will be sought first relative to the working directory, then relative to
+    the user data directory (see `--data-dir`), and finally relative to
+    pandoc's default data directory.  `--self-contained` does not
+    work with `--mathjax`.
 
 `--offline`
 :   Deprecated synonym for `--self-contained`.
