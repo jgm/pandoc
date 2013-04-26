@@ -9,9 +9,11 @@
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
   \usepackage[utf8]{inputenc}
 \else % if luatex or xelatex
-  \usepackage{fontspec}
   \ifxetex
+    \usepackage{mathspec}
     \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
   \fi
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
   \newcommand{\euro}{€}
