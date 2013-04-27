@@ -358,6 +358,8 @@ Executable pandoc
     Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   else
     Ghc-Prof-Options: -auto-all -caf-all
+  if os(windows)
+    Cpp-options:      -D_WINDOWS
   Default-Language: Haskell98
   Default-Extensions: CPP
   Other-Extensions: PatternGuards, OverloadedStrings,

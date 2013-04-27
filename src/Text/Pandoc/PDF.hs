@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, CPP #-}
 {-
 Copyright (C) 2012 John MacFarlane <jgm@berkeley.edu>
 
@@ -45,10 +45,18 @@ import Text.Pandoc.UTF8 as UTF8
 import Control.Monad (unless)
 import Data.List (isInfixOf)
 
+withTempDir :: String -> (FilePath -> IO a) -> IO a
+withTempDir =
+#ifdef _WINDOWS
+  withTempDirectory "."
+#else
+  withSystemTempDirectory
+#endif
+
 tex2pdf :: String       -- ^ tex program (pdflatex, lualatex, xelatex)
         -> String       -- ^ latex source
         -> IO (Either ByteString ByteString)
-tex2pdf program source = withSystemTempDirectory "tex2pdf" $ \tmpdir ->
+tex2pdf program source = withTempDir "tex2pdf." $ \tmpdir ->
   tex2pdf' tmpdir program source
 
 tex2pdf' :: FilePath                        -- ^ temp directory for output
