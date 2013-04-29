@@ -565,17 +565,16 @@ fetchItem sourceDir s =
           cont <- B.readFile f
           return (cont, mime)
 
--- TODO - have this return mime type too - then it can work for google
--- chart API, e.g.
 -- | Read from a URL and return raw data and maybe mime type.
 openURL :: String -> IO (B.ByteString, Maybe String)
 openURL u = getBodyAndMimeType `fmap`
-             browse (setAllowRedirects True >> request (getRequest' u))
+             browse (setAllowRedirects True >> request (getRequest' u'))
   where getBodyAndMimeType (_, r) = (rspBody r, findHeader HdrContentType r)
         getRequest' uriString = case parseURI uriString of
                                    Nothing -> error ("Not a valid URL: " ++
                                                         uriString)
                                    Just v  -> mkRequest GET v
+        u' = escapeURIString (/= '|') u  -- pipes are rejected by Network.URI
 
 --
 -- Error reporting
