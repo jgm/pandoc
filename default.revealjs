@@ -79,17 +79,16 @@ $endfor$
         progress: true,
         history: true,
         center: true,
-        autoSlide: $if(duration)$$duration$$else$0$endif$,
-        theme: '$if(theme)$$theme$$else$default$endif$', // available themes are in /css/theme
-        transition: '$if(transition)$$transition$$else$default$endif$', // default/cube/page/concave/zoom/linear/fade/none
+        theme: '$if(theme)$$theme$$else$Reveal.getQueryHash().theme$endif$', // available themes are in /css/theme
+        transition: '$if(transition)$$transition$$else$Reveal.getQueryHash().transition$endif$', // default/cube/page/concave/zoom/linear/fade/none
 
         // Optional libraries used to extend on reveal.js
         dependencies: [
           { src: '$revealjs-url$/lib/js/classList.js', condition: function() { return !document.body.classList; } },
           { src: '$revealjs-url$/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
-//        { src: '$revealjs-url$/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
-//        { src: '$revealjs-url$/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; }, }
-//        { src: '$revealjs-url$/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+          { src: '$revealjs-url$/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+//          { src: '$revealjs-url$/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; }, }
+          { src: '$revealjs-url$/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
 ]});
     </script>
   </body>
