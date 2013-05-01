@@ -102,7 +102,7 @@ import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
 import qualified Data.ByteString as B
 import Network.HTTP (findHeader, rspBody,
                      RequestMethod(..), HeaderName(..), mkRequest)
-import Network.Browser (browse, setAllowRedirects, request)
+import Network.Browser (browse, setAllowRedirects, setOutHandler, request)
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
 import System.FilePath ( joinPath, splitDirectories )
@@ -567,8 +567,10 @@ fetchItem sourceDir s =
 
 -- | Read from a URL and return raw data and maybe mime type.
 openURL :: String -> IO (B.ByteString, Maybe String)
-openURL u = getBodyAndMimeType `fmap`
-             browse (setAllowRedirects True >> request (getRequest' u'))
+openURL u = getBodyAndMimeType `fmap` browse
+              (do setOutHandler (UTF8.hPutStrLn stderr)
+                  setAllowRedirects True
+                  request (getRequest' u'))
   where getBodyAndMimeType (_, r) = (rspBody r, findHeader HdrContentType r)
         getRequest' uriString = case parseURI uriString of
                                    Nothing -> error ("Not a valid URL: " ++
