@@ -35,7 +35,7 @@ import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Generic (bottomUpM)
 import Data.List ( isSuffixOf, intercalate )
-import Data.Char ( ord, isDigit, toLower )
+import Data.Char ( ord, chr, isDigit, toLower )
 import System.FilePath ( takeExtension )
 import qualified Data.ByteString as B
 import Text.Printf ( printf )
@@ -113,8 +113,18 @@ handleUnicode :: String -> String
 handleUnicode [] = []
 handleUnicode (c:cs) =
   if ord c > 127
-     then '\\':'u':(show (ord c)) ++ "?" ++ handleUnicode cs
+     then if surrogate c
+          then let x = ord c - 0x10000
+                   (q, r) = x `divMod` 0x400
+                   upper = q + 0xd800
+                   lower = r + 0xDC00
+               in enc (chr upper) ++ enc (chr lower) ++ handleUnicode cs
+          else enc c ++ handleUnicode cs
      else c:(handleUnicode cs)
+  where
+    surrogate x = not (   (0x0000 <= ord x && ord x <= 0xd7ff)
+                       || (0xe000 <= ord x && ord x <= 0xffff) )
+    enc x = '\\':'u':(show (ord x)) ++ "?"
 
 -- | Escape special characters.
 escapeSpecial :: String -> String
