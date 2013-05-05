@@ -568,7 +568,8 @@ fetchItem sourceDir s =
 -- | Read from a URL and return raw data and maybe mime type.
 openURL :: String -> IO (B.ByteString, Maybe String)
 openURL u = getBodyAndMimeType `fmap` browse
-              (do setOutHandler (UTF8.hPutStrLn stderr)
+              (do S.liftIO $ UTF8.hPutStrLn stderr $ "Fetching " ++ u ++ "..."
+                  setOutHandler $ const (return ())
                   setAllowRedirects True
                   request (getRequest' u'))
   where getBodyAndMimeType (_, r) = (rspBody r, findHeader HdrContentType r)
