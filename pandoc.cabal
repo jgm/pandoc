@@ -438,7 +438,7 @@ benchmark benchmark-pandoc
   Build-Depends:   pandoc,
                    base >= 4.2 && < 5,
                    syb >= 0.1 && < 0.5,
-                   criterion >= 0.5 && < 0.7,
+                   criterion >= 0.5 && < 0.9,
                    json >= 0.4 && < 0.8
   if impl(ghc >= 7.0.1)
     Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
