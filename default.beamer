@@ -53,6 +53,10 @@ $if(url)$
 $endif$
 $if(graphics)$
 \usepackage{graphicx}
+% Redefine \includegraphics so that, unless explicit options are
+% given, the image width will not exceed the width of the page.
+% Images get their normal width if they fit onto the page, but
+% are scaled down if they would overflow the margins.
 \makeatletter
 \def\ScaleIfNeeded{%
   \ifdim\Gin@nat@width>\linewidth
