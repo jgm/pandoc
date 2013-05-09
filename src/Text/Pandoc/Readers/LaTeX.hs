@@ -363,6 +363,7 @@ inlineCommands :: M.Map String (LP Inlines)
 inlineCommands = M.fromList $
   [ ("emph", emph <$> tok)
   , ("textit", emph <$> tok)
+  , ("textsl", emph <$> tok)
   , ("textsc", smallcaps <$> tok)
   , ("sout", strikeout <$> tok)
   , ("textsuperscript", superscript <$> tok)
