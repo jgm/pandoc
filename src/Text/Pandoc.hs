@@ -37,9 +37,6 @@ inline links:
 
 > module Main where
 > import Text.Pandoc
-> -- include the following two lines only if you're using ghc < 6.12:
-> import Prelude hiding (getContents, putStrLn)
-> import System.IO.UTF8
 >
 > markdownToRST :: String -> String
 > markdownToRST =
