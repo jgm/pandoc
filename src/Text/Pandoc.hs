@@ -145,13 +145,16 @@ import Text.Pandoc.Templates
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (safeRead, warn)
 import Data.ByteString.Lazy (ByteString)
+import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate, isSuffixOf)
 import Data.Version (showVersion)
-import Text.JSON.Generic
+import Data.Aeson.Generic
 import Data.Set (Set)
+import Data.Data
 import qualified Data.Set as Set
 import Text.Parsec
 import Text.Parsec.Error
+import qualified Text.Pandoc.UTF8 as UTF8
 import Paths_pandoc (version)
 
 -- | Version number of pandoc library.
@@ -188,7 +191,8 @@ markdown o s = do
 -- | Association list of formats and readers.
 readers :: [(String, ReaderOptions -> String -> IO Pandoc)]
 readers = [("native"       , \_ s -> return $ readNative s)
-          ,("json"         , \_ s -> return $ decodeJSON s)
+          ,("json"         , \_ s -> return $ checkJSON
+                                            $ decode $ UTF8.fromStringLazy s)
           ,("markdown"     , markdown)
           ,("markdown_strict" , markdown)
           ,("markdown_phpextra" , markdown)
@@ -212,7 +216,7 @@ data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
 writers :: [ ( String, Writer ) ]
 writers = [
    ("native"       , PureStringWriter writeNative)
-  ,("json"         , PureStringWriter $ \_ -> encodeJSON)
+  ,("json"         , PureStringWriter $ \_ -> UTF8.toStringLazy . encode)
   ,("docx"         , IOByteStringWriter writeDocx)
   ,("odt"          , IOByteStringWriter writeODT)
   ,("epub"         , IOByteStringWriter $ \o ->
@@ -304,7 +308,7 @@ getWriter s =
 -- that reads and writes a JSON-encoded string.  This is useful
 -- for writing small scripts.
 jsonFilter :: (Pandoc -> Pandoc) -> String -> String
-jsonFilter f = encodeJSON . f . decodeJSON
+jsonFilter f = UTF8.toStringLazy . encode . f . checkJSON . decode . UTF8.fromStringLazy
 
 -- | 'toJsonFilter' convert a function into a filter that reads pandoc's json output
 -- from stdin, transforms it by walking the AST and applying the specified
@@ -333,18 +337,25 @@ class ToJsonFilter a where
   toJsonFilter :: a -> IO ()
 
 instance (Data a) => ToJsonFilter (a -> a) where
-  toJsonFilter f = getContents
-    >>= putStr . encodeJSON . (bottomUp f :: Pandoc -> Pandoc) . decodeJSON
+  toJsonFilter f = BL.getContents >>=
+    BL.putStr . encode . (bottomUp f :: Pandoc -> Pandoc) . checkJSON . decode
 
 instance (Data a) => ToJsonFilter (a -> IO a) where
-  toJsonFilter f = getContents >>= (bottomUpM f :: Pandoc -> IO Pandoc) . decodeJSON
-    >>= putStr . encodeJSON
+  toJsonFilter f = BL.getContents >>=
+     (bottomUpM f :: Pandoc -> IO Pandoc) . checkJSON . decode >>=
+     BL.putStr . encode
 
 instance (Data a) => ToJsonFilter (a -> [a]) where
-  toJsonFilter f = getContents
-    >>= putStr . encodeJSON . (bottomUp (concatMap f) :: Pandoc -> Pandoc) . decodeJSON
+  toJsonFilter f = BL.getContents >>=
+    BL.putStr . encode . (bottomUp (concatMap f) :: Pandoc -> Pandoc) .
+      checkJSON . decode
 
 instance (Data a) => ToJsonFilter (a -> IO [a]) where
-  toJsonFilter f = getContents
-    >>= (bottomUpM (fmap concat . mapM f) :: Pandoc -> IO Pandoc) . decodeJSON
-    >>= putStr . encodeJSON
+  toJsonFilter f = BL.getContents >>=
+    (bottomUpM (fmap concat . mapM f) :: Pandoc -> IO Pandoc)
+      . checkJSON . decode >>=
+    BL.putStr . encode
+
+checkJSON :: Maybe a -> a
+checkJSON Nothing  = error "Error parsing JSON"
+checkJSON (Just r) = r

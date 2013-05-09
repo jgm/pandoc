@@ -247,7 +247,7 @@ Library
                  extensible-exceptions >= 0.1 && < 0.2,
                  citeproc-hs >= 0.3.7 && < 0.4,
                  pandoc-types >= 1.10 && < 1.11,
-                 json >= 0.4 && < 0.8,
+                 aeson >= 0.6 && < 0.7,
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 1.1,
                  zlib >= 0.5 && < 0.6,
@@ -438,8 +438,7 @@ benchmark benchmark-pandoc
   Build-Depends:   pandoc,
                    base >= 4.2 && < 5,
                    syb >= 0.1 && < 0.5,
-                   criterion >= 0.5 && < 0.9,
-                   json >= 0.4 && < 0.8
+                   criterion >= 0.5 && < 0.9
   if impl(ghc >= 7.0.1)
     Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   else

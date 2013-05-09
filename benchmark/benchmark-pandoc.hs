@@ -1,8 +1,6 @@
 import Text.Pandoc
-import Text.Pandoc.Shared (normalize)
 import Criterion.Main
 import Criterion.Config
-import Text.JSON.Generic
 import System.Environment (getArgs)
 import Data.Monoid
 
@@ -26,11 +24,6 @@ writerBench :: Pandoc
 writerBench doc (name, writer) = bench (name ++ " writer") $ nf
     (writer def{ writerWrapText = True }) doc
 
-normalizeBench :: Pandoc -> [Benchmark]
-normalizeBench doc = [ bench "normalize - with" $ nf (encodeJSON . normalize) doc
-                     , bench "normalize - without" $ nf encodeJSON doc
-                     ]
-
 main :: IO ()
 main = do
   args <- getArgs
@@ -42,5 +35,5 @@ main = do
   let readerBs = map (readerBench doc) readers
   let writers' = [(n,w) | (n, PureStringWriter w) <- writers]
   defaultMainWith conf (return ()) $
-    map (writerBench doc) writers' ++ readerBs ++ normalizeBench doc
+    map (writerBench doc) writers' ++ readerBs
 
