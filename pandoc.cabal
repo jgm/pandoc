@@ -1,5 +1,5 @@
 Name:            pandoc
-Version:         1.11.2
+Version:         1.12
 Cabal-Version:   >= 1.10
 Build-Type:      Custom
 License:         GPL
@@ -247,7 +247,7 @@ Library
                  random >= 1 && < 1.1,
                  extensible-exceptions >= 0.1 && < 0.2,
                  citeproc-hs >= 0.3.7 && < 0.4,
-                 pandoc-types >= 1.10 && < 1.11,
+                 pandoc-types >= 1.12 && < 1.13,
                  aeson >= 0.6 && < 0.7,
                  tagsoup >= 0.12.5 && < 0.13,
                  base64-bytestring >= 0.1 && < 1.1,
@@ -259,6 +259,8 @@ Library
                  blaze-markup >= 0.5.1 && < 0.6,
                  attoparsec >= 0.10 && < 0.11,
                  stringable >= 0.1 && < 0.2,
+                 yaml >= 0.8 && < 0.9,
+                 vector >= 0.10 && < 0.11,
                  hslua >= 0.3 && < 0.4
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
@@ -393,7 +395,7 @@ Test-Suite test-pandoc
   Build-Depends:  base >= 4.2 && < 5,
                   syb >= 0.1 && < 0.5,
                   pandoc,
-                  pandoc-types >= 1.10 && < 1.11,
+                  pandoc-types >= 1.12 && < 1.13,
                   bytestring >= 0.9 && < 0.11,
                   text >= 0.11 && < 0.12,
                   directory >= 1 && < 1.3,

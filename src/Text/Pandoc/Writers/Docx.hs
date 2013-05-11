@@ -103,7 +103,7 @@ toLazy = BL.fromChunks . (:[])
 writeDocx :: WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO BL.ByteString
-writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
+writeDocx opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
   let doc' = bottomUp (concatMap fixDisplayMath) doc
   refArchive <- liftM (toArchive . toLazy) $
@@ -226,11 +226,11 @@ writeDocx opts doc@(Pandoc (Meta tit auths date) _) = do
           ,("xmlns:dcterms","http://purl.org/dc/terms/")
           ,("xmlns:dcmitype","http://purl.org/dc/dcmitype/")
           ,("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")]
-          $ mknode "dc:title" [] (stringify tit)
+          $ mknode "dc:title" [] (stringify $ docTitle meta)
           : mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")]
-            (maybe "" id $ normalizeDate $ stringify date)
+            (maybe "" id $ normalizeDate $ stringify $ docDate meta)
           : mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] () -- put current time here
-          : map (mknode "dc:creator" [] . stringify) auths
+          : map (mknode "dc:creator" [] . stringify) (docAuthors meta)
   let docPropsEntry = toEntry docPropsPath epochtime $ UTF8.fromStringLazy $ showTopElement' docProps
   let relsPath = "_rels/.rels"
   rels <- case findEntryByPath relsPath refArchive of
@@ -361,7 +361,12 @@ getNumId = length `fmap` gets stLists
 
 -- | Convert Pandoc document to two OpenXML elements (the main document and footnotes).
 writeOpenXML :: WriterOptions -> Pandoc -> WS (Element, Element)
-writeOpenXML opts (Pandoc (Meta tit auths dat) blocks) = do
+writeOpenXML opts (Pandoc meta blocks) = do
+  let tit = docTitle meta ++ case lookupMeta "subtitle" meta of
+                                  Just (MetaBlocks [Plain xs]) -> LineBreak : xs
+                                  _ -> []
+  let auths = docAuthors meta
+  let dat = docDate meta
   title <- withParaProp (pStyle "Title") $ blocksToOpenXML opts [Para tit | not (null tit)]
   authors <- withParaProp (pStyle "Authors") $ blocksToOpenXML opts
                  [Para (intercalate [LineBreak] auths) | not (null auths)]
@@ -372,7 +377,7 @@ writeOpenXML opts (Pandoc (Meta tit auths dat) blocks) = do
   let blocks' = bottomUp convertSpace $ blocks
   doc' <- blocksToOpenXML opts blocks'
   notes' <- reverse `fmap` gets stFootnotes
-  let meta = title ++ authors ++ date
+  let meta' = title ++ authors ++ date
   let stdAttributes =
             [("xmlns:w","http://schemas.openxmlformats.org/wordprocessingml/2006/main")
             ,("xmlns:m","http://schemas.openxmlformats.org/officeDocument/2006/math")
@@ -383,7 +388,7 @@ writeOpenXML opts (Pandoc (Meta tit auths dat) blocks) = do
             ,("xmlns:a","http://schemas.openxmlformats.org/drawingml/2006/main")
             ,("xmlns:pic","http://schemas.openxmlformats.org/drawingml/2006/picture")
             ,("xmlns:wp","http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing")]
-  let doc = mknode "w:document" stdAttributes $ mknode "w:body" [] (meta ++ doc')
+  let doc = mknode "w:document" stdAttributes $ mknode "w:body" [] (meta' ++ doc')
   let notes = mknode "w:footnotes" stdAttributes notes'
   return (doc, notes)
 

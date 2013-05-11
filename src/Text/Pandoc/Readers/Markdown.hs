@@ -37,7 +37,13 @@ import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum, toLower )
 import Data.Maybe
 import Text.Pandoc.Definition
+import qualified Data.Text as T
+import Data.Text (Text)
+import qualified Data.Yaml as Yaml
+import qualified Data.HashMap.Strict as H
 import qualified Text.Pandoc.Builder as B
+import qualified Text.Pandoc.UTF8 as UTF8
+import qualified Data.Vector as V
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
@@ -196,12 +202,13 @@ dateLine = try $ do
   skipSpaces
   trimInlinesF . mconcat <$> manyTill inline newline
 
-titleBlock :: MarkdownParser (F Inlines, F [Inlines], F Inlines)
+titleBlock :: MarkdownParser (F (Pandoc -> Pandoc))
 titleBlock = pandocTitleBlock
+         <|> yamlTitleBlock
          <|> mmdTitleBlock
-         <|> return (mempty, return [], mempty)
+         <|> return (return id)
 
-pandocTitleBlock :: MarkdownParser (F Inlines, F [Inlines], F Inlines)
+pandocTitleBlock :: MarkdownParser (F (Pandoc -> Pandoc))
 pandocTitleBlock = try $ do
   guardEnabled Ext_pandoc_title_block
   lookAhead (char '%')
@@ -209,25 +216,78 @@ pandocTitleBlock = try $ do
   author <- option (return []) authorsLine
   date <- option mempty dateLine
   optional blanklines
-  return (title, author, date)
+  return $ do
+    title' <- title
+    author' <- author
+    date' <- date
+    return $ B.setMeta "title" title'
+           . B.setMeta "author" author'
+           . B.setMeta "date" date'
 
-mmdTitleBlock :: MarkdownParser (F Inlines, F [Inlines], F Inlines)
+yamlTitleBlock :: MarkdownParser (F (Pandoc -> Pandoc))
+yamlTitleBlock = try $ do
+  guardEnabled Ext_yaml_title_block
+  string "---"
+  blankline
+  rawYaml <- unlines <$> manyTill anyLine stopLine
+  optional blanklines
+  opts <- stateOptions <$> getState
+  return $ return $
+    case Yaml.decode $ UTF8.fromString rawYaml of
+       Just (Yaml.Object hashmap) ->
+                H.foldrWithKey (\k v f ->
+                     if ignorable k
+                        then f
+                        else B.setMeta (T.unpack k) (yamlToMeta opts v) . f)
+                  id hashmap
+       _                    -> fail "Could not parse yaml object"
+
+-- ignore fields starting with _
+ignorable :: Text -> Bool
+ignorable t = (T.pack "_") `T.isPrefixOf` t
+
+toMetaValue :: ReaderOptions -> Text -> MetaValue
+toMetaValue opts x =
+  case readMarkdown opts (T.unpack x) of
+       Pandoc _ [Plain xs] -> MetaInlines xs
+       Pandoc _ [Para xs]
+         | endsWithNewline x -> MetaBlocks [Para xs]
+         | otherwise         -> MetaInlines xs
+       Pandoc _ bs           -> MetaBlocks bs
+  where endsWithNewline t = (T.pack "\n") `T.isSuffixOf` t
+
+yamlToMeta :: ReaderOptions -> Yaml.Value -> MetaValue
+yamlToMeta opts (Yaml.String t) = toMetaValue opts t
+yamlToMeta _    (Yaml.Number n) = MetaString $ show n
+yamlToMeta _    (Yaml.Bool b) = MetaString $ map toLower $ show b
+yamlToMeta opts (Yaml.Array xs) = B.toMetaValue $ map (yamlToMeta opts)
+                                                $ V.toList xs
+yamlToMeta opts (Yaml.Object o) = MetaMap $ H.foldrWithKey (\k v m ->
+                                if ignorable k
+                                   then m
+                                   else M.insert (T.unpack k)
+                                           (yamlToMeta opts v) m)
+                               M.empty o
+yamlToMeta _ _ = MetaString ""
+
+stopLine :: MarkdownParser ()
+stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()
+
+mmdTitleBlock :: MarkdownParser (F (Pandoc -> Pandoc))
 mmdTitleBlock = try $ do
   guardEnabled Ext_mmd_title_block
   kvPairs <- many1 kvPair
   blanklines
-  let title = maybe mempty return $ lookup "title" kvPairs
-  let author = maybe mempty (\x -> return [x]) $ lookup "author" kvPairs
-  let date = maybe mempty return $ lookup "date" kvPairs
-  return (title, author, date)
+  return $ return $ \(Pandoc m bs) ->
+             Pandoc (foldl (\m' (k,v) -> addMetaField k v m') m kvPairs) bs
 
-kvPair :: MarkdownParser (String, Inlines)
+kvPair :: MarkdownParser (String, MetaValue)
 kvPair = try $ do
   key <- many1Till (alphaNum <|> oneOf "_- ") (char ':')
   val <- manyTill anyChar
           (try $ newline >> lookAhead (blankline <|> nonspaceChar))
   let key' = concat $ words $ map toLower key
-  let val' = trimInlines $ B.text val
+  let val' = MetaBlocks $ B.toList $ B.plain $ B.text $ trim val
   return (key',val')
 
 parseMarkdown :: MarkdownParser Pandoc
@@ -236,16 +296,15 @@ parseMarkdown = do
   updateState $ \state -> state { stateOptions =
                 let oldOpts = stateOptions state in
                     oldOpts{ readerParseRaw = True } }
-  (title, authors, date) <- option (mempty,return [],mempty) titleBlock
+  titleTrans <- option (return id) titleBlock
   blocks <- parseBlocks
   st <- getState
   mbsty <- getOption readerCitationStyle
   refs <- getOption readerReferences
   return $ processBiblio mbsty refs
-         $ B.setTitle (runF title st)
-         $ B.setAuthors (runF authors st)
-         $ B.setDate (runF date st)
-         $ B.doc $ runF blocks st
+         $ runF titleTrans st
+         $ B.doc
+         $ runF blocks st
 
 addWarning :: Maybe SourcePos -> String -> MarkdownParser ()
 addWarning mbpos msg =

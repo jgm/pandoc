@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -81,7 +81,7 @@ writeLaTeX options document =
                 stInternalLinks = [], stUsesEuro = False }
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
-pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
+pandocToLaTeX options (Pandoc meta blocks) = do
   -- see if there are internal links
   let isInternalLink (Link _ ('#':xs,_))  = [xs]
       isInternalLink _                    = []
@@ -103,9 +103,10 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
   let colwidth = if writerWrapText options
                     then Just $ writerColumns options
                     else Nothing
-  titletext <- liftM (render colwidth) $ inlineListToLaTeX title
-  authorsText <- mapM (liftM (render colwidth) . inlineListToLaTeX) authors
-  dateText <- liftM (render colwidth) $ inlineListToLaTeX date
+  metadata <- metaToJSON
+              (fmap (render colwidth) . blockListToLaTeX)
+              (fmap (render colwidth) . inlineListToLaTeX)
+              meta
   let (blocks', lastHeader) = if writerCiteMethod options == Citeproc then
                                 (blocks, [])
                               else case last blocks of
@@ -115,55 +116,52 @@ pandocToLaTeX options (Pandoc (Meta title authors date) blocks) = do
                  then toSlides blocks'
                  else return blocks'
   body <- mapM (elementToLaTeX options) $ hierarchicalize blocks''
-  biblioTitle <- liftM (render colwidth) $ inlineListToLaTeX lastHeader
+  (biblioTitle :: String) <- liftM (render colwidth) $ inlineListToLaTeX lastHeader
   let main = render colwidth $ vsep body
   st <- get
   let biblioFiles = intercalate "," $ map dropExtension $  writerBiblioFiles options
-      citecontext = case writerCiteMethod options of
-                         Natbib   -> [ ("biblio-files", biblioFiles)
-                                     , ("biblio-title", biblioTitle)
-                                     , ("natbib", "yes")
-                                     ]
-                         Biblatex -> [ ("biblio-files", biblioFiles)
-                                     , ("biblio-title", biblioTitle)
-                                     , ("biblatex", "yes")
-                                     ]
-                         _      -> []
-      context  = writerVariables options ++
-                 [ ("toc", if writerTableOfContents options then "yes" else "")
-                 , ("toc-depth", show (writerTOCDepth options -
-                                       if writerChapters options
-                                          then 1
-                                          else 0))
-                 , ("body", main)
-                 , ("title", titletext)
-                 , ("title-meta", stringify title)
-                 , ("author-meta", intercalate "; " $ map stringify authors)
-                 , ("date", dateText)
-                 , ("documentclass", if writerBeamer options
-                                        then "beamer"
-                                        else if writerChapters options
-                                                then "book"
-                                                else "article") ] ++
-                 [ ("author", a) | a <- authorsText ] ++
-                 [ ("verbatim-in-note", "yes") | stVerbInNote st ] ++
-                 [ ("tables", "yes") | stTable st ] ++
-                 [ ("strikeout", "yes") | stStrikeout st ] ++
-                 [ ("url", "yes") | stUrl st ] ++
-                 [ ("numbersections", "yes") | writerNumberSections options ] ++
-                 [ ("lhs", "yes") | stLHS st ] ++
-                 [ ("graphics", "yes") | stGraphics st ] ++
-                 [ ("book-class", "yes") | stBook st] ++
-                 [ ("euro", "yes") | stUsesEuro st] ++
-                 [ ("listings", "yes") | writerListings options || stLHS st ] ++
-                 [ ("beamer", "yes") | writerBeamer options ] ++
-                 [ ("mainlang", maybe "" (reverse . takeWhile (/=',') . reverse)
-                                (lookup "lang" $ writerVariables options)) ] ++
-                 [ ("highlighting-macros", styleToLaTeX
-                       $ writerHighlightStyle options ) | stHighlighting st ] ++
-                 citecontext
+  let context  =  setField "toc" (writerTableOfContents options) $
+                  setField "toc-depth" (show (writerTOCDepth options -
+                                              if writerChapters options
+                                                 then 1
+                                                 else 0)) $
+                  setField "body" main $
+                  setField "title-meta" (stringify $ docTitle meta) $
+                  setField "author-meta" (intercalate "; " $ map stringify $ docAuthors meta) $
+                  setField "documentclass" (if writerBeamer options
+                                               then ("beamer" :: String)
+                                               else if writerChapters options
+                                                    then "book"
+                                                    else "article") $
+                  setField "verbatim-in-note" (stVerbInNote st) $
+                  setField "tables" (stTable st) $
+                  setField "strikeout" (stStrikeout st) $
+                  setField "url" (stUrl st) $
+                  setField "numbersections" (writerNumberSections options) $
+                  setField "lhs" (stLHS st) $
+                  setField "graphics" (stGraphics st) $
+                  setField "book-class" (stBook st) $
+                  setField "euro" (stUsesEuro st) $
+                  setField "listings" (writerListings options || stLHS st) $
+                  setField "beamer" (writerBeamer options) $
+                  setField "mainlang" (maybe "" (reverse . takeWhile (/=',') . reverse)
+                                (lookup "lang" $ writerVariables options)) $
+                  (if stHighlighting st
+                      then setField "highlighting-macros" (styleToLaTeX
+                                $ writerHighlightStyle options )
+                      else id) $
+                  (case writerCiteMethod options of
+                         Natbib   -> setField "biblio-files" biblioFiles .
+                                     setField "biblio-title" biblioTitle .
+                                     setField "natbib" True
+                         Biblatex -> setField "biblio-files" biblioFiles .
+                                     setField "biblio-title" biblioTitle .
+                                     setField "biblatex" True
+                         _        -> id) $
+                  foldl (\acc (x,y) -> setField x y acc)
+                     metadata (writerVariables options)
   return $ if writerStandalone options
-              then renderTemplate context template
+              then renderTemplate' template context
               else main
 
 -- | Convert Elements to LaTeX

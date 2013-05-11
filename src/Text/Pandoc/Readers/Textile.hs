@@ -93,7 +93,7 @@ parseTextile = do
   updateState $ \s -> s { stateNotes = reverse reversedNotes }
   -- now parse it for real...
   blocks <- parseBlocks
-  return $ Pandoc (Meta [] [] []) blocks -- FIXME
+  return $ Pandoc nullMeta blocks -- FIXME
 
 noteMarker :: Parser [Char] ParserState [Char]
 noteMarker = skipMany spaceChar >> string "fn" >> manyTill digit (char '.')

@@ -33,7 +33,7 @@ module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates (renderTemplate)
+import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.XML ( escapeStringForXML )
 import Data.List ( intersect, intercalate )
 import Network.URI ( isURI )
@@ -53,18 +53,23 @@ writeMediaWiki opts document =
 
 -- | Return MediaWiki representation of document.
 pandocToMediaWiki :: WriterOptions -> Pandoc -> State WriterState String
-pandocToMediaWiki opts (Pandoc _ blocks) = do
+pandocToMediaWiki opts (Pandoc meta blocks) = do
+  metadata <- metaToJSON
+              (fmap trimr . blockListToMediaWiki opts)
+              (inlineListToMediaWiki opts)
+              meta
   body <- blockListToMediaWiki opts blocks
   notesExist <- get >>= return . stNotes
   let notes = if notesExist
                  then "\n<references />"
                  else ""
   let main = body ++ notes
-  let context = writerVariables opts ++
-                [ ("body", main) ] ++
-                [ ("toc", "yes") | writerTableOfContents opts ]
+  let context = setField "body" main
+                $ setField "toc" (writerTableOfContents opts)
+                $ foldl (\acc (x,y) -> setField x y acc)
+                     metadata (writerVariables opts)
   if writerStandalone opts
-     then return $ renderTemplate context $ writerTemplate opts
+     then return $ renderTemplate' (writerTemplate opts) context
      else return main
 
 -- | Escape special characters for MediaWiki.

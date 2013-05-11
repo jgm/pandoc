@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Tests.Readers.RST (tests) where
 
 import Text.Pandoc.Definition
@@ -7,9 +7,10 @@ import Tests.Helpers
 import Tests.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
+import Data.Monoid (mempty)
 
 rst :: String -> Pandoc
-rst = readRST def
+rst = readRST def{ readerStandalone = True }
 
 infix 4 =:
 (=:) :: ToString c
@@ -21,14 +22,12 @@ tests = [ "line block with blank line" =:
           "| a\n|\n|  b" =?> para (str "a") <>
                              para (str "\160b")
         , "field list" =: unlines
-             [ ":Hostname: media08"
+             [ "para"
+             , ""
+             , ":Hostname: media08"
              , ":IP address: 10.0.0.19"
              , ":Size: 3ru"
-             , ":Date: 2001-08-16"
              , ":Version: 1"
-             , ":Authors: - Me"
-             , "              - Myself"
-             , "              - I"
              , ":Indentation: Since the field marker may be quite long, the second"
              , "   and subsequent lines of the field body do not have to line up"
              , "   with the first line, but they must be indented relative to the"
@@ -36,10 +35,9 @@ tests = [ "line block with blank line" =:
              , ":Parameter i: integer"
              , ":Final: item"
              , "  on two lines" ]
-           =?> ( setAuthors ["Me","Myself","I"]
-               $ setDate "2001-08-16"
-               $ doc
-               $ definitionList [ (str "Hostname", [para "media08"])
+           =?> ( doc
+               $ para "para" <>
+                 definitionList [ (str "Hostname", [para "media08"])
                                 , (str "IP address", [para "10.0.0.19"])
                                 , (str "Size", [para "3ru"])
                                 , (str "Version", [para "1"])
@@ -47,6 +45,20 @@ tests = [ "line block with blank line" =:
                                 , (str "Parameter i", [para "integer"])
                                 , (str "Final", [para "item on two lines"])
                               ])
+        , "initial field list" =: unlines
+             [ "====="
+             , "Title"
+             , "====="
+             , "--------"
+             , "Subtitle"
+             , "--------"
+             , ""
+             , ":Version: 1"
+             ]
+           =?> ( setMeta "version" (para "1")
+               $ setMeta "title" ("Title" :: Inlines)
+               $ setMeta "subtitle" ("Subtitle" :: Inlines)
+               $ doc mempty )
         , "URLs with following punctuation" =:
           ("http://google.com, http://yahoo.com; http://foo.bar.baz.\n" ++
            "http://foo.bar/baz_(bam) (http://foo.bar)") =?>

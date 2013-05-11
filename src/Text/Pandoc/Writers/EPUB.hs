@@ -45,6 +45,7 @@ import Data.Time
 import System.Locale
 import Text.Pandoc.Shared hiding ( Element )
 import qualified Text.Pandoc.Shared as Shared
+import Text.Pandoc.Builder (fromList, setMeta)
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
@@ -180,8 +181,10 @@ writeEPUB opts doc@(Pandoc meta _) = do
         $ writeHtml opts'{ writerNumberOffset =
             maybe [] id mbnum }
         $ case bs of
-              (Header _ _ xs : _) -> Pandoc (Meta xs [] []) bs
-              _                   -> Pandoc (Meta [] [] []) bs
+              (Header _ _ xs : _) ->
+                 Pandoc (setMeta "title" (fromList xs) nullMeta) bs
+              _                   ->
+                 Pandoc nullMeta bs
 
   let chapterEntries = zipWith chapToEntry [1..] chapters
 
@@ -248,9 +251,9 @@ writeEPUB opts doc@(Pandoc meta _) = do
                     Just _ -> [ unode "itemref" !
                                 [("idref", "cover"),("linear","no")] $ () ]
               ++ ((unode "itemref" ! [("idref", "title_page")
-                                     ,("linear", case meta of
-                                                      Meta [] [] [] -> "no"
-                                                      _  -> "yes")] $ ()) :
+                                     ,("linear", if null (docTitle meta)
+                                                    then "no"
+                                                    else "yes")] $ ()) :
                   (unode "itemref" ! [("idref", "nav")
                                      ,("linear", if writerTableOfContents opts
                                                     then "yes"
@@ -440,7 +443,7 @@ transformInline _ _ _ x = return x
 writeHtmlInline :: WriterOptions -> Inline -> String
 writeHtmlInline opts z = trimr $
   writeHtmlString opts{ writerStandalone = False }
-    $ Pandoc (Meta [] [] []) [Plain [z]]
+    $ Pandoc nullMeta [Plain [z]]
 
 (!) :: Node t => (t -> Element) -> [(String, String)] -> t -> Element
 (!) f attrs n = add_attrs (map (\(k,v) -> Attr (unqual k) v) attrs) (f n)

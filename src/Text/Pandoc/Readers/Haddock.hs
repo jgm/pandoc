@@ -21,7 +21,7 @@ import Text.Pandoc.Readers.Haddock.Parse
 readHaddock :: ReaderOptions -- ^ Reader options
             -> String        -- ^ String to parse
             -> Pandoc
-readHaddock _ s = Pandoc (Meta [] [] []) blocks
+readHaddock _ s = Pandoc nullMeta blocks
   where
     blocks = case parseParas (tokenise s (0,0)) of
         Left [] -> error "parse failure"

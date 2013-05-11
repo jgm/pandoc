@@ -31,7 +31,7 @@ module Text.Pandoc.Writers.Texinfo ( writeTexinfo ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates (renderTemplate)
+import Text.Pandoc.Templates (renderTemplate')
 import Text.Printf ( printf )
 import Data.List ( transpose, maximumBy )
 import Data.Ord ( comparing )
@@ -63,33 +63,33 @@ writeTexinfo options document =
 
 -- | Add a "Top" node around the document, needed by Texinfo.
 wrapTop :: Pandoc -> Pandoc
-wrapTop (Pandoc (Meta title authors date) blocks) =
-  Pandoc (Meta title authors date) (Header 0 nullAttr title : blocks)
+wrapTop (Pandoc meta blocks) =
+  Pandoc meta (Header 0 nullAttr (docTitle meta) : blocks)
 
 pandocToTexinfo :: WriterOptions -> Pandoc -> State WriterState String
-pandocToTexinfo options (Pandoc (Meta title authors date) blocks) = do
-  titleText <- inlineListToTexinfo title
-  authorsText <- mapM inlineListToTexinfo authors
-  dateText <- inlineListToTexinfo date
-  let titlePage = not $ all null $ title : date : authors
-  main <- blockListToTexinfo blocks
-  st <- get
+pandocToTexinfo options (Pandoc meta blocks) = do
+  let titlePage = not $ all null
+                      $ docTitle meta : docDate meta : docAuthors meta
   let colwidth = if writerWrapText options
                     then Just $ writerColumns options
                     else Nothing
+  metadata <- metaToJSON
+              (fmap (render colwidth) . blockListToTexinfo)
+              (fmap (render colwidth) . inlineListToTexinfo)
+                   meta
+  main <- blockListToTexinfo blocks
+  st <- get
   let body = render colwidth main
-  let context = writerVariables options ++
-                [ ("body", body)
-                , ("title", render colwidth titleText)
-                , ("date", render colwidth dateText) ] ++
-                [ ("toc", "yes") | writerTableOfContents options ] ++
-                [ ("titlepage", "yes") | titlePage ] ++
-                [ ("subscript", "yes") | stSubscript st ] ++
-                [ ("superscript", "yes") | stSuperscript st ] ++
-                [ ("strikeout", "yes") | stStrikeout st ] ++
-                [ ("author", render colwidth a) | a <- authorsText ]
+  let context = setField "body" body
+              $ setField "toc" (writerTableOfContents options)
+              $ setField "titlepage" titlePage
+              $ setField "subscript" (stSubscript st)
+              $ setField "superscript" (stSuperscript st)
+              $ setField "strikeout" (stStrikeout st)
+              $ foldl (\acc (x,y) -> setField x y acc)
+                     metadata (writerVariables options)
   if writerStandalone options
-     then return $ renderTemplate context $ writerTemplate options
+     then return $ renderTemplate' (writerTemplate options) context
      else return body
 
 -- | Escape things as needed for Texinfo.

@@ -33,7 +33,7 @@ module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.XML
-import Text.Pandoc.Templates (renderTemplate)
+import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Pretty
 import Text.Printf ( printf )
@@ -42,6 +42,7 @@ import Control.Arrow ( (***), (>>>) )
 import Control.Monad.State hiding ( when )
 import Data.Char (chr, isDigit)
 import qualified Data.Map as Map
+import Text.Pandoc.Shared (metaToJSON, setField)
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
@@ -172,34 +173,32 @@ handleSpaces s
 
 -- | Convert Pandoc document to string in OpenDocument format.
 writeOpenDocument :: WriterOptions -> Pandoc -> String
-writeOpenDocument opts (Pandoc (Meta title authors date) blocks) =
-  let ((doc, title', authors', date'),s) = flip runState
-        defaultWriterState $ do
-           title'' <- inlinesToOpenDocument opts title
-           authors'' <- mapM (inlinesToOpenDocument opts) authors
-           date'' <- inlinesToOpenDocument opts date
-           doc'' <- blocksToOpenDocument opts blocks
-           return (doc'', title'', authors'', date'')
-      colwidth = if writerWrapText opts
+writeOpenDocument opts (Pandoc meta blocks) =
+  let colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
                     else Nothing
       render' = render colwidth
-      body'    = render' doc
+      ((body, metadata),s) = flip runState
+        defaultWriterState $ do
+           m <- metaToJSON
+                  (fmap (render colwidth) . blocksToOpenDocument opts)
+                  (fmap (render colwidth) . inlinesToOpenDocument opts)
+                  meta
+           b <- render' `fmap` blocksToOpenDocument opts blocks
+           return (b, m)
       styles   = stTableStyles s ++ stParaStyles s ++ stTextStyles s
       listStyle (n,l) = inTags True "text:list-style"
                           [("style:name", "L" ++ show n)] (vcat l)
       listStyles  = map listStyle (stListStyles s)
       automaticStyles = inTagsIndented "office:automatic-styles" $ vcat $
                           reverse $ styles ++ listStyles
-      context = writerVariables opts ++
-                [ ("body", body')
-                , ("automatic-styles", render' automaticStyles)
-                , ("title", render' title')
-                , ("date", render' date') ] ++
-                [ ("author", render' a) | a <- authors' ]
+      context = setField "body" body
+              $ setField "automatic-styles" (render' automaticStyles)
+              $ foldl (\acc (x,y) -> setField x y acc)
+                     metadata (writerVariables opts)
   in  if writerStandalone opts
-         then renderTemplate context $ writerTemplate opts
-         else body'
+         then renderTemplate' (writerTemplate opts) context
+         else body
 
 withParagraphStyle :: WriterOptions -> String -> [Block] -> State WriterState Doc
 withParagraphStyle  o s (b:bs)

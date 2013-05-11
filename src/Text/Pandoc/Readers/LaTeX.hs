@@ -65,13 +65,11 @@ parseLaTeX = do
   bs <- blocks
   eof
   st <- getState
-  let title' = stateTitle st
-  let authors' = stateAuthors st
-  let date' = stateDate st
+  let meta = stateMeta st
   refs <- getOption readerReferences
   mbsty <- getOption readerCitationStyle
-  return $ processBiblio mbsty refs
-         $ Pandoc (Meta title' authors' date') $ toList bs
+  let (Pandoc _ bs') = processBiblio mbsty refs $ doc bs
+  return $ Pandoc meta bs'
 
 type LP = Parser [Char] ParserState
 
@@ -249,13 +247,13 @@ ignoreBlocks name = (name, doraw <|> (mempty <$ optargs))
 blockCommands :: M.Map String (LP Blocks)
 blockCommands = M.fromList $
   [ ("par", mempty <$ skipopts)
-  , ("title", mempty <$ (skipopts *> tok >>= addTitle))
-  , ("subtitle", mempty <$ (skipopts *> tok >>= addSubtitle))
+  , ("title", mempty <$ (skipopts *> tok >>= addMeta "title"))
+  , ("subtitle", mempty <$ (skipopts *> tok >>= addMeta "subtitle"))
   , ("author", mempty <$ (skipopts *> authors))
   -- -- in letter class, temp. store address & sig as title, author
-  , ("address", mempty <$ (skipopts *> tok >>= addTitle))
+  , ("address", mempty <$ (skipopts *> tok >>= addMeta "address"))
   , ("signature", mempty <$ (skipopts *> authors))
-  , ("date", mempty <$ (skipopts *> tok >>= addDate))
+  , ("date", mempty <$ (skipopts *> tok >>= addMeta "date"))
   -- sectioning
   , ("chapter", updateState (\s -> s{ stateHasChapters = True })
                       *> section nullAttr 0)
@@ -301,12 +299,8 @@ blockCommands = M.fromList $
   , "hspace", "vspace"
   ]
 
-addTitle :: Inlines -> LP ()
-addTitle tit = updateState (\s -> s{ stateTitle = toList tit })
-
-addSubtitle :: Inlines -> LP ()
-addSubtitle tit = updateState (\s -> s{ stateTitle = stateTitle s ++
-                        toList (str ":" <> linebreak <> tit) })
+addMeta :: ToMetaValue a => String -> a -> LP ()
+addMeta field val = updateState $ setMeta field val
 
 authors :: LP ()
 authors = try $ do
@@ -317,10 +311,7 @@ authors = try $ do
                -- skip e.g. \vspace{10pt}
   auths <- sepBy oneAuthor (controlSeq "and")
   char '}'
-  updateState (\s -> s { stateAuthors = map (normalizeSpaces . toList) auths })
-
-addDate :: Inlines -> LP ()
-addDate dat = updateState (\s -> s{ stateDate = toList dat })
+  addMeta "authors" (map trimInlines auths)
 
 section :: Attr -> Int -> LP Blocks
 section attr lvl = do
@@ -872,20 +863,24 @@ letter_contents = do
   bs <- blocks
   st <- getState
   -- add signature (author) and address (title)
-  let addr = case stateTitle st of
-                  []   -> mempty
-                  x    -> para $ trimInlines $ fromList x
-  updateState $ \s -> s{ stateAuthors = [], stateTitle = [] }
+  let addr = case lookupMeta "address" (stateMeta st) of
+                  Just (MetaBlocks [Plain xs]) ->
+                     para $ trimInlines $ fromList xs
+                  _ -> mempty
   return $ addr <> bs -- sig added by \closing
 
 closing :: LP Blocks
 closing = do
   contents <- tok
   st <- getState
-  let sigs = case stateAuthors st of
-                  []   -> mempty
-                  xs   -> para $ trimInlines $ fromList
-                               $ intercalate [LineBreak] xs
+  let extractInlines (MetaBlocks [Plain ys]) = ys
+      extractInlines (MetaBlocks [Para ys ]) = ys
+      extractInlines _          = []
+  let sigs = case lookupMeta "author" (stateMeta st) of
+                  Just (MetaList xs) ->
+                    para $ trimInlines $ fromList $
+                      intercalate [LineBreak] $ map extractInlines xs
+                  _ -> mempty
   return $ para (trimInlines contents) <> sigs
 
 item :: LP Blocks

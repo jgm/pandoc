@@ -32,21 +32,26 @@ import Text.Pandoc.Definition
 import Text.Pandoc.XML
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
-import Text.Pandoc.Templates (renderTemplate)
+import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Readers.TeXMath
 import Data.List ( isPrefixOf, intercalate, isSuffixOf )
 import Data.Char ( toLower )
 import Text.Pandoc.Highlighting ( languages, languagesByExtension )
 import Text.Pandoc.Pretty
+import qualified Text.Pandoc.Builder as B
 import Text.TeXMath
 import qualified Text.XML.Light as Xml
 import Data.Generics (everywhere, mkT)
 
 -- | Convert list of authors to a docbook <author> section
-authorToDocbook :: WriterOptions -> [Inline] -> Doc
+authorToDocbook :: WriterOptions -> [Inline] -> B.Inlines
 authorToDocbook opts name' =
   let name = render Nothing $ inlinesToDocbook opts name'
-  in  if ',' `elem` name
+      colwidth = if writerWrapText opts
+                    then Just $ writerColumns opts
+                    else Nothing
+  in  B.rawInline "docbook" $ render colwidth $
+      if ',' `elem` name
          then -- last name first
               let (lastname, rest) = break (==',') name
                   firstname = triml rest in
@@ -64,11 +69,8 @@ authorToDocbook opts name' =
 
 -- | Convert Pandoc document to string in Docbook format.
 writeDocbook :: WriterOptions -> Pandoc -> String
-writeDocbook opts (Pandoc (Meta tit auths dat) blocks) =
-  let title = inlinesToDocbook opts tit
-      authors = map (authorToDocbook opts) auths
-      date = inlinesToDocbook opts dat
-      elements = hierarchicalize blocks
+writeDocbook opts (Pandoc meta blocks) =
+  let elements = hierarchicalize blocks
       colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
                     else Nothing
@@ -78,17 +80,21 @@ writeDocbook opts (Pandoc (Meta tit auths dat) blocks) =
                  then opts{ writerChapters = True }
                  else opts
       startLvl = if writerChapters opts' then 0 else 1
+      auths'   = map (authorToDocbook opts) $ docAuthors meta
+      meta'    = B.setMeta "author" auths' meta
+      Just metadata = metaToJSON
+                 (Just . render colwidth . blocksToDocbook opts)
+                 (Just . render colwidth . inlinesToDocbook opts)
+                 meta'
       main     = render' $ vcat (map (elementToDocbook opts' startLvl) elements)
-      context = writerVariables opts ++
-                [ ("body", main)
-                , ("title", render' title)
-                , ("date", render' date) ] ++
-                [ ("author", render' a) | a <- authors ] ++
-                [ ("mathml", "yes") | case writerHTMLMathMethod opts of
-                                            MathML _ -> True
-                                            _ -> False ]
+      context = setField "body" main
+              $ setField "mathml" (case writerHTMLMathMethod opts of
+                                        MathML _ -> True
+                                        _        -> False)
+              $ foldl (\acc (x,y) -> setField x y acc)
+                   metadata (writerVariables opts)
   in  if writerStandalone opts
-         then renderTemplate context $ writerTemplate opts
+         then renderTemplate' (writerTemplate opts) context
          else main
 
 -- | Convert an Element to Docbook.

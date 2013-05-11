@@ -121,10 +121,10 @@ writeCustom luaFile opts doc = do
   return $ toString rendered
 
 docToCustom :: LuaState -> WriterOptions -> Pandoc -> IO ByteString
-docToCustom lua opts (Pandoc (Meta title authors date) blocks) = do
-  title' <- inlineListToCustom lua title
-  authors' <- mapM (inlineListToCustom lua) authors
-  date' <- inlineListToCustom lua date
+docToCustom lua opts (Pandoc meta blocks) = do
+  title' <- inlineListToCustom lua $ docTitle meta
+  authors' <- mapM (inlineListToCustom lua) $ docAuthors meta
+  date' <- inlineListToCustom lua $ docDate meta
   body <- blockListToCustom lua blocks
   callfunc lua "Doc" body title' authors' date' (writerVariables opts)
 

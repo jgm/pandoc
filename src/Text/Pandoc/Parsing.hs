@@ -148,7 +148,7 @@ where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Builder (Blocks, Inlines, rawBlock)
+import Text.Pandoc.Builder (Blocks, Inlines, rawBlock, HasMeta(..))
 import Text.Pandoc.XML (fromEntities)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec
@@ -799,9 +799,7 @@ data ParserState = ParserState
       stateSubstitutions   :: SubstTable,    -- ^ List of substitution references
       stateNotes           :: NoteTable,     -- ^ List of notes (raw bodies)
       stateNotes'          :: NoteTable',    -- ^ List of notes (parsed bodies)
-      stateTitle           :: [Inline],      -- ^ Title of document
-      stateAuthors         :: [[Inline]],    -- ^ Authors of document
-      stateDate            :: [Inline],      -- ^ Date of document
+      stateMeta            :: Meta,          -- ^ Document metadata
       stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
       stateHeaders         :: M.Map Inlines String, -- ^ List of headers and ids (used for implicit ref links)
       stateIdentifiers     :: [String],      -- ^ List of header identifiers used
@@ -816,6 +814,12 @@ data ParserState = ParserState
 instance Default ParserState where
   def = defaultParserState
 
+instance HasMeta ParserState where
+  setMeta field val st =
+    st{ stateMeta = setMeta field val $ stateMeta st }
+  deleteMeta field st =
+    st{ stateMeta = deleteMeta field $ stateMeta st }
+
 defaultParserState :: ParserState
 defaultParserState =
     ParserState { stateOptions         = def,
@@ -828,9 +832,7 @@ defaultParserState =
                   stateSubstitutions   = M.empty,
                   stateNotes           = [],
                   stateNotes'          = [],
-                  stateTitle           = [],
-                  stateAuthors         = [],
-                  stateDate            = [],
+                  stateMeta            = nullMeta,
                   stateHeaderTable     = [],
                   stateHeaders         = M.empty,
                   stateIdentifiers     = [],

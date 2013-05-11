@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, CPP #-}
 {-
-Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2013 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Shared
-   Copyright   : Copyright (C) 2006-2010 John MacFarlane
+   Copyright   : Copyright (C) 2006-2013 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -61,6 +61,10 @@ module Text.Pandoc.Shared (
                      isHeaderBlock,
                      headerShift,
                      isTightList,
+                     addMetaField,
+                     makeMeta,
+                     metaToJSON,
+                     setField,
                      -- * TagSoup HTML handling
                      renderTags',
                      -- * File handling
@@ -78,7 +82,7 @@ module Text.Pandoc.Shared (
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
-import Text.Pandoc.Builder (Blocks)
+import Text.Pandoc.Builder (Blocks, ToMetaValue(..))
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.UTF8 as UTF8
 import System.Environment (getProgName)
@@ -86,6 +90,7 @@ import System.Exit (exitWith, ExitCode(..))
 import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
 import Data.List ( find, isPrefixOf, intercalate )
+import qualified Data.Map as M
 import Network.URI ( escapeURIString, isAbsoluteURI, parseURI, unEscapeString )
 import System.Directory
 import Text.Pandoc.MIME (getMimeType)
@@ -104,6 +109,11 @@ import qualified Data.ByteString.Char8 as B8
 import Network.HTTP (findHeader, rspBody,
                      RequestMethod(..), HeaderName(..), mkRequest)
 import Network.Browser (browse, setAllowRedirects, setOutHandler, request)
+import qualified Data.Traversable as Traversable
+import qualified Data.HashMap.Strict as H
+import qualified Data.Text as T
+import Data.Aeson (ToJSON (..), Value(Object), Result(..), fromJSON)
+
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
 import System.FilePath ( joinPath, splitDirectories )
@@ -490,6 +500,67 @@ isTightList :: [[Block]] -> Bool
 isTightList = and . map firstIsPlain
   where firstIsPlain (Plain _ : _) = True
         firstIsPlain _             = False
+
+-- | Set a field of a 'Meta' object.  If the field already has a value,
+-- convert it into a list with the new value appended to the old value(s).
+addMetaField :: ToMetaValue a
+             => String
+             -> a
+             -> Meta
+             -> Meta
+addMetaField key val (Meta meta) =
+  Meta $ M.insertWith combine key (toMetaValue val) meta
+  where combine newval (MetaList xs) = MetaList (xs ++ [newval])
+        combine newval x             = MetaList [x, newval]
+
+-- | Create 'Meta' from old-style title, authors, date.  This is
+-- provided to ease the transition from the old API.
+makeMeta :: [Inline] -> [[Inline]] -> [Inline] -> Meta
+makeMeta title authors date =
+      addMetaField "title" (B.fromList title)
+    $ addMetaField "author" (map B.fromList authors)
+    $ addMetaField "date" (B.fromList date)
+    $ nullMeta
+
+-- | Create JSON value for template from a 'Meta' and an association list
+-- of variables, specified at the command line or in the writer.
+-- Variables overwrite metadata fields with the same names.
+metaToJSON :: (Monad m, Functor m)
+           => ([Block] -> m String) -- ^ Writer for output format
+           => ([Inline] -> m String) -- ^ Writer for output format
+           -> Meta                  -- ^ Metadata
+           -> m Value
+metaToJSON blockWriter inlineWriter (Meta metamap) = toJSON
+  `fmap` Traversable.mapM (metaValueToJSON blockWriter inlineWriter) metamap
+
+metaValueToJSON :: (Monad m, Functor m)
+                => ([Block] -> m String)
+                -> ([Inline] -> m String)
+                -> MetaValue
+                -> m Value
+metaValueToJSON blockWriter inlineWriter (MetaMap metamap) = toJSON
+  `fmap` Traversable.mapM (metaValueToJSON blockWriter inlineWriter) metamap
+metaValueToJSON blockWriter inlineWriter (MetaList xs) =
+  toJSON `fmap` Traversable.mapM (metaValueToJSON blockWriter inlineWriter) xs
+metaValueToJSON _ _ (MetaString s) = return $ toJSON s
+metaValueToJSON blockWriter _ (MetaBlocks bs) = toJSON `fmap` blockWriter bs
+metaValueToJSON _ inlineWriter (MetaInlines bs) = toJSON `fmap` inlineWriter bs
+
+setField :: ToJSON a
+         => String
+         -> a
+         -> Value
+         -> Value
+-- | Set a field of a JSON object.  If the field already has a value,
+-- convert it into a list with the new value appended to the old value(s).
+-- This is a utility function to be used in preparing template contexts.
+setField field val (Object hashmap) =
+  Object $ H.insertWith combine (T.pack field) (toJSON val) hashmap
+  where combine newval oldval =
+          case fromJSON oldval of
+                Success xs  -> toJSON $ xs ++ [newval]
+                _           -> toJSON [oldval, newval]
+setField _ _  x = x
 
 --
 -- TagSoup HTML handling

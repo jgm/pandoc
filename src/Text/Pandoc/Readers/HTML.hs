@@ -39,7 +39,7 @@ module Text.Pandoc.Readers.HTML ( readHtml
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Definition
-import Text.Pandoc.Builder (text, toList)
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
@@ -47,6 +47,7 @@ import Data.Maybe ( fromMaybe, isJust )
 import Data.List ( intercalate )
 import Data.Char ( isDigit )
 import Control.Monad ( liftM, guard, when, mzero )
+import Control.Applicative ( (<$>), (<$) )
 
 isSpace :: Char -> Bool
 isSpace ' '  = True
@@ -58,32 +59,26 @@ isSpace _    = False
 readHtml :: ReaderOptions -- ^ Reader options
          -> String        -- ^ String to parse (assumes @'\n'@ line endings)
          -> Pandoc
-readHtml opts inp = Pandoc meta blocks
-  where blocks  = case runParser parseBody def{ stateOptions = opts }
-                    "source" rest of
-                      Left err'    -> error $ "\nError at " ++ show  err'
-                      Right result -> result
-        tags    = canonicalizeTags $
+readHtml opts inp =
+  case runParser parseDoc def{ stateOptions = opts } "source" tags of
+          Left err'    -> error $ "\nError at " ++ show  err'
+          Right result -> result
+    where tags = canonicalizeTags $
                    parseTagsOptions parseOptions{ optTagPosition = True } inp
-        hasHeader = any (~== TagOpen "head" []) tags
-        (meta, rest) = if hasHeader
-                          then parseHeader tags
-                          else (Meta [] [] [], tags)
+          parseDoc = do
+             blocks <- (fixPlains False . concat) <$> manyTill block eof
+             meta <- stateMeta <$> getState
+             return $ Pandoc meta blocks
 
 type TagParser = Parser [Tag String] ParserState
 
--- TODO - fix this - not every header has a title tag
-parseHeader :: [Tag String] -> (Meta, [Tag String])
-parseHeader tags = (Meta{docTitle = tit'', docAuthors = [], docDate = []}, rest)
-  where (tit,_) = break (~== TagClose "title") $ drop 1 $
-                   dropWhile (\t -> not $ t ~== TagOpen "title" []) tags
-        tit' = concatMap fromTagText $ filter isTagText tit
-        tit'' = normalizeSpaces $ toList $ text tit'
-        rest  = drop 1 $ dropWhile (\t -> not $ t ~== TagClose "head" ||
-                                                t ~== TagOpen "body" []) tags
+pBody :: TagParser [Block]
+pBody = pInTags "body" block
 
-parseBody :: TagParser [Block]
-parseBody = liftM (fixPlains False . concat) $ manyTill block eof
+pHead :: TagParser [Block]
+pHead = pInTags "head" $ pTitle <|> ([] <$ pAnyTag)
+  where pTitle = pInTags "title" inline >>= setTitle . normalizeSpaces
+        setTitle t = [] <$ (updateState $ B.setMeta "title" (B.fromList t))
 
 block :: TagParser [Block]
 block = choice
@@ -94,6 +89,8 @@ block = choice
             , pList
             , pHrule
             , pSimpleTable
+            , pHead
+            , pBody
             , pPlain
             , pRawHtmlBlock
             ]
@@ -366,7 +363,7 @@ pImage = do
   let url = fromAttrib "src" tag
   let title = fromAttrib "title" tag
   let alt = fromAttrib "alt" tag
-  return [Image (toList $ text alt) (escapeURI url, title)]
+  return [Image (B.toList $ B.text alt) (escapeURI url, title)]
 
 pCode :: TagParser [Inline]
 pCode = try $ do

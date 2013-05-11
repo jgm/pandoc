@@ -34,18 +34,16 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Templates
-import Text.Pandoc.Generic
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting ( highlight, styleToCss,
                                   formatHtmlInline, formatHtmlBlock )
-import Text.Pandoc.XML (stripTags, fromEntities)
+import Text.Pandoc.XML (fromEntities)
 import Network.HTTP ( urlEncode )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
 import Data.List ( isPrefixOf, intersperse )
 import Data.String ( fromString )
-import qualified Data.Text as T
 import Data.Maybe ( catMaybes )
 import Control.Monad.State
 import Text.Blaze.Html hiding(contents)
@@ -62,6 +60,7 @@ import Text.TeXMath
 import Text.XML.Light.Output
 import System.FilePath (takeExtension)
 import Data.Monoid
+import Data.Aeson (Value)
 
 data WriterState = WriterState
     { stNotes            :: [Html]  -- ^ List of notes
@@ -93,39 +92,30 @@ nl opts = if writerWrapText opts
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
 writeHtmlString opts d =
-  let (tit, auths, authsMeta, date, toc, body', newvars) = evalState (pandocToHtml opts d)
-                                                             defaultWriterState
+  let (body, context) = evalState (pandocToHtml opts d) defaultWriterState
   in  if writerStandalone opts
-         then inTemplate opts tit auths authsMeta date toc body' newvars
-         else renderHtml body'
+         then inTemplate opts context body
+         else renderHtml body
 
 -- | Convert Pandoc document to Html structure.
 writeHtml :: WriterOptions -> Pandoc -> Html
 writeHtml opts d =
-  let (tit, auths, authsMeta, date, toc, body', newvars) = evalState (pandocToHtml opts d)
-                                                            defaultWriterState
+  let (body, context) = evalState (pandocToHtml opts d) defaultWriterState
   in  if writerStandalone opts
-         then inTemplate opts tit auths authsMeta date toc body' newvars
-         else body'
+         then inTemplate opts context body
+         else body
 
 -- result is (title, authors, date, toc, body, new variables)
 pandocToHtml :: WriterOptions
              -> Pandoc
-             -> State WriterState (Html, [Html], [Html], Html, Maybe Html, Html, [(String,String)])
-pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
-  let standalone = writerStandalone opts
-  tit <- if standalone
-            then inlineListToHtml opts title'
-            else return mempty
-  auths <- if standalone
-              then mapM (inlineListToHtml opts) authors'
-              else return []
-  authsMeta <- if standalone
-                  then mapM (inlineListToHtml opts . prepForMeta) authors'
-                  else return []
-  date <- if standalone
-             then inlineListToHtml opts date'
-             else return mempty
+             -> State WriterState (Html, Value)
+pandocToHtml opts (Pandoc meta blocks) = do
+  metadata <- metaToJSON
+              (fmap renderHtml . blockListToHtml opts)
+              (fmap renderHtml . inlineListToHtml opts)
+              meta
+  let authsMeta = map stringify $ docAuthors meta
+  let dateMeta  = stringify $ docDate meta
   let slideLevel = maybe (getSlideLevel blocks) id $ writerSlideLevel opts
   let sects = hierarchicalize $
               if writerSlideVariant opts == NoSlides
@@ -165,58 +155,37 @@ pandocToHtml opts (Pandoc (Meta title' authors' date') blocks) = do
                                              | otherwise -> mempty
                                       Nothing -> mempty
                 else mempty
-  let newvars = [("highlighting-css",
-                   styleToCss $ writerHighlightStyle opts) |
-                   stHighlighting st] ++
-                [("math", renderHtml math) | stMath st] ++
-                [("quotes", "yes") | stQuotes st]
-  return (tit, auths, authsMeta, date, toc, thebody, newvars)
-
--- | Prepare author for meta tag, converting notes into
--- bracketed text and removing links.
-prepForMeta :: [Inline] -> [Inline]
-prepForMeta = bottomUp (concatMap fixInline)
-  where fixInline (Note [Para xs])  = [Str " ["] ++ xs ++ [Str "]"]
-        fixInline (Note [Plain xs]) = [Str " ["] ++ xs ++ [Str "]"]
-        fixInline (Link lab _)      = lab
-        fixInline (Image lab _)     = lab
-        fixInline x                 = [x]
+  let context =   (if stHighlighting st
+                      then setField "highlighting-css"
+                             (styleToCss $ writerHighlightStyle opts)
+                      else id) $
+                  (if stMath st
+                      then setField "math" (renderHtml math)
+                      else id) $
+                  setField "quotes" (stQuotes st) $
+                  maybe id (setField "toc" . renderHtml) toc $
+                  setField "author-meta" authsMeta $
+                  maybe id (setField "date-meta") (normalizeDate dateMeta) $
+                  setField "pagetitle" (stringify $ docTitle meta) $
+                  setField "idprefix" (writerIdentifierPrefix opts) $
+                  -- these should maybe be set in pandoc.hs
+                  setField "slidy-url"
+                    ("http://www.w3.org/Talks/Tools/Slidy2" :: String) $
+                  setField "slideous-url" ("slideous" :: String) $
+                  setField "revealjs-url" ("reveal.js" :: String) $
+                  setField "s5-url" ("s5/default" :: String) $
+                  setField "html5" (writerHtml5 opts) $
+                  foldl (\acc (x,y) -> setField x y acc)
+                     metadata (writerVariables opts)
+  return (thebody, context)
 
 inTemplate :: TemplateTarget a
            => WriterOptions
+           -> Value
            -> Html
-           -> [Html]
-           -> [Html]
-           -> Html
-           -> Maybe Html
-           -> Html
-           -> [(String,String)]
            -> a
-inTemplate opts tit auths authsMeta date toc body' newvars =
-  let title'      = renderHtml tit
-      date'       = renderHtml date
-      dateMeta    = maybe [] (\x -> [("date-meta",x)]) $ normalizeDate date'
-      variables   = writerVariables opts ++ newvars
-      context     = variables ++ dateMeta ++
-                    [ ("body", dropWhile (=='\n') $ renderHtml body')
-                    , ("pagetitle", stripTags title')
-                    , ("title", title')
-                    , ("date", date')
-                    , ("idprefix", writerIdentifierPrefix opts)
-                    , ("slidy-url", "http://www.w3.org/Talks/Tools/Slidy2")
-                    , ("slideous-url", "slideous")
-                    , ("revealjs-url", "reveal.js")
-                    , ("s5-url", "s5/default") ] ++
-                    [ ("html5","true") | writerHtml5 opts ] ++
-                    (case toc of
-                         Just t  -> [ ("toc", renderHtml t)]
-                         Nothing -> [])  ++
-                    [ ("author", renderHtml a) | a <- auths ] ++
-                    [ ("author-meta", stripTags $ renderHtml a) | a <- authsMeta ]
-      template    = case compileTemplate (T.pack $ writerTemplate opts) of
-                          Left  e -> error e
-                          Right t -> t
-  in  renderTemplate template (varListToJSON context)
+inTemplate opts context body = renderTemplate' (writerTemplate opts)
+                             $ setField "body" (renderHtml body) context
 
 -- | Like Text.XHtml's identifier, but adds the writerIdentifierPrefix
 prefixedId :: WriterOptions -> String -> Attribute

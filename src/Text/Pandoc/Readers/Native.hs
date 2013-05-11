@@ -33,12 +33,6 @@ module Text.Pandoc.Readers.Native ( readNative ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (safeRead)
 
-nullMeta :: Meta
-nullMeta = Meta{ docTitle = []
-               , docAuthors = []
-               , docDate = []
-               }
-
 -- | Read native formatted text and return a Pandoc document.
 -- The input may be a full pandoc document, a block list, a block,
 -- an inline list, or an inline.  Thus, for example,
@@ -47,7 +41,7 @@ nullMeta = Meta{ docTitle = []
 --
 -- will be treated as if it were
 --
--- > Pandoc (Meta [] [] []) [Plain [Str "hi"]]
+-- > Pandoc nullMeta [Plain [Str "hi"]]
 --
 readNative :: String      -- ^ String to parse (assuming @'\n'@ line endings)
            -> Pandoc

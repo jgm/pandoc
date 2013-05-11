@@ -1,4 +1,4 @@
-Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docAuthors = [[Str "John",Space,Str "MacFarlane"],[Str "Anonymous"]], docDate = [Str "July",Space,Str "17,",Space,Str "2006"]})
+Pandoc {docMeta = Meta {unMeta = fromList [("author",MetaList [MetaBlocks [Plain [Str "John",Space,Str "MacFarlane"]],MetaBlocks [Plain [Str "Anonymous"]]]),("date",MetaBlocks [Plain [Str "July",Space,Str "17,",Space,Str "2006"]]),("title",MetaBlocks [Plain [Str "Pandoc",Space,Str "Test",Space,Str "Suite"]])]}, docBody =
 [Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc.",Space,Str "Most",Space,Str "of",Space,Str "them",Space,Str "are",Space,Str "adapted",Space,Str "from",Space,Str "John",Space,Str "Gruber\8217s",Space,Str "markdown",Space,Str "test",Space,Str "suite."]
 ,HorizontalRule
 ,Header 1 ("headers",[],[]) [Str "Headers"]
@@ -393,4 +393,4 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite"], docA
  [Para [Str "Notes",Space,Str "can",Space,Str "go",Space,Str "in",Space,Str "quotes.",Note [Para [Str "In",Space,Str "quote."]]]]
 ,OrderedList (1,Decimal,Period)
  [[Plain [Str "And",Space,Str "in",Space,Str "list",Space,Str "items.",Note [Para [Str "In",Space,Str "list."]]]]]
-,Para [Str "This",Space,Str "paragraph",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "part",Space,Str "of",Space,Str "the",Space,Str "note,",Space,Str "as",Space,Str "it",Space,Str "is",Space,Str "not",Space,Str "indented."]]
+,Para [Str "This",Space,Str "paragraph",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "part",Space,Str "of",Space,Str "the",Space,Str "note,",Space,Str "as",Space,Str "it",Space,Str "is",Space,Str "not",Space,Str "indented."]]}

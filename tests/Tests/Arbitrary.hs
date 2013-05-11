@@ -150,10 +150,13 @@ instance Arbitrary QuoteType where
 
 instance Arbitrary Meta where
         arbitrary
-          = do x1 <- arbitrary
-               x2 <- liftM (filter (not . null)) arbitrary
-               x3 <- arbitrary
-               return (Meta x1 x2 x3)
+          = do (x1 :: Inlines) <- arbitrary
+               (x2 :: [Inlines]) <- liftM (filter (not . isNull)) arbitrary
+               (x3 :: Inlines) <- arbitrary
+               return $ setMeta "title" x1
+                      $ setMeta "author" x2
+                      $ setMeta "date" x3
+                      $ nullMeta
 
 instance Arbitrary Alignment where
         arbitrary

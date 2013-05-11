@@ -38,13 +38,16 @@ AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 -}
 module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc) where
 import Text.Pandoc.Definition
-import Text.Pandoc.Templates (renderTemplate)
+import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, space)
 import Data.List ( isPrefixOf, intersperse, intercalate )
 import Text.Pandoc.Pretty
 import Control.Monad.State
+import qualified Data.Map as M
+import Data.Aeson (Value(String), fromJSON, toJSON, Result(..))
+import qualified Data.Text as T
 
 data WriterState = WriterState { defListMarker :: String
                                , orderedListLevel :: Int
@@ -62,29 +65,33 @@ writeAsciiDoc opts document =
 
 -- | Return asciidoc representation of document.
 pandocToAsciiDoc :: WriterOptions -> Pandoc -> State WriterState String
-pandocToAsciiDoc opts (Pandoc (Meta title authors date) blocks) = do
-  title' <- inlineListToAsciiDoc opts title
-  let title'' = title' $$ text (replicate (offset title') '=')
-  authors' <- mapM (inlineListToAsciiDoc opts) authors
-  -- asciidoc only allows a singel author
-  date' <- inlineListToAsciiDoc opts date
-  let titleblock = not $ null title && null authors && null date
-  body <- blockListToAsciiDoc opts blocks
+pandocToAsciiDoc opts (Pandoc meta blocks) = do
+  let titleblock = not $ null (docTitle meta) && null (docAuthors meta) &&
+                         null (docDate meta)
   let colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
                     else Nothing
+  metadata <- metaToJSON
+              (fmap (render colwidth) . blockListToAsciiDoc opts)
+              (fmap (render colwidth) . inlineListToAsciiDoc opts)
+              meta
+  let addTitleLine (String t) = String $
+         t <> "\n" <> T.replicate (T.length t) "="
+      addTitleLine x = x
+  let metadata' = case fromJSON metadata of
+                        Success m  -> toJSON $ M.adjust addTitleLine
+                                                 ("title" :: T.Text) m
+                        _          -> metadata
+  body <- blockListToAsciiDoc opts blocks
   let main = render colwidth body
-  let context  = writerVariables opts ++
-                 [ ("body", main)
-                 , ("title", render colwidth title'')
-                 , ("date", render colwidth date')
-                 ] ++
-                 [ ("toc", "yes") | writerTableOfContents opts &&
-                                    writerStandalone opts ] ++
-                 [ ("titleblock", "yes") | titleblock ] ++
-                 [ ("author", render colwidth a) | a <- authors' ]
+  let context  = setField "body" main
+               $ setField "toc"
+                  (writerTableOfContents opts && writerStandalone opts)
+               $ setField "titleblock" titleblock
+               $ foldl (\acc (x,y) -> setField x y acc)
+                     metadata' (writerVariables opts)
   if writerStandalone opts
-     then return $ renderTemplate context $ writerTemplate opts
+     then return $ renderTemplate' (writerTemplate opts) context
      else return main
 
 -- | Escape special characters for AsciiDoc.

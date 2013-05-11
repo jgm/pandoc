@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TupleSections #-}
+{-# LANGUAGE OverloadedStrings, TupleSections, ScopedTypeVariables #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -33,7 +33,7 @@ Markdown:  <http://daringfireball.net/projects/markdown/>
 module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
-import Text.Pandoc.Templates (renderTemplate)
+import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, char, space)
@@ -111,10 +111,10 @@ plainTitleBlock tit auths dat =
 
 -- | Return markdown representation of document.
 pandocToMarkdown :: WriterOptions -> Pandoc -> State WriterState String
-pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
-  title' <- inlineListToMarkdown opts title
-  authors' <- mapM (inlineListToMarkdown opts) authors
-  date' <- inlineListToMarkdown opts date
+pandocToMarkdown opts (Pandoc meta blocks) = do
+  title' <- inlineListToMarkdown opts $ docTitle meta
+  authors' <- mapM (inlineListToMarkdown opts) $ docAuthors meta
+  date' <- inlineListToMarkdown opts $ docDate meta
   isPlain <- gets stPlain
   let titleblock = case True of
                         _ | isPlain ->
@@ -128,28 +128,33 @@ pandocToMarkdown opts (Pandoc (Meta title authors date) blocks) = do
   let toc = if writerTableOfContents opts
                then tableOfContents opts headerBlocks
                else empty
+  let colwidth = if writerWrapText opts
+                    then Just $ writerColumns opts
+                    else Nothing
+  metadata <- metaToJSON
+              (fmap (render colwidth) . blockListToMarkdown opts)
+              (fmap (render colwidth) . inlineListToMarkdown opts)
+              meta
   body <- blockListToMarkdown opts blocks
   st <- get
   notes' <- notesToMarkdown opts (reverse $ stNotes st)
   st' <- get  -- note that the notes may contain refs
   refs' <- refsToMarkdown opts (reverse $ stRefs st')
-  let colwidth = if writerWrapText opts
-                    then Just $ writerColumns opts
-                    else Nothing
-  let main = render colwidth $ body <>
+  let render' :: Doc -> String
+      render' = render colwidth
+  let main = render' $ body <>
                (if isEmpty notes' then empty else blankline <> notes') <>
                (if isEmpty refs' then empty else blankline <> refs')
-  let context  = writerVariables opts ++
-                 [ ("toc", render colwidth toc)
-                 , ("body", main)
-                 , ("title", render Nothing title')
-                 , ("date", render Nothing date')
-                 ] ++
-                 [ ("author", render Nothing a) | a <- authors' ] ++
-                 [ ("titleblock", render colwidth titleblock)
-                   | not (null title && null authors && null date) ]
+  let context  = setField "toc" (render' toc)
+               $ setField "body" main
+               $ (if not (null (docTitle meta) && null (docAuthors meta)
+                           && null (docDate meta))
+                     then setField "titleblock" (render' titleblock)
+                     else id)
+               $ foldl (\acc (x,y) -> setField x y acc)
+                     metadata (writerVariables opts)
   if writerStandalone opts
-     then return $ renderTemplate context $ writerTemplate opts
+     then return $ renderTemplate' (writerTemplate opts) context
      else return main
 
 -- | Return markdown representation of reference key table.
@@ -370,7 +375,7 @@ blockToMarkdown opts t@(Table caption aligns widths headers rows) =  do
                              rawHeaders rawRows
                   | otherwise -> fmap (id,) $
                          return $ text $ writeHtmlString def
-                                $ Pandoc (Meta [] [] []) [t]
+                                $ Pandoc nullMeta [t]
   return $ nst $ tbl $$ blankline $$ caption'' $$ blankline
 blockToMarkdown opts (BulletList items) = do
   contents <- mapM (bulletListItemToMarkdown opts) items

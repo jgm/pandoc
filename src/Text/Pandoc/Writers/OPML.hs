@@ -32,37 +32,38 @@ import Text.Pandoc.Definition
 import Text.Pandoc.XML
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
-import Text.Pandoc.Templates (renderTemplate)
+import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.HTML (writeHtmlString)
 import Text.Pandoc.Writers.Markdown (writeMarkdown)
-import Data.List ( intercalate )
 import Text.Pandoc.Pretty
 import Data.Time
 import System.Locale (defaultTimeLocale)
+import qualified Text.Pandoc.Builder as B
 
 -- | Convert Pandoc document to string in OPML format.
 writeOPML :: WriterOptions -> Pandoc -> String
-writeOPML opts (Pandoc (Meta tit auths dat) blocks) =
-  let title = writeHtmlInlines tit
-      author = writeHtmlInlines $ intercalate [Space,Str ";",Space] auths
-      date = convertDate dat
-      elements = hierarchicalize blocks
+writeOPML opts (Pandoc meta blocks) =
+  let elements = hierarchicalize blocks
       colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
                     else Nothing
+      meta' = B.setMeta "date" (B.str $ convertDate $ docDate meta) meta
+      Just metadata = metaToJSON
+                      (Just . writeMarkdown def . Pandoc nullMeta)
+                      (Just . trimr . writeMarkdown def . Pandoc nullMeta .
+                         (\ils -> [Plain ils]))
+                      meta'
       main     = render colwidth $ vcat (map (elementToOPML opts) elements)
-      context = writerVariables opts ++
-                [ ("body", main)
-                , ("title", title)
-                , ("date", date)
-                , ("author", author) ]
+      context = setField "body" main
+              $ foldl (\acc (x,y) -> setField x y acc)
+                     metadata (writerVariables opts)
   in  if writerStandalone opts
-         then renderTemplate context $ writerTemplate opts
+         then renderTemplate' (writerTemplate opts) context
          else main
 
 writeHtmlInlines :: [Inline] -> String
 writeHtmlInlines ils = trim $ writeHtmlString def
-                            $ Pandoc (Meta [] [] []) [Plain ils]
+                            $ Pandoc nullMeta [Plain ils]
 
 -- date format: RFC 822: Thu, 14 Jul 2005 23:41:05 GMT
 showDateTimeRFC822 :: UTCTime -> String
@@ -82,7 +83,7 @@ elementToOPML opts (Sec _ _num _ title elements) =
       fromBlk _ = error "fromBlk called on non-block"
       (blocks, rest) = span isBlk elements
       attrs = [("text", writeHtmlInlines title)] ++
-              [("_note", writeMarkdown def (Pandoc (Meta [] [] [])
+              [("_note", writeMarkdown def (Pandoc nullMeta
                               (map fromBlk blocks)))
                 | not (null blocks)]
   in  inTags True "outline" attrs $

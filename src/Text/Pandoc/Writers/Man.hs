@@ -37,8 +37,8 @@ import Text.Pandoc.Readers.TeXMath
 import Text.Printf ( printf )
 import Data.List ( isPrefixOf, intersperse, intercalate )
 import Text.Pandoc.Pretty
+import Text.Pandoc.Builder (deleteMeta)
 import Control.Monad.State
-import qualified Data.Text as T
 
 type Notes = [[Block]]
 data WriterState = WriterState { stNotes  :: Notes
@@ -50,39 +50,37 @@ writeMan opts document = evalState (pandocToMan opts document) (WriterState [] F
 
 -- | Return groff man representation of document.
 pandocToMan :: WriterOptions -> Pandoc -> State WriterState String
-pandocToMan opts (Pandoc (Meta title authors date) blocks) = do
-  titleText <- inlineListToMan opts title
-  authors' <- mapM (inlineListToMan opts) authors
-  date' <- inlineListToMan opts date
+pandocToMan opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
                     else Nothing
   let render' = render colwidth
+  titleText <- inlineListToMan opts $ docTitle meta
   let (cmdName, rest) = break (== ' ') $ render' titleText
   let (title', section) = case reverse cmdName of
                             (')':d:'(':xs) | d `elem` ['0'..'9'] ->
-                                  (text (reverse xs), char d)
-                            xs -> (text (reverse xs), doubleQuotes empty)
+                                  (reverse xs, [d])
+                            xs -> (reverse xs, "\"\"")
   let description = hsep $
                     map (doubleQuotes . text . trim) $ splitBy (== '|') rest
+  metadata <- metaToJSON
+              (fmap (render colwidth) . blockListToMan opts)
+              (fmap (render colwidth) . inlineListToMan opts)
+              $ deleteMeta "title" meta
   body <- blockListToMan opts blocks
   notes <- liftM stNotes get
   notes' <- notesToMan opts (reverse notes)
   let main = render' $ body $$ notes' $$ text ""
   hasTables <- liftM stHasTables get
-  let context  = writerVariables opts ++
-                 [ ("body", main)
-                 , ("title", render' title')
-                 , ("section", render' section)
-                 , ("date", render' date')
-                 , ("description", render' description) ] ++
-                 [ ("has-tables", "yes") | hasTables ] ++
-                 [ ("author", render' a) | a <- authors' ]
-      template = case compileTemplate (T.pack $ writerTemplate opts) of
-                       Left  e -> error e
-                       Right t -> t
+  let context = setField "body" main
+              $ setField "title" title'
+              $ setField "section" section
+              $ setField "description" (render' description)
+              $ setField "has-tables" hasTables
+              $ foldl (\acc (x,y) -> setField x y acc)
+                     metadata (writerVariables opts)
   if writerStandalone opts
-     then return $ renderTemplate template (varListToJSON context)
+     then return $ renderTemplate' (writerTemplate opts) context
      else return main
 
 -- | Return man representation of notes.

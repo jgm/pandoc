@@ -12,7 +12,7 @@ p_write_rt d =
 
 p_write_blocks_rt :: [Block] -> Bool
 p_write_blocks_rt bs = length bs > 20 ||
-  read (writeNative def (Pandoc (Meta [] [] []) bs)) ==
+  read (writeNative def (Pandoc nullMeta bs)) ==
   bs
 
 tests :: [Test]

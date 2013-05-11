@@ -55,6 +55,7 @@ data Extension =
       Ext_footnotes           -- ^ Pandoc/PHP/MMD style footnotes
     | Ext_inline_notes        -- ^ Pandoc-style inline notes
     | Ext_pandoc_title_block  -- ^ Pandoc title block
+    | Ext_yaml_title_block    -- ^ YAML metadata block
     | Ext_mmd_title_block     -- ^ Multimarkdown metadata block
     | Ext_table_captions      -- ^ Pandoc-style table captions
     | Ext_implicit_figures    -- ^ A paragraph with just an image is a figure
@@ -106,6 +107,7 @@ pandocExtensions = Set.fromList
   [ Ext_footnotes
   , Ext_inline_notes
   , Ext_pandoc_title_block
+  , Ext_yaml_title_block
   , Ext_table_captions
   , Ext_implicit_figures
   , Ext_simple_tables

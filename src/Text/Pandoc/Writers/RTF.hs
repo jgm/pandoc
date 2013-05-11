@@ -32,7 +32,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.TeXMath
-import Text.Pandoc.Templates (renderTemplate)
+import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Generic (bottomUpM)
 import Data.List ( isSuffixOf, intercalate )
 import Data.Char ( ord, chr, isDigit, toLower )
@@ -73,24 +73,22 @@ writeRTFWithEmbeddedImages options doc =
 
 -- | Convert Pandoc to a string in rich text format.
 writeRTF :: WriterOptions -> Pandoc -> String
-writeRTF options (Pandoc (Meta title authors date) blocks) =
-  let titletext = inlineListToRTF title
-      authorstext = map inlineListToRTF authors
-      datetext = inlineListToRTF date
-      spacer = not $ all null $ titletext : datetext : authorstext
+writeRTF options (Pandoc meta blocks) =
+  let spacer = not $ all null $ docTitle meta : docDate meta : docAuthors meta
+      Just metadata = metaToJSON
+              (Just . concatMap (blockToRTF 0 AlignDefault))
+              (Just . inlineListToRTF)
+              meta
       body = concatMap (blockToRTF 0 AlignDefault) blocks
       isTOCHeader (Header lev _ _) = lev <= writerTOCDepth options
       isTOCHeader _ = False
-      context = writerVariables options ++
-                [ ("body", body)
-                , ("title", titletext)
-                , ("date", datetext) ] ++
-                [ ("author", a) | a <- authorstext ] ++
-                [ ("spacer", "yes") | spacer ] ++
-                [ ("toc", tableOfContents $ filter isTOCHeader blocks) |
-                   writerTableOfContents options ]
+      context = setField "body" body
+              $ setField "spacer" spacer
+              $ setField "toc" (tableOfContents $ filter isTOCHeader blocks)
+              $ foldl (\acc (x,y) -> setField x y acc)
+                   metadata (writerVariables options)
   in  if writerStandalone options
-         then renderTemplate context $ writerTemplate options
+         then renderTemplate' (writerTemplate options) context
          else body
 
 -- | Construct table of contents from list of header blocks.

@@ -35,7 +35,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Pretty
-import Text.Pandoc.Templates (renderTemplate)
+import Text.Pandoc.Templates (renderTemplate')
 import Data.List ( intersect, intersperse, transpose )
 import Control.Monad.State
 import Control.Applicative ( (<$>) )
@@ -58,27 +58,26 @@ writeOrg opts document =
 
 -- | Return Org representation of document.
 pandocToOrg :: Pandoc -> State WriterState String
-pandocToOrg (Pandoc (Meta tit auth dat) blocks) = do
+pandocToOrg (Pandoc meta blocks) = do
   opts <- liftM stOptions get
-  title <- titleToOrg tit
-  authors <- mapM inlineListToOrg auth
-  date <- inlineListToOrg dat
+  let colwidth = if writerWrapText opts
+                    then Just $ writerColumns opts
+                    else Nothing
+  metadata <- metaToJSON
+               (fmap (render colwidth) . blockListToOrg)
+               (fmap (render colwidth) . inlineListToOrg)
+               meta
   body <- blockListToOrg blocks
   notes <- liftM (reverse . stNotes) get >>= notesToOrg
   -- note that the notes may contain refs, so we do them first
   hasMath <- liftM stHasMath get
-  let colwidth = if writerWrapText opts
-                    then Just $ writerColumns opts
-                    else Nothing
   let main = render colwidth $ foldl ($+$) empty $ [body, notes]
-  let context = writerVariables opts ++
-                [ ("body", main)
-                , ("title", render Nothing title)
-                , ("date", render Nothing date) ] ++
-                [ ("math", "yes") | hasMath ] ++
-                [ ("author", render Nothing a) | a <- authors ]
+  let context = setField "body" main
+              $ setField "math" hasMath
+              $ foldl (\acc (x,y) -> setField x y acc)
+                     metadata (writerVariables opts)
   if writerStandalone opts
-     then return $ renderTemplate context $ writerTemplate opts
+     then return $ renderTemplate' (writerTemplate opts) context
      else return main
 
 -- | Return Org representation of notes.
@@ -102,12 +101,6 @@ escapeString = escapeStringUsing $
                , ('\x2019',"'")
                , ('\x2026',"...")
                ] ++ backslashEscapes "^_"
-
-titleToOrg :: [Inline] -> State WriterState Doc
-titleToOrg [] = return empty
-titleToOrg lst = do
-  contents <- inlineListToOrg lst
-  return $ "#+TITLE: " <> contents
 
 -- | Convert Pandoc block element to Org.
 blockToOrg :: Block         -- ^ Block element

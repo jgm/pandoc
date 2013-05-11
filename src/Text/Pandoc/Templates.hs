@@ -86,6 +86,7 @@ example above.
 -}
 
 module Text.Pandoc.Templates ( renderTemplate
+                             , renderTemplate'
                              , TemplateTarget(..)
                              , varListToJSON
                              , compileTemplate
@@ -165,12 +166,16 @@ varListToJSON assoc = toJSON $ M.fromList assoc'
         toVal xs  = toJSON xs
 
 renderTemplate :: (ToJSON a, TemplateTarget b) => Template -> a -> b
-renderTemplate template context =
-  toTarget $ renderTemplate' template (toJSON context)
-   where renderTemplate' (Template f) val = f val
+renderTemplate (Template f) context = toTarget $ f $ toJSON context
 
 compileTemplate :: Text -> Either String Template
 compileTemplate template = A.parseOnly pTemplate template
+
+-- | Like 'renderTemplate', but compiles the template first,
+-- raising an error if compilation fails.
+renderTemplate' :: (ToJSON a, TemplateTarget b) => String -> a -> b
+renderTemplate' template =
+  renderTemplate (either error id $ compileTemplate $ T.pack template)
 
 var :: Variable -> Template
 var = Template . resolveVar

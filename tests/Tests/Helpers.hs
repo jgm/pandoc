@@ -20,6 +20,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Writers.Native (writeNative)
 import qualified Test.QuickCheck.Property as QP
 import Data.Algorithm.Diff
+import qualified Data.Map as M
 
 test :: (ToString a, ToString b, ToString c)
      => (a -> b)  -- ^ function to test
@@ -58,8 +59,9 @@ class ToString a where
 instance ToString Pandoc where
   toString d = writeNative def{ writerStandalone = s } $ toPandoc d
    where s = case d of
-                  (Pandoc (Meta [] [] []) _) -> False
-                  _                          -> True
+                  (Pandoc (Meta m) _)
+                    | M.null m  -> False
+                    | otherwise -> True
 
 instance ToString Blocks where
   toString = writeNative def . toPandoc

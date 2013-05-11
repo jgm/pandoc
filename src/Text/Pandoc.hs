@@ -193,18 +193,18 @@ readers :: [(String, ReaderOptions -> String -> IO Pandoc)]
 readers = [("native"       , \_ s -> return $ readNative s)
           ,("json"         , \_ s -> return $ checkJSON
                                             $ decode $ UTF8.fromStringLazy s)
-          ,("markdown"     , markdown)
-          ,("markdown_strict" , markdown)
-          ,("markdown_phpextra" , markdown)
-          ,("markdown_github" , markdown)
-          ,("markdown_mmd",  markdown)
-          ,("rst"          , \o s -> return $ readRST o s)
-          ,("mediawiki"    , \o s -> return $ readMediaWiki o s)
-          ,("docbook"      , \o s -> return $ readDocBook o s)
-          ,("opml"         , \o s -> return $ readOPML o s)
-          ,("textile"      , \o s -> return $ readTextile o s) -- TODO : textile+lhs
-          ,("html"         , \o s -> return $ readHtml o s)
-          ,("latex"        , \o s -> return $ readLaTeX o s)
+           ,("markdown"     , markdown)
+           ,("markdown_strict" , markdown)
+           ,("markdown_phpextra" , markdown)
+           ,("markdown_github" , markdown)
+           ,("markdown_mmd",  markdown)
+           ,("rst"          , \o s -> return $ readRST o s)
+           ,("mediawiki"    , \o s -> return $ readMediaWiki o s)
+           ,("docbook"      , \o s -> return $ readDocBook o s)
+           ,("opml"         , \o s -> return $ readOPML o s)
+           ,("textile"      , \o s -> return $ readTextile o s) -- TODO : textile+lhs
+           ,("html"         , \o s -> return $ readHtml o s)
+           ,("latex"        , \o s -> return $ readLaTeX o s)
           ,("haddock"      , \o s -> return $ readHaddock o s)
           ]
 
@@ -218,10 +218,10 @@ writers = [
    ("native"       , PureStringWriter writeNative)
   ,("json"         , PureStringWriter $ \_ -> UTF8.toStringLazy . encode)
   ,("docx"         , IOByteStringWriter writeDocx)
-  ,("odt"          , IOByteStringWriter writeODT)
-  ,("epub"         , IOByteStringWriter $ \o ->
-                       writeEPUB o{ writerEpubVersion = Just EPUB2 })
-  ,("epub3"        , IOByteStringWriter $ \o ->
+ ,("odt"          , IOByteStringWriter writeODT)
+ ,("epub"         , IOByteStringWriter $ \o ->
+                      writeEPUB o{ writerEpubVersion = Just EPUB2 })
+ ,("epub3"        , IOByteStringWriter $ \o ->
                        writeEPUB o{ writerEpubVersion = Just EPUB3 })
   ,("fb2"          , IOStringWriter writeFB2)
   ,("html"         , PureStringWriter writeHtmlString)
