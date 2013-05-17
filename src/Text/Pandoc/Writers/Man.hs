@@ -38,6 +38,7 @@ import Text.Printf ( printf )
 import Data.List ( isPrefixOf, intersperse, intercalate )
 import Text.Pandoc.Pretty
 import Control.Monad.State
+import qualified Data.Text as T
 
 type Notes = [[Block]]
 data WriterState = WriterState { stNotes  :: Notes
@@ -77,8 +78,11 @@ pandocToMan opts (Pandoc (Meta title authors date) blocks) = do
                  , ("description", render' description) ] ++
                  [ ("has-tables", "yes") | hasTables ] ++
                  [ ("author", render' a) | a <- authors' ]
+      template = case compileTemplate (T.pack $ writerTemplate opts) of
+                       Left  e -> error e
+                       Right t -> t
   if writerStandalone opts
-     then return $ renderTemplate context $ writerTemplate opts
+     then return $ renderTemplate template (varListToJSON context)
      else return main
 
 -- | Return man representation of notes.

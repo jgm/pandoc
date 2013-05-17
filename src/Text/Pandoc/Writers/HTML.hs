@@ -45,6 +45,7 @@ import Numeric ( showHex )
 import Data.Char ( ord, toLower )
 import Data.List ( isPrefixOf, intersperse )
 import Data.String ( fromString )
+import qualified Data.Text as T
 import Data.Maybe ( catMaybes )
 import Control.Monad.State
 import Text.Blaze.Html hiding(contents)
@@ -212,7 +213,10 @@ inTemplate opts tit auths authsMeta date toc body' newvars =
                          Nothing -> [])  ++
                     [ ("author", renderHtml a) | a <- auths ] ++
                     [ ("author-meta", stripTags $ renderHtml a) | a <- authsMeta ]
-  in  renderTemplate context $ writerTemplate opts
+      template    = case compileTemplate (T.pack $ writerTemplate opts) of
+                          Left  e -> error e
+                          Right t -> t
+  in  renderTemplate template (varListToJSON context)
 
 -- | Like Text.XHtml's identifier, but adds the writerIdentifierPrefix
 prefixedId :: WriterOptions -> String -> Attribute
