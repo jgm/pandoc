@@ -229,7 +229,7 @@ tableEnd = try $ guardColumnOne *> skipSpaces *> sym "|}"
 
 rowsep :: MWParser ()
 rowsep = try $ guardColumnOne *> skipSpaces *> sym "|-" <*
-               optional (void parseAttr) <* blanklines
+               optional parseAttr <* blanklines
 
 cellsep :: MWParser ()
 cellsep = try $
@@ -246,9 +246,8 @@ tableCaption = try $ do
   guardColumnOne
   skipSpaces
   sym "|+"
-  skipMany spaceChar
-  res <- anyLine >>= parseFromString (many inline)
-  return $ trimInlines $ mconcat res
+  optional (try $ parseAttr *> skipSpaces *> char '|' *> skipSpaces)
+  (trimInlines . mconcat) <$> many (notFollowedBy (cellsep <|> rowsep) *> inline)
 
 tableRow :: MWParser [((Alignment, Double), Blocks)]
 tableRow = try $ many tableCell
