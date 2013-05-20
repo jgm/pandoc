@@ -228,7 +228,8 @@ tableEnd :: MWParser ()
 tableEnd = try $ guardColumnOne *> skipSpaces *> sym "|}"
 
 rowsep :: MWParser ()
-rowsep = try $ guardColumnOne *> skipSpaces *> sym "|-" <* blanklines
+rowsep = try $ guardColumnOne *> skipSpaces *> sym "|-" <*
+               optional (void parseAttr) <* blanklines
 
 cellsep :: MWParser ()
 cellsep = try $
