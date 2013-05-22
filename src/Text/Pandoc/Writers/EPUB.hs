@@ -30,13 +30,14 @@ Conversion of 'Pandoc' documents to EPUB.
 module Text.Pandoc.Writers.EPUB ( writeEPUB ) where
 import Data.IORef
 import Data.Maybe ( fromMaybe, isNothing )
-import Data.List ( isInfixOf, intercalate )
+import Data.List ( isInfixOf, intercalate, isPrefixOf )
 import System.Environment ( getEnv )
 import Text.Printf (printf)
 import System.FilePath ( (</>), takeBaseName, takeExtension, takeFileName )
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import Text.Pandoc.UTF8 ( fromStringLazy, toString )
+import Text.Pandoc.SelfContained ( makeSelfContained )
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
 import Data.Time
@@ -115,7 +116,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
   -- handle pictures
   picsRef <- newIORef []
   Pandoc _ blocks <- bottomUpM
-       (transformInlines (writerHTMLMathMethod opts') sourceDir picsRef) doc
+       (transformInline (writerHTMLMathMethod opts') sourceDir picsRef) doc
   pics <- readIORef picsRef
   let readPicEntry (oldsrc, newsrc) = do
         (img,_) <- fetchItem sourceDir oldsrc
@@ -404,34 +405,40 @@ metadataElement version metadataXML uuid lang title authors date currentTime mbC
 showDateTimeISO8601 :: UTCTime -> String
 showDateTimeISO8601 = formatTime defaultTimeLocale "%FT%TZ"
 
-transformInlines :: HTMLMathMethod
+transformInline  :: HTMLMathMethod
                  -> FilePath
                  -> IORef [(FilePath, FilePath)] -- ^ (oldpath, newpath) images
-                 -> [Inline]
-                 -> IO [Inline]
-transformInlines _ _ _ (Image lab (src,_) : xs)
-  | isNothing (imageTypeOf src) = return $ Emph lab : xs
-transformInlines _ sourceDir picsRef (Image lab (src,tit) : xs) = do
-  let src' = unEscapeString src
-  pics <- readIORef picsRef
-  let oldsrc = sourceDir </> src'
-  let ext = takeExtension src'
-  newsrc <- case lookup oldsrc pics of
-                  Just n  -> return n
-                  Nothing -> do
-                        let new = "images/img" ++ show (length pics) ++ ext
-                        modifyIORef picsRef ( (oldsrc, new): )
-                        return new
-  return $ Image lab (newsrc, tit) : xs
-transformInlines (MathML _) _ _ (x@(Math _ _) : xs) = do
+                 -> Inline
+                 -> IO Inline
+transformInline _ sourceDir picsRef (Image lab (src,tit))
+  | "http://chart.apis.google.com" `isPrefixOf` src = do
+    raw <- makeSelfContained Nothing $
+             writeHtmlInline def (Image lab (src,tit))
+    return (RawInline "html" raw)
+  | isNothing (imageTypeOf src) = return $ Emph lab
+  | otherwise = do
+    let src' = unEscapeString src
+    pics <- readIORef picsRef
+    let oldsrc = sourceDir </> src'
+    let ext = takeExtension src'
+    newsrc <- case lookup oldsrc pics of
+                    Just n  -> return n
+                    Nothing -> do
+                          let new = "images/img" ++ show (length pics) ++ ext
+                          modifyIORef picsRef ( (oldsrc, new): )
+                          return new
+    return $ Image lab (newsrc, tit)
+transformInline (MathML _) _ _ (x@(Math _ _)) = do
   -- note: ideally we'd use a switch statement to provide a fallback
   -- but switch does not seem to be widely implemented yet, so we just
   -- provide the mathml
-  let writeHtmlInline opts z = trimr $
-         writeHtmlString opts $ Pandoc (Meta [] [] []) [Plain [z]]
-      result = writeHtmlInline def{writerHTMLMathMethod = MathML Nothing } x
-  return $ RawInline "html" result : xs
-transformInlines _ _ _ xs = return xs
+  let result = writeHtmlInline def{writerHTMLMathMethod = MathML Nothing } x
+  return $ RawInline "html" result
+transformInline _ _ _ x = return x
+
+writeHtmlInline :: WriterOptions -> Inline -> String
+writeHtmlInline opts z = trimr $
+  writeHtmlString opts $ Pandoc (Meta [] [] []) [Plain [z]]
 
 (!) :: Node t => (t -> Element) -> [(String, String)] -> t -> Element
 (!) f attrs n = add_attrs (map (\(k,v) -> Attr (unqual k) v) attrs) (f n)
