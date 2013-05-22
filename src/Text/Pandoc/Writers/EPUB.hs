@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternGuards #-}
 {-
 Copyright (C) 2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -30,7 +31,7 @@ Conversion of 'Pandoc' documents to EPUB.
 module Text.Pandoc.Writers.EPUB ( writeEPUB ) where
 import Data.IORef
 import Data.Maybe ( fromMaybe, isNothing )
-import Data.List ( isInfixOf, intercalate, isPrefixOf )
+import Data.List ( isInfixOf, intercalate )
 import System.Environment ( getEnv )
 import Text.Printf (printf)
 import System.FilePath ( (</>), takeBaseName, takeExtension, takeFileName )
@@ -53,7 +54,7 @@ import Text.Pandoc.UUID
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.Markdown ( writePlain )
 import Data.Char ( toLower )
-import Network.URI ( unEscapeString )
+import Network.URI ( isAbsoluteURI, unEscapeString )
 import Text.Pandoc.MIME (getMimeType)
 import Prelude hiding (catch)
 import Control.Exception (catch, SomeException)
@@ -116,7 +117,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
   -- handle pictures
   picsRef <- newIORef []
   Pandoc _ blocks <- bottomUpM
-       (transformInline (writerHTMLMathMethod opts') sourceDir picsRef) doc
+       (transformInline opts' sourceDir picsRef) doc
   pics <- readIORef picsRef
   let readPicEntry (oldsrc, newsrc) = do
         (img,_) <- fetchItem sourceDir oldsrc
@@ -405,17 +406,16 @@ metadataElement version metadataXML uuid lang title authors date currentTime mbC
 showDateTimeISO8601 :: UTCTime -> String
 showDateTimeISO8601 = formatTime defaultTimeLocale "%FT%TZ"
 
-transformInline  :: HTMLMathMethod
+transformInline  :: WriterOptions
                  -> FilePath
                  -> IORef [(FilePath, FilePath)] -- ^ (oldpath, newpath) images
                  -> Inline
                  -> IO Inline
-transformInline _ sourceDir picsRef (Image lab (src,tit))
-  | "http://chart.apis.google.com" `isPrefixOf` src = do
-    raw <- makeSelfContained Nothing $
-             writeHtmlInline def (Image lab (src,tit))
-    return (RawInline "html" raw)
-  | isNothing (imageTypeOf src) = return $ Emph lab
+transformInline opts sourceDir picsRef (Image lab (src,tit))
+  | isAbsoluteURI src = do
+    raw <- makeSelfContained Nothing
+             $ writeHtmlInline opts (Image lab (src,tit))
+    return $ RawInline "html" raw
   | otherwise = do
     let src' = unEscapeString src
     pics <- readIORef picsRef
@@ -428,17 +428,16 @@ transformInline _ sourceDir picsRef (Image lab (src,tit))
                           modifyIORef picsRef ( (oldsrc, new): )
                           return new
     return $ Image lab (newsrc, tit)
-transformInline (MathML _) _ _ (x@(Math _ _)) = do
-  -- note: ideally we'd use a switch statement to provide a fallback
-  -- but switch does not seem to be widely implemented yet, so we just
-  -- provide the mathml
-  let result = writeHtmlInline def{writerHTMLMathMethod = MathML Nothing } x
-  return $ RawInline "html" result
+transformInline opts _ _ (x@(Math _ _))
+  | WebTeX _ <- writerHTMLMathMethod opts = do
+    raw <- makeSelfContained Nothing $ writeHtmlInline opts x
+    return $ RawInline "html" raw
 transformInline _ _ _ x = return x
 
 writeHtmlInline :: WriterOptions -> Inline -> String
 writeHtmlInline opts z = trimr $
-  writeHtmlString opts $ Pandoc (Meta [] [] []) [Plain [z]]
+  writeHtmlString opts{ writerStandalone = False }
+    $ Pandoc (Meta [] [] []) [Plain [z]]
 
 (!) :: Node t => (t -> Element) -> [(String, String)] -> t -> Element
 (!) f attrs n = add_attrs (map (\(k,v) -> Attr (unqual k) v) attrs) (f n)
