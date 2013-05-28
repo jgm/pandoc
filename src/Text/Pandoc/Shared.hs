@@ -86,7 +86,7 @@ import System.Exit (exitWith, ExitCode(..))
 import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
 import Data.List ( find, isPrefixOf, intercalate )
-import Network.URI ( escapeURIString, isAbsoluteURI, parseURI )
+import Network.URI ( escapeURIString, isAbsoluteURI, parseURI, unEscapeString )
 import System.Directory
 import Text.Pandoc.MIME (getMimeType)
 import System.FilePath ( (</>), takeExtension, dropExtension )
@@ -100,6 +100,7 @@ import System.IO (stderr)
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
          renderOptions)
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as B8
 import Network.HTTP (findHeader, rspBody,
                      RequestMethod(..), HeaderName(..), mkRequest)
 import Network.Browser (browse, setAllowRedirects, setOutHandler, request)
@@ -567,7 +568,12 @@ fetchItem sourceDir s =
 
 -- | Read from a URL and return raw data and maybe mime type.
 openURL :: String -> IO (B.ByteString, Maybe String)
-openURL u = getBodyAndMimeType `fmap` browse
+openURL u
+  | "data:" `isPrefixOf` u =
+    let mime     = takeWhile (/=',') $ drop 5 u
+        contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u
+    in  return (contents, Just mime)
+  | otherwise = getBodyAndMimeType `fmap` browse
               (do S.liftIO $ UTF8.hPutStrLn stderr $ "Fetching " ++ u ++ "..."
                   setOutHandler $ const (return ())
                   setAllowRedirects True
