@@ -348,14 +348,14 @@ Executable pandoc
                  HTTP >= 4000.0.5 && < 4000.3,
                  citeproc-hs >= 0.3.7 && < 0.4
   if impl(ghc >= 7.0.1)
-    Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
+    Ghc-Options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
   else
     if impl(ghc >= 6.12)
       Ghc-Options:  -Wall -fno-warn-unused-do-bind
     else
       Ghc-Options:  -Wall
   if impl(ghc >= 7.0.1)
-    Ghc-Prof-Options: -auto-all -caf-all -rtsopts
+    Ghc-Prof-Options: -auto-all -caf-all -rtsopts -with-rtsopts=-K16m
   else
     Ghc-Prof-Options: -auto-all -caf-all
   if os(windows)
