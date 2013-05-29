@@ -56,7 +56,10 @@ import Text.Pandoc.Writers.Markdown ( writePlain )
 import Data.Char ( toLower )
 import Network.URI ( isAbsoluteURI, unEscapeString )
 import Text.Pandoc.MIME (getMimeType)
+#if MIN_VERSION_base(4,6,0)
+#else
 import Prelude hiding (catch)
+#endif
 import Control.Exception (catch, SomeException)
 #if MIN_VERSION_blaze_html(0,5,0)
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
