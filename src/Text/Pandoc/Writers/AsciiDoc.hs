@@ -131,13 +131,22 @@ blockToAsciiDoc _ HorizontalRule =
 blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   let len = offset contents
-  return $ ("[[" <> text ident <> "]]") $$ contents $$
-         (case level of
+  -- ident seem to be empty most of the time and asciidoc will generate them automatically
+  -- so lets make them not show up when null
+  let identifier = if (null ident) then empty else ("[[" <> text ident <> "]]") 
+  let setext = writerSetextHeaders opts
+  return $ 
+         (if setext 
+            then
+              identifier $$ contents $$
+              (case level of
                1  -> text $ replicate len '-'
                2  -> text $ replicate len '~'
                3  -> text $ replicate len '^'
                4  -> text $ replicate len '+'
                _  -> empty) <> blankline
+            else
+              identifier $$ text (replicate level '=') <> space <> contents <> blankline) 
 blockToAsciiDoc _ (CodeBlock (_,classes,_) str) = return $
   flush (attrs <> dashes <> space <> attrs <> cr <> text str <>
            cr <> dashes) <> blankline
