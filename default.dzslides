@@ -100,7 +100,7 @@ $endfor$
 </head>
 <body>
 $if(title)$
-<section>
+<section class="title">
   <h1 class="title">$title$</h1>
 $for(author)$
   <h2 class="author">$author$</h2>
