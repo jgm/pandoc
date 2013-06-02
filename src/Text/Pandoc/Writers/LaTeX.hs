@@ -507,14 +507,16 @@ sectionHeader unnumbered ref level lst = do
   opts <- gets stOptions
   let level' = if book || writerChapters opts then level - 1 else level
   internalLinks <- gets stInternalLinks
-  let refLabel lab = (if ref `elem` internalLinks
-                         then text "\\hyperdef"
+  let refLabel x = (if ref `elem` internalLinks
+                       then text "\\hyperdef"
                                 <> braces empty
                                 <> braces (text ref)
-                                <> braces (lab <> text "\\label"
-                                               <> braces (text ref))
-                         else lab)
-  let headerWith x y = refLabel $ text x <> y
+                                <> braces x
+                       else x)
+  let headerWith x y r = refLabel $ text x <> y <>
+                             if null r
+                                then empty
+                                else text "\\label" <> braces (text r)
   let sectionType = case level' of
                           0  | writerBeamer opts -> "part"
                              | otherwise -> "chapter"
@@ -526,7 +528,7 @@ sectionHeader unnumbered ref level lst = do
                           _  -> ""
   return $ if level' > 5
               then txt
-              else headerWith ('\\':sectionType) stuffing
+              else headerWith ('\\':sectionType) stuffing ref
                    $$ if unnumbered
                          then "\\addcontentsline{toc}" <>
                                 braces (text sectionType) <>
