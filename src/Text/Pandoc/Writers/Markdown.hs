@@ -316,10 +316,10 @@ blockToMarkdown opts (CodeBlock (_,classes,_) str)
 blockToMarkdown opts (CodeBlock attribs str) = return $
   case attribs of
      x | x /= nullAttr && isEnabled Ext_fenced_code_blocks opts ->
-          tildes <> space <> attrs <> cr <> text str <>
+          tildes <> " " <> attrs <> cr <> text str <>
            cr <> tildes <> blankline
      (_,(cls:_),_) | isEnabled Ext_backtick_code_blocks opts ->
-          backticks <> space <> text cls <> cr <> text str <>
+          backticks <> " " <> text cls <> cr <> text str <>
            cr <> backticks <> blankline
      _ -> nest (writerTabStop opts) (text str) <> blankline
    where tildes    = text $ case [ln | ln <- lines str, all (=='~') ln] of
