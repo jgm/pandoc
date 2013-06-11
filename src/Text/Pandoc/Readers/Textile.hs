@@ -374,6 +374,7 @@ inlineParsers = [ str
                 , link
                 , image
                 , mark
+                , (Str . (:[])) <$> characterReference
                 , smartPunctuation inline
                 , symbol
                 ]
@@ -424,7 +425,7 @@ note = try $ do
 
 -- | Special chars
 markupChars :: [Char]
-markupChars = "\\*#_@~-+^|%=[]"
+markupChars = "\\*#_@~-+^|%=[]&"
 
 -- | Break strings on following chars. Space tab and newline break for
 --  inlines breaking. Open paren breaks for mark. Quote, dash and dot

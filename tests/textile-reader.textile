@@ -203,6 +203,11 @@ table{foo:bar}.
 | name   | age | sex |
 | joan   | 24  | f   |
 
+h1. Entities
+
+&#42;
+&amp;
+
 h1. Raw HTML
 
 However, <strong> raw HTML inlines </strong> are accepted, as well as :

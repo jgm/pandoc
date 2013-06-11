@@ -134,6 +134,8 @@ Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
  ,[[Plain [Str "joan"]]
   ,[Plain [Str "24"]]
   ,[Plain [Str "f"]]]]
+,Header 1 ("",[],[]) [Str "Entities"]
+,Para [Str "*",LineBreak,Str "&"]
 ,Header 1 ("",[],[]) [Str "Raw",Space,Str "HTML"]
 ,Para [Str "However",Str ",",Space,RawInline "html" "<strong>",Space,Str "raw",Space,Str "HTML",Space,Str "inlines",Space,RawInline "html" "</strong>",Space,Str "are",Space,Str "accepted",Str ",",Space,Str "as",Space,Str "well",Space,Str "as",Space,Str ":"]
 ,RawBlock "html" "<div class=\"foobar\">"
