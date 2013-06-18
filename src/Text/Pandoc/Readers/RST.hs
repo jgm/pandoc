@@ -441,7 +441,12 @@ listItem start = try $ do
   -- parse the extracted block, which may itself contain block elements
   parsed <- parseFromString parseBlocks $ concat (first:rest) ++ blanks
   updateState (\st -> st {stateParserContext = oldContext})
-  return parsed
+  return $ case B.toList parsed of
+                [Para xs] -> B.singleton $ Plain xs
+                [Para xs, BulletList ys] -> B.fromList [Plain xs, BulletList ys]
+                [Para xs, OrderedList s ys] -> B.fromList [Plain xs, OrderedList s ys]
+                [Para xs, DefinitionList ys] -> B.fromList [Plain xs, DefinitionList ys]
+                _         -> parsed
 
 orderedList :: RSTParser Blocks
 orderedList = try $ do

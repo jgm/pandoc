@@ -51,9 +51,9 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":
  ,[Plain [Str "asterisk",Space,Str "3"]]]
 ,Para [Str "Asterisks",Space,Str "loose:"]
 ,BulletList
- [[Para [Str "asterisk",Space,Str "1"]]
- ,[Para [Str "asterisk",Space,Str "2"]]
- ,[Para [Str "asterisk",Space,Str "3"]]]
+ [[Plain [Str "asterisk",Space,Str "1"]]
+ ,[Plain [Str "asterisk",Space,Str "2"]]
+ ,[Plain [Str "asterisk",Space,Str "3"]]]
 ,Para [Str "Pluses",Space,Str "tight:"]
 ,BulletList
  [[Plain [Str "Plus",Space,Str "1"]]
@@ -61,9 +61,9 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":
  ,[Plain [Str "Plus",Space,Str "3"]]]
 ,Para [Str "Pluses",Space,Str "loose:"]
 ,BulletList
- [[Para [Str "Plus",Space,Str "1"]]
- ,[Para [Str "Plus",Space,Str "2"]]
- ,[Para [Str "Plus",Space,Str "3"]]]
+ [[Plain [Str "Plus",Space,Str "1"]]
+ ,[Plain [Str "Plus",Space,Str "2"]]
+ ,[Plain [Str "Plus",Space,Str "3"]]]
 ,Para [Str "Minuses",Space,Str "tight:"]
 ,BulletList
  [[Plain [Str "Minus",Space,Str "1"]]
@@ -71,9 +71,9 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":
  ,[Plain [Str "Minus",Space,Str "3"]]]
 ,Para [Str "Minuses",Space,Str "loose:"]
 ,BulletList
- [[Para [Str "Minus",Space,Str "1"]]
- ,[Para [Str "Minus",Space,Str "2"]]
- ,[Para [Str "Minus",Space,Str "3"]]]
+ [[Plain [Str "Minus",Space,Str "1"]]
+ ,[Plain [Str "Minus",Space,Str "2"]]
+ ,[Plain [Str "Minus",Space,Str "3"]]]
 ,Header 2 ("",[],[]) [Str "Ordered"]
 ,Para [Str "Tight:"]
 ,OrderedList (1,Decimal,Period)
@@ -87,37 +87,37 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":
  ,[Plain [Str "Three"]]]
 ,Para [Str "Loose",Space,Str "using",Space,Str "tabs:"]
 ,OrderedList (1,Decimal,Period)
- [[Para [Str "First"]]
- ,[Para [Str "Second"]]
- ,[Para [Str "Third"]]]
+ [[Plain [Str "First"]]
+ ,[Plain [Str "Second"]]
+ ,[Plain [Str "Third"]]]
 ,Para [Str "and",Space,Str "using",Space,Str "spaces:"]
 ,OrderedList (1,Decimal,Period)
- [[Para [Str "One"]]
- ,[Para [Str "Two"]]
- ,[Para [Str "Three"]]]
+ [[Plain [Str "One"]]
+ ,[Plain [Str "Two"]]
+ ,[Plain [Str "Three"]]]
 ,Para [Str "Multiple",Space,Str "paragraphs:"]
 ,OrderedList (1,Decimal,Period)
  [[Para [Str "Item",Space,Str "1,",Space,Str "graf",Space,Str "one."]
   ,Para [Str "Item",Space,Str "1.",Space,Str "graf",Space,Str "two.",Space,Str "The",Space,Str "quick",Space,Str "brown",Space,Str "fox",Space,Str "jumped",Space,Str "over",Space,Str "the",Space,Str "lazy",Space,Str "dog\8217s",Space,Str "back."]]
- ,[Para [Str "Item",Space,Str "2."]]
- ,[Para [Str "Item",Space,Str "3."]]]
+ ,[Plain [Str "Item",Space,Str "2."]]
+ ,[Plain [Str "Item",Space,Str "3."]]]
 ,Para [Str "Nested:"]
 ,BulletList
- [[Para [Str "Tab"]
+ [[Plain [Str "Tab"]
   ,BulletList
-   [[Para [Str "Tab"]
+   [[Plain [Str "Tab"]
     ,BulletList
      [[Plain [Str "Tab"]]]]]]]
 ,Para [Str "Here\8217s",Space,Str "another:"]
 ,OrderedList (1,Decimal,Period)
- [[Para [Str "First"]]
+ [[Plain [Str "First"]]
  ,[Para [Str "Second:"]
   ,BlockQuote
    [BulletList
     [[Plain [Str "Fee"]]
     ,[Plain [Str "Fie"]]
     ,[Plain [Str "Foe"]]]]]
- ,[Para [Str "Third"]]]
+ ,[Plain [Str "Third"]]]
 ,Header 2 ("",[],[]) [Str "Fancy",Space,Str "list",Space,Str "markers"]
 ,OrderedList (2,Decimal,TwoParens)
  [[Plain [Str "begins",Space,Str "with",Space,Str "2"]]
@@ -125,23 +125,23 @@ Pandoc (Meta {docTitle = [Str "Pandoc",Space,Str "Test",Space,Str "Suite",Str ":
   ,Para [Str "with",Space,Str "a",Space,Str "continuation"]
   ,OrderedList (4,LowerRoman,Period)
    [[Plain [Str "sublist",Space,Str "with",Space,Str "roman",Space,Str "numerals,",Space,Str "starting",Space,Str "with",Space,Str "4"]]
-   ,[Para [Str "more",Space,Str "items"]
+   ,[Plain [Str "more",Space,Str "items"]
     ,OrderedList (1,UpperAlpha,TwoParens)
      [[Plain [Str "a",Space,Str "subsublist"]]
      ,[Plain [Str "a",Space,Str "subsublist"]]]]]]]
 ,Para [Str "Nesting:"]
 ,OrderedList (1,UpperAlpha,Period)
- [[Para [Str "Upper",Space,Str "Alpha"]
+ [[Plain [Str "Upper",Space,Str "Alpha"]
   ,OrderedList (1,UpperRoman,Period)
-   [[Para [Str "Upper",Space,Str "Roman."]
+   [[Plain [Str "Upper",Space,Str "Roman."]
     ,OrderedList (6,Decimal,TwoParens)
-     [[Para [Str "Decimal",Space,Str "start",Space,Str "with",Space,Str "6"]
+     [[Plain [Str "Decimal",Space,Str "start",Space,Str "with",Space,Str "6"]
       ,OrderedList (3,LowerAlpha,OneParen)
        [[Plain [Str "Lower",Space,Str "alpha",Space,Str "with",Space,Str "paren"]]]]]]]]]
 ,Para [Str "Autonumbering:"]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
  [[Plain [Str "Autonumber."]]
- ,[Para [Str "More."]
+ ,[Plain [Str "More."]
   ,OrderedList (1,DefaultStyle,DefaultDelim)
    [[Plain [Str "Nested."]]]]]
 ,Para [Str "Autonumbering",Space,Str "with",Space,Str "explicit",Space,Str "start:"]
