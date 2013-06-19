@@ -155,6 +155,11 @@ tests = [ testGroup "inline code"
           ]
         , testGroup "bare URIs"
           (map testBareLink bareLinkTests)
+        , testGroup "Headers"
+          [ "blank line before header" =:
+            "\n# Header\n"
+            =?> headerWith ("header",[],[]) 1 "Header"
+          ]
         , testGroup "smart punctuation"
           [ test markdownSmart "quote before ellipses"
             ("'...hi'"
