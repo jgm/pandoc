@@ -1549,30 +1549,34 @@ referenceLink constructor (lab, raw) = do
   let labIsRef = raw' == "" || raw' == "[]"
   let key = toKey $ if labIsRef then raw else raw'
   parsedRaw <- parseFromString (mconcat <$> many inline) raw'
-  let dropRB (']':xs) = xs
-      dropRB xs = xs
-  let dropLB ('[':xs) = xs
-      dropLB xs = xs
-  let dropBrackets = reverse . dropRB . reverse . dropLB
   fallback <- parseFromString (mconcat <$> many inline) $ dropBrackets raw
   implicitHeaderRefs <- option False $
                          True <$ guardEnabled Ext_implicit_header_references
+  let makeFallback = do
+       parsedRaw' <- parsedRaw
+       fallback' <- fallback
+       return $ B.str "[" <> fallback' <> B.str "]" <>
+                (if sp && not (null raw) then B.space else mempty) <>
+                parsedRaw'
   return $ do
     keys <- asksF stateKeys
     case M.lookup key keys of
        Nothing        -> do
          headers <- asksF stateHeaders
          ref' <- if labIsRef then lab else ref
-         parsedRaw' <- parsedRaw
-         fallback' <- fallback
-         let fallback'' = B.str "[" <> fallback' <> B.str "]" <>
-              (if sp && not (null raw) then B.space else mempty) <> parsedRaw'
          if implicitHeaderRefs
             then case M.lookup ref' headers of
                    Just ident -> constructor ('#':ident) "" <$> lab
-                   Nothing    -> return fallback''
-            else return fallback''
+                   Nothing    -> makeFallback
+            else makeFallback
        Just (src,tit) -> constructor src tit <$> lab
+
+dropBrackets :: String -> String
+dropBrackets = reverse . dropRB . reverse . dropLB
+  where dropRB (']':xs) = xs
+        dropRB xs = xs
+        dropLB ('[':xs) = xs
+        dropLB xs = xs
 
 bareURL :: MarkdownParser (F Inlines)
 bareURL = try $ do
