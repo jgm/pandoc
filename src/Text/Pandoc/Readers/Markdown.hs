@@ -359,7 +359,8 @@ parseBlocks :: MarkdownParser (F Blocks)
 parseBlocks = mconcat <$> manyTill block eof
 
 block :: MarkdownParser (F Blocks)
-block = choice [ codeBlockFenced
+block = choice [ mempty <$ blanklines
+               , codeBlockFenced
                , guardEnabled Ext_latex_macros *> (macro >>= return . return)
                , header
                , lhsCodeBlock
@@ -376,7 +377,6 @@ block = choice [ codeBlockFenced
                , noteBlock
                , referenceKey
                , abbrevKey
-               , mempty <$ blanklines
                , para
                , plain
                ] <?> "block"
