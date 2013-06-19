@@ -1542,11 +1542,13 @@ regLink constructor lab = try $ do
 referenceLink :: (String -> String -> Inlines -> Inlines)
               -> (F Inlines, String) -> MarkdownParser (F Inlines)
 referenceLink constructor (lab, raw) = do
-  (ref,raw') <- try (optional (char ' ') >>
-                 optional (newline >> skipSpaces) >>
-                 reference) <|> return (mempty, "")
+  sp <- (True <$ lookAhead (char ' ')) <|> return False
+  (ref,raw') <- try
+           (skipSpaces >> optional (newline >> skipSpaces) >> reference)
+           <|> return (mempty, "")
   let labIsRef = raw' == "" || raw' == "[]"
   let key = toKey $ if labIsRef then raw else raw'
+  parsedRaw <- parseFromString (mconcat <$> many inline) raw'
   let dropRB (']':xs) = xs
       dropRB xs = xs
   let dropLB ('[':xs) = xs
@@ -1560,13 +1562,16 @@ referenceLink constructor (lab, raw) = do
     case M.lookup key keys of
        Nothing        -> do
          headers <- asksF stateHeaders
-         let ref' = runF (if labIsRef then lab else ref) defaultParserState
-         let makeFallback x = B.str "[" <> x <> B.str "]" <> B.str raw'
+         ref' <- if labIsRef then lab else ref
+         parsedRaw' <- parsedRaw
+         fallback' <- fallback
+         let fallback'' = B.str "[" <> fallback' <> B.str "]" <>
+              (if sp && not (null raw) then B.space else mempty) <> parsedRaw'
          if implicitHeaderRefs
             then case M.lookup ref' headers of
                    Just ident -> constructor ('#':ident) "" <$> lab
-                   Nothing    -> makeFallback <$> fallback
-            else makeFallback <$> fallback
+                   Nothing    -> return fallback''
+            else return fallback''
        Just (src,tit) -> constructor src tit <$> lab
 
 bareURL :: MarkdownParser (F Inlines)
