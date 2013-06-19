@@ -231,3 +231,7 @@ Empty cells
 [linky]
 
 [linky]: hi_(there_(nested))
+
+## Reference link fallbacks
+
+[*not a link*] [*nope*]...

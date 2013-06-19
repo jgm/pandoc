@@ -134,4 +134,6 @@
 ,Header 2 ("parentheses-in-urls",[],[]) [Str "Parentheses",Space,Str "in",Space,Str "URLs"]
 ,Para [Link [Str "link"] ("/hi(there)","")]
 ,Para [Link [Str "link"] ("/hithere)","")]
-,Para [Link [Str "linky"] ("hi_(there_(nested))","")]]
+,Para [Link [Str "linky"] ("hi_(there_(nested))","")]
+,Header 2 ("reference-link-fallbacks",[],[]) [Str "Reference",Space,Str "link",Space,Str "fallbacks"]
+,Para [Str "[",Emph [Str "not",Space,Str "a",Space,Str "link"],Str "]",Space,Str "[",Emph [Str "nope"],Str "]\8230"]]
