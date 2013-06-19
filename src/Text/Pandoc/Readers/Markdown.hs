@@ -376,9 +376,9 @@ block = choice [ codeBlockFenced
                , noteBlock
                , referenceKey
                , abbrevKey
+               , mempty <$ blanklines
                , para
                , plain
-               , mempty <$ blanklines
                ] <?> "block"
 
 --
