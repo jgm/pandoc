@@ -764,9 +764,9 @@ gridTableFooter = blanklines
 ---
 
 -- | Parse a string with a given parser and state.
-readWith :: Parser [Char] ParserState a       -- ^ parser
-         -> ParserState                       -- ^ initial state
-         -> [Char]                            -- ^ input
+readWith :: Parser [Char] st a       -- ^ parser
+         -> st                       -- ^ initial state
+         -> [Char]                   -- ^ input
          -> a
 readWith parser state input =
     case runParser parser state "source" input of
