@@ -3,7 +3,7 @@
   <head>
     <title>$title$</title>
     <dateModified>$date$</dateModified>
-    <ownerName>$author$</ownerName>
+    <ownerName>$for(author)$$author$$sep$; $endfor$</ownerName>
   </head>
   <body>
 $body$
