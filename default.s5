@@ -54,6 +54,9 @@ $endfor$
 $if(title)$
 <div class="titleslide slide">
   <h1>$title$</h1>
+$if(subtitle)$
+  <h1 class="subtitle">$subtitle$</h1>
+$endif$
   <h2>$for(author)$$author$$sep$<br/>$endfor$</h2>
   <h3>$date$</h3>
 </div>

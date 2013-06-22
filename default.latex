@@ -135,6 +135,9 @@ $endfor$
 $if(title)$
 \title{$title$}
 $endif$
+$if(subtitle)$
+\subtitle{$subtitle$}
+$endif$
 \author{$for(author)$$author$$sep$ \and $endfor$}
 \date{$date$}
 

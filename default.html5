@@ -39,6 +39,9 @@ $endfor$
 $if(title)$
 <header>
 <h1 class="title">$title$</h1>
+$if(subtitle)$
+<h1 class="subtitle">$subtitle$</h1>
+$endif$
 $for(author)$
 <h2 class="author">$author$</h2>
 $endfor$
