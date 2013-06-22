@@ -1,5 +1,5 @@
 $if(title)$
-$title$
+#+TITLE: $title$
 
 $endif$
 $if(author)$
