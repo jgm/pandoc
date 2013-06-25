@@ -9,7 +9,7 @@ all:
 prof:
 	cabal-dev configure --disable-tests --enable-library-profiling --enable-executable-profiling && cabal-dev build
 
-prep: submodules
+prep: submodules pandoc-types citeproc-hs
 	(cabal-dev --version || (cabal update && cabal install cabal-dev)) && \
 	cabal-dev update && \
 	cabal-dev install-deps --enable-library-profiling --enable-tests --enable-benchmarks
@@ -36,13 +36,13 @@ clean:
 veryclean: clean
 	cabal-dev clean && rm -rf pandoc-types citeproc-hs
 
-# pandoc-types:
-# 	git clone https://github.com/jgm/pandoc-types && \
-# 	  cabal-dev add-source pandoc-types
+pandoc-types:
+	git clone https://github.com/jgm/pandoc-types && \
+ 	  cabal-dev add-source pandoc-types
 
-# citeproc-hs: pandoc-types
-# 	darcs get --lazy http://gorgias.mine.nu/repos/citeproc-hs && \
-# 	cabal-dev add-source citeproc-hs
+citeproc-hs: pandoc-types
+	darcs get --lazy http://gorgias.mine.nu/repos/citeproc-hs && \
+ 	cabal-dev add-source citeproc-hs
 
 install:
 	cabal-dev install --enable-tests --enable-benchmarks
