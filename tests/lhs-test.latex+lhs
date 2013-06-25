@@ -34,6 +34,7 @@
             pdfauthor={},
             pdftitle={},
             colorlinks=true,
+            citecolor=blue,
             urlcolor=blue,
             linkcolor=magenta,
             pdfborder={0 0 0}}

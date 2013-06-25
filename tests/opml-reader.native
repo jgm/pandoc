@@ -1,4 +1,4 @@
-Pandoc (Meta {docTitle = [Str "States"], docAuthors = [[Str "Dave",Space,Str "Winer"]], docDate = [Str "Thu,",Space,Str "14",Space,Str "Jul",Space,Str "2005",Space,Str "23:41:05",Space,Str "GMT"]})
+Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Dave",Space,Str "Winer"]]),("date",MetaInlines [Str "Thu,",Space,Str "14",Space,Str "Jul",Space,Str "2005",Space,Str "23:41:05",Space,Str "GMT"]),("title",MetaInlines [Str "States"])]})
 [Header 1 ("",[],[]) [Str "United",Space,Str "States"]
 ,Header 2 ("",[],[]) [Str "Far",Space,Str "West"]
 ,Header 3 ("",[],[]) [Str "Alaska"]

@@ -52,6 +52,7 @@
             pdfauthor={John MacFarlane; Anonymous},
             pdftitle={Pandoc Test Suite},
             colorlinks=true,
+            citecolor=blue,
             urlcolor=blue,
             linkcolor=magenta,
             pdfborder={0 0 0}}

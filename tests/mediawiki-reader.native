@@ -1,4 +1,4 @@
-Pandoc (Meta {docTitle = [], docAuthors = [], docDate = []})
+Pandoc (Meta {unMeta = fromList []})
 [Header 1 ("",[],[]) [Str "header"]
 ,Header 2 ("",[],[]) [Str "header",Space,Str "level",Space,Str "two"]
 ,Header 3 ("",[],[]) [Str "header",Space,Str "level",Space,Str "3"]
