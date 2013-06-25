@@ -84,7 +84,10 @@ writeRTF options (Pandoc meta blocks) =
       isTOCHeader _ = False
       context = setField "body" body
               $ setField "spacer" spacer
-              $ setField "toc" (tableOfContents $ filter isTOCHeader blocks)
+              $ (if writerTableOfContents options
+                    then setField "toc"
+                          (tableOfContents $ filter isTOCHeader blocks)
+                    else id)
               $ foldl (\acc (x,y) -> setField x y acc)
                    metadata (writerVariables options)
   in  if writerStandalone options
