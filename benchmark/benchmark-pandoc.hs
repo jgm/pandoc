@@ -13,8 +13,7 @@ readerBench doc (name, reader) =
                      _ -> error $ "Could not find writer for " ++ name
       inp = writer def{ writerWrapText = True } doc
       -- we compute the length to force full evaluation
-      getLength (Pandoc (Meta a b c) d) =
-            length a + length b + length c + length d
+      getLength (Pandoc (Meta _) d) = length d
   in  bench (name ++ " reader") $ whnfIO $ getLength `fmap`
       (reader def{ readerSmart = True }) inp
 
