@@ -109,8 +109,29 @@ titleTransform (bs, meta) =
           _ -> (bs', meta')
 
 metaFromDefList :: [([Inline], [[Block]])] -> Meta -> Meta
-metaFromDefList ds meta = foldr f meta ds
+metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
  where f (k,v) = setMeta (map toLower $ stringify k) (mconcat $ map fromList v)
+       adjustAuthors (Meta metamap) = Meta $ M.adjust toPlain "author"
+                                           $ M.adjust toPlain "date"
+                                           $ M.adjust toPlain "title"
+                                           $ M.adjust splitAuthors "authors"
+                                           $ metamap
+       toPlain (MetaBlocks [Para xs]) = MetaInlines xs
+       toPlain x                      = x
+       splitAuthors (MetaBlocks [Para xs]) = MetaList $ map MetaInlines
+                                                      $ splitAuthors' xs
+       splitAuthors x                 = x
+       splitAuthors'                  = map normalizeSpaces .
+                                         splitOnSemi . concatMap factorSemi
+       splitOnSemi                    = splitBy (==Str ";")
+       factorSemi (Str [])            = []
+       factorSemi (Str s)             = case break (==';') s of
+                                             (xs,[]) -> [Str xs]
+                                             (xs,';':ys) -> Str xs : Str ";" :
+                                                factorSemi (Str ys)
+                                             (xs,ys) -> Str xs :
+                                                factorSemi (Str ys)
+       factorSemi x                   = [x]
 
 parseRST :: RSTParser Pandoc
 parseRST = do

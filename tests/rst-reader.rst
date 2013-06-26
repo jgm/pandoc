@@ -3,8 +3,7 @@ Pandoc Test Suite
 Subtitle
 ^^^^^^^^
 
-:Author: John MacFarlane
-:Author: Anonymous
+:Authors: John MacFarlane; Anonymous
 :Date: July 17, 2006
 :Revision: 3
 
