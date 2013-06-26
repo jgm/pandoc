@@ -525,7 +525,7 @@ makeMeta title authors date =
 -- | Create JSON value for template from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
 -- Variables overwrite metadata fields with the same names.
-metaToJSON :: (Monad m, Functor m)
+metaToJSON :: Monad m
            => ([Block] -> m String) -- ^ Writer for output format
            => ([Inline] -> m String) -- ^ Writer for output format
            -> Meta                  -- ^ Metadata
@@ -533,7 +533,7 @@ metaToJSON :: (Monad m, Functor m)
 metaToJSON blockWriter inlineWriter (Meta metamap) = toJSON
   `fmap` Traversable.mapM (metaValueToJSON blockWriter inlineWriter) metamap
 
-metaValueToJSON :: (Monad m, Functor m)
+metaValueToJSON :: Monad m
                 => ([Block] -> m String)
                 -> ([Inline] -> m String)
                 -> MetaValue
