@@ -97,7 +97,7 @@ import Text.Pandoc.MIME (getMimeType)
 import System.FilePath ( (</>), takeExtension, dropExtension )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
-import Control.Monad (msum, unless)
+import Control.Monad (msum, unless, liftM)
 import Text.Pandoc.Pretty (charWidth)
 import System.Locale (defaultTimeLocale)
 import Data.Time
@@ -527,24 +527,24 @@ makeMeta title authors date =
 -- Variables overwrite metadata fields with the same names.
 metaToJSON :: Monad m
            => ([Block] -> m String) -- ^ Writer for output format
-           => ([Inline] -> m String) -- ^ Writer for output format
+           -> ([Inline] -> m String) -- ^ Writer for output format
            -> Meta                  -- ^ Metadata
            -> m Value
-metaToJSON blockWriter inlineWriter (Meta metamap) = toJSON
-  `fmap` Traversable.mapM (metaValueToJSON blockWriter inlineWriter) metamap
+metaToJSON blockWriter inlineWriter (Meta metamap) = liftM toJSON $
+  Traversable.mapM (metaValueToJSON blockWriter inlineWriter) metamap
 
 metaValueToJSON :: Monad m
                 => ([Block] -> m String)
                 -> ([Inline] -> m String)
                 -> MetaValue
                 -> m Value
-metaValueToJSON blockWriter inlineWriter (MetaMap metamap) = toJSON
-  `fmap` Traversable.mapM (metaValueToJSON blockWriter inlineWriter) metamap
-metaValueToJSON blockWriter inlineWriter (MetaList xs) =
-  toJSON `fmap` Traversable.mapM (metaValueToJSON blockWriter inlineWriter) xs
+metaValueToJSON blockWriter inlineWriter (MetaMap metamap) = liftM toJSON $
+  Traversable.mapM (metaValueToJSON blockWriter inlineWriter) metamap
+metaValueToJSON blockWriter inlineWriter (MetaList xs) = liftM toJSON $
+  Traversable.mapM (metaValueToJSON blockWriter inlineWriter) xs
 metaValueToJSON _ _ (MetaString s) = return $ toJSON s
-metaValueToJSON blockWriter _ (MetaBlocks bs) = toJSON `fmap` blockWriter bs
-metaValueToJSON _ inlineWriter (MetaInlines bs) = toJSON `fmap` inlineWriter bs
+metaValueToJSON blockWriter _ (MetaBlocks bs) = liftM toJSON $ blockWriter bs
+metaValueToJSON _ inlineWriter (MetaInlines bs) = liftM toJSON $ inlineWriter bs
 
 setField :: ToJSON a
          => String
