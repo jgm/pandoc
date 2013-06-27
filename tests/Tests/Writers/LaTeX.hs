@@ -34,6 +34,6 @@ tests = [ testGroup "code blocks"
           ]
         , testGroup "math"
           [ "escape |" =: para (math "\\sigma|_{\\{x\\}}") =?>
-            "$\\sigma\\vert _{\\{x\\}}$"
+            "$\\sigma|_{\\{x\\}}$"
           ]
         ]

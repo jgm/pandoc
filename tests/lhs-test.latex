@@ -23,7 +23,7 @@
 \usepackage{color}
 \usepackage{fancyvrb}
 \newcommand{\VerbBar}{|}
-\DefineShortVerb[commandchars=\\\{\}]{\|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
 \DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
 % Add ',fontsize=\small' for more characters per line
 \newenvironment{Shaded}{}{}
