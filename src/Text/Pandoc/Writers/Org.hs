@@ -72,8 +72,8 @@ pandocToOrg (Pandoc meta blocks) = do
   -- note that the notes may contain refs, so we do them first
   hasMath <- liftM stHasMath get
   let main = render colwidth $ foldl ($+$) empty $ [body, notes]
-  let context = setField "body" main
-              $ setField "math" hasMath
+  let context = defField "body" main
+              $ defField "math" hasMath
               $ foldl (\acc (x,y) -> setField x y acc)
                      metadata (writerVariables opts)
   if writerStandalone opts

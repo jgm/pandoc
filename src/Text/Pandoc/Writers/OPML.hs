@@ -54,7 +54,7 @@ writeOPML opts (Pandoc meta blocks) =
                          (\ils -> [Plain ils]))
                       meta'
       main     = render colwidth $ vcat (map (elementToOPML opts) elements)
-      context = setField "body" main
+      context = defField "body" main
               $ foldl (\acc (x,y) -> setField x y acc)
                      metadata (writerVariables opts)
   in  if writerStandalone opts

@@ -64,8 +64,8 @@ pandocToMediaWiki opts (Pandoc meta blocks) = do
                  then "\n<references />"
                  else ""
   let main = body ++ notes
-  let context = setField "body" main
-                $ setField "toc" (writerTableOfContents opts)
+  let context = defField "body" main
+                $ defField "toc" (writerTableOfContents opts)
                 $ foldl (\acc (x,y) -> setField x y acc)
                      metadata (writerVariables opts)
   if writerStandalone opts

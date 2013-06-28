@@ -84,10 +84,10 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
                         _          -> metadata
   body <- blockListToAsciiDoc opts blocks
   let main = render colwidth body
-  let context  = setField "body" main
-               $ setField "toc"
+  let context  = defField "body" main
+               $ defField "toc"
                   (writerTableOfContents opts && writerStandalone opts)
-               $ setField "titleblock" titleblock
+               $ defField "titleblock" titleblock
                $ foldl (\acc (x,y) -> setField x y acc)
                      metadata' (writerVariables opts)
   if writerStandalone opts

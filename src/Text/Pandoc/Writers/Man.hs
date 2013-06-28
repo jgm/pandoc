@@ -62,15 +62,15 @@ pandocToMan opts (Pandoc meta blocks) = do
        case break (== ' ') title' of
            (cmdName, rest) -> case reverse cmdName of
                                    (')':d:'(':xs) | isDigit d ->
-                                     setField "title" (reverse xs) .
-                                     setField "section" [d] .
+                                     defField "title" (reverse xs) .
+                                     defField "section" [d] .
                                      case splitBy (=='|') rest of
                                           (ft:hds) ->
-                                            setField "footer" (trim ft) .
-                                            setField "header"
+                                            defField "footer" (trim ft) .
+                                            defField "header"
                                                (trim $ concat hds)
                                           [] -> id
-                                   _  -> setField "title" title'
+                                   _  -> defField "title" title'
   metadata <- metaToJSON
               (fmap (render colwidth) . blockListToMan opts)
               (fmap (render colwidth) . inlineListToMan opts)
@@ -80,9 +80,9 @@ pandocToMan opts (Pandoc meta blocks) = do
   notes' <- notesToMan opts (reverse notes)
   let main = render' $ body $$ notes' $$ text ""
   hasTables <- liftM stHasTables get
-  let context = setField "body" main
+  let context = defField "body" main
               $ setFieldsFromTitle
-              $ setField "has-tables" hasTables
+              $ defField "has-tables" hasTables
               $ foldl (\acc (x,y) -> setField x y acc)
                      metadata (writerVariables opts)
   if writerStandalone opts

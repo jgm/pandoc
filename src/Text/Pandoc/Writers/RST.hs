@@ -82,12 +82,12 @@ pandocToRST (Pandoc meta blocks) = do
   pics <- liftM (reverse . stImages) get >>= pictRefsToRST
   hasMath <- liftM stHasMath get
   let main = render colwidth $ foldl ($+$) empty $ [body, notes, refs, pics]
-  let context = setField "body" main
-              $ setField "toc" (writerTableOfContents opts)
-              $ setField "toc-depth" (writerTOCDepth opts)
-              $ setField "math" hasMath
-              $ setField "title" (render Nothing title :: String)
-              $ setField "math" hasMath
+  let context = defField "body" main
+              $ defField "toc" (writerTableOfContents opts)
+              $ defField "toc-depth" (writerTOCDepth opts)
+              $ defField "math" hasMath
+              $ defField "title" (render Nothing title :: String)
+              $ defField "math" hasMath
               $ foldl (\acc (x,y) -> setField x y acc)
                      metadata (writerVariables opts)
   if writerStandalone opts

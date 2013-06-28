@@ -156,25 +156,25 @@ pandocToHtml opts (Pandoc meta blocks) = do
                                       Nothing -> mempty
                 else mempty
   let context =   (if stHighlighting st
-                      then setField "highlighting-css"
+                      then defField "highlighting-css"
                              (styleToCss $ writerHighlightStyle opts)
                       else id) $
                   (if stMath st
-                      then setField "math" (renderHtml math)
+                      then defField "math" (renderHtml math)
                       else id) $
-                  setField "quotes" (stQuotes st) $
-                  maybe id (setField "toc" . renderHtml) toc $
-                  setField "author-meta" authsMeta $
-                  maybe id (setField "date-meta") (normalizeDate dateMeta) $
-                  setField "pagetitle" (stringify $ docTitle meta) $
-                  setField "idprefix" (writerIdentifierPrefix opts) $
+                  defField "quotes" (stQuotes st) $
+                  maybe id (defField "toc" . renderHtml) toc $
+                  defField "author-meta" authsMeta $
+                  maybe id (defField "date-meta") (normalizeDate dateMeta) $
+                  defField "pagetitle" (stringify $ docTitle meta) $
+                  defField "idprefix" (writerIdentifierPrefix opts) $
                   -- these should maybe be set in pandoc.hs
-                  setField "slidy-url"
+                  defField "slidy-url"
                     ("http://www.w3.org/Talks/Tools/Slidy2" :: String) $
-                  setField "slideous-url" ("slideous" :: String) $
-                  setField "revealjs-url" ("reveal.js" :: String) $
-                  setField "s5-url" ("s5/default" :: String) $
-                  setField "html5" (writerHtml5 opts) $
+                  defField "slideous-url" ("slideous" :: String) $
+                  defField "revealjs-url" ("reveal.js" :: String) $
+                  defField "s5-url" ("s5/default" :: String) $
+                  defField "html5" (writerHtml5 opts) $
                   foldl (\acc (x,y) -> setField x y acc)
                      metadata (writerVariables opts)
   return (thebody, context)
@@ -185,7 +185,7 @@ inTemplate :: TemplateTarget a
            -> Html
            -> a
 inTemplate opts context body = renderTemplate' (writerTemplate opts)
-                             $ setField "body" (renderHtml body) context
+                             $ defField "body" (renderHtml body) context
 
 -- | Like Text.XHtml's identifier, but adds the writerIdentifierPrefix
 prefixedId :: WriterOptions -> String -> Attribute

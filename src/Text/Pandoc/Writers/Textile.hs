@@ -59,7 +59,7 @@ pandocToTextile opts (Pandoc meta blocks) = do
   body <- blockListToTextile opts blocks
   notes <- liftM (unlines . reverse . stNotes) get
   let main = body ++ if null notes then "" else ("\n\n" ++ notes)
-  let context = setField "body" main
+  let context = defField "body" main
                 $ foldl (\acc (x,y) -> setField x y acc)
                      metadata (writerVariables opts)
   if writerStandalone opts

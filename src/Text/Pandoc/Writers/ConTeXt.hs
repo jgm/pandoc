@@ -69,16 +69,16 @@ pandocToConTeXt options (Pandoc meta blocks) = do
               meta
   body <- mapM (elementToConTeXt options) $ hierarchicalize blocks
   let main = (render colwidth . vcat) body
-  let context =   setField "toc" (writerTableOfContents options)
-                $ setField "placelist" (intercalate ("," :: String) $
+  let context =   defField "toc" (writerTableOfContents options)
+                $ defField "placelist" (intercalate ("," :: String) $
                      take (writerTOCDepth options + if writerChapters options
                                                        then 0
                                                        else 1)
                        ["chapter","section","subsection","subsubsection",
                         "subsubsubsection","subsubsubsubsection"])
-                $ setField "body" main
-                $ setField "number-sections" (writerNumberSections options)
-                $ setField "mainlang" (maybe ""
+                $ defField "body" main
+                $ defField "number-sections" (writerNumberSections options)
+                $ defField "mainlang" (maybe ""
                     (reverse . takeWhile (/=',') . reverse)
                     (lookup "lang" $ writerVariables options))
                 $ foldl (\acc (x,y) -> setField x y acc)

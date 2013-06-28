@@ -80,12 +80,12 @@ pandocToTexinfo options (Pandoc meta blocks) = do
   main <- blockListToTexinfo blocks
   st <- get
   let body = render colwidth main
-  let context = setField "body" body
-              $ setField "toc" (writerTableOfContents options)
-              $ setField "titlepage" titlePage
-              $ setField "subscript" (stSubscript st)
-              $ setField "superscript" (stSuperscript st)
-              $ setField "strikeout" (stStrikeout st)
+  let context = defField "body" body
+              $ defField "toc" (writerTableOfContents options)
+              $ defField "titlepage" titlePage
+              $ defField "subscript" (stSubscript st)
+              $ defField "superscript" (stSuperscript st)
+              $ defField "strikeout" (stStrikeout st)
               $ foldl (\acc (x,y) -> setField x y acc)
                      metadata (writerVariables options)
   if writerStandalone options

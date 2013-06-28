@@ -42,7 +42,7 @@ import Control.Arrow ( (***), (>>>) )
 import Control.Monad.State hiding ( when )
 import Data.Char (chr, isDigit)
 import qualified Data.Map as Map
-import Text.Pandoc.Shared (metaToJSON, setField)
+import Text.Pandoc.Shared (metaToJSON, defField, setField)
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
@@ -192,8 +192,8 @@ writeOpenDocument opts (Pandoc meta blocks) =
       listStyles  = map listStyle (stListStyles s)
       automaticStyles = inTagsIndented "office:automatic-styles" $ vcat $
                           reverse $ styles ++ listStyles
-      context = setField "body" body
-              $ setField "automatic-styles" (render' automaticStyles)
+      context = defField "body" body
+              $ defField "automatic-styles" (render' automaticStyles)
               $ foldl (\acc (x,y) -> setField x y acc)
                      metadata (writerVariables opts)
   in  if writerStandalone opts

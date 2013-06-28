@@ -82,10 +82,10 @@ writeRTF options (Pandoc meta blocks) =
       body = concatMap (blockToRTF 0 AlignDefault) blocks
       isTOCHeader (Header lev _ _) = lev <= writerTOCDepth options
       isTOCHeader _ = False
-      context = setField "body" body
-              $ setField "spacer" spacer
+      context = defField "body" body
+              $ defField "spacer" spacer
               $ (if writerTableOfContents options
-                    then setField "toc"
+                    then defField "toc"
                           (tableOfContents $ filter isTOCHeader blocks)
                     else id)
               $ foldl (\acc (x,y) -> setField x y acc)

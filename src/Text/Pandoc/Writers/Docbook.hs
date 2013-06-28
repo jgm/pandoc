@@ -87,8 +87,8 @@ writeDocbook opts (Pandoc meta blocks) =
                  (Just . render colwidth . inlinesToDocbook opts)
                  meta'
       main     = render' $ vcat (map (elementToDocbook opts' startLvl) elements)
-      context = setField "body" main
-              $ setField "mathml" (case writerHTMLMathMethod opts of
+      context = defField "body" main
+              $ defField "mathml" (case writerHTMLMathMethod opts of
                                         MathML _ -> True
                                         _        -> False)
               $ foldl (\acc (x,y) -> setField x y acc)

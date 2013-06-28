@@ -145,11 +145,11 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   let main = render' $ body <>
                (if isEmpty notes' then empty else blankline <> notes') <>
                (if isEmpty refs' then empty else blankline <> refs')
-  let context  = setField "toc" (render' toc)
-               $ setField "body" main
+  let context  = defField "toc" (render' toc)
+               $ defField "body" main
                $ (if not (null (docTitle meta) && null (docAuthors meta)
                            && null (docDate meta))
-                     then setField "titleblock" (render' titleblock)
+                     then defField "titleblock" (render' titleblock)
                      else id)
                $ foldl (\acc (x,y) -> setField x y acc)
                      metadata (writerVariables opts)

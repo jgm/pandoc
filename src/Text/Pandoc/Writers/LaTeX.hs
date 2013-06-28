@@ -120,43 +120,43 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let main = render colwidth $ vsep body
   st <- get
   let biblioFiles = intercalate "," $ map dropExtension $  writerBiblioFiles options
-  let context  =  setField "toc" (writerTableOfContents options) $
-                  setField "toc-depth" (show (writerTOCDepth options -
+  let context  =  defField "toc" (writerTableOfContents options) $
+                  defField "toc-depth" (show (writerTOCDepth options -
                                               if writerChapters options
                                                  then 1
                                                  else 0)) $
-                  setField "body" main $
-                  setField "title-meta" (stringify $ docTitle meta) $
-                  setField "author-meta" (intercalate "; " $ map stringify $ docAuthors meta) $
-                  setField "documentclass" (if writerBeamer options
+                  defField "body" main $
+                  defField "title-meta" (stringify $ docTitle meta) $
+                  defField "author-meta" (intercalate "; " $ map stringify $ docAuthors meta) $
+                  defField "documentclass" (if writerBeamer options
                                                then ("beamer" :: String)
                                                else if writerChapters options
                                                     then "book"
                                                     else "article") $
-                  setField "verbatim-in-note" (stVerbInNote st) $
-                  setField "tables" (stTable st) $
-                  setField "strikeout" (stStrikeout st) $
-                  setField "url" (stUrl st) $
-                  setField "numbersections" (writerNumberSections options) $
-                  setField "lhs" (stLHS st) $
-                  setField "graphics" (stGraphics st) $
-                  setField "book-class" (stBook st) $
-                  setField "euro" (stUsesEuro st) $
-                  setField "listings" (writerListings options || stLHS st) $
-                  setField "beamer" (writerBeamer options) $
-                  setField "mainlang" (maybe "" (reverse . takeWhile (/=',') . reverse)
+                  defField "verbatim-in-note" (stVerbInNote st) $
+                  defField "tables" (stTable st) $
+                  defField "strikeout" (stStrikeout st) $
+                  defField "url" (stUrl st) $
+                  defField "numbersections" (writerNumberSections options) $
+                  defField "lhs" (stLHS st) $
+                  defField "graphics" (stGraphics st) $
+                  defField "book-class" (stBook st) $
+                  defField "euro" (stUsesEuro st) $
+                  defField "listings" (writerListings options || stLHS st) $
+                  defField "beamer" (writerBeamer options) $
+                  defField "mainlang" (maybe "" (reverse . takeWhile (/=',') . reverse)
                                 (lookup "lang" $ writerVariables options)) $
                   (if stHighlighting st
-                      then setField "highlighting-macros" (styleToLaTeX
+                      then defField "highlighting-macros" (styleToLaTeX
                                 $ writerHighlightStyle options )
                       else id) $
                   (case writerCiteMethod options of
-                         Natbib   -> setField "biblio-files" biblioFiles .
-                                     setField "biblio-title" biblioTitle .
-                                     setField "natbib" True
-                         Biblatex -> setField "biblio-files" biblioFiles .
-                                     setField "biblio-title" biblioTitle .
-                                     setField "biblatex" True
+                         Natbib   -> defField "biblio-files" biblioFiles .
+                                     defField "biblio-title" biblioTitle .
+                                     defField "natbib" True
+                         Biblatex -> defField "biblio-files" biblioFiles .
+                                     defField "biblio-title" biblioTitle .
+                                     defField "biblatex" True
                          _        -> id) $
                   foldl (\acc (x,y) -> setField x y acc)
                      metadata (writerVariables options)
