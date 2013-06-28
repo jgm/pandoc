@@ -65,6 +65,7 @@ module Text.Pandoc.Shared (
                      makeMeta,
                      metaToJSON,
                      setField,
+                     defField,
                      -- * TagSoup HTML handling
                      renderTags',
                      -- * File handling
@@ -561,6 +562,19 @@ setField field val (Object hashmap) =
                 Success xs  -> toJSON $ xs ++ [newval]
                 _           -> toJSON [oldval, newval]
 setField _ _  x = x
+
+defField :: ToJSON a
+         => String
+         -> a
+         -> Value
+         -> Value
+-- | Set a field of a JSON object if it currently has no value.
+-- If it has a value, do nothing.
+-- This is a utility function to be used in preparing template contexts.
+defField field val (Object hashmap) =
+  Object $ H.insertWith f (T.pack field) (toJSON val) hashmap
+    where f _newval oldval = oldval
+defField _ _  x = x
 
 --
 -- TagSoup HTML handling
