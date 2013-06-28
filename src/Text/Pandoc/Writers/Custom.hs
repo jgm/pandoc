@@ -107,6 +107,19 @@ instance StackValue [Block] where
   peek _ _ = undefined
   valuetype _ = Lua.TSTRING
 
+instance StackValue MetaValue where
+  push l (MetaMap m) = Lua.push l m
+  push l (MetaList xs) = Lua.push l xs
+  push l (MetaString s) = Lua.push l s
+  push l (MetaInlines ils) = Lua.push l ils
+  push l (MetaBlocks bs) = Lua.push l bs
+  peek _ _ = undefined
+  valuetype (MetaMap _) = Lua.TTABLE
+  valuetype (MetaList _) = Lua.TTABLE
+  valuetype (MetaString _) = Lua.TSTRING
+  valuetype (MetaInlines _) = Lua.TSTRING
+  valuetype (MetaBlocks _) = Lua.TSTRING
+
 -- | Convert Pandoc to custom markup.
 writeCustom :: FilePath -> WriterOptions -> Pandoc -> IO String
 writeCustom luaFile opts doc = do
@@ -121,12 +134,9 @@ writeCustom luaFile opts doc = do
   return $ toString rendered
 
 docToCustom :: LuaState -> WriterOptions -> Pandoc -> IO ByteString
-docToCustom lua opts (Pandoc meta blocks) = do
-  title' <- inlineListToCustom lua $ docTitle meta
-  authors' <- mapM (inlineListToCustom lua) $ docAuthors meta
-  date' <- inlineListToCustom lua $ docDate meta
+docToCustom lua opts (Pandoc (Meta metamap) blocks) = do
   body <- blockListToCustom lua blocks
-  callfunc lua "Doc" body title' authors' date' (writerVariables opts)
+  callfunc lua "Doc" body metamap (writerVariables opts)
 
 -- | Convert Pandoc block element to Custom.
 blockToCustom :: LuaState      -- ^ Lua state

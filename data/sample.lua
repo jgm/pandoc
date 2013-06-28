@@ -66,10 +66,10 @@ function Blocksep()
 end
 
 -- This function is called once for the whole document. Parameters:
--- body, title, date are strings; authors is an array of strings;
--- variables is a table.  One could use some kind of templating
+-- body is a string, metadata is a table, variables is a table.
+-- One could use some kind of templating
 -- system here; this just gives you a simple standalone HTML file.
-function Doc(body, title, authors, date, variables)
+function Doc(body, metadata, variables)
   local buffer = {}
   local function add(s)
     table.insert(buffer, s)
@@ -77,17 +77,17 @@ function Doc(body, title, authors, date, variables)
   add('<!DOCTYPE html>')
   add('<html>')
   add('<head>')
-  add('<title>' .. title .. '</title>')
+  add('<title>' .. metadata.title .. '</title>')
   add('</head>')
   add('<body>')
   if title ~= "" then
-    add('<h1 class="title">' .. title .. '</h1>')
+    add('<h1 class="title">' .. metadata.title .. '</h1>')
   end
-  for _, author in pairs(authors) do
+  for _, author in pairs(metadata.author) do
     add('<h2 class="author">' .. author .. '</h2>')
   end
   if date ~= "" then
-    add('<h3 class="date">' .. date .. '</h3>')
+    add('<h3 class="date">' .. metadata.date .. '</h3>')
   end
   add(body)
   if #notes > 0 then
