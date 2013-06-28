@@ -39,6 +39,7 @@ import Data.List ( isPrefixOf, intersperse, intercalate )
 import Text.Pandoc.Pretty
 import Text.Pandoc.Builder (deleteMeta)
 import Control.Monad.State
+import Data.Char ( isDigit )
 
 type Notes = [[Block]]
 data WriterState = WriterState { stNotes  :: Notes
@@ -56,13 +57,20 @@ pandocToMan opts (Pandoc meta blocks) = do
                     else Nothing
   let render' = render colwidth
   titleText <- inlineListToMan opts $ docTitle meta
-  let (cmdName, rest) = break (== ' ') $ render' titleText
-  let (title', section) = case reverse cmdName of
-                            (')':d:'(':xs) | d `elem` ['0'..'9'] ->
-                                  (reverse xs, [d])
-                            xs -> (reverse xs, "\"\"")
-  let description = hsep $
-                    map (doubleQuotes . text . trim) $ splitBy (== '|') rest
+  let title' = render' titleText
+  let setFieldsFromTitle =
+       case break (== ' ') title' of
+           (cmdName, rest) -> case reverse cmdName of
+                                   (')':d:'(':xs) | isDigit d ->
+                                     setField "title" (reverse xs) .
+                                     setField "section" [d] .
+                                     case splitBy (=='|') rest of
+                                          (ft:hds) ->
+                                            setField "footer" (trim ft) .
+                                            setField "header"
+                                               (trim $ concat hds)
+                                          [] -> id
+                                   _  -> setField "title" title'
   metadata <- metaToJSON
               (fmap (render colwidth) . blockListToMan opts)
               (fmap (render colwidth) . inlineListToMan opts)
@@ -73,9 +81,7 @@ pandocToMan opts (Pandoc meta blocks) = do
   let main = render' $ body $$ notes' $$ text ""
   hasTables <- liftM stHasTables get
   let context = setField "body" main
-              $ setField "title" title'
-              $ setField "section" section
-              $ setField "description" (render' description)
+              $ setFieldsFromTitle
               $ setField "has-tables" hasTables
               $ foldl (\acc (x,y) -> setField x y acc)
                      metadata (writerVariables opts)

@@ -1,4 +1,4 @@
-.TH Pandoc "" "July 17, 2006" "Test Suite"
+.TH "Pandoc Test Suite" "" "July 17, 2006" "" ""
 .PP
 This is a set of tests for pandoc.
 Most of them are adapted from John Gruber's markdown test suite.

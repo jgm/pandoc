@@ -793,6 +793,12 @@ depending on the output format, but include:
 :   color for citation links in LaTeX documents
 `links-as-notes`
 :   causes links to be printed as footnotes in LaTeX documents
+`section`
+:   section number in man pages
+`header`
+:   header in man pages
+`footer`
+:   footer in man pages
 
 Variables may be set at the command line using the `-V/--variable`
 option. This allows users to include custom variables in their
