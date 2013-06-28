@@ -1,7 +1,7 @@
 $if(has-tables)$
 .\"t
 $endif$
-.TH $title$ $section$ "$date$" $description$
+.TH "$title$" "$section$" "$date$" "$footer$" "$header$"
 $for(header-includes)$
 $header-includes$
 $endfor$
