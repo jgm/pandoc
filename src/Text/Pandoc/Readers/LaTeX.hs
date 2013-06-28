@@ -35,6 +35,7 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                  ) where
 
 import Text.Pandoc.Definition
+import Text.Pandoc.Generic
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Biblio (processBiblio)
@@ -48,7 +49,7 @@ import Control.Applicative
 import Data.Monoid
 import System.Environment (getEnv)
 import System.FilePath (replaceExtension, (</>))
-import Data.List (intercalate)
+import Data.List (intercalate, intersperse)
 import qualified Data.Map as M
 import qualified Control.Exception as E
 import System.FilePath (takeExtension, addExtension)
@@ -776,13 +777,21 @@ keyval = try $ do
 keyvals :: LP [(String, String)]
 keyvals = try $ char '[' *> manyTill keyval (char ']')
 
+alltt :: String -> LP Blocks
+alltt t = bottomUp strToCode <$> parseFromString blocks
+  (substitute " " "\\ " $ substitute "%" "\\%" $
+   concat $ intersperse "\\\\\n" $ lines t)
+  where strToCode (Str s) = Code nullAttr s
+        strToCode x       = x
+
 verbatimEnv :: LP (String, String)
 verbatimEnv = do
   (_,r) <- withRaw $ do
              controlSeq "begin"
              name <- braced
              guard $ name == "verbatim" || name == "Verbatim" ||
-                     name == "lstlisting" || name == "minted"
+                     name == "lstlisting" || name == "minted" ||
+                     name == "alltt"
              verbEnv name
   rest <- getInput
   return (r,rest)
@@ -808,6 +817,7 @@ environments = M.fromList
   , ("itemize", bulletList <$> listenv "itemize" (many item))
   , ("description", definitionList <$> listenv "description" (many descItem))
   , ("enumerate", ordered_list)
+  , ("alltt", alltt =<< verbEnv "alltt")
   , ("code", guardEnabled Ext_literate_haskell *>
       (codeBlockWith ("",["sourceCode","literate","haskell"],[]) <$>
         verbEnv "code"))
