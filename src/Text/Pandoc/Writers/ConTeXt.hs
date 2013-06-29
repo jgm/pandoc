@@ -203,9 +203,11 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
                   then return empty
                   else liftM ($$ "\\HL") $ tableRowToConTeXt heads
     captionText <- inlineListToConTeXt caption
-    let captionText' = if null caption then text "none" else captionText
     rows' <- mapM tableRowToConTeXt rows
-    return $ "\\placetable[here]" <> braces captionText' $$
+    return $ "\\placetable" <> brackets ("here" <> if null caption
+                                                      then ",none"
+                                                      else "")
+                            <> braces captionText $$
              "\\starttable" <> brackets (text colDescriptors) $$
              "\\HL" $$ headers $$
              vcat rows' $$ "\\HL" $$ "\\stoptable" <> blankline

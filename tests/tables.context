@@ -29,7 +29,7 @@ Simple table with caption:
 
 Simple table without caption:
 
-\placetable[here]{none}
+\placetable[here,none]{}
 \starttable[|r|l|c|l|]
 \HL
 \NC Right
@@ -111,7 +111,7 @@ Multiline table with caption:
 
 Multiline table without caption:
 
-\placetable[here]{none}
+\placetable[here,none]{}
 \starttable[|cp(0.15\textwidth)|lp(0.14\textwidth)|rp(0.16\textwidth)|lp(0.34\textwidth)|]
 \HL
 \NC Centered Header
@@ -135,7 +135,7 @@ Multiline table without caption:
 
 Table without column headers:
 
-\placetable[here]{none}
+\placetable[here,none]{}
 \starttable[|r|l|c|r|]
 \HL
 \NC 12
@@ -158,7 +158,7 @@ Table without column headers:
 
 Multiline table without column headers:
 
-\placetable[here]{none}
+\placetable[here,none]{}
 \starttable[|cp(0.15\textwidth)|lp(0.14\textwidth)|rp(0.16\textwidth)|lp(0.34\textwidth)|]
 \HL
 \NC First
