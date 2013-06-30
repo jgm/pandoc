@@ -78,6 +78,7 @@ writeRTF options (Pandoc meta blocks) =
       Just metadata = metaToJSON
               (Just . concatMap (blockToRTF 0 AlignDefault))
               (Just . inlineListToRTF)
+              (writerVariables options)
               meta
       body = concatMap (blockToRTF 0 AlignDefault) blocks
       isTOCHeader (Header lev _ _) = lev <= writerTOCDepth options
@@ -88,8 +89,7 @@ writeRTF options (Pandoc meta blocks) =
                     then defField "toc"
                           (tableOfContents $ filter isTOCHeader blocks)
                     else id)
-              $ foldl (\acc (x,y) -> setField x y acc)
-                   metadata (writerVariables options)
+              $ metadata
   in  if writerStandalone options
          then renderTemplate' (writerTemplate options) context
          else body

@@ -66,6 +66,7 @@ pandocToConTeXt options (Pandoc meta blocks) = do
   metadata <- metaToJSON
               (fmap (render colwidth) . blockListToConTeXt)
               (fmap (render colwidth) . inlineListToConTeXt)
+              (writerVariables options)
               meta
   body <- mapM (elementToConTeXt options) $ hierarchicalize blocks
   let main = (render colwidth . vcat) body
@@ -81,8 +82,7 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                 $ defField "mainlang" (maybe ""
                     (reverse . takeWhile (/=',') . reverse)
                     (lookup "lang" $ writerVariables options))
-                $ foldl (\acc (x,y) -> setField x y acc)
-                     metadata (writerVariables options)
+                $ metadata
   return $ if writerStandalone options
               then renderTemplate' (writerTemplate options) context
               else main

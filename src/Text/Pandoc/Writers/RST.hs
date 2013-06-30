@@ -74,6 +74,7 @@ pandocToRST (Pandoc meta blocks) = do
   title <- titleToRST (docTitle meta) subtit
   metadata <- metaToJSON (fmap (render colwidth) . blockListToRST)
                          (fmap (trimr . render colwidth) . inlineListToRST)
+              (writerVariables opts)
               $ deleteMeta "title" $ deleteMeta "subtitle" meta
   body <- blockListToRST blocks
   notes <- liftM (reverse . stNotes) get >>= notesToRST
@@ -88,8 +89,7 @@ pandocToRST (Pandoc meta blocks) = do
               $ defField "math" hasMath
               $ defField "title" (render Nothing title :: String)
               $ defField "math" hasMath
-              $ foldl (\acc (x,y) -> setField x y acc)
-                     metadata (writerVariables opts)
+              $ metadata
   if writerStandalone opts
      then return $ renderTemplate' (writerTemplate opts) context
      else return main

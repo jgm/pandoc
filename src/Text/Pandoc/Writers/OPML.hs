@@ -52,11 +52,10 @@ writeOPML opts (Pandoc meta blocks) =
                       (Just . writeMarkdown def . Pandoc nullMeta)
                       (Just . trimr . writeMarkdown def . Pandoc nullMeta .
                          (\ils -> [Plain ils]))
+                      (writerVariables opts)
                       meta'
       main     = render colwidth $ vcat (map (elementToOPML opts) elements)
-      context = defField "body" main
-              $ foldl (\acc (x,y) -> setField x y acc)
-                     metadata (writerVariables opts)
+      context = defField "body" main metadata
   in  if writerStandalone opts
          then renderTemplate' (writerTemplate opts) context
          else main

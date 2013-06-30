@@ -106,6 +106,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   metadata <- metaToJSON
               (fmap (render colwidth) . blockListToLaTeX)
               (fmap (render colwidth) . inlineListToLaTeX)
+              (writerVariables options)
               meta
   let (blocks', lastHeader) = if writerCiteMethod options == Citeproc then
                                 (blocks, [])
@@ -158,8 +159,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                      defField "biblio-title" biblioTitle .
                                      defField "biblatex" True
                          _        -> id) $
-                  foldl (\acc (x,y) -> setField x y acc)
-                     metadata (writerVariables options)
+                  metadata
   return $ if writerStandalone options
               then renderTemplate' template context
               else main

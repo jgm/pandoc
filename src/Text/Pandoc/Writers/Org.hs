@@ -66,6 +66,7 @@ pandocToOrg (Pandoc meta blocks) = do
   metadata <- metaToJSON
                (fmap (render colwidth) . blockListToOrg)
                (fmap (render colwidth) . inlineListToOrg)
+               (writerVariables opts)
                meta
   body <- blockListToOrg blocks
   notes <- liftM (reverse . stNotes) get >>= notesToOrg
@@ -74,8 +75,7 @@ pandocToOrg (Pandoc meta blocks) = do
   let main = render colwidth $ foldl ($+$) empty $ [body, notes]
   let context = defField "body" main
               $ defField "math" hasMath
-              $ foldl (\acc (x,y) -> setField x y acc)
-                     metadata (writerVariables opts)
+              $ metadata
   if writerStandalone opts
      then return $ renderTemplate' (writerTemplate opts) context
      else return main

@@ -57,6 +57,7 @@ pandocToMediaWiki opts (Pandoc meta blocks) = do
   metadata <- metaToJSON
               (fmap trimr . blockListToMediaWiki opts)
               (inlineListToMediaWiki opts)
+              (writerVariables opts)
               meta
   body <- blockListToMediaWiki opts blocks
   notesExist <- get >>= return . stNotes
@@ -66,8 +67,7 @@ pandocToMediaWiki opts (Pandoc meta blocks) = do
   let main = body ++ notes
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts)
-                $ foldl (\acc (x,y) -> setField x y acc)
-                     metadata (writerVariables opts)
+                $ metadata
   if writerStandalone opts
      then return $ renderTemplate' (writerTemplate opts) context
      else return main

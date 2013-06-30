@@ -85,14 +85,14 @@ writeDocbook opts (Pandoc meta blocks) =
       Just metadata = metaToJSON
                  (Just . render colwidth . blocksToDocbook opts)
                  (Just . render colwidth . inlinesToDocbook opts)
+                 (writerVariables opts)
                  meta'
       main     = render' $ vcat (map (elementToDocbook opts' startLvl) elements)
       context = defField "body" main
               $ defField "mathml" (case writerHTMLMathMethod opts of
                                         MathML _ -> True
                                         _        -> False)
-              $ foldl (\acc (x,y) -> setField x y acc)
-                   metadata (writerVariables opts)
+              $ metadata
   in  if writerStandalone opts
          then renderTemplate' (writerTemplate opts) context
          else main

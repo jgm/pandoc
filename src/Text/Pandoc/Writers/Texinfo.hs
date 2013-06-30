@@ -76,7 +76,7 @@ pandocToTexinfo options (Pandoc meta blocks) = do
   metadata <- metaToJSON
               (fmap (render colwidth) . blockListToTexinfo)
               (fmap (render colwidth) . inlineListToTexinfo)
-                   meta
+              (writerVariables options) meta
   main <- blockListToTexinfo blocks
   st <- get
   let body = render colwidth main
@@ -86,8 +86,7 @@ pandocToTexinfo options (Pandoc meta blocks) = do
               $ defField "subscript" (stSubscript st)
               $ defField "superscript" (stSuperscript st)
               $ defField "strikeout" (stStrikeout st)
-              $ foldl (\acc (x,y) -> setField x y acc)
-                     metadata (writerVariables options)
+              $ metadata
   if writerStandalone options
      then return $ renderTemplate' (writerTemplate options) context
      else return body

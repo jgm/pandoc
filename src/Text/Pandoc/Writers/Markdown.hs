@@ -134,6 +134,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   metadata <- metaToJSON
               (fmap (render colwidth) . blockListToMarkdown opts)
               (fmap (render colwidth) . inlineListToMarkdown opts)
+              (writerVariables opts)
               meta
   body <- blockListToMarkdown opts blocks
   st <- get
@@ -151,8 +152,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                            && null (docDate meta))
                      then defField "titleblock" (render' titleblock)
                      else id)
-               $ foldl (\acc (x,y) -> setField x y acc)
-                     metadata (writerVariables opts)
+               $ metadata
   if writerStandalone opts
      then return $ renderTemplate' (writerTemplate opts) context
      else return main

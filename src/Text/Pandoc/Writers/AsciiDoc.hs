@@ -74,6 +74,7 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
   metadata <- metaToJSON
               (fmap (render colwidth) . blockListToAsciiDoc opts)
               (fmap (render colwidth) . inlineListToAsciiDoc opts)
+              (writerVariables opts)
               meta
   let addTitleLine (String t) = String $
          t <> "\n" <> T.replicate (T.length t) "="
@@ -88,8 +89,7 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
                $ defField "toc"
                   (writerTableOfContents opts && writerStandalone opts)
                $ defField "titleblock" titleblock
-               $ foldl (\acc (x,y) -> setField x y acc)
-                     metadata' (writerVariables opts)
+               $ metadata'
   if writerStandalone opts
      then return $ renderTemplate' (writerTemplate opts) context
      else return main

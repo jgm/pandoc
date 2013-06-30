@@ -526,13 +526,20 @@ makeMeta title authors date =
 -- | Create JSON value for template from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
 -- Variables overwrite metadata fields with the same names.
+-- If multiple variables are set with the same name, a list is
+-- assigned.
 metaToJSON :: Monad m
            => ([Block] -> m String) -- ^ Writer for output format
            -> ([Inline] -> m String) -- ^ Writer for output format
+           -> [(String, String)]    -- ^ Variables
            -> Meta                  -- ^ Metadata
            -> m Value
-metaToJSON blockWriter inlineWriter (Meta metamap) = liftM toJSON $
-  Traversable.mapM (metaValueToJSON blockWriter inlineWriter) metamap
+metaToJSON blockWriter inlineWriter vars (Meta metamap) = do
+  let baseContext = foldl (\acc (x,y) -> setField x y acc) (Object H.empty) vars
+  renderedMap <- Traversable.mapM (metaValueToJSON blockWriter inlineWriter)
+                  metamap
+  return $ M.foldWithKey (\key val obj -> defField key val obj)
+                 baseContext renderedMap
 
 metaValueToJSON :: Monad m
                 => ([Block] -> m String)

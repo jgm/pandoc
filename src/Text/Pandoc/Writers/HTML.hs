@@ -113,6 +113,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
   metadata <- metaToJSON
               (fmap renderHtml . blockListToHtml opts)
               (fmap renderHtml . inlineListToHtml opts)
+              (writerVariables opts)
               meta
   let authsMeta = map stringify $ docAuthors meta
   let dateMeta  = stringify $ docDate meta
@@ -175,8 +176,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   defField "revealjs-url" ("reveal.js" :: String) $
                   defField "s5-url" ("s5/default" :: String) $
                   defField "html5" (writerHtml5 opts) $
-                  foldl (\acc (x,y) -> setField x y acc)
-                     metadata (writerVariables opts)
+                  metadata
   return (thebody, context)
 
 inTemplate :: TemplateTarget a

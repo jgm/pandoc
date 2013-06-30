@@ -74,6 +74,7 @@ pandocToMan opts (Pandoc meta blocks) = do
   metadata <- metaToJSON
               (fmap (render colwidth) . blockListToMan opts)
               (fmap (render colwidth) . inlineListToMan opts)
+              (writerVariables opts)
               $ deleteMeta "title" meta
   body <- blockListToMan opts blocks
   notes <- liftM stNotes get
@@ -83,8 +84,7 @@ pandocToMan opts (Pandoc meta blocks) = do
   let context = defField "body" main
               $ setFieldsFromTitle
               $ defField "has-tables" hasTables
-              $ foldl (\acc (x,y) -> setField x y acc)
-                     metadata (writerVariables opts)
+              $ metadata
   if writerStandalone opts
      then return $ renderTemplate' (writerTemplate opts) context
      else return main

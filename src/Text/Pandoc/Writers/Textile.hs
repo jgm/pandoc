@@ -55,13 +55,12 @@ writeTextile opts document =
 pandocToTextile :: WriterOptions -> Pandoc -> State WriterState String
 pandocToTextile opts (Pandoc meta blocks) = do
   metadata <- metaToJSON
-               (blockListToTextile opts) (inlineListToTextile opts) meta
+               (blockListToTextile opts) (inlineListToTextile opts)
+               (writerVariables opts) meta
   body <- blockListToTextile opts blocks
   notes <- liftM (unlines . reverse . stNotes) get
   let main = body ++ if null notes then "" else ("\n\n" ++ notes)
-  let context = defField "body" main
-                $ foldl (\acc (x,y) -> setField x y acc)
-                     metadata (writerVariables opts)
+  let context = defField "body" main metadata
   if writerStandalone opts
      then return $ renderTemplate' (writerTemplate opts) context
      else return main
