@@ -46,10 +46,8 @@ import Text.Pandoc.Readers.TeXMath (readTeXMath)
 import Text.HTML.TagSoup (renderTags, parseTags, isTagText, Tag(..))
 import Network.URI (isAbsoluteURI)
 import Data.Default
-import Data.Yaml (Value(Object,String,Array,Bool,Number))
-import qualified Data.HashMap.Strict as H
-import qualified Data.Vector as V
-import qualified Data.Text as T
+import qualified Data.Map as M
+import Control.Applicative ((<$>))
 
 type Notes = [[Block]]
 type Refs = [([Inline], Target)]
@@ -113,21 +111,34 @@ plainTitleBlock tit auths dat =
   (hcat (intersperse (text "; ") auths)) <> cr <>
   dat <> cr
 
-yamlTitleBlock :: Value -> Doc
-yamlTitleBlock v = "---" $$ (jsonToYaml v) $$ "..."
+yamlTitleBlock :: WriterOptions -> Meta -> State WriterState Doc
+yamlTitleBlock opts (Meta metamap) = do
+  m <- jsonToYaml opts (MetaMap metamap)
+  return $ "---" $$ m $$ "..."
 
-jsonToYaml :: Value -> Doc
-jsonToYaml (Object hashmap) =
-  vcat (map (\(k,v) ->
-    text (T.unpack k) <> ":" <> space <> jsonToYaml v) $ H.toList hashmap)
-jsonToYaml (Array vec) =
-  cr <> vcat (map (\v -> hang 2 "- " (jsonToYaml v)) $ V.toList vec)
-jsonToYaml (String s)
-  | "\n" `T.isInfixOf` s = hang 2 ("|" <> cr) $ text $ T.unpack s
-  | otherwise            = text $ "'" ++ substitute "'" "''" (T.unpack s) ++ "'"
-jsonToYaml (Bool b) = text $ show b
-jsonToYaml (Number n) = text $ show n
-jsonToYaml _ = empty
+jsonToYaml :: WriterOptions -> MetaValue -> State WriterState Doc
+jsonToYaml opts (MetaMap metamap) = vcat
+  <$> mapM (\(k,v) -> ((text k <> ":") <>) <$>
+             case v of
+                (MetaList _) -> (cr <>) <$> jsonToYaml opts v
+                (MetaMap _)  -> ((cr <>) . nest 2) <$> jsonToYaml opts v
+                _            -> (space <> ) <$> jsonToYaml opts v)
+           (M.toList metamap)
+jsonToYaml opts (MetaList xs) = vcat
+  <$> mapM (\v -> hang 2 "- " <$> (jsonToYaml opts v)) xs
+jsonToYaml _ (MetaString s)
+  | '\n' `elem` s = return $ hang 2 ("|" <> cr) $ text s
+  | otherwise            = return $ text $ "'" ++ substitute "'" "''" s ++ "'"
+jsonToYaml opts (MetaInlines ils) =
+  inlineListToMarkdown opts ils >>= jsonToYaml opts . MetaString . render' opts
+jsonToYaml opts (MetaBlocks bs) =
+  blockListToMarkdown opts bs >>= jsonToYaml opts . MetaString . render' opts
+
+render' :: WriterOptions -> Doc -> String
+render' opts = render colwidth
+  where colwidth = if writerWrapText opts
+                      then Just $ writerColumns opts
+                      else Nothing
 
 -- | Return markdown representation of document.
 pandocToMarkdown :: WriterOptions -> Pandoc -> State WriterState String
@@ -135,25 +146,22 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   title' <- inlineListToMarkdown opts $ docTitle meta
   authors' <- mapM (inlineListToMarkdown opts) $ docAuthors meta
   date' <- inlineListToMarkdown opts $ docDate meta
-  let colwidth = if writerWrapText opts
-                    then Just $ writerColumns opts
-                    else Nothing
   metadata <- metaToJSON
-              (fmap (render colwidth) . blockListToMarkdown opts)
-              (fmap (render colwidth) . inlineListToMarkdown opts)
+              (fmap (render' opts) . blockListToMarkdown opts)
+              (fmap (render' opts) . inlineListToMarkdown opts)
               (writerVariables opts)
               meta
   isPlain <- gets stPlain
-  let titleblock = case True of
+  titleblock <- case True of
                         _ | isPlain ->
-                              plainTitleBlock title' authors' date'
+                              return $ plainTitleBlock title' authors' date'
                           | isEnabled Ext_yaml_title_block opts ->
-                              yamlTitleBlock metadata
+                              yamlTitleBlock opts meta
                           | isEnabled Ext_pandoc_title_block opts ->
-                              pandocTitleBlock title' authors' date'
+                              return $ pandocTitleBlock title' authors' date'
                           | isEnabled Ext_mmd_title_block opts ->
-                              mmdTitleBlock title' authors' date'
-                          | otherwise -> empty
+                              return $ mmdTitleBlock title' authors' date'
+                          | otherwise -> return empty
   let headerBlocks = filter isHeaderBlock blocks
   let toc = if writerTableOfContents opts
                then tableOfContents opts headerBlocks
@@ -163,16 +171,14 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   notes' <- notesToMarkdown opts (reverse $ stNotes st)
   st' <- get  -- note that the notes may contain refs
   refs' <- refsToMarkdown opts (reverse $ stRefs st')
-  let render' :: Doc -> String
-      render' = render colwidth
-  let main = render' $ body <>
+  let main = render' opts $ body <>
                (if isEmpty notes' then empty else blankline <> notes') <>
                (if isEmpty refs' then empty else blankline <> refs')
-  let context  = defField "toc" (render' toc)
+  let context  = defField "toc" (render' opts toc)
                $ defField "body" main
                $ (if not (null (docTitle meta) && null (docAuthors meta)
                            && null (docDate meta))
-                     then defField "titleblock" (render' titleblock)
+                     then defField "titleblock" (render' opts titleblock)
                      else id)
                $ metadata
   if writerStandalone opts
