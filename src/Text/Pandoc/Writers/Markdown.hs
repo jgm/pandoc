@@ -46,6 +46,10 @@ import Text.Pandoc.Readers.TeXMath (readTeXMath)
 import Text.HTML.TagSoup (renderTags, parseTags, isTagText, Tag(..))
 import Network.URI (isAbsoluteURI)
 import Data.Default
+import Data.Yaml (Value(Object,String,Array,Bool,Number))
+import qualified Data.HashMap.Strict as H
+import qualified Data.Vector as V
+import qualified Data.Text as T
 
 type Notes = [[Block]]
 type Refs = [([Inline], Target)]
@@ -109,16 +113,42 @@ plainTitleBlock tit auths dat =
   (hcat (intersperse (text "; ") auths)) <> cr <>
   dat <> cr
 
+yamlTitleBlock :: Value -> Doc
+yamlTitleBlock v = "---" $$ (jsonToYaml v) $$ "..."
+
+jsonToYaml :: Value -> Doc
+jsonToYaml (Object hashmap) =
+  vcat (map (\(k,v) ->
+    text (T.unpack k) <> ":" <> space <> jsonToYaml v) $ H.toList hashmap)
+jsonToYaml (Array vec) =
+  cr <> vcat (map (\v -> hang 2 "- " (jsonToYaml v)) $ V.toList vec)
+jsonToYaml (String s)
+  | "\n" `T.isInfixOf` s = hang 2 ("|" <> cr) $ text $ T.unpack s
+  | otherwise            = text $ "'" ++ substitute "'" "''" (T.unpack s) ++ "'"
+jsonToYaml (Bool b) = text $ show b
+jsonToYaml (Number n) = text $ show n
+jsonToYaml _ = empty
+
 -- | Return markdown representation of document.
 pandocToMarkdown :: WriterOptions -> Pandoc -> State WriterState String
 pandocToMarkdown opts (Pandoc meta blocks) = do
   title' <- inlineListToMarkdown opts $ docTitle meta
   authors' <- mapM (inlineListToMarkdown opts) $ docAuthors meta
   date' <- inlineListToMarkdown opts $ docDate meta
+  let colwidth = if writerWrapText opts
+                    then Just $ writerColumns opts
+                    else Nothing
+  metadata <- metaToJSON
+              (fmap (render colwidth) . blockListToMarkdown opts)
+              (fmap (render colwidth) . inlineListToMarkdown opts)
+              (writerVariables opts)
+              meta
   isPlain <- gets stPlain
   let titleblock = case True of
                         _ | isPlain ->
                               plainTitleBlock title' authors' date'
+                          | isEnabled Ext_yaml_title_block opts ->
+                              yamlTitleBlock metadata
                           | isEnabled Ext_pandoc_title_block opts ->
                               pandocTitleBlock title' authors' date'
                           | isEnabled Ext_mmd_title_block opts ->
@@ -128,14 +158,6 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   let toc = if writerTableOfContents opts
                then tableOfContents opts headerBlocks
                else empty
-  let colwidth = if writerWrapText opts
-                    then Just $ writerColumns opts
-                    else Nothing
-  metadata <- metaToJSON
-              (fmap (render colwidth) . blockListToMarkdown opts)
-              (fmap (render colwidth) . inlineListToMarkdown opts)
-              (writerVariables opts)
-              meta
   body <- blockListToMarkdown opts blocks
   st <- get
   notes' <- notesToMarkdown opts (reverse $ stNotes st)
