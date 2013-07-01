@@ -64,6 +64,7 @@ module Text.Pandoc.Shared (
                      addMetaField,
                      makeMeta,
                      metaToJSON,
+                     getField,
                      setField,
                      defField,
                      -- * TagSoup HTML handling
@@ -113,7 +114,7 @@ import Network.Browser (browse, setAllowRedirects, setOutHandler, request)
 import qualified Data.Traversable as Traversable
 import qualified Data.HashMap.Strict as H
 import qualified Data.Text as T
-import Data.Aeson (ToJSON (..), Value(Object), Result(..), fromJSON)
+import Data.Aeson (FromJSON(..), fromJSON, ToJSON (..), Value(Object), Result(..))
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
@@ -553,6 +554,18 @@ metaValueToJSON blockWriter inlineWriter (MetaList xs) = liftM toJSON $
 metaValueToJSON _ _ (MetaString s) = return $ toJSON s
 metaValueToJSON blockWriter _ (MetaBlocks bs) = liftM toJSON $ blockWriter bs
 metaValueToJSON _ inlineWriter (MetaInlines bs) = liftM toJSON $ inlineWriter bs
+
+-- | Retrieve a field value from a JSON object.
+getField :: FromJSON a
+         => String
+         -> Value
+         -> Maybe a
+getField field (Object hashmap) = do
+  result <- H.lookup (T.pack field) hashmap
+  case fromJSON result of
+       Success x -> return x
+       _         -> fail "Could not convert from JSON"
+getField field _ = fail "Not a JSON object"
 
 setField :: ToJSON a
          => String
