@@ -118,13 +118,23 @@ yamlTitleBlock v = "---" $$ (jsonToYaml v) $$ "..."
 
 jsonToYaml :: Value -> Doc
 jsonToYaml (Object hashmap) =
-  vcat (map (\(k,v) ->
-    text (T.unpack k) <> ":" <> space <> jsonToYaml v) $ H.toList hashmap)
+  vcat $ map (\(k,v) ->
+          case (text (T.unpack k), v, jsonToYaml v) of
+               (k', Array vec, x)
+                 | V.null vec     -> empty
+                 | otherwise      -> (k' <> ":") $$ x
+               (k', Object _, x)  -> (k' <> ":") $$ nest 2 x
+               (_, String "", _)  -> empty
+               (k', _, x)         -> k' <> ":" <> space <> x)
+       $ H.toList hashmap
 jsonToYaml (Array vec) =
-  cr <> vcat (map (\v -> hang 2 "- " (jsonToYaml v)) $ V.toList vec)
-jsonToYaml (String s)
-  | "\n" `T.isInfixOf` s = hang 2 ("|" <> cr) $ text $ T.unpack s
-  | otherwise            = text $ "'" ++ substitute "'" "''" (T.unpack s) ++ "'"
+  vcat $ map (\v -> hang 2 "- " (jsonToYaml v)) $ V.toList vec
+jsonToYaml (String "") = empty
+jsonToYaml (String s) =
+  case T.unpack s of
+     x | '\n' `elem` x -> hang 2 ("|" <> cr) $ text x
+       | not (any (`elem` x) "\"'#:[]{},?-") -> text x
+       | otherwise     -> text $ "'" ++ substitute "'" "''" x ++ "'"
 jsonToYaml (Bool b) = text $ show b
 jsonToYaml (Number n) = text $ show n
 jsonToYaml _ = empty
@@ -132,28 +142,31 @@ jsonToYaml _ = empty
 -- | Return markdown representation of document.
 pandocToMarkdown :: WriterOptions -> Pandoc -> State WriterState String
 pandocToMarkdown opts (Pandoc meta blocks) = do
-  title' <- inlineListToMarkdown opts $ docTitle meta
-  authors' <- mapM (inlineListToMarkdown opts) $ docAuthors meta
-  date' <- inlineListToMarkdown opts $ docDate meta
   let colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
                     else Nothing
-  metadata <- metaToJSON
-              (fmap (render colwidth) . blockListToMarkdown opts)
-              (fmap (render colwidth) . inlineListToMarkdown opts)
-              (writerVariables opts)
-              meta
+  metadata <- if writerStandalone opts
+                 then metaToJSON
+                       (fmap (render colwidth) . blockListToMarkdown opts)
+                       (fmap (render colwidth) . inlineListToMarkdown opts)
+                       (writerVariables opts)
+                       meta
+                 else return $ Object H.empty
+  let title' = maybe empty text $ getField "title" metadata
+  let authors' = maybe [] (map text) $ getField "author" metadata
+  let date' = maybe empty text $ getField "date" metadata
   isPlain <- gets stPlain
-  let titleblock = case True of
-                        _ | isPlain ->
-                              plainTitleBlock title' authors' date'
-                          | isEnabled Ext_yaml_title_block opts ->
-                              yamlTitleBlock metadata
-                          | isEnabled Ext_pandoc_title_block opts ->
-                              pandocTitleBlock title' authors' date'
-                          | isEnabled Ext_mmd_title_block opts ->
-                              mmdTitleBlock title' authors' date'
-                          | otherwise -> empty
+  let titleblock = case writerStandalone opts of
+                        True | isPlain ->
+                                plainTitleBlock title' authors' date'
+                             | isEnabled Ext_yaml_title_block opts ->
+                                 yamlTitleBlock metadata
+                             | isEnabled Ext_pandoc_title_block opts ->
+                                 pandocTitleBlock title' authors' date'
+                             | isEnabled Ext_mmd_title_block opts ->
+                                 mmdTitleBlock title' authors' date'
+                             | otherwise -> empty
+                        False -> empty
   let headerBlocks = filter isHeaderBlock blocks
   let toc = if writerTableOfContents opts
                then tableOfContents opts headerBlocks
