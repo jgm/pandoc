@@ -227,20 +227,26 @@ pandocTitleBlock = try $ do
 yamlTitleBlock :: MarkdownParser (F (Pandoc -> Pandoc))
 yamlTitleBlock = try $ do
   guardEnabled Ext_yaml_title_block
+  pos <- getPosition
   string "---"
   blankline
   rawYaml <- unlines <$> manyTill anyLine stopLine
   optional blanklines
   opts <- stateOptions <$> getState
-  return $ return $
-    case Yaml.decode $ UTF8.fromString rawYaml of
-       Just (Yaml.Object hashmap) ->
+  case Yaml.decodeEither $ UTF8.fromString rawYaml of
+       Right (Yaml.Object hashmap) -> return $ return $
                 H.foldrWithKey (\k v f ->
                      if ignorable k
                         then f
                         else B.setMeta (T.unpack k) (yamlToMeta opts v) . f)
                   id hashmap
-       _                    -> fail "Could not parse yaml object"
+       Left errStr -> do
+                   addWarning (Just pos) $ "Could not parse YAML header: " ++
+                     errStr
+                   return $ return id
+       Right _ -> do
+                   addWarning (Just pos) "YAML header is not an object"
+                   return $ return id
 
 -- ignore fields starting with _
 ignorable :: Text -> Bool
