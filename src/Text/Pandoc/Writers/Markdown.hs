@@ -39,6 +39,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, char, space)
 import Data.List ( group, isPrefixOf, find, intersperse, transpose, sortBy )
+import Data.Char ( isSpace )
 import Data.Ord ( comparing )
 import Text.Pandoc.Pretty
 import Control.Monad.State
@@ -103,11 +104,26 @@ pandocTitleBlock tit auths dat =
   hang 2 (text "% ") (vcat $ map nowrap auths) <> cr <>
   hang 2 (text "% ") dat <> cr
 
-mmdTitleBlock :: Doc -> [Doc] -> Doc -> Doc
-mmdTitleBlock tit auths dat =
-  hang 8 (text "Title:  ") tit <> cr <>
-  hang 8 (text "Author: ") (hcat (intersperse (text "; ") auths)) <> cr <>
-  hang 8 (text "Date:   ") dat <> cr
+mmdTitleBlock :: Value -> Doc
+mmdTitleBlock (Object hashmap) =
+  vcat $ map go $ sortBy (comparing fst) $ H.toList hashmap
+  where go (k,v) =
+          case (text (T.unpack k), v) of
+               (k', Array vec)
+                 | V.null vec     -> empty
+                 | otherwise      -> k' <> ":" <> space <>
+                                      hcat (intersperse "; "
+                                           (map fromstr $ V.toList vec))
+               (_, String "")  -> empty
+               (k', x)         -> k' <> ":" <> space <> nest 2 (fromstr x)
+        fromstr (String s) = text (removeBlankLines $ T.unpack s)
+        fromstr (Bool b)   = text (show b)
+        fromstr (Number n) = text (show n)
+        fromstr _          = empty
+        -- blank lines not allowed in MMD metadata - we replace with .
+        removeBlankLines   = trimr . unlines . map (\x ->
+                               if all isSpace x then "." else x) . lines
+mmdTitleBlock _ = empty
 
 plainTitleBlock :: Doc -> [Doc] -> Doc -> Doc
 plainTitleBlock tit auths dat =
@@ -147,6 +163,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
                     else Nothing
+  isPlain <- gets stPlain
   metadata <- metaToJSON opts
                (fmap (render colwidth) . blockListToMarkdown opts)
                (fmap (render colwidth) . inlineListToMarkdown opts)
@@ -154,7 +171,6 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   let title' = maybe empty text $ getField "title" metadata
   let authors' = maybe [] (map text) $ getField "author" metadata
   let date' = maybe empty text $ getField "date" metadata
-  isPlain <- gets stPlain
   let titleblock = case writerStandalone opts of
                         True | isPlain ->
                                 plainTitleBlock title' authors' date'
@@ -163,7 +179,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                              | isEnabled Ext_pandoc_title_block opts ->
                                  pandocTitleBlock title' authors' date'
                              | isEnabled Ext_mmd_title_block opts ->
-                                 mmdTitleBlock title' authors' date'
+                                 mmdTitleBlock metadata
                              | otherwise -> empty
                         False -> empty
   let headerBlocks = filter isHeaderBlock blocks
