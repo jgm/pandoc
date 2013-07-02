@@ -135,7 +135,7 @@ jsonToYaml (String "") = empty
 jsonToYaml (String s) =
   case T.unpack s of
      x | '\n' `elem` x -> hang 2 ("|" <> cr) $ text x
-       | not (any (`elem` x) "\"'#:[]{},?-") -> text x
+       | not (any (`elem` x) "\"'#:[]{}?-") -> text x
        | otherwise     -> text $ "'" ++ substitute "'" "''" x ++ "'"
 jsonToYaml (Bool b) = text $ show b
 jsonToYaml (Number n) = text $ show n
