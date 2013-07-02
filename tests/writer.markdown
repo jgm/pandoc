@@ -1,8 +1,8 @@
 ---
-date: 'July 17, 2006'
 author:
 - John MacFarlane
 - Anonymous
+date: 'July 17, 2006'
 title: Pandoc Test Suite
 ...
 

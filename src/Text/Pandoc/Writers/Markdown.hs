@@ -38,7 +38,8 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, char, space)
-import Data.List ( group, isPrefixOf, find, intersperse, transpose )
+import Data.List ( group, isPrefixOf, find, intersperse, transpose, sortBy )
+import Data.Ord ( comparing )
 import Text.Pandoc.Pretty
 import Control.Monad.State
 import qualified Data.Set as Set
@@ -127,7 +128,7 @@ jsonToYaml (Object hashmap) =
                (k', Object _, x)  -> (k' <> ":") $$ nest 2 x
                (_, String "", _)  -> empty
                (k', _, x)         -> k' <> ":" <> space <> x)
-       $ H.toList hashmap
+       $ sortBy (comparing fst) $ H.toList hashmap
 jsonToYaml (Array vec) =
   vcat $ map (\v -> hang 2 "- " (jsonToYaml v)) $ V.toList vec
 jsonToYaml (String "") = empty
