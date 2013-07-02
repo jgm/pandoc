@@ -129,9 +129,11 @@ getDefaultTemplate user writer = do
        "json"   -> return $ Right ""
        "docx"   -> return $ Right ""
        "odt"    -> getDefaultTemplate user "opendocument"
-       "markdown_strict" -> getDefaultTemplate user "markdown"
-       "multimarkdown"   -> getDefaultTemplate user "markdown"
-       "markdown_github" -> getDefaultTemplate user "markdown"
+       "markdown_strict"   -> getDefaultTemplate user "markdown"
+       "multimarkdown"     -> getDefaultTemplate user "markdown"
+       "markdown_github"   -> getDefaultTemplate user "markdown"
+       "markdown_mmd"      -> getDefaultTemplate user "markdown"
+       "markdown_phpextra" -> getDefaultTemplate user "markdown"
        _        -> let fname = "templates" </> "default" <.> format
                    in  E.try $ readDataFileUTF8 user fname
 
