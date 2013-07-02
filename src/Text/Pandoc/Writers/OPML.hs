@@ -30,6 +30,7 @@ Conversion of 'Pandoc' documents to OPML XML.
 module Text.Pandoc.Writers.OPML ( writeOPML) where
 import Text.Pandoc.Definition
 import Text.Pandoc.XML
+import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate')
@@ -48,11 +49,10 @@ writeOPML opts (Pandoc meta blocks) =
                     then Just $ writerColumns opts
                     else Nothing
       meta' = B.setMeta "date" (B.str $ convertDate $ docDate meta) meta
-      Just metadata = metaToJSON
+      Just metadata = metaToJSON opts
                       (Just . writeMarkdown def . Pandoc nullMeta)
                       (Just . trimr . writeMarkdown def . Pandoc nullMeta .
                          (\ils -> [Plain ils]))
-                      (writerVariables opts)
                       meta'
       main     = render colwidth $ vcat (map (elementToOPML opts) elements)
       context = defField "body" main metadata

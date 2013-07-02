@@ -40,6 +40,7 @@ module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Shared
+import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, space)
 import Data.List ( isPrefixOf, intersperse, intercalate )
@@ -71,10 +72,9 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
                     else Nothing
-  metadata <- metaToJSON
+  metadata <- metaToJSON opts
               (fmap (render colwidth) . blockListToAsciiDoc opts)
               (fmap (render colwidth) . inlineListToAsciiDoc opts)
-              (writerVariables opts)
               meta
   let addTitleLine (String t) = String $
          t <> "\n" <> T.replicate (T.length t) "="

@@ -162,6 +162,7 @@ The library is structured as follows:
     file "self-contained," by importing remotely linked images, CSS,
     and javascript and turning them into `data:` URLs.
   - `Text.Pandoc.Shared` is a grab-bag of shared utility functions.
+  - `Text.Pandoc.Writers.Shared` contains utilities used in writers only.
   - `Text.Pandoc.Slides` contains functions for splitting a markdown document
     into slides, using the conventions described in the README.
   - `Text.Pandoc.Templates` defines pandoc's templating system.

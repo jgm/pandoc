@@ -32,6 +32,7 @@ module Text.Pandoc.Writers.LaTeX ( writeLaTeX ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Shared
+import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
@@ -103,10 +104,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let colwidth = if writerWrapText options
                     then Just $ writerColumns options
                     else Nothing
-  metadata <- metaToJSON
+  metadata <- metaToJSON options
               (fmap (render colwidth) . blockListToLaTeX)
               (fmap (render colwidth) . inlineListToLaTeX)
-              (writerVariables options)
               meta
   let (blocks', lastHeader) = if writerCiteMethod options == Citeproc then
                                 (blocks, [])

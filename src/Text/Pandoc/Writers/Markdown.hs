@@ -35,6 +35,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Shared
+import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, char, space)
 import Data.List ( group, isPrefixOf, find, intersperse, transpose )
@@ -145,13 +146,10 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
                     else Nothing
-  metadata <- if writerStandalone opts
-                 then metaToJSON
-                       (fmap (render colwidth) . blockListToMarkdown opts)
-                       (fmap (render colwidth) . inlineListToMarkdown opts)
-                       (writerVariables opts)
-                       meta
-                 else return $ Object H.empty
+  metadata <- metaToJSON opts
+               (fmap (render colwidth) . blockListToMarkdown opts)
+               (fmap (render colwidth) . inlineListToMarkdown opts)
+               meta
   let title' = maybe empty text $ getField "title" metadata
   let authors' = maybe [] (map text) $ getField "author" metadata
   let date' = maybe empty text $ getField "date" metadata

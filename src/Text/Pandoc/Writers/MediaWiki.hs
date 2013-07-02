@@ -33,6 +33,7 @@ module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
+import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.XML ( escapeStringForXML )
 import Data.List ( intersect, intercalate )
@@ -54,10 +55,9 @@ writeMediaWiki opts document =
 -- | Return MediaWiki representation of document.
 pandocToMediaWiki :: WriterOptions -> Pandoc -> State WriterState String
 pandocToMediaWiki opts (Pandoc meta blocks) = do
-  metadata <- metaToJSON
+  metadata <- metaToJSON opts
               (fmap trimr . blockListToMediaWiki opts)
               (inlineListToMediaWiki opts)
-              (writerVariables opts)
               meta
   body <- blockListToMediaWiki opts blocks
   notesExist <- get >>= return . stNotes

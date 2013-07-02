@@ -32,6 +32,7 @@ Conversion of 'Pandoc' documents to HTML.
 module Text.Pandoc.Writers.HTML ( writeHtml , writeHtmlString ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Templates
 import Text.Pandoc.Readers.TeXMath
@@ -110,10 +111,9 @@ pandocToHtml :: WriterOptions
              -> Pandoc
              -> State WriterState (Html, Value)
 pandocToHtml opts (Pandoc meta blocks) = do
-  metadata <- metaToJSON
+  metadata <- metaToJSON opts
               (fmap renderHtml . blockListToHtml opts)
               (fmap renderHtml . inlineListToHtml opts)
-              (writerVariables opts)
               meta
   let authsMeta = map stringify $ docAuthors meta
   let dateMeta  = stringify $ docDate meta

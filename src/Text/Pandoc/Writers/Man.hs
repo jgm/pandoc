@@ -32,6 +32,7 @@ module Text.Pandoc.Writers.Man ( writeMan) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Templates
 import Text.Pandoc.Shared
+import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.TeXMath
 import Text.Printf ( printf )
@@ -71,10 +72,9 @@ pandocToMan opts (Pandoc meta blocks) = do
                                                (trim $ concat hds)
                                           [] -> id
                                    _  -> defField "title" title'
-  metadata <- metaToJSON
+  metadata <- metaToJSON opts
               (fmap (render colwidth) . blockListToMan opts)
               (fmap (render colwidth) . inlineListToMan opts)
-              (writerVariables opts)
               $ deleteMeta "title" meta
   body <- blockListToMan opts blocks
   notes <- liftM stNotes get

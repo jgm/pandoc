@@ -34,6 +34,7 @@ module Text.Pandoc.Writers.RST ( writeRST ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
+import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Builder (deleteMeta)
 import Data.List ( isPrefixOf, intersperse, transpose )
@@ -72,10 +73,10 @@ pandocToRST (Pandoc meta blocks) = do
                     Just (MetaBlocks [Plain xs]) -> xs
                     _ -> []
   title <- titleToRST (docTitle meta) subtit
-  metadata <- metaToJSON (fmap (render colwidth) . blockListToRST)
-                         (fmap (trimr . render colwidth) . inlineListToRST)
-              (writerVariables opts)
-              $ deleteMeta "title" $ deleteMeta "subtitle" meta
+  metadata <- metaToJSON opts
+                (fmap (render colwidth) . blockListToRST)
+                (fmap (trimr . render colwidth) . inlineListToRST)
+                $ deleteMeta "title" $ deleteMeta "subtitle" meta
   body <- blockListToRST blocks
   notes <- liftM (reverse . stNotes) get >>= notesToRST
   -- note that the notes may contain refs, so we do them first

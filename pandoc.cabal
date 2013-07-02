@@ -329,6 +329,7 @@ Library
                    Text.Pandoc.SelfContained
   Other-Modules:   Text.Pandoc.Readers.Haddock.Lex,
                    Text.Pandoc.Readers.Haddock.Parse,
+                   Text.Pandoc.Writers.Shared,
                    Text.Pandoc.Asciify,
                    Text.Pandoc.MIME,
                    Text.Pandoc.Parsing,

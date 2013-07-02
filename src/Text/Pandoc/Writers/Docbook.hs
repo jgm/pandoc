@@ -31,6 +31,7 @@ module Text.Pandoc.Writers.Docbook ( writeDocbook) where
 import Text.Pandoc.Definition
 import Text.Pandoc.XML
 import Text.Pandoc.Shared
+import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Readers.TeXMath
@@ -82,10 +83,9 @@ writeDocbook opts (Pandoc meta blocks) =
       startLvl = if writerChapters opts' then 0 else 1
       auths'   = map (authorToDocbook opts) $ docAuthors meta
       meta'    = B.setMeta "author" auths' meta
-      Just metadata = metaToJSON
+      Just metadata = metaToJSON opts
                  (Just . render colwidth . blocksToDocbook opts)
                  (Just . render colwidth . inlinesToDocbook opts)
-                 (writerVariables opts)
                  meta'
       main     = render' $ vcat (map (elementToDocbook opts' startLvl) elements)
       context = defField "body" main

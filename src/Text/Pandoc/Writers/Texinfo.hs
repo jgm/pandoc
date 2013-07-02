@@ -31,6 +31,7 @@ module Text.Pandoc.Writers.Texinfo ( writeTexinfo ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
+import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Printf ( printf )
 import Data.List ( transpose, maximumBy )
@@ -73,10 +74,10 @@ pandocToTexinfo options (Pandoc meta blocks) = do
   let colwidth = if writerWrapText options
                     then Just $ writerColumns options
                     else Nothing
-  metadata <- metaToJSON
+  metadata <- metaToJSON options
               (fmap (render colwidth) . blockListToTexinfo)
               (fmap (render colwidth) . inlineListToTexinfo)
-              (writerVariables options) meta
+              meta
   main <- blockListToTexinfo blocks
   st <- get
   let body = render colwidth main

@@ -63,10 +63,6 @@ module Text.Pandoc.Shared (
                      isTightList,
                      addMetaField,
                      makeMeta,
-                     metaToJSON,
-                     getField,
-                     setField,
-                     defField,
                      -- * TagSoup HTML handling
                      renderTags',
                      -- * File handling
@@ -99,7 +95,7 @@ import Text.Pandoc.MIME (getMimeType)
 import System.FilePath ( (</>), takeExtension, dropExtension )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
-import Control.Monad (msum, unless, liftM)
+import Control.Monad (msum, unless)
 import Text.Pandoc.Pretty (charWidth)
 import System.Locale (defaultTimeLocale)
 import Data.Time
@@ -111,10 +107,6 @@ import qualified Data.ByteString.Char8 as B8
 import Network.HTTP (findHeader, rspBody,
                      RequestMethod(..), HeaderName(..), mkRequest)
 import Network.Browser (browse, setAllowRedirects, setOutHandler, request)
-import qualified Data.Traversable as Traversable
-import qualified Data.HashMap.Strict as H
-import qualified Data.Text as T
-import Data.Aeson (FromJSON(..), fromJSON, ToJSON (..), Value(Object), Result(..))
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
@@ -523,78 +515,6 @@ makeMeta title authors date =
     $ addMetaField "author" (map B.fromList authors)
     $ addMetaField "date" (B.fromList date)
     $ nullMeta
-
--- | Create JSON value for template from a 'Meta' and an association list
--- of variables, specified at the command line or in the writer.
--- Variables overwrite metadata fields with the same names.
--- If multiple variables are set with the same name, a list is
--- assigned.
-metaToJSON :: Monad m
-           => ([Block] -> m String) -- ^ Writer for output format
-           -> ([Inline] -> m String) -- ^ Writer for output format
-           -> [(String, String)]    -- ^ Variables
-           -> Meta                  -- ^ Metadata
-           -> m Value
-metaToJSON blockWriter inlineWriter vars (Meta metamap) = do
-  let baseContext = foldl (\acc (x,y) -> setField x y acc) (Object H.empty) vars
-  renderedMap <- Traversable.mapM (metaValueToJSON blockWriter inlineWriter)
-                  metamap
-  return $ M.foldWithKey (\key val obj -> defField key val obj)
-                 baseContext renderedMap
-
-metaValueToJSON :: Monad m
-                => ([Block] -> m String)
-                -> ([Inline] -> m String)
-                -> MetaValue
-                -> m Value
-metaValueToJSON blockWriter inlineWriter (MetaMap metamap) = liftM toJSON $
-  Traversable.mapM (metaValueToJSON blockWriter inlineWriter) metamap
-metaValueToJSON blockWriter inlineWriter (MetaList xs) = liftM toJSON $
-  Traversable.mapM (metaValueToJSON blockWriter inlineWriter) xs
-metaValueToJSON _ _ (MetaString s) = return $ toJSON s
-metaValueToJSON blockWriter _ (MetaBlocks bs) = liftM toJSON $ blockWriter bs
-metaValueToJSON _ inlineWriter (MetaInlines bs) = liftM toJSON $ inlineWriter bs
-
--- | Retrieve a field value from a JSON object.
-getField :: FromJSON a
-         => String
-         -> Value
-         -> Maybe a
-getField field (Object hashmap) = do
-  result <- H.lookup (T.pack field) hashmap
-  case fromJSON result of
-       Success x -> return x
-       _         -> fail "Could not convert from JSON"
-getField field _ = fail "Not a JSON object"
-
-setField :: ToJSON a
-         => String
-         -> a
-         -> Value
-         -> Value
--- | Set a field of a JSON object.  If the field already has a value,
--- convert it into a list with the new value appended to the old value(s).
--- This is a utility function to be used in preparing template contexts.
-setField field val (Object hashmap) =
-  Object $ H.insertWith combine (T.pack field) (toJSON val) hashmap
-  where combine newval oldval =
-          case fromJSON oldval of
-                Success xs  -> toJSON $ xs ++ [newval]
-                _           -> toJSON [oldval, newval]
-setField _ _  x = x
-
-defField :: ToJSON a
-         => String
-         -> a
-         -> Value
-         -> Value
--- | Set a field of a JSON object if it currently has no value.
--- If it has a value, do nothing.
--- This is a utility function to be used in preparing template contexts.
-defField field val (Object hashmap) =
-  Object $ H.insertWith f (T.pack field) (toJSON val) hashmap
-    where f _newval oldval = oldval
-defField _ _  x = x
 
 --
 -- TagSoup HTML handling

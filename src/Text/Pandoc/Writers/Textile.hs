@@ -33,6 +33,7 @@ module Text.Pandoc.Writers.Textile ( writeTextile ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
+import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.XML ( escapeStringForXML )
 import Data.List ( intercalate )
@@ -54,9 +55,8 @@ writeTextile opts document =
 -- | Return Textile representation of document.
 pandocToTextile :: WriterOptions -> Pandoc -> State WriterState String
 pandocToTextile opts (Pandoc meta blocks) = do
-  metadata <- metaToJSON
-               (blockListToTextile opts) (inlineListToTextile opts)
-               (writerVariables opts) meta
+  metadata <- metaToJSON opts (blockListToTextile opts)
+                 (inlineListToTextile opts) meta
   body <- blockListToTextile opts blocks
   notes <- liftM (unlines . reverse . stNotes) get
   let main = body ++ if null notes then "" else ("\n\n" ++ notes)

@@ -42,7 +42,7 @@ import Control.Arrow ( (***), (>>>) )
 import Control.Monad.State hiding ( when )
 import Data.Char (chr, isDigit)
 import qualified Data.Map as Map
-import Text.Pandoc.Shared (metaToJSON, defField)
+import Text.Pandoc.Writers.Shared
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
@@ -180,10 +180,9 @@ writeOpenDocument opts (Pandoc meta blocks) =
       render' = render colwidth
       ((body, metadata),s) = flip runState
         defaultWriterState $ do
-           m <- metaToJSON
+           m <- metaToJSON opts
                   (fmap (render colwidth) . blocksToOpenDocument opts)
                   (fmap (render colwidth) . inlinesToOpenDocument opts)
-                  (writerVariables opts)
                   meta
            b <- render' `fmap` blocksToOpenDocument opts blocks
            return (b, m)

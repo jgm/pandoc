@@ -34,6 +34,7 @@ module Text.Pandoc.Writers.Org ( writeOrg) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
+import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Pretty
 import Text.Pandoc.Templates (renderTemplate')
 import Data.List ( intersect, intersperse, transpose )
@@ -63,10 +64,9 @@ pandocToOrg (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
                     else Nothing
-  metadata <- metaToJSON
+  metadata <- metaToJSON opts
                (fmap (render colwidth) . blockListToOrg)
                (fmap (render colwidth) . inlineListToOrg)
-               (writerVariables opts)
                meta
   body <- blockListToOrg blocks
   notes <- liftM (reverse . stNotes) get >>= notesToOrg

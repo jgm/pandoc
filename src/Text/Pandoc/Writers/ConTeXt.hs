@@ -31,6 +31,7 @@ Conversion of 'Pandoc' format into ConTeXt.
 module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Generic (queryWith)
 import Text.Printf ( printf )
@@ -63,10 +64,9 @@ pandocToConTeXt options (Pandoc meta blocks) = do
   let colwidth = if writerWrapText options
                     then Just $ writerColumns options
                     else Nothing
-  metadata <- metaToJSON
+  metadata <- metaToJSON options
               (fmap (render colwidth) . blockListToConTeXt)
               (fmap (render colwidth) . inlineListToConTeXt)
-              (writerVariables options)
               meta
   body <- mapM (elementToConTeXt options) $ hierarchicalize blocks
   let main = (render colwidth . vcat) body

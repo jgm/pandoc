@@ -31,6 +31,7 @@ module Text.Pandoc.Writers.RTF ( writeRTF, writeRTFWithEmbeddedImages ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
+import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Generic (bottomUpM)
@@ -75,10 +76,9 @@ writeRTFWithEmbeddedImages options doc =
 writeRTF :: WriterOptions -> Pandoc -> String
 writeRTF options (Pandoc meta blocks) =
   let spacer = not $ all null $ docTitle meta : docDate meta : docAuthors meta
-      Just metadata = metaToJSON
+      Just metadata = metaToJSON options
               (Just . concatMap (blockToRTF 0 AlignDefault))
               (Just . inlineListToRTF)
-              (writerVariables options)
               meta
       body = concatMap (blockToRTF 0 AlignDefault) blocks
       isTOCHeader (Header lev _ _) = lev <= writerTOCDepth options
