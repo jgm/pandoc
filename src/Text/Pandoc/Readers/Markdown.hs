@@ -248,9 +248,9 @@ yamlTitleBlock = try $ do
                    addWarning (Just pos) "YAML header is not an object"
                    return $ return id
 
--- ignore fields starting with _
+-- ignore fields ending with _
 ignorable :: Text -> Bool
-ignorable t = (T.pack "_") `T.isPrefixOf` t
+ignorable t = (T.pack "_") `T.isSuffixOf` t
 
 toMetaValue :: ReaderOptions -> Text -> MetaValue
 toMetaValue opts x =
