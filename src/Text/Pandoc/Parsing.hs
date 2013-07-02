@@ -141,6 +141,8 @@ module Text.Pandoc.Parsing ( (>>~),
                              setPosition,
                              sourceColumn,
                              sourceLine,
+                             setSourceColumn,
+                             setSourceLine,
                              newPos,
                              token
                              )

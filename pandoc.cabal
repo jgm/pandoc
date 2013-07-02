@@ -259,7 +259,7 @@ Library
                  blaze-markup >= 0.5.1 && < 0.6,
                  attoparsec >= 0.10 && < 0.11,
                  stringable >= 0.1 && < 0.2,
-                 yaml >= 0.8 && < 0.9,
+                 yaml >= 0.8.3 && < 0.9,
                  vector >= 0.10 && < 0.11,
                  hslua >= 0.3 && < 0.4
   if flag(embed_data_files)

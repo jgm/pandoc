@@ -40,6 +40,7 @@ import Text.Pandoc.Definition
 import qualified Data.Text as T
 import Data.Text (Text)
 import qualified Data.Yaml as Yaml
+import Data.Yaml (ParseException(..), YamlException(..), YamlMark(..))
 import qualified Data.HashMap.Strict as H
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -233,20 +234,32 @@ yamlTitleBlock = try $ do
   rawYaml <- unlines <$> manyTill anyLine stopLine
   optional blanklines
   opts <- stateOptions <$> getState
-  case Yaml.decodeEither $ UTF8.fromString rawYaml of
+  case Yaml.decodeEither' $ UTF8.fromString rawYaml of
        Right (Yaml.Object hashmap) -> return $ return $
                 H.foldrWithKey (\k v f ->
                      if ignorable k
                         then f
                         else B.setMeta (T.unpack k) (yamlToMeta opts v) . f)
                   id hashmap
-       Left errStr -> do
-                   addWarning (Just pos) $ "Could not parse YAML header: " ++
-                     errStr
-                   return $ return id
        Right _ -> do
                    addWarning (Just pos) "YAML header is not an object"
                    return $ return id
+       Left err' -> do
+                case err' of
+                   InvalidYaml (Just YamlParseException{
+                               yamlProblem = problem
+                             , yamlContext = _ctxt
+                             , yamlProblemMark = Yaml.YamlMark {
+                                   yamlLine = yline
+                                 , yamlColumn = ycol
+                             }}) ->
+                        addWarning (Just $ setSourceLine
+                           (setSourceColumn pos (sourceColumn pos + ycol))
+                           (sourceLine pos + 1 + yline))
+                           $ "Could not parse YAML header: " ++ problem
+                   _ -> addWarning (Just pos)
+                           $ "Could not parse YAML header: " ++ show err'
+                return $ return id
 
 -- ignore fields ending with _
 ignorable :: Text -> Bool
