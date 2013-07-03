@@ -198,10 +198,9 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                (if isEmpty refs' then empty else blankline <> refs')
   let context  = defField "toc" (render' toc)
                $ defField "body" main
-               $ (if not (null (docTitle meta) && null (docAuthors meta)
-                           && null (docDate meta))
-                     then defField "titleblock" (render' titleblock)
-                     else id)
+               $ (if isNullMeta meta
+                     then id
+                     else defField "titleblock" (render' titleblock))
                $ metadata
   if writerStandalone opts
      then return $ renderTemplate' (writerTemplate opts) context
