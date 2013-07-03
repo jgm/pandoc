@@ -733,7 +733,8 @@ will be replaced by the document title.
 To write a literal `$` in a template, use `$$`.
 
 Some variables are set automatically by pandoc.  These vary somewhat
-depending on the output format, but include:
+depending on the output format, but include metadata fields (such
+as `title`, `author`, and `date`) as well as the following:
 
 `header-includes`
 :   contents specified by `-H/--include-in-header` (may have multiple
@@ -748,13 +749,6 @@ depending on the output format, but include:
     multiple values)
 `body`
 :   body of document
-`title`
-:   title of document, as specified in title block
-`author`
-:   author of document, as specified in title block (may have
-    multiple values)
-`date`
-:   date of document, as specified in title block
 `lang`
 :   language code for HTML or LaTeX documents
 `slidy-url`
@@ -801,8 +795,8 @@ depending on the output format, but include:
 :   footer in man pages
 
 Variables may be set at the command line using the `-V/--variable`
-option. This allows users to include custom variables in their
-templates.
+option.  Variables set in this way override metadata fields with
+the same name.
 
 Templates may contain conditionals.  The syntax is as follows:
 
@@ -828,6 +822,11 @@ You can optionally specify a separator to be used between
 consecutive items:
 
     $for(author)$$author$$sep$, $endfor$
+
+A dot can be used to select a field of a variable that takes
+an object as its value.  So, for example:
+
+    $author.name$ ($author.affiliation$)
 
 If you use custom templates, you may need to revise them as pandoc
 changes.  We recommend tracking the changes in the default templates,
@@ -1780,7 +1779,42 @@ YAML metadata block
 
 **Extension: `yaml_metadata_block`**
 
-TODO
+If the file begins with a YAML object, delimited by a line of three
+hyphens (`---`) at the top and a line of three hyphens (`---`) or three
+dots (`...`) at the bottom, metadata will be taken from the fields
+of the YAML object.  Metadata can contain lists and objects (nested
+arbitrarily), but all string scalars will be interpreted as markdown.
+
+Fields with names ending in an underscore will be ignored by
+pandoc.  (They may be given a role by external processors.)
+
+Note that YAML escaping rules must be followed. Thus, for example,
+if a title contains a colon, it must be quoted.  The pipe character
+(`|`) can be used to begin an indented block that will be interpreted
+literally, without need for escaping.  This form is necessary
+when the field contains blank lines:
+
+   ---
+   title:  'This is the title: it contains a colon'
+   author:
+   - name: Author One
+     affiliation: University of Somewhere
+   - name: Author Two
+     affiliation: University of Nowhere
+   tags: [nothing, nothingness]
+   abstract: |
+     This is the abstract.
+
+     It consists of two paragraphs.
+   ...
+
+Template variables will be set from the metadata.  Thus, for example,
+in writing HTML, the variable `abstract` will be set to the HTML
+equivalent of the markdown in the `abstract` field:
+
+    <p>This is the abstract.</p>
+    <p>It consists of two paragraphs.</p>
+
 
 Backslash escapes
 -----------------
