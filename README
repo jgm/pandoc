@@ -1775,6 +1775,12 @@ will also have "Pandoc User Manuals" in the footer.
 
 will also have "Version 4.0" in the header.
 
+YAML metadata block
+-------------------
+
+**Extension: `yaml_metadata_block`**
+
+TODO
 
 Backslash escapes
 -----------------
@@ -2401,8 +2407,8 @@ the document, for example:
 
 See the MultiMarkdown documentation for details. Note that only title,
 author, and date are recognized; other fields are simply ignored by
-pandoc. If `pandoc_title_block` is enabled, it will take precedence over
-`mmd_title_block`.
+pandoc. If `pandoc_title_block` or `yaml_metadata_block` is enabled,
+it will take precedence over `mmd_title_block`.
 
   [MultiMarkdown]: http://fletcherpenney.net/multimarkdown/
 

@@ -131,8 +131,8 @@ plainTitleBlock tit auths dat =
   (hcat (intersperse (text "; ") auths)) <> cr <>
   dat <> cr
 
-yamlTitleBlock :: Value -> Doc
-yamlTitleBlock v = "---" $$ (jsonToYaml v) $$ "..."
+yamlMetadataBlock :: Value -> Doc
+yamlMetadataBlock v = "---" $$ (jsonToYaml v) $$ "..."
 
 jsonToYaml :: Value -> Doc
 jsonToYaml (Object hashmap) =
@@ -174,8 +174,8 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   let titleblock = case writerStandalone opts of
                         True | isPlain ->
                                 plainTitleBlock title' authors' date'
-                             | isEnabled Ext_yaml_title_block opts ->
-                                 yamlTitleBlock metadata
+                             | isEnabled Ext_yaml_metadata_block opts ->
+                                 yamlMetadataBlock metadata
                              | isEnabled Ext_pandoc_title_block opts ->
                                  pandocTitleBlock title' authors' date'
                              | isEnabled Ext_mmd_title_block opts ->

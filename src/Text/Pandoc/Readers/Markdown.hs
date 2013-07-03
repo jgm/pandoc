@@ -227,7 +227,7 @@ pandocTitleBlock = try $ do
 
 yamlTitleBlock :: MarkdownParser (F (Pandoc -> Pandoc))
 yamlTitleBlock = try $ do
-  guardEnabled Ext_yaml_title_block
+  guardEnabled Ext_yaml_metadata_block
   pos <- getPosition
   string "---"
   blankline
