@@ -360,8 +360,7 @@ options =
                   (\arg opt -> do
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
-                                    return opt { optTOCDepth = t,
-                                                 optTableOfContents = True }
+                                    return opt { optTOCDepth = t }
                            _      -> err 57 $
                                     "TOC level must be a number between 1 and 6")
                  "NUMBER")

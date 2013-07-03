@@ -323,7 +323,7 @@ General writer options
 `--toc-depth=`*NUMBER*
 :   Specify the number of section levels to include in the table
     of contents.  The default is 3 (which means that level 1, 2, and 3
-    headers will be listed in the contents).  Implies `--toc`.
+    headers will be listed in the contents).
 
 `--no-highlight`
 :   Disables syntax highlighting for code blocks and inlines, even when
