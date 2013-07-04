@@ -172,13 +172,19 @@ elementToLaTeX opts (Sec level _ (id',classes,_) title' elements) = do
   innerContents <- mapM (elementToLaTeX opts) elements
   return $ vsep (header' : innerContents)
 
+data StringContext = TextString
+                   | URLString
+                   | CodeString
+                   deriving (Eq)
+
 -- escape things as needed for LaTeX
-stringToLaTeX :: Bool -> String -> State WriterState String
+stringToLaTeX :: StringContext -> String -> State WriterState String
 stringToLaTeX  _     []     = return ""
-stringToLaTeX  isUrl (x:xs) = do
+stringToLaTeX  ctx (x:xs) = do
   opts <- gets stOptions
-  rest <- stringToLaTeX isUrl xs
-  let ligatures = writerTeXLigatures opts
+  rest <- stringToLaTeX ctx xs
+  let ligatures = writerTeXLigatures opts && not (ctx == CodeString)
+  let isUrl = ctx == URLString
   when (x == '€') $
      modify $ \st -> st{ stUsesEuro = True }
   return $
@@ -589,7 +595,7 @@ inlineToLaTeX (Code (_,classes,_) str) = do
                   Just  h -> modify (\st -> st{ stHighlighting = True }) >>
                              return (text h)
          rawCode = liftM (text . (\s -> "\\texttt{" ++ s ++ "}"))
-                          $ stringToLaTeX False str
+                          $ stringToLaTeX CodeString str
 inlineToLaTeX (Quoted qt lst) = do
   contents <- inlineListToLaTeX lst
   csquotes <- liftM stCsquotes get
@@ -613,7 +619,7 @@ inlineToLaTeX (Quoted qt lst) = do
                    if writerTeXLigatures opts
                       then char '`' <> inner <> char '\''
                       else char '\x2018' <> inner <> char '\x2019'
-inlineToLaTeX (Str str) = liftM text $ stringToLaTeX False str
+inlineToLaTeX (Str str) = liftM text $ stringToLaTeX TextString str
 inlineToLaTeX (Math InlineMath str) =
   return $ char '$' <> text str <> char '$'
 inlineToLaTeX (Math DisplayMath str) =
@@ -625,16 +631,16 @@ inlineToLaTeX (LineBreak) = return "\\\\"
 inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt ('#':ident, _)) = do
   contents <- inlineListToLaTeX txt
-  ident' <- stringToLaTeX True ident
+  ident' <- stringToLaTeX URLString ident
   return $ text "\\hyperref" <> brackets (text ident') <> braces contents
 inlineToLaTeX (Link txt (src, _)) =
   case txt of
         [Str x] | x == src ->  -- autolink
              do modify $ \s -> s{ stUrl = True }
-                src' <- stringToLaTeX True x
+                src' <- stringToLaTeX URLString x
                 return $ text $ "\\url{" ++ src' ++ "}"
         _ -> do contents <- inlineListToLaTeX txt
-                src' <- stringToLaTeX True src
+                src' <- stringToLaTeX URLString src
                 return $ text ("\\href{" ++ src' ++ "}{") <>
                          contents <> char '}'
 inlineToLaTeX (Image _ (source, _)) = do
