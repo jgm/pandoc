@@ -24,9 +24,9 @@ if "%VERSION%" == "" (
 echo Detected version %VERSION%
 cd windows
 echo Creating msi...
-"C:\Program Files\WiX Toolset v3.7\bin\candle.exe" -dVERSION=%VERSION% pandoc.wxs
+candle -dVERSION=%VERSION% pandoc.wxs
 if %errorlevel% neq 0 exit /b %errorlevel%
-"C:\Program Files\WiX Toolset v3.7\bin\light.exe"  -sw1076 -ext WixUIExtension -out pandoc-%VERSION%.msi pandoc.wixobj
+light  -sw1076 -ext WixUIExtension -out pandoc-%VERSION%.msi pandoc.wixobj
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo Starting kSign: sign, then quit kSign to complete the build...
-"C:\Program Files\kSign\kSign.exe"
+kSign
