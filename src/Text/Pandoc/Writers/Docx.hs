@@ -769,7 +769,7 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
                return [imgElt]
 
 br :: Element
-br = mknode "w:r" [] [mknode "w:cr" [] () ]
+br = mknode "w:r" [] [mknode "w:br" [("w:type","textWrapping")] () ]
 
 parseXml :: Archive -> String -> IO Element
 parseXml refArchive relpath =
