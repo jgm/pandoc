@@ -27,7 +27,7 @@ $if(sansfont)$
     \setsansfont{$sansfont$}
 $endif$
 $if(monofont)$
-    \setmonofont{$monofont$}
+    \setmonofont[Mapping=tex-ansi]{$monofont$}
 $endif$
 $if(mathfont)$
     \setmathfont(Digits,Latin,Greek){$mathfont$}
