@@ -89,7 +89,7 @@ import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
 import Data.List ( find, isPrefixOf, intercalate )
 import qualified Data.Map as M
-import Network.URI ( escapeURIString, isAbsoluteURI, parseURI, unEscapeString )
+import Network.URI ( escapeURIString, isAbsoluteURI, unEscapeString )
 import System.Directory
 import Text.Pandoc.MIME (getMimeType)
 import System.FilePath ( (</>), takeExtension, dropExtension )
@@ -102,17 +102,25 @@ import Data.Time
 import System.IO (stderr)
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
          renderOptions)
-import qualified Data.ByteString as B
+import qualified Data.ByteString as BS
+import Data.ByteString.Lazy (toChunks)
 import qualified Data.ByteString.Char8 as B8
-import Network.HTTP (findHeader, rspBody,
-                     RequestMethod(..), HeaderName(..), mkRequest)
-import Network.Browser (browse, setAllowRedirects, setOutHandler, request)
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
 import System.FilePath ( joinPath, splitDirectories )
 #else
 import Paths_pandoc (getDataFileName)
+#endif
+#ifdef HTTP_CONDUIT
+import Network.HTTP.Conduit (httpLbs, parseUrl, withManager,
+                             responseBody, responseHeaders)
+import Network.HTTP.Types.Header ( hContentType)
+#else
+import Network.URI (parseURI)
+import Network.HTTP (findHeader, rspBody,
+                     RequestMethod(..), HeaderName(..), mkRequest)
+import Network.Browser (browse, setAllowRedirects, setOutHandler, request)
 #endif
 
 --
@@ -545,7 +553,7 @@ inDirectory path action = do
   setCurrentDirectory oldDir
   return result
 
-readDefaultDataFile :: FilePath -> IO B.ByteString
+readDefaultDataFile :: FilePath -> IO BS.ByteString
 readDefaultDataFile fname =
 #ifdef EMBED_DATA_FILES
   case lookup (makeCanonical fname) dataFiles of
@@ -558,17 +566,17 @@ readDefaultDataFile fname =
         go (_:as) ".." = as
         go as     x    = x : as
 #else
-  getDataFileName ("data" </> fname) >>= B.readFile
+  getDataFileName ("data" </> fname) >>= BS.readFile
 #endif
 
 -- | Read file from specified user data directory or, if not found there, from
 -- Cabal data directory.
-readDataFile :: Maybe FilePath -> FilePath -> IO B.ByteString
+readDataFile :: Maybe FilePath -> FilePath -> IO BS.ByteString
 readDataFile Nothing fname = readDefaultDataFile fname
 readDataFile (Just userDir) fname = do
   exists <- doesFileExist (userDir </> fname)
   if exists
-     then B.readFile (userDir </> fname)
+     then BS.readFile (userDir </> fname)
      else readDefaultDataFile fname
 
 -- | Same as 'readDataFile' but returns a String instead of a ByteString.
@@ -578,7 +586,7 @@ readDataFileUTF8 userDir fname =
 
 -- | Fetch an image or other item from the local filesystem or the net.
 -- Returns raw content and maybe mime type.
-fetchItem :: String -> String -> IO (B.ByteString, Maybe String)
+fetchItem :: String -> String -> IO (BS.ByteString, Maybe String)
 fetchItem sourceDir s =
   case s of
     _ | isAbsoluteURI s         -> openURL s
@@ -588,16 +596,23 @@ fetchItem sourceDir s =
                         ".gz" -> getMimeType $ dropExtension s
                         x     -> getMimeType x
           let f = sourceDir </> s
-          cont <- B.readFile f
+          cont <- BS.readFile f
           return (cont, mime)
 
 -- | Read from a URL and return raw data and maybe mime type.
-openURL :: String -> IO (B.ByteString, Maybe String)
+openURL :: String -> IO (BS.ByteString, Maybe String)
 openURL u
   | "data:" `isPrefixOf` u =
     let mime     = takeWhile (/=',') $ drop 5 u
         contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u
     in  return (contents, Just mime)
+#ifdef HTTP_CONDUIT
+  | otherwise = do
+     req <- parseUrl u
+     resp <- withManager $ httpLbs req
+     return (BS.concat $ toChunks $ responseBody resp,
+             UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
+#else
   | otherwise = getBodyAndMimeType `fmap` browse
               (do S.liftIO $ UTF8.hPutStrLn stderr $ "Fetching " ++ u ++ "..."
                   setOutHandler $ const (return ())
@@ -609,6 +624,7 @@ openURL u
                                                         uriString)
                                    Just v  -> mkRequest GET v
         u' = escapeURIString (/= '|') u  -- pipes are rejected by Network.URI
+#endif
 
 --
 -- Error reporting

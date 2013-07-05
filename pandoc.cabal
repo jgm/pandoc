@@ -224,6 +224,10 @@ Flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
   Default:       False
 
+Flag http-conduit
+  Description:   Enable downloading of resources over https.
+  Default:       True
+
 Library
   Build-Depends: base >= 4.2 && <5,
                  syb >= 0.1 && < 0.5,
@@ -262,6 +266,10 @@ Library
                  yaml >= 0.8.3 && < 0.9,
                  vector >= 0.10 && < 0.11,
                  hslua >= 0.3 && < 0.4
+  if flag(http-conduit)
+     Build-Depends: http-conduit >= 1.9 && < 1.10,
+                    http-types >= 0.8 && < 0.9
+     cpp-options:   -DHTTP_CONDUIT
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
      -- build-tools:   hsb2hs
