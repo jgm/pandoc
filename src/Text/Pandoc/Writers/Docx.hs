@@ -32,8 +32,10 @@ module Text.Pandoc.Writers.Docx ( writeDocx ) where
 import Data.List ( intercalate, groupBy )
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Lazy.Char8 as BL8
 import qualified Data.Map as M
 import qualified Text.Pandoc.UTF8 as UTF8
+import Data.Monoid ((<>))
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
 import Text.Pandoc.Definition
@@ -89,15 +91,16 @@ defaultWriterState = WriterState{
 
 type WS a = StateT WriterState IO a
 
-showTopElement' :: Element -> String
-showTopElement' x = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++ showElement x
-
 mknode :: Node t => String -> [(String,String)] -> t -> Element
 mknode s attrs =
   add_attrs (map (\(k,v) -> Attr (unqual k) v) attrs) . node (unqual s)
 
 toLazy :: B.ByteString -> BL.ByteString
 toLazy = BL.fromChunks . (:[])
+
+renderXml :: Element -> BL.ByteString
+renderXml elt = BL8.pack "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" <>
+  UTF8.fromStringLazy (showElement elt)
 
 -- | Produce an Docx file from a Pandoc document.
 writeDocx :: WriterOptions  -- ^ Writer options
@@ -155,7 +158,7 @@ writeDocx opts doc@(Pandoc meta _) = do
               [("Extension","rels"),("ContentType","application/vnd.openxmlformats-package.relationships+xml")] ()]
   let contentTypesDoc = mknode "Types" [("xmlns","http://schemas.openxmlformats.org/package/2006/content-types")] $ defaultnodes ++ overrides
   let contentTypesEntry = toEntry "[Content_Types].xml" epochtime
-        $ UTF8.fromStringLazy $ showTopElement' contentTypesDoc
+        $ renderXml contentTypesDoc
 
   -- word/_rels/document.xml.rels
   let toBaseRel (url', id', target') = mknode "Relationship"
@@ -190,22 +193,21 @@ writeDocx opts doc@(Pandoc meta _) = do
   let linkrels = map toLinkRel $ M.toList $ stExternalLinks st
   let reldoc = mknode "Relationships" [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")] $ baserels ++ imgrels ++ linkrels
   let relEntry = toEntry "word/_rels/document.xml.rels" epochtime
-        $ UTF8.fromStringLazy $ showTopElement' reldoc
+        $ renderXml reldoc
 
   -- create entries for images in word/media/...
   let toImageEntry (_,path,_,_,img) = toEntry ("word/" ++ path) epochtime $ toLazy img
   let imageEntries = map toImageEntry imgs
 
   -- word/document.xml
-  let contentEntry = toEntry "word/document.xml" epochtime $ UTF8.fromStringLazy $ showTopElement' contents
+  let contentEntry = toEntry "word/document.xml" epochtime $ renderXml contents
 
   -- footnotes
-  let footnotesEntry = toEntry "word/footnotes.xml" epochtime $ UTF8.fromStringLazy $
-        showTopElement' footnotes
+  let footnotesEntry = toEntry "word/footnotes.xml" epochtime $ renderXml footnotes
 
   -- footnote rels
-  let footnoteRelEntry = toEntry "word/_rels/footnotes.xml.rels" epochtime $ UTF8.fromStringLazy $
-        showTopElement' $ mknode "Relationships" [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")]
+  let footnoteRelEntry = toEntry "word/_rels/footnotes.xml.rels" epochtime
+        $ renderXml $ mknode "Relationships" [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")]
         $ linkrels
 
   -- styles
@@ -213,11 +215,11 @@ writeDocx opts doc@(Pandoc meta _) = do
   let stylepath = "word/styles.xml"
   styledoc <- parseXml refArchive stylepath
   let styledoc' = styledoc{ elContent = elContent styledoc ++ map Elem newstyles }
-  let styleEntry = toEntry stylepath epochtime $ UTF8.fromStringLazy $ showTopElement' styledoc'
+  let styleEntry = toEntry stylepath epochtime $ renderXml styledoc'
 
   -- construct word/numbering.xml
   let numpath = "word/numbering.xml"
-  numEntry <- (toEntry numpath epochtime . UTF8.fromStringLazy . showTopElement')
+  numEntry <- (toEntry numpath epochtime . renderXml)
                  `fmap` mkNumbering (stNumStyles st) (stLists st)
   let docPropsPath = "docProps/core.xml"
   let docProps = mknode "cp:coreProperties"
@@ -231,21 +233,36 @@ writeDocx opts doc@(Pandoc meta _) = do
             (maybe "" id $ normalizeDate $ stringify $ docDate meta)
           : mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] () -- put current time here
           : map (mknode "dc:creator" [] . stringify) (docAuthors meta)
-  let docPropsEntry = toEntry docPropsPath epochtime $ UTF8.fromStringLazy $ showTopElement' docProps
-  let relsPath = "_rels/.rels"
-  rels <- case findEntryByPath relsPath refArchive of
-                   Just e  -> return $ UTF8.toStringLazy $ fromEntry e
-                   Nothing -> err 57 "could not find .rels/_rels in reference docx"
+  let docPropsEntry = toEntry docPropsPath epochtime $ renderXml docProps
 
-  -- fix .rels/_rels, which can get screwed up when reference.docx is edited by Word
-  let rels' = substitute "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties"
-                  "http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties"
-                  rels
-  let relsEntry = toEntry relsPath epochtime $ UTF8.fromStringLazy rels'
+  let relsPath = "_rels/.rels"
+  let rels = mknode "Relationships" [("xmlns", "http://schemas.openxmlformats.org/package/2006/relationships")]
+        $ map (\attrs -> mknode "Relationship" attrs ())
+        [ [("Id","rId1")
+          ,("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument")
+          ,("Target","word/document.xml")]
+        , [("Id","rId4")
+          ,("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties")
+          ,("Target","docProps/app.xml")]
+        , [("Id","rId3")
+          ,("Type","http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties")
+          ,("Target","docProps/core.xml")]
+        ]
+  let relsEntry = toEntry relsPath epochtime $ renderXml rels
+
+  let entryFromArchive path = (toEntry path epochtime . renderXml) `fmap`
+                                parseXml refArchive path
+  docPropsAppEntry <- entryFromArchive "docProps/app.xml"
+  themeEntry <- entryFromArchive "word/theme/theme1.xml"
+  fontTableEntry <- entryFromArchive "word/fontTable.xml"
+  webSettingsEntry <- entryFromArchive "word/webSettings.xml"
 
   -- Create archive
-  let archive = foldr addEntryToArchive refArchive $
-                  contentTypesEntry : relsEntry : contentEntry : relEntry : footnoteRelEntry : numEntry : styleEntry : footnotesEntry : docPropsEntry : imageEntries
+  let archive = foldr addEntryToArchive emptyArchive $
+                  contentTypesEntry : relsEntry : contentEntry : relEntry :
+                  footnoteRelEntry : numEntry : styleEntry : footnotesEntry :
+                  docPropsEntry : docPropsAppEntry : themeEntry :
+                  fontTableEntry : webSettingsEntry : imageEntries
   return $ fromArchive archive
 
 styleToOpenXml :: Style -> [Element]
