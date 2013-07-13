@@ -1,5 +1,5 @@
 /* This defines styles and classes used in the book */
-body { margin-left: 5%; margin-right: 5%; margin-top: 5%; margin-bottom: 5%; text-align: justify; font-size: medium; }
+body { margin: 5%; text-align: justify; font-size: medium; }
 code { font-family: monospace; }
 h1 { text-align: left; }
 h2 { text-align: left; }
