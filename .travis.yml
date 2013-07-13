@@ -1,8 +1,9 @@
 language: haskell
-# before_install:
-# - git submodule update --init --recursive
+before_install:
+  - cabal install cabal-dev
+  - 'git clone https://github.com/jgm/pandoc-types && cabal-dev add-source pandoc-types'
+  - 'git clone https://github.com/jgm/citeproc-hs && cabal-dev add-source citeproc-hs'
 install:
-  - make prep
-# - cabal update
-# - cabal install --enable-tests
-script:  cabal-dev configure --enable-tests && cabal-dev build && cabal-dev test
+  - cabal-dev install-deps --enable-tests
+script:
+  - 'cabal-dev configure --enable-tests && cabal-dev build && cabal-dev test'
