@@ -214,7 +214,8 @@ writeDocx opts doc@(Pandoc meta _) = do
   let newstyles = styleToOpenXml $ writerHighlightStyle opts
   let stylepath = "word/styles.xml"
   styledoc <- parseXml refArchive stylepath
-  let styledoc' = styledoc{ elContent = elContent styledoc ++ map Elem newstyles }
+  let styledoc' = styledoc{ elContent = elContent styledoc ++
+                  [Elem x | x <- newstyles, writerHighlight opts] }
   let styleEntry = toEntry stylepath epochtime $ renderXml styledoc'
 
   -- construct word/numbering.xml
@@ -665,13 +666,16 @@ inlineToOpenXML opts (Math mathType str) = do
         Right r -> return [r]
         Left  _ -> inlinesToOpenXML opts (readTeXMath str)
 inlineToOpenXML opts (Cite _ lst) = inlinesToOpenXML opts lst
-inlineToOpenXML _ (Code attrs str) =
+inlineToOpenXML opts (Code attrs str) =
   withTextProp (rStyle "VerbatimChar")
-  $ case highlight formatOpenXML attrs str of
-         Nothing  -> intercalate [br]
-                     `fmap` (mapM formattedString $ lines str)
-         Just h   -> return h
-     where formatOpenXML _fmtOpts = intercalate [br] . map (map toHlTok)
+  $ if writerHighlight opts
+       then case highlight formatOpenXML attrs str of
+             Nothing  -> unhighlighted
+             Just h   -> return h
+       else unhighlighted
+     where unhighlighted = intercalate [br] `fmap`
+                             (mapM formattedString $ lines str)
+           formatOpenXML _fmtOpts = intercalate [br] . map (map toHlTok)
            toHlTok (toktype,tok) = mknode "w:r" []
                                      [ mknode "w:rPr" []
                                        [ rStyle $ show toktype ]
