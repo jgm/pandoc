@@ -1,9 +1,8 @@
 language: haskell
-before_install:
-  - make prep
+# before_install:
 # - git submodule update --init --recursive
 install:
-  - make install
+  - make prep
 # - cabal update
 # - cabal install --enable-tests
 script:  cabal-dev configure --enable-tests && cabal-dev build && cabal-dev test
