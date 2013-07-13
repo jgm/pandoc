@@ -6,6 +6,9 @@
 all:
 	cabal-dev configure --enable-tests --enable-benchmarks && cabal-dev build
 
+test: all
+	cabal test
+
 prof:
 	cabal-dev configure --disable-tests --enable-library-profiling --enable-executable-profiling && cabal-dev build
 
@@ -45,4 +48,4 @@ citeproc-hs: pandoc-types
  	cabal-dev add-source citeproc-hs
 
 install:
-	cabal-dev install --enable-tests --enable-benchmarks
+	cabal-dev install --enable-tests
