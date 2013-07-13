@@ -422,7 +422,10 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
       adjCode  = if tolhs
                     then unlines . map ("> " ++) . lines $ rawCode
                     else rawCode
-  case highlight formatHtmlBlock (id',classes',keyvals) adjCode of
+      hlCode   = if writerHighlight opts -- check highlighting options
+                    then highlight formatHtmlBlock (id',classes',keyvals) adjCode
+                    else Nothing
+  case hlCode of
          Nothing -> return $ addAttrs opts (id',classes,keyvals)
                            $ H.pre $ H.code $ toHtml adjCode
          Just  h -> modify (\st -> st{ stHighlighting = True }) >>
@@ -589,14 +592,17 @@ inlineToHtml opts inline =
     (LineBreak)      -> return $ if writerHtml5 opts then H5.br else H.br
     (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
-    (Code attr str)  -> case highlight formatHtmlInline attr str of
+    (Code attr str)  -> case hlCode of
                              Nothing -> return
                                         $ addAttrs opts attr
                                         $ H.code $ strToHtml str
                              Just  h -> do
                                modify $ \st -> st{ stHighlighting = True }
                                return $ addAttrs opts (id',[],keyvals) h
-                                where (id',_,keyvals) = attr
+                        where (id',_,keyvals) = attr
+                              hlCode = if writerHighlight opts
+                                          then highlight formatHtmlInline attr str
+                                          else Nothing
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . H.del
     (SmallCaps lst)   -> inlineListToHtml opts lst >>=
