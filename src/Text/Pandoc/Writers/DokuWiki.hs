@@ -112,7 +112,7 @@ blockToDokuWiki _ HorizontalRule = return "\n-----\n"
 
 blockToDokuWiki opts (Header level _ inlines) = do
   contents <- inlineListToDokuWiki opts inlines
-  let eqs = replicate level '='
+  let eqs = replicate ( 7 - level ) '='
   return $ eqs ++ " " ++ contents ++ " " ++ eqs ++ "\n"
 
 blockToDokuWiki _ (CodeBlock (_,classes,_) str) = do
